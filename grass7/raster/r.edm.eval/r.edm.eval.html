@@ -1,13 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.edm.eval</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.edm.eval</b></em>  - Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
+<h2>KEYWORDS</h2>
+<h2>SYNOPSIS</h2>
+<div id="name"><b>r.edm.eval</b><br></div>
+<b>r.edm.eval help</b><br>
+<div id="synopsis"><b>r.edm.eval</b> [-<b>bl</b>] <b>obs</b>=<em>Raster name</em> <b>mod</b>=<em>Raster name</em> <b>fstats</b>=<em>File name</em>  [<b>n_bins</b>=<em>integer</em>]   [<b>buffer_abs</b>=<em>buffer zone (km)</em>]   [<b>buffer_pres</b>=<em>buffer zone (km)</em>]   [<b>preval</b>=<em><0-1></em>]   [<b>num_pres</b>=<em>integer</em>]   [<b>num_abs</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+</div>
+
+<div id="flags">
+<h3>Flags:</h3>
+<dl>
+<dt><b>-b</b></dt>
+<dd>add presence to background?</dd>
+
+<dt><b>-l</b></dt>
+<dd>print log file to file?</dd>
+
+<dt><b>--help</b></dt>
+<dd>Print usage summary</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
+</div>
+
+<div id="parameters">
+<h3>Parameters:</h3>
+<dl>
+<dt><b>obs</b>=<em>Raster name</em>&nbsp;<b>[required]</b></dt>
+<dd>Observed distribution</dd>
+
+<dt><b>mod</b>=<em>Raster name</em>&nbsp;<b>[required]</b></dt>
+<dd>Modeled distribution</dd>
+
+<dt><b>fstats</b>=<em>File name</em>&nbsp;<b>[required]</b></dt>
+<dd>Name of output files (without extension)</dd>
+
+<dt><b>n_bins</b>=<em>integer</em></dt>
+<dd>Number of bins in which to divide the modeled distribution scores</dd>
+<dd>Default: <em>200</em></dd>
+
+<dt><b>buffer_abs</b>=<em>buffer zone (km)</em></dt>
+<dd>Restrict absence area to x km buffer</dd>
+<dd>Default: <em>0</em></dd>
+
+<dt><b>buffer_pres</b>=<em>buffer zone (km)</em></dt>
+<dd>Restrict presence area to x km buffer</dd>
+<dd>Default: <em>0</em></dd>
+
+<dt><b>preval</b>=<em><0-1></em></dt>
+<dd>Prevalence of presence points</dd>
+<dd>Default: <em>0</em></dd>
+
+<dt><b>num_pres</b>=<em>integer</em></dt>
+<dd>number of presence points (this will not work if parab &gt; 0)</dd>
+<dd>Default: <em>0</em></dd>
+
+<dt><b>num_abs</b>=<em>integer</em></dt>
+<dd>number of absence points (this will not work if parab &gt; 0)</dd>
+<dd>Default: <em>0</em></dd>
+
+</dl>
+</div>
+
 <h2>DESCRIPTION</h2>
 
-<em>r.edm.eval</em> Environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The script evaluates how well a modeled distribution map predicts an observed distribution map. The observed distribution map should be a binary map, with 1 for presence and 0 for absence. The modeled distribution normally contains probability scores between 0 and 1, but it will work on other scales too.
+<p><em>r.edm.eval</em>Environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The function returns a number of evaluation statistics (on the command line and as text file with user defined name), including the AUC, maximum sum of specificity and sensitivity (spec. + sens), the maximum true skill statistic (TSS - which is just spec + sens - 1), and the the maximum kappa. For all three statistics, the corresponding probabilty threshold values are also given.
 
-<p>The function returns a table with the number of true positives, true negatives (TN), false positive (FP) and false negative (FN) values. It uses this values to compute the receiver operating characteristic (ROC) curve and optionally saves it as svg or png file. It furthermore computes a number of evaluation statistics, including the maximum kappa statistics and the spec.sens (maximum sum of the specificity and sensitivity values). For both the threshold values at which these values were found are provided as well as plotted in the ROC graph. 
+<p>In addition, a csv file (with user-defined name) is created with the number of true and false positives (TP,FP), true and false negatives (TN,FN), the true and false positive rate (TPR,FPR), the true negative rate (TNR) and the three statistics mentioned above are given. The user can use this to create for example the receiver operating characteristic (ROC) curve and other evaluation statistics in her/his favorite software.
 
+<p>The observed distribution map should be a binary map, with 1 for presence and 0 for absence. The modeled distribution normally contains probability scores between 0 and 1, but it will work on other scales too. 
+
+<p>It is fairly common to use background rather than (pseudo-)absence points in species distribution modeling. To evaluate models that are build using presence and background points, there is the option to add the presence points to the absence points (flag b). If selected, the combined presence-absence points will be used instead of the absence points.
+
+<p>A problem with the AUC is that it varies with the spatial extent used to select background points (Lobo et al. 2008, Jiménez-Valverde 2012). Generally, the larger that extent, the higher the AUC value. Therefore, AUC values are generally biased and cannot be directly compared. One possible way to address this problem is to use a pairwise distance sampling for presence and absence testing points to remove this bias (Hijmans 2012). An perhaps simpler way to evaluate this problem of changing AUC values with changing extents is to only sample absence/background points within certain distances of the presence points. 
+
+<p>The addon offers the option to limit the area over which the evaluation statistics are calculated. The user can define a buffer (in kilometers) around the absence and presence raster cells (the options buffer_abs and buffer_pres respectively). The inside buffer is obviously only useful when your presence data consists of areas (polygons) rather then point data. Note that currently the script does not check if there are sufficient number of absence or background points within the given distance of the presence points. The default value is 0, which means no buffer is used
+
+<p>To test the sensitivity of the evaluation statistics for the number of evaluation points, it is possible to set the number of presence and absence points to be used (they will be randomly selected) using the num_pres and num_abs parameters (the default, 0, means all points are included). If the number of presence or absence set by the user is larger than the actual number of presence or absence points, this step is silently skipped. Note however that the number of points used to calculate the statistics are given in the summary.
+
+<p>The user can set the required ratio of presence and total points to be used in the evaluation (0&lt;preval&lt;1, any value outside this range will be ignored). This allows the user to test how sensitive the evaluation statistics are for the prevalence of presence points. Note that if preval > 0, the num_pre and num_abs parameters will be ignored. Note that if you use the flag to use background points rather than absence points, this preval option will probably not make sense (check the reported prevalence in the summary output).
 
 <h2>NOTES</h2>
-the scripts bins the EDM values. It does this by calculating the 1/200 quantiles. With very large outliers in your EDM values, this may give erreneous values (underestimates) of your statistics.
+
+<p>The selection of the best evaluation statistic depends on your data and what you want to test. This add-on provides a few, but the user can calculate his/her own using the table in the csv file. See the REFERENCES list for a few useful references in that respect.
+
+<p>Besides R, the script uses the R packages spgrass6, reshape and caTools. If they are not installed yet, the script will attempt to do so. This may take some time, so if you are planning to use the script more often, you are advised to install the packages yourself first.
+
+
+<h2>REFERENCES</h2>
+<p>Jiménez-Valverde, A. 2012. Insights into the area under the receiver operating characteristic curve (AUC) as a discrimination measure in species distribution modelling. Global Ecology and Biogeography 21: 498-507
+<p>Lobo, J. M., Jiménez-Valverde, A., & Real, R. 2008. AUC: a misleading measure of the performance of predictive distribution models. Global Ecology and Biogeography 17: 145-151.
+<p>Hijmans, R. J. 2012. Cross-validation of species distribution models: removing spatial sorting bias and calibration with a null model. Ecology 93: 679-688.
+<P>Allouche, O., Tsoar, A., & Kadmon, R. 2006. Assessing the accuracy of species distribution models: prevalence, kappa and the true skill statistic (TSS). Journal of Applied Ecology 43: 1223-1232.
+<p>McPHERSON, J. M., Jetz, W., & Rogers, D. J. 2004. The effects of species' range sizes on the accuracy of distribution models: ecological phenomenon or statistical artefact? Journal of Applied Ecology 41: 811-823.
+
 
 <h2>AUTHOR</h2>
-Paulo van Breugel <paulo at ecodiv.org>
+Paulo van Breugel <http://www.ecodiv.org/about/contact-us/>
+<br>
 
+<hr>
+<p><a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/index.html">Main index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/raster.html">Raster index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/topics.html">Topics index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/keywords.html">Keywords Index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/full_index.html">Full index</a></p>
+<p>&copy; 2003-2013 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS 7.0.svn Reference Manual</p>
+
+</body>
+</html>
