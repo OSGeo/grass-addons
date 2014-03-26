@@ -20,7 +20,7 @@
 #
 # Disclaimer:   Only limited testing has been done. Use at own risk
 #   
-# COPYRIGHT: (C) 2013 Paulo van Breugel
+# COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
 # 
@@ -54,6 +54,11 @@
 #% multiple: no
 #%end
 
+#%flag
+#% key: b
+#% description: add presence to background?
+#%end
+
 #%option
 #% key: fstats
 #% type: string
@@ -70,6 +75,11 @@
 #% key_desc: integer
 #% answer: 200
 #% required: no
+#%end
+
+#%flag
+#% key: l
+#% description: print log file to file?
 #%end
 
 #%option
@@ -92,16 +102,34 @@
 #% guisection: evaluation area
 #%end
 
-#%flag
-#% key: p
-#% description: Save png image of ROC plot
-#% guisection: ROC plot
+#%option
+#% key: preval
+#% type: string
+#% description: Prevalence of presence points
+#% key_desc: <0-1>
+#% answer: 0
+#% required: no
+#% guisection: evaluation area
 #%end
 
-#%flag
-#% key: s
-#% description: Save svg file of ROC plot
-#% guisection: ROC plot
+#%option
+#% key: num_pres
+#% type: integer
+#% description: number of presence points (this will not work if parab > 0)
+#% key_desc: integer
+#% answer: 0
+#% required: no
+#% guisection: evaluation area
+#%end
+
+#%option
+#% key: num_abs
+#% type: integer
+#% description: number of absence points (this will not work if parab > 0)
+#% key_desc: integer
+#% answer: 0
+#% required: no
+#% guisection: evaluation area
 #%end
 
 #=======================================================================
@@ -149,14 +177,6 @@ trap "exitprocedure" 2 3 15
 if [ -z "$PROCESSDIR" ] ; then
 	PROCESSDIR="$HOME"
 fi
-
-#fix this path
-if [ -z "$LOGDIR" ] ; then
-	LOGDIR="$HOME"
-fi
-LOGFILE="$LOGDIR/r_model_eval.log"
-
-echo "r.model.eval :" >> "$LOGFILE"
 
 #=======================================================================
 # test for missing input raster maps
@@ -223,15 +243,17 @@ copy_rast.GRASS <- function(rast, remove.orig=FALSE){
 grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
 
 ## Get vector with variables
-args <- commandArgs(trailingOnly=TRUE)
-obsmap <- args[1]
-distmod <- args[2]
-n.bins <- as.numeric(args[3])
-bufabs <- as.numeric(args[4])
-bufpres <- as.numeric(args[5])
-plot.png <- as.numeric(args[6])
-plot.svg <- as.numeric(args[7])
-fnames <- args[8]
+obsmap <- Sys.getenv("GIS_OPT_OBS")
+distmod <- Sys.getenv("GIS_OPT_MOD")
+n.bins <- as.numeric(Sys.getenv("GIS_OPT_N_BINS"))
+bufabs <- as.numeric(Sys.getenv("GIS_OPT_BUFFER_ABS"))
+bufpres <- as.numeric(Sys.getenv("GIS_OPT_BUFFER_PRES"))
+fnames <- Sys.getenv("GIS_OPT_FSTATS")
+num.pres <- Sys.getenv("GIS_OPT_NUM_PRES")
+num.abs <- Sys.getenv("GIS_OPT_NUM_ABS")
+preval <- as.numeric(Sys.getenv("GIS_OPT_PREVAL"))
+print.log <- as.numeric(Sys.getenv("GIS_FLAG_L"))
+backgr <- as.numeric(Sys.getenv("GIS_FLAG_B"))
 
 # Create buffer map with buffer width of bufabs (outside) or bufpres (inside)
 if(bufabs>0){
@@ -255,9 +277,75 @@ if(bufpres>0){
     obsmap <- tmp.b
     execGRASS("g.remove", rast=tmp.c)
 }
-    
+
+# Prevalence
+if(preval>0 & preval < 1){
+    tmp.e <- "tmp_r_model_evaluation_0987654321e"
+    tmp.f <- "tmp_r_model_evaluation_0987654321f"
+    tmp.g <- "tmp_r_model_evaluation_0987654321g"
+    tmp.h <- "tmp_r_model_evaluation_0987654321h"
+    tmp.i <- "tmp_r_model_evaluation_0987654321i"
+    pa_cnt <- execGRASS("r.univar", flags=c("t","g"), map=obsmap, zones=obsmap, intern=TRUE)
+    pa_cnt <- get_output.GRASS(pa_cnt, separator="|", h=TRUE)[,c(1,3)]
+    pres.req <- ceiling((pa_cnt[1,2] + pa_cnt[2,2]) * preval)
+    abs.req <- ceiling((pa_cnt[1,2] + pa_cnt[2,2]) - pres.req)
+    if(pres.req > pa_cnt[2,2]){
+        pres.req <- pa_cnt[2,2]
+        abs.req <- ceiling((pa_cnt[2,2] / preval) - pa_cnt[2,2])
+    }
+    if(abs.req > pa_cnt[1,2]){
+        pres.req <- ceiling(pa_cnt[1,2]/abs.req*pres.req)
+        abs.req <- pa_cnt[1,2]
+    }
+    execGRASS("r.mapcalc", expression=paste(tmp.e, " = if(", obsmap, "== 1,1, null())", sep=""), Sys_wait=TRUE)
+    execGRASS("r.random", input=tmp.e, n=as.character(pres.req), raster_output=tmp.f, Sys_wait=TRUE)
+    execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.g, " = if(", obsmap, "==0,0,null())", sep=""), Sys_wait=TRUE)
+    execGRASS("r.random", input=tmp.g, n=as.character(abs.req), raster_output=tmp.h, Sys_wait=TRUE)
+    execGRASS("r.patch", input=paste(tmp.f, tmp.h, sep=","), output=tmp.i, flags="overwrite", Sys_wait=TRUE)
+    obsmap <- tmp.i
+    execGRASS("g.remove", rast=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
+}else{
+    # Set number of presence and absence points  
+    if(num.pres > 0 | num.abs > 0){
+        pa_cnt <- execGRASS("r.univar", flags=c("t","g"), map=obsmap, zones=obsmap, intern=TRUE)
+        pa_cnt <- get_output.GRASS(pa_cnt, separator="|", h=TRUE)[,c(1,3)]
+        num.pres <- ifelse(num.pres >= pa_cnt[2,2], 0, num.pres)
+        num.abs  <- ifelse(num.abs >= pa_cnt[1,2], 0, num.abs)
+    }
+    if(num.pres > 0){
+        tmp.e <- "tmp_r_model_evaluation_0987654321e"
+        tmp.f <- "tmp_r_model_evaluation_0987654321f"
+        execGRASS("r.mapcalc", expression=paste(tmp.e, obsmap, sep=" = "), Sys_wait=TRUE)
+        execGRASS("r.null", map=tmp.e, setnull="0", Sys_wait=TRUE)
+        execGRASS("r.random", input=tmp.e, raster_output=tmp.f, n=as.character(num.pres), Sys_wait=TRUE)
+    }
+    if(num.abs > 0){
+        tmp.g <- "tmp_r_model_evaluation_0987654321g"
+        tmp.h <- "tmp_r_model_evaluation_0987654321h"
+        execGRASS("r.mapcalc", expression=paste(tmp.g, obsmap, sep=" = "), Sys_wait=TRUE)
+        execGRASS("r.null", map=tmp.g, setnull="1", Sys_wait=TRUE)
+        execGRASS("r.random", input=tmp.g, raster_output=tmp.h, n=as.character(num.pres), Sys_wait=TRUE)
+    }       
+    if(num.pres > 0 & num.abs == 0){
+        tmp.h <- "tmp_r_model_evaluation_0987654321h"
+        execGRASS("r.mapcalc", expression=paste(tmp.h, obsmap, sep=" = "), Sys_wait=TRUE)
+        execGRASS("r.null", map=tmp.h, setnull="1", Sys_wait=TRUE)
+    }
+    if(num.abs > 0 & num.pres ==0){
+        tmp.f <- "tmp_r_model_evaluation_0987654321f"
+        execGRASS("r.mapcalc", expression=paste(tmp.f, obsmap, sep=" = "), Sys_wait=TRUE)
+        execGRASS("r.null", map=tmp.f, setnull="0", Sys_wait=TRUE)
+    }
+    if(num.abs > 0 | num.pres > 0){
+        tmp.j <- "tmp_r_model_evaluation_0987654321j"
+        execGRASS("r.patch", input=paste(tmp.f, tmp.h, sep=","), output=tmp.j, flags="overwrite", Sys_wait=TRUE)
+        obsmap <- tmp.j
+        execGRASS("g.remove", rast=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
+    }
+}
+
 # Create map with probability scores grouped in n.bins bins
-a <- execGRASS("r.univar", flags="g", map=distmod, separator=";", intern=TRUE)
+a <- execGRASS("r.univar", flags="g", map=distmod, intern=TRUE)
 maxmin <- get_output.GRASS(a, separator="=")
 stps <- (maxmin[5,2] - maxmin[4,2])/n.bins
 roc.st <- seq(maxmin[4,2], maxmin[5,2], by=stps)
@@ -272,14 +360,39 @@ tmp.d <- "tmp_r_model_evaluation_0987654321d"
 execGRASS("r.recode", flags="overwrite", input=distmod, output=tmp.d, rules=tmp.rule)
 unlink(tmp.rule)
 
-# Get zonal stats
-a <- execGRASS("r.stats", flags=c("c","n"), input=paste(obsmap, tmp.d, sep=","), intern=TRUE)
-a <- get_output.GRASS(a, separator=" ")
-execGRASS("g.remove", rast=tmp.d)
+# Zonal stats
+if(backgr == 0){
+    # Based on presence / absence
+    a <- execGRASS("r.stats", flags=c("c","n"), input=paste(obsmap, tmp.d, sep=","), intern=TRUE)
+    a <- get_output.GRASS(a, separator=" ")
+    execGRASS("g.remove", rast=tmp.d)
+}else{
+    # Based on presence / background
+    tmp.k <- "tmp_r_model_evaluation_0987654321k"
+    execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.k, obsmap, sep=" = "), Sys_wait=TRUE)
+    execGRASS("r.null", map=tmp.k, setnull="0", Sys_wait=TRUE)
+    a1 <- execGRASS("r.stats", flags=c("c","n"), input=paste(tmp.k, tmp.d, sep=","), intern=TRUE)
+    a1 <- get_output.GRASS(a1, separator=" ")
+    
+    tmp.m <- "tmp_r_model_evaluation_0987654321m"
+    execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.m, obsmap, sep=" = "), Sys_wait=TRUE)
+    execGRASS("r.null", map=tmp.m, setnull="1", Sys_wait=TRUE)
+    a2 <- execGRASS("r.stats", flags=c("c","n"), input=paste(tmp.m, tmp.d, sep=","), intern=TRUE)
+    a2 <- get_output.GRASS(a2, separator=" ")
+    a3 <- cbind(a2[,-3],a1[,3] + a2[,3])
+    names(a3) <- names(a1)
+    a <- rbind(a1, a3)
+    
+    # Clean up 
+    execGRASS("g.remove", rast=paste(tmp.k, tmp.m, sep=","))
+}
 
 # Clean up 
+execGRASS("g.remove", rast=tmp.d)
 if(bufabs>0){execGRASS("g.remove", rast=tmp.a)}
 if(bufabs>0){execGRASS("g.remove", rast=tmp.b)}
+if(preval>0){execGRASS("g.remove", rast=tmp.i)}
+if(num.abs > 0 | num.pres > 0){execGRASS("g.remove", rast=tmp.j)}
 
 # Calculate evaluation stats
 a.cast <- cast(a, V2 ~ V1)
@@ -292,71 +405,43 @@ a.stats$FN <- a.sum[2]-a.stats$TP
 a.stats$TPR <- apply(a.stats,1,function(x){x[3]/(x[3]+x[5])})
 a.stats$FPR <- apply(a.stats,1,function(x){x[2]/(x[2]+x[4])})
 a.stats$TNR <- apply(a.stats,1,function(x){x[4]/(x[2]+x[4])})
-a.stats$spec_sens <- apply(a.stats,1,function(x){x[6]+x[8]})
- 
-# Calculate evaluation stats
-a.auc <- trapz(a.stats$FPR, a.stats$TPR)
-a.spec.sens <- max(a.stats$spec_sens)
-threshold.bin <- n.bins - a.stats[which.max(a.stats$spec_sens),1]
-a.spec.sens_threshold <- x2[threshold.bin]
-
+a.stats$TSS <- apply(a.stats,1,function(x){x[6]+x[8]-1})
 PRa <- apply(a.stats,1,function(x){(x[3]+x[4])/sum(x)})
 Yobs <- apply(a.stats,1,function(x){(x[3]+x[5])/sum(x)})
 Ymod <- apply(a.stats,1,function(x){(x[3]+x[2])/sum(x)})
 PRe <- Yobs*Ymod + (1-Yobs)*(1-Ymod)
-a.kappa <- (PRa - PRe) / (1 - PRe)
-a.kappa_max <- max(a.kappa)
-threshold.bin <- n.bins - a.stats[which.max(a.kappa),1]
+a.stats$kappa <- (PRa - PRe) / (1 - PRe)
+n.presence <- a.stats$TP[2] + a.stats$FN[2]
+n.absence <- a.stats$TN[2] + a.stats$FP[2]
+prevalence <- n.presence / (n.presence + n.absence)
+
+# Calculate threshold values
+a.auc <- trapz(a.stats$FPR, a.stats$TPR)
+a.TSS <- max(a.stats$TSS)
+threshold.bin <- n.bins - a.stats[which.max(a.stats$TSS),1]
+a.TSS_threshold <- x2[threshold.bin]
+a.kappa_max  <- max(a.stats$kappa)
+threshold.bin <- n.bins - a.stats[which.max(a.stats$kappa),1]
 a.kappa_threshold <- x2[threshold.bin]
 
-# Save plot as svg image
-if(plot.svg==1){
-    svg.name <- paste(fnames, "svg", sep=".")
-    svg(svg.name, width=6, height=4.8, pointsize=11)
-    par(mar=c(4.5,4.5,1,1))
-    plot(a.stats$TPR ~ a.stats$FPR, xlab="False positive rate", ylab="True positive rate", type='n')
-    abline(v=a.kappa_threshold, col=rgb(0.8,0.5,0,0.3), lty=3, lwd=3)
-    abline(v=a.spec.sens_threshold, col=rgb(0,0.5,0.8, 0.3), lty=3, lwd=3)
-    lines(a.stats$TPR ~ a.stats$FPR, lwd=3, col=rgb(0,0.4,0))
-    lines(x=c(0,1), y=c(0,1), lty=5, col=rgb(0.8,0.8,0.8), lwd=3) 
-    leg.text <- c(paste("AUC:", round(a.auc,2)), paste("Max. kappa:", round(a.kappa_max, 2)), paste("Max. specsens:", round(a.spec.sens,2)))
-    legend(x="bottomright", lty=c(1,3,3), col=c(rgb(0,0.4,0), rgb(0.8,0.5,0,0.5), rgb(0,0.5,0.8, 0.5)), legend=leg.text, inset=0.05, bty="n", cex=0.8, seg.len=3, lwd=3) 
-    dev.off()
- }
-
-# Save plot as png image
- if(plot.png==1){
-    png.name <- paste(fnames, "png", sep=".")
-    png(png.name, width=960, height=880, pointsize=28)
-    par(mar=c(3.5,3.5,1,1), mgp=c(2,0.5,0))
-    plot(a.stats$TPR ~ a.stats$FPR, xlab="False positive rate", ylab="True positive rate", type='n', cex.axis=0.9)
-    abline(v=a.kappa_threshold, col=rgb(0.8,0.5,0,0.3), lty=3, lwd=3)
-    abline(v=a.spec.sens_threshold, col=rgb(0,0.5,0.8, 0.3), lty=3, lwd=3)
-    lines(a.stats$TPR ~ a.stats$FPR, lwd=3, col=rgb(0,0.4,0))
-    lines(x=c(0,1), y=c(0,1), lty=5, col=rgb(0.8,0.8,0.8), lwd=3) 
-    leg.text <- c(paste("AUC:", round(a.auc,2)), paste("Max. Kappa:", round(a.kappa_max, 2)), paste("Max. SpecSens:", round(a.spec.sens,2)))
-    legend(x="bottomright", lty=c(1,3,3), col=c(rgb(0,0.4,0), rgb(0.8,0.5,0,0.5), rgb(0,0.5,0.8, 0.5)), legend=leg.text, inset=0.05, bty="n", cex=0.8, seg.len=3, lwd=3)
-    dev.off()
+sink(paste(fnames, "summary.txt", sep="_"))
+cat(paste("AUC", as.character(a.auc), sep=" = ")); cat("\n") 
+cat(paste("maximum TSS", a.TSS, sep=" = ")); cat("\n")
+cat(paste("maximum TSS threshold", a.TSS_threshold, sep=" = ")); cat("\n") 
+cat(paste("maximum kappa", a.kappa_max, sep=" = ")); cat("\n") 
+cat(paste("maximum kappa threshold", a.kappa_threshold, sep=" = ")); cat("\n") 
+cat(paste("prevalence", prevalence, sep=" = ")); cat("\n") 
+cat(paste("presence points", n.presence, sep=" = ")); cat("\n") 
+cat(paste("absence points", n.absence, sep=" = ")); cat("\n") 
+cat(paste("stats txt file =", paste(fnames, "summary.txt", sep="_"))); cat("\n")
+cat(paste("stats txt file =", paste(fnames, "stats.csv", sep="_"))); cat("\n")
+if(print.log==1){
+    cat(paste("log file =", paste(fnames, "log.txt", sep="_"))); cat("\n")
 }
-
-sink(paste(fnames, "txt", sep="."))
-cat(paste("AUC", as.character(a.auc), sep="=")); cat("\n") 
-cat(paste("spec.sens", a.spec.sens, sep="=")); cat("\n")
-cat(paste("max spec.sens threshold", a.spec.sens_threshold, sep="=")); cat("\n") 
-cat(paste("max kappa", a.kappa_max, sep="=")); cat("\n") 
-cat(paste("max kappa threshold", a.kappa_threshold, sep="=")); cat("\n") 
-cat(paste("stats txt file=", paste(fnames, "txt", sep="."), sep=" ")); cat("\n")
-if(plot.png==1){
-	cat(paste("png file with ROC curve", png.name, sep="=")); cat("\n")
-}else{cat("png file with ROC curve=no"); cat("\n")}
-if(plot.svg==1){
-	cat(paste("svg file with ROC curve", svg.name, sep="=")); cat("\n")
-}else{cat("svg file with ROC curve=no"); cat("\n")}
-cat("\n")
-cat("-------------------------------------------------------"); cat("\n") 
-cat("\n")
 sink()
-write.table(a.stats, file=paste(fnames, "txt", sep="."), append=TRUE, sep=";", row.names=FALSE)
+b.stats <- cbind(roc.st[-1], a.stats)
+names(b.stats) <- c("steps", names(a.stats))
+write.table(b.stats, file=paste(fnames, "stats.csv", sep="_"), append=TRUE, sep=";", row.names=FALSE)
 
 EOF
 }
@@ -381,14 +466,13 @@ g.message message='-----'
 g.message message=''
 
 ##using R to create MESS layers
-#--slave 
-R --no-save --no-restore --no-site-file --no-init-file --args "${GIS_OPT_OBS}" "${GIS_OPT_MOD}" "${GIS_OPT_N_BINS}" "${GIS_OPT_BUFFER_ABS}" "${GIS_OPT_BUFFER_PRES}" "${GIS_FLAG_P}" "${GIS_FLAG_S}" "${GIS_OPT_FSTATS}" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
-if [ $? -ne 0 ] ; then
-	echo "ERROR: an error occurred during R script execution" 1>&2
-    exit 1
+R CMD BATCH --slave "$RGRASSSCRIPT" ${GIS_OPT_FSTATS}_log.txt;
+
+if  [ "$GIS_FLAG_L" -eq 0 ] ; then
+    rm ${GIS_OPT_FSTATS}_log.txt
 fi
 
-head -8 ${GIS_OPT_FSTATS}.txt;
+head -11 ${GIS_OPT_FSTATS}_summary.txt
 
 g.message message='-----'
 g.message "Don't forget to check out the output files"
