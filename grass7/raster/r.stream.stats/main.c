@@ -7,11 +7,11 @@
  * PURPOSE:      Calculate Horton's statistics according stream network and elevation map.
  *               Program calculates: Bifuarcation ratio, length ratio, area ratio, 
  *               slope ratio and drainage density
- *               It uses r.stream.order stream map map, r.watershed  direction map. and DEM
- *               Stram input map shall contains streams ordered according Strahler's or
+ *               It uses r.stream.order stream map, r.watershed direction map and DEM
+ *               Stream input map shall contain streams ordered according Strahler's or
  *               Horton's orders. It also can calculate Hack's laws as an option.
- *               If input stream comes from r.stream.exteract direction map 
- *               from r.stream.extract dir map must be patched with that of r.watersheed.
+ *               If input stream comes from r.stream.extract direction map 
+ *               from r.stream.extract dir map must be patched with that of r.watershed.
  *
  * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
  *
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->description =
-	_("Calculate Horton's statistics for Strahler and Horton ordered networks created with r.stream.");
+	_("Calculate Horton's statistics for Strahler and Horton ordered networks created with r.stream.order");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword("Horton's statistics");
