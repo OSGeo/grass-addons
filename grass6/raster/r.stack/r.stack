@@ -94,15 +94,15 @@ if [ "$NUM_INPUTS" -lt 2 ] ; then
    exit 1
 fi
 
-PROJ_TYPE=`g.region -p | grep '^projection:' | cut -f2 -d" "`
+PROJ_TYPE=`g.region -pu | grep '^projection:' | cut -f2 -d" "`
 if [ "$PROJ_TYPE" -eq 3 ] ; then
    g.message -w "This module will not work in lat/lon locations if the stack exceeds geographic limits."
 fi
 
 
 # calc new bounds (south)
-eval `g.region -g`
-eval `g.region -eg`
+eval `g.region -gu`
+eval `g.region -egu`
 NEW_SOUTH=`echo "$s $ns_extent $NUM_INPUTS" | awk '{print $1 - ($2 * ($3 - 1))}'`
 
 # if s<-90, exit with error.
