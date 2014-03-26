@@ -4,7 +4,7 @@
  * MODULE:       r.stream.channel
  * AUTHOR(S):    Jarek Jasiewicz jarekj amu.edu.pl
  *               
- * PURPOSE:      Program calculate some channel properities:
+ * PURPOSE:      Program calculate some channel properties:
  * 							 local elevation change, curvature along stream,
  * 							 distance to channel init/join, elevation below channel init, 
  * 							 optionally distance to outlet, elevation above outlet;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    G_add_keyword("Horton statisctics");
+    G_add_keyword("Horton statistics");
     module->description =
 	_("Calculate local parameters for individual streams");
     G_add_keyword(_("raster"));

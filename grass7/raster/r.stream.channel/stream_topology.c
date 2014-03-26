@@ -14,7 +14,7 @@ double get_distance(int r, int c, int d)
 }
 
 int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
-{				/* calculate number of tributuaries */
+{				/* calculate number of tributaries */
 
     int trib_num = 0;
     int i, j;
@@ -200,7 +200,7 @@ int ram_find_contributing_cell(int r, int c, CELL **dirs, FCELL **elevation)
 }
 
 int seg_trib_nums(int r, int c, SEGMENT * streams, SEGMENT * dirs)
-{				/* calculate number of tributuaries */
+{				/* calculate number of tributaries */
 
     int trib_num = 0;
     int i, j;
