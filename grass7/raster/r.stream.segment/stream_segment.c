@@ -171,7 +171,7 @@ int create_sectors(STREAM *cur_stream, int seg_length, int seg_skip,
     cur_stream->sector_drops =
 	(float *)G_malloc(number_of_sectors * sizeof(float));
 
-    /* add attributies */
+    /* add attributes */
     for (i = 0, prev_i = 0; i < number_of_cells + 1; ++i) {
 	if (streamline[i].decision == 1 || i == (number_of_cells - 1)) {
 

@@ -5,10 +5,10 @@
  * AUTHOR(S):		 Jarek Jasiewicz jarekj amu.edu.pl
  *							 
  * PURPOSE:			 Calculate geometrical attributes for segments of current order, 
- * 							 divide segments on near stright line portons and 
+ * 							 divide segments on near straight line portions and 
  * 							 and segment orientation and angles between streams and its
- *               tributuaries. For stream direction it use algorithim to divide
- *               particular streams of the same order  into near-stright line
+ *               tributaries. For stream direction it use algorithm to divide
+ *               particular streams of the same order into near-straight line
  *               portions.
  * 				
  *							
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->description =
-	_("Divide network into near strigh-line segments and calculate its order");
+	_("Divide network into near straight-line segments and calculate its order");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword("Stream divide");
@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
     out_segment_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_segment_opt->key = "segments";
     out_segment_opt->description =
-	_("OUTPUT vector file to write segment atributes");
+	_("OUTPUT vector file to write segment attributes");
 
     out_sector_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_sector_opt->key = "sectors";
     out_sector_opt->description =
-	_("OUTPUT vector file to write segment atributes");
+	_("OUTPUT vector file to write segment attributes");
 
     opt_length = G_define_option();
     opt_length->key = "length";
@@ -99,8 +99,8 @@ int main(int argc, char *argv[])
     opt_skip->guisection = _("Optional");
 
     opt_threshold = G_define_option();
-    opt_threshold->key = "treshold";
-    opt_threshold->label = _("Max angle (degrees) beetwen stream segments");
+    opt_threshold->key = "threshold";
+    opt_threshold->label = _("Max angle (degrees) between stream segments");
     opt_threshold->description = _("Must be > 0");
     opt_threshold->answer = "160";
     opt_threshold->type = TYPE_DOUBLE;
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     if (seg_length <= 0)
 	G_fatal_error("Search's length must be > 0");
     if (seg_treshold < 0 || seg_treshold > 180)
-	G_fatal_error("Treshold must be between 0 and 180");
+	G_fatal_error("Threshold must be between 0 and 180");
     if (seg_skip < 0)
 	G_fatal_error("Segment's length must be >= 0");
 

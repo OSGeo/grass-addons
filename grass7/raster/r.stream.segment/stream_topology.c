@@ -14,7 +14,7 @@ double get_distance(int r, int c, int d)
 }
 
 int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
-{				/* calculate number of tributuaries */
+{				/* calculate number of tributaries */
 
     int trib_num = 0;
     int i, j;
@@ -56,7 +56,7 @@ int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
 
 
 int seg_trib_nums(int r, int c, SEGMENT *streams, SEGMENT *dirs)
-{				/* calculate number of tributuaries */
+{				/* calculate number of tributaries */
 
     int trib_num = 0;
     int i, j;
@@ -296,7 +296,7 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 		}
 	}
 
-    /* buildning streamline */
+    /* building streamline */
     for (i = 1; i < stream_num; ++i) {
 
 	r = (int)SA[i].init / ncols;
@@ -545,7 +545,7 @@ int free_attributes(int number_of_streams)
 int convert_border_dir(int r, int c, int dir)
 {
     /* this function must be added to other modules */
-    /* this is added to fix r.stream.extract issue with broder cell direction */
+    /* this is added to fix r.stream.extract issue with broader cell direction */
     if (dir)
 	return dir;
 
