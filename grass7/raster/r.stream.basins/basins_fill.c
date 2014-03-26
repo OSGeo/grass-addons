@@ -1,6 +1,6 @@
 /* 
    Link: a channel between junction
-   Ooutlet: is final cell of every segment
+   Outlet: is final cell of every segment
    Segment: a channel which order remains unchanged in spite it pass through junction or not
    Number of outlets shall be equal the number of segments
    Number of junction shall be less than number of links
@@ -8,9 +8,9 @@
 
 /*
    find outlets create table of outlets point, with r, c and value. depending of flag:
-   if flag -l is as anly last points of segment is added to table and uses the value is the category as value for whole basins
-   if flag -l = flase (default) last points of every link is added to table and uses the value is the category as value for subbasin
-   In both cases if flag -c is used it add out_num+1 value as value of point. That structure is next used in reset_catchments and fill_catchments fuctions
+   if flag -l is as only last points of segment is added to table and uses the value is the category as value for whole basins
+   if flag -l = false (default) last points of every link is added to table and uses the value is the category as value for subbasin
+   In both cases if flag -c is used it add out_num+1 value as value of point. That structure is next used in reset_catchments and fill_catchments functions
  */
 
 /* fifo functions */
@@ -55,9 +55,9 @@ POINT fifo_return_del(void)
    if (catchments[NR(i)][NR(i)]>0)
    continue; 
 
-   It is simple trick but allow gives module its real funcionality
+   It is simple trick but allow gives module its real functionality
 
-   Buffer is an correction wchich allow to delinate basins even if vector point 
+   Buffer is an correction which allow to delineate basins even if vector point 
    or coordinates do not lie exactly on stream. In that case a small one pixel buffer
    is created. This is little risk functionality and must be used carefully.
  */
@@ -115,7 +115,7 @@ int ram_fill_basins(OUTLET outlet, CELL **basins, CELL **dirs)
 		continue;
 	    j = DIAG(i);
 
-	    /* countributing cell, not yet assigned to a basin */
+	    /* contributing cell, not yet assigned to a basin */
 	    if (dirs[next_r][next_c] == j && basins[next_r][next_c] == 0) {
 		basins[next_r][next_c] = val;
 		n_cell.r = next_r;
@@ -158,7 +158,7 @@ int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 		continue;
 	    j = DIAG(i);
 
-	    /* countributing cell, not yet assigned to a basin */
+	    /* contributing cell, not yet assigned to a basin */
 	    segment_get(basins, &basins_cell, next_r, next_c);
 	    segment_get(dirs, &dirs_cell, next_r, next_c);
 

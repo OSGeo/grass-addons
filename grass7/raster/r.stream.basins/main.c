@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     struct Flag *flag_zerofill, *flag_cats, *flag_lasts, *flag_segmentation;
 
-    int b_test = 0;		/* test which option have been choosed: like chmod */
+    int b_test = 0;		/* test which option has been choosed: like chmod */
     int segmentation, zerofill, lasts, cats;
     int i, outlets_num = 0;
     int max_number_of_streams;
@@ -50,11 +50,11 @@ int main(int argc, char *argv[])
     G_add_keyword(_("hydrology"));
     G_add_keyword("basins creation");
 
-    in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input directon file */
+    in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input direction file */
     in_dir_opt->key = "dirs";
     in_dir_opt->description = _("Name of flow direction input map");
 
-    in_coor_opt = G_define_option();	/* input coordinates de outlet */
+    in_coor_opt = G_define_option();	/* input coordinates of outlet */
     in_coor_opt->key = "coors";
     in_coor_opt->type = TYPE_STRING;
     in_coor_opt->key_desc = "x,y";

@@ -12,7 +12,7 @@ int process_coors(char **answers)
     struct Cell_head window;
 
     if (!answers)
-	G_fatal_error(_("At least one pair of coordinates must pe send"));
+	G_fatal_error(_("At least one pair of coordinates must be send"));
 
     G_get_window(&window);
 
