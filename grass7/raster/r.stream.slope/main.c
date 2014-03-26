@@ -97,13 +97,13 @@ int main(int argc, char *argv[])
     out_max_curv_opt->key = "maxcurv";
     out_max_curv_opt->required = NO;
     out_max_curv_opt->description =
-	"Output local downstream maximium cuvature";
+	"Output local downstream maximum curvature";
 
     out_min_curv_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_min_curv_opt->key = "mincurv";
     out_min_curv_opt->required = NO;
     out_min_curv_opt->description =
-	"Output local downstream minimum cuvature";
+	"Output local downstream minimum curvature";
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
