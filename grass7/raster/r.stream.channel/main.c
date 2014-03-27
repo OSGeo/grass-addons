@@ -74,33 +74,33 @@ int main(int argc, char *argv[])
     out_identifier_opt->key = "identifier";
     out_identifier_opt->required = NO;
     out_identifier_opt->description = _("Name for output unique stream identifier raster map");
-    out_identifier_opt->guisection = _("Output");
+    out_identifier_opt->guisection = _("Output maps");
 
     out_distance_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_distance_opt->key = "distance";
     out_distance_opt->required = NO;
     out_distance_opt->description = _("Name for output init/join/outlet distance raster map");
-    out_distance_opt->guisection = _("Output");
+    out_distance_opt->guisection = _("Output maps");
 
     out_difference_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_difference_opt->key = "difference";
     out_difference_opt->required = NO;
     out_difference_opt->description =
         _("Name for output elevation init/join/outlet difference raster map");
-    out_difference_opt->guisection = _("Output");
+    out_difference_opt->guisection = _("Output maps");
 
     out_gradient_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_gradient_opt->key = "gradient";
     out_gradient_opt->required = NO;
     out_gradient_opt->description =
 	_("Name for output mean init/join/outlet gradient of stream raster map");
-    out_gradient_opt->guisection = _("Output");
+    out_gradient_opt->guisection = _("Output maps");
 
     out_curvature_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_curvature_opt->key = "curvature";
     out_curvature_opt->required = NO;
     out_curvature_opt->description = _("Name for output local stream curvature raster map");
-    out_curvature_opt->guisection = _("Output");
+    out_curvature_opt->guisection = _("Output maps");
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";

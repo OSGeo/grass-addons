@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	opt_input[i]->key = input[i].name;
 	opt_input[i]->required = input[i].required;
 	opt_input[i]->description = _(input[i].description);
-        opt_input[i]->guisection = _("Input");
+        opt_input[i]->guisection = _("Input maps");
     }
 
     opt_vector = G_define_standard_option(G_OPT_V_OUTPUT);
@@ -90,14 +90,14 @@ int main(int argc, char *argv[])
     opt_vector->required = NO;
     opt_vector->description =
 	_("Name for output vector map to write stream atributes");
-    opt_vector->guisection = _("Output");
+    opt_vector->guisection = _("Output maps");
 
     for (i = 0; i < orders_size; ++i) {
 	opt_output[i] = G_define_standard_option(G_OPT_R_OUTPUT);
 	opt_output[i]->key = output[i].name;
 	opt_output[i]->required = NO;
 	opt_output[i]->description = _(output[i].description);
-	opt_output[i]->guisection = _("Output");
+	opt_output[i]->guisection = _("Output maps");
     }
 
     opt_swapsize = G_define_option();
