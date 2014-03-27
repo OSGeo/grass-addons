@@ -295,7 +295,7 @@ int seg_create_map(SEG * seg, int srows, int scols, int number_of_segs,
 	break;
     default:
 	G_fatal_error(_("Unrecognisable data type"));
-    
+    }
 
     filename = G_tempfile();
     fd = creat(filename, 0666);
