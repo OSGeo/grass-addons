@@ -49,10 +49,10 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword(_("stream network"));
-    G_add_keyword(_("basins creation"));
+    G_add_keyword(_("basin creation"));
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input direction file */
-    in_dir_opt->key = "dirs";
+    in_dir_opt->key = "direction";
     in_dir_opt->description = _("Name of input flow direction raster map");
 
     in_coor_opt = G_define_standard_option(G_OPT_M_COORDS);	/* input coordinates of outlet */
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     in_coor_opt->description = _("Basin's outlet's coordinates");
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input stream file file */
-    in_stm_opt->key = "streams";
+    in_stm_opt->key = "stream_rast";
     in_stm_opt->required = NO;
     in_stm_opt->description = _("Name of input stream mask raster map");
     in_stm_opt->guisection = _("Input maps");

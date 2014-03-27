@@ -16,7 +16,7 @@ delineate basins only for last streams ignoring upstreams (do not work in vector
 point mode).
 </dd>
 
-<dt><b>dirs</b></dt>
+<dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
@@ -33,7 +33,7 @@ lead to unexpected results.</dd>
 using that option. This option simply copies functionality of <a
 href="r.water.outlet.html">r.water.outlet</a>.
 </dd>
-<dt><b>streams</b></dt>
+<dt><b>stream_rast</b></dt>
 <dd>Stream network: name of input stream map on which ordering will be performed
 produced by r.watershed or r.stream.extract. Because streams network produced by
 r.watershed and r.stream.extract may slightly differ in detail, it is required to
@@ -114,29 +114,29 @@ r.patch).
 <p>
 To delineate all basins with categories of streams:
 <p>
-<code>r.stream.basins dir=dirs stream=streams basins=bas_basins_elem</code>
+<code>r.stream.basins direction=direction stream_rast=streams basins=bas_basins_elem</code>
 <p>
 To determine major and minor basins in area, defined by outlets, ignoring
 subbasins use  - l flag. That flag ignores all nodes and uses only real outlets
 (in most cases that on map border):
 <p>
-<code>r.stream.basins -l dir=dirs stream=streams basins=bas_basins_last</code>
+<code>r.stream.basins -l direction=direction stream_rast=streams basins=bas_basins_last</code>
 
 <p>
-<code>r.stream.basins dir=dirs coors=639936.623832,216939.836449</code>
+<code>r.stream.basins direction=direction coors=639936.623832,216939.836449</code>
 
 <p>
 To delineate one or more particular basins defined by given streams, add simply
 stream categories:
 <div class="code"><pre>
-r.stream.basins -lc dirs=dirs streams=streams cats=2,7,184 basins=bas_basin
+r.stream.basins -lc direction=direction stream_rast=streams cats=2,7,184 basins=bas_basin
 </pre></div>
 
 <p>
 Do delineate basins of particular order we must use the following procedure: 
 
 <div class="code"><pre>
-r.stream.basins -lc dirs=dirs streams=strahler cats=2
+r.stream.basins -lc direction=direction stream_rast=strahler cats=2
 basins=bas_basin_strahler_2
 </pre></div>
 
@@ -148,14 +148,14 @@ r.circle but can be substituted by any polygon created for example  with
 v.digit:
 <div class="code"><pre>
 r.circle -b output=circle coordinate=639936.623832,216939.836449 max=200
-r.stream.basins -c dirs=dirs streams=circle basins=bas_simul
+r.stream.basins -c direction=direction streams=circle basins=bas_simul
 </pre></div>
 <p>
 To determine areas of contribution to streams of particular order  use as
 streams the result of ordering:
 <p>
 <div class="code"><pre>
-r.stream.basins dirs=dirs streams=ord_strahler basins=bas_basin_strahler
+r.stream.basins direction=direction stream_rast=ord_strahler basins=bas_basin_strahler
 </pre></div>
 <p>
 Determination of areas of potential source of pollution. The example will be
@@ -166,7 +166,7 @@ lake shall be extracted and converted to binary raster map.
 v.extract -d input=lakes@PERMANENT output=lake8056 type=area layer=1
 'where=FULL_HYDRO = 8056' new=-1 
 v.to.rast input=lake8056 output=lake8056 use=val type=area layer=1 value=1
-r.stream.basins dirs=dirs streams=lake8056 basins=bas_basin_lake
+r.stream.basins direction=direction streams=lake8056 basins=bas_basin_lake
 </pre></div>
 <p>
 See also tutorial: <a href="http://grass.OSGeo.org/wiki/R.stream.*">http://grass.OSGeo.org/wiki/R.stream.*</a>
