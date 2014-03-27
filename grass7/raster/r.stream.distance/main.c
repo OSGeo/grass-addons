@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
 
     in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
     in_elev_opt->required = NO;
-    
+    in_elev_opt->guisection = _("Input settings");
+
     in_method_opt = G_define_option();
     in_method_opt->key = "method";
     in_method_opt->description = _("Calculation method");
