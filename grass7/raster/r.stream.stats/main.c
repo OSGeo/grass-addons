@@ -6,7 +6,7 @@
  *               
  * PURPOSE:      Calculate Horton's statistics according stream network and elevation map.
  *               Program calculates: Bifuarcation ratio, length ratio, area ratio, 
- *               slope ratio and drainage density
+ *               slope ratio and drainage density.
  *               It uses r.stream.order stream map, r.watershed direction map and DEM
  *               Stream input map shall contain streams ordered according Strahler's or
  *               Horton's orders. It also can calculate Hack's laws as an option.
@@ -56,11 +56,11 @@ int main(int argc, char *argv[])
     G_add_keyword(_("Horton's statistics"));
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_stm_opt->key = "streams";
+    in_stm_opt->key = "stream_rast";
     in_stm_opt->description = _("Name of input streams mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_dir_opt->key = "dirs";
+    in_dir_opt->key = "direction";
     in_dir_opt->description = _("Name of input flow direction raster map");
 
     in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);

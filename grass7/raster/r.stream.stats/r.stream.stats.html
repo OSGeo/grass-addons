@@ -9,31 +9,31 @@ external software (see example).</dd>
 <dt><b>-m</b></dt>
 <dd>Only for very large data sets. Use segment library to optimise memory
 consumption during analysis.</dd>
-<dt><b>stream</b></dt>
-<dd>Stream network: name of input stream map on which ordering will be performed
-produced by r.watershed or r.stream.extract. Because streams network produced by
+<dt><b>stream_rast</b></dt>
+<dd>Stream network: name of input stream raster map produced by r.watershed or 
+r.stream.extract, on which ordering will be performed. Because stream network produced by
 r.watershed and r.stream.extract may slighty differ in detail, it is required to
-use both stream and direction map produced by the same module. Stream background
+use both stream_rast and direction map produced by the same module. Stream_rast background
 shall have NULL value or zero value. Background values of NULL are by default
 produced by r.watershed and r.stream.extract. If not 0 or NULL use <a
 href="r.mapcalc.html">r.mapcalc</a> to set background values to NULL.  
 </dd>
-<dt><b>dir</b></dt>
+<dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
 East in steps of 45 degrees). Direction map shall be of type CELL values. Region
 resolution and map resolution must be the same. 
-Also <em>stream</em> network map must have the same resolution. It is checked by
+Also <em>stream_rast</em> network map must have the same resolution. It is checked by
 default. If resolutions differ the module informs about it and stops. Region
 boundary and maps boundary may differ but it may lead to unexpected
 results.</dd>
 
 <dt><b>elevation</b></dt>
 <dd>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
-DCELL. It is not restricted to resolution of region settings as streams and
-dirs.</dd>
+DCELL. It is not restricted to resolution of region settings as stream_rast and
+direction.</dd>
 
 <h2>OUTPUTS</h2>
 Output statistics are send to standard output. To redirect output to file use
@@ -105,10 +105,10 @@ model: order vs. log10(parameter)
 
 <h2>NOTES</h2>
 <p>
-Module calculates statistics for all streams in input stream map. It is strongly
+The module calculates statistics for all streams in input stream_rast map. It is strongly
 recommended to extract only network of one basin, but it is not necessary for
-computation.  Streams for desired basin first can be extracted with following
-mapcalc formula:
+computation. Streams for the desired basin can be extracted by the following
+r.mapcalc formula:
 
 <p>
 <code>echo 'sel_streams=if(basin==xxx,streams,null())' | r.mapcalc #xxx category
@@ -119,10 +119,10 @@ It is also possible to calculate Horton's statistics for Shreve ordering but it
 has no hydrological sense. Hack (or Gravelius hierarchy) main stream is not the
 same what so called Horton's reverse ordering (see: Horton 1945).
 <p>
-The module can work only if direction map, stream map and region map have the same
-settings. It is also required that stream map and direction map come from the
+The module can work only if direction map, stream_rast map and region have the same
+settings. It is also required that stream_rast map and direction map come from the
 same source. For lots of reason this limitation probably cannot be omitted.  
-This means that if stream map comes from r.stream.extract also direction map from
+This means that if stream_rast map comes from r.stream.extract also direction map from
 r.stream.extract must be used. If the stream network was generated with MFD method
 also MFD direction map must be used.
 
@@ -132,10 +132,10 @@ program (like R) to be visualised:
 
 <div class="code"><pre>
 g.region -p -a rast=elevation align=elevation
-r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
-r.stream.stats streams=horton dirs=dirs elevation=elevation
+r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
+r.stream.stats stream_rast=horton direction=direction elevation=elevation
 # export for processing in R
-r.stream.stats -o streams=horton dirs=dirs elevation=elevation > tmp_file
+r.stream.stats -o stream_rast=horton direction=direction elevation=elevation > tmp_file
 R
 r=read.csv("tmp_file",skip=1,header=TRUE)
 plot(num_of_streams~order,data=r,log="y", 
