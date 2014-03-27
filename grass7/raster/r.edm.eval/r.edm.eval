@@ -4,7 +4,7 @@
 ########################################################################
 # 
 # MODULE:       r.model.eval
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo AT ecodiv.org>
 # PURPOSE:      To evaluates how well a modeled distribution predicts an 
 #               observed distribution. 
 #
@@ -115,7 +115,7 @@
 #%option
 #% key: num_pres
 #% type: integer
-#% description: number of presence points (this will not work if parab > 0)
+#% description: number of presence points (this will not work if preval > 0)
 #% key_desc: integer
 #% answer: 0
 #% required: no
@@ -125,7 +125,7 @@
 #%option
 #% key: num_abs
 #% type: integer
-#% description: number of absence points (this will not work if parab > 0)
+#% description: number of absence points (this will not work if preval > 0)
 #% key_desc: integer
 #% answer: 0
 #% required: no
