@@ -130,9 +130,10 @@ int ram_init_distance(CELL ** streams, FCELL ** distance, int outlets_num,
 		      int outs)
 {
     int r, c, i;
-    /* size_t data_size; */
+    /* size_t data_size; 
 
     data_size = Rast_cell_size(FCELL_TYPE);
+    */
 
     if (!outs) {		/* stream mode */
 	for (r = 0; r < nrows; ++r)
