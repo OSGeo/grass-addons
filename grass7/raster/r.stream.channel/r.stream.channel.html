@@ -100,9 +100,9 @@ stream of the catchment:
 
 <div class="code"><pre>
 g.region -p -a rast=elevation align=elevation
-r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
-r.stream.order streams=streams direction=dirs hack=hack
-r.stream.channel streams=hack direction=dirs elevation=elevation identifier=stream_identifier distance=stream_distance gradient=stream_gradient
+r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
+r.stream.order streams=streams direction=direction hack=hack
+r.stream.channel streams=hack direction=direction elevation=elevation identifier=stream_identifier distance=stream_distance gradient=stream_gradient
 #495 is a stream identifier. May be different in different situation
 r.mapcalc stgrad=if(stream_identifier==495,float(stream_gradient),null())
 r.mapcalc stdist=if(stream_identifier==495,float(stream_distance),null())
