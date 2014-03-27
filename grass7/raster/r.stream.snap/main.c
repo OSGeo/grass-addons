@@ -58,19 +58,19 @@ int main(int argc, char *argv[])
     out_points_opt->description = _("Name of output vector points map");
 
     in_stream_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_stream_opt->key = "streams";
+    in_stream_opt->key = "stream_rast";
     in_stream_opt->required = NO;
     in_stream_opt->description = _("Name of input streams mask raster map");
     in_stream_opt->guisection = _("Input maps");
 
     in_accum_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_accum_opt->key = "accum";
+    in_accum_opt->key = "accumulation";
     in_accum_opt->required = NO;
     in_accum_opt->description = _("Name of input accumulation raster map");
     in_accum_opt->guisection = _("Input maps");
  
     opt_accum_treshold = G_define_option();
-    opt_accum_treshold->key = "accumtres";
+    opt_accum_treshold->key = "threshold";
     opt_accum_treshold->type = TYPE_DOUBLE;
     opt_accum_treshold->answer = "-1";
     opt_accum_treshold->description =
