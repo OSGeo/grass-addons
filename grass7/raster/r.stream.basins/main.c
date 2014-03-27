@@ -5,17 +5,17 @@
  *               
  * PURPOSE:      Calculate basins according user' input data.
  *               It uses multiple type of inputs:
- * 							 r.stream.order, r.stream.extract or r.watershed stream  map 
+ * 		 r.stream.order, r.stream.extract or r.watershed stream  map 
  *               list of categoires to create basins (require stream map);
  *               vector file containing outputs;
  *               list of coordinates;
  *               with analogous  direction map;
  *
- * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002,2010-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 	  License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 	  for details.
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -44,53 +44,51 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->description = _("Delineate basins according user' input. \
-	Input can be stream network, point file with outlets or outlet coordinates");
+    module->label = _("Delineates basins according stream network.");
+    module->description = _("Input can be stream network, vector point map  with outlets or outlet coordinates.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("basins creation");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("basins creation"));
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input direction file */
     in_dir_opt->key = "dirs";
-    in_dir_opt->description = _("Name of flow direction input map");
+    in_dir_opt->description = _("Name of input flow direction raster map");
 
-    in_coor_opt = G_define_option();	/* input coordinates of outlet */
-    in_coor_opt->key = "coors";
-    in_coor_opt->type = TYPE_STRING;
-    in_coor_opt->key_desc = "x,y";
-    in_coor_opt->answers = NULL;
+    in_coor_opt = G_define_standard_option(G_OPT_M_COORS);	/* input coordinates of outlet */
     in_coor_opt->required = NO;
     in_coor_opt->multiple = YES;
-    in_coor_opt->description = _("Basin's outlet's coordinates: E,N");
+    in_coor_opt->description = _("Basin's outlet's coordinates");
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input stream file file */
     in_stm_opt->key = "streams";
     in_stm_opt->required = NO;
-    in_stm_opt->description = _("Name of stream mask input map");
+    in_stm_opt->description = _("Name of input stream mask raster map");
+    in_stm_opt->guisection = _("Input maps");
 
-    in_stm_cat_opt = G_define_option();	/* input stream category - optional */
-    in_stm_cat_opt->key = "cats";
-    in_stm_cat_opt->type = TYPE_STRING;
+    in_stm_cat_opt = G_define_standard_option(G_OPT_V_CATS);	/* input stream category - optional */
     in_stm_cat_opt->required = NO;
     in_stm_cat_opt->description =
-	_("Create basins only for these categories:");
+	_("Create basins only for these categories");
 
     in_point_opt = G_define_standard_option(G_OPT_V_INPUT);	/* input point outputs - optional */
     in_point_opt->key = "points";
     in_point_opt->required = NO;
-    in_point_opt->description = _("Name of vector points map");
+    in_point_opt->description = _("Name of input vector points map");
+    in_point_opt->guisection = _("Input maps");
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
     opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
-    opt_swapsize->guisection = _("Optional");
+    opt_swapsize->guisection = _("Memory settings");
 
     opt_basins = G_define_standard_option(G_OPT_R_OUTPUT);
     opt_basins->key = "basins";
-    opt_basins->description = _("Output basin map");
-
+    opt_basins->description = _("Name for output basin raster map");
+    opt_basins->guisection = _("Output maps");
+    
     /*flags */
     flag_zerofill = G_define_flag();
     flag_zerofill->key = 'z';
@@ -109,7 +107,8 @@ int main(int argc, char *argv[])
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
-
+    flag_segmentation->guisection = _("Memory settings");
+    
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
 
@@ -122,7 +121,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("One basin's outlet definition is required"));
 
     if (in_stm_cat_opt->answers && !in_stm_opt->answer)
-	G_fatal_error(_("If cats stream file is required"));
+        G_fatal_error(_("Option <%s> required"), in_stm_opt->key);
 
     if (in_coor_opt->answers)
 	b_test += 1;
@@ -137,16 +136,12 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    if (G_legal_filename(opt_basins->answer) < 0)
-	G_fatal_error(_("<%s> is an illegal basin name"), opt_basins->answer);
-
-
     /* ALL IN RAM VERSION */
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_basins;
 	CELL **streams = NULL, **dirs, **basins;
 
-	G_message("ALL IN RAM CALCULATION");
+	G_message("All in RAM calculation...");
 
 	ram_create_map(&map_dirs, CELL_TYPE);
 	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
@@ -155,12 +150,12 @@ int main(int argc, char *argv[])
 
 	switch (b_test) {
 	case 1:
-	    G_message("Calculate basins using coordinates...");
+	    G_message(_("Calculating basins using coordinates..."));
 	    outlets_num = process_coors(in_coor_opt->answers);
 	    break;
 
 	case 2:
-	    G_message("Calculate basins using streams...");
+	    G_message(_("Calculating basins using streams..."));
 	    ram_create_map(&map_streams, CELL_TYPE);
 	    ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
 	    streams = (CELL **) map_streams.map;
@@ -172,7 +167,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 4:
-	    G_message("Calculate basins using point file...");
+	    G_message(_("Calculating basins using vector point map..."));
 	    outlets_num = process_vector(in_point_opt->answer);
 	    break;
 	}
@@ -201,8 +196,8 @@ int main(int argc, char *argv[])
 	SEGMENT *streams = NULL, *dirs, *basins;
 	int number_of_segs;
 
-	G_message("MEMORY SWAP CALCULATION: MAY TAKE SOME TIME!");
-
+        G_message(_("Memory swap calculation (may take some time)..."));
+	
 	number_of_segs = (int)atof(opt_swapsize->answer);
 	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
 
@@ -212,12 +207,12 @@ int main(int argc, char *argv[])
 
 	switch (b_test) {
 	case 1:
-	    G_message("Calculate basins using coordinates...");
+	    G_message(_("Calculating basins using coordinates..."));
 	    outlets_num = process_coors(in_coor_opt->answers);
 	    break;
 
 	case 2:
-	    G_message("Calculate basins using streams...");
+	    G_message(_("Calculating basins using streams..."));
 	    seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs,
 			   CELL_TYPE);
 	    seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
@@ -230,7 +225,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 4:
-	    G_message("Calculate basins using point file...");
+	    G_message(_("Calculate basins using vector point map..."));
 	    outlets_num = process_vector(in_point_opt->answer);
 	    break;
 	}

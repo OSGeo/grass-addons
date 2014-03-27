@@ -23,17 +23,17 @@ int process_coors(char **answers)
     for (n = 0, outlets_num = 0; answers[n] != NULL; n += 2, outlets_num++) {
 
 	if (!G_scan_easting(answers[n], &X, G_projection()))
-	    G_fatal_error("Wrong coordinate <%s>", answers[n]);
+            G_fatal_error(_("Wrong coordinate '%s'"), answers[n]);
 
 	if (!answers[n + 1])
-	    G_fatal_error("Missing north coordinate for east %g", X);
+	    G_fatal_error(_("Missing north coordinate for east %g"), X);
 
 	if (!G_scan_northing(answers[n + 1], &Y, G_projection()))
-	    G_fatal_error("Wrong coordinate <%s>", answers[n + 1]);
+	    G_fatal_error(_("Wrong coordinate '%s'"), answers[n + 1]);
 
 	if (X < window.west || X > window.east ||
 	    Y < window.south || Y > window.north)
-	    G_fatal_error("Coordinates outside window");
+	    G_fatal_error(_("Coordinates outside window"));
 
 	outlets[outlets_num].r = (window.north - Y) / window.ns_res;
 	outlets[outlets_num].c = (X - window.west) / window.ew_res;
@@ -45,7 +45,6 @@ int process_coors(char **answers)
 
 int process_vector(char *in_point)
 {
-    char *mapset;
     struct Cell_head window;
     struct Map_info Map;
     struct bound_box box;
@@ -57,12 +56,7 @@ int process_vector(char *in_point)
     sites = Vect_new_line_struct();
     cats = Vect_new_cats_struct();
 
-    mapset = G_find_vector2(in_point, "");
-    if (mapset == NULL)
-	G_fatal_error(_("Vector map <%s> not found"), in_point);
-
-    if (Vect_open_old(&Map, in_point, mapset) < 0)
-	G_fatal_error("Cannot open vector map <%s>", in_point);
+    Vect_open_old(&Map, in_point, "");
 
     G_get_window(&window);
     Vect_region_box(&window, &box);
@@ -216,8 +210,7 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 	    segment_get(streams, &streams_cell, r, c);
 	    if (streams_cell > 0) {
 		if (outlets_num > 6 * (out_max - 1))
-		    G_fatal_error
-			("Stream and direction maps probably do not match");
+		    G_fatal_error(_("Stream and direction maps probably do not match"));
 
 		if (outlets_num > (out_max - 1))
 		    outlets =
