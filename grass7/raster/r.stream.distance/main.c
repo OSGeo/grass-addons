@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
     in_elev_opt->required = NO;
-    in_elev_opt->guisection = _("Input settings");
+    in_elev_opt->guisection = _("Input");
 
     in_method_opt = G_define_option();
     in_method_opt->key = "method";
@@ -79,13 +79,13 @@ int main(int argc, char *argv[])
     out_dist_opt->key = "distance";
     out_dist_opt->required = NO;
     out_dist_opt->description = _("Name for output distance/accumulation raster map");
-    out_dist_opt->guisection = _("Output settings");
+    out_dist_opt->guisection = _("Output");
 
     out_diff_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_diff_opt->key = "difference";
     out_diff_opt->required = NO;
     out_diff_opt->description = _("Name for output elevation difference raster map");
-    out_diff_opt->guisection = _("Output settings");
+    out_diff_opt->guisection = _("Output");
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";
