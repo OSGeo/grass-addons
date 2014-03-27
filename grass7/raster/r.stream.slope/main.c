@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
     module->description = _("Calculates local parameters for slope subsystem.");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_dir_opt->key = "dir";
-    in_dir_opt->description = _("Name of input flow direction raster map");
+    in_dir_opt->key = "direction";
+    in_dir_opt->description = _("Name for input raster map with flow direction");
 
     in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
 

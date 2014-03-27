@@ -2,7 +2,7 @@
 
 <h2>OPTIONS</h2>
 <dl>
-<dt><b>dirs</b></dt>
+<dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
@@ -32,7 +32,7 @@ distance.</dd>
 <dd>Maximum linear curvature along watercourse. Calculated along watercourse
 between highest upstream cell, current cell and downstream cell (there can be
 only one or no downstream cell but more than on upstream)</dd>
-<dt><b>maxcurv</b></dt>
+<dt><b>mincurv</b></dt>
 <dd>Calculated along watercourse between lowest upstream cell, current cell and
 downstream cell (there can be only one or no downstream cell but more than on
 upstream)</dd>
