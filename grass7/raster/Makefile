@@ -22,13 +22,6 @@ SUBDIRS = \
 	r.regression.series \
 	r.segment \
 	r.stream.basins \
-	r.stream.channel \
-	r.stream.distance \
-	r.stream.order \
-	r.stream.segment \
-	r.stream.slope \
-	r.stream.snap \
-	r.stream.stats \
 	r.threshold \
 	r.traveltime
 
