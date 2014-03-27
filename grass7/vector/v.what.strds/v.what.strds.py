@@ -45,6 +45,7 @@ import grass.script as grass
 import grass.temporal as tgis
 from grass.pygrass.functions import copy as gcopy
 from grass.pygrass.messages import Messenger
+from grass.pygrass.vector import Vector
 
 ############################################################################
 
@@ -173,6 +174,18 @@ def main():
     msgr = Messenger()
     perc_curr = 0
     perc_tot = len(samples)
+    pymap = Vector(output)
+    try:
+        pymap.open()
+    except:
+        dbif.close()
+        grass.fatal(_("It is not possible to open the new map %s" % output))
+
+    if len(pymap.dblinks) == 0:
+        ret = grass.run_command("v.db.addtable", map=output)
+        if ret != 0:
+            dbif.close()
+            grass.fatal(_("Impossible add table to vector %s" % output))
     for sample in samples:
         raster_names = sample.raster_names
         # Call v.what.rast for each raster map
