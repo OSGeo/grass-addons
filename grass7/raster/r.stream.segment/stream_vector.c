@@ -91,7 +91,7 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
     if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
+	G_fatal_error("Cannot create table: '%s'", db_get_string(&db_sql));
     }
 
     if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
