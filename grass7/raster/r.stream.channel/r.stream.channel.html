@@ -10,7 +10,7 @@ Default is upstream (from current cell upstream to init/join.</dd>
 <dt><b>-m</b></dt>
 <dd>Only for very large data sets. Use segment library to optimize memory
 consumption during analysis</dd>
-<dt><b>stream</b></dt>
+<dt><b>stream_rast</b></dt>
 <dd>Stream network: name of input stream map. Map may be ordered according one
 of the r.stream.order ordering system as well as unordered (with original stream
 identifiers)  Because streams network produced by r.watershed and
@@ -20,7 +20,7 @@ value or zero value. Background values of NULL are by default produced by
 r.watershed and r.stream.extract. If not 0 or NULL use <a
 href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
 </dd>
-<dt><b>dir</b></dt>
+<dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
@@ -34,7 +34,7 @@ results.</dd>
 <dt><b>elevation</b></dt>
 <dd>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
 DCELL. It is not restricted to resolution of region settings as streams and
-dirs.</dd>
+direction.</dd>
 </dl>
 <h2>OUTPUTS</h2>
 <dl>
@@ -101,8 +101,8 @@ stream of the catchment:
 <div class="code"><pre>
 g.region -p -a rast=elevation align=elevation
 r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
-r.stream.order streams=streams dirs=dirs hack=hack
-r.stream.channel streams=hack dirs=dirs elevation=elevation identifier=stream_identifier distance=stream_distance gradient=stream_gradient
+r.stream.order streams=streams direction=dirs hack=hack
+r.stream.channel streams=hack direction=dirs elevation=elevation identifier=stream_identifier distance=stream_distance gradient=stream_gradient
 #495 is a stream identifier. May be different in different situation
 r.mapcalc stgrad=if(stream_identifier==495,float(stream_gradient),null())
 r.mapcalc stdist=if(stream_identifier==495,float(stream_distance),null())
