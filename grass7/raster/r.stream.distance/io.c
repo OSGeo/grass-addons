@@ -79,7 +79,7 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
                           "Run 'g.region rast=%s' to set proper region resolution."),
                         input_map_name, input_map_name);
-6    
+
     /* checking if input map is of required type */
     if (check_data_type != map->data_type)
 	G_debug(1,
