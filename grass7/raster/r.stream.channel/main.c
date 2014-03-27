@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
     flag_cells = G_define_flag();
     flag_cells->key = 'c';
-    flag_cells->description = _("Calculate distance in cell (ignored local)");
+    flag_cells->description = _("Calculate distance in cell count (ignored local)");
 
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
