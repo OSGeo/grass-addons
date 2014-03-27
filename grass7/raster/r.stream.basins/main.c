@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     in_dir_opt->key = "dirs";
     in_dir_opt->description = _("Name of input flow direction raster map");
 
-    in_coor_opt = G_define_standard_option(G_OPT_M_COORS);	/* input coordinates of outlet */
+    in_coor_opt = G_define_standard_option(G_OPT_M_COORDS);	/* input coordinates of outlet */
     in_coor_opt->required = NO;
     in_coor_opt->multiple = YES;
     in_coor_opt->description = _("Basin's outlet's coordinates");
