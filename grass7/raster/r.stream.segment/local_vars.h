@@ -10,8 +10,6 @@
 
 #define SQRT2 1.414214
 	
-
-	
 typedef struct {
 	int stream;
 	int next_stream;
@@ -71,5 +69,3 @@ GLOBAL int nrows, ncols;
 GLOBAL STREAM* stream_attributes;
 
 GLOBAL struct Cell_head window;
-
-

@@ -70,36 +70,34 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
     }
 
     /* create table */
-    sprintf(buf, "create table %s (%s integer, \
-		segment integer, \
-		sector integer, \
-		s_order integer, \
-		direction double precision, \
-		azimuth double precision, \
-		length double precision, \
-		stright double precision, \
-		sinusoid double precision, \
-		elev_min double precision, \
-		elev_max double precision, \
-		s_drop double precision, \
-		gradient double precision)", Fi->table, cat_col_name);
-
-    //printf("%s \n",buf);
-
+    sprintf(buf, "create table %s (%s integer, "
+            "segment integer, "
+            "sector integer, "
+            "s_order integer, "
+            "direction double precision, "
+            "azimuth double precision, "
+            "length double precision, "
+            "stright double precision, "
+            "sinusoid double precision, "
+            "elev_min double precision, "
+            "elev_max double precision, "
+            "s_drop double precision, "
+            "gradient double precision)", Fi->table, cat_col_name);
+    
     db_set_string(&db_sql, buf);
 
     if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_fatal_error("Cannot create table: '%s'", db_get_string(&db_sql));
+	G_fatal_error(_("Unable to create table: '%s'"), db_get_string(&db_sql));
     }
 
     if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
-	G_warning("cannot create index");
+        G_warning(_("Unable to create create index on table <%s>"), Fi->table);
 
     if (db_grant_on_table(driver, Fi->table,
 			  DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
-	G_fatal_error("cannot grant privileges on table %s", Fi->table);
+	G_fatal_error(_("Unable to grant privileges on table <%s>"), Fi->table);
 
     db_begin_transaction(driver);
 
@@ -129,21 +127,18 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
 		azimuth = RAD2DEG(azimuth);
 	    }
 
-	    sprintf(buf, "insert into %s values( %d, %d, %d, %d, \
-																			%f, %f, %f, %f, %f, \
-																			%f, %f, %f, %f)", Fi->table, sector_category, segment, sector, order,	/*4 */
+	    sprintf(buf, "insert into %s values( %d, %d, %d, %d, "
+                    "%f, %f, %f, %f, %f, "
+                    "%f, %f, %f, %f)", Fi->table, sector_category, segment, sector, order,	/*4 */
 		    direction, azimuth, length, stright, sinusoid,	/*9 */
 		    elev_max, elev_min, drop, gradient);	/*13 */
-
-	    //printf("%s  \n",buf); }}
-
-
+            
 	    db_set_string(&db_sql, buf);
 
 	    if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 		db_close_database(driver);
 		db_shutdown_driver(driver);
-		G_fatal_error(_("Cannot inset new row: %s"),
+		G_fatal_error(_("Unable to inset new row: '%s'"),
 			      db_get_string(&db_sql));
 	    }
 	}
@@ -227,46 +222,44 @@ int create_segment_vector(char *out_vector, int number_of_streams,
     }
 
     /* create table */
-    sprintf(buf, "create table %s (%s integer, \
-		segment integer, \
-		next_segment integer, \
-		s_order integer, \
-		next_order integer, \
-		direction double precision, \
-		azimuth double precision, \
-		length double precision, \
-		stright double precision, \
-		sinusoid double precision, \
-		elev_min double precision, \
-		elev_max double precision, \
-		s_drop double precision, \
-		gradient double precision, \
-		out_direction double precision, \
-		out_azimuth double precision, \
-		out_length double precision, \
-		out_drop double precision, \
-		out_gradient double precision, \
-		tangent_dir double precision, \
-		tangent_azimuth double precision, \
-		next_direction double precision, \
-		next_azimuth double precision)", Fi->table, cat_col_name);
-
-    //printf("%s \n",buf);
-
+    sprintf(buf, "create table %s (%s integer, "
+            "segment integer, "
+            "next_segment integer, "
+            "s_order integer, "
+            "next_order integer, "
+            "direction double precision, "
+            "azimuth double precision, "
+            "length double precision, "
+            "stright double precision, "
+            "sinusoid double precision, "
+            "elev_min double precision, "
+            "elev_max double precision, "
+            "s_drop double precision, "
+            "gradient double precision, "
+            "out_direction double precision, "
+            "out_azimuth double precision, "
+            "out_length double precision, "
+            "out_drop double precision, "
+            "out_gradient double precision, "
+            "tangent_dir double precision, "
+            "tangent_azimuth double precision, "
+            "next_direction double precision, "
+            "next_azimuth double precision)", Fi->table, cat_col_name);
+    
     db_set_string(&db_sql, buf);
 
     if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
+	G_fatal_error(_("Unable to create table '%s'"), db_get_string(&db_sql));
     }
 
     if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
-	G_warning("cannot create index");
+	G_warning(_("Unable to create index on table <%s>"), Fi->table);
 
     if (db_grant_on_table(driver, Fi->table,
 			  DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
-	G_fatal_error("cannot grant privileges on table %s", Fi->table);
+	G_fatal_error(_("Unable grant privileges on table <%s>"), Fi->table);
 
     db_begin_transaction(driver);
 
@@ -309,25 +302,22 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 	    next_azimuth = RAD2DEG(next_azimuth);
 	}
 
-	sprintf(buf, "insert into %s values( %d, %d, %d, %d, %d, \
-																			%f, %f, %f, %f, %f, \
-																			%f, %f, %f, %f,			\
-																			%f, %f, %f, %f, %f, \
-																			%f, %f, %f, %f)", Fi->table, i, segment, next_segment, order, next_order,	/*5 */
+	sprintf(buf, "insert into %s values( %d, %d, %d, %d, %d, "
+                "%f, %f, %f, %f, %f, "
+                "%f, %f, %f, %f, "
+                "%f, %f, %f, %f, %f, "
+                "%f, %f, %f, %f)", Fi->table, i, segment, next_segment, order, next_order,	/*5 */
 		direction, azimuth, length, stright, sinusoid,	/*10 */
 		elev_max, elev_min, drop, gradient,	/*14 */
 		out_direction, out_azimuth, out_length, out_drop, out_gradient,	/*19 */
 		tangent_dir, tangent_azimuth, next_direction, next_azimuth);	/*23 */
-
-	/* printf("%s  \n",buf); */
-
 
 	db_set_string(&db_sql, buf);
 
 	if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	    db_close_database(driver);
 	    db_shutdown_driver(driver);
-	    G_fatal_error(_("Cannot inset new row: %s"),
+	    G_fatal_error(_("Unable to insert new row: '%s'"),
 			  db_get_string(&db_sql));
 	}
 

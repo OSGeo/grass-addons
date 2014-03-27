@@ -225,10 +225,11 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
     STREAM *SA = stream_attributes;
     unsigned long int *P = cur_stream->points;
     int next_stream = cur_stream->next_stream;
-    int outlet = cur_stream->outlet;
+    unsigned int outlet = cur_stream->outlet;
     int last_cell = cur_stream->number_of_cells - 1;
     int reached_end = 1;
 
+    G_debug(3, "calc_tangents(): number_streams=%d", number_streams);
     /*before calc tangents add rest of streamline attributes */
     r_up = (int)P[1] / ncols;
     c_up = (int)P[1] % ncols;

@@ -1,23 +1,23 @@
 
 /****************************************************************************
  *
- * MODULE:			 r.stream.segment
+ * MODULE:		 r.stream.segment
  * AUTHOR(S):		 Jarek Jasiewicz jarekj amu.edu.pl
  *							 
- * PURPOSE:			 Calculate geometrical attributes for segments of current order, 
- * 							 divide segments on near straight line portions and 
- * 							 and segment orientation and angles between streams and its
- *               tributaries. For stream direction it use algorithm to divide
- *               particular streams of the same order into near-straight line
- *               portions.
+ * PURPOSE:		 Calculate geometrical attributes for segments of current order, 
+ * 			 divide segments on near straight line portions and 
+ * 			 and segment orientation and angles between streams and its
+ *                       tributaries. For stream direction it use algorithm to divide
+ *                       particular streams of the same order into near-straight line
+ *                       portions.
  * 				
  *							
  *
- * COPYRIGHT:		 (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:		 (C) 2002,2010-2014 by the GRASS Development Team
  *
- *							 This program is free software under the GNU General Public
- *							 License (>=v2). Read the file COPYING that comes with GRASS
- *							 for details.
+ *			 This program is free software under the GNU General Public
+ *			 License (>=v2). Read the file COPYING that comes with GRASS
+ *			 for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -53,34 +53,31 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->description =
-	_("Divide network into near straight-line segments and calculate its order");
+	_("Divides network into near straight-line segments and calculate its order.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("Stream divide");
-    G_add_keyword("Stream direction");
-    G_add_keyword("Stream gradient");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("stream divide"));
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_stm_opt->key = "streams";
-    in_stm_opt->description = "Name of streams mask input map";
+    in_stm_opt->description = _("Name of input streams mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_dir_opt->key = "dirs";
-    in_dir_opt->description = "Name of flow direction input map";
+    in_dir_opt->description = _("Name of input flow direction raster map");
 
-    in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_elev_opt->key = "elevation";
-    in_elev_opt->description = "Name of elevation map";
+    in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
 
     out_segment_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_segment_opt->key = "segments";
     out_segment_opt->description =
-	_("OUTPUT vector file to write segment attributes");
+	_("Name for output vector map to write segment attributes");
 
     out_sector_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_sector_opt->key = "sectors";
     out_sector_opt->description =
-	_("OUTPUT vector file to write segment attributes");
+	_("Name for output vector map to write segment attributes");
 
     opt_length = G_define_option();
     opt_length->key = "length";
@@ -88,7 +85,6 @@ int main(int argc, char *argv[])
     opt_length->description = _("Must be > 0");
     opt_length->answer = "15";
     opt_length->type = TYPE_INTEGER;
-    opt_length->guisection = _("Optional");
 
     opt_skip = G_define_option();
     opt_skip->key = "skip";
@@ -96,7 +92,6 @@ int main(int argc, char *argv[])
     opt_skip->description = _("Must be >= 0");
     opt_skip->answer = "5";
     opt_skip->type = TYPE_INTEGER;
-    opt_skip->guisection = _("Optional");
 
     opt_threshold = G_define_option();
     opt_threshold->key = "threshold";
@@ -104,14 +99,13 @@ int main(int argc, char *argv[])
     opt_threshold->description = _("Must be > 0");
     opt_threshold->answer = "160";
     opt_threshold->type = TYPE_DOUBLE;
-    opt_threshold->guisection = _("Optional");
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
     opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
-    opt_swapsize->guisection = _("Optional");
+    opt_swapsize->guisection = _("Memory setings");
 
     flag_radians = G_define_flag();
     flag_radians->key = 'r';
@@ -121,7 +115,7 @@ int main(int argc, char *argv[])
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
-
+    flag_segmentation->guisection = _("Memory setings");
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -133,11 +127,11 @@ int main(int argc, char *argv[])
     segmentation = (flag_segmentation->answer != 0);
 
     if (seg_length <= 0)
-	G_fatal_error("Search's length must be > 0");
+        G_fatal_error(_("Search's length must be > 0"));
     if (seg_treshold < 0 || seg_treshold > 180)
-	G_fatal_error("Threshold must be between 0 and 180");
+	G_fatal_error(_("Threshold must be between 0 and 180"));
     if (seg_skip < 0)
-	G_fatal_error("Segment's length must be >= 0");
+	G_fatal_error(_("Segment's length must be >= 0"));
 
     seg_treshold = DEG2RAD(seg_treshold);
     nrows = Rast_window_rows();
@@ -152,7 +146,7 @@ int main(int argc, char *argv[])
 	CELL **streams, **dirs, **unique_streams = NULL;
 	FCELL **elevation;
 
-	G_message(_("ALL IN RAM CALCULATION"));
+	G_message(_("All in RAM calculation..."));
 	ram_create_map(&map_streams, CELL_TYPE);
 	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
 	ram_create_map(&map_dirs, CELL_TYPE);
@@ -190,7 +184,7 @@ int main(int argc, char *argv[])
 	SEGMENT *elevation;
 	int number_of_segs;
 
-	G_message(_("MEMORY SWAP CALCULATION - MAY TAKE SOME TIME"));
+        G_message(_("Memory swap calculation (may take some time)..."));
 	number_of_segs = (int)atof(opt_swapsize->answer);
 	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;
 
@@ -246,7 +240,7 @@ int main(int argc, char *argv[])
        stream_attributes[i].outlet);
 
      */
-    G_message("Creating sectors and calculating attributes...");
+    G_message(_("Creating sectors and calculating attributes..."));
 
     for (i = 1; i < number_of_streams; ++i) {
 	create_sectors(&stream_attributes[i], seg_length, seg_skip,
