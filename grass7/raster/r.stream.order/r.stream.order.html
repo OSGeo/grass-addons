@@ -8,11 +8,11 @@ algebra calculation) zero-valued background may be required. This flag produces
 zero-filled background instead of null (default).</dd>
 <dt><b>-a</b></dt>
 <dd>Uses accumulation map instead of cumulated stream length to determine main
-branch at bifuraction. Works well only with SFD networks</dd>
+branch at bifurcation. Works well only with SFD networks</dd>
 <dt><b>-m</b></dt>
 <dd>Only for very large data sets. Use segment library to optimise memory
 consumption during analysis</dd>
-<dt><b>stream network map</b></dt>
+<dt><b>stream_rast</b></dt>
 <dd>Name of input stream map on which ordering will be performed produced by
 r.watershed or r.stream.extract. Because streams network produced by r.watershed
 and r.stream.extract may slightly differ in detail it is required to 
@@ -22,7 +22,7 @@ Background values of NULL are by default produced by r.watershed and
 r.stream.extract. If not 0 or NULL use <a href="r.mapcalc.html">r.mapcalc</a> to
 set background values to null.  
 </dd>
-<dt><b>flow direction map</b></dt>
+<dt><b>direction</b></dt>
 <dd>Name of input direction map produced by r.watershed or r.stream.extract. If
 r.stream.extract output map is used, it only has non-NULL values in places where
 streams occur. NULL (nodata) cells are ignored, zero and negative values are
@@ -33,7 +33,7 @@ Also <em>stream</em> network and <em>direction</em> maps must have the same
 resolution. It is checked by default. If resolutions differ the module informs
 about it and stops. Region boundary
 and maps boundary may be differ but it may lead to unexpected results.</dd>
-<dt><b>accumulation map</b></dt>
+<dt><b>accumulation</b></dt>
 <dd>Flow accumulation (optional, not recommended): name of flow accumulation
 file produced by r.watershed or used in r.stream.extract. This map is an option
 only if Horton's or Hack's ordering is performed. Normally both Horton and Hack
@@ -41,7 +41,7 @@ ordering is calculated on cumulative stream length which is calculated
 internally. Flow accumulation can be used if user want to calculate main stream
 as most accumulated stream. Flow accumulation map shall be of DCELL type, as is
 by default produced by r.watershed or converted do DCELL with r.mapcalc.</dd>
-<dt><b>elevation map</b></dt>
+<dt><b>elevation</b></dt>
 <dd>Used to calculate geometrical properties of the network stored in the
 table.</dd>
 </dl>
@@ -254,11 +254,12 @@ r.patch).
 
 <div class="code"><pre>
 g.region -p -a rast=elevation align=elevation
-r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
-r.stream.order streams=streams dirs=dirs strahler=riverorder_strahler horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack topo=river_topodim
+r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
+r.stream.order stream_rast=streams direction=direction strahler=riverorder_strahler \
+horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack topo=river_topodim
 # vector river network
 r.watershed elevation=elevation threshold=10000 accumulation=accum
-r.stream.order streams=streams dirs=dirs elevation=elevation accum=accum stream_vect=river_vector
+r.stream.order stream_rast=streams direction=direction elevation=elevation accumulation=accum stream_vect=river_vector
 </pre></div>
 
 <h2>SEE ALSO</h2>

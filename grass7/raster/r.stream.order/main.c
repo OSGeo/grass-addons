@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
 {
 
     IO input[] = {
-        {"streams", YES, _("Name of input streams mask raster map")},
-	{"dirs", YES, _("Name of input flow direction raster map")},
+        {"stream_rast", YES, _("Name of input streams mask raster map")},
+	{"direction", YES, _("Name of input flow direction raster map")},
 	{"elevation", NO, _("Name of input elevation raster map")},
-	{"accum", NO, _("Name of input accumulation raster map")}
+	{"accumulation", NO, _("Name of input accumulation raster map")}
     };
 
     /* add new basic rdering here and in local_vars.h declaration 
