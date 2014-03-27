@@ -31,6 +31,7 @@ int ram_calculate_identifiers(CELL **identifier, int number_of_streams,
     int i, j;
     STREAM *SA;
 
+    G_debug(3, "ram_calculate_identifiers(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -51,6 +52,7 @@ int seg_calculate_identifiers(SEGMENT *identifier, int number_of_streams,
     int i, j;
     STREAM *SA;
 
+    G_debug(3, "seg_calculate_identifiers(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -372,6 +374,7 @@ int ram_calculate_local_gradient(DCELL **output, int number_of_streams,
     double elev_diff;
     STREAM *SA;
 
+    G_debug(3, "ram_calculate_local_gradient(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -397,6 +400,7 @@ int seg_calculate_local_gradient(SEGMENT *output, int number_of_streams,
     double output_cell;
     STREAM *SA;
 
+    G_debug(3, "seg_calculate_local_gradient(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -422,6 +426,7 @@ int ram_calculate_local_distance(DCELL **output, int number_of_streams,
     int i, j;
     STREAM *SA;
 
+    G_debug(3, "ram_calculate_local_distance(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -443,6 +448,7 @@ int seg_calculate_local_distance(SEGMENT *output, int number_of_streams,
     double output_cell;
     STREAM *SA;
 
+    G_debug(3, "seg_calculate_local_distance(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -465,6 +471,7 @@ int ram_calculate_curvature(DCELL **output, int number_of_streams,
     STREAM *SA;
     double first_derivative, second_derivative;
 
+    G_debug(3, "ram_calculate_curvature(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
@@ -498,6 +505,7 @@ int seg_calculate_curvature(SEGMENT *output, int number_of_streams,
     STREAM *SA;
     double first_derivative, second_derivative;
 
+    G_debug(3, "seg_calculate_curvature(): downstream=%d", downstream);
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
