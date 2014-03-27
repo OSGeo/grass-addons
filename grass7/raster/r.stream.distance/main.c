@@ -56,12 +56,12 @@ int main(int argc, char *argv[])
     G_add_keyword(_("watercourse distance"));
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_stm_opt->key = "stream";
+    in_stm_opt->key = "stream_rast";
     in_stm_opt->description = _("Name of input streams (outlets) mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_dir_opt->key = "dirs";
-    in_dir_opt->description = _("Name of inout flow direction raster map");
+    in_dir_opt->key = "direction";
+    in_dir_opt->description = _("Name for input raster map with flow direction");
 
     in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
     in_elev_opt->required = NO;
