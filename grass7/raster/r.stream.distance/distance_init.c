@@ -19,8 +19,7 @@ int ram_find_outlets(CELL ** streams, int number_of_streams, CELL ** dirs,
 	    if (streams[r][c] > 0) {
 		if (outlets_num > (out_max - 1)) {
 		    if (outlets_num > 4 * (out_max - 1))
-			G_fatal_error
-			    ("Stream and direction maps probably do not match");
+                        G_fatal_error(_("Stream and direction maps probably do not match"));
 		    out_max *= 4;
 		    outlets =
 			(OUTLET *) G_realloc(outlets,
@@ -84,8 +83,7 @@ int seg_find_outlets(SEGMENT * streams, int number_of_streams, SEGMENT * dirs,
 	    if (streams_cell > 0) {
 		if (outlets_num > (out_max - 1)) {
 		    if (outlets_num > 4 * (out_max - 1))
-			G_fatal_error
-			    ("Stream and direction maps probably do not match");
+			G_fatal_error(_("Stream and direction maps probably do not match"));
 		    out_max *= 4;
 		    outlets =
 			(OUTLET *) G_realloc(outlets,

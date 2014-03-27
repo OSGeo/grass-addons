@@ -34,9 +34,3 @@ GLOBAL int nrows, ncols;
 GLOBAL int fifo_max;
 GLOBAL POINT* fifo_points;
 GLOBAL int accum;
-
-
-
-
-
-

@@ -18,5 +18,3 @@ int ram_calculate_upstream(FCELL **distance, CELL **dirs, FCELL **elevation, FCE
 int seg_calculate_downstream (SEGMENT *dirs, SEGMENT *distance, SEGMENT *elevation, OUTLET outlet, int outs);
 int seg_fill_basins(OUTLET outlet, SEGMENT *distance, SEGMENT *dirs);
 int seg_calculate_upstream(SEGMENT *distance, SEGMENT *dirs, SEGMENT *elevation, SEGMENT *tmp_elevation, int near);
-
-

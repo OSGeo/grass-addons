@@ -4,7 +4,7 @@ static int tail, head, fifo_count;
 int fifo_insert(POINT point)
 {
     if (fifo_count == fifo_max)
-	G_fatal_error("fifo queue: circular buffer too small");
+        G_fatal_error(_("Circular buffer too small"));
 
     fifo_points[tail++] = point;
     if (tail > fifo_max) {
@@ -410,8 +410,8 @@ int ram_calculate_upstream(FCELL ** distance, CELL ** dirs,
 	}
 
     counter = n_inits = k;
-    //return 0; // do usunięcia
-    G_message("Calculate upstream parameters...");
+    /* return 0; */
+    G_message(_("Calculate upstream parameters..."));
     while (n_inits > 0) {
 	k = 0;
 	G_percent((counter - n_inits), counter, 10);
@@ -564,7 +564,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 
     counter = n_inits = k;
 
-    G_message("Calculate upstream parameters...");
+    G_message(_("Calculate upstream parameters..."));
     while (n_inits > 0) {
 	k = 0;
 	G_percent((counter - n_inits), counter, 10);
@@ -623,6 +623,6 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 	}
 	n_inits = k;
     }
-    G_percent((counter - n_inits), counter, 10);
+    G_percent(1, 1, 1);
     return 0;
 }
