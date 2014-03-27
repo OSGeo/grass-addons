@@ -265,7 +265,7 @@ int stream_add_table(int number_of_streams)
     if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_warning("Unable to create table <%s>", db_get_string(&db_sql));
+	G_warning("Unable to create table: '%s'", db_get_string(&db_sql));
 	return -1;
     }
 
