@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.stream.order</em> calculates Strahler's and more streams
-hierarchy. It's a basic module for topological analysis of drainage
-network.
+The <em>r.stream.order</em> calculates Strahler's and other stream
+hierarchy methods. It is a basic module for topological analysis of
+drainage networks.
 
 <h2>OPTIONS</h2>
 <dl>
@@ -208,7 +208,7 @@ in attribute table. To achieve Consisted Associated Integers
 multiplied by 2:
 
 <div class="code"><pre>
-r.mapcalc scheidegger=shreve*2
+r.mapcalc "scheidegger = shreve * 2.0"
 </pre></div>
 
 <h4>Drwal's stream hierarchy (old style)</h4>
@@ -227,7 +227,7 @@ result of Shreve's magnitude is to be recalculated according
 formula: <tt>floor(log(shreve,2))+1</tt>
 
 <div class="code"><pre>
-r.mapcalc drwal=int(log(shreve,2))+1
+r.mapcalc "drwal = int(log(shreve,2.0)) + 1.0"
 </pre></div>
 
 <h4>Advantages and disadvantages of Drwal's hierarhy</h4> 
@@ -309,13 +309,16 @@ outlet + drop outlet;
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region -p -a rast=elevation align=elevation
+g.region -p -a rast=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.order stream_rast=streams direction=direction strahler=riverorder_strahler \
-horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack topo=river_topodim
+  horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack \
+  topo=river_topodim
+
 # vector river network
 r.watershed elevation=elevation threshold=10000 accumulation=accum
-r.stream.order stream_rast=streams direction=direction elevation=elevation accumulation=accum stream_vect=river_vector
+r.stream.order stream_rast=streams direction=direction elevation=elevation \
+  accumulation=accum stream_vect=river_vector
 </pre></div>
 
 <h2>REFERENCES</h2>

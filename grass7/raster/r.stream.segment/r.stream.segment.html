@@ -176,10 +176,11 @@ also MFD direction map must be used.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region -p -a rast=elevation align=elevation
+g.region -p -a rast=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.order stream_vect=streams direction=direction strahler=riverorder_strahler
-r.stream.segment stream_rast=riverorder_strahler direction=direction elevation=elevation segments=river_segment sectors=river_sector
+r.stream.segment stream_rast=riverorder_strahler direction=direction \
+  elevation=elevation segments=river_segment sectors=river_sector
 </pre></div>
 
 <h2>SEE ALSO</h2>

@@ -90,7 +90,7 @@ originally corrected)
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region -p -a rast=elevation align=elevation
+g.region -p -a rast=elevation
 r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams accumulation=accum
 # snap a point sampled in the riverine landscape to the calculated river network
 r.stream.snap input=mysampleoutlet output=mysampleoutlet_snapped stream_rast=streams accumulation=accum

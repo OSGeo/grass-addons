@@ -97,8 +97,8 @@ r.stream.channel streams=hack direction=direction elevation=elevation \
   identifier=stream_identifier distance=stream_distance gradient=stream_gradient
 
 # Eg., 495 is a stream identifier. May be different in different situation
-r.mapcalc stgrad=if(stream_identifier==495,float(stream_gradient),null())
-r.mapcalc stdist=if(stream_identifier==495,float(stream_distance),null())
+r.mapcalc "stgrad = if(stream_identifier==495,float(stream_gradient),null())"
+r.mapcalc "stdist = if(stream_identifier==495,float(stream_distance),null())"
 
 # Use R for plotting
 R
