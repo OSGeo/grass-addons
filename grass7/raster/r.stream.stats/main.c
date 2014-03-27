@@ -13,11 +13,11 @@
  *               If input stream comes from r.stream.extract direction map 
  *               from r.stream.extract dir map must be patched with that of r.watershed.
  *
- * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002,2010-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 	  License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 	  for details.
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -49,33 +49,29 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->description =
-	_("Calculate Horton's statistics for Strahler and Horton ordered networks created with r.stream.order");
+	_("Calculates Horton's statistics for Strahler and Horton ordered networks created with r.stream.order.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("Horton's statistics");
-    G_add_keyword("Bifurcation ratio");
-    G_add_keyword("Drainage density");
-    G_add_keyword("Catchment statistics");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("Horton's statistics"));
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_stm_opt->key = "streams";
-    in_stm_opt->description = "Name of streams mask input map";
+    in_stm_opt->description = _("Name of input streams mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_dir_opt->key = "dirs";
-    in_dir_opt->description = "Name of flow direction input map";
+    in_dir_opt->description = _("Name of input flow direction raster map");
 
-    in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_elev_opt->key = "elevation";
-    in_elev_opt->description = "Name of elevation map";
+    in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
     opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
-    opt_swapsize->guisection = _("Optional");
-
+    opt_swapsize->guisection = _("Memory settings");
+    
     opt_output = G_define_standard_option(G_OPT_F_OUTPUT);
     opt_output->required = NO;
     opt_output->description =
@@ -84,15 +80,18 @@ int main(int argc, char *argv[])
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
+    flag_segmentation->guisection = _("Memory settings");
 
     flag_catchment_total = G_define_flag();
     flag_catchment_total->key = 'c';
     flag_catchment_total->description =
 	_("Print only catchment's statistics");
+    flag_catchment_total->guisection = _("Print");
 
     flag_orders_summary = G_define_flag();
     flag_orders_summary->key = 'o';
     flag_orders_summary->description = _("Print only orders' statistics");
+    flag_orders_summary->guisection = _("Print");
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
     filename = opt_output->answer;
     if (filename != NULL)
 	if (NULL == freopen(filename, "w", stdout))
-	    G_fatal_error(_("Unable to open file <%s> for writing"),
+	    G_fatal_error(_("Unable to open file '%s' for writing"),
 			  filename);
 
     nrows = Rast_window_rows();
@@ -115,7 +114,7 @@ int main(int argc, char *argv[])
 	CELL **streams, **dirs;
 	FCELL **elevation;
 
-	G_message(_("ALL IN RAM CALCULATION"));
+	G_message(_("All in RAM calculation..."));
 
 	ram_create_map(&map_streams, CELL_TYPE);
 	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
@@ -153,7 +152,7 @@ int main(int argc, char *argv[])
 	SEG map_dirs, map_streams, map_elevation;
 	SEGMENT *streams, *dirs, *elevation;
 
-	G_message(_("MEMORY SWAP CALCULATION - MAY TAKE SOME TIME"));
+        G_message(_("Memory swap calculation (may take some time)..."));
 
 	number_of_segs = (int)atof(opt_swapsize->answer);
 	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;

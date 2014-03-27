@@ -23,4 +23,3 @@ int stats(int order_max);
 int print_stats(int order_max);
 int print_stats_total(void);
 int print_stats_orders(int order_max);
-

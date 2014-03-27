@@ -27,7 +27,7 @@ double stats_linear_reg(int max_order, double *statistic)
     return result;
 }
 
-int stats(order_max)
+int stats(int order_max)
 {
     int i;
     int num, ord_num;

@@ -61,8 +61,6 @@ typedef struct {
 	float drainage_density;
 } STATS;
 
-
-
 #ifdef MAIN
 #	define GLOBAL
 #else
@@ -82,7 +80,3 @@ GLOBAL int outlets_num; /* number outlets: index for stream statistics*/
 GLOBAL STREAM *stat_streams;
 GLOBAL STATS *ord_stats;
 GLOBAL STATS stats_total;
-
-
-
-

@@ -4,7 +4,7 @@ static int tail, head, fifo_count;
 int fifo_insert(POINT point)
 {
     if (fifo_count == fifo_max)
-	G_fatal_error("fifo queue: circular buffer too small");
+        G_fatal_error(_("Circular buffer too small"));
 
     fifo_points[tail++] = point;
     if (tail > fifo_max) {
