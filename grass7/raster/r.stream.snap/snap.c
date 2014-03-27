@@ -103,7 +103,8 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
 		}
 	    }
 
-	if (sumaccum > 0)
+        /* TODO: this should be fixed by someone who knows the code */
+	if (sumaccum > 0) 
 	    /* accum_treshold=(sumaccum/naccum+maxaccum)/2 */ ;
 	accum_treshold = sumaccum / naccum;
 
@@ -129,8 +130,8 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
 	    }
     }				/* end of non-streams version */
     if (di == -1 && dj == -1) {
-	G_warning(_("cannot snap point with cat %d, in a given radius. \
-		Increase search radius"), point->cat);
+	G_warning(_("Unable to snap point with cat %d, in a given radius. "
+                    "Increase search radius."), point->cat);
 	di = 0;
 	dj = 0;
 	status = 2;

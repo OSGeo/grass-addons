@@ -2,7 +2,6 @@
 
 int read_points(char *in_point, SEGMENT * streams, SEGMENT * accum)
 {
-    char *mapset;
     struct Cell_head window;
     struct Map_info Map;
     struct bound_box box;
@@ -16,13 +15,8 @@ int read_points(char *in_point, SEGMENT * streams, SEGMENT * accum)
     sites = Vect_new_line_struct();
     cats = Vect_new_cats_struct();
 
-    mapset = G_find_vector2(in_point, "");
-    if (mapset == NULL)
-	G_fatal_error(_("Vector map <%s> not found"), in_point);
-
-    if (Vect_open_old(&Map, in_point, mapset) < 0)
-	G_fatal_error("Cannot open vector map <%s>", in_point);
-
+    Vect_open_old(&Map, in_point, "");
+    
     G_get_window(&window);
     Vect_region_box(&window, &box);
 

@@ -9,11 +9,11 @@
  *               maximum snap distance and minimum accumulation value to snap
  *               
  *
- * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002,2010-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 	  License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 	  for details.
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -44,11 +44,12 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->description = _("Delineate basins according user' input. \
-	Input can be stream network, point file with outlets or outlet coordinates");
+    module->label = _("Delineates basins for stream network.");
+    module->description = _("Input can be stream network, point vector map with outlets or outlet coordinates.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("basins creation");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("basins creation"));
 
     in_points_opt = G_define_standard_option(G_OPT_V_INPUT);
     in_points_opt->description = _("Name of input vector points map");
@@ -59,13 +60,15 @@ int main(int argc, char *argv[])
     in_stream_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_stream_opt->key = "streams";
     in_stream_opt->required = NO;
-    in_stream_opt->description = _("Name of stream map");
+    in_stream_opt->description = _("Name of input streams mask raster map");
+    in_stream_opt->guisection = _("Input maps");
 
     in_accum_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_accum_opt->key = "accum";
     in_accum_opt->required = NO;
-    in_accum_opt->description = _("Name of accumulation map");
-
+    in_accum_opt->description = _("Name of input accumulation raster map");
+    in_accum_opt->guisection = _("Input maps");
+ 
     opt_accum_treshold = G_define_option();
     opt_accum_treshold->key = "accumtres";
     opt_accum_treshold->type = TYPE_DOUBLE;
@@ -104,7 +107,7 @@ int main(int argc, char *argv[])
 		      out_points_opt->answer);
 
     if (!in_stream_opt->answer && !in_accum_opt->answer)
-	G_fatal_error(_("At least one map of accumulation or streams is required"));
+	G_fatal_error(_("At least one of accumulation or streams raster maps is required"));
 
     if (!in_accum_opt->answer)
 	accum_treshold = -1;
@@ -133,10 +136,11 @@ int main(int argc, char *argv[])
     write_points(out_points_opt->answer, number_of_points);
 
 
+    /*
     for (i = 0; i < number_of_points; ++i)
 	G_message("AFTER %d %d %d %d",
 		  points[i].r, points[i].c, points[i].di, points[i].dj);
-
+    */
 
     if (in_stream_opt->answer)
 	seg_release_map(&map_streams);

@@ -8,4 +8,3 @@ int snap_point(OUTLET *, int, SEGMENT *, SEGMENT *, double);
 
 /* points_io.c */
 int write_points(char *, int);
-
