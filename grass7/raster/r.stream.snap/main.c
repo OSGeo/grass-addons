@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
     opt_swapsize->answer = "300";
     opt_swapsize->required = NO;
     opt_swapsize->description = _("Max memory used (MB)");
-
+    opt_swapsize->guisection = _("Memory settings");
+    
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
 
