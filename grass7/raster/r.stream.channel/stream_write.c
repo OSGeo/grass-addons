@@ -1,25 +1,26 @@
 #include "local_proto.h"
 int ram_set_null_output(DCELL **output)
 {
-
     int r;
 
     for (r = 0; r < nrows; ++r)
 	Rast_set_d_null_value(output[r], ncols);
+
     return 0;
 }
 
 int seg_set_null_output(SEGMENT *output)
 {
-
     int r, c;
     double output_cell;
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Rast_set_d_null_value(&output_cell, 1);
 	    segment_put(output, &output_cell, r, c);
 	}
+    }
+
     return 0;
 }
 
@@ -39,6 +40,7 @@ int ram_calculate_identifiers(CELL **identifier, int number_of_streams,
 	    identifier[r][c] = SA[i].stream_num;
 	}
     }
+
     return 0;
 }
 
@@ -58,6 +60,7 @@ int seg_calculate_identifiers(SEGMENT *identifier, int number_of_streams,
 	    segment_put(identifier, &(SA[i].stream_num), r, c);
 	}
     }
+
     return 0;
 }
 
@@ -89,6 +92,7 @@ int ram_calculate_distance(DCELL **output, int number_of_streams,
 		output[r][c] = cum_length;
 	    }
     }
+
     return 0;
 }
 
@@ -119,6 +123,7 @@ int seg_calculate_distance(SEGMENT *output, int number_of_streams,
 		segment_put(output, &cum_length, r, c);
 	    }
     }
+
     return 0;
 }
 
@@ -139,6 +144,7 @@ int ram_calculate_cell(DCELL **output, int number_of_streams, int downstream)
 	    output[r][c] = downstream ? k : j;
 	}
     }
+
     return 0;
 }
 
@@ -162,6 +168,7 @@ int seg_calculate_cell(SEGMENT *output, int number_of_streams,
 	    segment_put(output, &output_cell, r, c);
 	}
     }
+
     return 0;
 }
 
@@ -186,6 +193,7 @@ int ram_calculate_difference(DCELL **output, int number_of_streams,
 	    output[r][c] = result;
 	}
     }
+
     return 0;
 }
 
@@ -210,6 +218,7 @@ int seg_calculate_difference(SEGMENT *output, int number_of_streams,
 	    segment_put(output, &output_cell, r, c);
 	}
     }
+
     return 0;
 }
 
@@ -240,6 +249,7 @@ int ram_calculate_drop(DCELL **output, int number_of_streams, int downstream)
 	    }
 	}
     }
+
     return 0;
 }
 
@@ -274,6 +284,7 @@ int seg_calculate_drop(SEGMENT *output, int number_of_streams,
 	    }
 	}
     }
+
     return 0;
 }
 
@@ -309,6 +320,7 @@ int ram_calculate_gradient(DCELL **output, int number_of_streams,
 	    }
 	}
     }
+
     return 0;
 }
 
@@ -348,6 +360,7 @@ int seg_calculate_gradient(SEGMENT *output, int number_of_streams,
 	    }
 	}
     }
+
     return 0;
 }
 
@@ -371,6 +384,7 @@ int ram_calculate_local_gradient(DCELL **output, int number_of_streams,
 	    output[r][c] = elev_diff / SA[i].distance[j];
 	}
     }
+
     return 0;
 }
 
@@ -396,6 +410,7 @@ int seg_calculate_local_gradient(SEGMENT *output, int number_of_streams,
 	    segment_put(output, &output_cell, r, c);
 	}
     }
+
     return 0;
 }
 
@@ -416,6 +431,7 @@ int ram_calculate_local_distance(DCELL **output, int number_of_streams,
 	    output[r][c] = SA[i].distance[j];
 	}
     }
+
     return 0;
 }
 
@@ -437,6 +453,7 @@ int seg_calculate_local_distance(SEGMENT *output, int number_of_streams,
 	    segment_put(output, &output_cell, r, c);
 	}
     }
+
     return 0;
 }
 
@@ -468,6 +485,7 @@ int ram_calculate_curvature(DCELL **output, int number_of_streams,
 		pow((1 + second_derivative * second_derivative), 1.5);
 	}
     }
+
     return 0;
 }
 
@@ -501,5 +519,6 @@ int seg_calculate_curvature(SEGMENT *output, int number_of_streams,
 	    segment_put(output, &output_cell, r, c);
 	}
     }
+
     return 0;
 }

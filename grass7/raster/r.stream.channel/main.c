@@ -5,15 +5,15 @@
  * AUTHOR(S):    Jarek Jasiewicz jarekj amu.edu.pl
  *               
  * PURPOSE:      Program calculate some channel properties:
- * 							 local elevation change, curvature along stream,
- * 							 distance to channel init/join, elevation below channel init, 
- * 							 optionally distance to outlet, elevation above outlet;
+ * 			local elevation change, curvature along stream,
+ * 			distance to channel init/join, elevation below channel init, 
+ * 			optionally distance to outlet, elevation above outlet;
         
- * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002,2010-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 	  License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 	  for details.
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -23,10 +23,8 @@
 int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
 int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
-
 int main(int argc, char *argv[])
 {
-
     /*
        IO output[] = {
        {"local_diff",NO,"Local elevation difference"},
@@ -55,60 +53,61 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    G_add_keyword("Horton statistics");
-    module->description =
-	_("Calculate local parameters for individual streams");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("Stream parameters");
-    G_add_keyword("Stream gradient");
-    G_add_keyword("Stream curvature");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("Horton statistics"));
+    module->description =
+	_("Calculates local parameters for individual streams.");
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_stm_opt->key = "streams";
-    in_stm_opt->description = "Name of streams mask input map";
+    in_stm_opt->description = _("Name of input streams mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_dir_opt->key = "dirs";
-    in_dir_opt->description = "Name of flow direction input map";
+    in_dir_opt->description = _("Name of input flow direction raster map");
 
-    in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_elev_opt->key = "elevation";
-    in_elev_opt->description = "Name of elevation map";
+    in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
 
     out_identifier_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_identifier_opt->key = "identifier";
     out_identifier_opt->required = NO;
-    out_identifier_opt->description = "Unique identifier for stream";
+    out_identifier_opt->description = _("Name for output unique stream identifier raster map");
+    out_identifier_opt->guisection = _("Output settings");
 
     out_distance_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_distance_opt->key = "distance";
     out_distance_opt->required = NO;
-    out_distance_opt->description = "Distance from init/join/outlet";
+    out_distance_opt->description = _("Name for output init/join/outlet distance raster map");
+    out_distance_opt->guisection = _("Output settings");
 
     out_difference_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_difference_opt->key = "difference";
     out_difference_opt->required = NO;
     out_difference_opt->description =
-	"Elevation differecne from init/join/outlet";
+        _("Name for output elevation init/join/outlet difference raster map");
+    out_difference_opt->guisection = _("Output settings");
 
     out_gradient_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_gradient_opt->key = "gradient";
     out_gradient_opt->required = NO;
     out_gradient_opt->description =
-	"Mean gradient of stream from init/join/outlet";
+	_("Name for output mean init/join/outlet gradient of stream raster map");
+    out_gradient_opt->guisection = _("Output settings");
 
     out_curvature_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_curvature_opt->key = "curvature";
     out_curvature_opt->required = NO;
-    out_curvature_opt->description = "Local stream curvature";
+    out_curvature_opt->description = _("Name for output local stream curvature raster map");
+    out_curvature_opt->guisection = _("Output settings");
 
     opt_swapsize = G_define_option();
     opt_swapsize->key = "memory";
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
     opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
-    opt_swapsize->guisection = _("Optional");
+    opt_swapsize->guisection = _("Memory settings");
 
     flag_downstream = G_define_flag();
     flag_downstream->key = 'd';
@@ -126,6 +125,7 @@ int main(int argc, char *argv[])
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
+    flag_segmentation->guisection = _("Memory settings");
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	!out_distance_opt->answer &&
 	!out_difference_opt->answer &&
 	!out_gradient_opt->answer && !out_curvature_opt->answer)
-	G_fatal_error(_("You must select at least one output maps"));
+	G_fatal_error(_("You must select at least one output raster maps"));
 
     local = (flag_local->answer != 0);
     cells = (flag_cells->answer != 0);
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	FCELL **elevation;
 	DCELL **output;
 
-	G_message(_("ALL IN RAM CALCULATION - DIRECTION: %s"),
+	G_message(_("All in RAM calculation - direction <%s>..."),
 		  method_name[downstream]);
 	ram_create_map(&map_streams, CELL_TYPE);
 	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 	SEG map_dirs, map_streams, map_elevation, map_output, map_identifier;
 	SEGMENT *streams, *dirs, *elevation, *output, *identifier;
 
-	G_message(_("SEGMENT CALCULATION: MAY TAKE SOME TIME- DIRECTION: %s"),
+	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
 		  method_name[downstream]);
 
 	number_of_segs = (int)atof(opt_swapsize->answer);

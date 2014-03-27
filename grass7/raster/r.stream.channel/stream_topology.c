@@ -1,4 +1,5 @@
 #include "local_proto.h"
+
 double get_distance(int r, int c, int d)
 {
     double northing, easting, next_northing, next_easting;
@@ -10,6 +11,7 @@ double get_distance(int r, int c, int d)
     easting = window.west + (c + .5) * window.ew_res;
     next_northing = window.north - (next_r + .5) * window.ns_res;
     next_easting = window.west + (next_c + .5) * window.ew_res;
+
     return G_distance(easting, northing, next_easting, next_northing);
 }
 
@@ -380,6 +382,7 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	if (SA[i].elevation[0] == -99999)
 	    SA[i].elevation[0] = 2 * SA[i].elevation[1] - SA[i].elevation[2];
     }
+
     return 0;
 }
 
@@ -420,5 +423,6 @@ int free_attributes(int number_of_streams)
 	G_free(SA[i].distance);
     }
     G_free(stream_attributes);
+
     return 0;
 }
