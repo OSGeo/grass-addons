@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	{"strahler", NO, _("Name for output Strahler's stream order raster map")},
 	{"horton", NO, _("Name for output original Hortons's stream order raster map")},
 	{"shreve", NO, _("Name for output Shereve's stream magnitude raster map")},
-	{"hack", NO, _("Name for outut Hack's streams or Gravelius stream hierarchy raster map")},
+	{"hack", NO, _("Name for output Hack's streams or Gravelius stream hierarchy raster map")},
 	{"topo", NO, _("Name for output topological dimension of streams raster map")}
     };
     struct GModule *module;	/* GRASS module for parsing arguments */
@@ -86,10 +86,10 @@ int main(int argc, char *argv[])
     }
 
     opt_vector = G_define_standard_option(G_OPT_V_OUTPUT);
-    opt_vector->key = "vector";
+    opt_vector->key = "stream_vect";
     opt_vector->required = NO;
     opt_vector->description =
-	_("Name for output vector map to write stream atributes");
+	_("Name for output vector map to write stream attributes");
     opt_vector->guisection = _("Output maps");
 
     for (i = 0; i < orders_size; ++i) {

@@ -49,7 +49,7 @@ table.</dd>
 
 <p>At least one output map is required: </p>
 <dl>
-<dt><b>vector</b></dt>
+<dt><b>stream_vect</b></dt>
 <dd>Vector network with table where stream network topology can be stored.
 Because r.stream.order is prepared to work both with r.watershed and
 r.stream.extract, it may be used to create correct vector from r.watershed
@@ -68,7 +68,7 @@ detail.</dd>
 <dt><b>hack</b></dt>
 <dd>Name of Hack's main streams output map : see notes for detail.</dd>
 
-<dt><b>top</b></dt>
+<dt><b>topo</b></dt>
 <dd>Name of topological dimensions streams output map: see notes for
 detail.</dd>
 </dl>
@@ -258,7 +258,7 @@ r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
 r.stream.order streams=streams dirs=dirs strahler=riverorder_strahler horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack topo=river_topodim
 # vector river network
 r.watershed elevation=elevation threshold=10000 accumulation=accum
-r.stream.order streams=streams dirs=dirs elevation=elevation accum=accum vector=river_vector
+r.stream.order streams=streams dirs=dirs elevation=elevation accum=accum stream_vect=river_vector
 </pre></div>
 
 <h2>SEE ALSO</h2>
