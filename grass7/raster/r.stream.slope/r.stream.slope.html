@@ -6,7 +6,7 @@ and local downstream minimum and maximum curvature.
 <h2>OPTIONS</h2>
 
 <dl>
-<dt><em>direction</b></em>
+<dt><em>direction</em></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
@@ -51,7 +51,7 @@ upstream)</dd>
 g.region -p -a rast=elevation align=elevation
 r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
 r.stream.slope dir=dirs elevation=elevation difference=downstream_elev_difference \
-gradient=downstream_gradient maxcurv=downstream_maxcurv mincurv=downstream_mincurv
+  gradient=downstream_gradient maxcurv=downstream_maxcurv mincurv=downstream_mincurv
 </pre></div>
 
 <h2>SEE ALSO</h2>
