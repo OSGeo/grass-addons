@@ -38,6 +38,13 @@ downstream cell (there can be only one or no downstream cell but more than on
 upstream)</dd>
 </dl>
 
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
+r.stream.slope dir=dirs elevation=elevation difference=downstream_elev_difference gradient=downstream_gradient maxcurv=downstream_maxcurv mincurv=downstream_mincurv
+</pre></div>
 
 <h2>SEE ALSO</h2>
 

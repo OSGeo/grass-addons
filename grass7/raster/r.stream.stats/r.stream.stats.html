@@ -131,7 +131,11 @@ Create table with order statistics. This table can easily be sent to external
 program (like R) to be visualised:
 
 <div class="code"><pre>
-r.stream.stats -o streams=horton dirs=dirs elevation=elevation.10m > tmp_file
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
+r.stream.stats streams=horton dirs=dirs elevation=elevation
+# export for processing in R
+r.stream.stats -o streams=horton dirs=dirs elevation=elevation > tmp_file
 R
 r=read.csv("tmp_file",skip=1,header=TRUE)
 plot(num_of_streams~order,data=r,log="y", 

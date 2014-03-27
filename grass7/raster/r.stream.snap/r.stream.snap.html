@@ -71,6 +71,14 @@ categories are preserved, on layer 2 there are four categories which mean:</p>
 originally corrected)
 </ol>
 
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams accumulation=accum
+# snap a point sampled in the riverine landscape to the calculated river network
+r.stream.snap input=mysampleoutlet output=mysampleoutlet_snapped streams=streams accum=accum
+</pre></div>
 
 <h2>SEE ALSO</h2>
 

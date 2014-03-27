@@ -99,10 +99,10 @@ This example shows how to visualise the change of gradient map along the main
 stream of the catchment:
 
 <div class="code"><pre>
-r.watershed elevation=elevation.10m threshold=1000 stream=streams drainage=dirs
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
 r.stream.order streams=streams dirs=dirs hack=hack
-r.stream.channel streams=hack dirs=dirs elevation=elevation.10m
-identifier=stream_identifier gradient=stream_gradient distance=stream_distance
+r.stream.channel streams=hack dirs=dirs elevation=elevation identifier=stream_identifier distance=stream_distance gradient=stream_gradient
 #495 is a stream identifier. May be different in different situation
 r.mapcalc stgrad=if(stream_identifier==495,float(stream_gradient),null())
 r.mapcalc stdist=if(stream_identifier==495,float(stream_distance),null())

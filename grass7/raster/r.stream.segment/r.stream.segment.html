@@ -167,6 +167,14 @@ this means if stream map comes from r.stream.extract also direction map from
 r.stream.extract must be used. If stream network was generated with MFD method
 also MFD direction map must be used.
 
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
+r.stream.order streams=streams dirs=dirs strahler=riverorder_strahler
+r.stream.segment streams=riverorder_strahler dirs=dirs elevation=elevation segments=river_segment sectors=river_sector
+</pre></div>
 
 <h2>SEE ALSO</h2>
 

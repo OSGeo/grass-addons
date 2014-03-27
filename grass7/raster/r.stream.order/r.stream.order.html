@@ -250,6 +250,17 @@ also MFD direction map must be used. Nowadays f direction map comes from
 r.stream.extract  must be patched by direction map from r.watershed. (with
 r.patch). 
 
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
+r.stream.order streams=streams dirs=dirs strahler=riverorder_strahler horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack topo=river_topodim
+# vector river network
+r.watershed elevation=elevation threshold=10000 accumulation=accum
+r.stream.order streams=streams dirs=dirs elevation=elevation accum=accum vector=river_vector
+</pre></div>
+
 <h2>SEE ALSO</h2>
 
 <em>

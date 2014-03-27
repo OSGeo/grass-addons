@@ -107,6 +107,15 @@ to any CELL map with resolution corresponding to dirs map. It can be a lake,
 swamp, depression and lake boundaries even divided into smaller fragments each
 with its own category.
 
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+g.region -p -a rast=elevation align=elevation
+r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams
+r.stream.distance stream=streams dirs=dirs elevation=elevation method=downstream distance=distance_stream_downstream difference=difference_stream_downstream
+r.stream.distance stream=streams dirs=dirs elevation=elevation method=upstream distance=distance_stream_upstream difference=difference_stream_upstream
+</pre></div>
+
 <h2>SEE ALSO</h2>
 <em>
 <a href="r.watershed.html">r.watershed</a>,
