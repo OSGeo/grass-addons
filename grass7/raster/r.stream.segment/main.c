@@ -1,15 +1,15 @@
 
 /****************************************************************************
  *
- * MODULE:		 r.stream.segment
- * AUTHOR(S):		 Jarek Jasiewicz jarekj amu.edu.pl
+ * MODULE: r.stream.segment
+ * AUTHOR(S): Jarek Jasiewicz jarekj amu.edu.pl
  *							 
- * PURPOSE:		 Calculate geometrical attributes for segments of current order, 
+ * PURPOSE:	 Calculate geometrical attributes for segments of current order, 
  * 			 divide segments on near straight line portions and 
- * 			 and segment orientation and angles between streams and its
- *                       tributaries. For stream direction it use algorithm to divide
- *                       particular streams of the same order into near-straight line
- *                       portions.
+ * 			 segment orientation and angles between streams and its
+ *           tributaries. For stream direction it use algorithm to divide
+ *           particular streams of the same order into near-straight line
+ *           portions.
  * 				
  *							
  *
@@ -60,12 +60,12 @@ int main(int argc, char *argv[])
     G_add_keyword(_("stream divide"));
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_stm_opt->key = "streams";
+    in_stm_opt->key = "stream_raster";
     in_stm_opt->description = _("Name of input streams mask raster map");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_dir_opt->key = "dirs";
-    in_dir_opt->description = _("Name of input flow direction raster map");
+    in_dir_opt->key = "direction";
+    in_dir_opt->description = _("Name for input raster map with flow direction");
 
     in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
 
@@ -221,11 +221,6 @@ int main(int argc, char *argv[])
     }
 
 
-
-
-
-
-
     for (i = 1; i < number_of_streams; ++i)
 	G_message("%d %d %d", stream_attributes[i].stream,
 		  stream_attributes[i].next_stream,
@@ -248,9 +243,6 @@ int main(int argc, char *argv[])
 	calc_tangents(&stream_attributes[i], seg_length, seg_skip,
 		      number_of_streams);
     }
-
-
-
 
 
     /*
