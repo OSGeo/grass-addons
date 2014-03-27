@@ -24,7 +24,6 @@ SUBDIRS = \
 	r.stream.basins \
 	r.stream.channel \
 	r.stream.distance \
-	r.stream.extract \
 	r.stream.order \
 	r.stream.segment \
 	r.stream.slope \
