@@ -146,31 +146,6 @@ int main(int argc, char *argv[])
     G_get_window(&window);
     G_begin_distance_calculations();
 
-    if (out_identifier_opt->answer)
-	if (G_legal_filename(out_identifier_opt->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal difference map name"),
-			  out_identifier_opt->answer);
-
-    if (out_difference_opt->answer)
-	if (G_legal_filename(out_difference_opt->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal difference map name"),
-			  out_difference_opt->answer);
-
-    if (out_distance_opt->answer)
-	if (G_legal_filename(out_distance_opt->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal distance map name"),
-			  out_distance_opt->answer);
-
-    if (out_gradient_opt->answer)
-	if (G_legal_filename(out_gradient_opt->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal gradient map name"),
-			  out_gradient_opt->answer);
-
-    if (out_curvature_opt->answer)
-	if (G_legal_filename(out_curvature_opt->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal gradient map name"),
-			  out_curvature_opt->answer);
-
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_elevation, map_output, map_identifier;
 	CELL **streams, **dirs, **identifier = NULL;
