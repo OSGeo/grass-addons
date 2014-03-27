@@ -1,6 +1,5 @@
 <h2>DESCRIPTION</h2>
 
-<p>
 The module <em>r.stream.stats</em> is prepared to calculate Horton's
 statistics of drainage network.
 
@@ -50,6 +49,7 @@ lead to unexpected results.</dd>
 <dd>Elevation: name of input elevation map. Map can be of type CELL,
 FCELL or DCELL. It is not restricted to resolution of region settings
 as <b>stream_rast</b> and <b>direction</b> raster map.</dd>
+</dl>
 
 <h3>OUTPUTS</h3>
 
@@ -63,7 +63,6 @@ with statistics for every order.
 
 <h2>NOTES</h2>
 
-<p>
 These statistics are calculated according to formulas given by
 R.Horton (1945). Because Horton do not defined precisely what is
 stream slope, 2 different approaches have been proposed: the first
@@ -90,7 +89,6 @@ For every order (std) means that statistics are calculated with standard deviati
 <li>total area of basins of a given order 
 <li>drainage density
 <li>stream density
-
 <li>average length of streams of a given order (std)
 <li>average slope (cell by cell inclination) of streams of a given order (std)
 <li>average gradient (spring to outlet inclination) of streams of a given order
@@ -115,11 +113,10 @@ For the whole basin:
 <li>total basin area
 <li>drainage density
 <li>stream density
-<ul>
-
-Ratios:
 </ul>
 
+Ratios:
+<ul>
 <li>bifurcation ratio (std)
 <li>length ratio (std)
 <li>slope and gradient ratios (std)
@@ -138,8 +135,9 @@ only network of one basin, but it is not necessary for
 computation. Streams for the desired basin can be extracted by the
 following <em><a href="r.mapcalc.html">r.mapcalc</a></em> formula:
 
-<div class="code"<pre>
-echo 'sel_streams=if(basin==xxx,streams,null())' | r.mapcalc #xxx category of desired basin
+<div class="code"><pre>
+#xxx category of desired basin
+r.mapcalc "sel_streams = if(basin==xxx,streams,null())"
 </pre></div>
 
 <p>
@@ -171,6 +169,7 @@ r.watershed elevation=elevation threshold=10000 drainage=direction stream=stream
 r.stream.stats stream_rast=horton direction=direction elevation=elevation
 # export for processing in R
 r.stream.stats -o stream_rast=horton direction=direction elevation=elevation > tmp_file
+
 R
 r=read.csv("tmp_file",skip=1,header=TRUE)
 plot(num_of_streams~order,data=r,log="y", 
