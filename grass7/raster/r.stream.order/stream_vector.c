@@ -75,7 +75,7 @@ int ram_create_vector(CELL ** streams, CELL ** dirs, char *out_vector,
 
     /* build vector after adding table */
     if (0 < stream_add_table(number_of_streams))
-	G_warning(_("Cannot add table to vector %s"), out_vector);
+	G_warning(_("Unable to add attribute table to vector map <%s>"), out_vector);
     Vect_hist_command(&Out);
     Vect_build(&Out);
     Vect_close(&Out);
@@ -167,7 +167,7 @@ int seg_create_vector(SEGMENT * streams, SEGMENT * dirs, char *out_vector,
 
     /* build vector after adding table */
     if (0 < stream_add_table(number_of_streams))
-	G_warning(_("Cannot add table to vector %s"), out_vector);
+	G_warning(_("Unable to add attribute table to vector map <%s>"), out_vector);
     Vect_hist_command(&Out);
     Vect_build(&Out);
     Vect_close(&Out);
@@ -246,14 +246,14 @@ int stream_add_table(int number_of_streams)
 	    "prev_str01 integer, prev_str02 integer, prev_str03 integer, prev_str04 integer, prev_str05 integer";
 	break;
     default:
-	G_fatal_error("Error with number of tributuaries");
+	G_fatal_error(_("Error with number of tributuaries"));
 	break;
     }
 
-    sprintf(buf, "create table %s (%s, %s, %s, %s, %s, \
-																%s, %s, %s, %s, %s, \
-																%s, %s, %s, %s, %s, \
-																%s,	%s,	%s)", Fi->table, tab_cat_col_name,	/* 1 */
+    sprintf(buf, "create table %s (%s, %s, %s, %s, %s,"
+            "%s, %s, %s, %s, %s,"                                                     
+            "%s, %s, %s, %s, %s,"                                         
+            "%s, %s, %s)", Fi->table, tab_cat_col_name,	/* 1 */
 	    tab_stream, tab_next_stream, tab_prev_streams, tab_orders,	/* 5 */
 	    tab_scheidegger, tab_drwal_old, tab_length, tab_stright, tab_sinusoid,	/* 10 */
 	    tab_cumlength, tab_accum, tab_distance, tab_elev_init, tab_elev_outlet,	/* 15 */
@@ -265,16 +265,16 @@ int stream_add_table(int number_of_streams)
     if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_warning("Cannot create table %s", db_get_string(&db_sql));
+	G_warning("Unable to create table <%s>", db_get_string(&db_sql));
 	return -1;
     }
 
     if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
-	G_warning(_("cannot create index on table %s"), Fi->table);
+	G_warning(_("Unable to create index on table <%s>"), Fi->table);
 
     if (db_grant_on_table(driver, Fi->table,
 			  DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK) {
-	G_warning(_("cannot grant privileges on table %s"), Fi->table);
+	G_warning(_("Unable to grant privileges on table <%s>"), Fi->table);
 	return -1;
     }
     db_begin_transaction(driver);
@@ -325,7 +325,7 @@ int stream_add_table(int number_of_streams)
 		    SA[i].trib[4]);
 	    break;
 	default:
-	    G_fatal_error("Error with number of tributuaries");
+            G_fatal_error(_("Error with number of tributuaries"));
 	    break;
 	}
 
@@ -333,10 +333,10 @@ int stream_add_table(int number_of_streams)
 		all_orders[0][i], all_orders[1][i],
 		all_orders[2][i], all_orders[3][i], all_orders[4][i]);
 
-	sprintf(buf, "insert into %s values(	%d, %d, %d, %s, %s, \
-																				%d, %d, %f, %f, %f, \
-																				%f, %f, %f, %f, %f, \
-																				%f,	%f, %f)", Fi->table, i,	/* 1 */
+	sprintf(buf, "insert into %s values( %d, %d, %d, %s, %s, "
+                "%d, %d, %f, %f, %f, "
+                "%f, %f, %f, %f, %f, "
+                "%f, %f, %f)", Fi->table, i,	/* 1 */
 		SA[i].stream, SA[i].next_stream, ins_prev_streams,	/* buffer created before */
 		insert_orders,	/* 5 *//* buffer created before */
 		scheidegger, drwal_old, SA[i].length, SA[i].stright, sinusoid,	/* 10 */
@@ -349,7 +349,7 @@ int stream_add_table(int number_of_streams)
 	if (db_execute_immediate(driver, &db_sql) != DB_OK) {
 	    db_close_database(driver);
 	    db_shutdown_driver(driver);
-	    G_warning(_("Cannot inset new row: %s"), db_get_string(&db_sql));
+	    G_warning(_("Unable to inset new row: '%s'"), db_get_string(&db_sql));
 	    return -1;
 	}
     }				/* end for */

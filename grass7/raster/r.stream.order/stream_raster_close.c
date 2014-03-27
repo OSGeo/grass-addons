@@ -3,7 +3,9 @@ int ram_close_raster_order(CELL **streams, int number_of_streams,
 			   int zerofill)
 {
 
-    G_message("Closing maps...");
+    G_debug(3, "ram_close_raster_order(): number_of_streams=%d", number_of_streams);
+
+    G_message("Writing outpout raster maps...");
     int *output_fd;
     int r, c, i;
     CELL *output_buffer, *streams_buffer;
@@ -56,7 +58,7 @@ int ram_close_raster_order(CELL **streams, int number_of_streams,
 	Rast_short_history(output_map_names[i], "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(output_map_names[i], &history);
-	G_message(_("%s Done"), output_map_names[i]);
+	/* G_message(_("%s Done"), output_map_names[i]); */
     }
 
     G_free(output_fd);
@@ -74,6 +76,8 @@ int seg_close_raster_order(SEGMENT *streams, int number_of_streams,
     struct History history;
     size_t data_size;
 
+    G_debug(3, "seg_close_raster_order(): number_of_streams=%d", number_of_streams);
+
     output_fd = (int *)G_malloc(orders_size * sizeof(int));
     for (i = 0; i < orders_size; ++i) {
 	if (output_map_names[i] == NULL)
@@ -88,7 +92,7 @@ int seg_close_raster_order(SEGMENT *streams, int number_of_streams,
 
     for (r = 0; r < nrows; ++r) {
 	if (0 > segment_get_row(streams, streams_buffer, r))
-	    G_warning(_("seg_write: Cannot segment read row %d for map %s"),
+	    G_warning(_("Unable to segment read row %d for raster map <%s>"),
 		      r, output_map_names[i]);
 
 	for (i = 0; i < orders_size; ++i) {
@@ -122,7 +126,7 @@ int seg_close_raster_order(SEGMENT *streams, int number_of_streams,
 	Rast_short_history(output_map_names[i], "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(output_map_names[i], &history);
-	G_message(_("%s Done"), output_map_names[i]);
+	/* G_message(_("%s Done"), output_map_names[i]);*/
     }
 
     G_free(output_fd);

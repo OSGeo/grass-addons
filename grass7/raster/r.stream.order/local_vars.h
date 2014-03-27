@@ -59,8 +59,3 @@ GLOBAL unsigned long int* init_cells;
 
 /* output vector */
 GLOBAL struct Map_info Out; 
-
-
-
-
-

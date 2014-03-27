@@ -1,20 +1,20 @@
 
 /****************************************************************************
  *
- * MODULE:			r.stream.order
+ * MODULE:		r.stream.order
  * AUTHOR(S):		Jarek Jasiewicz jarekj amu.edu.pl
  *							 
- * PURPOSE:			Calculate Strahler's and more streams hierarchy
- *							It use r.stream.extract or r.watershed output files: 
- * 							stream, direction, accumulation and elevation. 
- * 							The output are set of raster maps and vector file containing
- * 							addational stream attributes.
+ * PURPOSE:		Calculate Strahler's and more streams hierarchy
+ *			It use r.stream.extract or r.watershed output files: 
+ * 			stream, direction, accumulation and elevation. 
+ * 			The output are set of raster maps and vector file containing
+ * 			addational stream attributes.
  *
- * COPYRIGHT:		(C) 2009,2010 by the GRASS Development Team
+ * COPYRIGHT:		(C) 2009-2014 by the GRASS Development Team
  *
- *							This program is free software under the GNU General Public 
- *							License (>=v2). Read the file COPYING that comes with GRASS
- *							for details.
+ *			This program is free software under the GNU General Public 
+ *			License (>=v2). Read the file COPYING that comes with GRASS
+ *			for details.
  *
  *****************************************************************************/
 #define MAIN
@@ -29,11 +29,10 @@ int main(int argc, char *argv[])
 {
 
     IO input[] = {
-	{"streams", YES, "output of r.stream.extract or r.watershed"},
-	{"dirs", YES, "output of r.stream.extract or r.watershed"},
-	{"elevation", NO, "any type digital elevation model"},
-	{"accum", NO,
-	 "any type acc map created by r.watershed or used in r.stream.extract"}
+        {"streams", YES, _("Name of input streams raster map")},
+	{"dirs", YES, _("Name of input direction raster map")},
+	{"elevation", NO, _("Name of input elevation raster map")},
+	{"accum", NO, _("Name of input accumulation raster map")}
     };
 
     /* add new basic rdering here and in local_vars.h declaration 
@@ -43,11 +42,11 @@ int main(int argc, char *argv[])
      * derivative orders (like Scheideggers/Shreve) shall be added only 
      * to table definition as a formula and to description file. */
     IO output[] = {
-	{"strahler", NO, "Strahler's stream order"},
-	{"horton", NO, "Original Hortons's stream order"},
-	{"shreve", NO, "Shereve's stream magnitude"},
-	{"hack", NO, "Hack's streams or Gravelius stream hierarchy"},
-	{"topo", NO, "Topological dimension of streams"}
+	{"strahler", NO, _("Name for output Strahler's stream order raster map")},
+	{"horton", NO, _("Name for output original Hortons's stream order raster map")},
+	{"shreve", NO, _("Name for output Shereve's stream magnitude raster map")},
+	{"hack", NO, _("Name for outut Hack's streams or Gravelius stream hierarchy raster map")},
+	{"topo", NO, _("Name for output topological dimension of streams raster map")}
     };
     struct GModule *module;	/* GRASS module for parsing arguments */
 
@@ -58,7 +57,7 @@ int main(int argc, char *argv[])
     struct Flag *flag_zerofill, *flag_accum, *flag_segmentation;
 
     int output_num = 0;
-    int num_seg;		/* number of segments */
+    /* int num_seg; */		/* number of segments */ 
     int segmentation, zerofill;
     int i;			/* iteration vars */
     int number_of_segs;
@@ -70,28 +69,27 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
+    module->label = _("Calculates Strahler's and more streams hierarchy.");
     module->description =
-	_("Calculate Strahler's and more streams hierarchy. Basic module for topological analysis of drainage network");
+	_("Basic module for topological analysis of drainage network.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("Strahler stream order");
-    G_add_keyword("Hack streams");
-    G_add_keyword("Stream network topology");
-    G_add_keyword("Stream network geometry");
-    G_add_keyword("Network vectorisation");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("stream order"));
 
     for (i = 0; i < input_size; ++i) {
 	opt_input[i] = G_define_standard_option(G_OPT_R_INPUT);
 	opt_input[i]->key = input[i].name;
 	opt_input[i]->required = input[i].required;
 	opt_input[i]->description = _(input[i].description);
+        opt_input[i]->guisection = _("Input");
     }
 
     opt_vector = G_define_standard_option(G_OPT_V_OUTPUT);
     opt_vector->key = "vector";
     opt_vector->required = NO;
     opt_vector->description =
-	_("OUTPUT vector file to write stream atributes");
+	_("Name for output vector map to write stream atributes");
     opt_vector->guisection = _("Output");
 
     for (i = 0; i < orders_size; ++i) {
@@ -107,7 +105,7 @@ int main(int argc, char *argv[])
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
     opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
-    opt_swapsize->guisection = _("Optional");
+    opt_swapsize->guisection = _("Memory settings");
 
     flag_zerofill = G_define_flag();
     flag_zerofill->key = 'z';
@@ -117,6 +115,7 @@ int main(int argc, char *argv[])
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
+    flag_segmentation->guisection = _("Memory settings");
 
     flag_accum = G_define_flag();
     flag_accum->key = 'a';
@@ -138,21 +137,19 @@ int main(int argc, char *argv[])
 
     if (use_vector)
 	if (!opt_input[o_elev]->answer || !opt_input[o_accum]->answer)
-	    G_fatal_error(_("To calculate vector file both accum and elev are required"));
+	    G_fatal_error(_("To calculate vector map both accumulation and elevation raster maps are required"));
     if (use_accum)
 	if (!opt_input[o_accum]->answer)
-	    G_fatal_error(_("with -a (use accumulation) accum map is required"));
+	    G_fatal_error(_("Flag -a (use accumulation) accumulation raster map is required"));
 
     for (i = 0; i < orders_size; ++i) {
 	if (!opt_output[i]->answer)
 	    continue;
-	if (G_legal_filename(opt_output[i]->answer) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"),
-			  opt_output[i]->answer);
 	output_num++;
     }				/* end for */
+
     if (!output_num && !opt_vector->answer)
-	G_fatal_error(_("You must select one or more output orders maps or insert the table name"));
+	G_fatal_error(_("You must select one or more output orders raster maps or insert the table name"));
 
     /* start */
     in_streams = opt_input[o_streams]->answer;
@@ -170,7 +167,7 @@ int main(int argc, char *argv[])
 
     /* ALL IN RAM VERSION */
     if (!segmentation) {
-	G_message("ALL IN RAM CALCULATION");
+        G_message(_("All in RAM calculation..."));
 	MAP map_streams, map_dirs;
 	CELL **streams, **dirs;
 
@@ -224,7 +221,7 @@ int main(int argc, char *argv[])
 
     /* SEGMENTATION VERSION */
     if (segmentation) {
-	G_message("MEMORY SWAP CALCULATION: MAY TAKE SOME TIME!");
+        G_message(_("Memory swap calculation (may take some time)..."));
 
 	SEG map_streams, map_dirs;
 	SEGMENT *streams, *dirs;

@@ -13,7 +13,7 @@ int strahler(int *strahler)
     int max_strahler = 0, max_strahler_num;
     STREAM *SA = stream_attributes;	/* for better code readability */
 
-    G_message(_("Calculating Strahler's stream order ..."));
+    G_message(_("Calculating Strahler's stream order..."));
 
     for (j = 0; j < init_num; ++j) {	/* main loop on inits */
 
@@ -65,7 +65,8 @@ int shreve(int *shreve)
     int max_shreve = 0;
     STREAM *SA = stream_attributes;	/* for better code readability */
 
-    G_message(_("Calculating Shreve's stream magnitude, Scheidegger's consistent integer and Drwal's streams hierarchy (old style) ..."));
+    G_message(_("Calculating Shreve's stream magnitude, "
+                "Scheidegger's consistent integer and Drwal's streams hierarchy (old style)..."));
 
     for (j = 0; j < init_num; ++j) {	/* main loop on inits */
 
@@ -118,7 +119,7 @@ int horton(const int *strahler, int *horton, int number_of_streams)
     int up_stream = 0;
     STREAM *SA = stream_attributes;	/* for better code readability */
 
-    G_message(_("Calculating Hortons's stream order ..."));
+    G_message(_("Calculating Hortons's stream order..."));
     stack = (int *)G_malloc(stack_max * sizeof(int));
 
     for (j = 0; j < outlet_num; ++j) {

@@ -15,10 +15,10 @@ int ram_number_of_tribs(int r, int c, CELL **streams, CELL **dirs)
     }
 
     if (trib > 5)
-	G_fatal_error(_("Error finding nodes. \
-		Stream and direction maps probably do not match..."));
+	G_fatal_error(_("Error finding nodes. "
+                        "Stream and direction maps probably do not match."));
     if (trib > 3)
-	G_warning(_("Stream network may be too dense..."));
+	G_warning(_("Stream network may be too dense"));
 
     return trib;
 }
@@ -62,8 +62,8 @@ int ram_stream_topology(CELL **streams, CELL **dirs, int number_of_streams)
 		if (cur_stream != next_stream) {	/* junction: building topology */
 
 		    if (outlet_num > (number_of_streams - 1))
-			G_fatal_error(_("Error finding nodes. \
-				Stream and direction maps probably do not match..."));
+			G_fatal_error(_("Error finding nodes. "
+                                        "Stream and direction maps probably do not match."));
 
 		    SA[cur_stream].stream = cur_stream;
 		    SA[cur_stream].next_stream = next_stream;
@@ -74,8 +74,8 @@ int ram_stream_topology(CELL **streams, CELL **dirs, int number_of_streams)
 
 		if (trib_num == 0) {	/* is init */
 		    if (init_num > (number_of_streams - 1))
-			G_fatal_error(_("Error finding nodes. \
-				Stream and direction maps probably do not match..."));
+			G_fatal_error(_("Error finding nodes. "
+                                        "Stream and direction maps probably do not match."));
 
 		    SA[cur_stream].trib_num = 0;
 		    init_cells[init_num] = r * ncols + c;
@@ -87,8 +87,8 @@ int ram_stream_topology(CELL **streams, CELL **dirs, int number_of_streams)
 
 		    for (i = 1; i < 9; ++i) {
 			if (trib > 4)
-			    G_fatal_error(_("Error finding nodes. \
-					Stream and direction maps probably do not match..."));
+			    G_fatal_error(_("Error finding nodes. "
+                                            "Stream and direction maps probably do not match."));
 			if (NOT_IN_REGION(i))
 			    continue;
 			j = DIAG(i);
@@ -222,10 +222,10 @@ int seg_number_of_tribs(int r, int c, SEGMENT *streams, SEGMENT *dirs)
     }
 
     if (trib > 5)
-	G_fatal_error(_("Error finding nodes. \
-		Stream and direction maps probably do not match..."));
+	G_fatal_error(_("Error finding nodes. "
+                        "Stream and direction maps probably do not match."));
     if (trib > 3)
-	G_warning(_("Stream network may be too dense..."));
+	G_warning(_("Stream network may be too dense"));
 
     return trib;
 }
@@ -280,8 +280,8 @@ int seg_stream_topology(SEGMENT *streams, SEGMENT *dirs,
 
 		if (cur_stream != next_stream) {	/* junction: building topology */
 		    if (outlet_num > (number_of_streams - 1))
-			G_fatal_error(_("Error finding nodes. \
-				Stream and direction maps probably do not match..."));
+			G_fatal_error(_("Error finding nodes. "
+                                        "Stream and direction maps probably do not match."));
 
 		    SA[cur_stream].stream = cur_stream;
 		    SA[cur_stream].next_stream = next_stream;
@@ -292,8 +292,8 @@ int seg_stream_topology(SEGMENT *streams, SEGMENT *dirs,
 
 		if (trib_num == 0) {	/* is init */
 		    if (init_num > (number_of_streams - 1))
-			G_fatal_error(_("Error finding nodes. \
-				Stream and direction maps probably do not match..."));
+			G_fatal_error(_("Error finding nodes. "
+                                        "Stream and direction maps probably do not match."));
 
 		    SA[cur_stream].trib_num = 0;
 		    init_cells[init_num] = r * ncols + c;
@@ -306,8 +306,8 @@ int seg_stream_topology(SEGMENT *streams, SEGMENT *dirs,
 		    for (i = 1; i < 9; ++i) {
 
 			if (trib > 4)
-			    G_fatal_error(_("Error finding nodes. \
-					Stream and direction maps probably do not match..."));
+			    G_fatal_error(_("Error finding nodes. "
+                                            "Stream and direction maps probably do not match."));
 			if (NOT_IN_REGION(i))
 			    continue;
 			j = DIAG(i);
@@ -426,6 +426,6 @@ int seg_stream_geometry(SEGMENT *streams, SEGMENT *dirs)
 	    }			/* end if */
 	}			/* end while */
     }				/* end for s */
-    G_percent(s, init_num, 2);
+    G_percent(1, 1, 1);
     return 0;
 }

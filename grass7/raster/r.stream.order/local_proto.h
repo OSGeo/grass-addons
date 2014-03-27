@@ -25,5 +25,3 @@ int seg_close_raster_order(SEGMENT* streams, int number_of_streams, int zerofill
 int ram_create_vector(CELL** streams, CELL** dirs, char* out_vector, int number_of_streams);
 int seg_create_vector(SEGMENT* streams, SEGMENT* dirs, char* out_vector, int number_of_streams);
 int stream_add_table (int number_of_streams);
-
-

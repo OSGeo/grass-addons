@@ -5,9 +5,9 @@ int stream_init(int min_index_of_stream, int max_index_of_stream)
     int number_of_streams = max_index_of_stream;
 
     if (max_index_of_stream == 0)
-	G_fatal_error(_("Empty stream input map: check if a stream map"));
+        G_fatal_error(_("Empty stream input raster map"));
     if (min_index_of_stream < 0)
-	G_fatal_error(_("Stream map has negative values: check if a stream map"));
+	G_fatal_error(_("Stream map has negative values"));
 
     stream_attributes =
 	(STREAM *) G_malloc((number_of_streams + 1) * sizeof(STREAM));
