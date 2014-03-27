@@ -492,7 +492,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
     Rast_get_window(&window);
 
     if (elevation) {
-	elevation_data_size = Rast_cell_size(FCELL_TYPE);
+        /* elevation_data_size = Rast_cell_size(FCELL_TYPE); */
 	for (r = 0; r < nrows; ++r)
 	    for (c = 0; c < ncols; ++c) {
 		segment_get(elevation, &elevation_cell, r, c);
