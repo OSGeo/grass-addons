@@ -9,6 +9,8 @@ int ram_find_outlets(CELL ** streams, int number_of_streams, CELL ** dirs,
     int out_max = ncols + nrows;
     int outlets_num;
 
+    G_debug(3, "ram_find_outlets(): number_of_streams=%d", number_of_streams);
+
     G_message(_("Finding nodes..."));
     outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
 
@@ -71,6 +73,8 @@ int seg_find_outlets(SEGMENT * streams, int number_of_streams, SEGMENT * dirs,
     CELL streams_cell;
     CELL dirs_cell;
 
+    G_debug(3, "ram_find_outlets(): number_of_streams=%d", number_of_streams);
+
     G_message(_("Finding nodes..."));
     outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
 
@@ -126,7 +130,7 @@ int ram_init_distance(CELL ** streams, FCELL ** distance, int outlets_num,
 		      int outs)
 {
     int r, c, i;
-    size_t data_size;
+    /* size_t data_size; */
 
     data_size = Rast_cell_size(FCELL_TYPE);
 

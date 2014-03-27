@@ -486,7 +486,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
     float target_elev = 0;
     CELL dirs_cell;
     FCELL distance_cell, elevation_cell, tmp_elevation_cell;
-    size_t elevation_data_size;
+    /* size_t elevation_data_size; */
     struct Cell_head window;
 
     Rast_get_window(&window);
