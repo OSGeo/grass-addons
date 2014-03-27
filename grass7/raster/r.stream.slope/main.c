@@ -8,7 +8,7 @@
  * 		 calculate local downstream elevation change 
  * 		 and local downstream minimum and maximum curvature
         
- * COPYRIGHT:    (C) 2002, 2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002, 2010-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -53,13 +53,13 @@ int main(int argc, char *argv[])
     struct Cell_head cellhd;
     struct History history;
 
-    int r, c, d, i, cur_row;
+    int r, c, /* d, */ i, cur_row;
     int elev_map_type, elev_data_size;
-    int gradient;
+    /* int gradient; */
 
     int in_dir_fd, in_elev_fd;
     int out_difference_fd, out_gradient_fd, out_max_curv_fd, out_min_curv_fd;
-    double cellsize;
+    /* double cellsize; */
     char *mapset;
     void *tmp_buffer;
     DCELL *tmp_elev_buf;
@@ -71,39 +71,42 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    G_add_keyword("Stream local parameters");
-    module->description = _("Calculate local parameters for slope subsystem");
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("stream local parameters"));
+    module->description = _("Calculates local parameters for slope subsystem.");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);
     in_dir_opt->key = "dir";
-    in_dir_opt->description = "Name of flow direction input map";
+    in_dir_opt->description = _("Name of input flow direction raster map");
 
     in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
-    in_elev_opt->key = "elevation";
-    in_elev_opt->description = "Name of elevation map";
 
     out_differnce_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_differnce_opt->key = "difference";
     out_differnce_opt->required = NO;
     out_differnce_opt->description =
-	"Output local downstream elevation difference";
+      _("Name for output local downstream elevation difference raster map");
+    out_differnce_opt->guisection = _("Output maps");
 
     out_gradient_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_gradient_opt->key = "gradient";
     out_gradient_opt->required = NO;
-    out_gradient_opt->description = "Output local downstream gradient";
+    out_gradient_opt->description = _("Name for output local downstream gradient raster map");
+    out_gradient_opt->guisection = _("Output maps");
 
     out_max_curv_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_max_curv_opt->key = "maxcurv";
     out_max_curv_opt->required = NO;
     out_max_curv_opt->description =
-	"Output local downstream maximum curvature";
+        _("Name for output local downstream maximum curvature raster map");
+    out_max_curv_opt->guisection = _("Output maps");
 
     out_min_curv_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_min_curv_opt->key = "mincurv";
     out_min_curv_opt->required = NO;
     out_min_curv_opt->description =
-	"Output local downstream minimum curvature";
+	_("Name for output local downstream minimum curvature raster map");
+    out_min_curv_opt->guisection = _("Output maps");
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -116,11 +119,12 @@ int main(int argc, char *argv[])
     G_get_window(&window);
     Rast_get_cellhd(in_dir_opt->answer, mapset, &cellhd);
     if (window.ew_res != cellhd.ew_res || window.ns_res != cellhd.ns_res)
-	G_fatal_error(_("Region resolution and map %s resolution differs. \
-		Run g.region rast=%s to set proper region resolution"), in_dir_opt->answer, in_dir_opt->answer);
+          G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
+                          "Run 'g.region rast=%s' to set proper region resolution."),
+                        in_dir_opt->answer, in_dir_opt->answer);
 
     if (Rast_map_type(in_dir_opt->answer, mapset) != CELL_TYPE)
-	G_fatal_error(_("<%s> is not of type CELL"), in_dir_opt->answer);
+	G_fatal_error(_("Raster <%s> is not of type CELL"), in_dir_opt->answer);
 
     in_dir_fd = Rast_open_old(in_dir_opt->answer, mapset);
 
@@ -297,8 +301,6 @@ DCELL calculate_gradient(int r, int c)
     distance = G_distance(easting, northing, next_easting, next_northing);
 
     return (elev_rows[r][c] - elev_rows[NR(d)][NC(d)]) / distance;
-
-
 }
 
 DCELL calculate_max_curvature(int r, int c)
@@ -356,7 +358,7 @@ DCELL calculate_max_curvature(int r, int c)
 DCELL calculate_min_curvature(int r, int c)
 {
     int i, j = 0, d;
-    int next_r, next_c;
+    /* int next_r, next_c; */
     double easting, northing, next_easting, next_northing;
     double elev_min = 9999;
     double diff_up, diff_down, diff_elev, first_derivative, second_derivative;
