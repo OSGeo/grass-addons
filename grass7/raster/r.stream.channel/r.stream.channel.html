@@ -1,3 +1,16 @@
+<h2>DESCRIPTION</h2>
+<p>
+Module <em>r.stream.channel</em> is prepared to calculate some local properties of the
+stream network. It is supplementary module for <em>r.stream.order</em>, and
+<em>r.stream.distance</em> to investigate channel subsystem. For slope subsystem
+parameters is <em>r.stream.slope</em>. It may use ordered or unordered network. It
+calculate parameters for every segment between it init to outlet/join to the
+next stream. it also may calculate parameters between outlet and segment's init.
+It can calculate parameters for every orders but best results are for these
+orders where order remains unchanged from stream init to natural outlet (Hack
+and Horton ordering).
+<p>
+
 <h2>OPTIONS</h2>
 <dl>
 <dt><b>-l</b></dt>
@@ -12,17 +25,17 @@ Default is upstream (from current cell upstream to init/join.</dd>
 consumption during analysis</dd>
 <dt><b>stream_rast</b></dt>
 <dd>Stream network: name of input stream map. Map may be ordered according one
-of the r.stream.order ordering system as well as unordered (with original stream
-identifiers)  Because streams network produced by r.watershed and
-r.stream.extract may slightly differ in detail it is required to use both stream
+of the <em>r.stream.order</em> ordering system as well as unordered (with original stream
+identifiers). Because streams network produced by <em>r.watershed</em> and
+<em>r.stream.extract</em> may slightly differ in detail it is required to use both stream
 and direction map produced by the same module. Stream background shall have NULL
 value or zero value. Background values of NULL are by default produced by
-r.watershed and r.stream.extract. If not 0 or NULL use <a
-href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
+<em>r.watershed</em> and <em>r.stream.extract</em>. If not 0 or NULL use <em><a
+href="r.mapcalc.html">r.mapcalc</a></em> to set background values to null.  
 </dd>
 <dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction map produced by r.watershed or
-r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
+<em>r.stream.extract</em>. If <em>r.stream.extract</em> output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
 East in steps of 45 degrees). Direction map shall be of type CELL values. Region
@@ -44,7 +57,7 @@ direction.</dd>
 <b>l:</b> local distance between current cell and next cell. In most cases cell
 resolution and sqrt2 of cell resolution. useful when projection is LL or NS and
 WE resolutions differs. Flag d ignored<br>
-<b>c:</b> distance in cells. Map is written as double. Use r.mapcalc to convert
+<b>c:</b> distance in cells. Map is written as double. Use <em>r.mapcalc</em> to convert
 to integer. Flags l and d ignored.<br>
 </dd>
 <dt><b>difference</b></dt>
@@ -80,19 +93,6 @@ order. To identify particular segments (for further analysis) every segment
 receive his unique identifier.</dd>
 </dl>
 
-<h2>DESCRIPTION</h2>
-<p>
-Module r.stream.channel is prepared to calculate some local properties of the
-stream network. It is supplementary module for r.stream.order, and
-r.stream.distance to investigate channel subsystem. For slope subsystem
-parameters is r.stream.slope. It may use ordered or unordered network. It
-calculate parameters for every segment between it init to outlet/join to the
-next stream. it also may calculate parameters between outlet and segment's init.
-It can calculate parameters for every orders but best results are for these
-orders where order remains unchanged from stream init to natural outlet (Hack
-and Horton ordering).
-<p>
-
 <h2>EXAMPLE</h2>
 
 This example shows how to visualise the change of gradient map along the main
@@ -118,14 +118,7 @@ plot(sorted,stdist~stgrad,type="l")
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.watershed.html">r.watershed</a>,
-<a href="r.stream.extract.html">r.stream.extract</a>,
-<a href="r.stream.order.html">r.stream.order</a>,
-<a href="r.stream.basins.html">r.stream.basins</a>,
-<a href="r.stream.slope.html">r.stream.slope</a>,
-<a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="r.mapcalc.html">r.mapcalc</a>,
+<em><a href="r.watershed.html">r.watershed</a>, <a href="r.stream.extract.html">r.stream.extract</a>, <a href="r.stream.order.html">r.stream.order</a>, <a href="r.stream.basins.html">r.stream.basins</a>, <a href="r.stream.slope.html">r.stream.slope</a>, <a href="r.stream.stats.html">r.stream.stats</a>, <a href="r.mapcalc.html">r.mapcalc</a>
 </em>
 
 <h2>AUTHOR</h2>
