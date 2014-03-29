@@ -308,7 +308,7 @@ def main():
                     ##"\n" +
                     ##"g.extension r.stream.distance")
                     
-        grass.run_command('r.stream.distance', stream_raster = r_outlet, 
+        grass.run_command('r.stream.distance', stream_rast = r_outlet, 
                                            direction = r_drainage, 
                                            flags = 'o', 
                                            distance = r_distance,
@@ -432,7 +432,7 @@ def main():
                   r_hack = r_hack,
                   r_mainchannel = r_mainchannel)
                   
-        grass.message("doing r.thin")
+        ##grass.message("thinning ..")
         grass.run_command("r.thin", input = r_mainchannel, 
                                 output = r_mainchannel+'_thin',
                                 overwrite = True)
@@ -442,7 +442,7 @@ def main():
                                    verbose = True,
                                    overwrite = True)
                                    
-        grass.message("doing v.what")                           
+        ##grass.message("doing v.what")                           
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      coordinates = '%s,%s' % (east,north),
                                                      distance = 5 )
@@ -460,6 +460,7 @@ def main():
         grass.run_command('r.to.vect', input = r_mainchannel_dim + '_thin', 
                                    output = v_mainchannel_dim, 
                                    type = 'line', 
+                                   flags = 'v',
                                    verbose = True,
                                    overwrite = True)
         try:
@@ -579,13 +580,13 @@ def main():
         grass.run_command('g.remove', rast = 'r_elevation_crop', quiet = True)
         grass.run_command('g.remove', rast = r_height_average, quiet = True)
         grass.run_command('g.remove', rast = r_aspect_mod, quiet = True)
-        grass.run_command('g.remove', rast = r_mainchannel, quiet = True)
+        ##grass.run_command('g.remove', rast = r_mainchannel, quiet = True)
         grass.run_command('g.remove', rast = r_stream_e, quiet = True)
         grass.run_command('g.remove', rast = r_drainage_e, quiet = True)
         grass.run_command('g.remove', rast = r_mask, quiet = True)
         grass.run_command('g.remove', rast = r_ord_1, quiet = True)
         grass.run_command('g.remove', rast = r_average_hillslope, quiet = True)
-        grass.run_command('g.remove', rast = r_mainchannel_dim, quiet = True)
+        ##grass.run_command('g.remove', rast = r_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', rast = r_outlet, quiet = True)               
         grass.run_command('g.remove', rast = r_basin, quiet = True)
         grass.run_command('g.remove', rast = prefix+'_mainchannel_thin', quiet = True)
@@ -593,7 +594,7 @@ def main():
         grass.run_command('g.remove', rast = prefix+'_ord_1_thin', quiet = True)
         grass.run_command('g.remove', rast = prefix+'_stream_e_thin', quiet = True)   
         grass.run_command('g.remove', vect = v_mainchannel_dim+'_point', quiet = True)
-        grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
+        ##grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', vect = v_ord_1, quiet = True)
     
         if nomap :
