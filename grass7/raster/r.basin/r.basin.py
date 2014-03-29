@@ -137,12 +137,6 @@ def main():
         th = options['threshold']
 
     # Stream extraction
-    #### check if we have the r.stream.extract addon
-    ##if not grass.find_program('r.stream.extract', '--help'):
-        ##grass.fatal(_("The 'r.stream.extract' module was not found, install it first:") +
-                    ##"\n" +
-                    ##"g.extension r.stream.extract")
-    
     grass.run_command('r.stream.extract', elevation = r_elevation, 
                                           accumulation = r_accumulation, 
                                           threshold = th, 
@@ -155,7 +149,7 @@ def main():
     try:
     
         # Delineation of basin 
-        #### check if we have the r.stream.basins addon
+        ## check if r.stream.basins addon is installed
         if not grass.find_program('r.stream.basins', '--help'):
             grass.fatal(_("The 'r.stream.basins' module was not found, install it first:") +
                         "\n" +
@@ -270,12 +264,6 @@ def main():
 
         # Creation of order maps: strahler, horton, hack, shreeve
         grass.message( "Creating %s" % r_hack ) 
-        
-        #### check if we have the r.stream.order addon
-        ##if not grass.find_program('r.stream.order', '--help'):
-            ##grass.fatal(_("The 'r.stream.order' module was not found, install it first:") +
-                    ##"\n" +
-                    ##"g.extension r.stream.order")
                     
         grass.run_command('r.stream.order', stream_rast = r_stream_e, 
                                         direction = r_drainage_e, 
@@ -302,11 +290,6 @@ def main():
                                    rows = 4096,
                                    overwrite = True)
                      
-        #### check if we have the r.stream.distance addon
-        ##if not grass.find_program('r.stream.distance', '--help'):
-            ##grass.fatal(_("The 'r.stream.distance' module was not found, install it first:") +
-                    ##"\n" +
-                    ##"g.extension r.stream.distance")
                     
         grass.run_command('r.stream.distance', stream_rast = r_outlet, 
                                            direction = r_drainage, 
@@ -319,7 +302,7 @@ def main():
         
         grass.message( "##################################" )
         
-        #### check if we have the r.hypso addon
+        #### check if r.hypso addon is installed
         if not grass.find_program('r.hypso', '--help'):
             grass.fatal(_("The 'r.hypso' module was not found, install it first:") +
                     "\n" +
@@ -333,7 +316,7 @@ def main():
         
         grass.message( "##################################" )
         
-        #### check if we have the r.width.funct addon
+        #### check if r.width.funct addon is installed
         if not grass.find_program('r.width.funct', '--help'):
             grass.fatal(_("The 'r.width.funct' module was not found, install it first:") +
                     "\n" +
@@ -362,7 +345,7 @@ def main():
                                     
         grass.message("r.stats.zonal done")
         mean_elev = float(grass.read_command('r.info', flags = 'r', 
-                                                   map = r_height_average).split('\n')[0].split('=')[1])
+                                                       map = r_height_average).split('\n')[0].split('=')[1])
         grass.message("r.info done")                                          
                                                    
     
@@ -403,12 +386,10 @@ def main():
         se = dict_region_basin['e'], dict_region_basin['s'] 
         grass.message("Rectangle containing basin done")
         
-
         east1,north1 = coordinates.split(',')
         east = float(east1)
         north = float(north1)
 
-    
         # Directing vector 
         delta_x = abs(float(basin_east) - east)
         delta_y = abs(float(basin_north) - north)
@@ -432,7 +413,6 @@ def main():
                   r_hack = r_hack,
                   r_mainchannel = r_mainchannel)
                   
-        ##grass.message("thinning ..")
         grass.run_command("r.thin", input = r_mainchannel, 
                                 output = r_mainchannel+'_thin',
                                 overwrite = True)
@@ -441,8 +421,7 @@ def main():
                                    type = 'line', 
                                    verbose = True,
                                    overwrite = True)
-                                   
-        ##grass.message("doing v.what")                           
+                     
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      coordinates = '%s,%s' % (east,north),
                                                      distance = 5 )
@@ -508,7 +487,6 @@ def main():
         S_f = area_basin / mainchannel
     
         # Characteristic altitudes 
-             # Characteristic altitudes 
         height_basin_average = grass.read_command('r.what', map = r_height_average , 
                                                         cache = 500 , 
                                                         coordinates = '%s,%s' % (east , north ))
@@ -555,11 +533,6 @@ def main():
         FSF = magnitudo / area_basin
     
         # Statistics
-        #### check if we have the r.stream.stats addon
-        ##if not grass.find_program('r.stream.stats', '--help'):
-            ##grass.fatal(_("The 'r.stream.stats' module was not found, install it first:") +
-                    ##"\n" +
-                    ##"g.extension r.stream.stats")
                     
         stream_stats = grass.read_command('r.stream.stats', stream_rast = r_strahler, 
                                                         direction = r_drainage_e, 
@@ -580,13 +553,13 @@ def main():
         grass.run_command('g.remove', rast = 'r_elevation_crop', quiet = True)
         grass.run_command('g.remove', rast = r_height_average, quiet = True)
         grass.run_command('g.remove', rast = r_aspect_mod, quiet = True)
-        ##grass.run_command('g.remove', rast = r_mainchannel, quiet = True)
+        grass.run_command('g.remove', rast = r_mainchannel, quiet = True)
         grass.run_command('g.remove', rast = r_stream_e, quiet = True)
         grass.run_command('g.remove', rast = r_drainage_e, quiet = True)
         grass.run_command('g.remove', rast = r_mask, quiet = True)
         grass.run_command('g.remove', rast = r_ord_1, quiet = True)
         grass.run_command('g.remove', rast = r_average_hillslope, quiet = True)
-        ##grass.run_command('g.remove', rast = r_mainchannel_dim, quiet = True)
+        grass.run_command('g.remove', rast = r_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', rast = r_outlet, quiet = True)               
         grass.run_command('g.remove', rast = r_basin, quiet = True)
         grass.run_command('g.remove', rast = prefix+'_mainchannel_thin', quiet = True)
@@ -594,7 +567,7 @@ def main():
         grass.run_command('g.remove', rast = prefix+'_ord_1_thin', quiet = True)
         grass.run_command('g.remove', rast = prefix+'_stream_e_thin', quiet = True)   
         grass.run_command('g.remove', vect = v_mainchannel_dim+'_point', quiet = True)
-        ##grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
+        grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', vect = v_ord_1, quiet = True)
     
         if nomap :
