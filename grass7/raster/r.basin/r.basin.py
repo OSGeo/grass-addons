@@ -138,10 +138,10 @@ def main():
 
     # Stream extraction
     #### check if we have the r.stream.extract addon
-    if not grass.find_program('r.stream.extract', '--help'):
-        grass.fatal(_("The 'r.stream.extract' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.stream.extract")
+    ##if not grass.find_program('r.stream.extract', '--help'):
+        ##grass.fatal(_("The 'r.stream.extract' module was not found, install it first:") +
+                    ##"\n" +
+                    ##"g.extension r.stream.extract")
     
     grass.run_command('r.stream.extract', elevation = r_elevation, 
                                           accumulation = r_accumulation, 
@@ -161,9 +161,9 @@ def main():
                         "\n" +
                         "g.extension r.stream.basins")
                         
-        grass.run_command('r.stream.basins', dir = r_drainage, 
+        grass.run_command('r.stream.basins', direction = r_drainage, 
                                              basins = r_basin, 
-                                             coors = '%s' % (coordinates),
+                                             coordinates = '%s' % (coordinates),
                                              overwrite = True)                                  
                                              
         grass.message( "Delineation of basin done" )
@@ -272,12 +272,13 @@ def main():
         grass.message( "Creating %s" % r_hack ) 
         
         #### check if we have the r.stream.order addon
-        if not grass.find_program('r.stream.order', '--help'):
-            grass.fatal(_("The 'r.stream.order' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.stream.order")
-        grass.run_command('r.stream.order', stream = r_stream_e, 
-                                        dir = r_drainage_e, 
+        ##if not grass.find_program('r.stream.order', '--help'):
+            ##grass.fatal(_("The 'r.stream.order' module was not found, install it first:") +
+                    ##"\n" +
+                    ##"g.extension r.stream.order")
+                    
+        grass.run_command('r.stream.order', stream_rast = r_stream_e, 
+                                        direction = r_drainage_e, 
                                         strahler = r_strahler, 
                                         shreve = r_shreve, 
                                         horton = r_horton, 
@@ -302,12 +303,13 @@ def main():
                                    overwrite = True)
                      
         #### check if we have the r.stream.distance addon
-        if not grass.find_program('r.stream.distance', '--help'):
-            grass.fatal(_("The 'r.stream.distance' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.stream.distance")
-        grass.run_command('r.stream.distance', stream = r_outlet, 
-                                           dir = r_drainage, 
+        ##if not grass.find_program('r.stream.distance', '--help'):
+            ##grass.fatal(_("The 'r.stream.distance' module was not found, install it first:") +
+                    ##"\n" +
+                    ##"g.extension r.stream.distance")
+                    
+        grass.run_command('r.stream.distance', stream_raster = r_outlet, 
+                                           direction = r_drainage, 
                                            flags = 'o', 
                                            distance = r_distance,
                                            overwrite = True)
@@ -343,22 +345,22 @@ def main():
 
         # Creation of map of hillslope distance to river network
         
-        grass.run_command("r.stream.distance", stream = r_stream_e, 
-                                           dir = r_drainage, 
-                                           elevation = 'r_elevation_crop' , 
+        grass.run_command("r.stream.distance", stream_rast = r_stream_e, 
+                                           direction = r_drainage, 
+                                           elevation = 'r_elevation_crop', 
                                            distance = r_hillslope_distance,
                                            overwrite = True)
         
     
         # Mean elevation
-        grass.run_command("r.statistics2", base = r_basin, 
+        grass.run_command("r.stats.zonal", base = r_basin, 
                                     cover = "r_elevation_crop", 
                                     method = "average",
                                     output = r_height_average,
                                     overwrite = True)
                                     
                                     
-        grass.message("r.statistics2 done")
+        grass.message("r.stats.zonal done")
         mean_elev = float(grass.read_command('r.info', flags = 'r', 
                                                    map = r_height_average).split('\n')[0].split('=')[1])
         grass.message("r.info done")                                          
@@ -523,7 +525,7 @@ def main():
         t_c = ((4 * math.sqrt(area_basin)) + (1.5 * mainchannel)) / (0.8 * math.sqrt(HM))
     
         # Mean hillslope length
-        grass.run_command("r.statistics2", cover = r_stream_e, 
+        grass.run_command("r.stats.zonal", cover = r_stream_e, 
                                    base = r_mask, 
                                    method = "average",
                                    output = r_average_hillslope,
@@ -553,12 +555,13 @@ def main():
     
         # Statistics
         #### check if we have the r.stream.stats addon
-        if not grass.find_program('r.stream.stats', '--help'):
-            grass.fatal(_("The 'r.stream.stats' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.stream.stats")
-        stream_stats = grass.read_command('r.stream.stats', stream = r_strahler, 
-                                                        dir = r_drainage_e, 
+        ##if not grass.find_program('r.stream.stats', '--help'):
+            ##grass.fatal(_("The 'r.stream.stats' module was not found, install it first:") +
+                    ##"\n" +
+                    ##"g.extension r.stream.stats")
+                    
+        stream_stats = grass.read_command('r.stream.stats', stream_rast = r_strahler, 
+                                                        direction = r_drainage_e, 
                                                         elevation = 'r_elevation_crop' )
         
                                                         
