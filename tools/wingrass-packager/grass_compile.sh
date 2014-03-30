@@ -1,5 +1,5 @@
 #!/bin/sh
-# Compile GRASS 6.4, 6.5 and 7.0 (update source code from SVN repository)
+# Compile GRASS versions (update source code from SVN repository)
 
 SRC=/usr/src
 PACKAGEDIR=mswindows/osgeo4w/package
@@ -37,8 +37,9 @@ function compile {
 if test -z $1 ; then
     # dev packages
     compile grass64_release 64-dev 
-    compile grass6_devel    65-dev 
-    compile grass_trunk     70-dev
+    ###  compile grass6_devel    65-dev 
+    compile grass70_release 70-dev 
+    compile grass_trunk     71-dev
 else
     compile grass$1         $1
 fi

@@ -8,10 +8,10 @@ rem
 
 cd C:\Users\landa\grass_packager
 
-set MAJOR=6
-set MINOR=4
-set PATCH=3
-set REV=4
+set MAJOR=7
+set MINOR=0
+set PATCH=0beta1
+set REV=1
 
 rem Compile GRASS versions
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%
@@ -32,4 +32,3 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh %MAJOR%%MINOR%%PATCH% %REV%
 C:\DevTools\makensis.exe .\grass%MAJOR%%MINOR%%PATCH%\GRASS-Installer.nsi
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh %MAJOR%%MINOR%%PATCH%
-

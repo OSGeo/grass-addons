@@ -48,10 +48,12 @@ export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 if test -z $1 ; then
     # daily builds
     copy 64 6.4.4svn
-    copy 65
-    copy 70
+    ### copy 65
+    copy 70 7.0.0svn
+    copy 71
     # releases
     copy_addon 643 6.4.3
+    copy_addon 700beta1 7.0.0
 else
     copy $1 $2
 fi
