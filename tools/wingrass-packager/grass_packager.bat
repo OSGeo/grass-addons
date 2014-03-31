@@ -23,7 +23,7 @@ xcopy C:\OSGeo4W\usr\src\grass64_release\mswindows\* .\grass64 /S/V/F/I
 REM if exist .\grass65 rmdir /S/Q .\grass65
 REM xcopy C:\OSGeo4W\usr\src\grass6_devel\mswindows\* .\grass65 /S/V/F/I
 if exist .\grass70 rmdir /S/Q .\grass70
-xcopy C:\OSGeo4W\usr\src\grass_trunk\mswindows\* .\grass70 /S/V/F/I
+xcopy C:\OSGeo4W\usr\src\grass70_release\mswindows\* .\grass70 /S/V/F/I
 if exist .\grass71 rmdir /S/Q .\grass71
 xcopy C:\OSGeo4W\usr\src\grass_trunk\mswindows\* .\grass71 /S/V/F/I
 
