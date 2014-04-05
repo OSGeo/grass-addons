@@ -55,7 +55,7 @@
 #%  answer: area
 #%  description: Method to calculate size
 #%  multiple: no
-#%  required: yes
+#%  required: no
 #%end
 #%option
 #%  key: sidelength
@@ -63,7 +63,7 @@
 #%  label: Side length
 #%  answer: 100.0
 #%  description: Size of side length in map units
-#%  required: yes
+#%  required: no
 #%end
 #%option
 #%  key: hexarea
@@ -71,7 +71,7 @@
 #%  label: Hexagon Area
 #%  answer: 200.0
 #%  description: Area of hexagon in map units
-#%  required: yes
+#%  required: no
 #%end
 
 import sys
@@ -275,8 +275,7 @@ def main():
         return(-1)
     grass.message('Cleaning and building topology')
     try:
-        r = grass.run_command('v.clean', flags='-q', input=tempname, \
-            output=tname, type='point,line,boundary,centroid,area', tool='rmdupl')
+        r = grass.run_command('v.clean', input=tempname, output=tname, type='point,line,boundary,centroid,area', tool='rmdupl')
         if r <> 0:
             raise
     except:
