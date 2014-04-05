@@ -1,0 +1,39 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.neighborhoodmatrix</em> identifies all adjacency relations between
+polygons in a vector map and exports these as a 2xn matrix where n is the 
+number of neighborhood relations with each relation only listed in one 
+direction (i.e. if a is neighbor of b, the list will contain a,b, but 
+not b,a) unless the <em>b</em> flag is specified.
+It uses <em>v.to.db</em> to determine neighborhood relations.
+If a path to an output file is specified, the matrix will be written to that file, otherwise it will be sent to standard output.
+
+<h2>NOTES</h2>
+
+Currently the module assumes that the layer above that containing the
+polygons is empty and available for adding categories to boundaries.
+
+<h2>EXAMPLE</h2>
+
+Send the neighborhood matrix of the counties in the boundary_county map of the North Carolina dataset:
+
+<div class="code"><pre>
+v.neighborhoodmatrix in=boundary_county sep=,
+</pre></div>
+
+Idem, but sending the output to a file
+
+<div class="code"><pre>
+v.neighborhoodmatrix in=boundary_county sep=, output=county_neighbors.csv
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.to.db.html">v.to.db</a>,
+</em>
+
+<h2>AUTHOR</h2>
+ Moritz Lennert
+
+<p><i>Last changed: $Date$</i>
