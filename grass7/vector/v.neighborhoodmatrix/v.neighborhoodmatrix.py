@@ -58,11 +58,13 @@ def main():
             type='boundary', option='sides', layer=blayer, qlayer=player, quiet=True)
     grass.run_command('g.remove', vect=tempmapname, quiet=True)
 
+    #put result into a list of integer pairs
     temp_neighbors=[]
     for line in vtodb_results.splitlines():
         if line.split('|')[1]<>'-1' and line.split('|')[2]<>'-1':
                 temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
 
+    #uniqify the list of integer pairs
     n = len(temp_neighbors)
     t=list(temp_neighbors)
     t.sort()
@@ -76,6 +78,7 @@ def main():
         i += 1
     neighbors=t[:lasti]
 
+    #if user wants bidirectional matrix, add the inversed pairs to the original
     if bidirectional:
         neighbors_reversed=[]
         for pair in neighbors:
