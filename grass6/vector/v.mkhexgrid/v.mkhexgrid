@@ -253,6 +253,7 @@ def main():
     #print "filename: %s\nx: %s, y: %s\nxmax: %s, ymax: %s\nside_length: %s" % (outfile, xstart, ystart, xmax, ymax, side_len)
     vf = open(vectorfile, "w")
     sf = open(sqlfile, "w")
+    sf.write("BEGIN TRANSACTION;\n")
     WriteGrassHeader(vf,vectorfile,xstart,ystart,xmax,ymax)
     tname = options['output'].split('@')[0]
     schema = gdb.db_connection()['schema']
@@ -262,6 +263,7 @@ def main():
         table_name = schema + '.' + tname
     WriteHexGridVectors(vf, sf, table_name, float(side_len), float(xstart), float(ystart), float(xmax), float(ymax))
     vf.close()
+    sf.write("COMMIT;\n")
     sf.close()
     # now import and clean up the vector
     grass.message('Importing GRASS ascii file')
