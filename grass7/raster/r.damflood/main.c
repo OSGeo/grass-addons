@@ -153,22 +153,6 @@ void G_free_vector(double *v)
 }
 
 
-
-float velocita_breccia(int i,double h)
-{
-	//double h;
-	//int i;
-	//float g=9.81;
-	float v;
-
-	if(i==1){
-		v=0.93*sqrt(h);
-	}else if (i==2){
-		v=0.4*sqrt(2*g*h);
-	}
-	return v;
-}
-
 //*********************************************************************************************
 /* main program */
 int main(int argc, char *argv[]){

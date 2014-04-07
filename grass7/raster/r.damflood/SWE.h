@@ -1,3 +1,6 @@
+
+float velocita_breccia(int i,double h);
+
 /*Funzione per risolvere le shallow water equations
 originariamente sviluppata per r.damflood (GRASS command)
 nel caso generico dare una matrice con 2 raster di 0 **m_DAMBREAK & **m_lake

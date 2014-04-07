@@ -24,6 +24,22 @@
 #define g 9.81
 
 
+float velocita_breccia(int i,double h)
+{
+	//double h;
+	//int i;
+	//float g=9.81;
+	float v;
+
+	if(i==1){
+		v=0.93*sqrt(h);
+	}else if (i==2){
+		v=0.4*sqrt(2*g*h);
+	}
+	return v;
+}
+
+
 void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float **m_DAMBREAK,float **m_m, int **m_lake, double **m_h2, double **m_u2, double **m_v2, int row, int col, int nrows, int ncols,float timestep, float res_ew, float res_ns, int method, int num_cell, int num_break, double t){
 
 	/*FUNCTION VARIABLES*/
