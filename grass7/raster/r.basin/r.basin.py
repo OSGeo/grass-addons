@@ -467,7 +467,7 @@ def main():
                                          format = "point")
         
         f = open(namefile) 
-        east_o, north_o, z = f.readline().split('|')
+        east_o, north_o, cat = f.readline().split('|')
                      
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      coordinates = '%s,%s' % (east_o,north_o),
@@ -675,7 +675,8 @@ def main():
         
         
         # create .csv file
-        with open(os.path.join( directory, prefix + '_parameters.csv'), 'w') as f:
+        csvfile = os.path.join( directory, prefix + '_parameters.csv' )
+        with open(csvfile, 'w') as f:
     	    writer = csv.writer(f)
     	    writer.writerow(['Morphometric parameters of basin :'])
     	    writer.writerow([' '])
@@ -701,16 +702,103 @@ def main():
             writer.writerow(['Length of Mainchannel [km]'] + [mainchannel])
             writer.writerow(['Mean slope of mainchannel [percent]'] + [mainchannel_slope])
             writer.writerow(['Mean hillslope length [m]'] + [mean_hillslope_length])
-            writer.writerow(['Magnitudo '] + [magnitudo])
-            writer.writerow(['Max order (Strahler) '] + [Max_order])
-            writer.writerow(['Number of streams '] + [Num_streams])
-            writer.writerow(['Total Stream Length [km] '] + [Len_streams])
-            writer.writerow(['First order stream frequency '] + [FSF])
-            writer.writerow(['Drainage Density [km/km^2] '] + [drainage_density])
-            writer.writerow(['Bifurcation Ratio (Horton) '] + [Bif_ratio])
-            writer.writerow(['Length Ratio (Horton) '] + [Len_ratio])
-            writer.writerow(['Area ratio (Horton) '] + [Area_ratio])
-            writer.writerow(['Slope ratio (Horton) '] + [Slope_ratio])
+            writer.writerow(['Magnitudo'] + [magnitudo])
+            writer.writerow(['Max order (Strahler)'] + [Max_order])
+            writer.writerow(['Number of streams'] + [Num_streams])
+            writer.writerow(['Total Stream Length [km]'] + [Len_streams])
+            writer.writerow(['First order stream frequency'] + [FSF])
+            writer.writerow(['Drainage Density [km/km^2]'] + [drainage_density])
+            writer.writerow(['Bifurcation Ratio (Horton)'] + [Bif_ratio])
+            writer.writerow(['Length Ratio (Horton)'] + [Len_ratio])
+            writer.writerow(['Area ratio (Horton)'] + [Area_ratio])
+            writer.writerow(['Slope ratio (Horton)'] + [Slope_ratio])
+            
+        # Create summary (transposed)
+        csvfileT = os.path.join( directory, prefix + '_parametersT.csv' ) # transposed
+        with open(csvfileT, 'w') as f:
+    	    writer = csv.writer(f)
+            writer.writerow(['x'] +
+                            ['y'] +
+                            ['Easting Centroid of basin'] + 
+                            ['Northing Centroid of basin'] +
+                            ['Rectangle containing basin N-W'] + 
+                            ['Rectangle containing basin S-E'] + 
+                            ['Area of basin [km^2]'] + 
+                            ['Perimeter of basin [km]'] + 
+                            ['Max Elevation [m s.l.m.]'] + 
+                            ['Min Elevation [m s.l.m.]'] + 
+                            ['Elevation Difference [m]'] + 
+                            ['Mean Elevation'] + 
+                            ['Mean Slope'] + 
+                            ['Length of Directing Vector [km]'] + 
+                            ['Prevalent Orientation [deg from north, ccw]'] + 
+                            ['Compactness Coefficient'] + 
+                            ['Circularity Ratio'] + 
+                            ['Topological Diameter'] + 
+                            ['Elongation Ratio'] + 
+                            ['Shape Factor'] + 
+                            ['Concentration Time [hr]'] + 
+                            ['Length of Mainchannel [km]'] + 
+                            ['Mean slope of mainchannel [percent]'] + 
+                            ['Mean hillslope length [m]'] + 
+                            ['Magnitudo'] + 
+                            ['Max order (Strahler)'] + 
+                            ['Number of streams'] + 
+                            ['Total Stream Length [km]'] + 
+                            ['First order stream frequency'] + 
+                            ['Drainage Density [km over km^2]'] + 
+                            ['Bifurcation Ratio (Horton)'] + 
+                            ['Length Ratio (Horton)'] + 
+                            ['Area ratio (Horton)'] + 
+                            ['Slope ratio (Horton)'] )
+            writer.writerow([east_o]
+                          + [north_o]
+                          + [basin_east] 
+                          + [basin_north]
+                          + [nw]
+                          + [se]
+                          + [area_basin]
+                          + [perimeter_basin]
+                          + [H1]
+                          + [H2]
+                          + [HM]
+                          + [mean_elev]
+                          + [mean_slope]
+                          + [L_orienting_vect]
+                          + [prevalent_orientation]
+                          + [C_comp]
+                          + [R_c]
+                          + [D_topo]
+                          + [R_al]
+                          + [S_f]
+                          + [t_c]
+                          + [mainchannel]
+                          + [mainchannel_slope]
+                          + [mean_hillslope_length]
+                          + [magnitudo]
+                          + [Max_order]
+                          + [Num_streams]
+                          + [Len_streams]
+                          + [FSF]
+                          + [drainage_density]
+                          + [Bif_ratio]
+                          + [Len_ratio]
+                          + [Area_ratio]
+                          + [Slope_ratio])
+        
+
+                          
+        grass.run_command("db.in.ogr", dsn = csvfileT,
+                                       output = "summary",
+                                       overwrite = True)  
+                                          
+                                           
+        grass.run_command("v.db.join", map = v_outlet_snap,
+                                       otable = "summary",
+                                       column = "y",
+                                       ocolumn = "y")                                                             
+                                                       
+                          
         
         grass.message( "\n" ) 
         grass.message( "----------------------------------" )
