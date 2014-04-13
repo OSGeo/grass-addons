@@ -500,7 +500,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 
 
 				if ((timestep/res_ew*(fabs(m_u2[row][col])+sqrt(g*m_h2[row][col])))>1.0){
-					G_warning("\nATTENTION: at time: %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
+					G_warning("At time %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
 					/*G_message("velocita' lungo x\n");
 					G_message("row:%d, col%d \n",row,col);
 					G_message("dZ_dx_down:%f, dZ_dx_up:%f,cr_up:%f, cr_down:%f\n" , dZ_dx_down,dZ_dx_up, cr_up, cr_down);
