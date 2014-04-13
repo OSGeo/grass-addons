@@ -589,7 +589,7 @@ def main():
                                                         elevation = 'r_elevation_crop' )
         
                                                         
-        print "##################################"         
+        print " ------------------------------ "         
         print "Output of r.stream.stats: "
         print  stream_stats
        
@@ -713,9 +713,9 @@ def main():
             writer.writerow(['Slope ratio (Horton) '] + [Slope_ratio])
         
         grass.message( "\n" ) 
-        grass.message( "##################################" )
+        grass.message( "----------------------------------" )
         grass.message( "Morphometric parameters of basin :" )
-        grass.message( "##################################\n" )	
+        grass.message( "----------------------------------\n" )	
         grass.message( "Easting Centroid of basin : %s " % basin_east )
         grass.message( "Northing Centroid of Basin : %s " % basin_north )
         grass.message( "Rectangle containing basin N-W : %s , %s " % nw ) 
@@ -748,18 +748,17 @@ def main():
         grass.message( "Length Ratio (Horton) : %s " % Len_ratio )
         grass.message( "Area ratio (Horton) : %s " % Area_ratio )
         grass.message( "Slope ratio (Horton): %s " % Slope_ratio )
-        grass.message( "##################################" ) 
+        grass.message( "------------------------------" ) 
         grass.message( "\n" )
         grass.message( "Done!")
         
     except:
 	    grass.message( "\n" )
-	    grass.message( "##################################" ) 
+	    grass.message( "------------------------------" ) 
 	    grass.message( "\n" ) 
-	    grass.message( "An error occurred with the parameters calculation." )
-	    grass.message( "Please note that outlet coordinates must belong to the river network." )
-	    grass.message( "You might want to run r.stream.extract and choose coordinates matching with the extracted stream map." )
-	    grass.message( "Please report to the authors any other problem not related with coordinates outlet." )
+	    grass.message( "An ERROR occurred running r.basin" )
+	    grass.message( "Please try with another pairs of outlet coordinates" )
+
 	    
     # Set region to original 
     grass.read_command('g.region', flags = 'p', region = 'original')
