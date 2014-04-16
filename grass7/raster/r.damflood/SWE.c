@@ -704,7 +704,7 @@ void shallow_water(double **m_h1,double **m_u1, double **m_v1, float **m_z,float
 					m_v2[row][col]=0.0;*/
 
 				if ((timestep/res_ns*(abs(abs(m_v2[row][col])+sqrt(g*m_h2[row][col]))))>1){
-					G_warning("\nATTENTION: at time: %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
+					G_warning("At time: %f the Courant-Friedrich-Lewy stability condition isn't respected",t);
 					/*G_message("EQ. MOTO DIR Y' --> row:%d, col:%d\n)",row, col);
 					G_message("m_h1[row][col]:%f,m_u1[row][col]:%f,m_v1[row][col]:%f",m_h1[row][col],m_u1[row][col],m_v1[row][col]);
 					G_message("m_h1[row][col+1]:%f,m_h1[row][col-1]:%f,m_h1[row+1][col]:%f, m_h1[row-1][col]:%f\n",m_h1[row][col+1],m_h1[row][col-1],m_h1[row+1][col], m_h1[row-1][col]);
