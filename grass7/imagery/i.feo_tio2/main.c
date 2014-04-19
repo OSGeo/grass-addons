@@ -24,6 +24,13 @@
 double feo(double r750, double r950, double theta);
 double tio2(double r415, double r750, double y0Ti, double s0Ti);
 
+double feolucey2000(double uvvis2, double uvvis4);
+double feolawrence2002(double uvvis2, double uvvis4);
+double feowilcox2005(double uvvis2, double uvvis4);
+double omatlucey2000(double uvvis2, double uvvis4);
+double omatwilcox2005(double uvvis2, double uvvis4);
+double tio2lucey2000(double uvvis1, double uvvis2);
+
 int main(int argc, char *argv[])
 {
     struct Cell_head cellhd;	/*region+header info */
