@@ -84,7 +84,6 @@
 #% answer: nn
 #% descriptions: l;Linear;nn;Sibson natural neighbor;ns;Non-Sibsonian natural neighbor
 #% description: Interpolation algorithm
-#% required : yes
 #%End
 
 
@@ -194,10 +193,8 @@ type="double"
 
 
 #### interpolate
-g.message ""
 g.message '"nnbathy" is performing the interpolation now. This may take some time.'
 g.message "Once it completes an 'All done.' message will be printed."
-g.message ""
 
 
 nnbathy -W 0 -P alg="$ALG" -n "${cols}x${rows}" \
@@ -225,7 +222,6 @@ EOF
 
 # 2 do the conversion
 g.message "Converting nnbathy output to GRASS raster ..."
-g.message ""
 
 awk -v cols="$cols" '
 BEGIN {col_cur=1; ORS=" "}
