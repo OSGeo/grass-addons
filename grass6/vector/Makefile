@@ -28,7 +28,6 @@ SUBDIRS = \
 	v.swathwidth \
 	v.transect.kia \
 	v.transects \
-	v.trimesh \
 	v.what.rast.buffer
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
