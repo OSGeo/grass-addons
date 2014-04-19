@@ -4,7 +4,7 @@
  * MODULE:       i.feo_tio2
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculate FeO or TiO2 content
- *               from various UVVIS bands
+ *               from various Clementine UVVIS bands
  *
  * COPYRIGHT:    (C) 2014 by the GRASS Development Team
  *
@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     struct Cell_head cellhd;	/*region+header info */
     int nrows, ncols;
     int row, col;
+    char *equationflag;		/*Switch for particular equation */
     struct GModule *module;
     struct Option *in0, *in1, *output, *param0, *param1;
     struct Flag *flag1;
@@ -52,19 +53,21 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("Moon"));
+    G_add_keyword(_("Clementine"));
+    G_add_keyword(_("UVVIS"));
     G_add_keyword(_("FeO"));
     G_add_keyword(_("TiO2"));
     G_add_keyword(_("reflectance"));
-    module->description = _("Computes FeO (default) or TiO2 (-t) from various bands.");
+    module->description = _("Computes wt%FeO, OMAT or wt%TiO2 from various bands.");
 
     /* Define the different options */
     in0 = G_define_standard_option(G_OPT_R_INPUT);
     in0->key = "band0";
-    in0->description = _("reflectance band at 750 nm");
+    in0->description = _("reflectance band at 750 nm (UVVIS 2)");
     
     in1 = G_define_standard_option(G_OPT_R_INPUT);
     in1->key = "band1";
-    in1->description = _("reflectance band at 950 nm (FeO) or at 415 nm (TiO2)");
+    in1->description = _("reflectance band at 950 nm (UVVIS 4 for FeO/OMAT) or at 415 nm (UVVIS 1 for TiO2)");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
@@ -82,6 +85,29 @@ int main(int argc, char *argv[])
     param1->description = _("Value of s0Ti (TiO2)");
     param1->guisection = _("Parameters");
 
+    opt.eqname = G_define_option();
+    opt.eqname->key = "eqname";
+    opt.eqname->type = TYPE_STRING;
+    opt.eqname->required = YES;
+    opt.eqname->description = _("Type of equation");
+    desc = NULL;
+    G_asprintf(&desc,
+	       "feolucey2000;%s;feolawrence2002;%s;feowilcox2005_setparam;%s;"
+	       "feowilcox2005;%s;omatlucey2000;%s;omatwilcox2005;%s;"
+	       "tio2lucey2000_setparam;%s;tio2lucey2000;%s",
+	       _("FeO (Lucey et al., 2000)"),
+	       _("FeO (lawrence et al., 2002)"),
+	       _("FeO (Wilcox et al., 2005) set parameter theta"),
+	       _("FeO (Wilcox et al., 2005)"),
+	       _("OMAT (Lucey et al., 2000)"),
+	       _("OMAT (Wilcox et al., 2005)"),
+	       _("TiO2 (Lucey et al., 2000) set parameters"),
+	       _("TiO2 (Lucey et al., 2000)"));
+    opt.eqname->descriptions = desc;
+    opt.eqname->options = "feolucey2000,feolawrence2002,feowilcox2005_setparam,feowilcox2005,omatlucey2000,omatwilcox2005,tio2lucey2000_setparam,tio2lucey2000";
+    opt.eqname->answer = "feolucey2000";
+    opt.eqname->key_desc = _("type");
+
     /* Define the different flags */
     flag1 = G_define_flag();
     flag1->key = 't';
@@ -89,13 +115,18 @@ int main(int argc, char *argv[])
 
     if (G_parser(argc, argv)) exit(EXIT_FAILURE);
 
-    if(param0->answer) param_0 = atof(param0->answer);
-    else if (!flag1->answer) param_0 = theta;
-    else G_fatal_error(_("Please define param0 for -t flag"));
+    if (!strcasecmp(equationflag, "feowilcox2005_setparam")){
+        if(param0->answer) param_0 = atof(param0->answer);
+        else G_fatal_error("Please set param0 Theta (FeO Wilcox 2005)");
+    }
 
-    if(param1->answer) param_1 = atof(param1->answer);
-    else if (flag1->answer) G_fatal_error(_("Please define param1 for -t flag"));
-
+    if (!strcasecmp(equationflag, "tio2lucey2000_setparam")){
+        if(param0->answer) param_0 = atof(param0->answer);
+        else G_fatal_error("Please set param0 y0Ti (TiO2 Lucey 2000)");
+        if(param1->answer) param_1 = atof(param1->answer);
+        else G_fatal_error("Please set param1 s0Ti (TiO2 Lucey 2000)");
+    }
+    
     /* Allocate input buffer */
     infd0 = Rast_open_old(in0->answer, "");
     Rast_get_cellhd(in0->answer, "", &cellhd);
@@ -115,28 +146,41 @@ int main(int argc, char *argv[])
 
     /* Process pixels */
     for (row = 0; row < nrows; row++) {
-	DCELL d0, d1;
+    DCELL d0, d1;
 
-	G_percent(row, nrows, 2);
+    G_percent(row, nrows, 2);
         Rast_get_d_row(infd0, inrast0, row);
         Rast_get_d_row(infd1, inrast1, row);
 
-	/*process the data */
-	for (col = 0; col < ncols; col++) {
-            d0 = (double)((DCELL *) inrast0)[col];
-            d1 = (double)((DCELL *) inrast1)[col];
+    /*process the data */
+    for (col = 0; col < ncols; col++) {
+            d0 = (double)((DCELL *) inrast0)[col];//UVVIS2
+            d1 = (double)((DCELL *) inrast1)[col];//UVVIS4 or 1
             if (Rast_is_d_null_value(&d0) ||
                 Rast_is_d_null_value(&d1)){
                 Rast_set_d_null_value(&outrast[col], 1);
             } else {
-                if (flag1->answer){
-                    outrast[col] = tio2(d0, d1, param_0, param_1);
-	        } else {
+                if (!strcasecmp(equationflag, "tio2lucey2000_setparam"))
+                    outrast[col] = tio2(d1, d0, param_0, param_1);
+                if (!strcasecmp(equationflag, "feowilcox2005_setparam"))
                     outrast[col] = feo(d0, d1, param_0);
-                }
+                if (!strcasecmp(equationflag, "tio2lucey2000"))
+                    outrast[col] = tio2lucey2000(d1, d0);
+                if (!strcasecmp(equationflag, "feowilcox2005"))
+                    outrast[col] = feowilcox2005(d0, d1);
+                if (!strcasecmp(equationflag, "feolawrence2002"))
+                    outrast[col] = feolawrence2002(d0, d1);
+                if (!strcasecmp(equationflag, "feolucey2000"))
+                    outrast[col] = feolucey2000(d0, d1);
+                if (!strcasecmp(equationflag, "omatwilcox2005"))
+                    outrast[col] = omatwilcox2005(d0, d1);
+                if (!strcasecmp(equationflag, "omatlucey2000"))
+                    outrast[col] = omatlucey2000(d0, d1);
+                else
+                    G_fatal_error("Please enter an appropriate equation name");
             }
         }
-	Rast_put_d_row(outfd, outrast);
+        Rast_put_d_row(outfd, outrast);
     }
     G_free(inrast0);
     G_free(inrast1);
@@ -148,7 +192,7 @@ int main(int argc, char *argv[])
     /* Color table from 0.0 to 1.0 */
     Rast_init_colors(&colors);
     val1 = 0;
-    val2 = 1;
+    val2 = 10;
     Rast_add_c_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
     /* Metadata */
     Rast_short_history(output->answer, "raster", &history);
