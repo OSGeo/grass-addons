@@ -117,20 +117,17 @@
 #% required : no
 #%end
 
-if  [ -z "$GISBASE" ]
-then
-	echo ""
-	echo "You must be in GRASS GIS to run this program"
-	echo ""
-	exit 1
-fi
+if  [ -z "$GISBASE" ] ; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi   
 
 if [ "$1" != "@ARGS_PARSED@" ] ; then
   exec g.parser "$0" "$@"
 fi
 
-$GRASS_VERBOSE
-PROG=`basename $0`
+PROG=`basename "$0"`
+
 #request control & test (only for imput map)
 if [ -z "$GIS_OPT_DTM" ] ; then
   g.message -e "ERROR: DTM not specified"
@@ -159,9 +156,9 @@ read a8 b8
 read a9 b9
 exec 0<&6 6<&-
 res=$b9
-if  [ "$b9" -gt 5 ]
+if  [ $b9 -gt 5 ]
 then
-   g.message -w "WARNING - the DTM resolution it'snt good for this application"
+   g.message -w "WARNING - the DTM resolution is not good for this application"
 else
    g.message "The DTM resolution is $res x $res meters"
 fi
@@ -262,14 +259,14 @@ cp "$quote100" "$TMPDIR"/quote_100
 cd "$TMPDIR"
 echo	$res $deltax $deltay > parameter.txt
 echo "'"region2.txt"'"	"'"dtm2x2"'"	"'"limiti_alveo_vect"'"	"'"quote_100"'" > nomefile.txt
-g.message "Fortran code that automatically find bed river"
+g.message "Fortran code that automatically finds bed river"
 ./find_main_channel                            
 rm nomefile.txt
 rm parameter.txt
 #TEST FORTRAN CODE RUN
 if  [ -z "limiti_alveo_vect" ]
 then
-	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try understand the problem"
+	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try to understand the problem"
 	exit 1
 fi
 cd
@@ -332,7 +329,7 @@ rm nomefile.txt
 #TEST FORTRAN CODE RUN
 if  [ -z "inondazione_nuova.txt" ]
 then
-	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try understand the problem"
+	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try to understand the problem"
 	exit 1
 fi
 cd
@@ -357,7 +354,7 @@ rm nomefile.txt
 #TEST FORTRAN CODE RUN
 if  [ -z "reticolo" ]
 then
-	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try understand the problem"
+	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try to understand the problem"
 	exit 1
 fi
 cd
@@ -422,7 +419,7 @@ rm nomefile.txt
 #TEST FORTRAN CODE RUN
 if  [ -z "correzione" ]
 then
-	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try understand the problem"
+	g.message -e "ERROR IN FORTRAN CODE - see fortran error message and try to understand the problem"
 	exit 1
 fi
 cd
@@ -526,7 +523,5 @@ else
 fi
 
 rm -r "$TMPDIR"
-
-
 
 exit 0
