@@ -75,7 +75,7 @@ def main():
     r_mti = options['mti']
 
     # Detect cellsize of the DEM
-    info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
+    info_region = grass.read_command('g.region', flags = 'p')
     dict_region = grass.parse_key_val(info_region, ':')
     resolution = (float(dict_region['nsres']) + float(dict_region['ewres']))/2
     grass.message("Cellsize : %s " % resolution) 
