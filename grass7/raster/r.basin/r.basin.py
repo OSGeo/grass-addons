@@ -719,38 +719,38 @@ def main():
     	    writer = csv.writer(f)
             writer.writerow(['x'] +
                             ['y'] +
-                            ['Easting Centroid of basin'] + 
-                            ['Northing Centroid of basin'] +
-                            ['Rectangle containing basin N-W'] + 
-                            ['Rectangle containing basin S-E'] + 
-                            ['Area of basin [km^2]'] + 
-                            ['Perimeter of basin [km]'] + 
-                            ['Max Elevation [m s.l.m.]'] + 
-                            ['Min Elevation [m s.l.m.]'] + 
-                            ['Elevation Difference [m]'] + 
-                            ['Mean Elevation'] + 
-                            ['Mean Slope'] + 
-                            ['Length of Directing Vector [km]'] + 
-                            ['Prevalent Orientation [deg from north, ccw]'] + 
-                            ['Compactness Coefficient'] + 
-                            ['Circularity Ratio'] + 
-                            ['Topological Diameter'] + 
-                            ['Elongation Ratio'] + 
-                            ['Shape Factor'] + 
-                            ['Concentration Time [hr]'] + 
-                            ['Length of Mainchannel [km]'] + 
-                            ['Mean slope of mainchannel [percent]'] + 
-                            ['Mean hillslope length [m]'] + 
+                            ['Easting_Centroid_basin'] + 
+                            ['Northing_Centroid_basin'] +
+                            ['Rectangle_containing_basin_N_W'] + 
+                            ['Rectangle_containing_basin_S_E'] + 
+                            ['Area_of_basin_km2'] + 
+                            ['Perimeter_of_basin_km'] + 
+                            ['Max_Elevation'] + 
+                            ['Min_Elevation'] + 
+                            ['Elevation_Difference'] + 
+                            ['Mean_Elevation'] + 
+                            ['Mean_Slope'] + 
+                            ['Length_of_Directing_Vector_km'] + 
+                            ['Prevalent_Orientation_deg_from_north_ccw]'] + 
+                            ['Compactness_Coefficient'] + 
+                            ['Circularity_Ratio'] + 
+                            ['Topological_Diameter'] + 
+                            ['Elongation_Ratio'] + 
+                            ['Shape_Factor'] + 
+                            ['Concentration_Time_'] + 
+                            ['Length_of_Mainchannel_km'] + 
+                            ['Mean_slope_of_mainchanne_percent'] + 
+                            ['Mean_hillslope_length_m'] + 
                             ['Magnitudo'] + 
-                            ['Max order (Strahler)'] + 
-                            ['Number of streams'] + 
-                            ['Total Stream Length [km]'] + 
-                            ['First order stream frequency'] + 
-                            ['Drainage Density [km over km^2]'] + 
-                            ['Bifurcation Ratio (Horton)'] + 
-                            ['Length Ratio (Horton)'] + 
-                            ['Area ratio (Horton)'] + 
-                            ['Slope ratio (Horton)'] )
+                            ['Max_order_Strahler'] + 
+                            ['Number_of_streams'] + 
+                            ['Total_Stream_Length_km'] + 
+                            ['First_order_stream_frequency'] + 
+                            ['Drainage_Density_km_over_km2]'] + 
+                            ['Bifurcation_Ratio_Horton'] + 
+                            ['Length_Ratio_Horton'] + 
+                            ['Area_ratio_Horton'] + 
+                            ['Slope_ratio_Horton'] )
             writer.writerow([east_o]
                           + [north_o]
                           + [basin_east] 
@@ -787,16 +787,18 @@ def main():
                           + [Slope_ratio])
         
 
-                          
+# Import table "summary", attaches it to "outlet_snap", then drops it                          
         grass.run_command("db.in.ogr", dsn = csvfileT,
-                                       output = "summary",
-                                       overwrite = True)  
+                                       output = "summary")  
                                           
                                            
         grass.run_command("v.db.join", map = v_outlet_snap,
                                        otable = "summary",
                                        column = "y",
-                                       ocolumn = "y")                                                             
+                                       ocolumn = "y")    
+                                       
+        grass.run_command("db.droptable", table = "summary",
+                                          flags = 'f')
                                                        
                           
         
