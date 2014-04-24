@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:	r.roughness
+# MODULE:	r.roughness.window.vector.sh
 # AUTHOR(S):	Carlos H. Grohmann <carlos dot grohmann at gmail dot com >
 # PURPOSE:	Calculates surface roughness from DEMs.
 #		In this script surface roughness is taken as the dispersion
@@ -301,8 +301,5 @@ else
     echo "Surface roughness map created and named [$FISHER]. Consider renaming."
 fi
 
-
 echo "Done."
 exit 0
-
-

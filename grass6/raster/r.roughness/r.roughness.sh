@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:	r.roughness
+# MODULE:	r.roughness.sh
 # AUTHOR(S):	Carlos H. Grohmann <carlos dot grohmann at gmail dot com >
 # PURPOSE:	Calculates surface roughness from DEMs. (uses r.surf.area)
 #		In this script surface roughness is used in the sense of 
@@ -38,7 +38,7 @@
 #% key: map
 #% gisprompt: old,cell,raster
 #% type: string
-#% description: Input raster surface
+#% description: Input raster elevation map
 #% required : yes
 #%end
 #%option
@@ -85,7 +85,6 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
     export CMDLINE
     exec g.parser "$0" "$@"
 fi
-
 PROG=`basename $0`
 
 
@@ -252,5 +251,6 @@ if [ -n "$GIS_OPT_ROUGH" ] ; then
 else
     echo "Surface roughness map created and named [$ROUGHNESS]. Consider renaming."
 fi
+
 echo "Done."
 exit 0
