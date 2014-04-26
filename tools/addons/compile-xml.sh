@@ -1,6 +1,10 @@
 #!/bin/sh
 
-DEST=/osgeo/grass/grass-web-public/addons
+if test -z "$1" ; then
+    echo "DEST not defined"
+    exit 1
+fi
+DEST="$1"
 
 compile() {
     ./compile.sh $1 $2 $3 1
