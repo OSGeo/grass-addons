@@ -65,6 +65,25 @@ is currently not supported but works, just ignore the attribute table.
 These world borders and rivers may be not very accurate.
 
 
+<h2>EXAMPLE</h2>
+
+Convert shorelines to land areas. In the imported shoreline map, mainland
+is category 1, islands in lakes is category 3. Categories 2 and 4 are lakes
+and ponds on islands in lakes, so we'll exclude them as holes.
+
+<div class="code"><pre>
+v.in.gshhs in=gshhs_f.b out=gshhs_shoreline_full
+v.extract in=gshhs_shoreline_full out=gshhs_landlines_full list=1,3
+v.type in=gshhs_landlines_full out=gshhs_shoreboundary_full type=line,boundary
+v.centroids in=gshhs_shoreboundary_full out=gshhs_land_full op=add
+</pre></div>
+
+At this point areas are categorized in order of shoreline length. Area cats
+1 and 2 are Eurasia (2 is the part in the Western Hemisphere), area cat 3 is
+Africa, 4 is North America, 5 is South America, 6 is Australia, 7 is
+Greenland, and so on.
+
+
 <h2>SEE ALSO</h2>
 
 <em>
@@ -86,7 +105,7 @@ High-resolution Shoreline Database. J. Geophys. Res., 101(B4), 8741-8743.
 
 The gshhstograss tool was written by Simon Cox and Paul Wessel.<br>
 The original version of v.in.gshhs was written by Bob Covill based on gshhstograss.<br> 
-Modifications and updates by Markus Neteler and Markus Metz.
+Modifications and updates by Markus Neteler, Markus Metz, and Hamish Bowman.
 
 <p>
 <i>Last changed: $Date$</i>
