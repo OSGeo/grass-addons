@@ -57,11 +57,11 @@
 #define SEEK_CUR 1
 #endif
 
-#define GSHHS_DATA_RELEASE	9	/* For v2.2.0 data set */
-#define GSHHS_DATA_VERSION	"2.2.0"	/* For v2.2.0 data set */
+#define GSHHS_DATA_RELEASE	13	/* For v2.3.0 data set */
+#define GSHHS_DATA_VERSION	"2.3.0"	/* For v2.3.0 data set */
 #define GSHHS_PROG_VERSION	"1.13"
 
-#define GSHHS_SCL	1.0e-6	/* COnvert micro-degrees to degrees */
+#define GSHHS_SCL	1.0e-6	/* Convert micro-degrees to degrees */
 
 /* For byte swapping on little-endian systems (GSHHS is defined to be bigendian) */
 

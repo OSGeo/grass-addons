@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     parm.input->required = YES;
     parm.input->gisprompt = "old_file,file,gshhs";
     parm.input->description =
-	_("Name of GSHHS shoreline file: gshhs_[f|h|i|l|c].b");
+	_("Name of GSHHG/GSHHS shoreline file: gshhs_[f|h|i|l|c].b");
 
     parm.output = G_define_standard_option(G_OPT_V_OUTPUT);
 
@@ -285,9 +285,11 @@ int main(int argc, char **argv)
 
     /* check version support */
     if (version < 4)  /* not sure if that check works... */
-	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (2.2) are supported.", version, (int)GSHHS_DATA_RELEASE);
+	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (%s) are supported.",
+		      version, (int)GSHHS_DATA_RELEASE, GSHHS_DATA_VERSION);
     if (version > GSHHS_DATA_RELEASE)
-	G_fatal_error("Import of version %d not yet supported, highest supported version is GSHHS version 7 (2.0).", version);
+	G_fatal_error("Import of version %d not yet supported, highest supported version is GSHHS version %d (%s).",
+		      version, (int)GSHHS_DATA_RELEASE, GSHHS_DATA_VERSION);
 
     rewind(fp);
 
