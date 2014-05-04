@@ -236,10 +236,10 @@ else
 fi
 
 
-eval `g.region -3 -g`
+eval `g.region -3 -gu`
 
 if [ "$nsres" != "$nsres3" ] || [ "$ewres" != "$ewres3" ] ; then
-    g.region -3 -p | grep res
+    g.region -3 -pu | grep res
     g.message -e "The 2D and 3D region settings are different. Can not continue."
     exit 1
 fi

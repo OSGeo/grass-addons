@@ -274,7 +274,7 @@ else
 fi
 
 if [ -n "$GIS_OPT_VLINES" ] ; then
-   eval `g.region -g`
+   eval `g.region -gu`
    VLINES="vline=$GIS_OPT_VLINES vline_color=black vline_height=$nsres"
 else
    VLINES=""
@@ -293,7 +293,7 @@ cd `dirname "$TEMPFILE"`
 
 #### dynamic viewpoint height calculations
 # FIXME: figure out if it is map unit extent or number of cells which controls the flipping
-eval `g.region -ge`
+eval `g.region -geu`
 # various scales of the average map extent to use for the viewing height
 avg_extent=`echo "$ns_extent $ew_extent" | awk '{print ($1 + $2)/2.0}'`
 
@@ -385,7 +385,7 @@ else
    LARGER=`echo "$ew_extent $ns_extent" | awk '{if ($1 > $2) { print "ew" } else { print "ns" }}'`
    if [ "ew" = "$LARGER" ] ; then
       BUFDIST=`echo "$ew_extent $ns_extent" | awk '{print int(0.5 + ($1 - $2)/2.0)}'`
-      eval `g.region -g`
+      eval `g.region -gu`
       BUFDIST_EVEN=`echo "$BUFDIST $nsres" | awk '{print $1 + (10 * $2) - ($1 % $2)}'`
       g.region n="n+$BUFDIST_EVEN" s="s-$BUFDIST_EVEN"
    fi

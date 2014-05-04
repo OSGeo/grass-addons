@@ -53,7 +53,7 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 if [ "$GIS_FLAG_A" -eq 1 ] ; then
-    eval `g.region -g`
+    eval `g.region -gu`
     ALIGN_FLAG="-a ewres=$ewres nsres=$nsres"
 else
     ALIGN_FLAG=""

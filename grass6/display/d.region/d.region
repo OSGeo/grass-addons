@@ -99,18 +99,18 @@
 #%end
 
 if test "$GISBASE" = ""; then
- echo "You must be in GRASS GIS to run this program." >&2
- exit 1
+   echo "You must be in GRASS GIS to run this program." >&2
+   exit 1
 fi   
 
 if [ "$1" != "@ARGS_PARSED@" ] ; then
-  exec g.parser "$0" "$@"
+   exec g.parser "$0" "$@"
 fi
-     
+
 
 # set defaults
-originalRegionName="d_region"$$
-g.region save=$originalRegionName
+originalRegionName="d_region$$"
+g.region save="$originalRegionName"
 
 
 
@@ -118,8 +118,8 @@ g.region save=$originalRegionName
 # name:     clean
 # purpose:  clean region settings
 clean () {
-    g.region region=$originalRegionName;
-    g.remove --q region=$originalRegionName; 
+    g.region region="$originalRegionName"
+    g.remove --q region="$originalRegionName"
 }
 
 #####################
@@ -127,45 +127,45 @@ clean () {
 # purpose:  displays default region
 default () {
     g.region -d
-    eval `g.region -g`
+    eval `g.region -gu`
 }
 
 #####################
 # name:     current
 # purpose:  displays default region
 current () {
-    eval `g.region -g`
+    eval `g.region -gu`
 }
 
 #####################
 # name:     raster
 # purpose:  displays raster region
 raster () {
-    g.region rast=$GIS_OPT_RAST
-    eval `g.region -g`
+    g.region rast="$GIS_OPT_RAST"
+    eval `g.region -gu`
 }
 
 #####################
 # name:     vector
 # purpose:  displays vect region
 vector () {
-    g.region vect=$GIS_OPT_VECT
-    eval `g.region -g`
+    g.region vect="$GIS_OPT_VECT"
+    eval `g.region -gu`
 }
 #####################
 # name:     rast3d
 # purpose:  displays rast3d region
 rast3d () {
-    g.region rast3d=$GIS_OPT_RAST3D
-    eval `g.region -g`
+    g.region rast3d="$GIS_OPT_RAST3D"
+    eval `g.region -gu`
 }
 
 #####################
 # name:     3dview
 # purpose:  displays    3dview region
 view3d () {
-    g.region rast3d=$GIS_OPT_3DVIEW
-    eval `g.region -g`
+    g.region rast3d="$GIS_OPT_3DVIEW"
+    eval `g.region -gu`
 }
 
 #####################
@@ -196,7 +196,7 @@ region () {
     fi
 
     g.region w=$GIS_OPT_W s=$GIS_OPT_S e=$GIS_OPT_E n=$GIS_OPT_N
-    eval `g.region -g`
+    eval `g.region -gu`
 }
 
 
@@ -223,12 +223,12 @@ $e $s
 $w $s
 EOF
 
-    echo $TMP
+    echo "$TMP"
 
-    if [ $GIS_FLAG_F -eq 1 ]; then
-        cat $TMP|d.graph -m color=$GIS_OPT_COLOR
+    if [ $GIS_FLAG_F -eq 1 ] ; then
+        cat "$TMP" | d.graph -m color="$GIS_OPT_COLOR"
     else
-        d.graph -m color=$GIS_OPT_COLOR input=$TMP
+        d.graph -m color="$GIS_OPT_COLOR" input="$TMP"
     fi
 
 }

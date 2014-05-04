@@ -172,9 +172,9 @@ def knowledgebase():
  (python-call grass_run_command "g.version" "gb" )
  ;Note how the flags for g.version are provided without the leading "minus": Proper call on the GRASS shell would be "g.version -gb" or "g.version -g -b" 
  (python-call grass_message "---------------------------") 
- (python-call grass_message "   Invoking: g.region -p") 
+ (python-call grass_message "   Invoking: g.region -pu") 
  (python-call grass_message " ") 
- (python-call grass_run_command "g.region" "p" )
+ (python-call grass_run_command "g.region" "pu" )
  (python-call grass_message "---------------------------") 
  (python-call grass_message "   Invoking g.list -f type=vect") 
  (python-call grass_message " ")
