@@ -152,7 +152,7 @@ catreport=`v.category input=$GIS_OPT_VECTOR option=report`
 if [ ! "${catreport}" ] ; then
 	g.message -e message="Input map $GIS_OPT_VECTOR seems to have no categories.
 	Check and try to run v.category :
-	v.category --o input=$GIS_OPT_VECTOR output=${GIS_OPT_VECTOR}c option=add step=1 type=${GIS_OPT_TYPE}
+	v.category --o input=$GIS_OPT_VECTOR output=${GIS_OPT_VECTOR}c option=add step=1 type="$GIS_OPT_TYPE"
 	for registering objects and restart v.selmany with vector=${GIS_OPT_VECTOR}c"
 	exit 1
 fi
@@ -162,9 +162,9 @@ fi
 # if v.db.connect -c says nothing we have no connected table
 g.message  ""
 g.message  "Checking database table..."
-tablecheck=`v.db.connect -c map=${GIS_OPT_VECTOR} layer=${GIS_OPT_LAYER}`
+tablecheck=`v.db.connect -c map="$GIS_OPT_VECTOR" layer="$GIS_OPT_LAYER"`
 if [ ! "${tablecheck}" ] ; then
-	echo "Layer ${GIS_OPT_LAYER} of input map is not connected to any database table!"
+	echo "Layer $GIS_OPT_LAYER of input map is not connected to any database table!"
 	echo "Should it be connected to a new table? [y]es or [n]o ? (default [n])"
 	read ANS1
 	case $ANS1 in
@@ -187,13 +187,13 @@ DBINTABLE=`v.db.connect $GIS_OPT_VECTOR -g | grep -w $GIS_OPT_LAYER | awk '{prin
 DBDATABASE=`v.db.connect $GIS_OPT_VECTOR -g | grep -w $GIS_OPT_LAYER | awk '{print $4}'`
 DBDRIVER=`v.db.connect $GIS_OPT_VECTOR -g | grep -w $GIS_OPT_LAYER | awk '{print $5}'`
 
-g.region vect=${GIS_OPT_VECTOR}
+g.region vect="$GIS_OPT_VECTOR"
 
 d.erase
 
 # SHOW BACKGROUND MAPS
-if [ ${GIS_OPT_BGRAST} ] ; then d.rast ${GIS_OPT_BGRAST} ; fi
-if [ ${GIS_OPT_BGVECT} ] ; then d.vect ${GIS_OPT_BGVECT} color=gray; fi
+if [ ${GIS_OPT_BGRAST} ] ; then d.rast "$GIS_OPT_BGRAST" ; fi
+if [ ${GIS_OPT_BGVECT} ] ; then d.vect "$GIS_OPT_BGVECT" color=gray; fi
 
 # SHOW VECTOR MAP
 d.vect map=${GIS_OPT_VECTOR} color=gray
@@ -274,13 +274,13 @@ while [ $cycle -eq 1 ] ; do
 						n* | N*)
 						;;
 					esac
-					g.remove vect=$TMP 2>/dev/null
+					g.remove vect="$TMP" 2>/dev/null
 				fi
 			fi
 		;;
 	esac
 done
-g.remove vect=$TMP 2>/dev/null 
+g.remove vect="$TMP" 2>/dev/null 
 
 # END OF MAIN PROCESS LOOP
 ###########################################################################################

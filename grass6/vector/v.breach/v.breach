@@ -248,15 +248,15 @@ trap "exitprocedure" 2 3 15
 
 # set the region to match whole input vector but respect current resolution
 res=$nsres
-g.region vect="${INL}" res=$res save="region_${UNQ}" -a -u > /dev/null
+g.region vect="$INL" res=$res save="region_$UNQ" -a -u > /dev/null
 # we need to repeat this for there is a bug/feature that setting bot res=, -a
 # and vect= might not work as expected
-g.region region="region_${UNQ}" vect="${INL}" res=$res save="region_${UNQ}" -a -u --o > /dev/null
+g.region region="region_$UNQ" vect="$INL" res=$res save="region_$UNQ" -a -u --o > /dev/null
 
-WIND_OVERRIDE="region_${UNQ}"
+WIND_OVERRIDE="region_$UNQ"
 export WIND_OVERRIDE
 
-eval `g.region -g`  > /dev/null
+eval `g.region -gu`
 
 # make a raster that will encompass all the input lines; each cell must have an
 # unique value

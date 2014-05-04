@@ -85,7 +85,7 @@ fi
 
 
 # get bounding box in WGS84
-eval `g.region -bg`
+eval `g.region -bgu`
 BBOX="$ll_w,$ll_s,$ll_e,$ll_n"
 
 

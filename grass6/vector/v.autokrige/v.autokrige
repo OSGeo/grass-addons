@@ -213,7 +213,7 @@ fi
 
 #grid number of cells : more cells increase both raster quality and computation time
 if [ -n "$GIS_OPT_NBCELL" ] ; then 
- 	eval `g.region -g`
+ 	eval `g.region -gu`
 	nsminres=$(echo "scale=10; ("$n"-"$s")/"$GIS_OPT_NBCELL"" | bc )
 	ewminres=$(echo "scale=10; ("$e"-"$w")/"$GIS_OPT_NBCELL"" | bc )
 	if [ "$(echo "if (${nsminres} > ${ewminres}) 1" | bc)" -eq 1 ]; then
@@ -227,7 +227,7 @@ if [ -n "$GIS_OPT_NBCELL" ] ; then
 fi
 
 #now define kriged grid cell size : we take region resolution as cell size. Only one value is needed because the R script use square cells
-eval `g.region -g`
+eval `g.region -gu`
 if [ "$(echo "if (${nsres} > ${ewres}) 1" | bc)" -eq 1 ] ; then
 	cellsize=$(echo "scale=10; ("$nsres"/1)" | bc )
 else

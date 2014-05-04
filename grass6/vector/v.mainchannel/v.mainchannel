@@ -87,7 +87,7 @@ g.remove vect=end_basin,out_1del,out_1add,out_basin,out_isodistance,out_2,out_2d
 
 echo "$xcoor|$ycoor|1" | v.in.ascii out=end_basin
 
-thr=`g.region -p | grep nsres | cut -f2 -d':' | tr -d ' '`
+thr=`g.region -pu | grep nsres | cut -f2 -d':' | tr -d ' '`
 thresh=`echo "$thr*1.5" | bc -l | cut -f1 -d'.'`
 
 

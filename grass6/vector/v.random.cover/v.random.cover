@@ -151,8 +151,8 @@ g.region vect="vranda_cover_$$"
 
 
 # proportion of in-area to region area
-NS_EXT=`g.region -em | grep north | cut -f2 -d':' | awk '{print $1}'`
-EW_EXT=`g.region -em | grep east | cut -f2 -d':' | awk '{print $1}'`
+NS_EXT=`g.region -emu | grep north | cut -f2 -d':' | awk '{print $1}'`
+EW_EXT=`g.region -emu | grep east | cut -f2 -d':' | awk '{print $1}'`
 REGION_AREA=`echo "$NS_EXT" "$EW_EXT" | awk '{print $1 * $2}'`
 
 v.report map="vranda_cover_$$" option=area units=meters > "$TMP"
