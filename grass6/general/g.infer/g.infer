@@ -600,7 +600,7 @@ def pyclips_batchstar(this_file):
 ## GRASS region 3D support: 
 ##  (TAKEN and CHANGED from (GRASS) CORE.py)
 def region3():
-    """!Returns the output from running the GRASS command "g.region -g", as a
+    """!Returns the output from running the GRASS command "g.region -gu", as a
     dictionary. Example:
 
     \code
@@ -613,7 +613,7 @@ def region3():
 
     @return dictionary of region values
     """
-    s = grass.read_command("g.region", flags='3g')
+    s = grass.read_command("g.region", flags='3gu')
     reg = grass.parse_key_val(s, val_type = float)
     for k in ['rows', 'cols']:
 	reg[k] = int(reg[k])
