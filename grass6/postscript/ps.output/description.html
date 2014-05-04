@@ -33,18 +33,37 @@ and some do not. Any instruction that allows subcommands will require
 it.
 
 <p>
-The resolution and extent of raster maps plotted with <em>ps.out</em> are controlled by the current region settings via the <a href="g.region.html">g.region</a> module. The output filesize is largely a function of the region resolution, so special care should be taken if working with large raster datasets.
-For example if the desired output is Letter sized paper at 300dpi, with 1" margins and the raster filling the entire page, the usable area on the page will be 6.5" x 9", which at 300 dots/inch is equivalent to a region of 1950 columns x 2700 rows (see "<tt>g.region -p</tt>"). Any higher resolution settings will make the output file larger, but with a consumer printer you probably won't be able to resolve any better detail in the hardcopy.
+The resolution and extent of raster maps plotted with <em>ps.out</em> are
+controlled by the current region settings via the <a
+href="g.region.html">g.region</a> module. The output filesize is largely a
+function of the region resolution, so special care should be taken if
+working with large raster datasets.
+
+For example if the desired output is Letter sized paper at 300dpi, with 1"
+margins and the raster filling the entire page, the usable area on the page
+will be 6.5" x 9", which at 300 dots/inch is equivalent to a region of 1950
+columns x 2700 rows (see "<tt>g.region -p</tt>"). Any higher resolution
+settings will make the output file larger, but with a consumer printer you
+probably won't be able to resolve any better detail in the hardcopy.
 
 <p>
-The user can specify negative or greater than 100 percentage values for positioning several map decorations and embedded EPS-files, to move them outside the current map box region (for example to position a caption, barscale, or legend above or below the map box).
+The user can specify negative or greater than 100 percentage values for
+positioning several map decorations and embedded EPS-files, to move them
+outside the current map box region (for example to position a caption,
+barscale, or legend above or below the map box).
 
 <p>
 One "pixel" is 1/72 of an inch or 127/360 (aprox. 0.35) of a millimetre.
 
 <p>
-For users wanting to use special characters (such as accented characters) it is important to note that <em>ps.out</em> uses <tt>ISO-8859-1</tt> encoding. This means that your instructions file will have to be encoded in this encoding. If you normally work in a different encoding environment (such as <tt>UTF-8</tt>), you have to transform your file to the <tt>ISO-8859-1</tt> encoding, for example by using the <tt>iconv</tt> utility:
-</P>
+For users wanting to use special characters (such as accented characters)
+it is important to note that <em>ps.out</em> uses <tt>ISO-8859-1</tt>
+encoding. This means that your instructions file will have to be encoded in
+this encoding. If you normally work in a different encoding environment
+(such as <tt>UTF-8</tt>), you have to transform your file to the
+<tt>ISO-8859-1</tt> encoding, for example by using the <tt>iconv</tt>
+utility:
+</p>
 
 <DIV class="code"><pre>
 iconv -f UTF-8 -t ISO_8859-1 utf_file > iso_file
@@ -55,7 +74,11 @@ iconv -f UTF-8 -t ISO_8859-1 utf_file > iso_file
 
 <h2>MAPPING INSTRUCTIONS</h2>
 
-The mapping instructions allow the user to specify various spatial data to be plotted. These instructions are normally prepared in a regular text file using a system editor. Except <em>scale</em>, all instructions are multiple line followed by a subsection of one or more additional instructions and are terminated with an <i>end</i> instruction.
+The mapping instructions allow the user to specify various spatial data to
+be plotted. These instructions are normally prepared in a regular text file
+using a system editor. Except <em>scale</em>, all instructions are multiple
+line followed by a subsection of one or more additional instructions and
+are terminated with an <i>end</i> instruction.
 
 <p>
 <h3>Instruction keywords:</h3>
@@ -85,8 +108,12 @@ The mapping instructions allow the user to specify various spatial data to be pl
 <dd>The number is considered in points.
 </dd><p>
 <dt><b>#-</b> <em>number with dimension</em>
-<dd> Acceptable units are <em>mm</em> (millimeters), <em>cm</em> (centimeters), <em>inch</em> (inches), and <em>%</em> (percent of map dimensions).
-</dd><p>
+
+<dd> Acceptable units are <em>mm</em> (millimeters), <em>cm</em>
+(centimeters), <em>inch</em> (inches), and <em>%</em> (percent of map
+dimensions).
+</dd>
+<p>
 <dt><b>CAT</b> <em>List of categories</em> e.g. 1,3,5-7
 <p>
 <dt><b>SQL</b> <em>SQL where statement</em> like: vlastnik = 'Cimrman'
@@ -98,8 +125,14 @@ The mapping instructions allow the user to specify various spatial data to be pl
 <dt><b>V</b> <em>Vector</em> file name if equal to '(none)' then don't draw but there is present in vlegend.
 <p>
 <dt><b>color</b> <em>Color</em> name
-<dd>The color may be either a standard <a name="NAMED_COLORS">GRASS color</a>, a <tt>R:G:B</tt> triplet (e.g '<tt>255:0:0</tt>'), or <tt>none</tt>. In all cases could be follow by <em>$alpha</em> to set the opacity (if use -g flag).
- The following colors names are accepted by <em>ps.out</em>: <tt>aqua, black, blue, brown, cyan, gray, grey, green, indigo, magenta, orange, purple, red, violet, white, yellow</tt>.
+
+<dd>The color may be either a standard <a name="NAMED_COLORS">GRASS
+color</a>, a <tt>R:G:B</tt> triplet (e.g '<tt>255:0:0</tt>'), or
+<tt>none</tt>. In all cases could be follow by <em>$alpha</em> to set the
+opacity (if use -g flag).
+ The following colors names are accepted by <em>ps.out</em>: <tt>aqua,
+black, blue, brown, cyan, gray, grey, green, indigo, magenta, orange,
+purple, red, violet, white, yellow</tt>.
 <p>
 <dt><b>COOR</b> <em>Coordinates</em> as pair of <b>east north</b>
 <p>
@@ -182,7 +215,9 @@ USAGE
 
 <ul>
 <li><em>paper types</em>: A0-6, B0-6, Executive, Folio, Ledger, Legal, Letter, Tabloid.</LI>
-<li><em>left</em> and <em>top</em>: They are referenced to upper-left margin of the paper and they specify the position of the map area (i.e. grids growth outside this limits).
+<li><em>left</em> and <em>top</em>: They are referenced to upper-left
+margin of the paper and they specify the position of the map area (i.e.
+grids growth outside this limits).
 <li><em>draw</em>: This paints the features before any part of map. Usefull to draw logos, watermarks...</LI>
 </ul>
 
@@ -222,7 +257,11 @@ This example would set the scale of the map to 1 unit = 25000 units.
 
 <a name="maparea"><h3>maparea</h3></a>
 Position of the map area on the page.<br>
-The upper left corner of the map will be positioned <em>left</em> units from the left edge of the page and <em>top</em> units from the top of the page. If <em>width</em> and <em>height</em> are present, the map will be rescaled, if necessary, to fit.
+
+The upper left corner of the map will be positioned <em>left</em> units
+from the left edge of the page and <em>top</em> units from the top of the
+page. If <em>width</em> and <em>height</em> are present, the map will be
+rescaled, if necessary, to fit.
 <p>
 
 <pre>
@@ -254,8 +293,9 @@ maparea
 end
 </pre>
 
-This example positions the upper left corner of the map 2.0 cm from the left edge and 3.5 cm from the top edge of the map. And draw a black border of 1 mm of width around the map area.
-
+This example positions the upper left corner of the map 2.0 cm from the
+left edge and 3.5 cm from the top edge of the map. And draw a black border
+of 1 mm of width around the map area.
 
 
 <h2>ADDING COMPONENTS</h2>
@@ -310,7 +350,9 @@ end
 <td><image src="ps.out_can.jpg"><br><br>format: can</td>
 </table>
 
-This example would overlay a gray grid with a spacing of 10000 meters (for a metered database, like UTM) onto the output map.  Alternate grid lines would be numbered with white numbers on black boxes.
+This example would overlay a gray grid with a spacing of 10000 meters (for
+a metered database, like UTM) onto the output map.  Alternate grid lines
+would be numbered with white numbers on black boxes.
 
 
 <h3>geogrid</h3>
