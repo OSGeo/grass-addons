@@ -197,7 +197,7 @@ ALG="$GIS_OPT_ALG"
 set -e
 
 # grab the current region settings
-eval `g.region -g`
+eval `g.region -gu`
 
 if [ -n "$GIS_OPT_INPUT" ] ; then
   # spit out coords + values to be interpolated
