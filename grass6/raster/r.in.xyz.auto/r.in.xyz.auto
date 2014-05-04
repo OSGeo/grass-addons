@@ -158,7 +158,7 @@ fi
 
 
 if [ -z "$GIS_OPT_RES" ] ; then
-    GIS_OPT_RES=`g.region -g | grep nsres | cut -f2 -d'='`
+    GIS_OPT_RES=`g.region -gu | grep nsres | cut -f2 -d'='`
     echo "No resolution given. Using the current N-S resolution: $GIS_OPT_RES"
 fi
 

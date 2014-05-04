@@ -157,7 +157,7 @@ if [ -z "$GIS_OPT_DPI" ] && [ -z "$GIS_OPT_SCALE" ] ; then
 fi
 
 
-PROJ_TYPE=`g.region -p | grep '^projection' | cut -f2 -d' '`
+PROJ_TYPE=`g.region -pu | grep '^projection' | cut -f2 -d' '`
 # 0 : XY
 # 99 : other
 if [ "$PROJ_TYPE" -eq 0 ] ; then
@@ -272,7 +272,7 @@ if [ "$GIS_FLAG_Z" -eq 1 ] ; then
    MAP_NAME="$MAP_NAME.cropped_$$"
 fi
 
-eval `g.region -g`
+eval `g.region -gu`
 
 
 #### set up dpi and map scale terms
@@ -282,7 +282,7 @@ if [ -n "$GIS_OPT_DPI" ] ; then
 else
    # calc from map extent and scale
    #dpi = rows * scale * i2m / ns_extent
-   eval `g.region -eg`
+   eval `g.region -egu`
    MAP_SCALE=`echo "$GIS_OPT_SCALE" | cut -f2 -d:`
 
    DPI_NS=`echo "$rows $MAP_SCALE $ns_extent" | awk '{print $1 * $2 * 0.0254 / $3}'`
@@ -298,7 +298,7 @@ else
    # calc from map extent and dpi
    #SCALE_NS=$ns_extent/(($rows/$DPI)*$INCH2METER)
    #SCALE_EW=$ew_extent/(($cols/$DPI)*$INCH2METER)
-   eval `g.region -eg`
+   eval `g.region -egu`
    DPI="$GIS_OPT_DPI"
 
    SCALE_NS=`echo "$ns_extent $rows $DPI" | awk '{print $1/(($2/$3)*0.0254)}'`
@@ -446,7 +446,7 @@ fi
 if [ "$PROJ_TYPE" -eq 0 ] ; then
    eval `g.findfile element=group/$GROUP file=POINTS`  #mapset="$GRP_MAPSET"
    g.region rast="$MAP_NAME"
-   eval `g.region -g`
+   eval `g.region -gu`
    grep -v '^#\|0$' "$file" | \
      awk -v ROWS=$rows  'BEGIN { N=0; }
        { N++;
@@ -455,7 +455,7 @@ if [ "$PROJ_TYPE" -eq 0 ] ; then
 
 else
    # use four corners, NW then clockwise
-   eval `g.region -lg`
+   eval `g.region -lgu`
    GCP1=0,0,$nw_lat,$nw_long
    GCP2=$cols,0,$ne_lat,$ne_long
    GCP3=$cols,$rows,$se_lat,$se_long
@@ -530,7 +530,7 @@ else
 	 g.message -w "Double check bounding polygon came out right."
       fi
 
-      eval `g.region -g`
+      eval `g.region -gu`
       RESULT=`echo "$w $n|$e $n|$e $s|$w $s" | tr '|' '\n' \
           | g.transform group="$GROUP" coords=- order="$ORDER" format=""`
 
@@ -544,7 +544,7 @@ else
       sw_long=`echo $RESULT | cut -f8 -d' ' | awk '{if ($1 <= 180.0) {print} else {print $1 - 360.0} }'`
    else
        # use four corners, NW then clockwise
-      eval `g.region -lg`
+      eval `g.region -lgu`
    fi
 
    CNR1="$nw_lat,$nw_long"

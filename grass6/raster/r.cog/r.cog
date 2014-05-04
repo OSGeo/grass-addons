@@ -206,7 +206,7 @@ GRASS_VERBOSE=0 \
 DZ=`r.univar -g map="$TMP_MAP.dz" | grep '^mean=' | cut -f2 -d'='`
 #DZ=`r.univar -g map="$TMP_MAP.dz" | grep '^sum=' | cut -f2 -d'='`
 
-eval `g.region -g | grep res`
+eval `g.region -gu | grep res`
 RES="$nsres"
 PI=3.14159265358979323846
 
