@@ -136,7 +136,6 @@ purple, red, violet, white, yellow</tt>.
 <p>
 <dt><b>COOR</b> <em>Coordinates</em> as pair of <b>east north</b>
 <p>
-</dd>
 
 <dt><b>font</b> command:
 <pre>
@@ -196,7 +195,9 @@ end
 <p>
 <h2>COMPOSE THE MAP</h2>
 
-<a name="paper"><h3>paper</h3></a> Specifies paper size, margins and orientation.
+<a name="paper"></a>
+<h3>paper</h3>
+Specifies paper size, margins and orientation.
 
 <p><pre>
 USAGE
@@ -237,7 +238,9 @@ end
 This example set the size of paper to landscape A4 and Univers 8 point as defualt font.
 
 <p>
-<a name="scale"><h3>scale</h3></a>. Selects a scale for the output map.
+<a name="scale"></a>
+<h3>scale</h3>
+Selects a scale for the output map.
 
 <pre>
 USAGE
@@ -255,7 +258,8 @@ The scale is selected as a relative ratio, e.g. 1:25000. Use maparea to select a
 This example would set the scale of the map to 1 unit = 25000 units.
 
 
-<a name="maparea"><h3>maparea</h3></a>
+<a name="maparea"></a>
+<h3>maparea</h3>
 Position of the map area on the page.<br>
 
 The upper left corner of the map will be positioned <em>left</em> units
@@ -318,6 +322,7 @@ USAGE
 </pre>
 
 <table border=1 cellspacing=10>
+<tr>
 <td>
 <I>EXAMPLE</I>
 <pre>
@@ -344,10 +349,11 @@ end
 </pre>
 </td>
 <td></td>
-<td><image src="ps.out_in.jpg"><br><br>format: in</td>
-<td><image src="ps.out_out.jpg"><br><br>format: out</td>
-<td><image src="ps.out_iho.jpg"><br><br>format: iho</td>
-<td><image src="ps.out_can.jpg"><br><br>format: can</td>
+<td><img src="ps.out_in.jpg"><br><br>format: in</td>
+<td><img src="ps.out_out.jpg"><br><br>format: out</td>
+<td><img src="ps.out_iho.jpg"><br><br>format: iho</td>
+<td><img src="ps.out_can.jpg"><br><br>format: can</td>
+</tr>
 </table>
 
 This example would overlay a gray grid with a spacing of 10000 meters (for
@@ -478,10 +484,12 @@ end
 </pre>
 
 
-<a name="palette"><h3>palette</h3></a>
+<a name="palette"></a>
+<h3>palette</h3>
 
 
-<a name="draw"><h3>draw</h3></a>
+<a name="draw"></a>
+<h3>draw</h3>
 
 <pre>
 USAGE
@@ -519,7 +527,8 @@ USAGE
 
 <h2>ADDING RASTER MAPS</h2>
 
-<a name="raster"><h3>raster</h3></a>
+<a name="raster"></a>
+<h3>raster</h3>
 Selects a raster map for output.
 
 <pre>
@@ -550,7 +559,8 @@ end
 
 <h2>ADDING VECTOR MAPS</h2>
 
-<a name="vareas"><h3>vareas</h3></a>
+<a name="vareas"></a>
+<h3>vareas</h3>
 
 Draw a vector of areas with optional pattern. Fill or pattern color can be fixed or reed from database.
 A line vector could be drawn as an area when lwidth is not zero (positive or negative).
@@ -582,7 +592,8 @@ USAGE
 <b>end</b>
 </pre>
 
-<a name="vlines"><h3>vlines</h3></a>
+<a name="vlines"></a>
+<h3>vlines</h3>
 
 Perhaps offset dont run well in Lat/Lon
 
@@ -622,7 +633,8 @@ vlines railroads
 end
 </pre>
 
-<a name="vpoints"><h3>vpoints</h3></a>
+<a name="vpoints"></a>
+<h3>vpoints</h3>
 
 Draw a vector of points with a symbol.<br>
 A line vector could be drawn as a lines ...
@@ -669,7 +681,8 @@ vpoints precip_30ynormals
 end
 </pre>
 
-<a name="vlabels"><h3>vlabels</h3></a>
+<a name="vlabels"></a>
+<h3>vlabels</h3>
 
 <pre>
 USAGE
@@ -696,9 +709,11 @@ vlabels railroads
 end
 </pre>
 
+
 <h2>ADDING LEGENDS</h2>
 
-<a name="rlegend"><h3>rlegend</h3></a>
+<a name="rlegend"></a>
+<h3>rlegend</h3>
 
 <pre>
 USAGE
@@ -749,7 +764,8 @@ rlegend
 end
 </pre>
 
-<a name="vlegend"><h3>vlegend</h3></a>
+<a name="vlegend"></a>
+<h3>vlegend</h3>
 
 <pre>
 USAGE
@@ -785,7 +801,8 @@ end
 </pre>
 
 
-<a name="vlabel"><h3>vlabel</h3></a>
+<a name="vlabel"></a>
+<h3>vlabel</h3>
 
 <pre>
 USAGE
