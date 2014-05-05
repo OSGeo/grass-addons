@@ -176,7 +176,6 @@ int main(int argc, char *argv[])
     parm.nf->type = TYPE_INTEGER;
     parm.nf->required = YES;
     parm.nf->description = _("Number of frequencies");
-    parm.nf->multiple = YES;
 
     parm.fet = G_define_option();
     parm.fet->key = "fet";

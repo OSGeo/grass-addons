@@ -27,8 +27,7 @@ if missing values should be reconstructed.
 If the <em>range=</em> option is given, any values which fall outside
 that range will be treated as if they were NULL.
 The <em>range</em> parameter can be set to <em>low,high</em> thresholds:
-values outside of this range are treated as NULL (i.e., they will be
-ignored by most aggregates, or will cause the result to be NULL if -n is given).
+values outside of this range are treated as NULL.
 
 <p>
 The <em>low,high</em> thresholds are floating point, so use <em>-inf</em> or
@@ -37,7 +36,7 @@ negative values, or <em>range=-inf,-200.4</em> to ignore values above -200.4).
 
 <p>
 The number of raster maps to be processed is given by the limit of the
-operating system. For example, both the hard and soft limits are
+operating system. For example, both the hard and soft limits for users are
 typically 1024. The soft limit can be changed with e.g. <tt>ulimit -n
 1500</tt> (UNIX-based operating systems) but not higher than the hard
 limit. If it is too low, you can as superuser add an entry in
@@ -49,7 +48,12 @@ your_username  hard    nofile          1500
 </pre></div>
 
 This would raise the hard limit to 1500 file. Be warned that more
-files open need more RAM.
+files open need more RAM. Also have a look at the system-wide limit
+<div class="code"><pre>
+cat /proc/sys/fs/file-max
+</pre></div>
+which is on modern systems several 100000 files.
+
 
 <p>Use the <em>file</em> option to analyze large amount of raster maps 
 without hitting open files limit and the size limit of command line 
