@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: v.out.blend</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>v.out.blend</b></em>  - this module is a Blender user oriented add-on.  It outputs a 3d delaunay triangulation (.ply file) from a 3d vector pointcloud and optionally an image to drape on (.tif file), e.g. within Blender
+<h2>KEYWORDS</h2>
+mesh, export, Blender, render
+<h2>SYNOPSIS</h2>
+<b>v.out.blend</b><br>
+<b>v.out.blend help</b><br>
+<b>v.out.blend</b> <b>vinput</b>=<em>string</em> <b>dsn</b>=<em>string</em> [<b>rinput</b>=<em>string</em>]
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>vinput</b>=<em>string</em></DT>
+<DD>Name of 3d vector point to export</DD>
+
+<DT><b>dsn</b>=<em>string</em></DT>
+<DD>output directory name</DD>
+
+<DT><b>rinput</b>=<em>string</em></DT>
+<DD>Name of raster to export</DD>
+
+</DL>
+<h2>NOTES</h2>
+<p><em>v.out.blend</em> was written towards <a href="http://blender.org">Blender</A> 3d computer graphics software users. Regarding geographic data, accessing the capabilities of such software might be very helpful to produce high quality outputs, and rewarding for the data producer... but transferring digital data from GRASS to Blender is a bit tricky.</p><p>This addon aims at exporting to Blender a 3d pointcloud (figuring eg topographic data), previously turned into a triangular mesh. Optionally one can export a raster as an image which can further be draped on this surface. As usual it is quite rough but the annotated code should be easily adaptable to one's personnal needs.</p><p>To run properly <em>v.out.blend</em> needs ParaView and its ParaView python client (pvpython) to be installed on your system.
+</p>
+
+
+<h2>EXAMPLE</h2>
+
+This command generates a Stanford 3d mesh named <tt>MyMesh.ply</tt>, and a tiff image named <tt>ortho.tif</tt>, on the <tt>~/Desktop</tt> directory :
+<p><tt> 
+v.out.blend vinput=MyMesh rinput=ortho dsn="~/Desktop"
+</tt></p>
+
+<h2>SEE ALSO</h2>
+
+<em><a
+href="https://trac.osgeo.org/grass/browser/grass-addons/grass6/vector/v.out.ply/description.html">v.out.ply</a></em>, 
+<em><a href="http://grass.osgeo.org/grass64/manuals/html64_user/v.out.vtk.html">v.out.vtk</a></em>
+
+<h2>AUTHOR</h2>
+
+Vincent Bain, Toraval, France
+
+<p><i>Last changed: $Date: 2015-05-05$</i>
+
+</body>
+</html>
