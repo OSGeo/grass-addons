@@ -299,7 +299,7 @@ if [ $OVERVIEW_PLOT ] ; then
 	#		exit 1
 	#	fi
 	else
-		if [ ! -x "`which ghostscript`" ] ; then
+		if [  ! -x "`which gs`" -o ! -x "`which ghostscript`" ] ; then
 			g.message -e "ghostscript is required for postscript output, please install ghostscript first" 
 			exit 1
 		fi
@@ -315,7 +315,7 @@ if [ $KERNEL_PLOT ]; then
 	#		exit 1
 	#	fi
 	else
-		if [ ! -x "`which ghostscript`" ] ; then
+		if [  ! -x "`which gs`" -o ! -x "`which ghostscript`" ] ; then
 			g.message -e "ghostscript is required for postscript output, please install ghostscript first" 
 			exit 1
 		fi
