@@ -375,7 +375,7 @@ fi
 
 #Check igraph version
 igraph_version=$(echo \
-'if(as.integer(as.double(sub("-", "", packageDescription("igraph", fields = c("Version"))))*100)<62) cat(packageDescription("igraph", fields = c("Version")))' | R --no-save --no-restore --slave)
+'if(as.double(substr(packageDescription("igraph", fields = c("Version")),1,3))<=0.6) cat(packageDescription("igraph", fields = c("Version")))' | R --no-save --no-restore --slave)
 if [ -n "$igraph_version" ] ; then
 	g.message -e "The required igraph version is 0.6-2 or later, the installed version is ${igraph_version}.
 	Please download and install at least igraph version 0.6-2"
