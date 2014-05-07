@@ -147,6 +147,8 @@ def main():
     indb = options['database']
     prefix = options['basename']
     env = grass.gisenv()
+    #fix sqlite3 db field string multibyte character problem
+    sys.setdefaultencoding('utf-8')
     # check if 3d or not
     if flags['z']:
         d3 = 'z'
