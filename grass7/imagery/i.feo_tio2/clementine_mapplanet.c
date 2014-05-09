@@ -3,7 +3,7 @@
 
 double feolucey2000(double uvvis2, double uvvis4){
 	 //\cite{lucey2000lunar}
-	 return(17.427*(-atan2f(((uvvis4/uvvis2)-1.19)/(uvvis2-0.08)))-7.565);
+	 return(17.427*(-atan2f(((uvvis4/uvvis2)-1.19),(uvvis2-0.08)))-7.565);
 }
 
 double feolawrence2002(double uvvis2, double uvvis4){
@@ -28,6 +28,6 @@ double omatwilcox2005(double uvvis2, double uvvis4){
 
 double tio2lucey2000(double uvvis1, double uvvis2){
 	 //\cite{lucey2000lunar}
-	 return(3.708*pow((atan2f(((uvvis1/uvvis2)-0.42)/(uvvis2-0.0))),5.979));
+	 return(3.708*pow((atan2f(((uvvis1/uvvis2)-0.42),(uvvis2-0.0))),5.979));
 }
 
