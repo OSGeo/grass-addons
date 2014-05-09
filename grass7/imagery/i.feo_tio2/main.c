@@ -5,11 +5,12 @@
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculate FeO or TiO2 content
  *               from various Clementine UVVIS bands
+ *               or FeO from Chandrayaan-1 M3
  *
  * COPYRIGHT:    (C) 2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU Lesser General Public
- *   	    	 License. Read the file COPYING that comes with GRASS for details.
+ *               License. Read the file COPYING that comes with GRASS for details.
  *
  *****************************************************************************/
 
@@ -127,6 +128,8 @@ int main(int argc, char *argv[])
 
     if (G_parser(argc, argv)) exit(EXIT_FAILURE);
 
+    equationflag = eqname->answer;
+
     if (!strcasecmp(equationflag, "feowilcox2005_setparam")){
         if(param0->answer) param_0 = atof(param0->answer);
         else G_fatal_error("Please set param0 Theta (FeO Wilcox 2005)");
@@ -174,24 +177,25 @@ int main(int argc, char *argv[])
             } else {
                 if (!strcasecmp(equationflag, "tio2lucey2000_setparam"))
                     outrast[col] = tio2(d1, d0, param_0, param_1);
-                if (!strcasecmp(equationflag, "feowilcox2005_setparam"))
+                else if (!strcasecmp(equationflag, "feowilcox2005_setparam"))
                     outrast[col] = feo(d0, d1, param_0);
-                if (!strcasecmp(equationflag, "tio2lucey2000"))
+                else if (!strcasecmp(equationflag, "tio2lucey2000"))
                     outrast[col] = tio2lucey2000(d1, d0);
-                if (!strcasecmp(equationflag, "feowilcox2005"))
+                else if (!strcasecmp(equationflag, "feowilcox2005"))
                     outrast[col] = feowilcox2005(d0, d1);
-                if (!strcasecmp(equationflag, "feolawrence2002"))
+                else if (!strcasecmp(equationflag, "feolawrence2002"))
                     outrast[col] = feolawrence2002(d0, d1);
-                if (!strcasecmp(equationflag, "feolucey2000"))
+                else if (!strcasecmp(equationflag, "feolucey2000"))
                     outrast[col] = feolucey2000(d0, d1);
-                if (!strcasecmp(equationflag, "feozhang2013"))
+                else if (!strcasecmp(equationflag, "feozhang2013"))
                     outrast[col] = feozhang2013(d0, d1);
-                if (!strcasecmp(equationflag, "omatwilcox2005"))
+                else if (!strcasecmp(equationflag, "omatwilcox2005"))
                     outrast[col] = omatwilcox2005(d0, d1);
-                if (!strcasecmp(equationflag, "omatlucey2000"))
+                else if (!strcasecmp(equationflag, "omatlucey2000"))
                     outrast[col] = omatlucey2000(d0, d1);
-                else
+                else{
                     G_fatal_error("Please enter an appropriate equation name");
+				}
             }
         }
         Rast_put_d_row(outfd, outrast);
