@@ -329,7 +329,7 @@ g.message -v "Preparing boundaries..."
 
 ###Extract centroids and export data as network vertices (output will not contain centroids of multipolygons)
 #Write centroids to nodes input text file to R (igraph)
-v.to.db -p --quiet map=$PATCHES option=coor | cut -f1,2,3 -d'|' --output-delimiter=';' >> ${FOLDER}/vertices_part_1.csv
+v.to.db -p --quiet map=$PATCHES option=coor | awk -v FS="|" -v OFS=";" '{print $1, $2, $3}' >> ${FOLDER}/vertices_part_1.csv
 #Write centroids to nodes input text file to R (igraph)
 v.db.select -c map=$PATCHES columns="cat,${POP_PROXY}" fs=";" >> ${FOLDER}/vertices_part_2.csv
 
