@@ -52,7 +52,7 @@ files open need more RAM. Also have a look at the system-wide limit
 <div class="code"><pre>
 cat /proc/sys/fs/file-max
 </pre></div>
-which is on modern systems several 100000 files.
+which is on modern systems several 100,000 files.
 
 
 <p>Use the <em>file</em> option to analyze large amount of raster maps 
@@ -64,6 +64,61 @@ specified input maps. The input and file options are mutually exclusive.
 Input is a text file with a new line separated list of raster map names 
 and optional weights. As separator between the map name and the weight 
 the charachter | must be used.
+
+<h2>EXAMPLE</h2>
+
+This small example is based on a climate dataset for North Carolina which
+was from publicly available data (monthly temperature averages and monthly
+precipitation sums from 2000 to 2012, downloadable as
+<a href="http://courses.ncsu.edu/mea592/common/media/02/nc_climate_spm_2000_2012.zip">GRASS GIS 7 location</a>):
+
+
+<div class="code"><pre>
+# set computational region to one of the maps
+g.region rast=2004_03_tempmean -p
+</pre></div>
+
+Visualize the time series as animation:
+<div class="code"><pre>
+# note: color table is different from standard "celsius"
+g.gui.animation rast=`g.mlist rast pattern="*tempmean" sep=comma`
+</pre></div>
+
+<p>
+Since HANTS is CPU intensive, we test at lower resolution:
+<div class="code"><pre>
+g.region -p res=5000
+
+# HANTS: Harmonic analysis of the 156 input maps...
+# just wildly guessing the parameters for a test run:
+r.hants input=`g.mlist rast pattern=20??_??_tempmean sep=comma` \
+  nf=6 fet=0.1 dod=5 delta=0.1 base_period=12
+
+# assign reasonable color tables for temperature
+for map in `g.mlist rast pattern="*tempmean_hants"` ; do
+    r.colors $map color=celsius
+done
+
+# verify with one of the 156 results (still at reduced resolution):
+r.mapcalc "2000_06_tempmean_diff = 2000_06_tempmean - 2000_06_tempmean_hants"
+
+r.colors 2000_06_tempmean_diff color=differences
+d.mon wx0
+d.rast 2000_06_tempmean_diff
+
+r.univar 2000_06_tempmean_diff -g
+n=5066
+null_cells=5040
+cells=10106
+min=-0.0899336115228095
+max=0.359362050140941
+range=0.449295661663751
+mean=0.188579838052468
+...
+
+# see HANTS time series as animation
+g.gui.animation rast=`g.mlist rast pattern="*tempmean_hants" sep=comma`
+</pre></div>
 
 
 <h2>REFERENCES</h2>
