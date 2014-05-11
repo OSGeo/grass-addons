@@ -59,11 +59,18 @@ http-proxy-port = 3128
 3. cd grass-addons/
 
 4. Read submitting instructions before committing any changes!
+
+   trunk
    
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_SCRIPTS
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_PYTHON
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_WXGUI
+   
+   grass6
+   
+   http://trac.osgeo.org/grass/browser/grass/branches/releasebranch_6_4/SUBMITTING_SCRIPTS
+   http://trac.osgeo.org/grass/browser/grass/branches/releasebranch_6_4/SUBMITTING_TCLTK  
 
 5. Now work on the repository (see below).
 
