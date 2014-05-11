@@ -2,6 +2,7 @@ MODULE_TOPDIR = ..
 
 SUBDIRS = \
 	v.colors2 \
+	v.habitat.dem \
 	v.in.ply \
 	v.in.redwg \
 	v.in.wfs2 \
