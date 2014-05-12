@@ -152,7 +152,7 @@
 #%end
 
 #%option
-#% key: LPScale
+#% key: lpscale
 #% type: integer
 #% description: Long profile vertical scale (V/H, V/1)
 #% options: 0-100
@@ -162,7 +162,7 @@
 #%end
 
 #%option
-#% key: LPopt
+#% key: lpopt
 #% type: string
 #% description: Long profile Values for Longmark,distMark_x,distMark_y,DistGitarr.
 #% required: no
@@ -179,7 +179,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPaxisX
+#% key: lpaxisx
 #% description: Name of long profile axis x
 #% required: no
 #% answer: _LP_AxisX
@@ -187,7 +187,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPaxisXmarks
+#% key: lpaxisxmarks
 #% description: Name of long profile axis x marks
 #% required: no
 #% answer: _LP_AxisXmarks
@@ -195,7 +195,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPaxisY
+#% key: lpaxisy
 #% description: Name of long profile axis y
 #% required: no
 #% answer: _LP_AxisY
@@ -203,7 +203,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPaxisYmarks
+#% key: lpaxisymarks
 #% description: Name of long profile axis y marks
 #% required: no
 #% answer: _LP_AxisYmarks
@@ -211,7 +211,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPterrain
+#% key: lpterrain
 #% description: Name of long profile terrain
 #% required: no
 #% answer: _LP_Terr
@@ -219,7 +219,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPras
+#% key: lpras
 #% description: Name of long profile vertical alignment
 #% required: no
 #% answer: _LP_Ras
@@ -227,7 +227,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPejeref
+#% key: lpejeref
 #% description: Name of long profile vertical polygon
 #% required: no
 #% answer: _LP_Polygon
@@ -269,7 +269,7 @@
 
 
 #%option
-#% key: LTScale
+#% key: ltscale
 #% type: double
 #% description: Cross section vertical scale (V/H, V/1)
 #% required: no
@@ -278,7 +278,7 @@
 #%end
 
 #%option
-#% key: LTopt
+#% key: ltopt
 #% type: string
 #% description: Cross section options values for Longmark,distMark_x,distMark_y.
 #% required: no
@@ -287,28 +287,28 @@
 #%end
 
 #%option
-#% key: LTopt2
+#% key: ltopt2
 #% type: string
 #% description: Cross section options values for nrows,distTP_x,distTP_y.
 #% required: no
-#% answer: 10,50,50
+#% answer: 10,10,10
 #% guisection: Cross
 #%end
 
-#%option G_OPT_V_TYPE
-#% key: cross_opt
-#% options: slope_left,displ_left,edge,displ_rigth,slope_rigth
-#% answer: slope_left,displ_left,edge,displ_rigth,slope_rigth
-#% required: no
-#% description: Add lines to the cross section
-#% guisection: Cross
-#%end
+##%option G_OPT_V_TYPE
+##% key: cross_opt
+##% options: slope_left,displ_left,edge,displ_rigth,slope_rigth
+##% answer: slope_left,displ_left,edge,displ_rigth,slope_rigth
+##% required: no
+##% description: Add lines to the cross section
+##% guisection: Cross
+##%end
 
 #%option G_OPT_V_TYPE
 #% key: displ_opt
 #% options: displ_left0,displ_left,displ_left-1,displ_rigth0,displ_rigth,displ_rigth-1
 #% required: no
-#% answer: displ_left0,displ_rigth-1
+#% answer: displ_left0,displ_left-1,displ_rigth0,displ_rigth-1
 #% description: Cross points section-Displaced
 #% guisection: Cross
 #%end
@@ -332,7 +332,7 @@
 
 
 #%option G_OPT_V_OUTPUT
-#% key: LTaxisX
+#% key: ltaxisx
 #% description: Name of cross section coord axis x
 #% required: no
 #% answer: _TP_AxisX
@@ -340,7 +340,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTaxisXmarks
+#% key: ltaxisxmarks
 #% description: Name of cross section coord axis x
 #% required: no
 #% answer: _TP_AxisXmarks
@@ -348,7 +348,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTaxisY
+#% key: ltaxisy
 #% description: Name of cross section coord axis y
 #% required: no
 #% answer: _TP_AxisY
@@ -356,7 +356,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTaxisYmarks
+#% key: ltaxisymarks
 #% description: Name of cross section coord axis y
 #% required: no
 #% answer: _TP_AxisYmarks
@@ -364,7 +364,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTterrain
+#% key: ltterrain
 #% description: Name of cross sections terrain
 #% required: no
 #% answer: _TP_Terr
@@ -372,7 +372,7 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTras
+#% key: ltras
 #% description: Name of cross section plataform
 #% required: no
 #% answer: _TP_Ras
@@ -534,6 +534,7 @@
 #% description: Insert point in polygon layers (vertical, section an transversal)
 #%end
 
+
 #%option
 #% key: pklayer
 #% type: string
@@ -564,6 +565,8 @@
 #% required: no
 #% answer: 1
 #%end
+
+
 
 import os, sys
 
@@ -1904,7 +1907,7 @@ def get_Taludes(puntos,puntos_Despl,des,ter,des2,ter2,dem,pkini,pkfin):
                             zt_ant=zt
                             Li=Li+h
 
-            puntos_talud.append([x1,y1,z1]+pt[3:]+[tipo]+[pt[4]])
+                puntos_talud.append([x1,y1,z1]+pt[3:]+[tipo]+[pt[4]])
         else:
             puntos_talud.append([pta])
 
@@ -2063,61 +2066,36 @@ def get_TransDespl(Trans,desplaz_izq,desplaz_der):
     return TransDespl
 
 
-def get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Puntos_Talud_der):
+def get_ptoByPk(Trans_Pklist,listaPtos):
 
-
-    talud_izq=[]
+    salida=[]
     for ptoss in Trans_Pklist:
         esta=0
-        for ptot in Puntos_Talud_izq:
+        for ptot in listaPtos:
             if len(ptot)>1 and ptoss[4] == ptot[4]:
-                talud_izq.append(ptot)
+                salida.append(ptot)
                 esta=1
                 continue
         if esta==0:
-            talud_izq.append([])
+            salida.append([])
+    return salida
 
-    talud_der=[]
-    for ptoss in Trans_Pklist:
-        esta=0
-        for ptot in Puntos_Talud_der:
-            if len(ptot)>1 and ptoss[4] == ptot[4]:
-                talud_der.append(ptot)
-                esta=1
-                continue
-        if esta==0:
-            talud_der.append([])
+def get_SeccTerr(Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Puntos_Talud_der):
+
+    talud_izq=get_ptoByPk(Trans_Pklist,Puntos_Talud_izq)
+    talud_der=get_ptoByPk(Trans_Pklist,Puntos_Talud_der)
 
     secc_izq=[talud_izq]
     for desp in Desplaz_izq:
-        desp_izq=[]
-        for ptoss in Trans_Pklist:
-            esta=0
-            for ptot in desp:
-                if len(ptot)>1 and ptoss[4] == ptot[-1]:
-                    desp_izq.append(ptot)
-                    esta=1
-                    continue
-            if esta==0:
-                desp_izq.append([])
-        secc_izq.append(desp_izq)
+        secc_izq.append(get_ptoByPk(Trans_Pklist,desp))
 
     secc_der=[]
     for desp in Desplaz_der:
-        desp_der=[]
-        for ptoss in Trans_Pklist:
-            esta=0
-            for ptot in desp:
-                if len(ptot)>1 and ptoss[4] == ptot[-1]:
-                    desp_der.append(ptot)
-                    esta=1
-                    continue
-            if esta==0:
-                desp_der.append([])
-        secc_der.append(desp_der)
+        secc_der.append(get_ptoByPk(Trans_Pklist,desp))
 
     secc_der.append(talud_der)
     secc = secc_izq+[Trans_Pklist]+secc_der
+    secc = [[row[i] for row in secc] for i in range(len(secc[0]))] # transpuesta
 
     return secc
 
@@ -2232,13 +2210,10 @@ def gen_LongProfileGuitarr(ASegmentos,APuntos_caract,puntos,puntos_terr,table_al
     return eje_x,eje_y,mark_x,mark_y,ptos_terr_ref,ptos_eje,ASeg_ref,APtos_caract_ref
 
 
-def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud_der,Desplaz_izq,Desplaz_der,escala,opt1,opt2):
+def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,secc,escala,opt1,opt2):
 
-    secc = get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Puntos_Talud_der)
-    secc = [[row[i] for row in secc] for i in range(len(secc[0]))] # transpuesta
-
-    cerox=100
-    ceroy=100
+    cerox=0
+    ceroy=0
 
     mark_lon,mark_x_dist,mark_y_dist=opt1.split(',')
     mark_lon,mark_x_dist,mark_y_dist=int(mark_lon),int(mark_x_dist),int(mark_y_dist)
@@ -2254,14 +2229,18 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
     for j in range (0,columnas):
         anchos_colum,centros_colum,maxfila,minfila,dif_fila=[],[],[],[],[]
         for i in range(0,filas):
+
             ancho_secc=round(sqrt((Trans[h][0][0]-Trans[h][-1][0])**2+(Trans[h][0][1]-Trans[h][-1][1])**2),6)
             centro_s=round(sqrt((Trans[h][0][0]-Trans[h][1][0])**2+(Trans[h][0][1]-Trans[h][1][1])**2),6)
             anchos_colum.append(ancho_secc)
             centros_colum.append(centro_s)
+
             max_trans=max([p[2] for p in secc[h]+Trans_Terr[h] if p!=[]])
             maxfila.append(max_trans)
+
             min_trans=min([p[2] for p in secc[h]+Trans_Terr[h] if p!=[]])
             minfila.append(min_trans)
+
             dif_fila.append((max_trans-min_trans)*escala)
             h=h+1
             if h == len(Trans_Pklist):break
@@ -2271,21 +2250,16 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
         min_filas.append(minfila)
         dif_filas.append(dif_fila)
 
-    for k in range(len(max_filas[0])-len(max_filas[-1])):
-        max_filas[-1].append(0)
-    for k in range(len(min_filas[0])-len(min_filas[-1])):
-        min_filas[-1].append(100000)
     for k in range(len(dif_filas[0])-len(dif_filas[-1])):
         dif_filas[-1].append(0)
 
-    max_filas2 = [[row[i] for row in max_filas] for i in range(len(max_filas[0]))] # transpuesta
-    max_filas2 = [max(row) for row in max_filas2]
-    min_filas2 = [[row[i] for row in min_filas] for i in range(len(min_filas[0]))] # transpuesta
-    min_filas2 = [min(row) for row in min_filas2]
-    alto_filas = [(max_filas2[i]-min_filas2[i])*escala for i in range(len(max_filas2)) ]
+    dif_filas2 = [[row[i] for row in dif_filas] for i in range(len(dif_filas[0]))] # transpuesta
+    alto_filas = [max(row) for row in dif_filas2]
 
     hy_tot = sum(alto_filas)+sep_y*filas
     ceroy = ceroy + hy_tot
+
+
     puntos_terr_ref,ptos_eje_ref=[],[]
     ejes_x,ejes_y,mark_x,mark_y=[],[],[],[]
     h,q,w,t=0,0,0,0
@@ -2296,8 +2270,8 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
         orig_x=cerox+(sep_x*j)+sum(ancho_colum[0:j])+sep_eje_x
         final_x=cerox+(sep_x*j)+sum(ancho_colum[0:j])+ancho_colum[j]+sep_eje_x
         centro_x=orig_x+centro_secc[j]
-        orig_y=ceroy
 
+        orig_y=ceroy
         for i in range(0,filas):
 
             cotaMax=max_filas[j][i]
@@ -2305,17 +2279,21 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
             dif_y_ref=(cotaMin)-int(cotaMin)
 
             # origen y final del eje y
-            orig_y=orig_y-(alto_filas[i])
+            orig_y=orig_y-(alto_filas[i])-sep_y
             final_y=orig_y+dif_filas[j][i]+dif_y_ref
 
-            cero_y_ref=(cotaMin-orig_y)-dif_y_ref
-            ptos_eje,ptos_terr=[],[]
+            #cero_y_ref=(cotaMin-orig_y)-dif_y_ref
+
+            ptos_terr=[]
             b=0
             for pto in Trans_Terr[h]:
                 dist=sqrt((Trans_Pklist[h][0]-pto[0])**2+(Trans_Pklist[h][1]-pto[1])**2)
                 if dist==0:b=1
                 if b==0: dist=-dist
                 ptos_terr.append([centro_x+dist,orig_y+(pto[2]-cotaMin)*escala+dif_y_ref,0,h+1,Trans_Pklist[h][4]])
+            puntos_terr_ref.append(ptos_terr)
+
+            ptos_eje=[]
             b=0
             for pto in secc[h]:
 
@@ -2326,6 +2304,7 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
                     cota_ras=orig_y+(pto[2]-cotaMin)*escala+dif_y_ref
                     t=t+1
                     ptos_eje.append([centro_x+dist,cota_ras,0,t,h+1,Trans_Pklist[h][4],round(pto[2],2),round(dist,2)])
+            ptos_eje_ref.append(ptos_eje)
 
             # Eje y
             ejes_y.append([[orig_x-sep_eje_x,final_y,0,h+1,"'Y'"],[orig_x-sep_eje_x,orig_y,0,h+1,"'Y'"]])
@@ -2358,8 +2337,6 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
             mark_y.append([[orig_x-mark_lon-sep_eje_x,final_y,0,w,round(cotaMax-dif_y_ref,2)],[orig_x+mark_lon-sep_eje_x,final_y,0]])
             mark_x.extend(mark2_x)
 
-            puntos_terr_ref.append(ptos_terr)
-            ptos_eje_ref.append(ptos_eje)
 
             h=h+1
             if h == len(Trans_Pklist):break
@@ -2949,23 +2926,40 @@ def main():
             posi=tablepks.index(pklist2[0])
             table2=[]
             categ=len(table)+1
-            for i,pk in enumerate(pklist2):
-                table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+table[posi-1][5:])
+
+            secleft,secright="",""
+            typeleft,typeright="",""
 
             table_plant= read_TablePlant(NameMap)
             Puntos_Eje=get_PtosEjePlanta(table_plant)
 
             if options["pklayer"]=="Vertical":
+                for i,pk in enumerate(pklist2):
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+table[posi-1][5]+[0,0,0])
                 update_TableAlz(NameMap,table2)
                 table_alz=read_TableAlz(NameMap)
                 corrige_Alzado(Puntos_Eje,table_alz,NameMap)
 
             elif options["pklayer"]=="Section":
+                for i,pk in enumerate(pklist2):
+                    for num in range(len(table[posi-1][5].split(';'))):
+                        secleft+="-1 0;"
+                        typeleft+="l;"
+                    secleft=secleft[:-1]
+                    typeleft=typeleft[:-1]
+                    for num in range(len(table[posi-1][5].split(';'))):
+                        secright+="-1 0;"
+                        typeright+="l;"
+                    secright=secright[:-1]
+                    typeright=typeright[:-1]
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+[secleft,secright,typeleft,typeright])
                 update_TableSection(NameMap,table2)
                 table_secc=read_TableSection(NameMap)
                 corrige_Section(Puntos_Eje,table_secc,NameMap)
 
             elif options["pklayer"]=="Trans":
+                for i,pk in enumerate(pklist2):
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+table[posi-1][5:])
                 update_TableTransv(NameMap,table2)
                 table_transv=read_TableTransv(NameMap)
                 corrige_Transv(Puntos_Eje,table_transv,NameMap)
@@ -3011,8 +3005,6 @@ def main():
         ASegmentos,APuntos_caract,APuntos_vert=generate_PtsAlz(Puntos2,Puntos_Eje,Puntos_EjeAlz)
 
         Desplazados_izq,Desplazados_der,DPtos_caract=generate_Desplaz(table_plant,table_secc,Puntos2)
-
-        #print len(Puntos),len(Puntos2),len(Desplazados_izq[0]),len(Desplazados_izq[1]),len(Desplazados_izq[2]),len(Desplazados_der[0]),len(Desplazados_der[1]),len(Desplazados_der[2])
 
         Desplaz_Areas=generate_DesplazAreas(Desplazados_izq[:],Puntos2[:],Desplazados_der[:])
 
@@ -3097,6 +3089,7 @@ def main():
             else: name1=options['pks']
             write_Transv(Pks,Trans_Pklist,[],name1,'')
 
+        
         ##################################################################
         if options['dem']:
 
@@ -3202,14 +3195,14 @@ def main():
 
             if flags['l']:
 
-                scale=float(options['LPScale'])
-                opt1=options['LPopt']
+                scale=float(options['lpscale'])
+                opt1=options['lpopt']
 
-                if re.search(r'^_', options['LPterrain']): nameTerr=NameMap+options['LPterrain']
-                else: nameTerr=options['LPterrain']
+                if re.search(r'^_', options['lpterrain']): nameTerr=NameMap+options['lpterrain']
+                else: nameTerr=options['lpterrain']
 
-                if re.search(r'^_', options['LPras']): nameRas=NameMap+options['LPras']
-                else: nameRas=options['LPras']
+                if re.search(r'^_', options['lpras']): nameRas=NameMap+options['lpras']
+                else: nameRas=options['lpras']
 
                 (eje_x,eje_y,mark_x,mark_y,ptos_terr_ref,ptos_eje_ref,ASeg_ref,
                 APtos_caract_ref)=gen_LongProfileGuitarr(ASegmentos,APuntos_caract,Puntos,Puntos_Long_Terreno,table_alz,scale,opt1)
@@ -3219,8 +3212,8 @@ def main():
                 #write_Polyline(ptos_ref,nameRas)
 
                 # Eje alzado
-                if re.search(r'^_', options['LPejeref']): nameEdgeRef=NameMap+options['LPejeref']
-                else: nameEdgeRef=options['LPejeref']
+                if re.search(r'^_', options['lpejeref']): nameEdgeRef=NameMap+options['lpejeref']
+                else: nameEdgeRef=options['lpejeref']
 
                 write_Polyline(ptos_eje_ref,nameEdgeRef)
                 g.run_command('v.db.addtable', map=nameEdgeRef, layer=1, key='cat', table=nameEdgeRef+"_Lin", columns='label varchar(25)', quiet=True)
@@ -3243,16 +3236,16 @@ def main():
 
                 if flags['m']:
 
-                    if re.search(r'^_', options['LPaxisX']): nameEdgeX=NameMap+options['LPaxisX']
-                    else: nameEdgeX=options['LPaxisX']
+                    if re.search(r'^_', options['lpaxisx']): nameEdgeX=NameMap+options['lpaxisx']
+                    else: nameEdgeX=options['lpaxisx']
 
-                    if re.search(r'^_', options['LPaxisXmarks']): nameEdgeXmarks=NameMap+options['LPaxisXmarks']
-                    else: nameEdgeXmarks=options['LPaxisXmarks']
+                    if re.search(r'^_', options['lpaxisxmarks']): nameEdgeXmarks=NameMap+options['lpaxisxmarks']
+                    else: nameEdgeXmarks=options['lpaxisxmarks']
 
-                    if re.search(r'^_', options['LPaxisY']): nameEdgeY=NameMap+options['LPaxisY']
-                    else: nameEdgeY=options['LPaxisY']
+                    if re.search(r'^_', options['lpaxisy']): nameEdgeY=NameMap+options['lpaxisy']
+                    else: nameEdgeY=options['lpaxisy']
 
-                    if re.search(r'^_', options['LPaxisYmarks']): nameEdgeYmarks=NameMap+options['LPaxisYmarks']
+                    if re.search(r'^_', options['lpaxisymarks']): nameEdgeYmarks=NameMap+options['lpaxisymarks']
                     else: nameEdgeYmarks=options['LPedgeYmarks']
 
                     write_Polylines(eje_x,nameEdgeX,1)
@@ -3279,18 +3272,19 @@ def main():
 
             if flags['f']:
 
-                scale2=float(options['LTScale'])
-                opt1=options['LTopt']
-                opt2=options['LTopt2']
+                scale2=float(options['ltscale'])
+                opt1=options['ltopt']
+                opt2=options['ltopt2']
 
-                if re.search(r'^_', options['LTterrain']): nameTTerr=NameMap+options['LTterrain']
-                else: nameTTerr=options['LTterrain']
+                if re.search(r'^_', options['ltterrain']): nameTTerr=NameMap+options['ltterrain']
+                else: nameTTerr=options['ltterrain']
 
-                if re.search(r'^_', options['LTras']): nameTRas=NameMap+options['LTras']
-                else: nameTRas=options['LTras']
+                if re.search(r'^_', options['ltras']): nameTRas=NameMap+options['ltras']
+                else: nameTRas=options['ltras']
 
-                (ejes_x,ejes_y,mark_x,mark_y,ptos_terr_ref,
-                ptos_eje)=gen_TransProfile(Transversales,Transversales_Terreno,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud_der,Desplazados_izq,Desplazados_der,scale2,opt1,opt2)
+                Secc=get_SeccTerr(Trans_Pklist,Desplazados_izq,Desplazados_der,Puntos_Talud_izq,Puntos_Talud_der)
+                if flags['X']: Secc=lineasAgua
+                (ejes_x,ejes_y,mark_x,mark_y,ptos_terr_ref,ptos_eje)=gen_TransProfile(Transversales,Transversales_Terreno,Trans_Pklist,Secc,scale2,opt1,opt2)
 
                 # Terreno
                 write_Polylines(ptos_terr_ref,nameTTerr,1)
@@ -3307,17 +3301,17 @@ def main():
 
                 if flags['g']:
 
-                    if re.search(r'^_', options['LTaxisX']): nameTEdgeX=NameMap+options['LTaxisX']
-                    else: nameTEdgeX=options['LTaxisX']
+                    if re.search(r'^_', options['ltaxisx']): nameTEdgeX=NameMap+options['ltaxisx']
+                    else: nameTEdgeX=options['ltaxisx']
 
-                    if re.search(r'^_', options['LTaxisXmarks']): nameTEdgeXmarks=NameMap+options['LTaxisXmarks']
-                    else: nameTEdgeXmarks=options['LTaxisXmarks']
+                    if re.search(r'^_', options['ltaxisxmarks']): nameTEdgeXmarks=NameMap+options['ltaxisxmarks']
+                    else: nameTEdgeXmarks=options['ltaxisxmarks']
 
-                    if re.search(r'^_', options['LTaxisY']): nameTEdgeY=NameMap+options['LTaxisY']
-                    else: nameTEdgeY=options['LTaxisY']
+                    if re.search(r'^_', options['ltaxisy']): nameTEdgeY=NameMap+options['ltaxisy']
+                    else: nameTEdgeY=options['ltaxisy']
 
-                    if re.search(r'^_', options['LTaxisYmarks']): nameTEdgeYmarks=NameMap+options['LTaxisYmarks']
-                    else: nameTEdgeYmarks=options['LTaxisYmarks']
+                    if re.search(r'^_', options['ltaxisymarks']): nameTEdgeYmarks=NameMap+options['ltaxisymarks']
+                    else: nameTEdgeYmarks=options['ltaxisymarks']
 
                     write_Polylines(ejes_x,nameTEdgeX,1)
                     write_Polylines(mark_x,nameTEdgeXmarks,1)
