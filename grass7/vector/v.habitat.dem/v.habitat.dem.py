@@ -441,9 +441,10 @@ def main():
                                      flowaccumulation = r_flow_accum)
 
     grass.message( "..." )									 
-    grass.mapcalc("$outmap = 1.4 * exp($flowacc / 22.1, 0.4) * exp(sin($slope) / 0.09, 1.2)",
+    grass.mapcalc("$outmap = 1.4 * exp($flowacc * $resolution / 22.1, 0.4) * exp(sin($slope) / 0.09, 1.2)",
                                      outmap = r_LS, 
-                                     flowacc = r_flow_accum, 
+                                     flowacc = r_flow_accum,
+                                     resolution = Xres,
                                      slope = r_slope)
 
     # create and define color rules file for LS factor map
