@@ -22,7 +22,7 @@
 #               improvements. Suggestions for improvements are most
 #               welcome. In the meantime, use it at your own risk
 #   
-# COPYRIGHT: (C) 2013 Paulo van Breugel
+# COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
 # 
@@ -89,10 +89,10 @@
 
 #%option
 #% key: digits
-#% type: string
+#% type: integer
 #% description: Precision of your input layers values
 #% key_desc: string
-#% answer: 0.0001
+#% answer: 1
 #% required: yes
 #%end
 
@@ -201,25 +201,22 @@ echo "r.mess :" >> "$LOGFILE"
 #=======================================================================
 
 # Create vectors with names output maps [arrOUT]
-# Create vector with names temporary layers [tmpLY]
-# Create vector with names input layers without mapset name [arrIN1 and arrIN1]
+# Create vector with names input layers without mapset name [arrIN1]
 # The 'removeThis' elements are to initiate the vector. How can I avoid this?
 
 arrOUT="${OUTMAPS}_MESS"
-tmpLY="removeThis"
 arrIN="removeThis2"
 counter=0
 IFS=,
 for nvar in ${INMAPS1} ; do
     export arrOUT="$arrOUT;${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
     counter=`expr $counter + 1`
-    export tmpLY="${tmpLY};tmp_mess_$$_$counter"
     export arrIN="${arrIN};`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
 done
 
 if [ -z "$GIS_OPT_REF_VECT" -a -z "$GIS_OPT_REF_RAST" ]; 
 then
-	g.message -e message='Missing input: map with the reference distribution (point vector layer -or- a raster layer)'
+    g.message -e message='Missing input: map with the reference distribution (point vector layer -or- a raster layer)'
     exit 1
 else
     if [ -n "$GIS_OPT_REF_VECT" -a -n "$GIS_OPT_REF_RAST" ]; then
@@ -311,6 +308,14 @@ if (!"spgrass6" %in% installed.packages(lib.loc=libLocs)){
         require(spgrass6, lib.loc=libLocs)
 }else{require(spgrass6, lib.loc=libLocs)}
 
+outputGRASS <- function (x, separator = ",", h = FALSE) 
+{
+    con <- textConnection(x)
+    MyVar <- read.table(con, header = h, sep = separator, comment.char = "")
+    close(con)
+    return(MyVar)
+}
+
 # Check grass version
 grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
 
@@ -331,8 +336,6 @@ opl	<- Sys.getenv("arrOUT")			# output layers
 opl	<- unlist(strsplit(opl,";"))
 opi	<- opl[-1]						# base name individual layers
 opc	<- opl[1]						# name of MESS layer
-tml	<- Sys.getenv("tmpLY")			# temporary layers
-tml	<- unlist(strsplit(tml,";"))[-1] 
 vtl <- Sys.getenv("REF_LAY")    	# reference distribution raster layer
 rtl <- Sys.getenv("REF_TYPE")		# raster or vector layer
 flm	<- Sys.getenv("GIS_FLAG_M")
@@ -340,9 +343,8 @@ flk	<- Sys.getenv("GIS_FLAG_K")
 fll	<- Sys.getenv("GIS_FLAG_L")
 fln	<- Sys.getenv("GIS_FLAG_N")
 digits	<- as.numeric(Sys.getenv("GIS_OPT_DIGITS"))	# Precision
-rdigits <- nchar((1/digits)-1)
-options(echo=TRUE, digits=rdigits+1, scipen=rdigits+1)
-
+digits2 <- 10^digits
+options(echo=TRUE, digits=digits+4, scipen=digits+4)
 
 #-----------------------------------------------------------------------
 # Create the r.mapcalc expressions to calculate the mess for the 
@@ -354,81 +356,82 @@ if(rtl=="R"){
     
     # Reference distribution layer is raster 
     #-----------------------------------------------------------------------  
-    
-    flnm1 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
-    flnm2 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
+
     for(i in 1:length(ipl)){
         
-        # Get the environmental data for the reference points in R. I could use r.stats to 
-        # get frequency table rather then raw data. But I first need to find 
-        # out how to deal with floating data in r.stats, as counts of each 
-        # unique value is needed. Other option is to use freq() function in raster package
-        # One option is to convert the floating layers to integer layers after
-        # multiplying first with a number equal to the reciprocal of the value
-        # given under the digits option. This may deal better with rounding errors too.
+        # Get the environmental frequency distributions for the reference points in R. 
 		
-		fft <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
-        if(fft==0){
+        tmpf0 <- "rmess_tmp_fr9876543210a"
+        execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmpf0, "=", vtl, "* 1"))
+        
+		citiam <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
+        if(citiam==0){
            rname <- paste("MASK",paste(sample(c(0:9, letters, LETTERS), 12, replace=TRUE), collapse=""), sep="_")
            execGRASS("g.copy", rast=paste("MASK", rname, sep=","))
            system("g.remove -f rast=MASK")
         }
 
-        # make compatible for both v6.4 and 7
+        # Create mask based on combined MASK/input layer
+        # Make compatible for both v6.4 and 7
         if(grassversion==7){
-            execGRASS("r.mask", raster=vtl)
+            execGRASS("r.mask", raster=tmpf0)
         }else{
-            execGRASS("r.mask", input=vtl)
+            execGRASS("r.mask", input=tmpf0)
         }
-
-        execGRASS("r.out.xyz", input=ipl[i], output=flnm1, separator=",", flags="overwrite")
-        system(paste("awk -F \",\" '{print $3}' ", flnm1, " > ", flnm2, sep=""))
-        
-        # Todo: see http://stackoverflow.com/questions/1727772/quickly-reading-very-large-tables-as-dataframes-in-r
-        # for alternative ways to import tables
-      
-        spld <- scan(file=flnm2)
-        unlink(c(flnm1, flnm2))
-        spld <- round(spld, rdigits)
-
-        # Make sure numbers < 2^31 (need better solution!!)
-		envmin <- min(spld)
-		envmax <- max(spld)
-		ch <- max(abs(envmin), abs(envmax))
-		a <- (2^31/10) - ch/digits
-		b <- nchar(floor(2^31/(ch*10)))
-		rdigits2 <- ifelse(a<=0, b ,rdigits)
-		digits2 <- 10^(-rdigits2)
-
+ 
         # Calculate the frequency distribution 
-        a  <- table(spld)
-        Drange <- execGRASS("r.info", flags=c("r", "verbose"), map=ipl[i], intern=T)
-        Dmin <- as.numeric(sub("min=", "", Drange[1]))
-        Dmax <- as.numeric(sub("max=", "", Drange[2]))
-        system("g.remove -f rast=MASK")
+        tmpf1 <- "rmess_tmp_fr987654321a"
+        execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmpf1, " = int(", digits2, "*", ipl[i], ")"))
+        frtab <- execGRASS("r.stats", flags=c("c", "n"), input=tmpf1, separator=",", sort="asc", intern=TRUE)
+        a <- outputGRASS(frtab, separator=",")
+        a <- a[order(a[,1]),]
+        b <- cumsum(as.numeric(a[,2]))/sum(a[,2])*100
 
+        tmpf2 <- "rmess_tmp_fr987654321b"
+        execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmpf2, " = int(", digits2, "*", ipl2[i], ")"))
+        d <- execGRASS("r.univar", map=tmpf2, flags="g", intern=TRUE)
+        d <- outputGRASS(d, separator="=")        
+        
         # Create recode rules
-        x1 <- c(Dmin, as.numeric(rownames(a)))#+digits)
-        x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
-        y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
-        xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
-        xy2 <- apply(xy1, 1, function(x){paste(x, collapse=":")})
+        minv <- as.numeric(subset(d, select=V2, V1=="min"))
+        maxv <- as.numeric(subset(d, select=V2, V1=="max"))
+        e1 <- ifelse(minv < min(a[,1]), minv, min(a[,1])-1)
+        e2 <- ifelse(maxv > max(a[,1]), maxv, max(a[,1])+1)
+        a1 <- c(e1, a[1,1], a[,1]+1)
+        a2 <- c(a[1,1], a[,1], e2)
+        b1 <- c(0, b, 101)
+        b1 <- round(b1*digits2)
+        c1 <- cbind(a1,a2, b1)
+        xy2 <- apply(c1, 1, function(x){paste(format(x, scientific=FALSE, trim=TRUE), collapse=":")})
         tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
         # Restore mask
-        if(fft==0){
-          execGRASS("g.rename", rast=paste(rname,"MASK", sep=","), intern=TRUE)
+        if(citiam==0){
+            execGRASS("r.mask", flags="overwrite", raster=rname)
+            execGRASS("g.remove", rast=rname)
+        }else{
+            execGRASS("r.mask", flags="r")
         }
         
         # Create the recode layer and calculate the IES
-        execGRASS("r.recode", input=ipl2[i], output=tml[i], rules=tmp.rule)
-        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits2,")*1.0-", round(envmin/digits2), ")/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") *100.0, if(", tml[i], "<=50, 2.0 * ", tml[i], ", if(", tml[i], "<100, 2.0 * (100.0- ", tml[i], "), (", round(envmax/digits2)*1.0, "- round(", ipl[i], "/", digits2, ")*1.0)/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") * 100.0)))", sep="")
-        execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
-        execGRASS("g.remove", rast=tml[i])
+        execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmpf2, " = int(", digits2, "*", ipl2[i], ")"))
+        tmpf3 <- "rmess_tmp_fr987654321c"
+        execGRASS("r.recode", input=tmpf2, output=tmpf3, rules=tmp.rule, flags="overwrite")
+        min1 <- min(a[,1])
+        max1 <- max(a[,1])
+        thr1 <- format(50*digits2, scientific=FALSE)
+        thr2 <- format(100*digits2, scientific=FALSE)
+        z1 <- paste("if(", tmpf3, "==0, ", digits2, "* 100.0 * (", tmpf2, "-", min1, ")/(", max1, "-", min1, ")", sep="")
+        z2 <- paste(", if(", tmpf3, "<=", thr1, ", 2*", tmpf3, sep="")
+        z3 <- paste(", if(", tmpf3, "<=", thr2, ", 2*(", thr2, "-", tmpf3, ")", sep="")
+        z4 <- paste(",", digits2, " * 100.0 * (", max1, "- ", tmpf2, ")/(", max1, "-", min1, "))))", sep="")
+        calcc <- paste(z1, z2, z3, z4, sep="")
+        execGRASS("r.mapcalc", expression=paste(opi[i], " = ", calcc, sep=""), flags="overwrite") 
+        execGRASS("r.mapcalc", expression=paste(opi[i], " = ", opi[i], "/", digits2, ".0", sep=""), flags="overwrite")
+        execGRASS("g.remove", flags="f", rast=paste(tmpf0, tmpf1, tmpf2, tmpf3, sep=","))
         unlink(tmp.rule)
     }
-
 }else{
 
     # Reference distribution layer is vector 
@@ -462,39 +465,37 @@ if(rtl=="R"){
     system("g.remove vect=tmpMESS976543210")
 
     for(i in 1:length(ipl)){
+      
         # Calculate the frequency distribution 
         a  <- table(spl[i])
         envmin <- min(spl[i])
         envmax <- max(spl[i])
-        Drange <- system(paste("r.info -r --verbose map=", ipl[i], sep=""), intern=T)
+        Drange <- system(paste("r.info -r --verbose map=", ipl2[i], sep=""), intern=T)
         Dmin <- as.numeric(sub("min=", "", Drange[1]))
         Dmax <- as.numeric(sub("max=", "", Drange[2]))
         
         # Create recode rules
-        x1 <- c(Dmin, as.numeric(rownames(a)))#+digits)
+        x1 <- c(Dmin, as.numeric(rownames(a)))
         x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
         y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
-        xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
+        xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=digits)
         xy2 <- apply(xy1, 1, function(x){paste(x, collapse=":")})
         tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
-        # Make sure numbers < 2^31 (need better solution!!)
-		ch <- max(abs(envmin), abs(envmax))
-		a <- (2^31/10) - ch/digits
-		b <- nchar(floor(2^31/(ch*10)))
-		rdigits2 <- ifelse(a<=0, b ,rdigits)
-		digits2 <- 10^(-rdigits2)
-
         # Create the recode layer and calculate the IES
-        execGRASS("r.recode", input=ipl2[i], output=tml[i], rules=tmp.rule)
-        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits2,")*1.0-", round(envmin/digits2), ")/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") *100.0, if(", tml[i], "<=50, 2.0 * ", tml[i], ", if(", tml[i], "<100, 2.0 * (100.0- ", tml[i], "), (", round(envmax/digits2)*1.0, "- round(", ipl[i], "/", digits2, ")*1.0)/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") * 100.0)))", sep="")
-        execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
-        execGRASS("g.remove", rast=tml[i])
+        tmpv1 <- "rmess_tmp_fr987654321v1"
+        execGRASS("r.recode", flags="overwrite", input=ipl2[i], output=tmpv1, rules=tmp.rule)
+        z1 <- paste("if(", tmpv1, "==0, (double(", ipl2[i], ")-", envmin, ".0)/(", envmax, ".0-", envmin, ".0) *100.0", sep="")
+        z2 <- paste(", if(", tmpv1, "<=50, 2.0 * ", tmpv1)
+        z3 <- paste(", if(", tmpv1, "<100, 2.0 * (100.0- ", tmpv1, ")")
+        z4 <- paste(", (", envmax, ".0- double(",  ipl2[i], "))/(", envmax, ".0-", envmin, ".0) * 100.0)))", sep="")
+        calcc <- paste(z1, z2, z3, z4, sep="")
+        execGRASS("r.mapcalc", expression=paste(opi[i], "=", calcc), flags="overwrite") 
+        execGRASS("g.remove", rast=tmpv1)
         unlink(tmp.rule)
     }
 }
-
 #-----------------------------------------------------------------------
 # Calculate MESS
 #-----------------------------------------------------------------------
@@ -533,6 +534,7 @@ if(fll==1){
 EOF
 }
 
+
 # RGrass script generation
 # --------------------------
 RGRASSSCRIPT="`g.tempfile pid=$$`"
@@ -561,5 +563,4 @@ fi
 g.message "Finished - you can find the maps in your current mapset"
 
 #=======================================================================
-
 
