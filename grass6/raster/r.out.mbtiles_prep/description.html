@@ -1,0 +1,43 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.out.mbtiles_prep</em> creates a TMS tileset and support files ready to
+load into software like Geopaparazzi which will make the final conversion to
+a mbtiles spatialite database file.
+
+
+<h2>NOTES</h2>
+
+Either an individual raster map or a raster map imagery group may be given as input.
+<p>
+If not specified the zoom level will be automatically chosen.
+<p>
+
+
+<h2>EXAMPLE</h2>
+
+Creates a tileset for the North Carolina sample dataset's <tt>soilsID</tt> raster
+map at automatically chosen zoom levels 11-14.
+
+<div class="code"><pre>
+g.region rast=soilsID
+r.out.mbtiles_prep in=soilsID out=soil_tiles format=jpeg
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em><a href="i.group.html">i.group</a></em>
+<br><br>
+<a href="http://www.gdal.org/gdal2tiles.html">gdal2tiles</a><br>
+<a href="https://github.com/geopaparazzi/geopaparazzi/wiki/.mapurl-parameters">mapurl specification</a><br>
+
+
+<h2>AUTHOR</h2>
+
+Hamish Bowman<br>
+<i>Geology Dept.<br>
+University of Otago<BT>
+Dunedin, New Zealand</i>
+
+<p>
+<i>Last changed: $Date$</i>
