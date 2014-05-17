@@ -43,6 +43,26 @@ d.shadedmap relief=elevation_shade drape=soilsID output=shaded_soilsID
 r.out.mbtiles_prep -t in=shaded_soilsID out=shaded_soil_tiles format=jpeg
 </pre></div>
 
+
+<p>
+Example 3:
+Take a series of georegistered JPEG images (with .jgw world files),
+combine them into a virtual raster map with GDAL's <tt>gdalbuildvrt</tt>,
+import into a virtual GRASS raster map with <em>r.external</em>,
+and export as a TMS tileset ready for conversion into MBTiles. This
+is somewhat more computationally expensive but much easier on the
+disk space since the intermediate files are relatively tiny.
+
+<div class="code"><pre>
+gdalbuildvrt ortho_images.vrt *.jpg
+r.external in=ortho_images.vrt out=ortho.mosaic \
+   title="Rural Aerial Photos (2009-2011)"
+g.region rast=ortho.mosaic.1
+
+r.out.mbtiles_prep -t in=ortho.mosaic out=ortho_mosaic format=jpeg
+</pre></div>
+
+
 <!-- prep companion data for North Carolina
 # in lat/lon location
 v.proj in=usgsgages map=PERMANENT loc=nc_spm_08
@@ -56,6 +76,14 @@ v.out.ogr in=geodetic_swwake_pts dsn=geodetic_swwake_pts.gpx \
 v.out.ogr in=roadsmajor dsn=roadsmajor.gpx \
    format=GPX type=line dsco='GPX_USE_EXTENSIONS=YES'
 -->
+
+
+<h2>TODO</h2>
+
+Ability to create the MBTiles SQLite database directly.
+<p>
+On MS Windows <tt>gdal2tiles.py</tt> is called <tt>gdal2tiles.bat</tt>.
+Some minor adjust is needed in the script to select the correct name.
 
 
 <h2>SEE ALSO</h2>
