@@ -2,7 +2,7 @@
 
 <em>r.out.mbtiles_prep</em> creates a TMS tileset and support files ready to
 load into software like Geopaparazzi which will make the final conversion to
-a mbtiles spatialite database file.
+a MBTiles SQLite database file.
 
 
 <h2>NOTES</h2>
@@ -11,10 +11,15 @@ Either an individual raster map or a raster map imagery group may be given as in
 <p>
 If not specified the zoom level will be automatically chosen.
 <p>
+When finished, copy the <b>output</b> directory and mapurl file to
+<tt>/sdcard/maps/</tt> on your Android device and select the mapurl file
+as the tile source in <em>Geopaparazzi</em>. The MBTiles SQLite
+database will then be populated in the background.
 
 
 <h2>EXAMPLE</h2>
 
+Example 1:
 Creates a tileset for the North Carolina sample dataset's <tt>soilsID</tt> raster
 map at automatically chosen zoom levels 11-14.
 
@@ -22,6 +27,35 @@ map at automatically chosen zoom levels 11-14.
 g.region rast=soilsID
 r.out.mbtiles_prep in=soilsID out=soil_tiles format=jpeg
 </pre></div>
+
+<p>
+Example 2:
+Drape the soils map over a shaded relief of the elevation map, and bundle
+it up into a tarball for easier copying.
+
+<div class="code"><pre>
+g.region rast=soilsID
+d.mon x0
+d.resize w=750 h=675
+r.colors -e elevation_shade color=sepia
+d.shadedmap relief=elevation_shade drape=soilsID output=shaded_soilsID
+
+r.out.mbtiles_prep -t in=shaded_soilsID out=shaded_soil_tiles format=jpeg
+</pre></div>
+
+<!-- prep companion data for North Carolina
+# in lat/lon location
+v.proj in=usgsgages map=PERMANENT loc=nc_spm_08
+v.proj in=geodetic_swwake_pts map=PERMANENT loc=nc_spm_08
+v.proj in=roadsmajor map=PERMANENT loc=nc_spm_08
+
+v.out.ogr in=usgsgages dsn=usgsgages.gpx \
+   format=GPX type=point dsco='GPX_USE_EXTENSIONS=YES'
+v.out.ogr in=geodetic_swwake_pts dsn=geodetic_swwake_pts.gpx \
+   format=GPX type=point dsco='GPX_USE_EXTENSIONS=YES'
+v.out.ogr in=roadsmajor dsn=roadsmajor.gpx \
+   format=GPX type=line dsco='GPX_USE_EXTENSIONS=YES'
+-->
 
 
 <h2>SEE ALSO</h2>
@@ -35,8 +69,8 @@ r.out.mbtiles_prep in=soilsID out=soil_tiles format=jpeg
 <h2>AUTHOR</h2>
 
 Hamish Bowman<br>
-<i>Geology Dept.<br>
-University of Otago<BT>
+<i>Department of Geology<br>
+University of Otago<br>
 Dunedin, New Zealand</i>
 
 <p>

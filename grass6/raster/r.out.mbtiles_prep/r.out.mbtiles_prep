@@ -4,7 +4,7 @@
 # MODULE:       r.out.mbtiles_prep
 # AUTHOR(S):    M. Hamish Bowman, Dunedin, New Zealand
 # PURPOSE:      Export a raster map into a TMS bundle ready for conversion
-#		 to mbtiles format
+#		 to MBTiles SQLite format
 # COPYRIGHT:    (C) 2014 Hamish Bowman, and the GRASS Development Team
 #
 #     This program is free software; you can redistribute it and/or modify
@@ -146,14 +146,23 @@ TMP_DIR=`dirname "$TMP_GTIFF"`
 TMP_GMERC="$TMP_DIR"/`basename "$TMP_GTIFF" .tif`_gmerc.tif
 
 
-# TMS tiles need to be reprojected into the funny google merc projection
+if [ -n "$GRASS_VERBOSE" ] && [ "$GRASS_VERBOSE" -eq 0 ] ; then
+   QUIET="-q"
+else
+   QUIET=""
+fi
+
+# ?? do the source of TMS tiles sometimes need to be reprojected into the
+#    funny google merc projection first?
 
 if [ "$MAP_TYPE" = "raster" ] ; then
    r.out.tiff -t input="$MAP_NAME" output="$TMP_GTIFF"
-   gdalwarp -s_srs "`g.proj -jf`" -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
+   #gdalwarp -s_srs "`g.proj -jf`" -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
+   gdal_translate $QUIET -a_srs "`g.proj -jf`" "$TMP_GTIFF" "$TMP_GMERC"
 else
    r.out.gdal input="$MAP_NAME" output="$TMP_GTIFF" format=GTiff
-   gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
+   #gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
+   mv "$TMP_GTIFF" "$TMP_GMERC"
 fi
 ## gdalwarp -srcnodata -dstnodata -dstalpha ?
 
@@ -167,12 +176,20 @@ fi
 rm -f "$TMP_GTIFF"
 
 
+if [ 0 -eq 1 ] ; then
+
+## I don't think we need to do the gdalwarp, but it's worth keeping this
+## next bit of code for parsing the lat/lon bbox out of gdalinfo for a
+## rainy day.
+
 #### we need to find the bounding box in lat/lon of the post-warped geotiff
 # -- parse gdalinfo --
 gdalinfo -noct -nomd "$TMP_GMERC" > "$TMPFILE.warpinfo"
 
 IN_PROJ="+proj=longlat +datum=WGS84"
 OUT_PROJ="+proj=longlat +datum=WGS84"
+#?OUT_PROJ="+proj=longlat +ellps=sphere +a=6378137 +b=6378137 +nadgrids=@null"
+
 
 UL_DMS=`grep '^Upper Left ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
              sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
@@ -205,6 +222,10 @@ WARP_E=`echo "$E1 $E2" | awk '{ if ($1 > $2) {print $1} else {print $2} }'`
 WARP_W=`echo "$W1 $W2" | awk '{ if ($1 < $2) {print $1} else {print $2} }'`
 # -- parse gdalinfo --
 
+# then this would go in the mapurl file:
+#center=$CENTER_DDD
+#bounds=$WARP_W $WARP_S $WARP_E $WARP_N
+fi
 
 
 # Screen DPI is monitor/device dependent, and therefore a crude one
@@ -259,8 +280,9 @@ else
    eval `g.region -gu`
    eval `g.region -legu`
 
-   # adjust as needed:
-   SCREEN_DPI=96
+   # adjust as needed depending if you are working on a desktop monitor or mobile device:
+   #  a value of 96 might be appropriate for desktop, 225 for tablet or smartphone. YMMV.
+   SCREEN_DPI=225
 
    #SCALE_NS=$ns_extent/(($rows/$DPI)*$INCH2METER)
    #SCALE_EW=$ew_extent/(($cols/$DPI)*$INCH2METER)
@@ -277,7 +299,7 @@ else
       zoomscale=`calc_webtile_scale $center_lat $zoom $SCREEN_DPI`
       #echo "[$zoom   1 : $zoomscale]"  #  @ ${SCREEN_DPI}dpi]"
       if [ "$zoomscale" -gt "$MAP_SCALE" ] ; then
-         maxzoom=`expr "$zoom" + 1`
+	 maxzoom=`expr "$zoom" + 2`
 	 minzoom=`expr "$maxzoom" - 3`
       fi
    done
@@ -308,7 +330,6 @@ else
    VERBOSE=""
 fi
 
-
 OUT_DIR="$TMP_DIR"/`basename "$TMP_GMERC" .tif`
 
 g.message "Generating tiles for zoom level(s) $ZOOM"
@@ -328,6 +349,9 @@ rm -f `find $(dirname "$OUT_DIR") | grep .aux.xml`
 
 #### write out .mapurl file
 
+# get max extent bbox in lat/lon 
+eval `g.region -bgu` 
+
 URLFILE="$OUT_DIR"/`basename "$OUTFILE"`.mapurl
 
 
@@ -341,13 +365,13 @@ cat << EOF > "$URLFILE"
 url=$OUTFILE/ZZZ/XXX/YYY.$ext
 minzoom=$minzoom
 maxzoom=$maxzoom
-center=$CENTER_DDD
-bounds=$WARP_W $WARP_S $WARP_E $WARP_N
+center=$ll_clon $ll_clat
+bounds=$ll_w $ll_s $ll_e $ll_n
 type=tms
 mbtiles=$OUTFILE/$OUTFILE.mbtiles
 name=$TITLE
 description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles_prep
-defaultzoom=`expr $maxzoom - 1`
+defaultzoom=`expr $maxzoom - 2`
 format=$ext
 request_type=run,fill,load,reset_metadata
 EOF
@@ -400,5 +424,5 @@ g.message message=""
 g.message "Done."
 g.message "Next copy the '$OUTFILE' directory and mapurl file to \
 /sdcard/maps/ on your Android device and select the mapurl file as the \
-tile source in Geopaparazzi. The mbtiles spatialite database will then \
+tile source in Geopaparazzi. The MBTiles SQLite database will then \
 be populated in the background."
