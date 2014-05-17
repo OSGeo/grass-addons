@@ -6,7 +6,7 @@
  * PURPOSE:      Calculate basins according user' input data.
  *               It uses multiple type of inputs:
  * 		 r.stream.order, r.stream.extract or r.watershed stream  map 
- *               list of categoires to create basins (require stream map);
+ *               list of categories to create basins (require stream map);
  *               vector file containing outputs;
  *               list of coordinates;
  *               with analogous  direction map;
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     struct Flag *flag_zerofill, *flag_cats, *flag_lasts, *flag_segmentation;
 
-    int b_test = 0;		/* test which option has been choosed: like chmod */
+    int b_test = 0;		/* test which option has been chosen: like chmod */
     int segmentation, zerofill, lasts, cats;
     int i, outlets_num = 0;
     int max_number_of_streams;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     opt_swapsize->key = "memory";
     opt_swapsize->type = TYPE_INTEGER;
     opt_swapsize->answer = "300";
-    opt_swapsize->description = _("Max memory used in memory swap mode (MB)");
+    opt_swapsize->description = _("Maximum memory used in memory swap mode (MB)");
     opt_swapsize->guisection = _("Memory settings");
 
     opt_basins = G_define_standard_option(G_OPT_R_OUTPUT);

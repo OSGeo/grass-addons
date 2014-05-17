@@ -6,8 +6,7 @@ unrestricted number of basins in one step. It can delineate basins
 with three methods:
 
 <ul>
-<li>Using coordinates: this option simply copies functionality of
-    <a href="r.water.outlet.html">r.water.outlet</a>.
+<li>Using coordinates: this option simply copies functionality of <em>r.water.outlet</em>.
 <li>Using vector points: it allow to manually point outlets with any method
 <li>Using streams (most advanced) it allow on lots of modifications. See
 examples for more details.
@@ -21,7 +20,7 @@ proper delineation, we can also enumerate stream categories for
 which basins are to be created (cats option). Module is prepared to 
 work with output data of <em>r.watershed</em>, <em>r.stream.extract</em>,
 <em>r.stream.order</em> also with modification done by
-<em>r.reclass</em> and <em>r.mapcalc</em>. r.stream.basin can delineate 
+<em>r.reclass</em> and <em>r.mapcalc</em>. <em>r.stream.basin</em> can delineate 
 basins according outlets marked by raster streams, and polygons, 
 vector points and numerical coordinates. If outlets are marked by 
 points or coordinates it delineates basins which cells contribute to 
@@ -45,8 +44,8 @@ may not have unique values this option will create a new category sequence for
 each basin (do not work in vector point mode).
 </dd>
 <dt><b>-l</b></dt>
-<dd>By default r.stream.basins create basins for all unique streams. This option
-delineate basins only for last streams ignoring upstreams (do not work in vector
+<dd>By default <em>r.stream.basins</em> create basins for all unique streams. This option
+delineate basins only for last streams ignoring upstream (do not work in vector
 point mode).
 </dd>
 
@@ -68,7 +67,7 @@ maps boundary may be differ but it may lead to unexpected results.
 <dt><b>coors</b></dt>
 <dd>East and north coordinates for basin outlet. It can delineate only
 one basin using that option. This option simply copies functionality of
-<a href="r.water.outlet.html">r.water.outlet</a>.
+<em>r.water.outlet</em>.
 </dd>
 <dt><b>stream_rast</b></dt>
 <dd>Stream network: name of input stream map on which ordering will 
@@ -79,7 +78,7 @@ required to use both stream and direction map produced by the same
 module. Stream background shall have NULL value or zero value. 
 Background values of NULL are by default produced by <em>r.watershed</em>
 and <em>r.stream.extract</em>. If not 0 or NULL use
-<a href="r.mapcalc.html">r.mapcalc</a> to set background values to null. </dd>
+<em>>r.mapcalc</em> to set background values to null. </dd>
 
 <dt><b>cats</b></dt>
 <dd>Stream categories to delineate basins for: All categories which are not in
@@ -111,11 +110,11 @@ must be in CELL format (default output of <em>r.watershed</em>,
 Module can work only if direction map, stream map and region map has same
 settings. It is also required that stream map and direction map come from the
 same source. For lots of reason this limitation probably cannot be omitted.  
-This means, if stream map comes from r.stream.extract, also direction map from
+This means, if stream map comes from <em>r.stream.extract</em>, also direction map from
 <em>r.stream.extract</em> must be used. If stream network was generated
 with MFD method, also MFD direction map must be used. Nowadays, if direction
 map comes from <em>r.stream.extract</em>, it must be patched by direction
-map from <em>r.watershed</em>. (with <em>r.patch</em>). 
+map from <em>r.watershed</em> (with <em>r.patch</em>).
 
 <h2>EXAMPLES</h2>
 <p>
@@ -188,6 +187,7 @@ See also tutorial: <a href="http://grass.OSGeo.org/wiki/R.stream.*">http://grass
 <a href="r.mapcalc.html">r.mapcalc</a>,
 <a href="r.reclass.html">r.reclass</a>,
 <a href="r.patch.html">r.patch</a>
+<a href="r.water.outlet.html">r.water.outlet</a>
 </em>
 
 <h2>AUTHOR</h2>
