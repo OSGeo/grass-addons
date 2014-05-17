@@ -82,7 +82,7 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 #### check if we have awk, gdalwarp, gdal2tiles, seq
-pgms="awk seq gdalwarp gdal2tiles.py"
+pgms="awk seq gdalwarp gdalinfo gdal2tiles.py"
 for pgm in $pgms ; do
    if [ ! -x "`which $pgm`" ] ; then
        g.message -e "$pgm is required, please install it first."
@@ -96,7 +96,7 @@ MAP_NAME="$GIS_OPT_INPUT"
 if [ -n "$GIS_OPT_OUTPUT" ] ; then
    OUTFILE="$GIS_OPT_OUTPUT"
 else
-   OUTFILE="$MAP_NAME"
+   OUTFILE=`echo "$MAP_NAME" | cut -f1 -d'@'`
 fi
 
 
@@ -108,7 +108,7 @@ else
    if [ $? -eq 0 ] ; then
       MAP_TYPE=group
    else
-      g.message -e "Could not find [$MAP_NAME]"
+      g.message -e "Could not find <$MAP_NAME>"
       exit 1
    fi
 fi
@@ -160,6 +160,12 @@ if [ "$MAP_TYPE" = "raster" ] ; then
    #gdalwarp -s_srs "`g.proj -jf`" -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
    gdal_translate $QUIET -a_srs "`g.proj -jf`" "$TMP_GTIFF" "$TMP_GMERC"
 else
+   if [ `echo "$MAP_NAME" | grep -c '@'` -gt 0 ] ; then
+      g.message -e "Imagery groups must exist in the current mapset, sorry."
+      cleanup
+      exit 1
+   fi
+
    r.out.gdal input="$MAP_NAME" output="$TMP_GTIFF" format=GTiff
    #gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
    mv "$TMP_GTIFF" "$TMP_GMERC"
@@ -167,7 +173,7 @@ fi
 ## gdalwarp -srcnodata -dstnodata -dstalpha ?
 
 if [ $? -ne 0 ] ; then
-   g.message -e "Problem running gdalwarp"
+   g.message -e "Problem exporting image"
    cleanup
    exit 1
 fi
@@ -275,8 +281,16 @@ calc_webtile_scale()
 
 if [ -n "$GIS_OPT_ZOOM" ] ; then
    ZOOM="$GIS_OPT_ZOOM"
+
+   # pick a mid-level zoom for the mapurl file
+   if [ `echo "$ZOOM" | grep -c '\-'` -gt 0 ] ; then
+      maxzoom=`echo "$ZOOM" | awk -F '-' '{print $1 + int(($2 - $1) / 2)}'`
+   else
+      maxzoom="$ZOOM"
+   fi
+
 else
-   # calc map scale from map extent and dpi
+   # auto-calc map scale from map extent and dpi
    eval `g.region -gu`
    eval `g.region -legu`
 
@@ -300,7 +314,7 @@ else
       #echo "[$zoom   1 : $zoomscale]"  #  @ ${SCREEN_DPI}dpi]"
       if [ "$zoomscale" -gt "$MAP_SCALE" ] ; then
 	 maxzoom=`expr "$zoom" + 2`
-	 minzoom=`expr "$maxzoom" - 3`
+	 minzoom=`expr "$zoom" - 2`
       fi
    done
 
@@ -344,8 +358,10 @@ if [ $? -ne 0 ] ; then
 fi
 
 rm -f "$TMP_GMERC"
-rm -f `find $(dirname "$OUT_DIR") | grep .aux.xml`
 
+for file in `find $(dirname "$OUT_DIR") | grep .aux.xml` ; do
+   rm -f "$file"
+done
 
 #### write out .mapurl file
 
@@ -376,6 +392,27 @@ format=$ext
 request_type=run,fill,load,reset_metadata
 EOF
 
+cd "$OUT_DIR"
+
+g.message "Scanning for blank tiles ..."
+# warping can leave a lot of left over border around the edges due to skew
+# MBTiles links these all to a single tile, but they're unsightly.
+# This takes a while so consider running in parallel, but it is probably
+# near-saturation already due to the large number of tiny processes creaded
+# and destroyed.
+i=0
+for file in `find . | grep '.png$'` ; do
+     # check if image is empty
+    COUNT=`gdalinfo -mm -noct -nomd "$file" | grep 'Min/Max' | \
+       cut -f2 -d= | tr ',' '\n' | uniq | wc -l`
+    if [ "$COUNT" -eq 1 ] ; then
+       rm -f "$file"
+       i=`expr $i + 1`
+    fi
+done
+if [ "$i" -gt 0 ] ; then
+   g.message "Removed $i blank tiles."
+fi
 
 
 if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
@@ -390,7 +427,6 @@ if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
       fi
    done
 
-   cd "$OUT_DIR"
    for file in `find . | grep '.png$'` ; do
       outfile=`echo "$file" | sed -e 's/\.png$/.jpg/'`
       pngtopnm "$file" | pnmtojpeg > "$outfile"
@@ -405,10 +441,9 @@ if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
        -e 's+extension="png"+extension="jpg"+' \
 	   tilemapresource.xml.tmp > tilemapresource.xml
    rm tilemapresource.xml.tmp
-
-   cd - > /dev/null
 fi
 
+cd - > /dev/null
 
 mv "$OUT_DIR" "$OUTFILE"
 mv "$OUTFILE"/*.mapurl "$OUTFILE"/..
