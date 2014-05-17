@@ -146,15 +146,16 @@ TMP_DIR=`dirname "$TMP_GTIFF"`
 TMP_GMERC="$TMP_DIR"/`basename "$TMP_GTIFF" .tif`_gmerc.tif
 
 
+# TMS tiles need to be reprojected into the funny google merc projection
+
 if [ "$MAP_TYPE" = "raster" ] ; then
    r.out.tiff -t input="$MAP_NAME" output="$TMP_GTIFF"
+   gdalwarp -s_srs "`g.proj -jf`" -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
 else
    r.out.gdal input="$MAP_NAME" output="$TMP_GTIFF" format=GTiff
+   gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
 fi
-
-# TMS tiles need to be in funny google merc projection
-gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
-## -srcnodata -dstnodata -dstalpha
+## gdalwarp -srcnodata -dstnodata -dstalpha ?
 
 if [ $? -ne 0 ] ; then
    g.message -e "Problem running gdalwarp"
@@ -164,6 +165,46 @@ fi
 
 # free the disk space ASAP
 rm -f "$TMP_GTIFF"
+
+
+#### we need to find the bounding box in lat/lon of the post-warped geotiff
+# -- parse gdalinfo --
+gdalinfo -noct -nomd "$TMP_GMERC" > "$TMPFILE.warpinfo"
+
+IN_PROJ="+proj=longlat +datum=WGS84"
+OUT_PROJ="+proj=longlat +datum=WGS84"
+
+UL_DMS=`grep '^Upper Left ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
+             sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
+LL_DMS=`grep '^Lower Left ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
+             sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
+UR_DMS=`grep '^Upper Right ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
+             sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
+LR_DMS=`grep '^Lower Right ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
+             sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
+# FIXME: will this work for geographic coords?
+CENTER_DMS=`grep '^Center ' "$TMPFILE.warpinfo" | cut -f3- -d'(' | \
+             sed -e 's/^ //' -e 's/, / /' -e 's/)$//'`
+
+N1=`echo "$UL_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f2 -d'|'`
+N2=`echo "$UR_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f2 -d'|'`
+S1=`echo "$LL_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f2 -d'|'`
+S2=`echo "$LR_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f2 -d'|'`
+E1=`echo "$UR_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f1 -d'|'`
+E2=`echo "$LR_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f1 -d'|'`
+W1=`echo "$UL_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f1 -d'|'`
+W2=`echo "$LL_DMS" | m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" --quiet | cut -f1 -d'|'`
+
+CENTER_DDD=`echo "$CENTER_DMS" | \
+   m.proj -dg proj_in="$IN_PROJ" proj_out="$OUT_PROJ" fs=' ' --quiet | \
+   cut -f1,2 -d ' '`
+
+WARP_N=`echo "$N1 $N2" | awk '{ if ($1 > $2) {print $1} else {print $2} }'`
+WARP_S=`echo "$S1 $S2" | awk '{ if ($1 < $2) {print $1} else {print $2} }'`
+WARP_E=`echo "$E1 $E2" | awk '{ if ($1 > $2) {print $1} else {print $2} }'`
+WARP_W=`echo "$W1 $W2" | awk '{ if ($1 < $2) {print $1} else {print $2} }'`
+# -- parse gdalinfo --
+
 
 
 # Screen DPI is monitor/device dependent, and therefore a crude one
@@ -261,7 +302,6 @@ if [ -z "$TITLE" ] ; then
    TITLE="$MAP_NAME"
 fi
 
-
 if [ -n "$GRASS_VERBOSE" ] && [ "$GRASS_VERBOSE" -gt 1 ] ; then
    VERBOSE="-v"
 else
@@ -269,7 +309,6 @@ else
 fi
 
 
-#####
 OUT_DIR="$TMP_DIR"/`basename "$TMP_GMERC" .tif`
 
 g.message "Generating tiles for zoom level(s) $ZOOM"
@@ -277,9 +316,7 @@ g.message "Generating tiles for zoom level(s) $ZOOM"
 gdal2tiles.py $VERBOSE -r bilinear -z "$ZOOM" -w none -t "$TITLE" \
   "$TMP_GMERC" "$OUT_DIR"
 
-if [ $? -eq 0 ] ; then
-   G2T_OK=1
-else
+if [ $? -ne 0 ] ; then
    g.message -e "gdal2tiles failed."
    cleanup
    exit 1
@@ -291,23 +328,27 @@ rm -f `find $(dirname "$OUT_DIR") | grep .aux.xml`
 
 #### write out .mapurl file
 
-# get max extent bbox in lat/lon
-eval `g.region -bgu`
-
 URLFILE="$OUT_DIR"/`basename "$OUTFILE"`.mapurl
 
+
+if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
+   ext=jpg
+else
+   ext=png
+fi
+
 cat << EOF > "$URLFILE"
-url=$OUTFILE/ZZZ/XXX/YYY.png
+url=$OUTFILE/ZZZ/XXX/YYY.$ext
 minzoom=$minzoom
 maxzoom=$maxzoom
-center=$ll_clon $ll_clat
-bounds=$ll_w $ll_s $ll_e $ll_n
+center=$CENTER_DDD
+bounds=$WARP_W $WARP_S $WARP_E $WARP_N
 type=tms
 mbtiles=$OUTFILE/$OUTFILE.mbtiles
 name=$TITLE
 description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles_prep
 defaultzoom=`expr $maxzoom - 1`
-format=png
+format=$ext
 request_type=run,fill,load,reset_metadata
 EOF
 
@@ -315,6 +356,16 @@ EOF
 
 if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
    g.message "Converting to JPEG ..."
+
+   pgms="pngtopnm pnmtojpeg"
+   for pgm in $pgms ; do
+      if [ ! -x "`which $pgm`" ] ; then
+          g.message -e "$pgm is required, please install the NetPBM tools."
+          cleanup
+	  exit 1
+      fi
+   done
+
    cd "$OUT_DIR"
    for file in `find . | grep '.png$'` ; do
       outfile=`echo "$file" | sed -e 's/\.png$/.jpg/'`
@@ -331,10 +382,6 @@ if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
 	   tilemapresource.xml.tmp > tilemapresource.xml
    rm tilemapresource.xml.tmp
 
-   mv  "$URLFILE" "$URLFILE".tmp
-   sed -e 's+^format=png+format=jpg+' "$URLFILE".tmp > "$URLFILE"
-   rm "$URLFILE".tmp
-
    cd - > /dev/null
 fi
 
@@ -349,4 +396,9 @@ if [ "$GIS_FLAG_T" -eq 1 ] ; then
    tar cf `basename "$OUTFILE"`.tar `basename "$OUTFILE"` `basename "$OUTFILE"`.mapurl
 fi
 
+g.message message=""
 g.message "Done."
+g.message "Next copy the '$OUTFILE' directory and mapurl file to \
+/sdcard/maps/ on your Android device and select the mapurl file as the \
+tile source in Geopaparazzi. The mbtiles spatialite database will then \
+be populated in the background."
