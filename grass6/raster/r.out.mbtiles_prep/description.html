@@ -15,6 +15,13 @@ When finished, copy the <b>output</b> directory and mapurl file to
 <tt>/sdcard/maps/</tt> on your Android device and select the mapurl file
 as the tile source in <em>Geopaparazzi</em>. The MBTiles SQLite
 database will then be populated in the background.
+<p>
+Too many tiles? Use the <b>zoom</b> parameter to limit the current
+operation to a single zoom level, then crop the region with
+<em>g.region</em> to where you need detailed coverage and re-run
+the tile creation with a higher <b>zoom</b> level. Afterwards you
+can combine the directories into a single tree and adjust the
+maxzoom and minzoom values in the mapurl file as needed.
 
 
 <h2>EXAMPLE</h2>

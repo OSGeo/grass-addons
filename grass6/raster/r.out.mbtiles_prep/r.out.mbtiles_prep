@@ -66,6 +66,13 @@
 #% label: TMS zoom levels to create
 #% description: Format: '0-19', or '10' (default: automatic)
 #%End
+#%Option
+#% key: dpi
+#% type: integer
+#% label: DPI of the target display
+#% description: Value for a smartphone might be 225, a desktop perhaps 96.
+#% answer: 225
+#%End
 #%Flag
 #% key: t
 #% description: Create a tarball
@@ -282,11 +289,15 @@ calc_webtile_scale()
 if [ -n "$GIS_OPT_ZOOM" ] ; then
    ZOOM="$GIS_OPT_ZOOM"
 
-   # pick a mid-level zoom for the mapurl file
    if [ `echo "$ZOOM" | grep -c '\-'` -gt 0 ] ; then
-      maxzoom=`echo "$ZOOM" | awk -F '-' '{print $1 + int(($2 - $1) / 2)}'`
+      # pick a mid-level zoom for the mapurl file
+      default_zoom=`echo "$ZOOM" | awk -F '-' '{print $1 + int(($2 - $1) / 2)}'`
+      maxzoom=`echo "$ZOOM" | cut -f2 -d'-'`
+      minzoom=`echo "$ZOOM" | cut -f1 -d'-'`
    else
+      default_zoom="$ZOOM"
       maxzoom="$ZOOM"
+      minzoom="$ZOOM"
    fi
 
 else
@@ -296,7 +307,7 @@ else
 
    # adjust as needed depending if you are working on a desktop monitor or mobile device:
    #  a value of 96 might be appropriate for desktop, 225 for tablet or smartphone. YMMV.
-   SCREEN_DPI=225
+   SCREEN_DPI="$GIS_OPT_DPI"
 
    #SCALE_NS=$ns_extent/(($rows/$DPI)*$INCH2METER)
    #SCALE_EW=$ew_extent/(($cols/$DPI)*$INCH2METER)
@@ -326,6 +337,8 @@ else
    fi
 
    ZOOM="$minzoom-$maxzoom"
+
+   default_zoom=`expr $maxzoom - 2`
 fi
 
 
@@ -359,6 +372,8 @@ fi
 
 rm -f "$TMP_GMERC"
 
+g.message "Dropping unneeded auxiliary metadata files ..."
+
 for file in `find $(dirname "$OUT_DIR") | grep .aux.xml` ; do
    rm -f "$file"
 done
@@ -387,7 +402,7 @@ type=tms
 mbtiles=$OUTFILE/$OUTFILE.mbtiles
 name=$TITLE
 description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles_prep
-defaultzoom=`expr $maxzoom - 2`
+defaultzoom=$default_zoom
 format=$ext
 request_type=run,fill,load,reset_metadata
 EOF
@@ -429,7 +444,7 @@ if [ "$GIS_OPT_FORMAT" = "jpeg" ] ; then
 
    for file in `find . | grep '.png$'` ; do
       outfile=`echo "$file" | sed -e 's/\.png$/.jpg/'`
-      pngtopnm "$file" | pnmtojpeg > "$outfile"
+      pngtopnm -mix -background '#FFFFFF' "$file" | pnmtojpeg > "$outfile"
       if [ $? -eq 0 ] ; then
         rm "$file"
       fi
