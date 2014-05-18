@@ -44,6 +44,7 @@ SUBDIRS = \
 	r.out.kap_template \
 	r.out.kml \
 	r.out.maxent_swd \
+	r.out.mbtiles_prep \
 	r.out.netcdf \
 	r.pi \
 	r.prominence \
