@@ -74,9 +74,14 @@
 #% answer: 225
 #%End
 #%Flag
-#% key: t
-#% description: Create a tarball
+#% key: m
+#% description: Create a MBTiles database (requires SQLite3)
 #%End
+#%Flag
+#% key: t
+#% description: Create a tarball of the tile tree
+#%End
+
 
 
 if  [ -z "$GISBASE" ] ; then
@@ -404,7 +409,7 @@ name=$TITLE
 description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles_prep
 defaultzoom=$default_zoom
 format=$ext
-request_type=run,fill,load,reset_metadata
+request_type=run,fill,load
 EOF
 
 cd "$OUT_DIR"
@@ -463,12 +468,73 @@ cd - > /dev/null
 mv "$OUT_DIR" "$OUTFILE"
 mv "$OUTFILE"/*.mapurl "$OUTFILE"/..
 
+
+#### Set up SQLite commands to build MBTiles database
+# must use sqlite3+
+if [ "$GIS_FLAG_M" -eq 1 ] ; then
+
+   g.message "Creating SQLite instructions ..."
+
+   if [ ! -x "`which sqlite3`" ] ; then
+      g.message -e "sqlite3 is required for creating the MBTiles database, please install it first."
+      cleanup
+      exit 1
+   fi
+
+   TITLE_CLEAN=`echo "$TITLE" | sed -e "s|'|''|g"`
+
+   cat << EOF > "$TMPFILE.sql"
+CREATE TABLE metadata (name text, value text);
+INSERT INTO metadata VALUES ('name', '`basename "$OUTFILE"`');
+INSERT INTO metadata VALUES ('type', 'baselayer');
+INSERT INTO metadata VALUES ('version', '1');
+INSERT INTO metadata VALUES ('description', '$TITLE_CLEAN');
+INSERT INTO metadata VALUES ('format', '$ext');
+INSERT INTO metadata VALUES ('bounds', '$ll_w,$ll_s,$ll_e,$ll_n');
+CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
+BEGIN TRANSACTION;
+EOF
+
+   (
+   for file in `find "$OUTFILE" -name "*.$ext"` ; do
+      crop=`echo "$file" | sed -e "s|.*$OUTFILE/||" -e "s|\.$ext||"`
+      zoomlevel=`echo "$crop" | cut -f1 -d'/'`
+      column=`echo "$crop" | cut -f2 -d'/'`
+      row=`echo "$crop" | cut -f3 -d'/'`
+
+      echo "INSERT INTO tiles ($zoomlevel, $row, $column, 'X`hexdump -v -e '1/1 "%.2x"' $file`');"
+   done
+   ) > "${TMPFILE}_tiles.sql"
+
+
+   sort -n "${TMPFILE}_tiles.sql" >> "$TMPFILE.sql"
+
+   echo "COMMIT TRANSACTION;" >> "$TMPFILE.sql"
+
+   if [ `wc -l < "${TMPFILE}_tiles.sql"` -gt 65535 ] ; then
+      echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql"
+   fi
+
+   mv "$TMPFILE.sql" "$OUTFILE.sql"
+
+   g.message "Populating SQLite database ..."
+   cat "$OUTFILE.sql" | sqlite3 "$OUTFILE.mbtiles"
+
+fi
+
+
+if [ "$GIS_FLAG_T" -eq 1 ] ; then
+   cd `dirname "$OUTFILE"`
+   tar cf `basename "$OUTFILE"`.tar `basename "$OUTFILE"` `basename "$OUTFILE"`.mapurl
+fi
+
 cleanup
 
 if [ "$GIS_FLAG_T" -eq 1 ] ; then
    cd `dirname "$OUTFILE"`
    tar cf `basename "$OUTFILE"`.tar `basename "$OUTFILE"` `basename "$OUTFILE"`.mapurl
 fi
+
 
 g.message message=""
 g.message "Done."
