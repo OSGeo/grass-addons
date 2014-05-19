@@ -6,6 +6,7 @@ SUBDIRS = \
 	v.in.ply \
 	v.in.redwg \
 	v.in.wfs2 \
+	v.link.precip \
 	v.median \
 	v.net.turntable \
 	v.out.ply \

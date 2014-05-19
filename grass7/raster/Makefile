@@ -19,6 +19,7 @@ SUBDIRS = \
 	r.mcda.output \
 	r.mcda.roughset \
 	r.modis \
+	r.mwprecip \
 	r.regression.series \
 	r.segment \
 	r.stream.basins \
