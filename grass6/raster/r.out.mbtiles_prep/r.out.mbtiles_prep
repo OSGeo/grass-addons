@@ -493,7 +493,7 @@ INSERT INTO metadata VALUES ('version', '1.0');
 INSERT INTO metadata VALUES ('description', '$TITLE_CLEAN');
 INSERT INTO metadata VALUES ('format', '$ext');
 INSERT INTO metadata VALUES ('bounds', '$ll_w,$ll_s,$ll_e,$ll_n');
-INSERT INTO metadata VALUES ('center', '$$ll_clon,$ll_clat');
+INSERT INTO metadata VALUES ('center', '$ll_clon,$ll_clat');
 INSERT INTO metadata VALUES ('minzoom', '$minzoom');
 INSERT INTO metadata VALUES ('maxzoom', '$maxzoom');
 CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
