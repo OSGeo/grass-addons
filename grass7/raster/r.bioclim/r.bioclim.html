@@ -1,0 +1,101 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.bioclim</b></em> calculates various bioclimatic indices from 
+monthly temperature and optional precipitation time series. The time 
+series can be averages for several years or monthly values for a 
+specific year. In any case all 12 months must be provided. It a precipitation 
+time series is not provided, only those indices based on temperature 
+are calculated. The names of the output maps are &lt;output&gt;.bio01, &lt;output&gt;.bio02, 
+&lt;output&gt;.bio03, etc. 
+<p>
+If the input temperatures are scaled, e.g. as input = Celsius * 10, then 
+the <b>inscale</b> option must be set to 10. Similarly, the <b>outscale</b> 
+option is by default 10, and temperature output is in this case Celsius * 10. 
+Exceptions are BIO3, BIO4, and BIO15 which are always multiplied with 100 (see below).
+
+<dl>
+<dt><b>BIO 1</b>
+<dd>Annual mean temperature as the mean of the monthly temperatures.
+
+<dt><b>BIO 2</b>
+<dd>Mean diurnal range as the mean of monthly (max temp - min temp)
+
+<dt><b>BIO 3</b>
+<dd>Isothermality (BIO2/BIO7 * 100)
+
+<dt><b>BIO 4</b>
+<dd>Temperature Seasonality (standard deviation * 100)
+
+<dt><b>BIO 5</b>
+<dd>Max Temperature of Warmest Month
+
+<dt><b>BIO 6</b>
+<dd>Min Temperature of Coldest Month
+
+<dt><b>BIO 7</b>
+<dd>Temperature Annual Range (BIO5 - BIO6)
+
+<dt><b>BIO 8</b>
+<dd>Mean Temperature of Wettest Quarter
+
+<dt><b>BIO 9</b>
+<dd>Mean Temperature of Driest Quarter
+
+<dt><b>BIO 10</b>
+<dd>Mean Temperature of Warmest Quarter
+
+<dt><b>BIO 11</b>
+<dd>Mean Temperature of Coldest Quarter
+
+<dt><b>BIO 12</b>
+<dd>Annual Precipitation
+
+<dt><b>BIO 13</b>
+<dd>Precipitation of Wettest Month
+
+<dt><b>BIO 14</b>
+<dd>Precipitation of Driest Month
+
+<dt><b>BIO 15</b>
+<dd>Precipitation Seasonality (Coefficient of Variation * 100)
+
+<dt><b>BIO 16</b>
+<dd>Precipitation of Wettest Quarter
+
+<dt><b>BIO 17</b>
+<dd>Precipitation of Driest Quarter
+
+<dt><b>BIO 18</b>
+<dd>Precipitation of Warmest Quarter
+
+<dt><b>BIO 19</b>
+<dd>Precipitation of Coldest Quarter
+
+</dl>
+
+
+<h2>EXAMPLES</h2>
+
+Bioclimatic indices from worldclim data with 4 parallel processes:
+
+<div class="code"><pre>
+r.bioclim tmin=`g.mlist type=rast pat=tmin_* map=. sep=,` \
+          tmax=`g.mlist type=rast pat=tmax_* map=. sep=,` \
+          prec=`g.mlist type=rast pat=prec_* map=. sep=,` \
+          out=worldclim workers=4
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="r.series.html">r.series</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="g.region.html">g.region</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Markus Metz
+
+<p>
+<i>Last changed: $Date$</i>
