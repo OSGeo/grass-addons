@@ -502,7 +502,7 @@ EOF
       column=`echo "$crop" | cut -f2 -d'/'`
       row=`echo "$crop" | cut -f3 -d'/'`
 
-      echo "INSERT INTO tiles ($zoomlevel, $row, $column, 'X`hexdump -v -e '1/1 "%.2x"' $file`');"
+      echo "INSERT INTO tiles VALUES ($zoomlevel, $row, $column, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
    done
    ) > "${TMPFILE}_tiles.sql"
 
@@ -512,7 +512,7 @@ EOF
    echo "COMMIT TRANSACTION;" >> "$TMPFILE.sql"
 
    if [ `wc -l < "${TMPFILE}_tiles.sql"` -gt 65535 ] ; then
-      echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql"
+      echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql every 65535 inserts or so"
    fi
 
    mv "$TMPFILE.sql" "$OUTFILE.sql"
