@@ -535,11 +535,6 @@ EOF
 fi
 
 
-if [ "$GIS_FLAG_T" -eq 1 ] ; then
-   cd `dirname "$OUTFILE"`
-   tar cf `basename "$OUTFILE"`.tar `basename "$OUTFILE"` `basename "$OUTFILE"`.mapurl
-fi
-
 cleanup
 
 if [ "$GIS_FLAG_T" -eq 1 ] ; then
