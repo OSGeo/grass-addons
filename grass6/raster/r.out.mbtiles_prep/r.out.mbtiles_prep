@@ -489,13 +489,14 @@ if [ "$GIS_FLAG_M" -eq 1 ] ; then
 CREATE TABLE metadata (name text, value text);
 INSERT INTO metadata VALUES ('name', '`basename "$OUTFILE"`');
 INSERT INTO metadata VALUES ('type', 'baselayer');
-INSERT INTO metadata VALUES ('version', '1.0');
+INSERT INTO metadata VALUES ('version', '1.1');
 INSERT INTO metadata VALUES ('description', '$TITLE_CLEAN');
 INSERT INTO metadata VALUES ('format', '$ext');
 INSERT INTO metadata VALUES ('bounds', '$ll_w,$ll_s,$ll_e,$ll_n');
 INSERT INTO metadata VALUES ('center', '$ll_clon,$ll_clat');
 INSERT INTO metadata VALUES ('minzoom', '$minzoom');
 INSERT INTO metadata VALUES ('maxzoom', '$maxzoom');
+INSERT INTO metadata VALUES ('tile_row_type', 'tms');
 CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
 BEGIN TRANSACTION;
 EOF
@@ -513,7 +514,7 @@ EOF
       column=`echo "$crop" | cut -f2 -d'/'`
       row=`echo "$crop" | cut -f3 -d'/'`
 
-      echo "INSERT INTO tiles VALUES ($zoomlevel, $row, $column, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
+      echo "INSERT INTO tiles VALUES ($zoomlevel, $column, $row, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
    done
    ) > "${TMPFILE}_tiles.sql"
 
