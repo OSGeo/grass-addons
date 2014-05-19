@@ -23,6 +23,8 @@
 
 # https://github.com/geopaparazzi/geopaparazzi/wiki/.mapurl-Converting-Tile-Set-to-.mbtiles
 # https://github.com/geopaparazzi/geopaparazzi/wiki/.mapurl-parameters
+# https://github.com/mapbox/mbtiles-spec/blob/master/1.1/spec.md
+# https://github.com/geopaparazzi/geopaparazzi/wiki/mbtiles-Implementation
 
 #%Module
 #% description: Export GRASS raster as a TMS tree ready for converting to mbtiles format.
@@ -487,14 +489,23 @@ if [ "$GIS_FLAG_M" -eq 1 ] ; then
 CREATE TABLE metadata (name text, value text);
 INSERT INTO metadata VALUES ('name', '`basename "$OUTFILE"`');
 INSERT INTO metadata VALUES ('type', 'baselayer');
-INSERT INTO metadata VALUES ('version', '1');
+INSERT INTO metadata VALUES ('version', '1.0');
 INSERT INTO metadata VALUES ('description', '$TITLE_CLEAN');
 INSERT INTO metadata VALUES ('format', '$ext');
 INSERT INTO metadata VALUES ('bounds', '$ll_w,$ll_s,$ll_e,$ll_n');
+INSERT INTO metadata VALUES ('center', '$$ll_clon,$ll_clat');
+INSERT INTO metadata VALUES ('minzoom', '$minzoom');
+INSERT INTO metadata VALUES ('maxzoom', '$maxzoom');
 CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
 BEGIN TRANSACTION;
 EOF
 
+
+   # FIXME: keep DB small by checking for duplicate tile images (ocean, wasteland)
+   #  Make the 'tiles' table a view, then replace 'blob' with (tile_id text),
+   #  and in the 'images' table keep unique tiles in (tile_data blob, tile_id text).
+   # perhaps try 'md5sum | sort | uniq -d' to weed out duplicates?
+   # see https://github.com/geopaparazzi/geopaparazzi/wiki/mbtiles-Implementation
    (
    for file in `find "$OUTFILE" -name "*.$ext"` ; do
       crop=`echo "$file" | sed -e "s|.*$OUTFILE/||" -e "s|\.$ext||"`
