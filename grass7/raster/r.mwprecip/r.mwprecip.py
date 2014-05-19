@@ -18,12 +18,6 @@ from datetime import datetime ,timedelta
 from math import sin, cos, atan2,degrees,radians, tan,sqrt,fabs 
 
 try:
-    sys.path.insert(0, os.path.join(os.environ['GISBASE'], 'etc', 'r.mwprecip'))
-    from pgwrapper import pgwrapper as pg
-except ImportError:
-    sys.exit("Cannot find 'pgwrapper' Python module")
-
-try:
     from grass.script import core as grass  
 except ImportError:
     sys.exit("Cannot find 'grass' Python module. Python is supported by GRASS from version >= 6.4")
@@ -594,6 +588,12 @@ def dbConnPy():
     db_name = options['database']
     db_user = options['user']
     db_password = options['password']
+
+    try:
+        sys.path.insert(0, os.path.join(os.environ['GRASS_ADDON_BASE'], 'etc', 'r.mwprecip'))
+        from pgwrapper import pgwrapper as pg
+    except ImportError:
+        sys.exit("Cannot find 'pgwrapper' Python module")
     
     try:
         conninfo = { 'dbname' : db_name }
