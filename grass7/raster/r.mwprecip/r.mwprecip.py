@@ -15,8 +15,13 @@ import glob
 import re
 from collections import defaultdict
 from datetime import datetime ,timedelta
-from pgwrapper import pgwrapper as pg
 from math import sin, cos, atan2,degrees,radians, tan,sqrt,fabs 
+
+try:
+    sys.path.insert(0, os.path.join(os.environ['GISBASE'], 'etc', 'r.mwprecip'))
+    from pgwrapper import pgwrapper as pg
+except ImportError:
+    sys.exit("Cannot find 'pgwrapper' Python module")
 
 try:
     from grass.script import core as grass  
