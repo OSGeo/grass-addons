@@ -11,7 +11,11 @@ Either an individual raster map or a raster map imagery group may be given as in
 <p>
 If not specified the zoom level will be automatically chosen.
 <p>
-When finished, copy the <b>output</b> directory and mapurl file to
+The MBTiles output file has not been deduplicated to only store unique
+images in the database. Currently this can be accomplished by copying
+the tile tree onto an Android device and letting <em>Geopaparazzi</em>
+create the .mbtiles file.
+To do this, copy the <b>output</b> directory and mapurl file to
 <tt>/sdcard/maps/</tt> on your Android device and select the mapurl file
 as the tile source in <em>Geopaparazzi</em>. The MBTiles SQLite
 database will then be populated in the background.
@@ -87,7 +91,8 @@ v.out.ogr in=roadsmajor dsn=roadsmajor.gpx \
 
 <h2>TODO</h2>
 
-Ability to create the MBTiles SQLite database directly.
+Ability to create the MBTiles SQLite database with a deduplication
+process to store only unique tile images.
 <p>
 On MS Windows <tt>gdal2tiles.py</tt> is called <tt>gdal2tiles.bat</tt>.
 Some minor adjust is needed in the script to select the correct name.

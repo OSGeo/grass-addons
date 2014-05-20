@@ -509,12 +509,9 @@ EOF
    # see https://github.com/geopaparazzi/geopaparazzi/wiki/mbtiles-Implementation
    (
    for file in `find "$OUTFILE" -name "*.$ext"` ; do
-      crop=`echo "$file" | sed -e "s|.*$OUTFILE/||" -e "s|\.$ext||"`
-      zoomlevel=`echo "$crop" | cut -f1 -d'/'`
-      column=`echo "$crop" | cut -f2 -d'/'`
-      row=`echo "$crop" | cut -f3 -d'/'`
+      zoomcolrow=`echo "$file" | sed -e "s|.*$OUTFILE/||" -e "s|\.$ext||" -e 's|/|, |g'`
 
-      echo "INSERT INTO tiles VALUES ($zoomlevel, $column, $row, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
+      echo "INSERT INTO tiles VALUES ($zoomcolrow, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
    done
    ) > "${TMPFILE}_tiles.sql"
 
