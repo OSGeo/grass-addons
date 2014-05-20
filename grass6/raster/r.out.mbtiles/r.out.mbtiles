@@ -517,7 +517,7 @@ EOF
 
    echo "COMMIT TRANSACTION;" >> "$TMPFILE.sql"
 
-   if [ `wc -l < "${TMPFILE}_tiles.sql"` -gt 65535 ] ; then
+   if [ `wc -l < "$TMPFILE.sql"` -gt 65535 ] ; then
       echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql every 65535 inserts or so"
    fi
 
