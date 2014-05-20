@@ -385,7 +385,7 @@ for file in `find $(dirname "$OUT_DIR") | grep .aux.xml` ; do
    rm -f "$file"
 done
 
-#### write out .mapurl file
+#### write out metadata files
 
 # get max extent bbox in lat/lon 
 eval `g.region -bgu` 
@@ -399,6 +399,7 @@ else
    ext=png
 fi
 
+# .mapurl file for Geopaparazzi and uDig
 cat << EOF > "$URLFILE"
 url=$OUTFILE/ZZZ/XXX/YYY.$ext
 minzoom=$minzoom
@@ -413,6 +414,23 @@ defaultzoom=$default_zoom
 format=$ext
 request_type=run,fill,load
 EOF
+
+# json file for MBUtil
+cat << EOF > "$OUT_DIR/metadata.json"
+{
+    "version": "1.1",
+    "name": "$TITLE",
+    "description": "Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles",
+    "format": "$ext",
+    "center": "$ll_clon,$ll_clat",
+    "bounds": "$ll_w,$ll_s,$ll_e,$ll_n",
+    "minzoom": "$minzoom",
+    "maxzoom": "$maxzoom",
+    "type": "baselayer",
+    "tile_row_type": "tms"
+}
+EOF
+
 
 cd "$OUT_DIR"
 
