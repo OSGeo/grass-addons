@@ -508,15 +508,12 @@ EOF
    # perhaps try 'md5sum | sort | uniq -d' to weed out duplicates?
    # see https://github.com/geopaparazzi/geopaparazzi/wiki/mbtiles-Implementation
    (
-   for file in `find "$OUTFILE" -name "*.$ext"` ; do
+   for file in `find "$OUTFILE" -name "*.$ext" | sort -n -t / -k 2` ; do
       zoomcolrow=`echo "$file" | sed -e "s|.*$OUTFILE/||" -e "s|\.$ext||" -e 's|/|, |g'`
 
       echo "INSERT INTO tiles VALUES ($zoomcolrow, X'`hexdump -v -e '1/1 "%.2x"' $file`');"
    done
-   ) > "${TMPFILE}_tiles.sql"
-
-
-   sort -n "${TMPFILE}_tiles.sql" >> "$TMPFILE.sql"
+   ) >> "$TMPFILE.sql"
 
    echo "COMMIT TRANSACTION;" >> "$TMPFILE.sql"
 
@@ -524,10 +521,8 @@ EOF
       echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql every 65535 inserts or so"
    fi
 
-   mv "$TMPFILE.sql" "$OUTFILE.sql"
-
    g.message "Populating SQLite database ..."
-   cat "$OUTFILE.sql" | sqlite3 "$OUTFILE.mbtiles"
+   cat "$TMPFILE.sql" | sqlite3 "$OUTFILE.mbtiles"
 
 fi
 
@@ -535,6 +530,11 @@ fi
 cleanup
 
 if [ "$GIS_FLAG_T" -eq 1 ] ; then
+   if [ ! -x "`which tar`" ] ; then
+      g.message -e "tar is required, please install it first."
+      exit 1
+   fi
+
    cd `dirname "$OUTFILE"`
    tar cf `basename "$OUTFILE"`.tar `basename "$OUTFILE"` `basename "$OUTFILE"`.mapurl
 fi
@@ -542,7 +542,9 @@ fi
 
 g.message message=""
 g.message "Done."
-g.message "Next copy the '$OUTFILE' directory and mapurl file to \
-/sdcard/maps/ on your Android device and select the mapurl file as the \
-tile source in Geopaparazzi. The MBTiles SQLite database will then \
-be populated in the background."
+
+#g.message "Next copy the '$OUTFILE' directory and mapurl file to \
+# /sdcard/maps/ on your Android device and select the mapurl file as the \
+# tile source in Geopaparazzi. The MBTiles SQLite database will then \
+# be populated in the background."
+
