@@ -515,7 +515,10 @@ EOF
    done
    ) >> "$TMPFILE.sql"
 
-   echo "COMMIT TRANSACTION;" >> "$TMPFILE.sql"
+   cat << EOF >> "$TMPFILE.sql"
+COMMIT TRANSACTION;
+CREATE UNIQUE INDEX tiles_index ON tiles (zoom_level, tile_column, tile_row);
+EOF
 
    if [ `wc -l < "$TMPFILE.sql"` -gt 65535 ] ; then
       echo "FIXME: insert some 'COMMIT TRANSACTION; BEGIN TRANSACTION;' inline the sql every 65535 inserts or so"

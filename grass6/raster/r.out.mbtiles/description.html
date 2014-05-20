@@ -1,13 +1,14 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.out.mbtiles</em> creates a TMS tileset and support files ready to
-load into software like Geopaparazzi which will make the final conversion to
-a MBTiles SQLite database file.
+load into software like Geopaparazzi or Tilemill. It will optionally
+generate a MBTiles SQLite database from the tile tree.
 
 
 <h2>NOTES</h2>
 
-Either an individual raster map or a raster map imagery group may be given as input.
+Either an individual raster map or a raster map imagery group may be given
+as input.
 <p>
 If not specified the zoom level will be automatically chosen.
 <p>
@@ -20,6 +21,10 @@ To do this, copy the <b>output</b> directory and mapurl file to
 as the tile source in <em>Geopaparazzi</em>. The MBTiles SQLite
 database will then be populated in the background.
 <p>
+If the <a href="https://github.com/mapbox/mbutil">MBUtil</a> program
+is installed you can use it as an alternate method to convert the tile
+tree into a highly optimized MBTiles database.
+<p>
 Too many tiles? Use the <b>zoom</b> parameter to limit the current
 operation to a single zoom level, then crop the region with
 <em>g.region</em> to where you need detailed coverage and re-run
@@ -31,8 +36,8 @@ maxzoom and minzoom values in the mapurl file as needed.
 <h2>EXAMPLE</h2>
 
 Example 1:
-Creates a tileset for the North Carolina sample dataset's <tt>soilsID</tt> raster
-map at automatically chosen zoom levels 11-14.
+Creates a tileset for the North Carolina sample dataset's <tt>soilsID</tt>
+raster map at automatically chosen zoom levels 11-14.
 
 <div class="code"><pre>
 g.region rast=soilsID
