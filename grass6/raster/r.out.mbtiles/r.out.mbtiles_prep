@@ -1,7 +1,7 @@
 #!/bin/sh
 ############################################################################
 #
-# MODULE:       r.out.mbtiles_prep
+# MODULE:       r.out.mbtiles
 # AUTHOR(S):    M. Hamish Bowman, Dunedin, New Zealand
 # PURPOSE:      Export a raster map into a TMS bundle ready for conversion
 #		 to MBTiles SQLite format
@@ -408,7 +408,7 @@ bounds=$ll_w $ll_s $ll_e $ll_n
 type=tms
 mbtiles=$OUTFILE/$OUTFILE.mbtiles
 name=$TITLE
-description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles_prep
+description=Exported zoom level(s) $ZOOM from GRASS GIS r.out.mbtiles
 defaultzoom=$default_zoom
 format=$ext
 request_type=run,fill,load
