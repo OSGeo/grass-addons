@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("statistics"));
     G_add_keyword(_("area"));
     module->description =
-        _("Cacullates area of clumped areas and remove areas smaller than given threshold.");
+        _("Calculates area of clumped areas and remove areas smaller than given threshold.");
 
     input = G_define_standard_option(G_OPT_R_INPUT);
     input->description = _("Map created with r.clump");
