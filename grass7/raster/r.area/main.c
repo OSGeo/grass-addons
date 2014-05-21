@@ -3,7 +3,7 @@
  * MODULE:       r.area
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Calculate area of clumped areas. Remove areas smaller than
- *                                                       given threshold.
+ *               given threshold.
  * 
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
 
     struct GModule *module;
-    struct Option *input, *output, *par_treshold;
+    struct Option *input, *output, *par_threshold;
     struct Flag *flag_binary;
 
     struct Cell_head cellhd;
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
     char *mapset;
     int nrows, ncols;
-    int binary, treshold;
+    int binary, threshold;
     int row, col;
     int infd, outfd;
     CELL *in_buf;
@@ -58,11 +58,11 @@ int main(int argc, char *argv[])
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->description = _("Map with area size (in cells)");
 
-    par_treshold = G_define_option();	/* input stream mask file - optional */
-    par_treshold->key = "treshold";
-    par_treshold->type = TYPE_INTEGER;
-    par_treshold->answer = "0";
-    par_treshold->description = _("Remove areas lower than (0 for none):");
+    par_threshold = G_define_option();	/* input stream mask file - optional */
+    par_threshold->key = "threshold";
+    par_threshold->type = TYPE_INTEGER;
+    par_threshold->answer = "0";
+    par_threshold->description = _("Remove areas lower than (0 for none):");
 
     flag_binary = G_define_flag();
     flag_binary->key = 'b';
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 
 
-    treshold = atof(par_treshold->answer);
+    threshold = atof(par_threshold->answer);
     binary = (flag_binary->answer != 0);
     mapset = (char *)G_find_raster2(input->answer, "");
 
@@ -114,15 +114,15 @@ int main(int argc, char *argv[])
 	}
     }				/* end for row */
 
-    if (treshold) {
+    if (threshold) {
 	for (i = 1; i < c_max; ++i)
-	    if (ncells[i] < treshold)
+	    if (ncells[i] < threshold)
 		ncells[i] = -1;
     }
 
     if (binary) {
 	for (i = 1; i < c_max; ++i)
-	    ncells[i] = ncells[i] < treshold ? -1 : 1;
+	    ncells[i] = ncells[i] < threshold ? -1 : 1;
     }
 
     outfd = Rast_open_new(output->answer, CELL_TYPE);
