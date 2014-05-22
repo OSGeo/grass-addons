@@ -20,6 +20,7 @@ SUBDIRS = \
 	r.mcda.roughset \
 	r.modis \
 	r.mwprecip \
+	r.northerness.easterness \
 	r.regression.series \
 	r.segment \
 	r.stream.basins \
