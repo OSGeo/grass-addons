@@ -83,8 +83,15 @@ import grass.script as grass
 # main function
 def main():
     # set the home path
-    home = os.path.expanduser('~')
-    rlidir = os.path.join(home, '.grass7', 'r.li')
+    grass_env_file = None  # see check_shell()
+    if sys.platform == 'win32':
+        grass_config_dirname = "GRASS7"
+        grass_config_dir = os.path.join(os.getenv('APPDATA'), grass_config_dirname)
+    else:
+        grass_config_dirname = ".grass7"
+        grass_config_dir = os.path.join(os.getenv('HOME'), grass_config_dirname)
+    # configuration directory
+    rlidir = os.path.join(grass_config_dir, 'r.li')
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
         # return an error advice
@@ -124,7 +131,7 @@ def main():
         quiet = False
     # if method and exclude option are not null return an error
     if methods != '' and excludes != '':
-        grass.fatal(_("You can use method or exclude option not both"))
+        grass.fatal(_("You can either use 'method' or 'exclude' option but not both"))
     # calculate method
     elif methods != '':
         methods = methods.split(',')
@@ -139,7 +146,7 @@ def main():
                    quiet, overwrite)
     # remove configuration files
     removeConfFile(resolution, rlidir)
-    print 'All works are terminated'
+    grass.message(_("Done."))
 
 
 # calculate only method included in method option
@@ -196,11 +203,11 @@ def checkAlpha(method, alpha_val, negative=False):
         # it's used when we check the exclude option
         if negative:
             if method.count('renyi') != 1 and alpha == '':
-                grass.fatal(_("Please you must set alpha value for Renyi entropy"))
+                grass.fatal(_("You must set alpha value for Renyi entropy"))
         # it's used when we check the method option
         else:
             if method.count('renyi') == 1 and alpha == '':
-                grass.fatal(_("Please you must set alpha value for Renyi entropy"))
+                grass.fatal(_("You must set alpha value for Renyi entropy"))
 
 
 #create configuration file instead using r.li.setup
@@ -256,7 +263,7 @@ def checkValues(res, alpha=False):
     # create a range
     if typ == 'range':
         if alpha:
-            grass.fatal(_("Range for alpha values it isn't supported"))
+            grass.fatal(_("Range for alpha values is not supported"))
         else:
             reso = range(reso[0], reso[1] + 1, 2)
     return reso
