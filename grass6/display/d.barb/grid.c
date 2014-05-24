@@ -8,8 +8,8 @@
 
 /* load and plot barbs from data stored in two raster maps */
 void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
-		  int color, int aspect_type, double scale, int skip,
-		  int style, int reverse)
+		  int color, int aspect_type, double scale, double setpeak,
+		  int skip, int style, int reverse)
 {
     /* from d.rast.arrow */
     struct FPRange range;
@@ -31,6 +31,9 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
     if (G_read_fp_range(mag_v_map, "", &range) != 1)
 	G_fatal_error(_("Problem reading range file"));
     G_get_fp_range_min_max(&range, &mag_min, &mag_max);
+
+    if (!isnan(setpeak))
+	mag_max = setpeak;
 
     if (style == TYPE_ARROW || style == TYPE_STRAW) {
 	scale *= 1.5 / fabs(mag_max);

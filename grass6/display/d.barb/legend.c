@@ -6,7 +6,7 @@
 #include "local_proto.h"
 
 void do_legend(char **at_list, char **velo_list, int num_velos,
-	       double key_fontsize, int style, double scale, double peak,
+	       double key_fontsize, int style, double scale, double setpeak,
 	       int color)
 {
     double easting, northing, px, py, velo, angle;

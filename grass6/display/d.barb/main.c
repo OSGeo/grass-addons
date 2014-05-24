@@ -7,7 +7,7 @@
  * AUTHORS:     Hamish Bowman, Dunedin, New Zealand
  *              Grid code derived from d.rast.arrow
  *
- * COPYRIGHT:   (c) 2008-2012 by Hamish Bowman, and The GRASS Development Team
+ * COPYRIGHT:   (c) 2008-2014 by Hamish Bowman, and The GRASS Development Team
  *              This program is free software under the GNU General Public
  *              License (>=v2). Read the file COPYING that comes with GRASS
  *              for details.
@@ -196,6 +196,8 @@ int main(int argc, char *argv[])
     vlayer = atoi(vlayer_opt->answer);
     if (peak_opt->answer)
 	peak = atof(peak_opt->answer);
+    else
+	peak = 0./0.; /* NaN */
 
     if (strcmp(type_opt->answer, "compass") == 0)
 	aspect_type = TYPE_COMPASS;
@@ -224,7 +226,8 @@ int main(int argc, char *argv[])
 	    num_leg_velo++;
 
 	if (num_leg_at != num_leg_velo * 2)
-	    G_fatal_error(_("Unequal number of legend placement and velocity requests (%d vs. %d)"),
+	    G_fatal_error(
+	       _("Unequal number of legend placement and velocity requests (%d vs. %d)"),
 			  num_leg_at, num_leg_velo);
 
 	key_fontsize = atof(keyfont_opt->answer);
@@ -253,10 +256,10 @@ int main(int argc, char *argv[])
     if (is_vector)
 	do_barb_points(vinput_opt->answer, vlayer,
 		       dir_u_map, mag_v_map, is_component, color,
-		       aspect_type, scale, style, from_to->answer);
+		       aspect_type, scale, peak, style, from_to->answer);
     else
 	do_barb_grid(dir_u_map, mag_v_map, is_component, color,
-		     aspect_type, scale, skip, style, from_to->answer);
+		     aspect_type, scale, peak, skip, style, from_to->answer);
 
 
     D_add_to_list(G_recreate_command());

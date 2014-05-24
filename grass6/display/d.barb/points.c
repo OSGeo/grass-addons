@@ -9,7 +9,8 @@
 /* load and plot barbs from data stored in a vector map's attribute table */
 void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 		    char *mag_v_col, int is_component, int color,
-		    int aspect_type, double scale, int style, int reverse)
+		    int aspect_type, double scale, double setpeak,
+		    int style, int reverse)
 {
 
     struct Map_info vMap;
@@ -76,14 +77,18 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 	}
     }
 
-    peak = max_magnitude(magn, num_pts);
+    if(!isnan(setpeak))
+	peak = setpeak;
+    else
+	peak = max_magnitude(magn, num_pts);
+    
     G_debug(2, "  peak = %.2f", peak);
     if (style == TYPE_BARB || style == TYPE_SMLBARB) {
 	if(peak > 150)
 	    G_warning(_("Maximum wind barb displayed is 150 knots"));
     }
 
-    peak = 1.;			// TODO: window width * 0.20 
+    peak = 1.;			// TODO: window width * 0.20
     scale_fact = (peak) * scale;
 
     for (i = 0; i < num_pts; i++) {
