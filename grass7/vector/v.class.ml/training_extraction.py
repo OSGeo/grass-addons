@@ -13,9 +13,9 @@ import numpy as np
 from grass.script.core import overwrite
 from grass.pygrass.vector import VectorTopo, Vector
 from grass.pygrass.vector.table import Link, Table
-from grass.pygrass.vector.geometry import Area, intersects
+from grass.pygrass.vector.geometry import Line, Area, intersects
 from grass.pygrass.vector.basic import Bbox, BoxList
-from grass.pygrass.messages import Messenger
+from grass.pygrass.messages import get_msgr
 
 
 COLS = [('cat', 'INTEGER PRIMARY KEY'),
@@ -29,9 +29,10 @@ def update_lines(line, alist, cur=None, sql=None):
     """
     to_up = []
     bbox = Bbox()
+    aline = Line()
     for area in alist:
         bbox = area.bbox(bbox)
-        if ((intersects(area.boundary, line)) or
+        if ((intersects(area.get_points(aline), line)) or
                 (area.contain_pnt(line[0], bbox))):
             to_up.append((line.cat, area.cat))
     if (cur is not None) and (sql is not None):
@@ -45,20 +46,25 @@ def update_areas(trn_area, seg_area, ids, cur=None, sql=None):
     """
     to_up = []
     bbox = trn_area.bbox()
+    aline = Line()
+    tline = Line()
     for s_id in ids:
         seg_area.id = s_id
         seg_area.read()
-        if ((intersects(seg_area.boundary, trn_area.boundary)) or
-                (trn_area.contain_pnt(seg_area.boundary[0], bbox)) or
-                (seg_area.contain_pnt(trn_area.boundary[0]))):
+        seg_area.get_points(aline)
+        trn_area.get_points(tline)
+        if ((intersects(aline, tline)) or
+                (trn_area.contain_pnt(aline[0], bbox)) or
+                (seg_area.contain_pnt(tline[0]))):
             to_up.append((trn_area.cat, seg_area.cat))
     if (cur is not None) and (sql is not None):
         cur.executemany(sql, to_up)
     return to_up
 
 
-def find_lines(table, trn, seg, msgr):
+def find_lines(table, trn, seg):
     """Update the lines' table using the boundaries of the training areas"""
+    msgr = get_msgr()
     sql = UPDATE.format(tname=table.name, cat=table.key)
     boxlist = BoxList()
     n_bounds = len(trn)
@@ -70,24 +76,29 @@ def find_lines(table, trn, seg, msgr):
     table.conn.commit()
 
 
-def find_area(table, trn_ids, trn_area, seg_area, n_areas, seg, msgr):
+def find_area(table, trn_ids, trn_area, seg_area, n_areas, seg):
     """Update the lines' table using the training areas"""
+    msgr = get_msgr()
     cur = table.conn.cursor()
     msgr.message(_("Finding areas..."))
     sql = UPDATE.format(tname=table.name, cat=table.key)
     boxlist = BoxList()
+    res = []
     for i, trn_id in enumerate(trn_ids):
         msgr.percent(i, n_areas, 1)
         trn_area.id = trn_id
         trn_area.read()
         bblist = seg.find['by_box'].areas(trn_area.boundary.bbox(), boxlist,
                                           bboxlist_only=True)
-        update_areas(trn_area, seg_area, bblist.ids, cur, sql)
+        res.append(np.array(update_areas(trn_area, seg_area, bblist.ids,
+                                         cur, sql)))
     table.conn.commit()
 
 
-def make_new_table(vct, msgr, tname, cols=COLS, force=overwrite()):
+def make_new_table(vct, tname, cols=COLS, force=None):
     """Check/remove/create a new table"""
+    msgr = get_msgr()
+    force = overwrite() if force is None else force
     create_link = True
     # make a new table
     table = Table(tname, vct.table.conn)
@@ -106,9 +117,10 @@ def make_new_table(vct, msgr, tname, cols=COLS, force=overwrite()):
     return table, create_link
 
 
-def check_balance(table, trntab, msgr):
+def check_balance(table, trntab):
     """Checking the balance between different training classes."""
     msg = _('Checking the balance between different training classes.')
+    msgr = get_msgr()
     msgr.message(msg)
     chk_balance = ("SELECT class, count(*) as num_of_segments "
                    "FROM {tname} "
@@ -144,20 +156,23 @@ def get_layer_num_name(vect, tlayer):
 def extract_training(vect, tvect, tlayer):
     """Assign a class to all the areas that contained, are contained
     or intersect a training vector"""
-    msgr = Messenger()
-    with VectorTopo(tvect, mode='r') as trn:
-        with VectorTopo(vect, mode='r') as vct:
+    msgr = get_msgr()
+    tname, tmset = tvect.split('@') if '@' in tvect else (tvect, '')
+    vname, vmset = vect.split('@') if '@' in vect else (vect, '')
+    with VectorTopo(tname, tmset, mode='r') as trn:
+        with VectorTopo(vname, vmset, mode='r') as vct:
             layer_num, layer_name = get_layer_num_name(vct, tlayer)
             # instantiate the area objects
             trn_area = Area(c_mapinfo=trn.c_mapinfo)
             seg_area = Area(c_mapinfo=vct.c_mapinfo)
             n_areas = trn.number_of('areas')
             # check/remove/create a new table
-            table, create_link = make_new_table(vct, msgr, layer_name)
+            table, create_link = make_new_table(vct, layer_name)
+            find_lines(table, [l for l in trn.viter('lines')], vct)
             # find and save all the segments
             find_area(table, trn.viter('areas', idonly=True),
-                      trn_area, seg_area, n_areas, vct, msgr)
-            check_balance(table, trn.table, msgr)
+                      trn_area, seg_area, n_areas, vct)
+            check_balance(table, trn.table)
 
     if create_link:
         msgr.message(_("Connect the new table to the vector map..."))

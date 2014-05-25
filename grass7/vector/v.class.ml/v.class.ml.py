@@ -69,6 +69,22 @@
 #%  required: no
 #%end
 #%option
+#%  key: npy_cols
+#%  type: string
+#%  multiple: no
+#%  description: Numpy array with columns names.
+#%  answer: cols.npy
+#%  required: no
+#%end
+#%option
+#%  key: npy_index
+#%  type: string
+#%  multiple: no
+#%  description: Boolean numpy array with training indexes.
+#%  answer: indx.npy
+#%  required: no
+#%end
+#%option
 #%  key: npy_tdata
 #%  type: string
 #%  multiple: no
@@ -98,6 +114,22 @@
 #%  multiple: no
 #%  description: training npy file with the classes, default: training_classes.npy
 #%  answer: Ybt.npy
+#%  required: no
+#%end
+#%option
+#%  key: imp_csv
+#%  type: string
+#%  multiple: no
+#%  description: Feature importances with forests of trees: CSV
+#%  answer: features_importances.csv
+#%  required: no
+#%end
+#%option
+#%  key: imp_fig
+#%  type: string
+#%  multiple: no
+#%  description: Feature importances with forests of trees: figure
+#%  answer: features_importances.png
 #%  required: no
 #%end
 #%option
@@ -145,24 +177,51 @@
 #%end
 #%option
 #%  key: nan
-#%  type: double
-#%  multiple: no
-#%  description: Value to use to substitute NaN
+#%  type: string
+#%  multiple: yes
+#%  description: Column pattern:Value or Numpy funtion to use to substitute NaN values
 #%  required: no
+#%  answer: *_skewness:nanmean,*_kurtosis:nanmean
 #%end
 #%option
 #%  key: inf
-#%  type: double
-#%  multiple: no
-#%  description: Value to use to substitute NaN
+#%  type: string
+#%  multiple: yes
+#%  description: Key:Value or Numpy funtion to use to substitute NaN values
 #%  required: no
+#%  answer: *_skewness:nanmean,*_kurtosis:nanmean
 #%end
 #%option
-#%  key: csv
+#%  key: neginf
+#%  type: string
+#%  multiple: yes
+#%  description: Key:Value or Numpy funtion to use to substitute NaN values
+#%  required: no
+#%  answer:
+#%end
+#%option
+#%  key: posinf
+#%  type: double
+#%  multiple: yes
+#%  description: Key:Value or Numpy funtion to use to substitute NaN values
+#%  required: no
+#%  answer:
+#%end
+#%option
+#%  key: csv_test_cls
 #%  type: string
 #%  multiple: no
-#%  description: csv file name with tha accuracy of different machine learning
+#%  description: csv file name with results of different machine learning scores
 #%  required: no
+#%  answer: test_classifiers.csv
+#%end
+#%option
+#%  key: report_class
+#%  type: string
+#%  multiple: no
+#%  description: csv file name with results of different machine learning scores
+#%  required: no
+#%  answer: classification_report.txt
 #%end
 #%option
 #%  key: svc_c_range
@@ -244,6 +303,10 @@
 #%  description: Export to numpy files
 #%end
 #%flag
+#%  key: f
+#%  description: Feature importances with forests of trees
+#%end
+#%flag
 #%  key: b
 #%  description: Balance the training using the class with the minor number of areas
 #%end
@@ -264,36 +327,28 @@
 #%  description: Test different classification methods
 #%end
 #%flag
+#%  key: v
+#%  description: Bias variance
+#%end
+#%flag
 #%  key: d
 #%  description: Explore the SVC domain
 #%end
 #-----------------------------------------------------
-"""
-v.category input=seg005_64@pietro layer=1,2,3,4,5,6,7,8,9 type=point,line,centroid,area,face output=seg005_64_new option=transfer
-
-v.category input=seg005_64_new option=report
-
-i.pca -n input=Combabula_Nearmap.red@PERMANENT,Combabula_Nearmap.green@PERMANENT,Combabula_Nearmap.blue@PERMANENT output_prefix=pca
-PC1      2.78 ( 0.5757, 0.5957, 0.5601) [92.83%]
-PC2      0.20 ( 0.6002, 0.1572,-0.7842) [ 6.81%]
-PC3      0.01 ( 0.5552,-0.7877, 0.2670) [ 0.36%]
-
-time r.texture -a input=pca.1@pietro prefix=pca5_ size=5 --o
-time r.texture -a input=pca.1@pietro prefix=pca3_ size=3 --o
-echo finish
-"""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 import imp
 import sys
 import os
+from pprint import pprint
+from fnmatch import fnmatch
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from grass.pygrass.functions import get_lib_path
-from grass.pygrass.messages import Messenger
+from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import Vector
 from grass.pygrass.modules import Module
 from grass.script.core import parser, overwrite
@@ -311,6 +366,17 @@ from ml_functions import (balance, explorer_clsfiers, run_classifier,
                           optimize_training, explore_SVC, plot_grid)
 from sqlite2npy import save2npy
 from npy2table import export_results
+from features import importances, tocsv
+
+
+RULES = {'*_skewness': np.nanmean,
+         '*_coeff_var': np.nanmean,
+         '*_stddev': np.nanmean,
+         '*_variance': np.nanmean,
+         '*_mean': np.nanmean,
+         '*_range': np.nanmean,
+         '*_max': np.nanmax,
+         '*_min': np.nanmin, }
 
 
 def get_indexes(string, sep=',', rangesep='-'):
@@ -333,8 +399,74 @@ def get_colors(vtraining):
         cur = vct.table.execute('SELECT cat, color FROM %s;' % vct.name)
         return dict([c for c in cur.fetchall()])
 
+
+def convert(string):
+    try:
+        return float(string)
+    except:
+        try:
+            return getattr(np, string)
+        except AttributeError:
+            msg = "Not a valid option, is not a number or a numpy function."
+            raise TypeError(msg)
+
+
+def get_rules(string):
+    res = {}
+    pairs = [s.strip().split(':') for s in string.strip().split(',')]
+    for key, val in pairs:
+        res[key] = convert(val)
+    return res
+
+
+def find_special_cols(array, cols, report=True,
+                      special=('nan', 'inf', 'neginf', 'posinf')):
+    sp = {key: [] for key in special}
+    cntr = {key: [] for key in special}
+    for i in range(len(cols)):
+        for key in special:
+            barray = getattr(np, 'is%s' % key)(array[:, i])
+            if barray.any():
+                sp[key].append(i)
+                cntr[key].append(barray.sum())
+    if report:
+        indent = '    '
+        tot = len(array)
+        for key in special:
+            fmt = '- %15s (%3d/%d, %4.3f%%)'
+            strs = [fmt % (col, cnt, tot, cnt/float(tot)*100)
+                    for col, cnt in zip(cols[np.array(sp[key])], cntr[key])]
+            print('%s:\n%s' % (key, indent), ('\n%s' % indent).join(strs),
+                  sep='')
+    return sp
+
+
+def substitute(X, rules, cols):
+    vals = {}
+    special_cols = find_special_cols(X, cols)
+    pprint(special_cols)
+    for key in rules.keys():
+        vals[key] = {}
+        for i in special_cols[key]:
+            for rule in rules[key]:
+                if fnmatch(cols[i], rule):
+                    indx = getattr(np, 'is%s' % key)(X[:, i])
+                    val = (rules[key][rule] if np.isscalar(rules[key][rule])
+                           else rules[key][rule](X[:, i][~indx]))
+                    X[:, i][indx] = val
+                    vals[key][cols[i]] = val
+    return X, vals
+
+
+def extract_classes(vect, layer):
+    vect, mset = vect.split('@') if '@'in vect else (vect, '')
+    with Vector(vect, mapset=mset, layer=layer, mode='r') as vct:
+        vct.table.filters.select('cat', 'class')
+        return {key: val for key, val in vct.table.execute()}
+
+
 def main(opt, flg):
-    msgr = Messenger()
+    msgr = get_msgr()
     indexes = None
     vect = opt['vector']
     vtraining = opt['vtraining'] if opt['vtraining'] else None
@@ -342,6 +474,9 @@ def main(opt, flg):
     vlayer = opt['vlayer'] if opt['vlayer'] else vect + '_stats'
     tlayer = opt['tlayer'] if opt['tlayer'] else vect + '_training'
     rlayer = opt['rlayer'] if opt['rlayer'] else vect + '_results'
+
+    labels = extract_classes(vtraining, vlayer)
+    pprint(labels)
 
     if opt['scalar']:
         scapar = opt['scalar'].split(',')
@@ -355,7 +490,10 @@ def main(opt, flg):
 
     if flg['n']:
         msgr.message("Save arrays to npy files.")
-        save2npy(vect, vlayer, tlayer)
+        save2npy(vect, vlayer, tlayer,
+                 fcats=opt['npy_cats'], fcols=opt['npy_cols'],
+                 fdata=opt['npy_data'], findx=opt['npy_index'],
+                 fclss=opt['npy_tclasses'], ftdata=opt['npy_tdata'])
 
     # define the classifiers to use/test
     if opt['pyclassifiers'] and opt['pyvar']:
@@ -378,21 +516,29 @@ def main(opt, flg):
         indexes = [i for i in get_indexes(opt['pyindx'])]
         classifiers = [classifiers[i] for i in indexes]
 
-    csv = open(opt['csv'], 'w') if opt['csv'] else sys.stdout
     num = int(opt['n_training']) if opt['n_training'] else None
 
     # load fron npy files
     Xt = np.load(opt['npy_tdata'])
     Yt = np.load(opt['npy_tclasses'])
-    clsses = sorted(set(Yt))
+    cols = np.load(opt['npy_cols'])
 
-    # Substitute NaN
-    if opt['nan']:
-        msgr.message("Substitute NaN values with: <%g>" % float(opt['nan']))
-        Xt[np.isnan(Xt)] = float(opt['nan'])
-    if opt['inf']:
-        msgr.message("Substitute Inf values with: <%g>" % float(opt['inf']))
-        Xt[np.isinf(Xt)] = float(opt['inf'])
+    # Define rules to substitute NaN, Inf, posInf, negInf values
+    rules = {}
+    for key in ('nan', 'inf', 'neginf', 'posinf'):
+        if opt[key]:
+            rules[key] = get_rules(opt[key])
+    pprint(rules)
+
+    # Substitute (skip cat column)
+    Xt, rules_vals = substitute(Xt, rules, cols[1:])
+
+    # Feature importances with forests of trees
+    if flg['f']:
+        importances(Xt, Yt, cols[1:],
+                    csv=opt['imp_csv'], img=opt['imp_fig'],
+                    # default parameters to save the matplotlib figure
+                    **dict(dpi=300, transparent=False, bbox_inches='tight'))
 
     # optimize the training set
     if flg['o']:
@@ -400,7 +546,9 @@ def main(opt, flg):
                         else 0)
         cls = classifiers[ind_optimize]
         msgr.message("Find the optimum training set.")
-        best, Xbt, Ybt = optimize_training(cls, Xt, Yt, scaler,
+        best, Xbt, Ybt = optimize_training(cls, Xt, Yt,
+                                           labels, #{v: k for k, v in labels.items()},
+                                           scaler,
                                            num=num, maxiterations=1000)
         msg = "    - save the optimum training data set to: %s."
         msgr.message(msg % opt['npy_btdata'])
@@ -435,33 +583,40 @@ def main(opt, flg):
         msgr.message("Exploring the SVC domain.")
         grid = explore_SVC(Xbt, Ybt, n_folds=3, n_jobs=int(opt['svc_n_jobs']),
                            C=C_range, gamma=gamma_range, kernel=kernel_range)
+        import pickle
+        pkl = open('grid.pkl', 'w')
+        pickle.dump(grid, pkl)
+        pkl.close()
         plot_grid(grid, save=opt['svc_img'])
 
     # test the accuracy of different classifiers
     if flg['t']:
         # test different classifiers
         msgr.message("Exploring different classifiers.")
-        explorer_clsfiers(classifiers, Xbt, Ybt, Xt, Yt, clsses, indexes, csv)
+        msgr.message("cls_id   cls_name          mean     max     min     std")
+        #import ipdb; ipdb.set_trace()
+        res = explorer_clsfiers(classifiers, Xt, Yt,
+                                indexes=indexes, n_folds=5, bv=flg['v'])
+        # TODO: sort(order=...) is working only in the terminal, why?
+        #res.sort(order='mean')
+        with open(opt['csv_test_cls'], 'w') as csv:
+            csv.write(tocsv(res))
 
     if flg['c']:
         # classify
         cols = []
         data = np.load(opt['npy_data'])
-        if opt['nan']:
-            msg = "Substitute NaN values with: <%g>" % float(opt['nan'])
-            msgr.message(msg)
-            data[np.isnan(data)] = float(opt['nan'])
-        if opt['inf']:
-            msg = "Substitute Inf values with: <%g>" % float(opt['inf'])
-            msgr.message(msg)
-            data[np.isinf(data)] = float(opt['inf'])
+        pprint(rules_vals)
+        # Substitute (skip cat column)
+        data = substitute(data, rules_vals, cols[1:])
 
         msgr.message("Scaling the whole data set.")
         data = scaler.transform(data) if scaler else data
         cats = np.load(opt['npy_cats'])
 
         for cls in classifiers:
-            run_classifier(cls, Xbt, Ybt, Xt, Yt, clsses, data, save=csv)
+            run_classifier(cls, Xbt, Ybt, Xt, Yt, labels, data,
+                           save=opt['report_class'])
             cols.append((cls['name'], 'INTEGER'))
 
 #        import pickle
@@ -492,7 +647,6 @@ def main(opt, flg):
                   rows=4096 * 4, overwrite=overwrite())
             if rules:
                 rclrs(map=rst, rules='-', stdin_=rules)
-
 
 
 if __name__ == "__main__":

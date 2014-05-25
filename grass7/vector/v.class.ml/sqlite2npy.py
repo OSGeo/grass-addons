@@ -10,6 +10,7 @@ import numpy as np
 from grass.pygrass.vector import VectorTopo
 
 FCATS = 'cats.npy'
+FCOLS = 'cols.npy'
 FDATA = 'data.npy'
 FINDX = 'indx.npy'
 FCLSS = 'training_classes.npy'
@@ -32,22 +33,23 @@ def cpdata(shape, iterator, msg=''):
     return dt
 
 
-def save2npy(vect, l_data, l_trning,
-             fcats=FCATS, fdata=FDATA, findx=FINDX,
+def save2npy(vect, l_data, l_trn,
+             fcats=FCATS, fcols=FCOLS, fdata=FDATA, findx=FINDX,
              fclss=FCLSS, ftdata=FTDATA):
-    """Return 5 arrays:
+    """Return 6 arrays:
         - categories,
+        - columns name,
         - data,
         - a boolean array with the training,
-        - the training classes
-        - the training data
+        - the training classes,
+        - the training data.
     """
     with VectorTopo(vect, mode='r') as vct:
         # instantiate the tables
-        data = (vct.dblinks.by_layer(l_data).table() if l_data.isdigit()
+        data = (vct.dblinks.by_layer(int(l_data)).table() if l_data.isdigit()
                 else vct.dblinks.by_name(l_data).table())
-        trng = (vct.dblinks.by_layer(l_trning).table() if l_trning.isdigit()
-                else vct.dblinks.by_name(l_trning).table())
+        trng = (vct.dblinks.by_layer(int(l_trn)).table() if l_trn.isdigit()
+                else vct.dblinks.by_name(l_trn).table())
 
         # check the dimensions
         n_trng, n_data = trng.n_rows(), data.n_rows()
@@ -68,9 +70,10 @@ def save2npy(vect, l_data, l_trning,
 
         # extract the data
         data_cols = data.columns.names()
+        cols = np.array(data_cols)
         data_cols.remove(data.key)
-        cols = ', '.join(data_cols)
-        slct_data = "SELECT {cols} FROM {tname};".format(cols=cols,
+        scols = ', '.join(data_cols)
+        slct_data = "SELECT {cols} FROM {tname};".format(cols=scols,
                                                          tname=data.name)
         shape = (n_data, len(data_cols))
         # use the function to be more memory efficient
@@ -89,11 +92,12 @@ def save2npy(vect, l_data, l_trning,
 
         # save
         np.save(fcats, cats)
+        np.save(fcols, cols)
         np.save(fdata, dta)
         np.save(findx, trn_indxs)
         np.save(fclss, trn_ind)
         np.save(ftdata, trn_dta)
-        return cats, dta, trn_indxs, trn_ind, trn_dta
+        return cats, cols, dta, trn_indxs, trn_ind, trn_dta
 
 
 def load_from_npy(fcats=FCATS, fdata=FDATA, findx=FINDX,
