@@ -15,7 +15,7 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 """
 
 #%module
-#% description: DEM derived characteristics of habitats
+#% description: Calculation of northerness, easterness and the interaction between northerness and slope
 #% keywords: raster
 #% keywords: terrain
 #% keywords: aspect
