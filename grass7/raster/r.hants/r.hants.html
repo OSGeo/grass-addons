@@ -15,7 +15,7 @@ analysing one year. If two peaks are assumed per year, the number of
 frequencies should be at least 5 when analysing one year.
 
 <p>The number of frequencies should also not be too large. With a large 
-number of frequencies, outliers can not longer be identified because the 
+number of frequencies, outliers can no longer be identified because the 
 fit is &quot;too good&quot;, outliers can be represented by the estimate. 
 The number of frequencies should also be smaller than <em>n input maps / 2</em>
 if missing values should be reconstructed.
@@ -23,8 +23,20 @@ if missing values should be reconstructed.
 
 <h2>NOTES</h2>
 
+The optional <em>amplitude</em> and <em>phase</em> output maps contain 
+the amplitude and phase for each frequency. The amplitude maps can be 
+used to identify the dominant frequency with <em>r.series 
+method=max_raster</em>. The baseline frequeny (base period) has the 
+suffix <em>.0</em>, its first harmonic has the suffix <em>.1</em>, its 
+second harmonic has the suffix <em>.2</em>, etc. The value of the 
+output of <em>r.series method=max_raster</em> is identical to the 
+number of the suffix. With the <em>amplitude</em> output maps for NDVI 
+input, this can be used to determine the number of peaks in vegetation 
+growth within the base period, where 0 (zero) means that the dominant 
+frequency is the base period, i.e. one peak per base period.
+
 <p>
-If the <em>range=</em> option is given, any values which fall outside
+If the <em>range</em> option is given, any values which fall outside
 that range will be treated as if they were NULL.
 The <em>range</em> parameter can be set to <em>low,high</em> thresholds:
 values outside of this range are treated as NULL.
@@ -35,24 +47,25 @@ The <em>low,high</em> thresholds are floating point, so use <em>-inf</em> or
 negative values, or <em>range=-inf,-200.4</em> to ignore values above -200.4).
 
 <p>
-The number of raster maps to be processed is given by the limit of the
-operating system. For example, both the hard and soft limits for users are
-typically 1024. The soft limit can be changed with e.g. <tt>ulimit -n
-1500</tt> (UNIX-based operating systems) but not higher than the hard
-limit. If it is too low, you can as superuser add an entry in
+The maximum number of raster maps that can be processed is given by the 
+per-user limit of the operating system. For example, the soft limits 
+for users are typically 1024. The soft limit can be changed with e.g. 
+<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but not higher 
+than the hard limit. If it is too low, you can as superuser add an 
+entry in
 
 <div class="code"><pre>
 /etc/security/limits.conf
 # &lt;domain&gt;      &lt;type&gt;  &lt;item&gt;         &lt;value&gt;
-your_username  hard    nofile          1500
+your_username  hard    nofile          4096
 </pre></div>
 
-This would raise the hard limit to 1500 file. Be warned that more
-files open need more RAM. Also have a look at the system-wide limit
+This would raise the hard limit to 4096 files. Also have a look at the 
+overall limit of the operating system
 <div class="code"><pre>
 cat /proc/sys/fs/file-max
 </pre></div>
-which is on modern systems several 100,000 files.
+which is on modern Linux systems several 100,000 files.
 
 
 <p>Use the <em>file</em> option to analyze large amount of raster maps 
@@ -120,6 +133,9 @@ mean=0.188579838052468
 g.gui.animation rast=`g.mlist rast pattern="*tempmean_hants" sep=comma`
 </pre></div>
 
+<h2>SEE ALSO</h2>
+
+<em><a href="r.series.html">r.series</a></em>
 
 <h2>REFERENCES</h2>
 <p>

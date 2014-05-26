@@ -116,6 +116,8 @@ int main(int argc, char *argv[])
     struct
     {
 	struct Option *input, *file, *suffix,
+	              *amp,	/* prefix for amplitude output */
+	              *phase,	/* prefix for phase output */
 	              *nf,	/* number of harmonics */
 		      *fet,	/* fit error tolerance */
 		      *dod,	/* degree of over-determination */
@@ -133,17 +135,20 @@ int main(int argc, char *argv[])
     struct input *inputs = NULL;
     int num_outputs;
     struct output *outputs = NULL;
+    struct output *out_amp = NULL;
+    struct output *out_phase = NULL;
     char *suffix;
     struct History history;
-    DCELL *values = NULL, *rc = NULL, *amp = NULL, *phase = NULL;
+    DCELL *values = NULL, *rc = NULL;
     int nrows, ncols;
     int row, col;
     double lo, hi, fet, *cs, *sn, *ts, delta;
     int bl;
-    double **mat, **mat_t, **A, *za, *zr, maxerrlo, maxerrhi;
+    double **mat, **mat_t, **A, *Azero, *za, *zr, maxerrlo, maxerrhi;
+    int asize;
     int dod, nf, nr, nout, noutmax;
     int rejlo, rejhi, *useval;
-    int do_amp_phase, dumped;
+    int do_amp, do_phase;
 
     G_gisinit(argv[0]);
 
@@ -170,6 +175,18 @@ int main(int argc, char *argv[])
     parm.suffix->answer = "_hants";
     parm.suffix->label = _("Suffix for output maps");
     parm.suffix->description = _("The suffix will be appended to input map names");
+
+    parm.amp = G_define_option();
+    parm.amp->key = "amplitude";
+    parm.amp->type = TYPE_STRING;
+    parm.amp->required = NO;
+    parm.amp->label = _("Prefix for output amplitude maps");
+
+    parm.phase = G_define_option();
+    parm.phase->key = "phase";
+    parm.phase->type = TYPE_STRING;
+    parm.phase->required = NO;
+    parm.phase->label = _("Prefix for output phase maps");
 
     parm.nf = G_define_option();
     parm.nf->key = "nf";
@@ -236,6 +253,14 @@ int main(int argc, char *argv[])
  
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
+
+    if (parm.amp->answer && parm.phase->answer) {
+	if (strcmp(parm.amp->answer, parm.phase->answer) == 0)
+	    G_fatal_error(_("'%s' and '%s' options must be different"),
+			  parm.amp->key, parm.phase->key);
+    }
+    do_amp = parm.amp->answer != NULL;
+    do_phase = parm.phase->answer != NULL;
 
     nf = atoi(parm.nf->answer);
     if (nf < 1)
@@ -344,6 +369,7 @@ int main(int argc, char *argv[])
     else
 	bl = num_inputs;
 
+    /* open output maps */
     num_outputs = num_inputs;
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
@@ -363,6 +389,56 @@ int main(int argc, char *argv[])
 	out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
+    nr = 2 * nf + 1;
+
+    if (nr > num_inputs)
+	G_fatal_error(_("The maximum number of frequencies for %d input maps is %d."),
+	                num_inputs, (num_inputs - 1) / 2);
+
+    noutmax = num_inputs - nr - dod;
+
+    if (noutmax < 0)
+	G_fatal_error(_("The degree of overdetermination can not be larger than %d "
+			"for %d input maps and %d frequencies."),
+			dod + noutmax, num_inputs, nf);
+
+    if (noutmax == 0)
+	G_warning(_("Missing values can not be reconstructed, "
+	            "please reduce either '%s' or '%s'"),
+		    parm.nf->key, parm.dod->key);
+
+    if (do_amp) {
+	/* open output amplitude */
+	out_amp = G_calloc(nf, sizeof(struct output));
+
+	for (i = 0; i < nf; i++) {
+	    struct output *out = &out_amp[i];
+	    char output_name[GNAME_MAX];
+	    
+	    sprintf(output_name, "%s.%d", parm.amp->answer, i);
+
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
+	}
+    }
+
+    if (do_phase) {
+	/* open output phase */
+	out_phase = G_calloc(nf, sizeof(struct output));
+
+	for (i = 0; i < nf; i++) {
+	    struct output *out = &out_phase[i];
+	    char output_name[GNAME_MAX];
+	    
+	    sprintf(output_name, "%s.%d", parm.phase->answer, i);
+
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
+	}
+    }
+
     /* initialise variables */
     values = G_malloc(num_inputs * sizeof(DCELL));
 
@@ -374,12 +450,6 @@ int main(int argc, char *argv[])
     ts = G_alloc_vector(num_inputs);
     rc = G_malloc(num_inputs * sizeof(DCELL));
     useval = G_malloc(num_inputs * sizeof(int));
-
-    do_amp_phase = 0;
-    if (do_amp_phase) {
-	amp = G_malloc((nf + 1) * sizeof(DCELL));
-	phase = G_malloc((nf + 1) * sizeof(DCELL));
-    }
 
     if (parm.ts->answer) {
     	for (i = 0; parm.ts->answers[i]; i++);
@@ -393,30 +463,18 @@ int main(int argc, char *argv[])
 	    ts[i] = i;
 	}
     }
-    
-    if (2 * nf + 1 < num_inputs)
-	nr = 2 * nf + 1;
-    else
-	nr = num_inputs;
-
-    noutmax = num_inputs - nr - dod;
-    
-    if (noutmax < 0)
-	G_fatal_error(_("For %d input maps and %d frequencies, "
-	                "the degree of overdetermination can not be larger than %d"),
-			num_inputs, nf, dod + noutmax);
-
-    if (noutmax == 0)
-	G_warning(_("Missing values can not be reconstructed, "
-	            "please reduce either '%s' or '%s'"),
-		    parm.nf->key, parm.dod->key);
 
     mat = G_alloc_matrix(nr, num_inputs);
     mat_t = G_alloc_matrix(num_inputs, nr);
     A = G_alloc_matrix(nr, nr);
+    Azero = G_alloc_vector(nr * nr);
+    asize = nr * nr * sizeof(double);
     za = G_alloc_vector(nr);
     zr = G_alloc_vector(nr);
     rc = G_alloc_vector(num_inputs);
+
+    for (i = 0; i < nr * nr; i++)
+	Azero[i] = 0;
 
     for (i = 0; i < bl; i++) {
 	double ang = 2.0 * M_PI * i / bl;
@@ -452,8 +510,6 @@ int main(int argc, char *argv[])
 
     /* process the data */
     G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
-
-    dumped = 1;
 
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 4);
@@ -510,22 +566,21 @@ int main(int argc, char *argv[])
 		     * A temp: nr, num_inputs
 		     * A: nr, nr */
 
+		    memcpy(*A, Azero, asize);
 		    for (i = 0; i < nr; i++) {
 			za[i] = 0;
 			for (j = 0; j < num_inputs; j++) {
-			    if (useval[j])
+			    if (useval[j]) {
 				za[i] += mat[i][j] * values[j];
-			}
 
-			for (j = 0; j < nr; j++) {
-			    A[i][j] = 0;
-			    for (k = 0; k < num_inputs; k++) {
-				if (useval[k])
-				    A[i][j] += mat[i][k] * mat_t[k][j];
+				for (k = 0; k < nr; k++)
+				    A[i][k] += mat[i][j] * mat_t[j][k];
 			    }
 			}
-			if (i > 0)
+
+			if (i > 0) {
 			    A[i][i] += delta;
+			}
 		    }
 		    
 		    /* zr = A \ za
@@ -589,30 +644,26 @@ int main(int argc, char *argv[])
 		    
 		    out->buf[col] = rc[i];
 		}
-		
-		/* DEBUG
-		 * dump original and approximated values for one cell to stdout */
-		if (non_null >= 20 && done == 1 && !dumped &&
-		    row > nrows / 3 && col > ncols / 2 ) {
 
-		    for (i = 0; i < num_inputs; i++) {
-			fprintf(stdout, "%g;%g\n", values[i], rc[i]);
-		    }
-		    dumped = 1;
-		}
-
-		if (do_amp_phase) {
+		if (do_amp || do_phase) {
 		    /* amplitude and phase */
-		    amp[0] = zr[0];
-		    phase[0] = 0;
-		    for (i = 1; i < nr; i += 2) {
-			int ifr = (i + 1) / 2;
-			double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+		    /* skip constant */
 
-			if (angle < 0)
-			    angle += 360;
-			phase[ifr] = angle;
-			amp[ifr] = sqrt(zr[i] * zr[i] + zr[i + 1] * zr[i + 1]);
+		    for (i = 1; i < nr; i += 2) {
+			int ifr = i >> 1;
+
+			if (do_amp) {
+			    out_amp[ifr].buf[col] = sqrt(zr[i] * zr[i] +
+						    zr[i + 1] * zr[i + 1]);
+			}
+
+			if (do_phase) {
+			    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+
+			    if (angle < 0)
+				angle += 360;
+			    out_phase[ifr].buf[col] = angle;
+			}
 		    }
 		}
 	    }
@@ -622,14 +673,37 @@ int main(int argc, char *argv[])
 
 		    Rast_set_d_null_value(&out->buf[col], 1);
 		}
+		if (do_amp || do_phase) {
+		    for (i = 0; i < nf; i++) {
+			if (do_amp)
+			    Rast_set_d_null_value(&out_amp[i].buf[col], 1);
+			if (do_phase)
+			    Rast_set_d_null_value(&out_phase[i].buf[col], 1);
+		    }
+		}
 	    }
 	}
 
 	for (i = 0; i < num_outputs; i++)
 	    Rast_put_d_row(outputs[i].fd, outputs[i].buf);
+	
+	if (do_amp || do_phase) {
+	    for (i = 0; i < nf; i++) {
+		if (do_amp)
+		    Rast_put_d_row(out_amp[i].fd, out_amp[i].buf);
+		if (do_phase)
+		    Rast_put_d_row(out_phase[i].fd, out_phase[i].buf);
+	    }
+	}
     }
 
     G_percent(row, nrows, 2);
+
+    /* Close input maps */
+    if (!flag.lazy->answer) {
+    	for (i = 0; i < num_inputs; i++)
+	    Rast_close(inputs[i].fd);
+    }
 
     /* close output maps */
     for (i = 0; i < num_outputs; i++) {
@@ -642,10 +716,30 @@ int main(int argc, char *argv[])
 	Rast_write_history(out->name, &history);
     }
 
-    /* Close input maps */
-    if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs; i++)
-	    Rast_close(inputs[i].fd);
+    if (do_amp) {
+	/* close output amplitudes */
+	for (i = 0; i < nf; i++) {
+	    struct output *out = &out_amp[i];
+
+	    Rast_close(out->fd);
+
+	    Rast_short_history(out->name, "raster", &history);
+	    Rast_command_history(&history);
+	    Rast_write_history(out->name, &history);
+	}
+    }
+
+    if (do_phase) {
+	/* close output phases */
+	for (i = 0; i < nf; i++) {
+	    struct output *out = &out_phase[i];
+
+	    Rast_close(out->fd);
+
+	    Rast_short_history(out->name, "raster", &history);
+	    Rast_command_history(&history);
+	    Rast_write_history(out->name, &history);
+	}
     }
 
     exit(EXIT_SUCCESS);
