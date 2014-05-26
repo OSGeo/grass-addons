@@ -18,8 +18,6 @@
 #ifndef __POINT_LIST_H__
 #define __POINT_LIST_H__
 
-#include <stdio.h>
-
 typedef struct PointNode
 {
     int col;
@@ -28,12 +26,9 @@ typedef struct PointNode
 } PointList_t;
 
 PointList_t *create_list(int col, int row);
-
 PointList_t *append_point(PointList_t * const head, int col, int row);
-
 void destroy_list(PointList_t * head);
-
 PointList_t *find_nearest_point(PointList_t * const head, int col, int row);
+void print_list(PointList_t * const head, const char *const sep);
 
-void print_list(FILE * fp, PointList_t * const head, const char *const sep);
 #endif

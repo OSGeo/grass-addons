@@ -15,14 +15,9 @@
  *
  *****************************************************************************/
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
-
-#include <grass/config.h>
 #include <grass/gis.h>
-
 #include "point_list.h"
 
 PointList_t *create_list(int col, int row)
@@ -37,8 +32,6 @@ PointList_t *create_list(int col, int row)
 
 PointList_t *append_point(PointList_t * const head, int col, int row)
 {
-    assert(NULL != head);
-
     PointList_t *tmp = head;
 
     while (NULL != tmp->next)
@@ -70,9 +63,7 @@ PointList_t *find_nearest_point(PointList_t * const head, int col, int row)
 {
 
     PointList_t *nearest = NULL;
-
     double tmpDistance, minDistance = HUGE_VAL;
-
     PointList_t *curr = head;
 
     while (NULL != curr) {
@@ -86,12 +77,12 @@ PointList_t *find_nearest_point(PointList_t * const head, int col, int row)
     return nearest;
 }
 
-void print_list(FILE * fp, PointList_t * const head, const char *const sep)
+void print_list(PointList_t * const head, const char *const sep)
 {
     PointList_t *curr = head;
 
     while (NULL != curr) {
-	fprintf(fp, "%d%s%d\n", curr->col, sep, curr->row);
+	G_debug(1, "%d%s%d", curr->col, sep, curr->row);
 	curr = curr->next;
     }
 }
