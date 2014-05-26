@@ -58,27 +58,40 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 int main(int argc, char *argv[])
 {
     struct GModule *module;	/* GRASS module for parsing arguments */
+
     struct
     {
-	    struct Option *input;
-	    struct Option *window;
-	    struct Option *threshold;
-	    struct Option *coords;
-	    struct Option *separator;
+	struct Option *input;
+	struct Option *window;
+	struct Option *threshold;
+	struct Option *coords;
+	struct Option *separator;
     } opt;
+
     struct Cell_head cellhd;	/* it stores region information,
 				   and header information of rasters */
     char name[GNAME_MAX];	/* input raster name */
+
     const char *mapset;		/* mapset name */
+
     int nrows, ncols;
+
     int rowIdx, colIdx, nrows_less_one, ncols_less_one;
+
     int infd;			/* file descriptor */
+
     RASTER_MAP_TYPE data_type;	/* type of the map (CELL/DCELL/...) */
+
     double E, N;
+
     struct Cell_head window;
+
     int windowSize;
+
     double threshold;
+
     char sep;
+
     int debug;
 
     /* initialize GIS environment */
@@ -132,9 +145,9 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 
     if (G__getenv("DEBUG"))
-	    debug = atoi(G__getenv("DEBUG"));
+	debug = atoi(G__getenv("DEBUG"));
     else
-	    debug = 0;
+	debug = 0;
 
     G_get_window(&window);
 
@@ -143,15 +156,25 @@ int main(int argc, char *argv[])
 
     /* returns NULL if the map was not found in any mapset,
      * mapset name otherwise */
-    mapset = G_find_raster(name, "");
-    if (mapset == NULL)
+    if ((mapset = G_find_raster(name, "")) == NULL)
 	G_fatal_error(_("Raster map <%s> not found"), name);
+
+    /* Determine the inputmap type (CELL/FCELL/DCELL) */
+    if ((data_type = Rast_map_type(name, mapset)) < 0)
+	G_fatal_error(_("Unable to determine the type of raster map <%s>"),
+		      name);
 
     /* Get raster metadata */
     Rast_get_cellhd(name, mapset, &cellhd);
 
-    if (NULL != opt.window->answer)
+    if (NULL != opt.window->answer) {
 	windowSize = atoi(opt.window->answer);
+
+	if (windowSize < 2 || !(windowSize & 1))
+	    G_fatal_error(_
+			  ("Invalid window size %s. Window size must be an odd integer >= 3"),
+			  opt.window->answer);
+    }
     else {
 	/* Determine window size */
 	double cellRes = (cellhd.ew_res + cellhd.ns_res) / 2;
@@ -160,29 +183,29 @@ int main(int argc, char *argv[])
 	if (!(windowSize & 1))
 	    windowSize++;
     }
-    if (windowSize < 2 || !(windowSize & 1))
-	G_fatal_error(_
-		  ("Invalid window size %s. Window size must be an odd integer >= 3"),
-		  opt.window->answer);
     G_verbose_message(_("Stream search window size %d\n"), windowSize);
 
-    if (NULL != opt.threshold->answer)
+    if (NULL != opt.threshold->answer) {
 	threshold = atof(opt.threshold->answer);
+
+	if (threshold <= 0.0)
+	    G_fatal_error(_("Invalid threshold %f. Threshold must be > 0.0."),
+			  threshold);
+    }
     else
 	/* Automatically determine the threshold */
 	threshold = -1.0;
 
-    if (threshold != -1.0 && threshold <= 0.0)
-	G_fatal_error(_("Invalid threshold %s. Threshold must be > 0.0."),
-		  opt.threshold->answer);
-
     if (!G_scan_easting(opt.coords->answers[0], &E, G_projection()))
-	G_fatal_error(_("Illegal east coordinate '%s'"), opt.coords->answers[0]);
+	G_fatal_error(_("Illegal east coordinate '%s'"),
+		      opt.coords->answers[0]);
 
     if (!G_scan_northing(opt.coords->answers[1], &N, G_projection()))
-	G_fatal_error(_("Illegal north coordinate '%s'"), opt.coords->answers[1]);
+	G_fatal_error(_("Illegal north coordinate '%s'"),
+		      opt.coords->answers[1]);
 
-    G_verbose_message(_("Input coordinates, easting %f, northing %f\n"), E, N);
+    G_verbose_message(_("Input coordinates, easting %f, northing %f\n"), E,
+		      N);
 
     if (strcmp(opt.separator->answer, "newline") == 0)
 	sep = '\n';
@@ -194,10 +217,6 @@ int main(int argc, char *argv[])
 	sep = '\t';
     else
 	sep = opt.separator->answer[0];
-
-    /* Determine the inputmap type (CELL/FCELL/DCELL) */
-    if ((data_type = Rast_map_type(name, mapset)) < 0)
-	G_fatal_error(_("Unable to determine the type of raster map <%s>"), name);
 
     /* Open the raster - returns file descriptor (>0) */
     if ((infd = Rast_open_old(name, mapset)) < 0)
@@ -212,16 +231,14 @@ int main(int argc, char *argv[])
     rowIdx = (int)Rast_northing_to_row(N, &window);
     colIdx = (int)Rast_easting_to_col(E, &window);
 
-    //double currNearestE, prevNearestE, currNearestN, prevNearestN;
     PointList_t *streamPixels =
-	find_stream_pixels_in_window(infd, (char *)&name, mapset, data_type,
+	find_stream_pixels_in_window(infd, name, mapset, data_type,
 				     windowSize, threshold,
 				     nrows_less_one, ncols_less_one,
 				     rowIdx, colIdx);
 
-    G_debug(1, "Stream pixels: ");
     if (debug)
-	    print_list(streamPixels, " ");
+	print_list(streamPixels, " ");
 
     PointList_t *nearestStreamPixel =
 	find_nearest_point(streamPixels, colIdx, rowIdx);
@@ -229,8 +246,11 @@ int main(int argc, char *argv[])
     if (NULL != nearestStreamPixel) {
 	if (debug) {
 	    double nearestValue;
+
 	    void *tmpRow = Rast_allocate_buf(data_type);
+
 	    int currCol = nearestStreamPixel->col;
+
 	    int currRow = nearestStreamPixel->row;
 
 	    G_debug(1, "Nearest pixel col: %d, row: %d", currCol, currRow);
@@ -240,14 +260,14 @@ int main(int argc, char *argv[])
 
 	    switch (data_type) {
 	    case FCELL_TYPE:
-	        nearestValue = (double)((FCELL *) tmpRow)[currCol];
-	        break;
+		nearestValue = (double)((FCELL *) tmpRow)[currCol];
+		break;
 	    case DCELL_TYPE:
-	        nearestValue = (double)((DCELL *) tmpRow)[currCol];
-	        break;
+		nearestValue = (double)((DCELL *) tmpRow)[currCol];
+		break;
 	    default:
-	        nearestValue = (double)((CELL *) tmpRow)[currCol];
-	        break;
+		nearestValue = (double)((CELL *) tmpRow)[currCol];
+		break;
 	    }
 
 	    G_debug(1, "Nearest stream pixel UAA value: %f", nearestValue);
@@ -286,8 +306,11 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 					  int currCol)
 {
     PointList_t *streamPixels = NULL;
+
     DCELL centralValue, tmpValue;
+
     double logCentralValue, logTmpValue;
+
     void *tmpRow = Rast_allocate_buf(dataType);
 
     /* Get value of central cell */
@@ -341,6 +364,7 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 
     /* Define window bounds */
     int windowOffset = (windowSize - 1) / 2;
+
     int minCol = currCol - windowOffset;
 
     if (minCol < 0)

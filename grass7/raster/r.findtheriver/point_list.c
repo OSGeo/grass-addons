@@ -63,7 +63,9 @@ PointList_t *find_nearest_point(PointList_t * const head, int col, int row)
 {
 
     PointList_t *nearest = NULL;
+
     double tmpDistance, minDistance = HUGE_VAL;
+
     PointList_t *curr = head;
 
     while (NULL != curr) {
@@ -80,6 +82,8 @@ PointList_t *find_nearest_point(PointList_t * const head, int col, int row)
 void print_list(PointList_t * const head, const char *const sep)
 {
     PointList_t *curr = head;
+
+    G_debug(1, "Stream pixels: ");
 
     while (NULL != curr) {
 	G_debug(1, "%d%s%d", curr->col, sep, curr->row);
