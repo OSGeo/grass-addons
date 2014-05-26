@@ -47,7 +47,6 @@ void destroy_list(PointList_t * head)
 {
     if (NULL != head) {
 	PointList_t *curr = head;
-
 	PointList_t *next = curr->next;
 
 	while (NULL != next) {
@@ -63,9 +62,7 @@ PointList_t *find_nearest_point(PointList_t * const head, int col, int row)
 {
 
     PointList_t *nearest = NULL;
-
     double tmpDistance, minDistance = HUGE_VAL;
-
     PointList_t *curr = head;
 
     while (NULL != curr) {

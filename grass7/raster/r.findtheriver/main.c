@@ -58,7 +58,6 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 int main(int argc, char *argv[])
 {
     struct GModule *module;	/* GRASS module for parsing arguments */
-
     struct
     {
 	struct Option *input;
@@ -67,31 +66,19 @@ int main(int argc, char *argv[])
 	struct Option *coords;
 	struct Option *separator;
     } opt;
-
     struct Cell_head cellhd;	/* it stores region information,
 				   and header information of rasters */
     char name[GNAME_MAX];	/* input raster name */
-
     const char *mapset;		/* mapset name */
-
     int nrows, ncols;
-
     int rowIdx, colIdx, nrows_less_one, ncols_less_one;
-
     int infd;			/* file descriptor */
-
     RASTER_MAP_TYPE data_type;	/* type of the map (CELL/DCELL/...) */
-
     double E, N;
-
     struct Cell_head window;
-
     int windowSize;
-
     double threshold;
-
     char sep;
-
     int debug;
 
     /* initialize GIS environment */
@@ -120,8 +107,7 @@ int main(int argc, char *argv[])
     opt.window->multiple = NO;
     opt.window->required = NO;
     opt.window->description =
-	_
-	("The size of the window in pixels to search in for stream pixels. Must be an odd integer. If not supplied, window will be inferred based on raster resolution.");
+	_("The size of the window in pixels to search in for stream pixels. Must be an odd integer. If not supplied, window will be inferred based on raster resolution.");
 
     opt.threshold = G_define_option();
     opt.threshold->key = "threshold";
@@ -130,8 +116,7 @@ int main(int argc, char *argv[])
     opt.threshold->multiple = NO;
     opt.threshold->required = NO;
     opt.threshold->description =
-	_
-	("The threshold for distinguishing log(UAA) values of stream and non-stream pixels. If not supplied, threshold will be inferred from minimum and maximum raster values.");
+	_("The threshold for distinguishing log(UAA) values of stream and non-stream pixels. If not supplied, threshold will be inferred from minimum and maximum raster values.");
 
     opt.coords = G_define_standard_option(G_OPT_M_COORDS);
     opt.coords->description = _("Coordinates of outlet point");
@@ -171,8 +156,7 @@ int main(int argc, char *argv[])
 	windowSize = atoi(opt.window->answer);
 
 	if (windowSize < 2 || !(windowSize & 1))
-	    G_fatal_error(_
-			  ("Invalid window size %s. Window size must be an odd integer >= 3"),
+	    G_fatal_error(_("Invalid window size %s. Window size must be an odd integer >= 3"),
 			  opt.window->answer);
     }
     else {
@@ -246,11 +230,8 @@ int main(int argc, char *argv[])
     if (NULL != nearestStreamPixel) {
 	if (debug) {
 	    double nearestValue;
-
 	    void *tmpRow = Rast_allocate_buf(data_type);
-
 	    int currCol = nearestStreamPixel->col;
-
 	    int currRow = nearestStreamPixel->row;
 
 	    G_debug(1, "Nearest pixel col: %d, row: %d", currCol, currRow);
@@ -306,11 +287,8 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 					  int currCol)
 {
     PointList_t *streamPixels = NULL;
-
     DCELL centralValue, tmpValue;
-
     double logCentralValue, logTmpValue;
-
     void *tmpRow = Rast_allocate_buf(dataType);
 
     /* Get value of central cell */
@@ -364,7 +342,6 @@ PointList_t *find_stream_pixels_in_window(int fd, char *name,
 
     /* Define window bounds */
     int windowOffset = (windowSize - 1) / 2;
-
     int minCol = currCol - windowOffset;
 
     if (minCol < 0)
