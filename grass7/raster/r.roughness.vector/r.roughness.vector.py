@@ -43,13 +43,11 @@
 #% keywords: slope
 #% keywords: roughness
 #%end
-
 #%option G_OPT_R_ELEV
 #% key: elevation
 #% description: Name of elevation raster map 
 #% required: yes
 #%end
-
 #%option
 #% key: slope
 #% type: string
@@ -197,14 +195,12 @@ def main():
 
     if compass == "":
         aspect_compass = 'aspect_compass'
-#        print "Calculating compass aspect values (longitude)"
 #        aspect_compass = grass.tempfile()
         grass.mapcalc("${out} = if(${rast1}==0,0,if(${rast1} < 90, 90-${rast1}, 360+90-${rast1}))", 
             out = aspect_compass,
             rast1 = aspect)
     else:
         grass.message( "Using previous calculated compass aspect values (longitude)" )
-        # print "Using previous calculated compass aspect values (longitude)"
         aspect_compass = compass
 
 # calculates colatitude (90-slope)
@@ -214,14 +210,12 @@ def main():
 
     if colatitude == "":
         colat_angle = 'colat_angle'
-#        print "Calculating colatitude (90-slope)"
 #        colat_angle = grass.tempfile()
         grass.mapcalc("${out} = 90 - ${rast1}",
             out = colat_angle,
             rast1 = slope)
     else:
         grass.message( "Using previous calculated colatitude values" )
-        # print "Using previous calculated colatitude values"
         colat_angle = colatitude
 
 #####################
@@ -235,7 +229,6 @@ def main():
 # X cosine
     if xcos == "":
         cosine_x = 'cosine_x'
-#        print "Calculating X direction cosine"
 #        cosine_x = grass.tempfile()
         grass.mapcalc("${out} = sin(${rast1}) * cos(${rast2})",
             out = 'cosine_x',
@@ -243,13 +236,11 @@ def main():
             rast2 = colat_angle)
     else:
         grass.message( "Using previous calculated X direction cosine value" )
-        # print "Using previous calculated X direction cosine values"
         cosine_x = xcos
 
 # Y cosine
     if ycos == "":
         cosine_y = 'cosine_y'
-#        print "Calculating Y direction cosine"
 #        cosine_y = grass.tempfile()
         grass.mapcalc("${out} = sin(${rast1}) * sin(${rast2})",
             out = 'cosine_y',
@@ -257,20 +248,17 @@ def main():
             rast2 = colat_angle)
     else:
         grass.message( "Using previous calculated Y direction cosine values" )
-        # print "Using previous calculated Y direction cosine values"
         cosine_y = ycos
 
 # Z cosine
     if zcos == "":
         cosine_z = 'cosine_z'
-#        print "Calculating Y direction cosine"
 #        cosine_z = grass.tempfile()
         grass.mapcalc("${out} = cos(${rast1})",
             out = 'cosine_z',
             rast1 = aspect_compass)
     else:
         grass.message( "Using previous calculated Y direction cosine values" )
-        # print "Using previous calculated Y direction cosine values"
         cosine_z = zcos
 
 
@@ -280,7 +268,6 @@ def main():
     grass.message( "Calculate sum of direction cosines ..." )
 
     grass.message( "Calculating sum of X direction cosines ..." )
-    # print "Calculating sum of X direction cosines"
 #    sum_Xcosine = grass.tempfile()
     grass.run_command("r.neighbors", 
             input=cosine_x, 
@@ -290,7 +277,6 @@ def main():
 			overwrite=True)
 
     grass.message( "Calculating sum of Y direction cosines ..." )
-#    print "Calculating sum of Y direction cosines"
 #    sum_Ycosine = grass.tempfile()
     grass.run_command("r.neighbors", 
             input=cosine_y, 
@@ -300,7 +286,6 @@ def main():
 			overwrite=True)
 
     grass.message( "Calculating sum of Z direction cosines ..." )
-#    print "Calculating sum of Z direction cosines"
 #    sum_Zcosine = grass.tempfile()
     grass.run_command("r.neighbors", 
             input=cosine_z, 
@@ -315,7 +300,6 @@ def main():
     grass.message( "----" )
     grass.message( "Calculate vector strength ..." )
 
-#    print "Calculating vector strength"
 #    print strength
     grass.mapcalc("${out} = sqrt(exp(${rast1},2) + exp(${rast2},2) + exp(${rast3},2))",
             out = strength,
@@ -330,7 +314,6 @@ def main():
     grass.message( "Calculate inverted Fisher's K parameter ..." )
 
     w = int(window)
-#    print "Calculating Inverted Fisher's K parameter"
     grass.mapcalc("${out} = ($w * $w - ${rast1}) / ($w * $w - 1)",
             out = fisher,
             rast1 = strength,
