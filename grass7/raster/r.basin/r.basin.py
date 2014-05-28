@@ -731,22 +731,22 @@ def main():
                             ['Mean_Elevation'] + 
                             ['Mean_Slope'] + 
                             ['Length_of_Directing_Vector_km'] + 
-                            ['Prevalent_Orientation_deg_from_north_ccw]'] + 
+                            ['Prevalent_Orientation_deg_from_north_ccw'] + 
                             ['Compactness_Coefficient'] + 
                             ['Circularity_Ratio'] + 
                             ['Topological_Diameter'] + 
                             ['Elongation_Ratio'] + 
                             ['Shape_Factor'] + 
-                            ['Concentration_Time_'] + 
+                            ['Concentration_Time_hr'] + 
                             ['Length_of_Mainchannel_km'] + 
-                            ['Mean_slope_of_mainchanne_percent'] + 
+                            ['Mean_slope_of_mainchannel_percent'] + 
                             ['Mean_hillslope_length_m'] + 
                             ['Magnitudo'] + 
                             ['Max_order_Strahler'] + 
                             ['Number_of_streams'] + 
                             ['Total_Stream_Length_km'] + 
                             ['First_order_stream_frequency'] + 
-                            ['Drainage_Density_km_over_km2]'] + 
+                            ['Drainage_Density_km_over_km2'] + 
                             ['Bifurcation_Ratio_Horton'] + 
                             ['Length_Ratio_Horton'] + 
                             ['Area_ratio_Horton'] + 
