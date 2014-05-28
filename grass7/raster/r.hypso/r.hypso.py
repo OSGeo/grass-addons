@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 ################################################################################
 #
-# MODULE:       r.ipso.py
+# MODULE:       r.hypso.py
 #
 # AUTHOR(S):    Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
 #               
 #
-# PURPOSE:      Output a Ipsometric and ipsographic graph 
+# PURPOSE:      Output a hypsometric and hypsographic graph 
 #
 # COPYRIGHT:    (c) 2010 Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
 #
@@ -20,7 +20,7 @@
 #
 ################################################################################
 #%module
-#% description: Outputs a ipsometric and ipsographic graph.
+#% description: Outputs a hypsometric and hypsographic graph.
 #% keywords: raster
 #%end
 
@@ -38,12 +38,12 @@
 
 #%flag
 #% key: a
-#% description: Generate ipsometric curve
+#% description: Generate hypsometric curve
 #%end
 
 #%flag
 #% key: b
-#% description: Generate ipsographic curve
+#% description: Generate hypsographic curve
 #%end
 
 import sys
@@ -94,12 +94,12 @@ def main():
 
     # Managing flag & plot
     if flags['a']:
-        plotImage(zn[:,3], zn[:,5],options['image']+'_Ipsometric.png','-','A(i) / A','Z(i) / Zmax','Ipsometric Curve')
+        plotImage(zn[:,3], zn[:,5],options['image']+'_Hypsometric.png','-','A(i) / A','Z(i) / Zmax','Hypsometric Curve')
     if flags['b']:
-        plotImage(zn[:,4], zn[:,0],options['image']+'_Ipsographic.png','-','A [km^2]','Z [m.slm]','Ipsographic Curve')
+        plotImage(zn[:,4], zn[:,0],options['image']+'_Hypsographic.png','-','A [km^2]','Z [m.slm]','Hypsographic Curve')
 
     print "==========================="
-    print "Ipsometric | quantiles"
+    print "Hypsometric | quantiles"
     print "==========================="
     print '%.0f' %findint(kl,0.025) , "|", 0.025
     print '%.0f' %findint(kl,0.05) , "|", 0.05
