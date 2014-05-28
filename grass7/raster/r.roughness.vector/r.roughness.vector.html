@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>r.roughness.window.vector</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css"></head>
+
+<body style="background-color: white;">
+<img style="width: 76px; height: 91px;" src="grass_logo.png" alt="GRASS logo"><hr align="center" noshade="noshade" size="6"><h2>NAME</h2>
+<em><b>r.roughness.vector.py</b></em> - Calculates surface roughness in a moving-window, as the orientation of vectors normal to surface planes.
+<h2>KEYWORDS&nbsp;</h2>
+raster, elevation, slope, aspect
+<h2>SYNOPSIS</h2>
+<span style="font-weight: bold;">r.roughness.window.vector</span><br style="font-weight: bold;">
+<span style="font-weight: bold;">r.roughness.window.vector&nbsp;help</span><br>
+<span style="font-weight: bold;">r.roughness.window.vector</span>&nbsp;<b>map</b>=<em>string</em>
+[<b>slope</b>=<em>string</em>] [<b>aspect</b>=<em>stri</em>ng]
+[<b>window</b>=<em>integer</em>] [<span style="font-weight: bold;">strength</span>=<em>string</em>]
+[<span style="font-weight: bold;">fisher</span>=<em>string</em>] [<b>compass</b>=<em>string</em>]
+[<b>colatitude</b>=<em>string</em>] [<span style="font-weight: bold;">xcos</span><b></b>=<em>string</em>] [<span style="font-weight: bold;">ycos</span>=<em>string</em>] [<span style="font-weight: bold;">zcos</span>=<em>string</em>] [--<b>overwrite</b>] [--<b>verbose</b>] [--<b>quiet</b>]
+<h3>Flags:</h3>
+<dl><dt><b>--overwrite</b></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl><h3>Parameters:</h3>
+<dl><dt><b>map</b>=<em>string</em></dt>
+<dd>Input elevation raster map</dd>
+<dt><b>slope</b>=<em>string</em></dt>
+<dd>Input slope map</dd>
+<dt><b>aspect</b>=<em>integer</em></dt>
+<dd>Input aspect map</dd><dt><b>window</b>=<em>integer</em></dt>
+<dd>Moving-window size (uses <span style="font-style: italic;">r.neighbors</span>)</dd><dt><b>strength</b>=<em>string (optional)</em></dt>
+<dd>Output "vector strength" map </dd><dt><b>fisher</b>=<em>string (optional)</em><em></em></dt>
+<dd>Output "Fisher's K parameter" map </dd><dt><b>compass</b>=<em>string</em><em> (optional)</em></dt>
+<dd>Input compass aspect map</dd><dt><b>colatitude</b>=<em>string</em><em> (optional)</em></dt><dd>Input colatitude map</dd><dt><b>xcos</b>=<em>string</em><em> (optional)</em></dt><dd>Input <span style="font-style: italic;">x</span> directional cosine map&nbsp;</dd><dt><b>ycos</b>=<em>string</em><em> (optional)</em></dt><dd>Input <span style="font-style: italic;">y</span> directional cosine map&nbsp;</dd><dt><b>zcos</b>=<em>string</em><em> (optional)</em></dt><dd>Input <span style="font-style: italic;">z</span> directional cosine map&nbsp;</dd></dl><h2>DESCRIPTION</h2>
+In this script surface roughness is taken as the dispersion of vectors
+normal to surface areas (pixels). Normal vectors&nbsp;are defined by
+slope and aspect.<br><br>This script will create several temporary
+maps, for the directional cosines in each direction (x,y,z), for the
+sum of these cosines and vector strengh.<br><br>The options <span style="font-style: italic;">compass</span>, <span style="font-style: italic;">colatitude</span>, <span style="font-style: italic;">xcos</span>, <span style="font-style: italic;">ycosm</span> and <span style="font-style: italic;">zcos</span>
+are created as temporary files each time the script is run. If the user
+wants to create several map (with different window sizes, for
+instance), it is recommended to create those maps with <span style="font-style: italic;">r.mapcalc</span> and use them as input:<br><br><span style="font-style: italic;">r.mapcalc compass = "if(aspect==0,0,if(aspect &lt; 90, 90-aspect, 360+90-aspect))"</span><br style="font-style: italic;"><br style="font-style: italic;"><span style="font-style: italic;">r.mapcalc colatitude = "90 -&nbsp;slope"</span><br style="font-style: italic;"><br style="font-style: italic;"><span style="font-style: italic;">r.mapcalc xcos = "sin(colatitude)*cos(compass)"</span><br style="font-style: italic;"><br style="font-style: italic;"><span style="font-style: italic;">r.mapcalc ycos = "sin(colatitude)*sin(compass)"</span><br style="font-style: italic;"><br style="font-style: italic;"><span style="font-style: italic;">r.mapcalc zcos = "cos(colatitude)"</span><br style="font-style: italic;"><br><br><br>If the user does not specify the output maps names, they will be set to <span style="font-style: italic;"><br><br>INPUT_MAP_vector_strength_NxN</span> <br>and<br><span style="font-style: italic;">INPUT_MAP_fisher_K_NxN</span><br><br>where N is the window size.<p>
+</p><h2>REFERENCES</h2><p>Hobson, R.D., 1972. Surface roughness in topography: quantitative approach. In: Chorley, R.J. (ed) <span style="font-style: italic;">Spatial analysis in geomorphology</span>. Methuer, London, p.225-245.<br></p><p>McKean, J. &amp; Roering, J., 2004. <span style="font-style: italic;">Objective landslide detection and surface morphology mapping using high-resolution airborne laser altimetry. Geomorphology</span>, 57:331-351</p>
+<h2>AUTHORS</h2>
+Carlos Henrique Grohmann - Institute of Energy and Environment, University of São Paulo, Brazil.<br>
+Helmut Kudrnovsky - http://www.alectoria.at
+<p>
+
+<i>Last changed: $Date: 2006/04/20 02:43:23 $</i>
+</p><hr><p><a href="index.html">Main
+index</a> - <a href="raster.html">raster index</a>
+- <a href="full_index.html">Full index</a></p>
+</body></html>
