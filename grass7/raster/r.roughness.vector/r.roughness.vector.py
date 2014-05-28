@@ -21,7 +21,7 @@
 #
 #		This script will create several temporary maps, for the
 #		directional cosines in each direction (x,y,z), for the sum
-#		of these cosines and vector strengh.
+#		of these cosines and vector strength.
 #
 #		If the user does not specify the output map name, it will be
 #		set to INPUT_MAP_roughness_vector_NxN
@@ -124,7 +124,7 @@ import sys
 import atexit
 import grass.script as grass
 
-# cleaning up tem files
+# cleaning up temp files
 def cleanup():
     rasts = ['aspect_compass','colat_angle','cosine_x','cosine_y','cosine_z','sum_Xcosine','sum_Ycosine','sum_Zcosine']
     grass.run_command('g.remove', flags = 'f', rast = rasts, quiet = True)
