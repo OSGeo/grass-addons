@@ -275,6 +275,11 @@ void draw_feather(double easting, double northing, double radius,
 	    R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
 	}
 	else if (velocity >= 5) {
+	    dx = D_u_to_d_col(easting) + (stem_length -
+					  0.5) * radius * cos(D2R(angle));
+	    dy = D_u_to_d_row(northing) + (stem_length -
+					   0.5) * radius * sin(D2R(angle));
+	    R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	    x = dx + radius * cos(D2R(rot_angle));
 	    y = dy + radius * sin(D2R(rot_angle));
 	    R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
