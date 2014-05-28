@@ -59,6 +59,8 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
     fill_arrays(&vMap, vlayer, dir_u_col, mag_v_col, is_component,
 		coord_x, coord_y, dirn, magn);
 
+    G_debug(3, "Arrays are filled.");
+
     if (aspect_type == TYPE_GRASS) {
 	for (i = 0; i < num_pts; i++) {
 	    //G_debug(5, "in=%.1f  out=%.1f", dirn[i], 90-dirn[i] < 0 ? 360+90-dirn[i] : 90-dirn[i]);
@@ -88,8 +90,9 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 	    G_warning(_("Maximum wind barb displayed is 150 knots"));
     }
 
-    peak = 1.;			// TODO: window width * 0.20
-    scale_fact = (peak) * scale;
+    scale_fact = 20. * scale / peak;
+
+    G_debug(3, "Ready to draw");
 
     for (i = 0; i < num_pts; i++) {
 	draw_barb(coord_x[i], coord_y[i], magn[i] * scale_fact, dirn[i],
@@ -217,6 +220,8 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 
     Vect_rewind(Map);
     i = 0;
+
+    G_debug(3, "Select is done.");
 
     while (1) {
 	ltype = Vect_read_next_line(Map, Points, Cats);
