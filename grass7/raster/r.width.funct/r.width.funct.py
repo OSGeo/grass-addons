@@ -93,7 +93,7 @@ def main():
     plotImage(zn[:,0], zn[:,3], options['image']+'_width_function.png','-','x','W(x)','Width Function')
 
     print "==========================="
-    print "Whidth Function | quantiles"
+    print "Width Function | quantiles"
     print "==========================="
     print '%.0f' %findint(kl,0.05) , "|", 0.05
     print '%.0f' %findint(kl,0.15) , "|", 0.15
