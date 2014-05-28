@@ -378,7 +378,7 @@ def main():
         # counterclockwise: 90deg is North, 180 is West, 270 is South 360 is East. 
         # The aspect value 0 is used to indicate undefined aspect in flat areas with slope=0.
         # We calculate the number of degree from north, increasing counterclockwise.
-        grass.mapcalc("$r_aspect_mod = if($r_aspect > 90, 450 - $r_aspect, 90 - $r_aspect)",
+        grass.mapcalc("$r_aspect_mod = if($r_aspect == 0, 0, if($r_aspect > 90, 450 - $r_aspect, 90 - $r_aspect))",
                   r_aspect = r_aspect,
                   r_aspect_mod = r_aspect_mod)
         grass.message("r.mapcalc done")
