@@ -22,6 +22,7 @@ SUBDIRS = \
 	r.mwprecip \
 	r.northerness.easterness \
 	r.regression.series \
+	r.roughness.vector \
 	r.segment \
 	r.stream.basins \
 	r.threshold \
