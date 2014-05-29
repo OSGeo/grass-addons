@@ -36,7 +36,7 @@
 #############################################################################
 #
 #%Module
-#% description: Calculates surface roughness with a moving-window approach
+#% description: Calculates surface roughness in a moving-window, as the orientation of vectors normal to surface planes.
 #% keywords: raster
 #% keywords: terrain
 #% keywords: aspect
@@ -52,20 +52,20 @@
 #% key: slope
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Input raster slope map
+#% description: Input slope map
 #% required : yes
 #%end
 #%option
 #% key: aspect
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Input raster aspect map
+#% description: Input aspect map
 #% required : yes
 #%end
 #%option
 #% key: window
 #% type: integer
-#% description: Window size (3,5,7,...,25)
+#% description: Moving-window size (uses r.neighbors)
 #% required : no
 #% answer : 3
 #%end
@@ -73,49 +73,49 @@
 #% key: strength
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Output vector strength map 
+#% description: Output "vector strength" map  
 #% required : no
 #%end
 #%option
 #% key: fisher
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Output Fischer's K parameter map 
+#% description: Output "Fisher's K parameter" map 
 #% required : no
 #%end
 #%option
 #% key: compass
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: OPTIONAL INPUT: Compass aspect values (longitude)
+#% description: Input compass aspect map (optional)
 #% required : no
 #%end
 #%option
 #% key: colatitude
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: OPTIONAL INPUT: Colatitude values (90 - slope)
+#% description: Input colatitude map (optional)
 #% required : no
 #%end
 #%option
 #% key: xcos
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: OPTIONAL INPUT: X directional cosine map
+#% description: Input x directional cosine map (optional)
 #% required : no
 #%end
 #%option
 #% key: ycos
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: OPTIONAL INPUT: Y directional cosine map
+#% description: Input y directional cosine map (optional)
 #% required : no
 #%end
 #%option
 #% key: zcos
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: OPTIONAL INPUT: Z directional cosine map
+#% description: Input z directional cosine map (optional) 
 #% required : no
 #%end
 #
