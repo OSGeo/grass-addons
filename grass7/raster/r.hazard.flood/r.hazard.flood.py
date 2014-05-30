@@ -127,7 +127,7 @@ def main():
     # Calculating threshold
     th = int(1000000 / resolution**2)
     grass.message("Deleting areas of less than %s cells.. " % th)   
-    grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', treshold = th, flags = 'b')
+    grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', lesser = th, flags = 'b')
 
     # New flood map
     grass.mapcalc("$r_flood_map = $rast1 / $rast1", r_flood_map = r_flood_map, rast1 = 'r_flood_th')
