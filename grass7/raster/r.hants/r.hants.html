@@ -98,7 +98,7 @@ g.gui.animation rast=`g.mlist rast pattern="*tempmean" sep=comma`
 </pre></div>
 
 <p>
-Since HANTS is CPU intensive, we test at lower resolution:
+Since HANTS is CPU intensive, we test for now at lower resolution:
 <div class="code"><pre>
 g.region -p res=5000
 
@@ -112,12 +112,17 @@ for map in `g.mlist rast pattern="*tempmean_hants"` ; do
     r.colors $map color=celsius
 done
 
+# assign degree Celsius color table
+r.colors 2000_06_tempmean_hants color=celsius
+
 # verify with one of the 156 results (still at reduced resolution):
 r.mapcalc "2000_06_tempmean_diff = 2000_06_tempmean - 2000_06_tempmean_hants"
 
 r.colors 2000_06_tempmean_diff color=differences
 d.mon wx0
+d.rast 2000_06_tempmean_hants
 d.rast 2000_06_tempmean_diff
+
 
 r.univar 2000_06_tempmean_diff -g
 n=5066
@@ -131,6 +136,27 @@ mean=0.188579838052468
 
 # see HANTS time series as animation
 g.gui.animation rast=`g.mlist rast pattern="*tempmean_hants" sep=comma`
+
+
+# Check HANTS behaviour in a given point 
+east=740830
+north=168832
+
+for map in `g.mlist rast pat="20??_??_tempmean"` ; do   
+  r.what map=$map coordinates=$east,$north >> time_series_orig.csv
+done
+
+for map in `g.mlist rast pat="*tempmean_hants"` ; do 
+  r.what map=$map coordinates=$east,$north >> time_series_hants.csv 
+done
+
+# merge files:
+echo "east|north|temp_orig|temp_hants" > time_series_final.csv
+
+paste -d'|' time_series_orig.csv time_series_hants.csv | \
+      cut -d'|' -f1,2,4,8 >> time_series_final.csv
+
+# Resulting CSV file: 'time_series_final.csv'
 </pre></div>
 
 <h2>SEE ALSO</h2>
