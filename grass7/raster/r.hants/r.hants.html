@@ -104,7 +104,11 @@ g.region -p res=5000
 
 # HANTS: Harmonic analysis of the 156 input maps...
 # just wildly guessing the parameters for a test run:
-r.hants input=`g.mlist rast pattern=20??_??_tempmean sep=comma` \
+
+# generate and check list of input maps (the order matters!)
+g.mlist rast pattern="20??_??_tempmean" output=tempmean.csv
+
+r.hants file=tempmean.csv \
   nf=6 fet=0.1 dod=5 delta=0.1 base_period=12
 
 # assign reasonable color tables for temperature
