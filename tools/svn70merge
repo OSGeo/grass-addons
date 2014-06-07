@@ -1,5 +1,5 @@
 #!/bin/sh
-# script to make backporting easier: this one _pulls from_ trunk.
+# script to make backporting easier: this one _pulls from_ relbr70.
 #
 #  by Hamish Bowman, Feb 2011; released to the public domain
 #
@@ -11,5 +11,6 @@
 if [ $# -eq 1 ] ; then
   svn merge -c $1 https://svn.osgeo.org/grass/grass/branches/releasebranch_7_0
 else
+  echo "Merge: pull from relbr70"
   echo "usage: cd grass65; svn70merge rev_number"
 fi

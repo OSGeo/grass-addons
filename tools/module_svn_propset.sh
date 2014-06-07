@@ -244,13 +244,7 @@ for FILE in $* ; do
     cc | cpp)
 	apply_Cpp_code "$FILE"
 	;;
-    f)
-	apply_Fortran_code "$FILE"
-	;;
-    f77)
-	apply_Fortran_code "$FILE"
-	;;
-    f90)
+    f | for | f77 | f90)
 	apply_Fortran_code "$FILE"
 	;;
     py)

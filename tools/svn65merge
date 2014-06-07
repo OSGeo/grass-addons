@@ -11,5 +11,6 @@
 if [ $# -eq 1 ] ; then
   svn merge -c $1 https://svn.osgeo.org/grass/grass/branches/develbranch_6
 else
-  echo "usage: cd grass7; svn65merge rev_number"
+  echo "Merge: pull from devbr6"
+  echo "usage: cd grass64; svn65merge rev_number"
 fi
