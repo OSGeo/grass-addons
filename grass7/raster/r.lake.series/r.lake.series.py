@@ -188,14 +188,14 @@ def main():
     if seed_raster:
         kwargs['seed'] = seed_raster
     elif coordinates:
-        kwargs['xy'] = coordinates
+        kwargs['coordinates'] = coordinates
     if 'n' in flags:
         flags += 'n'
 
     for i, water_level in enumerate(water_levels):
         return_code = gcore.run_command('r.lake', elevation=elevation,
                                         lake=outputs[i],
-                                        wl=water_level,
+                                        water_level=water_level,
                                         overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
                                         **kwargs)
         if return_code:
