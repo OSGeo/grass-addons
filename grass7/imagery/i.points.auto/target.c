@@ -28,14 +28,14 @@ int get_target(void)
 	G_fatal_error(_("Can not continue"));
     }
 
-    G__create_alt_env();
-    G__setenv("LOCATION_NAME", location);
+    G_create_alt_env();
+    G_setenv("LOCATION_NAME", location);
     stat = G__mapset_permissions(mapset);
     if (stat > 0) {
-	G__setenv("MAPSET", mapset);
-	G__create_alt_search_path();
-	G__switch_env();
-	G__switch_search_path();
+	G_setenv("MAPSET", mapset);
+	G_create_alt_search_path();
+	G_switch_env();
+	G_switch_search_path();
 	which_env = SRC_ENV;
 	return 1;
     }
@@ -48,8 +48,8 @@ int get_target(void)
 int select_env(int env)
 {
     if (which_env != env) {
-	G__switch_env();
-	G__switch_search_path();
+	G_switch_env();
+	G_switch_search_path();
 	which_env = env;
     }
 
@@ -59,8 +59,8 @@ int select_env(int env)
 int select_current_env(void)
 {
     if (which_env != SRC_ENV) {
-	G__switch_env();
-	G__switch_search_path();
+	G_switch_env();
+	G_switch_search_path();
 	which_env = SRC_ENV;
     }
 
@@ -70,8 +70,8 @@ int select_current_env(void)
 int select_target_env(void)
 {
     if (which_env != TGT_ENV) {
-	G__switch_env();
-	G__switch_search_path();
+	G_switch_env();
+	G_switch_search_path();
 	which_env = TGT_ENV;
     }
 
