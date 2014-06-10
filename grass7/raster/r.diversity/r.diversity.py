@@ -72,7 +72,10 @@
 #% description: Exclude methods
 #% required: no
 #%end
-
+#%flag
+#% key: t
+#% description: Preserve configuration files
+#%end
 
 # import library
 import os
@@ -145,7 +148,8 @@ def main():
         calculateE(rlidir, map_in, map_out, resolution, alpha_value, excludes,
                    quiet, overwrite)
     # remove configuration files
-    removeConfFile(resolution, rlidir)
+    if not flags['t']:
+        removeConfFile(resolution, rlidir)
     grass.message(_("Done."))
 
 
@@ -231,7 +235,7 @@ def createConfFile(res, inpumap, home):
     outputLine.append('SAMPLEAREA -1|-1|' + str(rV) + '|' + str(cV) + '\n')
     outputLine.append('MOVINGWINDOW\n')
     # open configuration file
-    fileConf = open(confilename, 'w')
+    fileConf = open(confilename, 'wb')
     # write file
     fileConf.writelines(outputLine)
     # close file
