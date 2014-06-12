@@ -394,6 +394,13 @@ if(bufabs>0){execGRASS("g.remove", rast=tmp.b)}
 if(preval>0){execGRASS("g.remove", rast=tmp.i)}
 if(num.abs > 0 | num.pres > 0){execGRASS("g.remove", rast=tmp.j)}
 
+# the temporary files do not always get cleaned up, need to check why
+# this is a temporary fix!
+aa <- execGRASS("g.mlist", type="rast", pattern="tmp_r_model_evaluation_*", intern=TRUE)
+if(length(aa)>0){
+    execGRASS("g.mremove", rast="tmp_r_model_evaluation_*", flags="f")
+}
+  
 # Calculate evaluation stats
 a.cast <- cast(a, V2 ~ V1)
 a.cast[] <- sapply(a.cast, function(x) replace(x,is.na(x),0))
@@ -439,8 +446,8 @@ if(print.log==1){
     cat(paste("log file =", paste(fnames, "log.txt", sep="_"))); cat("\n")
 }
 sink()
-b.stats <- cbind(roc.st[-1], a.stats)
-names(b.stats) <- c("steps", names(a.stats))
+b.stats <- cbind(sort(x2[-length(x2)], decreasing=TRUE), a.stats)
+names(b.stats) <- c("threshold", names(a.stats))
 write.table(b.stats, file=paste(fnames, "stats.csv", sep="_"), append=TRUE, sep=";", row.names=FALSE)
 
 EOF
