@@ -103,7 +103,7 @@ def main():
     bspline = flags['v']  # when bspline == False, r.fillnulls is used
 
     # constants
-    fill_method = 'cubic'
+    fill_method = 'bicubic'
     # color table changed from difference to grey to histogram equalized-grey
     # It does make more sense to use that since many archaeologists use the same
     # color scheme for magnetometry and gpr data.
@@ -202,14 +202,14 @@ def main():
                                           _input=contour_points,
                                           raster_output=purged_elevation,
                                           layer='2', column='along',
-                                          method='cubic')
+                                          method=fill_method)
         spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
 
         gscript.info(_("Interpolating purged surface using a spline step value"
                        " of {s}".format(s=spline_step)))
         gscript.run_command('v.surf.bspline', _input=contour_points,
                             raster_output=purged_elevation, layer='2',
-                            column='along', method='cubic',
+                            column='along', method=fill_method,
                             overwrite=gcore.overwrite())
     else:
         gscript.run_command('v.to.rast', input=vector_contours,
