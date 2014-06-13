@@ -35,15 +35,36 @@ class TestAnt(unittest.TestCase):
 
     def test_markedpositions(self):
         self.world.pheroweight = 1
+        # we do not explicitly test random here..
         self.world.randomweight = 1
+        self.world.minrandom = 0
+        self.world.maxrandom = 1
         positions = [[0,0,0,0],[1,1,3,0]]
         self.pg.layers[anthill.Anthill.RESULT][0][0] = 0
         self.pg.layers[anthill.Anthill.RESULT][1][1] = 999
-        self.world.minrandom = 0
-        self.world.maxrandom = 1
         p = self.agent.markedposition(positions)
         self.assertEqual([1,1], p[:2])
-        # we do not test random here..
+
+    def test_costlymarkedpositions(self):
+        self.world.costweight = 1
+        # we do not test random or pheromone at all here..
+        self.world.pheroweight = 0
+        self.world.randomweight = 0
+        positions = [[0,0,0,0],[1,1,3,0]]
+        self.pg.layers[anthill.Anthill.COST][0][0] = 0
+        self.pg.layers[anthill.Anthill.COST][1][1] = 2
+        p = self.agent.costlymarkedposition(positions)
+        self.assertEqual([0,0], p[:2])
+        # test if min/max works
+        self.world.minpenalty = 1
+        self.world.maxpenalty = 3
+        p = self.agent.costlymarkedposition(positions)
+        self.assertEqual([1,1], p[:2])
+        # now test if the ant is really dying if min/max wrong
+        self.world.minpenalty = 3
+        self.assertLess(p[3],1)
+        p = self.agent.costlymarkedposition(positions)
+        self.assertGreater(p[3],1)
 
     def test_choose(self):
         # every second step should be a goal..

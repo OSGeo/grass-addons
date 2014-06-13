@@ -13,6 +13,8 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
+##TODO it is time to make this all multithreaded..
+
 #%Module
 #% description: Agents wander around on the terrain, marking paths to new locations.
 #%End
@@ -90,16 +92,16 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% key: highcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Penalty values above this point an ant considers as illegal/bogus
+#% description: Penalty values above this point an ant considers as illegal/bogus when in 'costlymarked' modus
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
-#%option                                                       
+#%option
 #% key: lowcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Penalty values below this point an ant considers as illegal/bogus
-#% options: <min integer on system would make sense>-0
+#% description: Penalty values below this point an ant considers as illegal/bogus when in 'costlymarked' modus
+#% options: -99999-99999
 #% required : no
 #%end
 #%option
@@ -164,7 +166,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: algorithm
 #% description: Algorithm used for walking step
 #% answer: standard
-#% options: standard,random,test
+#% options: standard,marked,costlymarked,random,test
 #% required : yes
 #%end
 #%option
@@ -190,7 +192,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: number
 #% description: How is the pheromone value (P) weighted when walking (p*P:r*R:c*C)
 #% answer: 1
-#% options: 0-999
+#% options: 0-99999
 #% required : yes
 #%end
 #%option
@@ -199,7 +201,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: number
 #% description: How is the random value (R) weighted when walking (p*P:r*R:c*C)
 #% answer: 1
-#% options: 0-999
+#% options: 0-99999
 #% required : yes
 #%end
 #%option
@@ -208,7 +210,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: number
 #% description: How is the penalty value (C) weighted when walking (p*P:r*R:c*C)
 #% answer: 0
-#% options: 0-999
+#% options: 0-99999
 #% required : yes
 #%end
 
@@ -323,6 +325,10 @@ def main():
         elif flags['s'] and options['outrounds'] > 0:
             world.addsequencenumber = True
 
+        if options['lowcostlimit']:
+            world.minpenalty = int(options['lowcostlimit'])
+        if options['highcostlimit']:
+            world.maxpenalty = int(options['highcostlimit'])
         if options['maxpheromone']:
             world.maxpheromone = int(options['maxpheromone'])
             world.maxrandom = world.maxpheromone

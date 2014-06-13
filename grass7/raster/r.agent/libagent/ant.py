@@ -12,6 +12,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 from random import uniform #, choice, randint
 import agent
 import error
+#from grass.script import core as grass
 
 class Ant(agent.Agent):
     """Implementation of an Ant Agent for an Anthill, an ACO kind of World."""
@@ -40,7 +41,12 @@ class Ant(agent.Agent):
         if self.world.decisionbase == "random":
             # TODO: for now like 'else'..
             self.decide = self.randomposition
+        if self.world.decisionbase == "marked":
+            self.decide = self.markedposition
+        if self.world.decisionbase == "costlymarked":
+            self.decide = self.costlymarkedposition
         else:
+            #standard is marked for the moment..
             self.decide = self.markedposition
         if self.world.evaluationbase == "standard":
             self.evaluate = self.check
@@ -49,8 +55,8 @@ class Ant(agent.Agent):
 
     def check(self, positions):
         """
-        Check a list of positions for a position with a value of interest (<0)
-        in the penalty layer, if such a position is really found, the ant
+        Evaluate a list of positions for a position with a value of interest
+        (<0) in the penalty layer, if such a position really is found, the ant
         happily turns back home by setting the next step to it's last.
         If it was only the homeposition, the ant removes it from the list and
         goes on.
@@ -78,6 +84,45 @@ class Ant(agent.Agent):
                     self.nextstep = self.laststeps.pop()
                     return True
         return False
+
+    def costlymarkedposition(self, positions):
+        """
+        Avoiding high values on the costsurface, combined with the
+        marked pheromone values on a certain layer combined with a random
+        value, pick a posiiton out of a list of positions.
+        @param positions list of possible positions
+        @return position the decision for a position
+        """
+        # sort out illegal positions
+        copyofpositions = positions[:]
+        for i in xrange(0, len(positions)):
+            p = copyofpositions[i]
+            penalty = self.world.getpenalty(p)
+            if (( penalty < self.world.minpenalty ) or
+                ( penalty > self.world.maxpenalty )):
+                positions.remove(p)
+        if not positions:
+            # die as there is nowwhere to go to
+            self.snuffit()
+            # make sure to not walk again..
+            return [0,0,99,99]
+
+        position = positions[0]
+        # compare the remaining
+        tmpval = - self.world.getpenalty(position) * self.world.costweight +\
+                self.world.getpheromone(position) * self.world.pheroweight +\
+                uniform(self.world.minrandom, self.world.maxrandom) *\
+                self.world.randomweight
+        for i in xrange(1, len(positions)):
+            p = positions[i]
+            newval = - self.world.getpenalty(p) * self.world.costweight +\
+                    self.world.getpheromone(p) * self.world.pheroweight +\
+                    uniform(self.world.minrandom, self.world.maxrandom) *\
+                    self.world.randomweight
+            if ( newval > tmpval ):
+                position = p
+                tmpval = newval
+        return position
 
     def markedposition(self, positions):
         """
@@ -145,7 +190,7 @@ class Ant(agent.Agent):
         @return boolean whether still alive
         """
         # we are all only getting older..
-        if self.age() == False:
+        if not self.age():
             # exit if we died in the meantime..
             return False
         # past this point we must have decided yet where to go to next..

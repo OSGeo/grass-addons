@@ -51,7 +51,8 @@ class Anthill(world.World):
         self.sites = []
         # default values
         ## let ant die if penalty grows too big
-        self.maxpenalty = 0
+        self.maxpenalty = 99999
+        self.minpenalty = 0
         ## max/min possible value of pheromone intensity
         self.maxpheromone = maxsize
         self.minpheromone = 0
@@ -75,7 +76,7 @@ class Anthill(world.World):
         ## maximum number of ants on the playground
         self.maxants = self.playground.gettotalcount()
         ## the ants ttl will be set by user or based on playground size
-        self.antslife = self.playground.getdiagonalcount()
+        self.antslife = 2 * self.playground.getdiagonalcount()
         self.decisionbase = "standard"
         self.evaluationbase = "standard"
         self.numberofpaths = 0
