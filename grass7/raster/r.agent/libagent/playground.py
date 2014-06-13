@@ -84,7 +84,7 @@ class Playground(object):
         Return the number of cells in the diagonal
         @return int diagonal cells count
         """
-        return sqrt(self.region["rows"]*self.region["cols"])
+        return sqrt(pow(self.region["rows"],2)+pow(self.region["cols"],2))
 
     def getbound(self, bound):
         """
