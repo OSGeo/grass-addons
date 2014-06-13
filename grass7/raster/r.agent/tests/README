@@ -1,16 +1,14 @@
 README file for libagent's test suite
 
 This test cases are intended to contain all the tests for
-libagent and to be usable with python 2.7 and higher, resp.
-also via the separate unittest2 available as backport for python
-2.3-2.6 too. At the moment I am working on a 2.6er system but
-e.g. by adapting the respective imports I expect it to work
-on 2.7 too..
+libagent and to be usable with python 2.7 and higher, it
+should however run resp. via the separate unittest2 available
+as backport for python 2.3-2.6 too.
 
 To invoke e.g. the error tests only, from the topmost directory
 level (i.e. r.agent) issue
- user@py2.6host:~/r.agent$ unit2 discover -v -p "test_error.py"
+ user@py2.6host:~/r.agent$ unit2 discover -v -p "test*.py"
 or
- user@py2.7host:~/r.agent$ unittest discover -v -p "test_error.py"
+ user@py2.7host:~/r.agent$ unittest discover -v -p "test*.py"
 respectively (consult "-h" for help).
 
