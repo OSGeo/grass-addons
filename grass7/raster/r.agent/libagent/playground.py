@@ -72,6 +72,20 @@ class Playground(object):
         """
         return self.region
 
+    def gettotalcount(self):
+        """
+        Return the number of cells in the playground
+        @return int total cells count
+        """
+        return self.region["rows"]*self.region["cols"]
+
+    def getdiagonalcount(self):
+        """
+        Return the number of cells in the diagonal
+        @return int diagonal cells count
+        """
+        return sqrt(self.region["rows"]*self.region["cols"])
+
     def getbound(self, bound):
         """
         Return the requested bound, takes: 'n', 's', 'w', or 'e'

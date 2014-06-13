@@ -73,9 +73,9 @@ class Anthill(world.World):
         self.randomweight = 1
         self.costweight = 1
         ## maximum number of ants on the playground
-        self.maxants = 100
+        self.maxants = self.playground.gettotalcount()
         ## the ants ttl will be set by user or based on playground size
-        self.antslife = 0
+        self.antslife = self.playground.getdiagonalcount()
         self.decisionbase = "standard"
         self.evaluationbase = "standard"
         self.numberofpaths = 0
@@ -102,7 +102,7 @@ class Anthill(world.World):
         Let the agents do their job. The actual main loop in such a world.
         """
         while rounds > 0:
-            #grass.info(len(self.agents))
+#            grass.info(len(self.agents))
             if len(self.agents) <= self.maxants:
                 # as there is still space on the pg, produce another ant
                 self.bear()

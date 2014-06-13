@@ -24,6 +24,14 @@ class TestPlayground(unittest.TestCase):
         self.assertIsNotNone(self.pg.getregion())
         self.assertIs(self.pg.getregion(),self.pg.region)
 
+    def gettotalcount(self):
+        #not tested for its just a wrapper
+        pass
+
+    def getdiagonalcount(self):
+        #not tested for its just a wrapper
+        pass
+
     def test_getbound(self):
         n = self.pg.region["n"]
         s = self.pg.region["s"]
