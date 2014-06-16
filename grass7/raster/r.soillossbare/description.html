@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.soillossbare.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.soillossbare.py</b></em>  - Calculate annual soil loss [t/(ha*a)] for bare soil.
+<h2>SCHLÜSSELWÖRTER</h2>
+erosion,raster,bare soil, potential soilloss
+<h2>SYNOPSIS</h2>
+<b>r.soillossbare.py</b><br>
+<b>r.soillossbare.py help</b><br>
+<b>r.soillossbare.py</b> [-<b>r</b>] <b>soillossbare</b>=<em>name</em> <b>flowaccmethod</b>=<em>name</em> <b>elevation</b>=<em>name</em> <b>resolution</b>=<em>float</em> <b>kfactor</b>=<em>name</em> <b>rfactor</b>=<em>name</em>  [<b>fieldblock</b>=<em>name</em>]   [<b>map</b>=<em>name</em>]   [<b>flowacc</b>=<em>name</em>]   [<b>constant_m</b>=<em>float</em>]   [<b>constant_n</b>=<em>float</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>-r</b></DT>
+<DD>Remove intermediate results</DD>
+
+<DT><b>--overwrite</b></DT>
+<DD>Ausgabedateien dürfen bereits existierende Dateien überschreiben.</DD>
+<DT><b>--verbose</b></DT>
+<DD>Ausführlicher Ausgabemodus</DD>
+<DT><b>--quiet</b></DT>
+<DD>Schweigsamer Ausgabemodus</DD>
+</DL>
+
+<h3>Parameter:</h3>
+<DL>
+<DT><b>soillossbare</b>=<em>name</em></DT>
+<DD>Output map (soilloss for ungrown soil)</DD>
+
+<DT><b>flowaccmethod</b>=<em>name</em></DT>
+<DD>Module for flowaccumulation calculation</DD>
+<DD>Optionen: <em>r.terraflow,r.flow,r.watershed</em></DD>
+<DD>Standardwert: <em>r.terraflow</em></DD>
+
+<DT><b>elevation</b>=<em>name</em></DT>
+<DD>Digital Elevation Model</DD>
+
+<DT><b>resolution</b>=<em>float</em></DT>
+<DD>Resolution of Digital Elevation Model (x y)</DD>
+<DD>Standardwert: <em>2</em></DD>
+
+<DT><b>kfactor</b>=<em>name</em></DT>
+<DD>K-Factor (soil erodibility factor)</DD>
+
+<DT><b>rfactor</b>=<em>name</em></DT>
+<DD>R-Factor (rain erosivity factor)</DD>
+
+<DT><b>fieldblock</b>=<em>name</em></DT>
+<DD>Fieldblock raster map with NULL/0-values as barrier</DD>
+
+<DT><b>map</b>=<em>name</em></DT>
+<DD>Fieldblock vector map</DD>
+
+<DT><b>flowacc</b>=<em>name</em></DT>
+<DD>Flowaccumulation raster map (instead of calculation)</DD>
+
+<DT><b>constant_m</b>=<em>float</em></DT>
+<DD>RUSLE3D exponential m (0.2..0.6)</DD>
+<DD>Standardwert: <em>0.4</em></DD>
+
+<DT><b>constant_n</b>=<em>float</em></DT>
+<DD>RUSLE3D exponential n (1.2..1.6)</DD>
+<DD>Standardwert: <em>1.3</em></DD>
+
+</DL>
+</body>
+</html>
