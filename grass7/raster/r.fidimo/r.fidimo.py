@@ -529,8 +529,8 @@ def main():
 	
 	#Calculation of stream order (Shreve/Strahler)
 	grass.run_command("r.stream.order",
-					  streams = "stream_rwatershed_tmp_%d" % os.getpid(),
-					  dirs = "flow_direction_tmp_%d" % os.getpid(),
+					  stream_rast = "stream_rwatershed_tmp_%d" % os.getpid(),
+					  direction = "flow_direction_tmp_%d" % os.getpid(),
 					  shreve = "shreve_tmp_%d" % os.getpid(),
 					  strahler = "strahler_tmp_%d" % os.getpid(),
 					  overwrite = True)
