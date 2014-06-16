@@ -786,8 +786,8 @@ def main():
 				# Defining area upstream source point
 				grass.run_command("r.stream.basins",
 							  overwrite = True,
-							  dirs = "flow_direction_tmp_%d" % os.getpid(),
-							  coors = coors,
+							  direction = "flow_direction_tmp_%d" % os.getpid(),
+							  coordinates = coors,
 							  basins = "upstream_part_tmp_%d" % os.getpid())
 
 				# Defining area downstream source point
