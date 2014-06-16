@@ -3,14 +3,14 @@
 rem Download GRASS from SVN
 rem
 rem Eg.
-rem svn checkout http://svn.osgeo.org/grass/grass/tags/release_20121024_grass_6_4_3RC1 grass643RC1
+rem svn checkout http://svn.osgeo.org/grass/grass/tags/release_20140614_grass_6_4_4RC1 grass644RC1
 rem
 
 cd C:\Users\landa\grass_packager
 
-set MAJOR=7
-set MINOR=0
-set PATCH=0beta2
+set MAJOR=6
+set MINOR=4
+set PATCH=4RC1
 set REV=1
 
 rem Compile GRASS versions
