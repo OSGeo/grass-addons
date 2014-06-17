@@ -36,7 +36,7 @@
 #% key: barriers
 #% type: string
 #% gisprompt:old,vector,vector
-#% description: Barrier point file
+#% description: Barrier point file (vector map)
 #% required: no
 #% guisection: Stream parameters
 #%end
@@ -866,8 +866,8 @@ def main():
 						#Defining upstream the barrier
 						grass.run_command("r.stream.basins",
 								overwrite = True,
-								dirs = "flow_direction_tmp_%d" % os.getpid(),
-								coors = coors_barriers,
+								direction = "flow_direction_tmp_%d" % os.getpid(),
+								coordinates = coors_barriers,
 								basins = "upstream_barrier_tmp_%d" % os.getpid())
 
 						grass.run_command("r.null", map="density_"+str(cat), setnull="0")
