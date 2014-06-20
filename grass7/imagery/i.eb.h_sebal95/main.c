@@ -88,20 +88,21 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("heat flux"));
+    G_add_keyword(_("energy balance"));
     module->description = _("Sensible Heat Flux iteration SEBAL 95");
 
     /* Define different options */
     input_T = G_define_standard_option(G_OPT_R_INPUT);
-    input_T->key = "tempk";
+    input_T->key = "temperature";
     input_T->description =
 	_("Name of Surface Skin Temperature input map [K]");
 
     input_dem = G_define_standard_option(G_OPT_R_INPUT);
-    input_dem->key = "dem";
+    input_dem->key = "elevation";
     input_dem->description = _("Name of dem input map [m a.s.l.]");
 
     input_u2m = G_define_standard_option(G_OPT_R_INPUT);
-    input_u2m->key = "u2m";
+    input_u2m->key = "windvelocity2m";
     input_u2m->description =
 	_("Name of Wind speed at 2m height input map [m/s]");
 
@@ -114,12 +115,12 @@ int main(int argc, char *argv[])
     input_albedo->description = _("Name of Albedo input map [-]");
 
     input_Rn = G_define_standard_option(G_OPT_R_INPUT);
-    input_Rn->key = "rnet";
+    input_Rn->key = "netradiation";
     input_Rn->description =
 	_("Name of instantaneous Net Solar Radiation input map [W/m2]");
 
     input_g0 = G_define_standard_option(G_OPT_R_INPUT);
-    input_g0->key = "g0";
+    input_g0->key = "soilheatflux";
     input_g0->description =
 	_("Name of instantaneous Soil Heat Flux input map [W/m2]");
 
