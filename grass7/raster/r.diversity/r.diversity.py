@@ -167,12 +167,12 @@ def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
                                       output=map_out + '_renyi_size_' + r + \
                                       '_alpha_' + str(alp), alpha=alp,
                                       conf='conf_diversity_' + r,
-                                      quiet=quiet, overwrite=overw)
+                                      overwrite=overw)
             else:
                 grass.run_command('r.li.' + i, input=map_in,
                                   output=map_out + '_' + i + '_size_' + r,
                                   conf='conf_diversity_' + r,
-                                  quiet=quiet, overwrite=overw)
+                                  overwrite=overw)
 
 
 # calculate only method excluded with exclude option
@@ -193,12 +193,12 @@ def calculateE(home, map_in, map_out, res, alpha, method, quiet, overw):
                                           output=map_out + '_renyi_size_' + r \
                                           + '_alpha_' + str(alp), alpha=alp,
                                           conf='conf_diversity_' + r,
-                                          quiet=quiet, overwrite=overw)
+                                          overwrite=overw)
                 else:
                     grass.run_command('r.li.' + i, input=map_in, output=map_out \
                                       + '_' + i + '_size_' + r,
                                       conf='conf_diversity_' + r,
-                                      quiet=quiet, overwrite=overw)
+                                      overwrite=overw)
 
 
 # check if alpha value it's set when renyi entropy must be calculate
