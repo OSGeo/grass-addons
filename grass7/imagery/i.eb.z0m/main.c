@@ -126,10 +126,10 @@ int main(int argc, char *argv[])
     ncols = Rast_window_cols();
     /***************************************************/ 
     outrast1 = Rast_allocate_d_buf();
-    Rast_open_new(result1, DCELL_TYPE);
+    outfd1 = Rast_open_new(result1, DCELL_TYPE);
     if (input2->answer && output2->answer){
         outrast2 = Rast_allocate_d_buf();
-        Rast_open_new(result2, DCELL_TYPE);
+        outfd2 = Rast_open_new(result2, DCELL_TYPE);
     }
     DCELL d_ndvi;		/* Input raster */
     DCELL d_ndvi_max = 0.0;	/* Generated here */
