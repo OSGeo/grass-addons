@@ -25,13 +25,12 @@ if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     ./compile-xml.sh $XMLDIR
     for version in 6 7 ; do
     	cd $HOME/.grass${version}/addons/
-    	cp modules.xml $XMLDIR/grass${version}/
-    	rsync -ag --delete logs $XMLDIR/grass${version}/
+    	cp modules.xml $XMLDIR/grass${version}
+    	rsync -ag --delete logs $XMLDIR/grass${version}
     	cd $XMLDIR/grass${version}/logs
     	ln -sf ALL.html index.html
     done
 
-    update_manual 7 1
     update_manual 7 0
     update_manual 6 4
 fi
@@ -40,7 +39,7 @@ fi
 recompile_grass() {
     cd $DIR
 
-    for gdir in "grass_trunk" "grass70_release" "grass64_release" ; do
+    for gdir in "grass70_release" "grass64_release" ; do
 	cd $gdir
         echo "Recompiling $gdir..." 1>&2
 	svn up
@@ -74,6 +73,9 @@ update_manual() {
 	    cp ${m}docs/html/* $dst
         fi
     done
+
+    cd $DIR/grass-addons/tools/addons    
+    ./build-index.sh $MANDIR ${major} ${minor}
 }
 
 export GRASS_SKIP_MAPSET_OWNER_CHECK="1"
