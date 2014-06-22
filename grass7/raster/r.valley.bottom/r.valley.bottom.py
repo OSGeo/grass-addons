@@ -30,6 +30,12 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 #% required: yes
 #%end
 
+	##################################################################################
+	# TODO: Design the script independent of input elevation raster resolution. At 
+	# the moment the input elevation raster map must have a resolution of 25m 
+	# x 25m. Additionally the search window of the elevation percentile may be 
+	# adapted.
+
 import sys
 import os
 import grass.script as grass
