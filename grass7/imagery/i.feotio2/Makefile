@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.feo_tio2
+PGM = i.feotio2
 
 LIBES = $(RASTERLIB) $(GISLIB)
 DEPENDENCIES = $(RASTERDEP) $(GISDEP)
