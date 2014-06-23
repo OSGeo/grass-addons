@@ -3,13 +3,13 @@ MODULE_TOPDIR = ..
 # i.fusion.brovey deprecated
 
 SUBDIRS = \
-	i.eb.h_sebal95 \
+	i.eb.hsebal95 \
 	i.eb.z0m \
 	i.edge \
 	i.evapo.potrad \
 	i.evapo.senay \
 	i.evapo.zk \
-	i.feo_tio2 \
+	i.feotio2 \
 	i.gravity \
 	i.histo.match \
 	i.lmf \
