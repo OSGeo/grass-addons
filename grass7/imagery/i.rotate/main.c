@@ -43,6 +43,9 @@ int main(int argc, char *argv[])
     struct History history;	/*metadata */
     int infd, outfd;
     void *inrast, *outrast;
+    char outName[GNAME_MAX];
+    struct Key_Value *proj_info, *unit_info;
+    struct pj_info proj;
 
     G_gisinit(argv[0]);
 
@@ -120,8 +123,8 @@ int main(int argc, char *argv[])
 	    }
         }
     }
-    double theta=n->answer;
-    double thetarad=theta*3.1415927/180;
+    double theta=atof(n->answer);
+    double thetarad=theta*M_PI/180;
     double costheta=cos(thetarad);
     double sintheta=sin(thetarad);
     int newrow,newcol;
@@ -142,7 +145,7 @@ int main(int argc, char *argv[])
         for (col = 0; col < ncols; col++)
         {
 	    if (matout[row][col]==-999.99){
-	        Rast_set_d_null_value(&outrast[col]);
+	        Rast_set_d_null_value(&outrast[col], 1);
 	    } else {
                 ((DCELL *)outrast)[col] = matout[row][col];
 	    }
