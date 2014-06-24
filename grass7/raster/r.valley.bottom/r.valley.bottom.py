@@ -559,7 +559,7 @@ def main():
     
     p4 = (math.log10((4 - 0.5) / 0.1)) / math.log10(1.5)
 	
-    grass.mapcalc("W4 = 1 - (1.0 / (1.0 + pow ( ( VF4 / 0.4 ), $p ) ) )", p = p3)	
+    grass.mapcalc("W4 = 1 - (1.0 / (1.0 + pow ( ( VF4 / 0.4 ), $p ) ) )", p = p4)	
 	
     grass.message( "Step 4: Calculation of weight W4 done." )	
     grass.message( "----" )
