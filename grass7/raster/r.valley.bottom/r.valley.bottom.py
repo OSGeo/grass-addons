@@ -456,7 +456,7 @@ def main():
     grass.message( "----" )
 
 	# change resolution
-    grass.message( "Step 4: change to resolution to 3 x 3 step 3 resolution" )
+    grass.message( "Step 4: change to resolution to 3 x step 3 resolution" )
     grass.run_command('g.region', res = Xres_step4, 
                                     flags = 'a')
 
@@ -572,7 +572,33 @@ def main():
 	
     grass.message( "Step 4: Calculation of MRVBF4 done." )	
     grass.message( "----" )
-	
+
+    # clean up some temporay files and maps
+    grass.message( "Some clean up ..." )	
+    grass.run_command('g.remove', region = "base_region_MrVBF", 
+                                     quiet = True)
+    grass.run_command('g.remove', rast = ["F1,F2,F3,F4"], 
+                                     quiet = True)
+    grass.run_command('g.remove', rast = ["CF2,CF3,CF4"], 
+                                     quiet = True)
+    grass.run_command('g.remove', rast = ["PCTL1,PCTL2,PCTL3,PCTL3_refined_base_resolution,PCTL4,PCTL4_refined_base_resolution"], 
+                                     quiet = True)									 
+    grass.run_command('g.remove', rast = ["PVF1,PVF2,PVF3,PVF4"], 
+                                     quiet = True)									 
+    grass.run_command('g.remove', rast = ["VF1,VF2,VF3,VF4"], 
+                                     quiet = True)
+    grass.run_command('g.remove', rast = ["W2,W3,W4"], 
+                                     quiet = True)									 
+    grass.run_command('g.remove', rast = ["r_slope_step1,r_slope_step3,r_slope_step4,r_slope_step4_refined_base_resolution"], 
+                                     quiet = True)	
+    grass.run_command('g.remove', rast = ["DEM_smoothed_step3,DEM_smoothed_step3_coarsed,DEM_smoothed_step4,DEM_smoothed_step4_coarsed"], 
+                                     quiet = True)	
+					 
+    grass.message( "Clean up done." )
+    grass.message( "----" )	
+
+    # v.habitat.dem done!	
+    grass.message( "r.valley.bottom done!" )		
 	
 	
 if __name__ == "__main__":
