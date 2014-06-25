@@ -54,7 +54,7 @@ export LANGUAGE=C
 
 if test -z $1 ; then
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass643        $ADDON_PATH/grass643/addons
-    compile $SVN_PATH/grass6 $GISBASE_PATH/grass644RC1     $ADDON_PATH/grass644RC1/addons
+    compile $SVN_PATH/grass6 $GISBASE_PATH/grass644        $ADDON_PATH/grass644/addons
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass64_release $ADDON_PATH/grass64/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass700beta2   $ADDON_PATH/grass700beta2/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release $ADDON_PATH/grass70/addons
