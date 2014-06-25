@@ -5,7 +5,7 @@ cd C:\Users\landa\grass_packager
 REM
 REM Clean-up
 REM
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.4svn
+rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.5svn
 REM rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.5.svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.0svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.1.svn
