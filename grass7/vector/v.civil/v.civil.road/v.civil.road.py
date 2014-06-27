@@ -113,6 +113,14 @@
 #% guisection: Plan
 #%end
 
+#%option
+#% key: areaopt
+#% type: string
+#% description:  Pair of displaced lines (1-2,2-5,5-6)
+#% required: no
+#% guisection: Plan
+#%end
+
 #%option G_OPT_V_OUTPUT
 #% key: displ
 #% description: Name of plataform displaced lines
@@ -539,7 +547,7 @@
 #% key: pklayer
 #% type: string
 #% label: Layer to add Pks points
-#% options: Vertical,Section,Trans
+#% options: Vertical,Section,Trans,Marks
 #% required: no
 #%end
 
@@ -551,7 +559,7 @@
 #%end
 
 #%option
-#% key: intervR
+#% key: intervr
 #% type: integer
 #% description: Interval in straights
 #% required: no
@@ -559,7 +567,7 @@
 #%end
 
 #%option
-#% key: intervC
+#% key: intervc
 #% type: integer
 #% description: Interval in curves
 #% required: no
@@ -604,7 +612,6 @@ def aprox_coord(L, Tau):
 def aprox_coord2(R, Tau):
 
     n_iter=10;x=0;y=0
-
     for n in range(n_iter):
         x+=((-1)**n*(2*Tau**(2*n+1)/((4*n+1)*factorial(2*n))))-(-1)**n*(Tau**(2*n+1)/factorial(2*n+1))
         y+=((-1)**n*(2*Tau**(2*n+2)/((4*n+3)*factorial(2*n+1))))+((-1)**n*(Tau**(2*n)/factorial(2*n)))
@@ -776,15 +783,6 @@ def get_PlantaXY(PK,puntos_eje):
 
 #### ############## Planta #### ##################
 
-def read_Map(planta,layer):
-
-    # Get Plant Map
-    sal=g.read_command('v.report', map=planta, layer=layer, option='coor',
-                            units='me', quiet=True)
-    sal = [d.split('|') for d in sal.splitlines(0)]
-    del sal[0]
-    return sal
-
 def clotoide_Locales(A,R):
 
     if R==0:
@@ -819,20 +817,7 @@ def angulos_Alings(a,b,c,d,e,f):
     #print Az_ent*200/pi,Az_sal*200/pi,w
     return Az_ent,Az_sal,w
 
-def pto_corte_2_rectas2(x1,y1,x2,y2,x3,y3,x4,y4):
 
-    if x2 == x1: m11=(y2-y1)/0.0000001
-
-
-    else: m11=(y2-y1)/(x2-x1)
-
-    if x3 == x4: m22=(y4-y3)/0.0000001
-    else: m22=(y4-y3)/(x4-x3)
-
-    x=(m11*x1-m22*x3-y1+y3)/(m11-m22)
-    y=m11*(x-x1)+y1
-
-    return x,y
 
 def pto_corte_2_rectas(a,b,c,d,e,f,g,h):
 
@@ -850,6 +835,7 @@ def pto_corte_2_rectas(a,b,c,d,e,f,g,h):
         x = (m1*a-m2*e-b+f)/(m1-m2)
         y = m1*(x-a)+b
     return x,y
+
 
 def get_PtosEjePlanta(table_plant):
 
@@ -1730,6 +1716,33 @@ def generate_Transv(puntos,table_transv): #Para modificarlos deben tener cota ce
     return tra,trans_pklist
 
 
+def generate_DesplazAreas(despl_izq,puntos,despl_der):
+
+    if despl_izq == [] and despl_der == []: return []
+    areas=[]
+    despl = despl_izq + despl_der
+    if options['areaopt']:
+        pair = [p.split('-') for p in options['areaopt'].split(',')]
+
+        for p in pair:
+            lin1,lin2 = [],[]
+            for i,d in enumerate(despl[int(p[0])-1]):
+                if len(d) == 1:
+                    lin1.append(despl[int(p[1])-1][i])
+                else:
+                    lin1.append(d)
+
+            for i,d in enumerate(despl[int(p[1])-1]):
+                if len(d) == 1:
+                    lin2.append(despl[int(p[0])-1][i])
+                else:
+                    lin2.append(d)
+
+            areas.append(lin1+lin2[::-1]+[lin1[0]])
+
+    return areas
+
+
 #def get_Terrain(puntos,tinmap):
 
     ##
@@ -1909,7 +1922,7 @@ def get_Taludes(puntos,puntos_Despl,des,ter,des2,ter2,dem,pkini,pkfin):
 
                 puntos_talud.append([x1,y1,z1]+pt[3:]+[tipo]+[pt[4]])
         else:
-            puntos_talud.append([pta])
+            puntos_talud.append(pta)
 
     return puntos_talud
 
@@ -1964,27 +1977,79 @@ def generate_Taludes(puntos,puntos_Despl_izq,puntos_Despl_der,table_secc,dem):
     return tal_izq,tal_der
 
 
+def split_LineasTalud(Puntos_Talud,Despl):
+
+    linT=[[]]
+    linD=[[]]
+    talud_ant=Puntos_Talud[0][-2]
+    for i,pto in enumerate(Puntos_Talud):
+        if len(pto) > 1:
+            talud=pto[-2]
+            if talud == talud_ant or (talud and talud_ant==''):
+                linT[-1].append(pto)
+                linD[-1].append(Despl[0][i])
+            else:
+
+                if linT[-1] != []:
+                    linT.append([])
+                    linD.append([])
+                    linT[-1].append(Puntos_Talud[i-1])
+                    linD[-1].append(Despl[0][i-1])
+                    linT[-1].append(pto)
+                    linD[-1].append(Despl[0][i])
+            talud_ant=talud
+        else:
+            if linT[-1] != []:
+                linT.append([])
+                linD.append([])
+            talud_ant=''
+    if linT[-1] == []:
+        del linT[-1]
+        del linD[-1]
+
+    return linT,linD
+
+
 def generate_TaludesAreas(Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der):
 
     # despl_izq[0] [line1,[],line2,...] --> [[ line1,linet1 ],[ line12,linet2 ],...]
     # taludes      [linet1,[],linet2,...]
+    Tal_izq,Des_izq=split_LineasTalud(Puntos_Talud_izq,Desplazados_izq)
+    Tal_der,Des_der=split_LineasTalud(Puntos_Talud_der,Desplazados_der[::-1])
 
-    lines=[]
-    if Puntos_Talud_izq != [] or Puntos_Talud_der != []:
+    TalDesm,DesDesm=[],[]
+    for j,line in enumerate(Tal_izq):
+        if line[-1][-2] == 'Desmonte':
+            TalDesm.append(line)
+            DesDesm.append(Des_izq[j])
 
-        split_Talud_izq=[list(group) for k, group in groupby(Puntos_Talud_izq, lambda x: x == []) if not k] # split list
-        split_Despl_izq=[list(group) for k, group in groupby(Desplazados_izq[0], lambda x: x == []) if not k] # split list
-        for i,line in enumerate(split_Talud_izq):
+    for j,line in enumerate(Tal_der):
+        if line[-1][-2] == 'Desmonte':
+            TalDesm.append(line)
+            DesDesm.append(Des_der[j])
 
-            lines.append(split_Talud_izq[i]+split_Despl_izq[i][::-1] )
+    TalTerr,DesTerr=[],[]
+    for j,line in enumerate(Tal_izq):
+        if line[-1][-2] == 'Terraplen':
+            TalTerr.append(line)
+            DesTerr.append(Des_izq[j])
 
-        split_Talud_der=[list(group) for k, group in groupby(Puntos_Talud_der, lambda x: x == []) if not k] # split list
-        split_Despl_der=[list(group) for k, group in groupby(Desplazados_der[-1], lambda x: x == []) if not k] # split list
-        for i,line in enumerate(split_Despl_der):
+    for j,line in enumerate(Tal_der):
+        if line[-1][-2] == 'Terraplen':
+            TalTerr.append(line)
+            DesTerr.append(Des_der[j])
 
-            lines.append(split_Despl_der[i]+split_Talud_der[i][::-1] )
+    areas_desm=[]
+    for j,line in enumerate(TalDesm):
+        tline=DesDesm[j]
+        areas_desm.append(line+tline[::-1]+[line[0]])
 
-    return lines
+    areas_terr=[]
+    for j,line in enumerate(TalTerr):
+        tline=DesTerr[j]
+        areas_terr.append(line+tline[::-1]+[line[0]])
+
+    return areas_desm,areas_terr
 
 
 def rellenar_linea(puntos,talud,despl):
@@ -1992,20 +2057,20 @@ def rellenar_linea(puntos,talud,despl):
     # talud  [pto,[],pto,[],...] --> [pto,pto2,pto,pto1,...]
     # despl  [pto1,[],[],pto1,...]
     # puntos [pto2,pto2,pto2,pto2,...]
-    new=despl+[puntos]
+    new=[]
     for i,pto in enumerate(talud):
-        if pto == []:
-            h=0
-            while new[h][i] == []: h=h+1
-            talud[i] = new[h][i]
-
-    return talud
+        if pto == [] or len(pto) ==1:
+            if len(despl[i]) >1:
+                new.append(despl[i])
+        else:
+            new.append(talud[i])
+    return new
 
 
 def generate_ContornoAreas(puntos,talud_izq,despl_izq,despl_der,talud_der):
 
-    talud_izq_rell=rellenar_linea(puntos,talud_izq,despl_izq)
-    talud_der_rell=rellenar_linea(puntos,talud_der,despl_der)
+    talud_izq_rell=rellenar_linea(puntos,talud_izq,despl_izq[0])
+    talud_der_rell=rellenar_linea(puntos,talud_der,despl_der[-1])
 
     uniq = []
     for i in talud_izq_rell+talud_der_rell[::-1]:
@@ -2066,32 +2131,38 @@ def get_TransDespl(Trans,desplaz_izq,desplaz_der):
     return TransDespl
 
 
-def get_ptoByPk(Trans_Pklist,listaPtos):
+def get_ptoByPk(Trans_Pklist,listaPtos,flagDespl):
 
     salida=[]
     for ptoss in Trans_Pklist:
         esta=0
         for ptot in listaPtos:
-            if len(ptot)>1 and ptoss[4] == ptot[4]:
-                salida.append(ptot)
-                esta=1
-                continue
+            if flagDespl == 1:
+                if len(ptot)>1 and ptoss[4] == ptot[-1]:
+                    salida.append(ptot)
+                    esta=1
+                    continue
+            else:
+                if len(ptot)>1 and ptoss[4] == ptot[4]:
+                    salida.append(ptot)
+                    esta=1
+                    continue
         if esta==0:
             salida.append([])
     return salida
 
 def get_SeccTerr(Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Puntos_Talud_der):
 
-    talud_izq=get_ptoByPk(Trans_Pklist,Puntos_Talud_izq)
-    talud_der=get_ptoByPk(Trans_Pklist,Puntos_Talud_der)
+    talud_izq=get_ptoByPk(Trans_Pklist,Puntos_Talud_izq,0)
+    talud_der=get_ptoByPk(Trans_Pklist,Puntos_Talud_der,0)
 
     secc_izq=[talud_izq]
     for desp in Desplaz_izq:
-        secc_izq.append(get_ptoByPk(Trans_Pklist,desp))
+        secc_izq.append(get_ptoByPk(Trans_Pklist,desp,1))
 
     secc_der=[]
     for desp in Desplaz_der:
-        secc_der.append(get_ptoByPk(Trans_Pklist,desp))
+        secc_der.append(get_ptoByPk(Trans_Pklist,desp,1))
 
     secc_der.append(talud_der)
     secc = secc_izq+[Trans_Pklist]+secc_der
@@ -2346,270 +2417,6 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,secc,escala,opt1,opt2):
 
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
 
-
-def read_Table(EjeMap,layer,columns):
-
-    table=g.read_command('v.out.ascii', input=EjeMap, output='-',
-                          format='point', layer=layer, columns=columns, quiet=True)
-    table = [d.split('|') for d in table.splitlines(0)]
-    if len(table[0])<len(columns.split(','))+4:
-        for i in range(len(table)):
-            table[i].insert(2,0.0)
-
-    return table
-
-def read_TablePlant(EjeMap):
-
-    plant = read_Table(EjeMap,2,'pk_eje,radio,a_in,a_out,widening')
-    plant = float_List(plant)
-    return plant
-
-def read_TableAlz(EjeMap):
-
-    alzado = read_Table(EjeMap,3,'pk,elev,kv,l,b')
-    alzado = float_List(alzado)
-    return alzado
-
-def read_TableSection(EjeMap):
-
-    section = read_Table(EjeMap,4,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
-    for i in range(len(section)):
-        section[i][:5]=[float(p) for p in section[i][:5]]
-    return section
-
-def read_TableTransv(EjeMap):
-
-    trans = read_Table(EjeMap,5,'pk,dist_left,dist_right,npk')
-    trans = float_List(trans)
-    return trans
-
-#-----------------------------------------------------------------------------
-
-def remove_Layer(EjeMap,ext,layer):
-
-    g.write_command('db.execute', database = database1, driver = 'sqlite',
-                    stdin="DELETE FROM "+EjeMap+ext+" WHERE cat"+str(layer)+">=0", input='-', quiet=True)
-    g.run_command('v.edit', map=EjeMap, layer=layer, tool='delete', cats='0-100000', quiet=True)
-    return 0
-
-def remove_Plant(EjeMap):
-
-    remove_Layer(EjeMap,'_Plan',2)
-    return 0
-
-def remove_Alz(EjeMap):
-
-    remove_Layer(EjeMap,'_Vertical',3)
-    return 0
-
-def remove_Section(EjeMap):
-
-    remove_Layer(EjeMap,'_Section',4)
-    return 0
-
-def remove_Transv(EjeMap):
-
-    remove_Layer(EjeMap,'_Transv',5)
-    return 0
-
-#-----------------------------------------------------------------------------
-
-def update_Table(EjeMap,ext,layer,ptsList,columns):
-
-    input_Points(EjeMap,layer,ptsList)
-    update_Layer(EjeMap,ext,layer,ptsList,columns)
-    return 0
-
-def input_Points(EjeMap,layer,ptsList):
-
-    sal=''
-    for i,coord in enumerate(ptsList):
-        sal+='P  1 1'+'\n'
-        sal+=str(coord[0])+' '+str(coord[1])+' '+str(coord[2])+'\n'
-        sal+=str(layer)+' '+str(coord[3])+'\n'
-    #print sal
-    os.system('echo "'+sal+'" | v.edit -n tool=add map='+EjeMap+' input=- --quiet')
-    g.run_command('v.to.db', map=EjeMap, layer=layer, type='point', option='cat', columns='cat'+str(layer), quiet=True)
-    return 0
-
-def update_Layer(EjeMap,ext,layer,ptsList,columns):
-
-    sql=''
-    columns=columns.split(',')
-    for i in range(len(ptsList)):
-        sql+="UPDATE "+EjeMap+ext+" SET "
-        sql+=', '.join(a + "=" +str(b) for a,b in zip(columns,ptsList[i][4:]))
-        sql+=" WHERE cat"+str(layer)+"="+str(ptsList[i][3])+";\n"
-    #print sql
-    g.write_command('db.execute', database = database1, driver = 'sqlite', stdin = sql, input='-', quiet=True)
-    return 0
-
-
-def update_TablePlan(EjeMap,ptsList):
-
-    update_Table(EjeMap,'_Plan',2,ptsList,'pk_eje,radio,a_in,a_out,widening')
-    return 0
-
-def update_TableAlz(EjeMap,ptsList):
-
-    update_Table(EjeMap,'_Vertical',3,ptsList,'pk,elev,kv,l,b')
-    return 0
-
-def update_TableSection(EjeMap,ptsList):
-
-    for i,pts in enumerate(ptsList):
-        ptsList[i][5:]=["'"+str(p)+"'" for p in ptsList[i][5:] if str(p).find("'")==-1]
-    update_Table(EjeMap,'_Section',4,ptsList,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
-    return 0
-
-def update_TableTransv(EjeMap,ptsList):
-
-    update_Table(EjeMap,'_Transv',5,ptsList,'pk,dist_left,dist_right,npk')
-    return 0
-
-#-----------------------------------------------------------------------------
-
-def corrige_Alzado(puntos_eje,alz,EjeMap):
-
-    alz.sort(key=lambda x: x[4]) # alz=[x,y,z,cat,Pk,Cota,Kv,L,B]
-
-    for i in range(1,len(alz),1):
-        if i < len(alz)-1:
-            alz[i][0],alz[i][1]=get_PlantaXY(alz[i][4],puntos_eje)[:2]
-        alz[i][3]=i+1
-        #alz[i][6]=(float(alz[i][5])-alz[i-1][5])/(float(alz[i][4])-alz[i-1][4])
-    alz[-1][4]=puntos_eje[-1][-1][7]
-    alz[-1][0],alz[-1][1],alz[-1][2]=puntos_eje[-1][0][:3]
-    remove_Alz(EjeMap)
-    update_TableAlz(EjeMap,alz)
-
-    return 0
-
-def corrige_Section(puntos_eje,secc,EjeMap):
-
-    secc.sort(key=lambda x: float(x[4]))
-    for i in range(1,len(secc),1):
-        if i < len(secc)-1:
-            secc[i][0],secc[i][1]=get_PlantaXY(float(secc[i][4]),puntos_eje)[:2]
-        secc[i][3]=i+1
-    secc[-1][4]=puntos_eje[-1][-1][7]
-    secc[-1][0],secc[-1][1],secc[-1][2]=puntos_eje[-1][0][:3]
-    remove_Section(EjeMap)
-    update_TableSection(EjeMap,secc)
-    return 0
-
-def corrige_Transv(puntos_eje,trans,EjeMap):
-
-    trans.sort(key=lambda x: float(x[4]))
-    for i in range(1,len(trans),1):
-        if i < len(trans)-1:
-            trans[i][0],trans[i][1]=get_PlantaXY(float(trans[i][4]),puntos_eje)[:2]
-        trans[i][3]=i+1
-    trans[-1][4]=puntos_eje[-1][-1][7]
-    trans[-1][0],trans[-1][1],trans[-1][2]=puntos_eje[-1][0][:3]
-    remove_Transv(EjeMap)
-    update_TableTransv(EjeMap,trans)
-    return 0
-
-#-----------------------------------------------------------------------------
-
-def float_List(list):
-    for j,punt in enumerate(list):
-        for i,elem in enumerate(punt):
-
-            if list[j][i]=='':
-                list[j][i] = 0.0
-            else:
-                list[j][i] = float(list[j][i])
-    return list
-
-
-def update_EdgeMap(EjeMap):
-
-    g.message("Reading polygon vertices")
-    verti=g.read_command('v.out.ascii', input=EjeMap, output='-', format='standard', layer=1)
-    verti = [d.strip().split() for d in verti.splitlines(0)]
-    verti = verti[11:-1]
-
-    if len(verti[0])==2:
-        for i in range(len(verti)):
-            verti[i].append('0.0')
-    verti=float_List(verti)
-    pk_eje=[0.0]
-
-    for i in range(len(verti)-1):
-        pk_eje.append(sqrt((verti[i+1][0]-verti[i][0])**2+(verti[i+1][1]-verti[i][1])**2)+pk_eje[-1])
-
-
-    dbs=g.vector_db(EjeMap)
-    #print (dbs)
-    if len(dbs) == 5 : # if layers exist
-
-        g.message("Reading old configuration")
-        planta=read_TablePlant(EjeMap)
-        alzado=read_TableAlz(EjeMap)
-        seccion=read_TableSection(EjeMap)
-        transv=read_TableTransv(EjeMap)
-
-        g.message("Deleting old tables")
-        remove_Plant(EjeMap)
-        remove_Alz(EjeMap)
-        remove_Section(EjeMap)
-        remove_Transv(EjeMap)
-
-        g.message("Updating new tables")
-        for i in range(len(pk_eje)):
-            planta[i][:5]=verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i]
-        alzado[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
-        alzado[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(alzado),pk_eje[-1]
-        seccion[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
-        seccion[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(seccion),pk_eje[-1]
-        transv[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
-        transv[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(transv),pk_eje[-1]
-
-        update_TablePlan(EjeMap,planta)
-        update_TableAlz(EjeMap,alzado)
-        update_TableSection(EjeMap,seccion)
-        update_TableTransv(EjeMap,transv)
-
-    else:
-
-        #g.message("Deleting old tables")
-        #remove_Plant(EjeMap)
-        #remove_Alz(EjeMap)
-        #remove_Section(EjeMap)
-        #remove_Transv(EjeMap)
-
-        g.message("Adding tables")
-        g.run_command('v.db.addtable', map=EjeMap, layer=2, key='cat2', table=EjeMap+'_Plan',
-                      columns='pk_eje double, radio double, a_in double, \
-                      a_out double, widening double', quiet=True)
-        g.run_command('v.db.addtable', map=EjeMap, layer=3, key='cat3', table=EjeMap+'_Vertical',
-                      columns='pk double, elev double, \
-                      kv double, l double, b double', quiet=True)
-        g.run_command('v.db.addtable', map=EjeMap, layer=4, key='cat4', table=EjeMap+'_Section',
-                      columns='pk double, sec_left varchar(25), sec_right varchar(25), \
-                      type_left varchar(25), type_right varchar(25), \
-                      cut_left varchar(25), cut_right varchar(25), fill_left varchar(25), fill_right varchar(25)', quiet=True)
-        g.run_command('v.db.addtable', map=EjeMap, layer=5, key='cat5', table=EjeMap+'_Transv',
-                      columns='pk double, dist_left double, dist_right double, npk double', quiet=True)
-
-        g.message("Updating tables")
-        planta=[]
-        for i in range(len(pk_eje)):
-            planta.append([verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i],0.0,0.0,0.0,0.0,0.0,0.0])
-        alzado=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0,0.0],
-                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0,0.0]]
-        seccion=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],'','','','','','',''],
-                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],'','','','','','','']]
-        transv=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0],
-                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0]]
-
-        update_TablePlan(EjeMap,planta)
-        update_TableAlz(EjeMap,alzado)
-        update_TableSection(EjeMap,seccion)
-        update_TableTransv(EjeMap,transv)
-
 #-----------------------------------------------------------------------------
 
 
@@ -2781,7 +2588,7 @@ def write_Polygon(puntos,name):
                         input='-', format='standard', overwrite=True, quiet=True)
     return 0
 
-def write_Polygonos(lines,name):
+def write_Polygonos(lines,name,cat):
 
     sal_linea=""
     for j,line in enumerate(lines):
@@ -2795,48 +2602,369 @@ def write_Polygonos(lines,name):
         sal_linea+="B "+str(longLine)+" 1\n"
         sal_linea+=sal_linea2
         sal_linea+=str(line[0][0])+" "+str(line[0][1])+"\n"
-        sal_linea+="1 "+str(j+1)+"\n"
+        if cat:
+            sal_linea+="1 "+str(cat)+"\n"
+        else:
+            sal_linea+="1 "+str(j+1)+"\n"
 
     g.write_command('v.in.ascii', flags='nz', output=name, stdin=sal_linea,
                         input='-', format='standard', overwrite=True, quiet=True)
     return 0
 
 
-def concatenate_lines(lines):
 
-    # line = [[pto],[pto],...]
-    # despl_izq [[line11,[],line12,...],line3,line4,...] + puntos -->
-    # [[ line11,line3 ],[ line12,line3 ],[ line3,line4 ],...
-    line3=[]
-    for j,line in enumerate(lines[:-1]):
-        if [] in line:
-            splitlist=[list(group) for k, group in groupby(line, lambda x: x == []) if not k] # split list
-            for line2 in splitlist:
-                list2=[]
-                for i,pto in enumerate(line2):
-                    list2.append(lines[j+1][int(pto[3])])
-                line3.append(line2+list2[::-1])
-        else:
-            tline=lines[j+1]
-            line3.append(line+tline[::-1])
 
-    return line3
+# ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
 
-def generate_DesplazAreas(despl_izq,puntos,despl_der):
+def read_Table2(EjeMap,layer,columns):
 
-    new_izq=despl_izq[:]
-    new_izq.append(puntos)
-    new_izq=concatenate_lines(new_izq)
+    tableD = dict()
+    cols=['x','y','z','cat']+columns.split(',')
+    table = g.read_command('v.out.ascii', input=EjeMap, output='-',
+                       format='point', layer=layer, columns=columns, quiet=True)
+    table = [d.split('|') for d in table.splitlines(0)]
+    if len(table[0])<len(columns.split(','))+4:
+        for i in range(len(table)):
+            table[i].insert(2,0.0)
+    table = [[row[i] for row in table] for i in range(len(table[0]))]
+    for i,key in enumerate(cols):
+        tableD[key] = table[i]
 
-    new_der=despl_der[::-1]
-    new_der.append(puntos)
-    new_der=concatenate_lines(new_der)
+    return tableD
 
-    lines=new_izq+new_der[::-1]
-    for i,line in enumerate(lines):
-        if line[0] == line[-1]: del lines[i][0]
 
-    return lines
+def read_Table(EjeMap,layer,columns):
+
+    table = g.read_command('v.out.ascii', input=EjeMap, output='-',
+                       format='point', layer=layer, columns=columns, quiet=True)
+    table = [d.split('|') for d in table.splitlines(0)]
+    if len(table[0])<len(columns.split(','))+4:
+        for i in range(len(table)):
+            table[i].insert(2,0.0)
+    return table
+
+def read_TablePlant(EjeMap):
+
+    plant = read_Table(EjeMap,2,'pk_eje,radio,a_in,a_out,widening,superelev')
+    for i in range(len(plant)):
+        plant[i][:9]=[float(p) for p in plant[i][:9]]
+    return plant
+
+def read_TableAlz(EjeMap):
+
+    alzado = read_Table(EjeMap,3,'pk,elev,kv,l,b')
+    alzado = float_List(alzado)
+    return alzado
+
+def read_TableSection(EjeMap):
+
+    section = read_Table(EjeMap,4,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
+    for i in range(len(section)):
+        section[i][:5]=[float(p) for p in section[i][:5]]
+    return section
+
+def read_TableTransv(EjeMap):
+
+    trans = read_Table(EjeMap,5,'pk,dist_left,dist_right,npk')
+    trans = float_List(trans)
+    return trans
+
+def read_TableMarks(EjeMap):
+
+    marks = read_Table(EjeMap,6,'pk,dists,elevs,name')
+    for i in range(len(marks)):
+        marks[i][:5]=[float(p) for p in marks[i][:5]]
+    return marks
+
+
+#-----------------------------------------------------------------------------
+
+def remove_Layer(EjeMap,ext,layer):
+
+    g.write_command('db.execute', database = database1, driver = 'sqlite',
+                 stdin="DELETE FROM "+EjeMap+ext+" WHERE cat"+str(layer)+">=0",
+                 input='-', quiet=True)
+    g.run_command('v.edit', map=EjeMap, layer=layer, tool='delete',
+                  cats='0-100000', quiet=True)
+    return 0
+
+def remove_Plant(EjeMap):
+
+    remove_Layer(EjeMap,'_Plan',2)
+    return 0
+
+def remove_Alz(EjeMap):
+
+    remove_Layer(EjeMap,'_Vertical',3)
+    return 0
+
+def remove_Section(EjeMap):
+
+    remove_Layer(EjeMap,'_Section',4)
+    return 0
+
+def remove_Transv(EjeMap):
+
+    remove_Layer(EjeMap,'_Transv',5)
+    return 0
+
+def remove_Marks(EjeMap):
+
+    remove_Layer(EjeMap,'_Marks',6)
+    return 0
+
+#-----------------------------------------------------------------------------
+
+def update_Table(EjeMap,ext,layer,ptsList,columns):
+
+    input_Points(EjeMap,layer,ptsList)
+    update_Layer(EjeMap,ext,layer,ptsList,columns)
+    return 0
+
+def input_Points(EjeMap,layer,ptsList):
+
+    sal=''
+    for i,coord in enumerate(ptsList):
+        sal+='P  1 1'+'\n'
+        sal+=str(coord[0])+' '+str(coord[1])+' '+str(coord[2])+'\n'
+        sal+=str(layer)+' '+str(coord[3])+'\n'
+    #print sal
+    os.system('echo "'+sal+'" | v.edit -n tool=add map='+EjeMap+' input=- --quiet')
+    g.run_command('v.to.db', map=EjeMap, layer=layer, type='point',
+                  option='cat', columns='cat'+str(layer), quiet=True)
+    return 0
+
+def update_Layer(EjeMap,ext,layer,ptsList,columns):
+
+    sql=''
+    columns=columns.split(',')
+    for i in range(len(ptsList)):
+        sql+="UPDATE "+EjeMap+ext+" SET "
+        sql+=', '.join(a + "=" +str(b) for a,b in zip(columns,ptsList[i][4:]))
+        sql+=" WHERE cat"+str(layer)+"="+str(ptsList[i][3])+";\n"
+    #print sql
+    g.write_command('db.execute', database = database1, driver = 'sqlite', stdin = sql, input='-', quiet=True)
+    return 0
+
+
+def update_TablePlan(EjeMap,ptsList):
+
+    for i,pts in enumerate(ptsList):
+	if str(ptsList[i][-1]).find("'")==-1:
+	  ptsList[i][-1]="'"+ptsList[i][-1]+"'"
+    update_Table(EjeMap,'_Plan',2,ptsList,'pk_eje,radio,a_in,a_out,widening,superelev')
+
+    return 0
+
+def update_TableAlz(EjeMap,ptsList):
+
+    update_Table(EjeMap,'_Vertical',3,ptsList,'pk,elev,kv,l,b')
+    return 0
+
+def update_TableSection(EjeMap,ptsList):
+
+    for i,pts in enumerate(ptsList):
+        ptsList[i][5:]=["'"+str(p)+"'" for p in ptsList[i][5:] if str(p).find("'")==-1]
+    update_Table(EjeMap,'_Section',4,ptsList,'pk,sec_left,sec_right,type_left,\
+                 type_right,cut_left,cut_right,fill_left,fill_right')
+    return 0
+
+def update_TableTransv(EjeMap,ptsList):
+
+    update_Table(EjeMap,'_Transv',5,ptsList,'pk,dist_left,dist_right,npk')
+    return 0
+
+def update_TableMarks(EjeMap,ptsList):
+
+    for i,pts in enumerate(ptsList):
+        ptsList[i][5:]=["'"+str(p)+"'" for p in ptsList[i][5:] if str(p).find("'")==-1]
+    update_Table(EjeMap,'_Marks',6,ptsList,'pk,dists,elevs,name')
+    return 0
+
+#-----------------------------------------------------------------------------
+
+def corregir_tabla(puntos_eje,tabla):
+
+    pklist,tabla2=[],[]
+    for i,t in enumerate(tabla):
+	if t[4] not in pklist:
+	    pklist.append(t[4])
+	    tabla2.append(t)
+    tabla2.sort(key=lambda x: float(x[4]))
+    for i in range(1,len(tabla2),1):
+        if i < len(tabla2)-1:
+            tabla2[i][0],tabla2[i][1]=get_PlantaXY(float(tabla2[i][4]),puntos_eje)[:2]
+        tabla2[i][3]=i+1
+    tabla2[-1][4]=puntos_eje[-1][-1][7]
+    tabla2[-1][0],tabla2[-1][1],tabla2[-1][2]=puntos_eje[-1][0][:3]
+    return tabla2
+
+
+def corrige_Alzado(puntos_eje,alz,EjeMap):
+
+    alz_out=corregir_tabla(puntos_eje,alz)
+    remove_Alz(EjeMap)
+    update_TableAlz(EjeMap,alz_out)
+    return 0
+
+def corrige_Section(puntos_eje,secc,EjeMap):
+
+    secc_out=corregir_tabla(puntos_eje,secc)
+    remove_Section(EjeMap)
+    update_TableSection(EjeMap,secc_out)
+    return 0
+
+def corrige_Transv(puntos_eje,trans,EjeMap):
+
+    trans_out=corregir_tabla(puntos_eje,trans)
+    remove_Transv(EjeMap)
+    update_TableTransv(EjeMap,trans_out)
+    return 0
+
+def corrige_Marks(puntos_eje,marks,EjeMap):
+
+    marks_out=corregir_tabla(puntos_eje,marks)
+    remove_Marks(EjeMap)
+    update_TableMarks(EjeMap,marks_out)
+    return 0
+
+#-----------------------------------------------------------------------------
+
+def float_List(list):
+    for j,punt in enumerate(list):
+        for i,elem in enumerate(punt):
+
+            if list[j][i]=='':
+                list[j][i] = 0.0
+            else:
+                list[j][i] = float(list[j][i])
+    return list
+
+
+def update_EdgeMap(EjeMap):
+
+    g.message("Reading polygon vertices")
+    verti=g.read_command('v.out.ascii', input=EjeMap, output='-', format='standard', layer=1)
+    verti = [d.strip().split() for d in verti.splitlines(0)]
+    verti = verti[11:-1]
+
+    if len(verti[0])==2:
+        for i in range(len(verti)):
+            verti[i].append('0.0')
+    verti=float_List(verti)
+    pk_eje=[0.0]
+    for i in range(len(verti)-1):
+        pk_eje.append(sqrt((verti[i+1][0]-verti[i][0])**2+(verti[i+1][1]-verti[i][1])**2)+pk_eje[-1])
+
+    dbs=g.vector_db(EjeMap)
+
+    if len(dbs) == 6 : # if layers exist
+
+        g.message("Reading old configuration")
+        planta=read_TablePlant(EjeMap)
+        alzado=read_TableAlz(EjeMap)
+        seccion=read_TableSection(EjeMap)
+        transv=read_TableTransv(EjeMap)
+        marks=read_TableMarks(EjeMap)
+
+        g.message("Updating tables")
+        planta2=[]
+        for i in range(len(pk_eje)):
+	    if i >= len(planta):
+		planta2.append([verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i]]+[0.0,0.0,0.0,0.0,"'aa'"])
+	    else:
+		planta2.append([verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i]]+planta[i][5:])
+
+        alzado[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
+        alzado[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(alzado),pk_eje[-1]
+
+        seccion[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
+        seccion[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(seccion),pk_eje[-1]
+
+        transv[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
+        transv[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(transv),pk_eje[-1]
+
+        marks[0][:5]=verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0]
+        marks[-1][:5]=verti[-1][0],verti[-1][1],verti[-1][2],len(marks),pk_eje[-1]
+
+        #g.message("Deleting old tables")
+        remove_Plant(EjeMap)
+        update_TablePlan(EjeMap,planta2)
+
+        remove_Alz(EjeMap)
+        update_TableAlz(EjeMap,alzado)
+
+        remove_Section(EjeMap)
+        update_TableSection(EjeMap,seccion)
+
+        remove_Transv(EjeMap)
+        update_TableTransv(EjeMap,transv)
+
+        remove_Marks(EjeMap)
+        update_TableMarks(EjeMap,marks)
+
+
+    else:
+
+        namesdbs=[]
+	for k,v in dbs.items():
+	    namesdbs.append(v['name'])
+
+        if EjeMap+'_Plan' not in namesdbs:
+	    g.message("Adding table"+EjeMap+'_Plan')
+	    g.run_command('v.db.addtable', map=EjeMap, layer=2, key='cat2', table=EjeMap+'_Plan',
+                      columns='pk_eje double, radio double, a_in double, \
+                      a_out double, widening double, superelev varchar(10)', quiet=True)
+            g.message("Updating table "+EjeMap+'_Plan')
+            planta=[]
+	    for i in range(len(pk_eje)):
+		planta.append([verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i],0.0,0.0,0.0,0.0,"'aa'"])
+            update_TablePlan(EjeMap,planta)
+
+        if EjeMap+'_Vertical' not in namesdbs:
+	    g.message("Adding table"+EjeMap+'_Vertical')
+	    g.run_command('v.db.addtable', map=EjeMap, layer=3, key='cat3', table=EjeMap+'_Vertical',
+                      columns='pk double, elev double, \
+                      kv double, l double, b double', quiet=True)
+            g.message("Updating table "+EjeMap+'_Vertical')
+            alzado=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0,0.0],
+		    [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0,0.0]]
+            update_TableAlz(EjeMap,alzado)
+
+        if EjeMap+'_Section' not in namesdbs:
+	    g.message("Adding table"+EjeMap+'_Section')
+	    g.run_command('v.db.addtable', map=EjeMap, layer=4, key='cat4', table=EjeMap+'_Section',
+                      columns='pk double, sec_left varchar(25), sec_right varchar(25), \
+                      type_left varchar(25), type_right varchar(25), \
+                      cut_left varchar(25), cut_right varchar(25), fill_left varchar(25), \
+                      fill_right varchar(25)', quiet=True)
+            g.message("Updating table "+EjeMap+'_Section')
+	    seccion=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],'','','','','','',''],
+		     [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],'','','','','','','']]
+            update_TableSection(EjeMap,seccion)
+
+        if EjeMap+'_Transv' not in namesdbs:
+	    g.message("Adding table"+EjeMap+'_Transv')
+	    g.run_command('v.db.addtable', map=EjeMap, layer=5, key='cat5', table=EjeMap+'_Transv',
+                      columns='pk double, dist_left double, dist_right double, npk double', quiet=True)
+	    g.message("Updating table "+EjeMap+'_Transv')
+            transv=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0],
+		    [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0]]
+            update_TableTransv(EjeMap,transv)
+
+        if EjeMap+'_Marks' not in namesdbs:
+	    g.message("Adding table"+EjeMap+'_Marks')
+	    g.run_command('v.db.addtable', map=EjeMap, layer=6, key='cat6', table=EjeMap+'_Marks',
+                      columns='pk double, dists varchar(25), elevs varchar(25), name varchar(25)', quiet=True)
+	    g.message("Updating table "+EjeMap+'_Marks')
+	    marks=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],"'d'","'e'","'n'"],
+		   [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],"'d'","'e'","'n'"]]
+	    update_TableMarks(EjeMap,marks)
+
+
+
+#------------------------------------------------------------------------------
+
 
 
 def lista_PksEje(Puntos_Eje,Puntos_EjeAlz,puntos,table_alz,table_secc,table_transv):
@@ -2909,6 +3037,8 @@ def main():
 	    table=read_TableSection(NameMap)
 	elif options["pklayer"]=="Trans":
 	    table=read_TableTransv(NameMap)
+	elif options["pklayer"]=="Marks":
+            table=read_TableMarks(NameMap)
 	else:
 	    g.message("Layer no editable")
 
@@ -2917,7 +3047,7 @@ def main():
 	    tablepks.append(line[4])
 	pklist2=[]
 	for p in pklist:
-	    if p not in tablepks: pklist2.append(p)
+	    if p not in tablepks and p < tablepks[-1]: pklist2.append(p)
 
         if pklist2!=[]:
 
@@ -2935,24 +3065,25 @@ def main():
 
             if options["pklayer"]=="Vertical":
                 for i,pk in enumerate(pklist2):
-                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+table[posi-1][5]+[0,0,0])
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+[table[posi-1][5]]+[0,0,0])
                 update_TableAlz(NameMap,table2)
                 table_alz=read_TableAlz(NameMap)
                 corrige_Alzado(Puntos_Eje,table_alz,NameMap)
 
             elif options["pklayer"]=="Section":
                 for i,pk in enumerate(pklist2):
+                    secleft,typeleft,secright,typeright='','','',''
                     for num in range(len(table[posi-1][5].split(';'))):
                         secleft+="-1 0;"
                         typeleft+="l;"
                     secleft=secleft[:-1]
                     typeleft=typeleft[:-1]
-                    for num in range(len(table[posi-1][5].split(';'))):
+                    for num in range(len(table[posi-1][6].split(';'))):
                         secright+="-1 0;"
                         typeright+="l;"
                     secright=secright[:-1]
                     typeright=typeright[:-1]
-                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+[secleft,secright,typeleft,typeright])
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+[secleft,secright,typeleft,typeright]+['1','1','1','1'])
                 update_TableSection(NameMap,table2)
                 table_secc=read_TableSection(NameMap)
                 corrige_Section(Puntos_Eje,table_secc,NameMap)
@@ -2963,6 +3094,14 @@ def main():
                 update_TableTransv(NameMap,table2)
                 table_transv=read_TableTransv(NameMap)
                 corrige_Transv(Puntos_Eje,table_transv,NameMap)
+
+            elif options["pklayer"]=="Marks":
+                for i,pk in enumerate(pklist2):
+                    table2.append([table[posi-1][0]+i,table[posi-1][1]+i,table[posi-1][2]+i,categ+i,pk]+table[posi-1][5:])
+                update_TableMarks(NameMap,table2)
+                table_marks=read_TableMarks(NameMap)
+                corrige_Marks(Puntos_Eje,table_marks,NameMap)
+
         else: g.message("Pk exist or list empty")
 
 
@@ -2980,20 +3119,26 @@ def main():
         table_plant= read_TablePlant(NameMap)
         Puntos_Eje=get_PtosEjePlanta(table_plant)
 
-
         table_alz=read_TableAlz(NameMap)
         corrige_Alzado(Puntos_Eje,table_alz,NameMap)
+        table_alz=read_TableAlz(NameMap)
+
         table_secc=read_TableSection(NameMap)
         corrige_Section(Puntos_Eje,table_secc,NameMap)
         table_secc=read_TableSection(NameMap)
 
         table_transv=read_TableTransv(NameMap)
         corrige_Transv(Puntos_Eje,table_transv,NameMap)
+	table_transv=read_TableTransv(NameMap)
+
+        table_marks= read_TableMarks(NameMap)
+        corrige_Marks(Puntos_Eje,table_marks,NameMap)
+        table_marks= read_TableMarks(NameMap)
 
         ######################################################################
         g.message("Generating alings")
 
-        Puntos,Segmentos,Puntos_caract,Puntos_centros=generate_Pts(Puntos_Eje,1,1,1,int(options['intervR']),int(options['intervC']))
+        Puntos,Segmentos,Puntos_caract,Puntos_centros=generate_Pts(Puntos_Eje,1,1,1,int(options['intervr']),int(options['intervc']))
         Puntos_EjeAlz=get_PtosEjeAlzado(table_alz)
 
         Puntos=get_Cota(Puntos,Puntos_EjeAlz)
@@ -3044,7 +3189,7 @@ def main():
             if re.search(r'^_', options['displ_area']): name1=NameMap+options['displ_area']
             else: name1=options['displ_area']
             if Desplaz_Areas != []:
-                write_Polygonos(Desplaz_Areas,NameMap+"_tmp2")
+                write_Polygonos(Desplaz_Areas,NameMap+"_tmp2",0)
                 g.run_command('v.centroids', input=NameMap+"_tmp2", output=name1, overwrite=True, quiet=True)
                 g.run_command('g.remove', vect=NameMap+"_tmp2", quiet=True)
 
@@ -3089,7 +3234,7 @@ def main():
             else: name1=options['pks']
             write_Transv(Pks,Trans_Pklist,[],name1,'')
 
-        
+
         ##################################################################
         if options['dem']:
 
@@ -3101,7 +3246,7 @@ def main():
 
             Puntos_Talud_izq,Puntos_Talud_der=generate_Taludes(Puntos2,Desplazados_izq,Desplazados_der,table_secc,Terreno_Array)
 
-            Taludes_Areas=generate_TaludesAreas(Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der)
+            Areas_Desm,Areas_Terr=generate_TaludesAreas(Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der)
 
             Transversales_Terreno = drape_LinesPoints(Transv_Discr,Terreno_Array)
             Puntos_Long_Terreno = drape_Points(Puntos,Terreno_Array)
@@ -3129,9 +3274,12 @@ def main():
             if flags['e']:
                 if re.search(r'^_', options['outslopeareas']): name1=NameMap+options['outslopeareas']
                 else: name1=options['outslopeareas']
-                if Taludes_Areas != []:
-                    write_Polygonos(Taludes_Areas,NameMap+"_tmp3")
-                    g.run_command('v.centroids', input=NameMap+"_tmp3", output=name1, overwrite=True, quiet=True)
+                if Areas_Desm != [] and Areas_Terr != []:
+                    write_Polygonos(Areas_Desm,NameMap+"_tmp3",0)
+                    g.run_command('v.centroids', input=NameMap+"_tmp3", output=name1+'_Desm', overwrite=True, quiet=True)
+                    g.run_command('g.remove', vect=NameMap+"_tmp3", quiet=True)
+                    write_Polygonos(Areas_Terr,NameMap+"_tmp3",0)
+                    g.run_command('v.centroids', input=NameMap+"_tmp3", output=name1+'_Terr', overwrite=True, quiet=True)
                     g.run_command('g.remove', vect=NameMap+"_tmp3", quiet=True)
 
             if flags['p']:
@@ -3143,7 +3291,7 @@ def main():
                 if 'displ_left' in pts_opt:
                     conj.extend(Desplazados_izq)
                 if 'edge' in pts_opt:
-                    conj.append(Puntos)
+                    conj.append(Puntos2)
                 if 'displ_rigth' in pts_opt:
                     conj.extend(Desplazados_der)
                 if 'slope_rigth' in pts_opt:
@@ -3162,7 +3310,7 @@ def main():
                 if 'displ_left' in break_opt:
                     conj.extend(Desplazados_izq)
                 if 'edge' in break_opt:
-                    conj.append(Puntos)
+                    conj.append(Puntos2)
                 if 'displ_rigth' in break_opt:
                     conj.extend(Desplazados_der)
                 if 'slope_rigth' in break_opt:
@@ -3177,11 +3325,11 @@ def main():
                 conj=[]
                 hull_opt=options['hull_opt'].split(',')
                 if 'slope_left' in hull_opt and 'slope_rigth' in hull_opt:
-                    conj= generate_ContornoAreas(Puntos,Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der)
+                    conj= generate_ContornoAreas(Puntos2,Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der)
                 elif 'slope_left' in hull_opt:
-                    conj=rellenar_linea(Puntos,Puntos_Talud_izq,Desplazados_izq)
+                    conj=rellenar_linea(Puntos2,Puntos_Talud_izq,Desplazados_izq)
                 elif 'slope_rigth' in hull_opt:
-                    conj=rellenar_linea(Puntos,Puntos_Talud_der,Desplazados_der)
+                    conj=rellenar_linea(Puntos2,Puntos_Talud_der,Desplazados_der)
 
                 if re.search(r'^_', options['outhull']): name1=NameMap+options['outhull']
                 else: name1=options['outhull']
@@ -3282,9 +3430,10 @@ def main():
                 if re.search(r'^_', options['ltras']): nameTRas=NameMap+options['ltras']
                 else: nameTRas=options['ltras']
 
-                Secc=get_SeccTerr(Trans_Pklist,Desplazados_izq,Desplazados_der,Puntos_Talud_izq,Puntos_Talud_der)
-                if flags['X']: Secc=lineasAgua
-                (ejes_x,ejes_y,mark_x,mark_y,ptos_terr_ref,ptos_eje)=gen_TransProfile(Transversales,Transversales_Terreno,Trans_Pklist,Secc,scale2,opt1,opt2)
+                secc_despl=get_SeccTerr(Trans_Pklist,Desplazados_izq,Desplazados_der,Puntos_Talud_izq,Puntos_Talud_der)
+                #print secc_despl
+                (ejes_x,ejes_y,mark_x,mark_y,ptos_terr_ref,
+                ptos_eje)=gen_TransProfile(Transversales,Transversales_Terreno,Trans_Pklist,secc_despl,scale2,opt1,opt2)
 
                 # Terreno
                 write_Polylines(ptos_terr_ref,nameTTerr,1)
@@ -3339,6 +3488,14 @@ def main():
 
     sys.exit(0)
 
+#if __name__ == "__main__":
+    #options, flags = g.parser()
+    #main()
+
 if __name__ == "__main__":
-    options, flags = g.parser()
-    main()
+    if len(sys.argv) == 2 and sys.argv[1] == '--doctest':
+        import doctest
+        doctest.testmod()
+    else:
+       options, flags = g.parser()
+       main()
