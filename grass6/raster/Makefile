@@ -29,6 +29,7 @@ SUBDIRS = \
 	r.inund.fluv \
 	r.in.onearth \
 	r.in.xyz.auto \
+	r.intersect \
 	r.ipso \
 	r.isoregions \
 	r.latlong \
