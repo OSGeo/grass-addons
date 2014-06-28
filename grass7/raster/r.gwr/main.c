@@ -42,11 +42,16 @@ int main(int argc, char *argv[])
     double Rsq, Rsqadj, SE, F, t, AIC, AICc, BIC;
     DCELL *mapx_val, mapy_val, *mapy_buf, *mapres_buf, *mapest_buf;
     struct rb *xbuf, ybuf;
+    struct outputb {
+	int fd;
+	char name[GNAME_MAX];
+	DCELL *buf;
+    } *outb, *outbp;
     double **weights;
     int bw;
     char *name;
     struct Option *input_mapx, *input_mapy,
-                  *output_res, *output_est, *output_opt,
+                  *output_res, *output_est, *output_b, *output_opt,
 		  *bw_opt, *kernel_opt, *vf_opt;
     struct Flag *shell_style, *estimate;
     struct Cell_head region;
@@ -63,11 +68,11 @@ int main(int argc, char *argv[])
     /* Define the different options */
     input_mapx = G_define_standard_option(G_OPT_R_INPUTS);
     input_mapx->key = "mapx";
-    input_mapx->description = (_("Map for x coefficient"));
+    input_mapx->description = (_("Map(s) with X variables"));
 
     input_mapy = G_define_standard_option(G_OPT_R_INPUT);
     input_mapy->key = "mapy";
-    input_mapy->description = (_("Map for y coefficient"));
+    input_mapy->description = (_("Map with Y variable"));
 
     output_res = G_define_standard_option(G_OPT_R_OUTPUT);
     output_res->key = "residuals";
@@ -79,6 +84,12 @@ int main(int argc, char *argv[])
     output_est->required = NO;
     output_est->description = (_("Map to store estimates"));
 
+    output_b = G_define_option();
+    output_b->key = "coefficients";
+    output_b->type = TYPE_STRING;
+    output_b->required = NO;
+    output_b->description = (_("Prefix for maps to store coefficients"));
+
     output_opt = G_define_standard_option(G_OPT_F_OUTPUT);
     output_opt->key = "output";
     output_opt->required = NO;
@@ -88,7 +99,7 @@ int main(int argc, char *argv[])
     kernel_opt = G_define_option();
     kernel_opt->key = "kernel";
     kernel_opt->type = TYPE_STRING;
-    kernel_opt->options = "gauss,epanechnikov,quartic,tricubic";
+    kernel_opt->options = "gauss,epanechnikov,bisquare,tricubic";
     kernel_opt->answer = "gauss";
     kernel_opt->required = NO;
     kernel_opt->description =
@@ -250,12 +261,26 @@ int main(int argc, char *argv[])
     Bsumsq = G_malloc((n_predictors + 1) * sizeof(double));
     Bmean = G_malloc((n_predictors + 1) * sizeof(double));
     
+    /* localized coefficients */
     for (i = 0; i <= n_predictors; i++) {
 	Bmin[i] = 1.0 / 0.0;	/* inf */
 	Bmax[i] = -1.0 / 0.0;	/* -inf */
 	Bsum[i] = Bsumsq[i] = Bmean[i] = 0;
     }
     bcount = 0;
+
+    outb = outbp = NULL;
+    if (output_b->answer) {
+	outb = G_malloc((n_predictors + 1) * sizeof(struct outputb));
+
+	for (i = 0; i <= n_predictors; i++) {
+	    outbp = &outb[i];
+	    sprintf(outbp->name, "%s.%d", output_b->answer, i);
+	    
+	    outbp->fd = Rast_open_new(outbp->name, DCELL_TYPE);
+	    outbp->buf = Rast_allocate_d_buf();
+	}
+    }
 
     for (r = 0; r < rows; r++) {
 	G_percent(r, rows, 2);
@@ -271,6 +296,13 @@ int main(int argc, char *argv[])
 	if (mapest_buf)
 	    Rast_set_d_null_value(mapest_buf, cols);
 
+	if (outb) {
+	    for (i = 0; i <= n_predictors; i++) {
+		outbp = &outb[i];
+		Rast_set_d_null_value(outbp->buf, cols);
+	    }
+	}
+
 	for (c = 0; c < cols; c++) {
 	    int isnull = 0;
 
@@ -285,17 +317,24 @@ int main(int argc, char *argv[])
 		continue;
 
 	    if (!gwr(xbuf, n_predictors, &ybuf, c, bw, weights, yest, &B)) {
+		G_warning(_("Unable to determine coefficients. Consider increasing the bandwidth."));
 		continue;
 	    }
 	    
 	    /* coefficient stats */
-	    for (k = 0; k <= n_predictors; k++) {
-		if (Bmin[k] > B[k])
-		    Bmin[k] = B[k];
-		if (Bmax[k] < B[k])
-		    Bmax[k] = B[k];
-		Bsum[k] += B[k];
-		Bsumsq[k] += B[k] * B[k];
+	    for (i = 0; i <= n_predictors; i++) {
+		if (Bmin[i] > B[i])
+		    Bmin[i] = B[i];
+		if (Bmax[i] < B[i])
+		    Bmax[i] = B[i];
+		Bsum[i] += B[i];
+		Bsumsq[i] += B[i] * B[i];
+
+		/* output raster for coefficients */
+		if (outb) {
+		    outbp = &outb[i];
+		    outbp->buf[c] = B[i];
+		}
 	    }
 	    bcount++;
 
@@ -330,6 +369,12 @@ int main(int argc, char *argv[])
 	    Rast_put_d_row(mapres_fd, mapres_buf);
 	if (mapest_buf)
 	    Rast_put_d_row(mapest_fd, mapest_buf);
+	if (outb) {
+	    for (i = 0; i <= n_predictors; i++) {
+		outbp = &outb[i];
+		Rast_put_d_row(outbp->fd, outbp->buf);
+	    }
+	}
     }
     G_percent(rows, rows, 2);
 
@@ -381,7 +426,7 @@ int main(int argc, char *argv[])
 
 	fprintf(stdout, "\npredictor%d=%s\n", i + 1, input_mapx->answers[i]);
 	Bmean[i + 1] = Bsum[i + 1] / bcount;
-	fprintf(stdout, "bmean%d=%g\n", i, Bmean[i + 1]);
+	fprintf(stdout, "bmean%d=%g\n", i + 1, Bmean[i + 1]);
 	Bstddev = sqrt(Bsumsq[i + 1] / bcount - (Bmean[i + 1] * Bmean[i + 1]));
 	fprintf(stdout, "bstddev%d=%g\n", i + 1, Bstddev);
 	fprintf(stdout, "bmin%d=%g\n", i + 1, Bmin[i + 1]);
@@ -473,6 +518,20 @@ int main(int argc, char *argv[])
 	Rast_short_history(output_est->answer, "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(output_est->answer, &history);
+    }
+
+    if (outb) {
+	for (i = 0; i <= n_predictors; i++) {
+	    struct History history;
+
+	    outbp = &outb[i];
+	    Rast_close(outbp->fd);
+	    G_free(outbp->buf);
+
+	    Rast_short_history(outbp->name, "raster", &history);
+	    Rast_command_history(&history);
+	    Rast_write_history(outbp->name, &history);
+	}
     }
 
     exit(EXIT_SUCCESS);

@@ -1,10 +1,5 @@
 #include "bufs.h"
 
-double **gauss(int);
-double **epanechnikov(int);
-double **quartic(int);
-double **tricubic(int);
-
 extern double ** (*w_fn) (int);
 
 void set_wfn(char *name, int vfu);

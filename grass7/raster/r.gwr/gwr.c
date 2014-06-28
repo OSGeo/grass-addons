@@ -232,7 +232,7 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
 		fprintf(stdout, "b%d=0.0\n", i);
 	    }
 	    */
-	    G_debug(0, "Try a larger bandwidth");
+	    G_debug(1, "Try a larger bandwidth");
 	    count = 0;
 	}
     }

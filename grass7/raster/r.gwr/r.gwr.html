@@ -22,18 +22,24 @@ b0 is the intercept, X0 is set to 1
 </pre></div>
 
 <p>
-The b coefficients are localized, i.e. determined for each cell 
-individually.
+The &beta; coefficients are localized, i.e. determined for each cell 
+individually. These &beta; coefficients are the most important output 
+of <em>r.gwr</em>. Spatial patterns and localized outliers in these 
+coefficients can reveal details of the relation of Y to X. Outliers in 
+the &beta; coefficients can also be caused by a small bandwidth and can 
+be removed by increasing the bandwidth.
 
 <p>
 Geographically weighted regressions should be used as a diagnostic tool 
 and not as an interpolation method. If a geographically weighted 
-regression provides a higher R<sup>2</sup> than the corresponding 
-global regression, a crucial predictor is missing in the model. If that 
+regression provides a higher R squared than the corresponding global 
+regression, then a crucial predictor is missing in the model. If that 
 missing predictor can not be estimated or is supposed to behave 
 randomly, a geographically weighted regression might be used for 
 interpolation, but the result, in particular the variation of the 
-&beta; coefficients needs to be judged according to prior assumptions.
+&beta; coefficients needs to be judged according to prior assumptions. 
+See also the manual and the examples of the R package 
+<a href="http://cran.rstudio.com/web/packages/spgwr/index.html">spgwr</a>.
 
 <p>
 <em>r.gwr</em> is designed for large datasets that can not be processed 
@@ -60,15 +66,54 @@ given explaining variable is the last variable in the R-formula. While
 R successively includes one variable after another in the order
 specified by the formula and at each step calculates the F value
 expressing the gain by including the current variable in addition to the
-previous variables, <em>r.regression.multi</em> calculates the F-value
+previous variables, <em>r.gwr</em> calculates the F-value
 expressing the gain by including the current variable in addition to all
 other variables, not only the previous variables.
 
+<h4>Bandwidth</h4>
+The bandwidth is the crucial parameter for geographically weighed 
+regressions. A too small bandwidth will essentially use the weighed 
+average, any predictors are mostly ignored. A too large bandwidth will 
+produce results similar to a global regression, and spatial 
+non-stationarity can not be explored.
 
-<h2>BUGS</h2>
+<h4>Kernel functions</h4>
+The kernel function has little influence on the result, much more important is the 
+bandwidth. Available kernel funtions to calculate weights are
 
-The estimated bandwidth is too small. A correcting factor has been 
-introduced, but this is just a workaround.
+<dl>
+<dt><b>Epanechnikov</b></dt>
+<dd>w = 1 - d / bw</dd>
+<dt><b>Bisquare (Quartic)</b></dt>
+<dd>w = (1 - (d / bw)<sup>2</sup>)<sup>2</sup></dd>
+<dt><b>Tricubic</b></dt>
+<dd>w = (1 - (d / bw)<sup>3</sup>)<sup>3</sup></dd>
+<dt><b>Gaussian</b></dt>
+<dd>w = exp(-0.5 * (d / bw)<sup>2</sup>)</dd>
+</dl>
+
+with<br>
+w = weight for current cell<br>
+d = distance to the current cell<br>
+bw = bandwidth
+
+<h2>REFERENCES</h2>
+
+Brunsdon, C., Fotheringham, A.S., and Charlton, M.E., 1996, 
+Geographically Weighted Regression: A Method for Exploring Spatial 
+Nonstationarity, Geographical Analysis, 28(4), 281- 298<br>
+Fotheringham, A.S., Brunsdon, C., and Charlton, M.E., 2002, 
+Geographically Weighted Regression: The Analysis of Spatially Varying 
+Relationships, Chichester: Wiley.<br>
+
+<h2>SEE ALSO</h2>
+
+<a href="http://geoinformatics.wp.st-andrews.ac.uk/gwr/">http://geoinformatics.wp.st-andrews.ac.uk/gwr/</a>
+<br>
+<a href="http://gwr.nuim.ie/">http://gwr.nuim.ie/</a>
+<br>
+R package 
+<a href="http://cran.rstudio.com/web/packages/spgwr/index.html">spgwr</a>
 
 <h2>AUTHOR</h2>
 

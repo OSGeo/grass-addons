@@ -8,7 +8,7 @@
  * each cell within bw (distance from center <= bw)
  * gets a weight > 0 */
 
-static double vf = 2;
+static double vf = -0.5;
 
 double ** (*w_fn) (int);
 
@@ -18,7 +18,7 @@ double **epanechnikov(int bw)
     double bw2, bw2d, d, **w;
 
     w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
-    bw2 = (bw + 1) * (bw + 1);
+    bw2 = (bw + 1);
     bw2d = bw * bw;
     
     for (r = -bw; r <= bw; r++) {
@@ -35,7 +35,7 @@ double **epanechnikov(int bw)
     return w;
 }
 
-double **quartic(int bw)
+double **bisquare(int bw)
 {
     int r, c;
     double bw2, bw2d, d, **w, t;
@@ -101,25 +101,24 @@ double **gauss(int bw)
 
 	    if (d <= bw2) {
 		w[r + bw][c + bw] = exp(vf * d / bw2);
-		w[r + bw][c + bw] = 1;
 	    }
 	}
     }
-    
+
     return w;
 }
 
 /* set weighing kernel function and variance factor */
 void set_wfn(char *name, int vfu)
 {
-    vf = vfu / 2.;
+    vf = vfu / -2.;
 
     if (*name == 'g')
 	w_fn = gauss;
     else if (*name == 'e')
 	w_fn = epanechnikov;
-    else if (*name == 'q')
-	w_fn = quartic;
+    else if (*name == 'b')
+	w_fn = bisquare;
     else if (*name == 't')
 	w_fn = tricubic;
     else
