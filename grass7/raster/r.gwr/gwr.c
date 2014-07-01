@@ -162,6 +162,9 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
 
 	for (c = 0; c < nsize; c++) {
 
+	    if (w[r][c] == 0)
+		continue;
+
 	    isnull = 0;
 	    for (i = 0; i < ninx; i++) {
 		xval[i + 1] = xbuf[i].buf[r][c + cc];
