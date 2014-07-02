@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8
 
 """
 MODULE:    r.valley.bottom
@@ -30,6 +31,12 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 #% required: yes
 #%end
 
+#%flag
+#% key: s
+#% description: Use square moving window instead of moving window in 8 directions
+#%end
+
+
 	##################################################################################
 	# TODO: Design the script independent of input elevation raster resolution. At 
 	# the moment the input elevation raster map must have a resolution of 25m 
@@ -48,7 +55,8 @@ if not os.environ.has_key("GISBASE"):
 def main():
     r_elevation = options['elevation'].split('@')[0] # elevation raster
     r_slope_degree = r_elevation+'_slope_degree' # slope (percent) step 1
-
+    moving_window_square = flags['s']
+	
 	##################################################################################
 	# Region settings	
     current_region = grass.region()
@@ -114,18 +122,34 @@ def main():
     grass.message( "..." )
     grass.mapcalc("elevation_step1 = $r_elevation", 
                                      r_elevation = r_elevation)
-	
-    offsets = [d
-         for j in xrange(1,3+1)
-         for i in [j,-j]
-         for d in [(i,0),(0,i),(i,i),(i,-i)]]	
 
-    grass.message( "..." )
+    if moving_window_square :
+
+        offsets1 = [d
+             for j in xrange(1,3+1)
+             for i in [j,-j]
+             for d in [(i,0),(i,1),(i,2),(i,3),(i,-1),(i,-2),(i,-3)]]	
+
+        grass.message( "..." )
 		 
-    terms = ["(elevation_step1[%d,%d] < elevation_step1)" % d
-         for d in offsets]	
+        terms = ["(elevation_step1[%d,%d] < elevation_step1)" % d
+             for d in offsets1]	
 		 
-    expr1 = "PCTL1 = (100.0 / 24.0) * (%s)" % " + ".join(terms)
+        expr1 = "PCTL1 = (100.0 / 48.0) * (%s)" % " + ".join(terms)	
+	
+    else :
+									 
+        offsets1 = [d
+             for j in xrange(1,3+1)
+             for i in [j,-j]
+             for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+
+        grass.message( "..." )
+		 
+        terms = ["(elevation_step1[%d,%d] < elevation_step1)" % d
+             for d in offsets1]	
+		 
+        expr1 = "PCTL1 = (100.0 / 24.0) * (%s)" % " + ".join(terms)
 	
     grass.mapcalc( expr1 )
 	
@@ -174,21 +198,37 @@ def main():
     grass.message( "----" )
 
     # Calculation of elevation percentile PCTL2 step 2
-	# elevation of percentile step 2: radius of 3 cells
+	# elevation of percentile step 2: radius of 6 cells
     grass.message( "Step 2: Calculation of elevation percentile PCTL2" )
     grass.message( "..." )
-	
-    offsets2 = [d
-         for j in xrange(1,6+1)
-         for i in [j,-j]
-         for d in [(i,0),(0,i),(i,i),(i,-i)]]	
 
-    grass.message( "..." )
+    if moving_window_square :
+
+        offsets2 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(i,1),(i,2),(i,3),(i,4),(i,5),(i,6),(i,-1),(i,-2),(i,-3),(i,-4),(i,-5),(i,-6)]]	
+
+        grass.message( "..." )
 		 
-    terms2 = ["(elevation_step1[%d,%d] < elevation_step1)" % d
-         for d in offsets2]	
+        terms2 = ["(elevation_step1[%d,%d] < elevation_step1)" % d
+             for d in offsets2]	
 		 
-    expr2 = "PCTL2 = (100.0 / 48.0) * (%s)" % " + ".join(terms2)
+        expr2 = "PCTL2 = (100.0 / 168.0) * (%s)" % " + ".join(terms2)	
+	
+    else :	
+	
+        offsets2 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+
+        grass.message( "..." )
+		 
+        terms2 = ["(elevation_step1[%d,%d] < elevation_step1)" % d
+             for d in offsets2]	
+		 
+        expr2 = "PCTL2 = (100.0 / 48.0) * (%s)" % " + ".join(terms2)
 	
     grass.mapcalc( expr2 )
     grass.run_command("g.remove", rast = "elevation_step1",
@@ -291,7 +331,7 @@ def main():
     grass.message( "----" )
 
 	# change resolution
-    grass.message( "Step 3: change to resolution to 3 x base resolution" )
+    grass.message( "Step 3: change to resolution of 3 x base resolution" )
     grass.run_command('g.region', res = Xres_step3, 
                                     flags = 'a')
 
@@ -307,17 +347,33 @@ def main():
     grass.message( "..." )
     grass.mapcalc("DEM_smoothed_step3_coarsed = DEM_smoothed_step3") 
 
-    offsets3 = [d
-         for j in xrange(1,6+1)
-         for i in [j,-j]
-         for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+    if moving_window_square :	
 
-    grass.message( "..." )
+        offsets3 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(i,1),(i,2),(i,3),(i,4),(i,5),(i,6),(i,-1),(i,-2),(i,-3),(i,-4),(i,-5),(i,-6)]]	
+
+        grass.message( "..." )
 		 
-    terms3 = ["(DEM_smoothed_step3_coarsed[%d,%d] < DEM_smoothed_step3_coarsed)" % d
-         for d in offsets3]	
+        terms3 = ["(DEM_smoothed_step3_coarsed[%d,%d] < DEM_smoothed_step3_coarsed)" % d
+             for d in offsets3]
 		 
-    expr3 = "PCTL3 = (100.0 / 48.0) * (%s)" % " + ".join(terms3)
+        expr3 = "PCTL3 = (100.0 / 168.0) * (%s)" % " + ".join(terms3)
+	
+    else :		
+	
+        offsets3 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+
+        grass.message( "..." )
+		 
+        terms3 = ["(DEM_smoothed_step3_coarsed[%d,%d] < DEM_smoothed_step3_coarsed)" % d
+             for d in offsets3]	
+		 
+        expr3 = "PCTL3 = (100.0 / 48.0) * (%s)" % " + ".join(terms3)
 	
     grass.mapcalc( expr3 )
 
@@ -472,17 +528,33 @@ def main():
     grass.message( "..." )
     grass.mapcalc("DEM_smoothed_step4_coarsed = DEM_smoothed_step4") 
 
-    offsets4 = [d
-         for j in xrange(1,6+1)
-         for i in [j,-j]
-         for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+    if moving_window_square :
 
-    grass.message( "..." )
+        offsets4 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(i,1),(i,2),(i,3),(i,4),(i,5),(i,6),(i,-1),(i,-2),(i,-3),(i,-4),(i,-5),(i,-6)]]	
+
+        grass.message( "..." )
 		 
-    terms4 = ["(DEM_smoothed_step4_coarsed[%d,%d] < DEM_smoothed_step4_coarsed)" % d
-         for d in offsets4]	
+        terms4 = ["(DEM_smoothed_step4_coarsed[%d,%d] < DEM_smoothed_step4_coarsed)" % d
+             for d in offsets4]		
 		 
-    expr4 = "PCTL4 = (100.0 / 48.0) * (%s)" % " + ".join(terms4)
+        expr4 = "PCTL4 = (100.0 / 168.0) * (%s)" % " + ".join(terms4)	
+	
+    else :	
+	
+        offsets4 = [d
+             for j in xrange(1,6+1)
+             for i in [j,-j]
+             for d in [(i,0),(0,i),(i,i),(i,-i)]]	
+
+        grass.message( "..." )
+		 
+        terms4 = ["(DEM_smoothed_step4_coarsed[%d,%d] < DEM_smoothed_step4_coarsed)" % d
+             for d in offsets4]	
+		 
+        expr4 = "PCTL4 = (100.0 / 48.0) * (%s)" % " + ".join(terms4)
 	
     grass.mapcalc( expr4 )
 
