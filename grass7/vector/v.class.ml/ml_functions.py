@@ -16,13 +16,16 @@ import matplotlib.pyplot as plt
 
 
 from sklearn import metrics as metrics
-from sklearn.metrics import precision_recall_curve as prc, roc_curve, auc
+from sklearn.metrics import (precision_recall_curve as prc, roc_curve, auc,
+                             confusion_matrix)
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.grid_search import GridSearchCV
 from sklearn.svm import SVC
 from sklearn.cross_validation import cross_val_score
 
 #from grass.pygrass.messages import get_msgr
+
+CMAP = plt.cm.Blues
 
 
 COLS = [('cat', 'INTEGER PRIMARY KEY'),
@@ -191,19 +194,63 @@ def plot_bias_variance(data_sizes, train_errors, test_errors, name,
             linestyle=train_stl, linewidth=train_width)
     ax.legend(loc="upper right")
     ax.grid(True, linestyle='-', color='0.75')
-    fig.savefig("bv_%s.%s" % (name.replace(" ", "_"), fmt), **kwargs)
+    fig.savefig("bv__%s.%s" % (name.replace(" ", "_"), fmt), **kwargs)
+
+
+def plot_confusion_matrix(cm, labels, name, fmt='png', **kwargs):
+    conf = cm.sum(axis=2)
+    conf /= conf.sum(axis=1)
+    fig, ax = plt.subplots(figsize=(6, 5))
+    img = ax.imshow(conf, cmap=CMAP)
+    fig.colorbar(img)
+    ticks = range(len(labels))
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
+    ax.xaxis.set_ticks_position("bottom")
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(labels)
+    ax.set_title("Confusion matrix: %s" % name)
+    ax.colorbar()
+    ax.grid(False)
+    ax.set_xlabel('Predicted class')
+    ax.set_ylabel('True class')
+    fig.savefig("confusion_matrix__%s.%s" % (name.replace(" ", "_"), fmt),
+                **kwargs)
+
+
+def plot_pr(precision, recall, pr_score, name, label=None, fmt='png',
+            **kwargs):
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.grid()
+    ax.fill_between(recall, precision, alpha=0.5)
+    ax.plot(recall, precision, lw=1)
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.0])
+    ax.set_xlabel('Recall')
+    ax.set_ylabel('Precision')
+    ax.set_title('P/R curve (AUC = %0.2f) / %s vs rest' % (pr_score, label))
+    fig.savefig("pr__%s.%s" % (name.replace(" ", "_"), fmt), **kwargs)
+
+
+def plot_ROC(fpr, tpr, auc_score, name, label, fmt='png', **kwargs):
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.grid()
+    ax.plot([0, 1], [0, 1], 'k--')
+    ax.plot(fpr, tpr)
+    ax.fill_between(fpr, tpr, alpha=0.5)
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.0])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title('ROC curve (AUC = %0.2f) / %s' % (auc_score, label), verticalalignment="bottom")
+    ax.legend(loc="lower right")
+    fig.savefig("roc__%s.%s" % (name.replace(" ", "_"), fmt), **kwargs)
 
 
 def bias_variance_analysis(cls, tdata, tclss, n_folds=5, step=5):
-    clss = sorted(set(tclss))
     num = min([len(tclss[tclss == c]) for c in clss])
-
     clf = cls['classifier'](**cls['kwargs'])
-    keys = ('fprs', 'tprs', 'roc_scores', 'pr_scores', 'precisions',
-            'recalls', 'thresholds')
-
     bv = {}
-    lk = {l: {k: [] for k in keys} for l in clss}
     for n in range(5, num, step):
         X, y = balance(tdata, tclss, n)
         cv = StratifiedKFold(y, n_folds=n_folds)
@@ -225,29 +272,79 @@ def bias_variance_analysis(cls, tdata, tclss, n_folds=5, step=5):
             train_errors.append(1 - train_score)
             test_errors.append(1 - test_score)
 
-            # get probability
-            proba = clf.predict_proba(X_test)
-
-            # compute score for each class VS rest
-            for idx, label in enumerate(clss):
-                fpr, tpr, roc_thr = roc_curve(y_test, proba[:, idx], label)
-                precision, recall, pr_thr = prc(y_test, proba[:, idx], label)
-                lk[label]['fprs'].append(fpr)
-                lk[label]['tprs'].append(tpr)
-                lk[label]['roc_scores'].append(auc(fpr, tpr))
-
-                lk[label]['precisions'].append(precision)
-                lk[label]['recalls'].append(recall)
-                lk[label]['thresholds'].append(pr_thr)
-                lk[label]['pr_scores'].append(auc(recall, precision))
         bv[n] = {'test': np.array(test_errors),
                  'train': np.array(train_errors),
                  'score': np.array(scores)}
     cls['bias variance'] = bv
+
+
+def extra_analysis(cls, tdata, tclss, labels, n_folds=10):
+    clss = sorted(labels.keys())
+    lbs = [labels[cl] for cl in clss]
+    cv = StratifiedKFold(tclss, n_folds=n_folds)
+    keys = ('fprs', 'tprs', 'roc_scores', 'pr_scores', 'precisions',
+            'recalls', 'thresholds')
+    train_errors, test_errors, scores, cms = [], [], [], []
+    lk = {l: {k: [] for k in keys} for l in clss}
+    clf = cls['classifier'](**cls['kwargs'])
+    import ipdb; ipdb.set_trace()
+    for train, test in cv:
+        X_train, y_train = tdata[train], tclss[train]
+        X_test, y_test = tdata[test], tclss[test]
+        # fit train data
+        clf.fit(X_train, y_train)
+
+        train_score = clf.score(X_train, y_train)
+        test_score = clf.score(X_test, y_test)
+        scores.append(test_score)
+
+        train_errors.append(1 - train_score)
+        test_errors.append(1 - test_score)
+
+        y_pred = clf.predict(X_test)
+        cms.append(confusion_matrix(y_test, y_pred, lbs))
+        # get probability
+        proba = clf.predict_proba(X_test)
+        # compute score for each class VS rest
+        for idx, label in enumerate(clss):
+            fpr, tpr, roc_thr = roc_curve(y_test, proba[:, idx], label)
+            precision, recall, pr_thr = prc(y_test, proba[:, idx], label)
+            lk[label]['fprs'].append(fpr)
+            lk[label]['tprs'].append(tpr)
+            lk[label]['roc_scores'].append(auc(fpr, tpr))
+
+            lk[label]['precisions'].append(precision)
+            lk[label]['recalls'].append(recall)
+            lk[label]['thresholds'].append(pr_thr)
+            lk[label]['pr_scores'].append(auc(recall, precision))
     cls['label scores'] = lk
+    cls['train errors'] = np.array(train_errors)
+    cls['test errors'] = np.array(test_errors)
+    cls['confusion matrix'] = cms
 
 
-def explorer_clsfiers(clsses, Xd, Yd, indexes=None, n_folds=5, bv=False):
+def plot_extra(cls, labels, fmt='png', **kwargs):
+    clss = sorted(labels.keys())
+    lk = cls['label scores']
+    for cl in clss:
+        scores_to_sort = lk[cl]['roc_scores']
+        median = np.argsort(scores_to_sort)[len(scores_to_sort) / 2]
+        name = "%s %s" % (cls['name'], labels[cl])
+        plot_pr(lk[cl]['precisions'][median],
+                lk[cl]['recalls'][median],
+                lk[cl]['pr_scores'][median],
+                name=name, label=labels[cl])
+        plot_ROC(lk[cl]['fprs'][median],
+                 lk[cl]['tprs'][median],
+                 lk[cl]['roc_scores'][median],
+                 name=name, label=labels[cl])
+    plot_confusion_matrix(cls['confusion matrix'],
+                          labels=[labels[cl] for cl in clss],
+                          name=cls['name'])
+
+
+def explorer_clsfiers(clsses, Xd, Yd, labels, indexes=None, n_folds=5,
+                      bv=False, extra=False):
     gen = zip(indexes, clsses) if indexes else enumerate(clsses)
     cv = StratifiedKFold(Yd, n_folds=n_folds)
     fmt = '%5d %-30s %6.4f %6.4f %6.4f %6.4f'
@@ -279,8 +376,12 @@ def explorer_clsfiers(clsses, Xd, Yd, indexes=None, n_folds=5, bv=False):
                                    train_width=1, test_width=1,
                                    train_clr='b', test_clr='r', alpha=0.2,
                                    fmt='png', **kw)
-                with open("%s.pkl" % cls['name'].replace(' ', '_'), 'wb') as pkl:
-                    pk.dump(cls, pkl)
+            if extra:
+                import ipdb; ipdb.set_trace()
+                extra_analysis(cls, Xd, Yd, labels)
+                plot_extra(cls, labels, **kw)
+            with open("%s.pkl" % cls['name'].replace(' ', '_'), 'wb') as pkl:
+                pk.dump(cls, pkl)
         except:
             #import ipdb; ipdb.set_trace()
             #print('problem with: %s' % cls['name'])
@@ -302,9 +403,6 @@ def explorer_clsfiers_old(clsses, Xt, Yt, Xd, Yd, clss,
             errors.append(cls)
     for err in errors:
         print('Error in: %s' % err['name'])
-
-
-CMAP = plt.cm.Blues
 
 
 def plot_grid(grid, save=''):

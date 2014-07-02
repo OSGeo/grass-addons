@@ -35,7 +35,7 @@
 #%  key: vlayer
 #%  type: string
 #%  multiple: no
-#%  description: layer name or number to use for the machine learning
+#%  description: layer name or number to use for data
 #%  required: no
 #%end
 #%option
@@ -120,7 +120,7 @@
 #%  key: imp_csv
 #%  type: string
 #%  multiple: no
-#%  description: Feature importances with forests of trees: CSV
+#%  description: CSV file name with the feature importances rank using extra tree algorithms
 #%  answer: features_importances.csv
 #%  required: no
 #%end
@@ -128,7 +128,7 @@
 #%  key: imp_fig
 #%  type: string
 #%  multiple: no
-#%  description: Feature importances with forests of trees: figure
+#%  description: Figure file name with feature importances rank using extra tree algorithms
 #%  answer: features_importances.png
 #%  required: no
 #%end
@@ -141,10 +141,18 @@
 #%  answer: with_mean,with_std
 #%end
 #%option
+#%  key: decomposition
+#%  type: string
+#%  multiple: no
+#%  description: choose a decomposition method (PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, FastICA, TruncatedSVD) and set the parameters using the | to separate the decomposition method from the parameters like: PCA|n_components=98
+#%  required: no
+#%  answer: 
+#%end
+#%option
 #%  key: n_training
 #%  type: integer
 #%  multiple: no
-#%  description: Number of random training to training the machine learning
+#%  description: Number of random training per class to training the machine learning algorithms
 #%  required: no
 #%end
 #%option
@@ -165,7 +173,7 @@
 #%  key: pyindx
 #%  type: string
 #%  multiple: no
-#%  description: specify the index of the classifiers that you want to use
+#%  description: specify the index or range of index of the classifiers that you want to use
 #%  required: no
 #%end
 #%option
@@ -187,7 +195,7 @@
 #%  key: inf
 #%  type: string
 #%  multiple: yes
-#%  description: Key:Value or Numpy funtion to use to substitute NaN values
+#%  description: Key:Value or Numpy funtion to use to substitute Inf values
 #%  required: no
 #%  answer: *_skewness:nanmean,*_kurtosis:nanmean
 #%end
@@ -195,7 +203,7 @@
 #%  key: neginf
 #%  type: string
 #%  multiple: yes
-#%  description: Key:Value or Numpy funtion to use to substitute NaN values
+#%  description: Key:Value or Numpy funtion to use to substitute neginf values
 #%  required: no
 #%  answer:
 #%end
@@ -203,7 +211,7 @@
 #%  key: posinf
 #%  type: double
 #%  multiple: yes
-#%  description: Key:Value or Numpy funtion to use to substitute NaN values
+#%  description: Key:Value or Numpy funtion to use to substitute posinf values
 #%  required: no
 #%  answer:
 #%end
@@ -219,7 +227,7 @@
 #%  key: report_class
 #%  type: string
 #%  multiple: no
-#%  description: csv file name with results of different machine learning scores
+#%  description: text file name with the report of different machine learning algorithms
 #%  required: no
 #%  answer: classification_report.txt
 #%end
@@ -227,7 +235,7 @@
 #%  key: svc_c_range
 #%  type: double
 #%  multiple: yes
-#%  description: C value list
+#%  description: C value range list to explore SVC domain
 #%  required: no
 #%  answer: 1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8
 #%end
@@ -235,7 +243,7 @@
 #%  key: svc_gamma_range
 #%  type: double
 #%  multiple: yes
-#%  description: gamma value list
+#%  description: gamma value range list to explore SVC domain
 #%  required: no
 #%  answer: 1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4
 #%end
@@ -243,7 +251,7 @@
 #%  key: svc_kernel_range
 #%  type: string
 #%  multiple: yes
-#%  description: kernel value list
+#%  description: kernel value range list to explore SVC domain
 #%  required: no
 #%  answer: linear,poly,rbf,sigmoid
 #%end
@@ -251,7 +259,7 @@
 #%  key: svc_n_jobs
 #%  type: integer
 #%  multiple: no
-#%  description: number of jobs
+#%  description: number of jobs to use during the domain exploration
 #%  required: no
 #%  answer: 1
 #%end
@@ -259,21 +267,21 @@
 #%  key: svc_c
 #%  type: double
 #%  multiple: no
-#%  description: C value
+#%  description: definitive C value
 #%  required: no
 #%end
 #%option
 #%  key: svc_gamma
 #%  type: double
 #%  multiple: no
-#%  description: gamma value
+#%  description: definitive gamma value
 #%  required: no
 #%end
 #%option
 #%  key: svc_kernel
 #%  type: string
 #%  multiple: no
-#%  description: Available kernel are: ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’
+#%  description: definitive kernel value. Available kernel are: ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’
 #%  required: no
 #%  answer: rbf
 #%end
@@ -281,7 +289,7 @@
 #%  key: svc_img
 #%  type: string
 #%  multiple: no
-#%  description: filename with the image od SVC parameter
+#%  description: filename pattern with the image of SVC parameter
 #%  required: no
 #%  answer: domain_%s.svg
 #%end
@@ -289,7 +297,7 @@
 #%  key: rst_names
 #%  type: string
 #%  multiple: no
-#%  description: filename with the image od SVC parameter
+#%  description: filename pattern for raster
 #%  required: no
 #%  answer: %s
 #%end
@@ -304,15 +312,15 @@
 #%end
 #%flag
 #%  key: f
-#%  description: Feature importances with forests of trees
+#%  description: Feature importances using extra trees algorithm
 #%end
 #%flag
 #%  key: b
-#%  description: Balance the training using the class with the minor number of areas
+#%  description: Balance the training using the class with the minor number of data
 #%end
 #%flag
 #%  key: o
-#%  description: optimize the training samples
+#%  description: Optimize the training samples
 #%end
 #%flag
 #%  key: c
@@ -320,7 +328,7 @@
 #%end
 #%flag
 #%  key: r
-#%  description: Export the classify resutls to raster maps
+#%  description: Export the classify results to raster maps
 #%end
 #%flag
 #%  key: t
@@ -328,7 +336,11 @@
 #%end
 #%flag
 #%  key: v
-#%  description: Bias variance
+#%  description: add to test to compute the Bias variance
+#%end
+#%flag
+#%  key: x
+#%  description: add to test to compute extra parameters like: confusion matrix, ROC, PR
 #%end
 #%flag
 #%  key: d
@@ -368,6 +380,10 @@ from sqlite2npy import save2npy
 from npy2table import export_results
 from features import importances, tocsv
 
+from sklearn.decomposition import (PCA, KernelPCA, ProbabilisticPCA,
+                                   RandomizedPCA, FastICA, TruncatedSVD)
+from sklearn.lda import LDA
+
 
 RULES = {'*_skewness': np.nanmean,
          '*_coeff_var': np.nanmean,
@@ -377,6 +393,15 @@ RULES = {'*_skewness': np.nanmean,
          '*_range': np.nanmean,
          '*_max': np.nanmax,
          '*_min': np.nanmin, }
+
+
+DECMP = {'PCA': PCA,
+         'KernelPCA': KernelPCA,
+         'ProbabilisticPCA': ProbabilisticPCA,
+         'RandomizedPCA': RandomizedPCA,
+         'FastICA': FastICA,
+         'TruncatedSVD': TruncatedSVD,
+         'LDA': LDA}
 
 
 def get_indexes(string, sep=',', rangesep='-'):
@@ -482,6 +507,14 @@ def main(opt, flg):
         scapar = opt['scalar'].split(',')
         scaler = StandardScaler(with_mean='with_mean' in scapar,
                                 with_std='with_std' in scapar)
+
+    if opt['decomposition']:
+        decmp, params = (opt['decomposition'].split('|') 
+                         if '|' in opt['decomposition'] 
+                         else (opt['decomposition'], ''))
+        kwargs = ({k: v for k, v in (p.split('=') for p in params.split(','))}
+                  if params else {})
+        dec = DECMP[decmp](**kwargs)
     # if training extract training
     if vtraining and flg['e']:
         msgr.message("Extract training from: <%s>." % vtraining)
@@ -580,6 +613,7 @@ def main(opt, flg):
         C_range = [float(c) for c in opt['svc_c_range'].split(',')]
         gamma_range = [float(g) for g in opt['svc_gamma_range'].split(',')]
         kernel_range = [str(s) for s in opt['svc_kernel_range'].split(',')]
+        poly_range = [int(i) for i in opt['poly_range'].split(',')]
         msgr.message("Exploring the SVC domain.")
         grid = explore_SVC(Xbt, Ybt, n_folds=3, n_jobs=int(opt['svc_n_jobs']),
                            C=C_range, gamma=gamma_range, kernel=kernel_range)
@@ -595,8 +629,9 @@ def main(opt, flg):
         msgr.message("Exploring different classifiers.")
         msgr.message("cls_id   cls_name          mean     max     min     std")
         #import ipdb; ipdb.set_trace()
-        res = explorer_clsfiers(classifiers, Xt, Yt,
-                                indexes=indexes, n_folds=5, bv=flg['v'])
+        res = explorer_clsfiers(classifiers, Xt, Yt, labels=labels,
+                                indexes=indexes, n_folds=5,
+                                bv=flg['v'], extra=flg['x'])
         # TODO: sort(order=...) is working only in the terminal, why?
         #res.sort(order='mean')
         with open(opt['csv_test_cls'], 'w') as csv:
