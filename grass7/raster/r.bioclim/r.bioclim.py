@@ -124,7 +124,7 @@ def main():
     if not tavg:
         # calculate monthly averages from min and max
         grass.message(_("Calculating monthly averages from min and max"))
-        e = "$ta = ($tmax - $tmin) / 2.0"
+        e = "$ta = ($tmax + $tmin) / 2.0"
         if workers > 1:
             for i in range(0, 12, workers):
                 jend = 12 - i
@@ -203,7 +203,7 @@ def main():
     grass.message(_("BIO4 = Temperature Seasonality ..."))
     output = outpre + '.bio04.' + str(pid)
     grass.run_command('r.series', input = tavg, output = output, method = 'stddev')
-    grass.mapcalc("$bio = round(100 * $biotmp / $iscale)",
+    grass.mapcalc("$bio = round(100 * $biotmp)",
                   bio = outpre + '.bio04',
                   biotmp = output,
                   iscale = tinscale)
@@ -240,7 +240,7 @@ def main():
 
     # BIO3 = Isothermality (BIO2/BIO7) (* 100)
     grass.message(_("BIO3 = Isothermality (BIO2/BIO7) ..."))
-    grass.mapcalc("$bio = round(double($bio2) / $bio7 * 100)",
+    grass.mapcalc("$bio = round(100.0 * $bio2 / $bio7)",
                   bio = outpre + '.bio03',
                   bio2 = outpre + '.bio02',
                   bio7 = outpre + '.bio07')
@@ -330,11 +330,12 @@ def main():
 
     # BIO8 = Mean Temperature of Wettest Quarter
     grass.message(_("BIO8 = Mean Temperature of Wettest Quarter ..."))
-    grass.mapcalc("$bio = round(graph($wettestq, \
-                                      0, $tavgq0, \
-                                      1, $tavgq1, \
-                                      2, $tavgq2, \
-                                      3, $tavgq3) * $oscale / $iscale)",
+
+    grass.mapcalc("$bio = round(if($wettestq == 0, $tavgq0, \
+                                if($wettestq == 1, $tavgq1, \
+                                if($wettestq == 2, $tavgq2, \
+                                if($wettestq == 3, $tavgq3, null())))) \
+				* $oscale / $iscale)",
                   bio = outpre + '.bio08',
                   wettestq = wettestq, 
                   tavgq0 = tavgql[0], tavgq1 = tavgql[1],
@@ -343,11 +344,12 @@ def main():
 
     # BIO9 = Mean Temperature of Driest Quarter
     grass.message(_("BIO9 = Mean Temperature of Driest Quarter ..."))
-    grass.mapcalc("$bio = round(graph($driestq, \
-                                      0, $tavgq0, \
-                                      1, $tavgq1, \
-                                      2, $tavgq2, \
-                                      3, $tavgq3) * $oscale / $iscale)",
+
+    grass.mapcalc("$bio = round(if($driestq == 0, $tavgq0, \
+                                if($driestq == 1, $tavgq1, \
+                                if($driestq == 2, $tavgq2, \
+                                if($driestq == 3, $tavgq3, null())))) \
+				* $oscale / $iscale)",
                   bio = outpre + '.bio09',
                   driestq = driestq, 
                   tavgq0 = tavgql[0], tavgq1 = tavgql[1],
@@ -399,11 +401,10 @@ def main():
     # BIO18 = Precipitation of Warmest Quarter
     grass.message(_("BIO18 = Precipitation of Warmest Quarter ..."))
 
-    grass.mapcalc("$bio = round(graph($warmestq, \
-                                      0, $precq0, \
-                                      1, $precq1, \
-                                      2, $precq2, \
-                                      3, $precq3))",
+    grass.mapcalc("$bio = round(if($warmestq == 0, $precq0, \
+                                if($warmestq == 1, $precq1, \
+                                if($warmestq == 2, $precq2, \
+                                if($warmestq == 3, $precq3, null())))))",
                   bio = outpre + '.bio18',
                   warmestq = warmestq, 
                   precq0 = precql[0], precq1 = precql[1],
@@ -412,16 +413,14 @@ def main():
     # BIO19 = Precipitation of Coldest Quarter
     grass.message(_("BIO19 = Precipitation of Coldest Quarter ..."))
 
-    grass.mapcalc("$bio = round(graph($coldestq, \
-                                      0, $precq0, \
-                                      1, $precq1, \
-                                      2, $precq2, \
-                                      3, $precq3))",
-                  bio = outpre + '.bio18',
+    grass.mapcalc("$bio = round(if($coldestq == 0, $precq0, \
+                                if($coldestq == 1, $precq1, \
+                                if($coldestq == 2, $precq2, \
+                                if($coldestq == 3, $precq3, null())))))",
+                  bio = outpre + '.bio19',
                   coldestq = coldestq, 
                   precq0 = precql[0], precq1 = precql[1],
                   precq2 = precql[2], precq3 = precql[3])
-
 
     grass.run_command('g.mremove', rast = tmp, flags = 'f', quiet = True)
 
