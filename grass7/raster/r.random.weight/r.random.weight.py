@@ -67,12 +67,23 @@
 #% required: no
 #%end
 
+#%option
+#% key: seed
+#% type: double
+#% description: set seed for random number generation
+#% key_desc: seed
+#% required: no
+#%end
+
 # import libraries
 import os
 import sys
 import atexit
+import time
 import grass.script as grass
 
+# Runs modules silently
+# os.environ['GRASS_VERBOSE']='-1' 
 
 def cleanup():
 	grass.run_command('g.remove', 
@@ -93,10 +104,17 @@ def main():
     weight = options['weights']
     outmap = options['output']
     subsample = options['subsample']
+    seed = options['seed']
     
-    # setup temporary files
+    # setup temporary files and seed
     tmp_map = 'r_w_rand_987654321'
-
+    if seed == "":
+        ticks = str(int(time.time()*1000)),
+        print("seed used is: " + str(ticks[0]))
+        os.environ['GRASS_RND_SEED'] = ticks[0]
+    else:
+        print("Seed used for random number generation is: " + str(seed))
+        
     grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
         minval = minval, 
         maxval = maxval,
@@ -106,6 +124,8 @@ def main():
         weight = weight,
         outmap = outmap,
         tmp_map = tmp_map)
+    
+    print("Ready, name of raster created is " + outmap)
     
 if __name__ == "__main__":
     options, flags = grass.parser()

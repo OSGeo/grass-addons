@@ -2,6 +2,8 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.rand.weight</em> generates a binary raster layer with randomly assigned values of 1 or 0, weighted by raster cell values of an user-defined raster layer. I.e., the change for a raster cell to get assigned a 1 (to get selected) depends on the weight (value) of that cell in the input weight layer.
+
+<p>By default every run will give you a different layer. You can specify fixed seed value to ensure that model runs are reproducible under options.
  
 <h2>Note</h2>
 The values of the weight raster layer should be within the range defined by the start and end value. Currently the script does not check this (on the todo list)
