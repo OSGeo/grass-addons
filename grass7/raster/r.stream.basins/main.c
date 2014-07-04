@@ -194,12 +194,14 @@ int main(int argc, char *argv[])
     if (segmentation) {
 	SEG map_dirs, map_streams, map_basins;
 	SEGMENT *streams = NULL, *dirs, *basins;
-	int number_of_segs;
+	int number_of_segs, num_maps;
 
         G_message(_("Memory swap calculation (may take some time)..."));
-	
+
+	num_maps = b_test == 2 ? 3 : 2;
 	number_of_segs = (int)atof(opt_swapsize->answer);
-	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
+	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) :
+					       (int)(number_of_segs * 4.0 / num_maps);
 
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
 	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
