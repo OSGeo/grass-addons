@@ -36,7 +36,7 @@ int parse_rule_file(STRING file)
 	    break;		/*max index of output map */
 
     if (n == 0)
-	G_fatal_error(_("No defininition for output map: <%s> in map file"),
+	G_fatal_error(_("No definition for output map: <%s> in map file"),
 		      output);
 
     while (fgets(buf, sizeof buf, fd)) {

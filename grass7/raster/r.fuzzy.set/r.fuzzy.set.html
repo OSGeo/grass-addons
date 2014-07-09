@@ -1,7 +1,7 @@
 <h2>OPTIONS</h2>
 <dl>
 <dt><b>input</b></dt>
-<dd>Name of input raster map to be fuzified. This map may be of any type and may
+<dd>Name of input raster map to be fuzzified. This map may be of any type and may
 require null values. 
 </dd>
 <dt><b>points</b></dt>
@@ -35,13 +35,13 @@ between 0 and 1 indicate partial membership</dd>
 <h2>FUZZY SET PARAMETERS</h2>
 <dl>
 <dt><b>boundary</b></dt>
-<dd>Parameter definied the shape of the fuzzy boundary. The default and most
+<dd>Parameter defined the shape of the fuzzy boundary. The default and most
 popular is S-shaped, linear, J-shaped and G-shaped boundaries are also
-available. The same boundaires are appled to the both sides.</dd>
+available. The same boundaries are applied to the both sides.</dd>
 
 <dt><b>shape</b></dt>
 <dd>Optional shape modifier. Range from -1 to 1. The default value is 0 and
-shoud  not be changed in most of the time. The negative values indicate more
+should  not be changed in most of the time. The negative values indicate more
 dilatant set, the positive values more concentrate set. See description for
 details.
 <center>
@@ -51,8 +51,8 @@ details.
 </dd>
 <dt><b>height</b></dt>
 <dd>Optional height modifier. Range from 0 to 1. The default value is 1 and
-indicate full membership beteen points B and C. If height is lesser than one the
-maximum memebrship is equal to height. See image: Fuzzy set definition.</dd>
+indicate full membership between points B and C. If height is lesser than one the
+maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 </dl>
 
 <h2>DESCRIPTION</h2>
@@ -90,7 +90,7 @@ where x: membership
 <b>S-shaped:</b> it use following equation:
 <pre><code>
 sin(x * Pi/2)^m (for positive shape parameter)
-1-cos(x * Pi/2)^m (for nagative shape parameter)
+1-cos(x * Pi/2)^m (for negative shape parameter)
 
 where x: membership, and 
 m = 2^exp(2,shape) (for positive shape parameter)
@@ -98,7 +98,7 @@ m = 2^(1+shape) (for negative shape parameter)
 where m: shape parameter.
 </code></pre>
 
-For default shape parameter = 0 m is = 2 whcich is most common parameter for
+For default shape parameter = 0 m is = 2 which is most common parameter for
 that equation.
 
 <p>

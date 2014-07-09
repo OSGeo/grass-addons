@@ -30,7 +30,7 @@ int get_nsets(FILE * fd, fpos_t position)
 
 
 int char_strip(char *buf, char rem)
-/* remove spaces, tabs and one addational character */
+/* remove spaces, tabs and one additional character */
 {
     register char *a, *b;
 

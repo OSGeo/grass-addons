@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	family = HAMACHER;
 
     if (operator == _NOT && inputy)
-	G_warning("Negation is unary operaton ymap is ignored");
+	G_warning("Negation is unary operation ymap is ignored");
 
     if (operator != _NOT && !inputy)
 	G_fatal_error("For binary operation (AND, OR, IMP) ymap is required");

@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     par_resolution->description = _("Universe resolution");
     par_resolution->guisection = _("Advanced options");
 
-    in_coor_opt = G_define_option();	/* input coordinates de outlet */
+    in_coor_opt = G_define_option();	/* input coordinates */
     in_coor_opt->key = "coors";
     in_coor_opt->type = TYPE_STRING;
     in_coor_opt->key_desc = "x,y";
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
     out_multiple = G_define_flag();
     out_multiple->key = 'm';
     out_multiple->description =
-	_("Create addational fuzzy output maps for every rule");
+	_("Create additional fuzzy output maps for every rule");
 
 
     opt_output = G_define_standard_option(G_OPT_R_OUTPUT);

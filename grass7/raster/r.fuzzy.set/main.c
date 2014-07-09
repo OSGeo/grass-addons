@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 
     height = atof(par_height->answer);
     if (height > 1 || height < 0)
-	G_fatal_error(_("Heght modifier must be between 0 and 1 but is %f"),
+	G_fatal_error(_("Height modifier must be between 0 and 1 but is %f"),
 		      height);
 
     num_points = sscanf(par_points->answer,
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 		else {
 		    if (0 > (tmp = fuzzy((FCELL) c)))
 			G_warning
-			    ("Cannot determine memebership at row %d, col %d",
+			    ("Cannot determine membership at row %d, col %d",
 			     row, col);
 		    ((FCELL *) out_buf)[col] = tmp;
 		}
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 		    tmp = fuzzy((FCELL) f);
 		    if (0 > (tmp = fuzzy((FCELL) f)))
 			G_warning
-			    ("Cannot determine memebership at row %d, col %d",
+			    ("Cannot determine membership at row %d, col %d",
 			     row, col);
 		    ((FCELL *) out_buf)[col] = tmp;
 		}
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 		else {
 		    if (0 > (tmp = fuzzy((FCELL) d)))
 			G_warning
-			    ("Cannot determine memebership at row %d, col %d",
+			    ("Cannot determine membership at row %d, col %d",
 			     row, col);
 		    ((FCELL *) out_buf)[col] = tmp;
 		}

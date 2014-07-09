@@ -9,7 +9,7 @@ The output map name is the output name parameter. In map file
 output map is marked by special name <b>_OUTPUT_</b>  If maps are in different
 mapsets the name require @. Map names in database cannot contain following
 symbols: <b> %,$ and #</b>. Every map name must start with map name
-identifier:<b> %</b>. Every set definition connected with cetrain map must
+identifier:<b> %</b>. Every set definition connected with certain map must
 follow the map name and must start with set identifier :<b> $</b>. The set
 definition must be in braces { } and requires parameters separated by semicolon.
 Any whitespaces like spaces, tabs, empty lines are allowed and may used to
@@ -22,23 +22,23 @@ visual format of rule file.
 <li><b>side</b>: Option indicate if set is fuzzified of both sides (both), left
 or right side. Available: <i>both, left, right</i>. 
 <li><b>points</b>: A list containing 4 (A,B,C,D) or 2 A,B) points separated by
-comma. Points definine  location of sets of boundaries. Points may not to be in
+comma. Points define location of sets of boundaries. Points may not to be in
 map range, but it may lead to only 0 o 1 membership for the whole map. For
 "both" side parameters range between A and D defines base, but range between B
 and C core of the fuzzy set. Between A and B and C and D are set's boundaries.
 If side is "both" it require 4 points, else 2 points. Points values must be
 not-decreasing.
-<li><b>shape</b>: Parameter definied the shape of the fuzzy boundary. Available:
-<i>sshaped, linear, jshaped, gshaped</i>. The same boundaires are appled to 
+<li><b>shape</b>: Parameter defined the shape of the fuzzy boundary. Available:
+<i>sshaped, linear, jshaped, gshaped</i>. The same boundaries are applied to 
 both sides of fuzzy set.
 <li><b>hedge</b>: Shape modifier the positive number means dilatation (power the
-fuzzy set by 2) the negative means concetration (square root of fuzzy set). The
-number means number of dilatation/concetration applied on fuzzy set.
+fuzzy set by 2) the negative means concentration (square root of fuzzy set). The
+number means number of dilatation/concentration applied on fuzzy set.
 <li><b>height</b>: Height modifier. Range from 0 to 1. The  value 1 and indicate
-full membership beteen points B and C. If height is lesser than one the maximum
-memebrship is equal to height.
+full membership between points B and C. If height is lesser than one the maximum
+membership is equal to height.
 </ul>
-<p>An example of fuzzy sets definiton:
+<p>An example of fuzzy sets definition:
 <div class="code"><pre>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</pre></div>
 
 <b>Special notes about sets definition for output map:</b><br>
@@ -54,14 +54,14 @@ consists of one or more antecedents and one consequent:
 <div class="code"><pre>IF elev IS high AND distance IS low THEN probability IS small
 
 where:
-antecetends: elev IS high; distance IS low
+antecedents: elev IS high; distance IS low
 consequent: probability IS small
 </pre></div>
 
 The rule file has his own syntax. Because module creates only one result map,
-the map name is ommited. Every rule starts with $ and consist of consequent name
-and antecedents in braces { }. All maps and sets used in atecednets must be
-included in the maps file. At the begining of the calculation program checks if
+the map name is omitted. Every rule starts with $ and consist of consequent name
+and antecedents in braces { }. All maps and sets used in antecedents must be
+included in the maps file. At the beginning of the calculation program checks if
 all names and sets are included in maps file. Names of the rules must be same as
 sets names of the output map. The rules file use following symbols:
 <ul>
@@ -73,7 +73,7 @@ sets names of the output map. The rules file use following symbols:
 </ul>
 
 
-<p>An example of fuzzy rules definiton:
+<p>An example of fuzzy rules definition:
 <div class="code"><pre>
 $ small {distance = high & elev = high}
 </pre></div>
@@ -81,13 +81,13 @@ $ small {distance = high & elev = high}
 </dd>
 </dl>
 <h2>ADVANCED OPTIONS</h2>
-In most cases default options shoud not be changed.
+In most cases default options should not be changed.
 <dl>
 <dt><b>family</b></dt>
 <dd>AND and OR operations in fuzzy logic are made with T-norms, T-conorms.
 T-norms, T-conorms are a generalization of the two-valued logical conjunction
 and  disjunction  used by boolean logic, for fuzzy logics. Because there is more
-than one possible generalisation of logial operations, r.fuzzy.system provides 6
+than one possible generalisation of logical operations, r.fuzzy.system provides 6
 most popular families for fuzzy operations:
 <ul>
 <li><b>Zadeh</b> with minimum (Godel) t-norm and maximum T-conorm;
@@ -114,17 +114,17 @@ sum as T-conorm;
 </TABLE>
 </dd>
 <dt><b>imp: implication </b></dt>
-<dd>Imlication determines the method of reshapening of consequents (fuzzy set)
+<dd>Implication determines the method of reshapening of consequents (fuzzy set)
 by antecedents (single value) : 
 <ul>
-<li><b>minimum</b> means the lowest value of the antecedtents and output set
+<li><b>minimum</b> means the lowest value of the antecedents and output set
 definition. It usually creates trapezoidal consequent set definition.
-<li><b>product</b> means the multiplication of the antecedtents and output set
+<li><b>product</b> means the multiplication of the antecedents and output set
 definition. It usually creates triangular consequent set definition.
 </ul>
 </dd>
 <dt><b>defuzz: defuzzification method</b></dt>
-<dd>Before defuzzification all consequents are agregated into one fuzzy set.
+<dd>Before defuzzification all consequents are aggregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
 crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
 <ul>
@@ -137,8 +137,8 @@ crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
 </dd>
 <dt><b>res: universe resolution</b></dt>
 <dd>The universe is an interval between the lowest and highest values of
-consequent and agregated fuzzy sets. The resolution provides number of elements
-of these fuzzy sets. The minimum and maximum for univese is taken from the
+consequent and aggregated fuzzy sets. The resolution provides number of elements
+of these fuzzy sets. The minimum and maximum for universe is taken from the
 minimal and maximal values of fuzzy set definition of output map Because it has
 strong impact on computation time and precision of defuzzification, values lower
 than 30 may impact on precision of final result, but values above 200 may slow
@@ -149,8 +149,8 @@ down computation time.
 <dl>
 <dt><b>coordinates</b></dt>
 <dd>Coordinates of points for which output: universe, all consequents sets and
-agregate set. It is useful for visual presentation or detail analysis of fuzzy
-rules behaviour. In that cases calculations are peroforemd n=only for selected
+aggregate set. It is useful for visual presentation or detail analysis of fuzzy
+rules behaviour. In that cases calculations are performed n=only for selected
 point.</dd>
 <dt><b>membership only flag</b></dt>
 <dd>Prints for all maps sat of values in map range (map universe) and values of
@@ -166,9 +166,9 @@ for every map.</dd>
 values defined in output universe. The output name must be the same as one of
 maps in maps definition file.
 </dd>
-<dt><b>multipe output flag</b></dt>
+<dt><b>multiple output flag</b></dt>
 <dd>This flag is used to create fuzzified maps for every rule. The name of the
-map consist of otput map name, '_' and rule name (for example: output=probs and
+map consist of output map name, '_' and rule name (for example: output=probs and
 rule name high, the map name: probs_high). Values of maps ranges from 0  to 1.
 If map with such name exists will be overwritten without warning.
 </dd>
@@ -219,8 +219,8 @@ IF elevation IS low AND distance IS near THEN risk IS very probable
 IF elevation IS low OR distance IS near THEN risk IS probable
 IF elevation IS high AND distance IS far THEN risk IS unprobable
 </pre></div>
-In clasical boolean sense, we would taken some limits of ideas "near" "far" etc,
-but what about walues near the limit? The fuzzy set uses partial memberships
+In classical boolean sense, we would taken some limits of ideas "near" "far" etc,
+but what about values near the limit? The fuzzy set uses partial memberships
 which abolish these restrictions. In that sense to set "near" belongs all areas
 with distance no more than 100 m with full membership and from 100 to 200 m with
 partial membership greater than 0. Over 200 m we can assume that is not near.
@@ -229,11 +229,11 @@ This allow to formulate fuzzy rules for distance map:
 near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
 </pre></div>
 
-To recive final map program calculate partial fuzzy set for all rules and next
-agregate it into one fuzzy set. These fuzzy sets are created on value sequence
+To receive final map program calculate partial fuzzy set for all rules and next
+aggregate it into one fuzzy set. These fuzzy sets are created on value sequence
 called universe. Every set has the number of elements equal to universe
 resolution. Such set cannot be stored as map so finally is defuzzified with
-method choosen by user.
+method chosen by user.
 <p>
 First we need two maps created with r.stream package:
 
@@ -284,7 +284,7 @@ finally we need run r.fuzzy.system:
 r.fuzzy.system maps=flood.map rules=flod.rul output=flood 
 </pre></div>
 
-Resulting map should look like this below. Yellow color means no risk, red high
+Resulting map should look like this below. Yellow colour means no risk, red high
 risk, green, blue end so on moderate risk.
 <CENTER><img src="f_result.png" border="1"></CENTER><br>
 

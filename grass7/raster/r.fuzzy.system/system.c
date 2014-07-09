@@ -89,7 +89,7 @@ float parse_expression(int n)
     do {
 	if (s_rules[n].work_queue[i] == t_START) {	/* first token */
 	    if (i > 0)
-		G_fatal_error("operator stack error, contact author");
+		G_fatal_error("Operator stack error, contact author");
 	    operator_stack[opr_top] = t_START;
 	    continue;
 	}
@@ -147,7 +147,7 @@ float parse_expression(int n)
 	    case A:		/* accept */
 
 		if (!val_top)
-		    G_fatal_error("Stack error at end, contact autor");
+		    G_fatal_error("Stack error at end, contact author");
 		return values_stack[val_top];
 
 	    }
@@ -155,7 +155,7 @@ float parse_expression(int n)
 
     } while (s_rules[n].work_queue[i++] != t_STOP);
 
-    G_fatal_error("Parse Stack empty, contact autor");
+    G_fatal_error("Parse Stack empty, contact author");
 }
 
 
