@@ -3,6 +3,7 @@ MODULE_TOPDIR = ..
 # i.fusion.brovey deprecated
 
 SUBDIRS = \
+	i.destripe \
 	i.eb.hsebal95 \
 	i.eb.z0m \
 	i.edge \
@@ -16,6 +17,7 @@ SUBDIRS = \
 	i.points.auto \
 	i.rotate \
 	i.segment.gsoc \
+	i.spec.unmix \
 	i.vi.mpi \
 	i.wavelet
 
