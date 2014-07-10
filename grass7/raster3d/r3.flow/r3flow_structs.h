@@ -21,4 +21,14 @@ struct Integration
     int limit;
 };
 
+struct Array
+{
+    double *array;
+    int sx;
+    int sy;
+    int sz;
+};
+
+#define ACCESS(arr, x, y, z) ((arr)->array[(arr)->sx * (arr)->sy * (z) + (arr)->sx * (y) + (x)])
+
 #endif // R3FLOW_STRUCTS_H
