@@ -21,7 +21,7 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-void fourier(double *t_sim,double *t_obs,int length,int harmonic_number); 
+void fourier(DCELL *t_sim,DCELL *t_obs,int length,int harmonic_number); 
 
 int main(int argc, char *argv[]) 
 {
@@ -35,8 +35,7 @@ int main(int argc, char *argv[])
     char *result;	/*output raster name */
     int infd, outfd, ha;
     char *in;
-    void *inrast;
-    DCELL * outrast;
+    DCELL *inrast, *outrast;
     CELL val1, val2;
     
     /************************************/ 
@@ -67,7 +66,6 @@ int main(int argc, char *argv[])
     in = input1->answer;
     ha = atoi(input2->answer);
     result = output->answer;
-    
     /***************************************************/ 
     infd = Rast_open_old(in, "");
     inrast = Rast_allocate_d_buf();
