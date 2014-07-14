@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *nulls, *lazy, *avg;
+	struct Flag *nulls, *lazy;
     } flag;
     char *desc = NULL;
     int idx, i;
@@ -140,10 +140,6 @@ int main(int argc, char *argv[])
     parm.range->type = TYPE_DOUBLE;
     parm.range->key_desc = "lo,hi";
     parm.range->description = _("Ignore values outside this range");
-
-    flag.avg = G_define_flag();
-    flag.avg->key = 'a';
-    flag.avg->description = _("Use average instead of (min + max) / 2");
 
     flag.nulls = G_define_flag();
     flag.nulls->key = 'n';
@@ -334,8 +330,6 @@ int main(int argc, char *argv[])
 			null = 1;
 		    }
 		    else {
-			if (idx != IDX_BEDD && v > cutoff)
-			    v = cutoff;
 			avg += v;
 			if (Rast_is_f_null_value(&min) || min > v)
 			    min = v;
@@ -354,12 +348,7 @@ int main(int argc, char *argv[])
 	    }
 	    else {
 
-		if (flag.avg->answer) {
-		    avg /= non_null;
-		}
-		else {
-		    avg = (min + max) / 2.;
-		}
+		avg /= non_null;
 
 		if (idx == IDX_HUGLIN)
 		    avg = (avg + max) / 2.;

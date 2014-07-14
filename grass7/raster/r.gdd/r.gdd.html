@@ -21,10 +21,11 @@ usually accumulated for the period April 1<sup>st</sup> to October
 <p>
 <b>BEDDs</b> are calculated as
 <div class="code"><pre>
-    wi = average - baseline
+    bedd = average - baseline
 </pre></div>
-with an optional upper <em>cutoff</em> applied to the average instead of 
-the temperature values.
+with an optional upper <em>cutoff</em> applied to the average. Vine 
+development kinetics for example reach a plateau at an average daily 
+temperature of 19°C.
 <p>
 The <b>Huglin heliothermal index</b> is calculated as
 <div class="code"><pre>
@@ -34,15 +35,9 @@ usually accumulated for the period April 1<sup>st</sup> to September
 30<sup>th</sup> (northern hemisphere) or the period September 
 1<sup>st</sup> to April 30<sup>th</sup> (southern hemisphere).
 <p>
-With the <em>-a</em> flag, the average is calculated as the average of 
-all available temperature values, otherwiese the average is calculated as
-<i>(min + max) / 2</i>.
-The <em>min</em>, <em>max</em> and <em>average</em> values 
-are automatically calculated from the input temperature maps.
-<p>
-Any temperature values (for BEDD, any averages) above the <em>cutoff</em> 
-value are set to <em>cutoff</em>, and any <em>average</em> values below 
-the <em>baseline</em> value are set to <em>baseline</em>. Negative results 
+Any averages above the <em>cutoff</em> value are set to 
+<em>cutoff</em>, and any <em>average</em> values below the 
+<em>baseline</em> value are set to <em>baseline</em>. Negative results 
 are set to 0 (zero). 
 <p>
 The <em>shift</em> and <em>scale</em> values are applied directly to the 
