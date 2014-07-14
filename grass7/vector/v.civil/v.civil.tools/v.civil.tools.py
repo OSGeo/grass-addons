@@ -406,7 +406,60 @@
 #% guisection: Street2
 #%end
 
+#### Displaced section ####
 
+#%flag
+#% key: a
+#% description: Add column to section and type
+#% guisection: Displaced
+#%end
+
+#%flag
+#% key: d
+#% description: Delete column from section and type
+#% guisection: Displaced
+#%end
+
+#%option G_OPT_V_INPUT
+#% key: edge
+#% description: Name for alignment (horizontal polygon)
+#% required: no
+#% guisection: Displaced
+#%end
+
+#%option
+#% key: lado
+#% type: string
+#% label: left or right side
+#% options: left,right
+#% required: no
+#% guisection: Displaced
+#%end
+
+
+#%option
+#% key: ncol
+#% type: integer
+#% description: Number of column to insert
+#% required: no
+#% guisection: Displaced
+#%end
+
+#%option
+#% key: startd
+#% type: string
+#% description: start distance and height
+#% required: no
+#% guisection: Displaced
+#%end
+
+#%option
+#% key: endd
+#% type: string
+#% description: end distance and height
+#% required: no
+#% guisection: Displaced
+#%end
 
 import os, sys
 from math import *
@@ -1385,13 +1438,14 @@ def edge_circ_intersec(R,point1,point2,izq1,dist1,center,radio1):
 
     if d1 > d2: d2=-d2
 
-    s=(R+dist1)+d2
+    s=(R+dist1)+d2*izq1
 
     alpha=asin(s/(R+radio1))
 
     c1=radio1*cos(alpha)
     c2=(R+radio1)*cos(alpha)
 
+    print d1,d2,R,radio1,s,alpha
     if options['inout']=='Out':
 
         # Centro del circulo requerido
@@ -1409,6 +1463,7 @@ def edge_circ_intersec(R,point1,point2,izq1,dist1,center,radio1):
         yt2=yc2+c1*cos(Az1)
 
     else:
+
         xcc=xc+(R+radio1)*sin(Az1+izq1*(pi-alpha))
         ycc=yc+(R+radio1)*cos(Az1+izq1*(pi-alpha))
 
@@ -1439,7 +1494,8 @@ def edge_circ_intersec(R,point1,point2,izq1,dist1,center,radio1):
     grass.message("Edge 1:")
     grass.message(" pk1="+str(d3)+", dist="+str(dist1)+", radio: r"+str(R)+","+str(dif))
     grass.message(" pk2="+str(d4)+", dist="+str(dist1)+", radio: ")
-
+    grass.message(" azimut: "+str(azimut(xc,yc,xcc,ycc)*200/pi))
+    grass.message(" azimut: "+str(azimut(xc,yc,xcc,ycc)))
     write_Polylines([[[xc,yc,0],[xc1,yc1,0]],
                      [[xc,yc,0],[xcc,ycc,0]],
                      [[xcc,ycc,0],[xt1,yt1,0]],
@@ -1448,6 +1504,46 @@ def edge_circ_intersec(R,point1,point2,izq1,dist1,center,radio1):
 
     return 0
 
+# ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
+
+def read_Table(EjeMap,layer,columns):
+
+    table=grass.read_command('v.out.ascii', input=EjeMap, output='-',
+                          format='point', layer=layer, columns=columns, quiet=True)
+    table = [d.split('|') for d in table.splitlines(0)]
+    if len(table[0])<len(columns.split(','))+4:
+        for i in range(len(table)):
+            table[i].insert(2,0.0)
+
+    return table
+
+def read_TableSection(EjeMap):
+
+    section = read_Table(EjeMap,4,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
+    for i in range(len(section)):
+        section[i][:5]=[float(p) for p in section[i][:5]]
+    return section
+
+
+def update_Layer(EjeMap,ext,layer,ptsList,columns):
+
+    sql=''
+    columns=columns.split(',')
+    for i in range(len(ptsList)):
+        sql+="UPDATE "+EjeMap+ext+" SET "
+        sql+=', '.join(a + "=" +str(b) for a,b in zip(columns,ptsList[i][4:]))
+        sql+=" WHERE cat"+str(layer)+"="+str(int(ptsList[i][3]))+";\n"
+    #print sql
+    grass.write_command('db.execute', database = database1, driver = 'sqlite', stdin = sql, input='-', quiet=True)
+    return 0
+
+
+def update_TableSection(EjeMap,ptsList):
+
+    for i,pts in enumerate(ptsList):
+        ptsList[i][5:]=["'"+str(p)+"'" for p in ptsList[i][5:] if str(p).find("'")==-1]
+    update_Layer(EjeMap,'_Section',4,ptsList,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
+    return 0
 
 # ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #
 # ### Main
@@ -1506,42 +1602,105 @@ def main():
 
 #### Tools ###
 
-    if flags['o']:
+    #if flags['o']:
 
-        x1,y1=options['tpoint1'].split(',')
-        x1,y1=float(x1),float(y1)
-        x2,y2=options['tpoint2'].split(',')
-        x2,y2=float(x2),float(y2)
-        x3,y3=options['tpoint3'].split(',')
-        x3,y3=float(x3),float(y3)
-        x4,y4=options['tpoint4'].split(',')
-        x4,y4=float(x4),float(y4)
+        #x1,y1=options['tpoint1'].split(',')
+        #x1,y1=float(x1),float(y1)
+        #x2,y2=options['tpoint2'].split(',')
+        #x2,y2=float(x2),float(y2)
+        #x3,y3=options['tpoint3'].split(',')
+        #x3,y3=float(x3),float(y3)
+        #x4,y4=options['tpoint4'].split(',')
+        #x4,y4=float(x4),float(y4)
 
-        xx,yy=pto_corte_2_rectas(x1,y1,x2,y2,x3,y3,x4,y4)
-        grass.message("Coord: "+str(xx)+","+str(yy))
+        #xx,yy=pto_corte_2_rectas(x1,y1,x2,y2,x3,y3,x4,y4)
+        #grass.message("Coord: "+str(xx)+","+str(yy))
 
-    if flags['t']:
+    #if flags['t']:
 
-        R=float(options['tradio'])
-        x1,y1=options['tpoint1'].split(',')
-        x1,y1=float(x1),float(y1)
-        xc,yc=options['tcenter'].split(',')
-        xc,yc=float(xc),float(yc)
+        #R=float(options['tradio'])
+        #x1,y1=options['tpoint1'].split(',')
+        #x1,y1=float(x1),float(y1)
+        #xc,yc=options['tcenter'].split(',')
+        #xc,yc=float(xc),float(yc)
 
-        xx,yy=recta_tg_circulo(x1,y1,R,xc,yc)
-        grass.message("Coord: "+str(xx)+","+str(yy))
+        #xx,yy=recta_tg_circulo(x1,y1,R,xc,yc)
+        #grass.message("Coord: "+str(xx)+","+str(yy))
 
-    if flags['l']:
+    #if flags['l']:
 
-        x1,y1=options['tpoint1'].split(',')
-        x1,y1=float(x1),float(y1)
-        x2,y2=options['tpoint2'].split(',')
-        x2,y2=float(x2),float(y2)
-        d=float(options['dist'])
+        #x1,y1=options['tpoint1'].split(',')
+        #x1,y1=float(x1),float(y1)
+        #x2,y2=options['tpoint2'].split(',')
+        #x2,y2=float(x2),float(y2)
+        #d=float(options['dist'])
 
-        xx,yy,dx,dy=alargar_recta(x1,y1,x2,y2,d)
-        grass.message("Coord: "+str(xx)+","+str(yy))
-        grass.message("Dist: "+str(dx)+","+str(dy))
+        #xx,yy,dx,dy=alargar_recta(x1,y1,x2,y2,d)
+        #grass.message("Coord: "+str(xx)+","+str(yy))
+        #grass.message("Dist: "+str(dx)+","+str(dy))
+
+
+#### Displaced ###
+
+    if flags['a'] or flags['d']:
+
+        global database1
+
+        EjeMap=options['edge']
+        if '@' in EjeMap:
+            NameMap,MapSet=EjeMap.split('@')
+        else:
+            NameMap=EjeMap
+
+        f = grass.vector_db(options['edge'])[1]
+        table    = f['table']
+        database1 = f['database']
+        driver   = f['driver']
+
+        seccion=read_TableSection(EjeMap)
+
+        num1=len(seccion[0][5].split(';'))
+        num2=len(seccion[0][6].split(';'))
+        for i,lin in enumerate(seccion):
+            if lin[7] == '':
+                seccion[i][7]=';'.join(['l' for p in range(num1)])
+            if lin[8] == '':
+                seccion[i][8]=';'.join(['l' for p in range(num2)])
+
+        if options['lado'] == 'left':
+            lado=[p[5].split(';') for p in seccion]
+            tipo=[p[7].split(';') for p in seccion if p[7]!='']
+        else:
+            lado=[p[6].split(';') for p in seccion]
+            tipo=[p[8].split(';') for p in seccion if p[8]!='']
+
+        if flags['a']:
+
+            lado[0].insert(int(options['ncol'])-1,options['startd'])
+            tipo[0].insert(int(options['ncol'])-1,'l')
+            lado[-1].insert(int(options['ncol'])-1,options['endd'])
+            tipo[-1].insert(int(options['ncol'])-1,'l')
+
+            if len(lado) > 2:
+                for i,lin in enumerate(lado[1:-1]):
+                    lado[i+1].insert(int(options['ncol'])-1,'-1 0')
+                    if tipo[i+1]!=[]:
+                        tipo[i+1].insert(int(options['ncol'])-1,'l')
+
+        if flags['d']:
+            for i,lin in enumerate(lado):
+                del lado[i][int(options['ncol'])-1]
+                del tipo[i][int(options['ncol'])-1]
+
+        for i,lin in enumerate(seccion):
+            if options['lado'] == 'left':
+                seccion[i][5]=';'.join(lado[i])
+                seccion[i][7]=';'.join(tipo[i])
+            else:
+                seccion[i][6]=';'.join(lado[i])
+                seccion[i][8]=';'.join(tipo[i])
+        #for jj in seccion: print jj
+        update_TableSection(NameMap,seccion)
 
     sys.exit(0)
 
