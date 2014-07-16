@@ -1,8 +1,6 @@
 #ifndef R3FLOW_STRUCTS_H
 #define R3FLOW_STRUCTS_H
 
-#include <grass/raster3d.h>
-
 struct Seed
 {
     double x;
