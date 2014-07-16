@@ -5,7 +5,7 @@ void traverse(RASTER3D_Region * region, double *start, double *end,
 	      int *coordinates, int *size, int *coor_count)
 {
     double dx, dy, dz;
-    double step_x, step_y, step_z;
+    int step_x, step_y, step_z;
     int x, y, z;
     int x_end, y_end, z_end;
     double t_delta_x, t_delta_y, t_delta_z;
@@ -72,16 +72,17 @@ void traverse(RASTER3D_Region * region, double *start, double *end,
 		z = z + step_z;
 	    }
 	}
-	coordinates[count * 3 + 0] = x;
-	coordinates[count * 3 + 1] = region->rows - y - 1;
-	coordinates[count * 3 + 2] = z;
-	count++;
 	if ((x == x_end && y == y_end && z == z_end) ||
 	    /* just to make sure it breaks */
 	    (step_x * (x - x_end) > 0 || step_y * (y - y_end) > 0 ||
 	     step_z * (z - z_end) > 0))
 
 	    break;
+
+	coordinates[count * 3 + 0] = x;
+	coordinates[count * 3 + 1] = region->rows - y - 1;
+	coordinates[count * 3 + 2] = z;
+	count++;
 
 	/* reallocation for cases when the steps would be too big */
 	if (*size <= count) {

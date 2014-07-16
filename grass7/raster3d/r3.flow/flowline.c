@@ -98,19 +98,22 @@ void compute_flowline(RASTER3D_Region * region, const struct Seed *seed,
             if (!(last_col == col && last_row == row && last_depth == depth)) {
                 value = Rast3d_get_float(flowacc, col, row, depth);
                 Rast3d_put_float(flowacc, col, row, depth, value + 1);
-                coor_diff = (fabs(last_col - col) + fabs(last_row - row) + fabs(last_row - row));
-                /* if not run for the 1. time and previous and next point coordinates
+                if (last_col >= 0) {
+                    coor_diff = (abs(last_col - col) + abs(last_row - row) +
+                                 abs(last_depth - depth));
+                    /* if not run for the 1. time and previous and next point coordinates
                     differ by more than 1 voxel coordinate */
-                if (last_col >= 0 && coor_diff > 1) {
-                    traverse(region, point, new_point, trav_coords, &size, &trav_count);
-                    for (j = 0; j < trav_count; j++) {
-                        value = Rast3d_get_float(flowacc, trav_coords[3 * j + 0],
-                                                 trav_coords[3 * j + 1],
-                                                 trav_coords[3 * j + 2]);
-                        Rast3d_put_float(flowacc, trav_coords[3 * j + 0],
-                                         trav_coords[3 * j + 1],
-                                         trav_coords[3 * j + 2],
-                                         value + 1);
+                    if (coor_diff > 1) {
+                        traverse(region, point, new_point, trav_coords, &size, &trav_count);
+                        for (j = 0; j < trav_count; j++) {
+                            value = Rast3d_get_float(flowacc, trav_coords[3 * j + 0],
+                                                     trav_coords[3 * j + 1],
+                                                     trav_coords[3 * j + 2]);
+                            Rast3d_put_float(flowacc, trav_coords[3 * j + 0],
+                                             trav_coords[3 * j + 1],
+                                             trav_coords[3 * j + 2],
+                                             value + 1);
+                        }
                     }
                 }
                 last_col = col;
