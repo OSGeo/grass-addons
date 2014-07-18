@@ -3,6 +3,8 @@
 
 #include <grass/raster3d.h>
 
+#include "r3flow_structs.h"
+
 static const double MAX_ERROR = 1.0e-6;
 static const double MIN_STEP = 0.01;
 static const double MAX_STEP = 1;
@@ -23,13 +25,13 @@ static const double DC[6] = { 37. / 378 - 2825. / 27648, 0,
 };
 
 double norm(const double x, const double y, const double z);
-int get_velocity(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
+int get_velocity(RASTER3D_Region * region, struct Gradient_info *gradient_info,
 		 const double x, const double y, const double z,
 		 double *vel_x, double *vel_y, double *vel_z);
 double get_time_step(const char *unit, const double step,
 		     const double velocity, const double cell_size);
 int rk45_integrate_next(RASTER3D_Region * region,
-			RASTER3D_Map ** velocity_field, const double *point,
+			struct Gradient_info *gradient_info, const double *point,
 			double *next_point, double *delta_t,
 			const double min_step, const double max_step);
 

@@ -21,6 +21,7 @@
 
 #include "interpolate.h"
 #include "integrate.h"
+#include "r3flow_structs.h"
 
 /*!
    \brief Computes vector norm.
@@ -56,11 +57,14 @@ double get_time_step(const char *unit, const double step,
 }
 
 
-int get_velocity(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
+int get_velocity(RASTER3D_Region * region, struct Gradient_info *gradient_info,
 		 const double x, const double y, const double z,
 		 double *vel_x, double *vel_y, double *vel_z)
 {
-    return interpolate_velocity(region, velocity_field, y, x, z,
+    if (gradient_info->compute_gradient)
+        return get_gradient(region, gradient_info, x, y, z, vel_x, vel_y, vel_z);
+
+    return interpolate_velocity(region, gradient_info->velocity_maps, y, x, z,
 				vel_x, vel_y, vel_z);
 }
 
@@ -77,7 +81,7 @@ int get_velocity(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
    \return 0 success
    \return -1 out of region or null values
  */
-static int rk45_next(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
+static int rk45_next(RASTER3D_Region * region, struct Gradient_info *gradient_info,
 		     const double *point, double *next_point,
 		     const double delta_t, double *error)
 {
@@ -87,7 +91,7 @@ static int rk45_next(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
     double sum_tmp;
     int i, j, k;
 
-    if (get_velocity(region, velocity_field, point[0], point[1], point[2],
+    if (get_velocity(region, gradient_info, point[0], point[1], point[2],
 		     &vel_x, &vel_y, &vel_z) < 0)
 	return -1;
 
@@ -105,7 +109,7 @@ static int rk45_next(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
 	    tmp_point[j] = point[j] + delta_t * sum_tmp;
 	}
 	if (get_velocity
-	    (region, velocity_field, tmp_point[0], tmp_point[1], tmp_point[2],
+	    (region, gradient_info, tmp_point[0], tmp_point[1], tmp_point[2],
 	     &vel_x, &vel_y, &vel_z) < 0)
 	    return -1;
 
@@ -153,7 +157,7 @@ static int rk45_next(RASTER3D_Region * region, RASTER3D_Map ** velocity_field,
    \return -1 out of region or null values
  */
 int rk45_integrate_next(RASTER3D_Region * region,
-			RASTER3D_Map ** velocity_field, const double *point,
+			struct Gradient_info *gradient_info, const double *point,
 			double *next_point, double *delta_t,
 			const double min_step, const double max_step)
 {
@@ -175,7 +179,7 @@ int rk45_integrate_next(RASTER3D_Region * region,
     while (estimated_error > MAX_ERROR) {
 	/* compute next point and get estimated error */
 	if (rk45_next
-	    (region, velocity_field, point, next_point, *delta_t, error) == 0)
+	    (region, gradient_info, point, next_point, *delta_t, error) == 0)
 	    estimated_error = norm(error[0], error[1], error[2]);
 	else
 	    return -1;
@@ -206,7 +210,7 @@ int rk45_integrate_next(RASTER3D_Region * region,
 
 	/* break when the adjustment was needed (not sure why) */
 	if (do_break) {
-	    if (rk45_next(region, velocity_field, point, next_point,
+	    if (rk45_next(region, gradient_info, point, next_point,
 			  *delta_t, error) < 0)
 		return -1;
 	    break;

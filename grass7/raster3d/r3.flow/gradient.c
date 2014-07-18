@@ -3,10 +3,10 @@
 
    \brief Gradient computation
 
-    Gradient computation (second order approximation)
-    using central differencing scheme (plus forward and backward
-    difference of second order approx.)
-   
+   Gradient computation (second order approximation)
+   using central differencing scheme (plus forward and backward
+   difference of second order approx.)
+
    (C) 2014 by the GRASS Development Team
 
    This program is free software under the GNU General Public
@@ -35,7 +35,7 @@ void gradient(struct Array *array, double *step,
 		 4 * ACCESS(array, array->sx - 2, row, depth) +
 		 ACCESS(array, array->sx - 3, row, depth)) / (2 * step[0]);
 
-	    for (col = 0; col < array->sx; col++) {
+	    for (col = 1; col < array->sx - 1; col++) {
 		ACCESS(grad_x, col, row, depth) =
 		    (ACCESS(array, col + 1, row, depth) -
 		     ACCESS(array, col - 1, row, depth)) / (2 * step[0]);
@@ -45,19 +45,20 @@ void gradient(struct Array *array, double *step,
     for (depth = 0; depth < array->sz; depth++) {
 	for (col = 0; col < array->sx; col++) {
 	    ACCESS(grad_y, col, 0, depth) =
-		(-3 * ACCESS(array, col, 0, depth) +
-		 4 * ACCESS(array, col, 1, depth) -
-		 ACCESS(array, col, 2, depth)) / (2 * step[1]);
+		-(-3 * ACCESS(array, col, 0, depth) +
+		  4 * ACCESS(array, col, 1, depth) -
+		  ACCESS(array, col, 2, depth)) / (2 * step[1]);
 
 	    ACCESS(grad_y, col, array->sy - 1, depth) =
-		(3 * ACCESS(array, col, array->sy - 1, depth) -
-		 4 * ACCESS(array, col, array->sy - 2, depth) +
-		 ACCESS(array, col, array->sy - 3, depth)) / (2 * step[1]);
+		-(3 * ACCESS(array, col, array->sy - 1, depth) -
+		  4 * ACCESS(array, col, array->sy - 2, depth) +
+		  ACCESS(array, col, array->sy - 3, depth)) / (2 * step[1]);
 
-	    for (row = 0; row < array->sy; row++) {
+	    for (row = 1; row < array->sy - 1; row++) {
+		/* is minus here? */
 		ACCESS(grad_y, col, row, depth) =
-		    (ACCESS(array, col, row + 1, depth) -
-		     ACCESS(array, col, row - 1, depth)) / (2 * step[1]);
+		    -(ACCESS(array, col, row + 1, depth) -
+		      ACCESS(array, col, row - 1, depth)) / (2 * step[1]);
 	    }
 	}
     }
@@ -73,11 +74,10 @@ void gradient(struct Array *array, double *step,
 		 4 * ACCESS(array, col, row, array->sz - 2) +
 		 ACCESS(array, col, row, array->sz - 3)) / (2 * step[2]);
 
-	    for (depth = 0; depth < array->sz; depth++) {
-		/* is minus here? */
-		ACCESS(grad_y, col, row, depth) =
-		    -(ACCESS(array, col, row, depth + 1) -
-		      ACCESS(array, col, row, depth - 1)) / (2 * step[2]);
+	    for (depth = 1; depth < array->sz - 1; depth++) {
+		ACCESS(grad_z, col, row, depth) =
+		    (ACCESS(array, col, row, depth + 1) -
+		     ACCESS(array, col, row, depth - 1)) / (2 * step[2]);
 	    }
 	}
     }

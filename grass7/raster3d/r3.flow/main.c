@@ -52,47 +52,63 @@ static void check_vector_input_maps(struct Option *vector_opt,
 
 }
 
-static void load_input_velocity_maps(struct Option *vector_opt,
-				     RASTER3D_Map ** velocity_field,
+static void load_input_raster3d_maps(struct Option *scalar_opt,
+				     struct Option *vector_opt,
+				     struct Gradient_info *gradient_info,
 				     RASTER3D_Region * region)
 {
     int i;
 
-    for (i = 0; i < 3; i++) {
-	velocity_field[i] =
-	    Rast3d_open_cell_old(vector_opt->answers[i],
-				 G_find_raster3d(vector_opt->answers[i], ""),
+    if (scalar_opt->answer) {
+	gradient_info->scalar_map =
+	    Rast3d_open_cell_old(scalar_opt->answer,
+				 G_find_raster3d(scalar_opt->answer, ""),
 				 region, RASTER3D_TILE_SAME_AS_FILE,
 				 RASTER3D_USE_CACHE_DEFAULT);
-
-	if (!velocity_field[i])
+	if (!gradient_info->scalar_map)
 	    Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"),
-			       vector_opt->answers[i]);
+			       scalar_opt->answer);
+	gradient_info->compute_gradient = TRUE;
+    }
+    else {
+	for (i = 0; i < 3; i++) {
+	    gradient_info->velocity_maps[i] =
+		Rast3d_open_cell_old(vector_opt->answers[i],
+				     G_find_raster3d(vector_opt->answers[i],
+						     ""), region,
+				     RASTER3D_TILE_SAME_AS_FILE,
+				     RASTER3D_USE_CACHE_DEFAULT);
+
+	    if (!gradient_info->velocity_maps[i])
+		Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"),
+				   vector_opt->answers[i]);
+	}
+	gradient_info->compute_gradient = FALSE;
     }
 }
 
-static void init_flowaccum(RASTER3D_Region * region, RASTER3D_Map *flowacc) {
-    
+static void init_flowaccum(RASTER3D_Region * region, RASTER3D_Map * flowacc)
+{
     int c, r, d;
 
     for (d = 0; d < region->depths; d++)
-        for (r = 0; r < region->rows; r++)
-            for (c = 0; c < region->cols; c++)
-                if (Rast3d_put_float(flowacc, c, r, d, 0) != 1) 
-                    Rast3d_fatal_error(_("init_flowaccum: error in Rast3d_put_float"));
+	for (r = 0; r < region->rows; r++)
+	    for (c = 0; c < region->cols; c++)
+		if (Rast3d_put_float(flowacc, c, r, d, 0) != 1)
+		    Rast3d_fatal_error(_("init_flowaccum: error in Rast3d_put_float"));
 }
 
 int main(int argc, char *argv[])
 {
     struct Option *vector_opt, *seed_opt, *flowlines_opt, *flowacc_opt,
-	*unit_opt, *step_opt, *limit_opt, *skip_opt;
+	*scalar_opt, *unit_opt, *step_opt, *limit_opt, *skip_opt;
     struct Flag *up_flag;
     struct GModule *module;
     RASTER3D_Region region;
-    RASTER3D_Map *velocity_field[3];
     RASTER3D_Map *flowacc;
     struct Integration integration;
     struct Seed seed;
+    struct Gradient_info gradient_info;
     struct Map_info seed_Map;
     struct line_pnts *seed_points;
     struct line_cats *seed_cats;
@@ -113,9 +129,12 @@ int main(int argc, char *argv[])
     module->description = _("Compute flow lines.");
 
 
+    scalar_opt = G_define_standard_option(G_OPT_R3_INPUT);
+    scalar_opt->required = NO;
+
     vector_opt = G_define_standard_option(G_OPT_R3_INPUTS);
     vector_opt->key = "vector_field";
-    vector_opt->required = YES;
+    vector_opt->required = NO;
     vector_opt->description = _("Names of three 3D raster maps describing "
 				"x, y, z components of vector field");
 
@@ -136,7 +155,8 @@ int main(int argc, char *argv[])
     flowacc_opt = G_define_standard_option(G_OPT_R3_OUTPUT);
     flowacc_opt->key = "flowaccumulation";
     flowacc_opt->required = NO;
-    flowacc_opt->description = _("Name for output flowaccumulation 3D raster");
+    flowacc_opt->description =
+	_("Name for output flowaccumulation 3D raster");
 
     unit_opt = G_define_option();
     unit_opt->key = "unit";
@@ -191,6 +211,13 @@ int main(int argc, char *argv[])
 
     check_vector_input_maps(vector_opt, seed_opt);
 
+    if (scalar_opt->answer || vector_opt->answers) {
+	if (scalar_opt->answer && vector_opt->answers)
+	    G_fatal_error(_("Options 'input' and 'vector_field' are mutually exclusive."));
+    }
+    else
+	G_fatal_error(_("Use one of options 'input' and 'vector_field'."));
+
     Rast3d_init_defaults();
     Rast3d_get_window(&region);
 
@@ -219,8 +246,7 @@ int main(int argc, char *argv[])
 		skip[i] = atoi(skip_opt->answers[i]);
 	    }
 	    else {
-		G_fatal_error
-		    ("Please provide 3 integer values for skip option.");
+		G_fatal_error(_("Please provide 3 integer values for skip option."));
 	    }
 	}
     }
@@ -232,30 +258,32 @@ int main(int argc, char *argv[])
     }
 
     /* open raster 3D maps of velocity components */
-    load_input_velocity_maps(vector_opt, velocity_field, &region);
+    gradient_info.initialized = FALSE;
+    load_input_raster3d_maps(scalar_opt, vector_opt, &gradient_info, &region);
+
 
     /* open new 3D raster map of flowacumulation */
     if (flowacc_opt->answer) {
-        flowacc = Rast3d_open_new_opt_tile_size(flowacc_opt->answer,
-                                                RASTER3D_USE_CACHE_DEFAULT, &region,
-                                                FCELL_TYPE, 32);
-        
-        
-        if (!flowacc)
-            Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"),
-                               flowacc_opt->answer);
-        init_flowaccum(&region, flowacc);
+	flowacc = Rast3d_open_new_opt_tile_size(flowacc_opt->answer,
+						RASTER3D_USE_CACHE_DEFAULT,
+						&region, FCELL_TYPE, 32);
+
+
+	if (!flowacc)
+	    Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"),
+			       flowacc_opt->answer);
+	init_flowaccum(&region, flowacc);
     }
 
     /* open new vector map of flowlines */
     if (flowlines_opt->answer) {
-        fl_cats = Vect_new_cats_struct();
-        fl_points = Vect_new_line_struct();
-        if (Vect_open_new(&fl_map, flowlines_opt->answer, TRUE) < 0)
-            G_fatal_error(_("Unable to create vector map <%s>"),
-                          flowlines_opt->answer);
-        
-        Vect_hist_command(&fl_map);
+	fl_cats = Vect_new_cats_struct();
+	fl_points = Vect_new_line_struct();
+	if (Vect_open_new(&fl_map, flowlines_opt->answer, TRUE) < 0)
+	    G_fatal_error(_("Unable to create vector map <%s>"),
+			  flowlines_opt->answer);
+
+	Vect_hist_command(&fl_map);
     }
 
     n_seeds = 0;
@@ -270,13 +298,13 @@ int main(int argc, char *argv[])
 	n_seeds = Vect_get_num_primitives(&seed_Map, GV_POINT);
     }
     if (flowacc_opt->answer || (!seed_opt->answer && flowlines_opt->answer)) {
-        if (flowacc_opt->answer)
-            n_seeds += region.cols * region.rows * region.depths;
-        else {
-            n_seeds += ceil(region.cols / (double)skip[0]) *
-                    ceil(region.rows / (double)skip[1]) *
-                    ceil(region.depths / (double)skip[2]);
-        }
+	if (flowacc_opt->answer)
+	    n_seeds += region.cols * region.rows * region.depths;
+	else {
+	    n_seeds += ceil(region.cols / (double)skip[0]) *
+		ceil(region.rows / (double)skip[1]) *
+		ceil(region.depths / (double)skip[2]);
+	}
     }
     G_debug(1, "Number of seeds is %d", n_seeds);
 
@@ -305,8 +333,8 @@ int main(int argc, char *argv[])
 	    }
 	    G_percent(seed_count, n_seeds, 1);
 	    cat = seed_count + 1;
-	    compute_flowline(&region, &seed, velocity_field, flowacc, &integration,
-			     &fl_map, fl_cats, fl_points, cat);
+	    compute_flowline(&region, &seed, &gradient_info, flowacc,
+			     &integration, &fl_map, fl_cats, fl_points, cat);
 	    seed_count++;
 	}
 
@@ -329,15 +357,15 @@ int main(int argc, char *argv[])
 		    seed.flowaccum = FALSE;
 		    if (flowacc_opt->answer)
 			seed.flowaccum = TRUE;
-		    
+
 		    if (flowlines_opt->answer && (c % skip[0] == 0) &&
-			    (r % skip[1] == 0) && (d % skip[2] == 0))
+			(r % skip[1] == 0) && (d % skip[2] == 0))
 			seed.flowline = TRUE;
-		    
+
 		    if (seed.flowaccum || seed.flowline) {
 			G_percent(seed_count, n_seeds, 1);
 			cat = seed_count + 1;
-			compute_flowline(&region, &seed, velocity_field,
+			compute_flowline(&region, &seed, &gradient_info,
 					 flowacc, &integration, &fl_map,
 					 fl_cats, fl_points, cat);
 			seed_count++;
@@ -347,14 +375,14 @@ int main(int argc, char *argv[])
 	}
     }
     if (flowlines_opt->answer) {
-        Vect_destroy_line_struct(fl_points);
-        Vect_destroy_cats_struct(fl_cats);
-        Vect_build(&fl_map);
-        Vect_close(&fl_map);
+	Vect_destroy_line_struct(fl_points);
+	Vect_destroy_cats_struct(fl_cats);
+	Vect_build(&fl_map);
+	Vect_close(&fl_map);
     }
 
     if (flowacc_opt->answer)
-        Rast3d_close(flowacc);
+	Rast3d_close(flowacc);
 
 
     return EXIT_SUCCESS;

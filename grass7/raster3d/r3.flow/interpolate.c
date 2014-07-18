@@ -12,7 +12,11 @@
    \author Anna Petrasova
  */
 
+#include <grass/gis.h>
 #include <grass/raster3d.h>
+
+#include "r3flow_structs.h"
+#include "gradient.h"
 
 /*!
    \brief Finds 8 nearest voxels from a point.
@@ -170,7 +174,7 @@ int interpolate_velocity(RASTER3D_Region * region, RASTER3D_Map ** map,
 
     /* compute weights */
     get_relative_coords_for_interp(region, north, east, top,
-                                   &rel_x, &rel_y, &rel_z);
+				   &rel_x, &rel_y, &rel_z);
 
     trilinear_interpolation(values, rel_x, rel_y, rel_z, interpolated);
     *vel_x = interpolated[0];
@@ -178,4 +182,145 @@ int interpolate_velocity(RASTER3D_Region * region, RASTER3D_Map ** map,
     *vel_z = interpolated[2];
 
     return 0;
+}
+
+int get_gradient(RASTER3D_Region * region,
+		 struct Gradient_info *gradient_info, const double x,
+		 const double y, const double z, double *vel_x, double *vel_y,
+		 double *vel_z)
+{
+
+    int i, d, r, c, count;
+    int near_x[8], near_y[8], near_z[8];
+    int minx, maxx, miny, maxy, minz, maxz;
+    int xshift, yshift, zshift;
+    double rel_x, rel_y, rel_z;
+    double scalar_map_array[64];
+    double grad_x_map_array[64], grad_y_map_array[64], grad_z_map_array[64];
+    struct Array array;
+    struct Array grad_x, grad_y, grad_z;
+    struct Array *grad_xyz[3];
+    double step[3];
+    double interpolated[3];
+
+    step[0] = region->ew_res;
+    step[1] = region->ns_res;
+    step[2] = region->tb_res;
+
+    array.array = scalar_map_array;
+    array.sx = array.sy = array.sz = 4;
+    grad_x.array = grad_x_map_array;
+    grad_y.array = grad_y_map_array;
+    grad_z.array = grad_z_map_array;
+    grad_x.sx = grad_x.sy = grad_x.sz = 4;
+    grad_y.sx = grad_y.sy = grad_y.sz = 4;
+    grad_z.sx = grad_z.sy = grad_z.sz = 4;
+
+    find_nearest_voxels(region, y, x, z, near_x, near_y, near_z);
+    minx = near_x[0];
+    maxx = near_x[7];
+    miny = near_y[7];
+    maxy = near_y[0];
+    minz = near_z[0];
+    maxz = near_z[7];
+
+    /* position of x, y, z neighboring voxels */
+    if (!gradient_info->initialized ||
+	(gradient_info->neighbors_pos[0] != minx ||
+	 gradient_info->neighbors_pos[1] != miny ||
+	 gradient_info->neighbors_pos[2] != minz)) {
+
+	gradient_info->neighbors_pos[0] = minx;
+	gradient_info->neighbors_pos[1] = miny;
+	gradient_info->neighbors_pos[2] = minz;
+	gradient_info->initialized = TRUE;
+
+	/* just to be sure, we check that at least one voxel is inside */
+	if (maxx < 0 || minx >= region->cols ||
+	    maxy < 0 || miny >= region->rows ||
+	    maxz < 0 || minz >= region->depths)
+	    return -1;
+
+	/* these if's are here to handle edge cases
+	   min is changed to represent the min coords of the 4x4x4 array
+	   from which the gradient will be computed
+	   shift is relative position of the neighbors within this 4x4x4 array */
+	if (minx == 0 || minx == -1) {
+	    xshift = minx;
+	    minx = 0;
+	}
+	else if (maxx >= region->cols - 1) {
+	    minx = maxx < region->cols ? maxx - 3 : maxx - 4;
+	    xshift = maxx < region->cols ? 2 : 3;
+	}
+	else {
+	    minx -= 1;
+	    xshift = 1;
+	}
+
+	if (miny == 0 || miny == -1) {
+	    yshift = miny;
+	    miny = 0;
+	}
+	else if (maxy >= region->rows - 1) {
+	    miny = maxy < region->rows ? maxy - 3 : maxy - 4;
+	    yshift = maxy < region->rows ? 2 : 3;
+	}
+	else {
+	    miny -= 1;
+	    yshift = 1;
+	}
+
+	if (minz == 0 || minz == -1) {
+	    zshift = minz;
+	    minz = 0;
+	}
+	else if (maxz >= region->depths - 1) {
+	    minz = maxz < region->depths ? maxz - 3 : maxz - 4;
+	    zshift = maxz < region->depths ? 2 : 3;
+	}
+	else {
+	    minz -= 1;
+	    zshift = 1;
+	}
+
+	/* get the 4x4x4 block of the array */
+	Rast3d_get_block(gradient_info->scalar_map, minx, miny, minz,
+			 4, 4, 4, array.array, DCELL_TYPE);
+	gradient(&array, step, &grad_x, &grad_y, &grad_z);
+	grad_xyz[0] = &grad_x;
+	grad_xyz[1] = &grad_y;
+	grad_xyz[2] = &grad_z;
+	/* go through x, y, z and all 8 neighbors and store their value
+	   if the voxel is outside, add 0 (weight) */
+	for (i = 0; i < 3; i++) {
+	    count = 0;
+	    for (d = 0; d < 2; d++)
+		for (r = 1; r > -1; r--)
+		    for (c = 0; c < 2; c++) {
+			if (d + zshift < 0 || d + zshift > 3 ||
+			    r + yshift < 0 || r + yshift > 3 ||
+			    c + xshift < 0 || c + xshift > 3)
+			    gradient_info->neighbors_values[i * 8 + count] =
+				0;
+			else
+			    gradient_info->neighbors_values[i * 8 + count] =
+				ACCESS(grad_xyz[i], c + xshift, r + yshift,
+				       d + zshift);
+			count++;
+		    }
+	}
+    }
+    get_relative_coords_for_interp(region, y, x, z, &rel_x, &rel_y, &rel_z);
+    trilinear_interpolation(gradient_info->neighbors_values,
+			    rel_x, rel_y, rel_z, interpolated);
+
+    *vel_x = interpolated[0];
+    *vel_y = interpolated[1];
+    *vel_z = interpolated[2];
+
+    return 0;
+
+
+
 }
