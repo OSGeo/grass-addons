@@ -83,7 +83,7 @@ void compute_flowline(RASTER3D_Region * region, const struct Seed *seed,
 				 integration->cell_size);
 	max_step = get_time_step("cell", MAX_STEP, velocity_norm,
 				 integration->cell_size);
-	delta_t *= integration->direction;
+	delta_t *= (integration->actual_direction == FLOWDIR_UP ? 1 : -1);
 	if (rk45_integrate_next
 	    (region, gradient_info, point, new_point,
 	     &delta_t, min_step, max_step) < 0)

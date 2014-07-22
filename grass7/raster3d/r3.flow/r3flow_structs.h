@@ -12,9 +12,12 @@ struct Seed
     int flowaccum;
 };
 
+enum flowdir {FLOWDIR_UP, FLOWDIR_DOWN, FLOWDIR_BOTH};
+
 struct Integration
 {
-    int direction;
+    enum flowdir direction_type;
+    enum flowdir actual_direction;
     char *unit;
     double step;
     double cell_size;

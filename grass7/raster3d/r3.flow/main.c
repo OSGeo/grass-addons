@@ -101,8 +101,7 @@ static void init_flowaccum(RASTER3D_Region * region, RASTER3D_Map * flowacc)
 int main(int argc, char *argv[])
 {
     struct Option *vector_opt, *seed_opt, *flowlines_opt, *flowacc_opt,
-	*scalar_opt, *unit_opt, *step_opt, *limit_opt, *skip_opt;
-    struct Flag *up_flag;
+	*scalar_opt, *unit_opt, *step_opt, *limit_opt, *skip_opt, *dir_opt;
     struct GModule *module;
     RASTER3D_Region region;
     RASTER3D_Map *flowacc;
@@ -201,10 +200,15 @@ int main(int argc, char *argv[])
     skip_opt->description =
 	_("Number of cells between flow lines in x, y and z direction");
 
-    up_flag = G_define_flag();
-    up_flag->key = 'u';
-    up_flag->description = _("Compute upstream flowlines "
-			     "instead of default downstream flowlines");
+    dir_opt = G_define_option();
+    dir_opt->key = "direction";
+    dir_opt->type = TYPE_STRING;
+    dir_opt->required = NO;
+    dir_opt->multiple = NO;
+    dir_opt->options = "up,down,both";
+    dir_opt->answer = "down";
+    dir_opt->description = _("Compute flowlines upstream, "
+                             "downstream or in both direction.");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -231,7 +235,12 @@ int main(int argc, char *argv[])
 	integration.step = 0.25;
     }
     integration.limit = atof(limit_opt->answer);
-    integration.direction = up_flag->answer ? 1 : -1;
+    if (strcmp(dir_opt->answer, "up") == 0)
+        integration.direction_type = FLOWDIR_UP;
+    else if (strcmp(dir_opt->answer, "down") == 0)
+        integration.direction_type = FLOWDIR_DOWN;
+    else
+        integration.direction_type = FLOWDIR_BOTH;
 
 
     /* cell size is the diagonal */
@@ -333,8 +342,18 @@ int main(int argc, char *argv[])
 	    }
 	    G_percent(seed_count, n_seeds, 1);
 	    cat = seed_count + 1;
-	    compute_flowline(&region, &seed, &gradient_info, flowacc,
-			     &integration, &fl_map, fl_cats, fl_points, cat);
+	    if (integration.direction_type == FLOWDIR_UP || 
+		integration.direction_type == FLOWDIR_BOTH) {
+		integration.actual_direction = FLOWDIR_UP;
+		compute_flowline(&region, &seed, &gradient_info, flowacc,
+				 &integration, &fl_map, fl_cats, fl_points, cat);
+	    }
+	    if (integration.direction_type == FLOWDIR_DOWN || 
+		integration.direction_type == FLOWDIR_BOTH) {
+		integration.actual_direction = FLOWDIR_DOWN;
+		compute_flowline(&region, &seed, &gradient_info, flowacc,
+				 &integration, &fl_map, fl_cats, fl_points, cat);
+	    }
 	    seed_count++;
 	}
 
@@ -365,9 +384,20 @@ int main(int argc, char *argv[])
 		    if (seed.flowaccum || seed.flowline) {
 			G_percent(seed_count, n_seeds, 1);
 			cat = seed_count + 1;
+			if (integration.direction_type == FLOWDIR_UP || 
+			    integration.direction_type == FLOWDIR_BOTH) {
+			    integration.actual_direction = FLOWDIR_UP;
 			compute_flowline(&region, &seed, &gradient_info,
 					 flowacc, &integration, &fl_map,
 					 fl_cats, fl_points, cat);
+			}
+			if (integration.direction_type == FLOWDIR_DOWN || 
+			    integration.direction_type == FLOWDIR_BOTH) {
+			    integration.actual_direction = FLOWDIR_DOWN;
+			    compute_flowline(&region, &seed, &gradient_info,
+					     flowacc, &integration, &fl_map,
+					     fl_cats, fl_points, cat);
+			}
 			seed_count++;
 		    }
 		}
