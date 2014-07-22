@@ -130,12 +130,14 @@ int main(int argc, char *argv[])
 
     scalar_opt = G_define_standard_option(G_OPT_R3_INPUT);
     scalar_opt->required = NO;
+    scalar_opt->guisection = _("Input");
 
     vector_opt = G_define_standard_option(G_OPT_R3_INPUTS);
     vector_opt->key = "vector_field";
     vector_opt->required = NO;
     vector_opt->description = _("Names of three 3D raster maps describing "
 				"x, y, z components of vector field");
+    vector_opt->guisection = _("Input");
 
     seed_opt = G_define_standard_option(G_OPT_V_INPUT);
     seed_opt->required = NO;
@@ -145,17 +147,20 @@ int main(int argc, char *argv[])
 			      "from each cell of the input 3D raster");
     seed_opt->label = _("Name of vector map with points "
 			"from which flow lines are generated");
+    seed_opt->guisection = _("Input");
 
     flowlines_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     flowlines_opt->key = "flowline";
     flowlines_opt->required = NO;
     flowlines_opt->description = _("Name for vector map of flow lines");
+    flowlines_opt->guisection = _("Output");
 
     flowacc_opt = G_define_standard_option(G_OPT_R3_OUTPUT);
     flowacc_opt->key = "flowaccumulation";
     flowacc_opt->required = NO;
     flowacc_opt->description =
 	_("Name for output flowaccumulation 3D raster");
+    flowacc_opt->guisection = _("Output");
 
     unit_opt = G_define_option();
     unit_opt->key = "unit";
@@ -210,17 +215,15 @@ int main(int argc, char *argv[])
     dir_opt->description = _("Compute flowlines upstream, "
                              "downstream or in both direction.");
 
+    G_option_required(scalar_opt, vector_opt, NULL);
+    G_option_exclusive(scalar_opt, vector_opt, NULL);
+    G_option_required(flowlines_opt, flowacc_opt, NULL);
+    G_option_requires(seed_opt, flowlines_opt, NULL);
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     check_vector_input_maps(vector_opt, seed_opt);
-
-    if (scalar_opt->answer || vector_opt->answers) {
-	if (scalar_opt->answer && vector_opt->answers)
-	    G_fatal_error(_("Options 'input' and 'vector_field' are mutually exclusive."));
-    }
-    else
-	G_fatal_error(_("Use one of options 'input' and 'vector_field'."));
 
     Rast3d_init_defaults();
     Rast3d_get_window(&region);
