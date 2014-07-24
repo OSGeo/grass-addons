@@ -183,10 +183,21 @@ int interpolate_velocity(RASTER3D_Region * region, RASTER3D_Map ** map,
 
     return 0;
 }
+/*!
+   \brief Computes gradient for a point.
 
+   \param region pointer to current 3D region
+   \param gradient_info struct which remembers values
+          related to gradient computation to avoid computation every time
+   \param north,east,top geographic coordinates
+   \param[out] vel_x,vel_y,vel_z interpolated gradient components
+
+   \return 0 success
+   \return -1 out of region
+ */
 int get_gradient(RASTER3D_Region * region,
-		 struct Gradient_info *gradient_info, const double x,
-		 const double y, const double z, double *vel_x, double *vel_y,
+		 struct Gradient_info *gradient_info, const double north,
+		 const double east, const double top, double *vel_x, double *vel_y,
 		 double *vel_z)
 {
 
@@ -216,7 +227,7 @@ int get_gradient(RASTER3D_Region * region,
     grad_y.sx = grad_y.sy = grad_y.sz = 4;
     grad_z.sx = grad_z.sy = grad_z.sz = 4;
 
-    find_nearest_voxels(region, y, x, z, near_x, near_y, near_z);
+    find_nearest_voxels(region, north, east, top, near_x, near_y, near_z);
     minx = near_x[0];
     maxx = near_x[7];
     miny = near_y[7];
@@ -311,7 +322,7 @@ int get_gradient(RASTER3D_Region * region,
 		    }
 	}
     }
-    get_relative_coords_for_interp(region, y, x, z, &rel_x, &rel_y, &rel_z);
+    get_relative_coords_for_interp(region, north, east, top, &rel_x, &rel_y, &rel_z);
     trilinear_interpolation(gradient_info->neighbors_values,
 			    rel_x, rel_y, rel_z, interpolated);
 

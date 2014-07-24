@@ -62,7 +62,7 @@ int get_velocity(RASTER3D_Region * region, struct Gradient_info *gradient_info,
 		 double *vel_x, double *vel_y, double *vel_z)
 {
     if (gradient_info->compute_gradient)
-        return get_gradient(region, gradient_info, x, y, z, vel_x, vel_y, vel_z);
+        return get_gradient(region, gradient_info, y, x, z, vel_x, vel_y, vel_z);
 
     return interpolate_velocity(region, gradient_info->velocity_maps, y, x, z,
 				vel_x, vel_y, vel_z);
