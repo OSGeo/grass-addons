@@ -79,7 +79,7 @@ import atexit
 
 def cleanup():
     if tmp:
-        grass.run_command('g.mremove', rast = tmp, flags = 'f', quiet = True)
+        grass.run_command('g.mremove', type = 'rast', pattern = tmp, flags = 'f', quiet = True)
 
 def main():
     tavg = options['tavg']
@@ -197,7 +197,7 @@ def main():
                   bio = outpre + '.bio02',
                   oscale = toutscale, input = output, iscale = tinscale)
     grass.run_command('g.remove', rast = output, quiet = True);
-    grass.run_command('g.mremove', rast = '%s.tr??.%d' % (outpre, pid), flags = 'f', quiet = True)
+    grass.run_command('g.mremove', type = 'rast', pattern = '%s.tr??.%d' % (outpre, pid), flags = 'f', quiet = True)
 
     # BIO4 = Temperature Seasonality (standard deviation * 100)
     grass.message(_("BIO4 = Temperature Seasonality ..."))
@@ -287,7 +287,7 @@ def main():
     
 
     if not prec:
-        grass.run_command('g.mremove', rast = tmp, flags = 'f', quiet = True)
+        grass.run_command('g.mremove', type = 'rast', pattern = tmp, flags = 'f', quiet = True)
         sys.exit(1)
 
     precl = prec.split(',')
@@ -422,7 +422,7 @@ def main():
                   precq0 = precql[0], precq1 = precql[1],
                   precq2 = precql[2], precq3 = precql[3])
 
-    grass.run_command('g.mremove', rast = tmp, flags = 'f', quiet = True)
+    grass.run_command('g.mremove', type = 'rast', pattern = tmp, flags = 'f', quiet = True)
 
 
 if __name__ == "__main__":
