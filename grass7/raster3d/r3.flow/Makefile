@@ -1,15 +1,12 @@
 MODULE_TOPDIR = ../..
 
-PROGRAMS = r3.flow test.r3flow
+PGM=r3.flow
 
 LIBES = $(RASTER3DLIB) $(RASTERLIB) $(GISLIB) $(VECTORLIB)
 DEPENDENCIES = $(RASTER3DDEP) $(RASTERDEP) $(GISDEP) $(VECTORDEP)
 EXTRA_INC = $(VECT_INC)
 EXTRA_CFLAGS = $(VECT_CFLAGS)
 
-r3_flow_OBJS = main.o flowline.o gradient.o integrate.o interpolate.o voxel_traversal.o
-test_r3flow_OBJS = test_main.o flowline.o gradient.o integrate.o interpolate.o voxel_traversal.o
+include $(MODULE_TOPDIR)/include/Make/Module.make
 
-include $(MODULE_TOPDIR)/include/Make/Multi.make
-
-default: multi
+default: cmd

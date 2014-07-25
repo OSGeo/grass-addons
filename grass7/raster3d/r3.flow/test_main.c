@@ -29,7 +29,7 @@ static void test_interpolation(RASTER3D_Region * region,
 
 }
 
-int main(int argc, char *argv[])
+int test_main(int argc, char *argv[])
 {
     int i;
     struct GModule *module;
