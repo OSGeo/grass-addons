@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster3d"));
     G_add_keyword(_("voxel"));
     G_add_keyword(_("flowline"));
-    module->description = _("Compute flow lines.");
+    module->description = _("Computes 3D flow lines and 3D flow accumulation.");
 
 
     scalar_opt = G_define_standard_option(G_OPT_R3_INPUT);
