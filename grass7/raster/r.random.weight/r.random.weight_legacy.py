@@ -25,7 +25,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: layer with weight
-#% key_desc: raster
+#% key_desc: weight
 #% required: yes
 #% multiple: no
 #%end
@@ -35,7 +35,7 @@
 #% type: string
 #% gisprompt: new,cell,raster
 #% description: output layer
-#% key_desc: raster
+#% key_desc: output
 #% required: yes
 #% multiple: no
 #%end
@@ -44,31 +44,35 @@
 #% key: start
 #% type: double
 #% description: minimum weight
-#% guisection: Sample options
+#% key_desc: start
+#% answer: 0
+#% required: yes
 #%end
 
 #%option
 #% key: end
 #% type: double
 #% description: maximum weight
-#% guisection: Sample options
+#% key_desc: end
+#% answer: 100
+#% required: yes
 #%end
 
 #%option
 #% key: subsample
 #% type: string
-#% description: subsample
+#% description: subsample - not implemented yet
+#% key_desc: ss
+#% answer: 0
 #% required: no
-#% guisection: Sample options
 #%end
 
 #%option
 #% key: seed
-#% type: string
+#% type: double
 #% description: set seed for random number generation
-#% answer: auto
+#% key_desc: seed
 #% required: no
-#% guisection: Sample options
 #%end
 
 # import libraries
@@ -102,52 +106,26 @@ def main():
     subsample = options['subsample']
     seed = options['seed']
     
-    if (minval == '' or maxval == '') :
-        minmax = grass.parse_command('r.univar', 
-            map = weight,
-            flags='g',
-            sep = ':')
-        minval = minmax['min']
-        maxval = minmax['max']
-    
     # setup temporary files and seed
     tmp_map = 'r_w_rand_987654321'
-    tmp_map2 = 'r_w_rand_987654321a'
+    if seed == "":
+        ticks = str(int(time.time()*1000)),
+        print("seed used is: " + str(ticks[0]))
+        os.environ['GRASS_RND_SEED'] = ticks[0]
+    else:
+        print("Seed used for random number generation is: " + str(seed))
+        
+    grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
+        minval = minval, 
+        maxval = maxval,
+        tmp_map = tmp_map)
    
-    if seed == "auto":  
-        grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
-            seed='auto',
-            minval = minval, 
-            maxval = maxval,
-            tmp_map = tmp_map)
-    else:        
-        grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
-            seed=1,
-            minval = minval, 
-            maxval = maxval,
-            tmp_map = tmp_map)
-
-    grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
+    grass.mapcalc("${outmap} = if($tmp_map < ${weight},1,0)",
         weight = weight,
         outmap = outmap,
         tmp_map = tmp_map)
-        
-    if not subsample == '': 
-        grass.run_command('r.random',
-            input = outmap,
-            n = subsample,
-            raster_output = tmp_map2)
-        grass.run_command('r.null',
-            map = tmp_map2, 
-            null = 0)
-        grass.mapcalc("${outmap} = if(${outmap}>=0,${tmp_map2},null())",
-            overwrite = True,
-            outmap = outmap,
-            tmp_map2 = tmp_map2)
-        grass.run_command('g.remove', rast=tmp_map2)
-
+    
     print("Ready, name of raster created is " + outmap)
-    print("computed over value range " + minval + " - " + maxval)
     
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -3,10 +3,15 @@
 
 <em>r.rand.weight</em> generates a binary raster layer with randomly assigned values of 1 or 0, weighted by raster cell values of an user-defined raster layer. I.e., the change for a raster cell to get assigned a 1 (to get selected) depends on the weight (value) of that cell in the input weight layer.
 
-<p>By default every run will give you a different layer. You can specify fixed seed value to ensure that model runs are reproducible under options.
+<p>By default the script is run setting a random seed every time. To ensure that your results are reproducible you can set the seed value under the 'Sample options' tab. See the 'Random number generator initialization' in the r.mapcalc helpfile for more details.
+ 
+<p>By default the minimum and maximum weight are set to be equal to the minimum and maximum values of the weight raster layer. Note that this means that the raster cells with the maximum values will all be selected. You have the option however to set define different minimum and maximum weights under the 'Sample options' tab. This effectively changes the probability of cells to be selected. For example if you have a weight raster layer with values between 0 and 100 and you want to ensure all cells with a value of 50 or more are selected, you set the maximum weight at 50.
+
+<p>You can also set the total number of sample points to be selected using the under the 'Sample options' tab. This can be done using an absolute number or as percentage (see the help file of the r.random function for more details). 
  
 <h2>Note</h2>
-The values of the weight raster layer should be within the range defined by the start and end value. Currently the script does not check this (on the todo list)
+This script uses the rand() function in r.mapcalc. Due to recent changes how this function, you will need the latest grass 7.1 version (revision 61413 or above). If you are running an earlier version, you can try r.random.weight_legacy.py
+
 
 <h2>AUTHOR</h2>
 
