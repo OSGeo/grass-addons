@@ -44,14 +44,14 @@
 #% key: start
 #% type: double
 #% description: minimum weight
-#% guisection: Sample options
+#% required: yes
 #%end
 
 #%option
 #% key: end
 #% type: double
 #% description: maximum weight
-#% guisection: Sample options
+#% required: yes
 #%end
 
 #%option
@@ -79,7 +79,7 @@ import time
 import grass.script as grass
 
 # Runs modules silently
-# os.environ['GRASS_VERBOSE']='-1' 
+#os.environ['GRASS_VERBOSE']='-1' 
 
 def cleanup():
 	grass.run_command('g.remove', 
@@ -101,18 +101,15 @@ def main():
     outmap = options['output']
     subsample = options['subsample']
     seed = options['seed']
-    
-    if (minval == '' or maxval == '') :
-        minmax = grass.parse_command('r.univar', 
-            map = weight,
-            flags='g',
-            sep = ':')
-        minval = minmax['min']
-        maxval = minmax['max']
-    
+       
     # setup temporary files and seed
     tmp_map = 'r_w_rand_987654321'
     tmp_map2 = 'r_w_rand_987654321a'
+    
+    # Compute minimum and maximum value raster
+    minmax = grass.parse_command('r.univar', 
+        map = weight,
+        flags='g')
    
     if seed == "auto":  
         grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
@@ -146,9 +143,15 @@ def main():
             tmp_map2 = tmp_map2)
         grass.run_command('g.remove', rast=tmp_map2)
 
-    print("Ready, name of raster created is " + outmap)
-    print("computed over value range " + minval + " - " + maxval)
-    
+    print("------------------")
+    print("Ready!")
+    print("The name of raster created is " + outmap)
+    if minval > minmax['min'] or maxval < minmax['max']:
+        print("Warning!")
+        print("You defined the minimum and maximum weights as: " + minval + " & " + maxval)
+        print("Value range of weight raster is: " + minmax['min'] + " - " + minmax['max'])
+    print("------------------")    
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
