@@ -170,7 +170,7 @@ fi
 #    funny google merc projection first?
 
 if [ "$MAP_TYPE" = "raster" ] ; then
-   r.out.tiff -t input="$MAP_NAME" output="$TMP_GTIFF"
+   r.out.tiff -t input="$MAP_NAME" output="$TMP_GTIFF" compression=packbit
    #gdalwarp -s_srs "`g.proj -jf`" -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
    gdal_translate $QUIET -a_srs "`g.proj -jf`" "$TMP_GTIFF" "$TMP_GMERC"
 else
@@ -180,7 +180,12 @@ else
       exit 1
    fi
 
-   r.out.gdal input="$MAP_NAME" output="$TMP_GTIFF" format=GTiff
+   # note: if Tiff grows to > 4GiB you will need to set the BIGTIFF=YES createopt
+   #  (packbits compression is used to give you a bit more room before the limit)
+
+   r.out.gdal input="$MAP_NAME" output="$TMP_GTIFF" format=GTiff \
+      createopt="COMPRESS=PACKBITS,BIGTIFF=IF_SAFER"
+
    #gdalwarp -t_srs EPSG:900913 -dstalpha "$TMP_GTIFF" "$TMP_GMERC"
    mv "$TMP_GTIFF" "$TMP_GMERC"
 fi
@@ -444,7 +449,7 @@ i=0
 for file in `find . | grep '.png$'` ; do
      # check if image is empty
     COUNT=`gdalinfo -mm -noct -nomd "$file" | grep 'Min/Max' | \
-       cut -f2 -d= | tr ',' '\n' | uniq | wc -l`
+       cut -f2 -d= | head -n 3 | tr ',' '\n' | uniq | wc -l`
     if [ "$COUNT" -eq 1 ] ; then
        rm -f "$file"
        i=`expr $i + 1`
