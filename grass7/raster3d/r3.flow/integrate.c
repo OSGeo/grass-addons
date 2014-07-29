@@ -83,13 +83,14 @@ int get_velocity(RASTER3D_Region * region, struct Gradient_info *gradient_info,
  */
 static int rk45_next(RASTER3D_Region * region, struct Gradient_info *gradient_info,
 		     const double *point, double *next_point,
-		     const double delta_t, double *error)
+		     const double delta_t, double *velocity, double *error)
 {
     double tmp1[6][3];		/* 3 is 3 dimensions, 6 is the number of k's */
     double tmp_point[3];
     double vel_x, vel_y, vel_z;
     double sum_tmp;
     int i, j, k;
+    double vel_sq;
 
     if (get_velocity(region, gradient_info, point[0], point[1], point[2],
 		     &vel_x, &vel_y, &vel_z) < 0)
@@ -118,6 +119,7 @@ static int rk45_next(RASTER3D_Region * region, struct Gradient_info *gradient_in
 	tmp1[i][2] = vel_z;
     }
 
+    vel_sq = 0;
     /* compute next point */
     for (j = 0; j < 3; j++) {
 	sum_tmp = 0;
@@ -125,7 +127,10 @@ static int rk45_next(RASTER3D_Region * region, struct Gradient_info *gradient_in
 	    sum_tmp += C[i] * tmp1[i][j];
 	}
 	next_point[j] = point[j] + delta_t * sum_tmp;
+	vel_sq += sum_tmp * sum_tmp;
     }
+    *velocity = sqrt(vel_sq);
+
     if (!Rast3d_is_valid_location
 	(region, next_point[1], next_point[0], next_point[2]))
 	return -1;
@@ -158,8 +163,9 @@ static int rk45_next(RASTER3D_Region * region, struct Gradient_info *gradient_in
  */
 int rk45_integrate_next(RASTER3D_Region * region,
 			struct Gradient_info *gradient_info, const double *point,
-			double *next_point, double *delta_t,
-			const double min_step, const double max_step)
+			double *next_point, double *delta_t, double *velocity,
+			const double min_step, const double max_step,
+			const double max_error)
 {
     double estimated_error;
     double error_ratio;
@@ -176,16 +182,17 @@ int rk45_integrate_next(RASTER3D_Region * region,
 	*delta_t = max_step * (*delta_t > 0 ? 1 : -1);
 
     /* try to iteratively decrease error to less than max error */
-    while (estimated_error > MAX_ERROR) {
+    while (estimated_error > max_error) {
 	/* compute next point and get estimated error */
 	if (rk45_next
-	    (region, gradient_info, point, next_point, *delta_t, error) == 0)
+	    (region, gradient_info, point, next_point, *delta_t,
+	     velocity, error) == 0)
 	    estimated_error = norm(error[0], error[1], error[2]);
 	else
 	    return -1;
 
 	/* compute new step size (empirically) */
-	error_ratio = estimated_error / MAX_ERROR;
+	error_ratio = estimated_error / max_error;
 	if (error_ratio == 0.0)
 	    tmp = *delta_t > 0 ? min_step : -min_step;
 	else if (error_ratio > 1)
@@ -211,7 +218,7 @@ int rk45_integrate_next(RASTER3D_Region * region,
 	/* break when the adjustment was needed (not sure why) */
 	if (do_break) {
 	    if (rk45_next(region, gradient_info, point, next_point,
-			  *delta_t, error) < 0)
+			  *delta_t, velocity, error) < 0)
 		return -1;
 	    break;
 	}

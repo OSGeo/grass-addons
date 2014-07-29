@@ -22,6 +22,9 @@ struct Integration
     double step;
     double cell_size;
     int limit;
+    double max_error;
+    double max_step;
+    double min_step;
 };
 
 struct Array

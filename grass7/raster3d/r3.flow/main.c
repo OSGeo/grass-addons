@@ -19,11 +19,58 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/vector.h>
+#include <grass/dbmi.h>
 #include <grass/glocale.h>
 
 #include "r3flow_structs.h"
 #include "flowline.h"
 
+static void create_table(struct Map_info *flowline_vec,
+			 struct field_info **f_info, dbDriver ** driver,
+			 int write_scalar)
+{
+    dbString sql;
+    char buf[200];
+    dbDriver *drvr;
+    struct field_info *fi;
+
+    db_init_string(&sql);
+    fi = Vect_default_field_info(flowline_vec, 1, NULL, GV_1TABLE);
+    *f_info = fi;
+    Vect_map_add_dblink(flowline_vec, 1, NULL, fi->table, GV_KEY_COLUMN,
+			fi->database, fi->driver);
+    drvr = db_start_driver_open_database(fi->driver,
+					 Vect_subst_var(fi->database,
+							flowline_vec));
+    if (drvr == NULL) {
+	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
+		      Vect_subst_var(fi->database, flowline_vec), fi->driver);
+    }
+    *driver = drvr;
+    if (write_scalar)
+	sprintf(buf, "create table %s (cat integer, input double precision, "
+		"velocity double precision)", fi->table);
+    else
+	sprintf(buf,
+		"create table %s (cat integer, velocity double precision)",
+		fi->table);
+    db_set_string(&sql, buf);
+
+    db_begin_transaction(drvr);
+    /* Create table */
+    if (db_execute_immediate(drvr, &sql) != DB_OK) {
+	G_fatal_error(_("Unable to create table: %s"), db_get_string(&sql));
+    }
+    if (db_create_index2(drvr, fi->table, fi->key) != DB_OK)
+	G_warning(_("Unable to create index for table <%s>, key <%s>"),
+		  fi->table, fi->key);
+    /* Grant */
+    if (db_grant_on_table
+	(drvr, fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK) {
+	G_fatal_error(_("Unable to grant privileges on table <%s>"),
+		      fi->table);
+    }
+}
 
 static void check_vector_input_maps(struct Option *vector_opt,
 				    struct Option *seed_opt)
@@ -101,7 +148,9 @@ static void init_flowaccum(RASTER3D_Region * region, RASTER3D_Map * flowacc)
 int main(int argc, char *argv[])
 {
     struct Option *vector_opt, *seed_opt, *flowlines_opt, *flowacc_opt,
-	*scalar_opt, *unit_opt, *step_opt, *limit_opt, *skip_opt, *dir_opt;
+	*scalar_opt, *unit_opt, *step_opt, *limit_opt, *skip_opt, *dir_opt,
+	*error_opt;
+    struct Flag *table_fl;
     struct GModule *module;
     RASTER3D_Region region;
     RASTER3D_Map *flowacc;
@@ -114,7 +163,10 @@ int main(int argc, char *argv[])
     struct Map_info fl_map;
     struct line_cats *fl_cats;	/* for flowlines */
     struct line_pnts *fl_points;	/* for flowlines */
+    struct field_info *finfo;
+    dbDriver *driver;
     int cat;			/* cat of flowlines */
+    int if_table;
     int i, r, c, d;
     char *desc;
     int n_seeds, seed_count, ltype;
@@ -125,7 +177,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster3d"));
     G_add_keyword(_("voxel"));
     G_add_keyword(_("flowline"));
-    module->description = _("Computes 3D flow lines and 3D flow accumulation.");
+    module->description =
+	_("Computes 3D flow lines and 3D flow accumulation.");
 
 
     scalar_opt = G_define_standard_option(G_OPT_R3_INPUT);
@@ -197,6 +250,16 @@ int main(int argc, char *argv[])
     limit_opt->description = _("Maximum number of steps");
     limit_opt->guisection = _("Integration");
 
+    error_opt = G_define_option();
+    error_opt->key = "max_error";
+    error_opt->type = TYPE_DOUBLE;
+    error_opt->required = NO;
+    error_opt->answer = "1e-5";
+    error_opt->label = _("Maximum error of integration");
+    error_opt->description = _("Influences step, increase maximum error "
+			       "to allow bigger steps");
+    error_opt->guisection = _("Integration");
+
     skip_opt = G_define_option();
     skip_opt->key = "skip";
     skip_opt->type = TYPE_INTEGER;
@@ -213,15 +276,25 @@ int main(int argc, char *argv[])
     dir_opt->options = "up,down,both";
     dir_opt->answer = "down";
     dir_opt->description = _("Compute flowlines upstream, "
-                             "downstream or in both direction.");
+			     "downstream or in both direction.");
+
+    table_fl = G_define_flag();
+    table_fl->key = 'a';
+    table_fl->description = _("Create and fill attribute table");
 
     G_option_required(scalar_opt, vector_opt, NULL);
     G_option_exclusive(scalar_opt, vector_opt, NULL);
     G_option_required(flowlines_opt, flowacc_opt, NULL);
     G_option_requires(seed_opt, flowlines_opt, NULL);
+    G_option_requires(table_fl, flowlines_opt);
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    driver = NULL;
+    finfo = NULL;
+
+    if_table = table_fl->answer ? TRUE : FALSE;
 
     check_vector_input_maps(vector_opt, seed_opt);
 
@@ -237,13 +310,16 @@ int main(int argc, char *argv[])
 	integration.unit = "cell";
 	integration.step = 0.25;
     }
+    integration.max_error = atof(error_opt->answer);
+    integration.max_step = 5 * integration.step;
+    integration.min_step = integration.step / 5;
     integration.limit = atof(limit_opt->answer);
     if (strcmp(dir_opt->answer, "up") == 0)
-        integration.direction_type = FLOWDIR_UP;
+	integration.direction_type = FLOWDIR_UP;
     else if (strcmp(dir_opt->answer, "down") == 0)
-        integration.direction_type = FLOWDIR_DOWN;
+	integration.direction_type = FLOWDIR_DOWN;
     else
-        integration.direction_type = FLOWDIR_BOTH;
+	integration.direction_type = FLOWDIR_BOTH;
 
 
     /* cell size is the diagonal */
@@ -296,6 +372,11 @@ int main(int argc, char *argv[])
 			  flowlines_opt->answer);
 
 	Vect_hist_command(&fl_map);
+
+	if (if_table) {
+	    create_table(&fl_map, &finfo, &driver,
+			 gradient_info.compute_gradient);
+	}
     }
 
     n_seeds = 0;
@@ -321,6 +402,7 @@ int main(int argc, char *argv[])
     G_debug(1, "Number of seeds is %d", n_seeds);
 
     seed_count = 0;
+    cat = 1;
     if (seed_opt->answer) {
 
 	seed_points = Vect_new_line_struct();
@@ -344,18 +426,19 @@ int main(int argc, char *argv[])
 		seed.flowaccum = FALSE;
 	    }
 	    G_percent(seed_count, n_seeds, 1);
-	    cat = seed_count + 1;
-	    if (integration.direction_type == FLOWDIR_UP || 
+	    if (integration.direction_type == FLOWDIR_UP ||
 		integration.direction_type == FLOWDIR_BOTH) {
 		integration.actual_direction = FLOWDIR_UP;
 		compute_flowline(&region, &seed, &gradient_info, flowacc,
-				 &integration, &fl_map, fl_cats, fl_points, cat);
+				 &integration, &fl_map, fl_cats, fl_points,
+				 &cat, if_table, finfo, driver);
 	    }
-	    if (integration.direction_type == FLOWDIR_DOWN || 
+	    if (integration.direction_type == FLOWDIR_DOWN ||
 		integration.direction_type == FLOWDIR_BOTH) {
 		integration.actual_direction = FLOWDIR_DOWN;
 		compute_flowline(&region, &seed, &gradient_info, flowacc,
-				 &integration, &fl_map, fl_cats, fl_points, cat);
+				 &integration, &fl_map, fl_cats, fl_points,
+				 &cat, if_table, finfo, driver);
 	    }
 	    seed_count++;
 	}
@@ -386,20 +469,22 @@ int main(int argc, char *argv[])
 
 		    if (seed.flowaccum || seed.flowline) {
 			G_percent(seed_count, n_seeds, 1);
-			cat = seed_count + 1;
-			if (integration.direction_type == FLOWDIR_UP || 
+
+			if (integration.direction_type == FLOWDIR_UP ||
 			    integration.direction_type == FLOWDIR_BOTH) {
 			    integration.actual_direction = FLOWDIR_UP;
-			compute_flowline(&region, &seed, &gradient_info,
-					 flowacc, &integration, &fl_map,
-					 fl_cats, fl_points, cat);
+			    compute_flowline(&region, &seed, &gradient_info,
+					     flowacc, &integration, &fl_map,
+					     fl_cats, fl_points, &cat,
+					     if_table, finfo, driver);
 			}
-			if (integration.direction_type == FLOWDIR_DOWN || 
+			if (integration.direction_type == FLOWDIR_DOWN ||
 			    integration.direction_type == FLOWDIR_BOTH) {
 			    integration.actual_direction = FLOWDIR_DOWN;
 			    compute_flowline(&region, &seed, &gradient_info,
 					     flowacc, &integration, &fl_map,
-					     fl_cats, fl_points, cat);
+					     fl_cats, fl_points, &cat,
+					     if_table, finfo, driver);
 			}
 			seed_count++;
 		    }
@@ -407,7 +492,12 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
+    G_percent(1, 1, 1);
     if (flowlines_opt->answer) {
+	if (if_table) {
+	    db_commit_transaction(driver);
+	    db_close_database_shutdown_driver(driver);
+	}
 	Vect_destroy_line_struct(fl_points);
 	Vect_destroy_cats_struct(fl_cats);
 	Vect_build(&fl_map);

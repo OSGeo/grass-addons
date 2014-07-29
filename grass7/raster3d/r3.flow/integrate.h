@@ -5,10 +5,6 @@
 
 #include "r3flow_structs.h"
 
-static const double MAX_ERROR = 1.0e-6;
-static const double MIN_STEP = 0.01;
-static const double MAX_STEP = 1;
-
 /* Cash-Karp parameters */
 static const double B[5][5] = { {1. / 5, 0, 0, 0, 0},
 {3. / 40, 9. / 40, 0, 0, 0},
@@ -33,6 +29,7 @@ double get_time_step(const char *unit, const double step,
 int rk45_integrate_next(RASTER3D_Region * region,
 			struct Gradient_info *gradient_info, const double *point,
 			double *next_point, double *delta_t,
-			const double min_step, const double max_step);
+			double *velocity, const double min_step,
+			const double max_step, const double max_error);
 
 #endif // INTEGRATE_H
