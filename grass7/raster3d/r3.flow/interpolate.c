@@ -16,7 +16,6 @@
 #include <grass/raster3d.h>
 
 #include "r3flow_structs.h"
-#include "gradient.h"
 
 /*!
    \brief Finds 8 nearest voxels from a point.
@@ -208,9 +207,9 @@ int get_gradient(RASTER3D_Region * region,
     double rel_x, rel_y, rel_z;
     double scalar_map_array[64];
     double grad_x_map_array[64], grad_y_map_array[64], grad_z_map_array[64];
-    struct Array array;
-    struct Array grad_x, grad_y, grad_z;
-    struct Array *grad_xyz[3];
+    RASTER3D_Array_double array;
+    RASTER3D_Array_double grad_x, grad_y, grad_z;
+    RASTER3D_Array_double *grad_xyz[3];
     double step[3];
     double interpolated[3];
 
@@ -298,7 +297,7 @@ int get_gradient(RASTER3D_Region * region,
 	/* get the 4x4x4 block of the array */
 	Rast3d_get_block(gradient_info->scalar_map, minx, miny, minz,
 			 4, 4, 4, array.array, DCELL_TYPE);
-	gradient(&array, step, &grad_x, &grad_y, &grad_z);
+	Rast3d_gradient_double(&array, step, &grad_x, &grad_y, &grad_z);
 	grad_xyz[0] = &grad_x;
 	grad_xyz[1] = &grad_y;
 	grad_xyz[2] = &grad_z;
@@ -316,8 +315,8 @@ int get_gradient(RASTER3D_Region * region,
 				0;
 			else
 			    gradient_info->neighbors_values[i * 8 + count] =
-				ACCESS(grad_xyz[i], c + xshift, r + yshift,
-				       d + zshift);
+				RASTER3D_ARRAY_ACCESS(grad_xyz[i], c + xshift,
+						      r + yshift, d + zshift);
 			count++;
 		    }
 	}

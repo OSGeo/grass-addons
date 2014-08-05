@@ -27,14 +27,6 @@ struct Integration
     double min_step;
 };
 
-struct Array
-{
-    double *array;
-    int sx;
-    int sy;
-    int sz;
-};
-
 struct Gradient_info
 {
     int compute_gradient;
@@ -44,7 +36,5 @@ struct Gradient_info
     int neighbors_pos[3];
     int initialized;
 };
-
-#define ACCESS(arr, x, y, z) ((arr)->array[(arr)->sx * (arr)->sy * (z) + (arr)->sx * (y) + (x)])
 
 #endif // R3FLOW_STRUCTS_H
