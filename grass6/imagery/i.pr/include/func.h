@@ -1,8 +1,8 @@
 /*
-tree.c
-*/
+   tree.c
+ */
 
-void  compute_tree();
+void compute_tree();
 void write_tree();
 void compute_tree_boosting();
 void compute_tree_boosting_reg();
@@ -24,8 +24,8 @@ int predict_btree_multiclass_progressive();
 void compute_tree_boosting_parallel();
 
 /*
-features_selection.c
-*/
+   features_selection.c
+ */
 
 void compute_valoriDJ();
 void free_svm();
@@ -41,20 +41,20 @@ void compute_H_perdiff();
 void traslo();
 
 /*
-soft_margin_boosting.c
-*/
+   soft_margin_boosting.c
+ */
 
 void maximize();
 
 /*
-write_matrix.c
-*/
+   write_matrix.c
+ */
 
 void write_matrix();
 
 /*
-entropy.c
-*/
+   entropy.c
+ */
 
 double Entropy();
 double Clog();
@@ -62,42 +62,42 @@ void histo();
 void histo1();
 
 /*
-min_quadratic.c
-*/
+   min_quadratic.c
+ */
 
 void mqc();
 
 /*
-blob.c
-*/
+   blob.c
+ */
 
 void extract_sites_from_blob();
 void find_blob();
 
 /*
-test.c
-*/
+   test.c
+ */
 
 void ksone_normal();
 void kstwo();
- double probks();
- double probks2();
+double probks();
+double probks2();
 double normal_distribution();
 double cumulative_normal_distribution();
- double gammln();
- double betacf();
- double betai();
+double gammln();
+double betacf();
+double betai();
 void tutest();
 
 /*
-read_models.c
-*/
+   read_models.c
+ */
 
 int read_model();
 
 /*
-nn.c
-*/
+   nn.c
+ */
 
 void compute_nn();
 void write_nn();
@@ -106,8 +106,8 @@ double predict_nn_2class();
 void test_nn();
 
 /*
-svm.c
-*/
+   svm.c
+ */
 
 void compute_svm();
 void estimate_cv_error();
@@ -124,8 +124,8 @@ double predict_bsvm_progressive();
 double dot_product();
 
 /*
-features.c
-*/
+   features.c
+ */
 
 void compute_features();
 void write_features();
@@ -135,8 +135,8 @@ void read_features();
 void read_header_features();
 
 /*
-gm.c
-*/
+   gm.c
+ */
 
 void compute_gm();
 void write_gm();
@@ -146,15 +146,15 @@ int predict_gm_multiclass();
 double predict_gm_2class();
 
 /*
-training.c
-*/
+   training.c
+ */
 
 void inizialize_training();
 void read_training();
 
 /*
-matrix.c
-*/
+   matrix.c
+ */
 
 void product_double_matrix_double_matrix();
 void product_double_matrix_double_vector();
@@ -165,16 +165,16 @@ void extract_portion_of_double_matrix();
 void transpose_double_matrix_rectangular();
 
 /*
-pca.c
-*/
+   pca.c
+ */
 
 void inizialize_pca();
 void write_pca();
 void read_pca();
 
 /*
-random.c
-*/
+   random.c
+ */
 
 double ran1();
 double gasdev();
@@ -182,15 +182,15 @@ double gamdev();
 double expdev();
 
 /*
-bootstrap.c
-*/
+   bootstrap.c
+ */
 
 void Bootsamples();
 void Bootsamples_rseed();
 
 /*
-dist.c
-*/
+   dist.c
+ */
 
 double squared_distance();
 double euclidean_distance();
@@ -198,34 +198,34 @@ double scalar_product();
 double euclidean_norm();
 
 /*
-open.c
-*/
+   open.c
+ */
 
 int open_new_CELL();
 int open_new_DCELL();
 
 /*
-percent.c
-*/
+   percent.c
+ */
 
-void percent ();
+void percent();
 
 /*
-getline.c
-*/
+   getline.c
+ */
 
 char *GetLine();
 
 /*
-sort.c
-*/
+   sort.c
+ */
 
 void shell();
 void indexx_1();
 
 /*
-integration.c
-*/
+   integration.c
+ */
 
 double trapzd();
 double trapzd1();
@@ -235,8 +235,8 @@ double qtrap1();
 double qtrap2();
 
 /*
-eigen.c
-*/
+   eigen.c
+ */
 
 void tred2();
 int tqli();
@@ -244,8 +244,8 @@ void eigen_of_double_matrix();
 void eigsrt();
 
 /*
-stats.c
-*/
+   stats.c
+ */
 
 double mean_of_double_array();
 double var_of_double_array();
@@ -265,27 +265,10 @@ double min();
 double max();
 
 /*
-lu.c
-*/
+   lu.c
+ */
 
 void ludcmp();
 void lubksb();
 void inverse_of_double_matrix();
 double determinant_of_double_matrix();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

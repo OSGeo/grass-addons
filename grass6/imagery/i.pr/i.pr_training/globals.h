@@ -1,10 +1,10 @@
 #include "defs.h"
 
 #ifndef GLOBAL
-#  define GLOBAL extern
-#  define INIT(x)
+#define GLOBAL extern
+#define INIT(x)
 #else
-#  define INIT(x) = x
+#define INIT(x) = x
 #endif
 
 
@@ -26,9 +26,10 @@ GLOBAL View *VIEW_EXIT;
 GLOBAL View *VIEW_EMPTY;
 GLOBAL View *VIEW_MENU;
 
-GLOBAL int  dotsize INIT(4);
+GLOBAL int dotsize INIT(4);
 
 GLOBAL int THE_COLORS[10];
+
 #define BLACK	THE_COLORS[0]
 #define BLUE	THE_COLORS[1]
 #define BROWN	THE_COLORS[2]
