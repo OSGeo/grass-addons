@@ -8,9 +8,9 @@ rem
 
 cd C:\Users\landa\grass_packager
 
-set MAJOR=6
-set MINOR=4
-set PATCH=4
+set MAJOR=7
+set MINOR=0
+set PATCH=0beta3
 set REV=1
 
 rem Compile GRASS versions
