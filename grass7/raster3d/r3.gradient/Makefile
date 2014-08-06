@@ -1,0 +1,11 @@
+MODULE_TOPDIR = ../..
+
+PGM=r3.gradient
+
+LIBES = $(RASTER3DLIB) $(RASTERLIB) $(GISLIB) $(OMPLIB)
+DEPENDENCIES = $(RASTER3DDEP) $(RASTERDEP) $(GISDEP)
+EXTRA_CFLAGS = $(OMPCFLAGS)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
