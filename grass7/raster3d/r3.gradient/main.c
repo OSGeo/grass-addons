@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
     /* TODO: define G_OPT_R3_OUTPUTS or use separate options for each map? */
     output_opt = G_define_standard_option(G_OPT_R3_OUTPUT);
     output_opt->multiple = YES;
+    output_opt->key_desc = "grad_x,grad_y,grad_z";
     output_opt->description = _("Name for output 3D raster map(s)");
 
     block_opt = G_define_option();
