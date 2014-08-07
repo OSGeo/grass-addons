@@ -463,8 +463,8 @@ int main(int argc, char *argv[])
 		    if (flowacc_opt->answer)
 			seed.flowaccum = TRUE;
 
-		    if (flowlines_opt->answer && (c % skip[0] == 0) &&
-			(r % skip[1] == 0) && (d % skip[2] == 0))
+		    if (flowlines_opt->answer && !seed_opt->answer &&
+		       (c % skip[0] == 0) && (r % skip[1] == 0) && (d % skip[2] == 0))
 			seed.flowline = TRUE;
 
 		    if (seed.flowaccum || seed.flowline) {
