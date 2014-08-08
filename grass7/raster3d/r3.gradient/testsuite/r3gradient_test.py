@@ -53,6 +53,51 @@ coeff_var=55.5440208743464
 sum=20.187449647
 """
 
+r3univar_test_nulls_grad_x = """
+n=107
+null_cells=18
+cells=125
+min=0
+max=10
+range=10
+mean=3.70093457943925
+mean_of_abs=3.70093457943925
+stddev=3.6357902977452
+variance=13.2189710891781
+coeff_var=98.2397883481656
+sum=396
+"""
+
+r3univar_test_nulls_grad_y = """
+n=107
+null_cells=18
+cells=125
+min=-10
+max=0
+range=10
+mean=-3.70093457943925
+mean_of_abs=3.70093457943925
+stddev=3.6357902977452
+variance=13.2189710891781
+coeff_var=-98.2397883481656
+sum=-396
+"""
+
+r3univar_test_nulls_grad_z = """
+n=107
+null_cells=18
+cells=125
+min=0
+max=10
+range=10
+mean=3.70093457943925
+mean_of_abs=3.70093457943925
+stddev=3.6357902977452
+variance=13.2189710891781
+coeff_var=98.2397883481656
+sum=396
+"""
+
 
 class GradientTest(TestCase):
 
@@ -61,22 +106,27 @@ class GradientTest(TestCase):
         """Use temporary region settings"""
         cls.use_temp_region()
         cls.runModule('g.region', res3=10, n=100, s=0, w=0, e=120, b=0, t=50)
-        cls.runModule('r3.in.ascii', input='data/test_map_1', output='test_map_1_ref', overwrite=True)
+        cls.runModule('r3.in.ascii', input='data/test_map_1', output='test_map_1_ref')
+        cls.runModule('g.region', res3=1, n=5, s=0, w=0, e=5, b=0, t=5)
+        cls.runModule('r3.in.ascii', input='data/test_map_2', output='test_map_2_ref')
 
     @classmethod
     def tearDownClass(cls):
         """!Remove the temporary region"""
         cls.del_temp_region()
-        cls.runModule('g.remove', rast3d=['test_map_1_ref', 'test_grad_x',
-                                          'test_grad_y', 'test_grad_z'])
+        cls.runModule('g.remove', rast3d=['test_map_1_ref', 'test_map_2_ref', 'test_grad_x',
+                                          'test_grad_y', 'test_grad_z', 'test_null_grad_x',
+                                          'test_null_grad_y', 'test_null_grad_z'])
 
     def test_gradient_runs(self):
+        self.runModule('g.region', res3=10, n=100, s=0, w=0, e=120, b=0, t=50)
         self.assertModuleFail('r3.gradient', input='test_map_1_ref',
                               output=['test_grad_x', 'test_grad_y'], overwrite=True)
         self.assertModule('r3.gradient', input='test_map_1_ref',
                           output=['test_grad_x', 'test_grad_y', 'test_grad_z'], overwrite=True)
 
     def test_gradient(self):
+        self.runModule('g.region', res3=10, n=100, s=0, w=0, e=120, b=0, t=50)
         self.runModule('r3.gradient', input='test_map_1_ref',
                        output=['test_grad_x', 'test_grad_y', 'test_grad_z'], overwrite=True)
         self.assertRaster3dFitsUnivar(raster='test_grad_x', reference=r3univar_test_grad_x, precision=1e-8)
@@ -84,6 +134,7 @@ class GradientTest(TestCase):
         self.assertRaster3dFitsUnivar(raster='test_grad_z', reference=r3univar_test_grad_z, precision=1e-8)
 
     def test_gradient_block(self):
+        self.runModule('g.region', res3=10, n=100, s=0, w=0, e=120, b=0, t=50)
         self.assertModule('r3.gradient', input='test_map_1_ref', block_size=[200, 2, 50],
                           output=['test_grad_x', 'test_grad_y', 'test_grad_z'], overwrite=True)
         self.assertRaster3dFitsUnivar(raster='test_grad_x', reference=r3univar_test_grad_x, precision=1e-8)
@@ -91,11 +142,23 @@ class GradientTest(TestCase):
         self.assertRaster3dFitsUnivar(raster='test_grad_z', reference=r3univar_test_grad_z, precision=1e-8)
 
     def test_gradient_procs(self):
+        self.runModule('g.region', res3=10, n=100, s=0, w=0, e=120, b=0, t=50)
         self.assertModule('r3.gradient', input='test_map_1_ref', block_size=[200, 2, 50], nprocs=3,
                           output=['test_grad_x', 'test_grad_y', 'test_grad_z'], overwrite=True)
         self.assertRaster3dFitsUnivar(raster='test_grad_x', reference=r3univar_test_grad_x, precision=1e-8)
         self.assertRaster3dFitsUnivar(raster='test_grad_y', reference=r3univar_test_grad_y, precision=1e-8)
         self.assertRaster3dFitsUnivar(raster='test_grad_z', reference=r3univar_test_grad_z, precision=1e-8)
+
+    def test_gradient_nulls(self):
+        self.runModule('g.region', res3=1, n=5, s=0, w=0, e=5, b=0, t=5)
+        self.assertModule('r3.gradient', input='test_map_2_ref', block_size=[200, 2, 50], nprocs=3,
+                          output=['test_null_grad_x', 'test_null_grad_y', 'test_null_grad_z'])
+        self.assertRaster3dFitsUnivar(raster='test_null_grad_x',
+                                      reference=r3univar_test_nulls_grad_x, precision=1e-8)
+        self.assertRaster3dFitsUnivar(raster='test_null_grad_y',
+                                      reference=r3univar_test_nulls_grad_y, precision=1e-8)
+        self.assertRaster3dFitsUnivar(raster='test_null_grad_z',
+                                      reference=r3univar_test_nulls_grad_z, precision=1e-8)
 
 
 if __name__ == '__main__':
