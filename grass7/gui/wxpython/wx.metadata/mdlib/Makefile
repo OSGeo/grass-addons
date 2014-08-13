@@ -3,16 +3,17 @@ MODULE_TOPDIR = ../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-DSTDIR = $(INST_DIR)/etc/metadata
+DSTDIR = $(ETC)
 
 MODULES = $(wildcard *.py)
 
 PYFILES := $(patsubst %,$(DSTDIR)/%,$(MODULES))
 PYCFILES := $(patsubst %.py,$(DSTDIR)/%.pyc,$(filter %.py,$(MODULES)))
 
-default:
+default: $(PYFILES) $(PYCFILES)
 
-install: $(PYFILES) $(PYCFILES)
+install:
+	@cp -r $(DSTDIR) $(INSTDIR)/etc
 
 $(DSTDIR):
 	$(MKDIR) $@
