@@ -13,7 +13,7 @@ PYCFILES := $(patsubst %.py,$(DSTDIR)/%.pyc,$(filter %.py,$(MODULES)))
 default: $(PYFILES) $(PYCFILES)
 
 install:
-	@cp -r $(DSTDIR) $(INSTDIR)/etc
+	@cp -rL $(DSTDIR) $(INST_DIR)
 
 $(DSTDIR):
 	$(MKDIR) $@
