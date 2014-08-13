@@ -10,15 +10,13 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-#%option G_OPT_V_MAP
-#% key: map
-#% label: Name of input vector map
-#% required: yes
+
+#%module
+#% description: Creates metadata based on ISO standard for specified raster map.
+#% keywords: raster, metadata, iso
 #%end
 
-#%flag
-#% key: o
-#% label: Allow to overwrite exist metadata
+#%option G_OPT_V_MAP
 #%end
 
 #%option
@@ -29,9 +27,9 @@ This program is free software under the GNU General Public License
 #% answer: basic
 #%end
 
-#%option G_OPT_V_MAP
+#%option G_OPT_F_OUTPUT
 #% key: mdout
-#% label: Name of output metadata file
+#% label: Name for output metadata file
 #% required: no
 #%end
 
