@@ -3,10 +3,12 @@ MODULE_TOPDIR = ../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-DSTDIR = $(ETC)/metadata
+DSTDIR = $(ETC)
 
-PYFILES := $(patsubst %,$(DSTDIR)/%.py,$(MODULES) __init__)
-PYCFILES := $(patsubst %,$(DSTDIR)/%.pyc,$(MODULES) __init__)
+MODULES = $(wildcard *.py)
+
+PYFILES := $(patsubst %,$(DSTDIR)/%,$(MODULES))
+PYCFILES := $(patsubst %.py,$(DSTDIR)/%.pyc,$(filter %.py,$(MODULES)))
 
 default: $(PYFILES) $(PYCFILES)
 
