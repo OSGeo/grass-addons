@@ -29,7 +29,7 @@ This program is free software under the GNU General Public License
 
 #%option G_OPT_F_OUTPUT
 #% key: mdout
-#% label: Name of output metadata file
+#% label: Name for output metadata file
 #% required: no
 #%end
 
@@ -63,7 +63,7 @@ def main():
         md.createGrassInspireISO()
         xml_file = md.saveXML(path=destination,
                               xml_out_name=mdout,
-                              overwrite=flags['o'])
+                              overwrite=os.getenv('GRASS_OVERWRITE', False))
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_inspire()
@@ -72,7 +72,7 @@ def main():
         md.createGrassBasicISO()
         xml_file = md.saveXML(path=destination,
                               xml_out_name=mdout,
-                              overwrite=flags['o'])
+                              overwrite=os.getenv('GRASS_OVERWRITE', False))
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_basic()

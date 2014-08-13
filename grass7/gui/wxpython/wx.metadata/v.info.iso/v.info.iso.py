@@ -12,8 +12,8 @@ This program is free software under the GNU General Public License
 """
 
 #%module
-#% description: Creates metadata based on ISO standard for specified raster map.
-#% keywords: raster, metadata, iso
+#% description: Creates metadata based on ISO standard for specified vector map.
+#% keywords: vector, metadata, iso
 #%end
 
 #%option G_OPT_V_MAP
@@ -63,7 +63,7 @@ def main():
         md.createGrassInspireISO()
         xml_file = md.saveXML(path=destination,
                               xml_out_name=mdout,
-                              overwrite=flags['o'])
+                              overwrite=os.getenv('GRASS_OVERWRITE', False))
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_inspire()
@@ -72,7 +72,7 @@ def main():
         md.createGrassBasicISO()
         xml_file = md.saveXML(path=destination,
                               xml_out_name=mdout,
-                              overwrite=flags['o'])
+                              overwrite=os.getenv('GRASS_OVERWRITE', False))
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_basic()
