@@ -43,12 +43,12 @@ def load_mdlib():
     if path is not None:
         fatal("Not able to find the metadata library directory")
     sys.path.append(path)
-    from mdgrass import *
     
 def main():
     # load metadata library
     load_mdlib()
-    
+    from mdgrass import GrassMD
+
     if not options['output']:
         destination = None
         name = None
