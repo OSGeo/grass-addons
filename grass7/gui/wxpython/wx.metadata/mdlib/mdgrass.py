@@ -168,7 +168,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if template is None:
-            parentDir=os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
+            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
             self.template = os.path.join(parentDir,'templates', 'basicTemplate.xml')
         else:
             self.template = template
@@ -272,7 +272,7 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if template is None:
-            parentDir=os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
+            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
             self.template = os.path.join(parentDir,'templates', 'inspireTemplate.xml')
         else:
             self.template = template
