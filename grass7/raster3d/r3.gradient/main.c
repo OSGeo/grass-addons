@@ -13,9 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
 
 #include <grass/raster3d.h>
 #include <grass/gis.h>
@@ -25,7 +22,7 @@
 
 int main(int argc, char *argv[])
 {
-    struct Option *input_opt, *output_opt, *block_opt, *process_opt;
+    struct Option *input_opt, *output_opt, *block_opt;
     struct GModule *module;
     RASTER3D_Region region;
     RASTER3D_Map *input;
@@ -65,6 +62,7 @@ int main(int argc, char *argv[])
     block_opt->key_desc = "size_x,size_y,size_z";
     block_opt->description = _("Size of blocks");
 
+    /* disabled - was there for openMP
     process_opt = G_define_option();
     process_opt->key = "nprocs";
     process_opt->type = TYPE_INTEGER;
@@ -72,15 +70,19 @@ int main(int argc, char *argv[])
     process_opt->description = _("Number of parallel processes");
     process_opt->options = "1-100";
     process_opt->answer = "1";
+    */
 
     G_gisinit(argv[0]);
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-    
+
+    N = 1;
+    /* disabled - was there for openMP
     N = atoi(process_opt->answer);
 #if defined(_OPENMP)
     omp_set_num_threads(N);
 #endif
+    */
 
     Rast3d_init_defaults();
     Rast3d_get_window(&region);
@@ -218,7 +220,7 @@ int main(int argc, char *argv[])
 		if ((j + 1) == N || i == max_i - 1) {
 
 		    /* compute gradient */
-		    #pragma omp parallel for schedule (static) private (k)
+		    /* disabled openMP #pragma omp parallel for schedule (static) private (k) */
 		    for (k = 0; k <= j; k++) {
 			Rast3d_gradient_double(&(blocks[k].input), step,
 					       &(blocks[k].dx), &(blocks[k].dy),
