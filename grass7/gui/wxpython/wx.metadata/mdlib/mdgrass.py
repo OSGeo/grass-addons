@@ -17,7 +17,6 @@ This program is free software under the GNU General Public License
 """
 from owslib.iso import *
 from jinja2 import Environment, FileSystemLoader
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
 
 from lxml import etree
 import os
@@ -28,6 +27,7 @@ import subprocess as sub
 import uuid
 import mdutil  # metadata lib
 import getpass  # whoami for linux and  ms-win
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
 
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.gis import Mapset
