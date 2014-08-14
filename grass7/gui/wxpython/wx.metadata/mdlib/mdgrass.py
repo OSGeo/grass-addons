@@ -17,6 +17,7 @@ This program is free software under the GNU General Public License
 """
 from owslib.iso import *
 from jinja2 import Environment, FileSystemLoader
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
 
 from lxml import etree
 import os

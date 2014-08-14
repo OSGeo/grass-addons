@@ -28,16 +28,11 @@ This program is free software under the GNU General Public License
 #%end
 
 #%option G_OPT_F_OUTPUT
-#% key: mdout
-#% label: Name for output metadata file
+#% key: output
+#% label: File output 
 #% required: no
 #%end
 
-#%option G_OPT_M_DIR
-#% key: destination
-#% label: Path to destination folder
-#% required: no
-#%end
 
 import os
 import sys
