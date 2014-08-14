@@ -9,6 +9,7 @@ SUBDIRS = \
 	v.link.precip \
 	v.median \
 	v.net.turntable \
+	v.to.lines \
 	v.out.ply \
 	v.surf.icw
 

@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.polytoline
+PGM = v.to.lines
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

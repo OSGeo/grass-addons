@@ -2,20 +2,22 @@
 # -*- coding: utf-8 -*-
 ############################################################################
 #
-# MODULE:       v.polytoline
-# AUTHOR(S):    Luca delucchi
+# MODULE:       v.to.lines (former v.polytoline)
+# AUTHOR(S):    Luca Delucchi
+#               point support added by Markus Neteler
 #
-# PURPOSE:      Convert polygon to line
-# COPYRIGHT:    (C) 2013 by the GRASS Development Team
+# PURPOSE:      Converts polygons and points to lines
+# COPYRIGHT:    (C) 2013-2014 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (version 2). Read the file COPYING that comes with GRASS
 #               for details.
-#
+# TODO
+#    support centroids (treat as points)?
 #############################################################################
 
 #%module
-#% description: Convert polygon to line.
+#% description: Converts vector polygons or points to lines.
 #% keywords: vector
 #% keywords: geometry
 #%end
@@ -27,7 +29,7 @@
 #%end
 
 import grass.script as grass
-import os
+import os, sys
 
 
 def main():
@@ -43,12 +45,25 @@ def main():
         quiet = False
 
     in_info = grass.vector_info(input)
+    # check for wild mixture of vector types
+    if in_info['points'] > 0 and in_info['boundaries'] > 0:
+        grass.fatal(_("The input vector map contains both polygons and points, cannot handle mixed types"))
+
+    # process points via triangulation, then exit
+    if in_info['points'] > 0:
+        layer=1 # hardcoded for now
+        grass.message(_("Processing point data (%d points found)...") % in_info['points'])
+        grass.run_command('v.delaunay', input=input, layer=layer, output=output)
+        sys.exit()
+
+    # process areas
     if in_info['areas'] == 0 and in_info['boundaries'] == 0:
-        grass.fatal(_("The input vector seems not to be polygon"))
+        grass.fatal(_("The input vector map does not contain polygons"))
     pid = os.getpid()
     out_type = '{inp}_type_{pid}'.format(inp=input, pid=pid)
     input_tmp = '{inp}_tmp_{pid}'.format(inp=input, pid=pid)
     remove_names = "%s,%s" % (out_type, input_tmp)
+    grass.message(_("Processing area data (%d areas found)...") % in_info['areas'])
     if 0 != grass.run_command('v.category', layer="2", type='boundary',
                               option='add', input=input, out=input_tmp,
                               quiet=quiet):
