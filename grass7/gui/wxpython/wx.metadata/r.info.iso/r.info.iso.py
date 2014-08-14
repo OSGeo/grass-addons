@@ -28,7 +28,6 @@ This program is free software under the GNU General Public License
 #%end
 
 #%option G_OPT_F_OUTPUT
-#% key: out
 #% required: no
 #%end
 
@@ -41,11 +40,11 @@ from grass.script import parser
 from mdgrass import *
 
 def main():
-    if not options['out']:
+    if not options['output']:
         destination = None
         name = None
     else:
-        destination, name = os.path.split(options['out'])
+        destination, name = os.path.split(options['output'])
 
     md = GrassMD(options['map'], 'cell')
     if options['profile'] == 'inspire':
