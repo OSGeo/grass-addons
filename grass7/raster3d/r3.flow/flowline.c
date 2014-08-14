@@ -210,4 +210,5 @@ void compute_flowline(RASTER3D_Region * region, const struct Seed *seed,
 	Vect_reset_cats(cats);
 	db_free_string(&sql);
     }
+    G_free(trav_coords);
 }
