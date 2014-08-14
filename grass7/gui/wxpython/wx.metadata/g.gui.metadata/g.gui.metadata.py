@@ -21,6 +21,13 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
+#%module
+#% description: Tool for creating and modifying map's metadata.
+#% keywords: general
+#% keywords: GUI
+#% keywords: metadata
+#%end
+
 import os
 import sys
 import glob
@@ -39,6 +46,7 @@ import grass.script.setup as gsetup
 import mdgrass
 import mdutil
 
+from core.utils import _, GuiModuleMain
 from editor import MdMainEditor
 from lmgr import datacatalog
 from core.gcmd import RunCommand, GError, GMessage
@@ -1153,7 +1161,12 @@ class MdToolbar(wx.Panel):
         self.mainsizer.Add(self.toolbar)
 
 #----------------------------------------------------------------------
-if __name__ == "__main__":
+def main():
     app = wx.App(False)
     frame = MdMainFrame()
     app.MainLoop()
+
+if __name__ == '__main__':
+    options, flags = grass.parser()
+
+    GuiModuleMain(main)
