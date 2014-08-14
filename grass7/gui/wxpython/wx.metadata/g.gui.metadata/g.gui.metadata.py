@@ -117,7 +117,7 @@ class MdMainFrame(wx.Frame):
         '''
         md = self.editor.createNewMD()
         self.mdCreator.updateGrassMd(md)
-        GMessage('Grass metadata has been updated')
+        GMessage('GRASS GIS metadata haved been updated')
 
     def onChangeEditMapProfile(self):
         '''Update vars
@@ -191,7 +191,7 @@ class MdMainFrame(wx.Frame):
         self.SetSize((x + x1, y + y1))
 
     def onHideLeftPanel(self):
-        '''in editing mode is config panel hidden
+        '''In editing mode config panel is hidden
         '''
         self.toolbar.bttNew.Enable()
         self.Hsizer.Remove(self.leftPanel)
@@ -216,10 +216,10 @@ class MdMainFrame(wx.Frame):
             self.MdDataCatalogPanelLeft.UnselectAll()
 
     def onEditMapMetadata(self, multipleEditing=False):
-        '''Initialize editor by selection of grass map in data catalog
-        @param multipleEditing: if user select more than one map mutlipleEditing=True
-        @param numOfMap: hold information about number of selected maps for editing
-        @param ListOfMapTypeDict: list of dict sttored names of selected maps in dict. dict['cell/vector']=nameofmaps
+        '''Initialize editor by selection of GRASS map in data catalog
+        @param multipleEditing: if user selects more than one map mutlipleEditing=True
+        @param numOfMap: holds information about number of selected maps for editing
+        @param ListOfMapTypeDict: list of dict stored names of selected maps in dict. dict['cell/vector']=nameofmaps
         '''
         if not multipleEditing:
             self.ListOfMapTypeDict = self.MdDataCatalogPanelLeft.ListOfMapTypeDict
@@ -335,7 +335,7 @@ class MdMainFrame(wx.Frame):
         @var first: True= First initialize main frame
         @var firstAfterChoice: True=Init editor editor after set configuration and click onEdit in toolbar
         @var second: init editor after first initialize
-        @var secondAfterChoice: init edito onemore time
+        @var secondAfterChoice: init editor one more time
         '''
         if self.first:
             self.first = False
@@ -454,7 +454,7 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         self.mapType = None
 
     def InitTreeItems(self):
-        """Add locations and layers to the tree."""
+        """Add locations and layers to the tree"""
         gisenv = grass.gisenv()
         location = gisenv['LOCATION_NAME']
         self.mapset = gisenv['MAPSET']
@@ -491,7 +491,7 @@ class MdDataCatalog(datacatalog.LocationMapTree):
 
         else:
             self.Unselect()
-            GMessage('Please select map.')
+            GMessage('Please select map')
 
         if len(maps) == 0:
             pub.sendMessage('bttEdit.disable')
@@ -617,7 +617,7 @@ class MDHelp(wx.Panel):
 class TreeBrowser(wx.TreeCtrl):
 
     '''Filling text tree by xml file.
-    @note: to enable editing mode of init xml uncoment blocks below
+    @note: to enable editing mode of init xml uncomment blocks below
     '''
 
     def __init__(self, parent, xmlPath=False, xmlEtree=False):
@@ -697,7 +697,7 @@ class TreeBrowser(wx.TreeCtrl):
 
 class MdValidator(wx.Panel):
 
-    '''wx panel of notebook which support validating two natively implemented profiles
+    '''wx panel of notebook which supports validating two natively implemented profiles
     '''
 
     def __init__(self, parent):
@@ -714,7 +714,7 @@ class MdValidator(wx.Panel):
         self.mainSizer.Add(self.text, proportion=1, flag=wx.EXPAND)
 
     def validate(self, md, profile):
-        '''For externaly load xml file is by default inspire validator
+        '''For externally loaded xml file is by default inspire validator
         '''
         if profile == 'INSPIRE' or profile == 'Load Custom':
             result = mdutil.isnpireValidator(md)
@@ -976,7 +976,7 @@ class MdToolbar(wx.Panel):
             pub.sendMessage('MD_DESTINATION.update', value=self.mdDestination)
             dlg.Destroy()
 
-        GMessage('Metadata destinatnion: %s' % self.mdDestination)
+        GMessage('Metadata destination: %s' % self.mdDestination)
 
     def hideMultipleEdit(self):
         '''Multiple editor is off
@@ -1040,7 +1040,7 @@ class MdToolbar(wx.Panel):
     def onNewSession(self, evt):
         pub.sendMessage('INIT_EDITOR.create')
         pub.sendMessage('TEMPLATE_EDITOR_STATUS.update', value=False, template=False)
-        # chck current editing mode(grass or external xml editor)
+        # check current editing mode(grass or external xml editor)
         if self.GetParent().configPanelLeft.rbGrass is False:
             self.bttLoad.Enable()
             self.bttLoadXml.Enable()
@@ -1055,7 +1055,7 @@ class MdToolbar(wx.Panel):
         self.bttSaveTemplate.Disable()
 
     def onChangeXmlorTemplate(self, evt=None):
-        '''in case if path of template and xml path are initialized-> enable buttons for next step
+        '''in case if path of template and xml path are initialized -> enable buttons for next step
         '''
         if self.jinjaPath is not None and self.xmlPath is not None:
             pub.sendMessage('HIDE_LEFT_PANEL.update')
@@ -1067,7 +1067,7 @@ class MdToolbar(wx.Panel):
 
     def onLoadXml(self, evt=None):
         dlg = wx.FileDialog(self,
-                            "Select xml metadata file",
+                            "Select XML metadata file",
                             self.mdDestination,
                             "",
                             "*.xml",
@@ -1136,7 +1136,7 @@ class MdToolbar(wx.Panel):
                     pub.sendMessage('EDIT_MAP_METADATA.create', multipleEditing=True)
 
                 else:
-                    GMessage('File not save.')
+                    GMessage('File not saved')
             dlg.Destroy()
 
         else:

@@ -28,7 +28,7 @@ import wx
 
 
 def removeNonAscii(s):
-    '''Removed non ascii char
+    '''Removed non ASCII chars
     '''
     s = filter(lambda x: x in string.printable, s)
     return s
@@ -68,7 +68,7 @@ def pathToMapset():
 
 
 def grassProfileValidator(md):
-    '''function for validation GRASS BASIC XML-OWSLib  file-object'''
+    '''function for validation of GRASS BASIC XML-OWSLib  file-object'''
 
     result = {}
     result["status"] = "succeded"
@@ -77,35 +77,35 @@ def grassProfileValidator(md):
     errors = 0
 
     if md.identification is None:
-        result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
-        result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
-        result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
         result["errors"].append("gmd:md_DataIdentification: Title is missing")
         result["errors"].append("gmd:md_DataIdentification: Abstract is missing")
-        result["errors"].append("gmd:md_ScopeCode: Resource Type is missing")
+        result["errors"].append("gmd:md_ScopeCode: Resource type is missing")
         result["errors"].append("gmd:RS_Identifier: Unique Resource Identifier is missing")
-        result["errors"].append("gmd:EX_Extent: extent element is missing")
-        result["errors"].append("gmd:EX_GeographicBoundingBox: bbox is missing")
+        result["errors"].append("gmd:EX_Extent: Extent element is missing")
+        result["errors"].append("gmd:EX_GeographicBoundingBox: Bounding box is missing")
         result["errors"].append("Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")
         result["errors"].append("gmd:useLimitation is missing")
         errors += 20
     else:
         if len(md.identification.contact) < 1 or md.identification.contact is None:
-            result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
-            result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
-            result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
             errors += 3
         else:
                 if md.identification.contact[0].organization is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
                     errors += 1
 
                 if md.identification.contact[0].email is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
                     errors += 1
 
                 if md.identification.contact[0].role is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
                     errors += 1
 
         if md.identification.title is (None or ''):
@@ -115,15 +115,15 @@ def grassProfileValidator(md):
             result["errors"].append("gmd:md_DataIdentification: Abstract is missing")
             errors += 1
         if md.identification.identtype is '':
-            result["errors"].append("gmd:md_ScopeCode: Resource Type is missing")
+            result["errors"].append("gmd:md_ScopeCode: Resource type is missing")
             errors += 1
 
         if md.identification.extent is None:
-            result["errors"].append("gmd:EX_Extent: extent element is missing")
+            result["errors"].append("gmd:EX_Extent: Extent element is missing")
             errors += 4
         else:
             if md.identification.extent.boundingBox is None:
-                result["errors"].append("gmd:EX_GeographicBoundingBox: bbox is missing")
+                result["errors"].append("gmd:EX_GeographicBoundingBox: Bounding box is missing")
                 errors += 4
             else:
                 if md.identification.extent.boundingBox.minx is (None or ''):
@@ -154,8 +154,8 @@ def grassProfileValidator(md):
 
     if md.contact is None:
         result["errors"].append("gmd:contact: Organization name is missing")
-        result["errors"].append("gmd:contact: e-mail is missing")
-        result["errors"].append("gmd:role: role is missing")
+        result["errors"].append("gmd:contact: E-mail is missing")
+        result["errors"].append("gmd:role: Role is missing")
         errors += 3
     else:
             if md.contact[0].organization is (None or ''):
@@ -163,11 +163,11 @@ def grassProfileValidator(md):
                 errors += 1
 
             if md.contact[0].email is (None or ''):
-                result["errors"].append("gmd:contact: e-mail is missing")
+                result["errors"].append("gmd:contact: E-mail is missing")
                 errors += 1
 
             if md.contact[0].role is (None or ''):
-                result["errors"].append("gmd:role: role is missing")
+                result["errors"].append("gmd:role: Role is missing")
                 errors += 1
 
     if errors > 0:
@@ -186,21 +186,21 @@ def isnpireValidator(md):
     errors = 0
 
     if md.identification is None:
-        result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
-        result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
-        result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+        result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
         result["errors"].append("gmd:md_DataIdentification: Title is missing")
         result["errors"].append("gmd:md_DataIdentification: Abstract is missing")
-        result["errors"].append("gmd:md_ScopeCode: Resource Type is missing")
-        result["errors"].append("gmd:language: Resource Language is missing")
+        result["errors"].append("gmd:md_ScopeCode: Resource type is missing")
+        result["errors"].append("gmd:language: Resource language is missing")
         result["errors"].append("gmd:RS_Identifier: Unique Resource Identifier is missing")
         result["errors"].append("gmd:topicCategory: TopicCategory is missing")
         result["errors"].append("gmd:md_Keywords: Keywords are missing")
-        result["errors"].append("gmd:thesaurusName: Thesaurus Title is missing")
-        result["errors"].append("gmd:thesaurusName: Thesaurus Date is missing")
-        result["errors"].append("gmd:thesaurusName: Thesaurus Date Type is missing")
-        result["errors"].append("gmd:EX_Extent: extent element is missing")
-        result["errors"].append("gmd:EX_GeographicBoundingBox: bbox is missing")
+        result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
+        result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
+        result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
+        result["errors"].append("gmd:EX_Extent: Extent element is missing")
+        result["errors"].append("gmd:EX_GeographicBoundingBox: Bounding box is missing")
         result["errors"].append("Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")
         result["errors"].append("gmd:useLimitation is missing")
         result["errors"].append("gmd:accessConstraints is missing")
@@ -208,22 +208,22 @@ def isnpireValidator(md):
         errors += 20
     else:
         if md.identification.contact is None or len(md.identification.contact) < 1:
-            result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
-            result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
-            result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+            result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
             errors += 3
         else:
 
                 if md.identification.contact[0].organization is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Organization missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
                     errors += 1
 
                 if md.identification.contact[0].email is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
                     errors += 1
 
                 if md.identification.contact[0].role is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Role missing")
+                    result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
                     errors += 1
 
         if md.identification.title is (None or ''):
@@ -233,15 +233,15 @@ def isnpireValidator(md):
             result["errors"].append("gmd:md_DataIdentification: Abstract is missing")
             errors += 1
         if md.identification.identtype is (None or ''):
-            result["errors"].append("gmd:md_ScopeCode: Resource Type is missing")
+            result["errors"].append("gmd:md_ScopeCode: Resource type is missing")
             errors += 1
 
         if md.identification.resourcelanguage is None:
             errors += 1
-            result["errors"].append("gmd:language: Resource Language is missing")
+            result["errors"].append("gmd:language: Resource language is missing")
         else:
             if len(md.identification.resourcelanguage) < 1 or md.identification.resourcelanguage[0] == '':
-                    result["errors"].append("gmd:language: Resource Language is missing")
+                    result["errors"].append("gmd:language: Resource language is missing")
                     errors += 1
 
         if md.identification.uricode is None:
@@ -262,9 +262,9 @@ def isnpireValidator(md):
 
         if md.identification.keywords is None or len(md.identification.keywords) < 1:
                 result["errors"].append("gmd:MD_Keywords: Keywords are missing")
-                result["errors"].append("gmd:thesaurusName: Thesaurus Title is missing")
-                result["errors"].append("gmd:thesaurusName: Thesaurus Date is missing")
-                result["errors"].append("gmd:thesaurusName: Thesaurus Date Type is missing")
+                result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
+                result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
+                result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
                 errors += 4
         else:
                 if md.identification.keywords[0]['keywords'] is None or len(md.identification.keywords[0]['keywords']) < 1 \
@@ -272,31 +272,31 @@ def isnpireValidator(md):
                     result["errors"].append("gmd:MD_Keywords: Keywords are missing")
                     errors += 1
                 if md.identification.keywords[0]['thesaurus'] is None:
-                    result["errors"].append("gmd:thesaurusName: Thesaurus Title is missing")
-                    result["errors"].append("gmd:thesaurusName: Thesaurus Date is missing")
-                    result["errors"].append("gmd:thesaurusName: Thesaurus Date Type is missing")
+                    result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
+                    result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
+                    result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
                     errors += 3
                 else:
                     if md.identification.keywords[0]['thesaurus']['title'] is None \
                             or len(md.identification.keywords[0]['thesaurus']['title']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus Title is missing")
+                        result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
                         errors += 1
                     if md.identification.keywords[0]['thesaurus']['date'] is None \
                             or len(md.identification.keywords[0]['thesaurus']['date']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus Date is missing")
+                        result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
                         errors += 1
                     if md.identification.keywords[0]['thesaurus']['datetype'] is None \
                             or len(md.identification.keywords[0]['thesaurus']['datetype']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus Date Type is missing")
+                        result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
                         errors += 1
 
         if md.identification.extent is None:
-            result["errors"].append("gmd:EX_Extent: extent element is missing")
+            result["errors"].append("gmd:EX_Extent: Extent element is missing")
             errors += 1
         else:
             if md.identification.extent.boundingBox is None:
                 result["errors"].append(
-                    "gmd:EX_GeographicBoundingBox: bbox is missing")
+                    "gmd:EX_GeographicBoundingBox: Bounding box is missing")
                 errors += 1
             else:
                 if md.identification.extent.boundingBox.minx is (None or ''):
@@ -328,7 +328,7 @@ def isnpireValidator(md):
             errors += 1
 
     if md.languagecode is (None or ''):
-        result["errors"].append("gmd:LanguageCode: Language code missing")
+        result["errors"].append("gmd:LanguageCode: Language code is missing")
         errors += 1
     if md.datestamp is (None or ''):
         result["errors"].append("gmd:dateStamp: Date is missing")
@@ -338,10 +338,10 @@ def isnpireValidator(md):
         errors += 1
     if md.dataquality is (None or ''):
         result["errors"].append("gmd:LI_Lineage is missing")
-        result["errors"].append("gmd:DQ_ConformanceResult: date is missing")
-        result["errors"].append("gmd:DQ_ConformanceResult: date type is missing")
-        # result["errors"].append("gmd:DQ_ConformanceResult: degree is missing")
-        result["errors"].append("gmd:DQ_ConformanceResult: title is missing")
+        result["errors"].append("gmd:DQ_ConformanceResult: Date is missing")
+        result["errors"].append("gmd:DQ_ConformanceResult: Date type is missing")
+        # result["errors"].append("gmd:DQ_ConformanceResult: Degree is missing")
+        result["errors"].append("gmd:DQ_ConformanceResult: Title is missing")
         errors += 4
     else:
 
@@ -349,22 +349,22 @@ def isnpireValidator(md):
             result["errors"].append("gmd:LI_Lineage is missing")
             errors += 1
         if len(md.dataquality.conformancedate) < 1 or md.dataquality.conformancedate[0] == '':
-            result["errors"].append("gmd:DQ_ConformanceResult: date is missing")
+            result["errors"].append("gmd:DQ_ConformanceResult: Date is missing")
             errors += 1
         if len(md.dataquality.conformancedatetype) < 1 or md.dataquality.conformancedatetype[0] == '':
-            result["errors"].append("gmd:DQ_ConformanceResult: date type is missing")
+            result["errors"].append("gmd:DQ_ConformanceResult: Date type is missing")
             errors += 1
         # if len(md.dataquality.conformancedegree) < 1:
-        #     result["errors"].append("gmd:DQ_ConformanceResult: degree is missing")
+        #     result["errors"].append("gmd:DQ_ConformanceResult: Degree is missing")
         #     errors += 1
         if len(md.dataquality.conformancetitle) < 1 or md.dataquality.conformancetitle[0] == '':
-            result["errors"].append("gmd:DQ_ConformanceResult: title is missing")
+            result["errors"].append("gmd:DQ_ConformanceResult: Title is missing")
             errors += 1
 
     if md.contact is None or len(md.contact) < 1:
         result["errors"].append("gmd:contact: Organization name is missing")
-        result["errors"].append("gmd:contact: e-mail is missing")
-        result["errors"].append("gmd:role: role is missing")
+        result["errors"].append("gmd:contact: E-mail is missing")
+        result["errors"].append("gmd:role: Role is missing")
         errors += 3
     else:
 
@@ -373,11 +373,11 @@ def isnpireValidator(md):
                 errors += 1
 
             if md.contact[0].email is (None or ''):
-                result["errors"].append("gmd:contact: e-mail is missing")
+                result["errors"].append("gmd:contact: E-mail is missing")
                 errors += 1
 
             if md.contact[0].role is (None or ''):
-                result["errors"].append("gmd:role: role is missing")
+                result["errors"].append("gmd:role: Role is missing")
                 errors += 1
 
     if errors > 0:

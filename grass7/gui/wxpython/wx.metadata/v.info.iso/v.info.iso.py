@@ -22,7 +22,7 @@ This program is free software under the GNU General Public License
 #%option
 #% key: profil
 #% label: Metadata profil based on ISO
-#% description: INSPIRE profile is not filled properly (unknown values are filled '$NULL')
+#% description: INSPIRE profile is not filled properly (unknown values are filled with '$NULL')
 #% options: basic, inspire
 #% answer: basic
 #%end

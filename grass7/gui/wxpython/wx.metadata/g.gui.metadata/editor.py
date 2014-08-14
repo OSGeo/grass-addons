@@ -46,7 +46,7 @@ import mdutil
 
 class MdFileWork():
 
-    ''' initializer of metadata in OWSLib and export OWSLib object to xml by jinja templating system
+    ''' initializer of metadata in OWSLib and export OWSLib object to xml by jinja template system
     '''
 
     def __init__(self, pathToXml=None):
@@ -86,7 +86,7 @@ class MdFileWork():
         '''
         @note creator of xml with using OWSLib md object and jinja template
         @param md: owslib.iso.MD_Metadata
-        @param owsTagList: in case if user definig template
+        @param owsTagList: in case if user is defining template
         @param jinjaPath: path to jinja template
         @param outPath: path of exported xml
         @param xmlOutName: name of exported xml
@@ -120,7 +120,7 @@ class MdFileWork():
         io.write(str1)
         io.close()
 
-        # generating xml using jinja tempaltes
+        # generating xml using jinja templates
         head, tail = os.path.split(jinjaPath)
         env = Environment(loader=FileSystemLoader(head))
         env.globals.update(zip=zip)
@@ -172,9 +172,9 @@ class MdBox(wx.Panel):
         @param multi: true in case when box has button for duplicating box and included items
         @param rmMulti: true in case when box has button for removing box and included items
         @param isFirstNum: handling with 'add' and 'remove' button of box.
-                            this param is necessary for generating editor  in editor::MdEditor.generateGUI.inBlock()
-                            note: just firs generated box has 'add' buton (because is mandatory) and nex others has
-                            'remove butt'
+                            this param is necessary for generating editor in editor::MdEditor.generateGUI.inBlock()
+                            note: just first generated box has 'add' button (because being mandatory) and next others has
+                            'remove' button
         '''
         if isFirstNum != 1:
             multi = False
@@ -256,10 +256,10 @@ class MdWxDuplicator():
     def __init__(self, mdItems, parent, boxlabel=None, mdItemOld=None, template=None):
         '''
         @param mdItems:  list of editor::MdItem
-        @param parent: parent of new  duplicated box
+        @param parent: parent of new duplicated box
         @param boxlabel: label of static box
         @param mdItemOld: object which will be duplicated
-        @param template: in case if  'template mode' is on in editor
+        @param template: in case if 'template mode' is on in editor
         '''
         # duplicate box of items
         if boxlabel:
@@ -304,14 +304,14 @@ class MdWxDuplicator():
                     mdItems.addMdItem(self.mdItem)
             except:
                 mdItems.addMdItem(self.mdItem)
+
 #=========================================================================
 # METADATA ITEM (label+ctrlText+button(optional)+chckbox(template)
 #=========================================================================
 
-
 class MdItem(wx.BoxSizer):
 
-    '''main building blocks of generated gui of editor
+    '''main building blocks of generated GUI of editor
     '''
 
     def __init__(self, parent, item, multiplicity=None, rmMulti=False, isFirstNum=-1, chckBox=False):
@@ -320,10 +320,10 @@ class MdItem(wx.BoxSizer):
         @param multiplicity: if true- widget has button for duplicate self
         @param rmMulti: if true- widget has button for remove self
         @param isFirstNum: handling with 'add' and 'remove' button of box.
-                            this param is necessary for generating editor  in editor::MdEditor.generateGUI.inBlock()
-                            note: just firs generated box has 'add' buton (because is mandatory) and nex others has
-                            'remove butt'
-        @param chckBox: in case-True  'template editor' is on and widget has checkobox.
+                            this param is necessary for generating editor in editor::MdEditor.generateGUI.inBlock()
+                            note: just first generated box has 'add' button (because being mandatory) and next others has
+                            'remove' button
+        @param chckBox: in case-True  'template editor' is on and widget has checkbox
         '''
         wx.BoxSizer.__init__(self, wx.VERTICAL)
         self.isValid = False
@@ -504,7 +504,7 @@ class MdItem(wx.BoxSizer):
             yellow: in case if value is marked by $NULL(by mdgrass::GrassMD)
             red:    if value is '' or object is not initialized. e.g. if user
                     read non fully valid INSPIRE xml with INSPIRE jinja template,
-                    the gui generating mechanism will create GUI according to template
+                    the GUI generating mechanism will create GUI according to template
                     and all missing tags(xml)-gui(TextCtrls) will be marked by red
         '''
         if value is None or value is '':
@@ -576,7 +576,6 @@ class MdItem(wx.BoxSizer):
 # ADD NOTEBOOK PAGE
 #=========================================================================
 
-
 class MdNotebookPage(scrolled.ScrolledPanel):
 
     """
@@ -621,7 +620,7 @@ class MdNotebookPage(scrolled.ScrolledPanel):
             self.mainSizer.Add(item, proportion=0, flag=wx.EXPAND)
 
     def addDuplicatedItem(self, item, mId):
-        '''adding duplicated object to sizer to  position after parent
+        '''adding duplicated object to sizer to position after parent
         '''
         self.items.append(item)
         posIndex = self.sizerIndexDict[mId]
@@ -652,13 +651,13 @@ class MdMainEditor(wx.Panel):
 
     '''
     main functions : self.generateGUI(): generating GUI from: editor:MdItem,MdBox,MdNotebookPage
-                     self.createNewMD(): filling OWSLib.iso.MD_Metadata by values from generated gui
+                     self.createNewMD(): filling OWSLib.iso.MD_Metadata by values from generated GUI
                      self.defineTemplate(): creator of predefined templates in template editor mode
     '''
 
     def __init__(self, parent, templatePath, xmlMdPath, templateEditor=False):
         '''
-        @param templatePath: path to jinja template for generating gui of editor
+        @param templatePath: path to jinja template for generating GUI of editor
         @param xmlMdPath: path of xml for init Editor
         @param templateEditor: mode-creator of template
         '''
@@ -694,11 +693,11 @@ class MdMainEditor(wx.Panel):
             num = 1
         self.c += num
         if self.c >= self.max:
-            self.c -= 1  # ensure to'list out of bounds'
+            self.c -= 1  # ensure to 'list out of bounds'
             self.stop = True
 
     def minusC(self, num=None):
-        '''iterator for handling jinja teplate items in  self.generateGUI and self.createNewMD
+        '''iterator for handling jinja template items in self.generateGUI and self.createNewMD
         '''
         if num is None:
             num = 1
@@ -710,7 +709,7 @@ class MdMainEditor(wx.Panel):
         '''
         @var tagStringLst:  tagStringLst is self.mdOWSTagStr in list.
                             Item=line from jinja template(only lines with owslib objects and loops)
-        @var mdDescrObj:    list of MdDescription() objects inicialized\
+        @var mdDescrObj:    list of MdDescription() objects initialized\
                             by information from jinja t.
         @var self.c:        index of var: tagStringLst and var: self.mdDescription
         @var markgroup:     markers of created list in GUI notebook
@@ -720,7 +719,7 @@ class MdMainEditor(wx.Panel):
         HINT: print param stri in self.executeStr()
         '''
         def prepareStatements():
-            '''in jinja template are difining some py-function specificaly:
+            '''in jinja template are defining some py-function specifically:
             e.g. |length=len
             also statements with pythonic 'zip' must be prepare specifically for generator of GUI
             '''
@@ -806,7 +805,7 @@ class MdMainEditor(wx.Panel):
                         str1 +=     '\t' + \
                             'it=MdItem(parent=self.nbPage,item=mdDescrObj[' + str(self.c) + '],isFirstNum=numOfSameBox,chckBox=self.templateEditor)\n'
 
-                    if self.isValidS:  # if metatdata are loaded to owslib
+                    if self.isValidS:  # if metadata are loaded to owslib
                         if IFStatements:
                             str1 += '\t' + 'it.setValue(self.' + str(value) + ')\n'
                         else:
@@ -876,7 +875,7 @@ class MdMainEditor(wx.Panel):
 
 #--------------------------------------------------------------------- INIT VARS
         self.notebook = wx.Notebook(self)
-        markgroup = []  # notebok panel marker
+        markgroup = []  # notebook panel marker
         tagStringLst = self.mdOWSTagStrList
         mdDescrObj = self.mdDescription  # from jinja
         self.c = 0
@@ -884,8 +883,8 @@ class MdMainEditor(wx.Panel):
         self.max = len(mdDescrObj)
         prepareStatements()
         self.notebokDict = {}
-# --------------------------------------------- #START of the loop of genereator
-        while self.stop is False:  # self.stop is managed by   def plusC(self):
+# --------------------------------------------- #START of the loop of generator
+        while self.stop is False:  # self.stop is managed by def plusC(self):
             group = mdDescrObj[self.c].group
 
             if group not in markgroup:  # if group is not created
@@ -899,7 +898,7 @@ class MdMainEditor(wx.Panel):
             # if  statements started
             if '\t' in tagStringLst[self.c] and self.stop is False:
                 inBlock()
-            # if is just singe item without statements
+            # if is just single item without statements
             elif 'for' not in str(tagStringLst[self.c]).split() and 'if' not in str(tagStringLst[self.c]).split():
                 it = MdItem(parent=self.nbPage, item=mdDescrObj[self.c], chckBox=self.templateEditor)
                 value = 'self.' + str(self.mdOWSTagStrList[self.c]).replace('\n', '')
@@ -917,7 +916,7 @@ class MdMainEditor(wx.Panel):
             self.refreshChkboxes()
 
     def refreshChkboxes(self):
-        '''In case if template editor is on, after generateing gui si
+        '''In case if template editor is on, after generating GUI it is
          obligatory to refresh checkboxes
         '''
         for item in self.mdDescription:
@@ -931,9 +930,9 @@ class MdMainEditor(wx.Panel):
 
     def defineTemplate(self):
         '''Main function for generating jinja template in mode "template editor"
-        Every widget MdItem  are represented by 'jinja tag'. Not checked widget= tag in jinja template will be replaced by
-        listo of string with string of replaced tag. In rendering template this produce  holding(non removing) jinja-tag from template.
-        In case if widget is checked= rendering will replace OWSLib obect by filled values( like in normal editing mode)
+        Every widget MdItem is represented by 'jinja tag'. Not checked widget= tag in jinja template will be replaced by
+        list of string with string of replaced tag. In rendering template this produces holding(non removing) jinja-tag from template.
+        In case if widget is checked= rendering will replace OWSLib object by filled values( like in normal editing mode)
         @var finalTemplate:    string included final jinja template
         '''
         try:
@@ -1039,7 +1038,7 @@ class MdMainEditor(wx.Panel):
         exec stri
 
     def createNewMD(self, evt=None):
-        '''Main function for exporting metadata from filled widgets .
+        '''Main function for exporting metadata from filled widgets.
            Initializing owslib object by metadata from gui(export of metadata)
         '''
         def prepareStatements():
@@ -1071,7 +1070,7 @@ class MdMainEditor(wx.Panel):
                 return False
 
         def chckIf2xStatements():
-            '''Return true if next two items in jinjainfo::MdDescription are reprsenting statements
+            '''Return true if next two items in jinjainfo::MdDescription are representing statements
             '''
             if 'if'in mdDes[self.c].tag.split() or 'for' in mdDes[self.c].tag.split():
                 try:
@@ -1137,7 +1136,7 @@ class MdMainEditor(wx.Panel):
                     self.minusC(numOfItems)
 
                 self.plusC(numOfItems)
-            # (2.2)no init and py ZIP'
+            # (2.2) no init and py ZIP'
             elif 'for' in mdDes[cTmp].tag.split() and mdDes[cTmp].object is None and ' zip(' in mdDes[cTmp].tag:
                 leng = len(mdDes[self.c].mdItem)
                 tag1 = mdutil.findBetween(mdDes[cTmp].tag, 'zip(', ')').split(',')
@@ -1170,7 +1169,7 @@ class MdMainEditor(wx.Panel):
                     self.minusC(numOfItems)
 
                 self.plusC(numOfItems)
-            # (1)'no init IF'
+            # (1) 'no init IF'
             elif 'if' in mdDes[cTmp].tag.split():
 
                 objStr = mdDes[cTmp].tag.replace(' md.', ' self.md.') + ':\n'
@@ -1262,7 +1261,7 @@ class MdMainEditor(wx.Panel):
                     self.plusC(numOfItems)
             # (2) only keywords  (dict)
             elif 'for' in tag and 'for' in tag1:  #
-                self.plusC()  # skip staementes 2x
+                self.plusC()  # skip statementes 2x
                 self.plusC()
                 numOfkwGroup = len(mdDes[self.c + 1].mdItem)
                 for n in range(numOfkwGroup):
@@ -1289,7 +1288,7 @@ class MdMainEditor(wx.Panel):
 #------------------------------------------------------------------------------ next function
         self.mdo = MdFileWork()
         self.md = self.mdo.initMD()
-        # most of object from OWSLib is initialized in configure file
+        # most of objects from OWSLib is initialized in configure file
         dirpath = os.path.dirname(os.path.realpath(__file__))
         path = os.path.join(dirpath, 'config', 'init_md')
         mdInitData = open(path, 'r')

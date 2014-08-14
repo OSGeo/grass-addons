@@ -3,7 +3,7 @@
 """
 @package jinjainfo
 @module g.gui.metadata
-@brief  Library for parsing informations from jinja template
+@brief  Library for parsing information from jinja template
 
 Classes:
  - jinjainfo::MdDescription
@@ -29,26 +29,26 @@ class MdDescription():
                  group=None, inbox=None, multiline=None, validator=None,
                  num=None, ref=None, selfInfoString=None):
         '''
-        @param tag: OWSLib object which will be replaced by value of object after jinja template system render new file
-        @param object: some object in OWSLib is neecesarry to initialize temporaly in gui generator. Others are initialize by configure file
+        @param tag: OWSLib object which will be replaced by value of object after jinja template system renders new file
+        @param object: some objects in OWSLib need to be initialized temporally in gui generator. Others are initialized by configure file
         @param name:  label and tooltip name
         @param desc: description/definition of metadata item
         @param example: example of md item (tooltip)
-        @param type: data type is neccesary to validet widgets
-        @param multi: 0=only one instance of editor::MdItem widget can be, 1= multiple insctances of widgets can be
+        @param type: data type, necessary to validate widgets
+        @param multi: 0=only one instance of editor::MdItem widget can be, 1= multiple instances of widgets can be
         @param inboxmulti: 0=static box of items has not button for duplicating self 1=has button
-        @param group: this param initialize page in notebook in mani editor
-        @param inbox: Every items in block of code in jinja template must have same value of inbox.
+        @param group: this param initializes page in notebook in mani editor
+        @param inbox: Every item in block of code in jinja template must have same value of inbox.
                The value of inbox representing label of static box in gui.
-        @param multiline: If true- textCtrl widget will be init with multiline control
-        @param validator: Not use currently
+        @param multiline: If true- textCtrl widget will be initalized with multiline control
+        @param validator: Currently not used
         @param ref: additional information about reference of metadata item (ISO reference)
-        @param selfInfoString: string value representing all these information. (parsed from jinja template)
-        @var mdItem: very important parametr which holds instances of widgets(editor::MdItem)
+        @param selfInfoString: string value representing all these information (parsed from jinja template)
+        @var mdItem: very important parameter which holds instances of widgets(editor::MdItem)
              on every index of list is one instance of widget. In case, if is in static box MdItem with duplicating button:
             index of list is represented by list of these items
         @var statements: hold information about first statement in block
-        @var statements1: hold info about secont stetement in block of var: statement
+        @var statements1: hold info about second statement in block of var: statement
         '''
         self.tag = tag
         self.object = object
@@ -75,7 +75,7 @@ class MdDescription():
         '''care about integrity of var: self.mdItem
         '''
         # if new mditem is from box- need to hold information
-        # about it.(list on the same index in self.mdItem)
+        # about it (list on the same index in self.mdItem)
         if oldMdItem is not None:
             for n, item in enumerate(self.mdItem):
                 for i in item:
@@ -113,8 +113,8 @@ class JinjaTemplateParser():
         '''
         @var mdDescription: list of jinjainfo::mdDescription
         @var mdOWSTag: list of tags in jinja templates
-        @var mdOWSTagStr: string representing OWSLib tags from template(per line)
-        @var mdOWSTagStrList:  on each index of list is one line with parsed OWSLib tag
+        @var mdOWSTagStr: string representing OWSLib tags from template (per line)
+        @var mdOWSTagStrList: on each index of list is one line with parsed OWSLib tag
         '''
         self.mdDescription = []
         self.mdOWSTag = []
@@ -172,7 +172,7 @@ class JinjaTemplateParser():
             # print "I/O error({0}): {1}".format(e.errno, e.strerror)
 
     def _formatMdOWSTagStrToPythonBlocks(self):
-        '''Formating of parsed tags to pythonic blocks
+        '''Formatting of parsed tags to pythonic blocks
         '''
         self.mdOWSTagStr = ""
         tab = 0

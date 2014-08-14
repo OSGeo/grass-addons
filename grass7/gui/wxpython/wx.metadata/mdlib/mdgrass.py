@@ -44,7 +44,7 @@ class GrassMD():
     '''
     @var self.map:  name of choosen map by user
     @var self.type: typ of map representation(cell, vector, r3)
-    @var md_grass:  dict with metadata from r.info v.info  except "r.info flag=h"
+    @var md_grass:  dict with metadata from r.info v.info except for "r.info flag=h"
 
     '''
 
@@ -57,7 +57,7 @@ class GrassMD():
         self.md_abstract = ''
         self.md_vinfo_h = ''  # v.info flag=h" - parse
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
-        # postfix of output xml file (variables)
+        # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'  # currently
         self.dirpath = os.path.dirname(os.path.realpath(__file__))
         # metadata object from OWSLIB ( for define md values)
@@ -73,10 +73,10 @@ class GrassMD():
             self.parseRast3D()
 
     def isMapExist(self):
-        '''Check if is the map in working mapset'''
+        '''Check if the map is in current mapset'''
         self.mapset = grass.find_file(self.map, self.type)['mapset']
         if not self.mapset:
-            grass.fatal(_("Map <%s> doesn't exist") % self.map)
+            grass.fatal(_("Map <%s> does not exist in current mapset") % self.map)
 
     def parseRast3D(self):
         pass
@@ -96,7 +96,7 @@ class GrassMD():
 
         self.md_grass = parse_key_val(vinfo.outputs.stdout)
 
-        # parse md from v.info flag h (history of map in grass)
+        # parse md from v.info flag=h (history of map in grass)
         rinfo_h = Module(
             'v.info',
             self.map,
@@ -113,13 +113,13 @@ class GrassMD():
             line = buf.readline().splitlines()
         buf.close()
 
-        # convert grass parsed date format to iso format
+        # convert GRASS parsed date format to iso format
         # if date format is diverse from standard, use them
         self._createISODate('source_date')
 
     def _createISODate(self, key):
-        '''Function for converting grass-generated date to iso format
-           if the format of date is different to grass-generated format - use them and print warning
+        '''Function for converting GRASS-generated date to ISO format
+           if the format of date is different from GRASS-generated format - use it and print warning
         '''
         try:
             date = datetime.strptime(self.md_grass[key], '%a %b %d %H:%M:%S %Y')
@@ -141,7 +141,7 @@ class GrassMD():
 
         self.md_grass = parse_key_val(rinfo.outputs.stdout)
 
-        # convert date to iso format
+        # convert date to ISO format
         self._createISODate('date')
 
         # create abstract
@@ -199,6 +199,7 @@ class GrassMD():
         self.md.identification.uricodespace.append(n)
 
         # Geographic/BB
+        # TODO BUG?: minx=n/s and miny=w/e ?? reverted?
         self.md.identification.extent.boundingBox.minx = mdutil.replaceXMLReservedChar(self.md_grass['south'])
         self.md.identification.extent.boundingBox.maxx = mdutil.replaceXMLReservedChar(self.md_grass['north'])
         self.md.identification.extent.boundingBox.miny = mdutil.replaceXMLReservedChar(self.md_grass['west'])
@@ -206,7 +207,7 @@ class GrassMD():
 
         # Conformity/Title
         self.md.dataquality.conformancetitle.append(
-            'GRASS basic metadata profile based on ISO 19115, 19139')
+            'GRASS GIS basic metadata profile based on ISO 19115, 19139')
 
         # Conformity/Date:
         self.md.dataquality.conformancedate.append(mdutil.replaceXMLReservedChar(date.today().isoformat()))
@@ -245,7 +246,7 @@ class GrassMD():
         if self.type == 'vector':
 
             # Identification/Resource Abstract
-            # TODO not enough sources for crate abstarce
+            # TODO not enough sources for create abstarce
             self.md.identification.abstract = mdutil.replaceXMLReservedChar(self.md_grass['name'])
             self.md.dataquality.lineage = mdutil.replaceXMLReservedChar(self.md_vinfo_h).replace('\n', '\\n')
 
@@ -332,7 +333,7 @@ class GrassMD():
     def saveXML(self, path=None, xml_out_name=None, wxparent=None, overwrite=False):
         ''' Save init. record  of OWSLib objects to ISO XML file'''
 
-        # if  output file name is None, use map name and add postfix
+        # if  output file name is None, use map name and add suffix
         if xml_out_name is None:
             xml_out_name = self.type + '_' + str(self.map).partition('@')[0]  # + self.schema_type
         if not xml_out_name.lower().endswith('.xml'):
@@ -344,7 +345,7 @@ class GrassMD():
                 print os.makedirs(path)
         path = os.path.join(path, xml_out_name)
 
-        # generate xml using jinja tempaltes
+        # generate xml using jinja templates
         env = Environment(loader=FileSystemLoader(self.dirpath))
         env.globals.update(zip=zip)
         template = env.get_template(self.template)
@@ -353,7 +354,7 @@ class GrassMD():
         # write xml to flat file
         if wxparent != None:
             if os.path.isfile(path):
-                if mdutil.yesNo(wxparent, 'Metadata file is exist. Do you want to overwrite file: %s?' % path, 'Overwrite dialog'):
+                if mdutil.yesNo(wxparent, 'Metadata file exists. Do you want to overwrite file: %s?' % path, 'Overwrite dialog'):
                     try:
                         xml_file = open(path, "w")
                         xml_file.write(iso_xml)
@@ -362,7 +363,7 @@ class GrassMD():
                                                      %s' % (str(path)))
                     except IOError as e:
                         print "I/O error({0}): {1}".format(e.errno, e.strerror)
-                        grass.fatal('error: cannot write xml to file')
+                        grass.fatal('ERROR: cannot write xml to file')
                 return path
             else:
                 try:
@@ -373,12 +374,12 @@ class GrassMD():
                                                      %s' % (str(path)))
                 except IOError as e:
                     print "I/O error({0}): {1}".format(e.errno, e.strerror)
-                    grass.fatal('error: cannot write xml to file')
+                    grass.fatal('ERROR: cannot write xml to file')
                     # sys.exit()
                 return path
         else:
             if os.path.isfile(path):
-                Module('g.message', message='Metadata file is exist: %s' % path)
+                Module('g.message', message='Metadata file exists: %s' % path)
                 if overwrite:
                     try:
                         xml_file = open(path, "w")
@@ -391,6 +392,7 @@ class GrassMD():
                         # sys.exit()
                     return path
                 else:
+                    # TODO --o??
                     Module('g.message', message='For overwriting use flag -o')
                     return False
 
@@ -402,7 +404,7 @@ class GrassMD():
 
     def updateGrassMd(self, md):
         '''
-        Update some parameters in r/v.support. This part need revision#TODO
+        Update some parameters in r/v.support. This part need revision #TODO
         '''
         if self.type == "vector":
 
