@@ -33,12 +33,21 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
 
-from grass.script import parser
-from mdgrass import *
+from grass.script import parser, fatal
+from grass.pygrass.functions import get_lib_path
+
+def load_mdlib():
+    path = get_lib_path(modname='wx.metadata', libname='mdgrass')
+    if path is not None:
+        fatal("Not able to find the metadata library directory")
+    sys.path.append(path)
 
 def main():
+    # load metadata library
+    load_mdlib()
+    from mdgrass import GrassMD
+
     if not options['output']:
         destination = None
         name = None
