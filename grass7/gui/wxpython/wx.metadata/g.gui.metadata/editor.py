@@ -210,7 +210,7 @@ class MdBox(wx.Panel):
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
 
-    def addDuplicatedItem(self, item):
+    def addDuplicatedItem(self, item,mdID):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
         self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
         self.GetParent().Layout()
