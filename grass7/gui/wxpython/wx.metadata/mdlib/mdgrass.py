@@ -59,12 +59,12 @@ class GrassMD():
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'  # currently
-        self.dirpath = os.path.dirname(os.path.realpath(__file__))
+        self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata')
+        #os.path.dirname(os.path.realpath(__file__))
         # metadata object from OWSLIB ( for define md values)
         self.md = MD_Metadata(md=None)
         self.template = None  # path to file with xml templates
-        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata')
-        
+
         if self.type == "cell":
             self.parseRast()
         elif self.type == "vector":
@@ -89,21 +89,21 @@ class GrassMD():
 
         # parse md from v.info flags=-g -e -t
         vinfo = Module(
-                    'v.info',
-                    self.map,
-                    flags='get',
-                    quiet=True,
-                    stdout_=PIPE)
+            'v.info',
+            self.map,
+            flags='get',
+            quiet=True,
+            stdout_=PIPE)
 
         self.md_grass = parse_key_val(vinfo.outputs.stdout)
 
         # parse md from v.info flag=h (history of map in grass)
         rinfo_h = Module(
-                    'v.info',
-                    self.map,
-                    flags='h',
-                    quiet=True,
-                    stdout_=PIPE)
+            'v.info',
+            self.map,
+            flags='h',
+            quiet=True,
+            stdout_=PIPE)
 
         md_h_grass = rinfo_h.outputs.stdout
         buf = StringIO.StringIO(md_h_grass)
@@ -131,8 +131,8 @@ class GrassMD():
 
     def parseRast(self):
         '''Read metadata from r.info
-        @var self.md_grass       dictionary of metadata from v.info
-        @var self.md_abstract    string created by merge information from 'description' and 'source'
+        #self.md_grass       dictionary of metadata from v.info
+        #self.md_abstract    string created by merge information from 'description' and 'source'
         '''
         rinfo = Module('r.info',
                        self.map,
@@ -170,7 +170,7 @@ class GrassMD():
         # jinja templates
         if template is None:
             
-            parentDir=os.path.abspath(os.path.join(self.addonsPath, os.path.pardir))
+            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
             self.template = os.path.join(parentDir,'templates', 'basicTemplate.xml')
         else:
             self.template = template
@@ -265,6 +265,7 @@ class GrassMD():
 
     def createGrassInspireISO(self, template=None):
         '''Create valid INSPIRE profile and fill it as much as possible by GRASS metadata. Missing values is $NULL
+        -create basic md profile and add INSPIRE mandatory attributes
         '''
 
         self.schema_type = '_inspire.xml'
@@ -273,7 +274,7 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if template is None:
-            parentDir=os.path.abspath(os.path.join(self.addonsPath, os.path.pardir))
+            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
             self.template = os.path.join(parentDir,'templates', 'inspireTemplate.xml')
         else:
             self.template = template
