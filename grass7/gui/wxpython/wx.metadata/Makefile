@@ -10,6 +10,8 @@ include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default:
 	$(MAKE) parsubdirs
+	@cp -r templates $(ETC)
+	@cp -r config $(ETC)
 
 install:
 	@cd mdlib ; $(MAKE) install
