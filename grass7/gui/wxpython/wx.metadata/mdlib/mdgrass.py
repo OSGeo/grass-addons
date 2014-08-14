@@ -27,7 +27,6 @@ import subprocess as sub
 import uuid
 import mdutil  # metadata lib
 import getpass  # whoami for linux and  ms-win
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
 
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.gis import Mapset
@@ -169,7 +168,8 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if template is None:
-            self.template = os.path.join('templates', 'basicTemplate.xml')
+            parentDir=os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
+            self.template = os.path.join(parentDir,'templates', 'basicTemplate.xml')
         else:
             self.template = template
 
@@ -272,7 +272,8 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if template is None:
-            self.template = os.path.join('templates', 'inspireTemplate.xml')
+            parentDir=os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))
+            self.template = os.path.join(parentDir,'templates', 'inspireTemplate.xml')
         else:
             self.template = template
 

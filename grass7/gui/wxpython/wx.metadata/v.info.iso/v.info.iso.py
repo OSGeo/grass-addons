@@ -2,7 +2,7 @@
 # -*- coding: utf-8
 """
 @module  v.info.iso
-@brief   Module for creating metadata based on ISO from vector maps
+@brief   Module for creating metadata based on ISO for vector maps
 
 (C) 2014 by the GRASS Development Team
 This program is free software under the GNU General Public License
@@ -20,19 +20,17 @@ This program is free software under the GNU General Public License
 #%end
 
 #%option
-#% key: profil
-#% label: Metadata profil based on ISO
+#% key: profile
+#% label: Metadata profile based on ISO
 #% description: INSPIRE profile is not filled properly (unknown values are filled with '$NULL')
 #% options: basic, inspire
 #% answer: basic
 #%end
 
 #%option G_OPT_F_OUTPUT
-#% key: output
-#% label: File output 
+#% key: out
 #% required: no
 #%end
-
 
 import os
 import sys
@@ -41,24 +39,20 @@ sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadat
 from grass.script import parser
 from mdgrass import *
 
-
 def main():
-    if not options['destination']:
+    if not options['out']:
         destination = None
+        name = None
     else:
-        destination = options['destination']
-
-    if not options['mdout']:
-        mdout = None
-    else:
-        mdout = options['mdout']
+        destination, name = os.path.split(options['out'])
 
     md = GrassMD(options['map'], 'vector')
-    if options['profil'] == 'inspire':
+    if options['profile'] == 'inspire':
         md.createGrassInspireISO()
         xml_file = md.saveXML(path=destination,
-                              xml_out_name=mdout,
+                              xml_out_name=name,
                               overwrite=os.getenv('GRASS_OVERWRITE', False))
+        
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_inspire()
@@ -66,8 +60,9 @@ def main():
     else:
         md.createGrassBasicISO()
         xml_file = md.saveXML(path=destination,
-                              xml_out_name=mdout,
+                              xml_out_name=name,
                               overwrite=os.getenv('GRASS_OVERWRITE', False))
+        
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_basic()
