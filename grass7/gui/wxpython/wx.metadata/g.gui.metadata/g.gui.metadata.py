@@ -21,21 +21,25 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
+import os
+import sys
+import glob
+from lxml import etree
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
+
 import wx
 from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
 from wx import SplitterWindow, EVT_BUTTON
 from wx.lib.pubsub import setupkwargs, pub
-from editor import MdMainEditor
-
-import glob
-import os
-import sys
-import mdgrass
-import mdutil
-from lxml import etree
 
 import grass.script as grass
 import grass.script.setup as gsetup
+
+import mdgrass
+import mdutil
+
+from editor import MdMainEditor
 from lmgr import datacatalog
 from core.gcmd import RunCommand, GError, GMessage
 

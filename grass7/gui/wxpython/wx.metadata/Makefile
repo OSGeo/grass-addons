@@ -3,7 +3,8 @@ MODULE_TOPDIR = ..
 SUBDIRS = \
 	mdlib \
 	r.info.iso \
-	v.info.iso
+	v.info.iso \
+	g.gui.metadata
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
