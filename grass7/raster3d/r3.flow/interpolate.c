@@ -16,6 +16,7 @@
 #include <grass/raster3d.h>
 
 #include "r3flow_structs.h"
+#include "interpolate.h"
 
 /*!
    \brief Finds 8 nearest voxels from a point.

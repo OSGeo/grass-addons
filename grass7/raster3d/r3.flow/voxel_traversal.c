@@ -1,6 +1,8 @@
 #include <math.h>
 #include <grass/raster3d.h>
 
+#include "voxel_traversal.h"
+
 void traverse(RASTER3D_Region * region, double *start, double *end,
 	      int *coordinates, int *size, int *coor_count)
 {
