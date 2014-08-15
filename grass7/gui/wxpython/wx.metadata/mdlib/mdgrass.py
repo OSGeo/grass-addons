@@ -195,7 +195,6 @@ class GrassMD():
         self.md.identification.uricodespace.append(n)
 
         # Geographic/BB
-        # TODO BUG?: minx=n/s and miny=w/e ?? reverted? FIXED
         self.md.identification.extent.boundingBox.minx = mdutil.replaceXMLReservedChar(self.md_grass['north'])
         self.md.identification.extent.boundingBox.maxx = mdutil.replaceXMLReservedChar(self.md_grass['south'])
         self.md.identification.extent.boundingBox.miny = mdutil.replaceXMLReservedChar(self.md_grass['east'])

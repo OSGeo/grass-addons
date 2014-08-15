@@ -1,10 +1,21 @@
 <h2>DESCRIPTION</h2>
 
-Metadata editor according to EN ISO 19115. 
+Metadata editor according to according
+to <a href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO
+19115</a>.
+
 <p>
 Metadata editor includes graphical interface for conversion metadata from r.info and v.info to ISO based metadata, editing metadata files and creating metadata templates. In addition, the graphical module allows validating of INSPIRE and Basic profile.
+
+<h2>NOTES</h2>
+
+For dependencies and installation instructions see
+<a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+
 <p>
 <em><b>Dependencies</b></em> 
+<p>
+Current development of metadata management requires external libraries:
 <p>
 <ul>
 <li>OWSLib development version 
@@ -23,9 +34,7 @@ Metadata editor includes graphical interface for conversion metadata from r.info
 <em>cd jinja2 && sudo python setup.py install</em>
 </ul>
 
-<p>
-<em><b>Naming of metadata files and storage</b></em> 
-<p>
+<h3>Naming of metadata files and storage</h3> 
 
 The metadata product fully supports XML Default location of exported metadata uses folder “metadata”
  in GRASS Location. In case the metadata file name is not changed, the name is build from prefix 
@@ -59,7 +68,7 @@ Combo box for selection of ISO profile:
 <ul>
 <li> basic
 <li> inspire
-<li>load custom – this option allows to load metadata profile from file. For example in case of use of predefined template. With this selection the editor make intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile.
+<li> load custom - this option allows to load metadata profile from file. For example in case of use of predefined template. With this selection the editor make intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile.
 </ul>
 
 
@@ -102,15 +111,21 @@ The g.gui.metadata module allows to update native GRASS metadata with using modu
 
 <h2>SEE ALSO</h2>
 
-<em><a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">metadata wiki page</a></em>,
-<em><a href="v.info.iso.html">v.info.iso</a></em>,
-<em><a href="r.info.iso.html">r.info.iso</a></em>
+<em>
+  <a href="v.info.iso.html">v.info.iso</a>,
+  <a href="r.info.iso.html">r.info.iso</a>,
+  <a href="g.gui.metadata.html">g.gui.metadata</a>
+</em>
+
+<p>
+See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 
 <h2>AUTHOR</h2>
 
-Matej
-Krejci, <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
+Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
+at the Czech Technical University in Prague, developed
+during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
 Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
 
 <p>
