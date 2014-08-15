@@ -7,7 +7,7 @@
          metadata with using OWSLib and jinja template.
 
 Classes:
- - mdgrass::MdDescription
+ - mdgrass::GrassMD
 
 (C) 2014 by the GRASS Development Team
 This program is free software under the GNU General Public License
@@ -51,16 +51,14 @@ class GrassMD():
     def __init__(self, map, type):
         self.map = map
         self.type = type
-
         self.isMapExist()  # function to check if map exist
         self.md_grass = {}
         self.md_abstract = ''
         self.md_vinfo_h = ''  # v.info flag=h" - parse
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
         # suffix of output xml file (variables)
-        self.schema_type = '_basic.xml'  # currently
+        self.schema_type = '_basic.xml'
         self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata')
-        #os.path.dirname(os.path.realpath(__file__))
         # metadata object from OWSLIB ( for define md values)
         self.md = MD_Metadata(md=None)
         self.template = None  # path to file with xml templates
@@ -86,10 +84,8 @@ class GrassMD():
         '''Read metadata from v.info
         @var self.md_grass dictionary of metadata from v.info
         '''
-
         # parse md from v.info flags=-g -e -t
-        vinfo = Module(
-            'v.info',
+        vinfo = Module('v.info',
             self.map,
             flags='get',
             quiet=True,
@@ -98,12 +94,11 @@ class GrassMD():
         self.md_grass = parse_key_val(vinfo.outputs.stdout)
 
         # parse md from v.info flag=h (history of map in grass)
-        rinfo_h = Module(
-            'v.info',
-            self.map,
-            flags='h',
-            quiet=True,
-            stdout_=PIPE)
+        rinfo_h = Module('v.info',
+              self.map,
+              flags='h',
+              quiet=True,
+              stdout_=PIPE)
 
         md_h_grass = rinfo_h.outputs.stdout
         buf = StringIO.StringIO(md_h_grass)
@@ -169,9 +164,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if template is None:
-            
-            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
-            self.template = os.path.join(parentDir,'templates', 'basicTemplate.xml')
+            self.template = os.path.join('templates', 'basicTemplate.xml')
         else:
             self.template = template
 
@@ -202,11 +195,11 @@ class GrassMD():
         self.md.identification.uricodespace.append(n)
 
         # Geographic/BB
-        # TODO BUG?: minx=n/s and miny=w/e ?? reverted?
-        self.md.identification.extent.boundingBox.minx = mdutil.replaceXMLReservedChar(self.md_grass['south'])
-        self.md.identification.extent.boundingBox.maxx = mdutil.replaceXMLReservedChar(self.md_grass['north'])
-        self.md.identification.extent.boundingBox.miny = mdutil.replaceXMLReservedChar(self.md_grass['west'])
-        self.md.identification.extent.boundingBox.maxy = mdutil.replaceXMLReservedChar(self.md_grass['east'])
+        # TODO BUG?: minx=n/s and miny=w/e ?? reverted? FIXED
+        self.md.identification.extent.boundingBox.minx = mdutil.replaceXMLReservedChar(self.md_grass['north'])
+        self.md.identification.extent.boundingBox.maxx = mdutil.replaceXMLReservedChar(self.md_grass['south'])
+        self.md.identification.extent.boundingBox.miny = mdutil.replaceXMLReservedChar(self.md_grass['east'])
+        self.md.identification.extent.boundingBox.maxy = mdutil.replaceXMLReservedChar(self.md_grass['west'])
 
         # Conformity/Title
         self.md.dataquality.conformancetitle.append(
@@ -274,8 +267,7 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if template is None:
-            parentDir=os.path.abspath(os.path.join(self.dirpath, os.path.pardir))
-            self.template = os.path.join(parentDir,'templates', 'inspireTemplate.xml')
+            self.template = os.path.join('templates',  'inspireTemplate.xml')
         else:
             self.template = template
 
