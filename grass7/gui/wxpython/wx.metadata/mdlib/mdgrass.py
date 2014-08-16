@@ -371,7 +371,7 @@ class GrassMD():
                     print "I/O error({0}): {1}".format(e.errno, e.strerror)
                     grass.fatal('ERROR: cannot write xml to file')
                     # sys.exit()
-                return path
+                return patha
         else:
             if os.path.isfile(path):
                 Module('g.message', message='Metadata file exists: %s' % path)
@@ -381,15 +381,24 @@ class GrassMD():
                         xml_file.write(iso_xml)
                         xml_file.close()
                         Module('g.message', message='Metadata file has been overwritten')
+                        return path
                     except IOError as e:
                         print "I/O error({0}): {1}".format(e.errno, e.strerror)
                         grass.fatal('error: cannot write xml to file')
-                        # sys.exit()
-                    return path
                 else:
-                    # TODO --o??
-                    Module('g.message', message='For overwriting use flag -o')
+                    Module('g.message', message='For overwriting use flag -overwrite')
                     return False
+            else: 
+                try:
+                    xml_file = open(path, "w")
+                    xml_file.write(iso_xml)
+                    xml_file.close()
+                    Module('g.message', message='Metadata file has been exported')
+                    return path
+                    
+                except IOError as e:
+                    print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                    grass.fatal('error: cannot write xml to file')                
 
     def validate_inspire(self):
         return mdutil.isnpireValidator(self.md)
