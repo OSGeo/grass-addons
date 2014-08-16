@@ -39,7 +39,7 @@ from grass.pygrass.functions import get_lib_path
 
 def load_mdlib():
     path = get_lib_path(modname='wx.metadata', libname='mdgrass')
-    if path is not None:
+    if path is None:
         fatal("Not able to find the metadata library directory")
     sys.path.append(path)
 
