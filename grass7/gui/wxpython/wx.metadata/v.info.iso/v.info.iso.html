@@ -13,38 +13,19 @@ to ISO-based format.
 For dependencies and installation instructions see
 <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
-<p>
-<em><b>Dependencies</b></em> 
-<p>
-Current development of metadata management requires external libraries:
-<p>
-<ul>
-<li>OWSLib development version 
-
-<p>
-<em>git clone git://github.com/geopython/OWSLib.git</em>
-<br>
-<em>cd OWSLib && sudo python setup.py install</em>
-<br>
-
-
-<li>Jinja templates
-<p>
-<em>git clone git://github.com/mitsuhiko/jinja2.git
-<br>
-<em>cd jinja2 && sudo python setup.py install</em>
-</ul>
-
 <h3>Naming of metadata files and storage</h3> 
 
-The metadata product fully supports XML Default location of exported metadata uses folder “metadata”
- in GRASS Location. In case the metadata file name is not changed, the name is build from prefix 
-according to characteristic of maps. For raster maps prefix is derived from current nomenclature - 
-'cell' and for vector map – 'vector' by the same way. File name is derived from the the name of the 
-map. Postfix-extension is '.xml'.
-<p>
-example: vector map - roads vector_roads.xml
 
+Default location for exported metadata files is
+<i>metadata</i> directory in the map's mapset. If the name for output
+metadata file is not specified by <b>output</b> option than the name
+is built from map's type and its name. For raster maps, the prefix
+derived from the current nomenclature is <em>cell</em>, for vector
+maps <em>vector</em>. File ends with <em>.xml</em> extension.
+
+<p>
+For example default metadata file name for raster map
+&quot;basins&quot; is <em>vector_basins.xml</em>.
 
 <h3>Metadata profile</h3>
 
