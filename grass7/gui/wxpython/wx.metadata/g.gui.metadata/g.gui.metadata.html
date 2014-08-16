@@ -30,7 +30,7 @@ The <i>basic</i> profile is substituted from intersection between
 items stored in GRASS native metadata format and INSPIRE profile. The
 intersect (subset) includes all available GRASS metadata. Metadata
 which cannot be assigned to ISO based attributes are stored in
-metadata attribute <em>abstract</em>. The <i>inspire</i> profile
+metadata attribute s<em>abstract</em>. The <i>inspire</i> profile
 fulfills the criteria of INSPIRE profile. Values which are not able to
 get from native GRASS metadata are filled by text
 string <tt>'$NULL'</tt>. This rule applies for both profiles.
@@ -42,10 +42,11 @@ Editor offers two editing modes. The first one allows to create metadata from se
 
 <h4>Metadata map editor </h4>
 
-The product of this editor mode is similar to product of r|v.info.iso. After selection of map, the editor convert native metadata of map to ISO based. By exported xml file is metadata editor initialized.
-<li> basic
-<li> inspire
-<li> load custom - this option allows to load metadata profile from file. For example in case of using predefined template. The intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile will proced with this selection.
+The basis of this editor mode is similar to r|v.info.iso. After selection of map, the editor convert native metadata of map to ISO based. By exported xml file is metadata editor initialized.
+
+There are three options to select:
+<b>basic</b>,
+<b>inspire</b> or <b>load custom</b>. Last one allows to load metadata profile from file. For example in case of using predefined template. The intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile will proced with this selection.
 
 
 <h4> External metadata editor</h4>
