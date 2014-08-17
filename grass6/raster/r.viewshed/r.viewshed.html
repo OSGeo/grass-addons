@@ -11,8 +11,9 @@ result <em>r.viewshed</em> runs fast on very large rasters.
 
 <h3>Options and flags:</h3>
 
-To run <em>r.viewshed</em>, the user must specify an input map name,
-an output map name, and the location of the viewpoint.  
+To run <em>r.viewshed</em>, the user must specify an input elevation
+map name, an output raster map name, and the location of the
+viewpoint.
 
 <p>Viewpoint (<em>coordinate</em> parameter): For the time being the viewpoint
 is assumed to be located inside the terrain.  The viewpoint location is
@@ -35,7 +36,7 @@ regard to the viewpoint, in degrees, if the point is visible.
 If the <b>-b</b> flag is set, the output is in boolean-mode, and each point
 in the output map is marked as:
 <ul>
-  <li> 0 if the point is Nodata/null or not visible
+  <li> 0 if the point is no-data/null or not visible
   <li> 1 if the point is visible.
 </ul>
 
@@ -45,7 +46,7 @@ If the <b>-e</b> flag is set, the output is in elevation-mode, and each point
 in the output map is marked as:
 <!-- Check & FIXME -->
 <ul>
-  <li> Nodata (null), if the respective point in the elevation map is Nodata (null) 
+  <li> no-data (null), if the respective point in the elevation map is no-data (null) 
   <li> -1, if the point is not visible
   <li> the difference in elevation between the point and the viewpoint, if the point is visible.
 </ul>
@@ -58,26 +59,26 @@ radius but not visible, a combination of <em>r.buffer</em> and
 
 
 <p>
-Curvature of the earth: By default the elevations are not adjusted for
-the curvature of the earth. The user can turn this on with flag
+By default the elevations are not adjusted for the curvature of the
+earth. The user can turn this on with flag
 <b>-c</b>.
 
 <p>
 Observer elevation: By default the observer is assumed to have
-height=0 above the terrain.  The user can change this using option
-<em>obs_elev=...</em>. The value entered is in the same units
+height of 0 map units above the terrain.  The user can change this using option
+<em>obs_elev</em>. The value entered is in the same units
 as the elevation.
 
 <p>
 Target elevation: By default the target is assumed to have
-height=0 above the terrain.  The user can change this using option
-<em>tgt_elev=...</em> to determine if objects of a given height would be 
+height of 0 map units above the terrain.  The user can change this using option
+<em>tgt_elev</em> to determine if objects of a given height would be 
 visible. The value entered is in the same units as the elevation.
 
 <p>
 Maximum visibility distance: By default there is no restriction on
 the maximum distance to which the observer can see.  The user can set
-a maximum distance of visibility using option <em>max_dist=...</em>.
+a maximum distance of visibility using option <em>max_dist</em>.
 The value entered is in the same units as the cell size of the raster.
 
 <p>
@@ -105,8 +106,6 @@ the memory may result in <em>r.viewshed</em> running in external mode
 instead of internal, which is slower. Overestimating the amount of
 free memory may result in <em>r.viewshed</em> running in internal mode
 and using virtual memory, which is slower than the external mode.
-
-
 
 
 <h3>The algorithm:</h3>
@@ -170,37 +169,66 @@ REFERENCES below.
 </table>
 
 
-<h3>An example:</h3>
+<h2>EXAMPLES</h2>
 
+Using the North Carolina dataset:  Compute viewshed from a observation 
+point (coordinates: 638728.087167, 220609.261501) which is 5 meters 
+above ground:
 
-Using the Spearfish dataset:  calculating the viewpoint from the top
+<div class="code"><pre>
+g.region rast=elev_lid792_1m -p
+r.viewshed input=elev_lid792_1m output=elev_lid792_1m_viewshed \
+  coordinate=638728.087167,220609.261501 obs_elev=5.0
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<img src="r_viewshed.png" border=0><br>
+<i>Viewshed</i>
+</div>
+<!--
+# image generated using
+d.mon x0
+d.rast elev_lid792_1m
+d.rast elev_lid792_1m_viewshed -o
+# save image to files
+# crop the background using Gimp or ImageMagic
+mogrify -trim *.png
+# some bounding box problems noticed when opening mogrify result in Gimp
+-->
+
+Using the Spearfish dataset:  calculating the viewpoint from top
 of a mountain:
 
 <div class="code"><pre>
 g.region rast=elevation.10m
-r.viewshed input=elevation.10m output=viewshed coordinate=598869,4916642 mem=800
+r.viewshed input=elevation.10m output=viewshed \
+  coordinate=598869,4916642 mem=800
 </pre></div>
 
 
-<h3>REFERENCES</h3>
+<h2>REFERENCES</h2>
 
 <ul>
 
-   <li>Computing Visibility on Terrains in External Memory. Herman
-	 Haverkort, Laura Toma and Yi Zhuang. To appear in <em>ACM Journal
-	 on Experimental Algorithmics</em>.
+<li>Computing Visibility on Terrains in External Memory. Herman 
+Haverkort, Laura Toma and Yi Zhuang. In <em>ACM Journal on Experimental 
+Algorithmics (JEA)</em> 13 (2009).</li>
 	 
-	 <li><a
-	 href="http://www.siam.org/proceedings/alenex/2007/alx07_002haverkorth.pdf">
-	 Computing Visibility on Terrains in External Memory</a>. Herman
-	 Haverkort, Laura Toma and Yi Zhuang. In the <em>Proceedings of
-	 the 9th Workshop on Algorithm Engineering and Experiments /
-	 Workshop on Analytic Algorithms and Combinatorics (ALENEX/ANALCO
-	 2007)</em>.</li>
-
+<li><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.76.4282&rep=rep1&type=pdf">Computing
+Visibility on Terrains in External Memory</a>. Herman Haverkort, Laura 
+Toma and Yi Zhuang. In the <em>Proceedings of the 9th Workshop on 
+Algorithm Engineering and Experiments / Workshop on Analytic Algorithms 
+and Combinatorics (ALENEX/ANALCO 2007)</em>.</li>
 </ul>
 
-<h3>AUTHORS</h3>
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.los.html">r.los</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>
+</em>
+
+<h2>AUTHORS</h2>
 
 <p>Laura Toma (Bowdoin College): <tt>ltoma@bowdoin.edu</tt>
 <p> Yi Zhuang (Carnegie-Mellon University): <tt>yzhuang@andrew.cmu.edu</tt>
