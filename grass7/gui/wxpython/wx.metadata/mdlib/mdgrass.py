@@ -371,7 +371,7 @@ class GrassMD():
                     print "I/O error({0}): {1}".format(e.errno, e.strerror)
                     grass.fatal('ERROR: cannot write xml to file')
                     # sys.exit()
-                return patha
+                return path
         else:
             if os.path.isfile(path):
                 Module('g.message', message='Metadata file exists: %s' % path)
