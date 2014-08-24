@@ -36,7 +36,12 @@ function compile {
 	fi
 	cd $mod
 	if [ -f bin/${mod}.bat ] ; then
-	    sed "s/GISBASE/GRASS_ADDON_PATH/" bin/${mod}.bat > tmp
+	    if [ `echo $1 | sed -e 's/\(^.*\)\(.$\)/\2/'` = "6" ] ; then
+		replace_gisbase="GRASS_ADDON_PATH"
+	    else
+		replace_gisbase="GRASS_ADDON_BASE"
+	    fi
+	    sed "s/GISBASE/$replace_gisbase/" bin/${mod}.bat > tmp
 	    mv tmp bin/${mod}.bat
 	fi
 	# if [ `echo $1 | sed -e 's/\(^.*\)\(.$\)/\2/'` = "6" ] ; then
