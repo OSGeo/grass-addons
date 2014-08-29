@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.centerline.closest</em> creates a new map with a line representing an approximation of the central tendency of a series of input lines. This cani for example, be the central line of a river represented by its two sides, or a line representing the general direction of a series of flight paths, etc.  
+<em>v.centerline</em> creates a new map with a line representing an approximation of the central tendency of a series of input lines. This can for example, be the central line of a river represented by its two sides, or a line representing the general direction of a series of flight paths, etc.  
 
 Two algorithms are proposed in the module, both based on the idea of using a reference line, creating a series of reference points along this line and then finding the coordinates of corresponding points on all the input lines. The default algorithm uses closest distance to identify corresponding points, while the second algorithm (<b>t</b> flag) draws perpendicular transversals at the reference points and uses the intersections of these transversals with the other lines as corresponding points.
 
@@ -10,7 +10,7 @@ In detail, the default algorithm goes as follows:
 	<li>create a series of points at regular intervals on this line</li>
 	<li>for each of these points:
 	  <ul>
-		  <li>find the closest point on all input lines</li>
+		  <li>find the closest point on each of the input lines</li>
 		  <li>get the coordinates of those points</li>
 		  <li>calculate the mean or (mathematical) median of these coordinates</li>
 	  </ul>
@@ -34,7 +34,7 @@ The transversals algorithm goes as follows:
 	<li>use the calculated means (or medians) as vertices of the new line</li>
 </ul>
 
-The user can change three parameters in the algorithms: the choice of the reference line (<b>refline</b>), the number of vertices to calculate (<b>vertices</b>) and the search range (<b>range</b>), i.e. the maximum distance of corresponding points for the default algorithm and the length of the transversals on each side of the reference line. 
+The user can change three parameters in the algorithms: the choice of the reference line (<b>refline</b>), the number of vertices to calculate (<b>vertices</b>) and the search range (<b>range</b>), i.e. for the default algorithm the maximum distance of corresponding points from the reference line and for the second algorithm the length of the transversals on each side of the reference line. 
 
 If no reference line is given the module choses the reference line by determining the mean distance of the midpoint of each line to the midpoints of all other lines. The line with the lowest mean distance is then chosen as the reference line. If no range is given, the module uses the mean of the above mean distances as the range for the transversals algorithm, and an unlimited search range for the default algorithm.
 
