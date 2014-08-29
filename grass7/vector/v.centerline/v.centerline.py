@@ -3,7 +3,7 @@
 #
 # MODULE:       v.centerline
 # AUTHOR:       Moritz Lennert
-# PURPOSE:      Takes a map of vector lines and creates a new map containing 
+# PURPOSE:      Takes a map of vector lines and creates a new map containing
 #               a central line
 #
 # COPYRIGHT:    (c) 2014 Moritz Lennert, and the GRASS Development Team
@@ -25,7 +25,7 @@
 #%option
 #% key: range
 #% type: double
-#% description: Distance (in map units) of search radius 
+#% description: Distance (in map units) of search radius
 #% required: no
 #%end
 #%option
@@ -60,6 +60,7 @@ tmp_points_map = None
 tmp_line_map = None
 tmp_centerpoints_map = None
 
+
 def cleanup():
     if grass.find_file(tmp_points_map, element='vector')['name']:
         grass.run_command('g.remove', vect=tmp_points_map, quiet=True)
@@ -84,7 +85,7 @@ def main():
     if options['range']:
         search_range = float(options['range'])
     else:
-         search_range = None
+        search_range = None
     output = options['output']
     transversals = flags['t']
     median = flags['m']
@@ -100,107 +101,111 @@ def main():
     tmp_cleaned_map = 'cleaned_map_tmp_%d' % os.getpid()
     tmp_map = 'generaluse_map_tmp_%d' % os.getpid()
 
-    nb_lines=grass.vector_info_topo(input)['lines']
+    nb_lines = grass.vector_info_topo(input)['lines']
 
-    #Find best reference line and max distance between centerpoints of lines
-    segment_input=''
-    categories=grass.pipe_command('v.category', input=input, option='print',
+    # Find best reference line and max distance between centerpoints of lines
+    segment_input = ''
+    categories = grass.pipe_command('v.category', input=input, option='print',
             quiet=True)
     for category in categories.stdout:
-        segment_input += 'P ' + category.strip() 
+        segment_input += 'P ' + category.strip()
         segment_input += ' ' + category.strip() + ' 50%\n'
 
     grass.write_command('v.segment', input=input, output=tmp_centerpoints_map,
             file='-', stdin=segment_input, quiet=True)
 
-    center_distances=grass.pipe_command('v.distance',
+    center_distances = grass.pipe_command('v.distance',
             _from=tmp_centerpoints_map, to=tmp_centerpoints_map, upload='dist',
             column='dist', flags='pa', quiet=True)
 
-    cats=[]
-    mean_dists=[]
-    count=0
-    distmax=0
+    cats = []
+    mean_dists = []
+    count = 0
+    distmax = 0
     for center in center_distances.stdout:
-        if count<2:
-            count+=1
+        if count < 2:
+            count += 1
             continue
         cat = center.strip().split('|')[0]
-        distsum=0
+        distsum = 0
         for x in center.strip().split('|')[1:]:
-            distsum+=float(x)
+            distsum += float(x)
         mean_dist = distsum/len(center.strip().split('|')[1:])
         cats.append(cat)
         mean_dists.append(mean_dist)
 
     if transversals and not search_range:
-        search_range=sum(mean_dists)/len(mean_dists)
+        search_range = sum(mean_dists)/len(mean_dists)
         grass.message(_("Calculated search range:  %.5f." % search_range))
-    
-    if not refline_cat:
-        refline_cat = sorted(zip(cats, mean_dists), key = lambda tup: tup[1])[0][0]
-        grass.message(_("Line with category number %s was chosen as reference line." % refline_cat))
 
-    #Use transversals algorithm
+    if not refline_cat:
+        refline_cat = sorted(zip(cats, mean_dists),
+                key=lambda tup: tup[1])[0][0]
+
+        grass.message(_("Category number of chosen reference line: %s." % refline_cat))
+
+    # Use transversals algorithm
     if transversals:
 
-        #Break any intersections in the original lines so that they do not interfere
-        #further on
+        # Break any intersections in the original lines so that
+        # they do not interfere further on
         grass.run_command('v.clean', input=input, output=tmp_cleaned_map,
                 tool='break', quiet=True)
 
-        xmean=[]
-        ymean=[]
-        xmedian=[]
-        ymedian=[]
-        step=100.0/nb_vertices
+        xmean = []
+        ymean = []
+        xmedian = []
+        ymedian = []
+        step = 100.0/nb_vertices
 
-        os.environ['GRASS_VERBOSE']='-1'
+        os.environ['GRASS_VERBOSE'] = '-1'
 
-        for vertice in range(0,nb_vertices+1):
-            #v.segment sometimes cannot find points when using 0% or 100% offset
-            length_offset=step*vertice
-            if length_offset<0.00001:
-                length_offset=0.00001
-            if length_offset>99.99999:
-                length_offset=99.9999
-            #Create endpoints of transversal
+        for vertice in range(0, nb_vertices+1):
+            # v.segment sometimes cannot find points when
+            # using 0% or 100% offset
+            length_offset = step*vertice
+            if length_offset < 0.00001:
+                length_offset = 0.00001
+            if length_offset > 99.99999:
+                length_offset = 99.9999
+            # Create endpoints of transversal
             segment_input = 'P 1 %s %.5f%% %f\n' % (refline_cat, length_offset,
                     search_range)
-            segment_input += 'P 2 %s %.5f%% %f\n' % (refline_cat, length_offset,
-                    -search_range)
-            grass.write_command('v.segment', input=input, output=tmp_points_map,
-                    stdin=segment_input, overwrite=True)
+            segment_input += 'P 2 %s %.5f%% %f\n' % (refline_cat,
+                    length_offset, -search_range)
+            grass.write_command('v.segment', input=input,
+                    output=tmp_points_map, stdin=segment_input, overwrite=True)
 
-            #Create transversal
-            grass.write_command('v.net', points=tmp_points_map, output=tmp_line_map,
-                    operation='arcs', file='-', stdin='99999 1 2', overwrite=True)
+            # Create transversal
+            grass.write_command('v.net', points=tmp_points_map,
+                    output=tmp_line_map, operation='arcs',
+                    file='-', stdin='99999 1 2', overwrite=True)
 
-            #Patch transversal onto cleaned input lines
+            # Patch transversal onto cleaned input lines
             maps = tmp_cleaned_map + ',' + tmp_line_map
             grass.run_command('v.patch', input=maps, out=tmp_map,
                     overwrite=True)
 
-            #Find intersections
+            # Find intersections
             grass.run_command('v.clean', input=tmp_map, out=tmp_line_map,
                     tool='break', error=tmp_points_map, overwrite=True)
-            
-            #Add categories to intersection points
+
+            # Add categories to intersection points
             grass.run_command('v.category', input=tmp_points_map, out=tmp_map,
                     op='add', overwrite=True)
-            
-            #Get coordinates of points
-            coords=grass.pipe_command('v.to.db', map=tmp_map,
+
+            # Get coordinates of points
+            coords = grass.pipe_command('v.to.db', map=tmp_map,
                     op='coor', flags='p')
 
-            count=0
-            x=[]
-            y=[]
+            count = 0
+            x = []
+            y = []
             for coord in coords.stdout:
                 x.append(float(coord.strip().split('|')[1]))
                 y.append(float(coord.strip().split('|')[2]))
 
-            #Calculate mean and median for this transversal
+            # Calculate mean and median for this transversal
             if len(x) > 0:
                 xmean.append(sum(x)/len(x))
                 ymean.append(sum(y)/len(y))
@@ -211,100 +216,96 @@ def main():
                 xmedian.append((x[(len(x)-1)/2]+x[(len(x))/2])/2)
                 ymedian.append((y[(len(y)-1)/2]+y[(len(y))/2])/2)
 
-
         del os.environ['GRASS_VERBOSE']
 
-    
-
-    #Use closest point algorithm
+    # Use closest point algorithm
     else:
 
-        #Get reference line calculate its length
+        # Get reference line calculate its length
         grass.run_command('v.extract', input=input, output=tmp_line_map,
                 cats=refline_cat, quiet=True)
 
-        os.environ['GRASS_VERBOSE']='0'
-        lpipe=grass.pipe_command('v.to.db', map=tmp_line_map, op='length',
+        os.environ['GRASS_VERBOSE'] = '0'
+        lpipe = grass.pipe_command('v.to.db', map=tmp_line_map, op='length',
                 flags='p')
         del os.environ['GRASS_VERBOSE']
 
         for l in lpipe.stdout:
-            linelength=float(l.strip().split('|')[1])
+            linelength = float(l.strip().split('|')[1])
 
-        step=linelength/nb_vertices
-        
-        #Create reference points for vertice calculation
-        grass.run_command('v.to.points', input=tmp_line_map, 
+        step = linelength / nb_vertices
+
+        # Create reference points for vertice calculation
+        grass.run_command('v.to.points', input=tmp_line_map,
                 output=tmp_points_map, dmax=step, quiet=True)
 
-        nb_points=grass.vector_info_topo(tmp_points_map)['points']
+        nb_points = grass.vector_info_topo(tmp_points_map)['points']
 
-        cat=[]
-        x=[]
-        y=[]
+        cat = []
+        x = []
+        y = []
 
-        #Get coordinates of closest points on all input lines
+        # Get coordinates of closest points on all input lines
         if search_range:
-            points=grass.pipe_command('v.distance', _from=tmp_points_map,
-                        from_layer=2, to=input, upload='to_x,to_y', 
+            points = grass.pipe_command('v.distance', _from=tmp_points_map,
+                        from_layer=2, to=input, upload='to_x,to_y',
                         col='x,y', dmax=search_range, flags='pa', quiet=True)
         else:
-            points=grass.pipe_command('v.distance', _from=tmp_points_map,
-                        from_layer=2, to=input, upload='to_x,to_y', 
+            points = grass.pipe_command('v.distance', _from=tmp_points_map,
+                        from_layer=2, to=input, upload='to_x,to_y',
                         col='x,y', flags='pa', quiet=True)
 
-        firstline=True
+        firstline = True
         for point in points.stdout:
             if firstline:
-                firstline=False
+                firstline = False
                 continue
             cat.append((int(point.strip().split('|')[0])))
             x.append(float(point.strip().split('|')[2]))
             y.append(float(point.strip().split('|')[3]))
 
-        #Calculate mean coordinates
-        xsum=[0]*nb_points
-        ysum=[0]*nb_points
-        linecount=[0]*nb_points
-    
-        for i in range(len(cat)):
-            index=cat[i]-1
-            linecount[index]+=1
-            xsum[index]=xsum[index]+x[i]
-            ysum[index]=ysum[index]+y[i]
-    
-        xmean=[0]*nb_points
-        ymean=[0]*nb_points
-    
-        for c in range(0,nb_points):
-            xmean[c]=xsum[c]/linecount[c]
-            ymean[c]=ysum[c]/linecount[c]
-    
-        #Calculate the median
+        # Calculate mean coordinates
+        xsum = [0]*nb_points
+        ysum = [0]*nb_points
+        linecount = [0]*nb_points
 
-        xmedian=[0]*nb_points
-        ymedian=[0]*nb_points
-    
-        for c in range(0,nb_points):
-            xtemp=[]
-            ytemp=[]
+        for i in range(len(cat)):
+            index = cat[i]-1
+            linecount[index] += 1
+            xsum[index] = xsum[index]+x[i]
+            ysum[index] = ysum[index]+y[i]
+
+        xmean = [0]*nb_points
+        ymean = [0]*nb_points
+
+        for c in range(0, nb_points):
+            xmean[c] = xsum[c]/linecount[c]
+            ymean[c] = ysum[c]/linecount[c]
+
+        # Calculate the median
+
+        xmedian = [0]*nb_points
+        ymedian = [0]*nb_points
+
+        for c in range(0, nb_points):
+            xtemp = []
+            ytemp = []
             for i in range(len(cat)):
                 if cat[i] == c+1:
                     xtemp.append(x[i])
                     ytemp.append(y[i])
             xtemp.sort()
             ytemp.sort()
-            xmedian[c]=(xtemp[(len(xtemp)-1)/2]+xtemp[(len(xtemp))/2])/2
-            ymedian[c]=(ytemp[(len(ytemp)-1)/2]+ytemp[(len(ytemp))/2])/2
+            xmedian[c] = (xtemp[(len(xtemp)-1)/2]+xtemp[(len(xtemp))/2])/2
+            ymedian[c] = (ytemp[(len(ytemp)-1)/2]+ytemp[(len(ytemp))/2])/2
 
-
-    #Create new line and write to file
-    if median and nb_lines > 2 :
-        line = geo.Line(zip(xmedian,ymedian))
+    # Create new line and write to file
+    if median and nb_lines > 2:
+        line = geo.Line(zip(xmedian, ymedian))
     else:
         if median and nb_lines <= 2:
             grass.message(_("More than 2 lines necesary for median, using mean."))
-        line = geo.Line(zip(xmean,ymean))
+        line = geo.Line(zip(xmean, ymean))
 
     new = VectorTopo(output)
     new.open('w')
@@ -312,8 +313,7 @@ def main():
     new.write(line)
     new.close()
 
-if __name__=="__main__":
-    options,flags=grass.parser()
+if __name__ == "__main__":
+    options, flags = grass.parser()
     atexit.register(cleanup)
     main()
-
