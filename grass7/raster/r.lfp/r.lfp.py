@@ -19,10 +19,10 @@
 #% keywords: watershed
 #%end
 #%option G_OPT_R_INPUT
-#% description: Name of input drainage direction map
+#% description: Name of input drainage direction raster map
 #%end
 #%option G_OPT_R_OUTPUT
-#% description: Name for output longest flow path map
+#% description: Name for output longest flow path raster map
 #%end
 #%option G_OPT_M_COORDS
 #% description: Coordinates of outlet point
