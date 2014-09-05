@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.vif 
+PGM = r.vif
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
