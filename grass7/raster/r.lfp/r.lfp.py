@@ -26,6 +26,7 @@
 #%end
 #%option G_OPT_M_COORDS
 #% description: Coordinates of outlet point
+#% required: yes
 #%end
 
 import sys
