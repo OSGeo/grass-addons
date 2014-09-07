@@ -1,6 +1,6 @@
 #include "globals.h"
 #include "local_proto.h"
-#include "raster.h"
+#include <grass/raster.h>
 
 int display_line (View *view, double *east, double *north,int *status,int count);
 

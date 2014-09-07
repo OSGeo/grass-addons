@@ -6,6 +6,7 @@
   open new raster maps
 */
 
+#include <stdlib.h>
 #include <grass/gis.h>
 
 int open_new_CELL(name)

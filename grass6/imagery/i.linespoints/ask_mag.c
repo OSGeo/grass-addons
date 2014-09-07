@@ -1,6 +1,6 @@
 #include "globals.h"
 #include "local_proto.h"
-#include "raster.h"
+#include <grass/raster.h>
 
 struct box
 {

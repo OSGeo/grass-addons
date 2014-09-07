@@ -1,4 +1,4 @@
-#include "imagery.h"
+#include <grass/imagery.h>
 #include <curses.h>
 
 /* this is a curses structure */

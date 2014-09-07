@@ -24,9 +24,11 @@
 #include <unistd.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/gmath.h>
 #include <grass/imagery.h>
 #include <grass/gprojects.h>
 #include "global.h"
+#include "local_proto.h"
 
 /* #define DEBUG 1 */
 

@@ -1,5 +1,5 @@
 #include "globals.h"
-#include "raster.h"
+#include <grass/raster.h>
 int 
 dot (int x, int y)
 {

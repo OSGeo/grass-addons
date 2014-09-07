@@ -89,6 +89,7 @@
 #include <unistd.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
+#include "bits.h"
 #include "sort.h"
 #include "file.h"
 #include "record.h"

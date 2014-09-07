@@ -1,6 +1,6 @@
 #include "globals.h"
 #include "local_proto.h"
-#include "raster.h"
+#include <grass/raster.h>
 #include <strings.h>
 
 static int active = 0;

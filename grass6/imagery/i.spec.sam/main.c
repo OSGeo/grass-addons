@@ -22,6 +22,7 @@
 #include <math.h>
 #include "matrix.h"
 #include "matrix2.h"
+#include "local_proto.h"
 
 int open_files();
 void spectral_angle();

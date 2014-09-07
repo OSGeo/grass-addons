@@ -3,7 +3,7 @@
 #include <sys/wait.h>
 #include "globals.h"
 #include "local_proto.h"
-#include "raster.h"
+#include <grass/raster.h>
 /*
  * call a subroutine, but as a child process
  * allowing interrupts for the child

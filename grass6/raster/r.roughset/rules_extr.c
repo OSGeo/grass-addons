@@ -15,7 +15,7 @@
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	 for details.
  *
-/************************************************************************
+ ************************************************************************
 ** EXTRACT RULE FROM GEOGRAPHICS THEMES (Based on Rough Set Library
 **     		written by M.Gawrys J.Sienkiewiczbrary )
 **
@@ -29,7 +29,7 @@
 ** - MATRIX D, is the discernibility matrix
 ** - MATRIX X, is called a reduced discernibility matrix.
 
-/***********************************************************************/
+***********************************************************************/
 
 #include "rough.h"
 #include "localproto.h"

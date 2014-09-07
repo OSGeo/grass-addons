@@ -4,7 +4,7 @@
 #include "local_proto.h"
 
 static int cancel();
-static int select(int x1,int y1,int button);
+static int bselect(int x1,int y1,int button);
 
 
 double temp_e1,temp_e2,temp_n1,temp_n2;
@@ -22,7 +22,7 @@ line (void)
     {
 	MENU("CANCEL",cancel,&use),
 	INFO("select first line (left side) ",&use),
-                 OTHER(select, &use),
+                 OTHER(bselect, &use),
 	{0}
     };
 
@@ -30,7 +30,7 @@ line (void)
     {
 	MENU("CANCEL",cancel,&use),
 	INFO("select second line (right side) ",&use),
-                 OTHER(select, &use),
+                 OTHER(bselect, &use),
 	{0}
     };
 
@@ -85,7 +85,7 @@ line (void)
     return 0;	/* return, but don't QUIT */
 }
 
-static int select(int x,int y,int button)
+static int bselect(int x,int y,int button)
 {
         if (button != 1)
           return where (x,y);

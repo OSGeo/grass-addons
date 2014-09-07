@@ -24,7 +24,7 @@
 #include <signal.h>
 #include "globals.h"
 #include "local_proto.h"
-#include "raster.h"
+#include <grass/raster.h>
 
 #ifdef __GNUC_MINOR__
 int quit (int) __attribute__ ((__noreturn__));

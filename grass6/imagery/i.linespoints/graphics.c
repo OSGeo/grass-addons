@@ -1,8 +1,8 @@
 #include "globals.h"
 #include "local_proto.h"
-#include "display.h"
-#include "D.h"
-#include "raster.h"
+#include <grass/display.h>
+#include <grass/D.h>
+#include <grass/raster.h>
 
 static View *
 makeview (double bottom, double top, double left, double right)
