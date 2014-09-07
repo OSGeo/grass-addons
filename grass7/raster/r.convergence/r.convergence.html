@@ -28,13 +28,25 @@
 
 
 <h2>DESCRIPTION</h2>
+
+<h3>How convergence index is calculated (3 x 3 window):</h3>
 <center>
-<h3>How convergence index is calculated (3 x 3 window):<h3>
 <img src="conv.png" border="1"><br>
 </center>
-Convergence index is a terrain parameter which show the structure od the relief as a set of convergent areas (channels) and divergent areas (ridges). It represents the agreement of aspect direction of surrounding cells with the teoretical matrix direction. Convergence index is mean (or weighted mean if weights are used) aspect difference between real aspect and teoretical maximum divergent direction matrix representing ideal peak (see figure) minus 90 degres. So if there is maximum agreement with divergent matrix the convergence index is (0 - 90) * 10/9 = -100. If there is ideal sink (maximum convergence) the convergence index is (180 -90) * 10/9 = 100.
-Slope and aspect ere calculated internaly with the same formula as in r.slope.aspect
-Convergence index is very useful for analysis of lineamets especially represented by rigdes or chanell systems as well as valley recognition tool.
+Convergence index is a terrain parameter which show the structure od 
+the relief as a set of convergent areas (channels) and divergent areas 
+(ridges). It represents the agreement of aspect direction of 
+surrounding cells with the teoretical matrix direction. Convergence 
+index is mean (or weighted mean if weights are used) aspect difference 
+between real aspect and teoretical maximum divergent direction matrix 
+representing ideal peak (see figure) minus 90 degres. So if there is 
+maximum agreement with divergent matrix the convergence index is (0 - 
+90) * 10/9 = -100. If there is ideal sink (maximum convergence) the 
+convergence index is (180 -90) * 10/9 = 100. Slope and aspect ere 
+calculated internaly with the same formula as in r.slope.aspect 
+Convergence index is very useful for analysis of lineamets especially 
+represented by rigdes or chanell systems as well as valley recognition 
+tool.
 
 
 <h2>SEE ALSO</h2>

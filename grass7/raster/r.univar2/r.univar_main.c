@@ -18,7 +18,6 @@
 #include <assert.h>
 #include <string.h>
 #include "globals.h"
-#include "../../vector/v.vol.rst/userglobs.h"
 
 param_type param;
 zone_type zone_info;

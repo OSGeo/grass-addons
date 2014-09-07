@@ -20,6 +20,7 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
+#include "crater.h"
 
 int main(int argc, char *argv[]) 
 {
@@ -271,7 +272,7 @@ int main(int argc, char *argv[])
 			else if (scaling_law==2)/*flag3 is Yield scaling law*/
 				d_Dt = Yield_Dat(d_W,d_r_proj,d_r_targ,d_L);
 			else /*default is Pi-scaling*/
-				d_Dt = Pi_Dat(d_W,d_r_proj,d_r_targ,d_L);
+				d_Dt = Pi_Dat(d_W,d_r_proj,d_r_targ,d_L,d_g);
 		} else {
 			/*Backward mode*/
 			if(scaling_law==1) /*flag 2 is Gault scaling law*/
