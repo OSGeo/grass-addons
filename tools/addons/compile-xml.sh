@@ -22,8 +22,8 @@ build_xml() {
 ### export GISRC=$HOME/grassdata/demolocation/.grassrc70
 
 # compile AddOns for GRASS 7 and GRASS 6.5
-compile ../../grass7 ~/src/grass_trunk/dist.x86_64-unknown-linux-gnu  ~/.grass7/addons
-compile ../../grass6 ~/src/grass6_devel/dist.x86_64-unknown-linux-gnu ~/.grass6/addons
+compile ../../grass7 ~/src/grass70_release/dist.x86_64-unknown-linux-gnu ~/.grass7/addons
+compile ../../grass6 ~/src/grass64_release/dist.x86_64-unknown-linux-gnu ~/.grass6/addons
 
 # create XML file for AddOns
 build_xml ~/.grass7/addons 7
