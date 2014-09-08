@@ -1,26 +1,33 @@
-<h2>DESCRIPTION</h2><em>v.transects</em> creates equally spaced geometries along 
+<h2>DESCRIPTION</h2>
+
+<em>v.transects</em> creates equally spaced geometries along 
 input lines. The geometries can be lines or quadrilateral areas. Lines 
 and areas are generated to be perpendicular to the input line. 
 
+<h2>NOTES</h2>
 
-<h2>NOTES</h2>Input vector lines that are shorter than <b>transect_spacing</b> are ignored. 
+Input vector lines that are shorter than <b>transect_spacing</b> are ignored. 
 <p>
-<b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted to be in horizontal map units (e.g., degrees in the WGS84 projection). 
+<b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted
+to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate system). 
 <p>
 <em><b>v.transects</b></em> may fail for a network of lines in Windows.
 
-<h2>EXAMPLES</h2>In these examples, the 
-<a href="http://courses.ncsu.edu/mea582/common/media/01/NagsHead_series.zip"><font color="0000FF">Nags Head (19MB)</font></a>
+<h2>EXAMPLES</h2>
+
+In these examples, the 
+<a href="http://courses.ncsu.edu/mea582/common/media/01/NagsHead_series.zip">Nags Head (19MB)</a>
 mapset is used to generate a shoreline and shore-perpendicular geometries. To use the mapset, unpack it into the 
-<a href="http://courses.ncsu.edu/mea582/common/media/01/nc_spm_08.zip"><font color="0000FF">nc_spm_08 (150MB)</font></a>
+<a href="http://courses.ncsu.edu/mea582/common/media/01/nc_spm_08.zip">nc_spm_08 (150MB)</a>
 Location or the
-<a href="http://courses.ncsu.edu/mea792/common/media/gisdemo.zip"><font color="0000FF">gisdemo (47MB)</font></a>
+<a href="http://courses.ncsu.edu/mea792/common/media/gisdemo.zip">gisdemo (47MB)</a>
 Location.
  
 
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
-<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)<br>
+<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)
+<br>
 <div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.report map=NH_2008_1m option=length
@@ -33,8 +40,10 @@ v.info NH_2008_transects
 
 <h3>Example 2) - Generate line transects specifying the left and right length</h3>
 
-<p>Generate longer, more parallel transects by specifying dleft and dright and 
-smoothing the input line<br>
+<p>
+Generate longer, more parallel transects by specifying dleft and dright and 
+smoothing the input line
+<br>
 <div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.generalize input=NH_2008_1m output=NH_2008_1m_smoothed \
@@ -46,7 +55,8 @@ v.transects input=NH_2008_1m_smoothed \
 
 <h3>Example 3) - Generate area transects along shoreline</h3>
 
-<p>Generate longer, more parallel transects by specifying dleft and dright and 
+<p>
+Generate longer, more parallel transects by specifying dleft and dright and 
 smoothing the input line<br>
 <div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
@@ -59,11 +69,17 @@ v.db.select NH_2008_areas
 </pre></div>
 
 
-<h2>SEE ALSO</h2><em>
-<a href="http://www4.ncsu.edu/~ejhardi2/v.generalize.html">v.generalize</a>, 
-<a href="http://www4.ncsu.edu/~ejhardi2/r.transect.html">r.transect</A> </em>
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.generalize.html">v.generalize</a>
+<br>
+<a href="http://www4.ncsu.edu/~ejhardi2/vTransect.html">V.TRANSECTS tutorial</a>, 
+<a href="http://www4.ncsu.edu/~ejhardi2/r.transect.html">r.transect</A>
+</em>
 
 
-<h2>AUTHOR</h2>Eric Hardin, Helena Mitasova, Updates by John Lloyd 
+<h2>AUTHOR</h2>
+Eric Hardin, Helena Mitasova, Updates by John Lloyd 
 <p>
 <i>Last changed: $Date$</i>
