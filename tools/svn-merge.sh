@@ -13,7 +13,7 @@
 #
 
 if test -z "$1" ; then
-    echo "$0 rev"
+    echo "$0 rev [branch]"
     exit 1
 fi
 if test -z "$2" ; then
