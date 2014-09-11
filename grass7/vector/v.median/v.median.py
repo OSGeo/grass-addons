@@ -35,6 +35,7 @@
 #%end
 
 import sys, os
+from grass.script.utils import try_remove
 from grass.script import core as grass
 from numpy import transpose, genfromtxt, median
 
@@ -55,7 +56,7 @@ def main():
 				output = temp_in)
     # x and y of median point
     medx, medy = point_med(temp_in)   
-    grass.try_remove(temp_in)
+    try_remove(temp_in)
     # prepare the output
     output = "%f|%f" % (medx, medy)
     map_name = options['output']
@@ -84,7 +85,7 @@ def main():
 	# output file not exists
 	else:
 	    outascii = grass.run_command('v.in.ascii', input=temp_out, output = map_name)
-	grass.try_remove(temp_out)
+	try_remove(temp_out)
    
 if __name__ == "__main__":
     options, flags = grass.parser()

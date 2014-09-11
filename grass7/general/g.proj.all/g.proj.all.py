@@ -82,6 +82,7 @@
 import sys
 import atexit
 
+from grass.script.utils import parse_key_val
 from grass.script import core as gcore
 
 
@@ -136,7 +137,7 @@ def main():
         if not curr_region:
             bounds = gcore.read_command('r.proj', input=raster, flags='g',
                                         **parameters)
-            bounds = gcore.parse_key_val(bounds, vsep=' ')
+            bounds = parse_key_val(bounds, vsep=' ')
             gcore.run_command('g.region', **bounds)
 
         gcore.run_command('r.proj', input=raster, **parameters)

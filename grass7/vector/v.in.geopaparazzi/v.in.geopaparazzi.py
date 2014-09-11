@@ -52,6 +52,7 @@
 import sys
 import os
 import shutil
+from grass.script.utils import basename
 from grass.script import core as grass
 from grass.script import db as grassdb
 from types import DictType, ListType
@@ -167,7 +168,7 @@ def main():
     # if it is not a latlong location create a latlong location on the fly
     if not locn:
         # create new location and move to it creating new gisrc file
-        new_loc = grass.basename(grass.tempfile(create=False))
+        new_loc = basename(grass.tempfile(create=False))
         new_loc_name = 'geopaparazzi_%s' % new_loc
         grass.create_location(dbase=env['GISDBASE'], epsg='4326',
                               location=new_loc_name,
