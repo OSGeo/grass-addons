@@ -28,15 +28,28 @@
 #%option G_OPT_V_OUTPUT
 #%end
 
+#%option
+#% key: method
+#% type: string
+#% description: Method used for point interpolation
+#% options: delaunay
+#% answer: delaunay
+#% guisection: Area
+#%end
+
 import grass.script as grass
-import os, sys
+import os
+import sys
 
 
 def main():
     # Get the options
     input = options["input"]
     output = options["output"]
-
+    method = options["method"]
+    min_cat = None
+    max_cat = None
+    point = None
     overwrite = grass.overwrite()
 
     quiet = True
@@ -47,19 +60,28 @@ def main():
     in_info = grass.vector_info(input)
     # check for wild mixture of vector types
     if in_info['points'] > 0 and in_info['boundaries'] > 0:
-        grass.fatal(_("The input vector map contains both polygons and points, cannot handle mixed types"))
+        grass.fatal(_("The input vector map contains both polygons and points,"
+                      " cannot handle mixed types"))
 
+    pid = os.getpid()
     # process points via triangulation, then exit
     if in_info['points'] > 0:
-        layer=1 # hardcoded for now
-        grass.message(_("Processing point data (%d points found)...") % in_info['points'])
-        grass.run_command('v.delaunay', input=input, layer=layer, output=output)
-        sys.exit()
+        point = True
+        layer = 1  # hardcoded for now
+        out_temp = '{inp}_point_tmp_{pid}'.format(inp=input, pid=pid)
+        if method == 'delaunay':
+            grass.message(_("Processing point data (%d points found)...") % in_info['points'])
+            grass.run_command('v.delaunay', input=input, layer=layer,
+                              output=out_temp, quiet=quiet)
+
+        grass.run_command('v.db.addtable', map=out_temp, quiet=True)
+        input = out_temp
+        in_info = grass.vector_info(input)
 
     # process areas
     if in_info['areas'] == 0 and in_info['boundaries'] == 0:
         grass.fatal(_("The input vector map does not contain polygons"))
-    pid = os.getpid()
+
     out_type = '{inp}_type_{pid}'.format(inp=input, pid=pid)
     input_tmp = '{inp}_tmp_{pid}'.format(inp=input, pid=pid)
     remove_names = "%s,%s" % (out_type, input_tmp)
@@ -79,8 +101,8 @@ def main():
         grass.run_command('g.remove', vect=input_tmp, quiet=quiet)
         grass.fatal(_("Error populating new table for layer 2"))
 
-    if 0 != grass.run_command('v.type', input=input_tmp, output=out_type, \
-                              from_type='boundary', to_type='line', \
+    if 0 != grass.run_command('v.type', input=input_tmp, output=out_type,
+                              from_type='boundary', to_type='line',
                               quiet=quiet, layer="2"):
         grass.run_command('g.remove', vect=remove_names, quiet=quiet)
         grass.fatal(_("Error converting polygon to line"))
@@ -91,22 +113,28 @@ def main():
             min_cat = report[0].split()[-2]
             max_cat = report[0].split()[-1]
             break
-    if 0 != grass.run_command('v.edit', map=out_type, tool='delete', \
-                              type='centroid', layer=2, quiet=quiet, \
-                              cats='{mi}-{ma}'.format(mi=min_cat, ma=max_cat)):
-        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
-        grass.fatal(_("Error removing centroids"))
+    if min_cat and max_cat:
+        if 0 != grass.run_command('v.edit', map=out_type, tool='delete',
+                                  type='centroid', layer=2, quiet=quiet,
+                                  cats='{mi}-{ma}'.format(mi=min_cat, ma=max_cat)):
+            grass.run_command('g.remove', vect=remove_names, quiet=quiet)
+            grass.fatal(_("Error removing centroids"))
 
-    if 0 != grass.run_command('v.db.droptable', map=out_type, layer=1,
-                              flags='f', quiet=quiet):
-        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
-        grass.fatal(_("Error removing table from layer 1"))
+    try:
+        if 0 != grass.run_command('v.db.droptable', map=out_type, layer=1,
+                                  flags='f', quiet=True):
+            grass.run_command('g.remove', vect=remove_names, quiet=quiet)
+            grass.fatal(_("Error removing table from layer 1"))
+    except:
+        grass.warning(_("No table for layer %d" % 1))
     if 0 != grass.run_command('v.category', input=out_type, option='transfer',
                               output=output, layer="2,1", quiet=quiet,
                               overwrite=overwrite):
         grass.run_command('g.remove', vect=remove_names, quiet=quiet)
         grass.fatal(_("Error adding categories"))
     grass.run_command('g.remove', vect=remove_names, quiet=quiet)
+    if point:
+        grass.run_command('g.remove', vect=out_temp, quiet=quiet)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
