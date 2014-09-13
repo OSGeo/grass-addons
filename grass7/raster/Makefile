@@ -14,6 +14,7 @@ SUBDIRS = \
 	r.hydrodem \
 	r.in.srtm.region \
 	r.in.wms2 \
+	r.los \
 	r.mcda.ahp \
 	r.mcda.input \
 	r.mcda.output \
