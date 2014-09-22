@@ -4,7 +4,7 @@
  * MODULE:	r.mcda.electre
  * AUTHORS:	 Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
  *
- * PURPOSE:      Make a multicriterio decision  analysis based on Yager fuzzy algorthm
+ * PURPOSE:      Make a multicriteria decision  analysis based on Yager fuzzy algorthm
  *
  * COPYRIGHT:     (C) GRASS Development Team (2008)
  *
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    module->keywords = _("raster,fuzzy,MCDA");
+    module->keywords = _("raster,MCDA,fuzzy");
     module->description =
         _("Multicirtieria decision analysis based on Yager fuzzy method");
 

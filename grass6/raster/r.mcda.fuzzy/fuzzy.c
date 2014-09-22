@@ -119,7 +119,8 @@ void build_fuzzy_matrix(int nrows, int ncols, int ncriteria,
         G_percent(row1, nrows, 2);
         for (col1 = 0; col1 < ncols; col1++)
         {
-            value = decision_vol[row1][col1][0];	/* set value to firsth matrix i-value */
+            /*value = decision_vol[row1][col1][0];*/	
+	    value=0;  					/* set value to firsth matrix i-value */
             for (i = 0; i < ncriteria; i++)
             {
                 value = value + decision_vol[row1][col1][i];
