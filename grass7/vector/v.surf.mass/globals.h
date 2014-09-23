@@ -23,4 +23,5 @@ struct marea
     double adj;		/* cumulative adjustments */
     double avgdiff;	/* difference between interpolated and original */
     int count_neg;	/* count of negatives */
+    int weight;		/* 0 = all weights 0, 1 = at least one weight > 0 */
 };
