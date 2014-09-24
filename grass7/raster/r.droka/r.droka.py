@@ -34,21 +34,9 @@
 #% required : yes
 #%end
 #%option
-#% key: x
+#% key: ang
 #% type: double
-#% description: Est coordinate of source point
-#% required: yes
-#%end
-#%option
-#% key: y
-#% type: double
-#% description: North coordinate of source point
-#% required: yes
-#%end
-#%option
-#% key: z
-#% type: double
-#% description: Elevation of source point
+#% description: Shadow angle
 #% required: yes
 #%end
 #%option
@@ -65,22 +53,62 @@
 #% required: yes
 #%end
 #%option
-#% key: vel
+#% key: rocks
 #% type: string
 #% gisprompt: new,cell,raster
-#% description: Translational velocity (corrected)
+#% description: Rocks number
 #% required : yes
 #%end
 #%option
-#% key: en
+#% key: vmax
 #% type: string
 #% gisprompt: new,cell,raster
-#% description: Kinematic energy (kJ) (corrected)
+#% description: Max translational velocity (corrected)
+#% required : yes
+#%end
+#%option
+#% key: vmean
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: Mean translational velocity (corrected)
+#% required : yes
+#%end
+#%option
+#% key: emax
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: Max kinematic energy (kJ) (corrected)
 #% required: yes
 #%end
+#%option
+#% key: emean
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: Mean kinematic energy (kJ) (corrected)
+#% required: yes
+#%end
+#option
+# key: x
+# type: double
+# description: Est coordinate of source point
+# required: no
+#end
+#option
+# key: y
+# type: double
+# description: North coordinate of source point
+# required: no
+#end
+#option
+# key: z
+# type: double
+# description: Elevation of source point
+# required: no
+#end
 
-import os, sys, time, math, numpy , string, re
-
+import os, sys, time, math , string, re
+from grass.script import array as garray
+import numpy as np
 try:
     import grass.script as grass
 except:
@@ -107,70 +135,110 @@ def main():
     if not gfile['name']:
         grass.fatal(_("Vector map <%s> not found") % infile)
 
-    x = options['x']
-    y = options['y']
-    z = options['z']
-    ang = 30
+    #x = options['x']
+    #y = options['y']
+    #z = options['z']
+    ang = options['ang']
     red = options['red']
     m = options['m']
-    vel = str(options['vel'])
-    en = str(options['en'])
+    rocks = str(options['rocks'])
+    vMax = str(options['vmax'])
+    vMean = str(options['vmean'])
+    eMax = str(options['emax'])
+    eMean = str(options['emean'])
 
-    print 'x = ' , x
-    print 'y = ' , y
-    print 'z = ' , z
-#    print 'ang = ' , ang
+    #print 'x = ' , x
+    #print 'y = ' , y
+    #print 'z = ' , z
+    print 'ang = ' , ang
     print 'red = ' , red
     print 'm = ' , m
-    print 'vel = ' , vel
-    print 'en = ' , en
     
-
-    point = grass.read_command("v.out.ascii", input=start, format="standard")
-    result = point.split("\n") 
-    coords = []    
-    for line in result:
-        if re.findall(r'^.[0-9]+\.',line): 
-            coords.append(line.strip().split("   "))
-    print coords
-
     #creo raster (che sara' il DEM di input) con valore 1
     grass.mapcalc('uno=$dem*0+1', 
-        dem = r_elevation)
+        dem = r_elevation)     
+    what = grass.read_command('r.what', map=r_elevation, points=start)
+    quota = what.split('\n')
 
-    # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
-    grass.run_command('r.cost' , 
-        flags="k",
-        input = 'uno',
-        output = 'costo',
-        start_points = start )
-    #trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
-    grass.mapcalc('costo_m=costo*(ewres()+nsres())/2')
-    # calcola A=tangente angolo visuale (INPUT) * costo in metri
-    grass.mapcalc('A=tan($ang)*costo_m',
-        ang = ang)
-    grass.mapcalc('C=$z-A',
-        z = z)
-    grass.mapcalc('D=C-$dem',
-        dem = r_elevation)
-    # area di espansione
-    grass.mapcalc('E=if(D>0,1,null())')
-    # valore di deltaH (F)
-    grass.mapcalc('F=D*E')
-    # calcolo velocita
-    grass.mapcalc('$vel=$red*sqrt(2*9.8*F)',
-        vel = vel,
-        red = red)
-    # calcolo energia
-    grass.mapcalc('$en=$m*9.8*F/1000',
-        en = en,
-        m = m)
+    #array per la somma dei massi
+    tot = garray.array()
+    tot.read(r_elevation)
+    tot[...] = (tot*0.0).astype(float)
+    somma = garray.array()
 
-    for i in xrange(len(coords)):
-        row = coords[i]
+    #array per le velocita
+    velocity = garray.array()
+    velMax = garray.array()
+    velMean = garray.array()
 
-#r.what map=DTM10_f211@modulo_issa points=point@modulo_issa
+    #array per energia
+    energy = garray.array()
+    enMax = garray.array()
+    enMean = garray.array()
 
+    for i in xrange(len(quota)-1):
+        z = float(quota[i].split('||')[1])
+        point = quota[i].split('||')[0]
+        x = float(point.split('|')[0])
+        y = float(point.split('|')[1])
+        print x,y,z
+        # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
+        grass.run_command('r.cost' , 
+            flags="k",  
+            input = 'uno',
+            output = 'costo',
+            start_coordinates = str(x)+','+str(y),
+            overwrite = True ) 
+
+
+        #trasforma i valori di distanza celle in valori metrici utilizzando la risoluzione raster
+        grass.mapcalc('costo_m=costo*(ewres()+nsres())/2',
+             overwrite = True)
+
+        # calcola A=tangente angolo visuale (INPUT) * costo in metri   
+        grass.mapcalc('A=tan($ang)*costo_m',
+            ang = ang,
+             overwrite = True)
+        grass.mapcalc('C=$z-A',
+            z = z,
+            overwrite = True)
+        grass.mapcalc('D=C-$dem',
+            dem = r_elevation,
+             overwrite = True)
+        # area di espansione
+        grass.mapcalc('E=if(D>0,1,null())',
+             overwrite = True)
+        # valore di deltaH (F)
+        grass.mapcalc('F=D*E',
+             overwrite = True)
+
+        #calcolo numero massi
+        grass.mapcalc('somma=if(vel>0,1,0)', overwrite = True)
+        somma.read('somma') 
+        tot[...] = (somma + tot).astype(float)
+
+        # calcolo velocita
+        grass.mapcalc('vel = $red*sqrt(2*9.8*F)',
+            red = red, overwrite = True)
+        velocity.read('vel')
+        velMax[...] = (np.where(velocity>velMax,velocity,velMax)).astype(float)
+        velMean[...] = (velocity + velMean).astype(float)
+
+        # calcolo energia
+        grass.mapcalc('en=$m*9.8*F/1000',
+            m = m,
+            overwrite = True)
+        energy.read('en')
+        enMax[...] = (np.where(energy>enMax,energy,enMax)).astype(float)
+        enMean[...] = (energy + enMean).astype(float)
+
+    tot.write(rocks)
+    velMax.write(vMax)
+    velMean[...] = (velMean/i).astype(float)
+    velMean.write(vMean)
+    enMax.write(eMax)
+    enMean[...] = (enMean/i).astype(float)
+    enMean.write(eMean)
     grass.run_command('g.remove' , 
         rast=(
             'uno',
@@ -180,7 +248,10 @@ def main():
             'C',
             'D',
             'E',
-            'F'))
+            'F',
+            'en',
+            'vel',
+            'somma'))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
