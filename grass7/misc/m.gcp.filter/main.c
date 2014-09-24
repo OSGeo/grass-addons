@@ -1,13 +1,11 @@
 
 /****************************************************************************
  *
- * MODULE:       m.transform   (nee g.transform)
- * AUTHOR(S):    Brian J. Buckley
- *               Glynn Clements
- *               Hamish Bowman
- * PURPOSE:      Utility to compute transformation based upon GCPs and 
- *               output error measurements
- * COPYRIGHT:    (C) 2006-2010 by the GRASS Development Team
+ * MODULE:       m.gcp.filter
+ * AUTHOR(S):    Markus Metz
+ * 		 based on m.transform
+ * PURPOSE:      Utility to filter GCPs with RMS threshold
+ * COPYRIGHT:    (C) 2006-2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -39,14 +37,12 @@ struct Stats
 
 static char *name;
 static int order;
-static int summary;
-static int forward;
-static char **columns;
+static double threshold;
+static int niter;
+static int filtered;
 static int need_fwd;
 static int need_rev;
-static int need_fd;
-static int need_rd;
-static char *coord_file;
+static int use_rms;
 
 static double E12[10], N12[10], E21[10], N21[10];
 
@@ -83,7 +79,7 @@ static void diagonal(double *dg, double *d2, double dx, double dy)
 static void compute_transformation(void)
 {
     static const int order_pnts[3] = { 3, 6, 10 };
-    int n, i;
+    int n;
 
     equation_stat =
 	I_compute_georef_equations(&points, E12, N12, E21, N21, order);
@@ -113,11 +109,9 @@ static void compute_transformation(void)
 	    fx = fabs(e2 - points.e2[n]);
 	    fy = fabs(n2 - points.n2[n]);
 
-	    if (need_fd)
-		diagonal(&fd, &fd2, fx, fy);
+	    diagonal(&fd, &fd2, fx, fy);
 
-	    if (summary)
-		update_stats(&fwd, n, fx, fy, fd, fd2);
+	    update_stats(&fwd, n, fx, fy, fd, fd2);
 	}
 
 	if (need_rev) {
@@ -126,188 +120,123 @@ static void compute_transformation(void)
 	    rx = fabs(e1 - points.e1[n]);
 	    ry = fabs(n1 - points.n1[n]);
 
-	    if (need_rd)
-		diagonal(&rd, &rd2, rx, ry);
+	    diagonal(&rd, &rd2, rx, ry);
 
-	    if (summary)
-		update_stats(&rev, n, rx, ry, rd, rd2);
+	    update_stats(&rev, n, rx, ry, rd, rd2);
 	}
-
-	if (!columns[0])
-	    continue;
-
-	if (coord_file)
-	    continue;
-
-	for (i = 0;; i++) {
-	    const char *col = columns[i];
-
-	    if (!col)
-		break;
-
-	    if (strcmp("idx", col) == 0)
-		printf(" %d", n);
-	    if (strcmp("src", col) == 0)
-		printf(" %f %f", points.e1[n], points.n1[n]);
-	    if (strcmp("dst", col) == 0)
-		printf(" %f %f", points.e2[n], points.n2[n]);
-	    if (strcmp("fwd", col) == 0)
-		printf(" %f %f", e2, n2);
-	    if (strcmp("rev", col) == 0)
-		printf(" %f %f", e1, n1);
-	    if (strcmp("fxy", col) == 0)
-		printf(" %f %f", fx, fy);
-	    if (strcmp("rxy", col) == 0)
-		printf(" %f %f", rx, ry);
-	    if (strcmp("fd", col) == 0)
-		printf(" %f", fd);
-	    if (strcmp("rd", col) == 0)
-		printf(" %f", rd);
-	}
-
-	printf("\n");
     }
 
-    if (summary && count > 0) {
+    if (count > 0) {
 	fwd.rms = sqrt(fwd.sum2 / count);
 	rev.rms = sqrt(rev.sum2 / count);
     }
 }
 
-static void do_max(char name, const struct Max *m)
+static void filter(void)
 {
-    printf("%c[%d] = %.2f\n", name, m->idx, m->val);
-}
-
-static void do_stats(const char *name, const struct Stats *st)
-{
-    printf("%s:\n", name);
-    do_max('x', &st->x);
-    do_max('y', &st->y);
-    do_max('g', &st->g);
-    printf("RMS = %.2f\n", st->rms);
-}
-
-static void analyze(void)
-{
-    if (equation_stat == -1)
-	G_warning(_("Poorly placed control points"));
-    else if (equation_stat == -2)
-	G_fatal_error(_("Insufficient memory"));
-    else if (equation_stat < 0)
-	G_fatal_error(_("Parameter error"));
-    else if (equation_stat == 0)
-	G_fatal_error(_("No active control points"));
-    else if (summary) {
-	printf("Number of active points: %d\n", count);
-	do_stats("Forward", &fwd);
-	do_stats("Reverse", &rev);
+    static const int order_pnts[3] = { 3, 6, 10 };
+    int i, nvalid;
+    double rms1, *rms, *c;
+    
+    nvalid = 0;
+    for (i = 0; i < points.count; i++) {
+	if (points.status[i] > 0)
+	    nvalid++;
     }
-}
 
-static void parse_format(void)
-{
-    int i;
+    if (nvalid < order_pnts[order - 1])
+	G_fatal_error(_("Not enough points, %d are required"),
+		      order_pnts[order - 1]);
 
-    if (summary) {
-	need_fwd = need_rev = need_fd = need_rd = 1;
+    if (nvalid == order_pnts[order - 1]) {
+	G_warning(_("The number of valid points can not be reduced"));
+
+	printf("use=%d\n", nvalid);
+	printf("filtered=%d\n", filtered);
+	printf("rms=0\n");
+
 	return;
     }
 
-    if (!columns)
-	return;
+    if (niter <= 0)
+	niter = nvalid;
 
-    for (i = 0;; i++) {
-	const char *col = columns[i];
+    rms1 = -1;
+    if (need_fwd)
+	rms = &fwd.rms;
+    else
+	rms = &rev.rms;
+    
+    c = rms;
+    if (!use_rms) {
+	if (need_fwd)
+	    c = &fwd.g.val;
+	else
+	    c = &rev.g.val;
+    }
+    
+    i = 0;
+    while (i < niter) {
+	/* reset stats */
+	fwd.sum2 = fwd.rms = 0;
+	fwd.x.idx = -1;
+	fwd.x.val = -1;
+	fwd.y.idx = -1;
+	fwd.y.val = -1;
+	fwd.g.idx = -1;
+	fwd.g.val = -1;
+	
+	rev.sum2 = rev.rms = 0;
+	rev.x.idx = -1;
+	rev.x.val = -1;
+	rev.y.idx = -1;
+	rev.y.val = -1;
+	rev.g.idx = -1;
+	rev.g.val = -1;
 
-	if (!col)
+	compute_transformation();
+	i++;
+	
+	if (rms1 == -1) {
+	    rms1 = *rms;
+	}
+
+	if (*c < threshold)
 	    break;
 
-	if (strcmp("fwd", col) == 0)
-	    need_fwd = 1;
-	if (strcmp("fxy", col) == 0)
-	    need_fwd = 1;
-	if (strcmp("fd", col) == 0)
-	    need_fwd = need_fd = 1;
-	if (strcmp("rev", col) == 0)
-	    need_rev = 1;
-	if (strcmp("rxy", col) == 0)
-	    need_rev = 1;
-	if (strcmp("rd", col) == 0)
-	    need_rev = need_rd = 1;
+	if (need_fwd) {
+	    if (fwd.g.val > 0) {
+		points.status[fwd.g.idx] = 0;
+		filtered++;
+		nvalid--;
+	    }
+	    else
+		break;
+	}
+	else {
+	    if (rev.g.val > 0) {
+		points.status[rev.g.idx] = 0;
+		filtered++;
+		nvalid--;
+	    }
+	    else
+		break;
+	}
+
+	if (nvalid == order_pnts[order - 1])
+	    break;
     }
-}
-
-static void dump_cooefs(void)
-{
-    int i;
-    static const int order_pnts[3] = { 3, 6, 10 };
-
-    for (i = 0; i < order_pnts[order - 1]; i++)
-    	fprintf(stdout, "E%d=%.15g\n", i, forward ? E12[i] : E21[i]);
-
-    for (i = 0; i < order_pnts[order - 1]; i++)
-    	fprintf(stdout, "N%d=%.15g\n", i, forward ? N12[i] : N21[i]);
-}
-
-static void xform_value(double east, double north)
-{
-    double xe, xn;
-
-    if(forward)
-	I_georef(east, north, &xe, &xn, E12, N12, order);
-    else
-	I_georef(east, north, &xe, &xn, E21, N21, order);
-
-    fprintf(stdout, "%.15g %.15g\n", xe, xn);
-}
-
-static void do_pt_xforms(void)
-{
-    double easting, northing;
-    int ret;
-    FILE *fp;
-
-    if (strcmp(coord_file, "-") == 0)
-    	fp = stdin;
-    else {
-    	fp = fopen(coord_file, "r");
-    	if (!fp)
-    	    G_fatal_error(_("Unable to open file <%s>"), coord_file);
-    }
-
-    for (;;) {
-    	char buf[64];
-
-    	if (!G_getl2(buf, sizeof(buf), fp))
-    	    break;
-
-    	if ((buf[0] == '#') || (buf[0] == '\0'))
-    	    continue;
-
-    	/* ? sscanf(buf, "%s %s", &east_str, &north_str)
-    	    ? G_scan_easting(,,-1)
-    	    ? G_scan_northing(,,-1) */
-    	/* ? muliple delims with sscanf(buf, "%[ ,|\t]", &dummy) ? */
-
-    	ret = sscanf(buf, "%lf %lf", &easting, &northing);
-    	if (ret != 2)
-    	    G_fatal_error(_("Invalid coordinates: [%s]"), buf);
-
-    	xform_value(easting, northing);
-    }
-
-    if (fp != stdin)
-    	fclose(fp);
+    printf("use=%d\n", nvalid);
+    printf("filtered=%d\n", filtered);
+    printf("rms=%g\n", *rms);
 }
 
 
 int main(int argc, char **argv)
 {
-    struct Option *grp, *val, *fmt, *xfm_pts;
-    struct Flag *sum, *rev_flag, *dump_flag;
+    struct Option *grp, *val, *thresh, *maxiter;
+    struct Flag *up_flag, *rev_flag, *dev_flag;
     struct GModule *module;
-    char *desc;
 
     G_gisinit(argv[0]);
 
@@ -317,7 +246,7 @@ int main(int argc, char **argv)
     G_add_keyword(_("transformation"));
     G_add_keyword("GCP");
     module->description =
-	_("Computes a coordinate transformation based on the control points.");
+	_("Filter Ground Control Points (GCPs).");
 
     grp = G_define_standard_option(G_OPT_I_GROUP);
 
@@ -328,47 +257,29 @@ int main(int argc, char **argv)
     val->options = "1-3";
     val->description = _("Rectification polynomial order");
 
-    fmt = G_define_option();
-    fmt->key = "format";
-    fmt->type = TYPE_STRING;
-    fmt->required = NO;
-    fmt->multiple = YES;
-    fmt->options = "idx,src,dst,fwd,rev,fxy,rxy,fd,rd";
-    desc = NULL;
-    G_asprintf(&desc,
-	        "idx;%s;src;%s;dst;%s;fwd;%s;rev;%s;fxy;%s;rxy;%s;fd;%s;rd;%s",
-	        _("point index"),
-	        _("source coordinates"),
-	        _("destination coordinates"),
-	        _("forward coordinates (destination)"),
-	        _("reverse coordinates (source)"),
-	        _("forward coordinates difference (destination)"),
-	        _("reverse coordinates difference (source)"),
-	        _("forward error (destination)"),
-	        _("reverse error (source)"));
-    fmt->descriptions = desc;
-    fmt->answer = "fd,rd";
-    fmt->description = _("Output format");
+    thresh = G_define_option();
+    thresh->key = "threshold";
+    thresh->type = TYPE_DOUBLE;
+    thresh->required = YES;
+    thresh->description = _("Filtering threshold in CRS units");
 
-    sum = G_define_flag();
-    sum->key = 's';
-    sum->description = _("Display summary information");
-
-    xfm_pts = G_define_standard_option(G_OPT_F_INPUT);
-    xfm_pts->key = "coords";
-    xfm_pts->required = NO;
-    xfm_pts->label =
-	_("File containing coordinates to transform (\"-\" to read from stdin)");
-    xfm_pts->description = _("Local x,y coordinates to target east,north");
+    maxiter = G_define_option();
+    maxiter->key = "iterations";
+    maxiter->type = TYPE_INTEGER;
+    maxiter->required = NO;
+    maxiter->description = _("Maximum number of iterations");
 
     rev_flag = G_define_flag();
-    rev_flag->key = 'r';
-    rev_flag->label = _("Reverse transform of coords file or coeff. dump");
-    rev_flag->description = _("Target east,north coordinates to local x,y");
+    rev_flag->key = 'b';
+    rev_flag->description = _("Use backward transformations (default: forward transformations)");
 
-    dump_flag = G_define_flag();
-    dump_flag->key = 'x';
-    dump_flag->description = _("Display transform matrix coefficients");
+    dev_flag = G_define_flag();
+    dev_flag->key = 'd';
+    dev_flag->description = _("Use GCP deviation (default: RMS)");
+
+    up_flag = G_define_flag();
+    up_flag->key = 'u';
+    up_flag->description = _("Update GCPs");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -376,26 +287,29 @@ int main(int argc, char **argv)
 
     name = grp->answer;
     order = atoi(val->answer);
-    summary = !!sum->answer;
-    columns = fmt->answers;
-    forward = !rev_flag->answer;
-    coord_file = xfm_pts->answer;
+    threshold = atof(thresh->answer);
+    if (threshold <= 0)
+	G_fatal_error(_("Option '%s' must be positive"), thresh->key);
+    if (threshold != threshold)
+	G_fatal_error(_("Invalid option '%s'"), thresh->key);
+    niter = -1;
+    if (maxiter->answer)
+	niter = atoi(maxiter->answer);
 
-    I_get_control_points(name, &points);
 
-    parse_format();
+    if (!I_get_control_points(name, &points))
+	G_fatal_error(_("Unable to read points for group <%s>"), name);
 
-    compute_transformation();
+    filtered = 0;
 
-    I_put_control_points(name, &points);
+    need_fwd = rev_flag->answer == 0;
+    need_rev = rev_flag->answer != 0;
+    use_rms = dev_flag->answer == 0;
 
-    analyze();
+    filter();
 
-    if(dump_flag->answer)
-	dump_cooefs();
+    if (up_flag->answer && filtered > 0)
+	I_put_control_points(name, &points);
 
-    if(coord_file)
-	do_pt_xforms();
-
-    return 0;
+    exit(EXIT_SUCCESS);
 }
