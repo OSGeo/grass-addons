@@ -212,17 +212,17 @@ def main():
         grass.mapcalc('F=D*E',
              overwrite = True)
 
-        #calcolo numero massi
-        grass.mapcalc('somma=if(vel>0,1,0)', overwrite = True)
-        somma.read('somma') 
-        tot[...] = (somma + tot).astype(float)
-
         # calcolo velocita
         grass.mapcalc('vel = $red*sqrt(2*9.8*F)',
             red = red, overwrite = True)
         velocity.read('vel')
         velMax[...] = (np.where(velocity>velMax,velocity,velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
+
+        #calcolo numero massi
+        grass.mapcalc('somma=if(vel>0,1,0)', overwrite = True)
+        somma.read('somma') 
+        tot[...] = (somma + tot).astype(float)
 
         # calcolo energia
         grass.mapcalc('en=$m*9.8*F/1000',
@@ -256,3 +256,12 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
+
+
+
+# codice da aggiungere per leggere la pendenza dl layer vettoriale
+#ZN = grass.read_command("v.db.select", flags="c", map="geochimcal", col="ZN")
+#ZN=(ZN.split("\n"))
+#ZN= ZN[0:(len(ZN)-1)]
+#print ZN
+#['40', '55', '65', '158', '44', '282', '62', '83', '84', '97', '61', '58', '40', '54', '75', '129', #'77', '87', '74', '47', '58', '73', '64', '46', '63']
