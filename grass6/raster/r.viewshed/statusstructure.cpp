@@ -98,7 +98,7 @@ long long get_active_str_size_bytes(GridHeader * hd)
     G_verbose_message(_(" (key=%d, ptr=%d, total node=%d B)"),
 	   (int)sizeof(TreeValue),
 	   (int)sizeof(TreeNode *), (int)sizeof(TreeNode));
-    sizeBytes = sizeof(TreeNode) * max(hd->ncols, hd->nrows);
+    sizeBytes = sizeof(TreeNode) * std::max(hd->ncols, hd->nrows);
     G_verbose_message(_(" Total= %lld B"), sizeBytes);
     return sizeBytes;
 }

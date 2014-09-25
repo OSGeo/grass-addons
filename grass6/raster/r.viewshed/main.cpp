@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     /*initialize module */
     module = G_define_module();
     module->keywords = _("raster, viewshed, line of sight");
-    module->description = _("IO-efficient viewshed algorithm");
+    module->description = _("Computes the viewshed of a point on an elevation raster map.");
 
     struct Cell_head region;
     char *optstreamdir;
@@ -292,12 +292,13 @@ int main(int argc, char *argv[])
 	}
 	G_important_message(_("Intermediate files will not be deleted \
 		              in case of abnormal termination."));
+	G_important_message(_("Intermediate location: %s"), viewOptions.streamdir);
 	G_important_message(_("To save space delete these files manually!"));
 
 
 	/* initialize IOSTREAM memory manager */
 	MM_manager.set_memory_limit(memSizeBytes);
-	MM_manager.warn_memory_limit();
+	MM_manager.ignore_memory_limit();
 	MM_manager.print_limit_mode();
 
 

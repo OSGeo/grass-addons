@@ -108,8 +108,11 @@ GridHeader *read_header(char *rastName, Cell_head * region)
 	hd->nrows = (dimensionType) nrows;
 	hd->ncols = (dimensionType) ncols;
     }
-    else
-	G_fatal_error(_("Grid dimension too big for current precision"));
+    else {
+	G_warning("ERROR: nrows (%d) > maxDimension (%d) AND/OR ncols (%d) > maxDimension (%d)", 
+	           nrows, maxDimension, ncols, maxDimension);
+	G_fatal_error(_("Computational region too large. Use smaller area or lower raster resolution"));
+    }
 
 
     /*fill in rest of header */
@@ -127,7 +130,7 @@ GridHeader *read_header(char *rastName, Cell_head * region)
     hd->ns_res = region->ns_res;
     //store the null value of the map
     G_set_null_value(&(hd->nodata_value), 1, G_SURFACE_TYPE);
-    G_message("Nodata value set to %f", hd->nodata_value);
+    G_verbose_message("Nodata value set to %f", hd->nodata_value);
     
     
     
@@ -228,19 +231,14 @@ init_event_list_in_memory(AEvent * eventList, char *rastName,
     G_set_null_value(inrast[1], ncols, data_type);
     G_set_null_value(inrast[2], ncols, data_type);
 
-    /*DCELL to check for loss of prescion- haven't gotten that to work
-       yet though */
-    DCELL d;
     int isnull = 0;
 
     /*keep track of the number of events added, to be returned later */
     size_t nevents = 0;
 
     /*scan through the raster data */
-    dimensionType i, j, k;
-    int row1, col1;
+    dimensionType i, j;
     double ax, ay;
-    G_SURFACE_T *elev1, *elev2, *elev3, *elev4;
     AEvent e;
     
     /* read first row */
@@ -249,7 +247,6 @@ init_event_list_in_memory(AEvent * eventList, char *rastName,
     e.angle = -1;
     for (i = 0; i < nrows; i++) {
 	/*read in the raster row */
-	int rasterRowResult = 1;
 	
 	G_SURFACE_T *tmprast = inrast[0];
 	inrast[0] = inrast[1];
@@ -257,13 +254,9 @@ init_event_list_in_memory(AEvent * eventList, char *rastName,
 	inrast[2] = tmprast;
 
 	if (i < nrows - 1)
-	    rasterRowResult = G_get_raster_row(infd, inrast[2], i + 1, data_type);
+	    G_get_raster_row(infd, inrast[2], i + 1, data_type);
 	else
 	    G_set_null_value(inrast[2], ncols, data_type);
-
-	if (rasterRowResult <= 0)
-	    G_fatal_error(_("Coord not read from row %d of <%s>"), i,
-			  rastName);
 
 	G_percent(i, nrows, 2);
 
@@ -405,7 +398,7 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
 					     IOVisibilityGrid * visgrid)
 {
 
-    G_message(_("Computing events ..."));
+    G_message(_("Computing events..."));
     assert(rastName && vp && hd && visgrid);
 
     if (data != NULL) {
@@ -458,12 +451,9 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
     G_set_null_value(inrast[2], ncols, data_type);
 
     /*scan through the raster data */
-    DCELL d;
     int isnull = 0;
-    dimensionType i, j, k;
-    int row1, col1;
+    dimensionType i, j;
     double ax, ay;
-    G_SURFACE_T *elev1, *elev2, *elev3, *elev4;
     AEvent e;
 
     /* read first row */
@@ -477,7 +467,6 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
 	G_percent(i, nrows, 2);
 
 	/*read in the raster row */
-	int rasterRowResult = 1;
 	
 	G_SURFACE_T *tmprast = inrast[0];
 	inrast[0] = inrast[1];
@@ -485,13 +474,9 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
 	inrast[2] = tmprast;
 
 	if (i < nrows - 1)
-	    rasterRowResult = G_get_raster_row(infd, inrast[2], i + 1, data_type);
+	    G_get_raster_row(infd, inrast[2], i + 1, data_type);
 	else
 	    G_set_null_value(inrast[2], ncols, data_type);
-
-	if (rasterRowResult <= 0)
-	    G_fatal_error(_("Coord not read from row %d of <%s>"), i,
-			  rastName);
 
 	/*fill event list with events from this row */
 	for (j = 0; j < ncols; j++) {
@@ -632,7 +617,7 @@ save_grid_to_GRASS(Grid * grid, char *filename, RASTER_MAP_TYPE type,
 		   float (*fun) (float))
 {
 
-    G_message(_("Saving grid to <%s>"), filename);
+    G_important_message(_("Writing output raster map..."));
     assert(grid && filename);
 
     /*open the new raster  */
