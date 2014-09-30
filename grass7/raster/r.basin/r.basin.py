@@ -175,7 +175,7 @@ def main():
                                    type = 'point', 
                                    layer = 1, 
                                    value = 1, 
-                                   rows = 4096,
+                                   memory = 400,
                                    overwrite = True)
                                              
                                              
