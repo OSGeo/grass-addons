@@ -177,15 +177,13 @@ def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
         params.update({'incidout': incidout + suffix})
 
     if is_grass_7():
-        grass.run_command('r.sun', elev_in=elevation, asp_in=aspect,
-                          slope_in=slope,
-                          day=day, time=time,
+        grass.run_command('r.sun', elevation=elevation, aspect=aspect,
+                          slope=slope, day=day, time=time,
                           overwrite=core.overwrite(), quiet=True,
                           **params)
     else:
         grass.run_command('r.sun', elevin=elevation, aspin=aspect,
-                          slopein=slope,
-                          day=day, time=time,
+                          slopein=slope, day=day, time=time,
                           overwrite=core.overwrite(), quiet=True,
                           **params)
     if binary:
@@ -193,7 +191,7 @@ def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
             if not output:
                 continue
             exp='{out} = if({inp} > 0, 1, 0)'.format(out=output + suffix + binaryTmpName,
-                                                    inp=output + suffix)
+                                                     inp=output + suffix)
             grass.mapcalc(exp=exp, overwrite=core.overwrite())
             grass.run_command('g.rename', rast=[output + suffix + binaryTmpName,
                                                 output + suffix],
@@ -203,7 +201,7 @@ def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
 def set_color_table(rasters, binary=False):
     table = 'gyr'
     if binary:
-        table='grey'
+        table = 'grey'
     if is_grass_7():
         grass.run_command('r.colors', map=rasters, col=table, quiet=True)
     else:
@@ -226,8 +224,8 @@ def check_time_map_names(basename, mapset, start_time, end_time, time_step,
     for time in frange(start_time, end_time, time_step):
         maps = []
         maps.append('{name}{delim}{time}'.format(name=basename,
-                                                    delim='_',
-                                                    time=format_time(time)))
+                                                 delim='_',
+                                                 time=format_time(time)))
         if binary:
             maps.append('{name}{delim}{time}{binary}'.format(name=basename,
                                                              delim='_',
@@ -235,7 +233,8 @@ def check_time_map_names(basename, mapset, start_time, end_time, time_step,
                                                              binary=binaryTmpName))
         for map_ in maps:
             if grass.find_file(map_, element='cell', mapset=mapset)['file']:
-                grass.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
+                grass.fatal(_("Raster map <%s> already exists. Change the base"
+                              " name or allow overwrite.") % map_)
 
 
 def frange(x, y, step):
@@ -252,7 +251,8 @@ def format_grass_time(dt):
     month_names = ["", "jan", "feb", "mar", "apr", "may", "jun",
                    "jul", "aug", "sep", "oct", "nov", "dec"]
     return "%.2i %s %.4i %.2i:%.2i:%.2i" % (dt.day, month_names[dt.month],
-                                            dt.year, dt.hour, dt.minute, dt.second)
+                                            dt.year, dt.hour, dt.minute,
+                                            dt.second)
 
 
 def main():
@@ -295,13 +295,17 @@ def main():
     # here we check all the days
     if not grass.overwrite():
         check_time_map_names(beam_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step, binary, binaryTmpName)
+                             start_time, end_time, time_step, binary,
+                             binaryTmpName)
         check_time_map_names(diff_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step, binary, binaryTmpName)
+                             start_time, end_time, time_step, binary,
+                             binaryTmpName)
         check_time_map_names(refl_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step, binary, binaryTmpName)
+                             start_time, end_time, time_step, binary,
+                             binaryTmpName)
         check_time_map_names(glob_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step, binary, binaryTmpName)
+                             start_time, end_time, time_step, binary,
+                             binaryTmpName)
 
     # check for slope/aspect
     if not aspect_input or not slope_input:
@@ -316,7 +320,8 @@ def main():
             TMP.append(slope_input)
 
         grass.info(_("Running r.slope.aspect..."))
-        grass.run_command('r.slope.aspect', elevation=elevation_input, quiet=True, **params)
+        grass.run_command('r.slope.aspect', elevation=elevation_input,
+                          quiet=True, **params)
 
     grass.info(_("Running r.sun in a loop..."))
     count = 0
@@ -370,14 +375,17 @@ def main():
         core.info(_("Registering created maps into temporal dataset..."))
         import grass.temporal as tgis
 
-        def registerToTemporal(basename, suffixes, mapset, start_time, time_step, title, desc):
+        def registerToTemporal(basename, suffixes, mapset, start_time,
+                               time_step, title, desc):
             maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-            tgis.open_new_space_time_dataset(basename, type='strds', temporaltype='absolute',
+            tgis.open_new_space_time_dataset(basename, type='strds',
+                                             temporaltype='absolute',
                                              title=title, descr=desc,
-                                             semantic='mean', dbif=None, overwrite=grass.overwrite())
+                                             semantic='mean', dbif=None,
+                                             overwrite=grass.overwrite())
             tgis.register_maps_in_space_time_dataset(
-                type='rast', name=basename, maps=maps, start=start_time, end=None,
-                increment=time_step, dbif=None, interval=False)
+                type='rast', name=basename, maps=maps, start=start_time,
+                end=None, increment=time_step, dbif=None, interval=False)
         # Make sure the temporal database exists
         tgis.init()
 
@@ -390,24 +398,24 @@ def main():
         step = "%d seconds" % step.seconds
 
         if beam_rad_basename:
-            registerToTemporal(beam_rad_basename, suffixes_all, mapset, start, step,
-                               title="Beam irradiance",
+            registerToTemporal(beam_rad_basename, suffixes_all, mapset, start,
+                               step, title="Beam irradiance",
                                desc="Output beam irradiance raster maps [Wh.m-2]")
         if diff_rad_basename:
-            registerToTemporal(diff_rad_basename, suffixes_all, mapset, start, step,
-                               title="Diffuse irradiance",
+            registerToTemporal(diff_rad_basename, suffixes_all, mapset, start,
+                               step, title="Diffuse irradiance",
                                desc="Output diffuse irradiance raster maps [Wh.m-2]")
         if refl_rad_basename:
-            registerToTemporal(refl_rad_basename, suffixes_all, mapset, start, step,
-                               title="Reflected irradiance",
+            registerToTemporal(refl_rad_basename, suffixes_all, mapset, start,
+                               step, title="Reflected irradiance",
                                desc="Output reflected irradiance raster maps [Wh.m-2]")
         if glob_rad_basename:
-            registerToTemporal(glob_rad_basename, suffixes_all, mapset, start, step,
-                               title="Total irradiance",
+            registerToTemporal(glob_rad_basename, suffixes_all, mapset, start,
+                               step, title="Total irradiance",
                                desc="Output total irradiance raster maps [Wh.m-2]")
         if incidout_basename:
-            registerToTemporal(incidout_basename, suffixes_all, mapset, start, step,
-                               title="Incidence angle",
+            registerToTemporal(incidout_basename, suffixes_all, mapset, start,
+                               step, title="Incidence angle",
                                desc="Output incidence angle raster maps")
 
     else:
@@ -416,15 +424,20 @@ def main():
         for i, time in enumerate(times):
             grass_time = format_grass_time(absolute_time + datetime.timedelta(hours=time))
             if beam_rad_basename:
-                set_time_stamp(beam_rad_basename + suffixes_all[i], time=grass_time)
+                set_time_stamp(beam_rad_basename + suffixes_all[i],
+                               time=grass_time)
             if diff_rad_basename:
-                set_time_stamp(diff_rad_basename + suffixes_all[i], time=grass_time)
+                set_time_stamp(diff_rad_basename + suffixes_all[i],
+                               time=grass_time)
             if refl_rad_basename:
-                set_time_stamp(refl_rad_basename + suffixes_all[i], time=grass_time)
+                set_time_stamp(refl_rad_basename + suffixes_all[i],
+                               time=grass_time)
             if glob_rad_basename:
-                set_time_stamp(glob_rad_basename + suffixes_all[i], time=grass_time)
+                set_time_stamp(glob_rad_basename + suffixes_all[i],
+                               time=grass_time)
             if incidout_basename:
-                set_time_stamp(incidout_basename + suffixes_all[i], time=grass_time)
+                set_time_stamp(incidout_basename + suffixes_all[i],
+                               time=grass_time)
 
     if beam_rad_basename:
         maps = [beam_rad_basename + suf for suf in suffixes_all]

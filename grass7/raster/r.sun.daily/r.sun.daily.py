@@ -184,9 +184,8 @@ def run_r_sun(elevation, aspect, slope, day, step,
         params.update({'glob_rad': glob_rad + suffix})
 
     if is_grass_7():
-        grass.run_command('r.sun', elev_in=elevation, asp_in=aspect,
-                          slope_in=slope,
-                          day=day, step=step,
+        grass.run_command('r.sun', elevation=elevation, aspect=aspect,
+                          slope=slope, day=day, step=step,
                           overwrite=core.overwrite(), quiet=True,
                           **params)
     else:
@@ -206,7 +205,8 @@ def set_color_table(rasters):
 
 
 def set_time_stamp(raster, day):
-    grass.run_command('r.timestamp', map=raster, date='%d days' % day, quiet=True)
+    grass.run_command('r.timestamp', map=raster, date='%d days' % day,
+                      quiet=True)
 
 
 def format_order(number, zeros=3):
@@ -219,7 +219,8 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
     for day in range(start_day, end_day + 1, day_step):
         map_ = '%s%s%s' % (basename, '_', format_order(day))
         if grass.find_file(map_, element='cell', mapset=mapset)['file']:
-            grass.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
+            grass.fatal(_("Raster map <%s> already exists. Change the base "
+                          "name or allow overwrite.") % map_)
 
 
 def sum_maps(sum_, basename, suffixes):
@@ -309,7 +310,8 @@ def main():
             REMOVE.append(slope_input)
 
         grass.info(_("Running r.slope.aspect..."))
-        grass.run_command('r.slope.aspect', elevation=elevation_input, quiet=True, **params)
+        grass.run_command('r.slope.aspect', elevation=elevation_input,
+                          quiet=True, **params)
 
     if beam_rad:
         grass.mapcalc('%s=0' % beam_rad, quiet=True)
@@ -393,11 +395,14 @@ def main():
         core.info(_("Registering created maps into temporal dataset..."))
         import grass.temporal as tgis
 
-        def registerToTemporal(basename, suffixes, mapset, start_day, day_step, title, desc):
+        def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
+                               title, desc):
             maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-            tgis.open_new_space_time_dataset(basename, type='strds', temporaltype='relative',
+            tgis.open_new_space_time_dataset(basename, type='strds',
+                                             temporaltype='relative',
                                              title=title, descr=desc,
-                                             semantic='sum', dbif=None, overwrite=grass.overwrite())
+                                             semantic='sum', dbif=None,
+                                             overwrite=grass.overwrite())
             tgis.register_maps_in_space_time_dataset(
                 type='rast', name=basename, maps=maps, start=start_day, end=None,
                 unit='days', increment=day_step, dbif=None, interval=False)
@@ -406,20 +411,22 @@ def main():
 
         mapset = grass.gisenv()['MAPSET']
         if beam_rad_basename_user:
-            registerToTemporal(beam_rad_basename, suffixes_all, mapset, start_day, day_step,
-                               title="Beam irradiation",
+            registerToTemporal(beam_rad_basename, suffixes_all, mapset,
+                               start_day, day_step, title="Beam irradiation",
                                desc="Output beam irradiation raster maps [Wh.m-2.day-1]")
         if diff_rad_basename_user:
-            registerToTemporal(diff_rad_basename, suffixes_all, mapset, start_day, day_step,
+            registerToTemporal(diff_rad_basename, suffixes_all, mapset,
+                               start_day, day_step,
                                title="Diffuse irradiation",
                                desc="Output diffuse irradiation raster maps [Wh.m-2.day-1]")
         if refl_rad_basename_user:
-            registerToTemporal(refl_rad_basename, suffixes_all, mapset, start_day, day_step,
+            registerToTemporal(refl_rad_basename, suffixes_all, mapset,
+                               start_day, day_step,
                                title="Reflected irradiation",
                                desc="Output reflected irradiation raster maps [Wh.m-2.day-1]")
         if glob_rad_basename_user:
-            registerToTemporal(glob_rad_basename, suffixes_all, mapset, start_day, day_step,
-                               title="Total irradiation",
+            registerToTemporal(glob_rad_basename, suffixes_all, mapset,
+                               start_day, day_step, title="Total irradiation",
                                desc="Output total irradiation raster maps [Wh.m-2.day-1]")
 
     else:
