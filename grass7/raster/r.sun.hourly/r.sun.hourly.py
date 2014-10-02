@@ -146,7 +146,8 @@ def cleanup():
     if len(TMP):
         core.info(_("Cleaning %d temporary maps...") % len(TMP))
     for rast in TMP:
-        grass.run_command('g.remove', rast=rast, quiet=True)
+        grass.run_command('g.remove', type='rast', pattern=rast, flags='f',
+                          quiet=True)
 
 
 def is_grass_7():
