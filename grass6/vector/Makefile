@@ -6,6 +6,7 @@ SUBDIRS = \
 	v.curvature \
 	v.db.calc \
 	v.eqsm \
+	v.in.adcirc_grid \
 	v.in.gama \
 	v.in.geoplot \
 	v.in.gshhs \
