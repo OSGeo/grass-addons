@@ -11,12 +11,14 @@ SUBDIRS = \
 	i.evapo.senay \
 	i.evapo.zk \
 	i.feotio2 \
+	i.fusion.brovey \
 	i.gravity \
 	i.histo.match \
 	i.lmf \
 	i.points.auto \
 	i.rotate \
 	i.segment.gsoc \
+	i.segment.hierarchical \
 	i.spec.unmix \
 	i.vi.mpi \
 	i.wavelet
