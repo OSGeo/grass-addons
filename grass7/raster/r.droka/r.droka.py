@@ -52,40 +52,38 @@
 #% description: Rock block mass (Kg/m^3)
 #% required: yes
 #%end
+#% option
+#% key: num
+#% type: integer
+#% description: Number of shoots (>=1)
+#% required: yes
+#%end
 #%option
 #% key: rocks
 #% type: string
 #% gisprompt: new,cell,raster
-#% description: Rocks number
+#% description: Output propagation zone
 #% required : yes
 #%end
 #%option
-#% key: vmax
+#% key: v
 #% type: string
-#% gisprompt: new,cell,raster
-#% description: Max translational velocity (corrected)
+# gisprompt: new,cell,raster
+#% description: Translational velocity (corrected)
 #% required : yes
 #%end
 #%option
-#% key: vmean
+#% key: e
 #% type: string
-#% gisprompt: new,cell,raster
-#% description: Mean translational velocity (corrected)
-#% required : yes
-#%end
-#%option
-#% key: emax
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Max kinematic energy (kJ) (corrected)
+# gisprompt: new,cell,raster
+#% description: Kinematic energy (kJ) (corrected)
 #% required: yes
 #%end
 #%option
-#% key: emean
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Mean kinematic energy (kJ) (corrected)
-#% required: yes
+#% key: n
+#% type: integer
+#% description: Buffer distance ((n*cellsize)/2)
+#% required: no
 #%end
 #option
 # key: x
@@ -141,23 +139,71 @@ def main():
     ang = options['ang']
     red = options['red']
     m = options['m']
+    num = options['num']
+
+    n = options['n']
+    if n == '':
+        n = 1
+    else:
+        n = float(n)
+    grass.message("Setting variables...") 
     rocks = str(options['rocks'])
-    vMax = str(options['vmax'])
-    vMean = str(options['vmean'])
-    eMax = str(options['emax'])
-    eMean = str(options['emean'])
+    v = str(options['v'])
+    vMax = v + '_max'
+    vMean = v + '_mean'
+    e = str(options['e'])
+    eMax = e + '_max'
+    eMean = e + '_mean'
 
     #print 'x = ' , x
     #print 'y = ' , y
     #print 'z = ' , z
-    print 'ang = ' , ang
-    print 'red = ' , red
-    print 'm = ' , m
+    #print 'ang = ' , ang
+    #print 'red = ' , red
+    #print 'm = ' , m
     
+
+    gregion = grass.region()
+    PixelWidth = gregion['ewres']
+    d_buff = (n * PixelWidth)/2
+
+    grass.message("Defining starting points...") 
+    if int(num) == 1:
+        grass.run_command('g.copy' , 
+            vect= start+',start_points_' ,
+            quiet = True )    
+    else:    
+        grass.run_command('v.buffer' ,
+            input = start ,
+            type = 'point' ,
+            output = 'start_buffer_' ,
+            distance = d_buff ,
+            quiet = True )
+
+        grass.run_command('v.random' ,
+            input = 'start_buffer_' ,
+            n = num ,
+            output = 'start_random_' ,
+            flags = 'a' ,
+            quiet = True )
+
+        grass.run_command('v.patch' ,
+            input = start + ',start_random_' ,
+            output = 'start_points_' ,
+            quiet = True )
+
+    #v.buffer input=punto type=point output=punti_buffer distance=$cellsize
+    #v.random -a output=random n=$numero input=punti_buffer
+    #v.patch input=punto,random output=patch1
+
     #creo raster (che sara' il DEM di input) con valore 1
     grass.mapcalc('uno=$dem*0+1', 
-        dem = r_elevation)     
-    what = grass.read_command('r.what', map=r_elevation, points=start)
+        dem = r_elevation ,
+        quiet = True )     
+    what = grass.read_command('r.what' , 
+        map=r_elevation , 
+        points='start_points_' ,
+        quiet = True )
     quota = what.split('\n')
 
     #array per la somma dei massi
@@ -175,19 +221,21 @@ def main():
     energy = garray.array()
     enMax = garray.array()
     enMean = garray.array()
-
+    grass.message("Waiting...")
     for i in xrange(len(quota)-1):
+        grass.message("Shoot number: " + str(i+1))
         z = float(quota[i].split('||')[1])
         point = quota[i].split('||')[0]
         x = float(point.split('|')[0])
         y = float(point.split('|')[1])
-        print x,y,z
+        #print x,y,z
         # Calcolo cost (sostituire i punti di partenza in start_raster al pusto di punto)
         grass.run_command('r.cost' , 
             flags="k",  
             input = 'uno',
             output = 'costo',
             start_coordinates = str(x)+','+str(y),
+            quiet = True ,
             overwrite = True ) 
 
 
@@ -231,7 +279,7 @@ def main():
         energy.read('en')
         enMax[...] = (np.where(energy>enMax,energy,enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
-
+    grass.message("Create output maps...")
     tot.write(rocks)
     velMax.write(vMax)
     velMean[...] = (velMean/i).astype(float)
@@ -239,6 +287,22 @@ def main():
     enMax.write(eMax)
     enMean[...] = (enMean/i).astype(float)
     enMean.write(eMean)
+    #grass.run_command('d.mon',
+    #    start = 'wx0')
+    #grass.run_command('d.rast' ,
+    #    map=vMax)
+    #grass.run_command('d.rast' ,
+    #    map=vMean)
+    #grass.run_command('d.rast' ,
+    #    map=eMax)
+    #grass.run_command('d.rast' ,
+    #    map=eMean)
+    grass.run_command('g.remove' , 
+        vect=(
+            'start_buffer_',
+            'start_random_',
+            'start_points_') ,
+        quiet = True )
     grass.run_command('g.remove' , 
         rast=(
             'uno',
@@ -251,8 +315,9 @@ def main():
             'F',
             'en',
             'vel',
-            'somma'))
-
+            'somma') ,
+        quiet = True )
+    grass.message("Done!")
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
