@@ -43,6 +43,7 @@
 #% key: red
 #% type: double
 #% description: Reduction value
+#% answer: 0.9
 #% options : 0-1
 #% required: yes
 #%end
@@ -63,13 +64,13 @@
 #% type: string
 #% gisprompt: new,cell,raster
 #% key_desc: name
-#% description: Prefix for output raster map(s)
+#% description: Prefix for output raster maps
 #% required: yes
 #%end
 #%option
 #% key: n
 #% type: integer
-#% description: Buffer distance ((n*cellsize)/2)
+#% description: Buffer distance (meters)
 #% required: no
 #%end
 
@@ -111,10 +112,12 @@ def main():
     num = options['num']
 
     n = options['n']
-    if n == '':
-        n = 1
-    else:
-        n = float(n)
+
+    #if n == '':
+    #    n = 1
+    #else:
+    #    n = float(n)
+
     grass.message("Setting variables...") 
     prefix = options['prefix']
     rocks = prefix + '_propagation'
@@ -125,17 +128,17 @@ def main():
     eMax = e + '_max'
     eMean = e + '_mean'
 
-    #print 'x = ' , x
-    #print 'y = ' , y
-    #print 'z = ' , z
-    #print 'ang = ' , ang
-    #print 'red = ' , red
-    #print 'm = ' , m
-    
-
     gregion = grass.region()
     PixelWidth = gregion['ewres']
-    d_buff = (n * PixelWidth)/2
+
+    if n == '':
+        n = 1
+        d_buff = (float(num) * PixelWidth)/2
+    else:
+        n = float(n)
+        d_buff = n
+
+    #d_buff = (n * PixelWidth)/2
 
     grass.message("Defining starting points...") 
     if int(num) == 1:
