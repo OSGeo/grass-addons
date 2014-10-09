@@ -30,7 +30,7 @@
 #% key: start
 #% type: string
 #% gisprompt: old,vector,vector
-#% description: Name of existing rock mass start point 
+#% description: Name of starting points map 
 #% required : yes
 #%end
 #%option
@@ -42,41 +42,28 @@
 #%option
 #% key: red
 #% type: double
-#% description: Reduction parameter
+#% description: Reduction value
 #% options : 0-1
 #% required: yes
 #%end
 #%option
 #% key: m
 #% type: double
-#% description: Rock block mass (Kg/m^3)
+#% description: Value of rock density (Kg/m^3)
 #% required: yes
 #%end
 #% option
 #% key: num
 #% type: integer
-#% description: Number of shoots (>=1)
+#% description: Number of boulders (>=1)
 #% required: yes
 #%end
 #%option
-#% key: rocks
+#% key: prefix
 #% type: string
 #% gisprompt: new,cell,raster
-#% description: Output propagation zone
-#% required : yes
-#%end
-#%option
-#% key: v
-#% type: string
-# gisprompt: new,cell,raster
-#% description: Translational velocity (corrected)
-#% required : yes
-#%end
-#%option
-#% key: e
-#% type: string
-# gisprompt: new,cell,raster
-#% description: Kinematic energy (kJ) (corrected)
+#% key_desc: name
+#% description: Prefix for output raster map(s)
 #% required: yes
 #%end
 #%option
@@ -85,24 +72,6 @@
 #% description: Buffer distance ((n*cellsize)/2)
 #% required: no
 #%end
-#option
-# key: x
-# type: double
-# description: Est coordinate of source point
-# required: no
-#end
-#option
-# key: y
-# type: double
-# description: North coordinate of source point
-# required: no
-#end
-#option
-# key: z
-# type: double
-# description: Elevation of source point
-# required: no
-#end
 
 import os, sys, time, math , string, re
 from grass.script import array as garray
@@ -147,11 +116,12 @@ def main():
     else:
         n = float(n)
     grass.message("Setting variables...") 
-    rocks = str(options['rocks'])
-    v = str(options['v'])
+    prefix = options['prefix']
+    rocks = prefix + '_propagation'
+    v = prefix + '_vel'
     vMax = v + '_max'
     vMean = v + '_mean'
-    e = str(options['e'])
+    e = prefix + '_en'
     eMax = e + '_max'
     eMean = e + '_mean'
 
@@ -297,12 +267,19 @@ def main():
     #    map=eMax)
     #grass.run_command('d.rast' ,
     #    map=eMean)
-    grass.run_command('g.remove' , 
-        vect=(
-            'start_buffer_',
-            'start_random_',
-            'start_points_') ,
-        quiet = True )
+    if int(num) == 1:
+        grass.run_command('g.remove' , 
+            vect=( 'start_points_' ),
+            quiet = True )    
+    else:
+        grass.run_command('g.rename' , 
+            vect= 'start_points_,' + prefix + '_starting' ,
+            quiet = True )
+        grass.run_command('g.remove' , 
+            vect=(
+                'start_buffer_',
+                'start_random_') ,
+            quiet = True )
     grass.run_command('g.remove' , 
         rast=(
             'uno',
@@ -321,12 +298,3 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-
-
-
-# codice da aggiungere per leggere la pendenza dl layer vettoriale
-#ZN = grass.read_command("v.db.select", flags="c", map="geochimcal", col="ZN")
-#ZN=(ZN.split("\n"))
-#ZN= ZN[0:(len(ZN)-1)]
-#print ZN
-#['40', '55', '65', '158', '44', '282', '62', '83', '84', '97', '61', '58', '40', '54', '75', '129', #'77', '87', '74', '47', '58', '73', '64', '46', '63']
