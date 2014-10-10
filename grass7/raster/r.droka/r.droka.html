@@ -1,33 +1,33 @@
 <h2>NAME</h2>
 <dl>
-<dt><strong>r.droka</strong>- <strong>D</strong>raft <strong>Ro</strong>c<strong>k</strong>fall <strong>A</strong>nalysis - An empirical method that identifies the maximum area of invasion of a rockfall.</dt>
+<p><strong>r.droka</strong>- <strong>D</strong>raft <strong>Ro</strong>c<strong>k</strong>fall <strong>A</strong>nalysis - An empirical method that identifies the maximum area of invasion of a rockfall.</p>
 <h2>DESCRIPTION</h2>
-<dt>The intersection between the topographic profile and the line starting from the point of detachment with a certain angle to the horizontal line defines the point of maximum propagation (Evans and Hungr, 1993; Jaboyedoff and Labiouse, 2003). The angle of inclination (φp) and the line of propagation are defined as zenith angle and shadow zone. This script defines rockfall zones from a digital elevation model (DEM) and vector layer containing starting point or points.</dt>
-<dt><a><img src="img.png" width="401" height="227" alt=""><a></dt>
-<dt><strong><span style="font-size: smaller;">Energy line used for the cone method from the top or the bottom of a cliff (shadow angle), according to various authors (Image from Jaboyedoff and Labiouse, 2003)</span></strong></dt>
+<p>The intersection between the topographic profile and the line starting from the point of detachment with a certain angle to the horizontal line defines the point of maximum propagation (Evans and Hungr, 1993; Jaboyedoff and Labiouse, 2003). The angle of inclination (φp) and the line of propagation are defined as zenith angle and shadow zone. This script defines rockfall zones from a digital elevation model (DEM) and vector layer containing starting point or points.</p>
+<p><a><img src="img.png" width="401" height="227" alt=""><a></p>
+<p style="font-size: smaller;"><strong><em >Energy line used for the cone method from the top or the bottom of a cliff (shadow angle), according to various authors (Image from Jaboyedoff and Labiouse, 2003)</em></strong></p>
 <h2>INPUT</h2>
 
 
-<dt><strong>Digital Elevation Model</strong> = name </dt>
+<p><strong>Digital Elevation Model</strong> = name </p>
     <ul>Name of elevation raster map</ul>
-<dt><strong>Starting points</strong> = name </dt>
+<p><strong>Starting points</strong> = name </p>
     <ul>Name of vector map containing rockfall source area. It can be one point or more.</ul>
-<dt><strong>Shadow angle</strong> = integer </dt>
+<p><strong>Shadow angle</strong> = integer </p>
     <ul>Angle of inclination that defines the propagation zone. It's calculated from an horizontal plane starting from source point: highest values determine a lowest propagation.</ul>
-<dt><strong>Reduction value</strong> = double </dt>
+<p><strong>Reduction value</strong> = double </p>
     <ul>Reduction moltiplicator for velocity. Default value is 0.9</ul>
-<dt><strong>Number of boulders</strong> = integer </dt>
+<p><strong>Number of boulders</strong> = integer </p>
     <ul>For each starting point can be generated other random points used in the computations. By default points are located in a radius from the starting point equal to: (cell size * number of boulders)/2. Insert 1 for use only the original starting point or points. Note that a high number of boulders can make excessively long the calculation times.</ul>
-<dt><strong>Rock mass</strong> = double </dt>
+<p><strong>Rock mass</strong> = double </p>
     <ul>Value of rock mass (Kg) </ul>
-<dt><strong>Output prefix</strong> = string </dt>
+<p><strong>Output prefix</strong> = string </p>
     <ul>Name of prefix used for output raster maps</ul>
-<dt><strong>Buffer distance</strong> = integer </dt>
+<p><strong>Buffer distance</strong> = integer </p>
     <ul>This value define the radius for randomly generatin boulders starting from starting point. It's in the option dialog window.</ul>
 
 
 <h2>OUTPUT</h2>
-<dt><strong>r.droka generates 5 raster maps and a vector map.</strong> The names of all output maps start with the prefix defined by the parameter prefix followed by name of map</dt>
+<p><strong>r.droka generates 5 raster maps and a vector map.</strong> The names of all output maps start with the prefix defined by the parameter prefix followed by name of map</p>
 <ul>
     <li><em>prefix</em>_propagation: raster map rapresenting the area of propagation. If are used multiple source points, each pixel show the percentage of passage (%)</li>
     <li><em>prefix</em>_vel_max: maximum rock-fall translational velocities (m/sec)</li>
@@ -38,13 +38,13 @@
 </ul>
 
 <h2>REFERENCES</h2>
-<dt>FILIPELLO A., GIULIANI A., MANDRONE G. (2010) - Rock Slopes Failure Susceptibility Analysis: From Remote Sensing Measurements to Geographic Information System Raster Modules. American Journal of Environmental Sciences 6 (6): 489-494, 2010 ISSN 1553-345X © 2010 Science Publications.</dt>
-<dt>JABOYEDOFF M., LABIOUSE V. (2003) - Preliminary assessment of rockfall hazard based on GIS Data. Proceeding of the 10th ISRM Congress, South African Inst. Min. Met., Johannesburg, pp: 575-578</dt>
-<dt>EVANS, S.G., HUNGR O. (1993). The assessment of rock fall hazard at the base of the talus slope. Can. Geotech. J., 30: 620-636. DOI: 10.1139/t93-054 | © 1993 </dt>
+<p>FILIPELLO A., GIULIANI A., MANDRONE G. (2010) - Rock Slopes Failure Susceptibility Analysis: From Remote Sensing Measurements to Geographic Information System Raster Modules. American Journal of Environmental Sciences 6 (6): 489-494, 2010 ISSN 1553-345X © 2010 Science Publications.</p>
+<p>JABOYEDOFF M., LABIOUSE V. (2003) - Preliminary assessment of rockfall hazard based on GIS Data. Proceeding of the 10th ISRM Congress, South African Inst. Min. Met., Johannesburg, pp: 575-578</p>
+<p>EVANS, S.G., HUNGR O. (1993). The assessment of rock fall hazard at the base of the talus slope. Can. Geotech. J., 30: 620-636. DOI: 10.1139/t93-054 | © 1993 </p>
 
 <h2>SEE ALSO</h2>
 
 <h2>AUTHORS</h2>
-<dt>Andrea Filipello, University of Turin, Italy - <a href="mailto:andrea.filipello@gmail.com">Email</a> </dt>
-<dt>Daniele Strigaro, University of Milan, Italy -  <a href="mailto:daniele.strigaro@gmail.com">Email</a></dt>
+<p>Andrea Filipello, University of Turin, Italy - <a href="mailto:andrea.filipello@gmail.com">Email</a> </p>
+<p>Daniele Strigaro, University of Milan, Italy -  <a href="mailto:daniele.strigaro@gmail.com">Email</a></p>
 
