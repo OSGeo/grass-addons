@@ -1,32 +1,33 @@
 <h1>NAME</h1>
-<div><strong>r.droka</strong>- <strong>D</strong>raft <strong>Ro</strong>c<strong>k</strong>fall <strong>A</strong>nalysis – An empirical method that identifies the maximum area of invasion of a rockfall.</div>
+<dl>
+<strong>r.droka</strong>- <strong>D</strong>raft <strong>Ro</strong>c<strong>k</strong>fall <strong>A</strong>nalysis - An empirical method that identifies the maximum area of invasion of a rockfall.
 <h1>DESCRIPTION</h1>
-<div><p>The intersection between the topographic profile and the line starting from the point of detachment with a certain angle to the horizontal line defines the point of maximum propagation (Evans and Hungr, 1993; Jaboyedoff and Labiouse, 2003). The angle of inclination (φp) and the line of propagation are defined as zenith angle and shadow zone. This script defines rockfall zones from a digital elevation model (DEM) and vector layer containing starting point or points.</p>
-<a><img src="img.png" width="401" height="227" alt=""><a>
-<p><strong><span style="font-size: smaller;">Energy line used for the cone method from the top or the bottom of a cliff (shadow angle), according to various authors (Image from Jaboyedoff and Labiouse, 2003)</span></strong></p>
+<dt>The intersection between the topographic profile and the line starting from the point of detachment with a certain angle to the horizontal line defines the point of maximum propagation (Evans and Hungr, 1993; Jaboyedoff and Labiouse, 2003). The angle of inclination (φp) and the line of propagation are defined as zenith angle and shadow zone. This script defines rockfall zones from a digital elevation model (DEM) and vector layer containing starting point or points.</dt>
+<dt><a><img src="img.png" width="401" height="227" alt=""><a></dt>
+<dt><strong><span style="font-size: smaller;">Energy line used for the cone method from the top or the bottom of a cliff (shadow angle), according to various authors (Image from Jaboyedoff and Labiouse, 2003)</span></strong></dt>
 <h1>INPUT</h1>
 
 
-<p><strong>Digital Elevation Model</strong> = name </p>
+<dt><strong>Digital Elevation Model</strong> = name </dt>
     <ul>Name of elevation raster map</ul>
-<p><strong>Starting points</strong> = name </p>
+<dt><strong>Starting points</strong> = name </dt>
     <ul>Name of vector map containing rockfall source area. It can be one point or more.</ul>
-<p><strong>Shadow angle</strong> = integer </p>
+<dt><strong>Shadow angle</strong> = integer </dt>
     <ul>Angle of inclination that defines the propagation zone. It's calculated from an horizontal plane starting from source point: highest values determine a lowest propagation.</ul>
-<p><strong>Reduction value</strong> = double </p>
+<dt><strong>Reduction value</strong> = double </dt>
     <ul>Reduction moltiplicator for velocity. Default value is 0.9</ul>
-<p><strong>Number of boulders</strong> = integer </p>
+<dt><strong>Number of boulders</strong> = integer </dt>
     <ul>For each starting point can be generated other random points used in the computations. By default points are located in a radius from the starting point equal to: (cell size * number of boulders)/2. Insert 1 for use only the original starting point or points. Note that a high number of boulders can make excessively long the calculation times.</ul>
-<p><strong>Rock mass</strong> = double </p>
+<dt><strong>Rock mass</strong> = double </dt>
     <ul>Value of rock mass (Kg) </ul>
-<p><strong>Output prefix</strong> = string </p>
+<dt><strong>Output prefix</strong> = string </dt>
     <ul>Name of prefix used for output raster maps</ul>
-<p><strong>Buffer distance</strong> = integer </p>
+<dt><strong>Buffer distance</strong> = integer </dt>
     <ul>This value define the radius for randomly generatin boulders starting from starting point. It's in the option dialog window.</ul>
-</div>
-<div>
+
+
 <h1>OUTPUT</h1>
-<p><strong>r.droka generates 5 raster maps and a vector map.</strong> The names of all output maps start with the prefix defined by the parameter prefix followed by name of map</p>
+<dt><strong>r.droka generates 5 raster maps and a vector map.</strong> The names of all output maps start with the prefix defined by the parameter prefix followed by name of map</dt>
 <ul>
     <li><em>prefix</em>_propagation: raster map rapresenting the area of propagation. If are used multiple source points, each pixel show the percentage of passage (%)</li>
     <li><em>prefix</em>_vel_max: maximum rock-fall translational velocities (m/sec)</li>
@@ -36,15 +37,15 @@
     <li><em>prefix</em>_starting: vector map of starting points</li>
 </ul>
 
-</div>
-<div>
+
+
 <h1>AUTHORS</h1>
-<p>Andrea Filipello, University of Turin, Italy - <a href="mailto:andrea.filipello@gmail.com">Email</a> </p>
-<p>Daniele Strigaro, University of Milan, Italy -  <a href="mailto:daniele.strigaro@gmail.com">Email</a></p>
-</div>
-<div>
+<dt>Andrea Filipello, University of Turin, Italy - <a href="mailto:andrea.filipello@gmail.com">Email</a> </dt>
+<dt>Daniele Strigaro, University of Milan, Italy -  <a href="mailto:daniele.strigaro@gmail.com">Email</a></dt>
+
+
 <h1>REFERENCES</h1>
-<p>FILIPELLO A., GIULIANI A., MANDRONE G. (2010) - Rock Slopes Failure Susceptibility Analysis: From Remote Sensing Measurements to Geographic Information System Raster Modules. American Journal of Environmental Sciences 6 (6): 489-494, 2010 ISSN 1553-345X © 2010 Science Publications.</p>
-<p>JABOYEDOFF M., LABIOUSE V. (2003) - Preliminary assessment of rockfall hazard based on GIS Data. Proceeding of the 10th ISRM Congress, South African Inst. Min. Met., Johannesburg, pp: 575-578</p>
-<p>EVANS, S.G., HUNGR O. (1993). The assessment of rock fall hazard at the base of the talus slope. Can. Geotech. J., 30: 620-636. DOI: 10.1139/t93-054 | © 1993 </p>
-</div>
+<dt>FILIPELLO A., GIULIANI A., MANDRONE G. (2010) - Rock Slopes Failure Susceptibility Analysis: From Remote Sensing Measurements to Geographic Information System Raster Modules. American Journal of Environmental Sciences 6 (6): 489-494, 2010 ISSN 1553-345X © 2010 Science Publications.</dt>
+<dt>JABOYEDOFF M., LABIOUSE V. (2003) - Preliminary assessment of rockfall hazard based on GIS Data. Proceeding of the 10th ISRM Congress, South African Inst. Min. Met., Johannesburg, pp: 575-578</dt>
+<dt>EVANS, S.G., HUNGR O. (1993). The assessment of rock fall hazard at the base of the talus slope. Can. Geotech. J., 30: 620-636. DOI: 10.1139/t93-054 | © 1993 </dt>
+
