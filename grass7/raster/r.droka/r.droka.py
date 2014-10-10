@@ -50,7 +50,7 @@
 #%option
 #% key: m
 #% type: double
-#% description: Value of rock density (Kg/m^3)
+#% description: Value of rock mass (Kg)
 #% required: yes
 #%end
 #% option
