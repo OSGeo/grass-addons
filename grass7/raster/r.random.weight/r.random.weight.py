@@ -83,7 +83,10 @@ import grass.script as grass
 
 def cleanup():
 	grass.run_command('g.remove', 
-      rast = tmp_map, quiet = True)
+      type = 'rast', 
+      pattern = 'tmp_map',
+      flags='f',
+      quiet = True)
 
 # main function
 def main():
@@ -112,13 +115,13 @@ def main():
         flags='g')
    
     if seed == "auto":  
-        grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
+        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))", 
             seed='auto',
             minval = minval, 
             maxval = maxval,
             tmp_map = tmp_map)
     else:        
-        grass.mapcalc("$tmp_map = rand(${minval},${maxval})", 
+        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))", 
             seed=1,
             minval = minval, 
             maxval = maxval,
@@ -130,18 +133,17 @@ def main():
         tmp_map = tmp_map)
         
     if not subsample == '': 
+        grass.run_command('r.null',
+            map = outmap, 
+            setnull = 0)
         grass.run_command('r.random',
             input = outmap,
             n = subsample,
-            raster_output = tmp_map2)
+            raster_output = outmap,
+            overwrite=True)
         grass.run_command('r.null',
-            map = tmp_map2, 
+            map = outmap, 
             null = 0)
-        grass.mapcalc("${outmap} = if(${outmap}>=0,${tmp_map2},null())",
-            overwrite = True,
-            outmap = outmap,
-            tmp_map2 = tmp_map2)
-        grass.run_command('g.remove', rast=tmp_map2)
 
     print("------------------")
     print("Ready!")
