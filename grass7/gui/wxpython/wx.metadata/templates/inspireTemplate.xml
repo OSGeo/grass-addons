@@ -147,7 +147,7 @@
             <gmd:resourceConstraints>
                 <gmd:MD_LegalConstraints>
                     <gmd:accessConstraints>
-                        <gmd:MD_RestrictionCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#MD_RestrictionCode" codeListValue="{{ oc }}{# tag="oc" , name="Other constraionts" , ref= "Part B 8.1" , desc= "Restrictions on the access and use of a resource or metadata" , example = "No conditions apply" , type ="MD_RestrictionCode" ,group= "Constraints" , multi= 0, multiline= False,inbox="Other restriction", inboxmulti=1  #}">{{ oc }}</gmd:MD_RestrictionCode>
+                        <gmd:MD_RestrictionCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#MD_RestrictionCode" codeListValue="{{ oc }}{# tag="oc" , name="Other constraints" , ref= "Part B 8.1" , desc= "Restrictions on the access and use of a resource or metadata" , example = "No conditions apply" , type ="MD_RestrictionCode" ,group= "Constraints" , multi= 0, multiline= False,inbox="Other restriction", inboxmulti=1  #}">{{ oc }}</gmd:MD_RestrictionCode>
                     </gmd:accessConstraints>
                {% endfor -%}
       {% for ac in md.identification.accessconstraints -%}{# tag="for oc in md.identification.accessconstraints" , group= "Constraints",inbox="Limitation on public access", inboxmulti=1  #}
@@ -220,7 +220,7 @@
                         <gmd:EX_TemporalExtent>
                             <gmd:extent>
                                 <gml:TimePeriod xsi:type="gml:TimePeriodType">
-                                    <gml:beginPosition>{{ md.identification.temporalextent_start }}{# tag="md.identification.temporalextent_start" , name="Starting date" , ref= "Part B 5.1" , desc= "Time period covered by the content of the dataset." , example = "2000-11-30" , type ="date" , group= "Temporal" , inbox= "Temporal extend", multi=0 , inboxmulti= 0, multiline= False #}</gml:beginPosition>
+                                    <gml:beginPosition>{{ md.identification.temporalextent_start }}{# tag="md.identification.temporalextent_start" , name="Starting date" , ref= "Part B 5.1" , desc= "Time period covered by the content of the dataset." , example = "2000-11-30" , type ="date" , group= "Temporal" , inbox= "Temporal extent", multi=0 , inboxmulti= 0, multiline= False #}</gml:beginPosition>
                                     <gml:endPosition>{{ md.identification.temporalextent_end }}{# tag="md.identification.temporalextent_end" , name="Ending date" , ref= "Part B 5.1" , desc= "Time period covered by the content of the dataset." , example = "2000-11-30" , type ="date" , group= "Temporal" , inbox= "Temporal extend", multi=0 , inboxmulti= 0, multiline= False #}</gml:endPosition>
                                 </gml:TimePeriod>
                             </gmd:extent>
