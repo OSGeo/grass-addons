@@ -60,7 +60,7 @@ def calculateOblique(reg, mi, ma, perc):
     """Calculate the oblique gradient"""
     cols = reg['cols']
     rows = reg['rows']
-    first_perc = ma * perc / 100.
+    first_perc = ma * float(perc) / 100.
     dif_cols_first = (first_perc - mi) / float(cols-1)
     dif_rows_first = (first_perc - mi) / float(rows-1)
     dif_rows_last = (ma - first_perc) / float(rows-1)
@@ -101,17 +101,24 @@ def createRast(name, matrix, inverse=False):
         return False
 
 
+def checkPercentile(per, di):
+    """Check if percentile option is set with the oblique directions"""
+    if not per and di in ['NW-SE', 'NE-SW', 'SW-NE', 'SE-NW']:
+        grass.fatal("Percentile option has to be set with {dire} direction". format(dire=di))
+
+
 def main():
     """Main function"""
     regiondict = grass.region()
 
     output = options['output']
     values = options['range'].split(',')
-    NewMin = values[0].strip()
-    NewMax = values[1].strip()
+    NewMin = int(values[0].strip())
+    NewMax = int(values[1].strip())
     percentile = options['percentile']
     direction = options['direction']
 
+    checkPercentile(percentile, direction)
     # And now we can calculate the graded rasters
     # for gradient of rows
     if direction == 'N-S':
