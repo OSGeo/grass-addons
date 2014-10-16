@@ -109,6 +109,7 @@ def main():
     values = options['range'].split(',')
     NewMin = values[0].strip()
     NewMax = values[1].strip()
+    percentile = options['percentile']
     direction = options['direction']
 
     # And now we can calculate the graded rasters
@@ -134,13 +135,11 @@ def main():
                       newmap=output, NewMin=NewMax, NewMax=NewMin, OldMin=1,
                       OldMax=regiondict["cols"], overwrite=True)
     elif direction == 'NW-SE':
-        mat = calculateOblique(regiondict, NewMin, NewMax)
+        mat = calculateOblique(regiondict, NewMin, NewMax, percentile)
         createRast(output, mat)
     elif direction == 'NE-SW':
-        mat = calculateOblique(regiondict, NewMin, NewMax)
+        mat = calculateOblique(regiondict, NewMin, NewMax, percentile)
         createRast(output, mat, True)
-
-
 
 if __name__ == "__main__":
     options, flags = grass.parser()
