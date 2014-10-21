@@ -447,6 +447,9 @@ int main(int argc, char *argv[]){
 	V=input_V->answer;
 	G_warning("Initial velocity only along the north direction");
   }
+  
+  pp = 0;
+  ntimes = 0;
   if (parm.opt_t->answer != NULL) {
 	  for (i = 0; parm.opt_t->answers[i]; i++) ;
 	  ntimes=i;
@@ -455,7 +458,6 @@ int main(int argc, char *argv[]){
 		  sscanf(parm.opt_t->answers[i], "%lf", &opt_t);
 		  times[i]=opt_t;
 	  }
-	  pp=0;
   }
   	OUT_H=output_H->answer;
   	OUT_VEL=output_VEL->answer;
