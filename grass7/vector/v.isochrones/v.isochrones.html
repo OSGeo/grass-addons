@@ -1,14 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.isochrones</em> creates a vector polygon map of isochrones (<b>isochrones</b>) based on a roads map (<b>map</b>) with speed attribute (<b>speed_column</b>), one or several starting points (<b>start_points</b>) and time steps for the isochrones (<b>time_steps</b>). Optionally, the module can create a raster map with continuous time from the starting points (<b>timemap</b>).
+<p><em>v.isochrones</em> creates a vector polygon map of isochrones (<b>isochrones</b>) based on a roads map (<b>map</b>) with speed attribute (<b>speed_column</b>), one or several starting points (<b>start_points</b>) and time steps for the isochrones (<b>time_steps</b>). Optionally, the module can create a raster map with continuous time from the starting points (<b>timemap</b>).
 
-The user can define the speed to use in offroad areas (<b>offroad_speed</b>) and the time unit of the output and the time steps (<b>unit</b>).
+<p>The user can define the speed to use in offroad areas (<b>offroad_speed</b>) and the time unit of the output and the time steps (<b>unit</b>).
 
 <h2>NOTES</h2>
 
-The module is a front-end to <em><a href="r.cost.html">r.cost</a></em>. It transforms the roads to raster, calculates time cost from the starting points and then transforms the result into discrete vector polygons based on the time steps chosen.
+<p>The module is a front-end to <em><a href="r.cost.html">r.cost</a></em>. It transforms the roads to raster, calculates time cost from the starting points and then transforms the result into discrete vector polygons based on the time steps chosen.
 
-Current region settings are used to define the maximal extension and the resolution at which the cost map is calculated.
+<p>Current region settings are used to define the maximal extension and the resolution at which the cost map is calculated.
 
 <h2>EXAMPLE</h2>
 
@@ -27,7 +27,7 @@ v.isochrones.py map=roads speed_col=speed start_points=start isochrones=isochron
 </pre></div>
 
 <center>
-	<img src="isochrones.png" border="1"><br>
+	<img src="v_isochrones.png" border="1"><br>
 	30, 60 and 120 minute isochrones from the start point
 </center>
 
