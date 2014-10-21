@@ -1,14 +1,27 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>v.isochrones</em> creates a vector polygon map of isochrones (<b>isochrones</b>) based on a roads map (<b>map</b>) with speed attribute (<b>speed_column</b>), one or several starting points (<b>start_points</b>) and time steps for the isochrones (<b>time_steps</b>). Optionally, the module can create a raster map with continuous time from the starting points (<b>timemap</b>).
+<em>v.isochrones</em> creates a vector polygon map of isochrones 
+(<b>isochrones</b>) based on a roads map (<b>map</b>) with speed 
+attribute (<b>speed_column</b>), one or several starting points 
+(<b>start_points</b>) and time steps for the isochrones 
+(<b>time_steps</b>). Optionally, the module can create a raster map 
+with continuous time from the starting points (<b>timemap</b>).
 
-<p>The user can define the speed to use in offroad areas (<b>offroad_speed</b>) and the time unit of the output and the time steps (<b>unit</b>).
+<p>
+The user can define the speed to use in offroad areas 
+(<b>offroad_speed</b>) and the time unit of the output and the time 
+steps (<b>unit</b>).
 
 <h2>NOTES</h2>
 
-<p>The module is a front-end to <em><a href="r.cost.html">r.cost</a></em>. It transforms the roads to raster, calculates time cost from the starting points and then transforms the result into discrete vector polygons based on the time steps chosen.
+The module is a front-end to <em><a href="r.cost.html">r.cost</a></em>. 
+It transforms the roads to raster, calculates time cost from the 
+starting points and then transforms the result into discrete vector 
+polygons based on the time steps chosen.
 
-<p>Current region settings are used to define the maximal extension and the resolution at which the cost map is calculated.
+<p>
+Current region settings are used to define the maximal extension and 
+the resolution at which the cost map is calculated.
 
 <h2>EXAMPLE</h2>
 
@@ -19,11 +32,11 @@ v.db.update roads col=speed value=120 where="ROAD_NAME='US-1'"
 v.db.update roads col=speed value=90 where="(ROAD_NAME like 'US%' AND ROAD_NAME <> 'US-1') OR ROAD_NAME like 'I-%'"
 v.db.update roads col=speed value=50 where="speed is null"
 
-g.region vect=roads res=100 -a
+g.region vect=roads res=100 -a -p
 
 echo "634637|224663" | v.in.ascii input=- output=start x=1 y=2
 
-v.isochrones.py map=roads speed_col=speed start_points=start isochrones=isochrones30_60_120 time_steps=30,60,120
+v.isochrones map=roads speed_col=speed start_points=start isochrones=isochrones30_60_120 time_steps=30,60,120
 </pre></div>
 
 <center>
@@ -35,10 +48,11 @@ v.isochrones.py map=roads speed_col=speed start_points=start isochrones=isochron
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.cost">r.cost</a>, <a href="v.net.iso">v.net.iso</a> 
+<a href="r.cost">r.cost</a>,
+<a href="v.net.iso">v.net.iso</a> 
 </em>
 
 <h2>AUTHOR</h2>
- Moritz Lennert
+Moritz Lennert
 
 <p><i>Last changed: $Date$</i>
