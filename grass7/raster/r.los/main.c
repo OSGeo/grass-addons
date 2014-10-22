@@ -218,19 +218,19 @@ int main(int argc, char *argv[])
     /* output layer and pattern layer (if present)          */
     in_name = G_tempfile();
     in_fd = creat(in_name, 0666);
-    segment_format(in_fd, nrows, ncols,
+    Segment_format(in_fd, nrows, ncols,
 		   submatrix_rows, submatrix_cols, lenth_data_item);
     close(in_fd);
     out_name = G_tempfile();
     out_fd = creat(out_name, 0666);
-    segment_format(out_fd, nrows, ncols,
+    Segment_format(out_fd, nrows, ncols,
 		   submatrix_rows, submatrix_cols, lenth_data_item);
     close(out_fd);
 
     if (patt_flag == TRUE) {
 	patt_name = G_tempfile();
 	patt_fd = creat(patt_name, 0666);
-	segment_format(patt_fd, nrows, ncols,
+	Segment_format(patt_fd, nrows, ncols,
 		       submatrix_rows, submatrix_cols, sizeof(CELL));
 	close(patt_fd);
     }
@@ -250,22 +250,22 @@ int main(int argc, char *argv[])
 
     /*      open, initialize and segment all files          */
     in_fd = open(in_name, 2);
-    segment_init(&seg_in, in_fd, 4);
+    Segment_init(&seg_in, in_fd, 4);
     out_fd = open(out_name, 2);
-    segment_init(&seg_out, out_fd, 4);
+    Segment_init(&seg_out, out_fd, 4);
 
     if (patt_flag == TRUE) {
 	patt_fd = open(patt_name, 2);
-	segment_init(&seg_patt, patt_fd, 4);
+	Segment_init(&seg_patt, patt_fd, 4);
 	for (row = 0; row < nrows; row++) {
 	    Rast_get_row(patt, cell, row, CELL_TYPE);
-	    segment_put_row(&seg_patt, cell, row);
+	    Segment_put_row(&seg_patt, cell, row);
 	}
     }
 
     for (row = 0; row < nrows; row++) {
 	Rast_get_row(old, fcell, row, FCELL_TYPE);
-	segment_put_row(&seg_in, fcell, row);
+	Segment_put_row(&seg_in, fcell, row);
     }
 
     /* calc map array coordinates for viewing point         */
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
     /*       read elevation of viewing point                */
     value = &viewpt_elev;
-    segment_get(&seg_in, value, row_viewpt, col_viewpt);
+    Segment_get(&seg_in, value, row_viewpt, col_viewpt);
     viewpt_elev += obs_elev;
 
     /*      DO LOS ANALYSIS FOR SIXTEEN SEGMENTS            */
@@ -356,16 +356,16 @@ int main(int argc, char *argv[])
     /*      mark viewpt on output map                       */
     data = 180;
     value = &data;
-    segment_put(&seg_out, value, row_viewpt, col_viewpt);
+    Segment_put(&seg_out, value, row_viewpt, col_viewpt);
 
-    /* write pending updates by segment_put() to outputmap  */
-    segment_flush(&seg_out);
+    /* write pending updates by Segment_put() to outputmap  */
+    Segment_flush(&seg_out);
 
     /* convert output submatrices to full cell overlay      */
     for (row = 0; row < nrows; row++) {
 	int col;
 
-	segment_get_row(&seg_out, fcell, row);
+	Segment_get_row(&seg_out, fcell, row);
 	for (col = 0; col < ncols; col++)
 	    /* set to NULL if beyond max_dist (0) or blocked view (1) */
 	    if (fcell[col] == 0 || fcell[col] == 1)
@@ -373,11 +373,11 @@ int main(int argc, char *argv[])
 	Rast_put_row(new, fcell, FCELL_TYPE);
     }
 
-    segment_release(&seg_in);	/* release memory       */
-    segment_release(&seg_out);
+    Segment_release(&seg_in);	/* release memory       */
+    Segment_release(&seg_out);
 
     if (patt_flag == TRUE)
-	segment_release(&seg_patt);
+	Segment_release(&seg_patt);
 
     close(in_fd);		/* close all files      */
     close(out_fd);

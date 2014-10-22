@@ -110,7 +110,7 @@ struct point *hidden_point_elimination(struct point *head, int viewpt_elev,
 	    /* if pattern layer specified, check to see if checked  */
 	    /* point is of interest. If not, delete it from list    */
 	    if (patt_flag == 1) {
-		segment_get(seg_patt_p, &mask,
+		Segment_get(seg_patt_p, &mask,
 			    row_viewpt - CHECKED_PT_Y,
 			    col_viewpt + CHECKED_PT_X);
 
@@ -199,7 +199,7 @@ struct point *hidden_point_elimination(struct point *head, int viewpt_elev,
 	/* if pattern layer specified, check if blocking point  */
 	/* itself is an area of interest. If not, of no use     */
 	if (patt_flag == 1) {
-	    segment_get(seg_patt_p, &mask, row_viewpt - BLOCKING_PT_Y,
+	    Segment_get(seg_patt_p, &mask, row_viewpt - BLOCKING_PT_Y,
 			col_viewpt + BLOCKING_PT_X);
 	    if (mask == 0 || Rast_is_null_value(&mask, CELL_TYPE)) {
 	    
@@ -302,7 +302,7 @@ find_inclination(int x, int y, int viewpt_elev, SEGMENT * seg_in_p,
 
     dist = sqrt(del_x * del_x + del_y * del_y) * window.ns_res;
 
-    segment_get(seg_in_p, &picked_pt_elev, row_viewpt - y, x + col_viewpt);
+    Segment_get(seg_in_p, &picked_pt_elev, row_viewpt - y, x + col_viewpt);
 
     if (docurv)			/* decrease height of target point */
 	picked_pt_elev = picked_pt_elev - ((dist * dist) / (2 * ellps_a));

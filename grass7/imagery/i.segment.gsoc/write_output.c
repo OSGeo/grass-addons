@@ -20,8 +20,8 @@ int write_output(struct files *files)
     meanbuf = Rast_allocate_d_buf();
 
     /* force all data to disk */
-    segment_flush(&files->bands_seg);
-    segment_flush(&files->iseg_seg);
+    Segment_flush(&files->bands_seg);
+    Segment_flush(&files->iseg_seg);
 
     /* open output raster map */
     out_fd = Rast_open_new(files->out_name, CELL_TYPE);
@@ -33,10 +33,10 @@ int write_output(struct files *files)
 	Rast_set_c_null_value(outbuf, files->ncols);	/*set buffer to NULLs, only write those that weren't originally masked */
 	Rast_set_d_null_value(meanbuf, files->ncols);
 	for (col = 0; col < files->ncols; col++) {
-	    segment_get(&files->bands_seg, (void *)files->bands_val, row,
+	    Segment_get(&files->bands_seg, (void *)files->bands_val, row,
 			col);
 	    if (!(FLAG_GET(files->null_flag, row, col))) {
-		segment_get(&files->iseg_seg, &(outbuf[col]), row, col);
+		Segment_get(&files->iseg_seg, &(outbuf[col]), row, col);
 		meanbuf[col] = files->bands_val[0];
 	    }
 	}
@@ -75,14 +75,14 @@ int close_files(struct files *files)
 {
 
     /* close segmentation files and output raster */
-    segment_close(&files->bands_seg);
+    Segment_close(&files->bands_seg);
     if (files->bounds_map != NULL)
-	segment_close(&files->bounds_seg);
+	Segment_close(&files->bounds_seg);
 
     G_free(files->bands_val);
     G_free(files->second_val);
 
-    segment_close(&files->iseg_seg);
+    Segment_close(&files->iseg_seg);
 
     flag_destroy(files->null_flag);
     flag_destroy(files->candidate_flag);

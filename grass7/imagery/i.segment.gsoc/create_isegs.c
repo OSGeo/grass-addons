@@ -109,7 +109,7 @@ int create_isegs(struct files *files, struct functions *functions)
 	    for (row = 0; row < files->nrows; row++) {
 		for (col = 0; col < files->ncols; col++) {
 
-		    segment_get(&files->bounds_seg, &files->bounds_val, row,
+		    Segment_get(&files->bounds_seg, &files->bounds_val, row,
 				col);
 		    if (files->bounds_val == files->current_bound &&
 			!(FLAG_GET(files->orig_null_flag, row, col))) {
@@ -303,7 +303,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    /* ********  find Ri's most similar neighbor  ******** */
 			    Ri_bestn = NULL;
 			    Ri_similarity = threshold + 1;	/* set current similarity to max value */
-			    segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
+			    Segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
 
 			    /* for each of Ri's neighbors */
 			    for (current = Rin_head; current != NULL;
@@ -409,7 +409,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 				/* ********  find Rk's most similar neighbor  ******** */
 				Rk_similarity = Ri_similarity;	/*Ri gets first priority - ties won't change anything, so we'll accept Ri and Rk as mutually best neighbors */
-				segment_get(&files->bands_seg, (void *)files->bands_val, Rk_head->row, Rk_head->col);	/* current segment values */
+				Segment_get(&files->bands_seg, (void *)files->bands_val, Rk_head->row, Rk_head->col);	/* current segment values */
 
 				/* check similarity for each of Rk's neighbors */
 				for (current = Rkn_head; current != NULL;
@@ -587,7 +587,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    /* find Ri's most similar neighbor */
 			    Ri_bestn = NULL;
 			    Ri_similarity = DBL_MAX;	/* set current similarity to max value */
-			    segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
+			    Segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
 
 			    /* for each of Ri's neighbors */
 			    for (current = Rin_head; current != NULL;
@@ -689,7 +689,7 @@ int find_segment_neighbors(struct pixels **R_head,
     /* *** initialize data *** */
     borderPixels = 0;
 
-    segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row, (*R_head)->col);
+    Segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row, (*R_head)->col);
 
     if (R_iseg == 0) {		/* if seeds were provided, this is just a single non-seed pixel, only return neighbors that are segments or seeds */
 
@@ -707,7 +707,7 @@ int find_segment_neighbors(struct pixels **R_head,
 		)
 		continue;
 
-	    segment_get(&files->iseg_seg, &current_seg_ID,
+	    Segment_get(&files->iseg_seg, &current_seg_ID,
 			pixel_neighbors[n][0], pixel_neighbors[n][1]);
 
 	    if (current_seg_ID > 0) {
@@ -771,7 +771,7 @@ int find_segment_neighbors(struct pixels **R_head,
 		tree_pix.col = pixel_neighbors[n][1];
 
 		if (rbtree_find(no_check_tree, &tree_pix) == FALSE) {	/* want to check this neighbor */
-		    segment_get(&files->iseg_seg, &current_seg_ID,
+		    Segment_get(&files->iseg_seg, &current_seg_ID,
 				pixel_neighbors[n][0], pixel_neighbors[n][1]);
 
 		    rbtree_insert(no_check_tree, &tree_pix);	/* don't check it again */
@@ -827,7 +827,7 @@ int find_segment_neighbors(struct pixels **R_head,
 				     pixel_iter != NULL;
 				     pixel_iter = pixel_iter->next) {
 
-				    segment_get(&files->iseg_seg,
+				    Segment_get(&files->iseg_seg,
 						&temp_ID, pixel_iter->row,
 						pixel_iter->col);
 
@@ -845,14 +845,14 @@ int find_segment_neighbors(struct pixels **R_head,
 		}		/*end if for pixel_neighbor was in "don't check" list */
 		/* even if no_check tree, if we are using shape measurements we need to count if there is a shared border. */
 		else if (functions->radio_weight < 1) {
-		    segment_get(&files->iseg_seg, &current_seg_ID,
+		    Segment_get(&files->iseg_seg, &current_seg_ID,
 				pixel_neighbors[n][0], pixel_neighbors[n][1]);
 		    if (current_seg_ID != R_iseg) {
 			for (pixel_iter = *neighbors_head;
 			     pixel_iter != NULL;
 			     pixel_iter = pixel_iter->next) {
 
-			    segment_get(&files->iseg_seg,
+			    Segment_get(&files->iseg_seg,
 					&temp_ID, pixel_iter->row,
 					pixel_iter->col);
 
@@ -930,7 +930,7 @@ int find_eight_pixel_neighbors(int p_row, int p_col,
 
     /* similarity / distance functions between two points based on their input raster values */
     /* assumes first point values already saved in files->bands_seg */
-    /* speed enhancement: segment_get was already done for a[] values in the main function.  
+    /* speed enhancement: Segment_get was already done for a[] values in the main function.  
      * Could remove a[] from these parameters, reducing number of parameters in 
      * function call could provide a speed improvement. */
 
@@ -943,7 +943,7 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
     int n;
 
     /* get values for pixel b */
-    segment_get(&files->bands_seg, (void *)files->second_val, b->row, b->col);
+    Segment_get(&files->bands_seg, (void *)files->second_val, b->row, b->col);
 
     /* euclidean distance, sum the square differences for each dimension */
     for (n = 0; n < files->nbands; n++) {
@@ -1011,7 +1011,7 @@ double calculate_manhattan_similarity(struct pixels *a, struct pixels *b,
     int n;
 
     /* get values for pixel b */
-    segment_get(&files->bands_seg, (void *)files->second_val, b->row, b->col);
+    Segment_get(&files->bands_seg, (void *)files->second_val, b->row, b->col);
 
     /* Manhattan distance, sum the absolute difference between values for each dimension */
     for (n = 0; n < files->nbands; n++) {
@@ -1050,16 +1050,16 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 
     /*get input values */
     /*speed enhancement: Confirm if we can assume we already have 
-     * bands_val for Ri, so don't need to segment_get() again?  
+     * bands_val for Ri, so don't need to Segment_get() again?  
      * note...current very_close implementation requires 
      * getting this value again... */
-    segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row,
+    Segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row,
 		Ri_head->col);
-    segment_get(&files->bands_seg, (void *)files->second_val,
+    Segment_get(&files->bands_seg, (void *)files->second_val,
 		Rk_head->row, Rk_head->col);
 
-    segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col);
-    segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col);
+    Segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col);
+    Segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col);
 
     for (n = 0; n < files->nbands; n++) {
 	files->bands_val[n] =
@@ -1085,14 +1085,14 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 
     /* for each member of Ri and Rk, write new average bands values and segment values */
     for (current = Ri_head; current != NULL; current = current->next) {
-	segment_put(&files->bands_seg, (void *)files->bands_val,
+	Segment_put(&files->bands_seg, (void *)files->bands_val,
 		    current->row, current->col);
 	FLAG_UNSET(files->candidate_flag, current->row, current->col);	/*candidate pixel flag, only one merge allowed per t iteration */
     }
     for (current = Rk_head; current != NULL; current = current->next) {
-	segment_put(&files->bands_seg, (void *)files->bands_val,
+	Segment_put(&files->bands_seg, (void *)files->bands_val,
 		    current->row, current->col);
-	segment_put(&files->iseg_seg, &Ri_iseg, current->row, current->col);
+	Segment_put(&files->iseg_seg, &Ri_iseg, current->row, current->col);
 	FLAG_UNSET(files->candidate_flag, current->row, current->col);
     }
 
@@ -1119,7 +1119,7 @@ int merge_pixels(struct pixels *R_head, int borderPixels, struct files *files)
     if (R_head->next != NULL) {
 	/* total up bands values for all pixels */
 	for (current = R_head; current != NULL; current = current->next) {
-	    segment_get(&files->bands_seg, (void *)files->bands_val,
+	    Segment_get(&files->bands_seg, (void *)files->bands_val,
 			current->row, current->col);
 	    for (n = 0; n < files->nbands; n++) {
 		files->second_val[n] += files->bands_val[n];
@@ -1139,7 +1139,7 @@ int merge_pixels(struct pixels *R_head, int borderPixels, struct files *files)
 
 	/* save the results */
 	for (current = R_head; current != NULL; current = current->next) {
-	    segment_put(&files->bands_seg, (void *)files->second_val,
+	    Segment_put(&files->bands_seg, (void *)files->second_val,
 			current->row, current->col);
 	}
 

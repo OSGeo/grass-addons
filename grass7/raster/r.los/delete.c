@@ -31,7 +31,7 @@ struct point *delete(struct point *PT_TO_DELETE, struct point *head,
     /*      mark deleted points by light brownish color     */
     data = 1;
     value = &data;
-    segment_put(seg_out_p, value,
+    Segment_put(seg_out_p, value,
 		row_viewpt - PT_TO_DELETE_Y, PT_TO_DELETE_X + col_viewpt);
 
     /* If first and last point. This fixes a bug in r.los. See pts_elim.c for details */

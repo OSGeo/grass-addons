@@ -29,7 +29,7 @@ mark_visible_points(struct point *head, SEGMENT * seg_out_p, int row_viewpt,
     PT_TO_MARK = head;
 
     while (PT_TO_MARK != NULL) {	/*        loop till end of list   */
-	segment_get(seg_out_p, &data,
+	Segment_get(seg_out_p, &data,
 		    row_viewpt - PT_TO_MARK_Y, PT_TO_MARK_X + col_viewpt);
 
 	if (data != (FCELL) 1) {	/* point has not been deleted previously        */
@@ -38,7 +38,7 @@ mark_visible_points(struct point *head, SEGMENT * seg_out_p, int row_viewpt,
 	       + COLOR_SHIFT);
 	       end of old data      */
 	    data = (FCELL) (PT_TO_MARK_INCL * 57.325 + 90.0);
-	    segment_put(seg_out_p, &data,
+	    Segment_put(seg_out_p, &data,
 			row_viewpt - PT_TO_MARK_Y, PT_TO_MARK_X + col_viewpt);
 	}
 

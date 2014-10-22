@@ -144,7 +144,7 @@ int open_files(struct files *files, struct functions *functions)
     G_debug(1, "Data element size, in: %d", inlen);
     G_debug(1, "number of segments to have in memory: %d", nseg);
 
-    if (segment_open
+    if (Segment_open
 	(&files->bands_seg, G_tempfile(), files->nrows, files->ncols, srows,
 	 scols, inlen, nseg) != TRUE)
 	G_fatal_error("Unable to create input temporary files");
@@ -162,14 +162,14 @@ int open_files(struct files *files, struct functions *functions)
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
 
-    if (segment_open
+    if (Segment_open
 	(&files->iseg_seg, G_tempfile(), files->nrows, files->ncols, srows,
 	 scols, sizeof(int), nseg) != TRUE)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
 
     /* bounds/constraints (start with processing constraints to get any possible NULL values) */
     if (files->bounds_map != NULL) {
-	if (segment_open
+	if (Segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
 	     srows, scols, sizeof(int), nseg) != TRUE)
 	    G_fatal_error(_("Unable to create bounds temporary files"));
@@ -181,7 +181,7 @@ int open_files(struct files *files, struct functions *functions)
 	    Rast_get_c_row(bounds_fd, boundsbuf, row);
 	    for (col = 0; col < files->ncols; col++) {
 		files->bounds_val = boundsbuf[col];
-		segment_put(&files->bounds_seg, &files->bounds_val, row, col);
+		Segment_put(&files->bounds_seg, &files->bounds_val, row, col);
 		if (Rast_is_c_null_value(&boundsbuf[col]) == TRUE) {
 		    FLAG_SET(files->null_flag, row, col);
 		}
@@ -228,7 +228,7 @@ int open_files(struct files *files, struct functions *functions)
 	    files->bands_val[Ref.nfiles + 4] = row;	/*max row */
 	    files->bands_val[Ref.nfiles + 5] = row;	/*min row */
 
-	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
+	    Segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 	    if (null_check != -1) {	/*good pixel */
 		FLAG_UNSET(files->null_flag, row, col);	/*flag */
 		if (files->seeds_map != NULL) {
@@ -239,14 +239,14 @@ int open_files(struct files *files, struct functions *functions)
 		    else {
 			FLAG_SET(files->seeds_flag, row, col);	/* RAM enhancement, but it might cost speed.  Could look for seg ID > 0 instead of using seed_flag. */
 			/* seed value is starting segment ID. */
-			segment_put(&files->iseg_seg, ptr, row, col);
+			Segment_put(&files->iseg_seg, ptr, row, col);
 		    }
 		    ptr = G_incr_void_ptr(ptr, ptrsize);
 		}
 		else {		/* no seeds provided */
 		    s++;	/* sequentially number all pixels with their own segment ID */
 		    if (s < INT_MAX) {	/* Check that the starting seeds aren't too large. */
-			segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
+			Segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
 			FLAG_SET(files->seeds_flag, row, col);	/*all pixels are seeds */
 		    }
 		    else
@@ -325,7 +325,7 @@ int open_files(struct files *files, struct functions *functions)
 
 		for (current = R_head; current != NULL;
 		     current = current->next) {
-		    segment_put(&files->iseg_seg, &s, current->row,
+		    Segment_put(&files->iseg_seg, &s, current->row,
 				current->col);
 		    FLAG_UNSET(files->candidate_flag, current->row,
 			       current->col);

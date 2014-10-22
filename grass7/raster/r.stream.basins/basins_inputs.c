@@ -207,7 +207,7 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
     for (r = 0; r < nrows; ++r)
 	for (c = 0; c < ncols; ++c) {
 
-	    segment_get(streams, &streams_cell, r, c);
+	    Segment_get(streams, &streams_cell, r, c);
 	    if (streams_cell > 0) {
 		if (outlets_num > 6 * (out_max - 1))
 		    G_fatal_error(_("Stream and direction maps probably do not match"));
@@ -217,13 +217,13 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 			(OUTLET *) G_realloc(outlets,
 					     out_max * 6 * sizeof(OUTLET));
 
-		segment_get(dirs, &dirs_cell, r, c);
+		Segment_get(dirs, &dirs_cell, r, c);
 		d = abs(dirs_cell);	/* abs */
 
 		if (NOT_IN_REGION(d))
 		    next_stream = -1;	/* border */
 		else {
-		    segment_get(streams, &streams_next_cell, NR(d), NC(d));
+		    Segment_get(streams, &streams_next_cell, NR(d), NC(d));
 		    next_stream =
 			(streams_next_cell > 0) ? streams_next_cell : -1;
 		}

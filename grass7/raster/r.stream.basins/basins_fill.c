@@ -80,7 +80,7 @@ int seg_add_outlets(SEGMENT *basins, int outlets_num)
 
     for (i = 0; i < outlets_num; ++i) {
 	basins_cell = &outlets[i].val;
-	segment_put(basins, basins_cell, outlets[i].r, outlets[i].c);
+	Segment_put(basins, basins_cell, outlets[i].r, outlets[i].c);
     }
     return 0;
 }
@@ -147,7 +147,7 @@ int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 
     G_debug(1, "processing outlet at row %d col %d", r, c);
 
-    segment_put(basins, &val, r, c);
+    Segment_put(basins, &val, r, c);
 
     while (tail != head) {
 	for (i = 1; i < 9; i++) {
@@ -159,11 +159,11 @@ int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 	    j = DIAG(i);
 
 	    /* contributing cell, not yet assigned to a basin */
-	    segment_get(basins, &basins_cell, next_r, next_c);
-	    segment_get(dirs, &dirs_cell, next_r, next_c);
+	    Segment_get(basins, &basins_cell, next_r, next_c);
+	    Segment_get(dirs, &dirs_cell, next_r, next_c);
 
 	    if (dirs_cell == j && basins_cell == 0) {
-		segment_put(basins, &val, next_r, next_c);
+		Segment_put(basins, &val, next_r, next_c);
 		n_cell.r = next_r;
 		n_cell.c = next_c;
 		fifo_insert(n_cell);

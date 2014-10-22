@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     /* initialize */
     G_message(_("Initializing..."));
 
-    if (segment_open(&out_seg, G_tempfile(),
+    if (Segment_open(&out_seg, G_tempfile(),
 		     nrows, ncols, srows, scols,
 		     sizeof(struct lcell), segments_in_memory) != 1)
 	G_fatal_error(_("Can not create temporary file"));
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
 		    }
 		}
 	    }
-	    segment_put(&out_seg, &thiscell, row, col);
+	    Segment_put(&out_seg, &thiscell, row, col);
 	}
     }
     G_percent(row, nrows, 2);
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 		    }
 		}
 		if (inside) {
-		    segment_get(&out_seg, &thiscell, row, col);
+		    Segment_get(&out_seg, &thiscell, row, col);
 		    if (!Rast_is_d_null_value(&thiscell.weight)) {
 			thiscell.area = i;
 			ap = &areas[thiscell.area];
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 			}
 			if (ap->weight == 0)
 			    ap->weight = thiscell.weight != 0.0;
-			segment_put(&out_seg, &thiscell, row, col);
+			Segment_put(&out_seg, &thiscell, row, col);
 		    }
 		}
 	    }
@@ -476,7 +476,7 @@ int main(int argc, char *argv[])
 	G_percent(row, nrows, 2);
 	for (col = 0; col < ncols; col++) {
 
-	    segment_get(&out_seg, &thiscell, row, col);
+	    Segment_get(&out_seg, &thiscell, row, col);
 	    if (areas[thiscell.area].count > 0 &&
 	        !Rast_is_d_null_value(&thiscell.interp)) {
 
@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
 	    }
 	    if (areas[thiscell.area].count == 0)
 		thiscell.interp = outside_val;
-	    segment_put(&out_seg, &thiscell, row, col);
+	    Segment_put(&out_seg, &thiscell, row, col);
 	}
     }
     G_percent(row, nrows, 2);
@@ -523,20 +523,20 @@ int main(int argc, char *argv[])
 
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
-		    segment_get(&out_seg, &thiscell, row, col);
+		    Segment_get(&out_seg, &thiscell, row, col);
 		    if (thiscell.area > 0 &&
 			!Rast_is_d_null_value(&thiscell.interp)) {
 			
 			ap = &areas[thiscell.area];
 			thiscell.interp *= thiscell.weight;
 			ap->interp += thiscell.interp;
-			segment_put(&out_seg, &thiscell, row, col);
+			Segment_put(&out_seg, &thiscell, row, col);
 		    }
 		}
 	    }
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
-		    segment_get(&out_seg, &thiscell, row, col);
+		    Segment_get(&out_seg, &thiscell, row, col);
 		    if (thiscell.area > 0 &&
 			!Rast_is_d_null_value(&thiscell.interp)) {
 			
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 			if (ap->interp != 0)
 			    value = ap->value / ap->interp;
 			thiscell.interp = value * thiscell.interp;
-			segment_put(&out_seg, &thiscell, row, col);
+			Segment_put(&out_seg, &thiscell, row, col);
 		    }
 		}
 	    }
@@ -563,7 +563,7 @@ int main(int argc, char *argv[])
 	    for (col = 0; col < ncols; col++) {
 		int count = 0;
 
-		segment_get(&out_seg, &thiscell, row, col);
+		Segment_get(&out_seg, &thiscell, row, col);
 		if (thiscell.area == 0 ||
 		    Rast_is_d_null_value(&thiscell.interp))
 		    continue;
@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
 			    if (nrow == row && ncol == col)
 				continue;
 
-			    segment_get(&out_seg, &ngbrcell, nrow, ncol);
+			    Segment_get(&out_seg, &ngbrcell, nrow, ncol);
 			    if (!Rast_is_d_null_value(&ngbrcell.interp)) {
 				value += ngbrcell.interp;
 				count++;
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
 			if (thiscell.interp + thiscell.adj < 0)
 			    thiscell.adj = -thiscell.interp;
 		    }
-		    segment_put(&out_seg, &thiscell, row, col);
+		    Segment_put(&out_seg, &thiscell, row, col);
 
 		    areas[thiscell.area].adj += thiscell.adj;
 		    areas[thiscell.area].interp += thiscell.interp + thiscell.adj;
@@ -624,7 +624,7 @@ int main(int argc, char *argv[])
 	/* Step 3 */
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		segment_get(&out_seg, &thiscell, row, col);
+		Segment_get(&out_seg, &thiscell, row, col);
 		if (thiscell.area > 0 &&
 		    !Rast_is_d_null_value(&thiscell.interp)) {
 
@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
 		    if (negative || (!negative && interp >= 0)) {
 			thiscell.interp = interp;
 
-			segment_put(&out_seg, &thiscell, row, col);
+			Segment_put(&out_seg, &thiscell, row, col);
 
 			value = thiscell.adj + areas[thiscell.area].adj;
 			if (maxadj < value * value) {
@@ -659,7 +659,7 @@ int main(int argc, char *argv[])
 	/* Step 5 */
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		segment_get(&out_seg, &thiscell, row, col);
+		Segment_get(&out_seg, &thiscell, row, col);
 		if (thiscell.area > 0 &&
 		    !Rast_is_d_null_value(&thiscell.interp)) {
 
@@ -673,7 +673,7 @@ int main(int argc, char *argv[])
 
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		segment_get(&out_seg, &thiscell, row, col);
+		Segment_get(&out_seg, &thiscell, row, col);
 		if (thiscell.area > 0 &&
 		    !Rast_is_d_null_value(&thiscell.interp)) {
 		    
@@ -694,7 +694,7 @@ int main(int argc, char *argv[])
 			if (negative || (!negative && interp >= 0))
 			    thiscell.interp = interp;
 		    }
-		    segment_put(&out_seg, &thiscell, row, col);
+		    Segment_put(&out_seg, &thiscell, row, col);
 		}
 	    }
 	}
@@ -704,7 +704,7 @@ int main(int argc, char *argv[])
 	/* Step 2 */
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		segment_get(&out_seg, &thiscell, row, col);
+		Segment_get(&out_seg, &thiscell, row, col);
 		if (thiscell.area > 0 &&
 		    !Rast_is_d_null_value(&thiscell.interp)) {
 		    /* multiplication with area scale factor */
@@ -721,7 +721,7 @@ int main(int argc, char *argv[])
 		    if (negative || (!negative && interp >= 0)) {
 			value = thiscell.interp - interp;
 			thiscell.interp = interp;
-			segment_put(&out_seg, &thiscell, row, col);
+			Segment_put(&out_seg, &thiscell, row, col);
 
 			if (maxadj < value * value) {
 			    maxadj = value * value;
@@ -754,14 +754,14 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
 	for (col = 0; col < ncols; col++) {
-	    segment_get(&out_seg, &thiscell, row, col);
+	    Segment_get(&out_seg, &thiscell, row, col);
 	    drastbuf[col] = thiscell.interp;
 	}
 	Rast_put_d_row(out_fd, drastbuf);
     }
     G_percent(row, nrows, 2);
 
-    segment_close(&out_seg);
+    Segment_close(&out_seg);
 
     Rast_close(out_fd);
     Rast_short_history(out_opt->answer, "raster", &history);
