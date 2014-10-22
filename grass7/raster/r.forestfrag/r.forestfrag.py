@@ -64,7 +64,6 @@
 #%flag
 #%  key: t
 #%  description: keep temporary maps
-#% answer : 0
 #%END
 
 #%flag
