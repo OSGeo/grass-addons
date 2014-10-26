@@ -132,7 +132,7 @@ import os
 from grass.script.core import parser
 
 
-from grass.pygrass.functions import get_lib_path, get_mapset_raster
+from grass.pygrass.utils import get_lib_path, get_mapset_raster
 from grass.pygrass.vector import VectorTopo, Vector
 from grass.pygrass.vector.table import Link
 

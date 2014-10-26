@@ -36,14 +36,14 @@ import os
 import sys
 
 from grass.script import parser, fatal
-from grass.pygrass.functions import get_lib_path
+from grass.pygrass.utils import get_lib_path
 
 def load_mdlib():
     path = get_lib_path(modname='wx.metadata', libname='mdgrass')
     if path is None:
         fatal("Not able to find the metadata library directory")
     sys.path.append(path)
-    
+
 def main():
     # load metadata library
     load_mdlib()
@@ -61,7 +61,7 @@ def main():
         xml_file = md.saveXML(path=destination,
                               xml_out_name=name,
                               overwrite=os.getenv('GRASS_OVERWRITE', False))
-        
+
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_inspire()
@@ -71,7 +71,7 @@ def main():
         xml_file = md.saveXML(path=destination,
                               xml_out_name=name,
                               overwrite=os.getenv('GRASS_OVERWRITE', False))
-        
+
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_basic()

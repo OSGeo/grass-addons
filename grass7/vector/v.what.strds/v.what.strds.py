@@ -43,7 +43,7 @@
 
 import grass.script as grass
 import grass.temporal as tgis
-from grass.pygrass.functions import copy as gcopy
+from grass.pygrass.utils import copy as gcopy
 from grass.pygrass.messages import Messenger
 from grass.pygrass.vector import Vector
 
@@ -139,7 +139,7 @@ def main():
                                "type_b":dataset.get_temporal_type()}))
 
         mapmatrizes = tgis.sample_stds_by_stds_topology("strds", "strds",
-                                                        strds_names, 
+                                                        strds_names,
                                                         strds_names[0], False,
                                                         None, "equal", False,
                                                         False)

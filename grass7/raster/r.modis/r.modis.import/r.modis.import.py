@@ -5,7 +5,7 @@
 #
 # MODULE:        r.modis.import
 # AUTHOR(S):     Luca Delucchi
-# PURPOSE:       r.modis.import is an interface to pyModis for import into 
+# PURPOSE:       r.modis.import is an interface to pyModis for import into
 #                GRASS GIS level 3 MODIS produts
 #
 # COPYRIGHT:        (C) 2011 by Luca Delucchi
@@ -90,7 +90,7 @@ import glob
 import shutil
 import grass.script as grass
 from datetime import date
-from grass.pygrass.functions import get_lib_path
+from grass.pygrass.utils import get_lib_path
 
 path = get_lib_path(modname='r.modis', libname='libmodis')
 if path is None:

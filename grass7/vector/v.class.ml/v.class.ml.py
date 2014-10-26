@@ -146,7 +146,7 @@
 #%  multiple: no
 #%  description: choose a decomposition method (PCA, KernelPCA, ProbabilisticPCA, RandomizedPCA, FastICA, TruncatedSVD) and set the parameters using the | to separate the decomposition method from the parameters like: PCA|n_components=98
 #%  required: no
-#%  answer: 
+#%  answer:
 #%end
 #%option
 #%  key: n_training
@@ -359,7 +359,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
-from grass.pygrass.functions import get_lib_path
+from grass.pygrass.utils import get_lib_path
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import Vector
 from grass.pygrass.modules import Module
@@ -509,8 +509,8 @@ def main(opt, flg):
                                 with_std='with_std' in scapar)
 
     if opt['decomposition']:
-        decmp, params = (opt['decomposition'].split('|') 
-                         if '|' in opt['decomposition'] 
+        decmp, params = (opt['decomposition'].split('|')
+                         if '|' in opt['decomposition']
                          else (opt['decomposition'], ''))
         kwargs = ({k: v for k, v in (p.split('=') for p in params.split(','))}
                   if params else {})

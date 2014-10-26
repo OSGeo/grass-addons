@@ -148,7 +148,7 @@ from grass.pygrass.modules.grid.grid import copy_rasters
 from grass.pygrass.modules.grid.split import split_region_tiles
 
 from grass.pygrass.gis import Location
-from grass.pygrass.functions import get_lib_path
+from grass.pygrass.utils import get_lib_path
 
 path = get_lib_path("i.segment.hierarchical", "")
 if path is None:
