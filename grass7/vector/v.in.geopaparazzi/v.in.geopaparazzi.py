@@ -250,7 +250,7 @@ def main():
                 # if number of form is different from 0 and number of point
                 # remove the vector because some form it is different
                 if len(forms) != 0 and len(forms) != len(pois):
-                    grass.run_command('g.remove', vect=catname, quiet=True)
+                    grass.run_command('g.remove', flags='f', type='vect', name=catname, quiet=True)
                     grass.warning(_("Vector %s not imported because number" \
                                     " of points and form is different"))
                 # if form it's 0 there is no form

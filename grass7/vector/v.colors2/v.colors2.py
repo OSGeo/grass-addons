@@ -92,7 +92,7 @@ def cleanup():
     if tmp_vcol:
 	grass.try_remove(tmp_vcol)
     if tmp_colr:
-	grass.run_command('g.remove', rast = tmp_colr, quiet = True)
+	grass.run_command('g.remove', flags='f', type='rast', name= tmp_colr, quiet = True)
 
 def main():
     color  = options['color']

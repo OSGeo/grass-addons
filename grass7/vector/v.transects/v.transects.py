@@ -292,7 +292,7 @@ def main():
 
     grass.run_command('v.category', input=temp_map, output=output,
                       option='add', type=shape)
-    grass.run_command('g.remove', vect=temp_map)
+    grass.run_command('g.remove', flags='f', type='vect', name=temp_map)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

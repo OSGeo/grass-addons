@@ -5,7 +5,7 @@
 # MODULE:	v.concave.hull
 # AUTHOR(S):	Markus Metz
 # PURPOSE:	Creates a concave hull around points
-# COPYRIGHT:	(C) 2013 by the GRASS Development Team
+# COPYRIGHT:	(C) 2013-2014 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
@@ -42,7 +42,7 @@ import grass.script as grass
 def cleanup():
     for ext in ['', '.sort']:
         grass.try_remove(tmp + ext)
-    grass.run_command('g.mremove', flags = 'f', vect = prefix + '_*', quiet = True)
+    grass.run_command('g.remove', flags = 'f', type = 'vect', pattern = prefix + '_*', quiet = True)
 
 def sortfile(infile, outfile):
     inf = file(infile, 'r')

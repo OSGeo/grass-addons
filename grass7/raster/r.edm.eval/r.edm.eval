@@ -398,7 +398,7 @@ if(num.abs > 0 | num.pres > 0){execGRASS("g.remove", flags="f", type="rast", pat
 # this is a temporary fix!
 aa <- execGRASS("g.list", type="rast", pattern="tmp_r_model_evaluation_*", intern=TRUE)
 if(length(aa)>0){
-    execGRASS("g.mremove", rast="tmp_r_model_evaluation_*", flags="f")
+    execGRASS("g.remove", type="rast", pattern="tmp_r_model_evaluation_*", flags="f")
 }
   
 # Calculate evaluation stats

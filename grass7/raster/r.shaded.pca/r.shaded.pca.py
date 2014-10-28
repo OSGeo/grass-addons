@@ -5,7 +5,7 @@
 # MODULE:    r.shaded.pca
 # AUTHOR(S): Vaclav Petras
 # PURPOSE:   Creates RGB composition from PCA of hill shades
-# COPYRIGHT: (C) 2013 by the GRASS Development Team
+# COPYRIGHT: (C) 2013-2014 by the GRASS Development Team
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -102,10 +102,10 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command('g.remove', rast=rast, quiet=True)
+        grass.run_command('g.remove', flags = 'f', type = 'rast', name = rast, quiet=True)
     for pattern in MREMOVE:
-        grass.run_command('g.mremove', rast='%s*' % pattern,
-                          flags='f', quiet=True)
+        grass.run_command('g.remove', flags = 'f', type = 'rast', pattern ='%s*' % pattern,
+                           quiet=True)
 
 
 def is_grass_7():

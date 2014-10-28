@@ -88,13 +88,13 @@ def cleanup():
                       quiet=True)
 
     if grass.find_file(tmp_cost_map, element='raster')['name']:
-        grass.run_command('g.remove', rast=tmp_cost_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='rast', name=tmp_cost_map, quiet=True)
     if grass.find_file(tmp_map, element='raster')['name']:
-        grass.run_command('g.remove', rast=tmp_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='rast', name=tmp_map, quiet=True)
     if grass.find_file(tmp_time_map, element='raster')['name']:
-        grass.run_command('g.remove', rast=tmp_time_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='rast', name=tmp_time_map, quiet=True)
     if grass.find_file(tmp_region_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_region_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_region_map, quiet=True)
 
 
 def main():

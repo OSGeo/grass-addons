@@ -56,7 +56,7 @@ def main():
             option='add', layer=blayer, type='boundary', quiet=True)
     vtodb_results=grass.read_command('v.to.db', flags='p', map=tempmapname,
             type='boundary', option='sides', layer=blayer, qlayer=player, quiet=True)
-    grass.run_command('g.remove', vect=tempmapname, quiet=True)
+    grass.run_command('g.remove', flags='f', type='vect', name=tempmapname, quiet=True)
 
     #put result into a list of integer pairs
     temp_neighbors=[]

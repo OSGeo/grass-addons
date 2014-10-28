@@ -17,7 +17,7 @@
 #		size of the moving window determined by the user. For now
 #		it does not work on GRASS 6.4. Use r.forestfrag.sh instead.
 #
-# COPYRIGHT:    (C) 1997-2013 by the GRASS Development Team
+# COPYRIGHT:    (C) 1997-2014 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -324,7 +324,7 @@ then
 fi 
 
 echo "Deleting temporary files ...."
-g.mremove -f -b --quiet rast=${tmpl}*
+g.remove -f -b --quiet type=rast pattern=${tmpl}*
 
 #=======================================================================
 # computing fragmentation index
@@ -359,9 +359,9 @@ then
   echo "  "
 fi
 
-g.remove rast=${tmpl}_REPORT --quiet
+g.remove -f type=rast name=${tmpl}_REPORT --quiet
 g.region region=rforestfrag987654321
-g.remove --quiet region=rforestfrag987654321 
+g.remove --quiet -f type=region name=rforestfrag987654321 
 
 
 

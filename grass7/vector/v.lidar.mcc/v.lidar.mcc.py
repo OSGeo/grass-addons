@@ -103,7 +103,7 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 
 def cleanup():
     nuldev = file(os.devnull, 'w')
-    grass.run_command('g.remove', vect = '%s,%s,%s' % (temp_ng, temp_ncin, temp_ncout), quiet = True, stderr = nuldev)
+    grass.run_command('g.remove', flags='f', type='vect', name= '%s,%s,%s' % (temp_ng, temp_ncin, temp_ncout), quiet = True, stderr = nuldev)
 
 def main():
     global temp_ng, temp_ncin, temp_ncout
@@ -211,7 +211,7 @@ def main():
             ng=grass.vector_info(temp_ng)['points']
             nc = n_input - ng
             n_input = nc
-            grass.run_command('g.remove', vect = temp_ncin, quiet = True, stderr = nuldev)
+            grass.run_command('g.remove', flags='f', type='vect', name= temp_ncin, quiet = True, stderr = nuldev)
             grass.run_command("g.rename", vect=temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev )
             nc_points = temp_ncin        
             # Give information on process status

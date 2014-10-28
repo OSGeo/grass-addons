@@ -134,9 +134,9 @@ def main():
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', rast = 'r_clump')
-    grass.run_command('g.remove', rast = 'r_flood_th')
-    grass.run_command('g.remove', rast = 'r_flood')
+    grass.run_command('g.remove', flags='f', type='rast', name= 'r_clump')
+    grass.run_command('g.remove', flags='f', type='rast', name= 'r_flood_th')
+    grass.run_command('g.remove', flags='f', type='rast', name= 'r_flood')
 
     grass.message(_('Done.'))
 

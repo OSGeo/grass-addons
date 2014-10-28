@@ -144,7 +144,7 @@ def check_maps_exist(maps, mapset):
 
 def remove_raster_maps(maps, quiet=False):
     for map_ in maps:
-        gcore.run_command('g.remove', rast=map_, quiet=quiet)
+        gcore.run_command('g.remove', flags='f', type='rast', name=map_, quiet=quiet)
 
 
 def main():

@@ -499,9 +499,9 @@ def main():
 	
     # clean up some temporay files and maps
     grass.message( "Some clean up ..." )	
-    grass.run_command("g.remove", region = saved_region)
-    grass.run_command("g.remove", rast = r_flow_accum)
-    grass.run_command("g.remove", rast = r_habitat)	
+    grass.run_command("g.remove", flags="f", type="region", name= saved_region)
+    grass.run_command("g.remove", flags="f", type="rast", name= r_flow_accum)
+    grass.run_command("g.remove", flags="f", type="rast", name= r_habitat)	
     grass.run_command("db.droptable", flags = 'f', 
                                      table = t_habitat_geomorphons)
     grass.run_command("db.droptable", flags = 'f', 

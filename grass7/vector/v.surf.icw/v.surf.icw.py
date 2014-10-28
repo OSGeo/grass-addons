@@ -13,7 +13,7 @@
 # PURPOSE:      Like IDW interpolation, but distance is cost to get to any
 #		other site.
 #
-# COPYRIGHT:    (c) 2003-2011 Hamish Bowman
+# COPYRIGHT:    (c) 2003-2014 Hamish Bowman
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -129,7 +129,7 @@ import grass.script as grass
 def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = 'tmp_icw_' + str(os.getpid()) + '_'
-    grass.run_command('g.mremove', flags = 'f', rast = tmp_base + '*',
+    grass.run_command('g.remove', flags = 'f', type = 'rast', pattern = tmp_base + '*',
     		      quiet = True)
 
 
@@ -318,7 +318,7 @@ def main():
     proc = {}
     for i in range(n):
 	cost_site_name = tmp_base + 'cost_site.' + '%05d' % (i+1)
-        grass.run_command('g.remove', rast = cost_site_name, quiet = True)
+        grass.run_command('g.remove', flags = 'f', rast = cost_site_name, quiet = True)
         grass.run_command('g.rename', rast = cost_site_name + '.cleansed'
                           + ',' + cost_site_name, quiet = True)
 
@@ -350,15 +350,15 @@ def main():
 	    proc[i].wait()
 
         # r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
-        # g.remove rast=cost_site.$NUM
+        # g.remove type=rast name=cost_site.$NUM -f
 
     # make sure everyone is finished
     for i in range(n):
         if proc[i].wait() is not 0:
 	    grass.fatal(_('Problem running %s') % 'r.mapcalc')
 
-    grass.run_command('g.mremove', flags = 'f',
-    		      rast = tmp_base + 'cost_site.*', quiet = True)
+    grass.run_command('g.remove', flags = 'f', type = 'rast',
+    		      pattern = tmp_base + 'cost_site.*', quiet = True)
     #grass.run_command('g.list', type = 'rast', mapset = '.')
 
 
@@ -389,7 +389,7 @@ def main():
 
     if post_mask:
         grass.message(_("Removing post_mask <%s>"), post_mask)
-        grass.run_command('g.remove', rast = 'MASK', quiet = True)
+        grass.run_command('g.remove', flags = 'f', name = 'MASK', quiet = True)
 
 
     #######################################################
@@ -444,7 +444,7 @@ def main():
 	    proc[num-1].wait()
 
 	# free up disk space ASAP
-	#grass.run_command('g.remove', rast = one_by_cost_site_sq, quiet = True)
+	#grass.run_command('g.remove', flags = 'f', rast = one_by_cost_site_sq, quiet = True)
 
         num += 1
         if num > n:
@@ -455,7 +455,7 @@ def main():
         proc[i].wait()
 
     # free up disk space ASAP
-    grass.run_command('g.mremove', flags = 'f',
+    grass.run_command('g.remove', flags = 'f',
     		      rast = tmp_base + '1by_cost_site_sq.*', quiet = True)
     #grass.run_command('g.list', type = 'rast', mapset = '.')
 

@@ -11,7 +11,7 @@
 #               cells.
 # Dependency:	r.regression.multi
 #
-# COPYRIGHT: (C) 2013 Paulo van Breugel
+# COPYRIGHT: (C) 2013-2014 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
 # 
@@ -95,8 +95,8 @@ trap "exitprocedure" 2 3 15
 
 cleanup()
 {
-   g.mremove -f rast="rnicheOVERLAP$$_*" --quiet
-   g.mremove -f rast="rnicheEQUIV$$_*" --quiet
+   g.remove -f type=rast pattern="rnicheOVERLAP$$_*" --quiet
+   g.remove -f type=rast pattern="rnicheEQUIV$$_*" --quiet
 }
 trap "cleanup" 2 3 15
 
@@ -187,13 +187,13 @@ for nvar in ${MAPS} ; do
 done
 
 if [ $remove_mask ]; then
-    g.remove rast=MASK@${MAPSET},TMP_R_VIF_98765
+    g.remove -f type=rast name=MASK@${MAPSET},TMP_R_VIF_98765
     unset remove_mask
 fi
 
 if [ $mask_exists ]; then
     r.mask raster=mask_r_vif_backup
-    g.remove rast=mask_r_vif_backup
+    g.remove -f type=rast name=mask_r_vif_backup
     unset mask_exist
 fi
 

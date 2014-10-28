@@ -63,15 +63,15 @@ tmp_centerpoints_map = None
 
 def cleanup():
     if grass.find_file(tmp_points_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_points_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_points_map, quiet=True)
     if grass.find_file(tmp_line_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_line_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_line_map, quiet=True)
     if grass.find_file(tmp_cleaned_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_cleaned_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_cleaned_map, quiet=True)
     if grass.find_file(tmp_centerpoints_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_centerpoints_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_centerpoints_map, quiet=True)
     if grass.find_file(tmp_map, element='vector')['name']:
-        grass.run_command('g.remove', vect=tmp_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='vect', name=tmp_map, quiet=True)
 
 
 def main():

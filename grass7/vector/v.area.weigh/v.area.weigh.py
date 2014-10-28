@@ -42,11 +42,11 @@ import grass.script as grass
 
 def cleanup():
     if rastertmp1:
-	grass.run_command('g.remove', rast = rastertmp1, quiet = True)
+	grass.run_command('g.remove', flags='f', type='rast', name= rastertmp1, quiet = True)
     if rastertmp2:
-	grass.run_command('g.remove', rast = rastertmp2, quiet = True)
+	grass.run_command('g.remove', flags='f', type='rast', name= rastertmp2, quiet = True)
     if rastertmp3:
-	grass.run_command('g.remove', rast = rastertmp3, quiet = True)
+	grass.run_command('g.remove', flags='f', type='rast', name= rastertmp3, quiet = True)
 
 def main():
     global tmp, tmpname, rastertmp1, rastertmp2, rastertmp3

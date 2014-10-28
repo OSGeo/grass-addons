@@ -8,7 +8,7 @@
 #
 # PURPOSE:      Implementation of Sky-View Factor visualization technique
 #
-# COPYRIGHT:    (C) 2013 by the GRASS Development Team
+# COPYRIGHT:    (C) 2013-2014 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (version 2). Read the file COPYING that comes with GRASS
@@ -62,7 +62,7 @@ CLEANUP = True
 
 def cleanup():
     if CLEANUP:
-        gcore.run_command('g.mremove', rast=TMP_NAME + "*", flags='f')
+        gcore.run_command('g.remove', flags = 'f', type = 'rast', pattern =TMP_NAME + "*")
 
 
 def main():
