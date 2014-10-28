@@ -444,7 +444,7 @@ def main():
 	    proc[num-1].wait()
 
 	# free up disk space ASAP
-	#grass.run_command('g.remove', flags = 'f', rast = one_by_cost_site_sq, quiet = True)
+	#grass.run_command('g.remove', flags = 'f', type = 'rast', name = one_by_cost_site_sq, quiet = True)
 
         num += 1
         if num > n:

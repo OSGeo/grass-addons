@@ -56,7 +56,7 @@ v.random output=points_known n=100
 v.db.addtable map=points_known
 
 # fill attribute tables
-MAPS=$(g.mlist type=rast pattern="lsat*" exclude="*87*" mapset=PERMANENT sep=" ")
+MAPS=$(g.list type=rast pattern="lsat*" exclude="*87*" mapset=PERMANENT sep=" ")
 let NUM=0
 for MAP in $MAPS
 do

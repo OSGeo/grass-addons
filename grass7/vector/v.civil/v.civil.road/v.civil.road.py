@@ -3224,7 +3224,7 @@ def main():
     #g.message(_("Creating backup"))
     #g.run_command('g.rename', vect=NameMap+"_old"+","+NameMap+"_old2")
     #g.run_command('g.copy', vect=NameMap+","+NameMap+"_old")
-    #g.run_command('g.remove', flags='f', vect=NameMap+"_old2")
+    #g.run_command('g.remove', flags='bf', type='vect', name=NameMap+"_old2")
     #g.message(_("Finish backup"))
 
 
