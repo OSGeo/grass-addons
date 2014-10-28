@@ -101,21 +101,21 @@ echo $LIST 1>&2
 
 
 for mapset in $LIST ; do
-    MAPS=`g.mlist rast mapset=$mapset`
+    MAPS=`g.list rast mapset=$mapset`
     for map in $MAPS ; do
         g.copy rast=$map@$mapset,$map --o
     done
 done
 
 for mapset in $LIST ; do
-    MAPS=`g.mlist rast3d mapset=$mapset`
+    MAPS=`g.list rast3d mapset=$mapset`
     for map in $MAPS ; do
         g.copy rast=$map@$mapset,$map --o
     done
 done
 
 for mapset in $LIST ; do
-    MAPS=`g.mlist vect mapset=$mapset`
+    MAPS=`g.list vect mapset=$mapset`
     for map in $MAPS ; do
         g.copy vect=$map@$mapset,$map --o
     done
