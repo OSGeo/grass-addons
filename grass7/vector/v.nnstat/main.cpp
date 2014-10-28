@@ -43,13 +43,12 @@ extern "C" {
 
     /* Module creation */
     module = G_define_module();
-    G_add_keyword(_("Vector"));
-    G_add_keyword(_("Nearest Neighbour Analysis"));
+    G_add_keyword(_("vector"));
+    G_add_keyword(_("nearest neighbour analysis"));
     module->description = _("Indicates clusters, separations or random distribution of point set in 2D or 3D space.");
 	
     /* Setting options */
     opt.map = G_define_standard_option(G_OPT_V_INPUT);   /* vector input layer */
-    opt.map->label = _("Name of input vector map");
 
     flg.d23 = G_define_flag();	/* to process 2D or 3D Nearest Neighbour Analysis */
     flg.d23->key = '2';
@@ -57,7 +56,7 @@ extern "C" {
       _("Force 2D NNA  even if input is 3D");
 
     opt.A = G_define_option();
-    opt.A->key = "A";
+    opt.A->key = "area";
     opt.A->type = TYPE_DOUBLE;
     opt.A->description = _("2D: Area. If not specified, area of Minimum Enclosing Rectangle will be used.\n3D: Volume. If not specified, volume of Minimum Enclosing Box will be used.");
     opt.A->required = NO;
@@ -65,7 +64,7 @@ extern "C" {
     opt.field = G_define_standard_option(G_OPT_V_FIELD);
 
     opt.zcol = G_define_standard_option(G_OPT_DB_COLUMN);
-    opt.zcol->key = "zcol";
+    opt.zcol->key = "zcolumn";
     opt.zcol->required = NO;
     opt.zcol->guisection = _("Fields");
     opt.zcol->description = _("Column with z coordinate (set for 2D vectors only)");
