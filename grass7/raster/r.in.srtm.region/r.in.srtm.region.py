@@ -57,8 +57,9 @@
 #%  description: Fill null cells
 #%end
 #%flag
-#%  key: 3
-#%  description: Import SRTM v3 tiles
+#%  key: 2
+#%  label: Import SRTM v2 tiles
+#%  description: Default: Import SRTM v3 tiles
 #%end
 
 
@@ -160,8 +161,8 @@ def cleanup():
 	return
     os.chdir(currdir)
     grass.run_command('g.region', region = tmpregionname)
-    grass.run_command('g.remove', region = tmpregionname, quiet = True)
-    #grass.try_rmdir(tmpdir)
+    grass.run_command('g.remove', type = 'region', pattern = tmpregionname, flags = 'f', quiet = True)
+    grass.try_rmdir(tmpdir)
 
 def main():
     global tile, tmpdir, in_temp, currdir, tmpregionname
@@ -173,7 +174,7 @@ def main():
     output = options['output']
     memory = options['memory']
     fillnulls = flags['n']
-    srtmv3 = flags['3']
+    srtmv3 = (flags['2'] == 0)
 
     if srtmv3:
         fillnulls = 0
@@ -320,7 +321,7 @@ def main():
 
     # g.mlist with sep = comma does not work ???
     pattern = '*.r.in.srtm.tmp.%d' % pid
-    srtmtiles = grass.read_command('g.mlist',
+    srtmtiles = grass.read_command('g.list',
                                    type = 'rast',
 				   pattern = pattern,
 				   sep = 'newline',
@@ -330,7 +331,7 @@ def main():
     srtmtiles = ','.join(srtmtiles)
 
     if valid_tiles == 0:
-	grass.run_command('g.remove', rast = str(srtmtiles), quiet = True)
+	grass.run_command('g.remove', type = 'rast', pattern = str(srtmtiles), flags = 'f', quiet = True)
 	grass.warning(_("No tiles imported"))
 	if local != tmpdir:
 	    grass.fatal(_("Please check if local folder <%s> is correct.") % local)
@@ -363,11 +364,11 @@ def main():
 			      output = output + '.float',
 			      flags = 'z')
 	    grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
-	    grass.run_command('g.remove',
-			      rast = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
+	    grass.run_command('g.remove', type = 'rast',
+			      pattern = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
 			      quiet = True)
 
-    grass.run_command('g.mremove', rast = pattern, flags = 'f', quiet = True)
+    grass.run_command('g.remove', type = 'rast', pattern = pattern, flags = 'f', quiet = True)
 
     # nice color table
     grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)
