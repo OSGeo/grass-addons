@@ -16,7 +16,6 @@ SUBDIRS = \
 	r.findtheriver \
 	r.flip \
 	r.forestfrag \
-	r.fuzzy \
 	r.fuzzy.set \
 	r.fuzzy.logic \
 	r.fuzzy.system \

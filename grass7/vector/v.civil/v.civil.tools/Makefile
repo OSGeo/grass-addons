@@ -4,6 +4,6 @@ MODULE_TOPDIR = ../../..
 
 PGM = v.civil.tools
 
-include $(MODULE_TOPDIR)/include/Make/Module.make
+include $(MODULE_TOPDIR)/include/Make/Script.make
 
-default: cmd
+default: script
