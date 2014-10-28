@@ -3,7 +3,7 @@ MODULE_TOPDIR = ../..
 PGM = v.kriging
 
 LIBES = $(RASTER3DLIB) $(RASTERLIB) $(VECTORLIB) $(DBMILIB) $(GMATHLIB) $(GISLIB) $(IOSTREAMLIB) -lpcl_apps -lpcl_common -lpcl_features -lpcl_filters -lpcl_io -lpcl_kdtree -lpcl_keypoints -lpcl_octree -lpcl_registration -lpcl_sample_consensus -lpcl_search -lpcl_segmentation -lpcl_surface -lpcl_visualization
-DEPENDENCIES= $(RASTER3DDEP) $(RASTERDEP) $(VECTORDEP) $(DBMIDEP) $(GMATHLIBDEP) $(GISDEP) $(IOSTREAMDEP)
+DEPENDENCIES= $(RASTER3DDEP) $(RASTERDEP) $(VECTORDEP) $(DBMIDEP) $(GMATHDEP) $(GISDEP) $(IOSTREAMDEP)
 EXTRA_INC = $(VECT_INC) -I/usr/include/pcl-1.7 -I/usr/include/eigen3 $(PCL_INCLUDE_DIRS)
 EXTRA_CFLAGS = $(VECT_CFLAGS)
 
