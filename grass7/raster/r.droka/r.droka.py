@@ -271,20 +271,26 @@ def main():
     #grass.run_command('d.rast' ,
     #    map=eMean)
     if int(num) == 1:
-        grass.run_command('g.remove' , 
-            vect=( 'start_points_' ),
+        grass.run_command('g.remove' ,
+            flags = 'f',
+            type = 'vect',
+            name = ( 'start_points_' ),
             quiet = True )    
     else:
         grass.run_command('g.rename' , 
             vect= 'start_points_,' + prefix + '_starting' ,
             quiet = True )
         grass.run_command('g.remove' , 
-            vect=(
+            flags = 'f',
+            type = 'vect',
+            name = (
                 'start_buffer_',
                 'start_random_') ,
             quiet = True )
     grass.run_command('g.remove' , 
-        rast=(
+        flags = 'f',
+        type = 'rast',
+        name = (
             'uno',
             'costo',
             'costo_m',

@@ -59,7 +59,7 @@ echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 NAME="Map creation test"
 r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename}
 
-g.mlist -e type=rast pattern=${map_basename}_[0-9]{3} sep=newline > ${created_map_names_file}
+g.list -e type=rast pattern=${map_basename}_[0-9]{3} sep=newline > ${created_map_names_file}
 
 diff ${map_names_file} ${created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
@@ -74,5 +74,5 @@ echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 # clean
 rm ${map_names_file} ${created_map_names_file}
-g.remove rast=`g.mlist -e type=rast pattern=${map_basename}_[0-9]{3} sep=,`
+g.remove -ef type=rast pattern=${map_basename}_[0-9]{3}
 

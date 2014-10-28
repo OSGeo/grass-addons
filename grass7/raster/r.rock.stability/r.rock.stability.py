@@ -231,7 +231,9 @@ def main():
             F4 = f4 ,
             quiet = True)
         grass.run_command('g.remove' , 
-            rast=(
+            flags='f',
+            type='rast',
+            name=(
                 'Asci' ,
                 'Arib' ,
                 'F1sci_' ,
@@ -321,7 +323,9 @@ def main():
             quiet = True)
 #elimino mappe
         grass.run_command('g.remove' , 
-            rast=(
+            flags='f',
+            type='rast',
+            name=(
                 'slopes_' ,
                 'aspects_' ,
                 'aspects_1' ,
@@ -356,7 +360,9 @@ def main():
             quiet = True)
     else:
         grass.run_command('g.remove' , 
-            rast=(
+            flags='f',
+            type='rast',
+            name=(
                 'slopes_' ,
                 'aspects_' ,
                 'aspects_1' ,

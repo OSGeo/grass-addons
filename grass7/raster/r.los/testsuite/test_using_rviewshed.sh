@@ -12,7 +12,7 @@ r.mapcalc 'hemisphere1=500 * sin(acos (disk.15031/500))'
 g.region n=500 s=0 w=0 e=500 -p res=1
 r.mapcalc 'disk.14947=if(sqrt((col() - 500)^2 + (500 - row())^2)<500,sqrt((col() - 500)^2 + (500 - row())^2),null())'
 r.mapcalc 'hemisphere2=500 * sin(acos (disk.14947/500))'
-g.remove --q rast=disk.14947,disk.15031
+g.remove --q -f type=rast name=disk.14947,disk.15031
 # merge both
 r.mapcalc "hemisphere=hemisphere1 + hemisphere2"
 

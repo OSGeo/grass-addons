@@ -47,7 +47,7 @@ else
 fi
 
 
-for MAP in `g.mlist type=rast mapset=.` ; do
+for MAP in `g.list type=rast mapset=.` ; do
     r.convert map="$MAP" $MV_FLAG $REV_FLAG
     if [ $? -ne 0 ] ; then
 	echo "Error converting <$MAP>" 1>&2

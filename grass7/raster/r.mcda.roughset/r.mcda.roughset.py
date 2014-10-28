@@ -557,8 +557,8 @@ def Parser_mapcalc(RULES, outputMap):
 		grass.run_command("g.copy",vect=(mapslabels,outputMap))
 			
 	if not flags['l']:
-		grass.run_command("g.remove",  rast=mapstring)
-		grass.run_command("g.remove",  vect=mapstring)
+		grass.run_command("g.remove", flags='f', type='rast', name=mapstring)
+		grass.run_command("g.remove", flags='f', type='vect', name=mapstring)
 		
 	return 0
 	  

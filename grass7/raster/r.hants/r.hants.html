@@ -94,7 +94,7 @@ g.region rast=2004_03_tempmean -p
 Visualize the time series as animation:
 <div class="code"><pre>
 # note: color table is different from standard "celsius"
-g.gui.animation rast=`g.mlist rast pattern="*tempmean" sep=comma`
+g.gui.animation rast=`g.list rast pattern="*tempmean" sep=comma`
 </pre></div>
 
 <p>
@@ -106,13 +106,13 @@ g.region -p res=5000
 # just wildly guessing the parameters for a test run:
 
 # generate and check list of input maps (the order matters!)
-g.mlist rast pattern="20??_??_tempmean" output=tempmean.csv
+g.list rast pattern="20??_??_tempmean" output=tempmean.csv
 
 r.hants file=tempmean.csv \
   nf=6 fet=0.1 dod=5 delta=0.1 base_period=12
 
 # assign reasonable color tables for temperature
-for map in `g.mlist rast pattern="*tempmean_hants"` ; do
+for map in `g.list rast pattern="*tempmean_hants"` ; do
     r.colors $map color=celsius
 done
 
@@ -139,18 +139,18 @@ mean=0.188579838052468
 ...
 
 # see HANTS time series as animation
-g.gui.animation rast=`g.mlist rast pattern="*tempmean_hants" sep=comma`
+g.gui.animation rast=`g.list rast pattern="*tempmean_hants" sep=comma`
 
 
 # Check HANTS behaviour in a given point 
 east=740830
 north=168832
 
-for map in `g.mlist rast pat="20??_??_tempmean"` ; do   
+for map in `g.list rast pat="20??_??_tempmean"` ; do   
   r.what map=$map coordinates=$east,$north >> time_series_orig.csv
 done
 
-for map in `g.mlist rast pat="*tempmean_hants"` ; do 
+for map in `g.list rast pat="*tempmean_hants"` ; do 
   r.what map=$map coordinates=$east,$north >> time_series_hants.csv 
 done
 

@@ -232,7 +232,7 @@ copy_rast.GRASS <- function(rast, remove.orig=FALSE){
     if(fft==0){
         rname <- rand.name()
         execGRASS("g.copy", rast=paste(rast, rname, sep=","))
-        if(remove.orig){execGRASS("g.remove", flags="f", type="rast", pattern=rast)}
+        if(remove.orig){execGRASS("g.remove", flags="f", type="rast", name=rast)}
         return(rname)
     }else{
         print("the selected file does not exist")
@@ -265,7 +265,7 @@ if(bufabs>0){
 	sink("reclass.rules"); cat("1:1:1:1"); cat("\n"); cat("2:2:0:0"); cat("\n"); sink()
     execGRASS("r.recode", flags="overwrite", input=tmp.b, output=tmp.a, rules="reclass.rules")
 	obsmap <- tmp.a
-	execGRASS("g.remove", flags="f", type="rast", pattern=tmp.b); unlink("reclass.rules")
+	execGRASS("g.remove", flags="f", type="rast", name=tmp.b); unlink("reclass.rules")
 }
 
 if(bufpres>0){
@@ -275,7 +275,7 @@ if(bufpres>0){
     execGRASS("r.buffer", flags=c("z","overwrite"), input=tmp.b, output=tmp.c, distances=bufpres, units="kilometers")        
     execGRASS("r.mapcalc", flags="overwrite", expression=paste(tmp.b, " = if(", tmp.c, "==2,1,", obsmap, ")", sep=""))
     obsmap <- tmp.b
-    execGRASS("g.remove", flags="f", type="rast", pattern=tmp.c)
+    execGRASS("g.remove", flags="f", type="rast", name=tmp.c)
 }
 
 # Prevalence
@@ -303,7 +303,7 @@ if(preval>0 & preval < 1){
     execGRASS("r.random", input=tmp.g, n=as.character(abs.req), raster_output=tmp.h, Sys_wait=TRUE)
     execGRASS("r.patch", input=paste(tmp.f, tmp.h, sep=","), output=tmp.i, flags="overwrite", Sys_wait=TRUE)
     obsmap <- tmp.i
-    execGRASS("g.remove", flags="f", type="rast", pattern=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
+    execGRASS("g.remove", flags="f", type="rast", name=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
 }else{
     # Set number of presence and absence points  
     if(num.pres > 0 | num.abs > 0){
@@ -340,7 +340,7 @@ if(preval>0 & preval < 1){
         tmp.j <- "tmp_r_model_evaluation_0987654321j"
         execGRASS("r.patch", input=paste(tmp.f, tmp.h, sep=","), output=tmp.j, flags="overwrite", Sys_wait=TRUE)
         obsmap <- tmp.j
-        execGRASS("g.remove", flags="f", type="rast", pattern=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
+        execGRASS("g.remove", flags="f", type="rast", name=paste(tmp.f, tmp.g, tmp.h, tmp.e, sep=","), Sys_wait=TRUE)
     }
 }
 
@@ -365,7 +365,7 @@ if(backgr == 0){
     # Based on presence / absence
     a <- execGRASS("r.stats", flags=c("c","n"), input=paste(obsmap, tmp.d, sep=","), intern=TRUE)
     a <- get_output.GRASS(a, separator=" ")
-    execGRASS("g.remove", flags="f", type="rast", pattern=tmp.d)
+    execGRASS("g.remove", flags="f", type="rast", name=tmp.d)
 }else{
     # Based on presence / background
     tmp.k <- "tmp_r_model_evaluation_0987654321k"
@@ -384,15 +384,15 @@ if(backgr == 0){
     a <- rbind(a1, a3)
     
     # Clean up 
-    execGRASS("g.remove", flags="f", type="rast", pattern=paste(tmp.k, tmp.m, sep=","))
+    execGRASS("g.remove", flags="f", type="rast", name=paste(tmp.k, tmp.m, sep=","))
 }
 
 # Clean up 
-execGRASS("g.remove", flags="f", type="rast", pattern=tmp.d)
-if(bufabs>0){execGRASS("g.remove", flags="f", type="rast", pattern=tmp.a)}
-if(bufabs>0){execGRASS("g.remove", flags="f", type="rast", pattern=tmp.b)}
-if(preval>0){execGRASS("g.remove", flags="f", type="rast", pattern=tmp.i)}
-if(num.abs > 0 | num.pres > 0){execGRASS("g.remove", flags="f", type="rast", pattern=tmp.j)}
+execGRASS("g.remove", flags="f", type="rast", name=tmp.d)
+if(bufabs>0){execGRASS("g.remove", flags="f", type="rast", name=tmp.a)}
+if(bufabs>0){execGRASS("g.remove", flags="f", type="rast", name=tmp.b)}
+if(preval>0){execGRASS("g.remove", flags="f", type="rast", name=tmp.i)}
+if(num.abs > 0 | num.pres > 0){execGRASS("g.remove", flags="f", type="rast", name=tmp.j)}
 
 # the temporary files do not always get cleaned up, need to check why
 # this is a temporary fix!

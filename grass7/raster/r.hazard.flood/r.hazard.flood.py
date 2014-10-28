@@ -107,8 +107,10 @@ def main():
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', quiet = True, rast = 'r_accumulation')
-    grass.run_command('g.remove', quiet = True, rast = 'r_slope')
+    grass.run_command('g.remove', quiet = True, flags = 'f',
+                      type = 'rast', name = 'r_accumulation')
+    grass.run_command('g.remove', quiet = True, flags = 'f',
+                      type = 'rast', name = 'r_slope')
 
     # flood map
     grass.message("Calculating flood raster map.. ")
@@ -134,9 +136,9 @@ def main():
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', flags='f', type='rast', name= 'r_clump')
-    grass.run_command('g.remove', flags='f', type='rast', name= 'r_flood_th')
-    grass.run_command('g.remove', flags='f', type='rast', name= 'r_flood')
+    grass.run_command('g.remove', flags='f', type='rast', name='r_clump')
+    grass.run_command('g.remove', flags='f', type='rast', name='r_flood_th')
+    grass.run_command('g.remove', flags='f', type='rast', name='r_flood')
 
     grass.message(_('Done.'))
 

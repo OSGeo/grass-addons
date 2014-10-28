@@ -161,7 +161,7 @@ def cleanup():
 	return
     os.chdir(currdir)
     grass.run_command('g.region', region = tmpregionname)
-    grass.run_command('g.remove', type = 'region', pattern = tmpregionname, flags = 'f', quiet = True)
+    grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
     grass.try_rmdir(tmpdir)
 
 def main():
@@ -319,10 +319,10 @@ def main():
 		grass.run_command('g.region', region = tmpregionname)
 
 
-    # g.mlist with sep = comma does not work ???
+    # g.list with sep = comma does not work ???
     pattern = '*.r.in.srtm.tmp.%d' % pid
     srtmtiles = grass.read_command('g.list',
-                                   type = 'rast',
+                   type = 'rast',
 				   pattern = pattern,
 				   sep = 'newline',
 				   quiet = True)
@@ -331,7 +331,7 @@ def main():
     srtmtiles = ','.join(srtmtiles)
 
     if valid_tiles == 0:
-	grass.run_command('g.remove', type = 'rast', pattern = str(srtmtiles), flags = 'f', quiet = True)
+	grass.run_command('g.remove', type = 'rast', name = str(srtmtiles), flags = 'f', quiet = True)
 	grass.warning(_("No tiles imported"))
 	if local != tmpdir:
 	    grass.fatal(_("Please check if local folder <%s> is correct.") % local)
@@ -365,7 +365,8 @@ def main():
 			      flags = 'z')
 	    grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
 	    grass.run_command('g.remove', type = 'rast',
-			      pattern = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
+			      name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
+                  flags = 'f',
 			      quiet = True)
 
     grass.run_command('g.remove', type = 'rast', pattern = pattern, flags = 'f', quiet = True)

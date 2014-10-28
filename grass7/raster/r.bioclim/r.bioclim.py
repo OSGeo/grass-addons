@@ -142,7 +142,7 @@ def main():
                 ta = "%s.tavg%02d.%d" % (outpre, (i + 1), pid)
                 grass.mapcalc(e, ta = ta, tmax = tmaxl[i], tmin = tminl[i])
 
-        tavg = grass.read_command("g.mlist",
+        tavg = grass.read_command("g.list",
                                  quiet = True,
                                  type = 'rast',
                                  pattern = '%s.tavg??.%d' % (outpre, pid),
@@ -185,7 +185,7 @@ def main():
             tr = "%s.tr%02d.%d" % (outpre, (i + 1), pid)
             grass.mapcalc(e, tr = tr, tmax = tmaxl[i], tmin = tminl[i])
     
-    tr = grass.read_command("g.mlist",
+    tr = grass.read_command("g.list",
                              quiet = True,
                              type = 'rast',
                              pattern = '%s.tr??.%d' % (outpre, pid),
@@ -283,7 +283,7 @@ def main():
     grass.message(_("BIO10 = Mean Temperature of Warmest Quarter,"))
     grass.message(_("BIO11 = Mean Temperature of Coldest Quarter ..."))
 
-    tavgq = grass.read_command("g.mlist",
+    tavgq = grass.read_command("g.list",
                              quiet = True,
                              type = 'rast',
                              pattern = '%s.tavgq.?.%d' % (outpre, pid),
@@ -332,7 +332,7 @@ def main():
                            input = "%s,%s,%s" % (precl[j], precl[j + 1], precl[j + 2]),
                            output = precq, method = 'sum')
 
-    precq = grass.read_command("g.mlist",
+    precq = grass.read_command("g.list",
                              quiet = True,
                              type = 'rast',
                              pattern = '%s.precq.?.%d' % (outpre, pid),

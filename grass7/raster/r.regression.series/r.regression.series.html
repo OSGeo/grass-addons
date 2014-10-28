@@ -83,12 +83,12 @@ files open need more RAM.
 Using <em>r.regression.series</em> with wildcards:
 <br>
 <div class="code"><pre>
-r.regression.series xseries="`g.mlist pattern='insitu_data.*' sep=,`" \
-	 yseries="`g.mlist pattern='invivo_data.*' sep=,`" \
+r.regression.series xseries="`g.list pattern='insitu_data.*' sep=,`" \
+	 yseries="`g.list pattern='invivo_data.*' sep=,`" \
          output=insitu_data.rsquared method=rsq
 </pre></div>
 <p>
-Note the <em>g.mlist</em> module also supports regular expressions for
+Note the <em>g.list</em> module also supports regular expressions for
 selecting map names.
 
 <p>
@@ -103,7 +103,7 @@ r.regression.series x=xone,xtwo,xthree,xfour y=yone,ytwo,ythree,yfour \
 
 <em><a href="r.series.html">r.series</a></em>,
 <em><a href="r.regression.line.html">r.regression.line</a></em>,
-<em><a href="g.mlist.html">g.mlist</a></em>,
+<em><a href="g.list.html">g.list</a></em>,
 <em><a href="g.region.html">g.region</a></em>
 
 <h2>AUTHOR</h2>

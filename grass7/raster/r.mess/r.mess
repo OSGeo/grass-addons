@@ -368,7 +368,7 @@ if(rtl=="R"){
         if(citiam==0){
            rname <- paste("MASK",paste(sample(c(0:9, letters, LETTERS), 12, replace=TRUE), collapse=""), sep="_")
            execGRASS("g.copy", rast=paste("MASK", rname, sep=","))
-           system("g.remove -f rast=MASK")
+           system("g.remove -bf type=rast name=MASK")
         }
 
         # Create mask based on combined MASK/input layer
@@ -409,7 +409,7 @@ if(rtl=="R"){
         # Restore mask
         if(citiam==0){
             execGRASS("r.mask", flags="overwrite", raster=rname)
-            execGRASS("g.remove", rast=rname)
+            execGRASS("g.remove", flags="f", type="rast", name=rname)
         }else{
             execGRASS("r.mask", flags="r")
         }
@@ -429,7 +429,7 @@ if(rtl=="R"){
         calcc <- paste(z1, z2, z3, z4, sep="")
         execGRASS("r.mapcalc", expression=paste(opi[i], " = ", calcc, sep=""), flags="overwrite") 
         execGRASS("r.mapcalc", expression=paste(opi[i], " = ", opi[i], "/", digits2, ".0", sep=""), flags="overwrite")
-        execGRASS("g.remove", flags="f", rast=paste(tmpf0, tmpf1, tmpf2, tmpf3, sep=","))
+        execGRASS("g.remove", flags="bf", type="rast", name=paste(tmpf0, tmpf1, tmpf2, tmpf3, sep=","))
         unlink(tmp.rule)
     }
 }else{
@@ -462,7 +462,7 @@ if(rtl=="R"){
     if(length(clpf)>1){print(paste("Please note that the points", paste(clpf, collapse=" and "), "have no values. This is probably because they lie outside the current region"))}
    
     close(con)
-    system("g.remove vect=tmpMESS976543210")
+    system("g.remove -f type=vect name=tmpMESS976543210")
 
     for(i in 1:length(ipl)){
       
@@ -492,7 +492,7 @@ if(rtl=="R"){
         z4 <- paste(", (", envmax, ".0- double(",  ipl2[i], "))/(", envmax, ".0-", envmin, ".0) * 100.0)))", sep="")
         calcc <- paste(z1, z2, z3, z4, sep="")
         execGRASS("r.mapcalc", expression=paste(opi[i], "=", calcc), flags="overwrite") 
-        execGRASS("g.remove", rast=tmpv1)
+        execGRASS("g.remove", flags="f", type="rast", name=tmpv1)
         unlink(tmp.rule)
     }
 }

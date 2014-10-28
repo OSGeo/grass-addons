@@ -127,7 +127,7 @@ import grass.script as grass
 # cleaning up temp files
 def cleanup():
     rasts = ['aspect_compass','colat_angle','cosine_x','cosine_y','cosine_z','sum_Xcosine','sum_Ycosine','sum_Zcosine']
-    grass.run_command('g.remove', flags = 'f', rast = rasts, quiet = True)
+    grass.run_command('g.remove', flags = 'bf', type = 'rast', name = rasts, quiet = True)
 
 def main():
 

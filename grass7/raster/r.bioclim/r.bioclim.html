@@ -55,9 +55,9 @@ quarter by combining December, January, and February.
 Bioclimatic indices from worldclim data with 4 parallel processes:
 
 <div class="code"><pre>
-r.bioclim tmin=`g.mlist type=rast pat=tmin_* map=. sep=,` \
-          tmax=`g.mlist type=rast pat=tmax_* map=. sep=,` \
-          prec=`g.mlist type=rast pat=prec_* map=. sep=,` \
+r.bioclim tmin=`g.list type=rast pat=tmin_* map=. sep=,` \
+          tmax=`g.list type=rast pat=tmax_* map=. sep=,` \
+          prec=`g.list type=rast pat=prec_* map=. sep=,` \
           out=worldclim workers=4
 </pre></div>
 

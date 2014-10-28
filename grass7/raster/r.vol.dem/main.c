@@ -897,7 +897,7 @@ void output_ascii_points(double ***ascii)
 
     /* TODO: KILL THIS AND REPLACE WITH NEAT --o OPTION CHECK */
     /* remove output map, if exists */
-    sprintf(tmp, "g.remove vect=%s", parm.output->answer);
+    sprintf(tmp, "g.remove -f type=vect name=%s", parm.output->answer);
     error = system(tmp);
     if (error != EXIT_SUCCESS) {
 	G_fatal_error("Error running command: %s", tmp);

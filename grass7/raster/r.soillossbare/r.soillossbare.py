@@ -214,7 +214,9 @@ class rusle_base(object):
         for tmprast in self.tmp_rast:
             g.message('Removing "%s"' %tmprast)
             remove = g.run_command('g.remove',
-                                   rast = tmprast,
+                                   flags = 'f',
+                                   type = 'rast',
+                                   name = tmprast,
                                    quiet = True)
         
         return remove

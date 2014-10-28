@@ -83,7 +83,7 @@ echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 NAME="Map creation test"
 r.sun.hourly elev_in=terrain start_time=11.50 end_time=20.00 time_step=3 day=80 reflrad_basename=${map_basename}
 
-g.mlist -e type=rast pattern=${map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${created_map_names_file}
+g.list -e type=rast pattern=${map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${created_map_names_file}
 
 diff ${map_names_file} ${created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
@@ -91,7 +91,7 @@ echo "$NAME: Diff returned $? (expecting 0)"
 NAME="Map creation test with too much decimal places"
 r.sun.hourly elev_in=terrain start_time=7.0000 end_time=11.0000 time_step=1.3333 day=80 reflrad_basename=${decimal_map_basename}
 
-g.mlist -e type=rast pattern=${decimal_map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${decimal_created_map_names_file}
+g.list -e type=rast pattern=${decimal_map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${decimal_created_map_names_file}
 
 diff ${decimal_map_names_file} ${decimal_created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
@@ -115,10 +115,10 @@ echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 
 # clean
 rm ${map_names_file} ${created_map_names_file}
-g.remove rast=`g.mlist -e type=rast pattern=${map_basename}${map_number_separator}${map_number_pattern} sep=,`
+g.remove -ef type=rast pattern=${map_basename}${map_number_separator}${map_number_pattern}
 
 rm ${decimal_map_names_file} ${decimal_created_map_names_file}
-g.remove rast=`g.mlist -e type=rast pattern=${decimal_map_basename}${map_number_separator}${map_number_pattern} sep=,`
+g.remove -ef type=rast pattern=${decimal_map_basename}${map_number_separator}${map_number_pattern}
 
 rm ${temporal_map_names_file} ${temporal_dataset_file} ${temporal_created_dataset_file} ${temporal_created_map_names_file}
 t.remove -rf inputs=${temporal_map_basename}

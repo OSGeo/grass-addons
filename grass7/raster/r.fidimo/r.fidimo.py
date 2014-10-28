@@ -207,9 +207,15 @@ tmp_map_vect = None
 
 def cleanup():
 	if (tmp_map_rast or tmp_map_vect) and not flags['a']:
-		grass.run_command("g.remove", 
-				rast = [f + str(os.getpid()) for f in tmp_map_rast],
-				vect = [f + str(os.getpid()) for f in tmp_map_vect],
+		grass.run_command("g.remove",
+                flags = 'f',
+				type = 'rast',
+                name = [f + str(os.getpid()) for f in tmp_map_rast],
+				quiet = True)
+		grass.run_command("g.remove",
+                flags = 'f',
+				type = 'vect',
+                name = [f + str(os.getpid()) for f in tmp_map_vect],
 				quiet = True)
 
 
@@ -761,7 +767,7 @@ def main():
 				#Calculation Kernel Density from Distance Raster
 				#only for m=0 because of cdf-function
 				if grass.find_file(name = "density_from_point_unmasked_tmp_%d" % os.getpid(), element = 'cell')['file']:
-					grass.run_command("g.remove", flags="f", type="rast", name= "density_from_point_unmasked_tmp_%d" % os.getpid())
+					grass.run_command("g.remove", flags = 'f', type = 'rast', name = "density_from_point_unmasked_tmp_%d" % os.getpid())
 				
 				x1 = garray.array()
 				x1.read("lower_distance_tmp_%d" % os.getpid())
@@ -993,7 +999,7 @@ def main():
 							density_segment = "density_segment_"+segment_cat,
 							mapcalc_string_Aa_aggregate = mapcalc_string_Aa_aggregate,
 							overwrite = True)
-			grass.run_command("g.remove", flags="f", type="rast", name=mapcalc_string_Aa_removal)
+			grass.run_command("g.remove", flags = 'bf', type = 'rast', name = mapcalc_string_Aa_removal)
 
 			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc				 
 			
@@ -1006,7 +1012,7 @@ def main():
 								realised_density_segment = "realised_density_segment_"+segment_cat,
 								mapcalc_string_Ab_aggregate = mapcalc_string_Ab_aggregate,
 								overwrite = True)
-				grass.run_command("g.remove", flags="f", type="rast", name=mapcalc_string_Ab_removal)
+				grass.run_command("g.remove", flags = 'bf', type = 'rast', name = mapcalc_string_Ab_removal)
 			
 				grass.run_command("r.null", map="realised_density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc				 
 				mapcalc_list_Bb.append("realised_density_segment_"+segment_cat)
@@ -1037,7 +1043,7 @@ def main():
 			# Set all 0-values to NULL, Backgroundvalues			
 			grass.run_command("r.null", map="realised_"+output_fidimo+"_"+i, setnull="0")
 			
-			grass.run_command("g.remove", flags="f", type="rast", name=mapcalc_string_Bb_removal)
+			grass.run_command("g.remove", flags = 'bf', type = 'rast', name = mapcalc_string_Bb_removal)
 
 		# backtransformation (divide by scalar which was defined before)
 		grass.mapcalc("$density_final_corrected = $density_final/$scalar",
@@ -1053,14 +1059,14 @@ def main():
 		grass.run_command("r.null", map=output_fidimo+"_"+i, setnull="0")
 	
 	
-		grass.run_command("g.remove", flags="f", type="rast", name=mapcalc_string_Ba_removal)
+		grass.run_command("g.remove", flags = 'bf', type = 'rast', name = mapcalc_string_Ba_removal)
 			
 
 	# Delete basic maps if flag "b" is set	 
 	if flags['b']:
-		grass.run_command("g.remove", vect = output_fidimo + "_source_points", flags ="f")
+		grass.run_command("g.remove", flags = 'bf', type = 'vect', name = output_fidimo + "_source_points")
 		if options['barriers']:
-			grass.run_command("g.remove", vect = output_fidimo + "_barriers", flags ="f")
+			grass.run_command("g.remove", flags = 'bf', type = 'vect', name = output_fidimo + "_barriers")
 	
 				
 	return 0

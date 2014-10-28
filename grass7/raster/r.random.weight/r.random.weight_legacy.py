@@ -86,8 +86,8 @@ import grass.script as grass
 # os.environ['GRASS_VERBOSE']='-1' 
 
 def cleanup():
-	grass.run_command('g.remove', 
-      rast = tmp_map, quiet = True)
+	grass.run_command('g.remove', flags = 'f',
+      type = 'rast', name = tmp_map, quiet = True)
 
 # main function
 def main():
