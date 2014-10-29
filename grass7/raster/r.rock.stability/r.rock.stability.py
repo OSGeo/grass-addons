@@ -41,17 +41,23 @@
 #%end
 #%option
 #% key: f4
-#% type: integer
+#% type: string
 #% description: F4 index 
-#% options: 8-15
+#% options: Natural Slope +15,Pre-splitting +10,Smooth blasting +8,Normal blasting or mechanical excavation 0,Poor blasting -8
 #% required: yes
 #%end
 #%option
 #% key: rmr
 #% type: string
 #% gisprompt: old,raster,raster
-#% key_desc: name
 #% description: RMR index 
+#% required: yes
+#%end
+################ouput######################
+#%option
+#% key: prefix
+#% type: string
+#% description: Prefix for output maps
 #% required: yes
 #%end
 #%option
@@ -78,13 +84,6 @@
 #% required: no
 #% guisection: SMR_wedge
 #%end
-################ouput######################
-#%option
-#% key: prefix
-#% type: string
-#% description: Prefix for output maps
-#% required: yes
-#%end
 
 import os, sys
 
@@ -107,6 +106,16 @@ def main():
     imme = options['imme']
     incl = options['incl']
     f4 = options['f4']
+    if (f4 == 'Natural Slope +15'):
+        f4 = 15
+    elif (f4 == 'Pre-splitting +10'):
+        f4 = 10
+    elif (f4 == 'Smooth blasting +8'):
+        f4 = 8
+    elif (f4 == 'Normal blasting or mechanical excavation 0'):
+        f4 = 0
+    elif (f4 == 'Poor blasting -8'):
+        f4 = -8
     RMR = options['rmr']
     prefix = options['prefix']
     #SMRrib = options['SMRtoppling']
@@ -122,57 +131,72 @@ def main():
         aspect = 'aspects_' ,
         zfactor = '1.0' ,
         min_slp_allowed = '0.0' ,
-        overwrite = True ,
         quiet = True)
 
 # Correggi aspect per avere: N=0 E=90 S=180 W=270
 
-    grass.mapcalc("aspects_1 = if (aspects_ > 90, 450 - aspects_, 90 - aspects_)")
+    grass.mapcalc("aspects_1 = if (aspects_ > 90, 450 - aspects_, 90 - aspects_)" ,
+        quiet = True)
 
 # calcolo A (valore assoluto)che vale SCIVOL=abs(immersdelgiunto-aspect1); RIBAL=abs(immersdelgiunto-aspect1-180)
 
     grass.mapcalc("Asci = abs($imme - aspects_1)",
-        imme = imme)
-    grass.mapcalc("Arib = abs(Asci - 180)")
+        imme = imme ,
+        quiet = True)
+    grass.mapcalc("Arib = abs(Asci - 180)" ,
+        quiet = True)
 
 # calcolo F1 
 # la formula originale e' stata in parte modificata per tener conto dei valori di A compresi tra 270 e 360 sfavorevoli x la stabilita'
 
-    grass.mapcalc("F1sci1 = if(Asci > 270, 0.64 - 0.006*atan(0.1*(abs(Asci - 360) - 17)), 0)")
-    grass.mapcalc("F1sci2 = if(Asci < 270, 0.64 - 0.006*atan(0.1*(Asci - 17)), 0)")
-    grass.mapcalc("F1sci = F1sci1 + F1sci2")
-    grass.mapcalc("F1rib1 = if(Arib > 270, 0.64 - 0.006*atan(0.1*(abs(Arib - 360) - 17)), 0)")
-    grass.mapcalc("F1rib2 = if(Arib < 270, 0.64 - 0.006*atan(0.1*(Arib - 17)), 0)")
-    grass.mapcalc("F1rib = F1rib1 + F1rib2")
+    grass.mapcalc("F1sci1 = if(Asci > 270, 0.64 - 0.006*atan(0.1*(abs(Asci - 360) - 17)), 0)" ,
+        quiet = True)
+    grass.mapcalc("F1sci2 = if(Asci < 270, 0.64 - 0.006*atan(0.1*(Asci - 17)), 0)" ,
+        quiet = True)
+    grass.mapcalc("F1sci = F1sci1 + F1sci2" ,
+        quiet = True)
+    grass.mapcalc("F1rib1 = if(Arib > 270, 0.64 - 0.006*atan(0.1*(abs(Arib - 360) - 17)), 0)" ,
+        quiet = True)
+    grass.mapcalc("F1rib2 = if(Arib < 270, 0.64 - 0.006*atan(0.1*(Arib - 17)), 0)" ,
+        quiet = True)
+    grass.mapcalc("F1rib = F1rib1 + F1rib2" ,
+        quiet = True)
 
 # calcolo F2 (per il toppling vale sempre 1)
 
     grass.mapcalc("F2sci = 0.56 + 0.005*(atan(0.17*abs($incl) - 5))" ,
-        incl = incl)
+        incl = incl ,
+        quiet = True)
 
 # calcolo F3 
 
     grass.mapcalc("F3sci = -30 + 0.33*atan($incl - slopes_)" ,
-        incl = incl)
+        incl = incl ,
+        quiet = True)
     grass.mapcalc("F3rib = -13 - 0.143*atan($incl + slopes_ - 120)" ,
-        incl = incl)
+        incl = incl ,
+        quiet = True)
 
 # moltiplica F1xF2XF3
 
-    grass.mapcalc("Isciv = F1sci * F2sci * F3sci")
-    grass.mapcalc("Irib = F1rib * F3rib * 1")
+    grass.mapcalc("Isciv = F1sci * F2sci * F3sci" ,
+        quiet = True)
+    grass.mapcalc("Irib = F1rib * F3rib * 1" ,
+        quiet = True)
 
 # Calcola l'indice SMR 
 
     grass.mapcalc("$SMRsciv = Isciv + $RMR + $F4" ,
         SMRsciv = prefix + '_SMRsciv' ,
         RMR = RMR ,
-        F4 = f4)
+        F4 = f4 ,
+        quiet = True)
 
     grass.mapcalc("$SMRrib = Irib + $RMR + $F4" ,
         SMRrib = prefix + '_SMRrib' ,
         RMR = RMR ,
-        F4 = f4)
+        F4 = f4 ,
+        quiet = True)
 ########################################################
 ############################SMR_wedge###################
 ########################################################
@@ -190,7 +214,9 @@ def main():
             incl = incl ,
             incl2 = incl2 ,
             quiet = True)
-        grass.mapcalc("T1 = atan(T)")
+
+        grass.mapcalc("T1 = atan(T)" ,
+            quiet = True)
 #calcola plunge del cuneo P2 (sarebbe inclinazione)
         grass.mapcalc("P=((sin($incl)*sin($imme)*sin($imme2-$imme))/(sin($incl)*cos($imme)*cos($incl2)-sin($incl2)*cos($imme2)*cos($incl)))*sin(T1)" ,
             imme = imme ,
@@ -198,33 +224,51 @@ def main():
             incl = incl ,
             incl2 = incl2 ,
             quiet = True)
-        grass.mapcalc("P1=atan(P)")
-        grass.mapcalc("P2=abs(P1)")
+        grass.mapcalc("P1=atan(P)" ,
+            quiet = True)
+        grass.mapcalc("P2=abs(P1)" ,
+            quiet = True)
 #calcola trend del cuneo corretto (TB) sarebbe immersione
-        grass.mapcalc("TA=if(P1<0,T1+180,T1)")
-        grass.mapcalc("TB=if(TA<0,TA+360,TA)")
+        grass.mapcalc("TA=if(P1<0,T1+180,T1)" ,
+            quiet = True)
+        grass.mapcalc("TB=if(TA<0,TA+360,TA)" ,
+            quiet = True)
 #calcola slope e aspect
 #...calcolo A (valore assoluto)che vale SCIVOL=abs(immersdelgiunto-aspect1); RIBAL=abs(immersdelgiunto-aspect1-180) 
         grass.mapcalc("Asci=abs(TB-aspects_1)" ,
             overwrite = True ,
             quiet = True)
         reclass_rules = "-360 thru 5 = 1\n5.1 thru 10 = 0.085\n10.1 thru 20 = 0.7\n20.1 thru 30 = 0.4\n30.1 thru 320 = 0.15"
-        grass.write_command('r.reclass', input='Asci', output='F1sci_',
-            overwrite='True', rules='-', stdin=reclass_rules)
+        grass.write_command('r.reclass' , 
+            input='Asci' , 
+            output='F1sci_',
+            rules='-', 
+            stdin=reclass_rules,
+            quiet = True)
 # creo una mappa con valore dell'inclinazione
-        grass.mapcalc('mappa=P2+slopes_*0')
+        grass.mapcalc('mappa=P2+slopes_*0' ,
+            quiet = True)
 # calcolo di F2
         reclass_rules2 = "0 thru 20 = 0.15\n20.1 thru 30 = 0.4\n30.1 thru 35 = 0.7\n35.1 thru 45 = 0.85\n45.1 thru 90 = 1"
-        grass.write_command('r.reclass', input='mappa', output='F2',
-            overwrite='True', rules='-', stdin=reclass_rules2)
+        grass.write_command('r.reclass', 
+            input='mappa', 
+            output='F2',
+            rules='-', 
+            stdin=reclass_rules2, 
+            quiet = True )
 # Calcolo di F3 
 # Calcolo C che vale SCIVOL=inclgiunto - slopes;
-        grass.mapcalc("Csci=P2-slopes_")
+        grass.mapcalc("Csci=P2-slopes_" ,
+            quiet = True)
 # Reclass per F3 scivolamento
         reclass_rules3 = "180 thru 9 = 0\n10 thru 0.1 = -6\n0 = -25\n-0.1 thru -9 = -50\n-10 thru -180 = -60"
-        grass.write_command('r.reclass', input='Csci', output='F3sci_',
-            overwrite='True', rules='-', stdin=reclass_rules3)
-        grass.mapcalc('Isciv_=F1sci_*F3sci_*F2')
+        grass.write_command('r.reclass', 
+            input='Csci' , 
+            output='F3sci_' ,
+            rules='-' , 
+            stdin=reclass_rules3)
+        grass.mapcalc('Isciv_=F1sci_*F3sci_*F2' ,
+            quiet = True)
         grass.mapcalc("$SMRsciv=Isciv_+$RMR+$F4" ,
             SMRsciv = prefix + '_SMRscivWedge' ,
             RMR = RMR ,
@@ -380,7 +424,7 @@ def main():
                 'Isciv' ,
                 'Irib' ) ,
             quiet = True)
-
+    grass.message("Done!")
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
