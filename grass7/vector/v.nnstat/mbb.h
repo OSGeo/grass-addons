@@ -7,6 +7,7 @@
 /* Define Boolean type - not necessary in C++*/
 /*typedef enum
   { BFALSE, BTRUE } bool;
+*/
 
 /* Define vertex indices. */
 #define X   0
