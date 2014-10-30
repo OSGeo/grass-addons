@@ -15,8 +15,9 @@
 #
 ##############################################################################
 #%Module
-#%  description: Calculates SMR index for a slope area.
-#%  keywords: rock mass, planar failure, toppling
+#% description: Calculates SMR index for a slope area.
+#% keywords: rock mass, planar failure, toppling
+#% overwrite: yes
 #%End
 #%option
 #% key: dem
@@ -57,7 +58,6 @@
 #%option
 #% key: prefix
 #% type: string
-#% gisprompt: new,raster,raster
 #% description: Prefix for output maps
 #% required: yes
 #%end
@@ -206,14 +206,12 @@ def main():
         SMRsciv = prefix + '_SMRsciv' ,
         RMR = RMR ,
         F4 = f4 ,
-        overwrite = True ,
         quiet = True)
 
     grass.mapcalc("$SMRrib = Irib + $RMR + $F4" ,
         SMRrib = prefix + '_SMRrib' ,
         RMR = RMR ,
         F4 = f4 ,
-        overwrite = True ,
         quiet = True)
 ########################################################
 ############################SMR_wedge###################
@@ -306,7 +304,9 @@ def main():
             overwrite = True ,
             quiet = True)
         grass.run_command('g.remove' , 
-            rast=(
+            flags = 'f' ,
+            type = 'rast' ,
+            name = (
                 'Asci' ,
                 'Arib' ,
                 'F1sci_' ,
@@ -415,7 +415,9 @@ def main():
             quiet = True)
 #elimino mappe
         grass.run_command('g.remove' , 
-            rast=(
+            flags = 'f' ,
+            type = 'rast' ,
+            name = (
                 'slopes_' ,
                 'aspects_' ,
                 'aspects_1' ,
@@ -449,8 +451,10 @@ def main():
                 'cinem_rib') ,
             quiet = True)
     else:
-        grass.run_command('g.remove' , 
-            rast=(
+        grass.run_command('g.remove', 
+            flags = 'f', 
+            type = 'rast', 
+            name = (
                 'slopes_' ,
                 'aspects_' ,
                 'aspects_1' ,
@@ -468,6 +472,7 @@ def main():
                 'Isciv' ,
                 'Irib' ) ,
             quiet = True)
+
     grass.message("Done!")
 if __name__ == "__main__":
     options, flags = grass.parser()
