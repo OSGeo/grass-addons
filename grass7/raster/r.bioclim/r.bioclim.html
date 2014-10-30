@@ -17,16 +17,17 @@ Exceptions are BIO3, BIO4, and BIO15 which are always multiplied with 100 (see b
 <h4>Quarter years</h4>
 The bioclimatic indices referring to the wettest, driest, warmest or 
 coldest quarter differ from the official Worldclim bioclimatic indices 
-because <em><b>r.bioclim</b></em> divides a year into four quarters, 
-whereas Worldclim divides a year into 12 quarters. In 
-<em><b>r.bioclim</b></em>, the first quarter refers to Jan - Mar, the 
-second quarter to Apr - Jun, and the last quarter to Oct - Dec. In 
-Worldclim, the first quarter refers to Jan - Mar, the second quarter to 
-Feb - Apr, and the last quarter to Dec - Feb. The reason is that 
-Worldclim assumes long-term averages as input, whereas 
-<em><b>r.bioclim</b></em> assumes long-term-averages or records for a 
-specific year, in which case it does not make sense to calculate a 
-quarter by combining December, January, and February.
+if <em><b>r.bioclim</b></em> divides a year into four quarters 
+(<b>quarters=4</b>), whereas Worldclim divides a year into 12 quarters. 
+With <b>quarters=4</b>, the first quarter refers to Jan - Mar, the 
+second quarter to Apr - Jun, and the last quarter to Oct - Dec. 
+With <b>quarters=12</b>, the first quarter refers to Jan - Mar, 
+the second quarter to Feb - Apr, and the last quarter to Dec - Feb, as 
+in Worldclim. Using <b>quarters=12</b> makes thus only sense if 
+long-term averages are used as input. The default <b>quarters=4</b> 
+should be used with records for a specific year, because in this case 
+it does not make sense to calculate a quarter by combining December, 
+January, and February.
 
 <h4>List of bioclimatic indices</h4>
 
