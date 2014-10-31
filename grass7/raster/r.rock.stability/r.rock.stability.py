@@ -63,9 +63,9 @@
 #%end
 #%option
 #% key: tc
-#% type: string
-#% gisprompt: old,raster,raster
+#% type: double
 #% description: Total Condition of joint, for SSPC output
+#% options: 0.018975 - 1.0165
 #% required: no
 #% guisection: SSPC
 #%end
@@ -203,13 +203,13 @@ def main():
 # Calcola l'indice SMR 
 
     grass.mapcalc("$SMRsciv = Isciv + $RMR + $F4" ,
-        SMRsciv = prefix + '_SMRsciv' ,
+        SMRsciv = prefix + '_planar' ,
         RMR = RMR ,
         F4 = f4 ,
         quiet = True)
 
     grass.mapcalc("$SMRrib = Irib + $RMR + $F4" ,
-        SMRrib = prefix + '_SMRrib' ,
+        SMRrib = prefix + '_toppling' ,
         RMR = RMR ,
         F4 = f4 ,
         quiet = True)
@@ -298,7 +298,7 @@ def main():
         grass.mapcalc('Isciv_=F1sci_*F3sci_*F2' ,
             quiet = True)
         grass.mapcalc("$SMRsciv=Isciv_+$RMR+$F4" ,
-            SMRsciv = prefix + '_SMRscivWedge' ,
+            SMRsciv = prefix + '_wedge' ,
             RMR = RMR ,
             F4 = f4 ,
             overwrite = True ,
@@ -382,7 +382,7 @@ def main():
             overwrite = True ,
             quiet = True)
         grass.mapcalc("$SSPCsciv = cinem_sci * sci + consci1 + consci2" ,
-            SSPCsciv = prefix + '_SSPCsciv' , 
+            SSPCsciv = prefix + '_SSPC_planar' , 
             overwrite = True ,
             quiet = True)
 # ANALISI RIBALTAMENTO 0.0087*(-90-AP+INCLINAZIONE)
@@ -399,17 +399,17 @@ def main():
             overwrite = True ,
             quiet = True)
         grass.mapcalc("$SSPCrib = cinem_rib * rib + conrib" ,
-            SSPCrib = prefix + '_SSPCrib' ,
+            SSPCrib = prefix + '_SSPC_toppling' ,
             overwrite = True ,
             quiet = True)
 # processo per sostituire i valori di cella nulli con 0 (passaggio importante per trovare poi il minimo
         grass.run_command("r.null" ,
-            map = prefix + '_SSPCsciv' ,
+            map = prefix + '_SSPC_planar' ,
             null = 0 ,
             overwrite = True ,
             quiet = True)
         grass.run_command("r.null" ,
-            map = prefix + '_SSPCrib' ,
+            map = prefix + '_SSPC_toppling' ,
             null = 0 ,
             overwrite = True ,
             quiet = True)
