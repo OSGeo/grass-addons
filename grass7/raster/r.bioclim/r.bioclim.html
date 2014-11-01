@@ -16,18 +16,24 @@ Exceptions are BIO3, BIO4, and BIO15 which are always multiplied with 100 (see b
 <h2>NOTES</h2>
 <h4>Quarter years</h4>
 The bioclimatic indices referring to the wettest, driest, warmest or 
-coldest quarter differ from the official Worldclim bioclimatic indices 
-if <em><b>r.bioclim</b></em> divides a year into four quarters 
-(<b>quarters=4</b>), whereas Worldclim divides a year into 12 quarters. 
-With <b>quarters=4</b>, the first quarter refers to Jan - Mar, the 
-second quarter to Apr - Jun, and the last quarter to Oct - Dec. 
-With <b>quarters=12</b>, the first quarter refers to Jan - Mar, 
-the second quarter to Feb - Apr, and the last quarter to Dec - Feb, as 
-in Worldclim. Using <b>quarters=12</b> makes thus only sense if 
-long-term averages are used as input. The default <b>quarters=4</b> 
-should be used with records for a specific year, because in this case 
-it does not make sense to calculate a quarter by combining December, 
-January, and February.
+coldest quarter can be computed in two different ways. The default is 
+to divide a year into four quarters (quarters=4). Using this option the 
+first quarter refers to Jan - Mar, the second quarter to Apr - Jun, and 
+the last quarter to Oct - Dec. It is the method used to create the 250m 
+<a href="http://gis.cri.fmach.it/eurolst-bioclim/">EuroLST bioclim</a> 
+data and should be used with records for a specific year.
+
+<p>
+The second option is to divide the year in 12 quarters. With this 
+option the quarterly parameters are not aligned to any calendar 
+quarters. Instead, the first quarter refers to Jan - Mar, the second 
+quarter to Feb - Apr, and the last quarter to Dec - Feb. This is the 
+same method as used by the biovars function in the <a 
+href="http://www.r-project.org/">R</a> package <a 
+href="http://cran.r-project.org/web/packages/dismo/index.html">dismo</a> 
+and how the bioclimatic variables provided by <a 
+href="http://worldclim.org/bioclim">Worldclim</a> were computed. This 
+option should be used when long-term averages are used as input.
 
 <h4>List of bioclimatic indices</h4>
 
