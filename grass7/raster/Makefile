@@ -52,6 +52,13 @@ SUBDIRS = \
 	r.skyview \
 	r.soillossbare \
 	r.stream.basins \
+	r.stream.channel \
+	r.stream.distance \
+	r.stream.order \
+	r.stream.segment \
+	r.stream.slope \
+	r.stream.snap \
+	r.stream.stats \
 	r.sun.daily \
 	r.sun.hourly \
 	r.surf.nnbathy \
