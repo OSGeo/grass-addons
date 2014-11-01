@@ -27,6 +27,7 @@ SUBDIRS = \
 	r.houghtransform \
 	r.hydrodem \
 	r.hypso \
+	r.in.arc \
 	r.in.srtm.region \
 	r.in.wcs \
 	r.lake.series \
@@ -42,6 +43,8 @@ SUBDIRS = \
 	r.modis \
 	r.mwprecip \
 	r.northerness.easterness \
+	r.out.arc \
+	r.out.tiff \
 	r.popgrowth \
 	r.random.weight \
 	r.regression.series \
