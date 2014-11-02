@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ..
 
+# v.mapcalc
+
 SUBDIRS = \
 	v.area.stats \
 	v.area.weigh \

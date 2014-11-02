@@ -1,5 +1,15 @@
 MODULE_TOPDIR = ..
 
+# commands replaced with more modern commands in trunk/relbranch
+OLD = \
+	r.in.arc \
+	r.out.arc \
+	r.out.tiff \
+	r.le.patch \
+	r.le.pixel \
+	r.le.setup \
+	r.le.trace
+
 SUBDIRS = \
 	r.agent \
 	r.area \
@@ -48,6 +58,7 @@ SUBDIRS = \
 	r.popgrowth \
 	r.random.weight \
 	r.regression.series \
+	r.rock.stability \
 	r.roughness.vector \
 	r.segment \
 	r.shaded.pca \
