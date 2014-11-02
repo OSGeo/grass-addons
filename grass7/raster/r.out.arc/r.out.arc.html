@@ -1,5 +1,8 @@
 <h2>DESCRIPTION</h2>
 
+Note: this module is superseded by <a href="r.out.gdal.html">r.out.gdal</a>.
+<p>
+
 <em>r.out.arc</em> converts a user-specified raster map layer
 (<b>input=</b><em>name</em>) into an ESRI ARC-GRID ascii file
 (<b>output=</b><em>name</em>) suitable for export to other computer systems. 
@@ -9,7 +12,6 @@ limited.  However, to use this, the user should know the maximum number of
 digits that will occur in the output file.  The user can find the maximum
 number of digits occurring in the output file by running <em>r.out.arc</em>
 without the <b>dp=</b><em>value</em> option.
-
 
 <p>
 The GRASS program <em><a href="r.in.arc.html">r.in.arc</a></em> can be used
@@ -29,7 +31,7 @@ r.out.arc input=soils output=- &gt; out.grd
 The output file <em>out.grd</em> can then be copied
 onto a CDROM or floppy disk for export purposes.
 
-<p><br>
+<p>
 An Arc ASCII grid can be loaded into ArcGIS 8.3 though ArcToolbox.<br>
 Use the "Import to Raster" -> "ASCII to Grid" tool to create a binary grid 
 which can be selected using ArcCatalog. The spatial analyst extension may 
@@ -38,11 +40,13 @@ need to be installed and activated within Arc.
 ArcMap -> Toolbox -> Conversion Tools -> To Raster -> ASCII to Raster
 <p>A GeoTIFF created with <em><a href="r.out.gdal.html">r.out.gdal</a></em> is
 sometimes a better solution for transferring raster maps to other GIS software.
-<p><h2>SEE ALSO</h2>
 
-<em><a href="r.in.arc.html">r.in.arc</a></em><br>
-<em><a href="r.out.gdal.html">r.out.gdal</a></em><br>
+<h2>SEE ALSO</h2>
 
+<em>
+<a href="r.in.arc.html">r.in.arc</a>,
+<a href="r.out.gdal.html">r.out.gdal</a>
+</em>
 
 <h2>AUTHOR</h2>
 
