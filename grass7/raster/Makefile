@@ -15,6 +15,7 @@ SUBDIRS = \
 	r.area \
 	r.basin \
 	r.bioclim \
+	r.bitpattern \
 	r.convergence \
 	r.convert \
 	r.crater \
