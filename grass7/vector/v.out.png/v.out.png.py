@@ -59,10 +59,10 @@ from grass.pygrass.modules.shortcuts import general as g
 
 def main():
     os.environ['GRASS_RENDER_IMMEDIATE'] = 'png'
-    os.environ['GRASS_PNGFILE'] = options['output']
-    os.environ['GRASS_PNG_COMPRESSION'] = options['compression']
-    os.environ['GRASS_WIDTH'] = options['width']
-    os.environ['GRASS_HEIGHT'] = options['height']
+    os.environ['GRASS_RENDER_FILE'] = options['output']
+    os.environ['GRASS_RENDER_FILE_COMPRESSION'] = options['compression']
+    os.environ['GRASS_RENDER_WIDTH'] = options['width']
+    os.environ['GRASS_RENDER_HEIGHT'] = options['height']
 
     monitor_old = None
     genv = gisenv()

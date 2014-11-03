@@ -19,13 +19,13 @@
 #%Option
 #% key: width
 #% type: integer
-#% description: Width for display monitor if not set by GRASS_WIDTH
+#% description: Width for display monitor if not set by GRASS_RENDER_WIDTH
 #% answer: 800
 #%End
 #%Option
 #% key: height
 #% type: integer
-#% description: Height for display monitor if not set by GRASS_HEIGHT
+#% description: Height for display monitor if not set by GRASS_RENDER_HEIGHT
 #% answer: 600
 #%End
 #%Option
@@ -77,7 +77,7 @@ def main():
 
     if options['tempfile']:
         img_tmp = options['tempfile']
-        #TODO: add option for GRASS_PNG_COMPRESSION=0,1-9
+        #TODO: add option for GRASS_RENDER_FILE_COMPRESSION=0,1-9
     else:
         img_tmp = grass.tempfile()
         os.remove(img_tmp)
@@ -85,18 +85,18 @@ def main():
 
 
     if flags['b']:
-        print('GRASS_PNGFILE="%s"' % img_tmp)
-        if not os.environ.has_key("GRASS_WIDTH"):
-            print('GRASS_WIDTH=%s' % options['width'])
-        if not os.environ.has_key("GRASS_HEIGHT"):
-           print('GRASS_HEIGHT=%s' % options['height'])
+        print('GRASS_RENDER_FILE="%s"' % img_tmp)
+        if not os.environ.has_key("GRASS_RENDER_WIDTH"):
+            print('GRASS_RENDER_WIDTH=%s' % options['width'])
+        if not os.environ.has_key("GRASS_RENDER_HEIGHT"):
+           print('GRASS_RENDER_HEIGHT=%s' % options['height'])
         if flags['c']:
             print('GRASS_RENDER_IMMEDIATE=cairo')
         else:
             print('GRASS_RENDER_IMMEDIATE=PNG')
-        print('GRASS_PNG_MAPPED=TRUE')
-        print('GRASS_PNG_READ=TRUE')
-        print('export GRASS_PNGFILE GRASS_WIDTH GRASS_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_PNG_MAPPED GRASS_PNG_READ;')
+        print('GRASS_RENDER_FILE_MAPPED=TRUE')
+        print('GRASS_RENDER_FILE_READ=TRUE')
+        print('export GRASS_RENDER_FILE GRASS_RENDER_WIDTH GRASS_RENDER_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_RENDER_FILE_MAPPED GRASS_RENDER_FILE_READ;')
 
         print('d.erase bgcolor=%s;' % options['color'])
         if handler == "none":
@@ -119,15 +119,15 @@ def main():
     if not grass.find_program(handler, '--help'):
         grass.fatal(_("'%s' not found.") % handler)
 
-    os.environ['GRASS_PNGFILE'] = img_tmp
-    if not os.environ.has_key("GRASS_WIDTH"):
-        os.environ['GRASS_WIDTH'] = options['width']
-    if not os.environ.has_key("GRASS_HEIGHT"):
-        os.environ['GRASS_HEIGHT'] = options['height']
+    os.environ['GRASS_RENDER_FILE'] = img_tmp
+    if not os.environ.has_key("GRASS_RENDER_WIDTH"):
+        os.environ['GRASS_RENDER_WIDTH'] = options['width']
+    if not os.environ.has_key("GRASS_RENDER_HEIGHT"):
+        os.environ['GRASS_RENDER_HEIGHT'] = options['height']
     if flags['c']:
         os.environ['GRASS_RENDER_IMMEDIATE'] = 'cairo'
-    os.environ['GRASS_PNG_MAPPED'] = 'TRUE'
-    os.environ['GRASS_PNG_READ'] = 'TRUE'
+    os.environ['GRASS_RENDER_FILE_MAPPED'] = 'TRUE'
+    os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
     #? os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
 
     grass.run_command('d.erase', bgcolor = options['color'])

@@ -135,7 +135,7 @@ class Layer(object):
                                  {'type' : self.type, 'name' : self.name})
         
         if self.mapfile:
-            os.environ["GRASS_PNGFILE"] = self.mapfile
+            os.environ["GRASS_RENDER_FILE"] = self.mapfile
         
         # execute command
         try:
@@ -146,9 +146,9 @@ class Layer(object):
                     if ret != 0:
                         break
                     if not read:
-                        os.environ["GRASS_PNG_READ"] = "TRUE"
+                        os.environ["GRASS_RENDER_FILE_READ"] = "TRUE"
                 
-                os.environ["GRASS_PNG_READ"] = "FALSE"
+                os.environ["GRASS_RENDER_FILE_READ"] = "FALSE"
             else:
                 ret, msg = self._runCommand(self.cmd)
             if ret != 0:
@@ -166,8 +166,8 @@ class Layer(object):
                 f = None
         
         # stop monitor
-        if self.mapfile and "GRASS_PNGFILE" in os.environ:
-            del os.environ["GRASS_PNGFILE"]
+        if self.mapfile and "GRASS_RENDER_FILE" in os.environ:
+            del os.environ["GRASS_RENDER_FILE"]
         
         self.forceRender = False
         
@@ -405,11 +405,11 @@ class Map(object):
         self.receiver = None
 
         # GRASS environment variable (for rendering)
-        self.env = {"GRASS_BACKGROUNDCOLOR" : "FFFFFF",
+        self.env = {"GRASS_RENDER_BACKGROUNDCOLOR" : "FFFFFF",
                "GRASS_COMPRESSION"     : "0",
-               "GRASS_TRUECOLOR"       : "TRUE",
+               "GRASS_RENDER_TRUECOLOR"       : "TRUE",
                "GRASS_TRANSPARENT"     : "TRUE",
-               "GRASS_PNG_READ"        : "FALSE",
+               "GRASS_RENDER_FILE_READ"        : "FALSE",
                }
 
         for k, v in self.env.iteritems():
@@ -947,8 +947,8 @@ class Map(object):
         
         tmp_region = os.getenv("GRASS_REGION")
         os.environ["GRASS_REGION"] = self.SetRegion(windres)
-        os.environ["GRASS_WIDTH"]  = str(self.width)
-        os.environ["GRASS_HEIGHT"] = str(self.height)
+        os.environ["GRASS_RENDER_WIDTH"]  = str(self.width)
+        os.environ["GRASS_RENDER_HEIGHT"] = str(self.height)
         driver = UserSettings.Get(group = 'display', key = 'driver', subkey = 'type')
         if driver == 'png':
             os.environ["GRASS_RENDER_IMMEDIATE"] = "png"
