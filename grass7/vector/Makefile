@@ -32,7 +32,6 @@ SUBDIRS = \
 	v.stats \
 	v.surf.icw \
 	v.surf.mass \
-	v.to.lines \
 	v.transects \
 	v.what.strds
 
