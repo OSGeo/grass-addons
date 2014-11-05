@@ -12,11 +12,11 @@
 <h2>NAME</h2>
 <em><b>v.nnstat</b></em>  - Indicates clusters, separations or random distribution of point set in 2D or 3D space.
 <h2>KEYWORDS</h2>
-Vector, Nearest Neighbour Analysis
+vector, nearest neighbour analysis
 <h2>SYNOPSIS</h2>
 <div id="name"><b>v.nnstat</b><br></div>
 <b>v.nnstat help</b><br>
-<div id="synopsis"><b>v.nnstat</b> [-<b>2</b>] <b>input</b>=<em>name</em>  [<b>A</b>=<em>float</em>]   [<b>layer</b>=<em>string</em>]   [<b>zcol</b>=<em>name</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+<div id="synopsis"><b>v.nnstat</b> [-<b>2</b>] <b>input</b>=<em>name</em>  [<b>area</b>=<em>float</em>]   [<b>layer</b>=<em>string</em>]   [<b>zcolumn</b>=<em>name</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
 </div>
 
 <div id="flags">
@@ -41,7 +41,7 @@ Vector, Nearest Neighbour Analysis
 <dd>Name of input vector map</dd>
 <dd>Or data source for direct OGR access</dd>
 
-<dt><b>A</b>=<em>float</em></dt>
+<dt><b>area</b>=<em>float</em></dt>
 <dd>2D: Area. If not specified, area of Minimum Enclosing Rectangle will be used.<br>3D: Volume. If not specified, volume of Minimum Enclosing Box will be used.</dd>
 
 <dt><b>layer</b>=<em>string</em></dt>
@@ -49,7 +49,7 @@ Vector, Nearest Neighbour Analysis
 <dd>Vector features can have category values in different layers. This number determines which layer to use. When used with direct OGR access this is the layer name.</dd>
 <dd>Default: <em>1</em></dd>
 
-<dt><b>zcol</b>=<em>name</em></dt>
+<dt><b>zcolumn</b>=<em>name</em></dt>
 <dd>Column with z coordinate (set for 2D vectors only if 3D NNA is required to be performed)</dd>
 
 </dl>
@@ -63,6 +63,14 @@ Vector, Nearest Neighbour Analysis
 <em>
 <a href="v.hull.html">v.hull</a>
 </em>
+
+<h2>REQUIREMENTS</h2>
+<ul>
+<li><b>LAPACK / BLAS</b> (libraries for numerical computing) for
+GMATH library (GRASS Numerical Library)<br>
+<a href="http://www.netlib.org/lapack">http://www.netlib.org/lapack</a> (usually available on Linux distros)
+<li><a href="http://pointclouds.org">Point Cloud Library</a>
+</ul>
 
 <h2>AUTHOR</h2>
 
