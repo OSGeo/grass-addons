@@ -198,6 +198,13 @@ def main():
                       type='area',
                       column='time')
 
+    # give the polygons a default color table
+    grass.run_command('v.colors',
+                      map=isochrones,
+                      use='attr',
+                      column='time',
+                      color='grey')
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
