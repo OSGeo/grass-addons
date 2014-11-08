@@ -115,33 +115,47 @@ surface placed above that altitude.</li>
 
 <h2>EXAMPLE</h2>
 
+North Carolina sample dataset example:
+
 <div class="code"><pre>
-r.basin map=elevation prefix=example coordinates=636639,218816 dir=/home/yourusername/Desktop threshold=1000
+g.region rast=elevation -p
+r.basin map=elevation prefix=my_basin coord=637500.0,221750.0 dir=/tmp/bla threshold=1000
+
+# visualize some results
+d.mon wx0
+d.rast my_basin_elevation_hack
+
+d.rast my_basin_elevation_dist2out
+
+d.his i=aspect h=my_basin_elevation_dist2out
 </pre></div>
 
 <h3>Dependencies</h3> 
 <ul>
 <li>Matplotlib</li>
+<li>r.hypso</li>
 <li>r.stream.basins</li>
 <li>r.stream.extract</li>
 <li>r.stream.stats</li>
 <li>r.stream.distance</li>
 <li>r.stream.order</li>
 <li>r.width.funct</li>
-<li>r.hypso</li>
 </ul>
 
 <h2>SEE ALSO</h2>  
 
 <em>
-<a href="r.stream.basins.html">r.stream.basins</a>,
-<a href="r.stream.distance.html">r.stream.distance</a>,
-<a href="r.stream.extract.html">r.stream.extract</a>,
-<a href="r.stream.order.html">r.stream.order</a>,
-<a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="r.width.funct.html">r.width.funct</a>,
 <a href="r.hypso.html">r.hypso</a>,
-<a href="r.watershed.html">r.watershed</a>
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.channel.html">r.stream.channel</a> (Addon),
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.distance.html">r.stream.distance</a> (Addon),
+<a href="r.stream.extract.html">r.stream.extract</a>,
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.order.html">r.stream.order</a> (Addon),
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.segment.html">r.stream.segment</a> (Addon),
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.slope.html">r.stream.slope</a> (Addon),
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.snap.html">r.stream.snap</a> (Addon),
+<a href="http://grass.osgeo.org/grass70/manuals/addons/r.stream.stats.html">r.stream.stats</a> (Addon),
+<a href="r.watershed.html">r.watershed</a>,
+<a href="r.width.funct.html">r.width.funct</a>
 </em>   
 
 <h2>CITE AS</h2> 

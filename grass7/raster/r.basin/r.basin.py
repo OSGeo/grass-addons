@@ -78,13 +78,26 @@ if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
     sys.exit(1)
 
+# check requirements
+def check_progs():
+    for prog in ('r.hypso', 'r.stream.basins', 'r.stream.distance', 'r.stream.extract',
+    'r.stream.order','r.stream.snap','r.stream.stats', 'r.width.funct'):
+        if not grass.find_program(prog, '--help'):
+            grass.fatal(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+
 def main():
+    # check dependencies
+    check_progs()
+    
     r_elevation = options['map'].split('@')[0] 
     mapname = options['map'].replace("@"," ")
     mapname = mapname.split()
     mapname[0] = mapname[0].replace(".","_")
     coordinates = options['coordinates']
     directory = options['dir']
+    # Check if directory exists
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
     autothreshold = flags['a']
     nomap = flags['c']
     prefix = options['prefix']+'_'+mapname[0]
@@ -122,15 +135,14 @@ def main():
     
    
     # Save current region
-    grass.read_command('g.region', flags = 'p', save = 'original', overwrite = True)
+    grass.read_command('g.region', flags = 'p', save = 'original')
 
     # Watershed SFD
     grass.run_command('r.watershed', elevation = r_elevation, 
                                      accumulation = r_accumulation, 
                                      drainage = r_drainage,  
                                      convergence = 5, 
-                                     flags = 'am',
-                                     overwrite = True)
+                                     flags = 'am')
                                      
     # Managing flag
     if autothreshold :
@@ -147,26 +159,18 @@ def main():
                                           d8cut =  1000000000, 
                                           mexp = 0, 
                                           stream_rast = r_stream_e, 
-                                          direction = r_drainage_e, 
-                                          overwrite = True)
+                                          direction = r_drainage_e)
                                           
-    try:
-    
-        # Delineation of basin 
-        ## check if r.stream.basins addon is installed
-        if not grass.find_program('r.stream.basins', '--help'):
-            grass.fatal(_("The 'r.stream.basins' module was not found, install it first:") +
-                        "\n" +
-                        "g.extension r.stream.basins")
-                                             
+    try:    
+        # Delineation of basin                                             
         # Create outlet
         grass.write_command('v.in.ascii', output = v_outlet, 
                                       input = "-",
                                       sep = ",",
-                                      stdin = "%s,9999"  % (coordinates),
-                                      overwrite = True)
+                                      stdin = "%s,9999"  % (coordinates))
                                       
         # Snap outlet to stream network
+        # TODO: does snap depend on the raster resolution? hardcoded 30 below
         grass.run_command('r.stream.snap', input = v_outlet,
                                            output = v_outlet_snap,
                                            stream_rast = r_stream_e,
@@ -177,14 +181,12 @@ def main():
                                    use = 'cat', 
                                    type = 'point', 
                                    layer = 1, 
-                                   value = 1, 
-                                   overwrite = True)
+                                   value = 1)
                                              
                                              
         grass.run_command('r.stream.basins', direction = r_drainage_e, 
                                              basins = r_basin, 
-                                             points = v_outlet_snap,
-                                             overwrite = True)  
+                                             points = v_outlet_snap)  
                                              
         grass.message( "Delineation of basin done" )
      
@@ -214,8 +216,7 @@ def main():
         grass.mapcalc("$r_elevation_crop = $r_elevation * $r_mask",
                        r_mask = r_mask,
                        r_elevation = r_elevation,
-                       r_elevation_crop = 'r_elevation_crop',
-                       overwrite = True)
+                       r_elevation_crop = 'r_elevation_crop')
                        
         grass.mapcalc("tmp = $r_drainage_e * $r_mask",
                        r_mask = r_mask,
@@ -235,27 +236,23 @@ def main():
         grass.run_command('g.rename', rast = ('tmp',r_stream_e))
         
         grass.run_command('r.thin', input = r_stream_e, 
-                                    output = r_stream_e+'_thin',
-                                    overwrite = True)
+                                    output = r_stream_e+'_thin')
                                     
         grass.run_command('r.to.vect', input = r_stream_e+'_thin', 
                                        output = v_network, 
-                                       type = 'line',
-                                       overwrite = True)
+                                       type = 'line')
     
         # Creation of slope and aspect maps
         grass.run_command('r.slope.aspect', elevation = 'r_elevation_crop', 
                                             slope = r_slope, 
-                                            aspect = r_aspect,
-                                            overwrite = True)
+                                            aspect = r_aspect)
 
         # Basin mask (vector)
         # Raster to vector
         grass.run_command('r.to.vect', input = r_basin, 
                                        output = v_basin, 
                                        type = 'area',
-                                       flags = 'sv',
-                                       overwrite = True)
+                                       flags = 'sv')
                                        
         # Add two columns to the table: area and perimeter                               
         grass.run_command('v.db.addcolumn', map = v_basin,
@@ -271,8 +268,7 @@ def main():
                                  qlayer = 1, 
                                  option = 'perimeter', 
                                  units = 'kilometers', 
-                                 columns = 'perimeter', 
-                                 overwrite = True)
+                                 columns = 'perimeter')
                                  
         # Read perimeter
         tmp = grass.read_command('v.to.db', map = v_basin, 
@@ -292,8 +288,7 @@ def main():
                                  qlayer = 1, 
                                  option = 'area', 
                                  units = 'kilometers', 
-                                 columns = 'area', 
-                                 overwrite = True)  
+                                 columns = 'area')  
                                  
         # Read area
         tmp = grass.read_command('v.to.db', map = v_basin, 
@@ -314,26 +309,19 @@ def main():
                                             strahler = r_strahler, 
                                             shreve = r_shreve, 
                                             horton = r_horton, 
-                                            hack = r_hack,
-                                            overwrite = True)
+                                            hack = r_hack)
                      
         # Distance to outlet            
         grass.run_command('r.stream.distance', stream_rast = r_outlet, 
                                                direction = r_drainage_e, 
                                                flags = 'o', 
-                                               distance = r_distance,
-                                               overwrite = True)
+                                               distance = r_distance)
         
 
         # hypsographic curve
         
         grass.message( "------------------------------" )
         
-        #### check if r.hypso addon is installed
-        if not grass.find_program('r.hypso', '--help'):
-            grass.fatal(_("The 'r.hypso' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.hypso")
         grass.run_command('r.hypso', map = 'r_elevation_crop',
                                   image = os.path.join(directory,prefix), flags = 'ab')
                                                   
@@ -343,11 +331,6 @@ def main():
         
         grass.message( "------------------------------" )
         
-        #### check if r.width.funct addon is installed
-        if not grass.find_program('r.width.funct', '--help'):
-            grass.fatal(_("The 'r.width.funct' module was not found, install it first:") +
-                    "\n" +
-                    "g.extension r.width.funct")
         grass.run_command('r.width.funct', map = r_distance,
                                   image = os.path.join(directory,prefix))
              
@@ -358,16 +341,14 @@ def main():
         grass.run_command("r.stream.distance", stream_rast = r_stream_e, 
                                            direction = r_drainage, 
                                            elevation = 'r_elevation_crop', 
-                                           distance = r_hillslope_distance,
-                                           overwrite = True)
+                                           distance = r_hillslope_distance)
         
     
         # Mean elevation
         grass.run_command("r.stats.zonal", base = r_basin, 
                                     cover = "r_elevation_crop", 
                                     method = "average",
-                                    output = r_height_average,
-                                    overwrite = True)
+                                    output = r_height_average)
                                     
                                     
         grass.message("r.stats.zonal done")
@@ -387,8 +368,7 @@ def main():
     
         # Centroid and mean slope
         baricenter_slope_baricenter = grass.read_command("r.volume", input = r_slope, 
-                                                                     clump = r_basin, 
-                                                                     overwrite = True)                                                   
+                                                                     clump = r_basin)                                                   
                                                                  
         grass.message("r.volume done")                                                         
                                                                  
@@ -441,13 +421,11 @@ def main():
                   r_mainchannel = r_mainchannel)
                   
         grass.run_command("r.thin", input = r_mainchannel, 
-                                output = r_mainchannel+'_thin',
-                                overwrite = True)
+                                output = r_mainchannel+'_thin')
         grass.run_command('r.to.vect', input = r_mainchannel+'_thin', 
                                    output = v_mainchannel, 
                                    type = 'line', 
-                                   verbose = True,
-                                   overwrite = True)
+                                   verbose = True)
                                 
 
         # Get coordinates of the outlet (belonging to stream network)
@@ -473,7 +451,7 @@ def main():
                      
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      coordinates = '%s,%s' % (east_o,north_o),
-                                                     distance = 5 )
+                                                     distance = 5)
         tmp = param_mainchannel.split('\n')[7]
         mainchannel = float(tmp.split()[1]) / 1000   # km
     
@@ -483,14 +461,12 @@ def main():
                   r_shreve = r_shreve,
                   r_mainchannel = r_mainchannel)
         grass.run_command('r.thin', input = r_mainchannel_dim, 
-                                output = r_mainchannel_dim + '_thin',
-                                overwrite = True)
+                                output = r_mainchannel_dim + '_thin')
         grass.run_command('r.to.vect', input = r_mainchannel_dim + '_thin', 
                                    output = v_mainchannel_dim, 
                                    type = 'line', 
                                    flags = 'v',
-                                   verbose = True,
-                                   overwrite = True)
+                                   verbose = True)
         try:
             D_topo1 = grass.read_command('v.info', map = v_mainchannel_dim, 
                                                layer = 1, 
@@ -505,8 +481,7 @@ def main():
         grass.run_command('v.to.points',
                                      input = v_mainchannel_dim, 
                                      output = v_mainchannel_dim+'_point', 
-                                     type = 'line',
-                                     overwrite = True)
+                                     type = 'line')
         vertex = grass.read_command('v.out.ascii', verbose = True, 
                                                input = v_mainchannel_dim+'_point').strip().split('\n')
         nodi = zeros((len(vertex),4),float)
@@ -559,24 +534,21 @@ def main():
         grass.run_command("r.stats.zonal", cover = r_stream_e, 
                                    base = r_mask, 
                                    method = "average",
-                                   output = r_average_hillslope,
-                                   overwrite = True)
-        mean_hillslope_length = float(grass.read_command('r.info', flags = 'r', 
-                                                               map = r_average_hillslope).split('\n')[0].split('=')[1])
+                                   output = r_average_hillslope)
+        mean_hillslope_length = float(grass.read_command('r.info', flags = 'r',
+                                                         map = r_average_hillslope).split('\n')[0].split('=')[1])
     
-        # Magnitudo
+        # Magnitude
         grass.mapcalc("$r_ord_1 = if($r_strahler==1,1,null())",
                   r_ord_1 = r_ord_1,
                   r_strahler = r_strahler)
         grass.run_command('r.thin', input = r_ord_1, 
                                 output = r_ord_1+'_thin', 
-                                iterations = 200,
-                                overwrite = True)
+                                iterations = 200)
         grass.run_command('r.to.vect', input = r_ord_1+'_thin', 
                                    output = v_ord_1, 
                                    type = 'line', 
-                                   flags = 'v',
-                                   overwrite = True)
+                                   flags = 'v')
         magnitudo = float(grass.read_command('v.info', map = v_ord_1, 
                                                    layer = 1, 
                                                    flags = 't').split('\n')[2].split('=')[1])
@@ -789,7 +761,7 @@ def main():
                           + [Slope_ratio])
         
 
-# Import table "summary", attaches it to "outlet_snap", then drops it                          
+        # Import table "summary", attaches it to "outlet_snap", then drops it                          
         grass.run_command("db.in.ogr", dsn = csvfileT,
                                        output = "summary")  
                                           
@@ -849,7 +821,7 @@ def main():
 	    grass.message( "------------------------------" ) 
 	    grass.message( "\n" ) 
 	    grass.message( "An ERROR occurred running r.basin" )
-	    grass.message( "Please try with another pairs of outlet coordinates" )
+	    grass.message( "Please check for error messages above or try with another pairs of outlet coordinates" )
 
 	    
     # Set region to original 
