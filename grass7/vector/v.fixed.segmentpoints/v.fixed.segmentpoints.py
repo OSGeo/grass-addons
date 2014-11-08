@@ -108,7 +108,7 @@ def main():
     
     number_segmentpoints_without_end = math.floor( vector_line_length / float(sdistance) )
 
-    number_segmentpoints_with_end = int(number_segmentpoints_without_end + 1)	
+    number_segmentpoints_with_end = int(number_segmentpoints_without_end + 2)	
 
     grass.message( "Number of segment points (start and end point included):" )
     grass.message( number_segmentpoints_with_end )
