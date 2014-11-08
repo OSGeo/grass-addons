@@ -18,6 +18,7 @@
  *                                                         *
  ************************************************************/
 
+#include <grass/gis.h>
 #include <grass/config.h>
 #include "patch.h"
 

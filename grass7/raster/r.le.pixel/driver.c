@@ -20,11 +20,11 @@
  ************************************************************/
 
 
+#include <stdio.h>
 #include <grass/gis.h>
-#include "pixel.h"
 #include <grass/config.h>
 #include <grass/raster.h>
-
+#include "pixel.h"
 
 int finput, g_scale = 1, g_unit = 1;
 extern struct CHOICE *choice;

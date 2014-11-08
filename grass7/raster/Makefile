@@ -5,10 +5,10 @@ OLD = \
 	r.in.arc \
 	r.out.arc \
 	r.out.tiff \
-	r.le.patch \
-	r.le.pixel \
-	r.le.setup \
-	r.le.trace
+#	r.le.patch \
+#	r.le.pixel \
+#	r.le.setup \
+#	r.le.trace
 
 SUBDIRS = \
 	r.agent \
