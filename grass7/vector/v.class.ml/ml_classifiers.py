@@ -23,9 +23,9 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn import metrics
 
 
-from grass.pygrass.messages import Messenger
+from grass.pygrass.messages import get_msgr
 
-MSGR = Messenger()
+MSGR = get_msgr()
 
 try:
     import mlpy

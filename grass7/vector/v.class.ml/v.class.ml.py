@@ -209,7 +209,7 @@
 #%end
 #%option
 #%  key: posinf
-#%  type: double
+#%  type: string
 #%  multiple: yes
 #%  description: Key:Value or Numpy funtion to use to substitute posinf values
 #%  required: no
@@ -254,6 +254,14 @@
 #%  description: kernel value range list to explore SVC domain
 #%  required: no
 #%  answer: linear,poly,rbf,sigmoid
+#%end
+#%option
+#%  key: svc_poly_range
+#%  type: string
+#%  multiple: yes
+#%  description: polynomial order list to explore SVC domain
+#%  required: no
+#%  answer:
 #%end
 #%option
 #%  key: svc_n_jobs
@@ -346,6 +354,10 @@
 #%  key: d
 #%  description: Explore the SVC domain
 #%end
+#%flag
+#%  key: a
+#%  description: append the classification results
+#%end
 #-----------------------------------------------------
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
@@ -420,7 +432,8 @@ def get_indexes(string, sep=',', rangesep='-'):
 
 
 def get_colors(vtraining):
-    with Vector(vtraining, mode='r') as vct:
+    vect, mset = vtraining.split('@') if '@' in vtraining else (vtraining, '')
+    with Vector(vect, mapset=mset, mode='r') as vct:
         cur = vct.table.execute('SELECT cat, color FROM %s;' % vct.name)
         return dict([c for c in cur.fetchall()])
 
@@ -457,12 +470,13 @@ def find_special_cols(array, cols, report=True,
     if report:
         indent = '    '
         tot = len(array)
-        for key in special:
+        for k in special:
             fmt = '- %15s (%3d/%d, %4.3f%%)'
-            strs = [fmt % (col, cnt, tot, cnt/float(tot)*100)
-                    for col, cnt in zip(cols[np.array(sp[key])], cntr[key])]
-            print('%s:\n%s' % (key, indent), ('\n%s' % indent).join(strs),
-                  sep='')
+            if sp[k]:
+                strs = [fmt % (col, cnt, tot, cnt/float(tot)*100)
+                        for col, cnt in zip(cols[np.array(sp[k])], cntr[k])]
+                print('%s:\n%s' % (k, indent), ('\n%s' % indent).join(strs),
+                      sep='')
     return sp
 
 
@@ -495,12 +509,12 @@ def main(opt, flg):
     indexes = None
     vect = opt['vector']
     vtraining = opt['vtraining'] if opt['vtraining'] else None
-    scaler = None
+    scaler, decmp = None, None
     vlayer = opt['vlayer'] if opt['vlayer'] else vect + '_stats'
     tlayer = opt['tlayer'] if opt['tlayer'] else vect + '_training'
     rlayer = opt['rlayer'] if opt['rlayer'] else vect + '_results'
 
-    labels = extract_classes(vtraining, vlayer)
+    labels = extract_classes(vtraining, 1)
     pprint(labels)
 
     if opt['scalar']:
@@ -509,15 +523,16 @@ def main(opt, flg):
                                 with_std='with_std' in scapar)
 
     if opt['decomposition']:
-        decmp, params = (opt['decomposition'].split('|')
-                         if '|' in opt['decomposition']
-                         else (opt['decomposition'], ''))
+        dec, params = (opt['decomposition'].split('|')
+                       if '|' in opt['decomposition']
+                       else (opt['decomposition'], ''))
         kwargs = ({k: v for k, v in (p.split('=') for p in params.split(','))}
                   if params else {})
-        dec = DECMP[decmp](**kwargs)
+        decmp = DECMP[dec](**kwargs)
+
     # if training extract training
     if vtraining and flg['e']:
-        msgr.message("Extract training from: <%s>." % vtraining)
+        msgr.message("Extract training from: <%s> to <%s>." % (vtraining, vect))
         extract_training(vect, vtraining, tlayer)
         flg['n'] = True
 
@@ -565,9 +580,23 @@ def main(opt, flg):
 
     # Substitute (skip cat column)
     Xt, rules_vals = substitute(Xt, rules, cols[1:])
+    Xtoriginal = Xt
+
+    # scale the data
+    if scaler:
+        msgr.message("Scaling the training data set.")
+        scaler.fit(Xt, Yt)
+        Xt = scaler.transform(Xt)
+
+    # decompose data
+    if decmp:
+        msgr.message("Decomposing the training data set.")
+        decmp.fit(Xt)
+        Xt = decmp.transform(Xt)
 
     # Feature importances with forests of trees
     if flg['f']:
+        np.save('training_transformed.npy', Xt)
         importances(Xt, Yt, cols[1:],
                     csv=opt['imp_csv'], img=opt['imp_fig'],
                     # default parameters to save the matplotlib figure
@@ -581,7 +610,7 @@ def main(opt, flg):
         msgr.message("Find the optimum training set.")
         best, Xbt, Ybt = optimize_training(cls, Xt, Yt,
                                            labels, #{v: k for k, v in labels.items()},
-                                           scaler,
+                                           scaler, decmp,
                                            num=num, maxiterations=1000)
         msg = "    - save the optimum training data set to: %s."
         msgr.message(msg % opt['npy_btdata'])
@@ -610,17 +639,27 @@ def main(opt, flg):
         Xbt = scaler.transform(Xbt)
 
     if flg['d']:
-        C_range = [float(c) for c in opt['svc_c_range'].split(',')]
-        gamma_range = [float(g) for g in opt['svc_gamma_range'].split(',')]
-        kernel_range = [str(s) for s in opt['svc_kernel_range'].split(',')]
-        poly_range = [int(i) for i in opt['poly_range'].split(',')]
+        C_range = [float(c) for c in opt['svc_c_range'].split(',') if c]
+        gamma_range = [float(g) for g in opt['svc_gamma_range'].split(',') if g]
+        kernel_range = [str(s) for s in opt['svc_kernel_range'].split(',') if s]
+        poly_range = [int(i) for i in opt['svc_poly_range'].split(',') if i]
+        allkwargs = dict(C=C_range, gamma=gamma_range,
+                         kernel=kernel_range, degree=poly_range)
+        kwargs = {}
+        for k in allkwargs:
+            if allkwargs[k]:
+                kwargs[k] = allkwargs[k]
         msgr.message("Exploring the SVC domain.")
-        grid = explore_SVC(Xbt, Ybt, n_folds=3, n_jobs=int(opt['svc_n_jobs']),
-                           C=C_range, gamma=gamma_range, kernel=kernel_range)
+        grid = explore_SVC(Xbt, Ybt, n_folds=5, n_jobs=int(opt['svc_n_jobs']),
+                           **kwargs)
         import pickle
-        pkl = open('grid.pkl', 'w')
+        krnlstr = '_'.join(s for s in opt['svc_kernel_range'].split(',') if s)
+        pkl = open('grid%s.pkl' % krnlstr, 'w')
         pickle.dump(grid, pkl)
         pkl.close()
+#        pkl = open('grid.pkl', 'r')
+#        grid = pickle.load(pkl)
+#        pkl.close()
         plot_grid(grid, save=opt['svc_img'])
 
     # test the accuracy of different classifiers
@@ -628,7 +667,7 @@ def main(opt, flg):
         # test different classifiers
         msgr.message("Exploring different classifiers.")
         msgr.message("cls_id   cls_name          mean     max     min     std")
-        #import ipdb; ipdb.set_trace()
+
         res = explorer_clsfiers(classifiers, Xt, Yt, labels=labels,
                                 indexes=indexes, n_folds=5,
                                 bv=flg['v'], extra=flg['x'])
@@ -639,27 +678,43 @@ def main(opt, flg):
 
     if flg['c']:
         # classify
-        cols = []
         data = np.load(opt['npy_data'])
-        pprint(rules_vals)
-        # Substitute (skip cat column)
-        data = substitute(data, rules_vals, cols[1:])
+        indx = np.load(opt['npy_index'])
 
-        msgr.message("Scaling the whole data set.")
-        data = scaler.transform(data) if scaler else data
+        # Substitute using column values
+        data, dummy = substitute(data, rules, cols[1:])
+        Xt = data[indx]
+
+        if scaler:
+            msgr.message("Scaling the training data set.")
+            scaler.fit(Xt, Yt)
+            Xt = scaler.transform(Xt)
+            msgr.message("Scaling the whole data set.")
+            data = scaler.transform(data)
+        if decmp:
+            msgr.message("Decomposing the training data set.")
+            decmp.fit(Xt)
+            Xt = decmp.transform(Xt)
+            msgr.message("Decompose the whole data set.")
+            data = decmp.transform(data)
         cats = np.load(opt['npy_cats'])
 
+        np.save('data_filled_scaled.npy', data)
+        tcols = []
         for cls in classifiers:
-            run_classifier(cls, Xbt, Ybt, Xt, Yt, labels, data,
-                           save=opt['report_class'])
-            cols.append((cls['name'], 'INTEGER'))
+            report = (open(opt['report_class'], "w")
+                      if opt['report_class'] else sys.stdout)
+            run_classifier(cls, Xt, Yt, Xt, Yt, labels, data,
+                           report=report)
+            tcols.append((cls['name'], 'INTEGER'))
 
-#        import pickle
-#        res = open('res.pkl', 'r')
-#        classifiers = pickle.load(res)
+        import pickle
+        with open('classification_results.pkl', 'w') as res:
+	      pickle.dump(classifiers, res)
+        #classifiers = pickle.load(res)
         msgr.message("Export the results to layer: <%s>" % str(rlayer))
-        export_results(vect, classifiers, cats, rlayer, vtraining, cols,
-                       overwrite(), pkl='res.pkl')
+        export_results(vect, classifiers, cats, rlayer, vtraining, tcols,
+                       overwrite(), pkl='res.pkl', append=flg['a'])
 #        res.close()
 
     if flg['r']:
@@ -673,15 +728,15 @@ def main(opt, flg):
             rasters = [c for c in tab.columns]
             rasters.remove(tab.key)
 
-        import ipdb; ipdb.set_trace()
         v2rst = Module('v.to.rast')
         rclrs = Module('r.colors')
         for rst in rasters:
             v2rst(input=vect, layer=rlayer, type='area',
-                  use='attr', attrcolumn=rst, output=opt['rst_names'] % rst,
-                  rows=4096 * 4, overwrite=overwrite())
+                  use='attr', attrcolumn=rst.encode(),
+                  output=(opt['rst_names'] % rst).encode(),
+                  memory=1000, overwrite=overwrite())
             if rules:
-                rclrs(map=rst, rules='-', stdin_=rules)
+                rclrs(map=rst.encode(), rules='-', stdin_=rules)
 
 
 if __name__ == "__main__":

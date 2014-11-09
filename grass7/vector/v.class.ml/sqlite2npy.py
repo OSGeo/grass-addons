@@ -17,7 +17,7 @@ FCLSS = 'training_classes.npy'
 FTDATA = 'training_data.npy'
 
 
-def cpdata(shape, iterator, msg=''):
+def cpdata(shape, iterator, dtype=float, msg=''):
     """Avoid to create a python list and then convert the python list to a
     numpy array. This function instantiate statically a numpy array and then
     fill the numpy array with the data coming from the generator to reduce
@@ -26,7 +26,7 @@ def cpdata(shape, iterator, msg=''):
     #msgr = ???
     #msgr.message(msg)
     print(msg)
-    dt = np.zeros(shape)
+    dt = np.empty(shape, dtype=dtype)
     for i, data in enumerate(iterator):
         #msgr.percent(i, nrows, 2)
         dt[i] = data
@@ -80,10 +80,10 @@ def save2npy(vect, l_data, l_trn,
         dta = cpdata(shape, data.execute(slct_data), msg=slct_data)
 
         # extract the cats
-        slct_cats = "SELECT {cat} FROM {tname};".format(cat=data.key,
-                                                        tname=data.name)
+        slct_cats = "SELECT {cat} FROM {tname};".format(cat=trng.key,
+                                                        tname=trng.name)
         cats = cpdata((n_data, ), (c[0] for c in data.execute(slct_cats)),
-                      msg=slct_cats)
+                      dtype=int, msg=slct_cats)
         # cats = np.array([c[0] for c in data.execute(slct_cats)])
 
         # training samples

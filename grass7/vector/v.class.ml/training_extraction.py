@@ -159,6 +159,7 @@ def extract_training(vect, tvect, tlayer):
     msgr = get_msgr()
     tname, tmset = tvect.split('@') if '@' in tvect else (tvect, '')
     vname, vmset = vect.split('@') if '@' in vect else (vect, '')
+
     with VectorTopo(tname, tmset, mode='r') as trn:
         with VectorTopo(vname, vmset, mode='r') as vct:
             layer_num, layer_name = get_layer_num_name(vct, tlayer)
@@ -167,7 +168,7 @@ def extract_training(vect, tvect, tlayer):
             seg_area = Area(c_mapinfo=vct.c_mapinfo)
             n_areas = trn.number_of('areas')
             # check/remove/create a new table
-            table, create_link = make_new_table(vct, layer_name)
+            table, create_link = make_new_table(vct, layer_name, force=True)
             find_lines(table, [l for l in trn.viter('lines')], vct)
             # find and save all the segments
             find_area(table, trn.viter('areas', idonly=True),

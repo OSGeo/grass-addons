@@ -71,8 +71,8 @@ def accuracy(sol, cls=None, data=None, labels=None, pred=None):
 
     cls['t_acc'] = metrics.accuracy_score(sol, pred, normalize=True)
     lab = [labels[key] for key in clsses]
-    cls['report'] = metrics.classification_report(sol, pred, lab)
-    cls['confusion'] = metrics.confusion_matrix(sol, pred, lab)
+    cls['report'] = metrics.classification_report(sol, pred, target_names=lab)
+    cls['confusion'] = metrics.confusion_matrix(sol, pred)
     c_acc = []
     for c in clsses:
         indx = (sol == c).nonzero()
@@ -106,7 +106,7 @@ def run_classifier(cls, Xt, Yt, Xd, Yd, labels, data,
     cls['pred_stop'] = time.time()
     print_test(cls, save=report)
     report.write('\n' + cls['report'])
-    report.write('\n' + cls['confusion'])
+    report.write('\n' + str(cls['confusion']))
     np.save(cls['name'] + '.npy', cls['predict'])
 
 
@@ -136,7 +136,7 @@ def balance(tdata, tclss, num=None):
 
 
 def optimize_training(cls, tdata, tclss, labels,
-                      scaler=None, num=None, maxiterations=1000):
+                      scaler=None, decmp=None, num=None, maxiterations=1000):
     best = cls.copy()
     best['c_acc_mean'] = 0
     means = []
@@ -144,11 +144,19 @@ def optimize_training(cls, tdata, tclss, labels,
     for i in range(maxiterations):  # TODO: use multicore
         #msgr.percent(i, maxiterations, 1)
         Xt, Yt = balance(tdata, tclss, num)
+        stdata = None
+        sXt = None
         if scaler:
             scaler.fit(Xt, Yt)
             sXt = scaler.transform(Xt)
             stdata = scaler.transform(tdata)
-        else:
+        if decmp:
+            sXt = sXt if sXt else Xt
+            stdata = stdata if stdata else tdata
+            decmp.fit(sXt)
+            sXt = decmp.transform(sXt)
+            stdata = decmp.transform(stdata)
+        if scaler is None and decmp is None:
             sXt, stdata = Xt, tdata
         test_classifier(cls, sXt, Yt, stdata, tclss, labels, verbose=False)
         if cls['c_acc_mean'] > best['c_acc_mean']:
@@ -197,15 +205,13 @@ def plot_bias_variance(data_sizes, train_errors, test_errors, name,
     fig.savefig("bv__%s.%s" % (name.replace(" ", "_"), fmt), **kwargs)
 
 
-def plot_confusion_matrix(cm, labels, name, fmt='png', **kwargs):
-    conf = cm.sum(axis=2)
-    conf /= conf.sum(axis=1)
+def plot_confusion_matrix(cnf, labels, name, fmt='png', **kwargs):
     fig, ax = plt.subplots(figsize=(6, 5))
-    img = ax.imshow(conf, cmap=CMAP)
+    img = ax.imshow(cnf, interpolation='nearest', cmap=CMAP)
     fig.colorbar(img)
     ticks = range(len(labels))
     ax.set_xticks(ticks)
-    ax.set_xticklabels(labels)
+    ax.set_xticklabels(labels, rotation=90)
     ax.xaxis.set_ticks_position("bottom")
     ax.set_yticks(ticks)
     ax.set_yticklabels(labels)
@@ -287,7 +293,6 @@ def extra_analysis(cls, tdata, tclss, labels, n_folds=10):
     train_errors, test_errors, scores, cms = [], [], [], []
     lk = {l: {k: [] for k in keys} for l in clss}
     clf = cls['classifier'](**cls['kwargs'])
-    import ipdb; ipdb.set_trace()
     for train, test in cv:
         X_train, y_train = tdata[train], tclss[train]
         X_test, y_test = tdata[test], tclss[test]
@@ -302,13 +307,13 @@ def extra_analysis(cls, tdata, tclss, labels, n_folds=10):
         test_errors.append(1 - test_score)
 
         y_pred = clf.predict(X_test)
-        cms.append(confusion_matrix(y_test, y_pred, lbs))
+        cms.append(confusion_matrix(y_test, y_pred))
         # get probability
         proba = clf.predict_proba(X_test)
         # compute score for each class VS rest
         for idx, label in enumerate(clss):
             fpr, tpr, roc_thr = roc_curve(y_test, proba[:, idx], label)
-            precision, recall, pr_thr = prc(y_test, proba[:, idx], label)
+            precision, recall, pr_thr = prc(y_test==label, proba[:, idx], label)
             lk[label]['fprs'].append(fpr)
             lk[label]['tprs'].append(tpr)
             lk[label]['roc_scores'].append(auc(fpr, tpr))
@@ -338,15 +343,18 @@ def plot_extra(cls, labels, fmt='png', **kwargs):
                  lk[cl]['tprs'][median],
                  lk[cl]['roc_scores'][median],
                  name=name, label=labels[cl])
-    plot_confusion_matrix(cls['confusion matrix'],
+    cnf = np.array(cls['confusion matrix'], dtype=np.float)
+    sc = cnf.sum(axis=0)
+    norm = sc / sc.sum(axis=1)[:, None]
+    plot_confusion_matrix(norm,
                           labels=[labels[cl] for cl in clss],
-                          name=cls['name'])
+                          name=cls['name'], **kwargs)
 
 
 def explorer_clsfiers(clsses, Xd, Yd, labels, indexes=None, n_folds=5,
                       bv=False, extra=False):
     gen = zip(indexes, clsses) if indexes else enumerate(clsses)
-    cv = StratifiedKFold(Yd, n_folds=n_folds)
+    cv = StratifiedKFold(Yd, n_folds=n_folds, shuffle=True)
     fmt = '%5d %-30s %6.4f %6.4f %6.4f %6.4f'
     res = []
     kw = dict(bbox_inches="tight", dpi=300)
@@ -377,13 +385,11 @@ def explorer_clsfiers(clsses, Xd, Yd, labels, indexes=None, n_folds=5,
                                    train_clr='b', test_clr='r', alpha=0.2,
                                    fmt='png', **kw)
             if extra:
-                import ipdb; ipdb.set_trace()
                 extra_analysis(cls, Xd, Yd, labels)
                 plot_extra(cls, labels, **kw)
             with open("%s.pkl" % cls['name'].replace(' ', '_'), 'wb') as pkl:
                 pk.dump(cls, pkl)
         except:
-            #import ipdb; ipdb.set_trace()
             #print('problem with: %s' % cls['name'])
             pass
     return np.array(res, dtype=SCORES_DTYPE)
@@ -406,9 +412,10 @@ def explorer_clsfiers_old(clsses, Xt, Yt, Xd, Yd, clss,
 
 
 def plot_grid(grid, save=''):
-    C = grid.param_grid['C']
-    gamma = grid.param_grid['gamma']
-    kernels = grid.param_grid['kernel']
+    C = grid.param_grid.get('C', 0)
+    gamma = grid.param_grid.get('gamma', 0)
+    kernels = grid.param_grid.get('kernel', 0)
+    degrees = grid.param_grid.get('degree', None)
     for kernel in kernels:
         scores = [x[1] for x in grid.grid_scores_ if x[0]['kernel'] == kernel]
         scores = np.array(scores).reshape(len(C), len(gamma))
@@ -423,8 +430,7 @@ def plot_grid(grid, save=''):
         ax.set_xticklabels(gamma, rotation=45)
         ax.set_yticks(np.arange(len(C)))
         ax.set_yticklabels(C)
-#        if kernel == 'poly':
-#            import ipdb; ipdb.set_trace()
+
         ic, igamma = np.unravel_index(np.argmax(scores), scores.shape)
         ax.plot(igamma, ic, 'r.')
         best = scores[ic, igamma]
@@ -439,7 +445,7 @@ def plot_grid(grid, save=''):
 
 
 def explore_SVC(Xt, Yt, n_folds=3, n_jobs=1, **kwargs):
-    cv = StratifiedKFold(y=Yt, n_folds=n_folds)
+    cv = StratifiedKFold(y=Yt, n_folds=n_folds, shuffle=True)
     grid = GridSearchCV(SVC(), param_grid=kwargs, cv=cv, n_jobs=n_jobs,
                         verbose=2)
     grid.fit(Xt, Yt)
