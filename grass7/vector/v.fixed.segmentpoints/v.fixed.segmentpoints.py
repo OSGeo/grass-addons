@@ -118,7 +118,7 @@ def main():
     distancesrange_without_end = range(0, int(max_distancerange), int(sdistance))
 
     # Write segment point input file for g.segment to G_OPT_M_DIR
-    grass.message( "Write segment point input file for g.segment" )
+    grass.message( "Write segment point input file for g.segment ..." )
     segment_points_file = os.path.join( directory, fpoints )
     file = open(segment_points_file, 'a')
     for f, b in zip(segmentpointsrange_without_end, distancesrange_without_end):
@@ -135,21 +135,33 @@ def main():
     grass.message( "----" )
 
     # Run v.segment with the segment point input	
-
+    grass.message( "Run v.segment ..." )
     grass.run_command("v.segment", input = 'vlinesingle',
                                      output = 'segmentpoints',
                                      file = segment_points_file)	
 
     grass.run_command("v.db.addtable", map = 'segmentpoints')
+    grass.message( "----" )	
+
+    # Adding coordinates to segment points attribute table.	
+    grass.message( "Adding coordinates to segment points attribute table ..." )	
+
+    grass.run_command("v.db.addcolumn", map = 'segmentpoints',
+                                     layer = 1, 
+                                     columns = "xcoor double,ycoor double")		
 	
-									 
+    grass.run_command("v.to.db", map = 'segmentpoints',
+                                     option = 'coor',
+                                     layer = 1, 
+                                     columns = 'xcoor,ycoor')
+    grass.message( "----" )
+	
 #    TODO join point segment file to point vector								 
 #    grass.run_command("db.in.ogr", dsn = segment_points_file,
 #                                     output = 't_segment_points_file')									 
 									 
-    grass.message( "Segment points file created" )									 
+								 
     grass.message( "----" )
-
     # v.fixed.segmentpoints done!	
     grass.message( "v.fixed.segmentpoints done!" )	
 
