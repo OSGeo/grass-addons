@@ -36,7 +36,9 @@ int main(int argc, char *argv[])
     int i;
     SEG map_streams, map_accum;
     SEGMENT *streams = NULL, *accum = NULL;
+    DCELL nullval;
     int number_of_segs;
+    double seg_size;
     int number_of_points;
     int radius;
     double accum_treshold;
@@ -94,9 +96,6 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
 
-    number_of_segs = (int)atof(opt_swapsize->answer);
-    number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
-
     radius = atoi(opt_distance_treshold->answer);
     accum_treshold = atof(opt_accum_treshold->answer);
 
@@ -113,18 +112,36 @@ int main(int argc, char *argv[])
     if (!in_accum_opt->answer)
 	accum_treshold = -1;
 
+    Rast_set_d_null_value(&nullval, 1);
 
     /* SEGMENT VERSION ONLY */
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    seg_size = 0;
+    if (in_stream_opt->answer)
+	seg_size = sizeof(CELL);
+    if (in_accum_opt->answer)
+	seg_size += sizeof(DCELL);
+    
+    seg_size = seg_size * SROWS * SCOLS / (1 << 20); 
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+    if (number_of_segs < 10)
+	number_of_segs = 10;
+
     if (in_stream_opt->answer) {
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stream_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_stream_opt->answer, 1, CELL_TYPE, 0);
 	streams = &map_streams.seg;
     }
 
     if (in_accum_opt->answer) {
 	seg_create_map(&map_accum, SROWS, SCOLS, number_of_segs, DCELL_TYPE);
-	seg_read_map(&map_accum, in_accum_opt->answer, 0, -1);
+	seg_read_map(&map_accum, in_accum_opt->answer, 0, -1, nullval);
 	accum = &map_accum.seg;
     }
 

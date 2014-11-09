@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 	{"accumulation", NO, _("Name of input accumulation raster map")}
     };
 
-    /* add new basic rdering here and in local_vars.h declaration 
-     * it will be added to output without addational programing.
+    /* add new basic ordering here and in local_vars.h declaration 
+     * it will be added to output without additional programing.
      * Ordering functions are to be added in stream_order.c file.
      * Addational operations may shall be done in common part sections
      * derivative orders (like Scheideggers/Shreve) shall be added only 
@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
     struct Flag *flag_zerofill, *flag_accum, *flag_segmentation;
 
     int output_num = 0;
-    /* int num_seg; */		/* number of segments */ 
     int segmentation, zerofill;
     int i;			/* iteration vars */
     int number_of_segs;
@@ -132,9 +131,6 @@ int main(int argc, char *argv[])
     use_accum = (flag_accum->answer != 0);
     use_vector = (opt_vector->answer != NULL);
 
-    number_of_segs = (int)atof(opt_swapsize->answer);
-    number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
-
     if (use_vector)
 	if (!opt_input[o_elev]->answer || !opt_input[o_accum]->answer)
 	    G_fatal_error(_("To calculate vector map both accumulation and elevation raster maps are required"));
@@ -167,14 +163,15 @@ int main(int argc, char *argv[])
 
     /* ALL IN RAM VERSION */
     if (!segmentation) {
-        G_message(_("All in RAM calculation..."));
 	MAP map_streams, map_dirs;
 	CELL **streams, **dirs;
 
+        G_message(_("All in RAM calculation..."));
+
 	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_streams, 1, CELL_TYPE);
+	ram_read_map(&map_streams, in_streams, 1, CELL_TYPE, 0);
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dirs, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dirs, 1, CELL_TYPE, 0);
 	stream_init((int)map_streams.min, (int)map_streams.max);
 	number_of_streams = (int)(map_streams.max + 1);
 	streams = (CELL **) map_streams.map;
@@ -218,18 +215,29 @@ int main(int argc, char *argv[])
 	ram_release_map(&map_dirs);
 	/* end ram section */
     }
-
     /* SEGMENTATION VERSION */
-    if (segmentation) {
-        G_message(_("Memory swap calculation (may take some time)..."));
-
+    else {
 	SEG map_streams, map_dirs;
 	SEGMENT *streams, *dirs;
+	double seg_size;
+
+        G_message(_("Memory swap calculation (may take some time)..."));
+
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_streams, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_streams, 1, CELL_TYPE, 0);
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dirs, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dirs, 1, CELL_TYPE, 0);
 	stream_init((int)map_streams.min, (int)map_streams.max);
 	number_of_streams = (int)(map_streams.max + 1);
 	streams = &map_streams.seg;
@@ -274,7 +282,6 @@ int main(int argc, char *argv[])
 	/* end segmentation section */
     }
 
-
     /* free */
     G_free(stream_attributes);
     G_free(init_streams);
@@ -282,5 +289,4 @@ int main(int argc, char *argv[])
     G_free(init_cells);
 
     exit(EXIT_SUCCESS);
-
 }

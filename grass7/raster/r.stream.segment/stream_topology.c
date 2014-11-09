@@ -203,8 +203,8 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 
     for (i = 1; i < number_of_streams; ++i) {
 
-	SA[i].points = (unsigned long int *)
-	    G_malloc((SA[i].number_of_cells) * sizeof(unsigned long int));
+	SA[i].points = (long int *)
+	    G_malloc((SA[i].number_of_cells) * sizeof(long int));
 	SA[i].elevation = (float *)
 	    G_malloc((SA[i].number_of_cells) * sizeof(float));
 	SA[i].distance = (double *)
@@ -325,8 +325,8 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 
     for (i = 1; i < number_of_streams; ++i) {
 
-	SA[i].points = (unsigned long int *)
-	    G_malloc((SA[i].number_of_cells) * sizeof(unsigned long int));
+	SA[i].points = (long int *)
+	    G_malloc((SA[i].number_of_cells) * sizeof(long int));
 	SA[i].elevation = (float *)
 	    G_malloc((SA[i].number_of_cells) * sizeof(float));
 	SA[i].distance = (double *)

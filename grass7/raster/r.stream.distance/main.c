@@ -123,7 +123,8 @@ int main(int argc, char *argv[])
     if (out_diff_opt->answer && !in_elev_opt->answer)
 	G_fatal_error(_("Output elevation difference raster map requires "
                         "input elevation raster map to be specified"));
-    
+
+    method = -1;
     if (!strcmp(in_method_opt->answer, "upstream"))
 	method = UPSTREAM;
     else if (!strcmp(in_method_opt->answer, "downstream"))
@@ -142,19 +143,23 @@ int main(int argc, char *argv[])
     fifo_points = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
 
     if (!segmentation) {
-	G_message(_("All in RAM calculation - method <%s>..."),
-		  method_name[method]);
 	MAP map_dirs, map_streams, map_distance, map_elevation,
 	    map_tmp_elevation;
 	CELL **streams, **dirs;
 	DCELL **distance;
 	DCELL **elevation = NULL;
 	DCELL **tmp_elevation = NULL;
+	DCELL nullval;
+
+	G_message(_("All in RAM calculation - method <%s>..."),
+		  method_name[method]);
+
+	Rast_set_d_null_value(&nullval, 1);
 
 	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_distance, DCELL_TYPE);
 
 	streams = (CELL **) map_streams.map;
@@ -169,10 +174,9 @@ int main(int argc, char *argv[])
 
 	if (in_elev_opt->answer) {
 	    ram_create_map(&map_elevation, DCELL_TYPE);
-	    ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	    ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 	    elevation = (DCELL **) map_elevation.map;
 	}			/* map elevation will be replaced by elevation difference map */
-
 
 	if (method == DOWNSTREAM) {
 	    G_message(_("Calculate downstream parameters..."));
@@ -182,20 +186,23 @@ int main(int argc, char *argv[])
 					 outlets[j], outs);
 	    }
 	    G_percent(j, outlets_num, 1);
-
 	}
 	else if (method == UPSTREAM) {
 
-	    if (out_diff_opt->answer) {
+	    if (elevation) {
 		ram_create_map(&map_tmp_elevation, DCELL_TYPE);
 		tmp_elevation = (DCELL **) map_tmp_elevation.map;
 	    }
 
 	    for (j = 0; j < outlets_num; ++j)
 		ram_fill_basins(outlets[j], distance, dirs);
+
 	    ram_calculate_upstream(distance, dirs, elevation, tmp_elevation,
 				   near);
 
+	    if (elevation) {
+		ram_release_map(&map_tmp_elevation);
+	    }
 	}
 	else {
 	    G_fatal_error(_("Unrecognised method of processing"));
@@ -216,29 +223,41 @@ int main(int argc, char *argv[])
 
 	if (in_elev_opt->answer)
 	    ram_release_map(&map_elevation);
-	if (in_elev_opt->answer && method == UPSTREAM)
-	    ram_release_map(&map_tmp_elevation);
     }
-
-    if (segmentation) {
-	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
-		  method_name[method]);
+    else {
 	SEG map_dirs, map_streams, map_distance, map_elevation,
 	    map_tmp_elevation;
 	SEGMENT *streams, *dirs, *distance;
 	SEGMENT *elevation = NULL;
 	SEGMENT *tmp_elevation = NULL;
+	DCELL nullval;
+	double seg_size;
 
-	number_of_segs = (int)atof(opt_swapsize->answer);
-	if (method == DOWNSTREAM)
-	    number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;
-	else			/* two elevation maps */
-	    number_of_segs = number_of_segs < 32 ? (int)(32 / 0.24) : number_of_segs / 0.24;
+	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
+		  method_name[method]);
+
+	Rast_set_d_null_value(&nullval, 1);
+
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	if (method == UPSTREAM && in_elev_opt->answer) {
+	    seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 2.0) * SROWS * SCOLS / (1 << 20);
+	}
+	else {
+	    seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 1.0) * SROWS * SCOLS / (1 << 20);
+	}
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_distance, SROWS, SCOLS, number_of_segs,
 		       DCELL_TYPE);
 
@@ -255,7 +274,7 @@ int main(int argc, char *argv[])
 	if (in_elev_opt->answer) {
 	    seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
 			   DCELL_TYPE);
-	    seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	    seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 	    elevation = &map_elevation.seg;
 	}			/* map elevation will be replaced by elevation difference map */
 
@@ -271,7 +290,7 @@ int main(int argc, char *argv[])
 	}
 	else if (method == UPSTREAM) {
 
-	    if (out_diff_opt->answer) {
+	    if (elevation) {
 		seg_create_map(&map_tmp_elevation, SROWS, SCOLS,
 			       number_of_segs, DCELL_TYPE);
 		tmp_elevation = &map_tmp_elevation.seg;
@@ -279,9 +298,12 @@ int main(int argc, char *argv[])
 
 	    for (j = 0; j < outlets_num; ++j)
 		seg_fill_basins(outlets[j], distance, dirs);
+
 	    seg_calculate_upstream(distance, dirs, elevation, tmp_elevation,
 				   near);
-
+	    if (elevation) {
+		seg_release_map(&map_tmp_elevation);
+	    }
 	}
 	else {
 	    G_fatal_error(_("Unrecognised method of processing"));
@@ -302,10 +324,9 @@ int main(int argc, char *argv[])
 
 	if (in_elev_opt->answer)
 	    seg_release_map(&map_elevation);
-	if (in_elev_opt->answer && method == UPSTREAM)
-	    seg_release_map(&map_tmp_elevation);
     }
 
     G_free(fifo_points);
+
     exit(EXIT_SUCCESS);
 }

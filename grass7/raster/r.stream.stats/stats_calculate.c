@@ -1,7 +1,7 @@
 #include "local_proto.h"
+
 double stats_linear_reg(int max_order, double *statistic)
 {
-
     int i;
     double avg_x = 0, avg_y = 0;
     double sum_x_square = 0;
@@ -24,6 +24,7 @@ double stats_linear_reg(int max_order, double *statistic)
 
 
     result = (avg_x_y - avg_x * avg_y) / (avg_x_square - avg_x * avg_x);
+
     return result;
 }
 

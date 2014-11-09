@@ -150,15 +150,19 @@ int main(int argc, char *argv[])
 	CELL **streams, **dirs, **identifier = NULL;
 	FCELL **elevation;
 	DCELL **output;
+	DCELL nullval;
 
 	G_message(_("All in RAM calculation - direction <%s>..."),
 		  method_name[downstream]);
+
+	Rast_set_d_null_value(&nullval, 1);
+
 	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_elevation, FCELL_TYPE);
-	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = (CELL **) map_streams.map;
 	dirs = (CELL **) map_dirs.map;
@@ -168,11 +172,13 @@ int main(int argc, char *argv[])
 	ram_build_streamlines(streams, dirs, elevation, number_of_streams);
 	ram_release_map(&map_streams);
 	ram_release_map(&map_dirs);
+	ram_release_map(&map_elevation);
 	ram_create_map(&map_output, DCELL_TYPE);
 	output = (DCELL **) map_output.map;	/* one output for all maps */
 
 	if (out_identifier_opt->answer) {
 	    ram_create_map(&map_identifier, CELL_TYPE);
+	    ram_reset_map(&map_identifier, 0);
 	    identifier = (CELL **) map_identifier.map;
 	    ram_calculate_identifiers(identifier, number_of_streams,
 				      downstream);
@@ -182,7 +188,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_difference_opt->answer) {
-	    ram_set_null_output(output);
+	    ram_reset_map(&map_output, nullval);
 	    if (local)
 		ram_calculate_difference(output, number_of_streams,
 					 downstream);
@@ -193,7 +199,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_distance_opt->answer) {
-	    ram_set_null_output(output);
+	    ram_reset_map(&map_output, nullval);
 	    if (local && !cells)
 		ram_calculate_local_distance(output, number_of_streams,
 					     downstream);
@@ -206,7 +212,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_gradient_opt->answer) {
-	    ram_set_null_output(output);
+	    ram_reset_map(&map_output, nullval);
 	    if (local)
 		ram_calculate_local_gradient(output, number_of_streams,
 					     downstream);
@@ -217,7 +223,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_curvature_opt->answer) {
-	    ram_set_null_output(output);
+	    ram_reset_map(&map_output, nullval);
 	    ram_calculate_curvature(output, number_of_streams, downstream);
 	    ram_write_map(&map_output, out_curvature_opt->answer, DCELL_TYPE,
 			  0, 0);
@@ -225,25 +231,35 @@ int main(int argc, char *argv[])
 
 	ram_release_map(&map_output);
     }
-
-
-    if (segmentation) {
+    else {
 	SEG map_dirs, map_streams, map_elevation, map_output, map_identifier;
 	SEGMENT *streams, *dirs, *elevation, *output, *identifier;
+	DCELL nullval;
+	double seg_size;
 
 	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
 		  method_name[downstream]);
 
-	number_of_segs = (int)atof(opt_swapsize->answer);
-	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;
+	Rast_set_d_null_value(&nullval, 1);
+
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
 		       FCELL_TYPE);
-	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = &map_streams.seg;
 	dirs = &map_dirs.seg;
@@ -253,12 +269,14 @@ int main(int argc, char *argv[])
 	seg_build_streamlines(streams, dirs, elevation, number_of_streams);
 	seg_release_map(&map_streams);
 	seg_release_map(&map_dirs);
+	seg_release_map(&map_elevation);
 	seg_create_map(&map_output, SROWS, SCOLS, number_of_segs, DCELL_TYPE);
 	output = &map_output.seg;	/* one output for all maps */
 
 	if (out_identifier_opt->answer) {
 	    seg_create_map(&map_identifier, SROWS, SCOLS, number_of_segs,
 			   CELL_TYPE);
+	    seg_reset_map(&map_identifier, 0);
 	    identifier = &map_identifier.seg;
 	    seg_calculate_identifiers(identifier, number_of_streams,
 				      downstream);
@@ -268,7 +286,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_difference_opt->answer) {
-	    seg_set_null_output(output);
+	    seg_reset_map(&map_output, nullval);
 	    if (local)
 		seg_calculate_difference(output, number_of_streams,
 					 downstream);
@@ -279,7 +297,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_distance_opt->answer) {
-	    seg_set_null_output(output);
+	    seg_reset_map(&map_output, nullval);
 	    if (local && !cells)
 		seg_calculate_local_distance(output, number_of_streams,
 					     downstream);
@@ -292,7 +310,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_gradient_opt->answer) {
-	    seg_set_null_output(output);
+	    seg_reset_map(&map_output, nullval);
 	    if (local)
 		seg_calculate_local_gradient(output, number_of_streams,
 					     downstream);
@@ -303,7 +321,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (out_curvature_opt->answer) {
-	    seg_set_null_output(output);
+	    seg_reset_map(&map_output, nullval);
 	    seg_calculate_curvature(output, number_of_streams, downstream);
 	    seg_write_map(&map_output, out_curvature_opt->answer, DCELL_TYPE,
 			  0, 0);
@@ -312,5 +330,6 @@ int main(int argc, char *argv[])
 	seg_release_map(&map_output);
     }
     free_attributes(number_of_streams);
+
     exit(EXIT_SUCCESS);
 }

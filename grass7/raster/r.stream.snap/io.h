@@ -17,8 +17,8 @@
 #define INDEX(r,c) ((r) * ncols + (c))
 #define DIAG(x) (((x) + 4) > 8 ? ((x) - 4) : ((x) + 4))
 
-#define SROWS 256
-#define SCOLS 256
+#define SROWS 128
+#define SCOLS 128
 
 typedef struct {
 	void **map; /* matrix of data */
@@ -44,15 +44,15 @@ typedef struct {
 
 /* all in ram functions */
 int ram_create_map(MAP *, RASTER_MAP_TYPE);
-int ram_read_map(MAP *, char *, int, RASTER_MAP_TYPE);
-int ram_reset_map(MAP *, int);
+int ram_read_map(MAP *, char *, int, RASTER_MAP_TYPE, DCELL);
+int ram_reset_map(MAP *, DCELL);
 int ram_write_map(MAP *, char *, RASTER_MAP_TYPE, int, double);
 int ram_release_map(MAP *);
 int ram_destory_map(MAP *);
 
 /* memory swap functions */
 int seg_create_map(SEG *, int, int, int, RASTER_MAP_TYPE);
-int seg_read_map(SEG *, char *, int, RASTER_MAP_TYPE);
-int seg_reset_map (SEG *, int);
+int seg_read_map(SEG *, char *, int, RASTER_MAP_TYPE, DCELL);
+int seg_reset_map (SEG *, DCELL);
 int seg_write_map(SEG *, char *, RASTER_MAP_TYPE, int, double);
 int seg_release_map(SEG *);

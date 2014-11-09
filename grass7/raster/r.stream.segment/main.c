@@ -139,20 +139,22 @@ int main(int argc, char *argv[])
     Rast_get_window(&window);
     G_begin_distance_calculations();
 
-
-
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_elevation, map_unique_streams;
 	CELL **streams, **dirs, **unique_streams = NULL;
 	FCELL **elevation;
+	DCELL nullval;
 
 	G_message(_("All in RAM calculation..."));
+
+	Rast_set_d_null_value(&nullval, 1);
+
 	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_elevation, FCELL_TYPE);
-	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = (CELL **) map_streams.map;
 	dirs = (CELL **) map_dirs.map;
@@ -176,25 +178,36 @@ int main(int argc, char *argv[])
 	ram_release_map(&map_dirs);
 	ram_release_map(&map_elevation);
     }
-
-
-    if (segmentation) {
+    else {
 	SEG map_dirs, map_streams, map_elevation, map_unique_streams;
 	SEGMENT *streams, *dirs, *unique_streams = NULL;
 	SEGMENT *elevation;
+	DCELL nullval;
 	int number_of_segs;
+	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
-	number_of_segs = (int)atof(opt_swapsize->answer);
-	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;
+
+	Rast_set_d_null_value(&nullval, 1);
+
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
 		       FCELL_TYPE);
-	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = &map_streams.seg;
 	dirs = &map_dirs.seg;
@@ -286,6 +299,6 @@ int main(int argc, char *argv[])
     create_sector_vector(out_sector_opt->answer, number_of_streams, radians);
 
     free_attributes(number_of_streams);
-    G_message("Done");
+
     exit(EXIT_SUCCESS);
 }

@@ -104,8 +104,9 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
 	    }
 
         /* TODO: this should be fixed by someone who knows the code */
-	if (sumaccum > 0) 
+	if (sumaccum > 0) {
 	    /* accum_treshold=(sumaccum/naccum+maxaccum)/2 */ ;
+	}
 	accum_treshold = sumaccum / naccum;
 
 	for (i = -radius; i <= radius; ++i)

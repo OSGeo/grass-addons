@@ -1,12 +1,10 @@
 #include <grass/gis.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
-
 #include "local_proto.h"
 
 int process_coors(char **answers)
 {
-
     int n, outlets_num;
     double X, Y;
     struct Cell_head window;
@@ -97,8 +95,9 @@ int ram_process_streams(char **cat_list, CELL **streams,
 {
     int i, cat;
     int r, c, d;		/* d: direction */
-    int outlets_num = 0;
-    int next_stream = -1, cur_stream;
+    int outlets_num;
+    int next_stream, cur_stream;
+    int streams_cell, dirs_cell;
     int out_max = ncols + nrows;
 
     categories = NULL;
@@ -117,34 +116,37 @@ int ram_process_streams(char **cat_list, CELL **streams,
 
     G_message("Finding nodes...");
     outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
+    outlets_num = 0;
 
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c] > 0) {
+    for (r = 0; r < nrows; ++r) {
+	G_percent(r, nrows, 4);
+	for (c = 0; c < ncols; ++c) {
+	    streams_cell = streams[r][c];
+	    if (streams_cell > 0) {
 		if (outlets_num > 6 * (out_max - 1))
 		    G_fatal_error(_("Stream and direction maps probably do not match"));
 
-		if (outlets_num > (out_max - 1))
+		if (outlets_num > (out_max - 1)) {
 		    outlets =
 			(OUTLET *) G_realloc(outlets,
 					     out_max * 6 * sizeof(OUTLET));
+		}
 
-		d = abs(dirs[r][c]);	/* r.watershed */
+		dirs_cell = dirs[r][c];
+		d = abs(dirs_cell);	/* r.watershed */
 
-		if (NOT_IN_REGION(d))
+		if (NOT_IN_REGION(d) || d == 0)
 		    next_stream = -1;	/* border */
-		else
-		    next_stream = (streams[NR(d)][NC(d)] > 0) ?
-			streams[NR(d)][NC(d)] : -1;
+		else {
+		    next_stream = streams[NR(d)][NC(d)];
+		    if (next_stream < 1)
+			next_stream = -1;
+		}
 
-		if (d == 0)
-		    next_stream = -1;
-
-		cur_stream = streams[r][c];
+		cur_stream = streams_cell;
 
 		if (lasts) {
 		    if (next_stream < 0) {	/* is outlet! */
-
 			if (categories)
 			    if (categories[cur_stream] == -1)	/* but not in list */
 				continue;
@@ -157,9 +159,7 @@ int ram_process_streams(char **cat_list, CELL **streams,
 		    }
 		}
 		else {		/* not lasts */
-
 		    if (cur_stream != next_stream) {	/* is node or outlet! */
-
 			if (categories)
 			    if (categories[cur_stream] == -1)	/* but not in list */
 				continue;
@@ -172,6 +172,9 @@ int ram_process_streams(char **cat_list, CELL **streams,
 		    }
 		}		/* end if else lasts */
 	    }			/* end if streams */
+	}
+    }
+    G_percent(r, nrows, 4);
 
     return outlets_num;
 }
@@ -183,8 +186,8 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
     int i, cat;
     int r, c, d;		/* d: direction */
     int outlets_num;
-    int next_stream = -1, cur_stream;
-    int streams_cell, dirs_cell, streams_next_cell;
+    int next_stream, cur_stream;
+    int streams_cell, dirs_cell;
     int out_max = ncols + nrows;
 
     categories = NULL;
@@ -204,7 +207,8 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
     outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
     outlets_num = 0;
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
+	G_percent(r, nrows, 4);
 	for (c = 0; c < ncols; ++c) {
 
 	    Segment_get(streams, &streams_cell, r, c);
@@ -220,21 +224,17 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 		Segment_get(dirs, &dirs_cell, r, c);
 		d = abs(dirs_cell);	/* abs */
 
-		if (NOT_IN_REGION(d))
+		if (NOT_IN_REGION(d) || d == 0)
 		    next_stream = -1;	/* border */
 		else {
-		    Segment_get(streams, &streams_next_cell, NR(d), NC(d));
-		    next_stream =
-			(streams_next_cell > 0) ? streams_next_cell : -1;
+		    Segment_get(streams, &next_stream, NR(d), NC(d));
+		    if (next_stream < 1)
+			next_stream = -1;
 		}
-
-		if (d == 0)
-		    next_stream = -1;
 
 		cur_stream = streams_cell;
 
 		if (lasts) {
-
 		    if (next_stream < 0) {	/* is outlet! */
 			if (categories)
 			    if (categories[cur_stream] == -1)	/* but not in list */
@@ -248,7 +248,6 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 		    }
 		}
 		else {		/* not lasts */
-
 		    if (cur_stream != next_stream) {	/* is outlet or node! */
 			if (categories)
 			    if (categories[cur_stream] == -1)	/* but not in list */
@@ -263,5 +262,8 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 		}		/* end if else lasts */
 	    }			/* end if streams */
 	}			/* end for */
+    }
+    G_percent(r, nrows, 4);
+
     return outlets_num;
 }

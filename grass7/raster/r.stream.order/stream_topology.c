@@ -48,7 +48,7 @@ int ram_stream_topology(CELL **streams, CELL **dirs, int number_of_streams)
 
     for (r = 0; r < nrows; ++r)
 	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c]) {
+	    if (streams[r][c] > 0) {
 		trib_num = ram_number_of_tribs(r, c, streams, dirs);
 		trib = 0;
 		d = abs(dirs[r][c]);	/* r.watershed! */
@@ -261,7 +261,7 @@ int seg_stream_topology(SEGMENT *streams, SEGMENT *dirs,
 	    Segment_get(streams, &streams_cell, r, c);
 	    Segment_get(dirs, &dirs_cell, r, c);
 
-	    if (streams_cell) {
+	    if (streams_cell > 0) {
 		trib_num = seg_number_of_tribs(r, c, streams, dirs);
 		trib = 0;
 

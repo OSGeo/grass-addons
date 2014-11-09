@@ -113,15 +113,18 @@ int main(int argc, char *argv[])
 	MAP map_dirs, map_streams, map_elevation;
 	CELL **streams, **dirs;
 	FCELL **elevation;
+	DCELL nullval;
 
 	G_message(_("All in RAM calculation..."));
 
+	Rast_set_d_null_value(&nullval, 1);
+
 	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	ram_create_map(&map_elevation, FCELL_TYPE);
-	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = (CELL **) map_streams.map;
 	dirs = (CELL **) map_dirs.map;
@@ -151,19 +154,31 @@ int main(int argc, char *argv[])
     if (segmentation) {
 	SEG map_dirs, map_streams, map_elevation;
 	SEGMENT *streams, *dirs, *elevation;
+	DCELL nullval;
+	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
-	number_of_segs = (int)atof(opt_swapsize->answer);
-	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.18) : number_of_segs / 0.18;
+	Rast_set_d_null_value(&nullval, 1);
+
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
 		       FCELL_TYPE);
-	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1);
+	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
 	streams = &map_streams.seg;
 	dirs = &map_dirs.seg;

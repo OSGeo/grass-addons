@@ -34,7 +34,7 @@ int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
 	    trib_num++;
     }
 
-    if (trib_num > 1)
+    if (trib_num > 1) {
 	for (i = 1; i < 9; ++i) {
 	    if (NOT_IN_REGION(i))
 		continue;
@@ -47,6 +47,7 @@ int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
 		dirs[next_r][next_c] == j)
 		trib_num--;
 	}
+    }
 
     if (trib_num > 5)
 	G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
@@ -63,11 +64,15 @@ int ram_number_of_streams(CELL **streams, CELL **dirs)
     int r, c;
     int stream_num = 0;
 
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c] > 0)
+    for (r = 0; r < nrows; ++r) {
+	for (c = 0; c < ncols; ++c) {
+	    if (streams[r][c] > 0) {
 		if (ram_trib_nums(r, c, streams, dirs) != 1)
 		    stream_num++;
+	    }
+	}
+    }
+
     return stream_num;
 }
 
@@ -90,9 +95,9 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
     G_message(_("Finding inits..."));
     SA = stream_attributes;
 
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c])
+    for (r = 0; r < nrows; ++r) {
+	for (c = 0; c < ncols; ++c) {
+	    if (streams[r][c] > 0) {
 		if (ram_trib_nums(r, c, streams, dirs) != 1) {	/* adding inits */
 		    if (stream_num > number_of_streams)
 			G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
@@ -101,6 +106,9 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 		    SA[stream_num].init_r = r;
 		    SA[stream_num++].init_c = c;
 		}
+	    }
+	}
+    }
 
     for (i = 1; i < stream_num; ++i) {
 
@@ -123,8 +131,8 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 
     for (i = 1; i < number_of_streams; ++i) {
 
-	SA[i].points = (unsigned long int *)
-	    G_malloc((SA[i].number_of_cells) * sizeof(unsigned long int));
+	SA[i].points = (long int *)
+	    G_malloc((SA[i].number_of_cells) * sizeof(long int));
 	SA[i].elevation = (float *)
 	    G_malloc((SA[i].number_of_cells) * sizeof(float));
 	SA[i].distance = (double *)
@@ -137,16 +145,20 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 	prev_c = NC(contrib_cell);
 
 	/* add one point contributing to init to calculate parameters */
-	/* what to do if there is no contributing points? */
+	/* what to do if there are no contributing points? */
 	SA[i].points[0] = (contrib_cell == 0) ? -1 : INDEX(prev_r, prev_c);
-	SA[i].elevation[0] = (contrib_cell == 0) ? -99999 :
-	    elevation[prev_r][prev_c];
+	SA[i].elevation[0] = -99999;
+	if (contrib_cell != 0 && !Rast_is_f_null_value(&elevation[prev_r][prev_c]))
+	    SA[i].elevation[0] = elevation[prev_r][prev_c];
 	d = (contrib_cell == 0) ? dirs[r][c] : dirs[prev_r][prev_c];
 	SA[i].distance[0] = (contrib_cell == 0) ? get_distance(r, c, d) :
 	    get_distance(prev_r, prev_c, d);
 
 	SA[i].points[1] = INDEX(r, c);
-	SA[i].elevation[1] = elevation[r][c];
+
+	SA[i].elevation[1] = -99999;
+	if (!Rast_is_f_null_value(&elevation[r][c]))
+	    SA[i].elevation[1] = elevation[r][c];
 	d = abs(dirs[r][c]);
 	SA[i].distance[1] = get_distance(r, c, d);
 
@@ -157,6 +169,9 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 	    if (NOT_IN_REGION(d) || d == 0) {
 		SA[i].points[cell_num] = -1;
 		SA[i].distance[cell_num] = SA[i].distance[cell_num - 1];
+		/* what if SA[i].elevation[cell_num - 1] == -99999 ||
+		 *         SA[i].elevation[cell_num - 2] == -99999 
+		 * ? */
 		SA[i].elevation[cell_num] =
 		    2 * SA[i].elevation[cell_num - 1] -
 		    SA[i].elevation[cell_num - 2];
@@ -166,6 +181,8 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 	    c = NC(d);
 	    SA[i].points[cell_num] = INDEX(r, c);
 	    SA[i].elevation[cell_num] = elevation[r][c];
+	    if (Rast_is_f_null_value(&SA[i].elevation[cell_num]))
+		SA[i].elevation[cell_num] = -99999;
 	    next_d = (abs(dirs[r][c]) == 0) ? d : abs(dirs[r][c]);
 	    SA[i].distance[cell_num] = get_distance(r, c, next_d);
 	    cell_num++;
@@ -173,6 +190,9 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 		G_fatal_error(_("To many points in stream line"));
 	} while (streams[r][c] == SA[i].order);
 
+	/* what if SA[i].elevation[1] == -99999 ||
+	 *         SA[i].elevation[2] == -99999 
+	 * ? */
 	if (SA[i].elevation[0] == -99999)
 	    SA[i].elevation[0] = 2 * SA[i].elevation[1] - SA[i].elevation[2];
     }
@@ -203,7 +223,7 @@ int seg_trib_nums(int r, int c, SEGMENT * streams, SEGMENT * dirs)
 	    trib_num++;
     }
 
-    if (trib_num > 1)
+    if (trib_num > 1) {
 	for (i = 1; i < 9; ++i) {
 	    if (NOT_IN_REGION(i))
 		continue;
@@ -216,6 +236,7 @@ int seg_trib_nums(int r, int c, SEGMENT * streams, SEGMENT * dirs)
 	    if (streams_next_cell == streams_cell && dirs_next_cell == j)
 		trib_num--;
 	}
+    }
 
     if (trib_num > 5)
 	G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match..."));
@@ -231,14 +252,16 @@ int seg_number_of_streams(SEGMENT *streams, SEGMENT *dirs)
     int stream_num = 0;
     int streams_cell;
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Segment_get(streams, &streams_cell, r, c);
-	    if (streams_cell > 0)
+	    if (streams_cell > 0) {
 		if (seg_trib_nums(r, c, streams, dirs) != 1)
 		    stream_num++;
+	    }
 	}
-    G_message("%d", stream_num);
+    }
+
     return stream_num;
 }
 
@@ -256,18 +279,17 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 
     stream_num = 1;
 
-
     stream_attributes =
 	(STREAM *) G_malloc(number_of_streams * sizeof(STREAM));
     G_message("Finding inits...");
     SA = stream_attributes;
 
     /* finding inits */
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Segment_get(streams, &streams_cell, r, c);
 
-	    if (streams_cell)
+	    if (streams_cell > 0) {
 		if (seg_trib_nums(r, c, streams, dirs) != 1) {	/* adding inits */
 		    if (stream_num > number_of_streams)
 			G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
@@ -276,7 +298,9 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 		    SA[stream_num].init_r = r;
 		    SA[stream_num++].init_c = c;
 		}
+	    }
 	}
+    }
 
     /* building streamline */
     for (i = 1; i < stream_num; ++i) {
@@ -319,12 +343,13 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	prev_c = NC(contrib_cell);
 
 	/* add one point contributing to init to calculate parameters */
-	/* what to do if there is no contributing points? */
+	/* what to do if there are no contributing points? */
 	SA[i].points[0] = (contrib_cell == 0) ? -1 : INDEX(prev_r, prev_c);
 
 	Segment_get(elevation, &elevation_prev_cell, prev_r, prev_c);
-	SA[i].elevation[0] = (contrib_cell == 0) ? -99999 :
-	    elevation_prev_cell;
+	SA[i].elevation[0] = -99999;
+	if (contrib_cell != 0 && !Rast_is_f_null_value(&elevation_prev_cell))
+	    SA[i].elevation[0] = elevation_prev_cell;
 
 	if (contrib_cell == 0)
 	    Segment_get(dirs, &d, r, c);
@@ -335,6 +360,9 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 
 	SA[i].points[1] = INDEX(r, c);
 	Segment_get(elevation, &(SA[i].elevation[1]), r, c);
+	if (Rast_is_f_null_value(&SA[i].elevation[1]))
+	    SA[i].elevation[1] = -99999;
+
 	Segment_get(dirs, &d, r, c);
 	SA[i].distance[1] = get_distance(r, c, d);
 
@@ -346,6 +374,9 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	    if (NOT_IN_REGION(d) || d == 0) {
 		SA[i].points[cell_num] = -1;
 		SA[i].distance[cell_num] = SA[i].distance[cell_num - 1];
+		/* what if SA[i].elevation[cell_num - 1] == -99999 ||
+		 *         SA[i].elevation[cell_num - 2] == -99999 
+		 * ? */
 		SA[i].elevation[cell_num] =
 		    2 * SA[i].elevation[cell_num - 1] -
 		    SA[i].elevation[cell_num - 2];
@@ -355,6 +386,8 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	    c = NC(d);
 	    SA[i].points[cell_num] = INDEX(r, c);
 	    Segment_get(elevation, &(SA[i].elevation[cell_num]), r, c);
+	    if (Rast_is_f_null_value(&SA[i].elevation[cell_num]))
+		SA[i].elevation[cell_num] = -99999;
 	    Segment_get(dirs, &next_d, r, c);
 	    next_d = (abs(next_d) == 0) ? d : abs(next_d);
 	    SA[i].distance[cell_num] = get_distance(r, c, next_d);
@@ -364,6 +397,9 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 		G_fatal_error(_("To much points in stream line..."));
 	} while (streams_cell == SA[i].order);
 
+	/* what if SA[i].elevation[1] == -99999 ||
+	 *         SA[i].elevation[2] == -99999 
+	 * ? */
 	if (SA[i].elevation[0] == -99999)
 	    SA[i].elevation[0] = 2 * SA[i].elevation[1] - SA[i].elevation[2];
     }
@@ -383,6 +419,7 @@ int ram_find_contributing_cell(int r, int c, CELL **dirs, FCELL **elevation)
 	next_r = NR(i);
 	next_c = NC(i);
 	if (dirs[next_r][next_c] == DIAG(i) &&
+	    !Rast_is_f_null_value(&elevation[next_r][next_c]) &&
 	    elevation[next_r][next_c] < elev_min) {
 	    elev_min = elevation[next_r][next_c];
 	    j = i;
@@ -397,9 +434,9 @@ int seg_find_contributing_cell(int r, int c, SEGMENT *dirs,
 {
     int i, j = 0;
     int next_r, next_c;
-    float elev_min = 9999;
+    FCELL elev_min = 9999;
     int dirs_next_cell;
-    float elevation_next_cell;
+    FCELL elevation_next_cell;
 
     for (i = 1; i < 9; ++i) {
 	if (NOT_IN_REGION(i))
@@ -408,7 +445,9 @@ int seg_find_contributing_cell(int r, int c, SEGMENT *dirs,
 	next_c = NC(i);
 	Segment_get(dirs, &dirs_next_cell, next_r, next_c);
 	Segment_get(elevation, &elevation_next_cell, next_r, next_c);
-	if (dirs_next_cell == DIAG(i) && elevation_next_cell < elev_min) {
+	if (dirs_next_cell == DIAG(i) &&
+	    !Rast_is_f_null_value(&elevation_next_cell) &&
+	    elevation_next_cell < elev_min) {
 	    elev_min = elevation_next_cell;
 	    j = i;
 	}

@@ -2,7 +2,6 @@
 
 int print_stats(int order_max)
 {
-
     int i;
 
     fflush(stdout);
@@ -94,6 +93,7 @@ int print_stats(int order_max)
 		ord_stats[i].stream_frequency * 1000000);
     }
     fflush(stdout);
+
     return 0;
 }
 
@@ -119,12 +119,12 @@ int print_stats_total(void)
     fprintf(stdout, "Gradient ratio: %2.4f \n",
 	    stats_total.reg_gradient_ratio);
     fflush(stdout);
+
     return 0;
 }
 
 int print_stats_orders(int order_max)
 {
-
     int i;
 
     fflush(stdout);
@@ -145,5 +145,6 @@ int print_stats_orders(int order_max)
 		ord_stats[i].sum_area / 1000000);
     }
     fflush(stdout);
+
     return 0;
 }

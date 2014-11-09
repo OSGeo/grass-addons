@@ -40,12 +40,15 @@ int main(int argc, char *argv[])
     int segmentation, zerofill, lasts, cats;
     int i, outlets_num = 0;
     int max_number_of_streams;
+    struct Range range;
+    CELL min, max;
+    struct Colors colors;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
     module->label = _("Delineates basins according stream network.");
-    module->description = _("Input can be stream network, vector point map  with outlets or outlet coordinates.");
+    module->description = _("Input can be stream network, vector point map with outlets or outlet coordinates.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword(_("stream network"));
@@ -141,12 +144,11 @@ int main(int argc, char *argv[])
 	MAP map_dirs, map_streams, map_basins;
 	CELL **streams = NULL, **dirs, **basins;
 
-	G_message("All in RAM calculation...");
+	G_message(_("All in RAM calculation..."));
 
 	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	dirs = (CELL **) map_dirs.map;
-
 
 	switch (b_test) {
 	case 1:
@@ -157,7 +159,7 @@ int main(int argc, char *argv[])
 	case 2:
 	    G_message(_("Calculating basins using streams..."));
 	    ram_create_map(&map_streams, CELL_TYPE);
-	    ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	    ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	    streams = (CELL **) map_streams.map;
 	    max_number_of_streams = (int)map_streams.max + 1;
 	    outlets_num = ram_process_streams(in_stm_cat_opt->answers,
@@ -173,13 +175,18 @@ int main(int argc, char *argv[])
 	}
 
 	ram_create_map(&map_basins, CELL_TYPE);
+	ram_reset_map(&map_basins, 0);
 	basins = (CELL **) map_basins.map;
 	ram_add_outlets(basins, outlets_num);
 	fifo_max = 4 * (nrows + ncols);
 	fifo_points = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
 
-	for (i = 0; i < outlets_num; ++i)
+	G_message(_("Delineating basins for %d outlets..."), outlets_num);
+	for (i = 0; i < outlets_num; ++i) {
+	    G_percent(i, outlets_num, 4);
 	    ram_fill_basins(outlets[i], basins, dirs);
+	}
+	G_percent(i, outlets_num, 4);
 
 	G_free(fifo_points);
 	ram_write_map(&map_basins, opt_basins->answer, CELL_TYPE, zerofill,
@@ -188,23 +195,28 @@ int main(int argc, char *argv[])
 	ram_release_map(&map_basins);
 
     }				/* end ram */
-
     /* SEGMENT VERSION */
-
-    if (segmentation) {
+    else {
 	SEG map_dirs, map_streams, map_basins;
 	SEGMENT *streams = NULL, *dirs, *basins;
-	int number_of_segs, num_maps;
+	int number_of_segs;
+	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
-	num_maps = b_test == 2 ? 3 : 2;
-	number_of_segs = (int)atof(opt_swapsize->answer);
-	number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) :
-					       (int)(number_of_segs * 4.0 / num_maps);
+	number_of_segs = atoi(opt_swapsize->answer);
+	if (number_of_segs < 3)
+	    number_of_segs = 3;
+
+	/* segment size in MB */
+	seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
+
+	number_of_segs = (int)(number_of_segs / seg_size);
+	if (number_of_segs < 10)
+	    number_of_segs = 10;
 
 	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE);
+	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
 	dirs = &map_dirs.seg;
 
 	switch (b_test) {
@@ -217,7 +229,7 @@ int main(int argc, char *argv[])
 	    G_message(_("Calculating basins using streams..."));
 	    seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs,
 			   CELL_TYPE);
-	    seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE);
+	    seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
 	    streams = &map_streams.seg;
 	    max_number_of_streams = (int)map_streams.max + 1;
 	    outlets_num = seg_process_streams(in_stm_cat_opt->answers,
@@ -227,25 +239,35 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 4:
-	    G_message(_("Calculate basins using vector point map..."));
+	    G_message(_("Calculating basins using vector point map..."));
 	    outlets_num = process_vector(in_point_opt->answer);
 	    break;
 	}
 
 	seg_create_map(&map_basins, SROWS, SCOLS, number_of_segs, CELL_TYPE);
+	seg_reset_map(&map_basins, 0);
 	basins = &map_basins.seg;
 	seg_add_outlets(basins, outlets_num);
 	fifo_max = 4 * (nrows + ncols);
 	fifo_points = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
 
-	for (i = 0; i < outlets_num; ++i)
+	G_message(_("Delineating basins for %d outlets..."), outlets_num);
+	for (i = 0; i < outlets_num; ++i) {
+	    G_percent(i, outlets_num, 4);
 	    seg_fill_basins(outlets[i], basins, dirs);
+	}
+	G_percent(i, outlets_num, 4);
 	G_free(fifo_points);
 	seg_write_map(&map_basins, opt_basins->answer, CELL_TYPE, zerofill,
 		      0);
 	seg_release_map(&map_dirs);
 	seg_release_map(&map_basins);
     }
+
+    Rast_read_range(opt_basins->answer, G_mapset(), &range);
+    Rast_get_range_min_max(&range, &min, &max);
+    Rast_make_random_colors(&colors, min, max);
+    Rast_write_colors(opt_basins->answer, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
 }

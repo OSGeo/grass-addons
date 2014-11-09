@@ -38,7 +38,8 @@ int ram_close_raster_order(CELL **streams, int number_of_streams,
 		Rast_set_c_null_value(output_buffer, ncols);
 
 	    for (c = 0; c < ncols; ++c)
-		if (streams_buffer[c])
+		if (!Rast_is_c_null_value(&streams_buffer[c]) && 
+		    streams_buffer[c] > 0)
 		    output_buffer[c] = all_orders[i][streams_buffer[c]];
 
 	    Rast_put_c_row(output_fd[i], output_buffer);
@@ -106,7 +107,8 @@ int seg_close_raster_order(SEGMENT *streams, int number_of_streams,
 		Rast_set_c_null_value(output_buffer, ncols);
 
 	    for (c = 0; c < ncols; ++c)
-		if (!Rast_is_c_null_value(&streams_buffer[c]))
+		if (!Rast_is_c_null_value(&streams_buffer[c]) && 
+		    streams_buffer[c] > 0)
 		    output_buffer[c] = all_orders[i][streams_buffer[c]];
 
 	    Rast_put_c_row(output_fd[i], output_buffer);

@@ -12,6 +12,7 @@ int fifo_insert(POINT point)
 	tail = 0;
     }
     fifo_count++;
+
     return 0;
 }
 
@@ -37,8 +38,8 @@ int ram_init_streams(CELL **streams, CELL **dirs, FCELL **elevation)
     outlets = (POINT *) G_malloc((out_max) * sizeof(POINT));
     outlets_num = 0;
 
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
+    for (r = 0; r < nrows; ++r) {
+	for (c = 0; c < ncols; ++c) {
 	    if (streams[r][c] > 0) {
 		if (outlets_num > (out_max - 1)) {
 		    out_max *= 2;
@@ -71,7 +72,8 @@ int ram_init_streams(CELL **streams, CELL **dirs, FCELL **elevation)
 
 		}
 	    }			/* end if streams */
-
+	}
+    }
     stat_streams = (STREAM *) G_malloc((outlets_num) * sizeof(STREAM));
 
     for (i = 0; i < outlets_num; ++i) {
@@ -91,10 +93,9 @@ int ram_init_streams(CELL **streams, CELL **dirs, FCELL **elevation)
     }
 
     G_free(outlets);
+
     return 0;
 }
-
-/////
 
 int seg_init_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation)
 {
@@ -108,7 +109,7 @@ int seg_init_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation)
     outlets = (POINT *) G_malloc((out_max) * sizeof(POINT));
     outlets_num = 0;
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Segment_get(streams, &streams_cell, r, c);
 	    if (streams_cell > 0) {
@@ -147,6 +148,7 @@ int seg_init_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation)
 		}
 	    }			/* end if streams */
 	}
+    }
 
     stat_streams = (STREAM *) G_malloc((outlets_num) * sizeof(STREAM));
 
@@ -169,13 +171,12 @@ int seg_init_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation)
     }
 
     G_free(outlets);
+
     return 0;
 }
 
-
 int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation)
 {
-
     int i, j, s, d;		/* s - streams index */
     int done = 1;
     int r, c;
@@ -233,7 +234,9 @@ int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation)
 			G_distance(next_easting, next_northing, cur_easting,
 				   cur_northing);
 		    diff_elev = elevation[next_r][next_c] - elevation[r][c];
-		    diff_elev = (diff_elev < 0) ? 0. : diff_elev;	/* water cannot flow up */
+		    /* water cannot flow up
+		     * but DEMs are not perfect */
+		    diff_elev = (diff_elev < 0) ? 0. : diff_elev;
 
 		    stat_streams[s].length += cur_length;
 		    stat_streams[s].slope += (diff_elev / cur_length);
@@ -246,12 +249,9 @@ int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation)
 	    }			/* end for i */
 	}			/* end while */
     }				/* end for s */
+
     return 0;
 }
-
-
-////
-
 
 int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs,
 			  SEGMENT *elevation)
@@ -324,7 +324,9 @@ int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs,
 				next_c);
 		    Segment_get(elevation, &elevation_cell, r, c);
 		    diff_elev = elevation_next_cell - elevation_cell;
-		    diff_elev = (diff_elev < 0) ? 0. : diff_elev;	/* water cannot flow up */
+		    /* water cannot flow up
+		     * but DEMs are not perfect */
+		    diff_elev = (diff_elev < 0) ? 0. : diff_elev;
 
 		    stat_streams[s].length += cur_length;
 		    stat_streams[s].slope += (diff_elev / cur_length);
@@ -337,6 +339,7 @@ int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs,
 	    }			/* end for i */
 	}			/* end while */
     }				/* end for s */
+
     return 0;
 }
 
@@ -374,9 +377,9 @@ double ram_calculate_basins_area(CELL **dirs, int r, int c)
 	r = n_cell.r;
 	c = n_cell.c;
     }				/* end while */
+
     return area;
 }
-
 
 int ram_calculate_basins(CELL **dirs)
 {
@@ -398,6 +401,7 @@ int ram_calculate_basins(CELL **dirs)
     }
 
     G_free(fifo_points);
+
     return 0;
 }
 
@@ -438,6 +442,7 @@ double seg_calculate_basins_area(SEGMENT *dirs, int r, int c)
 	r = n_cell.r;
 	c = n_cell.c;
     }				/* end while */
+
     return area;
 }
 
@@ -460,5 +465,6 @@ int seg_calculate_basins(SEGMENT *dirs)
     }
 
     G_free(fifo_points);
+
     return 0;
 }

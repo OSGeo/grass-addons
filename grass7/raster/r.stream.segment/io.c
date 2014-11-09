@@ -44,7 +44,7 @@ int ram_create_map(MAP * map, RASTER_MAP_TYPE data_type)
 }
 
 int ram_read_map(MAP * map, char *input_map_name, int check_res,
-		 RASTER_MAP_TYPE check_data_type)
+		 RASTER_MAP_TYPE check_data_type, DCELL nullval)
 {
     /*
      * Function read external map and put it in MAP structure (created with create_map)
@@ -125,9 +125,9 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
 	Rast_get_row(input_map_fd, input_buffer, r, input_data_type);
 	input_pointer = input_buffer;
 
-	for (c = 0; c < map->ncols; ++c)
+	for (c = 0; c < map->ncols; ++c) {
 	    if (!Rast_is_null_value
-		(input_pointer + c * input_data_size, input_data_type))
+		(input_pointer + c * input_data_size, input_data_type)) {
 		switch (map->data_type) {
 		case CELL_TYPE:
 		    ((CELL **) map->map)[r][c] =
@@ -148,23 +148,82 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
 		    G_fatal_error(_("Wrong internal data type"));
 		    break;
 		}
+	    }
+	    else {
+		switch (map->data_type) {
+		case CELL_TYPE:
+		    ((CELL **) map->map)[r][c] =
+			Rast_get_c_value(&nullval, DCELL_TYPE);
+		    break;
+		case FCELL_TYPE:
+		    ((FCELL **) map->map)[r][c] =
+			Rast_get_f_value(&nullval, DCELL_TYPE);
+		    break;
+		case DCELL_TYPE:
+		    ((DCELL **) map->map)[r][c] =
+			Rast_get_d_value(&nullval, DCELL_TYPE);
+		    break;
+		default:
+		    G_fatal_error(_("Wrong internal data type"));
+		    break;
+		}
+	    }
+	}
     }				/*end for r */
-
-    G_free(input_buffer);
     G_percent(r, map->nrows, 2);
-    Rast_close(input_map_fd);
-    return 0;
-}				/* end create floating point map */
 
-int ram_reset_map(MAP * map, int value)
+    Rast_close(input_map_fd);
+    G_free(input_buffer);
+
+    return 0;
+}
+
+int ram_reset_map(MAP * map, DCELL value)
 {
     /*
      * set all cells in the map to value
      */
-    int r;
+    int r, c;
 
-    for (r = 0; r < map->nrows; ++r)
-	memset((map->map)[r], value, map->ncols * map->data_size);
+    switch (map->data_type) {
+    case CELL_TYPE:
+	{
+	    CELL v = Rast_get_c_value(&value, DCELL_TYPE);
+	    
+	    for (r = 0; r < map->nrows; ++r) {
+		for (c = 0; c < map->ncols; ++c) {
+		    ((CELL **) map->map)[r][c] = v;
+		}
+	    }
+	}
+	break;
+    case FCELL_TYPE:
+	{
+	    FCELL v = Rast_get_f_value(&value, DCELL_TYPE);
+	    
+	    for (r = 0; r < map->nrows; ++r) {
+		for (c = 0; c < map->ncols; ++c) {
+		    ((FCELL **) map->map)[r][c] = v;
+		}
+	    }
+	}
+	break;
+    case DCELL_TYPE:
+	{
+	    DCELL v = Rast_get_d_value(&value, DCELL_TYPE);
+	    
+	    for (r = 0; r < map->nrows; ++r) {
+		for (c = 0; c < map->ncols; ++c) {
+		    ((DCELL **) map->map)[r][c] = v;
+		}
+	    }
+	}
+	break;
+    default:
+	G_fatal_error(_("Wrong internal data type"));
+	break;
+    }
+
     return 0;
 }
 
@@ -218,7 +277,8 @@ int ram_write_map(MAP * map, char *output_map_name,
 			Rast_set_d_null_value(row + c * (map->data_size), 1);
 		break;
 	    default:
-		G_debug(1, "ram_null:Cannot convert to null at: %d %d", r, c);
+		G_fatal_error(_("Wrong internal data type"));
+		break;
 	    }
 	}
 
@@ -235,9 +295,9 @@ int ram_write_map(MAP * map, char *output_map_name,
 
 int ram_release_map(MAP *map)
 {
-    /* 
-     * free memory allocated for map, set pointer to null;
-     */
+  /* 
+   * free memory allocated for map, set pointer to null;
+   */
     int r;
 
     for (r = 0; r < map->nrows; ++r)
@@ -325,7 +385,7 @@ int seg_create_map(SEG * seg, int srows, int scols, int number_of_segs,
 }
 
 int seg_read_map(SEG * seg, char *input_map_name, int check_res,
-		 RASTER_MAP_TYPE check_data_type)
+		 RASTER_MAP_TYPE check_data_type, DCELL nullval)
 {
 
     /*
@@ -353,7 +413,9 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
     if (mapset == NULL)
 	G_fatal_error(_("Raster map <%s> not found"),
 		      input_map_name);
-    seg->mapset = mapset;
+
+    seg->map_name = G_store(input_map_name);
+    seg->mapset = G_store(mapset);
 
     /* checking if region and input are the same */
     G_get_window(&this_window);
@@ -410,9 +472,8 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
 	G_percent(r, seg->nrows, 2);
 	Rast_get_row(input_fd, input_buffer, r, input_data_type);
 	input_pointer = input_buffer;
-	memset(target_buffer, 0, seg->ncols * seg->data_size);
 
-	for (c = 0; c < seg->ncols; ++c)
+	for (c = 0; c < seg->ncols; ++c) {
 	    if (!Rast_is_null_value
 		(input_pointer + c * input_data_size, input_data_type)) {
 		switch (seg->data_type) {
@@ -436,6 +497,26 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
 		    break;
 		}
 	    }
+	    else {
+		switch (seg->data_type) {
+		case CELL_TYPE:
+		    ((CELL *) target_buffer)[c] =
+			Rast_get_c_value(&nullval, DCELL_TYPE);
+		    break;
+		case FCELL_TYPE:
+		    ((FCELL *) target_buffer)[c] =
+			Rast_get_f_value(&nullval, DCELL_TYPE);
+		    break;
+		case DCELL_TYPE:
+		    ((DCELL *) target_buffer)[c] =
+			Rast_get_d_value(&nullval, DCELL_TYPE);
+		    break;
+		default:
+		    G_fatal_error(_("Wrong internal data type"));
+		    break;
+		}
+	    }
+	}
 
 	if (0 > Segment_put_row(&(seg->seg), target_buffer, r)) {
 	    G_free(input_buffer);
@@ -445,28 +526,60 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
 			  r, input_map_name);
 	}
     }				/* end for row */
-
     G_percent(r, seg->nrows, 2);
+
     Rast_close(input_fd);
     G_free(input_buffer);
     G_free(target_buffer);
 
-    seg->map_name = G_store(input_map_name);
-    seg->mapset = G_store(mapset);
-
     return 0;
 }
 
-int seg_reset_map(SEG * seg, int value)
+int seg_reset_map(SEG * seg, DCELL value)
 {
     /*
      * set all cells in the map to value
      */
     int r, c;
 
-    for (r = 0; r < seg->nrows; ++r)
-	for (c = 0; c < seg->ncols; ++c)
-	    Segment_put(&(seg->seg), &value, r, c);
+    switch (seg->data_type) {
+    case CELL_TYPE:
+	{
+	    CELL v = Rast_get_c_value(&value, DCELL_TYPE);
+
+	    for (r = 0; r < seg->nrows; ++r) {
+		for (c = 0; c < seg->ncols; ++c) {
+		    Segment_put(&(seg->seg), &v, r, c);
+		}
+	    }
+	}
+	break;
+    case FCELL_TYPE:
+	{
+	    FCELL v = Rast_get_f_value(&value, DCELL_TYPE);
+
+	    for (r = 0; r < seg->nrows; ++r) {
+		for (c = 0; c < seg->ncols; ++c) {
+		    Segment_put(&(seg->seg), &v, r, c);
+		}
+	    }
+	}
+	break;
+    case DCELL_TYPE:
+	{
+	    DCELL v = Rast_get_d_value(&value, DCELL_TYPE);
+
+	    for (r = 0; r < seg->nrows; ++r) {
+		for (c = 0; c < seg->ncols; ++c) {
+		    Segment_put(&(seg->seg), &v, r, c);
+		}
+	    }
+	}
+	break;
+    default:
+	G_fatal_error(_("Wrong internal data type"));
+	break;
+    }
 
     return 0;
 }
@@ -528,7 +641,8 @@ int seg_write_map(SEG * seg, char *output_map_name,
 			Rast_set_d_null_value(row + c * (seg->data_size), 1);
 		break;
 	    default:
-		G_warning(_("Unable to convert to NULL at: %d %d"), r, c);
+		G_fatal_error(_("Wrong internal data type"));
+		break;
 	    }
 	}
 	Rast_put_row(output_fd, output_buffer, output_data_type);

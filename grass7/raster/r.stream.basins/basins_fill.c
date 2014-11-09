@@ -1,3 +1,5 @@
+#include "local_proto.h"
+
 /* 
    Link: a channel between junction
    Outlet: is final cell of every segment
@@ -18,7 +20,6 @@
 /* removal point: head + 1 */
 /* head == tail if last point removed or if only one free slot left */
 
-#include "local_proto.h"
 static int tail, head, fifo_count;
 
 int fifo_insert(POINT point)
@@ -32,6 +33,7 @@ int fifo_insert(POINT point)
 	tail = 0;
     }
     fifo_count++;
+
     return 0;
 }
 
@@ -94,6 +96,7 @@ int ram_fill_basins(OUTLET outlet, CELL **basins, CELL **dirs)
     int next_r, next_c;
     int r, c, val, i, j;
     POINT n_cell;
+    int dirs_cell, basins_cell;
 
     tail = 0;
     head = -1;
@@ -115,8 +118,11 @@ int ram_fill_basins(OUTLET outlet, CELL **basins, CELL **dirs)
 		continue;
 	    j = DIAG(i);
 
+	    dirs_cell = dirs[next_r][next_c];
+	    basins_cell = basins[next_r][next_c];
+
 	    /* contributing cell, not yet assigned to a basin */
-	    if (dirs[next_r][next_c] == j && basins[next_r][next_c] == 0) {
+	    if (dirs_cell == j && basins_cell == 0) {
 		basins[next_r][next_c] = val;
 		n_cell.r = next_r;
 		n_cell.c = next_c;
@@ -128,6 +134,7 @@ int ram_fill_basins(OUTLET outlet, CELL **basins, CELL **dirs)
 	r = n_cell.r;
 	c = n_cell.c;
     }				/* end while */
+
     return 0;
 }
 
@@ -158,10 +165,10 @@ int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 		continue;
 	    j = DIAG(i);
 
-	    /* contributing cell, not yet assigned to a basin */
 	    Segment_get(basins, &basins_cell, next_r, next_c);
 	    Segment_get(dirs, &dirs_cell, next_r, next_c);
 
+	    /* contributing cell, not yet assigned to a basin */
 	    if (dirs_cell == j && basins_cell == 0) {
 		Segment_put(basins, &val, next_r, next_c);
 		n_cell.r = next_r;
@@ -173,7 +180,6 @@ int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 	n_cell = fifo_return_del();
 	r = n_cell.r;
 	c = n_cell.c;
-
     }				/* end while */
 
     return 0;

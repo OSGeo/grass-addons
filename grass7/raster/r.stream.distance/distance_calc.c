@@ -105,6 +105,7 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
 		}		/* end stream mode */
 
 		if (elevation) {
+		    /* TODO: check for NULL value */
 		    elevation[next_r][next_c] =
 			elevation[next_r][next_c] - target_elev;
 		    n_cell.target_elev = target_elev;
@@ -212,6 +213,7 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
 		}		/* end stream mode */
 
 		if (elevation) {
+		    /* TODO: check for NULL value */
 		    Segment_get(elevation, &elevation_cell, next_r, next_c);
 		    elevation_cell -= target_elev;
 		    Segment_put(elevation, &elevation_cell, next_r, next_c);
@@ -232,6 +234,7 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
 	target_elev = n_cell.target_elev;
 
     }				/* end while */
+
     return 0;
 }
 
@@ -354,12 +357,13 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 
     if (elevation) {
 	elevation_data_size = Rast_cell_size(DCELL_TYPE);
-	for (r = 0; r < nrows; ++r)
+	for (r = 0; r < nrows; ++r) {
 	    memcpy(tmp_elevation[r], elevation[r],
 		   ncols * elevation_data_size);
+	}
     }
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 
 	    for (i = 1; i < 9; ++i) {
@@ -379,11 +383,12 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 	    else if (dirs[r][c] > 0)
 		distance[r][c] = -1;
 	}
+    }
 
     d_inits = (POINT *) G_malloc(n_inits * sizeof(POINT));
 
     k = 0;
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 
 	    if (distance[r][c] == 1) {
@@ -401,13 +406,14 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 		d_inits[k].c = c;
 		d_inits[k].cur_dist = 0;
 
-
+		/* TODO: check for NULL value */
 		if (elevation)
 		    d_inits[k].target_elev = tmp_elevation[r][c];
 
 		k++;
 	    }
 	}
+    }
 
     counter = n_inits = k;
     /* return 0; */
@@ -444,6 +450,7 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 	    if (done) {
 		distance[next_r][next_c] = cur_dist;
 		if (elevation) {
+		    /* TODO: check for NULL value */
 		    elevation[next_r][next_c] =
 			target_elev - tmp_elevation[next_r][next_c];
 		}
@@ -454,6 +461,7 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 		d_inits[k].c = next_c;
 		d_inits[k].cur_dist = cur_dist;
 
+		/* TODO: check for NULL value */
 		if (elevation)
 		    d_inits[k].target_elev = target_elev;
 		k++;
@@ -462,6 +470,7 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
 	n_inits = k;
     }
     G_percent((counter - n_inits), counter, 10);
+
     return 0;
 }
 
@@ -493,14 +502,15 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 
     if (elevation) {
         /* elevation_data_size = Rast_cell_size(DCELL_TYPE); */
-	for (r = 0; r < nrows; ++r)
+	for (r = 0; r < nrows; ++r) {
 	    for (c = 0; c < ncols; ++c) {
 		Segment_get(elevation, &elevation_cell, r, c);
 		Segment_put(tmp_elevation, &elevation_cell, r, c);
 	    }
+	}
     }
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 
 	    Segment_get(distance, &distance_cell, r, c);
@@ -531,11 +541,12 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 	    }
 
 	}
+    }
 
     d_inits = (POINT *) G_malloc(n_inits * sizeof(POINT));
 
     k = 0;
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 
 	    Segment_get(distance, &distance_cell, r, c);
@@ -561,6 +572,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 		k++;
 	    }
 	}
+    }
 
     counter = n_inits = k;
 
@@ -601,6 +613,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 	    if (done) {
 		Segment_put(distance, &cur_dist, next_r, next_c);
 		if (elevation) {
+		    /* TODO: check for NULL value */
 		    Segment_get(tmp_elevation, &tmp_elevation_cell, next_r,
 				next_c);
 		    tmp_elevation_cell = target_elev - tmp_elevation_cell;
@@ -616,6 +629,7 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 		d_inits[k].c = next_c;
 		d_inits[k].cur_dist = cur_dist;
 
+		/* TODO: check for NULL value */
 		if (elevation)
 		    d_inits[k].target_elev = target_elev;
 		k++;
@@ -624,5 +638,6 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 	n_inits = k;
     }
     G_percent(1, 1, 1);
+
     return 0;
 }

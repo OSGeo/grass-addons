@@ -44,7 +44,7 @@ int create_sectors(STREAM *cur_stream, int seg_length, int seg_skip,
 		   double seg_treshold)
 {
     DIRCELLS *streamline;
-    unsigned long int *P;	/* alias for points */
+    long int *P;	/* alias for points */
 
     int i, prev_i = 0;
     int number_of_cells;
@@ -223,7 +223,7 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
     int cell_up, cell_down;
     int r, c, r_up, c_up, r_down, c_down;
     STREAM *SA = stream_attributes;
-    unsigned long int *P = cur_stream->points;
+    long int *P = cur_stream->points;
     int next_stream = cur_stream->next_stream;
     unsigned int outlet = cur_stream->outlet;
     int last_cell = cur_stream->number_of_cells - 1;

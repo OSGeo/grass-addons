@@ -9,7 +9,6 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 int ram_number_of_streams(CELL **streams, CELL **dirs);
 int ram_find_contributing_cell(int r, int c, CELL **dirs, FCELL **elevation);
 
-int ram_set_null_output(DCELL **output);
 int ram_calculate_identifiers(CELL **identifier, int number_of_streams,
 			      int downstream);
 int ram_calculate_difference(DCELL **output, int number_of_streams,
@@ -36,7 +35,6 @@ int seg_number_of_streams(SEGMENT *streams, SEGMENT *dirs);
 int seg_find_contributing_cell(int r, int c, SEGMENT *dirs,
 			       SEGMENT *elevation);
 
-int seg_set_null_output(SEGMENT *output);
 int seg_calculate_identifiers(SEGMENT *identifier, int number_of_streams,
 			      int downstream);
 int seg_calculate_difference(SEGMENT *output, int number_of_streams,

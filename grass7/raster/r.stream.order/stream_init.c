@@ -92,6 +92,7 @@ int stream_sample_map(char *input_map_name, int number_of_streams, int what)
     input_data_type = Rast_map_type(input_map_name, mapset);
     input_data_size = Rast_cell_size(input_data_type);
     input_buffer = Rast_allocate_buf(input_data_type);
+    input_ptr = input_buffer;
 
     for (i = 0; i < (number_of_streams); ++i) {
 	if (pointers_to_stream[i]->stream == -1)
@@ -106,9 +107,9 @@ int stream_sample_map(char *input_map_name, int number_of_streams, int what)
 	    c = (int)pointers_to_stream[i]->init % ncols;
 	}
 
-	if (r > cur_row) {
+	if (r != cur_row) {
 	    Rast_get_row(input_map_fd, input_buffer, r, input_data_type);
-	    input_ptr = input_buffer;
+	    cur_row = r;
 	}
 	switch (what) {
 	case 0:		/* inits for elev */
@@ -130,5 +131,6 @@ int stream_sample_map(char *input_map_name, int number_of_streams, int what)
     }
     G_free(input_buffer);
     G_free(pointers_to_stream);
+
     return 0;
 }

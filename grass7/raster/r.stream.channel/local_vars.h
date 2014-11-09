@@ -12,7 +12,7 @@ typedef struct {
 	int stream_num;
 	int number_of_cells;
 	int order;
-	unsigned long int * points;
+	long int * points;
 	float * elevation;
 	double * distance;
 	unsigned int init_r;
