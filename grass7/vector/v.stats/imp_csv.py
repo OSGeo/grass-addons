@@ -38,31 +38,23 @@ SKIPCSV = ['label', 'non_null_cells', 'null_cells',
 
 SKIPSHP = ['area_id', ]
 
-#SKIPSHP = ['areas', 'red__n', 'red__min', 'red__max', 'red__range', 'red__sum',
-#           'red__mean', 'red__stddev', 'red__variance', 'red__cf_var',
-#           'red__first_quartile', 'red__median', 'red__third_quartile',
-#           'red__percentile_90', 'green__n', 'green__min', 'green__max',
-#           'green__range', 'green__mean', 'green__stddev', 'green__variance',
-#           'green__cf_var', 'green__sum', 'green__first_quartile',
-#           'green__median', 'green__third_quartile', 'green__percentile_90',
-#           'blue__n', 'blue__min', 'blue__max', 'blue__range', 'blue__mean',
-#           'blue__stddev', 'blue__variance', 'blue__cf_var', 'blue__sum',
-#           'blue__first_quartile', 'blue__median', 'blue__third_quartile',
-#           'blue__percentile_90']
-
 #----------------------------------------
 
 
-def getrow(shpdata, rstdata, dim):
-    drow = np.zeros((dim, ))
+def getrow(shpdata, rstdata, cols):
+    drow = np.zeros((len(cols), ))
     lenght = len(shpdata)
-    for i, rows in enumerate(zip(shpdata, *[rst[:, 1:] for rst in rstdata])):
+    for i, rows in enumerate(zip(shpdata, *rstdata)):
         glg.G_percent(i, lenght, 2)
         start = 0
         for row in rows:
             end = start + row.shape[0]
+            #print('---')
+            #for c, r in zip(cols[start:end], row):
+            #    print(c[0], r)
             drow[start:end] = row
             start = end
+        #import ipdb; ipdb.set_trace()
         yield drow
 
 
@@ -91,7 +83,8 @@ def update_cols(tab, shpcsv, rstcsv, prefixes=None,
                 skipshp=None, skiprst=None,
                 shpcat=0, rstcat=0,
                 allshpn=ALLSHPN, allrstn=ALLRSTN,
-                allshpt=ALLSHPT, allrstt=ALLRSTT, overwrite=False):
+                allshpt=ALLSHPT, allrstt=ALLRSTT, overwrite=False,
+                separator=';'):
     prefixes = prefixes if prefixes else [csv[:-4] for csv in rstcsv]
     skipshp = skipshp if skipshp else []
     skiprst = skiprst if skiprst else []
@@ -100,65 +93,61 @@ def update_cols(tab, shpcsv, rstcsv, prefixes=None,
 
     print("Start loading data from:")
     print("    - %s." % shpcsv, end='')
-    shpdata = np.genfromtxt(shpcsv, delimiter=';', names=True,
-                            usecols=useshpcols,
+    shpdata = np.genfromtxt(shpcsv, delimiter=separator, usecols=useshpcols,
                             dtype=getcols(allshpn, allshpt, skipshp))
     shpdata.sort(order='cat')
+    # remove negative categories
+    shpdata = shpdata[shpdata['cat'] > 0]
     print(' Done.')
 
     rstdata = []
     for rst in rstcsv:
         print("    - %s." % rst, end='')
-        rstdata.append(np.genfromtxt(rst, delimiter='|', names=True,
-                                     usecols=userstcols,
-                                     missing_values=('nan', '-nan'),
-                                     dtype=getcols(allrstn, allrstt,
-                                                   userstcols)))
-        rstdata[-1].sort(order='zone')
+        rstd = np.genfromtxt(rst, delimiter=separator, names=True,
+                             usecols=userstcols,
+                             missing_values=('nan', '-nan'),
+                             dtype=getcols(allrstn, allrstt, skiprst))
+        rstd.sort(order='zone')
+        rstdata.append(rstd[rstd['zone'] > 0])
         print(' Done.')
+
+    npz = 'csvfile.npz'
+    print("Save arrays to: %s" % npz)
+    kwargs = {shpcsv: shpdata}
+    for csv, rst in zip(rstcsv, rstdata):
+        kwargs[csv] = rst
+    np.savez_compressed(npz, **kwargs)
 
     print("Cheking categories and zones correspondance:")
     for i, rst in enumerate(rstdata):
         print("    - <%s>." % rstcsv[i], end='')
 #        if rstcsv[i] == 'median5_contr.csv':
-#            import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         if not (shpdata['cat'] == rst['zone']).all():
             msg = "The categories and the zones are not equal, in <%s>"
             raise ValueError(msg % rstcsv[i])
         print(' Ok.')
 
     print("Conversion from record array to array")
-    shpdata = np.array(shpdata.tolist())
+    newdtype = np.dtype([(n, '<f8') for n in shpdata.dtype.names])
+    shpdata = shpdata.astype(newdtype).view('<f8').reshape((len(shpdata), -1))
     print('.', end='')
     for i, rst in enumerate(rstdata):
-        rstdata[i] = np.array(rst.tolist())
+        # convert to <f8 and remove the first column with the zones
+        newdtype = np.dtype([(n, '<f8') for n in rst.dtype.names][1:])
+        rstdata[i] = rst.astype(newdtype).view('<f8').reshape((len(rst), -1))
         print('.', end='')
     print('Done.')
     # create the new table
     if tab.exist():
         tab.drop(force=True)
     cols = gettablecols(prefixes, allshpn, allshpt, skipshp,
-                        allrstn, allrstt, skiprst)
+                        # remove zone from raster
+                        allrstn[1:], allrstt[1:], skiprst)
     tab.create(cols)
     cur = tab.conn.cursor()
     print("Merge shape table with raster csv.")
-    tab.insert(getrow(shpdata, rstdata, len(cols)), cursor=cur, many=True)
+    tab.insert(getrow(shpdata, rstdata, cols), cursor=cur, many=True)
     tab.conn.commit()
     print("%d rows inserted." % tab.n_rows())
     return tab
-
-
-#link = None
-#with VectorTopo(VSEG, mode='r') as vect:
-#    #link = update_cols(vect.table, CSV, PREFIX, allcsvcols=ALL,
-#    #                   skipcsv=SKIPCSV, skipshp=SKIPSHP)
-#    link = update_cols(vect.table, ECSV, PREFIX, allcsvcols=ALL,
-#                       skipcsv=SKIPCSV, skipshp=ESKIPSHP)
-#    link.layer = vect.layer + 1
-#
-##----------------------------
-#with Vector(VSEG, mode='rw') as vect:
-#    link = Link(layer=NEW_LAYER, name=NEW_NAME_LAYER, table=NEW_TABLE_NAME)
-#    vect.dblinks.add(link)
-
-

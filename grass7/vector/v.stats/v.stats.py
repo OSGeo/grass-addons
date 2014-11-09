@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:	    i.segment.hierarchical
+# MODULE:	    v.stats
 #
 # AUTHOR(S):   Pietro Zambelli (University of Trento)
 #
@@ -67,7 +67,7 @@
 #%  multiple: yes
 #%  description: Skip shape columns
 #%  required: no
-#%  answer: label,non_null_cells,null_cells,mean_of_abs,sum,sum_abs
+#%  answer: label,all_cells,non_null_cells,null_cells,mean_of_abs,sum,sum_abs
 #%end
 #%option
 #%  key: shpcsv
@@ -113,19 +113,27 @@
 #%  multiple: no
 #%  required: no
 #%end
+#%option
+#%  key: separator
+#%  type: string
+#%  description: New vector layer that will be add to the vector map
+#%  multiple: no
+#%  required: no
+#%  answer: ;
+#%end
+#%option
+#%  key: nprocs
+#%  type: integer
+#%  description: Number of process that will be used
+#%  multiple: no
+#%  required: no
+#%  answer: 1
+#%end
 #%flag
 #%  key: r
 #%  description: Read from existing CSV files
 #%end
-
 #-----------------------------------------------------
-"""
-# convert segments to vector
-r.to.vect input=seg_0.05@pietro output=seg005 type=area
-v.category input=seg005 layer=1,2,3,4,5 output=seg_005 type=area option=transfer
-v.to.rast input=seg_005 output=vseg_005
-
-"""
 import sys
 import os
 
@@ -161,6 +169,7 @@ def main(opt, flg):
     rstcsv = (opt['rstcsv'].split(',') if opt['rstcsv']
               else [split(rst)[0] + '.csv' for rst in rasters])
     zones = opt['zones'] if opt['zones'] else vname + '_zones'
+    nprocs = int(opt.get('nprocs', 1))
     if rasters:
         if rprefix and len(rasters) != len(rprefix):
             raise
@@ -176,25 +185,26 @@ def main(opt, flg):
                     else vname + '_stats')
     newtabname = opt['newtabname'] if opt['newtabname'] else vname + '_stats'
     rstpercentile = float(opt['rstpercentile'])
+    separator = opt.get('separator', ';')
 
     #
     # compute
     #
     if not os.path.exists(shpcsv):
-        get_shp_csv(opt['vector'], shpcsv, overwrite)
+        get_shp_csv(opt['vector'], shpcsv, overwrite, separator)
     if not get_mapset_raster(zones):
         get_zones(opt['vector'], zones, layer)
     if not rstcsv or not os.path.exists(rstcsv[0]):
-        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite)
+        get_rst_csv(rasters, zones, rstcsv, rstpercentile, overwrite, 
+                    nprocs, separator)
 
     newlink = Link(newlayer, newlayername, newtabname)
     newtab = newlink.table()
-
     with Vector(vname, vmset, mode='r', layer=layer) as vct:
         mode = 'r' if newlink in vct.dblinks else 'rw'
 
     with VectorTopo(vname, vmset, mode=mode, layer=layer) as vct:
-        update_cols(newtab, shpcsv, rstcsv, prefixes, skipshp, skiprst)
+        update_cols(newtab, shpcsv, rstcsv, prefixes, skipshp, skiprst, separator=separator)
 
         if mode == 'rw':
             # add the new link
