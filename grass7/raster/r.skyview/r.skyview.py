@@ -51,6 +51,7 @@ import sys
 import os
 import atexit
 
+from grass.exceptions import CalledModuleError
 import grass.script.core as gcore
 import grass.script.raster as grast
 from grass.pygrass.messages import get_msgr
@@ -62,7 +63,8 @@ CLEANUP = True
 
 def cleanup():
     if CLEANUP:
-        gcore.run_command('g.remove', flags = 'f', type = 'rast', pattern =TMP_NAME + "*")
+        gcore.run_command('g.remove', flags='f', type='rast',
+                          pattern=TMP_NAME + "*")
 
 
 def main():
@@ -81,33 +83,35 @@ def main():
     if old_maps:
         if not gcore.overwrite():
             CLEANUP = False
-            msgr.fatal(_("You have to first check overwrite flag or remove the following maps:\n"
+            msgr.fatal(_("You have to first check overwrite flag or remove"
+                         " the following maps:\n"
                          "{names}").format(names=','.join(old_maps)))
         else:
-            msgr.warning(_("The following maps will be overwritten: {names}").format(names=','.join(old_maps)))
+            msgr.warning(_("The following maps will be overwritten: {names}"
+                           ).format(names=','.join(old_maps)))
+    try:
+        gcore.run_command('r.horizon', elevation=elev, step=horizon_step,
+                          basename=TMP_NAME, flags='d')
 
-    ret = gcore.run_command('r.horizon', elevin=elev, direction=0, horizonstep=horizon_step,
-                            horizon=TMP_NAME, flags='d')
-    if ret != 0:
-        msgr.fatal(_("r.horizon failed to compute horizon elevation angle maps. "
-                     "Please report this problem to developers."))
+        msgr.message(_("Computing sky view factor ..."))
+        new_maps = _get_horizon_maps()
+        expr = "{out} = 1 - (sin({first}) ".format(first=new_maps[0], out=output)
+        for horizon in new_maps[1:]:
+            expr += "+ sin({name}) ".format(name=horizon)
+        expr += ") / {n}.".format(n=len(new_maps))
 
-    msgr.message(_("Computing sky view factor ..."))
-    new_maps = _get_horizon_maps()
-    expr = "{out} = 1 - (sin({first}) ".format(first=new_maps[0], out=output)
-    for horizon in new_maps[1:]:
-        expr += "+ sin({name}) ".format(name=horizon)
-    expr += ") / {n}.".format(n=len(new_maps))
-
-    grast.mapcalc(exp=expr)
-    gcore.run_command('r.colors', map=output, color='grey')
-
+        grast.mapcalc(exp=expr)
+        gcore.run_command('r.colors', map=output, color='grey')
+    except CalledModuleError:
+        msgr.fatal(_("r.horizon failed to compute horizon elevation "
+                     "angle maps. Please report this problem to developers."))
+        return 1
     return 0
 
 
 def _get_horizon_maps():
-    return gcore.mlist_grouped('rast',
-                               pattern=TMP_NAME + "*")[gcore.gisenv()['MAPSET']]
+    return gcore.list_grouped('rast',
+                              pattern=TMP_NAME + "*")[gcore.gisenv()['MAPSET']]
 
 
 if __name__ == "__main__":
