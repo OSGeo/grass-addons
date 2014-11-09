@@ -22,7 +22,6 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%option G_OPT_V_INPUT
 #% key: vector
-#% description: Name of habitat vector map 
 #% required: yes
 #%end
 
@@ -40,8 +39,8 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%option
 #% key: distance
-#% type: double
-#% key_desc: double
+#% type: integer
+#% key_desc: integer
 #% description: fixed distance between segment points
 #% required : no
 #% answer: 100
