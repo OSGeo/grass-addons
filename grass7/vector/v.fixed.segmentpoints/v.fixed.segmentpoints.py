@@ -60,6 +60,8 @@ def main():
     vcat = options['cat']
     directory = options['dir']
     sdistance = options['distance']
+    fpointscsv = 't_segmentpoints.csv'
+    fpointscsv_export = 'segmentpoints.csv'
     fpoints = 'segmentpoints.txt'
     global tmp	 
 	
@@ -141,6 +143,7 @@ def main():
                                      file = segment_points_file)	
 
     grass.run_command("v.db.addtable", map = 'segmentpoints')
+    grass.message( "v.segment done." )
     grass.message( "----" )	
 
     # Adding coordinates to segment points attribute table.	
@@ -154,14 +157,67 @@ def main():
                                      option = 'coor',
                                      layer = 1, 
                                      columns = 'xcoor,ycoor')
+
+    grass.message( "Coordinates added." )										 
     grass.message( "----" )
 	
-#    TODO join point segment file to point vector								 
-#    grass.run_command("db.in.ogr", dsn = segment_points_file,
-#                                     output = 't_segment_points_file')									 
+    # join point segment file data to point vector
+    grass.message( "Join distance information to segment point vector ..." )	
+    segment_points_file_csv = os.path.join( directory, fpointscsv )								 
+    with open('%s' % (segment_points_file), 'r') as d:
+        with open('%s' % (segment_points_file_csv), 'w' ) as f:
+            for line in d:
+                new_line = line.replace(" ", ";")
+                f.write(new_line)
+
+    grass.run_command("db.in.ogr", dsn = "%s" % segment_points_file_csv)
+
+    grass.run_command("v.db.join", map = 'segmentpoints',
+                                     column = 'cat',
+                                     otable = 't_segmentpoints_csv', 
+                                     ocolumn = 'field_2',
+                                     scolumns = 'field_2,field_4')
+
+    grass.run_command("db.droptable", table = 't_segmentpoints_csv',
+                                     flags = 'f')									 
 									 
-								 
+    grass.run_command("v.db.addcolumn", map = 'segmentpoints',
+                                     layer = 1, 
+                                     columns = "cat_2 integer,distance double")	
+
+    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET cat_2 =  field_2")	
+    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET distance =  field_4")										 
+    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET distance =  %s WHERE cat = %s" %(vector_line_length, number_segmentpoints_with_end))
+	
+    grass.run_command("db.dropcolumn", table = 'segmentpoints',
+                                     column = 'field_2',
+                                     flags = 'f')									 
+									 
+    grass.run_command("db.dropcolumn", table = 'segmentpoints',
+                                     column = 'field_4',
+                                     flags = 'f')	
+	
+    grass.message( "Distance information added to attribute table." )									 
     grass.message( "----" )
+
+    # export segment point attribute table as csv	
+    grass.message( "Export segment point attribute table as CSV file ..." )	
+
+    csv_to_export = os.path.join( directory, fpointscsv_export )	
+
+    grass.run_command("db.out.ogr", input = 'segmentpoints',
+                                     dsn = '%s' % (csv_to_export),
+                                     format = 'CSV')			
+	
+    grass.message( "Export done." )
+    grass.message( "----" )
+
+    # clean up some temporay files and maps
+    grass.message( "Some clean up ..." )	
+    os.remove("%s" % segment_points_file_csv)
+    grass.message( "Clean up done." )
+    grass.message( "----" )									 
+
     # v.fixed.segmentpoints done!	
     grass.message( "v.fixed.segmentpoints done!" )	
 
