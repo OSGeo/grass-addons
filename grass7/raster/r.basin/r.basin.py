@@ -80,10 +80,14 @@ if not os.environ.has_key("GISBASE"):
 
 # check requirements
 def check_progs():
+    found_missing = False
     for prog in ('r.hypso', 'r.stream.basins', 'r.stream.distance', 'r.stream.extract',
     'r.stream.order','r.stream.snap','r.stream.stats', 'r.width.funct'):
         if not grass.find_program(prog, '--help'):
-            grass.fatal(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+            found_missing = True
+            grass.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+    if found_missing:
+        grass.error_("An ERROR occurred running r.basin")
 
 def main():
     # check dependencies
