@@ -49,11 +49,18 @@ int main(int argc, char *argv[])
   module = G_define_module();
   G_add_keyword(_("raster"));
   G_add_keyword(_("3D raster"));
+<<<<<<< .mine
+  G_add_keyword(_("ordinary kriging - for 2D and 3D data"));
+  module->description =
+    _("Interpolates 2D or 3D raster based on input values located on 2D or 3D point vector layer (method ordinary kriging extended to 3D).");
+
+=======
   G_add_keyword(_("ordinary kriging"));
   module->label =
     _("Interpolates 2D or 3D raster map based on input values located on 2D or 3D vector point map.");
   module->description = _("Method ordinary kriging extended to 3D.");
   
+>>>>>>> .r62698
   // Setting options
   opt.input = G_define_standard_option(G_OPT_V_INPUT); // Vector input layer
   opt.input->label = _("Name of input vector points map");
@@ -68,7 +75,7 @@ int main(int argc, char *argv[])
   opt.phase = G_define_option();
   opt.phase->key = "phase";
   opt.phase->options = "initial, middle, final";
-  opt.phase->description = _("Phase of interpolation");
+  opt.phase->description = _("Phase of interpolation. In the initial phase, there is empirical variogram computed. In the middle phase, function of theoretical variogram is chosen by the user and its coefficients are estimated empirically. In the final phase, unknown values are interpolated using theoretical variogram from previous phase.");
   opt.phase->required = YES;
 
   opt.output = G_define_option(); // Output layer
@@ -79,65 +86,65 @@ int main(int argc, char *argv[])
 
   opt.report = G_define_standard_option(G_OPT_F_OUTPUT); // Report file
   opt.report->key = "report";
-  opt.report->description = _("Report file");
+  opt.report->description = _("Path and name of a file where the report should be written (initial phase only)");
   opt.report->required = NO;
-  opt.report->guisection = _("Files");
+  opt.report->guisection = _("Initial");
 
   opt.crossvalid = G_define_standard_option(G_OPT_F_OUTPUT); // Report file
   opt.crossvalid->key = "crossvalid";
-  opt.crossvalid->description = _("File with crooss validation results");
+  opt.crossvalid->description = _("Path and name of a file where the results of cross validation should be written (final phase only)");
   opt.crossvalid->required = NO;
-  opt.crossvalid->guisection = _("Files");
+  opt.crossvalid->guisection = _("Final");
 
   flg.bivariate = G_define_flag();
   flg.bivariate->key = 'b';
-  flg.bivariate->description = _("Compute bivariate variogram");
+  flg.bivariate->description = _("Compute bivariate variogram (just in case of 3D interpolation)");
   flg.bivariate->guisection = _("Middle");
 
   flg.univariate = G_define_flag();
   flg.univariate->key = 'u';
-  flg.univariate->description = _("Compute univariate variogram");
+  flg.univariate->description = _("Compute univariate variogram (just in case of 3D interpolation)");
   flg.univariate->guisection = _("Middle");
 
   opt.function_var_hz = G_define_option(); // Variogram type
   opt.function_var_hz->key = "hz_function";
   opt.function_var_hz->options = "linear, exponential, spherical, gaussian, bivariate";
-  opt.function_var_hz->description = _("Type of horizontal variogram function");
+  opt.function_var_hz->description = _("Type of horizontal variogram function (just in middle phase)");
   opt.function_var_hz->guisection = _("Middle");
 
   opt.function_var_vert = G_define_option(); // Variogram type
   opt.function_var_vert->key = "vert_function";
   opt.function_var_vert->options = "linear, exponential, spherical, gaussian, bivariate";
-  opt.function_var_vert->description = _("Type of vertical variogram function");
+  opt.function_var_vert->description = _("Type of vertical variogram function (just in middle phase)");
   opt.function_var_vert->guisection = _("Middle");
 
   opt.function_var_final = G_define_option(); // Variogram type
   opt.function_var_final->key = "final_function";
   opt.function_var_final->options = "linear, exponential, spherical, gaussian, bivariate";
-  opt.function_var_final->description = _("Type of final variogram function");
+  opt.function_var_final->description = _("Type of final variogram function (just in final phase)");
   opt.function_var_final->guisection = _("Final");
 
   flg.detrend = G_define_flag();
   flg.detrend->key = 't';
-  flg.detrend->description = _("Eliminate trend if variogram is parabolic...");
+  flg.detrend->description = _("Eliminate trend if variogram is parabolic (just in initial phase)");
   flg.detrend->guisection = _("Initial");    
 
   opt.form_file = G_define_option(); // Variogram plot - various output formats
   opt.form_file->key = "fileformat";
   opt.form_file->options = "cdr,dxf,eps,tex,pdf,png,svg";
-  opt.form_file->description = _("Various file formats");
+  opt.form_file->description = _("Variogram plot (set up in the middle phase) can be saved in several file formats or just presented in Gnuplot terminal (if fileformat is not set)");
   opt.form_file->guisection = _("Middle");
 
   opt.intpl = G_define_standard_option(G_OPT_DB_COLUMN); // Input values for interpolation
   opt.intpl->key = "icolumn";
   opt.intpl->description =
-    _("Column containing input values for interpolation");
+    _("Name of the attribute column containing input values for interpolation");
   opt.intpl->required = YES;
 
   opt.zcol = G_define_standard_option(G_OPT_DB_COLUMN); // Column with z coord (2D points)
   opt.zcol->key = "zcolumn";
   opt.zcol->description =
-    _("Column containing z coordinates - set only if you want to process 3D interpolation based on 2D point layer");
+    _("Name of the attribute column containing z coordinates - set only if you want to perform 3D interpolation based on 2D point layer");
   opt.zcol->required = NO;
   opt.zcol->guisection = _("3D");
 
@@ -147,7 +154,7 @@ int main(int argc, char *argv[])
   opt.var_dir_hz->required = NO;
   opt.var_dir_hz->answer = "0.0";
   opt.var_dir_hz->description =
-    _("Azimuth of computing variogram (isotrophic)");
+    _("Azimuth of variogram computing (isotrophic), initial phase only ");
   opt.var_dir_hz->guisection = _("Initial");
 
   opt.var_dir_vert = G_define_option();
@@ -156,14 +163,14 @@ int main(int argc, char *argv[])
   opt.var_dir_vert->required = NO;
   opt.var_dir_vert->answer = "0.0";
   opt.var_dir_vert->description =
-    _("Zenith angle of computing variogram (isotrophic)");
+    _("Zenith angle of variogram computing (isotrophic), initial phase only");
   opt.var_dir_vert->guisection = _("Initial");
 
   opt.nL = G_define_option();
   opt.nL->key = "lpieces";
   opt.nL->type = TYPE_INTEGER;
   opt.nL->required = NO;
-  opt.nL->description = _("Count of length pieces");
+  opt.nL->description = _("Count of length pieces, initial phase only");
   opt.nL->guisection = _("Initial");
 
   opt.nZ = G_define_option();
@@ -171,77 +178,77 @@ int main(int argc, char *argv[])
   opt.nZ->type = TYPE_INTEGER;
   opt.nZ->required = NO;
   opt.nZ->description =
-    _("Count of vertical pieces (set only for counting 3D variogram)");
+    _("Count of vertical pieces (set only for computing 3D variogram), initial phase only");
   opt.nZ->guisection = _("Initial");
 
   opt.td_hz = G_define_option();
   opt.td_hz->key = "td";
   opt.td_hz->type = TYPE_DOUBLE;
   opt.td_hz->answer = "90.0";
-  opt.td_hz->description = _("Angle of variogram processing");
+  opt.td_hz->description = _("Angle of variogram processing, initial phase only");
   opt.td_hz->required = NO;
   opt.td_hz->guisection = _("Initial");
 
   opt.nugget_hz = G_define_option();
   opt.nugget_hz->key = "hz_nugget";
   opt.nugget_hz->type = TYPE_DOUBLE;
-  opt.nugget_hz->description = _("Nugget effect");
+  opt.nugget_hz->description = _("Nugget effect of horizontal variogram, middle phase only");
   opt.nugget_hz->required = NO;
   opt.nugget_hz->guisection = _("Middle");
 
   opt.nugget_vert = G_define_option();
   opt.nugget_vert->key = "vert_nugget";
   opt.nugget_vert->type = TYPE_DOUBLE;
-  opt.nugget_vert->description = _("Nugget effect");
+  opt.nugget_vert->description = _("Nugget effect of vertical variogram, middle phase only");
   opt.nugget_vert->required = NO;
   opt.nugget_vert->guisection = _("Middle");
 
   opt.nugget_final = G_define_option();
   opt.nugget_final->key = "final_nugget";
   opt.nugget_final->type = TYPE_DOUBLE;
-  opt.nugget_final->description = _("Nugget effect");
+  opt.nugget_final->description = _("Nugget effect of final variogram, final phase only");
   opt.nugget_final->required = NO;
   opt.nugget_final->guisection = _("Final");
 
   opt.sill_hz = G_define_option();
   opt.sill_hz->key = "hz_sill";
   opt.sill_hz->type = TYPE_DOUBLE;
-  opt.sill_hz->description = _("Variogram sill");
+  opt.sill_hz->description = _("Sill of horizontal variogram, middle phase only");
   opt.sill_hz->required = NO;
   opt.sill_hz->guisection = _("Middle");
 
   opt.sill_vert = G_define_option();
   opt.sill_vert->key = "vert_sill";
   opt.sill_vert->type = TYPE_DOUBLE;
-  opt.sill_vert->description = _("Variogram sill");
+  opt.sill_vert->description = _("Sill of vertical variogram, middle phase only");
   opt.sill_vert->required = NO;
   opt.sill_vert->guisection = _("Middle");
 
   opt.sill_final = G_define_option();
   opt.sill_final->key = "final_sill";
   opt.sill_final->type = TYPE_DOUBLE;
-  opt.sill_final->description = _("Variogram sill");
+  opt.sill_final->description = _("Sill of final variogram, final phase only");
   opt.sill_final->required = NO;
   opt.sill_final->guisection = _("Final");
 
   opt.range_hz = G_define_option();
   opt.range_hz->key = "hz_range";
   opt.range_hz->type = TYPE_DOUBLE;
-  opt.range_hz->description = _("Variogram range");
+  opt.range_hz->description = _("Range of horizontal variogram, middle phase only");
   opt.range_hz->required = NO;
   opt.range_hz->guisection = _("Middle");
 
   opt.range_vert = G_define_option();
   opt.range_vert->key = "vert_range";
   opt.range_vert->type = TYPE_DOUBLE;
-  opt.range_vert->description = _("Variogram range");
+  opt.range_vert->description = _("Range of vertical variogram, middle phase only");
   opt.range_vert->required = NO;
   opt.range_vert->guisection = _("Middle");
 
   opt.range_final = G_define_option();
   opt.range_final->key = "final_range";
   opt.range_final->type = TYPE_DOUBLE;
-  opt.range_final->description = _("Variogram range");
+  opt.range_final->description = _("Range of final variogram, final phase only");
   opt.range_final->required = NO;
   opt.range_final->guisection = _("Final");
   /* --------------------------------------------------------- */
@@ -377,8 +384,10 @@ int main(int argc, char *argv[])
   } // end if 3D interpolation
 
     /* 2D interpolation */  
-  else
+  else {
+    G_fatal_error(_("Access to 2D kriging is denied temporarily. Please feel free to use 3D kriging..."));
     var_par.vert.nLag = -1; // abs will be used in next steps
+  }
 
   field = Vect_get_field_number(&map, opt.field->answer);
   if (xD.report.write2file == TRUE)
@@ -395,20 +404,29 @@ int main(int argc, char *argv[])
   case 0:
     /* Determine maximal horizontal (and vertical) distance + lags */
     var_par.hz.type = 0;
-    var_par.vert.type = 1;
+    if (xD.i3 == TRUE) {
+      var_par.vert.type = 1;
+    }
       
     variogram_restricts(&xD, &pnts, pclp.pnts_hz, &var_par.hz);
-    variogram_restricts(&xD, &pnts, pclp.pnts_vert, &var_par.vert);
+    if (xD.i3 == TRUE) {
+      variogram_restricts(&xD, &pnts, pclp.pnts_vert, &var_par.vert);
+    }
 
-    if (var_par.vert.nLag > var_par.hz.nLag) {
+    if (xD.i3 == TRUE && var_par.vert.nLag > var_par.hz.nLag) {
       var_par.vert.nLag = var_par.hz.nLag;
       var_par.vert.lag = var_par.vert.max_dist / var_par.vert.nLag;
       write2file_varSets(&xD.report, &var_par.vert);
     }
     
     E_variogram(0, &xD, &pnts, &pclp, &var_par);
-    E_variogram(1, &xD, &pnts, &pclp, &var_par);
-    G_message(_("You may continue to computing theoretical variograms (middle phase)..."));
+    if (xD.i3 == TRUE) {
+      E_variogram(1, &xD, &pnts, &pclp, &var_par);
+      G_message(_("You may continue to computing theoretical variograms (middle phase)..."));
+    }
+    else {
+      G_message(_("You may continue to computing theoretical variograms (final phase)..."));
+    }
     goto end;
   case 1:
     read_tmp_vals("variogram_hz_tmp.txt", &var_par.hz, &xD);

@@ -1,3 +1,44 @@
+<<<<<<< .mine
+<h2>DESCRIPTION</h2>
+
+<em>v.kriging</em> interpolates unknown values using method <i>ordinary kriging</i>. Output can be 2D (temporarily denied) or 3D.
+
+<h2>EXAMPLES</h2>
+Input layer should contain 3D coordinates (xyz) and values to be interpolated (in attribute table). The commands can look like this:
+
+<div class="code"><pre>
+v.kriging phase=initial in=input_layer icol=name report=report_file.txt file=png --o
+</pre></div>
+<div class="code"><pre>
+v.kriging in=input_layer phase=middle hz_fun=exponential vert_fun=exponential ic=name file=png hz_nugget=0 vert_nugget=0 hz_range=double vert_range=double --o -b
+</pre></div>
+<div class="code"><pre>
+v.kriging in=input_layer phase=final final_fun=bivariate icol=name file=png out=name crossval=crossval_file.txt --o
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.vol.rst.html">v.vol.rst</a><br>
+<a href="v.krige.html">v.krige</a>
+</em>
+
+<h2>REQUIREMENTS</h2>
+<ul>
+<li><b>Gnuplot</b> graphing utility, <a href="http://www.gnuplot.info/">more</a><br>
+<li><b>LAPACK / BLAS</b> (libraries for numerical computing) for
+GMATH library (GRASS Numerical Library)<br>
+<a href="http://www.netlib.org/lapack">http://www.netlib.org/lapack</a> (usually available on Linux distros)
+<li><a href="http://pointclouds.org">Point Cloud Library</a>
+</ul>
+
+<h2>AUTHOR</h2>
+
+Eva Stopkova<br>
+functions taken from another modules are cited above the function or at the beginning of the file (e.g. <i>quantile.cpp</i> that uses slightly modified functions taken from the module <i>r.quantile</i> (Clemens, G.))
+<p>
+<i>Last changed: $Date$</i>
+=======
 <h2>DESCRIPTION</h2>
 
 TODO
@@ -21,3 +62,4 @@ Eva Stopkova
 
 <p>
 <i>Last changed: $Date$</i>
+>>>>>>> .r62698
