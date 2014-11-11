@@ -87,7 +87,7 @@ def check_progs():
             found_missing = True
             grass.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
     if found_missing:
-        grass.error_("An ERROR occurred running r.basin")
+        grass.error(_("An ERROR occurred running r.basin"))
 
 def main():
     # check dependencies
