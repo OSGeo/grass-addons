@@ -43,21 +43,7 @@ struct nna_par
 {
   int i3;  // TRUE = 3D NNA, FALSE = 2D NNA (user sets by flag) 
   char v3; // TRUE = 3D layer, FALSE = 2D layer (according to Vect_is_3d()) 
-};
-
-typedef char *string;
-union dat
-{
-  int *i_dat;
-  double *f_dat;
-  string *s_dat;
-};
-
-struct columns
-{
-  int *lyr;  // archaeological layer
-  double *z; // z coordinate 
-  string *desc; // description of artifact 
+  char *zcol; // not NULL if 3D NNA using 2D layer is required
 };
 
 struct convex
@@ -80,8 +66,8 @@ struct nearest
 };
 
 extern "C" {
-  void *get_col_values(struct Map_info *, int, const char *, union dat *);
-  void read_points(struct Map_info *, int, struct nna_par *, const char *, union dat *, struct points *);
+  double *get_col_values(struct Map_info *, int, const char *);
+  void read_points(struct Map_info *, int, struct nna_par *, const char *, struct points *);
   double *triple(double, double, double);
   
   double bearing(double, double, double, double);
@@ -94,7 +80,7 @@ extern "C" {
   int nn_average_distance_real(struct points *, struct nearest *);
   void density(struct points *, struct nna_par *, const char *, struct nearest *);
   void nn_average_distance_expected(struct nna_par *, struct nearest *);
-  void nn_results(struct points *, struct nearest *);
+  void nn_results(struct points *, struct nna_par *, struct nearest *);
   void nn_statistics(struct points *, struct nna_par *, struct nearest *);
 } // end extern "C"
 #endif

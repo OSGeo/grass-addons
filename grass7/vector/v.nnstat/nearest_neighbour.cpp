@@ -90,23 +90,51 @@ extern "C" {
    * Two-tailed Student's test of significance of the mean
    * ---------------------------------*/
 
-  void nn_results(struct points *pnts, struct nearest *nna)
+  void nn_results(struct points *pnts, struct nna_par *xD, struct nearest *nna)
   {
-    G_message(_("\nNearest Neighbour Analysis results\n"));
-    G_message(_("Number of points .......... %d\nArea/Volume .......... %f\nDensity of points ............ %f"), pnts->n, nna->A, nna->rho);
-    G_message(_("Average distance between the nearest neighbours ............ %f m\nAverage expected distance between the nearest neighbours ... %f m\n Ratio rA/rE ... %f\n\nResults of two-tailed test of the mean\nNull hypothesis: Point set is randomly distributed within the region.\nStandard variate of the normal curve> c = %f"), nna->rA, nna->rE, nna->R, nna->c);
+    G_message(_("\n*** Nearest Neighbour Analysis results ***\n"));
+    if (xD->zcol != NULL) {
+      G_message(_("Input settings .. 3D layer: %d .. 3D NNA: %d .. zcolumn: %s"), xD->v3, xD->i3, xD->zcol);
+    }
+    else {
+      G_message(_("Input settings .. 3D layer: %d 3D NNA: %d"), xD->v3, xD->i3);
+    }
+    G_message(_("Number of points .......... %d"), pnts->n);
+    if (xD->i3 == TRUE) {
+      G_message(_("Volume .................... %f [units^3]"), nna->A);
+    }
+    else {
+      G_message(_("Area ...................... %f [units^2]"), nna->A);
+    }
+    G_message(_("Density of points ......... %f"), nna->rho);
+    G_message(_("Average distance between the nearest neighbours ........... %.3f [units]"), nna->rA);
+    G_message(_("Average expected distance between the nearest neighbours .. %.3f [units]"), nna->rE);
+    G_message(_("Ratio rA/rE ............... %f"), nna->R);
+    G_message(_("\n*** Results of two-tailed test of the mean ***"));
+    G_message(_("Null hypothesis: Point set is randomly distributed within the region."));
+    G_message(_("Standard variate of the normal curve> c = %f"), nna->c);
 
     /* two-tailed test of the mean */
-    if (-1.96 < nna->c && nna->c < 1.96)
+    if (-1.96 < nna->c && nna->c < 1.96) {
       G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05"));
-    if (-2.58 < nna->c && nna->c <= -1.96)
-      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is clustered.\nNull hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
-    if (1.96 <= nna->c && nna->c < 2.58)
-      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is dispersed.\nNull hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
-    if (nna->c <= -2.58)
+    }
+    if (-2.58 < nna->c && nna->c <= -1.96) {
+      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is clustered."));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
+    }
+    
+    if (1.96 <= nna->c && nna->c < 2.58) {
+      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is dispersed."));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
+    }
+
+    if (nna->c <= -2.58) {
       G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is clustered."));
-    if (nna->c >= 2.58)
-      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is dispersed. %f"), nna->c);
+    }
+    if (nna->c >= 2.58) {
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is dispersed."));
+    }
+    G_message(_(""));
   }
 
   void nn_statistics(struct points *pnts, struct nna_par *xD, struct nearest *nna)
@@ -125,6 +153,6 @@ extern "C" {
     sig_rE = sqrt(var_rE); /* standard error of the mean distance */
     nna->c = (nna->rA - nna->rE) / sig_rE; /* standard variate of the normal curve */
 
-    nn_results(pnts, nna);
+    nn_results(pnts, xD, nna);
   }
 }

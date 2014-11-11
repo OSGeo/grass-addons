@@ -125,12 +125,12 @@ int convexHull(struct points *pnts, struct convex *hull)
     hc = &hull->coord[0];
     hh = &hull->hull[0];
 
-    for (i=0; i<=hull->n; i++) {
+    for (i=0; i <= hull->n; i++) {
       if (i < hull->n) {
 	*hc = (*(r+*hh))[0];
 	*(hc+1) = (*(r+*hh))[1];
-	*(hc+2) = (*(r+*hh))[2];
-	r++;
+	*(hc+2) = (*(r+*hh))[2]; 
+	//G_debug(0,"%f %f %f", *hc, *(hc+1), *(hc+2));
 	hc += 3;
 	hh++;
       }
@@ -140,7 +140,7 @@ int convexHull(struct points *pnts, struct convex *hull)
 	*hc = (*(r0+*hh0))[0];
 	*(hc+1) = (*(r0+*hh0))[1];
 	*(hc+2) = (*(r0+*hh0))[2];
-      }      
+      }   
     }
     return hull->n;
 }
@@ -168,35 +168,40 @@ double MBR(struct points *pnts)
   S_min = (pnts->r_max[0] - pnts->r_min[0]) * (pnts->r_max[1] - pnts->r_min[1]); /* Area of extent */
   
   for (i=0; i < hull.n; i++) {
-    /* Bearings of hull edges */
+    /* Bearings of each hull edge */
     us = bearing(*hc, *(hc+3), *(hc+1), *(hc+4)); // x0, x1, y0, y1
     if (us == -9999) // Identical points
       continue;
+
     cosus = cos(us);
     sinus = sin(us);
 
-    hc_k = &hull.coord[0]; // original coords
+    hc_k = &hull.coord[0]; // original coords of k-point of hull
     for (k=0; k <= hull.n; k++) {
       /* Coordinate transformation */
+      // all the points into coordinate system with x axis parallel with i-edge
       *ht = *hc_k * cosus + *(hc_k+1) * sinus;
-      *(ht+1) = -(*hc_k) * sinus + *(hc_k+1) * cosus;
+      *(ht+1) = -1. * (*hc_k) * sinus + *(hc_k+1) * cosus;
       *(ht+2) = *(hc_k+2);
+      //G_debug(0, "%f %f %f", *ht,*(ht+1),*(ht+2));
 
       /* Transformed extent */
       switch (k) {
       case 0:
-	r_min = r_max = triple(*ht, *(ht+1), *(ht+2)); break;
+	r_min = r_max = triple(*ht, *(ht+1), *(ht+2)); 
+	break;
       default:
 	r_min = triple(MIN(*ht, *r_min), MIN(*(ht+1), *(r_min+1)), MIN(*(ht+2), *(r_min+2)));
 	r_max = triple(MAX(*ht, *r_max), MAX(*(ht+1), *(r_max+1)), MAX(*(ht+2), *(r_max+2)));
       }
       hc_k += 3;
     } // end k
-
     hc += 3; // next point
-    
+        
+    //G_debug(0, "%f %f %f %f %f %f", *r_min, *(r_min+1), *(r_min+2), *r_max, *(r_max+1), *(r_max+2));
     S = (*r_max - *r_min) * (*(r_max+1) - *(r_min+1)); /* Area of transformed extent */
     S_min = MIN(S, S_min);
+    
   } // end i
 
   return S_min;

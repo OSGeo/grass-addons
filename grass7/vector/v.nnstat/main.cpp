@@ -4,7 +4,7 @@
  * MODULE:	v.nnstat
  * 
  * AUTHOR(S):	Eva Stopková
- *              functionsin files mbr.cpp and mbb.cpp are mostly taken 
+ *              functions in files mbr.cpp and mbb.cpp are mostly taken 
  *              from the module 
  *              v.hull (Aime, A., Neteler, M., Ducke, B., Landa, M.)
  *			   
@@ -24,13 +24,12 @@ extern "C" {
   int main(int argc, char *argv[])
   {
     /* Vector layer and module */
-    struct Map_info map; /* input vector map */
+    struct Map_info map;    // input vector map
     struct GModule *module;
-    struct nna_par xD; /* 2D or 3D NNA */
-    struct points pnts;
-    union dat ifs; /* integer/float/string value */
+    struct nna_par xD;      // 2D or 3D NNA to be performed
+    struct points pnts;     // points: coordinates, number etc.
 
-    struct nearest nna;
+    struct nearest nna;     // structure to save results
     int field, pass;
 
     struct {
@@ -67,7 +66,7 @@ extern "C" {
     opt.zcol->key = "zcolumn";
     opt.zcol->required = NO;
     opt.zcol->guisection = _("Fields");
-    opt.zcol->description = _("Column with z coordinate (set for 2D vectors only)");
+    opt.zcol->description = _("Column with z coordinate (set for 2D vectors only if 3D NNA is required to be performed)");
 
     G_gisinit(argv[0]);
 
@@ -85,19 +84,28 @@ extern "C" {
     Vect_set_error_handler_io(&map, NULL);
 
     /* perform 2D or 3D NNA ? */
-    xD.v3 = Vect_is_3d(&map);
-    xD.i3 = (flg.d23->answer || xD.v3 == FALSE) ? FALSE : TRUE;
+    xD.v3 = Vect_is_3d(&map); // test if vector layer is 2D or 3D
+    xD.i3 = (flg.d23->answer || (xD.v3 == FALSE && opt.zcol->answer == NULL)) ? FALSE : TRUE; // if -2 flag or input layer is 2D (without zcolumn), perform 2D NNA, otherwise 3D
 
-    if (xD.i3 == TRUE) { /* 3D */
-      if (xD.v3 == FALSE) { /* 2D input */
-	if (opt.zcol->answer == NULL)
-	  G_fatal_error(_("To process 3D Nearest Neighbour Analysis based on 2D input, "
-			  "please set attribute column containing z coordinates "
-			  "or switch to 2D NNA."));
+    /* Fatal error */
+    /*if (xD.i3 == TRUE) { // if 3D NNA is to be performed...
+      if (xD.v3 == FALSE && opt.zcol->answer == NULL) { // ... and column with elevations for 2D input is missing 
+	G_fatal_error(_("To process 3D Nearest Neighbour Analysis based on 2D input, "
+			"please set attribute column containing z coordinates "
+			"or switch to 2D NNA."));
       }
+      }*/
+    
+    /* Warnings */
+    if (flg.d23->answer && opt.zcol->answer) { // -2 flag (2D) vs. zcolumn (3D)
+      G_warning(_("Flag -2 has higher priority than zcolumn considered in 2D layer. 2D Nearest Neighbour Analysis will be performed instead of 3D. If you wish to perform 3D Nearest Neighbour Analysis, please remove flag -2."));
     }
 
-    read_points(&map, field, &xD, opt.zcol->answer, &ifs, &pnts);
+    if (xD.v3 == TRUE && opt.zcol->answer) {
+      G_warning(_("Input layer <%s> is 3D - it was not necessary to set up attribute column. 3D Nearest Neighbour Analysis is being performed..."), opt.map->answer);
+    }
+
+    read_points(&map, field, &xD, opt.zcol->answer, &pnts);
 
     /* Nearest Neighbour Analysis */
     pass = nn_average_distance_real(&pnts, &nna);  // Average distance (AD) between NN in pointset

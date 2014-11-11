@@ -2,7 +2,7 @@
 
 extern "C" {
   /* get array of values from attribute column (function based on part of v.buffer2 (Radim Blazek, Rosen Matev)) */
-  void *get_col_values(struct Map_info *map, int field, const char *column, union dat *ifs)
+  double *get_col_values(struct Map_info *map, int field, const char *column)
   {
     int i, nrec, ctype;
     struct field_info *Fi;
@@ -10,9 +10,7 @@ extern "C" {
     dbCatValArray cvarr;
     dbDriver *Driver;
 
-    int *iv;
-    double *fv;
-    string *sv;
+    double *values, *vals;
 
     db_CatValArray_init(&cvarr);	/* array of categories and values initialised */
 
@@ -35,38 +33,39 @@ extern "C" {
 			    &cvarr);
     if (nrec < 0)
       G_fatal_error(_("Unable to select data from table <%s>"), Fi->table);
-    G_message(_("%d records selected from table"), nrec);
+    G_message(_("Reading elevations from attribute table: %d records selected"), nrec);
     ctype = cvarr.ctype;
     
     db_close_database_shutdown_driver(Driver);
 
-    switch (ctype) {
-    case DB_C_TYPE_INT: ifs->i_dat = (int *) G_malloc(cvarr.n_values * sizeof(int)); iv = &ifs->i_dat[0]; break;
-    case DB_C_TYPE_DOUBLE: ifs->f_dat = (double *) G_malloc(cvarr.n_values * sizeof(double)); fv = &ifs->f_dat[0]; break;
-    case DB_C_TYPE_STRING: ifs->s_dat = (char **) G_malloc(cvarr.n_values * sizeof(char)); sv = &ifs->s_dat[0];
-    } 
+    values = (double *) G_malloc(cvarr.n_values * sizeof(double));
+    vals = &values[0];
 
     for (i = 0; i < cvarr.n_values; i++) {
-      switch (ctype) {
-      case DB_C_TYPE_INT: *iv = cvarr.value[i].val.i; iv++; break;
-      case DB_C_TYPE_DOUBLE: *fv = cvarr.value[i].val.d; fv++; break;
-      case DB_C_TYPE_STRING:
-	G_message(_("cvarr = %s"), db_get_string(cvarr.value[i].val.s));
-	*sv = db_get_string(cvarr.value[i].val.s);
-	G_message(_("ifs = %s"), *sv);
-	sv++;
+      if (ctype == DB_C_TYPE_INT) {
+	*vals = (double) cvarr.value[i].val.i;
       }
+      if (ctype == DB_C_TYPE_DOUBLE) {
+	*vals = cvarr.value[i].val.d;
+      }
+      if (ctype == DB_C_TYPE_STRING) {
+	G_fatal_error(_("The column must be numeric..."));
+      }
+      vals++;
     }
+
+    return values;
   }
 
 /* get coordinates of input points */
   void read_points(struct Map_info *map, int field, struct nna_par *xD,
-		const char *zcol, union dat *ifs, struct points *point)
+		const char *zcol, struct points *point)
   {
     int ctrl, n, type, nskipped, pass;
 
     struct line_pnts *Points;	/* structures to hold line *Points (map) */
-    double *rx, *ry, *rz, *z_attr;
+    double *rx, *ry, *rz;
+    double *z_attr, *z;
 
     Points = Vect_new_line_struct();
     n = point->n = Vect_get_num_primitives(map, GV_POINT);	/* topology required */
@@ -77,11 +76,18 @@ extern "C" {
     rz = &point->r[2];
 
     /* Get 3rd coordinate of 2D points from attribute column -> 3D interpolation */
-    /*if (xD.v3 == FALSE && zcol != NULL)
-      z_attr = get_col_values(map, field, zcol);*/
-        
+    if (xD->v3 == FALSE && zcol != NULL) {
+      xD->zcol = (char *) G_malloc(strlen(zcol) * sizeof(char));
+      strcpy(xD->zcol, zcol);
+      z_attr = get_col_values(map, field, zcol);
+      z = &z_attr[0];
+    }
+    else {
+      xD->zcol = NULL;
+    }
+            
     nskipped = ctrl = pass = 0;
-
+    
     while (TRUE) {
       type = Vect_read_next_line(map, Points, NULL);
       if (type == -1)
@@ -98,12 +104,17 @@ extern "C" {
       *ry = Points->y[0];
       
       // 3D points or 2D points without attribute column -> 2D interpolation
-      if (zcol == NULL) 
-	*rz = Points->z[0];
-      /* TODO: 2D */
+      if (xD->zcol == NULL) {
+	if (xD->v3 == TRUE && xD->i3 == FALSE) {
+	  *rz = 0.;
+	}
+	else {
+	  *rz = Points->z[0];
+	}
+      }
       else {
-	*rz = *z_attr;
-	z_attr++;
+	*rz = *z;
+	z++;
       }
 
       /* Find extends */	
