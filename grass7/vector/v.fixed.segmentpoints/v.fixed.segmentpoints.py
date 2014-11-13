@@ -38,6 +38,14 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 #%end
 
 #%option
+#% key: prefix
+#% type: string
+#% key_desc: prefix
+#% description: output prefix (must start with a letter)
+#% required: yes
+#%end
+
+#%option
 #% key: distance
 #% type: integer
 #% key_desc: integer
@@ -60,26 +68,29 @@ def main():
     vcat = options['cat']
     directory = options['dir']
     sdistance = options['distance']
-    fpointscsv = 't_segmentpoints.csv'
-    fpointscsv_export = 'segmentpoints.csv'
-    fpoints = 'segmentpoints.txt'
+    prefix = options['prefix']
+    voutline = prefix+'_singleline'
+    voutpoint = prefix+'_segmentpoints'	
+    fpointscsv = prefix+'_t_segmentpoints.csv'
+    fpointscsv_export = prefix+'_segmentpoints.csv'
+    fpoints = prefix+'_segmentpoints.txt'
     global tmp	 
 	
     # Extract vector line
     grass.message( "Extract vector line for which segment points should be calculated ..." )
     grass.run_command('v.extract', input = vlines, 
-                                     output = 'vlinesingle', 
+                                     output = voutline, 
                                      cats = vcat)
     grass.message( "Extraction done." )
     grass.message( "----" )
 
     # Calculate vector line length and populate it to the attribute table
     grass.message( "Calculate vector line length and populate it to the attribute table ..." )	
-    grass.run_command("v.db.addcolumn", map = 'vlinesingle',
+    grass.run_command("v.db.addcolumn", map = voutline,
                                      layer = 1, 
                                      columns = "vlength double")		
 
-    grass.run_command("v.to.db", map = 'vlinesingle',
+    grass.run_command("v.to.db", map = voutline,
                                      option = 'length',
                                      layer = 1, 
                                      columns = 'vlength',
@@ -89,7 +100,7 @@ def main():
     grass.message( "----" )	
 
     # Read length
-    tmp = grass.read_command('v.to.db', map = 'vlinesingle', 
+    tmp = grass.read_command('v.to.db', map = voutline, 
                                      type = 'line', 
                                      layer = 1, 
                                      qlayer = 1, 
@@ -138,22 +149,22 @@ def main():
 
     # Run v.segment with the segment point input	
     grass.message( "Run v.segment ..." )
-    grass.run_command("v.segment", input = 'vlinesingle',
-                                     output = 'segmentpoints',
+    grass.run_command("v.segment", input = voutline,
+                                     output = voutpoint,
                                      file = segment_points_file)	
 
-    grass.run_command("v.db.addtable", map = 'segmentpoints')
+    grass.run_command("v.db.addtable", map = voutpoint)
     grass.message( "v.segment done." )
     grass.message( "----" )	
 
     # Adding coordinates to segment points attribute table.	
     grass.message( "Adding coordinates to segment points attribute table ..." )	
 
-    grass.run_command("v.db.addcolumn", map = 'segmentpoints',
+    grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1, 
                                      columns = "xcoor double,ycoor double")		
 	
-    grass.run_command("v.to.db", map = 'segmentpoints',
+    grass.run_command("v.to.db", map = voutpoint,
                                      option = 'coor',
                                      layer = 1, 
                                      columns = 'xcoor,ycoor')
@@ -170,9 +181,9 @@ def main():
                 new_line = line.replace(" ", ";")
                 f.write(new_line)
 
-    grass.run_command("db.in.ogr", dsn = "%s" % segment_points_file_csv)
+    grass.run_command("db.in.ogr", output = 't_segmentpoints_csv', dsn = "%s" % segment_points_file_csv)
 
-    grass.run_command("v.db.join", map = 'segmentpoints',
+    grass.run_command("v.db.join", map = voutpoint,
                                      column = 'cat',
                                      otable = 't_segmentpoints_csv', 
                                      ocolumn = 'field_2',
@@ -181,19 +192,19 @@ def main():
     grass.run_command("db.droptable", table = 't_segmentpoints_csv',
                                      flags = 'f')									 
 									 
-    grass.run_command("v.db.addcolumn", map = 'segmentpoints',
+    grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1, 
                                      columns = "cat_2 integer,distance double")	
 
-    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET cat_2 =  field_2")	
-    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET distance =  field_4")										 
-    grass.run_command("db.execute", sql = "UPDATE segmentpoints SET distance =  %s WHERE cat = %s" %(vector_line_length, number_segmentpoints_with_end))
+    grass.run_command("db.execute", sql = "UPDATE %s SET cat_2 =  field_2" % (voutpoint))	
+    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  field_4" % (voutpoint))										 
+    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  %s WHERE cat = %s" %(voutpoint, vector_line_length, number_segmentpoints_with_end))
 	
-    grass.run_command("db.dropcolumn", table = 'segmentpoints',
+    grass.run_command("db.dropcolumn", table = voutpoint,
                                      column = 'field_2',
                                      flags = 'f')									 
 									 
-    grass.run_command("db.dropcolumn", table = 'segmentpoints',
+    grass.run_command("db.dropcolumn", table = voutpoint,
                                      column = 'field_4',
                                      flags = 'f')	
 	
@@ -205,7 +216,7 @@ def main():
 
     csv_to_export = os.path.join( directory, fpointscsv_export )	
 
-    grass.run_command("db.out.ogr", input = 'segmentpoints',
+    grass.run_command("db.out.ogr", input = voutpoint,
                                      dsn = '%s' % (csv_to_export),
                                      format = 'CSV')			
 	
