@@ -65,9 +65,9 @@ wget -r -nH --no-parent --reject="index.html*" -l5 \
    http://geo1.fsv.cvut.cz/wingrass/
 
 # move ALL.html -> index.html
-addons_index 64
-addons_index 65
-addons_index 70
+### addons_index 64
+### addons_index 65
+### addons_index 70
 
 # remove old packages
 rm_7 64
