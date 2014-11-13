@@ -10,7 +10,7 @@ SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
 GRASS_VERSION=`echo $ADDON_PATH | cut -d'/' -f6 | sed 's/grass//g'`
-INDEX_FILE="ALL.html"
+INDEX_FILE="index"
 
 if [ ! -d "$3" ] ; then
     mkdir -p "$3"
@@ -30,7 +30,7 @@ cd "$SVN_PATH"
 date=`date -I`
 uname=`uname`
 mkdir "$ADDON_PATH/logs"
-touch "$ADDON_PATH/logs/ALL.log"
+touch "$ADDON_PATH/logs/${INDEX_FILE}.log"
 echo "<!--<?xml-stylesheet href=\"style.css\" type=\"text/css\"?>-->
 <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
 	  \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
@@ -58,7 +58,7 @@ border: 1px solid black;
 <table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
 <th style=\"background-color: grey\">Status</th>
-<th style=\"background-color: grey\">Log file</th></tr>" > "$ADDON_PATH/logs/$INDEX_FILE"
+<th style=\"background-color: grey\">Log file</th></tr>" > "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
 echo "-----------------------------------------------------"
 echo "AddOns '$ADDON_PATH'..."
@@ -78,7 +78,7 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	    path="$ADDON_PATH"
 	fi
 
-	echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/$INDEX_FILE"	
+	echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
 	make MODULE_TOPDIR="$TOPDIR" \
 	    BIN="$path/bin" \
@@ -87,15 +87,15 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	    SCRIPTDIR="$path/scripts" \
 	    ETC="$path/etc" > "$ADDON_PATH/logs/$m.log" 2>&1
 	if [ `echo $?` -eq 0 ] ; then
-	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/ALL.log"
+	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/${INDEX_FILE}.log"
 	    echo " SUCCESS"
-	    echo "<td style=\"background-color: green\">SUCCESS</td>" >> "$ADDON_PATH/logs/$INDEX_FILE"
+	    echo "<td style=\"background-color: green\">SUCCESS</td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	else
-	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/logs/ALL.log"
+	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/logs/${INDEX_FILE}.log"
 	    echo " FAILED"
-	    echo "<td style=\"background-color: red\">FAILED</td>" >> "$ADDON_PATH/logs/$INDEX_FILE"
+	    echo "<td style=\"background-color: red\">FAILED</td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	fi
-	echo "<td><a href=\"$m.log\">log</a></td></tr>" >> "$ADDON_PATH/logs/$INDEX_FILE"
+	echo "<td><a href=\"$m.log\">log</a></td></tr>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	cd ..
     done
     cd ..
@@ -103,6 +103,6 @@ done
 
 echo "</table><hr />
 <div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
-</body></html>" >> "$ADDON_PATH/logs/$INDEX_FILE"
+</body></html>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
 exit 0

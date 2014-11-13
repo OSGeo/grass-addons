@@ -28,7 +28,7 @@ if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     	cp modules.xml $XMLDIR/grass${version}
     	rsync -ag --delete logs $XMLDIR/grass${version}
     	cd $XMLDIR/grass${version}/logs
-    	ln -sf ALL.html index.html
+    	###ln -sf ALL.html index.html
     done
 
     update_manual 7 0
