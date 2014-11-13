@@ -24,7 +24,7 @@ if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     cd tools/addons/ 
     ./compile-xml.sh $XMLDIR
     for version in 6 7 ; do
-    	cd $HOME/.grass${version}/addons/
+    	cd /tmp/.grass${version}/addons/
     	cp modules.xml $XMLDIR/grass${version}
     	rsync -ag --delete logs $XMLDIR/grass${version}
     	cd $XMLDIR/grass${version}/logs
@@ -67,7 +67,7 @@ update_manual() {
 	wget http://grass.osgeo.org/grass${major}${minor}/manuals/grass_logo.png 
 	wget http://grass.osgeo.org/grass${major}${minor}/manuals/grassdocs.css
     fi
-    cd $HOME/.grass${major}/addons/
+    cd /tmp/.grass${major}/addons/
     for m in $(ls -d */) ; do 
         if [ `ls ${m}docs/html/ -w1 2>/dev/null | wc -l` -gt 0 ] ; then
 	    cp ${m}docs/html/* $dst
