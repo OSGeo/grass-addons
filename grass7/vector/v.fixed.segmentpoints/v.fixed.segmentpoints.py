@@ -108,8 +108,9 @@ def main():
                                      option = 'length', 
                                      units = 'meters', 
                                      column = 'vlength',
-                                     flags = 'p')                         
-    vector_line_length = float(tmp.split('\n')[1].split('|')[1])    
+                                     flags = 'p',
+                                     quiet = True)                         
+    vector_line_length = float(tmp.split('|')[1])    
 
     # Print vector line length
     grass.message( "Vector line length in meter:" )
