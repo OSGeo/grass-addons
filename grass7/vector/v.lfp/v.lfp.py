@@ -34,6 +34,8 @@ import sys
 import os
 import math
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 def main():
     input = options["input"]
@@ -56,17 +58,22 @@ def convert_lfp(input, output, coords):
     res = float(res)
     danglelen = math.ceil(math.sqrt(2)*res)
 
-    if grass.run_command("r.to.vect",
-            input=input, output=output, type="line") != 0:
+    try:
+        grass.run_command("r.to.vect", input=input, output=output, type="line")
+    except CalledModuleError:
         grass.fatal(_("Cannot convert the input raster map to a vector map"))
 
-    if grass.run_command("v.edit", map=output, tool="delete",
-            query="dangle", threshold="0,0,-%f" % danglelen) != 0:
+    try:
+        grass.run_command("v.edit", map=output, tool="delete",
+                          query="dangle", threshold="0,0,-%f" % danglelen)
+    except CalledModuleError:
         grass.fatal(_("Cannot delete dangles from the output vector map"))
 
     success = False
     for i in range(0, 100):
-        if grass.run_command("v.edit", map=output, tool="merge", where="") != 0:
+        try:
+            grass.run_command("v.edit", map=output, tool="merge", where="")
+        except CalledModuleError:
             grass.fatal(_("Cannot merge features in the output vector map"))
 
         p = grass.pipe_command("v.info", flags="t", map=output)
@@ -104,8 +111,10 @@ def convert_lfp(input, output, coords):
         if firstcat == "":
             grass.fatal(_("Cannot further simplify the longest flow path"))
 
-        if grass.run_command("v.edit", map=output, tool="delete",
-                cats=firstcat) != 0:
+        try:
+            grass.run_command("v.edit", map=output, tool="delete",
+                              cats=firstcat)
+        except CalledModuleError:
             grass.fatal(_("Cannot delete short segments from the output vector map"))
 
     if success == False:
@@ -129,8 +138,10 @@ def convert_lfp(input, output, coords):
     mincat = int(mincat)
     maxcat = int(maxcat)
 
-    if grass.run_command("v.edit", map=output, tool="catdel",
-            cats="%d-%d" % (mincat+1, maxcat), where="") != 0:
+    try:
+        grass.run_command("v.edit", map=output, tool="catdel",
+                          cats="%d-%d" % (mincat+1, maxcat), where="")
+    except CalledModuleError:
         grass.fatal(_("Cannot delete categories from the output vector map"))
 
     if coords != "":
@@ -157,9 +168,11 @@ def convert_lfp(input, output, coords):
 
         if startx >= outx - res * 0.5 and startx <= outx + res * 0.5 and \
            starty >= outy - res * 0.5 and starty <= outy + res * 0.5:
-            if grass.run_command("v.edit", map=output, tool="flip",
-                    where="") != 0:
+            try:
+                grass.run_command("v.edit", map=output, tool="flip", where="")
+            except CalledModuleError:
                 grass.fatal(_("Cannot flip the longest flow path"))
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

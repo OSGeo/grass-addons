@@ -38,6 +38,7 @@ import sys
 import os
 import atexit
 import grass.script as grass
+from grass.exceptions import CalledModuleError
 
 
 def cleanup():
@@ -89,21 +90,28 @@ def main():
     # strip off mapset for tmp output
     vector_basename = vector.split("@")[0]
     rastertmp1 = "%s_%s_1" % (vector_basename, tmpname)
-    if grass.run_command('v.to.rast', input = vector, output = rastertmp1,
-			 use = 'cat', quiet = True) != 0:
-	grass.fatal(_("An error occurred while converting vector to raster"))
+    try:
+        grass.run_command('v.to.rast', input=vector, output=rastertmp1,
+                          use='cat', quiet=True)
+    except CalledModuleError:
+        grass.fatal(_("An error occurred while converting vector to raster"))
 
     # rasterize with column
     rastertmp2 = "%s_%s_2" % (vector_basename, tmpname)
-    if grass.run_command('v.to.rast', input = vector, output = rastertmp2,
-			 use = 'attr', layer = layer, attrcolumn = column, quiet = True) != 0:
-	grass.fatal(_("An error occurred while converting vector to raster"))
+    try:
+        grass.run_command('v.to.rast', input=vector, output=rastertmp2,
+                          use='attr', layer=layer, attrcolumn=column,
+                          quiet=True)
+    except CalledModuleError:
+         grass.fatal(_("An error occurred while converting vector to raster"))
 
     # zonal statistics
     rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)
-    if grass.run_command('r.statistics2', base = rastertmp1, cover = weight,
-                         method = 'sum', output = rastertmp3, quiet = True) != 0:
-	grass.fatal(_("An error occurred while calculating zonal statistics"))
+    try:
+        grass.run_command('r.statistics2', base=rastertmp1, cover=weight,
+                          method='sum', output=rastertmp3, quiet=True)
+    except CalledModuleError:
+        grass.fatal(_("An error occurred while calculating zonal statistics"))
 
     # weighted interpolation
     exp = "$output = if($sumweight == 0, if(isnull($area_val), null(), 0), double($area_val) * $weight / $sumweight)"

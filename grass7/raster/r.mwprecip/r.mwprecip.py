@@ -15,10 +15,11 @@ import glob
 import re
 from collections import defaultdict
 from datetime import datetime ,timedelta
-from math import sin, cos, atan2,degrees,radians, tan,sqrt,fabs 
+from math import sin, cos, atan2,degrees,radians, tan,sqrt,fabs
 
 try:
-    from grass.script import core as grass  
+    from grass.script import core as grass
+    from grass.exceptions import CalledModuleError
 except ImportError:
     sys.exit("Cannot find 'grass' Python module. Python is supported by GRASS from version >= 6.4")
 
@@ -569,18 +570,29 @@ def dbConnGrass(database,user,password):
     print_message("Connecting to db-GRASS...")
     # Unfortunately we cannot test untill user/password is set
     if user or password:
-        if grass.run_command('db.login', driver = "pg", database = database, user = user, password = password) != 0:
+        try:
+            grass.run_command('db.login', driver = "pg", database = database,
+                              user = user, password = password)
+        except CalledModuleError:
             grass.fatal("Cannot login")
 
     # Try to connect
-    if grass.run_command('db.select', quiet = True, flags='c', driver= "pg", database=database, sql="select version()" ) != 0:
+    try:
+        grass.run_command('db.select', quiet = True, flags='c',
+                          driver= "pg", database=database, sql="select version()" )
+    except CalledModuleError:
         if user or password:
             print_message( "Deleting login (db.login) ...")
-            if grass.run_command('db.login', quiet = True, driver = "pg", database = database, user = "", password = "") != 0:
+            try:
+                grass.run_command('db.login', quiet = True, driver = "pg",
+                                  database = database, user = "", password = "")
+            except CalledModuleError:
                 print_message("Cannot delete login.")
         grass.fatal("Cannot connect to database.")
 
-    if grass.run_command('db.connect', driver = "pg", database = database) != 0:
+    try:
+        grass.run_command('db.connect', driver = "pg", database = database)
+    except CalledModuleError:
         grass.fatal("Cannot connect to database.")
 
 def dbConnPy():

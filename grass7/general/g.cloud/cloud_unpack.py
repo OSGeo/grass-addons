@@ -16,6 +16,7 @@
 
 import glob, os, sys, tarfile, logging
 import cloud_which as which
+from grass.exceptions import CalledModuleError
 
 # the home of the user
 homeServer = os.getcwd()
@@ -77,8 +78,9 @@ if len(raster) != 0:
         f.write("Error unpacking rastertarpack")
     for i in rasters:
         logging.debug("Unpacking raster map <%s>" % os.path.join(homeServer,i))
-        ret = grass.run_command('r.unpack',input=os.path.join(homeServer,i))
-        if ret != 0:
+        try:
+            grass.run_command('r.unpack',input=os.path.join(homeServer,i))
+        except CalledModuleError:
             logging.error("Error unpacking raster map <%s>" % os.path.join(homeServer,i))
         #os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK
 
@@ -93,7 +95,8 @@ if len(vector) != 0:
 
     for i in vectors:
         logging.debug("Unpacking vector map <%s>" % os.path.join(homeServer,i))
-        ret = grass.run_command('v.unpack',input=os.path.join(homeServer,i))
-        if ret != 0:
+        try:
+            grass.run_command('v.unpack',input=os.path.join(homeServer,i))
+        except CalledModuleError:
             logging.error("Error unpacking raster map <%s>" % os.path.join(homeServer,i))
         #os.remove(os.path.join(homeServer,i)) TO UNCOMMENT WHEN ALL WILL BE OK

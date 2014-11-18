@@ -46,6 +46,7 @@ import grass.temporal as tgis
 from grass.pygrass.utils import copy as gcopy
 from grass.pygrass.messages import Messenger
 from grass.pygrass.vector import Vector
+from grass.exceptions import CalledModuleError
 
 ############################################################################
 
@@ -182,8 +183,9 @@ def main():
         grass.fatal(_("It is not possible to open the new map %s" % output))
 
     if len(pymap.dblinks) == 0:
-        ret = grass.run_command("v.db.addtable", map=output)
-        if ret != 0:
+        try:
+            grass.run_command("v.db.addtable", map=output)
+        except CalledModuleError:
             dbif.close()
             grass.fatal(_("Impossible add table to vector %s" % output))
     for sample in samples:
@@ -201,16 +203,18 @@ def main():
             column_name = "%s_%s" % (sample.strds_name, day)
             column_string = "%s %s" % (column_name, coltype)
             column_string.replace('.', '_')
-            ret = grass.run_command("v.db.addcolumn", map=output,
-                                    column=column_string, overwrite=overwrite)
-            if ret != 0:
+            try:
+                grass.run_command("v.db.addcolumn", map=output,
+                                  column=column_string, overwrite=overwrite)
+            except CalledModuleError:
                 dbif.close()
                 grass.fatal(_("Unable to add column %s to vector map <%s> ") \
                            % (column_string, output))
-            ret = grass.run_command("v.what.rast", map=output, raster=name,
-                                    column=column_name, where=where,
-                                    quiet=quiet)
-            if ret != 0:
+            try:
+                grass.run_command("v.what.rast", map=output, raster=name,
+                                  column=column_name, where=where,
+                                  quiet=quiet)
+            except CalledModuleError:
                 dbif.close()
                 grass.fatal(_("Unable to run v.what.rast for vector map <%s> "
                               "and raster map <%s>") % \

@@ -124,6 +124,7 @@ import sys
 import os
 import atexit
 import grass.script as grass
+from grass.exceptions import CalledModuleError
 
 
 def cleanup():
@@ -382,10 +383,11 @@ def main():
     #grass.run_command('g.list', type = 'rast', mapset = '.')
 
     sum_of_1by_cost_sqs = tmp_base + 'sum_of_1by_cost_sqs'
-    ret = grass.run_command('r.series', method = 'sum', input = input_maps,
-                      output = sum_of_1by_cost_sqs)
-    if ret is not 0:
-	grass.fatal(_('Problem running %s') % 'r.series')
+    try:
+        grass.run_command('r.series', method='sum', input=input_maps,
+                          output=sum_of_1by_cost_sqs)
+    except CalledModuleError:
+        grass.fatal(_('Problem running %s') % 'r.series')
 
     if post_mask:
         grass.message(_("Removing post_mask <%s>"), post_mask)
@@ -468,10 +470,11 @@ def main():
     for i in range(2, n+1):
         input_maps += ',%spartial.%05d' % (tmp_base, i)
 
-    ret = grass.run_command('r.series', method = 'sum', input = input_maps,
-                      output = output)
-    if ret is not 0:
-	grass.fatal(_('Problem running %s') % 'r.series')
+    try:
+        grass.run_command('r.series', method='sum', input=input_maps,
+                          output=output)
+    except CalledModuleError:
+        grass.fatal(_('Problem running %s') % 'r.series')
 
     #TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
 

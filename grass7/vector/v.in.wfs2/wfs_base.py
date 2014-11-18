@@ -4,6 +4,8 @@ from   math import ceil
 from urllib2 import urlopen, HTTPError, URLError
 
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 class WFSBase:
     def __init__(self):
@@ -231,11 +233,13 @@ class WFSBase:
         
         grass.message(_("Importing vector map into GRASS..."))
         # importing temp_map into GRASS
-        if grass.run_command('v.in.ogr',
-                             quiet = True,
-                             overwrite = True,
-                             dsn = temp_warpmap,
-                             output = self.o_output) != 0:
+        try:
+            grass.run_command('v.in.ogr',
+                              quiet = True,
+                              overwrite = True,
+                              dsn = temp_warpmap,
+                              output = self.o_output)
+        except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.in.ogr')
         
         grass.try_rmdir(temp_warpmap)

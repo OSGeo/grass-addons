@@ -33,6 +33,8 @@ import os
 import sys
 
 from grass.script import core as grass
+from grass.exceptions import CalledModuleError
+
 
 def list_layers(dsn):
     ret = grass.read_command('v.external',
@@ -50,8 +52,10 @@ def make_links(dsn):
         oname = layer.replace('.', '_')
         grass.message(_("%s\nCreating link for OGR layer <%s> as <%s>...\n%s") % \
                           ('-' * 80, layer, oname, '-' * 80))
-        if 0 != grass.run_command('v.external',
-                                  dsn = dsn, layer = layer, output = oname):
+        try:
+            grass.run_command('v.external',
+                              dsn = dsn, layer = layer, output = oname)
+        except CalledModuleError:
             grass.warning(_("Unable to create link for OGR layer <%s>") % layer)
     
 def main():

@@ -120,6 +120,7 @@ import sys
 
 from grass.script import core as gcore
 import grass.temporal as tgis
+from grass.exceptions import CalledModuleError
 
 
 def format_time(time):
@@ -193,12 +194,13 @@ def main():
         flags += 'n'
 
     for i, water_level in enumerate(water_levels):
-        return_code = gcore.run_command('r.lake', elevation=elevation,
-                                        lake=outputs[i],
-                                        water_level=water_level,
-                                        overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                                        **kwargs)
-        if return_code:
+        try:
+            gcore.run_command('r.lake', elevation=elevation,
+                              lake=outputs[i],
+                              water_level=water_level,
+                              overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+                              **kwargs)
+        except CalledModuleError:
             # remove maps created so far, try to remove also i-th map
             remove_raster_maps(outputs[:i], quiet=True)
             gcore.fatal(_("r.lake command failed. Check above error messages."

@@ -144,6 +144,7 @@ This program is free software under the GNU General Public License
 import sys
 import os
 import grass.script as g
+from grass.exceptions import CalledModuleError
 
 
 class rusle_base(object):
@@ -213,13 +214,14 @@ class rusle_base(object):
     def removeTempRasters(self):
         for tmprast in self.tmp_rast:
             g.message('Removing "%s"' %tmprast)
-            remove = g.run_command('g.remove',
-                                   flags = 'f',
-                                   type = 'rast',
-                                   name = tmprast,
-                                   quiet = True)
-        
-        return remove
+            try:
+                g.run_command('g.remove',
+                              flags = 'f',
+                              type = 'rast',
+                              name = tmprast,
+                              quiet = True)
+            except CalledModuleError:
+                g.warning(_("Removing temporary raster maps failed"))
 
     def rusle(self):
         """!main method in rusle_base

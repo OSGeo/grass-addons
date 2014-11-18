@@ -85,6 +85,8 @@ import os
 import atexit
 import string
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 def cleanup():
     if tmp:
@@ -150,9 +152,11 @@ def main():
     table = grass.vector_db(map)[int(layer)]['table']
     if rgb_column not in cols:
         # RGB Column not found, create it
-	grass.message(_("Creating column <%s>...") % rgb_column)
-	if 0 != grass.run_command('v.db.addcolumn', map = map, layer = layer, column = "%s varchar(11)" % rgb_column):
-	    grass.fatal(_("Creating color column"))
+        grass.message(_("Creating column <%s>...") % rgb_column)
+        try:
+            grass.run_command('v.db.addcolumn', map = map, layer = layer, column = "%s varchar(11)" % rgb_column)
+        except CalledModuleError:
+            grass.fatal(_("Creating color column"))
     else:
 	column_type = cols[rgb_column]['type']
 	if column_type not in ["CHARACTER", "TEXT"]:
@@ -244,8 +248,10 @@ def main():
     # apply SQL commands to update the table with values
     grass.message(_("Writing %s colors...") % found)
     
-    if 0 != grass.run_command('db.execute', input = tmp_vcol):
-	grass.fatal(_("Processing SQL transaction"))
+    try:
+        grass.run_command('db.execute', input = tmp_vcol)
+    except CalledModuleError:
+        grass.fatal(_("Processing SQL transaction"))
     
     if flags['s']:
 	vcolors = "vcolors_%d" % pid

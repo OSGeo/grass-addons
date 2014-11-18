@@ -55,6 +55,7 @@ import shutil
 from grass.script.utils import basename
 from grass.script import core as grass
 from grass.script import db as grassdb
+from grass.exceptions import CalledModuleError
 from types import DictType, ListType
 import json
 
@@ -137,9 +138,11 @@ def importGeom(vname, typ, c, owrite, z, cat=None):
     points = returnAll(c, psel)
     wpoi = '\n'.join(['|'.join([str(col) for col in row]) for row in points])
     # import points using v.in.ascii
-    if grass.write_command('v.in.ascii', flags='t%s' % z, input='-', z=zcol,
-                           output=vname, stdin=wpoi, overwrite=owrite,
-                           quiet=True) != 0:
+    try:
+        grass.write_command('v.in.ascii', flags='t%s' % z, input='-', z=zcol,
+                            output=vname, stdin=wpoi, overwrite=owrite,
+                            quiet=True)
+    except CalledModuleError:
         grass.fatal(_("Error importing %s" % vname))
     return points
 
@@ -326,9 +329,11 @@ def main():
                 else:
                     tracks += 'NaN|Nan\n'
             # import lines
-            if grass.write_command('v.in.lines', flags=d3, input='-',
-                                   out=tracksname, stdin=tracks,
-                                   overwrite=owrite, quiet=True) != 0:
+            try:
+                grass.write_command('v.in.lines', flags=d3, input='-',
+                                    out=tracksname, stdin=tracks,
+                                    overwrite=owrite, quiet=True)
+            except CalledModuleError:
                 grass.fatal(_("Error importing %s" % tracksname))
             # create table for line
             sql='CREATE TABLE %s (cat int, startts text, ' % tracksname

@@ -51,6 +51,8 @@ import os
 import sys
 
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 def execute(sql, msg = None, useSelect = True):
     if useSelect:
@@ -62,15 +64,14 @@ def execute(sql, msg = None, useSelect = True):
         sys.stdout.write("\n%s\n\n" % sql)
         return
     
-    ret = grass.run_command('db.%s' % cmd, sql = sql,
-                            **pg_conn)
-    if ret == 0:
-        return
-    
-    if msg:
-        grass.fatal(msg)
-    else:
-        grass.fatal(_("Unable to build PostGIS topology"))
+    try:
+        grass.run_command('db.%s' % cmd, sql=sql, **pg_conn)
+    except CalledModuleError:
+        if msg:
+            grass.fatal(msg)
+        else:
+            grass.fatal(_("Unable to build PostGIS topology"))
+
 
 def main():
     vmap = options['map']

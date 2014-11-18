@@ -32,6 +32,8 @@
 import sys
 import os
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 def main():
     input = options["input"]
@@ -52,25 +54,33 @@ def calculate_lfp(input, output, coords):
     if p.returncode != 0:
         grass.fatal(_("Cannot create outlet vector map"))
 
-    if grass.run_command("v.to.rast", overwrite=True,
-            input=outlet, output=outlet, use="cat") != 0:
+    try:
+        grass.run_command("v.to.rast", overwrite=True,
+                          input=outlet, output=outlet, use="cat")
+    except CalledModuleError:
         grass.fatal(_("Cannot convert outlet vector to raster"))
 
     flds = prefix + "flds"
-    if grass.run_command("r.stream.distance", overwrite=True, flags="om",
-            stream_rast=outlet, direction=input, method="downstream",
-            distance=flds) != 0:
+    try:
+        grass.run_command("r.stream.distance", overwrite=True, flags="om",
+                          stream_rast=outlet, direction=input, method="downstream",
+                          distance=flds)
+    except CalledModuleError:
         grass.fatal(_("Cannot create flow length downstream raster map"))
 
     flus = prefix + "flus"
-    if grass.run_command("r.stream.distance", overwrite=True, flags="o",
-            stream_rast=outlet, direction=input, method="upstream",
-            distance=flus) != 0:
+    try:
+        grass.run_command("r.stream.distance", overwrite=True, flags="o",
+                          stream_rast=outlet, direction=input, method="upstream",
+                          distance=flus)
+    except CalledModuleError:
         grass.fatal(_("Cannot create flow length upstream raster map"))
 
     fldsus = prefix + "fldsus"
-    if grass.run_command("r.mapcalc", overwrite=True,
-            expression="%s=%s+%s" % (fldsus, flds, flus)) != 0:
+    try:
+        grass.run_command("r.mapcalc", overwrite=True,
+                          expression="%s=%s+%s" % (fldsus, flds, flus))
+    except CalledModuleError:
         grass.fatal(_("Cannot create flds+flus raster map"))
 
     p = grass.pipe_command("r.info", flags="r", map=fldsus)
@@ -87,8 +97,10 @@ def calculate_lfp(input, output, coords):
     max = float(max) + 1
     min = max - 2
 
-    if grass.run_command("r.mapcalc",
-            expression="%s=if(%s>=%f, 1, null())" % (output, fldsus, min)) != 0:
+    try:
+        grass.run_command("r.mapcalc",
+                          expression="%s=if(%s>=%f, 1, null())" % (output, fldsus, min))
+    except CalledModuleError:
         grass.fatal(_("Cannot create longest flow path raster map"))
 
     grass.run_command("g.remove", flags="f",

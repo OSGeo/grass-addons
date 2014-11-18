@@ -84,6 +84,7 @@ import atexit
 
 from grass.script.utils import parse_key_val
 from grass.script import core as gcore
+from grass.exceptions import CalledModuleError
 
 
 def main():
@@ -117,8 +118,9 @@ def main():
     if dbase:
         parameters.update(dict(dbase=dbase))
     # first run r.proj to see if it works
-    returncode = gcore.run_command('r.proj', quiet=True, **parameters)
-    if returncode != 0:
+    try:
+        gcore.run_command('r.proj', quiet=True, **parameters)
+    except CalledModuleError:
         gcore.fatal(_("Module r.proj failed. Please check the error messages above."))
     # run again to get the raster maps
     rasters = gcore.read_command('r.proj', **parameters)
@@ -150,8 +152,9 @@ def main():
     if dbase:
         parameters.update(dict(dbase=dbase))
     # first run v.proj to see if it works
-    returncode = gcore.run_command('v.proj', quiet=True, **parameters)
-    if returncode != 0:
+    try:
+        gcore.run_command('v.proj', quiet=True, **parameters)
+    except CalledModuleError:
         gcore.fatal(_("Module v.proj failed. Please check the error messages above."))
     # run again to get the vector maps
     vectors = gcore.read_command('v.proj', **parameters)
