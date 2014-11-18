@@ -1,67 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.in.swisstopo</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
+<h2>DESCRIPION</h2>
 
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.in.swisstopo</b></em>  - Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres', if it exists already, it will be OVERWRITTEN!) is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.<br>
-r.in.xyz and r.interp.resamp are invoked from within r.in.swisstopo
-<h2>KEYWORDS</h2>
-swisstopo, DHM, DEM, Raster, Import
-<h2>SYNOPSIS</h2>
-<b>r.in.swisstopo</b><br>
-<b>r.in.swisstopo help</b><br>
-<b>r.in.swisstopo</b> <b>input</b>=<em>input</em> <b>output</b>=<em>raster</em>  [<b>method</b>=<em>string</em>]   [<b>type</b>=<em>string</em>]   [<b>zrange</b>=<em>min,max</em>]   [<b>percent</b>=<em>integer</em>]   [<b>method_resamp</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>--overwrite</b></dt>
-<dd>Force overwrite of output files</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>input</b>=<em>input</em></dt>
-<dd>Swisstopo file containing DEM data (*.mlt, *.mbl or *.xyz)</dd>
-
-<dt><b>output</b>=<em>raster</em></dt>
-<dd>Name of the raster layer, that will be created out of the imported data</dd>
-
-<dt><b>method</b>=<em>string</em></dt>
-<dd>Statistic to use for raster values</dd>
-<dd>Options: <em>n,min,max,range,sum,mean,stddev,variance,coeff_var</em></dd>
-<dd>Default: <em>mean</em></dd>
-
-<dt><b>type</b>=<em>string</em></dt>
-<dd>Storage type for resultant raster map</dd>
-<dd>Options: <em>CELL,FCELL,DCELL</em></dd>
-<dd>Default: <em>FCELL</em></dd>
-
-<dt><b>zrange</b>=<em>min,max</em></dt>
-<dd>Filter range for z data (min,max)</dd>
-
-<dt><b>percent</b>=<em>integer</em></dt>
-<dd>Percentage of map to keep in memory</dd>
-<dd>Options: <em>1-100</em></dd>
-<dd>Default: <em>100</em></dd>
-
-<dt><b>method_resamp</b>=<em>string</em></dt>
-<dd>Interpolation method for interpolation of input data to current region's resolution (using r.resamp.interp)</dd>
-<dd>Options: <em>nearest,bilinear,bicubic</em></dd>
-<dd>Default: <em>bilinear</em></dd>
+<em><b>r.in.swisstopo</b></em> imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres', if it exists already, it will be OVERWRITTEN!) is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.<br>
+r.in.xyz and r.interp.resamp are invoked from within r.in.swisstopo.
 
 <h2>Manual download and installation of the module (without svn)</h2>
-<p>You can find the current version of r.in.swisstopo <a href="http://trac.OSGeo.org/grass/browser/grass-addons/raster/r.in.swisstopo/">here</a><br>
+<p>You can find the current version of r.in.swisstopo <a href="http://trac.OSGeo.org/grass/browser/grass-addons/grass6/raster/r.in.swisstopo/">here</a><br>
 <br>
 Installation:<br>
 You might need to have root privileges for the following. If you do not have these, please ask your system administrator
@@ -84,23 +27,24 @@ That's it!
 </p>
 
 <h2>SEE ALSO</h2>
-<p>
+
+<em>
 <a href="r.in.xyz.html">r.in.xyz</a><br>
 <a href="r.resamp.interp.html">r.resamp.interp</a><br>
-</p>
+</em>
 
 <h2>Note</h2>
-<p>If you find any bugs or find the module helpful or have any questions, feel free to contact the author (Juergen.Hansmann["at"]erdw.ethz.ch)<br>
-The author is not responsible for any consequenced that arise from using this code.</p>
+
+If you find any bugs or find the module helpful or have any questions, feel free to contact the author (Juergen.Hansmann["at"]erdw.ethz.ch)<br>
+The author is not responsible for any consequenced that arise from using this code.
 
 <h2>Author</h2>
-<p>J&uuml;rgen Hansmann<br>
+
+J&uuml;rgen Hansmann<br>
 <i>Department of Earth Sciences<br>
 Swiss Federal Institute of Technology (ETH)<br>
 Zurich<br>
-</i></p>
+</i>
+
 <p><i>Last changed: $Date$</i> </p> 
 
-</dl>
-</body>
-</html>

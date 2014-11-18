@@ -11,7 +11,6 @@ SUBDIRS = \
 	r.boxcount.sh \
 	r.burn.frict \
 	r.clim \
-	r.clump2 \
 	r.colors.out_sld \
 	r.colors.out_vtk \
 	r.colors.quantiles \
