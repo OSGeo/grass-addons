@@ -18,16 +18,16 @@ of tree like structures, as braiding rivers and networks with two-side
 connected side arms will not work. Check the raster beforehand carefully!
 </dd>
 <dt><b>outflow_point</b></dt>
-<dd>Name of the outflow point txt-file (single point) for the calculation
-of the flow direction within the provided river network. The text-file
-must only contain a single |-separeted coordinate pair (X|Y; same
-coordinate system as the river network raster). The file should not
-contain any headings etc. E.g the content of the file can look like: 
+<dd>Coordinates of outflow point of the basin outlet (see r.stream.basins) 
+for the calculationof the flow direction within the provided river network. 
+The coordinate pair must be comma separated e.g. X,Y and in the same metric
+projected coordinate system as the river network raster. An example outflow
+point looks like:
 </dd>
 </dl>
 
 <div class="code"><pre>
-545287.44|1942020.18
+510975,5331275
 </pre></div>
 
 <dl>
@@ -45,20 +45,22 @@ non-passable and 1 is 100% passable). The values must be |-separated:
 </pre></div>
 
 <h3>Source populations</h3>
-The source populations can be provided either as random points (flag -r),
-or as fixed source population raster (flag -f).
+The source populations can be provided either as random points,
+or as fixed source population raster:
 
 <dl>
 <dt><b>n_source</b></dt>
-<dd>For the random locations; number or percentage of cells containing
-source populations. The model selects randomly cell (number specified
-by the user) and assigns a starting density of 1 to each occupied cell.
+<dd>For source populations set randomly; number or percentage of cells containing
+source populations. The model selects randomly cells within the river network 
+(number specified by the user) and assigns a starting density of 1 to each occupied cell.
 </dd>
 <dt><b>source_populations</b></dt>
 <dd>Input raster map indicating the starting density per cell. All
 cells with densities &gt; 0 will act as source populations for the model.
 The raster map must have the resolution as the river raster and all
-source population cells must also be part of the river raster.
+source population cells must also be part of the river raster. Source points
+at the end points of the network (most upstream cell etc.) might cause problems
+with the calculation.
 </dd>
 </dl>
 
@@ -85,7 +87,7 @@ istances (see R-package 'fishmove').
 </dd>
 <dt><b>p</b></dt>
 <dd>Share of the stationary component of the population. The value is
-set to 0.67 by default (my Paper).
+set to 0.67 by default (Radinger and Wolter, 2014, Fish and Fisheries).
 </dd>
 </dl>
 
@@ -103,25 +105,45 @@ is set, three output maps will be created (fit, lwr and upr).
 </dd>
 </dl>
 
-<h3>Dependencies</h3>
+
+<h2>Examples</h2>
+A GRASS GIS sample location with an extracted river sample river network
+can be found here: <a href="https://github.com/jradinger/fidimo_example_mapset">
+https://github.com/jradinger/fidimo_example_mapset</a>.
+Inside the GRASS-FIDIMO sample mapset it is possible to run following examples:
+<h3>Example 1</h3>
+<div class="code"><pre>
+r.fidimo.py river=example_stream@PERMANENT coors="510975,5331275" n_source="3%" species="Custom species" L=250 AR=1.2 output=fidimo_out_test statistical_interval="Confidence Interval"
+</pre></div>
+This example calculates fish dispersal for a 250 mm sized (L) species with and aspect ratio (AR) of 1.2.
+As starting points (source populations) for dispersal 3% of the river network cells are selected randomly.
+In addition also the confidence interval (CI based of the multiple regression model, see Radinger
+and Wolter 2014) is calculated and three output maps are produced with the suffix: _fit, _upr, and _lwr.
+Note: the calculation of the CI tripples the calculation time.
+
+<h2>Dependencies</h2>
 <ul>
 <li>RPy2</li>
 <li>NumPy</li>
 <li>SciPy</li>
 <li>Sqlite3</li>
 <li>r.stream.order</li>
+<li>r.stream.basins</li>
+<li>R-package 'fishmove'</li>
 </ul>
 
 <h2>SEE ALSO</h2>
 
 <em>
 <a href="r.stream.order.html">r.stream.order</a>,
+<a href="r.stream.basins.html">r.stream.basins</a>,
 <a href="r.watershed.html">r.watershed</a>
 </em>
 
 <h2>REFERENCES</h2>
 
-<em>Fidimo-paper</em>
+<em>Radinger, J. and Wolter, C. (2014) Patterns and predictors of fish dispersal in rivers. Fish and Fisheries 1-18. DOI: 
+<a href="http://dx.doi.org/10.1111/faf.12028">10.1111/faf.12028</a></em>
 
 <h2>AUTHOR</h2>
 
@@ -129,5 +151,5 @@ Johannes Radinger, Leibniz-Institute of Freshwater Ecology and Inland
 Fisheries, Berlin (Germany)
 
 <p>
-<i>Last changed: (Mo, Sept 20, 2011)</i>
+<i>Last changed: (Nov 18, 2014)</i>
 
