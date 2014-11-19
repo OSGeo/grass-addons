@@ -1,0 +1,41 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.mkhexgrid</em> creates a hexagonal grid vector map for the
+selected region. 
+
+<h2>NOTES</h2>
+
+This module functions by internally creating a number of GRASS ASCII
+files and then importing and cleaning them.
+
+<h2>EXAMPLE</h2>
+
+North Carolina sample dataset:
+
+<div class="code"><pre>
+g.list region
+v.mkhexgrid map=hexagon regionname=wake_30m hexarea=20000000 \
+            method=area
+</pre></div>
+
+<center>
+<img src="v_mkhexgrid.png" alt="Hexagon grid map"><br>
+Hexagon grid map
+</center>
+
+<p>
+<div class="code"><pre>
+v.mkhexgrid map=hexagon regionname=wake_30m sidelength=5000 \
+            method=sidelength
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="v.mkgrid.html">v.mkgrid</a>
+</em>
+
+<h2>AUTHOR</h2>
+Trevor Wiens
+
+<p>
+<i>Last changed: $Date$</i>
