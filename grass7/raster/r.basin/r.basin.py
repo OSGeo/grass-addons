@@ -92,6 +92,13 @@ def check_progs():
 def main():
     # check dependencies
     check_progs()
+
+    # check for unsupported locations
+    in_proj = grass.parse_command('g.proj', flags='g')
+    if in_proj['unit'].lower() == 'degree':
+        grass.fatal(_("Latitude-longitude locations are not supported"))
+    if in_proj['name'].lower() == 'xy_location_unprojected':
+        grass.fatal(_("xy-locations are not supported"))
     
     r_elevation = options['map'].split('@')[0] 
     mapname = options['map'].replace("@"," ")
