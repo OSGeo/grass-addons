@@ -24,7 +24,6 @@ SUBDIRS = \
 	v.lidar.mcc \
 	v.link.precip \
 	v.median \
-	v.mkhexgrid \
 	v.neighborhoodmatrix \
 	v.net.salesman.opt \
 	v.out.ply \
