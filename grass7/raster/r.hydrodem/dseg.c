@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <fcntl.h>
+#include <grass/segment.h>
 #include <grass/glocale.h>
 #include "seg.h"
 
@@ -26,29 +27,29 @@ int dseg_open(DSEG *dseg, int srows, int scols, int nsegs_in_memory)
 	close(fd);
 	unlink(filename);
 	if (errflag == -1) {
-	    G_warning(_("dseg_open(): could not write segment file"));
+	    G_warning(_("Unable to write segment file"));
 	    return -1;
 	}
 	else {
-	    G_warning(_("dseg_open(): illegal configuration parameter(s)"));
+	    G_warning(_("Iillegal configuration parameter(s)"));
 	    return -3;
 	}
     }
     close(fd);
     if (-1 == (fd = open(filename, 2))) {
 	unlink(filename);
-	G_warning(_("dseg_open(): unable to re-open segment file"));
+	G_warning(_("Unable to re-open segment file"));
 	return -4;
     }
     if (0 > (errflag = Segment_init(&(dseg->seg), fd, nsegs_in_memory))) {
 	close(fd);
 	unlink(filename);
 	if (errflag == -1) {
-	    G_warning(_("dseg_open(): could not read segment file"));
+	    G_warning(_("Unable to read segment file"));
 	    return -5;
 	}
 	else {
-	    G_warning(_("dseg_open(): out of memory"));
+	    G_warning(_("Out of memory"));
 	    return -6;
 	}
     }
@@ -76,7 +77,7 @@ int dseg_close(DSEG *dseg)
 int dseg_put(DSEG *dseg, DCELL *value, int row, int col)
 {
     if (Segment_put(&(dseg->seg), (DCELL *) value, row, col) < 0) {
-	G_warning(_("dseg_put(): could not write segment file"));
+	G_warning(_("Unable to write segment file"));
 	return -1;
     }
     return 0;
@@ -85,7 +86,7 @@ int dseg_put(DSEG *dseg, DCELL *value, int row, int col)
 int dseg_put_row(DSEG *dseg, DCELL *value, int row)
 {
     if (Segment_put_row(&(dseg->seg), (DCELL *) value, row) < 0) {
-	G_warning(_("dseg_put(): could not write segment file"));
+	G_warning(_("Unable to write segment file"));
 	return -1;
     }
     return 0;
@@ -94,7 +95,7 @@ int dseg_put_row(DSEG *dseg, DCELL *value, int row)
 int dseg_get(DSEG *dseg, DCELL *value, int row, int col)
 {
     if (Segment_get(&(dseg->seg), (DCELL *) value, row, col) < 0) {
-	G_warning(_("dseg_get(): could not read segment file"));
+	G_warning(_("Unable to read segment file"));
 	return -1;
     }
     return 0;
@@ -102,7 +103,7 @@ int dseg_get(DSEG *dseg, DCELL *value, int row, int col)
 
 int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 {
-    int row, nrows, ncols;
+    int row, nrows;
     int map_fd;
     DCELL *dbuffer;
 
@@ -111,16 +112,15 @@ int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 
     map_fd = Rast_open_old(map_name, mapset);
     nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
     dbuffer = Rast_allocate_d_buf();
     for (row = 0; row < nrows; row++) {
 	Rast_get_d_row(map_fd, dbuffer, row);
 	if (Segment_put_row(&(dseg->seg), (DCELL *) dbuffer, row) < 0) {
 	    G_free(dbuffer);
 	    Rast_close(map_fd);
-	    G_warning(_("dseg_read_raster(): unable to segment put row for <%s> in <%s>"),
-		    map_name, mapset);
-	    return (-1);
+	    G_warning(_("Inable to segment put row %d for raster <%s>"),
+                      row, map_name);
+	    return -1;
 	}
     }
 
@@ -136,12 +136,11 @@ int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 int dseg_write_cellfile(DSEG *dseg, char *map_name)
 {
     int map_fd;
-    int row, nrows, ncols;
+    int row, nrows;
     DCELL *dbuffer;
 
     map_fd = Rast_open_new(map_name, DCELL_TYPE);
     nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
     dbuffer = Rast_allocate_d_buf();
     Segment_flush(&(dseg->seg));
     for (row = 0; row < nrows; row++) {
