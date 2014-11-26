@@ -131,7 +131,7 @@ def main():
         #precision = 'float' ,
         aspect = 'aspects_' ,
         zfactor = '1.0' ,
-        min_slp_allowed = '0.0' ,
+        min_slope = '0.0' ,
         overwrite = True ,
         quiet = True)
 

@@ -134,7 +134,7 @@ def main():
     grass.run_command('r.slope.aspect', 
                         elevation = r_elevation, 
                         slope = 'slopes',
-                        min_slp_allowed = 0.0, 
+                        min_slope = 0.0, 
                         overwrite = 'True')
     #zero value = null
     grass.run_command('r.null', 
