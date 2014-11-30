@@ -182,13 +182,13 @@ def main():
     grass.message( "----" )
 	
     # Align region to elevation raster and habitat vector
-    # grass.message( "Align region to elevation raster and habitat vector ..." )		
-    # grass.run_command('g.region', flags = 'ap',
-    #                                 rast = r_elevation,
-    #                                 vect = v_habitat,
-    #                                 align = r_elevation)
-    #grass.message( "Alignment done." )	
-    #grass.message( "----" )									 
+    grass.message( "Align region to elevation raster and habitat vector ..." )		
+    grass.run_command('g.region', flags = 'a',
+                                     rast = r_elevation,
+                                     vect = v_habitat,
+                                     align = r_elevation)
+    grass.message( "Alignment done." )	
+    grass.message( "----" )									 
 									 
     # Extend region
     grass.message( "Extend region ..." )
