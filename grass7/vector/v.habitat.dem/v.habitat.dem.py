@@ -177,7 +177,10 @@ def main():
     grass.message( "----" )
 	
     # Print and save current region
-    grass.run_command('g.region', flags = 'p', save = saved_region, overwrite = True)
+    grass.message( "Current region:" )
+    grass.message( "n, s, e, w" )
+    grass.message( [current_region[key] for key in "nsew"] )
+    grass.run_command('g.region', save = saved_region, overwrite = True)
     grass.message( "Current region saved." )	
     grass.message( "----" )
 	
@@ -188,24 +191,34 @@ def main():
                                      vect = v_habitat,
                                      align = r_elevation)
     grass.message( "Alignment done." )	
+
+    aligned_region = grass.region()
+    Naligned = aligned_region["n"]
+    Saligned = aligned_region["s"]
+    Ealigned = aligned_region["e"]
+    Waligned = aligned_region["w"]
+
+    grass.message( "Aligned region:" )
+    grass.message( "n, s, e, w" )
+    grass.message( [aligned_region[key] for key in "nsew"] )
     grass.message( "----" )									 
 									 
     # Extend region
-    grass.message( "Extend region ..." )
-    grass.message( "n, s, e, w" )
-    grass.message( [current_region[key] for key in "nsew"] )
-    grass.message( "by" )
+    grass.message( "Extend region by" )
     grass.message( regext )
     grass.message( "in all directions" )
 	
-    grass.run_command('g.region', n = N+X,
-                                     s = S-X,
-                                     e = E+X,
-                                     w = W-X)
+    grass.run_command('g.region', n = Naligned+X,
+                                     s = Saligned-X,
+                                     e = Ealigned+X,
+                                     w = Waligned-X)
     grass.message( "Region extension done." )
+
+    extended_region = grass.region()
 	
     grass.message( "Extended region:" )
-    grass.run_command('g.region', flags = 'p')
+    grass.message( "n, s, e, w" )
+    grass.message( [extended_region[key] for key in "nsew"] )
     grass.message( "----" )
 	
     # Watershed calculation: accumulation, drainage direction, topographic index
