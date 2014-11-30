@@ -1,0 +1,108 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.futures</em> is an implementation of
+FUTure Urban-Regional Environment Simulation (FUTURES)
+which is a model for multilevel simulations of emerging urban-rural
+landscape structure.
+This module uses stochastic Patch-Growing Algorithm (PGA)
+and a combination of field-based and object-based representations
+to simulate land changes.
+
+The FUTure Urban-Regional Environment Simulation (FUTURES) produces
+regional projections of landscape patterns using coupled submodels
+that integrate nonstationary drivers of land change: per capita demand,
+site suitability, and the spatial structure of conversion events.
+
+The PGA is a stochastic simulation that maps the
+allocation and spatial structure of land change using
+iterative site selection and a contextually aware region
+growing mechanism that changes cells from "undeveloped"
+to terminal "developed" states.
+
+<p>
+<center>
+<img src="r_futures.png">
+<p>
+Figure: Output map of developed areas
+</center>
+
+<p>
+<center>
+<img src="r_futures_detail.png">
+<p>
+Figure: Detail of output map
+</center>
+
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+r.futures -s control_file=demand.txt employ_attraction=d2urbkm interchange_distance=d2intkm road_density=d2rdskm undeveloped=lc96 development_pressure=gdp cons_weight=weight_1 additional_variable_files=slope n_dev_neighbourhood=10 devpot_params=devpotParams.cfg algorithm=stochastic2 parcel_size_file=patch_sizes.txt discount_factor=0.6 probability_lookup_file=probLookup.csv sort_probs=0 patch_factor=1 patch_mean=0.4 patch_range=0.08 num_neighbors=4 seed_search=2 development_pressure_approach=2 alpha=2 scaling_factor=10 num_regions=9 index_file=index control_file_all=demand.txt output=final_results output_series=development
+</pre></div>
+
+
+<h2>KNOWN ISSUES</h2>
+
+Module holds all data in the memory, so for large areas the memory requirements
+are high.
+
+Only part of the options is actually working now. The older simpler
+implementations of the algorithms are not available.
+
+The inputs are not documented.
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>
+    Meentemeyer, R. K., Tang, W., Dorning, M. A, Vogler, J. B., Cunniffe, N. J., Shoemaker D. A.,
+    <a href="http://dx.doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>
+    Annals of the Association of American Geographers
+    Vol. 103, Iss. 4, 2013
+<li>
+    Dorning, M. A, Koch J., Shoemaker D. A, Meentemeyer, R. K.,
+    Simulating urbanization scenarios under various landscape planning policies reveals trade-offs between disparate conservation goals
+    [in press]
+</ul>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="r.mapcalc.html">r.mapcalc</a>,
+  <a href="r.reclass.html">r.reclass</a>,
+  <a href="r.rescale.html">r.rescale</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+
+<p>
+<em>Corresponding author:</em><br>
+Ross K. Meentemeyer, rkmeente ncsu edu,
+<a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Original standalone version:</em><br>
+
+Ross K. Meentemeyer *<br>
+Wenwu Tang *<br>
+Monica A. Dorning *<br>
+John B. Vogler *<br>
+Nik J. Cunniffe *<br>
+Douglas A. Shoemaker *<br>
+Jennifer A. Koch **<br>
+
+<br>
+* Department of Geography and Earth Sciences, UNC Charlotte<br>
+** <a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a><br>
+
+<p>
+<em>Port to GRASS GIS and GRASS-specific additions:</em><br>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a><br>
+
+
+<p>
+<i>Last changed: $Date$</i>
