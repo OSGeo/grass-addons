@@ -399,11 +399,11 @@ def main():
         def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
                                title, desc):
             maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-            tgis.open_new_space_time_dataset(basename, type='strds',
-                                             temporaltype='relative',
-                                             title=title, descr=desc,
-                                             semantic='sum', dbif=None,
-                                             overwrite=grass.overwrite())
+            tgis.open_new_stds(basename, type='strds',
+                               temporaltype='relative',
+                               title=title, descr=desc,
+                               semantic='sum', dbif=None,
+                               overwrite=grass.overwrite())
             tgis.register_maps_in_space_time_dataset(
                 type='rast', name=basename, maps=maps, start=start_day, end=None,
                 unit='days', increment=day_step, dbif=None, interval=False)

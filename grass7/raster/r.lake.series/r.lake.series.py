@@ -210,11 +210,11 @@ def main():
     # Make sure the temporal database exists
     tgis.init()
 
-    tgis.open_new_space_time_dataset(strds, type='strds',
-                                     temporaltype='relative',
-                                     title=title, descr=desctiption,
-                                     semantic='sum', dbif=None,
-                                     overwrite=gcore.overwrite())
+    tgis.open_new_stds(strds, type='strds',
+                       temporaltype='relative',
+                       title=title, descr=desctiption,
+                       semantic='sum', dbif=None,
+                       overwrite=gcore.overwrite())
     # TODO: we must start from 1 because there is a bug in register_maps_in_space_time_dataset
     tgis.register_maps_in_space_time_dataset(
         type='rast', name=basename, maps=','.join(outputs),
