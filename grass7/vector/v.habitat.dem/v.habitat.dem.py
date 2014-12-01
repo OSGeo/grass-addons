@@ -396,8 +396,8 @@ def main():
     grass.message( "10 - depression" )
     grass.message( " " )
     grass.message( "Mutual occurrence in percent of the row" )	
-    grass.run_command("r.coin", map1 = r_habitat,
-                                     map2 = r_geomorphon,
+    grass.run_command("r.coin", first = r_habitat,
+                                     second = r_geomorphon,
                                      flags = 'w',
                                      units = 'y')
     grass.message( "Calculations of mutual occurrences done." )
@@ -413,7 +413,7 @@ def main():
                                      separator = ';',
                                      output = habgeocsv)	
 
-    grass.run_command("db.in.ogr", dsn = habgeocsv,
+    grass.run_command("db.in.ogr", input = habgeocsv,
                                      output = t_habitat_geomorphons)
 
     grass.run_command("db.dropcolumn", table = t_habitat_geomorphons,
@@ -430,13 +430,13 @@ def main():
                                      output = habgeocsv_pivot,	
                                      sql = "SELECT field_1, sum(case when field_4 = 'flat' then field_5 end) as flat, sum(case when field_4 = 'summit' then field_5 end) as summit, sum(case when field_4 = 'ridge' then field_5 end) as ridge, sum(case when field_4 = 'shoulder' then field_5 end) as shoulder, sum(case when field_4 = 'spur' then field_5 end) as spur, sum(case when field_4 = 'slope' then field_5 end) as slope, sum(case when field_4 = 'hollow' then field_5 end) as hollow, sum(case when field_4 = 'footslope' then field_5 end) as footslope, sum(case when field_4 = 'valley' then field_5 end) as valley, sum(case when field_4 = 'depression' then field_5 end) as depression , sum(field_5) as SubTotal FROM %s GROUP BY field_1" % t_habitat_geomorphons)
 
-    grass.run_command("db.in.ogr", dsn = habgeocsv_pivot,
+    grass.run_command("db.in.ogr", input = habgeocsv_pivot,
                                      output = t_habitat_geomorphons_pivot)
 
     grass.run_command("v.db.join", map = v_habitat,
                                      column = v_column,
-                                     otable = t_habitat_geomorphons_pivot,
-                                     ocolumn = 'field_1')
+                                     other_table = t_habitat_geomorphons_pivot,
+                                     other_column = 'field_1')
     grass.message( "Geomorphon information joint to habitat attribute table." )
     grass.message( "----" )
 
