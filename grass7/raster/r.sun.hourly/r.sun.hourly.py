@@ -22,20 +22,20 @@
 #%option
 #% type: string
 #% gisprompt: old,cell,raster
-#% key: elev_in
+#% key: elevation
 #% description: Name of the input elevation raster map [meters]
 #% required : yes
 #%end
 #%option
 #% type: string
 #% gisprompt: old,cell,raster
-#% key: asp_in
+#% key: aspect
 #% description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
 #%end
 #%option
 #% type: string
 #% gisprompt: old,cell,raster
-#% key: slope_in
+#% key: slope
 #% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
 #%end
 #%option
@@ -259,9 +259,9 @@ def format_grass_time(dt):
 def main():
     options, flags = grass.parser()
 
-    elevation_input = options['elev_in']
-    aspect_input = options['asp_in']
-    slope_input = options['slope_in']
+    elevation_input = options['elevation']
+    aspect_input = options['aspect']
+    slope_input = options['slope']
 
     beam_rad_basename = options['beam_rad_basename']
     diff_rad_basename = options['diff_rad_basename']

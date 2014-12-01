@@ -41,23 +41,23 @@ EOF
 # The @test
 
 NAME="Missing parameter test (module should fail)"
-r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3
+r.sun.daily elev=terrain start_day=26 end_day=37 day_step=3
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Wrong start and end day parameter values test (module should fail)"
-r.sun.daily elev_in=terrain start_day=82 end_day=37 day_step=3 reflrad_basename=${should_not_be_created_map}
+r.sun.daily elevation=terrain start_day=82 end_day=37 day_step=3 reflrad_basename=${should_not_be_created_map}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Wrong day step parameter values test (module should fail)"
-r.sun.daily elev_in=terrain start_day=82 end_day=85 day_step=9 reflrad_basename=${should_not_be_created_map}
+r.sun.daily elevation=terrain start_day=82 end_day=85 day_step=9 reflrad_basename=${should_not_be_created_map}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Wrong day step parameter and cumulative parameters values test (module should fail)"
-r.sun.daily elev_in=terrain start_day=1 end_day=85 day_step=9 refl_rad=${should_not_be_created_map}
+r.sun.daily elevation=terrain start_day=1 end_day=85 day_step=9 refl_rad=${should_not_be_created_map}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Map creation test"
-r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename}
+r.sun.daily elevation=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename}
 
 g.list -e type=rast pattern=${map_basename}_[0-9]{3} sep=newline > ${created_map_names_file}
 
@@ -65,11 +65,11 @@ diff ${map_names_file} ${created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
 
 NAME="Overwrite flag test"
-r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename} --overwrite
+r.sun.daily elevation=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename} --overwrite
 echo "$NAME: r.sun.daily returned: $? (expecting 0)"
 
 NAME="Map already exists test (module should fail)"
-r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename}
+r.sun.daily elevation=terrain start_day=26 end_day=37 day_step=3 reflrad_basename=${map_basename}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 # clean

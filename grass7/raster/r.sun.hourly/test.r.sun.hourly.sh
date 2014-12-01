@@ -69,19 +69,19 @@ EOF
 # The @test
 
 NAME="Missing ouput parameter test (module should fail)"
-r.sun.hourly elev_in=terrain start_time=11.50 end_time=18.20 time_step=3 day=80
+r.sun.hourly elevation=terrain start_time=11.50 end_time=18.20 time_step=3 day=80
 echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 
 NAME="Wrong start and end time parameter values test (module should fail)"
-r.sun.hourly elev_in=terrain start_time=11.50 end_time=9.00 time_step=3 day=80 reflrad_basename=${map_basename}
+r.sun.hourly elevation=terrain start_time=11.50 end_time=9.00 time_step=3 day=80 reflrad_basename=${map_basename}
 echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 
 NAME="Wrong time step parameter value test (module should fail)"
-r.sun.hourly elev_in=terrain start_time=10.60 end_time=11.20 time_step=0.60 day=80 reflrad_basename=${map_basename}
+r.sun.hourly elevation=terrain start_time=10.60 end_time=11.20 time_step=0.60 day=80 reflrad_basename=${map_basename}
 echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 
 NAME="Map creation test"
-r.sun.hourly elev_in=terrain start_time=11.50 end_time=20.00 time_step=3 day=80 reflrad_basename=${map_basename}
+r.sun.hourly elevation=terrain start_time=11.50 end_time=20.00 time_step=3 day=80 reflrad_basename=${map_basename}
 
 g.list -e type=rast pattern=${map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${created_map_names_file}
 
@@ -89,7 +89,7 @@ diff ${map_names_file} ${created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
 
 NAME="Map creation test with too much decimal places"
-r.sun.hourly elev_in=terrain start_time=7.0000 end_time=11.0000 time_step=1.3333 day=80 reflrad_basename=${decimal_map_basename}
+r.sun.hourly elevation=terrain start_time=7.0000 end_time=11.0000 time_step=1.3333 day=80 reflrad_basename=${decimal_map_basename}
 
 g.list -e type=rast pattern=${decimal_map_basename}${map_number_separator}${map_number_pattern} sep=newline > ${decimal_created_map_names_file}
 
@@ -97,7 +97,7 @@ diff ${decimal_map_names_file} ${decimal_created_map_names_file}
 echo "$NAME: Diff returned $? (expecting 0)"
 
 NAME="Temporal dataset creation test"
-r.sun.hourly -t elev_in=terrain start_time=11.50 end_time=20.00 time_step=3 day=100 year=${year} reflrad_basename=${temporal_map_basename}
+r.sun.hourly -t elevation=terrain start_time=11.50 end_time=20.00 time_step=3 day=100 year=${year} reflrad_basename=${temporal_map_basename}
 
 t.list type=strds > ${temporal_created_dataset_file}
 
@@ -110,7 +110,7 @@ diff --ignore-all-space ${temporal_map_names_file} ${temporal_created_map_names_
 echo "$NAME (maps sub-test): Diff returned $? (expecting 0)"
 
 NAME="Map already exists test (module should fail)"
-r.sun.hourly elev_in=terrain start_time=11.50 end_time=20.00 time_step=3 day=80 reflrad_basename=${map_basename}
+r.sun.hourly elevation=terrain start_time=11.50 end_time=20.00 time_step=3 day=80 reflrad_basename=${map_basename}
 echo "$NAME: r.sun.hourly returned: $? (expecting 1)"
 
 # clean
