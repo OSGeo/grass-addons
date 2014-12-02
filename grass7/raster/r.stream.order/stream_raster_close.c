@@ -5,7 +5,7 @@ int ram_close_raster_order(CELL **streams, int number_of_streams,
 
     G_debug(3, "ram_close_raster_order(): number_of_streams=%d", number_of_streams);
 
-    G_message("Writing outpout raster maps...");
+    G_message("Writing output raster maps...");
     int *output_fd;
     int r, c, i;
     CELL *output_buffer, *streams_buffer;
