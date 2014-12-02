@@ -24,7 +24,7 @@ int open_new_CELL(name)
 	exit(1);
     }
 
-    fd = G_open_raster_new(name, CELL_TYPE);
+    fd = Rast_open_new(name, CELL_TYPE);
     if (fd < 0) {
 	sprintf(err, "open_new_CELL-> failed in attempt to open %s\n", name);
 	G_fatal_error(err);
@@ -49,7 +49,7 @@ int open_new_DCELL(char *name)
 	exit(1);
     }
 
-    fd = G_open_raster_new(name, DCELL_TYPE);
+    fd = Rast_open_new(name, DCELL_TYPE);
     if (fd < 0) {
 	sprintf(err, "open_new_DCELL-> failed in attempt to open %s\n", name);
 	G_fatal_error(err);

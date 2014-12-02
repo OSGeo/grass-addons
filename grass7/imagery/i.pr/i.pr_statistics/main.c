@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 			intmat[i] = (int *)G_calloc(cellhd.cols, sizeof(int));
 
 		    for (i = 0; i < cellhd.rows; i++)
-			G_zero_cell_buf(intmat[i]);
+			Rast_zero_c_buf(intmat[i]);
 
 		    /*compute output raster map */
 		    index = 0;
@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
 			    G_fatal_error(tempbuf);
 			}
 
-		    if (G_close_cell(FD) == -1) {
+		    if (Rast_close(FD) == -1) {
 			sprintf(tempbuf, "error closing tmp raster map");
 			G_fatal_error(tempbuf);
 		    }

@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 	    G_fatal_error(tmpbuf);
 	}
 
-	if ((fd[l] = G_open_cell_old(opt1->answers[l], mapset)) < 0) {
+	if ((fd[l] = Rast_open_old(opt1->answers[l], mapset)) < 0) {
 	    sprintf(tmpbuf, "error opening raster map [%s]",
 		    opt1->answers[l]);
 	    G_fatal_error(tmpbuf);
@@ -226,13 +226,13 @@ int main(int argc, char *argv[])
 			       sizeof(DCELL));
 	tf = rowbuf;
 	for (l = 0; l < features.training.nlayers; l++) {
-	    if (G_get_d_raster_row(fd[l], tf, r) < 0) {
+	    if (Rast_get_d_row(fd[l], tf, r) < 0) {
 		sprintf(tmpbuf, "Error reading raster map <%s>\n",
 			opt1->answers[l]);
 		G_fatal_error(tmpbuf);
 	    }
 	    for (c = 0; c < cellhd.cols; c++) {
-		if (G_is_d_null_value(tf))
+		if (Rast_is_d_null_value(tf))
 		    *tf = 0.0;
 		matrix[l][r][c] = *tf;
 		tf++;
@@ -393,13 +393,13 @@ int main(int argc, char *argv[])
 		rowbuf = (DCELL *) G_calloc(cellhd.cols, sizeof(DCELL));
 		tf = rowbuf;
 
-		if (G_get_d_raster_row(fd[l], tf, r) < 0) {
+		if (Rast_get_d_row(fd[l], tf, r) < 0) {
 		    sprintf(tmpbuf, "Error reading raster map <%s>\n",
 			    opt1->answers[l]);
 		    G_fatal_error(tmpbuf);
 		}
 		for (c = 0; c < cellhd.cols; c++) {
-		    if (G_is_d_null_value(tf))
+		    if (Rast_is_d_null_value(tf))
 			*tf = 0.0;
 		    matrix[l][last_row][c] = *tf;
 		    tf++;

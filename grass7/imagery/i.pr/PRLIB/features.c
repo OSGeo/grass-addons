@@ -191,7 +191,7 @@ void compute_features(Features * features)
 		    G_fatal_error(tempbuf);
 		}
 		if ((fp =
-		     G_open_cell_old(features->training.mapnames[i][j],
+		     Rast_open_old(features->training.mapnames[i][j],
 				     mapset)) < 0) {
 		    sprintf(tempbuf,
 			    "compute_features-> Can't open raster map <%s> for reading",
@@ -199,7 +199,7 @@ void compute_features(Features * features)
 		    G_fatal_error(tempbuf);
 		}
 
-		G_get_cellhd(features->training.mapnames[i][j], mapset,
+		Rast_get_cellhd(features->training.mapnames[i][j], mapset,
 			     &cellhd);
 		G_set_window(&cellhd);
 		if ((cellhd.rows != features->training.rows) ||
@@ -212,9 +212,9 @@ void compute_features(Features * features)
 
 
 		for (r = 0; r < features->training.rows; r++) {
-		    G_get_d_raster_row(fp, tf, r);
+		    Rast_get_d_row(fp, tf, r);
 		    for (c = 0; c < features->training.cols; c++) {
-			if (G_is_d_null_value(tf))
+			if (Rast_is_d_null_value(tf))
 			    *tf = 0.0;
 			matrix[i][c + (r * features->training.cols)] = *tf;
 			tf++;
@@ -222,7 +222,7 @@ void compute_features(Features * features)
 		}
 		G_free(rowbuf);
 
-		G_close_cell(fp);
+		Rast_close(fp);
 
 		break;
 	    case TABLE_data:

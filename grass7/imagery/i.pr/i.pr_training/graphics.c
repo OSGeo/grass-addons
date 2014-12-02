@@ -81,8 +81,8 @@ void Init_graphics2()
     VIEW_INFO = makeview(7.5, 45.0, 52.5, 97.5);
     VIEW_MENU = makeview(0.0, 2.5, 0.0, 100.0);
 
-    G_init_colors(&VIEW_MAP1->cell.colors);
-    G_init_colors(&VIEW_IMAGE->cell.colors);
+    Rast_init_colors(&VIEW_MAP1->cell.colors);
+    Rast_init_colors(&VIEW_IMAGE->cell.colors);
 }
 
 
@@ -126,8 +126,8 @@ void Init_graphics()
     VIEW_INFO = makeview(7.5, 45.0, 52.5, 97.5);
     VIEW_MENU = makeview(0.0, 2.5, 0.0, 100.0);
 
-    G_init_colors(&VIEW_MAP1->cell.colors);
-    G_init_colors(&VIEW_IMAGE->cell.colors);
+    Rast_init_colors(&VIEW_MAP1->cell.colors);
+    Rast_init_colors(&VIEW_IMAGE->cell.colors);
 }
 
 void Outline_box(top, bottom, left, right)
@@ -219,8 +219,8 @@ void drawcell(view)
 	read_colors = view == VIEW_IMAGE;
     }
     if (read_colors) {
-	G_free_colors(colors);
-	if (G_read_colors(view->cell.name, view->cell.mapset, colors) < 0)
+	Rast_free_colors(colors);
+	if (Rast_read_colors(view->cell.name, view->cell.mapset, colors) < 0)
 	    return 0;
     }
 
@@ -229,8 +229,8 @@ void drawcell(view)
     /*    D_set_colors (colors); */
 
     G_set_window(&view->cell.head);
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     left = view->cell.left;
     top = view->cell.top;
@@ -244,7 +244,7 @@ void drawcell(view)
 	    return 1;
     }
 
-    fd = G_open_cell_old(view->cell.name, view->cell.mapset);
+    fd = Rast_open_old(view->cell.name, view->cell.mapset);
     if (fd < 0)
 	return 0;
     cell = G_allocate_cell_buf();
@@ -261,7 +261,7 @@ void drawcell(view)
 	repeat = G_row_repeat_nomask(fd, row);
 	/*      D_raster (cell, ncols, repeat, colors); */
     }
-    G_close_cell(fd);
+    Rast_close(fd);
     G_free(cell);
     /*    if(colors != &VIEW_MAP1->cell.colors)
        D_set_colors(&VIEW_MAP1->cell.colors);

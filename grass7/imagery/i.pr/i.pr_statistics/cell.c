@@ -13,8 +13,8 @@ static int cell_draw(char *, char *, struct Colors *, int);
  * \brief 
  *
  * If the map is a floating-point map, read the map using
- * <tt>G_get_d_raster_row()</tt> and plot using <tt>D_draw_d_cell()</tt>. If the
- * map is an integer map, read the map using <tt>G_get_c_raster_row()</tt> and
+ * <tt>Rast_get_d_row()</tt> and plot using <tt>D_draw_d_cell()</tt>. If the
+ * map is an integer map, read the map using <tt>Rast_get_c_row()</tt> and
  * plot using <tt>D_draw_cell()</tt>.
  *
  *  \param name
@@ -47,14 +47,14 @@ int Dcell(char *name, char *mapset, int overlay)
     G_set_window(&wind);
 
     /* Set the colors for the display */
-    if (G_read_colors(name, mapset, &colors) == -1)
+    if (Rast_read_colors(name, mapset, &colors) == -1)
 	G_fatal_error(_("Color file for [%s] not available"), name);
 
     /* Go draw the cell file */
     cell_draw(name, mapset, &colors, overlay);
 
     /* release the colors now */
-    G_free_colors(&colors);
+    Rast_free_colors(&colors);
 
     /* record the cell file */
     /* If overlay add it to the list instead of setting the cell name */
@@ -88,16 +88,16 @@ static int cell_draw(char *name, char *mapset, struct Colors *colors,
     D_set_overlay_mode(overlay);
 
     /* Make sure map is available */
-    if ((cellfile = G_open_cell_old(name, mapset)) == -1)
+    if ((cellfile = Rast_open_old(name, mapset)) == -1)
 	G_fatal_error(_("Not able to open cellfile for [%s]"), name);
 
     /* Allocate space for cell buffer */
-    xarray = G_allocate_d_raster_buf();
+    xarray = Rast_allocate_d_buf();
 
     /* loop for array rows */
     for (cur_A_row = 0; cur_A_row != -1;) {
 	/* Get window (array) row currently required */
-	G_get_d_raster_row(cellfile, xarray, cur_A_row);
+	Rast_get_d_row(cellfile, xarray, cur_A_row);
 
 	/* Draw the cell row, and get the next row number */
 	cur_A_row = D_draw_d_raster(cur_A_row, xarray, colors);
@@ -105,7 +105,7 @@ static int cell_draw(char *name, char *mapset, struct Colors *colors,
     R_flush();
 
     /* Wrap up and return */
-    G_close_cell(cellfile);
+    Rast_close(cellfile);
     G_free(xarray);
 
     return (0);

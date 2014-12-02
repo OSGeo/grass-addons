@@ -40,9 +40,9 @@ void extract_sites_from_blob(Blob * blobs, int npoints, Blob * blobs,
 		if (matrix[blobs[index].row][blobs[index].col] < sites[j].min)
 		    sites[j].min = matrix[blobs[index].row][blobs[index].col];
 		barix +=
-		    G_col_to_easting((double)blobs[index].col + .5, cellhd);
+		    Rast_col_to_easting((double)blobs[index].col + .5, cellhd);
 		bariy +=
-		    G_row_to_northing((double)blobs[index].row + .5, cellhd);
+		    Rast_row_to_northing((double)blobs[index].row + .5, cellhd);
 		index += 1;
 		intindex += 1;
 	    }

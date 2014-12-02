@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(tempbuf);
     }
 
-    if ((fd = G_open_cell_old(opt1->answer, mapset)) < 0) {
+    if ((fd = Rast_open_old(opt1->answer, mapset)) < 0) {
 	sprintf(tempbuf, "error opening raster map <%s>", opt1->answer);
 	G_fatal_error(tempbuf);
     }
@@ -120,15 +120,15 @@ int main(int argc, char *argv[])
 	matrix[i] = (double *)G_calloc(cellhd.cols, sizeof(double));
 
     for (i = 0; i < cellhd.rows; i++) {
-	G_get_d_raster_row(fd, tf, i);
+	Rast_get_d_row(fd, tf, i);
 	for (j = 0; j < cellhd.cols; j++) {
-	    if (G_is_d_null_value(tf))
+	    if (Rast_is_d_null_value(tf))
 		*tf = maxv + 1.0;
 	    matrix[i][j] = *tf;
 	    tf++;
 	}
     }
-    G_close_cell(fd);
+    Rast_close(fd);
 
     nblobs = 0;
     npoints = 0;

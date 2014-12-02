@@ -15,31 +15,31 @@ void write_map(struct Cell_head *cellhd, char *name, char *mapset, char *dest)
 
     G_set_window(cellhd);
 
-    fd_from = G_open_cell_old(name, mapset);
+    fd_from = Rast_open_old(name, mapset);
     if (fd_from < 0)
 	G_fatal_error(_("Error reading raster map <%s> in mapset <%s>"),
 		      name, mapset);
 
 
-    fd_to = G_open_cell_new(dest);
+    fd_to = Rast_open_c_new(dest);
     if (fd_to < 0)
 	G_fatal_error(_("Error writing raster map <%s> in mapset <%s>"),
 		      dest, G_mapset());
 
-    buf = G_allocate_raster_buf(CELL_TYPE);
+    buf = Rast_allocate_buf(CELL_TYPE);
 
-    ncols = G_window_cols();
-    nrows = G_window_rows();
+    ncols = Rast_window_cols();
+    nrows = Rast_window_rows();
 
     for (row = 0; row < nrows; row++) {
-	G_get_raster_row(fd_from, buf, row, CELL_TYPE);
-	G_put_raster_row(fd_to, buf, CELL_TYPE);
+	Rast_get_row(fd_from, buf, row, CELL_TYPE);
+	Rast_put_row(fd_to, buf, CELL_TYPE);
     }
 
     /* memory cleanup */
     G_free(buf);
-    G_close_cell(fd_to);
-    G_close_cell(fd_from);
+    Rast_close(fd_to);
+    Rast_close(fd_from);
 
 
     if ((mapset = G_find_file("colr", name, mapset)) != NULL) {
