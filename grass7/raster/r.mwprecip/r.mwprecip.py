@@ -1076,7 +1076,7 @@ def grassWork():
 
     
     grass.run_command('v.in.ogr',
-                    dsn="PG:",
+                    input = "PG:",
                     layer = points_schema,
                     output = points_ogr,
                     overwrite=True,
@@ -1116,7 +1116,7 @@ def grassWork():
     
     if not flags['q']:
         grass.run_command('v.in.ogr',
-                    dsn="PG:",
+                    input = "PG:",
                     layer = "link",
                     output = "link",
                     flags='t',

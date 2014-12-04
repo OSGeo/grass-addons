@@ -237,7 +237,7 @@ class WFSBase:
             grass.run_command('v.in.ogr',
                               quiet = True,
                               overwrite = True,
-                              dsn = temp_warpmap,
+                              input = temp_warpmap,
                               output = self.o_output)
         except CalledModuleError:
             grass.fatal(_('%s failed') % 'v.in.ogr')

@@ -78,7 +78,7 @@ tr '|' ',' &lt; fields_stats.txt > fields_stats.csv
 echo '"Integer","String","Real","Real","Real"' > fields_stats.csvt
 
 # import table
-db.in.ogr dsn=fields_stats.csv output=fields_data
+db.in.ogr input=fields_stats.csv output=fields_data
 
 # view table
 db.select fields_data

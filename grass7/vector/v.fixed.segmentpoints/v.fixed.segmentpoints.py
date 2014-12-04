@@ -183,7 +183,7 @@ def main():
                 new_line = line.replace(" ", ";")
                 f.write(new_line)
 
-    grass.run_command("db.in.ogr", output = 't_segmentpoints_csv', dsn = "%s" % segment_points_file_csv)
+    grass.run_command("db.in.ogr", output = 't_segmentpoints_csv', input = "%s" % segment_points_file_csv)
 
     grass.run_command("v.db.join", map = voutpoint,
                                      column = 'cat',
@@ -219,7 +219,7 @@ def main():
     csv_to_export = os.path.join( directory, fpointscsv_export )	
 
     grass.run_command("db.out.ogr", input = voutpoint,
-                                     dsn = '%s' % (csv_to_export),
+                                     output = '%s' % (csv_to_export),
                                      format = 'CSV')			
 	
     grass.message( "Export done." )

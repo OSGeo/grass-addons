@@ -773,7 +773,7 @@ def main():
         
 
         # Import table "summary", attaches it to "outlet_snap", then drops it                          
-        grass.run_command("db.in.ogr", dsn = csvfileT,
+        grass.run_command("db.in.ogr", input = csvfileT,
                                        output = "summary")  
                                           
                                            

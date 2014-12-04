@@ -31,13 +31,13 @@ Existing PostGIS topology schema can be overwrite by <b>--overwrite</b> flag.
 Export vector map into PostGIS:
 
 <div class="code"><pre>
-v.out.ogr dsn=PG:dbname=pgis_nc input=bridges format=PostgreSQL
+v.out.ogr input=bridges output=PG:dbname=pgis_nc format=PostgreSQL
 </pre></div>
 
 Create a new vector map as a link to PostGIS table:
 
 <div class="code"><pre>
-v.external dsn=PG:dbname=pgis_nc layer=bridges
+v.external input=PG:dbname=pgis_nc layer=bridges
 </pre></div>
 
 Check metadata:

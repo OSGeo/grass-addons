@@ -23,7 +23,7 @@
 #% description: List available layers in data source and exit
 #%end
 #%option
-#% key: dsn
+#% key: input
 #% type: string
 #% description: Name of input OGR or PostGIS data source
 #% required: yes
@@ -39,7 +39,7 @@ from grass.exceptions import CalledModuleError
 def list_layers(dsn):
     ret = grass.read_command('v.external',
                              flags = 'l',
-                             dsn = dsn)
+                             input = dsn)
     if not ret:
         sys.exit(1)
     
@@ -54,17 +54,17 @@ def make_links(dsn):
                           ('-' * 80, layer, oname, '-' * 80))
         try:
             grass.run_command('v.external',
-                              dsn = dsn, layer = layer, output = oname)
+                              input = dsn, layer = layer, output = oname)
         except CalledModuleError:
             grass.warning(_("Unable to create link for OGR layer <%s>") % layer)
     
 def main():
     if flags['l']:
-        ret = list_layers(options['dsn'])
+        ret = list_layers(options['input'])
         sys.stdout.write(os.linesep.join(ret))
         sys.stdout.write(os.linesep)
     else:
-        make_links(options['dsn'])
+        make_links(options['input'])
     
     return 0
 
