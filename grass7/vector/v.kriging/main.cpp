@@ -49,18 +49,10 @@ int main(int argc, char *argv[])
   module = G_define_module();
   G_add_keyword(_("raster"));
   G_add_keyword(_("3D raster"));
-<<<<<<< .mine
   G_add_keyword(_("ordinary kriging - for 2D and 3D data"));
   module->description =
     _("Interpolates 2D or 3D raster based on input values located on 2D or 3D point vector layer (method ordinary kriging extended to 3D).");
 
-=======
-  G_add_keyword(_("ordinary kriging"));
-  module->label =
-    _("Interpolates 2D or 3D raster map based on input values located on 2D or 3D vector point map.");
-  module->description = _("Method ordinary kriging extended to 3D.");
-  
->>>>>>> .r62698
   // Setting options
   opt.input = G_define_standard_option(G_OPT_V_INPUT); // Vector input layer
   opt.input->label = _("Name of input vector points map");
