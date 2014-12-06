@@ -40,10 +40,10 @@ int main(int argc, char *argv[])
     DCELL *signal;/*spectral/temporal signal*/
     DCELL *sorted;/*spectral/temporal sorted slope*/
     DCELL **slope;/*Theil-Sen slope matrix*/
-    float max=0.0;/*value total max for colour palette */
-    float min=0.0;/*value total min for colour palette */
+    float ts_max=0.0;/*value total max for colour palette */
+    float ts_min=100000.0;/*value total min for colour palette */
     float mk_max=0.0;/*Mann-Kendall total max for colour palette */
-    float mk_min=0.0;/*Mann-Kendall total min for colour palette */
+    float mk_min=100000.0;/*Mann-Kendall total min for colour palette */
     float temp=0.0;/*swapping temp value*/
     
     int outfd0, outfd1;
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
                 for (n1=0; n1<n; n1++){
                     /* Compute outside of diagonal */
                     if(n0!=n1)
-                        slope[n0][n1]=(cell[n1]-cell[n0])/(n1-n0);
+                        slope[n0][n1]=(signal[n1]-signal[n0])/(n1-n0);
                 }
             }
             /* Sorting all slopes computed */
@@ -154,13 +154,13 @@ int main(int argc, char *argv[])
             outrast0[col] = sorted[n0n1/2];
             /* Prepare Theil-Sen colour palette range from data */
             if (sorted[n0n1/2]<min)
-                min=sorted[n0n1/2];
+                ts_min=sorted[n0n1/2];
             if (sorted[n0n1/2]>max)
-                max=sorted[n0n1/2];
+                ts_max=sorted[n0n1/2];
             /* Mann-Kendall Trend Test */
             /* Not yet implemented     */
-            mk_min=min;
-            mk_max=max;
+            mk_min=ts_min;
+            mk_max=ts_max;
             outrast1[col] = sorted[n0n1/2];
             /*-------------------------*/
         }
@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
     /* For the time being dont touch this */ 
     /* Color table from slope min to slope max */
     Rast_init_colors(&colors);
-    val1 = min;
-    val2 = max;
+    val1 = ts_min;
+    val2 = ts_max;
     Rast_add_c_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
     /* Metadata */
     Rast_short_history(out0->answer, "raster", &history);
