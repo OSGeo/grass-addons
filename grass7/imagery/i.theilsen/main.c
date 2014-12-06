@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <grass/imagery.h>
 #include <grass/glocale.h>
 
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
     int outfd0, outfd1;
     DCELL *outrast0, *outrast1;
 
-    CELL val1, val2;
+    DCELL val1, val2;
     /************************************/
     G_gisinit(argv[0]);
 
@@ -153,9 +154,9 @@ int main(int argc, char *argv[])
             /* Extract median slope (list halfway) */
             outrast0[col] = sorted[n0n1/2];
             /* Prepare Theil-Sen colour palette range from data */
-            if (sorted[n0n1/2]<min)
+            if (sorted[n0n1/2]<ts_min)
                 ts_min=sorted[n0n1/2];
-            if (sorted[n0n1/2]>max)
+            if (sorted[n0n1/2]>ts_max)
                 ts_max=sorted[n0n1/2];
             /* Mann-Kendall Trend Test */
             /* Not yet implemented     */
@@ -184,8 +185,8 @@ int main(int argc, char *argv[])
     /* Color table from slope min to slope max */
     Rast_init_colors(&colors);
     val1 = ts_min;
-    val2 = ts_max;
-    Rast_add_c_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
+    val2 = ceil(ts_max);
+    Rast_add_d_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
     /* Metadata */
     Rast_short_history(out0->answer, "raster", &history);
     Rast_command_history(&history);
@@ -194,8 +195,8 @@ int main(int argc, char *argv[])
     /* Color table from Mann-Kendall test min and max */
     Rast_init_colors(&colors);
     val1 = mk_min;
-    val2 = mk_max;
-    Rast_add_c_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
+    val2 = ceil(mk_max);
+    Rast_add_d_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
     /* Metadata */
     Rast_short_history(out1->answer, "raster", &history);
     Rast_command_history(&history);
