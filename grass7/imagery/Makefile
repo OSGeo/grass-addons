@@ -20,6 +20,7 @@ SUBDIRS = \
 	i.segment.gsoc \
 	i.segment.hierarchical \
 	i.spec.unmix \
+	i.theilsen \
 	i.vi.mpi \
 	i.wavelet
 
