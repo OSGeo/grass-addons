@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     
     out1 = G_define_standard_option(G_OPT_R_OUTPUT);
     out1->description = _("Name of Mann-Kendall test map");
-    out1->key = "MannKendall";
+    out1->key = "mannkendall";
 
     if (G_parser(argc, argv)) exit(EXIT_FAILURE);
     /*------------------------------------------*/
