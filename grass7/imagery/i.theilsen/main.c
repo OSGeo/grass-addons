@@ -36,7 +36,6 @@ int main(int argc, char *argv[])
     struct History history;  /*metadata */
     struct Colors colors;    /*Color rules */
 
-    int outfd0, outfd1;
     int nfiles=0, count=0, n=0, n0=0, n1=0, n0n1=0;
     DCELL *signal;/*spectral/temporal signal*/
     DCELL *sorted;/*spectral/temporal sorted slope*/
@@ -46,6 +45,8 @@ int main(int argc, char *argv[])
     float mk_max=0.0;/*Mann-Kendall total max for colour palette */
     float mk_min=0.0;/*Mann-Kendall total min for colour palette */
     float temp=0.0;/*swapping temp value*/
+    
+    int outfd0, outfd1;
     DCELL *outrast0, *outrast1;
 
     CELL val1, val2;
@@ -79,12 +80,16 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    /* Allocate output buffer, use input map data_type */
-    outrast0 = Rast_allocate_buf(DCELL_TYPE);
-    outrast1 = Rast_allocate_buf(DCELL_TYPE);
+    group = grp->answer;
+    subgroup = sgrp->answer;
+
     /* Create New raster files */
     outfd0 = Rast_open_new(out0->answer,DCELL_TYPE);
     outfd1 = Rast_open_new(out1->answer,DCELL_TYPE);
+
+    /* Allocate output buffer, use input map data_type */
+    outrast0 = Rast_allocate_d_buf();
+    outrast1 = Rast_allocate_d_buf();
 
     /* Open input files */
     nfiles = open_files();
@@ -93,7 +98,10 @@ int main(int argc, char *argv[])
     signal = (DCELL *) G_malloc(nfiles * sizeof(DCELL));
 
     /* Allocate Theil-Sen Slope Matrix */
-    slope = (DCELL **) G_malloc(nfiles*nfiles*sizeof(DCELL));
+    slope = (DCELL **) G_malloc(nfiles*nfiles*sizeof(DCELL *));
+    for (n=0;n<nfiles;n++){
+        slope[n]= (DCELL *) G_malloc(nfiles*sizeof(DCELL));
+    }
 
     /* Allocate 1D Theil-Sen Slope sorting array */
     sorted = (DCELL *) G_malloc(nfiles*nfiles*sizeof(DCELL));
@@ -159,18 +167,14 @@ int main(int argc, char *argv[])
         Rast_put_d_row(outfd0, outrast0);
         /* Mann-Kendall Trend Test */
         /* Not yet implemented     */
-        /* Rast_put_d_row(outfd1, outrast1);*/
         Rast_put_d_row(outfd1, outrast1);
         /*-------------------------*/
     }
 
     for (n = 0; n < nfiles; n++) {
         G_free(cell[n]);
-        G_free(slope[n]);
         Rast_close(cellfd[n]);
     }
-    G_free(signal);
-    G_free(sorted); 
     G_free(outrast0);
     G_free(outrast1);
     Rast_close(outfd0);
@@ -196,7 +200,7 @@ int main(int argc, char *argv[])
     Rast_short_history(out1->answer, "raster", &history);
     Rast_command_history(&history);
     Rast_write_history(out1->answer, &history);
-
+    
     exit(EXIT_SUCCESS);
 }
 
