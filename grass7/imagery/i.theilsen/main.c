@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     int row, col;
     struct GModule *module;
     struct Option *grp, *sgrp, *out0, *out1;
+    /*struct Cell_head window, cellhd;*/
     struct History history;  /*metadata */
     struct Colors colors;    /*Color rules */
 
@@ -41,11 +42,11 @@ int main(int argc, char *argv[])
     DCELL *signal;/*spectral/temporal signal*/
     DCELL *sorted;/*spectral/temporal sorted slope*/
     DCELL **slope;/*Theil-Sen slope matrix*/
-    float ts_max=0.0;/*value total max for colour palette */
-    float ts_min=100000.0;/*value total min for colour palette */
-    float mk_max=0.0;/*Mann-Kendall total max for colour palette */
-    float mk_min=100000.0;/*Mann-Kendall total min for colour palette */
-    float temp=0.0;/*swapping temp value*/
+    DCELL ts_max=-10000.0;/*value total max for colour palette */
+    DCELL ts_min=100000.0;/*value total min for colour palette */
+    DCELL mk_max=-10000.0;/*Mann-Kendall total max for colour palette */
+    DCELL mk_min=100000.0;/*Mann-Kendall total min for colour palette */
+    DCELL temp=0.0;/*swapping temp value*/
     
     int outfd0, outfd1;
     DCELL *outrast0, *outrast1;
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
         Rast_put_d_row(outfd1, outrast1);
         /*-------------------------*/
     }
-
+    
     for (n = 0; n < nfiles; n++) {
         G_free(cell[n]);
         Rast_close(cellfd[n]);
@@ -181,12 +182,19 @@ int main(int argc, char *argv[])
     Rast_close(outfd0);
     Rast_close(outfd1);
 
-    /* For the time being dont touch this */ 
     /* Color table from slope min to slope max */
     Rast_init_colors(&colors);
-    val1 = ts_min;
-    val2 = ceil(ts_max);
-    Rast_add_d_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
+    if( ts_min < 0.0 ){
+        val1 = ts_min;
+        val2 = 0.0;
+        Rast_add_d_color_rule(&val1,255,0,0,&val2,255,255,255,&colors);
+    }
+    if( ts_max > 0.0 ){
+        val1 = 0.0;
+        val2 = 900.0;
+        /*val2 = ceil(ts_max);*/
+        Rast_add_d_color_rule(&val1,255,255,255,&val2,0,0,255,&colors);
+    }
     /* Metadata */
     Rast_short_history(out0->answer, "raster", &history);
     Rast_command_history(&history);
@@ -196,12 +204,12 @@ int main(int argc, char *argv[])
     Rast_init_colors(&colors);
     val1 = mk_min;
     val2 = ceil(mk_max);
-    Rast_add_d_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
+    Rast_add_d_color_rule(&val1,0,0,0,&val2,255,255,255,&colors);
     /* Metadata */
     Rast_short_history(out1->answer, "raster", &history);
     Rast_command_history(&history);
     Rast_write_history(out1->answer, &history);
-    
+
     exit(EXIT_SUCCESS);
 }
 
