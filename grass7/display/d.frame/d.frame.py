@@ -60,8 +60,9 @@
 #% required: no
 #% multiple: no
 #% key_desc: bottom,top,left,right
-#% label: Where to place the frame (top-left values in percent)
-#% description: Implies -c or --overwrite
+#% label: Screen coordinates in percent where to place the frame (0,0 is lower-left)
+#% options: 0-100
+#% description: Implies only when -c or --overwrite flag is given
 #%end
 
 import os
@@ -151,12 +152,12 @@ def get_frame_name(line):
 # calculate position of the frame in percent
 def calculate_frame(frame, at, width, height):
     try:
-        t, b, l, r = map(float, at.split(','))
+        b, t, l, r = map(float, at.split(','))
     except:
         fatal(_("Invalid frame position: %s") % at)
 
     top = t / 100. * height
-    bottom = b / 100. * height
+    bottom = height - b / 100. * height
     left = l / 100. * width
     right = r / 100. * width
     
