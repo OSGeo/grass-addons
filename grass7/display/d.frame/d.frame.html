@@ -37,26 +37,26 @@ g.region rast=elevation
 # remove all frames and erase the current graphics monitor
 d.frame -e
 
-# create a first frame and display 'elevation' raster map including text label and scale
+# create a first frame and display 'landuse96_28m' raster map including text label
 d.frame -c frame=first at=0,50,0,50
+d.rast landuse96_28m
+d.text text='Landuse' bgcolor=220:220:220 color=black size=6
+
+# create a second frame and display 'streams' vector map
+d.frame -c frame=second at=0,50,50,100
+d.vect streams color=blue
+d.text text='Streams' bgcolor=220:220:220 color=black size=6
+
+# create a third frame and display 'elevation' raster map including text label and scale
+d.frame frame=third at=50,100,0,50
 d.rast elevation
 d.text text='Elevation' bgcolor=220:220:220 color=black size=6
 d.barscale at=5,15 style=line bgcolor=none
 
-# create a second frame and display RGB composition map including text label
-d.frame -c frame=second at=0,50,50,100
+# create a fourth frame and display RGB composition map including text label
+d.frame -c frame=fourth at=50,100,50,100
 d.rgb red=lsat7_2002_30 green=lsat7_2002_20 blue=lsat7_2002_10
 d.text text='RGB true colors' bgcolor=220:220:220 color=black size=6
-
-# create a third frame and display 'landuse96_28m' raster map including text label
-d.frame frame=third at=50,100,0,50
-d.rast landuse96_28m
-d.text text='Landuse' bgcolor=220:220:220 color=black size=6
-
-# create a fourth frame and display 'elevation' map including text label
-d.frame -c frame=fourth at=50,100,50,100
-d.vect streams color=blue
-d.text text='Streams' bgcolor=220:220:220 color=black size=6
 
 # release the current graphics monitor
 d.mon -r

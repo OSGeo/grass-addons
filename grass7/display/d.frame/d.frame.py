@@ -156,8 +156,8 @@ def calculate_frame(frame, at, width, height):
     except:
         fatal(_("Invalid frame position: %s") % at)
 
-    top = t / 100. * height
-    bottom = height - b / 100. * height
+    top = height - (t / 100. * height)
+    bottom = height - (b / 100. * height)
     left = l / 100. * width
     right = r / 100. * width
     
