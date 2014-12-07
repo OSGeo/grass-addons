@@ -48,10 +48,10 @@ d.vect streams color=blue
 d.text text='Streams' bgcolor=220:220:220 color=black size=6
 
 # create a third frame and display 'elevation' raster map including text label and scale
-d.frame frame=third at=50,100,0,50
+d.frame -c frame=third at=50,100,0,50
 d.rast elevation
 d.text text='Elevation' bgcolor=220:220:220 color=black size=6
-d.barscale at=5,15 style=line bgcolor=none
+d.barscale at=0,10 style=line bgcolor=none
 
 # create a fourth frame and display RGB composition map including text label
 d.frame -c frame=fourth at=50,100,50,100
