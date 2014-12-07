@@ -27,6 +27,9 @@ DCELL **cell;
 int *cellfd;
 int open_files(void);
 /*-------------------------------------*/
+/*Mann-Kendall test*/
+double mk_test(double *signal, int t);
+/*-------------------------------------*/
 
 int main(int argc, char *argv[])
 {
@@ -47,7 +50,8 @@ int main(int argc, char *argv[])
     DCELL mk_max=-10000.0;/*Mann-Kendall total max for colour palette */
     DCELL mk_min=100000.0;/*Mann-Kendall total min for colour palette */
     DCELL temp=0.0;/*swapping temp value*/
-    
+    DCELL pvalue=0.0;/*Mann-Kendall trend test p-value*/    
+
     int outfd0, outfd1;
     DCELL *outrast0, *outrast1;
 
@@ -160,10 +164,12 @@ int main(int argc, char *argv[])
             if (sorted[n0n1/2]>ts_max)
                 ts_max=sorted[n0n1/2];
             /* Mann-Kendall Trend Test */
-            /* Not yet implemented     */
-            mk_min=ts_min;
-            mk_max=ts_max;
-            outrast1[col] = sorted[n0n1/2];
+            pvalue=mk_test(signal,nfiles);
+            if(pvalue<mk_min)
+                mk_min=pvalue;
+            if(pvalue>mk_max)
+                mk_max=pvalue;
+            outrast1[col] = pvalue;
             /*-------------------------*/
         }
         Rast_put_d_row(outfd0, outrast0);
