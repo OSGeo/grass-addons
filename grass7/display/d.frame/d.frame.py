@@ -25,7 +25,6 @@
 #% keywords: graphics
 #% keywords: monitors
 #% keywords: frame
-#% keywords: setup
 #% overwrite: yes
 #%end
 #%flag
