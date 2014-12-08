@@ -31,16 +31,16 @@ REM
 REM Prepare packages
 REM
 cd .\grass64
-call .\GRASS-Packager.bat
+call .\GRASS-Packager.bat > .\GRASS-Packager.log
 cd ..
 REM cd .\grass65
 REM call .\GRASS-Packager.bat
 REM cd ..
 cd .\grass70
-call .\GRASS-Packager.bat
+call .\GRASS-Packager.bat > .\GRASS-Packager.log
 cd ..
 cd .\grass71
-call .\GRASS-Packager.bat
+call .\GRASS-Packager.bat > .\GRASS-Packager.log
 cd ..
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh
@@ -49,10 +49,10 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh
 REM
 REM Create standalone installer
 REM
-C:\DevTools\makensis.exe .\grass64\GRASS-Installer.nsi
+C:\DevTools\makensis.exe .\grass64\GRASS-Installer.nsi > .\grass64\GRASS-Installer.log
 REM C:\DevTools\makensis.exe .\grass65\GRASS-Installer.nsi
-C:\DevTools\makensis.exe .\grass70\GRASS-Installer.nsi
-C:\DevTools\makensis.exe .\grass71\GRASS-Installer.nsi
+C:\DevTools\makensis.exe .\grass70\GRASS-Installer.nsi > .\grass70\GRASS-Installer.log
+C:\DevTools\makensis.exe .\grass71\GRASS-Installer.nsi > .\grass71\GRASS-Installer.log
 
 REM
 REM Create md5sum files

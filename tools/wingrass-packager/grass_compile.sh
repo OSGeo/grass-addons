@@ -41,7 +41,7 @@ if test -z $1 ; then
     compile grass70_release 70-dev 
     compile grass_trunk     71-dev
 else
-    compile grass$1         $1
+    compile grass$1         $2
 fi
 
 exit 0
