@@ -59,14 +59,10 @@
 #% description: Name of output raster map
 #%end
 #%option G_OPT_DB_COLUMN
-#% key: zcolumn
 #% description: Name of the attribute column with values to be used for approximation (if layer>0)
 #% guisection: Settings
 #%end
 #%option G_OPT_DB_WHERE
-#% key: kwhere
-#% type: string
-#% label: WHERE conditions of SQL query statement without 'where' keyword
 #% guisection: Selection
 #%end
 #%option

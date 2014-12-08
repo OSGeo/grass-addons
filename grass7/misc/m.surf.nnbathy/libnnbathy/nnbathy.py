@@ -126,23 +126,17 @@ class Nnbathy_vector(Nnbathy):
             _column = ''
         else:
             _layer = int(options['layer'])
-            if options['zcolumn']:
-                _column = options['zcolumn']
+            if options['column']:
+                _column = options['column']
             else:
                 grass.message('Name of z column required for 2D vector maps.')
 
         # convert vector to ASCII
-        if options['kwhere']:
-            grass.run_command("v.out.ascii", flags='r', overwrite=1,
-                              input=options['input'], output=self._tmpcat,
-                              format="point", separator="space", dp=15,
-                              where=options['kwhere'], layer=_layer,
-                              columns=_column)
-        else:
-            grass.run_command("v.out.ascii", flags='r', overwrite=1,
-                              input=options['input'], output=self._tmpcat,
-                              format="point", separator="space", dp=15,
-                              layer=_layer, columns=_column)
+        grass.run_command("v.out.ascii", flags='r', overwrite=1,
+                          input=options['input'], output=self._tmpcat,
+                          format="point", separator="space", precision=15,
+                          where=options['where'], layer=_layer,
+                          columns=_column)
 
         # edit ASCII file, crop out one column
         if int(options['layer']) > 0:
