@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:     v.surf.nnbathy.py
+# MODULE:     r.surf.nnbathy
 #
 # AUTHOR(S):  Adam Laza (mentor: Martin Landa)
 #             (based on v.surf.nnbathy from GRASS 6)
@@ -61,10 +61,9 @@ import sys
 from grass.script.core import parser
 import grass.script as grass
 
-from nnbathy import Nnbathy_raster
-
-
 def main():
+    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'nnbathy'))
+    from nnbathy import Nnbathy_raster
     obj = Nnbathy_raster(options)
     obj.compute()
     obj.create_output()

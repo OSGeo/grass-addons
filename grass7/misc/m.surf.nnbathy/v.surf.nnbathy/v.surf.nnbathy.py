@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:     v.surf.nnbathy.py
+# MODULE:     v.surf.nnbathy
 #
 # AUTHOR(S):  Adam Laza (mentor: Martin Landa)
 #             (based on v.surf.nnbathy from GRASS 6)
@@ -84,10 +84,10 @@ import os
 from grass.script.core import parser
 import grass.script as grass
 
-from nnbathy import Nnbathy_vector, Nnbathy_file
-
 
 def main():
+    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'nnbathy'))
+    from nnbathy import Nnbathy_vector, Nnbathy_file
     # initial controls
     if (options['input'] and options['file']):
         grass.fatal("Please specify either the 'input' \
