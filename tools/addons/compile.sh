@@ -10,7 +10,7 @@ SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
 GRASS_VERSION=`echo $ADDON_PATH | cut -d'/' -f6 | sed 's/grass//g'`
-INDEX_FILE="index"
+INDEX_FILE="summary"
 
 if [ ! -d "$3" ] ; then
     mkdir -p "$3"
