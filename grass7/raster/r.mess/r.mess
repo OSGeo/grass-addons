@@ -66,6 +66,7 @@
 #% key_desc: names
 #% required: yes
 #% multiple: yes
+#% guisection: predictors
 #%end
 
 #%option
@@ -76,6 +77,7 @@
 #% key_desc: names
 #% required: no
 #% multiple: yes
+#% guisection: predictors
 #%end
 
 #%option
@@ -85,6 +87,7 @@
 #% description: Root name of the output MESS data layers
 #% key_desc: name
 #% required: yes
+#% guisection: Output
 #%end
 
 #%option
@@ -92,34 +95,37 @@
 #% type: integer
 #% description: Precision of your input layers values
 #% key_desc: string
-#% answer: 1
-#% required: yes
+#% answer: 3
 #%end
 
-##%flag  # not implemented yet
-##% key: n
-##% description: Keep individual environmental similarity layers (IES)
-##% guisection: Additional statistics
-##%end
+#%flag:  IES
+#% key: i
+#% description: Keep individual environmental similarity layers (IES)
+#% guisection: Output
+#%end
 
 #%flag
 #% key: m
 #% description: Calculate Most dissimilar variable (MoD)
+#% guisection: Output
 #%end
 
 #%flag
 #% key: k
 #% description: Calculate mean of IES layers
+#% guisection: Output
 #%end
 
 #%flag
 #% key: l
 #% description: Calculate median of IES layers
+#% guisection: Output
 #%end
 
 #%flag
 #% key: n
 #% description: Area with negative MESS
+#% guisection: Output
 #%end
 
 
@@ -330,7 +336,9 @@ if(ipl2==""){
     ipl2 <- ipl
 }else{
     ipl2	<- unlist(strsplit(ipl2,","))
-    if(length(ipl)!=length(ipl2)){stop("list with old and new environmental data layers is not of the same length")}
+    if(length(ipl)!=length(ipl2)){
+        stop("list with old and new environmental data layers is not of the same length")
+    }
 }
 opl	<- Sys.getenv("arrOUT")			# output layers
 opl	<- unlist(strsplit(opl,";"))
@@ -342,6 +350,7 @@ flm	<- Sys.getenv("GIS_FLAG_M")
 flk	<- Sys.getenv("GIS_FLAG_K")
 fll	<- Sys.getenv("GIS_FLAG_L")
 fln	<- Sys.getenv("GIS_FLAG_N")
+IL	<- Sys.getenv("GIS_FLAG_I")
 digits	<- as.numeric(Sys.getenv("GIS_OPT_DIGITS"))	# Precision
 digits2 <- 10^digits
 options(echo=TRUE, digits=digits+4, scipen=digits+4)
@@ -407,6 +416,9 @@ if(rtl=="R"){
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
         # Restore mask
+        # ToDo: as option, set region to env_new (and do not restore MASK, or have an option to set
+        # a new mask for the new scenario. This will make it possible to calculate MESS for new 
+        # geographic areas outside the current region
         if(citiam==0){
             execGRASS("r.mask", flags="overwrite", raster=rname)
             execGRASS("g.remove", flags="f", type="rast", name=rname)
@@ -439,6 +451,7 @@ if(rtl=="R"){
 
     execGRASS("v.extract", flags="t", input=vtl, type="point", output="tmpMESS976543210")
     system(paste("v.db.addtable tmpMESS976543210 columns='", paste(ipn, " double precision", collapse=","), "'", sep=""))
+    execGRASS("db.execute", sql="CREATE UNIQUE INDEX tmpMESS123 ON tmpMESS976543210 (cat)")
 
     # make compatible for both v6.4 and 7
     if(grassversion==7){
@@ -529,6 +542,10 @@ if(flk==1){
 }
 if(fll==1){
     system(paste("r.series output=", opc, "_median input=", paste(opi, collapse=","), " method=median", sep=""))
+}
+
+if(IL==0){
+    system(paste("g.remove -f type=rast name=", paste(opi, collapse=","), sep=""))
 }
 
 EOF
