@@ -63,7 +63,7 @@ border: 1px solid black;
 echo "-----------------------------------------------------"
 echo "AddOns '$ADDON_PATH'..."
 echo "-----------------------------------------------------"
-for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
+for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" ; do
     if [ ! -d $c ]; then
 	continue
     fi
