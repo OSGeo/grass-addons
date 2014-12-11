@@ -1,0 +1,4 @@
+ADDONS=${HOME}/src/grass-addons/tools/addons
+
+0      2    *     *     *   nice ${ADDONS}/grass-addons.sh c
+*/15   *    *     *     *   nice ${ADDONS}/grass-addons-public.sh
