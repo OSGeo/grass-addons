@@ -13,13 +13,16 @@ if [ "$run" == "2" ]; then
     exit 0
 fi
 
-${HOME}/cronjobs/grass-addons.sh
+${SRC}/grass-addons/tools/addons/grass-addons.sh
 
 manuals() {
     HTMLDIR=addons
     mkdir $HTMLDIR
     for dir in `find . -maxdepth 1 -type d`; do
         if [ -d $dir/docs/html ] ; then
+            for f in `pwd`/$dir/docs/html/*.html ; do 
+                ${SRC}grass-addons/tools/addons/update_manual.py $f http://grass.osgeo.org/grass${1}${2}/manuals
+            done
             cp -r $dir/docs/html/* $HTMLDIR/ 2>/dev/null
         fi
     done
@@ -30,13 +33,14 @@ manuals() {
 }
 
 promote() {
-    version=$1
-    cd /tmp/.grass${version}/addons
+    major=$1
+    minor=$2
+    cd /tmp/.grass${major}/addons
     tar czf logs.tar.gz logs
-    manuals $version $2
-    cp logs.tar.gz ${DST}/addons/grass${version}
-    cp modules.xml ${DST}/addons/grass${version}
-    cp html.tar.gz ${DST}/addons/grass${version}
+    manuals $major $minor
+    cp logs.tar.gz ${DST}/addons/grass${major}
+    cp modules.xml ${DST}/addons/grass${major}
+    cp html.tar.gz ${DST}/addons/grass${major}
 }
 
 promote 6 4
