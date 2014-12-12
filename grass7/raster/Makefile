@@ -77,6 +77,7 @@ SUBDIRS = \
 	r.stream.stats \
 	r.sun.daily \
 	r.sun.hourly \
+	r.surf.idw2 \
 	r.surf.nnbathy \
 	r.threshold \
 	r.to.vect.lines \
@@ -87,7 +88,6 @@ SUBDIRS = \
 	r.vif \
 	r.vol.dem \
 	r.width.funct
-	
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
