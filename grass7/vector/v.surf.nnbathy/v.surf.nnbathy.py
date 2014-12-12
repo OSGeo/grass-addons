@@ -77,26 +77,29 @@
 import sys
 import os
 
-from grass.script.core import parser
 import grass.script as grass
 
 
 def main():
     sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.surf.nnbathy'))
     from nnbathy import Nnbathy_vector, Nnbathy_file
+    
     # initial controls
-    if (options['input'] and options['file']):
-        grass.fatal("Please specify either the 'input' \
-                    or 'file' option, not both.")
+    if options['input'] and options['file']:
+        grass.fatal("Please specify either the 'input' "
+                    "or 'file' option, not both")
 
-    if not(options['input'] or options['file']):
-        grass.message("Please specify either the 'input' or 'file' option.")
+    if not (options['input'] or options['file']):
+        grass.fatal("Please specify either the 'input' or 'file' option")
+    
+    if options['input'] and not grass.find_file(options['input'], element='vector'):
+        grass.fatal("Vector <%s> not found" % options['input'])
 
-    if (options['file'] and os.path.isfile(options['file'])):
-        grass.message("File "+options['file']+" does not exist.")
-
+    if options['file'] and not os.path.isfile(options['file']):
+        grass.fatal("File %s does not exist" % options['file'])
+    
     # vector or file input?
-    if (options['input']):
+    if options['input']:
         obj = Nnbathy_vector(options)
     else:
         obj = Nnbathy_file(options)
@@ -105,5 +108,5 @@ def main():
     obj.create_output()
 
 if __name__ == "__main__":
-    options, flags = parser()
+    options, flags = grass.parser()
     main()
