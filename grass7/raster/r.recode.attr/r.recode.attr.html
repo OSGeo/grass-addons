@@ -1,0 +1,14 @@
+
+<h2>DESCRIPTION</h2>
+
+<em>r.recode.attr</em> is a wrapper for r.recode which makes it easier to recode a raster layer based on values in a csv table. The csv file should include at least two columns. The first column should correspond to (part of) the raster values. The other columns should hold the reclassification values. 
+
+<p>For each column in the csv file (except the first one) a new map will be created. This is done by creating recode rules as follows <i>old:old:new</i>. See the help file for <a href="http://grass.osgeo.org/grass70/manuals/r.recode.html">r.recode</a> for more information.
+
+<p>The user can define the names of the output map(s). If only one output name is provided and the rules file contains more than two columns, the function will create output names by appending for each recode layer the corresponding column name to the output name provided by the user. 
+ 
+<h2>AUTHOR</h2>
+
+Paulo van Breugel, paulo at ecodiv.org
+
+<i>Last changed: $Date$</i>
