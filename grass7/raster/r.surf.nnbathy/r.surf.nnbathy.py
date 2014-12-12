@@ -58,16 +58,23 @@
 import os
 import sys
 
-from grass.script.core import parser
 import grass.script as grass
 
 def main():
-    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'nnbathy'))
-    from nnbathy import Nnbathy_raster
+    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.surf.nnbathy'))
+    try:
+        from nnbathy import Nnbathy_raster
+    except ImportError:
+        grass.fatal("r.surf.nnbathy requires 'v.surf.nnbathy'. "
+                    "Please install this module by running:\ng.extension v.surf.nnbathy")
+
+    if not grass.find_file(options['input'], element='cell')['fullname']:
+        grass.fatal("Raster map <%s> not found")
+    
     obj = Nnbathy_raster(options)
     obj.compute()
     obj.create_output()
 
 if __name__ == "__main__":
-    options, flags = parser()
+    options, flags = grass.parser()
     main()
