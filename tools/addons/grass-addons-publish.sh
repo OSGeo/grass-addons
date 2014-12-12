@@ -4,9 +4,10 @@ URL=http://geo102.fsv.cvut.cz/grass/addons/
 ADDONS=${HOME}/src/grass-addons
 
 process () {
-    echo "Updating manuals for GRASS ${major}.${minor}..."
     major=$1
     minor=$2
+
+    echo "Updating manuals for GRASS ${major}.${minor}..."
     wget -q $URL/grass${major}/modules.xml -O /osgeo/grass/grass-cms/addons/grass${major}/modules.xml
     wget -q $URL/grass${major}/logs.tar.gz -O logs.tar.gz
     wget -q $URL/grass${major}/html.tar.gz -O html.tar.gz
