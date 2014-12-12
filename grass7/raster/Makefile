@@ -59,6 +59,7 @@ SUBDIRS = \
 	r.out.tiff \
 	r.popgrowth \
 	r.random.weight \
+	r.recode.attr \
 	r.regression.series \
 	r.rock.stability \
 	r.roughness.vector \
