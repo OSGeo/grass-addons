@@ -95,6 +95,9 @@ def main():
     if options['input'] and not grass.find_file(options['input'], element='vector')['fullname']:
         grass.fatal("Vector <%s> not found" % options['input'])
 
+    if options['input'] and options['layer'] != '0' and not options['column']:
+        grass.fatal("Option 'column' required")
+        
     if options['file'] and not os.path.isfile(options['file']):
         grass.fatal("File %s does not exist" % options['file'])
     
