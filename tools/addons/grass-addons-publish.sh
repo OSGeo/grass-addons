@@ -1,7 +1,7 @@
 #!/bin/sh
 
 URL=http://geo102.fsv.cvut.cz/grass/addons/
-ADDONS=${HOME}/src/grass-addons/tools/addons
+ADDONS=${HOME}/src/grass-addons
 
 process () {
     major=$1
@@ -21,9 +21,15 @@ process () {
     rm html.tar.gz
 }
 
-process 7 0
-process 6 4 
+cd $ADDONS
+nup=`(svn up || (svn cleanup && svn up)) | wc -l`
 
-${ADDONS}/grass-addons-index.sh
+nup=`(svn up || (svn cleanup && svn up)) | wc -l`
+if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
+    process 7 0
+    process 6 4 
+
+    ${ADDONS}/tools/addons/grass-addons-index.sh
+fi
 
 exit 0

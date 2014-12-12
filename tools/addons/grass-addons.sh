@@ -13,14 +13,8 @@ fi
 build_addons() {
 cd $DIR/grass-addons/ 
 
-##revl=`svn info | grep 'Revision' | cut -d':' -f2 | tr -d ' '`
-##revr=`svn info -rHEAD | grep 'Revision' | cut -d':' -f2 | tr -d ' '`
 nup=`(svn up || (svn cleanup && svn up)) | wc -l`
-
-###if [ "$revl" != "$revr" ] || [ "$1" = "f" ] ; then
 if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
-    ###svn up || (svn cleanup && svn up)
-
     cd tools/addons/ 
     ./compile-xml.sh $XMLDIR
     for version in 6 7 ; do
