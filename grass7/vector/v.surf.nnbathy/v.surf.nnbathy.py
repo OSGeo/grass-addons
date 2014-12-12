@@ -92,7 +92,7 @@ def main():
     if not (options['input'] or options['file']):
         grass.fatal("Please specify either the 'input' or 'file' option")
     
-    if options['input'] and not grass.find_file(options['input'], element='vector'):
+    if options['input'] and not grass.find_file(options['input'], element='vector')['fullname']:
         grass.fatal("Vector <%s> not found" % options['input'])
 
     if options['file'] and not os.path.isfile(options['file']):
