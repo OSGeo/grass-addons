@@ -1,13 +1,10 @@
 MODULE_TOPDIR = ../..
 
-LIBES = $(RASTER3DLIB) $(RASTERLIB) $(GISLIB)
-DEPENDENCIES = $(RASTER3DDEP) $(GISDEP) $(RASTERDEP)
+PGM=v.surf.nnbathy
 
-PROGRAMS = r.colors r3.colors
+ETCFILES = nnbathy
 
-r_colors_OBJS = raster_main.o edit_colors.o rules.o stats.o
-r3_colors_OBJS = raster3d_main.o edit_colors.o rules.o stats.o
+include $(MODULE_TOPDIR)/include/Make/Script.make
+include $(MODULE_TOPDIR)/include/Make/Python.make
 
-include $(MODULE_TOPDIR)/include/Make/Multi.make
-
-default: multi thumbnails
+default: script
