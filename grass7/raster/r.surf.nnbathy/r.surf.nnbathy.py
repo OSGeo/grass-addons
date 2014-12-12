@@ -69,7 +69,7 @@ def main():
                     "Please install this module by running:\ng.extension v.surf.nnbathy")
 
     if not grass.find_file(options['input'], element='cell')['fullname']:
-        grass.fatal("Raster map <%s> not found")
+        grass.fatal("Raster map <%s> not found" % options['input'])
     
     obj = Nnbathy_raster(options)
     obj.compute()
