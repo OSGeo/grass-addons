@@ -82,7 +82,7 @@ import grass.script as grass
 
 
 def main():
-    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'nnbathy'))
+    sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.surf.nnbathy'))
     from nnbathy import Nnbathy_vector, Nnbathy_file
     # initial controls
     if (options['input'] and options['file']):
