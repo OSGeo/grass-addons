@@ -5,12 +5,8 @@
 # 
 # MODULE:       r.recode_attribute
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Recode raster using attribute table (csv file) as input,
-#               using the reclass sheme old:old:new.               
-#               The first column of the table in the csv file is taken 
-#               to be the original value, the next columns are assumed
-#               to be the reclass values. The name of the new layer(s)
-#               are the output + column_name          
+# PURPOSE:      Recode raster to one or more new layers using an
+#               attribute table (csv file) as input     
 #
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
@@ -40,7 +36,7 @@
 #% key: output
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: basename output layer(s)
+#% description: name(s) output layer(s)
 #% key_desc: name
 #% required: yes
 #% multiple: no
