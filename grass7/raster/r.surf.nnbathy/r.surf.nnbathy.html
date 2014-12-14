@@ -51,8 +51,11 @@ GRASS raster map would actually occupy.</li>
 </ol>
 
 <h2>EXAMPLE</h2>
+g.region rast=elevation@PERMANENT -p 
+r.random input=elevation@PERMANENT n=100000 raster_output=random_points 
+r.surf.nnbathy.py input=random_points output=raster_map 
+d.rast map=raster_map
 
-TODO
 
 <h2>REQUIREMENTS</h2>
 
