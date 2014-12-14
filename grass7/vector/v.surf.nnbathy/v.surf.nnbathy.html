@@ -51,8 +51,9 @@ GRASS raster map would actually occupy.</li>
 </ol>
 
 <h2>EXAMPLE</h2>
-
-TODO
+g.region rast=elevationelev_lid792_randpts@PERMANENT -p 
+v.surf.nnbathy.py input=elevation_lid792_randpts@PERMANENT output=raster_map zcolumn=value 
+d.rast map=raster_map
 
 <h2>REQUIREMENTS</h2>
 
