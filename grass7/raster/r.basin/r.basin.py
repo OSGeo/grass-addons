@@ -837,6 +837,7 @@ def main():
 	    
     # Set region to original 
     grass.read_command('g.region', flags = 'p', region = 'original')
+    grass.run_command('g.remove', flags = 'f', type = 'region', name = 'original')
 
 if __name__ == "__main__":
     options, flags = grass.parser()
