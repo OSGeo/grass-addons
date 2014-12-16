@@ -517,8 +517,8 @@ def main():
                 pendenze.append(pendenza)
                 mainchannel_slope = sum(pendenze) / len(pendenze) * 100
             except :
-	    	    pass
-	    	
+                pass
+            
         # Elongation Ratio
         R_al = (2 * math.sqrt( area_basin / math.pi) ) / mainchannel
 
@@ -663,9 +663,9 @@ def main():
         # create .csv file
         csvfile = os.path.join( directory, prefix + '_parameters.csv' )
         with open(csvfile, 'w') as f:
-    	    writer = csv.writer(f)
-    	    writer.writerow(['Morphometric parameters of basin:'])
-    	    writer.writerow([' '])
+            writer = csv.writer(f)
+            writer.writerow(['Morphometric parameters of basin:'])
+            writer.writerow([' '])
             writer.writerow(['Easting Centroid of basin'] + [basin_east])
             writer.writerow(['Northing Centroid of basin'] + [basin_north])
             writer.writerow(['Rectangle containing basin N-W'] + [nw])
@@ -702,7 +702,7 @@ def main():
         # Create summary (transposed)
         csvfileT = os.path.join( directory, prefix + '_parametersT.csv' ) # transposed
         with open(csvfileT, 'w') as f:
-    	    writer = csv.writer(f)
+            writer = csv.writer(f)
             writer.writerow(['x'] +
                             ['y'] +
                             ['Easting_Centroid_basin'] +
@@ -787,7 +787,7 @@ def main():
         grass.message( "\n" )
         grass.message( "----------------------------------" )
         grass.message( "Morphometric parameters of basin :" )
-        grass.message( "----------------------------------\n" )	
+        grass.message( "----------------------------------\n" )    
         grass.message( "Easting Centroid of basin : %s " % basin_east )
         grass.message( "Northing Centroid of Basin : %s " % basin_north )
         grass.message( "Rectangle containing basin N-W : %s , %s " % nw )
@@ -825,13 +825,13 @@ def main():
         grass.message( "Done!")
 
     except:
-	    grass.message( "\n" )
-	    grass.message( "------------------------------" )
-	    grass.message( "\n" )
-	    grass.message( "An ERROR occurred running r.basin" )
-	    grass.message( "Please check for error messages above or try with another pairs of outlet coordinates" )
+        grass.message( "\n" )
+        grass.message( "------------------------------" )
+        grass.message( "\n" )
+        grass.message( "An ERROR occurred running r.basin" )
+        grass.message( "Please check for error messages above or try with another pairs of outlet coordinates" )
 
-	
+    
     # Set region to original
     grass.read_command('g.region', flags = 'p', region = 'original')
     grass.run_command('g.remove', flags = 'f', type = 'region', name = 'original')
