@@ -19,7 +19,7 @@ int print_stats(int order_max)
 	    stats_total.stream_frequency * 1000000);
 
     fprintf(stdout, "\n");
-    fprintf(stdout, "Stream ratios based on regresion coefficient:\n");
+    fprintf(stdout, "Stream ratios based on regression coefficient:\n");
     fprintf(stdout, " Bif.rt. | Len.rt. | Area.rt. | Slo.rt. | Grd.rt. \n");
     fprintf(stdout, " %7.4f | %7.4f | %8.4f | %7.4f | %7.4f\n",
 	    stats_total.reg_bifur_ratio,
@@ -27,7 +27,7 @@ int print_stats(int order_max)
 	    stats_total.reg_area_ratio,
 	    stats_total.reg_slope_ratio, stats_total.reg_gradient_ratio);
     fprintf(stdout, "\n");
-    fprintf(stdout, "Avaraged stream ratios with standard deviations:\n");
+    fprintf(stdout, "Averaged stream ratios with standard deviations:\n");
     fprintf(stdout, " Bif.rt. | Len.rt. | Area.rt. | Slo.rt. | Grd.rt. \n");
     fprintf(stdout, " %7.4f | %7.4f | %8.4f | %7.4f | %7.4f\n",
 	    stats_total.bifur_ratio,
@@ -100,12 +100,12 @@ int print_stats(int order_max)
 int print_stats_total(void)
 {
     fflush(stdout);
-    fprintf(stdout, "Catchment's characteristics (based on regresion):  \n");
+    fprintf(stdout, "Catchment's characteristics (based on regression):  \n");
     fprintf(stdout, "Max order: %d \n", stats_total.order);
     fprintf(stdout, "Total number of streams: %d \n", stats_total.stream_num);
     fprintf(stdout, "Total stream length (km): %2.4f \n",
 	    stats_total.sum_length / 1000);
-    fprintf(stdout, "Total cachment area (km2): %2.4f \n",
+    fprintf(stdout, "Total catchment area (km2): %2.4f \n",
 	    stats_total.sum_area / 1000000);
     fprintf(stdout, "Drainage density: %2.4f\n",
 	    stats_total.drainage_density * 1000);
