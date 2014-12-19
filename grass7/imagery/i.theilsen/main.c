@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     }
     if( ts_max > 0.0 ){
         val1 = 0.0;
-        val2 = 900.0;
+        val2 = ts_max;
         /*val2 = ceil(ts_max);*/
         Rast_add_d_color_rule(&val1,255,255,255,&val2,0,0,255,&colors);
     }
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
     Rast_init_colors(&colors);
     val1 = mk_min;
     val2 = ceil(mk_max);
-    Rast_add_d_color_rule(&val1,0,0,0,&val2,255,255,255,&colors);
+    Rast_add_d_color_rule(&val1,255,0,0,&val2,255,255,0,&colors);
     Rast_write_colors(out1->answer, G_mapset(), &colors);
     /* Metadata */
     Rast_short_history(out1->answer, "raster", &history);
