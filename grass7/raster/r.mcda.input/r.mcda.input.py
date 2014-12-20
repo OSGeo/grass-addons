@@ -121,7 +121,7 @@ def patch_georules(maps,outputMap):
 		if len(map_synth)>1:
 			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
 		else:
-			grass.run_command("g.copy",rast=(str(map_synth),l))
+			grass.run_command("g.copy", raster=(str(map_synth),l))
 
 		grass.run_command("r.to.vect", overwrite='True', flags='s', input=l, output=l, feature='area')
 		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
@@ -132,7 +132,7 @@ def patch_georules(maps,outputMap):
 	if len(maps)>1:
 		grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
 	else:
-		grass.run_command("g.copy",vect=(mapstring,outputMap))
+		grass.run_command("g.copy", vector=(mapstring,outputMap))
 	
 
 def main():

@@ -404,7 +404,7 @@ def main():
 	#Prepare Barriers/Snap barriers to river_vector
 	if options['barriers']:
 		grass.run_command("g.copy", 
-						vect = input_barriers + "," + "barriers_tmp_%d" % os.getpid())
+						  vector = input_barriers + "," + "barriers_tmp_%d" % os.getpid())
 
 		grass.run_command("v.db.addcolumn",
 						  map ="barriers_tmp_%d" % os.getpid(),
@@ -427,7 +427,7 @@ def main():
 						  columns="dist DOUBLE")
 		# Making barriers permanent
 		grass.run_command("g.copy", 
-			vect = "barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers")
+			vector = "barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers")
 			
 		#Breaking river_vector at position of barriers to get segments
 		for adj_X,adj_Y in db.execute('SELECT adj_X, adj_Y FROM barriers_%d'% os.getpid()):
@@ -529,7 +529,7 @@ def main():
 							res = res)
 	grass.run_command("g.copy",
 					overwrite=True, 
-					rast = "river_raster_combine_tmp_%d" % os.getpid() + "," "river_raster_tmp_%d" % os.getpid())
+					raster = "river_raster_combine_tmp_%d" % os.getpid() + "," "river_raster_tmp_%d" % os.getpid())
 
 
 	
@@ -644,7 +644,7 @@ def main():
 
 	# Make source points permanent
 	grass.run_command("g.copy", 
-		vect = "source_points_%d" % os.getpid() + "," + output_fidimo + "_source_points")	
+		vector = "source_points_%d" % os.getpid() + "," + output_fidimo + "_source_points")	
 	
 	########### Looping over nrun, over segements, over source points ##########
 	
@@ -1038,7 +1038,7 @@ def main():
 						mapcalc_string_Bb_aggregate = mapcalc_string_Bb_aggregate,
 						overwrite = True)
 			grass.run_command("g.copy", 
-			rast = "realised_density_final_%d" % os.getpid() + ",realised_" + output_fidimo+"_"+i)
+			raster = "realised_density_final_%d" % os.getpid() + ",realised_" + output_fidimo+"_"+i)
 			
 			# Set all 0-values to NULL, Backgroundvalues			
 			grass.run_command("r.null", map="realised_"+output_fidimo+"_"+i, setnull="0")
@@ -1052,7 +1052,7 @@ def main():
 					scalar = scalar)
 
 		grass.run_command("g.copy", 
-		rast = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
+		raster = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
 		
 		
 		# Set all 0-values to NULL, Backgroundvalues			

@@ -143,7 +143,7 @@ def main():
     grass.message("Defining starting points...") 
     if int(num) == 1:
         grass.run_command('g.copy' , 
-            vect= start+',start_points_' ,
+            vector= start+',start_points_' ,
             quiet = True )    
     else:    
         grass.run_command('v.buffer' ,
@@ -155,7 +155,7 @@ def main():
 
         grass.run_command('v.random' ,
             input = 'start_buffer_' ,
-            n = num ,
+            npoints = num ,
             output = 'start_random_' ,
             flags = 'a' ,
             quiet = True )

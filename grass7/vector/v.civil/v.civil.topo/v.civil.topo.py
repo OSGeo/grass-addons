@@ -391,7 +391,7 @@ def generate_Points(catts,tmpMap):
 
 def patch_maps(pointsMap,linesMap,tmpMap):
 
-    grass.run_command('g.copy', vect=pointsMap+','+tmpMap)
+    grass.run_command('g.copy', vector=pointsMap+','+tmpMap)
 
     # lee las columnas de mapa de puntos y inserta las columnas si no existen
     columsPts=grass.read_command('db.columns', table=tmpMap)

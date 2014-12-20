@@ -107,7 +107,7 @@ def main():
         params = {datatype: '%s@%s,%s' % (input, mapset, output)}
         grass.run_command('g.copy', overwrite=overwrite, **params)
         
-        if datatype == 'vect' and flags['t']: 
+        if datatype == 'vector' and flags['t']: 
             grass.run_command('v.build', map=output)
         
 if __name__ == "__main__":

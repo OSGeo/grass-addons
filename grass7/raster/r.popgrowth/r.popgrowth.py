@@ -181,7 +181,7 @@ def main():
 				output="n0_tmp_%d" % os.getpid())
 	else:
 		 grass.run_command("g.copy",
-				rast=options['n_initial']+","+"n0_tmp_%d" % os.getpid())
+				raster=options['n_initial']+","+"n0_tmp_%d" % os.getpid())
 
 	tmp_map_rast.append("n0_tmp_")
 
@@ -240,7 +240,7 @@ def main():
 						output="r_exp_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
-						rast=options['r_exp_map']+","+"r_exp_tmp_%d" % os.getpid())
+						raster=options['r_exp_map']+","+"r_exp_tmp_%d" % os.getpid())
 
 			tmp_map_rast.append("r_exp_tmp_")
  
@@ -271,7 +271,7 @@ def main():
 
 		else:
 			grass.run_command("g.copy",
-				rast="exponential_output_tmp_%d" % os.getpid() + ","+options['exponential_output'])
+				raster="exponential_output_tmp_%d" % os.getpid() + ","+options['exponential_output'])
 		
 	################# Ricker Model #################
 	if options['ricker_output']:
@@ -292,7 +292,7 @@ def main():
 						output="r_rick_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
-						rast=options['r_rick_map']+","+"r_rick_tmp_%d" % os.getpid())
+						raster=options['r_rick_map']+","+"r_rick_tmp_%d" % os.getpid())
 
 			tmp_map_rast.append("r_rick_tmp_")
 
@@ -314,7 +314,7 @@ def main():
 						output="k_tmp_%d" % os.getpid())
 			else:
 		 		grass.run_command("g.copy",
-						rast=options['k_map']+","+"k_tmp_%d" % os.getpid())
+						raster=options['k_map']+","+"k_tmp_%d" % os.getpid())
 			
 			tmp_map_rast.append("k_tmp_")
 
@@ -345,7 +345,7 @@ def main():
 
 		else:
 			grass.run_command("g.copy",
-				rast="ricker_output_tmp_%d" % os.getpid() +","+options['ricker_output'])
+				raster="ricker_output_tmp_%d" % os.getpid() +","+options['ricker_output'])
 		
 
 

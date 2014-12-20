@@ -175,7 +175,7 @@ def main():
         grass.run_command('g.rename', raster = (tmp_map, tmp_time_map))
 
     if timemap:
-        grass.run_command('g.copy', rast=(tmp_time_map, timemap))
+        grass.run_command('g.copy', raster=(tmp_time_map, timemap))
         grass.run_command('r.colors', map=timemap, color='grey', flags='ne')
 
     # recode time distance to time steps

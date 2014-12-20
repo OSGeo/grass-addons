@@ -543,7 +543,7 @@ def Parser_mapcalc(RULES, outputMap):
 		if len(map_synth)>1:
 			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
 		else:
-			grass.run_command("g.copy",rast=(str(map_synth),l))
+			grass.run_command("g.copy", raster=(str(map_synth),l))
 		print "__",str(map_synth),l
 		grass.run_command("r.to.vect", overwrite='True', flags='s', input=l, output=l, feature='area')
 		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
@@ -554,7 +554,7 @@ def Parser_mapcalc(RULES, outputMap):
 	if len(maps)>1:
 		grass.run_command("v.patch", overwrite='True', flags='e', input=mapslabels, output=outputMap)
 	else:
-		grass.run_command("g.copy",vect=(mapslabels,outputMap))
+		grass.run_command("g.copy", vector=(mapslabels,outputMap))
 			
 	if not flags['l']:
 		grass.run_command("g.remove", flags='f', type='raster', name=mapstring)
