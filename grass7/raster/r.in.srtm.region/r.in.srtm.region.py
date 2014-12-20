@@ -321,8 +321,7 @@ def main():
 
     # g.list with sep = comma does not work ???
     pattern = '*.r.in.srtm.tmp.%d' % pid
-    srtmtiles = grass.read_command('g.list',
-                   type = 'rast',
+    srtmtiles = grass.read_command('g.list', type = 'raster',
 				   pattern = pattern,
 				   sep = 'newline',
 				   quiet = True)
@@ -331,7 +330,7 @@ def main():
     srtmtiles = ','.join(srtmtiles)
 
     if valid_tiles == 0:
-	grass.run_command('g.remove', type = 'rast', name = str(srtmtiles), flags = 'f', quiet = True)
+	grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
 	grass.warning(_("No tiles imported"))
 	if local != tmpdir:
 	    grass.fatal(_("Please check if local folder <%s> is correct.") % local)
@@ -349,7 +348,7 @@ def main():
 	grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
 	mapstats = grass.parse_command('r.univar', map = output + '.holes', flags = 'g', quiet = True)
 	if mapstats['null_cells'] == '0':
-	    grass.run_command('g.rename', rast = '%s,%s' % (output + '.holes', output), quiet = True)
+	    grass.run_command('g.rename', raster = '%s,%s' % (output + '.holes', output), quiet = True)
 	else:
 	    grass.run_command('r.resamp.bspline',
 			      input = output + '.holes',
@@ -364,12 +363,12 @@ def main():
 			      output = output + '.float',
 			      flags = 'z')
 	    grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
-	    grass.run_command('g.remove', type = 'rast',
+	    grass.run_command('g.remove', type = 'raster',
 			      name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
                   flags = 'f',
 			      quiet = True)
 
-    grass.run_command('g.remove', type = 'rast', pattern = pattern, flags = 'f', quiet = True)
+    grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
     # nice color table
     grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)

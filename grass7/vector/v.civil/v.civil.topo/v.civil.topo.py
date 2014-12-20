@@ -583,7 +583,7 @@ def main():
 
         os.system("r.mapcalc '"+nameTinDem+" = if("+HullMap+"==1"+", "+OutName+"_TinDem_borrar"+", null())' --o --q")
         grass.run_command('r.contour', input=nameTinDem, output=nameTinDemC, step=options['step'], overwrite=True, quiet=True)
-        grass.run_command('g.remove', flags='f', type='rast', name=OutName+"_TinDem_borrar")
+        grass.run_command('g.remove', flags='f', type='raster', name=OutName+"_TinDem_borrar")
 
     if flags['y']:
         grass.message("Triangulating nnbathy")
@@ -595,7 +595,7 @@ def main():
 
         os.system("r.mapcalc '"+nameNNDem+" = if("+HullMap+"==1"+", "+OutName+"_NNbathyDem_borrar"+", null())' --o --q")
         grass.run_command('r.contour', input=nameNNDem, output=nameNNDemC, step=options['step'], overwrite=True, quiet=True)
-        grass.run_command('g.remove', flags='f', type='rast', name=OutName+"_NNbathyDem_borrar")
+        grass.run_command('g.remove', flags='f', type='raster', name=OutName+"_NNbathyDem_borrar")
 
     if flags['f']:
 	grass.message("Patching timdem with dem")

@@ -42,7 +42,7 @@ import grass.script as grass
 def cleanup():
     for ext in ['', '.sort']:
         grass.try_remove(tmp + ext)
-    grass.run_command('g.remove', flags = 'f', type = 'vect', pattern = prefix + '_*', quiet = True)
+    grass.run_command('g.remove', flags = 'f', type = 'vector', pattern = prefix + '_*', quiet = True)
 
 def sortfile(infile, outfile):
     inf = file(infile, 'r')

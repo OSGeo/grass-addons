@@ -188,10 +188,10 @@ def main():
     grass.run_command('r.neighbors', input='Icritica', method='average',
                       size=3, output='I_cri_average')
     # rename maps
-    grass.run_command('g.rename', rast=("I_cri_average", susceptibility))
-    grass.run_command('g.rename', rast=("i_cri_mm", critic_rain))
+    grass.run_command('g.rename', raster = ("I_cri_average", susceptibility))
+    grass.run_command('g.rename', raster = ("i_cri_mm", critic_rain))
     # remove temporary map
-    grass.run_command('g.remove', flags='f', type='rast', name=("A", 
+    grass.run_command('g.remove', flags='f', type='raster', name=("A", 
                                         "copia_reclass", 
                                         "i_crit_m",
                                         "i_recl", 

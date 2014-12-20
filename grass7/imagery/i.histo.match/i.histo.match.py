@@ -216,7 +216,7 @@ def main():
         # check if a output map already exists
         result = grass.core.find_file(outname, element='cell')
         if result['fullname'] and grass.overwrite():
-            grass.run_command('g.remove', flags='f', type='rast', name=outname)
+            grass.run_command('g.remove', flags='f', type='raster', name=outname)
             grass.run_command('r.reclass', input=i, out=outname, 
                               rules=outfile.name)
         elif result['fullname'] and not grass.overwrite():

@@ -163,8 +163,8 @@ def main():
 	patch_georules(maps,outputMap)
 			
 	if not flags['l']:
-		grass.run_command("g.remove", flags="f", quiet=True, type='rast', name=maplist)
-		grass.run_command("g.remove", flags="f", quiet=True, type='vect', name=maplist)
+		grass.run_command("g.remove", flags="f", quiet=True, type='raster', name=maplist)
+		grass.run_command("g.remove", flags="f", quiet=True, type='vector', name=maplist)
 
 	input_rules.close()
 	return 0

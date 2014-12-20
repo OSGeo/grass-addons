@@ -211,14 +211,14 @@ def main():
 		    outname = output + '_tile_' + str(ytile) + str(xtile)
 		    grass.run_command('v.overlay', ainput = tilename, binput = extname, 
 				      output = outname, operator = 'and', olayer = '0,1,0')
-		    grass.run_command('g.remove', flags='f', type='vect', name= extname, quiet = True)
+		    grass.run_command('g.remove', flags='f', type='vector', name= extname, quiet = True)
 
 		    if vtiles is None:
 			vtiles = outname
 		    else:
 			vtiles = vtiles + ',' + outname
 
-		grass.run_command('g.remove', flags='f', type='vect', name= tilename, quiet = True)
+		grass.run_command('g.remove', flags='f', type='vector', name= tilename, quiet = True)
 
 	    else:
 		# write cmd history:
@@ -232,14 +232,14 @@ def main():
 	grass.run_command('v.patch', input = vtiles, output = output,
 			  flags = 'e')
 
-        grass.run_command('g.remove', flags='f', type='vect', name= vtiles, quiet = True)
+        grass.run_command('g.remove', flags='f', type='vector', name= vtiles, quiet = True)
 	
 	if grass.vector_info_topo(output)['boundaries'] > 0:
 	    outpatch = output + '_patch'
-	    grass.run_command('g.rename', vect = (output,outpatch))
+	    grass.run_command('g.rename', vector = (output,outpatch))
 	    grass.run_command('v.clean', input = outpatch, output = output,
 			      tool = 'break', flags = 'c')
-	    grass.run_command('g.remove', flags='f', type='vect', name= outpatch)
+	    grass.run_command('g.remove', flags='f', type='vector', name= outpatch)
 
 
     grass.message(_("%s complete") % 'r.to.vect.tiled')

@@ -103,7 +103,7 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 
 def cleanup():
     nuldev = file(os.devnull, 'w')
-    grass.run_command('g.remove', flags='f', type='vect', name= '%s,%s,%s' % (temp_ng, temp_ncin, temp_ncout), quiet = True, stderr = nuldev)
+    grass.run_command('g.remove', flags='f', type='vector', name= '%s,%s,%s' % (temp_ng, temp_ncin, temp_ncout), quiet = True, stderr = nuldev)
 
 def main():
     global temp_ng, temp_ncin, temp_ncout
@@ -211,8 +211,8 @@ def main():
             ng=grass.vector_info(temp_ng)['points']
             nc = n_input - ng
             n_input = nc
-            grass.run_command('g.remove', flags='f', type='vect', name= temp_ncin, quiet = True, stderr = nuldev)
-            grass.run_command("g.rename", vect=temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev )
+            grass.run_command('g.remove', flags='f', type='vector', name= temp_ncin, quiet = True, stderr = nuldev)
+            grass.run_command("g.rename", vector = temp_ncout + "," + temp_ncin, quiet = True, stderr = nuldev )
             nc_points = temp_ncin        
             # Give information on process status
             grass.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc) )
@@ -235,7 +235,7 @@ def main():
         grass.del_temp_region()
     
     # Rename temporary map of points whichhave not been classified as non-ground to output vector map containing ground points
-    grass.run_command("g.rename", vect=nc_points + "," + g_output, quiet = True, stderr = nuldev )
+    grass.run_command("g.rename", vector = nc_points + "," + g_output, quiet = True, stderr = nuldev )
 
 if __name__ == "__main__":
     options, flags = grass.parser()

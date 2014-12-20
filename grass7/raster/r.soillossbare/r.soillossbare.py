@@ -217,7 +217,7 @@ class rusle_base(object):
             try:
                 g.run_command('g.remove',
                               flags = 'f',
-                              type = 'rast',
+                              type = 'raster',
                               name = tmprast,
                               quiet = True)
             except CalledModuleError:

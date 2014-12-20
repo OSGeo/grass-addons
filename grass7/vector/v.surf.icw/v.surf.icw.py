@@ -130,7 +130,7 @@ from grass.exceptions import CalledModuleError
 def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = 'tmp_icw_' + str(os.getpid()) + '_'
-    grass.run_command('g.remove', flags = 'f', type = 'rast', pattern = tmp_base + '*',
+    grass.run_command('g.remove', flags = 'f', type = 'raster', pattern = tmp_base + '*',
     		      quiet = True)
 
 
@@ -320,7 +320,7 @@ def main():
     for i in range(n):
 	cost_site_name = tmp_base + 'cost_site.' + '%05d' % (i+1)
         grass.run_command('g.remove', flags = 'f', rast = cost_site_name, quiet = True)
-        grass.run_command('g.rename', rast = cost_site_name + '.cleansed'
+        grass.run_command('g.rename', raster = cost_site_name + '.cleansed'
                           + ',' + cost_site_name, quiet = True)
 
         # r.to.vect then r.patch output
@@ -358,9 +358,9 @@ def main():
         if proc[i].wait() is not 0:
 	    grass.fatal(_('Problem running %s') % 'r.mapcalc')
 
-    grass.run_command('g.remove', flags = 'f', type = 'rast',
+    grass.run_command('g.remove', flags = 'f', type = 'raster',
     		      pattern = tmp_base + 'cost_site.*', quiet = True)
-    #grass.run_command('g.list', type = 'rast', mapset = '.')
+    #grass.run_command('g.list', type = 'raster', mapset = '.')
 
 
     #######################################################
@@ -380,7 +380,7 @@ def main():
     for i in range(2, n+1):
         input_maps += ',%s1by_cost_site_sq.%05d' % (tmp_base, i)
 
-    #grass.run_command('g.list', type = 'rast', mapset = '.')
+    #grass.run_command('g.list', type = 'raster', mapset = '.')
 
     sum_of_1by_cost_sqs = tmp_base + 'sum_of_1by_cost_sqs'
     try:
@@ -446,7 +446,7 @@ def main():
 	    proc[num-1].wait()
 
 	# free up disk space ASAP
-	#grass.run_command('g.remove', flags = 'f', type = 'rast', name = one_by_cost_site_sq, quiet = True)
+	#grass.run_command('g.remove', flags = 'f', type = 'raster', name = one_by_cost_site_sq, quiet = True)
 
         num += 1
         if num > n:
@@ -459,7 +459,7 @@ def main():
     # free up disk space ASAP
     grass.run_command('g.remove', flags = 'f',
     		      rast = tmp_base + '1by_cost_site_sq.*', quiet = True)
-    #grass.run_command('g.list', type = 'rast', mapset = '.')
+    #grass.run_command('g.list', type = 'raster', mapset = '.')
 
 
     #######################################################

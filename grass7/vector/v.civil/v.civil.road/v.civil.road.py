@@ -3222,9 +3222,9 @@ def main():
     driver = f['driver']
 
     #g.message(_("Creating backup"))
-    #g.run_command('g.rename', vect=NameMap+"_old"+","+NameMap+"_old2")
-    #g.run_command('g.copy', vect=NameMap+","+NameMap+"_old")
-    #g.run_command('g.remove', flags='bf', type='vect', name=NameMap+"_old2")
+    #g.run_command('g.rename', vector = NameMap+"_old"+","+NameMap+"_old2")
+    #g.run_command('g.copy', vector = NameMap+","+NameMap+"_old")
+    #g.run_command('g.remove', flags='bf', type='vector', name=NameMap+"_old2")
     #g.message(_("Finish backup"))
 
 
@@ -3396,7 +3396,7 @@ def main():
             if Desplaz_Areas != []:
                 write_Polygonos(Desplaz_Areas, NameMap+"_tmp2", 0)
                 g.run_command('v.centroids', input=NameMap+"_tmp2", output=name1, overwrite=True, quiet=True)
-                g.run_command('g.remove', flags='f', type='vect', name=NameMap+"_tmp2", quiet=True)
+                g.run_command('g.remove', flags='f', type='vector', name=NameMap+"_tmp2", quiet=True)
 
         if flags['c']:
 
@@ -3507,12 +3507,12 @@ def main():
                 if Areas_Desm != []:
                     write_Polygonos(Areas_Desm, NameMap+"_tmp3", 0)
                     g.run_command('v.centroids', input=NameMap+"_tmp3", output=name1+'_Cut', overwrite=True, quiet=True)
-                    g.run_command('g.remove', flags='f', type='vect', name=NameMap+"_tmp3", quiet=True)
+                    g.run_command('g.remove', flags='f', type='vector', name=NameMap+"_tmp3", quiet=True)
 
                 if Areas_Terr != []:
                     write_Polygonos(Areas_Terr, NameMap+"_tmp3", 0)
                     g.run_command('v.centroids', input=NameMap+"_tmp3", output=name1+'_Fill', overwrite=True, quiet=True)
-                    g.run_command('g.remove', flags='f', type='vect', name=NameMap+"_tmp3", quiet=True)
+                    g.run_command('g.remove', flags='f', type='vector', name=NameMap+"_tmp3", quiet=True)
 
             if flags['p']:
 
@@ -3583,7 +3583,7 @@ def main():
 
                 g.run_command('v.centroids', input=NameMap+"_tmp1", output=name1, overwrite=True, quiet=True)
                 #g.run_command('v.to.rast', input=NameMap+"_Contorno", output=options['outhull'], use='val', overwrite=True, quiet=True)
-                g.run_command('g.remove', flags='f', type='vect', name=NameMap+"_tmp1", quiet=True)
+                g.run_command('g.remove', flags='f', type='vector', name=NameMap+"_tmp1", quiet=True)
 
             ##################################################################
 

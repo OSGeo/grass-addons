@@ -94,7 +94,7 @@ def cleanup():
     if tmp_vcol:
 	grass.try_remove(tmp_vcol)
     if tmp_colr:
-	grass.run_command('g.remove', flags='f', type='rast', name= tmp_colr, quiet = True)
+	grass.run_command('g.remove', flags='f', type='raster', name= tmp_colr, quiet = True)
 
 def main():
     color  = options['color']
@@ -255,7 +255,7 @@ def main():
     
     if flags['s']:
 	vcolors = "vcolors_%d" % pid
-	grass.run_command('g.rename', rast = (tmp_colr, vcolors), quiet = True)
+	grass.run_command('g.rename', raster = (tmp_colr, vcolors), quiet = True)
 	grass.message(_("Raster map containing color rules saved to <%s>") % vcolors)
 	# TODO save full v.colors command line history
 	grass.run_command('r.support', map = vcolors,

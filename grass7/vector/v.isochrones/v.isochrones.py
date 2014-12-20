@@ -88,13 +88,13 @@ def cleanup():
                       quiet=True)
 
     if grass.find_file(tmp_cost_map, element='raster')['name']:
-        grass.run_command('g.remove', flags='f', type='rast', name=tmp_cost_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name=tmp_cost_map, quiet=True)
     if grass.find_file(tmp_map, element='raster')['name']:
-        grass.run_command('g.remove', flags='f', type='rast', name=tmp_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name=tmp_map, quiet=True)
     if grass.find_file(tmp_time_map, element='raster')['name']:
-        grass.run_command('g.remove', flags='f', type='rast', name=tmp_time_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name=tmp_time_map, quiet=True)
     if grass.find_file(tmp_region_map, element='raster')['name']:
-        grass.run_command('g.remove', flags='f', type='rast', name=tmp_region_map, quiet=True)
+        grass.run_command('g.remove', flags='f', type='raster', name=tmp_region_map, quiet=True)
 
 
 def main():
@@ -172,7 +172,7 @@ def main():
         expression = tmp_time_map + ' = ' + tmp_map + ' / 3600'
         grass.mapcalc(expression)
     else:
-        grass.run_command('g.rename', rast=(tmp_map, tmp_time_map))
+        grass.run_command('g.rename', raster = (tmp_map, tmp_time_map))
 
     if timemap:
         grass.run_command('g.copy', rast=(tmp_time_map, timemap))

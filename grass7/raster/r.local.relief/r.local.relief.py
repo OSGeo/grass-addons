@@ -70,9 +70,9 @@ def cleanup():
     if RREMOVE or VREMOVE:
         gcore.info(_("Cleaning temporary maps..."))
     for rast in RREMOVE:
-        gscript.run_command('g.remove', flags='f', type='rast', name=rast, quiet=True)
+        gscript.run_command('g.remove', flags='f', type='raster', name=rast, quiet=True)
     for vect in VREMOVE:
-        gscript.run_command('g.remove', flags='f', type='vect', name=vect, quiet=True)
+        gscript.run_command('g.remove', flags='f', type='vector', name=vect, quiet=True)
 
 
 def create_tmp_map_name(name):

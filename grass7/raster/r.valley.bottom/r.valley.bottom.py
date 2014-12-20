@@ -325,7 +325,7 @@ def main():
 
     grass.message( "..." )									 
 									 
-    grass.run_command('g.remove', flags='f', type='rast', name= "DEM_smoothed_step3_slope_degree",
+    grass.run_command('g.remove', flags='f', type='raster', name= "DEM_smoothed_step3_slope_degree",
                                      quiet = True)									 
     grass.message( "Step 3: Calculation of slope done." )
     grass.message( "----" )
@@ -506,7 +506,7 @@ def main():
 
     grass.message( "..." )									 
 									 
-    grass.run_command('g.remove', flags='f', type='rast', name= "DEM_smoothed_step4_slope_degree",
+    grass.run_command('g.remove', flags='f', type='raster', name= "DEM_smoothed_step4_slope_degree",
                                      quiet = True)									 
     grass.message( "Step 4: Calculation of slope done." )
     grass.message( "----" )
@@ -649,21 +649,21 @@ def main():
     grass.message( "Some clean up ..." )	
     grass.run_command('g.remove', region = "base_region_MrVBF", 
                                      quiet = True)
-    grass.run_command('g.remove', flags='f', type='rast', name= ["F1,F2,F3,F4"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["F1,F2,F3,F4"], 
                                      quiet = True)
-    grass.run_command('g.remove', flags='f', type='rast', name= ["CF2,CF3,CF4"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["CF2,CF3,CF4"], 
                                      quiet = True)
-    grass.run_command('g.remove', flags='f', type='rast', name= ["PCTL1,PCTL2,PCTL3,PCTL3_refined_base_resolution,PCTL4,PCTL4_refined_base_resolution"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["PCTL1,PCTL2,PCTL3,PCTL3_refined_base_resolution,PCTL4,PCTL4_refined_base_resolution"], 
                                      quiet = True)									 
-    grass.run_command('g.remove', flags='f', type='rast', name= ["PVF1,PVF2,PVF3,PVF4"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["PVF1,PVF2,PVF3,PVF4"], 
                                      quiet = True)									 
-    grass.run_command('g.remove', flags='f', type='rast', name= ["VF1,VF2,VF3,VF4"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["VF1,VF2,VF3,VF4"], 
                                      quiet = True)
-    grass.run_command('g.remove', flags='f', type='rast', name= ["W2,W3,W4"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["W2,W3,W4"], 
                                      quiet = True)									 
-    grass.run_command('g.remove', flags='f', type='rast', name= ["r_slope_step1,r_slope_step3,r_slope_step4,r_slope_step4_refined_base_resolution"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["r_slope_step1,r_slope_step3,r_slope_step4,r_slope_step4_refined_base_resolution"], 
                                      quiet = True)	
-    grass.run_command('g.remove', flags='f', type='rast', name= ["DEM_smoothed_step3,DEM_smoothed_step3_coarsed,DEM_smoothed_step4,DEM_smoothed_step4_coarsed"], 
+    grass.run_command('g.remove', flags='f', type='raster', name= ["DEM_smoothed_step3,DEM_smoothed_step3_coarsed,DEM_smoothed_step4,DEM_smoothed_step4_coarsed"], 
                                      quiet = True)	
 					 
     grass.message( "Clean up done." )

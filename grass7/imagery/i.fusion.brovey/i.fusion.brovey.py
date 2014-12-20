@@ -148,7 +148,7 @@ def main():
 	for s, d in [('green','tmp'),('red','green'),('tmp','red')]:
 	    src = "%s.%s" % (out, s)
 	    dst = "%s.%s" % (out, d)
-	    grass.run_command('g.rename', rast = (src, dst), quiet = True)
+	    grass.run_command('g.rename', raster = (src, dst), quiet = True)
     else:
 	#aspect table is nice for LANDSAT and QuickBird:
 	grass.message(_("Assigning color tables for LANDSAT or QuickBird..."))

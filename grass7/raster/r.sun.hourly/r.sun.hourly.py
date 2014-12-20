@@ -146,7 +146,7 @@ def cleanup():
     if len(TMP):
         core.info(_("Cleaning %d temporary maps...") % len(TMP))
     for rast in TMP:
-        grass.run_command('g.remove', type='rast', name=rast, flags='f',
+        grass.run_command('g.remove', type='raster', name=rast, flags='f',
                           quiet=True)
 
 
@@ -194,7 +194,7 @@ def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
             exp='{out} = if({inp} > 0, 1, 0)'.format(out=output + suffix + binaryTmpName,
                                                      inp=output + suffix)
             grass.mapcalc(exp=exp, overwrite=core.overwrite())
-            grass.run_command('g.rename', rast=[output + suffix + binaryTmpName,
+            grass.run_command('g.rename', raster = [output + suffix + binaryTmpName,
                                                 output + suffix],
                               overwrite=True)
 
@@ -385,7 +385,7 @@ def main():
                                semantic='mean', dbif=None,
                                overwrite=grass.overwrite())
             tgis.register_maps_in_space_time_dataset(
-                type='rast', name=basename, maps=maps, start=start_time,
+                type='raster', name=basename, maps=maps, start=start_time,
                 end=None, increment=time_step, dbif=None, interval=False)
         # Make sure the temporal database exists
         tgis.init()

@@ -273,7 +273,7 @@ def main():
     if int(num) == 1:
         grass.run_command('g.remove' ,
             flags = 'f',
-            type = 'vect',
+            type = 'vector',
             name = ( 'start_points_' ),
             quiet = True )    
     else:
@@ -282,14 +282,14 @@ def main():
             quiet = True )
         grass.run_command('g.remove' , 
             flags = 'f',
-            type = 'vect',
+            type = 'vector',
             name = (
                 'start_buffer_',
                 'start_random_') ,
             quiet = True )
     grass.run_command('g.remove' , 
         flags = 'f',
-        type = 'rast',
+        type = 'raster',
         name = (
             'uno',
             'costo',

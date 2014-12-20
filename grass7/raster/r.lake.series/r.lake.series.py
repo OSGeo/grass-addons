@@ -145,7 +145,7 @@ def check_maps_exist(maps, mapset):
 
 def remove_raster_maps(maps, quiet=False):
     for map_ in maps:
-        gcore.run_command('g.remove', flags='f', type='rast', name=map_, quiet=quiet)
+        gcore.run_command('g.remove', flags='f', type='raster', name=map_, quiet=quiet)
 
 
 def main():
@@ -217,7 +217,7 @@ def main():
                        overwrite=gcore.overwrite())
     # TODO: we must start from 1 because there is a bug in register_maps_in_space_time_dataset
     tgis.register_maps_in_space_time_dataset(
-        type='rast', name=basename, maps=','.join(outputs),
+        type='raster', name=basename, maps=','.join(outputs),
         start=str(1), end=None, unit=time_unit, increment=time_step,
         interval=False, dbif=None)
 

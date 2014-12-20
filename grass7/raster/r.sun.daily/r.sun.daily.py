@@ -152,10 +152,10 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command('g.remove', type='rast', name=rast, flags='f',
+        grass.run_command('g.remove', type='raster', name=rast, flags='f',
                           quiet=True)
     for pattern in MREMOVE:
-        grass.run_command('g.remove', type='rast', pattern='%s*' % pattern,
+        grass.run_command('g.remove', type='raster', pattern='%s*' % pattern,
                           flags='f', quiet=True)
 
 
@@ -405,7 +405,7 @@ def main():
                                semantic='sum', dbif=None,
                                overwrite=grass.overwrite())
             tgis.register_maps_in_space_time_dataset(
-                type='rast', name=basename, maps=maps, start=start_day, end=None,
+                type='raster', name=basename, maps=maps, start=start_day, end=None,
                 unit='days', increment=day_step, dbif=None, interval=False)
         # Make sure the temporal database exists
         tgis.init()

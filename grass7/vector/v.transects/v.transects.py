@@ -64,12 +64,12 @@ def tempmap():
     rand_number = [random.randint(0, 9) for i in range(6)]
     rand_number_str = ''.join(map(str, rand_number))
     mapname = 'temp_' + rand_number_str
-    maplist = grass.read_command('g.list', type='vect', mapset='.').split()
+    maplist = grass.read_command('g.list', type='vector', mapset='.').split()
     while mapname in maplist:
         rand_number = [random.randint(0, 9) for i in range(6)]
         rand_number_str = ''.join(map(str, rand_number))
         mapname = 'temp_' + rand_number_str
-        maplist = grass.read_command('g.list', type='vect', mapset='.').split()
+        maplist = grass.read_command('g.list', type='vector', mapset='.').split()
     return mapname
 
 
@@ -292,7 +292,7 @@ def main():
 
     grass.run_command('v.category', input=temp_map, output=output,
                       option='add', type=shape)
-    grass.run_command('g.remove', flags='f', type='vect', name=temp_map)
+    grass.run_command('g.remove', flags='f', type='vector', name=temp_map)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
