@@ -283,7 +283,7 @@ for FILE in $* ; do
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
-    txt | ascii)
+    txt | ascii | dox)
 	apply_text "$FILE"
 	;;
     po)
