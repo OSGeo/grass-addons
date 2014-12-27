@@ -116,7 +116,7 @@ fi
 if [ $GIS_FLAG_R -eq 1 ]; 
 then
   echo "setting region to input map ..."
-  g.region rast=$GIS_OPT_INPUT
+  g.region raster=$GIS_OPT_INPUT
 fi 
 
 # Set root name of temporary output files
@@ -126,9 +126,9 @@ tmpl=forestfrag$$_
 # get map (assuming input-map is a cell-raster with forest=1, 
 # and setting all other values to 0 (assuming to be non-forest=)
 #--------------------------------------------------------------------
-g.copy rast=${GIS_OPT_INPUT},${tmpl}
+g.copy raster=${GIS_OPT_INPUT},${tmpl}
 # recode forest-map: nonforest = 0, forest = 1
-r.reclass in=${tmpl} out=${tmpl}A rules=- <<EOF
+r.reclass input=${tmpl} output=${tmpl}A rules=- <<EOF
 1 = 1
 * = 0
 end
@@ -276,7 +276,7 @@ EOF
 
 #create categories
 echo "creating colors and categories ... "
-r.reclass ${tmpl}indexfin2 out=${tmpl}indexfin3 title="frag index" rules=- <<EOF
+r.reclass input=${tmpl}indexfin2 output=${tmpl}indexfin3 title="frag index" rules=- <<EOF
 0 = 0 nonforest
 1 = 1 patch
 2 = 2 transitional
@@ -318,13 +318,13 @@ EOF
 
 if [ $GIS_FLAG_T -eq 1 ]; 
 then
-  g.copy rast=${tmpl}pf,${GIS_OPT_OUTPUT}_pf
-  g.copy rast=${tmpl}pff,${GIS_OPT_OUTPUT}_pff
-  g.copy rast=${tmpl}pf2,${GIS_OPT_OUTPUT}_pf2
+  g.copy raster=${tmpl}pf,${GIS_OPT_OUTPUT}_pf
+  g.copy raster=${tmpl}pff,${GIS_OPT_OUTPUT}_pff
+  g.copy raster=${tmpl}pf2,${GIS_OPT_OUTPUT}_pf2
 fi 
 
 echo "Deleting temporary files ...."
-g.remove -f -b --quiet type=rast pattern=${tmpl}*
+g.remove -f -b --quiet type=raster pattern=${tmpl}*
 
 #=======================================================================
 # computing fragmentation index
@@ -333,7 +333,7 @@ g.remove -f -b --quiet type=rast pattern=${tmpl}*
 if [ $GIS_FLAG_S -eq 1 ]; 
 then
   
-  g.copy rast=${GIS_OPT_OUTPUT},${tmpl}_REPORT
+  g.copy raster=${GIS_OPT_OUTPUT},${tmpl}_REPORT
   # Shrink the region if output map was not trimmed
   if [ $GIS_FLAG_A -eq 0 ]; 
   then
@@ -359,7 +359,7 @@ then
   echo "  "
 fi
 
-g.remove -f type=rast name=${tmpl}_REPORT --quiet
+g.remove -f type=raster name=${tmpl}_REPORT --quiet
 g.region region=rforestfrag987654321
 g.remove --quiet -f type=region name=rforestfrag987654321 
 
