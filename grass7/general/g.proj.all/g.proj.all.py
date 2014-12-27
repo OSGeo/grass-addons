@@ -17,7 +17,9 @@
 
 #%module
 #% description: Reprojects raster and vector maps from given location and mapset to current mapset.
-#% keywords: general, projection, transformation
+#% keywords: general
+#% keywords: projection
+#% keywords: transformation
 #%end
 #%option
 #% key: location

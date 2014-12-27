@@ -22,7 +22,8 @@
  
 #%module
 #%  description: Generates an ISIS3 map template file according to the current GRASS coordinate reference system
-#%  keywords: generic, projection
+#%  keywords: coordinates
+#%  keywords: projection
 #%end
 
 #%option
