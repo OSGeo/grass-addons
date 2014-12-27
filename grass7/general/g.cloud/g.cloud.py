@@ -17,7 +17,8 @@
 #############################################################################
 #%module
 #% description: Connects GRASS session with another one in a cluster system.
-#% keywords: general, cloud computing
+#% keywords: general
+#% keywords: cloud computing
 #%end
 #%flag
 #% key: c
