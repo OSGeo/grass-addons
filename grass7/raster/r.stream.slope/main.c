@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     Rast_get_cellhd(in_dir_opt->answer, mapset, &cellhd);
     if (window.ew_res != cellhd.ew_res || window.ns_res != cellhd.ns_res)
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
-                          "Run 'g.region rast=%s' to set proper region resolution."),
+                          "Run 'g.region raster=%s' to set proper region resolution."),
                         in_dir_opt->answer, in_dir_opt->answer);
 
     if (Rast_map_type(in_dir_opt->answer, mapset) != CELL_TYPE)

@@ -314,7 +314,7 @@ class TabPanelOne(wx.Panel):
 
         # Add the box for choosing the map 
         self.select1 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
-                               type = 'rast', multiple = False)
+                               type = 'raster', multiple = False)
         self.select.Add(item = self.select1, pos = (2,0), span = wx.DefaultSpan)
 
         # binder
@@ -342,7 +342,7 @@ class TabPanelOne(wx.Panel):
 
         # Box to insert name of acc map 
         self.select2 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
-                               type = 'rast', multiple = False) # select existing map
+                               type = 'raster', multiple = False) # select existing map
         self.select.Add(item = self.select2, pos = (5,0), span = wx.DefaultSpan)
         self.textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT) 
         self.select.Add(item = self.textOne, flag = wx.LEFT | wx.EXPAND , pos = (6,0), span = wx.DefaultSpan)
@@ -372,7 +372,7 @@ class TabPanelOne(wx.Panel):
 
         # Add the box for choosing the map
         self.select3 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
-                               type = 'rast', multiple = False)
+                               type = 'raster', multiple = False)
         self.select.Add(item = self.select3, pos = (8,0), span = wx.DefaultSpan)
 
         # binder

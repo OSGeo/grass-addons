@@ -159,7 +159,7 @@ if [ ! -z "$GIS_OPT_NSP" ]; then
     eval `g.findfile element=cell file=MASK mapset=$MAPSET`
     remove_mask=1
     if [ $file ] ; then 
-        g.copy rast=MASK,mask_r_vif_backup
+        g.copy raster=MASK,mask_r_vif_backup
         mask_exists=1
         unset file
     fi

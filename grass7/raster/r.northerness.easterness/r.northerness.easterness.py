@@ -114,11 +114,11 @@ def main():
 	
     # clean up some temporay files and maps
     grass.message( "Some clean up ..." )
-    grass.run_command("g.remove", flags="f", type="rast", name= r_slope,
+    grass.run_command("g.remove", flags="f", type="raster", name= r_slope,
                                      quiet = True)
-    grass.run_command("g.remove", flags="f", type="rast", name= r_aspect,
+    grass.run_command("g.remove", flags="f", type="raster", name= r_aspect,
                                      quiet = True)
-    grass.run_command("g.remove", flags="f", type="rast", name= r_aspect_compass,
+    grass.run_command("g.remove", flags="f", type="raster", name= r_aspect_compass,
                                      quiet = True)
     grass.message( "Clean up done." )
     grass.message( "----" )	

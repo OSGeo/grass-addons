@@ -20,7 +20,7 @@ int open_map(MAPS * rast)
     rast->raster_type = Rast_map_type(rast->elevname, mapset);
 
     if (window.ew_res < cellhd.ew_res || window.ns_res < cellhd.ns_res)
-	G_fatal_error(_("Region resolution shoudn't be lesser than map %s resolution. Run g.region rast=%s to set proper resolution"),
+	G_fatal_error(_("Region resolution shoudn't be lesser than map %s resolution. Run g.region raster=%s to set proper resolution"),
 		      rast->elevname, rast->elevname);
 
     tmp_buf = Rast_allocate_buf(rast->raster_type);

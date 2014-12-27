@@ -105,7 +105,7 @@ def main():
         curs.execute(query_create)
         # set the region on the raster
         grass.use_temp_region()
-        grass.run_command('g.region', rast=i)
+        grass.run_command('g.region', raster=i)
         # calculate statistics
         stats_out = grass.pipe_command('r.stats', flags='cin', input=i,
                                        separator=':')
@@ -193,7 +193,7 @@ def main():
     for i in images:
         iname = i.split('@')[0]
         grass.use_temp_region()
-        grass.run_command('g.region', rast=i)
+        grass.run_command('g.region', raster=i)
         # write average rules file
         outfile = open(grass.tempfile(), 'w')
         new_grey = 0
@@ -233,7 +233,7 @@ def main():
     db.close()
     if mosaic:
         grass.use_temp_region()
-        grass.run_command('g.region', rast=all_images)
+        grass.run_command('g.region', raster=all_images)
         grass.run_command('r.patch', input=output_names, output=mosaic)
 
 if __name__ == "__main__":

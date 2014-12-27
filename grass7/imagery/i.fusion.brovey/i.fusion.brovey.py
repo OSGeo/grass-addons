@@ -160,7 +160,7 @@ def main():
 	grass.message(_("%s.%s") % (out, ch))
 
     grass.verbose("To visualize output, run:")
-    grass.verbose("g.region -p rast=%s.red" % out)
+    grass.verbose("g.region -p raster=%s.red" % out)
     grass.verbose("d.rgb r=%s.red g=%s.green b=%s.blue" % (out, out, out))
     grass.verbose("If desired, combine channels with 'r.composite' to a single map.")
 

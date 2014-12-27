@@ -28,7 +28,7 @@ channels may be combined with <em>d.rgb</em> or <em>r.composite</em>.
 Calculation of Brovey fusion map from North Carolina Landsat scene:
 
 <div class="code"><pre>
-g.region rast=lsat7_2002_20 -p
+g.region raster=lsat7_2002_20 -p
 
 # R, G, B composite at 28.5m 
 d.rgb b=lsat7_2002_10 g=lsat7_2002_20 r=lsat7_2002_30
@@ -39,7 +39,7 @@ i.fusion.brovey -l ms1=lsat7_2002_20 ms2=lsat7_2002_40 \
                    outputprefix=brovey
 
 # display at 14.25m
-g.region rast=brovey.blue -p
+g.region raster=brovey.blue -p
 d.rgb b=brovey.blue g=brovey.green r=brovey.red
 </pre></div>
 

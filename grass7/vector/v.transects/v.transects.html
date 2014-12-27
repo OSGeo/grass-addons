@@ -28,7 +28,8 @@ Location.
 
 <p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)
 <br>
-<div class=code><pre>g.region rast=NH_2008_1m
+<div class=code><pre>
+g.region raster=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.report map=NH_2008_1m option=length
 # cat|level|length
@@ -44,7 +45,8 @@ v.info NH_2008_transects
 Generate longer, more parallel transects by specifying dleft and dright and 
 smoothing the input line
 <br>
-<div class=code><pre>g.region rast=NH_2008_1m
+<div class=code><pre>
+g.region raster=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.generalize input=NH_2008_1m output=NH_2008_1m_smoothed \
   method=sliding_averaging look_ahead=201
@@ -58,7 +60,8 @@ v.transects input=NH_2008_1m_smoothed \
 <p>
 Generate longer, more parallel transects by specifying dleft and dright and 
 smoothing the input line<br>
-<div class=code><pre>g.region rast=NH_2008_1m
+<div class=code><pre>
+g.region raster=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.transects input=NH_2008_1m output=NH_2008_areas \
   transect_spacing=52 dleft=20 dright=300 type=area

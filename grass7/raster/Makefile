@@ -10,6 +10,9 @@ OLD = \
 #	r.le.setup \
 #	r.le.trace
 
+# unclear
+	r.convert \
+
 SUBDIRS = \
 	r.agent \
 	r.area \
@@ -17,7 +20,6 @@ SUBDIRS = \
 	r.bioclim \
 	r.bitpattern \
 	r.convergence \
-	r.convert \
 	r.crater \
 	r.damflood \
 	r.diversity \

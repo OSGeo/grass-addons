@@ -26,13 +26,13 @@ the resolution at which the cost map is calculated.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.copy vect=roadsmajor,roads
+g.copy vector=roadsmajor,roads
 v.db.addcolumn roads col="speed int"
 v.db.update roads col=speed value=120 where="ROAD_NAME='US-1'"
 v.db.update roads col=speed value=90 where="(ROAD_NAME like 'US%' AND ROAD_NAME <> 'US-1') OR ROAD_NAME like 'I-%'"
 v.db.update roads col=speed value=50 where="speed is null"
 
-g.region vect=roads res=100 -a -p
+g.region vector=roads res=100 -a -p
 
 echo "634637|224663" | v.in.ascii input=- output=start x=1 y=2
 

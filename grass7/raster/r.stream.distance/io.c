@@ -77,7 +77,7 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
 	if (this_window.ew_res != cellhd.ew_res ||
 	    this_window.ns_res != cellhd.ns_res)
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
-                          "Run 'g.region rast=%s' to set proper region resolution."),
+                          "Run 'g.region raster=%s' to set proper region resolution."),
                         input_map_name, input_map_name);
 
     /* checking if input map is of required type */
@@ -426,7 +426,7 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
 	if (this_window.ew_res != cellhd.ew_res ||
 	    this_window.ns_res != cellhd.ns_res)
           G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
-                          "Run 'g.region rast=%s' to set proper region resolution."),
+                          "Run 'g.region raster=%s' to set proper region resolution."),
                         input_map_name, input_map_name);
 
     if (check_data_type != seg->data_type)

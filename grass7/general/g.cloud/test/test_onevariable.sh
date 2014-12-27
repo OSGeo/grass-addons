@@ -8,5 +8,5 @@
 
 # using PID ($$) as name suffix
 v.random output=random$$_$NPOINT n=$NPOINT
-g.region vect=random$$_$NPOINT
+g.region vector=random$$_$NPOINT
 v.buffer input=random$$_$NPOINT output=buffer$$ distance=1

@@ -360,7 +360,7 @@ class Overlay(Layer):
         @param id overlay id (for PseudoDC)
         @param type overlay type ('barscale', 'legend', etc.)
         @param cmd GRASS command to render overlay,
-        given as list, e.g. ['d.legend', 'rast=elevation@PERMANENT']
+        given as list, e.g. ['d.legend', 'raster=elevation@PERMANENT']
         @param Map render.Map instance
         @param active layer is active, will be rendered only if True
         @param hidden layer is hidden, won't be listed in Layer Manager if True

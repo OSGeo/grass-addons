@@ -164,7 +164,7 @@ Create table with order statistics. This table can easily be sent to
 external program (like R) to be visualised:
 
 <div class="code"><pre>
-g.region -p -a rast=elevation
+g.region -p -a raster=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.stats stream_rast=horton direction=direction elevation=elevation
 # export for processing in R

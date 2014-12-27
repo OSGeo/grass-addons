@@ -41,7 +41,7 @@ and upload the results for mean, min and max back to the vector map:
 
 <div class="code"><pre>
 #### set the raster region to match the map
-g.region vect=fields res=10 -ap
+g.region vector=fields res=10 -ap
 
 #### create rasterized version of vector map
 v.to.rast in=fields out=fields.10m use=cat type=area labelcolumn=label
@@ -55,7 +55,7 @@ r.univar -t map=elevation.10m zones=fields.10m | \
 #### populate vector DB with stats
 
 # create working copy of vector map
-g.copy vect=fields,fields_stats
+g.copy vector=fields,fields_stats
 
 # create new attribute columns to hold output
 v.db.addcol map=fields_stats \
@@ -90,7 +90,7 @@ rm fields_stats.csv fields_stats.csvt fields_stats.txt
 #### populate vector DB with stats
 
 # create working copy of vector map
-g.copy vect=fields,fields_stats
+g.copy vector=fields,fields_stats
 
 # create new attribute columns to hold output
 v.db.addcol map=fields_stats \

@@ -123,7 +123,7 @@ results meet your requirements.  Some manual adjustment of the
 threshold may be required. <br>
 
 <div class="code"><pre>
-g.region rast=ortho_2001_t792_1m@PERMANENT n=220400 s=220200 e=639000 w=638800
+g.region raster=ortho_2001_t792_1m@PERMANENT n=220400 s=220200 e=639000 w=638800
 </pre></div>
 
 Try out a first threshold and check the results.<br>
@@ -152,7 +152,7 @@ Each of these segmentation steps took less then 1 minute on a decent
 machine.  Now that we are satisfied with the settings, we'll process 
 the entire image:
 <div class="code"><pre>
-g.region rast=ortho_2001_t792_1m@PERMANENT<br>
+g.region raster=ortho_2001_t792_1m@PERMANENT<br>
 i.segment -w -l --overwrite group=ortho_group output=ortho_segs \
           threshold=10 method=region_growing minsize=5 endt=5000
 </pre></div>

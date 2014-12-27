@@ -32,7 +32,7 @@ map. See the example below to see how to do that with g.region.
 <i>This example uses the North Carolina sample dataset.</i>
 <p>
 <div class="code"><pre>
-g.region rast=elev_lid792_1m n=n+1 s=s-1 w=w-1 e=e+1 -p
+g.region raster=elev_lid792_1m n=n+1 s=s-1 w=w-1 e=e+1 -p
 r.watershed elev_lid792_1m thresh=5000 accum=accum_5K   drain=draindir_5K
 r.fill.dir elev_lid792_1m output=elev_filled outdir=elev_dir
 

@@ -90,7 +90,7 @@ This example shows how to visualise the change of gradient map along the main
 stream of the catchment:
 
 <div class="code"><pre>
-g.region -p -a rast=elevation
+g.region -p -a raster=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.order streams=streams direction=direction hack=hack
 r.stream.channel streams=hack direction=direction elevation=elevation \

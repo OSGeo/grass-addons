@@ -12,7 +12,7 @@ D=`echo $DOY | awk '{printf "%03d\n", $1}'`
 
 ELEV=elevation
 
-g.region rast=$ELEV
+g.region raster=$ELEV
 
 # r.sun memory requirements: 4 bytes per raster cell
 #  rows,cols: rows and columns of current region (find out with g.region)

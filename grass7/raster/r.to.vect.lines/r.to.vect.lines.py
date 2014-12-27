@@ -13,7 +13,7 @@
 #############################################################################
 #
 # To make a wiggle line plot in NVIZ:
-#   g.region rast=elevation.dem
+#   g.region raster=elevation.dem
 #   r.to.vect.lines.py in=elevation.dem out=wiggle_lines
 #   eval `v.info -g wiggle_lines`
 #   r.mapcalc "floor = $bottom"

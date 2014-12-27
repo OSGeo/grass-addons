@@ -104,7 +104,7 @@ def calculate_lfp(input, output, coords):
         grass.fatal(_("Cannot create longest flow path raster map"))
 
     grass.run_command("g.remove", flags="f",
-            type="rast,vect", pattern="%s*" % prefix)
+            type="raster,vector", pattern="%s*" % prefix)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

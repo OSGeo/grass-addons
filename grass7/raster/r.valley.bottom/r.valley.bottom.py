@@ -99,7 +99,7 @@ def main():
 
     grass.message( "..." )									 
 									 
-    grass.run_command("g.remove", flags="f", type="rast", name= r_slope_degree,
+    grass.run_command("g.remove", flags="f", type="raster", name= r_slope_degree,
                                      quiet = True)									 
     grass.message( "Step 1: Calculation of slope done." )
     grass.message( "----" )
@@ -231,7 +231,7 @@ def main():
         expr2 = "PCTL2 = (100.0 / 48.0) * (%s)" % " + ".join(terms2)
 	
     grass.mapcalc( expr2 )
-    grass.run_command("g.remove", flags="f", type="rast", name= "elevation_step1",
+    grass.run_command("g.remove", flags="f", type="raster", name= "elevation_step1",
                                      quiet = True)
 	
     grass.message( "Step 2: Calculation of elevation percentile PCTL2 done" )

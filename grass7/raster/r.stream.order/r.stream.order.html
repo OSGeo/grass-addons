@@ -296,7 +296,7 @@ outlet + drop outlet;
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region -p -a rast=elevation
+g.region -p -a raster=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.order stream_rast=streams direction=direction strahler=riverorder_strahler \
   horton=riverorder_horton shreve=riverorder_shreve hack=riverorder_hack \

@@ -10,7 +10,7 @@ North Carolina example, with elevation map:
 
 <div class="code"><pre>
 # copy a raster map
-g.copy rast=elevation,dem
+g.copy raster=elevation,dem
 
 # now check and return TRUE
 g.md5sum ain=elevation bin=dem
@@ -23,7 +23,6 @@ g.md5sum ain=elevation bin=dem
 
 # but when adding the -c flag (ignore color table), TRUE is returned
 g.md5sum -c ain=elevation bin=dem
-
 </pre></div>
 
 <h2>AUTHOR</h2>
