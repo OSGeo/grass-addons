@@ -20,9 +20,9 @@
 
 #%module
 #% description: Road tool for use with v.civil.road
-#% keywords: vector
-#% keywords: road
-#% keywords: civil
+#% keyword: vector
+#% keyword: road
+#% keyword: civil
 #%end
 
 #### Input section ####

@@ -17,10 +17,10 @@
 #############################################################################
 #%module
 #% description: Imports PLY points, georeferences and exports them.
-#% keywords: vector
-#% keywords: import
-#% keywords: export
-#% keywords: rectify
+#% keyword: vector
+#% keyword: import
+#% keyword: export
+#% keyword: rectify
 #%end
 #%option G_OPT_F_INPUT
 #% description: Name of input PLY file

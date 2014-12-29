@@ -13,8 +13,8 @@
 
 #%Module
 #% description: Starts a graphics display monitor which can be controlled from the command line.
-#% keywords: display
-#% keywords: CLI
+#% keyword: display
+#% keyword: CLI
 #%End
 #%Option
 #% key: width

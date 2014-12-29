@@ -16,9 +16,9 @@
 
 #%Module
 #% description: Converts a GRASS Version 4-6 raster map to a GRASS 7 raster map format
-#% keywords: raster
-#% keywords: import
-#% keywords: conversion
+#% keyword: raster
+#% keyword: import
+#% keyword: conversion
 #%end
 #%option
 #% key: map

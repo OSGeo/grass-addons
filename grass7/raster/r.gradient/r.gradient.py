@@ -17,8 +17,8 @@
 
 #%module
 #% description: Create a gradient map
-#% keywords: raster
-#% keywords: gradient
+#% keyword: raster
+#% keyword: gradient
 #%end
 
 #%option G_OPT_R_OUTPUT

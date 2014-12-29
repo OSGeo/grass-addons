@@ -17,8 +17,8 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%module
 #% description: segment points along a vector line with fixed distances
-#% keywords: vector
-#% keywords: geometry
+#% keyword: vector
+#% keyword: geometry
 #%end
 
 #%option G_OPT_V_INPUT

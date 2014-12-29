@@ -17,8 +17,8 @@
 
 #%Module
 #% description: Hierarchical segmentation
-#% keywords: imagery
-#% keywords: segment
+#% keyword: imagery
+#% keyword: segment
 #% overwrite: yes
 #%End
 #%option G_OPT_I_GROUP

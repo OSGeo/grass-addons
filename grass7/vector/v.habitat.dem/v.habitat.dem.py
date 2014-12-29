@@ -16,12 +16,12 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%module
 #% description: DEM derived characteristics of habitats
-#% keywords: vector
-#% keywords: raster
-#% keywords: terrain
-#% keywords: statistics
-#% keywords: sun
-#% keywords: zonal statistics
+#% keyword: vector
+#% keyword: raster
+#% keyword: terrain
+#% keyword: statistics
+#% keyword: sun
+#% keyword: zonal statistics
 #%end
 
 #%option G_OPT_R_ELEV

@@ -15,8 +15,8 @@
 
 #%module
 #% description: Calcuates bioclimatic indices.
-#% keywords: raster
-#% keywords: time series
+#% keyword: raster
+#% keyword: time series
 #% overwrite: yes
 #%end
 #%option G_OPT_R_INPUTS

@@ -14,9 +14,9 @@ This program is free software under the GNU General Public License
 
 #%module
 #% description: Downloads and imports data from WFS server.
-#% keywords: vector
-#% keywords: import
-#% keywords: wfs
+#% keyword: vector
+#% keyword: import
+#% keyword: wfs
 #%end
 
 #%option

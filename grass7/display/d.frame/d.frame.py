@@ -21,10 +21,10 @@
 ############################################################################
 #%module
 #% description: Manages display frames on the user's graphics monitor.
-#% keywords: display
-#% keywords: graphics
-#% keywords: monitors
-#% keywords: frame
+#% keyword: display
+#% keyword: graphics
+#% keyword: monitors
+#% keyword: frame
 #% overwrite: yes
 #%end
 #%flag

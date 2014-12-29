@@ -17,8 +17,8 @@
 
 #%Module
 #% description: Vector
-#% keywords: machine learning
-#% keywords: classification
+#% keyword: machine learning
+#% keyword: classification
 #% overwrite: yes
 #%End
 #%option G_OPT_V_MAP

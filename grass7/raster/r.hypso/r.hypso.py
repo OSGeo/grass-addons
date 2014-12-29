@@ -21,7 +21,7 @@
 ################################################################################
 #%module
 #% description: Outputs a hypsometric and hypsographic graph.
-#% keywords: raster
+#% keyword: raster
 #%end
 
 #%option G_OPT_R_ELEV

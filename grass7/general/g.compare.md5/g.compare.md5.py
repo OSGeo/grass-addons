@@ -18,9 +18,9 @@
 
 #%module
 #% description: Checks if two GRASS GIS maps are identical.
-#% keywords: general
-#% keywords: map management
-#% keywords: list
+#% keyword: general
+#% keyword: map management
+#% keyword: list
 #%end
 #%flag
 #% key: g

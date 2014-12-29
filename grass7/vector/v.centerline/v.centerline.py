@@ -15,8 +15,8 @@
 
 #%module
 #% description: Creates a central line of a map of lines
-#% keywords: vector
-#% keywords: lines central
+#% keyword: vector
+#% keyword: lines central
 #%end
 #%option G_OPT_V_INPUT
 #%end

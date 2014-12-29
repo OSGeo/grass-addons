@@ -15,7 +15,7 @@
 #############################################################################
 #%module
 #% description: Return the barycenter of a cloud of point.
-#% keywords: vector
+#% keyword: vector
 #%end
 #%flag
 #% key: b

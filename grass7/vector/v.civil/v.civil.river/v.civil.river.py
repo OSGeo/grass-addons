@@ -20,10 +20,10 @@
 
 #%Module
 #% description: Export - Import geometry data to/from an 1-D hydrodynamic model.
-#% keywords: vector
-#% keywords: Hec-Ras
-#% keywords: hydraulic
-#% keywords: river
+#% keyword: vector
+#% keyword: Hec-Ras
+#% keyword: hydraulic
+#% keyword: river
 #%End
 
 #### Required section ####

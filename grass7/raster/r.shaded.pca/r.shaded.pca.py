@@ -15,10 +15,10 @@
 
 #%module
 #% description: Creates shades from various directions and combines then into RGB composition.
-#% keywords: raster
-#% keywords: elevation
-#% keywords: terrain
-#% keywords: visualization
+#% keyword: raster
+#% keyword: elevation
+#% keyword: terrain
+#% keyword: visualization
 #%end
 #%option
 #% type: string

@@ -21,8 +21,8 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%module
 #% description: Calculation of Multi-resolution Valley Bottom Flatness (MrVBF) index
-#% keywords: raster
-#% keywords: terrain
+#% keyword: raster
+#% keyword: terrain
 #%end
 
 #%option G_OPT_R_ELEV

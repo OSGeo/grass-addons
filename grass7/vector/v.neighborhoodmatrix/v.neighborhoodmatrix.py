@@ -14,8 +14,8 @@
 
 #%module
 #% description: Exports the neighborhood matrix of polygons in a vector map
-#% keywords: vector
-#% keywords: neighborhood matrix
+#% keyword: vector
+#% keyword: neighborhood matrix
 #%end
 #%option G_OPT_V_INPUT
 #%end

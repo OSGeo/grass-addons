@@ -17,9 +17,9 @@
 
 #%Module
 #% description: Vector stats
-#% keywords: vector
-#% keywords: statistics
-#% keywords: shape
+#% keyword: vector
+#% keyword: statistics
+#% keyword: shape
 #% overwrite: yes
 #%End
 #%option G_OPT_V_MAP

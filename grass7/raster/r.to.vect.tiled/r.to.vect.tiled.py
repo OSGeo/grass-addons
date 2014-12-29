@@ -20,11 +20,11 @@
 
 #%module
 #% description: Converts a raster map into vector tiles.
-#% keywords: raster
-#% keywords: conversion
-#% keywords: geometry
-#% keywords: vectorization
-#% keywords: tiling
+#% keyword: raster
+#% keyword: conversion
+#% keyword: geometry
+#% keyword: vectorization
+#% keyword: tiling
 #% overwrite: yes
 #%end
 #%option G_OPT_R_INPUT

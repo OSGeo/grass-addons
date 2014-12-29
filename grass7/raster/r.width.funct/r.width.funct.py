@@ -23,7 +23,7 @@
 ################################################################################
 #%module
 #% description: 
-#% keywords: raster
+#% keyword: raster
 #%end
 
 #%option G_OPT_R_INPUT

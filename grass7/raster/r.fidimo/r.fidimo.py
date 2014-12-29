@@ -13,7 +13,7 @@
 #############################################################################
 #%Module
 #% description: Calculating fish dispersal in a river network from source populations with species specific dispersal parameters
-#% keywords: Fish Dispersal Model
+#% keyword: Fish Dispersal Model
 #%End
 #%option
 #% key: river

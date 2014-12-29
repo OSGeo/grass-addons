@@ -37,11 +37,11 @@
 #
 #%Module
 #% description: Calculates surface roughness in a moving-window, as the orientation of vectors normal to surface planes.
-#% keywords: raster
-#% keywords: terrain
-#% keywords: aspect
-#% keywords: slope
-#% keywords: roughness
+#% keyword: raster
+#% keyword: terrain
+#% keyword: aspect
+#% keyword: slope
+#% keyword: roughness
 #%end
 #%option G_OPT_R_ELEV
 #% key: elevation

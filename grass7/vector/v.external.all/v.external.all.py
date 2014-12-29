@@ -14,8 +14,8 @@
 
 #%module
 #% description: Links all OGR layers available in given OGR datasource.
-#% keywords: vector
-#% keywords: external
+#% keyword: vector
+#% keyword: external
 #% overwrite: yes
 #%end
 #%flag

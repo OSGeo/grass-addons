@@ -19,9 +19,9 @@
 
 #%module
 #% description: Morphometric characterization of river basins
-#% keywords: raster
-#% keywords: hydrology
-#% keywords: watershed
+#% keyword: raster
+#% keyword: hydrology
+#% keyword: watershed
 #% overwrite: yes
 #%end
 

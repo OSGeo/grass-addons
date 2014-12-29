@@ -13,9 +13,9 @@ This program is free software under the GNU General Public License
 
 #%module
 #% description: Creates metadata based on ISO standard for specified raster map.
-#% keywords: raster
-#% keywords: metadata
-#% keywords: iso
+#% keyword: raster
+#% keyword: metadata
+#% keyword: iso
 #%end
 
 #%option G_OPT_R_MAP

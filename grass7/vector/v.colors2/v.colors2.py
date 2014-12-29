@@ -17,8 +17,8 @@
 
 #%module
 #% description: Sets color rules for features in a vector map using a numeric attribute column.
-#% keywords: vector
-#% keywords: color table
+#% keyword: vector
+#% keyword: color table
 #%end
 #% option G_OPT_V_MAP
 #%end

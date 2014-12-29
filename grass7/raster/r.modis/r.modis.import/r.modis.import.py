@@ -23,8 +23,8 @@
 
 #%module
 #% description: Import single or multiple tiles of MODIS products using pyModis/MRT
-#% keywords: raster
-#% keywords: MODIS
+#% keyword: raster
+#% keyword: MODIS
 #%end
 #%flag
 #% key: m

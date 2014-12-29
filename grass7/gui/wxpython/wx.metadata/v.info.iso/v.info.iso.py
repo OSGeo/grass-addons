@@ -13,9 +13,9 @@ This program is free software under the GNU General Public License
 
 #%module
 #% description: Creates metadata based on ISO standard for specified vector map.
-#% keywords: vector
-#% keywords: metadata
-#% keywords: iso
+#% keyword: vector
+#% keyword: metadata
+#% keyword: iso
 #%end
 
 #%option G_OPT_V_MAP

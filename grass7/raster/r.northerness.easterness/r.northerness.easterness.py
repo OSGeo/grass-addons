@@ -16,11 +16,11 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 #%module
 #% description: Calculation of northerness, easterness and the interaction between northerness and slope
-#% keywords: raster
-#% keywords: terrain
-#% keywords: aspect
-#% keywords: slope
-#% keywords: sun
+#% keyword: raster
+#% keyword: terrain
+#% keyword: aspect
+#% keyword: slope
+#% keyword: sun
 #%end
 
 #%option G_OPT_R_ELEV

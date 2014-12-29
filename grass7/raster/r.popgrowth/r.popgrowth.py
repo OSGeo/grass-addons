@@ -13,7 +13,7 @@
 #############################################################################
 #%Module
 #% description: Set of population models (fisheries science)
-#% keywords: Population growth model
+#% keyword: Population growth model
 #%End
 #%option
 #% key: n_initial

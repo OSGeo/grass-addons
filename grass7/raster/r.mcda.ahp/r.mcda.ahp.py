@@ -14,9 +14,9 @@
 
 #%Module
 #% description: Generate a raster map classified with analytic hierarchy process (AHP).
-#% keywords: raster
-#% keywords: Analytic Hierarchy Process (AHP)
-#% keywords: Multi Criteria Decision Analysis (MCDA)
+#% keyword: raster
+#% keyword: Analytic Hierarchy Process (AHP)
+#% keyword: Multi Criteria Decision Analysis (MCDA)
 #%End
 #%option
 #% key: criteria

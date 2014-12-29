@@ -17,9 +17,9 @@
 
 #%module
 #% description: A model for shallow landslide susceptibility.
-#% keywords: raster
-#% keywords: critical rainfall
-#% keywords: landslide
+#% keyword: raster
+#% keyword: critical rainfall
+#% keyword: landslide
 #%end
 #%option
 #% key: dem

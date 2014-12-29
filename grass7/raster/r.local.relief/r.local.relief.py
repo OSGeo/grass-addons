@@ -16,12 +16,12 @@
 
 #%module
 #% description: Creates a local relief model from elevation map.
-#% keywords: raster
-#% keywords: elevation
-#% keywords: terrain
-#% keywords: relief
-#% keywords: LRM
-#% keywords: visualization
+#% keyword: raster
+#% keyword: elevation
+#% keyword: terrain
+#% keyword: relief
+#% keyword: LRM
+#% keyword: visualization
 #%end
 #%option
 #% type: string

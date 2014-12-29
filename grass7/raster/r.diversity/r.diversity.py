@@ -18,7 +18,7 @@
 
 #%module
 #% description: Calculate diversity indices based on a moving window using r.li packages
-#% keywords: raster
+#% keyword: raster
 #%end
 #%option
 #% key: input

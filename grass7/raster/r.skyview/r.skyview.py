@@ -18,8 +18,8 @@
 
 #%module
 #% description: Computes Sky-View Factor visualization technique
-#% keywords: raster
-#% keywords: visualization
+#% keyword: raster
+#% keyword: visualization
 #%end
 #%option G_OPT_R_INPUT
 #%end

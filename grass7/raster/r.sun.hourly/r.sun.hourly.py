@@ -15,8 +15,8 @@
 
 #%module
 #% description: Runs r.sun in loop for given time range (mode 1)
-#% keywords: raster
-#% keywords: sun
+#% keyword: raster
+#% keyword: sun
 #% overwrite: yes
 #%end
 #%option

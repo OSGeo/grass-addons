@@ -16,8 +16,8 @@
 
 #%module
 #% description: Converts a longest flow path raster map created by r.lfp to a vector map.
-#% keywords: hydrology
-#% keywords: watershed
+#% keyword: hydrology
+#% keyword: watershed
 #%end
 #%option G_OPT_R_INPUT
 #% description: Name of input longest flow path raster map

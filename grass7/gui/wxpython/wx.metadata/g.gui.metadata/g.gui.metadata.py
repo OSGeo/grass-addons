@@ -23,9 +23,9 @@ This program is free software under the GNU General Public License
 
 #%module
 #% description: Tool for creating and modifying map's metadata.
-#% keywords: general
-#% keywords: GUI
-#% keywords: metadata
+#% keyword: general
+#% keyword: GUI
+#% keyword: metadata
 #%end
 
 import os

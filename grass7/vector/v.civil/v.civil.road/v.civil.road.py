@@ -20,10 +20,10 @@
 
 #%Module
 #% description: Generate an alignment for desired roads, channels, ports...
-#% keywords: vector
-#% keywords: road
-#% keywords: channel
-#% keywords: port
+#% keyword: vector
+#% keyword: road
+#% keyword: channel
+#% keyword: port
 #%End
 
 #### Required section ####

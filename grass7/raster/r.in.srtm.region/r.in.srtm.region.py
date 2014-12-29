@@ -18,8 +18,8 @@
 
 #%module
 #% description: Creates a DEM from 3 arcsec SRTM v2.1 or v3 tiles.
-#% keywords: raster
-#% keywords: import
+#% keyword: raster
+#% keyword: import
 #%end
 #%option G_OPT_R_OUTPUT
 #% description: Name for output raster map

@@ -16,12 +16,12 @@
 
 #%module
 #% description: Uploads space time raster dataset values at positions of vector points to the table.
-#% keywords: vector
-#% keywords: temporal
-#% keywords: sampling
-#% keywords: position
-#% keywords: querying
-#% keywords: attribute table
+#% keyword: vector
+#% keyword: temporal
+#% keyword: sampling
+#% keyword: position
+#% keyword: querying
+#% keyword: attribute table
 #%end
 
 #%option G_OPT_V_INPUT

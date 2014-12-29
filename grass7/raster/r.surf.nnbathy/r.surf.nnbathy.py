@@ -29,11 +29,11 @@
 
 #%Module
 #% description: Interpolates a raster map using the nnbathy natural neighbor interpolation program.
-#% keywords: vector
-#% keywords: surface
-#% keywords: interpolation
-#% keywords: natural
-#% keywords: neighbor
+#% keyword: vector
+#% keyword: surface
+#% keyword: interpolation
+#% keyword: natural
+#% keyword: neighbor
 #%end
 #%option G_OPT_R_INPUT
 #% key: input

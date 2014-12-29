@@ -18,8 +18,8 @@
 
 #%module
 #% description: Download several tiles of MODIS products using pyModis
-#% keywords: raster
-#% keywords: import
+#% keyword: raster
+#% keyword: import
 #%end
 #%flag
 #% key: d

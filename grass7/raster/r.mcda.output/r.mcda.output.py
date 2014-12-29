@@ -15,9 +15,9 @@
 
 #%Module
 #% description: Export criteria raster maps and decision raster map in a *.isf file (e.g. 4eMka2, jMAF) for dominance rough set approach analysis
-#% keywords: raster
-#% keywords: Dominance Rough Set Approach
-#% keywords: Multi Criteria Decision Analysis (MCDA)
+#% keyword: raster
+#% keyword: Dominance Rough Set Approach
+#% keyword: Multi Criteria Decision Analysis (MCDA)
 #%End
 #%option
 #% key: attributes

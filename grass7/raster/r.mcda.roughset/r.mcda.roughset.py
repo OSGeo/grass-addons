@@ -14,9 +14,9 @@
 
 #%Module
 #% description: Generate a MCDA map from several criteria maps using Dominance Rough Set Approach.
-#% keywords: raster
-#% keywords: Dominance Rough Set Approach 
-#% keywords: Multi Criteria Decision Analysis (MCDA)
+#% keyword: raster
+#% keyword: Dominance Rough Set Approach 
+#% keyword: Multi Criteria Decision Analysis (MCDA)
 #%End
 #%option
 #% key: criteria

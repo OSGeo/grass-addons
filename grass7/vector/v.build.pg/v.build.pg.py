@@ -14,10 +14,10 @@
 
 #%module
 #% description: Builds PostGIS topology for vector map linked via v.external.
-#% keywords: vector
-#% keywords: external
-#% keywords: PostGIS
-#% keywords: topology
+#% keyword: vector
+#% keyword: external
+#% keyword: PostGIS
+#% keyword: topology
 #% overwrite: yes
 #%end
 #%option G_OPT_V_MAP

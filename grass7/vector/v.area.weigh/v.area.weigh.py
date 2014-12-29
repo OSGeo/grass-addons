@@ -15,9 +15,9 @@
 
 #%module
 #% description: Rasterize vector areas using weights
-#% keywords: vector
-#% keywords: interpolation
-#% keywords: raster
+#% keyword: vector
+#% keyword: interpolation
+#% keyword: raster
 #%end
 #%option G_OPT_V_INPUT
 #% key: vector

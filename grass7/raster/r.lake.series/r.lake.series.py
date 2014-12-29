@@ -18,10 +18,10 @@
 
 #%module
 #% description: Fills lake at given point(s) to given levels.
-#% keywords: raster
-#% keywords: hydrology
-#% keywords: hazard
-#% keywords: flood
+#% keyword: raster
+#% keyword: hydrology
+#% keyword: hazard
+#% keyword: flood
 #%end
 #%option G_OPT_R_ELEV
 #%end

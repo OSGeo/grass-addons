@@ -20,8 +20,8 @@
 #############################################################################
 #%module
 #% description: Calculate histogram matching of several images.
-#% keywords: imagery
-#% keywords: histogram matching
+#% keyword: imagery
+#% keyword: histogram matching
 #%end
 #%option G_OPT_R_INPUTS
 #% description: Name of raster maps to analize

@@ -15,8 +15,8 @@
 
 #%module
 #% description: Calculates the longest flow path for a given outlet point.
-#% keywords: hydrology
-#% keywords: watershed
+#% keyword: hydrology
+#% keyword: watershed
 #%end
 #%option G_OPT_R_INPUT
 #% description: Name of input drainage direction raster map

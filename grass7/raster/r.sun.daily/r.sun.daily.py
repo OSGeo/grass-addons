@@ -16,8 +16,8 @@
 
 #%module
 #% description: Runs r.sun for multiple days in loop (mode 2)
-#% keywords: raster
-#% keywords: sun
+#% keyword: raster
+#% keyword: sun
 #%end
 #%option
 #% type: string

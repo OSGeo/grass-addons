@@ -15,8 +15,8 @@
 
 #%module
 #% description: Creates isochrones from a road map and starting points
-#% keywords: vector
-#% keywords: isochrones
+#% keyword: vector
+#% keyword: isochrones
 #%end
 #%option G_OPT_V_MAP
 #% label: Roads with speed attribute

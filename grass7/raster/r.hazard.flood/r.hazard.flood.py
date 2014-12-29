@@ -18,7 +18,7 @@
 
 #%module
 #% description: Fast procedure to detect flood prone areas
-#% keywords: raster
+#% keyword: raster
 #%end
 #%option
 #% key: map

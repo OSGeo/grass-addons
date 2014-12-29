@@ -22,9 +22,9 @@
 
 #%module
 #% description: Convert raster rows to vector lines.
-#% keywords: raster
-#% keywords: conversion
-#% keywords: wiggles
+#% keyword: raster
+#% keyword: conversion
+#% keyword: wiggles
 #%end
 #%option
 #% key: input
