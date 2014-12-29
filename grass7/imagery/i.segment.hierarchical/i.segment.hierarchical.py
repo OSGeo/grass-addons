@@ -16,123 +16,123 @@
 #############################################################################
 
 #%Module
-#%  description: Hierarchical segmentation
-#%  keywords: imagery
-#%  keywords: segment
-#%  overwrite: yes
+#% description: Hierarchical segmentation
+#% keywords: imagery
+#% keywords: segment
+#% overwrite: yes
 #%End
 #%option G_OPT_I_GROUP
-#%  key: group
-#%  description: Name of input imagery group
-#%  required: yes
+#% key: group
+#% description: Name of input imagery group
+#% required: yes
 #%end
 #%option
-#%  key: thresholds
-#%  type: double
-#%  multiple: yes
-#%  description: Segment thresholds
-#%  required: yes
-#%  answer: 0.02,0.05
+#% key: thresholds
+#% type: double
+#% multiple: yes
+#% description: Segment thresholds
+#% required: yes
+#% answer: 0.02,0.05
 #%end
 #%option G_OPT_R_OUTPUT
-#%  key: output
-#%  description: Name of output sement raster map
-#%  required: yes
+#% key: output
+#% description: Name of output sement raster map
+#% required: yes
 #%end
 #%option
-#%  key: outputs_prefix
-#%  type: string
-#%  description: Name for output raster maps from segment
-#%  required: no
-#%  answer: seg__%.2f
+#% key: outputs_prefix
+#% type: string
+#% description: Name for output raster maps from segment
+#% required: no
+#% answer: seg__%.2f
 #%end
 #%option
-#%  key: method
-#%  type: string
-#%  description: Segmentation method
-#%  required: no
-#%  answer: region_growing
-#%  guisection: Segment
+#% key: method
+#% type: string
+#% description: Segmentation method
+#% required: no
+#% answer: region_growing
+#% guisection: Segment
 #%end
 #%option
-#%  key: similarity
-#%  type: string
-#%  description: Similarity calculation method
-#%  required: no
-#%  answer: euclidean
-#%  guisection: Segment
+#% key: similarity
+#% type: string
+#% description: Similarity calculation method
+#% required: no
+#% answer: euclidean
+#% guisection: Segment
 #%end
 #%option
-#%  key: minsizes
-#%  type: integer
-#%  description: Minimum number of cells in a segment
-#%  multiple: yes
-#%  required: no
-#%  guisection: Segment
+#% key: minsizes
+#% type: integer
+#% description: Minimum number of cells in a segment
+#% multiple: yes
+#% required: no
+#% guisection: Segment
 #%end
 #%option
-#%  key: memory
-#%  type: integer
-#%  description: Memory in MB
-#%  required: no
-#%  answer: 300
-#%  guisection: Segment
+#% key: memory
+#% type: integer
+#% description: Memory in MB
+#% required: no
+#% answer: 300
+#% guisection: Segment
 #%end
 #%option
-#%  key: iterations
-#%  type: integer
-#%  description: Maximum number of iterations
-#%  required: no
-#%  answer: 20
-#%  guisection: Segment
+#% key: iterations
+#% type: integer
+#% description: Maximum number of iterations
+#% required: no
+#% answer: 20
+#% guisection: Segment
 #%end
 #%option G_OPT_R_INPUT
-#%  key: seeds
-#%  description: Name for input raster map with starting seeds
-#%  required: no
-#%  guisection: Segment
+#% key: seeds
+#% description: Name for input raster map with starting seeds
+#% required: no
+#% guisection: Segment
 #%end
 #%option G_OPT_R_INPUT
-#%  key: bounds
-#%  description: Name of input bounding/constraining raster map
-#%  required: no
-#%  guisection: Segment
+#% key: bounds
+#% description: Name of input bounding/constraining raster map
+#% required: no
+#% guisection: Segment
 #%end
 #%option
-#%  key: width
-#%  description: Tile width in pixels
-#%  type: integer
-#%  required: no
-#%  guisection: Grid
+#% key: width
+#% description: Tile width in pixels
+#% type: integer
+#% required: no
+#% guisection: Grid
 #%end
 #%option
-#%  key: height
-#%  description: Tile height in pixels
-#%  type: integer
-#%  required: no
-#%  guisection: Grid
+#% key: height
+#% description: Tile height in pixels
+#% type: integer
+#% required: no
+#% guisection: Grid
 #%end
 #%option
-#%  key: overlap
-#%  description: Tile overlap in pixels
-#%  type: integer
-#%  required: no
-#%  answer: 0
-#%  guisection: Grid
+#% key: overlap
+#% description: Tile overlap in pixels
+#% type: integer
+#% required: no
+#% answer: 0
+#% guisection: Grid
 #%end
 #%option
-#%  key: processes
-#%  description: Number of concurrent processes
-#%  type: integer
-#%  required: no
-#%  guisection: Grid
+#% key: processes
+#% description: Number of concurrent processes
+#% type: integer
+#% required: no
+#% guisection: Grid
 #%end
 #%option
-#%  key: move
-#%  description: Path where move and copy the mapset
-#%  type: string
-#%  required: no
-#%  guisection: Grid
+#% key: move
+#% description: Path where move and copy the mapset
+#% type: string
+#% required: no
+#% guisection: Grid
 #%end
 
 

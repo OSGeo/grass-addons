@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:    Map Swipe
+# MODULE:    v.class.mlpy
 # AUTHOR(S): Vaclav Petras
 # PURPOSE:   Classifies features in vecor map.
 # COPYRIGHT: (C) 2012 by Vaclav Petras, and the GRASS Development Team
@@ -20,8 +20,10 @@
 ############################################################################
 
 #%module
-#%  description: Vector supervised classification tool which uses attributes as classification parametres (order of columns matters, names not), cat column identifies feature, class_column is excluded from classification parametres.
-#%  keywords: vector, classification, supervised
+#% description: Vector supervised classification tool which uses attributes as classification parametres (order of columns matters, names not), cat column identifies feature, class_column is excluded from classification parametres.
+#% keywords: vector
+#% keywords: classification
+#% keywords: supervised
 #%end
 #%option G_OPT_V_MAP
 #%  key: input

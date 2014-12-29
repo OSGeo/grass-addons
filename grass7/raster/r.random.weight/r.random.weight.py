@@ -17,7 +17,8 @@
 
 #%module
 #% description: Weighted sample
-#% keywords: raster, sample
+#% keywords: raster
+#% keywords: sample
 #%end
 
 #%option

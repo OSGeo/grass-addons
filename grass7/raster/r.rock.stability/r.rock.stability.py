@@ -16,7 +16,9 @@
 ##############################################################################
 #%Module
 #% description: Calculates SMR index for a slope area.
-#% keywords: rock mass, planar failure, toppling
+#% keywords: rock mass
+#% keywords: planar failure
+#% keywords: toppling
 #% overwrite: yes
 #%End
 #%option

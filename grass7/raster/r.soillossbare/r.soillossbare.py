@@ -25,9 +25,11 @@ This program is free software under the GNU General Public License
 '''
 
 #%Module
-#%  description: Calculate annual soil loss [t/(ha*a)] for bare soil.
-#                Use r.soillosscropland.py afterwards for grown soil.
-#%    keywords: erosion,raster,bare soil, potential soilloss
+#% description: Calculate annual soil loss [t/(ha*a)] for bare soil. Use r.soillosscropland.py afterwards for grown soil.
+#% keywords: erosion
+#% keywords: raster
+#% keywords: bare soil
+#% keywords: potential soilloss
 #%end
 
 #%option

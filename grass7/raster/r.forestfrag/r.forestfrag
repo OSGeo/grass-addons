@@ -27,7 +27,10 @@
 
 #%Module
 #% description: creates forest fragmentation index from a GRASS raster map (where forest=1, non-forest=0) based on a method developed by Riitters et. al (2000). The index is computed using a moving window of user-defined size (default=3).
-#% keywords: raster, forest, fragmentation-index, Riitters
+#% keywords: raster
+#% keywords: forest
+#% keywords: fragmentation index
+#% keywords: Riitters
 #%End
 
 #%Option

@@ -19,7 +19,8 @@
 #%module
 #% description: Find optimal threshold for stream extraction
 #% keywords: raster
-#% keywords: hydrology, threshold
+#% keywords: hydrology
+#% keywords: threshold
 #%end
 
 #%option

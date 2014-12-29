@@ -13,8 +13,11 @@
 #############################################################################
 
 #%Module
-#% description: Converts all GRASS 4-6 raster maps in current mapset to GRASS 7 raster map format
-#% keywords: raster, import, conversion, bulk
+#% description: Converts all GRASS Version 4-6 raster maps in current mapset to GRASS 7 raster map format
+#% keywords: raster
+#% keywords: import
+#% keywords: conversion
+#% keywords: bulk
 #%end
 #%flag
 #%  key: m

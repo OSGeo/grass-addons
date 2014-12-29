@@ -16,7 +16,9 @@
 
 #%module
 #% description: Export vector map as PNG
-#% keywords: vector, export, PNG
+#% keywords: vector
+#% keywords: export
+#% keywords: PNG
 #%end
 #%option G_OPT_V_INPUT
 #%end

@@ -19,43 +19,43 @@
 #############################################################################
 
 #%Module
-#%  description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset
-#%  keywords: copy
-#%  keywords: general
-#%  overwrite: yes
+#% description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset
+#% keywords: copy
+#% keywords: general
+#% overwrite: yes
 #%End
 #%option G_OPT_M_MAPSET
-#%  key: mapset
-#%  description: Mapset to copy files from
-#%  required: yes
+#% key: mapset
+#% description: Mapset to copy files from
+#% required: yes
 #%end
 #%option
-#%  key: datatype
-#%  type: string
-#%  description: Choose type of GRASS data to copy
-#%  options: rast,vect,labels,rast3d,region,group
-#%  answer: rast
-#%  required: yes
+#% key: datatype
+#% type: string
+#% description: Choose type of GRASS data to copy
+#% options: rast,vect,labels,rast3d,region,group
+#% answer: rast
+#% required: yes
 #%end
 #%option
-#%  key: filter
-#%  type: string
-#%  description: Search pattern to filter data files to copy
-#%  required : no
+#% key: filter
+#% type: string
+#% description: Search pattern to filter data files to copy
+#% required : no
 #%end
 #%option
-#%  key: filter_type
-#%  type: string
-#%  description: Type of search pattern to use
-#%  options: select all, wildcards,regular expressions,extended regular expressions
-#%  answer: select all
-#%  required : no
+#% key: filter_type
+#% type: string
+#% description: Type of search pattern to use
+#% options: select all, wildcards,regular expressions,extended regular expressions
+#% answer: select all
+#% required : no
 #%end
 #%option
-#%  key: output_prefix
-#%  type: string
-#%  description: Optional prefix for output raster maps
-#%  required : no
+#% key: output_prefix
+#% type: string
+#% description: Optional prefix for output raster maps
+#% required : no
 #%end
 #% Flag
 #% key: t

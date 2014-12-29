@@ -17,32 +17,32 @@
 #############################################################################
 
 #%module
-#%  description: Fast procedure to detect flood prone areas
-#%  keywords: raster
+#% description: Fast procedure to detect flood prone areas
+#% keywords: raster
 #%end
 #%option
-#%  key: map
-#%  type: string
-#%  gisprompt: old,raster,raster
-#%  key_desc: elevation
-#%  description: Name of elevation raster map 
-#%  required: yes
+#% key: map
+#% type: string
+#% gisprompt: old,raster,raster
+#% key_desc: elevation
+#% description: Name of elevation raster map 
+#% required: yes
 #%end
 #%option
-#%  key: flood
-#%  type: string
-#%  gisprompt: new,raster,raster
-#%  key_desc: flood
-#%  description: Name of output flood raster map 
-#%  required: yes
+#% key: flood
+#% type: string
+#% gisprompt: new,raster,raster
+#% key_desc: flood
+#% description: Name of output flood raster map 
+#% required: yes
 #%end
 #%option
-#%  key: mti
-#%  type: string
-#%  gisprompt: new,raster,raster
-#%  key_desc: MTI
-#%  description: Name of output MTI raster map 
-#%  required: yes
+#% key: mti
+#% type: string
+#% gisprompt: new,raster,raster
+#% key_desc: MTI
+#% description: Name of output MTI raster map 
+#% required: yes
 #%END
 
 import sys

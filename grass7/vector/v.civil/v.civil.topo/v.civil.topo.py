@@ -20,8 +20,10 @@
 #############################################################################
 
 #%module
-#% description: Create and modific Points-Breaklines maps, and triangulate, with triangle with v.triangle and nn with r.surf.nnbathy
-#% keywords: vector, TOPO, topography
+#% description: Create and modify Points-Breaklines maps, and triangulate, with triangle with v.triangle and nn with r.surf.nnbathy
+#% keywords: vector
+#% keywords: TOPO
+#% keywords: topography
 #%end
 
 #### Input section ####

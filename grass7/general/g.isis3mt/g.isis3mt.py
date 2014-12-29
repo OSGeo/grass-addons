@@ -21,9 +21,9 @@
 #  Add a note to the user to use  matchmap=yes in cam2map
  
 #%module
-#%  description: Generates an ISIS3 map template file according to the current GRASS coordinate reference system
-#%  keywords: coordinates
-#%  keywords: projection
+#% description: Generates an ISIS3 map template file according to the current GRASS coordinate reference system
+#% keywords: coordinates
+#% keywords: projection
 #%end
 
 #%option

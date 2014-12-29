@@ -28,25 +28,25 @@
 #############################################################################
 
 #%Module
-#%  description: Brovey transform to merge multispectral and high-res panchromatic channels
-#%  keywords: imagery
-#%  keywords: fusion
-#%  keywords: Brovey
+#% description: Brovey transform to merge multispectral and high-res panchromatic channels
+#% keywords: imagery
+#% keywords: fusion
+#% keywords: Brovey
 #%End
 #%Flag
-#%  key: l
-#%  description: LANDSAT sensor
-#%  guisection: Sensor
+#% key: l
+#% description: LANDSAT sensor
+#% guisection: Sensor
 #%END
 #%Flag
-#%  key: q
-#%  description: QuickBird sensor
-#%  guisection: Sensor
+#% key: q
+#% description: QuickBird sensor
+#% guisection: Sensor
 #%END
 #%Flag
-#%  key: s
-#%  description: SPOT sensor
-#%  guisection: Sensor
+#% key: s
+#% description: SPOT sensor
+#% guisection: Sensor
 #%END
 #%option G_OPT_R_INPUT
 #% key: ms1

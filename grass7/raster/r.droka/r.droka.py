@@ -16,8 +16,9 @@
 #
 #############################################################################
 #%Module
-#%  description: Calculates run-out distance of a falling rock mass
-#%  keywords: rock mass, rockfall
+#% description: Calculates run-out distance of a falling rock mass
+#% keywords: rock mass
+#% keywords: rockfall
 #%End
 #%option
 #% key: dem

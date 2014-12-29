@@ -19,8 +19,11 @@
 #############################################################################
 
 #%Module
-#% description: Generate a alignment for desing roads, channels, ports...
-#% keywords: vector, ROADS, CHANNELS, PORTS.
+#% description: Generate an alignment for desired roads, channels, ports...
+#% keywords: vector
+#% keywords: road
+#% keywords: channel
+#% keywords: port
 #%End
 
 #### Required section ####
