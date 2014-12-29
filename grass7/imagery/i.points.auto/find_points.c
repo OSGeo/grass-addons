@@ -156,9 +156,9 @@ void Extract_matrix_auto(void)
     /* Open second map */
     G_debug(1, "load target image");
     G_debug(1, "location: %s", G_location());
-    G_debug(1, "projection: %s", G__projection_name(G_projection()));
-    G_debug(1, "tgt_window projection: %s", G__projection_name(tgt_window.proj));
-    G_debug(1, "cellhd2 projection: %s", G__projection_name(cellhd2.proj));
+    G_debug(1, "projection: %s", G_projection_name(G_projection()));
+    G_debug(1, "tgt_window projection: %s", G_projection_name(tgt_window.proj));
+    G_debug(1, "cellhd2 projection: %s", G_projection_name(cellhd2.proj));
 
     if ((second_map_R_fd =
 	 Rast_open_old(second_map_R_name, second_map_R_mapset)) < 0) {

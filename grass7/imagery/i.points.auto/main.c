@@ -139,8 +139,8 @@ int main(int argc, char *argv[])
 
     G_get_element_window(&tgt_window_org, "", "WIND", G_mapset());
     G_get_element_window(&tgt_window, "", "WIND", G_mapset());
-    G_debug(1, "projection: %s", G__projection_name(G_projection()));
-    G_debug(1, "tgt_window projection: %s", G__projection_name(tgt_window.proj));
+    G_debug(1, "projection: %s", G_projection_name(G_projection()));
+    G_debug(1, "tgt_window projection: %s", G_projection_name(tgt_window.proj));
     
     /* read group control points, if any */
     select_env(SRC_ENV);
