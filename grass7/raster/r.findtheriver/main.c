@@ -129,8 +129,8 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    if (G__getenv("DEBUG"))
-	debug = atoi(G__getenv("DEBUG"));
+    if (G_getenv_nofatal("DEBUG"))
+	debug = atoi(G_getenv_nofatal("DEBUG"));
     else
 	debug = 0;
 
