@@ -11,7 +11,7 @@ OLD = \
 #	r.le.trace
 
 # unclear
-	r.convert \
+#	r.convert \
 
 SUBDIRS = \
 	r.agent \
