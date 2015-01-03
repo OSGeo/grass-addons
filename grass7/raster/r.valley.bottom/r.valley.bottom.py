@@ -339,7 +339,7 @@ def main():
     grass.message( "Step 3: change to resolution of 3 x base resolution" )
     grass.run_command('g.region', res = Xres_step3, 
                                      flags = 'a',
-									 raster = r_elevation)
+                                     raster = r_elevation)
 
     current_region_step3 = grass.region()
     Y_step3 = current_region_step3['nsres']
@@ -474,7 +474,7 @@ def main():
     grass.message( "Step 4: change to resolution of step 3" )
     grass.run_command('g.region', res = Xres_step3, 
                                      flags = 'a',
-									 raster = r_elevation)
+                                     raster = r_elevation)
 
     current_region_step3 = grass.region()
     Y_step3 = current_region_step3['nsres']
@@ -522,7 +522,7 @@ def main():
     grass.message( "Step 4: change to resolution to 3 x step 3 resolution" )
     grass.run_command('g.region', res = Xres_step4, 
                                      flags = 'a',
-									 raster = r_elevation)
+                                     raster = r_elevation)
 
     current_region_step4 = grass.region()
     Y_step4 = current_region_step4['nsres']
