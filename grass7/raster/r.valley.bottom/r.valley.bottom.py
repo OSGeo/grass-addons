@@ -59,12 +59,17 @@ def main():
 	
 	##################################################################################
 	# Region settings	
+    grass.run_command('g.region', flags = 'a',
+                                     raster = r_elevation, 
+                                     align = r_elevation)
     current_region = grass.region()
     Yres_base = current_region['nsres']
     Xres_base = current_region['ewres']
     grass.message( "Finest scale calculations" )
     grass.message( "Original resolution: %s x %s" % (Xres_base, Yres_base))
-    grass.run_command('g.region', flags = 'p', save = "base_region_MrVBF", overwrite = True)
+    grass.run_command('g.region', flags = 'p',
+                                     save = "base_region_MrVBF",
+                                     overwrite = True)
 
 	# Region settings step 3: resolution 3 x base resolution
 
@@ -333,7 +338,8 @@ def main():
 	# change resolution
     grass.message( "Step 3: change to resolution of 3 x base resolution" )
     grass.run_command('g.region', res = Xres_step3, 
-                                    flags = 'a')
+                                     flags = 'a',
+									 raster = r_elevation)
 
     current_region_step3 = grass.region()
     Y_step3 = current_region_step3['nsres']
@@ -383,9 +389,9 @@ def main():
 	# switch back to base resolution
     grass.message( "Step 3: switch back to base resolution." )
 
-    grass.run_command('g.region', rast = r_elevation, 
-                                    align = r_elevation,                                    
-                                    flags = 'a')
+    grass.run_command('g.region', raster = r_elevation, 
+                                     align = r_elevation,                                    
+                                     flags = 'a')
     current_region_step3_switched_back = grass.region()
     Y_step3_switched_back = current_region_step3_switched_back['nsres']
     X_step3_switched_back = current_region_step3_switched_back['ewres']
@@ -467,7 +473,8 @@ def main():
 	# change resolution
     grass.message( "Step 4: change to resolution of step 3" )
     grass.run_command('g.region', res = Xres_step3, 
-                                    flags = 'a')
+                                     flags = 'a',
+									 raster = r_elevation)
 
     current_region_step3 = grass.region()
     Y_step3 = current_region_step3['nsres']
@@ -514,12 +521,13 @@ def main():
 	# change resolution
     grass.message( "Step 4: change to resolution to 3 x step 3 resolution" )
     grass.run_command('g.region', res = Xres_step4, 
-                                    flags = 'a')
+                                     flags = 'a',
+									 raster = r_elevation)
 
     current_region_step4 = grass.region()
     Y_step4 = current_region_step4['nsres']
     X_step4 = current_region_step4['ewres']
-    grass.message( "Resolution step 3: %s x %s" % (X_step4, Y_step4))	
+    grass.message( "Resolution step 4: %s x %s" % (X_step4, Y_step4))	
     grass.message( "----" )
 
 	# coarsening DEM to resolution step 4 and calculate PCTL step 4
@@ -564,9 +572,9 @@ def main():
 	# switch back to base resolution
     grass.message( "Step 4: switch back to base resolution." )
 
-    grass.run_command('g.region', rast = r_elevation, 
-                                    align = r_elevation,                                    
-                                    flags = 'a')
+    grass.run_command('g.region', raster = r_elevation, 
+                                     align = r_elevation,                                    
+                                     flags = 'a')
     current_region_step4_switched_back = grass.region()
     Y_step4_switched_back = current_region_step4_switched_back['nsres']
     X_step4_switched_back = current_region_step4_switched_back['ewres']
