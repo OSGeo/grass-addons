@@ -88,7 +88,7 @@ def main():
                                      slope = r_slope_degree, 
                                      format = "degrees",
                                      precision = "DCELL",
-                                     zfactor = 1.0,
+                                     zscale = 1.0,
                                      overwrite = True)
 
     grass.message( "..." )
@@ -314,7 +314,7 @@ def main():
                                      slope = "DEM_smoothed_step3_slope_degree", 
                                      format = "degrees",
                                      precision = "DCELL",
-                                     zfactor = 1.0,
+                                     zscale = 1.0,
                                      overwrite = True)
 
     grass.message( "..." )
@@ -495,7 +495,7 @@ def main():
                                      slope = "DEM_smoothed_step4_slope_degree", 
                                      format = "degrees",
                                      precision = "DCELL",
-                                     zfactor = 1.0,
+                                     zscale = 1.0,
                                      overwrite = True)
 
     grass.message( "..." )
