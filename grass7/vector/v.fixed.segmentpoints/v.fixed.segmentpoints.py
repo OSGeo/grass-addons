@@ -153,7 +153,7 @@ def main():
     grass.message( "Run v.segment ..." )
     grass.run_command("v.segment", input = voutline,
                                      output = voutpoint,
-                                     file = segment_points_file)	
+                                     rules = segment_points_file)	
 
     grass.run_command("v.db.addtable", map = voutpoint)
     grass.message( "v.segment done." )
