@@ -105,7 +105,7 @@ def main():
        
     # setup temporary files and seed
     tmp_map = "r_w_rand_" + str(uuid.uuid4())
-            tmp_map = string.replace(tmpf0, '-', '_')
+    tmp_map = string.replace(tmp_map, '-', '_')
     
     # Compute minimum and maximum value raster
     minmax = grass.parse_command('r.univar', 
