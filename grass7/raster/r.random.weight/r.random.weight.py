@@ -76,22 +76,19 @@
 import os
 import sys
 import atexit
-import time
 import grass.script as grass
 
 # Runs modules silently
-#os.environ['GRASS_VERBOSE']='-1' 
+os.environ['GRASS_VERBOSE']='-1' 
 
+clean_rast = set()
 def cleanup():
-	grass.run_command('g.remove', 
-      type = 'raster', 
-      name = 'tmp_map',
-      flags = 'f',
-      quiet = True)
+    for rast in clean_rast:
+        grass.run_command("g.remove", 
+        type="rast", name = rast, quiet = True)
 
 # main function
 def main():
-    global tmp_map
     
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
@@ -107,8 +104,8 @@ def main():
     seed = options['seed']
        
     # setup temporary files and seed
-    tmp_map = 'r_w_rand_987654321'
-    tmp_map2 = 'r_w_rand_987654321a'
+    tmp_map = "r_w_rand_" + str(uuid.uuid4())
+            tmp_map = string.replace(tmpf0, '-', '_')
     
     # Compute minimum and maximum value raster
     minmax = grass.parse_command('r.univar', 
@@ -127,6 +124,7 @@ def main():
             minval = minval, 
             maxval = maxval,
             tmp_map = tmp_map)
+    clean_rast.add(tmp_map) 
 
     grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
         weight = weight,
