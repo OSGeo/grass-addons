@@ -1,17 +1,25 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.mess</em> computes the Multivariate Environmental Similarity (MES) surfaces in GRASS using R as backend. The MES index was proposed by Elith et al (2010) and is also implemented in the Maxent software. The MES approach can be described as follows (from Elith et al 2010): "The multivariate environmental similarity surface (MESS) calculation represents how similar a point is to a reference set of points, with respect to a set of predictor variables (V1, V2, ...). The values in the MESS are influenced by the full distribution of the reference points, so that sites within the environmental range of the reference points but in relatively unusual environments will have a smaller value than those in very common environments."
+<p>The Multivariate Environmental Similarity (MES) surfaces was proposed by Elith et al (2010) and originally implemented in the Maxent software. They described the MES approach as: "The multivariate environmental similarity surface (MESS) calculation represents how similar a point is to a reference set of points, with respect to a set of predictor variables (V1, V2, ...). The values in the MESS are influenced by the full distribution of the reference points, so that sites within the environmental range of the reference points but in relatively unusual environments will have a smaller value than those in very common environments."
 
-<p>This module will compute the individual environmental similarity surfaces (IES), which represents how similar each raster cell in a raster layer is to a set of reference points for each of the input variable. MES is then simply calculated as the minimum of its similarity with respect to each variable. Note that if a given raster cell has a negative IES value, it means that that value falls outside the range of values found in the reference set. A negative MESS thus represents sites where at least one variable has a value that is outside the range of environments over the reference set.
+<em>r.mess</em> computes the MES as well as layers that help to further interpret the MES values
+<ul>
+    <li>the individual environmental similarity surfaces (IES)</li>
+    <li>the MES (which is simply the mean of the IES)</li>
+    <li>the area where for at least one of the variables has a value that falls outside the range of values found in the reference set</li>
+    <li>the most dissimilar variable (MoD)</li> 
+    <li>the mean of the IES layers where IES < 0</li>
+    <li>the number of layers with negative values</li>
+</ul>
 
-<p>The IES/MES compares the similarity between all raster cells in the current region and a subset of the raster cells in the region (the reference points). Any sample of interest can be used for the reference set. For example, it can be occurrence records for the species or a random sample of a region. It could also be the whole region/study area, e.g., if you want to compare current and future environmental conditions (see next point). The input layer representing the reference distribution can be a vector point layer or a raster layer.
+<p>The latter two are useful to distinguish areas where only one or few of the variables have values outside the range of the reference set and areas where many variables have values outside the range of the reference set. 
 
-<p>Besides the reference set of environmental variables used to calculate the IES/MES, the user can define a second set of environmental variables (env1). This allows the user to compute how similar current conditions in given area are to those under e.g., future climates. This is for example useful to identify areas in your study area with novel future climates. 
+<p>The reference points can be a binary raster layer (with 1 representing presence and 0 representing absence) or a vector point layer as reference points. Any sample of interest can be used for the reference set. Examples are points representing occurrence records for the species and areas that represent protected areas. 
+        
+<p>To compare e.g., current and future environmental conditions the user needs to define a reference set of environmental variables (env_old) and a set of future environmnental variables (env_new). This is for example used to identify areas with novel future climates.
 
-<p>In addition to the MES, which is the minimum IES, the r.mess function also allows to compute mean and median of the IES layers and a MoD layer, which identifies for each raster cells the IESS with the lowest value. Note that the mean and median of the IES should be used with care as negative and positive IES values have different meanings. In many cases it is probably more useful to calculate mean (or sum) over all negative. That would help to distinguish areas where only one or few of the variables have values outside the range of the reference set and areas where many variables have values outside the range of the reference set. Intuitively, one can see that conditions in the latter area are more dissimilar than in the former. I will probably add this option later, but the user can of course create such a layer by using the individual IES layers.
+<p>One can also test for the similarity between two different areas. For this one needs to provide a set of environmental variables (env_old) and a reference layer (ref_rast) for one region and a second set of environmental variables for another region (env_new). 
 
-<h2>SEE ALSO</h2>
-There is also a similar function implemented for R using the R package <em>raster</em>, and which is part of the dismo package in R now. See <a href="http://rossijeanpierre.wordpress.com/2012/08/13/computing-the-multivariate-environmental-similarity-surfaces-mess-index-in-r/">here</a> for more information and the script.
 
 <h2>REFERENCES</h2>
 <p>Elith, J., Kearney, M., &amp; Phillips, S. 2010. The art of modelling range-shifting species. Methods in Ecology and Evolution 1:330&#8211;342.
