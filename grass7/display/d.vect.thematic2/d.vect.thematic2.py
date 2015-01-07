@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       d.vect.thematic
+# MODULE:       d.vect.thematic2
 # AUTHOR(S):	Michael Barton, Arizona State University with contributions
 #               by Martin Landa, Jachym Cepicky, Daniel Calvelo Aros and Moritz Lennert
 # PURPOSE:	    Displays thematic vector map with graduated colors

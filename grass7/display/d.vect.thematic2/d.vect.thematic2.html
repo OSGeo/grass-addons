@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>d.vect.thematic</em> creates thematic maps from vector features of
+<em>d.vect.thematic2</em> creates thematic maps from vector features of
 all types and numeric attributes stored in the attribute table connected to a vector
 map.
 
@@ -55,13 +55,13 @@ standard deviation, and quartiles).
 Earthquake points with color gradient:
 
 <div class="code"><pre>
-d.vect.thematic -l recent_earthquakes column=magnitude type=point
+d.vect.thematic2 -l recent_earthquakes column=magnitude type=point
 </pre></div>
 
 <p>Earthquake points with different sizes:
 
 <div class="code"><pre>
-d.vect.thematic -l recent_earthquakes column=magnitude type=point \
+d.vect.thematic2 -l recent_earthquakes column=magnitude type=point \
                 themetype=graduated_points maxsize=15
 </pre></div>
 
@@ -91,7 +91,7 @@ v.univar -e elev_sample column=diff type=point
 
 # thematic map:
 d.mon wx0
-d.vect.thematic -l elev_sample column=diff type=point
+d.vect.thematic2 -l elev_sample column=diff type=point
 </pre></div>
 
 <p>
@@ -99,7 +99,7 @@ North Carolina sample dataset example:
 
 <div class="code"><pre>
 g.region vector=nc_state
-d.vect.thematic -l precip_30ynormals column=annual type=point
+d.vect.thematic2 -l precip_30ynormals column=annual type=point
 </pre></div>
 
 <h2>SEE ALSO</h2>
