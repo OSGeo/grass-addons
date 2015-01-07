@@ -1,32 +1,61 @@
 <h2>DESCRIPTION</h2>
 
-<p>The Multivariate Environmental Similarity (MES) surfaces was proposed by Elith et al (2010) and originally implemented in the Maxent software. They described the MES approach as: "The multivariate environmental similarity surface (MESS) calculation represents how similar a point is to a reference set of points, with respect to a set of predictor variables (V1, V2, ...). The values in the MESS are influenced by the full distribution of the reference points, so that sites within the environmental range of the reference points but in relatively unusual environments will have a smaller value than those in very common environments."
+The Multivariate Environmental Similarity (MES) surfaces was proposed 
+by Elith et al (2010) and originally implemented in the Maxent 
+software. They described the MES approach as: "The multivariate 
+environmental similarity surface (MESS) calculation represents how 
+similar a point is to a reference set of points, with respect to a set 
+of predictor variables (V1, V2, ...). The values in the MESS are 
+influenced by the full distribution of the reference points, so that 
+sites within the environmental range of the reference points but in 
+relatively unusual environments will have a smaller value than those in 
+very common environments."
 
-<em>r.mess</em> computes the MES as well as layers that help to further interpret the MES values
+<em>r.mess</em> computes the MES as well as layers that help to further
+interpret the MES values
 <ul>
     <li>the individual environmental similarity surfaces (IES)</li>
     <li>the MES (which is simply the mean of the IES)</li>
-    <li>the area where for at least one of the variables has a value that falls outside the range of values found in the reference set</li>
+    <li>the area where for at least one of the variables has a value that
+    falls outside the range of values found in the reference set</li>
     <li>the most dissimilar variable (MoD)</li> 
     <li>the mean of the IES layers where IES < 0</li>
     <li>the number of layers with negative values</li>
 </ul>
 
-<p>The latter two are useful to distinguish areas where only one or few of the variables have values outside the range of the reference set and areas where many variables have values outside the range of the reference set. 
+The latter two are useful to distinguish areas where only one or few of 
+the variables have values outside the range of the reference set and 
+areas where many variables have values outside the range of the 
+reference set. 
 
-<p>The reference points can be a binary raster layer (with 1 representing presence and 0 representing absence) or a vector point layer as reference points. Any sample of interest can be used for the reference set. Examples are points representing occurrence records for the species and areas that represent protected areas. 
+<p>
+The reference points can be a binary raster layer (with 1 representing 
+presence and 0 representing absence) or a vector point layer as 
+reference points. Any sample of interest can be used for the reference 
+set. Examples are points representing occurrence records for the 
+species and areas that represent protected areas. 
         
-<p>To compare e.g., current and future environmental conditions the user needs to define a reference set of environmental variables (env_old) and a set of future environmnental variables (env_new). This is for example used to identify areas with novel future climates.
+<p>
+To compare e.g., current and future environmental conditions the user 
+needs to define a reference set of environmental variables (env_old) 
+and a set of future environmnental variables (env_new). This is for 
+example used to identify areas with novel future climates.
 
-<p>One can also test for the similarity between two different areas. For this one needs to provide a set of environmental variables (env_old) and a reference layer (ref_rast) for one region and a second set of environmental variables for another region (env_new). 
+<p>
+One can also test for the similarity between two different areas. For 
+this one needs to provide a set of environmental variables (env_old) 
+and a reference layer (ref_rast) for one region and a second set of 
+environmental variables for another region (env_new). 
 
 
 <h2>REFERENCES</h2>
-<p>Elith, J., Kearney, M., &amp; Phillips, S. 2010. The art of modelling range-shifting species. Methods in Ecology and Evolution 1:330&#8211;342.
+<p>Elith, J., Kearney, M., &amp; Phillips, S. 2010. The art of modelling
+range-shifting species. Methods in Ecology and Evolution 1:330-342.
 
 <h2>AUTHOR</h2>
 
 Paulo van Breugel, paulo at ecodiv.org
 
 
-<p><i>Last changed: $Date$</i>
+<p>
+<i>Last changed: $Date$</i>
