@@ -13,6 +13,7 @@ SUBDIRS = \
 	v.class.mlpy \
 	v.colors2 \
 	v.concave.hull \
+	v.convert \
 	v.delaunay3d \
 	v.external.all \
 	v.habitat.dem \
