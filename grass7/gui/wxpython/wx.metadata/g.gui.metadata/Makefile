@@ -5,7 +5,7 @@ PGM = g.gui.metadata
 include $(MODULE_TOPDIR)/include/Make/Script.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-DSTDIR = $(ETC)
+DSTDIR = $(ETC)/mdlib
 
 MODULES = editor.py
 

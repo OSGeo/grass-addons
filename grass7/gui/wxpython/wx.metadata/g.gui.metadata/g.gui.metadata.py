@@ -33,7 +33,7 @@ import sys
 import glob
 from lxml import etree
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata'))
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
 
 import wx
 from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
