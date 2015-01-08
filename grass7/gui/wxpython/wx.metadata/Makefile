@@ -18,3 +18,4 @@ install:
 	@cd r.info.iso ; $(MAKE) install
 	@cd v.info.iso ; $(MAKE) install
 	@cd g.gui.metadata ; $(MAKE) install
+	@cp -r etc/* $(INST_DIR)/etc
