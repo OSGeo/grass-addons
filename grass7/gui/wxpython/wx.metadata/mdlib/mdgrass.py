@@ -58,7 +58,7 @@ class GrassMD():
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'
-        self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata')
+        self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc')
         # metadata object from OWSLIB ( for define md values)
         self.md = MD_Metadata(md=None)
         self.template = None  # path to file with xml templates
@@ -164,7 +164,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if template is None:
-            self.template = os.path.join('templates', 'basicTemplate.xml')
+            self.template = os.path.join(self.dirpath, 'templates', 'basicTemplate.xml')
         else:
             self.template = template
 
