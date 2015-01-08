@@ -3,6 +3,9 @@
 <em>v.transects</em> creates equally spaced geometries along 
 input lines. The geometries can be lines or quadrilateral areas. Lines 
 and areas are generated to be perpendicular to the input line. 
+By default the last point of each line is not used
+because the last transect distance would be typically different from the previous once.
+To create a transect from the last point, use flag <b>-l</b>.
 
 <h2>NOTES</h2>
 
@@ -22,8 +25,8 @@ mapset is used to generate a shoreline and shore-perpendicular geometries. To us
 Location or the
 <a href="http://courses.ncsu.edu/mea792/common/media/gisdemo.zip">gisdemo (47MB)</a>
 Location.
- 
 
+ 
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
 <p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)

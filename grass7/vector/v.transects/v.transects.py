@@ -47,6 +47,10 @@
 #% options: point,line,area
 #% answer: line
 #%end
+#%flag
+#% key: l
+#% description: Use the last point of the line to create transect
+#%end
 
 from subprocess import Popen, PIPE, STDOUT
 from numpy import array
@@ -117,7 +121,7 @@ def loadVector(vector):
     return v
 
 
-def get_transects_locs(vector, transect_spacing):
+def get_transects_locs(vector, transect_spacing, last_point):
     """!Get transects locations along input vector lines."""
     # holds locations where transects should intersect input vector lines
     transect_locs = []
@@ -139,6 +143,8 @@ def get_transects_locs(vector, transect_spacing):
                 line[i] = transect_locs[-1][-1]
             else:
                 j += 1
+        if last_point:
+            transect_locs[-1].append(line[j-1])
     return transect_locs
 
 
@@ -247,6 +253,7 @@ def main():
     dleft = options['dleft']
     dright = options['dright']
     shape = options['type']
+    last_point = flags['l']
 
     if not dleft:
         dleft = transect_spacing
@@ -279,7 +286,7 @@ def main():
 
     #################################
     v = loadVector(vector)
-    transect_locs = get_transects_locs(v, transect_spacing)
+    transect_locs = get_transects_locs(v, transect_spacing, last_point)
     temp_map = tempmap()
     if shape == 'line' or not shape:
         transect_ends = get_transect_ends(transect_locs, dleft, dright)
