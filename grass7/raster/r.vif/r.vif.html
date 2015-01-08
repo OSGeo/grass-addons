@@ -1,18 +1,35 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.vif</em> This module will compute variance inflaction factor (VIF) and the square root of the VIF. The VIF quantifies how much the variance (the square of the estimate's standard deviation) of an estimated regression coefficient is increased because of collinearity. The square root of VIF is a measure of how much larger the standard error is, compared with what it would be if that variable were uncorrelated with the other predictor variables in the model. 
+<em>r.vif</em> This module will compute variance inflaction factor 
+(VIF) and the square root of the VIF. The VIF quantifies how much 
+the variance (the square of the estimate's standard deviation) of an 
+estimated regression coefficient is increased because of 
+collinearity. The square root of VIF is a measure of how much larger 
+the standard error is, compared with what it would be if that 
+variable were uncorrelated with the other predictor variables in the 
+model. 
 
-<p>By default the VIF is calculated for each variable. If the user sets a VIF threshold value (maxvif) the VIF will calculated again after removing the variable with the highest VIF. This will be repeated till the VIF is smaller than maxvif.
+<p>By default the VIF is calculated for each variable. If the user 
+sets a VIF threshold value (maxvif) the VIF will calculated again 
+after removing the variable with the highest VIF. This will be 
+repeated till the VIF is smaller than maxvif.
 
-<p>The user has the option to compute the VIF over a random subset of the raster cells (to speed up computation). Like in the r.random module (which is used to select the random set of raster cells), the user may specify the quantity of random cells either as a positive integer (e.g., 10), or as a percentage of the raster map layer's cells (e.g., 10%, or 3.05%). Percentages less than one percent may be stated as decimals. 
-
+<p>The user has the option to compute the VIF over a random subset 
+of the raster cells (to speed up computation). Like in the r.random 
+module (which is used to select the random set of raster cells), the 
+user may specify the quantity of random cells either as a positive 
+integer (e.g., 10), or as a percentage of the raster map layer's 
+cells (e.g., 10%, or 3.05%). Percentages less than one percent may 
+be stated as decimals. 
 
 <h2>Notes</h2>
 
-<p> This add-on doesn't work in GRASS 6.* as it depends on r.regression.multi, which is available in GRASS 7+ main only. 
+<p> This add-on doesn't work in GRASS 6.* as it depends on 
+r.regression.multi, which is available in GRASS 7+ main only. 
 
 <h2>AUTHOR</h2>
 
 Paulo van Breugel, paulo at ecodiv.org
 
-<p><i>Last changed: $Date$</i>
+<p><i>Last changed: $Date: 2015-01-08 00:08:45 +0100 (do, 08 jan 
+2015) $</i>
