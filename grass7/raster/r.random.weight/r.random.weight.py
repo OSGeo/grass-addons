@@ -72,9 +72,17 @@
 #% guisection: Sample options
 #%end
 
+#%flag
+#% key: n
+#% description: set non-selected values to 0 (default to NULL)
+#%end
+
+
 # import libraries
 import os
 import sys
+import uuid
+import string
 import atexit
 import grass.script as grass
 
@@ -102,6 +110,7 @@ def main():
     outmap = options['output']
     subsample = options['subsample']
     seed = options['seed']
+    flag_n = flags['n']
        
     # setup temporary files and seed
     tmp_map = "r_w_rand_" + str(uuid.uuid4())
@@ -120,17 +129,24 @@ def main():
             tmp_map = tmp_map)
     else:        
         grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))", 
-            seed=1,
+            seed=int(seed),
             minval = minval, 
             maxval = maxval,
             tmp_map = tmp_map)
     clean_rast.add(tmp_map) 
 
-    grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
-        weight = weight,
-        outmap = outmap,
-        tmp_map = tmp_map)
-        
+    if flag_n:
+        grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
+            weight = weight,
+            outmap = outmap,
+            tmp_map = tmp_map)
+    else:
+        grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,null())",
+            weight = weight,
+            outmap = outmap,
+            tmp_map = tmp_map)
+    
+    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmp_map)        
     if not subsample == '': 
         grass.run_command('r.null',
             map = outmap, 
@@ -140,9 +156,10 @@ def main():
             n = subsample,
             raster_output = outmap,
             overwrite=True)
-        grass.run_command('r.null',
-            map = outmap, 
-            null = 0)
+        if flag_n:
+            grass.run_command('r.null',
+                map = outmap, 
+                null = 0)
 
     print("------------------")
     print("Ready!")

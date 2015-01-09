@@ -1,9 +1,9 @@
 
 <h2>DESCRIPTION</h2>
 
-<em>r.rand.weight</em> generates a binary raster layer with randomly 
-assigned values of 1 or 0, weighted by raster cell values of an 
-user-defined raster layer. I.e., the change for a raster cell to get 
+<em>r.rand.weight</em> generates a binary raster layer with a random
+selection of raster cells which are assigned 1. The other cells are 
+assigned NULL (or optionally 0). The change for a raster cell to get 
 assigned a 1 (to get selected) depends on the weight (value) of that 
 cell in the input weight layer.
 
@@ -28,5 +28,4 @@ function for more details).
 
 Paulo van Breugel, paulo at ecodiv.org
 
-<i>Last changed: $Date$
-</i> 
+<i>Last changed: $Date$</i> 
