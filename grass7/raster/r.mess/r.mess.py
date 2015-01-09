@@ -454,6 +454,7 @@ def main():
             text_file.write(str(cats) + ":" + ipi[cats] + "\n")
         text_file.close()
         grass.run_command("r.category", quiet=True, map=mod, rules=tmpcat[1], separator=":")
+        os.remove(tmpcat[1])
 
     # mean(IES), where IES < 0
     if flk:
@@ -482,7 +483,6 @@ def main():
     #=======================================================================
 
     os.remove(tmpcol[1])
-    os.remove(tmpcat[1])
 
 if __name__ == "__main__":
     options, flags = grass.parser()
