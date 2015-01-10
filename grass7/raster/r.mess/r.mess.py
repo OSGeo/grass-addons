@@ -157,9 +157,8 @@ def main():
     #----------------------------------------------------------------------------
 
     #Test
-    #options = {"ref_rast":"bradypus", "ref_vect":"", "env_old":"bio1@bradypus,bio5,bio6,bio7,bio8,bio12,bio16,bio17", "env_new":"bio1@bradypus,bio5,bio6", "output":"MESSR", "digits":"5"}
-    #flags = {"m":True, "k":True, "n":False, "i":True, "k":True}
-
+    #options = {"ref_rast":"protected_areas", "ref_vect":"", "env_old":"bio_1@climate,bio_5@climate,bio_6@climate", "env_new":"", "output":"MESSR", "digits":"5"}
+    #flags = {"m":True, "k":True, "n":False, "i":True, "k":True, "r":True, "c":True}
 
     # reference layer
     REF_VECT = options['ref_vect']
@@ -183,7 +182,7 @@ def main():
     # old environmental layers & variable names
     ipl = options['env_old']
     ipl = ipl.split(',')
-    ipn = [i.split('@')[0] for i in ipl]
+    ipn = [z.split('@')[0] for z in ipl]
     ipn = [x.lower() for x in ipn]
 
     # new environmental variables
@@ -206,7 +205,7 @@ def main():
     flm = flags['m']
     flk = flags['k']
     fln = flags['n']
-    il = flags['i']
+    fli = flags['i']
     flr = flags['r']
     fll = flags['c']
 
@@ -222,8 +221,8 @@ def main():
     text_file.write("100% 50:136:189\n")
     text_file.close()
 
-    # Check if there is a MASK
-    citiam = grass.find_file('MASK', element = 'cell')
+    # Copy current region
+    grass.run_command("g.region", save="mess_region_backup")
 
     #----------------------------------------------------------------------------
     # Create the recode table - Reference distribution is raster
@@ -231,27 +230,28 @@ def main():
 
     if rtl=="R":
 
-        # Copy mask to temporary layer)
+        # Copy mask (if there is one) to temporary layer
+        citiam = grass.find_file('MASK', element = 'cell')
         if citiam['fullname'] != '':
             rname = "MASK" + str(uuid.uuid4())
             rname = string.replace(rname, '-', '_')
-            grass.run_command('g.copy', quiet=True, raster = ('MASK', rname))
+            grass.mapcalc('$rname = MASK', rname=rname, quiet=True)
             clean_rast.add(rname)
+
+        # Create temporary layer based on reference layer
+        tmpf0 = "rmess_tmp_" + str(uuid.uuid4())
+        tmpf0 = string.replace(tmpf0, '-', '_')
+        grass.mapcalc("$tmpf0 = $vtl * 1", vtl = vtl, tmpf0=tmpf0, quiet=True)
+        clean_rast.add(tmpf0)
+
+        # Remove mask
+        if citiam['fullname'] != '':
+            grass.run_command("r.mask", quiet=True, flags="r")
 
         for i in xrange(len(ipl)):
 
-            # Create temporary layer based on reference layer
-            tmpf0 = "rmess_tmp_" + str(uuid.uuid4())
-            tmpf0 = string.replace(tmpf0, '-', '_')
-            grass.mapcalc("$tmpf0 = $vtl * 1", vtl = vtl, tmpf0=tmpf0, quiet=True)
-            clean_rast.add(tmpf0)
-
-            # Remove mask
-            if citiam['fullname'] != '':
-                grass.run_command("r.mask", quiet=True, flags="r")
-
-            # Create mask based on combined MASK/input layer
-            grass.run_command("r.mask", quiet=True, raster=tmpf0)
+            # Create mask based on combined MASK/reference layer
+            grass.run_command("r.mask", quiet=True, overwrite=True, raster=tmpf0)
 
             # Calculate the frequency distribution
             tmpf1 = "rmess_tmp2_" + str(uuid.uuid4())
@@ -279,8 +279,8 @@ def main():
             # the mask will not do anything. If there is partial overlap, the mask
             # may affect the area where the two overlap
             if citiam['fullname'] != '':
-                grass.run_command("r.mask", quiet=True, overwrite = True, raster=rname)
-                grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=rname)
+                grass.run_command("r.mask", flags="r", quiet=True)
+                grass.run_command("r.mask", raster=rname, quiet=True)
             else:
                 grass.run_command("r.mask", quiet=True, flags="r")
             if ipl_dif and not flr:
@@ -292,7 +292,8 @@ def main():
             grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
                           tmpf2 = tmpf2,
                           inplay = ipl2[i],
-                          dignum = digits2)
+                          dignum = digits2,
+                          quiet=True)
             d = grass.parse_command("r.univar",quiet=True, flags="g", map=tmpf2)
 
             # Create recode rules
@@ -321,7 +322,6 @@ def main():
             tmpf3 = "rmess_tmp3_" + str(uuid.uuid4())
             tmpf3 = string.replace(tmpf3, '-', '_')
             grass.run_command("r.recode", input=tmpf2, output=tmpf3, rules=tmprule[1])
-
             z1 = ipi[i] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
             z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
             z3 = ", if(" + tmpf3 + "<100, 2*(100-float(" + tmpf3 + "))"
@@ -329,14 +329,15 @@ def main():
             calcc = z1 + z2 + z3 + z4
             grass.mapcalc(calcc, quiet=True)
             grass.run_command("r.colors", quiet=True, map=ipi[i], rules=tmpcol[1])
-            grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=[tmpf0,tmpf1,tmpf2,tmpf3])
+            grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=[tmpf1,tmpf2,tmpf3])
             os.remove(tmprule[1])
+            grass.run_command("g.region", quiet=True, region="mess_region_backup")
 
-            # Recover original mask
-            if citiam['fullname'] != '':
-                grass.run_command("r.mask", quiet=True, raster=rname)
-                grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=rname)
-
+        if citiam['fullname'] != '':
+            grass.mapcalc("MASK1 = 1 * MASK", overwrite=True)
+            grass.run_command("r.mask", quiet=True, flags="r")
+            grass.run_command("g.remove", quiet=True, flags="fb", type="raster", pattern=rname)
+        grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=tmpf0)
 
     #----------------------------------------------------------------------------
     # Create the recode table - Reference distribution is vector
@@ -428,6 +429,7 @@ def main():
             # Clean up
             grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=[tmpf2,tmpf3])
             os.remove(tmprule[1])
+            grass.run_command("g.region", quiet=True, region="mess_region_backup")
 
         # Clean up
         grass.run_command("g.remove", quiet=True, flags="f", type="vector", name=tmpf0)
@@ -439,6 +441,7 @@ def main():
 
     # MESS
     grass.run_command("r.series", quiet=True, output=opc, input=ipi, method="minimum")
+    grass.run_command("r.colors", quiet=True, map=opc, rules=tmpcol[1])
 
     # Area with negative MESS
     if fln:
@@ -462,7 +465,8 @@ def main():
         MinMes = MinMes.split('\n')
         MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
         mod = opc + "MeanNeg"
-        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="average", range=(MinMes,0))
+        c0 = -0.01/digits2
+        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="average", range=(MinMes,c0))
         grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
 
     # Number of layers with negative values
@@ -471,17 +475,19 @@ def main():
         MinMes = MinMes.split('\n')
         MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
         mod = opc + "CountNeg"
-        grass.run_command("r.series", flags="n", quiet=True, input=ipi, output=mod, method="count", range=(MinMes,0))
+        c0 = -0.0001/digits2
+        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="count", range=(MinMes,c0))
         grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
 
     # Remove IES layers
-    if il:
+    if fli:
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
 
     #=======================================================================
     ## Clean up
     #=======================================================================
 
+    grass.run_command("g.remove", type="region", flags="f", quiet=True, name="mess_region_backup")
     os.remove(tmpcol[1])
 
 if __name__ == "__main__":
