@@ -28,7 +28,7 @@
 #% key: ref_rast
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Reference distribution as raster
+#% description: Reference distribution as raster (1 = presence, 0 = absence)
 #% key_desc: name
 #% required: no
 #% multiple: no
@@ -242,6 +242,7 @@ def main():
         tmpf0 = "rmess_tmp_" + str(uuid.uuid4())
         tmpf0 = string.replace(tmpf0, '-', '_')
         grass.mapcalc("$tmpf0 = $vtl * 1", vtl = vtl, tmpf0=tmpf0, quiet=True)
+        grass.run_command("r.null", map=tmpf0, setnull=0, quiet=True)
         clean_rast.add(tmpf0)
 
         # Remove mask
