@@ -266,7 +266,7 @@ def main():
             stval = {}
             for line in p.stdout:
                 [val,count] = line.strip(os.linesep).split(';')
-                stval[int(val)] = int(count)
+                stval[float(val)] = float(count)
             p.wait()
             sstval = sorted(stval.items(), key=operator.itemgetter(0))
             sstval = np.matrix(sstval)
@@ -311,7 +311,7 @@ def main():
             a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
             b1 = np.hstack([(0), c])
 
-            tmprule = tempfile.mkstemp()
+            tmprule = tempfile.mkstemp(suffix=ipn[i])
             text_file = open(tmprule[1], "w")
             for k in np.arange(0,len(b1.T)):
                 rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
@@ -337,6 +337,7 @@ def main():
             grass.mapcalc("MASK1 = 1 * MASK", overwrite=True)
             grass.run_command("r.mask", quiet=True, flags="r")
             grass.run_command("g.remove", quiet=True, flags="fb", type="raster", pattern=rname)
+            grass.run_command("g.rename", raster=("MASK1","MASK"))
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=tmpf0)
 
     #----------------------------------------------------------------------------
