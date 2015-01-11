@@ -47,6 +47,24 @@
 #% options: point,line,area
 #% answer: line
 #%end
+#%option
+#% key: metric
+#% type: string
+#% description: Determines how transect spacing is measured
+#% multiple: no
+#% options: straight, along
+#% descriptions: straight;Straight distance between transect points;along;Distance along the line
+#% answer: straight
+#%end
+#%option
+#% key: transect_perpendicular
+#% type: string
+#% description: Determines which line is the transect perpendicular to
+#% multiple: no
+#% options: trend, line
+#% descriptions: trend;Perpendicular to the line connecting transect points;line;Perpendicular to the particular segment of the original line
+#% answer: trend
+#%end
 #%flag
 #% key: l
 #% description: Use the last point of the line to create transect
@@ -121,55 +139,79 @@ def loadVector(vector):
     return v
 
 
-def get_transects_locs(vector, transect_spacing, last_point):
+def get_transects_locs(vector, transect_spacing, dist_function, last_point):
     """!Get transects locations along input vector lines."""
     # holds locations where transects should intersect input vector lines
     transect_locs = []
+    vectors = []
     for line in vector:
         transect_locs.append([line[0]])
+        vectors.append([[line[0], line[1]]])
         # i starts at the beginning of the line.
         # j walks along the line until j and i are separated by a distance of transect_spacing.
         # then, a transect is placed at j, i is moved to j, and this is iterated until the end of the line is reached
         i = 0
         j = i + 1
         while j < len(line):
-            d = dist(line[i], line[j])
+            d = dist_function(line, i, j)
             if d > transect_spacing:
-                r = ((transect_spacing - dist(line[i], line[j - 1])) /
-                    (dist(line[i], line[j]) - dist(line[i], line[j - 1])))
+                r = ((transect_spacing - dist_function(line, i, j - 1)) /
+                    (dist_function(line, i, j) - dist_function(line, i, j - 1)))
                 transect_locs[-1].append((r * array(line[j]) +
                                          (1 - r) * array(line[j - 1])).tolist())
+                vectors[-1].append([line[j - 1], transect_locs[-1][-1]])
                 i = j - 1
                 line[i] = transect_locs[-1][-1]
             else:
                 j += 1
         if last_point:
             transect_locs[-1].append(line[j-1])
-    return transect_locs
+            vectors[-1].append([line[j-2], line[j-1]])
+    return transect_locs, vectors
 
 
-def get_transect_ends(transect_locs, dleft, dright):
+def get_transect_ends(transect_locs, vectors, trend, dleft, dright):
     """!From transects locations along input vector lines, get transect ends."""
     transect_ends = []
-    for transect in transect_locs:
-        # if a line in input vec was shorter than transect_spacing
-        if len(transect) < 2:
-            continue  # then don't put a transect on it
-        transect_ends.append([])
-        transect = array(transect)
-        v = NR(transect[0], transect[1])  # vector pointing parallel to transect
-        transect_ends[-1].append([transect[0] + dleft * v, transect[0] - dright * v])
-        for i in range(1, len(transect) - 1, 1):
-            v = NR(transect[i - 1], transect[i + 1])
-            transect_ends[-1].append([transect[i] + dleft * v, transect[i] - dright * v])
-        v = NR(transect[-2], transect[-1])
-        transect_ends[-1].append([transect[-1] + dleft * v, transect[-1] - dright * v])
+    if not trend:
+        for k, transect in enumerate(transect_locs):
+            # if a line in input vec was shorter than transect_spacing
+            if len(transect) < 2:
+                continue  # then don't put a transect on it
+            transect_ends.append([])
+            transect = array(transect)
+            v = NR(*vectors[k][0])  # vector pointing parallel to transect
+            transect_ends[-1].append([transect[0] + dleft * v, transect[0] - dright * v])
+            for i in range(1, len(transect)):
+                v = NR(*vectors[k][i])
+                transect_ends[-1].append([transect[i] + dleft * v, transect[i] - dright * v])
+    else:
+        for transect in transect_locs:
+            # if a line in input vec was shorter than transect_spacing
+            if len(transect) < 2:
+                continue  # then don't put a transect on it
+            transect_ends.append([])
+            transect = array(transect)
+            v = NR(transect[0], transect[1])  # vector pointing parallel to transect
+            transect_ends[-1].append([transect[0] + dleft * v, transect[0] - dright * v])
+            for i in range(1, len(transect) - 1, 1):
+                v = NR(transect[i - 1], transect[i + 1])
+                transect_ends[-1].append([transect[i] + dleft * v, transect[i] - dright * v])
+            v = NR(transect[-2], transect[-1])
+            transect_ends[-1].append([transect[-1] + dleft * v, transect[-1] - dright * v])
     return transect_ends
 
 
-def dist(ip, fp):
+def dist_euclidean(line, i1, i2):
     """!Calculates distance between two points"""
-    return sqrt((ip[0] - fp[0]) ** 2 + (ip[1] - fp[1]) ** 2)
+    return sqrt((line[i1][0] - line[i2][0]) ** 2 + (line[i1][1] - line[i2][1]) ** 2)
+
+
+def dist_along_line(line, i1, i2):
+    distance = 0
+    for i in range(i1, i2):
+        distance += dist_euclidean(line, i, i + 1)
+    return distance
 
 
 def NR(ip, fp):
@@ -286,13 +328,21 @@ def main():
 
     #################################
     v = loadVector(vector)
-    transect_locs = get_transects_locs(v, transect_spacing, last_point)
+    if options['metric'] == 'straight':
+        dist = dist_euclidean
+    else:
+        dist = dist_along_line
+    if options['transect_perpendicular'] == 'trend':
+        trend = True
+    else:
+        trend = False
+    transect_locs, vectors = get_transects_locs(v, transect_spacing, dist, last_point)
     temp_map = tempmap()
     if shape == 'line' or not shape:
-        transect_ends = get_transect_ends(transect_locs, dleft, dright)
+        transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
         writeTransects(transect_ends, temp_map)
     elif shape == 'area':
-        transect_ends = get_transect_ends(transect_locs, dleft, dright)
+        transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
         writeQuads(transect_ends, temp_map)
     else:
         writePoints(transect_locs, temp_map)
