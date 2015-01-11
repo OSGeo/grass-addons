@@ -149,6 +149,12 @@ def cleanup():
         grass.run_command("g.remove",
         type="rast", name = rast, quiet = True)
 
+def CheckLayer(envlay):
+    for chl in xrange(len(envlay)):
+        ffile = grass.find_file(envlay[chl], element = 'cell')
+        if ffile['fullname'] == '':
+            grass.fatal("The layer " + envlay[chl] + " does not exist.")
+
 # main function
 def main():
 
@@ -182,6 +188,7 @@ def main():
     # old environmental layers & variable names
     ipl = options['env_old']
     ipl = ipl.split(',')
+    CheckLayer(ipl)
     ipn = [z.split('@')[0] for z in ipl]
     ipn = [x.lower() for x in ipn]
 
@@ -193,6 +200,7 @@ def main():
     else:
         ipl_dif = True
         ipl2 = ipl2.split(',')
+        CheckLayer(ipl2)
         if len(ipl2) != len(ipl) and len(ipl2) != 0:
             grass.fatal('number of old and new environmental variables is not the same')
 

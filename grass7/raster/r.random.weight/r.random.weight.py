@@ -4,7 +4,7 @@
 ##############################################################################
 #
 # MODULE:       r.rand.weight
-# AUTHOR(S):    paulo van Breugel <paulo at ecodiv.org>         
+# AUTHOR(S):    paulo van Breugel <paulo at ecodiv.org>
 # PURPOSE:      Create a layer with weighted random sample
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
@@ -87,23 +87,23 @@ import atexit
 import grass.script as grass
 
 # Runs modules silently
-os.environ['GRASS_VERBOSE']='-1' 
+os.environ['GRASS_VERBOSE']='-1'
 
 clean_rast = set()
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove", 
+        grass.run_command("g.remove",
         type="rast", name = rast, quiet = True)
 
 # main function
 def main():
-    
+
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
     # return an error advice
-       grass.fatal(_("You must be in GRASS GIS to run this program"))
-       
-    # input raster map and parameters   
+    grass.fatal(_("You must be in GRASS GIS to run this program"))
+
+    # input raster map and parameters
     minval = options['start']
     maxval = options['end']
     weight = options['weights']
@@ -111,29 +111,29 @@ def main():
     subsample = options['subsample']
     seed = options['seed']
     flag_n = flags['n']
-       
+
     # setup temporary files and seed
     tmp_map = "r_w_rand_" + str(uuid.uuid4())
     tmp_map = string.replace(tmp_map, '-', '_')
-    
+
     # Compute minimum and maximum value raster
-    minmax = grass.parse_command('r.univar', 
+    minmax = grass.parse_command('r.univar',
         map = weight,
         flags='g')
-   
-    if seed == "auto":  
-        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))", 
+
+    if seed == "auto":
+        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))",
             seed='auto',
-            minval = minval, 
+            minval = minval,
             maxval = maxval,
             tmp_map = tmp_map)
-    else:        
-        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))", 
+    else:
+        grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))",
             seed=int(seed),
-            minval = minval, 
+            minval = minval,
             maxval = maxval,
             tmp_map = tmp_map)
-    clean_rast.add(tmp_map) 
+    clean_rast.add(tmp_map)
 
     if flag_n:
         grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
@@ -145,11 +145,11 @@ def main():
             weight = weight,
             outmap = outmap,
             tmp_map = tmp_map)
-    
-    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmp_map)        
-    if not subsample == '': 
+
+    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmp_map)
+    if not subsample == '':
         grass.run_command('r.null',
-            map = outmap, 
+            map = outmap,
             setnull = 0)
         grass.run_command('r.random',
             input = outmap,
@@ -158,17 +158,16 @@ def main():
             overwrite=True)
         if flag_n:
             grass.run_command('r.null',
-                map = outmap, 
+                map = outmap,
                 null = 0)
 
-    print("------------------")
-    print("Ready!")
-    print("The name of raster created is " + outmap)
-    if minval > minmax['min'] or maxval < minmax['max']:
-        print("Warning!")
-        print("You defined the minimum and maximum weights as: " + minval + " & " + maxval)
-        print("Value range of weight raster is: " + minmax['min'] + " - " + minmax['max'])
-    print("------------------")    
+    grass.message("------------------")
+    grass.message("Ready!")
+    grass.message("The name of raster created is " + outmap)
+    #if minval > minmax['min'] or maxval < minmax['max']:
+    grass.warning("You defined the minimum and maximum weights as: "
+        + minval + " & " + maxval + ". Value range of weight raster is: "
+        + minmax['min'] + " - " + minmax['max'])
 
 if __name__ == "__main__":
     options, flags = grass.parser()

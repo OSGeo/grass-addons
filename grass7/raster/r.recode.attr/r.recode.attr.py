@@ -6,7 +6,7 @@
 # MODULE:       r.recode_attribute
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
 # PURPOSE:      Recode raster to one or more new layers using an
-#               attribute table (csv file) as input     
+#               attribute table (csv file) as input
 #
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
@@ -52,6 +52,10 @@
 import os
 import sys
 import numpy as np
+from tempfile import gettempdir, gettempprefix
+from os.path import join
+from string import ascii_lowercase, digits
+from random import choice
 import grass.script as grass
 
 def cleanup():
@@ -60,6 +64,16 @@ def cleanup():
       pattern = 'tmp_map',
       flags='f',
       quiet = True)
+
+def CreateFileName():
+    (suffix1, suffix2) = ("", "")
+    for _ in xrange( 8 ):
+        suffix1 += choice( ascii_lowercase )
+        suffix2 += choice( digits )
+    flname = join(gettempdir(), '-'.join([gettempprefix(), suffix1, suffix2 ]))
+    while os.path.isfile(flname):
+        flname = flname + "1"
+    return flname
 
 # main function
 def main():
@@ -87,7 +101,8 @@ def main():
     for x in numVar:
         y = x + 1
         myRecode = np.column_stack((myData[:,0], myData[:,0], myData[:,y]))
-        np.savetxt('.numpy_grass_recode', myRecode, delimiter=":") 
+        tmpname = CreateFileName()
+        np.savetxt(tmpname, myRecode, delimiter=":") 
         
         if len(numVar) == lengthNames:
             nmOutput = outNames[x]
