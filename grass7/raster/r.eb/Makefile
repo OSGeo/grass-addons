@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb
+PGM = r.meb
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

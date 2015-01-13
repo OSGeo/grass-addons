@@ -3,14 +3,15 @@
 
 ########################################################################
 #
-# MODULE:       r.eb
+# MODULE:       r.meb
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Compute the envirionmental bias (EB). If A is an areas within a
-#               larger region B, the EB represents how much envirionmental
-#               conditions in A deviate from median conditions in B. The first
-#               step is to compute the multi-envirionmental similarity (MES)
-#               for B, using all raster cells in B as reference points. The MES
-#               of a raster cell thus represent how much conditions deviate
+# PURPOSE:      Compute the multivariate envirionmental bias (EB). If A 
+#               is an areas within a larger region B, the EB represents 
+#               how much envirionmental conditions in A deviate from 
+#               median conditions in B. The first step is to compute the 
+#               multi-envirionmental similarity (MES) for B, using all 
+#               raster cells in B as reference points. The MES of a 
+#               raster cell thus represent how much conditions deviate
 #               from median conditions in B. The EB is then computed as the
 #               absolute difference of the median of MES values in A (MESa)
 #               and median of MES values in B (MESb), divided by the median of
@@ -27,7 +28,7 @@
 ########################################################################
 #
 #%Module
-#% description: Compute the environmental bias
+#% description: Compute the multivariate environmental bias (MEB)
 #%End
 
 #%option
@@ -74,7 +75,7 @@
 
 #%flag
 #% key: i
-#% description: Compute EB individual variables (IES)
+#% description: Compute EB for individual variables
 #% guisection: Output
 #%end
 
@@ -264,6 +265,7 @@ def main():
 
         # Calculate the frequency distribution
         tmpf1 = tmpname('reb1')
+        # todo - check if layer is integer. If so, skip step below
         grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
                       tmpf1=tmpf1,
                       inplay=ipl[j],

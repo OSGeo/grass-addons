@@ -1,10 +1,11 @@
 <h2>DESCRIPTION</h2>
 
-<p>The environmental bias (EB) takes the medium conditions in an 
-area <em>N</em> and computes how much conditions in a subset of <em>N
-</em> (<em>S</em>) deviate from these medium conditions. This can for 
-example be used to see how well conditions in the protected areas of 
-a country represent conditions in the whole country.
+<p>The Multivariate Environmental Bias (MEB) takes the medium 
+conditions in an area <em>N</em> and computes how much conditions in 
+a subset of <em>N </em> (<em>S</em>) deviate from these medium 
+conditions. This can for example be used to see how well conditions 
+in the protected areas of a country represent conditions in the 
+whole country.
 
 <p>The messure is based on the Multivariate Environmental Similarity 
 (<em>MES</em>) surface, which was proposed by Elith et al (2010). To compute 
@@ -20,20 +21,23 @@ similarity values (<em>IES<sub>minimum</sub></em>) of the individual
 variables (<em>V<sub>j</sub></em>) in <em>P</em>. In <em>r.eb</em> 
 there is the option to use the mean (<em>IES<sub>mean</sub></em>) or 
 median (<em>IES<sub>median</sub></em>) of the <em>IES</em> instead. 
-For the EB these may be a better choice as they take into account 
+For the MEB these may be a better choice as they take into account 
 the similarity along all environmnetal axes and not only the one 
 that deviates most. 
 
-<p>The <em>EB</em> is computed as the absolute difference of the median 
+<p>The <em>MEB</em> is computed as the absolute difference of the median 
 of the <em>MES</em> in the whole target area (MES<sub>n</sub>) and the 
 median of the <em>MES</em> in the subset (<em>MES<sub>s</sub></em>), 
 divided by the median absolute deviation 
 (<em><a href="http://en.wikipedia.org/wiki/Median_absolute_deviation">MAD</a></em>
 ) of the <em>MES</em> in <em>N</em>. It is also possible to compute 
-the <em>EB</em> based on the individual variables in which case the 
+the bias based on the individual variables (IEB) in which case the 
 <em>IES</em> instead of the <em>MES</em> is used. 
 
 <p><img src="r_eb_concept.png">
+
+<h2>NOTE</h2>
+Input variables are expected to be or to represent continuous variables. 
 
 <h2>REFERENCES</h2> 
 
@@ -42,7 +46,7 @@ the <em>EB</em> based on the individual variables in which case the
 Ecology and Evolution 1:330-342.
 <p>van Breugel et al. Environmental gap analysis to prioritize 
 conservation efforts in eastern Africa. Submitted to Plos One
-(todo: add full reference when accepted)
+
 <h2>SEE ALSO</h2>
 
 <em><a href="r.mess.html">r.mess</a></em>
