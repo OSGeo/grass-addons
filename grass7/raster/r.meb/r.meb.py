@@ -5,12 +5,12 @@
 #
 # MODULE:       r.meb
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Compute the multivariate envirionmental bias (EB). If A 
-#               is an areas within a larger region B, the EB represents 
-#               how much envirionmental conditions in A deviate from 
-#               median conditions in B. The first step is to compute the 
-#               multi-envirionmental similarity (MES) for B, using all 
-#               raster cells in B as reference points. The MES of a 
+# PURPOSE:      Compute the multivariate envirionmental bias (MEB). If A
+#               is an areas within a larger region B, the EB represents
+#               how much envirionmental conditions in A deviate from
+#               median conditions in B. The first step is to compute the
+#               multi-envirionmental similarity (MES) for B, using all
+#               raster cells in B as reference points. The MES of a
 #               raster cell thus represent how much conditions deviate
 #               from median conditions in B. The EB is then computed as the
 #               absolute difference of the median of MES values in A (MESa)
@@ -104,6 +104,12 @@
 #% key_desc: string
 #% answer: 5
 #%end
+
+#----------------------------------------------------------------------------
+#Test
+#----------------------------------------------------------------------------
+#options = {"env":"bio_1@climate,bio_2@climate,bio_3@climate", "file":"test.txt", "ref":"PAs2", "output":"AA1", "digits":"5"}
+#flags = {"m":True, "n":True, "o":True, "i":True}
 
 #----------------------------------------------------------------------------
 # Standard
@@ -230,10 +236,6 @@ def main():
     # Variables
     #----------------------------------------------------------------------------
 
-#Test
-#options = {"env":"bio_1@climate,bio_2@climate,bio_3@climate", "file":"test.txt", "ref":"PAs2", "output":"AA1", "digits":"5"}
-#flags = {"m":True, "n":True, "o":True, "i":True}
-
     # variables
     ipl = options['env']
     ipl = ipl.split(',')
@@ -265,12 +267,15 @@ def main():
 
         # Calculate the frequency distribution
         tmpf1 = tmpname('reb1')
-        # todo - check if layer is integer. If so, skip step below
-        grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
-                      tmpf1=tmpf1,
-                      inplay=ipl[j],
-                      dignum=digits2,
-                      quiet=True)
+        laytype = grass.raster_info(ipl[j])['datatype']
+        if laytype == 'CELL':
+            grass.run_command("g.copy", quiet=True, raster=(ipl[j], tmpf1))
+        else:
+            grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
+                          tmpf1=tmpf1,
+                          inplay=ipl[j],
+                          dignum=digits2,
+                          quiet=True)
         p = grass.pipe_command('r.stats', quiet=True, flags='cn', input=tmpf1, sort='asc', sep=';')
         stval = {}
         for line in p.stdout:
