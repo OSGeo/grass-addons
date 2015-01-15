@@ -107,7 +107,6 @@ def main():
     print '%.0f' %findint(kl,0.25) , "|", 0.25
     print '%.0f' %findint(kl,0.5) , "|", 0.5
     print '%.0f' %findint(kl,0.75) , "|", 0.75
-    print '%.0f' %findint(kl,0.7) , "|", 0.7
     print '%.0f' %findint(kl,0.9) , "|", 0.9
     print '%.0f' %findint(kl,0.975) , "|", 0.975
     print '\n'
