@@ -29,6 +29,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Reference distribution as raster (1 = presence, 0 = absence)
+#% label: Reference layer (raster)
 #% key_desc: name
 #% required: no
 #% multiple: no
@@ -44,6 +45,10 @@
 #% required: no
 #% multiple: no
 #% guisection: reference distribution
+#%end
+
+#%rules
+#%exclusive: ref_rast,ref_vect
 #%end
 
 #%option
@@ -141,9 +146,12 @@ if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
     sys.exit(1)
 
+#----------------------------------------------------------------------------
+# Functions
+#----------------------------------------------------------------------------
+
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = set()
-
 def cleanup():
     for rast in clean_rast:
         grass.run_command("g.remove",
@@ -155,7 +163,17 @@ def CheckLayer(envlay):
         if ffile['fullname'] == '':
             grass.fatal("The layer " + envlay[chl] + " does not exist.")
 
+# Create temporary name
+def tmpname(name):
+    tmpf = name + "_" + str(uuid.uuid4())
+    tmpf = string.replace(tmpf, '-', '_')
+    clean_rast.add(tmpf)
+    return tmpf
+
+#----------------------------------------------------------------------------
 # main function
+#----------------------------------------------------------------------------
+
 def main():
 
     #----------------------------------------------------------------------------
@@ -171,19 +189,12 @@ def main():
     REF_RAST = options['ref_rast']
     if len(REF_VECT) == 0 and len(REF_RAST) == 0:
         grass.fatal("You did not provide the reference distribution layer")
+    if len(REF_RAST) > 0:
+        vtl = REF_RAST
+        rtl = 'R'
     else:
-        if len(REF_VECT) > 0 and len(REF_RAST) > 0:
-            grass.run_command('g.message', flags="w", quiet=True,
-                          message = 'Two reference layers defined (vector and raster). Using the raster layer!')
-            vtl = REF_RAST
-            rtl = 'R'
-        else:
-            if len(REF_RAST) > 0:
-                vtl = REF_RAST
-                rtl = 'R'
-            else:
-                vtl = REF_VECT
-                rtl = 'V'
+        vtl = REF_VECT
+        rtl = 'V'
 
     # old environmental layers & variable names
     ipl = options['env_old']
@@ -241,17 +252,13 @@ def main():
         # Copy mask (if there is one) to temporary layer
         citiam = grass.find_file('MASK', element = 'cell')
         if citiam['fullname'] != '':
-            rname = "MASK" + str(uuid.uuid4())
-            rname = string.replace(rname, '-', '_')
+            rname = tmpname('MASK')
             grass.mapcalc('$rname = MASK', rname=rname, quiet=True)
-            clean_rast.add(rname)
 
         # Create temporary layer based on reference layer
-        tmpf0 = "rmess_tmp_" + str(uuid.uuid4())
-        tmpf0 = string.replace(tmpf0, '-', '_')
+        tmpf0 = tmpname('rmess_tmp')
         grass.mapcalc("$tmpf0 = $vtl * 1", vtl = vtl, tmpf0=tmpf0, quiet=True)
         grass.run_command("r.null", map=tmpf0, setnull=0, quiet=True)
-        clean_rast.add(tmpf0)
 
         # Remove mask
         if citiam['fullname'] != '':
@@ -263,14 +270,16 @@ def main():
             grass.run_command("r.mask", quiet=True, overwrite=True, raster=tmpf0)
 
             # Calculate the frequency distribution
-            tmpf1 = "rmess_tmp2_" + str(uuid.uuid4())
-            tmpf1 = string.replace(tmpf1, '-', '_')
-            grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
-                          tmpf1 = tmpf1,
-                          inplay = ipl[i],
-                          dignum = digits2,
-                          quiet=True)
-            clean_rast.add(tmpf1)
+            tmpf1 = tmpname('rmess_tmp1')
+            laytype = grass.raster_info(ipl[i])['datatype']
+            if laytype == 'CELL':
+                grass.run_command("g.copy", quiet=True, raster=(ipl[i], tmpf1))
+            else:
+                grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
+                              tmpf1=tmpf1,
+                              inplay=ipl[i],
+                              dignum=digits2,
+                              quiet=True)
             p = grass.pipe_command('r.stats', quiet=True, flags = 'cn', input = tmpf1, sort = 'asc', sep=';')
             stval = {}
             for line in p.stdout:
@@ -296,8 +305,7 @@ def main():
                 grass.run_command("g.region", quiet=True, raster=ipl2[0])
 
             # Get min and max values for recode table (based on full map)
-            tmpf2 = "rmess_tmp2_" + str(uuid.uuid4())
-            tmpf2 = string.replace(tmpf2, '-', '_')
+            tmpf2 = tmpname('rmess_tmp2')
             grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
                           tmpf2 = tmpf2,
                           inplay = ipl2[i],
@@ -328,8 +336,7 @@ def main():
             text_file.close()
 
             # Create the recode layer and calculate the IES
-            tmpf3 = "rmess_tmp3_" + str(uuid.uuid4())
-            tmpf3 = string.replace(tmpf3, '-', '_')
+            tmpf3 = tmpname('rmess_tmp3')
             grass.run_command("r.recode", input=tmpf2, output=tmpf3, rules=tmprule[1])
             z1 = ipi[i] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
             z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
@@ -356,19 +363,15 @@ def main():
     if rtl=="V":
 
         # Copy point layer and add columns for variables
-        tmpf0 = "rmess_tmp_" + str(uuid.uuid4())
-        tmpf0 = string.replace(tmpf0, '-', '_')
-        clean_rast.add(tmpf0)
-
+        tmpf0 = tmpname('rmess_tmp0')
         grass.run_command("v.extract", quiet=True, flags="t", input=vtl, type="point", output=tmpf0)
         grass.run_command("v.db.addtable", quiet=True, map=tmpf0)
-        grass.run_command("v.db.addcolumn", quiet=True, map=tmpf0, columns="envvar double precision")
+        grass.run_command("v.db.addcolumn", quiet=True, map=tmpf0, columns="envvar integer")
 
 
         # Upload raster values and get value in python as frequency table
         check_n = len(np.hstack(db.db_select(sql = "SELECT cat FROM " + tmpf0)))
         for m in xrange(len(ipl)):
-
             grass.run_command("db.execute" , quiet=True, sql = "UPDATE " + tmpf0 + " SET envvar = NULL")
             grass.run_command("v.what.rast", quiet=True, map=tmpf0, layer=1, raster=ipl[m], column="envvar")
             volval = np.vstack(db.db_select(sql = "SELECT envvar,count(envvar) from " + tmpf0 +
@@ -388,13 +391,16 @@ def main():
                 grass.run_command("g.region", quiet=True, raster=ipl2[0])
 
             # Multiply env layer with dignum
-            tmpf2 = "rmess_tmp2_" + str(uuid.uuid4())
-            tmpf2 = string.replace(tmpf2, '-', '_')
-            grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
-                          tmpf2 = tmpf2,
-                          inplay = ipl2[m],
-                          dignum = digits2,
-                          quiet=True)
+            tmpf2 = tmpname('rmess_tmp2')
+            laytype = grass.raster_info(ipl[m])['datatype']
+            if laytype == 'CELL':
+                grass.run_command("g.copy", quiet=True, raster=(ipl[m], tmpf2))
+            else:
+                grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
+                              tmpf1=tmpf1,
+                              inplay=ipl[m],
+                              dignum=digits2,
+                              quiet=True)
 
             # Calculate min and max values of sample points and raster layer
             envmin = int(min(volval[:,0]) * digits2)
@@ -424,8 +430,7 @@ def main():
             text_file.close()
 
             # Create the recode layer and calculate the IES
-            tmpf3 = "rmess_tmp3_" + str(uuid.uuid4())
-            tmpf3 = string.replace(tmpf3, '-', '_')
+            tmpf3 = tmpname('rmess_tmp3')
             grass.run_command("r.recode", quiet=True, input=tmpf2, output=tmpf3, rules=tmprule[1])
 
             z1 = ipi[m] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
