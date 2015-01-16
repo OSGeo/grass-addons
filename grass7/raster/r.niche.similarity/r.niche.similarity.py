@@ -181,7 +181,7 @@ def main():
                 NO = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf0)['sum'])
                 NOV = 1 - (0.5 * NO)
                 grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf0)
-                text_file.write("D, " + nvar1 + "," + nvar2 + "," + str(NOV) + "\n")
+                text_file.write("D," + nvar1 + "," + nvar2 + "," + str(NOV) + "\n")
                 grass.message("Niche overlap (D) of " + nvar1 + " and " + nvar2 + ": " + str(round(NOV, 3)))
 
             ## Calculate I (Warren et al. 2008). Note that the sqrt in the
@@ -203,19 +203,19 @@ def main():
                 NE = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf1)['sum'])
                 NEQ = 1 - (0.5 * NE)
                 grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf1)
-                text_file.write("I, " + nvar1 + "," + nvar2 + "," + str(NEQ) + "\n")
+                text_file.write("I," + nvar1 + "," + nvar2 + "," + str(NEQ) + "\n")
                 grass.message("Niche overlap (I) of " + nvar1 + " and " + nvar2 + ": " + str(round(NEQ, 3)))
 
             ## Calculate correlation
             #=======================================================================
 
             if flag_c:
-                corl = str(list(grass.parse_command("r.covar", flags="r", map=(nlay1,nlay2)))[0])
+                corl = str(list(grass.parse_command("r.covar", quiet=True, flags="r", map=(nlay1,nlay2)))[0])
                 corl = float(corl.split(' ')[0])
-                text_file.write("corr, " + nvar1 + "," + nvar2 + "," + str(corl) + "\n")
+                text_file.write("corr," + nvar1 + "," + nvar2 + "," + str(corl) + "\n")
                 grass.message("Correlation of " + nvar1 + " and " + nvar2 + ": " + str(round(corl, 3)))
 
-
+            grass.message("--------------------------------------")
             j = j + 1
         i = i + 1
 
