@@ -69,7 +69,7 @@
 ##----------------------------------------------------------------------------
 # Test purposes
 ##----------------------------------------------------------------------------
-#options = {"maps":"bio_1,bio_5,bio_6", "output":""}
+#options = {"maps":"bio_1,bio_2,bio_3,bio_4,bio_5,bio_6,bio_7,bio_8, bio_9", "output":""}
 #flags = {"i":True, "d":True, "c":True}
 
 ##----------------------------------------------------------------------------
@@ -149,7 +149,7 @@ def main():
 
     # Open text file for writing and write heading
     text_file = open(OPF, "w")
-    text_file.write("raster1,raster2,statistic,value" + "\n")
+    text_file.write("statistic,raster1,raster2,value" + "\n")
 
     # Write D and I values to standard output and optionally to text file
     i = 0
@@ -210,8 +210,9 @@ def main():
             #=======================================================================
 
             if flag_c:
-                corl = str(list(grass.parse_command("r.covar", quiet=True, flags="r", map=(nlay1,nlay2)))[0])
-                corl = float(corl.split(' ')[0])
+                corl = grass.read_command("r.covar", quiet=True, flags="r", map=(nlay1,nlay2))
+                corl = corl.split('N = ')[1]
+                corl = float(corl.split(' ')[1])
                 text_file.write("corr," + nvar1 + "," + nvar2 + "," + str(corl) + "\n")
                 grass.message("Correlation of " + nvar1 + " and " + nvar2 + ": " + str(round(corl, 3)))
 
