@@ -23,6 +23,31 @@
 #include "matrix2.h"
 #include "local_proto.h"
 
+MAT *A;
+VEC *b, *Avector;
+int matrixsize;
+float curr_angle;
+
+char *group;
+struct Ref Ref;
+
+CELL **cell;
+int *cellfd;
+
+CELL **result_cell;
+int *resultfd;
+
+CELL **error_cell;
+int  error_fd;
+
+char result_name[80];
+char *result_prefix, *matrixfile;
+
+struct
+    {
+     struct Flag *quiet;
+    } flag;
+
 int open_files();
 void spectral_angle();
 CELL myround (x);

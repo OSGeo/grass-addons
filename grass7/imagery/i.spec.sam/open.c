@@ -88,7 +88,7 @@ int open_files()
 	 if (!flag.quiet->answer)
 		G_message("Opening output file [%s]\n", result_name);	 
 	 result_cell[i] = Rast_allocate_c_buf();
-	 resultfd[i] = Rast_open_c_new (result_name)
+	 resultfd[i] = Rast_open_c_new (result_name);
     }
 
 
