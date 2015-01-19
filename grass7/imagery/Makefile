@@ -19,6 +19,7 @@ SUBDIRS = \
 	i.rotate \
 	i.segment.gsoc \
 	i.segment.hierarchical \
+	i.spec.sam \
 	i.spec.unmix \
 	i.theilsen \
 	i.vi.mpi \
