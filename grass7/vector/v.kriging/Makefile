@@ -2,9 +2,12 @@ MODULE_TOPDIR = ../..
 
 PGM = v.kriging
 
-LIBES = $(RASTER3DLIB) $(RASTERLIB) $(VECTORLIB) $(DBMILIB) $(GMATHLIB) $(GISLIB) $(IOSTREAMLIB) -lpcl_apps -lpcl_common -lpcl_features -lpcl_filters -lpcl_io -lpcl_kdtree -lpcl_keypoints -lpcl_octree -lpcl_registration -lpcl_sample_consensus -lpcl_search -lpcl_segmentation -lpcl_surface -lpcl_visualization
+# other PCL version:
+#-lpcl_apps -lpcl_common -lpcl_features -lpcl_filters -lpcl_io -lpcl_kdtree -lpcl_keypoints -lpcl_octree -lpcl_registration -lpcl_sample_consensus -lpcl_search -lpcl_segmentation -lpcl_surface -lpcl_visualization
+LIBES = $(RASTER3DLIB) $(RASTERLIB) $(VECTORLIB) $(DBMILIB) $(GMATHLIB) $(GISLIB) $(IOSTREAMLIB) -lpcl_common -lpcl_features -lpcl_filters -lpcl_io_ply -lpcl_io -lpcl_kdtree -lpcl_keypoints -lpcl_octree -lpcl_outofcore -lpcl_people -lpcl_recognition -lpcl_registration -lpcl_sample_consensus -lpcl_search -lpcl_segmentation -lpcl_surface -lpcl_tracking -lpcl_visualization
+
 DEPENDENCIES= $(RASTER3DDEP) $(RASTERDEP) $(VECTORDEP) $(DBMIDEP) $(GMATHDEP) $(GISDEP) $(IOSTREAMDEP)
-EXTRA_INC = $(VECT_INC) -I/usr/include/pcl-1.7 -I/usr/include/eigen3 $(PCL_INCLUDE_DIRS)
+EXTRA_INC = $(VECT_INC) -I/usr/include/pcl-1.7 -I/usr/include/eigen3 $(PCL_INCLUDE_DIRS) $(PROJINC)
 EXTRA_CFLAGS = $(VECT_CFLAGS)
 
 EXTRA_CFLAGS=-fopenmp
