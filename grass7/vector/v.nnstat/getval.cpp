@@ -140,6 +140,6 @@ extern "C" {
     Vect_destroy_line_struct(Points);
 
     if (ctrl <= 0)
-      G_fatal_error(_("Unable to read coordinates of point layer."));
+      G_fatal_error(_("Unable to read coordinates of point layer"));
   }
 } // end extern "C"

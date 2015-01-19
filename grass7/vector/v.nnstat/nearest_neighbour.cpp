@@ -66,13 +66,13 @@ extern "C" {
     if (xD->i3 == TRUE) { /* Minimum Enclosing Block */
       nna->A = Acol != NULL ? atof(Acol) : MBB(pnts); /* set volume specified by user or MBB volume */
       if (nna->A <= 0.)
-	G_fatal_error(_("Volume must be greater than 0."));
+	G_fatal_error(_("Volume must be greater than 0"));
     }
 
     if (xD->i3 == FALSE) { /* Minimum Enclosing Rectangle */
       nna->A = Acol != NULL ? atof(Acol) : MBR(pnts); /* set area specified by user or MBR area */
       if (nna->A <= 0.)
-	G_fatal_error(_("Area must be greater than 0."));
+	G_fatal_error(_("Area must be greater than 0"));
     }
   
     nna->rho = pnts->n / nna->A; /* number of points per area/volume unit */
@@ -119,22 +119,22 @@ extern "C" {
       G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05"));
     }
     if (-2.58 < nna->c && nna->c <= -1.96) {
-      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is clustered."));
-      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
+      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is clustered"));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed"));
     }
     
     if (1.96 <= nna->c && nna->c < 2.58) {
-      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is dispersed."));
-      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed."));
+      G_message(_("Null hypothesis IS NOT REJECTED at the significance level alpha = 0.01 => point set is dispersed"));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance level alpha = 0.05 => point set is randomly distributed"));
     }
 
     if (nna->c <= -2.58) {
-      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is clustered."));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is clustered"));
     }
     if (nna->c >= 2.58) {
-      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is dispersed."));
+      G_message(_("Null hypothesis CAN BE REJECTED at the significance levels alpha = 0.05 and alpha = 0.01 => point set is dispersed"));
     }
-    G_message(_(""));
+    G_message(" ");
   }
 
   void nn_statistics(struct points *pnts, struct nna_par *xD, struct nearest *nna)
