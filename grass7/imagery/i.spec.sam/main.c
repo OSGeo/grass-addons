@@ -22,6 +22,9 @@
 #include "matrix.h"
 #include "matrix2.h"
 #include "local_proto.h"
+#include "grass/gis.h"
+#include "grass/raster.h"
+#include "grass/vector.h"
 
 MAT *A;
 VEC *b, *Avector;
@@ -42,11 +45,6 @@ int  error_fd;
 
 char result_name[80];
 char *result_prefix, *matrixfile;
-
-struct
-    {
-     struct Flag *quiet;
-    } flag;
 
 int open_files();
 void spectral_angle();
