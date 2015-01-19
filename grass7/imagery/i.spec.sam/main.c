@@ -15,7 +15,6 @@
  *
  ********************************************************************/
              
-#define GLOBAL
 #include "global.h"
 #include <stdio.h>
 #include <strings.h>
@@ -196,9 +195,9 @@ char *argv[];
 	  Rast_close (resultfd[i]);
 	  Rast_unopen(cellfd[i]);
 	  /* make grey scale color table */
-	  sprintf(result_name, "%s.%d", result_prefix, (i+1));	               
+	  /*sprintf(result_name, "%s.%d", result_prefix, (i+1));	               
           sprintf(command, "r.colors map=%s color=grey >/dev/null", result_name);
-          system(command);
+          system(command);*/ /*Commented by Yann*/
           /* write a color table */
 	}
 

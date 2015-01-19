@@ -30,20 +30,14 @@ int open_files()
 
     fp=fopen(matrixfile,"r");
     if (fp == NULL)
-    	{
-    	 fprintf(stderr,"ERROR: Matrixfile %s not found.\n",matrixfile);
-    	 exit(1);
-    	}
+    	G_fatal_error("ERROR: Matrixfile %s not found.\n",matrixfile);
     A = m_finput(fp, MNULL);
     fclose (fp);
     if ( A->m < A->n )
-    {
-	fprintf(stderr, "Need m (rows) >= n (cols) to obtain least squares fit\n");
-	exit(1);
-    }
+	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
     if (!flag.quiet->answer)
     {
-	fprintf(stderr, "Your spectral matrix = ");
+	G_message("Your spectral matrix = ");
 	m_output(A);
     }
     matrixsize = A->n;
@@ -51,26 +45,24 @@ int open_files()
 /* open input files from group */
     if (!I_find_group(group))
     {
-	fprintf (stderr, "group=%s - not found\n", group);
+	G_message("group=%s - not found\n", group);
 	exit(1);
     }
     I_get_group_ref(group, &Ref);
     if (Ref.nfiles <= 1)
     {
-	fprintf (stderr, "Group %s\n", group);
+	G_message("Group %s\n", group);
 	if (Ref.nfiles <= 0)
-	    fprintf (stderr, "doesn't have any files\n");
+	    G_message("doesn't have any files\n");
 	else
-	    fprintf (stderr, "only has 1 file\n");
-	fprintf (stderr, "The group must have at least 2 files\n");
-	exit(1);
+	    G_message("only has 1 file\n");
+	G_fatal_error("The group must have at least 2 files\n");
     }
    /* Error check: input file number must be equal to matrix size */
     if (Ref.nfiles != matrixsize) 
     {
-	fprintf (stderr, "Error: Number of %i input files in group <%s>\n", Ref.nfiles, group);
- 	fprintf (stderr, "       does not match matrix size (%i cols).\n", A->n);
-	exit(1);
+	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, group);
+ 	G_fatal_error("       does not match matrix size (%i cols).\n", A->n);
     }
 
    /* get memory for input files */
@@ -82,12 +74,9 @@ int open_files()
 	name = Ref.file[i].name;
 	mapset = Ref.file[i].mapset;
 	if (!flag.quiet->answer)
-		fprintf (stderr,"Opening input file no. %i [%s]\n", (i+1), name);
+	    G_message("Opening input file no. %i [%s]\n", (i+1), name);
 	if ((cellfd[i] = Rast_open_old (name, mapset)) < 0)
-	{
-	    fprintf (stderr, "Unable to proceed\n");
-	    exit(1);
-	}
+	    G_fatal_error("Unable to proceed\n");
     }
 
   /* open files for results*/
@@ -97,13 +86,9 @@ int open_files()
     {
 	 sprintf(result_name, "%s.%d", result_prefix, (i+1));
 	 if (!flag.quiet->answer)
-		fprintf (stderr,"Opening output file [%s]\n", result_name);	 
+		G_message("Opening output file [%s]\n", result_name);	 
 	 result_cell[i] = Rast_allocate_c_buf();
-	 if ((resultfd[i] = Rast_open_c_new (result_name)) <0)
-	 {	 
-	 	fprintf (stderr, "Unable to proceed\n");
-		exit(1) ;
-	 }
+	 resultfd[i] = Rast_open_c_new (result_name)
     }
 
 

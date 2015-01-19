@@ -15,7 +15,7 @@
  *       ISBN 0 7315 1900 0
  *****/
 
-#define GLOBAL
+
 #define MY_PI 3.141592653589793
 
 #include <stdio.h>
@@ -42,7 +42,7 @@ float spectral_angle() /* returns spectral angle*/
 
 
   VEC *vtmp1;
-      double norm1, norm2, norm3;
+  double norm1, norm2, norm3;
         
   /* Measure spectral angle*/
 

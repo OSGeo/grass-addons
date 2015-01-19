@@ -2,33 +2,29 @@
 #include <grass/imagery.h>
 #include "matrix.h"
 
-#ifndef GLOBAL
-#define GLOBAL extern
-#endif
-
 #define MAXFILES 255
 
-GLOBAL MAT *A;
-GLOBAL VEC *b, *Avector;
-GLOBAL int matrixsize;
-GLOBAL float curr_angle;
+extern MAT *A;
+extern VEC *b, *Avector;
+extern int matrixsize;
+extern float curr_angle;
 
-GLOBAL char *group;
-GLOBAL struct Ref Ref;
+extern char *group;
+extern struct Ref Ref;
 
-GLOBAL CELL **cell;
-GLOBAL int *cellfd;
+extern CELL **cell;
+extern int *cellfd;
 
-GLOBAL CELL **result_cell;
-GLOBAL int *resultfd;
+extern CELL **result_cell;
+extern int *resultfd;
 
-GLOBAL CELL **error_cell;
-GLOBAL int  error_fd;
+extern CELL **error_cell;
+extern int  error_fd;
 
-GLOBAL char result_name[80];
-GLOBAL char *result_prefix, *matrixfile;
+extern char result_name[80];
+extern char *result_prefix, *matrixfile;
 
-GLOBAL struct
+extern struct
     {
      struct Flag *quiet;
     } flag;
