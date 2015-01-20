@@ -47,14 +47,14 @@ typedef	unsigned int	u_int;
 /* vector definition */
 typedef	struct	{
 		u_int	dim, max_dim;
-		Real	*ve;
+		RReal	*ve;
 		} VEC;
 
 /* matrix definition */
 typedef	struct	{
 		u_int	m, n;
 		u_int	max_m, max_n, max_size;
-		Real	**me,*base;	/* base is base of alloc'd mem */
+		RReal	**me,*base;	/* base is base of alloc'd mem */
 		} MAT;
 
 /* band matrix definition */
@@ -423,7 +423,7 @@ extern	VEC	*sv_mlt(double,VEC *,VEC *),	/* out <- s.x */
 		*v_map(double (*f)(),VEC *,VEC *), /* out[i] <- f(x[i]) */
 		*_v_map(double (*f)(),void *,VEC *,VEC *),
 #endif
-		*v_lincomb(int,VEC **,Real *,VEC *),   
+		*v_lincomb(int,VEC **,RReal *,VEC *),   
                                                  /* out <- sum_i s[i].x[i] */
                 *v_linlist(VEC *out,VEC *v1,double a1,...);
                                               /* out <- s1.x1 + s2.x2 + ... */
@@ -445,14 +445,14 @@ extern	VEC	*v_star(VEC *, VEC *, VEC *),
 /* returns inner product starting at component i0 */
 extern	double	_in_prod(VEC *x,VEC *y,u_int i0), 
                 /* returns sum_{i=0}^{len-1} x[i].y[i] */
-                __ip__(Real *,Real *,int);
+                __ip__(RReal *,RReal *,int);
 
 /* see v_mltadd(), v_add(), v_sub() and v_zero() */
-extern	void	__mltadd__(Real *,Real *,double,int),
-		__add__(Real *,Real *,Real *,int),
-		__sub__(Real *,Real *,Real *,int),
-                __smlt__(Real *,double,Real *,int),
-		__zero__(Real *,int);
+extern	void	__mltadd__(RReal *,RReal *,double,int),
+		__add__(RReal *,RReal *,RReal *,int),
+		__sub__(RReal *,RReal *,RReal *,int),
+                __smlt__(RReal *,double,RReal *,int),
+		__zero__(RReal *,int);
 
 #endif
 
@@ -593,7 +593,7 @@ double	square(double x), 	/* returns x^2 */
   mrand(void);                  /* returns random # in [0,1) */
 
 void	smrand(int seed),            /* seeds mrand() */
-  mrandlist(Real *x, int len);       /* generates len random numbers */
+  mrandlist(RReal *x, int len);       /* generates len random numbers */
 
 void    m_dump(FILE *fp,MAT *a), px_dump(FILE *,PERM *px),
         v_dump(FILE *fp,VEC *x), iv_dump(FILE *fp, IVEC *ix);

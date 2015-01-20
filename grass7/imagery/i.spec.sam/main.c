@@ -48,7 +48,7 @@ char *result_prefix, *matrixfile;
 
 int open_files();
 void spectral_angle();
-CELL myround (x);
+CELL myround(x);
 
 int main(argc,argv) 
 char *argv[];
@@ -58,7 +58,7 @@ char *argv[];
     int band;
     int i, j, error=0;
     VEC *svd_values;
-    char command[80];
+    /*char command[80]; rm by Yann temporarily see grayscale palette*/
     float anglefield[255][255];
     struct
     {

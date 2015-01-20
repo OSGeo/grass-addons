@@ -171,12 +171,12 @@ extern  VEC     *bdLUsolve(BAND *A,PERM *pivot,VEC *b,VEC *x),
 
 
 
-extern	VEC	*hhvec(VEC *,u_int,Real *,VEC *,Real *);
+extern	VEC	*hhvec(VEC *,u_int,RReal *,VEC *,RReal *);
 extern	VEC	*hhtrvec(VEC *,double,u_int,VEC *,VEC *);
 extern	MAT	*hhtrrows(MAT *,u_int,u_int,VEC *,double);
 extern	MAT	*hhtrcols(MAT *,u_int,u_int,VEC *,double);
 
-extern	void	givens(double,double,Real *,Real *);
+extern	void	givens(double,double,RReal *,RReal *);
 extern	VEC	*rot_vec(VEC *,u_int,u_int,double,double,VEC *); /* in situ */
 extern	MAT	*rot_rows(MAT *,u_int,u_int,double,double,MAT *); /* in situ */
 extern	MAT	*rot_cols(MAT *,u_int,u_int,double,double,MAT *); /* in situ */

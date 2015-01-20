@@ -121,7 +121,7 @@
 
 /* single precision */
 #ifdef REAL_FLT
-#define  Real float
+#define  RReal float
 #define  LongReal float
 #define REAL FLOAT
 #define LONGREAL FLOAT
@@ -129,7 +129,7 @@
 
 /* double precision */
 #ifdef REAL_DBL
-#define Real double
+#define RReal double
 #define LongReal double
 #define REAL DOUBLE
 #define LONGREAL DOUBLE
