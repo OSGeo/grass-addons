@@ -45,8 +45,6 @@ int  error_fd;
 char result_name[80];
 char *result_prefix, *matrixfile;
 
-struct Flag *flag_quiet;
-
 int open_files();
 void spectral_angle();
 CELL myround(x);
@@ -85,11 +83,6 @@ char *argv[];
     parm.result->type = TYPE_STRING;
     parm.result->required = YES;
     parm.result->description = "Raster map prefix to hold spectral angles";
-
-    flag_quiet = G_define_flag();
-    flag_quiet->key = 'q';
-    flag_quiet->description = "Run quietly";
-
 
     if (G_parser(argc,argv))
 	exit(1);
@@ -169,15 +162,12 @@ char *argv[];
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
-    if (!flag_quiet->answer)
-    	{
-	 fprintf (stderr, "Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
-	 fprintf (stderr, "%s ... ", G_program_name());
-	}
+    G_verbose_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
+    G_verbose_message("%s ... ", G_program_name());
+
     for (row = 0; row < nrows; row++)                 /* rows loop*/
     {
-	if (!flag_quiet->answer)
-	    G_percent(row, nrows, 2);
+	G_percent(row, nrows, 2);
 	for (band = 0; band < Ref.nfiles; band++)     /* get row for all bands*/
 	    Rast_get_c_row (cellfd[band], cell[band], row);
 
@@ -210,8 +200,7 @@ char *argv[];
 
     } /* rows loop */
 
-    if (!flag_quiet->answer)
-	G_percent(row, nrows, 2);
+    G_percent(row, nrows, 2);
 	
    /* close files */
     for (i = 0; i < Ref.nfiles; i++)
