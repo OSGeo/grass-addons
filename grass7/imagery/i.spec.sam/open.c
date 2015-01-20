@@ -36,7 +36,7 @@ int open_files()
     if ( A->m < A->n )
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
     G_verbose_message("Your spectral matrix = ");
-    if (G_verbose() == 3)
+    if (G_verbose() > G_verbose_std())
     {
 	m_output(A);
     }
