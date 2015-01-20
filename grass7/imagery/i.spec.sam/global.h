@@ -24,8 +24,5 @@ extern int  error_fd;
 extern char result_name[80];
 extern char *result_prefix, *matrixfile;
 
-extern struct
-    {
-     struct Flag *quiet;
-    } flag;
+extern struct Flag *flag_quiet;
                 

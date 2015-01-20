@@ -22,9 +22,10 @@
 #include "matrix.h"
 #include "matrix2.h"
 #include "local_proto.h"
-#include "grass/gis.h"
 #include "grass/raster.h"
 #include "grass/vector.h"
+#include "grass/glocale.h"
+#include "grass/gis.h"
 
 MAT *A;
 VEC *b, *Avector;
@@ -45,6 +46,8 @@ int  error_fd;
 
 char result_name[80];
 char *result_prefix, *matrixfile;
+
+struct Flag *flag_quiet;
 
 int open_files();
 void spectral_angle();
@@ -85,9 +88,9 @@ char *argv[];
     parm.result->required = YES;
     parm.result->description = "Raster map prefix to hold spectral angles";
 
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = "Run quietly";
+    flag_quiet = G_define_flag();
+    flag_quiet->key = 'q';
+    flag_quiet->description = "Run quietly";
 
 
     if (G_parser(argc,argv))
@@ -168,14 +171,14 @@ char *argv[];
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
-    if (!flag.quiet->answer)
+    if (!flag_quiet->answer)
     	{
 	 fprintf (stderr, "Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
 	 fprintf (stderr, "%s ... ", G_program_name());
 	}
     for (row = 0; row < nrows; row++)                 /* rows loop*/
     {
-	if (!flag.quiet->answer)
+	if (!flag_quiet->answer)
 	    G_percent(row, nrows, 2);
 	for (band = 0; band < Ref.nfiles; band++)     /* get row for all bands*/
 	    Rast_get_c_row (cellfd[band], cell[band], row);
@@ -209,7 +212,7 @@ char *argv[];
 
     } /* rows loop */
 
-    if (!flag.quiet->answer)
+    if (!flag_quiet->answer)
 	G_percent(row, nrows, 2);
 	
    /* close files */

@@ -35,7 +35,7 @@ int open_files()
     fclose (fp);
     if ( A->m < A->n )
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
-    if (!flag.quiet->answer)
+    if (!flag_quiet->answer)
     {
 	G_message("Your spectral matrix = ");
 	m_output(A);
@@ -73,7 +73,7 @@ int open_files()
 	cell[i] = Rast_allocate_c_buf();
 	name = Ref.file[i].name;
 	mapset = Ref.file[i].mapset;
-	if (!flag.quiet->answer)
+	if (!flag_quiet->answer)
 	    G_message("Opening input file no. %i [%s]\n", (i+1), name);
 	if ((cellfd[i] = Rast_open_old (name, mapset)) < 0)
 	    G_fatal_error("Unable to proceed\n");
@@ -84,11 +84,11 @@ int open_files()
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
     for (i=0; i < Ref.nfiles; i++)
     {
-	 sprintf(result_name, "%s.%d", result_prefix, (i+1));
-	 if (!flag.quiet->answer)
-		G_message("Opening output file [%s]\n", result_name);	 
-	 result_cell[i] = Rast_allocate_c_buf();
-	 resultfd[i] = Rast_open_c_new (result_name);
+	sprintf(result_name, "%s.%d", result_prefix, (i+1));
+	if (!flag_quiet->answer)
+	    G_message("Opening output file [%s]\n", result_name);	 
+	result_cell[i] = Rast_allocate_c_buf();
+	resultfd[i] = Rast_open_c_new (result_name);
     }
 
 
