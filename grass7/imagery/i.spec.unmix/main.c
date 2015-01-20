@@ -3,15 +3,15 @@
  *
  * MODULE:       i.spec.unmix
  *
- * AUTHOR(S):    Markus Neteler  <neteler osgeo.org>: Original GRASS 5 version
- *               Mohammed Rashad <rashadkm gmail.com> (update to GRASS 7)
+ * AUTHOR(S):    Markus Neteler  <neteler osgeo.org>: 1998, Original GRASS 5 version
+ *               Mohammed Rashad <rashadkm gmail.com>: 2012, update to GRASS 7
  *
  * PURPOSE:      Spectral mixture analysis of satellite/aerial images
  * 
  * Notes:        The original version was implemented with MESCHACH, the actual
  *               version is instead using BLAS/LAPACK via GMATHLIB.
  *               An error minimization approach is used instead of Single Value
- *               Decomposition (SVD) which is numerically unstable. See the
+ *               Decomposition (SVD) which is numerically unstable. See MN's
  *               related journal publication from 2005 for details.
  *
  * COPYRIGHT:    (C) 1999-2012 by the GRASS Development Team
@@ -45,8 +45,6 @@
 #include <grass/gmath.h>
 #include <grass/glocale.h>
 #include "global.h"
-
-#include "la_extra.h"
 
 
 #define GAMMA 10		/* last row value in Matrix and last b vector element
@@ -346,7 +344,7 @@ int main(int argc, char *argv[])
 	    /* solve with iterative solution: */
 	    while (fabs(change) > 0.0001) {
 
-		G_mat_vector_product(A_tilde, startvector,
+		G_matvect_product(A_tilde, startvector,
 				     A_times_startvector);
 
 		G_vector_sub(A_times_startvector, b_gamma, errorvector);
@@ -354,7 +352,7 @@ int main(int argc, char *argv[])
 		A_tilde_trans_mu =
 		    G_matrix_scalar_mul(mu, A_tilde_trans, A_tilde_trans_mu);
 
-		G_mat_vector_product(A_tilde_trans_mu, errorvector, temp);
+		G_matvect_product(A_tilde_trans_mu, errorvector, temp);
 		G_vector_sub(startvector, temp, startvector);	/* update startvector */
 
 		for (k = 0; k < A_tilde->cols; k++)
@@ -417,6 +415,7 @@ int main(int argc, char *argv[])
 
 	Rast_close(resultfd[i]);
 
+/* TODO: avoid system calls, use modern approach for setting colors */
 	/* make grey scale color table */
 	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
 	sprintf(command, "r.colors map=%s color=rules <<EOF\n"
