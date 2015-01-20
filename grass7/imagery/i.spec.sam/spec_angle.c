@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "matrix.h"
+#include <meschach/matrix.h>
 #include "global.h"
 
 

@@ -18,7 +18,7 @@
 #include <math.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include "matrix.h"
+#include <meschach/matrix.h>
 
 int open_files()
 {

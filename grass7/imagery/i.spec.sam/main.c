@@ -15,17 +15,15 @@
  *
  ********************************************************************/
              
-#include "global.h"
 #include <stdio.h>
 #include <strings.h>
 #include <math.h>
-#include "matrix.h"
-#include "matrix2.h"
-#include "local_proto.h"
-#include "grass/raster.h"
-#include "grass/vector.h"
-#include "grass/glocale.h"
 #include "grass/gis.h"
+#include "grass/raster.h"
+#include "local_proto.h"
+#include "global.h"
+#include <meschach/matrix.h>
+#include <meschach/matrix2.h>
 
 MAT *A;
 VEC *b, *Avector;

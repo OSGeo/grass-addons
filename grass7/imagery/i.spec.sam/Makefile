@@ -2,11 +2,10 @@ MODULE_TOPDIR = ../..
 
 PGM = i.spec.sam
 
-EXTRALIB = meschach.a
-LIBES     = $(IMAGERYLIB) $(GMATHLIB) $(RASTERLIB) $(GISLIB)  
+LIBES     = $(IMAGERYLIB) $(GMATHLIB) $(RASTERLIB) $(GISLIB) -lmeschach
 DEPENDENCIES= $(IMAGERYDEP) $(GMATHDEP) $(RASTERDEP) $(GISDEP)
 
-EXTRA_INC =  $(VECT_INC) $(PROJINC)
+EXTRA_INC =  -I/usr/include/meschach
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
