@@ -61,6 +61,10 @@
 #%  label: Import SRTM v2 tiles
 #%  description: Default: Import SRTM v3 tiles
 #%end
+#%flag
+#% key: 1
+#% description: Import 1-arcsec tiles (default: 3-arcsec)
+#%end
 
 
 proj = ''.join([
@@ -81,17 +85,23 @@ import time
 
 import grass.script as grass
 
-def import_local_tile(tile, local, pid, srtmv3):
+def import_local_tile(tile, local, pid, srtmv3, one):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
-        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+	if one:
+	    local_tile = str(tile) + '.SRTMGL1.hgt.zip'
+	else:
+	    local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
     
     path = os.path.join(local, local_tile)
     if os.path.exists(path):
 	path = os.path.join(local, local_tile)
-	grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
+	if one:
+	    grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
+	else:
+	    grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
 	return 1
 
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
@@ -100,15 +110,21 @@ def import_local_tile(tile, local, pid, srtmv3):
 
 	if os.path.exists(path):
 	    path = os.path.join(local, srtmdir, local_tile)
-	    grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
+	    if one:
+		grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
+	    else:
+		grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
 	    return 1
 
     return 0
 
-def download_tile(tile, url, pid, srtmv3):
+def download_tile(tile, url, pid, srtmv3, one):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
-        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+	if one:
+	    local_tile = str(tile) + '.SRTMGL1.hgt.zip'
+	else:
+	    local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
 
@@ -175,14 +191,23 @@ def main():
     memory = options['memory']
     fillnulls = flags['n']
     srtmv3 = (flags['2'] == 0)
+    one = flags['1']
 
+    res = '00:00:03'
     if srtmv3:
         fillnulls = 0
+	if one:
+	    res = '00:00:01'
+    else:
+	one = None
         
     if len(local) == 0:
     	if len(url) == 0:
     	    if srtmv3:
-		url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/'
+		if one:
+		    url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/'
+		else:
+		    url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/'
 	    else:
 		url = 'http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/'
 
@@ -283,11 +308,11 @@ def main():
 	    grass.debug("Tile: %s" % tile, debug = 1)
 	    
 	    if local != tmpdir:
-		gotit = import_local_tile(tile, local, pid, srtmv3)
+		gotit = import_local_tile(tile, local, pid, srtmv3, one)
 	    else:
-		gotit = download_tile(tile, url, pid, srtmv3)
+		gotit = download_tile(tile, url, pid, srtmv3, one)
 		if gotit == 1:
-		    gotit = import_local_tile(tile, tmpdir, pid, srtmv3)
+		    gotit = import_local_tile(tile, tmpdir, pid, srtmv3, one)
 	    if gotit == 1:
 		grass.verbose(_("Tile %s successfully imported") % tile)
 		valid_tiles += 1
@@ -314,7 +339,7 @@ def main():
 		else:
 		    tmpw = '%03d:59:58.5E' % (edeg - 1)
 
-		grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = '00:00:03')
+		grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = res)
 		grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
 		grass.run_command('g.region', region = tmpregionname)
 
