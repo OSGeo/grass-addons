@@ -196,13 +196,13 @@ def main():
                       input=tmp_region_map,
                       output=isochrones,
                       type='area',
-                      column='time')
+                      column='traveltime')
 
     # give the polygons a default color table
     grass.run_command('v.colors',
                       map=isochrones,
                       use='attr',
-                      column='time',
+                      column='traveltime',
                       color='grey')
 
 if __name__ == "__main__":
