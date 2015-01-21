@@ -19,6 +19,7 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <meschach/matrix.h>
+#include <grass/gmath.h>
 
 int open_files()
 {
@@ -33,6 +34,10 @@ int open_files()
     	G_fatal_error("ERROR: Matrixfile %s not found.\n",matrixfile);
     A = m_finput(fp, MNULL);
     fclose (fp);
+    
+    /*IF GRASS/GMATH.H
+    if(A->rows < A->cols)
+   */
     if ( A->m < A->n )
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
     G_verbose_message("Your spectral matrix = ");
@@ -41,7 +46,9 @@ int open_files()
 	m_output(A);
     }
     matrixsize = A->n;
-
+    /*IF GRASS/GMATH.H
+    matrixsize=A->cols;
+   */
 /* open input files from group */
     if (!I_find_group(group))
     {

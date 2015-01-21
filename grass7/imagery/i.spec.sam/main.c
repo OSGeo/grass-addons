@@ -18,8 +18,9 @@
 #include <stdio.h>
 #include <strings.h>
 #include <math.h>
-#include "grass/gis.h"
-#include "grass/raster.h"
+#include <grass/gis.h>
+#include <grass/raster.h>
+/*#include <grass/gmath.h>*/
 #include "local_proto.h"
 #include "global.h"
 #include <meschach/matrix.h>
