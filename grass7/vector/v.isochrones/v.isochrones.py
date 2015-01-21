@@ -130,7 +130,7 @@ def main():
     resolution = math.sqrt(float(region['nsres']) * float(region['ewres']))
 
     # add cost column to road vector
-    cost_column = 'temp%d' % os.getpid()
+    cost_column = 'tmp%d' % os.getpid()
     def_cost_column = cost_column + ' DOUBLE PRECISION'
     grass.run_command('v.db.addcolumn',
                       map=roads,
