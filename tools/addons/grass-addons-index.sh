@@ -50,23 +50,27 @@ See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/lo
 <p>
 <hr> <ul>" > index.html
 
-    ls -1 *.html | sed 's/^/\<li style=\"margin-left: 20px\"\>\<a href=/g' | sed 's/$/\>/g' > /tmp/a.$TMP
+    ls -1 *.html | sed 's+^+<li style="margin-left: 20px"><a href=+g' | sed 's+$+>+g' > /tmp/a.$TMP
 
-    ls -1 *.html | sed 's/\.html$/\<\/a\>\<\/li\>/g' > /tmp/b.$TMP
-
-    echo "</ul>" >> index.html
+    ls -1 *.html | sed 's+\.html$+</a>: +g' > /tmp/b.$TMP
 
 # get one-line perhaps like this:
-## awk '/NAME/,/KEYWORDS/' | grep ' - ' *.html
+## ls -1 *.html | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2-
 
 # size
 # ls -sh *.html | sed 's/^\ //g' | grep -v total | cut -d' ' -f1 | sed 's/$/\<br\>/g'> /tmp/c.$TMP
 # paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
+    
+    awk '/NAME/,/KEYWORDS/'  *.html | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1  > /tmp/c.$TMP
 
-    paste -d' ' /tmp/a.$TMP /tmp/b.$TMP >> index.html
+    ls -1 *.html | sed 's+>$+></li>+g' > /tmp/d.$TMP
+
+    paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP /tmp/d.$TMP >> index.html
+
+    echo "</ul>" >> index.html
 
     echo "<hr>
-&copy; 2013-2014 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
+&copy; 2013-2015 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
     rm -f /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP
