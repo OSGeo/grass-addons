@@ -60,12 +60,19 @@ See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/lo
 # paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
     
     # get one-line description:
-    awk '/NAME/,/KEYWORDS/'  *.html | grep ' - ' | cut -d'-' -f2- | cut -d'.' -f1 | cut -d'<' -f1 | sed 's+>$+></li>+g'  > /tmp/c.$TMP
+    # let's be robust against missing keywords in a few HTML pages
+    for currfile in `ls -1 *.html | grep -v index.html` ; do
+        grep 'KEYWORDS' $currfile 2> /dev/null > /dev/null
+        if [ $? -eq 0 ] ; then
+           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'.' -f1 | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/c.$TMP
+        else
+           echo "" >> /tmp/c.$TMP
+        fi
+    done
 
     paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
 
     echo "</ul>" >> index.html
-
     echo "<hr>
 &copy; 2013-2015 <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
@@ -77,3 +84,4 @@ generate 7 0
 generate 6 4
 
 exit 0
+
