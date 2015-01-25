@@ -51,22 +51,18 @@ See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/lo
 <p>
 <hr> <ul>" > index.html
 
-    ls -1 *.html | sed 's+^+<li style="margin-left: 20px"><a href=+g' | sed 's+$+>+g' > /tmp/a.$TMP
+    ls -1 *.html | grep -v index.html | sed 's+^+<li style="margin-left: 20px"><a href=+g' | sed 's+$+>+g' > /tmp/a.$TMP
 
-    ls -1 *.html | sed 's+\.html$+</a>: +g' > /tmp/b.$TMP
-
-# get one-line perhaps like this:
-## ls -1 *.html | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2-
+    ls -1 *.html | grep -v index.html | sed 's+\.html$+</a>: +g' > /tmp/b.$TMP
 
 # size
 # ls -sh *.html | sed 's/^\ //g' | grep -v total | cut -d' ' -f1 | sed 's/$/\<br\>/g'> /tmp/c.$TMP
 # paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
     
-    awk '/NAME/,/KEYWORDS/'  *.html | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1  > /tmp/c.$TMP
+    # get one-line description:
+    awk '/NAME/,/KEYWORDS/'  *.html | grep ' - ' | cut -d'-' -f2- | cut -d'.' -f1 | cut -d'<' -f1 | sed 's+>$+></li>+g'  > /tmp/c.$TMP
 
-    ls -1 *.html | sed 's+>$+></li>+g' > /tmp/d.$TMP
-
-    paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP /tmp/d.$TMP >> index.html
+    paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
 
     echo "</ul>" >> index.html
 
