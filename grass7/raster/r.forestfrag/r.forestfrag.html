@@ -22,13 +22,13 @@ given a pixel of forest, its neighbor is also forest. The
 classification model identifies six fragmentation categories: 
 
 <ol start="0">
-<li>No forest</li>
-<li>interior:\t\tfor which Pf = 1.0</li>
-<li>patch:\t\tPf < 0.4</li>
-<li>transitional:\t\t0.4 < Pf < 0.6</li>
-<li>edge:\t\tPf > 0.6 and Pf - Pff < 0</li>
-<li>perforated:\t\tPf > 0.6 and Pf - Pff > 0</li>
-<li>undetermined:\t\tPf > 0.6 and Pf = Pff</li>
+<li><em>No forest</em></li>
+<li><em>interior</em>: for which Pf = 1.0</li>
+<li><em>patch</em>: Pf < 0.4</li>
+<li><em>transitional</em>: 0.4 < Pf < 0.6</li>
+<li><em>edge</em>: Pf > 0.6 and Pf - Pff < 0</li>
+<li><em>perforated</em>: Pf > 0.6 and Pf - Pff > 0</li>
+<li><em>undetermined</em>: Pf > 0.6 and Pf = Pff</li>
 </ol>
 
 <h2>NOTES</h2> 
@@ -42,6 +42,7 @@ can choose to have the output raster trimmed with a number of raster
 cells equal to 1/2 * the size of the moving window. </li>
 <li>The function respects the region. The user has however the option 
 to set the region to match the input layer.</li>
+</ul>
 
 <h2>SEE ALSO</h2>
 This addon is based on the 
@@ -50,11 +51,11 @@ script, with as extra options user-defined moving window size,
 option to trim the region (by default it respects the region).
 
 <h2>AUTHORS</h2> 
-<p><b>Emmanuel Sambale</b>: Author original script
-<p><b>Stefan Sylla</b>: Revised / updated the r.forestfrag.sh for 
-GRASS GIS 6
-<p><b>Paulo van Breugel</b>: Rewritten in Python 
-for use with GRASS GIS 7.0, and added extra options. 
+<p><em>Emmanuel Sambale</em>: Author original script<br>
+<em>Stefan Sylla</em>: Revised / updated the r.forestfrag.sh for 
+GRASS GIS 6<br>
+<em>Paulo van Breugel</em>: Rewritten in Python 
+for use with GRASS GIS 7, and added extra options. 
 Contact: paulo at ecodiv.org
 
 <h2>REFERENCES</h2> 
