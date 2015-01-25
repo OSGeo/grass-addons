@@ -14,7 +14,7 @@
 #############################################################################
 
 #%module
-#% description: Reclassify points of a LiDAR point cloud as ground / non-ground sing a multiscale curvature based classification algorithm.
+#% description: Reclassifies points of a LiDAR point cloud as ground / non-ground sing a multiscale curvature based classification algorithm.
 #% keyword: vector
 #% keyword: lidar
 #% keyword: classification

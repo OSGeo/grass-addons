@@ -16,7 +16,8 @@ except ImportError:
 ################## guisection: required ##################
 ##########################################################
 #%module
-#% description: Module for linking time-windows to vector link map 
+#% description: Links time-windows to vector link map.
+#% keyword: vector
 #%end
 
 

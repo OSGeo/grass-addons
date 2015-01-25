@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("export"));
     G_add_keyword(_("ply"));
     module->description =
-	_("Exports a vector map to a GRASS ASCII vector representation.");
+	_("Exports a vector map to a PLY file.");
 
     parse_args(argc, argv, &input, &output, &format, &dp, 
 	       &field_name, &columns, &region);

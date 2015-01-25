@@ -14,7 +14,7 @@
 #
 #############################################################################
 #%module
-#% description: Return the barycenter of a cloud of point.
+#% description: Imports data from Geopaparazzi database.
 #% keyword: vector
 #%end
 #%flag

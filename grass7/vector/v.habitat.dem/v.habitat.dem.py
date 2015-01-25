@@ -15,7 +15,7 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 """
 
 #%module
-#% description: DEM derived characteristics of habitats
+#% description: Calculates DEM derived characteristics of habitats.
 #% keyword: vector
 #% keyword: raster
 #% keyword: terrain
