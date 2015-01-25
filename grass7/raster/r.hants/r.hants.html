@@ -80,7 +80,8 @@ the charachter | must be used.
 
 <h2>EXAMPLE</h2>
 
-This small example is based on a climate dataset for North Carolina which
+<h3>Precipitation data example</h3>
+This small example is based on a climatic dataset for North Carolina which
 was from publicly available data (monthly temperature averages and monthly
 precipitation sums from 2000 to 2012, downloadable as
 <a href="http://courses.ncsu.edu/mea592/common/media/02/nc_climate_spm_2000_2012.zip">GRASS GIS 7 location</a>):
@@ -161,6 +162,27 @@ paste -d'|' time_series_orig.csv time_series_hants.csv | \
       cut -d'|' -f1,2,4,8 >> time_series_final.csv
 
 # Resulting CSV file: 'time_series_final.csv'
+</pre></div>
+
+<h3>Using t.* modules to check for basic statistics</h3>
+
+The temporal framework (t.* modules) can be used to assess basic statistics:
+
+<div class="code"><pre>
+# create spatio temporal data set with hants output maps
+t.create type=strds temporaltype=absolute  output=tempmean_hants \
+  title="Mean Temperature HANTS" description="Mean Temperature reconstructed with HANTS"
+
+# register maps in the strds
+t.register -i type=raster input=tempmean_hants \
+  maps=`g.list raster pattern=*tempmean_hants sep=,` start="2000-01-01" \
+  increment="1 months"
+
+# getting general info of the strds (including max and min of the whole series)
+t.info type=strds input=tempmean_hants
+
+# getting statistics for each map in the series
+t.rast.univar -h tempmean_hants > stats_hants.txt
 </pre></div>
 
 <h2>SEE ALSO</h2>
