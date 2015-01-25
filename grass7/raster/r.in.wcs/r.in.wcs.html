@@ -1,63 +1,15 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.in.wcs.py</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
+<h2>DESCRIPTION</h2>
 
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+<em>r.in.wcs.py</em>  downloads and imports coverage from WCS server.
 
-<h2>NAME</h2>
-<em><b>r.in.wcs.py</b></em>  - Downloads and imports coverage from WCS server.
-<h2>SCHLÜSSELWÖRTER</h2>
-OGC web services
-<h2>SYNOPSIS</h2>
-<b>r.in.wcs.py</b><br>
-<b>r.in.wcs.py help</b><br>
-<b>r.in.wcs.py</b> [-<b>c</b>] <b>url</b>=<em>string</em>  [<b>coverage</b>=<em>string</em>]   [<b>urlparams</b>=<em>string</em>]   [<b>username</b>=<em>string</em>]   [<b>password</b>=<em>string</em>]   [<b>output</b>=<em>string</em>]   [<b>location</b>=<em>string</em>]   [<b>region</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+<h2>SEE ALSO</h2>
 
-<h3>Flags:</h3>
-<DL>
-<DT><b>-c</b></DT>
-<DD>Get the server capabilities then exit</DD>
+<em>
+<a href="r.in.wms.html">r.in.wms</a>
+</em>
 
-<DT><b>--overwrite</b></DT>
-<DD>Ausgabedateien dürfen bereits existierende Dateien überschreiben.</DD>
-<DT><b>--verbose</b></DT>
-<DD>Ausführlicher Ausgabemodus</DD>
-<DT><b>--quiet</b></DT>
-<DD>Schweigsamer Ausgabemodus</DD>
-</DL>
+<h2>AUTHOR</h2>
 
-<h3>Parameter:</h3>
-<DL>
-<DT><b>url</b>=<em>string</em></DT>
-<DD>Service URL (typically http://.../mapserv? )</DD>
-<DD>Standardwert: <em>http://...?</em></DD>
+Martin Zbinden
 
-<DT><b>coverage</b>=<em>string</em></DT>
-<DD>Coverage name to request</DD>
-
-<DT><b>urlparams</b>=<em>string</em></DT>
-<DD>Additional query parameters to pass to the server</DD>
-
-<DT><b>username</b>=<em>string</em></DT>
-<DD>Username for server connection</DD>
-
-<DT><b>password</b>=<em>string</em></DT>
-<DD>Password for server connection</DD>
-
-<DT><b>output</b>=<em>string</em></DT>
-<DD>Name for output raster map (default: coveragename)</DD>
-
-<DT><b>location</b>=<em>string</em></DT>
-<DD>Name der neu zu erstellenden Location.</DD>
-
-<DT><b>region</b>=<em>string</em></DT>
-<DD>Name for region instead of current region</DD>
-
-</DL>
-</body>
-</html>
+<p><i>Last changed: $Date$</i>

@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
     module = G_define_module();
     G_add_keyword(_("Potential ET"));
-    G_add_keyword(_("Evapotranspiration"));
+    G_add_keyword(_("evapotranspiration"));
     module->description =
 	_("Potential evapotranspiration, radiative method after Bastiaanssen (1995)");
 

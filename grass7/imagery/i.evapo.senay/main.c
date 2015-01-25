@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("Actual ET"));
-    G_add_keyword(_("Evapotranspiration"));
+    G_add_keyword(_("evapotranspiration"));
     G_add_keyword(_("Senay"));
     module->description =
 	_("Actual evapotranspiration, method after Senay (2007)");
