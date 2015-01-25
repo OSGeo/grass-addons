@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("landslide"));
     G_add_keyword(_("model"));
     module->description =
-	_("Estimation of run-out and deposition of landslide phenomena over a complex topography");
+	_("Estimates run-out and deposition of landslide phenomena over a complex topography.");
 
     /* define the different options */
 

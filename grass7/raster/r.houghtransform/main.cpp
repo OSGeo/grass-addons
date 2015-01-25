@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     G_add_keyword(_("raster"));
-    G_add_keyword(_("hought"));
-    G_add_keyword(_("ht"));
+    G_add_keyword(_("Hough"));
+    G_add_keyword(_("imagery"));
     module->description =
-            _("Perform Hough transformation and extracts line segments from image."
+            _("Performs Hough transformation and extracts line segments from image."
               " Region shall be set to input map."
               " Can work only on small images since map is loaded into memory.");
 

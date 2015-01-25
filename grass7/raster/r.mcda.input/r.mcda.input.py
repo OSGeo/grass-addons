@@ -15,7 +15,7 @@
 
 
 #%Module
-#% description: Generate a raster map classified with Dominance Rough Set Approach. Use *.rls file from JAMM, 4eMka2 etc.
+#% description: Generates a raster map classified with Dominance Rough Set Approach. Use *.rls file from JAMM, 4eMka2 etc.
 #% keyword: raster
 #% keyword: Dominance Rough Set Approach
 #% keyword: Multi Criteria Decision Analysis (MCDA)

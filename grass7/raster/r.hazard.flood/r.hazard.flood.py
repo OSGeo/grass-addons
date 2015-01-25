@@ -17,8 +17,9 @@
 #############################################################################
 
 #%module
-#% description: Fast procedure to detect flood prone areas
+#% description: Fast procedure to detect flood prone areas.
 #% keyword: raster
+#% keyword: hydrology
 #%end
 #%option
 #% key: map
