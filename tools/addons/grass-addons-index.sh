@@ -17,7 +17,8 @@ generate () {
 
     TMP=$$
 
-    echo "<html>
+    echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
+<html>
 <head>
  <title>GRASS GIS ${major} Addons Manual pages</title>
  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
@@ -70,7 +71,7 @@ See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/lo
     echo "</ul>" >> index.html
 
     echo "<hr>
-&copy; 2013-2015 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
+&copy; 2013-2015 <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
     rm -f /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP
