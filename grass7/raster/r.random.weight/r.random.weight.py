@@ -3,7 +3,7 @@
 
 ##############################################################################
 #
-# MODULE:       r.rand.weight
+# MODULE:       r.random.weight
 # AUTHOR(S):    paulo van Breugel <paulo at ecodiv.org>
 # PURPOSE:      Create a layer with weighted random sample
 # COPYRIGHT: (C) 2014 Paulo van Breugel
@@ -16,9 +16,10 @@
 ##############################################################################
 
 #%module
-#% description: Weighted sample
+#% description: Generates a binary raster layer with a random selection of raster cells depending on the weight of each cell in the input weight layer.
 #% keyword: raster
-#% keyword: sample
+#% keyword: sampling
+#% keyword: random
 #%end
 
 #%option

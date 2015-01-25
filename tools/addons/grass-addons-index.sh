@@ -64,7 +64,7 @@ See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/lo
     for currfile in `ls -1 *.html | grep -v index.html` ; do
         grep 'KEYWORDS' $currfile 2> /dev/null > /dev/null
         if [ $? -eq 0 ] ; then
-           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'.' -f1 | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/c.$TMP
+           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/c.$TMP
         else
            echo "" >> /tmp/c.$TMP
         fi

@@ -16,7 +16,7 @@
 #############################################################################
 
 #%Module
-#% description: Vector stats
+#% description: Calculates vector statistics
 #% keyword: vector
 #% keyword: statistics
 #% keyword: shape

@@ -4,7 +4,6 @@
 # MODULE:       r.width.funct
 #
 # AUTHOR(S):    Massimo Di Stefano, Francesco Di Stefano, Margherita Di Leo 
-#               
 #
 # PURPOSE:      The module produces the Width Function of a basin. The Width 
 #               Function W(x) gives the number of the cells in a basin at a 
@@ -22,8 +21,9 @@
 #
 ################################################################################
 #%module
-#% description: 
+#% description: Calculates the Width Function of a watershed basin.
 #% keyword: raster
+#% keyword: hydrology
 #%end
 
 #%option G_OPT_R_INPUT
