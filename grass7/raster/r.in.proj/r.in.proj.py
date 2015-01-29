@@ -138,12 +138,6 @@ def main():
     srcgisrc = None
     gisdbase = None
 
-    # make sure current location is not xy
-    if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
-        grass.fatal(_("The current location is a XY location (unprojected)"))
-        sys.exit(1)
-        
-
     GDALdatasource = None
     if options['input_file']:
         GDALdatasource = options['input_file']

@@ -94,11 +94,9 @@ def main():
     srcgisrc = None
     gisdbase = None
 
-    # make sure current location is not xy
-    if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
-        grass.fatal(_("The current location is a XY location (unprojected)"))
-        sys.exit(1)
-        
+    vflags = None
+    if options['extents'] == 'region':
+        vflags = 'r'
 
     OGRdatasource = None
     if options['input_file']:
@@ -110,29 +108,13 @@ def main():
     if not OGRdatasource:
         grass.fatal(_("Either option 'input_file' or option 'input_directory' must be given"))
 
-    # TODO: check if input is a dataset recognized by OGR */
-
-    # try v.in.ogr directly
-    vflags = None
-    if options['extents'] == 'region':
-        vflags = 'r'
-    grass.message(_("Trying direct import of <%s>...") % OGRdatasource) 
-    ps = grass.start_command('v.in.ogr', input = OGRdatasource,
-                            layer = layers, output = output, flags = vflags)
-    returncode = ps.wait()
-    
-    # if it succeeds, return
-    if returncode == 0:
-        grass.message(_("Input <%s> successfully imported without reprojection") % OGRdatasource) 
-        sys.exit(0)
-
     grassenv = grass.gisenv()
     tgtloc = grassenv['LOCATION_NAME']
     tgtmapset = grassenv['MAPSET']
     gisdbase = grassenv['GISDBASE']
     tgtgisrc = os.environ['GISRC']
     srcgisrc = grass.tempfile()
-
+    
     tmploc = 'temp_import_location_' + str(os.getpid())
 
     f = open(srcgisrc, 'w')
@@ -143,47 +125,10 @@ def main():
     f.write('GUI: text\n')
     f.close()
 
-    grass.message(_("Importing <%s> ...") % OGRdatasource)
-    if options['extents'] == 'input':
-    
-        # v.in.ogr with location=temp location
-        ps = grass.start_command('v.in.ogr', input = OGRdatasource,
-                                 layer = layers, output = output,
-                                 location = tmploc, verbose = True)
-        returncode = ps.wait()
-        
-        # if it fails, return
-        if returncode != 0:
-            grass.fatal(_("Unable to import OGR datasource <%s>") % OGRdatasource)
-            sys.exit(1)
+    tgtsrs = grass.read_command('g.proj', flags = 'j', quiet = True)
 
-        # switch to temp location
-        os.environ['GISRC'] = str(srcgisrc)
-
-        # make sure input is not xy
-        if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
-            grass.fatal(_("Coordinate reference system not available for input <%s>") % OGRdatasource)
-            sys.exit(1)
-
-        # switch to target location
-        os.environ['GISRC'] = str(tgtgisrc)
-
-        # v.proj
-        grass.message(_("Reprojecting <%s>...") % output)
-        ps = grass.start_command('v.proj', location = tmploc,
-                                 mapset = 'PERMANENT', input = output,
-                                 quiet = True)
-        returncode = ps.wait()
-        if returncode != 0:
-            grass.fatal(_("Unable to to reproject vector <%s>") % output)
-            sys.exit(1)
-
-        sys.exit(0)
-
-
-    # options['extents'] == 'region'
-
-    # create location
+    # create temp location from input without import
+    grass.message(_("Creating temporary location for <%s>...") % OGRdatasource) 
     ps = grass.start_command('v.in.ogr', input = OGRdatasource,
                              layer = layers, output = output,
                              location = tmploc, flags = 'i', quiet = True)
@@ -197,38 +142,71 @@ def main():
     # switch to temp location
     os.environ['GISRC'] = str(srcgisrc)
 
-    # make sure input is not xy
-    if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
-        grass.fatal(_("Coordinate reference system not available for input <%s>") % OGRdatasource)
-        sys.exit(1)
+    # compare source and target srs
+    insrs = grass.read_command('g.proj', flags = 'j', quiet = True)
 
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 
-    # v.in.region in tgt
-    vreg = 'vreg_' + str(os.getpid())
-    grass.run_command('v.in.region', output = vreg, quiet = True)
+    if insrs == tgtsrs:
+        # try v.in.ogr directly
+        grass.message(_("Importing <%s>...") % OGRdatasource) 
+        ps = grass.start_command('v.in.ogr', input = OGRdatasource,
+                                layer = layers, output = output,
+                                flags = vflags)
+        returncode = ps.wait()
+        
+        # if it succeeds, return
+        if returncode == 0:
+            grass.message(_("Input <%s> successfully imported without reprojection") % OGRdatasource) 
+            sys.exit(0)
+        else:
+            grass.fatal(_("Unable to import <%s>") % OGRdatasource)
+            sys.exit(1)
 
-    # reproject to src
-    # switch to temp location
-    os.environ['GISRC'] = str(srcgisrc)
-    ps = grass.start_command('v.proj', input = vreg, output = vreg, 
-                      location = tgtloc, mapset = tgtmapset, quiet = True)
-
-    returncode = ps.wait()
-
-    if returncode != 0:
-        grass.fatal(_("Unable to reproject to source location"))
+    # make sure target is not xy
+    if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
+        grass.fatal(_("Coordinate reference system not available for current location <%s>") % tgtloc)
         sys.exit(1)
     
-    # set region from region vector
-    grass.run_command('g.region', res = '1')
-    grass.run_command('g.region', vector = vreg)
+    # switch to temp location
+    os.environ['GISRC'] = str(srcgisrc)
 
+    # make sure input is not xy
+    if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
+        grass.fatal(_("Coordinate reference system not available for input <%s>") % GDALdatasource)
+        sys.exit(1)
+
+    if options['extents'] == 'region':
+        # switch to target location
+        os.environ['GISRC'] = str(tgtgisrc)
+
+        # v.in.region in tgt
+        vreg = 'vreg_' + str(os.getpid())
+        grass.run_command('v.in.region', output = vreg, quiet = True)
+
+        # reproject to src
+        # switch to temp location
+        os.environ['GISRC'] = str(srcgisrc)
+        ps = grass.start_command('v.proj', input = vreg, output = vreg, 
+                          location = tgtloc, mapset = tgtmapset, quiet = True)
+
+        returncode = ps.wait()
+
+        if returncode != 0:
+            grass.fatal(_("Unable to reproject to source location"))
+            sys.exit(1)
+        
+        # set region from region vector
+        grass.run_command('g.region', res = '1')
+        grass.run_command('g.region', vector = vreg)
+
+
+    # import into temp location
     grass.message(_("Importing <%s> ...") % OGRdatasource)
     ps = grass.start_command('v.in.ogr', input = OGRdatasource,
                              layer = layers, output = output,
-                             flags = 'r', verbose = True)
+                             flags = vflags, verbose = True)
 
     returncode = ps.wait()
     
@@ -240,8 +218,9 @@ def main():
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 
-    grass.run_command('g.remove', type = 'vector', name = vreg,
-                      flags = 'f', quiet = True)
+    if options['extents'] == 'region':
+        grass.run_command('g.remove', type = 'vector', name = vreg,
+                          flags = 'f', quiet = True)
 
     # v.proj
     grass.message(_("Reprojecting <%s>...") % output)
