@@ -55,10 +55,10 @@
 #% answer: 300
 #%end
 #%option G_OPT_R_OUTPUT
-#% required: no
+#% required: yes
 #% multiple: no
 #% key_desc: name
-#% description: Name for output raster map (default: same as 'input')
+#% description: Name for output raster map
 #% guisection: Output
 #%end
 #%option
@@ -92,6 +92,11 @@
 #%flag
 #% key: i
 #% description: Import and reproject (default: estimate resolution only)
+#% guisection: Output
+#%end
+#%flag
+#% key: n
+#% description: Do not perform region cropping optimization
 #% guisection: Output
 #%end
 
@@ -188,7 +193,7 @@ def main():
     # if it fails, return
     if returncode != 0:
         grass.fatal(_("Unable to import GDAL dataset <%s>") % GDALdatasource)
-        sys.exit(0)
+        sys.exit(1)
 
     f = open(srcgisrc, 'w')
     f.write('DEBUG: 0\n')
@@ -231,7 +236,7 @@ def main():
         outres = (region['ewres'] + region['nsres']) / 2.0
 
     rflags = None
-    if options['extents'] == 'input':
+    if flags['n']:
         rflags = 'n'
 
     for outfile in outfiles:
@@ -241,33 +246,33 @@ def main():
         e = region['e']
         w = region['w']
 
+        grass.use_temp_region()
+
         if options['extents'] == 'input':
             # r.proj -g
             try:
                 tgtextents = grass.read_command('r.proj', location = tmploc,
                                                 mapset = 'PERMANENT',
                                                 input = outfile, flags = 'g',
-                                                memory = memory)
+                                                memory = memory, quiet = True)
             except:
                 grass.fatal(_("Unable to get reprojected map extents"))
                 sys.exit(1)
             
-            srcregion = grass.parse_key_val(tgtextents, vsep = ' ')
+            srcregion = grass.parse_key_val(tgtextents, val_type = float, vsep = ' ')
             n = srcregion['n']
             s = srcregion['s']
             e = srcregion['e']
             w = srcregion['w']
             
-        grass.use_temp_region()
-
-        grass.run_command('g.region', n = n, s = s, e = e, w = w)
+            grass.run_command('g.region', n = n, s = s, e = e, w = w)
         
         # v.in.region in tgt
         vreg = 'vreg_' + str(os.getpid())
         grass.run_command('v.in.region', output = vreg, quiet = True)
-        
-        grass.del_temp_region()
 
+        grass.del_temp_region()
+        
         # reproject to src
         # switch to temp location
         os.environ['GISRC'] = str(srcgisrc)
@@ -275,7 +280,7 @@ def main():
                           location = tgtloc, mapset = tgtmapset, quiet = True)
         returncode = ps.wait()
         if returncode != 0:
-            grass.fatal(_("Unable to to reproject to source location"))
+            grass.fatal(_("Unable to reproject to source location"))
             sys.exit(1)
         
         # set region from region vector
@@ -297,6 +302,12 @@ def main():
         grass.message(_("Specified target resolution: %g") % outres)
 
         if do_import:
+
+            if options['extents'] == 'input':
+                grass.use_temp_region()
+                grass.run_command('g.region', n = n, s = s, e = e, w = w)
+
+
             # r.proj
             grass.message(_("Reprojecting <%s>...") % outfile)
             ps = grass.start_command('r.proj', location = tmploc,
@@ -312,6 +323,8 @@ def main():
                 grass.fatal(_("The reprojected raster <%s> is empty") % outfile)
                 sys.exit(1)
 
+            if options['extents'] == 'input':
+                grass.del_temp_region()
 
     if do_import:
         if group:
