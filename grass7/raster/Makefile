@@ -42,6 +42,7 @@ SUBDIRS = \
 	r.hydrodem \
 	r.hypso \
 	r.in.arc \
+	r.in.proj \
 	r.in.srtm.region \
 	r.in.wcs \
 	r.lake.series \
