@@ -210,7 +210,6 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
     for (r = 0; r < nrows; ++r) {
 	G_percent(r, nrows, 4);
 	for (c = 0; c < ncols; ++c) {
-
 	    Segment_get(streams, &streams_cell, r, c);
 	    if (streams_cell > 0) {
 		if (outlets_num > 6 * (out_max - 1))

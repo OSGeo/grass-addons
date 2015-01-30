@@ -36,7 +36,7 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
     POINT n_cell;
     double cur_dist = 0;
     double tmp_dist = 0;
-    double target_elev;		/* eleavation at stream or outlet */
+    double target_elev;		/* elevation at stream or outlet */
     double easting, northing;
     double cell_easting, cell_northing;
     struct Cell_head window;
@@ -52,6 +52,8 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
 	target_elev = elevation[r][c];
 	elevation[r][c] = 0.;
     }
+    else
+	Rast_set_d_null_value(&target_elev, 1);
 
     while (tail != head) {
 	easting = window.west + (c + .5) * window.ew_res;

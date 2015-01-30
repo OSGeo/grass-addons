@@ -135,8 +135,8 @@ int seg_calculate_cell(SEGMENT *output, int number_of_streams,
 {
     int r, c;
     int i, j, k;
-    double output_cell;
     STREAM *SA;
+    double output_cell;
 
     SA = stream_attributes;
 
@@ -185,7 +185,7 @@ int seg_calculate_difference(SEGMENT *output, int number_of_streams,
 {
     int r, c;
     int i, j;
-    double output_cell;
+    double result;
     STREAM *SA;
 
     SA = stream_attributes;
@@ -194,12 +194,12 @@ int seg_calculate_difference(SEGMENT *output, int number_of_streams,
 
 	for (j = 1; j < SA[i].number_of_cells - 1; ++j) {
 	    /* what if any elevation is -99999 ? */
-	    output_cell = downstream ?
+	    result = downstream ?
 		SA[i].elevation[j - 1] - SA[i].elevation[j] :
 		SA[i].elevation[j] - SA[i].elevation[j + 1];
 	    r = (int)SA[i].points[j] / ncols;
 	    c = (int)SA[i].points[j] % ncols;
-	    Segment_put(output, &output_cell, r, c);
+	    Segment_put(output, &result, r, c);
 	}
     }
 
@@ -244,8 +244,8 @@ int seg_calculate_drop(SEGMENT *output, int number_of_streams,
     int r, c;
     int i, j;
     double init;
-    double output_cell;
     STREAM *SA;
+    double output_cell;
 
     SA = stream_attributes;
 
@@ -317,9 +317,9 @@ int seg_calculate_gradient(SEGMENT *output, int number_of_streams,
     int r, c;
     int i, j;
     double init;
-    double output_cell;
     double cum_length;
     STREAM *SA;
+    double output_cell;
 
     SA = stream_attributes;
 
@@ -384,8 +384,8 @@ int seg_calculate_local_gradient(SEGMENT *output, int number_of_streams,
     int r, c;
     int i, j;
     double elev_diff;
-    double output_cell;
     STREAM *SA;
+    double output_cell;
 
     G_debug(3, "seg_calculate_local_gradient(): downstream=%d", downstream);
     SA = stream_attributes;
@@ -433,8 +433,8 @@ int seg_calculate_local_distance(SEGMENT *output, int number_of_streams,
 {
     int r, c;
     int i, j;
-    double output_cell;
     STREAM *SA;
+    double output_cell;
 
     G_debug(3, "seg_calculate_local_distance(): downstream=%d", downstream);
     SA = stream_attributes;
@@ -490,9 +490,9 @@ int seg_calculate_curvature(SEGMENT *output, int number_of_streams,
 {
     int r, c;
     int i, j;
-    double output_cell;
     STREAM *SA;
     double first_derivative, second_derivative;
+    double output_cell;
 
     G_debug(3, "seg_calculate_curvature(): downstream=%d", downstream);
     SA = stream_attributes;

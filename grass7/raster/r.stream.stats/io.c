@@ -53,6 +53,7 @@ int ram_read_map(MAP * map, char *input_map_name, int check_res,
      * map pointer to map structure (created with create_map);
      * check_res: [1]: check res correspondence between region and map [0 no check];
      * check_data_type [CELL, FCELL, DCELL] check if reading map is of particular type, [-1] no check;
+     * nullval: value to use as NULL value
      */
 
     int r, c;
@@ -395,6 +396,7 @@ int seg_read_map(SEG * seg, char *input_map_name, int check_res,
      * seg: pointer to map structure (created with create_map);
      * check_res: [1]: check res correspondence between region and map [0 no check];
      * check_data_type [CELL, FCELL, DCELL] check if reading map is of particular type, [-1] no check;
+     * nullval: value to use as NULL value
      */
 
     int input_fd;
