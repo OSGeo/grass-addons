@@ -319,7 +319,7 @@ def main():
     proc = {}
     for i in range(n):
 	cost_site_name = tmp_base + 'cost_site.' + '%05d' % (i+1)
-        grass.run_command('g.remove', flags = 'f', rast = cost_site_name, quiet = True)
+        grass.run_command('g.remove', flags='f', type='raster', name=cost_site_name, quiet=True)
         grass.run_command('g.rename', raster = cost_site_name + '.cleansed'
                           + ',' + cost_site_name, quiet = True)
 
@@ -457,8 +457,8 @@ def main():
         proc[i].wait()
 
     # free up disk space ASAP
-    grass.run_command('g.remove', flags = 'f',
-    		      rast = tmp_base + '1by_cost_site_sq.*', quiet = True)
+    grass.run_command('g.remove', flags='f', type='raster',
+    		      pattern=tmp_base + '1by_cost_site_sq.*', quiet=True)
     #grass.run_command('g.list', type = 'raster', mapset = '.')
 
 
