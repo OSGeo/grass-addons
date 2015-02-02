@@ -657,7 +657,7 @@ def main():
 	
 	########### Looping over nrun, over segements, over source points ##########
 	
-	if str(options['statistical_interval']) == ("no" or "Random Value within Confidence Interval"):
+	if str(options['statistical_interval']) == "no" or str(options['statistical_interval']) == "Random Value within Confidence Interval":
 		nrun = ['fit']
 	else:
 		nrun = ['fit','lwr','upr']
@@ -1002,7 +1002,7 @@ def main():
 
 					RealisedDensity = garray.array()
 					if options['seed2']:
-						numpy.random.seed(seed=int(options['seed2']))
+						numpy.random.seed(int(options['seed2']))
 					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
 										
 					RealisedDensity.write("realised_density_"+str(cat))
