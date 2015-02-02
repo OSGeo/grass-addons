@@ -149,11 +149,19 @@
 #% guisection: Optional
 #%End
 #%Option
-#% key: seed
+#% key: seed1
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: fixed seed for generating dispersal parameters and for multinomial realisation step
+#% description: fixed seed for generating dispersal parameters
+#% guisection: Optional
+#%End
+#%Option
+#% key: seed2
+#% type: integer
+#% required: no
+#% multiple: no
+#% description: fixed seed for multinomial realisation step
 #% guisection: Optional
 #%End
 #%Option
@@ -175,7 +183,7 @@
 #% key_desc: name
 #% description: Statistical Intervals
 #% guisection: Output
-#% options:no,Confidence Interval,Prediction Interval
+#% options:no,Confidence Interval,Prediction Interval,Random Value within Confidence Interval
 #% answer:no
 #%end
 
@@ -188,6 +196,7 @@ import time
 import sqlite3
 import math #for function sqrt()
 import csv
+import random
 
 # import required grass modules
 import grass.script as grass
@@ -326,8 +335,8 @@ def main():
 
 	##### Calculating 'fishmove' depending on species or L & AR
 	#Set fixed seed if specified
-	if options['seed']:
-		seed = ",seed="+str(options['seed'])
+	if options['seed1']:
+		seed = ",seed="+str(options['seed1'])
 	else:
 		seed = ""
 
@@ -648,7 +657,7 @@ def main():
 	
 	########### Looping over nrun, over segements, over source points ##########
 	
-	if str(options['statistical_interval']) == "no":
+	if str(options['statistical_interval']) == ("no" or "Random Value within Confidence Interval"):
 		nrun = ['fit']
 	else:
 		nrun = ['fit','lwr','upr']
@@ -711,8 +720,20 @@ def main():
 				SO = 'SO='+str(Strahler)
 				grass.debug(_("This is i:"+str(i)))
 				grass.debug(_("This is "+str(SO)))
-				sigma_stat = fishmove.rx(i,'sigma_stat',1,1,SO,1)
-				sigma_mob = fishmove.rx(i,'sigma_mob',1,1,SO,1)
+				
+				#if Random Value within Confidence Interval than select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
+				if str(options['statistical_interval']) == "Random Value within Confidence Interval":
+					random.seed(seed=int(options['seed1']))
+					sigma_stat = random.gauss(mu=fishmove.rx("fit",'sigma_stat',1,1,SO,1)[0],
+							sigma=(fishmove.rx("upr",'sigma_stat',1,1,SO,1)[0]-fishmove.rx("lwr",'sigma_stat',1,1,SO,1)[0])/4)
+					random.seed(seed=int(options['seed1']))
+					sigma_mob = random.gauss(mu=fishmove.rx("fit",'sigma_mob',1,1,SO,1)[0],
+							sigma=(fishmove.rx("upr",'sigma_mob',1,1,SO,1)[0]-fishmove.rx("lwr",'sigma_mob',1,1,SO,1)[0])/4)
+				else:
+					sigma_stat = fishmove.rx(i,'sigma_stat',1,1,SO,1)
+					sigma_mob = fishmove.rx(i,'sigma_mob',1,1,SO,1)
+
+					
 
 				grass.debug(_("Dispersal parameters: prob_scalar="+str(prob_scalar)+", sigma_stat="+str(sigma_stat)+", sigma_mob="+str(sigma_mob)+", p="+str(p)))		
 
@@ -980,8 +1001,8 @@ def main():
 
 
 					RealisedDensity = garray.array()
-					if options['seed']:
-						numpy.random.seed(seed=int(options['seed']))
+					if options['seed2']:
+						numpy.random.seed(seed=int(options['seed2']))
 					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
 										
 					RealisedDensity.write("realised_density_"+str(cat))
