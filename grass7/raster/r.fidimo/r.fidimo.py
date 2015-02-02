@@ -723,10 +723,10 @@ def main():
 				
 				#if Random Value within Confidence Interval than select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
 				if str(options['statistical_interval']) == "Random Value within Confidence Interval":
-					random.seed(seed=int(options['seed1']))
+					random.seed(int(options['seed1']))
 					sigma_stat = random.gauss(mu=fishmove.rx("fit",'sigma_stat',1,1,SO,1)[0],
 							sigma=(fishmove.rx("upr",'sigma_stat',1,1,SO,1)[0]-fishmove.rx("lwr",'sigma_stat',1,1,SO,1)[0])/4)
-					random.seed(seed=int(options['seed1']))
+					random.seed(int(options['seed1']))
 					sigma_mob = random.gauss(mu=fishmove.rx("fit",'sigma_mob',1,1,SO,1)[0],
 							sigma=(fishmove.rx("upr",'sigma_mob',1,1,SO,1)[0]-fishmove.rx("lwr",'sigma_mob',1,1,SO,1)[0])/4)
 				else:
