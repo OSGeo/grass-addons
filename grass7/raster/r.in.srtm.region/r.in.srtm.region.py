@@ -362,7 +362,7 @@ def main():
 	else:
 	    grass.fatal(_("Please check internet connection and if url <%s> is correct.") % url)
 
-    grass.run_command('g.region', rast = str(srtmtiles));
+    grass.run_command('g.region', raster = str(srtmtiles));
     
     if fillnulls == 0:
 	grass.run_command('r.patch', input = srtmtiles, output = output)
