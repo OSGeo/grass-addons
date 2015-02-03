@@ -798,6 +798,11 @@ def main():
 				Density[...] = cdf(x2) - cdf(x1)
 				grass.debug(_("Write density from point to garray. unmasked"))
 				Density.write("density_from_point_unmasked_tmp_%d" % os.getpid())
+
+				#remove temporary arrays
+				grass.try_remove(x1.filename)
+				grass.try_remove(x2.filename)
+				grass.try_remove(Density.filename)
 		
 				# Mask density output because Density.write doesn't provide nulls()
 				grass.mapcalc("$density_from_point = if($distance_from_point>=0, $density_from_point_unmasked, null())",
@@ -1006,6 +1011,10 @@ def main():
 					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
 										
 					RealisedDensity.write("realised_density_"+str(cat))
+
+					#remove temporary arrays
+					grass.try_remove(CorrectedDensity.filename)
+					grass.try_remove(RealisedDensity.filename)
 
 					grass.run_command("r.null", map="realised_density_"+str(cat), null="0")
 
