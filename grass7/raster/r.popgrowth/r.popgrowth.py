@@ -263,15 +263,17 @@ def main():
 
 		# Retransform in case of patches
 		if options['population_patches']:
-			grass.mapcalc("$exponential_output = round(($n0*1.0/$n0_tmp)*$exponential_output_tmp)",
+			grass.mapcalc("$exponential_output = if($n0,(round(($n0*1.0/$n0_tmp)*$exponential_output_tmp)),null())",
 				ricker_output=options['exponential_output'],
 				n0=options['n_initial'],
 				n0_tmp="n0_tmp_%d" % os.getpid(),
 				ricker_output_tmp="exponential_output_tmp_%d" % os.getpid())
 
 		else:
-			grass.run_command("g.copy",
-				raster="exponential_output_tmp_%d" % os.getpid() + ","+options['exponential_output'])
+			grass.mapcalc("$exponential_output = if($n0,$exponential_output_tmp,null())",
+				exponential_output=options['exponential_output'],
+				n0=options['n_initial'],
+				exponential_output_tmp="exponential_output_tmp_%d" % os.getpid())
 		
 	################# Ricker Model #################
 	if options['ricker_output']:
@@ -337,18 +339,21 @@ def main():
 
 		# Retransform in case of patches
 		if options['population_patches']:
-			grass.mapcalc("$ricker_output = round(($n0*1.0/$n0_tmp)*$ricker_output_tmp)",
+			grass.mapcalc("$ricker_output = if($n0,(round(($n0*1.0/$n0_tmp)*$ricker_output_tmp)),null())",
 				ricker_output=options['ricker_output'],
 				n0=options['n_initial'],
 				n0_tmp="n0_tmp_%d" % os.getpid(),
 				ricker_output_tmp="ricker_output_tmp_%d" % os.getpid())
 
 		else:
-			grass.run_command("g.copy",
-				raster="ricker_output_tmp_%d" % os.getpid() +","+options['ricker_output'])
+			grass.mapcalc("$ricker_output = if($n0,$ricker_output_tmp,null())",
+				ricker_output=options['ricker_output'],
+				n0=options['n_initial'],
+				ricker_output_tmp="ricker_output_tmp_%d" % os.getpid())
 		
-
-
+		
+		
+				
 
 
 	return 0
