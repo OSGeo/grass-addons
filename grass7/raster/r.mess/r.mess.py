@@ -180,10 +180,6 @@ def main():
     # Variables
     #----------------------------------------------------------------------------
 
-    #Test
-    #options = {"ref_rast":"protected_areas", "ref_vect":"", "env_old":"bio_1@climate,bio_5@climate,bio_6@climate", "env_new":"", "output":"MESSR", "digits":"5"}
-    #flags = {"m":True, "k":True, "n":False, "i":True, "k":True, "r":True, "c":True}
-
     # reference layer
     REF_VECT = options['ref_vect']
     REF_RAST = options['ref_rast']
@@ -241,7 +237,8 @@ def main():
     text_file.close()
 
     # Copy current region
-    grass.run_command("g.region", save="mess_region_backup")
+    regionbackup = tmpname("mess_region_backup")
+    grass.run_command("g.region", save=regionbackup)
 
     #----------------------------------------------------------------------------
     # Create the recode table - Reference distribution is raster
@@ -250,7 +247,8 @@ def main():
     if rtl=="R":
 
         # Copy mask (if there is one) to temporary layer
-        citiam = grass.find_file('MASK', element = 'cell')
+        citiam = grass.find_file(name='MASK', element = 'cell',
+                                 mapset=grass.gisenv()['MAPSET'])
         if citiam['fullname'] != '':
             rname = tmpname('MASK')
             grass.mapcalc('$rname = MASK', rname=rname, quiet=True)
@@ -271,15 +269,10 @@ def main():
 
             # Calculate the frequency distribution
             tmpf1 = tmpname('rmess_tmp1')
-            laytype = grass.raster_info(ipl[i])['datatype']
-            if laytype == 'CELL':
-                grass.run_command("g.copy", quiet=True, raster=(ipl[i], tmpf1))
-            else:
-                grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
-                              tmpf1=tmpf1,
-                              inplay=ipl[i],
-                              dignum=digits2,
-                              quiet=True)
+            grass.mapcalc("$tmpf1 = int($dignum * $inplay)", tmpf1=tmpf1,
+                          inplay=ipl[i],
+                          dignum=digits2,
+                          quiet=True)
             p = grass.pipe_command('r.stats', quiet=True, flags = 'cn', input = tmpf1, sort = 'asc', sep=';')
             stval = {}
             for line in p.stdout:
@@ -347,7 +340,7 @@ def main():
             grass.run_command("r.colors", quiet=True, map=ipi[i], rules=tmpcol[1])
             grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=[tmpf1,tmpf2,tmpf3])
             os.remove(tmprule[1])
-            grass.run_command("g.region", quiet=True, region="mess_region_backup")
+            grass.run_command("g.region", quiet=True, region=regionbackup)
 
         if citiam['fullname'] != '':
             grass.mapcalc("MASK1 = 1 * MASK", overwrite=True)
@@ -366,16 +359,21 @@ def main():
         tmpf0 = tmpname('rmess_tmp0')
         grass.run_command("v.extract", quiet=True, flags="t", input=vtl, type="point", output=tmpf0)
         grass.run_command("v.db.addtable", quiet=True, map=tmpf0)
-        grass.run_command("v.db.addcolumn", quiet=True, map=tmpf0, columns="envvar integer")
-
 
         # Upload raster values and get value in python as frequency table
         check_n = len(np.hstack(db.db_select(sql = "SELECT cat FROM " + tmpf0)))
         for m in xrange(len(ipl)):
-            grass.run_command("db.execute" , quiet=True, sql = "UPDATE " + tmpf0 + " SET envvar = NULL")
-            grass.run_command("v.what.rast", quiet=True, map=tmpf0, layer=1, raster=ipl[m], column="envvar")
-            volval = np.vstack(db.db_select(sql = "SELECT envvar,count(envvar) from " + tmpf0 +
-                " WHERE envvar IS NOT NULL GROUP BY envvar ORDER BY envvar"))
+            mid = str(m)
+            laytype = grass.raster_info(ipl[m])['datatype']
+            if laytype =='CELL':
+                columns = "envvar" + mid + " integer"
+            else:
+                columns = "envvar" + mid + " double precision"
+            grass.run_command("v.db.addcolumn", quiet=True, map=tmpf0, columns=columns)
+            grass.run_command("db.execute" , quiet=True, sql = "UPDATE " + tmpf0 + " SET envvar" + mid + " = NULL")
+            grass.run_command("v.what.rast", quiet=True, map=tmpf0, layer=1, raster=ipl[m], column="envvar" + mid)
+            volval = np.vstack(db.db_select(sql = "SELECT envvar" + mid + ",count(envvar" + mid +") from " + tmpf0 +
+                " WHERE envvar" + mid + " IS NOT NULL GROUP BY envvar" + mid + " ORDER BY envvar" + mid))
             volval = volval.astype(np.float, copy=False)
             a = np.cumsum(volval[:,1], axis=0)
             b = np.sum(volval[:,1], axis=0)
@@ -392,21 +390,16 @@ def main():
 
             # Multiply env layer with dignum
             tmpf2 = tmpname('rmess_tmp2')
-            laytype = grass.raster_info(ipl[m])['datatype']
-            if laytype == 'CELL':
-                grass.run_command("g.copy", quiet=True, raster=(ipl[m], tmpf2))
-            else:
-                grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
-                              tmpf1=tmpf1,
-                              inplay=ipl[m],
-                              dignum=digits2,
-                              quiet=True)
+            grass.mapcalc("$tmpf2 = int($dignum * $inplay)", tmpf2=tmpf2,
+                          inplay=ipl[m],
+                          dignum=digits2,
+                          quiet=True)
 
             # Calculate min and max values of sample points and raster layer
             envmin = int(min(volval[:,0]) * digits2)
             envmax = int(max(volval[:,0]) * digits2)
             Drange = grass.read_command("r.info", flags="r", map=tmpf2)
-            Drange = Drange.split('\n')
+            Drange = str.splitlines(Drange)
             Drange = np.hstack([i.split('=') for i in Drange])
             Dmin = int(Drange[1])
             Dmax = int(Drange[3])
@@ -444,7 +437,7 @@ def main():
             # Clean up
             grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=[tmpf2,tmpf3])
             os.remove(tmprule[1])
-            grass.run_command("g.region", quiet=True, region="mess_region_backup")
+            grass.run_command("g.region", quiet=True, region=regionbackup)
 
         # Clean up
         grass.run_command("g.remove", quiet=True, flags="f", type="vector", name=tmpf0)
@@ -477,7 +470,7 @@ def main():
     # mean(IES), where IES < 0
     if flk:
         MinMes = grass.read_command("r.info", quiet=True, flags="r", map=opc)
-        MinMes = MinMes.split('\n')
+        MinMes = str.splitlines(MinMes)
         MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
         mod = opc + "MeanNeg"
         c0 = -0.01/digits2
@@ -487,7 +480,7 @@ def main():
     # Number of layers with negative values
     if fll:
         MinMes = grass.read_command("r.info", quiet=True, flags="r", map=opc)
-        MinMes = MinMes.split('\n')
+        MinMes = str.splitlines(MinMes)
         MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
         mod = opc + "CountNeg"
         c0 = -0.0001/digits2
@@ -502,7 +495,7 @@ def main():
     ## Clean up
     #=======================================================================
 
-    grass.run_command("g.remove", type="region", flags="f", quiet=True, name="mess_region_backup")
+    grass.run_command("g.remove", type="region", flags="f", quiet=True, name=regionbackup)
     os.remove(tmpcol[1])
 
 if __name__ == "__main__":
