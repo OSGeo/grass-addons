@@ -6,7 +6,7 @@
 # MODULE:       r.vif
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
 # PURPOSE:      Calculate the variance inflaction factor of set of
-#				variables. Alternatively, to speed the calculation up,
+#               variables. Alternatively, to speed the calculation up,
 #               this can be done for an user defined number of random
 #               cells. The user can set a maximum VIF, in wich case the VIF
 #               will calculated again after removing the variables with the
@@ -14,7 +14,7 @@
 #               the user defined VIF threshold value.
 # TODO          Include the option to force the function to retain one or more
 #               variables
-# Dependency:	r.regression.multi
+# Dependency:    r.regression.multi
 #
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
@@ -86,7 +86,7 @@ import grass.script as grass
 
 # Check if running in GRASS
 if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
+    grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 # create set to store names of temporary maps to be deleted upon exit
@@ -95,7 +95,7 @@ clean_rast = set()
 def cleanup():
     for rast in clean_rast:
         grass.run_command("g.remove",
-        type="rast", name = rast, quiet = True)
+        type="rast", name=rast, quiet=True)
 
 # main function
 def main():
@@ -117,7 +117,7 @@ def main():
         k = k + 1
         opft = OPF.split('.')
         if len(opft) == 1:
-            OPF = opft[0] + "_" + str(k)
+            OPF = opft[0] + "_v" + str(k)
         else:
             OPF = opft[0] + "_v" + str(k) + "." + opft[1]
     if k > 0:
@@ -129,7 +129,8 @@ def main():
 #=======================================================================
 
     # Create mask if nsp is set replace existing MASK if exist)
-    citiam = grass.find_file('MASK', element = 'cell')
+    citiam = grass.find_file('MASK', element='cell',
+                             mapset=grass.gisenv()['MAPSET'])
     if NSP != '':
         if citiam['fullname'] != '':
             tmpf0 = "rvif_mask_" + str(uuid.uuid4())
@@ -164,7 +165,7 @@ def main():
             vifstat = [i.split('=') for i in vifstat]
             vif = 1 / (1 - float(vifstat[1][1]))
             sqrtvif = math.sqrt(vif)
-            text_file.write(nMAPy + "\t" + str(round(vif,3)) + "\t" + str(round(sqrtvif,3)) + "\n")
+            text_file.write(nMAPy + "\t" + str(round(vif, 3)) + "\t" + str(round(sqrtvif, 3)) + "\n")
             rvif[k] = vif
 
         rvifmx = max(rvif)
@@ -186,7 +187,7 @@ def main():
     if NSP != '':
         grass.run_command("r.mask", flags="r", quiet=True)
         if citiam['fullname'] != '':
-            grass.mapcalc("MASK = $tmpf0",tmpf0 = tmpf0, quiet=True)
+            grass.mapcalc("MASK = $tmpf0",tmpf0=tmpf0, quiet=True)
             grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf0)
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf1)
 
