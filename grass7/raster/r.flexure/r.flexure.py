@@ -163,131 +163,143 @@ import numpy as np
 # GRASS
 import grass.script as grass
 import grass.script.array as garray
-# GFLEX
-try:
-  import gflex
-except:
-  print ""
-  print "MODULE IMPORT ERROR."
-  print "In order to run r.flexure or g.flexure, you must download and install"
-  print "gFlex. The most recent development version is available from"
-  print "https://github.com/awickert/gFlex."
-  print "Installation instructions are available on the page."
-  grass.fatal("Software dependency must be installed.")
-
 
 ############################
 # PASS VARIABLES AND SOLVE #
 ############################
 
 def main():
-  """
-  Gridded flexural isostatic solutions
-  """
-
-  # This code is for 2D flexural isostasy
-  flex = gflex.F2D()
-  # And show that it is coming from GRASS GIS
-  flex.grass = True
-  
-  # Flags
-  latlon_override = flags['l']
-  
-  # Inputs
-  # Solution selection
-  flex.Method = options['method']
-  if flex.Method == 'FD':
-    flex.Solver = options['solver']
-    if flex.Solver:
-      flex.ConvergenceTolerance = options['tolerance']
-    # Always use the van Wees and Cloetingh (1994) solution type.
-    # It is the best.
-    flex.PlateSolutionType = 'vWC1994'
-  # Parameters that are often changed for the solution
-  qs = options['q0']
-  flex.qs = garray.array()
-  flex.qs.read(qs)
-  # Elastic thickness
-  try:
-    flex.Te = float(options['te'])
-  except:
-    flex.Te = garray.array() # FlexureTe is the one that is used by Flexure
-    flex.Te.read(options['te'])
-    flex.Te = np.array(flex.Te)
-  if options['te_units'] == 'km':
-    flex.Te *= 1000
-  elif options['te_units'] == 'm':
-    pass
-  # No "else"; shouldn't happen
-  flex.rho_fill = float(options['rho_fill'])
-  # Parameters that often stay at their default values
-  flex.g = float(options['g'])
-  flex.E = float(options['ym']) # Can't just use "E" because reserved for "east", I think
-  flex.nu = float(options['nu'])
-  flex.rho_m = float(options['rho_m'])
-  # Solver type and iteration tolerance
-  flex.Solver = options['solver']
-  flex.ConvergenceTolerance = float(options['tolerance'])
-  # Boundary conditions
-  flex.BC_N = options['northbc']
-  flex.BC_S = options['southbc']
-  flex.BC_W = options['westbc']
-  flex.BC_E = options['eastbc']
-
-  # Set verbosity
-  if grass.verbosity() >= 2:
-    flex.Verbose = True
-  if grass.verbosity() >= 3:
-    flex.Debug = True
-  elif grass.verbosity() == 0:
-    flex.Quiet = True
-  
-  # First check if output exists
-  if len(grass.parse_command('g.list', type='rast', pattern=options['output'])):
-    if not grass.overwrite():
-      grass.fatal("Raster map '" + options['output'] + "' already exists. Use '--o' to overwrite.")
-  
-  # Get grid spacing from GRASS
-  # Check if lat/lon and proceed as directed
-  if grass.region_env()[6] == '3':
-    if latlon_override:
-      if flex.Verbose:
-        print "Latitude/longitude grid."
-        print "Based on r_Earth = 6371 km"
-        print "Setting y-resolution [m] to 111,195 * [degrees]"
-      flex.dy = grass.region()['nsres']*111195.
-      NSmid = (grass.region()['n'] + grass.region()['s'])/2.
-      dx_at_mid_latitude = (3.14159/180.) * 6371000. * np.cos(np.deg2rad(NSmid))
-      if flex.Verbose:
-        print "Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]"
-      flex.dx = grass.region()['ewres']*dx_at_mid_latitude
-    else:
-      grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
-  # Otherwise straightforward
-  else:
-    flex.dx = grass.region()['ewres']
-    flex.dy = grass.region()['nsres']
+    """
+    Gridded flexural isostatic solutions
+    """
     
-  # CALCULATE!
-  flex.initialize()
-  flex.run()
-  flex.finalize()
+    options, flags = grass.parser()
+    # if just interface description is requested, it will not get to this point
+    # so gflex will not be needed
 
-  # Write to GRASS
-  # Create a new garray buffer and write to it
-  outbuffer = garray.array() # Instantiate output buffer
-  outbuffer[...] = flex.w
-  outbuffer.write(options['output'], overwrite=grass.overwrite) # Write it with the desired name
-  # And create a nice colormap!
-  grass.run_command('r.colors', map=options['output'], color='differences', quiet=True)
+    # GFLEX
+    # try to import gflex only after we know that
+    # we will actually do the computation
+    try:
+        import gflex
+    except:
+        print ""
+        print "MODULE IMPORT ERROR."
+        print "In order to run r.flexure or g.flexure, you must download and install"
+        print "gFlex. The most recent development version is available from"
+        print "https://github.com/awickert/gFlex."
+        print "Installation instructions are available on the page."
+        grass.fatal("Software dependency must be installed.")
 
-  # Reinstate this with a flag or output filename
-  # But I think better to let interpolation happen a posteriori
-  # So the user knows what the solution is and what it isn't
-  #grass.run_command('r.resamp.interp', input=output, output=output + '_interp', method='lanczos', overwrite=True, quiet=True)
-  #grass.run_command('r.colors', map=output + '_interp', color='rainbow', quiet=True)#, flags='e')
+    # This code is for 2D flexural isostasy
+    flex = gflex.F2D()
+    # And show that it is coming from GRASS GIS
+    flex.grass = True
+    
+    # Flags
+    latlon_override = flags['l']
+    
+    # Inputs
+    # Solution selection
+    flex.Method = options['method']
+    if flex.Method == 'FD':
+        flex.Solver = options['solver']
+        if flex.Solver:
+            flex.ConvergenceTolerance = options['tolerance']
+        # Always use the van Wees and Cloetingh (1994) solution type.
+        # It is the best.
+        flex.PlateSolutionType = 'vWC1994'
+    # Parameters that are often changed for the solution
+    qs = options['q0']
+    flex.qs = garray.array()
+    flex.qs.read(qs)
+    # Elastic thickness
+    try:
+        flex.Te = float(options['te'])
+    except:
+        flex.Te = garray.array() # FlexureTe is the one that is used by Flexure
+        flex.Te.read(options['te'])
+        flex.Te = np.array(flex.Te)
+    if options['te_units'] == 'km':
+        flex.Te *= 1000
+    elif options['te_units'] == 'm':
+        pass
+    # No "else"; shouldn't happen
+    flex.rho_fill = float(options['rho_fill'])
+    # Parameters that often stay at their default values
+    flex.g = float(options['g'])
+    flex.E = float(options['ym']) # Can't just use "E" because reserved for "east", I think
+    flex.nu = float(options['nu'])
+    flex.rho_m = float(options['rho_m'])
+    # Solver type and iteration tolerance
+    flex.Solver = options['solver']
+    flex.ConvergenceTolerance = float(options['tolerance'])
+    # Boundary conditions
+    flex.BC_N = options['northbc']
+    flex.BC_S = options['southbc']
+    flex.BC_W = options['westbc']
+    flex.BC_E = options['eastbc']
+
+    # Set verbosity
+    if grass.verbosity() >= 2:
+        flex.Verbose = True
+    if grass.verbosity() >= 3:
+        flex.Debug = True
+    elif grass.verbosity() == 0:
+        flex.Quiet = True
+    
+    # First check if output exists
+    if len(grass.parse_command('g.list', type='rast', pattern=options['output'])):
+        if not grass.overwrite():
+            grass.fatal("Raster map '" + options['output'] + "' already exists. Use '--o' to overwrite.")
+    
+    # Get grid spacing from GRASS
+    # Check if lat/lon and proceed as directed
+    if grass.region_env()[6] == '3':
+        if latlon_override:
+            if flex.Verbose:
+                print "Latitude/longitude grid."
+                print "Based on r_Earth = 6371 km"
+                print "Setting y-resolution [m] to 111,195 * [degrees]"
+            flex.dy = grass.region()['nsres']*111195.
+            NSmid = (grass.region()['n'] + grass.region()['s'])/2.
+            dx_at_mid_latitude = (3.14159/180.) * 6371000. * np.cos(np.deg2rad(NSmid))
+            if flex.Verbose:
+                print "Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]"
+            flex.dx = grass.region()['ewres']*dx_at_mid_latitude
+        else:
+            grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
+    # Otherwise straightforward
+    else:
+        flex.dx = grass.region()['ewres']
+        flex.dy = grass.region()['nsres']
+      
+    # CALCULATE!
+    flex.initialize()
+    flex.run()
+    flex.finalize()
+
+    # Write to GRASS
+    # Create a new garray buffer and write to it
+    outbuffer = garray.array() # Instantiate output buffer
+    outbuffer[...] = flex.w
+    outbuffer.write(options['output'], overwrite=grass.overwrite) # Write it with the desired name
+    # And create a nice colormap!
+    grass.run_command('r.colors', map=options['output'], color='differences', quiet=True)
+
+    # Reinstate this with a flag or output filename
+    # But I think better to let interpolation happen a posteriori
+    # So the user knows what the solution is and what it isn't
+    #grass.run_command('r.resamp.interp', input=output, output=output + '_interp', method='lanczos', overwrite=True, quiet=True)
+    #grass.run_command('r.colors', map=output + '_interp', color='rainbow', quiet=True)#, flags='e')
+
+def install_dependencies():
+    print "PLACEHOLDER"
 
 if __name__ == "__main__":
-  options, flags = grass.parser()
-  main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == '--install-dependencies':
+        install_dependencies()
+    else:
+        main()
 
