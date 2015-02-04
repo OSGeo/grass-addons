@@ -27,6 +27,7 @@ SUBDIRS = \
 	r.edm.eval \
 	r.fidimo \
 	r.findtheriver \
+	r.flexure \
 	r.flip \
 	r.forestfrag \
 	r.futures \
