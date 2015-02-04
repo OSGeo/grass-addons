@@ -16,6 +16,7 @@ SUBDIRS = \
 	v.convert \
 	v.delaunay3d \
 	v.external.all \
+	v.flexure \
 	v.habitat.dem \
 	v.in.geopaparazzi \
 	v.in.ply \
