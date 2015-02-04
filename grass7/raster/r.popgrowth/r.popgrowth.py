@@ -260,10 +260,7 @@ def main():
 		ricker_map.write("exponential_output_tmp_%d" % os.getpid())
 		tmp_map_rast.append("exponential_output_tmp_")
 
-		#remove temporary arrays
-		grass.try_remove(n0_map.filename)
-		grass.try_remove(exponential_map.filename)
-		grass.try_remove(r.filename)
+
 
 		# Retransform in case of patches
 		if options['population_patches']:
@@ -341,11 +338,6 @@ def main():
 		ricker_map.write("ricker_output_tmp_%d" % os.getpid())
 		tmp_map_rast.append("ricker_output_tmp_")
 
-		#remove temporary arrays
-		grass.try_remove(n0_map.filename)
-		grass.try_remove(ricker_map.filename)
-		grass.try_remove(r.filename)
-		grass.try_remove(k.filename)		
 
 		# Retransform in case of patches
 		if options['population_patches']:
