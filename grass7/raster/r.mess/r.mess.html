@@ -19,7 +19,7 @@ the MES values
 <ul>
     <li>the area where for at least one of the variables has a value that falls outside the range of values found in the reference set</li>
     <li>the most dissimilar variable (MoD)</li> 
-    <li>the mean of the IES layers where IES < 0</li>
+    <li>the sum of the IES layers where IES < 0</li>
     <li>the number of layers with negative values</li>
 </ul>
 
@@ -34,14 +34,14 @@ user needs to define a reference set of environmental variables
 (env_old) and a set of future environmnental variables (env_new). 
 This is for example used to identify areas with novel future climates.
 
-<p>One can also test for the similarity between two different areas. 
-For this one needs to provide a set of environmental variables 
-(env_old) and a reference layer (ref_rast) for one region and a 
-second set of environmental variables for another region (env_new). 
+<p>It is also possible to test for the similarity between two 
+different areas. In this case you need to provide a set of 
+environmental variables (env_old) for the area covered by your 
+reference layer and a second set of environmental variables for the 
+area you want to compare to (env_new). Make sure the region 
+(g.region) is set to the reference layer / env_old. 
 
-
-<h2>REFERENCES</h2>
-<p>Elith, J., Kearney, M., &amp; Phillips, S. 
+<h2>REFERENCES</h2> <p>Elith, J., Kearney, M., &amp; Phillips, S. 
 2010. The art of modelling range-shifting species. Methods in 
 Ecology and Evolution 1:330-342.
 
