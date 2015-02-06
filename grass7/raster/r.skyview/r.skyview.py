@@ -91,7 +91,7 @@ def main():
                            ).format(names=','.join(old_maps)))
     try:
         gcore.run_command('r.horizon', elevation=elev, step=horizon_step,
-                          basename=TMP_NAME, flags='d')
+                          output=TMP_NAME, flags='d')
 
         msgr.message(_("Computing sky view factor ..."))
         new_maps = _get_horizon_maps()
