@@ -372,7 +372,7 @@ int seg_stream_geometry(SEGMENT *streams, SEGMENT *dirs)
 	    next_r = NR(d);
 	    next_c = NC(d);
 	    if (NOT_IN_REGION(d))
-		Rast_set_c_null_value(&next_stream, 1);
+		next_stream = 0;
 	    else
 		Segment_get(streams, &next_stream, next_r, next_c);
 

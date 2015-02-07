@@ -36,7 +36,7 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
     POINT n_cell;
     double cur_dist = 0;
     double tmp_dist = 0;
-    double target_elev;		/* elevation at stream or outlet */
+    DCELL target_elev;		/* elevation at stream or outlet */
     double easting, northing;
     double cell_easting, cell_northing;
     struct Cell_head window;
@@ -139,7 +139,7 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
     POINT n_cell;
     double cur_dist = 0;
     double tmp_dist = 0;
-    double target_elev;		/* eleavation at stream or outlet */
+    DCELL target_elev;		/* elevation at stream or outlet */
     double easting, northing;
     double cell_easting, cell_northing;
     CELL dirs_cell;
@@ -158,6 +158,8 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
 	Segment_get(elevation, &target_elev, r, c);
 	Segment_put(elevation, &zero_cell, r, c);
     }
+    else
+	Rast_set_d_null_value(&target_elev, 1);
 
     while (tail != head) {
 	easting = window.west + (c + .5) * window.ew_res;
@@ -535,13 +537,10 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 
 	    Segment_get(distance, &distance_cell, r, c);
 	    Segment_get(dirs, &dirs_cell, r, c);
-	    if (distance_cell == 1) {
-		if (distance_cell == 1 && dirs_cell > 0)
-		    n_inits++;
-		else if (dirs_cell > 0)
-		    Segment_put(distance, &minus_one_cell, r, c);
-	    }
-
+	    if (distance_cell == 1 && dirs_cell > 0)
+		n_inits++;
+	    else if (dirs_cell > 0)
+		Segment_put(distance, &minus_one_cell, r, c);
 	}
     }
 
