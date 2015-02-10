@@ -15,6 +15,7 @@ SUBDIRS = \
 	v.concave.hull \
 	v.convert \
 	v.delaunay3d \
+	v.ellipse \
 	v.external.all \
 	v.flexure \
 	v.habitat.dem \
