@@ -11,10 +11,6 @@ if [ ! -d "$XMLDIR" ]; then
 fi
 
 build_addons() {
-cd $DIR/grass-addons/ 
-
-nup=`(svn up || (svn cleanup && svn up)) | wc -l`
-if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     cd tools/addons/ 
     ./compile-xml.sh $XMLDIR
     for version in 6 7 ; do
@@ -22,12 +18,10 @@ if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     	cp modules.xml $XMLDIR/grass${version}
     	rsync -ag --delete logs $XMLDIR/grass${version}
     	cd $XMLDIR/grass${version}/logs
-    	###ln -sf ALL.html index.html
     done
 
     update_manual 7 0
     update_manual 6 4
-fi
 }
 
 recompile_grass() {
@@ -78,6 +72,12 @@ if [ "$1" = "c" ] || [ "$2" = "c" ] ; then
     recompile_grass
 fi
 
-build_addons $1
+cd $DIR/grass-addons/ 
 
-exit 0
+nup=`(svn up || (svn cleanup && svn up)) | wc -l`
+if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
+    build_addons $1
+    exit 0
+fi
+
+exit 1

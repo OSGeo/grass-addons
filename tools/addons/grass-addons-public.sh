@@ -15,6 +15,10 @@ fi
 
 ${SRC}/grass-addons/tools/addons/grass-addons.sh
 
+if [ $? != 0 ] ; then
+    exit 0
+fi
+
 manuals() {
     HTMLDIR=addons
     mkdir $HTMLDIR

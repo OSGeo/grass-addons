@@ -83,7 +83,7 @@ for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "
 	make MODULE_TOPDIR="$TOPDIR" \
 	    BIN="$path/bin" \
 	    HTMLDIR="$path/docs/html" \
-	    MANDIR="$path/man/man1" \
+	    MANDIR="$path/docs/man/man1" \
 	    SCRIPTDIR="$path/scripts" \
 	    ETC="$path/etc" > "$ADDON_PATH/logs/$m.log" 2>&1
 	if [ `echo $?` -eq 0 ] ; then
