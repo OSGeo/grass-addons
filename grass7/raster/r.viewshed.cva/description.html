@@ -1,0 +1,76 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.viewshed.cva</em> is a module that allows for the 
+construction of "Cumulative Viewshed", or "visualscape" maps from a 
+series of input points stored in a vector points map. The routine is 
+a python wrapper script that iterative loops through each input 
+point, calculating a viewshed map, and then creates an output map 
+that is coded by the number of input locations that can "see" each 
+cell. <em>r.viewshed.cva</em> uses the GRASS module <em>r.viewshed</em>
+for the viewshed analysis. <it>r.viewshed</it> is very fast, 
+thus allowing for a cumulative viewshed analysis to run in a 
+reasonable amount of time. The final cumulative viewshed map is 
+computed using the "count" method of <it>r.series</it>, rather than 
+with mapcalc, as it better handles the null values in the individual 
+constituent viewshed maps (and allows for interim viewshed maps to 
+be coded in any way)
+
+<h3>Options and flags:</h3>
+
+<it>r.viewshed.cva</it> requires an input elevation map and an input 
+vector points map.
+There is currently only one native flag for <it>r.viewshed.cva</it> 
+(-k), which allows you to keep the interim viewshed maps made for 
+each input point. All other flags and options are inherited from 
+r.viewshed (see the<it> r.viewshed</it> help page for more 
+information on these).
+
+<h2>NOTES</h2>
+
+The input vector points map can be manually digitized (with <it>
+v.digit</it>) over topographic or cultural features, or can be 
+created as a series of random points (with <it>r.random</it> or <it>
+v.random</it>). Note that using the flag -k allows you to keep any 
+interim viewshed maps created during the analysis, and these resultant 
+viewshed maps will be named according to the cat number of the original
+input points. This is also useful for simple creating a large number
+of individual viewsheds from points in a vector file.
+
+<p>
+
+<h2>EXAMPLES</h2>
+Undertake a cumulative viewshed analysis from a digitized vector points map of prominent peaks in a region:<br>
+
+<div class="code"><pre>
+g.region rast=elevation_10m_dem@PERMANENT -p
+[use v.digit to digitize points]
+r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map \
+  vect=prominent_peaks_points@PERMANENT x_column=x y_column=y \
+  name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500
+</pre></div>
+
+
+<br>Undertake a cumulative viewshed analysis from a 10% sample of landscape locations in a region:<br>
+
+<div class="code"><pre>
+g.region rast=elevation_10m_dem@PERMANENT
+r.random input=elevation10m_demPERMANENT n=10% vector_output=rand_points_10p
+r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map \
+  vect=rand_points_10p@PERMANENT x_column=x y_column=y \
+  name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.viewshed.html">r.viewshed</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Isaac Ullah
+
+<p>
+<i>Last changed: $Date: 2015-02-12 14:34:55 -0700 (Thurs, Feb. 12, 2015) $</i>
