@@ -14,6 +14,7 @@ SUBDIRS = \
 	v.colors2 \
 	v.concave.hull \
 	v.convert \
+	v.convert.all \
 	v.delaunay3d \
 	v.ellipse \
 	v.external.all \
