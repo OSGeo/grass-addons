@@ -115,6 +115,12 @@
 #% guisection: Output
 #%end
 
+##%flag
+##% key: b
+##% description: Only compute MESS for areas with novel conditions (faster)
+##% guisection: Output
+##%end
+
 #%flag:  IES
 #% key: i
 #% description: Remove individual environmental similarity layers (IES)
@@ -223,6 +229,7 @@ def main():
     fli = flags['i']
     flr = flags['r']
     fll = flags['c']
+    #flb = flags['b']
 
     # digits / precision
     digits = int(options['digits'])

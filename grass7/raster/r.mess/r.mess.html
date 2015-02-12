@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <p>The Multivariate Environmental Similarity (MES) surfaces was 
-proposed by Elith et al (2010) and originally implemented in the 
+proposed by Elith et al (2010) [1] and originally implemented in the 
 Maxent software. They described the MES approach as: "The 
 multivariate environmental similarity surface (MESS) calculation 
 represents how similar a point is to a reference set of points, with 
@@ -19,7 +19,8 @@ the MES values
 <ul>
     <li>the area where for at least one of the variables has a value that falls outside the range of values found in the reference set</li>
     <li>the most dissimilar variable (MoD)</li> 
-    <li>the sum of the IES layers where IES < 0</li>
+    <li>the sum of the IES layers where IES < 0. This is similar to the 
+    NT1 measure as proposed by Mesgaran et al. 2014 [2]</li>
     <li>the number of layers with negative values</li>
 </ul>
 
@@ -41,11 +42,15 @@ reference layer and a second set of environmental variables for the
 area you want to compare to (env_new). Make sure the region 
 (g.region) is set to the reference layer / env_old. 
 
-<h2>REFERENCES</h2> 
-
-<p>Elith, J., Kearney, M., &amp; Phillips, S. 
+<h2>REFERENCES</h2>
+<p>[1] Elith, J., Kearney, M., &amp; Phillips, S. 
 2010. The art of modelling range-shifting species. Methods in 
 Ecology and Evolution 1:330-342.
+
+<p>[2] Mesgaran, M.B., Cousens, R.D. & Webber, B.L. (2014) Here be 
+dragons: a tool for quantifying novelty due to covariate range and 
+correlation change when projecting species distribution models. 
+Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209. 
 
 <h2>AUTHOR</h2>
 
