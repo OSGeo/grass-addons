@@ -29,10 +29,6 @@
 
 #%module
 #% description: Detection and quantification of novel uni- and multi-variate environments
-#% keywords: mahalanobis distance
-#% keywords: novel environment
-#% keywords: dissimilarity
-#% keywords: similarity,
 #%end
 
 #%option
