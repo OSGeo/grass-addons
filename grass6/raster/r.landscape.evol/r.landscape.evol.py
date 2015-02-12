@@ -128,10 +128,36 @@
 #% guisection: Hydrology
 #%end
 #%option
+#% key: manningn
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Map or constant of the value of Manning's "N" value for channelized flow.
+#% answer: 0.05
+#% required : no
+#% guisection: Hydrology
+#%end
+#%option
+#% key: flowcontrib
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Map or constant indicating how much each cell contributes to downstream flow (as a "percentage" from 0-100). If no map or value entered, routine will assume 100% downstream contribution
+#% required : no
+#% guisection: Hydrology
+#%end
+#%option
+#% key: convergence
+#% type: integer
+#% description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
+#% answer: 5
+#% options: 1,2,3,4,5,6,7,8,9,10
+#% required : no
+#% guisection: Hydrology
+#%end
+#%option
 #% key: cutoff1
 #% type: double
 #% description: Flow accumulation breakpoint value for shift from diffusion to overland flow
-#% answer: 0.65
+#% answer: 0
 #% required : no
 #% guisection: Hydrology
 #%end
@@ -139,7 +165,7 @@
 #% key: cutoff2
 #% type: double
 #% description: Flow accumulation breakpoint value for shift from overland flow to rill/gully flow (if value is the same as cutoff1, no sheetwash procesess will be modeled)
-#% answer: 2.25
+#% answer: 100
 #% required : no
 #% guisection: Hydrology
 #%end
@@ -147,7 +173,7 @@
 #% key: cutoff3
 #% type: double
 #% description: Flow accumulation breakpoint value for shift from rill/gully flow to stream flow (if value is the same as cutoff2, no rill procesess will be modeled)
-#% answer: 7
+#% answer: 100
 #% required : no
 #% guisection: Hydrology
 #%end
@@ -204,8 +230,13 @@
 #%end
 #%flag
 #% key: 1
-#% description: -1 Calculate streams as 1D difference instead of 2D divergence (forces heavy incision in streams)
-#% guisection: Optional
+#% description: -1 Calculate streams as 1D difference instead of 2D divergence
+#% guisection: Landscape Evolution
+#%end
+#%flag
+#% key: c
+#% description: -c Calculate streams with a shear stress equation, rather than a stream-power equation
+#% guisection: Landscape Evolution
 #%end
 #%flag
 #% key: k
@@ -247,7 +278,6 @@
 
 import sys
 import os
-import subprocess
 import math
 import tempfile
 grass_install_tree = os.getenv('GISBASE')
@@ -272,10 +302,16 @@ def main(m, o, p, q, r, s):
     cutoff1 = os.getenv("GIS_OPT_cutoff1")
     cutoff2 = os.getenv("GIS_OPT_cutoff2")
     cutoff3 = os.getenv("GIS_OPT_cutoff3")
+    flowcontrib = os.getenv("GIS_OPT_flowcontrib")
+    convergence = os.getenv("GIS_OPT_convergence")
+    manningn = os.getenv("GIS_OPT_manningn")
+    old_bdrk = os.getenv("GIS_OPT_initbdrk")
     # these variables come in as a list of lists, so let's get this year's numbers out of them.
     rain = s[0][m]
-    R = s[1][m]
     storms = s[2][m]
+    #CHANGES
+    R = s[1][m] / storms
+    #R = s[1][m]
     stormlengthsecs = float(s[3][m])*3600.00     # number of seconds in the storm
     stormtimet = stormlengthsecs / (float(os.getenv("GIS_OPT_speed")) * float(r))    # number of hydrologic instants in the storm
 #    timet = stormlengthsecs/stormtimet      # length of a single hydrologic instant in seconds, currently unused, but might be important in future versions
@@ -321,12 +357,10 @@ def main(m, o, p, q, r, s):
     # If first iteration, use input maps. Otherwise, use maps generated from previous iterations
     if ( o == 1 ):
         old_dem = '%s' % os.getenv("GIS_OPT_elev")
-        old_bdrk = '%s' % os.getenv("GIS_OPT_initbdrk")
         old_soil = "%s%s_init" % (prefx, os.getenv("GIS_OPT_outsoil"))
-        grass.mapcalc('${old_soil}=${old_dem}-${old_bdrk}', overwrite = "True", quiet = "True", old_soil = old_soil, old_dem = old_dem, old_bdrk = old_bdrk)
+        grass.mapcalc("${old_soil}=(${old_dem} - ${old_bdrk})", overwrite = "True", quiet = "True", old_soil = old_soil, old_dem = old_dem, old_bdrk = old_bdrk)
     else :
         old_dem = '%s%s%04d' % (p, os.getenv("GIS_OPT_outdem"), m)
-        old_bdrk = '%s%s%04d' % (p, os.getenv("GIS_OPT_outbdrk"), m)
         old_soil = '%s%s%04d' % (p, os.getenv("GIS_OPT_outsoil"), m)
     #Checking for special condition of there being only one run, and setting variables accordingly (one year runs have no numbers suffixed to the output map names)
     if ( years == '1' ):
@@ -350,18 +384,16 @@ def main(m, o, p, q, r, s):
         grass.message('2) Calculating map of rainfall excess')
     else:
         grass.message('\n*************************\n Iteration %s -- ' % o + 'step 2: calculating accumulated flow depths\n*************************\n')
-        grass.message('Calculating runoff excess rates (scaled uplsope accumulated cells)')
+        grass.message('Calculating runoff excess rates (uplsope accumulated cells scaled to \"flowcontrib\" map')
 
-    #to calculate rainfall excess, we are making a linear regression of C factor and the percentage of water that will leave the cell. A c-factor of 0.005 (mature woodland) will only allow 10% of the water to exit the cell, whereas a c-factor of 0.1 (bareland) will allow 98% of the water to leave the cell. Note that we multiply this by 100 because r.watershed will only allow integer amounts as input in it's 'flow' variable, and we want to maintain the accuracy. The large number flow accumulation will be divided by 100 after it is made, which brings the values back down to what they should be.
-    grass.mapcalc('${rainexcess}=int(100 * ((9.26316 * ${C}) + 0.05368))', quiet = "True", rainexcess = rainexcess, C = C)
+    #make map of rainfall excess (proportion each cell contributes to downstrem flow) from flowcontrib. Note that if flowcontrib is a map, we are just making a copy of it. This map is a percentage, but has to be scale from 0-100, because r.watershed will only allow values greater than 1 as input in it's 'flow' variable. This creates a flow accumulation map with large numbers, but this map will be divided by 100 after it is made, which brings the values back down to what they should be.
+    if flowcontrib == "":
+        flowcontrib = 100
+    grass.mapcalc('${rainexcess}=int(${flowcontrib})', quiet = "True", rainexcess = rainexcess, flowcontrib = flowcontrib)
     if ( os.getenv("GIS_FLAG_p") == "1" ):
         grass.message('3) Calculating accumulated flow (in numbers of upslope cells, scaled by runoff contribution')
     #r.watershed -a elevation=hvdf flow=fad accumulation=sadasd
-    try:
-        grass.run_command('r.watershed',  quiet = "True",  flags = 'fa',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
-    except:
-        grass.message("using grass 7 syntax for r.watershed instead")
-        grass.run_command('r.watershed',  quiet = "True",  flags = 'a',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = '5')
+    grass.run_command('r.watershed',  quiet = "True",  flags = 'fa',  elevation = old_dem, flow = rainexcess, accumulation = flacclargenums, drainage = flowdir, convergence = convergence)
     grass.mapcalc('${flowacc}=${flacclargenums}/100', quiet = "True", flowacc = flowacc, flacclargenums = flacclargenums)
     #again, do something different if we are only making an evaluation of cutoffs
     if ( os.getenv("GIS_FLAG_p") == "1" ):
@@ -388,17 +420,31 @@ def main(m, o, p, q, r, s):
     if ( os.getenv("GIS_FLAG_1") == "1" ):
         #This is the version with 1D streams
         qs1 = '%sQs_1D_streams%04d' % (p, o)
-        grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) )', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity)
+        #CHANGES
+        #choose shear stress or stream power
+        #these are the stream-power versions * note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation #Qs = Kt * n^-1 * 9810 * depth^1.6 * tan(slope)^1.5
+        if ( os.getenv("GIS_FLAG_c") == "1" ):
+            grass.mapcalc('${qs1}=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) )', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity)
+        else:
+            grass.mapcalc('${qs1}=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp( ( ( (${rain}/1000)*${flowacc}) / (0.595*${stormtimet}) ), 1.6) * exp(tan(${slope}), 1.5)', quiet = "True",  qs1 = qs1, flowacc = flowacc, stormtimet = stormtimet, rain = rain, slope = slope, loadexp = loadexp, Kt = Kt,  sdensity = sdensity, manningn = manningn)
         qsx = "%sQsx_%04d" % (p,o)
         qsy = "%sQsy_%04d" % (p,o)
-        grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})),  if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, c)) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
-        grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), d=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * sin(${aspect}), if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, c)) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
+        grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})),  if(${flowacc} <= ${cutoff1}, a, if(${flowacc} <= ${cutoff2} && ${flowacc} > ${cutoff1}, b, c)) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
+        grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), if(${flowacc} <= ${cutoff1}, a, if(${flowacc} <= ${cutoff2} && ${flowacc} > ${cutoff1}, b, c)) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
     else:
         #This is the normal version (with 2D streams)
         qsx = "%sQsx_%04d" % (p,o)
         qsy = "%sQsy_%04d" % (p,o)
-        grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})), d=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * cos(${aspect}),  if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
-        grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), d=(${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*sin(${slope}), ${loadexp}) ) * sin(${aspect}), if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
+        if ( os.getenv("GIS_FLAG_c") == "1" ): #do the shear stress version. Note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation
+            grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})), d=10 * (${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) ) * cos(${aspect}),  if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
+            grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), d=10 * (${Kt} * exp(9806.65*(((${rain}/1000)*${flowacc})/(0.595*${stormtimet}))*tan(${slope}), ${loadexp}) ) * sin(${aspect}), if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d))) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3)
+        else: #do the stream powered version. Note that I'm converting the stream-power output (kg/m2) to same units as USPED (T/ha) by multiplying by ten. This ensures they are even going into the divergence calculation #Qs = Kt * n^-1 * 9810 * depth^1.6 * tan(slope)^1.5
+            grass.mapcalc("${qsx}=eval(a=(${kappa} * sin(${slope}) * cos(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * cos(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * cos(${aspect})), d=10 *${Kt} * exp(${manningn}, -1) * 9810 * exp((((${rain}/1000)*${flowacc})/(0.595*${stormtimet})), 1.6) * exp(tan(${slope}), 1.5) * cos(${aspect}), if(${flowacc} <= ${cutoff1}, a, if(${flowacc} <= ${cutoff2} && ${flowacc} > ${cutoff1}, b, if(${flowacc} <= ${cutoff3} && ${flowacc} > ${cutoff2}, c, d))) )", quiet = "True", qsx = qsx, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3, manningn = manningn)
+            grass.mapcalc("${qsy}=eval(a=(${kappa} * sin(${slope}) * sin(${aspect})), b=((${R}*${K}*${C}*${flowacc}*${res}*sin(${slope})) * sin(${aspect})), c=( (${R}*${K}*${C}*exp((${flowacc}*${res}),1.6000000)*exp(sin(${slope}),1.3000000)) * sin(${aspect})), d=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp((((${rain}/1000)*${flowacc})/(0.595*${stormtimet})), 1.6) * exp(tan(${slope}), 1.5) * sin(${aspect}), if(${flowacc} <= ${cutoff1}, a, if(${flowacc} <= ${cutoff2} && ${flowacc} > ${cutoff1}, b, if(${flowacc} <= ${cutoff3} && ${flowacc} > ${cutoff2}, c, d))) )", quiet = "True", qsy = qsy, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3, manningn = manningn)
+        #make a map of the total TC for debugging purposes
+        #TC = "%sTC_%04d" % (p,o)
+        #grass.mapcalc("${TC}=eval(a=${kappa} * sin(${slope}), b=${R}*${K}*${C}*${flowacc}*${res}*sin(${slope}), c=${R}* ${K}* ${C}* exp( (${flowacc}*${res}),1.6000000) * exp(sin(${slope}),1.3000000), d=10 * ${Kt} * exp(${manningn}, -1) * 9810 * exp( ( ( (${rain}/1000)*${flowacc}) / (0.595*${stormtimet}) ), 1.6) * exp(tan(${slope}), 1.5), if(${flowacc} >= ${cutoff3}, a, if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, b, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, c, d) ) ) )", quiet = "True", TC = TC, kappa = kappa, slope = slope, aspect = aspect, R = R, K = K, C =C, res = r, flowacc = flowacc, Kt = Kt, rain = rain, stormtimet = stormtimet, loadexp = loadexp, cutoff1 = cutoff1, cutoff2 = cutoff2, cutoff3 = cutoff3, manningn = manningn)
+        #/CHANGES
 
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 4: calculating divergence/difference of sediment transport for each process and the actual amount of erosion or deposition in vertical meters/cell/year\n*************************\n\n')
     #Here is where we figure out the change in transport capacity, and thus the actual amount of erosion an deposition that would occur. There are two ways of doing this. On planar and convex surfaces (i.e., ridgetops, flats, hillslopes), it is better to take the 2D divergence of sediment flux (we use r.slope.aspect to calculate this), but on highly convex surfaces (i.e., in channels) it is better to take the 1D difference between one cell, and the cell that is immediately downstream from it. This all assumes that the system is always operating at Transport Capacity, or if it is not, then is still behaves as if it were (ie., that the actual differences in transported sediment between the cells would be proportional to the system operating at capacity). Thus, under this assumption, the divergence of capacity is equals to actual amount of sediment eroded/deposited.
@@ -419,13 +465,16 @@ def main(m, o, p, q, r, s):
         grass.run_command('r.slope.aspect',  quiet = "True",  elevation = qsy, dy = qsydy)
 
     #This is the smoothing routine. First we calculate the rate of Erosion and Deposition by converting the Delta QS of the different processes to vertical meters by dividing by the soil denisity (with apropriate constants to get into the correct units, see UNIT CONVERSION note below), and for streams, also expand from the storm to the year level. All units of this initial (temporary) ED_rate map will be in m/cell/year.
-    #OUTPUT UNIT CONVERSIONS: In the case of the diffusion equation, the output units are in verticle meters of sediment per cell per year, so these will be left alone. In the case of stream flow, the output units are kg/m2/storm, so need to multiply by 1000 to get T/m2/storm, and then divide by the soil density (T/m3) to get verticle meters of sediment/cell/storm, and will be multiplied by the number of storms/year in order to get vertical meters of sediment/cell/year. In the case of USPED, the output is in T/Ha/year, so first multiply by 0.1 to get T/m2/year and then divide by soil density (T/m3) to get verticle meters of sediment/cell/year.
+    #CHANGES
+    #OUTPUT UNIT CONVERSIONS: In the case of the diffusion equation, the output units are in vertical meters of sediment per cell per year, so these will be left alone. Everything else should be in units of T/cell per storm. So we just need to convert to kg/cell, divide by the soil density and multiply the number of storms
     if ( os.getenv("GIS_FLAG_1") == "1" ):
         #This is the version with 1D streams
-        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsd1})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff3}, ((${qsxdx}+${qsydy})*0.1)/${sdensity}, ${qsxdx}+${qsydy}))', quiet = "True", tempnetchange1 = tempnetchange1, qsd1 = qsd1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsd1}*0.1)/${sdensity})*${storms}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff3}, (((${qsxdx}+${qsydy})*0.1)/${sdensity})*${storms}, ${qsxdx}+${qsydy}))', quiet = "True", tempnetchange1 = tempnetchange1, qsd1 = qsd1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
     else:
         #This is the normal version (with 2D streams)
-        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, ((${qsxdx} + ${qsydy})/(${sdensity}*1000))*(${storms}*0.25*${stormtimet}), if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff3}, ((${qsxdx}+${qsydy})*0.1)/${sdensity}, ${qsxdx}+${qsydy}))', quiet = "True", tempnetchange1 = tempnetchange1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff1}, (((${qsxdx} + ${qsydy})*0.1)/${sdensity})*${storms}, ${qsxdx}+${qsydy})', quiet = "True", tempnetchange1 = tempnetchange1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        #grass.mapcalc('${tempnetchange1}=if(${flowacc} >= ${cutoff3}, (((${qsxdx} + ${qsydy})*0.1)/${sdensity})*${storms}, if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff3}, ((${qsxdx}+${qsydy})*0.1)/${sdensity}, ${qsxdx}+${qsydy}))', quiet = "True", tempnetchange1 = tempnetchange1, qsxdx = qsxdx, qsydy = qsydy, flowacc = flowacc, cutoff1 = cutoff1, cutoff3 = cutoff3, sdensity = sdensity, storms = storms, stormtimet = stormtimet)
+        #/CHANGES
 
     #Make some temp maps of just erosion rate and just deposition rate so we can grab some stats from them for the soft-knee limiting filter
     grass.message('Running soft-knee smoothing filter...')
@@ -526,6 +575,7 @@ def main(m, o, p, q, r, s):
     sdcolors.close()
     nccolors.close()
     grass.message('\n*************************\nDone with Iteration %s ' % o + '\n*************************\n')
+    return(0)
 
 #Here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
@@ -636,7 +686,7 @@ if __name__ == "__main__":
         #Since we are now done with the loop, close the stats file.
         f.close()
         grass.message('\nIterations complete!\n\nDone with everything')
-
+    sys.exit(0)
 
 
 

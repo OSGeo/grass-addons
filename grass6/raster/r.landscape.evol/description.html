@@ -5,7 +5,7 @@ elevation model (DEM) of surface topography and an input raster DEM
 of bedrock elevations, as well as several environmental variables,
 and computes the net change in elevation due to erosion and
 deposition on the hill-slopes using the USPED equation, and in the
-stream channels using a process equation based on the excess stream
+stream channels using a process equation based either on the excess stream
 power or shear stress. The module has the ability to run recursively,
 looping over several iterations. The time interval represented by
 each iteration is determined by the scale of the input environmental
@@ -29,7 +29,10 @@ values of flow accumulation (amount of upslope area in square meters)
 that determine where surface processes change from soil-creep to
 laminar overland flow (sheetwash), from laminar overland flow to
 channelized overland flow (rills/gullies), and from channelized
-overland flow to full stream flow respectively. <b>kappa</b> is the
+overland flow to full stream flow respectively. Note that some 
+experimentation is required in order to find the best possible values 
+for these cutoffs, and the -p flag will provide some output data that 
+may be useful for this. <b>kappa</b> is the
 rate of diffusion for soil-creep in meters per 1000 years. <b>sdensity</b>
 is the density of the soil in grams per cubic centimeters. <b>rain</b>
 is the total annual precipitation measured in meters (or the average
@@ -103,7 +106,7 @@ mm), and coefficient for the ability of vegetation to prevent erosion
 (C, unitless) from RUSLE with with an estimate of topographically
 driven stream power as shown in equation (1)
 <center>
-<img src="r_landscape_evol_equation1.png"><br>
+<img src="r_landscape_evol_equation1.gif"><br>
 </center>
 <p>where <i>A</i> is the upslope contributing area (a measure of
 water flowing through a cell) and <em>B</em> is the slope of the
@@ -139,7 +142,7 @@ process law that is formulated for water flowing in stream channels
 calculating the reach average shear stress (<FONT FACE="Times New Roman, serif">τ</FONT>),
 here estimated for a cellular landscape simply as:
 <center>
-<p><img src="r_landscape_evol_equation2.png"><br>
+<p><img src="r_landscape_evol_equation2.gif"><br>
 </center>
 <p> Where: <i>9806.65</i>
 is a constant related to the gravitational acceleration of water, <i>B</i>
@@ -149,7 +152,7 @@ is the instantaneous depth of flowing water in the cell. <i>D
 here assumed to be roughly equivalent to the depth of flow during the
 average minute of rainfall, calculated by:
 <center>
-<img src="r_landscape_evol_equation3.png"><br>
+<img src="r_landscape_evol_equation3.gif"><br>
 </center>
 <p>Where: <i>R</i><sub><i>m</i></sub>
 is the total annual precipitation in meters, <i>i</i>
@@ -162,7 +165,7 @@ is the number of days on which it rained in a one year period, and
 is a constant relating to the number of minutes in a day.
 <p>Then the transport capacity is calculated by:
 <center>
-<img src="r_landscape_evol_equation4.png"><br>
+<img src="r_landscape_evol_equation4.gif"><br>
 </center>
 <p>Where: <i>K</i><sub><i>t</i></sub>
 is the transport efficiency factor related to the character of the
@@ -174,7 +177,7 @@ suspended load transport).
 entire DEM  as change in sediment flow in the x and y directions
 across a cell as follows:
 <center>
-<img src="r_landscape_evol_equation5.png"><br>
+<img src="r_landscape_evol_equation5.gif"><br>
 </center>
 <p>where ED is net erosion or
 deposition rate for sediment and <em><FONT FACE="Times New Roman, serif">α</FONT></em>
@@ -218,7 +221,7 @@ change in elevation at each cell (<i>m</i><sub><i>vert</i></sub>).
 This is done via a simple algorithm that uses the density of the soil
 and the cell resolution:
 <center>
-<img src="r_landscape_evol_equation6.png"><br>
+<img src="r_landscape_evol_equation6.gif"><br>
 </center>
 <p>Where: <i>10000</i> is the number of meters per hectare, <i>Sd </i>is
 the  density of the soil, and <i>Res </i>is the cell resolution
