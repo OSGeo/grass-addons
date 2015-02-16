@@ -1,0 +1,16 @@
+MODULE_TOPDIR = ../../..
+
+PGM=r.green.biomassfor
+
+SUBDIRS = r.green.biomassfor.economic \
+          r.green.biomassfor.theoretical \
+          r.green.biomassfor.recommended \
+          r.green.biomassfor.technical \
+          r.green.biomassfor.legal \
+          r.green.biomassfor.impact \
+
+include $(MODULE_TOPDIR)/include/Make/Dir.make
+
+default: parsubdirs htmldir
+
+install: installsubdirs
