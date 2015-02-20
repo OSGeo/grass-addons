@@ -53,7 +53,7 @@ if test -z $1 ; then
     copy 71 7.1.svn
     # releases
     copy_addon 644      6.4.4
-    copy_addon 700RC2   7.0.0RC2
+    copy_addon 700      7.0.0
 else
     copy $1 $2
 fi
