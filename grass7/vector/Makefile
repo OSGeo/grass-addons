@@ -21,6 +21,7 @@ SUBDIRS = \
 	v.flexure \
 	v.habitat.dem \
 	v.in.geopaparazzi \
+	v.in.gps \
 	v.in.ply \
 	v.in.redwg \
 	v.in.wfs2 \
@@ -30,6 +31,7 @@ SUBDIRS = \
 	v.median \
 	v.neighborhoodmatrix \
 	v.net.salesman.opt \
+	v.out.gps \
 	v.out.ply \
 	v.out.png \
 	v.ply.rectify \
