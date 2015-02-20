@@ -11,7 +11,7 @@ rem
 set PATH=C:\OSGeo4W\bin;%PATH_ORIG%
 call o4w_env.bat
 
-apt update
+call apt-dev update
 apt upgrade
 
 rem
@@ -21,7 +21,7 @@ rem
 set PATH=C:\OSGeo4W_dev\bin;%PATH_ORIG%
 call o4w_env.bat
 
-apt update
+call apt-dev update
 apt upgrade
 
 rem
@@ -31,7 +31,7 @@ rem
 set PATH=C:\OSGeo4W_grass6\bin;%PATH_ORIG%
 call o4w_env.bat
 
-apt update
+call apt-dev update
 apt upgrade
 
 rem
@@ -41,5 +41,5 @@ rem
 set PATH=C:\OSGeo4W_grass7\bin;%PATH_ORIG%
 call o4w_env.bat
 
-apt update
+call apt-dev update
 apt upgrade
