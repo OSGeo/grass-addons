@@ -107,7 +107,7 @@ def main(opts, flgs):
 
     ECOT=l_bioenergy+' = ('+l_bioenergyHF+' + '+l_bioenergyC+')'
 
-    run_command("r.mapcalc", overwrite=ow,expression='yield_pix1 = ('+yield1+'/'+yield_surface+')*((ewres()*nsres())/10000)')
+    run_command("r.mapcalc", overwrite=ow,expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
        
     run_command("r.mapcalc", overwrite=ow,
                 expression=ECOHF % tuple(map(float, (opts['energy_tops_hf'],
