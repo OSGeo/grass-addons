@@ -40,6 +40,9 @@ recompile_grass() {
 	$DIR/configures.sh grass$num >/dev/null 2>&1
 	make >/dev/null 2>&1
         cat error.log 1>&2
+        if [ "$?" != 0 ]; then
+            exit 1
+        fi
 	cd ..
     done
 }

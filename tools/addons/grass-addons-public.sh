@@ -13,7 +13,7 @@ if [ "$run" == "2" ]; then
     exit 0
 fi
 
-${SRC}/grass-addons/tools/addons/grass-addons.sh
+${SRC}/grass-addons/tools/addons/grass-addons.sh "$1"
 
 if [ $? != 0 ] ; then
     exit 0
