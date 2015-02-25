@@ -47,7 +47,7 @@ repository can be found in <a
 href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this
 document</a>.
 <p>
-See also: <a href=\"http://wingrass.fsv.cvut.cz/grass70/addons/grass-7.0.0svn/logs/\">log files</a> of compilation.
+See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.html\">log files</a> of compilation.
 <p>
 <hr> <ul>" > index.html
 
