@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #
 ############################################################################
 #
 # MODULE:       	r.viewshed.cva.py
-# AUTHOR(S):	Isaac Ullah
+# AUTHOR(S):	Isaac Ullah, additions by Anna Petrasova
 # PURPOSE:	 Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
 # COPYRIGHT:	(C) 2015 by Isaac Ullah
 # REFERENCES:    r.viewshed
@@ -14,99 +14,96 @@
 #############################################################################
 
 
-#%Module
+#%module
 #%  description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
-#%End
+#%end
 
-#%option
-#% key: elev
-#% type: string
-#% gisprompt: new,cell,raster
+#%option G_OPT_R_INPUT
 #% description: Input elevation map (DEM)
-#% required : yes
 #%END
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output CVA raster
-#% required : yes
-#%END
-
-#%option
-#% key: vect
-#% type: string
-#% gisprompt: new,vector,vector
+#%option G_OPT_V_INPUT
+#% key: vector
 #% description: Name of input vector points map containg the set of sites for this analysis.
-#% required : yes
-#%END
+#%end
+
+#%option G_OPT_R_OUTPUT
+#% key: output
+#% description: Output cumulative viewshed raster
+#%end
 
 #%option
 #% key: observer_elevation
-#% type: string
+#% type: double
 #% description: Height of observation points off the ground
-#%answer: 0.0
-#% required : yes
-#%END
+#%answer: 1.75
+#% required : no
+#%end
 
 #%option
 #% key: target_elevation
-#% type: string
+#% type: double
 #% description: Height of target areas off the ground
 #%answer: 1.75
-#% required : yes
-#%END
+#% required : no
+#%end
 
 #%option
 #% key: max_distance
-#% type: string
-#% description: Maximum viewing distance (-1 = infinity)
+#% type: double
+#% description: Maximum visibility radius. By default infinity (-1)
 #%answer: -1
-#% required : yes
-#%END
+#% required : no
+#%end
 
 #%option
 #% key: memory
-#% type: string
+#% type: integer
 #% description: Amount of memory to use (in MB)
-#%answer: 1500
-#% required : yes
-#%END
+#%answer: 500
+#% required : no
+#%end
 
 #%option
 #% key: refraction_coeff
-#% type: string
+#% type: double
 #% description: Refraction coefficient (with flag -r)
 #%answer: 0.14286
+#% options: 0.0-1.0
 #% required : no
-#%END
+#%end
+
+#%option G_OPT_DB_COLUMN
+#% key: name_col
+#% description: Database column for site names (with flag -k)
+#% required : no
+#%end
 
 
 #%flag
 #% key: k
-#% description: -k Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'", where 'name' is the value in "name_column" for each input point)
-#%END
+#% description:  Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'", where 'name' is the value in "name_column" for each input point. If no value specified in "name_column", cat value will be used instead)
+#%end
 
 #%flag
 #% key: c
-#% description: -c Consider the curvature of the earth (current ellipsoid)
-#%END
+#% description: Consider the curvature of the earth (current ellipsoid)
+#%end
 
 #%flag
 #% key: r
-#% description: -r Consider the effect of atmospheric refraction
-#%END
+#% description: Consider the effect of atmospheric refraction
+#%end
 
 #%flag
 #% key: b
-#% description: -b   Output format is {0 (invisible) 1 (visible)}
-#%END
+#% description: Output format is {0 (invisible) 1 (visible)}
+#%end
 
 #%flag
 #% key: e
-#% description:  -e   Output format is invisible = NULL, else current elev - viewpoint_elev
-#%END
+#% description:  Output format is invisible = NULL, else current elev - viewpoint_elev
+#%end
 
 
 
@@ -120,60 +117,52 @@ import grass.script as grass
 #main block of code starts here
 def main():
     #bring in input variables
-    elev = options["elev"]
-    vect = options["vect"]
-    observer_elevation =options["observer_elevation"]
-    target_elevation = options['target_elevation']
-    max_distance = options["max_distance"]
-    memory = options["memory"]
-    refraction_coeff = options["refraction_coeff"]
+    elev = options["input"]
+    vect = options["vector"]
+    viewshed_options = {}
+    for option in ('observer_elevation', 'target_elevation', 'max_distance', 'memory', 'refraction_coeff'):
+        viewshed_options[option] = options[option]
     out = options["output"]
     #assemble flag string
-    if flags['r'] is True:
-        f1 = "r"
+    flagstring = ''
+    if flags['r']:
+        flagstring += 'r'
+    if flags['c']:
+        flagstring += 'c'
+    if flags['b']:
+        flagstring += 'b'
+    if flags['e']:
+        flagstring += 'e'
+    #get the coords from the vector map, and check if we want to name them
+    if flags['k'] and options["name_col"] is not '':
+        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",", columns=options["name_col"]).strip()    # note that the "r" flag will constrain to points in the current geographic region.
     else:
-        f1 = ""
-    if flags['c'] is True:
-        f2 = "c"
-    else:
-        f2 = ""
-    if flags['b'] is True:
-        f3 = "b"
-    else:
-        f3 = ""
-    if flags['e'] is True:
-        f4 = "e"
-    else:
-        f4 = ""
-    flagstring = f1 + f2 + f3 +f4
-    #make a tempfile, and write out the coords from the vector map.
-    tmp1 = grass.tempfile()
-    grass.run_command("v.out.ascii", flags = 'r', input = vect, type = "point", output = tmp1, format = "point", separator = ",")
-    # note that the "r" flag will constrain to points in the current geographic region.
-    grass.message("Note that the routine is constrained to points in the current geographic region.")
-    #read the temp file back in, and parse it up.
-    f = open(tmp1, 'r')
+        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",").strip()    # note that the "r" flag will constrain to points in the current geographic region.
+    grass.message(_("Note that the routine is constrained to points in the current geographic region."))
+    #read the coordinates, and parse them up.
     masterlist = []
-    for line in f.readlines():
-        masterlist.append(line.strip('\n').split(','))
-    f.close() #close the file
+    for line in output_points.split(os.linesep):
+        masterlist.append(line.split(','))
     #now, loop through the master list and run r.viewshed for each of the sites, and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
     for site in masterlist:
-        grass.message('Calculating viewshed for location %s,%s (point name = %s)\n' % (site[0], site[1], site[2]))
-        tempry = "vshed_%s" % site[2]
+        if flags['k'] and options["name_col"] is not '':
+            ptname = site[3]
+        else:
+            ptname = site[2]
+        grass.verbose(_('Calculating viewshed for location %s,%s (point name = %s)') % (site[0], site[1], ptname))
+        tempry = "vshed_%s" % ptname
         vshed_list.append(tempry)
-        grass.run_command("r.viewshed", quiet = "True", overwrite = grass.overwrite(), flags = flagstring,  input = elev, output = tempry, coordinates = site[0] + "," + site[1], observer_elevation = observer_elevation, target_elevation = target_elevation, max_distance = max_distance, memory = memory,  refraction_coeff = refraction_coeff)
+        grass.run_command("r.viewshed", quiet = True, overwrite=grass.overwrite(), flags=flagstring, input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
     #now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
-    grass.message("Calculating \"Cumulative Viewshed\" map")
-    #grass.mapcalc("${output}=${command_string}", quiet = "True", output = out, command_string = ("+").join(vshed_list))
-    grass.run_command("r.series", quiet = "True", overwrite = grass.overwrite(), input = (",").join(vshed_list), output = out, method = "count")
+    grass.message(_("Calculating \"Cumulative Viewshed\" map"))
+    grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(), input=(",").join(vshed_list), output=out, method="count")
     #Clean up temporary maps, if requested
-    if os.getenv('GIS_FLAG_k') == '1':
-        grass.message("Temporary viewshed maps will not removed")
+    if flags['k']:
+        grass.message(_("Temporary viewshed maps will not removed"))
     else:
-        grass.message("Removing temporary viewshed maps")
-        grass.run_command("g.remove",  quiet = "True", flags = 'f', type = 'raster', name = (",").join(vshed_list))
+        grass.message(_("Removing temporary viewshed maps"))
+        grass.run_command("g.remove",  quiet=True, flags='f', type='raster', name=(",").join(vshed_list))
     return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
