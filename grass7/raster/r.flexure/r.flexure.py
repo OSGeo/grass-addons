@@ -32,10 +32,12 @@
 #% keyword: raster
 #% keyword: geophysics
 #%end
+
 #%flag
 #%  key: l
 #%  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
 #%end
+
 #%option
 #%  key: method
 #%  type: string
@@ -43,20 +45,21 @@
 #%  options: FD, SAS
 #%  required : yes
 #%end
-#%option
-#%  key: q0
+
+#%option G_OPT_R_INPUT
+#%  key: input
 #%  type: string
-#%  gisprompt: old,cell,raster
 #%  description: Raster map of loads (thickness * density * g) [Pa]
 #%  required : yes
 #%end
-#%option
+
+#%option G_OPT_R_INPUT
 #%  key: te
 #%  type: string
-#%  gisprompt: old,cell,raster
 #%  description: Elastic thicnkess: scalar or raster; unis chosen in "te_units"
 #%  required : yes
 #%end
+
 #%option
 #%  key: te_units
 #%  type: string
@@ -64,13 +67,14 @@
 #%  options: m, km
 #%  required : yes
 #%end
-#%option
+
+#%option G_OPT_R_OUTPUT
 #%  key: output
 #%  type: string
-#%  gisprompt: old,cell,raster
 #%  description: Output raster map of vertical deflections [m]
 #%  required : yes
 #%end
+
 #%option
 #%  key: solver
 #%  type: string
@@ -79,6 +83,7 @@
 #%  answer: direct
 #%  required : no
 #%end
+
 #%option
 #%  key: tolerance
 #%  type: double
@@ -86,6 +91,7 @@
 #%  answer: 1E-3
 #%  required : no
 #%end
+
 #%option
 #%  key: northbc
 #%  type: string
@@ -94,6 +100,7 @@
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
+
 #%option
 #%  key: southbc
 #%  type: string
@@ -102,6 +109,7 @@
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
+
 #%option
 #%  key: westbc
 #%  type: string
@@ -110,6 +118,7 @@
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
+
 #%option
 #%  key: eastbc
 #%  type: string
@@ -118,6 +127,7 @@
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
+
 #%option
 #%  key: g
 #%  type: double
@@ -125,6 +135,7 @@
 #%  answer: 9.8
 #%  required : no
 #%end
+
 #%option
 #%  key: ym
 #%  type: double
@@ -132,6 +143,7 @@
 #%  answer: 65E9
 #%  required : no
 #%end
+
 #%option
 #%  key: nu
 #%  type: double
@@ -139,6 +151,7 @@
 #%  answer: 0.25
 #%  required : no
 #%end
+
 #%option
 #%  key: rho_fill
 #%  type: double
@@ -146,6 +159,7 @@
 #%  answer: 0
 #%  required : no
 #%end
+
 #%option
 #%  key: rho_m
 #%  type: double
@@ -210,7 +224,7 @@ def main():
         # It is the best.
         flex.PlateSolutionType = 'vWC1994'
     # Parameters that are often changed for the solution
-    qs = options['q0']
+    qs = options['input']
     flex.qs = garray.array()
     flex.qs.read(qs)
     # Elastic thickness
