@@ -30,25 +30,32 @@
 #% keyword: vector
 #% keyword: geophysics
 #%end
-#%option
-#%  key: q0
-#%  type: string
-#%  gisprompt: old,vector,vector
+
+#%option G_OPT_V_INPUT
+#%  key: input
 #%  description: Vector map of loads (thickness * area * density * g) [N]
-#%  required : yes
+#%  guidependency: layer,column
 #%end
-#%option
+
+#%option G_OPT_V_FIELD
+#%  key: layer
+#%  description: Layer containing load values
+#%  guidependency: column
+#%end
+
+#%option G_OPT_DB_COLUMNS
 #%  key: column
-#%  type: string
 #%  description: Column containing load values [N]
 #%  required : yes
 #%end
+
 #%option
 #%  key: te
 #%  type: double
 #%  description: Elastic thicnkess: scalar; unis chosen in "te_units"
 #%  required : yes
 #%end
+
 #%option
 #%  key: te_units
 #%  type: string
@@ -56,20 +63,19 @@
 #%  options: m, km
 #%  required : yes
 #%end
-#%option
+
+#%option G_OPT_V_OUTPUT
 #%  key: output
-#%  type: string
-#%  gisprompt: old,vector,vector
 #%  description: Output vector points map of vertical deflections [m]
 #%  required : yes
 #%end
-#%option
+
+#%option G_OPT_R_OUTPUT
 #%  key: raster_output
-#%  type: string
-#%  gisprompt: old,cell,raster
 #%  description: Output raster map of vertical deflections [m]
 #%  required : no
 #%end
+
 #%option
 #%  key: g
 #%  type: double
@@ -77,6 +83,7 @@
 #%  answer: 9.8
 #%  required : no
 #%end
+
 #%option
 #%  key: ym
 #%  type: double
@@ -84,6 +91,7 @@
 #%  answer: 65E9
 #%  required : no
 #%end
+
 #%option
 #%  key: nu
 #%  type: double
@@ -91,6 +99,7 @@
 #%  answer: 0.25
 #%  required : no
 #%end
+
 #%option
 #%  key: rho_fill
 #%  type: double
@@ -98,6 +107,7 @@
 #%  answer: 0
 #%  required : no
 #%end
+
 #%option
 #%  key: rho_m
 #%  type: double
@@ -180,7 +190,7 @@ def main():
     ######################################################
     
     # x, y, q
-    flex.x, flex.y = get_points_xy(options['q0'])
+    flex.x, flex.y = get_points_xy(options['input'])
     # xw, yw: gridded output
     if len(grass.parse_command('g.list', type='vect', pattern=options['output'])):
         if not grass.overwrite():
@@ -192,7 +202,7 @@ def main():
     grass.run_command('v.mkgrid', map=options['output'], type='point', overwrite=grass.overwrite(), quiet=True)
     grass.run_command('v.db.addcolumn', map=options['output'], columns='w double precision', quiet=True)
     flex.xw, flex.yw = get_points_xy(options['output']) # gridded output coordinates
-    vect_db = grass.vector_db_select(options['q0'])
+    vect_db = grass.vector_db_select(options['input'])
     col_names = np.array(vect_db['columns'])
     q_col = (col_names == options['column'])
     if np.sum(q_col):
