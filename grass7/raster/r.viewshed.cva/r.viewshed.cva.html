@@ -7,30 +7,30 @@ a python wrapper script that iterative loops through each input
 point, calculating a viewshed map, and then creates an output map 
 that is coded by the number of input locations that can "see" each 
 cell. <em>r.viewshed.cva</em> uses the GRASS module <em>r.viewshed</em>
-for the viewshed analysis. <it>r.viewshed</it> is very fast, 
+for the viewshed analysis. <em>r.viewshed</em> is very fast, 
 thus allowing for a cumulative viewshed analysis to run in a 
 reasonable amount of time. The final cumulative viewshed map is 
-computed using the "count" method of <it>r.series</it>, rather than 
+computed using the "count" method of <em>r.series</em>, rather than 
 with mapcalc, as it better handles the null values in the individual 
 constituent viewshed maps (and allows for interim viewshed maps to 
 be coded in any way)
 
 <h3>Options and flags:</h3>
 
-<it>r.viewshed.cva</it> requires an input elevation map and an input 
+<em>r.viewshed.cva</em> requires an input elevation map and an input 
 vector points map.
-There is currently only one native flag for <it>r.viewshed.cva</it> 
+There is currently only one native flag for <em>r.viewshed.cva</em> 
 (-k), which allows you to keep the interim viewshed maps made for 
 each input point. All other flags and options are inherited from 
-r.viewshed (see the<it> r.viewshed</it> help page for more 
+r.viewshed (see the<em> r.viewshed</em> help page for more 
 information on these).
 
 <h2>NOTES</h2>
 
-The input vector points map can be manually digitized (with <it>
-v.digit</it>) over topographic or cultural features, or can be 
-created as a series of random points (with <it>r.random</it> or <it>
-v.random</it>). Note that using the flag -k allows you to keep any 
+The input vector points map can be manually digitized (with <em>
+v.digit</em>) over topographic or cultural features, or can be 
+created as a series of random points (with <em>r.random</em> or <em>
+v.random</em>). Note that using the flag -k allows you to keep any 
 interim viewshed maps created during the analysis, and these resultant 
 viewshed maps will be named according to the cat number of the original
 input points. This is also useful for simple creating a large number
