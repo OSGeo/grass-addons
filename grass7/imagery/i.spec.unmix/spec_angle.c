@@ -1,8 +1,9 @@
 /* Spectral angle mapping
- * (c) 1999 Markus Neteler, Hannover
+ * (c) 1999 Markus Neteler, Hannover, GPL >= 2.0
  *
  * 25. Nov. 1998 - V. 0.2
  *
+ * Updated to LAPACK/BLAS by Mohammed Rashad, 2012
  *****/
 
 #include <stdio.h>
