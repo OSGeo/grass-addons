@@ -279,12 +279,9 @@ def main():
 	source_populations = options['source_populations']
 
 
-	# Habitat maps
+	# Habitat attractivity maps
 	if options['habitat_attract']:
 		habitat_attract = options['habitat_attract']
-	if options['habitat_p']:
-		habitat_p = options['habitat_p']
-		# check if min max is 0-1
 	
 
 	# multiplication value as workaround for very small FLOAT values
@@ -327,8 +324,13 @@ def main():
 	# Setting Stream order to a vector of 1:9 and calculate fishmove for all streamorders at once
 	so = robjects.IntVector((1,2,3,4,5,6,7,8,9))
 	m = 0 # m-parameter in dispersal function
-	if (float(options['p']) >= 0 and float(options['p']) < 1):
-		p =float(options['p'])
+	
+	# Share of mobile/stationary individuals
+	if options['habitat_p'] or (options['p'] and options['habitat_p']):
+		grass.message(_("Map of habitat dependent share of mobile/stationary will be used"))
+		habitat_p = options['habitat_p']
+	elif (float(options['p']) >= 0 and float(options['p']) < 1):
+		p_fixed =float(options['p'])
 	else:
 		grass.fatal(_("Valid range for p: 0 - 1"))
 
@@ -615,7 +617,7 @@ def main():
 	#Adding columns and coordinates to source points
 	grass.run_command("v.db.addcolumn",
 					  map = "source_points_%d" % os.getpid(),
-					  columns = "X DOUBLE, Y DOUBLE, segment INT, Strahler INT, habitat_attract DOUBLE")					
+					  columns = "X DOUBLE, Y DOUBLE, segment INT, Strahler INT, habitat_attract DOUBLE, p DOUBLE")					
 	grass.run_command("v.to.db",
 					  map = "source_points_%d" % os.getpid(),
 					  type = "point",
@@ -649,7 +651,18 @@ def main():
 					  map = "source_points_%d" % os.getpid(),
 					  raster = habitat_attract,
 					  column = "habitat_attract")
-
+					  
+	#Adding information of p (share of stationary/mobiles) to source points
+	if options['habitat_p']:
+		grass.run_command("v.what.rast",
+					  map = "source_points_%d" % os.getpid(),
+					  raster = habitat_p,
+					  column = "p")
+	else:
+		grass.run_command("v.db.update",
+					  map = "source_points_%d" % os.getpid(),
+					  value = p_fixed,
+					  column = "p")
 
 	# Make source points permanent
 	grass.run_command("g.copy", 
@@ -688,7 +701,7 @@ def main():
 			mapcalc_list_Ab = []
 
 			# Loop over Source points
-			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, n_fish, prob_scalar, Strahler, habitat_attract FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
+			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, n_fish, prob_scalar, Strahler, habitat_attract, p FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
 			source_points_list = list(csv.reader(source_points_list,delimiter="|"))
 
 		
@@ -705,6 +718,8 @@ def main():
 					n_fish = int(k[3])
 				if options['habitat_attract']:
 					source_habitat_attract = float(k[6])
+				p = float(k[7])
+
 				
 				# Progress bar
 				# add here progressbar
