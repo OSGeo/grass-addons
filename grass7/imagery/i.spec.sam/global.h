@@ -1,6 +1,14 @@
-#include <math.h>
-#include <grass/imagery.h>
-#include "matrix.h"
+#ifndef __GLOBAL_H__
+#define __GLOBAL_H__
+
+#include <grass/config.h>
+#include <grass/gis.h>
+#include <grass/gmath.h>
+#include <grass/la.h>
+
+#ifndef GLOBAL
+#define GLOBAL extern
+#endif
 
 #define MAXFILES 255
 
