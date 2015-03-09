@@ -5,7 +5,7 @@
 #
 # MODULE:       r.vif
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Calculate the variance inflaction factor of set of
+# PURPOSE:      Calculate the variance inflation factor of set of
 #               variables. Alternatively, to speed the calculation up,
 #               this can be done for an user defined number of random
 #               cells. The user can set a maximum VIF, in wich case the VIF
@@ -27,7 +27,7 @@
 ########################################################################
 #
 #%Module
-#% description: Calculate the variance inflaction factor
+#% description: Calculate the variance inflation factor
 #%End
 
 #%option
