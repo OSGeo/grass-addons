@@ -10,6 +10,8 @@
 
 #define SQRT2 1.414214
 	
+/* TODO: do not use long int to store row, col
+ * long int must be 8 byte but is often 4 byte, better use int r, c */
 typedef struct {
 	int stream;
 	int next_stream;
@@ -18,8 +20,8 @@ typedef struct {
 	long int * points;
 	float * elevation;
 	double * distance;
-	unsigned long int init;
-	unsigned long int outlet; /* outlet is cell from next stream */
+	long int init;
+	long int outlet; /* outlet is cell from next stream */
 	int last_cell_dir; /* to add outlet to vector */
 	float direction;
 	float length;

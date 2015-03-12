@@ -16,7 +16,7 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
     dbDriver *driver;
     dbHandle handle;
     char *cat_col_name = "cat";
-    char buf[1000];
+    char buf[1000], buf2[1000];
 
     int sector_category, segment, sector, order;
     double direction, azimuth, length, stright, sinusoid;
@@ -44,8 +44,8 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
 		    c = NC(d);
 		}
 		else {
-		    r = (int)SA[i].points[k] / ncols;
-		    c = (int)SA[i].points[k] % ncols;
+		    r = (int)(SA[i].points[k] / ncols);
+		    c = (int)(SA[i].points[k] % ncols);
 		}
 		easting = window.west + (c + .5) * window.ew_res;
 		northing = window.north - (r + .5) * window.ns_res;
@@ -127,12 +127,71 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
 		azimuth = RAD2DEG(azimuth);
 	    }
 
+#if 0
 	    sprintf(buf, "insert into %s values( %d, %d, %d, %d, "
                     "%f, %f, %f, %f, %f, "
                     "%f, %f, %f, %f)", Fi->table, sector_category, segment, sector, order,	/*4 */
 		    direction, azimuth, length, stright, sinusoid,	/*9 */
 		    elev_max, elev_min, drop, gradient);	/*13 */
+#endif
+
+	    sprintf(buf, "insert into %s values( %d, %d, %d, %d, ",
+	            Fi->table, sector_category, segment, sector, order);
+
+	    if (Rast_is_d_null_value(&direction))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", direction);
+	    strcat(buf, buf2);
             
+	    if (Rast_is_d_null_value(&azimuth))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", azimuth);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&length))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", length);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&stright))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", stright);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&sinusoid))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", sinusoid);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&elev_max))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", elev_max);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&elev_min))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", elev_min);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&drop))
+		sprintf(buf2, "null, ");
+	    else
+		sprintf(buf2, "%g, ", drop);
+	    strcat(buf, buf2);
+
+	    if (Rast_is_d_null_value(&gradient))
+		sprintf(buf2, "null )");
+	    else
+		sprintf(buf2, "%g )", gradient);
+	    strcat(buf, buf2);
+
 	    db_set_string(&db_sql, buf);
 
 	    if (db_execute_immediate(driver, &db_sql) != DB_OK) {
@@ -171,7 +230,7 @@ int create_segment_vector(char *out_vector, int number_of_streams,
     dbDriver *driver;
     dbHandle handle;
     char *cat_col_name = "cat";
-    char buf[1000];
+    char buf[1000], buf2[1000];
 
     /* variables to store table attributes */
     int last;
@@ -302,6 +361,7 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 	    next_azimuth = RAD2DEG(next_azimuth);
 	}
 
+#if 0
 	sprintf(buf, "insert into %s values( %d, %d, %d, %d, %d, "
                 "%f, %f, %f, %f, %f, "
                 "%f, %f, %f, %f, "
@@ -311,6 +371,118 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 		elev_max, elev_min, drop, gradient,	/*14 */
 		out_direction, out_azimuth, out_length, out_drop, out_gradient,	/*19 */
 		tangent_dir, tangent_azimuth, next_direction, next_azimuth);	/*23 */
+#endif
+
+	sprintf(buf, "insert into %s values( %d, %d, %d, %d, %d, ",
+	        Fi->table, i, segment, next_segment, order, next_order);
+
+	if (Rast_is_d_null_value(&direction))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", direction);
+	strcat(buf, buf2);
+	
+	if (Rast_is_d_null_value(&azimuth))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", azimuth);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&length))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", length);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&stright))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", stright);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&sinusoid))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", sinusoid);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&elev_max))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", elev_max);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&elev_min))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", elev_min);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&drop))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", drop);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&gradient))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", gradient);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&out_direction))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", out_direction);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&out_azimuth))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", out_azimuth);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&out_length))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", out_length);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&out_drop))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", out_drop);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&out_gradient))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", out_gradient);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&tangent_dir))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", tangent_dir);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&tangent_azimuth))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", tangent_azimuth);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&next_direction))
+	    sprintf(buf2, "null, ");
+	else
+	    sprintf(buf2, "%g, ", next_direction);
+	strcat(buf, buf2);
+
+	if (Rast_is_d_null_value(&next_azimuth))
+	    sprintf(buf2, "null )");
+	else
+	    sprintf(buf2, "%g )", next_azimuth);
+	strcat(buf, buf2);
 
 	db_set_string(&db_sql, buf);
 

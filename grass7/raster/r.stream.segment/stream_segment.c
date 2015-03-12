@@ -80,12 +80,12 @@ int create_sectors(STREAM *cur_stream, int seg_length, int seg_skip,
 	cell_down = i > number_of_cells - 1 - seg_length ?
 	    number_of_cells - 1 - i : seg_length;
 
-	r = (int)P[i] / ncols;
-	c = (int)P[i] % ncols;
-	r_up = (int)P[i - cell_up] / ncols;
-	c_up = (int)P[i - cell_up] % ncols;
-	r_down = (int)P[i + cell_down] / ncols;
-	c_down = (int)P[i + cell_down] % ncols;
+	r = (int)(P[i] / ncols);
+	c = (int)(P[i] % ncols);
+	r_up = (int)(P[i - cell_up] / ncols);
+	c_up = (int)(P[i - cell_up] % ncols);
+	r_down = (int)(P[i + cell_down] / ncols);
+	c_down = (int)(P[i + cell_down] % ncols);
 
 	dir_down = calc_dir(r, c, r_down, c_down);
 	dir_up = calc_dir(r, c, r_up, c_up);
@@ -99,12 +99,12 @@ int create_sectors(STREAM *cur_stream, int seg_length, int seg_skip,
 	cell_down = i > number_of_cells - 1 - seg_length_short ?
 	    number_of_cells - 1 - i : seg_length_short;
 
-	r = (int)P[i] / ncols;
-	c = (int)P[i] % ncols;
-	r_up = (int)P[i - cell_up] / ncols;
-	c_up = (int)P[i - cell_up] % ncols;
-	r_down = (int)P[i + cell_down] / ncols;
-	c_down = (int)P[i + cell_down] % ncols;
+	r = (int)(P[i] / ncols);
+	c = (int)(P[i] % ncols);
+	r_up = (int)(P[i - cell_up] / ncols);
+	c_up = (int)(P[i - cell_up] % ncols);
+	r_down = (int)(P[i + cell_down] / ncols);
+	c_down = (int)(P[i + cell_down] % ncols);
 
 	dir_down = calc_dir(r, c, r_down, c_down);
 	dir_up = calc_dir(r, c, r_up, c_up);
@@ -175,10 +175,10 @@ int create_sectors(STREAM *cur_stream, int seg_length, int seg_skip,
     for (i = 0, prev_i = 0; i < number_of_cells + 1; ++i) {
 	if (streamline[i].decision == 1 || i == (number_of_cells - 1)) {
 
-	    r = (int)P[i] / ncols;
-	    c = (int)P[i] % ncols;
-	    r_up = (int)P[prev_i] / ncols;
-	    c_up = (int)P[prev_i] % ncols;
+	    r = (int)(P[i] / ncols);
+	    c = (int)(P[i] % ncols);
+	    r_up = (int)(P[prev_i] / ncols);
+	    c_up = (int)(P[prev_i] % ncols);
 
 	    cur_stream->sector_breakpoints[sector_index] = i;
 
@@ -231,10 +231,10 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
 
     G_debug(3, "calc_tangents(): number_streams=%d", number_streams);
     /*before calc tangents add rest of streamline attributes */
-    r_up = (int)P[1] / ncols;
-    c_up = (int)P[1] % ncols;
-    r_down = (int)P[last_cell] / ncols;
-    c_down = (int)P[last_cell] % ncols;
+    r_up = (int)(P[1] / ncols);
+    c_up = (int)(P[1] % ncols);
+    r_down = (int)(P[last_cell] / ncols);
+    c_down = (int)(P[last_cell] % ncols);
 
     cur_stream->direction = calc_dir(r_up, c_up, r_down, c_down);
     cur_stream->length = calc_length(cur_stream->distance, 1, last_cell);
@@ -248,7 +248,7 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
     }
 
     /* find location of outlet in next stream */
-    for (i = 1; i < SA[next_stream].number_of_cells; ++i) {
+    for (i = 0; i < SA[next_stream].number_of_cells; ++i) {
 	if (SA[next_stream].points[i] == outlet) {
 	    reached_end = 0;
 	    break;
@@ -259,6 +259,7 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
     if (reached_end) {
 	G_warning(_("Network topology error: cannot identify stream join for stream %d"),
 		  cur_stream->stream);
+	G_fatal_error("stream %d, outlet %u", cur_stream->stream, outlet);
 	cur_stream->tangent = -1;
 	cur_stream->continuation = -1;
 	return 0;
@@ -268,12 +269,12 @@ int calc_tangents(STREAM *cur_stream, int seg_length, int seg_skip,
     cell_down = i >= (SA[next_stream].number_of_cells - seg_length) ?
 	SA[next_stream].number_of_cells - seg_length - 1 : seg_length;
 
-    r = (int)SA[next_stream].points[i] / ncols;
-    c = (int)SA[next_stream].points[i] % ncols;
-    r_up = (int)SA[next_stream].points[i - cell_up] / ncols;
-    c_up = (int)SA[next_stream].points[i - cell_up] % ncols;
-    r_down = (int)SA[next_stream].points[i + cell_down] / ncols;
-    c_down = (int)SA[next_stream].points[i + cell_down] % ncols;
+    r = (int)(SA[next_stream].points[i] / ncols);
+    c = (int)(SA[next_stream].points[i] % ncols);
+    r_up = (int)(SA[next_stream].points[i - cell_up] / ncols);
+    c_up = (int)(SA[next_stream].points[i - cell_up] % ncols);
+    r_down = (int)(SA[next_stream].points[i + cell_down] / ncols);
+    c_down = (int)(SA[next_stream].points[i + cell_down] % ncols);
 
     cur_stream->continuation = calc_dir(r, c, r_down, c_down);
     cur_stream->tangent = i == 1 ? -1 :

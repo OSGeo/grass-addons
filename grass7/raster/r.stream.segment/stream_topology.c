@@ -21,7 +21,11 @@ int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
     int trib_num = 0;
     int i, j;
     int next_r, next_c;
+    int streams_cell;
+    int same_id;
 
+    streams_cell = streams[r][c];
+    same_id = 0;
     for (i = 1; i < 9; ++i) {
 	if (NOT_IN_REGION(i))
 	    continue;
@@ -30,28 +34,22 @@ int ram_trib_nums(int r, int c, CELL ** streams, CELL ** dirs)
 	next_r = NR(i);
 	next_c = NC(i);
 
-	if (streams[next_r][next_c] > 0 && dirs[next_r][next_c] == j)
+	if (streams[next_r][next_c] > 0 && dirs[next_r][next_c] == j) {
 	    trib_num++;
-    }
-
-    if (trib_num > 1)
-	for (i = 1; i < 9; ++i) {
-	    if (NOT_IN_REGION(i))
-		continue;
-
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
-
-	    if (streams[next_r][next_c] == streams[r][c] &&
-		dirs[next_r][next_c] == j)
-		trib_num--;
+	    if (streams[next_r][next_c] == streams_cell)
+		same_id++;
 	}
+    }
 
     if (trib_num > 5)
 	G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
     if (trib_num > 3)
 	G_warning(_("Stream network may be too dense"));
+
+    if (same_id > 1)
+	G_warning(_("Too many stream segments with the same ID %d"), streams_cell);
+    else if (same_id == 1)
+	trib_num = 1;
 
     return trib_num;
 }				/* end trib_num */
@@ -64,8 +62,10 @@ int seg_trib_nums(int r, int c, SEGMENT *streams, SEGMENT *dirs)
     int i, j;
     int next_r, next_c;
     int streams_cell, streams_next_cell, dirs_next_cell;
+    int same_id;
 
     Segment_get(streams, &streams_cell, r, c);
+    same_id = 0;
     for (i = 1; i < 9; ++i) {
 	if (NOT_IN_REGION(i))
 	    continue;
@@ -77,30 +77,23 @@ int seg_trib_nums(int r, int c, SEGMENT *streams, SEGMENT *dirs)
 	Segment_get(streams, &streams_next_cell, next_r, next_c);
 	Segment_get(dirs, &dirs_next_cell, next_r, next_c);
 
-	if (streams_next_cell > 0 && dirs_next_cell == j)
+	if (streams_next_cell > 0 && dirs_next_cell == j) {
 	    trib_num++;
-    }
-
-    if (trib_num > 1)
-	for (i = 1; i < 9; ++i) {
-	    if (NOT_IN_REGION(i))
-		continue;
-
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
-
-	    Segment_get(streams, &streams_next_cell, next_r, next_c);
-	    Segment_get(dirs, &dirs_next_cell, next_r, next_c);
-
-	    if (streams_next_cell == streams_cell && dirs_next_cell == j)
-		trib_num--;
+	    if (streams_next_cell == streams_cell)
+		same_id++;
 	}
+    }
 
     if (trib_num > 5)
 	G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
     if (trib_num > 3)
 	G_warning(_("Stream network may be too dense"));
+
+
+    if (same_id > 1)
+	G_warning(_("Too many stream segments with the same ID %d"), streams_cell);
+    else if (same_id == 1)
+	trib_num = 1;
 
     return trib_num;
 }				/* end trib_num */
@@ -112,9 +105,9 @@ int ram_number_of_streams(CELL **streams, CELL **dirs, int *ordered)
     int stream_num = 0;
     int one = 0, two = 0;
 
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c] > 0)
+    for (r = 0; r < nrows; ++r) {
+	for (c = 0; c < ncols; ++c) {
+	    if (streams[r][c] > 0) {
 		if (ram_trib_nums(r, c, streams, dirs) != 1) {
 		    stream_num++;
 		    if (streams[r][c] == 1)
@@ -122,6 +115,9 @@ int ram_number_of_streams(CELL **streams, CELL **dirs, int *ordered)
 		    if (streams[r][c] == 2)
 			two++;
 		}
+	    }
+	}
+    }
     *ordered = (one > 1 || two > 1) ? 1 : 0;
     /* if there is more than 1 stream with identifier 1 or 2  network is ordered */
 
@@ -135,10 +131,10 @@ int seg_number_of_streams(SEGMENT *streams, SEGMENT *dirs, int *ordered)
     int one = 0, two = 0;
     int streams_cell;
 
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Segment_get(streams, &streams_cell, r, c);
-	    if (streams_cell > 0)
+	    if (streams_cell > 0) {
 		if (seg_trib_nums(r, c, streams, dirs) != 1) {
 		    stream_num++;
 		    if (streams_cell == 1)
@@ -146,7 +142,9 @@ int seg_number_of_streams(SEGMENT *streams, SEGMENT *dirs, int *ordered)
 		    if (streams_cell == 2)
 			two++;
 		}
+	    }
 	}
+    }
     *ordered = (one > 1 || two > 1) ? 1 : 0;
     /* if there is more than 1 stream with identifier 1 or 2  network is ordered */
 
@@ -166,12 +164,12 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 
     stream_attributes =
 	(STREAM *) G_malloc(number_of_streams * sizeof(STREAM));
+
     G_message(_("Finding inits..."));
     SA = stream_attributes;
-
-    for (r = 0; r < nrows; ++r)
-	for (c = 0; c < ncols; ++c)
-	    if (streams[r][c])
+    for (r = 0; r < nrows; ++r) {
+	for (c = 0; c < ncols; ++c) {
+	    if (streams[r][c]) {
 		if (ram_trib_nums(r, c, streams, dirs) != 1) {	/* adding inits */
 		    if (stream_num > number_of_streams)
 			G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
@@ -180,12 +178,14 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 		    SA[stream_num].init = INDEX(r, c);
 		    stream_num++;
 		}
+	    }
+	}
+    }
 
     for (i = 1; i < stream_num; ++i) {
 
-
-	r = (int)SA[i].init / ncols;
-	c = (int)SA[i].init % ncols;
+	r = (int)(SA[i].init / ncols);
+	c = (int)(SA[i].init % ncols);
 	SA[i].order = streams[r][c];
 	SA[i].number_of_cells = 0;
 	do {
@@ -196,7 +196,7 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 		break;
 	    r = NR(d);
 	    c = NC(d);
-	} while (streams[r][c] == SA[i].order);
+	} while (streams[r][c] == SA[i].order && ram_trib_nums(r, c, streams, dirs) == 1);
 
 	SA[i].number_of_cells += 2;	/* add two extra points for init+ and outlet+ */
     }
@@ -210,8 +210,8 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 	SA[i].distance = (double *)
 	    G_malloc((SA[i].number_of_cells) * sizeof(double));
 
-	r = (int)SA[i].init / ncols;
-	c = (int)SA[i].init % ncols;
+	r = (int)(SA[i].init / ncols);
+	c = (int)(SA[i].init % ncols);
 	contrib_cell = ram_find_contributing_cell(r, c, dirs, elevation);
 	prev_r = NR(contrib_cell);
 	prev_c = NC(contrib_cell);
@@ -254,7 +254,7 @@ int ram_build_streamlines(CELL **streams, CELL **dirs, FCELL **elevation,
 	    cell_num++;
 	    if (cell_num > SA[i].number_of_cells)
 		G_fatal_error(_("To many points in stream line"));
-	} while (streams[r][c] == SA[i].order);
+	} while (streams[r][c] == SA[i].order && ram_trib_nums(r, c, streams, dirs) == 1);
 
 	if (SA[i].elevation[0] == -99999)
 	    SA[i].elevation[0] = 2 * SA[i].elevation[1] - SA[i].elevation[2];
@@ -280,15 +280,14 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 
     stream_attributes =
 	(STREAM *) G_malloc(number_of_streams * sizeof(STREAM));
+
     G_message(_("Finding inits..."));
     SA = stream_attributes;
-
-    /* finding inits */
-    for (r = 0; r < nrows; ++r)
+    for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
 	    Segment_get(streams, &streams_cell, r, c);
 
-	    if (streams_cell)
+	    if (streams_cell) {
 		if (seg_trib_nums(r, c, streams, dirs) != 1) {	/* adding inits */
 		    if (stream_num > number_of_streams)
 			G_fatal_error(_("Error finding inits. Stream and direction maps probably do not match"));
@@ -297,13 +296,14 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 		    SA[stream_num].init = INDEX(r, c);
 		    stream_num++;
 		}
+	    }
 	}
+    }
 
-    /* building streamline */
     for (i = 1; i < stream_num; ++i) {
 
-	r = (int)SA[i].init / ncols;
-	c = (int)SA[i].init % ncols;
+	r = (int)(SA[i].init / ncols);
+	c = (int)(SA[i].init % ncols);
 	Segment_get(streams, &streams_cell, r, c);
 	SA[i].order = streams_cell;
 	SA[i].number_of_cells = 0;
@@ -318,7 +318,7 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	    r = NR(d);
 	    c = NC(d);
 	    Segment_get(streams, &streams_cell, r, c);
-	} while (streams_cell == SA[i].order);
+	} while (streams_cell == SA[i].order && seg_trib_nums(r, c, streams, dirs) == 1);
 
 	SA[i].number_of_cells += 2;	/* add two extra points for point before init and after outlet */
     }
@@ -332,8 +332,8 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	SA[i].distance = (double *)
 	    G_malloc((SA[i].number_of_cells) * sizeof(double));
 
-	r = (int)SA[i].init / ncols;
-	c = (int)SA[i].init % ncols;
+	r = (int)(SA[i].init / ncols);
+	c = (int)(SA[i].init % ncols);
 	contrib_cell = seg_find_contributing_cell(r, c, dirs, elevation);
 	prev_r = NR(contrib_cell);
 	prev_c = NC(contrib_cell);
@@ -385,7 +385,7 @@ int seg_build_streamlines(SEGMENT *streams, SEGMENT *dirs,
 	    if (cell_num > SA[i].number_of_cells)
 		G_fatal_error(_("To much points in stream line"));
 	    Segment_get(streams, &streams_cell, r, c);
-	} while (streams_cell == SA[i].order);
+	} while (streams_cell == SA[i].order && seg_trib_nums(r, c, streams, dirs) == 1);
 
 	if (SA[i].elevation[0] == -99999)
 	    SA[i].elevation[0] = 2 * SA[i].elevation[1] - SA[i].elevation[2];
@@ -450,8 +450,8 @@ int ram_fill_streams(CELL **unique_streams, int number_of_streams)
 
     for (i = 1; i < number_of_streams; ++i) {
 	for (j = 1; j < SA[i].number_of_cells - 1; ++j) {
-	    r = (int)SA[i].points[j] / ncols;
-	    c = (int)SA[i].points[j] % ncols;
+	    r = (int)(SA[i].points[j] / ncols);
+	    c = (int)(SA[i].points[j] % ncols);
 	    unique_streams[r][c] = SA[i].stream;
 	}
     }
@@ -468,8 +468,8 @@ int seg_fill_streams(SEGMENT *unique_streams, int number_of_streams)
 
     for (i = 1; i < number_of_streams; ++i) {
 	for (j = 1; j < SA[i].number_of_cells - 1; ++j) {
-	    r = (int)SA[i].points[j] / ncols;
-	    c = (int)SA[i].points[j] % ncols;
+	    r = (int)(SA[i].points[j] / ncols);
+	    c = (int)(SA[i].points[j] % ncols);
 	    Segment_put(unique_streams, &SA[i].stream, r, c);
 	}
     }
@@ -478,47 +478,67 @@ int seg_fill_streams(SEGMENT *unique_streams, int number_of_streams)
 
 int ram_identify_next_stream(CELL **streams, int number_of_streams)
 {
-    int r, c;
-    int i;
+    int i, j, k, n;
     STREAM *SA;
 
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
-	if (SA[i].points[SA[i].number_of_cells - 1] == -1) {
-	    SA[i].next_stream = -1;
-	    SA[i].outlet = -1;
-	}
-	else {
-	    r = (int)SA[i].points[SA[i].number_of_cells - 1] / ncols;
-	    c = (int)SA[i].points[SA[i].number_of_cells - 1] % ncols;
-	    SA[i].next_stream = streams[r][c];
-	    SA[i].outlet = SA[i].points[SA[i].number_of_cells - 1];
+	SA[i].next_stream = -1;
+	SA[i].outlet = SA[i].points[SA[i].number_of_cells - 1];
+
+	if (SA[i].outlet >= 0) {
+	    /* go through all streams
+	     * do not use raster stream ID because it might not be unique */
+	    for (j = 1; j < number_of_streams; ++j) {
+		/* skip first point = contributing cell and 
+		 * last point = outlet (next stream of next stream) */
+		n = SA[j].number_of_cells - 1;
+		for (k = 1; k < n; k++) {
+		    if (SA[j].points[k] == SA[i].outlet) {
+			SA[i].next_stream = j;
+			break;
+		    }
+		}
+		if (SA[i].next_stream > 0)
+		    break;
+	    }
 	}
     }
+
     return 0;
 }
 
 int seg_identify_next_stream(SEGMENT *streams, int number_of_streams)
 {
-    int r, c;
-    int i;
+    int i, j, k, n;
     STREAM *SA;
 
     SA = stream_attributes;
 
     for (i = 1; i < number_of_streams; ++i) {
-	if (SA[i].points[SA[i].number_of_cells - 1] == -1) {
-	    SA[i].next_stream = -1;
-	    SA[i].outlet = -1;
-	}
-	else {
-	    r = (int)SA[i].points[SA[i].number_of_cells - 1] / ncols;
-	    c = (int)SA[i].points[SA[i].number_of_cells - 1] % ncols;
-	    Segment_get(streams, &SA[i].next_stream, r, c);
-	    SA[i].outlet = SA[i].points[SA[i].number_of_cells - 1];
+	SA[i].next_stream = -1;
+	SA[i].outlet = SA[i].points[SA[i].number_of_cells - 1];
+
+	if (SA[i].outlet >= 0) {
+	    /* go through all streams
+	     * do not use raster stream ID because it might not be unique */
+	    for (j = 1; j < number_of_streams; ++j) {
+		/* skip first point = contributing cell and 
+		 * last point = outlet (next stream of next stream) */
+		n = SA[j].number_of_cells - 1;
+		for (k = 1; k < n; k++) {
+		    if (SA[j].points[k] == SA[i].outlet) {
+			SA[i].next_stream = j;
+			break;
+		    }
+		}
+		if (SA[i].next_stream > 0)
+		    break;
+	    }
 	}
     }
+
     return 0;
 }
 

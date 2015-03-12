@@ -164,6 +164,9 @@ int main(int argc, char *argv[])
 	    ram_number_of_streams(streams, dirs, &ordered) + 1;
 	ram_build_streamlines(streams, dirs, elevation, number_of_streams);
 
+	/* TODO: either always create unique streams 
+	 * or keep current mechanism of identify_next_stream, 
+	 * then unique streams are not needed */
 	if (ordered) {
 	    ram_create_map(&map_unique_streams, CELL_TYPE);
 	    unique_streams = (CELL **) map_unique_streams.map;
@@ -217,6 +220,9 @@ int main(int argc, char *argv[])
 	    seg_number_of_streams(streams, dirs, &ordered) + 1;
 	seg_build_streamlines(streams, dirs, elevation, number_of_streams);
 
+	/* TODO: either always create unique streams 
+	 * or keep current mechanism of identify_next_stream, 
+	 * then unique streams are not needed */
 	if (ordered) {
 	    seg_create_map(&map_unique_streams, SROWS, SCOLS, number_of_segs,
 			   CELL_TYPE);
@@ -235,7 +241,7 @@ int main(int argc, char *argv[])
 
 
     for (i = 1; i < number_of_streams; ++i)
-	G_message("%d %d %d", stream_attributes[i].stream,
+	G_debug(1, "%d %d %d", stream_attributes[i].stream,
 		  stream_attributes[i].next_stream,
 		  stream_attributes[i].last_cell_dir);
 
