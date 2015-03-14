@@ -161,7 +161,7 @@ def main():
 		      '-i', format,
 		      '-f', output,
 		      '-o', 'gpx',
-		      '-F', tmp + '.gpx')
+		      '-F', tmp + '.gpx'])
 
     if ret != 0:
 	grass.fatal(_("Error running GPSBabel"))
@@ -240,5 +240,5 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
-    atexit.register(cleanup)
     main()
+
