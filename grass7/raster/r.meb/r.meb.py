@@ -108,7 +108,7 @@
 #----------------------------------------------------------------------------
 #Test
 #----------------------------------------------------------------------------
-#options = {"env":"bio_1@climate,bio_2@climate,bio_3@climate", "file":"test.txt", "ref":"PAs2", "output":"AA1", "digits":"5"}
+#options = {"env":"bio1,bio2,bio3,bio4,bio5,bio6,bio7,bio8,bio9,bio10,bio11,bio12,bio13,bio14,bio15,bio16,bio17,bio18,bio19", "file":"biome_test.txt", "ref":"WDPAselect", "output":"biome_test", "digits":"5"}
 #flags = {"m":True, "n":True, "o":True, "i":True}
 
 #----------------------------------------------------------------------------
@@ -126,6 +126,10 @@ import atexit
 import tempfile
 import string
 import grass.script as grass
+
+#----------------------------------------------------------------------------
+# Standard
+#----------------------------------------------------------------------------
 
 if not os.environ.has_key("GISBASE"):
     grass.message("You must be in GRASS GIS to run this program.")
@@ -189,6 +193,7 @@ def EB(simlay, reflay):
 
     # Median and mad for whole region (within current mask)
     tmpf4 = tmpname('reb4')
+    clean_rast.add(tmpf4)
     d = grass.read_command("r.quantile", quiet=True, input=simlay, percentiles="50")
     d = d.split(":")
     d = float(string.replace(d[2], "\n", ""))
@@ -220,10 +225,10 @@ def EB(simlay, reflay):
     EBstat = abs(d - e) / mad
 
     # Print results to screen and return results
-    grass.info("Median " + vn + " (all region) = " + str(d))
-    grass.info("Median " + vn + " (ref. area) = " + str(e))
-    grass.info("MAD " + vn + " (all region) = " + str(mad))
-    grass.info("EB = " + str(EBstat))
+    grass.info("Median " + vn + " (all region) = " + str('%.3f') %d)
+    grass.info("Median " + vn + " (ref. area) = " + str('%.3f') %e)
+    grass.info("MAD " + vn + " (all region) = " + str('%.3f') %mad)
+    grass.info("EB = " + str('%.3f') %EBstat)
 
     # Clean up and return data
     grass.run_command("g.remove", flags="f", type="raster", name=tmpf5, quiet=True)
@@ -267,6 +272,7 @@ def main():
 
         # Calculate the frequency distribution
         tmpf1 = tmpname('reb1')
+        clean_rast.add(tmpf1)
         laytype = grass.raster_info(ipl[j])['datatype']
         if laytype == 'CELL':
             grass.run_command("g.copy", quiet=True, raster=(ipl[j], tmpf1))
@@ -304,9 +310,11 @@ def main():
 
         # Create the recode layer and calculate the IES
         tmpf2 = tmpname('reb2')
+        clean_rast.add(tmpf2)
         grass.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule[1])
 
         tmpf3 = tmpname('reb3')
+        clean_rast.add(tmpf3)
         z1 = tmpf3 + " = if(" + tmpf2 + "<=50, 2*float(" + tmpf2 + ")"
         z3 = ", if(" + tmpf2 + "<100, 2*(100-float(" + tmpf2 + "))))"
         calcc = z1 + z3
