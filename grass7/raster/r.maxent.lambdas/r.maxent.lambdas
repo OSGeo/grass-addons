@@ -190,7 +190,7 @@ linearPredictorNormalizer=$(cat ${LAMBDAS_FILE} | grep linearPredictorNormalizer
 densityNormalizer=$(cat ${LAMBDAS_FILE} | grep densityNormalizer | sed 's/ //g' | tr -d '\r' | cut -f2 -d",")
 entropy=$(cat ${LAMBDAS_FILE} | grep entropy | sed 's/ //g' | tr -d '\r' | cut -f2 -d",")
 ###Create file with initial part of mapcalc-expression
-echo "${OUTPUT_PREFIX}_raw=exp(((\\" > "$temp1"
+echo "${OUTPUT_PREFIX}_raw = exp(((\\" > "$temp1"
 ###Extract raw features
 cat -v "${LAMBDAS_FILE}" | awk '$0 !~ /\^|\(|\*/' | grep -vP "\`" | grep -vP "\'" | sed 's/\^M//g' | sed 's/,//g' | awk 'NF==4{print "if(isnull(" $1 "),0,(" $2 "*(" $1 "-" $3 ")/(" $4 "-" $3 ")))" "+" "\\"}' | sed 's/--/+/g' | sed 's/+-/-/g' >> $temp1
 ###Extract quadratic features
@@ -251,21 +251,21 @@ cat "$temp1" | r.mapcalc
 ###Compute logistic output map if not suppressed
 if [ "${FLAG_ONLY_RAW}" -eq 0 ] ; then
 	if  [ "${INTEGER_OUTPUT}" -le 0 ] ; then
-		echo "${OUTPUT_PREFIX}_logistic=(${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy})))" >> "$temp1"
-		r.mapcalc "${OUTPUT_PREFIX}_logistic=(${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy})))"
+		echo "${OUTPUT_PREFIX}_logistic = (${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy})))" >> "$temp1"
+		r.mapcalc "${OUTPUT_PREFIX}_logistic = (${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy})))"
 	else
 		if  [ "${INTEGER_OUTPUT}" -lt 5 ] ; then
-			echo "${OUTPUT_PREFIX}_logistic=round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*(10^${INTEGER_OUTPUT}))" >> "$temp1"
-			r.mapcalc "${OUTPUT_PREFIX}_logistic=round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*(10^${INTEGER_OUTPUT}))"
+			echo "${OUTPUT_PREFIX}_logistic = round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*(10^${INTEGER_OUTPUT}))" >> "$temp1"
+			r.mapcalc "${OUTPUT_PREFIX}_logistic = round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*(10^${INTEGER_OUTPUT}))"
 		else
-			echo "${OUTPUT_PREFIX}_logistic=round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*100000.0)" >> "$temp1"
-			r.mapcalc "${OUTPUT_PREFIX}_logistic=round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*100000.0)"
+			echo "${OUTPUT_PREFIX}_logistic = round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*100000.0)" >> "$temp1"
+			r.mapcalc "${OUTPUT_PREFIX}_logistic = round(((${OUTPUT_PREFIX}_raw*exp(${entropy}))/(1.0+(${OUTPUT_PREFIX}_raw*exp(${entropy}))))*100000.0)"
 		fi
 	fi
 fi
 ###Remove raw output map if requested
 if [ "${FLAG_ONLY_LOGISTIC}" -eq 1 ] ; then
-	g.remove -f rast="${OUTPUT_PREFIX}"_raw
+	g.remove -f type='rast' name="${OUTPUT_PREFIX}"_raw
 fi
 ###Remove tmp-file containing r.mapcalc expressions (if save to file not requested)
 if [ -z "$OUTPUT_MAPCALC" ] ; then
