@@ -22,6 +22,7 @@ SUBDIRS = \
 	r.convergence \
 	r.crater \
 	r.damflood \
+	r.divergence \
 	r.diversity \
 	r.droka \
 	r.edm.eval \
