@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
+import os
+import sys
 
+from grass.script import core as grass
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
 from core.gcmd import GMessage, GError
 
@@ -1148,10 +1153,15 @@ class MyApp(wx.App):
         self.SetTopWindow(frame)
         return True
 
+def main():
+    grass.set_raise_on_error(False)
 
-app = MyApp(0)  # Create an instance of the application class
-app.MainLoop()  # Tell it to start processing events
+    options, flags = grass.parser()
 
+    app = MyApp(0)  # Create an instance of the application class
+    app.MainLoop()  # Tell it to start processing events
 
+if __name__ == "__main__":
+    main()
 
 
