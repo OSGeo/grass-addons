@@ -2,18 +2,16 @@
 # -*- coding: utf-8
 # __author__ = 'matt'
 
-from pgwrapper import pgwrapper as pg
-from math import sin, cos, atan2, degrees, radians, tan, sqrt, fabs
-import sys, os, shutil
+from math import sin, cos, atan2, degrees, tan, sqrt
+import  shutil
 import psycopg2
 import time
-from datetime import datetime, timedelta
 import math
+from subprocess import PIPE
 
+from pgwrapper import pgwrapper as pg
 from core.gcmd import RunCommand
 from grass.pygrass.modules import Module
-from subprocess import PIPE
-from core.gcmd import GMessage, GError, GWarning
 
 
 try:
@@ -230,6 +228,7 @@ class VectorLoader():
                           overwrite=True)
         os.remove(tmpFile)
 
+
 class RainGauge():
     def __init__(self, database, pathfile):
         self.db = database
@@ -273,7 +272,7 @@ class RainGauge():
         except IOError as (errno, strerror):
             print "I/O error({0}): {1}".format(errno, strerror)
 
-        #write list of string to database
+        # write list of string to database
         try:
             with open(os.path.join(self.schemaPath, gaugeTMPfile), 'wr') as io:
                 io.writelines(tmp)
@@ -309,6 +308,7 @@ class RainGauge():
             io.close()
             os.remove(os.path.join(self.schemaPath, gaugeTMPfile))
 
+
 class Baseline():
     def __init__(self, type, pathToFile, statFce='mode', quantile=97, roundMode=3, aw=0):
         self.quantile = quantile
@@ -332,6 +332,7 @@ class Baseline():
                 grass.fatal('Baseline values are not defined.')
 
         print self.pathToFile
+
 
 class TimeWindows():
     def __init__(self, database, IDtype, sumStep, startTime=None,
@@ -492,7 +493,7 @@ class TimeWindows():
 
             # sql = "SELECT (timestamp'%s')+ %s* interval '1 second'" % (cur_timestamp, self.intervalStr)
             # cur_timestamp = self.database.connection.executeSql(sql)[0][0]
-            #rint cur_timestamp
+            # rint cur_timestamp
             #print  timedelta(seconds=1)
             #print self.intervalStr
             cur_timestamp = cur_timestamp + self.intervalStr * timedelta(seconds=1)
@@ -526,6 +527,7 @@ class TimeWindows():
             # sql = "DROP TABLE %s.%s" % (self.schema, self.database.recordTableName)
         grass.message('creating time windows-done')
 
+
 class Computor():
     def __init__(self, baseline, timeWin, database, exportData):
         self.awConst = baseline.aw
@@ -547,7 +549,7 @@ class Computor():
         return self.status.get('bool'), self.status.get('msg')
 
     def ExportData(self):
-            pass
+        pass
 
     def cleanDatabase(self):
         sql = "DROP schema IF EXISTS %s CASCADE" % self.database.schema
@@ -561,8 +563,8 @@ class Computor():
         '''@note  returns disct - key:linkid'''
         baseline = self.baseline
         database = self.database
-        tMin=self.timeWin.timestamp_min
-        tMax=self.timeWin.timestamp_max
+        tMin = self.timeWin.timestamp_min
+        tMax = self.timeWin.timestamp_max
 
         def computeBaselinFromMode(recordTable):
             sql = "SELECT linkid from %s group by 1" % recordTable
@@ -594,10 +596,10 @@ class Computor():
 
         def computeBaselineFromTime():
             def chckTimeValidity(tIn):
-                #print tIn
-                tIn=str(tIn).replace("\n", "")
+                # print tIn
+                tIn = str(tIn).replace("\n", "")
 
-                tIn=datetime.strptime(tIn, "%Y-%m-%d %H:%M:%S")
+                tIn = datetime.strptime(tIn, "%Y-%m-%d %H:%M:%S")
                 if tIn > tMax or tIn < tMin:
                     return False
                 return True
@@ -613,7 +615,7 @@ class Computor():
             # 2013-09-11 04:00:00
             # 2013-09-11 04:00:00
             # ###############################
-            #@typestr choose statistical method for baseline computing.
+            # @typestr choose statistical method for baseline computing.
             # typestr='avg'
             # typestr='mode'
             # typestr='quantile'
@@ -634,11 +636,11 @@ class Computor():
                     st += line.replace("\n", "")
                     if 'i' in line.split("\n")[0]:  #get baseline form interval
                         fromt = f.next()
-                        if not chckTimeValidity( fromt):
+                        if not chckTimeValidity(fromt):
                             return False
                         st += fromt.replace("\n", "")
                         tot = f.next()
-                        if not chckTimeValidity( tot):
+                        if not chckTimeValidity(tot):
                             return False
                         #validate input data
                         if not isTimeValid(fromt) or not isTimeValid(tot):
@@ -690,7 +692,7 @@ class Computor():
                 length = len(tmp)
                 links = len(tmp[0])
                 i = 0
-               # print mydict1
+                # print mydict1
                 #compute avg(divide sum by num of datasets)
                 for dataset in tmp:
                     for link in dataset:
@@ -818,8 +820,8 @@ class Computor():
                         limit 1" % (baseline.quantile, recordTable, linkid)
 
                 resu = database.connection.executeSql(sql, True, True)
-                #print resu
-                resu=resu[0][0]
+                # print resu
+                resu = resu[0][0]
                 tmp.append(str(linkid) + ',' + str(resu) + '\n')
 
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), "wr")
@@ -837,7 +839,7 @@ class Computor():
             return mydict
 
         if self.baseline.type == 'values':
-            #print 'valuesDirectly'
+            # print 'valuesDirectly'
             self.baselineDict = readBaselineFromText(self.baseline.pathTofile)
 
         elif self.baseline.type == 'fromDryWin':
@@ -851,7 +853,7 @@ class Computor():
 
     def logMsg(self, msg):
         if self.status.get('msg') == 'Done':
-            self.status['msg']=''
+            self.status['msg'] = ''
         self.status['msg'] += msg + '\n'
         grass.warning(msg)
 
@@ -924,7 +926,7 @@ class Computor():
         self.database.connection.executeSql(sql, False, True)
 
         # optimalization of commits
-        self.database.connection.setIsoLvl(0)  #TODO dont know what is that
+        # self.database.connection.setIsoLvl(0)  #TODO dont know what is that
 
         # choose baseline source (quantile, user values, ) get dict linkid, baseline
         grass.message("Computing baseline")
@@ -949,7 +951,7 @@ class Computor():
 
         temp = []
         grass.message("Computing precipitation")
-        skippedList=[]
+        skippedList = []
         for record in resu:
             curLinkData = linksDict[record[0]]  # record[0] is linkid
 
@@ -960,7 +962,7 @@ class Computor():
                     #skippedList.append(record[0])
                 continue
             # if missing baseline. Link will be skip
-            if record[0] in self.baselineDict and (curLinkData[2] / 1000000) > 10: #TODO
+            if record[0] in self.baselineDict and (curLinkData[2] / 1000000) > 10:  #TODO
                 # coef_a_k[alpha, k]
                 coef_a_k = self.computeAlphaK(curLinkData[2], curLinkData[1])
 
@@ -1080,6 +1082,7 @@ class Computor():
 
             return av, kv
 
+
 class GrassLayerMgr():
     def __init__(self, database, color=None, rules=None):
         self.color = color
@@ -1094,7 +1097,7 @@ class GrassLayerMgr():
         # print map
         # print self.database.linkVecMapName
         # print self.database.precipColName
-        #print self.color
+        # print self.color
 
         if self.color is not None:
             for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
@@ -1244,7 +1247,7 @@ class GrassTemporalMgr():
                    temporaltype=temporalType,
                    semantictype=semanticType,
                    overwrite=True)
-        #getErrorMsg=True)
+        # getErrorMsg=True)
         #print ret
         #print err
 
@@ -1287,7 +1290,7 @@ class Database():
         self.host = host
         if workSchema is None:
             workSchema = 'tmp_' + randomWord(3)
-        self.schema  = workSchema
+        self.schema = workSchema
         if dataSchema is None:
             dataSchema = 'public'
         self.dataSchema = dataSchema
@@ -1342,7 +1345,7 @@ class Database():
                                  driver='pg',
                                  database=conninfo) != 0:
                 grass.warning("Unable to connect to the database by temporal grass driver.")
-                return False #TODO
+                return False  # TODO
         if db == 'sql':
             grass.run_command('t.connect',
                               flags='d')
@@ -1439,7 +1442,7 @@ class Database():
             # grass.message("Optimalization of frequency attribute")
             # sql = "UPDATE link\
             # SET frequency = record.frequency\
-            #        FROM record\
+            # FROM record\
             #        WHERE record.linkid = link.linkid;"
             #self.connection.executeSql(sql, False, True)
 
@@ -1524,6 +1527,7 @@ class Database():
         except OSError:
             if not os.path.isdir(self.pathworkSchemaDir):
                 raise
+
 
 '''
 def main():

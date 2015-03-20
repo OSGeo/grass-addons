@@ -2,14 +2,12 @@
 
 import os
 import sys
-
-from grass.script import core as grass
-
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
+from mw3 import *
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from core.gcmd import GMessage, GError
-
 from gui_core import gselect
+
 
 class DBconn(wx.Panel):
     def __init__(self, parent, settings={}):
@@ -47,31 +45,18 @@ class DBconn(wx.Panel):
         if sett:
             self.settings = sett
 
-        try:
+        if 'database' in self.settings:
             self.database.SetValue(self.settings['database'])
-        except:
-            print 'err'
-            pass
-        try:
+        if 'schema' in self.settings:
             self.schema.SetValue(self.settings['schema'])
-        except:
-            pass
-        try:
+        if 'host' in self.settings:
             self.host.SetValue(self.settings['host'])
-        except:
-            pass
-        try:
+        if 'user' in self.settings:
             self.user.SetValue(self.settings['user'])
-        except:
-            pass
-        try:
+        if 'port' in self.settings:
             self.port.SetValue(self.settings['port'])
-        except:
-            pass
-        try:
+        if 'passwd' in self.settings:
             self.passwd.SetValue(self.settings['passwd'])
-        except:
-            pass
 
     def saveSettings(self, settings=None):
         if settings is not None:
@@ -119,14 +104,10 @@ class PointInterpolationPanel(wx.Panel):
     def loadSettings(self, sett=None):
         if sett:
             self.settings = sett
-        try:
+        if 'pitypeDist' in self.settings:
             self.rb1.SetValue(self.settings['pitypeDist'])
-        except:
-            pass
-        try:
+        if 'pivalue' in self.settings:
             self.val.SetValue(self.settings['pivalue'])
-        except:
-            pass
 
     def saveSettings(self, settings=None):
         if settings is not None:
@@ -164,39 +145,22 @@ class BaselinePanel(wx.Panel):
     def loadSettings(self, sett=None):
         if sett is not None:
             self.settings = sett
-        try:
+        if 'fromFile' in self.settings:
             self.fromFile.SetValue(self.settings['fromFile'])
-        except:
-            pass
-        try:
+        if 'dryWin' in self.settings:
             self.dryWin.SetValue(self.settings['dryWin'])
-        except:
-            pass
-        try:
+        if 'quantile' in self.settings:
             self.quantile.SetValue(self.settings['quantile'])
-        except:
-            pass
-
-        try:
+        if 'baselType' in self.settings:
             self.baselType.SetValue(self.settings['baselType'])
-        except:
-            pass
-        try:
+        if 'round' in self.settings:
             self.round.SetValue(self.settings['round'])
-        except:
-            pass
-        try:
+        if 'aw' in self.settings:
             self.aw.SetValue(self.settings['aw'])
-        except:
-            pass
-        try:
+        if 'dryInterval' in self.settings:
             self.dryInterval.SetPath(self.settings['dryInterval'])
-        except:
-            pass
-        try:
+        if 'fromFileVal' in self.settings:
             self.fromFileVal.SetPath(self.settings['fromFileVal'])
-        except:
-            pass
         self.onChangeMethod()
 
     def saveSettings(self, evt=None, sett=None):
@@ -269,13 +233,13 @@ class DataMgrMW(wx.Panel):
         self.linksAll.Bind(wx.EVT_RADIOBUTTON, self.refreshLinkSet)
         self.linksIngnore.Bind(wx.EVT_RADIOBUTTON, self.refreshLinkSet)
         self.linksOnly.Bind(wx.EVT_RADIOBUTTON, self.refreshLinkSet)
-        self.vectorMap = wx.RadioButton(self,label='Vector map')
-        self.vectorMap.Bind(wx.EVT_RADIOBUTTON,self.refreshLinkSet)
+        self.vectorMap = wx.RadioButton(self, label='Vector map')
+        self.vectorMap.Bind(wx.EVT_RADIOBUTTON, self.refreshLinkSet)
 
         # self.links = BaseInput(self,'Set links according to radio above',True)
         self.links = BaseInput(self, 'Set links according to radio above')
-        self.mapLabel=wx.StaticText(self,label='Select vector map')
-        self.map = gselect.Select(self, type='vector',multiple=False)
+        self.mapLabel = wx.StaticText(self, label='Select vector map')
+        self.map = gselect.Select(self, type='vector', multiple=False)
 
         self.start = BaseInput(self, label='Start time')
         self.end = BaseInput(self, label='End time')
@@ -285,14 +249,14 @@ class DataMgrMW(wx.Panel):
 
         self.stBoxGauge = wx.StaticBox(self, wx.ID_ANY, 'Rain gauge')
         self.inpRainGauge = FileInput(self, 'Select folder with raingauges data')
-        self.inpRainGauge.pathInput.Bind(wx.EVT_TEXT,self.disableLinksInp)
+        self.inpRainGauge.pathInput.Bind(wx.EVT_TEXT, self.disableLinksInp)
         # self.sb1 = wx.StaticBox(self, wx.ID_ANY, 'Baseline')
         # self.type = self.rb1 = wx.RadioButton(self, label='Number of points', style=wx.RB_GROUP)
         if len(settings) > 0:
             self.loadSettings()
         self._layout()
 
-    def disableLinksInp(self,evt=None):
+    def disableLinksInp(self, evt=None):
         if self.inpRainGauge.GetPath() is not None:
             self.linksAll.Disable()
             self.linksOnly.Disable()
@@ -344,38 +308,23 @@ class DataMgrMW(wx.Panel):
     def loadSettings(self, sett=None):
         if sett:
             self.settings = sett
-        try:
-            self.map.SetValue(eval(self.settings['linksMap']))
-        except:
-            pass
-        try:
-            self.linksOnly.SetValue(eval(self.settings['linksOnly']))
-        except:
-            pass
-        try:
-            self.linksIngnore.SetValue(eval(self.settings['linksIngnore']))
-        except:
-            pass
-        try:
+        if 'linksMap' in self.settings:
+            self.map.SetValue(self.settings['linksMap'])
+        if 'linksOnly' in self.settings:
+            self.linksOnly.SetValue(self.settings['linksOnly'])
+        if 'linksIgnore' in self.settings:
+            self.linksIngnore.SetValue(self.settings['linksIngnore'])
+        if 'links' in self.settings:
             self.links.SetValue(self.settings['links'])
-        except:
-            pass
-        try:
+        if 'start' in self.settings:
             self.start.SetValue(self.settings['start'])
-        except:
-            pass
-        try:
+        if 'end' in self.settings:
             self.end.SetValue(self.settings['end'])
-        except:
-            pass
-        try:
+        if 'sumStep' in self.settings:
             self.sumStep.SetValue(self.settings['sumStep'])
-        except:
-            pass
-        try:
+        if 'inpRainGauge' in self.settings:
             self.inpRainGauge.SetPath(self.settings['inpRainGauge'])
-        except:
-            pass
+
 
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
@@ -417,26 +366,22 @@ class DataMgrMW(wx.Panel):
         self.SetSizerAndFit(panelSizer)
         self.refreshLinkSet()
 
+
 class GrassLayers(wx.Panel):
     def __init__(self, parent, settings={}):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.settings = settings
-        self.colorRules = TextInput(self,label='Color table')
-        self.colorsName = BaseInput(self,label='Name of color table')
+        self.colorRules = TextInput(self, label='Color table')
+        self.colorsName = BaseInput(self, label='Name of color table')
         self.layout()
 
     def loadSettings(self, sett=None):
         if sett:
             self.settings = sett
-        try:
+        if 'colorRules' in self.settings:
             self.colorRules.SetValue(self.settings['colorRules'])
-        except:
-            pass
-
-        try:
+        if 'colorName' in self.settings:
             self.colorsName.SetValue(self.settings['colorsName'])
-        except:
-            pass
 
     def saveSettings(self, evt=None, sett=None):
         if sett:
@@ -447,72 +392,75 @@ class GrassLayers(wx.Panel):
 
     def layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
-        panelSizer.Add(self.colorsName,flag= wx.EXPAND )
-        panelSizer.Add(self.colorRules, flag=wx.EXPAND )
+        panelSizer.Add(self.colorsName, flag=wx.EXPAND)
+        panelSizer.Add(self.colorRules, flag=wx.EXPAND)
         self.SetSizerAndFit(panelSizer)
+
 
 class GeometryPanel(wx.Panel):
     def __init__(self, parent, settings={}):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.settings = settings
-        self.label=wx.StaticText(self,label='Create vector geometry map')
+        self.label = wx.StaticText(self, label='Create vector geometry map')
         self.linksExp = wx.RadioButton(self, label='Links', style=wx.RB_GROUP)
         self.nodesExp = wx.RadioButton(self, label='Nodes')
-        self.mapName=BaseInput(self,'Map name')
-        self.bttExport=wx.Button(self,label='Export')
+        self.mapName = BaseInput(self, 'Map name')
+        self.bttExport = wx.Button(self, label='Export')
 
         self.layout()
 
     def layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        panelSizer.Add(self.label,flag=wx.EXPAND)
-        panelSizer.Add(self.linksExp,flag=wx.EXPAND)
-        panelSizer.Add(self.nodesExp,flag=wx.EXPAND)
-        panelSizer.Add(self.mapName,flag=wx.EXPAND)
-        panelSizer.Add(self.bttExport,flag=wx.EXPAND)
+        panelSizer.Add(self.label, flag=wx.EXPAND)
+        panelSizer.Add(self.linksExp, flag=wx.EXPAND)
+        panelSizer.Add(self.nodesExp, flag=wx.EXPAND)
+        panelSizer.Add(self.mapName, flag=wx.EXPAND)
+        panelSizer.Add(self.bttExport, flag=wx.EXPAND)
         self.SetSizerAndFit(panelSizer)
 
     def GetOptions(self):
         if self.linksExp.GetValue():
-            type='links'
+            type = 'links'
         else:
-            type='nodes'
-        return type,self.mapName.GetValue()
+            type = 'nodes'
+        return type, self.mapName.GetValue()
+
 
 class ExportData(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-        self.chkid=wx.CheckBox(self,label='linkid')
+        self.chkid = wx.CheckBox(self, label='linkid')
         self.chkid.SetValue(True)
         self.chkid.Disable()
-        self.chktime=wx.CheckBox(self,label='time')
+        self.chktime = wx.CheckBox(self, label='time')
         self.chktime.SetValue(True)
         self.chktime.Disable()
 
-        self.chkprecip=wx.CheckBox(self,label='precipitation')
-        self.chkrx=wx.CheckBox(self,label='rx')
-        self.chktx=wx.CheckBox(self,label='tx')
-        self.chkfreq=wx.CheckBox(self,label='frequency')
-        self.chkpol=wx.CheckBox(self,label='polarization')
-        self.okBtt=wx.Button(self,label='export')
+        self.chkprecip = wx.CheckBox(self, label='precipitation')
+        self.chkrx = wx.CheckBox(self, label='rx')
+        self.chktx = wx.CheckBox(self, label='tx')
+        self.chkfreq = wx.CheckBox(self, label='frequency')
+        self.chkpol = wx.CheckBox(self, label='polarization')
+        self.okBtt = wx.Button(self, label='export')
         self.layout()
-        #self.chkprecip.Bind(wx.EVT_CHECKBOX,self.onChckPrec)
+        # self.chkprecip.Bind(wx.EVT_CHECKBOX,self.onChckPrec)
 
     def layout(self):
-        mainSizer=wx.BoxSizer(wx.VERTICAL)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        mainSizer.Add(self.chkid,wx.EXPAND)
-        mainSizer.Add(self.chktime,wx.EXPAND)
-        mainSizer.Add(self.chkprecip,wx.EXPAND)
-        mainSizer.Add(self.chkrx,wx.EXPAND)
-        mainSizer.Add(self.chktx,wx.EXPAND)
-        mainSizer.Add(self.chkfreq,wx.EXPAND)
-        mainSizer.Add(self.chkpol,wx.EXPAND)
-        mainSizer.Add(self.okBtt,wx.EXPAND)
+        mainSizer.Add(self.chkid, wx.EXPAND)
+        mainSizer.Add(self.chktime, wx.EXPAND)
+        mainSizer.Add(self.chkprecip, wx.EXPAND)
+        mainSizer.Add(self.chkrx, wx.EXPAND)
+        mainSizer.Add(self.chktx, wx.EXPAND)
+        mainSizer.Add(self.chkfreq, wx.EXPAND)
+        mainSizer.Add(self.chkpol, wx.EXPAND)
+        mainSizer.Add(self.okBtt, wx.EXPAND)
 
         self.SetSizerAndFit(mainSizer)
+
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, id, title):
@@ -528,11 +476,11 @@ class MyFrame(wx.Frame):
         fileMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
         baselineItem = settMenu.Append(wx.ID_ANY, 'Baseline', 'Set baseline methods')
-        geometry = settMenu.Append(wx.ID_ANY,'Geometry', 'Create vector geometry')
+        geometry = settMenu.Append(wx.ID_ANY, 'Geometry', 'Create vector geometry')
         quitItem = settMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(settMenu, '&Options')
 
-        #geoMenu = wx.Menu()
+        # geoMenu = wx.Menu()
 
         #menubar.Append(geoMenu, '&Settings')
 
@@ -582,7 +530,6 @@ class MyFrame(wx.Frame):
         self.OnSaveSettings(toFile=False)
         interface = Gui2Model(self, self.settings)  # TODO optimalize init
         if interface.connStatus:
-
             self.dataMgrMW.start.SetValue(interface.dbConn.minTimestamp())
 
     def getMaxTime(self, evt=None):
@@ -595,7 +542,7 @@ class MyFrame(wx.Frame):
         self.OnSaveSettings(toFile=False)
         interface = Gui2Model(self, self.settings)
         if interface.connStatus:
-             return interface.dbConn
+            return interface.dbConn
 
     def OnSchemeTxtChange(self, evt=None):
         if self.schema.GetValue() is not None:
@@ -626,7 +573,6 @@ class MyFrame(wx.Frame):
             self.grassLayers.loadSettings(self.settings)
         except:
             pass
-
     def OnSaveSettings(self, evt=None, toFile=True):
         try:
             self.settings = self.dataMgrMW.saveSettings(sett=self.settings)
@@ -648,12 +594,7 @@ class MyFrame(wx.Frame):
             self.settings = self.grassLayers.saveSettings(sett=self.settings)
         except:
             pass
-
-        try:
-            self.settings['workSchema'] = self.profilSelection.GetValue()
-        except:
-            pass
-
+        self.settings['workSchema'] = self.profilSelection.GetValue()
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
 
@@ -663,11 +604,11 @@ class MyFrame(wx.Frame):
             self.findProject()
 
     def initWorkingFoldrs(self):
-        savePath=os.path.join(self.workPath,'save')
+        savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
 
-        tmpPath=os.path.join(self.workPath,'temp')
+        tmpPath = os.path.join(self.workPath, 'temp')
         if not os.path.exists(tmpPath):
             os.makedirs(tmpPath)
 
@@ -688,7 +629,7 @@ class MyFrame(wx.Frame):
         else:
             return
 
-    def onSetGeometry(self,evt):
+    def onSetGeometry(self, evt):
         self.geDialog = wx.Dialog(self, id=wx.ID_ANY,
                                   title='Geometry creator',
                                   style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
@@ -711,15 +652,15 @@ class MyFrame(wx.Frame):
         self.geDialog.Destroy()
 
     def _onSetGeomDLG(self, evt):
-        type,name=self.geometryPnl.GetOptions()
+        type, name = self.geometryPnl.GetOptions()
         if name == '':
             GMessage('Please set name of map')
         else:
-            self.createGeometry(type,name)
-            #self.addMapToLay()#TODO giface
+            self.createGeometry(type, name)
+            # self.addMapToLay()#TODO giface
 
-    def addMapToLay(self,map):
-        #TODO giface
+    def addMapToLay(self, map):
+        # TODO giface
         '''
 
         tree = self._giface.GetLayerTree()
@@ -737,7 +678,7 @@ class MyFrame(wx.Frame):
                                   size=wx.DefaultSize,
                                   pos=wx.DefaultPosition)
 
-        #self.bsDialog.SetSize((500, 500))
+        # self.bsDialog.SetSize((500, 500))
 
         if self.settings:
             self.baselinePnl = BaselinePanel(self.bsDialog, self.settings)
@@ -785,17 +726,17 @@ class MyFrame(wx.Frame):
         print self.settings
         self.dbDialog.Destroy()
 
-    def createGeometry(self,type, name):
+    def createGeometry(self, type, name):
         interface = Gui2Model(self, self.settings)
-        interface.initVectorGrass(type=type,name=name)
+        interface.initVectorGrass(type=type, name=name)
 
     def exportData(self, evt):
 
         self.exportDialog = wx.Dialog(self, id=wx.ID_ANY,
-                                  title='Database connection settings',
-                                  style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-                                  size=wx.DefaultSize,
-                                  pos=wx.DefaultPosition)
+                                      title='Database connection settings',
+                                      style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+                                      size=wx.DefaultSize,
+                                      pos=wx.DefaultPosition)
 
         self.exportDialog.SetSize((500, 500))
         self.exportDMgr = ExportData(self.exportDialog)
@@ -808,15 +749,15 @@ class MyFrame(wx.Frame):
         self.exportDialog.ShowModal()
         self.exportDialog.Destroy()
 
-    def _onExport(self,evt=None):
-        path=OnSaveAs(self)
+    def _onExport(self, evt=None):
+        path = OnSaveAs(self)
         self.OnSaveSettings(toFile=False)
         if not self.exportDMgr.chkprecip.GetValue():
-            attrTmp1=[]
+            attrTmp1 = []
             attrTmp1.append('link.linkid')
-            attrTmp2=[]
-            attrTmp3=[]
-            #attrTmp2.append('public.linkid')
+            attrTmp2 = []
+            attrTmp3 = []
+            # attrTmp2.append('public.linkid')
             if self.exportDMgr.chkfreq.GetValue():
                 attrTmp1.append('link.frequency')
             if self.exportDMgr.chkpol.GetValue():
@@ -828,85 +769,85 @@ class MyFrame(wx.Frame):
             if self.exportDMgr.chktx.GetValue():
                 attrTmp2.append('record.txpower')
 
-            attrTmp4='WHERE'
+            attrTmp4 = 'WHERE'
             if len(attrTmp1) > 0:
                 attrTmp3.append('link')
             if len(attrTmp2) > 0:
                 attrTmp3.append('record')
 
             if len(attrTmp1) > 0 and len(attrTmp2) > 0:
-                attrTmp4='WHERE link.linkid=record.linkid AND'
-                attrTmp0=attrTmp1+attrTmp2
+                attrTmp4 = 'WHERE link.linkid=record.linkid AND'
+                attrTmp0 = attrTmp1 + attrTmp2
                 attrTmp0 = ",".join(attrTmp0)
             elif len(attrTmp1) > 0:
                 attrTmp0 = ",".join(attrTmp1)
             elif len(attrTmp2) > 0:
                 attrTmp0 = ",".join(attrTmp2)
 
-            if len(attrTmp3)>1:
+            if len(attrTmp3) > 1:
                 attrTmp3 = ",".join(attrTmp3)
             else:
-                attrTmp3=attrTmp3[0]
+                attrTmp3 = attrTmp3[0]
 
-            sql="SELECT %s FROM %s %s record.time>'%s' and record.time< '%s'  "%(attrTmp0,
-                                                                                attrTmp3,
-                                                                                attrTmp4,
-                                                                                self.dataMgrMW.start.GetValue(),
-                                                                                self.dataMgrMW.end.GetValue())
-            conn=self.GetConnection()
-            res=conn.connection.executeSql(sql, True, True)
-            lines=''
+            sql = "SELECT %s FROM %s %s record.time>'%s' and record.time< '%s'  " % (attrTmp0,
+                                                                                     attrTmp3,
+                                                                                     attrTmp4,
+                                                                                     self.dataMgrMW.start.GetValue(),
+                                                                                     self.dataMgrMW.end.GetValue())
+            conn = self.GetConnection()
+            res = conn.connection.executeSql(sql, True, True)
+            lines = ''
             for r in res:
-                lines+=str(r)[1:][:-1].replace('datetime.datetime','').replace("'","") +'\n'
+                lines += str(r)[1:][:-1].replace('datetime.datetime', '').replace("'", "") + '\n'
             print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "wr")
             io0.writelines(lines)
             io0.close()
-            GMessage('Data exported<%s>'%path)
+            GMessage('Data exported<%s>' % path)
 
         else:
-            exportData = {'getData':True,'dataOnly':False}
+            exportData = {'getData': True, 'dataOnly': False}
             if YesNo(self, 'Export data only?'):
                 exportData['dataOnly'] = True
             self.settings['dataExport'] = exportData
 
-            #if rain gauges
+            # if rain gauges
             if self.dataMgrMW.inpRainGauge.GetPath() is not None:
-                self.settings['IDtype']='gaugeid'
+                self.settings['IDtype'] = 'gaugeid'
             else:
-                self.settings['IDtype']='linkid'
+                self.settings['IDtype'] = 'linkid'
 
             interface = Gui2Model(self, self.settings)
             interface.initVectorGrass()
             interface.initTimeWinMW()
             interface.initBaseline()
             interface.doCompute()
-            conn=self.GetConnection()
-            sql='SELECT * FROM %s.%s'%(interface.dbConn.schema,interface.dbConn.computedPrecip)
-            res=conn.connection.executeSql(sql, True, True)
-            lines=''
+            conn = self.GetConnection()
+            sql = 'SELECT * FROM %s.%s' % (interface.dbConn.schema, interface.dbConn.computedPrecip)
+            res = conn.connection.executeSql(sql, True, True)
+            lines = ''
             for r in res:
-                lines+=str(r)[1:][:-1] +'\n'
+                lines += str(r)[1:][:-1] + '\n'
             print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "wr")
             io0.writelines(lines)
             io0.close()
-            GMessage('Data exported<%s>'%path)
+            GMessage('Data exported<%s>' % path)
 
         self.exportDialog.Destroy()
 
     def runCompute(self, evt):
         self.OnSaveSettings(toFile=False)
-        exportData = {'getData':False,'dataOnly':False}
+        exportData = {'getData': False, 'dataOnly': False}
         self.settings['dataExport'] = exportData
 
-        #if rain gauges
+        # if rain gauges
         if self.dataMgrMW.inpRainGauge.GetPath() is not None:
-            self.settings['IDtype']='gaugeid'
+            self.settings['IDtype'] = 'gaugeid'
         else:
-            self.settings['IDtype']='linkid'
+            self.settings['IDtype'] = 'linkid'
 
         interface = Gui2Model(self, self.settings)
         interface.initVectorGrass()
@@ -938,55 +879,43 @@ class MyFrame(wx.Frame):
     def onQuit(self, e):
         self.Close()
 
+
 class Gui2Model():
     def __init__(self, wxParent, settings):
         parent = wxParent
         self.settings = settings
         self.dbConn = None
-        self.connStatus=False
+        self.connStatus = False
         self.initConnection()
 
     def initConnection(self, info=False):
-        conninfo=None
+        conninfo = None
         try:
             conninfo = {'name': self.settings['database']}
         except:
             GMessage('name of database is missing')
             return
-        try:
+        if 'workSchema' in self.settings:
             conninfo['workSchema'] = self.settings['workSchema']
-        except:
-            pass
-        try:
+        if 'schema' in self.settings:
             conninfo['dataSchema'] = self.settings['schema']
-        except:
-            pass
-        try:
+        if 'host' in self.settings:
             conninfo['host'] = self.settings['host']
-        except:
-            pass
-        try:
+        if 'user' in self.settings:
             conninfo['user'] = self.settings['user']
-        except:
-            pass
-        try:
+        if 'port' in self.settings:
             conninfo['port'] = self.settings['port']
-        except:
-            pass
-        try:
+        if 'passwd' in self.settings:
             conninfo['password'] = self.settings['passwd']
-        except:
-            pass
 
         if conninfo is None:
-            self.connStatus=False
+            self.connStatus = False
             GMessage('Database connection failed')
             return
 
-
         if not info:  # prepare for computing
             self.dbConn = Database(**conninfo)
-            self.connStatus=True
+            self.connStatus = True
             self.dbConn.firstPreparation()
             self.dbConn.prepareDB()
             self.dbConn.prepareDir()
@@ -994,78 +923,68 @@ class Gui2Model():
             return self.dbConn
         else:  # just get info about curr database state
             self.dbConn = Database(**conninfo)
-            self.connStatus=True
+            self.connStatus = True
             return self.dbConn
 
-    def initVectorGrass(self,type=None,name=None):
+    def initVectorGrass(self, type=None, name=None):
         convertor = VectorLoader(self.dbConn)
         if name:
-            self.dbConn.nodeVecMapName=name
-            self.dbConn.linkVecMapName=name
+            self.dbConn.nodeVecMapName = name
+            self.dbConn.linkVecMapName = name
 
-        if type=='nodes' or type is None:
+        if type == 'nodes' or type is None:
             # create native vector map(nodes)
             pointsSQL = convertor.selectNodes()
             # print pointsSQL
             pointsASCII = convertor.getASCIInodes(pointsSQL)
             convertor.grass_vinASCII(pointsASCII, self.dbConn.nodeVecMapName)
         # create native vector map(links)
-        if type=='links'or type is None:
+        if type == 'links' or type is None:
             linksSQL = convertor.selectLinks()
             linksASCII = convertor.getASCIIlinks(linksSQL)
             convertor.grass_vinASCII(linksASCII, self.dbConn.linkVecMapName)
 
     def initPInterpolation(self):
-        try:
+        if 'pitypeDist' in self.settings:
             pitypeDist = self.settings['pitypeDist']
-        except:
-            pass
-        try:
+        if 'pivalue' in self.settings:
             pivalue = self.settings['pivalue']
-        except:
+        else:
             self.errMsg('Missing value for interpolating points along lines')
 
         PointInterpolation(self.dbConn, pivalue, pitypeDist)
 
     def initBaseline(self):
         baselInit = {}
-        try:
+        if 'baselType' in self.settings:
             baselInit['statFce'] = self.settings['baselType']
-        except:
-            pass
-        try:
+
+        if 'quantile' in self.settings:
             baselInit['quantile'] = self.settings['quantile']
-        except:
-            pass
-        try:
+        if 'round' in self.settings:
             baselInit['roundMode'] = self.settings['round']
-        except:
-            pass
-        try:
+        if 'aw' in self.settings:
             baselInit['aw'] = self.settings['aw']
-        except:
-            pass
+
         methodSel = False
-        try:
+
+        if 'fromFile' in self.settings:
             if self.settings['fromFile']:
                 baselInit['type'] = 'values'
-                try:
+                if 'fromFileVal' in self.settings:
                     baselInit['pathToFile'] = self.settings['fromFileVal']
-                except:
+                else:
                     self.errMsg('Path to file with baseline values is not defined')
                 methodSel = True
-        except:
-            pass
-        try:
+
+        if 'dryWin' in self.settings:
             if self.settings['dryWin']:
                 baselInit['type'] = 'fromDryWin'
-                try:
+                if 'dryInterval' in self.settings:
                     baselInit['pathToFile'] = self.settings['dryInterval']
-                except:
+                else:
                     self.errMsg('Dry interval is not defined')
                 methodSel = True
-        except:
-            pass
 
         if not methodSel:
             self.errMsg('Baseline method is not selected')
@@ -1074,38 +993,24 @@ class Gui2Model():
 
     def initTimeWinMW(self):
         winInit = {}
-        try:
-            winInit['linksOnly'] = eval(self.settings['linksOnly'])
-        except:
-            pass
-        try:
-            winInit['linksOnly'] = eval(self.settings['linksMap'])
-        except:
-            pass
-        try:
-            winInit['linksIngnore'] = eval(self.settings['linksIngnore'])
-        except:
-            pass
-        try:
+        if 'linksOnly' in self.settings:
+            winInit['linksOnly'] = self.settings['linksOnly']
+
+        if 'linksMap' in self.settings:
+            winInit['linksOnly'] = self.settings['linksMap']
+        if 'linksIngnore' in self.settings:
+            winInit['linksIgnored'] = self.settings['linksIngnore']
+        if 'links' in self.settings:
             winInit['links'] = self.settings['links']
-        except:
-            pass
-        try:
+        if 'start' in self.settings:
             winInit['startTime'] = self.settings['start']
-        except:
-            pass
-        try:
+        if 'end' in self.settings:
             winInit['endTime'] = self.settings['end']
-        except:
-            pass
-        try:
+        if 'sumStep' in self.settings:
             winInit['sumStep'] = self.settings['sumStep']
-        except:
-            pass
-        try:
+        if 'IDtype' in self.settings:
             winInit['IDtype'] = self.settings['IDtype']
-        except:
-            pass
+
         winInit['database'] = self.dbConn
 
         self.twin = TimeWindows(**winInit)
@@ -1113,26 +1018,22 @@ class Gui2Model():
     def doCompute(self):
 
         # GMessage('OK')
-        # sys.exit()
-        comp=Computor(self.baseline, self.twin, self.dbConn, self.settings['dataExport'])
-        bool,msg=comp.GetStatus()
+        comp = Computor(self.baseline, self.twin, self.dbConn, self.settings['dataExport'])
+        bool, msg = comp.GetStatus()
         if bool:
             self.initGrassLayerMgr()
             self.initTemporalMgr()
 
         GMessage(msg)
-        #elf.initgrassManagement()
+        self.initgrassManagement()
 
     def initGrassLayerMgr(self):
         grassLayerMgr = {}
-        try:
+        if 'colorRules' in self.settings:
             grassLayerMgr['rules'] = self.settings['colorRules']
-        except:
-            pass
-        try:
+
+        if 'colorName' in self.settings:
             grassLayerMgr['color'] = self.settings['colorName']
-        except:
-            pass
 
         grassLayerMgr['database'] = self.dbConn
         GrassLayerMgr(**grassLayerMgr)
@@ -1146,9 +1047,10 @@ class Gui2Model():
         print label
         GError(label)
 
+
 class MyApp(wx.App):
     def OnInit(self):
-        frame = MyFrame(None, -1, "MW worker")
+        frame = MyFrame(None, -1, "MW manager")
         frame.Show(True)
         self.SetTopWindow(frame)
         return True
@@ -1163,5 +1065,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

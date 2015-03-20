@@ -6,11 +6,11 @@ import psycopg2 as ppg
 # import psycopg2.extensions
 
 class pgwrapper:
-    def __init__(self, dbname, host='', user='', passwd='',port=''):
+    def __init__(self, dbname, host='', user='', passwd='', port=''):
         self.dbname = dbname  # Database name which connect to.
         self.host = host  # Host name (default is "localhost")
         self.user = user  # User name for login to the database.
-        self.port=port
+        self.port = port
         self.password = passwd  # Password for login to the database.
         self.connection = self.setConnect()  # Set a connection to the database
         self.cursor = self.setCursor()  # Generate cursor.
@@ -38,12 +38,13 @@ class pgwrapper:
         except:
             print 'cannot set cursor'
 
+    '''
     def setIsoLvl(self, lvl='0'):
         if lvl == 0:
             self.connection.set_session('read committed')
         elif lvl == 1:
             self.connection.set_session(readonly=True, autocommit=False)
-
+    '''
 
     def copyfrom(self, afile, table, sep='|'):
         try:
@@ -81,16 +82,15 @@ class pgwrapper:
         # Excute the SQL statement.
         # self.print_message (sql)
 
-        print '*'*50
+        print '*' * 50
         print sql
-        print '*'*50
+        print '*' * 50
 
         try:
             self.cursor.execute(sql)
         except Exception, e:
             self.connection.rollback()
-            self.print_message( e.pgerror)
-
+            self.print_message(e.pgerror)
 
         if commit:
             self.connection.commit()
