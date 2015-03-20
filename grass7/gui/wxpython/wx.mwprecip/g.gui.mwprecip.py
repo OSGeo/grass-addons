@@ -1025,7 +1025,7 @@ class Gui2Model():
             self.initTemporalMgr()
 
         GMessage(msg)
-        self.initgrassManagement()
+        #self.initgrassManagement()
 
     def initGrassLayerMgr(self):
         grassLayerMgr = {}
@@ -1046,7 +1046,6 @@ class Gui2Model():
     def errMsg(self, label):
         print label
         GError(label)
-
 
 class MyApp(wx.App):
     def OnInit(self):
