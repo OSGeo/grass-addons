@@ -89,12 +89,11 @@ def main():
     grass.message( "----" )
     grass.message( "Step 1: Calculation of slope" )
     grass.message( "..." )	
-    grass.run_command('r.slope.aspect', elevation = r_elevation,
+    grass.run_command('r.resamp.rst', input = r_elevation,
                                      slope = r_slope_degree, 
-                                     format = "degrees",
-                                     precision = "DCELL",
-                                     zscale = 1.0,
-                                     overwrite = True)
+                                     ew_res = Xres_base,
+                                     ns_res = Yres_base,
+                                     quiet = True)
 
     grass.message( "..." )
 									 
@@ -315,12 +314,11 @@ def main():
 	# Calculate slope step 3
     grass.message( "Step 3: Calculation of slope" )
     grass.message( "..." )	
-    grass.run_command('r.slope.aspect', elevation = "DEM_smoothed_step3",
+    grass.run_command('r.resamp.rst', input = "DEM_smoothed_step3",
                                      slope = "DEM_smoothed_step3_slope_degree", 
-                                     format = "degrees",
-                                     precision = "DCELL",
-                                     zscale = 1.0,
-                                     overwrite = True)
+                                     ew_res = Xres_base,
+                                     ns_res = Yres_base,
+                                     quiet = True)
 
     grass.message( "..." )
 									 
@@ -498,12 +496,11 @@ def main():
 	# Calculate slope step 4
     grass.message( "Step 4: Calculation of slope" )
     grass.message( "..." )	
-    grass.run_command('r.slope.aspect', elevation = "DEM_smoothed_step4",
+    grass.run_command('r.resamp.rst', input = "DEM_smoothed_step4",
                                      slope = "DEM_smoothed_step4_slope_degree", 
-                                     format = "degrees",
-                                     precision = "DCELL",
-                                     zscale = 1.0,
-                                     overwrite = True)
+                                     ew_res = X_step3,
+                                     ns_res = Y_step3,
+                                     quiet = True)
 
     grass.message( "..." )
 									 
