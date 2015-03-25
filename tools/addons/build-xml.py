@@ -137,7 +137,7 @@ def main():
 
     header(fd)
     parse_modules(fd, get_list(addons))
-    parse_gui_modules(fd, get_gui_list(g7))
+    # parse_gui_modules(fd, get_gui_list(g7))
     footer(fd)
 
     fd.close()
