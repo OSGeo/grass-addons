@@ -63,7 +63,9 @@ border: 1px solid black;
 echo "-----------------------------------------------------"
 echo "AddOns '$ADDON_PATH'..."
 echo "-----------------------------------------------------"
-for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" ; do
+
+pwd=`pwd`
+for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" "gui/wxpython"; do
     if [ ! -d $c ]; then
 	continue
     fi
@@ -98,7 +100,7 @@ for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "
 	echo "<td><a href=\"$m.log\">log</a></td></tr>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	cd ..
     done
-    cd ..
+    cd $pwd
 done
 
 echo "</table><hr />
