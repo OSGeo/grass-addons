@@ -42,22 +42,30 @@ class DBconn(wx.Panel):
 
         self.SetSizerAndFit(panelSizer)
 
+    def getSettVal(self,key):
+        if self.settings[key] is not None:
+            return self.settings[key]
+        if self.settings[key] is not 'None':
+            return self.settings[key]
+        if self.settings[key] is not'':
+            return self.settings[key]
+
     def loadSettings(self, sett=None):
         if sett:
             self.settings = sett
 
         if 'database' in self.settings:
-            self.database.SetValue(self.settings['database'])
+            self.database.SetValue(self.getSettVal('database'))
         if 'schema' in self.settings:
-            self.schema.SetValue(self.settings['schema'])
+            self.schema.SetValue(self.getSettVal('schema'))
         if 'host' in self.settings:
-            self.host.SetValue(self.settings['host'])
+            self.host.SetValue(self.getSettVal('host'))
         if 'user' in self.settings:
-            self.user.SetValue(self.settings['user'])
+            self.user.SetValue(self.getSettVal('user'))
         if 'port' in self.settings:
-            self.port.SetValue(self.settings['port'])
+            self.port.SetValue(self.getSettVal('port'))
         if 'passwd' in self.settings:
-            self.passwd.SetValue(self.settings['passwd'])
+            self.passwd.SetValue(self.getSettVal('passwd'))
 
     def saveSettings(self, settings=None):
         if settings is not None:
@@ -84,7 +92,6 @@ class PointInterpolationPanel(wx.Panel):
         self.val = BaseInput(self, label='Value')
 
         panelSizer = wx.BoxSizer(wx.VERTICAL)
-
         panelSizer.Add(self.interpolState, flag=wx.EXPAND)
         panelSizer.Add(self.rb1, flag=wx.EXPAND)
         panelSizer.Add(self.rb2, flag=wx.EXPAND)
@@ -132,7 +139,6 @@ class BaselinePanel(wx.Panel):
         self.aw = BaseInput(self, 'Antena wetting value')
         self.dryInterval = TextInput(self, 'Set interval of dry period')
         self.fromFileVal = TextInput(self, 'Set baseline values in csv format')
-        # self.SLpanel = SaveLoad(self)
         self.okBtt = wx.Button(self, wx.ID_OK, label='ok and close')
         self.onChangeMethod(None)
         self.fromFile.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
@@ -292,6 +298,7 @@ class DataMgrMW(wx.Panel):
             self.mapLabel.Hide()
             self.map.Hide()
         self.Fit()
+        self.Parent.Fit()
 
     def saveSettings(self, evt=None, sett=None):
         if sett:
@@ -326,7 +333,6 @@ class DataMgrMW(wx.Panel):
         if 'inpRainGauge' in self.settings:
             self.inpRainGauge.SetPath(self.settings['inpRainGauge'])
 
-
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizerAndFit(panelSizer)
@@ -341,7 +347,7 @@ class DataMgrMW(wx.Panel):
         stBoxSizerTWIN.Add(linksSizer, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.links, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.mapLabel, flag=wx.EXPAND)
-        stBoxSizerTWIN.Add(self.map, flag=wx.EXPAND)
+        stBoxSizerTWIN.Add(self.map, flag=wx.EXPAND,proportion=1)
         stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
         stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
         stBoxSizerTWIN.Add(self.start, flag=wx.EXPAND, proportion=1)
@@ -362,8 +368,6 @@ class DataMgrMW(wx.Panel):
         panelSizer.Add(stBoxSizerTWIN, flag=wx.EXPAND)
         panelSizer.Add(stBoxSizerRGAUGE, flag=wx.EXPAND)
 
-        # panelSizer.Add(self.exportDataBtt, flag=wx.EXPAND)
-        # panelSizer.Add(self.computeBtt, flag=wx.EXPAND)
         self.SetSizerAndFit(panelSizer)
         self.refreshLinkSet()
 
@@ -465,12 +469,14 @@ class ExportData(wx.Panel):
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title, size=(480, 640))
+        wx.Frame.__init__(self, parent, id, title, size=(480, 640),style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
         self.workPath = os.path.dirname(os.path.realpath(__file__))
         self.initWorkingFoldrs()
         self.settings = {}
         self.settingsLst = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.panelSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
 
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
@@ -481,11 +487,6 @@ class MyFrame(wx.Frame):
         quitItem = settMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(settMenu, '&Options')
 
-        # geoMenu = wx.Menu()
-
-        #menubar.Append(geoMenu, '&Settings')
-
-
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.onQuit, quitItem)
         self.Bind(wx.EVT_MENU, self.onSetDatabase, databaseItem)
@@ -494,7 +495,7 @@ class MyFrame(wx.Frame):
 
         #def initNotebook(self):
 
-        self.ntb = wx.Notebook(self, id=wx.ID_ANY)
+        self.ntb = wx.Notebook(self.mainPanel, id=wx.ID_ANY)
         self.dataMgrMW = DataMgrMW(self.ntb)
         self.dataMgrMW.getEndBtt.Bind(wx.EVT_BUTTON, self.getMaxTime)
         self.dataMgrMW.getStartBtt.Bind(wx.EVT_BUTTON, self.getMinTime)
@@ -509,18 +510,18 @@ class MyFrame(wx.Frame):
         self.ntb.AddPage(page=self.grassLayers, text='Layers')
 
         #def initProfileSett(self):
-        self.loadScheme = wx.StaticText(self, label='Load settings', id=wx.ID_ANY)
-        self.profilSelection = wx.ComboBox(self)
-        self.schema = BaseInput(self, 'Name of new working profile')
+        self.loadScheme = wx.StaticText(self.mainPanel, label='Load settings', id=wx.ID_ANY)
+        self.profilSelection = wx.ComboBox(self.mainPanel)
+        self.schema = BaseInput(self.mainPanel, 'Name of new working profile')
         self.schema.text.Bind(wx.EVT_TEXT, self.OnSchemeTxtChange)
-        self.newScheme = wx.Button(self, label='Save new profile')
+        self.newScheme = wx.Button(self.mainPanel, label='Save new profile')
         self.newScheme.Bind(wx.EVT_BUTTON, self.OnSaveSettings)
         self.newScheme.Disable()
         self.profilSelection.Bind(wx.EVT_COMBOBOX, self.OnLoadSettings)
 
         #def initRunBtt(self):
-        self.computeBtt = wx.Button(self, label='Compute')
-        self.exportDataBtt = wx.Button(self, label='Export data')
+        self.computeBtt = wx.Button(self.mainPanel, label='Compute')
+        self.exportDataBtt = wx.Button(self.mainPanel, label='Export data')
         self.computeBtt.Bind(wx.EVT_BUTTON, self.runCompute)
         self.exportDataBtt.Bind(wx.EVT_BUTTON, self.exportData)
 
@@ -732,7 +733,6 @@ class MyFrame(wx.Frame):
         interface.initVectorGrass(type=type, name=name)
 
     def exportData(self, evt):
-
         self.exportDialog = wx.Dialog(self, id=wx.ID_ANY,
                                       title='Database connection settings',
                                       style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
@@ -802,7 +802,7 @@ class MyFrame(wx.Frame):
                 lines += str(r)[1:][:-1].replace('datetime.datetime', '').replace("'", "") + '\n'
             print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
-            io0 = open(path, "wr")
+            io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
             GMessage('Data exported<%s>' % path)
@@ -832,7 +832,7 @@ class MyFrame(wx.Frame):
                 lines += str(r)[1:][:-1] + '\n'
             print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
-            io0 = open(path, "wr")
+            io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
             GMessage('Data exported<%s>' % path)
@@ -862,20 +862,23 @@ class MyFrame(wx.Frame):
         interface.doCompute()
 
     def layout(self):
-        self.mainSizer.Add(self.loadScheme, flag=wx.EXPAND)
-        self.mainSizer.Add(self.profilSelection, flag=wx.EXPAND)
-        self.mainSizer.Add(self.schema, flag=wx.EXPAND)
-        self.mainSizer.Add(self.newScheme, flag=wx.EXPAND)
 
-        self.mainSizer.AddSpacer(10, 0, wx.EXPAND)
-        self.mainSizer.Add(self.ntb, flag=wx.EXPAND)
+        self.panelSizer.Add(self.loadScheme, flag=wx.EXPAND)
+        self.panelSizer.Add(self.profilSelection, flag=wx.EXPAND)
+        self.panelSizer.Add(self.schema, flag=wx.EXPAND)
+        self.panelSizer.Add(self.newScheme, flag=wx.EXPAND)
 
-        self.mainSizer.AddSpacer(10, 0, wx.EXPAND)
-        self.mainSizer.Add(self.computeBtt, flag=wx.EXPAND)
-        self.mainSizer.Add(self.exportDataBtt, flag=wx.EXPAND)
+        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(self.ntb, flag=wx.EXPAND)
 
-        self.SetSizer(self.mainSizer)
-        # self.Fit()
+        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(self.computeBtt, flag=wx.EXPAND)
+        self.panelSizer.Add(self.exportDataBtt, flag=wx.EXPAND)
+
+        self.mainSizer.Add(self.mainPanel,flag=wx.EXPAND)
+        self.mainPanel.SetSizerAndFit(self.panelSizer)
+        self.SetSizerAndFit(self.mainSizer)
+        self.Fit()
 
     def onQuit(self, e):
         self.Close()
@@ -1028,6 +1031,7 @@ class Gui2Model():
         GMessage(msg)
         #self.initgrassManagement()
 
+
     def initGrassLayerMgr(self):
         grassLayerMgr = {}
         if 'colorRules' in self.settings:
@@ -1038,7 +1042,6 @@ class Gui2Model():
 
         grassLayerMgr['database'] = self.dbConn
         GrassLayerMgr(**grassLayerMgr)
-
 
     def initTemporalMgr(self):
         GrassTemporalMgr(self.dbConn, self.twin)

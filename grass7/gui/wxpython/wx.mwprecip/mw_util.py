@@ -481,7 +481,7 @@ def removeLines(old_file, new_file, start, end):
     data_list = open(old_file, 'r').readlines()
     temp_list = data_list[0:start]
     temp_list[len(temp_list):] = data_list[end:len(data_list)]
-    open(new_file, 'wr').writelines(temp_list)
+    open(new_file, 'w+').writelines(temp_list)
 
 
 def OnSaveAs(parent):

@@ -275,7 +275,7 @@ class RainGauge():
 
         # write list of string to database
         try:
-            with open(os.path.join(self.schemaPath, gaugeTMPfile), 'wr') as io:
+            with open(os.path.join(self.schemaPath, gaugeTMPfile), 'w+') as io:
                 io.writelines(tmp)
                 io.close()
         except IOError as (errno, strerror):
@@ -599,8 +599,11 @@ class Computor():
             def chckTimeValidity(tIn):
                 # print tIn
                 tIn = str(tIn).replace("\n", "")
-
-                tIn = datetime.strptime(tIn, "%Y-%m-%d %H:%M:%S")
+                try:
+                    tIn = datetime.strptime(tIn, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    grass.message('Wrong datetime format')
+                    return False
                 if tIn > tMax or tIn < tMin:
                     return False
                 return True
@@ -661,8 +664,11 @@ class Computor():
                         if not isTimeValid(time):
                             grass.warning("Input data are not valid. Parameter 'baselitime'")
                             return False
-
-                        time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                        try:
+                            time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            grass.message('Wrong datetime format')
+                            return False
                         st += str(time).replace("\n", "")
                         fromt = time + timedelta(seconds=-60)
                         if not chckTimeValidity(fromt):
@@ -706,7 +712,7 @@ class Computor():
                     break
 
                 #write values to baseline file
-                writer = csv.writer(open(os.path.join(database.pathworkSchemaDir, 'baseline'), 'wr'))
+                writer = csv.writer(open(os.path.join(database.pathworkSchemaDir, 'baseline'), 'w+'))
                 for key, value in mydict1.items():
                     writer.writerow([key, value])
 
@@ -745,7 +751,11 @@ class Computor():
                         if not isTimeValid(time):
                             grass.warning("Input data are not valid. Parameter 'baselitime'")
                             return False
-                        time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                        try:
+                            time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            grass.message('Wrong datetime format')
+                            return False
                         st += str(time).replace("\n", "")
                         fromt = time + timedelta(seconds=-60)
                         if not chckTimeValidity(fromt):
@@ -1315,9 +1325,9 @@ class Database():
         else:
             self.grassConnection()
         self.grassTemporalConnection('postgres')
-        self.firstPreparation()
-        self.prepareDB()
-        self.prepareDir()
+        #self.firstPreparation()
+        #self.prepareDB()
+        #self.prepareDir()
 
     def minTimestamp(self):
         sql = "SELECT min(time) FROM %s.%s" % (self.dataSchema, self.recordTableName)
