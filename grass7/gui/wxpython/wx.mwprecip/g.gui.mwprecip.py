@@ -2,9 +2,11 @@
 
 import os
 import sys
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
 from mw3 import *
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
+
 from core.gcmd import GMessage, GError
 from gui_core import gselect
 
