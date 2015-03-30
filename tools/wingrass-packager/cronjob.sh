@@ -68,28 +68,33 @@ wget -r -nH --no-parent --reject="index.html*" -l5 \
 ### addons_index 64
 ### addons_index 65
 ### addons_index 70
+addon_index 71
 
 # remove old packages
-rm_7 64
-rm_7 65
-rm_7 70
+### rm_7 64
+### rm_7 65
+### rm_7 70
+rm_7 71
 
 # update setup.ini
-update_setup 64
-update_setup 65
-update_setup 70
+### update_setup 64
+### update_setup 65
+### update_setup 70
+update_setup 71
 
 # geo101 -> upload.osgeo.org
-rsync_grass 64
-rsync_grass 65
-rsync_grass 70
+### rsync_grass 64
+### rsync_grass 65
+### rsync_grass 70
+rsync_grass 71
 
 # promote changes
 wget -q -O- http://upload.osgeo.org/cgi-bin/osgeo4w-regen.sh
 wget -q -O- http://upload.osgeo.org/cgi-bin/osgeo4w-promote.sh
 
-report 64
-report 65
-report 70
+### report 64
+### report 65
+### report 70
+report 71
 
 exit 0
