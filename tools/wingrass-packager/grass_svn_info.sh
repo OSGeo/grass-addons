@@ -54,16 +54,16 @@ function create_log {
     cp error.log $LOG_DIR/
 }
 
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
+export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/subversion/bin/svn
 
 VERSION=$1
 NUM=$2
 
 if test -z $VERSION ; then
     # dev packages
-    update grass64_release grass64
+    ### update grass64_release grass64
     ### update grass6_devel    grass65
-    update grass70_release grass70
+    ### update grass70_release grass70
     update grass_trunk     grass71
 else
     update grass$VERSION   grass$VERSION $NUM
