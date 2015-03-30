@@ -218,7 +218,7 @@ class VectorLoader():
     def grass_vinASCII(self, asciiStr, outMapName):
         currDir = os.path.dirname(os.path.realpath(__file__))
         tmpFile = os.path.join(currDir, 'tmp')
-        f = open(tmpFile, 'w')
+        f = open(tmpFile, 'w+')
         f.write(asciiStr)
         f.close()
         grass.run_command('v.in.ascii',
@@ -507,7 +507,7 @@ class TimeWindows():
         else:
             TMPname = 'g_timewindow'
         try:
-            io2 = open(os.path.join(self.path, TMPname), "wr")
+            io2 = open(os.path.join(self.path, TMPname), 'w+')
             io2.writelines(nameList)
             io2.close()
         except IOError as (errno, strerror):
@@ -518,7 +518,7 @@ class TimeWindows():
             self.timestamp_max).replace(' ', '_')
         try:
             self.temporalRegPath = os.path.join(self.path, filename)
-            io4 = open(self.temporalRegPath, "wr")
+            io4 = open(self.temporalRegPath, 'w+')
             io4.writelines(tgrass_vector)
             io4.close()
         except IOError as (errno, strerror):
@@ -587,11 +587,11 @@ class Computor():
 
             sql = "DROP TABLE %s.tempround" % database.schema
             database.connection.executeSql(sql, False, True)
-            io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), "wr")
+            io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
 
-            # io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), "wr")
+            # io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), 'w+')
             # io1.write('mode|' + str(baseline.aw))
             # io1.close
 
@@ -776,7 +776,7 @@ class Computor():
                 database.connection.executeSql(sql, False, True)
 
                 #write values to flat file
-                io = open(os.path.join(database.pathworkSchemaDir, "mode_tmp"), "wr")
+                io = open(os.path.join(database.pathworkSchemaDir, "mode_tmp"), 'w+')
                 c = 0
                 for it in tmp:
                     for i in it:
@@ -807,7 +807,7 @@ class Computor():
                 database.connection.executeSql(sql, False, True)
 
             #write  unique mark to file
-            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), "wr")
+            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), 'w+')
             st = st + '|' + str(baseline.aw)
             io1.write(st)
             io1.close
@@ -835,11 +835,11 @@ class Computor():
                 resu = resu[0][0]
                 tmp.append(str(linkid) + ',' + str(resu) + '\n')
 
-            io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), "wr")
+            io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
 
-            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), "wr")
+            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), 'w+')
             io1.write('quantile' + str(baseline.quantile) + '|' + str(baseline.aw))
             io1.close
 
@@ -1003,7 +1003,7 @@ class Computor():
         # write values to flat file
         # print temp
         pathExp = os.path.join(self.database.pathworkSchemaDir, "precip")
-        io = open(pathExp, "wr")
+        io = open(pathExp, 'w+')
         io.writelines(temp)
         io.close()
         #if getData:
@@ -1275,7 +1275,7 @@ class GrassTemporalMgr():
             timeOfLay += timedelta(seconds=self.timeWinConf.intervalStr)
             regTMP += mapsName + '|' + str(timeOfLay) + '\n'
 
-        io1 = open(regFilePath, "wr")
+        io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
         print 'datasetName', self.datasetName
