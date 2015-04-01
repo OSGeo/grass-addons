@@ -1327,9 +1327,9 @@ class Database():
 
         self.pyConnection()
         #if self.host:
-        #    self.grassConnectionRemote()
+        self.grassConnectionRemote()
         #else:
-        self.grassConnection()
+        #self.grassConnection()
         self.grassTemporalConnection('postgres')
         #self.firstPreparation()
         #self.prepareDB()
@@ -1367,70 +1367,34 @@ class Database():
             grass.run_command('t.connect',
                               flags='d')
 
-    def grassConnection(self):
+    def grassConnectionRemote(self):
         conninfo = 'dbname=' + self.dbName
         if self.host:
-            conninfo += ',host=' + self.host
+            conninfo += ' host=' + self.host
         if self.port:
-            conninfo += ',port=' + str(self.port)
-        #conninfo+='"'
-        print '*' * 50
-        print conninfo
-        print self.user
-        print self.password
-        print '*' * 50
-        if self.user or self.password:
-            if grass.run_command('db.login',
-                                 driver="pg",
-                                 database=self.dbName,
-                                 user=self.user,
-                                 password=self.password) != 0:
-                grass.warning("Cannot login")
-                return False
-
-        # Try to connect
-        '''
-        if grass.run_command('db.select',
-                             quiet=True,
-                             flags='c',
-                             driver="pg",
-                             database=conninfo,
-                             sql="select version()") != 0:
-            grass.warning("Cannot connect to database.")
-            return False
-        '''
-
-        if grass.run_command('db.connect', driver="pg", database=conninfo) != 0:
-            grass.fatal("Unable to connect to the database by grass driver.")
-        '''
-        if grass.run_command('db.connect', driver="pg", database=self.dbName) != 0:
-            grass.warning("Cannot connect to database.")
-            return False
-        '''
-
-
-    def grassConnectionRemote(self):
-        conninfo = 'dbname= ' + self.dbName
-        if self.host:
-            conninfo += ',host=' + self.host
-        if self.port:
-            conninfo += ',port=' + str(self.port)
+            conninfo += ' port=' + str(self.port)
         self.dbConnStr=conninfo
         # Unfortunately we cannot test untill user/password is set
-        if self.user or self.password:
+
+        if self.user and not self.password:
             grass.run_command('db.login',
                               driver="pg",
-                              database=self.dbName,
+                              database=conninfo,
                               user=self.user,
-                              password=self.password)
+                              password='')
 
-
+        elif self.user and self.password:
+            grass.run_command('db.login',
+                  driver="pg",
+                  database=conninfo,
+                  user=self.user,
+                  password=self.password)
         else:
             grass.run_command('db.login',
-                              quiet=True,
-                              driver="pg",
-                              database=self.dbName,
-                              user="", password="")
+                  driver="pg",
+                  database=conninfo,
+                  user='',
+                  password='')
 
         if grass.run_command('db.connect', driver="pg", database=conninfo) != 0:
             grass.fatal("Unable to connect to the database by grass driver.")
