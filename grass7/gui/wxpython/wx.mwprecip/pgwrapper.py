@@ -80,11 +80,7 @@ class pgwrapper:
 
     def executeSql(self, sql, results=True, commit=False):
         # Excute the SQL statement.
-        # self.print_message (sql)
-
-        print '*' * 50
-        print sql
-        print '*' * 50
+        self.print_message (sql)
 
         try:
             self.cursor.execute(sql)
