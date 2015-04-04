@@ -2,46 +2,77 @@
 
 <em>v.isochrones</em> creates a vector polygon map of isochrones 
 (<b>isochrones</b>) based on a roads map (<b>map</b>) with speed 
-attribute (<b>speed_column</b>), one or several starting points 
+or cost attribute (<b>cost_column</b>), one or several starting points 
 (<b>start_points</b>) and time steps for the isochrones 
-(<b>time_steps</b>). Optionally, the module can create a raster map 
-with continuous time from the starting points (<b>timemap</b>).
+(<b>time_steps</b>). The module is actually a front-end to different 
+GRASS GIS modules, and the user can chose the approach with the <b>method</b> option
+(see the notes section for details).
 
-<p>
-The user can define the speed to use in offroad areas 
-(<b>offroad_speed</b>) and the time unit of the output and the time 
-steps (<b>unit</b>).
+
 
 <h2>NOTES</h2>
 
-The module is a front-end to <em><a href="r.cost.html">r.cost</a></em>. 
-It transforms the roads to raster, calculates time cost from the 
-starting points and then transforms the result into discrete vector 
-polygons based on the time steps chosen.
+Two approaches are currently implemented in the module:
 
 <p>
-Current region settings are used to define the maximal extension and 
-the resolution at which the cost map is calculated.
+The first (default) approach is based on <em><a href="v.net.iso">v.net.iso</a></em>. The output 
+of that module is then used to assign isochrone values to all pixels based on the nearest
+road segment that is within a given distance (<b>max_distance</b>). The <b>-i</b> flag allows
+to calculate a separate isochrone map for each starting point.
+For this approach, the input road map currently has to be prepared by adding all nodes (using 
+<em><a href="v.net">v.net</a></em> with 'operation=nodes' and the '-c' flag. In addition
+and a <b>cost_column</b> has to be present in the attribute table containing for each line segment 
+the time of traversal in minutes (i.e. length/speed).
+
+<p>
+The second approach is based on <em><a href="r.cost.html">r.cost</a></em>. 
+It transforms the roads to raster (here <b>cost_column</b> has to point to an attribute
+column containing speed in km/h), assigning a user chosen <b>offroad_speed</b> to all offroad
+pixels, calculates time cost from the starting points and then transforms the result into 
+discrete vector polygons based on the time steps chosen. Optionally, the user can chose to 
+keep the a raster output of <em><a href="r.cost.html">r.cost</a></em> (<b>timemap</b>).
+Current region settings are used to define the maximal extension and the resolution 
+at which the cost map is calculated. The <b>memory</b> option allows to decide how much
+memory the <em><a href="r.cost.html">r.cost</a></em> module can use (see the r.cost man page
+for more details).
 
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.copy vector=roadsmajor,roads
-v.db.addcolumn roads col="speed int"
-v.db.update roads col=speed value=120 where="ROAD_NAME='US-1'"
-v.db.update roads col=speed value=90 where="(ROAD_NAME like 'US%' AND ROAD_NAME <> 'US-1') OR ROAD_NAME like 'I-%'"
-v.db.update roads col=speed value=50 where="speed is null"
+v.net -c input=roadsmajor operation=nodes output=myroads
+v.db.addcolumn myroads col="speed int"
+v.db.addcolumn myroads col="length double precision"
+v.db.addcolumn myroads col="cost double precision"
+v.db.update myroads col=speed value=120 where="ROAD_NAME='US-1'"
+v.db.update myroads col=speed value=90 where="(ROAD_NAME like 'US%' AND ROAD_NAME <> 'US-1') OR ROAD_NAME like 'I-%'"
+v.db.update myroads col=speed value=50 where="speed is null"
+v.to.db myroads op=length col=length
+v.db.update myroads col=cost qcol="(length/(speed*1000))*60"
 
-g.region vector=roads res=100 -a -p
+g.region vector=myroads res=50 -a -p
 
 echo "634637|224663" | v.in.ascii input=- output=start x=1 y=2
 
-v.isochrones map=roads speed_col=speed start_points=start isochrones=isochrones30_60_120 time_steps=30,60,120
+v.isochrones map=myroads cost_column=cost start_points=start isochrones=isochrones_vnetiso time_steps=15,30,60 \
+	max_distance=1000 method=v.net.iso
+
 </pre></div>
 
 <center>
-	<img src="v_isochrones.png" border="1"><br>
-	30, 60 and 120 minute isochrones from the start point
+	<img src="v_isochrones_net.png" border="1"><br>
+	15, 30 and 60 minute isochrones from the start point
+	using method v.net.iso
+</center>
+
+v.isochrones map=myroads cost_column=speed start_points=start isochrones=isochrones_rcost time_steps=15,30,60 \
+	method=r.cost memory=1000
+
+</pre></div>
+
+<center>
+        <img src="v_isochrones_cost.png" border="1"><br>
+        15, 30 and 60 minute isochrones from the start point
+        using method r.cost
 </center>
 
 
