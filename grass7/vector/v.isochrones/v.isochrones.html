@@ -34,7 +34,8 @@ keep the a raster output of <em><a href="r.cost.html">r.cost</a></em> (<b>timema
 Current region settings are used to define the maximal extension and the resolution 
 at which the cost map is calculated. The <b>memory</b> option allows to decide how much
 memory the <em><a href="r.cost.html">r.cost</a></em> module can use (see the r.cost man page
-for more details).
+for more details). One big advantage of the this second approach is that the road network
+does not have to be topologically clean in order to get meaningful results.
 
 <h2>EXAMPLE</h2>
 
@@ -55,8 +56,8 @@ echo "634637|224663" | v.in.ascii input=- output=start x=1 y=2
 
 v.isochrones map=myroads cost_column=cost start_points=start isochrones=isochrones_vnetiso time_steps=15,30,60 \
 	max_distance=1000 method=v.net.iso
-
 </pre></div>
+
 
 <center>
 	<img src="v_isochrones_net.png" border="1"><br>
@@ -64,9 +65,9 @@ v.isochrones map=myroads cost_column=cost start_points=start isochrones=isochron
 	using method v.net.iso
 </center>
 
+<div class="code"><pre>
 v.isochrones map=myroads cost_column=speed start_points=start isochrones=isochrones_rcost time_steps=15,30,60 \
 	method=r.cost memory=1000
-
 </pre></div>
 
 <center>
