@@ -63,7 +63,8 @@ else:
 def cleanup():
     nuldev = file(os.devnull, 'w')
     if tmp:
-        grass.run_command('g.remove', rast = '%s' % tmp,
+        grass.run_command('g.remove', type = 'raster',
+                          name = '%s' % tmp,
                           quiet = True, stderr = nuldev)
 
 def main():
