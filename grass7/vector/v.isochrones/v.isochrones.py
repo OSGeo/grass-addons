@@ -193,7 +193,7 @@ def isocalc(isoraw):
     grass.run_command('g.region', vect=isos_extract,
             flags='a')
     grass.run_command('v.to.rast', input_=isos_extract,
-            use='cat', out=isos_extract_rast, overwrite=True)
+            use='cat', output=isos_extract_rast, overwrite=True)
     grass.run_command('r.grow.distance', input=isos_extract_rast,
             value=isos_grow_cat, distance=isos_grow_distance,
             flags='m', overwrite=True)
@@ -279,7 +279,7 @@ def main():
         # transform to raster
         grass.run_command('v.to.rast',
                           input=roads,
-                          out=tmp_cost_map,
+                          output=tmp_cost_map,
                           use='attr',
                           attrcolumn=tmp_cost_column,
                           type='line',
