@@ -13,9 +13,9 @@ expressed by a divergence in sediment flow.
 In North Carolina sample dataset, we compute net erosion/deposition.
 
 <div class="code"><pre>
-g.region raster=elev_lid792_1m
-r.slope.aspect elevation=elevation slope=slope aspect=aspect
-r.flow elevation=elevation flowaccumulation=flowacc
+g.region raster=elev_lid792_1m -p
+r.slope.aspect elevation=elev_lid792_1m slope=slope aspect=aspect
+r.flow elevation=elev_lid792_1m flowaccumulation=flowacc
 
 # exponents m=1.3 and n=1.2
 # multiply flowaccumulation by cell area/resolution to get contributing area per unit width
