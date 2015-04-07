@@ -25,6 +25,7 @@ SUBDIRS = \
 	v.in.ply \
 	v.in.redwg \
 	v.in.wfs2 \
+	v.isochrones \
 	v.lfp \
 	v.lidar.mcc \
 	v.link.precip \
