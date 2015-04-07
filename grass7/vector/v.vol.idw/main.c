@@ -3,11 +3,9 @@
  *
  * MODULE:       v.to.rast3
  * AUTHOR(S):    Original s.to.rast3: Jaro Hofierka, Geomodel s.r.o. (original contributor)
- *               9/2005 Upgrade to GRASS 6 by Radim Blazek
- *               Soeren Gebbert <soeren.gebbert gmx.de>
- *               OGR support by Martin Landa <landa.martin gmail.com>
+ *               3/2015 Upgrade to GRASS GIS 7 by Noortheen Raja J
  * PURPOSE:      Converts vector points to 3D raster
- * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 1999-2015 by the GRASS Development Team
  *
  *               This program is free software under the GNU General
  *               Public License (>=v2). Read the file COPYING that
@@ -32,7 +30,7 @@ struct Point
     double w, z, east, north;
     double dist;
 };
-struct Point *points = NULL; 
+struct Point *points = NULL;
 struct Point *list;
 
 int main(int argc, char *argv[])
@@ -42,13 +40,13 @@ int main(int argc, char *argv[])
     int nfield;
     RASTER3D_Region region;
 
-    struct Map_info InMap;  /*input map*/
+    struct Map_info InMap; /*input map*/
     struct line_pnts *Points;
     struct line_cats *Cats;
     RASTER3D_Map *map3d = NULL;
     float *data, value;
     int lev, col, row, Nc, Nr, Nl, sz, i, n, max, cnt, current_row, current_depth;
-    double x, y, z, w, lev_res, dx, dy, dz, dist, maxdist, sum1, sum2;    
+    double x, y, z, w, lev_res, dx, dy, dz, dist, maxdist, sum1, sum2;
 
     int nrec, ctype, cat;
 
@@ -63,10 +61,10 @@ int main(int argc, char *argv[])
     G_add_keyword(_("Volume"));
     G_add_keyword(_("voxel"));
     G_add_keyword(_("interpolation"));
-    G_add_keyword(_("IDW"));    
+    G_add_keyword(_("IDW"));
     module->description = 
     _("Interpolates point data to a 3D raster map using "
-          "Inverse Distance Weighting (IDW) algorithm.");   
+          "Inverse Distance Weighting (IDW) algorithm.");
 
     input = G_define_standard_option(G_OPT_V_INPUT);
     input->required = YES;
@@ -76,7 +74,7 @@ int main(int argc, char *argv[])
     field = G_define_standard_option(G_OPT_V_FIELD);
     field->required = NO;
     field->label = _("Number of vector layer field attribute to use for calculation");
-    field->description = NULL;        
+    field->description = NULL;
 
     output = G_define_standard_option(G_OPT_R3_OUTPUT);
     output->key = "output";
@@ -93,13 +91,13 @@ int main(int argc, char *argv[])
     npoints->type       = TYPE_INTEGER ;
     npoints->required   = YES ;
     npoints->description="Number of interpolation points";
-    npoints->answer = "12";        
+    npoints->answer = "12";
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
     if (G_legal_filename(output->answer) < 0)
-        G_fatal_error(_("%s=%s - illegal name\n"), output->key, output->answer);  
+        G_fatal_error(_("%s=%s - illegal name\n"), output->key, output->answer);
 
     if(sscanf(npoints->answer,"%d", &search_points) != 1 || search_points<1){
         G_usage();
@@ -114,10 +112,10 @@ int main(int argc, char *argv[])
     if (!Vect_is_3d(&InMap))
         G_fatal_error(_("Vector is not 3D"));
 
-    nfield = Vect_get_field_number(&InMap, field->answer); /*layer number; mostly one*/
+    nfield = Vect_get_field_number(&InMap, field->answer); /*layer number;mostly one*/
 
     db_CatValArray_init(&cvarr);
-    Fi = Vect_get_field(&InMap, nfield);   /*The particular level of layer*/
+    Fi = Vect_get_field(&InMap, nfield); /*The particular level of layer*/
 
     if (Fi == NULL)
         G_fatal_error(_("Database connection not defined for layer <%s>"), field->answer);
@@ -129,7 +127,7 @@ int main(int argc, char *argv[])
     
     /* Note: do not check if the column exists in the table because it may be expression */
 
-    nrec = db_select_CatValArray(Driver, Fi->table, Fi->key, column->answer, NULL, &cvarr);/*Number of selected records*/
+    nrec = db_select_CatValArray(Driver, Fi->table, Fi->key, column->answer, NULL, &cvarr); /*Number of selected records*/
     G_debug(2, "nrec = %d", nrec);
     if (nrec < 0)
         G_fatal_error(_("Unable to select data from table"));
@@ -155,7 +153,7 @@ int main(int argc, char *argv[])
             G_fatal_error(_("Unable to read vector map"));
 
         if (type == -2)
-            break;      /* EOF */
+            break; /* EOF */
 
         if (!(type & GV_POINTS))
             continue;
@@ -175,15 +173,15 @@ int main(int argc, char *argv[])
             w = ival;}
         else
             {ret = db_CatValArray_get_value_double(&cvarr, cat, &w);}/*ret will be 0 if completed successfully*/
-        newpoint(w, z, x, y);/*adding the each point to the points array*/        
+        newpoint(w, z, x, y); /*adding the each point to the points array*/        
     }
     Vect_close(&InMap);
     /*Terminate if the vector map is empty*/
     if (npts == 0)
-        G_fatal_error(_("%s: no data points found\n"), argv[0]);             
+        G_fatal_error(_("%s: no data points found\n"), argv[0]);
 
-    Rast3d_get_window(&region);   
-    Rast3d_read_window(&region, NULL); 
+    Rast3d_get_window(&region);
+    Rast3d_read_window(&region, NULL);
     
     fprintf(stderr,"Region from getWindow: %d %d %d\n", region.rows, region.cols, region.depths);
     map3d = Rast3d_open_new_opt_tile_size(output->answer, RASTER3D_USE_CACHE_DEFAULT, &region, FCELL_TYPE, 32);
@@ -199,7 +197,7 @@ int main(int argc, char *argv[])
     /*start the interpolation*/
     data = (float *) malloc( sz * sizeof(float) );
     if (!data)
-        G_fatal_error(_("Error: out of memory\n"));     
+        G_fatal_error(_("Error: out of memory\n"));
 
     nsearch = npts < search_points ? npts : search_points; /*nsearch will get the value one of the minimum */
     fprintf (stderr, "Interpolating raster map <%s> ... %d levels ... ", output->answer, Nl);
@@ -207,12 +205,12 @@ int main(int argc, char *argv[])
     cnt=0;
     z = region.top + lev_res/2.0;
     for (lev = 0; lev < Nl; lev++)
-    {                
-        z -=lev_res; 
+    {
+        z -=lev_res;
         y = region.north + region.ns_res/2.0;
         for (row = 0; row < Nr; row++)
         {    
-            G_percent (row, Nr, 2);        
+            G_percent (row, Nr, 2);
             y -= region.ns_res;
             x = region.west - region.ew_res/2.0;
             for (col = 0; col < Nc; col++)
@@ -273,7 +271,7 @@ int main(int argc, char *argv[])
                         }
                     }
                     data[cnt] = (sum1/sum2);
-                    value = data[cnt];               
+                    value = data[cnt];
                 cnt++;
                 Rast3d_put_float (map3d, col, row, lev, value);
             }/*cols*/
@@ -281,8 +279,8 @@ int main(int argc, char *argv[])
     }/*levels*/
     free(data);
     
-    if (!Rast3d_close(map3d))        
-        G_fatal_error(_("Unable to close new 3d raster map"));    
+    if (!Rast3d_close(map3d))
+        G_fatal_error(_("Unable to close new 3d raster map"));
     fprintf (stderr, "Done\n");
     exit(EXIT_SUCCESS);
 }
@@ -297,6 +295,6 @@ void newpoint(double w, double z, double east,double north)
         points[npts].north = north;
         points[npts].east  = east;
         points[npts].z     = z;
-        points[npts].w     = w;  
+        points[npts].w     = w;
         npts++;
     }
