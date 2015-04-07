@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     Rast3d_get_window(&region);
     Rast3d_read_window(&region, NULL);
     
-    fprintf(stderr,"Region from getWindow: %d %d %d\n", region.rows, region.cols, region.depths);
+    G_debug(1, "Region from getWindow: %d %d %d", region.rows, region.cols, region.depths);
     map3d = Rast3d_open_new_opt_tile_size(output->answer, RASTER3D_USE_CACHE_DEFAULT, &region, FCELL_TYPE, 32);
     if (map3d == NULL)
         G_fatal_error(_("Unable to create output map"));
@@ -195,17 +195,18 @@ int main(int argc, char *argv[])
     lev_res = region.tb_res;
     sz = Nr * Nc * Nl;
     /*start the interpolation*/
-    data = (float *) malloc( sz * sizeof(float) );
+    data = (float *) G_malloc( sz * sizeof(float) );
     if (!data)
         G_fatal_error(_("Error: out of memory\n"));
 
     nsearch = npts < search_points ? npts : search_points; /*nsearch will get the value one of the minimum */
-    fprintf (stderr, "Interpolating raster map <%s> ... %d levels ... ", output->answer, Nl);
+    G_message(_("Interpolating raster map <%s> ... %d levels ... "), output->answer, Nl);
 
     cnt=0;
     z = region.top + lev_res/2.0;
     for (lev = 0; lev < Nl; lev++)
     {
+        G_message(_("Processing level %d"), lev + 1);
         z -=lev_res;
         y = region.north + region.ns_res/2.0;
         for (row = 0; row < Nr; row++)
@@ -277,11 +278,11 @@ int main(int argc, char *argv[])
             }/*cols*/
         }/*rows*/
     }/*levels*/
-    free(data);
+    G_free(data);
     
     if (!Rast3d_close(map3d))
         G_fatal_error(_("Unable to close new 3d raster map"));
-    fprintf (stderr, "Done\n");
+    G_done_msg(" ");
     exit(EXIT_SUCCESS);
 }
 
