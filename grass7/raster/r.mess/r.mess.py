@@ -22,6 +22,8 @@
 #
 #%Module
 #% description: Computes multivariate environmental similarity surface
+#% keyword: raster
+#% keyword: modelling
 #%End
 
 #%option

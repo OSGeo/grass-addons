@@ -29,6 +29,8 @@ except ImportError:
 ##########################################################
 #%module
 #% description: Module for working with microwave links
+#% keyword: raster
+#% keyword: microwave
 #%end
 
 #%option
@@ -36,7 +38,7 @@ except ImportError:
 #% type: string
 #% key_desc : name
 #% gisprompt: old_dbname,dbname,dbname
-#% description: PotgreSQL database containing input data
+#% description: PostgreSQL database containing input data
 #% guisection: Database
 #% required : yes
 #%end

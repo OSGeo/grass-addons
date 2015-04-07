@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:       	r.viewshed.cva.py
+# MODULE:       r.viewshed.cva.py
 # AUTHOR(S):	Isaac Ullah, additions by Anna Petrasova
 # PURPOSE:	 Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
 # COPYRIGHT:	(C) 2015 by Isaac Ullah
@@ -15,7 +15,9 @@
 
 
 #%module
-#%  description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
+#% description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
+#% keyword: raster
+#% keyword: viewshed
 #%end
 
 #%option G_OPT_R_INPUT

@@ -19,7 +19,8 @@
 # default values for prices1: 79.54,81.33,69.51,193,83.45
 #%Module
 #% description: Estimates bioenergy that can be collected to supply heating plants or biomass logistic centres and that is associated with a positive net revenue for the entire production process
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option 
 #% key: field_prefix

@@ -29,6 +29,8 @@
 #
 #%Module
 #% description: Compute the multivariate environmental bias (MEB)
+#% keyword: raster
+#% keyword: modelling
 #%End
 
 #%option

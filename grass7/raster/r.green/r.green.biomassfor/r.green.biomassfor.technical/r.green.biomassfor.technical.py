@@ -17,7 +17,8 @@
 #
 #%Module
 #% description: Estimates the quantity of woody biomass obtained from a forest surface where extraction is possible given a particular level of mechanisation
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option G_OPT_R_INPUT
 #% key: dtm

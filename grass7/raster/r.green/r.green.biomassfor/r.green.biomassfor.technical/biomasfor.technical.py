@@ -17,7 +17,8 @@
 #
 #%Module
 #% description: Assess the technical biomass availability
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option G_OPT_R_INPUT
 #% key: dtm

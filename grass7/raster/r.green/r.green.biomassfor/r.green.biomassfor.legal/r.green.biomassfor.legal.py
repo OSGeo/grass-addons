@@ -16,7 +16,8 @@
 #############################################################################
 #%Module
 #% description: Estimates legal bioenergy depending on yield, forest management and forest treatment
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option
 #% key: energy_tops_hf

@@ -16,7 +16,8 @@
 #############################################################################
 #%Module
 #% description: Estimates potential bioenergy according to environmental restriction
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option G_OPT_R_INPUT
 #% key: hfmap

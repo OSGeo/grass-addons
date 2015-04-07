@@ -28,6 +28,8 @@
 #
 #%Module
 #% description: Calculate the variance inflation factor
+#% keyword: raster
+#% keyword: variance inflation factor
 #%End
 
 #%option

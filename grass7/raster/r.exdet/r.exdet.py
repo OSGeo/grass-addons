@@ -29,6 +29,8 @@
 
 #%module
 #% description: Detection and quantification of novel uni- and multi-variate environments
+#% keyword: raster
+#% keyword: modelling
 #%end
 
 #%option

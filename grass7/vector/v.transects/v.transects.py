@@ -17,6 +17,8 @@
 #############################################################################
 #%module
 #% description: Creates transect lines or quadrilateral areas at regular intervals perpendicular to a polyline.
+#% keyword: vector
+#% keyword: transect
 #%end
 #%option G_OPT_V_INPUT
 #%end

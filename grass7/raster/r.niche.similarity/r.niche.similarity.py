@@ -22,6 +22,8 @@
 #
 #%Module
 #% description: Computes niche overlap or similarity
+#% keyword: raster
+#% keyword: niche modelling
 #%End
 
 #%option

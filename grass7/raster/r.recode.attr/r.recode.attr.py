@@ -20,6 +20,8 @@
 #
 #%Module 
 #% description: Recode raster using attribute table (csv file) as input
+#% keyword: raster
+#% keyword: recode
 #%End 
 
 #%option

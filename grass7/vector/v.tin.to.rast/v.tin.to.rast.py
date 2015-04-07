@@ -25,10 +25,10 @@
 
 #%module
 #% description: Converts (rasterize) a TIN map into a raster map
-#% keywords: TIN
-#% keywords: vector
-#% keywords: raster
-#% keywords: conversion
+#% keyword: vector
+#% keyword: raster
+#% keyword: TIN
+#% keyword: conversion
 #%end
 #%option G_OPT_V_INPUT
 #% label: Name of input TIN map

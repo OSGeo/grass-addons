@@ -19,7 +19,8 @@
 #
 #%Module
 #% description: Calculates impact and multifunctionality values
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option G_OPT_V_INPUT
 #% key: forest

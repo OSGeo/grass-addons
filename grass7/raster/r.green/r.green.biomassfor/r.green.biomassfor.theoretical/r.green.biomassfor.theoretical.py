@@ -16,7 +16,8 @@
 #############################################################################
 #%Module
 #% description: Estimates potential bioenergy depending on forest increment, forest management and forest treatment
-#% overwrite: yes
+#% keyword: raster
+#% keyword: biomass
 #%End
 #%option
 #% key: energy_tops_hf
