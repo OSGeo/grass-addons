@@ -99,13 +99,6 @@
 #% required : no
 #% guisection: Opt files
 #%end
-#%option G_OPT_R_INPUT
-#% key: mmfeatures
-#% type: string
-#% description: Raster map of morphometric features
-#% required : no
-#% guisection: Opt files
-#%end
 #%option
 #% key: slp_min_cc
 #% type: double
@@ -198,13 +191,8 @@ from grass.pygrass.raster import RasterRow
 import numpy as np
 
 
-
-#CCEXTR = 'cable_crane_extraction = if(yield>0 && slope>%f && slope<=%f && extr_dist<%f, 1)'
-#FWEXTR = 'forwarder_extraction = if(yield>0 && slope<=%f && management==1 && (roughness==0 || roughness==1 || roughness==99999) && extr_dist<%f, 1)'
-#OEXTR = 'other_extraction = if(yield>0 && slope<=%f && management==2 && (roughness==0 || roughness==1 || roughness==99999) && extr_dist<%f, 1)'
 YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
-#EHF = 'technical_bioenergyHF = technical_surface*(if(management==1 && treatment==1 || management==1 && treatment==99999, yield_pix*%f, if(management==1 && treatment==2, yield_pix * %f + yield_pix * %f)))'
-#ECC = 'technical_bioenergyC = technical_surface*(if(management == 2, yield_pix*%f))'
+
 
 
 def remove_map(opts, flgs):
@@ -238,7 +226,6 @@ def main(opts, flgs):
 
     rivers=opts['rivers']
     lakes=opts['lakes']
-    mmfeatures=opts['mmfeatures']
 
     vector_forest=opts['forest']
 
@@ -266,17 +253,18 @@ def main(opts, flgs):
 
     run_command("r.param.scale", overwrite=ow,
                 input=opts['dtm'], output="morphometric_features",
-                size=3, param="feature")
+                size=3, method="feature")
     run_command("r.slope.aspect", overwrite=ow,
                 elevation=opts['dtm'], slope="slope_deg")
     run_command("r.mapcalc", overwrite=ow,
                 expression='pix_cross = ((ewres()+nsres())/2)/ cos(slope_deg)')
     run_command("r.mapcalc", overwrite=ow,expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
     run_command("r.null", map="yield_pix1", null=0)
+    run_command("r.null", map="morphometric_features", null=0)
 
 
     
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999)'
+    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
 
     if rivers!='':
         run_command("r.null", map=rivers, null=0)
@@ -286,17 +274,8 @@ def main(opts, flgs):
         run_command("r.null", map=lakes, null=0)
         exprmap+='+ if('+lakes+'>=1, 99999)'
 
-    if mmfeatures!='':
-        exprmap+='+ if('+mmfeatures+'==6, 99999)'
-        run_command("r.null", map=mmfeatures, null=0)
-
      
-    #check the result of command
 
-
-    #test=run_command("r.null", map="rivers", null=0)
-    
-    #print "risultato "+str(test)
     #morphometric_features==6 -> peaks
     #run_command("r.mapcalc", overwrite=ow,expression='frict_surf_extr = if(morphometric_features==6, 99999) + if(rivers>=1 || lakes>=1, 99999) + if(yield_pix1<=0, 99999) + pix_cross')
     run_command("r.mapcalc", overwrite=ow,expression=exprmap)
@@ -305,6 +284,7 @@ def main(opts, flgs):
                 input="frict_surf_extr", output="extr_dist",
                 stop_points=vector_forest, start_rast=forest_roads,
                 max_cost=1500)
+
     run_command("r.slope.aspect", overwrite=ow,
                 elevation=opts['dtm'], slope="slope", format="percent")
     run_command("r.mapcalc", overwrite=ow,expression=CCEXTR)
