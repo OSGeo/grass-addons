@@ -216,13 +216,6 @@
 #% required : no
 #% guisection: CO2 Emission
 #%end
-#%option G_OPT_R_INPUT
-#% key: mmfeatures
-#% type: string
-#% description: Raster map of morphometric features
-#% required : no
-#% guisection: CO2 Emission
-#%end
 #%option
 #% key: slp_min_cc
 #% type: double
@@ -420,6 +413,7 @@ def remove_map(opts, flgs):
     run_command("g.remove", type="raster", flags="f", name="yield_pix1")
     run_command("g.remove", type="raster", flags="f", name="yield_pix2")
     run_command("g.remove", type='raster', flags='f', name='slope__')
+    run_command("g.remove", type='raster', flags='f', name='slope___')
     run_command("g.remove", type='raster', flags='f', name='slope_deg__')
     run_command("g.remove", type='raster', flags='f', name='fell_HFtr1_em')
     run_command("g.remove", type='raster', flags='f', name='fell_HFtr2_em')
@@ -443,6 +437,7 @@ def yield_pix_process(opts, flgs):
     YPIX = ''
 
     yield_surface=opts['yield_surface']
+    yield_=opts['yield1']
 
     expr_surf='analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
@@ -452,7 +447,7 @@ def yield_pix_process(opts, flgs):
     #             output="techn_pix_comp")
 
     run_command("r.mapcalc", overwrite=ow,  
-        expression='yield_pix1 = (yield/'+yield_surface+')*((ewres()*nsres())/10000)')
+        expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
 
 
     run_command("r.null", map="yield_pix1", null=0)
@@ -601,7 +596,6 @@ def avoided_CO2_emission(opts, flgs):
     main_roads=opts['main_roads']
     rivers=opts['rivers']
     lakes=opts['lakes']
-    mmfeatures=opts['mmfeatures']
 
 
     if tree_diam == '':
@@ -617,8 +611,12 @@ def avoided_CO2_emission(opts, flgs):
     yield_pix_process(opts, flgs)
 
     #control and process the slope map
-    run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm2'], slope="slope__", format="percent")
+    run_command("r.slope.aspect", overwrite=ow,elevation=opts['dtm2'], slope="slope__", format="percent")
     run_command("r.slope.aspect", overwrite=ow,elevation=opts['dtm2'], slope="slope_deg__")
+
+    run_command("r.param.scale", overwrite=ow,
+                input=opts['dtm2'], output="morphometric_features",
+                size=3, method="feature")
 
     #process the preparatory maps
 
@@ -632,8 +630,10 @@ def avoided_CO2_emission(opts, flgs):
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
         roughness='roughness'
 
+    run_command("r.null", map="yield_pix1", null=0)
+    run_command("r.null", map="morphometric_features", null=0)
     
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999)'
+    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
     
     if rivers!='':
         run_command("r.null", map=rivers, null=0)
@@ -643,15 +643,12 @@ def avoided_CO2_emission(opts, flgs):
         run_command("r.null", map=lakes, null=0)
         exprmap+='+ if('+lakes+'>=1, 99999)'
 
-    if mmfeatures!='':
-        exprmap+='+ if('+mmfeatures+'==6, 99999)'
-        run_command("r.null", map=mmfeatures, null=0)
 
     run_command("r.mapcalc",overwrite=ow,expression=exprmap)
 
     run_command("r.cost", overwrite=ow,
             input="frict_surf_extr", output="extr_dist",
-            stop_points=vector_forest, start_rast="forest_roads",
+            stop_points=vector_forest, start_rast=forest_roads,
             max_cost=1500)
 
     CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope__>'+opts['slp_min_cc']+' && slope__<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
@@ -665,51 +662,64 @@ def avoided_CO2_emission(opts, flgs):
     run_command("r.mapcalc", overwrite=ow,expression=FWEXTR)
     run_command("r.mapcalc", overwrite=ow,expression=OEXTR)
 
+    run_command("r.mapcalc",overwrite=ow,expression="slope___=if(slope__<=100,slope__,100)")
 
+    # Calculate productivity
+    #view the paper appendix for the formulas
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_productHFtr1 = if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-(slope__/100)), if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-(slope__/100))))')
-
-
+                expression='fell_productHFtr1 = if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-(slope___/100)), if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-(slope___/100))))')
+    run_command("r.null", map="fell_productHFtr1", null=0)
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_productHFtr2 = if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-((1000-(90*slope__)/(-80))/100)), if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-((1000-(90*slope__)/(-80))/100))))')
-
-
+                expression='fell_productHFtr2 = if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-((1000-(90*slope___)/(-80))/100)), if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-((1000-(90*slope___)/(-80))/100))))')
+    run_command("r.null", map="fell_productHFtr2", null=0)
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productC = if('+management+' ==2 && '+soil_prod+' <99999,((0.3-(1.1*'+soil_prod+'))/(-4))*(1-(slope__/100)), if('+management+' ==2 && '+soil_prod+' == 99999,((0.3-(1.1*3))/(-4))*(1-((1000-(90*slope__)/(-80))/100))))')
+                expression='fell_proc_productC = if('+management+' ==2 && '+soil_prod+' <99999,((0.3-(1.1*'+soil_prod+'))/(-4))*(1-(slope___/100)), if('+management+' ==2 && '+soil_prod+' == 99999,((0.3-(1.1*3))/(-4))*(1-(slope___/100))))')
+    run_command("r.null", map="fell_proc_productC", null=0)
+    ###### check fell_proc_productC ######
+
+    #9999: default value, if is present take into the process the average value (in case of fertility is 33)
+
+    #r.mapcalc --o 'fell_proc_productC = if(management@PERMANENT ==2 && soil_prod@PERMANENT <99999,((0.3-(1.1*soil_prod@PERMANENT))/(-4))*(1-(slope@PERMANENT/100)), if(management@PERMANENT ==2 && soil_prod@PERMANENT == 99999,((0.3-(1.1*3))/(-4))*(1-((1000-(90*slope@PERMANENT)/(-80))/100))))'
+
+
 
     run_command("r.mapcalc", overwrite=ow,
                 expression='proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'==99999, cable_crane_extraction*0.363*35^1.116, if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'<99999, cable_crane_extraction*0.363*'+tree_diam+'^1.116))')
-
+    run_command("r.null", map="proc_productHFtr1", null=0)
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope__^2)-0.2674*2.5))+(1.0667+(0.3094/tree_vol)-0.1846*1)), if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope__^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))))')
-
-
+                expression='fell_proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/'+tree_vol+')-0.1846*1)), if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))))')
+    run_command("r.null", map="fell_proc_productHFtr1", null=0)
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productHFtr2 = if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope__^2)-0.2674*2.5))+(1.0667+(0.3094/'+tree_vol+')-0.1846*1))*0.8, if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope__^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))*0.8))')
-
-
+                expression='fell_proc_productHFtr2 = if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/'+tree_vol+')-0.1846*1))*0.8, if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))*0.8))')
+    run_command("r.null", map="fell_proc_productHFtr2", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='chipp_prodHF = if('+management+' ==1 && ('+treatment+' == 1 ||  '+treatment+' == 99999), yield_pix/34, if('+management+' ==1 && '+treatment+' == 2, yield_pix/20.1))')
+    run_command("r.null", map="chipp_prodHF", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='chipp_prodC = if('+management+' ==2, yield_pix/45.9)')
+    run_command("r.null", map="chipp_prodC", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='chipp_prod = chipp_prodHF + chipp_prodC')
-
+    run_command("r.null", map="chipp_prod", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='extr_product_cableHF = if('+management+' ==1, cable_crane_extraction*149.33*(extr_dist^-1.3438)* extr_dist/8*0.75)')
-
+    run_command("r.null", map="extr_product_cableHF", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='extr_product_cableC = if('+management+' ==2, cable_crane_extraction*149.33*(extr_dist^-1.3438)* extr_dist/8*0.75)')
+    run_command("r.null", map="extr_product_cableC", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='extr_product_forw = forwarder_extraction*36.293*(extr_dist^-1.1791)* extr_dist/8*0.6')
+    run_command("r.null", map="extr_product_forw", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='extr_product_other = other_extraction*36.293*(extr_dist^-1.1791)* extr_dist/8*0.6')
-
-
-
-
+    run_command("r.null", map="extr_product_other", null=0)
+        
+    #cost of the transport distance
+    #this is becouse the wood must be sell to the collection point
+    #instead the residual must be brung to the heating points
+    
     run_command("r.mapcalc", overwrite=ow,
-                expression='tot_roads = '+forest_roads+' ||| '+main_roads+'')
+                expression='tot_roads = '+forest_roads+' ||| '+main_roads)
     run_command("r.null", map="tot_roads", null=0)
     run_command("r.mapcalc", overwrite=ow,
                 expression='tot_roads_neg = if(tot_roads==1,0,1)')
@@ -718,16 +728,19 @@ def avoided_CO2_emission(opts, flgs):
                 expression='frict_surf_tr1 =  frict_surf_extr*tot_roads_neg')
     run_command("r.mapcalc", overwrite=ow,
                 expression='frict_surf_tr = frict_surf_tr1+(tot_roads*((ewres()+nsres())/2))')
+    #run_command("r.null", map=dhp, null=0)
+    try:
+        run_command("r.cost", overwrite=ow, input="frict_surf_tr",
+                    output="tot_dist", stop_points=opts['forest'], start_points=dhp,
+                    max_cost=100000)
+        run_command("r.mapcalc", overwrite=ow,
+                    expression='transp_dist = tot_dist -  extr_dist')
+    except:
+        run_command("r.mapcalc", overwrite=ow,
+                    expression='transp_dist = extr_dist')
 
-    run_command("r.cost", overwrite=ow, input="frict_surf_tr",
-                output="tot_dist", stop_points=vector_forest, start_points=dhp,
-                max_cost=100000)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='transp_dist = tot_dist -  extr_dist')
     run_command("r.mapcalc", overwrite=ow,
                 expression='transport_prod = if(('+treatment+' == 1 ||  '+treatment+' == 99999), ((transp_dist/1000/30)*(yield_pix*1/32)*2), if('+management+' ==1 && '+treatment+' == 2, ((transp_dist/1000/30)*(yield_pix*2.7/32)*2)))')
-
-
 
     # Avoided carbon dioxide emission
     run_command("r.mapcalc", overwrite=ow,
