@@ -81,9 +81,6 @@ import numpy as np
 
 
 
-#ECOCC = 'ecological_bioenergyC = if(management==2, yield_pix1*%f)'
-
-
 def main(opts, flgs):
     ow = overwrite()
 
@@ -94,15 +91,14 @@ def main(opts, flgs):
     treatment=opts['treatment']
     yield_surface=opts['yield_surface']
 
-    p_bioenergyHF=output+'_p_bioenergyHF'
-    p_bioenergyC=output+'_p_bioenergyC'
-    p_bioenergy=output+'_p_bioenergy'
+    p_bioenergyHF=output+'_t_bioenergyHF'
+    p_bioenergyC=output+'_t_bioenergyC'
+    p_bioenergy=output+'_t_bioenergy'
 
 
     #import pdb; pdb.set_trace()
     ECOHF = p_bioenergyHF+' = if('+management+'==1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999, yield_pixp*%f, if('+management+'==1 && '+treatment+'==2, yield_pixp*%f + yield_pixp*%f))'                                     
 
-    #ECOHF = 'ecological_bioenergyHF = if(management==1 && treatment==1 || management == 1 && treatment==99999,yield_pix1*'+opts['energy_tops_hf']+', if(management==1 && treatment==2, yield_pix1*'+opts['energy_tops_hf']+' + yield_pix1*'+opts['energy_cormometric_vol_hf']+'))'
 
     ECOCC = p_bioenergyC+' = if('+management+'==2, yield_pixp*'+opts['energy_tops_cop']+')'
 
@@ -125,7 +121,7 @@ def main(opts, flgs):
         T = np.array(pT)
 
 
-    print "Resulted maps: "+output+"_p_bioenergyHF, "+output+"_p_bioenergyC, "+output+"_p_bioenergy"
+    print "Resulted maps: "+output+"_t_bioenergyHF, "+output+"_t_bioenergyC, "+output+"_t_bioenergy"
     print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 if __name__ == "__main__":

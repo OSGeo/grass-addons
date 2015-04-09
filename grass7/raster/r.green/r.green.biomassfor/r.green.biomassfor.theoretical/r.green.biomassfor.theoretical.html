@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.green.biomassfor.theoretical.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
+
+<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
+<hr class="header">
+
+<h2>NOME</h2>
+<em><b>r.green.biomassfor.theoretical.py</b></em>  - Estimates potential bioenergy depending on forest increment, forest management and forest treatment
+<h2>PAROLE CHIAVE</h2>
+<h2>SINOPSI</h2>
+<div id="name"><b>r.green.biomassfor.theoretical.py</b><br></div>
+<b>r.green.biomassfor.theoretical.py --help</b><br>
+<div id="synopsis"><b>r.green.biomassfor.theoretical.py</b>  [<b>energy_tops_hf</b>=<em>float</em>]  <b>increment</b>=<em>name</em> <b>yield_surface</b>=<em>name</em> <b>management</b>=<em>name</em> <b>treatment</b>=<em>name</em> <b>output_prefix</b>=<em>name</em>  [<b>energy_cormometric_vol_hf</b>=<em>float</em>]   [<b>energy_tops_cop</b>=<em>float</em>]   [--<b>overwrite</b>]  [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>] 
+</div>
+
+<div id="flags">
+<h3>Flag:</h3>
+<dl>
+<dt><b>--overwrite</b></dt>
+<dd>Permetti al file di output di sovrascrivere file esistenti</dd>
+<dt><b>--help</b></dt>
+<dd>Print usage summary</dd>
+<dt><b>--verbose</b></dt>
+<dd>Output verboso del modulo</dd>
+<dt><b>--quiet</b></dt>
+<dd>Output quieto del modulo</dd>
+<dt><b>--ui</b></dt>
+<dd>Force launching GUI dialog</dd>
+</dl>
+</div>
+
+<div id="parameters">
+<h3>Parametri:</h3>
+<dl>
+<dt><b>energy_tops_hf</b>=<em>float</em></dt>
+<dd>Energy for tops and branches in high forest in MWh/m³</dd>
+<dd>Default: <em>0.49</em></dd>
+
+<dt><b>increment</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Map of increment</dd>
+
+<dt><b>yield_surface</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Map of stand surface (ha)</dd>
+
+<dt><b>management</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Map of forest management (1: high forest, 2:coppice)</dd>
+
+<dt><b>treatment</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Map of forest treatment (1: final felling, 2:thinning)</dd>
+
+<dt><b>output_prefix</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Prefix for potential bioenergy (HF,CC and total)</dd>
+
+<dt><b>energy_cormometric_vol_hf</b>=<em>float</em></dt>
+<dd>Energy for the whole tree in high forest (tops, branches and stem) in MWh/m³</dd>
+<dd>Default: <em>1.97</em></dd>
+
+<dt><b>energy_tops_cop</b>=<em>float</em></dt>
+<dd>Energy for tops and branches for Coppices in MWh/m³</dd>
+<dd>Default: <em>0.55</em></dd>
+
+</dl>
+</div>
+</body>
+</html>
