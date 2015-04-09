@@ -80,7 +80,6 @@ from grass.pygrass.raster import RasterRow
 import numpy as np
 
 
-#ECOCC = 'ecological_bioenergyC = if(management==2, yield_pix1*%f)'
 
 
 def main(opts, flgs):
@@ -130,8 +129,6 @@ def main(opts, flgs):
     print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
-
-    #print ECOHF % tuple(map(float, (opts['energy_tops_hf'],opts['energy_tops_hf'],opts['energy_cormometric_vol_hf'])))
 
 if __name__ == "__main__":
     main(*parser())
