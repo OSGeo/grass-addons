@@ -79,9 +79,6 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.htm
 	   if [ ! -s /tmp/d.$TMP ] ; then
 	      echo "(incomplete manual page, please fix)" > /tmp/d.$TMP
            fi
-	   echo "------------"
-	   cat /tmp/d.$TMP
-	   echo "------------"
 	   cat /tmp/d.$TMP >> /tmp/c.$TMP
 	   rm -f /tmp/d.$TMP
         else
