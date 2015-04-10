@@ -1,4 +1,5 @@
-### Building server
+### Cronjob for Building server
+### Executed on grass.osgeo.org - /home/martinl/src/grass-addons/tools/addons/
 
 ADDONS=${HOME}/src/grass-addons/tools/addons
 

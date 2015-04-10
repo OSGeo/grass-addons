@@ -1,14 +1,24 @@
 #!/bin/sh
 
+# PURPOSE: Generates index.html of GRASS GIS Addons
+#          http://grass.osgeo.org/grass70/manuals/addons/
+#
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 
-# Generates index.html for existing directory
+
+##################
+# generated Addon HTML manual pages are expected to be in the directory
+# /osgeo/grass/grass-cms/grass${major}${minor}/manuals/addons
 
 generate () {
+    # 6 4 | 7 0
     major=$1
     minor=$2
 
+    # DEBUG
+    # mkdir -p /tmp/grass${major}${minor}/manuals/addons ; cd /tmp/grass${major}${minor}/manuals/addons
+    # grass.osgeo.org SERVER
     cd /osgeo/grass/grass-cms/grass${major}${minor}/manuals/addons
 
     if test -f index.html ; then
@@ -28,7 +38,7 @@ generate () {
 <body bgcolor=\"#FFFFFF\">
 <h2>GRASS GIS ${major} Addons Manual pages</h2>
 
-<!-- Generated from: /home/martinl/cronjobs/make_grass7_addons_index.sh -->
+<!-- Generated from: /home/martinl/src/grass-addons/tools/addons/ -->
 
 <a href=\"http://grass.osgeo.org\">GRASS GIS</a> is free software,
 anyone may develop his/her own extensions.  The <a
@@ -41,11 +51,10 @@ Extension - Install</i>) or via the <a
 href=\"../g.extension.html\">g.extension</a> command.  <p> <i>These
 manual pages are updated daily.</i>
 <p> How to contribute?
-<p> Please upload your add-ons to <strong>GRASS Add-ons
-repository</strong>.  Further details about gaining access to our SVN
-repository can be found in <a
-href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this
-document</a>.
+<p> You may upload your add-on to the <strong>GRASS Add-ons repository</strong>.
+Further details about gaining write access to our SVN repository can be found in
+<a href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this document</a>.
+Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
 <p>
 See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.html\">log files</a> of compilation.
 <p>
@@ -59,17 +68,29 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.htm
 # ls -sh *.html | sed 's/^\ //g' | grep -v total | cut -d' ' -f1 | sed 's/$/\<br\>/g'> /tmp/c.$TMP
 # paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
     
-    # get one-line description:
-    # let's be robust against missing keywords in a few HTML pages
+    # fetch one-line descriptions into a separate file:
+    # let's try to be more robust against missing keywords in a few HTML pages
     for currfile in `ls -1 *.html | grep -v index.html` ; do
         grep 'KEYWORDS' $currfile 2> /dev/null > /dev/null
         if [ $? -eq 0 ] ; then
-           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/c.$TMP
+           # keywords found, so go ahead with extraction of one-line description
+           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  > /tmp/d.$TMP
+           # argh, fake keyword line found (broken manual page or missing g.parser usage)
+	   if [ ! -s /tmp/d.$TMP ] ; then
+	      echo "(incomplete manual page, please fix)" > /tmp/d.$TMP
+           fi
+	   echo "------------"
+	   cat /tmp/d.$TMP
+	   echo "------------"
+	   cat /tmp/d.$TMP >> /tmp/c.$TMP
+	   rm -f /tmp/d.$TMP
         else
-           echo "" >> /tmp/c.$TMP
+           # argh, no keywords found (broken manual page or missing g.parser usage)
+           echo "(incomplete manual page, please fix)" >> /tmp/c.$TMP
         fi
     done
 
+    # merge it all
     paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
 
     echo "</ul>" >> index.html
