@@ -5,10 +5,12 @@
 #
 # MODULE:       r.meb
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Compute the multivariate envirionmental bias (MEB). If A
-#               is an areas within a larger region B, the EB represents
-#               how much envirionmental conditions in A deviate from
-#               median conditions in B. The first step is to compute the
+# PURPOSE:      Compute the multivariate envirionmental bias (MEB) as 
+#               described in van Breugel et al. 2015
+#               (doi: 10.1371/journal.pone.0121444). If A s an areas 
+#               within a larger region B, the EB represents how much
+#               envirionmental conditions in A deviate from median
+#               conditions in B. The first step is to compute the
 #               multi-envirionmental similarity (MES) for B, using all
 #               raster cells in B as reference points. The MES of a
 #               raster cell thus represent how much conditions deviate
@@ -379,20 +381,20 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             if flag_m:
-                writer.writerow({'variable':'MES_mean', 'median_region':ebm[0],
-                                'median_reference':ebm[1],'mad':ebm[2],'eb':ebm[3]})
+                writer.writerow({'variable':'MES_mean', 'median_region':ebm[1],
+                                'median_reference':ebm[2],'mad':ebm[0],'eb':ebm[3]})
             if flag_n:
-                writer.writerow({'variable':'MES_median', 'median_region':ebn[0],
-                    'median_reference':ebn[1], 'mad':ebn[2],'eb':ebn[3]})
+                writer.writerow({'variable':'MES_median', 'median_region':ebn[1],
+                    'median_reference':ebn[2], 'mad':ebn[0],'eb':ebn[3]})
             if flag_o:
-                writer.writerow({'variable':'MES_minimum','median_region':ebo[0],
-                    'median_reference':ebo[1], 'mad':ebo[2],'eb':ebo[3]})
+                writer.writerow({'variable':'MES_minimum','median_region':ebo[1],
+                    'median_reference':ebo[2], 'mad':ebo[0],'eb':ebo[3]})
             if flag_i:
                 mykeys = ebi.keys()
                 for vari in mykeys:
                     ebj = ebi[vari]
-                    writer.writerow({'variable':vari,'median_region':ebj[0],
-                        'median_reference':ebj[1], 'mad':ebj[2],'eb':ebj[3]})
+                    writer.writerow({'variable':vari,'median_region':ebj[1],
+                        'median_reference':ebj[2], 'mad':ebj[0],'eb':ebj[3]})
         grass.info("\nThe results are written to " + filename + "\n")
         grass.info("\n-------------------------------------------\n")
 
