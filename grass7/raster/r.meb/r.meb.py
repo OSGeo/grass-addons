@@ -114,7 +114,7 @@
 #----------------------------------------------------------------------------
 #Test
 #----------------------------------------------------------------------------
-#options = {"env":"bio1,bio2,bio3,bio4,bio5,bio6,bio7,bio8,bio9,bio10,bio11,bio12,bio13,bio14,bio15,bio16,bio17,bio18,bio19", "file":"biome_test.txt", "ref":"WDPAselect", "output":"biome_test", "digits":"5"}
+#options = {"env":"bio_1@climate,bio_2@climate,bio_3@climate", "file":"test.txt", "ref":"PAs2", "output":"AAA_test", "digits":"5"}
 #flags = {"m":True, "n":True, "o":True, "i":True}
 
 #----------------------------------------------------------------------------
@@ -307,7 +307,7 @@ def main():
 
         # Create recode rules
         e1 = np.min(np.array(sstval), axis=0)[0] - 99999
-        e2 = np.max(np.array(sstval), axis=0)[0] - 99999
+        e2 = np.max(np.array(sstval), axis=0)[0] + 99999
         a1 = np.hstack([(e1), np.array(sstval.T[0])[0, :]])
         a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
         b1 = np.hstack([(0), c])
@@ -381,9 +381,6 @@ def main():
             if flag_m:
                 writer.writerow({'variable':'MES_mean', 'median_region':ebm[0],
                                 'median_reference':ebm[1],'mad':ebm[2],'eb':ebm[3]})
-            if flag_n:
-                writer.writerow({'variable':'MES_mean','median_region':ebm[0],
-                    'median_reference':ebm[1], 'mad':ebm[2],'eb':ebm[3]})
             if flag_n:
                 writer.writerow({'variable':'MES_median', 'median_region':ebn[0],
                     'median_reference':ebn[1], 'mad':ebn[2],'eb':ebn[3]})

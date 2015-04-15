@@ -60,22 +60,23 @@ doi: 10.1371/journal.pone.0121444
 gives the distribution of forest (1) and other land cover types (0).
 As environmental variables, the bio1, bio3 and bio9 are used. 
 
-<div class="code"><pre>r.meb -m -n -o env=bio_1,bio_3,bio_9 
-ref=forestmap output=test file=test.csv
-Median test_MES_mean (all region) = 51.257
-Median test_MES_mean (ref. area) = 30.919
-MAD test_MES_mean (all region) = 24.272
-EB = 0.838
-Median test_MES_median (all region) = 51.257
-Median test_MES_median (ref. area) = 30.919
-MAD test_MES_median (all region) = 24.272
-EB = 0.838
-Median test_MES_minimum (all region) = 43.651
-Median test_MES_minimum (ref. area) = 24.735
-MAD test_MES_minimum (all region) = 22.685
-EB = 0.834
+<div class="code"><pre>r.meb -m -n -o env=bio_1,bio_3,bio_9 ref=forestmap output=Test file=Test
+Median Test_MES_mean (all region) = 47.338
+Median Test_MES_mean (ref. area) = 69.798
+MAD Test_MES_mean (all region) = 14.594
+EB = 1.539
 
-The results are written to test.csv
+Median Test_MES_median (all region) = 45.712
+Median Test_MES_median (ref. area) = 69.897
+MAD Test_MES_median (all region) = 18.786
+EB = 1.287
+
+Median Test_MES_minimum (all region) = 20.364
+Median Test_MES_minimum (ref. area) = 55.807
+MAD Test_MES_minimum (all region) = 15.096
+EB = 2.348
+
+The results are written to Test.csv
 </pre></div>
 
 
