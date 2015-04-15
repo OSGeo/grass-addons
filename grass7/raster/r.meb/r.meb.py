@@ -273,6 +273,11 @@ def main():
     # Compute MES
     #----------------------------------------------------------------------------
 
+    # Create temporary copy of ref layer
+    tmpref0 = tmpname('reb1')
+    clean_rast.add(tmpref0)
+    grass.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
+
     ipi = []
     for j in xrange(len(ipl)):
 
@@ -334,40 +339,39 @@ def main():
     # Calculate EB statistics
     #-----------------------------------------------------------------------
 
-    if flag_i or flag_m or flag_n or flag_o:
+    # EB MES
+    if flag_m:
+        nmn = tmpf0 + "_MES_mean"
+        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="average")
+        defcol(nmn)
+        ebm = EB(simlay=nmn, reflay=tmpref0)
 
-        # EB MES
-        if flag_m:
-            nmn = tmpf0 + "_MES_mean"
-            grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="average")
+    if flag_n:
+        nmn = tmpf0 + "_MES_median"
+        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="median")
+        defcol(nmn)
+        ebn = EB(simlay=nmn, reflay=tmpref0)
+
+    if flag_o:
+        nmn = tmpf0 + "_MES_minimum"
+        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum")
+        defcol(nmn)
+        ebo = EB(simlay=nmn, reflay=tmpref0)
+
+    # EB individual layers
+    if flag_i:
+        ebi = {}
+        for mm in xrange(len(ipi)):
+            nmn = tmpf0 + "_" + ipn[mm]
+            grass.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
             defcol(nmn)
-            ebm = EB(simlay=nmn, reflay=ref)
-
-        if flag_n:
-            nmn = tmpf0 + "_MES_median"
-            grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="median")
-            defcol(nmn)
-            ebn = EB(simlay=nmn, reflay=ref)
-
-        if flag_o:
-            nmn = tmpf0 + "_MES_minimum"
-            grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum")
-            defcol(nmn)
-            ebo = EB(simlay=nmn, reflay=ref)
-
-        # EB individual layers
-        if flag_i:
-            ebi = {}
-            for mm in xrange(len(ipi)):
-                nmn = tmpf0 + "_" + ipn[mm]
-                grass.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
-                defcol(nmn)
-                value = EB(simlay=nmn, reflay=ref)
-                ebi[nmn] = value
-        else:
-            grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
+            value = EB(simlay=nmn, reflay=tmpref0)
+            ebi[nmn] = value
     else:
-        grass.fatal("You need to select at least one of IES/MES_med/MES_av/MES_min options")
+        grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
+
+    # Remove temporary copy of ref layer
+    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpref0)
 
     if filename != '':
         with open(filename, 'wb') as csvfile:
