@@ -112,7 +112,7 @@ def main():
         segment_input += ' ' + category.strip() + ' 50%\n'
 
     grass.write_command('v.segment', input=input, output=tmp_centerpoints_map,
-            file='-', stdin=segment_input, quiet=True)
+            rules='-', stdin=segment_input, quiet=True)
 
     center_distances = grass.pipe_command('v.distance',
             _from=tmp_centerpoints_map, to=tmp_centerpoints_map, upload='dist',
