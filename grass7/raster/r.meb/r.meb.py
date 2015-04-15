@@ -99,6 +99,10 @@
 #% guisection: Output
 #%end
 
+#%rules
+#% required: -m,-n,-o
+#%end
+
 #%option
 #% key: digits
 #% type: integer
