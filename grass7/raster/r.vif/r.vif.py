@@ -42,10 +42,7 @@
 #% multiple: yes
 #%end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new
+#%option G_OPT_F_BIN_INPUT
 #% description: Name of output text file
 #% key_desc: name
 #% required: no
