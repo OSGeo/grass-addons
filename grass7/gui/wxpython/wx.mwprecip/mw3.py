@@ -22,7 +22,6 @@ except ImportError:
 
 from mw_util import *
 
-
 class PointInterpolation():
     def __init__(self, database, step, methodDist=False):
         grass.message("Interpolating points along lines...")
@@ -1210,7 +1209,6 @@ class GrassLayerMgr():
             print self.database.dbConnStr
             RunCommand('v.db.connect',
                        driver='pg',
-                       database=self.database.dbConnStr,
                        map=self.database.linkVecMapName,
                        table=win,
                        key='linkid',
@@ -1348,15 +1346,17 @@ class Database():
         time = roundTime(time, 30)
         return time
 
-    def grassTemporalConnection(self, db):
+    def grassTemporalConnection(self, db='postgres'):
         if db == 'postgres':
-            conninfo = 'dbname= ' + self.dbName
+            conninfo = 'dbname=' + self.dbName
             if self.user:
-                conninfo += ' user= ' + self.user
+                conninfo += ' user=' + self.user
             if self.password:
-                conninfo += ' passwd= ' + self.password
+                conninfo += ' password=' + self.password
             if self.host:
                 conninfo += ' host=' + self.host
+            if self.port:
+                conninfo += ' port=' + str(self.port)
 
             if grass.run_command('t.connect',
                                  driver='pg',
@@ -1368,35 +1368,44 @@ class Database():
                               flags='d')
 
     def grassConnectionRemote(self):
-        conninfo = 'dbname=' + self.dbName
-        if self.host:
-            conninfo += ' host=' + self.host
-        if self.port:
-            conninfo += ' port=' + str(self.port)
-        self.dbConnStr=conninfo
-        # Unfortunately we cannot test untill user/password is set
+        self.dbConnStr  = self.dbName
 
         if self.user and not self.password:
             grass.run_command('db.login',
                               driver="pg",
-                              database=conninfo,
+                              database=self.dbName,
                               user=self.user,
-                              password='')
+                              password='',
+                              overwrite=True)
+
 
         elif self.user and self.password:
-            grass.run_command('db.login',
-                  driver="pg",
-                  database=conninfo,
-                  user=self.user,
-                  password=self.password)
+            if self.port and self.host:
+                grass.run_command('db.login',
+                                  driver="pg",
+                                  database=self.dbName,
+                                  user=self.user,
+                                  password=self.password,
+                                  host=self.host,
+                                  port=self.port,
+                                  overwrite=True
+                                  )
+            else:
+                grass.run_command('db.login',
+                                  driver="pg",
+                                  database=self.dbName,
+                                  user=self.user,
+                                  password=self.password,
+                                  overwrite=True)
         else:
             grass.run_command('db.login',
-                  driver="pg",
-                  database=conninfo,
-                  user='',
-                  password='')
+                              driver="pg",
+                              database=self.dbName,
+                              user='',
+                              password='',
+                              overwrite=True)
 
-        if grass.run_command('db.connect', driver="pg", database=conninfo) != 0:
+        if grass.run_command('db.connect', driver="pg", database=self.dbName,overwrite=True) != 0:
             grass.fatal("Unable to connect to the database by grass driver.")
 
 
