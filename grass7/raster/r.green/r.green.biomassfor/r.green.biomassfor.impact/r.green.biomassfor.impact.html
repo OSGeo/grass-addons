@@ -1,20 +1,7 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.green.biomassfor.impact.py</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
-
-<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
-
-<h2>NOME</h2>
+<h2>NAME</h2>
 <em><b>r.green.biomassfor.impact.py</b></em>  - Calculates impact and multifunctionality values
-<h2>PAROLE CHIAVE</h2>
-<h2>SINOPSI</h2>
+<h2>KEYWORDS</h2>
+<h2>SYNOPSIS</h2>
 <div id="name"><b>r.green.biomassfor.impact.py</b><br></div>
 <b>r.green.biomassfor.impact.py --help</b><br>
 <div id="synopsis"><b>r.green.biomassfor.impact.py</b> [-<b>r</b>] <b>forest</b>=<em>name</em> <b>yield1</b>=<em>name</em> <b>yield_surface</b>=<em>name</em> <b>management</b>=<em>name</em> <b>treatment</b>=<em>name</em> <b>forest_roads</b>=<em>name</em> <b>energy_tops_hf</b>=<em>float</em> <b>energy_cormometric_vol_hf</b>=<em>float</em> <b>energy_tops_cop</b>=<em>float</em> <b>energy_map</b>=<em>name</em> <b>dhp</b>=<em>name</em>  [<b>output_sw_map</b>=<em>name</em>]   [<b>dtm</b>=<em>name</em>]   [<b>soiltx_map</b>=<em>name</em>]   [<b>soild_map</b>=<em>name</em>]   [<b>soilcmp_map</b>=<em>name</em>]   [<b>output_co2_map</b>=<em>name</em>]   [<b>output_aco2_map</b>=<em>name</em>]   [<b>output_netco2_map</b>=<em>name</em>]   [<b>dtm2</b>=<em>name</em>]   [<b>roughness</b>=<em>name</em>]   [<b>soilp2_map</b>=<em>name</em>]   [<b>tree_diam</b>=<em>name</em>]   [<b>tree_vol</b>=<em>name</em>]  <b>main_roads</b>=<em>name</em>  [<b>rivers</b>=<em>name</em>]   [<b>lakes</b>=<em>name</em>]   [<b>slp_min_cc</b>=<em>float</em>]   [<b>slp_max_cc</b>=<em>float</em>]   [<b>dist_max_cc</b>=<em>float</em>]   [<b>slp_max_fw</b>=<em>float</em>]   [<b>dist_max_fw</b>=<em>float</em>]   [<b>slp_max_cop</b>=<em>float</em>]   [<b>dist_max_cop</b>=<em>float</em>]   [<b>output_fr_map</b>=<em>name</em>]   [<b>firerisk_map</b>=<em>name</em>]   [<b>output_tot_re_map</b>=<em>name</em>]   [<b>output_imp_re_map</b>=<em>name</em>]   [<b>touristic_map</b>=<em>name</em>]   [<b>tev</b>=<em>name</em>]   [<b>field_tev</b>=<em>name</em>]   [<b>area_tev</b>=<em>name</em>]   [<b>output_tev</b>=<em>name</em>]   [<b>expl</b>=<em>name</em>]   [<b>impact</b>=<em>float</em>]   [<b>base</b>=<em>name</em>]   [--<b>overwrite</b>]  [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>] 
@@ -27,23 +14,22 @@
 <dd>Remove all operational maps</dd>
 
 <dt><b>--overwrite</b></dt>
-<dd>Permetti al file di output di sovrascrivere file esistenti</dd>
+<dd>Allow output files to overwrite existing files</dd>
 <dt><b>--help</b></dt>
 <dd>Print usage summary</dd>
 <dt><b>--verbose</b></dt>
-<dd>Output verboso del modulo</dd>
+<dd>Verbose module output</dd>
 <dt><b>--quiet</b></dt>
-<dd>Output quieto del modulo</dd>
+<dd>Quiet module output</dd>
 <dt><b>--ui</b></dt>
 <dd>Force launching GUI dialog</dd>
 </dl>
 </div>
 
 <div id="parameters">
-<h3>Parametri:</h3>
+<h3>Parameters:</h3>
 <dl>
 <dt><b>forest</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of vector parcel map</dd>
 <dd>Name of vector parcel map</dd>
 
 <dt><b>yield1</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
@@ -62,22 +48,21 @@
 <dd>Raster map of forest roads (0, 1)</dd>
 
 <dt><b>energy_tops_hf</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches in high forest in MWh/m³</dd>
+<dd>Energy for tops and branches in high forest in MWh/m3</dd>
 <dd>Default: <em>0.49</em></dd>
 
 <dt><b>energy_cormometric_vol_hf</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches for high forest in MWh/m³</dd>
+<dd>Energy for tops and branches for high forest in MWh/m3</dd>
 <dd>Default: <em>1.97</em></dd>
 
 <dt><b>energy_tops_cop</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches for Coppices in MWh/m³</dd>
+<dd>Energy for tops and branches for Coppices in MWh/m3</dd>
 <dd>Default: <em>0.55</em></dd>
 
 <dt><b>energy_map</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Bioenergy map in MWh/m³</dd>
+<dd>Bioenergy map in MWh/m3</dd>
 
 <dt><b>dhp</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of vector district heating points</dd>
 <dd>Name of vector district heating points</dd>
 
 <dt><b>output_sw_map</b>=<em>name</em></dt>
@@ -120,7 +105,6 @@
 <dd>Average tree volume map</dd>
 
 <dt><b>main_roads</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of raster main roads</dd>
 <dd>Name of raster main roads</dd>
 
 <dt><b>rivers</b>=<em>name</em></dt>
@@ -173,7 +157,6 @@
 <dd>Touristic map</dd>
 
 <dt><b>tev</b>=<em>name</em></dt>
-<dd>Name of vector Total Economic Value map</dd>
 <dd>Name of vector Total Economic Value map</dd>
 
 <dt><b>field_tev</b>=<em>name</em></dt>
