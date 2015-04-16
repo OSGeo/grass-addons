@@ -37,7 +37,8 @@
 #% guisection: Suitability distribution maps
 #%end
 
-#%option G_OPT_F_BIN_INPUT
+#%option G_OPT_F_OUTPUT
+#% key:output
 #% description: Name of output text file
 #% key_desc: name
 #% required: no
