@@ -5,9 +5,9 @@
 #
 # MODULE:       r.meb
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Compute the multivariate envirionmental bias (MEB) as 
+# PURPOSE:      Compute the multivariate envirionmental bias (MEB) as
 #               described in van Breugel et al. 2015
-#               (doi: 10.1371/journal.pone.0121444). If A s an areas 
+#               (doi: 10.1371/journal.pone.0121444). If A s an areas
 #               within a larger region B, the EB represents how much
 #               envirionmental conditions in A deviate from median
 #               conditions in B. The first step is to compute the
@@ -67,10 +67,7 @@
 #% guisection: Output
 #%end
 
-#%option
-#% key: file
-#% type: string
-#% gisprompt: new
+#%option G_OPT_F_BIN_INPUT
 #% description: Name of output text file (csv format)
 #% key_desc: name
 #% required: no
