@@ -67,7 +67,8 @@
 #% guisection: Output
 #%end
 
-#%option G_OPT_F_BIN_INPUT
+#%option G_OPT_F_OUTPUT
+#% key:file
 #% description: Name of output text file (csv format)
 #% key_desc: name
 #% required: no
