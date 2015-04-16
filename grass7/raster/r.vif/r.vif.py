@@ -42,7 +42,8 @@
 #% multiple: yes
 #%end
 
-#%option G_OPT_F_BIN_INPUT
+#%option G_OPT_F_OUTPUT
+#% key:file
 #% description: Name of output text file
 #% key_desc: name
 #% required: no
@@ -103,7 +104,7 @@ def main():
     IPF = options['maps']
     IPF = IPF.split(',')
     IPFn = [i.split('@')[0] for i in IPF]
-    OPF = options['output']
+    OPF = options['file']
     if OPF == '':
         OPF = tempfile.mkstemp()[1]
     NSP = options['nsp']
