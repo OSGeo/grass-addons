@@ -52,7 +52,7 @@
 #%option
 #% key: time_steps
 #% type: double
-#% description: Time steps of isochrones (in units defined by unit parameter)
+#% description: Time steps of isochrones (in minutes)
 #% multiple: yes
 #% required: yes
 #%end
