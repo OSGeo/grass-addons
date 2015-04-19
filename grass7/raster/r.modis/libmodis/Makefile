@@ -19,4 +19,4 @@ $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
 
 install:
-	cp -r $(ETCDIR) $(INST_DIR)
+	cp -r $(ETCDIR) $(INST_DIR)/etc
