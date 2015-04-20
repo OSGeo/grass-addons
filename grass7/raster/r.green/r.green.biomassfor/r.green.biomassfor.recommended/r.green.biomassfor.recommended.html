@@ -1,73 +1,20 @@
-<h2>NAME</h2>
-<em><b>r.green.biomassfor.recommended.py</b></em>  - Estimates potential bioenergy according to environmental restriction
-<h2>KEYWORDS</h2>
-<a href="raster.html">raster</a>, <a href="topic_biomass.html">biomass</a>
-<h2>SYNOPSIS</h2>
-<div id="name"><b>r.green.biomassfor.recommended.py</b><br></div>
-<b>r.green.biomassfor.recommended.py --help</b><br>
-<div id="synopsis"><b>r.green.biomassfor.recommended.py</b> <b>hfmap</b>=<em>name</em> <b>cmap</b>=<em>name</em> <b>output_prefix</b>=<em>name</em> <b>management</b>=<em>name</em> <b>treatment</b>=<em>name</em>  [<b>restrictions</b>=<em>name</em>[,<i>name</i>,...]]   [<b>hydro</b>=<em>name</em>]   [<b>buffer_hydro</b>=<em>integer</em>]   [<b>zone_less</b>=<em>name</em>]   [<b>energy_tops_hf</b>=<em>float</em>]   [<b>energy_cormometric_vol_hf</b>=<em>float</em>]   [<b>energy_tops_cop</b>=<em>float</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>] 
-</div>
+<h2>DESCRIPTION</h2>
 
-<div id="flags">
-<h3>Flag:</h3>
-<dl>
-<dt><b>--overwrite</b></dt>
-<dd>Allow output files to overwrite existing files</dd>
-<dt><b>--help</b></dt>
-<dd>Print usage summary</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-<dt><b>--ui</b></dt>
-<dd>Force launching GUI dialog</dd>
-</dl>
-</div>
+Compute the biomass forestry residual potential considering extra constraints.
 
-<div id="parameters">
-<h3>Parameters:</h3>
-<dl>
-<dt><b>hfmap</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Bioenergy potential map for High Forest in MWh/m3</dd>
+<h2>NOTES</h2>
 
-<dt><b>cmap</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Bioenergy potential map for Coppice in MWh/m3</dd>
+<h2>EXAMPLE</h2>
 
-<dt><b>output_prefix</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Prefix for final recommended maps of bioenergy (HF,CC and total)</dd>
+<h2>REFERENCE</h2>
 
-<dt><b>management</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of forest management (1: high forest, 2:coppice)</dd>
+<h2>SEE ALSO</h2>
+<em>
+  <a href="r.green.html">r.green</a>,
+  <a href="r.green.biomassfor.html">r.green.biomassfor</a>
+</em>
 
-<dt><b>treatment</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of forest treatment (1: final felling, 2:thinning)</dd>
-
-<dt><b>restrictions</b>=<em>name[,<i>name</i>,...]</em></dt>
-<dd>Area with absolute restrictions (protected areas, urban parks etc.)</dd>
-
-<dt><b>hydro</b>=<em>name</em></dt>
-<dd>Rivers network</dd>
-
-<dt><b>buffer_hydro</b>=<em>integer</em></dt>
-<dd>Buffer area for rivers</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>zone_less</b>=<em>name</em></dt>
-<dd>Civic use</dd>
-
-<dt><b>energy_tops_hf</b>=<em>float</em></dt>
-<dd>Energy for tops and branches in high forest in MWh/m3</dd>
-<dd>Default: <em>0.49</em></dd>
-
-<dt><b>energy_cormometric_vol_hf</b>=<em>float</em></dt>
-<dd>Energy for tops and branches for high forest in MWh/m3</dd>
-<dd>Default: <em>1.97</em></dd>
-
-<dt><b>energy_tops_cop</b>=<em>float</em></dt>
-<dd>Energy for tops and branches for Coppices in MWh/m3</dd>
-<dd>Default: <em>0.55</em></dd>
-
-</dl>
-</div>
-</body>
-</html>
+<h2>AUTHORS</h2>
+Fancesco Geri,
+Pietro Zambelli,
+Sandro Sacchelli

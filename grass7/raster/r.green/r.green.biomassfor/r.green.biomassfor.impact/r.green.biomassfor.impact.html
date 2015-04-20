@@ -1,184 +1,20 @@
-<h2>NAME</h2>
-<em><b>r.green.biomassfor.impact.py</b></em>  - Calculates impact and multifunctionality values
-<h2>KEYWORDS</h2>
-<h2>SYNOPSIS</h2>
-<div id="name"><b>r.green.biomassfor.impact.py</b><br></div>
-<b>r.green.biomassfor.impact.py --help</b><br>
-<div id="synopsis"><b>r.green.biomassfor.impact.py</b> [-<b>r</b>] <b>forest</b>=<em>name</em> <b>yield1</b>=<em>name</em> <b>yield_surface</b>=<em>name</em> <b>management</b>=<em>name</em> <b>treatment</b>=<em>name</em> <b>forest_roads</b>=<em>name</em> <b>energy_tops_hf</b>=<em>float</em> <b>energy_cormometric_vol_hf</b>=<em>float</em> <b>energy_tops_cop</b>=<em>float</em> <b>energy_map</b>=<em>name</em> <b>dhp</b>=<em>name</em>  [<b>output_sw_map</b>=<em>name</em>]   [<b>dtm</b>=<em>name</em>]   [<b>soiltx_map</b>=<em>name</em>]   [<b>soild_map</b>=<em>name</em>]   [<b>soilcmp_map</b>=<em>name</em>]   [<b>output_co2_map</b>=<em>name</em>]   [<b>output_aco2_map</b>=<em>name</em>]   [<b>output_netco2_map</b>=<em>name</em>]   [<b>dtm2</b>=<em>name</em>]   [<b>roughness</b>=<em>name</em>]   [<b>soilp2_map</b>=<em>name</em>]   [<b>tree_diam</b>=<em>name</em>]   [<b>tree_vol</b>=<em>name</em>]  <b>main_roads</b>=<em>name</em>  [<b>rivers</b>=<em>name</em>]   [<b>lakes</b>=<em>name</em>]   [<b>slp_min_cc</b>=<em>float</em>]   [<b>slp_max_cc</b>=<em>float</em>]   [<b>dist_max_cc</b>=<em>float</em>]   [<b>slp_max_fw</b>=<em>float</em>]   [<b>dist_max_fw</b>=<em>float</em>]   [<b>slp_max_cop</b>=<em>float</em>]   [<b>dist_max_cop</b>=<em>float</em>]   [<b>output_fr_map</b>=<em>name</em>]   [<b>firerisk_map</b>=<em>name</em>]   [<b>output_tot_re_map</b>=<em>name</em>]   [<b>output_imp_re_map</b>=<em>name</em>]   [<b>touristic_map</b>=<em>name</em>]   [<b>tev</b>=<em>name</em>]   [<b>field_tev</b>=<em>name</em>]   [<b>area_tev</b>=<em>name</em>]   [<b>output_tev</b>=<em>name</em>]   [<b>expl</b>=<em>name</em>]   [<b>impact</b>=<em>float</em>]   [<b>base</b>=<em>name</em>]   [--<b>overwrite</b>]  [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]  [--<b>ui</b>] 
-</div>
+<h2>DESCRIPTION</h2>
 
-<div id="flags">
-<h3>Flag:</h3>
-<dl>
-<dt><b>-r</b></dt>
-<dd>Remove all operational maps</dd>
+Compute the impact of using biomass forestry residuals for energy production.
 
-<dt><b>--overwrite</b></dt>
-<dd>Allow output files to overwrite existing files</dd>
-<dt><b>--help</b></dt>
-<dd>Print usage summary</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-<dt><b>--ui</b></dt>
-<dd>Force launching GUI dialog</dd>
-</dl>
-</div>
+<h2>NOTES</h2>
 
-<div id="parameters">
-<h3>Parameters:</h3>
-<dl>
-<dt><b>forest</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of vector parcel map</dd>
+<h2>EXAMPLE</h2>
 
-<dt><b>yield1</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of forest yield (cubic meters)</dd>
+<h2>REFERENCE</h2>
 
-<dt><b>yield_surface</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of stand surface (ha)</dd>
+<h2>SEE ALSO</h2>
+<em>
+  <a href="r.green.html">r.green</a>,
+  <a href="r.green.biomassfor.html">r.green.biomassfor</a>
+</em>
 
-<dt><b>management</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of forest management (1: high forest, 2:coppice)</dd>
-
-<dt><b>treatment</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Map of forest treatment (1: final felling, 2:thinning)</dd>
-
-<dt><b>forest_roads</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Raster map of forest roads (0, 1)</dd>
-
-<dt><b>energy_tops_hf</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches in high forest in MWh/m3</dd>
-<dd>Default: <em>0.49</em></dd>
-
-<dt><b>energy_cormometric_vol_hf</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches for high forest in MWh/m3</dd>
-<dd>Default: <em>1.97</em></dd>
-
-<dt><b>energy_tops_cop</b>=<em>float</em>&nbsp;<b>[required]</b></dt>
-<dd>Energy for tops and branches for Coppices in MWh/m3</dd>
-<dd>Default: <em>0.55</em></dd>
-
-<dt><b>energy_map</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Bioenergy map in MWh/m3</dd>
-
-<dt><b>dhp</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of vector district heating points</dd>
-
-<dt><b>output_sw_map</b>=<em>name</em></dt>
-<dd>Name for output soil and water reduction bioenergy map</dd>
-
-<dt><b>dtm</b>=<em>name</em></dt>
-<dd>Name of Digital terrain model map</dd>
-
-<dt><b>soiltx_map</b>=<em>name</em></dt>
-<dd>Soil texture map</dd>
-
-<dt><b>soild_map</b>=<em>name</em></dt>
-<dd>Soil depth map</dd>
-
-<dt><b>soilcmp_map</b>=<em>name</em></dt>
-<dd>Soil compaction risk map</dd>
-
-<dt><b>output_co2_map</b>=<em>name</em></dt>
-<dd>Name for output CO2 emissions map</dd>
-
-<dt><b>output_aco2_map</b>=<em>name</em></dt>
-<dd>Name for output avoided CO2 emissions map</dd>
-
-<dt><b>output_netco2_map</b>=<em>name</em></dt>
-<dd>Name for output net CO2 emissions map</dd>
-
-<dt><b>dtm2</b>=<em>name</em></dt>
-<dd>Name of Digital terrain model map</dd>
-
-<dt><b>roughness</b>=<em>name</em></dt>
-<dd>Name of roughness map</dd>
-
-<dt><b>soilp2_map</b>=<em>name</em></dt>
-<dd>Soil production map</dd>
-
-<dt><b>tree_diam</b>=<em>name</em></dt>
-<dd>Average tree diameter map</dd>
-
-<dt><b>tree_vol</b>=<em>name</em></dt>
-<dd>Average tree volume map</dd>
-
-<dt><b>main_roads</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of raster main roads</dd>
-
-<dt><b>rivers</b>=<em>name</em></dt>
-<dd>Raster map of rivers (0, 1)</dd>
-
-<dt><b>lakes</b>=<em>name</em></dt>
-<dd>Raster map of lakes (0, 1)</dd>
-
-<dt><b>slp_min_cc</b>=<em>float</em></dt>
-<dd>Percent slope lower limit with Cable Crane</dd>
-<dd>Default: <em>30.</em></dd>
-
-<dt><b>slp_max_cc</b>=<em>float</em></dt>
-<dd>Percent slope higher limit with Cable Crane</dd>
-<dd>Default: <em>100.</em></dd>
-
-<dt><b>dist_max_cc</b>=<em>float</em></dt>
-<dd>Maximum distance with Cable Crane</dd>
-<dd>Default: <em>800.</em></dd>
-
-<dt><b>slp_max_fw</b>=<em>float</em></dt>
-<dd>Percent slope higher limit with Forwarder</dd>
-<dd>Default: <em>30.</em></dd>
-
-<dt><b>dist_max_fw</b>=<em>float</em></dt>
-<dd>Maximum distance with Forwarder</dd>
-<dd>Default: <em>600.</em></dd>
-
-<dt><b>slp_max_cop</b>=<em>float</em></dt>
-<dd>Percent slope higher limit with other techniques for Coppices</dd>
-<dd>Default: <em>30.</em></dd>
-
-<dt><b>dist_max_cop</b>=<em>float</em></dt>
-<dd>Maximum distance with other techniques for Coppices</dd>
-<dd>Default: <em>600.</em></dd>
-
-<dt><b>output_fr_map</b>=<em>name</em></dt>
-<dd>Name for output reduction map of fire risk</dd>
-
-<dt><b>firerisk_map</b>=<em>name</em></dt>
-<dd>Fire risk map</dd>
-
-<dt><b>output_tot_re_map</b>=<em>name</em></dt>
-<dd>Name for output total recreational map</dd>
-
-<dt><b>output_imp_re_map</b>=<em>name</em></dt>
-<dd>Name for output improved recreational map</dd>
-
-<dt><b>touristic_map</b>=<em>name</em></dt>
-<dd>Touristic map</dd>
-
-<dt><b>tev</b>=<em>name</em></dt>
-<dd>Name of vector Total Economic Value map</dd>
-
-<dt><b>field_tev</b>=<em>name</em></dt>
-<dd>Name of field with TEV value</dd>
-
-<dt><b>area_tev</b>=<em>name</em></dt>
-<dd>Area of TEV polygons</dd>
-
-<dt><b>output_tev</b>=<em>name</em></dt>
-<dd>TEV result</dd>
-
-<dt><b>expl</b>=<em>name</em></dt>
-<dd>Exploited areas [Energy/m2]</dd>
-
-<dt><b>impact</b>=<em>float</em></dt>
-<dd>Percentange of the impact</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>base</b>=<em>name</em></dt>
-<dd>Map of the reference situation for the impact</dd>
-
-</dl>
-</div>
-</body>
-</html>
+<h2>AUTHORS</h2>
+Fancesco Geri,
+Pietro Zambelli,
+Sandro Sacchelli
