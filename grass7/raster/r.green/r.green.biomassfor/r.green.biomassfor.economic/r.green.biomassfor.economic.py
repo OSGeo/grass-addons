@@ -39,9 +39,10 @@
 #% guisection: Prices
 #%end
 #%option 
-#% key: output_prefix
+#% key: output_basename
 #% type: string
-#% description: Prefix for economic bioenergy (HF,CC and total)
+#% description: Basename for economic bioenergy (HF,CC and total)
+#% gisprompt: new
 #% key_desc : name
 #% required : yes
 #% guisection: Base

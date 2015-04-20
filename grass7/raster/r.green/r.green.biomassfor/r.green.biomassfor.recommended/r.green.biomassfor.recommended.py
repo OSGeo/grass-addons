@@ -30,9 +30,10 @@
 #% required : yes
 #%end
 #%option 
-#% key: output_prefix
+#% key: output_basename
 #% type: string
-#% description: Prefix for final recommended maps of bioenergy (HF,CC and total)
+#% description: Basename for final recommended maps of bioenergy (HF,CC and total)
+#% gisprompt: new
 #% key_desc : name
 #% required : yes
 #%end

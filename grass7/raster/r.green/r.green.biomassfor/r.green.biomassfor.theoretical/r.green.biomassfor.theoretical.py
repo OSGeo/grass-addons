@@ -51,9 +51,10 @@
 #% required : yes
 #%end
 #%option 
-#% key: output_prefix
+#% key: output_basename
 #% type: string
-#% description: Prefix for potential bioenergy (HF,CC and total)
+#% gisprompt: new
+#% description: Basename for potential bioenergy (HF,CC and total)
 #% key_desc : name
 #% required : yes
 #%end

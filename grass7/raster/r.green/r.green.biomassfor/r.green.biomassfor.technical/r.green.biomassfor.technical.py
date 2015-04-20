@@ -71,9 +71,10 @@
 #% guisection: Base
 #%end
 #%option 
-#% key: output_prefix
+#% key: output_basename
 #% type: string
-#% description: Prefix for technical bioenergy (HF,CC and total)
+#% description: Basename for technical bioenergy (HF,CC and total)
+#% gisprompt: new
 #% key_desc : name
 #% required : yes
 #% guisection: Base

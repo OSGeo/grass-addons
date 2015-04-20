@@ -138,21 +138,21 @@
 #% required : no
 #% guisection: Soil and water protection
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_co2_map
 #% type: string
 #% description: Name for output CO2 emissions map
 #% key_desc : name
 #% guisection: CO2 Emission
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_aco2_map
 #% type: string
 #% description: Name for output avoided CO2 emissions map
 #% key_desc : name
 #% guisection: CO2 Emission
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_netco2_map
 #% type: string
 #% description: Name for output net CO2 emissions map
@@ -272,7 +272,7 @@
 #% required : no
 #% guisection: CO2 Emission
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_fr_map
 #% type: string
 #% description: Name for output reduction map of fire risk
@@ -286,14 +286,14 @@
 #% required : no
 #% guisection: Fire risk
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_tot_re_map
 #% type: string
 #% description: Name for output total recreational map
 #% key_desc : name
 #% guisection: Recreational
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_imp_re_map
 #% type: string
 #% description: Name for output improved recreational map
@@ -329,10 +329,11 @@
 #% key_desc : name
 #% guisection: TEV
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
 #% key: output_tev
 #% type: string
 #% description: TEV result
+#% gisprompt: new
 #% key_desc : name
 #% guisection: TEV
 #%end
