@@ -5,7 +5,7 @@
 # MODULE:      r.rock.stability
 # VERSION:     1.0
 # AUTHOR(S):   Andrea Filipello & Daniele Strigaro
-# PURPOSE:     Calculates SMR for a dtm 
+# PURPOSE:     A tool for preliminary rock failure susceptibility mapping 
 # COPYRIGHT:   (C) 2014 by Andrea Filipello & Daniele Strigaro
 #              andrea.filipello@gmail.com; daniele.strigaro@gmail.com
 #
@@ -15,7 +15,7 @@
 #
 ##############################################################################
 #%Module
-#% description: Calculates SMR index for a slope area.
+#% description: A tool for preliminary rock failure susceptibility mapping.
 #% keyword: rock mass
 #% keyword: planar failure
 #% keyword: toppling
