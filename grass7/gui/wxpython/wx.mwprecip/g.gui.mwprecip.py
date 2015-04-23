@@ -1024,11 +1024,10 @@ class Gui2Model():
 
         # GMessage('OK')
         comp = Computor(self.baseline, self.twin, self.dbConn, self.settings['dataExport'])
-        bool, msg = comp.GetStatus()
-        if bool:
+        state, msg = comp.GetStatus()
+        if state:
             self.initGrassLayerMgr()
             self.initTemporalMgr()
-
         GMessage(msg)
         #self.initgrassManagement()
 

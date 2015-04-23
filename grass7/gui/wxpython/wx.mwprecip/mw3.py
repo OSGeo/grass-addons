@@ -1205,8 +1205,7 @@ class GrassLayerMgr():
         for win in f.read().splitlines():
             layerNum += 1
             win = self.database.schema + '.' + win
-
-            print self.database.dbConnStr
+            print win
             RunCommand('v.db.connect',
                        driver='pg',
                        map=self.database.linkVecMapName,
@@ -1253,15 +1252,14 @@ class GrassTemporalMgr():
         # print temporalType
         # print semanticType
 
-        # ret, err = \
         RunCommand('t.create',
-                   type='stvds',
-                   output=self.datasetName,
-                   title=self.datasetTitle,
-                   description=self.datasetTdescription,
-                   temporaltype=temporalType,
-                   semantictype=semanticType,
-                   overwrite=True)
+                           type='stvds',
+                           output=self.datasetName,
+                           title=self.datasetTitle,
+                           description='test mw ',
+                           temporaltype=temporalType,
+                           semantictype=semanticType,
+                           overwrite=True)
         # getErrorMsg=True)
         #print ret
         #print err
@@ -1272,18 +1270,20 @@ class GrassTemporalMgr():
         timeOfLay = self.timeWinConf.timestamp_min
         regTMP = ""
         regFilePath = os.path.join(self.database.pathworkSchemaDir, "temporal_reg_file")
-        # print '---'
-        # print self.timeWinConf.numWindows + 1
+
+
         for layer in range(1, self.timeWinConf.numWindows + 1, 1):
             mapsName = str(self.database.linkVecMapName + ':' + str(layer) + '@' + gisenv_grass['MAPSET'])
             timeOfLay += timedelta(seconds=self.timeWinConf.intervalStr)
             regTMP += mapsName + '|' + str(timeOfLay) + '\n'
+
 
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
         print 'datasetName', self.datasetName
         print regFilePath
+        #sys.exit()
         RunCommand('t.register',
                    input=self.datasetName,
                    type='vector',
@@ -1347,6 +1347,9 @@ class Database():
         return time
 
     def grassTemporalConnection(self, db='postgres'):
+        grass.run_command('t.connect',flags='d')
+
+        '''
         if db == 'postgres':
             conninfo = 'dbname=' + self.dbName
             if self.user:
@@ -1366,6 +1369,7 @@ class Database():
         if db == 'sql':
             grass.run_command('t.connect',
                               flags='d')
+        '''
 
     def grassConnectionRemote(self):
         self.dbConnStr  = self.dbName
