@@ -96,7 +96,7 @@
 #%  key: northbc
 #%  type: string
 #%  description: Northern boundary condition
-#%  options: Dirichlet0, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
@@ -105,7 +105,7 @@
 #%  key: southbc
 #%  type: string
 #%  description: Southern boundary condition
-#%  options: Dirichlet0, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
@@ -114,7 +114,7 @@
 #%  key: westbc
 #%  type: string
 #%  description: Western boundary condition
-#%  options: Dirichlet0, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
@@ -123,7 +123,7 @@
 #%  key: eastbc
 #%  type: string
 #%  description: Eastern boundary condition
-#%  options: Dirichlet0, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
 #%  answer: NoOutsideLoads
 #%  required : no
 #%end
