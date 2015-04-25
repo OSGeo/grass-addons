@@ -387,7 +387,7 @@ class GrassLayers(wx.Panel):
         if 'colorRules' in self.settings:
             self.colorRules.SetValue(self.settings['colorRules'])
         if 'colorName' in self.settings:
-            self.colorsName.SetValue(self.settings['colorsName'])
+            self.colorsName.SetValue(self.settings['colorName'])
 
     def saveSettings(self, evt=None, sett=None):
         if sett:
@@ -451,7 +451,25 @@ class ExportData(wx.Panel):
         self.chkpol = wx.CheckBox(self, label='polarization')
         self.okBtt = wx.Button(self, label='export')
         self.layout()
-        # self.chkprecip.Bind(wx.EVT_CHECKBOX,self.onChckPrec)
+        self.chkprecip.Bind(wx.EVT_CHECKBOX, self.onChckPrec)
+
+    def onChckPrec(self,evt):
+        if self.chkprecip.GetValue():
+            self.chkrx.Disable()
+            self.chktx.Disable()
+            self.chkfreq.Disable()
+            self.chkpol.Disable()
+
+            self.chkrx.SetValue(False)
+            self.chktx.SetValue(False)
+            self.chkfreq.SetValue(False)
+            self.chkpol.SetValue(False)
+        else:
+            self.chkrx.Enable()
+            self.chktx.Enable()
+            self.chkfreq.Enable()
+            self.chkpol.Enable()
+
 
     def layout(self):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -508,7 +526,7 @@ class MyFrame(wx.Frame):
         self.ntb.AddPage(page=self.pointInter, text='Points Interpolation')
 
         self.grassLayers = GrassLayers(self.ntb, self.settings)
-        self.ntb.AddPage(page=self.grassLayers, text='Layers')
+        self.ntb.AddPage(page=self.grassLayers, text='Colors')
 
         #def initProfileSett(self):
         self.loadScheme = wx.StaticText(self.mainPanel, label='Load settings', id=wx.ID_ANY)
@@ -825,17 +843,21 @@ class MyFrame(wx.Frame):
             interface.initTimeWinMW()
             interface.initBaseline()
             interface.doCompute()
-            conn = self.GetConnection()
+            if interface.connStatus:
+                conn= interface.dbConn
+
             sql = 'SELECT * FROM %s.%s' % (interface.dbConn.schema, interface.dbConn.computedPrecip)
             res = conn.connection.executeSql(sql, True, True)
             lines = ''
             for r in res:
                 lines += str(r)[1:][:-1] + '\n'
+
             print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
+            os.remove(os.path.join(interface.dbConn.pathworkSchemaDir, "precip"))
             GMessage('Data exported<%s>' % path)
 
         self.exportDialog.Destroy()

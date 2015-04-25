@@ -392,6 +392,10 @@ class TimeWindows():
                                  self.sumStep)
         self.database.connection.executeSql(sql, False, True)
 
+        sql ='ALTER %s %s.%s\
+                ADD %s VARCHAR(11) '% (self.viewStatement, self.schema, self.viewDB,self.database.colorCol)
+        self.database.connection.executeSql(sql, False, True)
+
     def setTimestamp(self):
         self.timestamp_min = self.database.minTimestamp()
         self.timestamp_max = self.database.maxTimestamp()
@@ -549,6 +553,7 @@ class Computor():
         if self.computePrecip(exportData['getData'], exportData['dataOnly']):  # if export data only
             self.timeWin.createWin()
             self.status['bool'] = True
+
 
     def GetStatus(self):
         return self.status.get('bool'), self.status.get('msg')
@@ -1004,8 +1009,6 @@ class Computor():
                 temp.append(out)
 
         grass.message("Computing precipitation-done")
-        # write values to flat file
-        # print temp
         pathExp = os.path.join(self.database.pathworkSchemaDir, "precip")
         io = open(pathExp, 'w+')
         io.writelines(temp)
@@ -1013,14 +1016,16 @@ class Computor():
         #if getData:
         grass.message("Computed data has been saved to <%s>" % pathExp)
         grass.message("File structure is <linkid> <time> <precipitation>")
-        if dataOnly:
-            return False
+
+
 
         grass.message("Writing computed precipitation to database...")
         io1 = open(os.path.join(self.database.pathworkSchemaDir, "precip"), "r")
         self.database.connection.copyfrom(io1, compPrecTab)
-        #grass.message("Done")
-        #
+
+        if dataOnly:
+            return False
+
         return True
 
     def computeAlphaK(self, freq, polarization):
@@ -1121,8 +1126,9 @@ class GrassLayerMgr():
                        use='attr',
                        column=self.database.precipColName,
                        color=self.color,
-                       rgb_column='GRASSRGB',
+                       rgb_column=self.database.colorCol,
                        layer=lay)
+
         if self.rules is not None:
             for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
                 Module('v.colors',
@@ -1130,8 +1136,9 @@ class GrassLayerMgr():
                        use='attr',
                        column=self.database.precipColName,
                        rules=self.rules,
-                       rgb_column='GRASSRGB',
+                       rgb_column=self.database.colorCol,
                        layer=lay)
+
         grass.message('Creating RGB column in database-done')
 
     def getNumLayer(self, map):
@@ -1317,6 +1324,7 @@ class Database():
         self.rgaugRecord = 'rgauge_record'
         self.rgaugeTableName = 'rgauge'
         self.precipColName = 'precip_mm_h'
+        self.colorCol= 'rgb'
 
         self.nodeVecMapName = nodeVecMapName
         self.linkVecMapName = linkVecMapName
