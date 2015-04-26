@@ -516,19 +516,6 @@ class TimeWindows():
         except IOError as (errno, strerror):
             grass.fatal('Cannot write temporal registration file  %s' % os.path.join(self.path, TMPname))
 
-        # creating textfile for t.register input
-        filename = "timewin_%s" % prefix + "vec_" + str(self.timestamp_min).replace(' ', '_') + "|" + str(
-            self.timestamp_max).replace(' ', '_')
-        try:
-            self.temporalRegPath = os.path.join(self.path, filename)
-            io4 = open(self.temporalRegPath, 'w+')
-            io4.writelines(tgrass_vector)
-            io4.close()
-        except IOError as (errno, strerror):
-            grass.fatal('Cannot write temporal reg file  %s' % os.path.join(self.path, TMPname))
-
-            # drop temp table
-            # sql = "DROP TABLE %s.%s" % (self.schema, self.database.recordTableName)
         grass.message('creating time windows-done')
 
     def logMsg(self, msg):
@@ -1245,12 +1232,12 @@ class GrassTemporalMgr():
     def createTimedataset(self, datasetName=None, datasetTitle=None,
                           datasetTdescription=None, temporalType='absolute',
                           semanticType='mean'):
-        if datasetName is None:
-            self.datasetName = self.datasetName
-        if datasetTitle is None:
-            self.datasetTitle = self.datasetTitle
-        if datasetTdescription is None:
-            self.datasetTdescription = self.datasetTdescription
+        if datasetName is not None:
+            self.datasetName = datasetName
+        if datasetTitle is not None:
+            self.datasetTitle = datasetTitle
+        if datasetTdescription is not None:
+            self.datasetTdescription = datasetTdescription
 
         # print '--'*10
         # #print self.datasetName
@@ -1298,7 +1285,6 @@ class GrassTemporalMgr():
                    overwrite=True)
 
         grass.message('Registring maps to temporal database-done')
-
 
 class Database():
     def __init__(self, name=None, user=None, password=None,
