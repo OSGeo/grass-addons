@@ -320,16 +320,16 @@ class Baseline():
 
         if statFce == 'mode':
             if self.roundMode is None:
-                grass.fatal('Value "round" is  missing.')
+                 grass.warning('Value "round" is  missing.')
         if statFce == 'quantile':
             if self.quantile is None:
-                grass.fatal('Value "quentile" is  missing.')
+                 grass.warning('Value "quentile" is  missing.')
         if self.type == 'fromDryWin':
             if self.pathToFile is None:
-                grass.fatal('Dry interval is not defined.')
+                 grass.warning('Dry interval is not defined.')
         if self.type == 'values':
             if self.pathToFile is None:
-                grass.fatal('Baseline values are not defined.')
+                 grass.warning('Baseline values are not defined.')
 
         print self.pathToFile
 
@@ -514,7 +514,7 @@ class TimeWindows():
             io2.writelines(nameList)
             io2.close()
         except IOError as (errno, strerror):
-            grass.fatal('Cannot write temporal registration file  %s' % os.path.join(self.path, TMPname))
+            grass.warning('Cannot write temporal registration file  %s' % os.path.join(self.path, TMPname))
 
         grass.message('creating time windows-done')
 
@@ -630,7 +630,7 @@ class Computor():
                     f = open(baseline.pathToFile, 'r')
                 except IOError as (errno, strerror):
                     print baseline.pathToFile
-                    grass.fatal('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
+                    grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
 
                 for line in f:
                     st += line.replace("\n", "")
@@ -1194,7 +1194,7 @@ class GrassLayerMgr():
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), 'r')
         except:
-            grass.fatal('Cannot connect tables(time-windows)  to vector layer')
+             grass.warning('Cannot connect tables(time-windows)  to vector layer')
         layerNum = 0
         for win in f.read().splitlines():
             layerNum += 1
@@ -1404,7 +1404,7 @@ class Database():
                               overwrite=True)
 
         if grass.run_command('db.connect', driver="pg", database=self.dbName,overwrite=True) != 0:
-            grass.fatal("Unable to connect to the database by grass driver.")
+             grass.warning("Unable to connect to the database by grass driver.")
 
 
     def pyConnection(self):
@@ -1421,7 +1421,7 @@ class Database():
             self.connection = pg(**conninfo)
 
         except psycopg2.OperationalError, e:
-            grass.fatal("Unable to connect to the database <%s>. %s" % (self.dbName, e))
+            grass.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):
         if not isAttributExist(self.connection, 'public', 'link', 'lenght'):
