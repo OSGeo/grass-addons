@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:      r.green.biomassfor.potential
+# MODULE:      r.green.biomassfor.theoretical
 # AUTHOR(S):   Sandro Sacchelli, Francesco Geri
 #              Converted to Python by Pietro Zambelli and Francesco Geri, reviewed by Marco Ciolli
 # PURPOSE:     Calculates the potential Ecological Bioenergy contained in a forest
@@ -18,7 +18,22 @@
 #% description: Estimates potential bioenergy depending on forest increment, forest management and forest treatment
 #% keyword: raster
 #% keyword: biomass
+#% overwrite: yes
 #%End
+#%option G_OPT_V_INPUT
+#% key: forest
+#% type: string
+#% description: Name of vector parcel map
+#% label: Name of vector parcel map
+#% guisection: Base
+#%end
+#%option G_OPT_V_INPUT
+#% key: boundaries
+#% type: string
+#% description: Name of vector boundaries map (boolean map)
+#% label: Name of vector boundaries map (boolean map)
+#% guisection: Base
+#%end
 #%option
 #% key: energy_tops_hf
 #% type: double
@@ -26,44 +41,48 @@
 #% answer: 0.49
 #% guisection: Energy
 #%end
-#%option G_OPT_R_INPUT
-#% key: increment
+#%option
+#% key: forest_column_increment
 #% type: string
-#% description: Map of increment
-#% required : yes
+#% answer: increment
+#% description: Vector field of increment
+#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield_surface
+#%option
+#% key: forest_column_yield_surface
 #% type: string
-#% description: Map of stand surface (ha)
-#% required : yes
+#% answer: yield_surface
+#% description: Vector field of stand surface (ha)
+#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: management
+#%option 
+#% key: forest_column_management
 #% type: string
-#% description: Map of forest management (1: high forest, 2:coppice)
-#% required : yes
+#% answer: management
+#% description: Vector field of forest management (1: high forest, 2:coppice)
+#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: treatment
+#%option
+#% key: forest_column_treatment
+#% answer: treatment
 #% type: string
-#% description: Map of forest treatment (1: final felling, 2:thinning)
-#% required : yes
+#% description: Vector field of forest treatment (1: final felling, 2:thinning)
+#% guisection: Base
 #%end
 #%option 
 #% key: output_basename
+#% answer: biomassfor
 #% type: string
 #% gisprompt: new
 #% description: Basename for potential bioenergy (HF,CC and total)
 #% key_desc : name
-#% required : yes
+#% guisection: Base
 #%end
 #%option
 #% key: energy_cormometric_vol_hf
 #% type: double
 #% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m³
 #% answer: 1.97
-#% required : no
 #% guisection: Energy
 #%end
 #%option
@@ -71,7 +90,6 @@
 #% type: double
 #% description: Energy for tops and branches for Coppices in MWh/m³
 #% answer: 0.55
-#% required : no
 #% guisection: Energy
 #%end
 
@@ -85,16 +103,46 @@ import numpy as np
 def main(opts, flgs):
     ow = overwrite()
 
-    output = opts['output_prefix']
+    output = opts['output_basename']
 
-    increment=opts['increment']
-    management=opts['management']
-    treatment=opts['treatment']
-    yield_surface=opts['yield_surface']
+    forest=opts['forest']
+    boundaries=opts['boundaries']
+    increment=opts['forest_column_increment']
+    management=opts['forest_column_management']
+    treatment=opts['forest_column_treatment']
+    yield_surface=opts['forest_column_yield_surface']
 
     p_bioenergyHF=output+'_t_bioenergyHF'
     p_bioenergyC=output+'_t_bioenergyC'
     p_bioenergy=output+'_t_bioenergy'
+
+    ######## start import and convert ########
+
+
+    run_command("g.region",vect=boundaries)
+    run_command("v.to.rast", input=forest,output="increment", use="attr", attrcolumn=increment,overwrite=True)
+    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
+    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
+    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+
+
+    run_command("r.null", map='increment',null=0)
+    run_command("r.null", map='yield_surface',null=0)
+    run_command("r.null", map='treatment',null=0)
+    run_command("r.null", map='management',null=0)
+
+
+    ######## end import and convert ########
+
+
+    ######## temp patch to link map and fields ######
+
+    management="management"
+    treatment="treatment"
+    yield_surface="yield_surface"
+    increment="increment"
+
+    ######## end temp patch to link map and fields ######
 
 
     #import pdb; pdb.set_trace()
