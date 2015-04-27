@@ -1,0 +1,44 @@
+<h2>DESCRIPTION</h2>
+<em>r.green.hydro.structure</em> computes the channels and the penstock between each intake and restitution. The input has to be a vector map with the intakes and restitution of the potential plants as the one computed by r.green.hydro.optimal.
+
+
+<h2>NOTES</h2>
+The structure of the plant is composed of a channel and a penstock. The channel conveys the water from the intake to the pentock along a very small slope and the penstock conveys the water to the turbine with the highest possible head. Indeed, the power is maximized for the highest head (the discharge is the same in the river and in the structure). Thus, the channel is computed along the same quote - even if in reality a slope is necessary, it's so small that it's neglected - until the point which maximizes the head of the pentock until the turbine. The structure is computed for both sides of the river in order to determine which one produces more power.
+
+
+<h2>EXAMPLE</h2>
+These examples are based on the Pnam file which refers to the Gesso and Vermenagna Valley in Piedmont, Italy.<br><br>
+
+Here is the input vector file potentialplants with the intakes and restitution (in red) computed by r.green.hydro.optimal. The vector map with the segments of river is also visibile in blue on this picture.<br><br>
+
+<center>
+<img src="potentialplants.jpg" alt="potentialplants"><br>
+Potential intakes and restitution
+</center><br>
+
+The following command computes the channel and the pentock for each potential segment of river and for each side of the river from the input file potentialplants :<br>
+<div class="code"><pre>r.green.hydro.structure elevation=elevation plant=potentialplants output=structplants</pre></div><br><br>
+
+The result is shown in the following vector map structplants.<br><br>
+
+<center>
+<img src="plantstructure.png" alt="plantstructure"><br>
+Structure of the potential plants
+</center>
+
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
+<a href="r.green.hydro.technical.html">r.green.hydro.technical</a>
+</em>
+
+<h2>REFERENCE</h2>
+
+<h2>AUTHORS</h2>
+
+
+
+</div>
+</body>
+</html>
