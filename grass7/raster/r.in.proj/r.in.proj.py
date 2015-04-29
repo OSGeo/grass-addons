@@ -22,7 +22,7 @@
 #% keyword: import
 #% keyword: projection
 #%end
-#%option G_OPT_F_INPUT
+#%option G_OPT_F_BIN_INPUT
 #% key: input_file
 #% required: no
 #% multiple: no
