@@ -46,7 +46,7 @@ import grass.script.setup as gsetup
 import mdgrass
 import mdutil
 
-from core.utils import _, GuiModuleMain
+from core.utils import _
 from editor import MdMainEditor
 from lmgr import datacatalog
 from core.gcmd import RunCommand, GError, GMessage
@@ -1168,5 +1168,4 @@ def main():
 
 if __name__ == '__main__':
     options, flags = grass.parser()
-
-    GuiModuleMain(main)
+    main()
