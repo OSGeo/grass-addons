@@ -19,13 +19,13 @@
 #% description: Estimates the quantity of woody biomass obtained from a forest surface where extraction is possible given a particular level of mechanisation
 #% keyword: raster
 #% keyword: biomass
+#% overwrite: yes
 #%End
 #%option G_OPT_R_INPUT
 #% key: dtm
 #% type: string
 #% description: Name of Digital terrain model map
 #% required : yes
-#% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: forest
@@ -33,42 +33,44 @@
 #% description: Name of vector parcel map
 #% label: Name of vector parcel map
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield1
+#%option G_OPT_V_INPUT
+#% key: boundaries
 #% type: string
-#% description: Map of forest yield (cubic meters)
+#% description: Name of vector boundaries map (boolean map)
+#% label: Name of vector boundaries map (boolean map)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield_surface
+#%option
+#% key: forest_column_yield
 #% type: string
-#% description: Map of stand surface (ha)
+#% description: Vector field of yield
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: management
+#%option
+#% key: forest_column_yield_surface
 #% type: string
-#% description: Map of forest management (1: high forest, 2:coppice)
+#% description: Vector field of stand surface (ha)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: treatment
+#%option 
+#% key: forest_column_management
 #% type: string
-#% description: Map of forest treatment (1: final felling, 2:thinning)
+#% description: Vector field of forest management (1: high forest, 2:coppice)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
+#%option
+#% key: forest_column_treatment
+#% type: string
+#% description: Vector field of forest treatment (1: final felling, 2:thinning)
+#% required : yes
+#%end
+#%option G_OPT_V_INPUT
 #% key: forest_roads
 #% type: string
-#% description: Raster map of forest roads (0, 1)
+#% description: Vector map of forest roads
+#% label: Vector map of forest roads
 #% required : yes
-#% guisection: Base
 #%end
 #%option 
 #% key: output_basename
@@ -77,26 +79,27 @@
 #% gisprompt: new
 #% key_desc : name
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: roughness
+#%option
+#% key: forest_column_roughness
 #% type: string
-#% description: Name of roughness map
+#% description: Vector field of roughness
 #% required : no
 #% guisection: Opt files
 #%end
-#%option G_OPT_R_INPUT
+#%option G_OPT_V_INPUT
 #% key: rivers
 #% type: string
-#% description: Raster map of rivers (0, 1)
+#% description: Vector map of rivers
+#% label: Vector map of rivers
 #% required : no
 #% guisection: Opt files
 #%end
-#%option G_OPT_R_INPUT
+#%option G_OPT_V_INPUT
 #% key: lakes
 #% type: string
-#% description: Raster map of lakes (0, 1)
+#% description: Vector map of lakes
+#% label: Vector map of lakes
 #% required : no
 #% guisection: Opt files
 #%end
@@ -105,7 +108,6 @@
 #% type: double
 #% description: Percent slope lower limit with Cable Crane
 #% answer: 30.
-#% required : yes
 #% guisection: Cable Crane
 #%end
 #%option
@@ -161,7 +163,6 @@
 #% type: double
 #% description: Energy for tops and branches in high forest in MWh/m³
 #% answer: 0.49
-#% required : yes
 #% guisection: Energy
 #%end
 #%option
@@ -169,7 +170,6 @@
 #% type: double
 #% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m³
 #% answer: 1.97
-#% required : yes
 #% guisection: Energy
 #%end
 #%option
@@ -177,7 +177,6 @@
 #% type: double
 #% description: Energy for tops and branches for Coppices in MWh/m³
 #% answer: 0.55
-#% required : yes
 #% guisection: Energy
 #%end
 #%flag
@@ -216,13 +215,15 @@ def remove_map(opts, flgs):
 def main(opts, flgs):
     ow = overwrite()
 
-    output = opts['output_prefix']
+    output = opts['output_basename']
 
-    yield_=opts['yield1']
-    management=opts['management']
-    treatment=opts['treatment']
-    yield_surface=opts['yield_surface']
-    roughness=opts['roughness']
+    forest=opts['forest']
+    boundaries=opts['boundaries']
+    yield_=opts['forest_column_yield']
+    management=opts['forest_column_management']
+    treatment=opts['forest_column_treatment']
+    yield_surface=opts['forest_column_yield_surface']
+    roughness=opts['forest_column_roughness']
     forest_roads=opts['forest_roads']
 
     rivers=opts['rivers']
@@ -234,10 +235,45 @@ def main(opts, flgs):
     tech_bioenergyC=output+'_tech_bioenergyC'
     tech_bioenergy=output+'_tech_bioenergy'
 
+    ######## start import and convert ########
+
+
+    run_command("g.region",vect=boundaries)
+    run_command("v.to.rast", input=forest,output="yield", use="attr", attrcolumn=yield_,overwrite=True)
+    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
+    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
+    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+
+    run_command("v.to.rast", input=forest_roads,output="forest_roads", use="val", overwrite=True)
+
+
+
+    run_command("r.null", map='yield',null=0)
+    run_command("r.null", map='yield_surface',null=0)
+    run_command("r.null", map='treatment',null=0)
+    run_command("r.null", map='management',null=0)
+
+
+    ######## end import and convert ########
+
+
+    ######## temp patch to link map and fields ######
+
+    management="management"
+    treatment="treatment"
+    yield_surface="yield_surface"
+    yield_="yield"
+    forest_roads="forest_roads"
+
+    ######## end temp patch to link map and fields ######
+
 
     if roughness=='':
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
         roughness='roughness'
+    else:
+        run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
+        run_command("r.null", map='roughness',null=0)
     
     CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope>'+opts['slp_min_cc']+' && slope<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
 
@@ -268,11 +304,15 @@ def main(opts, flgs):
     exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
 
     if rivers!='':
-        run_command("r.null", map=rivers, null=0)
+        run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
+        run_command("r.null", map="rivers", null=0)
+        rivers="rivers"
         exprmap+='+ if('+rivers+'>=1, 99999)'
 
-    if lakes!='':        
-        run_command("r.null", map=lakes, null=0)
+    if lakes!='':    
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+        run_command("r.null", map="lakes", null=0)
+        lakes="lakes"
         exprmap+='+ if('+lakes+'>=1, 99999)'
 
      
