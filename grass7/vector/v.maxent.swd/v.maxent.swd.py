@@ -39,6 +39,9 @@
 # -
 #%Module
 #% description: Export raster values at given point locations as text file in SWD format for input in Maxent
+#% keyword: vector
+#% keyword: export
+#% keyword: Maxent
 #%End
 
 #%option
