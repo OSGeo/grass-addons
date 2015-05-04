@@ -62,16 +62,16 @@ def find_s(s, *params):
         return p_max-(fun_q(x0)*9.81)*(fun_h(x0) - fun_h(x0+s))
 
 
-def min_len_plant(prog, h, q, p_max, range_plant,
-                  (start, end)):
+def min_len_plant(prog, h, q, p_max, range_plant, range_line, tol=10.):
+    start, end = range_line
     q = np.array(q)
     q[np.isnan(q)] = 0
 #    if q.sum() == 0:
 #        return (0, 0)
     len_plant = []
     fun_q = interpolate.interp1d(prog, q, bounds_error=False, fill_value=0)
-    if end - start > 10:
-        num = (end-start-10)/10
+    if end - start > tol:
+        num = int((end-start-tol)/tol)
         for x0 in np.linspace(start, end-1, num=num):
             #import pdb; pdb.set_trace()
             if fun_q(x0) == 0:
@@ -90,7 +90,7 @@ def min_len_plant(prog, h, q, p_max, range_plant,
 
         len_plant = np.array(len_plant)
         order = np.argsort(len_plant)
-        x_ink = np.linspace(start, end-10, num=num)[order]
+        x_ink = np.linspace(start, end-tol, num=num)[order]
         x_rest = x_ink + len_plant[order]
         s = len_plant[order]
         aaa = x_rest < end
