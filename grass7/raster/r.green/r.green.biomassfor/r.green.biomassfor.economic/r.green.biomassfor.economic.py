@@ -21,22 +21,33 @@
 #% description: Estimates bioenergy that can be collected to supply heating plants or biomass logistic centres and that is associated with a positive net revenue for the entire production process
 #% keyword: raster
 #% keyword: biomass
+#% overwrite: yes
 #%End
-#%option 
-#% key: field_prefix
+#%option G_OPT_V_INPUT
+#% key: forest
 #% type: string
-#% description: Prefix for forest type yield fields (prefix_voltypx)
-#% key_desc : name
+#% description: Name of vector parcel map
+#% label: Name of vector parcel map
 #% required : yes
-#% guisection: Base
 #%end
-#%option
-#% key: prices
-#% type: double
-#% multiple: yes
-#% description: Market price for a-th assortment €/m³
-#% required : no
-#% guisection: Prices
+#%option G_OPT_V_INPUT
+#% key: boundaries
+#% type: string
+#% description: Name of vector boundaries map (boolean map)
+#% label: Name of vector boundaries map (boolean map)
+#% required : yes
+#%end
+#%option 
+#% key: forest_column_price
+#% type: string
+#% description: Vector field of wood typologies
+#% required : yes
+#%end
+#%option 
+#% key: conditions
+#% type: string
+#% description: List of wood assorments:price
+#% required : yes
 #%end
 #%option 
 #% key: output_basename
@@ -45,121 +56,106 @@
 #% gisprompt: new
 #% key_desc : name
 #% required : yes
-#% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: dhp
 #% type: string
 #% description: Name of vector district heating points
 #% label: Name of vector district heating points
-#% required : no
-#% guisection: Base
-#%end
-#%option G_OPT_R_INPUT
-#% key: yield1
-#% type: string
-#% description: Map of forest yield (cubic meters)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield_surface
+#%option
+#% key: forest_column_yield
 #% type: string
-#% description: Map of stand surface (ha)
+#% description: Vector field of yield
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: management
+#%option
+#% key: forest_column_yield_surface
 #% type: string
-#% description: Map of forest management (1: high forest, 2:coppice)
+#% description: Vector field of stand surface (ha)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: treatment
+#%option 
+#% key: forest_column_management
 #% type: string
-#% description: Map of forest treatment (1: final felling, 2:thinning)
+#% description: Vector field of forest management (1: high forest, 2:coppice)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
+#%option
+#% key: forest_column_treatment
+#% type: string
+#% description: Vector field of forest treatment (1: final felling, 2:thinning)
+#% required : yes
+#%end
+#%option G_OPT_V_INPUT
 #% key: forest_roads
 #% type: string
-#% description: Raster map of forest roads (0, 1)
+#% description: Vector map of forest roads
+#% label: Vector map of forest roads
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
+#%option G_OPT_V_INPUT
 #% key: main_roads
 #% type: string
-#% description: Raster map of main roads (0, 1)
+#% description: Vector map of main roads
+#% label: Vector map of main roads
 #% required : yes
-#% guisection: Base
 #%end
 #%option G_OPT_R_INPUT
 #% key: dtm2
 #% type: string
 #% description: Name of Digital terrain model map
 #% required : yes
-#% guisection: Base
 #%end
 #%option G_OPT_R_INPUT
 #% key: soilp2_map
 #% type: string
 #% description: Soil production map
-#% required : no
 #% guisection: Opt files
+#% required : no
 #%end
 #%option G_OPT_R_INPUT
 #% key: tree_diam
 #% type: string
 #% description: Average tree diameter map
-#% required : no
 #% guisection: Opt files
+#% required : no
 #%end
 #%option G_OPT_R_INPUT
 #% key: tree_vol
 #% type: string
 #% description: Average tree volume map
-#% required : no
 #% guisection: Opt files
-#%end
-#%option G_OPT_R_INPUT
-#% key: rivers
-#% type: string
-#% description: Raster map of rivers (0, 1)
 #% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_R_INPUT
-#% key: lakes
-#% type: string
-#% description: Raster map of lakes (0, 1)
-#% required : no
-#% guisection: Opt files
-#%end
-#%option G_OPT_R_INPUT
-#% key: roughness
-#% type: string
-#% description: Name of roughness map
-#% required : no
-#% guisection: Opt files
 #%end
 #%option G_OPT_V_INPUT
-#% key: forest
+#% key: rivers
 #% type: string
-#% description: Name of vector parcel map
-#% label: Name of vector parcel map
-#% required : yes
-#% guisection: Base
+#% description: Vector map of rivers
+#% label: Vector map of rivers
+#% guisection: Opt files
+#% required : no
+#%end
+#%option G_OPT_V_INPUT
+#% key: lakes
+#% type: string
+#% description: Vector map of lakes
+#% label: Vector map of lakes
+#% guisection: Opt files
+#% required : no
+#%end
+#%option
+#% key: forest_column_roughness
+#% type: string
+#% description: Vector field of roughness
+#% guisection: Opt files
 #%end
 #%option
 #% key: slp_min_cc
 #% type: double
 #% description: Percent slope lower limit with Cable Crane
 #% answer: 30.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -167,7 +163,6 @@
 #% type: double
 #% description: Percent slope higher limit with Cable Crane
 #% answer: 100.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -175,7 +170,6 @@
 #% type: double
 #% description: Maximum distance with Cable Crane
 #% answer: 800.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -183,7 +177,6 @@
 #% type: double
 #% description: Percent slope higher limit with Forwarder
 #% answer: 30.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -191,7 +184,6 @@
 #% type: double
 #% description: Maximum distance with Forwarder
 #% answer: 600.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -199,7 +191,6 @@
 #% type: double
 #% description: Percent slope higher limit with other techniques for Coppices
 #% answer: 30.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -207,7 +198,6 @@
 #% type: double
 #% description: Maximum distance with other techniques for Coppices
 #% answer: 600.
-#% required : no
 #% guisection: Technical data
 #%end
 #%option
@@ -215,7 +205,6 @@
 #% type: double
 #% description: Price for energy from woodchips €/MWh
 #% answer: 19.50
-#% required : no
 #% guisection: Prices
 #%end
 #%option
@@ -223,7 +212,6 @@
 #% type: double
 #% description: Felling and/or felling-processing cost with chainsaw €/h
 #% answer: 13.17
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -231,7 +219,6 @@
 #% type: double
 #% description: Processing cost with processor €/h
 #% answer: 87.42
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -239,7 +226,6 @@
 #% type: double
 #% description: Felling and processing cost with harvester €/h
 #% answer: 96.33
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -247,7 +233,6 @@
 #% type: double
 #% description: Extraction cost with high power cable crane €/h
 #% answer: 111.44
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -255,7 +240,6 @@
 #% type: double
 #% description: Extraction cost with medium power cable crane €/h
 #% answer: 104.31
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -263,7 +247,6 @@
 #% type: double
 #% description: Extraction cost with forwarder €/h
 #% answer: 70.70
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -271,7 +254,6 @@
 #% type: double
 #% description: Extraction cost with skidder €/h
 #% answer: 64.36
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -279,7 +261,6 @@
 #% type: double
 #% description: Chipping cost €/h
 #% answer: 150.87
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -287,7 +268,6 @@
 #% type: double
 #% description: Transport with truck €/h
 #% answer: 64.90
-#% required : no
 #% guisection: Costs
 #%end
 #%option
@@ -295,7 +275,6 @@
 #% type: double
 #% description: Energy for tops and branches in high forest in MWh/m³
 #% answer: 0.49
-#% required : no
 #% guisection: Energy
 #%end
 #%option
@@ -303,7 +282,6 @@
 #% type: double
 #% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m³
 #% answer: 1.97
-#% required : no
 #% guisection: Energy
 #%end
 #%option
@@ -311,17 +289,13 @@
 #% type: double
 #% description: Energy for tops and branches for Coppices in MWh/m³
 #% answer: 0.55
-#% required : no
 #% guisection: Energy
 #%end
 #%flag
 #% key: r
 #% description: Remove all operational maps
 #%end
-#%flag
-#% key: x
-#% description: Raster wood typologies ready to import (prefix_voltypx)
-#%end
+
 
 
 
@@ -331,27 +305,13 @@ from grass.pygrass.raster import RasterRow
 import numpy as np
 
 
-import pdb
+import ipdb
 import string
 
 ow = overwrite()
 
 
 
-def import_map(opts, flgs,forest):
-    prf_yield = opts['field_prefix']
-    forest_split=str.split(forest,'@')
-
-    campi=str.split(read_command('db.columns', table=forest_split[0]),"\n")
-
-    prefix1=prf_yield+"_voltyp"
-
-    vol_matching = [s for s in campi if prefix1 in s]
-
-
-    for x in vol_matching:
-        run_command("v.to.rast", overwrite=ow, input=forest,
-                output=x, use="attr", attrcolumn=x)
 
 def remove_map(opts, flgs):
 
@@ -453,10 +413,14 @@ def yield_pix_process(opts, flgs,vector_forest,yield_,yield_surface,rivers,lakes
 
 
     if rivers!='':
+        run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
+        rivers="rivers"
         run_command("r.null", map=rivers, null=0)
         exprmap+='+ if('+rivers+'>=1, 99999)'
 
     if lakes!='':        
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
+        lakes="lakes"
         run_command("r.null", map=lakes, null=0)
         exprmap+='+ if('+lakes+'>=1, 99999)'
 
@@ -527,60 +491,53 @@ def yield_pix_process(opts, flgs,vector_forest,yield_,yield_surface,rivers,lakes
     print ("Tech bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
-def revenues(opts, flgs,yield_surface,management,treatment):
+def revenues(opts, flgs,yield_surface,management,treatment,forest,yield_):
     # Calculate revenues
-    prf_yield = opts['field_prefix']
+    fieldprice=opts['forest_column_price']
+    fieldcond=opts['conditions']
 
     
 
-    pricelist=string.split(opts['prices'],',') #convert the string in list of string
+    # pricelist=string.split(opts['prices'],',') #convert the string in list of string
 
 
-    for x in range(1,len(pricelist)+1):
-        price_field=prf_yield+"_voltyp"+str(x)
-        run_command("r.mapcalc", overwrite=ow,expression=prf_yield+'_vol_typ'+str(x)+'pix = ('+price_field+'/'+yield_surface+')*(ewres()*nsres()/10000)')
-        run_command("r.null", map=prf_yield+'_vol_typ'+str(x)+'pix', null=0)
+    # for x in range(1,len(pricelist)+1):
+    #     price_field=prf_yield+"_voltyp"+str(x)
+    #     run_command("r.mapcalc", overwrite=ow,expression=prf_yield+'_vol_typ'+str(x)+'pix = ('+price_field+'/'+yield_surface+')*(ewres()*nsres()/10000)')
+    #     run_command("r.null", map=prf_yield+'_vol_typ'+str(x)+'pix', null=0)
 
+    listwoods=fieldcond.split(',')
 
+    prices=''
+
+    for wood in listwoods:
+        #ipdb.set_trace()
+        woodprice=wood.split('=')
+        where_cond=fieldprice+" like "+"'"+woodprice[0]+"'"
+        run_command("v.to.rast",input=forest,output='forest_'+woodprice[0],use="attr", attrcolumn=yield_, where=where_cond)
+        exprpix='forest_'+woodprice[0]+'_pix=(forest_'+woodprice[0]+"/"+yield_surface+')*(ewres()*nsres()/10000)'
+        run_command("r.mapcalc", overwrite=ow, expression=exprpix)
+        nullmap='forest_'+woodprice[0]+'_pix'
+        run_command("r.null", map=nullmap,null=0)
+        prices+=nullmap+'*'+woodprice[1]+"+"
+    prices=prices[:-1]
         
     #prices = '+'.join(["vol_typ%dpix*%f" % (i+1, price) for i, price in enumerate(opts['prices'])])
-    prices = '+'.join([prf_yield+"_vol_typ%dpix*%f" % (i+1, float(price)) for i, price in enumerate(pricelist)])
+    #prices = '+'.join([prf_yield+"_vol_typ%dpix*%f" % (i+1, float(price)) for i, price in enumerate(pricelist)])
 
-    #pdb.set_trace()
+    #ipdb.set_trace()
 
     price_energy_woodchips=float(opts['price_energy_woodchips'])   
     
 
     TR1='total_revenues1 = technical_surface*(if('+management+' == 1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999 || '+management+' == 2,('+prices+'+(technical_bioenergy*'+str(price_energy_woodchips)+')), if('+management+' == 1 && '+treatment+'==2, technical_bioenergy*'+str(price_energy_woodchips)+')))'
-    
-    #IMPORTANT: in order to calculate the total revenue it's required to process both round wood price 
-    # (destnated to the wood production) and the residuals (for the energy production) 
-    # so inside the total revenues formula there is vol_typXpix*price + bioenergy*energy_price
+
 
     run_command("r.mapcalc", overwrite=ow, expression=TR1)
-    
-    
-    #if there is a value of vol_typxx there must be also the corresponding map 
-    
 
-    #divide the yield only in the yarding surface e not in all the parcel surface
-
-
-    # for x in range(1,len(pricelist)+1):
-    #     price_field=prf_yield+"_voltyp"+str(x)
-    #     #pdb.set_trace()
-    #     run_command("r.mapcalc", overwrite=ow,expression=prf_yield+'_vol_typ'+str(x)+'pix2 = '+price_field+'/(technical_surface*@techn_pix_comp)')
-    #     run_command("r.null", map=prf_yield+'_vol_typ'+str(x)+'pix2', null=0)
-
-    # # price_energy_woodchips=float(opts['price_energy_woodchips'])
-    # run_command("r.mapcalc", overwrite=ow,
-    #             expression='total_revenues2 = technical_surface*(if(management == 1 && treatment==1 || management == 1 && treatment==99999 || management == 2,(%s+(technical_bioenergy*%f)), if(management == 1 && treatment==2, technical_bioenergy*20)))' % (prices, price_energy_woodchips))
-    # run_command("r.mapcalc", overwrite=ow,
-    #             expression='total_revenues = total_revenues1*%d + total_revenues2*%d' % (1 if flgs['u'] else 0, 0 if flgs['u'] else 1))
 
     run_command("r.mapcalc",overwrite=ow,expression='total_revenues=total_revenues1')
-    #total_revenues1: take into account only the yarding surface inside the parcel  
-    #total_revenues2: take into account the entire parcel sufrace 
+
     
     
 def productivity(opts, flgs,management,treatment,soilp2_map,tree_diam,tree_vol,forest_roads,main_roads):
@@ -760,7 +717,7 @@ def net_revenues(opts, flgs,management,treatment):
 
 
 
-    output = opts['output_prefix']
+    output = opts['output_basename']
 
     econ_bioenergyHF=output+'_econ_bioenergyHF'
     econ_bioenergyC=output+'_econ_bioenergyC'
@@ -800,34 +757,74 @@ def net_revenues(opts, flgs,management,treatment):
 def main(opts, flgs):
 
 
-    output = opts['output_prefix']
+    output = opts['output_basename']
 
-
-    yield_=opts['yield1']
-    management=opts['management']
-    treatment=opts['treatment']
-    yield_surface=opts['yield_surface']
-    roughness=opts['roughness']
+    forest=opts['forest']
+    boundaries=opts['boundaries']
+    yield_=opts['forest_column_yield']
+    management=opts['forest_column_management']
+    treatment=opts['forest_column_treatment']
+    yield_surface=opts['forest_column_yield_surface']
+    roughness=opts['forest_column_roughness']
     forest_roads=opts['forest_roads']
     main_roads=opts['main_roads']
 
     rivers=opts['rivers']
     lakes=opts['lakes']
+
     tree_diam=opts['tree_diam']
     tree_vol=opts['tree_vol']
     soilp2_map=opts['soilp2_map']
 
-    prf_yield = opts['field_prefix']
+    fieldprice=opts['forest_column_price']
+    fieldcond=opts['conditions']
 
-
-    vector_forest = opts['forest']
 
     econ_bioenergyHF=output+'_econ_bioenergyHF'
     econ_bioenergyC=output+'_econ_bioenergyC'
     econ_bioenergy=output+'_econ_bioenergy'
 
+
+
+    ######## start import and convert ########
+
+    run_command("g.region",vect=boundaries)
+    run_command("v.to.rast", input=forest,output="yield", use="attr", attrcolumn=yield_,overwrite=True)
+    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
+    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
+    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+
+    run_command("v.to.rast", input=forest_roads,output="forest_roads", use="val", overwrite=True)
+    run_command("v.to.rast", input=main_roads,output="main_roads", use="val", overwrite=True)
+
+
+
+    run_command("r.null", map='yield',null=0)
+    run_command("r.null", map='yield_surface',null=0)
+    run_command("r.null", map='treatment',null=0)
+    run_command("r.null", map='management',null=0)
+
+
+    ######## end import and convert ########
+
+
+    ######## temp patch to link map and fields ######
+
+    management="management"
+    treatment="treatment"
+    yield_surface="yield_surface"
+    yield_="yield"
+    forest_roads="forest_roads"
+    main_roads="main_roads"
+
+    ######## end temp patch to link map and fields ######
+
     if roughness=='':
         run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
+        roughness='roughness'
+    else:
+        run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
+        run_command("r.null", map='roughness',null=0)
         roughness='roughness'
 
     if tree_diam=='':
@@ -842,13 +839,11 @@ def main(opts, flgs):
         run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
         soilp2_map='soil_map'
 
-    if flgs['x'] == False:
-         import_map(opts, flgs, vector_forest)
 
-    yield_pix_process(opts,flgs,vector_forest,yield_,yield_surface,rivers,lakes,forest_roads,management,treatment,roughness)
+    yield_pix_process(opts,flgs,forest,yield_,yield_surface,rivers,lakes,forest_roads,management,treatment,roughness)
     
 
-    revenues(opts, flgs,yield_surface,management,treatment)
+    revenues(opts, flgs,yield_surface,management,treatment,forest,yield_)
     
     productivity(opts, flgs,management,treatment,soilp2_map,tree_diam,tree_vol,forest_roads,main_roads)
     costs(opts, flgs)
