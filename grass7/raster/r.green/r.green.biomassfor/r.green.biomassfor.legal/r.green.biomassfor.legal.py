@@ -45,7 +45,7 @@
 #% key: forest_column_yield
 #% type: string
 #% answer: yield
-#% description: Vector field of increment
+#% description: Vector field of yield
 #% guisection: Base
 #%end
 #%option
