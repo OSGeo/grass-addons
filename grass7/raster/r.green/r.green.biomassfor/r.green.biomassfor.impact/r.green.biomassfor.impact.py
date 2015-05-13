@@ -28,72 +28,93 @@
 #% description: Name of vector parcel map
 #% label: Name of vector parcel map
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield1
+#%option G_OPT_V_INPUT
+#% key: boundaries
 #% type: string
-#% description: Map of forest yield (cubic meters)
+#% description: Name of vector boundaries map (boolean map)
+#% label: Name of vector boundaries map (boolean map)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: yield_surface
+#%option
+#% key: forest_column_yield
 #% type: string
-#% description: Map of stand surface (ha)
+#% description: Vector field of yield
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: management
+#%option
+#% key: forest_column_yield_surface
 #% type: string
-#% description: Map of forest management (1: high forest, 2:coppice)
+#% description: Vector field of stand surface (ha)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
-#% key: treatment
+#%option 
+#% key: forest_column_management
 #% type: string
-#% description: Map of forest treatment (1: final felling, 2:thinning)
+#% description: Vector field of forest management (1: high forest, 2:coppice)
 #% required : yes
-#% guisection: Base
 #%end
-#%option G_OPT_R_INPUT
+#%option
+#% key: forest_column_treatment
+#% type: string
+#% description: Vector field of forest treatment (1: final felling, 2:thinning)
+#% required : yes
+#%end
+#%option G_OPT_V_INPUT
 #% key: forest_roads
 #% type: string
-#% description: Raster map of forest roads (0, 1)
+#% description: Vector map of forest roads
+#% label: Vector map of forest roads
 #% required : yes
-#% guisection: Base
+#%end
+#%option
+#% key: forest_column_roughness
+#% type: string
+#% description: Vector field of roughness
+#% required : no
+#% guisection: Opt files
+#%end
+#%option G_OPT_V_INPUT
+#% key: rivers
+#% type: string
+#% description: Vector map of rivers
+#% label: Vector map of rivers
+#% required : no
+#% guisection: Opt files
+#%end
+#%option G_OPT_V_INPUT
+#% key: lakes
+#% type: string
+#% description: Vector map of lakes
+#% label: Vector map of lakes
+#% required : no
+#% guisection: Opt files
 #%end
 #%option
 #% key: energy_tops_hf
 #% type: double
 #% description: Energy for tops and branches in high forest in MWh/m³
 #% answer: 0.49
-#% required : yes
-#% guisection: Base
+#% guisection: Energy
 #%end
 #%option
 #% key: energy_cormometric_vol_hf
 #% type: double
 #% description: Energy for tops and branches for high forest in MWh/m³
 #% answer: 1.97
-#% required : yes
-#% guisection: Base
+#% guisection: Energy
 #%end
 #%option
 #% key: energy_tops_cop
 #% type: double
 #% description: Energy for tops and branches for Coppices in MWh/m³
 #% answer: 0.55
-#% required : yes
-#% guisection: Base
+#% guisection: Energy
 #%end
 #%option G_OPT_R_INPUT
 #% key: energy_map
 #% description: Bioenergy map in MWh/m³
 #% required : yes
-#% guisection: Base
 #%end
 #%option G_OPT_V_INPUT
 #% key: dhp
@@ -101,7 +122,6 @@
 #% description: Name of vector district heating points
 #% label: Name of vector district heating points
 #% required : yes
-#% guisection: Base
 #%end
 #%option 
 #% key: output_sw_map
@@ -139,21 +159,21 @@
 #% guisection: Soil and water protection
 #%end
 #%option G_OPT_R_OUTPUT
-#% key: output_co2_map
+#% key: output_basename_co2map
 #% type: string
 #% description: Name for output CO2 emissions map
 #% key_desc : name
 #% guisection: CO2 Emission
 #%end
 #%option G_OPT_R_OUTPUT
-#% key: output_aco2_map
+#% key: output_basename_aco2map
 #% type: string
 #% description: Name for output avoided CO2 emissions map
 #% key_desc : name
 #% guisection: CO2 Emission
 #%end
 #%option G_OPT_R_OUTPUT
-#% key: output_netco2_map
+#% key: output_basename_nco2map
 #% type: string
 #% description: Name for output net CO2 emissions map
 #% key_desc : name
@@ -166,12 +186,12 @@
 #% required : no
 #% guisection : CO2 Emission
 #%end
-#%option G_OPT_R_INPUT
-#% key: roughness
+#%option
+#% key: forest_column_roughness
 #% type: string
-#% description: Name of roughness map
+#% description: Vector field of roughness
 #% required : no
-#% guisection: CO2 Emission
+#% guisection: Opt files
 #%end
 #%option G_OPT_R_INPUT
 #% key: soilp2_map
@@ -194,25 +214,11 @@
 #% required : no
 #% guisection: CO2 Emission
 #%end
-#%option G_OPT_R_INPUT
+#%option G_OPT_V_INPUT
 #% key: main_roads
 #% type: string
-#% description: Name of raster main roads
-#% label: Name of raster main roads
-#% required : yes
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_R_INPUT
-#% key: rivers
-#% type: string
-#% description: Raster map of rivers (0, 1)
-#% required : no
-#% guisection: CO2 Emission
-#%end
-#%option G_OPT_R_INPUT
-#% key: lakes
-#% type: string
-#% description: Raster map of lakes (0, 1)
+#% description: Vector map of main roads
+#% label: Vector map of main roads
 #% required : no
 #% guisection: CO2 Emission
 #%end
@@ -277,6 +283,7 @@
 #% type: string
 #% description: Name for output reduction map of fire risk
 #% key_desc : name
+#% required : no
 #% guisection: Fire risk
 #%end
 #%option G_OPT_R_INPUT
@@ -291,6 +298,7 @@
 #% type: string
 #% description: Name for output total recreational map
 #% key_desc : name
+#% required : no
 #% guisection: Recreational
 #%end
 #%option G_OPT_R_OUTPUT
@@ -298,6 +306,7 @@
 #% type: string
 #% description: Name for output improved recreational map
 #% key_desc : name
+#% required : no
 #% guisection: Recreational
 #%end
 #%option G_OPT_R_INPUT
@@ -335,6 +344,7 @@
 #% description: TEV result
 #% gisprompt: new
 #% key_desc : name
+#% required : no
 #% guisection: TEV
 #%end
 #%option
@@ -432,13 +442,11 @@ def remove_map(opts, flgs):
 
 
 
-def yield_pix_process(opts, flgs):
+def yield_pix_process(opts, flgs,yield_,yield_surface):
 
     #YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
     YPIX = ''
 
-    yield_surface=opts['yield_surface']
-    yield_=opts['yield1']
 
     expr_surf='analysis_surface='+opts['energy_map']+'>0'
     run_command('r.mapcalc', overwrite=ow,expression=expr_surf)
@@ -473,7 +481,7 @@ def fertility_maintenance(opts, flgs):
     management=opts['management']
     treatment=opts['treatment']
 
-    yield_pix_process(opts, flgs)
+    yield_pix_process(opts, flgs,yield_,yield_surface)
 
     expr_prodFF='site_prod_bioenergyFF = if(('+management+'==1 || '+management+'==2) && ('+treatment+'==1 || '+treatment+'==99999), '+opts['energy_map']+'*0.9)'
     expr_prodT='site_prod_bioenergyT = if('+treatment+'==2 && ('+opts['soilp_map']+'==1 || '+opts['soilp_map']+'==2), analysis_surface*yield_pix*%f*0+yield_pix*%f, if('+treatment+'==2 && '+opts['soilp_map']+'>2, analysis_surface*yield_pix*%f*0.7+yield_pix*%f))'
@@ -508,7 +516,7 @@ def soil_water_protection(opts, flgs):
 
     run_command("r.slope.aspect", flags="a", overwrite=ow,elevation=opts['dtm'], slope="slope__", format="percent") 
 
-    yield_pix_process(opts, flgs)
+    yield_pix_process(opts, flgs,yield_,yield_surface)
 
     # Soil and water protection
 
@@ -585,31 +593,91 @@ def sustainable_bioenergy(opts, flgs):
 
 def avoided_CO2_emission(opts, flgs):
 
-    vector_forest=opts['forest']
-    management=opts['management']
-    treatment=opts['treatment']
-    roughness=opts['roughness']
-    yield_=opts['yield1']
+
+
+    forest=opts['forest']
+    boundaries=opts['boundaries']
+    yield_=opts['forest_column_yield']
+    management=opts['forest_column_management']
+    treatment=opts['forest_column_treatment']
+    yield_surface=opts['forest_column_yield_surface']
+    roughness=opts['forest_column_roughness']
+    forest_roads=opts['forest_roads']
+    main_roads=opts['main_roads']
+
     tree_diam=opts['tree_diam']
     tree_vol=opts['tree_vol']
     soil_prod=opts['soilp2_map']
-    forest_roads=opts['forest_roads']
-    main_roads=opts['main_roads']
+
     rivers=opts['rivers']
     lakes=opts['lakes']
 
-
-    if tree_diam == '':
-        tree_diam="99999"
-    if tree_vol == '':
-        tree_vol="9.999"
-    if soil_prod == '':
-        soil_prod="99999"
-
     dhp=opts['dhp']
 
+    vector_forest=opts['forest']
+
+
+
+    ######## start import and convert ########
+
+
+    run_command("g.region",vect=boundaries)
+    run_command("v.to.rast", input=forest,output="yield", use="attr", attrcolumn=yield_,overwrite=True)
+    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
+    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
+    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+
+    run_command("v.to.rast", input=forest_roads,output="forest_roads", use="val", overwrite=True)
+    run_command("v.to.rast", input=main_roads,output="main_roads", use="val", overwrite=True)
+
+
+
+    run_command("r.null", map='yield',null=0)
+    run_command("r.null", map='yield_surface',null=0)
+    run_command("r.null", map='treatment',null=0)
+    run_command("r.null", map='management',null=0)
+
+
+    ######## end import and convert ########
+
+
+    ######## temp patch to link map and fields ######
+
+    management="management"
+    treatment="treatment"
+    yield_surface="yield_surface"
+    yield_="yield"
+    forest_roads="forest_roads"
+    main_roads="main_roads"
+
+    ######## end temp patch to link map and fields ######
+
+    ######## end temp patch to link map and fields ######
+
+    if roughness=='':
+        run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
+        roughness='roughness'
+    else:
+        run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
+        run_command("r.null", map='roughness',null=0)
+        roughness='roughness'
+
+    if tree_diam=='':
+        run_command("r.mapcalc",overwrite=ow,expression='tree_diam=99999')
+        tree_diam='tree_diam'
+
+    if tree_vol=='':
+        run_command("r.mapcalc",overwrite=ow,expression='tree_vol=9.999')
+        tree_vol='tree_vol'
+
+    if soil_prod=='':
+        run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
+        soil_prod='soil_map'
+
+    
+
     #process the yield_pix map
-    yield_pix_process(opts, flgs)
+    yield_pix_process(opts, flgs,yield_,yield_surface)
 
     #control and process the slope map
     run_command("r.slope.aspect", overwrite=ow,elevation=opts['dtm2'], slope="slope__", format="percent")
@@ -627,21 +695,21 @@ def avoided_CO2_emission(opts, flgs):
 
 
 
-    if roughness=='':
-        run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness='roughness'
-
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
     
     exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
     
     if rivers!='':
-        run_command("r.null", map=rivers, null=0)
+        run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
+        run_command("r.null", map="rivers", null=0)
+        rivers="rivers"
         exprmap+='+ if('+rivers+'>=1, 99999)'
 
-    if lakes!='':        
-        run_command("r.null", map=lakes, null=0)
+    if lakes!='':    
+        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)    
+        run_command("r.null", map="lakes", null=0)
+        lakes="lakes"
         exprmap+='+ if('+lakes+'>=1, 99999)'
 
 
@@ -682,7 +750,7 @@ def avoided_CO2_emission(opts, flgs):
 
     #r.mapcalc --o 'fell_proc_productC = if(management@PERMANENT ==2 && soil_prod@PERMANENT <99999,((0.3-(1.1*soil_prod@PERMANENT))/(-4))*(1-(slope@PERMANENT/100)), if(management@PERMANENT ==2 && soil_prod@PERMANENT == 99999,((0.3-(1.1*3))/(-4))*(1-((1000-(90*slope@PERMANENT)/(-80))/100))))'
 
-
+    #import ipdb; ipdb.set_trace()
 
     run_command("r.mapcalc", overwrite=ow,
                 expression='proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'==99999, cable_crane_extraction*0.363*35^1.116, if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'<99999, cable_crane_extraction*0.363*'+tree_diam+'^1.116))')
@@ -780,16 +848,16 @@ def avoided_CO2_emission(opts, flgs):
     run_command("r.null", map='extr_forw_em', null=0)
     run_command("r.null", map='extr_other_em', null=0)
     run_command("r.null", map='transport_em', null=0)
-    run_command("r.mapcalc", overwrite=ow, expression=opts['output_co2_map']+' = (analysis_surface*(fell_HFtr1_em  + fell_HFtr2_em + fell_proc_C_em + proc_HFtr1_em + fell_proc_HFtr1_em + fell_proc_HFtr2_em + chipp_em + extr_cableHF_em + extr_cableC_em + extr_forw_em + extr_other_em + transport_em))/1000')
-    run_command("r.mapcalc", overwrite=ow, expression=opts['output_aco2_map']+' = '+opts['energy_map']+'*320')
+    run_command("r.mapcalc", overwrite=ow, expression=opts['output_basename_co2map']+' = (analysis_surface*(fell_HFtr1_em  + fell_HFtr2_em + fell_proc_C_em + proc_HFtr1_em + fell_proc_HFtr1_em + fell_proc_HFtr2_em + chipp_em + extr_cableHF_em + extr_cableC_em + extr_forw_em + extr_other_em + transport_em))/1000')
+    run_command("r.mapcalc", overwrite=ow, expression=opts['output_basename_aco2map']+' = '+opts['energy_map']+'*320')
     #run_command("r.mapcalc", overwrite=ow, expression=opts['output_netco2_map']+' = analysis_surface*'+('+opts['output_aco2_map']+' - '+opts['output_co2_map']+')/1000')
-    run_command("r.mapcalc", overwrite=ow, expression=opts['output_netco2_map']+' = analysis_surface*('+opts['output_aco2_map']+' - '+opts['output_co2_map']+')/1000')
+    run_command("r.mapcalc", overwrite=ow, expression=opts['output_basename_nco2map']+' = analysis_surface*('+opts['output_basename_aco2map']+' - '+opts['output_basename_co2map']+')/1000')
 
-    mapco2=opts['output_co2_map']
+    mapco2=opts['output_basename_co2map']
     with RasterRow(mapco2) as pT:
         T = np.array(pT)
 
-    mapaco2=opts['output_netco2_map']
+    mapaco2=opts['output_basename_nco2map']
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
    
@@ -881,7 +949,7 @@ def main(opts, flgs):
     # biodiversity_maintenance(opts, flgs)
     # sustainable_bioenergy(opts, flgs)
 
-    if(opts['output_co2_map'])!="":        
+    if(opts['output_basename_co2map'])!="":        
         avoided_CO2_emission(opts, flgs)
 
     if(opts['output_fr_map'])!="":        
