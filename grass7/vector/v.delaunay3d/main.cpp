@@ -108,9 +108,9 @@ int main(int argc, char *argv[])
                       nvertices, npoints);
     
     G_message(_("Number of vertices: %d"), nvertices);
-    G_message(_("Number of edges: %d"), T->number_of_finite_edges());
-    G_message(_("Number of triangles: %d"), T->number_of_finite_facets());
-    G_message(_("Number of tetrahedrons: %d"), T->number_of_finite_cells());
+    G_message(_("Number of edges: %lu"), T->number_of_finite_edges());
+    G_message(_("Number of triangles: %lu"), T->number_of_finite_facets());
+    G_message(_("Number of tetrahedrons: %lu"), T->number_of_finite_cells());
     
     G_message(_("Writing output features..."));
 
