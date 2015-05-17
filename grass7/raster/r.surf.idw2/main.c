@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     {
 	struct Option *input, *npoints, *output;
     } parm;
+    int cell_type;
 
     G_gisinit(argv[0]);
 
@@ -62,7 +63,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("surface"));
     G_add_keyword(_("interpolation"));
     G_add_keyword(_("IDW"));
-    module->description = _("Surface generation program.");
+    module->description =
+	_("Provides surface interpolation from raster point data by Inverse Distance Squared Weighting.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
 
@@ -108,6 +110,10 @@ int main(int argc, char *argv[])
 	mask = NULL;
 
     fd = Rast_open_c_new(parm.output->answer);
+
+    cell_type = Rast_get_map_type(fd);
+    if (cell_type != CELL_TYPE)
+        G_fatal_error(_("This module currently only works for integer (CELL) maps"));
 
     G_message(_n("Interpolating raster map <%s>... %d row... ",
         "Interpolating raster map <%s>... %d rows... ", window.rows),
