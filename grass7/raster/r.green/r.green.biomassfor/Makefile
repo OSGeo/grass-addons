@@ -8,6 +8,7 @@ SUBDIRS = r.green.biomassfor.economic \
           r.green.biomassfor.technical \
           r.green.biomassfor.legal \
           r.green.biomassfor.impact \
+          r.green.biomassfor.co2
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
