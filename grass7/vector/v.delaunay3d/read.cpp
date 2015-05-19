@@ -1,3 +1,8 @@
+/* must be included before GRASS headers (GRASS is using _n reserved world) */
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Triangulation_3.h>
+#include <CGAL/Delaunay_triangulation_3.h>
+
 extern "C" {
 #include <grass/vector.h>
 #include <grass/glocale.h>
