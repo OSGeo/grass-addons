@@ -38,6 +38,38 @@
 #% key: slope
 #% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
 #%end
+#%option G_OPT_R_INPUT
+#% key: linke
+#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+#% required : no
+#%end
+#%option
+#% key: linke_value
+#% type: double
+#% description: A single value of the Linke atmospheric turbidity coefficient [-]
+#% options: 0.0-7.0
+#% answer: 3.0
+#% required: no
+#%end
+#% rules
+#%  exclusive: linke, linke_value
+#% end
+#%option G_OPT_R_INPUT
+#% key: albedo
+#% description: Name of the ground albedo coefficient input raster map [-]
+#% required: no
+#%end
+#%option
+#% key: albedo_value
+#% type: double
+#% description: A single value of the ground albedo coefficient [-]
+#% options: 0.0-1.0
+#% answer: 0.2
+#% required: no
+#%end
+#% rules
+#%  exclusive: albedo, albedo_value
+#% end
 #%option
 #% key: start_time
 #% type: double
@@ -163,9 +195,19 @@ def create_tmp_map_name(name):
 
 
 # add latitude map
-def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
-              refl_rad, glob_rad, incidout, suffix, binary, binaryTmpName):
+def run_r_sun(elevation, aspect, slope, day, time,
+              linke, linke_value, albedo, albedo_value,
+              beam_rad, diff_rad, refl_rad, glob_rad,
+              incidout, suffix, binary, binaryTmpName):
     params = {}
+    if linke:
+        params.update({'linke': linke})
+    if linke_value:
+        params.update({'linke_value': linke_value})
+    if albedo:
+        params.update({'albedo': albedo})
+    if albedo_value:
+        params.update({'albedo_value': albedo_value})
     if beam_rad:
         params.update({'beam_rad': beam_rad + suffix})
     if diff_rad:
@@ -262,6 +304,10 @@ def main():
     elevation_input = options['elevation']
     aspect_input = options['aspect']
     slope_input = options['slope']
+    linke = options['linke']
+    linke_value = options['linke_value']
+    albedo = options['albedo']
+    albedo_value = options['albedo_value']
 
     beam_rad_basename = options['beam_rad_basename']
     diff_rad_basename = options['diff_rad_basename']
@@ -342,6 +388,8 @@ def main():
         proc_list.append(Process(target=run_r_sun,
                                  args=(elevation_input, aspect_input,
                                        slope_input, day, time,
+                                       linke, linke_value,
+                                       albedo, albedo_value,
                                        beam_rad_basename,
                                        diff_rad_basename,
                                        refl_rad_basename,
