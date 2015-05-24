@@ -14,6 +14,7 @@ from pgwrapper import pgwrapper as pg
 from core.gcmd import RunCommand
 from grass.pygrass.modules import Module
 
+import numpy as np
 
 try:
     from grass.script import core as grass
@@ -253,7 +254,7 @@ class RainGauge():
                 self.lon = float(f.next())
             f.close()
         except IOError as (errno, strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
+            grass.message( "I/O error({0}): {1}".format(errno, strerror))
 
         gaugeTMPfile = "gauge_tmp"
         removeLines(old_file=path,
@@ -270,7 +271,7 @@ class RainGauge():
                     tmp.append(stri)
                 f.close()
         except IOError as (errno, strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
+            grass.message( "I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
         try:
@@ -278,7 +279,7 @@ class RainGauge():
                 io.writelines(tmp)
                 io.close()
         except IOError as (errno, strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
+            grass.message( "I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
             # #create table for raingauge stations
@@ -310,7 +311,7 @@ class RainGauge():
 
 
 class Baseline():
-    def __init__(self, type, pathToFile, statFce='mode', quantile=97, roundMode=3, aw=0):
+    def __init__(self, type='noDryWin', pathToFile=None, statFce='mode', quantile=97, roundMode=3, aw=0):
         self.quantile = quantile
         self.roundMode = roundMode
         self.aw = aw
@@ -318,6 +319,7 @@ class Baseline():
         self.type = type
         self.statFce = statFce
 
+        '''
         if statFce == 'mode':
             if self.roundMode is None:
                  grass.warning('Value "round" is  missing.')
@@ -330,9 +332,8 @@ class Baseline():
         if self.type == 'values':
             if self.pathToFile is None:
                  grass.warning('Baseline values are not defined.')
-
         print self.pathToFile
-
+        '''
 
 class TimeWindows():
     def __init__(self, database, IDtype, sumStep, startTime=None,
@@ -381,7 +382,7 @@ class TimeWindows():
         self.crateTimeWin()
 
     def sumValues(self):
-        # #summing values per (->user)timestep interval
+        ##summing values per (->user)timestep interval
         self.viewDB = 'computed_precip_sum'
         sql = "CREATE %s %s.%s as  \
                SELECT %s ,round(avg(precip)::numeric,3) as %s, date_trunc('%s',time)as time  \
@@ -562,6 +563,8 @@ class Computor():
         database = self.database
         tMin = self.timeWin.timestamp_min
         tMax = self.timeWin.timestamp_max
+        startTime=self.timeWin.startTime
+        endTime=self.timeWin.endTime
 
         def computeBaselinFromMode(recordTable):
             sql = "SELECT linkid from %s group by 1" % recordTable
@@ -591,7 +594,10 @@ class Computor():
             # io1.write('mode|' + str(baseline.aw))
             # io1.close
 
+
         def computeBaselineFromTime():
+
+
             def chckTimeValidity(tIn):
                 # print tIn
                 tIn = str(tIn).replace("\n", "")
@@ -623,61 +629,70 @@ class Computor():
             tmp = []
             st = ''
             #print baseline.statFce
-            ######## AVG ##########
+            ######## AVG #########
             if baseline.statFce == 'avg':
-                try:
-                    #print baseline.pathToFile
-                    f = open(baseline.pathToFile, 'r')
-                except IOError as (errno, strerror):
-                    print baseline.pathToFile
-                    grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
 
-                for line in f:
-                    st += line.replace("\n", "")
-                    if 'i' in line.split("\n")[0]:  #get baseline form interval
-                        fromt = f.next()
-                        if not chckTimeValidity(fromt):
-                            return False
-                        st += fromt.replace("\n", "")
-                        tot = f.next()
-                        if not chckTimeValidity(tot):
-                            return False
-                        #validate input data
-                        if not isTimeValid(fromt) or not isTimeValid(tot):
-                            grass.warning("Input data are not valid. Parameter 'baselitime'")
-                            return False
 
-                        st += tot.replace("\n", "")
+                if baseline.type == 'noDryWin':
+                    if baseline.statFce == 'avg':
                         sql = "SELECT linkid, avg(a) FROM %s.record \
                                WHERE time >='%s' AND time<='%s' group by linkid order by 1" % (
-                            database.schema, fromt, tot)
+                            database.schema, startTime, endTime)
                         resu = database.connection.executeSql(sql, True, True)
                         tmp.append(resu)
+                else:
+                    try:
+                        #print baseline.pathToFile
+                        f = open(baseline.pathToFile, 'r')
+                    except IOError as (errno, strerror):
+                        #print baseline.pathToFile
+                        grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
+                    for line in f:
+                        st += line.replace("\n", "")
+                        if 'i' in line.split("\n")[0]:  #get baseline form interval
+                            fromt = f.next()
+                            if not chckTimeValidity(fromt):
+                                return False
+                            st += fromt.replace("\n", "")
+                            tot = f.next()
+                            if not chckTimeValidity(tot):
+                                return False
+                            #validate input data
+                            if not isTimeValid(fromt) or not isTimeValid(tot):
+                                grass.warning("Input data are not valid. Parameter 'baselitime'")
+                                return False
 
-                    else:  # baseline one moment
-                        time = line.split("\n")[0]
-                        #validate input data
-                        if not isTimeValid(time):
-                            grass.warning("Input data are not valid. Parameter 'baselitime'")
-                            return False
-                        try:
-                            time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-                        except ValueError:
-                            grass.message('Wrong datetime format')
-                            return False
-                        st += str(time).replace("\n", "")
-                        fromt = time + timedelta(seconds=-60)
-                        if not chckTimeValidity(fromt):
-                            return False
-                        tot = time + timedelta(seconds=+60)
-                        if not chckTimeValidity(tot):
-                            return False
-                        sql = "SELECT linkid, avg(a) FROM %s.record \
-                               WHERE time >='%s' AND time<='%s' group by linkid order by 1" % (
-                            database.schema, fromt, tot)
-                        resu = database.connection.executeSql(sql, True, True)
-                        tmp.append(resu)
-                        continue
+                            st += tot.replace("\n", "")
+                            sql = "SELECT linkid, avg(a) FROM %s.record \
+                                   WHERE time >='%s' AND time<='%s' group by linkid order by 1" % (
+                                database.schema, fromt, tot)
+                            resu = database.connection.executeSql(sql, True, True)
+                            tmp.append(resu)
+
+                        else:  # baseline one moment
+                            time = line.split("\n")[0]
+                            #validate input data
+                            if not isTimeValid(time):
+                                grass.warning("Input data are not valid. Parameter 'baselitime'")
+                                return False
+                            try:
+                                time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                            except ValueError:
+                                grass.message('Wrong datetime format')
+                                return False
+                            st += str(time).replace("\n", "")
+                            fromt = time + timedelta(seconds=-60)
+                            if not chckTimeValidity(fromt):
+                                return False
+                            tot = time + timedelta(seconds=+60)
+                            if not chckTimeValidity(tot):
+                                return False
+                            sql = "SELECT linkid, avg(a) FROM %s.record \
+                                   WHERE time >='%s' AND time<='%s' group by linkid order by 1" % (
+                                database.schema, fromt, tot)
+                            resu = database.connection.executeSql(sql, True, True)
+                            tmp.append(resu)
+                            continue
 
                 mydict1 = {}
                 i = True
@@ -715,64 +730,70 @@ class Computor():
             ######## MODE or QUANTILE ##########
             elif baseline.statFce == 'mode' or baseline.statFce == 'quantile':
                 #print 'mode***'
-                try:
-                    print baseline.pathToFile
-                    f = open(baseline.pathToFile, 'r')
-                except IOError as (errno, strerror):
-                    grass.warning('Path to file with dry-window definiton not exist')
-                    return False
+
                 #parse input file
-                for line in f:
-                    st += line.replace("\n", "")
-                    if 'i' in line.split("\n")[0]:  #get baseline  intervals
-                        fromt = f.next()
-                        if not chckTimeValidity(fromt):
-                            return False
-                        st += fromt.replace("\n", "")
-                        tot = f.next()
-                        if not chckTimeValidity(tot):
-                            return False
-                        #validate input data
-                        if not isTimeValid(fromt) or not isTimeValid(tot):
-                            grass.warning("Input data are not valid. Parameter 'baselitime'")
-                            return False
-                        st += tot.replace("\n", "")
-                        sql = "SELECT linkid, a from  %s.record WHERE time >='%s' and time<='%s'" % (
-                            database.schema, fromt, tot)
-                        resu = database.connection.executeSql(sql, True, True)
-                        resu += resu
+                if baseline.type == 'noDryWin':
+                    sql = "SELECT linkid, a from  %s.record WHERE time >='%s' and time<='%s'" % (
+                    database.schema, startTime, endTime)
+                    resu = database.connection.executeSql(sql, True, True)
+                    database.connection.executeSql(sql, False, True)
+                else:
+                    try:
+                        #print baseline.pathToFile
+                        f = open(baseline.pathToFile, 'r')
+                    except IOError as (errno, strerror):
+                        grass.warning('Path to file with dry-window definiton not exist')
+                        return False
+                    for line in f:
+                        st += line.replace("\n", "")
+                        if 'i' in line.split("\n")[0]:  #get baseline  intervals
+                            fromt = f.next()
+                            if not chckTimeValidity(fromt):
+                                return False
+                            st += fromt.replace("\n", "")
+                            tot = f.next()
+                            if not chckTimeValidity(tot):
+                                return False
+                            #validate input data
+                            if not isTimeValid(fromt) or not isTimeValid(tot):
+                                grass.warning("Input data are not valid. Parameter 'baselitime'")
+                                return False
+                            st += tot.replace("\n", "")
+                            sql = "SELECT linkid, a from  %s.record WHERE time >='%s' and time<='%s'" % (
+                                database.schema, fromt, tot)
+                            resu = database.connection.executeSql(sql, True, True)
+                            resu += resu
 
-                    else:  #get baseline one moment
-                        time = line.split("\n")[0]
-                        if not isTimeValid(time):
-                            grass.warning("Input data are not valid. Parameter 'baselitime'")
-                            return False
-                        try:
-                            time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-                        except ValueError:
-                            grass.message('Wrong datetime format')
-                            return False
-                        st += str(time).replace("\n", "")
-                        fromt = time + timedelta(seconds=-60)
-                        if not chckTimeValidity(fromt):
-                            return False
-                        tot = time + timedelta(seconds=+60)
-                        if not chckTimeValidity(tot):
-                            return False
+                        else:  #get baseline one moment
+                            time = line.split("\n")[0]
+                            if not isTimeValid(time):
+                                grass.warning("Input data are not valid. Parameter 'baselitime'")
+                                return False
+                            try:
+                                time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+                            except ValueError:
+                                grass.message('Wrong datetime format')
+                                return False
+                            st += str(time).replace("\n", "")
+                            fromt = time + timedelta(seconds=-60)
+                            if not chckTimeValidity(fromt):
+                                return False
+                            tot = time + timedelta(seconds=+60)
+                            if not chckTimeValidity(tot):
+                                return False
 
-                        sql = "SELECT linkid,  a from %s.record WHERE time >='%s' and time<='%s'" % (
-                            database.schema, fromt, tot)
-                        resu = database.connection.executeSql(sql, True, True)
-                        resu += resu
-                        continue
-
+                            sql = "SELECT linkid,  a from %s.record WHERE time >='%s' and time<='%s'" % (
+                                database.schema, fromt, tot)
+                            resu = database.connection.executeSql(sql, True, True)
+                            resu += resu
+                            continue
                 tmp.append(resu)
-                table_mode_tmp = "mode_tmp"
-                sql = "CREATE TABLE %s.%s ( linkid integer,a real);" % (database.schema, table_mode_tmp)
+                table_tmp = baseline.statFce+ '_tmp'
+                sql = "CREATE TABLE %s.%s ( linkid integer,a real);" % (database.schema, table_tmp)
                 database.connection.executeSql(sql, False, True)
 
                 #write values to flat file
-                io = open(os.path.join(database.pathworkSchemaDir, "mode_tmp"), 'w+')
+                io = open(os.path.join(database.pathworkSchemaDir, table_tmp), 'w+')
                 c = 0
                 for it in tmp:
                     for i in it:
@@ -783,15 +804,15 @@ class Computor():
 
                 #update table
                 try:
-                    io1 = open(os.path.join(database.pathworkSchemaDir, "mode_tmp"), "r")
-                    database.connection.copyfrom(io1, "%s.%s" % (database.schema, table_mode_tmp))
+                    io1 = open(os.path.join(database.pathworkSchemaDir, table_tmp), "r")
+                    database.connection.copyfrom(io1, "%s.%s" % (database.schema, table_tmp))
                     io1.close()
-                    os.remove(os.path.join(database.pathworkSchemaDir, "mode_tmp"))
+                    os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
                 except IOError as (errno, strerror):
-                    grass.warning('Cannot open mode_tmp file')
+                    grass.warning('Cannot open <%s> file'% table_tmp)
                     return False
 
-                recname = database.schema + '.' + table_mode_tmp
+                recname = database.schema + '.' + table_tmp
 
                 if baseline.statFce == 'mode':
                     computeBaselinFromMode(recname)
@@ -799,16 +820,11 @@ class Computor():
                 if baseline.statFce == 'quantile':
                     computeBaselineFromQuentile(recname)
 
-                sql = "DROP TABLE %s.%s" % (database.schema, table_mode_tmp)
+                sql = "DROP TABLE %s.%s" % (database.schema, table_tmp)
                 database.connection.executeSql(sql, False, True)
 
-            #write  unique mark to file
-            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), 'w+')
-            st = st + '|' + str(baseline.aw)
-            io1.write(st)
-            io1.close
             return True
-
+        '''
         def computeBaselineFromQuentile(recordTable):
             sql = "SELECT linkid from %s group by linkid" % recordTable
             linksid = database.connection.executeSql(sql, True, True)
@@ -826,18 +842,52 @@ class Computor():
                         ORDER BY quartile\
                         limit 1" % (baseline.quantile, recordTable, linkid)
 
+
                 resu = database.connection.executeSql(sql, True, True)
-                # print resu
+
                 resu = resu[0][0]
                 tmp.append(str(linkid) + ',' + str(resu) + '\n')
+
+
 
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
+        '''
+        def Quantile(data, q, precision=1.0):
+            """
+            Returns the q'th percentile of the distribution given in the argument
+            'data'. Uses the 'precision' parameter to control the noise level.
+            """
+            #data = np.random.normal(size=2000000)
+            q=float(q)/100
+            N, bins = np.histogram(data, bins=precision*np.sqrt(len(data)))
+            norm_cumul = 1.0*N.cumsum() / len(data)
+            ret=bins[norm_cumul > q][0]
+           # print "error in  %s quantile"%q, ((1.0*(data < ret).sum() / len(data)) -q)
 
-            io1 = open(os.path.join(database.pathworkSchemaDir, "compute_precip_info"), 'w+')
-            io1.write('quantile' + str(baseline.quantile) + '|' + str(baseline.aw))
-            io1.close
+            return ret
+
+        def computeBaselineFromQuentile(recordTable):
+            sql = "SELECT linkid from %s group by linkid" % recordTable
+            linksid = database.connection.executeSql(sql, True, True)
+            tmp = []
+            # for each link  compute baseline
+            for linkid in linksid:
+                linkid = linkid[0]
+                sql = "SELECT a from %s where linkid=%s"% (recordTable, linkid)
+                resu = database.connection.executeSql(sql, True, True)
+                data=np.array(resu)
+                #data=[item for sublist in data for item in sublist]#merge lists
+                #print data
+                #quantileRes=Quantile(data, baseline.quantile)
+
+                quantileRes=np.percentile(data,  (100-float(baseline.quantile))/100)
+                tmp.append(str(linkid) + ',' + str(quantileRes)+ '\n')
+            #print tmp
+            io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
+            io0.writelines(tmp)
+            io0.close()
 
         def readBaselineFromText(path):
             with open(path, mode='r') as infile:
@@ -849,15 +899,21 @@ class Computor():
             # print 'valuesDirectly'
             self.baselineDict = readBaselineFromText(self.baseline.pathTofile)
 
-        elif self.baseline.type == 'fromDryWin':
-            grass.message('Computing baselines "time interval" "%s"...' % self.baseline.statFce)
-            # print 'fromDryWin'
+        elif self.baseline.type == 'fromDryWin' :
+            grass.message('Computing baselines "dry window" "%s"...' % self.baseline.statFce)
             if computeBaselineFromTime():
                 self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))
                 return True
             else:
                 return False
 
+        elif  self.baseline.type == 'noDryWin':
+            grass.message('Computing baselines "no dry window" "%s"...' % self.baseline.statFce)
+            if computeBaselineFromTime():
+                self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))
+                return True
+            else:
+                return False
     def logMsg(self, msg):
         if self.status.get('msg') == 'Done':
             self.status['msg'] = ''
@@ -865,6 +921,15 @@ class Computor():
         grass.warning(msg)
 
     def computePrecip(self, getData=False, dataOnly=False):
+        def checkValidity(freq, polarization):
+            if freq < 10000000:
+                return False
+
+            if polarization is  'V' or polarization is 'H':
+                return True
+            return False
+
+
         Aw = float(self.baseline.aw)
         link_num = self.database.connection.count("link")
         compPrecTab = "%s.%s" % (self.database.schema, self.database.computedPrecip)
@@ -961,35 +1026,39 @@ class Computor():
         skippedList = []
         for record in resu:
             curLinkData = linksDict[record[0]]  # record[0] is linkid
-
             if curLinkData[1] is None:
                 if not record[0] in skippedList:
                     curLinkData[1] = 'V'  # TODO REMOVE THIS!!!!!!!!!!!!!!!!
-                    #self.logMsg('Polarization value is missing. Linkid<%s> wil be skipped' % record[0])
-                    #skippedList.append(record[0])
-                continue
-            # if missing baseline. Link will be skip
-            if record[0] in self.baselineDict and (curLinkData[2] / 1000000) > 10:  #TODO
-                # coef_a_k[alpha, k]
-                coef_a_k = self.computeAlphaK(curLinkData[2], curLinkData[1])
+
+            if record[0] in self.baselineDict:
+                '''
+                coef_a_k[alpha, k]
+                record[0] is linkid
+                record[1] is time
+                record[2] is tx-rx
+                curLinkData[0] is lenght
+                curLinkData[1] is polarization
+                curLinkData[2] is frequency HZ
+                '''
+                if checkValidity(curLinkData[2], curLinkData[1]):
+                    coef_a_k = self.computeAlphaK(curLinkData[2], curLinkData[1])
+                else:
+                    self.logMsg('Data of link <%s> are not valid'%record[0])
+                    continue
 
                 #read value from dictionary
                 baseline_decibel = (self.baselineDict[record[0]])
 
                 #final precipiatation is R1
-                Ar = record[2] - baseline_decibel - Aw
-                #TODO check this condition
-                '''computePrecip
-                R1 = (yr / coef_a_k[1]) ** (1 / coef_a_k[0])
-                ValueError: negative number cannot be raised to a fractional
-                power
-                '''
-                if Ar > 0:
-                    yr = Ar / curLinkData[0]
-                    R1 = (yr / coef_a_k[1]) ** (1 / coef_a_k[0])
-                    #print R1
+                Am = record[2] - baseline_decibel - Aw
+                yl = Am / curLinkData[0]
+                aa = yl / coef_a_k[1]
+                if aa <0:
+                    aa*=-1
+                    R1 = aa ** (1 / coef_a_k[0])
+                    R1*=-1
                 else:
-                    R1 = 0
+                    R1 = aa ** (1 / coef_a_k[0])
 
                 #string for output flatfile
                 out = str(record[0]) + "|" + str(record[1]) + "|" + str(R1) + "\n"
@@ -1024,7 +1093,7 @@ class Computor():
         """
         freq /= 1000000
 
-        if polarization == "h":
+        if polarization == "H":
             # Coefficients for kH    1
             aj_kh = (-5.33980, -0.35351, -0.23789, -0.94158)
             bj_kh = (-0.10008, 1.26970, 0.86036, 0.64552)
@@ -1199,7 +1268,7 @@ class GrassLayerMgr():
         for win in f.read().splitlines():
             layerNum += 1
             win = self.database.schema + '.' + win
-            print win
+            grass.message( win)
             RunCommand('v.db.connect',
                        driver='pg',
                        map=self.database.linkVecMapName,
@@ -1275,9 +1344,9 @@ class GrassTemporalMgr():
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
-        print 'datasetName', self.datasetName
-        print regFilePath
-        #sys.exit()
+        grass.message( 'datasetName %s'% self.datasetName)
+        grass.message(regFilePath)
+
         RunCommand('t.register',
                    input=self.datasetName,
                    type='vector',
@@ -1289,7 +1358,7 @@ class GrassTemporalMgr():
 class Database():
     def __init__(self, name=None, user=None, password=None,
                  host=None, port=None, nodeVecMapName='node', linkVecMapName='link',
-                 linkPointsVecName='linkPoints', workSchema=None, dataSchema=None):
+                 linkPointsVecName='linkPoints',workPath=None, workSchema=None, dataSchema=None):
         self.dbConnStr=name
         self.dbName = name
         self.user = user
@@ -1315,7 +1384,9 @@ class Database():
         self.nodeVecMapName = nodeVecMapName
         self.linkVecMapName = linkVecMapName
         self.linkPointsVecName = linkPointsVecName
-        self.pathworkSchemaDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s" % self.schema)
+
+        self.pathworkSchemaDir = os.path.join(workPath, "tmp_%s" % self.schema)
+        #self.pathworkSchemaDir = os.path.join(tempfile.gettempdir(), "tmp_%s" % self.schema)
 
         self.pyConnection()
         #if self.host:

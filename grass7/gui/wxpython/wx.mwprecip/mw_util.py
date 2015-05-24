@@ -11,7 +11,7 @@ from datetime import timedelta
 import wx.lib.filebrowsebutton as filebrowse
 import codecs
 from core.gcmd import GMessage, GError
-
+from grass.script import core as grass
 
 class SaveLoad(wx.Panel):
     def __init__(self, parent):
@@ -383,57 +383,6 @@ class FileInput(wx.Panel):
         self.pathInput.SetValue(value)
 
 
-
-class FileInput(wx.Panel):
-    def __init__(self, parent, label, dir=False, tmpPath=None):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        self.dir = dir
-        self.tmpPath = tmpPath
-        statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
-
-        self.pathInput = wx.TextCtrl(self, id=wx.ID_ANY)
-        self.browseBtt = wx.Button(self, id=wx.ID_ANY, label='Browse')
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer2.Add(self.pathInput, flag=wx.EXPAND, proportion=1)
-        sizer2.Add(self.browseBtt, flag=wx.EXPAND)
-
-        sizer.Add(statText, flag=wx.EXPAND)
-        sizer.Add(sizer2, flag=wx.EXPAND)
-
-        self.SetSizer(sizer)
-        self.browseBtt.Bind(wx.EVT_BUTTON, self.onBrowse)
-
-    def onBrowse(self, event):
-        if self.dir:
-            openFileDialog = wx.DirDialog(self, "Choose a directory:",
-                                          style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST | wx.DD_CHANGE_DIR)
-            if openFileDialog.ShowModal() == wx.ID_CANCEL:
-                return  # the user changed idea...
-            path = openFileDialog.GetPath()
-            self.pathInput.SetValue(path)
-
-
-        else:
-            openFileDialog = wx.FileDialog(self, "Choose a file:", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-            if openFileDialog.ShowModal() == wx.ID_CANCEL:
-                return  # the user changed idea...
-            path = openFileDialog.GetPath()
-            self.pathInput.SetValue(path)
-
-
-    def GetPath(self):
-        path = self.pathInput.GetValue()
-        if len(path) != 0:
-            return path
-        else:
-            return None
-
-    def SetPath(self, value):
-        self.pathInput.SetValue(value)
-
-
 def YesNo(parent, question, caption='Yes or no?'):
     dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
     result = dlg.ShowModal() == wx.ID_YES
@@ -453,6 +402,7 @@ def getFilesInFoldr(fpath, full=False):
             if full:
                 tmp.append(os.path.join(fpath, path))
             else:
+
                 tmp.append(path)
     if len(tmp) > 0:
         return tmp
@@ -496,6 +446,9 @@ def OnSaveAs(parent):
     output_stream = (saveFileDialog.GetPath())
     return output_stream
 
+def pathToMapset():
+    gisenvDict = grass.gisenv()
+    return os.path.join(gisenvDict['GISDBASE'], gisenvDict['LOCATION_NAME'], gisenvDict['MAPSET'])
 
 def saveDict(fn, dict_rap):
     f = open(fn, "wb")
@@ -508,16 +461,21 @@ def saveDict(fn, dict_rap):
 
 
 def readDict(fn):
-    f = open(fn, 'rb')
+    f = open(fn, 'r')
     dict_rap = {}
-    for key, val in csv.reader(f):
-        try:
-            dict_rap[key] = eval(val)
-        except:
-            val = '"' + val + '"'
-            dict_rap[key] = eval(val)
-    f.close()
-    return (dict_rap)
+    try:
+        for key, val in csv.reader(f):
+            try:
+                dict_rap[key] = eval(val)
+            except:
+                val = '"' + val + '"'
+                dict_rap[key] = eval(val)
+        f.close()
+        return (dict_rap)
+    except IOError as e:
+        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+
+
 
 
 def randomWord(length):
@@ -540,4 +498,3 @@ def roundTime(dt, roundTo=60):
     # // is a floor division, not a comment on following line:
     rounding = (seconds + roundTo / 2) // roundTo * roundTo  # rounding floor
     return dt + timedelta(0, rounding - seconds, -dt.microsecond)
-

@@ -6,14 +6,17 @@ import sys
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
 from mw3 import *
+import tempfile
 
 from core.gcmd import GMessage, GError
 from gui_core import gselect
+import wx.lib.scrolledpanel as scrolled
 
 
-class DBconn(wx.Panel):
+class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
+        self.SetScrollRate( 5, 5 )
         self.settings = settings
         self.database = BaseInput(self, label='Name of database')
         self.schema = BaseInput(self, label='Name of schema')
@@ -81,9 +84,10 @@ class DBconn(wx.Panel):
         return self.settings
 
 
-class PointInterpolationPanel(wx.Panel):
+class PointInterpolationPanel(wx.ScrolledWindow):
     def __init__(self, parent, settings=None):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
+        self.SetScrollRate( 5, 5 )
         self.settings = settings
         self.interpolState = wx.CheckBox(self, label='interpolate points along links')
         self.interpolState.Bind(wx.EVT_CHECKBOX, self.onCheckInterpol)
@@ -126,29 +130,48 @@ class PointInterpolationPanel(wx.Panel):
         return self.settings
 
 
-class BaselinePanel(wx.Panel):
+class BaselinePanel(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
+        self.SetScrollRate( 5, 5 )
         self.settings = settings
 
-        self.dryWin = wx.RadioButton(self, label='Compute from dry windows', style=wx.RB_GROUP)
+        self.noDryWin = wx.RadioButton(self, label='Compute without dry window', style=wx.RB_GROUP)
+        self.dryWin = wx.RadioButton(self, label='Compute from dry windows')
         self.fromFile = wx.RadioButton(self, label='Direct text input')
+
         self.baselTypeTxt = wx.StaticText(self, label='Select statistic method')
         self.baselType = wx.ComboBox(self, id=wx.ID_ANY, value="quantile", choices=['avg', 'mode', 'quantile'])
+        self.baselType.Bind(wx.EVT_ACTIVATE,self.onChangeStatistic)
+        self.baselType.Bind(wx.EVT_COMBOBOX,self.onChangeStatistic)
         self.round = BaseInput(self, 'Round data to "n" of decimal places')  # TODO MODE disable
         self.quantile = BaseInput(self, 'Set quantile in %')  # TODO quantile disable
         self.aw = BaseInput(self, 'Antena wetting value')
-        self.dryInterval = TextInput(self, 'Set interval of dry period')
+        self.dryInterval = TextInput(self, 'Set interval(s) of dry period')
         self.fromFileVal = TextInput(self, 'Set baseline values in csv format')
-        self.okBtt = wx.Button(self, wx.ID_OK, label='ok and close')
-        self.onChangeMethod(None)
+        #self.okBtt = wx.Button(self, wx.ID_OK, label='ok and close')
+        self.onChangeMethod()
+        self.onChangeStatistic()
+
         self.fromFile.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
         self.dryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
-        self.okBtt.Bind(wx.EVT_BUTTON, self.saveSettings)
+        self.noDryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
+        #self.okBtt.Bind(wx.EVT_BUTTON, self.saveSettings)
         if len(settings) > 0:
             self.loadSettings(None)
 
         self._layout()
+    def onChangeStatistic(self,evt=None):
+        if self.baselType.GetValue() == 'avg':
+            self.round.Disable()
+            self.quantile.Disable()
+
+        if self.baselType.GetValue() == 'mode':
+            self.round.Enable()
+            self.quantile.Disable()
+        if self.baselType.GetValue() == 'quantile':
+            self.round.Disable()
+            self.quantile.Enable()
 
     def loadSettings(self, sett=None):
         if sett is not None:
@@ -157,6 +180,8 @@ class BaselinePanel(wx.Panel):
             self.fromFile.SetValue(self.settings['fromFile'])
         if 'dryWin' in self.settings:
             self.dryWin.SetValue(self.settings['dryWin'])
+        if 'noDryWin' in self.settings:
+            self.noDryWin.SetValue(self.settings['noDryWin'])
         if 'quantile' in self.settings:
             self.quantile.SetValue(self.settings['quantile'])
         if 'baselType' in self.settings:
@@ -176,6 +201,7 @@ class BaselinePanel(wx.Panel):
             self.settings = sett
         self.settings['fromFile'] = self.fromFile.GetValue()
         self.settings['dryWin'] = self.dryWin.GetValue()
+        self.settings['noDryWin'] = self.noDryWin.GetValue()
 
         self.settings['baselType'] = self.baselType.GetValue()
         self.settings['round'] = self.round.GetValue()
@@ -186,14 +212,15 @@ class BaselinePanel(wx.Panel):
         return self.settings
 
     def onChangeMethod(self, evt=None):
-        if self.dryWin.GetValue() is False:
+        if self.fromFile.GetValue() is True:
             self.baselType.Disable()
             self.round.Disable()
             self.aw.Disable()
             self.dryInterval.Disable()
             self.quantile.Disable()
             self.fromFileVal.Enable()
-        else:
+
+        elif self.dryWin.GetValue() is True:
             self.baselType.Enable()
             self.round.Enable()
             self.aw.Enable()
@@ -201,8 +228,18 @@ class BaselinePanel(wx.Panel):
             self.dryInterval.Enable()
             self.fromFileVal.Disable()
 
+        elif self.noDryWin.GetValue() is True:
+            self.baselType.Enable()
+            self.round.Enable()
+            self.aw.Enable()
+            self.quantile.Enable()
+            self.dryInterval.Disable()
+            self.fromFileVal.Disable()
+        self.onChangeStatistic()
+
     def _layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.noDryWin, flag=wx.EXPAND)
         sizer.Add(self.dryWin, flag=wx.EXPAND)
         sizer.Add(self.fromFile, flag=wx.EXPAND)
         sizer.Add(self.baselTypeTxt, flag=wx.EXPAND)
@@ -215,8 +252,8 @@ class BaselinePanel(wx.Panel):
         sizer.Add(self.fromFileVal, flag=wx.EXPAND)
         sizer.AddSpacer(10, 0, wx.EXPAND)
         # sizer.Add(self.SLpanel, flag=wx.EXPAND)
-        sizer.Add(self.okBtt, flag=wx.EXPAND)
-        self.SetSizerAndFit(sizer)
+        #sizer.Add(self.okBtt, flag=wx.EXPAND)
+        self.SetSizer(sizer)
 
 
 '''
@@ -227,9 +264,10 @@ class DataMgrRG(wx.Panel):
 '''
 
 
-class DataMgrMW(wx.Panel):
+class DataMgrMW(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+        wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
+        self.SetScrollRate( 5, 5 )
         self.settings = settings
 
         self.stBoxTWIN = wx.StaticBox(self, wx.ID_ANY, 'Time windows MW')
@@ -486,30 +524,35 @@ class ExportData(wx.Panel):
         self.SetSizerAndFit(mainSizer)
 
 
-class MyFrame(wx.Frame):
+class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, id, title, size=(480, 640),style=wx.DEFAULT_FRAME_STYLE ^ wx.RESIZE_BORDER)
-        self.workPath = os.path.dirname(os.path.realpath(__file__))
+        wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
+        #self.workPath = tempfile.gettempdir()
+        self.workPath = os.path.join(pathToMapset(), "temp")
         self.initWorkingFoldrs()
         self.settings = {}
+        self.settings['workPath']=self.workPath
         self.settingsLst = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
 
+
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
-        fileMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
-        baselineItem = settMenu.Append(wx.ID_ANY, 'Baseline', 'Set baseline methods')
+        #baselineItem = settMenu.Append(wx.ID_ANY, 'Baseline', 'Set baseline methods')
         geometry = settMenu.Append(wx.ID_ANY, 'Geometry', 'Create vector geometry')
+        woringPath = settMenu.Append(wx.ID_ANY, 'Working Dir', 'Set working directory')
         quitItem = settMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        menubar.Append(settMenu, '&Options')
+        menubar.Append(settMenu, '&Menu')
 
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.onQuit, quitItem)
         self.Bind(wx.EVT_MENU, self.onSetDatabase, databaseItem)
-        self.Bind(wx.EVT_MENU, self.onSetBaseline, baselineItem)
+        self.Bind(wx.EVT_MENU, self.onSetWorkPath, woringPath)
+
+        #self.Bind(wx.EVT_MENU, self.onSetBaseline, baselineItem)
         self.Bind(wx.EVT_MENU, self.onSetGeometry, geometry)
 
         #def initNotebook(self):
@@ -519,11 +562,14 @@ class MyFrame(wx.Frame):
         self.dataMgrMW.getEndBtt.Bind(wx.EVT_BUTTON, self.getMaxTime)
         self.dataMgrMW.getStartBtt.Bind(wx.EVT_BUTTON, self.getMinTime)
 
+        self.baselinePnl=BaselinePanel(self.ntb)
+
         #self.dataMgrRG = DataMgrMW(self.ntb )
-        self.pointInter = PointInterpolationPanel(self.ntb)
+        #self.pointInter = PointInterpolationPanel(self.ntb)
         self.ntb.AddPage(page=self.dataMgrMW, text='MW data')
+        self.ntb.AddPage(page=self.baselinePnl, text='Baseline')
         #self.ntb.AddPage(page=self.dataMgrRG, text='RG data')
-        self.ntb.AddPage(page=self.pointInter, text='Points Interpolation')
+        #self.ntb.AddPage(page=self.pointInter, text='Points Interpolation')
 
         self.grassLayers = GrassLayers(self.ntb, self.settings)
         self.ntb.AddPage(page=self.grassLayers, text='Colors')
@@ -572,7 +618,10 @@ class MyFrame(wx.Frame):
             self.newScheme.Disable()
 
     def OnLoadSettings(self, evt=None):
+        print 'combobox'
         currSelId = self.profilSelection.GetSelection()
+        print(currSelId)
+        print  self.settingsLst[currSelId]
         self.settings = self.settingsLst[currSelId]
         try:
             self.dataMgrMW.loadSettings(self.settings)
@@ -594,6 +643,10 @@ class MyFrame(wx.Frame):
             self.grassLayers.loadSettings(self.settings)
         except:
             pass
+
+
+
+
     def OnSaveSettings(self, evt=None, toFile=True):
         try:
             self.settings = self.dataMgrMW.saveSettings(sett=self.settings)
@@ -603,6 +656,7 @@ class MyFrame(wx.Frame):
             # self.settings=self.dataMgrRG.saveSettings(sett=self.settings)
             # except:
         # pass
+
         try:
             self.settings = self.databasePnl.saveSettings(sett=self.settings)
         except:
@@ -615,16 +669,20 @@ class MyFrame(wx.Frame):
             self.settings = self.grassLayers.saveSettings(sett=self.settings)
         except:
             pass
+
         self.settings['workSchema'] = self.profilSelection.GetValue()
+        #self.settings['workPath'] = self.workPath
+
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
-
+        print self.settings
         if toFile:
             tmpPath = os.path.join(self.workPath, "save", self.settings['workSchema'])
             saveDict(tmpPath, self.settings)
             self.findProject()
 
     def initWorkingFoldrs(self):
+
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
@@ -692,33 +750,23 @@ class MyFrame(wx.Frame):
         '''
         pass
 
-    def onSetBaseline(self, evt):
-        self.bsDialog = wx.Dialog(self, id=wx.ID_ANY,
-                                  title='Baseline settings',
-                                  style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-                                  size=wx.DefaultSize,
-                                  pos=wx.DefaultPosition)
+    def onSetWorkPath(self,evt):
 
-        # self.bsDialog.SetSize((500, 500))
+        #f = tempfile.TemporaryFile()
+        dlg = wx.DirDialog(self,
+                           message="Select working directory",
+                           defaultPath=self.workPath,
+                           style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
 
-        if self.settings:
-            self.baselinePnl = BaselinePanel(self.bsDialog, self.settings)
-        else:
-            self.baselinePnl = BaselinePanel(self.bsDialog)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.workPath = dlg.GetPath()
+            dlg.Destroy()
+            self.initWorkingFoldrs()
+            self.profilSelection.Clear()
+            self.settingsLst=[]
+            self.findProject()
 
-        self.baselinePnl.okBtt.Bind(wx.EVT_BUTTON, self._onSetBaselineDLG)
-        dbSizer = wx.BoxSizer(wx.VERTICAL)
-        dbSizer.Add(self.baselinePnl, flag=wx.EXPAND)
-
-        self.bsDialog.SetSizer(dbSizer)
-        self.bsDialog.SetBestFittingSize()
-        self.bsDialog.ShowModal()
-        self.bsDialog.Destroy()
-
-    def _onSetBaselineDLG(self, evt):
-        self.settings = self.baselinePnl.saveSettings()
-        print self.settings
-        self.bsDialog.Destroy()
+        GMessage('Working path destination: %s' % self.workPath)
 
     def onSetDatabase(self, evt):
         self.dbDialog = wx.Dialog(self, id=wx.ID_ANY,
@@ -877,8 +925,8 @@ class MyFrame(wx.Frame):
         interface.initVectorGrass()
 
         #if interpolate points along lines
-        if self.pointInter.interpolState.GetValue():
-            interface.initPInterpolation()
+        #if self.pointInter.interpolState.GetValue():
+        #    interface.initPInterpolation()
 
         interface.initTimeWinMW()
         interface.initBaseline()
@@ -917,8 +965,10 @@ class Gui2Model():
 
     def initConnection(self, info=False):
         conninfo = None
+
         try:
             conninfo = {'name': self.settings['database']}
+
         except:
             GMessage('name of database is missing')
             return
@@ -934,7 +984,7 @@ class Gui2Model():
             conninfo['port'] = self.settings['port']
         if 'passwd' in self.settings:
             conninfo['password'] = self.settings['passwd']
-
+        conninfo['workPath']=self.settings['workPath']
         if conninfo is None:
             self.connStatus = False
             GMessage('Database connection failed')
@@ -1000,21 +1050,29 @@ class Gui2Model():
                 baselInit['type'] = 'values'
                 if 'fromFileVal' in self.settings:
                     baselInit['pathToFile'] = self.settings['fromFileVal']
+                    methodSel = True
                 else:
                     self.errMsg('Path to file with baseline values is not defined')
-                methodSel = True
+
 
         if 'dryWin' in self.settings:
             if self.settings['dryWin']:
                 baselInit['type'] = 'fromDryWin'
                 if 'dryInterval' in self.settings:
                     baselInit['pathToFile'] = self.settings['dryInterval']
+                    methodSel = True
                 else:
                     self.errMsg('Dry interval is not defined')
+
+
+        if 'noDryWin' in self.settings:
+            if self.settings['noDryWin']:
+                baselInit['type'] = 'noDryWin'
                 methodSel = True
 
         if not methodSel:
             self.errMsg('Baseline method is not selected')
+
         print baselInit
         self.baseline = Baseline(**baselInit)
 
@@ -1067,7 +1125,7 @@ class Gui2Model():
 
     def initTemporalMgr(self):
         GrassTemporalMgr(self.dbConn, self.twin)
-        GMessage('Finish')
+        #GMessage('Finish')
 
     def errMsg(self, label):
         print label
@@ -1075,7 +1133,7 @@ class Gui2Model():
 
 class MyApp(wx.App):
     def OnInit(self):
-        frame = MyFrame(None, -1, "MW manager")
+        frame = MWMainFrame(None, -1, "MW manager")
         frame.Show(True)
         self.SetTopWindow(frame)
         return True
