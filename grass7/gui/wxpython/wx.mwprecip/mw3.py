@@ -311,29 +311,27 @@ class RainGauge():
 
 
 class Baseline():
-    def __init__(self, type='noDryWin', pathToFile=None, statFce='mode', quantile=97, roundMode=3, aw=0):
+    def __init__(self, type='noDryWin', pathToFile=None, statFce='quantile', quantile=97, roundMode=3, aw=0):
+        if quantile is None:
+            quantile=97
+            grass.message('Quantile is not defined. Default is 97')
         self.quantile = quantile
+        if roundMode is None:
+            roundMode=3
+            grass.message('Round is not defined. Default is 3 decimal places')
         self.roundMode = roundMode
+        if aw is None:
+            aw=0
+            grass.message('Antena wetting value is not defined. Default is 0')
         self.aw = aw
         self.pathToFile = pathToFile
         self.type = type
         self.statFce = statFce
 
-        '''
-        if statFce == 'mode':
-            if self.roundMode is None:
-                 grass.warning('Value "round" is  missing.')
-        if statFce == 'quantile':
-            if self.quantile is None:
-                 grass.warning('Value "quentile" is  missing.')
-        if self.type == 'fromDryWin':
-            if self.pathToFile is None:
-                 grass.warning('Dry interval is not defined.')
-        if self.type == 'values':
-            if self.pathToFile is None:
-                 grass.warning('Baseline values are not defined.')
-        print self.pathToFile
-        '''
+
+
+
+
 
 class TimeWindows():
     def __init__(self, database, IDtype, sumStep, startTime=None,
@@ -371,13 +369,14 @@ class TimeWindows():
     def createWin(self):
         self.sumValues()
         # self.setTimestamp()
-        if not self.linksMap:
-            if self.linksIgnored:
-                self.removeLinksIgnore()
-            if self.linksOnly:
-                self.removeLinksOthers()
-        else:
+
+        if  self.linksMap is not None:
             self.database.linkVecMapName = self.linksMap
+        elif self.linksIgnored:
+            self.removeLinksIgnore()
+        elif self.linksOnly:
+            self.removeLinksOthers()
+
 
         self.crateTimeWin()
 
@@ -884,7 +883,6 @@ class Computor():
 
                 quantileRes=np.percentile(data,  (100-float(baseline.quantile))/100)
                 tmp.append(str(linkid) + ',' + str(quantileRes)+ '\n')
-            #print tmp
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
@@ -929,8 +927,10 @@ class Computor():
                 return True
             return False
 
-
+        if self.baseline.aw is None:
+            self.baseline.aw=0
         Aw = float(self.baseline.aw)
+
         link_num = self.database.connection.count("link")
         compPrecTab = "%s.%s" % (self.database.schema, self.database.computedPrecip)
         # self.timeWin.sumValues()
@@ -1022,6 +1022,7 @@ class Computor():
                 'Missing values "linkid,baseline," in text file. Data are not available in dry interval(baseline) .')
 
         temp = []
+        errLinkList=[]
         grass.message("Computing precipitation")
         skippedList = []
         for record in resu:
@@ -1043,8 +1044,10 @@ class Computor():
                 if checkValidity(curLinkData[2], curLinkData[1]):
                     coef_a_k = self.computeAlphaK(curLinkData[2], curLinkData[1])
                 else:
-                    self.logMsg('Data of link <%s> are not valid'%record[0])
-                    continue
+                    if record[0]  not in errLinkList:
+                        errLinkList.append(record[0])
+                        self.logMsg('Data of link <%s> are not valid'%record[0])
+                        continue
 
                 #read value from dictionary
                 baseline_decibel = (self.baselineDict[record[0]])
@@ -1165,17 +1168,15 @@ class GrassLayerMgr():
         self.rules = rules
         self.database = database
         map = self.connectDBaLayers()
+
         if color is not None or rules is not None:
             self.makeRGB(map)
 
     def makeRGB(self, map):
         grass.message('Creating RGB column in database')
-        # print map
-        # print self.database.linkVecMapName
-        # print self.database.precipColName
-        # print self.color
 
         if self.color is not None:
+
             for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
                 Module('v.colors',
                        map=map,
@@ -1233,7 +1234,10 @@ class GrassLayerMgr():
     def connectDBaLayers(self):
         grass.message('Connecting tables to maps')
         inputMap = self.database.linkVecMapName
+        if '@' in self.database.linkVecMapName:
+            self.database.linkVecMapName=self.database.linkVecMapName.split('@')[0]
         self.database.linkVecMapName += '_%s' % self.database.schema
+
 
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), 'r')
@@ -1308,12 +1312,7 @@ class GrassTemporalMgr():
         if datasetTdescription is not None:
             self.datasetTdescription = datasetTdescription
 
-        # print '--'*10
-        # #print self.datasetName
-        # print self.datasetTitle
-        # print self.datasetTdescription
-        # print temporalType
-        # print semanticType
+
 
         RunCommand('t.create',
                            type='stvds',

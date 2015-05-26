@@ -404,10 +404,9 @@ def getFilesInFoldr(fpath, full=False):
             else:
 
                 tmp.append(path)
-    if len(tmp) > 0:
-        return tmp
-    else:
-        return 0
+
+    return tmp
+
 
 
 def isAttributExist(connection, schema, table, columns):

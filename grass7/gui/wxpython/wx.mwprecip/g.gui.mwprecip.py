@@ -10,8 +10,8 @@ import tempfile
 
 from core.gcmd import GMessage, GError
 from gui_core import gselect
-import wx.lib.scrolledpanel as scrolled
 
+import time
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
@@ -47,12 +47,13 @@ class DBconn(wx.ScrolledWindow):
         self.SetSizerAndFit(panelSizer)
 
     def getSettVal(self,key):
-        if self.settings[key] is not None:
-            return self.settings[key]
-        if self.settings[key] is not 'None':
-            return self.settings[key]
-        if self.settings[key] is not'':
-            return self.settings[key]
+        if self.settings[key] is None:
+            return ''
+        elif self.settings[key] is 'None':
+            return ''
+        elif self.settings[key] is '':
+            return ''
+        return  self.settings[key]
 
     def loadSettings(self, sett=None):
         if sett:
@@ -147,20 +148,20 @@ class BaselinePanel(wx.ScrolledWindow):
         self.round = BaseInput(self, 'Round data to "n" of decimal places')  # TODO MODE disable
         self.quantile = BaseInput(self, 'Set quantile in %')  # TODO quantile disable
         self.aw = BaseInput(self, 'Antena wetting value')
+        self.aw.SetValue('0')
         self.dryInterval = TextInput(self, 'Set interval(s) of dry period')
         self.fromFileVal = TextInput(self, 'Set baseline values in csv format')
-        #self.okBtt = wx.Button(self, wx.ID_OK, label='ok and close')
         self.onChangeMethod()
         self.onChangeStatistic()
 
         self.fromFile.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
         self.dryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
         self.noDryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
-        #self.okBtt.Bind(wx.EVT_BUTTON, self.saveSettings)
         if len(settings) > 0:
             self.loadSettings(None)
 
         self._layout()
+
     def onChangeStatistic(self,evt=None):
         if self.baselType.GetValue() == 'avg':
             self.round.Disable()
@@ -330,21 +331,29 @@ class DataMgrMW(wx.ScrolledWindow):
 
         if self.vectorMap.GetValue():
             self.links.Hide()
+
             self.mapLabel.Show()
             self.map.Show()
+
         else:
             self.links.Show()
             self.mapLabel.Hide()
             self.map.Hide()
+
         self.Fit()
         self.Parent.Fit()
 
     def saveSettings(self, evt=None, sett=None):
         if sett:
             self.settings = sett
+        if self.vectorMap.GetValue():
+            self.settings['linksMap'] = self.map.GetValue()
+        else:
+            self.settings['linksMap'] = None
+
         self.settings['linksOnly'] = self.linksOnly.GetValue()
         self.settings['linksIngnore'] = self.linksIngnore.GetValue()
-        self.settings['linksMap'] = self.map.GetValue()
+
         self.settings['links'] = self.links.GetValue()
         self.settings['start'] = self.start.GetValue()
         self.settings['end'] = self.end.GetValue()
@@ -527,30 +536,28 @@ class ExportData(wx.Panel):
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
-        #self.workPath = tempfile.gettempdir()
         self.workPath = os.path.join(pathToMapset(), "temp")
         self.initWorkingFoldrs()
         self.settings = {}
-        self.settings['workPath']=self.workPath
         self.settingsLst = []
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
 
 
+        self.worker = None
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
-        #baselineItem = settMenu.Append(wx.ID_ANY, 'Baseline', 'Set baseline methods')
         geometry = settMenu.Append(wx.ID_ANY, 'Geometry', 'Create vector geometry')
-        woringPath = settMenu.Append(wx.ID_ANY, 'Working Dir', 'Set working directory')
+        workingPath = settMenu.Append(wx.ID_ANY, 'Working Dir', 'Set working directory')
         quitItem = settMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(settMenu, '&Menu')
 
         self.SetMenuBar(menubar)
         self.Bind(wx.EVT_MENU, self.onQuit, quitItem)
         self.Bind(wx.EVT_MENU, self.onSetDatabase, databaseItem)
-        self.Bind(wx.EVT_MENU, self.onSetWorkPath, woringPath)
+        self.Bind(wx.EVT_MENU, self.onSetWorkPath, workingPath)
 
         #self.Bind(wx.EVT_MENU, self.onSetBaseline, baselineItem)
         self.Bind(wx.EVT_MENU, self.onSetGeometry, geometry)
@@ -576,7 +583,7 @@ class MWMainFrame(wx.Frame):
 
         #def initProfileSett(self):
         self.loadScheme = wx.StaticText(self.mainPanel, label='Load settings', id=wx.ID_ANY)
-        self.profilSelection = wx.ComboBox(self.mainPanel)
+        self.profilSelection = wx.ComboBox(self.mainPanel,style=wx.CB_READONLY)
         self.schema = BaseInput(self.mainPanel, 'Name of new working profile')
         self.schema.text.Bind(wx.EVT_TEXT, self.OnSchemeTxtChange)
         self.newScheme = wx.Button(self.mainPanel, label='Save new profile')
@@ -586,6 +593,7 @@ class MWMainFrame(wx.Frame):
 
         #def initRunBtt(self):
         self.computeBtt = wx.Button(self.mainPanel, label='Compute')
+        self.computeBtt.Disable()
         self.exportDataBtt = wx.Button(self.mainPanel, label='Export data')
         self.computeBtt.Bind(wx.EVT_BUTTON, self.runCompute)
         self.exportDataBtt.Bind(wx.EVT_BUTTON, self.exportData)
@@ -595,34 +603,39 @@ class MWMainFrame(wx.Frame):
 
     def getMinTime(self, evt=None):
         self.OnSaveSettings(toFile=False)
-        interface = Gui2Model(self, self.settings)  # TODO optimalize init
-        if interface.connStatus:
+        interface = Gui2Model(self, self.settings,self.workPath)  # TODO optimalize init
+        if interface.checkConn():
+            interface.initConnection()
             self.dataMgrMW.start.SetValue(interface.dbConn.minTimestamp())
 
     def getMaxTime(self, evt=None):
         self.OnSaveSettings(toFile=False)
-        interface = Gui2Model(self, self.settings)
-        if interface.connStatus:
+        interface = Gui2Model(self, self.settings,self.workPath)
+        if interface.checkConn():
+            interface.initConnection()
             self.dataMgrMW.end.SetValue(interface.dbConn.maxTimestamp())
 
     def GetConnection(self):
         self.OnSaveSettings(toFile=False)
-        interface = Gui2Model(self, self.settings)
-        if interface.connStatus:
+        interface = Gui2Model(self, self.settings,self.workPath)
+        if interface.checkConn():
+            interface.initConnection()
             return interface.dbConn
 
     def OnSchemeTxtChange(self, evt=None):
         if self.schema.GetValue() is not None:
             self.newScheme.Enable()
+            self.computeBtt.Enable()
         else:
             self.newScheme.Disable()
+            self.computeBtt.Disable()
 
     def OnLoadSettings(self, evt=None):
-        print 'combobox'
         currSelId = self.profilSelection.GetSelection()
-        print(currSelId)
+        self.schema.SetValue(self.profilSelection.GetValue())
         print  self.settingsLst[currSelId]
         self.settings = self.settingsLst[currSelId]
+
         try:
             self.dataMgrMW.loadSettings(self.settings)
         except:
@@ -644,19 +657,11 @@ class MWMainFrame(wx.Frame):
         except:
             pass
 
-
-
-
     def OnSaveSettings(self, evt=None, toFile=True):
         try:
             self.settings = self.dataMgrMW.saveSettings(sett=self.settings)
         except:
             pass
-            # try:
-            # self.settings=self.dataMgrRG.saveSettings(sett=self.settings)
-            # except:
-        # pass
-
         try:
             self.settings = self.databasePnl.saveSettings(sett=self.settings)
         except:
@@ -671,8 +676,6 @@ class MWMainFrame(wx.Frame):
             pass
 
         self.settings['workSchema'] = self.profilSelection.GetValue()
-        #self.settings['workPath'] = self.workPath
-
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
         print self.settings
@@ -698,10 +701,11 @@ class MWMainFrame(wx.Frame):
             GMessage('Cannot find "save" folder')
             return
         filePathList = getFilesInFoldr(projectDir, True)
+        print filePathList
         # print 'filePathList',filePathList
         if filePathList != 0:
             self.profilSelection.Clear()
-            for n, path in enumerate(filePathList):
+            for path in filePathList:
                 tmpDict = readDict(path)
                 self.settingsLst.append(tmpDict)
                 self.profilSelection.Append(str(tmpDict['workSchema']))
@@ -751,7 +755,6 @@ class MWMainFrame(wx.Frame):
         pass
 
     def onSetWorkPath(self,evt):
-
         #f = tempfile.TemporaryFile()
         dlg = wx.DirDialog(self,
                            message="Select working directory",
@@ -796,8 +799,10 @@ class MWMainFrame(wx.Frame):
         self.dbDialog.Destroy()
 
     def createGeometry(self, type, name):
-        interface = Gui2Model(self, self.settings)
-        interface.initVectorGrass(type=type, name=name)
+        interface = Gui2Model(self, self.settings,self.workPath)
+        if interface.checkConn():
+            interface.initConnection()
+            interface.initVectorGrass(type=type, name=name)
 
     def exportData(self, evt):
         self.exportDialog = wx.Dialog(self, id=wx.ID_ANY,
@@ -886,11 +891,11 @@ class MWMainFrame(wx.Frame):
             else:
                 self.settings['IDtype'] = 'linkid'
 
-            interface = Gui2Model(self, self.settings)
+            interface = Gui2Model(self, self.settings,self.workPath)
             interface.initVectorGrass()
             interface.initTimeWinMW()
             interface.initBaseline()
-            interface.doCompute()
+            interface.Run()
             if interface.connStatus:
                 conn= interface.dbConn
 
@@ -915,22 +920,25 @@ class MWMainFrame(wx.Frame):
         exportData = {'getData': False, 'dataOnly': False}
         self.settings['dataExport'] = exportData
 
-        # if rain gauges
         if self.dataMgrMW.inpRainGauge.GetPath() is not None:
             self.settings['IDtype'] = 'gaugeid'
         else:
             self.settings['IDtype'] = 'linkid'
 
-        interface = Gui2Model(self, self.settings)
-        interface.initVectorGrass()
 
-        #if interpolate points along lines
-        #if self.pointInter.interpolState.GetValue():
-        #    interface.initPInterpolation()
+        self.worker = Gui2Model(self, self.settings,self.workPath)
+        if self.worker.checkConn():
+            if not self.worker.initConnection():
+                return
+            self.worker.initVectorGrass()
 
-        interface.initTimeWinMW()
-        interface.initBaseline()
-        interface.doCompute()
+            #if interpolate points along lines
+            #if self.pointInter.interpolState.GetValue():
+            #    interface.initPInterpolation()
+
+            self.worker.initTimeWinMW()
+            self.worker.initBaseline()
+            self.worker.Run()
 
     def layout(self):
 
@@ -956,22 +964,26 @@ class MWMainFrame(wx.Frame):
 
 
 class Gui2Model():
-    def __init__(self, wxParent, settings):
-        parent = wxParent
+    def __init__(self, wxParent, settings,path):
         self.settings = settings
         self.dbConn = None
         self.connStatus = False
-        self.initConnection()
+        self.conninfo=None
+        self.workPath=path
 
-    def initConnection(self, info=False):
-        conninfo = None
 
+    def checkConn(self):
         try:
-            conninfo = {'name': self.settings['database']}
-
+            self.conninfo = {'name': self.settings['database']}
+            return True
         except:
             GMessage('name of database is missing')
-            return
+            self.connStatus = False
+            return False
+
+    def initConnection(self, info=False):
+        conninfo = self.conninfo
+
         if 'workSchema' in self.settings:
             conninfo['workSchema'] = self.settings['workSchema']
         if 'schema' in self.settings:
@@ -984,11 +996,9 @@ class Gui2Model():
             conninfo['port'] = self.settings['port']
         if 'passwd' in self.settings:
             conninfo['password'] = self.settings['passwd']
-        conninfo['workPath']=self.settings['workPath']
-        if conninfo is None:
-            self.connStatus = False
-            GMessage('Database connection failed')
-            return
+
+        conninfo['workPath'] = self.workPath
+
 
         if not info:  # prepare for computing
             self.dbConn = Database(**conninfo)
@@ -996,16 +1006,17 @@ class Gui2Model():
             self.dbConn.firstPreparation()
             self.dbConn.prepareDB()
             self.dbConn.prepareDir()
-
             return self.dbConn
         else:  # just get info about curr database state
             self.dbConn = Database(**conninfo)
             self.connStatus = True
             return self.dbConn
 
+
+
     def initVectorGrass(self, type=None, name=None):
         convertor = VectorLoader(self.dbConn)
-        if name:
+        if name is not  None:
             self.dbConn.nodeVecMapName = name
             self.dbConn.linkVecMapName = name
 
@@ -1035,7 +1046,6 @@ class Gui2Model():
         baselInit = {}
         if 'baselType' in self.settings:
             baselInit['statFce'] = self.settings['baselType']
-
         if 'quantile' in self.settings:
             baselInit['quantile'] = self.settings['quantile']
         if 'round' in self.settings:
@@ -1073,16 +1083,16 @@ class Gui2Model():
         if not methodSel:
             self.errMsg('Baseline method is not selected')
 
-        print baselInit
         self.baseline = Baseline(**baselInit)
 
     def initTimeWinMW(self):
-        winInit = {}
+        winInit =\
+            {}
         if 'linksOnly' in self.settings:
             winInit['linksOnly'] = self.settings['linksOnly']
 
         if 'linksMap' in self.settings:
-            winInit['linksOnly'] = self.settings['linksMap']
+            winInit['linksMap'] = self.settings['linksMap']
         if 'linksIngnore' in self.settings:
             winInit['linksIgnored'] = self.settings['linksIngnore']
         if 'links' in self.settings:
@@ -1100,8 +1110,7 @@ class Gui2Model():
 
         self.twin = TimeWindows(**winInit)
 
-    def doCompute(self):
-
+    def Run(self):
         # GMessage('OK')
         comp = Computor(self.baseline, self.twin, self.dbConn, self.settings['dataExport'])
         state, msg = comp.GetStatus()
