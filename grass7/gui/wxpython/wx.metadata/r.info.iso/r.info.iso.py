@@ -57,7 +57,7 @@ def main():
     else:
         destination, name = os.path.split(options['output'])
 
-    md = GrassMD(options['map'], 'cell')
+    md = GrassMD(options['map'], 'raster')
     if options['profile'] == 'inspire':
         md.createGrassInspireISO()
         xml_file = md.saveXML(path=destination,

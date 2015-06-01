@@ -20,22 +20,15 @@ from jinja2 import Environment, FileSystemLoader
 
 from lxml import etree
 import os
-import sys
-import re
+
 import StringIO
-import subprocess as sub
 import uuid
 import mdutil  # metadata lib
-import getpass  # whoami for linux and  ms-win
 
-from grass.pygrass.modules.shortcuts import general as g
-from grass.pygrass.gis import Mapset
-from grass.pygrass import raster
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 from subprocess import PIPE
 from datetime import date, datetime
-from grass.script import parser
 from grass.script import core as grass
 
 
@@ -58,12 +51,14 @@ class GrassMD():
         self.gisenv_grass = grass.gisenv()  # dict with gisenv information
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'
+        self.profileName='GRASS BASIC'
         self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc')
         # metadata object from OWSLIB ( for define md values)
         self.md = MD_Metadata(md=None)
-        self.template = None  # path to file with xml templates
+        self.profilePath = None  # path to file with xml templates
 
-        if self.type == "cell":
+
+        if self.type == "raster":
             self.parseRast()
         elif self.type == "vector":
             self.parseVect()
@@ -152,7 +147,7 @@ class GrassMD():
             self.md_grass['min'] + '  max: ' + self.md_grass['max']
         self.md_abstract.translate(None, """&<>"'""")
 
-    def createGrassBasicISO(self, template=None):
+    def createGrassBasicISO(self, profile=None):
         '''Create basic/essential profile based on ISO
         - unknown values are filling by n = '$NULL'
         '''
@@ -163,10 +158,10 @@ class GrassMD():
 
         n = '$NULL'
         # jinja templates
-        if template is None:
-            self.template = os.path.join(self.dirpath, 'templates', 'basicTemplate.xml')
+        if profile is None:
+            self.profilePath = os.path.join('profiles', 'basicProfile.xml')
         else:
-            self.template = template
+            self.profilePath = profile
 
         # OWSLib md object
         self.md.identification = MD_DataIdentification()
@@ -217,7 +212,7 @@ class GrassMD():
         self.md.identification.uom.append('m')  # TODO
 
         # different metadata sources for vector and raster
-        if self.type == 'cell':
+        if self.type == 'raster':
             # Identification/Resource Abstract
             self.md.identification.abstract = mdutil.replaceXMLReservedChar(self.md_abstract)
             # Geographic/resolution
@@ -253,22 +248,23 @@ class GrassMD():
             val.role = n
             self.md.identification.contact.append(val)
 
-        self.templatePathAbs = os.path.join(self.dirpath, self.template)
+        self.profilePathAbs = os.path.join(self.dirpath, self.profilePath)
 
-    def createGrassInspireISO(self, template=None):
+    def createGrassInspireISO(self, profile=None):
         '''Create valid INSPIRE profile and fill it as much as possible by GRASS metadata. Missing values is $NULL
         -create basic md profile and add INSPIRE mandatory attributes
         '''
 
         self.schema_type = '_inspire.xml'
+        self.profileName='INSPIRE'
 
         # create basic profile
         self.createGrassBasicISO()
 
-        if template is None:
-            self.template = os.path.join('templates',  'inspireTemplate.xml')
+        if profile is None:
+            self.profilePath = os.path.join('profiles',  'inspireProfile.xml')
         else:
-            self.template = template
+            self.profilePath = profile
 
         n = '$NULL'
 
@@ -318,12 +314,18 @@ class GrassMD():
         self.md.identification.temporalextent_start = n
         self.md.identification.temporalextent_end = n
 
-        self.templatePathAbs = os.path.join(self.dirpath, self.template)
-        # print self.templatePathAbs
+        self.profilePathAbs = os.path.join(self.dirpath, self.profilePath)
 
     def readXML(self, xml_file):
         '''create instance of metadata(owslib) from xml file'''
         self.md = MD_Metadata(etree.parse(xml_file))
+
+
+    def getMapInfo(self):
+        xml_out_name = self.type + '_' + str(self.map).partition('@')[0]  # + self.schema_type
+        if not xml_out_name.lower().endswith('.xml'):
+            xml_out_name += '.xml'
+        return xml_out_name, self.type,self.map,self.profileName
 
     def saveXML(self, path=None, xml_out_name=None, wxparent=None, overwrite=False):
         ''' Save init. record  of OWSLib objects to ISO XML file'''
@@ -340,16 +342,16 @@ class GrassMD():
                 print os.makedirs(path)
         path = os.path.join(path, xml_out_name)
 
-        # generate xml using jinja templates
+        # generate xml using jinja profiles
         env = Environment(loader=FileSystemLoader(self.dirpath))
         env.globals.update(zip=zip)
-        template = env.get_template(self.template)
-        iso_xml = template.render(md=self.md)
+        profile = env.get_template(self.profilePath)
+        iso_xml = profile.render(md=self.md)
 
         # write xml to flat file
         if wxparent != None:
             if os.path.isfile(path):
-                if mdutil.yesNo(wxparent, 'Metadata file exists. Do you want to overwrite file: %s?' % path, 'Overwrite dialog'):
+                if mdutil.yesNo(wxparent, 'Metadata file exists. Do you want to overwrite metadata file: %s?' % path, 'Overwrite dialog'):
                     try:
                         xml_file = open(path, "w")
                         xml_file.write(iso_xml)
@@ -440,12 +442,12 @@ class GrassMD():
 
             if md.identification.contact is not None:
                 if len(md.identification.contact) > 0:
-                    _person = md.identification.contact.organization.pop()
-
-                    Module('v.support',
-                           map=self.map,
-                           person=_person,
-                           flags='r')
+                    _person = md.identification.contact.pop()
+                    if _person is str:
+                        Module('v.support',
+                               map=self.map,
+                               person=_person,
+                               flags='r')
 
             if md.identification.title is not (None or ''):
                 _name = md.identification.title
@@ -484,7 +486,7 @@ class GrassMD():
                        flags='r')
 
 #------------------------------------------------------------------------ RASTER
-        if self.type == "cell":
+        if self.type == "raster":
 
             if md.identification.title is not (None or ''):
                 _title = md.identification.title

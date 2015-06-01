@@ -34,7 +34,7 @@ import glob
 from lxml import etree
 
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
-
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'pdf'))
 import wx
 from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
 from wx import SplitterWindow, EVT_BUTTON
@@ -42,9 +42,12 @@ from wx.lib.pubsub import setupkwargs, pub
 
 import grass.script as grass
 import grass.script.setup as gsetup
+import webbrowser
+
 
 import mdgrass
 import mdutil
+from mdpdffactory import PdfCreator
 
 from core.utils import _
 from editor import MdMainEditor
@@ -54,8 +57,6 @@ from core.gcmd import RunCommand, GError, GMessage
 #===============================================================================
 # MAIN FRAME
 #===============================================================================
-
-
 class MdMainFrame(wx.Frame):
 
     '''Main frame of metadata editor
@@ -63,12 +64,11 @@ class MdMainFrame(wx.Frame):
 
     def __init__(self, jinjaPath=None, xmlPath=None, init=False):
         '''
-        @param jinjaPath: path to jinja template
+        @param jinjaPath: path to jinja profile
         @param xmlPath: path to xml with will be read by editor
         @var first,firstAfterChoice,second,secondAfterChoice,secondMultiEdit: initMultipleEditor() and onInitEditor() handler
         @var self. initMultipleEditor() and onInitEditor() handler
         @var self.templateEditor: true= Editor is in mode 'Template creator(widgets with chkbox)'
-        @var nameTMPtemplate: in case if 'template editor is on' this var holds name oof temporaly jinja template
         @var batch: if true multiple editing metadata of maps is ON
         '''
         wx.Frame.__init__(self, None, title="Metadata Editor", size=(650, 500))
@@ -81,20 +81,23 @@ class MdMainFrame(wx.Frame):
         self.second = False
         self.secondAfterChoice = False
         self.secondMultiEdit = False
-
+        self.md=None
         self.templateEditor = False
         self.sb = self.CreateStatusBar()
 
         self.cres = 0  # resizeFrame
         self.nameTMPteplate = None
         self.batch = False
-
+        self.mdCreator=None
+        self.editStatus=None
         self.onInitEditor()
 
         pub.subscribe(self.initNewMD, 'NEW_MD.create')
         pub.subscribe(self.onEditingMode, 'EDITING_MODE.update')
         pub.subscribe(self.setStatusbarText, 'STATUS_BAR_TEXT.update')
         pub.subscribe(self.onExportTemplate, 'EXPORT_TEMPLATE.create')
+        pub.subscribe(self.onExportPDF, 'EXPORT_PDF.create')
+
         pub.subscribe(self.onExportXML, 'EXPORT_XML.create')
         pub.subscribe(self.onEditMapMetadata, 'EDIT_MAP_METADATA.create')
         pub.subscribe(self.onInitEditor, 'INIT_EDITOR.create')
@@ -107,7 +110,7 @@ class MdMainFrame(wx.Frame):
         pub.subscribe(self.onSetJaX, 'SET_JINJA_AND_XML.update')
 
     def onSetJaX(self, jinja, xml):
-        '''Set template ad xml paths
+        '''Set profile ad xml paths
         '''
         self.jinjaPath = jinja
         self.xmlPath = xml
@@ -127,15 +130,15 @@ class MdMainFrame(wx.Frame):
     def onUpdateGrassMetadata(self):
         '''Update r.support and v.support
         '''
-        md = self.editor.createNewMD()
+        md = self.editor.saveMDfromGUI()
         self.mdCreator.updateGrassMd(md)
-        GMessage('GRASS GIS metadata haved been updated')
+        GMessage('GRASS GIS metadata has been updated')
 
     def onChangeEditMapProfile(self):
         '''Update vars
         '''
-        self.templateChoice = self.configPanelLeft.comboBoxProfile.GetValue()
-        self.ntbRight.profile = self.templateChoice
+        self.profileChoice = self.configPanelLeft.comboBoxProfile.GetValue()
+        self.ntbRight.profile = self.profileChoice
 
     def onExportTemplate(self, outPath, outFileName):
         '''Export defined(pre-filled) template
@@ -143,6 +146,24 @@ class MdMainFrame(wx.Frame):
         self.editor.exportTemplate(self.jinjaPath,
                                    outPath=outPath,
                                    xmlOutName=outFileName)
+
+    def onExportPDF(self, outPath, outFileName):
+        self.initNewMD()
+        pdfFile=os.path.join(outPath,outFileName)
+
+        if self.mdCreator is None and self.toolbar.extendEdit: #if editing map from grass database
+            profileName=os.path.basename(self.jinjaPath)
+            xmlFile=os.path.basename(self.xmlPath)
+            doc = PdfCreator(self.md, pdfFile, map=None, type=None,filename=xmlFile,profile=profileName)
+        else: #if editing map from external editor
+            filename,type,map,profile=self.mdCreator.getMapInfo()
+            doc = PdfCreator(self.md, pdfFile, map, type,filename,profile)
+        try:
+            path=doc.createPDF()
+            GMessage('Metadata report has been exported to < %s >'%path)
+        except:
+            GError('Export pdf error %s'% sys.exc_info()[0])
+
 
     def onExportXML(self, outPath, outFileName):
         '''Save metadta xml file
@@ -190,8 +211,9 @@ class MdMainFrame(wx.Frame):
     def initNewMD(self):
         '''Init new md OWSLib  object
         '''
-        self.editor.createNewMD()
+        self.md=self.editor.saveMDfromGUI()
         self.ntbRight.md = self.editor.md
+
 
     def resizeFrame(self, x1=1, y1=0):
         '''Some widgets need refresh frame for proper working
@@ -212,6 +234,7 @@ class MdMainFrame(wx.Frame):
 
     def onEditingMode(self, editStatus):
         self.resizeFrame()
+        self.editStatus=editStatus
         self.Layout()
 
         if editStatus:
@@ -236,7 +259,7 @@ class MdMainFrame(wx.Frame):
         if not multipleEditing:
             self.ListOfMapTypeDict = self.MdDataCatalogPanelLeft.ListOfMapTypeDict
 
-        self.templateChoice = self.configPanelLeft.comboBoxProfile.GetValue()
+        self.profileChoice = self.configPanelLeft.comboBoxProfile.GetValue()
         self.numOfMap = len(self.ListOfMapTypeDict)
 
         if self.numOfMap == 0 and multipleEditing is False:
@@ -247,23 +270,20 @@ class MdMainFrame(wx.Frame):
         if self.numOfMap == 1 and multipleEditing is False:
             self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
                                              self.ListOfMapTypeDict[-1].keys()[0])
-            if self.templateChoice == 'INSPIRE':
+            if self.profileChoice == 'INSPIRE':
                 self.mdCreator.createGrassInspireISO()
-                self.jinjaPath = self.mdCreator.templatePathAbs
-                self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
-                self.onInitEditor()
+            elif self.profileChoice == 'GRASS BASIC':
 
-            elif self.templateChoice == 'GRASS BASIC':
                 self.mdCreator.createGrassBasicISO()
-                self.jinjaPath = self.mdCreator.templatePathAbs
-                self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
-                self.onInitEditor()
+            self.jinjaPath = self.mdCreator.profilePathAbs
+            self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
+            self.onInitEditor()
 
-        # if editing multiple maps or just one but with loading own custom template
-        if self.templateChoice == 'Load Custom' and self.numOfMap != 0:
-        # load template. IF for just one map ELSE for multiple editing
+        # if editing multiple maps or just one but with loading own custom profile
+        if self.profileChoice == 'Load Custom' and self.numOfMap != 0:
+        # load profile. IF for just one map ELSE for multiple editing
             if multipleEditing is False:
-                dlg = wx.FileDialog(self, "Select template", os.getcwd(), "", "*.xml", wx.OPEN)
+                dlg = wx.FileDialog(self, "Select profile", os.getcwd(), "", "*.xml", wx.OPEN)
                 if dlg.ShowModal() == wx.ID_OK:
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
                                                      self.ListOfMapTypeDict[-1].keys()[0])
@@ -327,7 +347,7 @@ class MdMainFrame(wx.Frame):
             self.editor = MdMainEditor(self.splitter,
                                        self.jinjaPath,
                                        self.xmlPath,
-                                       self.templateEditor)
+                                       self.profileEditor)
             self.ntbRight = NotebookRight(self.splitter, self.xmlPath)
             self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
             self.splitter.SetSashGravity(0.65)
@@ -372,7 +392,7 @@ class MdMainFrame(wx.Frame):
             self.second = True
 
             self.editor = MdMainEditor(parent=self.splitter,
-                                       templatePath=self.jinjaPath,
+                                       profilePath=self.jinjaPath,
                                        xmlMdPath=self.xmlPath,
                                        templateEditor=self.templateEditor)
 
@@ -408,7 +428,7 @@ class MdMainFrame(wx.Frame):
 
             editorTMP = self.editor
             self.editor = MdMainEditor(parent=self.splitter,
-                                       templatePath=self.jinjaPath,
+                                       profilePath=self.jinjaPath,
                                        xmlMdPath=self.xmlPath,
                                        templateEditor=self.templateEditor)
 
@@ -449,8 +469,6 @@ class MdMainFrame(wx.Frame):
 #===============================================================================
 # DATA CATALOG
 #===============================================================================
-
-
 class MdDataCatalog(datacatalog.LocationMapTree):
 
     '''Data catalog for selecting GRASS maps for editing
@@ -470,6 +488,7 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         gisenv = grass.gisenv()
         location = gisenv['LOCATION_NAME']
         self.mapset = gisenv['MAPSET']
+        #TODO remove auto add permanent to catalogue
 
         self._initTreeItems(locations=[location], mapsets=[self.mapset])
         self.ExpandAll()
@@ -487,14 +506,14 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             for item in self.GetSelections():
                 MapTypeDict = {}
                 maps.append(self.GetItemText(item))
-                map = self.GetItemText(item) + '@' + self.mapset
+                map = self.GetItemText(item) #+ '@' + self.mapset @TODO to test
                 mapType = self.GetItemParent(item)
                 mapType = self.GetItemText(mapType)
 
                 if mapType == 'vect':
                     mapType = 'vector'
                 elif mapType == 'rast':
-                    mapType = 'cell'
+                    mapType = 'raster'
                 MapTypeDict[mapType] = map
 
                 self.ListOfMapTypeDict.append(MapTypeDict)
@@ -508,10 +527,10 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         if len(maps) == 0:
             pub.sendMessage('bttEdit.disable')
             pub.sendMessage('bttCreateTemplate.disable')
-        str1 = ''
 
+        status = ''
         for map in maps:
-            str1 += map + '  '
+            status += map + '  '
 
         if len(maps) > 1:
             pub.sendMessage('SET_PROFILE.update', profile='Load Custom')
@@ -522,7 +541,7 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             pub.sendMessage('comboBoxProfile.enable')
             pub.sendMessage('bttCreateTemplate.enable')
 
-        pub.sendMessage('STATUS_BAR_TEXT.update', text=str1)
+        pub.sendMessage('STATUS_BAR_TEXT.update', text=status)
 
 #===============================================================================
 # NOTEBOOK ON THE RIGHT SIDE-xml browser+validator
@@ -754,7 +773,7 @@ class MdValidator(wx.Panel):
 class MdEditConfigPanel(wx.Panel):
 
     '''Configuration pane for selection editing mode.
-    @var mapGrassEdit: True = editing metadata of GRASS maps, false= editing externally loaded xml and template
+    @var mapGrassEdit: True = editing metadata of GRASS maps, false= editing externally loaded xml and profile
     '''
 
     def __init__(self, parent):
@@ -798,7 +817,7 @@ class MdEditConfigPanel(wx.Panel):
 
     def onSetRadioType(self, evt=None):
         self.mapGrassEdit = self.rbGrass.GetValue()
-        if self.mapGrassEdit == False:
+        if self.mapGrassEdit is False:
             self.comboBoxProfile.Hide()
         else:
             self.comboBoxProfile.Show()
@@ -842,50 +861,58 @@ class MdToolbar(wx.Panel):
         bitmaSettings = wx.Image(
             os.path.join(os.environ['GISBASE'], 'gui', 'icons', 'grass', 'settings.png'),
             wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-#-------------------------------------------------------------------- EDIT
+    #-------------------------------------------------------------------- EDIT
         self.toolbar.AddSeparator()
         bitmapEdit = wx.Image(
             os.path.join(os.environ['GISBASE'], 'gui', 'icons', 'grass', 'edit.png'),
             wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-        self.bttEdit = BitmapBtnTxt(
-            self.toolbar, -1, bitmapEdit, 'edit')
+
+    #-------------------------------------------------------------------- EDIT
+
+        self.bttEdit = BitmapBtnTxt(self.toolbar, -1, bitmapEdit,size=(40, -1))
         self.toolbar.AddControl(control=self.bttEdit)
         self.bttEdit.Disable()
-#-------------------------------------------------------------------- NEW SESION
-        self.toolbar.AddSeparator()
-        self.bttNew = BitmapBtnTxt(self.toolbar, -1, bitmapNew, 'session')
+    #-------------------------------------------------------------------- NEW SESION
+        #self.toolbar.AddSeparator()
+        self.bttNew = BitmapBtnTxt(self.toolbar, -1, bitmapNew, '', size=(40, -1))
         self.toolbar.AddControl(control=self.bttNew)
         self.bttNew.Disable()
-#-------------------------------------------------------------------------- SAVE
-        self.bttsave = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "XML")
-        self.bttsave.Disable()
-        self.toolbar.AddControl(control=self.bttsave)
-        self.toolbar.AddSeparator()
-#----------------------------------------------------------------- OPEN TEMPLATE
-        self.bttLoad = BitmapBtnTxt(self.toolbar, -1, bitmapLoad, "template", size=(100, -1))
-        self.toolbar.AddControl(control=self.bttLoad)
-        self.bttLoad.Disable()
-#---------------------------------------------------------------------- OPEN XML
-        self.bttLoadXml = BitmapBtnTxt(self.toolbar, -1, bitmapLoad, "XML")
-        self.toolbar.AddControl(control=self.bttLoadXml)
-        self.bttLoadXml.Disable()
-        self.toolbar.AddSeparator()
-#-------------------------------------------------------------------- NEW TEMPLATE
+    #-------------------------------------------------------------------- NEW TEMPLATE
         self.bttCreateTemplate = BitmapBtnTxt(self.toolbar, -1, bitmapNew, "template", size=(100, -1))
         self.toolbar.AddControl(control=self.bttCreateTemplate)
         self.bttCreateTemplate.Disable()
-#-------------------------------------------------------------------------- SAVE
+        self.toolbar.AddSeparator()
+
+    #----------------------------------------------------------------- OPEN TEMPLATE
+        self.bttLoad = BitmapBtnTxt(self.toolbar, -1, bitmapLoad, "profile", size=(100, -1))
+        self.toolbar.AddControl(control=self.bttLoad)
+        self.bttLoad.Disable()
+    #---------------------------------------------------------------------- OPEN XML
+        self.bttLoadXml = BitmapBtnTxt(self.toolbar, -1, bitmapLoad, "xml")
+        self.toolbar.AddControl(control=self.bttLoadXml)
+        self.bttLoadXml.Disable()
+        self.toolbar.AddSeparator()
+
+
+    #-------------------------------------------------------------------------- export xml
+        self.bttsave = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "xml")
+        self.bttsave.Disable()
+        self.toolbar.AddControl(control=self.bttsave)
+    #-------------------------------------------------------------------------- export template
         self.bttSaveTemplate = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "template", size=(100, -1))
         self.bttSaveTemplate.Disable()
         self.toolbar.AddControl(control=self.bttSaveTemplate)
-        self.toolbar.AddSeparator()
-#-------------------------------------------------------------------------- SAVE
+    #-------------------------------------------------------------------------- update grass
         self.bttUpdateGRASS = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "GRASS", size=(100, -1))
         self.bttUpdateGRASS.Disable()
         self.toolbar.AddControl(control=self.bttUpdateGRASS)
+    #-------------------------------------------------------------------------- export pdf
+        self.bttExportPdf = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "pdf", size=(100, -1))
+        self.bttExportPdf.Disable()
+        self.toolbar.AddControl(control=self.bttExportPdf)
         self.toolbar.AddSeparator()
-#-------------------------------------------------------------------------- Config
-        self.bttConfig = BitmapBtnTxt(self.toolbar, -1, bitmaSettings, "workdir", size=(100, -1))
+    #-------------------------------------------------------------------------- Config
+        self.bttConfig = BitmapBtnTxt(self.toolbar, -1, bitmaSettings, "", size=(40, -1))
         self.toolbar.AddControl(control=self.bttConfig)
         self.toolbar.AddSeparator()
 
@@ -924,6 +951,9 @@ class MdToolbar(wx.Panel):
         pub.subscribe(self.onBttUpdateGRASSEnable, "bttSaveTemplate.enable")
         pub.subscribe(self.onBttUpdateGRASSDisable, "bttSaveTemplate.disable")
 
+        self.bttExportPdf.Bind(wx.EVT_BUTTON, self.onExportPdf)
+        pub.subscribe(self.onBttExportPdfEnable, "bttExportPdf.enable")
+        pub.subscribe(self.onBttExportPdfDisable, "bttExportPdf.disable")
         self.bttConfig.Bind(wx.EVT_BUTTON, self.onSettings)
 
     def onBttSaveDisable(self):
@@ -974,8 +1004,34 @@ class MdToolbar(wx.Panel):
     def onBttUpdateGRASSEnable(self):
         self.bttUpdateGRASS.Enable()
 
+    def onBttExportPdfDisable(self):
+        self.bttExportPdf.Disable()
+
+    def onBttExportPdfEnable(self):
+        self.bttExportPdf.Enable()
+
     def onUpdateGRASS(self, evt):
         pub.sendMessage('GRASS_METADATA.update')
+
+    def onExportPdf(self,evt):
+        self.xmlPath=self.GetParent().xmlPath
+        XMLhead, XMLtail = os.path.split(self.xmlPath)
+        dlg = wx.FileDialog(self,
+                            message="Set output file",
+                            defaultDir=self.mdDestination,
+                            defaultFile=XMLtail.split('.')[0]+'.pdf',
+                            wildcard="*.pdf",
+                            style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            outPath=dlg.GetDirectory()
+            outFileName=dlg.GetFilename()
+            pub.sendMessage('EXPORT_PDF.create',
+                            outPath=outPath,
+                            outFileName=outFileName)
+            if mdutil.yesNo(self,'Do you want to open report?'):
+                webbrowser.open(os.path.join(outPath,outFileName))
+
 
     def onSettings(self, evt):
         dlg = wx.DirDialog(self,
@@ -1001,6 +1057,7 @@ class MdToolbar(wx.Panel):
         self.bttCreateTemplate.Hide()
         self.bttSaveTemplate.Hide()
         self.bttUpdateGRASS.Hide()
+        self.bttExportPdf.Hide()
 
     def showMultipleEdit(self):
         '''Multiple editor is on
@@ -1012,6 +1069,7 @@ class MdToolbar(wx.Panel):
         self.bttCreateTemplate.Show()
         self.bttSaveTemplate.Show()
         self.bttUpdateGRASS.Show()
+        self.bttExportPdf.Show()
 
     def onCreateTemplate(self, evt):
         pub.sendMessage('TEMPLATE_EDITOR_STATUS.update', value=True)
@@ -1037,6 +1095,7 @@ class MdToolbar(wx.Panel):
         self.bttCreateTemplate.Disable()
         self.bttEdit.Disable()
         self.bttsave.Enable()
+        self.bttExportPdf.Enable()
         if not self.extendEdit:
             self.bttUpdateGRASS.Enable()
 
@@ -1058,10 +1117,11 @@ class MdToolbar(wx.Panel):
             self.bttLoadXml.Enable()
         self.statusBar.SetStatusText('')
         self.bttsave.Disable()
+        self.bttExportPdf.Disable()
         self.bttUpdateGRASS.Disable()
         self.jinjaPath = None
         self.xmlPath = None
-        self.bttsave.SetLabel('XML')
+        self.bttsave.SetLabel('xml')
         self.showMultipleEdit()
 
         self.bttSaveTemplate.Disable()
@@ -1071,6 +1131,7 @@ class MdToolbar(wx.Panel):
         '''
         if self.jinjaPath is not None and self.xmlPath is not None:
             pub.sendMessage('HIDE_LEFT_PANEL.update')
+
             self.bttEdit.Enable()
             self.bttCreateTemplate.Enable()
             self.bttLoad.Disable()
@@ -1109,7 +1170,7 @@ class MdToolbar(wx.Panel):
 
     def OnLoadTemplate(self, evt):
         dlg = wx.FileDialog(self,
-                            "Select template of ISO profile",
+                            "Select metadata ISO profile",
                             self.mdDestination,
                             "",
                             "*.xml",
@@ -1118,7 +1179,7 @@ class MdToolbar(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             self.jinjaPath = dlg.GetPath()
             tx = self.statusBar.GetStatusText()
-            self.statusBar.SetStatusText(tx + ' Selected template: ' + self.jinjaPath)
+            self.statusBar.SetStatusText(tx + ' Selected profile: ' + self.jinjaPath)
             self.onChangeXmlorTemplate()
 
         dlg.Destroy()
@@ -1163,7 +1224,7 @@ class MdToolbar(wx.Panel):
 #----------------------------------------------------------------------
 def main():
     app = wx.App(False)
-    frame = MdMainFrame()
+    MdMainFrame()
     app.MainLoop()
 
 if __name__ == '__main__':

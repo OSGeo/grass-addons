@@ -137,7 +137,7 @@ class MdFileWork():
             xml_file.close()
 
             if msg:
-                GMessage('File exported to: %s' % outPath)
+                GMessage('File is exported to: %s' % outPath)
 
             if rmTeplate:
                 os.remove(jinjaPath)
@@ -655,9 +655,9 @@ class MdMainEditor(wx.Panel):
                      self.defineTemplate(): creator of predefined templates in template editor mode
     '''
 
-    def __init__(self, parent, templatePath, xmlMdPath, templateEditor=False):
+    def __init__(self, parent, profilePath, xmlMdPath, templateEditor=False):
         '''
-        @param templatePath: path to jinja template for generating GUI of editor
+        @param profilePath: path to jinja template for generating GUI of editor
         @param xmlMdPath: path of xml for init Editor
         @param templateEditor: mode-creator of template
         '''
@@ -665,9 +665,9 @@ class MdMainEditor(wx.Panel):
         self.mdo = MdFileWork()
         self.md = self.mdo.initMD(xmlMdPath)
         self.templateEditor = templateEditor
-        self.templatePath = templatePath
+        self.profilePath = profilePath
 
-        self.jinj = JinjaTemplateParser(self.templatePath)
+        self.jinj = JinjaTemplateParser(self.profilePath)
         # list of object MdDescription
         self.mdDescription = self.jinj.mdDescription
         # string of tags from jinja template (loops and OWSLib objects)
@@ -677,7 +677,7 @@ class MdMainEditor(wx.Panel):
         self.generateGUI()
         self._layout()
 
-#----------------------------------------------------------- GUI GENERATOR START
+ #----------------------------------------------------------- GUI GENERATOR START
     def executeStr(self, stri, mdDescrObj):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
@@ -873,7 +873,7 @@ class MdMainEditor(wx.Panel):
 
             self.executeStr(str1, mdDescrObj)
 
-#--------------------------------------------------------------------- INIT VARS
+    #--------------------------------------------------------------------- INIT VARS
         self.notebook = wx.Notebook(self)
         markgroup = []  # notebook panel marker
         tagStringLst = self.mdOWSTagStrList
@@ -883,7 +883,7 @@ class MdMainEditor(wx.Panel):
         self.max = len(mdDescrObj)
         prepareStatements()
         self.notebokDict = {}
-# --------------------------------------------- #START of the loop of generator
+    # --------------------------------------------- #START of the loop of generator
         while self.stop is False:  # self.stop is managed by def plusC(self):
             group = mdDescrObj[self.c].group
 
@@ -926,7 +926,7 @@ class MdMainEditor(wx.Panel):
                     i.onChangeChckBox(None)
                 except:
                     pass
-#----------------------------------------------------------- GUI GENERATOR END
+    #----------------------------------------------------------- GUI GENERATOR END
 
     def defineTemplate(self):
         '''Main function for generating jinja template in mode "template editor"
@@ -936,7 +936,7 @@ class MdMainEditor(wx.Panel):
         @var finalTemplate:    string included final jinja template
         '''
         try:
-            template = open(self.templatePath, 'r')
+            template = open(self.profilePath, 'r')
         except Exception, e:
             GError('Error loading template:\n' + str(e))
 
@@ -1020,15 +1020,15 @@ class MdMainEditor(wx.Panel):
                     finalTemplate += line
             chcked = True
 
-        head, tail = os.path.split(self.templatePath)
+        head, tail = os.path.split(self.profilePath)
         tail = 'EXPT' + tail
-        self.templatePath = os.path.join(head, tail)
-        templateOut = open(self.templatePath, 'w')
+        self.profilePath = os.path.join(head, tail)
+        templateOut = open(self.profilePath, 'w')
         templateOut.write(finalTemplate)
         templateOut.close()
 
         return owsTagList
-#----------------------------------------- FILL OWSLib BY EDITED METADATA IN GUI
+    #----------------------------------------- FILL OWSLib BY EDITED METADATA IN GUI
 
     def executeStr1(self, stri, item):
         '''note- exec cannot be in sub function
@@ -1037,7 +1037,7 @@ class MdMainEditor(wx.Panel):
         # print stri
         exec stri
 
-    def createNewMD(self, evt=None):
+    def saveMDfromGUI(self, evt=None):
         '''Main function for exporting metadata from filled widgets.
            Initializing owslib object by metadata from gui(export of metadata)
         '''
@@ -1290,7 +1290,10 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(dirpath, 'config', 'init_md')
+        #print dirpath
+        path = os.path.join(os.path.join(sys.path[0],'..'), 'config', 'init_md')
+        #print path
+
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()
         self.executeStr1(mdExec, None)
@@ -1319,15 +1322,15 @@ class MdMainEditor(wx.Panel):
 #------------------------------------ END- FILL OWSLib BY EDITED METADATA IN GUI
 
     def exportToXml(self, jinjaPath, outPath, xmlOutName, msg):
-        self.createNewMD()
+        self.saveMDfromGUI()
         self.mdo.saveToXML(self.md, None, jinjaPath, outPath, xmlOutName, msg)
 
     def exportTemplate(self, jinjaPath, outPath, xmlOutName):
-        self.templatePath = jinjaPath
+        self.profilePath = jinjaPath
         owsTagList = self.defineTemplate()
-        self.createNewMD()
+        self.saveMDfromGUI()
         self.mdo.saveToXML(self.md, owsTagList,
-                           self.templatePath,
+                           self.profilePath,
                            outPath,
                            xmlOutName,
                            msg=True,
