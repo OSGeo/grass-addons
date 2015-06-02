@@ -18,6 +18,7 @@
 #% description: Creates a concave hull around points.
 #% keyword: vector
 #% keyword: geometry
+#% keyword: alpha shape
 #%end
 #%option G_OPT_V_INPUT
 #% label: Input points
