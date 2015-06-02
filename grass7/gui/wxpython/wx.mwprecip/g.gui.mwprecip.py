@@ -10,8 +10,11 @@ import tempfile
 
 from core.gcmd import GMessage, GError
 from gui_core import gselect
-
+from core.gthread import gThread
+from gui_core.widgets import ColorTablesComboBox,PictureComboBox
+from core import globalvar
 import time
+from core.utils  import  GetColorTables
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
@@ -425,7 +428,9 @@ class GrassLayers(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.settings = settings
         self.colorRules = TextInput(self, label='Color table')
-        self.colorsName = BaseInput(self, label='Name of color table')
+        self.colorsName =ColorTablesComboBox(parent=self,
+                     size=globalvar.DIALOG_COMBOBOX_SIZE,
+                     choices=GetColorTables())
         self.layout()
 
     def loadSettings(self, sett=None):
@@ -595,7 +600,7 @@ class MWMainFrame(wx.Frame):
         self.computeBtt = wx.Button(self.mainPanel, label='Compute')
         self.computeBtt.Disable()
         self.exportDataBtt = wx.Button(self.mainPanel, label='Export data')
-        self.computeBtt.Bind(wx.EVT_BUTTON, self.runCompute)
+        self.computeBtt.Bind(wx.EVT_BUTTON, self.startProcess)
         self.exportDataBtt.Bind(wx.EVT_BUTTON, self.exportData)
 
         self.findProject()
@@ -826,11 +831,9 @@ class MWMainFrame(wx.Frame):
         path = OnSaveAs(self)
         self.OnSaveSettings(toFile=False)
         if not self.exportDMgr.chkprecip.GetValue():
-            attrTmp1 = []
-            attrTmp1.append('link.linkid')
+            attrTmp1 = ['link.linkid']
             attrTmp2 = []
             attrTmp3 = []
-            # attrTmp2.append('public.linkid')
             if self.exportDMgr.chkfreq.GetValue():
                 attrTmp1.append('link.frequency')
             if self.exportDMgr.chkpol.GetValue():
@@ -906,7 +909,6 @@ class MWMainFrame(wx.Frame):
                 lines += str(r)[1:][:-1] + '\n'
 
             print conn.pathworkSchemaDir
-            #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
@@ -915,7 +917,13 @@ class MWMainFrame(wx.Frame):
 
         self.exportDialog.Destroy()
 
-    def runCompute(self, evt):
+    def startProcess(self,evt=None):
+        self.thread=gThread()
+        self.thread.Run(callable=self.runCom,
+                        ondone=self.onFinish)
+
+    def runComp(self, evt=None):
+        self.computeBtt.Disable()
         self.OnSaveSettings(toFile=False)
         exportData = {'getData': False, 'dataOnly': False}
         self.settings['dataExport'] = exportData
@@ -925,9 +933,9 @@ class MWMainFrame(wx.Frame):
         else:
             self.settings['IDtype'] = 'linkid'
 
-
         self.worker = Gui2Model(self, self.settings,self.workPath)
         if self.worker.checkConn():
+
             if not self.worker.initConnection():
                 return
             self.worker.initVectorGrass()
@@ -940,8 +948,12 @@ class MWMainFrame(wx.Frame):
             self.worker.initBaseline()
             self.worker.Run()
 
-    def layout(self):
+    def onFinish(self,evt):
+        #self.computeBtt.SetLabel('Compute')
+        self.computeBtt.Enable()
+        GMessage('Finish')
 
+    def layout(self):
         self.panelSizer.Add(self.loadScheme, flag=wx.EXPAND)
         self.panelSizer.Add(self.profilSelection, flag=wx.EXPAND)
         self.panelSizer.Add(self.schema, flag=wx.EXPAND)
@@ -962,7 +974,6 @@ class MWMainFrame(wx.Frame):
     def onQuit(self, e):
         self.Close()
 
-
 class Gui2Model():
     def __init__(self, wxParent, settings,path):
         self.settings = settings
@@ -970,7 +981,6 @@ class Gui2Model():
         self.connStatus = False
         self.conninfo=None
         self.workPath=path
-
 
     def checkConn(self):
         try:
@@ -1011,7 +1021,6 @@ class Gui2Model():
             self.dbConn = Database(**conninfo)
             self.connStatus = True
             return self.dbConn
-
 
 
     def initVectorGrass(self, type=None, name=None):
@@ -1117,7 +1126,8 @@ class Gui2Model():
         if state:
             self.initGrassLayerMgr()
             self.initTemporalMgr()
-        GMessage(msg)
+        return
+        #GMessage(msg)
         #self.initgrassManagement()
 
 
