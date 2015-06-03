@@ -1,0 +1,76 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>r.sample.category</em> generates points at random locations.
+Each category (class) in a raster map will contain specified number
+of random points.
+
+
+<h2>NOTES</h2>
+
+Mask (<em><a href="r.mask.html">r.mask</a></em>) to create points in areas
+with each category, thus mask cannot be active when the module is used.
+
+
+<h2>EXAMPLE</h2>
+
+Generate three points at random location for each category (class)
+in the raster map:
+
+<div class="code"><pre>
+r.sample.category input=landclass96 output=landclass_points npoints=3
+</pre></div>
+
+Show the result:
+
+<div class="code"><pre>
+d.rast map=landclass96
+d.vect map=landclass_points icon=basic/circle fill_color=aqua color=blue size=10
+</pre></div>
+
+<!--
+export GRASS_RENDER_IMMEDIATE=cairo
+export GRASS_RENDER_FILE=r.sample.category.png
+export GRASS_RENDER_WIDTH=800
+export GRASS_RENDER_HEIGHT=800
+export GRASS_RENDER_FILE_READ=TRUE
+d.rast map=landclass96
+d.vect map=landclass_points icon=basic/circle fill_color=aqua color=blue size=10
+mogrify -trim r.sample.category.png
+optipng -o9 r.sample.category.png
+-->
+
+<p>
+<center>
+<img src="r.sample.category.png"><br>
+Figure: Three random points in each category of landclass raster map
+</center>
+
+<h2>KNOWN ISSUES</h2>
+
+The module does not respect mask. More precisely it does not allow mask
+to be active when it is started because it sets the mask by itself
+for its own purposes. The mask is removed at the end of execution
+but all other modules executed in parallel with this module (such
+as rendering maps in GUI) will be influenced by the mask set
+by this module.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.sample.html">v.sample</a>,
+<a href="r.random.html">r.random</a>,
+<a href="r.random.cells.html">r.random.cells</a>,
+<a href="v.random.html">v.random</a>,
+<a href="v.what.rast.html">v.what.rast</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+<p>
+Vaclav Petras, <a href="http://gis.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>,<br>
+Anna Petrasova, <a href="http://gis.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>
+</p>
+
+<p><i>Last changed: $Date: 2013-12-19 17:46:26 -0500 (Thu, 19 Dec 2013) $</i>
