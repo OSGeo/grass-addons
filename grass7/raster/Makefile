@@ -68,6 +68,7 @@ SUBDIRS = \
 	r.regression.series \
 	r.rock.stability \
 	r.roughness.vector \
+	r.sample.category \
 	r.segment \
 	r.shaded.pca \
 	r.shalstab \

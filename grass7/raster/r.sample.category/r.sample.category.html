@@ -14,10 +14,13 @@ with each category, thus mask cannot be active when the module is used.
 
 <h2>EXAMPLE</h2>
 
+<h3>Generate random points</h3>
+
 Generate three points at random location for each category (class)
 in the raster map:
 
 <div class="code"><pre>
+g.region raster=landclass96
 r.sample.category input=landclass96 output=landclass_points npoints=3
 </pre></div>
 
@@ -45,6 +48,43 @@ optipng -o9 r.sample.category.png
 <img src="r.sample.category.png"><br>
 Figure: Three random points in each category of landclass raster map
 </center>
+
+<h3>Create a table with values sampled from rasters</h3>
+
+Create 2 random points per each category (class) in landclass96 raster
+and sample elevation and geology_30m rasters at these points:
+
+<div class="code"><pre>
+r.sample.category input=landclass96 output=landclass_points sampled=elevation,geology_30m npoints=2
+</pre></div>
+
+Look at the created data:
+
+<div class="code"><pre>
+v.db.select landclass_points sep=comma
+</pre></div>
+
+The result of <em><a href="v.db.select.html">v.db.select</a></em>
+is CSV table which can be used, for example in a spreadsheet application:
+
+<div class="code"><pre>
+cat,landclass96,elevation,geology_30m
+1,1,102.7855,270
+2,1,105.78,270
+3,2,114.5954,217
+4,2,137.4816,921
+5,3,71.19167,270
+6,3,93.33904,270
+7,4,76.41077,262
+8,4,97.54424,217
+9,5,138.455,405
+10,5,88.8075,270
+11,6,126.5298,217
+12,6,86.73177,217
+13,7,134.5381,217
+14,7,99.6844,270
+</pre></div>
+
 
 <h2>KNOWN ISSUES</h2>
 

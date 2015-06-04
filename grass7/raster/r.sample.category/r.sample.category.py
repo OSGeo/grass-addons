@@ -70,7 +70,23 @@ def cleanup():
 
 
 def escape_sql_column(name):
+    """Escape string to create a safe name of column for SQL
+
+    >>> escape_sql_column("elevation.10m")
+    elevation_10m
+    """
     name = name.replace('.', '_')
+    return name
+
+
+def strip_mapset(name):
+    """Strip Mapset name and '@' from map name
+
+    >>> strip_mapset('elevation@PERMANENT')
+    elevation
+    """
+    if '@' in name:
+        return name.split('@')[0]
     return name
 
 
@@ -125,8 +141,8 @@ def main():
     columns = []
     column_names = []
     sampled_rasters.insert(0, input_raster)
-    for predictor in sampled_rasters:
-        column = escape_sql_column(predictor.lower())
+    for raster in sampled_rasters:
+        column = escape_sql_column(strip_mapset(raster).lower())
         column_names.append(column)
         # TODO: column type according to map type
         columns.append("{column} double precision".format(column=column))
