@@ -5,7 +5,8 @@ SUBDIRS = \
 	g.compare.md5 \
 	g.copyall \
 	g.isis3mt \
-	g.proj.all
+	g.proj.all \
+	g.rename.many
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
