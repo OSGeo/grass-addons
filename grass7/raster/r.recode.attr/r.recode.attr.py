@@ -114,9 +114,9 @@ def main():
         grass.run_command('r.recode',
                 input = inputmap,
                 output = nmOutput,
-                rules = '.numpy_grass_recode')
+                rules = tmpname)
 
-        os.remove('.numpy_grass_recode')
+        os.remove(tmpname)
 
 
 if __name__ == "__main__":
