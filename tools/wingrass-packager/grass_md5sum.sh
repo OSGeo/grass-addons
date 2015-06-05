@@ -16,7 +16,7 @@ if test -z $1 ; then
     # dev packages
     ### create_md5sum grass64
     ### create_md5sum grass65
-    ### create_md5sum grass70
+    create_md5sum grass70
     create_md5sum grass71
 else
     create_md5sum grass$1

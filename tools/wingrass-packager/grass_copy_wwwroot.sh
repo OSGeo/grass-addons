@@ -43,13 +43,19 @@ function copy_addon {
     cp -r addons/logs                 $ADDONDIR
 }
 
+function create_zip {
+    echo "Creating zip..."
+    cd $WWWDIR
+    zip wingrass.zip grass64 grass70 grass71 -r -q
+}
+
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
 if test -z $1 ; then
     # daily builds
     ### copy 64 6.4.5svn
     ### copy 65
-    ### copy 70 7.0.1svn
+    copy 70 7.0.1svn
     copy 71 7.1.svn
     # releases
     copy_addon 644      6.4.4
@@ -57,5 +63,7 @@ if test -z $1 ; then
 else
     copy $1 $2
 fi
+
+create_zip
 
 exit 0

@@ -63,7 +63,7 @@ if test -z $VERSION ; then
     # dev packages
     ### update grass64_release grass64
     ### update grass6_devel    grass65
-    ### update grass70_release grass70
+    update grass70_release grass70
     update grass_trunk     grass71
 else
     update grass$VERSION   grass$VERSION $NUM

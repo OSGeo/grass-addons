@@ -28,6 +28,7 @@ function tidy_citizen {
 function compile {
     export PATH=$PATH:/c/OSGeo4W$4/apps/msys/bin:/c/OSGeo4W$4/bin:$2/dist.i686-pc-mingw32/bin:$2/dist.i686-pc-mingw32/scripts:/c/subversion/bin/svn
     export PYTHONHOME=/c/OSGeo4W$4/apps/Python27
+
     rm -rf $3
     $SVN_PATH/tools/addons/compile.sh $1 $2 $3 1
     cd $3
@@ -65,7 +66,7 @@ if test -z $1 ; then
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass644        $ADDON_PATH/grass644/addons
     ### compile $SVN_PATH/grass6 $GISBASE_PATH/grass64_release $ADDON_PATH/grass64/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass700        $ADDON_PATH/grass700/addons
-    ### compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release $ADDON_PATH/grass70/addons
+    ###compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release $ADDON_PATH/grass70/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     $ADDON_PATH/grass71/addons
 else
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass$1         $ADDON_PATH/grass$1/addons
