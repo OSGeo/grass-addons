@@ -27,7 +27,7 @@ class MdDescription():
     def __init__(self, tag=None, object=None, name='', desc=None,
                  example=None, type=None, multi=0, inboxmulti=None,
                  group=None, inbox=None, multiline=None, validator=None,
-                 num=None, ref=None, selfInfoString=None):
+                 num=None, ref=None, selfInfoString=None,database=None):
         '''
         @param tag: OWSLib object which will be replaced by value of object after jinja template system renders new file
         @param object: some objects in OWSLib need to be initialized temporally in gui generator. Others are initialized by configure file
@@ -60,6 +60,7 @@ class MdDescription():
         self.group = group
         self.inbox = inbox
         self.ref = ref
+        self.databaseAttr=database
         self.selfInfoString = selfInfoString
 
         self.inboxmulti = inboxmulti

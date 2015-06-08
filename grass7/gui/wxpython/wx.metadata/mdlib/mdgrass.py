@@ -124,8 +124,10 @@ class GrassMD():
         #self.md_grass       dictionary of metadata from v.info
         #self.md_abstract    string created by merge information from 'description' and 'source'
         '''
+        map=str(self.map).partition('@')[0]
+        print map
         rinfo = Module('r.info',
-                       self.map,
+                       map,
                        flags='gre',
                        quiet=True,
                        stdout_=PIPE)

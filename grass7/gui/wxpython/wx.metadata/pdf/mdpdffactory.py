@@ -61,16 +61,16 @@ class PdfCreator(object):
 
         if idx == -1:
             if len(values) == 0:
-                values.append('$NULL')
+                values.append('unknown')
             return values
 
         if len(values) <= idx:
-            return '$NULL'
+            return 'unknown'
 
         if values[idx] is not None:
             return values[idx]
 
-        return '$NULL'
+        return 'unknown'
 
     # def chckTextValidity(self):
     def tableFactory(self, title, headers, key):
@@ -84,7 +84,7 @@ class PdfCreator(object):
         for i in range(len(self.findItem(self.story[key], headers[0]))):
             for header in headers:
                 value = self.findItem(self.story[key], header, i)
-                # value=self.chckTextValidity(value)
+                #value=self.chckTextValidity(value)
                 text = Paragraph("""
                 %s<br/>
                 """ % value, MyTheme.paragraph)
@@ -172,7 +172,7 @@ class PdfCreator(object):
 
         self.tableFactory("Resource language", ['Language'], 'identification')
         # head = ['Organization name', 'E-mail','Role']
-        # .tableFactory("identifier",head,'contact')
+        #.tableFactory("identifier",head,'contact')
 
         ##################### Keywords ################################## TODO
 

@@ -69,6 +69,7 @@ class MdMainFrame(wx.Frame):
         @var first,firstAfterChoice,second,secondAfterChoice,secondMultiEdit: initMultipleEditor() and onInitEditor() handler
         @var self. initMultipleEditor() and onInitEditor() handler
         @var self.templateEditor: true= Editor is in mode 'Template creator(widgets with chkbox)'
+        @var nameTMPprofile: in case if 'profile editor is on' this var holds name oof temporaly jinja profile
         @var batch: if true multiple editing metadata of maps is ON
         '''
         wx.Frame.__init__(self, None, title="Metadata Editor", size=(650, 500))
@@ -788,7 +789,7 @@ class MdEditConfigPanel(wx.Panel):
         pub.subscribe(self.onComboboxDisable, "comboBoxProfile.disable")
         pub.subscribe(self.onComboboxEnable, "comboBoxProfile.enable")
         pub.subscribe(self.onSetProfile, "SET_PROFILE.update")
-        self.comboBoxProfile.SetStringSelection('GRASS BASIC')
+        self.comboBoxProfile.SetStringSelection('INSPIRE')#TODO
 
         self.Bind(wx.EVT_RADIOBUTTON, self.onSetRadioType, id=self.rbGrass.GetId())
         self.Bind(wx.EVT_RADIOBUTTON, self.onSetRadioType, id=self.rbExternal.GetId())

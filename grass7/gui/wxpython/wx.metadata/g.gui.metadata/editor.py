@@ -22,6 +22,7 @@ This program is free software under the GNU General Public License
 import re
 import os
 import sys
+import tempfile
 import contextlib
 from lxml import etree
 
@@ -39,6 +40,9 @@ from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
     TimeISOValidator, EmailValidator  # ,EmptyValidator
 import mdutil
 
+from core.gcmd import RunCommand
+from subprocess import PIPE
+from grass.pygrass.modules import Module
 #=========================================================================
 # MD filework
 #=========================================================================
@@ -151,6 +155,7 @@ class MdFileWork():
 # CREATE BOX (staticbox+button(optional)
 #=========================================================================
 
+    
 
 class MdBox(wx.Panel):
 
@@ -210,7 +215,9 @@ class MdBox(wx.Panel):
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
 
-    def addDuplicatedItem(self, item,mdID):
+
+        
+    def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
         self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
         self.GetParent().Layout()
@@ -243,10 +250,38 @@ class MdBox(wx.Panel):
         clonedBox = duplicator.mdBox
         self.GetParent().addDuplicatedItem(clonedBox, self.GetId())
 
+
+#===============================================================================
+# Handling keywords from database
+#===============================================================================
+class MdBoxKeywords(MdBox):
+    def __init__(self,parent,parent2,label):
+        super(MdBoxKeywords, self).__init__(parent,label)
+        self.panelSizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.panelSizer)
+        self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.parent2=parent2
+
+        self.panelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
+        self.parent=parent
+        self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
+        self.boxButtonSizer.Add(self.stBoxSizer, flag=wx.EXPAND, proportion=1)
+        self.itemHolder=[]
+        self.textTMP=None
+
+    def addKeywordItem(self,item):
+        self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
+
+    def removeKeywordItem(self,item):
+        self.parent2.removeKeyfromBox(item,self.textTMP)
+        self.stBoxSizer.Remove(item)
+        self.parent.Fit()
+
+
 #===============================================================================
 # DUPLICATOR OF WIDGETS-mditem
 #===============================================================================
-
 
 class MdWxDuplicator():
 
@@ -308,7 +343,6 @@ class MdWxDuplicator():
 #=========================================================================
 # METADATA ITEM (label+ctrlText+button(optional)+chckbox(template)
 #=========================================================================
-
 class MdItem(wx.BoxSizer):
 
     '''main building blocks of generated GUI of editor
@@ -331,7 +365,8 @@ class MdItem(wx.BoxSizer):
         self.mdDescription = item
         self.chckBox = chckBox
         self.multiple = multiplicity
-
+        self.parent=parent
+        added=False
         if multiplicity is None:
             self.multiple = item.multiplicity
 
@@ -340,10 +375,24 @@ class MdItem(wx.BoxSizer):
 
         if isFirstNum != 1 and item.multiplicity:
             rmMulti = True
-
         self.tagText = wx.StaticText(parent=parent, id=ID_ANY, label=item.name)
+        if self.mdDescription.databaseAttr =='language':
+            self.fillComboDB('language')
+            added=True
+        elif self.mdDescription.databaseAttr =='topicCategory':
+            self.fillComboDB('topicCategory')
+            added=True
+        elif self.mdDescription.databaseAttr =='degree':
+            self.fillComboDB('degree')
+            added=True
+        elif self.mdDescription.databaseAttr =='dateType':
+            self.fillComboDB('dateType')
+            added=True
+        elif self.mdDescription.databaseAttr =='role':
+            self.fillComboDB('role')
+            added=True
 
-        if self.chckBox == False:
+        if self.chckBox is False and not added:
             if item.multiline is True:
                 self.valueCtrl = wx.TextCtrl(parent, id=ID_ANY, size=(0, 70),
                                              validator=self.validators(item.type),
@@ -355,7 +404,7 @@ class MdItem(wx.BoxSizer):
                                              validator=self.validators(item.type),
                                              style=wx.VSCROLL | wx.TE_DONTWRAP |
                                              wx.TAB_TRAVERSAL | wx.RAISED_BORDER | wx.HSCROLL)
-        else:
+        elif self.chckBox is True and not added:
             if item.multiline is True:
                 self.valueCtrl = wx.TextCtrl(parent, id=ID_ANY, size=(0, 70),
                                              style=wx.VSCROLL |
@@ -365,6 +414,7 @@ class MdItem(wx.BoxSizer):
                 self.valueCtrl = wx.TextCtrl(parent, id=wx.ID_ANY,
                                              style=wx.VSCROLL | wx.TE_DONTWRAP |
                                              wx.TAB_TRAVERSAL | wx.RAISED_BORDER | wx.HSCROLL)
+
 
         self.valueCtrl.Bind(wx.EVT_MOTION, self.onMove)
         self.valueCtrl.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
@@ -389,6 +439,32 @@ class MdItem(wx.BoxSizer):
 
         self._addItemLay(item.multiline, rmMulti)
 
+    def fillComboDB(self,label):
+        if label == 'language':
+            lang=["Afrikaans","Albanian","Arabic","Armenian","Basque","Bengali","Bulgarian","Catalan","Cambodian","Chinese","Croatian","Czech","Danish","Dutch","English","Estonian","Fiji","Finnish","French","Georgian","German","Greek","Gujarati","Hebrew","Hindi","Hungarian","Icelandic","Indonesian","Irish","Italian","Japanese","Javanese","Korean","Latin","Latvian","Lithuanian","Macedonian","Malay","Malayalam","Maltese","Maori","Marathi","Mongolian","Nepali","Norwegian","Persian","Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Serbian","Slovak","Slovenian","Spanish","Swahili","Swedish","Tamil","Tatar","Telugu","Thai","Tibetan","Tonga","Turkish","Ukrainian","Urdu","Uzbek","Vietnamese","Welsh","Xhosa"]
+            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            for lng in lang:
+                self.valueCtrl.Append(lng)
+        if label == 'topicCategory':
+            lang= ['farming','biota','boundaries','climatologyMeteorologyAtmosphere','economy','elevation','enviroment','geoscientificInformation','health','imageryBaseMapsEarthCover','intelligenceMilitary','inlandWaters','location','planningCadastre','society','structure','transportation','utilitiesCommunication']
+            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            for lng in lang:
+                self.valueCtrl.Append(lng)
+        if label == 'degree':
+            lang=['Not evaluated','Not conformant','Conformant']
+            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            for lng in lang:
+                self.valueCtrl.Append(lng)
+        if label == 'dateType':
+            lang=['Date of creation','Date of last revision', 'Date of publication']
+            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            for lng in lang:
+                self.valueCtrl.Append(lng)
+        if label == 'role':
+            lang=['Author','Custodian','Distributor','Originator','Owner','Point of contact','Principal Investigation','Processor','Publisher','Resource provider','User']
+            self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
+            for lng in lang:
+                self.valueCtrl.Append(lng)
     def validators(self, validationStyle):
 
         if validationStyle == 'email':
@@ -572,6 +648,47 @@ class MdItem(wx.BoxSizer):
         self.Add(item=self.tagText, proportion=0)
         self.Add(item=self.textFieldSizer, proportion=0, flag=wx.EXPAND)
 
+
+class MdItemKeyword(wx.BoxSizer):
+    def __init__(self, parent, text,keyword,title, keywordObj):
+        wx.BoxSizer.__init__(self, wx.VERTICAL)
+        self.isValid = False
+        self.isChecked = False
+        self.keywordObj=keywordObj
+        self.text = wx.StaticText(parent=parent, id=ID_ANY, label=text)
+        self.parent=parent
+        self.rmItemButt = wx.Button(parent, -1, size=(30, 30), label='-')
+        self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
+        self.keyword=keyword
+        self.title=title
+        #self.createInfo()
+        #self.tip = wx.ToolTip(self.infoTip)
+        self.layout()
+
+    def getVal(self):
+        return  self.text.GetLabel()
+
+    def getKyewordObj(self):
+        self.keywordObj['keywords']=self.keyword
+        self.keywordObj['title']=self.title
+        return self.keywordObj
+
+    def removeItem(self,evt):
+        self.parent.textTMP=self.text.GetLabel()
+        self.textFieldSizer.Clear()
+        #self.textFieldSizer.Destroy()
+
+        self.rmItemButt.Destroy()
+        self.text.Destroy()
+        self.parent.removeKeywordItem(self)
+
+    def layout(self):
+        self.textFieldSizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.textFieldSizer.Add(self.rmItemButt, 0,flag=wx.LEFT)
+        self.textFieldSizer.Add(self.text, 0,flag=wx.RIGHT)
+        self.Add(item=self.textFieldSizer, proportion=0, flag=wx.EXPAND)
+#=========================================================================
 #=========================================================================
 # ADD NOTEBOOK PAGE
 #=========================================================================
@@ -601,6 +718,9 @@ class MdNotebookPage(scrolled.ScrolledPanel):
         '''
         self.sizerIndex += 1
         return self.sizerIndex
+
+    def addKeywordObj(self,item):
+        self.mainSizer.Add(item, proportion=0, flag=wx.EXPAND)
 
     def addItem(self, item):
         '''
@@ -642,11 +762,143 @@ class MdNotebookPage(scrolled.ScrolledPanel):
             item.Destroy()
         self.SetSizerAndFit(self.mainSizer)
 
+#class MdItemKyewords
+class MdKeywords(wx.BoxSizer):
+    def __init__(self,parent,mdObject,mdOWS):
+        wx.BoxSizer.__init__(self, wx.VERTICAL)
+        self.itemHolder=set()
+        self.parent=parent
+        self.keywordsOWSObject=mdOWS
+
+        self.comboKeysLabel=wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
+        self.comboKeys=wx.ComboBox(parent=self.parent, id=ID_ANY)
+
+        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY,size=(0, 120),style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_DEFAULT_STYLE)
+        self.box=MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
+        self.memKeys=set()
+        self.comboKeys.Bind(wx.EVT_COMBOBOX,self.onSetVocabulary)
+        self.keysList.Bind(wx.EVT_TREE_ITEM_ACTIVATED,self.addItemsToBox)
+        self.layout()
+        Module('db.connect',flags='d')
+        self.fillDb()
+        self.fillKeywordsList()
+
+    def removeKeyfromBox(self,item,text):
+        self.memKeys.remove(text)
+        self.itemHolder.remove(item)
+
+    def addItemsToBox(self,evt):
+        item = evt.GetItem()
+        if item == self.keysList.GetRootItem():
+            return
+
+        keyword=self.keysList.GetItemText(item)
+        currKeyword=self.titles[self.comboKeys.GetValue()]
+        out=self.comboKeys.GetValue()+', '+ keyword+', '+ currKeyword['type']+', '+ currKeyword['date']
+        if keyword in self.memKeys:
+            return
+        self.memKeys.add(out)
+
+        kItem=MdItemKeyword(self.box,out,keyword,self.comboKeys.GetValue(),currKeyword)
+        self.itemHolder.add(kItem)
+        self.box.addKeywordItem(kItem)
+        self.box.Fit()
+        self.parent.Fit()
+
+    def dbSelect(self,sql):
+        res = Module('db.select',
+                sql=sql,
+                flags='c',
+                stdout_=PIPE)
+        return res.outputs.stdout
+
+    def dbExecute(self,sql):
+        res = Module('db.execute',
+                sql=sql)
+
+    def GetKws(self):
+        return self.itemHolder# dict is in var keywordObj
+
+    def fillDb(self):
+
+
+
+        if not mdutil.isTableExists('metadata_themes'):
+            sql='create table if not exists metadata_themes (title TEXT, keyword TEXT, date_iso TEXT ,date_type TEXT)'
+            self.dbExecute(sql)
+            p1=os.path.join(sys.path[0],'..')
+
+            titles = [['keywordConcepts','GEMET - Concepts, version 2.4'],
+                     ['keywordThemes','GEMET - Themes, version 2.4'],
+                     ['keywordGroups','GEMET - Groups, version 2.4']]
+            for title in titles:
+                path = os.path.join(p1, 'config', title[0])
+                str=''
+                with open(path, "r") as inp :
+                    exec(inp.read())
+
+                    for item in keywords:
+                            str+="('%s','%s','%s','%s'),"%(title[1],item['preferredLabel']['string'],'2010-01-13','publication')
+                    str=str[:-1]
+                    sql="INSERT INTO 'metadata_themes' ('title', 'keyword', 'date_iso' ,'date_type' ) VALUES"+str
+                inp.close()
+                self.dbExecute(sql)
+
+    def fillKeywordsList(self):
+        sql='SELECT title,keyword,date_iso,date_type FROM metadata_themes'
+
+        #TODO check if database exist
+        self.keysDict=None
+        metaRepository=self.dbSelect(sql)
+        self.titles={}
+        theme=''
+        titleTmp=None
+        lines=metaRepository.splitlines()
+        #lines.pop()
+        for line in lines:
+            line=line.split('|')
+            if theme != line[0]: #if new theme found
+                if titleTmp is not None:#first loop
+                    self.titles[titleTmp]=self.keysDict
+                theme=line[0]
+                self.keysDict={}
+                self.keysDict['date']=line[2]
+                self.keysDict['type']=line[3]
+                self.keysDict['keywords']=[1]
+            self.keysDict['keywords'].append(str(line[1]))
+            titleTmp=line[0]
+
+        if self.keysDict is None:
+            GMessage('Predefined values of metadata are missing in database')
+            return
+        self.titles[titleTmp]=self.keysDict
+
+        for key in self.titles.keys():
+            self.comboKeys.Append(key)
+
+    def onSetVocabulary(self,evt):
+        self.keysList.DeleteAllItems()
+        self.root=self.keysList.AddRoot('Keywords')
+        title=self.comboKeys.GetValue()
+
+        keywords=self.titles[title]['keywords']
+        keywords.pop(0)
+        for keyword in keywords:
+            self.keysList.AppendItem(parent=self.root,text=str(keyword))
+        self.keysList.ExpandAll()
+
+    def layout(self):
+        self.Add(self.box,flag=wx.EXPAND)
+        self.Add(self.comboKeysLabel,flag=wx.EXPAND)
+        self.Add(self.comboKeys,flag=wx.EXPAND)
+        self.AddSpacer(10, 10, 1, wx.EXPAND)
+
+        self.Add(self.keysList,proportion=1,flag=wx.EXPAND)
+
+
 #=========================================================================
 # MAIN FRAME
 #=========================================================================
-
-
 class MdMainEditor(wx.Panel):
 
     '''
@@ -673,7 +925,8 @@ class MdMainEditor(wx.Panel):
         # string of tags from jinja template (loops and OWSLib objects)
         self.mdOWSTagStr = self.jinj.mdOWSTagStr
         self.mdOWSTagStrList = self.jinj.mdOWSTagStrList  #
-
+        self.keywords=None
+        self.nbPage=None
         self.generateGUI()
         self._layout()
 
@@ -682,7 +935,7 @@ class MdMainEditor(wx.Panel):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
         '''
-        # print stri
+        #print stri
         exec stri
 
     def plusC(self, num=None):
@@ -875,7 +1128,7 @@ class MdMainEditor(wx.Panel):
 
     #--------------------------------------------------------------------- INIT VARS
         self.notebook = wx.Notebook(self)
-        markgroup = []  # notebook panel marker
+        markedgroup = []  # notebook panel marker
         tagStringLst = self.mdOWSTagStrList
         mdDescrObj = self.mdDescription  # from jinja
         self.c = 0
@@ -887,10 +1140,13 @@ class MdMainEditor(wx.Panel):
         while self.stop is False:  # self.stop is managed by def plusC(self):
             group = mdDescrObj[self.c].group
 
-            if group not in markgroup:  # if group is not created
-                markgroup.append(group)  # mark group
+            if group not in markedgroup:  # if group is not created
+                markedgroup.append(group)  # mark group
                 self.nbPage = MdNotebookPage(self.notebook)
                 self.notebook.AddPage(self.nbPage, mdDescrObj[self.c].group)
+                if mdDescrObj[self.c].group=='Keywords':
+                    self.keywords=MdKeywords(parent=self.nbPage,mdObject=mdDescrObj[self.c],mdOWS=self.md.identification.keywords)
+                    self.nbPage.addKeywordObj(self.keywords)
                 self.notebokDict[mdDescrObj[self.c].group] = self.nbPage
             else:
                 self.nbPage = self.notebokDict[mdDescrObj[self.c].group]
@@ -1036,6 +1292,22 @@ class MdMainEditor(wx.Panel):
         '''
         # print stri
         exec stri
+
+    def getKeywordsFromRepositoryWidget(self,md):
+
+        for item in self.keywords.GetKws():
+            titles=item.getKyewordObj()
+
+            kw = {}
+            kw['keywords'] = []
+            kw['keywords'].append(titles['keywords'])
+            kw['type'] = None
+            kw['thesaurus'] = {}
+            kw['thesaurus']['title']=titles['title']
+            kw['thesaurus']['date']=titles['date']
+            kw['thesaurus']['datetype']=titles['type']
+            md.identification.keywords.append(kw)
+        return md
 
     def saveMDfromGUI(self, evt=None):
         '''Main function for exporting metadata from filled widgets.
@@ -1290,9 +1562,7 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         dirpath = os.path.dirname(os.path.realpath(__file__))
-        #print dirpath
         path = os.path.join(os.path.join(sys.path[0],'..'), 'config', 'init_md')
-        #print path
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()
@@ -1318,6 +1588,7 @@ class MdMainEditor(wx.Panel):
             elif chckIf1Statements:
                 inStatements()
 
+        self.md = self.getKeywordsFromRepositoryWidget(self.md)
         return self.md
 #------------------------------------ END- FILL OWSLib BY EDITED METADATA IN GUI
 

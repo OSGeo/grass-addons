@@ -24,8 +24,17 @@ This program is free software under the GNU General Public License
 import string
 import os
 from grass.script import core as grass
+from grass.pygrass.modules import Module
+from subprocess import PIPE
+
 import wx
 
+def isTableExists(name):
+    res = Module('db.tables',flags='p',stdout_=PIPE)
+    for line in res.outputs.stdout.splitlines():
+        if name == line:
+                return True
+    return False
 
 def removeNonAscii(s):
     '''Removed non ASCII chars

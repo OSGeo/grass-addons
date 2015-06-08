@@ -24,7 +24,7 @@
                 </gmd:CI_Contact>
             </gmd:contactInfo>
             <gmd:role>
-                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="{{ co.role }}{# tag="co.role",name="Responsible party role",ref="Part B 9.2" , multi = 0,type = "CI_RoleCode", inboxmulti = 1,group = "Responsible party",object="CI_ResponsibleParty()", inbox="Metadata pointt of contact",example="custodian", desc="function performed by the responsible party" #}" codeSpace="ISOTC211/19115">{{ co.role }}</gmd:CI_RoleCode>
+                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="{{ co.role }}{# tag="co.role",name="Responsible party role",ref="Part B 9.2" , multi = 0,type = "CI_RoleCode", inboxmulti = 1,group = "Responsible party",object="CI_ResponsibleParty()", inbox="Metadata pointt of contact",example="custodian", desc="function performed by the responsible party",database="role"  #}" codeSpace="ISOTC211/19115">{{ co.role }}</gmd:CI_RoleCode>
             </gmd:role>
         </gmd:CI_ResponsibleParty>
     </gmd:contact>
