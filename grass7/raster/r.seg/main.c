@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.seg
@@ -30,38 +31,40 @@
 
 int main(int argc, char *argv[])
 {
-    char *in_g;					/* input, raster map to be segmented */
-    char *out_z;				/* output, raster map with detected discontinuities (edges) */
-    char *out_u;				/* output, segmented raster map */
-    double lambda;				/* scale coefficient */
-    double alpha;				/* elasticity coefficient */
-    double kepsilon;			/* discontinuities thickness */
-    double beta;				/* rigidity coefficient */
-    double tol;					/* convergence tolerance */
-    double *mxdf;				/* maximum difference betweed two iteration steps */
-    int max_iter;				/* max number of numerical iterations */
-    int iter;					/* iteration index */
-    const char *mapset;			/* current mapset */
-    void *g_row;				/* input row buffer */
-    void *out_u_row, *out_z_row;/* output row buffers */
-    int nr, nc, nrc;			/* number of rows and colums */
-    int i, j;					/* row and column indexes: i=colum=x, j=row=y */
-    int jnc;					/* row sequential position, for pointers */
-    int g_fd, out_u_fd, out_z_fd;/* file descriptors */
-    int usek;					/* use MSK (MS with the curvature term) */
-    double *g, *u, *z;			/* the variables for the actual computation */
+    char *in_g;                 /* input, raster map to be segmented */
+    char *out_z;                /* output, raster map with detected discontinuities (edges) */
+    char *out_u;                /* output, segmented raster map */
+    double lambda;              /* scale coefficient */
+    double alpha;               /* elasticity coefficient */
+    double kepsilon;            /* discontinuities thickness */
+    double beta;                /* rigidity coefficient */
+    double tol;                 /* convergence tolerance */
+    double *mxdf;               /* maximum difference betweed two iteration steps */
+    int max_iter;               /* max number of numerical iterations */
+    int iter;                   /* iteration index */
+    const char *mapset;         /* current mapset */
+    void *g_row;                /* input row buffer */
+    void *out_u_row, *out_z_row;        /* output row buffers */
+    int nr, nc, nrc;            /* number of rows and colums */
+    int i, j;                   /* row and column indexes: i=colum=x, j=row=y */
+    int jnc;                    /* row sequential position, for pointers */
+    int g_fd, out_u_fd, out_z_fd;       /* file descriptors */
+    int usek;                   /* use MSK (MS with the curvature term) */
+    double *g, *u, *z;          /* the variables for the actual computation */
 
-    struct Cell_head cellhd;	/* GRASS region information */
-    struct History history;		/* for map history */
-    struct GModule *module;		/* GRASS module for parsing */
-    struct {
-		struct Option *in_g, *out_z, *out_u;	/* parameters */
+    struct Cell_head cellhd;    /* GRASS region information */
+    struct History history;     /* for map history */
+    struct GModule *module;     /* GRASS module for parsing */
+    struct
+    {
+        struct Option *in_g, *out_z, *out_u;    /* parameters */
     } parm;
-    struct {
-		struct Option *lambda, *kepsilon, *alpha, *beta, *tol, *max_iter;	/* other parameters */
+    struct
+    {
+        struct Option *lambda, *kepsilon, *alpha, *beta, *tol, *max_iter;       /* other parameters */
     } opts;
-    struct Flag *flag_k;		/* flag, k = use MSK instead of MS */
-    RASTER_MAP_TYPE dcell_data_type;/* GRASS raster data type (for DCELL raster) */
+    struct Flag *flag_k;        /* flag, k = use MSK instead of MS */
+    RASTER_MAP_TYPE dcell_data_type;    /* GRASS raster data type (for DCELL raster) */
 
 
     /* initialize GRASS environment */
@@ -73,7 +76,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("edge detection"));
     G_add_keyword(_("smooth"));
     module->description =
-	_("Generates a smooth approximation of the input raster and a discontinuity map");
+        _("Generates a smooth approximation of the input raster and a discontinuity map");
 
     parm.in_g = G_define_option();
     parm.in_g->key = "in_g";
@@ -94,7 +97,7 @@ int main(int argc, char *argv[])
     parm.out_z->type = TYPE_STRING;
     parm.out_z->required = YES;
     parm.out_z->description =
-	_("Output raster map with detected discontinuities");
+        _("Output raster map with detected discontinuities");
     parm.out_z->gisprompt = "new,cell,raster";
 
     opts.lambda = G_define_option();
@@ -116,8 +119,7 @@ int main(int argc, char *argv[])
     opts.max_iter->type = TYPE_INTEGER;
     opts.max_iter->required = NO;
     opts.max_iter->answer = "100";
-    opts.max_iter->description =
-	_("Maximal number of numerical iterations");
+    opts.max_iter->description = _("Maximal number of numerical iterations");
 
     opts.tol = G_define_option();
     opts.tol->key = "tol";
@@ -131,8 +133,7 @@ int main(int argc, char *argv[])
     opts.kepsilon->type = TYPE_DOUBLE;
     opts.kepsilon->required = NO;
     opts.kepsilon->answer = "1.0";
-    opts.kepsilon->description =
-	_("Discontinuity thickness [>0]");
+    opts.kepsilon->description = _("Discontinuity thickness [>0]");
 
     opts.beta = G_define_option();
     opts.beta->key = "beta";
@@ -150,12 +151,13 @@ int main(int argc, char *argv[])
 
     flag_k = G_define_flag();
     flag_k->key = 'k';
-    flag_k->description = _("Activate MSK model (Mumford-Shah with curvature term)");
+    flag_k->description =
+        _("Activate MSK model (Mumford-Shah with curvature term)");
 
 
     /* parameters and flags parser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* store parameters and flags to variables */
     in_g = parm.in_g->answer;
@@ -170,27 +172,25 @@ int main(int argc, char *argv[])
     max_iter = atoi(opts.max_iter->answer);
 
     if (((usek = (flag_k->answer) == 0) && (beta != 0.0)))
-	G_warning(_
-		  ("Beta is not zero and you have not activated the MSK formulation: \n \
+        G_warning(_("Beta is not zero and you have not activated the MSK formulation: \n \
 				beta will be ignored and MS (default) will be used."));
 
     if (((usek = (flag_k->answer) == 1) && (beta == 0.0)))
-	G_warning(_
-		  ("You have activated the MSK formulation, but beta is zero:\n \
+        G_warning(_("You have activated the MSK formulation, but beta is zero:\n \
 				beta should be greater than zero in MSK."));
 
     /* check existence and names of raster maps */
     mapset = G_find_raster2(in_g, "");
     if (!mapset)
-	G_fatal_error(_("raster file [%s] not found"), in_g);
+        G_fatal_error(_("raster file [%s] not found"), in_g);
     if (G_legal_filename(out_u) < 0)
-	G_fatal_error(_("[%s] is an illegal file name"), out_u);
+        G_fatal_error(_("[%s] is an illegal file name"), out_u);
     G_check_input_output_name(in_g, out_u, G_FATAL_EXIT);
     if (G_legal_filename(out_z) < 0)
-	G_fatal_error(_("[%s] is an illegal file name"), out_z);
+        G_fatal_error(_("[%s] is an illegal file name"), out_z);
     G_check_input_output_name(in_g, out_z, G_FATAL_EXIT);
     if (strcmp(out_u, out_z) == 0)
-	G_fatal_error(_("Output raster maps have the same name [%s]"), out_u);
+        G_fatal_error(_("Output raster maps have the same name [%s]"), out_u);
 
 
     /* -------------------------------------------------------------------- */
@@ -216,9 +216,9 @@ int main(int argc, char *argv[])
 
 
     /* open the input raster map for reading */
-    if ((g_fd =  Rast_open_old(in_g, mapset)) < 0)
-	G_fatal_error(_("cannot open raster file [%s]"), in_g);
-	Rast_get_cellhd(in_g, mapset, &cellhd);
+    if ((g_fd = Rast_open_old(in_g, mapset)) < 0)
+        G_fatal_error(_("cannot open raster file [%s]"), in_g);
+    Rast_get_cellhd(in_g, mapset, &cellhd);
 
 
     /* allocate the buffer for storing the values of the input raster map */
@@ -227,15 +227,15 @@ int main(int argc, char *argv[])
 
     /* read the input raster map + fill up the variable pointers with pixel values */
     for (j = 0; j < nr; j++) {
-	jnc = j * nc;
+        jnc = j * nc;
 
-	Rast_get_row(g_fd, g_row, j, dcell_data_type);
+        Rast_get_row(g_fd, g_row, j, dcell_data_type);
 
-	for (i = 0; i < nc; i++) {
-	    *(g + jnc + i) = ((DCELL *) g_row)[i];
-	    *(u + jnc + i) = ((DCELL *) g_row)[i];
-	    *(z + jnc + i) = 1.0;
-	}
+        for (i = 0; i < nc; i++) {
+            *(g + jnc + i) = ((DCELL *) g_row)[i];
+            *(u + jnc + i) = ((DCELL *) g_row)[i];
+            *(z + jnc + i) = 1.0;
+        }
     }
 
 
@@ -250,22 +250,22 @@ int main(int argc, char *argv[])
 
     /* call the library function to perform the segmentation */
     if (usek == 0) {
-	*mxdf = 0;
-	ms_n(g, u, z, lambda, kepsilon, alpha, mxdf, nr, nc);
-	while ((*mxdf > tol) && (iter <= max_iter)) {
-	    *mxdf = 0;
-	    ms_n(g, u, z, lambda, kepsilon, alpha, mxdf, nr, nc);
-	    iter += 1;
-	}
+        *mxdf = 0;
+        ms_n(g, u, z, lambda, kepsilon, alpha, mxdf, nr, nc);
+        while ((*mxdf > tol) && (iter <= max_iter)) {
+            *mxdf = 0;
+            ms_n(g, u, z, lambda, kepsilon, alpha, mxdf, nr, nc);
+            iter += 1;
+        }
     }
     else {
-	*mxdf = 0;
-	msk_n(g, u, z, lambda, kepsilon, alpha, beta, mxdf, nr, nc);
-	while ((*mxdf > tol) && (iter <= max_iter)) {
-	    *mxdf = 0;
-	    msk_n(g, u, z, lambda, kepsilon, alpha, beta, mxdf, nr, nc);
-	    iter += 1;
-	}
+        *mxdf = 0;
+        msk_n(g, u, z, lambda, kepsilon, alpha, beta, mxdf, nr, nc);
+        while ((*mxdf > tol) && (iter <= max_iter)) {
+            *mxdf = 0;
+            msk_n(g, u, z, lambda, kepsilon, alpha, beta, mxdf, nr, nc);
+            iter += 1;
+        }
     }
 
 
@@ -275,9 +275,9 @@ int main(int argc, char *argv[])
 
     /* open the output raster maps for writing */
     if ((out_u_fd = Rast_open_new(out_u, dcell_data_type)) < 0)
-	G_fatal_error(_("cannot open raster file [%s]"), out_u);
+        G_fatal_error(_("cannot open raster file [%s]"), out_u);
     if ((out_z_fd = Rast_open_new(out_z, dcell_data_type)) < 0)
-	G_fatal_error(_("cannot open raster file [%s]"), out_z);
+        G_fatal_error(_("cannot open raster file [%s]"), out_z);
 
 
     /* allocate the buffer for storing the values of the output raster maps */
@@ -287,13 +287,13 @@ int main(int argc, char *argv[])
 
     /* fill up the output buffers with result values + write the output raster maps */
     for (j = 0; j < nr; j++) {
-	jnc = j * nc;
-	for (i = 0; i < nc; i++) {
-	    ((DCELL *) out_u_row)[i] = *(u + jnc + i);
-	    ((DCELL *) out_z_row)[i] = *(z + jnc + i);
-	}
-	Rast_put_row(out_u_fd, out_u_row, dcell_data_type);
-	Rast_put_row(out_z_fd, out_z_row, dcell_data_type);
+        jnc = j * nc;
+        for (i = 0; i < nc; i++) {
+            ((DCELL *) out_u_row)[i] = *(u + jnc + i);
+            ((DCELL *) out_z_row)[i] = *(z + jnc + i);
+        }
+        Rast_put_row(out_u_fd, out_u_row, dcell_data_type);
+        Rast_put_row(out_z_fd, out_z_row, dcell_data_type);
     }
 
 
@@ -309,8 +309,8 @@ int main(int argc, char *argv[])
 
     /* write history file */
     Rast_short_history(out_u, "raster", &history);
-	Rast_command_history(&history);
-	Rast_append_format_history(&history, "\nIterations = %i", iter);
+    Rast_command_history(&history);
+    Rast_append_format_history(&history, "\nIterations = %i", iter);
     Rast_write_history(out_u, &history);
     Rast_write_history(out_z, &history);
 
@@ -318,4 +318,3 @@ int main(int argc, char *argv[])
     /* exit */
     exit(EXIT_SUCCESS);
 }
-
