@@ -23,6 +23,7 @@
 #% keyword: random
 #% keyword: points
 #% keyword: vector
+#% keyword: stratified sampling
 #%end
 #%option G_OPT_R_INPUT
 #% description: Name of input raster map with categories (classes)
