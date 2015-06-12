@@ -28,7 +28,7 @@ if exist .\grass71 rmdir /S/Q .\grass71
 xcopy C:\OSGeo4W\usr\src\grass_trunk\mswindows\* .\grass71 /S/V/F/I
 
 REM
-REM Prepare packages
+echo Preparing packages...
 REM
 REM cd .\grass64
 REM call .\GRASS-Packager.bat > .\GRASS-Packager.log
@@ -47,7 +47,7 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh
 
 REM
-REM Create standalone installer
+echo Creating standalone installer...
 REM
 REM C:\DevTools\makensis.exe .\grass64\GRASS-Installer.nsi > .\grass64\GRASS-Installer.log
 REM C:\DevTools\makensis.exe .\grass65\GRASS-Installer.nsi
