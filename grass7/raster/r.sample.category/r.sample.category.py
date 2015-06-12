@@ -36,9 +36,11 @@
 #% required: no
 #%end
 #%option
-#% description: Number of sampling points per category in the input map
+#% label: Number of sampling points per category in the input map
+#% description: You can provide multiple numbers, one for each category in input raster (sorted ascending)
 #% key: npoints
 #% required: yes
+#% multiple: yes
 #% type: integer
 #%end
 
@@ -49,7 +51,6 @@
 # TODO: specify number of points and distribute them uniformly
 # TODO: specify number of points and distribute them according to histogram
 # TODO: ensure/check minimum and maximum number of of points when doing histogram
-# TODO: be less verbose
 # TODO: create function to check for mask
 # TODO: move escape and mask functions to library
 
@@ -99,7 +100,7 @@ def main():
         sampled_rasters = options['sampled'].split(',')
     else:
         sampled_rasters = []
-    npoints_0 = int(options['npoints'])
+    npoints = [int(num) for num in options['npoints'].split(',')]
 
     if gscript.find_file(name='MASK', element='cell', mapset=gscript.gisenv()['MAPSET'])['name']:
         gscript.fatal(_("MASK is active. Please remove it before proceeding."))
@@ -112,31 +113,40 @@ def main():
     TMP.append(points_nocats)
 
     # input must be CELL
-    rdescribe = gscript.read_command('r.describe', map=input_raster, flags='d1')
+    rdescribe = gscript.read_command('r.describe', map=input_raster, flags='d1', quiet=True)
     categories = []
     for line in rdescribe.splitlines():
         try:
             categories.append(int(line))
         except ValueError:
             pass
+    if len(npoints) == 1:
+        npoints = npoints * len(categories)
+    else:
+        if len(categories) != len(npoints):
+            gscript.fatal(_("Number of categories in raster does not match the number of provided sampling points numbers."))
 
     vectors = []
-    for cat in categories:
+    for i, cat in enumerate(categories):
+        # skip generating points if none are required
+        if npoints[i] == 0:
+            continue
+        gscript.info(_("Selecting {n} sampling locations at category {cat}...").format(n=npoints[i], cat=cat))
         # change mask to sample zeroes and then change again to sample ones
         # overwrite mask for an easy loop
-        gscript.run_command('r.mask', raster=input_raster, maskcats=cat, overwrite=True)
+        gscript.run_command('r.mask', raster=input_raster, maskcats=cat, overwrite=True, quiet=True)
         vector = temp_name + str(cat)
         vectors.append(vector)
-        gscript.run_command('r.random', input=input_raster, npoints=npoints_0, vector=vector)
+        gscript.run_command('r.random', input=input_raster, npoints=npoints[i], vector=vector, quiet=True)
         TMP.append(vector)
 
-    gscript.run_command('r.mask', flags='r')
+    gscript.run_command('r.mask', flags='r', quiet=True)
 
-    gscript.run_command('v.patch', input=vectors, output=points)
+    gscript.run_command('v.patch', input=vectors, output=points, quiet=True)
     # remove and add gain cats so that they are unique
-    gscript.run_command('v.category', input=points, option='del', cat=-1, output=points_nocats)
+    gscript.run_command('v.category', input=points, option='del', cat=-1, output=points_nocats, quiet=True)
     # overwrite to reuse the map
-    gscript.run_command('v.category', input=points_nocats, option='add', output=points, overwrite=True)
+    gscript.run_command('v.category', input=points_nocats, option='add', output=points, overwrite=True, quiet=True)
 
     columns = []
     column_names = []
@@ -146,9 +156,10 @@ def main():
         column_names.append(column)
         # TODO: column type according to map type
         columns.append("{column} double precision".format(column=column))
-    gscript.run_command('v.db.addtable', map=points, columns=','.join(columns))
+    gscript.run_command('v.db.addtable', map=points, columns=','.join(columns), quiet=True)
     for raster, column in zip(sampled_rasters, column_names):
-        gscript.run_command('v.what.rast', map=points, type='point', raster=raster, column=column)
+        gscript.info(_("Sampling raster map %s...") % raster)
+        gscript.run_command('v.what.rast', map=points, type='point', raster=raster, column=column, quiet=True)
 
 
 if __name__ == '__main__':
