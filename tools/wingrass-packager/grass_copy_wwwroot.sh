@@ -46,6 +46,7 @@ function copy_addon {
 function create_zip {
     echo "Creating zip..."
     cd $WWWDIR
+    rm wingrass.zip
     zip wingrass.zip grass64 grass70 grass71 -r -q
 }
 
