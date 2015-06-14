@@ -50,7 +50,7 @@ function create_zip {
     zip wingrass.zip grass64 grass70 grass71 -r -q
 }
 
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
+export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
 
 if test -z $1 ; then
     # daily builds
