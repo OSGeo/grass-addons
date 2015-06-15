@@ -160,14 +160,14 @@ def check_file(filename, map_type, sep):
                     " in the current Mapset."
                     " Nothing renamed. Note that maps in other Mapsets cannot"
                     " be renamed, however they can be copied.")
-                    .format(name=names[0]), type=map_type)
+                    .format(name=names[0], type=map_type))
             if not gcore.overwrite() and map_exists(names[1], type=map_type):
                 gcore.fatal(_(
                     "Map <{name}> (type <{type}>) already exists."
                     " Nothing renamed."
                     " Use overwrite flag if you want to overwrite"
                     " the existing maps.")
-                    .format(name=names[0]), type=map_type)
+                    .format(name=names[0], type=map_type))
 
 
 def rename_from_file(filename, map_type, sep, safe_input):
