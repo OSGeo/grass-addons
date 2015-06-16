@@ -61,6 +61,7 @@ if test -z $1 ; then
     # releases
     copy_addon 644      6.4.4
     copy_addon 700      7.0.0
+    copy_addon 701RC1   7.0.1RC1
 else
     copy $1 $2
 fi
