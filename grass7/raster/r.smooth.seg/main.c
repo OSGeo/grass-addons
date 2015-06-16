@@ -29,6 +29,7 @@
 #include <string.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
+#include <grass/config.h>
 #include <grass/glocale.h>
 #include "varseg.h"
 
@@ -71,8 +72,9 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    G_add_keyword(_("imagery"));
+    G_add_keyword(_("raster"));
     G_add_keyword(_("segmentation"));
+    G_add_keyword(_("imagery"));
     G_add_keyword(_("edge detection"));
     G_add_keyword(_("smoothing"));
     module->description =
