@@ -1,18 +1,22 @@
 
 /****************************************************************************
  *
- * MODULE:       r.seg
+ * MODULE:       r.smooth.seg
+ *
+ *               [ !!! GRASS6 name was r.seg; 
+ *                     GRASS7 former name was r.segment !!! ]
  *
  * AUTHOR:       Alfonso Vitti <alfonso.vitti unitn.it>
+ *               Porting from GRASS6 to GRASS7 by Markus Neteler and Alfonso Vitti
  *
- * PURPOSE:	     generates a piece-wise smooth approximation of the input 
+ * PURPOSE:      Generate a piece-wise smooth approximation of the input 
  *               raster map and a raster map of the discontinuities (edges) of
  *               the output approximation. The discontinuities of the output 
  *               approximation are preserved from being smoothed.
  *
  * REFERENCE:    http://www.ing.unitn.it/~vittia/phd/vitti_phd.pdf
  *
- * COPYRIGHT:    (C) 2007-2015
+ * COPYRIGHT:    (C) 2007-2015 by Alfonso Vitti, and the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -27,7 +31,6 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 #include "varseg.h"
-
 
 int main(int argc, char *argv[])
 {
@@ -44,61 +47,49 @@ int main(int argc, char *argv[])
     int iter;                   /* iteration index */
     const char *mapset;         /* current mapset */
     void *g_row;                /* input row buffer */
-    void *out_u_row, *out_z_row;        /* output row buffers */
+    void *out_u_row, *out_z_row;/* output row buffers */
     int nr, nc, nrc;            /* number of rows and colums */
     int i, j;                   /* row and column indexes: i=colum=x, j=row=y */
     int jnc;                    /* row sequential position, for pointers */
-    int g_fd, out_u_fd, out_z_fd;       /* file descriptors */
+    int g_fd, out_u_fd, out_z_fd;/* file descriptors */
     int usek;                   /* use MSK (MS with the curvature term) */
     double *g, *u, *z;          /* the variables for the actual computation */
 
-    struct Cell_head cellhd;    /* GRASS region information */
     struct History history;     /* for map history */
     struct GModule *module;     /* GRASS module for parsing */
-    struct
-    {
+    struct {
         struct Option *in_g, *out_z, *out_u;    /* parameters */
     } parm;
-    struct
-    {
-        struct Option *lambda, *kepsilon, *alpha, *beta, *tol, *max_iter;       /* other parameters */
+    struct {
+        struct Option *lambda, *kepsilon, *alpha, *beta, *tol, *max_iter;    /* other parameters */
     } opts;
     struct Flag *flag_k;        /* flag, k = use MSK instead of MS */
-    RASTER_MAP_TYPE dcell_data_type;    /* GRASS raster data type (for DCELL raster) */
+    RASTER_MAP_TYPE dcell_data_type;/* GRASS raster data type (for DCELL raster) */
 
 
-    /* initialize GRASS environment */
     G_gisinit(argv[0]);
 
     /* initialize module */
     module = G_define_module();
-    G_add_keyword(_("image segmentation"));
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("segmentation"));
     G_add_keyword(_("edge detection"));
-    G_add_keyword(_("smooth"));
+    G_add_keyword(_("smoothing"));
     module->description =
-        _("Generates a smooth approximation of the input raster and a discontinuity map");
+        _("Generates a piece-wise smooth approximation of the input raster and a discontinuity map.");
 
-    parm.in_g = G_define_option();
+    parm.in_g = G_define_standard_option(G_OPT_R_INPUTS);
     parm.in_g->key = "in_g";
-    parm.in_g->type = TYPE_STRING;
-    parm.in_g->required = YES;
     parm.in_g->description = _("Input raster map to segment");
-    parm.in_g->gisprompt = "old,cell,raster";
 
-    parm.out_u = G_define_option();
+    parm.out_u = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.out_u->key = "out_u";
-    parm.out_u->type = TYPE_STRING;
-    parm.out_u->required = YES;
     parm.out_u->description = _("Output segmented raster map");
-    parm.out_u->gisprompt = "new,cell,raster";
 
-    parm.out_z = G_define_option();
+    parm.out_z = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.out_z->key = "out_z";
-    parm.out_z->type = TYPE_STRING;
-    parm.out_z->required = YES;
     parm.out_z->description =
         _("Output raster map with detected discontinuities");
-    parm.out_z->gisprompt = "new,cell,raster";
 
     opts.lambda = G_define_option();
     opts.lambda->key = "lambda";
@@ -106,6 +97,7 @@ int main(int argc, char *argv[])
     opts.lambda->required = NO;
     opts.lambda->answer = "1.0";
     opts.lambda->description = _("Smoothness coefficient [>0]");
+    opts.lambda->guisection = _("Settings");
 
     opts.alpha = G_define_option();
     opts.alpha->key = "alpha";
@@ -113,6 +105,7 @@ int main(int argc, char *argv[])
     opts.alpha->required = NO;
     opts.alpha->answer = "1.0";
     opts.alpha->description = _("Discontinuity coefficient [>0]");
+    opts.alpha->guisection = _("Settings");
 
     opts.max_iter = G_define_option();
     opts.max_iter->key = "mxi";
@@ -120,6 +113,7 @@ int main(int argc, char *argv[])
     opts.max_iter->required = NO;
     opts.max_iter->answer = "100";
     opts.max_iter->description = _("Maximal number of numerical iterations");
+    opts.max_iter->guisection = _("Settings");
 
     opts.tol = G_define_option();
     opts.tol->key = "tol";
@@ -127,6 +121,7 @@ int main(int argc, char *argv[])
     opts.tol->required = NO;
     opts.tol->answer = "0.001";
     opts.tol->description = _("Convergence tolerance [>0]");
+    opts.tol->guisection = _("Settings");
 
     opts.kepsilon = G_define_option();
     opts.kepsilon->key = "kepsilon";
@@ -134,6 +129,7 @@ int main(int argc, char *argv[])
     opts.kepsilon->required = NO;
     opts.kepsilon->answer = "1.0";
     opts.kepsilon->description = _("Discontinuity thickness [>0]");
+    opts.kepsilon->guisection = _("Settings");
 
     opts.beta = G_define_option();
     opts.beta->key = "beta";
@@ -141,6 +137,7 @@ int main(int argc, char *argv[])
     opts.beta->required = NO;
     opts.beta->answer = "0.0";
     opts.beta->description = _("Curvature coefficient [>=0]");
+    opts.beta->guisection = _("Settings");
     /* 
      * beta = 0 leads to MS
      * beta > 0 leads to MSK
@@ -149,11 +146,12 @@ int main(int argc, char *argv[])
      * have to be set independently from the values used in MS
      */
 
+
     flag_k = G_define_flag();
     flag_k->key = 'k';
     flag_k->description =
         _("Activate MSK model (Mumford-Shah with curvature term)");
-
+    flag_k->guisection = _("Settings");
 
     /* parameters and flags parser */
     if (G_parser(argc, argv))
@@ -173,24 +171,27 @@ int main(int argc, char *argv[])
 
     if (((usek = (flag_k->answer) == 0) && (beta != 0.0)))
         G_warning(_("Beta is not zero and you have not activated the MSK formulation: \n \
-				beta will be ignored and MS (default) will be used."));
+                 beta will be ignored and MS (default) will be used."));
 
     if (((usek = (flag_k->answer) == 1) && (beta == 0.0)))
         G_warning(_("You have activated the MSK formulation, but beta is zero:\n \
-				beta should be greater than zero in MSK."));
+                beta should be greater than zero in MSK."));
 
     /* check existence and names of raster maps */
     mapset = G_find_raster2(in_g, "");
-    if (!mapset)
-        G_fatal_error(_("raster file [%s] not found"), in_g);
+    if (mapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), in_g);
+
+    /* still needed in GRASS 7? 
     if (G_legal_filename(out_u) < 0)
         G_fatal_error(_("[%s] is an illegal file name"), out_u);
-    G_check_input_output_name(in_g, out_u, G_FATAL_EXIT);
+        G_check_input_output_name(in_g, out_u, G_FATAL_EXIT);
     if (G_legal_filename(out_z) < 0)
         G_fatal_error(_("[%s] is an illegal file name"), out_z);
-    G_check_input_output_name(in_g, out_z, G_FATAL_EXIT);
+        G_check_input_output_name(in_g, out_z, G_FATAL_EXIT);
     if (strcmp(out_u, out_z) == 0)
         G_fatal_error(_("Output raster maps have the same name [%s]"), out_u);
+    */
 
 
     /* -------------------------------------------------------------------- */
@@ -216,9 +217,7 @@ int main(int argc, char *argv[])
 
 
     /* open the input raster map for reading */
-    if ((g_fd = Rast_open_old(in_g, mapset)) < 0)
-        G_fatal_error(_("cannot open raster file [%s]"), in_g);
-    Rast_get_cellhd(in_g, mapset, &cellhd);
+    g_fd = Rast_open_old(in_g, mapset);
 
 
     /* allocate the buffer for storing the values of the input raster map */
@@ -270,14 +269,11 @@ int main(int argc, char *argv[])
 
 
     /* print the total number of iteration performed */
-    G_message("\nr.seg iterations: %i\n", iter);
-    G_message("\n");
+    G_message("Total number of iterations: %i", iter);
 
     /* open the output raster maps for writing */
-    if ((out_u_fd = Rast_open_new(out_u, dcell_data_type)) < 0)
-        G_fatal_error(_("cannot open raster file [%s]"), out_u);
-    if ((out_z_fd = Rast_open_new(out_z, dcell_data_type)) < 0)
-        G_fatal_error(_("cannot open raster file [%s]"), out_z);
+    out_u_fd = Rast_open_new(out_u, dcell_data_type);
+    out_z_fd = Rast_open_new(out_z, dcell_data_type);
 
 
     /* allocate the buffer for storing the values of the output raster maps */
@@ -306,14 +302,13 @@ int main(int argc, char *argv[])
     G_free(u);
     G_free(z);
 
-
-    /* write history file */
+    /* write map history (meta data) */
     Rast_short_history(out_u, "raster", &history);
+    Rast_set_history(&history, HIST_DATSRC_1, in_g);
+    Rast_append_format_history(&history, "iterations = %i", iter);
     Rast_command_history(&history);
-    Rast_append_format_history(&history, "\nIterations = %i", iter);
     Rast_write_history(out_u, &history);
     Rast_write_history(out_z, &history);
-
 
     /* exit */
     exit(EXIT_SUCCESS);

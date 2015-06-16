@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.seg
+PGM = r.smooth.seg
 
 LIBES = $(RASTERLIB) $(GISLIB)
 DEPENDENCIES = $(RASTERDEP) $(GISDEP)
