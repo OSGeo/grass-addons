@@ -1,7 +1,0 @@
-GRASS GIS module for image segmentation and edge detection 
-	Alfonso Vitti <alfonso.vitti [at] ing.unitn.it>
-	see http://www.ing.unitn.it/~vittia/sw
-
-GRASS 7: install with
-  g.extension r.segment
-

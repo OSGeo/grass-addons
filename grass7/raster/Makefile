@@ -69,10 +69,10 @@ SUBDIRS = \
 	r.rock.stability \
 	r.roughness.vector \
 	r.sample.category \
-	r.segment \
 	r.shaded.pca \
 	r.shalstab \
 	r.skyview \
+	r.smooth.seg \
 	r.soillossbare \
 	r.stream.basins \
 	r.stream.channel \
