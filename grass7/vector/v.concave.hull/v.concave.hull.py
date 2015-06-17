@@ -128,6 +128,19 @@ def main():
     max_length = 0.0
     sortfile(tmp, tmp + ".sort")
     ppos = round(N * perc / 100)
+
+    perc_orig = perc
+    while ppos >= N and perc >= 90:
+        perc -= 1
+        ppos = round(N * perc / 100)
+
+    if perc == 89:
+        grass.fatal(_("Cannot calculate hull. Too few points."))
+
+    if perc_orig > perc:
+        thresh = int(perc) - 90
+        grass.warning(_('Threshold reduced to %d to calculate hull' % thresh ))
+
     inf = file(tmp + ".sort")
     l = 0
     for line in inf:
@@ -136,9 +149,6 @@ def main():
 	    break
 	l += 1
     inf.close()
-
-    if max_length == 0.0:
-        grass.fatal(_("Cannot calculate hull. Try lowering the threshold."))
 
     grass.message(_("Feature selection..."))
     lines_concave = prefix + '_delaunay_lines_select'
