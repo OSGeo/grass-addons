@@ -137,6 +137,9 @@ def main():
 	l += 1
     inf.close()
 
+    if max_length == 0.0:
+        grass.fatal(_("Cannot calculate hull. Try lowering the threshold."))
+
     grass.message(_("Feature selection..."))
     lines_concave = prefix + '_delaunay_lines_select'
     lines_concave_nocat = prefix + '_delaunay_lines_select_nocat'
