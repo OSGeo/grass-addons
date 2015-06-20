@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.kriging</em> interpolates unknown values using method <i>ordinary 
-kriging</i>. Output can be 2D (temporarily denied) or 3D.
+kriging</i>. Output can be 2D or 3D.
 
 <h2>EXAMPLES</h2> Input layer should contain 3D coordinates (xyz) and 
 values to be interpolated (in attribute table). The commands can look 
@@ -19,6 +19,21 @@ v.kriging in=input_layer phase=final final_fun=bivariate icol=name file=png \
   out=name crossval=crossval_file.txt
 </pre></div>
 
+<h2>TODO</h2>
+<ul>
+<li><b>anisotropy</b> in horizontal direction missing
+<li>current version is suitable just for <b>metric coordinate systems</b>
+<li>enable <b>mask usage</b>
+<li><b>bivariate variogram</b> needs to be rebuilt (theory) 
+<li><b>2D interpolation from 3D input layer</b> needs to be rebuilt (especially in case that there are too many points located on identical horizontal coordinates with different elevation)
+</ul>
+
+<h2>BUGS</h2>
+<ul>
+<li>2D variogram gives quite inaccurate results for <b>sparse (or spatially heterogeneous) data</b>
+<li><b>bivariate variogram</b> - too inaccurate results
+</ul>
+
 <h2>SEE ALSO</h2>
 
 <em>
@@ -33,7 +48,6 @@ v.kriging in=input_layer phase=final final_fun=bivariate icol=name file=png \
     GMATH library (GRASS Numerical Library)<br>
     <a href="http://www.netlib.org/lapack">http://www.netlib.org/lapack</a>
     (usually available on Linux distros)
-<li><a href="http://pointclouds.org">Point Cloud Library</a>
 </ul>
 
 <h2>AUTHOR</h2>
