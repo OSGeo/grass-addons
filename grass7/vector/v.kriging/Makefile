@@ -1,4 +1,4 @@
-MODULE_TOPDIR = /home/evergreen/grass7/dist.x86_64-unknown-linux-gnu
+MODULE_TOPDIR = ../..
 
 PGM = v.kriging
 
