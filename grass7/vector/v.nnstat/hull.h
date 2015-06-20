@@ -1,6 +1,4 @@
-extern "C" {
 #include <grass/vector.h>
-}
 
 #define ALLOC_CHUNK 256
 

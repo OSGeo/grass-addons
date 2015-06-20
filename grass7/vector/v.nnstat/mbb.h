@@ -5,9 +5,8 @@
 */
 
 /* Define Boolean type - not necessary in C++*/
-/*typedef enum
+typedef enum
   { BFALSE, BTRUE } bool;
-*/
 
 /* Define vertex indices. */
 #define X   0
@@ -63,7 +62,6 @@ tEdge edges = NULL;
 tFace faces = NULL;
 
 /* Function declarations */
-extern "C" {
 tVertex MakeNullVertex(void);
 void ReadVertices(struct points *);
 void writeVertices(struct Map_info *Map);
@@ -82,4 +80,3 @@ void CleanEdges(void);
 void CleanFaces(void);
 void CleanVertices(void);
 bool Collinear(tVertex a, tVertex b, tVertex c);
-}
