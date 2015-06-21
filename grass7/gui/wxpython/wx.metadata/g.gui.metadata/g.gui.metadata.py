@@ -53,7 +53,8 @@ from core.utils import _
 from editor import MdMainEditor
 from lmgr import datacatalog
 from core.gcmd import RunCommand, GError, GMessage
-
+import grass.temporal as tgis
+from core.utils import GetListOfLocations, ListOfMapsets
 #===============================================================================
 # MAIN FRAME
 #===============================================================================
@@ -274,8 +275,10 @@ class MdMainFrame(wx.Frame):
             if self.profileChoice == 'INSPIRE':
                 self.mdCreator.createGrassInspireISO()
             elif self.profileChoice == 'GRASS BASIC':
-
                 self.mdCreator.createGrassBasicISO()
+            elif self.profileChoice == 'TEMPORAL':
+                self.mdCreator.createTemporalISO()
+
             self.jinjaPath = self.mdCreator.profilePathAbs
             self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
             self.onInitEditor()
@@ -480,21 +483,126 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         super(MdDataCatalog, self).__init__(parent=parent,
                                             style=wx.TR_MULTIPLE | wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS |
                                             wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_COLUMN_LINES)
+        tgis.init(True)
+        self.dbif = tgis.SQLDatabaseInterfaceConnection()
+        self.dbif.connect()
         self.InitTreeItems()
         self.map = None
         self.mapType = None
 
+    def __del__(self):
+        """Close the database interface and stop the messenger and C-interface
+           subprocesses.
+        """
+        if self.dbif.connected is True:
+            self.dbif.close()
+        tgis.stop_subprocesses()
+
+
     def InitTreeItems(self):
+
         """Add locations and layers to the tree"""
+        self.rootTmp=self.root
+        var=self.AppendItem(self.root,'Grass maps')
+        self.root=var
+
         gisenv = grass.gisenv()
         location = gisenv['LOCATION_NAME']
+        #GMessage(location)
         self.mapset = gisenv['MAPSET']
-        #TODO remove auto add permanent to catalogue
+        #GMessage(self.mapset)
+        self.initGrassTree(location=location, mapset=self.mapset)
+        self.initTemporalTree(location=location, mapset=self.mapset)
 
-        self._initTreeItems(locations=[location], mapsets=[self.mapset])
-        self.ExpandAll()
+
+    def initGrassTree(self,location , mapset):
+        """Add locations, mapsets and layers to the tree."""
+
+        self.ChangeEnvironment(location)
+
+        varloc = self.AppendItem(self.root, location)
+        self.AppendItem(varloc, mapset)
+
+        # get list of all maps in location
+        maplist = RunCommand('g.list', flags='mt', type='raster,vector', mapset=mapset,
+                             quiet=True, read=True)
+        maplist = maplist.splitlines()
+
+        for ml in maplist:
+            # parse
+            parts1 = ml.split('/')
+            parts2 = parts1[1].split('@')
+            mapset = parts2[1]
+            mlayer = parts2[0]
+            ltype = parts1[0]
+
+            # add mapset
+            if self.itemExists(mapset, varloc) == False:
+                varmapset = self.AppendItem(varloc, mapset)
+            else:
+                varmapset = self.getItemByName(mapset, varloc)
+
+            # add type node if not exists
+            if self.itemExists(ltype, varmapset) == False:
+                vartype = self.AppendItem(varmapset, ltype)
+
+            self.AppendItem(vartype, mlayer)
+
+    def initTemporalTree(self,location , mapset ):
+        varloc = self.AppendItem(self.rootTmp, 'Temporal maps')
+        tDict = tgis.tlist_grouped('stds', group_type=True, dbif=self.dbif)
+        # nested list with '(map, mapset, etype)' items
+        allDatasets = [[[(map, mapset, etype) for map in maps]
+                        for etype, maps in etypesDict.iteritems()]
+                       for mapset, etypesDict in tDict.iteritems()]
+        if allDatasets:
+            allDatasets = reduce(lambda x, y: x + y, reduce(lambda x, y: x + y,
+                                                            allDatasets))
+            mapsets = tgis.get_tgis_c_library_interface().available_mapsets()
+            allDatasets = [i for i in sorted(allDatasets,
+                                             key=lambda l: mapsets.index(l[1]))]
+        #print allDatasets
+        #if not location:
+        #    location = GetListOfLocations(self.gisdbase)
+        #if not self.mapset:
+        #    mapsets = ['*']
+
+        first = True
+        #for loc in location:
+            #location = loc
+            #self.ChangeEnvironment(location)
+        loc=location
+        varloc = self.AppendItem(varloc, loc)
+        #self.ChangeEnvironment(loc)
+        # add all mapsets
+        self.AppendItem(varloc, mapset)
+
+        # get list of all maps in location
+        for ml in allDatasets:
+
+            # add mapset
+            if self.itemExists(ml[1], varloc) == False:
+                varmapset = self.getItemByName(ml[1], varloc)
+            else:
+                varmapset = self.getItemByName(ml[1], varloc)
+            # add type node if not exists
+            if self.itemExists(ml[2], varmapset) == False:
+                vartype = self.AppendItem(varmapset, ml[2])
+
+            self.AppendItem(vartype, ml[0])
+
+
+        #self.ExpandAll()
+
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onChanged)
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRClickAllChildren)
+
+    def OnRClickAllChildren(self, evt):
+        if not self.IsExpanded(evt.Item):
+            self.ExpandAllChildren(evt.Item)
+        else:
+            self.CollapseAllChildren(evt.Item)
 
     def onChanged(self, evt=None):
         '''
@@ -523,12 +631,15 @@ class MdDataCatalog(datacatalog.LocationMapTree):
 
         else:
             self.Unselect()
-            GMessage('Please select map')
+
+            #pub.sendMessage('bttEdit.disable')
+            #pub.sendMessage('bttCreateTemplate.disable')
+            #GMessage('Please select map')
 
         if len(maps) == 0:
             pub.sendMessage('bttEdit.disable')
             pub.sendMessage('bttCreateTemplate.disable')
-
+            return
         status = ''
         for map in maps:
             status += map + '  '
@@ -756,6 +867,10 @@ class MdValidator(wx.Panel):
             result = mdutil.grassProfileValidator(md)
             str1 = 'GRASS BASIC PROFILE VALIDATOR\n'
 
+        if profile == 'TEMPORAL':
+            result = mdutil.isnpireValidator(md)
+            str1 = 'INSPIRE VALIDATOR\n'
+
         str1 += 'Status of validation: ' + result["status"] + '\n'
         str1 += 'Numbers of errors: ' + result["num_of_errors"] + '\n'
 
@@ -785,7 +900,7 @@ class MdEditConfigPanel(wx.Panel):
         self.rbGrass = wx.RadioButton(self, id=wx.ID_ANY, label='Metadata map editor', style=wx.RB_GROUP)
         self.rbExternal = wx.RadioButton(self, id=wx.ID_ANY, label='Metadata external editor')
 
-        self.comboBoxProfile = wx.ComboBox(self, choices=['INSPIRE', 'GRASS BASIC', 'Load Custom'])
+        self.comboBoxProfile = wx.ComboBox(self, choices=['INSPIRE', 'GRASS BASIC', 'TEMPORAL','Load Custom'])
         pub.subscribe(self.onComboboxDisable, "comboBoxProfile.disable")
         pub.subscribe(self.onComboboxEnable, "comboBoxProfile.enable")
         pub.subscribe(self.onSetProfile, "SET_PROFILE.update")
@@ -893,8 +1008,6 @@ class MdToolbar(wx.Panel):
         self.toolbar.AddControl(control=self.bttLoadXml)
         self.bttLoadXml.Disable()
         self.toolbar.AddSeparator()
-
-
     #-------------------------------------------------------------------------- export xml
         self.bttsave = BitmapBtnTxt(self.toolbar, -1, bitmapSave, "xml")
         self.bttsave.Disable()
@@ -921,6 +1034,7 @@ class MdToolbar(wx.Panel):
         self._layout()
 
         self.bttLoad.Bind(wx.EVT_BUTTON, self.OnLoadTemplate)
+
         pub.subscribe(self.onBttSaveEnable, "bttLoad.enable")
         pub.subscribe(self.onBttSaveDisable, "bttLoad.disable")
 

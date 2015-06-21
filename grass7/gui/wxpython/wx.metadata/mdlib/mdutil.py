@@ -20,6 +20,10 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
+from owslib.iso import *
+from owslib.namespaces import Namespaces
+from owslib.etree import etree
+from owslib import util
 
 import string
 import os
@@ -394,3 +398,68 @@ def isnpireValidator(md):
         result["num_of_errors"] = str(errors)
 
     return result
+
+
+
+class MD_DataIdentification_MOD(MD_DataIdentification):
+    def __init__(self,md=None,identtype=None):
+        MD_DataIdentification.__init__(self,md,identtype)
+        if md is None:
+            self.timeUnit = None
+            self.temporalType = None
+            self.timeUnit = None
+            self.factor = None
+            self.radixT = None
+        else:
+            val2 = None
+            val1 = None
+            val3 = None
+            val4 = None
+            extents = md.findall(util.nspath_eval('gmd:extent', namespaces))
+            extents.extend(md.findall(util.nspath_eval('srv:extent', namespaces)))
+            for extent in extents:
+                if val2 is None:
+                    val2 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TM_PeriodDuration/gml:duration', namespaces))#TODO
+                self.temporalType = util.testXMLValue(val2)
+
+                if val1 is None:
+                    val1 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:unit/gml:TimeUnitType', namespaces))
+                self.timeUnit = util.testXMLValue(val1)
+                if val3 is None:
+                    val3 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:radix/gco:positiveInteger', namespaces))
+                self.radixT = util.testXMLValue(val3)
+
+                if val4 is None:
+                    val4 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:factor/gco:Integer', namespaces))
+                self.factor = util.testXMLValue(val4)
+
+class MD_MetadataMOD(MD_Metadata):
+    """ Process gmd:MD_Metadata """
+    def __init__(self, md=None):
+        MD_Metadata.__init__(self,md)
+        if md is not None:
+            val = md.find(util.nspath_eval('gmd:identificationInfo/gmd:MD_DataIdentification', namespaces))
+            val2 = md.find(util.nspath_eval('gmd:identificationInfo/srv:SV_ServiceIdentification', namespaces))
+
+            if val is not None:
+                self.identification = MD_DataIdentification_MOD(val, 'dataset')
+                self.serviceidentification = None
+            elif val2 is not None:
+                self.identification = MD_DataIdentification_MOD(val2, 'service')
+                self.serviceidentification = SV_ServiceIdentification(val2)
+            else:
+                self.identification = None
+                self.serviceidentification = None
+
+            self.identificationinfo = []
+            for idinfo in md.findall(util.nspath_eval('gmd:identificationInfo', namespaces)):
+                val = list(idinfo)[0]
+                tagval = util.xmltag_split(val.tag)
+                if tagval == 'MD_DataIdentification':
+                    self.identificationinfo.append(MD_DataIdentification_MOD(val, 'dataset'))
+                elif tagval == 'MD_ServiceIdentification':
+                    self.identificationinfo.append(MD_DataIdentification_MOD(val, 'service'))
+                elif tagval == 'SV_ServiceIdentification':
+                    self.identificationinfo.append(SV_ServiceIdentification(val))
+
+            val = md.find(util.nspath_eval('gmd:distributionInfo/gmd:MD_Distribution', namespaces))

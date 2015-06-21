@@ -8,12 +8,12 @@
     <gmd:fileIdentifier>
         <gco:CharacterString>{{ md.identifier }}{# tag="md.identifier",ref="Part B 1.5",  name ="Resource Identifier", desc ="Unique Resource Identifier", example ="286c0725-046e-4533-b0bf-d6e367f6c342", type = "string", multi = 0, group = "Identification", multiline=False #}</gco:CharacterString>
     </gmd:fileIdentifier>
-    <gmd:language>
+     <gmd:hierarchyLevel>
+        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">{{ md.identification.identtype }}{# tag="md.identification.identtype", name ="Resource Type", desc ="Scope to which metadata applies", example ="dataset", type = "MD_ScopeCode", multi = 0, group = "Identification",multiline=False #}</gmd:MD_ScopeCode>
+    </gmd:hierarchyLevel>
+        <gmd:language>
         <gmd:LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ md.languagecode }}{# tag="md.languagecode", name ="Metadata language", desc ="Language(s) used within the datasets", example ="eng", type = "string", multi = 0, group = "Metadata",multiline=False #}">{{ md.languagecode }}</gmd:LanguageCode>
     </gmd:language>
-    <gmd:hierarchyLevel>
-        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">{{ md.identification.identtype }}{# tag="md.identification.identtype", name ="Resource Type", desc ="Scope to which metadata applies", example ="dataset", type = "string", multi = 0, group = "Identification",multiline=False #}</gmd:MD_ScopeCode>
-    </gmd:hierarchyLevel>
   {% for co in md.contact -%}{# tag="for co in md.contact",  inboxmulti = 1, group = "Metadata",inbox="Metadata point of contact",object="CI_ResponsibleParty()" #}
     <gmd:contact>
         <gmd:CI_ResponsibleParty>

@@ -64,7 +64,7 @@ class MdFileWork():
         @return: initialized md object by input xml
         '''
         if path is None:
-            self.md = MD_Metadata(md=None)
+            self.md = mdutil.MD_MetadataMOD(md=None)
             return self.md
         else:
             io = open(path, 'r')
@@ -79,7 +79,7 @@ class MdFileWork():
             try:
                 tree = etree.parse(path)
                 root = tree.getroot()
-                self.md = MD_Metadata(root)
+                self.md = mdutil.MD_MetadataMOD(root)
 
                 return self.md
 
@@ -441,12 +441,24 @@ class MdItem(wx.BoxSizer):
 
     def fillComboDB(self,label):
         if label == 'language':
-            lang=["Afrikaans","Albanian","Arabic","Armenian","Basque","Bengali","Bulgarian","Catalan","Cambodian","Chinese","Croatian","Czech","Danish","Dutch","English","Estonian","Fiji","Finnish","French","Georgian","German","Greek","Gujarati","Hebrew","Hindi","Hungarian","Icelandic","Indonesian","Irish","Italian","Japanese","Javanese","Korean","Latin","Latvian","Lithuanian","Macedonian","Malay","Malayalam","Maltese","Maori","Marathi","Mongolian","Nepali","Norwegian","Persian","Polish","Portuguese","Punjabi","Quechua","Romanian","Russian","Samoan","Serbian","Slovak","Slovenian","Spanish","Swahili","Swedish","Tamil","Tatar","Telugu","Thai","Tibetan","Tonga","Turkish","Ukrainian","Urdu","Uzbek","Vietnamese","Welsh","Xhosa"]
+            lang=["Afrikaans","Albanian","Arabic","Armenian","Basque","Bengali",
+                  "Bulgarian","Catalan","Cambodian","Chinese","Croatian","Czech",
+                  "Danish","Dutch","English","Estonian","Fiji","Finnish","French",
+                  "Georgian","German","Greek","Gujarati","Hebrew","Hindi","Hungarian",
+                  "Icelandic","Indonesian","Irish","Italian","Japanese","Javanese","Korean",
+                  "Latin","Latvian","Lithuanian","Macedonian","Malay","Malayalam","Maltese",
+                  "Maori","Marathi","Mongolian","Nepali","Norwegian","Persian","Polish","Portuguese",
+                  "Punjabi","Quechua","Romanian","Russian","Samoan","Serbian","Slovak","Slovenian",
+                  "Spanish","Swahili","Swedish","Tamil","Tatar","Telugu","Thai","Tibetan","Tonga",
+                  "Turkish","Ukrainian","Urdu","Uzbek","Vietnamese","Welsh","Xhosa"]
             self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'topicCategory':
-            lang= ['farming','biota','boundaries','climatologyMeteorologyAtmosphere','economy','elevation','enviroment','geoscientificInformation','health','imageryBaseMapsEarthCover','intelligenceMilitary','inlandWaters','location','planningCadastre','society','structure','transportation','utilitiesCommunication']
+            lang= ['farming','biota','boundaries','climatologyMeteorologyAtmosphere','economy',
+                   'elevation','enviroment','geoscientificInformation','health','imageryBaseMapsEarthCover',
+                   'intelligenceMilitary','inlandWaters','location','planningCadastre','society','structure',
+                   'transportation','utilitiesCommunication']
             self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
@@ -461,7 +473,8 @@ class MdItem(wx.BoxSizer):
             for lng in lang:
                 self.valueCtrl.Append(lng)
         if label == 'role':
-            lang=['Author','Custodian','Distributor','Originator','Owner','Point of contact','Principal Investigation','Processor','Publisher','Resource provider','User']
+            lang=['Author','Custodian','Distributor','Originator','Owner','Point of contact','Principal Investigation',
+                  'Processor','Publisher','Resource provider','User']
             self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
@@ -1158,6 +1171,7 @@ class MdMainEditor(wx.Panel):
             elif 'for' not in str(tagStringLst[self.c]).split() and 'if' not in str(tagStringLst[self.c]).split():
                 it = MdItem(parent=self.nbPage, item=mdDescrObj[self.c], chckBox=self.templateEditor)
                 value = 'self.' + str(self.mdOWSTagStrList[self.c]).replace('\n', '')
+                print value
                 value = eval(value)
                 if value is None:
                     value = ''
@@ -1283,6 +1297,7 @@ class MdMainEditor(wx.Panel):
         templateOut.write(finalTemplate)
         templateOut.close()
 
+
         return owsTagList
     #----------------------------------------- FILL OWSLib BY EDITED METADATA IN GUI
 
@@ -1294,19 +1309,19 @@ class MdMainEditor(wx.Panel):
         exec stri
 
     def getKeywordsFromRepositoryWidget(self,md):
+        if  self.keywords is not None:
+            for item in self.keywords.GetKws():
+                titles=item.getKyewordObj()
 
-        for item in self.keywords.GetKws():
-            titles=item.getKyewordObj()
-
-            kw = {}
-            kw['keywords'] = []
-            kw['keywords'].append(titles['keywords'])
-            kw['type'] = None
-            kw['thesaurus'] = {}
-            kw['thesaurus']['title']=titles['title']
-            kw['thesaurus']['date']=titles['date']
-            kw['thesaurus']['datetype']=titles['type']
-            md.identification.keywords.append(kw)
+                kw = {}
+                kw['keywords'] = []
+                kw['keywords'].append(titles['keywords'])
+                kw['type'] = None
+                kw['thesaurus'] = {}
+                kw['thesaurus']['title']=titles['title']
+                kw['thesaurus']['date']=titles['date']
+                kw['thesaurus']['datetype']=titles['type']
+                md.identification.keywords.append(kw)
         return md
 
     def saveMDfromGUI(self, evt=None):

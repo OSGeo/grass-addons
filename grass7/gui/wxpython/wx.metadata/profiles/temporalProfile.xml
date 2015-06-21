@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmd:MD_Metadata xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20060504/gmd/gmd.xsd"
+    xmlns:gmd="http://www.isotc211.org/2005/gmd"
+    xmlns:gco="http://www.isotc211.org/2005/gco"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:gml="http://www.opengis.net/gml"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:gts="http://www.opengis.net/gts">
+    <gmd:fileIdentifier>
+        <gco:CharacterString>{{ md.identifier }}{# tag="md.identifier",ref="Part B 1.5",  name ="Resource Identifier", desc ="Unique Resource Identifier", example ="286c0725-046e-4533-b0bf-d6e367f6c342", type = "string", multi = 0, group = "Identification", multiline=False #}</gco:CharacterString>
+    </gmd:fileIdentifier>
+    <gmd:language>
+        <gmd:LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ md.languagecode }}{# tag="md.languagecode", name ="Metadata language", desc ="Language(s) used within the datasets", example ="eng", type = "string",database="language", multi = 0, group = "Metadata",multiline=False #}">{{ md.languagecode }}</gmd:LanguageCode>
+    </gmd:language>
+    <gmd:hierarchyLevel>
+        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">{{ md.identification.identtype }}{# tag="md.identification.identtype", name ="Resource Type", desc ="Scope to which metadata applies", example ="dataset", type = "string", multi = 0, group = "Identification",multiline=False #}</gmd:MD_ScopeCode>
+    </gmd:hierarchyLevel>
+  {% for co in md.contact -%}{# tag="for co in md.contact",  inboxmulti = 1, group = "Metadata",inbox="Metadata point of contact",object="CI_ResponsibleParty()" #}
+    <gmd:contact>
+        <gmd:CI_ResponsibleParty>
+            <gmd:organisationName>
+                <gco:CharacterString>{{ co.organization }}{# tag="co.organization",ref="Part B 9.1",  inboxmulti = 1,multi = 0,type = "string",group = "Metadata",object="CI_ResponsibleParty()", inbox="Metadata point of contact",name="Organisation name",example="SDI Unit, Institute for Environment and Sustainability, Joint ResearchCentre",desc="identification of, and means of communication with, person(s) and organization(s) associated with theresource(s)" #}</gco:CharacterString>
+            </gmd:organisationName>
+            <gmd:role>
+                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="{{ co.role }}{# tag="co.role",name="Responsible party role",ref="Part B 9.2" , multi = 0,type = "CI_RoleCode", inboxmulti = 1,group = "Responsible party",object="CI_ResponsibleParty()", inbox="Metadata pointt of contact",example="custodian", desc="function performed by the responsible party",database="role" #}" codeSpace="ISOTC211/19115">{{ co.role }}</gmd:CI_RoleCode>
+            </gmd:role>
+        </gmd:CI_ResponsibleParty>
+    </gmd:contact>
+  {% endfor -%}
+<gmd:dateStamp>
+        <gco:Date>{{ md.datestamp }}{# tag="md.datestamp" , name="Metadata date" , ref= "Part B 10.2" , desc= "Date that the metadata was created." , example = "2005-03-27" , type ="date" , multi= 0 , group= "Metadata" , multiline= False #}</gco:Date>
+    </gmd:dateStamp>
+    <gmd:metadataStandardName>
+        <gco:CharacterString>ISO 19115</gco:CharacterString>
+    </gmd:metadataStandardName>
+    <gmd:metadataStandardVersion>
+        <gco:CharacterString>2003/Cor.1:2006</gco:CharacterString>
+    </gmd:metadataStandardVersion>
+  <gmd:identificationInfo>
+        <gmd:MD_DataIdentification>
+            <gmd:citation>
+                <gmd:CI_Citation>
+                    <gmd:title>
+                        <gco:CharacterString>{{ md.identification.title }}{# tag="md.identification.title", ref="Part B 1.1", name ="Resource title", desc ="Name by which the cited resource is known.", example ="Image2000 Product 1 (nl2) MultispectB 10.1" , multi = 0, group ="Identification", type = "string", multiline=True #}</gco:CharacterString>
+                    </gmd:title>
+          {% for d in md.identification.date -%}{# tag="for d in md.identification.date" ,name="",object="CI_Date()",group= "Temporal" , inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False #}
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gco:DateTime>{{ d.date }}{# tag="d.date" , group= "Temporal" ,object="CI_Date()",type = "date", inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False, name="Date of: type(below)",desc="reference date for the cited resource - publication/creation/revision",example="2007-09-15" #}</gco:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue= "{{ d.type }}{# tag="d.type" , group= "Temporal" ,object="CI_Date()",type = "CI_DateTypeCode", inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False, name="type: creation/publication/revision",desc="reference date for the cited resource - publication/creation/revision",example="creation",database="dateType" #}" codeSpace="ISOTC211/19115">{{ d.type }}</gmd:CI_DateTypeCode>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+          {% endfor -%}
+{% for (cod,code) in zip(md.identification.uricode,md.identification.uricodespace) -%}{# tag="for (cod,code) in zip(md.identification.uricode,md.identification.uricodespace)", inboxmulti=1, group = "Identification",inbox="Unique resource identifier" #}
+                                     <gmd:identifier>
+                                        <gmd:RS_Identifier>
+                                            <gmd:code>
+                                                <gco:CharacterString>{{ cod }}{# tag="cod", inboxmulti=1, group = "Identification",inbox="Unique resource identifier" ,ref="Part B 1.5",  name ="Idetifier- code", desc ="A value uniquely identifying the resource.The value domain of this metadata element is a mandatory character string code, generally assigned by the data owner, and a character string namespace uniquely identifying the context of the identifier code (for example, the data owner).", example ="http://image2000.jrc.it # image2000_1_nl2_multi", type = "string", multi = 0  #}</gco:CharacterString>
+                                            </gmd:code>
+                                            <gmd:codeSpace>
+                                                <gco:CharacterString>{{ code }}{# tag="code", inboxmulti=1, group = "Identification",inbox="Unique resource identifier" ,ref="Part B 1.5",  name ="Idetifier- code space", desc ="A value uniquely identifying the resource.The value domain of this metadata element is a mandatory character string code, generally assigned by the data owner, and a character string namespace uniquely identifying the context of the identifier code (for example, the data owner).", example ="http://image2000.jrc.it", type = "string", multi = 0 #}</gco:CharacterString>
+                                            </gmd:codeSpace>
+                                        </gmd:RS_Identifier>
+                                  </gmd:identifier>
+                      {% endfor -%}
+                </gmd:CI_Citation>
+            </gmd:citation>
+            <gmd:abstract>
+                <gco:CharacterString>{{ md.identification.abstract }}{# tag="md.identification.abstract ",ref="Part B 1.2",  name ="Resource Abstract", desc ="Brief narrative summary of the content of the resource(s).", example ="IMAGE2000 product 1 individual orthorectified scenes. IMAGE2000 was produced from ETM+ Landsat 7 satellite data and provides a consistent European coverage of individual orthorectified scenes in national map projection systems. The year 2000 was targeted as reference year, but a deviation of maximum 1-year was allowed to obtain a full coverage of Europe, which involves approximately 450 Landsat TM Frames. Where Landsat 7 data were not available, Landsat 5 data have been used instead. The spatial resolution is 25 metres for multispectral and 12.5 metres for panchromatic imagery", type = "string", multi = 0, group = "Identification", multiline=True #}</gco:CharacterString>
+            </gmd:abstract>
+      {% for lan in md.identification.resourcelanguage -%}{# tag="for lan in md.identification.resourcelanguage" , group= "Identification" ,inbox='Languages',inboxmulti=1, multiline= False, database="language" #}
+            <gmd:language>
+                <gmd:LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ lan }}{# tag="lan" , name="Metadata language" , ref= "Part B 10.3" , desc= "Language used for documenting metadata." , example = "eng" , type ="LanguageCode (ISO/TS 19139)" ,multi=0,inbox='Languages',inboxmulti=1, group= "Identification" , multiline= False, database="language" #}">{{ lan }}</gmd:LanguageCode>
+            </gmd:language>
+      {% endfor -%}
+               <gmd:extent>
+                <gmd:EX_Extent>
+                    <gmd:geographicElement>
+                        <gmd:EX_GeographicBoundingBox>
+                            <gmd:westBoundLongitude>
+                                <gco:Decimal>{{ md.identification.extent.boundingBox.minx }}{# tag="md.identification.extent.boundingBox.minx" , name="West Bound Longitude" , ref= "Part B 4.1" , desc= "Western-most coordinate of the limit of the dataset extent, expressed in longitude in decimal degrees (positive east)." , example = "3.93" , type ="decimal" , group= "Geographic" ,  multi=0 ,  multiline= False #}</gco:Decimal>
+                            </gmd:westBoundLongitude>
+                            <gmd:eastBoundLongitude>
+                                <gco:Decimal>{{ md.identification.extent.boundingBox.maxx }}{# tag="md.identification.extent.boundingBox.maxx" , name="East Bound Longitude" , ref= "Part B 4.1" , desc= "Eastern-most coordinate of the limit of the dataset extent, expressed in longitude in decimal degrees (positive east)." , example = "7.57" , type ="decimal" , group= "Geographic" ,  multi=0 ,  multiline= False #}</gco:Decimal>
+                            </gmd:eastBoundLongitude>
+                            <gmd:southBoundLatitude>
+                                <gco:Decimal>{{ md.identification.extent.boundingBox.miny }}{# tag="md.identification.extent.boundingBox.miny" , name="South Bound Latitude" , ref= "Part B 4.1" , desc= "Southern-most coordinate of the limit of the dataset extent, expressed in latitude in decimal degrees (positive north)." , example = "52.10" , type ="decimal" , group= "Geographic" ,multi=0 , multiline= False #}</gco:Decimal>
+                            </gmd:southBoundLatitude>
+                            <gmd:northBoundLatitude>
+                                <gco:Decimal>{{ md.identification.extent.boundingBox.maxy }}{# tag="md.identification.extent.boundingBox.maxy" , name="North Bound Latitude" , ref= "Part B 4.1" , desc= "Northern-most coordinate of the limit of the dataset extent, expressed in latitude in decimal degrees (positive north)." , example = "54.10" , type ="decimal" , group= "Geographic" , multi=0 ,  multiline= False #}</gco:Decimal>
+                            </gmd:northBoundLatitude>
+                        </gmd:EX_GeographicBoundingBox>
+                    </gmd:geographicElement>
+                </gmd:EX_Extent>
+            </gmd:extent>
+      {% if md.identification.temporalextent_start != None -%}{# tag="if md.identification.temporalextent_start != None", group = "Temporal", inbox="Temporal Extent",inboxmulti= 0 #}
+            <gmd:extent>
+                <gmd:EX_Extent>
+                    <gmd:temporalElement>
+                        <gmd:EX_TemporalExtent>
+                            <gmd:extent>
+                                <gml:TimePeriod xsi:type="gml:TimePeriodType">
+                                    <gml:beginPosition>{{ md.identification.temporalextent_start }}{# tag="md.identification.temporalextent_start" , name="Starting date" , ref= "Part B 5.1" , desc= "Time period covered by the content of the dataset." , example = "2000-11-30" , type ="date" , group= "Temporal" , inbox= "Temporal extent", multi=0 , inboxmulti= 0, multiline= False #}</gml:beginPosition>
+                                    <gml:endPosition>{{ md.identification.temporalextent_end }}{# tag="md.identification.temporalextent_end" , name="Ending date" , ref= "Part B 5.1" , desc= "Time period covered by the content of the dataset." , example = "2000-11-30" , type ="date" , group= "Temporal" , inbox= "Temporal extent", multi=0 , inboxmulti= 0, multiline= False #}</gml:endPosition>
+                                </gml:TimePeriod>
+                            </gmd:extent>
+                        </gmd:EX_TemporalExtent>
+                    </gmd:temporalElement>
+                </gmd:EX_Extent>
+            </gmd:extent>
+      {% endif -%}
+           <gmd:extent>
+            <gmd:EX_Extent>
+               <gmd:temporalElement>
+                  <gmd:EX_TemporalExtent>
+                     <gmd:extent>
+                        <gts:TM_PeriodDuration xsi:type="gts:TM_PeriodDuration_PropertyType">
+                        <gml:duration>
+                        {{ md.identification.temporalType }}{# tag="md.identification.temporalType" , name="Temporal type" , ref= "-" , desc= "Type of temporal dataset" , example = "absolute or relative" , type ="string" , group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}
+                        </gml:duration>
+                        </gts:TM_PeriodDuration>
+                     </gmd:extent>
+                  </gmd:EX_TemporalExtent>
+               </gmd:temporalElement>
+            </gmd:EX_Extent>
+         </gmd:extent>
+         {% if md.identification.timeUnit != None -%}{# tag="if md.identification.radixT != None", group = "Temporal", inbox="Temporal Resolution",inboxmulti= 0 #}
+           <gmd:extent>
+            <gmd:EX_Extent>
+               <gmd:temporalElement>
+                  <gmd:EX_TemporalExtent>
+                     <gmd:extent>
+                        <gml:timeLength xsi:type="gml:TimePeriodType">	
+                        	<gml:timeInterval xsi:type="gml:TimeIntervalLengthType">
+                        	<gml:unit>
+                							<gml:TimeUnitType>{{ md.identification.timeUnit }}{# tag="md.identification.timeUnit" , name="Granularity" , ref= "ISO/DIS 19108" , desc= "CharacterString is the name of the unit of measure used to express the length of the interval" ,inbox="Temporal Resolution", example = "month" , type ="string" , group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gml:TimeUnitType>
+                							</gml:unit>
+                							<radix>
+                							<gco:positiveInteger>{{ md.identification.radixT }}{# tag="md.identification.radixT" , name="Multiplier" , ref= "ISO/DIS 19108" , desc= "Integer is a positive integer that is the base of the multiplier of the unit" ,inbox="Temporal Resolution", example = "10" , type ="integer" , group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gco:positiveInteger>
+                							</radix>	
+                							<factor>
+                							<gco:Integer>{{ md.identification.factor }}{# tag="md.identification.factor" , name="Factor" , ref= "ISO/DIS 19108" , desc= "Factor is an integer that is the exponent of the base" , example = "3" , type ="string" ,inbox="Temporal Resolution", group= "Temporal" ,multi=0 , inboxmulti= 0, multiline= False #}</gco:Integer>
+                							</factor>	
+							</gml:timeInterval>			
+						</gml:timeLength>
+                     </gmd:extent>
+                  </gmd:EX_TemporalExtent>
+               </gmd:temporalElement>
+            </gmd:EX_Extent>
+         </gmd:extent>
+         {% endif -%}
+      </gmd:MD_DataIdentification>
+   </gmd:identificationInfo>
+ <gmd:dataQualityInfo>
+      <gmd:DQ_DataQuality>
+       <gmd:lineage>
+        <gmd:LI_Lineage>
+          <gmd:statement>
+            <gco:CharacterString>{{ md.dataquality.lineage }}{# tag="md.dataquality.lineage" , name="Lineage" , ref= "Part B 6.1" , desc= "General explanation of the data producers knowledge about the lineage of a dataset." , example = "Product 1 scenes correspond to the path/row of the Landsat orbit.." , type ="string" , group= "Quality and Validity" ,  multiline= True #}</gco:CharacterString>
+          </gmd:statement>
+        </gmd:LI_Lineage>
+      </gmd:lineage>
+    </gmd:DQ_DataQuality>
+  </gmd:dataQualityInfo>
+</gmd:MD_Metadata>

@@ -44,7 +44,7 @@ class GrassMD():
     def __init__(self, map, type):
         self.map = map
         self.type = type
-        self.isMapExist()  # function to check if map exist
+          # function to check if map exist
         self.md_grass = {}
         self.md_abstract = ''
         self.md_vinfo_h = ''  # v.info flag=h" - parse
@@ -54,23 +54,50 @@ class GrassMD():
         self.profileName='GRASS BASIC'
         self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc')
         # metadata object from OWSLIB ( for define md values)
-        self.md = MD_Metadata(md=None)
+        self.md = mdutil.MD_MetadataMOD(md=None)
         self.profilePath = None  # path to file with xml templates
 
-
         if self.type == "raster":
+            self.isMapExist()
             self.parseRast()
         elif self.type == "vector":
+            self.isMapExist()
             self.parseVect()
         elif self.type == "r3??":
             # TODO
             self.parseRast3D()
+        elif self.type=='strds' or self.type=='stvds':
+            self.parseTemporal()
 
     def isMapExist(self):
         '''Check if the map is in current mapset'''
         self.mapset = grass.find_file(self.map, self.type)['mapset']
         if not self.mapset:
             grass.fatal(_("Map <%s> does not exist in current mapset") % self.map)
+
+    def parseTemporal(self):
+        tinfo = Module('t.info',
+                        input=self.map,
+                        flags='g',
+                        type=self.type,
+                        stdout_=PIPE)
+
+        self.md_grass = parse_key_val(tinfo.outputs.stdout)
+        tinfoHist = Module('t.info',
+                            input=self.map,
+                            quiet=True,
+                            flags='h',
+                            type=self.type,
+                            stdout_=PIPE)
+        md_h_grass = tinfoHist.outputs.stdout
+        buf = StringIO.StringIO(md_h_grass)
+        line = buf.readline().splitlines()
+
+        while line:
+            if str(line[0]).strip() != "":
+                self.md_vinfo_h += line[0] + '\n'
+            line = buf.readline().splitlines()
+        buf.close()
 
     def parseRast3D(self):
         pass
@@ -149,6 +176,83 @@ class GrassMD():
             self.md_grass['min'] + '  max: ' + self.md_grass['max']
         self.md_abstract.translate(None, """&<>"'""")
 
+    def createTemporalISO(self, profile=None):
+        '''Create GRASS Temporal profile based on ISO
+        - unknown values are filling by n = '$NULL'
+        '''
+
+        n = '$NULL'
+        # jinja templates
+        if profile is None:
+            self.profilePath = os.path.join('profiles', 'temporalProfile.xml')
+        else:
+            self.profilePath = profile
+        self.schema_type = '_temporal.xml'
+        self.profileName='TEMPORAL'
+
+        # OWSLib md object
+        self.md.identification = mdutil.MD_DataIdentification_MOD()
+        self.md.dataquality = DQ_DataQuality()
+        self.md.distribution = MD_Distribution()
+        self.md.identification.extent = EX_Extent()
+        self.md.identification.extent.boundingBox = EX_GeographicBoundingBox()
+
+        # Metadata on metadata
+        val = CI_ResponsibleParty()
+        val.organization = mdutil.replaceXMLReservedChar(self.md_grass['creator'])
+        val.role = 'creator'
+        self.md.contact.append(val)
+
+        # Identification/Resource Title
+        self.md.identification.title = mdutil.replaceXMLReservedChar(self.md_grass['name'])
+        self.md.datestamp = mdutil.replaceXMLReservedChar(date.today().isoformat())
+
+        # Identification/Resource Type
+        self.md.identification.identtype = 'dataset'
+
+        # Identification/Unique Resource Identifier
+        self.md.identifier = mdutil.replaceXMLReservedChar(self.md_grass['id'])
+        self.md.identification.uricode.append(mdutil.replaceXMLReservedChar(self.md_grass['id']))
+        self.md.identification.uricodespace.append(n)
+
+        self.md.identification.resourcelanguage.append('English')
+        self.md.languagecode ='English'
+
+        val = CI_Date()
+        val.date = mdutil.replaceXMLReservedChar(self.md_grass['creation_time'])
+        val.type = 'Date of creation'
+        self.md.identification.date.append(val)
+        val = CI_Date()
+        val.date = mdutil.replaceXMLReservedChar(self.md_grass['modification_time'])
+        val.type = 'Date of last revision'
+        self.md.identification.date.append(val)
+        # Geographic/BB
+        self.md.identification.extent.boundingBox.minx = mdutil.replaceXMLReservedChar(self.md_grass['north'])
+        self.md.identification.extent.boundingBox.maxx = mdutil.replaceXMLReservedChar(self.md_grass['south'])
+        self.md.identification.extent.boundingBox.miny = mdutil.replaceXMLReservedChar(self.md_grass['east'])
+        self.md.identification.extent.boundingBox.maxy = mdutil.replaceXMLReservedChar(self.md_grass['west'])
+
+        # Temporal/Temporal Extent
+        self.md.identification.temporalextent_start = mdutil.replaceXMLReservedChar(self.md_grass['start_time'])
+        self.md.identification.temporalextent_end = mdutil.replaceXMLReservedChar(self.md_grass['end_time'])
+
+        self.md.identification.temporalType = mdutil.replaceXMLReservedChar(self.md_grass['temporal_type'])
+
+        try:
+            gran=self.md_grass['granularity'].split(' ')
+            self.md.identification.timeUnit = mdutil.replaceXMLReservedChar(gran[1])
+            self.md.identification.radixT = mdutil.replaceXMLReservedChar(gran[0])
+            self.md.identification.factor = mdutil.replaceXMLReservedChar('1')
+        except:
+            self.md.identification.timeUnit = mdutil.replaceXMLReservedChar(None)
+            self.md.identification.radixT = mdutil.replaceXMLReservedChar(None)
+            self.md.identification.factor = mdutil.replaceXMLReservedChar(None)
+
+
+
+        self.md.dataquality.lineage= "TODO"
+        self.profilePathAbs = os.path.join(self.dirpath, self.profilePath)
+
     def createGrassBasicISO(self, profile=None):
         '''Create basic/essential profile based on ISO
         - unknown values are filling by n = '$NULL'
@@ -166,7 +270,7 @@ class GrassMD():
             self.profilePath = profile
 
         # OWSLib md object
-        self.md.identification = MD_DataIdentification()
+        self.md.identification = mdutil.MD_DataIdentification_MOD()
         self.md.dataquality = DQ_DataQuality()
         self.md.distribution = MD_Distribution()
         self.md.identification.extent = EX_Extent()
@@ -320,7 +424,7 @@ class GrassMD():
 
     def readXML(self, xml_file):
         '''create instance of metadata(owslib) from xml file'''
-        self.md = MD_Metadata(etree.parse(xml_file))
+        self.md = util.MD_MetadataMOD(etree.parse(xml_file))
 
 
     def getMapInfo(self):
