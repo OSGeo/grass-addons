@@ -21,34 +21,43 @@ void correct_indices(int i3, struct ilist *list, double *r0, struct points *pnts
   int i;
   int n = list->n_values;
   int *vals = list->value;
-  double *pnt = pnts->r;
+  double dx, dy, dz;
   int type = var_pars->type;
   double sqDist = type == 2 ? SQUARE(var_pars->horizontal.max_dist) : SQUARE(var_pars->max_dist);
   
-  int n_new = 0;
-  int *newvals;
+  int n_new = 0;  // # of effective indices (not identical points, nor too far)
+  int *newvals, *save;   // effective indices
   newvals = (int *) G_malloc(n * sizeof(int));
+  save = &newvals[0];
 
-  double *r;
+  double *r, sqDist_i;
 
   for (i=0; i<n; i++) {
     *vals -= 1;
-    r = &pnt[3 * *vals];
+    r = &pnts->r[3 * *vals];
 
-    if (type != 2 && SQUARE(*r - *r0) + SQUARE(*(r+1) - *(r0+1)) + SQUARE(*(r+2) - *(r0+2)) <= sqDist) { 
-      *newvals = *vals;
+    dx = *r - *r0;
+    dy = *(r+1) - *(r0+1);
+    dz = *(r+2) - *(r0+2);
+    sqDist_i = SQUARE(dx) + SQUARE(dy) + SQUARE(dz);
+    
+    if (type != 2 && (n == 1 || (sqDist_i != 0.))) { 
+      *save = *vals;
       n_new++;
-      newvals++;
+      save++;
     }
     vals++;
   }
-  
+
   if (type != 2 && n_new < n) {
     list->n_values = n_new;
-    G_realloc(list->value, n_new);
-    G_realloc(newvals, n_new);
+    list->value = (int *) G_realloc(list->value, n_new * sizeof(int));
     memcpy(list->value, newvals, n_new * sizeof(int)); 
   }
+
+  G_free(newvals);
+
+  return;
 }
 
 // make coordinate triples xyz
@@ -60,6 +69,8 @@ void triple(double x, double y, double z, double *triple)
   *t = x;
   *(t+1) = y;
   *(t+2) = z;
+
+  return;
 }
 
 // compute coordinate differences
@@ -78,6 +89,8 @@ void coord_diff(int i, int j, double *r, double *dr)
   *drt = *rl - *rk; // dx
   *(drt+1) = *(rl+1) - *(rk+1); // dy
   *(drt+2) = *(rl+2) - *(rk+2); // dz
+
+  return;
 }
 
 // compute horizontal radius from coordinate differences
@@ -85,6 +98,7 @@ double radius_hz_diff(double *dr)
 {
   double rds;
   rds = SQUARE(dr[0]) + SQUARE(dr[1]);
+
   return rds;
 }
 
@@ -119,22 +133,26 @@ double lag_size(int direction, struct int_par *xD, struct points *pnts, struct p
   double lagNN;                    // square root of d_min -> lag
   double dist2;                    // square of the distances between search point and NN
 
+  double *search;                  // search point
+  search = (double *) G_malloc(3 * sizeof(double));
+
   int perc5;                       // 5% from total number of NN
   int add_ident;                   // number of identical points to add to perc5
   
   for (i=0; i < n; i++) { // for each input point...
   
     add_ident = 0;        // number of points identical to search point equals to zero
+    search = &pnts->r[3 * i];
 
     switch (direction) {
     case 12: // horizontal variogram
-      list = find_NNs_within(2, i, pnts, max_dist, -1); 
+      list = find_NNs_within(2, search, pnts, max_dist, -1); 
       break;
     case 3: // vertical variogram
-      list = find_NNs_within(1, i, pnts, max_dist, max_dist_vert);    
+      list = find_NNs_within(1, search, pnts, max_dist, max_dist_vert);    
       break;
     default: // anisotropic and bivariate variogram  
-      list = find_NNs_within(3, i, pnts, max_dist, max_dist_vert);   
+      list = find_NNs_within(3, search, pnts, max_dist, max_dist_vert);   
       break;
     }
     n_vals = list->n_values;                 // number of overlapping rectangles
@@ -196,9 +214,10 @@ double lag_size(int direction, struct int_par *xD, struct points *pnts, struct p
     r += 3; // go to next search point  
   } // end i for loop: distance of i-th search pt and 5%-th NN 
 
-  G_free_ilist(list); // free list memory 
   lagNN = sqrt(d_min);
 
+  G_free_ilist(list); // free list memory
+ 
   return lagNN;
 }
 

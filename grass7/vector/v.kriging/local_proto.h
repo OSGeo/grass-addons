@@ -192,7 +192,7 @@ double max(double *, struct points *);
 
 struct RTree *create_spatial_index(struct int_par *);
 void insert_rectangle(int, int, struct points *);
-struct ilist *find_NNs_within(int, int, struct points *, double, double);
+struct ilist *find_NNs_within(int, double *, struct points *, double, double);
 struct ilist *find_n_NNs(int, int, struct points *, int);
 double sum_NN(int, int, struct ilist *, struct points *);
 

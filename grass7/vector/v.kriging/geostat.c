@@ -39,6 +39,7 @@
   int n = pnts->n;                  // # of input points
   double *pnts_r = pnts->r;         // xyz coordinates of input points
   double *r;                        // pointer to xyz coordinates
+  double *search;                   // pointer to search point coordinates
   double *vals = pnts->invals;      // values to be used for interpolation
   int i3 = xD->i3;
   int phase = xD->phase;            // phase: initial / middle / final
@@ -124,6 +125,8 @@
 
   // allocate:
   dr = (double *) G_malloc(3 * sizeof(double));   // vector of coordinate differences
+  search = (double *) G_malloc(3 * sizeof(double));   // vector of search point coordinates
+
   if (type != 2) {
     var_pars->h = (double *) G_malloc(nLag * sizeof(double)); // vector of bins
   }
@@ -134,7 +137,7 @@
   }
 
   // control initialization:
-  if (dr == NULL || var_pars->h == NULL || (type == 2 && var_pars->vert == NULL)) {
+  if (dr == NULL || search == NULL || var_pars->h == NULL || (type == 2 && var_pars->vert == NULL)) {
     if (xD->report.write2file == TRUE) { // close report file
       fprintf(xD->report.fp, "Error (see standard output). Process killed...");
       fclose(xD->report.fp);
@@ -189,15 +192,16 @@
 
       /* Compute variogram for points in relevant neighbourhood */
       for (i = 0; i < n-1; i++) {    // for each input point...	
+	search = &pnts->r[3 * i];
        	switch (type) { // find NNs according to variogram type
 	case 0: // horizontal variogram
-	  list = find_NNs_within(2, i, pnts, max_dist, -1);
+	  list = find_NNs_within(2, search, pnts, max_dist, -1);
 	  break;
 	case 1: // vertical variogram
-	  list = find_NNs_within(1, i, pnts, -1, max_dist);
+	  list = find_NNs_within(1, search, pnts, -1, max_dist);
 	  break;
 	default: // anisotropic or bivariate variogram    
-	  list = find_NNs_within(3, i, pnts, max_dist, max_dist_vert);
+	  list = find_NNs_within(3, search, pnts, max_dist, max_dist_vert);
 	  break;
 	}
 	
@@ -467,6 +471,8 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 
   int type = var_par->type;
   double max_dist = type == 2 ? var_par->horizontal.max_dist : var_par->max_dist;
+  //max_dist = sqrt(0.5 * SQUARE(max_dist));
+
   double max_dist_vert = type == 2 ? var_par->vertical.max_dist : var_par->max_dist;
   double ratio = var_par->type == 3 ? xD->aniso_ratio : 1.;
        
@@ -547,16 +553,14 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	list = G_new_ilist();            // create list of overlapping rectangles
        	
 	if (i3 == TRUE) { // 3D kriging:
-	  list = find_NNs_within(3, i, pnts, max_dist, max_dist_vert);
+	  list = find_NNs_within(3, r0, pnts, max_dist, max_dist_vert);
 	}
 	else { // 2D kriging:
-	  list = find_NNs_within(2, i, pnts, max_dist, max_dist_vert);
+	  list = find_NNs_within(2, r0, pnts, 3. * max_dist, max_dist_vert);
 	}
-	 
-	n_vals = list->n_values;         // # of selected points
-	if (n_vals > 0) { // positive # of selected points: 
-	  correct_indices(i3, list, r0, pnts, var_par);
 
+	if (list->n_values > 1) { // positive # of selected points: 
+	  correct_indices(i3, list, r0, pnts, var_par);
 	  GM_sub = submatrix(list, GM, report); // make submatrix for selected points
 	  GM_Inv = G_matrix_inverse(GM_sub);    // invert submatrix
 	  G_matrix_free(GM_sub);
@@ -568,31 +572,34 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  G_matrix_free(g0);
 
 	  rslt_OK = result(pnts, list, w0); // Estimated cell/voxel value rslt_OK = w x inputs
-
-  	  // Create output
-	constant_voxel_val: 
-	  if (var_par->const_val == 1) { // constant input values:
-	    rslt_OK = (double) *vals; // setup input as output
-	  }
-
-	  // write output to the (3D) raster layer
-	  if (write2layer(xD, reg, out, col, row, dep, rslt_OK) == 0) {
-	    if (report->name) { // report file available
-	      fprintf(report->fp, "Error (see standard output). Process killed...");
-	      fclose(report->fp); // close report file
-	    }
-	    G_fatal_error(_("Error writing result into output layer..."));
-	  }
-	  G_free_ilist(list);    // free list memory
-	  
-	} // end if searchRadius
-	else { // no selected points:
+	}
+	else if (list->n_values == 1) {
+	  rslt_OK = vals[list->value[0] - 1]; // Estimated cell/voxel value rslt_OK = w x inputs
+	}
+	else if (list->n_values == 0) {
 	  if (report->name) { // report file available:
 	    fprintf(report->fp, "Error (see standard output). Process killed...");
 	    fclose(report->fp);
 	  }
 	  G_fatal_error(_("This point does not have neighbours in given radius..."));
 	} // end else: error
+
+  	  // Create output
+      constant_voxel_val: 
+	if (var_par->const_val == 1) { // constant input values:
+	  rslt_OK = (double) *vals; // setup input as output
+	}
+
+	// write output to the (3D) raster layer
+	if (write2layer(xD, reg, out, col, row, dep, rslt_OK) == 0) {
+	  if (report->name) { // report file available
+	    fprintf(report->fp, "Error (see standard output). Process killed...");
+	    fclose(report->fp); // close report file
+	  }
+	  G_fatal_error(_("Error writing result into output layer..."));
+	}
+
+	G_free_ilist(list);    // free list memory  
       } // end col
     } // end row 
   } // end dep

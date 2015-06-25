@@ -592,6 +592,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
   double max_dist = type == 2 ? var_par->horizontal.max_dist : var_par->max_dist;
   double max_dist_vert = type == 2 ? var_par->vertical.max_dist : var_par->max_dist;
   
+  double *search;               // coordinates of the search point
   struct ilist *list;
   struct RTree_Rect *r_cell;
   mat_struct *GM_sub;
@@ -602,6 +603,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
   struct write *report = &xD->report;
   double *normal, *absval, *norm, *av;
 
+  search = (double *) G_malloc(3 * sizeof(double));
   normal = (double *) G_malloc(n * sizeof(double));
   absval = (double *) G_malloc(n * sizeof(double));
   norm = &normal[0];
@@ -615,11 +617,12 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
   for (i=0; i<n; i++) {   // for each input point [r0]:
     list = G_new_ilist();                  // create list of overlapping rectangles
 
+    search = &pnts->r[3 * i];
     if (i3 == TRUE) {
-      list = find_NNs_within(3, i, pnts, max_dist, max_dist_vert);
+      list = find_NNs_within(3, search, pnts, max_dist, max_dist_vert);
     }
     else {
-      list = find_NNs_within(2, i, pnts, max_dist, max_dist_vert);
+      list = find_NNs_within(2, search, pnts, max_dist, max_dist_vert);
     }
 	 
     n_vals = list->n_values;               // # of overlapping rectangles
@@ -633,7 +636,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
       
       g0 = set_up_g0(xD, pnts, list, r, var_par); // Diffs inputs - unknowns (incl. cond. 1)) 
       w0 = G_matrix_product(GM_Inv, g0); // Vector of weights, condition SUM(w) = 1 in last row
-       
+      
       G_matrix_free(g0);
       G_matrix_free(GM_Inv);
 
