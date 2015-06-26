@@ -56,7 +56,7 @@ class Sample(object):
                  strds_name=None):
         self.start = start
         self.end = end
-        if raster_names != None:
+        if raster_names is not None:
             self.raster_names = raster_names
         else:
             self.raster_names = []
@@ -73,7 +73,7 @@ class Sample(object):
         elif date == 'end':
             return str(self.end).split(' ')[0].replace('-', '_')
         else:
-            grass.fatal("The values accepted by printDay in Sample are:" \
+            grass.fatal("The values accepted by printDay in Sample are:"
                         " 'start', 'end'")
 
 ############################################################################
@@ -108,17 +108,17 @@ def main():
 
     samples = []
 
-    first_strds = tgis.open_old_space_time_dataset(strds_names[0], "strds",
-                                                   dbif)
+    first_strds = tgis.open_old_stds(strds_names[0], "strds", dbif)
     # Single space time raster dataset
     if len(strds_names) == 1:
-        rows = first_strds.get_registered_maps(
-            "name,mapset,start_time,end_time", tempwhere, "start_time", dbif)
+        rows = first_strds.get_registered_maps("name,mapset,start_time,end_time",
+                                               tempwhere, "start_time",
+                                               dbif)
 
         if not rows:
             dbif.close()
             grass.fatal(_("Space time raster dataset <%s> is empty") %
-                          first_strds.get_id())
+                        first_strds.get_id())
 
         for row in rows:
             start = row["start_time"]
@@ -130,19 +130,21 @@ def main():
     else:
         # Multiple space time raster datasets
         for name in strds_names[1:]:
-            dataset = tgis.open_old_space_time_dataset(name, "strds", dbif)
+            dataset = tgis.open_old_stds(name, "strds", dbif)
             if dataset.get_temporal_type() != first_strds.get_temporal_type():
-                grass.fatal(_("Temporal type of space time raster datasets must be equal\n"
-                              "<%(a)s> of type %(type_a)s do not match <%(b)s> of type %(type_b)s"%\
-                              {"a": first_strds.get_id(),
-                               "type_a":first_strds.get_temporal_type(),
-                               "b":dataset.get_id(),
-                               "type_b":dataset.get_temporal_type()}))
+                grass.fatal(_("Temporal type of space time raster "
+                              "datasets must be equal\n<%(a)s> of type "
+                              "%(type_a)s do not match <%(b)s> of type "
+                              "%(type_b)s" % {"a": first_strds.get_id(),
+                               "type_a": first_strds.get_temporal_type(),
+                               "b": dataset.get_id(),
+                               "type_b": dataset.get_temporal_type()}))
 
         mapmatrizes = tgis.sample_stds_by_stds_topology("strds", "strds",
                                                         strds_names,
-                                                        strds_names[0], False,
-                                                        None, "equal", False,
+                                                        strds_names[0],
+                                                        False, None,
+                                                        "equal", False,
                                                         False)
 
         for i in xrange(len(mapmatrizes[0])):
@@ -177,7 +179,7 @@ def main():
     perc_tot = len(samples)
     pymap = Vector(output)
     try:
-        pymap.open()
+        pymap.open('r')
     except:
         dbif.close()
         grass.fatal(_("It is not possible to open the new map %s" % output))
@@ -188,6 +190,7 @@ def main():
         except CalledModuleError:
             dbif.close()
             grass.fatal(_("Impossible add table to vector %s" % output))
+    pymap.close()
     for sample in samples:
         raster_names = sample.raster_names
         # Call v.what.rast for each raster map
@@ -205,20 +208,21 @@ def main():
             column_string.replace('.', '_')
             try:
                 grass.run_command("v.db.addcolumn", map=output,
-                                  column=column_string, overwrite=overwrite)
+                                  column=column_string,
+                                  overwrite=overwrite)
             except CalledModuleError:
                 dbif.close()
-                grass.fatal(_("Unable to add column %s to vector map <%s> ") \
-                           % (column_string, output))
+                grass.fatal(_("Unable to add column %s to vector map "
+                              "<%s> ") % (column_string, output))
             try:
                 grass.run_command("v.what.rast", map=output, raster=name,
                                   column=column_name, where=where,
                                   quiet=quiet)
             except CalledModuleError:
                 dbif.close()
-                grass.fatal(_("Unable to run v.what.rast for vector map <%s> "
-                              "and raster map <%s>") % \
-                              (output, str(raster_names)))
+                grass.fatal(_("Unable to run v.what.rast for vector map"
+                              " <%s> and raster map <%s>") %
+                            (output, str(raster_names)))
 
         msgr.percent(perc_curr, perc_tot, 1)
         perc_curr += 1
