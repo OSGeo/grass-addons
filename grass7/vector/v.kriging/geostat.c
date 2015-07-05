@@ -86,7 +86,7 @@
   double *dr;   // coordinate differences of each couple
   double *h;    // distance of boundary of the horizontal segment
   double tv;    // bearing of the line between the couple of the input points
-  double ddir;  // the azimuth of computing variogram
+  double ddir1, ddir2;  // the azimuth of computing variogram
   double rv;    // radius of the couple of points
   double drv;   // distance between the points
   double rvh;   // difference between point distance and the horizontal segment boundary
@@ -172,7 +172,7 @@
   if (type == 2) {
     vert = &var_pars->vertical.h[0]; 
   }
-
+  
   /* *** Experimental variogram computation *** */
   for (b = 0; b < ncols; b++) {      // for each vertical lag...
     if (type == 2) {                 // just in case that the variogram is vertical
@@ -222,10 +222,15 @@
 	      }
 	      else {                           // hz / aniso / bivar variogram: 
 		tv = atan2(*(dr+1), *dr);      // bearing
+		if (tv < 0.) {
+		  tv += 2. * PI;
+		}
 	      }
 	      
-	      ddir = tv - dir;                 // difference between bearing and azimuth
-	      if (fabsf(ddir) <= td) {         // angle test: compare the diff with critical value
+	      ddir1 = dir - tv;                // difference between bearing and azimuth
+	      ddir2 = (dir + PI) - tv;
+	      
+	      if (fabsf(ddir1) <= td || fabsf(ddir2) <= td) {         // angle test: compare the diff with critical value
 		// test squared distance: vertical variogram => 0., ...
 		rv = type == 1 ? 0. : radius_hz_diff(dr); // ... otherwise horizontal distance
 
@@ -336,11 +341,14 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
   // set up:
   var_pars->type = type;   // hz / vert / bivar / aniso
   var_pars->const_val = 0; // input values are not constants
+
   switch (type) {
   case 0: // horizontal variogram
     if (i3 == TRUE) { // 3D interpolation (middle phase)
       variogram = opt.function_var_hz->answer; // function type available:
-      if (strcmp(variogram, "linear") != 0) { // nonlinear
+      var_pars->function = set_function(variogram, report);
+
+      if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) { // nonlinear or not parabolic
 	var_pars->nugget = atof(opt.nugget_hz->answer);
 	var_pars->h_range = atof(opt.range_hz->answer);
 	if (opt.sill_hz->answer) {
@@ -348,12 +356,14 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
 	}
       }
       else { // function type not available:
-	linear_variogram(var_pars, report);
+	LMS_variogram(var_pars, report);
       }      
     }
     else { // 2D interpolation (final phase)
       variogram = opt.function_var_final->answer; // function type available:
-      if (strcmp(variogram, "linear") != 0) { // nonlinear
+      var_pars->function = set_function(variogram, report);
+
+      if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) { // nonlinear or not parabolic	
 	var_pars->nugget = atof(opt.nugget_final->answer);
 	var_pars->h_range = atof(opt.range_final->answer);
 	if (opt.sill_final->answer) {
@@ -361,7 +371,7 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
 	}
       }
       else { // function type not available:
-	linear_variogram(var_pars, report);
+	LMS_variogram(var_pars, report);
       }      
     }
    
@@ -380,6 +390,8 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
       var_pars->sill = atof(opt.sill_vert->answer);
     }
     variogram = opt.function_var_vert->answer;
+    var_pars->function = set_function(variogram, report);
+
     if (report->name) {
       fprintf(report->fp, "Parameters of vertical variogram:\n");
       fprintf(report->fp, "Nugget effect: %f\n", var_pars->nugget);
@@ -390,7 +402,7 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
   case 2: // bivariate variogram (just final phase)
     if (!(opt.function_var_final->answer && opt.function_var_final_vert->answer) || strcmp(opt.function_var_final->answer, "linear") == 0) { // planar function:
       var_pars->function = 5; // planar variogram (3D)
-      linear_variogram(var_pars, report);
+      LMS_variogram(var_pars, report);
     }
 
     else { // function type was set up by the user:
@@ -427,7 +439,9 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
 
   case 3: // univariate (just final phase)
     variogram = opt.function_var_final->answer;
-    if (strcmp(variogram, "linear") != 0) { // nonlinear variogram:
+    var_pars->function = set_function(variogram, report);
+
+    if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) { // nonlinear and not parabolic variogram:
       var_pars->nugget = atof(opt.nugget_final->answer);
       var_pars->h_range = atof(opt.range_final->answer);
       if (opt.sill_final->answer) {
@@ -446,14 +460,13 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
 	fprintf(report->fp, "Range:         %f\n", var_pars->h_range);
       }
     }
-    else {
-      linear_variogram(var_pars, report);
+    else { // linear or parabolic variogram
+      LMS_variogram(var_pars, report);
     }
     break;
   }
 
   if (type != 2) {
-    var_pars->function = set_function(variogram, report);
     plot_var(i3, FALSE, var_pars); // Plot variogram using gnuplot
   }
 }
@@ -540,7 +553,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  G_percent(row, reg->nrows, 1);
 	}
       }
-      //#pragma omp parallel for private(col, r0, cellCent, ind, sqDist, n1, GM, GM_Inv, g0, w0, rslt_OK)
+      //#pragma omp parallel for private(col, r0, GM, GM_Inv, g0, w0, rslt_OK)
       for (col=0; col < reg->ncols; col++) {
 		
 	if (var_par->const_val == 1) { // constant input values
@@ -556,11 +569,12 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  list = find_NNs_within(3, r0, pnts, max_dist, max_dist_vert);
 	}
 	else { // 2D kriging:
-	  list = find_NNs_within(2, r0, pnts, 3. * max_dist, max_dist_vert);
+	  list = find_NNs_within(2, r0, pnts, max_dist, max_dist_vert);
 	}
 
 	if (list->n_values > 1) { // positive # of selected points: 
 	  correct_indices(i3, list, r0, pnts, var_par);
+
 	  GM_sub = submatrix(list, GM, report); // make submatrix for selected points
 	  GM_Inv = G_matrix_inverse(GM_sub);    // invert submatrix
 	  G_matrix_free(GM_sub);
@@ -572,6 +586,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  G_matrix_free(g0);
 
 	  rslt_OK = result(pnts, list, w0); // Estimated cell/voxel value rslt_OK = w x inputs
+	  G_matrix_free(w0);
 	}
 	else if (list->n_values == 1) {
 	  rslt_OK = vals[list->value[0] - 1]; // Estimated cell/voxel value rslt_OK = w x inputs
@@ -583,6 +598,8 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  }
 	  G_fatal_error(_("This point does not have neighbours in given radius..."));
 	} // end else: error
+
+	G_free_ilist(list);    // free list memory  
 
   	  // Create output
       constant_voxel_val: 
@@ -598,8 +615,6 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	  }
 	  G_fatal_error(_("Error writing result into output layer..."));
 	}
-
-	G_free_ilist(list);    // free list memory  
       } // end col
     } // end row 
   } // end dep

@@ -26,10 +26,10 @@ double *get_col_values(struct Map_info *map, struct int_par *xD, struct points *
   else {
     save = 1;
   }
-
+  
   G_message(_("Reading values from attribute column <%s>..."), column);
+
   db_CatValArray_init(&cvarr);	/* array of categories and values initialised */
-    
   Fi = Vect_get_field(map, field);	/* info about call of DB */
   if (Fi == NULL) {
     if (save == 1 && xD->report.write2file == TRUE) { // close report file
@@ -162,7 +162,7 @@ double *get_col_values(struct Map_info *map, struct int_par *xD, struct points *
   }
 
   db_CatValArray_free(&cvarr);	// free memory of the array of categories and values
-
+  
   return values;
 }
 
@@ -340,6 +340,10 @@ void read_points(struct Map_info *map, struct reg_par *reg, struct points *point
     G_fatal_error(_("Unable to read coordinates of point layer (all points are out of region)"));
   }
 
+  if (out_reg > 0) {
+    G_message(_("Unused points: %d (out of region)"), out_reg);
+  }
+
   if (xD->phase == 0) { // initial phase:
     write2file_vector(xD, point);  // describe properties
   }
@@ -401,7 +405,7 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par, struct int
  
   fp = fopen(file_name, "r");
   if (fp == NULL) {
-    G_fatal_error(_("File is missing..."));
+    G_fatal_error(_("Temporary file is missing, please repeat an initial phase..."));
   }
   
   else { // file exists:
@@ -545,4 +549,8 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par, struct int
     }
   } 
   fclose(fp);
+
+  if (xD->phase == 2) {
+    remove(file_name);
+  } 
 }

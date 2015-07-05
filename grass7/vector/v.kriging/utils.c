@@ -134,8 +134,6 @@ double lag_size(int direction, struct int_par *xD, struct points *pnts, struct p
   double dist2;                    // square of the distances between search point and NN
 
   double *search;                  // search point
-  search = (double *) G_malloc(3 * sizeof(double));
-
   int perc5;                       // 5% from total number of NN
   int add_ident;                   // number of identical points to add to perc5
   
@@ -272,6 +270,16 @@ int lag_number(double lag, double *varpar_max)
   return n;
 }
 
+void optimize(double *lag, int *nLag, double max)
+{
+  if (*nLag > 20) {
+    *nLag = 20;
+    *lag = max / *nLag;
+  }
+
+  return;
+}
+
 // maximal horizontal and vertical distance to restrict variogram computing
 void variogram_restricts(struct int_par *xD, struct points *pnts, struct parameters *var_pars)
 {
@@ -329,17 +337,20 @@ void variogram_restricts(struct int_par *xD, struct points *pnts, struct paramet
     // horizontal direction: 
     var_pars->lag = lag_size(12, xD, pnts, var_pars, report);  // lag distance
     var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist); // number of lags
+    optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
     var_pars->max_dist = var_pars->nLag * var_pars->lag;             // maximum distance
 
     // vertical direction
     var_pars->lag_vert = lag_size(3, xD, pnts, var_pars, report);             // lag distance
     var_pars->nLag_vert = lag_number(var_pars->lag_vert, &var_pars->max_dist_vert); // # of lags
+    optimize(&var_pars->lag_vert, &var_pars->nLag_vert, var_pars->max_dist_vert);
     var_pars->max_dist_vert = var_pars->nLag_vert * var_pars->lag_vert;             // max distance
   }
 
   else { // univariate variograms (hz / vert / aniso)
     var_pars->lag = lag_size(dimension, xD, pnts, var_pars, report); // lag size
     var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);   // # of lags
+    optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
     var_pars->max_dist = var_pars->nLag * var_pars->lag;               // maximum distance
   }
 
@@ -601,7 +612,7 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
   switch (bivar) {
   case FALSE: // univariate variogram
     function = var_pars->function;
-    if (function > 0) { // nonlinear variogram
+    if (function > 1) { // nonlinear and not parabolic variogram
       nugget = var_pars->nugget;
       sill = var_pars->sill - nugget;
       h_range = var_pars->h_range;
@@ -697,7 +708,7 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
 
       switch (function) {
       case 0: // linear
-	dd = *T * hh + *(T+1);	
+	dd = *T * hh; // todo: add nugget effect
 	break;
       case 1: // parabolic
 	dd = *T * SQUARE(hh) + *(T+1);
@@ -820,44 +831,47 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
   }
 
   else { // univariate variogram
-    if (i3 == TRUE) { // 3D
+    if (i3 == TRUE) { // 3D variogram
       if (var_pars->type == 0) { // horizontal variogram
-	fprintf(gp, "set title \"Experimental and theoretical variogram (3D hz) of <%s>\"\n", var_pars->name);
-	//fprintf(gp, "set label \"linear: gamma(h) = %f*h + %f\" at screen 0.30,0.90\n", var_par->T->vals[0], var_par->T->vals[1]);
+	if (i3 == TRUE) {
+	  fprintf(gp, "set title \"Experimental and theoretical variogram (3D hz) of <%s>\"\n", var_pars->name);
+	}
+	else {
+	  fprintf(gp, "set title \"Experimental and theoretical variogram (2D hz) of <%s>\"\n", var_pars->name);
+	}
       }
       else if (var_pars->type == 1) { // vertical variogram
 	fprintf(gp, "set title \"Experimental and theoretical variogram (3D vert) of <%s>\"\n", var_pars->name);
-	//fprintf(gp, "set label \"linear: gamma(h) = %f*h + %f\" at screen 0.30,0.90\n", var_par->T->vals[0], var_par->T->vals[1]);
       }
-      else if (var_pars->type == 3) // anisotropic variogram
+      else if (var_pars->type == 3) {// anisotropic variogram
 	fprintf(gp, "set title \"Experimental and theoretical variogram (3D) of <%s>\"\n", var_pars->name);
+      }
     }
 
     else { // 2D  
       fprintf(gp, "set title \"Experimental and theoretical variogram (2D) of <%s>\"\n", var_pars->name);
     }
 
-    if (var_pars->type == 2) {
-      switch (var_pars->function) {
-      case 0: // linear
-	fprintf(gp, "set label \"linear: gamma(h) = %f*h + %f\" at screen 0.30,0.90\n", var_pars->T->vals[0], var_pars->T->vals[1]);
-	break;
-      case 1: // parabolic
-	fprintf(gp, "set label \"parabolic: gamma(h) = %f*h^2 + %f\" at screen 0.25,0.90\n", var_pars->T->vals[0], var_pars->T->vals[1]);
-	break;
-      case 2: // exponential
-	fprintf(gp, "set rmargin 5\n");
-	fprintf(gp, "set label \"exponential: gamma(h) = %f + %f * (1 - exp(-3*h / %f))\" at screen 0.10,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range);
-	break;
-      case 3: // spherical
-	fprintf(gp, "set rmargin 5\n");
-	fprintf(gp, "set label \"spherical: gamma(h) = %f+%f*(1.5*h/%f-0.5*(h/%f)^3)\" at screen 0.05,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range, var_pars->h_range);
-	break;
-      case 4: // gaussian
-	fprintf(gp, "set label \"gaussian: gamma(h) = %f + %f * (1 - exp(-3*(h / %f)^2))\" at screen 0.10,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range);
-	break;
-      }
+    switch (var_pars->function) {
+    case 0: // linear
+      fprintf(gp, "set label \"linear: gamma(h) = %f*h\" at screen 0.30,0.90\n", var_pars->T->vals[0]);
+      break;
+    case 1: // parabolic
+      fprintf(gp, "set label \"parabolic: gamma(h) = %f*h^2\" at screen 0.25,0.90\n", var_pars->T->vals[0]);
+      break;
+    case 2: // exponential
+      fprintf(gp, "set rmargin 5\n");
+      fprintf(gp, "set label \"exponential: gamma(h) = %f + %f * (1 - exp(-3*h / %f))\" at screen 0.10,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range);
+      break;
+    case 3: // spherical
+      fprintf(gp, "set rmargin 5\n");
+      fprintf(gp, "set label \"spherical: gamma(h) = %f+%f*(1.5*h/%f-0.5*(h/%f)^3)\" at screen 0.05,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range, var_pars->h_range);
+      break;
+    case 4: // gaussian
+      fprintf(gp, "set label \"gaussian: gamma(h) = %f + %f * (1 - exp(-3*(h / %f)^2))\" at screen 0.10,0.90\n", var_pars->nugget, var_pars->sill - var_pars->nugget, var_pars->h_range);
+      break;
     }
+    
     fprintf(gp, "set xlabel \"h [m]\"\n");
     fprintf(gp, "set ylabel \"gamma(h) [units^2]\"\n");
     fprintf(gp, "set key bottom right\n");

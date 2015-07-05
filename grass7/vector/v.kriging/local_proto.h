@@ -205,6 +205,7 @@ double zenith_angle(double *);
 void triple(double, double, double, double *);
 double lag_size(int, struct int_par *, struct points *, struct parameters *, struct write *);
 int lag_number(double, double *);
+void optimize(double *, int *, double);
 void variogram_restricts(struct int_par *, struct points *, struct parameters *);
 void geometric_anisotropy(struct int_par *, struct points *);
 double find_intersect_x(double *, double *, double *, double *, struct write *);
@@ -216,7 +217,7 @@ void E_variogram(int, struct int_par *, struct points *, struct reg_par *, struc
 void T_variogram(int, int, struct opts, struct parameters *, struct write *);
 void ordinary_kriging(struct int_par *, struct reg_par *, struct points *, struct var_par *, struct output *);
 
-void linear_variogram(struct parameters *, struct write *);
+void LMS_variogram(struct parameters *, struct write *);
 double bivar_sill(int, mat_struct *);
 void sill(struct parameters *);
 int sill_compare(struct int_par *, struct flgs *, struct var_par *, struct points *);

@@ -5,14 +5,14 @@
     return x*x;
   }
 
-void linear_variogram(struct parameters *var_par, struct write *report)
+void LMS_variogram(struct parameters *var_par, struct write *report)
 {
   int nZ, nL;                // # of gamma matrix rows and columns
   int nr, nc;                // # of plan matrix rows and columns
   int i, j;                  // indices
   double *h, *vert, *gamma;
-  mat_struct *gR;      
-
+  mat_struct *gR;    
+  
   nL = var_par->gamma->rows;        // # of cols (horizontal bins)
   nZ = var_par->gamma->cols;        // # of rows (vertical bins)
   gamma = &var_par->gamma->vals[0]; // pointer to experimental variogram
@@ -28,8 +28,8 @@ void linear_variogram(struct parameters *var_par, struct write *report)
     } // end j
   } // end i
     
-  // Number of columns of design matrix A
-  nc = var_par->function == 5 ? 3 : 2; 
+  // # of columns of design matrix A
+  nc = var_par->function == 5 ? 3 : 1; 
 
   var_par->A = G_matrix_init(nr, nc, nr); // initialise design matrix
   gR = G_matrix_init(nr, 1, nr); // initialise vector of observations
@@ -47,18 +47,21 @@ void linear_variogram(struct parameters *var_par, struct write *report)
     for (j = 0; j < nL; j++) {
       if (!isnan(*gamma)) { // write to matrix - each valid element of gamma
 	switch (var_par->function) { // function of theoretical variogram
+	case 0: // linear variogram
+	  G_matrix_set_element(var_par->A, nr, 0, *h);
+	  //G_matrix_set_element(var_par->A, nr, 1, 1.);
+	  break;
+	case 1: // parabolic variogram
+	  G_matrix_set_element(var_par->A, nr, 0, SQUARE(*h));
+	  G_matrix_set_element(var_par->A, nr, 1, 1.);
+	  break;
 	case 5: // bivariate planar
 	  G_matrix_set_element(var_par->A, nr, 0, *h);
 	  G_matrix_set_element(var_par->A, nr, 1, *vert);
 	  G_matrix_set_element(var_par->A, nr, 2, 1.);
-	  G_matrix_set_element(gR, nr, 0, *gamma);
-	  break;
-	default:
-	  G_matrix_set_element(var_par->A, nr, 0, *h);
-	  G_matrix_set_element(var_par->A, nr, 1, 1.);
-	  G_matrix_set_element(gR, nr, 0, *gamma);
 	  break;
 	} // end switch variogram fuction
+	G_matrix_set_element(gR, nr, 0, *gamma);
 	nr++; // length of vector of valid elements (not null)		
       } // end test if !isnan(*gamma)
       h++;
@@ -83,17 +86,17 @@ void linear_variogram(struct parameters *var_par, struct write *report)
   } // error
 
   // constant raster
-  if (var_par->T->vals[0] == 0. && var_par->T->vals[1] == 0.) { //to do: otestuj pre 2d
+  if (var_par->T->vals[0] == 0. && var_par->T->vals[1] == 0.) {
     var_par->const_val = 1;
     G_message(_("Input values to be interpolated are constant."));
-  } // todo: cnstant raster for exponential etc.
+  } // todo: constant raster for exponential etc.
 
   // coefficients of theoretical variogram (linear)
   if (report->name) {
     fprintf(report->fp, "Parameters of bivariate variogram:\n");
     fprintf(report->fp, "Function: linear\n\n");
     fprintf(report->fp, "gamma(h, vert) = %f * h + %f * vert + %f\n", var_par->T->vals[0], var_par->T->vals[1], var_par->T->vals[2]);
-  }
+  } // end if: report
 }
 
 double bivar_sill(int direction, mat_struct *gamma)
@@ -552,6 +555,7 @@ double result(struct points *pnts, struct ilist *index, mat_struct *w0)
   for (i=0; i<n; i++) { // for each input point:
     *vt = *vo;          // subval = selected original
     *wt = *wo;          // sub weight = selected original
+    //G_debug(0,"%f %f", *vt, *wt);
     
     // go to the next:
     if (n_ind == 0) { // use all points:
@@ -630,10 +634,10 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
     if (n_vals > 0 ) { // if positive:
       correct_indices(i3, list, r, pnts, var_par);
 
-      GM_sub = submatrix(list, GM, &xD->report); // create submatrix using indices  
+      GM_sub = submatrix(list, GM, &xD->report); // create submatrix using indices
       GM_Inv = G_matrix_inverse(GM_sub);         // inverse matrix
       G_matrix_free(GM_sub);
-      
+                  
       g0 = set_up_g0(xD, pnts, list, r, var_par); // Diffs inputs - unknowns (incl. cond. 1)) 
       w0 = G_matrix_product(GM_Inv, g0); // Vector of weights, condition SUM(w) = 1 in last row
       
@@ -644,7 +648,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
       G_matrix_free(w0);
 
       //Create output 
-      *norm = *vals - rslt_OK;          // differences between input and interpolated values
+      *norm = rslt_OK - *vals;          // differences between input and interpolated values
       *av = fabsf(*norm);               // absolute values of the differences (quantile computation)
 
       if (xD->i3 == TRUE) { // 3D interpolation:

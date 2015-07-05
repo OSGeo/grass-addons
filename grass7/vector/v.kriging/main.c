@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   opt.var_dir_hz->key = "azimuth";
   opt.var_dir_hz->type = TYPE_DOUBLE;
   opt.var_dir_hz->required = NO;
-  opt.var_dir_hz->answer = "0.0";
+  opt.var_dir_hz->answer = "45.0";
   opt.var_dir_hz->description =
     _("Azimuth of variogram computing (isotrophic)");
   opt.var_dir_hz->guisection = _("Initial");
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
   opt.td_hz = G_define_option();
   opt.td_hz->key = "td";
   opt.td_hz->type = TYPE_DOUBLE;
-  opt.td_hz->answer = "90.0";
+  opt.td_hz->answer = "45.0";
   opt.td_hz->description = _("Angle of variogram processing");
   opt.td_hz->required = NO;
   opt.td_hz->guisection = _("Initial");
@@ -189,6 +189,7 @@ int main(int argc, char *argv[])
   opt.nugget_hz = G_define_option();
   opt.nugget_hz->key = "hz_nugget";
   opt.nugget_hz->type = TYPE_DOUBLE;
+  opt.nugget_hz->answer = "0.0";
   opt.nugget_hz->description = _("Nugget effect of horizontal variogram");
   opt.nugget_hz->required = NO;
   opt.nugget_hz->guisection = _("Middle");
@@ -196,6 +197,7 @@ int main(int argc, char *argv[])
   opt.nugget_vert = G_define_option();
   opt.nugget_vert->key = "vert_nugget";
   opt.nugget_vert->type = TYPE_DOUBLE;
+  opt.nugget_vert->answer = "0.0";
   opt.nugget_vert->description = _("Nugget effect of vertical variogram");
   opt.nugget_vert->required = NO;
   opt.nugget_vert->guisection = _("Middle");
@@ -203,7 +205,7 @@ int main(int argc, char *argv[])
   opt.nugget_final = G_define_option();
   opt.nugget_final->key = "final_nugget";
   opt.nugget_final->type = TYPE_DOUBLE;
-  opt.nugget_final->multiple = TRUE;
+  opt.nugget_final->answer = "0.0";
   opt.nugget_final->description = _("Nugget effect of anisotropic variogram (or horizontal component of bivariate variogram)");
   opt.nugget_final->required = NO;
   opt.nugget_final->guisection = _("Final");
@@ -211,6 +213,7 @@ int main(int argc, char *argv[])
   opt.nugget_final_vert = G_define_option();
   opt.nugget_final_vert->key = "final_vert_nugget";
   opt.nugget_final_vert->type = TYPE_DOUBLE;
+  opt.nugget_final_vert->answer = "0.0";
   opt.nugget_final_vert->description = _("For bivariate variogram only: nuget effect of vertical component");
   opt.nugget_final_vert->required = NO;
   opt.nugget_final_vert->guisection = _("Final");
@@ -476,7 +479,7 @@ int main(int argc, char *argv[])
       }
       G_fatal_error(_("Please set up name of output layer..."));
     }
-
+    
     // read properties of final variogram from temp file
     if (xD.i3 == TRUE) { // 3D kriging:
       read_tmp_vals("variogram_final_tmp.txt", &var_pars.fin, &xD); 
@@ -491,7 +494,7 @@ int main(int argc, char *argv[])
       if (xD.report.fp == NULL) // ... the file does not exist:
 	G_fatal_error(_("Cannot open the file..."));
     }
-    
+ 
     // check variogram settings
     if (var_pars.fin.type == 2 && strcmp(opt.function_var_final->answer, "linear") != 0) { // bivariate nonlinear variogram:
       // just one function type is set up (none or both should be)
@@ -503,7 +506,7 @@ int main(int argc, char *argv[])
 	}
 	G_fatal_error(_("If you wish to specify components of bivariate variogram please set up function type for both of them..."));
       }
-
+      
       // if both of the function types are set up:
       if (opt.function_var_final->answer && opt.function_var_final_vert->answer) {
 	if (!opt.nugget_final->answer) { // horizontal nugget effect should not be missing
@@ -541,8 +544,8 @@ int main(int argc, char *argv[])
     }
 
     else { // univariate variogram
-      if (xD.i3 == TRUE && strcmp(opt.function_var_final->answer, "linear") != 0) { // anisotropic 3D: 
-	if (opt.function_var_final_vert->answer || opt.nugget_final_vert->answer || opt.range_final_vert->answer) { // vertical settings available:
+      if (xD.i3 == TRUE && (strcmp(opt.function_var_final->answer, "linear") != 0 && strcmp(opt.function_var_final->answer, "parabolic") != 0)) { // anisotropic 3D: 
+	if (opt.function_var_final_vert->answer || atof(opt.nugget_final_vert->answer) != 0. || opt.range_final_vert->answer) { // vertical settings available:
 	  G_fatal_error(_("Not necessary to set up vertical components properties. Anisotropic variogram will be used..."));
 	} // end if vert settings available	
       } // end if 3D
@@ -552,13 +555,13 @@ int main(int argc, char *argv[])
 	G_message(_("Linear variogram will be computed..."));
       }
 
-      if (strcmp(opt.function_var_final->answer, "linear") != 0) { // nonlinear:
+      if (strcmp(opt.function_var_final->answer, "linear") != 0 && strcmp(opt.function_var_final->answer, "parabolic") != 0) { // nonlinear and not parabolic:
 	if (!opt.nugget_final->answer) { // missing horizontal nugget effect
 	  if (xD.report.write2file == TRUE) { // report file available:
 	    fprintf(xD.report.fp, "Error (see standard output). Process killed...");
 	    fclose(xD.report.fp);
 	  }
-	  G_fatal_error(_("Please set up nugget effect of horizontal component of bivariate variogram..."));
+	  G_fatal_error(_("Please set up nugget effect..."));
 	} // end if nugget missing
 
 	if (!opt.range_final->answer) { // missing horizontal range:
@@ -566,9 +569,13 @@ int main(int argc, char *argv[])
 	    fprintf(xD.report.fp, "Error (see standard output). Process killed...");
 	    fclose(xD.report.fp);
 	  }
-	  G_fatal_error(_("Please set up range of horizontal component of bivariate variogram..."));
+	  G_fatal_error(_("Please set up range..."));
 	} // end if range missing
-      }
+
+	if (opt.sill_final->answer) { // missing horizontal range:
+	  var_pars.fin.sill = atof(opt.sill_final->answer);
+	} // end if sill has been changed by the user
+      } // end nonlinear and not parabolic variogram
     } // end if univariate variogram (2D or 3D)
       
     out.name = opt.output->answer; // Output layer name
@@ -578,6 +585,8 @@ int main(int argc, char *argv[])
     }
     
     T_variogram(var_pars.fin.type, xD.i3, opt, &var_pars.fin, &xD.report); // compute theoretical variogram
+
+    G_debug(0,"sill: %f", var_pars.fin.sill);
     break;
   }
 
