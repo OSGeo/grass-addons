@@ -11,14 +11,14 @@
 #
 # COPYRIGHT:    (C) 2015 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
 #
 ##############################################################################
 
 #%module
-#% description: Script for calibrating patch characteristics used as input to r.futures.pga
+#% description: Module for calibrating patch characteristics used as input to r.futures.pga
 #% keyword: raster
 #% keyword: patch
 #%end

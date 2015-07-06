@@ -23,7 +23,8 @@ underlying development potential and distance to the seed adjusted
 by compactness parameter given in <b>compactness_mean</b> and <b>compactness_range</b>.
 The size of the patch is determined by randomly selecting a patch size from <b>patch sizes</b> file
 and multiplied by <b>discount_factor</b>. To find optimal values
-for patch sizes and compactness, use module <a href="r.futures.calib.html">r.futures.calib</a>.
+for patch sizes and compactness, use module
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>.
 Once a cell is converted, it remains developed.
 PGA continues to grow patches until the per capita land demand is satisfied.
 
@@ -32,11 +33,12 @@ Development pressure is a dynamic spatial variable
 derived from the patch-building process of PGA and associated with the POTENTIAL submodel.
 At each time step, PGA updates the POTENTIAL probability surface based on land change,
 and the new development pressure then affects future land change.
-The initial development pressure is computed using module <a href="r.futures.devpressure.html">
-r.futures.devpressure</a>. The same input parameters of this module
+The initial development pressure is computed using module
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>.
+The same input parameters of this module
 (<b>gamma</b>, <b>scaling factor</b> and <b>n_dev_neighbourhood</b>)
-are then used as input for <a href="r.futures.pga.html">
-r.futures.pga</a>.
+are then used as input for
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>.
 
 <h3>Scenarios</h3>
 Scenarios involving policies that encourage infill versus sprawl

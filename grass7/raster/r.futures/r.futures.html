@@ -1,14 +1,13 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.futures.*</em> is an implementation of
-FUTure Urban-Regional Environment Simulation (FUTURES)
-which is a model for multilevel simulations of emerging urban-rural
-landscape structure.
+<em>r.futures.*</em> is an implementation of FUTure Urban-Regional
+Environment Simulation (FUTURES) which is a model for multilevel
+simulations of emerging urban-rural landscape structure. FUTURES
+produces regional projections of landscape patterns using coupled
+submodels that integrate nonstationary drivers of land change: per
+capita demand (DEMAND submodel), site suitability (POTENTIAL submodel),
+and the spatial structure of conversion events (PGA submodel).
 
-The FUTure Urban-Regional Environment Simulation (FUTURES) produces
-regional projections of landscape patterns using coupled submodels
-that integrate nonstationary drivers of land change: per capita demand (DEMAND submodel),
-site suitability (POTENTIAL submodel), and the spatial structure of conversion events (PGA submodel).
 
 <h3>Submodels</h3>
 <dl>
@@ -19,10 +18,10 @@ site suitability (POTENTIAL submodel), and the spatial structure of conversion e
   and land conversion based on scenarios of future population growth.
   How to construct the per capita demand relationship for subregions depends
   on user's preferences and data availability.
-  Land area conversion over time can be derived for the USA e.g.
+  Land area conversion over time can be derived for the USA, e.g.
   from National Land Cover Dataset.
   A possible implementation of the DEMAND submodel will be available as module
-  r.futures.demand.</dd>
+  <em>r.futures.demand</em>.</dd>
 
   <dt><em>POTENTIAL</em></dt>
   <dd>The POTENTIAL submodel uses site suitability modeling approaches
@@ -33,12 +32,13 @@ site suitability (POTENTIAL submodel), and the spatial structure of conversion e
   account for divergent relationships between predictor and response variables.
   To generate a binary, developed-undeveloped response variable
   using a stratified-random sample,
-  see module <a href="r.sample.category.html">r.sample.category</a>.
+  see module <em><a href="r.sample.category.html">r.sample.category</a></em>.
   The coefficients for the statistical model that are used to
   calculate the value of development potential can be derived in different ways,
-  one possible implementation using R will be available as module r.futures.potential.
+  one possible implementation using R will be available
+  as module <em>r.futures.potential</em>.
   One of the predictor variables is development pressure (computed using
-  <a href="r.futures.devpressure.html">r.futures.devpressure</a>)
+  <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>)
   which is updated each step and thus creates positive feedback
   resulting in new development attracting even more development.
   </dd>
@@ -63,7 +63,7 @@ Figure: FUTURES submodels and input data
 We need to collect the following data:
 <dl>
   <dt><em>Study extent and resolution</em></dt>
-  <dd>Specified with <a href="g.region.html">g.region</a> command.</dd>
+  <dd>Specified with <em><a href="g.region.html">g.region</a></em> command.</dd>
   <dt><em>Subregions</em></dt>
   <dd>FUTURES is designed to capture variation across specified subregions
   within the full study extent. Subregions can be for example counties.
@@ -80,7 +80,7 @@ We need to collect the following data:
   end of the reference period, and the population data,
   DEMAND computes how many cells to convert for each region at each time step.
   Development change is also used for deriving the patch sizes and shape in calibration step
-  (see <a href="r.futures.calib.html">r.futures.calib</a>) to be used in PGA submodel.
+  (see <em><a href="r.futures.calib.html">r.futures.calib</a></em>) to be used in PGA submodel.
   DEMAND and PGA require a raster map representing the starting state
   of the landscape at the beginning of the simulation (developed = 1,
   available for development = 0, excluded from development as NULLs).</dd>
@@ -92,7 +92,7 @@ We need to collect the following data:
   <dd>The development pressure variable is one of the predictors,
   but it is recalculated at each time step to allow for positive feedback
   (new development attracts more development). For computing development pressure,
-  see <a href="r.futures.devpressure.html">r.futures.devpressure.</a></dd>
+  see <em><a href="r.futures.devpressure.html">r.futures.devpressure.</a></em></dd>
 </dl>
 
 <p>

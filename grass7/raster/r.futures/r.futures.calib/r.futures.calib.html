@@ -36,7 +36,8 @@ By specifying the mean and range of this parameter in module
 As the value of the parameter increases, patches become more compact.
 Calibration is achieved by varying the values specified in <b>compactness_mean</b>
 and <b>compactness_range</b> and comparing the distribution
-of the simulated patch compactness (computed as patch perimeter / (2 * sqrt(pi * area)))
+of the simulated patch compactness (computed as
+<em>patch perimeter / (2 * sqrt(pi * area))</em>)
 to those observed for the reference period.
 Meentemeyer et al. 2013 used mean 0.4 and range 0.08.
 
@@ -54,7 +55,7 @@ and compared with the observed characteristics by histogram comparison
 and an error (histogram distance) is computed.
 Since <em>r.futures.pga</em> is a stochastic module, multiple
 runs (specified in <b>repeat</b>) are recommended, the error is then averaged.
-Calibration results are saved in a csv file specified in <b>calibration_results</b>:
+Calibration results are saved in a CSV file specified in <b>calibration_results</b>:
 
 <pre>
 input_discount_factor area_distance input_compactness_mean input_compactness_range compactness_distance
