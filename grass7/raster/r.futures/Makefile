@@ -1,16 +1,14 @@
-MODULE_TOPDIR = ../..
+MODULE_TOPDIR =../..
 
 PGM = r.futures
 
-LIBES = $(RASTERLIB) $(GISLIB) $(MATHLIB)
-DEPENDENCIES = $(RASTERDEP) $(GISDEP)
+SUBDIRS = \
+		r.futures.calib \
+		r.futures.devpressure \
+		r.futures.pga
 
-include $(MODULE_TOPDIR)/include/Make/Module.make
+include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-EXTRA_CFLAGS = -Wall
+default: parsubdirs htmldir
 
-LINK = $(CXX)
-
-ifneq ($(strip $(CXX)),)
-default: cmd
-endif
+install: installsubdirs
