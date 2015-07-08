@@ -1,10 +1,5 @@
 #include "local_proto.h"
 
- __inline double square(double x)
-  {
-    return x*x;
-  }
-
 void LMS_variogram(struct parameters *var_par, struct write *report)
 {
   int nZ, nL;                // # of gamma matrix rows and columns
@@ -71,7 +66,6 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
       vert++;
     }
   } // end i
- end_loop:
 
   // Estimate theoretical variogram coefficients 
   var_par->T = LSM(var_par->A, gR); // Least Square Method
@@ -147,8 +141,6 @@ void sill(struct parameters *var_par)
   // Local variables
   int type = var_par->type;
   mat_struct *gamma = var_par->gamma;
-  int nrows = gamma->rows;
-  int ncols = gamma->cols;
 
   char var_type[12];
 
@@ -168,7 +160,7 @@ void sill(struct parameters *var_par)
 }
 
 // compare sills
-int sill_compare(struct int_par *xD, struct flgs *flg, struct var_par *var_par, struct points *pnts)
+void sill_compare(struct int_par *xD, struct flgs *flg, struct var_par *var_par, struct points *pnts)
 {
   // local variables
   double sill_hz = var_par->hz.sill;     // sill in horizontal direction
@@ -198,6 +190,8 @@ int sill_compare(struct int_par *xD, struct flgs *flg, struct var_par *var_par, 
     xD->aniso_ratio = var_par->hz.h_range / var_par->vert.h_range;  // anisotropic ratio
     geometric_anisotropy(xD, pnts);                                 // exaggerate z coords and build a new spatial index 
   }
+
+  return 0;
 }
 
 // formulation of variogram functions
@@ -219,7 +213,6 @@ double variogram_fction(struct parameters *var_par, double *dr)
   double radius;   // square distance of the point couple
   double h;
   double vert;
-  double h_ratio;
   double teor_var, result = 0.; // estimated value of the theoretical variogram
 
   int n_cycles = (type == 2 && var_par->function != 5) ? 2 : 1; // # of cycles (bivariate (not linear) or univariate)
@@ -382,7 +375,7 @@ mat_struct *submatrix(struct ilist *index, mat_struct *GM_all, struct write *rep
   int n = index->n_values;       // # of selected points
   mat_struct *GM = GM_all;       // whole G matrix
 
-  int i, j, k, N1 = GM->rows, n1 = n+1, *dinR, *dini, *dinj;
+  int i, j, N1 = GM->rows, n1 = n+1, *dinR, *dini, *dinj;
   doublereal *dbo, *dbx, *dbu, *dbl, *md, *mu, *ml, *m1r, *m1c;
 
   mat_struct *sub;               // new submatrix
@@ -453,7 +446,6 @@ mat_struct *set_up_g0(struct int_par *xD, struct points *pnts, struct ilist *ind
 {
   // Local variables
   int i3 = xD->i3;             // interpolation: 2D or 3D
-  int bivar = xD->bivar;       // variogram: uni- or bivariate
   int type = var_par->type;    // variogram: hz / vert / aniso / bivar 
   double *r;                   // xyz coordinates of input points
 
@@ -474,7 +466,6 @@ mat_struct *set_up_g0(struct int_par *xD, struct points *pnts, struct ilist *ind
   int n1 = n + 1;
   
   int i;           // index of elements and length of g0 vector
-  double teor_var; // estimated value based on theoretical variogram and distance of the input points
   double *dr;      // coordinate differences dx, dy, dz between couples of points
   mat_struct *g0;  // vector of estimated differences between known and unknown values 
 
@@ -590,15 +581,13 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
   double ratio = type == 3 ? xD->aniso_ratio : 1.;    // anisotropic ratio
   mat_struct *GM = var_par->GM;        // GM = theor_var(distances)
  
-  int i, j;
+  int i;
   int n_vals;
-  int n1;
   double max_dist = type == 2 ? var_par->horizontal.max_dist : var_par->max_dist;
   double max_dist_vert = type == 2 ? var_par->vertical.max_dist : var_par->max_dist;
   
   double *search;               // coordinates of the search point
   struct ilist *list;
-  struct RTree_Rect *r_cell;
   mat_struct *GM_sub;
   mat_struct *GM_Inv, *g0, *w0;
   double rslt_OK;
@@ -632,7 +621,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
     n_vals = list->n_values;               // # of overlapping rectangles
 
     if (n_vals > 0 ) { // if positive:
-      correct_indices(i3, list, r, pnts, var_par);
+      correct_indices(list, r, pnts, var_par);
 
       GM_sub = submatrix(list, GM, &xD->report); // create submatrix using indices
       GM_Inv = G_matrix_inverse(GM_sub);         // inverse matrix
@@ -675,7 +664,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
   G_message(_("Cross validation results have been written into <%s>"), crossvalid->name);
 
   if (report->name) {
-    double quant05, quant10, quant25, quant50, quant75, quant90, quant95;
+    double quant95;
     fprintf(report->fp, "\n************************************************\n");
     fprintf(report->fp, "*** Cross validation results ***\n");
 
@@ -683,11 +672,5 @@ void crossvalidation(struct int_par *xD, struct points *pnts, struct parameters 
     
     fprintf(report->fp, "Quantile of absolute values\n");
     quant95 = quantile(0.95, n, absval, report); 
-    //quant90 = quantile(0.90, n, absval, report);
-    //quant75 = quantile(0.75, n, absval, report);
-    //quant50 = quantile(0.50, n, absval, report); 
-    //quant25 = quantile(0.25, n, absval, report);
-    //quant10 = quantile(0.10, n, absval, report);
-    //quant05 = quantile(0.05, n, absval, report);
   }
 }

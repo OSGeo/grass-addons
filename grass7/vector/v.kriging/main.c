@@ -37,7 +37,6 @@ int main(int argc, char *argv[])
 
   // Outputs
   struct output out;      // Output layer properties
-  FILE *fp;
     
   // Settings
   int field;
@@ -434,9 +433,9 @@ int main(int argc, char *argv[])
 	var_pars.vert.lag = var_pars.vert.max_dist / var_pars.vert.nLag; // modify lag size
       }
     }
-    E_variogram(0, &xD, &pnts, &reg, &var_pars); // horizontal variogram (for both 2D and 3D interpolation)
+    E_variogram(0, &xD, &pnts, &var_pars); // horizontal variogram (for both 2D and 3D interpolation)
     if (xD.i3 == TRUE) { // 3D interpolation:
-      E_variogram(1, &xD, &pnts, &reg, &var_pars);     // vertical variogram
+      E_variogram(1, &xD, &pnts, &var_pars);     // vertical variogram
       G_message(_("You may continue to computing theoretical variograms (middle phase)..."));
     }
     else {
@@ -466,7 +465,7 @@ int main(int argc, char *argv[])
    sill_compare(&xD, &flg, &var_pars, &pnts);
    variogram_restricts(&xD, &pnts, &var_pars.fin);
 
-   E_variogram(var_pars.fin.type, &xD, &pnts, &reg, &var_pars);            
+   E_variogram(var_pars.fin.type, &xD, &pnts, &var_pars);            
    G_message(_("You may continue to interpolate values (final phase)..."));
    goto end;
 

@@ -196,14 +196,14 @@ struct ilist *find_NNs_within(int, double *, struct points *, double, double);
 struct ilist *find_n_NNs(int, int, struct points *, int);
 double sum_NN(int, int, struct ilist *, struct points *);
 
-void correct_indices(int, struct ilist *, double *, struct points *, struct parameters *);
+void correct_indices(struct ilist *, double *, struct points *, struct parameters *);
 int cmpVals(const void *, const void *);
 void coord_diff(int, int, double *, double *);
 double distance_diff(double *);
 double radius_hz_diff(double *);
 double zenith_angle(double *);
 void triple(double, double, double, double *);
-double lag_size(int, struct int_par *, struct points *, struct parameters *, struct write *);
+double lag_size(int, struct points *, struct parameters *, struct write *);
 int lag_number(double, double *);
 void optimize(double *, int *, double);
 void variogram_restricts(struct int_par *, struct points *, struct parameters *);
@@ -213,14 +213,14 @@ double find_intersect_y(double *, double *, double *, double *, double , struct 
 mat_struct *LSM(mat_struct *, mat_struct *);
 mat_struct *nonlin_LMS(int , double *, double *);
 
-void E_variogram(int, struct int_par *, struct points *, struct reg_par *, struct var_par *);
+void E_variogram(int, struct int_par *, struct points *, struct var_par *);
 void T_variogram(int, int, struct opts, struct parameters *, struct write *);
 void ordinary_kriging(struct int_par *, struct reg_par *, struct points *, struct var_par *, struct output *);
 
 void LMS_variogram(struct parameters *, struct write *);
 double bivar_sill(int, mat_struct *);
 void sill(struct parameters *);
-int sill_compare(struct int_par *, struct flgs *, struct var_par *, struct points *);
+void sill_compare(struct int_par *, struct flgs *, struct var_par *, struct points *);
 int set_function(char *, struct write *);
 double RBF(double *);
 double linear(double, double, double);
@@ -254,12 +254,12 @@ void get_region_pars(struct int_par *, struct reg_par *);
 void open_layer(struct int_par *, struct reg_par *, struct output *);
 int write2layer(struct int_par *, struct reg_par *, struct output *, unsigned int, unsigned int, unsigned int, double);
 
-static inline double get_quantile(int);
-static void get_slot_counts(int, double *);
-static void initialize_bins(void);
-static void fill_bins(int, double *);
-static int compare(const void *, const void *);
-static void sort_bins(void);
-static void compute_quantiles(int, double *, struct write *);
+double get_quantile(int);
+void get_slot_counts(int, double *);
+void initialize_bins(void);
+void fill_bins(int, double *);
+int compare(const void *, const void *);
+void sort_bins(void);
+void compute_quantiles(int, double *, struct write *);
 double quantile(double, int, double *, struct write *);
 #endif

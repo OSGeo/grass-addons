@@ -10,7 +10,7 @@ double *get_col_values(struct Map_info *map, struct int_par *xD, struct points *
 {
   struct select *in_reg = &pnts->in_reg;
 
-  int i, n, nrec, type, ctype;
+  int i, n, nrec, ctype;
   struct field_info *Fi;
 
   dbCatValArray cvarr;
@@ -186,10 +186,9 @@ void read_points(struct Map_info *map, struct reg_par *reg, struct points *point
     point->Rtree_vert = RTreeCreateTree(-1, 0, 1); // create 1D spatial index
   }
 
-  int i;
   int sid=0;        // id of the rectangle (will be increased by 1)
   
-  double *rx, *ry, *rz, *r; // pointers to coordinates
+  double *rx, *ry, *rz; // pointers to coordinates
   int ind = 0;      // index of the point     
   int *indices;     // indices of the points within the region
   int *index;       // pointer to the vector of indices
@@ -399,7 +398,7 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par, struct int
 
   int j, nLag_vert;
   double lag_vert, max_dist_vert;
-  double *v_elm, *g_elm, *c_elm;
+  double *v_elm, *g_elm;
   double sill_hz, sill_vert;
 
  
@@ -412,8 +411,7 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par, struct int
     int i, type;
     int nLag;
     double lag, max_dist, td_hz, sill;
-    double *h, *h_elm, *c, *gamma;
-    int function;
+    double *h_elm, *gamma;
     int file, file_length;
 
     for (i=0; i<2; i++) {

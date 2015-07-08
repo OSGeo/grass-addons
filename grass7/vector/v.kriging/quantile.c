@@ -33,12 +33,12 @@ static inline int get_slot(double c)
     return i;
 }
 
-static inline double get_quantile(int n)
+double get_quantile(int n)
 {
   return (double)total * quants[n]; // # of lower values
 }
 
-static void get_slot_counts(int n, double *data)
+void get_slot_counts(int n, double *data)
 {
   int i;
   
@@ -55,7 +55,7 @@ static void get_slot_counts(int n, double *data)
   //G_percent(i, n, 2);
 }
 
-static void initialize_bins(void)
+void initialize_bins(void)
 {
   int slot;    // index of slot
   double next; // percentile
@@ -92,7 +92,7 @@ static void initialize_bins(void)
   num_bins = bin; 
 }
 
-static void fill_bins(int n, double *data)
+void fill_bins(int n, double *data)
 {
   int i;
   
@@ -116,7 +116,7 @@ static void fill_bins(int n, double *data)
   //G_percent(i, n, 2);
 }
 
-static int compare(const void *aa, const void *bb)
+int compare(const void *aa, const void *bb)
 {
     double a = *(const double *)aa;
     double b = *(const double *)bb;
@@ -128,7 +128,7 @@ static int compare(const void *aa, const void *bb)
     return 0;
 }
 
-static void sort_bins(void)
+void sort_bins(void)
 {
     int bin;
 
@@ -141,7 +141,7 @@ static void sort_bins(void)
     //G_percent(bin, num_bins, 2);
 }
 
-static void compute_quantiles(int recode, double *quantile, struct write *report)
+void compute_quantiles(int recode, double *quantile, struct write *report)
 {
     int bin = 0;
     double prev_v = minimum;

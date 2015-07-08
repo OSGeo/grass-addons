@@ -210,7 +210,7 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
   double *gamma = var_pars->gamma->vals;
   double sill = var_pars->sill;
 
-  int i, j; // index
+  int i; // index
   FILE *fp;
   int file_length;
   

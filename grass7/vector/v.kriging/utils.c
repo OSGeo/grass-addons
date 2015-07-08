@@ -16,15 +16,14 @@ int cmpVals(const void *v1, const void *v2)
       return 0;
   }
 
-void correct_indices(int i3, struct ilist *list, double *r0, struct points *pnts, struct parameters *var_pars)
+void correct_indices(struct ilist *list, double *r0, struct points *pnts, struct parameters *var_pars)
 {
   int i;
   int n = list->n_values;
   int *vals = list->value;
   double dx, dy, dz;
   int type = var_pars->type;
-  double sqDist = type == 2 ? SQUARE(var_pars->horizontal.max_dist) : SQUARE(var_pars->max_dist);
-  
+    
   int n_new = 0;  // # of effective indices (not identical points, nor too far)
   int *newvals, *save;   // effective indices
   newvals = (int *) G_malloc(n * sizeof(int));
@@ -77,7 +76,7 @@ void triple(double x, double y, double z, double *triple)
 void coord_diff(int i, int j, double *r, double *dr)
 {
   int k = 3*i, l = 3*j;
-  double *rk, *rl, zi, zj, *drt;
+  double *rk, *rl, *drt;
   rk = &r[k];
   rl = &r[l];
   drt = &dr[0];
@@ -112,18 +111,17 @@ double zenith_angle(double dr[3])
 }
 
 // compute size of the lag
-double lag_size(int direction, struct int_par *xD, struct points *pnts, struct parameters *var_pars, struct write *report)
+double lag_size(int direction, struct points *pnts, struct parameters *var_pars, struct write *report)
 {
   // local variables
   int n = pnts->n;                             // # of input points
   double *r = pnts->r;                         // xyz of input points
-  int fction = var_pars->function;
   int type = var_pars->type;
   double max_dist = type == 2 ? var_pars->horizontal.max_dist : var_pars->max_dist; // maximum horizontal distance (or vertical for vertical variogram)
   double max_dist_vert = type == 2 ? var_pars->vertical.max_dist : var_pars->max_dist; // maximum vertical distance (just for bivariate variogram)
 
 
-  int i, j, k;                     // loop indices
+  int i, j;                     // loop indices
   int n_vals;                      // number of the nearest neighbors (NN)
   int *j_vals;                     // indices of NN (NOT sorted by distance)
   struct ilist *list;              // list of NN
@@ -283,14 +281,10 @@ void optimize(double *lag, int *nLag, double max)
 // maximal horizontal and vertical distance to restrict variogram computing
 void variogram_restricts(struct int_par *xD, struct points *pnts, struct parameters *var_pars)
 {
-  int n = pnts->n;       // # of points
-  double *r = pnts->r;   // xyz of points
   struct write *report = &xD->report;
   
-  int i;
   double *min, *max;     // extend
   double dr[3];          // coordinate differences
-  double h_maxG;         // modify maximum distance (to not have empty lags)
 
   int dimension;         // dimension: hz / vert / aniso
   char type[12];
@@ -335,20 +329,20 @@ void variogram_restricts(struct int_par *xD, struct points *pnts, struct paramet
 
   if (var_pars->type == 2) { // bivariate variogram
     // horizontal direction: 
-    var_pars->lag = lag_size(12, xD, pnts, var_pars, report);  // lag distance
+    var_pars->lag = lag_size(12, pnts, var_pars, report);  // lag distance
     var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist); // number of lags
     optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
     var_pars->max_dist = var_pars->nLag * var_pars->lag;             // maximum distance
 
     // vertical direction
-    var_pars->lag_vert = lag_size(3, xD, pnts, var_pars, report);             // lag distance
+    var_pars->lag_vert = lag_size(3, pnts, var_pars, report);             // lag distance
     var_pars->nLag_vert = lag_number(var_pars->lag_vert, &var_pars->max_dist_vert); // # of lags
     optimize(&var_pars->lag_vert, &var_pars->nLag_vert, var_pars->max_dist_vert);
     var_pars->max_dist_vert = var_pars->nLag_vert * var_pars->lag_vert;             // max distance
   }
 
   else { // univariate variograms (hz / vert / aniso)
-    var_pars->lag = lag_size(dimension, xD, pnts, var_pars, report); // lag size
+    var_pars->lag = lag_size(dimension, pnts, var_pars, report); // lag size
     var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);   // # of lags
     optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
     var_pars->max_dist = var_pars->nLag * var_pars->lag;               // maximum distance
@@ -396,12 +390,7 @@ void geometric_anisotropy(struct int_par *xD, struct points *pnts)
 // Least Squares Method
 mat_struct *LSM(mat_struct *A, mat_struct *x)
 {
-  int i, nr, nc;
   mat_struct *AT, *ATA, *ATA_Inv, *ATx, *T;
-
-  /* A[nr x nc] */
-  nr = A->rows;
-  nc = A->cols;
 
   /* LMS */
   AT = G_matrix_transpose(A);	/* Transposed design matrix */
@@ -573,7 +562,7 @@ void plot_experimental_variogram(struct int_par *xD, struct parameters *var_par)
   }
 
   else { // univariate variogram
-    char dim[6], dist[2];
+    char dim[6];
     if (xD->i3 == TRUE) { // 3D
       if (var_par->type == 0) {
 	strcpy(dim,"hz");
@@ -602,44 +591,25 @@ void plot_experimental_variogram(struct int_par *xD, struct parameters *var_par)
 // plot experimental and theoretical variogram
 void plot_var(int i3, int bivar, struct parameters *var_pars)
 {
-  int function, func_h, func_v;
+  int function;
   double nugget, nugget_h, nugget_v;
-  double sill, sill_h, sill_v;
-  double h_range, h_range_h, h_range_v;
+  double sill;
+  double h_range;
   double *T;
 
   // setup theoretical variogram parameters
-  switch (bivar) {
-  case FALSE: // univariate variogram
+  if (bivar == FALSE) { // univariate variogram
     function = var_pars->function;
     if (function > 1) { // nonlinear and not parabolic variogram
       nugget = var_pars->nugget;
       sill = var_pars->sill - nugget;
       h_range = var_pars->h_range;
-    }   
-    else {
-      T = &var_pars->T->vals[0];
-    } 
-    break;
-
-  case TRUE:  // bivariate variogram
-    if (var_pars->function != 5) {
-      func_h = var_pars->horizontal.function;
-      func_v = var_pars->vertical.function;
-
-      nugget_h = var_pars->horizontal.nugget;
-      sill_h = var_pars->horizontal.sill - nugget_h;
-      h_range_h = var_pars->horizontal.h_range;
-
-      nugget_v = var_pars->vertical.nugget;
-      sill_v = var_pars->vertical.sill - nugget_v;
-      h_range_v = var_pars->vertical.h_range;
     }
-    else {
-      T = &var_pars->T->vals[0];
-    } 
-    break;
   }
+
+  if (var_pars->function < 2) { // linear or parabolic variogram
+    T = &var_pars->T->vals[0];
+  }     
 
   int i, j;     // indices
   int nr, nc;   // # of rows, cols

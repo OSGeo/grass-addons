@@ -2,10 +2,10 @@
 
 /* experimental variogram 
  * based on  2D variogram (alghalandis.com/?page_id=463)) */
-  void E_variogram(int type, struct int_par *xD, struct points *pnts, struct reg_par *reg, struct var_par *pars)
+  void E_variogram(int type, struct int_par *xD, struct points *pnts, struct var_par *pars)
 {
   // Variogram properties
-  struct parameters *var_pars, *var_par_hz, *var_par_vert;
+  struct parameters *var_pars;
   double max_dist, max_dist_vert; // max distance of interpolated points
   double radius, radius_vert;     // radius of interpolation in the horizontal plane
 
@@ -41,9 +41,7 @@
   double *r;                        // pointer to xyz coordinates
   double *search;                   // pointer to search point coordinates
   double *vals = pnts->invals;      // values to be used for interpolation
-  int i3 = xD->i3;
   int phase = xD->phase;            // phase: initial / middle / final
-  int function = var_pars->function; // type of theoretical variogram
 
   int nLag;                         // # of horizontal bins
   int nLag_vert;                    // # of vertical bins
@@ -71,7 +69,6 @@
   }
 
   // depend on variogram type: 
-  int k; // index of variogram to be computed
   int nrows = nLag;
   int ncols = type == 2 ? nLag_vert : 1;
 
@@ -88,7 +85,6 @@
   double tv;    // bearing of the line between the couple of the input points
   double ddir1, ddir2;  // the azimuth of computing variogram
   double rv;    // radius of the couple of points
-  double drv;   // distance between the points
   double rvh;   // difference between point distance and the horizontal segment boundary
   double dv;    // difference of the values to be interpolated that are located on the couple of points
 
@@ -97,12 +93,10 @@
 
   double *i_vals, *j_vals; // values located on the point couples
 
-  int n1 = n+1;     // number of points + 1
   int *ii;     // difference of indices between rellevant input points
   
   double gamma_lag;    // sum of dissimilarities in one bin
   double cpls;         // # of dissimilarities in one bin
-  double gamma_E;      // average of dissimilarities in one bin (element of gamma matrix)
   mat_struct *gamma_M; // gamma matrix (hz, vert or bivar)
   mat_struct *c_M;     // matrix of # of dissimilarities
   double *gamma;       // pointer to gamma matrix
@@ -112,7 +106,6 @@
 
   double gamma_sum;  // sum of gamma elements (non-nan)
   int gamma_n;       // # of gamma elements (non-nan)
-  double gamma_sill; // sill
  
   /* Allocated vertices and matrices:
    * --------------------------------
@@ -207,7 +200,7 @@
 	
 	n_vals = list->n_values;            // # of input values located on NN
 	if (n_vals > 0) {
-	  correct_indices(i3, list, r, pnts, var_pars);
+	  correct_indices(list, r, pnts, var_pars);
 	  ii = &list->value[0];             // indices of these input values (note: increased by 1)
 	  j_vals = &vals[*ii];                // pointer to input values
 	  
@@ -331,7 +324,7 @@ void T_variogram(int type, int i3, struct opts opt, struct parameters *var_pars,
   char *variogram;
 
   // report
-  if (report->write2file = TRUE) { // report file available:
+  if (report->write2file == TRUE) { // report file available:
     time(&report->now); // write down time of start
     if (type != 1) {
       fprintf(report->fp, "\nComputation of theoretical variogram started on %s\n", ctime(&report->now));    
@@ -475,8 +468,6 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 {
   // Local variables
   int i3 = xD->i3;
-  int n = pnts->n;                      // number of input points
-  double *r = pnts->r;                  // xyz coordinates of input points
   double *vals = pnts->invals;          // values to be used for interpolation
   struct write *report = &xD->report;
   struct write *crossvalid = &xD->crossvalid;
@@ -487,21 +478,14 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
   //max_dist = sqrt(0.5 * SQUARE(max_dist));
 
   double max_dist_vert = type == 2 ? var_par->vertical.max_dist : var_par->max_dist;
-  double ratio = var_par->type == 3 ? xD->aniso_ratio : 1.;
-       
-  unsigned int passed=0;      // number of successfully interpolated valuesy
+         
   unsigned int percents=50;   // counter
-  unsigned int nrcd;          // number of cells/voxels
   unsigned int row, col, dep; // indices of cells/voxels
   double rslt_OK;     // interpolated value located on r0
 
-  int i, j;
-  unsigned int n1;
-
   pnts->max_dist = var_par->lag;
   struct ilist *list;
-  int n_vals;
-
+  
   double *r0;         // xyz coordinates of cell/voxel centre
   mat_struct *GM;
   mat_struct *GM_sub; // submatrix of selected points
@@ -512,8 +496,6 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
   // Cell/voxel center coords (location of interpolated value)
   r0 = (double *) G_malloc(3 * sizeof(double));   
   
-  FILE *fp;
-
   if (report->name) {  // report file available:
     report->write2file = TRUE;
     report->fp = fopen(report->name, "a");
@@ -573,7 +555,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg, struct points *pn
 	}
 
 	if (list->n_values > 1) { // positive # of selected points: 
-	  correct_indices(i3, list, r0, pnts, var_par);
+	  correct_indices(list, r0, pnts, var_par);
 
 	  GM_sub = submatrix(list, GM, report); // make submatrix for selected points
 	  GM_Inv = G_matrix_inverse(GM_sub);    // invert submatrix
