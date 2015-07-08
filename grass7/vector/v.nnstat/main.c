@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   struct points pnts;          // points: coordinates, number etc.
 
   struct nearest nna;          // structure to save results
-  int field, pass;
+  int field;
 
   struct {
     struct Option *map, *A, *type, *field, *lyr, *desc, *zcol; /* A - area (minimum enclosing rectangle or specified by user) */
@@ -38,11 +38,6 @@ int main(int argc, char *argv[])
   struct {
     struct Flag *d23;
   } flg;
-
-  int i;
-  FILE *fp;
-  double *dist_comp;
-  double *d;
 
   /* Module creation */
   module = G_define_module();
