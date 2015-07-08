@@ -55,96 +55,97 @@ int cmpPoints(const void *v1, const void *v2)
 /* Function to obtain vertices of convex hull */
 int convexHull(struct points *pnts, struct convex *hull)
 {
-    int pointIdx, upPoints, loPoints;
-    int i, *upHull, *loHull;
-    int n = pnts->n;
+  int pointIdx, upPoints, loPoints;
+  int i, *upHull, *loHull;
+  int n = pnts->n;
 
-    double *ro, (*ri)[3], (*r)[3]; /* r = [xyz] */
-    r = (double (*)[3]) malloc(n * 3 * sizeof(double));
-    ri = &r[0];
-    ro = &pnts->r[0];
+  double *ro, (*ri)[3], (*r)[3]; /* r = [xyz] */
+  r = (double (*)[3]) G_malloc(n * 3 * sizeof(double));
+  ri = &r[0];
+  ro = &pnts->r[0];
 
-    for (i=0; i<n; i++) {      
-      (*ri)[0] = *ro;
-      (*ri)[1] = *(ro+1);
-      (*ri)[2] = *(ro+2);
-      ri++;
-      ro += 3;
-    }
+  for (i=0; i<n; i++) {      
+    (*ri)[0] = *ro;
+    (*ri)[1] = *(ro+1);
+    (*ri)[2] = *(ro+2);
+    ri++;
+    ro += 3;
+  }
     
-    /* sort points in ascending x order
-     * modified according to http://www.physicsforums.com/showthread.php?t=546209 */
-    qsort(&r[0][0], n, 3 * sizeof(double), cmpPoints);
+  /* sort points in ascending x order
+   * modified according to http://www.physicsforums.com/showthread.php?t=546209 */
+  qsort(&r[0][0], n, 3 * sizeof(double), cmpPoints);
 
-    hull->hull = (int *) G_malloc(n * 3 * sizeof(int));
+  hull->hull = (int *) G_malloc(n * 3 * sizeof(int));
     
-    /* compute upper hull */
-    upHull = hull->hull;
-    upHull[0] = 0;
-    upHull[1] = 1;
-    upPoints = 1; /* number of points in upper hull */
-    for (pointIdx = 2; pointIdx < n; pointIdx++) {
-	upPoints++;
-	upHull[upPoints] = pointIdx;
-	while (upPoints > 1 &&
-	       !rightTurn(r, upHull[upPoints], upHull[upPoints - 1],
-			  upHull[upPoints - 2])
-	    ) {
-	    upHull[upPoints - 1] = upHull[upPoints];
-	    upPoints--;
-	}
+  /* compute upper hull */
+  upHull = hull->hull;
+  upHull[0] = 0;
+  upHull[1] = 1;
+  upPoints = 1; /* number of points in upper hull */
+  for (pointIdx = 2; pointIdx < n; pointIdx++) {
+    upPoints++;
+    upHull[upPoints] = pointIdx;
+    while (upPoints > 1 &&
+	   !rightTurn(r, upHull[upPoints], upHull[upPoints - 1],
+		      upHull[upPoints - 2])
+	   ) {
+      upHull[upPoints - 1] = upHull[upPoints];
+      upPoints--;
     }
+  }
 
-    /* compute lower hull, overwrite last point of upper hull */
-    loHull = &(upHull[upPoints]);
-    loHull[0] = n - 1;
-    loHull[1] = n - 2;
-    loPoints = 1; /* number of points in lower hull */
-    for (pointIdx = n - 3; pointIdx >= 0; pointIdx--) {
-	loPoints++;
-	loHull[loPoints] = pointIdx;
-	while (loPoints > 1 &&
-	       !rightTurn(r, loHull[loPoints], loHull[loPoints - 1],
-			  loHull[loPoints - 2])
-	    ) {
-	    loHull[loPoints - 1] = loHull[loPoints];
-	    loPoints--;
-	}
+  /* compute lower hull, overwrite last point of upper hull */
+  loHull = &(upHull[upPoints]);
+  loHull[0] = n - 1;
+  loHull[1] = n - 2;
+  loPoints = 1; /* number of points in lower hull */
+  for (pointIdx = n - 3; pointIdx >= 0; pointIdx--) {
+    loPoints++;
+    loHull[loPoints] = pointIdx;
+    while (loPoints > 1 &&
+	   !rightTurn(r, loHull[loPoints], loHull[loPoints - 1],
+		      loHull[loPoints - 2])
+	   ) {
+      loHull[loPoints - 1] = loHull[loPoints];
+      loPoints--;
     }
-    hull->n = loPoints + upPoints;
+  }
+  hull->n = loPoints + upPoints;
+  
+  G_debug(3, "numPoints:%d loPoints:%d upPoints:%d",
+	  n, loPoints, upPoints);
 
-    G_debug(3, "numPoints:%d loPoints:%d upPoints:%d",
-	    n, loPoints, upPoints);
+  /* reclaim uneeded memory */
+  hull->hull = (int *) G_realloc(hull->hull, (hull->n + 1) * sizeof(int));
 
-    /* reclaim uneeded memory */
-    hull->hull = (int *) G_realloc(hull->hull, (hull->n + 1) * sizeof(int));
+  /* Obtain coordinates of hull vertices */
+  hull->coord = (double *) G_malloc((hull->n + 1) * 3 * sizeof(double)); /* 1st = last pnt */
 
-    /* Obtain coordinates of hull vertices */
-    hull->coord = (double *) G_malloc((hull->n + 1) * 3 * sizeof(double)); /* 1st = last pnt */
+  int *hh, *hh0;
+  double *hc, (*r0)[3];
+  hc = &hull->coord[0];
+  hh = &hull->hull[0];
+  ri = &r[0];
 
-    int *hh, *hh0;
-    double *hc, (*r0)[3];
-    hc = &hull->coord[0];
-    hh = &hull->hull[0];
-
-    for (i=0; i<=hull->n; i++) {
-      if (i < hull->n) {
-	*hc = (*(r+*hh))[0];
-	*(hc+1) = (*(r+*hh))[1];
-	*(hc+2) = (*(r+*hh))[2];
-	r++;
-	hc += 3;
-	hh++;
-      }
-      else { // coords of 1st equal to coords of last hull vertex
-	r0 = &r[0];
-	hh0 = &hull->hull[0];
-	*hc = (*(r0+*hh0))[0];
-	*(hc+1) = (*(r0+*hh0))[1];
-	*(hc+2) = (*(r0+*hh0))[2];
-      }      
+  for (i=0; i <= hull->n; i++) {
+    if (i < hull->n) {
+      *hc = (*(ri+*hh))[0];
+      *(hc+1) = (*(ri+*hh))[1];
+      *(hc+2) = (*(ri+*hh))[2];
+      hc += 3;
+      hh++;
     }
-    return hull->n;
+    else { // coords of 1st equal to coords of last hull vertex
+      r0 = &r[0];
+      hh0 = &hull->hull[0];
+      *hc = (*(r0+*hh0))[0];
+      *(hc+1) = (*(r0+*hh0))[1];
+      *(hc+2) = (*(r0+*hh0))[2];
+    }      
+  }
+
+  return hull->n;
 }
 
 /* ---------------------------- 
@@ -172,8 +173,9 @@ double MBR(struct points *pnts)
   for (i=0; i < hull.n; i++) {
     /* Bearings of hull edges */
     us = bearing(*hc, *(hc+3), *(hc+1), *(hc+4)); // x0, x1, y0, y1
-    if (us == -9999) // Identical points
+    if (us == -9999) { // Identical points
       continue;
+    }
     cosus = cos(us);
     sinus = sin(us);
 
@@ -187,10 +189,12 @@ double MBR(struct points *pnts)
       /* Transformed extent */
       switch (k) {
       case 0:
-	r_min = r_max = triple(*ht, *(ht+1), *(ht+2)); break;
+	r_min = r_max = triple(*ht, *(ht+1), *(ht+2)); 
+	break;
       default:
 	r_min = triple(MIN(*ht, *r_min), MIN(*(ht+1), *(r_min+1)), MIN(*(ht+2), *(r_min+2)));
 	r_max = triple(MAX(*ht, *r_max), MAX(*(ht+1), *(r_max+1)), MAX(*(ht+2), *(r_max+2)));
+	break;
       }
       hc_k += 3;
     } // end k
@@ -200,6 +204,9 @@ double MBR(struct points *pnts)
     S = (*r_max - *r_min) * (*(r_max+1) - *(r_min+1)); /* Area of transformed extent */
     S_min = MIN(S, S_min);
   } // end i
+
+  G_free(r_min);
+  G_free(r_max);
 
   return S_min;
 }

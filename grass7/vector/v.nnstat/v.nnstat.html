@@ -6,47 +6,153 @@
 <h3>Comparison of 2D and 3D NNA</h3>
 On the example of dataset that contains 2000 randomly distributed points, basic settings of analysis dimension (2D or 3D) will be examined:
 <ul>
-<li> <b>2D NNA</b> may be performed using <b>2D vector layer</b>. If 2D NNA is required to be performed using <b>3D vector layer</b>, <u>flag <i>-2</i></u> should be marked. In following figures, the results of both cases can be seen.
+<li> <b>2D NNA</b> may be performed using <b>2D vector layer</b>. If 2D NNA is required to be 
+performed using <b>3D vector layer</b>, <u>flag <i>-2</i></u> should be marked. The results of 
+both cases can be seen below.
 
 <div class="code"><pre>
-v.nnstat in=name_of_2D_vector_layer
+v.nnstat input=rand_2000_2d
 </pre></div>
 
-<div align="center" style="margin: 10px">
-<img src="images/rand_2000_2D.png" border=0><br>
-<i>2D NNA using 2D vector layer</i>
-</div>
+Output in the command line:
+<table>
+	<tr>
+		<td>
+			<div class="code"><pre>
+				Input coordinates have been read...
+				Computing average distance between nearest neighbors...
+ 				 100%
+
+
+				*** Nearest Neighbour Analysis results ***
+				Input settings .. 3D layer: 0 3D NNA: 0
+				Number of points .......... 2000
+				Area ...................... 398645718.651701 [units^2]
+				Density of points ......... 0.000005
+				Average distance between the nearest neighbours ........... 225.859 [units]
+				Average expected distance between the nearest neighbours .. 223.228 [units]
+				Ratio rA/rE ............... 1.011785
+
+				*** Results of two-tailed test of the mean ***
+				Null hypothesis: Point set is randomly distributed within the region.
+				Standard variate of the normal curve> c = 1.008239
+				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
+			</pre></div>
+		</td>
+	</tr>
+</table>
 
 <div class="code"><pre>
-v.nnstat in=name_of_3D_vector_layer -2
+v.nnstat input=rand_2000_3d -2
 </pre></div>
 
-<div align="center" style="margin: 10px">
-<img src="images/rand_2000_3D_2D.png" border=0><br>
-<i>2D NNA using 3D vector layer (the 3rd dimension is not considered in the analysis)</i>
-</div>
+Output in the command line:
+<table>
+	<tr>
+		<td>
+			<div class="code"><pre>
+				Input coordinates have been read...
+				Computing average distance between nearest neighbors...
+ 				 100%
 
-<p><b><u>NOTE:</u></b> Comparing the results of 2D NNA with results summarized in (<a href="http://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there can be seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of the convex hull that have been computed using two versions of the module. This bug will be fixed soon.</p>
 
-<li> <b>3D NNA</b> can be performed just using <b>3D vector layer</b>. If 3D NNA is required to be performed using <b>2D vector layer</b>, <u>name of the column in attribute table that contains elevation values</u> must be set. The results are summarized in following tables.
+				*** Nearest Neighbour Analysis results ***
+				Input settings .. 3D layer: 1 3D NNA: 0
+				Number of points .......... 2000
+				Area ...................... 398645718.651701 [units^2]
+				Density of points ......... 0.000005
+				Average distance between the nearest neighbours ........... 225.859 [units]
+				Average expected distance between the nearest neighbours .. 223.228 [units]
+				Ratio rA/rE ............... 1.011785
+				
+				*** Results of two-tailed test of the mean ***
+				Null hypothesis: Point set is randomly distributed within the region.
+				Standard variate of the normal curve> c = 1.008239
+				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
+			</pre></div>
+		</td>
+	</tr>
+</table>
+
+<p><b>NOTE:</b> Comparing the results of 2D NNA with results summarized in 
+(<a href="http://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there can be 
+seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of 
+the convex hull that have been computed using two versions of the module.
+
+<li> <b>3D NNA</b> can be performed just using <b>3D vector layer</b>. If 3D NNA is required to be performed using 
+<b>2D vector layer</b>, <u>name of the column in attribute table that contains elevation values</u> must be set. 
+The results of both cases can be seen below.
 
 <div class="code"><pre>
-v.nnstat in=name_of_3D_vector_layer
+v.nnstat input=rand_2000_3d
 </pre></div>
 
-<div align="center" style="margin: 10px">
-<img src="images/rand_2000_3D_3D.png" border=0><br>
-<i>3D NNA using 3D vector layer</i>
-</div>
+Output in the command line:
+<table>
+	<tr>
+		<td>
+			<div class="code"><pre>
+				Input coordinates have been read...
+				Computing average distance between nearest neighbors...
+				 100%
+				Reading 3D vertices...
+ 				 100%
+				Constructing 3D hull...
+  				  99%
+
+				*** Nearest Neighbour Analysis results ***
+				Input settings .. 3D layer: 1 3D NNA: 1
+				Number of points .......... 2000
+				Volume .................... 398423031180.489197 [units^3]
+				Density of points ......... 0.000000
+				Average distance between the nearest neighbours ........... 346.072 [units]
+				Average expected distance between the nearest neighbours .. 323.531 [units]
+				Ratio rA/rE ............... 1.069670
+				
+				*** Results of two-tailed test of the mean ***
+				Null hypothesis: Point set is randomly distributed within the region.
+				Standard variate of the normal curve> c = 0.191691
+				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
+			</pre></div>
+		</td>
+	</tr>
+</table>
 
 <div class="code"><pre>
-v.nnstat in=name_of_2D_vector_layer zcol=name_of_attribute_column_with_elevations
+v.nnstat input=rand_2000_2d zcolumn=z
 </pre></div>
 
-<div align="center" style="margin: 10px">
-<img src="images/rand_2000_2_5D.png" border=0><br>
-<i>3D NNA using 2D vector layer and elevation values obtained from attribute table of the layer</i>
-</div>
+Output in the command line:
+<table>
+	<tr>
+		<td>
+			<div class="code"><pre>
+				Reading elevations from attribute table: 2000 records selected
+				Input coordinates have been read...
+				Computing average distance between nearest neighbors...
+				 100%
+				Reading 3D vertices...
+ 				 100%
+				Constructing 3D hull...
+  				  99%
+
+				*** Nearest Neighbour Analysis results ***
+				Input settings .. 3D layer: 0 .. 3D NNA: 1 .. zcolumn: z
+				Number of points .......... 2000
+				Volume .................... 398423031180.489197 [units^3]
+				Density of points ......... 0.000000
+				Average distance between the nearest neighbours ........... 346.072 [units]
+				Average expected distance between the nearest neighbours .. 323.531 [units]
+				Ratio rA/rE ............... 1.069670
+				
+				*** Results of two-tailed test of the mean ***
+				Null hypothesis: Point set is randomly distributed within the region.
+				Standard variate of the normal curve> c = 0.191691
+				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
+			</pre></div>
+		</td>
+	</tr>
+</table>
 
 <li> <b>Warning</b>: If flag <i>-2</i> is set up together with <i>zcolumn</i>, the flag will have higher priority and 2D NNA will be performed.
 </ul>
