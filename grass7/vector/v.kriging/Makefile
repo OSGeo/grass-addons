@@ -1,4 +1,4 @@
-MODULE_TOPDIR = ../..
+MODULE_TOPDIR = /home/evergreen/grass7
 
 PGM = v.kriging
 
