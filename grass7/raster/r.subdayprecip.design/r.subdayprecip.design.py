@@ -18,6 +18,9 @@
 
 #%module
 #% description: Computes subday design precipitation series.
+#% keyword: raster
+#% keyword: hydrology
+#% keyword: precipitation
 #%end
 
 #%option G_OPT_V_MAP
