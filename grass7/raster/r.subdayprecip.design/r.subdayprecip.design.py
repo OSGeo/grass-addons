@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       r.subdayprecip.series
+# MODULE:       r.subdayprecip.design
 #
 # AUTHOR(S):    Martin Landa
 #
