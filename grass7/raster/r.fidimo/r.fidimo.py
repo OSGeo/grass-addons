@@ -517,15 +517,33 @@ def main():
 					overwrite=True,
 					input="distance_raster_tmp_%d,river_raster_buffer_tmp_%d" % (os.getpid(),os.getpid()),
 					output="distance_raster_buffered_tmp_%d" % os.getpid())
+					
+	# Get maximum value and divide if to large (>2200000)
+	max_buffer = grass.raster_info("distance_raster_buffered_tmp_%d" % os.getpid())['max']
+	
+	if max_buffer>2100000:
+		grass.message(_("River network is very large and r.watershed (and e.g stream order extract) might not work"))
+		grass.mapcalc("$distance_raster_buffered_div = $distance_raster_buffered/1000.0",
+						distance_raster_buffered_div = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
+						distance_raster_buffered = "distance_raster_buffered_tmp_%d" % os.getpid())
+		# Getting flow direction and stream segments
+		grass.run_command("r.watershed", 
+					  	flags = 'm', #depends on memory!! #
+					  	elevation = "distance_raster_buffered_div_tmp_%d" % os.getpid(),
+					  	drainage = "drainage_tmp_%d" % os.getpid(),
+					  	stream = "stream_rwatershed_tmp_%d" % os.getpid(),
+					  	threshold = 3,
+					  	overwrite = True)
 
-	# Getting flow direction and stream segments
-	grass.run_command("r.watershed", 
-					  flags = 'm', #depends on memory!! #
-					  elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
-					  drainage = "drainage_tmp_%d" % os.getpid(),
-					  stream = "stream_rwatershed_tmp_%d" % os.getpid(),
-					  threshold = 3,
-					  overwrite = True)
+	else:
+		# Getting flow direction and stream segments
+		grass.run_command("r.watershed", 
+					  	flags = 'm', #depends on memory!! #
+					  	elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
+					  	drainage = "drainage_tmp_%d" % os.getpid(),
+					  	stream = "stream_rwatershed_tmp_%d" % os.getpid(),
+					  	threshold = 3,
+					  	overwrite = True)
 
 	grass.mapcalc("$flow_direction_tmp = if($stream_rwatershed_tmp,$drainage_tmp,null())",
 							flow_direction_tmp = "flow_direction_tmp_%d" % os.getpid(),
