@@ -237,7 +237,7 @@ def main():
 	global tmp_map_rast
 	global tmp_map_vect
 
-	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_', 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'realised_density_final_','rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_combine_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_tmp_','source_populations_scalar_corrected_tmp_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
+	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_', 'distance_raster_buffered_tmp_', "distance_raster_buffered_div_tmp_", 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'realised_density_final_','rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_combine_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_tmp_','source_populations_scalar_corrected_tmp_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
 
 
 	tmp_map_vect = ['river_points_tmp_', 'river_vector_tmp_', 'river_vector_nocat_tmp_','source_points_']
