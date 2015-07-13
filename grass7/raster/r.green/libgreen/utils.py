@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from scipy.sparse import csr_matrix
 import numpy as np
 #import pdb
 
@@ -10,14 +9,20 @@ from grass.pygrass.raster import RasterRow
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.gis.region import Region
 
+try:
+    from scipy.sparse import csr_matrix
+except ImportError:
+    gcore.warning('You should install scipy to use this module: '
+                  'pip install scipy')
 
-def cleanup(rast=None, vect=None, debug=False):
+
+def cleanup(raster=None, vector=None, debug=False):
     """Delete temporary maps"""
     if not debug:
-        if rast:
-            gcore.run_command("g.remove", flags="f", type='rast', name=rast)
-        if vect:
-            gcore.run_command("g.remove", flags="f", type='vect', name=vect)
+        if raster:
+            gcore.run_command("g.remove", flags="f", type='raster', name=raster)
+        if vector:
+            gcore.run_command("g.remove", flags="f", type='vector', name=vector)
 
 
 def check_overlay_rv(raster, vector):

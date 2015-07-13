@@ -3,9 +3,9 @@
 #
 ############################################################################
 #
-# MODULE:      r.green.hydro.del_plants
+# MODULE:      r.green.hydro.delplants
 # AUTHOR(S):   Pietro Zambelli & Giulia Garegnani
-# PURPOSE:     Delete segmets where there is an existing plant
+# PURPOSE:     Delete segments where there is an existing plant
 # COPYRIGHT:   (C) 2014 by the GRASS Development Team
 #
 #              This program is free software under the GNU General Public
@@ -15,82 +15,78 @@
 #############################################################################
 #
 #%Module
-#% description: Delete segmets where there is an existing plant
+#% description: Delete segments where there is an existing plant
 #% overwrite: yes
 #%End
 #%option G_OPT_V_INPUT
 #%  key: hydro
-#%  description: Name of the vector map point of hydro plants.
+#%  label: Name of the vector map with the points (intake and restitution) of hydropower plants
 #%  required: yes
 #%end
 #%option G_OPT_V_FIELD
 #%  key: hydro_layer
-#%  description: Name of the vector map layer of the hydro plant, with the following attributes: kind (water intake/turbine), discharge [l/s], working hours [hours], altitute[m], id point, id plant
+#%  label: Name of the vector map layer of the hydropower plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
 #%  required: no
 #%  answer: 1
 #%end
 #%option G_OPT_V_INPUT
 #%  key: river
-#%  description: Name of the vector map with the streams.
+#%  label: Name of the vector map with the streams
 #%  required: yes
 #%end
-#%option G_OPT_V_OUTPUT
-#%  description: Name of the vector map with the stream segments without plants.
+#%option
+#%  key: output_streams
+#%  type: string
+#%  description: Name of the vector map with the stream segments without plants
 #%  required: yes
 #%end
-#%option G_OPT_V_OUTPUT
-#%  key: plants
-#%  description: Name of the vector map with the stream segments already with plants.
+#%option
+#%  key: output_plants
+#%  type: string
+#%  description: Name of the vector map with the stream segments of the existing plants
 #%  required: no
 #%end
 #%option
 #%  key: hydro_kind_intake
 #%  type: string
-#%  description: Value contained in the column: hydro_kind that indicate the plant is an intake.
+#%  description: Value contained in the column kind_label that indicates the plant is an intake
 #%  required: no
 #%  answer: intake
 #%end
 #%option
 #%  key: hydro_kind_turbine
 #%  type: string
-#%  description: Value contained in the column: hydro_kind that indicate the plant is an intake.
+#%  description: Value contained in the column kind_label that indicates the plant is a restitution
 #%  required: no
-#%  answer: turbine
+#%  answer: restitution
 #%end
 #%option G_OPT_R_ELEV
 #%  required: yes
 #%end
 #%option G_OPT_V_MAP
 #%  key: other
-#%  description: Name of the vector map point of other plants such as irrigation, acqueducts, etc.
+#%  label: Name of the vector map with points (intake and restitution) of other plants such as irrigation, acqueducts, etc.
 #%  required: no
 #%end
 #%option G_OPT_V_INPUT
 #%  key: other_layer
-#%  description: Name of the vector map layer of other plants, with the following attributes: kind (water intake/turbine), discharge [m3/year], id point, id plant
+#%  label: Name of the vector map layer of other plants, with the following attributes: kind_label (intake/restitution), discharge [m3/s], id_point, id_plant
 #%  required: no
 #%  answer: 1
 #%end
 #%option
 #%  key: other_kind_intake
 #%  type: string
-#%  description: Value contained in the column: other_kind that indicate the plant is an intake.
+#%  description: Value contained in the column kind_label that indicates the plant is an intake
 #%  required: no
 #%  answer: intake
 #%end
 #%option
 #%  key: other_kind_turbine
 #%  type: string
-#%  description: Value contained in the column: other_kind that indicate the plant is an intake.
+#%  description: Value contained in the column kind_label that indicates the plant is a restitution
 #%  required: no
-#%  answer: turbine
-#%end
-#%option
-#%  key: efficiency
-#%  type: double
-#%  description: Plant efficiency.
-#%  required: no
-#%  answer: 0.8
+#%  answer: restitution
 #%end
 #%flag
 #% key: d
@@ -126,11 +122,11 @@ def main(opts, flgs):
     DEBUG = True if flgs['d'] else False
     atexit.register(cleanup, vect=TMPVECT, debug=DEBUG)
     # check input maps
-    rhydro = ['kind', 'discharge', 'id_point', 'id_plant']
-    rother = ['kind', 'discharge', 'id_point', 'id_plant']
+    rhydro = ['kind_label', 'discharge', 'id_point', 'id_plant']
+    rother = ['kind_label', 'discharge', 'id_point', 'id_plant']
     ovwr = overwrite()
 
-    try:
+    try:        
         hydro = check_required_columns(opts['hydro'], int(opts['hydro_layer']),
                                        rhydro, 'hydro')
         if opts['other']:
@@ -141,8 +137,6 @@ def main(opts, flgs):
         #minflow = check_float_or_raster(opts['minflow'])
     except ParameterError as exc:
         exception2error(exc)
-    # TODO: do we really nead the efficiency of the plant here?
-    #efficiency = float(opts['efficiency'])
 
     # start working
     hydro.open('r')
@@ -150,6 +144,7 @@ def main(opts, flgs):
                 else (opts['elevation'], ''))
     elev = RasterRow(name=el, mapset=mset)
     elev.open('r')
+    #import ipdb; ipdb.set_trace()
     plants, skipped = read_plants(hydro, elev=elev,
                                   restitution=opts['hydro_kind_turbine'],
                                   intake=opts['hydro_kind_intake'])
@@ -157,9 +152,9 @@ def main(opts, flgs):
     rvname, rvmset = (opts['river'].split('@') if '@' in opts['river']
                       else (opts['river'], ''))
 
-    vplants = opts['plants'] if opts['plants'] else 'tmpplants'
+    vplants = opts['output_plants'] if opts['output_plants'] else 'tmpplants'
     #FIXME: I try with tmpplants in my mapset and it doesn'work
-    if opts['plants'] == '':
+    if opts['output_plants'] == '':
         TMPVECT.append(vplants)
     with VectorTopo(rvname, rvmset, mode='r') as river:
         write_plants(plants, vplants, river, elev, overwrite=ovwr)
@@ -176,7 +171,7 @@ def main(opts, flgs):
     TMPVECT.append(buff)
     # return all the river segments that are not already with plants
     v.overlay(flags='t', ainput=opts['river'], atype='line', binput=buff,
-              operator='not', output=opts['output'], overwrite=ovwr)
+              operator='not', output=opts['output_streams'], overwrite=ovwr)
 
 
 if __name__ == "__main__":

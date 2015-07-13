@@ -21,16 +21,17 @@
 #%option G_OPT_R_ELEV
 #%  required: yes
 #%end
-#%option G_OPT_V_MAP
+#%option G_OPT_V_INPUT
 #%  key: plant
-#%  description: Name of the vector map points with the plants
+#%  label: Name of input vector map with segments of potential plants
 #%  required: yes
 #%end
-#%option G_OPT_V_INPUT
+#%option G_OPT_V_FIELD
 #%  key: plant_layer
-#%  description: Name of the vector map layer of plants
+#%  label: Name of the vector map layer of plants
 #%  required: no
 #%  answer: 1
+#%  guisection: Input columns
 #%end
 #%option
 #%  key: plant_column_plant_id
@@ -49,11 +50,27 @@
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_column_elevation
+#%  key: plant_column_stream_id
 #%  type: string
-#%  description: Column name with the elevation values [m]
+#%  description: Column name with the stream id
 #%  required: no
-#%  answer: elevation
+#%  answer: stream_id
+#%  guisection: Input columns
+#%end
+#%option
+#%  key: plant_column_elevup
+#%  type: string
+#%  description: Column name with the elevation value at the intake (upstream) [m]
+#%  required: no
+#%  answer: elev_up
+#%  guisection: Input columns
+#%end
+#%option
+#%  key: plant_column_elevdown
+#%  type: string
+#%  description: Column name with the elevation value at the restitution (downstream) [m]
+#%  required: no
+#%  answer: elev_down
 #%  guisection: Input columns
 #%end
 #%option
@@ -65,33 +82,29 @@
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_column_kind
+#%  key: plant_column_power
 #%  type: string
-#%  description: Column name (string) with the kind type of the points
+#%  description: Column name with the potential power [kW]
 #%  required: no
-#%  answer: kind_label
-#%  guisection: Input columns
-#%end
-
-#%option
-#%  key: plant_column_kind_intake
-#%  type: string
-#%  description: Value contained in the column: hydro_kind that indicates the plant is an intake.
-#%  required: no
-#%  answer: intake
-#%  guisection: Input columns
-#%end
-#%option
-#%  key: plant_column_kind_turbine
-#%  type: string
-#%  description: Value contained in the column: hydro_kind that indicates the plant is a restitution.
-#%  required: no
-#%  answer: restitution
+#%  answer: pot_power
 #%  guisection: Input columns
 #%end
 #%option G_OPT_V_OUTPUT
-#% key: output
+#% key: output_point
+#% label: Name of output vector map with potential intakes and restitution
+#% required: no
+#%end
+#%option G_OPT_V_OUTPUT
+#% key: output_struct
+#% label: Name of output vector map with the structure of the plants
 #% required: yes
+#%end
+##
+## FLAGS
+##
+#%flag
+#% key: d
+#% description: Debug with intermediate maps
 #%end
 from __future__ import print_function
 
@@ -99,29 +112,33 @@ import os
 import atexit
 
 from grass.exceptions import ParameterError
-from grass.script.core import parser, run_command, overwrite
+from grass.script.core import parser, overwrite
 from grass.pygrass.utils import set_path
 from grass.pygrass.raster import RasterRow
-from grass.pygrass.vector import VectorTopo
+
 
 # set python path to the shared r.green libraries
 set_path('r.green', 'libhydro', '..')
 set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
 from libgreen.utils import cleanup
+from libhydro.optimal import conv_segpoints
 from libgreen.checkparameter import check_required_columns, exception2error
 from libhydro.plant import read_plants, write_structures
 
 
 def main(opts, flgs):
-    #TMPVECT = []
-    #DEBUG = True if flgs['d'] else False
-    #atexit.register(cleanup, vect=TMPVECT, debug=DEBUG)
+    TMPVECT = []
+    DEBUG = True if flgs['d'] else False
+    atexit.register(cleanup, vector=TMPVECT, debug=DEBUG)
+
     # check input maps
-    plant = [opts['plant_column_kind'], opts['plant_column_discharge'],
-             opts['plant_column_point_id'], opts['plant_column_plant_id']]
+    plant = [opts['plant_column_discharge'], opts['plant_column_elevup'],
+             opts['plant_column_elevdown'], opts['plant_column_point_id'],
+             opts['plant_column_plant_id'], opts['plant_column_power'],
+             opts['plant_column_stream_id']]
     ovwr = overwrite()
-    #import pdb; pdb.set_trace()
+
     try:
         plnt = check_required_columns(opts['plant'], int(opts['plant_layer']),
                                       plant, 'plant')
@@ -129,25 +146,33 @@ def main(opts, flgs):
         exception2error(exc)
         return
 
+    if not opts['output_point']:
+        output_point = 'tmp_output_point'
+        TMPVECT.append(output_point)
+    else:
+        output_point = opts['output_point']
+
+    plnt = conv_segpoints(opts['plant'], output_point)
+
     el, mset = (opts['elevation'].split('@') if '@' in opts['elevation']
                 else (opts['elevation'], ''))
 
     elev = RasterRow(name=el, mapset=mset)
     elev.open('r')
     plnt.open('r')
-    #import pdb; pdb.set_trace()
-    plants, skipped = read_plants(plnt, elev=elev,
-                                  restitution=opts['plant_column_kind_turbine'],
-                                  intake=opts['plant_column_kind_intake'],
-                                  ckind_label=opts['plant_column_kind'],
-                                  cdischarge=opts['plant_column_discharge'],
-                                  celevation=opts['plant_column_elevation'],
-                                  cid_point=opts['plant_column_point_id'],
-                                  cid_plant=opts['plant_column_plant_id'])
-    plnt.close()
-    #import ipdb; ipdb.set_trace()
 
-    write_structures(plants, opts['output'], elev, overwrite=ovwr)
+    plants, skipped = read_plants(plnt, elev=elev,
+                                  restitution='restitution',
+                                  intake='intake',
+                                  ckind_label='kind_label',
+                                  cdischarge='discharge',
+                                  celevation='elevation',
+                                  cid_point='cat',
+                                  cid_plant='plant_id')
+
+    plnt.close()
+
+    write_structures(plants, opts['output_struct'], elev, overwrite=ovwr)
     elev.close()
 
 

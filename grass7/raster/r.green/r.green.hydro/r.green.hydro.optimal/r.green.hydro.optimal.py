@@ -15,31 +15,21 @@
 #############################################################################
 #
 #%module
-#% description: Calculate the hydropower energy potential for each basin
+#% description: Detect the position of the potential hydropower plants that can produce the highest possible power
 #% keyword: raster
+#% overwrite: yes
 #%end
-#%option
+#%option G_OPT_R_ELEV
+#%  required: yes
+#%end
+#%option G_OPT_R_INPUT
 #% key: discharge
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of river discharge [m^3/s]
+#% label: Name of river discharge [m^3/s]
 #% required: yes
 #%end
-#%option
+#%option G_OPT_V_INPUT
 #% key: river
-#% type: string
-#% gisprompt: old,vector,vector
-#% key_desc: name
-#% description: Name of vector map with interested segments of rivers
-#% required: yes
-#%end
-#%option
-#% key: elevation
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of elevation raster map [m]
+#% label: Name of vector map with interested segments of rivers
 #% required: yes
 #%end
 #%flag
@@ -78,18 +68,21 @@
 #% required: no
 #%end
 #%option
-#% key: output_plant
-#% type: string
-#% key_desc: name
-#% description: Name of output vector with potential power segments [kW]
-#% required: no
-#%end
-#%option
-#% key: output_point
-#% type: string
-#% key_desc: name
-#% description: Name of output vector with potential power intakes and restitution [kW]
+#% key: p_min
+#% type: double
+#% description: Minimum mean power [kW]
+#% answer: 10.0
 #% required: yes
+#%end
+#%option G_OPT_V_OUTPUT
+#% key: output_plant
+#% label: Name of output vector map with segments of potential power segments [kW]
+#% required: yes
+#%end
+#%option G_OPT_V_OUTPUT
+#% key: output_point
+#% label: Name of output vector map with potential power intakes and restitution [kW]
+#% required: no
 #%end
 #%option
 #% key: efficiency
@@ -155,11 +148,12 @@ def main(options, flags):
         p_max = float(options['p_max'])
     else:
         p_max = None
+    p_min = float(options['p_min'])
     DEBUG = flags['d']
     c = flags['c']
     msgr = get_msgr()
 
-    # pdb.set_trace()
+    #import ipdb; ipdb.set_trace()
 
     TMPVEC = ['river_clean']
     if not gcore.overwrite():
@@ -174,14 +168,15 @@ def main(options, flags):
         # number of cell of the river
     # range for the solution
     msgr.message("\Loop on the category of segments\n")
-    #pdb.set_trace()
+
     range_plant = (len_min, len_plant)
     plants = find_segments(river, discharge, elevation, range_plant, distance,
                            p_max)
+                           
     if output_plant:
-        write_plants(plants, output_plant, efficiency)
-    write_points(plants, output_point, efficiency)
-#    else:
+        write_plants(plants, output_plant, efficiency, p_min)
+    write_points(plants, output_point, efficiency, p_min)
+
 
 if __name__ == "__main__":
     options, flags = gcore.parser()

@@ -17,7 +17,6 @@
 # import system libraries
 import os
 
-from scipy import integrate
 import numpy as np
 import itertools
 #import pdb
@@ -28,6 +27,12 @@ from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
 from grass.script import mapcalc
 from grass.pygrass.utils import set_path
+
+try:
+    from scipy import integrate
+except ImportError:
+    gcore.warning('You should install scipy to use this module: '
+                  'pip install scipy')
 
 set_path('r.green', 'libhydro', '..')
 set_path('r.green', 'libgreen', os.path.join('..', '..'))
@@ -267,6 +272,7 @@ class Basin(object):
     def E_spec(self):
         """
         compute the specific energy for length unit of the basin
+        TOFIX
         """
         #pdb.set_trace()
         E_spec = self.E_own/self.area  # kW/km2
@@ -331,13 +337,14 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     # TODO: dissolve the areas with the same cat
     # adding columns
     gcore.run_command("v.db.addcolumn", map=E,
-                      columns="E_spec double precision,"
+                      columns=
                       "Qown double precision,"
                       "Qtot double precision, Hmean double precision,"
                       "H0 double precision, Eown_kW double precision,"
                       "IDup1 int, Eup1_kW double precision,"
                       "IDup2 int, Eup2_kW double precision,"
-                      "IDup3 int, Eup3_kW double precision")
+                      "IDup3 int, Eup3_kW double precision,"
+                      "Etot_kW double precision")
     gcore.run_command("db.dropcolumn", flags="f",
                       table=E, column="label")
     # Open database connection
@@ -357,24 +364,26 @@ def write_results2newvec(stream, E, basins_tot, inputs):
         for l in vec.cat(ID, 'lines'):
             length += l.length()
         basins_tot[ID].length = length
-        db = [basins_tot[ID].E_spec(),
-              basins_tot[ID].discharge_own,
+        db = [basins_tot[ID].discharge_own,
               basins_tot[ID].discharge_tot,
               basins_tot[ID].h_mean,
               basins_tot[ID].h_closure,
               basins_tot[ID].E_own]
         if len(basins_tot[ID].E_up) == 0:
-            db = db + [0, 0.0, 0, 0.0, 0, 0.0]
+            db = db + [0, 0.0, 0, 0.0, 0, 0.0,
+                       basins_tot[ID].E_own]
         elif len(basins_tot[ID].E_up) == 1:
             db = (db + [basins_tot[ID].E_up.keys()[0],
                   basins_tot[ID].E_up.values()[0],
-                  0, 0.0, 0, 0.0])
+                  0, 0.0, 0, 0.0, basins_tot[ID].E_own
+                  + sum(basins_tot[ID].E_up.values())])
         elif len(basins_tot[ID].E_up) == 2:
             db = (db + [basins_tot[ID].E_up.keys()[0],
                   basins_tot[ID].E_up.values()[0],
                   basins_tot[ID].E_up.keys()[1],
                   basins_tot[ID].E_up.values()[1],
-                  0, 0])
+                  0, 0, basins_tot[ID].E_own
+                  + sum(basins_tot[ID].E_up.values())])
         elif len(basins_tot[ID].E_up) == 3:
             #pdb.set_trace()
             db = (db + [basins_tot[ID].E_up.keys()[0],
@@ -382,7 +391,8 @@ def write_results2newvec(stream, E, basins_tot, inputs):
                   basins_tot[ID].E_up.keys()[1],
                   basins_tot[ID].E_up.values()[1],
                   basins_tot[ID].E_up.keys()[2],
-                  basins_tot[ID].E_up.values()[2]])
+                  basins_tot[ID].E_up.values()[2],basins_tot[ID].E_own
+                  + sum(basins_tot[ID].E_up.values())])
         else:
             db = db + [0, 0.0, 0, 0.0, 0, 0.0]
         #print db

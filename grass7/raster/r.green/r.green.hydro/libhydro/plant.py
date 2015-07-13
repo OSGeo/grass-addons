@@ -14,7 +14,10 @@ from grass.pygrass.vector.table import Link
 COLS = [(u'cat',       'INTEGER PRIMARY KEY'),
         (u'plant_id',  'VARCHAR(10)'),
         (u'stream_id',  'INTEGER'),
-        (u'potential_power', 'DOUBLE')]
+        (u'pot_power', 'DOUBLE'),
+        (u'discharge', 'DOUBLE'),
+        (u'elev_up', 'DOUBLE'),
+        (u'elev_down', 'DOUBLE'),]
 
 
 COLS_points = [(u'cat',       'INTEGER PRIMARY KEY'),
@@ -24,7 +27,7 @@ COLS_points = [(u'cat',       'INTEGER PRIMARY KEY'),
                (u'stream_id',  'INTEGER'),
                (u'elevation', 'DOUBLE'),
                (u'discharge', 'DOUBLE'),
-               (u'potential_power', 'DOUBLE')]
+               (u'pot_power', 'DOUBLE')]
 
 HydroStruct = namedtuple('HydroStruct',
                          ['intake', 'conduct', 'penstock', 'side'])
@@ -79,7 +82,6 @@ def splitline(line, point):
     l0.reverse()
     l1 = line.segment(dist.sldist, line.length())
     return l0, l1
-
 
 
 def read_plants(hydro, elev=None, restitution='restitution', intake='intake',

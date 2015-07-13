@@ -8,17 +8,22 @@ Created on Mon Jan 12 14:29:46 2015
 from __future__ import print_function
 import os
 import sys
-from scipy import interpolate
-from scipy.optimize import fsolve
-import numpy as np
 
-# import scientific libraries
-from scipy import optimize
+import numpy as np
 
 #from grass.script import mapcalc
 from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
+
+# import scientific libraries
+try:
+    from scipy import optimize
+    from scipy import interpolate
+    from scipy.optimize import fsolve
+except ImportError:
+    gcore.warning('You should install scipy to use this module: '
+                  'pip install scipy')
 
 #from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.gis.region import Region
@@ -305,7 +310,7 @@ def find_segments(river, discharge, dtm, range_plant, distance, p_max):
     return plants
 
 
-def write_plants(plants, output, efficiency):
+def write_plants(plants, output, efficiency, min_power):
     # create vetor segment
     new_vec = VectorTopo(output)
     #TODO:  check if the vector already exists
@@ -313,8 +318,14 @@ def write_plants(plants, output, efficiency):
     new_vec.open('w', tab_cols=COLS)
     reg = Region()
     for pla in plants:
-        new_vec.write(pla.line, (pla.id, pla.id_stream,
-                                 pla.potential_power(efficiency=efficiency)))
+        power = pla.potential_power(efficiency=efficiency)
+        if power > min_power:
+
+            for ink in pla.intakes:
+                new_vec.write(pla.line, (pla.id, pla.id_stream, power,
+                                     float(pla.restitution.discharge),
+                                     float(ink.elevation),
+                                     float(pla.restitution.elevation)))
 
     new_vec.table.conn.commit()
     new_vec.comment = (' '.join(sys.argv))
@@ -322,28 +333,70 @@ def write_plants(plants, output, efficiency):
     new_vec.close()
 
 
-def write_points(plants, output, efficiency):
+def write_points(plants, output, efficiency, min_power):
     # create vetor segment
     new_vec = VectorTopo(output)
     #TODO:  check if the vector already exists
     new_vec.layer = 1
     new_vec.open('w', tab_cols=COLS_points)
     reg = Region()
+
     # import ipdb; ipdb.set_trace()
     for pla in plants:
-        new_vec.write(pla.line[-1], (pla.restitution.id,
-                      pla.id, 'restitution', pla.id_stream,
-                      float(pla.restitution.elevation),
-                      float(pla.restitution.discharge),
-                      pla.potential_power()))
-        for ink in pla.intakes:
-            new_vec.write(pla.line[0], (ink.id,
-                          pla.id, 'intake', pla.id_stream,
-                          float(ink.elevation), float(ink.discharge),
-                          pla.potential_power(efficiency=efficiency)))
+        power = pla.potential_power(efficiency=efficiency)
+        if power > min_power:
+            new_vec.write(pla.line[-1], (pla.restitution.id,
+                          pla.id, 'restitution', pla.id_stream,
+                          float(pla.restitution.elevation),
+                          float(pla.restitution.discharge),
+                          power))
+            for ink in pla.intakes:
+                new_vec.write(pla.line[0], (ink.id,
+                              pla.id, 'intake', pla.id_stream,
+                              float(ink.elevation), float(ink.discharge),
+                              power))
 
     new_vec.table.conn.commit()
     new_vec.comment = (' '.join(sys.argv))
     new_vec.write_header()
     #pdb.set_trace()
     new_vec.close()
+
+
+def conv_segpoints(seg, output):
+
+    segments, mset = (seg.split('@') if '@' in seg
+                else (seg, ''))
+    # convert the map with segments in a map with intakes and restitution
+    new_vec = VectorTopo(output)
+    #TODO:  check if the vector already exists
+    new_vec.layer = 1
+    new_vec.open('w', tab_cols=COLS_points)
+    reg = Region()
+
+    seg = VectorTopo(segments, mapset=mset)
+    seg.layer = 1
+    seg.open('r')
+
+
+    for pla in seg:
+            #import ipdb; ipdb.set_trace()
+            new_vec.write(pla[-1], (2,
+                          pla.attrs['plant_id'], 'restitution', pla.attrs['stream_id'],
+                          pla.attrs['elev_down'],
+                          pla.attrs['discharge'],
+                          pla.attrs['pot_power']))
+            #import ipdb; ipdb.set_trace()
+            new_vec.write(pla[0], (1,
+                          pla.attrs['plant_id'], 'intake', pla.attrs['stream_id'],
+                          pla.attrs['elev_up'],
+                          pla.attrs['discharge'],
+                          pla.attrs['pot_power']))
+
+    new_vec.table.conn.commit()
+    new_vec.comment = (' '.join(sys.argv))
+    new_vec.write_header()
+    #pdb.set_trace()
+    new_vec.close()
+
+    return new_vec
