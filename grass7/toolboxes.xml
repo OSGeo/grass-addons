@@ -6,7 +6,6 @@
     <task name="r.stream.basins" />
     <task name="r.stream.channel" />
     <task name="r.stream.distance" />
-    <task name="r.stream.extract" />
     <task name="r.stream.order" />
     <task name="r.stream.segment" />
     <task name="r.stream.slope" />
