@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.in.proj</em> imports selected layers from a OGR vector datasource
+<em>v.import</em> imports selected layers from a OGR vector datasource
 into the current location and mapset. If the projection of the input
 does not match the projection of the location, the input is reprojected
 into the current location. If the projection of the input does match
@@ -23,7 +23,7 @@ manually reprojected to the target location.
 
 <div class="code"><pre>
 # import SHAPE file at full extent and reproject to current location projection
-v.in.proj input_file=research_area.shp out=research_area extents=input
+v.import input=research_area.shp output=research_area extents=input
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -37,4 +37,5 @@ v.in.proj input_file=research_area.shp out=research_area extents=input
 
 Markus Metz
 
-<p><i>Last changed: $Date: 2015-01-20 20:52:27 +0100 (Tue, 20 Jan 2015) $</i>
+<p>
+<i>Last changed: $Date: 2015-01-20 20:52:27 +0100 (Tue, 20 Jan 2015) $</i>
