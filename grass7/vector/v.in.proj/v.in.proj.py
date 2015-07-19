@@ -34,7 +34,7 @@
 #% type: string
 #% multiple: yes
 #% description: OGR layer name. If not given, all available layers are imported
-#% guisection: Layer
+#% guisection: Input
 #% gisprompt: old,datasource_layer,datasource_layer
 #%end
 #%option G_OPT_V_OUTPUT
