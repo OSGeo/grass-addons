@@ -39,15 +39,16 @@
 #%end
 #%option G_OPT_V_OUTPUT
 #% description: Name for output vector map (default: input)
+#% required: no
 #% guisection: Output
 #%end
 #%option
 #% key: extents
 #% type: string
-#% required: yes
 #% options: input,region
+#% answer: input
 #% description: Ouput vector map extents
-#% descriptions: region;extents of current region;input;extents of input map
+#% descriptions: input;extents of input map;region;extents of current region
 #% guisection: Output
 #%end
 
