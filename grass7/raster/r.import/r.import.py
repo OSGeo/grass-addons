@@ -17,24 +17,16 @@
 #############################################################################
 
 #%module
-#% description: Import raster data using GDAL library and reproject on the fly.
+#% description: Imports raster data into a GRASS raster map using GDAL library and reproject on the fly.
 #% keyword: raster
 #% keyword: import
 #% keyword: projection
 #%end
-#%option G_OPT_F_BIN_INPUT
-#% key: input_file
-#% required: no
-#% multiple: no
-#% description: Name of GDAL dataset (file) to be imported
-#% guisection: Input
-#%end
-#%option G_OPT_M_DIR
-#% key: input_directory
-#% required: no
-#% multiple: no
-#% description: Name of GDAL dataset (directory) to be imported
-#% guisection: Input
+#%option
+#% key: input
+#% type: string
+#% required: yes
+#% description: Name of GDAL dataset to be imported
 #%end
 #%option
 #% key: band
@@ -55,9 +47,6 @@
 #% answer: 300
 #%end
 #%option G_OPT_R_OUTPUT
-#% required: yes
-#% multiple: no
-#% key_desc: name
 #% description: Name for output raster map
 #% guisection: Output
 #%end
@@ -76,7 +65,7 @@
 #% type: string
 #% required: yes
 #% multiple: no
-#% options: region,input
+#% options: input,region
 #% description: Ouput raster map extents
 #% descriptions: region;extents of current region;input;extents of input map
 #% guisection: Output
@@ -113,41 +102,27 @@ import grass.script as grass
 def cleanup():
     # remove temp location
     if tmploc:
-        path = os.path.join(gisdbase, tmploc)
-        grass.try_rmdir(path)
+        grass.try_rmdir(os.path.join(gisdbase, tmploc))
     if srcgisrc:
         grass.try_remove(srcgisrc)
 
 def main():
     global tmploc, srcgisrc, gisdbase
 
+    GDALdatasource = options['input']
     output = options['output']
     method = options['resample']
     memory = options['memory']
     do_import = flags['i']
 
-    bands = None
-    if options['band']:
-        bands = options['band']
-    tgtres = None
-    if options['resolution']:
-        tgtres = options['resolution']
-
+    bands = options['band']
+    tgtres = options['resolution']
+    
     # initialize global vars
     tmploc = None
     srcgisrc = None
     gisdbase = None
-
-    GDALdatasource = None
-    if options['input_file']:
-        GDALdatasource = options['input_file']
     
-    if not GDALdatasource:
-        GDALdatasource = options['input_directory']
-
-    if not GDALdatasource:
-        grass.fatal(_("Either option 'input_file' or option 'input_directory' must be given"))
-
     grassenv = grass.gisenv()
     tgtloc = grassenv['LOCATION_NAME']
     tgtmapset = grassenv['MAPSET']
@@ -158,7 +133,6 @@ def main():
     tmploc = 'temp_import_location_' + str(os.getpid())
 
     f = open(srcgisrc, 'w')
-    f.write('DEBUG: 0\n')
     f.write('MAPSET: PERMANENT\n')
     f.write('GISDBASE: %s\n' % gisdbase)
     f.write('LOCATION_NAME: %s\n' % tmploc);
@@ -169,17 +143,15 @@ def main():
 
     # create temp location from input without import
     grass.message(_("Creating temporary location for <%s>...") % GDALdatasource) 
-    ps = grass.start_command('r.in.gdal', input = GDALdatasource,
-                             band = bands, output = output,
-                             memory = memory, flags = 'c',
-                             location = tmploc, quiet = True)
-    returncode = ps.wait()
+    returncode = grass.run_command('r.in.gdal', input = GDALdatasource,
+                                   band = bands, output = output,
+                                   memory = memory, flags = 'c',
+                                   location = tmploc, quiet = True)
     
     # if it fails, return
     if returncode != 0:
         grass.fatal(_("Unable to read GDAL dataset <%s>") % GDALdatasource)
-        sys.exit(1)
-
+    
     # switch to temp location
     os.environ['GISRC'] = str(srcgisrc)
 
@@ -192,37 +164,32 @@ def main():
     if insrs == tgtsrs:
         # try r.in.gdal directly
         grass.message(_("Importing <%s>...") % GDALdatasource) 
-        ps = grass.start_command('r.in.gdal', input = GDALdatasource,
-                                band = bands, output = output,
-                                memory = memory, flags = 'k')
-        returncode = ps.wait()
+        returncode = grass.run_command('r.in.gdal', input = GDALdatasource,
+                                       band = bands, output = output,
+                                       memory = memory, flags = 'k')
         
         if returncode == 0:
             grass.message(_("Input <%s> successfully imported without reprojection") % GDALdatasource) 
-            sys.exit(0)
+            return 0
         else:
             grass.fatal(_("Unable to import GDAL dataset <%s>") % GDALdatasource)
-            sys.exit(1)
-
+    
     # make sure target is not xy
     if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
         grass.fatal(_("Coordinate reference system not available for current location <%s>") % tgtloc)
-        sys.exit(1)
-    
+        
     # switch to temp location
     os.environ['GISRC'] = str(srcgisrc)
 
     # make sure input is not xy
     if grass.parse_command('g.proj', flags = 'g')['name'] == 'xy_location_unprojected':
         grass.fatal(_("Coordinate reference system not available for input <%s>") % GDALdatasource)
-        sys.exit(1)
-
+    
     # import into temp location
     grass.message(_("Importing <%s> to temporary location...") % GDALdatasource) 
-    ps = grass.start_command('r.in.gdal', input = GDALdatasource,
-                            band = bands, output = output,
-                            memory = memory, flags = 'k')
-    returncode = ps.wait()
+    returncode = grass.run_command('r.in.gdal', input = GDALdatasource,
+                                   band = bands, output = output,
+                                   memory = memory, flags = 'k')
     
     if returncode != 0:
         grass.fatal(_("Unable to import GDAL dataset <%s>") % GDALdatasource)
@@ -238,8 +205,7 @@ def main():
         path = os.path.join(gisdbase, tmploc, 'group', output, 'POINTS')
         if os.path.exists(path):
             grass.fatal(_("Input contains GCPs, rectification is required"))
-            sys.exit(1)
-
+    
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 
@@ -275,7 +241,6 @@ def main():
                                                 memory = memory, quiet = True)
             except:
                 grass.fatal(_("Unable to get reprojected map extents"))
-                sys.exit(1)
             
             srcregion = grass.parse_key_val(tgtextents, val_type = float, vsep = ' ')
             n = srcregion['n']
@@ -294,9 +259,9 @@ def main():
         # reproject to src
         # switch to temp location
         os.environ['GISRC'] = str(srcgisrc)
-        ps = grass.start_command('v.proj', input = vreg, output = vreg, 
-                          location = tgtloc, mapset = tgtmapset, quiet = True)
-        returncode = ps.wait()
+        returncode = grass.run_command('v.proj', input = vreg, output = vreg, 
+                                       location = tgtloc, mapset = tgtmapset, quiet = True)
+        
         if returncode != 0:
             grass.fatal(_("Unable to reproject to source location"))
             sys.exit(1)
@@ -320,7 +285,6 @@ def main():
         grass.message(_("Specified target resolution: %g") % outres)
 
         if do_import:
-
             if options['extents'] == 'input':
                 grass.use_temp_region()
                 grass.run_command('g.region', n = n, s = s, e = e, w = w)
@@ -328,18 +292,15 @@ def main():
 
             # r.proj
             grass.message(_("Reprojecting <%s>...") % outfile)
-            ps = grass.start_command('r.proj', location = tmploc,
-                                     mapset = 'PERMANENT', input = outfile,
-                                     method = method, resolution = tgtres,
-                                     memory = memory, flags = rflags, quiet = True)
-            returncode = ps.wait()
+            returncode = grass.run_command('r.proj', location = tmploc,
+                                           mapset = 'PERMANENT', input = outfile,
+                                           method = method, resolution = tgtres,
+                                           memory = memory, flags = rflags, quiet = True)
             if returncode != 0:
                 grass.fatal(_("Unable to to reproject raster <%s>") % outfile)
-                sys.exit(1)
                 
             if grass.raster_info(outfile)['min'] is None:
                 grass.fatal(_("The reprojected raster <%s> is empty") % outfile)
-                sys.exit(1)
 
             if options['extents'] == 'input':
                 grass.del_temp_region()
@@ -350,8 +311,9 @@ def main():
     else:
         grass.message(_("The input <%s> can be imported and reprojected with the -i flag") % GDALdatasource) 
 
+    return 0
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
-    main()
+    sys.exit(main())
