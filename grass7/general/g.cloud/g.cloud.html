@@ -2,7 +2,7 @@
 
 <em>g.cloud</em> is a module to connect a personal GRASS GIS session
 to a remote GRASS GIS installation on a much faster cluster facility
-(high performance computing system). Actually it supports only the
+(high performance computing system). It currently only supports the
 <a href="http://en.wikipedia.org/wiki/Oracle_Grid_Engine">Grid Engine</a>
 system. The general aim is to offer the possibility to a user to perform
 high speed calculations, which are hard to compute on a personal computer
@@ -11,7 +11,7 @@ by connecting to an external, powerful server or cloud computing system.
 <p>
 The <em>g.cloud</em> environment consists of a Python module. It checks if all 
 program requirements are fullfilled on both the client and the server side. 
-If all it is ok, it connects the current session to the cloud server; it transfers 
+If everything is ok, it connects the current session to the cloud server; it transfers 
 the user and other required scripts as well as the GRASS data to the server and 
 eventually executes the remote GRASS GIS job. Subsequently, it transfers back 
 the resulting maps and data and cleans up the server session.
