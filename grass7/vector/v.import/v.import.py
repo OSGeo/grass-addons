@@ -104,10 +104,14 @@ def main():
     tgtsrs = grass.read_command('g.proj', flags = 'j', quiet = True)
 
     # create temp location from input without import
-    grass.message(_("Creating temporary location for <%s>...") % OGRdatasource) 
+    grass.message(_("Creating temporary location for <%s>...") % OGRdatasource)
+    v_in_kwargs = dict()
+    if layers:
+        v_in_kwargs['layer'] = layers
+    if output:
+        v_in_kwargs['output'] = output
     returncode = grass.run_command('v.in.ogr', input = OGRdatasource,
-                                   layer = layers, output = output,
-                                   location = tmploc, flags = 'i', quiet = True)
+                                   location = tmploc, flags = 'i', quiet = True, **v_in_kwargs)
     # if it fails, return
     if returncode != 0:
         grass.fatal(_("Unable to create location from OGR datasource <%s>") % OGRdatasource)
@@ -125,8 +129,7 @@ def main():
         # try v.in.ogr directly
         grass.message(_("Importing <%s>...") % OGRdatasource) 
         returncode = grass.run_command('v.in.ogr', input = OGRdatasource,
-                                       layer = layers, output = output,
-                                       flags = vflags)
+                                       flags = vflags, **v_in_kwargs)
         # if it succeeds, return
         if returncode == 0:
             grass.message(_("Input <%s> successfully imported without reprojection") % OGRdatasource) 
@@ -170,13 +173,16 @@ def main():
     # import into temp location
     grass.message(_("Importing <%s> ...") % OGRdatasource)
     returncode = grass.run_command('v.in.ogr', input = OGRdatasource,
-                                   layer = layers, output = output,
-                                   flags = vflags, verbose = True)
+                                   flags = vflags, **v_in_kwargs)
     
     # if it fails, return
     if returncode != 0:
         grass.fatal(_("Unable to import OGR datasource <%s>") % OGRdatasource)
-    
+
+    # if output is not define check source mapset
+    if not output:
+        output = grass.list_grouped('vector')['PERMANENT'][0]
+        
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
 
