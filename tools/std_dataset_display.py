@@ -45,7 +45,7 @@ def d_rast_legend(raster, title):
     """
     gscript.run_command('d.rast', map=raster)
     description_box(title)
-    gscript.run_command('d.legend', raster=raster, at='6,9,6,50')
+    gscript.run_command('d.legend', raster=raster, at='6,9,6,50', flags='d')
     gscript.run_command('d.barscale', style='classic', at='55,9',
                         color='black', text_position='over')
 
