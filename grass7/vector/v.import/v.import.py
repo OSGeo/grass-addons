@@ -204,10 +204,12 @@ def main():
     
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
-    
-    if grass.find_file(output, element='vector', mapset='.'):
+
+    # check if map exists
+    if not grass.overwrite() and \
+       grass.find_file(output, element='vector', mapset='.')['mapset']:
         grass.fatal(_("option <%s>: <%s> exists.") % ('output', output))
-        
+    
     if options['extents'] == 'region':
         grass.run_command('g.remove', type = 'vector', name = vreg,
                           flags = 'f', quiet = True)
