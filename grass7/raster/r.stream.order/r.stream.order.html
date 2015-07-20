@@ -10,8 +10,7 @@ drainage networks.
 The module can work only if <b>direction</b> map, <b>stream_rast</b> 
 map and the computational region have the same settings.
 It is also required that the <b>stream_rast</b> map and the 
-<b>direction</b> map come from the same source. For lots of reason this 
-limitation probably cannot be omitted. This means if <b>stream_rast</b> 
+<b>direction</b> map come from the same source. This means if <b>stream_rast</b> 
 map comes from
 <em><a href="r.stream.extract.html">r.stream.extract</a></em> also the
 <b>direction</b> map
@@ -51,9 +50,9 @@ Optional input flow <b>accumulation</b> map may be produced
 by <em><a href="r.watershed.html">r.watershed</a></em>
 or <em><a href="r.stream.extract.html">r.stream.extract</a></em>. This
 map is an option only if Horton's or Hack's ordering is
-performed. Normally both Horton and Hack ordering is calculated on
+performed. Normally both Horton and Hack ordering are calculated on
 cumulative stream length which is calculated internally. Flow
-accumulation can be used if user wants to calculate the main channel
+accumulation can be used if the user wants to calculate the main channel
 as the stream with the highest value of aqccumulation.  Flow
 accumulation map shall be of DCELL type, as is by default produced by
 <em><a href="r.watershed.html">r.watershed</a></em> or converted to
@@ -270,25 +269,26 @@ stream from catchment outlet.
 	<li><tt>next_stream</tt> integer: stream to which contribute current
 stream (downstream);
 	<li><tt>prev_streams</tt>; two or more contributing streams (upstream);
-	<li><tt>strahler</tt> integer: Strahler's stream order:
-	<li><tt>horton</tt> integer: Hortons's stream order:
+	<li><tt>strahler</tt> integer: Strahler's stream order;
+	<li><tt>horton</tt> integer: Hortons's stream order;
 	<li><tt>shreve</tt> integer: Shreve's stream magnitude;
+        <li><tt>hack</tt> integer: Hack's main streams or Gravelius order;
+        <li><tt>topo_dim</tt> integer: Topological dimension streams order;
 	<li><tt>scheidegger</tt> integer: Scheidegger's Consisted Associated
 Integers;
 	<li><tt>drwal</tt> integer: Drwal's stream hierarchy;
-	<li><tt>hack</tt> integer: Hack's main streams or Gravelius order;
-	<li><tt>topo</tt> integer: Topological dimension streams order;
 	<li><tt>length</tt> double precision: stream length;
+        <li><tt>stright</tt> double precision: length of stream as stright line;
+        <li><tt>sinusoid</tt> double precision: fractal dimension: stream
+length/stright stream length;
 	<li><tt>cum_length</tt> double precision: length of stream from source;
+        <li><tt>flow_accum</tt> double precision:
 	<li><tt>out_dist</tt> double precision: distance of current stream init
 from outlet;
-	<li><tt>stright</tt> double precision: length of stream as stright line;
-	<li><tt>sinusiod</tt> double precision: fractal dimension: stream
-length/stright stream length;
-	<li><tt>elev_init</tt> double precision: elevation of  stream init;
-	<li><tt>elev_outlet</tt> double precision: elevation of  stream outlet;
-	<li><tt>drop</tt> double precision: difference ttetween stream init and
-outlet + drop outlet;
+	<li><tt>source_elev</tt> double precision: elevation of  stream init;
+	<li><tt>outlet_elev</tt> double precision: elevation of  stream outlet;
+	<li><tt>elev_drop</tt> double precision: difference between source_elev and
+outlet_elev + drop outlet;
 	<li><tt>out_drop</tt> double precision: drop at the outlet of the stream;
 	<li><tt>gradient</tt> double precision: drop/length;
 </ul>
