@@ -51,6 +51,15 @@
 #% descriptions: input;extents of input map;region;extents of current region
 #% guisection: Output
 #%end
+#%flag
+#% key: f
+#% description: List supported OGR formats and exit
+#% suppress_required: yes
+#%end
+#%flag
+#% key: l
+#% description: List available OGR layers in data source and exit
+#%end
 
 
 import sys
@@ -72,15 +81,25 @@ def cleanup():
 def main():
     global tmploc, srcgisrc, gisdbase
 
-    OGRdatasource = options['input']
-    output = options['output']
-    layers = options['layer']
-    
     # initialize global vars
     tmploc = None
     srcgisrc = None
     gisdbase = None
 
+    # list formats and exit
+    if flags['f']:
+        grass.run_command('v.in.ogr', flags='f')
+        return 0
+
+    # list layers and exit
+    if flags['l']:
+        grass.run_command('v.in.ogr', flags='l', input=options['input'])
+        return 0
+    
+    OGRdatasource = options['input']
+    output = options['output']
+    layers = options['layer']
+    
     vflags = None
     if options['extents'] == 'region':
         vflags = 'r'
