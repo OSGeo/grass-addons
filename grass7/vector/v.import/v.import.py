@@ -182,10 +182,13 @@ def main():
     # if output is not define check source mapset
     if not output:
         output = grass.list_grouped('vector')['PERMANENT'][0]
-        
+    
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
-
+    
+    if grass.find_file(output, element='vector', mapset='.'):
+        grass.fatal(_("option <%s>: <%s> exists.") % ('output', output))
+        
     if options['extents'] == 'region':
         grass.run_command('g.remove', type = 'vector', name = vreg,
                           flags = 'f', quiet = True)
