@@ -43,7 +43,7 @@ export GIT_SSH=$GRASS_CI_DIR/ssh.sh
 # update src
 cd $GRASS_CI_DIR/grass
 REBASE_LOG=$(git svn rebase --authors-file=../grass-authors.txt --authors-prog=../authors-prog.sh)
-git push -u origin master
+git push -u origin master > /dev/null
 
 # write log
 echo -e "\n$(date -R)" >> $GRASS_CI_DIR/grass-ci.log
