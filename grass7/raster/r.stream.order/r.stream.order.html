@@ -93,7 +93,7 @@ be used to create corrected stream vector from
 maps <b>strahler</b> (Strahler's stream order raster
 map), <b>shreve</b> (Shreve's stream magnitude raster
 map), <b>horton</b> (Horton's stream order raster map - requires flow
-accumulation map), <b>hack</b> (Hack's main streams output raster
+accumulation map), <b>hack</b> (Hack's stream order output raster
 map), and <b>topo</b> (topological dimension streams raster map).
 
 <h3>Stream ordering example</h3>
@@ -103,7 +103,7 @@ map), and <b>topo</b> (topological dimension streams raster map).
 
 <h4>Strahler's stream order</h4>
 
-Strahler's stream order is a modification of Horton's streams order
+Strahler's stream order is a modification of Horton's stream order
 which fixes the ambiguity of Horton's ordering. In Strahler's
 ordering the main channel is not determined; instead the ordering is
 based on the hierarchy of tributaries. The ordering follows these
@@ -119,15 +119,15 @@ then the Strahler order of the node is i + 1.
 </ol>
 Strahler's stream ordering starts in initial links which assigns order
 one. It proceeds downstream. At every node it verifies that there are
-at least 2 equal tributaries with maximum order. If not it continues
-with highest order, if yes it increases the node's order by 1 and
-continues downstream with new order.
+at least 2 equal tributaries with maximum order. If not, it continues
+with the highest order; if yes, it increases the node's order by 1 and
+continues downstream with the new order.
 
 <h4>Advantages and disadvantages of Strahler's ordering</h4>
 
 Strahler's stream order has a good mathematical background. All
 catchments with streams in this context are directed graphs, oriented
-from the root towards the leaves. Equivalent definition of the
+from the root towards the leaves. The equivalent definition of the
 Strahler number of a tree is that it is the height of the largest
 complete binary tree that can be homeomorphically embedded into the
 given tree; the Strahler number of a node in a tree is equivalent to
@@ -143,7 +143,7 @@ segments or links since the order on any channel remains unchanged
 from source till it "dies" in the higher order stream or in the outlet
 of the catchment. The main segment of the catchment gets the order of
 the whole catchment, while its tributaries get the order of their own
-subcatchments. The main difficulties of the Horton's order are
+subcatchments. The main difficulties of the Horton's order are the
 criteria to be considered to distinguish between "true" first order
 segments and extension of higher order segments. That is the reason
 why Horton's ordering has rather historical sense and is substituted
@@ -153,15 +153,15 @@ paradigm. The algorithm used in <em>r.stream.order</em> requires to first
 calculate Strahler's stream order (downstream) and next recalculate to
 Horton ordering (upstream). To make a decision about proper ordering
 it uses first Strahler ordering, and next, if both branches have the
-same orders it uses flow accumulation to choose the actual link. The
-algorithm starts with the outlet, where the outlet link is assigned
-the corresponding Strahler order. Next it goes upstream and determines
+same orders, it uses the flow accumulation to choose the actual link. The
+algorithm starts with the outlet, where to the outlet link is assigned
+the corresponding Strahler order. Next, it goes upstream and determines
 links according to Strahler ordering. If the orders of tributaries
 differ, the algorithm proceeds with the channel of highest order, if
-all orders are the same, it chooses that one with higher flow length
-rate or higher catchment area if accumulation is used. When it reaches
-the initial channel it goes back to the last undetermined branch,
-assign its Strahler order as Horton order and goes upstream to the
+all orders are the same, it chooses that one with the higher flow length
+rate or the higher catchment area if the accumulation map is used. When it reaches
+the initial channel, it goes back to the last undetermined branch,
+assigns its Strahler order as Horton order and goes upstream to the
 next initial links. In that way stream orders remain unchanged from
 the point where Horton's order have been determined to the source.
   
@@ -177,7 +177,7 @@ the channel which leads to the most branched parts of the catchment.
 <h4>Shreve's stream magnitude</h4>
 
 That ordering method is similar to Consisted Associated Integers
-proposed by Scheidegger. It assigns magnitude of 1 for every initial
+proposed by Scheidegger. It assigns magnitude of 1 to every initial
 channel. The magnitude of the following channel is the sum of
 magnitudes of its tributaries. The number of a particular link is the
 number of initials which contribute to it.
@@ -186,7 +186,7 @@ number of initials which contribute to it.
 
 That ordering method is similar to Shreve's stream magnitude. It
 assigns magnitude of 2 for every initial channel. The magnitude of the
-following channel is the sum of magnitudes of its tributaries. The
+following channel is the sum of the magnitudes of its tributaries. The
 number of a particular link is the number of streams -1 contributing
 to it. Consisted Associated Integers (Scheidegger) is available only
 in attribute table. To achieve Consisted Associated Integers
@@ -202,54 +202,54 @@ r.mapcalc expr="scheidegger = shreve * 2.0"
 That ordering method is a compromise between Strahler ordering and
 Shreve magnitude. It assigns order of 1 for every initial channel. The
 order of the following channel is calculated according Strahler
-formula, except, that streams which do not increase order of next
+formula, except that streams which do not increase order of next
 channel are not lost. To increase next channel to the higher order R+1
 are require two channels of order R, or one R and two R-1 or one R,
-and four R-2 or one R, one R-1 and two R-2 etc. The order of
-particular link show the possible value of Strahler'order if the
+and four R-2 or one R, one R-1 and two R-2 etc. The order of a
+particular link shows the possible value of Strahler'order if the
 network was close to idealised binary tree. Drwal's order is
-aviallable only in attribute table.To achieve Drwal's raster the
-result of Shreve's magnitude is to be recalculated according
+available only in attribute table.To achieve Drwal's raster the
+result of Shreve's magnitude is to be recalculated according to the
 formula: <tt>floor(log(shreve,2))+1</tt>
 
 <div class="code"><pre>
 r.mapcalc expr="drwal = int(log(shreve,2.0)) + 1.0"
 </pre></div>
 
-<h4>Advantages and disadvantages of Drwal's hierarhy</h4> 
+<h4>Advantages and disadvantages of Drwal's hierarchy</h4> 
 
-The main advantages of Drwal's hierarchy is that it produces natural
+The main advantages of Drwal's hierarchy is that it produces a natural
 stream ordering with which takes into advantage both ordering and
 magnitude. It shows the real impact of particular links of the network
-run-off. The main disadvantage is that it minimise bifuraction ratio
+run-off. The main disadvantage is that it minimises the bifuraction ratio
 of the network.
 
 <h4>Hack's main streams or Gravelius order</h4>
 
-This method of ordering calculates main streams of main catchment and
-every subcatchments. Main stream of every catchment is set to 1, and
+This method of ordering calculates main streams of the main catchment and
+every subcatchments. The main stream of every catchment is set to 1, and
 consequently all its tributaries receive order 2. Their tributaries
 receive order 3 etc. The order of every stream remains constant up to
 its initial link. The route of every main stream is determined
 according to the maximum flow length value of particular streams. So
 the main stream of every subcatchment is the longest stream or stream
 with highest accumulation rate if accumulation map is used. In most
-cases the main stream is the longest watercourse of the catchment, but
+cases, the main stream is the longest watercourse of the catchment, but
 in some cases, when a catchment consists of both rounded and elongated
 subcatchments these rules may not be maintained. The algorithm assigns
-1 to every outlets stream and goes upstream according to maximum flow
-accumulation of every branch. When it reaches an initial stream it
-step back to the first unassigned confluence. It assigns order 2 to
+1 to every outlets stream and goes upstream according to the maximum flow
+accumulation of every branch. When it reaches an initial stream, it
+steps back to the first unassigned confluence. It assigns order 2 to
 unordered tributaries and again goes upstream to the next initial
 stream. The process runs until all branches of all outlets are
 ordered.
 
-<h4>Advantages and disadvantages of main stream ordering</h4>
+<h4>Advantages and disadvantages of Hack's ordering</h4>
 
 The biggest advantage of that method is the possibility to compare and
-analyze topology upstream, according to main streams. Because all
-tributaries of main channel have order of 2, streams can be quickly
-and easily filtered and its proprieties and relation to main stream
+analyze the topology upstream, according to the main streams. Because all
+tributaries of main channel have order of 2, the streams can be quickly
+and easily filtered and its properties and relation to main stream
 determined. The main disadvantage of that method is the problem with
 the comparison of subcatchment topology of the same
 order. Subcatchments of the same order may be both highly branched and
@@ -258,8 +258,8 @@ one stream.
 
 <h4>Topological dimension streams order</h4>
 
-This method of ordering calculates topological distance of every
-stream from catchment outlet.
+This method of ordering calculates the topological distance of every
+stream from the catchment outlet.
 
 <h4>Stream network topology table description connected with vector file</h4>
 
@@ -282,7 +282,7 @@ Integers;
         <li><tt>sinusoid</tt> double precision: fractal dimension: stream
 length/stright stream length;
 	<li><tt>cum_length</tt> double precision: length of stream from source;
-        <li><tt>flow_accum</tt> double precision:
+        <li><tt>flow_accum</tt> double precision: <!--FIXME: Add description -->
 	<li><tt>out_dist</tt> double precision: distance of current stream init
 from outlet;
 	<li><tt>source_elev</tt> double precision: elevation of  stream init;
