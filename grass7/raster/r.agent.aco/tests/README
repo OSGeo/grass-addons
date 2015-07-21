@@ -6,9 +6,11 @@ should however run resp. via the separate unittest2 available
 as backport for python 2.3-2.6 too.
 
 To invoke e.g. the error tests only, from the topmost directory
-level (i.e. r.agent) issue
- user@py2.6host:~/r.agent$ unit2 discover -v -p "test*.py"
-or
- user@py2.7host:~/r.agent$ unittest discover -v -p "test*.py"
-respectively (consult "-h" for help).
+level issue
+ user@host:~/path/r.agent.aco$ unit2 discover -v -p "test*.py"
+
+All tests except for tests.test_grassland should run without
+the GRASS environemnent. For tests.test_grassland you must start
+the tests inside the GRASS console respectively:
+ GRASS 6.4.4 (foobar):~/path/r.agent.aco > unit2 discover -v -p "test*.py"
 
