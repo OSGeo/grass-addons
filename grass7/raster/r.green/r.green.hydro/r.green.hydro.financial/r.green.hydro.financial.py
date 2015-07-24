@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:      r.green.hydro.economic
+# MODULE:      r.green.hydro.financial
 # AUTHOR(S):   Sandro Sacchelli (BASH-concept), Pietro Zambelli (Python)
 # PURPOSE:     Assess the hydro plant costs
 # COPYRIGHT:   (C) 2014 by the GRASS Development Team
@@ -15,26 +15,54 @@
 #############################################################################
 #
 #%Module
-#% description: Compute the economic costs and values
+#% description: Assess the financial costs and values
 #% overwrite: yes
 #%End
-#%option G_OPT_V_MAP
+#%option G_OPT_V_INPUT
 #%  key: plant
-#%  description: Name of the input vector map with the plants
+#%  label: Name of the input vector map with the segments of the plants
 #%  required: yes
 #%end
 #%option G_OPT_V_INPUT
-#%  key: plant_layer
-#%  description: Name of the vector map layer of other plants, with the following attributes: kind (water intake/turbine), discharge [m3/year], id point, id plant
-#%  required: no
-#%  answer: 1
+#%  key: struct
+#%  label: Name of the input vector map with the structure of the plants
+#%  required: yes
 #%end
+
 #############################################################################
 # DEFINE COLUMNS OF V INPUT
+
+
+# TODO: change the order as disccussed with Giulia and Francesco
+# the order should be: {vector name}_{property}_{extra}
+# with:
+# * vector name the string use to identify the vector map
+# * property: layer, column
+# * other string to clarify the key
+#
+# therefore:
+# * plant_id_column => plant_column_id
+# * plant_power_column => plant_column_power
+# etc.
+
+#%option G_OPT_V_FIELD
+#%  key: segment_layer
+#%  label: Name of the vector map layer of the segments
+#%  required: no
+#%  answer: 1
+#%  guisection: Input columns
+#%end
+#%option G_OPT_V_FIELD
+#%  key: plant_layer
+#%  label: Name of the vector map layer of the structure of the plants
+#%  required: no
+#%  answer: 1
+#%  guisection: Input columns
+#%end
 #%option
 #%  key: plant_id_column
 #%  type: string
-#%  description: Column name with the plant id.
+#%  description: Column name with the plant id
 #%  required: no
 #%  answer: plant_id
 #%  guisection: Input columns
@@ -42,7 +70,7 @@
 #%option
 #%  key: plant_power_column
 #%  type: string
-#%  description: Column name with power value.
+#%  description: Column name with power value
 #%  required: no
 #%  answer: power
 #%  guisection: Input columns
@@ -50,15 +78,15 @@
 #%option
 #%  key: plant_head_column
 #%  type: string
-#%  description: Column name with head value.
+#%  description: Column name with head value
 #%  required: no
-#%  answer: head
+#%  answer: gross_head
 #%  guisection: Input columns
 #%end
 #%option
 #%  key: plant_side_column
 #%  type: string
-#%  description: Column name with a string that define the side of the plant
+#%  description: Column name with the strings that define the side of the plant
 #%  required: no
 #%  answer: side
 #%  guisection: Input columns
@@ -66,7 +94,7 @@
 #%option
 #%  key: plant_kind_column
 #%  type: string
-#%  description: Column name with the strings that define if it is conduct or penstock.
+#%  description: Column name with the strings that define if it's a derivation channel or a penstock
 #%  required: no
 #%  answer: kind
 #%  guisection: Input columns
@@ -74,7 +102,7 @@
 #%option
 #%  key: plant_kind_intake
 #%  type: string
-#%  description: Value contained in the column 'kind' which corresponds to the derivation (conduct).
+#%  description: Value contained in the column 'kind' which corresponds to the derivation channel
 #%  required: no
 #%  answer: conduct
 #%  guisection: Input columns
@@ -82,9 +110,24 @@
 #%option
 #%  key: plant_kind_turbine
 #%  type: string
-#%  description: Value contained in the column 'kind' which corresponds to the penstock.
+#%  description: Value contained in the column 'kind' which corresponds to the penstock
 #%  required: no
 #%  answer: penstock
+#%  guisection: Input columns
+#%end
+#%option
+#%  key: segment_column_id
+#%  description: Optional map with the segments : column name with the plant id
+#%  required: no
+#%  answer: plant_id
+#%  guisection: Input columns
+#%end
+#%option
+#%  key: segment_basename
+#%  type: string
+#%  description:Optional map with the segments : basename of the columns that will be added to the segment vector map
+#%  required: no
+#%  answer: case1
 #%  guisection: Input columns
 #%end
 
@@ -121,31 +164,31 @@
 
 #%option G_OPT_R_INPUT
 #%  key: landvalue
-#%  description: Name of the raster map with the land value [currency/ha].
+#%  label: Name of the raster map with the land value [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: tributes
-#%  description: Name of the raster map with the tributes [currency/ha].
+#%  label: Name of the raster map with the tributes [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: stumpage
-#%  description: Name of the raster map with the stumpage value [currency/ha].
+#%  label: Name of the raster map with the stumpage value [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: rotation
-#%  description: Name of the raster map with the rotation period per landuse type [year].
+#%  label: Name of the raster map with the rotation period per landuse type [year]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: age
-#%  description: Name of the raster map with the average age [year].
+#%  label: Name of the raster map with the average age [year]
 #%  required: no
 #%  guisection: Compensation
 #%end
@@ -153,7 +196,7 @@
 # or rule to transform landuse categories in raster maps
 #%option G_OPT_R_INPUT
 #%  key: landuse
-#%  description: Name of the raster map with the landuse categories.
+#%  label: Name of the raster map with the landuse categories
 #%  required: no
 #%  guisection: Compensation
 #%end
@@ -162,35 +205,35 @@
 #%option
 #%  key: rules_landvalue
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a value [currency/ha].
+#%  description: Rule file for the reclassification of the landuse to associate a value for each landuse [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option
 #%  key: rules_tributes
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a tribute rate [currency/ha].
+#%  description: Rule file for the reclassification of the landuse to associate a tribute rate for each landuse [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option
 #%  key: rules_stumpage
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a stumpage value [currency/ha].
+#%  description: Rule file for the reclassification of the landuse to associate a stumpage value for each landuse [currency/ha]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option
 #%  key: rules_rotation
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a rotation value [year].
+#%  description: Rule file for the reclassification of the landuse to associate a rotation value for each landuse [year]
 #%  required: no
 #%  guisection: Compensation
 #%end
 #%option
 #%  key: rules_age
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse an age [year].
+#%  description: Rule file for the reclassification of the landuse to associate an age for each landuse [year]
 #%  required: no
 #%  guisection: Compensation
 #%end
@@ -201,7 +244,7 @@
 #%option
 #%  key: width
 #%  type: double
-#%  description: With of the excavation works [m]
+#%  description: Width of the excavation works [m]
 #%  required: no
 #%  answer: 2.
 #%  guisection: Excavation
@@ -217,7 +260,7 @@
 #%option
 #%  key: slope_limit
 #%  type: double
-#%  description: Slope limit, above this limit the cost will equal to the maximum [degree]
+#%  description: Slope limit, above this limit the cost will be equal to the maximum [degree]
 #%  required: no
 #%  answer: 50.
 #%  guisection: Excavation
@@ -227,19 +270,19 @@
 
 #%option G_OPT_R_INPUT
 #%  key: min_exc
-#%  description: Minimum excavation costs [currency/mc]
+#%  label: Minimum excavation costs [currency/mc]
 #%  required: no
 #%  guisection: Excavation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: max_exc
-#%  description: Maximum excavation costs [currency/mc]
+#%  label: Maximum excavation costs [currency/mc]
 #%  required: no
 #%  guisection: Excavation
 #%end
 #%option G_OPT_R_INPUT
 #%  key: slope
-#%  description: Slope raster map
+#%  label: Slope raster map
 #%  required: yes
 #%  guisection: Excavation
 #%end
@@ -250,14 +293,14 @@
 #%option
 #%  key: rules_min_exc
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a minimum excavation cost [currency/mc].
+#%  description: Rule file for the reclassification of the landuse to associate a minimum excavation cost for each landuse [currency/mc].
 #%  required: no
 #%  guisection: Excavation
 #%end
 #%option
 #%  key: rules_max_exc
 #%  type: string
-#%  description: Rule file for the reclassification of the landuse to associate for each landuse a maximum excavation cost [currency/mc].
+#%  description: Rule file for the reclassification of the landuse to associate a maximum excavation cost for each landuse [currency/mc].
 #%  required: no
 #%  guisection: Excavation
 #%end
@@ -267,7 +310,7 @@
 #%option
 #%  key: alpha_em
 #%  type: double
-#%  description: Electro-mechanical parameter costs, default values taken from Aggidis et al. 2010
+#%  description: Electro-mechanical costs alpha parameter, default values taken from Aggidis et al. 2010
 #%  required: no
 #%  answer: 0.56
 #%  guisection: Electro-mechanical
@@ -275,7 +318,7 @@
 #%option
 #%  key: beta_em
 #%  type: double
-#%  description: Electro-mechanical parameter costs, default values taken from Aggidis et al. 2010
+#%  description: Electro-mechanical costs beta parameter, default values taken from Aggidis et al. 2010
 #%  required: no
 #%  answer: -0.112
 #%  guisection: Electro-mechanical
@@ -283,7 +326,7 @@
 #%option
 #%  key: gamma_em
 #%  type: double
-#%  description: Electro-mechanical parameter costs, default values taken from Aggidis et al. 2010
+#%  description: Electro-mechanical costs gamma parameter, default values taken from Aggidis et al. 2010
 #%  required: no
 #%  answer: 15600.0
 #%  guisection: Electro-mechanical
@@ -291,7 +334,7 @@
 #%option
 #%  key: const_em
 #%  type: double
-#%  description: Electro-mechanical parameter costs constant value, default values taken from Aggidis et al. 2010
+#%  description: Electro-mechanical costs constant value, default values taken from Aggidis et al. 2010
 #%  required: no
 #%  answer: 0.
 #%  guisection: Electro-mechanical
@@ -313,14 +356,14 @@
 #%  answer: 250.
 #%  guisection: Supply & Installation
 #%end
-#%option G_OPT_V_MAP
+#%option G_OPT_V_INPUT
 #%  key: electro
-#%  description: Name of the vector map with the electric grid
+#%  label: Name of the vector map with the electric grid
 #%  required: yes
 #%end
-#%option G_OPT_V_INPUT
+#%option
 #%  key: electro_layer
-#%  description: Name of the vector map layer of other plants, with the following attributes: kind (water intake/turbine), discharge [m3/year], id point, id plant
+#%  description: Name of the vector map layer of the grid
 #%  required: no
 #%  answer: 1
 #%end
@@ -330,7 +373,7 @@
 #%option
 #%  key: alpha_station
 #%  type: double
-#%  description: Power station costs are assessd as a fraction of the Electro-mechanical costs
+#%  description: Power station costs are assessed as a fraction of the Electro-mechanical costs
 #%  answer: 0.52
 #%  guisection: Power station
 #%end
@@ -340,7 +383,7 @@
 #%option
 #%  key: alpha_inlet
 #%  type: double
-#%  description: Inlet costs are assessd as a fraction of the Electro-mechanical costs
+#%  description: Inlet costs are assessed as a fraction of the Electro-mechanical costs
 #%  answer: 0.38
 #%  guisection: Inlet
 #%end
@@ -379,21 +422,21 @@
 #%option
 #%  key: alpha_maintenance
 #%  type: double
-#%  description: alpha coefficient to assess the maintenance costs
+#%  description: Alpha coefficient to assess the maintenance costs
 #%  answer: 0.05
 #%  guisection: Maintenance
 #%end
 #%option
 #%  key: beta_maintenance
 #%  type: double
-#%  description: beta coefficient to assess the maintenance costs
+#%  description: Beta coefficient to assess the maintenance costs
 #%  answer: 0.45
 #%  guisection: Maintenance
 #%end
 #%option
 #%  key: const_maintenance
 #%  type: double
-#%  description: constant to assess the maintenance costs
+#%  description: Constant to assess the maintenance costs
 #%  answer: 0.
 #%  guisection: Maintenance
 #%end
@@ -403,34 +446,34 @@
 #%  key: energy_price
 #%  type: double
 #%  description: Energy price per kW [currency/kW]
-#%  answer: 0.09
+#%  answer: 0.1
 #%  guisection: Revenues
 #%end
 #%option
 #%  key: eta
 #%  type: double
-#%  description: Energy price per kW [currency/kW]
+#%  description: Efficiency of electro-mechanical components
 #%  answer: 0.81
 #%  guisection: Revenues
 #%end
 #%option
 #%  key: operative_hours
 #%  type: double
-#%  description: The number of operative hours per year [hours/year]
+#%  description: Number of operative hours per year [hours/year]
 #%  answer: 6500.
 #%  guisection: Revenues
 #%end
 #%option
 #%  key: alpha_revenue
 #%  type: double
-#%  description: coefficient to transform installed power to mean
-#%  answer: 0.5
+#%  description: Coefficient to transform installed power to mean power
+#%  answer: 1.0
 #%  guisection: Revenues
 #%end
 #%option
 #%  key: const_revenue
 #%  type: double
-#%  description: constant to assess the revenues
+#%  description: Constant to assess the revenues
 #%  answer: 0.
 #%  guisection: Revenues
 #%end
@@ -438,53 +481,31 @@
 #############################################################################
 # DEFINE OUTPUTS
 #%option G_OPT_V_OUTPUT
-#%  key: output
-#%  description: Name of the output vector map
+#%  key: output_struct
+#%  label: Name of the output vector map : plants' structure including the main costs in the table
 #%  required: yes
 #%end
 
 ## COSTS
 #%option G_OPT_R_OUTPUT
 #%  key: compensation
-#%  description: Raster map with the compensation values
+#%  label: Raster map with the compensation values
 #%  required: no
 #%end
 #%option G_OPT_R_OUTPUT
 #%  key: excavation
-#%  description: Raster map with the excavation costs
+#%  label: Raster map with the excavation costs
 #%  required: no
 #%end
 
 ## VALUES
 #%option G_OPT_R_OUTPUT
 #%  key: upper
-#%  description: Raster map with the compensation values
+#%  label: Raster map with the value upper part of the soil 
 #%  required: no
 #%end
 
 #############################################################################
-#%rules
-#% required: landvalue, rules_landvalue
-#% requires: rules_landvalue, landuse
-#% required: tributes, rules_tributes
-#% requires: rules_tributes, landuse
-#% required: stumpage, rules_stumpage
-#% requires: rules_stumpage, landuse
-#% required: tributes, rules_rotation
-#% requires: rules_rotation, landuse
-#% required: tributes, rules_age
-#% requires: rules_age, landuse
-#% required: min_exc, rules_min_exc
-#% requires: rules_min_exc, landuse
-#% required: max_exc, rules_max_exc
-#% requires: rules_max_exc, landuse
-#%end
-#exclusive: at most one of the options may be given
-#required: at least one of the options must be given
-#requires: if the first option is given, at least one of the subsequent options must also be given
-#requires_all: if the first option is given, all of the subsequent options must also be given
-#excludes: if the first option is given, none of the subsequent options may be given
-#collective: all or nothing; if any option is given, all must be given
 from __future__ import print_function
 
 import os
@@ -492,10 +513,9 @@ import atexit
 import random
 
 import numpy as np
-import numexpr as ne
 
 from grass.exceptions import ParameterError
-from grass.script.core import parser, run_command, overwrite
+from grass.script.core import parser, overwrite, warning
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 
@@ -505,6 +525,12 @@ from grass.pygrass.vector import VectorTopo, sql
 from grass.pygrass.vector.basic import Cats
 
 from grass.pygrass.messages import get_msgr
+
+try:
+    import numexpr as ne
+except ImportError:
+    warning('You should install numexpr to use this module: '
+                  'pip install numexpr')
 
 # set python path to the shared r.green libraries
 set_path('r.green', 'libhydro', '..')
@@ -603,7 +629,8 @@ def vcolcalc(vname, vlayer, ctype, expr, condition=lambda x: x is None,
     cname = expr[:equal].strip()
     expr = expr[(equal + 1):].strip()
     cnames = get_cnames(expr)
-    with VectorTopo(vname, layer=vlayer, mode='r') as vect:
+    vname, vmapset = vname.split('@') if '@' in vname else (vname, '')
+    with VectorTopo(vname, mapset=vmapset, layer=vlayer, mode='r') as vect:
         if vect.table is None:
             msg = 'Vector: {vname} is without table.'
             raise TypeError(msg.format(vname=vname))
@@ -651,7 +678,8 @@ def electromechanical_cost(vname, power, head,
 
 
 def col_exist(vname, cname, ctype='double precision', vlayer=1, create=False):
-    with VectorTopo(vname, layer=vlayer, mode='r') as vect:
+    vname, vmapset = vname.split('@') if '@' in vname else (vname, '')
+    with VectorTopo(vname, mapset=vmapset, layer=vlayer, mode='r') as vect:
         if vect.table is None:
             msg = 'Vector: {vname} is without table.'
             raise TypeError(msg.format(vname=vname))
@@ -674,7 +702,9 @@ def linear_cost(vname, cname='lin_cost', alpha=310., length='length', vlayer=1,
 
 def get_electro_length(opts):
     # open vector plant
-    with VectorTopo(opts['plant'], layer=int(opts['plant_layer']),
+    pname = opts['struct']
+    pname, vmapset = pname.split('@') if '@' in pname else (pname, '')
+    with VectorTopo(pname, mapset=vmapset, layer=int(opts['plant_layer']),
                     mode='r') as vect:
         kcol = opts['plant_kind_column']
         ktype = opts['plant_kind_turbine']
@@ -682,7 +712,9 @@ def get_electro_length(opts):
         if 'electro_length' not in vect.table.columns:
             vect.table.columns.add('electro_length', 'double precision')
         # open vector map with the existing electroline
-        with VectorTopo(opts['electro'], layer=int(opts['electro_layer']),
+        ename = opts['electro']
+        ename, emapset = ename.split('@') if '@' in ename else (ename, '')
+        with VectorTopo(ename, mapset=emapset, layer=int(opts['electro_layer']),
                         mode='r') as electro:
             for line in vect:
                 if line.attrs[kcol] == ktype:
@@ -711,7 +743,8 @@ def get_gamma_NPV(r=0.03, y=30):
 def group_by(vinput, voutput, isolate=None, aggregate=None,
              function='sum', vtype='lines',
              where='',  group_by=None, linput=1, loutput=1):
-    with VectorTopo(vinput, mode='r') as vin:
+    vname, vmapset = vinput.split('@') if '@' in vinput else (vinput, '')
+    with VectorTopo(vname, mapset=vmapset, mode='r') as vin:
         columns = ['cat', ]
         vincols = vin.table.columns
         types = ['PRIMARY KEY', ]
@@ -765,6 +798,65 @@ def group_by(vinput, voutput, isolate=None, aggregate=None,
             vout.table.conn.commit()
 
 
+def max_NPV(l0, l1):
+    return l0 if l0.attrs['NPV'] > l1.attrs['NPV'] else l1
+
+
+def economic2segment(economic, segment, basename='eco_',
+                     eco_layer=1, seg_layer=1,
+                     eco_pid='plant_id', seg_pid='plant_id',
+                     function=max_NPV, exclude=None):
+    exclude = exclude if exclude else []
+    with VectorTopo(economic, mode='r') as eco:
+        select_pids = 'SELECT {pid} FROM {tname} GROUP BY {pid};'
+        etab = eco.table
+        exclude.extend((etab.key, eco_pid))
+        ecols = [c for c in etab.columns if c not in exclude]
+        cpids = etab.execute(select_pids.format(pid=eco_pid, tname=etab.name))
+        pids = list(cpids)  # transform the cursor to a list
+        cpids.close()  # close cursor otherwise: dblock error...
+        msgr = get_msgr()
+        with VectorTopo(segment, mode='r') as seg:
+            stab = seg.table
+            scols = set(stab.columns.names())
+            # create the new columns if needed
+            ucols = []
+            msgr.message('Check if column from economic already exists')
+            #import ipdb; ipdb.set_trace()
+            for col in ecols:
+                column = basename + col
+                if column not in scols:
+                    stab.columns.add(column, etab.columns[col])
+                ucols.append(column)
+            for pid, in pids:
+                print('%10s: ' % pid, end='')
+                select_cats = 'SELECT {cat} FROM {tname} WHERE {cpid} LIKE "{pid}"'
+                ecats = list(etab.execute(select_cats.format(cat=etab.key,
+                                                             tname=etab.name,
+                                                             cpid=eco_pid,
+                                                             pid=pid)))
+                print('structures found, ', end='')
+                ec0, ec1 = ecats[0][0], ecats[1][0]
+                l0 = eco.cat(int(ec0), 'lines', layer=1)[0]
+                l1 = eco.cat(int(ec1), 'lines', layer=1)[0]
+                eattrs = function(l0, l1).attrs
+                scats, = list(stab.execute(select_cats.format(cat=stab.key,
+                                                             tname=stab.name,
+                                                             cpid=seg_pid,
+                                                             pid=pid)))
+                if len(scats) != 1:
+                    import ipdb; ipdb.set_trace()
+                print('segment found, ', end='')
+                # TODO: this is not efficient should be done in one step
+                # to avoid to call several time the db update
+                sattr = seg.cat(int(scats[0]), 'lines', layer=1)[0].attrs
+                for ecol, scol in zip(ecols, ucols):
+                    sattr[scol] = str(eattrs[ecol])
+                print('segment updated!')
+            stab.conn.commit()
+            print('Finish')
+
+
 def main(opts, flgs):
     # check or generate raster map from rules files
     ecovalues = ['landvalue', 'tributes', 'stumpage', 'rotation', 'age',
@@ -775,6 +867,10 @@ def main(opts, flgs):
     comp = opts['compensation'] if opts['compensation'] else 'tmp_compensation'
     exc = opts['excavation'] if opts['excavation'] else 'tmp_excavation'
     vlayer = int(opts['plant_layer'])
+    
+    plant, mset = (opts['plant'].split('@') if '@' in opts['plant'] else (opts['plant'], ''))
+                
+    struct, mset = (opts['struct'].split('@') if '@' in opts['struct'] else (opts['struct'], ''))
 
     # read common scalar parameters
     irate = float(opts['interest_rate'])
@@ -799,14 +895,14 @@ def main(opts, flgs):
     # VECTOR
     # add columns with costs from rasters
     # add compensation costs
-    v.rast_stats(map=opts['plant'], layer=vlayer, flags='c',
+    v.rast_stats(map=struct, layer=vlayer, flags='c',
                  raster=comp, column_prefix='comp_cost', method='sum')
     # add excavation costs
-    v.rast_stats(map=opts['plant'], layer=vlayer, flags='c',
+    v.rast_stats(map=struct, layer=vlayer, flags='c',
                  raster=exc, column_prefix='exc_cost', method='sum')
 
     # add elecro-mechanical costs
-    electromechanical_cost(opts['plant'],
+    electromechanical_cost(struct,
                            power=opts['plant_power_column'],
                            head=opts['plant_head_column'],
                            gamma=float(opts['gamma_em']),
@@ -818,24 +914,24 @@ def main(opts, flgs):
                            overwrite=overw)
 
     # add linear cost for pipeline
-    linear_cost(vname=opts['plant'], cname='lin_pipe_cost',
+    linear_cost(vname=struct, cname='lin_pipe_cost',
                 alpha=float(opts['lc_pipe']), vlayer=vlayer,
                 ctype='double precision',  overwrite=overw)
 
     # add linear for for electroline
     get_electro_length(opts)
-    linear_cost(vname=opts['plant'], cname='lin_electro_cost',
+    linear_cost(vname=struct, cname='lin_electro_cost',
                 alpha=float(opts['lc_electro']), length='electro_length',
                 vlayer=vlayer, ctype='double precision',  overwrite=overw)
 
     xcost = "{cname} = {alpha} * {em}"
     # add power station costs
-    vcolcalc(vname=opts['plant'], vlayer=vlayer,
+    vcolcalc(vname=struct, vlayer=vlayer,
              ctype='double precision',
              expr=xcost.format(cname='station_cost', em='em_cost',
                                alpha=opts['alpha_station']))
     # add inlet costs
-    vcolcalc(vname=opts['plant'], vlayer=vlayer,
+    vcolcalc(vname=struct, vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=xcost.format(cname='inlet_cost', em='em_cost',
                                alpha=opts['alpha_inlet']))
@@ -845,7 +941,7 @@ def main(opts, flgs):
            'lin_pipe_cost + lin_electro_cost + '
            'station_cost + inlet_cost + {grid}*0.5) * '
            '(1 + {general} + {hindrances})')
-    vcolcalc(vname=opts['plant'], vlayer=vlayer,
+    vcolcalc(vname=struct, vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=tot.format(grid=opts['grid'], general=opts['general'],
                              hindrances=opts['hindrances']))
@@ -853,12 +949,14 @@ def main(opts, flgs):
     # TODO: produce a new vector map (output), with the conduct + penstock in
     # a unique line and sum the costs grouping by intake_id and side
     # SELECT {key} FROM {tname}
-    group_by(opts['plant'], opts['output'],
-             isolate=['intake_id', 'plant_id', 'side', 'power',
-                      'head', 'discharge'],
+    #FIXME: intake_id and discharge can have different names
+    group_by(struct, opts['output_struct'],
+             isolate=['intake_id', opts['plant_id_column'],
+                      opts['plant_side_column'], opts['plant_power_column'],
+                      opts['plant_head_column'], 'discharge'],
              aggregate=['tot_cost', ],
              function='sum',
-             group_by=['intake_id', 'side'])
+             group_by=['intake_id', opts['plant_side_column']])
 
     """
     where these values (3871.2256 and -0.45) are coming from?
@@ -877,12 +975,12 @@ def main(opts, flgs):
 
     """
 #    maint = "{cname} = {alpha} * {power} ** (1 + {beta}) + {const}"
-    maint = "{cname} = {cost_per_kW} * {power} * {alpha}) + {const}"
+    maint = "{cname} = {cost_per_kW} * {power} * {alpha} + {const}"
     # compute yearly maintenance costs
-    vcolcalc(vname=opts['output'], vlayer=vlayer,
+    vcolcalc(vname=opts['output_struct'], vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=maint.format(cname='maintenance',
-                               cost_per_kw=opts['cost_maintenance_per_kw'],
+                               cost_per_kW=opts['cost_maintenance_per_kw'],
                                alpha=opts['alpha_maintenance'],
                                power=opts['plant_power_column'],
                                beta=opts['beta_maintenance'],
@@ -890,7 +988,7 @@ def main(opts, flgs):
 
     # compute yearly revenues
     rev = "{cname} = {eta} * {power} * {eprice} * {ophours} * {alpha} + {const}"
-    vcolcalc(vname=opts['output'], vlayer=vlayer,
+    vcolcalc(vname=opts['output_struct'], vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=rev.format(cname='revenue',
                              eta=opts['eta'],
@@ -903,13 +1001,42 @@ def main(opts, flgs):
     # compute the Net Present Value
     npv = "{cname} = {gamma} * ({revenue} - {maintenance}) - {tot}"
     gamma_npv = get_gamma_NPV(irate, life)
-    vcolcalc(vname=opts['output'], vlayer=vlayer,
+    vcolcalc(vname=opts['output_struct'], vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=npv.format(cname='NPV',
                              gamma=gamma_npv,
                              revenue='revenue',
                              maintenance='maintenance',
                              tot='tot_cost'))
+
+    economic2segment(economic=opts['output_struct'], segment=plant,
+                         basename=opts['segment_basename'],
+                         eco_layer=1, seg_layer=int(opts['segment_layer']),
+                         eco_pid=opts['plant_id_column'],
+                         seg_pid=opts['segment_column_id'],
+                         function=max_NPV, 
+                         exclude=['intake_id', 'side', 'power', 
+                                  'gross_head', 'discharge'])
+                         
+    vec = VectorTopo(opts['output_struct'])    
+    vec.open('rw')
+    vec.table.columns.add('max_NPV','VARCHAR(3)')
+                                 
+    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
+    
+    for i in range(0,len(list_intakeid)):   
+        vec.rewind()                  
+        list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
+        npvmax=max(list_npv)[0]
+        for line in vec:
+            if line.attrs['intake_id'] == list_intakeid[i][0]:
+                if line.attrs['NPV'] == npvmax:
+                    line.attrs['max_NPV']='yes'
+                else:
+                    line.attrs['max_NPV']='no'
+
+    vec.table.conn.commit()    
+    vec.close()
 
 
 if __name__ == "__main__":

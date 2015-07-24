@@ -5,7 +5,7 @@ PGM=r.green.hydro
 SUBDIRS = r.green.hydro.theoretical  \
           r.green.hydro.legal        \
           r.green.hydro.recommended  \
-          r.green.hydro.economic     \
+          r.green.hydro.financial     \
           r.green.hydro.closest      \
 		  r.green.hydro.optimal      \
 		  r.green.hydro.structure    \
