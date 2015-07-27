@@ -79,9 +79,8 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: Fish Length [mm] (If no species is given)
+#% description: Fish Length [mm] (If no species is given, range=39-810)
 #% guisection: Dispersal parameters
-#% options: 39-810
 #%End
 #%Option
 #% key: ar
