@@ -58,6 +58,8 @@ Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS 
 <p>
 See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.html\">log files</a> of compilation.
 <p>
+<script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
+<p>
 <hr> <ul>" > index.html
 
     ls -1 *.html | grep -v index.html | sed 's+^+<li style="margin-left: 20px"><a href=+g' | sed 's+$+>+g' > /tmp/a.$TMP
