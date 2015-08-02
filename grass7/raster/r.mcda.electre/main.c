@@ -30,14 +30,13 @@ int main(int argc, char *argv[])
 {
     struct Cell_head cellhd;	/* it stores region information,  and header information of rasters */
     char *result_concordance, *result_discordance;		/* outputs raster name */
-    char *mapset;		/* mapset name */
+    /*char *mapset;		 mapset name */
     unsigned char *outrast_concordance, *outrast_discordance;	/* output buffer */
-    char *message;
     int i,j, ncriteria=0;	/* index and  files number*/
     int nrows, ncols;
-    int row1, row2, col1, col2;
+    int row1, col1;
     int outfd_concordance, outfd_discordance;		/* output file descriptor */
-	RASTER_MAP_TYPE data_type;	/* type of the map (CELL/DCELL/...) */
+	/*RASTER_MAP_TYPE data_type;	 type of the map (CELL/DCELL/...) */
     double *weight_vect, ***decision_vol;/* vector and matrix */
 
 
