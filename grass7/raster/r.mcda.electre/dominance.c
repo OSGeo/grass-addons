@@ -80,8 +80,8 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
 						d = decision_vol[row1][col1][i] - decision_vol[row2][col2][i];
                         if (d >= 0 )
                             conc += weight_vect[i];
-                        if (d < disc)	/*WARNING: if(d>conc) */
-                            /**/ disc = -d;
+                        if (d > disc)	/*WARNING: if(d>conc) */
+                            disc = d;
                     }
                     row_sum_conc[k] += conc;
                     col_sum_conc[j] += conc;
