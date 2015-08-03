@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
 
 
-    build_weight_vect(nrows,ncols,ncriteria,weight,weight_vect); /*calcolate weight vector*/
+    build_weight_vect(ncriteria,weight,weight_vect); /*calcolate weight vector*/
 
 
 
