@@ -15,8 +15,8 @@ struct input
     void *inrast;		/* input buffer */
 };
 
-void build_weight_vect(int nrows, int ncols, int ncriteria,
-                       struct Option *weight, double *weight_vect);
+void build_weight_vect(int ncriteria, struct Option *weight, 
+						double *weight_vect);
 
 void build_dominance_matrix(int nrows, int ncols, int ncriteria,
                             double *weight_vect, double ***decision_vol);
