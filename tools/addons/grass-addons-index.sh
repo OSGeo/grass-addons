@@ -5,11 +5,11 @@
 #
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
-
+# updated for new CMS path MN 8/2015
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
-# /osgeo/grass/grass-cms/grass${major}${minor}/manuals/addons
+# /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
 
 generate () {
     # 6 4 | 7 0
@@ -19,7 +19,7 @@ generate () {
     # DEBUG
     # mkdir -p /tmp/grass${major}${minor}/manuals/addons ; cd /tmp/grass${major}${minor}/manuals/addons
     # grass.osgeo.org SERVER
-    cd /osgeo/grass/grass-cms/grass${major}${minor}/manuals/addons
+    cd /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
 
     if test -f index.html ; then
 	mv index.html index.html.bak

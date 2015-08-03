@@ -1,8 +1,10 @@
 #!/bin/sh
 
+# updated for new CMS path MN 8/2015
+
 DIR=$HOME/src
-# XMLDIR=/osgeo/grass/grass-cms/addons/
-# MANDIR=/osgeo/grass/grass-cms/
+# XMLDIR=/var/www/grass/grass-cms/addons/
+# MANDIR=/var/www/grass/grass-cms/
 XMLDIR=/var/www/grass/addons/
 MANDIR=/var/www/grass
 
