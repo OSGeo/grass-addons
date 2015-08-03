@@ -3,9 +3,10 @@
  * MODULE:	 r.mcda.electre
  * AUTHORS:	 Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
  *
- * PURPOSE:      Make a multicriterio decision  analysis based on ELECTRE algorthm
+ * PURPOSE:      Make a multicriteria decision analysis based on ELECTRE algorithm,
+ * 				 with concordance and discordance indexes maps
  *
- * COPYRIGHT:    (C) GRASS Development Team (2008)
+ * COPYRIGHT:    (C) GRASS Development Team (2015)
  *
  *		        This program is free software under the GNU General Public
  *   	    	License (>=v2). Read the file COPYING that comes with GRASS
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
     {
         struct input *p = &attributes[i];
         p->name = criteria->answers[i];
-        p->mapset = (char *) G_find_raster2(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
+        p->mapset = (char *) G_find_raster2(p->name,""); /*  Looks for the raster map "name" in the database. */
         if (p->mapset==NULL) /* returns NULL if the map was not found in any mapset,   mapset name otherwise */
             G_fatal_error(_("Raster file <%s> not found"), p->name);
 
