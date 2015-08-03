@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     {
         struct input *p = &attributes[i];
         p->name = criteria->answers[i];
-        p->mapset = G_find_raster2(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
+        p->mapset = (char *) G_find_raster2(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
         if (p->mapset==NULL) /* returns NULL if the map was not found in any mapset,   mapset name otherwise */
             G_fatal_error(_("Raster file <%s> not found"), p->name);
 
