@@ -19,7 +19,7 @@
 #% key: river
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: River network (raster-file, e.g. output from r.stream.extract or fidimo.river)
+#% description: River network (raster, e.g. output from r.watershed)
 #% required: no
 #% guisection: Stream parameters
 #%end
@@ -389,11 +389,12 @@ def main():
 
 	# Populate input-river (raster) with value of resolution
 	# *1.0 to get float raster instead of integer
-	grass.mapcalc("$river_raster = if($river,$res*1.0)",
+	grass.mapcalc("$river_raster = if(!isnull($river),$res*1.0,null())",
 					  river_raster = "river_raster_tmp_%d" % os.getpid(),
 					  river = river,
-					  res = res)
-
+					  res = res,
+					  overwrite=True)
+					  
 
 	# Converting river_raster to river_vector 
 	grass.run_command("r.to.vect",
