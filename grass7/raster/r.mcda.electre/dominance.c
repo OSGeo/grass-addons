@@ -73,15 +73,16 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
             {
                 for (col2 = 0; col2 < ncols; col2++)
                 {
-                    double conc = 0, disc = 0;
+                    double conc = 0, disc = -100;
                     for (i = 0; i < ncriteria; i++)
                     {
                         double d;
 						d = decision_vol[row1][col1][i] - decision_vol[row2][col2][i];
                         if (d >= 0 )
                             conc += weight_vect[i];
-                        if (d > disc)	/*WARNING: if(d>conc) */
+                        if (d >= disc)	/*WARNING: if(d>conc) */
                             disc = d;
+						//printf("\ndisc:%f-:%f -:%f",disc,decision_vol[row1][col1][i], decision_vol[row2][col2][i]);
                     }
                     row_sum_conc[k] += conc;
                     col_sum_conc[j] += conc;
@@ -109,7 +110,7 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
                 row_sum_conc[cont] - col_sum_conc[cont];
             /*fill matrix with discordance index for each DCELL */
             decision_vol[row1][col1][ncriteria + 1] =
-                row_sum_disc[cont] - col_sum_disc[cont];
+                col_sum_disc[cont]-row_sum_disc[cont];
             cont++;
         }
     }

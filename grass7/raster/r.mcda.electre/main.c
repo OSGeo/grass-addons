@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     weight->type       = TYPE_DOUBLE;
     weight->required   = YES;
     weight->multiple   = YES;
-    weight->description = _("Criteria weight(s) (w1,w2,..wn)");
+    weight->description = _("Criteria weight(s) (w1,w2,..,wn)");
 
     concordance = G_define_option(); /* Allocates memory for the Option structure and returns a pointer to this memory */
     concordance->key = "concordance";
