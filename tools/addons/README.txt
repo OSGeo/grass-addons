@@ -3,7 +3,19 @@ These scripts run on grass.osgeo.org, currently in
 
 WORKFLOW
 
-... to be added here!
+TODO: - please update
+
+* build-index.sh  --? still used?
+* build-xml.py
+* compile.sh      --? still used?
+* compile-xml.sh
+* grass-addons-index.sh
+* grass-addons-public.sh
+* grass-addons-publish.sh
+* grass-addons.sh
+* update_manual.py
+
+crontab file: for the server.
 
 
 RESULTS
