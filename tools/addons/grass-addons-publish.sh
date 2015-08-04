@@ -21,6 +21,8 @@ process () {
     tar xzf html.tar.gz
     rm -rf /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
     mv addons /var/www/grass/grass-cms/grass${major}${minor}/manuals/
+    chgrp -R grass /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
+    chmod -R g+w   /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
     rm logs.tar.gz
     rm html.tar.gz
 }

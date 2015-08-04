@@ -69,4 +69,7 @@ echo "<i>`date -u`</i>" >> index.html
 echo "</body></html>" >> index.html
 rm -f /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP
 
+chgrp -R grass $DEST/grass${MAJOR}${MINOR}/manuals/addons
+chmod -R g+w $DEST/grass${MAJOR}${MINOR}/manuals/addons
+
 exit 0

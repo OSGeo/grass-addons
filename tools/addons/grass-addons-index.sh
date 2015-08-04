@@ -92,9 +92,10 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.htm
     # merge it all
     paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
 
+    year=`date +%Y`
     echo "</ul>" >> index.html
     echo "<hr>
-&copy; 2013-2015 <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
+&copy; 2013-${year} <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
     rm -f /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP
