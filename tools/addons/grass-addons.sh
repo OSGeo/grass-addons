@@ -4,9 +4,9 @@
 
 DIR=$HOME/src
 # XMLDIR=/var/www/grass/grass-cms/addons/
-# MANDIR=/var/www/grass/grass-cms/
+MANDIR=/var/www/grass/grass-cms/
 XMLDIR=/var/www/grass/addons/
-MANDIR=/var/www/grass
+#??? MANDIR=/var/www/grass
 
 if [ ! -d "$XMLDIR" ]; then
     mkdir -p $XMLDIR
