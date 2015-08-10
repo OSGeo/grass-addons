@@ -32,14 +32,14 @@ from wx import EVT_BUTTON
 import wx.lib.scrolledpanel as scrolled
 
 from owslib.iso import *
-from jinjainfo import JinjaTemplateParser
+from mdjinjaparser import JinjaTemplateParser
 from jinja2 import Environment, FileSystemLoader
 
 from core.gcmd import RunCommand, GError, GMessage
 from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
     TimeISOValidator, EmailValidator  # ,EmptyValidator
-import mdutil
 
+import mdutil
 from core.gcmd import RunCommand
 from subprocess import PIPE
 from grass.pygrass.modules import Module
@@ -826,7 +826,7 @@ class MdKeywords(wx.BoxSizer):
         return res.outputs.stdout
 
     def dbExecute(self,sql):
-        res = Module('db.execute',
+        Module('db.execute',
                 sql=sql)
 
     def GetKws(self):
@@ -841,9 +841,9 @@ class MdKeywords(wx.BoxSizer):
             self.dbExecute(sql)
             p1=os.path.join(sys.path[0],'..')
 
-            titles = [['keywordConcepts','GEMET - Concepts, version 2.4'],
-                     ['keywordThemes','GEMET - Themes, version 2.4'],
-                     ['keywordGroups','GEMET - Groups, version 2.4']]
+            titles = [['keywordConcepts.txt','GEMET - Concepts, version 2.4'],
+                     ['keywordThemes.txt','GEMET - Themes, version 2.4'],
+                     ['keywordGroups.txt','GEMET - Groups, version 2.4']]
             for title in titles:
                 path = os.path.join(p1, 'config', title[0])
                 str=''
@@ -948,7 +948,7 @@ class MdMainEditor(wx.Panel):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
         '''
-        #print stri
+        print stri
         exec stri
 
     def plusC(self, num=None):
@@ -1171,7 +1171,6 @@ class MdMainEditor(wx.Panel):
             elif 'for' not in str(tagStringLst[self.c]).split() and 'if' not in str(tagStringLst[self.c]).split():
                 it = MdItem(parent=self.nbPage, item=mdDescrObj[self.c], chckBox=self.templateEditor)
                 value = 'self.' + str(self.mdOWSTagStrList[self.c]).replace('\n', '')
-                print value
                 value = eval(value)
                 if value is None:
                     value = ''
@@ -1305,7 +1304,7 @@ class MdMainEditor(wx.Panel):
         '''note- exec cannot be in sub function
         for easier understanding to product of self.createNewMD()- print stri
         '''
-        # print stri
+        #print stri
         exec stri
 
     def getKeywordsFromRepositoryWidget(self,md):
@@ -1576,8 +1575,8 @@ class MdMainEditor(wx.Panel):
         self.mdo = MdFileWork()
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
-        dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.path.join(sys.path[0],'..'), 'config', 'init_md')
+        #dirpath = os.path.dirname(os.path.realpath(__file__))
+        path = os.path.join(os.path.join(sys.path[0],'..'), 'config', 'init_md.txt')
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()
@@ -1630,8 +1629,3 @@ class MdMainEditor(wx.Panel):
         self.notebook.SetSizer(noteSizer)
         self.mainSizer.Add(self.notebook, proportion=1, flag=wx.EXPAND)
         self.Show()
-#----------------------------------------------------------------------
-if __name__ == "__main__":
-    app = wx.App(False)
-    frame = MdMainEditor()
-    app.MainLoop()

@@ -8,12 +8,12 @@
     <gmd:fileIdentifier>
         <gco:CharacterString>{{ md.identifier }}{# tag="md.identifier",ref="Part B 1.5",  name ="Resource Identifier", desc ="Unique Resource Identifier", example ="286c0725-046e-4533-b0bf-d6e367f6c342", type = "string", multi = 0, group = "Identification", multiline=False #}</gco:CharacterString>
     </gmd:fileIdentifier>
-     <gmd:hierarchyLevel>
-        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">{{ md.identification.identtype }}{# tag="md.identification.identtype", name ="Resource Type", desc ="Scope to which metadata applies", example ="dataset", type = "MD_ScopeCode", multi = 0, group = "Identification",multiline=False #}</gmd:MD_ScopeCode>
-    </gmd:hierarchyLevel>
-        <gmd:language>
+    <gmd:language>
         <gmd:LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ md.languagecode }}{# tag="md.languagecode", name ="Metadata language", desc ="Language(s) used within the datasets", example ="eng", type = "string", multi = 0, group = "Metadata",multiline=False #}">{{ md.languagecode }}</gmd:LanguageCode>
     </gmd:language>
+    <gmd:hierarchyLevel>
+        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">{{ md.identification.identtype }}{# tag="md.identification.identtype", name ="Resource Type", desc ="Scope to which metadata applies", example ="dataset", type = "string", multi = 0, group = "Identification",multiline=False #}</gmd:MD_ScopeCode>
+    </gmd:hierarchyLevel>
   {% for co in md.contact -%}{# tag="for co in md.contact",  inboxmulti = 1, group = "Metadata",inbox="Metadata point of contact",object="CI_ResponsibleParty()" #}
     <gmd:contact>
         <gmd:CI_ResponsibleParty>
@@ -32,7 +32,7 @@
                 </gmd:CI_Contact>
             </gmd:contactInfo>
             <gmd:role>
-                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="{{ co.role }}{# tag="co.role",name="Responsible party role",ref="Part B 9.2" , multi = 0,type = "CI_RoleCode", inboxmulti = 1,group = "Responsible party",object="CI_ResponsibleParty()", inbox="Metadata pointt of contact",example="custodian", desc="function performed by the responsible party",database="role" #}" codeSpace="ISOTC211/19115">{{ co.role }}</gmd:CI_RoleCode>
+                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="{{ co.role }}{# tag="co.role",name="Responsible party role",ref="Part B 9.2" , multi = 0,type = "CI_RoleCode", inboxmulti = 1,group = "Responsible party",object="CI_ResponsibleParty()", inbox="Metadata pointt of contact",example="custodian", desc="function performed by the responsible party" #}" codeSpace="ISOTC211/19115">{{ co.role }}</gmd:CI_RoleCode>
             </gmd:role>
         </gmd:CI_ResponsibleParty>
     </gmd:contact>
@@ -46,6 +46,22 @@
     <gmd:metadataStandardVersion>
         <gco:CharacterString>2003/Cor.1:2006</gco:CharacterString>
     </gmd:metadataStandardVersion>
+{% if md.referencesystem != None -%}{# tag=" if md.referencesystem != None" ,multi= 0 , group= "Geographic" , multiline= False,inbox="EPSG url code",inboxmulti= 0 #}
+  <gmd:referenceSystemInfo>
+      <gmd:MD_ReferenceSystem>
+         <gmd:referenceSystemIdentifier>
+            <gmd:RS_Identifier>
+               <gmd:code>
+                  <gco:CharacterString>{{ md.referencesystem.code }}{# tag="md.referencesystem.code" , name="Reference system" , ref= "Part -" , desc= "Reference system EPSG url",type = "url" , example = "http://www.opengis.net/def/crs/EPSG/0/3035" , multi= 0 , group= "Geographic" , multiline= False #}</gco:CharacterString>
+               </gmd:code>
+               <gmd:codeSpace>
+                  <gco:CharacterString>INSPIRE RS registry</gco:CharacterString>
+               </gmd:codeSpace>
+            </gmd:RS_Identifier>
+         </gmd:referenceSystemIdentifier>
+      </gmd:MD_ReferenceSystem>
+  </gmd:referenceSystemInfo>
+  {% endif -%}
     <gmd:identificationInfo>
         <gmd:MD_DataIdentification>
             <gmd:citation>
@@ -60,7 +76,7 @@
                                 <gco:DateTime>{{ d.date }}{# tag="d.date" , group= "Temporal" ,object="CI_Date()",type = "date", inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False, name="Date of: type(below)",desc="reference date for the cited resource - publication/creation/revision",example="2007-09-15" #}</gco:DateTime>
                             </gmd:date>
                             <gmd:dateType>
-                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue= "{{ d.type }}{# tag="d.type" , group= "Temporal" ,object="CI_Date()",type = "CI_DateTypeCode", inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False, name="type: creation/publication/revision",desc="reference date for the cited resource - publication/creation/revision",example="creation",database="dateType" #}" codeSpace="ISOTC211/19115">{{ d.type }}</gmd:CI_DateTypeCode>
+                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue= "{{ d.type }}{# tag="d.type" , group= "Temporal" ,object="CI_Date()",type = "CI_DateTypeCode", inbox= "Date of creation/publication/revision",  inboxmulti=1, multiline= False, name="type: creation/publication/revision",desc="reference date for the cited resource - publication/creation/revision",example="creation" #}" codeSpace="ISOTC211/19115">{{ d.type }}</gmd:CI_DateTypeCode>
                             </gmd:dateType>
                         </gmd:CI_Date>
                     </gmd:date>
@@ -122,10 +138,10 @@
                             <gmd:date>
                                 <gmd:CI_Date>
                                     <gmd:date>
-                                        <gco:Date>{{ k["thesaurus"]["date"] }}{# tag='k["thesaurus"]["date"]', name ="Reference date", desc ="This citation shall include at least the title a reference date(publication, revision, creation." , type = "date",inboxmulti=1, multi = 0, group = "Keywords", multiline=False, inbox="Free keywords",database="keywords" #}</gco:Date>
+                                        <gco:Date>{{ k["thesaurus"]["date"] }}{# tag='k["thesaurus"]["date"]', name ="Reference date", desc ="This citation shall include at least the title a reference date(publication, revision, creation." , type = "date",inboxmulti=1, multi = 0, group = "Keywords", multiline=False, inbox="Free keywords",database="keywords.date" #}</gco:Date>
                                     </gmd:date>
                                     <gmd:dateType>
-                                        <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue= "{{ k["thesaurus"]["datetype"] }}{{ k["thesaurus"]["datetype"] }}{# tag='k["thesaurus"]["datetype"]', type = "CI_DateTypeCode",name ="Date type",inboxmulti=1, desc ="Options Date of creation, Date of last revision, date of publication" , multi = 0, group = "Keywords", multiline=False, inbox="Free keywords" ,database="dateType" #}" >{{ k["thesaurus"]["datetype"] }}</gmd:CI_DateTypeCode>
+                                        <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue= "{{ k["thesaurus"]["datetype"] }}{{ k["thesaurus"]["datetype"] }}{# tag='k["thesaurus"]["datetype"]', type = "CI_DateTypeCode",name ="Date type",inboxmulti=1, desc ="Options Date of creation, Date of last revision, date of publication" , multi = 0, group = "Keywords", multiline=False, inbox="Free keywords" ,database="keywords.datetype" #}" >{{ k["thesaurus"]["datetype"] }}</gmd:CI_DateTypeCode>
                                     </gmd:dateType>
                                 </gmd:CI_Date>
                             </gmd:date>
@@ -178,9 +194,9 @@
                 <gmd:LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="{{ lan }}{# tag="lan" , name="Metadata language" , ref= "Part B 10.3" , desc= "Language used for documenting metadata." , example = "eng" , type ="LanguageCode (ISO/TS 19139)" ,multi=0,inbox='Languages',inboxmulti=1, group= "Identification" , multiline= False, database="language" #}">{{ lan }}</gmd:LanguageCode>
             </gmd:language>
       {% endfor -%}
-      {% for tc in md.identification.topiccategory -%}{# tag="for tc in md.identification.topiccategory", inbox='Topic category',group= "Classification", multiline= False, database="topicCategory" #}
+      {% for tc in md.identification.topiccategory -%}{# tag="for tc in md.identification.topiccategory", inbox='Topic category',group= "Classification", multiline= False #}
             <gmd:topicCategory>
-                <gmd:MD_TopicCategoryCode>{{ tc }}{# tag="tc" , name="Topic" , ref= "Part B 2.1" , desc= "Main theme(s) of the dataset" ,inbox='Topic category', example = "imageryBaseMapsEarthCover" , type ="MD_TopicCategory" , group= "Classification" ,  multi=0 , multiline= False, database="topicCategory" #}</gmd:MD_TopicCategoryCode>
+                <gmd:MD_TopicCategoryCode>{{ tc }}{# tag="tc" , name="Topic" , ref= "Part B 2.1" , desc= "Main theme(s) of the dataset" ,inbox='Topic category', example = "imageryBaseMapsEarthCover" , type ="MD_TopicCategory" , group= "Classification" ,  multi=0 , multiline= False #}</gmd:MD_TopicCategoryCode>
             </gmd:topicCategory>
       {% endfor -%}
 {% for (u,d) in zip(md.identification.uom,md.identification.distance) -%}{# tag="for (u,d) in zip(md.identification.uom,md.identification.distance)", group = "Quality and Validity", inbox="Spatial resolution-distance",inboxmulti= 1 #}
@@ -289,7 +305,7 @@
                                                 <gco:Date>{{ d }}{# tag="d" , name="Date" , ref= "Part B 7.1" , desc= "citation of the product specification or user requirement against which data is being evaluated." , example = "2010-04-26" , type ="date" , group= "Conformity" , inbox= "Conformity", multi=0 , inboxmulti= 1, multiline= False #}</gco:Date>
                                             </gmd:date>
                                             <gmd:dateType>
-                                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue={{ "\"%s\"" % dt }}>{{ dt }}{# tag="dt" , name="Date type" , ref= "Part B 7.1" , desc= "a date type: creation, revision or publication." , example = "publication" , type ="dateType" , group= "Conformity" , inbox= "Conformity", multi=0 , inboxmulti= 1, multiline= False,database="dateType" #}</gmd:CI_DateTypeCode>
+                                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue={{ "\"%s\"" % dt }}>{{ dt }}{# tag="dt" , name="Date type" , ref= "Part B 7.1" , desc= "a date type: creation, revision or publication." , example = "publication" , type ="dateType" , group= "Conformity" , inbox= "Conformity", multi=0 , inboxmulti= 1, multiline= False #}</gmd:CI_DateTypeCode>
                                             </gmd:dateType>
                                         </gmd:CI_Date>
                                     </gmd:date>
@@ -299,7 +315,7 @@
                                 <gco:CharacterString>See the referenced specification</gco:CharacterString>
                             </gmd:explanation>
                             <gmd:pass>
-                                <gco:Boolean>{{ dg }}{# tag="dg" , name="Degree/Pass" , ref= "Part B 7.2" , desc= "indication of the conformance result" , example = "True." , type ="boolean" , group= "Conformity" , inbox= "Conformity", multi=0 , inboxmulti= 1, multiline= False, database="degree" #}</gco:Boolean>
+                                <gco:Boolean>{{ dg }}{# tag="dg" , name="Degree/Pass" , ref= "Part B 7.2" , desc= "indication of the conformance result" , example = "True." , type ="boolean" , group= "Conformity" , inbox= "Conformity", multi=0 , inboxmulti= 1, multiline= False #}</gco:Boolean>
                             </gmd:pass>
                         </gmd:DQ_ConformanceResult>
                     </gmd:result>

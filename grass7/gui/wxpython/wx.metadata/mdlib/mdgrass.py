@@ -30,7 +30,7 @@ from grass.script import parse_key_val
 from subprocess import PIPE
 from datetime import date, datetime
 from grass.script import core as grass
-
+from osgeo import osr
 
 class GrassMD():
 
@@ -52,7 +52,7 @@ class GrassMD():
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'
         self.profileName='GRASS BASIC'
-        self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc')
+        self.dirpath = os.getenv('GRASS_ADDON_BASE')
         # metadata object from OWSLIB ( for define md values)
         self.md = mdutil.MD_MetadataMOD(md=None)
         self.profilePath = None  # path to file with xml templates
@@ -152,7 +152,6 @@ class GrassMD():
         #self.md_abstract    string created by merge information from 'description' and 'source'
         '''
         map=str(self.map).partition('@')[0]
-        print map
         rinfo = Module('r.info',
                        map,
                        flags='gre',
@@ -174,13 +173,45 @@ class GrassMD():
         self.md_abstract += 'Total cells: ' + self.md_grass['cells'] + '; '
         self.md_abstract += 'A range of values: min: ' + \
             self.md_grass['min'] + '  max: ' + self.md_grass['max']
-        self.md_abstract.translate(None, """&<>"'""")
+        self.md_abstract.translate("""&<>"'""")
+
+    def getEPSG(self):
+        print 'epsg process'
+        proj=Module('g.proj',
+                   flags='p',
+                   quiet=True,
+                   stdout_=PIPE)
+        proj=proj.outputs.stdout
+        epsg=None
+        for line in proj.splitlines():
+            if 'EPSG' in line:
+                epsg=line.split(':')[1].replace(' ','')
+                return epsg
+        try:
+            proj=Module('g.proj',
+                   flags='wf',
+                   quiet=True,
+                   stdout_=PIPE)
+            proj=proj.outputs.stdout
+            epsg=self.esriprj2standards(proj)
+            print epsg
+            return epsg
+        except:
+            return None
+
+    def esriprj2standards(self,prj_txt):
+       srs = osr.SpatialReference()
+       srs.ImportFromESRI([prj_txt])
+       #print 'Shape prj is: %s' % prj_txt
+       #print 'WKT is: %s' % srs.ExportToWkt()
+       #print 'Proj4 is: %s' % srs.ExportToProj4()
+       srs.AutoIdentifyEPSG()
+       return srs.GetAuthorityCode(None)
 
     def createTemporalISO(self, profile=None):
         '''Create GRASS Temporal profile based on ISO
         - unknown values are filling by n = '$NULL'
         '''
-
         n = '$NULL'
         # jinja templates
         if profile is None:
@@ -188,7 +219,7 @@ class GrassMD():
         else:
             self.profilePath = profile
         self.schema_type = '_temporal.xml'
-        self.profileName='TEMPORAL'
+        self.profileName = 'TEMPORAL'
 
         # OWSLib md object
         self.md.identification = mdutil.MD_DataIdentification_MOD()
@@ -248,8 +279,6 @@ class GrassMD():
             self.md.identification.radixT = mdutil.replaceXMLReservedChar(None)
             self.md.identification.factor = mdutil.replaceXMLReservedChar(None)
 
-
-
         self.md.dataquality.lineage= "TODO"
         self.profilePathAbs = os.path.join(self.dirpath, self.profilePath)
 
@@ -305,6 +334,12 @@ class GrassMD():
         self.md.dataquality.conformancetitle.append(
             'GRASS GIS basic metadata profile based on ISO 19115, 19139')
 
+        epsg=self.getEPSG()
+        if epsg is not None:
+            self.md.referencesystem=MD_ReferenceSystem(None)
+            self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s'%epsg
+
+        print self.md.referencesystem.code
         # Conformity/Date:
         self.md.dataquality.conformancedate.append(mdutil.replaceXMLReservedChar(date.today().isoformat()))
         self.md.dataquality.conformancedatetype.append('publication')

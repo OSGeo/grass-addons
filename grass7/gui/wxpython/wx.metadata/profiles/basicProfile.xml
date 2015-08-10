@@ -38,6 +38,22 @@
     <gmd:metadataStandardVersion>
         <gco:CharacterString>2003/Cor.1:2006</gco:CharacterString>
     </gmd:metadataStandardVersion>
+{% if md.referencesystem != None -%}{# tag=" if md.referencesystem != None" ,multi= 0 , group= "Geographic" , multiline= False,inbox="EPSG url code",inboxmulti= 0 #}
+  <gmd:referenceSystemInfo>
+      <gmd:MD_ReferenceSystem>
+         <gmd:referenceSystemIdentifier>
+            <gmd:RS_Identifier>
+               <gmd:code>
+                  <gco:CharacterString>{{ md.referencesystem.code }}{# tag="md.referencesystem.code" , name="Reference system" , ref= "Part -" , desc= "Reference system EPSG url",type = "url" , example = "http://www.opengis.net/def/crs/EPSG/0/3035" , multi= 0 , group= "Geographic" , multiline= False #}</gco:CharacterString>
+               </gmd:code>
+               <gmd:codeSpace>
+                  <gco:CharacterString>INSPIRE RS registry</gco:CharacterString>
+               </gmd:codeSpace>
+            </gmd:RS_Identifier>
+         </gmd:referenceSystemIdentifier>
+      </gmd:MD_ReferenceSystem>
+  </gmd:referenceSystemInfo>
+  {% endif -%}
     <gmd:identificationInfo>
         <gmd:MD_DataIdentification>
             <gmd:citation>
