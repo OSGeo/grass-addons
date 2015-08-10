@@ -5,7 +5,7 @@
 
 
 <p>
-Metadata editor includes graphical interface for conversion metadata from r.info and v.info to ISO based metadata, editing metadata files and creating metadata templates. In addition, the graphical module allows validating of INSPIRE and Basic profile.
+Metadata editor includes graphical interface for conversion metadata from r.info and v.info to ISO based metadata, editing metadata files and creating metadata templates. In addition, the graphical module allows validating of INSPIRE and GRASS Basic profile.
 
 <h2>NOTES</h2>
 
@@ -35,15 +35,16 @@ fulfills the criteria of INSPIRE profile. Values which are not able to
 get from native GRASS metadata are filled by text
 string <tt>'$NULL'</tt>. This rule applies for both profiles.
 
+<h4>Profile for temporal datast</h4>
+This function is based on t.info.iso which allows to create ISO based metadata for temporal maps. Product of this function cannot be compiled by INSPIRE profile becouse a additionl attributes from ISO 19115 package have been added.
+
 <h3>Creation of metadata</h3>
 
 Editor offers two editing modes. The first one allows to create metadata from selected GRASS maps from an active location. The second one allows editing of external metadata file.
 
+<h4>Metadata editor for spatial and temporal maps</h4>
 
-<h4>Metadata map editor </h4>
-
-The basis of this editor mode is similar to r|v.info.iso. After selection of map, the editor convert native metadata of map to ISO based. By exported xml file is metadata editor initialized.
-
+The basis of this editor is similar to r|v.info.iso. After selection of map, the editor convert native metadata of map to ISO based. By exported xml file is metadata editor initialized.
 There are three options to select:
 <b>basic</b>,
 <b>inspire</b> or <b>load custom</b>. Last one allows to load metadata profile from file. For example in case of using predefined template. The intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile will proced with this selection.
@@ -78,12 +79,22 @@ On the right side of editor there is a validator of metadata. Currently, validat
 
 The g.gui.metadata module allows updating native GRASS metadata with using modules r.support and v.support. The intersection between ISO based metadata and r|v.support is limited by available parameters for these modules.
 
+
+<h3>Creating reports for GRASS maps in PDF format</h3>
+This function allows to automatically generate  metadata reports to PDF document. Missed values are filled by "Unknown" string.
+
+
+
+This tools supports ato generating report
 <h2>SEE ALSO</h2>
 
 <em>
   <a href="r.info.html">r.info</a>,
-  <a href="v.info.iso.html">v.info.iso</a>
+  <a href="v.info.iso.html">v.info.iso</a>,
   <a href="g.gui.metadata.html">g.gui.metadata</a>
+  <a href="db.csw.harvest">db.csw.harvest</a>
+  <a href="db.csw.admin">db.csw.admin</a>
+  <a href="db.csw.run">db.csw.run</a>
 </em>
 
 <p>
