@@ -20,6 +20,14 @@ This program is free software under the GNU General Public License
 
 #%option G_OPT_F_INPUT
 #% key: wkt
+#% label: WKT prj input
+#% required: no
+#%end
+
+#%option
+#% key: epsg
+#% type: integer
+#% label: EPSG input
 #% required: no
 #%end
 
@@ -27,12 +35,6 @@ This program is free software under the GNU General Public License
 #% key: p
 #% label: Proj4
 #% description: Print Proj4 format
-#%end
-
-#%flag
-#% key: s
-#% label: Shape prj
-#% description: Print Shape prj
 #%end
 
 #%flag
@@ -62,24 +64,17 @@ def grassEpsg():
                quiet=True,
                stdout_=PIPE)
         proj=proj.outputs.stdout
-        esriprj2standards(proj)
+        wkt2standards(proj)
     except:
         grass.error('WKT input error')
 
-def esriprj2standards(prj_txt):
+def wkt2standards(prj_txt):
     srs = osr.SpatialReference()
     srs.ImportFromESRI([prj_txt])
-    if flags['s']:
-        str='shape_prj=%s' % prj_txt
-        #str.rstrip()
-        print str
-        return
     if flags['w']:
         print('wkt=%s' % srs.ExportToWkt())
-        return
     if flags['p']:
         print('proj4=%s' % srs.ExportToProj4())
-        return
     srs.AutoIdentifyEPSG()
     try :
         int(srs.GetAuthorityCode(None))
@@ -87,13 +82,32 @@ def esriprj2standards(prj_txt):
     except:
         grass.error('Epsg code cannot be identified')
 
+def epsg2standards(epsg):
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(int(epsg))
+    if flags['w']:
+        print('wkt=%s' % srs.ExportToWkt())
+    if flags['p']:
+        print('proj4=%s' % srs.ExportToProj4())
+
 def main():
-    if options['wkt']:
-        io=open(options['wkt'],'r')
-        wkt=io.read().rstrip()
-        esriprj2standards(wkt)
+    epsg=options['epsg']
+    pathwkt=options['wkt']
+    if epsg and pathwkt:
+        grass.error('Only one type of conversions can be processed concurrently')
+
+    if epsg:
+        epsg2standards(epsg)
     else:
-        grassEpsg()
+        if pathwkt:
+            try:
+                io= open(pathwkt,'r')
+                wkt=io.read().rstrip()
+                wkt2standards(wkt)
+            except IOError as e:
+                grass.error('Cannot open file %s, %s'%(e.errno, e.strerror))
+        else:
+            grassEpsg()
 
 if __name__ == "__main__":
     options, flags = grass.parser()
