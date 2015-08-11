@@ -15,4 +15,6 @@ SUBDIRS = \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: parsubdirs
+default: parsubdirs htmldir
+
+install: installsubdirs
