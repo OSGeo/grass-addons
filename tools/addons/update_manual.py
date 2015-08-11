@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Support Python scripts which modifies Addons manual pages for
+# publishing server
+
 import os
 import sys
 import re

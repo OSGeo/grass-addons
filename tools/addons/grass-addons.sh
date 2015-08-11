@@ -66,9 +66,6 @@ update_manual() {
 	    cp ${m}docs/html/* $dst
         fi
     done
-
-    cd $DIR/grass-addons/tools/addons    
-    ./build-index.sh $MANDIR ${major} ${minor}
 }
 
 export GRASS_SKIP_MAPSET_OWNER_CHECK="1"

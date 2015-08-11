@@ -19,8 +19,6 @@ build_xml() {
 # update GRASS Addons SVN
 (cd ..; svn up || (svn cleanup && svn up))
 
-### export GISRC=$HOME/grassdata/demolocation/.grassrc70
-
 # compile AddOns for GRASS 7 and GRASS 6.5
 compile ../../grass7 ~/src/grass70_release/dist.x86_64-unknown-linux-gnu /tmp/.grass7/addons
 compile ../../grass6 ~/src/grass64_release/dist.x86_64-unknown-linux-gnu /tmp/.grass6/addons

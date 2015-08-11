@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Support Python script used by compile-xml.sh
+
 import os
 import sys
 import glob
