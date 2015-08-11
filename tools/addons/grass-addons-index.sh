@@ -6,10 +6,51 @@
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 # updated for new CMS path MN 8/2015
+# display module prefix by ML 8/2015
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
 # /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
+
+module_prefix () {
+    case "$1" in
+	"db")
+	    label="Database"
+	    ;;
+	"d")
+	    label="Display"
+	    ;;
+	"g")
+	    label="General"
+	    ;;
+	"i")
+	    label="Imagery"
+	    ;;
+	"m")
+	    label="Miscellaneous"
+	    ;;
+
+	"r")
+	    label="Raster"
+	    ;;
+	"r3")
+	    label="3D raster"
+	    ;;
+	"v")
+	    label="Vector"
+	    ;;
+	"t")
+	    label="Temporal"
+	    ;;
+	"ps")
+	    label="Postscript"
+	    ;;
+	*)
+	    label="unknown"
+	    ;;
+    esac
+    echo "<h3>$label</h3>"
+}
 
 generate () {
     # 6 4 | 7 0
@@ -40,6 +81,9 @@ generate () {
 
 <!-- Generated from: /home/martinl/src/grass-addons/tools/addons/ -->
 
+<table><tr><td>
+<script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
+</td><td>
 <a href=\"http://grass.osgeo.org\">GRASS GIS</a> is free software,
 anyone may develop his/her own extensions.  The <a
 href=\"http://grasswiki.osgeo.org/wiki/AddOns/GRASS_${major}\">GRASS GIS
@@ -57,48 +101,47 @@ Further details about gaining write access to our SVN repository can be found in
 Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
 <p>
 See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.html\">log files</a> of compilation.
-<p>
-<script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
-<p>
-<hr> <ul>" > index.html
+</tr></table>
+<hr>" > index.html
 
-    ls -1 *.html | grep -v index.html | sed 's+^+<li style="margin-left: 20px"><a href=+g' | sed 's+$+>+g' > /tmp/a.$TMP
-
-    ls -1 *.html | grep -v index.html | sed 's+\.html$+</a>: +g' > /tmp/b.$TMP
-
-# size
-# ls -sh *.html | sed 's/^\ //g' | grep -v total | cut -d' ' -f1 | sed 's/$/\<br\>/g'> /tmp/c.$TMP
-# paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
-    
     # fetch one-line descriptions into a separate file:
     # let's try to be more robust against missing keywords in a few HTML pages
+    prefix_last=""
     for currfile in `ls -1 *.html | grep -v index.html` ; do
+	# module prefix
+	prefix=`echo $currfile | cut -d'.' -f1`
+	if [ -z $prefix_last ] || [ $prefix != $prefix_last ] ; then
+	    if [ "$prefix_last" != "" ]; then
+		echo "</ul>" >> index.html
+	    fi
+	    module_prefix $prefix >> index.html
+	    echo "<ul>" >> index.html
+	    prefix_last=$prefix
+	fi
+
+	module=`echo $currfile | sed 's+\.html$++g'`
+	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>:" >> index.html
         grep 'KEYWORDS' $currfile 2> /dev/null > /dev/null
         if [ $? -eq 0 ] ; then
            # keywords found, so go ahead with extraction of one-line description
-           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  > /tmp/d.$TMP
+           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/d.$TMP
            # argh, fake keyword line found (broken manual page or missing g.parser usage)
 	   if [ ! -s /tmp/d.$TMP ] ; then
 	      echo "(incomplete manual page, please fix)" > /tmp/d.$TMP
            fi
-	   cat /tmp/d.$TMP >> /tmp/c.$TMP
+	   cat /tmp/d.$TMP >> index.html
 	   rm -f /tmp/d.$TMP
         else
            # argh, no keywords found (broken manual page or missing g.parser usage)
-           echo "(incomplete manual page, please fix)" >> /tmp/c.$TMP
+           echo "(incomplete manual page, please fix)" >> index.html
         fi
     done
 
-    # merge it all
-    paste -d' ' /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP >> index.html
-
     year=`date +%Y`
-    echo "</ul>" >> index.html
-    echo "<hr>
+    echo "</ul><hr>
 &copy; 2013-${year} <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
-    rm -f /tmp/a.$TMP /tmp/b.$TMP /tmp/c.$TMP
 }
 
 generate 7 0
