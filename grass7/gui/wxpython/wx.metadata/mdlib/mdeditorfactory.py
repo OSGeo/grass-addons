@@ -31,9 +31,16 @@ from wx import ID_ANY
 from wx import EVT_BUTTON
 import wx.lib.scrolledpanel as scrolled
 
-from owslib.iso import *
+try:
+    from owslib.iso import *
+except:
+    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 from mdjinjaparser import JinjaTemplateParser
-from jinja2 import Environment, FileSystemLoader
+try:
+    from jinja2 import Environment, FileSystemLoader
+except:
+    sys.exit('jinja2 library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
 
 from core.gcmd import RunCommand, GError, GMessage
 from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
@@ -833,9 +840,6 @@ class MdKeywords(wx.BoxSizer):
         return self.itemHolder# dict is in var keywordObj
 
     def fillDb(self):
-
-
-
         if not mdutil.isTableExists('metadata_themes'):
             sql='create table if not exists metadata_themes (title TEXT, keyword TEXT, date_iso TEXT ,date_type TEXT)'
             self.dbExecute(sql)
@@ -849,8 +853,7 @@ class MdKeywords(wx.BoxSizer):
                 str=''
                 with open(path, "r") as inp :
                     exec(inp.read())
-
-                    for item in keywords:
+                    for item in keywords:#!!! from exec, no mistake
                             str+="('%s','%s','%s','%s'),"%(title[1],item['preferredLabel']['string'],'2010-01-13','publication')
                     str=str[:-1]
                     sql="INSERT INTO 'metadata_themes' ('title', 'keyword', 'date_iso' ,'date_type' ) VALUES"+str

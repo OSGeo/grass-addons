@@ -3,8 +3,11 @@
 import sys,os
 import grass.script as grass
 from modules.import_export import GdalImportDialog, GdalOutputDialog, ImportDialog
+try:
+    from owslib.csw import CatalogueServiceWeb
+except:
+    sys.exit('owslib python library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
-from owslib.csw import CatalogueServiceWeb
 import webbrowser
 from cswutil import *
 import wx
@@ -21,7 +24,6 @@ from owslib.csw import CatalogueServiceWeb
 from owslib.fes import BBox, PropertyIsLike
 from owslib.ows import ExceptionReport
 import json
-import ipdb
 from core.utils import GetFormats
 from gui_core.forms import GUI
 from core.gcmd import RunCommand, GError, GMessage, GWarning
@@ -588,8 +590,6 @@ class CSWBrowserPanel(wx.Panel):
 
             data_url = item_data['wcs']
             self.gdalImport(False, data_url, type='wcs', evt=evt)
-
-            ipdb.set_trace()
 
 
     def GetQtype(self):  # TODO need to implement

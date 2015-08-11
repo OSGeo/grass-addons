@@ -15,8 +15,16 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-from owslib.iso import *
-from jinja2 import Environment, FileSystemLoader
+import sys
+try:
+    from owslib.iso import *
+except:
+    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+try:
+    from jinja2 import Environment, FileSystemLoader
+except:
+    sys.exit('jinja2 library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
 
 from lxml import etree
 import os

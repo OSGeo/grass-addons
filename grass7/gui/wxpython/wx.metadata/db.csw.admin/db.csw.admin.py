@@ -127,7 +127,11 @@ from subprocess import PIPE
 import getopt
 from cswutil import *
 import shutil
-from pycsw.core import admin, config
+try:
+    from pycsw.core import admin, config
+except:
+    sys.exit('pycsw library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
 
 
 class CswAdmin():

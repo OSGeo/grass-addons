@@ -49,8 +49,12 @@ This program is free software under the GNU General Public License
 import sys,os
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
 from grass.script import core as grass
-from owslib.csw import CatalogueServiceWeb
-from owslib.ows import ExceptionReport
+try:
+    from owslib.csw import CatalogueServiceWeb
+    from owslib.ows import ExceptionReport
+except:
+    sys.exit('owslib python library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
 #from __future__ import absolute_import
 #from __future__ import print_function
 

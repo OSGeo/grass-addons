@@ -37,7 +37,8 @@ import wx
 from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
 from wx import SplitterWindow
 import grass.script as grass
-from pydispatch import dispatcher
+#from pydispatch import dispatcher
+from grass.pydispatch import dispatcher
 
 import webbrowser
 

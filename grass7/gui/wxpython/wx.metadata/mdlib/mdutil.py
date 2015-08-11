@@ -20,13 +20,18 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-from owslib.iso import *
+import os,sys
+
+try:
+    from owslib.iso import *
+except:
+    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
 from owslib.namespaces import Namespaces
 from owslib.etree import etree
 from owslib import util
 
 import string
-import os
 from grass.script import core as grass
 from grass.pygrass.modules import Module
 from subprocess import PIPE

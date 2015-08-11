@@ -81,8 +81,10 @@ import os, sys
 from grass.script import core as grass
 import contextlib
 
-
-from pycsw import server
+try:
+    from pycsw import server
+except:
+    sys.exit('pycsw library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 app_path=None
 
 @contextlib.contextmanager
