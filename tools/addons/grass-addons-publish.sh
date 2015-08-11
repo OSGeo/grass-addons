@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# This script copies built addons manual pages from the build server
+# and creates index page
+#
+# original author: Martin Landa
 # updated for new CMS path MN 8/2015
 
 URL=http://geo102.fsv.cvut.cz/grass/addons/

@@ -1,0 +1,6 @@
+### Cronjob for Publishing server (grass.osgeo.org)
+
+# add jobs here and then run:
+# crontab $HOME/src/grass-addons/tools/addons/crontab.publish && crontab -l
+
+*/15   *    *     *     *   nice ${ADDONS}/grass-addons-publish.sh

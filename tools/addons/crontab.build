@@ -1,0 +1,10 @@
+### Cronjob for Building server
+
+# add jobs here and then run:
+# crontab $HOME/src/grass-addons/tools/addons/crontab.build && crontab -l
+
+ADDONS=${HOME}/src/grass-addons/tools/addons
+
+0      2    *     *     *   nice ${ADDONS}/grass-addons.sh c
+*/15   *    *     *     *   nice ${ADDONS}/grass-addons-build.sh
+
