@@ -1,11 +1,16 @@
 #!/bin/bash
 
+# This script builds addons modules (1) and creates tarballs of manual
+# pages, logs (2) for publishing server, see related grass-addons-publish.sh
+# script for details
+#
+# To be run on building server (see crontab.build)
+#
+# original author: Martin Landa
+
 DST=/var/www/grass
 DIST=dist.x86_64-unknown-linux-gnu
 SRC=${HOME}/src/
-
-# check previous build
-### ls -lh ${HOME}/.grass*/addons/modules.xml
 
 run=`ps aux | grep "${HOME}/cronjobs/grass-addons.sh c" | wc -l`
 if [ "$run" == "2" ]; then

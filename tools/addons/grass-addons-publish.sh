@@ -3,6 +3,8 @@
 # This script copies built addons manual pages from the build server
 # and creates index page
 #
+# To be run on publishing server (see crontab.publish)
+#
 # original author: Martin Landa
 # updated for new CMS path MN 8/2015
 
