@@ -1,5 +1,12 @@
 MODULE_TOPDIR = ..
 
+SHELL_OUTPUT := $(shell python dependency.py 2>&1)
+ifeq ($(filter File dependency.py,$(SHELL_OUTPUT)),)
+  $(info $(SHELL_OUTPUT))
+else
+  $(error $(SHELL_OUTPUT))
+endif
+
 SUBDIRS = \
 	mdlib \
 	r.info.iso \
