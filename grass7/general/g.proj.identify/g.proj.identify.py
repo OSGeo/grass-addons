@@ -54,10 +54,12 @@ def grassEpsg():
                quiet=True,
                stdout_=PIPE)
     proj=proj.outputs.stdout
-    for line in proj.splitlines():
+    lines=proj.splitlines()
+    for e,line in enumerate(lines):
         if 'EPSG' in line:
-            epsg=line.split(':')[1].replace(' ','')
+            epsg=lines[e+1].split(':')[1].replace(' ','')
             print('epsg=%s' % epsg)
+            return
     try:
         proj=Module('g.proj',
                flags='wf',
