@@ -1104,7 +1104,8 @@ def main():
 		grass.mapcalc("$density_final_corrected = $density_final/$scalar",
 					density_final_corrected = "density_final_corrected_%d" % os.getpid(),
 					density_final = "density_final_%d" % os.getpid(),
-					scalar = scalar)
+					scalar = scalar,
+					overwrite=True)
 
 		grass.run_command("g.copy", 
 		raster = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
