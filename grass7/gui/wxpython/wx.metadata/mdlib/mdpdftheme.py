@@ -332,5 +332,3 @@ class Pdf(object):
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
-
-

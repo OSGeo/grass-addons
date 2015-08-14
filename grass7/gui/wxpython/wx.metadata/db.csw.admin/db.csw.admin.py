@@ -14,7 +14,7 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 """
 
 
-# %module
+#%module
 #% description: CSW database manager
 #% keyword: csw
 #% keyword: metadata

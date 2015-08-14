@@ -21,18 +21,10 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
-# %module
-# % description: Tool for creating and modifying map's metadata.
-#% keyword: general
-#% keyword: GUI
-#% keyword: metadata
-#%end
-
-
 import sys
 import os
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata' 'mdlib'))
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc','wx.metadata','mdlib'))
 
 from lxml import etree
 import wx
