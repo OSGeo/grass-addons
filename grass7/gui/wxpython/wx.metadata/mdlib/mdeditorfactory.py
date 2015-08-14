@@ -1574,7 +1574,7 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         #dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc','wx.metadata',,'config','init_md.txt'))
+        path = os.path.join(os.getenv('GRASS_ADDON_BASE'),'etc','wx.metadata','config','init_md.txt')
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()
