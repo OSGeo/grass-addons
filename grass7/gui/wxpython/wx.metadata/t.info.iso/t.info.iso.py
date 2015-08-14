@@ -10,7 +10,7 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
-# %module
+#%module
 #% description: Lists information about space time datasets and maps.
 #% keyword: temporal
 #% keyword: metadata

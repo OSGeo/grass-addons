@@ -18,7 +18,7 @@ This program is free software under the GNU General Public License
 
 """
 
-# %module
+#%module
 #% description: CSW database manager
 #% keyword: csw
 #% keyword: metadata

@@ -11,7 +11,7 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
-# %module
+#%module
 #% description: Creates metadata based on ISO standard for specified raster map.
 #% keyword: raster
 #% keyword: metadata
