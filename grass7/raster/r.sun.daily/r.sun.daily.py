@@ -37,11 +37,38 @@
 #%end
 
 #%option
+#% key: aspect_value
+#% key_desc: integer
+#% type: integer
+#% description: A single value of the orientation (aspect), 270 is south
+#% options: 0-360
+#% answer: 270
+#% required : no
+#%end
+
+#% rules
+#%  exclusive: aspect, aspect_value
+#% end
+
+#%option
 #% key: slope
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
 #%end
+
+#%option
+#% key: slope_value
+#% key_desc: float
+#% type: double
+#% description: A single value of inclination (slope)
+#% answer: 0.0
+#% required : no
+#%end
+
+#% rules
+#%  exclusive: slope, slope_value
+#% end
 
 #%option G_OPT_R_INPUT
 #% key: linke
@@ -57,7 +84,6 @@
 #% type: double
 #% description: A single value of the Linke atmospheric turbidity coefficient [-]
 #% options: 0.0-7.0
-#% answer: 3.0
 #% required : no
 #%end
 
@@ -69,7 +95,7 @@
 #% key: albedo
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+#% description: Name of the ground albedo coefficient input raster map [-]
 #% required : no
 #%end
 
@@ -79,7 +105,6 @@
 #% type: double
 #% description: A single value of the ground albedo coefficient [-]
 #% options: 0.0-1.0
-#% answer: 0.2
 #% required : no
 #%end
 
@@ -100,6 +125,22 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Name of input raster map containing longitudes (if projection undefined) [decimal degrees]
+#% required : no
+#%end
+
+#%option G_OPT_R_INPUT
+#% key: coeff_bh
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of real-sky beam radiation coefficient (thick cloud) input raster map [0-1]
+#% required : no
+#%end
+
+#%option G_OPT_R_INPUT
+#% key: coeff_dh
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of real-sky diffues radiation coefficient (haze) input raster map [0-1]
 #% required : no
 #%end
 
@@ -195,6 +236,14 @@
 #%end
 
 #%option
+#% key: insol_time
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: Output insolation time raster map cumulated for the whole period of time [h]
+#% required: no
+#%end
+
+#%option
 #% key: beam_rad_basename
 #% type: string
 #% label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
@@ -219,6 +268,13 @@
 #% key: glob_rad_basename
 #% type: string
 #% label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
+#% description: Underscore and day number are added to the base name for daily maps
+#%end
+
+#%option
+#% key: insol_time_basename
+#% type: string
+#% label: Base name for output insolation time raster map [h]
 #% description: Underscore and day number are added to the base name for daily maps
 #%end
 
@@ -273,23 +329,53 @@ def create_tmp_map_name(name):
                                           map_=name)
 
 
-def run_r_sun(elevation, aspect, slope, latitude, longitude,
-              linke, linke_value, albedo, albedo_value,
-              horizon_basename, horizon_step,
-              day, step, beam_rad, diff_rad, refl_rad, glob_rad, suffix):
+def run_r_sun(elevation, aspect, aspect_value, slope, slope_value, latitude,
+              longitude, linke, linke_value, albedo, albedo_value, coeff_bh,
+              coeff_dh, horizon_basename, horizon_step, day, step, beam_rad,
+              diff_rad, refl_rad, glob_rad, insol_time, suffix):
     '''
     Execute r.sun using the provided input options. Except for the required
     parameters, the function updates the list of optional/selected parameters
     to instruct for user requested inputs and outputs.
+
     Optional inputs:
 
+    - aspect_value (if not aspect)
+    - slope_value (if not slope)
     - latitude
     - longitude
     - linke  OR  single linke value
     - albedo  OR  single albedo value
-    - horizon maps
+    - horizon maps (basename AND step)
     '''
     params = {}
+
+    # inputs
+    if aspect:
+        params.update({'aspect': aspect})
+    if aspect_value and not aspect:
+        params.update({'aspect_value': aspect_value})
+    if slope:
+        params.update({'slope': slope})
+    if slope_value and not slope:
+        params.update({'slope_value': slope_value})
+    if linke:
+        params.update({'linke': linke})
+    if linke_value and not linke:
+        params.update({'linke_value': linke_value})
+    if albedo:
+        params.update({'albedo': albedo})
+    if albedo_value and not albedo:
+        params.update({'albedo_value': albedo_value})
+    if coeff_bh:
+        params.update({'coeff_bh': coeff_bh})
+    if coeff_dh:
+        params.update({'coeff_dh': coeff_dh})
+    if horizon_basename and horizon_step:
+        params.update({'horizon_basename': horizon_basename})
+        params.update({'horizon_step': horizon_step})
+
+    # outputs
     if beam_rad:
         params.update({'beam_rad': beam_rad + suffix})
     if diff_rad:
@@ -298,22 +384,14 @@ def run_r_sun(elevation, aspect, slope, latitude, longitude,
         params.update({'refl_rad': refl_rad + suffix})
     if glob_rad:
         params.update({'glob_rad': glob_rad + suffix})
-    if linke:
-        params.update({'linke': linke})
-    if linke_value:
-        params.update({'linke_value': linke_value})
-    if albedo:
-        params.update({'albedo': albedo})
-    if albedo_value:
-        params.update({'albedo_value': albedo_value})
-    if horizon_basename and horizon_step:
-        params.update({'horizon_basename': horizon_basename})
-        params.update({'horizon_step': horizon_step})
+    if insol_time:
+        params.update({'insol_time': insol_time + suffix})
 
-    grass.run_command('r.sun', elevation=elevation, aspect=aspect,
-                      slope=slope, day=day, step=step,
-                      overwrite=core.overwrite(), quiet=True,
-                      **params)
+    print "Paramters given:", params
+    print
+
+    grass.run_command('r.sun', elevation=elevation, day=day, step=step,
+                      overwrite=core.overwrite(), quiet=True, **params)
 
 
 def set_color_table(rasters):
@@ -366,8 +444,19 @@ def main():
 
     # required
     elevation_input = options['elevation']
+
     aspect_input = options['aspect']
+    print "Aspect:", aspect_input
+
+    aspect_value = options['aspect_value']
+    print "Aspect value:", aspect_value
+
     slope_input = options['slope']
+    print "Slope:", slope_input
+    
+    slope_value = options['slope_value']
+    print "Slope value:", slope_value
+
 
     # optional
     latitude = options['lat']
@@ -376,6 +465,8 @@ def main():
     linke_value = options['linke_value']
     albedo_input = options['albedo']
     albedo_value = options['albedo_value']
+    coeff_bh = options['coeff_bh']
+    coeff_dh = options['coeff_dh']
     horizon_basename = options['horizon_basename']
     horizon_step = options['horizon_step']
 
@@ -384,15 +475,17 @@ def main():
     diff_rad = options['diff_rad']
     refl_rad = options['refl_rad']
     glob_rad = options['glob_rad']
+    insol_time = options['insol_time']
     beam_rad_basename = beam_rad_basename_user = options['beam_rad_basename']
     diff_rad_basename = diff_rad_basename_user = options['diff_rad_basename']
     refl_rad_basename = refl_rad_basename_user = options['refl_rad_basename']
     glob_rad_basename = glob_rad_basename_user = options['glob_rad_basename']
+    insol_time_basename = insol_time_basename_user = options['insol_time_basename']
 
     # missing output?
-    if not any([beam_rad, diff_rad, refl_rad, glob_rad,
+    if not any([beam_rad, diff_rad, refl_rad, glob_rad, insol_time,
                 beam_rad_basename, diff_rad_basename,
-                refl_rad_basename, glob_rad_basename]):
+                refl_rad_basename, glob_rad_basename, insol_time_basename]):
         grass.fatal(_("No output specified."))
 
     start_day = int(options['start_day'])
@@ -425,6 +518,9 @@ def main():
     if glob_rad and not glob_rad_basename:
         glob_rad_basename = create_tmp_map_name('glob_rad')
         MREMOVE.append(glob_rad_basename)
+    if insol_time and not insol_time_basename:
+        insol_time_basename = create_tmp_map_name('insol_time')
+        MREMOVE.append(insol_time_basename)
 
     # check for existing identical map names
     if not grass.overwrite():
@@ -436,15 +532,22 @@ def main():
                               start_day, end_day, day_step)
         check_daily_map_names(glob_rad_basename, grass.gisenv()['MAPSET'],
                               start_day, end_day, day_step)
+        check_daily_map_names(insol_time_basename, grass.gisenv()['MAPSET'],
+                              start_day, end_day, day_step)
 
     # check for slope/aspect
-    if not aspect_input or not slope_input:
+    if not aspect_value or not slope_value:
+
         params = {}
-        if not aspect_input:
+
+        if not aspect_input and not aspect_value:
+            print "Will produce Aspect"
             aspect_input = create_tmp_map_name('aspect')
             params.update({'aspect': aspect_input})
             REMOVE.append(aspect_input)
-        if not slope_input:
+
+        if not slope_input and not slope_value:
+            print "Will produce Slope"
             slope_input = create_tmp_map_name('slope')
             params.update({'slope': slope_input})
             REMOVE.append(slope_input)
@@ -461,6 +564,8 @@ def main():
         grass.mapcalc('{refl} = 0'.format(refl=refl_rad), quiet=True)
     if glob_rad:
         grass.mapcalc('{glob} = 0'.format(glob=glob_rad), quiet=True)
+    if insol_time:
+        grass.mapcalc('{insol} = 0'.format(insol=insol_time), quiet=True)
 
     grass.info(_("Running r.sun in a loop..."))
     count = 0
@@ -479,16 +584,19 @@ def main():
         suffix = '_' + format_order(day)
         proc_list.append(Process(target=run_r_sun,
                                  args=(elevation_input,
-                                       aspect_input, slope_input,
+                                       aspect_input, aspect_value,
+                                       slope_input, slope_value,
                                        latitude, longitude,
                                        linke_input, linke_value,
                                        albedo_input, albedo_value,
+                                       coeff_bh, coeff_dh,
                                        horizon_basename, horizon_step,
                                        day, step,
                                        beam_rad_basename,
                                        diff_rad_basename,
                                        refl_rad_basename,
                                        glob_rad_basename,
+                                       insol_time_basename,
                                        suffix)))
 
         proc_list[proc_count].start()
@@ -514,6 +622,8 @@ def main():
                 sum_maps(refl_rad, refl_rad_basename, suffixes)
             if glob_rad:
                 sum_maps(glob_rad, glob_rad_basename, suffixes)
+            if insol_time:
+                sum_maps(insol_time, insol_time_basename, suffixes)
 
             # Empty process list
             proc_list = []
@@ -531,9 +641,12 @@ def main():
         set_color_table([refl_rad])
     if glob_rad:
         set_color_table([glob_rad])
+    if insol_time:
+        set_color_table([insol_time])
 
     if not any([beam_rad_basename_user, diff_rad_basename_user,
-                refl_rad_basename_user, glob_rad_basename_user]):
+                refl_rad_basename_user, glob_rad_basename_user,
+                insol_time_basename_user]):
         return 0
 
     # add timestamps and register to spatio-temporal raster data set
@@ -550,7 +663,7 @@ def main():
             maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
             tgis.open_new_stds(basename, type='strds', temporaltype='relative',
                                title=title, descr=desc, semantic='sum',
-                               dbif=None, overwrite=grass.overwrite())
+                               dbif=None,  overwrite=grass.overwrite())
 
             tgis.register_maps_in_space_time_dataset(type='rast',
                                                      name=basename, maps=maps,
@@ -581,6 +694,10 @@ def main():
             registerToTemporal(glob_rad_basename, suffixes_all, mapset,
                                start_day, day_step, title="Total irradiation",
                                desc="Output total irradiation raster maps [Wh.m-2.day-1]")
+        if insol_time_basename_user:
+            registerToTemporal(insol_time_basename, suffixes_all, mapset,
+                               start_day, day_step, title="Insolation time",
+                               desc="Output insolation time raster maps [h]")
 
     # just add timestamps, don't register
     else:
@@ -593,6 +710,8 @@ def main():
                 set_time_stamp(refl_rad_basename + suffixes_all[i], day=day)
             if glob_rad_basename_user:
                 set_time_stamp(glob_rad_basename + suffixes_all[i], day=day)
+            if insol_time_basename_user:
+                set_time_stamp(insol_time_basename + suffixes_all[i], day=day)
 
     # set color table for daily maps
     if beam_rad_basename_user:
@@ -606,6 +725,9 @@ def main():
         set_color_table(maps)
     if glob_rad_basename_user:
         maps = [glob_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
+    if insol_time_basename_user:
+        maps = [insol_time_basename + suf for suf in suffixes_all]
         set_color_table(maps)
 
 
