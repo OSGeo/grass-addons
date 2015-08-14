@@ -10,12 +10,14 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
 
-import sys, os
+import sys
+import os
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),'etc','wx.metadata','mdlib'))
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata', 'mdlib'))
 import wx
-from cswlib import CSWBrowserPanel,CSWConnectionPanel
+from cswlib import CSWBrowserPanel, CSWConnectionPanel
 import grass.script as grass
+
 
 class CswBrowserMainDialog(wx.Frame):
     def __init__(self):
@@ -35,11 +37,13 @@ class CswBrowserMainDialog(wx.Frame):
         self.mainsizer.Add(self.mainNotebook, 1, wx.EXPAND, )
         self.SetSizer(self.mainsizer)
 
+
 def main():
     app = wx.App()
     a = CswBrowserMainDialog()
     a.Show()
     app.MainLoop()
+
 
 if __name__ == '__main__':
     grass.parser()

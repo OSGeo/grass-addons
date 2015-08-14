@@ -1,19 +1,19 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.info.iso</em> creates metadata of raster maps according 
+<em>r.info.iso</em> creates metadata of raster maps according
 to <a href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO
-19115</a>.
+    19115</a>.
 
 <p>
-The module also allows conversion of metadata from native GRASS GIS format
-to ISO-based format.
+    The module also allows conversion of metadata from native GRASS GIS format
+    to ISO-based format.
 
 <h2>NOTES</h2>
 
 For dependencies and installation instructions see
 <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
-<h3>Naming of metadata files and storage</h3> 
+<h3>Naming of metadata files and storage</h3>
 
 
 Default location for exported metadata files is
@@ -24,8 +24,8 @@ derived from the current nomenclature is <em>raster</em>, for vector
 maps <em>vector</em>. File ends with <em>.xml</em> extension.
 
 <p>
-For example default metadata file name for raster map
-&quot;elevation&quot; is <em>cell_elevation.xml</em>.
+    For example default metadata file name for raster map
+    &quot;elevation&quot; is <em>cell_elevation.xml</em>.
 
 <h3>Metadata profile</h3>
 
@@ -44,25 +44,27 @@ Export metadata using <i>basic</i> profile (default):
 
 <div class="code"><pre>
 r.info.iso map=elevation
-</pre></div>
+</pre>
+</div>
 
 <p>
-Export metadata using <i>inspire</i> profile:
+    Export metadata using <i>inspire</i> profile:
 
 <div class="code"><pre>
 r.info.iso map=elevation profile=inspire
-</pre></div>
+</pre>
+</div>
 
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="r.info.html">r.info</a>,
-  <a href="v.info.iso.html">v.info.iso</a>,
-  <a href="g.gui.metadata.html">g.gui.metadata</a>
+    <a href="r.info.html">r.info</a>,
+    <a href="v.info.iso.html">v.info.iso</a>,
+    <a href="g.gui.metadata.html">g.gui.metadata</a>
 </em>
 
 <p>
-See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+    See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 
 <h2>AUTHOR</h2>
@@ -70,7 +72,7 @@ See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_S
 Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
 at the Czech Technical University in Prague, developed
 during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
+    Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
 
 <p>
-<i>Last changed: $Date$</i>
+    <i>Last changed: $Date$</i>

@@ -100,7 +100,6 @@ class CSWBrowserPanel(wx.Panel):
         self.constString = ''
         sizeConst = 55
         self.splitterBrowser = SplitterWindow(self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER)
-       # self.connectionFilePath = os.path.join('config', 'connections_resources.xml')
         self.context=StaticContext()
         self.connectionFilePath = os.path.join(self.context.addonsPath, 'connections_resources.xml')
         self.pnlLeft = wx.Panel(self.splitterBrowser, id=wx.ID_ANY)
@@ -110,14 +109,11 @@ class CSWBrowserPanel(wx.Panel):
         self.numResultsLbl = wx.StaticText(self.pnlLeft, -1, 'Max')
         self.catalogLbl = wx.StaticText(self.pnlLeft, -1, 'Catalog')
         self.findResNumLbl = wx.StaticText(self.pnlLeft, -1, '')
-        # self.advancedFilter = wx.Button(self.pnlLeft,-1,'Advanced')
 
         self.advanceChck = wx.CheckBox(self.pnlLeft, label='Advanced')
         self.advanceChck.Bind(wx.EVT_CHECKBOX, self.OnKeywordDialog)
         self.stbFind = wx.StaticBox(self.pnlLeft, -1, 'Filter')
         self.stbSearch = wx.StaticBox(self.pnlLeft, -1, 'Search settings')
-
-        # self.abstractCtrl = wx.TextCtrl(self.pnlRight, style=wx.TE_MULTILINE | wx.HSCROLL)
 
         self.catalogCmb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition)
         self.keywordCtr = wx.TextCtrl(self.pnlLeft)
@@ -235,9 +231,7 @@ class CSWBrowserPanel(wx.Panel):
         self.constString = self.constrPnl.constrCtrl.GetValue()
         if self.constString == '':
             return
-        # print self.constString
         constString = 'self.constraints=' + self.constString
-        # print(constString)
         try:
             exec (constString)
         except:
@@ -270,7 +264,6 @@ class CSWBrowserPanel(wx.Panel):
         self.Fit()
 
     def OnShowReguest(self, evt):
-        # if self.webBrowser.GetValue:
         request_html = encodeString(highlight_xml(self.context, self.catalog.request))
         path = 'htmlRequest.html'
 
@@ -282,8 +275,6 @@ class CSWBrowserPanel(wx.Panel):
         self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
 
     def OnShowResponse(self, evt):
-        # if self.webBrowser.GetValue:
-        # print self.catalog.response
         response_html = encodeString(highlight_xml(self.context, self.catalog.response))
         path ='htmlResponse.html'
         f = open(path, 'w')
@@ -494,7 +485,6 @@ class CSWBrowserPanel(wx.Panel):
         """function to init owslib.csw.CatalogueServiceWeb"""
         # connect to the server
         try:
-            # QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
             self.catalog = CatalogueServiceWeb(self.catalog_url,
                                                timeout=self.timeout)
             return True
@@ -675,8 +665,7 @@ class CSWBrowserPanel(wx.Panel):
             return self.idResults[index]['link']
 
     def set_item_data(self, index, field, value):
-        """set identifier for a QTreeWidgetItem"""
-        # self.resultList.SetStringItem(, self._get_field_value(field), value)
+        """set identifier"""
 
         try:
             self.idResults[index]
@@ -688,7 +677,6 @@ class CSWBrowserPanel(wx.Panel):
             if field == "identifier":
                 self.idResults[index]['identifier'] = value
             if field == "link":
-                # print value
                 self.idResults[index]['link'] = value
         else:
             d = {}
@@ -703,8 +691,6 @@ class CSWBrowserPanel(wx.Panel):
         """display search results"""
 
         self.refreshResultList()
-        # print "display"
-        # self.resultList.SetItem(index,0,'ahoj')
         position = self.catalog.results['returned'] + self.startfrom
 
         msg = 'Showing %s - %s of %s result(s)' % ( self.startfrom + 1,
@@ -712,12 +698,10 @@ class CSWBrowserPanel(wx.Panel):
                                                     self.catalog.results['matches'],
 
         )
-        # % (self.startfrom + 1,position)
 
         self.findResNumLbl.SetLabel(msg)
         index = 0
         for rec in self.catalog.records:
-            # tem = QTreeWidgetItem(self.treeRecords)
             if self.catalog.records[rec].type:
                 item = wx.ListItem()
                 self.resultList.InsertStringItem(index, normalize_text(self.catalog.records[rec].type))
@@ -727,11 +711,8 @@ class CSWBrowserPanel(wx.Panel):
                 self.resultList.SetStringItem(index, 1, normalize_text(self.catalog.records[rec].title))
 
             if self.catalog.records[rec].identifier:
-                # self.resultList.SetStringItem(index,1,normalize_text(self.catalog.records[rec].identifier))
                 self.set_item_data(index, 'identifier',
                                    self.catalog.records[rec].identifier)
-                # print index
-
             if index % 2:
                 self.resultList.SetItemBackgroundColour(index, "LIGHT GREY")
             index += 1
@@ -745,8 +726,6 @@ class CSWBrowserPanel(wx.Panel):
         ).start()
 
     def updateCatalogBox(self, evt=None):
-        # print('update')
-
         if self.catalogCmb.GetCount() == 0:
             msg = 'No services/connections defined.'
             self.htmlView.SetPage('<p><h3>%s</h3></p>' % msg)
@@ -763,7 +742,6 @@ class CSWBrowserPanel(wx.Panel):
         upSearchSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         upSearchSizer.Add(self.qtypeCb, 1, wx.EXPAND)
-
 
         self.leftSearchSizer.Add(upSearchSizer, 1 ,wx.EXPAND )
         self.rightSearchSizer.Add(wx.StaticText(self), 0)
@@ -987,8 +965,6 @@ class CSWConnectionPanel(wx.Panel):
                     root.remove(bad)
 
             tree.write(self.connectionFilePath)
-            # n=self.connectionLBox.GetSelection()
-            # self.connectionLBox.Remove(n)
             self.updateConnectionList()
 
     def publishCSW(self,path):
@@ -1070,7 +1046,6 @@ class CSWConnectionPanel(wx.Panel):
 
     def addDefaultConnections(self, path=None):
         """add default connections from file"""
-        # print path
         if path is not None:
             self.connectionFilePath = path
             if yesNo(self, "Do you want to remove temporary connections?", "Remove tmp connections"):
@@ -1127,7 +1102,6 @@ class CSWConnectionPanel(wx.Panel):
                     self.parent.BrowserPanel.catalogCmb.Append(value)
                 self.connectionLBox.Append(value)
                 more, value, index = self.config.GetNextGroup(index)
-                # print value
             n = self.connectionLBox.GetCount()
             self.connectionLBox.SetString(n + 1, first)
             if self.connectionLBox.GetCount() == 0:

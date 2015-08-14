@@ -11,6 +11,8 @@ from mdpdftheme import *
 from grass.script import core as grass
 
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'pdf'))
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),'etc','wx.metadata','mdlib'))
+
 
 
 class MyTheme(DefaultTheme):

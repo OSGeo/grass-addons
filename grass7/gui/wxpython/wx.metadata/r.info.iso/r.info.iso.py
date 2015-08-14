@@ -11,7 +11,7 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 
-#%module
+# %module
 #% description: Creates metadata based on ISO standard for specified raster map.
 #% keyword: raster
 #% keyword: metadata
@@ -40,11 +40,13 @@ import sys
 from grass.script import parser, fatal
 from grass.pygrass.utils import get_lib_path
 
+
 def load_mdlib():
     path = get_lib_path(modname='mdlib', libname='mdgrass')
     if path is None:
         fatal("Not able to find the metadata library directory")
     sys.path.append(path)
+
 
 def main():
     # load metadata library
@@ -77,6 +79,7 @@ def main():
         if xml_file is not False:
             md.readXML(xml_file)
             print md.validate_basic()
+
 
 if __name__ == "__main__":
     options, flags = parser()

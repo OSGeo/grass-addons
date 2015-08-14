@@ -1,17 +1,21 @@
 <h2>DESCRIPTION</h2>
 
-<em>g.gui.metadata</em> support advanced tools for metadata management according to <a href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO
-19115</a>.
+<em>g.gui.metadata</em> support advanced tools for metadata management according to <a
+        href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO
+    19115</a>.
 
 
 <p>
-Metadata editor includes graphical interface for conversion metadata from r.info and v.info to ISO based metadata, editing metadata files and creating metadata templates. In addition, the graphical module allows validating of INSPIRE and GRASS Basic profile.
+    Metadata editor includes graphical interface for conversion metadata from r.info and v.info to ISO based metadata,
+    editing metadata files and creating metadata templates. In addition, the graphical module allows validating of
+    INSPIRE and GRASS Basic profile.
 
 <h2>NOTES</h2>
 
-For dependencies and installation instructions see <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+For dependencies and installation instructions see <a
+        href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
-<h3>Naming of metadata files and storage</h3> 
+<h3>Naming of metadata files and storage</h3>
 
 
 Default location for exported metadata files is
@@ -20,8 +24,8 @@ derived from the current nomenclature is <em>raster</em>, for vector
 maps <em>vector</em>. File ends with <em>.xml</em> extension.
 
 <p>
-For example default metadata file name for vector map
-&quot;roads&quot; is <em>vector_roads.xml</em>.
+    For example default metadata file name for vector map
+    &quot;roads&quot; is <em>vector_roads.xml</em>.
 
 
 <h3>Metadata profile</h3>
@@ -47,7 +51,8 @@ Editor offers two editing modes. The first one allows to create metadata from se
 The basis of this editor is similar to r|v.info.iso. After selection of map, the editor convert native metadata of map to ISO based. By exported xml file is metadata editor initialized.
 There are three options to select:
 <b>basic</b>,
-<b>inspire</b> or <b>load custom</b>. Last one allows to load metadata profile from file. For example in case of using predefined template. The intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile will proced with this selection.
+<b>inspire</b> or <b>load
+    custom</b>. Last one allows to load metadata profile from file. For example in case of using predefined template. The intersection of GRASS Basic profile(all available metadata for selected map) and loaded custom profile will proced with this selection.
 
 
 <h4> External metadata editor</h4>
@@ -57,16 +62,21 @@ This editor mode allows to load own template and xml file for editing. This opti
 <h3>Defining templates</h3>
 
 <p>
-This function allows to create pattern of metadata profile. In other words it support defining fixed values to template. With using created template, the editor does not initialize texts inputs of defined values. These attributes is able to see only in Tree Browser in editor. Direct link on this function is multiple editing mode (see below). 
+    This function allows to create pattern of metadata profile. In other words it support defining fixed values to
+    template. With using created template, the editor does not initialize texts inputs of defined values. These
+    attributes is able to see only in Tree Browser in editor. Direct link on this function is multiple editing mode (see
+    below).
 <p>
-If check-box of metadata attribute is checked, the OWSLib object in template will be replaced by value. Unchecked attributes will not change this 'part' of the template.
+    If check-box of metadata attribute is checked, the OWSLib object in template will be replaced by value. Unchecked
+    attributes will not change this 'part' of the template.
 <p>
-The yellow background of text fields indicates metadata attributes, which are not possible get from GRASS map information. 
+    The yellow background of text fields indicates metadata attributes, which are not possible get from GRASS map
+    information.
 
 
 <h3>Editing metadata of multiple map selection</h3>
 
-This option can be used by selection of multiple maps in data catalog. To use pre-defined templete for this editing mode is suitable 
+This option can be used by selection of multiple maps in data catalog. To use pre-defined templete for this editing mode is suitable
 
 
 <h3>Validation of metadata profile </h3>
@@ -84,21 +94,20 @@ The g.gui.metadata module allows updating native GRASS metadata with using modul
 This function allows to automatically generate  metadata reports to PDF document. Missed values are filled by "Unknown" string.
 
 
-
 This tools supports ato generating report
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="r.info.html">r.info</a>,
-  <a href="v.info.iso.html">v.info.iso</a>,
-  <a href="g.gui.metadata.html">g.gui.metadata</a>
-  <a href="db.csw.harvest">db.csw.harvest</a>
-  <a href="db.csw.admin">db.csw.admin</a>
-  <a href="db.csw.run">db.csw.run</a>
+    <a href="r.info.html">r.info</a>,
+    <a href="v.info.iso.html">v.info.iso</a>,
+    <a href="g.gui.metadata.html">g.gui.metadata</a>
+    <a href="db.csw.harvest">db.csw.harvest</a>
+    <a href="db.csw.admin">db.csw.admin</a>
+    <a href="db.csw.run">db.csw.run</a>
 </em>
 
 <p>
-See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+    See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 
 <h2>AUTHOR</h2>
@@ -107,7 +116,7 @@ Matej
 Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
 at the Czech Technical University in Prague, developed
 during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
+    Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
 
 <p>
-<i>Last changed: $Date$</i>
+    <i>Last changed: $Date$</i>

@@ -1,10 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <em>g.gui.cswbrowser</em> support searching and browsing metadata catalog based on
- <a href="http://www.opengeospatial.org/standards/cat">Catalogue Service(CSW)</a> standard .
+<a href="http://www.opengeospatial.org/standards/cat">Catalogue Service(CSW)</a> standard .
 
 <p>
-The module allows to setting up connection to csw by uri and search metadata with using advanced filter.
+    The module allows to setting up connection to csw by uri and search metadata with using advanced filter.
 
 <h2>NOTES</h2>
 
@@ -30,27 +30,34 @@ manualy.
 <h3>Bounding box</h3>
 
 <ul>
-  <li>Bounding box<br>
-    Bounding box defined spatial extent for limitation of area. Button "Map extends" allows to set
-      up values from current GRASS region.</li>
-  <li>Keywords<br>
-    This filter allows to use basic or advance keyword filtering. In the simple case user can define
-    single keywords or multiple keywords with button "+". Logic operator between keywords is AND(&&).
-    Second, advanced is based on OGC list of expressions which means that can be set filtr with logic
-    relations between keywords or sets of keywords. Dialog for settings kewords text string is under
-    "Advanced" checkbox. Syntax of constraints is based on python list syntax. Each keywords must be
-    in braces&lt;'&gt;or<">.</li>
-    <li><ul>
-    <li>OR condition<br>
-    a || b || c
-    ["a","b","c"]</li>
-    <li>AND condition<br>
-        a && b && c
-        [["a","b","c"]]</li>
-    <li>composition<br>
-         (a && b) || c || d || e
-         [["a","b"],["c"],["d"],["e"]] or [["a","b"],"c","d","e"]</li>
-    </ul></li>
+    <li>Bounding box<br>
+        Bounding box defined spatial extent for limitation of area. Button "Map extends" allows to set
+        up values from current GRASS region.
+    </li>
+    <li>Keywords<br>
+        This filter allows to use basic or advance keyword filtering. In the simple case user can define
+        single keywords or multiple keywords with button "+". Logic operator between keywords is AND(&&).
+        Second, advanced is based on OGC list of expressions which means that can be set filtr with logic
+        relations between keywords or sets of keywords. Dialog for settings kewords text string is under
+        "Advanced" checkbox. Syntax of constraints is based on python list syntax. Each keywords must be
+        in braces&lt;'&gt;or<">.
+    </li>
+    <li>
+        <ul>
+            <li>OR condition<br>
+                a || b || c
+                ["a","b","c"]
+            </li>
+            <li>AND condition<br>
+                a && b && c
+                [["a","b","c"]]
+            </li>
+            <li>composition<br>
+                (a && b) || c || d || e
+                [["a","b"],["c"],["d"],["e"]] or [["a","b"],"c","d","e"]
+            </li>
+        </ul>
+    </li>
 </ul>
 
 <h3>Browsing of metadata</h3>
@@ -62,16 +69,16 @@ contains uri of WMS, WFS or WMS, module allows to add them directly with using u
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="r.info.html">r.info</a>,
-  <a href="v.info.iso.html">v.info.iso</a>,
-  <a href="g.gui.metadata.html">g.gui.metadata</a>,
-  <a href="db.csw.harvest">db.csw.harvest</a>,
-  <a href="db.csw.admin">db.csw.admin</a>,
-  <a href="db.csw.run">db.csw.run</a>
+    <a href="r.info.html">r.info</a>,
+    <a href="v.info.iso.html">v.info.iso</a>,
+    <a href="g.gui.metadata.html">g.gui.metadata</a>,
+    <a href="db.csw.harvest">db.csw.harvest</a>,
+    <a href="db.csw.admin">db.csw.admin</a>,
+    <a href="db.csw.run">db.csw.run</a>
 </em>
 
 <p>
-See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+    See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 
 <h2>AUTHOR</h2>
@@ -79,7 +86,7 @@ See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_S
 Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
 at the Czech Technical University in Prague, developed
 during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-Summer of Code 2015</a> (mentors: Martin Landa)
+    Summer of Code 2015</a> (mentors: Martin Landa)
 
 <p>
-<i>Last changed: $Date$</i>
+    <i>Last changed: $Date$</i>

@@ -54,7 +54,6 @@ from grass.pygrass.modules import Module
 # MD filework
 #=========================================================================
 
-
 class MdFileWork():
 
     ''' initializer of metadata in OWSLib and export OWSLib object to xml by jinja template system
@@ -162,8 +161,6 @@ class MdFileWork():
 # CREATE BOX (staticbox+button(optional)
 #=========================================================================
 
-    
-
 class MdBox(wx.Panel):
 
     '''widget(static box) which include metadata items (MdItem)
@@ -221,8 +218,6 @@ class MdBox(wx.Panel):
             self.rmBoxButt = wx.Button(self, id=ID_ANY, size=(30, 30), label='-')
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
-
-
         
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
@@ -1579,7 +1574,7 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         #dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.path.join(sys.path[0],'..'), 'config','wx.metadata','init_md.txt')
+        path = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc','wx.metadata',,'config','init_md.txt'))
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()

@@ -41,7 +41,7 @@
 # WSGIScriptAlias /pycsw-wsgi /var/www/pycsw/csw.wsgi
 #
 # <Directory /var/www/pycsw>
-#  Order deny,allow
+# Order deny,allow
 #  Allow from all
 # </Directory>
 #
@@ -76,16 +76,20 @@
 #%end
 
 from StringIO import StringIO
-import os, sys
+import os
+import sys
+import contextlib
 
 from grass.script import core as grass
-import contextlib
+
 
 try:
     from pycsw import server
 except:
-    sys.exit('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-app_path=None
+    sys.exit(
+        'pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+app_path = None
+
 
 @contextlib.contextmanager
 def application(env, start_response):
@@ -112,7 +116,7 @@ def application(env, start_response):
 
     gzip = False
     if ('HTTP_ACCEPT_ENCODING' in env and
-            env['HTTP_ACCEPT_ENCODING'].find('gzip') != -1):
+                env['HTTP_ACCEPT_ENCODING'].find('gzip') != -1):
         # set for gzip compressed response
         gzip = True
 
@@ -147,10 +151,11 @@ def application(env, start_response):
 
     return [contents]
 
+
 def main():
-    path=options['path']
+    path = options['path']
     port = int(options['port'])
-    path=os.path.dirname(path)
+    path = os.path.dirname(path)
 
     app_path = os.path.dirname(path)
     sys.path.append(app_path)
@@ -159,14 +164,15 @@ def main():
 
     try:
         httpd = make_server('', port, application)
-        grass.message( "Serving on port %d..." % port)
-    except Exception,e:
+        grass.message("Serving on port %d..." % port)
+    except Exception, e:
         grass.error(str(e))
         sys.stdout.flush()
         sys.exit()
 
     httpd.serve_forever()
     sys.stdout.flush()
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -10,7 +10,7 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
-#%module
+# %module
 #% description: Lists information about space time datasets and maps.
 #% keyword: temporal
 #% keyword: metadata
@@ -39,7 +39,7 @@ import grass.temporal as tgis
 import grass.script as grass
 from grass.script import parser, fatal
 from grass.pygrass.utils import get_lib_path
-from core.gcmd import GError, GMessage,GException
+
 
 def load_mdlib():
     path = get_lib_path(modname='mdlib', libname='mdgrass')
@@ -80,9 +80,8 @@ def main():
     md = GrassMD(id_, type=type_)
     md.createTemporalISO()
     md.saveXML(path=destination,
-              xml_out_name=name,
-              overwrite=os.getenv('GRASS_OVERWRITE', False))
-
+               xml_out_name=name,
+               overwrite=os.getenv('GRASS_OVERWRITE', False))
 
 
 if __name__ == "__main__":

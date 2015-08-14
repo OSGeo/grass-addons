@@ -14,7 +14,7 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 """
 
 
-#%module
+# %module
 #% description: CSW database manager
 #% keyword: csw
 #% keyword: metadata
@@ -118,21 +118,20 @@ import sys
 import os
 import ConfigParser
 
-from grass.pygrass.modules import Module
-from grass.script import parse_key_val
 from grass.script import core as grass
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
-from subprocess import PIPE
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata', 'mdlib'))
+
 import getopt
 from cswutil import *
-import shutil
+
 try:
     from pycsw.core import admin, config
 
 except:
-    sys.exit('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-
+    sys.exit(
+        'pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
 class CswAdmin():
@@ -246,7 +245,7 @@ class CswAdmin():
         try:
             OPTS, ARGS = getopt.getopt(argv, 'c:f:ho:p:ru:x:s:t:y')
         except getopt.GetoptError as err:
-            grass.error( '\nERROR: %s' % err)
+            grass.error('\nERROR: %s' % err)
             #print usage()
 
         for o, a in OPTS:
@@ -311,6 +310,8 @@ class CswAdmin():
 
         elif self.COMMAND == 'delete_records':
             admin.delete_records(self.CONTEXT, self.DATABASE, self.TABLE)
+
+
 '''#TODO
     def initDatabase(self):
         driverDB = Module('db.connect',
@@ -319,8 +320,8 @@ class CswAdmin():
                           stdout_=PIPE)
         self.database = parse_key_val(driverDB.outputs.stdout, sep=': ')
         conf = 'default.cfg'
-        modif = os.path.join(os.getenv('GRASS_ADDON_BASE') ,'etc','config','default.cfg')
-        defaultConf = os.path.join(os.getenv('GRASS_ADDON_BASE') ,'etc','config','default-sample.cfg')
+        modif = os.path.join(os.getenv('GRASS_ADDON_BASE') ,'wx.metadata','etc','config','default.cfg')
+        defaultConf = os.path.join(os.getenv('GRASS_ADDON_BASE'),'wx.metadata' ,'etc','config','default-sample.cfg')
         print self.database
 
         SCP = ConfigParser.SafeConfigParser()
@@ -364,6 +365,8 @@ class CswAdmin():
 #% guisection: Auto Config
 #%end
 '''
+
+
 def main():
     defaultConf = options['configure']
     load_records = options['load_records']
@@ -381,7 +384,7 @@ def main():
 
     csw = CswAdmin()
     #if flags['a']:
-        #csw.initDatabase()
+    #csw.initDatabase()
     args = csw.argParser(defaultConf,
                          load_records,
                          loadRecurs,

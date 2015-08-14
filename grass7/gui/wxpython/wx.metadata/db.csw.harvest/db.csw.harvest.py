@@ -18,7 +18,7 @@ This program is free software under the GNU General Public License
 
 """
 
-#%module
+# %module
 #% description: CSW database manager
 #% keyword: csw
 #% keyword: metadata
@@ -46,23 +46,27 @@ This program is free software under the GNU General Public License
 #% type: integer
 #%end
 
-import sys,os
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
+import sys
+import os
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata', 'mdlib'))
 from grass.script import core as grass
+
 try:
     from owslib.csw import CatalogueServiceWeb
     from owslib.ows import ExceptionReport
 except:
-    sys.exit('owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit(
+        'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 #from __future__ import absolute_import
 #from __future__ import print_function
 
 
-def harvest(source,dst):
-    maxrecords=options['max']
-    if options['max']==0 or None:
-        maxrecords=10
+def harvest(source, dst):
+    maxrecords = options['max']
+    if options['max'] == 0 or None:
+        maxrecords = 10
     stop = 0
     flag = 0
 
@@ -80,28 +84,28 @@ def harvest(source,dst):
         print(src.results)
 
         if src.results['nextrecord'] == 0 \
-            or src.results['returned'] == 0 \
-            or src.results['nextrecord'] > src.results['matches']:  # end the loop, exhausted all records
+                or src.results['returned'] == 0 \
+                or src.results['nextrecord'] > src.results['matches']:  # end the loop, exhausted all records
             stop = 1
             break
 
         # harvest each record to destination CSW
         for i in list(src.records):
             source = '%s?service=CSW&version=2.0.2&request=GetRecordById&id=%s' % \
-                (sys.argv[1], i)
+                     (sys.argv[1], i)
             dest.harvest(source=source, \
-                resourcetype='http://www.isotc211.org/2005/gmd')
+                         resourcetype='http://www.isotc211.org/2005/gmd')
             #print dest.request
             #print dest.response
 
         flag = 1
 
 
-def _get_csw(catalog_url,timeout=10):
+def _get_csw(catalog_url, timeout=10):
     """function to init owslib.csw.CatalogueServiceWeb"""
     # connect to the server
     try:
-        catalog = CatalogueServiceWeb(catalog_url,timeout=timeout)
+        catalog = CatalogueServiceWeb(catalog_url, timeout=timeout)
         return catalog
     except ExceptionReport, err:
         msg = 'Error connecting to service: %s' % err
@@ -109,16 +113,16 @@ def _get_csw(catalog_url,timeout=10):
         msg = 'Value Error: %s' % err
     except Exception, err:
         msg = 'Unknown Error: %s' % err
-    grass.error( 'CSW Connection error: %s' % msg)
+    grass.error('CSW Connection error: %s' % msg)
 
     return False
 
-def main():
 
+def main():
     if not _get_csw(options['source']):
         return
 
-    harvest(options['source'],options['destination'])
+    harvest(options['source'], options['destination'])
 
 
 if __name__ == "__main__":
