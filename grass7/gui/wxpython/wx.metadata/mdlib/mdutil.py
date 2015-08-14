@@ -25,7 +25,7 @@ import os,sys
 try:
     from owslib.iso import *
 except:
-    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 from owslib.namespaces import Namespaces
 from owslib.etree import etree
@@ -37,6 +37,10 @@ from grass.pygrass.modules import Module
 from subprocess import PIPE
 
 import wx
+class StaticContext(object):
+    def __init__(self):
+        self.ppath = os.path.dirname(os.path.abspath(__file__))
+        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE'),'etc' 'wx.metadata')
 
 def isTableExists(name):
     res = Module('db.tables',flags='p',stdout_=PIPE)

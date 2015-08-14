@@ -53,7 +53,7 @@ try:
     from owslib.csw import CatalogueServiceWeb
     from owslib.ows import ExceptionReport
 except:
-    sys.exit('owslib python library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 #from __future__ import absolute_import
 #from __future__ import print_function

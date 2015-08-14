@@ -3,7 +3,7 @@ MODULE_TOPDIR = ../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-DSTDIR = $(ETC)/mdlib
+DSTDIR = $(ETC)/wx.metadata/mdlib
 
 MODULES = $(wildcard *.py)
 

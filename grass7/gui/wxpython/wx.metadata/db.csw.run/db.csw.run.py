@@ -84,7 +84,7 @@ import contextlib
 try:
     from pycsw import server
 except:
-    sys.exit('pycsw library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 app_path=None
 
 @contextlib.contextmanager

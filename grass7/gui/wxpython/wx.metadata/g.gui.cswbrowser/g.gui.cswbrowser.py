@@ -1,9 +1,22 @@
 #!/usr/bin/env python
+"""
+@module  g.gui.cswbrowser
+@brief   GUI csw browser
+
+(C) 2015 by the GRASS Development Team
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
+"""
+
 import sys, os
-import grass.script as grass
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'mdlib'))
-from cswlib import *
+
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),'etc','wx.metadata','mdlib'))
 import wx
+from cswlib import CSWBrowserPanel,CSWConnectionPanel
+import grass.script as grass
+
 class CswBrowserMainDialog(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, title="Metadata browser", size=(1024, 760))
@@ -13,7 +26,6 @@ class CswBrowserMainDialog(wx.Frame):
 
         self.BrowserPanel = CSWBrowserPanel(self.mainNotebook, self)
         self.connectionPanel = CSWConnectionPanel(self.mainNotebook, self)
-        # self.dirpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'g.gui.cswbrowser')
         self.mainNotebook.AddPage(self.BrowserPanel, text='Find')
         self.mainNotebook.AddPage(self.connectionPanel, text='Configure')
         self._layout()
@@ -32,4 +44,3 @@ def main():
 if __name__ == '__main__':
     grass.parser()
     main()
-

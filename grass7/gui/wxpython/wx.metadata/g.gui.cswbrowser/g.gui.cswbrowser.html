@@ -13,7 +13,8 @@ For dependencies and installation instructions see
 
 <h3>Setting up connection</h3>
 
-After start g.gui.cswbrowser the connection manager is initialized by default connection file  which includes some well
+After start g.gui.cswbrowser the connection manager is initialized by default connection file which
+includes some well
 known catalogs. Connection manager allows to add, to delete and to load connection from xml file.
 
 <h3>Search and browse catalog</h3>
@@ -23,34 +24,38 @@ Searching and browsing panel allows to setup request with using custom filter.
 <h2>EXAMPLES</h2>
 
 <h3>Query filter</h3>
-The filter can be defined by limitation of area by bounding box which can be set by GRASS region or manualy.
+The filter can be defined by limitation of area by bounding box which can be set by GRASS region or
+manualy.
 
 <h3>Bounding box</h3>
 
 <ul>
   <li>Bounding box<br>
-    Bounding box defined spatial extent for limitation of area. Button "Map extends" allows to set up values from current GRASS region.</li>
+    Bounding box defined spatial extent for limitation of area. Button "Map extends" allows to set
+      up values from current GRASS region.</li>
   <li>Keywords<br>
-    This filter allows to use basic or advance keyword filtering. In the simple case user can define single keywords or
-      multiple keywords with button "+". Logic operator between keywords is AND(&&).
-    Second, advanced is based on OGC list of expressions which means that can be set filtr with logic relations between
-      keywords or sets of keywords. Dialog for settings kewords text string is under "Advanced" checkbox. Syntax of
-      constraints is based on python list syntax. Each keywords must be in braces&lt;'&gt;or<">.</li>
+    This filter allows to use basic or advance keyword filtering. In the simple case user can define
+    single keywords or multiple keywords with button "+". Logic operator between keywords is AND(&&).
+    Second, advanced is based on OGC list of expressions which means that can be set filtr with logic
+    relations between keywords or sets of keywords. Dialog for settings kewords text string is under
+    "Advanced" checkbox. Syntax of constraints is based on python list syntax. Each keywords must be
+    in braces&lt;'&gt;or<">.</li>
     <li><ul>
     <li>OR condition<br>
     a || b || c
     ["a","b","c"]</li>
     <li>AND condition<br>
         a && b && c
-        [[a,b,c]]</li>
-    <li>MORE condition<br>
+        [["a","b","c"]]</li>
+    <li>composition<br>
          (a && b) || c || d || e
-        [[a,b],[c],[d],[e]] or [[a,b],c,d,e]</li>
+         [["a","b"],["c"],["d"],["e"]] or [["a","b"],"c","d","e"]</li>
     </ul></li>
 </ul>
 
 <h3>Browsing of metadata</h3>
-In case of successful request, user can browse through results and show request and response in xml format. If services
+In case of successful request, user can browse through results and show request and response in xml format.
+If services
 contains uri of WMS, WFS or WMS, module allows to add them directly with using upper toolbar.
 
 

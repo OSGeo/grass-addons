@@ -2,5 +2,12 @@ MODULE_TOPDIR = ..
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
+DSTDIR = $(ETC)/wx.metadata/profiles
+
+$(DSTDIR):
+	$(MKDIR) -p $@
+
 default:
-	$(INSTALL_DATA) *.xml $(ETC)
+
+install: $(DSTDIR)
+	$(INSTALL_DATA) *.xml $(DSTDIR)

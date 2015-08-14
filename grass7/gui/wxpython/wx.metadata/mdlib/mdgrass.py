@@ -19,11 +19,11 @@ import sys
 try:
     from owslib.iso import *
 except:
-    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 try:
     from jinja2 import Environment, FileSystemLoader
 except:
-    sys.exit('jinja2 library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
 from lxml import etree

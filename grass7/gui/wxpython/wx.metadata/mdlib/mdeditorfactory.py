@@ -34,12 +34,12 @@ import wx.lib.scrolledpanel as scrolled
 try:
     from owslib.iso import *
 except:
-    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 from mdjinjaparser import JinjaTemplateParser
 try:
     from jinja2 import Environment, FileSystemLoader
 except:
-    sys.exit('jinja2 library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
 from core.gcmd import RunCommand, GError, GMessage
@@ -1579,7 +1579,7 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         #dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.path.join(sys.path[0],'..'), 'config', 'init_md.txt')
+        path = os.path.join(os.path.join(sys.path[0],'..'), 'config','wx.metadata','init_md.txt')
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()

@@ -129,8 +129,9 @@ from cswutil import *
 import shutil
 try:
     from pycsw.core import admin, config
+
 except:
-    sys.exit('pycsw library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
 

@@ -1,7 +1,7 @@
 try:
     from owslib.iso import *
 except:
-    sys.exit('owslib library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 from reportlab.platypus import PageBreak
 import tempfile, sys, os
 import math

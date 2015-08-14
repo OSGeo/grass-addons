@@ -1,41 +1,51 @@
 #!/usr/bin/env python
+"""
+@module  library for g.gui.cswbrowser
+@brief   GUI csw browser
 
+
+(C) 2015 by the GRASS Development Team
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
+"""
 import sys,os
-import grass.script as grass
-from modules.import_export import GdalImportDialog, GdalOutputDialog, ImportDialog
 try:
     from owslib.csw import CatalogueServiceWeb
 except:
-    sys.exit('owslib python library is missing. Check dependency on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit('owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+
+from cswutil import *
+from mdutil import yesNo
+import tempfile
+import json
 
 import webbrowser
-from cswutil import *
 import wx
 from wx import SplitterWindow
 import wx.html as html
+from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 import webbrowser
 from threading import Thread
 import xml.etree.ElementTree as ET
+from wx.html import HTML_URL_IMAGE, HTML_OPEN, EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_NEVER, \
+    HW_SCROLLBAR_AUTO
 
-from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 # import wx.html2 not supported in 2.8.12.1 (need for CSS support)
 from owslib.csw import CatalogueServiceWeb
 from owslib.fes import BBox, PropertyIsLike
 from owslib.ows import ExceptionReport
-import json
+
+import grass.script as grass
 from core.utils import GetFormats
 from gui_core.forms import GUI
 from core.gcmd import RunCommand, GError, GMessage, GWarning
-from wx.html import HTML_URL_IMAGE, HTML_OPEN, EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_NEVER, \
-    HW_SCROLLBAR_AUTO
-import tempfile
-
+from modules.import_export import GdalImportDialog, GdalOutputDialog, ImportDialog
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
-from cswutil import *
-#sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'config'))
 
 class ConstraintsBulder(wx.Panel):
     def __init__(self, parent, settings=''):
@@ -93,7 +103,6 @@ class CSWBrowserPanel(wx.Panel):
        # self.connectionFilePath = os.path.join('config', 'connections_resources.xml')
         self.context=StaticContext()
         self.connectionFilePath = os.path.join(self.context.addonsPath, 'connections_resources.xml')
-
         self.pnlLeft = wx.Panel(self.splitterBrowser, id=wx.ID_ANY)
         self.pnlRight = wx.Panel(self.splitterBrowser, -1)
 
@@ -111,21 +120,22 @@ class CSWBrowserPanel(wx.Panel):
         # self.abstractCtrl = wx.TextCtrl(self.pnlRight, style=wx.TE_MULTILINE | wx.HSCROLL)
 
         self.catalogCmb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition)
+        self.keywordCtr = wx.TextCtrl(self.pnlLeft)
         self.catalogCmb.Bind(wx.EVT_COMBOBOX, self.OnSetCatalog)
-        w, self.h = self.catalogCmb.GetSize()
+        w, self.h = self.keywordCtr.GetSize()
         self.numResultsSpin = wx.SpinCtrl(self.pnlLeft, min=1, max=100, initial=20, size=(sizeConst, self.h),
                                           style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS)
 
-        self.keywordCtr = wx.TextCtrl(self.pnlLeft)
+
         self.addKeywordCtr = wx.Button(self.pnlLeft, -1, '+', size=(self.h, self.h))
         self.addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
         self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label='Find')
         self.findBtt.SetBackgroundColour((255, 127, 80))
-        self.qtypeRb = wx.RadioButton(self.pnlLeft, label='All', style=wx.RB_GROUP)
-        self.qtypeRb1 = wx.RadioButton(self.pnlLeft, label='Dataset')
-        self.qtypeRb2 = wx.RadioButton(self.pnlLeft, label='Service')
-        self.qtypeRb.SetValue(True)
+        qtyp=['All','Collection','Dataset','Event','Image','InteractiveResource',
+            'MovingImage','PhysicalObject','Service','Software','Sound','StillImage','Text']
 
+        self.qtypeCb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition,choices=qtyp)
+        self.qtypeCb.SetValue("All")
         # -----Results---
         self.resultList = AutoWidthListCtrl(self.pnlLeft)
         self.resultList.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.setTooltip)
@@ -267,7 +277,7 @@ class CSWBrowserPanel(wx.Panel):
         f = open(path, 'w')
         f.write(request_html)
         f.close()
-        if YesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
+        if yesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
             open_url(path)
         self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
 
@@ -279,7 +289,7 @@ class CSWBrowserPanel(wx.Panel):
         f = open(path, 'w')
         f.write(response_html)
         f.close()
-        if YesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
+        if yesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
             open_url(path)
         self.htmlView.SetPage((renderXML(self.context, self.catalog.response)))
 
@@ -423,7 +433,7 @@ class CSWBrowserPanel(wx.Panel):
             self.startfrom += self.maxrecords
             if self.startfrom >= self.catalog.results["matches"]:
                 msg = 'End of results. Go to start?'
-                if YesNo(self, msg, 'End of results'):
+                if yesNo(self, msg, 'End of results'):
                     self.startfrom = 0
                 else:
                     return
@@ -431,7 +441,7 @@ class CSWBrowserPanel(wx.Panel):
             self.startfrom -= self.maxrecords
             if self.startfrom < 0:
                 msg = 'Start of results. Go to end?'
-                if YesNo(self, msg, 'Navigation'):
+                if yesNo(self, msg, 'Navigation'):
                     self.startfrom = (self.catalog.results['matches'] - self.maxrecords)
                 else:
                     return
@@ -593,12 +603,11 @@ class CSWBrowserPanel(wx.Panel):
 
 
     def GetQtype(self):  # TODO need to implement
-        if self.qtypeRb.GetValue():
+        val=self.qtypeCb.GetValue()
+        if val== 'All':
             return None
-        elif self.qtypeRb1.GetValue():
-            return 'dataset'
         else:
-            return 'service'
+            return val
 
     def OnSearch(self, evt):
         """execute search"""
@@ -621,7 +630,7 @@ class CSWBrowserPanel(wx.Panel):
         self.maxrecords = self.numResultsSpin.GetValue()
 
         # set timeout
-        self.timeout = self.parent.CSWConnectionPanel.timeout
+        self.timeout = self.parent.connectionPanel.timeoutSpin.GetValue()
 
         # bbox
         minx = self.bbWest.GetValue()  # TODO add grass number validator
@@ -641,6 +650,7 @@ class CSWBrowserPanel(wx.Panel):
         # TODO: allow users to select resources types
         # to find ('service', 'dataset', etc.)
         # print self.constraints
+
         try:
             self.catalog.getrecords2(constraints=self.constraints,
                                      maxrecords=self.maxrecords, esn='full')
@@ -752,19 +762,17 @@ class CSWBrowserPanel(wx.Panel):
         self.leftSearchSizer = wx.BoxSizer(wx.VERTICAL)
         upSearchSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        upSearchSizer.Add(self.qtypeRb, 0)
-        upSearchSizer.Add(self.qtypeRb1, 0)
-        upSearchSizer.Add(self.qtypeRb2, 0)
+        upSearchSizer.Add(self.qtypeCb, 1, wx.EXPAND)
 
-        self.leftSearchSizer.Add(upSearchSizer, 1, )
+
+        self.leftSearchSizer.Add(upSearchSizer, 1 ,wx.EXPAND )
         self.rightSearchSizer.Add(wx.StaticText(self), 0)
         mainSearchSizer.Add(self.leftSearchSizer, wx.EXPAND)
         mainSearchSizer.Add(self.rightSearchSizer)
 
         self.leftSearchSizer.Add(self.keywordLbl, 0)
 
-        self.leftSearchSizer.AddSpacer(7, 0, 1, wx.EXPAND)
-        # self.rightSearchSizer.Add(self.advancedFilter, 0)
+        self.rightSearchSizer.AddSpacer(4, 0, 1, wx.EXPAND)
         self.rightSearchSizer.Add(self.advanceChck, 0)
 
         self.leftSearchSizer.Add(self.keywordCtr, 0, wx.EXPAND)
@@ -878,17 +886,13 @@ class CSWConnectionPanel(wx.Panel):
                                             style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
                                             name="metadata")
 
-        # self.connectionLBox.Bind(wx.EVT_LISTBOX, self.addDefaultConnections())
         self.addDefaultConnections()
         self.connectionLBox.Bind(wx.EVT_LISTBOX_DCLICK, self.onServiceInfo)
-        # self.connectionLBox.Bind(wx.EVT_LISTBOX, self.OnSetCatalog)
         self.newBtt.Bind(wx.EVT_BUTTON, self.onNewconnection)
         self.removeBtt.Bind(wx.EVT_BUTTON, self.onRemoveConnection)
         self.serviceInfoBtt.Bind(wx.EVT_BUTTON, self.onServiceInfo)
 
         self.textMetadata.Bind(EVT_HTML_LINK_CLICKED, self.onHtmlLinkClicked)
-        # self.loadSettings()
-        # self.connectionLabel=wx.StaticText(self.panelLeft,label='Catalog service:')
         self._layout()
 
     def GetUrl(self):
@@ -972,10 +976,10 @@ class CSWConnectionPanel(wx.Panel):
             GMessage('Please select catalog')
             return
         name = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
-        if YesNo(self, "Do you want to remove < %s > from list " % name, "Remove connection"):
+        if yesNo(self, "Do you want to remove < %s > from list " % name, "Remove connection"):
             key = '/connections/%s' % name
             self.config.DeleteGroup(key)
-        if YesNo(self, "Do you want to remove < %s > from default connection file " % name, "Remove connection"):
+        if yesNo(self, "Do you want to remove < %s > from default connection file " % name, "Remove connection"):
             tree = ET.parse(self.connectionFilePath)
             root = tree.getroot()
             for bad in root.findall('csw'):
@@ -1045,9 +1049,7 @@ class CSWConnectionPanel(wx.Panel):
             metadata = render_template('en', self.context,
                                        self.catalog,
                                        self.servicePath)
-
             self.textMetadata.SetPage(metadata)
-
 
     def _get_csw(self):
         """function to init owslib.csw.CatalogueServiceWeb"""
@@ -1071,7 +1073,7 @@ class CSWConnectionPanel(wx.Panel):
         # print path
         if path is not None:
             self.connectionFilePath = path
-            if YesNo(self, "Do you want to remove temporary connections?", "Remove tmp connections"):
+            if yesNo(self, "Do you want to remove temporary connections?", "Remove tmp connections"):
                 self.config.DeleteGroup('/connections')
 
         noerr, doc =get_connections_from_file( self.connectionFilePath)
@@ -1101,7 +1103,7 @@ class CSWConnectionPanel(wx.Panel):
         key = '/connections/%s' % name
         self.config.Write('%s/url' % key, url)
         self.updateConnectionList()
-        if YesNo(self, "Do you want to add connection to default configuration file", "Default connection"):
+        if yesNo(self, "Do you want to add connection to default configuration file", "Default connection"):
             tree = ET.parse(self.connectionFilePath)
             root = tree.getroot()
 
@@ -1135,31 +1137,13 @@ class CSWConnectionPanel(wx.Panel):
                 self.parent.BrowserPanel.loadSettings()
 
 
-
-    '''
-    def OnSetCatalog(self, evt):
-        val = evt.GetSelection()
-        print val
-        print self.config.WriteInt('/guiConn1/catalog', val)
-
-    def loadSettings(self):
-        n = self.config.ReadInt('/guiConn1/catalog',0)
-        print type(n)
-        print n
-        self.connectionLBox.SetSelection(n)
-    '''
-
     def onOpenConnFile(self, event):
-
         openFileDialog = wx.FileDialog(self, "Open catalog file", "", "",
                                        "XML files (*.xml)|*.xml", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-
         if openFileDialog.ShowModal() == wx.ID_CANCEL:
             return
-
         input_stream = openFileDialog.GetPath()
         self.addDefaultConnections(input_stream)
-
 
     def _layout(self):
         self.mainsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1198,19 +1182,3 @@ class AutoWidthListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         ListCtrlAutoWidthMixin.__init__(self)
-
-
-
-
-
-def YesNo(parent, question, caption='Yes or no?'):
-    dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
-    result = dlg.ShowModal() == wx.ID_YES
-    dlg.Destroy()
-    return result
-
-
-
-class CswPublisher():
-    def __init__(self):
-        CSWConnectionPanel(self)

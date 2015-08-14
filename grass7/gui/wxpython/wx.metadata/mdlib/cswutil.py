@@ -1,5 +1,15 @@
 #!/usr/bin/env python
+"""
+@module  utility for g.gui.cswbrowser
+@brief   GUI csw browser
 
+
+(C) 2015 by the GRASS Development Team
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
+"""
 from gettext import gettext, ngettext
 import os
 import webbrowser
@@ -15,7 +25,7 @@ from pygments.formatters import HtmlFormatter
 class StaticContext(object):
     def __init__(self):
         self.ppath = os.path.dirname(os.path.abspath(__file__))
-        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE') ,'etc','config')
+        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc','wx.metadata','config')
 
 
 def get_connections_from_file( filename):
