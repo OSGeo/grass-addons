@@ -1,35 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""
- MODULE:       i.histo.match
- AUTHOR(S):    Luca Delucchi, Fondazione E. Mach (Italy)
-               original PERL code was developed by:
-               Laura Zampa (2004) student of Dipartimento di Informatica e 
-               Telecomunicazioni, Facoltà di Ingegneria,
-                University of Trento  and ITC-irst, Trento (Italy)
-
- PURPOSE:      Calculate histogram matching of several images
- COPYRIGHT:    (C) 2011 by the GRASS Development Team
-
-               This program is free software under the GNU General
-               Public License (>=v2). Read the file COPYING that
-               comes with GRASS for details.
-
- TODO: use "BEGIN TRANSACTION" etc?
-"""
-
+############################################################################
+#
+# MODULE:       i.histo.match
+# AUTHOR(S):    Luca Delucchi, Fondazione E. Mach (Italy)
+#               original PERL code was developed by:
+#               Laura Zampa (2004) student of Dipartimento di Informatica e 
+#               Telecomunicazioni, Facoltà di Ingegneria,
+#                University of Trento  and ITC-irst, Trento (Italy)
+#
+# PURPOSE:      Calculate histogram matching of several images
+# COPYRIGHT:    (C) 2011 by the GRASS Development Team
+#
+#               This program is free software under the GNU General
+#               Public License (>=v2). Read the file COPYING that
+#               comes with GRASS for details.
+#
+# TODO: use "BEGIN TRANSACTION" etc?
+#############################################################################
 #%module
 #% description: Calculate histogram matching of several images.
 #% keyword: imagery
 #% keyword: histogram matching
 #%end
-
 #%option G_OPT_R_INPUTS
 #% description: Name of raster maps to analize
 #% required: yes
 #%end
-
 #%option
 #% key: suffix
 #% type: string
@@ -38,17 +35,14 @@
 #% required: no
 #% answer: match
 #%end
-
 #%option G_OPT_R_OUTPUT
 #% description: Name for mosaic output map
 #% required: no
 #%end
-
 #%option G_OPT_DB_DATABASE
 #% required : no
 #% answer: $GISDBASE/$LOCATION_NAME/$MAPSET/histo.db
 #%end
-
 #%option
 #% key: max
 #% type: integer
