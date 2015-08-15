@@ -364,7 +364,6 @@ from __future__ import (absolute_import, division, print_function,
 import imp
 import sys
 import os
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.class.ml'))
 from pprint import pprint
 from fnmatch import fnmatch
 
@@ -381,6 +380,7 @@ from grass.script.core import parser, overwrite
 path = get_lib_path("v.class.ml", "")
 if path is None:
     raise ImportError("Not able to find the path %s directory." % path)
+
 sys.path.append(path)
 
 
