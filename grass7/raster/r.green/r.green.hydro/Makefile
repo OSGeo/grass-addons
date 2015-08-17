@@ -3,7 +3,6 @@ MODULE_TOPDIR = ../../..
 PGM=r.green.hydro
 
 SUBDIRS = r.green.hydro.theoretical  \
-          r.green.hydro.legal        \
           r.green.hydro.recommended  \
           r.green.hydro.financial     \
           r.green.hydro.closest      \
