@@ -9,6 +9,7 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.table import Link
+from grass.pygrass import utils
 
 
 COLS = [(u'cat',       'INTEGER PRIMARY KEY'),
@@ -31,6 +32,31 @@ COLS_points = [(u'cat',       'INTEGER PRIMARY KEY'),
 
 HydroStruct = namedtuple('HydroStruct',
                          ['intake', 'conduct', 'penstock', 'side'])
+
+
+def closest(number, ndigits=0, resolution=None):
+    """Round a number defining the number of precision decimal digits and
+    the resolution.
+
+    Examples
+    --------
+
+    >>> closest(103.66778,)
+    104.0
+    >>> closest(103.66778, ndigits=2)
+    103.67
+    >>> closest(103.66778, ndigits=2, resolution=5)
+    105.0
+    >>> closest(103.66778, ndigits=2, resolution=0.5)
+    103.5
+    >>> closest(103.66778, ndigits=2, resolution=0.25)
+    103.75
+    """
+    num = round(number, ndigits)
+    return (num if resolution is None else
+            round((num // resolution * resolution +
+                   round((num % resolution) / float(resolution), 0) *
+                   resolution), ndigits))
 
 
 def isinverted(line, elev, region):
@@ -125,16 +151,17 @@ def write_plants(plants, output, stream, elev, overwrite=False):
         out.table.conn.commit()
 
 
-def write_structures(plants, output, elev, stream=None, overwrite=False):
+def write_structures(plants, output, elev, stream=None,
+                     ndigits=0, resolution=None, contour='',
+                     overwrite=False):
     """Write a vector map with the plant structures"""
     def write_hydrostruct(out, hydro, plant):
-        #import pdb; pdb.set_trace()
         pot = plant.potential_power(intakes=[hydro.intake, ])
         (plant_id, itk_id, side,
          disch, gross_head) = (plant.id, hydro.intake.id, hydro.side,
-                         float(hydro.intake.discharge),
-                         float(hydro.intake.elevation -
-                               plant.restitution.elevation))
+                               float(hydro.intake.discharge),
+                               float(hydro.intake.elevation -
+                                     plant.restitution.elevation))
         out.write(hydro.conduct,
                   (plant_id, itk_id, disch, 0., 0., 'conduct', side))
         out.write(hydro.penstock,
@@ -149,6 +176,7 @@ def write_structures(plants, output, elev, stream=None, overwrite=False):
                 (u'power',      'DOUBLE'),
                 (u'kind',       'VARCHAR(10)'),
                 (u'side',       'VARCHAR(10)'), ]
+
     with VectorTopo(output, mode='w', overwrite=overwrite) as out:
         link = Link(layer=1, name=output, table=output,
                     driver='sqlite')
@@ -156,15 +184,50 @@ def write_structures(plants, output, elev, stream=None, overwrite=False):
         out.dblinks.add(link)
         out.table = out.dblinks[0].table()
         out.table.create(tab_cols)
+
         print('Number of plants: %d' % len(plants))
-        for p in plants:
-            plant = plants[p]
-            print(plant.id)
-            #import ipdb; ipdb.set_trace
-            for options in plant.structures(elev, stream=stream):
-                for hydro in options:
-                    print('writing: ', hydro.intake)
-                    write_hydrostruct(out, hydro, plant)
+
+        # check if contour vector map is provide by the user
+        if contour:
+            cname, cmset = (contour.split('@') if '@' in contour
+                            else (contour,  ''))
+            # check if the map already exist
+            if bool(utils.get_mapset_vector(cname, cmset)) and overwrite:
+                compute_contour = True
+            remove = False
+        else:
+            # create a random name
+            contour = 'tmpvect%02d' % random.randint(0, 99)
+            compute_contour = True
+            remove = True
+
+        if compute_contour:
+            # compute the levels of the contour lines map
+            levels = []
+            for p in plants.values():
+                for itk in p.intakes:
+                    levels.append(closest(itk.elevation, ndigits=ndigits,
+                                          resolution=resolution))
+            levels = sorted(set(levels))
+
+            # generate the contur line that pass to the point
+            r.contour(input='%s@%s' % (elev.name, elev.mapset),
+                      output=contour, step=0, levels=levels, overwrite=True)
+
+        # open the contur lines
+        with VectorTopo(contour, mode='r') as cnt:
+            for plant in plants.values():
+                print(plant.id)
+                for options in plant.structures(elev, stream=stream,
+                                                ndigits=ndigits,
+                                                resolution=resolution,
+                                                contour=cnt):
+                    for hydro in options:
+                        print('writing: ', hydro.intake)
+                        write_hydrostruct(out, hydro, plant)
+
+        if remove:
+            cnt.remove()
 
 
 class AbstractPoint(object):
@@ -356,7 +419,8 @@ class Plant(object):
                     ids.append(l_id)
         return lines, ids
 
-    def structures(self, elev, stream=None):
+    def structures(self, elev, stream=None,
+                   ndigits=0, resolution=None, contour=None):
         """Return a tuple with lines structres options of a hypotetical plant.
 
         ::
@@ -435,37 +499,52 @@ class Plant(object):
             return (HydroStruct(itk, c0, p0, s0), HydroStruct(itk, c1, p1, s1))
 
         result = []
-        reg = Region()
-        for itk in self.intakes:
-            tmpvect = 'tmpvect%d' % random.randint(1000, 9999)
+        if contour is None:
+            levels = sorted(set([closest(itk.elevation,
+                                         ndigits=ndigits, resolution=resolution)
+                                 for itk in self.intakes]))
+
             # generate the contur line that pass to the point
-            # TODO: maybe we can compute the contour with all the levels taked
-            # from the all te intake, just to compute this once
+            contour_tmp = 'tmpvect%04d' % random.randint(1000, 9999)
             r.contour(input='%s@%s' % (elev.name, elev.mapset),
-                      output=tmpvect, step=0,  levels=itk.elevation,
+                      output=contour_tmp, step=0, levels=levels,
                       overwrite=True)
-            with VectorTopo(tmpvect, mode='r') as cnt:
-                # find the closest contur line
-                contur_res = cnt.find['by_point'].geo(self.restitution.point,
-                                                      maxdist=100000.0)
-                contur = not_overlaped(contur_res)
-                contur = sort_by_west2east(contur)
-                # TODO: probably find the contur line for the intake and
-                # the restitution it is not necessary, and we could also remove
-                # the check bellow: contur_itk.id != contur_res.id
-                contur_itk = cnt.find['by_point'].geo(itk.point,
-                                                      maxdist=100000.0)
-                if contur_itk is None or contur_res is None:
-                    msg = ('Not able to find the contur line closest to the '
-                           'intake point %r, of the plant %r'
-                           'from the contur line map: %s')
-                    raise TypeError(msg % (itk, self, cnt.name))
-                if contur_itk.id != contur_res.id:
-                    print('=' * 30)
-                    print(itk)
-                    msg = "Contur lines are different! %d != %d, in %s"
-                    print(msg % (contur_itk.id, contur_res.id, cnt.name))
-                result.append(get_all_structs(contur, itk, self.restitution))
-            # remove temporary vector map
+
+            cnt = VectorTopo(contour_tmp)
+            cnt.open()
+        else:
+            cnt = contour
+
+        for itk in self.intakes:
+            # find the closest contur line
+            contur_res = cnt.find['by_point'].geo(self.restitution.point,
+                                                  maxdist=100000.0)
+
+            # TODO: probably find the contur line for the intake and
+            # the restitution it is not necessary, and we could also remove
+            # the check bellow: contur_itk.id != contur_res.id
+            contur_itk = cnt.find['by_point'].geo(itk.point,
+                                                  maxdist=100000.0)
+            if contur_itk is None or contur_res is None:
+                msg = ('Not able to find the contur line closest to the '
+                       'intake point %r, of the plant %r'
+                       'from the contur line map: %s')
+                raise TypeError(msg % (itk, self, cnt.name))
+            if contur_itk.id != contur_res.id:
+                print('=' * 30)
+                print(itk)
+                msg = ("Contur lines are different! %d != %d, in %s."
+                       "Therefore %d will be used.")
+                print(msg % (contur_itk.id, contur_res.id, cnt.name,
+                             contur_itk.id))
+
+            # check contour
+            contur = not_overlaped(contur_itk)
+            contur = sort_by_west2east(contur)
+            result.append(get_all_structs(contur, itk, self.restitution))
+
+        # remove temporary vector map
+        if contour is None:
+            cnt.close()
             cnt.remove()
         return result

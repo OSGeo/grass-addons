@@ -89,6 +89,27 @@
 #%  answer: pot_power
 #%  guisection: Input columns
 #%end
+#%option
+#%  key: ndigits
+#%  type: integer
+#%  description: Number of digits to use for the elevation in the contour line vector map
+#%  required: no
+#%  answer: 0
+#%  guisection: Contour
+#%end
+#%option
+#%  key: resolution
+#%  type: double
+#%  description: Resolution use for the contour line vector map, if 0.25 approximate 703.31 tp 703.25
+#%  required: no
+#%  guisection: Contour
+#%end
+#%option G_OPT_V_OUTPUT
+#%  key: contour
+#%  description: Name of the contour line vector map
+#%  required: no
+#%  guisection: Contour
+#%end
 #%option G_OPT_V_OUTPUT
 #% key: output_point
 #% label: Name of output vector map with potential intakes and restitution
@@ -172,7 +193,11 @@ def main(opts, flgs):
 
     plnt.close()
 
-    write_structures(plants, opts['output_struct'], elev, overwrite=ovwr)
+    # contour options
+    resolution = float(opts['resolution']) if opts['resolution'] else None
+    write_structures(plants, opts['output_struct'], elev,
+                     ndigits=int(opts['ndigits']), resolution=resolution,
+                     contour=opts['contour'], overwrite=ovwr)
     elev.close()
 
 
