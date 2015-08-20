@@ -16,7 +16,7 @@ install:
 	@cp -rL $(DSTDIR) $(INST_DIR)
 
 $(DSTDIR):
-	$(MKDIR) $@
+	$(MKDIR) -p $@
 
 $(DSTDIR)/%: % | $(DSTDIR)
 	$(INSTALL_DATA) $< $@
