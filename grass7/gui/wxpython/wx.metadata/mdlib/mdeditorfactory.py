@@ -946,7 +946,7 @@ class MdMainEditor(wx.Panel):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
         '''
-        print stri
+        #print stri
         exec stri
 
     def plusC(self, num=None):

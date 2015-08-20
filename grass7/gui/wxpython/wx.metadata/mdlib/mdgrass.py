@@ -39,7 +39,8 @@ from subprocess import PIPE
 from datetime import date, datetime
 from grass.script import core as grass
 from osgeo import osr
-
+#sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc','wx.metadata','mdlib'))
+sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
 class GrassMD():
 
     '''
@@ -184,37 +185,41 @@ class GrassMD():
         self.md_abstract.translate("""&<>"'""")
 
     def getEPSG(self):
-        print 'epsg process'
         proj=Module('g.proj',
                    flags='p',
                    quiet=True,
                    stdout_=PIPE)
+
         proj=proj.outputs.stdout
-        epsg=None
-        for line in proj.splitlines():
+        lines=proj.splitlines()
+        for e,line in enumerate(lines):
             if 'EPSG' in line:
-                epsg=line.split(':')[1].replace(' ','')
+                epsg=lines[e+1].split(':')[1].replace(' ','')
                 return epsg
-        try:
-            proj=Module('g.proj',
+
+        proj=Module('g.proj',
                    flags='wf',
                    quiet=True,
                    stdout_=PIPE)
-            proj=proj.outputs.stdout
-            epsg=self.esriprj2standards(proj)
-            print epsg
-            return epsg
-        except:
-            return None
+        proj=proj.outputs.stdout
 
-    def esriprj2standards(self,prj_txt):
-       srs = osr.SpatialReference()
-       srs.ImportFromESRI([prj_txt])
-       #print 'Shape prj is: %s' % prj_txt
-       #print 'WKT is: %s' % srs.ExportToWkt()
-       #print 'Proj4 is: %s' % srs.ExportToProj4()
-       srs.AutoIdentifyEPSG()
-       return srs.GetAuthorityCode(None)
+        epsg = self.wkt2standards(proj)
+
+        if not epsg:
+            return None
+        else:
+            return epsg
+
+    def wkt2standards(self,prj_txt):
+        srs = osr.SpatialReference()
+        srs.ImportFromESRI([prj_txt])
+        srs.AutoIdentifyEPSG()
+        try :
+            int(srs.GetAuthorityCode(None))
+            return srs.GetAuthorityCode(None)
+        except:
+            grass.warning('Epsg code cannot be identified')
+            return None
 
     def createTemporalISO(self, profile=None):
         '''Create GRASS Temporal profile based on ISO
@@ -223,7 +228,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath = os.path.join('profiles', 'temporalProfile.xml')
+            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'temporalProfile.xml')
         else:
             self.profilePath = profile
         self.schema_type = '_temporal.xml'
@@ -302,7 +307,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath = os.path.join('profiles', 'basicProfile.xml')
+            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'basicProfile.xml')
         else:
             self.profilePath = profile
 
@@ -347,7 +352,7 @@ class GrassMD():
             self.md.referencesystem=MD_ReferenceSystem(None)
             self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s'%epsg
 
-        print self.md.referencesystem.code
+        #print self.md.referencesystem.code
         # Conformity/Date:
         self.md.dataquality.conformancedate.append(mdutil.replaceXMLReservedChar(date.today().isoformat()))
         self.md.dataquality.conformancedatetype.append('publication')
@@ -411,7 +416,7 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if profile is None:
-            self.profilePath = os.path.join('profiles',  'inspireProfile.xml')
+            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'inspireProfile.xml')
         else:
             self.profilePath = profile
 

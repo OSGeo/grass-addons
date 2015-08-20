@@ -120,8 +120,7 @@ import ConfigParser
 
 from grass.script import core as grass
 
-
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata', 'mdlib'))
+sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
 
 import getopt
 from cswutil import *

@@ -9,7 +9,7 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
 @modified for GRASS GIS by Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
-@originaly crated by  "# Copyright (c) 2010 Tom Kralidis"
+@originaly created by  "# Copyright (c) 2010 Tom Kralidis"
 
 
 
@@ -49,7 +49,7 @@ This program is free software under the GNU General Public License
 import sys
 import os
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'wx.metadata', 'mdlib'))
+sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
 from grass.script import core as grass
 
 try:
@@ -123,7 +123,6 @@ def main():
         return
 
     harvest(options['source'], options['destination'])
-
 
 if __name__ == "__main__":
     options, flags = grass.parser()
