@@ -125,13 +125,14 @@ class CSWBrowserPanel(wx.Panel):
 
         self.addKeywordCtr = wx.Button(self.pnlLeft, -1, '+', size=(self.h, self.h))
         self.addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
-        self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label='Find')
+        self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label='Search')
         self.findBtt.SetBackgroundColour((255, 127, 80))
         qtyp=['All','Collection','Dataset','Event','Image','InteractiveResource',
             'MovingImage','PhysicalObject','Service','Software','Sound','StillImage','Text']
 
         self.qtypeCb = wx.ComboBox(self.pnlLeft, id=-1, pos=wx.DefaultPosition,choices=qtyp)
         self.qtypeCb.SetValue("All")
+        self.qtypeCb.Disable()
         # -----Results---
         self.resultList = AutoWidthListCtrl(self.pnlLeft)
         self.resultList.Bind(wx.EVT_LIST_ITEM_FOCUSED, self.setTooltip)
@@ -233,7 +234,10 @@ class CSWBrowserPanel(wx.Panel):
             return
         constString = 'self.constraints=' + self.constString
         try:
-            exec (constString)
+            exec(constString)
+            if type(self.constraints != type(list())):
+                GMessage('Constraints syntax error')
+                return
         except:
             GMessage('Constraints syntax error')
             return

@@ -85,7 +85,7 @@ class MdMainFrame(wx.Frame):
         self.batch = False
         self.mdCreator = None
         self.editStatus = None
-        self.onInitEditor()
+        self.initEditor()
 
         dispatcher.connect(self.initNewMD, signal='NEW_MD.create', sender=dispatcher.Any)
         dispatcher.connect(self.onEditingMode, signal='EDITING_MODE.update', sender=dispatcher.Any)
@@ -292,7 +292,7 @@ class MdMainFrame(wx.Frame):
             if not ok:
                 return False
         else:
-            self.onInitEditor()
+            self.initEditor()
 
         self.bttCreateTemplate.Disable()
         self.bttEdit.Disable()
@@ -312,7 +312,7 @@ class MdMainFrame(wx.Frame):
         return True
 
     def onNewSession(self, evt):
-        self.onInitEditor()
+        self.initEditor()
         self.setTemplateEditorPath(value=False, template=False)
         # check current editing mode(grass or external xml editor)
         if self.rbGrass is False:
@@ -634,7 +634,7 @@ class MdMainFrame(wx.Frame):
                     return
 
             self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
-            self.onInitEditor()
+            self.initEditor()
         # if editing multiple maps or just one but with loading own custom profile
         if self.profileChoice == 'Load custom' and self.numOfMap != 0:
             # load profile. IF - just one map, ELSE - multiple editing
@@ -661,7 +661,7 @@ class MdMainFrame(wx.Frame):
                         self.initMultipleEditor()
                     else:
                         self.ListOfMapTypeDict.pop()
-                        self.onInitEditor()
+                        self.initEditor()
                 else:  # do nothing
                     return False
             else:
@@ -720,9 +720,9 @@ class MdMainFrame(wx.Frame):
                 self.hideMultipleEdit()
             self.second = False
             self.secondAfterChoice = True
-            self.onInitEditor()
+            self.initEditor()
 
-    def onInitEditor(self, ):
+    def initEditor(self, ):
         '''Initialize editor
         @var first: True= First initialize main frame
         @var firstAfterChoice: True=Init editor editor after set configuration and click onEdit in toolbar
@@ -903,11 +903,12 @@ class MdDataCatalog(datacatalog.LocationMapTree):
                 varmapset = self.getItemByName(mapset, varloc)
 
             # add type node if not exists
-            if self.itemExists(ltype, varmapset) is False:
-                vartype = self.AppendItem(varmapset, ltype)
+            if varmapset is not None:
+                if self.itemExists(ltype, varmapset) is False:
+                    vartype = self.AppendItem(varmapset, ltype)
 
-            if vartype is not None:
-                self.AppendItem(vartype, mlayer)
+                if vartype is not None:
+                    self.AppendItem(vartype, mlayer)
 
     def initTemporalTree(self, location, mapset):
         varloc = self.AppendItem(self.rootTmp, 'Temporal maps')
@@ -931,22 +932,25 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         vartype=None
         env = grass.gisenv()
         mapset = env['MAPSET']
+        try:
+            for ml in allDatasets:
+                # add mapset
+                if ml[1] == mapset:#chck current mapset
+                    it = self.itemExists(ml[1], varloc)
+                    if it is False:
+                        varmapset = it
+                    else:
+                        varmapset = self.getItemByName(ml[1], varloc)
+                    # add type node if not exists
+                    if varmapset is not None:
+                        if self.itemExists(ml[2], varmapset) is False:
+                            vartype = self.AppendItem(varmapset, ml[2])
 
-        for ml in allDatasets:
-            # add mapset
-            if ml[1] == mapset:#chck current mapset
-                it = self.itemExists(ml[1], varloc)
-                if  it is False:
-                    varmapset = it
-                else:
-                    varmapset = self.getItemByName(ml[1], varloc)
-                # add type node if not exists
-                if varmapset is not None:
-                    if self.itemExists(ml[2], varmapset) is False:
-                        vartype = self.AppendItem(varmapset, ml[2])
+                    if vartype is not None:
+                        self.AppendItem(vartype, ml[0])
 
-                if vartype is not None:
-                    self.AppendItem(vartype, ml[0])
+        except Exception, e:
+            GError('Initialize of temporal tree catalogue error: < %s >'%e)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onChanged)
@@ -986,7 +990,6 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         mapType = self.GetItemText(parentItem)
         if self.GetChildrenCount(item) == 0 and self.isMapExist(name,mapType):  # is selected map
             #check temporal selection
-
             for i in self.GetSelections():
                 MapTypeDict = {}
                 maps.append(self.GetItemText(i))
@@ -1032,8 +1035,6 @@ class MdDataCatalog(datacatalog.LocationMapTree):
 #===============================================================================
 # NOTEBOOK ON THE RIGHT SIDE-xml browser+validator
 #===============================================================================
-
-
 class NotebookRight(wx.Notebook):
     '''Include pages with xml tree browser and validator of metadata
     '''
