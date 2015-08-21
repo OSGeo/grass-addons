@@ -103,7 +103,7 @@ class MdMainFrame(wx.Frame):
                                       style=wx.RB_GROUP)
         self.rbExternal = wx.RadioButton(self.configPanelLeft, id=wx.ID_ANY, label='Metadata external editor')
         self.comboBoxProfile = wx.ComboBox(self.configPanelLeft,
-                                           choices=['INSPIRE', 'GRASS BASIC', 'TEMPORAL', 'Load Custom'])
+                                           choices=['INSPIRE', 'GRASS BASIC', 'TEMPORAL', 'Load custom'])
         dispatcher.connect(self.onSetProfile, signal='SET_PROFILE.update', sender=dispatcher.Any)
         self.comboBoxProfile.SetStringSelection('INSPIRE')
 
@@ -119,8 +119,17 @@ class MdMainFrame(wx.Frame):
             self.comboBoxProfile.Show()
         self.onEditingMode(editStatus=self.mapGrassEdit)
 
-    def onSetProfile(self, profile):
-        self.comboBoxProfile.SetStringSelection(profile)
+    def onSetProfile(self, profile=None,multi=False):
+        if profile is not None:
+            self.comboBoxProfile.SetStringSelection(profile)
+        if multi:
+            self.comboBoxProfile.Disable()
+        else:
+            self.comboBoxProfile.Enable()
+        if profile == 'Load custom':
+            self.bttCreateTemplate.Disable()
+        else:
+            self.bttCreateTemplate.Enable()
 
     def initToolbar(self):
         #self.toolbarPanel=wx.Panel(self, id=wx.ID_ANY)
@@ -593,7 +602,7 @@ class MdMainFrame(wx.Frame):
             return
 
         # if editing just one map
-        if self.numOfMap == 1 and multipleEditing is False:
+        if self.numOfMap == 1 and multipleEditing is False and self.profileChoice != 'Load custom':
             if self.profileChoice == 'INSPIRE':
                 if self.chckProfileSelection('spatial'):
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
@@ -627,16 +636,22 @@ class MdMainFrame(wx.Frame):
             self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
             self.onInitEditor()
         # if editing multiple maps or just one but with loading own custom profile
-        if self.profileChoice == 'Load Custom' and self.numOfMap != 0:
+        if self.profileChoice == 'Load custom' and self.numOfMap != 0:
             # load profile. IF - just one map, ELSE - multiple editing
             if multipleEditing is False:
                 dlg = wx.FileDialog(self, "Select profile", os.getcwd(), "", "*.xml", wx.OPEN)
                 if dlg.ShowModal() == wx.ID_OK:
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
                                                      self.ListOfMapTypeDict[-1].keys()[0])
-                    self.mdCreator.createGrassInspireISO()
+
+                    if self.chckProfileSelection('temporal'): #if map is temporal, use temporal md pareser
+                        self.mdCreator.createTemporalISO()
+                    else:
+                        self.mdCreator.createGrassInspireISO()
+
                     self.jinjaPath = dlg.GetPath()
                     self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
+
                     # if multiple map are selected
                     if self.numOfMap > 1:
                         self.xmlPath = self.xmlPath
@@ -872,7 +887,7 @@ class MdDataCatalog(datacatalog.LocationMapTree):
         maplist = RunCommand('g.list', flags='mt', type='raster,vector', mapset=mapset,
                              quiet=True, read=True)
         maplist = maplist.splitlines()
-
+        vartype=None
         for ml in maplist:
             # parse
             parts1 = ml.split('/')
@@ -882,16 +897,17 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             ltype = parts1[0]
 
             # add mapset
-            if self.itemExists(mapset, varloc) == False:
+            if self.itemExists(mapset, varloc) is False:
                 varmapset = self.AppendItem(varloc, mapset)
             else:
                 varmapset = self.getItemByName(mapset, varloc)
 
             # add type node if not exists
-            if self.itemExists(ltype, varmapset) == False:
+            if self.itemExists(ltype, varmapset) is False:
                 vartype = self.AppendItem(varmapset, ltype)
 
-            self.AppendItem(vartype, mlayer)
+            if vartype is not None:
+                self.AppendItem(vartype, mlayer)
 
     def initTemporalTree(self, location, mapset):
         varloc = self.AppendItem(self.rootTmp, 'Temporal maps')
@@ -907,23 +923,30 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             allDatasets = [i for i in sorted(allDatasets,
                                              key=lambda l: mapsets.index(l[1]))]
 
-        first = True
         loc = location
         varloc = self.AppendItem(varloc, loc)
 
         self.AppendItem(varloc, mapset)
         # get list of all maps in location
+        vartype=None
+        env = grass.gisenv()
+        mapset = env['MAPSET']
+
         for ml in allDatasets:
             # add mapset
-            if self.itemExists(ml[1], varloc) == False:
-                varmapset = self.getItemByName(ml[1], varloc)
-            else:
-                varmapset = self.getItemByName(ml[1], varloc)
-            # add type node if not exists
-            if self.itemExists(ml[2], varmapset) == False:
-                vartype = self.AppendItem(varmapset, ml[2])
+            if ml[1] == mapset:#chck current mapset
+                it = self.itemExists(ml[1], varloc)
+                if  it is False:
+                    varmapset = it
+                else:
+                    varmapset = self.getItemByName(ml[1], varloc)
+                # add type node if not exists
+                if varmapset is not None:
+                    if self.itemExists(ml[2], varmapset) is False:
+                        vartype = self.AppendItem(varmapset, ml[2])
 
-            self.AppendItem(vartype, ml[0])
+                if vartype is not None:
+                    self.AppendItem(vartype, ml[0])
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onChanged)
@@ -934,6 +957,18 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             self.ExpandAllChildren(evt.Item)
         else:
             self.CollapseAllChildren(evt.Item)
+
+    def isMapExist(self,map,type):
+        '''Check if the map is in current mapset'''
+        types=['raster',
+               'vector',
+               'stvds',
+               'strds',
+               ]
+        if type in types:
+            return True
+        else:
+            return False
 
     def onChanged(self, evt=None):
         '''
@@ -946,8 +981,10 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             item = evt.Item
         else:
             item = self.GetSelection()
-
-        if self.GetChildrenCount(item) == 0:  # is selected map
+        name=self.GetItemText(item)
+        parentItem = self.GetItemParent(item)
+        mapType = self.GetItemText(parentItem)
+        if self.GetChildrenCount(item) == 0 and self.isMapExist(name,mapType):  # is selected map
             #check temporal selection
 
             for i in self.GetSelections():
@@ -981,12 +1018,13 @@ class MdDataCatalog(datacatalog.LocationMapTree):
             status += map + '  '
 
         if len(maps) > 1:
-            dispatcher.send(signal='SET_PROFILE.update', profile='Load Custom')
+            dispatcher.send(signal='SET_PROFILE.update', profile='Load custom',multi=True)
             MAINFRAME.bttUpdateGRASS.Disable()
             MAINFRAME.bttCreateTemplate.Disable()
 
         else:
             MAINFRAME.bttCreateTemplate.Enable(True)
+            dispatcher.send(signal='SET_PROFILE.update',multi=False)
 
         dispatcher.send(signal='STATUS_BAR_TEXT.update', text=status)
 
@@ -1197,7 +1235,7 @@ class MdValidator(wx.Panel):
     def validate(self, md, profile):
         '''For externally loaded xml file is by default inspire validator
         '''
-        if profile == 'INSPIRE' or profile == 'Load Custom':
+        if profile == 'INSPIRE' or profile == 'Load custom':
             result = mdutil.isnpireValidator(md)
             str1 = 'INSPIRE VALIDATOR\n'
 

@@ -53,6 +53,7 @@ class GrassMD():
     def __init__(self, map, type):
         self.map = map
         self.type = type
+
           # function to check if map exist
         self.md_grass = {}
         self.md_abstract = ''
@@ -85,8 +86,11 @@ class GrassMD():
             grass.fatal(_("Map <%s> does not exist in current mapset") % self.map)
 
     def parseTemporal(self):
+        env = grass.gisenv()
+        mapset = env['MAPSET']
+        self.map="%s@%s"%(self.map,mapset)
         tinfo = Module('t.info',
-                        input=self.map,
+                        self.map,
                         flags='g',
                         type=self.type,
                         stdout_=PIPE)
