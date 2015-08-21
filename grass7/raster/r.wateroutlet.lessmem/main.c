@@ -1,7 +1,7 @@
 
 /****************************************************************************
  *
- * MODULE:       r.water.outlet
+ * MODULE:       r.wateroutlet.lessmem
  * AUTHOR(S):    Charles Ehlschlaeger, USACERL (original contributor)
  *               Markus Neteler <neteler itc.it>, 
  *               Roberto Flor <flor itc.it>, 
@@ -10,10 +10,10 @@
  *               Glynn Clements <glynn gclements.plus.com>, 
  *               Jan-Oliver Wagner <jan intevation.de>, 
  *               Soeren Gebbert <soeren.gebbert gmx.de>
- * PURPOSE:      this program makes a watershed basin raster map using the 
+ * PURPOSE:      This program makes a watershed basin raster map using the 
  *               drainage pointer map, from an outlet point defined by an 
  *               easting and a northing.
- * COPYRIGHT:    (C) 1999-2006, 2010, 2013 by the GRASS Development Team
+ * COPYRIGHT:    (C) 1999-2006, 2010, 2013, 2015 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
