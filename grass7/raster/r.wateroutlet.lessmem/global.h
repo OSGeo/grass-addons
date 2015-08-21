@@ -13,8 +13,7 @@
 #define DIRSIZE (((nrows * ncols) >> 1) + ((nrows * ncols) & 1 ? 1 : 0))
 #define SETDIR(b, r, c, d) \
     b[((r) * ncols + (c)) >> 1] = \
-    (b[((r) * ncols + (c)) >> 1] & \
-     ~(15 << (((r) * ncols + (c)) & 1 ? 4 : 0))) \
+    (b[((r) * ncols + (c)) >> 1] & ~(15 << (((r) * ncols + (c)) & 1 ? 4 : 0))) \
     | ((d) << (((r) * ncols + (c)) & 1 ? 4 : 0))
 #define GETDIR(b, r, c) \
     ((b[((r) * ncols + (c)) >> 1] & (15 << (((r) * ncols + (c)) & 1 ? 4 : 0))) \
