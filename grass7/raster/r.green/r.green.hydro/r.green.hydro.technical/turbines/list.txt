@@ -1,0 +1,11 @@
+Coclea
+Crossflow
+Francis
+Kaplan_dop
+Kaplan_sing
+MicroPelton
+MiniFrancis
+MiniKaplan_dop
+MiniKaplan_sing
+MiniPelton
+Pelton
