@@ -1,11 +1,11 @@
 #define BITSIZE (((nrows * ncols) >> 3) + ((nrows * ncols) & 7 ? 1 : 0))
 #define SETBIT(b, r, c) \
     b[((r) * ncols + (c)) >> 3] = \
-    (b[((r) * ncols + (c)) >> 3] & (0xff ^ (1 << (((r) * ncols + (c)) & 7)))) \
+    (b[((r) * ncols + (c)) >> 3] & ~(1 << (((r) * ncols + (c)) & 7))) \
     | (1 << (((r) * ncols + (c)) & 7))
 #define CLEARBIT(b, r, c) \
     b[((r) * ncols + (c)) >> 3] = \
-    b[((r) * ncols + (c)) >> 3] & (0xff ^ (1 << (((r) * ncols + (c)) & 7)))
+    b[((r) * ncols + (c)) >> 3] & ~(1 << (((r) * ncols + (c)) & 7))
 #define GETBIT(b, r, c) \
     ((b[((r) * ncols + (c)) >> 3] & (1 << (((r) * ncols + (c)) & 7))) \
      >> (((r) * ncols + (c)) & 7))
@@ -14,7 +14,7 @@
 #define SETDIR(b, r, c, d) \
     b[((r) * ncols + (c)) >> 1] = \
     (b[((r) * ncols + (c)) >> 1] & \
-     (0xff ^ (15 << (((r) * ncols + (c)) & 1 ? 4 : 0)))) \
+     ~(15 << (((r) * ncols + (c)) & 1 ? 4 : 0))) \
     | ((d) << (((r) * ncols + (c)) & 1 ? 4 : 0))
 #define GETDIR(b, r, c) \
     ((b[((r) * ncols + (c)) >> 1] & (15 << (((r) * ncols + (c)) & 1 ? 4 : 0))) \
