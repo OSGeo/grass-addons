@@ -64,7 +64,8 @@ def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
 		stats=gscript.parse_command("r.univar",map='critPow',flags='g')
 		nameMap="_%s" % criterion.split("@")[1]
 		mapalgebra="%s=(%s/sqrt(%s))*%s" % (nameMap,criterion,stats['sum'],weight)
-		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}" ,nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
+		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}", \
+			nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
 		criteria.append(nameMap)
 	return criteria
 
@@ -103,9 +104,6 @@ def idealPointDistance(idelaPointsList,criteria): #step4a
 	i=0
 	for c,ip in zip(criteria,idelaPointsList):
 		mapname="tmap_%s" % i
-		#mapalgebra1="%s=pow((%s-%s),2)" % (mapname,c,ip)
-		#print mapalgebra1
-		#gscript.mapcalc(mapalgebra1,overwrite='True')
 		gscript.mapcalc("${mapname}=pow((${c}-${ip}),2)",mapname=mapname,c=c,ip=ip,overwrite='True')
 		distance.append(mapname)
 		i=i+1
@@ -130,7 +128,6 @@ def worstPointDistance(worstPointsList,criteria): #step4b
 def relativeCloseness(topsismap): #step5
 	gscript.mapcalc("${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",\
 		topsismap=topsismap,overwrite='True')
-	
 
 
 	
