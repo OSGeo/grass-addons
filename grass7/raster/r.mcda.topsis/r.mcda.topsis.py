@@ -51,10 +51,8 @@
 #%end
 
 
-              
 import sys
 import grass.script as gscript
-#import grass.script.array as garray
 from time import time  
 
 def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
@@ -63,7 +61,6 @@ def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
 		gscript.mapcalc("critPow=pow(${criterion},2)",criterion=criterion,overwrite='True')
 		stats=gscript.parse_command("r.univar",map='critPow',flags='g')
 		nameMap="_%s" % criterion.split("@")[1]
-		mapalgebra="%s=(%s/sqrt(%s))*%s" % (nameMap,criterion,stats['sum'],weight)
 		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}", \
 			nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
 		criteria.append(nameMap)
