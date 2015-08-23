@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:	   	r.mcda.topsis
-# AUTHOR:	   	Gianluca Massei - Antonio Boggia
-# PURPOSE:	  	Generate a MCDA map based on TOPSIS algorthm. 
+# MODULE:		r.mcda.topsis
+# AUTHOR:		Gianluca Massei - Antonio Boggia
+# PURPOSE:		Generate a MCDA map based on TOPSIS algorthm. 
 #				Based on Hwang C. L. and Yoon K. Multiple Objective Decision 
 #				Making Methods and Applications, A State-of-the-Art Survey . 
 #				Springer - Verlag , 1981.	 
@@ -51,6 +51,7 @@
 #%end
 
 
+              
 import sys
 import grass.script as gscript
 #import grass.script.array as garray
@@ -59,12 +60,11 @@ from time import time
 def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
 	criteria=[]
 	for criterion,weight in zip(attributes,weights):
-		critPow="critPow=pow(%s,2)" % (criterion)
-		gscript.mapcalc(critPow,overwrite='True')
+		gscript.mapcalc("critPow=pow(${criterion},2)",criterion=criterion,overwrite='True')
 		stats=gscript.parse_command("r.univar",map='critPow',flags='g')
-		nameMap="_%s" % criterion
+		nameMap="_%s" % criterion.split("@")[1]
 		mapalgebra="%s=(%s/sqrt(%s))*%s" % (nameMap,criterion,stats['sum'],weight)
-		gscript.mapcalc(mapalgebra,overwrite='True')
+		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}" ,nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
 		criteria.append(nameMap)
 	return criteria
 
@@ -97,18 +97,19 @@ def worstPoints(criteria,preference):
 		worstPointsList.append(wp)
 	return worstPointsList
 	  
+	  
 def idealPointDistance(idelaPointsList,criteria): #step4a
 	distance=[]
 	i=0
 	for c,ip in zip(criteria,idelaPointsList):
 		mapname="tmap_%s" % i
-		mapalgebra1="%s=pow((%s-%s),2)" % (mapname,c,ip)
-		print mapalgebra1
-		gscript.mapcalc(mapalgebra1,overwrite='True')
+		#mapalgebra1="%s=pow((%s-%s),2)" % (mapname,c,ip)
+		#print mapalgebra1
+		#gscript.mapcalc(mapalgebra1,overwrite='True')
+		gscript.mapcalc("${mapname}=pow((${c}-${ip}),2)",mapname=mapname,c=c,ip=ip,overwrite='True')
 		distance.append(mapname)
 		i=i+1
 	mapalgebra2="IdealPointDistance=sqrt(%s)" % ("+".join(distance))
-	print mapalgebra2
 	gscript.mapcalc(mapalgebra2,overwrite='True')
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(distance))
 	return 0
@@ -118,8 +119,7 @@ def worstPointDistance(worstPointsList,criteria): #step4b
 	i=0
 	for c,wp in zip(criteria,worstPointsList):
 		mapname="tmap_%s" % i
-		mapalgebra1="%s=pow((%s-%s),2)" % (mapname,c,wp)
-		gscript.mapcalc(mapalgebra1,overwrite='True')
+		gscript.mapcalc("${mapname}=pow((${c}-${wp}),2)",mapname=mapname,c=c,wp=wp,overwrite='True')
 		distance.append(mapname)
 		i=i+1
 	mapalgebra2="WorstPointDistance=sqrt(%s)" % ("+".join(distance))
@@ -127,8 +127,10 @@ def worstPointDistance(worstPointsList,criteria): #step4b
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(distance))
 
 
-def relativeCloseness(): #step5
-	pass
+def relativeCloseness(topsismap): #step5
+	gscript.mapcalc("${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",\
+		topsismap=topsismap,overwrite='True')
+	
 
 
 	
@@ -147,8 +149,9 @@ def main():
 
 	idealPointDistance(idelaPointsList,criteria)
 	worstPointDistance(worstPointsList,criteria)
-	relativeCloseness()
+	relativeCloseness(topsismap)
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(criteria))
+	gscript.run_command("g.remove", flags='f', type='raster', name="IdealPointDistance,WorstPointDistance")
 	end=time()
 	print "Time computing-> %.4f s" % (end-start)
 	
