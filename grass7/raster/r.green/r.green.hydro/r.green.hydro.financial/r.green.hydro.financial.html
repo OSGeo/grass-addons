@@ -1,5 +1,5 @@
 <h2>DESCRIPTION</h2>
-<em>r.green.hydro.financial</em> computes the economic costs and values of the plants. It provides a cost-benefit analysis calculating realization costs and profits for each potential plant in order to know which ones are feasible.<br>
+<em>r.green.hydro.financial</em> computes the economic costs and values of the plants. It provides an analysis calculating realization costs and profits for each potential plant in order to know which ones are feasible.<br>
 
 <h2>NOTES</h2>
 The required input maps are the one with the segments of potentials plants (vector), the structure of these potential plants (vector), the electric grid (vector), the landuse (raster) and the slope (raster).<br><br>
@@ -12,7 +12,7 @@ First, we define the <b>Total cost</b> which is the sum of all the fixed costs c
 
 <blockquote><b>- Compensation cost :</b><br><br>
 
-That corresponds to environmental mitigation which aims at offsetting known impacts to an existing historic or natural resource such as a stream, wetland, endangered species, archeological site or historic structure. Environmental mitigation is typically a part of an environmental crediting system established by governing bodies which involves allocating debits and credits. Debits occur in situations where a natural resource has been destroyed or severely impaired. When an entity such as a business or individual has a "debit" they are required to purchase a "credit" to mitigate (offset) the damages they did. In our case, the compensation cost can be calculated thanks to this formula :<br><br>
+This cost represents the value to compensate land owner in case of plants components implementation according to current Italian legislation. It is calculated thanks to this formula :<br><br>
 <center>
 <img src="r_green_hydro_financial_fcompensation.png" alt="formula_compensation"><br></center><br>
 <blockquote>where L<SUB>v</SUB> is a raster map with the land use value [currency/ha];<br>
@@ -166,7 +166,7 @@ The following command updates the table of structplants and segplants adding the
 r.green.hydro.financial 
 plant=potentialplants 
 struct=techplants
-plant_head_column=net_head 
+struct_column_head=net_head 
 landuse=landuse 
 rules_landvalue=/pathtothefile/landvalue.rules 
 rules_tributes=pathtothefile/tributes.rules 
@@ -219,9 +219,9 @@ Text on expropriation for public utility D.P.R. n. 327/2001, updated in 2013<br>
 The excavation costs are found in the price list of the Piedmont Region for public works<br><br>
 The costs of intake and civil works are based on analysis of technical documents for mini-hydro projects in Italy<br><br>
 The calculation of the yearly maintenance cost is based on the report AEEG for the Polytechnic University of Milan<br><br>
-The definition of environmental mitigation comes from Wikipedia
+
 
 
 <h2>AUTHORS</h2>
-Sandro Sacchelli (University of Florence, Italy), Pietro Zambelli (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.<br>
+Pietro Zambelli (Eurac Research, Bolzano, Italy), Sandro Sacchelli (University of Florence, Italy), Manual written by Julie Gros.<br>
 Last changed: $Date : 2015-07-07 16:13 GMT+1$
