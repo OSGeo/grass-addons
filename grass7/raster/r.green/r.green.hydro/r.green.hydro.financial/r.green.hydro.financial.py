@@ -30,102 +30,88 @@
 #%end
 
 #############################################################################
-# DEFINE COLUMNS OF V INPUT
-
-
-# TODO: change the order as disccussed with Giulia and Francesco
-# the order should be: {vector name}_{property}_{extra}
-# with:
-# * vector name the string use to identify the vector map
-# * property: layer, column
-# * other string to clarify the key
-#
-# therefore:
-# * plant_id_column => plant_column_id
-# * plant_power_column => plant_column_power
-# etc.
 
 #%option G_OPT_V_FIELD
-#%  key: segment_layer
+#%  key: plant_layer
 #%  label: Name of the vector map layer of the segments
 #%  required: no
 #%  answer: 1
 #%  guisection: Input columns
 #%end
 #%option G_OPT_V_FIELD
-#%  key: plant_layer
+#%  key: struct_layer
 #%  label: Name of the vector map layer of the structure of the plants
 #%  required: no
 #%  answer: 1
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_id_column
+#%  key: struct_column_id
 #%  type: string
-#%  description: Column name with the plant id
+#%  description: Table of the struct map: column name with plant id
 #%  required: no
 #%  answer: plant_id
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_power_column
+#%  key: struct_column_power
 #%  type: string
-#%  description: Column name with power value
+#%  description: Table of the struct map: column name with power value
 #%  required: no
 #%  answer: power
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_head_column
+#%  key: struct_column_head
 #%  type: string
-#%  description: Column name with head value
+#%  description: Table of the struct map: column name with head value
 #%  required: no
 #%  answer: gross_head
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_side_column
+#%  key: struct_column_side
 #%  type: string
-#%  description: Column name with the strings that define the side of the plant
+#%  description: Table of the struct map: column name with the strings that define the side of the plant
 #%  required: no
 #%  answer: side
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_kind_column
+#%  key: struct_columm_kind
 #%  type: string
-#%  description: Column name with the strings that define if it's a derivation channel or a penstock
+#%  description: Table of the struct map: column name with the strings that define if it's a derivation channel or a penstock
 #%  required: no
 #%  answer: kind
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_kind_intake
+#%  key: struct_kind_intake
 #%  type: string
-#%  description: Value contained in the column 'kind' which corresponds to the derivation channel
+#%  description: Table of the structures map : Value contained in the column 'kind' which corresponds to the derivation channel
 #%  required: no
 #%  answer: conduct
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: plant_kind_turbine
+#%  key: struct_kind_turbine
 #%  type: string
-#%  description: Value contained in the column 'kind' which corresponds to the penstock
+#%  description: Table of the structures map : Value contained in the column 'kind' which corresponds to the penstock
 #%  required: no
 #%  answer: penstock
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: segment_column_id
-#%  description: Optional map with the segments : column name with the plant id
+#%  key: plant_column_id
+#%  description: Table of the plants map : Column name with the plant id
 #%  required: no
 #%  answer: plant_id
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: segment_basename
+#%  key: plant_basename
 #%  type: string
-#%  description:Optional map with the segments : basename of the columns that will be added to the segment vector map
+#%  description:Table of the plants map : basename of the columns that will be added to the input plants vector map
 #%  required: no
 #%  answer: case1
 #%  guisection: Input columns
@@ -704,10 +690,10 @@ def get_electro_length(opts):
     # open vector plant
     pname = opts['struct']
     pname, vmapset = pname.split('@') if '@' in pname else (pname, '')
-    with VectorTopo(pname, mapset=vmapset, layer=int(opts['plant_layer']),
+    with VectorTopo(pname, mapset=vmapset, layer=int(opts['struct_layer']),
                     mode='r') as vect:
-        kcol = opts['plant_kind_column']
-        ktype = opts['plant_kind_turbine']
+        kcol = opts['struct_columm_kind']
+        ktype = opts['struct_kind_turbine']
         # check if electro_length it is alredy in the table
         if 'electro_length' not in vect.table.columns:
             vect.table.columns.add('electro_length', 'double precision')
@@ -866,7 +852,7 @@ def main(opts, flgs):
     upper = opts['upper'] if opts['upper'] else 'tmp_upper'
     comp = opts['compensation'] if opts['compensation'] else 'tmp_compensation'
     exc = opts['excavation'] if opts['excavation'] else 'tmp_excavation'
-    vlayer = int(opts['plant_layer'])
+    vlayer = int(opts['struct_layer'])
     
     plant, mset = (opts['plant'].split('@') if '@' in opts['plant'] else (opts['plant'], ''))
                 
@@ -903,8 +889,8 @@ def main(opts, flgs):
 
     # add elecro-mechanical costs
     electromechanical_cost(struct,
-                           power=opts['plant_power_column'],
-                           head=opts['plant_head_column'],
+                           power=opts['struct_column_power'],
+                           head=opts['struct_column_head'],
                            gamma=float(opts['gamma_em']),
                            alpha=float(opts['alpha_em']),
                            beta=float(opts['beta_em']),
@@ -951,12 +937,12 @@ def main(opts, flgs):
     # SELECT {key} FROM {tname}
     #FIXME: intake_id and discharge can have different names
     group_by(struct, opts['output_struct'],
-             isolate=['intake_id', opts['plant_id_column'],
-                      opts['plant_side_column'], opts['plant_power_column'],
-                      opts['plant_head_column'], 'discharge'],
+             isolate=['intake_id', opts['struct_column_id'],
+                      opts['struct_column_side'], opts['struct_column_power'],
+                      opts['struct_column_head'], 'discharge'],
              aggregate=['tot_cost', ],
              function='sum',
-             group_by=['intake_id', opts['plant_side_column']])
+             group_by=['intake_id', opts['struct_column_side']])
 
     """
     where these values (3871.2256 and -0.45) are coming from?
@@ -982,7 +968,7 @@ def main(opts, flgs):
              expr=maint.format(cname='maintenance',
                                cost_per_kW=opts['cost_maintenance_per_kw'],
                                alpha=opts['alpha_maintenance'],
-                               power=opts['plant_power_column'],
+                               power=opts['struct_column_power'],
                                beta=opts['beta_maintenance'],
                                const=opts['const_maintenance']))
 
@@ -992,7 +978,7 @@ def main(opts, flgs):
              ctype='double precision', notfinitesubstitute=0.,
              expr=rev.format(cname='revenue',
                              eta=opts['eta'],
-                             power=opts['plant_power_column'],
+                             power=opts['struct_column_power'],
                              eprice=opts['energy_price'],
                              ophours=opts['operative_hours'],
                              alpha=opts['alpha_revenue'],
@@ -1010,10 +996,10 @@ def main(opts, flgs):
                              tot='tot_cost'))
 
     economic2segment(economic=opts['output_struct'], segment=plant,
-                         basename=opts['segment_basename'],
-                         eco_layer=1, seg_layer=int(opts['segment_layer']),
-                         eco_pid=opts['plant_id_column'],
-                         seg_pid=opts['segment_column_id'],
+                         basename=opts['plant_basename'],
+                         eco_layer=1, seg_layer=int(opts['plant_layer']),
+                         eco_pid=opts['struct_column_id'],
+                         seg_pid=opts['plant_column_id'],
                          function=max_NPV, 
                          exclude=['intake_id', 'side', 'power', 
                                   'gross_head', 'discharge'])
