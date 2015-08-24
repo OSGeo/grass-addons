@@ -15,7 +15,7 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import sys
+import sys,os
 try:
     from owslib.iso import *
 except:
@@ -25,10 +25,18 @@ try:
 except:
     sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
+from grass.script import core as grass
+from grass.pygrass.utils import get_lib_path
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['mdutil'])
 
 from lxml import etree
-import os
-
 import StringIO
 import uuid
 import mdutil  # metadata lib
@@ -37,10 +45,9 @@ from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 from subprocess import PIPE
 from datetime import date, datetime
-from grass.script import core as grass
+
 from osgeo import osr
 #sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc','wx.metadata','mdlib'))
-sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
 class GrassMD():
 
     '''

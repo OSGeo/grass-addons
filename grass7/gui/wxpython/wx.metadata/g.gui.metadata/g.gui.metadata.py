@@ -23,18 +23,22 @@ This program is free software under the GNU General Public License
 
 import sys
 import os
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc','wx.metadata','mdlib'))
-sys.path.insert(2, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
-
-from lxml import etree
-import wx
-from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
-from wx import SplitterWindow
+from grass.pygrass.utils import get_lib_path
 import grass.script as grass
-#from pydispatch import dispatcher
 from grass.pydispatch import dispatcher
+from core.gcmd import RunCommand, GError, GMessage
+import grass.temporal as tgis
+from lmgr import datacatalog
 
-import webbrowser
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['mdgrass','mdutil','mdeditorfactory','cswlib','mdpdffactory'])
+
 
 import mdgrass
 import mdutil
@@ -42,14 +46,22 @@ from mdpdffactory import PdfCreator
 from cswlib import CSWConnectionPanel
 from mdeditorfactory import MdMainEditor
 
-from lmgr import datacatalog
-from core.gcmd import RunCommand, GError, GMessage
-import grass.temporal as tgis
+from lxml import etree
+import wx
+from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
+from wx import SplitterWindow
+
+#from pydispatch import dispatcher
+
+import webbrowser
 import tempfile
 #===============================================================================
 # MAIN FRAME
 #===============================================================================
 MAINFRAME = None
+
+
+
 
 
 class MdMainFrame(wx.Frame):
@@ -222,7 +234,7 @@ class MdMainFrame(wx.Frame):
 
     def onExportCSW(self, evt):
         self.cswDialog = wx.Dialog(self, id=wx.ID_ANY,
-                                   title='Geometry creator',
+                                   title='Csw publisher',
                                    style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
                                    size=wx.DefaultSize,
                                    pos=wx.DefaultPosition)
@@ -1272,6 +1284,7 @@ class CswPublisher(CSWConnectionPanel):
 
 
 #----------------------------------------------------------------------
+
 
 def main():
     global MAINFRAME

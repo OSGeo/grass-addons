@@ -49,7 +49,6 @@ This program is free software under the GNU General Public License
 import sys
 import os
 
-sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
 from grass.script import core as grass
 
 try:

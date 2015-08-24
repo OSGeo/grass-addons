@@ -13,7 +13,16 @@ This program is free software under the GNU General Public License
 import sys
 import os
 
-sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
+from grass.pygrass.utils import get_lib_path
+
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['cswlib'])
 import wx
 from cswlib import CSWBrowserPanel, CSWConnectionPanel
 import grass.script as grass

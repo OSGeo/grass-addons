@@ -119,8 +119,17 @@ import os
 import ConfigParser
 
 from grass.script import core as grass
+from grass.pygrass.utils import get_lib_path
 
-sys.path.insert(1, os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'mdlib'))
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        else:
+            import grass.script as grass
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['cswutil'])
 
 import getopt
 from cswutil import *
