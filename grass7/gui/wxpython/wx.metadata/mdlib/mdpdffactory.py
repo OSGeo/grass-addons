@@ -2,17 +2,23 @@ try:
     from owslib.iso import *
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-from reportlab.platypus import PageBreak
 import tempfile, sys, os
-import math
-from reportlab.platypus import Paragraph, Image, Table
-from mdpdftheme import *
-
+from grass.pygrass.utils import get_lib_path
 from grass.script import core as grass
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'pdf'))
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),'etc','wx.metadata','mdlib'))
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['pdf','mdlib'])
 
+import math
+from reportlab.platypus import Paragraph, Image, Table
+from reportlab.platypus import PageBreak
+from mdpdftheme import *
 
 
 class MyTheme(DefaultTheme):

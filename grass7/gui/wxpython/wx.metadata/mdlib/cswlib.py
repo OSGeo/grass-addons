@@ -17,7 +17,8 @@ except:
     sys.exit('owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 from cswutil import *
-from mdutil import yesNo
+
+from mdutil import yesNo, StaticContext
 import tempfile
 import json
 
@@ -46,6 +47,7 @@ from modules.import_export import GdalImportDialog, GdalOutputDialog, ImportDial
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
+
 
 class ConstraintsBulder(wx.Panel):
     def __init__(self, parent, settings=''):
@@ -101,7 +103,7 @@ class CSWBrowserPanel(wx.Panel):
         sizeConst = 55
         self.splitterBrowser = SplitterWindow(self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER)
         self.context=StaticContext()
-        self.connectionFilePath = os.path.join(self.context.addonsPath, 'connections_resources.xml')
+        self.connectionFilePath = os.path.join(self.context.lib_path, 'connections_resources.xml')
         self.pnlLeft = wx.Panel(self.splitterBrowser, id=wx.ID_ANY)
         self.pnlRight = wx.Panel(self.splitterBrowser, -1)
 
@@ -854,7 +856,7 @@ class CSWConnectionPanel(wx.Panel):
         self.connectionLBox = wx.ListBox(self.panelLeft, id=-1, pos=wx.DefaultPosition)
         self.timeoutSpin = wx.SpinCtrl(self.panelLeft, min=1, max=100, initial=10 , style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS)
         self.context = StaticContext()
-        self.connectionFilePath = os.path.join(self.context.addonsPath, 'connections_resources.xml')
+        self.connectionFilePath = os.path.join(self.context.lib_path, 'connections_resources.xml')
         self.servicePath = 'service_metadata.html'
         self.serviceInfoBtt = wx.Button(self.panelLeft, -1, label='Service info')
         self.newBtt = wx.Button(self.panelLeft, label='New')

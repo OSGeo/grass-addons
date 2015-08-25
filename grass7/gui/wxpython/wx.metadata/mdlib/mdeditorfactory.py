@@ -114,7 +114,6 @@ class MdFileWork():
         if not xmlOutName.lower().endswith('.xml'):
             xmlOutName += '.xml'
         # if path is None, use lunch. dir
-        # TODO change default folder to mapset location
         if not outPath:
             outPath = os.path.join(self.dirpath, xmlOutName)
         else:
@@ -126,9 +125,12 @@ class MdFileWork():
             line = mdutil.removeNonAscii(line)
             str1 += line
         xml.close
-        io = open(jinjaPath, 'w')
-        io.write(str1)
-        io.close()
+        try:
+            io = open(jinjaPath, 'w')
+            io.write(str1)
+            io.close()
+        except Exception,err:
+            print "WARNING: Cannot check and remove non ascii characters from template err:< %s >"%err
 
         # generating xml using jinja templates
         head, tail = os.path.split(jinjaPath)
@@ -838,17 +840,20 @@ class MdKeywords(wx.BoxSizer):
         if not mdutil.isTableExists('metadata_themes'):
             sql='create table if not exists metadata_themes (title TEXT, keyword TEXT, date_iso TEXT ,date_type TEXT)'
             self.dbExecute(sql)
-            p1=os.path.join(sys.path[0],'..')
 
             titles = [['keywordConcepts.txt','GEMET - Concepts, version 2.4'],
                      ['keywordThemes.txt','GEMET - Themes, version 2.4'],
                      ['keywordGroups.txt','GEMET - Groups, version 2.4']]
+
+            context=mdutil.StaticContext()
+            libPath = os.path.join(context.lib_path,'config')
+
             for title in titles:
-                path = os.path.join(p1, 'config', title[0])
+                path =  os.path.join(libPath,title[0])
                 str=''
                 with open(path, "r") as inp :
                     exec(inp.read())
-                    for item in keywords:#!!! from exec, no mistake
+                    for item in keywords:#!!! keywords from exec, no mistake!
                             str+="('%s','%s','%s','%s'),"%(title[1],item['preferredLabel']['string'],'2010-01-13','publication')
                     str=str[:-1]
                     sql="INSERT INTO 'metadata_themes' ('title', 'keyword', 'date_iso' ,'date_type' ) VALUES"+str
@@ -1574,7 +1579,8 @@ class MdMainEditor(wx.Panel):
         self.md = self.mdo.initMD()
         # most of objects from OWSLib is initialized in configure file
         #dirpath = os.path.dirname(os.path.realpath(__file__))
-        path = os.path.join(os.getenv('GRASS_ADDON_BASE'),'etc','wx.metadata','config','init_md.txt')
+        context=mdutil.StaticContext()
+        path = os.path.join(context.lib_path,'config','init_md.txt')
 
         mdInitData = open(path, 'r')
         mdExec = mdInitData.read()

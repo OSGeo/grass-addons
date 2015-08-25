@@ -3,7 +3,7 @@
 """
 @package mdgrass
 @module  v.info.iso, r.info.iso, g.gui.metadata
-@brief   Base class for import(r.info,v.info) and export(r/v.support)
+@brief   Base class for import(r.info.iso,v.info) and export(r/v.support)
          metadata with using OWSLib and jinja template.
 
 Classes:
@@ -47,7 +47,6 @@ from subprocess import PIPE
 from datetime import date, datetime
 
 from osgeo import osr
-#sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc','wx.metadata','mdlib'))
 class GrassMD():
 
     '''
@@ -69,7 +68,8 @@ class GrassMD():
         # suffix of output xml file (variables)
         self.schema_type = '_basic.xml'
         self.profileName='GRASS BASIC'
-        self.dirpath = os.getenv('GRASS_ADDON_BASE')
+        context=mdutil.StaticContext()
+        self.dirpath = os.path.join(context.lib_path,'profiles')
         # metadata object from OWSLIB ( for define md values)
         self.md = mdutil.MD_MetadataMOD(md=None)
         self.profilePath = None  # path to file with xml templates
@@ -163,7 +163,7 @@ class GrassMD():
             date = datetime.strptime(self.md_grass[key], '%a %b %d %H:%M:%S %Y')
             self.md_grass['dateofcreation'] = date.strftime('%Y-%m-%d')
         except:
-            grass.warning('date of creation: unknown date format')
+            grass.message('date of creation: unknown date format')
             self.md_grass['dateofcreation'] = self.md_grass[key]
 
     def parseRast(self):
@@ -229,7 +229,7 @@ class GrassMD():
             int(srs.GetAuthorityCode(None))
             return srs.GetAuthorityCode(None)
         except:
-            grass.warning('Epsg code cannot be identified')
+            grass.message('Attemp of identifiyng EPSG is not successful')
             return None
 
     def createTemporalISO(self, profile=None):
@@ -239,7 +239,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'temporalProfile.xml')
+            self.profilePath =  'temporalProfile.xml'
         else:
             self.profilePath = profile
         self.schema_type = '_temporal.xml'
@@ -318,7 +318,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'basicProfile.xml')
+            self.profilePath =  'basicProfile.xml'
         else:
             self.profilePath = profile
 
@@ -387,7 +387,7 @@ class GrassMD():
             try:
                 self.md.dataquality.lineage = mdutil.replaceXMLReservedChar(self.md_grass['comments']).replace('\n', '\\n')
             except:
-                grass.warning('Native metadata *flag=comments* not found, dataquality.lineage filled by $NULL')
+                grass.message('Native metadata *flag=comments* not found, dataquality.lineage filled by $NULL')
                 self.md.dataquality.lineage = n
 
             self.md.identification.denominators.append(n)
@@ -427,7 +427,7 @@ class GrassMD():
         self.createGrassBasicISO()
 
         if profile is None:
-            self.profilePath = os.path.join('etc','wx.metadata','profiles', 'inspireProfile.xml')
+            self.profilePath = 'inspireProfile.xml'
         else:
             self.profilePath = profile
 

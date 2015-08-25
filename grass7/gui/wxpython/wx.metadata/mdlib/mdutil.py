@@ -35,12 +35,24 @@ import string
 from grass.script import core as grass
 from grass.pygrass.modules import Module
 from subprocess import PIPE
-
+from grass.pygrass.utils import get_lib_path
 import wx
+
 class StaticContext(object):
     def __init__(self):
         self.ppath = os.path.dirname(os.path.abspath(__file__))
-        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE'),'etc' 'wx.metadata')
+        path = os.path.join('wx.metadata','config')
+        self.configureLibPath = get_lib_path(modname=path ,libname='init_md.txt')
+        if self.configureLibPath is None:
+            grass.fatal("Fatal error: library < %s > not found"%path)
+
+        path=os.path.join('wx.metadata','profiles')
+        self.profilesLibPath = get_lib_path(modname= path,libname='basicProfile.xml')
+
+        if self.profilesLibPath is None:
+            grass.fatal("Fatal error: library < %s > not found"%path)
+
+        self.lib_path = os.path.normpath(self.configureLibPath+ os.sep + os.pardir)
 
 def isTableExists(name):
     res = Module('db.tables',flags='p',stdout_=PIPE)

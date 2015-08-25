@@ -21,13 +21,6 @@ from pygments import highlight
 from pygments.lexers import XmlLexer
 from pygments.formatters import HtmlFormatter
 
-
-class StaticContext(object):
-    def __init__(self):
-        self.ppath = os.path.dirname(os.path.abspath(__file__))
-        self.addonsPath=os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc','wx.metadata','config')
-
-
 def get_connections_from_file( filename):
     """load connections from connection file"""
 
