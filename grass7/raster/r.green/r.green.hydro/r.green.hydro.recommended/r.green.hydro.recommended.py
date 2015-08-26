@@ -208,8 +208,6 @@ set_path('r.green', 'libgreen', os.path.join('..', '..'))
 # finally import the module in the library
 from libgreen.utils import cleanup
 
-DEBUG = False
-TMPRAST = []
 
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
@@ -230,7 +228,7 @@ def set_old_region(info):
 
 
 def main(opts, flgs):
-    TMPRAST, TMPVECT, DEBUG = [], [], False
+    TMPRAST, TMPVECT, DEBUG = [], [], flgs['d']
     atexit.register(cleanup, rast=TMPRAST, vect=TMPVECT, debug=DEBUG)
     OVW = gcore.overwrite()
 
@@ -262,22 +260,25 @@ def main(opts, flgs):
         msgr.warning("set region to elevation raster")
         gcore.run_command('g.region', raster=dtm)
 
+    pid = os.getpid()
+
     if area:
         if buff:
             gcore.run_command('v.buffer',
                               input=area,
                               output='buff_area',
                               distance=buff, overwrite=OVW)
-            area = 'buff_area'
-            TMPVECT.append('buff_area')
+            area = 'tmp_buff_area_%05d' % pid
+            TMPVECT.append(area)
 
+        oriver = 'tmp_river_%05d' % pid
         gcore.run_command('v.overlay', flags='t',
                           ainput=river,
                           binput=area,
                           operator='not',
-                          output='tmp1_river', overwrite=OVW)
-        river = 'tmp1_river'
-        TMPVECT.append('tmp1_river')
+                          output=oriver, overwrite=OVW)
+        river = oriver
+        TMPVECT.append(oriver)
 
     if points_view:
         info_old = gcore.parse_command('g.region', flags='pg')
@@ -287,7 +288,7 @@ def main(opts, flgs):
         vec.open("r")
         string = '0'
         for i, point in enumerate(vec):
-            out = 'visual_%i' % i
+            out = 'tmp_visual_%05d_%03d' % (pid, i)
             gcore.run_command('r.viewshed', input=dtm, output=out,
                               coordinates=point.coords(), overwrite=OVW,
                               memory=1000, flags='b', max_distance=4000,
@@ -297,45 +298,47 @@ def main(opts, flgs):
             string = string + ('+%s' % out)
         #import pdb; pdb.set_trace()
 
-        formula = 'final_vis = %s' % string
-        TMPRAST.append('final_vis')
+        tmp_final_vis = 'tmp_final_vis_%05d' % pid
+        formula = '%s = %s' % (tmp_final_vis, string)
+        TMPRAST.append(tmp_final_vis)
         mapcalc(formula, overwrite=OVW)
         # change to old region
         set_old_region(info_old)
+        TMPVECT.append(tmp_final_vis)
         gcore.run_command('r.to.vect', flags='v', overwrite=OVW,
-                          input='final_vis', output='tmp_vis',
+                          input=tmp_final_vis, output=tmp_final_vis,
                           type='area')
-        TMPVECT.append('tmp_vis')
         if int(n_points) > 0:
             where = 'cat<%s' % (n_points)
         else:
             where = 'cat=0'
-        gcore.run_command('v.db.droprow', input='tmp_vis',
+        gcore.run_command('v.db.droprow', input=tmp_final_vis,
                           where=where, output=final_vis, overwrite=OVW)
-        #TMPVECT.append('final_vis')
+        tmp_river = 'tmp_river_%05d' % pid
         gcore.run_command('v.overlay', flags='t',
                           ainput=river,
                           binput=final_vis,
                           operator='not',
-                          output='tmp2_river', overwrite=OVW)
-        river = 'tmp2_river'
-        TMPVECT.append('tmp2_river')
+                          output=tmp_river, overwrite=OVW)
+        river = tmp_river
+        TMPVECT.append(tmp_river)
 
         #import pdb; pdb.set_trace()
 
+    tmp_disch = 'tmp_discharge_%05d' % pid
     if mfd:
-        formula = 'tmp_discharge=%s-%s' % (discharge_current, mfd)
+        formula = '%s=%s-%s' % (tmp_disch, discharge_current, mfd)
         mapcalc(formula, overwrite=OVW)
-        TMPRAST.append('tmp_discharge')
-        discharge_current = 'tmp_discharge'
+        TMPRAST.append(tmp_disch)
+        discharge_current = tmp_disch
 
     elif discharge_natural:
-        formula = 'tmp_discharge=%s-%s*%s/100.0' % (discharge_current,
-                                                    discharge_natural,
-                                                    percentage)
+        formula = '%s=%s-%s*%s/100.0' % (tmp_disch, discharge_current,
+                                         discharge_natural, 
+                                         percentage)
         mapcalc(formula, overwrite=OVW)
-        TMPRAST.append('tmp_discharge')
-        discharge_current = 'tmp_discharge'
+        TMPRAST.append(tmp_disch)
+        discharge_current = tmp_disch
 
     gcore.run_command('r.green.hydro.optimal',
                       flags='c',
