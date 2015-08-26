@@ -1,0 +1,44 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.gbif</em> imports <a href="http://www.gbif.org/">GBIF</a> 
+species distribution data. The location must be in latlon (WGS84). 
+
+<p>
+The species distribution data downloaded from <a href="http://www.gbif.org/">GBIF</a> 
+hast to be unzipped before importing the csv file.
+</p>
+
+<p>
+<em>v.in.gbif</em> saves the data to a <a href="http://www.gdal.org">GDAL</a> 
+<a href="http://www.gdal.org/drv_vrt.html">VRT - Virtual Datasource</a> 
+which will be imported by <a href="v.in.ogr.html">v.in.ogr</a>. The VRT data set
+can be used in any GDAL aware software.
+
+As some column names in the original data set are similar to <a 
+href="http://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQL reserverd key words</a>, 
+the columns will renamed with the prefix <i>g_</i>. 
+</p>
+
+<h2>EXAMPLE</h2>
+
+<div class="code">
+ <pre>
+  v.in.gbif vector= cat=40102 dir=C:\tmp distance=25
+  v.in.gbif input=C:\data\0004248-150811131857512\0004248-150811131857512.csv output_vrt=chondrilla.vrt dir=C:\data\0004248-150811131857512\ output=chondrilla
+ </pre>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.in.ascii.html">v.in.ascii</a>
+<a href="v.in.ogr.html">v.in.ogr</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Helmut Kudrnovsky
+
+<p>
+<i>Last changed: $Date: 2014-11-13 23:06:04 +0100 (Do, 13 Nov 2014) $</i>
+</p>
