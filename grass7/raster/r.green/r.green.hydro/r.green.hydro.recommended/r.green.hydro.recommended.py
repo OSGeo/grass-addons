@@ -166,11 +166,6 @@
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
-#% key: output_point
-#% description: Name of output vector with potential intakes and restitution
-#% required: no
-#%end
-#%option G_OPT_V_OUTPUT
 #% key: output_vis
 #% description: Name of output vector with viewed areas
 #% required: no
@@ -229,7 +224,7 @@ def set_old_region(info):
 
 def main(opts, flgs):
     TMPRAST, TMPVECT, DEBUG = [], [], flgs['d']
-    atexit.register(cleanup, rast=TMPRAST, vect=TMPVECT, debug=DEBUG)
+    atexit.register(cleanup, raster=TMPRAST, vector=TMPVECT, debug=DEBUG)
     OVW = gcore.overwrite()
 
     dtm = options['elevation']
@@ -241,7 +236,6 @@ def main(opts, flgs):
     len_min = options['len_min']
     distance = options['distance']
     output_plant = options['output_plant']
-    output_point = options['output_point']
     area = options['area']
     buff = options['buff']
     efficiency = options['efficiency']
@@ -264,11 +258,12 @@ def main(opts, flgs):
 
     if area:
         if buff:
+            area_tmp = 'tmp_buff_area_%05d' % pid
             gcore.run_command('v.buffer',
                               input=area,
-                              output='buff_area',
+                              output=area_tmp,
                               distance=buff, overwrite=OVW)
-            area = 'tmp_buff_area_%05d' % pid
+            area = area_tmp
             TMPVECT.append(area)
 
         oriver = 'tmp_river_%05d' % pid
@@ -347,7 +342,6 @@ def main(opts, flgs):
                       elevation=dtm,
                       len_plant=len_plant,
                       output_plant=output_plant,
-                      output_point=output_point,
                       distance=distance,
                       len_min=len_min,
                       efficiency=efficiency,

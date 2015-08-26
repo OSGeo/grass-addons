@@ -134,7 +134,7 @@ if "GISBASE" not in os.environ:
 
 def main(options, flags):
     TMPRAST, TMPVECT, DEBUG = [], [], False
-    atexit.register(cleanup, rast=TMPRAST, vect=TMPVECT, debug=DEBUG)
+    atexit.register(cleanup, raster=TMPRAST, vector=TMPVECT, debug=DEBUG)
     elevation = options['elevation']
     river = options['river']  # raster
     discharge = options['discharge']  # vec
@@ -172,11 +172,10 @@ def main(options, flags):
     range_plant = (len_min, len_plant)
     plants = find_segments(river, discharge, elevation, range_plant, distance,
                            p_max)
-                           
-    if output_plant:
-        write_plants(plants, output_plant, efficiency, p_min)
-    write_points(plants, output_point, efficiency, p_min)
 
+    if output_point:
+        write_points(plants, output_point, efficiency, p_min)
+    write_plants(plants, output_plant, efficiency, p_min)
 
 if __name__ == "__main__":
     options, flags = gcore.parser()
