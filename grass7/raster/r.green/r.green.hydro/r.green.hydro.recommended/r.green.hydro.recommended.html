@@ -54,24 +54,30 @@ Points of interest are placed in the park so two different cases are presented h
 2) The visibility zones from points of interest is excluded.<br><br>
 
 <blockquote>1) In the first case, the code used is :<br>
-<div class="code"><pre>r.green.hydro.recommended 
-discharge_current=currentdischarge
-discharge_natural=naturaldischarge
-percentage=25.00
-river=availablestreams 
-elevation=elevation 
-efficiency=0.8 
-len_plant=400 
-len_min=10 
-distance=150 
-area=nationalparks 
-buff=200 
-output_plant=potentialplants 
-output_point=potentialpoints<br>
-d.vect map= potentialpoints color=red<br>
-d.vect map= potentialplants color=blue<br>
-v.buffer input=nationalparks output=buff_park distance=200<br>
-d.vect map= buff_park color=255:179:179 fill_color=255:179:179 width=1<br></pre></div><br>
+<div class="code"><pre>
+r.green.hydro.recommended              \
+    discharge_current=currentdischarge \
+    discharge_natural=naturaldischarge \
+    percentage=25.00                   \
+    river=availablestreams             \
+    elevation=elevation                \
+    efficiency=0.8                     \
+    len_plant=400                      \
+    len_min=10                         \
+    distance=150                       \
+    area=nationalparks                 \
+    buff=200                           \
+    output_plant=potentialplants       \
+    output_point=potentialpoints
+
+d.vect map=potentialpoints color=red
+
+d.vect map=potentialplants color=blue
+
+v.buffer input=nationalparks output=buff_park distance=200
+
+d.vect map=buff_park color=255:179:179 fill_color=255:179:179 width=1
+</pre></div><br>
 
 This command calculates the energy potential for a range of plant length from 10 to 400 m and a distance between plants of 150 m. The areas with the national park and a buffer of 200 m around it are excluded. The discharge considered here is the current discharge of rivers subtracted by 25% of the natural discharge (the latter corresponds to the MFD).<br><br>
 
@@ -81,24 +87,30 @@ Output vector map : superimposition of the potential segments vector file (poten
 </center><br><br>
 
 2) In the second case, the code used is :<br>
-<div class="code"><pre>r.green.hydro.recommended 
-discharge_current=currentdischarge 
-mfd=mfd 
-river=availablestreams 
-elevation=elevation 
-efficiency=0.8 
-len_plant=400 
-len_min=10 
-distance=150 
-points_view=pointsinterest 
-n_points=1 
-output_plant=potentialplants 
-output_vis=vis 
-output_point=potentialpoints<br>
-d.vect map= potentialpoints color=red<br>
-d.vect map= potentialplants color=blue<br>
-d.vect map= pointsinterest color=green<br>
-d.vect map= vis color=144:224:144 fill_color=144:224:144 width=1<br></pre></div><br>
+<div class="code"><pre>
+r.green.hydro.recommended                \
+    discharge_current=currentdischarge   \
+    mfd=mfd                              \
+    river=availablestreams               \
+    elevation=elevation                  \
+    efficiency=0.8                       \
+    len_plant=400                        \
+    len_min=10                           \
+    distance=150                         \
+    points_view=pointsinterest           \
+    n_points=1                           \
+    output_plant=potentialplants         \
+    output_vis=vis                       \
+    output_point=potentialpoints
+
+d.vect map= potentialpoints color=red
+
+d.vect map= potentialplants color=blue
+
+d.vect map= pointsinterest color=green
+
+d.vect map= vis color=144:224:144 fill_color=144:224:144 width=1
+</pre></div><br>
 
 This command calculates the energy potential for a plant length range from 10 to 400 m and a distance between plants of 150 m. The visibility zones from each point of interest are excluded. The discharge considered here is the current discharge of rivers subtracted by the MFD. The MFD was calculated previously and computed in a raster map.<br><br>
 
