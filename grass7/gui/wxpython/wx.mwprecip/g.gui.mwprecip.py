@@ -2,12 +2,20 @@
 
 import os
 import sys
+from grass.pygrass.utils import get_lib_path
+import grass.script as grass
 
 
 VERSION = 1.0
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join( 'etc', 'g.gui.mwprecip') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['mw3','mw_util'])
 
-
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
 from mw3 import *
 import tempfile

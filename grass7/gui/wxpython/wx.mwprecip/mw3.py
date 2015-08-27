@@ -8,6 +8,8 @@ from datetime import datetime
 import psycopg2
 import time
 import math
+import sys
+import os
 from subprocess import PIPE
 
 from pgwrapper import pgwrapper as pg
@@ -16,10 +18,16 @@ from grass.pygrass.modules import Module
 
 import numpy as np
 
-try:
-    from grass.script import core as grass
-except ImportError:
-    sys.exit("Cannot find 'grass' Python module. Python is supported by GRASS from version >= 6.4")
+from grass.pygrass.utils import get_lib_path
+import grass.script as grass
+def load_mdlib(libs):
+    for lib in libs:
+        path = get_lib_path(modname=os.path.join( 'etc', 'g.gui.mwprecip') ,libname=lib)
+        if path is not None and path not in sys.path:
+            sys.path.append(path)
+        elif path is  None:
+            grass.fatal("Fatal error: library < %s > not found "%lib)
+load_mdlib(['mw_util'])
 
 from mw_util import *
 
