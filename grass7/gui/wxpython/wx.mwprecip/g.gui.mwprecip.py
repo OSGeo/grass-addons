@@ -3,6 +3,10 @@
 import os
 import sys
 
+
+VERSION = 1.0
+
+
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 from mw_util import *
 from mw3 import *
@@ -555,6 +559,8 @@ class MWMainFrame(wx.Frame):
         settMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
         geometry = settMenu.Append(wx.ID_ANY, 'Geometry', 'Create vector geometry')
+        about = settMenu.Append(wx.ID_ANY, 'About', 'About')
+
         workingPath = settMenu.Append(wx.ID_ANY, 'Working Dir', 'Set working directory')
         quitItem = settMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         menubar.Append(settMenu, '&Menu')
@@ -563,6 +569,7 @@ class MWMainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onQuit, quitItem)
         self.Bind(wx.EVT_MENU, self.onSetDatabase, databaseItem)
         self.Bind(wx.EVT_MENU, self.onSetWorkPath, workingPath)
+        self.Bind(wx.EVT_MENU, self.onAbout, about)
 
         #self.Bind(wx.EVT_MENU, self.onSetBaseline, baselineItem)
         self.Bind(wx.EVT_MENU, self.onSetGeometry, geometry)
@@ -605,6 +612,11 @@ class MWMainFrame(wx.Frame):
 
         self.findProject()
         self.layout()
+
+    def onAbout(self,evt):
+        dir=os.path.dirname(os.path.realpath(__file__))
+        GMessage( "ver: %s \n %s"%(VERSION,dir))
+
 
     def getMinTime(self, evt=None):
         self.OnSaveSettings(toFile=False)
@@ -1021,7 +1033,6 @@ class Gui2Model():
             self.dbConn = Database(**conninfo)
             self.connStatus = True
             return self.dbConn
-
 
     def initVectorGrass(self, type=None, name=None):
         convertor = VectorLoader(self.dbConn)
