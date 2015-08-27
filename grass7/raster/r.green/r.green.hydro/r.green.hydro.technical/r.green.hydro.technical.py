@@ -656,15 +656,15 @@ def main(options, flags):
         conv_segpoints(plant, options['output_point'])
 
     # set the opions to execute the r.green.hydro.structure
-#    struct_opts = dict(elevation=elevation, plant=plant,
-#                       output_struct=output_struct,
-#                       ndigits=options['ndigits'],
-#                       contour=options['contour'], overwrite=gcore.overwrite())
-#    if options['resolution']:
-#        struct_opts['resolution'] = options['resolution']
-#    gcore.run_command('r.green.hydro.strucintake_idture', **struct_opts)
-#
-#    gcore.run_command('v.build', map=output_struct)
+    struct_opts = dict(elevation=elevation, plant=plant,
+                       output_struct=output_struct,
+                       ndigits=options['ndigits'],
+                       contour=options['contour'], overwrite=gcore.overwrite())
+    if options['resolution']:
+        struct_opts['resolution'] = options['resolution']
+    gcore.run_command('r.green.hydro.strucintake_idture', **struct_opts)
+
+    gcore.run_command('v.build', map=output_struct)
 ## --------------------------------------------------------------------------
     with VectorTopo(output_struct, mode='rw') as struct:
         list_intakeid = compute_losses(struct, options,
