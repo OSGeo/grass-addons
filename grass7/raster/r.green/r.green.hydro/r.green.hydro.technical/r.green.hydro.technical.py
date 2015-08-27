@@ -4,7 +4,7 @@
 ############################################################################
 #
 # MODULE:      r.green.hydro.technical
-# AUTHOR(S):   Giulia Garegnani, Julie Gros
+# AUTHOR(S):   Giulia Garegnani, Julie Gros, Pietro Zambelli
 # PURPOSE:
 #
 # COPYRIGHT:   (C) 2014 by the GRASS Development Team
@@ -215,7 +215,7 @@ from grass.pygrass.utils import set_path
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import VectorTopo
 
-from math import pi, log10, sin, acos, asin, sqrt
+from math import pi, log10, sin, acos, asin, sqrt, atan
 
 try:
     from scipy.optimize import fsolve
@@ -322,12 +322,9 @@ def losses_Strickler(discharge, length, diameter, theta, velocity, ks=75):
 
 
 def singular_losses(gross_head, length, discharge, diameter_penstock):
-    msgr = get_msgr()
+    
     if diameter_penstock != 0 and gross_head != 0:
-        # TODO: check when gross_head>length not physically
-        if gross_head > length:
-            msgr.warning("To check length of penstock, gross head greater than "
-                         "length")
+
         h_sing = (1. / (2. * 9.81) +
                   (0.5 + (gross_head / length) ** 2 + 2 *
                    (sin(asin(min(1, gross_head / length)) / 2)) ** 4) *
@@ -359,9 +356,10 @@ def compute_losses(struct, options,
             ('losses', 'DOUBLE'),
             ('sg_losses', 'DOUBLE'),
             ('tot_losses', 'DOUBLE'),
-            ('net_head', 'DOUBLE'),
-            ('power', 'hyd_power')]
+            ('net_head', 'DOUBLE')]
     add_columns(struct, cols)
+    # power column renamed?
+    
     # extract intake id
     list_intakeid = list(set(struct.table.execute('SELECT intake_id FROM %s' %
                                                   struct.table.name).fetchall()
@@ -383,9 +381,24 @@ def compute_losses(struct, options,
                     diameter = diam_pen(discharge, length, gross_head,
                                         percentage_losses, roughness_penstock)
                     line.attrs['diameter'] = diameter
-
+                length = (length**2.0 + gross_head**2.0)**0.5
+                if gross_head > length:
+                    msgr = get_msgr()
+                    msgr.warning("To check length of penstock,"
+                                 "gross head greater than "
+                                 "length")
+                    import ipdb; ipdb.set_trace()
                 losses = losses_Colebrooke(discharge, length,
                                            diameter, roughness_penstock)
+                # when you compute alpha (see manual) the lenght of the
+                # line is the real  length and not the projection
+                # for the blend we use the formula sen2(alpha)+sen4(alpha/2)
+                # TODO: add the possibility to insert the coefficient for the
+                # singolar losses in the table of the structure
+                # TODO: add singolar loss in function of thevelocity of
+                # derivation channel
+                line.attrs['sg_losses'] = singular_losses(gross_head, length,
+                                                          discharge, diameter)
 
             elif line.attrs['kind'] == 'conduct':
                 diameter = line.attrs['diameter']
@@ -406,14 +419,14 @@ def compute_losses(struct, options,
 
             line.attrs['losses'] = losses  # in [m]
             # TODO: fix as function of velocity
-            line.attrs['sg_losses'] = singular_losses(gross_head, length,
-                                                      discharge, diameter)
+                    # TODO: check when gross_head>length not physically
     # save the changes
     struct.table.conn.commit()
 
     # TODO: make it more readable/pythonic
     sql0 = "SELECT losses FROM %s WHERE (intake_id=%i AND side='option0');"
     sql1 = "SELECT losses FROM %s WHERE (intake_id=%i AND side='option1');"
+    msgr = get_msgr()
     for i in list_intakeid:
         struct.rewind()
 
@@ -439,15 +452,25 @@ def compute_losses(struct, options,
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses0 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = line.attrs['gross_head'] - tot_losses
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                                             - tot_losses)
                 # net_head = float(line.attrs['net_head'])
+                if tot_losses > line.attrs['gross_head']:
+                                    
+                    msgr.warning(("Losses greater than gross_head, %i"
+                                      % (line.cat)))
 
             if (line.attrs['intake_id'] == i[0] and
                     line.attrs['side'] == 'option1' and
                     line.attrs['kind'] == 'penstock'):
                 line.attrs['tot_losses'] = totallosses1 + sing_losses
                 tot_losses = float(line.attrs['tot_losses'])
-                line.attrs['net_head'] = line.attrs['gross_head'] - tot_losses
+                line.attrs['net_head'] = max(0.0, line.attrs['gross_head'] 
+                                             - tot_losses)
+                if tot_losses > line.attrs['gross_head']:
+                    
+                    msgr.warning(("Losses greater than gross_head, %i"
+                                      % (line.cat)))
                 # net_head = float(line.attrs['net_head'])
 
             if line.attrs['kind'] == 'conduct':
@@ -465,17 +488,17 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
             ('power', 'DOUBLE'),
             ('max_power', 'VARCHAR(3)')]
 
-
-
     struct.rewind()
+    add_columns(struct, cols)
 
     # TODO: make it more readable/pythonic
     for line in struct:
-
+        # TODO: in one query 
         net_head = float(line.attrs['net_head'])
+        gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
 
-        if line.attrs['net_head'] > 0:
+        if net_head >= 0 and gross_head > 0:
             possible_turb = turb_char(net_head, discharge,
                                       turbine_list, turbine_folder)
             efficiency = np.zeros(len(possible_turb))
@@ -500,15 +523,16 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
                 eta = 0
                 kind_turbine = 'not found'
 
+            # TODO: names of the columns as inputs and check if already in the
+            # shape file
             line.attrs['e_turbine'] = eta
             line.attrs['turbine'] = kind_turbine
             line.attrs['power'] = (9.81 * net_head * discharge * eta *
                                    efficiency_shaft * efficiency_alt *
                                    efficiency_transf)
-            line.attrs['e_global'] = (9.81 * net_head * discharge * eta *
-                                      efficiency_shaft * efficiency_alt *
-                                      efficiency_transf /
-                                      float(line.attrs['hyd_power']))
+            # TODO: check with Julie results for the e_global
+            line.attrs['e_global'] = (net_head * efficiency_alt *
+                                      efficiency_transf / gross_head)
     struct.table.conn.commit()
 
     for i in range(0, len(list_intakeid)):
@@ -632,14 +656,13 @@ def main(options, flags):
         conv_segpoints(plant, options['output_point'])
 
     # set the opions to execute the r.green.hydro.structure
-## TODO: uncomment this at the end of the debug session and before commit
 #    struct_opts = dict(elevation=elevation, plant=plant,
 #                       output_struct=output_struct,
 #                       ndigits=options['ndigits'],
 #                       contour=options['contour'], overwrite=gcore.overwrite())
 #    if options['resolution']:
 #        struct_opts['resolution'] = options['resolution']
-#    gcore.run_command('r.green.hydro.structure', **struct_opts)
+#    gcore.run_command('r.green.hydro.strucintake_idture', **struct_opts)
 #
 #    gcore.run_command('v.build', map=output_struct)
 ## --------------------------------------------------------------------------
@@ -656,8 +679,7 @@ def main(options, flags):
     with VectorTopo(output_plant, mode='rw') as out, \
             VectorTopo(output_struct, mode='r') as struct:
 
-        cols = [('pot_power', 'hyd_power'),
-                ('tot_losses', 'DOUBLE'),
+        cols = [('tot_losses', 'DOUBLE'),
                 ('net_head', 'DOUBLE'),
                 ('e_global', 'DOUBLE'),
                 ('power', 'DOUBLE')]
