@@ -662,7 +662,7 @@ def main(options, flags):
                        contour=options['contour'], overwrite=gcore.overwrite())
     if options['resolution']:
         struct_opts['resolution'] = options['resolution']
-    gcore.run_command('r.green.hydro.strucintake_idture', **struct_opts)
+    gcore.run_command('r.green.hydro.structure', **struct_opts)
 
     gcore.run_command('v.build', map=output_struct)
 ## --------------------------------------------------------------------------
