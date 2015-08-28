@@ -62,9 +62,9 @@ def main():
 
     # check for unsupported locations
     in_proj = grass.parse_command('g.proj', flags='g')
-    if in_proj['unit'].lower() == 'Meter':
+    if in_proj['unit'].lower() == 'meter':
         grass.fatal(_("Projected locations are not supported"))
-    if in_proj['unit'].lower() == 'US survey foot':
+    if in_proj['unit'].lower() == 'us survey foot':
         grass.fatal(_("Projected locations are not supported"))
     if in_proj['name'].lower() == 'xy_location_unprojected':
         grass.fatal(_("xy-locations are not supported"))
