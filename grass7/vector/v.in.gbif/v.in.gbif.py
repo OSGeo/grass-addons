@@ -26,28 +26,32 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 #% required: yes
 #%end
 
-#%option G_OPT_F_OUTPUT
-#% key: output_vrt
-#% description: VRT file (with vrt extension)
-#% required: yes
-#%end
-
-#%option G_OPT_M_DIR
-#% key: dir
-#% description: Directory where the output will be found
-#% required : yes
-#%end
-
 #%option G_OPT_V_OUTPUT
 #% key: output
 #% description: name of imported GBIF data set
 #% required : yes
 #%end
 
+#%flag
+#% key: c
+#% description: Create GDAL VRT data set of GBIF data
+#% guisection: vrt
+#%end
+
+#%option G_OPT_M_DIR
+#% key: dir
+#% description: Directory where the output will be found
+#% required : no
+#% guisection: vrt
+#%end
+
+
 import sys
 import os
 import csv
 import math
+import shutil
+import tempfile
 import grass.script as grass
 
 if not os.environ.has_key("GISBASE"):
@@ -66,11 +70,12 @@ def main():
         grass.fatal(_("xy-locations are not supported"))
 
     gbifraw = options['input']
-    directory = options['dir']
-    gbifvrt = options['output_vrt']
     gbifimported = options['output']
-    gbif_vrt_layer = options['output_vrt'].split('.')[0]
-    gbifcsv = gbif_vrt_layer+'.csv'	
+    directory = options['dir']
+    move_vrt_gbif_to_dir = flags['c']
+    gbifvrt = gbifimported+'.vrt'
+    gbif_vrt_layer = gbifimported
+    gbifcsv = gbifimported+'.csv'	
     global tmp	 
 	
     # Extract vector line
@@ -78,7 +83,8 @@ def main():
     grass.message( "preparing data for vrt ..." )
 
     # new quoted GBIF csv file
-    new_gbif_csv = os.path.join( directory, gbifcsv )
+    gbiftempdir = tempfile.gettempdir()
+    new_gbif_csv = os.path.join( gbiftempdir, gbifcsv )
 
     # quote raw data
     with open('%s' % (gbifraw), 'rb') as csvinfile:
@@ -91,7 +97,7 @@ def main():
 
     # write	vrt		
     grass.message( "writing vrt ..." )
-    new_gbif_vrt = os.path.join( directory, gbifvrt )
+    new_gbif_vrt = os.path.join( gbiftempdir, gbifvrt )
     
     f = open('%s' % (new_gbif_vrt), 'wt')
     f.write("""<OGRVRTDataSource>
@@ -153,8 +159,6 @@ def main():
     grass.message( gbifvrt )
     grass.message( "-" )	
     grass.message( gbifcsv )
-    grass.message( "are saved in:" )
-    grass.message( directory )	
     grass.message( "----" )
 
     # import GBIF vrt
@@ -165,9 +169,31 @@ def main():
                                      output = gbifimported,
                                      quiet = True)
 
+
     grass.message( "..." )
     # v.in.gbif done!	
-    grass.message( "importing GBIF data done!" )	
+    grass.message( "importing GBIF data done!" )
+    # move vrt and csv to user defined directory
+    
+    if move_vrt_gbif_to_dir :
+		
+        grass.message( "----" )
+        grass.message( "Create GBIF vrt data files ..." )
+        shutil.move(new_gbif_vrt, directory)
+        shutil.move(new_gbif_csv, directory)
+        grass.message( "in following user defined directory:" )
+        grass.message( directory )
+        grass.message( "----" )		      
+		
+    else:
+		
+        grass.message( "----")
+        grass.message("Some clean up ...")
+        os.remove("%s" % new_gbif_vrt)
+        os.remove("%s" % new_gbif_csv)
+        grass.message("Clean up done.")
+        grass.message( "----")
+	
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -9,10 +9,10 @@ hast to be unzipped before importing the csv file.
 </p>
 
 <p>
-<em>v.in.gbif</em> saves the data to a <a href="http://www.gdal.org">GDAL</a> 
+<em>v.in.gbif</em> saves the data to an intermediate <a href="http://www.gdal.org">GDAL</a> 
 <a href="http://www.gdal.org/drv_vrt.html">VRT - Virtual Datasource</a> 
 which will be imported by <a href="v.in.ogr.html">v.in.ogr</a>. The VRT data set
-can be used in any GDAL aware software.
+can be copied to a user defined directory by <i>-c</i> flag and used in any GDAL aware software.
 
 As some column names in the original data set are similar to <a 
 href="http://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQL reserverd key words</a>, 
@@ -23,8 +23,10 @@ the columns will renamed with the prefix <i>g_</i>.
 
 <div class="code">
  <pre>
-  v.in.gbif vector= cat=40102 dir=C:\tmp distance=25
-  v.in.gbif input=C:\data\0004248-150811131857512\0004248-150811131857512.csv output_vrt=chondrilla.vrt dir=C:\data\0004248-150811131857512\ output=chondrilla
+  v.in.gbif input=C:\data\0004248-150811131857512\0004248-150811131857512.csv output=chondrilla_12
+  
+  # create GDAL VRT files based upon GBIF data in user defined directory by -c flag
+  v.in.gbif -c input=input=C:\data\0004248-150811131857512\0004248-150811131857512.csv output=chondrilla_13 dir=C:\data\0004248-150811131857512\
  </pre>
 </div>
 
