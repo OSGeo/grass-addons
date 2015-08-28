@@ -45,6 +45,10 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 #% guisection: vrt
 #%end
 
+#%flag
+#% key: r
+#% description: Reproject data on-the-fly if no latlon (WGS84) location
+#%end
 
 import sys
 import os
@@ -60,15 +64,7 @@ if not os.environ.has_key("GISBASE"):
 
 def main():
 
-    # check for unsupported locations
-    in_proj = grass.parse_command('g.proj', flags='g')
-    if in_proj['unit'].lower() == 'meter':
-        grass.fatal(_("Projected locations are not supported"))
-    if in_proj['unit'].lower() == 'us survey foot':
-        grass.fatal(_("Projected locations are not supported"))
-    if in_proj['name'].lower() == 'xy_location_unprojected':
-        grass.fatal(_("xy-locations are not supported"))
-
+		
     gbifraw = options['input']
     gbifimported = options['output']
     directory = options['dir']
@@ -76,8 +72,15 @@ def main():
     gbifvrt = gbifimported+'.vrt'
     gbif_vrt_layer = gbifimported
     gbifcsv = gbifimported+'.csv'	
+    reproject_gbif = flags['r']
     global tmp	 
-	
+
+    # check for unsupported locations or unsupported combination of option and projected location
+    in_proj = grass.parse_command('g.proj', flags='g')
+    
+    if in_proj['name'].lower() == 'xy_location_unprojected':
+        grass.fatal(_("xy-locations are not supported"))
+		
     # Extract vector line
     grass.message( "Starting importing GBIF data ..." )
     grass.message( "preparing data for vrt ..." )
@@ -163,12 +166,24 @@ def main():
 
     # import GBIF vrt
     grass.message( "importing GBIF vrt ..." )
-
-    grass.run_command("v.in.ogr", input = new_gbif_vrt,
-                                     layer = gbif_vrt_layer,
+    
+    # reprojection-on-the-fly if flag r
+    	
+    if reproject_gbif :
+		
+		grass.message( "reprojecting data on-the-fly ..." )
+		grass.run_command("v.import", input = new_gbif_vrt,
                                      output = gbifimported,
                                      quiet = True)
 
+	# no reprojection-on-the-fly
+	
+    else:
+		
+		grass.run_command("v.in.ogr", input = new_gbif_vrt,
+                                     layer = gbif_vrt_layer,
+                                     output = gbifimported,
+                                     quiet = True)
 
     grass.message( "..." )
     # v.in.gbif done!	

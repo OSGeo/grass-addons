@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.in.gbif</em> imports <a href="http://www.gbif.org/">GBIF</a> 
-species distribution data. The location must be in latlon (WGS84). 
+species distribution data. GBIF data is by definition in WGS84 geographic coordinates.
 
 <p>
 The species distribution data downloaded from <a href="http://www.gbif.org/">GBIF</a> 
@@ -19,6 +19,14 @@ href="http://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQ
 the columns will renamed with the prefix <i>g_</i>. 
 </p>
 
+<p>
+ By the <i>-r</i> flag an on-the-fly reprojection of the data can be 
+invoked using <a href="v.import.html">v.import</a>, if the location is 
+not in WGS84. Quality of on-the-fly reprojection is not garanteed. The 
+traditional reprojection procedure in GRASS GIS can also be used 
+instead.
+</p>
+
 <h2>EXAMPLE</h2>
 
 <div class="code">
@@ -33,8 +41,10 @@ the columns will renamed with the prefix <i>g_</i>.
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="v.import.html">v.import</a>
 <a href="v.in.ascii.html">v.in.ascii</a>
 <a href="v.in.ogr.html">v.in.ogr</a>
+<a href="v.proj.html">v.proj</a>
 </em>
 
 <h2>AUTHOR</h2>
