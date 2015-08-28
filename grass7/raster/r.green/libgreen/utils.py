@@ -16,13 +16,18 @@ except ImportError:
                   'pip install scipy')
 
 
-def cleanup(raster=None, vector=None, debug=False):
+def cleanup(raster=None, vector=None, pattern=None, debug=False):
     """Delete temporary maps"""
     if not debug:
         if raster:
-            gcore.run_command("g.remove", flags="f", type='raster', name=raster)
+            gcore.run_command("g.remove", flags="f", type='raster',
+                              name=raster)
         if vector:
-            gcore.run_command("g.remove", flags="f", type='vector', name=vector)
+            gcore.run_command("g.remove", flags="f", type='vector',
+                              name=vector)
+        if pattern:
+            gcore.run_command("g.remove", flags="f", type='raster,vector',
+                              pattern=pattern)
 
 
 def check_overlay_rv(raster, vector):
