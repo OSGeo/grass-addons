@@ -26,7 +26,7 @@
 #%option G_OPT_V_INPUT
 #%  key: struct
 #%  label: Name of the input vector map with the structure of the plants
-#%  required: yes
+#%  required: no
 #%end
 
 #############################################################################
@@ -499,7 +499,7 @@ import atexit
 import random
 
 import numpy as np
-
+from grass.script import core as gcore
 from grass.exceptions import ParameterError
 from grass.script.core import parser, overwrite, warning
 from grass.pygrass.modules.shortcuts import raster as r
@@ -528,7 +528,7 @@ from libhydro.plant import read_plants, write_structures
 
 
 def rname(base):
-    return '%s_%03d' % (base, random.randint(0, 1000))
+    return 'tmprgreen_%i_%s' % (os.getpid(), base)
 
 
 def check_raster_or_landuse(opts, params):
@@ -844,14 +844,20 @@ def economic2segment(economic, segment, basename='eco_',
 
 
 def main(opts, flgs):
+    pid = os.getpid()
+    pat = "tmprgreen_%i_*" % pid
+    atexit.register(cleanup,
+                    pattern=pat,
+                    debug=False)
     # check or generate raster map from rules files
+
     ecovalues = ['landvalue', 'tributes', 'stumpage', 'rotation', 'age',
                  'min_exc', 'max_exc']
     (lan, tri, stu, rot, age,
      excmin, excmax) = check_raster_or_landuse(opts, ecovalues)
-    upper = opts['upper'] if opts['upper'] else 'tmp_upper'
-    comp = opts['compensation'] if opts['compensation'] else 'tmp_compensation'
-    exc = opts['excavation'] if opts['excavation'] else 'tmp_excavation'
+    upper = opts['upper'] if opts['upper'] else ('tmprgreen_%i_upper' % pid)
+    comp = opts['compensation'] if opts['compensation'] else ('tmprgreen_%i_compensation' % pid)
+    exc = opts['excavation'] if opts['excavation'] else ('tmprgreen_%i_excavation' % pid)
     vlayer = int(opts['struct_layer'])
     
     plant, mset = (opts['plant'].split('@') if '@' in opts['plant'] else (opts['plant'], ''))
@@ -1003,26 +1009,26 @@ def main(opts, flgs):
                          function=max_NPV, 
                          exclude=['intake_id', 'side', 'power', 
                                   'gross_head', 'discharge'])
-                         
-    vec = VectorTopo(opts['output_struct'])    
-    vec.open('rw')
-    vec.table.columns.add('max_NPV','VARCHAR(3)')
-                                 
-    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
+    if opts['output_struct']:
+        vec = VectorTopo(opts['output_struct'])    
+        vec.open('rw')
+        vec.table.columns.add('max_NPV','VARCHAR(3)')
+                                     
+        list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
+        
+        for i in range(0,len(list_intakeid)):   
+            vec.rewind()                  
+            list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
+            npvmax=max(list_npv)[0]
+            for line in vec:
+                if line.attrs['intake_id'] == list_intakeid[i][0]:
+                    if line.attrs['NPV'] == npvmax:
+                        line.attrs['max_NPV']='yes'
+                    else:
+                        line.attrs['max_NPV']='no'
     
-    for i in range(0,len(list_intakeid)):   
-        vec.rewind()                  
-        list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
-        npvmax=max(list_npv)[0]
-        for line in vec:
-            if line.attrs['intake_id'] == list_intakeid[i][0]:
-                if line.attrs['NPV'] == npvmax:
-                    line.attrs['max_NPV']='yes'
-                else:
-                    line.attrs['max_NPV']='no'
-
-    vec.table.conn.commit()    
-    vec.close()
+        vec.table.conn.commit()    
+        vec.close()
 
 
 if __name__ == "__main__":
