@@ -26,7 +26,7 @@
 
 #%option G_OPT_V_INPUT
 #% key: vector
-#% description: Name of input vector points map containg the set of sites for this analysis.
+#% description: Name of input vector points map containg the set of points for this analysis.
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -76,8 +76,8 @@
 #%end
 
 #%option G_OPT_DB_COLUMN
-#% key: name_col
-#% description: Database column for site names (with flag -k)
+#% key: name_column
+#% description: Database column for point names (with flag -k)
 #% required : no
 #%end
 

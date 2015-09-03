@@ -6,14 +6,14 @@ series of input points stored in a vector points map. The routine is
 a python wrapper script that iterative loops through each input 
 point, calculating a viewshed map, and then creates an output map 
 that is coded by the number of input locations that can "see" each 
-cell. <em>r.viewshed.cva</em> uses the GRASS module <em>r.viewshed</em>
+cell. <em>r.viewshed.cva</em> uses the GRASS GIS module <em>r.viewshed</em>
 for the viewshed analysis. <em>r.viewshed</em> is very fast, 
 thus allowing for a cumulative viewshed analysis to run in a 
 reasonable amount of time. The final cumulative viewshed map is 
 computed using the "count" method of <em>r.series</em>, rather than 
 with mapcalc, as it better handles the null values in the individual 
 constituent viewshed maps (and allows for interim viewshed maps to 
-be coded in any way)
+be coded in any way).
 <p>
 
 <h3>Options and flags:</h3>
@@ -24,16 +24,17 @@ and an input vector points map, <b>vector</b>. There is currently only
  you to keep the interim viewshed maps made for each input point. 
 Optionally, option <b>name_col</b> can be used with <b>-k</b> to specify 
 the suffix of the kept viewshed maps by a particular column in the 
-input vector sites' database. If no value is specified for <b>name_col</b>, 
+input vector points' database. If no value is specified for <b>name_col</b>, 
 then the cat value will be used.
 <p>
 All other flags and options are inherited from 
-<em>r.viewshed<em> (see the <a href="r.viewshed.html">r.viewshed</a> help page for more 
-information on these).
+<em>r.viewshed<em> (see the <a href="r.viewshed.html">r.viewshed</a>
+help page for more information on these).
 <p>
 
 <h2>NOTES</h2>
 
+<!-- todo: mention r.geomorphon addon for summit extraction -->
 The input vector points map can be manually digitized (with <em>
 v.digit</em>) over topographic or cultural features, or can be 
 created as a series of random points (with <em>r.random</em> or <em>
@@ -46,25 +47,26 @@ of individual viewsheds from points in a vector file.
 <p>
 
 <h2>EXAMPLES</h2>
-Undertake a cumulative viewshed analysis from a digitized vector points map of prominent peaks in a region:<br>
+Undertake a cumulative viewshed analysis from a digitized vector points
+map of prominent peaks in a region:<br>
 
 <div class="code"><pre>
-g.region rast=elevation_10m_dem@PERMANENT -p
-[use v.digit to digitize points]
-r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map \
-  vect=prominent_peaks_points@PERMANENT x_column=x y_column=y \
-  name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500
+g.region raster=elevation_10m_dem -p
+# [use v.digit to digitize points or eg the r.geomorphon addon for summits]
+r.viewshed.cva input=elevation10m_dem output=peaks_CVA_map \
+  vector=prominent_peaks_points name_column=cat \
+  observer_elevation=1.75 target_elevation=0
 </pre></div>
 
 
 <br>Undertake a cumulative viewshed analysis from a 10% sample of landscape locations in a region:<br>
 
 <div class="code"><pre>
-g.region rast=elevation_10m_dem@PERMANENT
-r.random input=elevation10m_demPERMANENT n=10% vector_output=rand_points_10p
-r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map \
-  vect=rand_points_10p@PERMANENT x_column=x y_column=y \
-  name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500
+g.region raster=elevation_10m_dem
+r.random input=elevation10m_dem n=10% vector_output=rand_points_10p
+r.viewshed.cva input=elevation10m_dem output=peaks_CVA_map \
+  vector=rand_points_10p name_column=cat \
+  observer_elevation=1.75 target_elevation=0
 </pre></div>
 
 
