@@ -13,7 +13,6 @@
 #include <grass/config.h>
 #include <grass/gis.h>
 #include <grass/gmath.h>
-#include <grass/la.h>
 #include <grass/raster3d.h>
 #include <grass/glocale.h>
 #include <grass/rtree.h>

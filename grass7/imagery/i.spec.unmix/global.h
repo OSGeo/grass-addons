@@ -4,7 +4,6 @@
 #include <grass/config.h>
 #include <grass/gis.h>
 #include <grass/gmath.h>
-#include <grass/la.h>
 
 #ifndef GLOBAL
 #define GLOBAL extern
