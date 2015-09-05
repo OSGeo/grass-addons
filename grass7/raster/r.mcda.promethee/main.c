@@ -202,15 +202,13 @@ int main(int argc, char *argv[])
                 /* viene letto il valore di cella e lo si attribuisce ad una variabile di tipo DCELL e poi ad un array*/
                 DCELL v1 = ((DCELL *)attributes[i].inrast)[col1];
                 decision_vol[row1][col1][i]=(double)(v1);
-                G_message("row: %d",row1);
-
             }
         }
     }
 
 
     build_flow_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol,positive_flow_vol, negative_flow_vol); /*scan all DCELL, make a pairwise comparatione, buil positive flow matrix*/
-
+    G_message("step ended");
 
     for (row1 = 0; row1 < nrows; row1++)
     {
