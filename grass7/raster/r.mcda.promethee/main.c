@@ -183,7 +183,8 @@ int main(int argc, char *argv[])
     /* Allocate output buffer, use  DCELL_TYPE */
     outrast_positive_flow = Rast_allocate_buf(DCELL_TYPE); /* Allocate memory for a raster map of type DCELL_TYPE. */
     outrast_negative_flow = Rast_allocate_buf(DCELL_TYPE);
-
+    outrast_netflow = Rast_allocate_buf(DCELL_TYPE);
+    
     /* controlling, if we can write the raster */
     outrast_positive_flow = Rast_open_new(result_positive_flow, DCELL_TYPE);
     outrast_negative_flow = Rast_open_new(result_negative_flow, DCELL_TYPE);
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
         }
     }
 
-
+    G_message("step started");
     build_flow_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol,positive_flow_vol, negative_flow_vol); /*scan all DCELL, make a pairwise comparatione, buil positive flow matrix*/
     G_message("step ended");
 
