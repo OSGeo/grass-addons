@@ -8,13 +8,6 @@ DEPENDENCIES= $(RASTER3DDEP) $(RASTERDEP) $(VECTORDEP) $(DBMIDEP) $(GMATHDEP) $(
 EXTRA_INC = $(VECT_INC) $(PROJINC)
 EXTRA_CFLAGS = $(VECT_CFLAGS)
 
-EXTRA_CFLAGS=-fopenmp
-EXTRA_LIBS=$(GISLIB) -lgomp $(MATHLIB) -lboost_system
-
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
-LINK = $(CXX)
-
-ifneq ($(strip $(CXX)),)
 default: cmd
-endif
