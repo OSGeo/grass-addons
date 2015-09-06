@@ -70,21 +70,16 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 					for (col2 = 0; col2 < ncols; col2++)
 					{
 						threshold = (decision_vol[row1][col1][i] - decision_vol[row2][col2][i]);
-						//G_message("thersold:%f;r1:%d;c1:%d // r2:%d;c2:%d ",threshold,row1,col1,row2,col2);
-						if (threshold>0)
+						if (threshold>0) /* if therehold is positive, it fill the positive flow*/
 							{
-							//positive_flow_vol[row1][col1][i]=threshold*weight_vect[i];
-							//negative_flow_vol[row1][col1][i]=0;
 							positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1]+(threshold*weight_vect[i]);
 							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1];
 
 							}
-						else
+						else /* if thershold is negative, it  fill the negative flow*/
 							{
-							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]+(threshold*weight_vect[i]);
+							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]+(-threshold*weight_vect[i]);
 							positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1];
-							//positive_flow_vol[row1][col1][i]=0;
-							//negative_flow_vol[row1][col1][i]=threshold*weight_vect[i];
 							}
 					}
 				}

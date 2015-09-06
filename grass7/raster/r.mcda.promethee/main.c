@@ -3,10 +3,11 @@
  * MODULE:   r.mcda.promethee
  * AUTHORS:  Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
  *
- * PURPOSE:      Make a multicriteria decision analysis based on PROMETHEE algorithm.
+ * PURPOSE:  Make a multicriteria decision analysis based on PROMETHEE algorithm.
+ *           J.P. Brans and P. Vincke (1985). "A preference ranking organisation method: 
+ *           The PROMETHEE method for MCDM". Management Science.
  *               
- * COPYRIGHT:    (C) GRASS Development Team (2015)
- *
+ * COPYRIGHT:   Gianluca Massei (g_massa@libero.it) and (C) GRASS Development Team (2015)
  *              This program is free software under the GNU General Public
  *              License (>=v2). Read the file COPYING that comes with GRASS
  *              for details.
