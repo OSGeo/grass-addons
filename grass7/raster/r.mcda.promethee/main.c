@@ -3,9 +3,8 @@
  * MODULE:   r.mcda.promethee
  * AUTHORS:  Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
  *
- * PURPOSE:      Make a multicriteria decision analysis based on PROMETHEE algorithm,
- *               with concordance and discordance indexes maps
- *
+ * PURPOSE:      Make a multicriteria decision analysis based on PROMETHEE algorithm.
+ *               
  * COPYRIGHT:    (C) GRASS Development Team (2015)
  *
  *              This program is free software under the GNU General Public
@@ -38,7 +37,7 @@ int main(int argc, char *argv[])
     int row1, col1;
     int outfd_positive_flow, outfd_negative_flow, outfd_netflow;      /* output file descriptor */
     /*RASTER_MAP_TYPE data_type;     type of the map (CELL/DCELL/...) */
-    double *weight_vect, ***decision_vol, ***positive_flow_vol, ***negative_flow_vol;/* vector and matrix */
+    double *weight_vect, ***decision_vol, **positive_flow_vol, **negative_flow_vol;/* vector and matrix */
 
 
     struct History history; /* holds meta-data (title, comments,..) */
@@ -164,19 +163,20 @@ int main(int argc, char *argv[])
 
     /*memory allocation for-three dimensional matrix*/
     decision_vol=G_malloc(nrows * sizeof(double*));
-    positive_flow_vol=G_malloc(nrows * sizeof(double*));
-    negative_flow_vol=G_malloc(nrows * sizeof(double*));
+    positive_flow_vol=G_calloc(nrows, sizeof(double*)); /*Allocates aligned block of memory and initializes the allocated memory to zero.*/
+    negative_flow_vol=G_calloc(nrows, sizeof(double*));
+ 
     
     for (i=0; i<nrows; ++i)
     {
         decision_vol[i]=G_malloc(ncols * sizeof(double*));
-        positive_flow_vol[i]=G_malloc(nrows * sizeof(double*));
-        negative_flow_vol[i]=G_malloc(nrows * sizeof(double*));
+        positive_flow_vol[i]=G_calloc(ncols, sizeof(double*));/*Allocates aligned block of memory and initializes the allocated memory to zero.*/
+        negative_flow_vol[i]=G_calloc(ncols, sizeof(double*));
         for (j=0; j<ncols; ++j)
         {
             decision_vol[i][j]=G_malloc((ncriteria+2) * sizeof(double)); /****NOTE: it's storage ****/
-            positive_flow_vol[i][j]=G_malloc((ncriteria+2) * sizeof(double));
-            negative_flow_vol[i][j]=G_malloc((ncriteria+2) * sizeof(double));
+            //positive_flow_vol[i][j]=G_malloc((ncriteria) * sizeof(double));
+            //negative_flow_vol[i][j]=G_malloc((ncriteria) * sizeof(double));
         }
     }
 
@@ -186,16 +186,18 @@ int main(int argc, char *argv[])
     outrast_netflow = Rast_allocate_buf(DCELL_TYPE);
     
     /* controlling, if we can write the raster */
-    outrast_positive_flow = Rast_open_new(result_positive_flow, DCELL_TYPE);
-    outrast_negative_flow = Rast_open_new(result_negative_flow, DCELL_TYPE);
-    outrast_netflow = Rast_open_new(result_netflow, DCELL_TYPE);
+    outfd_positive_flow = Rast_open_new(result_positive_flow, DCELL_TYPE);
+    outfd_negative_flow = Rast_open_new(result_negative_flow, DCELL_TYPE);
+    outfd_netflow = Rast_open_new(result_netflow, DCELL_TYPE);
 
 
     /*build a three dimensional matrix for storage all critera maps*/
+    G_message("Load data");
     for (i=0;i<ncriteria;i++)
     {
         for (row1 = 0; row1 < nrows;row1++)
         {
+            G_percent(row1, nrows, 2);
             Rast_get_row(attributes[i].infd, attributes[i].inrast, row1,DCELL_TYPE);/* Reads appropriate information into the buffer buf associated with the requested row*/
             /*G_fatal_error(_("Unable to read raster map <%s> row %d"), criteria->answers[i], row);*/
             for (col1 = 0; col1 < ncols; col1++)
@@ -206,17 +208,18 @@ int main(int argc, char *argv[])
             }
         }
     }
-
-    G_message("step started");
+    
+    G_message("run algorithm");
     build_flow_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol,positive_flow_vol, negative_flow_vol); /*scan all DCELL, make a pairwise comparatione, buil positive flow matrix*/
-    G_message("step ended");
 
+    G_message("buil mcda maps");
     for (row1 = 0; row1 < nrows; row1++)
     {
+        G_percent(row1, nrows, 2);
         for (col1 = 0; col1 < ncols; col1++)
         {
-            ((DCELL *) outrast_positive_flow)[col1] = (DCELL)positive_flow_vol[row1][col1][ncriteria];/*write positive flow map*/
-            ((DCELL *) outrast_negative_flow)[col1] = (DCELL)negative_flow_vol[row1][col1][ncriteria];/*write negative flow map*/
+            ((DCELL *) outrast_positive_flow)[col1] = (DCELL)positive_flow_vol[row1][col1];/*write positive flow map*/
+            ((DCELL *) outrast_negative_flow)[col1] = (DCELL)negative_flow_vol[row1][col1];/*write negative flow map*/
         }
         Rast_put_row(outfd_positive_flow, outrast_positive_flow,  DCELL_TYPE);
         Rast_put_row(outfd_negative_flow, outrast_negative_flow,  DCELL_TYPE);
