@@ -1,9 +1,46 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.subdayprecip.design</em> computes subday design precipitation series.
+<em>r.subdayprecip.design</em> computes reduction of subday design
+precipitation series.
 
 <p>
-TODO
+The tool uses methods of zonal statistics to compute average values of
+design 24 hours precipitation for a selected area or for a spot. This
+value is reduced to the chosen length design rain for selected period
+of repetition.
+
+<h2>NOTES</h2>
+
+Subday design precipitation series are important for hydrological
+modelling and soil erosion problems in a small catchment scale when
+designing common measures for promoting water retention, landscape
+drainage systems, etc.
+
+<p>
+First automatization has been implemented by well-known method
+which is based on reduction of 24 hours design precipitation to
+shorter time. GIS is used for spatial supervised classification of
+point values of specified repetition periods (2, 10, 20, 50 a 100
+years) over the area of the Czech Republic.
+
+<center>
+<table>
+<tr>
+<td><img src="r_subdayprecip_design_basin.png"></td>
+<td><img src="r_subdayprecip_design_h_rast.png"></td>
+</tr>
+<tr>
+<td><em>Figure: Basins (in orange) with orthophoto<br> on background</em></td>
+<td><em>Figure: Repetition periods (2, 10, 20, 50 years)<br> in the area of the Czech Republic</em></td>
+</tr>
+</table>
+
+
+<img src="r_subdayprecip_design_result.png">
+<p>
+<em>Figure: Basins colored by H_002_60 value</em>
+
+</center>
 
 <h2>EXAMPLE</h2>
 
@@ -11,21 +48,44 @@ TODO
 r.subdayprecip.design map=basin raster=H_002,H_005,H_010,H_020 rainlength=60
 </pre></div>    
 
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>Landa M., Kavka P., Strouhal L. (2015). <a href="http://geomatica.como.polimi.it/workbooks/n12/">A
+    GIS tool for reduction day precipitation to subday</a> (Geomatics
+    Workbooks 12)</li>
+  <li>Tomasu
+    M. (2013). <a href="http://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf">Tvorba
+    nastoje pro sestaveni kratkodobych navrhovych destu na zaklade
+    rizene interpolace a redukce</a> (in Czech)</li>
+  <li>Torfs, P. J. J. F., Horacek, S., & Rakovec,
+    O. (2010). Chimera, a framework for conceptual modelling using
+    analytical sensitives to parameters: implementation and
+    application to PDM model.</li>
+  <li>Sokol, Z., & Bliznak, V. (2009). Areal distribution and
+    precipitation-altitude relationship of heavy short-term
+    precipitation in the Czech Republic in the warm part of the
+    year. Atmospheric Research, 94(4), 652-662.</li>
+</ul>
+
+<h3>Acknowledgement</h3>
+
+This work has been supported by the research project QJ1520265 -
+&quot;Variability of Short-term Precipitation and Runoff in Small
+Czech Drainage Basins and its Influence on Water Resources
+Management&quot;.
+
 <h2>SEE ALSO</h2>
 
 <em>
 <a href="v.rast.stats.html">v.rast.stats</a>
 </em>
 
-<h2>REFERENCES</h2>
-
-<ul>
-  <li><a href="http://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf">http://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf</a> (in Czech)</li>
-</ul>
-
 <h2>AUTHORS</h2>
 
-Martin Landa, OSGeoREL, Czech Technical University in Prague, Czech Republic<br>
+Martin Landa, OSGeoREL, Czech Technical University in Prague, Czech
+Republic<br> The module is inspired by Python script developed for
+Esri ArcGIS platform by M. Tomasu in 2013 (see REFERENCES).
 
 <p>
 <i>Last changed: $Date $</i>
