@@ -43,61 +43,42 @@ Installation - Code Compilation
 
 
 ########################################################################
-To submit your GRASS project here, please write to
+To submit your GRASS GIS module here, please check
 
-	Markus Neteler <neteler * cealp.it>
-        or any other GRASS developer with write access.
+   https://grass.osgeo.org/development/
 
 The submmission must be compliant with the GRASS
 submission rules as found in the GRASS source code
 and RFC2 (Legal aspects of submission):
 
-	http://trac.osgeo.org/grass/wiki/RfcList
+   https://trac.osgeo.org/grass/wiki/RFC
 
 Also read submitting instructions before committing any changes!
    
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_SCRIPTS
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_PYTHON
-
-Read access is granted to the public, write access
-must be requested, see below for details.
-
-Checkout of entire Addons repository:
-	svn checkout https://svn.osgeo.org/grass/grass-addons grass-addons
-
-########################################################################
-Mime-types
-##########
-# To avoid PDF mime-type recognition problems,
-# each new (!) PDF file has to be modified like this:
-# (unsure how to exclude PDF from the 'diff' email)
-
-svn propset svn:mime-type application/x-pdf *.pdf
-svn commit *.pdf
+   https://trac.osgeo.org/grass/wiki/Submitting
 
 ########################################################################
 How to get write access here?
 #############################
 
-Write access is only granted to developers who agree to abide by
-RFC2 - Legal aspects of code contributions
-http://download.osgeo.org/grass/grass6_progman/rfc/rfc2_psc.html
-and the code submission guidelines (file SUBMITTING in this
-directory).
+Read access is granted to the public, write access
+must be requested, see here for details:
+   https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository
 
-This needs to be communicated to a GRASS developer. S/he will
-then possibly propose you to the GRASS Project Steering committee
-after a period of evaluation. For details, see
-http://download.osgeo.org/grass/grass6_progman/rfc/main.html
+Checkout of the entire Addons SVN repository:
+	svn checkout https://svn.osgeo.org/grass/grass-addons grass-addons
 
-Once write access is granted, you, the new developer need to
-obtain an "osgeo_id" at http://www.osgeo.org/osgeo_userid
-If you already have an "osgeo_id" but forgot it, search for it at
-Search at http://www.osgeo.org/cgi-bin/ldap_web_search.py
+########################################################################
+Mime-types
+##########
+# To avoid mime-type recognition problems in SVN,
+# each new file's mime-type has to be updated with "svn propset":
 
-If there are no objections, the write access is then activated
-by a GRASS developer in the OSGeo LDAP for GRASS Addons.
+Prior to svn commit (first time only), run on your new file(s)
+
+   grass-addons/tools/module_svn_propset.sh <file>
+
+or, simply on all of your new files:
+
+   grass-addons/tools/module_svn_propset.sh *
 
