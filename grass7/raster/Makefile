@@ -18,6 +18,7 @@ SUBDIRS = \
 	r.area \
 	r.basin \
 	r.bioclim \
+	r.biodiversity \
 	r.bitpattern \
 	r.convergence \
 	r.crater \
