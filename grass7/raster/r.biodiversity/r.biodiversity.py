@@ -277,28 +277,28 @@ def main():
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
-        if 2.0 not in Qoriginal:
+        if 2.0 not in Qoriginal and not flag_p and not flag_g:
             grass.run_command("g.remove", flags="f", type="raster", 
                               name=in_div, quiet=True)
        
     #--------------------------------------------------------------------------
     # Inversed Simpson index
     #--------------------------------------------------------------------------
-    if flag_d:
+    if flag_p:
         out_div = OUT + "_invsimpson"      
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = exp($in_div)",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
-        if 2.0 not in Qoriginal:
+        if 2.0 not in Qoriginal and not flag_g:
             grass.run_command("g.remove", flags="f", type="raster", 
                               name=in_div, quiet=True)
         
     #--------------------------------------------------------------------------
     # Gini Simpson index
     #--------------------------------------------------------------------------
-    if flag_d:
+    if flag_g:
         out_div = OUT + "_ginisimpson"      
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = 1.0 - (1.0 / exp($in_div))",
