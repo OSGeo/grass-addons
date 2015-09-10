@@ -5,9 +5,10 @@ GRASS Addons Subversion repository at osgeo.org
 
 Write access is only granted to developers who agree to abide by
 RFC2 - Legal aspects of code contributions
-http://download.osgeo.org/grass/grass6_progman/rfc/rfc2_psc.html
+https://trac.osgeo.org/grass/wiki/RFC/2_LegalAspectsOfCodeContributions
 
-This needs to be communicated to a GRASS developer.
+This needs to be communicated to a GRASS developer. For details, see
+https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository
 
 Then you, the new developer need to obtain an "osgeo_id" at
 http://www.osgeo.org/osgeo_userid
@@ -60,17 +61,7 @@ http-proxy-port = 3128
 
 4. Read submitting instructions before committing any changes!
 
-   trunk
-   
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_PYTHON
-   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_WXGUI
-   
-   grass6
-   
-   http://trac.osgeo.org/grass/browser/grass/branches/releasebranch_6_4/SUBMITTING_SCRIPTS
-   http://trac.osgeo.org/grass/browser/grass/branches/releasebranch_6_4/SUBMITTING_TCLTK  
+   https://trac.osgeo.org/grass/wiki/Submitting
 
 5. Now work on the repository (see below).
 
@@ -81,8 +72,6 @@ We also have a nice Web interface for *reading* (not submitting):
 
 If you want a graphical tool for SVN, get it here:
  http://en.wikipedia.org/wiki/Subversion_%28software%29#GUI_front-ends.2Fclients
-
- (MN prefers command line since this is fast and easy...).
 
 ########################
 Change notification:
@@ -201,3 +190,4 @@ Reference (really good:)
 
  http://svnbook.red-bean.com/nightly/en/index.html
  Version Control with Subversion
+
