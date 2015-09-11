@@ -21,6 +21,7 @@ SUBDIRS = \
 	r.biodiversity \
 	r.bitpattern \
 	r.convergence \
+	r.cpt2grass \
 	r.crater \
 	r.damflood \
 	r.divergence \
