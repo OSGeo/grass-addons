@@ -7,6 +7,7 @@ DIR=$HOME/src
 MANDIR=/var/www/grass/grass-cms/
 XMLDIR=/var/www/grass/addons/
 #??? MANDIR=/var/www/grass
+CHECK_EVERY_MIN=15
 
 if [ ! -d "$XMLDIR" ]; then
     mkdir -p $XMLDIR
@@ -76,8 +77,16 @@ fi
 
 cd $DIR/grass-addons/ 
 
-nup=`(svn up || (svn cleanup && svn up)) | wc -l`
-if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
+# update
+svn up || (svn cleanup && svn up)
+
+# check last change
+date_last=`svn info --incremental --xml | grep date | cut -d '>' -f2 | cut -d '<' -f1`
+num_last=`date --date="$date_last" +%s`
+num_now=`date -u +%s`
+count=$(echo "($num_now - $num_last) / 60." | bc)
+
+if [ "$count" -lt "$CHECK_EVERY_MIN" ] || [ "$1" = "f" ] ; then
     build_addons $1
     exit 0
 fi
