@@ -1,7 +1,0 @@
-User-defined models for wxGUI Modeler
-(http://grass.osgeo.org/wiki/WxGUI_Modeler)
------------------------------------------------------------------------
-
-File    : atcorr_6.gxm (GRASS 6 only)
-Purpose : Model for i.atcorr to determine S6 parameters from metadata file
-Author  : Martin Landa
