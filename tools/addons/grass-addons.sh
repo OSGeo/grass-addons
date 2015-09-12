@@ -78,7 +78,7 @@ fi
 cd $DIR/grass-addons/ 
 
 # update
-svn up || (svn cleanup && svn up)
+svn up -q || (svn cleanup && svn up)
 
 # check last change
 date_last=`svn info --incremental --xml | grep date | cut -d '>' -f2 | cut -d '<' -f1`
@@ -87,6 +87,7 @@ num_now=`date -u +%s`
 count=$(echo "($num_now - $num_last) / 60." | bc)
 
 if [ "$count" -lt "$CHECK_EVERY_MIN" ] || [ "$1" = "f" ] ; then
+    echo "TIME DIFF (min): $count"
     build_addons $1
     exit 0
 fi
