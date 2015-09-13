@@ -24,12 +24,13 @@
 #%end
 
 #%option G_OPT_V_MAP
-#% description: Name of basin vector map
+#% label: Name of vector map to be updated
 #%end
 
 #%option G_OPT_R_INPUTS
 #% key: raster
-#% description: Name of input raster map(s) (H_002,H_005,H_010,H_020,H_050,H_100)
+#% label: Name of repetition periods raster map(s)
+#% options: H_002,H_005,H_010,H_020,H_050,H_100
 #%end
 
 #%option
