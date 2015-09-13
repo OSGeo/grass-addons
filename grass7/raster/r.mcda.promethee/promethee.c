@@ -89,7 +89,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 			}
 		}
 	}
-	
+	G_message("check");
 	for(row1 = 0; row1 < nrows; row1++)
 		{
 			for (col1 = 0; col1 < ncols; col1++)

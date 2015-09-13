@@ -186,7 +186,6 @@ int main(int argc, char *argv[])
     outrast_positive_flow = Rast_allocate_buf(DCELL_TYPE); /* Allocate memory for a raster map of type DCELL_TYPE. */
     outrast_negative_flow = Rast_allocate_buf(DCELL_TYPE);
     outrast_net_flow = Rast_allocate_buf(DCELL_TYPE);
-    //outrast_net_flow = Rast_allocate_buf(DCELL_TYPE);
     
     /* controlling, if we can write the raster */
     outfd_positive_flow = Rast_open_new(result_positive_flow, DCELL_TYPE);
