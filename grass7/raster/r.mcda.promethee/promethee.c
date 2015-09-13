@@ -9,7 +9,8 @@ void build_weight_vect(int ncriteria, struct Option *weight,
 
 void build_flow_matrix(int nrows, int ncols, int ncriteria,
                             double *weight_vect, double ***decision_vol,
-                            double **positive_flow_vol, double **negative_flow_vol);
+                            double **positive_flow_vol, double **negative_flow_vol,
+                            double **net_flow_vol);
 
 
 /*
@@ -50,7 +51,8 @@ void build_weight_vect(int ncriteria,struct Option *weight,
 
 void build_flow_matrix(int nrows, int ncols, int ncriteria,
                             double *weight_vect, double ***decision_vol,
-                            double **positive_flow_vol, double **negative_flow_vol)
+                            double **positive_flow_vol, double **negative_flow_vol,
+                            double **net_flow_vol)
 {
     int row1, col1, row2, col2;
     int i;
@@ -93,8 +95,11 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 			G_message("--");
 			for (col1 = 0; col1 < ncols; col1++)
 				{
+					//G_percent(col1, (ncols), 2);
 					positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1]/ncriteria;
 					negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]/ncriteria;
+					net_flow_vol[row1][col1]=0; //positive_flow_vol[row1][col1]-negative_flow_vol[row1][col1];
+					//G_message("%f-%f=%f",positive_flow_vol[row1][col1],negative_flow_vol[row1][col1],net_flow_vol[row1][col1]);
 				}
 		}
 }
