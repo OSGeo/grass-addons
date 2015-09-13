@@ -89,7 +89,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 			}
 		}
 	}
-	G_message("check");
+
 	for(row1 = 0; row1 < nrows; row1++)
 		{
 			for (col1 = 0; col1 < ncols; col1++)
@@ -98,6 +98,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 					positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1]/ncriteria;
 					negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]/ncriteria;
 					net_flow_vol[row1][col1]=positive_flow_vol[row1][col1]-negative_flow_vol[row1][col1];
+					G_message("%f-%f=%f",positive_flow_vol[row1][col1],negative_flow_vol[row1][col1],net_flow_vol[row1][col1]);
 				}
 		}
 }
