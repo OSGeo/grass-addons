@@ -92,6 +92,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 
 	for(row1 = 0; row1 < nrows; row1++)
 		{
+			G_message("--");
 			for (col1 = 0; col1 < ncols; col1++)
 				{
 					//G_percent(col1, (ncols), 2);
