@@ -29,7 +29,7 @@
 
 #%option G_OPT_R_INPUTS
 #% key: raster
-#% label: Name of repetition periods raster map(s)
+#% description: Name of repetition periods raster map(s)
 #% options: H_002,H_005,H_010,H_020,H_050,H_100
 #%end
 
