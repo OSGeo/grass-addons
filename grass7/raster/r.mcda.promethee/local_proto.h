@@ -20,5 +20,5 @@ void build_weight_vect(int ncriteria, struct Option *weight,
 
 void build_flow_matrix(int nrows, int ncols, int ncriteria,
                             double *weight_vect, double ***decision_vol,
-                            double **positive_flow_vol, double **negative_flow_vol);
-
+                            double **positive_flow_vol, double **negative_flow_vol,
+                            double **net_flow_vol);
