@@ -61,6 +61,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 /* make pairwise comparation and build positive flow matrix */
 	for (i = 0; i < ncriteria; i++)
 	{
+		G_percent(i, (ncriteria), 1);
 		for (row1 = 0; row1 < nrows; row1++)
 		{
 			for (col1 = 0; col1 < ncols; col1++)
@@ -68,7 +69,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 				//G_percent(i, (nrows*ncriteria), 2);
 				for (row2 = 0; row2 < nrows; row2++)
 				{
-					G_percent(row2, (nrows), 2);
+					//G_percent(row2, (nrows), 2);
 					for (col2 = 0; col2 < ncols; col2++)
 					{
 						threshold = (decision_vol[row1][col1][i] - decision_vol[row2][col2][i]);
