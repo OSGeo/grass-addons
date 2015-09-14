@@ -222,11 +222,11 @@ int main(int argc, char *argv[])
         {
             ((DCELL *) outrast_positive_flow)[col1] = (DCELL)positive_flow_vol[row1][col1];/*write positive flow map*/
             ((DCELL *) outrast_negative_flow)[col1] = (DCELL)negative_flow_vol[row1][col1];/*write negative flow map*/
-            ((DCELL *) outrast_net_flow)[col1] = (DCELL)net_flow_vol[row1][col1];/*write negative flow map*/;
+            //((DCELL *) outrast_net_flow)[col1] = (DCELL)net_flow_vol[row1][col1];/*write negative flow map*/;
         }
         Rast_put_row(outfd_positive_flow, outrast_positive_flow,  DCELL_TYPE);
         Rast_put_row(outfd_negative_flow, outrast_negative_flow,  DCELL_TYPE);
-        Rast_put_row(outfd_net_flow, outrast_net_flow,  DCELL_TYPE);
+        //Rast_put_row(outfd_net_flow, outrast_net_flow,  DCELL_TYPE);
     }
 
 

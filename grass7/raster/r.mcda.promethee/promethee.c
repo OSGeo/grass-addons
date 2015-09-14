@@ -98,7 +98,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 					//G_percent(col1, (ncols), 2);
 					positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1]/ncriteria;
 					negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]/ncriteria;
-					net_flow_vol[row1][col1]=0; //positive_flow_vol[row1][col1]-negative_flow_vol[row1][col1];
+					//net_flow_vol[row1][col1]=0; //positive_flow_vol[row1][col1]-negative_flow_vol[row1][col1];
 					//G_message("%f-%f=%f",positive_flow_vol[row1][col1],negative_flow_vol[row1][col1],net_flow_vol[row1][col1]);
 				}
 		}
