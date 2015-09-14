@@ -60,7 +60,7 @@ def standardizedNormalizedMatrix(attributes,weights): #step1 and step2
 	for criterion,weight in zip(attributes,weights):
 		gscript.mapcalc("critPow=pow(${criterion},2)",criterion=criterion,overwrite='True')
 		stats=gscript.parse_command("r.univar",map='critPow',flags='g')
-		nameMap="_%s" % criterion.split("@")[1]
+		nameMap="_%s" % criterion
 		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}", \
 			nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
 		criteria.append(nameMap)
