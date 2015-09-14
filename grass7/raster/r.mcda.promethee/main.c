@@ -30,22 +30,22 @@
 int main(int argc, char *argv[])
 {
     struct Cell_head cellhd;    /* it stores region information,  and header information of rasters */
-    char *result_positive_flow, *result_negative_flow, *result_net_flow;     /* outputs raster name */
+    char *result_positive_flow, *result_negative_flow;     /* outputs raster name */
     /*char *mapset;      mapset name */
-    unsigned char *outrast_positive_flow, *outrast_negative_flow, *outrast_net_flow;  /* output buffer */
+    unsigned char *outrast_positive_flow, *outrast_negative_flow;  /* output buffer */
     int i,j, ncriteria=0;   /* index and  files number*/
     int nrows, ncols;
     int row1, col1;
-    int outfd_positive_flow, outfd_negative_flow, outfd_net_flow;      /* output file descriptor */
+    int outfd_positive_flow, outfd_negative_flow;      /* output file descriptor */
     /*RASTER_MAP_TYPE data_type;     type of the map (CELL/DCELL/...) */
-    double *weight_vect, ***decision_vol, **positive_flow_vol, **negative_flow_vol, **net_flow_vol;/* vector and matrix */
+    double *weight_vect, ***decision_vol, **positive_flow_vol, **negative_flow_vol;/* vector and matrix */
 
 
     struct History history; /* holds meta-data (title, comments,..) */
 
     struct GModule *module; /* GRASS module for parsing arguments */
 
-    struct Option *criteria, *weight, *positiveflow, *negativeflow, *netflow;   /* options */
+    struct Option *criteria, *weight, *positiveflow, *negativeflow;   /* options */
 
     struct input *attributes; /*storage  alla input criteria GRID files and output concordance and discordance GRID files*/
 
@@ -90,14 +90,6 @@ int main(int argc, char *argv[])
     negativeflow->answer ="negativeflow";
     negativeflow->description = "negative flow output map";
     
-    netflow = G_define_option(); /* Allocates memory for the Option structure and returns a pointer to this memory */
-    netflow->key = "netflow";
-    netflow->type = TYPE_STRING;
-    netflow->required = YES;
-    netflow->gisprompt = "new,cell,raster";
-    netflow->answer ="netflow";
-    netflow->description = "net flow output map";
-
     /* options and flags parser */
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -145,7 +137,6 @@ int main(int argc, char *argv[])
 
     result_positive_flow=positiveflow->answer; /* store output name in variables*/
     result_negative_flow=negativeflow->answer;
-    result_net_flow=netflow->answer;
 
 
     if (G_legal_filename(result_positive_flow) < 0) /* check for legal database file names */
@@ -154,8 +145,6 @@ int main(int argc, char *argv[])
     if (G_legal_filename(result_negative_flow) < 0) /* check for legal database file names */
         G_fatal_error(_("<%s> is an illegal file name"), result_negative_flow);
         
-    if (G_legal_filename(result_net_flow) < 0) /* check for legal database file names */
-        G_fatal_error(_("<%s> is an illegal file name"), result_net_flow);
 
     /*values = G_malloc(ncriteria * sizeof(DCELL));*/
 
@@ -166,8 +155,6 @@ int main(int argc, char *argv[])
     decision_vol=G_malloc(nrows * sizeof(double*));
     positive_flow_vol=G_calloc(nrows, sizeof(double*)); /*Allocates aligned block of memory and initializes the allocated memory to zero.*/
     negative_flow_vol=G_calloc(nrows, sizeof(double*));
-    net_flow_vol=G_calloc(nrows, sizeof(double*));
-    //negative_flow_vol=G_calloc(nrows, sizeof(double*));
  
     
     for (i=0; i<nrows; ++i)
@@ -175,7 +162,7 @@ int main(int argc, char *argv[])
         decision_vol[i]=G_malloc(ncols * sizeof(double*));
         positive_flow_vol[i]=G_calloc(ncols, sizeof(double*));/*Allocates aligned block of memory and initializes the allocated memory to zero.*/
         negative_flow_vol[i]=G_calloc(ncols, sizeof(double*));
-        negative_flow_vol[i]=G_calloc(ncols, sizeof(double*));
+        
         for (j=0; j<ncols; ++j)
         {
             decision_vol[i][j]=G_malloc((ncriteria+2) * sizeof(double)); /****NOTE: it's storage ****/
@@ -185,13 +172,11 @@ int main(int argc, char *argv[])
     /* Allocate output buffer, use  DCELL_TYPE */
     outrast_positive_flow = Rast_allocate_buf(DCELL_TYPE); /* Allocate memory for a raster map of type DCELL_TYPE. */
     outrast_negative_flow = Rast_allocate_buf(DCELL_TYPE);
-    outrast_net_flow = Rast_allocate_buf(DCELL_TYPE);
     
     
     /* controlling, if we can write the raster */
     outfd_positive_flow = Rast_open_new(result_positive_flow, DCELL_TYPE);
     outfd_negative_flow = Rast_open_new(result_negative_flow, DCELL_TYPE);
-    outfd_net_flow = Rast_open_new(result_net_flow, DCELL_TYPE);
 
     /*build a three dimensional matrix for storage all critera maps*/
     G_message("Load data");
@@ -212,7 +197,7 @@ int main(int argc, char *argv[])
     }
     
     G_message("run algorithm");
-    build_flow_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol,positive_flow_vol,negative_flow_vol,net_flow_vol); /*scan all DCELL, make a pairwise comparatione, buil positive flow matrix*/
+    build_flow_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol,positive_flow_vol,negative_flow_vol); /*scan all DCELL, make a pairwise comparatione, buil positive flow matrix*/
 
     G_message("buil mcda maps");
     for (row1 = 0; row1 < nrows; row1++)
@@ -222,11 +207,9 @@ int main(int argc, char *argv[])
         {
             ((DCELL *) outrast_positive_flow)[col1] = (DCELL)positive_flow_vol[row1][col1];/*write positive flow map*/
             ((DCELL *) outrast_negative_flow)[col1] = (DCELL)negative_flow_vol[row1][col1];/*write negative flow map*/
-            //((DCELL *) outrast_net_flow)[col1] = (DCELL)net_flow_vol[row1][col1];/*write negative flow map*/;
         }
         Rast_put_row(outfd_positive_flow, outrast_positive_flow,  DCELL_TYPE);
         Rast_put_row(outfd_negative_flow, outrast_negative_flow,  DCELL_TYPE);
-        //Rast_put_row(outfd_net_flow, outrast_net_flow,  DCELL_TYPE);
     }
 
 
@@ -238,11 +221,11 @@ int main(int argc, char *argv[])
 
     G_free(outrast_positive_flow);
     G_free(outrast_negative_flow);
-    G_free(outrast_net_flow);
+
     G_free(decision_vol);
     G_free(positive_flow_vol);
     G_free(negative_flow_vol);
-    G_free(net_flow_vol);
+
 
     /* closing raster maps */
     for (i = 0; i<ncriteria; i++)
@@ -250,7 +233,6 @@ int main(int argc, char *argv[])
 
     Rast_close(outfd_positive_flow);
     Rast_close(outfd_negative_flow);
-    Rast_close(outfd_net_flow);
 
     /* add command line incantation to history positive file */
     Rast_short_history(result_positive_flow, "raster", &history);
@@ -262,10 +244,6 @@ int main(int argc, char *argv[])
     Rast_command_history(&history);
     Rast_write_history(result_negative_flow, &history);
     
-        /* add command line incantation to history net file */
-    Rast_short_history(result_net_flow, "raster", &history);
-    Rast_command_history(&history);
-    Rast_write_history(result_net_flow, &history);
 
     exit(EXIT_SUCCESS);
 }
