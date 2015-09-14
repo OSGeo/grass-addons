@@ -145,7 +145,7 @@ def main():
 	worstPointDistance(worstPointsList,criteria)
 	relativeCloseness(topsismap)
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(criteria))
-	gscript.run_command("g.remove", flags='f', type='raster', name="IdealPointDistance,WorstPointDistance")
+	gscript.run_command("g.remove", flags='f', type='raster', name="IdealPointDistance,WorstPointDistance,critPow")
 	end=time()
 	print "Time computing-> %.4f s" % (end-start)
 	
