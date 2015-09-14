@@ -1,26 +1,29 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.subdayprecip.design</em> computes reduction of subday design
-precipitation series.
+<em>r.subdayprecip.design</em> computes subday design precipitation
+totals based on Hradek's method of reduction of daily maximums to
+chosen duration.
 
 <p>
 The tool uses methods of zonal statistics to compute average values of
-design 24 hours precipitation for a selected area or for a spot. This
-value is reduced to the chosen length design rain for selected period
-of repetition.
+24 hours precipitation amounts of specified return period for a
+provided area or a spot. Rasters of daily maxima were derived from
+statistics published by Samaj et al. in 1985, which were based on
+precipitation series observed in 1901-1980. Calculated average value
+is then reduced to the chosen length of design rain event.
 
 <h2>NOTES</h2>
 
 Subday design precipitation series are important for hydrological
 modelling and soil erosion problems in a small catchment scale when
 designing common measures for promoting water retention, landscape
-drainage systems, etc.
+drainage systems, flood mitigation measures etc.
 
 <p>
 First automatization has been implemented by well-known method
 which is based on reduction of 24 hours design precipitation to
 shorter time. GIS is used for spatial supervised classification of
-point values of specified repetition periods (2, 10, 20, 50 a 100
+point values of specified return periods (2, 10, 20, 50 and 100
 years) over the area of the Czech Republic.
 
 <center>
@@ -31,14 +34,14 @@ years) over the area of the Czech Republic.
 </tr>
 <tr>
 <td><em>Figure: Basins (in orange) with orthophoto<br> on background</em></td>
-<td><em>Figure: Repetition periods (2, 10, 20, 50 years)<br> in the area of the Czech Republic</em></td>
+<td><em>Figure: Return periods (2, 10, 20, 50 years)<br> in the area of the Czech Republic</em></td>
 </tr>
 </table>
 
 
 <img src="r_subdayprecip_design_result.png">
 <p>
-<em>Figure: Basins colored by H_002_60 value</em>
+<em>Figure: III.order basins colored by mean H_002_60 value</em>
 
 </center>
 

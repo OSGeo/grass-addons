@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Martin Landa
 #
-# PURPOSE:      Computes subday design precipitation series.
+# PURPOSE:      Computes subday design precipitation totals.
 #
 # COPYRIGHT:    (C) 2015 Martin Landa and GRASS development team
 #
@@ -17,7 +17,7 @@
 #############################################################################
 
 #%module
-#% description: Computes subday design precipitation series.
+#% description: Computes subday design precipitation totals.
 #% keyword: raster
 #% keyword: hydrology
 #% keyword: precipitation
@@ -29,7 +29,7 @@
 
 #%option G_OPT_R_INPUTS
 #% key: raster
-#% description: Name of repetition periods raster map(s)
+#% description: Name of return periods raster map(s)
 #% options: H_002,H_005,H_010,H_020,H_050,H_100
 #%end
 
@@ -54,7 +54,7 @@ def main():
         columns = grass.vector_columns(opt['map']).keys()
     except CalledModuleError as e:
         return 1
-
+    
     allowed_rasters = ('H_002', 'H_005', 'H_010', 'H_020', 'H_050', 'H_100')
     
     # extract multi values to points
@@ -70,18 +70,21 @@ def main():
                           'Allowed: {}'.format(rast, allowed_rasters))
             continue
         
+        # perform zonal statistics
         grass.message('Processing <{}>...'.format(rast))
         table = '{}_table'.format(name)
         # TODO: handle null values
         Module('v.rast.stats', flags='c', map=opt['map'], raster=rast,
                column_prefix=name, method='average', quiet=True)
         
+        # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
         field_name='{}_{}'.format(name, opt['rainlength'])
         if field_name not in columns:
             Module('v.db.addcolumn', map=opt['map'],
                    columns='{} double precision'.format(field_name))
-            
+
+        # determine coefficient for calculation
         a = c = None
         if name == 'H_002':
             if rl < 40: 
@@ -143,16 +146,17 @@ def main():
             elif rl < 1440:
                 a = 0.642
                 c = 0.939
-
+        
         if a is None or c is None:
             grass.fatal("Unable to calculate coefficients")
         
+        # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
         expression = '{}_average * {}'.format(name, coef)
         Module('v.db.update', map=opt['map'],
                column=field_name, query_column=expression)
         
-        # remove not used column
+        # remove unused column
         Module('v.db.dropcolumn', map=opt['map'],
                columns='{}_average'.format(name))
         
