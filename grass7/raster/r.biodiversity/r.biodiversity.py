@@ -205,7 +205,7 @@ def main():
         tmpl = []
         
         if Q[n] == 1:      
-            # When alpha = 1
+            # If alpha = 1
             for i in xrange(len(IN)):
                 tmpi = tmpname('shi' + str(i) + "_")
                 tmpl.append(tmpi)
@@ -226,7 +226,7 @@ def main():
             for i in xrange(len(IN)):
                 tmpi = tmpname('reni')
                 tmpl.append(tmpi)       
-                grass.mapcalc("$tmpi = pow($inl/$tmpt,$alpha)", 
+                grass.mapcalc("$tmpi = if($inl==0,0,pow($inl/$tmpt,$alpha))", 
                               tmpi=tmpi,
                               tmpt=tmpt,
                               inl=IN[i],
