@@ -123,8 +123,8 @@ def main():
     temp_ncout = "v_lidar_mcc_tmp_ncout_" + str(os.getpid())
 
     input = options['input']
-    g_output = options['g_output']
-    ng_output = options['ng_output']
+    g_output = options['ground']
+    ng_output = options['nonground']
 
     # does map exist?
     if not grass.find_file(input, element = 'vector')['file']:
