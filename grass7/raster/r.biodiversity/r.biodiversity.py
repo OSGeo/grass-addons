@@ -26,6 +26,7 @@
 #% keyword: simpson
 #% keyword: richness
 #% keyword: biodiversity
+#% keyword: eveness
 #%End
 
 #%option
@@ -51,7 +52,7 @@
 
 #%flag
 #% key: r
-#% description: Compute the renyi enthropy index
+#% description: Renyi enthropy index
 #% guisection: Indices
 #%end
 
@@ -71,36 +72,42 @@
 
 #%flag
 #% key: s
-#% description: Compute the richness index
+#% description: Richness index
 #% guisection: Indices
 #%end
 
 #%flag
 #% key: h
-#% description: Compute the Shannon index
-#% guisection: Indices
-#%end
-
-#%flag
-#% key: d
-#% description: Compute the Simpson index
+#% description: Shannon index
 #% guisection: Indices
 #%end
 
 #%flag
 #% key: p
-#% description: Compute the Reversed Simpson index
+#% description: Reversed Simpson index
 #% guisection: Indices
 #%end
 
 #%flag
 #% key: g
-#% description: Compute the Gini-Simpson index
+#% description: Gini-Simpson index
+#% guisection: Indices
+#%end
+
+#%flag
+#% key: e
+#% description: Pielou's evenness index
+#% guisection: Indices
+#%end
+
+#%flag
+#% key: n
+#% description: Shannon effective number of species
 #% guisection: Indices
 #%end
 
 #%rules
-#% required: -r,-s,-h,-d,-p,-g
+#% required: -r,-s,-h,-e,-p,-g,-n
 #%end
 
 #----------------------------------------------------------------------------
@@ -147,8 +154,8 @@ def tmpname(name):
 #----------------------------------------------------------------------------
 
 def main():
-    #options = {"input":"spec1,spec2", "output":"test", "alpha":""}
-    #flags = {"r":"False", "s":True, "h":True, "d":True, "p":True, "g":False}
+    #options = {"input":"spec1,spec2,spec3,spec4,spec5", "output":"AAA9", "alpha":"4"}
+    #flags = {"r":"False", "s":True, "h":True, "e":True, "p":True, "n":True, "g":True}
 
     #--------------------------------------------------------------------------
     # Variables
@@ -164,9 +171,10 @@ def main():
     flag_r = flags['r']
     flag_s = flags['s']
     flag_h = flags['h']
-    flag_d = flags['d']
+    flag_e = flags['e']
     flag_p = flags['p']
     flag_g = flags['g']
+    flag_n = flags['n']
     if options['alpha']:
         Q = map(float, options['alpha'].split(',')) 
     else:
@@ -182,12 +190,16 @@ def main():
         Q.append(0.0)
     if flag_h and not 1.0 in Q:
         Q.append(1.0)
-    if flag_d and not 2.0 in Q:
-        Q.append(2.0)
+    if flag_e and not 0.0 in Q:
+        Q.append(0.0)
+    if flag_e and not 1.0 in Q:
+        Q.append(1.0)
     if flag_p and not 2.0 in Q:
         Q.append(2.0)
     if flag_g and not 2.0 in Q:
         Q.append(2.0)
+    if flag_n and not 1.0 in Q:
+        Q.append(1.0)
 
     #--------------------------------------------------------------------------
     # Renyi entropy
@@ -252,7 +264,7 @@ def main():
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
-        if 0.0 not in Qoriginal:
+        if 0.0 not in Qoriginal and not flag_e:
             grass.run_command("g.remove", flags="f", type="raster", 
                               name=in_div, quiet=True)
 
@@ -262,25 +274,43 @@ def main():
     if flag_h:
         out_div = OUT + "_shannon"      
         in_div = OUT + "_Renyi_1_0"
-        if 1.0 in Qoriginal:
+        if 1.0 in Qoriginal or flag_e or flag_n:
             grass.run_command("g.copy", raster=(in_div,out_div), quiet=True)
         else:
             grass.run_command("g.rename", raster=(in_div,out_div), quiet=True)
-                
+
     #--------------------------------------------------------------------------
-    # Simpson index
+    # Shannon Effective Number of Species (ENS)
     #--------------------------------------------------------------------------
-    if flag_d:
-        out_div = OUT + "_simpson"      
-        in_div = OUT + "_Renyi_2_0"
-        grass.mapcalc("$out_div = 1.0 / (exp($in_div))",
+    if flag_n:
+        out_div = OUT + "_ens"      
+        in_div = OUT + "_Renyi_1_0"
+        grass.mapcalc("$out_div = exp($in_div)",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
-        if 2.0 not in Qoriginal and not flag_p and not flag_g:
+        if 1.0 not in Qoriginal and not flag_e:
             grass.run_command("g.remove", flags="f", type="raster", 
                               name=in_div, quiet=True)
-       
+
+    #--------------------------------------------------------------------------
+    # Eveness
+    #--------------------------------------------------------------------------
+    if flag_e:
+        out_div = OUT + "_eveness"      
+        in_div1 = OUT + "_Renyi_0_0"
+        in_div2 = OUT + "_Renyi_1_0"
+        grass.mapcalc("$out_div = $in_div2 / $in_div1",
+                      out_div=out_div,
+                      in_div1=in_div1,
+                      in_div2=in_div2,
+                      quiet=True)
+        if 0.0 not in Qoriginal:
+            grass.run_command("g.remove", flags="f", type="raster", 
+                              name=in_div1, quiet=True)
+        if 1.0 not in Qoriginal:
+            grass.run_command("g.remove", flags="f", type="raster", 
+                              name=in_div2, quiet=True)
     #--------------------------------------------------------------------------
     # Inversed Simpson index
     #--------------------------------------------------------------------------
