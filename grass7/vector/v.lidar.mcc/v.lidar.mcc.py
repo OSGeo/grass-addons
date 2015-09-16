@@ -182,9 +182,9 @@ def main():
         
     # Pass ame of input map to v.outlier
     nc_points = input
-    
-    # Create output map for non-ground points
-    grass.run_command("v.edit", tool="create", map=ng_output, quiet = True )
+
+    # controls first creation of the output map before patching
+    ng_output_exists = False
 
     # Loop through scale domaines
     while ( l <= l_stop ) :
@@ -229,7 +229,12 @@ def main():
                 convergence = float( float(ng) / float(nc) )
                 grass.run_command('v.build', map=temp_ng, stderr=nuldev)
                 # Patch non-ground points to non-ground output map
-                grass.run_command("v.patch", input = temp_ng, output = ng_output, flags = "ab", overwrite = True, quiet = True, stderr = nuldev )
+                if ng_output_exists:
+                    grass.run_command('v.patch', input=temp_ng, output=ng_output, flags="ab",
+                                      overwrite=True, quiet=True, stderr=nuldev)
+                else:
+                    grass.run_command('g.copy', vector=(temp_ng, ng_output), stderr=nuldev)
+                    ng_output_exists = True
             else :
                 convergence = 0
             # Give information on convergence level
