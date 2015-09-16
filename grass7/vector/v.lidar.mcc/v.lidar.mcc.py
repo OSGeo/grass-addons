@@ -210,9 +210,17 @@ def main():
             grass.verbose("Number of input points in iteration " + str(i) + ": " + str(n_input) )
             # Run v.outlier
             if flag_n == False :
-                grass.run_command("v.outlier", input = nc_points, output = temp_ncout, outlier=temp_ng, ew_step=xs_s, ns_step=ys_s, lambda_i=f, thres_o=t, filter="positive", overwrite = True, quiet = True, stderr = nuldev )
+                grass.run_command('v.outlier',
+                    input=nc_points, output=temp_ncout, outlier=temp_ng,
+                    ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
+                    filter='positive',
+                    overwrite=True, quiet=True, stderr=nuldev)
             else :
-                grass.run_command("v.outlier", input = nc_points, output = temp_ncout, outlier=temp_ng, ew_step=xs_s, ns_step=ys_s, lambda_i=f, thres_o=t, filter="negative", overwrite = True, quiet = True, stderr = nuldev )
+                grass.run_command('v.outlier',
+                    input=nc_points, output=temp_ncout, outlier=temp_ng,
+                    ew_step=xs_s, ns_step=ys_s, lambda_=f, threshold=t,
+                    filter='negative',
+                    overwrite=True, quiet=True, stderr=nuldev)
             
             # Get information about results for calculating convergence level
             ng=grass.vector_info(temp_ng)['points']
