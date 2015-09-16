@@ -29,13 +29,13 @@
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
-#% key: g_output
+#% key: ground
 #% label: Output ground return points
 #% description: Output vector point map containing points classified as ground return.
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
-#% key: ng_output
+#% key: nonground
 #% label: Output non-ground return points
 #% description: Output vector point map containing points NOT classified as ground return.
 #% required: yes
