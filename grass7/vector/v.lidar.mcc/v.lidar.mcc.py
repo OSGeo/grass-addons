@@ -227,6 +227,7 @@ def main():
             # Set convergence level
             if ( nc > 0 ) :
                 convergence = float( float(ng) / float(nc) )
+                grass.run_command('v.build', map=temp_ng, stderr=nuldev)
                 # Patch non-ground points to non-ground output map
                 grass.run_command("v.patch", input = temp_ng, output = ng_output, flags = "ab", overwrite = True, quiet = True, stderr = nuldev )
             else :
