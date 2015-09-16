@@ -108,7 +108,14 @@ def cleanup():
 def main():
     global temp_ng, temp_ncin, temp_ncout
 
-    nuldev = file(os.devnull, 'w')
+    # we discard stderrs when not debugging
+    # ideally stderrs should be printed when an exception was raised
+    # this would be done easily with StringIO
+    # but it doesn't work with subprocess
+    if not grass.debug_level():
+        nuldev = file(os.devnull, 'w')
+    else:
+        nuldev = sys.stderr
 
     # Initalise temporary verctor map names   
     temp_ng = "v_lidar_mcc_tmp_ng_" + str(os.getpid())
