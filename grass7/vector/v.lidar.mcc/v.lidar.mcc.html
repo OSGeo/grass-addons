@@ -45,7 +45,42 @@ However, especially the first runs on scale domains with a small pixels size can
 
 <h2>EXAMPLES</h2>
 
-TBD
+Classifying ground points in a LIDAR point cloud:
+
+<div class="code"><pre>
+# region settings (using an existing raster)
+g.region raster=elev_lid792_1m
+
+# import
+v.in.lidar -tr input=points.las output=points
+
+# classification
+v.lidar.mcc points ground=ground_points nonground=non_ground_points
+</pre></div>
+<!--
+las: http://ncsu-osgeorel.github.io/uav-lidar-analytics-course/
+
+d.rast elev_lid792_1m
+d.vect ground_points
+d.vect non_ground_points
+
+TODO: do not use raster in the visualization
+m.nviz.image \
+elevation_map=elev_lid792_1m-a mode=fine resolution_fine=6 color_map=elev_lid792_1m \
+vpoint=ground,nonground vpoint_width=2,2 vpoint_color=0:128:0,255:0:0 vpoint_size=0,0 \
+vpoint_marker=sphere,sphere vpoint_position=0,0,0,0,0,0 vpoint_layer=1,1,1,1 \
+position=0.72,0.65 height=161 perspective=20 twist=0 zexag=1.000000 focus=140,93,121 \
+light_position=0.68,-0.68,0.80 \
+output=nviz_output format=ppm size=796,528
+
+mogrify -resize 600x v_lidar_mcc.png
+optipng -o5 v_lidar_mcc.png
+-->
+<center>
+    <img src="v_lidar_mcc.png">
+    <p><em>Figure: Ground points (green) and non ground points (red)</em></p>
+</center>
+
 
 <h2>SEE ALSO</h2>
 
