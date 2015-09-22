@@ -28,7 +28,13 @@ import grass.script as grass
 from grass.pydispatch import dispatcher
 from core.gcmd import RunCommand, GError, GMessage
 import grass.temporal as tgis
-from lmgr import datacatalog
+try:
+    from datacatalog.catalog import DataCatalog as datacatalog
+except:
+    try:
+        from lmgr import datacatalog
+    except Exception,e:
+        grass.fatal(e)
 
 def load_mdlib(libs):
     for lib in libs:
