@@ -49,7 +49,17 @@
 #% type: string
 #% key_desc: name
 #% description: Provide the full folder path (same as for r.stream.watersheds)
-#% required:yes
+#% required:no
+#% answer: GISDBASE/folder_structure
+#%end
+
+#%option
+#% key: out_folder 
+#% type: string
+#% key_desc: name
+#% description: Provide the full folder path for the output stream-specific variable
+#% required:no
+#% answer: GISDBASE/stream-specific_variables
 #%end
 
 #%option
@@ -57,8 +67,8 @@
 #% type: string
 #% key_desc: method
 #% multiple: yes
-#% options: min,max,range,mean,stddev,coeff_var,sum
-#% description: Provide the output aggregation method for the stream-specific variable: upstream minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
+#% options: cells,min,max,range,mean,stddev,coeff_var,sum
+#% description: Provide the output aggregation method for the stream-specific variable: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
 #% required:yes
 #%end
 
@@ -137,6 +147,14 @@ else
        export GIS_OPT_FOLDER=$GIS_OPT_FOLDER
 fi
 
+if [ ${GIS_OPT_OUT_FOLDER} = "GISDBASE/stream-specific_variables" ] ; then
+      export GIS_OPT_OUT_FOLDER=$GISDBASE"/stream-specific_variables"
+else 
+      export GIS_OPT_OUT_FOLDER=$GIS_OPT_OUT_FOLDER
+fi
+
+mkdir  $GIS_OPT_OUT_FOLDER  2> /dev/null 
+
 # what to do in case of user break:
 exitprocedure()
 {
@@ -150,9 +168,9 @@ g.gisenv set="GISDBASE=$GISDBASE"
 
 # delete intermediate files 
 rm -fr  $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}* 
-rm -fr  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.txt
-rm -fr  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tif  
-rm -fr  $GIS_OPT_FOLDER/blockfile/stat_*.txt $GIS_OPT_FOLDER/blockfile/*.tif
+find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.txt' -delete 
+find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.tif' -delete 
+rm -fr  $GIS_OPT_FOLDER/blockfile/stat_*.txt 
 
 exit 1
 }
@@ -161,11 +179,13 @@ exit 1
 trap "exitprocedure" 2 3 9 15 19
 
 echo ""
-echo "Streams variables calculation based on the sub-watershads and sub-streams."
+echo "##########################################################################"
+echo "Streams variables calculation based on the sub-watershads and sub-streams"
 echo ""
-echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (2015)"
+echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (in review)"
 echo "Near-global freshwater-specific environmental variables for"
 echo "biodiversity analyses in 1km resolution. Scientific Data"
+echo "##########################################################################"
 echo ""
 
 export GISRC_def=$GISRC
@@ -252,7 +272,6 @@ echo ""
 
 echo "Check for missing files due to RAM overload"
 
-
 if ls $DIRNAME/sub_${GIS_OPT_AREA}ID*.tif  1> /dev/null 2>&1 ; then
 
 echo $(ls $DIRNAME/sub_${GIS_OPT_AREA}ID*.tif  | wc -l ) files had RAM issues
@@ -261,6 +280,8 @@ ls $DIRNAME/sub_${GIS_OPT_AREA}ID*.tif  | awk '{ if (NR>0) { print $1 ,  NR} }' 
 
 file=$1
 filename=$(basename $file .tif )
+
+echo Fix missing file $file using only 1 CPU
 
 if [  $GIS_OPT_AREA =  "watershed"  ] ; then ID=${filename:15:99}; fi 
 if [  $GIS_OPT_AREA =  "stream"  ] ; then ID=${filename:12:99}; fi 
@@ -324,10 +345,11 @@ echo "Aggregating the final table to reclassify the raster ID"
 echo "ID|non_null_cells|null_cells|min|max|range|mean|mean_of_abs|stddev|variance|coeff_var|sum|sum_abs" >  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
 cat  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/stat_${GIS_OPT_VARIABLE}.txt  >>  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
 
-echo reclass the grid_id for the following output  ${GIS_OPT_OUTPUT//","/" "}
+echo Reclass the grid_id for the following output  ${GIS_OPT_OUTPUT//","/" "}
 
 echo ${GIS_OPT_OUTPUT//","/" "} |  xargs -n 1 -P $GIS_OPT_CPU bash -c $'
 
+if [ $1 = "cells" ]     ; then col=2 ; fi
 if [ $1 = "min" ]       ; then col=4 ; fi
 if [ $1 = "max" ]       ; then col=5 ; fi
 if [ $1 = "range" ]     ; then col=6 ; fi
@@ -342,6 +364,7 @@ awk -F "|" -v col=$col -v scale=$GIS_OPT_SCALE  \' { if (NR>1 ) {gsub("-nan","0"
 
 echo ${GIS_OPT_OUTPUT//","/" "} |  xargs -n 1 -P 1 bash -c $'
 
+if [ $1 = "cells" ]     ; then col=2 ; fi
 if [ $1 = "min" ]       ; then col=4 ; fi 
 if [ $1 = "max" ]       ; then col=5 ; fi 
 if [ $1 = "range" ]     ; then col=6 ; fi 
@@ -355,11 +378,13 @@ echo  Create stream-specific variable:  $GIS_OPT_VARIABLE $1
 r.reclass input=grid_ID  output=${GIS_OPT_VARIABLE}_$1  rules=$GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt   --overwrite   --q
 rm -f $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt
 
-r.out.gdal -c  input=${GIS_OPT_VARIABLE}_${1}  nodata=-9999  output=$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif  type=Int32  -c  createopt="COMPRESS=LZW,ZLEVEL=9"  --o --q  2> /dev/null
+r.out.gdal -c  input=${GIS_OPT_VARIABLE}_${1}  nodata=-9999  output=$GIS_OPT_OUT_FOLDER/${GIS_OPT_VARIABLE}_${1}.tif  type=Int32  -c  createopt="COMPRESS=LZW,ZLEVEL=9"  --o --q  2> /dev/null
 
 echo "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!"
 
 ' _ 
 
+exit 
+
 echo "The full stream variable calculation has been done!"
-echo "To list the stream-specific output variables, use ls $GIS_OPT_FOLDER/blockfile/*.tif"
+echo "To list the stream-specific output variables, use ls $GIS_OPT_OUT_FOLDER/*.tif"

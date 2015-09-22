@@ -22,7 +22,7 @@
 #############################################################################
 
 #%Module
-#% description: Sub-watershed delineation based on the drainage direction and a gridded stream network. Based on "Domisch, S., Amatulli, G., Jetz, W. (2015) Near-global freshwater-specific environmental variables for biodiversity analyses in 1km resolution. Scientific Data"
+#% description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
 #% keywords: drainage, stream, hydrology
 #%End
 
@@ -46,11 +46,10 @@
 #% key: folder 
 #% type: string
 #% key_desc: name
-#% description: Provide the full folder path and name where the sub-watersheds and sub-streams will be stored
+#% description: Provide the full folder path and name where the sub-watersheds and sub-streams should be stored
 #% required:no
 #% answer: GISDBASE/folder_structure
 #%end
-
 
 #%option
 #% key: cpu
@@ -136,17 +135,20 @@ exit 1
 
 # shell check for user break (signal list: trap -l)
 # trap "exitprocedure" 2 3 15
+
 echo ""
+echo "#######################################################################################################"
 echo "Sub-watershed and sub-streams delineation based on the drainage direction and a gridded stream network."
 echo ""
-echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (2015)"
+echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (in review)"
 echo "Near-global freshwater-specific environmental variables for"
 echo "biodiversity analyses in 1km resolution. Scientific Data"
+echo "#######################################################################################################"
 echo ""
 echo Exporting stream grid cell coordinates and saving in $GIS_OPT_FOLDER/stream_coord_lines.txt
 
-rm -fr    $GIS_OPT_FOLDER   2> /dev/null
-mkdir     $GIS_OPT_FOLDER   2> /dev/null
+rm -fr    $GIS_OPT_FOLDER
+mkdir     $GIS_OPT_FOLDER
 
 r.out.xyz   --o input=$GIS_OPT_STREAM  separator=space   output=$GIS_OPT_FOLDER/stream_coord.txt  --q
 
@@ -173,25 +175,25 @@ max_seq3d=${max_line: -7:1} ; if [ -z $max_seq3d ] ; then max_seq3d=0 ; else  ma
 max_seq4d=${max_line: -8:1} ; if [ -z $max_seq4d ] ; then max_seq4d=0 ; else  max_seq3d=9 ; max_seq2d=9 ; max_seq1d=9 ; fi 
 
 for dir4d in  $(seq 0 $max_seq4d) ; do
-for dir3d in  $(seq 0 $max_seq3d) ; do
-for dir2d in  $(seq 0 $max_seq2d) ; do
-for dir1d in  $(seq 0 $max_seq1d) ; do
-mkdir -p  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1
-done
-done
-done 
+    for dir3d in  $(seq 0 $max_seq3d) ; do
+	for dir2d in  $(seq 0 $max_seq2d) ; do
+	    for dir1d in  $(seq 0 $max_seq1d) ; do
+		mkdir -p  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1
+	    done
+	done
+    done 
 done 
 
 mkdir  $GIS_OPT_FOLDER/blockfile
 
-echo  "Split the stream grid cell coordinate file with $( wc -l $GIS_OPT_FOLDER/stream_coord.txt  | awk '{ print $1 }' ) grid cells into blocks of 10000 cells"
+echo  "Split the stream grid cell coordinate file (X|Y|ID) into subsets of 10000 lines"
 
 awk -v PATH=$GIS_OPT_FOLDER 'NR%10000==1{x=PATH"/blockfile/blockfile"(++i*10000-10000)}{print > x}'  $GIS_OPT_FOLDER/stream_coord_lines.txt
 
 awk '{ if(NR>1) print  }' $GIS_OPT_FOLDER/blockfile/blockfile0 > $GIS_OPT_FOLDER/blockfile/blockfile0_tmp
 mv $GIS_OPT_FOLDER/blockfile/blockfile0_tmp $GIS_OPT_FOLDER/blockfile/blockfile0
 
-echo Create $( ls $GIS_OPT_FOLDER/blockfile/blockfile* | wc -l ) blocks in $GIS_OPT_FOLDER/blockfile/
+echo Create $( ls $GIS_OPT_FOLDER/blockfile/blockfile* | wc -l ) subsets: $GIS_OPT_FOLDER/blockfile/blockfile*.tif
 
 rm -fr $GISDBASE/$LOCATION_NAME/sub_watershedID*
 
@@ -216,7 +218,7 @@ g.gisenv set="GISDBASE=$GISDBASE"
 g.gisenv set="LOCATION_NAME=$LOCATION_NAME"
 g.gisenv set="MAPSET=PERMANENT"
 
-echo  "Start the sub-watershed delineation for block $file"
+echo  "Start the sub-watershed delineation for subset $file"
 
 awk '{ print NR , $1 , $2 ,$3 }'   $file     | xargs  -n 4 -P $GIS_OPT_CPU  bash -c  $' 
 NR=$1
@@ -224,12 +226,9 @@ X_coord=$2
 Y_coord=$3
 ID=$4
 
+echo -en  "\r$(expr $NR / 100 + 1 )% done"
 
-if [ $( expr  $( expr $NR + 1 ) / 100)  -eq  $( expr $NR / 100 + 1 ) ] ; then 
-echo  -en  "\r$(expr $NR / 100 + 1 )% done"
-fi
-
-# replicate the start-GISRC in a uniq GISRC
+# replicate the start-GISRC in a unique GISRC
 
 cp   $GISRC_def    $HOME/.grass7/rc$ID
 export GISRC=$HOME/.grass7/rc$ID
@@ -255,8 +254,6 @@ r.out.gdal -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,ZL
 r.mapcalc  "sub_streamID${ID} = if ( sub_watershedID${ID}@sub_watershedID${ID}  == 1 & ${GIS_OPT_STREAM}@PERMANENT >= 1 , 1 , null()  )"   --o --q
 r.null  map=sub_streamID${ID}  setnull=0    --q
 r.out.gdal  -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,ZLEVEL=9"   input=sub_streamID${ID}@sub_watershedID${ID}    output=$GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif 
-
-if [ ! -f $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  ] ; then the file $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  dose not exist ; fi 
 
 rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
 
@@ -320,30 +317,20 @@ fi
 
 ' _
 
-
-
 rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID*
 
 echo "Compress the sub-watersheds and sub-streams to reduce the number of inodes filling up the hard disk"
 
-cd  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/ 
+tar -zcPf  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/${filename}_sub_watershed.tar.gz   $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_watershedID*.tif 
+tar -zcPf  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/${filename}_sub_stream.tar.gz      $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID*.tif
 
-tar -zcPf  ${filename}_sub_watershed.tar.gz  sub_watershedID*.tif
-tar -zcPf  ${filename}_sub_stream.tar.gz     sub_streamID*.tif   
-
-cd  $GIS_OPT_FOLDER
+echo list the compressed files by ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz
 
 g.gisenv set="MAPSET=PERMANENT"
 g.gisenv set="LOCATION_NAME=$LOCATION_NAME"
 g.gisenv set="GISDBASE=$GISDBASE"
 
-rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID*    $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/*.tif
+rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID* $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/*.tif
 
 done 
-
-cd  $GIS_OPT_FOLDER
-
-echo The full sub-watershed delineation process has been done!
-echo To list the compressed files, use "ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz"
-echo Now you can use r.stream.variables to compute stream-specific environmental variables.
 
