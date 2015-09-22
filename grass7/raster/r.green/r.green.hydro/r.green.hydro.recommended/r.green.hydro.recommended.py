@@ -24,10 +24,7 @@
 ##
 ## REQUIRED INPUTS
 ##
-#%option
-#% key: elevation
-#% key_desc: name
-#% description: Name of elevation raster map [m]
+#%option G_OPT_R_ELEV
 #% required: yes
 #%end
 #%option G_OPT_V_INPUT
@@ -45,7 +42,7 @@
 #% type: double
 #% key_desc: double
 #% description: Efficiency [0-1]
-#% required: no
+#% required: yes
 #% options: 0-1
 #% answer: 1
 #%end
@@ -54,7 +51,7 @@
 #% type: double
 #% key_desc: double
 #% description: Maximum plant length [m]
-#% required: no
+#% required: yes
 #% answer: 100
 #%end
 #%option
@@ -62,7 +59,7 @@
 #% type: double
 #% key_desc: double
 #% description: Minimum plant length [m]
-#% required: no
+#% required: yes
 #% answer: 10
 #%end
 #%option
@@ -70,7 +67,7 @@
 #% type: double
 #% key_desc: double
 #% description: Minimum distance among plants [m]
-#% required: no
+#% required: yes
 #% answer: 0.5
 #%end
 #%option
@@ -85,19 +82,19 @@
 ##
 ## OPTIONAL INPUTS: LEGAL DISCHARGE
 ##
-#%option
+#%option G_OPT_R_INPUT
 #% key: discharge_current
 #% label: Current discharge [m3/s]
 #% required: yes
 #% guisection: Legal Discharge
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: mfd
 #% label: Minimum Flow Discharge (MFD) [m3/s]
 #% required: no
 #% guisection: Legal Discharge
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: discharge_natural
 #% label: Natural discharge [m3/s]
 #% required: no
@@ -145,7 +142,6 @@
 #% type: double
 #% description: Resolution of the visibility map computation
 #% required: no
-#% answer: 250
 #% guisection: Areas to exclude
 #%end
 #%option
@@ -153,7 +149,6 @@
 #% type: integer
 #% description: Number of points for the visibility
 #% required: no
-#% answer: 0
 #% guisection: Areas to exclude
 #%end
 
@@ -329,7 +324,7 @@ def main(opts, flgs):
 
     elif discharge_natural:
         formula = '%s=%s-%s*%s/100.0' % (tmp_disch, discharge_current,
-                                         discharge_natural, 
+                                         discharge_natural,
                                          percentage)
         mapcalc(formula, overwrite=OVW)
         TMPRAST.append(tmp_disch)
