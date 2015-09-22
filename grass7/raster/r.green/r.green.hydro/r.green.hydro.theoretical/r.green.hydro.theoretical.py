@@ -187,14 +187,6 @@ def main(options, flags):
     #############################################################
     basins_tot, inputs = basin.init_basins(basins)
 
-    msgr.message("\nCompute mean elevation\n")
-    tmp_dtm_mean = "tmprgreen_%i_dtm_mean" % pid
-    gcore.run_command('r.stats.zonal',
-                      base=basins,
-                      cover=dtm, flags='r',
-                      output=tmp_dtm_mean,
-                      method='average')
-
     msgr.message("\nBuild the basin network\n")
     #############################################################
     # build_network(stream, dtm, basins_tot) build relationship among basins

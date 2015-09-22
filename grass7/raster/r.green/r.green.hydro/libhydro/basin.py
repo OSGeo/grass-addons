@@ -630,14 +630,21 @@ def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
     """
     Fill the dictionary with the basins attribute
     """
-    info_h = gcore.parse_command('r.category', map='dtm_mean', separator='=')
+    pid = os.getpid()
+    tmp_dtm_mean = "tmprgreen_%i_dtm_mean" % pid
+    gcore.run_command('r.stats.zonal',
+                      base=basins,
+                      cover=dtm, flags='r',
+                      output=tmp_dtm_mean,
+                      method='average')
+    info_h = gcore.parse_command('r.category', map=tmp_dtm_mean, separator='=')
     #pdb.set_trace()
     for count in inputs:
         if info_h[str(count)] != '':
             area = area_of_basins(basins, count, dtm)
             basins_tot[count].area = float(area)
             h_mean = float(info_h[str(count)])
-            fill_energyown(basins_tot[count], h_mean, discharge, stream)    
+            fill_energyown(basins_tot[count], h_mean, discharge, stream)
     for b in inputs:
         fill_discharge_tot(basins_tot, b)
 
