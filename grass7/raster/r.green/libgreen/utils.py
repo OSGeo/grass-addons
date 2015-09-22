@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import os
 #import pdb
 
 # import grass libraries
@@ -53,17 +54,26 @@ def check_overlay_rv(raster, vector):
 
 def check_overlay_rr(raster1, raster2):
     """
-    check the overlay between a raster and a vector
+    check the overlay between rasters
     :param raster1: grass raster name
     :type raster: string
     :param raster2: grass raster name
     :type vector: string
     """
-    formula = 'overlay = if( %s>0  && %s>0 , %s)' % (raster1, raster2, raster2)
+    pid = os.getpid()
+    tmp_diff = "tmprgreen_%i_diff" % pid
+    tmp_overlay = "tmprgreen_%i_overlay" % pid
+    formula = '%s = if( %s>0  && %s>0 , %s)' % (tmp_overlay, raster1,
+                                                raster2, raster2)
     mapcalc(formula, overwrite=True)
-    formula = 'diff = overlay - %s' % (raster2)
+    formula = "%s = if(isnull(%s), if(%s, 10), %s - %s)" % (tmp_diff,
+                                                            tmp_overlay,
+                                                            raster2,
+                                                            tmp_overlay,
+                                                            raster2)
+    formula = '%s = %s - %s' % (tmp_diff, tmp_overlay, raster2)
     mapcalc(formula, overwrite=True)
-    perc_0 = perc_of_overlay('diff', '0')
+    perc_0 = perc_of_overlay(tmp_diff, '0')
     return perc_0
 
 
@@ -78,9 +88,9 @@ def perc_of_overlay(raster, val):
     temp = 0
     info = gcore.parse_command('r.report', flags='nh', map=raster, units='p')
     for somestring in info.keys():
-        if ((' %s|' % val) or ('|%s|' % val)) in somestring:
+        if ((' %s|' % val) in somestring) or (('|%s|' % val) in somestring):
             temp = somestring.split('|')[-2]
-    return temp
+            return temp
 
 
 def raster2compressM(A):
@@ -117,7 +127,7 @@ def remove_pixel_from_raster(lakes, stream):
     """
     gcore.run_command("v.to.rast", overwrite=True, input=lakes,
                       output="lakes", use="val")
-    stream, mset = stream.split('q') if '@' in stream else (stream, '')
+    stream, mset = stream.split('@') if '@' in stream else (stream, '')
     del_lake = '%s=if(%s,if(isnull(lakes),%s,null()),null())' % (stream,
                                                                  stream,
                                                                  stream)
