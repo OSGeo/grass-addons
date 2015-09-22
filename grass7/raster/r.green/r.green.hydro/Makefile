@@ -10,6 +10,7 @@ SUBDIRS = r.green.hydro.theoretical  \
 		  r.green.hydro.optimal      \
 		  r.green.hydro.structure    \
 		  r.green.hydro.delplants    \
+	  r.green.hydro.discharge\
           libhydro
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
