@@ -26,7 +26,7 @@
 #%option G_OPT_V_INPUT
 #%  key: struct
 #%  label: Name of the input vector map with the structure of the plants
-#%  required: no
+#%  required: yes
 #%end
 
 #############################################################################
@@ -496,8 +496,6 @@ from __future__ import print_function
 
 import os
 import atexit
-import random
-
 import numpy as np
 from grass.script import core as gcore
 from grass.exceptions import ParameterError
@@ -584,6 +582,7 @@ def excavation_cost(exc, excmin, excmax, slope,
     r.mapcalc(expr.format(exc=exc, slope=slope, excmin=excmin, excmax=excmax,
                           slim=slim, width=width, depth=depth),
               overwrite=overwrite)
+
 
 def vmapcalc2(vmap, vlayer, cname, ctype, expr, overwrite=False):
     v.db_addcolumn(map=vmap, layer=vlayer, columns=[(cname, ctype)],
@@ -1009,26 +1008,26 @@ def main(opts, flgs):
                          function=max_NPV, 
                          exclude=['intake_id', 'side', 'power', 
                                   'gross_head', 'discharge'])
-    if opts['output_struct']:
-        vec = VectorTopo(opts['output_struct'])    
-        vec.open('rw')
-        vec.table.columns.add('max_NPV','VARCHAR(3)')
-                                     
-        list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
-        
-        for i in range(0,len(list_intakeid)):   
-            vec.rewind()                  
-            list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
-            npvmax=max(list_npv)[0]
-            for line in vec:
-                if line.attrs['intake_id'] == list_intakeid[i][0]:
-                    if line.attrs['NPV'] == npvmax:
-                        line.attrs['max_NPV']='yes'
-                    else:
-                        line.attrs['max_NPV']='no'
+
+    vec = VectorTopo(opts['output_struct'])    
+    vec.open('rw')
+    vec.table.columns.add('max_NPV','VARCHAR(3)')
+                                 
+    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
     
-        vec.table.conn.commit()    
-        vec.close()
+    for i in range(0,len(list_intakeid)):   
+        vec.rewind()                  
+        list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
+        npvmax=max(list_npv)[0]
+        for line in vec:
+            if line.attrs['intake_id'] == list_intakeid[i][0]:
+                if line.attrs['NPV'] == npvmax:
+                    line.attrs['max_NPV']='yes'
+                else:
+                    line.attrs['max_NPV']='no'
+
+    vec.table.conn.commit()    
+    vec.close()
 
 
 if __name__ == "__main__":
