@@ -17,8 +17,8 @@
 # import system libraries
 import os
 
-import numpy as np
 import itertools
+import math
 #import pdb
 
 
@@ -66,12 +66,8 @@ def E_hydro(delta, Q):
     :param delta
     gross head m
     """
-    if isinstance(delta, float) or isinstance(delta, int):
-        if (isinstance(Q, float) or isinstance(Q, int) or
-           isinstance(Q, np.float32)):
+    if Q and delta:
             return max((delta * 9.81 * Q), 0)
-        else:
-            return 0.0
     else:
         return 0.0
 
@@ -326,14 +322,17 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     write the basins object in a vector with the same cat value
     of the ID basin
     """
-    gcore.run_command("r.thin", input=stream, output='stream_thin')
-    gcore.run_command("r.to.vect", input='stream_thin',
+    pid = os.getpid()
+    tmp_thin = "tmprgreen_%i_thin" % pid
+    tmp_clean = "tmprgreen_%i_clean" % pid
+    gcore.run_command("r.thin", input=stream, output=tmp_thin)
+    gcore.run_command("r.to.vect", input=tmp_thin,
                       flags='v',
-                      output='vec_clean', type="line")
+                      output=tmp_clean, type="line")
     gcore.run_command("v.edit", map='vec_clean', tool='delete', cats='0')
     #pdb.set_trace()
-    gcore.run_command('v.build', map='vec_clean')
-    dissolve_lines('vec_clean', E)
+    gcore.run_command('v.build', map=tmp_clean)
+    dissolve_lines(tmp_clean, E)
     # TODO: dissolve the areas with the same cat
     # adding columns
     gcore.run_command("v.db.addcolumn", map=E,
@@ -382,7 +381,7 @@ def write_results2newvec(stream, E, basins_tot, inputs):
                   basins_tot[ID].E_up.values()[0],
                   basins_tot[ID].E_up.keys()[1],
                   basins_tot[ID].E_up.values()[1],
-                  0, 0, basins_tot[ID].E_own
+                  0, 0.0, basins_tot[ID].E_own
                   + sum(basins_tot[ID].E_up.values())])
         elif len(basins_tot[ID].E_up) == 3:
             #pdb.set_trace()
@@ -391,11 +390,12 @@ def write_results2newvec(stream, E, basins_tot, inputs):
                   basins_tot[ID].E_up.keys()[1],
                   basins_tot[ID].E_up.values()[1],
                   basins_tot[ID].E_up.keys()[2],
-                  basins_tot[ID].E_up.values()[2],basins_tot[ID].E_own
-                  + sum(basins_tot[ID].E_up.values())])
+                  basins_tot[ID].E_up.values()[2],
+                  basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values())])
         else:
-            db = db + [0, 0.0, 0, 0.0, 0, 0.0]
-        #print db
+            db = db + [0, 0.0, 0, 0.0, 0, 0.0, basins_tot[ID].E_own]
+        db = [float(d) for d in db]
+        # FIXME: numpy.float is not accepted
         # TODO: change values, give only key and vals without key
         vec.table.update(basins_tot[ID].ID, db, cursor)
 
@@ -510,24 +510,29 @@ def build_network(stream, dtm, basins_tot):
     Build the network of streams with the ID of all the basins
     in order to know the dependencies among basins
     """
+    pid = os.getpid()
+    tmp_neighbors = "tmprgreen_%i_neighbors" % pid
+    tmp_closure = "tmprgreen_%i_closure" % pid
+    tmp_down = "tmprgreen_%i_down" % pid
+
     river = raster2numpy(stream)
     river_comp = raster2compressM(stream).tocoo()
     gcore.run_command('r.neighbors', input=stream,
-                      output="neighbors", method="minimu", size='5',
+                      output=tmp_neighbors, method="minimu", size='5',
                       quantile='0.5')
 
-    formula = 'closure = neighbors-%s' % (stream)
+    formula = '%s = %s-%s' % (tmp_closure, tmp_neighbors, stream)
     mapcalc(formula)
     # del the map down, it should be not necessary
     gcore.run_command('r.stats.zonal',
                       base=stream,
-                      cover='closure',
-                      output='down',
+                      cover=tmp_closure,
+                      output=tmp_down,
                       method='min')
     #pdb.set_trace()
     dtm_n = raster2numpy(dtm)
-    clos = raster2numpy('closure')
-    ID_down = raster2numpy('down')
+    clos = raster2numpy(tmp_closure)
+    ID_down = raster2numpy(tmp_down)
     #pdb.set_trace()
     for i, j, v in itertools.izip(river_comp.row,
                                   river_comp.col, river_comp.data):
@@ -563,20 +568,19 @@ def fill_energyown(bas, h_mean, discharge_n, stream_n):
     Fill basins dictionary with discharge, h_mean and compute the power
     """
     msgr = get_msgr()
+    warn = ("%i") % bas.ID
     ttt = discharge_n[stream_n == bas.ID]
     #import ipdb; ipdb.set_trace()
     bas.discharge_own = ttt.sort()
     #FIXME: take the second bgger value to avoid to take the value of
     # another catchment, it is not so elegant
-    if len(ttt) > 1:
+    if len(ttt) > 1 and not(math.isnan(ttt[-2])):
         bas.discharge_own = float(ttt[-2])
-    elif ((len(ttt) < 1) and (len(ttt) > 0)):
-        bas.discharge_own = float(ttt[0])
-        warn = ("Only one value of discharge for the river ID %i") % bas.ID
-        msgr.warning(warn)
     else:
-        warn = ("Only one value of discharge for the river ID %i") % bas.ID
+        bas.discharge_own = 0.0
+        warn = ("No value for the river ID %i, discharge set to 0") % bas.ID
         msgr.warning(warn)
+
     bas.h_mean = h_mean
     # basins_tot[count].h_closure = float(info_c[count])
     delta = bas.h_mean - bas.h_closure
@@ -624,7 +628,7 @@ def fill_Eup(basins_tot, b):
 
 def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
     """
-    Fill the dictionary with the basins
+    Fill the dictionary with the basins attribute
     """
     info_h = gcore.parse_command('r.category', map='dtm_mean', separator='=')
     #pdb.set_trace()
@@ -633,8 +637,7 @@ def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
             area = area_of_basins(basins, count, dtm)
             basins_tot[count].area = float(area)
             h_mean = float(info_h[str(count)])
-            fill_energyown(basins_tot[count], h_mean, discharge, stream)
-
+            fill_energyown(basins_tot[count], h_mean, discharge, stream)    
     for b in inputs:
         fill_discharge_tot(basins_tot, b)
 
@@ -684,46 +687,47 @@ def compute_river_discharge(drain, stream, string, **kwargs):
     return raster_out, bas_area
 
 
-def dtm_corr(dtm, river, lake=None):
-    temp_vec = []
-    temp_rast = []
+def dtm_corr(dtm, river, dtm_corr, lake=None):
+    """ Compute a new DTM by applying a corrective factor
+    close to the river network. Output of r.green.watershed
+    will be coherent with the river network
+    """
+    pid = os.getpid()
     msgr = get_msgr()
     info = gcore.parse_command('g.region', flags='pg')
-    """ change dtm accordingo to the river and lake vectors"""
+
     if lake:
+        tmp_network = "tmprgreen_%i_network" % pid
         inputs = '%s,%s' % (lake, river)
         gcore.run_command('v.patch',
                           input=inputs,
-                          output='hydro_network')
-        temp_vec.append('hydro_network')
-        river = 'hydro_network'
+                          output=tmp_network)
+        river = tmp_network
 
     msgr.warning("The DTM will be temporarily modified")
     distance = [float(info['nsres']), float(info['nsres'])*1.5,
                 float(info['nsres'])*3]
+    pat = "tmprgreen_%i_" % pid
     for i, val in enumerate(distance):
-        output = 'buff_%i' % i
+
+        output = '%sbuff_%i' % (pat, i)
         gcore.run_command('v.buffer',
                           input=river,
                           output=output,
                           distance=val)
-        temp_vec.append(output)
         gcore.run_command('v.to.rast',
                           input=output,
                           output=output,
                           use='val',
                           value=val,
                           overwrite=True)
-        temp_rast.append(output)
         command = ('%s_c = if(isnull(%s),0,%s)') % (output, output,
                                                     output)
         mapcalc(command, overwrite=True)
-        temp_rast.append('%s_c' % output)
 
-    command = (('DTM_corr = if(%s,%s-buff_0_c-buff_1_c-buff_2_c)')
-               % (dtm, dtm))
+    command = (('%s = if(%s,%s-%sbuff_0_c-%sbuff_1_c-%sbuff_2_c)')
+               % (dtm_corr, dtm, dtm, pat, pat, pat))
     mapcalc(command, overwrite=True)
-    return 'DTM_corr', temp_vec, temp_rast
 
 
 if __name__ == "__main__":
