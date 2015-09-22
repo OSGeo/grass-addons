@@ -24,7 +24,7 @@
 #%option G_OPT_R_ELEV
 #% required: yes
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: discharge
 #% type: string
 #% gisprompt: old,cell,raster
@@ -32,7 +32,7 @@
 #% description: Name of river discharge [m3/s]
 #% required: yes
 #%end
-#%option
+#%option G_OPT_V_INPUT
 #% key: rivers
 #% type: string
 #% gisprompt: old,vector,vector
@@ -40,7 +40,7 @@
 #% description: Name of river network
 #% required: no
 #%end
-#%option
+#%option G_OPT_V_INPUT
 #% key: lakes
 #% type: string
 #% gisprompt: old,vector,vector
@@ -56,7 +56,7 @@
 #% answer: 0
 #% guisection: Basin Potential
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: basins
 #% type: string
 #% gisprompt: old,cell,raster
@@ -65,7 +65,7 @@
 #% required: no
 #% guisection: Basin Potential
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: stream
 #% type: string
 #% gisprompt: old,cell,raster
@@ -79,7 +79,7 @@
 #% key: d
 #% description: Debug with intermediate maps
 #%end
-#%option
+#%option G_OPT_V_OUTPUT
 #% key: output
 #% type: string
 #% key_desc: name
@@ -94,7 +94,6 @@ from __future__ import print_function
 import os
 import sys
 import atexit
-import pdb
 
 # import grass libraries
 from grass.script import core as gcore
@@ -105,6 +104,7 @@ set_path('r.green', 'libhydro', '..')
 set_path('r.green', 'libgreen', os.path.join('..', '..'))
 # finally import the module in the library
 from libgreen.utils import cleanup
+from libhydro.basin import dtm_corr
 from libhydro import basin
 from libgreen.utils import check_overlay_rr
 #from libgreen.utils import check_overlay_rv
@@ -121,8 +121,9 @@ def main(options, flags):
     #############################################################
     # inizialitation
     #############################################################
-    TMPRAST, TMPVECT, DEBUG = [], [], False
-    atexit.register(cleanup, rast=TMPRAST, vect=TMPVECT, debug=DEBUG)
+    pid = os.getpid()
+    DEBUG = False
+    atexit.register(cleanup, pattern=("tmprgreen_%i" % pid), debug=DEBUG)
     #TOD_add the possibilities to have q_points
     # required
     discharge = options['discharge']
@@ -134,6 +135,7 @@ def main(options, flags):
     lakes = options['lakes']  # vec
     E = options['output']
     threshold = options['threshold']
+    
     # existing plants
 #    segments = options['segments']
 #    output_segm = options['output_segm']
@@ -154,31 +156,18 @@ def main(options, flags):
     # print info
     #############################################################
     # check temporary raster
-    #############################################################
-    TMPRAST = ['dtm_mean', 'neighbors',
-               'closure', 'down', 'lakes', 'stream_thin',
-               'debug', 'vec_rast']
-    TMPVECT = ['tmptmp', 'segments']
-
-    if not gcore.overwrite():
-        for m in TMPRAST:
-            if gcore.find_file(m)['name']:
-                msgr.fatal(_("Temporary raster map %s exists") % (m))
 
     if rivers:
         # cp the vector in the current mapset in order to clean it
-
-        to_copy = '%s,river_new' % rivers
+        tmp_river = "tmprgreen_%i_river" % pid 
+        to_copy = '%s,%s' % (rivers, tmp_river)
         gcore.run_command('g.copy', vector=to_copy)
-        rivers = 'river_new'
-        TMPVECT.append('river_new')
+        rivers = tmp_river
         gcore.run_command('v.build', map=rivers)
-        pdb.set_trace()
-        dtm_corr, tmp_v, tmp_r = basin.dtm_corr(dtm, rivers, lakes)
-        TMPRAST = TMPRAST + tmp_r
-        TMPVECT = TMPVECT + tmp_v
+        tmp_dtm_corr = "tmprgreen_%i_dtm_corr" % pid
+        dtm_corr(dtm, rivers, tmp_dtm_corr, lakes)
         basins, stream = basin.check_compute_basin_stream(basins, stream,
-                                                          dtm_corr, threshold)
+                                                          tmp_dtm_corr, threshold)
     else:
         basins, stream = basin.check_compute_basin_stream(basins, stream,
                                                           dtm, threshold)
@@ -189,6 +178,7 @@ def main(options, flags):
         warn = ("Discharge map doesn't overlay all the stream map."
                 "It covers only the %s %% of rivers") % (perc_overlay)
         msgr.warning(warn)
+        import ipdb; ipdb.set_trace()
 
     msgr.message("\Init basins\n")
     #pdb.set_trace()
@@ -198,11 +188,11 @@ def main(options, flags):
     basins_tot, inputs = basin.init_basins(basins)
 
     msgr.message("\nCompute mean elevation\n")
-
+    tmp_dtm_mean = "tmprgreen_%i_dtm_mean" % pid
     gcore.run_command('r.stats.zonal',
                       base=basins,
                       cover=dtm, flags='r',
-                      output='dtm_mean',
+                      output=tmp_dtm_mean,
                       method='average')
 
     msgr.message("\nBuild the basin network\n")
@@ -230,65 +220,9 @@ def main(options, flags):
     ####################################################################
     # if not rivers or debug I write the result in the new vector stream
     msgr.message("\nWrite results\n")
+    import ipdb; ipdb.set_trace()
 
     basin.write_results2newvec(stream, E, basins_tot, inputs)
-
-    ####################################################################
-    # try tobuilt a vector shp of rivers coerent with vector input
-    #TODO: and the new branches created by r.watershed, check how to add to
-    # the existing vector river
-    ####################################################################
-#==============================================================================
-#     if rivers:
-#         if DEBUG:
-#             basin.write_results2newvec(stream, 'debug', basins_tot, inputs)
-#             basin.add_results2shp(basins, rivers, basins_tot, E, inputs)
-#         else:
-#             basin.add_results2shp(basins, rivers, basins_tot, E, inputs)
-#==============================================================================
-
-    ####################################################################
-    # if there are plants, it deletes the piece of river
-    # pdb.set_trace()
-#    if (segments and hydro):
-#        warn = (("%s map could have been generated by %s."
-#                "%s is used for next computations")
-#                % (segments, hydro, segments))
-#        msgr.warning(warn)
-#
-#    if hydro and not(segments):
-#        msgr.message("\nr.green.hydro.delplants\n")
-#        gcore.run_command('r.green.hydro.delplants',
-#                          hydro=hydro,
-#                          hydro_layer=hydro_layer,
-#                          river=E,
-#                          plants='plant',
-#                          output='segments',
-#                          hydro_kind_intake=hydro_kind_intake,
-#                          hydro_kind_turbine=hydro_kind_turbine,
-#                          elevation=dtm,
-#                          other=other,
-#                          other_kind_intake=other_kind_intake,
-#                          other_kind_turbine=other_kind_turbine)
-#        segments = 'segments'
-#
-#    #FIXME: with temporary plants it don't work
-#    if segments:
-#        perc_overlay = check_overlay_rv(discharge, segments)
-#        if float(perc_overlay) < 90:
-#            warn = ("Discharge map doesn't overlay all the segments map."
-#                    "It covers only the %s %% of rivers") % (perc_overlay)
-#            msgr.warning(warn)
-#        gcore.run_command('r.green.hydro.optimal',
-#                          flags='c',
-#                          discharge=discharge,
-#                          river=segments,
-#                          dtm=dtm,
-#                          len_plant='10000000',
-#                          output_plant=output_segm,
-#                          output_point=output_point,
-#                          distance='0.5',
-#                          len_min='0.5')
 
 
 if __name__ == "__main__":
