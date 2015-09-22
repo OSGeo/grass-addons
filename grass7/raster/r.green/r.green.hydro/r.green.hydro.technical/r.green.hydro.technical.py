@@ -246,6 +246,7 @@ def add_columns(vector, cols):
         if cname not in vector.table.columns:
             vector.table.columns.add(cname, ctype)
 
+
 def diam_pen(discharge, length, gross_head, percentage, epsilon=0.015):
 
     def diam(x, *args):
@@ -372,33 +373,40 @@ def compute_losses(struct, options,
     for line in struct:
         gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
-        length = line.length()
-
-        if length > 0 and discharge > 0:
-            if line.attrs['kind'] == 'penstock':
-                diameter = line.attrs['diameter']
-                if not diameter:
-                    diameter = diam_pen(discharge, length, gross_head,
-                                        percentage_losses, roughness_penstock)
-                    line.attrs['diameter'] = diameter
-                length = (length**2.0 + gross_head**2.0)**0.5
-                if gross_head > length:
-                    msgr = get_msgr()
-                    msgr.warning("To check length of penstock,"
-                                 "gross head greater than "
-                                 "length")
-                    import ipdb; ipdb.set_trace()
-                losses = losses_Colebrooke(discharge, length,
-                                           diameter, roughness_penstock)
-                # when you compute alpha (see manual) the lenght of the
-                # line is the real  length and not the projection
-                # for the blend we use the formula sen2(alpha)+sen4(alpha/2)
-                # TODO: add the possibility to insert the coefficient for the
-                # singolar losses in the table of the structure
-                # TODO: add singolar loss in function of thevelocity of
-                # derivation channel
-                line.attrs['sg_losses'] = singular_losses(gross_head, length,
-                                                          discharge, diameter)
+        if gross_head <= 0 or discharge <= 0:
+            # FIXME: it is not physical possible that it is <0
+            line.attrs['sg_losses'] = 0
+            line.attrs['gross_head'] = 0
+            line.attrs['losses'] = 0          
+        else:
+            
+            length = line.length()
+            losses = 0
+            if length > 0 and discharge > 0:
+                if line.attrs['kind'] == 'penstock':
+                    diameter = line.attrs['diameter']
+                    if not diameter:
+                        diameter = diam_pen(discharge, length, gross_head,
+                                            percentage_losses, roughness_penstock)
+                        line.attrs['diameter'] = diameter
+                    length = (length**2.0 + gross_head**2.0)**0.5
+                    if gross_head > length:
+                        msgr = get_msgr()
+                        msgr.warning("To check length of penstock,"
+                                     "gross head greater than "
+                                     "length")
+                        import ipdb; ipdb.set_trace()
+                    losses = losses_Colebrooke(discharge, length,
+                                               diameter, roughness_penstock)
+                    # when you compute alpha (see manual) the lenght of the
+                    # line is the real  length and not the projection
+                    # for the blend we use the formula sen2(alpha)+sen4(alpha/2)
+                    # TODO: add the possibility to insert the coefficient for the
+                    # singolar losses in the table of the structure
+                    # TODO: add singolar loss in function of thevelocity of
+                    # derivation channel
+                    line.attrs['sg_losses'] = singular_losses(gross_head, length,
+                                                              discharge, diameter)
 
             elif line.attrs['kind'] == 'conduct':
                 diameter = line.attrs['diameter']
@@ -429,6 +437,8 @@ def compute_losses(struct, options,
     msgr = get_msgr()
     for i in list_intakeid:
         struct.rewind()
+        totallosses0 = 0
+        totallosses1 = 0
 
         bothlosses0 = list(
             struct.table.execute(
@@ -498,7 +508,7 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
         gross_head = float(line.attrs['gross_head'])
         discharge = float(line.attrs['discharge'])
 
-        if net_head >= 0 and gross_head > 0:
+        if net_head >= 0 and gross_head > 0 and discharge>0:
             possible_turb = turb_char(net_head, discharge,
                                       turbine_list, turbine_folder)
             efficiency = np.zeros(len(possible_turb))
@@ -655,6 +665,7 @@ def main(options, flags):
     if options['output_point']:
         conv_segpoints(plant, options['output_point'])
 
+# FIXME: gross_head coherent with plants
     # set the opions to execute the r.green.hydro.structure
     struct_opts = dict(elevation=elevation, plant=plant,
                        output_struct=output_struct,
@@ -662,19 +673,19 @@ def main(options, flags):
                        contour=options['contour'], overwrite=gcore.overwrite())
     if options['resolution']:
         struct_opts['resolution'] = options['resolution']
+## --------------------------------------------------------------------------        
     gcore.run_command('r.green.hydro.structure', **struct_opts)
 
     gcore.run_command('v.build', map=output_struct)
 ## --------------------------------------------------------------------------
+    gcore.run_command('g.copy', vector=(plant, output_plant))
     with VectorTopo(output_struct, mode='rw') as struct:
         list_intakeid = compute_losses(struct, options,
                                        percentage_losses, roughness_penstock,
                                        ks_derivation)
 
         compute_power(struct, list_intakeid, turbine_list, turbine_folder,
-                      efficiency_shaft, efficiency_alt, efficiency_transf)
-
-    gcore.run_command('g.copy', vector=(plant, output_plant))
+                      efficiency_shaft, efficiency_alt, efficiency_transf) 
 
     with VectorTopo(output_plant, mode='rw') as out, \
             VectorTopo(output_struct, mode='r') as struct:
@@ -693,8 +704,10 @@ def main(options, flags):
             sqlcode = struct.table.filters.select(
                 ','.join(scols)).where(where).get_sql()
             svalues = struct.table.execute(sqlcode).fetchone()
-            for col, value in zip(scols, svalues):
-                seg.attrs[col] = value
+            if svalues:
+                for col, value in zip(scols, svalues):
+                    if value:
+                        seg.attrs[col] = value
         out.table.conn.commit()
 
 
