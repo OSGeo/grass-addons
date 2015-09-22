@@ -84,6 +84,8 @@ SUBDIRS = \
 	r.stream.slope \
 	r.stream.snap \
 	r.stream.stats \
+	r.stream.variables \
+	r.stream.watersheds \
 	r.sun.daily \
 	r.sun.hourly \
 	r.surf.idw2 \
