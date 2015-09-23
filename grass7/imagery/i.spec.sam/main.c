@@ -50,8 +50,7 @@ int open_files();
 void spectral_angle();
 CELL myround(double x);
 
-int main(argc,argv) 
-char *argv[];
+int main(int argc,char * argv[])
 {
     int nrows, ncols;
     int row, col;
