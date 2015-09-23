@@ -1,0 +1,46 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.redlist</em> imports <a href="http://www.iucn.org/">IUCN</a> <a href="http://www.iucnredlist.org/">Red List</a> 
+<a href="http://www.iucnredlist.org/technical-documents/spatial-data">Spatial Data</a>. 
+
+This data is by definition in WGS84 geographic coordinates.
+
+<p>
+ By the <i>-l</i> flag species in column 'binomial' of the attribute 
+table are listed. The species in column 'binomial' can be exported to a 
+text file by the <i>-s</i> flag. 
+</p>
+
+<p>
+One of the species mentioned by <i>-l</i> or <i>-s</i> flag has to be specified for importing.
+</p>
+
+<h2>EXAMPLE</h2>
+
+<div class="code">
+ <pre>
+  # list species in column 'binomial' of the attribute table by -l flag
+  v.in.redlist -l input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp
+  
+  # export species in column 'binomial' of the attribute table into a text file by -s flag  
+  v.in.redlist -s input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp dir=C:\dl\iucn\GYMNOPHIONA
+  
+  # import spatial data for a user defined species 
+  v.in.redlist input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp /
+  output=Scolecomorphus_vittatus species_name=Scolecomorphus vittatus 
+ </pre>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.in.ogr.html">v.in.ogr</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Helmut Kudrnovsky
+
+<p>
+<i>Last changed: $Date: 2015-08-28 18:13:57 +0200 (Fr, 28 Aug 2015) $</i>
+</p>
