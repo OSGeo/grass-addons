@@ -138,7 +138,7 @@ trap "exitprocedure" 2 3 15
 
 echo ""
 echo "#######################################################################################################"
-echo "Sub-watershed and sub-streams delineation based on the drainage direction and a gridded stream network."
+echo "Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network."
 echo ""
 echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (in review)"
 echo "Near-global freshwater-specific environmental variables for"
@@ -344,5 +344,5 @@ rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID* $GIS_OPT_FOLDER/${dir4d}digi
 done 
 
 echo "The full sub-watershed delineation process has been done!"
-echo "To list the compressed files, use ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz"
+echo "To list the compressed files: ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz"
 echo  "Now you can use r.stream.variables to compute stream-specific environmental variables."

@@ -5,13 +5,12 @@
 # MODULE:       r.stream.watersheds
 #
 # AUTHOR(S):    Giuseppe Amatulli & Sami Domisch
-#               based on "Domisch, S., Amatulli, G., Jetz, W. (review) 
+#               based on "Domisch, S., Amatulli, G., Jetz, W. (in review) 
 #				Near-global freshwater-specific environmental variables for 
 # 				biodiversity analyses in 1km resolution. Scientific Data"
 #
-# PURPOSE:      Delineate the upstream contributing area ('sub-watershed') and 
-#				stream sections ('sub-stream') for each grid cell of a 
-#				stream network
+# PURPOSE:      Calculation of contiguous stream-specific variables that account 
+#				for the upstream environment (based on r.stream.watersheds).
 #
 # COPYRIGHT:    (C) 2001-2012 by the GRASS Development Team
 #
@@ -22,7 +21,7 @@
 #############################################################################
 
 #%Module
-#% description: Sub-watershed delineation based on the drainage direction and a gridded stream network. Based on "Domisch, S., Amatulli, G., Jetz, W. 2015 Near-global freshwater-specific environmental variables for biodiversity analyses in 1km resolution. Scientific Data"
+#% description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
 #% keywords: drainage, stream, hydrology
 #%End
 
@@ -180,7 +179,7 @@ trap "exitprocedure" 2 3 9 15 19
 
 echo ""
 echo "##########################################################################"
-echo "Streams variables calculation based on the sub-watershads and sub-streams"
+echo "Stream-specific variable calculation based on the sub-watersheds and sub-streams"
 echo ""
 echo "Citation: Domisch, S., Amatulli, G., Jetz, W. (in review)"
 echo "Near-global freshwater-specific environmental variables for"
@@ -381,12 +380,12 @@ r.reclass input=grid_ID  output=${GIS_OPT_VARIABLE}_$1  rules=$GIS_OPT_FOLDER/bl
 rm -f $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt
 
 r.out.gdal -c  input=${GIS_OPT_VARIABLE}_${1}  nodata=-9999  output=$GIS_OPT_OUT_FOLDER/${GIS_OPT_VARIABLE}_${1}.tif  type=Int32  -c  createopt="COMPRESS=LZW,ZLEVEL=9"  --o --q  2> /dev/null
-
-echo "$GIS_OPT_OUT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!"
+if test -f "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif"; then echo "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!";fi
+#echo "$GIS_OPT_OUT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!"
 
 ' _ 
 
 exit 
 
 echo "The full stream variable calculation has been done!"
-echo "To list the stream-specific output variables, use ls $GIS_OPT_OUT_FOLDER/*.tif"
+echo "To list the stream-specific output variables: ls $GIS_OPT_OUT_FOLDER/*.tif"
