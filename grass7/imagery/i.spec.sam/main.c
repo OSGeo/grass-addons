@@ -22,6 +22,7 @@
 #include <grass/raster.h>
 #include <grass/imagery.h>
 #include <grass/gmath.h>
+/*#include <grass/glocale.h>*/
 #include "local_proto.h"
 #include "global.h"
 
@@ -47,7 +48,7 @@ char *result_prefix, *matrixfile;
 
 int open_files();
 void spectral_angle();
-CELL myround(x);
+CELL myround(double x);
 
 int main(argc,argv) 
 char *argv[];
@@ -217,8 +218,7 @@ char *argv[];
 } /* main*/
 
 
-CELL myround (x)
-  double x;
+CELL myround (double x)
   {
     CELL n;
     
