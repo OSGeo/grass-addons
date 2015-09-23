@@ -5,7 +5,7 @@
 # MODULE:       r.stream.watersheds
 #
 # AUTHOR(S):    Giuseppe Amatulli & Sami Domisch
-#               based on "Domisch, S., Amatulli, G., Jetz, W. (2015) 
+#               based on "Domisch, S., Amatulli, G., Jetz, W. (review) 
 #				Near-global freshwater-specific environmental variables for 
 # 				biodiversity analyses in 1km resolution. Scientific Data"
 #
@@ -200,6 +200,7 @@ for file in  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/blockfile*_sub_${GI
     filename=$(basename $file )
     cd $DIRNAME
     tar -xf $file 
+    cd $GISDBASE
 
     export BLKID=$(echo $filename |  awk -v GIS_OPT_AREA=${GIS_OPT_AREA} '{ gsub("0000", "") ; gsub("blockfile","") ; gsub("_sub_","") ; gsub("GIS_OPT_AREA","") ; gsub(".tar.gz","") ;  print  }')
     export dir4d=${BLKID: -4:1} ; if [ -z $dir4d  ] ; then  dir4d=0 ; fi
@@ -344,6 +345,7 @@ echo "Aggregating the final table to reclassify the raster ID"
 
 echo "ID|non_null_cells|null_cells|min|max|range|mean|mean_of_abs|stddev|variance|coeff_var|sum|sum_abs" >  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
 cat  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/stat_${GIS_OPT_VARIABLE}.txt  >>  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
+rm -f  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/stat_${GIS_OPT_VARIABLE}.txt
 
 echo Reclass the grid_id for the following output  ${GIS_OPT_OUTPUT//","/" "}
 
@@ -380,7 +382,7 @@ rm -f $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt
 
 r.out.gdal -c  input=${GIS_OPT_VARIABLE}_${1}  nodata=-9999  output=$GIS_OPT_OUT_FOLDER/${GIS_OPT_VARIABLE}_${1}.tif  type=Int32  -c  createopt="COMPRESS=LZW,ZLEVEL=9"  --o --q  2> /dev/null
 
-echo "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!"
+echo "$GIS_OPT_OUT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!"
 
 ' _ 
 

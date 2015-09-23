@@ -5,7 +5,7 @@
 # MODULE:       r.stream.watersheds
 #
 # AUTHOR(S):    Giuseppe Amatulli & Sami Domisch
-#               based on "Domisch, S., Amatulli, G., Jetz, W. (2015) 
+#               based on "Domisch, S., Amatulli, G., Jetz, W. (in review) 
 #				Near-global freshwater-specific environmental variables for 
 # 				biodiversity analyses in 1km resolution. Scientific Data"
 #
@@ -134,7 +134,7 @@ exit 1
 }
 
 # shell check for user break (signal list: trap -l)
-# trap "exitprocedure" 2 3 15
+trap "exitprocedure" 2 3 15
 
 echo ""
 echo "#######################################################################################################"
@@ -147,8 +147,8 @@ echo "##########################################################################
 echo ""
 echo Exporting stream grid cell coordinates and saving in $GIS_OPT_FOLDER/stream_coord_lines.txt
 
-rm -fr    $GIS_OPT_FOLDER
-mkdir     $GIS_OPT_FOLDER
+rm -fr    $GIS_OPT_FOLDER 2> /dev/null
+mkdir     $GIS_OPT_FOLDER 2> /dev/null
 
 r.out.xyz   --o input=$GIS_OPT_STREAM  separator=space   output=$GIS_OPT_FOLDER/stream_coord.txt  --q
 
@@ -186,7 +186,7 @@ done
 
 mkdir  $GIS_OPT_FOLDER/blockfile
 
-echo  "Split the stream grid cell coordinate file (X|Y|ID) into subsets of 10000 lines"
+echo  "Split the stream grid cell coordinate file with $( wc -l $GIS_OPT_FOLDER/stream_coord.txt  | awk '{ print $1 }' ) grid cells into blocks of 10000 cells"
 
 awk -v PATH=$GIS_OPT_FOLDER 'NR%10000==1{x=PATH"/blockfile/blockfile"(++i*10000-10000)}{print > x}'  $GIS_OPT_FOLDER/stream_coord_lines.txt
 
@@ -226,7 +226,11 @@ X_coord=$2
 Y_coord=$3
 ID=$4
 
-echo -en  "\r$(expr $NR / 100 + 1 )% done"
+
+if [ $( expr  $( expr $NR + 1 ) / 100)  -eq  $( expr $NR / 100 + 1 ) ] ; then
+echo  -en  "\r$(expr $NR / 100 + 1 )% done"
+fi
+
 
 # replicate the start-GISRC in a unique GISRC
 
@@ -254,6 +258,8 @@ r.out.gdal -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,ZL
 r.mapcalc  "sub_streamID${ID} = if ( sub_watershedID${ID}@sub_watershedID${ID}  == 1 & ${GIS_OPT_STREAM}@PERMANENT >= 1 , 1 , null()  )"   --o --q
 r.null  map=sub_streamID${ID}  setnull=0    --q
 r.out.gdal  -c type=Byte    --o --q     nodata=255     createopt="COMPRESS=LZW,ZLEVEL=9"   input=sub_streamID${ID}@sub_watershedID${ID}    output=$GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif 
+
+if [ ! -f $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  ] ; then the file $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID${ID}.tif  dose not exist ; fi 
 
 rm -r $HOME/.grass7/rc$ID    $GISDBASE/$LOCATION_NAME/sub_watershedID$ID
 
@@ -321,10 +327,13 @@ rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID*
 
 echo "Compress the sub-watersheds and sub-streams to reduce the number of inodes filling up the hard disk"
 
-tar -zcPf  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/${filename}_sub_watershed.tar.gz   $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_watershedID*.tif 
-tar -zcPf  $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/${filename}_sub_stream.tar.gz      $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/sub_streamID*.tif
 
-echo list the compressed files by ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz
+cd $GIS_OPT_FOLDER/${dir4d}digit4/${dir3d}digit3/${dir2d}digit2/${dir1d}digit1/
+	 	
+tar -zcPf  ${filename}_sub_watershed.tar.gz  sub_watershedID*.tif
+tar -zcPf  ${filename}_sub_stream.tar.gz     sub_streamID*.tif   
+	
+cd  $GIS_OPT_FOLDER
 
 g.gisenv set="MAPSET=PERMANENT"
 g.gisenv set="LOCATION_NAME=$LOCATION_NAME"
@@ -334,3 +343,6 @@ rm -fr    $GISDBASE/$LOCATION_NAME/sub_watershedID* $GIS_OPT_FOLDER/${dir4d}digi
 
 done 
 
+echo "The full sub-watershed delineation process has been done!"
+echo "To list the compressed files, use ls $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/*.tar.gz"
+echo  "Now you can use r.stream.variables to compute stream-specific environmental variables."
