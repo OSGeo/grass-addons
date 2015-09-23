@@ -20,14 +20,13 @@
 #include <math.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
-/*#include <grass/gmath.h>*/
+#include <grass/imagery.h>
+#include <grass/gmath.h>
 #include "local_proto.h"
 #include "global.h"
-#include <meschach/matrix.h>
-#include <meschach/matrix2.h>
 
-MAT *A;
-VEC *b, *Avector;
+mat_struct *A;
+vec_struct *b, *Avector;
 int matrixsize;
 float curr_angle;
 
@@ -86,7 +85,7 @@ char *argv[];
     parm.result->description = "Raster map prefix to hold spectral angles";
 
     if (G_parser(argc,argv))
-	exit(1);
+	G_fatal_error("Parsing arguments error");
 
     result_prefix = parm.result->answer;
     group       = parm.group->answer;
@@ -114,21 +113,21 @@ char *argv[];
 	     b = get_row(A, j, VNULL);      /* compare with next col in A */
 	     spectral_angle();
 	     anglefield[i][j]= curr_angle;
-	     V_FREE(b);
+	     G_vector_free(b);
 	    }
 	}
-     V_FREE(Avector);
+     G_vector_free(Avector);
     }
 
     /* print out the result */
-    fprintf(stderr,"Orthogonality check of Matrix A:\n");
+    G_message("Orthogonality check of Matrix A:\n");
     for (i = 0; i < Ref.nfiles ; i++)
       for (j = 0; j < Ref.nfiles ; j++)
 	{
          if (j !=i)
-         	fprintf(stderr,"  Angle between row %i and row %i: %g\n", (i+1), (j+1), anglefield[i][j]);
+         	G_message("  Angle between row %i and row %i: %g\n", (i+1), (j+1), anglefield[i][j]);
         }
-    fprintf(stderr,"\n");
+    G_message(stderr,"\n");
     
    /* check it */
    for (i = 0; i < Ref.nfiles ; i++)
@@ -136,27 +135,24 @@ char *argv[];
        if (j !=i)
          if (anglefield[i][j] < 10.0)
          {
-	     fprintf(stderr,"ERROR: Spectral entries row %i|%i in your matrix are linear dependent!\n",i,j);
+	     G_message("ERROR: Spectral entries row %i|%i in your matrix are linear dependent!\n",i,j);
 	     error=1;
 	 }
 
    if (!error)
-	fprintf(stderr,"Spectral matrix is o.k. Proceeding...\n");
+	G_message("Spectral matrix is o.k. Proceeding...\n");
    
 /* check singular values of Matrix A
  * Ref: Boardman, J.W. 1989: Inversion of imaging spectrometry data
- *           using singular value decomposition.  IGARSS 1989: 12th Canadian
+ *        using singular value decomposition.  IGARSS 1989: 12th Canadian
  *           symposium on Remote Sensing. Vol.4 pp.2069-2072
  */
-    fprintf(stderr,"\n");
-    fprintf(stderr,"Singular values of Matrix A:");
+    G_message("Singular values of Matrix A:");
     svd_values = svd(A, MNULL, MNULL, VNULL);
     v_output(svd_values);
-    fprintf(stderr,"\n");    
  if (error) 
  {
-  fprintf(stderr,"Exiting...\n");
-  exit(-1);
+  G_fatal_error("Exiting...\n");
  }
 
  /* alright, start Spectral angle mapping */
@@ -188,10 +184,10 @@ char *argv[];
               Avector = get_row(A, i, VNULL);  /* go row-wise through matrix*/
 	      spectral_angle();
 	      result_cell[i][col] = myround (curr_angle);
-	      V_FREE(Avector);
+	      G_vector_free(Avector);
              }
 
-	     V_FREE(b);
+	     G_vector_free(b);
 	     
 	   } /* columns loop */
 
@@ -215,9 +211,9 @@ char *argv[];
           /* write a color table */
 	}
 
-    M_FREE(A);
+    G_matrix_free(A);
     make_history(result_name, group, matrixfile);
-    exit(0);
+    return;
 } /* main*/
 
 

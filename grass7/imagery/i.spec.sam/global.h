@@ -1,5 +1,6 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
+#endif
 
 #include <grass/config.h>
 #include <grass/gis.h>
@@ -11,8 +12,10 @@
 
 #define MAXFILES 255
 
-extern MAT *A;
-extern VEC *b, *Avector;
+//extern MAT *A;
+extern mat_struct *A;
+//extern VEC *b, *Avector;
+extern vec_struct *b, *Avector;
 extern int matrixsize;
 extern float curr_angle;
 

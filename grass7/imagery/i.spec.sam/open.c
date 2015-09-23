@@ -1,16 +1,5 @@
 /* Spectral angle mapping 
  * (c) Oct/1998 Markus Neteler, Hannover
- *
- **************************************************************************
- ** Matrix computations based on Meschach Library
- ** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
- **************************************************************************
- *
- * Cited references are from
-     Steward, D.E, Leyk, Z. 1994: Meschach: Matrix computations in C.
-        Proceedings of the centre for Mathematics and its Applicaions.
-        The Australian National University. Vol. 32.
-        ISBN 0 7315 1900 0
 */
 
 #include "global.h"
@@ -18,8 +7,10 @@
 #include <math.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include <meschach/matrix.h>
+#include <grass/imagery.h>
 #include <grass/gmath.h>
+
+int G_matrix_read2(FILE * fp, mat_struct * out); /* Modified version of G_matrix_read(..). */
 
 int open_files()
 {
@@ -32,28 +23,27 @@ int open_files()
     fp=fopen(matrixfile,"r");
     if (fp == NULL)
     	G_fatal_error("ERROR: Matrixfile %s not found.\n",matrixfile);
-    A = m_finput(fp, MNULL);
-    fclose (fp);
+    /* Read data and close file */
+    if ((G_matrix_read2(fp, &A) < 0))
+	G_fatal_error(_("Unable to read matrix file %s."), matrixfile);
+    fclose(fp);
     
-    /*IF GRASS/GMATH.H
     if(A->rows < A->cols)
-   */
-    if ( A->m < A->n )
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
+    /*Only for debug, so temporary disabled*/
+    /*
     G_verbose_message("Your spectral matrix = ");
     if (G_verbose() > G_verbose_std())
     {
 	m_output(A);
     }
-    matrixsize = A->n;
-    /*IF GRASS/GMATH.H
+    */
     matrixsize=A->cols;
-   */
+
 /* open input files from group */
     if (!I_find_group(group))
     {
-	G_message("group=%s - not found\n", group);
-	exit(1);
+	G_fatal_error("group=%s - not found\n", group);
     }
     I_get_group_ref(group, &Ref);
     if (Ref.nfiles <= 1)
@@ -69,7 +59,7 @@ int open_files()
     if (Ref.nfiles != matrixsize) 
     {
 	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, group);
- 	G_fatal_error("       does not match matrix size (%i cols).\n", A->n);
+ 	G_fatal_error("       does not match matrix size (%i cols).\n", A->cols);
     }
 
    /* get memory for input files */
@@ -98,4 +88,48 @@ int open_files()
 
 
  return(matrixsize); /* give back number of output files (= Ref.nfiles) */
+}
+
+int G_matrix_read2(FILE * fp, mat_struct * out)
+{
+    char buff[100];
+    int rows, cols;
+    int i, j, row;
+    double val;
+
+    /* skip comments */
+    for (;;) {
+	if (!G_getl(buff, sizeof(buff), fp))
+	    return -1;
+	if (buff[0] != '#')
+	    break;
+    }
+
+    if (sscanf(buff, "Matrix: %d by %d", &rows, &cols) != 2) {
+	G_warning(_("Input format error1"));
+	return -1;
+    }
+
+
+    G_matrix_set(out, rows, cols, rows);
+
+
+    for (i = 0; i < rows; i++) {
+	if (fscanf(fp, "row%d:", &row) != 1) {
+	    G_warning(_("Input format error"));
+	    return -1;
+	}
+
+	for (j = 0; j < cols; j++) {
+	    if (fscanf(fp, "%lf:", &val) != 1) {
+		G_warning(_("Input format error"));
+		return -1;
+	    }
+
+	    fgetc(fp);
+	    G_matrix_set_element(out, i, j, val);
+	}
+    }
+
+    return 0;
 }
