@@ -16,6 +16,7 @@
  ********************************************************************/
              
 #include <stdio.h>
+#include <stdlib.h>
 #include <strings.h>
 #include <math.h>
 #include <grass/gis.h>
@@ -213,7 +214,7 @@ int main(int argc,char * argv[])
 
     G_matrix_free(A);
     make_history(result_name, group, matrixfile);
-    return;
+    return(EXIT_SUCCESS);
 } /* main*/
 
 
