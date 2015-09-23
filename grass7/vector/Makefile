@@ -25,6 +25,7 @@ SUBDIRS = \
 	v.in.geopaparazzi \
 	v.in.gps \
 	v.in.ply \
+	v.in.redlist \
 	v.in.redwg \
 	v.in.wfs2 \
 	v.isochrones \
