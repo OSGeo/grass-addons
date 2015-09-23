@@ -128,7 +128,7 @@ int main(int argc,char * argv[])
          if (j !=i)
          	G_message("  Angle between row %i and row %i: %g\n", (i+1), (j+1), anglefield[i][j]);
         }
-    G_message(stderr,"\n");
+    G_message("\n");
     
    /* check it */
    for (i = 0; i < Ref.nfiles ; i++)
