@@ -29,6 +29,9 @@ def cleanup(raster=None, vector=None, pattern=None, debug=False):
         if pattern:
             gcore.run_command("g.remove", flags="f", type='raster,vector',
                               pattern=pattern)
+            # twice for base maps
+            gcore.run_command("g.remove", flags="f", type='raster,vector',
+                              pattern=pattern)
 
 
 def check_overlay_rv(raster, vector):
