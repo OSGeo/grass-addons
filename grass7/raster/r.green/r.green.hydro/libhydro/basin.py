@@ -329,7 +329,7 @@ def write_results2newvec(stream, E, basins_tot, inputs):
     gcore.run_command("r.to.vect", input=tmp_thin,
                       flags='v',
                       output=tmp_clean, type="line")
-    gcore.run_command("v.edit", map='vec_clean', tool='delete', cats='0')
+    gcore.run_command("v.edit", map=tmp_clean, tool='delete', cats='0')
     #pdb.set_trace()
     gcore.run_command('v.build', map=tmp_clean)
     dissolve_lines(tmp_clean, E)
@@ -480,8 +480,9 @@ def check_compute_basin_stream(basins, stream, dtm, threshold):
     """
     msgr = get_msgr()
     if (not(basins) or not(stream)):
-        basins = 'basins'
-        stream = 'stream'
+        pid = os.getpid()
+        basins = "tmprgreen_%i_basins" % pid
+        stream = "tmprgreen_%i_stream" % pid
         gcore.run_command('r.watershed',
                           elevation=dtm,
                           threshold=threshold,
@@ -563,23 +564,10 @@ def area_of_watershed(watershed):
     return temp
 
 
-def fill_energyown(bas, h_mean, discharge_n, stream_n):
+def fill_energyown(bas, h_mean):
     """
     Fill basins dictionary with discharge, h_mean and compute the power
     """
-    msgr = get_msgr()
-    warn = ("%i") % bas.ID
-    ttt = discharge_n[stream_n == bas.ID]
-    #import ipdb; ipdb.set_trace()
-    bas.discharge_own = ttt.sort()
-    #FIXME: take the second bgger value to avoid to take the value of
-    # another catchment, it is not so elegant
-    if len(ttt) > 1 and not(math.isnan(ttt[-2])):
-        bas.discharge_own = float(ttt[-2])
-    else:
-        bas.discharge_own = 0.0
-        warn = ("No value for the river ID %i, discharge set to 0") % bas.ID
-        msgr.warning(warn)
 
     bas.h_mean = h_mean
     # basins_tot[count].h_closure = float(info_c[count])
@@ -589,18 +577,39 @@ def fill_energyown(bas, h_mean, discharge_n, stream_n):
     #pdb.set_trace()
 
 
-def fill_discharge_tot(basins_tot, b):
+def fill_discharge_tot(bas, discharge_n, stream_n):
     """
     Fill the total discharge for the basin b by knowing
     the relation among basins
     thank to the ID_all attribute in the object Basin
     """
-    basins_tot[b].discharge_tot = basins_tot[b].discharge_own
+    msgr = get_msgr()
+    warn = ("%i") % bas.ID
+    ttt = discharge_n[stream_n == bas.ID]
+    #import ipdb; ipdb.set_trace()
+    bas.discharge_tot = 0.0
+    ttt.sort()
+    #FIXME: take the second bgger value to avoid to take the value of
+    # another catchment, it is not so elegant
+    # the low value is the upper part of the basin and the greater
+    # the closure point
+    if len(ttt) > 1 and not(math.isnan(ttt[-2])):
+        bas.discharge_tot = float(ttt[-2])
+    else:
+        bas.discharge_tot = 0.0
+        warn = ("No value for the river ID %i, discharge set to 0") % bas.ID
+        msgr.warning(warn)
+
+
+def fill_discharge_own(basins_tot, b):
+    """
+    Fill the discharge_own with the run-off of the basin
+    """
+    basins_tot[b].discharge_own = basins_tot[b].discharge_tot
     #import pdb; pdb.set_trace()
-    if basins_tot[b].up:
-        basins_tot[b].check_ID_up(basins_tot)
-        temp = discharge_sum(basins_tot, basins_tot[b].ID_all)
-        basins_tot[b].discharge_tot = basins_tot[b].discharge_own + temp
+    for idd in basins_tot[b].up:
+        basins_tot[b].discharge_own = (basins_tot[b].discharge_own -
+                                       basins_tot[idd].discharge_tot)
 
 
 def fill_Eup(basins_tot, b):
@@ -644,9 +653,11 @@ def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
             area = area_of_basins(basins, count, dtm)
             basins_tot[count].area = float(area)
             h_mean = float(info_h[str(count)])
-            fill_energyown(basins_tot[count], h_mean, discharge, stream)
+            fill_discharge_tot(basins_tot[count], discharge, stream)
+
     for b in inputs:
-        fill_discharge_tot(basins_tot, b)
+        fill_discharge_own(basins_tot, b)
+        fill_energyown(basins_tot[b], h_mean)
 
     for b in inputs:
         fill_Eup(basins_tot, b)

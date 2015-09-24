@@ -123,7 +123,7 @@ def main(options, flags):
     #############################################################
     pid = os.getpid()
     DEBUG = False
-    atexit.register(cleanup, pattern=("tmprgreen_%i" % pid), debug=DEBUG)
+    atexit.register(cleanup, pattern=("tmprgreen_%i*" % pid), debug=DEBUG)
     #TOD_add the possibilities to have q_points
     # required
     discharge = options['discharge']
@@ -212,7 +212,6 @@ def main(options, flags):
     ####################################################################
     # if not rivers or debug I write the result in the new vector stream
     msgr.message("\nWrite results\n")
-    import ipdb; ipdb.set_trace()
 
     basin.write_results2newvec(stream, E, basins_tot, inputs)
 
