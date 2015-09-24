@@ -160,7 +160,7 @@ v.in.ascii  --overwrite  input=$GIS_OPT_FOLDER/stream_coord_lines.txt   output=v
 
 echo Rasterize the stream network point coordinates
 
-v.to.rast --overwrite  input=vector_ID   output=grid_ID   layer=vector_ID     use=attr     attrcolumn=int_1   type=point  --q 
+v.to.rast --overwrite  input=vector_ID   output=grid_ID   layer=vector_ID     use=attr     attrcolumn=cat   type=point  --q 
 
 echo  Create the folder structure in $GIS_OPT_FOLDER/ to save results
 

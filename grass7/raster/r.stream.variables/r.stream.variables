@@ -377,7 +377,7 @@ if [ $1 = "sum"  ]      ; then col=12 ; fi
 echo  Create stream-specific variable:  $GIS_OPT_VARIABLE $1
 
 r.reclass input=grid_ID  output=${GIS_OPT_VARIABLE}_$1  rules=$GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt   --overwrite   --q
-rm -f $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt
+# rm -f $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}_${1}.txt
 
 r.out.gdal -c  input=${GIS_OPT_VARIABLE}_${1}  nodata=-9999  output=$GIS_OPT_OUT_FOLDER/${GIS_OPT_VARIABLE}_${1}.tif  type=Int32  -c  createopt="COMPRESS=LZW,ZLEVEL=9"  --o --q  2> /dev/null
 if test -f "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif"; then echo "$GIS_OPT_FOLDER/blockfile/${GIS_OPT_VARIABLE}_${1}.tif has been created!";fi
