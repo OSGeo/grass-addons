@@ -7,7 +7,8 @@ SUBDIRS = \
 	general \
 	imagery \
 	raster \
-	vector
+	vector \
+	temporal
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
