@@ -229,7 +229,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                             ddir1 = dir - tv;   // difference between bearing and azimuth
                             ddir2 = (dir + PI) - tv;
 
-                            if (fabsf(ddir1) <= td || fabsf(ddir2) <= td) {     // angle test: compare the diff with critical value
+                            if (fabs(ddir1) <= td || fabs(ddir2) <= td) {     // angle test: compare the diff with critical value
                                 // test squared distance: vertical variogram => 0., ...
                                 rv = type == 1 ? 0. : radius_hz_diff(dr);       // ... otherwise horizontal distance
 
@@ -238,11 +238,11 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                 }
 
                                 rvh = sqrt(rv) - *h;    // the difference between distance and lag
-                                if (rv <= radius && fabsf(rvh) <= lag) {        // distance test: compare the distance with critical value and find out if the j-point is located within i-lag
+                                if (rv <= radius && fabs(rvh) <= lag) {        // distance test: compare the distance with critical value and find out if the j-point is located within i-lag
                                     if (type == 2) {    // vertical test for bivariate variogram:
                                         rvh = *(dr + 2) - *vert;        // compare vertical
 
-                                        if (fabsf(rvh) <= lag_vert) {   // elevation test: vertical lag
+                                        if (fabs(rvh) <= lag_vert) {   // elevation test: vertical lag
                                             goto delta_V;
                                         }
                                         else {

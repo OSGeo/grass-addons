@@ -175,7 +175,7 @@ void sill_compare(struct int_par *xD, struct flgs *flg,
     double diff_sill_05, diff_sill;
 
     diff_sill_05 = sill_hz > sill_vert ? 0.05 * sill_hz : 0.05 * sill_vert;     // critical value as 5% from bigger sill
-    diff_sill = fabsf(sill_hz - sill_vert);     // difference between the sills
+    diff_sill = fabs(sill_hz - sill_vert);     // difference between the sills
 
     if (xD->bivar == TRUE || (!flg->univariate->answer && diff_sill > diff_sill_05)) {  // zonal anisotropy
         var_par->fin.type = 2;  // code for bivariate variogram
@@ -196,8 +196,6 @@ void sill_compare(struct int_par *xD, struct flgs *flg,
         xD->aniso_ratio = var_par->hz.h_range / var_par->vert.h_range;  // anisotropic ratio
         geometric_anisotropy(xD, pnts); // exaggerate z coords and build a new spatial index 
     }
-
-    return 0;
 }
 
 // formulation of variogram functions
@@ -669,7 +667,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
 
             //Create output 
             *norm = rslt_OK - *vals;    // differences between input and interpolated values
-            *av = fabsf(*norm); // absolute values of the differences (quantile computation)
+            *av = fabs(*norm); // absolute values of the differences (quantile computation)
 
             if (xD->i3 == TRUE) {       // 3D interpolation:
                 fprintf(fp, "%d %.3f %.3f %.2f %f %f %f\n", i, *r, *(r + 1),
