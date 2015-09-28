@@ -13,6 +13,8 @@ HTMLSRC=
 
 default: cmd
 
+$(OBJDIR)/v.mapcalc.tab.o: v.mapcalc.tab.h
+
 yylex.c: v.mapcalc.tab.h
 
 .INTERMEDIATE: v.mapcalc.tab.c v.mapcalc.tab.h v.mapcalc.output
