@@ -25,7 +25,7 @@ double bearing(double x0, double x1, double y0, double y1)
         return -9999;
     }
 
-    us = atan(fabsf(dy / dx));
+    us = atan(fabs(dy / dx));
     if (dx == 0. && dy > 0.) {
         us = 0.5 * PI;
     }
