@@ -100,7 +100,7 @@ Further details about gaining write access to our SVN repository can be found in
 <a href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this document</a>.
 Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
 <p>
-See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs/summary.html\">log files</a> of compilation.
+See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">log files</a> of compilation.
 </tr></table>
 <hr>" > index.html
 
