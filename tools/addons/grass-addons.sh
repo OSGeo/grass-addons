@@ -82,12 +82,13 @@ svn up -q || (svn cleanup && svn up)
 
 # check last change
 date_last=`svn info --incremental --xml | grep date | cut -d '>' -f2 | cut -d '<' -f1`
+date_now=`date -u`
 num_last=`date --date="$date_last" +%s`
-num_now=`date -u +%s`
+num_now=`date --date="$date_now" +%s`
 count=$(echo "($num_now - $num_last) / 60." | bc)
 
 if [ "$count" -lt "$CHECK_EVERY_MIN" ] || [ "$1" = "f" ] ; then
-    echo "TIME DIFF (min): $count"
+    echo "TIME DIFF (min): $count ($date_last / $date_now)"
     build_addons $1
     exit 0
 fi
