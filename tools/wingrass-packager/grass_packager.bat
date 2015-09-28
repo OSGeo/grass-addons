@@ -7,7 +7,7 @@ REM Clean-up
 REM
 REM rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.5svn
 REM rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.5.svn
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.1svn
+rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.2svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.1.svn
 
 REM

@@ -56,7 +56,7 @@ if test -z $1 ; then
     # daily builds
     ### copy 64 6.4.5svn
     ### copy 65
-    copy 70 7.0.1svn
+    copy 70 7.0.2svn
     copy 71 7.1.svn
     # releases
     copy_addon 644      6.4.4
