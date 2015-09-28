@@ -21,6 +21,14 @@
  **************************************************************/
 #include "local_proto.h"
 
+#ifndef HAVE_LIBBLAS
+#error GRASS GIS is not configured with BLAS
+#endif
+
+#ifndef HAVE_LIBLAPACK
+#error GRASS GIS is not configured with LAPACK
+#endif
+
 
 int main(int argc, char *argv[])
 {

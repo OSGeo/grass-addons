@@ -17,6 +17,12 @@
 #include <grass/glocale.h>
 #include <grass/rtree.h>
 
+
+#if defined(HAVE_LIBLAPACK) && defined(HAVE_LIBBLAS)
+#else /* defined(HAVE_LIBBLAS) */
+#warning G_matrix_product() not compiled; requires GRASS GIS compiled and installed with BLAS library support
+#endif /* HAVE_BLAS && HAVE_LAPACK */
+
 #ifndef PI
 #define PI M_PI
 #define DEG2RAD(ang) (ang / 180. * PI)
