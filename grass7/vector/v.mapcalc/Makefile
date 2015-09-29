@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ../..
 
+include $(MODULE_TOPDIR)/include/Make/Vars.make
+
 PGM = v.mapcalc
 
 LIBES = $(VECTORLIB) $(GISLIB) $(DLLIB) $(MATHLIB)
