@@ -32,13 +32,13 @@ if [ $# -ne 5 ] ; then
    echo ""
    echo "Usage: $0 targetgrassdbase targetlocation mail_address remove_file"
    echo ""
-   echo "targetgrassdbase = GRASSDBASE where write files"
-   echo "targetlocation = LOCATION where write files"
-   echo "mail_address = Mail address where send email when jobs finish, NOOO to no mail"
-   echo "remove_file = Remove temporary files, NOOO to no remove"  
+   echo "targetgrassdbase = GRASSDBASE where to write files"
+   echo "targetlocation = LOCATION where to write files"
+   echo "mail_address = Mail address where to send email when jobs finish, put NOOO for no email"
+   echo "remove_file = Remove temporary files, put NOOO for no removal"
    echo "" 
    echo "Example:"
-   echo "   $0 /grassdata patUTM32  launch_SGE_grassjob_rsun_energy.sh"
+   echo "   $0 /path/to/grassdata patUTM32  launch_SGE_grassjob_rsun_energy.sh"
    exit 0
 fi
 
@@ -88,11 +88,11 @@ echo $MYPID 1>&2
 
 TOCOLLECTFILE=to_be_collected_$MYPID.csv
 
-ls -1 $GRASSDBROOT/$MYLOC/sge*/${MYPID} > $GRASSDBROOT/$MYLOC/$TOCOLLECTFILE
+ls -1 "$GRASSDBROOT/$MYLOC/sge*/${MYPID}" > "$GRASSDBROOT/$MYLOC/$TOCOLLECTFILE"
 
-rm -f $GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE
+rm -f "$GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE"
 for myname in `cat $GRASSDBROOT/$MYLOC/$TOCOLLECTFILE` ; do
-    basename `dirname $myname` >> $GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE
+    basename `dirname $myname` >> "$GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE"
 done
 
 LIST=`cat $GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE`
@@ -101,40 +101,41 @@ echo $LIST 1>&2
 
 
 for mapset in $LIST ; do
-    MAPS=`g.list rast mapset=$mapset`
+    MAPS=`g.list raster mapset=$mapset`
     for map in $MAPS ; do
         g.copy raster=$map@$mapset,$map --o
     done
 done
 
 for mapset in $LIST ; do
-    MAPS=`g.list rast3d mapset=$mapset`
+    MAPS=`g.list raster3d mapset=$mapset`
     for map in $MAPS ; do
         g.copy raster=$map@$mapset,$map --o
     done
 done
 
 for mapset in $LIST ; do
-    MAPS=`g.list vect mapset=$mapset`
+    MAPS=`g.list vector mapset=$mapset`
     for map in $MAPS ; do
         g.copy vector=$map@$mapset,$map --o
     done
 done
 
 if [ "$REMOVE" != "NOOO" ] ; then
-    rm -f $GRASSDBROOT/$MYLOC/$MYMAPSET/.gislock
-    rm -f $GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE
-    rm -f $GRASSDBROOT/$MYLOC/$TOCOLLECTFILE
+    rm -f "$GRASSDBROOT/$MYLOC/$MYMAPSET/.gislock"
+    rm -f "$GRASSDBROOT/$MYLOC/clean_$TOCOLLECTFILE"
+    rm -f "$GRASSDBROOT/$MYLOC/$TOCOLLECTFILE"
 
     if [ ! -z "$GRASSDBROOT" ] ; then
         if [ ! -z "$MYLOC" ] ; then
-            rm -fr $GRASSDBROOT/$MYLOC/sge*
+            rm -fr "$GRASSDBROOT/$MYLOC/sge*"
         fi
     fi
 fi
 
 if [ "$MAILADDR" != "NOOO" ] ; then
-    sh -x cloud_mail.sh $MAILADDR
+    #sh -x cloud_mail.sh $MAILADDR
+    sh cloud_mail.sh $MAILADDR
 fi
 
 rm -f $MYGISRC

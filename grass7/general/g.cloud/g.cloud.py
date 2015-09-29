@@ -226,17 +226,17 @@ def reconnect(conn, pid, path, vari, home):
 	mapset_name = os.path.join(home,"grassdata%s" % pid,
 				  location_name,"PERMANENT")
 	grass.message(_("Job %s terminated, now coping the result data..." % pid))
-	conn.ssh('"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS -czf %s *;"' \
+	conn.ssh('"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS --exclude=PROJ_EPSG -czf %s *;"' \
 		     % (mapset_name, output_file))
 	conn.pcs(output_file, path)
 	new_mapset = os.path.join(vari['GISDBASE'],vari['LOCATION_NAME'],'gcloud%s' % pid)
 	#os.mkdir(new_mapset)
 	outtar = tarfile.open(os.path.join(path,"gcloud_result_%s.tar.gz" % pid), "r:gz")
 	outtar.extractall(path=new_mapset)
-	grass.message(_("To see the new data launch\n g.mapsets add=gcloud%s" % pid))
+	grass.message(_("To see the new data launch\n g.mapsets mapset=gcloud operation=add%s" % pid))
     else:
-	grass.message(_("Job %s it is not terminated yet" % pid))
-    return  
+	grass.message(_("Job %s not yet completed..." % pid))
+    return
 
 # main function
 def main():
@@ -260,7 +260,7 @@ def main():
         grassVersion = 'grass%s%s' % (version['version'][0],version['version'][2])
         session_path = '.grass%s' % version['version'][0]
     else:
-        grass.fatal(_('You are not in GRASS GIS version 7'))
+        grass.fatal(_('You are not in a GRASS GIS version 7 session'))
         return 0
     # set the path of grassdata/location/mapset
     # set to .grass7 folder
@@ -333,8 +333,9 @@ def main():
 	ssh_conn.ssh('mkdir -p %s' % new_perm)
 	tar = tarfile.open("PERMANENT.tar.gz", "w:gz")
 	tar.add(os.path.join(permanent,'PROJ_INFO'),'PROJ_INFO')
-	tar.add(os.path.join(permanent,'DEFAULT_WIND'),'DEFAULT_WIND')
 	tar.add(os.path.join(permanent,'PROJ_UNITS'),'PROJ_UNITS')
+	tar.add(os.path.join(permanent,'PROJ_EPSG'),'PROJ_EPSG')
+	tar.add(os.path.join(permanent,'DEFAULT_WIND'),'DEFAULT_WIND')
 	tar.add(os.path.join(permanent,'WIND'),'WIND')
 	if os.path.isfile(os.path.join(permanent,'VAR')):
 	    tar.add(os.path.join(permanent,'VAR'),'VAR')
