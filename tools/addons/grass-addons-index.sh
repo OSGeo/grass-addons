@@ -8,6 +8,9 @@
 # updated for new CMS path MN 8/2015
 # display module prefix by ML 8/2015
 
+
+# Important: keep log links in sync at https://grass.osgeo.org/download/addons/
+
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
 # /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
