@@ -14,7 +14,7 @@ default: $(PYFILES) $(PYCFILES)
 
 install:
 	$(MKDIR) $(INST_DIR)/etc/wx.metadata/mdlib
-	@cp -rL $(DSTDIR) $(INST_DIR)/etc/wx.metadata/mdlib
+	@cp -rL $(DSTDIR) $(INST_DIR)/etc/wx.metadata
 
 $(DSTDIR):
 	$(MKDIR) -p $@
