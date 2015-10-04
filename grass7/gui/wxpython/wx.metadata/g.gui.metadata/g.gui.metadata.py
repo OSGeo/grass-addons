@@ -848,7 +848,7 @@ class MdDataCatalog(LocationMapTree):
         """Test Tree constructor."""
         super(MdDataCatalog, self).__init__(parent=parent,
                                             style=wx.TR_MULTIPLE | wx.TR_HIDE_ROOT | wx.TR_HAS_BUTTONS |
-                                                  wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_COLUMN_LINES)
+                                                  wx.TR_FULL_ROW_HIGHLIGHT)
         tgis.init(True)
         self.dbif = tgis.SQLDatabaseInterfaceConnection()
         self.dbif.connect()
