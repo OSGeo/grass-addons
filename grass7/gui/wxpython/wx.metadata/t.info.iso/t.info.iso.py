@@ -43,7 +43,7 @@ from grass.pygrass.utils import get_lib_path
 
 def load_mdlib(libs):
     for lib in libs:
-        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
+        path = get_lib_path(modname='wx.metadata' ,libname=lib)
         if path is not None and path not in sys.path:
             sys.path.append(path)
         elif path is  None:
@@ -52,7 +52,7 @@ def load_mdlib(libs):
 
 def main():
     # load metadata library
-    load_mdlib(['mdgrass'])
+    load_mdlib(['mdlib'])
     from mdgrass import GrassMD
 
     if not options['output']:

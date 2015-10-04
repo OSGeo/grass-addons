@@ -28,23 +28,13 @@ import grass.script as grass
 from grass.pydispatch import dispatcher
 from core.gcmd import RunCommand, GError, GMessage
 import grass.temporal as tgis
-try:
-    from datacatalog.catalog import DataCatalog as datacatalog
-except:
-    try:
-        from lmgr import datacatalog
-    except Exception,e:
-        grass.fatal(e)
+from datacatalog.tree import LocationMapTree
 
-def load_mdlib(libs):
-    for lib in libs:
-        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
-        if path is not None and path not in sys.path:
-            sys.path.append(path)
-        elif path is  None:
-            grass.fatal("Fatal error: library < %s > not found "%lib)
-load_mdlib(['mdgrass','mdutil','mdeditorfactory','cswlib','mdpdffactory'])
-
+path = get_lib_path(modname='wx.metadata', libname='mdlib')
+if path is not None and path not in sys.path:
+    sys.path.append(path)
+elif path is  None:
+    grass.fatal("Fatal error: library < %s > not found " % 'mdlib')
 
 import mdgrass
 import mdutil
@@ -854,7 +844,7 @@ class MdMainFrame(wx.Frame):
 #===============================================================================
 # DATA CATALOG
 #===============================================================================
-class MdDataCatalog(datacatalog.LocationMapTree):
+class MdDataCatalog(LocationMapTree):
     '''Data catalog for selecting GRASS maps for editing
     '''
 

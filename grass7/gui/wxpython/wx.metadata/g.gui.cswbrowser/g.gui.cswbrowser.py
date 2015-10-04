@@ -14,18 +14,16 @@ import sys
 import os
 
 from grass.pygrass.utils import get_lib_path
+import grass.script as grass
 
-def load_mdlib(libs):
-    for lib in libs:
-        path = get_lib_path(modname=os.path.join('wx.metadata','mdlib') ,libname=lib)
-        if path is not None and path not in sys.path:
-            sys.path.append(path)
-        elif path is  None:
-            grass.fatal("Fatal error: library < %s > not found "%lib)
-load_mdlib(['cswlib'])
+path = get_lib_path(modname='wx.metadata', libname='mdlib')
+if path is not None and path not in sys.path:
+    sys.path.append(path)
+elif path is  None:
+    grass.fatal("Fatal error: library < %s > not found " % 'mdlib')
+
 import wx
 from cswlib import CSWBrowserPanel, CSWConnectionPanel
-import grass.script as grass
 
 class CswBrowserMainDialog(wx.Frame):
     def __init__(self):
