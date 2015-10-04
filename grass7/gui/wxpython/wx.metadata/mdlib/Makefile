@@ -13,7 +13,8 @@ PYCFILES := $(patsubst %.py,$(DSTDIR)/%.pyc,$(filter %.py,$(MODULES)))
 default: $(PYFILES) $(PYCFILES)
 
 install:
-	@cp -rL $(DSTDIR) $(INST_DIR)
+	$(MKDIR) $(INST_DIR)/etc/wx.metadata/mdlib
+	@cp -rL $(DSTDIR) $(INST_DIR)/etc/wx.metadata/mdlib
 
 $(DSTDIR):
 	$(MKDIR) -p $@
