@@ -23,7 +23,7 @@
 #include <grass/raster.h>
 #include <grass/imagery.h>
 #include <grass/gmath.h>
-/*#include <grass/glocale.h>*/
+#include <grass/glocale.h>
 #include "local_proto.h"
 #include "global.h"
 

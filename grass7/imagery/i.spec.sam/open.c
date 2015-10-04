@@ -9,6 +9,7 @@
 #include <grass/raster.h>
 #include <grass/imagery.h>
 #include <grass/gmath.h>
+#include <grass/glocale.h>
 
 int G_matrix_read2(FILE * fp, mat_struct * out); /* Modified version of G_matrix_read(..). */
 
