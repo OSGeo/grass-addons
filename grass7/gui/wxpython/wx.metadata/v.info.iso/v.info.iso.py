@@ -37,20 +37,12 @@ import os
 import sys
 
 from grass.script import parser, fatal
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 
-
-def load_mdlib(libs):
-    for lib in libs:
-        path = get_lib_path(modname='wx.metadata', libname=lib)
-        if path is not None and path not in sys.path:
-            sys.path.append(path)
-        elif path is  None:
-            fatal("Fatal error: library < %s > not found "%lib)
+set_path(modulename='wx.metadata', dirname='mdlib')
 
 def main():
     # load metadata library
-    load_mdlib(['mdlib'])
     from mdgrass import GrassMD
 
     if not options['output']:

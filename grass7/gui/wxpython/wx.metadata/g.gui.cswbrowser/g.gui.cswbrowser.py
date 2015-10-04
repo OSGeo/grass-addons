@@ -13,14 +13,10 @@ This program is free software under the GNU General Public License
 import sys
 import os
 
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 import grass.script as grass
 
-path = get_lib_path(modname='wx.metadata', libname='mdlib')
-if path is not None and path not in sys.path:
-    sys.path.append(path)
-elif path is  None:
-    grass.fatal("Fatal error: library < %s > not found " % 'mdlib')
+set_path(modulename='wx.metadata', dirname='mdlib')
 
 import wx
 from cswlib import CSWBrowserPanel, CSWConnectionPanel

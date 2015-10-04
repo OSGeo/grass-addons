@@ -3,14 +3,10 @@ try:
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile, sys, os
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 from grass.script import core as grass
 
-path = get_lib_path(modname='wx.metadata', libname='mdlib')
-if path is not None and path not in sys.path:
-    sys.path.append(path)
-elif path is  None:
-    grass.fatal("Fatal error: library < %s > not found " % 'mdlib')
+set_path(modulename='wx.metadata', dirname='mdlib')
 
 import math
 from reportlab.platypus import Paragraph, Image, Table

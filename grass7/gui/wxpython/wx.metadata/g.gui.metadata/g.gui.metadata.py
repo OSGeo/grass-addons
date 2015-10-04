@@ -23,18 +23,14 @@ This program is free software under the GNU General Public License
 
 import sys
 import os
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 import grass.script as grass
 from grass.pydispatch import dispatcher
 from core.gcmd import RunCommand, GError, GMessage
 import grass.temporal as tgis
 from datacatalog.tree import LocationMapTree
 
-path = get_lib_path(modname='wx.metadata', libname='mdlib')
-if path is not None and path not in sys.path:
-    sys.path.append(path)
-elif path is  None:
-    grass.fatal("Fatal error: library < %s > not found " % 'mdlib')
+set_path(modulename='wx.metadata', dirname='mdlib')
 
 import mdgrass
 import mdutil
