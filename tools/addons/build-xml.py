@@ -47,7 +47,10 @@ def start_grass(g7 = True):
  
 def parse_modules(fd, mlist):
     indent = 4
+    blacklist = ['v.mapcalc']
     for m in mlist:
+        if m in blacklist:
+            continue # skip blacklisted modules
         print "Parsing <%s>..." % m,
         desc, keyw = get_module_metadata(m)
         fd.write('%s<task name="%s">\n' % (' ' * indent, m))
