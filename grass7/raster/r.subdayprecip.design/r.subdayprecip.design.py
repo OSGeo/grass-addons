@@ -24,18 +24,18 @@
 #%end
 
 #%option G_OPT_V_MAP
-#% label: Name of vector map to be updated
+#% label: Vector map of location under analysis
 #%end
 
 #%option G_OPT_R_INPUTS
 #% key: raster
-#% description: Name of return periods raster map(s)
+#% description: Rainfall raster maps of required return period
 #% options: H_002,H_005,H_010,H_020,H_050,H_100
 #%end
 
 #%option
 #% key: rainlength
-#% description: Rain length value in minutes
+#% description: Design rainfall length in minutes
 #% type: integer
 #% options: 0-1439
 #% required: yes
