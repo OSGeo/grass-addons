@@ -60,7 +60,7 @@ def main():
     # extract multi values to points
     for rast in opt['raster'].split(','):
         # check valid rasters
-        name = grass.find_file(rast, element='raster')['name']
+        name = grass.find_file(rast, element='cell')['name']
         if not name:
             grass.warning('Raster map <{}> not found. '
                           'Skipped.'.format(rast))
