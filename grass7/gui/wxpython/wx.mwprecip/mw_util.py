@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-__author__ = 'matt'
 import re
 import os
 import sys
@@ -10,8 +9,8 @@ import csv
 from datetime import timedelta
 import wx.lib.filebrowsebutton as filebrowse
 import codecs
-from core.gcmd import GMessage, GError
-from grass.script import core as grass
+from core.gcmd          import GMessage, GError
+from grass.script       import core as grass
 
 class SaveLoad(wx.Panel):
     def __init__(self, parent):

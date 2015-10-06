@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8
-# __author__ = 'matt'
 
 from math import sin, cos, atan2, degrees, tan, sqrt
-import shutil
 from datetime import datetime
+import shutil
 import psycopg2
 import time
 import math
@@ -12,17 +11,11 @@ import sys
 import os
 from subprocess import PIPE
 
-from pgwrapper import pgwrapper as pg
-from core.gcmd import RunCommand
+from pgwrapper      import pgwrapper as pg
+from core.gcmd      import RunCommand
 from grass.pygrass.modules import Module
-
-import numpy as np
-
 import grass.script as grass
-from grass.pygrass.utils import set_path
-
-set_path(modulename='wx.mwprecip', dirname='mw_util')
-
+import numpy as np
 from mw_util import *
 
 class PointInterpolation():

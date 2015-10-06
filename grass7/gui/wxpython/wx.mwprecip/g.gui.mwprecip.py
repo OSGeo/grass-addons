@@ -1,27 +1,21 @@
 #!/usr/bin/env python
+VERSION = 1.0
 
+import grass.script as grass
+from mw_util        import *
+from mw3            import *
+import tempfile
 import os
 import sys
-from grass.pygrass.utils import get_lib_path
-import grass.script as grass
-
-
-VERSION = 1.0
-from grass.pygrass.utils import set_path
-set_path(modulename='wx.mwprecip', dirname='mw3')
-set_path(modulename='wx.mwprecip', dirname='mw_util')
-
-from mw_util import *
-from mw3 import *
-import tempfile
-
-from core.gcmd import GMessage, GError
-from gui_core import gselect
-from core.gthread import gThread
-from gui_core.widgets import ColorTablesComboBox,PictureComboBox
-from core import globalvar
 import time
-from core.utils  import  GetColorTables
+
+from core.gcmd      import GMessage, GError
+from gui_core       import gselect
+from core.gthread   import gThread
+from gui_core.widgets import ColorTablesComboBox,PictureComboBox
+from core           import globalvar
+
+from core.utils     import  GetColorTables
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
