@@ -304,7 +304,7 @@ def main(opts, flgs):
             where = 'cat=0'
         gcore.run_command('v.db.droprow', input=tmp_final_vis,
                           where=where, output=final_vis, overwrite=OVW)
-        tmp_river = 'tmp_river_%05d' % pid
+        tmp_river = 'tmp_river2_%05d' % pid
         gcore.run_command('v.overlay', flags='t',
                           ainput=river,
                           binput=final_vis,
