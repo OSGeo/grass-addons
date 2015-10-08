@@ -79,16 +79,16 @@ int main(int argc,char * argv[])
     parm.matrixfile->required = YES;
     parm.matrixfile->description = "Matrix file containing spectral signatures ";
 
-    parm.result = G_define_option();
-    parm.result->key = "result";
-    parm.result->type = TYPE_STRING;
-    parm.result->required = YES;
-    parm.result->description = "Raster map prefix to hold spectral angles";
+    parm.output = G_define_option();
+    parm.output->key = "result";
+    parm.output->type = TYPE_STRING;
+    parm.output->required = YES;
+    parm.output->description = "Raster map prefix to hold spectral angles";
 
     if (G_parser(argc,argv))
 	G_fatal_error("Parsing arguments error");
 
-    result_prefix = parm.result->answer;
+    result_prefix = parm.output->answer;
     group       = parm.group->answer;
     matrixfile  = parm.matrixfile->answer;
 
