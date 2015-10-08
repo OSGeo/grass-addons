@@ -106,7 +106,6 @@
 #% key_desc: double
 #% description: MFD as percentage of natural discharge [%]
 #% options: 0-100
-#% answer: 20.00
 #% required: no
 #% guisection: Legal Discharge
 #%end
@@ -177,6 +176,11 @@
 #%flag
 #% key: c
 #% description: Clean vector lines
+#%end
+
+#%rules
+#%exclusive: mfd, discharge_natural
+#%requires: discharge_natural, percentage
 #%end
 
 # import system libraries
