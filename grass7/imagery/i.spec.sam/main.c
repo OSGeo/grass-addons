@@ -57,7 +57,8 @@ int main(int argc,char * argv[])
     int row, col;
     int band;
     int i, j, error=0;
-    VEC *svd_values;
+    vec_struct *svd_values;
+    /*VEC *svd_values;*/
     /*char command[80]; rm by Yann temporarily see grayscale palette*/
     float anglefield[255][255];
     struct
@@ -106,12 +107,12 @@ int main(int argc,char * argv[])
      
     for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
     {
-     Avector = get_row(A, i, VNULL);  /* go columnwise through matrix*/
+     Avector = G_matvect_get_row(A, i);  /* go columnwise through matrix*/
      for (j = 0; j < Ref.nfiles ; j++)
 	{
 	 if (j !=i)
 	    {
-	     b = get_row(A, j, VNULL);      /* compare with next col in A */
+	     b = G_matvect_get_row(A, j);      /* compare with next col in A */
 	     spectral_angle();
 	     anglefield[i][j]= curr_angle;
 	     G_vector_free(b);
@@ -182,7 +183,7 @@ int main(int argc,char * argv[])
              
              for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
              {
-              Avector = get_row(A, i, VNULL);  /* go row-wise through matrix*/
+              Avector = G_matvect_get_row(A, i);  /* go row-wise through matrix*/
 	      spectral_angle();
 	      result_cell[i][col] = myround (curr_angle);
 	      G_vector_free(Avector);
