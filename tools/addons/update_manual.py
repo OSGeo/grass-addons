@@ -7,8 +7,10 @@ import os
 import sys
 import re
 
+
 def get_addons(path):
     return os.walk(path).next()[1]
+
 
 def main(htmlfile, prefix):
     try:
@@ -25,14 +27,22 @@ def main(htmlfile, prefix):
     pattern = r'''<a href="([^"]+)">([^>]+)</a>'''
     addons = get_addons(os.sep.join(htmlfile.split(os.sep)[:4]))
     for match in re.finditer(pattern, shtml):
-        if match.group(1)[:7] == 'http://':
+        # most common URLs
+        if match.group(1).startswith('http://'):
             continue
+        if match.group(1).startswith('https://'):
+            continue
+        # protocol-relative URL
+        if match.group(1).startswith('//'):
+            continue
+        # TODO: perhaps we could match any *://
+        # link to other addon
         if match.group(1).replace('.html', '') in addons:
             continue
         pos.append(match.start(1))
 
     if not pos:
-        return # no match
+        return  # no match
 
     # replace file URIs
     ohtml = shtml[:pos[0]]
@@ -48,6 +58,7 @@ def main(htmlfile, prefix):
         sys.exit("Unable for write manual page: %s" % e)
     else:
         f.close()
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
