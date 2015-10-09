@@ -926,7 +926,7 @@ class MWMainFrame(wx.Frame):
 
     def startProcess(self,evt=None):
         self.thread=gThread()
-        self.thread.Run(callable=self.runCom,
+        self.thread.Run(callable=self.runComp,
                         ondone=self.onFinish)
 
     def runComp(self, evt=None):
