@@ -62,7 +62,7 @@ int main(int argc,char * argv[])
     float anglefield[255][255];
     struct
     {
-	struct Option *group, *matrixfile, *result;
+	struct Option *group, *matrixfile, *output;
     } parm;
 
     G_gisinit (argv[0]);
