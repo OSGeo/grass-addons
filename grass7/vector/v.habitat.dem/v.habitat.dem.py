@@ -438,7 +438,106 @@ def main():
                                      other_table = t_habitat_geomorphons_pivot,
                                      other_column = 'field_1')
     grass.message( "Geomorphon information joint to habitat attribute table." )
+    grass.message( "..." )
+    grass.message( "Calculating percent geomorphon of habitat area ..." )
+    # add column for percent geomorphon
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_flat double precision" % prefix )
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_summit double precision" % prefix )
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_ridge double precision" % prefix )									 
+									 
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_shoulder double precision" % prefix )									 
+									 
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_spur double precision" % prefix )									 
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_slope double precision" % prefix )
+									 
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_hollow double precision" % prefix )
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_footslope double precision" % prefix )									 
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_valley double precision" % prefix )
+
+    grass.run_command("v.db.addcolumn", map = v_habitat,
+                                     layer = 1, 
+                                     columns = "%s_perc_depression double precision" % prefix )
+
+    # calculate percent geomorphon
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_flat" % prefix,
+                                     query_column="cast(flat AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_summit" % prefix,
+                                     query_column="cast(summit AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_ridge" % prefix,
+                                     query_column="cast(ridge AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_shoulder" % prefix,
+                                     query_column="cast(shoulder AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_spur" % prefix,
+                                     query_column="cast(spur AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_slope" % prefix,
+                                     query_column="cast(slope AS real) / cast( SubTotal AS real) * 100.0")									 
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_hollow" % prefix,
+                                     query_column="cast(hollow AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_footslope" % prefix,
+                                     query_column="cast(footslope AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_valley" % prefix,
+                                     query_column="cast(valley AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.run_command("v.db.update", map = v_habitat,
+                                     layer = 1, 
+                                     column = "%s_perc_depression" % prefix,
+                                     query_column="cast(depression AS real) / cast( SubTotal AS real) * 100.0")
+
+    grass.message( " " )									 
+    grass.message( "Calculating of percent geomorphon of habitat area done." )
     grass.message( "----" )
+
 
     # Give information where output files are									 
     grass.message( "Geomorphon information:" )
