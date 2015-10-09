@@ -7,8 +7,7 @@ import shutil
 import psycopg2
 import time
 import math
-import sys
-import os
+import sys ,os
 from subprocess import PIPE
 
 from pgwrapper      import pgwrapper as pg
