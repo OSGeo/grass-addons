@@ -481,7 +481,7 @@ def main():
     grass.message( "Run r.sun.hourly in binary mode for light/shadow for a certain day in the year ..." )	
     grass.run_command("r.sun.hourly", elevation = r_elevation,
                                      flags = 'tb',
-                                     asect = r_aspect,
+                                     aspect = r_aspect,
                                      slope = r_slope,
                                      start_time = d_start_time,
                                      end_time = d_end_time,
