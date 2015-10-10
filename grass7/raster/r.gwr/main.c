@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     bw_opt->key = "bandwidth";
     bw_opt->type = TYPE_INTEGER;
     bw_opt->answer = "10";
-    bw_opt->required = NO;
+    bw_opt->required = YES;
     bw_opt->description =
 	(_("Bandwidth of the weighing kernel."));
 
