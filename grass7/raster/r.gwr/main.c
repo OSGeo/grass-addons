@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
                   *output_res, *output_est, *output_b, *output_opt,
 		  *bw_opt, *kernel_opt, *vf_opt;
     struct Flag *shell_style, *estimate;
+    struct Flag *adaptive;
     struct Cell_head region;
     struct GModule *module;
 
@@ -129,6 +130,10 @@ int main(int argc, char *argv[])
     estimate = G_define_flag();
     estimate->key = 'e';
     estimate->description = _("Estimate optimal bandwidth");
+
+    adaptive = G_define_flag();
+    adaptive->key = 'e';
+    adaptive->description = _("Adaptive kernel size");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
