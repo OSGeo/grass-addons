@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     estimate->description = _("Estimate optimal bandwidth");
 
     adaptive = G_define_flag();
-    adaptive->key = 'e';
+    adaptive->key = 'a';
     adaptive->description = _("Adaptive kernel size");
 
     if (G_parser(argc, argv))
@@ -162,6 +162,9 @@ int main(int argc, char *argv[])
     bw = atoi(bw_opt->answer);
     if (bw < 2)
 	G_fatal_error(_("Option <%s> must be > 1"), bw_opt->key);
+
+    if(adaptive->answer)
+        /*IN MAKING*/
 
     set_wfn(kernel_opt->answer, atoi(vf_opt->answer));
 
