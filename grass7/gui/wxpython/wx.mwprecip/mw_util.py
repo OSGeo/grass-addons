@@ -12,6 +12,15 @@ import codecs
 from core.gcmd          import GMessage, GError
 from grass.script       import core as grass
 
+class StaticContext():
+    def __init__(self):
+        gisenvDict = grass.gisenv()
+        pathToMapset = os.path.join(gisenvDict['GISDBASE'], gisenvDict['LOCATION_NAME'], gisenvDict['MAPSET'])
+        self.tmp_mapset_path = os.path.join(pathToMapset, "temp")
+
+    def getTmpPath(self):
+        return self.tmp_mapset_path
+
 class SaveLoad(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -244,9 +253,11 @@ class TextInput1(wx.Panel):
         event.Skip()
 '''
 class TextInput(wx.Panel):
-    def __init__(self, parent, label, tmpPath=None):
+    def __init__(self, parent, label ):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        self.tmpPath = tmpPath
+        self.context=StaticContext()
+
+        self.tmpPath = None
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
         statText2 = wx.StaticText(self, id=wx.ID_ANY, label='or enter values interactively')
 
@@ -273,11 +284,11 @@ class TextInput(wx.Panel):
         self.firstDirInp = False
 
     def setTmpPath(self, event):
-        if self.firstDirInp is False:
+        if self.firstDirInp is False: #intitialization
             self.firstDirInp = True
             if self.tmpPath is None:
-                self.tmpPath=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tmp%s' % randomWord(3))
-                self.pathInput.SetValue(str(self.tmpPath))
+                self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s'%randomWord(3))
+                self.pathInput.SetValue(self.tmpPath)
 
         io=open(self.tmpPath,'w')
         io.writelines(self.directInp.GetValue())
@@ -444,9 +455,7 @@ def OnSaveAs(parent):
     output_stream = (saveFileDialog.GetPath())
     return output_stream
 
-def pathToMapset():
-    gisenvDict = grass.gisenv()
-    return os.path.join(gisenvDict['GISDBASE'], gisenvDict['LOCATION_NAME'], gisenvDict['MAPSET'])
+
 
 def saveDict(fn, dict_rap):
     f = open(fn, "wb")
@@ -472,8 +481,6 @@ def readDict(fn):
         return (dict_rap)
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
-
-
 
 
 def randomWord(length):

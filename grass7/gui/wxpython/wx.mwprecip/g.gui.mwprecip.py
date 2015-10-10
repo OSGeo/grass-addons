@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = 1.1
+VERSION = 1.2
 import sys,os
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
 import grass.script as grass
@@ -134,7 +134,7 @@ class PointInterpolationPanel(wx.ScrolledWindow):
 
 
 class BaselinePanel(wx.ScrolledWindow):
-    def __init__(self, parent, settings={}):
+    def __init__(self, parent, settings=dict()):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
         self.SetScrollRate( 5, 5 )
         self.settings = settings
@@ -160,7 +160,7 @@ class BaselinePanel(wx.ScrolledWindow):
         self.dryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
         self.noDryWin.Bind(wx.EVT_RADIOBUTTON, self.onChangeMethod)
         if len(settings) > 0:
-            self.loadSettings(None)
+            self.loadSettings()
 
         self._layout()
 
@@ -540,7 +540,8 @@ class ExportData(wx.Panel):
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
-        self.workPath = os.path.join(pathToMapset(), "temp")
+        context=StaticContext()
+        self.workPath = context.getTmpPath()
         self.initWorkingFoldrs()
         self.settings = {}
         self.settingsLst = []
@@ -610,7 +611,7 @@ class MWMainFrame(wx.Frame):
 
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
-        GMessage( "ver: %s \n %s"%(VERSION,dir))
+        GMessage( "ver: %s \n %s"%(VERSION,dir),self)
 
 
     def getMinTime(self, evt=None):
@@ -697,7 +698,6 @@ class MWMainFrame(wx.Frame):
             self.findProject()
 
     def initWorkingFoldrs(self):
-
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
@@ -710,7 +710,7 @@ class MWMainFrame(wx.Frame):
         try:
             projectDir = os.path.join(self.workPath, "save")
         except:
-            GMessage('Cannot find "save" folder')
+            GMessage('Cannot find "save" folder',self)
             return
         filePathList = getFilesInFoldr(projectDir, True)
         print filePathList
@@ -749,7 +749,7 @@ class MWMainFrame(wx.Frame):
     def _onSetGeomDLG(self, evt):
         type, name = self.geometryPnl.GetOptions()
         if name == '':
-            GMessage('Please set name of map')
+            GMessage('Please set name of map',self)
         else:
             self.createGeometry(type, name)
             # self.addMapToLay()#TODO giface
@@ -781,7 +781,7 @@ class MWMainFrame(wx.Frame):
             self.settingsLst=[]
             self.findProject()
 
-        GMessage('Working path destination: %s' % self.workPath)
+        GMessage('Working path destination: %s' % self.workPath,self)
 
     def onSetDatabase(self, evt):
         self.dbDialog = wx.Dialog(self, id=wx.ID_ANY,
@@ -887,7 +887,7 @@ class MWMainFrame(wx.Frame):
             io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
-            GMessage('Data exported<%s>' % path)
+            GMessage('Data exported<%s>' % path,self)
 
         else:
             exportData = {'getData': True, 'dataOnly': False}
@@ -920,7 +920,7 @@ class MWMainFrame(wx.Frame):
             io0.writelines(lines)
             io0.close()
             os.remove(os.path.join(interface.dbConn.pathworkSchemaDir, "precip"))
-            GMessage('Data exported<%s>' % path)
+            GMessage('Data exported<%s>' % path,self)
 
         self.exportDialog.Destroy()
 
@@ -928,6 +928,7 @@ class MWMainFrame(wx.Frame):
         self.thread=gThread()
         self.thread.Run(callable=self.runComp,
                         ondone=self.onFinish)
+        self.computeBtt.Enable()
 
     def runComp(self, evt=None):
         self.computeBtt.Disable()
@@ -958,7 +959,7 @@ class MWMainFrame(wx.Frame):
     def onFinish(self,evt):
         #self.computeBtt.SetLabel('Compute')
         self.computeBtt.Enable()
-        GMessage('Finish')
+        GMessage('Finish',self)
 
     def layout(self):
         self.panelSizer.Add(self.loadScheme, flag=wx.EXPAND)

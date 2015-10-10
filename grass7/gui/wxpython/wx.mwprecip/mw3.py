@@ -906,11 +906,14 @@ class Computor():
                 return True
             else:
                 return False
-    def logMsg(self, msg):
+    def logMsg(self, msg,err=False):
         if self.status.get('msg') == 'Done':
             self.status['msg'] = ''
         self.status['msg'] += msg + '\n'
-        grass.warning(msg)
+        if not err:
+            grass.warning(msg)
+        else:
+            grass.fatal(msg)
 
     def computePrecip(self, getData=False, dataOnly=False):
         def checkValidity(freq, polarization):
@@ -929,7 +932,7 @@ class Computor():
         compPrecTab = "%s.%s" % (self.database.schema, self.database.computedPrecip)
         # self.timeWin.sumValues()
         if not self.timeWin.setTimestamp():
-            self.logMsg("Out of available time interval")
+            self.logMsg("Out of available time interval",1)
             return False
         grass.message("Quering data")
 
@@ -997,10 +1000,10 @@ class Computor():
         # choose baseline source (quantile, user values, ) get dict linkid, baseline
         grass.message("Computing baseline")
         if not self.getBaselDict():
-            self.logMsg('Dry interval is out of defined time interval(from,to)')
+            self.logMsg('Dry interval is out of defined time interval(from,to)',1)
             return False
         if len(self.baselineDict) == 0:
-            self.logMsg('Baselines coputation faild. Check dry windows')
+            self.logMsg('Baselines coputation faild. Check dry windows',1)
             return False
         grass.message("Computing baseline-done")
 
@@ -1168,29 +1171,33 @@ class GrassLayerMgr():
 
     def makeRGB(self, map):
         grass.message('Creating RGB column in database')
+        try:
+            if self.rules not in [None,""]:
+                for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
+                    Module('v.colors',
+                           map=map,
+                           use='attr',
+                           column=self.database.precipColName,
+                           rules=self.rules,
+                           rgb_column=self.database.colorCol,
+                           quiet=True,
+                           layer=lay)
 
-        if self.color is not None:
+            if self.color not in [None,""]:
+                for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
+                    Module('v.colors',
+                           map=map,
+                           use='attr',
+                           column=self.database.precipColName,
+                           color=self.color,
+                           rgb_column=self.database.colorCol,
+                           quiet=True,
+                           layer=lay)
 
-            for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
-                Module('v.colors',
-                       map=map,
-                       use='attr',
-                       column=self.database.precipColName,
-                       color=self.color,
-                       rgb_column=self.database.colorCol,
-                       layer=lay)
+            grass.message('Creating RGB column in database-done')
+        except Exception, e:
+            grass.warning("v.color error < %s>"%e)
 
-        if self.rules is not None:
-            for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
-                Module('v.colors',
-                       map=map,
-                       use='attr',
-                       column=self.database.precipColName,
-                       rules=self.rules,
-                       rgb_column=self.database.colorCol,
-                       layer=lay)
-
-        grass.message('Creating RGB column in database-done')
 
     def getNumLayer(self, map):
         numLay = Module('v.category',
@@ -1450,6 +1457,15 @@ class Database():
                                   password=self.password,
                                   host=self.host,
                                   port=self.port,
+                                  overwrite=True
+                                  )
+            elif self.host:
+                grass.run_command('db.login',
+                                  driver="pg",
+                                  database=self.dbName,
+                                  user=self.user,
+                                  password=self.password,
+                                  host=self.host,
                                   overwrite=True
                                   )
             else:
