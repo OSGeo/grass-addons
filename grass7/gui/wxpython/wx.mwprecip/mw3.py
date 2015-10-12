@@ -322,11 +322,6 @@ class Baseline():
         self.type = type
         self.statFce = statFce
 
-
-
-
-
-
 class TimeWindows():
     def __init__(self, database, IDtype, sumStep, startTime=None,
                  endTime=None, linksIgnored=False, linksOnly=False, links=None, linksMap=None):
@@ -344,6 +339,10 @@ class TimeWindows():
         self.links = links  #
         self.linksIgnored = linksIgnored  # if true: remove self.link else:
         self.linksOnly = linksOnly  # compute only links
+
+        self.status = {}
+        self.status['bool'] = False
+        self.status['msg'] = 'Done'
 
         self.viewDB = None
         self.intervalStr = None
@@ -370,8 +369,6 @@ class TimeWindows():
             self.removeLinksIgnore()
         elif self.linksOnly:
             self.removeLinksOthers()
-
-
         self.crateTimeWin()
 
     def sumValues(self):
@@ -535,7 +532,6 @@ class Computor():
             self.timeWin.createWin()
             self.status['bool'] = True
 
-
     def GetStatus(self):
         return self.status.get('bool'), self.status.get('msg')
 
@@ -587,9 +583,7 @@ class Computor():
             # io1.write('mode|' + str(baseline.aw))
             # io1.close
 
-
         def computeBaselineFromTime():
-
 
             def chckTimeValidity(tIn):
                 # print tIn
@@ -624,7 +618,6 @@ class Computor():
             #print baseline.statFce
             ######## AVG #########
             if baseline.statFce == 'avg':
-
 
                 if baseline.type == 'noDryWin':
                     if baseline.statFce == 'avg':
@@ -841,8 +834,6 @@ class Computor():
                 resu = resu[0][0]
                 tmp.append(str(linkid) + ',' + str(resu) + '\n')
 
-
-
             io0 = open(os.path.join(database.pathworkSchemaDir, "baseline"), 'w+')
             io0.writelines(tmp)
             io0.close()
@@ -906,6 +897,7 @@ class Computor():
                 return True
             else:
                 return False
+
     def logMsg(self, msg,err=False):
         if self.status.get('msg') == 'Done':
             self.status['msg'] = ''
@@ -1389,10 +1381,7 @@ class Database():
         #self.pathworkSchemaDir = os.path.join(tempfile.gettempdir(), "tmp_%s" % self.schema)
 
         self.pyConnection()
-        #if self.host:
         self.grassConnectionRemote()
-        #else:
-        #self.grassConnection()
         self.grassTemporalConnection('postgres')
         #self.firstPreparation()
         #self.prepareDB()
@@ -1486,7 +1475,6 @@ class Database():
         if grass.run_command('db.connect', driver="pg", database=self.dbName,overwrite=True) != 0:
              grass.warning("Unable to connect to the database by grass driver.")
 
-
     def pyConnection(self):
         try:
             conninfo = {'dbname': self.dbName}
@@ -1522,8 +1510,6 @@ class Database():
 
             #sql = "ALTER TABLE record DROP COLUMN frequency;"
             #self.connection.executeSql(sql, False, True)
-
-            # TODO
 
             grass.message("Add function for computing distance ")
             '''
@@ -1601,7 +1587,6 @@ class Database():
         except OSError:
             if not os.path.isdir(self.pathworkSchemaDir):
                 raise
-
 
 '''
 def main():
