@@ -9,7 +9,17 @@ import re
 
 
 def get_addons(path):
-    return os.walk(path).next()[1]
+    """Get list of addons
+
+    Goes two levels deep to get directory names which are assumed
+    to be addon names.
+    """
+    top_dirs = os.walk(path).next()[1]
+    addons = []
+    for d in top_dirs:
+        a.extend(os.walk(d).next()[1])
+    addons.extend(top_dirs)
+    return addons
 
 
 def main(htmlfile, prefix):
@@ -25,6 +35,7 @@ def main(htmlfile, prefix):
 
     # find URIs
     pattern = r'''<a href="([^"]+)">([^>]+)</a>'''
+    # TODO: replace the magic 4 by passing the base addons dir as parameter
     addons = get_addons(os.sep.join(htmlfile.split(os.sep)[:4]))
     for match in re.finditer(pattern, shtml):
         # most common URLs
