@@ -14,11 +14,11 @@ def get_addons(path):
     Goes two levels deep to get directory names which are assumed
     to be addon names.
     """
-    top_dirs = os.walk(path).next()[1]
+    top_directories = os.walk(path).next()[1]
     addons = []
-    for d in top_dirs:
-        a.extend(os.walk(d).next()[1])
-    addons.extend(top_dirs)
+    for directory in top_directories:
+        addons.extend(os.walk(directory).next()[1])
+    addons.extend(top_directories)
     return addons
 
 
