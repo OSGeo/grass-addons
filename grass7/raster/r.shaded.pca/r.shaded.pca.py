@@ -5,7 +5,7 @@
 # MODULE:    r.shaded.pca
 # AUTHOR(S): Vaclav Petras
 # PURPOSE:   Creates RGB composition from PCA of hill shades
-# COPYRIGHT: (C) 2013-2014 by the GRASS Development Team
+# COPYRIGHT: (C) 2013-2014 by Vaclav Petras and the GRASS Development Team
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -14,7 +14,8 @@
 #############################################################################
 
 #%module
-#% description: Creates shades from various directions and combines then into RGB composition.
+#% label: Creates relief shades from various directions and combines them into RGB composition.
+#% description: The combined shades highlight terrain features which wouldn't be visible using standard shading technique.
 #% keyword: raster
 #% keyword: elevation
 #% keyword: terrain

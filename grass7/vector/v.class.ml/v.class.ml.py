@@ -16,9 +16,10 @@
 #############################################################################
 
 #%Module
-#% description: Vector
-#% keyword: machine learning
+#% description: Classification of a vector maps based on the values in attribute tables
+#% keyword: vector
 #% keyword: classification
+#% keyword: machine learning
 #% overwrite: yes
 #%End
 #%option G_OPT_V_MAP
@@ -368,8 +369,6 @@ from pprint import pprint
 from fnmatch import fnmatch
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
 
 from grass.pygrass.utils import get_lib_path
 from grass.pygrass.messages import get_msgr
@@ -385,16 +384,8 @@ sys.path.append(path)
 
 
 from training_extraction import extract_training
-from ml_classifiers import CLASSIFIERS
-from ml_functions import (balance, explorer_clsfiers, run_classifier,
-                          optimize_training, explore_SVC, plot_grid)
 from sqlite2npy import save2npy
 from npy2table import export_results
-from features import importances, tocsv
-
-from sklearn.decomposition import (PCA, KernelPCA, ProbabilisticPCA,
-                                   RandomizedPCA, FastICA, TruncatedSVD)
-from sklearn.lda import LDA
 
 
 RULES = {'*_skewness': np.nanmean,
@@ -407,13 +398,23 @@ RULES = {'*_skewness': np.nanmean,
          '*_min': np.nanmin, }
 
 
-DECMP = {'PCA': PCA,
-         'KernelPCA': KernelPCA,
-         'ProbabilisticPCA': ProbabilisticPCA,
-         'RandomizedPCA': RandomizedPCA,
-         'FastICA': FastICA,
-         'TruncatedSVD': TruncatedSVD,
-         'LDA': LDA}
+DECMP = {}
+
+
+def load_decompositions():
+    """Import decompositions and update dictionary which stores them"""
+    from sklearn.decomposition import (PCA, KernelPCA, ProbabilisticPCA,
+                                   RandomizedPCA, FastICA, TruncatedSVD)
+    from sklearn.lda import LDA
+    DECMP.update({
+        'PCA': PCA,
+        'KernelPCA': KernelPCA,
+        'ProbabilisticPCA': ProbabilisticPCA,
+        'RandomizedPCA': RandomizedPCA,
+        'FastICA': FastICA,
+        'TruncatedSVD': TruncatedSVD,
+        'LDA': LDA
+        })
 
 
 def get_indexes(string, sep=',', rangesep='-'):
@@ -505,6 +506,11 @@ def extract_classes(vect, layer):
 
 
 def main(opt, flg):
+    # import functions which depend on sklearn only after parser run
+    from ml_functions import (balance, explorer_clsfiers, run_classifier,
+                          optimize_training, explore_SVC, plot_grid)
+    from features import importances, tocsv
+
     msgr = get_msgr()
     indexes = None
     vect = opt['vector']
@@ -519,6 +525,7 @@ def main(opt, flg):
 
     if opt['scalar']:
         scapar = opt['scalar'].split(',')
+        from sklearn.preprocessing import StandardScaler
         scaler = StandardScaler(with_mean='with_mean' in scapar,
                                 with_std='with_std' in scapar)
 
@@ -528,6 +535,7 @@ def main(opt, flg):
                        else (opt['decomposition'], ''))
         kwargs = ({k: v for k, v in (p.split('=') for p in params.split(','))}
                   if params else {})
+        load_decompositions()
         decmp = DECMP[dec](**kwargs)
 
     # if training extract training
@@ -549,10 +557,12 @@ def main(opt, flg):
         mycls = imp.load_source("mycls", opt['pyclassifiers'])
         classifiers = getattr(mycls, opt['pyvar'])
     else:
+        from ml_classifiers import CLASSIFIERS
         classifiers = CLASSIFIERS
 
     # Append the SVC classifier
     if opt['svc_c'] and opt['svc_gamma']:
+            from sklearn.svm import SVC
             svc = {'name': 'SVC', 'classifier': SVC,
                    'kwargs': {'C': float(opt['svc_c']),
                               'gamma': float(opt['svc_gamma']),

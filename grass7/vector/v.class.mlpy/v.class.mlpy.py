@@ -67,16 +67,6 @@ import grass.script as grass
 
 import numpy as np
 
-try:
-    import mlpy
-except ImportError:
-    grass.fatal(_("Cannot import mlpy (http://mlpy.sourceforge.net) library."
-                  " Please install it or ensure that it is on path"
-                  " (use PYTHONPATH variable)."))
-
-# Pytlit has a problem with this mlpy and v.class.mlpy.py
-# thus, warinings for objects from mlpy has to be disabled
-
 
 def addColumn(mapName, columnName, columnType):
     """Adds column to the map's table."""
@@ -125,6 +115,15 @@ class Classifier:
     It does not uses numpy in the interface bu this may be wrong.
     """
     def __init__(self):
+        try:
+            import mlpy
+        except ImportError:
+            grass.fatal(_("Cannot import mlpy (http://mlpy.sourceforge.net)"
+                          " library."
+                          " Please install it or ensure that it is on path"
+                          " (use PYTHONPATH variable)."))
+        # Pytlit has a problem with this mlpy and v.class.mlpy.py
+        # thus, warinings for objects from mlpy has to be disabled
         self.mlclassifier = mlpy.DLDA(delta=0.01)  # pylint: disable=E1101
 
     def learn(self, values, classes):
