@@ -8,21 +8,20 @@ import sys
 import re
 
 
-def get_addons(path):
-    """Get list of addons
+def get_pages(path):
+    """Get list of HTML pages in the given directory and its subdirectories
 
-    Goes two levels deep to get directory names which are assumed
-    to be addon names.
+    Only filenames are returned, not the paths.
     """
-    top_directories = os.walk(path).next()[1]
-    addons = []
-    for directory in top_directories:
-        addons.extend(os.walk(directory).next()[1])
-    addons.extend(top_directories)
-    return addons
+    matches = []
+    for root, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            if filename.endswith('.html'):
+                matches.append(filename)
+    return matches
 
 
-def main(htmlfile, prefix):
+def main(htmlfile, prefix, html_directory):
     try:
         f = open(htmlfile)
         shtml = f.read()
@@ -35,8 +34,7 @@ def main(htmlfile, prefix):
 
     # find URIs
     pattern = r'''<a href="([^"]+)">([^>]+)</a>'''
-    # TODO: replace the magic 4 by passing the base addons dir as parameter
-    addons = get_addons(os.sep.join(htmlfile.split(os.sep)[:4]))
+    addon_pages = get_pages(html_directory)
     for match in re.finditer(pattern, shtml):
         # most common URLs
         if match.group(1).startswith('http://'):
@@ -48,7 +46,7 @@ def main(htmlfile, prefix):
             continue
         # TODO: perhaps we could match any *://
         # link to other addon
-        if match.group(1).replace('.html', '') in addons:
+        if match.group(1) in addon_pages:
             continue
         pos.append(match.start(1))
 
@@ -72,6 +70,6 @@ def main(htmlfile, prefix):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit("provide file and url")
-    main(sys.argv[1], sys.argv[2])
+    if len(sys.argv) != 4:
+        sys.exit("Provide file, URL and directory with other HTML files")
+    main(sys.argv[1], sys.argv[2], sys.argv[3])
