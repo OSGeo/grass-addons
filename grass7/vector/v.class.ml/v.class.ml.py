@@ -388,16 +388,6 @@ from sqlite2npy import save2npy
 from npy2table import export_results
 
 
-RULES = {'*_skewness': np.nanmean,
-         '*_coeff_var': np.nanmean,
-         '*_stddev': np.nanmean,
-         '*_variance': np.nanmean,
-         '*_mean': np.nanmean,
-         '*_range': np.nanmean,
-         '*_max': np.nanmax,
-         '*_min': np.nanmin, }
-
-
 DECMP = {}
 
 
