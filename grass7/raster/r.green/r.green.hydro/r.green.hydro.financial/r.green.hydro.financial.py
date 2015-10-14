@@ -78,7 +78,7 @@
 #%  guisection: Input columns
 #%end
 #%option
-#%  key: struct_columm_kind
+#%  key: struct_column_kind
 #%  type: string
 #%  description: Table of the struct map: column name with the strings that define if it's a derivation channel or a penstock
 #%  required: no
@@ -88,7 +88,7 @@
 #%option
 #%  key: struct_kind_intake
 #%  type: string
-#%  description: Table of the structures map : Value contained in the column 'kind' which corresponds to the derivation channel
+#%  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the derivation channel
 #%  required: no
 #%  answer: conduct
 #%  guisection: Input columns
@@ -96,14 +96,14 @@
 #%option
 #%  key: struct_kind_turbine
 #%  type: string
-#%  description: Table of the structures map : Value contained in the column 'kind' which corresponds to the penstock
+#%  description: Table of the structures map: Value contained in the column 'kind' which corresponds to the penstock
 #%  required: no
 #%  answer: penstock
 #%  guisection: Input columns
 #%end
 #%option
 #%  key: plant_column_id
-#%  description: Table of the plants map : Column name with the plant id
+#%  description: Table of the plants map: Column name with the plant id
 #%  required: no
 #%  answer: plant_id
 #%  guisection: Input columns
@@ -111,7 +111,7 @@
 #%option
 #%  key: plant_basename
 #%  type: string
-#%  description:Table of the plants map : basename of the columns that will be added to the input plants vector map
+#%  description:Table of the plants map: basename of the columns that will be added to the input plants vector map
 #%  required: no
 #%  answer: case1
 #%  guisection: Input columns
@@ -468,26 +468,26 @@
 # DEFINE OUTPUTS
 #%option G_OPT_V_OUTPUT
 #%  key: output_struct
-#%  label: Name of the output vector map : plants' structure including the main costs in the table
+#%  label: Name of the output vector map: plants' structure including the main costs in the table
 #%  required: yes
 #%end
 
 ## COSTS
 #%option G_OPT_R_OUTPUT
 #%  key: compensation
-#%  label: Raster map with the compensation values
+#%  label: Output raster map with the compensation values
 #%  required: no
 #%end
 #%option G_OPT_R_OUTPUT
 #%  key: excavation
-#%  label: Raster map with the excavation costs
+#%  label: Output raster map with the excavation costs
 #%  required: no
 #%end
 
 ## VALUES
 #%option G_OPT_R_OUTPUT
 #%  key: upper
-#%  label: Raster map with the value upper part of the soil 
+#%  label: Output raster map with the value upper part of the soil 
 #%  required: no
 #%end
 
