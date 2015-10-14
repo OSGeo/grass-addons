@@ -29,7 +29,7 @@
 #%end
 #%option G_OPT_V_INPUT
 #% key: river
-#% label: Name of vector map with interested segments of rivers
+#% label: Name of vector map with interesting segments of rivers
 #% description: Vector map with the segments of the river that will be analysed
 #% required: yes
 #%end
@@ -132,7 +132,7 @@
 #%option G_OPT_V_INPUT
 #% key: points_view
 #% label: Vector points of viewing position to exclude
-#% description: Vector with the point that are used to compute the visibility
+#% description: Vector with the points that are used to compute the visibility
 #% required: no
 #% guisection: Areas to exclude
 #%end
@@ -179,8 +179,9 @@
 #%end
 
 #%rules
-#%exclusive: mfd, discharge_natural
-#%requires: discharge_natural, percentage
+#%exclusive: mfd, discharge_natural 
+#%exclusive: mfd, percentage 
+#%requires: discharge_natural, percentage 
 #%end
 
 # import system libraries
