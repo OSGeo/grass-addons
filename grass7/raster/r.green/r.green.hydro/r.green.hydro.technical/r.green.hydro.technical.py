@@ -143,16 +143,16 @@
 #%option
 #% key: turbine_folder
 #% type: string
-#% description: Path to the folder contening the text file with info about all kind of turbines
-#% required: no
+#% description: Path to the folder containing the text file with info about all kind of turbines
+#% required: yes
 #% answer:
 #% guisection: Turbine
 #%end
 #%option
 #% key: turbine_list
 #% type: string
-#% description: Path to the text file contening the list of the turbines considered
-#% required: no
+#% description: Path to the text file containing the list of the turbines considered
+#% required: yes
 #% answer:
 #% guisection: Turbine
 #%end
