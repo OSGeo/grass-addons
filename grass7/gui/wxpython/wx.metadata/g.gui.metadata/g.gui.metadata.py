@@ -28,7 +28,10 @@ import grass.script as grass
 from grass.pydispatch import dispatcher
 from core.gcmd import RunCommand, GError, GMessage
 import grass.temporal as tgis
-from datacatalog.tree import LocationMapTree
+#from datacatalog.tree import LocationMapTree
+from grass.pydispatch.signal import Signal
+from core.utils import GetListOfLocations, ListOfMapsets
+from core.debug import Debug
 
 set_path(modulename='wx.metadata', dirname='mdlib')
 
@@ -53,7 +56,210 @@ import tempfile
 MAINFRAME = None
 
 
+class LocationMapTree(wx.TreeCtrl):
+    def __init__(self, parent, style=wx.TR_HIDE_ROOT | wx.TR_EDIT_LABELS | wx.TR_LINES_AT_ROOT |
+                 wx.TR_HAS_BUTTONS | wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_SINGLE):
+        """Location Map Tree constructor."""
+        super(LocationMapTree, self).__init__(parent, id=wx.ID_ANY, style=style)
+        self.showNotification = Signal('Tree.showNotification')
+        self.parent = parent
+        self.root = self.AddRoot('Catalog') # will not be displayed when we use TR_HIDE_ROOT flag
 
+        self._initVariables()
+        self.MakeBackup()
+
+        wx.EVT_TREE_ITEM_RIGHT_CLICK(self, wx.ID_ANY, self.OnRightClick)
+
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+
+    def _initTreeItems(self, locations = [], mapsets = []):
+        """Add locations, mapsets and layers to the tree."""
+        if not locations:
+            locations = GetListOfLocations(self.gisdbase)
+        if not mapsets:
+            mapsets = ['*']
+
+        first = True
+        for loc in locations:
+            location = loc
+            if first:
+                self.ChangeEnvironment(location, 'PERMANENT')
+                first = False
+            else:
+                self.ChangeEnvironment(location)
+
+            varloc = self.AppendItem(self.root, loc)
+            # add all mapsets
+            mapsets = ListOfMapsets()
+            if mapsets:
+                for mapset in mapsets:
+                    self.AppendItem(varloc, mapset)
+            else:
+                self.AppendItem(varloc, _("No mapsets readable"))
+                continue
+
+            # get list of all maps in location
+            maplist = RunCommand('g.list', flags='mt', type='raster,raster_3d,vector', mapset=','.join(mapsets),
+                                 quiet=True, read=True)
+            maplist = maplist.splitlines()
+            for ml in maplist:
+                # parse
+                parts1 = ml.split('/')
+                parts2 = parts1[1].split('@')
+                mapset = parts2[1]
+                mlayer = parts2[0]
+                ltype = parts1[0]
+
+                # add mapset
+                if self.itemExists(mapset, varloc) == False:
+                    varmapset = self.AppendItem(varloc, mapset)
+                else:
+                    varmapset = self.getItemByName(mapset, varloc)
+
+                # add type node if not exists
+                if self.itemExists(ltype, varmapset) == False:
+                    vartype = self.AppendItem(varmapset, ltype)
+
+                self.AppendItem(vartype, mlayer)
+
+        self.RestoreBackup()
+        Debug.msg(1, "Tree filled")    
+
+    def InitTreeItems(self):
+        """Create popup menu for layers"""
+        raise NotImplementedError()
+
+    def _popupMenuLayer(self):
+        """Create popup menu for layers"""
+        raise NotImplementedError()
+
+    def _popupMenuMapset(self):
+        """Create popup menu for mapsets"""
+        raise NotImplementedError()
+
+    def _initVariables(self):
+        """Init variables."""
+        self.selected_layer = None
+        self.selected_type = None
+        self.selected_mapset = None
+        self.selected_location = None
+
+        self.gisdbase =  grass.gisenv()['GISDBASE']
+        self.ctrldown = False
+
+    def GetControl(self):
+        """Returns control itself."""
+        return self
+
+    def DefineItems(self, item0):
+        """Set selected items."""
+        self.selected_layer = None
+        self.selected_type = None
+        self.selected_mapset = None
+        self.selected_location = None
+        items = []
+        item = item0
+        while (self.GetItemParent(item)):
+            items.insert(0,item)
+            item = self.GetItemParent(item)
+
+        self.selected_location = items[0]
+        length = len(items)
+        if (length > 1):
+            self.selected_mapset = items[1]
+            if (length > 2):
+                self.selected_type = items[2]
+                if (length > 3):
+                    self.selected_layer = items[3]
+
+    def getItemByName(self, match, root):
+        """Return match item from the root."""
+        item, cookie = self.GetFirstChild(root)
+        while item.IsOk():
+            if self.GetItemText(item) == match:
+                return item
+            item, cookie = self.GetNextChild(root, cookie)
+        return None
+
+    def itemExists(self, match, root):
+        """Return true if match item exists in the root item."""
+        item, cookie = self.GetFirstChild(root)
+        while item.IsOk():
+            if self.GetItemText(item) == match:
+                return True
+            item, cookie = self.GetNextChild(root, cookie)
+        return False       
+
+    def UpdateTree(self):
+        """Update whole tree."""
+        self.DeleteAllItems()
+        self.root = self.AddRoot('Tree')
+        self.AddTreeItems()
+        label = "Tree updated."
+        self.showNotification.emit(message=label)
+
+    def OnSelChanged(self, event):
+        self.selected_layer = None
+
+    def OnRightClick(self, event):
+        """Display popup menu."""
+        self.DefineItems(event.GetItem())
+        if(self.selected_layer):
+            self._popupMenuLayer()
+        elif(self.selected_mapset and self.selected_type==None):
+            self._popupMenuMapset() 
+
+    def OnDoubleClick(self, event):
+        """Double click"""
+        Debug.msg(1, "Double CLICK")
+
+    def OnKeyDown(self, event):
+        """Set key event and check if control key is down"""
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_CONTROL:
+            self.ctrldown = True
+            Debug.msg(1,"CONTROL ON")
+
+    def OnKeyUp(self, event):
+        """Check if control key is up"""
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_CONTROL:
+            self.ctrldown = False
+            Debug.msg(1,"CONTROL OFF")
+
+    def MakeBackup(self):
+        """Make backup for case of change"""
+        gisenv = grass.gisenv()
+        self.glocation = gisenv['LOCATION_NAME']
+        self.gmapset = gisenv['MAPSET']
+
+    def RestoreBackup(self):
+        """Restore backup"""
+        stringl = 'LOCATION_NAME='+self.glocation
+        RunCommand('g.gisenv', set=stringl)
+        stringm = 'MAPSET='+self.gmapset
+        RunCommand('g.gisenv', set=stringm)
+
+    def ChangeEnvironment(self, location, mapset=None):
+        """Change gisenv variables -> location, mapset"""
+        stringl = 'LOCATION_NAME='+location
+        RunCommand('g.gisenv', set=stringl)
+        if mapset:
+            stringm = 'MAPSET='+mapset
+            RunCommand('g.gisenv', set=stringm)
+
+    def ExpandCurrentLocation(self):
+        """Expand current location"""
+        location = grass.gisenv()['LOCATION_NAME']
+        item = self.getItemByName(location, self.root)
+        if item is not None:
+            self.SelectItem(item)
+            self.ExpandAllChildren(item)
+            self.EnsureVisible(item)
+        else:
+            Debug.msg(1, "Location <%s> not found" % location)
 
 
 class MdMainFrame(wx.Frame):
