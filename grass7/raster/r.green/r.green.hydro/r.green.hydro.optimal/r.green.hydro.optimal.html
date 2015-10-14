@@ -5,7 +5,7 @@
 
 The three input files are the rivers considered (vector), the discharge for each point of this river (raster) and the elevation raster map to calculate the gross head.<br><br>
 
-The power is defined as :<br>
+The power is defined as:<br>
 
 <center>P=&eta; * &rho; * g * Q * &Delta;h</center>
 
@@ -15,7 +15,7 @@ g the gravity term (9,81 m/s<sup>2</sup>) <br>
 Q the discharge of the river<br>
 &Delta;h the gross head of the considered segment</blockquote><br>
 
-The module maximizes the power over a given range by a brute-force search in order to examine all possible arrangements of Q and &Delta;h. Thus, the potential segments can be shorter than the maximum length plant chosen because it depends on the maximization of the product  Q * &Delta;h. <br><br>
+The module maximizes the power over a given range by a brute-force search in order to examine all possible arrangements of Q and &Delta;h. Thus, the potential segments can be shorter than the maximum plant length chosen because it depends on the maximization of the product  Q * &Delta;h. <br><br>
 
 For each potential segment, the potential power is given in kW in attribute.
 
@@ -30,7 +30,7 @@ Here is the vector file availablestreams of the interested streams in which we w
 Input vector map availablestreams
 </center><br>
 
-The following command computes the potential plants for a plant length range from 10 to 800 m and a distance between plants of 800m :<br><br>
+The following command computes the potential plants for a plant length range from 10 to 800 m and a distance between plants of 800 m :<br><br>
 
 <div class="code"><pre>r.green.hydro.optimal 
 discharge=discharge 

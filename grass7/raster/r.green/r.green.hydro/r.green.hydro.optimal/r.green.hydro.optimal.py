@@ -64,7 +64,7 @@
 #%option
 #% key: p_max
 #% type: double
-#% description: Max mean power [kW]
+#% description: Maximum mean power [kW]
 #% required: no
 #%end
 #%option
@@ -76,7 +76,7 @@
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: output_plant
-#% label: Name of output vector map with segments of potential power segments [kW]
+#% label: Name of output vector map with potential power for each river segment [kW]
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
