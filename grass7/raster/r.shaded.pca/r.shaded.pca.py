@@ -242,7 +242,7 @@ def main():
     grass.info(_("Running r.pca..."))
 
     # not quiet=True to get percents
-    grass.run_command('i.pca', input=shade_maps, output_prefix=pca_basename,
+    grass.run_command('i.pca', input=shade_maps, output=pca_basename,
                       overwrite=core.overwrite())
 
     grass.info(_("Creating RGB composite from "
