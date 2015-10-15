@@ -58,7 +58,6 @@ int main(int argc,char * argv[])
     int band;
     int i, j, error=0;
     vec_struct *svd_values;
-    /*VEC *svd_values;*/
     /*char command[80]; rm by Yann temporarily see grayscale palette*/
     float anglefield[255][255];
     struct
@@ -141,23 +140,21 @@ int main(int argc,char * argv[])
 	     error=1;
 	 }
 
-   if (!error)
+    if (!error)
 	G_message("Spectral matrix is o.k. Proceeding...\n");
    
-/* check singular values of Matrix A
- * Ref: Boardman, J.W. 1989: Inversion of imaging spectrometry data
- *        using singular value decomposition.  IGARSS 1989: 12th Canadian
- *           symposium on Remote Sensing. Vol.4 pp.2069-2072
- */
+    /* check singular values of Matrix A
+     * Ref: Boardman, J.W. 1989: Inversion of imaging spectrometry data
+     *        using singular value decomposition.  IGARSS 1989: 12th Canadian
+     *           symposium on Remote Sensing. Vol.4 pp.2069-2072
+     */
     G_message("Singular values of Matrix A:");
-    svd_values = svd(A, MNULL, MNULL, VNULL);
+    G_math_svdval( (double *) svd_values->vals, (double **) A->vals, A->cols, A->rows);
     v_output(svd_values);
- if (error) 
- {
-  G_fatal_error("Exiting...\n");
- }
+    if (error) 
+        G_fatal_error("Error in singular value decomposition, exiting...\n");
 
- /* alright, start Spectral angle mapping */
+    /* alright, start Spectral angle mapping */
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
@@ -171,16 +168,16 @@ int main(int argc,char * argv[])
 	    Rast_get_c_row (cellfd[band], cell[band], row);
 
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
-	   {
+	{
 	    /* get pixel values of each band and store in b vector: */
-	     b = v_get(A->m);                     /* dimension of vector = matrix size = Ref.nfiles*/
+	     /*b = v_get(A->m);                     /* dimension of vector = matrix size = Ref.nfiles*/
+	     b = v_get(A->cols);                     /* Yann: Doubt about "cols", TODO CHECK: dimension of vector = matrix size = Ref.nfiles*/
 	     for (band = 0; band < Ref.nfiles; band++)
-		  b->ve[band] = cell[band][col];  /* read input vector */
+		  b->vals[band] = cell[band][col];  /* read input vector */
 	   
             /* calculate spectral angle for current pixel
              * between pixel spectrum and reference spectrum
              * and write result in full degree */
-             
              for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
              {
               Avector = G_matvect_get_row(A, i);  /* go row-wise through matrix*/
@@ -188,22 +185,20 @@ int main(int argc,char * argv[])
 	      result_cell[i][col] = myround (curr_angle);
 	      G_vector_free(Avector);
              }
-
 	     G_vector_free(b);
 	     
-	   } /* columns loop */
+	 } /* columns loop */
 
 	/* write the resulting rows: */
         for (i = 0; i < Ref.nfiles; i++)
           Rast_put_c_row (resultfd[i], result_cell[i]);
 
     } /* rows loop */
-
     G_percent(row, nrows, 2);
 	
    /* close files */
     for (i = 0; i < Ref.nfiles; i++)
-    	{
+    {
 	  Rast_close (resultfd[i]);
 	  Rast_unopen(cellfd[i]);
 	  /* make grey scale color table */
@@ -211,8 +206,7 @@ int main(int argc,char * argv[])
           sprintf(command, "r.colors map=%s color=grey >/dev/null", result_name);
           system(command);*/ /*Commented by Yann*/
           /* write a color table */
-	}
-
+    }
     G_matrix_free(A);
     make_history(result_name, group, matrixfile);
     return(EXIT_SUCCESS);

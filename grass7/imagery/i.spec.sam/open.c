@@ -25,7 +25,7 @@ int open_files()
     if (fp == NULL)
     	G_fatal_error("ERROR: Matrixfile %s not found.\n",matrixfile);
     /* Read data and close file */
-    if ((G_matrix_read2(fp, &A) < 0))
+    if ((G_matrix_read2(fp, A) < 0))
 	G_fatal_error(_("Unable to read matrix file %s."), matrixfile);
     fclose(fp);
     
