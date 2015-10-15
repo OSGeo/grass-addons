@@ -1,7 +1,9 @@
 /* Spectral angle mapping
  * (c) 1998 Markus Neteler, Hannover, Germany
  *          neteler@geog.uni-hannover.de
- *
+ * 
+ * Dependency to Meschach Lib removed in 2015
+ *-------------------------------------------------------------------
  * V 0.1 - 26. Oct.1998
  *
  * * Based on Meschach Library (matrix operations)
@@ -170,8 +172,10 @@ int main(int argc,char * argv[])
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
 	{
 	    /* get pixel values of each band and store in b vector: */
-	     /*b = v_get(A->m);                     /* dimension of vector = matrix size = Ref.nfiles*/
-	     b = v_get(A->cols);                     /* Yann: Doubt about "cols", TODO CHECK: dimension of vector = matrix size = Ref.nfiles*/
+	     /*b = v_get(A->m);                   /* dimension of vector = matrix size = Ref.nfiles*/
+	     G_matvect_extract_vector(A, CVEC, Ref.nfiles); /* Yann: Doubt on "cols/CVEC", TODO CHECK: dimension of vector = matrix size = Ref.nfiles*/
+             b = G_vector_copy(A, NO_COMPACT);
+             G_matvect_retrieve_matrix(A);
 	     for (band = 0; band < Ref.nfiles; band++)
 		  b->vals[band] = cell[band][col];  /* read input vector */
 	   
