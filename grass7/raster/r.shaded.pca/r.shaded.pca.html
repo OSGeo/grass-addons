@@ -3,7 +3,7 @@
 <em>r.shaded.pca</em> is a tool for the generation
 of RGB composite of the three main components
 of PCA created from different hill shades
-(created by <em><a href="r.shaded.relief.html">r.relief</a></em>).
+(created by <em><a href="r.relief.html">r.relief</a></em>).
 
 <h3>Input parameters explanation</h3>
 
@@ -29,7 +29,7 @@ in this order.
 If you want to create your own RGB composition, HIS composition or do another
 analyses you can specify the <i>pca_shades_basename</i> parameter. If this
 parameter is specified, the module outputs the PCA maps as created during
-the process by <em><a href="i.pca.html">r.i.pca</a></em>.
+the process by <em><a href="i.pca.html">i.pca</a></em>.
 
 Moreover, if you would like to add one of the shades to your composition,
 you can specify the <i>shades_basename</i> parameter then the module will
@@ -42,12 +42,12 @@ composition or just as an overlay in your visualization tool.
 
 <div class="code"><pre>
 # basic example with changed vertical exaggeration
-r.shaded.pca input=elevation output=elevation_pca_shaded zmult=100
+r.shaded.pca input=elevation output=elevation_pca_shaded zscale=100
 
 # example of more complicated settings
 # including output shades and principal component maps
 r.shaded.pca input=elevation output=elevation_pca_shaded \
- zmult=100 altitude=15  nazimuths=16 nprocs=4 \
+ zscale=100 altitude=15  nazimuths=16 nprocs=4 \
  shades_basename=elevation_pca_shaded_shades pca_shades_basename=elevation_pca_shaded_pcs
 </pre></div>
 

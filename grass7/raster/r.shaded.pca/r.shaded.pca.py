@@ -49,7 +49,7 @@
 #% answer: 8
 #%end
 #%option
-#% key: zmult
+#% key: zscale
 #% type: double
 #% description: Factor for exaggerating relief
 #% answer: 1
@@ -166,7 +166,7 @@ def main():
     pca_shade_output = options['output']
     altitude = float(options['altitude'])
     number_of_azimuths = int(options['nazimuths'])
-    z_exaggeration = float(options['zmult'])
+    z_exaggeration = float(options['zscale'])
     scale = float(options['scale'])
     units = options['units']
     shades_basename = options['shades_basename']
