@@ -128,9 +128,9 @@ def run_r_shaded_relief(elevation_input, shades_basename,
     params = {}
     if units:
         params.update({'units': units})
-    grass.run_command('r.shaded.relief', input=elevation_input,
+    grass.run_command('r.relief', input=elevation_input,
                       output=shades_basename + suffix,
-                      azimuth=azimuth, zmult=z_exaggeration,
+                      azimuth=azimuth, zscale=z_exaggeration,
                       scale=scale, altitude=altitude,
                       overwrite=core.overwrite(), quiet=True,
                       **params)
@@ -196,7 +196,7 @@ def main():
         check_map_names(pca_basename, grass.gisenv()['MAPSET'],
                         suffixes=range(1, number_of_azimuths))
 
-    grass.info(_("Running r.shade.relief in a loop..."))
+    grass.info(_("Running r.relief in a loop..."))
     count = 0
     # Parallel processing
     proc_list = []
@@ -229,7 +229,7 @@ def main():
                 exitcodes += proc.exitcode
 
             if exitcodes != 0:
-                core.fatal(_("Error during r.shade.relief computation"))
+                core.fatal(_("Error during r.relief computation"))
 
             # Empty process list
             proc_list = []
