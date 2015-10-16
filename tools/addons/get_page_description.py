@@ -62,8 +62,8 @@ def main(filename):
         desc_section_num_lines = 0
         desc_block_start = re.compile(r'NAME')
         # the incomplete manual pages have NAME followed by DESCRIPTION
-        desc_block_end = re.compile(r'KEYWORDS|DESCRIPTION')
-        desc_section_start = re.compile(r'DESCRIPTION')
+        desc_block_end = re.compile(r'<h2.*>(KEYWORDS|DESCRIPTION).*/h.>')
+        desc_section_start = re.compile(r'<h2.*>DESCRIPTION.*/h.>')
         desc_line = re.compile(r' - ')
         comment_meta_desc_line = re.compile(r'<!-- meta page description:.*-->')
         for line in page_file:
