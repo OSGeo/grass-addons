@@ -8,3 +8,4 @@ python -m doctest ../get_page_description.py
 ../get_page_description.py data/r.group.page.html
 ../get_page_description.py data/wxGUI.example.html
 ../get_page_description.py data/g.broken.example.html
+../get_page_description.py data/g.no.keywords.html
