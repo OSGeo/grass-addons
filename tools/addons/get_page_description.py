@@ -81,8 +81,9 @@ def get_desc_from_desc_text(text):
     # is not the sentence
     text = re.split(r"\.(\s|$)", text, 1)[0]
     text = remove_unwanted_tags(text)
-    # strip spaces at the beginning and add the tripped dot back
-    return text.lstrip() + '.'
+    # strip spaces from the ends and add the stripped dot back
+    # TODO: unify the behavior with dot, some modules have it, some don't
+    return text.strip() + '.'
 
 
 def main(filename):
@@ -92,12 +93,17 @@ def main(filename):
         in_desc_section = False
         desc_section = ''
         desc_section_num_lines = 0
+        # one empty after heading and then a longer sentence over two lines
+        desc_section_max_lines = 3
+        # we expect h2 level
         desc_block_start = re.compile(r'<h2.*>NAME.*/h.>', flags=re.IGNORECASE)
         # the incomplete manual pages have NAME followed by DESCRIPTION
         desc_block_end = re.compile(r'<h2.*>(KEYWORDS|DESCRIPTION).*/h.>',
                                     flags=re.IGNORECASE)
         desc_section_start = re.compile(r'<h2.*>DESCRIPTION.*/h.>',
                                         flags=re.IGNORECASE)
+        #desc_section_end = re.compile(r'<h2.*>.*<.*/h.>', flags=re.IGNORECASE)
+        desc_section_end = re.compile(r'<h2.*>.*/h.>', flags=re.IGNORECASE)
         desc_line = re.compile(r' - ')
         comment_meta_desc_line = re.compile(r'<!-- meta page description:.*-->')
         for line in page_file:
@@ -117,10 +123,14 @@ def main(filename):
             # if there was nothing else, last thing to try is get the first
             # sentence from the description section (which is also last
             # item in the file from all things we are trying
+            if in_desc_section and desc_section_end.search(line):
+                in_desc_section = False
+            # we need to store line after we matched for start
+            # and not store the line matched for end
             if in_desc_section:
                 desc_section += line + "\n"
                 desc_section_num_lines += 1
-                if desc_section_num_lines > 4:
+                if desc_section_num_lines > desc_section_max_lines:
                     in_desc_section = False
             if not desc and desc_section_start.search(line):
                 in_desc_section = True
