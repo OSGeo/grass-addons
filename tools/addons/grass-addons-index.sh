@@ -122,8 +122,8 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">log files
 	fi
 
 	module=`echo $currfile | sed 's+\.html$++g'`
-	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>:" >> index.html
-        ${SRC}grass-addons/tools/addons/get_page_description.sh $currfile >> index.html
+	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>: " >> index.html
+        ${SRC}grass-addons/tools/addons/get_page_description.py $currfile >> index.html
     done
 
     year=`date +%Y`
