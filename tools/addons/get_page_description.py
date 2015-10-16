@@ -33,6 +33,37 @@ def get_desc_from_comment_meta_line(text):
     return text.strip()
 
 
+def remove_unwanted_tags(text):
+    r"""Remove HTML selected tags from text
+
+    This is not an ideal example where the formatting is in fact wrong
+    but let's fix it and use it so it at least looks good.
+
+    >>> remove_unwanted_tags('module.name<br>\nDescription later')
+    'module.name\nDescription later'
+
+    Links to details are not ideal for index page. Links to the same page
+    (the ones with #) would be even broken.
+
+    >>> remove_unwanted_tags('uses <a href="http://example.com">Famous</a> lib')  # doctest: +NORMALIZE_WHITESPACE
+    'uses Famous lib'
+
+    However we save some links:
+
+    >>> remove_unwanted_tags('abc <br> abc <em>abc</em>')  # doctest: +NORMALIZE_WHITESPACE
+    'abc abc <em>abc</em>'
+    """
+    # ? is for non-greedy to not go to last tag but end the current first
+    # new lines and paragraphs
+    text = re.sub(r'<br.?>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'<p.*?>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'</p>', '', text, flags=re.IGNORECASE)
+    # links and other anchors
+    text = re.sub(r'<a.*?>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'</a>', '', text, flags=re.IGNORECASE)
+    return text
+
+
 def get_desc_from_desc_text(text):
     r"""Get description defined as first sentence in the given text.
 
@@ -49,6 +80,7 @@ def get_desc_from_desc_text(text):
     # this matches the sentence but gives also whole string even if it
     # is not the sentence
     text = re.split(r"\.(\s|$)", text, 1)[0]
+    text = remove_unwanted_tags(text)
     # strip spaces at the beginning and add the tripped dot back
     return text.lstrip() + '.'
 
@@ -60,10 +92,12 @@ def main(filename):
         in_desc_section = False
         desc_section = ''
         desc_section_num_lines = 0
-        desc_block_start = re.compile(r'NAME')
+        desc_block_start = re.compile(r'<h2.*>NAME.*/h.>', flags=re.IGNORECASE)
         # the incomplete manual pages have NAME followed by DESCRIPTION
-        desc_block_end = re.compile(r'<h2.*>(KEYWORDS|DESCRIPTION).*/h.>')
-        desc_section_start = re.compile(r'<h2.*>DESCRIPTION.*/h.>')
+        desc_block_end = re.compile(r'<h2.*>(KEYWORDS|DESCRIPTION).*/h.>',
+                                    flags=re.IGNORECASE)
+        desc_section_start = re.compile(r'<h2.*>DESCRIPTION.*/h.>',
+                                        flags=re.IGNORECASE)
         desc_line = re.compile(r' - ')
         comment_meta_desc_line = re.compile(r'<!-- meta page description:.*-->')
         for line in page_file:
