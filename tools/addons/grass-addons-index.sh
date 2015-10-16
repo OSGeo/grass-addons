@@ -64,6 +64,7 @@ generate () {
     # mkdir -p /tmp/grass${major}${minor}/manuals/addons ; cd /tmp/grass${major}${minor}/manuals/addons
     # grass.osgeo.org SERVER
     cd /var/www/grass/grass-cms/grass${major}${minor}/manuals/addons
+    SRC=${HOME}/src/
 
     if test -f index.html ; then
 	mv index.html index.html.bak
@@ -107,8 +108,6 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">log files
 </tr></table>
 <hr>" > index.html
 
-    # fetch one-line descriptions into a separate file:
-    # let's try to be more robust against missing keywords in a few HTML pages
     prefix_last=""
     for currfile in `ls -1 *.html | grep -v index.html` ; do
 	# module prefix
@@ -124,20 +123,7 @@ See also: <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">log files
 
 	module=`echo $currfile | sed 's+\.html$++g'`
 	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>:" >> index.html
-        grep 'KEYWORDS' $currfile 2> /dev/null > /dev/null
-        if [ $? -eq 0 ] ; then
-           # keywords found, so go ahead with extraction of one-line description
-           cat $currfile | awk '/NAME/,/KEYWORDS/' | grep ' - ' | cut -d'-' -f2- | cut -d'<' -f1 | sed 's+>$+></li>+g'  >> /tmp/d.$TMP
-           # argh, fake keyword line found (broken manual page or missing g.parser usage)
-	   if [ ! -s /tmp/d.$TMP ] ; then
-	      echo "(incomplete manual page, please fix)" > /tmp/d.$TMP
-           fi
-	   cat /tmp/d.$TMP >> index.html
-	   rm -f /tmp/d.$TMP
-        else
-           # argh, no keywords found (broken manual page or missing g.parser usage)
-           echo "(incomplete manual page, please fix)" >> index.html
-        fi
+        ${SRC}grass-addons/tools/addons/get_page_description.sh $currfile >> index.html
     done
 
     year=`date +%Y`
