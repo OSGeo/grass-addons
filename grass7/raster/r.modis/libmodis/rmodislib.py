@@ -19,7 +19,7 @@ import grass.script as grass
 # interface to g.proj -p
 
 
-def get_proj():
+def get_proj(flag='p'):
     """!Returns the output from running "g.proj -p" plus towgs84 parameter
     (g.proj -d), as a dictionary. Example:
 
@@ -31,17 +31,20 @@ def get_proj():
 
     @return dictionary of projection values
     """
-    gproj = grass.read_command('g.proj', flags='p')
-    listproj = gproj.split('\n')
-    listproj.remove('-PROJ_INFO-------------------------------------------------')
-    listproj.remove('-PROJ_UNITS------------------------------------------------')
-    listproj.remove('')
-    proj = {}
-    for i in listproj:
-        ilist = i.split(':')
-        proj[ilist[0].strip()] = ilist[1].strip()
-    proj.update(grass.parse_command('g.proj', flags='j'))
-    return proj
+    gproj = grass.read_command('g.proj', flags=flag)
+    if flag == 'p':
+        listproj = gproj.split('\n')
+        listproj.remove('-PROJ_INFO-------------------------------------------------')
+        listproj.remove('-PROJ_UNITS------------------------------------------------')
+        listproj.remove('')
+        proj = {}
+        for i in listproj:
+            ilist = i.split(':')
+            proj[ilist[0].strip()] = ilist[1].strip()
+        proj.update(grass.parse_command('g.proj', flags='j'))
+        return proj
+    elif flag == 'w':
+        return gproj.replace('\n', '').replace('    ', '')
 
 
 class product:
@@ -83,7 +86,7 @@ class product:
         surf_specqa = '( 1 1 1 1 1 1 1 1 0 0 0 0 0 )'
         surf_suff = {'.sur_refl_b01': '.sur_refl_qc_500m', '.sur_refl_b02':
                      '.sur_refl_qc_500m', '.sur_refl_b03': '.sur_refl_qc_500m',
-                     '.sur_refl_b04': '.sur_refl_qc_500m', '.sur_refl_b05': 
+                     '.sur_refl_b04': '.sur_refl_qc_500m', '.sur_refl_b05':
                      '.sur_refl_qc_500m', '.sur_refl_b06': '.sur_refl_qc_500m',
                      '.sur_refl_b07': '.sur_refl_qc_500m'}
 

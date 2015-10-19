@@ -29,6 +29,10 @@
 #% key: g
 #% description: Return the name of file containing the list of HDF tiles downloaded in shell script style
 #%end
+#%flag
+#% key: c
+#% description: Does not perform GDAL check on downloaded images
+#%end
 #%option G_OPT_F_INPUT
 #% key: settings
 #% label: Full path to settings file
@@ -73,6 +77,7 @@
 #% required: no
 #%end
 
+
 # import library
 import os
 import sys
@@ -116,10 +121,11 @@ def checkdate(options):
                             int(firstSplit[2]))
         lastSplit = second.split('-')
         lastDay = date(int(lastSplit[0]), int(lastSplit[1]), int(lastSplit[2]))
+        if firstDay < lastDay:
+            grass.fatal(_("End day has to be bigger then start day"))
         delta = firstDay - lastDay
         valueDelta = int(delta.days)
         return valueDay, second, valueDelta
-
     # no set start and end day
     if options['startday'] == '' and options['endday'] == '':
         return None, None, 10
@@ -204,13 +210,17 @@ def main():
         debug_opt = True
     else:
         debug_opt = False
+    if flags['c']:
+        checkgdal = False
+    else:
+        checkgdal = True
     for produ in products:
         prod = product(produ).returned()
         #start modis class
-
         modisOgg = downModis(url=prod['url'], user=user, password=passwd,
               destinationFolder=fold, tiles=tiles, path=prod['folder'],
-              today=firstday, enddate=finalday, delta=delta, debug=debug_opt)
+              today=firstday, enddate=finalday, delta=delta, debug=debug_opt,
+              checkgdal=checkgdal)
         # connect to ftp
         modisOgg.connect()
         if modisOgg.nconnection <= 20:
