@@ -39,15 +39,7 @@
 #% description: Ignore the QA map layer
 #%end
 #%option
-#% key: mrtpath
-#% type: string
-#% key_desc: path
-#% description: Full path to MRT directory
-#% gisprompt: old,dir,input
-#% required: no
-#%end
-#%option
-#% key: dns
+#% key: input
 #% type: string
 #% key_desc: path
 #% description: Full path to single HDF file
@@ -73,6 +65,14 @@
 #% description: Code of spatial resampling method
 #% options: nearest, bilinear, cubic
 #% answer: nearest
+#% required: no
+#%end
+#%option
+#% key: mrtpath
+#% type: string
+#% key_desc: path
+#% description: Full path to MRT directory
+#% gisprompt: old,dir,input
 #% required: no
 #%end
 #%option
@@ -127,9 +127,9 @@ def list_files(opt, mosaik=False):
             elif string.find(line, 'xml') == -1 and mosaik is True:
                 day = line.split('/')[-1].split('.')[1]
                 if day in filelist:
-                    filelist[day].append(line)
+                    filelist[day].append(line.strip())
                 else:
-                    filelist[day] = [line]
+                    filelist[day] = [line.strip()]
     # create a list for each file
     elif options['dns'] != '':
         filelist = [options['dns']]
@@ -233,7 +233,6 @@ def metadata(pars, mapp):
 
 def import_tif(out, basedir, rem, write, pm, target=None):
     """Import TIF files"""
-    print "start import"
     # list of tif files
     tifiles = glob.glob1(basedir, "*.tif")
     if not tifiles:
@@ -262,7 +261,7 @@ def import_tif(out, basedir, rem, write, pm, target=None):
             continue
         try:
             grass.run_command('r.in.gdal', input=name, output=basename,
-                              flags=f, overwrite=write, quiet=True)
+                              overwrite=write, quiet=True)
             outfile.append(basename)
         except:
             grass.warning(_('Error during import of %s' % basename))
@@ -298,16 +297,16 @@ def single(options, remove, an, ow):
             if not os.path.exists(hdf):
                 grass.warning(_("%s not found" % i))
                 continue
+        pm = parseModis(hdf)
         if options['mrtpath']:
             # create conf file fro mrt tools
-            pm = parseModis(hdf)
             confname = confile(pm, options, an)
             # create convertModis class and convert it in tif file
             execmodis = convertModis(hdf, confname, options['mrtpath'])
         else:
             projwkt = get_proj('w')
             projObj = projection()
-            pref = listfile[0].split('/')[-1]
+            pref = i.split('/')[-1]
             prod = product().fromcode(pref.split('.')[0])
             spectr = spectral(options, prod, an)
             if projObj.returned() != 'GEO':
@@ -315,7 +314,9 @@ def single(options, remove, an, ow):
             else:
                 res = None
             prod = product().fromcode(pref.split('.')[0])
-            outname = "%s.%s.mosaic" % (pref.split('.')[0], pref.split('.')[1])
+            outname = "%s.%s.%s.single" % (pref.split('.')[0],
+                                           pref.split('.')[1],
+                                           pref.split('.')[2])
             execmodis = convertModisGDAL(hdf, outname, spectr, res,
                                          wkt=projwkt)
         execmodis.run()
@@ -324,7 +325,8 @@ def single(options, remove, an, ow):
             output = os.path.split(hdf)[1].rstrip('.hdf')
         # import tif files
         import_tif(output, basedir, remove, ow, pm)
-        os.remove(confname)
+        if options['mrtpath']:
+            os.remove(confname)
 
 
 def mosaic(options, remove, an, ow):
@@ -353,6 +355,7 @@ def mosaic(options, remove, an, ow):
             cm.run()
         else:
             basedir = targetdir
+            listfiles = [os.path.join(basedir, i) for i in listfiles]
             cm = createMosaicGDAL(listfiles, spectr)
             cm.write_vrt(outname)
         # list of hdf files
@@ -360,10 +363,10 @@ def mosaic(options, remove, an, ow):
         for i in hdfiles:
             # the full path to hdf file
             hdf = os.path.join(basedir, i)
+            pm = parseModis(hdf)
             # create convertModis class and convert it in tif file
             if options['mrtpath']:
                 # create conf file fro mrt tools
-                pm = parseModis(hdf)
                 confname = confile(pm, options, an, True)
                 execmodis = convertModis(hdf, confname, options['mrtpath'])
             else:
@@ -393,7 +396,8 @@ def mosaic(options, remove, an, ow):
                     pass
             # remove the conf file
             os.remove(confname)
-        grass.try_remove(tempfile.name)
+        if options['mrtpath']:
+            grass.try_remove(tempfile.name)
         grass.try_remove(os.path.join(targetdir, 'mosaic', pid))
 
 
@@ -407,12 +411,12 @@ def main():
     if not flags['q'] and options['spectral'] != '':
         grass.warning(_('If no QA layer chosen in the "spectral" option'
                         ' the command will report an error'))
-    # return an error if both dns and files option are set or not
-    if options['dns'] == '' and options['files'] == '':
-        grass.fatal(_('Choose one of "dns" or "files" options'))
+    # return an error if both input and files option are set or not
+    if options['input'] == '' and options['files'] == '':
+        grass.fatal(_('Choose one of "input" or "files" options'))
         return 0
-    elif options['dns'] != '' and options['files'] != '':
-        grass.fatal(_('It is not possible set "dns" and "files"'
+    elif options['input'] != '' and options['files'] != '':
+        grass.fatal(_('It is not possible set "input" and "files"'
                       ' options together'))
         return 0
     # check the version
@@ -436,7 +440,7 @@ def main():
     else:
         analyze = True
     # check if import simple file or mosaic
-    if flags['m'] and options['dns'] != '':
+    if flags['m'] and options['input'] != '':
         grass.fatal(_('It is not possible to create a mosaic with a single'
                       ' HDF file'))
         return 0
