@@ -10,7 +10,7 @@ cd C:\Users\landa\grass_packager
 
 set MAJOR=7
 set MINOR=0
-set PATCH=1
+set PATCH=2RC1
 set REV=1
 
 rem Compile GRASS versions
