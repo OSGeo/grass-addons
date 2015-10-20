@@ -100,7 +100,13 @@ Figure: Detail of output map
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.futures.pga -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope demand=demand.txt devpot_params=devpotParams.csv discount_factor=0.6 compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=2 patch_sizes=patch_sizes.txt development_pressure=gdp n_dev_neighbourhood=10 development_pressure_approach=gravity gamma=2 scaling_factor=1 subregions=subregions  num_regions=9 incentive_table=probLookup.csv constrain_weight=weight_1 output=final_results output_series=development
+r.futures.pga -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope \
+  demand=demand.txt devpot_params=devpotParams.csv discount_factor=0.6 \
+  compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=2 \
+  patch_sizes=patch_sizes.txt development_pressure=gdp n_dev_neighbourhood=10 \
+  development_pressure_approach=gravity gamma=2 scaling_factor=1 \
+  subregions=subregions num_regions=9 incentive_table=probLookup.csv \
+  constrain_weight=weight_1 output=final_results output_series=development
 </pre></div>
 
 
@@ -116,11 +122,11 @@ Some inputs are not yet documented.
 
 <ul>
 <li>
-    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., & Shoemaker, D. A. (2013).
+    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
     <a href="http://dx.doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
     Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
     Annals of the Association of American Geographers, 103(4), 785-807.
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K. (2015).
+<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
    <a href="http://dx.doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
     tradeoffs between conservation planning strategies</a>.
     Landscape and Urban Planning, 136, 28-39.</li>
