@@ -265,7 +265,6 @@ def main(opts, flgs):
                               distance=buff, overwrite=OVW)
             area = area_tmp
             TMPVECT.append(area)
-        import ipdb; ipdb.set_trace()
         oriver = 'tmp_river_%05d' % pid
         gcore.run_command('v.overlay', flags='t',
                           ainput=river,
