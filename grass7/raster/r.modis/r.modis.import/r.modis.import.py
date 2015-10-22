@@ -22,7 +22,7 @@
 #############################################################################
 
 #%module
-#% description: Import single or multiple tiles of MODIS products using pyModis/MRT
+#% description: Import single or multiple tiles of MODIS products using pyModis
 #% keyword: raster
 #% keyword: MODIS
 #%end
@@ -38,6 +38,11 @@
 #% key: q
 #% description: Ignore the QA map layer
 #%end
+#%flag
+#% key: w
+#% description: Create a text file to use into t.rast.modis
+#%end
+
 #%option
 #% key: input
 #% type: string
@@ -90,8 +95,9 @@ import glob
 import shutil
 import grass.script as grass
 from datetime import date
+from datetime import timedelta
 from grass.pygrass.utils import get_lib_path
-
+import tempfile
 path = get_lib_path(modname='r.modis', libname='libmodis')
 if path is None:
     grass.fatal("Not able to find the modis library directory.")
@@ -216,7 +222,7 @@ def metadata(pars, mapp):
     dataobj = date(int(data[0]), int(data[1]), int(data[2]))
     grass.run_command('r.timestamp', map=mapp, quiet=True,
                       date=dataobj.strftime("%d %b %Y"))
-    return 0
+    return dataobj
     # color
 #    if string.find(mapp, 'QC') != -1 or string.find(mapp, 'Quality') != -1 or \
 #    string.find(mapp, 'QA') != -1:
@@ -231,12 +237,22 @@ def metadata(pars, mapp):
 #        grass.run_command('r.colors', quiet=True, map=mapp, color=coll[0])
 
 
-def import_tif(out, basedir, rem, write, pm, target=None):
+def modis_prefix(inp, mosaic=False):
+    """return the modis prefix"""
+    modlist = os.path.split(inp)[1].split('.')
+    if mosaic:
+        return '.'.join(modlist[:2])
+    else:
+        return '.'.join(modlist[:3])
+
+
+def import_tif(out, basedir, rem, write, pm, prod, target=None, listfile=None):
     """Import TIF files"""
     # list of tif files
-    tifiles = glob.glob1(basedir, "*.tif")
+    pref = modis_prefix(pm.hdfname)
+    tifiles = glob.glob1(basedir, "{pr}*.tif".format(pr=pref))
     if not tifiles:
-        tifiles = glob.glob1(os.getcwd(), "*.tif")
+        tifiles = glob.glob1(os.getcwd(), "{pr}*.tif".format(pr=pref))
     if not tifiles:
         grass.fatal(_('Error during the conversion'))
     # check if user is in latlong location to set flag l
@@ -248,11 +264,12 @@ def import_tif(out, basedir, rem, write, pm, target=None):
     # for each file import it
     for t in tifiles:
         basename = os.path.splitext(t)[0]
+        basename = basename.replace(' ', '_')
         name = os.path.join(basedir, t)
         if not os.path.exists(name):
             name = os.path.join(os.getcwd(), t)
         if not os.path.exists(name):
-            grass.warning(_("File %s doesn't find" % basename))
+            grass.warning(_("File %s doesn't find" % name))
             continue
         filesize = int(os.path.getsize(name))
         if filesize < 1000:
@@ -266,12 +283,17 @@ def import_tif(out, basedir, rem, write, pm, target=None):
         except:
             grass.warning(_('Error during import of %s' % basename))
             continue
-        metadata(pm, basename)
+        data = metadata(pm, basename)
         if rem:
             os.remove(name)
         if target:
             if target != basedir:
                 shutil.move(name, target)
+        if listfile:
+            fdata = data + timedelta(prod['days'])
+            listfile.write("{name}|{sd}|{fd}\n".format(name=basename,
+                                                       sd=data.strftime("%Y-%m-%d"),
+                                                       fd=fdata.strftime("%Y-%m-%d")))
     return outfile
 
 
@@ -283,7 +305,7 @@ def findfile(pref, suff):
         grass.warning(_("Raster map <%s> not found") % (pref + suff))
 
 
-def single(options, remove, an, ow):
+def single(options, remove, an, ow, fil):
     """Convert the HDF file to TIF and import it
     """
     listfile, basedir = list_files(options)
@@ -313,10 +335,10 @@ def single(options, remove, an, ow):
                 res = int(prod['res']) * int(projObj.proj['meters'])
             else:
                 res = None
-            prod = product().fromcode(pref.split('.')[0])
             outname = "%s.%s.%s.single" % (pref.split('.')[0],
                                            pref.split('.')[1],
                                            pref.split('.')[2])
+            outname = outname.replace(' ', '_')
             execmodis = convertModisGDAL(hdf, outname, spectr, res,
                                          wkt=projwkt)
         execmodis.run()
@@ -324,12 +346,14 @@ def single(options, remove, an, ow):
         if not output:
             output = os.path.split(hdf)[1].rstrip('.hdf')
         # import tif files
-        import_tif(output, basedir, remove, ow, pm)
+        output = output.replace(' ', '_')
+        import_tif(out=output, basedir=basedir, rem=remove, write=ow, pm=pm,
+                   listfile=fil, prod=prod)
         if options['mrtpath']:
             os.remove(confname)
 
 
-def mosaic(options, remove, an, ow):
+def mosaic(options, remove, an, ow, fil):
     """Create a daily mosaic of HDF files convert to TIF and import it
     """
     dictfile, targetdir = list_files(options, True)
@@ -341,6 +365,7 @@ def mosaic(options, remove, an, ow):
         spectr = spectral(options, prod, an)
         spectr = spectr.lstrip('( ').rstrip(' )')
         outname = "%s.%s.mosaic" % (pref.split('.')[0], pref.split('.')[1])
+        outname = outname.replace(' ', '_')
         # create mosaic
         if options['mrtpath']:
             # create the file with the list of name
@@ -382,13 +407,15 @@ def mosaic(options, remove, an, ow):
             # remove hdf
             if remove:
                 # import tif files
-                import_tif(outname, basedir, remove, ow, pm)
+                import_tif(out=outname, basedir=basedir, rem=remove, write=ow,
+                           pm=pm, listfile=fil, prod=prod)
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # move the hdf and hdf.xml to the dir where are the original files
             else:
                 # import tif files
-                import_tif(outname, basedir, remove, ow, pm, targetdir)
+                import_tif(out=outname, basedir=basedir, rem=remove, write=ow,
+                           pm=pm, target=targetdir, listfile=fil, prod=prod)
                 try:
                     shutil.move(hdf, targetdir)
                     shutil.move(hdf + '.xml', targetdir)
@@ -439,15 +466,30 @@ def main():
         analyze = False
     else:
         analyze = True
+    if options['spectral']:
+        count = options['spectral'].strip('(').strip(')').split().count('1')
+    else:
+        count = 0
+    outfile = None
+    if flags['w'] and count == 1:
+        outfile = tempfile.NamedTemporaryFile(delete=False)
+    elif flags['w'] and count != 1:
+        grass.warning(_("To use correctly the file in t.rast.import you have "
+                        "to select only a subset in the 'spectral' option. "
+                        "Out file will be not created"))
     # check if import simple file or mosaic
     if flags['m'] and options['input'] != '':
         grass.fatal(_('It is not possible to create a mosaic with a single'
                       ' HDF file'))
         return 0
     elif flags['m']:
-        mosaic(options, remove, analyze, over)
+        mosaic(options, remove, analyze, over, outfile)
     else:
-        single(options, remove, analyze, over)
+        single(options, remove, analyze, over, outfile)
+    if outfile:
+        outfile.close()
+        grass.message(_("You can continue with t.rast.modis "
+                        "'input={name}'".format(name=outfile.name)))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
