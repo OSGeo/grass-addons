@@ -137,8 +137,8 @@ def list_files(opt, mosaik=False):
                 else:
                     filelist[day] = [line.strip()]
     # create a list for each file
-    elif options['dns'] != '':
-        filelist = [options['dns']]
+    elif options['input'] != '':
+        filelist = [options['input']]
         basedir = os.path.split(filelist[0])[0]
     return filelist, basedir
 
