@@ -277,6 +277,11 @@ typedef struct
     char *controlFileAll;
     int devDemand[MAX_YEARS];
     int devDemands[MAXNUM_COUNTY][MAX_YEARS];
+    /// This keeps the number of cells in demand which we satisfied
+    /// in one step but it was more than we should have satisfied.
+    /// To corrent for this, we keep it to the next step and we use
+    /// it to lower the current demand.
+    int overflowDevDemands[MAXNUM_COUNTY];
     /// number of simulation steps
     int nSteps;
 } t_Params;
@@ -1531,7 +1536,8 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
     double dProb;
     t_Cell *pThis;
 
-    nExtra = 0;
+    // get number of demanded cells already satisfied in the previous step
+    nExtra = pParams->overflowDevDemands[regionID];
 
     nStep = step;
 
@@ -1633,6 +1639,8 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
         }
         G_debug(1, "Converted %d sites", nDone);
         nExtra += (nDone - nToConvert);
+        // save overflow for the next time
+        pParams->overflowDevDemands[regionID] = nExtra;
         G_debug(1, "%d extra sites knocked off next timestep", nExtra);
     }
 }
@@ -2112,6 +2120,10 @@ int main(int argc, char **argv)
         readDevPotParams(&sParams, opt.devpotParamsFile->answer);
 
     readDevDemand(&sParams);
+    // initialize the overflow demands to zero
+    for (int i = 0; i < sParams.num_Regions; i++) {
+        sParams.overflowDevDemands[i] = 0;
+    }
     /* allocate memory */
     if (buildLandscape(&sLandscape, &sParams)) {
         /* read data */
