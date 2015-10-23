@@ -51,17 +51,10 @@
 #% gisprompt: old,file,input
 #% required: no
 #%end
-#%option
+#%option G_OPT_F_INPUT
 #% key: files
-#% type: string
-#% key_desc: file
 #% description: Full path to file with list of HDF files
-#% gisprompt: old,file,input
 #% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% required : no
-#% guisection: Import
 #%end
 #%option
 #% key: method
@@ -201,16 +194,6 @@ def confile(pm, opts, q, mosaik=False):
         grass.fatal(e)
 
 
-def prefix(options, name=False):
-    """Return the prefix of output file if not set return None to use default
-       value
-    """
-    if options['output']:
-        return '%s.tif' % options['output']
-    else:
-        return None
-
-
 def metadata(pars, mapp):
     """ Set metadata to the imported files """
     # metadata
@@ -246,7 +229,7 @@ def modis_prefix(inp, mosaic=False):
         return '.'.join(modlist[:3])
 
 
-def import_tif(out, basedir, rem, write, pm, prod, target=None, listfile=None):
+def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
     """Import TIF files"""
     # list of tif files
     pref = modis_prefix(pm.hdfname)
@@ -342,12 +325,7 @@ def single(options, remove, an, ow, fil):
             execmodis = convertModisGDAL(hdf, outname, spectr, res,
                                          wkt=projwkt)
         execmodis.run()
-        output = prefix(options)
-        if not output:
-            output = os.path.split(hdf)[1].rstrip('.hdf')
-        # import tif files
-        output = output.replace(' ', '_')
-        import_tif(out=output, basedir=basedir, rem=remove, write=ow, pm=pm,
+        import_tif(basedir=basedir, rem=remove, write=ow, pm=pm,
                    listfile=fil, prod=prod)
         if options['mrtpath']:
             os.remove(confname)
@@ -407,14 +385,14 @@ def mosaic(options, remove, an, ow, fil):
             # remove hdf
             if remove:
                 # import tif files
-                import_tif(out=outname, basedir=basedir, rem=remove, write=ow,
+                import_tif(basedir=basedir, rem=remove, write=ow,
                            pm=pm, listfile=fil, prod=prod)
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # move the hdf and hdf.xml to the dir where are the original files
             else:
                 # import tif files
-                import_tif(out=outname, basedir=basedir, rem=remove, write=ow,
+                import_tif(basedir=basedir, rem=remove, write=ow,
                            pm=pm, target=targetdir, listfile=fil, prod=prod)
                 try:
                     shutil.move(hdf, targetdir)
