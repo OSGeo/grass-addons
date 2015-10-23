@@ -1,0 +1,102 @@
+<h2>DESCRIPTION</h2>
+The <em>r.futures.demand</em> module of FUTURES
+determines the quantity of expected land changed.
+It creates a demand table as the number of cells to be converted
+at each time step for each subregion based on the relation
+between the population and developed land in the past years.
+
+<p>
+The input  accepts multiple (at least 2)
+rasters of developed (category 1) and undeveloped areas (category 0)
+from different years, ordered by time.
+For these years, user has to provide the population numbers for each subregion
+in parameter <b>observed_population</b> as a CSV file.
+The format is as follows. First column is time
+(matching the time of rasters used in parameter <b>development</b>) and
+first row is the category of the subregion.
+<pre>
+year	1	2	...
+1985	19860	10980	...
+1995	20760	12660	...
+2005	21070	13090	...
+2015	22000	13940	...
+</pre>
+<p>
+The same table is needed for projected population
+(parameter <b>projected_population</b>).
+The categories of the input raster <b>subregions</b> must
+match the identifiers of subregions in files given in <b>observed_population</b>
+and <b>projected_population</b>.
+Parameter <b>simulation_times</b> is a comma separated list
+of times for which the demand will be computed. The first time should
+be the time of the developed/undeveloped raster used
+in <em><a href="r.futures.pga">r.futures.pga</a></em>
+as a starting point for simulation. There is an easy way to create
+such list using Python:
+<pre>
+','.join([str(i) for i in range(2015, 2031)])
+</pre>
+or Bash:
+<pre>
+seq -s, 2015 2030
+</pre>
+
+<p>
+The <b>method</b> parameter allows to choose the type of relation
+between population and developed area. The available methods
+include linear, logarithmic and exponential relation.
+If more than one method is checked, the best relation is selected
+based on RMSE. Recommended methods are logarithmic or linear.
+
+<p>
+The format of the output <b>demand</b> table is:
+<pre>
+Years_to_simulate: 24
+year	1	2	...
+2016	2900	243	...
+2017	2790	240	...
+2018	2660	232	...
+2019	2345	221	...
+2020	2154	215	...
+...
+</pre>
+where each value represents the number of new developed cells in each step.
+In case the demand values would be negative (in case of population decrease
+or if the relation is inversely proportional) the values are turned into zeros,
+since FUTURES does not simulate change from developed to undeveloped sites.
+By changing the "Years_to_simulate" number, user can control the simulation.
+
+<p>
+An optional output <b>plot</b> is a plot of the relations for each subregion.
+It allows to more effectively assess the relation suitable for each subregion.
+
+<center>
+<img src="r_futures_demand_plot.png">
+<p>
+Figure: Example of logarithmic relation between population and developed area
+(generated with option <b>plot</b>).
+</center>
+
+<h2>NOTES</h2>
+<em>r.futures.demand</em> computes the relation
+between population and developed area using simple
+regression. It therefore serves as starting point
+for demand computation which can be further improved.
+
+<h2>EXAMPLES</h2>
+<div class="code"><pre>
+r.futures.demand devel=ash_lc_1976,ash_lc_1985,ash_lc_1995,ash_lc_2006 \
+sub=index2_in observ_pop=ashvile_observed_population.csv \
+proj_pop=ashvile_projected_population.csv simul=`seq -s, 2007 2030` sep=comma \
+demand=demand_sub1.txt plot=regression_lin.pdf method=linear
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>
+
+<h2>AUTHOR</h2>
+
+Anna Petrasova, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a><br>
+
+<p><i>Last changed: $Date$</i>
