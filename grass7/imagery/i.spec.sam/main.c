@@ -59,7 +59,7 @@ int main(int argc,char * argv[])
     int row, col;
     int band;
     int i, j, error=0;
-    vec_struct *svd_values;
+    vec_struct *svd_values; /*la.h defines vec_struct as a typedef mat_struct*/
     /*char command[80]; rm by Yann temporarily see grayscale palette*/
     float anglefield[255][255];
     struct
@@ -152,9 +152,11 @@ int main(int argc,char * argv[])
      */
     G_message("Singular values of Matrix A:");
     G_math_svdval( (double *) svd_values->vals, (double **) A->vals, A->cols, A->rows);
-    v_output(svd_values);
     if (error) 
         G_fatal_error("Error in singular value decomposition, exiting...\n");
+    /*Experimental: display values (replace v_output() in original version)*/
+    for(i=0;i<svd_values->ldim;i++)
+        G_message("%f", svd_values->vals[i]);
 
     /* alright, start Spectral angle mapping */
     nrows = Rast_window_rows();
