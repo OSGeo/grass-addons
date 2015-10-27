@@ -141,7 +141,8 @@ def checkdate(options):
         valueDay = lastday.strftime("%Y-%m-%d")
     # set only start day
     elif options['startday'] == '' and options['endday'] != '':
-        grass.fatal(_("It is not possible use <endday> option without <startday> option"))
+        grass.fatal(_("It is not possible use <endday> option without "
+                      "<startday> option"))
     # set start and end day
     elif options['startday'] != '' and options['endday'] != '':
         valueDay, valueEnd, valueDelta = check2day(options['startday'],
@@ -164,8 +165,8 @@ def main():
             user = 'anonymous'
             passwd = raw_input(_('Insert password (your e-mail): '))
         else:
-            grass.fatal(_("Set folder parameter when using stdin for passing the username " \
-            + "and password"))
+            grass.fatal(_("Set folder parameter when using stdin for passing "
+                          "the username and password"))
             return 0
     # set username, password and folder by file
     else:
@@ -236,9 +237,9 @@ def main():
             elif not flags['g'] and filesize == 0:
                 grass.message(_("All data have been previously downloaded"))
             elif filesize != 0:
-                grass.message(_("All data have been downloaded, continue with "\
-                + "r.modis.import with the option 'files=%s'" % modisOgg.filelist.name \
-                + " and 'mrtpath=/path/to/mrt/'"))
+                grass.message(_("All data have been downloaded, continue "
+                                "with r.modis.import with the option "
+                                "'files=%s'" % modisOgg.filelist.name))
         else:
             grass.fatal(_("Error during connection"))
 
