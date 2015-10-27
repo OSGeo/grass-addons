@@ -5,56 +5,66 @@
 <h2>NOTE</h2>
 
 The input file is given as list of full paths to the MODIS HDF files,
-one per line. The input file(s) have to be inside the folder where 
+one per line. The input file(s) have to be inside the folder where
 the HDF files are stored.
+<b>If <em>mrtpath</em> is not used pyModis will use GDAL to convert HDF
+files to TIF.</b>
 <p>
 The <em>mrtpath</em> option is the path to the main folder of the
 MODIS Reprojection Tools (MRT) binaries, i.e. the folder which contains
 the bin/ and the data/ folder since these two folders are essential for
 obtaining a successful result.<br>
-It is not possible to use flag <em>--q</em> and the option <em>spectral</em>
-together.
 <p>
 
-<b>Warning</b>: 
+<b>Warning</b>:
 <ul>
-  <li>The module has currently only been tested with Lat/Long locations, but also
+  <li>Using MODIS Reprojection Tools to convert HDF files only
    the following projection systems are supported: Lambert Azimuthal Equal Area,
    Lambert Conformal Conic, Mercator, Polar Stereographic, Transverse Mercator,
    Universal Transverse Mercator</li>
+  <li>Using GDAL you can manage all the projection systems supported by Proj4</li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
-Import a single file with the default subset with QA layer analysis to remove bad pixels:
+Import a single file with the all the subsets with QA layer analysis to
+remove bad pixels using GDAL:
 <div class="code"><pre>
-r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt
+r.modis.import dsn=/path/to/file
 </pre></div>
 
-Import more files with the default subset with QA layer:
+Import more files with the default subset with QA layer using MRT:
 <div class="code"><pre>
 r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files like daily mosaic with the default subset without QA layer:
+Import more files like daily mosaic with the default subset without QA
+layer check using MRT:
 <div class="code"><pre>
-r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
+r.modis.import -mq filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
 Import a single file with the default subset without QA layer analysis and without
-rescaling the pixel values:
+rescaling the pixel values using GDAL:
 <div class="code"><pre>
-r.modis.import -r dsn=/path/to/file mrtpath=/path/to/mrt
+r.modis.import -rq dsn=/path/to/file
 </pre></div>
 
-Import a single file with your own subset of layers (for power user):
+Import a single file with your own subset of layers (for power user) using GDAL:
 <div class="code"><pre>
-r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt spectral="( 1 0 1 0 )"
+r.modis.import dsn=/path/to/file spectral="( 1 0 1 0 )"
 </pre></div>
 
-Import more files with your own subset of layers and without QA layer analysis (for power users):
+Import more files with your own subset of layers and without QA layer
+analysis (for power users) using MRT:
 <div class="code"><pre>
 r.modis.import -q filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
+</pre></div>
+
+Import more files and write the file to be use in <em>t.register</em>
+to create a temporal dataset using GDAL, you specify only a subset:
+<div class="code"><pre>
+r.modis.import -wq filename=/path/to/listfile spectral="( 1 )"
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -65,7 +75,7 @@ r.modis.import -q filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em><br>
 <a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a>
- 
+
 <h2>AUTHOR</h2>
 
 Luca Delucchi, Google Summer of Code 2011
