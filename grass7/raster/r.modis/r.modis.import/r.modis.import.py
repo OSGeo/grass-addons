@@ -40,7 +40,7 @@
 #%end
 #%flag
 #% key: w
-#% description: Create a text file to use into t.rast.modis
+#% description: Create a text file to use into t.register
 #%end
 
 #%option
@@ -466,7 +466,8 @@ def main():
         single(options, remove, analyze, over, outfile)
     if outfile:
         outfile.close()
-        grass.message(_("You can continue with t.rast.modis "
+        grass.message(_("You can continue with temporal framework, registering"
+                        " the maps using t.register "
                         "'input={name}'".format(name=outfile.name)))
 
 if __name__ == "__main__":

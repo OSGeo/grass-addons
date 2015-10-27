@@ -45,7 +45,7 @@
 #% label: Name of MODIS product(s)
 #% multiple: yes
 #% required: no
-#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500
+#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, ndvi_terra_sixteen_1000, ndvi_aqua_sixteen_1000, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500
 #% answer: lst_terra_daily_1000
 #%end
 #%option
