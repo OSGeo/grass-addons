@@ -45,15 +45,47 @@
 #% options: 0-
 #% answer: 11
 #%end
+#%option
+#% key: color_table
+#% type: string
+#% label: Color table for the local relief model raster map
+#% description: If not provided, grey is used for output and differences is used for the shaded_output
+#% required: no
+#% options: grey, differences
+#% guisection: Color
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: shaded_output
+#% required: no
+#% label: Local relief combined with shaded relief
+#% description: Local relief model combined with shaded relief of the original elevation
+#% guisection: Color
+#%end
 #%flag
 #% key: i
 #% description: Save intermediate maps
 #%end
 #%flag
 #% key: v
-#% label: Use bspline interpolation
+#% label: Use bspline interpolation to construct the surface
 #% description: Uses v.surf.bspline cubic interpolation instead of r.fillnulls cubic interpolation.
 #%end
+#%flag
+#% key: n
+#% description: Invert colors in the color table
+#% guisection: Color
+#%end
+#%flag
+#% key: g
+#% description: Logarithmic scaling of the color table
+#% guisection: Color
+#%end
+#%flag
+#% key: f
+#% description: Do not perform histogram equalization on the color table
+#% guisection: Color
+#%end
+
 
 import os
 import atexit
@@ -102,13 +134,25 @@ def main():
     save_intermediates = flags['i']
     bspline = flags['v']  # when bspline == False, r.fillnulls is used
 
+    shaded_local_relief_output = options['shaded_output']
+
     # constants
     fill_method = 'bicubic'
     # color table changed from difference to grey to histogram equalized-grey
     # It does make more sense to use that since many archaeologists use the same
     # color scheme for magnetometry and gpr data.
-    color_table = 'grey'
+    color_table = options['color_table']
+    if color_table:
+        user_color_table = True
+    else:
+        user_color_table = False
     rcolors_flags = 'e'
+    if flags['f']:
+        rcolors_flags = ''
+    if flags['g']:
+        rcolors_flags += 'g'
+    if flags['n']:
+        rcolors_flags += 'n'
 
     if save_intermediates:
         def local_create(name):
@@ -129,6 +173,9 @@ def main():
         contour_points = create_map_name('contour_points')
     else:
         raster_contours = create_map_name('raster_contours')
+
+    if shaded_local_relief_output:
+        relief_shade = create_map_name('relief_shade')
 
     # if saving intermediates, keep only 1 contour layer
     if save_intermediates:
@@ -252,8 +299,32 @@ def main():
         gscript.run_command('r.colors', map=subtracted_smooth_elevation,
                             color=color_table, quiet=True)
 
-    gscript.run_command('r.colors', flags=rcolors_flags, map=local_relief_output,
-                        color=color_table, quiet=True)
+    if shaded_local_relief_output:
+        if not user_color_table:
+            color_table = 'difference'
+        gscript.run_command('r.colors', flags=rcolors_flags,
+                            map=local_relief_output,
+                            color=color_table, quiet=True)
+        # r.relief could run in parallel to the main computation,
+        # but it is probably fast in comparison to the rest.
+        # In theory, r.skyview and first component from r.shaded.pca
+        # can be added as well, but let's leave this to the user.
+        gscript.run_command('r.relief', input=elevation_input,
+                            output=relief_shade)
+        gscript.run_command('r.shade', shade=relief_shade,
+                            color=local_relief_output,
+                            output=shaded_local_relief_output)
+        if not user_color_table:
+            color_table = 'grey'
+            gscript.run_command('r.colors', flags=rcolors_flags,
+                                map=local_relief_output,
+                                color=color_table, quiet=True)
+    else:
+        if not user_color_table:
+            color_table = 'grey'
+        gscript.run_command('r.colors', flags=rcolors_flags,
+                            map=local_relief_output,
+                            color=color_table, quiet=True)
 
 
 if __name__ == "__main__":
