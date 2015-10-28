@@ -36,11 +36,15 @@ def get_proj(flag='p'):
         listproj = gproj.split('\n')
         listproj.remove('-PROJ_INFO-------------------------------------------------')
         listproj.remove('-PROJ_UNITS------------------------------------------------')
+        listproj.remove('-PROJ_EPSG-------------------------------------------------')
         listproj.remove('')
         proj = {}
         for i in listproj:
-            ilist = i.split(':')
-            proj[ilist[0].strip()] = ilist[1].strip()
+            try:
+                ilist = i.split(':')
+                proj[ilist[0].strip()] = ilist[1].strip()
+            except IndexError:
+                continue
         proj.update(grass.parse_command('g.proj', flags='j'))
         return proj
     elif flag == 'w':
