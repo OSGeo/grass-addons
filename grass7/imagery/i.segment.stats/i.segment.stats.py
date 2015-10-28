@@ -81,7 +81,10 @@ def cleanup():
 
     if grass.find_file(temporary_vect, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type_='vector',
-                    name=temporary_vect)
+                    name=temporary_vect, quiet=True)
+    if grass.find_file(temporary_clumped_rast, element='vector')['name']:
+            grass.run_command('g.remove', flags='f', type_='vector',
+                    name=temporary_clumped_rast, quiet=True)
     if insert_sql:
         os.remove(insert_sql)
 
@@ -104,6 +107,8 @@ def main():
     insert_sql = None
 
     global temporary_vect
+    global temporary_clumped_rast
+    temporary_clumped_rast = 'segmstat_tmp_clumpedrast_%d' % os.getpid()
     temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
 
     raster_stat_dict = {'zone': 0, 'min': 4, 'third_quart': 16, 'max': 5, 'sum':
@@ -113,8 +118,15 @@ def main():
             'mean': 7}
     
     grass.run_command('g.region', raster=segment_map)
-    grass.run_command('r.to.vect', input_=segment_map, output=temporary_vect,
-            type_='area' , flags='vt')
+    grass.run_command('r.clump',
+                      input_=segment_map,
+                      output=temporary_clumped_rast,
+                      quiet=True)
+    grass.run_command('r.to.vect',
+                      input_=temporary_clumped_rast,
+                      output=temporary_vect,
+                      type_='area',
+                      flags='vt')
 
     for area_measure in area_measures:
         output_header.append(area_measure)
@@ -129,21 +141,26 @@ def main():
         if not grass.find_file(raster, element='raster')['name']:
             grass.message(_("Cannot find raster %s" % raster))
             continue
-        grass.run_command('g.region', raster=raster)
         rastername=raster.split('@')[0]
-        output_header = output_header + [rastername + "_" + x 
-                for x in raster_statistics]
+        output_header += [rastername + "_" + x for x in raster_statistics]
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
-        res=grass.read_command('r.univar', map_=raster, zones=segment_map,
-                flags='et').splitlines()[1:]
-        print res
+        res=grass.read_command('r.univar',
+                               map_=raster,
+                               zones=temporary_clumped_rast,
+                               flags='et').splitlines()[1:]
         for element in res:
             values = element.split('|')
-            output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in
-                    stat_indices]
+            output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
+
+    if csvfile:
+        with open(csvfile, 'wb') as f:
+            f.write(",".join(output_header)+"\n")
+            for key in output_dict:
+                f.write(key+","+",".join(output_dict[key])+"\n")
+        f.close()
 
     if vectormap:
-        insert_sql=grass.tempfile()
+        insert_sql = grass.tempfile()
         fsql = open(insert_sql, 'w')
         fsql.write('BEGIN TRANSACTION;\n')
         create_statement = 'CREATE TABLE ' + vectormap + ' (cat int, '
@@ -151,22 +168,16 @@ def main():
             create_statement += header +  ' double precision, '
         create_statement += output_header[-1] + ' double precision);\n'
         fsql.write(create_statement)
-        for key in sorted(output_dict):
-                fsql.write("INSERT INTO " + vectormap + " VALUES (" +
-                        key+","+",".join(output_dict[key])+");\n")
+        for key in output_dict:
+                sql = "INSERT INTO " + vectormap + " VALUES (" + key+","+",".join(output_dict[key])+");\n"
+                sql = sql.replace('inf', 'NULL')
+                fsql.write(sql)
         fsql.write('END TRANSACTION;')
         fsql.close()
         grass.run_command('g.copy', vector=temporary_vect+','+vectormap)
         grass.run_command('db.execute', input=insert_sql)
         grass.run_command('v.db.connect', map_=vectormap, table=vectormap)
 
-
-    if csvfile:
-        with open(csvfile, 'wb') as f:
-            f.write(",".join(output_header)+"\n")
-            for key in sorted(output_dict):
-                f.write(key+","+",".join(output_dict[key])+"\n")
-        f.close()
 
 if __name__ == "__main__":
     options, flags = grass.parser()
