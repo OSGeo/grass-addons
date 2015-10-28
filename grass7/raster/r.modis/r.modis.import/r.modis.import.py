@@ -468,7 +468,7 @@ def main():
         outfile.close()
         grass.message(_("You can continue with temporal framework, registering"
                         " the maps using t.register "
-                        "'input={name}'".format(name=outfile.name)))
+                        "'file={name}'".format(name=outfile.name)))
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -176,8 +176,8 @@ def main():
         if check(options['settings']):
             filesett = open(options['settings'], 'r')
             fileread = filesett.readlines()
-            user = fileread[0].strip()
-            passwd = fileread[1].strip()
+            user = 'anonymous'
+            passwd = fileread[0].strip()
             filesett.close()
         else:
             grass.fatal(_("File <%s> not found") % options['settings'])
