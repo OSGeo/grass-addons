@@ -86,7 +86,7 @@ int gethead(FILE * fd, struct Cell_head *cellhd, int *missingval)
 	}
 
 	G_warning(_("Illegal line in header"));
-	G_warning(buf);
+	G_warning("%s", buf);
 
 	missing(s, "yllcorner");
 	missing(w, "xllcorner");
