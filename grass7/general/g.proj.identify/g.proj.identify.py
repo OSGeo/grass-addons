@@ -4,7 +4,7 @@
 @module  g.proj.identify
 @brief   Module for automatic identification of EPSG from definition of projection in WKT format.
 
-(C) 2014 by the GRASS Development Team
+(C) 2014-2015 by the GRASS Development Team
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
@@ -12,7 +12,9 @@ This program is free software under the GNU General Public License
 """
 
 #%module
-#% description: Autoidentify of EPSG from WKT
+#% description: Autoidentifies EPSG code from WKT CRS definition.
+#% keyword: general
+#% keyword: projection
 #% keyword: EPSG
 #% keyword: WKT
 #% keyword: .prj
@@ -20,34 +22,33 @@ This program is free software under the GNU General Public License
 
 #%option G_OPT_F_INPUT
 #% key: wkt
-#% label: WKT prj input
+#% label: Name of input file with WKT definition
 #% required: no
 #%end
 
 #%option
 #% key: epsg
 #% type: integer
-#% label: EPSG input
+#% label: Input EPSG code
 #% required: no
 #%end
 
 #%flag
 #% key: p
-#% label: Proj4
-#% description: Print Proj4 format
+#% description: Print projection info in Proj4 format
 #%end
 
 #%flag
 #% key: w
-#% label: WKT
-#% description: Print WKT
+#% description: Print projection info in WKT format
 #%end
 
 #%flag
 #% key: s
 #% label: save
-#% description: Save as default EPSG
+#% description: Save as default EPSG in the current location
 #%end
+
 from grass.script import core as grass
 from grass.pygrass.modules import Module
 from subprocess import PIPE
@@ -66,20 +67,20 @@ def writeEPSGtoPEMANENT(epsg):
                 io = open(path,'w')
                 io.write("epsg: %s"%epsg )
                 io.close()
-                print("EPSG code have been written to < %s >"%path)
+                grass.message("EPSG code have been written to <%s>" % path)
             except IOError as e:
-                print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                grass.error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
         else:
-            print("EPSG file already exist < %s >"%path)
+            grass.message("EPSG file already exist <%s>" % path)
     else:
         try:
             io = open(path,'w')
             io.write("epsg: %s"%epsg)
             io.close()
-            print("EPSG code have been written to < %s >"%path)
+            grass.message("EPSG code have been written to <%s>" % path)
         except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+            grass.error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
 def isPermanent():
     env = grass.gisenv()
@@ -102,7 +103,7 @@ def grassEpsg():
                 if isPermanent():
                     writeEPSGtoPEMANENT(epsg)
                 else:
-                    grass.warning("Cannot acces PERMANENT mapset")
+                    grass.warning("Unable to access PERMANENT mapset")
             return
     try:
         proj=Module('g.proj',
@@ -130,9 +131,9 @@ def wkt2standards(prj_txt):
             if isPermanent():
                 writeEPSGtoPEMANENT(epsg)
             else:
-                grass.warning("Cannot acces PERMANENT mapset")
+                grass.warning("Unable to access PERMANENT mapset")
     except:
-        grass.error('Epsg code cannot be identified')
+        grass.error('EPSG code cannot be identified')
 
 def epsg2standards(epsg):
     srs = osr.SpatialReference()
@@ -157,7 +158,7 @@ def main():
                 wkt=io.read().rstrip()
                 wkt2standards(wkt)
             except IOError as e:
-                grass.error('Cannot open file %s, %s'%(e.errno, e.strerror))
+                grass.error('Unable to open file <%s>: %s'%(e.errno, e.strerror))
         else:
             grassEpsg()
 
