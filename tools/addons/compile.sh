@@ -55,7 +55,7 @@ border: 1px solid black;
 </style>
 </head>
 <body>
-<h1>GRASS $GRASS_VERSION AddOns / $uname (logs gererated $date)</h1>
+<h1>GRASS $GRASS_VERSION AddOns / $uname (logs generated $date)</h1>
 <hr /> 
 <table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
