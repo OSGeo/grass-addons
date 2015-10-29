@@ -1,10 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 ############################################################################
 #
 # MODULE:       r.viewshed.cva.py
 # AUTHOR(S):	Isaac Ullah, additions by Anna Petrasova
-# PURPOSE:	 Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
+# PURPOSE:	 Undertakes a "cumulative viewshed analysis" using a vector points map
+#                as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
 # COPYRIGHT:	(C) 2015 by Isaac Ullah
 # REFERENCES:    r.viewshed
 #		This program is free software under the GNU General Public
