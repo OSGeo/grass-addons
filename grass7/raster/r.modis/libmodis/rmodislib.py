@@ -36,7 +36,10 @@ def get_proj(flag='p'):
         listproj = gproj.split('\n')
         listproj.remove('-PROJ_INFO-------------------------------------------------')
         listproj.remove('-PROJ_UNITS------------------------------------------------')
-        listproj.remove('-PROJ_EPSG-------------------------------------------------')
+        try:
+            listproj.remove('-PROJ_EPSG-------------------------------------------------')
+        except Exception:
+            pass
         listproj.remove('')
         proj = {}
         for i in listproj:
