@@ -22,14 +22,14 @@ This program is free software under the GNU General Public License
 
 #%option G_OPT_F_INPUT
 #% key: wkt
-#% label: Name of input file with WKT definition
+#% description: Name of input file with WKT definition
 #% required: no
 #%end
 
 #%option
 #% key: epsg
 #% type: integer
-#% label: Input EPSG code
+#% description: Input EPSG code
 #% required: no
 #%end
 
@@ -45,7 +45,6 @@ This program is free software under the GNU General Public License
 
 #%flag
 #% key: s
-#% label: save
 #% description: Save as default EPSG in the current location
 #%end
 
