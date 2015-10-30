@@ -1,5 +1,6 @@
 <h2>DESCRIPTION</h2>
 
+<p><b>Trim redundant category labels and colors</b>
 <p>In GRASS you can 'cut out' a subset of a larger raster layer by 
 setting the extent to something smaller then the extent of the 
 original map using g.region and/or by setting a mask using r.mask, 
@@ -18,6 +19,7 @@ only contains category labels and colour definitions for the values
 present in the new map. You can do this on the input map, or do this 
 on a copy of the map.
 
+<p><b>Recode to consecutive category values</b>
 <p>If you prefer the map to have consecutive values (i.e., without 
 gaps), there is the option to change the category values to a 
 consecutive series by setting the n-flag. For example, if the map 
@@ -36,27 +38,37 @@ category labels have been removed):
 3 label9
 </pre></div>
 
-<p>Although it is possible to <a href= 
-"https://pvanb.wordpress.com/2015/10/18/the-qgis-grass-plugin-is-back/
-">open GRASS GIS raster layers directly in QGIS</a>, the legend in 
-QGIS will show the right colours, but not the category labels. The 
-addon let's you export the categories, category labels and colours 
-as QGIS colour map file. This is just a simple text file with the 
-raster categories and corresponding colour definitions and category 
-labels. QGIS can use this to set the colour and labels for a raster 
-layer. See <a href="https://pvanb.wordpress.com/?p=3650">this 
-blogpost</a> for more details how to use the colour map file in 
-QGIS. Alternatively, you can also export the categories and category 
-labels in a normal csv file.
+<p><b>Export QGIS color map file</b> <p>The addon let's you export 
+the categories, category labels and colours as QGIS colour map file. 
+This is just a simple text file with the raster categories and 
+corresponding colour definitions and category labels. QGIS can use 
+this to set the colour and labels for a raster layer. See <a href= 
+"https://pvanb.wordpress.com/grass-gis-categorical-raster-layers-in-qg
+is">this blogpost</a> for more details how to use the colour map 
+file in QGIS. Alternatively, you can also export the categories and 
+category labels as a normal comma separated calues (CSV) file file, 
+which can be easily viewed in a spreadsheet program such as 
+Libre/Open Office Calc, Microsoft Excel, or Google Docs and can be 
+easily shared together with an exported raster file for users that 
+use other GIS programs
 
 
-<h2>NOTE</h2>
-The file is only useful for categorical maps. Therefore only integer maps are accepted as input.
-    
-<h2>SEE ALSO</h2>
+<h2>NOTE</h2> The file is only useful for categorical maps. 
+Therefore only integer maps are accepted as input.
 
-<a href="https://pvanb.wordpress.com/?p=3650">GRASS GIS categorical raster layers in QGIS </a>
-<a href="https://pvanb.wordpress.com/2015/09/22/categorical-maps-and-legends/">GRASS GIS categorical maps and legends</a>
+<p>When you use the option to recode the map, you need to set an 
+output map as well. It uses the <a href="r.recode">r.recode </a> 
+function, with the 'a' flag set, i.e., the region is 
+aligned to the input raster map.
+   
+<h2>Examples</h2>
+See <a href="https://pvanb.wordpress.com/grass-gis-categorical-raster-layers-in-qgis">here</a> for examples
+
+<h2>See also</h2>
+<a href="r.recode.html">r.recode</a>,
+<a href="r.category.html">r.category</a>,
+<a href="r.colors.html">r.colors</a>,
+<a href="r.describe.html">r.describe</a>
 
 <h2>AUTHOR</h2>
 
