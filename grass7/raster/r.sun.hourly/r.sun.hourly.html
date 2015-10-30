@@ -22,7 +22,8 @@ For GRASS 6, only timestamp is assigned.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.sun.hourly elevation=elevation start_time=8 end_time=15 beam_rad_basename=beam nprocs=4 -t
+r.sun.hourly elevation=elevation start_time=8 end_time=15 \
+             beam_rad_basename=beam nprocs=4 -t
 # show information about newly created space time dataset
 t.info beam
 
@@ -31,8 +32,10 @@ t.rast.list beam
 </pre></div>
 
 <h2>NOTE</h2>
-Beam irradiance binary raster maps can be displayed as semitransparent over other map layers
-or module <a href="r.null.html"><em>r.null</em></a> can be used to set one of the values (either shade or sunlight) as NULL.
+Beam irradiance binary raster maps can be displayed as
+semitransparent over other map layers or module
+<a href="r.null.html"><em>r.null</em></a> can be used to
+set one of the values (either shade or sunlight) as NULL.
 
 <h2>SEE ALSO</h2>
 

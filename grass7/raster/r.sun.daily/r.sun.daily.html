@@ -22,7 +22,8 @@ For GRASS 6, only timestamp is assigned.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.sun.daily elevation=elevation start_day=30 end_day=40 beam_rad_basename=beam beam_rad=beam_sum nprocs=4 -t
+r.sun.daily elevation=elevation start_day=30 end_day=40 \
+            beam_rad_basename=beam beam_rad=beam_sum nprocs=4 -t
 # show information about newly created space time dataset
 t.info beam
 
