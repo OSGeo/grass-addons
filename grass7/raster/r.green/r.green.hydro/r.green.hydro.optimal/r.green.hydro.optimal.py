@@ -107,14 +107,18 @@ from grass.pygrass.messages import get_msgr
 #from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.utils import set_path
 
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
-from libgreen.utils import cleanup
-from libgreen.utils import dissolve_lines
-from libhydro.optimal import find_segments
-from libhydro.optimal import write_plants
-from libhydro.optimal import write_points
+try:
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+
+    from libgreen.utils import cleanup
+    from libgreen.utils import dissolve_lines
+    from libhydro.optimal import find_segments
+    from libhydro.optimal import write_plants
+    from libhydro.optimal import write_points
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 ##################################################
 # optimization problem

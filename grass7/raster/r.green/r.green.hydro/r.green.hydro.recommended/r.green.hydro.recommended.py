@@ -197,12 +197,15 @@ from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import VectorTopo
 from grass.script import mapcalc
 
-# r.green lib
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
-# finally import the module in the library
-from libgreen.utils import cleanup
 
+try:
+    # set python path to the shared r.green libraries
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    # finally import the module in the library
+    from libgreen.utils import cleanup
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")

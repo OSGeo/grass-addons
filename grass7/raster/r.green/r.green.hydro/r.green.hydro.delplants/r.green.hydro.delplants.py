@@ -107,14 +107,18 @@ from grass.pygrass.modules.shortcuts import vector as v
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.utils import set_path
 
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
-# finally import the module in the library
-from libgreen.utils import cleanup
-from libgreen.checkparameter import (check_required_columns,
-                                     exception2error)
-from libhydro.plant import read_plants, write_plants
+try:
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+
+    # finally import the module in the library
+    from libgreen.utils import cleanup
+    from libgreen.checkparameter import (check_required_columns,
+                                         exception2error)
+    from libhydro.plant import read_plants, write_plants
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 
 def main(opts, flgs):

@@ -516,13 +516,16 @@ except ImportError:
     warning('You should install numexpr to use this module: '
                   'pip install numexpr')
 
-# set python path to the shared r.green libraries
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
+try:
+    # set python path to the shared r.green libraries
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
-from libgreen.utils import cleanup
-from libgreen.checkparameter import check_required_columns, exception2error
-from libhydro.plant import read_plants, write_structures
+    from libgreen.utils import cleanup
+    from libgreen.checkparameter import check_required_columns, exception2error
+    from libhydro.plant import read_plants, write_structures
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 
 def rname(base):

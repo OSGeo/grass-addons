@@ -100,16 +100,21 @@ from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.utils import set_path
 
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
-# finally import the module in the library
-from libgreen.utils import cleanup
-from libhydro.basin import dtm_corr
-from libhydro import basin
-from libgreen.utils import check_overlay_rr
-#from libgreen.utils import check_overlay_rv
-from libgreen.utils import raster2numpy
-from libgreen.utils import remove_pixel_from_raster
+
+try:
+    # set python path to the shared r.green libraries
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
+    # finally import the module in the library
+    from libgreen.utils import cleanup
+    from libhydro.basin import dtm_corr
+    from libhydro import basin
+    from libgreen.utils import check_overlay_rr
+    #from libgreen.utils import check_overlay_rv
+    from libgreen.utils import raster2numpy
+    from libgreen.utils import remove_pixel_from_raster
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 
 if "GISBASE" not in os.environ:

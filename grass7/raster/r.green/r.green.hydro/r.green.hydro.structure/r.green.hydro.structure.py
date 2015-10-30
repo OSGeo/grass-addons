@@ -138,14 +138,17 @@ from grass.pygrass.utils import set_path
 from grass.pygrass.raster import RasterRow
 
 
-# set python path to the shared r.green libraries
-set_path('r.green', 'libhydro', '..')
-set_path('r.green', 'libgreen', os.path.join('..', '..'))
+try:
+    # set python path to the shared r.green libraries
+    set_path('r.green', 'libhydro', '..')
+    set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
-from libgreen.utils import cleanup
-from libhydro.optimal import conv_segpoints
-from libgreen.checkparameter import check_required_columns, exception2error
-from libhydro.plant import read_plants, write_structures
+    from libgreen.utils import cleanup
+    from libhydro.optimal import conv_segpoints
+    from libgreen.checkparameter import check_required_columns, exception2error
+    from libhydro.plant import read_plants, write_structures
+except ImportError:
+    warning('libgreen and libhydro not in the python path!')
 
 
 def main(opts, flgs):
