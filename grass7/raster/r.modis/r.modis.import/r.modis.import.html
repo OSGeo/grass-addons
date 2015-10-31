@@ -1,14 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.import</em> import into GRASS GIS Level 3 MODIS product.
+<em>r.modis.import</em> import Level 3 MODIS product into GRASS GIS.
 
 <h2>NOTE</h2>
 
 The input file is given as list of full paths to the MODIS HDF files,
 one per line. The input file(s) have to be inside the folder where
 the HDF files are stored.
-<b>If <em>mrtpath</em> is not used pyModis will use GDAL to convert HDF
-files to TIF.</b>
+<b>If <em>mrtpath</em> is not used, pyModis will use GDAL to convert HDF
+files to TIF (which is faster).</b>
 <p>
 The <em>mrtpath</em> option is the path to the main folder of the
 MODIS Reprojection Tools (MRT) binaries, i.e. the folder which contains
@@ -74,10 +74,10 @@ r.modis.import -wq filename=/path/to/listfile spectral="( 1 )"
 <a href="r.modis.download.html">r.modis.download</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em><br>
-<a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a>
+<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
 
 <h2>AUTHOR</h2>
 
-Luca Delucchi, Google Summer of Code 2011
+Luca Delucchi, Google Summer of Code 2011; subsequently updated.
 
 <p><i>Last changed: $Date$</i>

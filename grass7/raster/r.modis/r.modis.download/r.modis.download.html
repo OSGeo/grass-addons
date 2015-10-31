@@ -6,6 +6,7 @@ for each MODIS product.
 
 <h2>NOTE</h2>
 
+<!-- isn't FTP outdated? Then remove here -->
 The connection to the FTP data site requires a default login.
 To set the username and password options the user has to use
 the <em>setting</em> option; a file can be used (in this case the first
@@ -15,23 +16,24 @@ the password is given, usually the user's e-mail address):
   your_NASA_FTP_username
   your_NASA_FTP_password
 </pre></div>
-As alternative, the user can pass the values from standard input.
+As an alternative, the user can pass the values from standard input.
 <p>
-From 2013 NASA use HTTP protocol for some of the MODIS repositories so
-the password it is no more necessary. If you are sure about the protocol
-you can escape to set the password.
+Since 2013 NASA switched to the HTTP protocol for some of the MODIS repositories,
+so the password it is no more necessary. If you are sure that for the product
+of interest the HTTP protocol is used, you can skip to set the password.
 <p>
 
-<b>Warning</b>: The NASA policy does not permit to open more then ten
-connections in parallel with their FTP server. Hence no more than ten
-process of <em>r.modis.download</em> should run at the same time.
+<b>Warning</b>: As per NASA policy not more than ten simultaneous connections
+are permitted in parallel with their server. Hence no more than ten processes
+of <em>r.modis.download</em> should run at the same time to avoid that your
+actual IP address gets blacklisted.
 <p>
-By default the downloaded files are stored in the path where the setting
+By default, the downloaded files are stored in the path where the setting
 file is saved. The user can change this directory with <em>folder</em>
 option. The user has to set the <em>folder</em> option if
 user and password are sent by standard input.
 <p>
-The time for the download depends on the number of requested tiles, days
+The needed time for the download depends on the number of requested tiles, days
 and the type of the MODIS product. For example, the NDVI product ranges 
 from 5 MB to 270 MB and the LST product ranges from 2 MB to 21 MB.
 
@@ -45,26 +47,26 @@ r.modis.download setting=-
 
 Reading the user and password options from file:
 <div class="code"><pre>
-r.modis.download setting=/home/user/.grass7/r.modis/SETTING
+r.modis.download setting=$HOME/.grass7/r.modis/SETTING
 </pre></div>
 
 To download LST Terra product using the default options and changing
 the starting and ending dates to custom values:
 <div class="code"><pre>
-r.modis.download setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+r.modis.download setting=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 To download another product (for example <em>Snow eight days 500 m</em>),
 with other default options:
 <div class="code"><pre>
-r.modis.download setting=/home/user/.grass7/r.modis/SETTING product=snow_terra_eight_500
+r.modis.download setting=$HOME/.grass7/r.modis/SETTING product=snow_terra_eight_500
 </pre></div>
 
 To use <em>r.modis.download</em> in a script with one of the other module
 the user has to set the <em>-g</em> flag to return the name of the file
 containing a list of downloaded HDF names:
 <div class="code"><pre>
-r.modis.download -g setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+r.modis.download -g setting=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -73,10 +75,10 @@ r.modis.download -g setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-
 <a href="r.modis.import.html">r.modis.import</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>
-<a href="https://lpdaac.usgs.gov/lpdaac/products/modis_overview">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
+<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
 
 <h2>AUTHOR</h2>
 
-Luca Delucchi, Google Summer of Code 2011
+Luca Delucchi, Google Summer of Code 2011; subsequently updated.
 
 <p><i>Last changed: $Date$</i>
