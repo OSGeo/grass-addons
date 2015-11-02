@@ -118,7 +118,7 @@ try:
     from libhydro.optimal import write_plants
     from libhydro.optimal import write_points
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    gcore.warning('libgreen and libhydro not in the python path!')
 
 ##################################################
 # optimization problem

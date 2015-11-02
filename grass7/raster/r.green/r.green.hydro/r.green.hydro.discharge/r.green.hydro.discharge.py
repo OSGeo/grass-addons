@@ -182,7 +182,7 @@ try:
     from libgreen.utils import cleanup
     from libhydro.basin import dtm_corr
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    gcore.warning('libgreen and libhydro not in the python path!')
 
 
 if "GISBASE" not in os.environ:

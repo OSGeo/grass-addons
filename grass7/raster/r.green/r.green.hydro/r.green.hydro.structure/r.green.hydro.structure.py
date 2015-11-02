@@ -133,7 +133,7 @@ import os
 import atexit
 
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite
+from grass.script.core import parser, overwrite, warning
 from grass.pygrass.utils import set_path
 from grass.pygrass.raster import RasterRow
 

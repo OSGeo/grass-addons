@@ -513,8 +513,9 @@ from grass.pygrass.messages import get_msgr
 try:
     import numexpr as ne
 except ImportError:
+    ne = None
     warning('You should install numexpr to use this module: '
-                  'pip install numexpr')
+            'pip install numexpr')
 
 try:
     # set python path to the shared r.green libraries
@@ -595,8 +596,9 @@ def vmapcalc2(vmap, vlayer, cname, ctype, expr, overwrite=False):
 
 
 def get_cnames(expr,
-               _names_cache=ne.utils.CacheDict(256),
-               _numexpr_cache=ne.utils.CacheDict(256), **kwargs):
+               _names_cache=ne.utils.CacheDict(256) if ne else ne,
+               _numexpr_cache=ne.utils.CacheDict(256) if ne else ne, 
+               **kwargs):
     if not isinstance(expr, (str, unicode)):
         raise ValueError("must specify expression as a string")
     # Get the names for this expression

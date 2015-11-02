@@ -234,7 +234,7 @@ try:
     from libgreen.utils import cleanup
     from libhydro.optimal import conv_segpoints
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    gcore.warning('libgreen and libhydro not in the python path!')
 
 DEBUG = False
 TMPRAST = []

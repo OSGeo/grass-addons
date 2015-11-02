@@ -114,7 +114,7 @@ try:
     from libgreen.utils import raster2numpy
     from libgreen.utils import remove_pixel_from_raster
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    gcore.warning('libgreen and libhydro not in the python path!')
 
 
 if "GISBASE" not in os.environ:
