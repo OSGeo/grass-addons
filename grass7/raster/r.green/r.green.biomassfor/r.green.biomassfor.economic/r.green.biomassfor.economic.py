@@ -305,8 +305,6 @@ from grass.pygrass.raster import RasterRow
 import numpy as np
 
 
-import ipdb
-import string
 
 ow = overwrite()
 
@@ -317,7 +315,7 @@ def remove_map(opts, flgs):
 
     prf_yield = opts['field_prefix']
 
-    pricelist=string.split(opts['prices'],',')
+    pricelist=opts['prices'].split(',')
 
     run_command("g.remove", type="raster", flags="f", name="tot_roads")
     run_command("g.remove", type="raster", flags="f", name="tot_roads_neg")
@@ -498,7 +496,7 @@ def revenues(opts, flgs,yield_surface,management,treatment,forest,yield_):
 
     
 
-    # pricelist=string.split(opts['prices'],',') #convert the string in list of string
+    # pricelist=opts['prices'].split(',') #convert the string in list of string
 
 
     # for x in range(1,len(pricelist)+1):
@@ -511,7 +509,7 @@ def revenues(opts, flgs,yield_surface,management,treatment,forest,yield_):
     prices=''
 
     for wood in listwoods:
-        #ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         woodprice=wood.split('=')
         where_cond=fieldprice+" like "+"'"+woodprice[0]+"'"
         run_command("v.to.rast",input=forest,output='forest_'+woodprice[0],use="attr", attrcolumn=yield_, where=where_cond)
@@ -525,7 +523,7 @@ def revenues(opts, flgs,yield_surface,management,treatment,forest,yield_):
     #prices = '+'.join(["vol_typ%dpix*%f" % (i+1, price) for i, price in enumerate(opts['prices'])])
     #prices = '+'.join([prf_yield+"_vol_typ%dpix*%f" % (i+1, float(price)) for i, price in enumerate(pricelist)])
 
-    #ipdb.set_trace()
+    #import ipdb; ipdb.set_trace()
 
     price_energy_woodchips=float(opts['price_energy_woodchips'])   
     
