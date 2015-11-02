@@ -224,6 +224,7 @@ class product:
         self.products.update(vi)
         self.products.update(snow)
         self.products.update(surf_refl)
+        self.products.update(water)
         self.products_swath = {'lst_terra_daily': {'url': urlbase,
                                                    'folder': 'MOLT/',
                                                    'prod': 'MOD11_L2.005',
