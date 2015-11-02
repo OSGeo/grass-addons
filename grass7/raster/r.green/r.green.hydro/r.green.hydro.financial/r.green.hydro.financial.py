@@ -696,7 +696,7 @@ def get_electro_length(opts):
     pname, vmapset = pname.split('@') if '@' in pname else (pname, '')
     with VectorTopo(pname, mapset=vmapset, layer=int(opts['struct_layer']),
                     mode='r') as vect:
-        kcol = opts['struct_columm_kind']
+        kcol = opts['struct_column_kind']
         ktype = opts['struct_kind_turbine']
         # check if electro_length it is alredy in the table
         if 'electro_length' not in vect.table.columns:
