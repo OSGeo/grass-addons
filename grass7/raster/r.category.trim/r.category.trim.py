@@ -26,8 +26,8 @@
 #% description: Trim redundant category labels and colors and export as QGIS colour file.
 #% keyword: raster
 #% keyword: color
+#% keyword: color table
 #% keyword: category
-#% keyword: raster
 #%End
 
 #%option
