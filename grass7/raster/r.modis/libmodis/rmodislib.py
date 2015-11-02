@@ -99,6 +99,11 @@ class product:
                      '.sur_refl_b04': '.sur_refl_qc_500m', '.sur_refl_b05':
                      '.sur_refl_qc_500m', '.sur_refl_b06': '.sur_refl_qc_500m',
                      '.sur_refl_b07': '.sur_refl_qc_500m'}
+        # value for water product
+        water_spec = ('( 1 )')
+        water_specqa = ('( 1 1 )')
+        water_suff = {'.water_mask': '.water_mask_QA'}
+
         # granularity
         daily = 1
         eight = 8
@@ -211,6 +216,9 @@ class product:
                                         'color': snow_color,
                                         'suff': snow8_suff, 'res': 500}
                 }
+        water = {'url': urlbase, 'folder': 'MOLT/', 'prod': 'MOD44W.005',
+                 'spec': water_spec, 'spec_qa': water_specqa, 'res': 250,
+                 'suff': water_suff, 'days': one, 'color': snow_color}
         self.products = {}
         self.products.update(lst)
         self.products.update(vi)
