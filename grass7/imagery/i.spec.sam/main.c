@@ -69,10 +69,7 @@ int main(int argc,char * argv[])
 
     G_gisinit (argv[0]);
 
-    parm.group = G_define_option();
-    parm.group->key = "group";
-    parm.group->type = TYPE_STRING;
-    parm.group->required = YES;
+    parm.group = G_define_standard_option(G_OPT_I_GROUP);
     parm.group->description = "Imagery group containing images to be analyzed with Spectral Mixture Analyis";
 
     parm.matrixfile = G_define_option();
