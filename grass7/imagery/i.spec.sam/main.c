@@ -38,6 +38,8 @@
 #include "local_proto.h"
 #include "global.h"
 
+struct GModule *module;
+
 mat_struct *A;
 vec_struct *b, *Avector;
 int matrixsize;
@@ -77,6 +79,13 @@ int main(int argc,char * argv[])
     } parm;
 
     G_gisinit (argv[0]);
+
+    module = G_define_module();
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("spectral angle mapping"));
+    module->description =
+        _("Performs Spectral angle mapping on satellite/aerial images");
+
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
     parm.group->description = "Imagery group containing images to be analyzed with Spectral Mixture Analyis";
