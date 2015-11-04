@@ -21,6 +21,15 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <math.h>
+
+#include <grass/config.h>
+#ifndef HAVE_LIBBLAS
+#error GRASS is not configured with BLAS
+#endif
+#ifndef HAVE_LIBLAPACK
+#error GRASS is not configured with LAPACK
+#endif
+
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/imagery.h>
@@ -171,7 +180,7 @@ int main(int argc,char * argv[])
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
 	{
 	    /* get pixel values of each band and store in b vector: */
-	     /*b = v_get(A->m);                   /* dimension of vector = matrix size = Ref.nfiles*/
+	     /*b = v_get(A->m);*/                   /* dimension of vector = matrix size = Ref.nfiles*/
 	     G_matvect_extract_vector(A, CVEC, Ref.nfiles); /* Yann: Doubt on "cols/CVEC", TODO CHECK: dimension of vector = matrix size = Ref.nfiles*/
              b = G_vector_copy(A, NO_COMPACT);
              G_matvect_retrieve_matrix(A);
