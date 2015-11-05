@@ -67,7 +67,6 @@ int main(int argc,char * argv[])
     int row, col;
     int band;
     int i, j, error=0;
-    vec_struct *svd_values; /*la.h defines vec_struct as a typedef mat_struct*/
     /*char command[80]; rm by Yann temporarily see grayscale palette*/
     float anglefield[255][255];
     struct
@@ -126,7 +125,7 @@ int main(int argc,char * argv[])
 	 if (j !=i)
 	    {
 	     b = G_matvect_get_row(A, j);      /* compare with next col in A */
-	     spectangle = spectral_angle(b, Avector);
+	     spectangle = spectral_angle(Avector, b);
 	     anglefield[i][j]= spectangle;
 	     G_vector_free(b);
 	    }
@@ -162,13 +161,24 @@ int main(int argc,char * argv[])
      *        using singular value decomposition.  IGARSS 1989: 12th Canadian
      *           symposium on Remote Sensing. Vol.4 pp.2069-2072
      */
-    G_message("Singular values of Matrix A:");
-    G_math_svdval( (double *) svd_values->vals, (double **) A->vals, A->cols, A->rows);
-    if (error) 
+    G_message("Singular values ouput vector init");
+    double *svdvalues = G_alloc_vector(A->cols);
+    G_message("Singular values of Matrix A: copy A into double **");
+    double **Avals = G_alloc_matrix(A->cols,A->rows);
+    int count=0;
+    for (i = 0; i < A->cols ; i++){
+     for (j = 0; j < A->rows ; j++){
+      Avals[i][j] = A->vals[count];
+      count++;
+     }
+    }
+    G_message("Singular values of Matrix A: run svdval");
+    if(G_math_svdval( svdvalues, Avals, A->cols, A->rows))
         G_fatal_error("Error in singular value decomposition, exiting...\n");
+    G_message("/*Experimental: display values (replace v_output() in original version)*/");
     /*Experimental: display values (replace v_output() in original version)*/
-    for(i=0;i<svd_values->ldim;i++)
-        G_message("%f", svd_values->vals[i]);
+    for(i=0;i<A->cols;i++)
+        G_message("%f", svdvalues[i]);
 
     /* alright, start Spectral angle mapping */
     nrows = Rast_window_rows();
