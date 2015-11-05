@@ -12,6 +12,8 @@ import sys
 import numpy as np
 
 #from grass.script import mapcalc
+version = 70  # 71
+
 from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
@@ -290,6 +292,7 @@ def find_segments(river, discharge, dtm, range_plant, distance, p_max):
     raster_dtm.open('r')
     reg = Region()
     plants = []
+    import ipdb; ipdb.set_trace()
     for line in vec:
         count = 0
         # args is prog, h,  q
@@ -320,12 +323,18 @@ def write_plants(plants, output, efficiency, min_power):
     for pla in plants:
         power = pla.potential_power(efficiency=efficiency)
         if power > min_power:
-
-            for ink in pla.intakes:
-                new_vec.write(pla.line, (pla.id, pla.id_stream, power,
-                                     float(pla.restitution.discharge),
-                                     float(ink.elevation),
-                                     float(pla.restitution.elevation)))
+            for cat, ink in enumerate(pla.intakes):
+                if version == 70:
+                    new_vec.write(pla.line, (pla.id, pla.id_stream, power,
+                                         float(pla.restitution.discharge),
+                                         float(ink.elevation),
+                                         float(pla.restitution.elevation)))
+                else:
+                    new_vec.write(pla.line, cat=cat, attrs=(pla.id,
+                                  pla.id_stream, power,
+                                  float(pla.restitution.discharge),
+                                  float(ink.elevation),
+                                  float(pla.restitution.elevation)))
 
     new_vec.table.conn.commit()
     new_vec.comment = (' '.join(sys.argv))

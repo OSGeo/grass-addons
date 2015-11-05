@@ -135,7 +135,7 @@
 #%option
 #% key: roughness_penstock
 #% type: double
-#% description: Roughness of the pensotck [mm]
+#% description: Roughness of the penstock [mm]
 #% required: no
 #% answer: 0.015
 #% guisection: Head losses

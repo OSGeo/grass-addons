@@ -5,7 +5,7 @@
 #
 # MODULE:      r.green.hydro.potential
 # AUTHOR(S):   Giulia Garegnani, Pietro Zambelli
-# PURPOSE:     Calculate the theorethical hydropower energy potential for each basin and segments of river
+# PURPOSE:     Calculate the theoretical hydropower energy potential for each basin and segments of river
 # COPYRIGHT:   (C) 2014 by the GRASS Development Team
 #
 #              This program is free software under the GNU General Public
@@ -29,7 +29,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% key_desc: name
-#% description: Name of river discharge [m3/s]
+#% description: Name of input river discharge raster map [m3/s]
 #% required: yes
 #%end
 #%option G_OPT_V_INPUT
@@ -37,7 +37,7 @@
 #% type: string
 #% gisprompt: old,vector,vector
 #% key_desc: name
-#% description: Name of river network
+#% description: Name of river network input vector map
 #% required: no
 #%end
 #%option G_OPT_V_INPUT
@@ -45,7 +45,7 @@
 #% type: string
 #% gisprompt: old,vector,vector
 #% key_desc: name
-#% description: Name of lakes
+#% description: Name of lakes input vector map
 #% required: no
 #%end
 #%option
@@ -83,7 +83,7 @@
 #% key: output
 #% type: string
 #% key_desc: name
-#% description: Name of vector map with basin potential
+#% description: Name of output vector map with basin potential
 #% required: yes
 #% guisection: Basin Potential
 #%END

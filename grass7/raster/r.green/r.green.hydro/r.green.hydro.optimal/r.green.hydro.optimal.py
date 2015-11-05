@@ -156,19 +156,14 @@ def main(options, flags):
     DEBUG = flags['d']
     c = flags['c']
     msgr = get_msgr()
-
     #import ipdb; ipdb.set_trace()
-
-    TMPVEC = ['river_clean']
-    if not gcore.overwrite():
-        for m in TMPVEC:
-            if gcore.find_file(m)['name']:
-                msgr.fatal(_("Temporary vector %s exists") % (m))
-
+    
     if c:
         msgr.message("\Clean rivers\n")
-        dissolve_lines(river, 'river_clean')
-        river = 'river_clean'
+        TMPVECT = [("tmprgreen_%i_clean*" % os.getpid())]
+        pid = os.getpid()
+        dissolve_lines(river, "tmprgreen_%i_clean*" % os.getpid())
+        river = "tmprgreen_%i_clean*" % pid
         # number of cell of the river
     # range for the solution
     msgr.message("\Loop on the category of segments\n")
