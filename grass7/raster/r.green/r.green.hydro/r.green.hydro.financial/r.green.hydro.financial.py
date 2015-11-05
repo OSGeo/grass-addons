@@ -848,7 +848,6 @@ def economic2segment(economic, segment, basename='eco_',
 
 
 def main(opts, flgs):
-    import ipdb; ipdb.set_trace()
     pid = os.getpid()
     pat = "tmprgreen_%i_*" % pid
     atexit.register(cleanup,
@@ -934,7 +933,6 @@ def main(opts, flgs):
                                alpha=opts['alpha_inlet']))
     # add total inlet costs
     # TODO: to be check to avoid to count cost more than one time I have moltiplied by 0.5
-    import ipdb; ipdb.set_trace()
     tot = ('tot_cost = (comp_cost_sum + em_cost + '
            'lin_pipe_cost + lin_electro_cost + '
            'station_cost + inlet_cost + {grid}*0.5) * '
