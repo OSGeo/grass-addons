@@ -40,12 +40,10 @@
 
 struct GModule *module;
 
-mat_struct *A;
 vec_struct *b, *Avector;
 int matrixsize;
 float curr_angle;
 
-char *group;
 struct Ref Ref;
 
 CELL **cell;
@@ -58,9 +56,9 @@ CELL **error_cell;
 int  error_fd;
 
 char result_name[80];
-char *result_prefix, *matrixfile;
+char *result_prefix;
 
-int open_files();
+mat_struct  *open_files(char * matrixfile, char *img_grp);
 void spectral_angle();
 CELL myround(double x);
 
@@ -78,6 +76,9 @@ int main(int argc,char * argv[])
 	struct Option *group, *matrixfile, *output;
     } parm;
 
+    mat_struct *A; /*first use in open.c G_matrix_set()*/
+    char *group;
+
     G_gisinit (argv[0]);
 
     module = G_define_module();
@@ -88,13 +89,10 @@ int main(int argc,char * argv[])
 
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
-    parm.group->description = "Imagery group containing images to be analyzed with Spectral Mixture Analyis";
+    parm.group->description = "Imagery group to target for Spectral Mixture Analyis";
 
-    parm.matrixfile = G_define_option();
-    parm.matrixfile->key = "matrixfile";
-    parm.matrixfile->type = TYPE_STRING;
-    parm.matrixfile->required = YES;
-    parm.matrixfile->description = "Matrix file containing spectral signatures ";
+    parm.matrixfile = G_define_standard_option(G_OPT_F_INPUT);
+    parm.matrixfile->description = "Matrix file containing spectral signatures";
 
     parm.output = G_define_option();
     parm.output->key = "result";
@@ -106,13 +104,11 @@ int main(int argc,char * argv[])
 	G_fatal_error("Parsing arguments error");
 
     result_prefix = parm.output->answer;
-    group       = parm.group->answer;
-    matrixfile  = parm.matrixfile->answer;
 
+    G_message("%s",result_prefix);
 
-/* here we go... */
-
-    open_files();
+    /*Creating A, the spectral signature matrix here*/
+    A = open_files(parm.matrixfile->answer, parm.group->answer);
    /* Spectral Matrix is stored in A now */
 
   /* Check matrix orthogonality 
@@ -121,6 +117,7 @@ int main(int argc,char * argv[])
    *          TM data. Photogrammetric Engineering & Remote Sensing, Vol.63, No6.
    */
      
+    G_message("/* Check matrix orthogonality*/"); 
     for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
     {
      Avector = G_matvect_get_row(A, i);  /* go columnwise through matrix*/
@@ -229,7 +226,7 @@ int main(int argc,char * argv[])
           /* write a color table */
     }
     G_matrix_free(A);
-    make_history(result_name, group, matrixfile);
+    make_history(result_name, parm.group->answer, parm.matrixfile->answer);
     return(EXIT_SUCCESS);
 } /* main*/
 

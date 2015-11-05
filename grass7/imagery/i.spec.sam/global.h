@@ -13,7 +13,6 @@
 
 #define MAXFILES 255
 
-extern mat_struct *A;
 extern vec_struct *b, *Avector;
 extern int matrixsize;
 extern float curr_angle;
@@ -31,5 +30,5 @@ extern CELL **error_cell;
 extern int  error_fd;
 
 extern char result_name[80];
-extern char *result_prefix, *matrixfile;
+extern char *result_prefix;
 

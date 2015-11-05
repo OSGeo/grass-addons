@@ -2,7 +2,6 @@
  * (c) Oct/1998 Markus Neteler, Hannover
 */
 
-#include "global.h"
 #include <stdio.h>
 #include <math.h>
 #include <grass/gis.h>
@@ -10,25 +9,35 @@
 #include <grass/imagery.h>
 #include <grass/gmath.h>
 #include <grass/glocale.h>
+#include "global.h"
 
 int G_matrix_read2(FILE * fp, mat_struct * out); /* Modified version of G_matrix_read(..). */
 
-int open_files()
+mat_struct *open_files(char *matrixfile, char *img_grp)
 {
     char *name, *mapset;
     FILE *fp;
     int i;
+    mat_struct A_input, *A;
 
-/* read in matrix file with spectral library */
+    /* read in matrix file with spectral library */
 
     fp=fopen(matrixfile,"r");
     if (fp == NULL)
     	G_fatal_error("ERROR: Matrixfile %s not found.\n",matrixfile);
     /* Read data and close file */
-    if ((G_matrix_read2(fp, A) < 0))
+    if ((G_matrix_read2(fp, &A_input) < 0))
 	G_fatal_error(_("Unable to read matrix file %s."), matrixfile);
     fclose(fp);
-    
+
+    G_message("matrixfile read");
+
+    A = G_matrix_init(A_input.rows, A_input.cols, A_input.rows);
+    if (A == NULL)
+        G_fatal_error(_("Unable to allocate memory for matrix"));
+
+    A = G_matrix_copy(&A_input);
+
     if(A->rows < A->cols)
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
     /*Only for debug, so temporary disabled*/
@@ -41,15 +50,16 @@ int open_files()
     */
     matrixsize=A->cols;
 
+    G_message("/* open input files from group */");
 /* open input files from group */
-    if (!I_find_group(group))
+    if (!I_find_group(img_grp))
     {
-	G_fatal_error("group=%s - not found\n", group);
+	G_fatal_error("group=%s - not found\n", img_grp);
     }
-    I_get_group_ref(group, &Ref);
+    I_get_group_ref(img_grp, &Ref);
     if (Ref.nfiles <= 1)
     {
-	G_message("Group %s\n", group);
+	G_message("Group %s\n", img_grp);
 	if (Ref.nfiles <= 0)
 	    G_message("doesn't have any files\n");
 	else
@@ -59,10 +69,11 @@ int open_files()
    /* Error check: input file number must be equal to matrix size */
     if (Ref.nfiles != matrixsize) 
     {
-	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, group);
+	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, img_grp);
  	G_fatal_error("       does not match matrix size (%i cols).\n", A->cols);
     }
 
+   G_message("/* get memory for input files */");
    /* get memory for input files */
     cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
     cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
@@ -76,6 +87,7 @@ int open_files()
 	    G_fatal_error("Unable to proceed\n");
     }
 
+    G_message("/* open files for results*/");
   /* open files for results*/
     result_cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
@@ -87,8 +99,8 @@ int open_files()
 	resultfd[i] = Rast_open_c_new (result_name);
     }
 
-
- return(matrixsize); /* give back number of output files (= Ref.nfiles) */
+    G_message("open.c: Returning A");
+ return A; /* give back number of output files (= Ref.nfiles) */
 }
 
 int G_matrix_read2(FILE * fp, mat_struct * out)
@@ -97,6 +109,7 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
     int rows, cols;
     int i, j, row;
     double val;
+    int err;
 
     /* skip comments */
     for (;;) {
@@ -111,19 +124,20 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
 	return -1;
     }
 
-
-    G_matrix_set(out, rows, cols, rows);
+    G_message("Set Matrix rows:%d by cols:%d",rows,cols);
+    err = G_matrix_set(out, rows, cols, rows);
+    G_message("Set Matrix rows:%d by cols:%d is done (err:%d)",rows,cols,err);
 
 
     for (i = 0; i < rows; i++) {
 	if (fscanf(fp, "row%d:", &row) != 1) {
-	    G_warning(_("Input format error"));
+	    G_warning(_("Input format error at row %d"),row);
 	    return -1;
 	}
 
 	for (j = 0; j < cols; j++) {
-	    if (fscanf(fp, "%lf:", &val) != 1) {
-		G_warning(_("Input format error"));
+	    if (fscanf(fp, " %lf", &val) != 1) {
+		G_warning(_("Input format error at col %d"),j);
 		return -1;
 	    }
 
