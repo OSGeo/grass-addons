@@ -42,7 +42,6 @@ struct GModule *module;
 
 vec_struct *b, *Avector;
 int matrixsize;
-float curr_angle;
 
 struct Ref Ref;
 
@@ -59,7 +58,7 @@ char result_name[80];
 char *result_prefix;
 
 mat_struct  *open_files(char * matrixfile, char *img_grp);
-void spectral_angle();
+float spectral_angle();
 CELL myround(double x);
 
 int main(int argc,char * argv[])
@@ -78,6 +77,7 @@ int main(int argc,char * argv[])
 
     mat_struct *A; /*first use in open.c G_matrix_set()*/
     char *group;
+    float spectangle; /*numerical value of the spectral angle*/
 
     G_gisinit (argv[0]);
 
@@ -126,8 +126,8 @@ int main(int argc,char * argv[])
 	 if (j !=i)
 	    {
 	     b = G_matvect_get_row(A, j);      /* compare with next col in A */
-	     spectral_angle();
-	     anglefield[i][j]= curr_angle;
+	     spectangle = spectral_angle(b, Avector);
+	     anglefield[i][j]= spectangle;
 	     G_vector_free(b);
 	    }
 	}
@@ -199,8 +199,8 @@ int main(int argc,char * argv[])
              for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
              {
               Avector = G_matvect_get_row(A, i);  /* go row-wise through matrix*/
-	      spectral_angle();
-	      result_cell[i][col] = myround (curr_angle);
+	      spectangle = spectral_angle(Avector, b);
+	      result_cell[i][col] = myround (spectangle);
 	      G_vector_free(Avector);
              }
 	     G_vector_free(b);
