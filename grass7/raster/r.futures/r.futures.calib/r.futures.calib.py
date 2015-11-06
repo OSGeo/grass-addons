@@ -98,7 +98,7 @@
 #%option G_OPT_R_INPUT
 #% key: development_pressure
 #% required: yes
-#% description: Files containing the information to read in
+#% description: Raster map of development pressure
 #% guisection: PGA
 #%end
 #%option G_OPT_R_INPUT
@@ -142,6 +142,7 @@
 #% required: yes
 #% multiple: no
 #% options: 4,8
+#% answer: 4
 #% description: The number of neighbors to be used for patch generation (4 or 8)
 #% guisection: PGA
 #%end
@@ -151,7 +152,8 @@
 #% required: yes
 #% multiple: no
 #% options: 1,2
-#% description: The way that the location of a seed is determined
+#% answer: 2
+#% description: The way location of a seed is determined (1: uniform distribution 2: development probability)
 #% guisection: PGA
 #%end
 #%option
@@ -277,7 +279,7 @@ def run_one_combination(repeat, development_start, compactness_mean, compactness
 
 
 def run_simulation(development_start, development_end, compactness_mean, compactness_range, discount_factor, patches_file, fut_options):
-    parameters = dict(patch_mean=compactness_mean, patch_range=compactness_range,
+    parameters = dict(compactness_mean=compactness_mean, compactness_range=compactness_range,
                       discount_factor=discount_factor, patch_sizes=patches_file,
                       developed=development_start)
     futures_parameters = dict(development_pressure=fut_options['development_pressure'],
