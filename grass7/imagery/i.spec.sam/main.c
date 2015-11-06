@@ -180,12 +180,15 @@ int main(int argc,char * argv[])
     for(i=0;i<A->cols;i++)
         G_message("%f", svdvalues[i]);
 
+    G_message("/* alright, start Spectral angle mapping */");
     /* alright, start Spectral angle mapping */
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
     G_verbose_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
     G_verbose_message("%s ... ", G_program_name());
+    G_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
+    G_message("%s ... ", G_program_name());
 
     for (row = 0; row < nrows; row++)                 /* rows loop*/
     {
@@ -196,12 +199,10 @@ int main(int argc,char * argv[])
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
 	{
 	    /* get pixel values of each band and store in b vector: */
-	     /*b = v_get(A->m);*/                   /* dimension of vector = matrix size = Ref.nfiles*/
-	     G_matvect_extract_vector(A, CVEC, Ref.nfiles); /* Yann: Doubt on "cols/CVEC", TODO CHECK: dimension of vector = matrix size = Ref.nfiles*/
-             b = G_vector_copy(A, NO_COMPACT);
-             G_matvect_retrieve_matrix(A);
-	     for (band = 0; band < Ref.nfiles; band++)
-		  b->vals[band] = cell[band][col];  /* read input vector */
+	     /*b = v_get(A->m);*/                   /* m=rows; dimension of vector = matrix size = Ref.nfiles*/
+            b = G_vector_init(A->rows,A->rows,RVEC);
+	    for (band = 0; band < Ref.nfiles-1; band++)
+                 b->vals[band] = cell[band][col];  /* read input vector */
 	   
             /* calculate spectral angle for current pixel
              * between pixel spectrum and reference spectrum
