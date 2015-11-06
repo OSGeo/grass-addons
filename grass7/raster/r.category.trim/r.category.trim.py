@@ -167,7 +167,7 @@ def main():
         else:
             RCAT1 = [w.replace('\t', ',') for w in RCAT]
         RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
-        CV1 = CV; CV1.insert(0,"RGB")
+        CV1 = list(CV); CV1.insert(0,"RGB")
         text_file = open(CSV, "w")
         for k in xrange(len(RCAT1)):
             text_file.write(RCAT1[k] + "," + CV1[k] + "\n")
