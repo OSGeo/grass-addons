@@ -32,11 +32,11 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 
     G_message("matrixfile read");
 
-    A = G_matrix_init(A_input.rows, A_input.cols, A_input.rows);
+    A = G_matrix_init(A_input.cols, A_input.rows, A_input.cols);/*changed r/c*/
     if (A == NULL)
         G_fatal_error(_("Unable to allocate memory for matrix"));
 
-    A = G_matrix_copy(&A_input);
+    A = G_matrix_transpose(&A_input);/*transposed for spec angle process*/
 
     if(A->rows < A->cols)
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");
@@ -48,7 +48,7 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	m_output(A);
     }
     */
-    matrixsize=A->cols;
+    matrixsize=A->rows; /*changed cols to rows*/
 
     G_message("/* open input files from group */");
 /* open input files from group */
@@ -75,11 +75,11 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 
    G_message("/* get memory for input files */");
    /* get memory for input files */
-    cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
+    cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
     for (i=0; i < Ref.nfiles; i++)
     {
-	cell[i] = Rast_allocate_c_buf();
+	cell[i] = Rast_allocate_d_buf();
 	name = Ref.file[i].name;
 	mapset = Ref.file[i].mapset;
 	G_verbose_message("Opening input file no. %i [%s]\n", (i+1), name);
@@ -89,14 +89,14 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 
     G_message("/* open files for results*/");
   /* open files for results*/
-    result_cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
+    result_cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
     for (i=0; i < Ref.nfiles; i++)
     {
 	sprintf(result_name, "%s.%d", result_prefix, (i+1));
 	G_verbose_message("Opening output file [%s]\n", result_name);	 
-	result_cell[i] = Rast_allocate_c_buf();
-	resultfd[i] = Rast_open_c_new (result_name);
+	result_cell[i] = Rast_allocate_d_buf();
+	resultfd[i] = Rast_open_new (result_name, DCELL_TYPE);
     }
 
     G_message("open.c: Returning A");

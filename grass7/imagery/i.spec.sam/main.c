@@ -45,21 +45,21 @@ int matrixsize;
 
 struct Ref Ref;
 
-CELL **cell;
+DCELL **cell;
 int *cellfd;
 
-CELL **result_cell;
+DCELL **result_cell;
 int *resultfd;
 
-CELL **error_cell;
+DCELL **error_cell;
 int  error_fd;
 
 char result_name[80];
 char *result_prefix;
 
 mat_struct  *open_files(char * matrixfile, char *img_grp);
-float spectral_angle();
-CELL myround(double x);
+float spectral_angle(vec_struct * Avector1, vec_struct * Avector2, int vtype);
+DCELL myround(double x);
 
 int main(int argc,char * argv[])
 {
@@ -125,7 +125,7 @@ int main(int argc,char * argv[])
 	 if (j !=i)
 	    {
 	     b = G_matvect_get_row(A, j);      /* compare with next col in A */
-	     spectangle = spectral_angle(Avector, b);
+	     spectangle = spectral_angle(Avector, b, RVEC);
 	     anglefield[i][j]= spectangle;
 	     G_vector_free(b);
 	    }
@@ -161,9 +161,9 @@ int main(int argc,char * argv[])
      *        using singular value decomposition.  IGARSS 1989: 12th Canadian
      *           symposium on Remote Sensing. Vol.4 pp.2069-2072
      */
-    G_message("Singular values ouput vector init");
+    G_verbose_message("Singular values ouput vector init");
     double *svdvalues = G_alloc_vector(A->cols);
-    G_message("Singular values of Matrix A: copy A into double **");
+    G_verbose_message("Singular values of Matrix A: copy A into double **");
     double **Avals = G_alloc_matrix(A->cols,A->rows);
     int count=0;
     for (i = 0; i < A->cols ; i++){
@@ -172,35 +172,34 @@ int main(int argc,char * argv[])
       count++;
      }
     }
-    G_message("Singular values of Matrix A: run svdval");
-    if(G_math_svdval( svdvalues, Avals, A->cols, A->rows))
+    G_verbose_message("Singular values of Matrix A: run svdval");
+    if(G_math_svdval(svdvalues, Avals, A->cols, A->rows))
         G_fatal_error("Error in singular value decomposition, exiting...\n");
-    G_message("/*Experimental: display values (replace v_output() in original version)*/");
-    /*Experimental: display values (replace v_output() in original version)*/
+    G_verbose_message("/*display values (replace v_output() in original version)*/");
+    /*display values (replace v_output() in original version)*/
     for(i=0;i<A->cols;i++)
         G_message("%f", svdvalues[i]);
 
-    G_message("/* alright, start Spectral angle mapping */");
+    G_verbose_message("/* alright, start Spectral angle mapping */");
     /* alright, start Spectral angle mapping */
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
     G_verbose_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
     G_verbose_message("%s ... ", G_program_name());
-    G_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
     G_message("%s ... ", G_program_name());
 
     for (row = 0; row < nrows; row++)                 /* rows loop*/
     {
 	G_percent(row, nrows, 2);
 	for (band = 0; band < Ref.nfiles; band++)     /* get row for all bands*/
-	    Rast_get_c_row (cellfd[band], cell[band], row);
+	    Rast_get_d_row (cellfd[band], cell[band], row);
 
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
 	{
 	    /* get pixel values of each band and store in b vector: */
 	     /*b = v_get(A->m);*/                   /* m=rows; dimension of vector = matrix size = Ref.nfiles*/
-            b = G_vector_init(A->rows,A->rows,RVEC);
+            b = G_vector_init(A->cols,A->cols,CVEC);
 	    for (band = 0; band < Ref.nfiles-1; band++)
                  b->vals[band] = cell[band][col];  /* read input vector */
 	   
@@ -209,8 +208,9 @@ int main(int argc,char * argv[])
              * and write result in full degree */
              for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
              {
-              Avector = G_matvect_get_row(A, i);  /* go row-wise through matrix*/
-	      spectangle = spectral_angle(Avector, b);
+              Avector = G_matvect_get_column(A, i);  /* go row-wise through matrix*/
+              G_verbose_message("Av: %f %f %f %f",Avector->vals[0],Avector->vals[1],Avector->vals[2],Avector->vals[3]);
+	      spectangle = spectral_angle(Avector, b, CVEC);
 	      result_cell[i][col] = myround (spectangle);
 	      G_vector_free(Avector);
              }
@@ -220,7 +220,8 @@ int main(int argc,char * argv[])
 
 	/* write the resulting rows: */
         for (i = 0; i < Ref.nfiles; i++)
-          Rast_put_c_row (resultfd[i], result_cell[i]);
+        for (i = 0; i < Ref.nfiles; i++)
+          Rast_put_d_row (resultfd[i], result_cell[i]);
 
     } /* rows loop */
     G_percent(row, nrows, 2);
@@ -242,9 +243,9 @@ int main(int argc,char * argv[])
 } /* main*/
 
 
-CELL myround (double x)
+DCELL myround (double x)
   {
-    CELL n;
+    DCELL n;
     
     if (x >= 0.0)
         n = x + .5;

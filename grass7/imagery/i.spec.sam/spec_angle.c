@@ -30,7 +30,7 @@
  *       Geocarto International, Vol.12, no.3 (Sept.). pp. 27-40
  */
 
-float spectral_angle(vec_struct * Avector1, vec_struct * Avector2)
+float spectral_angle(vec_struct * Avector1, vec_struct * Avector2, int vtype)
 {
     vec_struct *vtmp1;
     double norm1, norm2, norm3;
@@ -38,8 +38,16 @@ float spectral_angle(vec_struct * Avector1, vec_struct * Avector2)
     /* Measure spectral angle */
 
     /* multiply one A column with second */
-    vtmp1 = G_vector_init (Avector1->cols, Avector1->cols, RVEC);
-    vtmp1 = G_vector_product(Avector1, Avector2,vtmp1);
+    if(vtype == RVEC){
+        G_verbose_message("spec_angle.c: Using RVEC type for vtmp1");
+        /*vtmp1 = G_vector_init (Avector1->cols, Avector1->cols, RVEC);*/
+        vtmp1 = G_vector_copy(Avector1, RVEC);
+    }else{
+        G_verbose_message("spec_angle.c: Using CVEC type for vtmp1");
+        /*vtmp1 = G_vector_init (Avector1->cols, Avector1->cols, CVEC);*/
+        vtmp1 = G_vector_copy(Avector1, CVEC);
+    }
+    vtmp1 = G_vector_product(Avector1, Avector2, vtmp1);
     norm1 = G_vector_norm1(vtmp1);	/* calculate 1-norm */
     norm2 = G_vector_norm_euclid(Avector1);	/* calculate 2-norm (Euclidean) */
     norm3 = G_vector_norm_euclid(Avector2);	/* calculate 2-norm (Euclidean) */
