@@ -50,9 +50,11 @@ following commands in Python:
 <div class="code"><pre>
 import numpy as np
 power = 2
-x = np.linspace(0, 1, 1001)
-np.savetxt(fname="incentive_table.txt", fmt='%1.3f', delimiter=',',
-           X=np.column_stack((x, np.power(x, power))))
+length = 1001
+x = np.linspace(0, 1, length)
+np.savetxt(fname="incentive_table.txt", fmt='%1.3f', delimiter=',', 
+           X=np.column_stack((x, np.power(x, power))),
+           header=",{}".format(length), comments='')
 </pre></div>
 
 <center>

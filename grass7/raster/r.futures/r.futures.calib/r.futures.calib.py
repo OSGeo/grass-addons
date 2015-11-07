@@ -214,6 +214,7 @@ from multiprocessing import Process, Queue
 import grass.script.core as gcore
 import grass.script.raster as grast
 import grass.script.utils as gutils
+from grass.exceptions import CalledModuleError
 
 
 TMP = []
@@ -250,9 +251,15 @@ def run_one_combination(repeat, development_start, compactness_mean, compactness
     sum_dist_compactness = 0
     for i in range(repeat):
         gcore.message(_("Running FUTURES simulation {i}/{repeat}...".format(i=i + 1, repeat=repeat)))
-        run_simulation(development_start=development_start, development_end=simulation_dev_end,
-                       compactness_mean=compactness_mean, compactness_range=compactness_range,
-                       discount_factor=discount_factor, patches_file=patches_file, fut_options=fut_options)
+        try:
+            run_simulation(development_start=development_start, development_end=simulation_dev_end,
+                           compactness_mean=compactness_mean, compactness_range=compactness_range,
+                           discount_factor=discount_factor, patches_file=patches_file, fut_options=fut_options)
+        except CalledModuleError, e:
+            queue.put(None)
+            cleanup(tmp=TMP_PROCESS)
+            gcore.error(_("Running r.futures.pga failed. Details: {e}").format(e=e))
+            return
         new_development(simulation_dev_end, simulation_dev_diff)
 
         temp_file = tempfile.NamedTemporaryFile(delete=False)
@@ -422,32 +429,34 @@ def main():
                           'input_compactness_mean', 'input_compactness_range',
                           'compactness_distance']))
         f.write('\n')
-    for com_mean in compactness_means:
-        for com_range in compactness_ranges:
-            for discount_factor in discount_factors:
-                count += 1
-                q = Queue()
-                p = Process(target=run_one_combination,
-                            args=(repeat, dev_start, com_mean, com_range,
-                                  discount_factor, patches_file, options, threshold,
-                                  hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig,
-                                  hist_range_compactness_orig, cell_size, histogram_area_orig, histogram_compactness_orig,
-                                  tmp_name, q))
-                p.start()
-                queue_list.append(q)
-                proc_list.append(p)
-                proc_count += 1
-                if proc_count == nprocs or count == num_all:
-                    for i in range(proc_count):
-                        proc_list[i].join()
-                        data = queue_list[i].get()
-                        f.write(' '.join([str(data['input_discount_factor']), str(data['area_distance']),
-                                          str(data['input_compactness_mean']), str(data['input_compactness_range']),
-                                          str(data['compactness_distance'])]))
-                        f.write('\n')
-                    proc_count = 0
-                    proc_list = []
-                    queue_list = []
+        for com_mean in compactness_means:
+            for com_range in compactness_ranges:
+                for discount_factor in discount_factors:
+                    count += 1
+                    q = Queue()
+                    p = Process(target=run_one_combination,
+                                args=(repeat, dev_start, com_mean, com_range,
+                                      discount_factor, patches_file, options, threshold,
+                                      hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig,
+                                      hist_range_compactness_orig, cell_size, histogram_area_orig, histogram_compactness_orig,
+                                      tmp_name, q))
+                    p.start()
+                    queue_list.append(q)
+                    proc_list.append(p)
+                    proc_count += 1
+                    if proc_count == nprocs or count == num_all:
+                        for i in range(proc_count):
+                            proc_list[i].join()
+                            data = queue_list[i].get()
+                            if not data:
+                                continue
+                            f.write(' '.join([str(data['input_discount_factor']), str(data['area_distance']),
+                                              str(data['input_compactness_mean']), str(data['input_compactness_range']),
+                                              str(data['compactness_distance'])]))
+                            f.write('\n')
+                        proc_count = 0
+                        proc_list = []
+                        queue_list = []
 
 if __name__ == "__main__":
     options, flags = gcore.parser()
