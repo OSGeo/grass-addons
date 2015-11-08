@@ -116,7 +116,7 @@ def main():
             stats = line.split('|')
             if stats[0] == 'zone':
                 continue
-            subregionId, developed_cells = int(stats[0]), int(stats[12])
+            subregionId, developed_cells = stats[0], int(stats[12])
             subregionIds.add(subregionId)
             if i == 0:
                 table_developed[subregionId] = []
@@ -128,8 +128,8 @@ def main():
     for subregionId in table_developed.keys():
         population_for_simulated_times[subregionId] = np.interp(x=simulation_times,
                                                                 xp=np.append(observed_times, projected_times),
-                                                                fp=np.append(observed_popul[str(subregionId)],
-                                                                             projected_popul[str(subregionId)]))
+                                                                fp=np.append(observed_popul[subregionId],
+                                                                             projected_popul[subregionId]))
     # regression
     demand = {}
     i = 0
@@ -146,7 +146,7 @@ def main():
         coeff = dict()
         for method in methods:
             # observed population points for subregion
-            reg_pop = observed_popul[str(subregionId)]
+            reg_pop = observed_popul[subregionId]
             if method == 'logarithmic':
                 reg_pop = np.log(reg_pop)
             if method == 'exponential':
@@ -185,11 +185,11 @@ def main():
         # draw
         if plot:
             ax = fig.add_subplot(n_plots, n_plots, i)
-            ax.set_title(str(subregionId) + ', RMSE: ' + str(rmse[method]))
+            ax.set_title(subregionId + ', RMSE: ' + str(rmse[method]))
             ax.set_xlabel('population')
             ax.set_ylabel('developed cells')
             # plot known points
-            x = np.array(observed_popul[str(subregionId)])
+            x = np.array(observed_popul[subregionId])
             y = np.array(table_developed[subregionId])
             ax.plot(x, y, marker='o', linestyle='', markersize=8)
             # plot predicted curve
@@ -217,19 +217,20 @@ def main():
     # write demand
     with open(options['demand'], 'w') as f:
         f.write('Years_to_simulate: {sim}\n'.format(sim=len(simulation_times)))
-        f.write('\t'.join(observed_popul.dtype.names))
+        header = observed_popul.dtype.names  # the order is kept here
+        f.write('\t'.join(header))
         f.write('\n')
         i = 0
         for time in simulation_times[1:]:
             f.write(str(int(time)))
             f.write('\t')
             # put 0 where there are more counties but are not in region
-            for sub in subregionIds:
+            for sub in header[1:]:  # to keep order of subregions
                 if sub not in subregionIds:
                     f.write('0')
                 else:
                     f.write(str(int(demand[sub][i])))
-                if sub != subregionIds[-1]:
+                if sub != header[-1]:
                     f.write('\t')
             f.write('\n')
             i += 1
