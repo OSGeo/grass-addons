@@ -82,8 +82,8 @@ def cleanup():
     if grass.find_file(temporary_vect, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
-    if grass.find_file(temporary_clumped_rast, element='vector')['name']:
-            grass.run_command('g.remove', flags='f', type_='vector',
+    if grass.find_file(temporary_clumped_rast, element='raster')['name']:
+            grass.run_command('g.remove', flags='f', type_='raster',
                     name=temporary_clumped_rast, quiet=True)
     if insert_sql:
         os.remove(insert_sql)
