@@ -792,7 +792,7 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
         G_message(_("Unable to plot variogram"));
     }
 
-    if (strcmp(var_pars->term, " ") != 0) {
+    if (strcmp(var_pars->term, "") != 0) {
         fprintf(gp, "set terminal %s size 750,450\n", var_pars->term);
 
         switch (var_pars->type) {

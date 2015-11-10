@@ -77,16 +77,23 @@ int main(int argc, char *argv[])
         _("Phase of interpolation. In the initial phase, there is empirical variogram computed. In the middle phase, function of theoretical variogram is chosen by the user and its coefficients are estimated empirically. In the final phase, unknown values are interpolated using theoretical variogram from previous phase.");
     opt.phase->required = YES;
 
-    opt.output = G_define_option();     // Output layer
-    opt.output->key = "output";
-    opt.output->description = _("Name for output 2D/3D raster map");
-    opt.output->guisection = _("Final");
-
     opt.report = G_define_standard_option(G_OPT_F_OUTPUT);      // Report file
     opt.report->key = "report";
     opt.report->description = _("File to write the report");
     opt.report->required = NO;
     opt.report->guisection = _("Initial");
+
+    opt.function_var_hz = G_define_option();    // Variogram type
+    opt.function_var_hz->key = "hz_function";
+    opt.function_var_hz->options =
+        "linear, exponential, spherical, gaussian, bivariate";
+    opt.function_var_hz->description = _("Horizontal variogram function");
+    opt.function_var_hz->guisection = _("Middle");
+
+    opt.output = G_define_option();     // Output layer
+    opt.output->key = "output";
+    opt.output->description = _("Name for output 2D/3D raster map");
+    opt.output->guisection = _("Final");
 
     opt.crossvalid = G_define_standard_option(G_OPT_F_OUTPUT);  // Report file
     opt.crossvalid->key = "crossvalid";
@@ -106,13 +113,6 @@ int main(int argc, char *argv[])
     flg.univariate->description =
         _("Compute univariate variogram (3D interpolation only)");
     flg.univariate->guisection = _("Middle");
-
-    opt.function_var_hz = G_define_option();    // Variogram type
-    opt.function_var_hz->key = "hz_function";
-    opt.function_var_hz->options =
-        "linear, exponential, spherical, gaussian, bivariate";
-    opt.function_var_hz->description = _("Horizontal variogram function");
-    opt.function_var_hz->guisection = _("Middle");
 
     opt.function_var_vert = G_define_option();  // Variogram type
     opt.function_var_vert->key = "vert_function";
@@ -319,7 +319,10 @@ int main(int argc, char *argv[])
     if (opt.report->answer) {
         xD.report.write2file = TRUE;
         xD.report.name = opt.report->answer;
-        xD.report.fp = fopen(xD.report.name, "w");
+        // Do not truncate existing report files
+        // Some users might not change report file name after initial run
+        // thus leading to loss of report content of initial run.
+        xD.report.fp = fopen(xD.report.name, "a");
         time(&xD.report.now);
         fprintf(xD.report.fp, "v.kriging started on %s\n\n",
                 ctime(&xD.report.now));
@@ -345,10 +348,10 @@ int main(int argc, char *argv[])
     var_pars.hz.td = DEG2RAD(atof(opt.td_hz->answer));  // Angle of variogram processing
 
     if (opt.nL->answer) {       // Test if nL have been set up (optional)
-        if (var_pars.hz.nLag < 1)       // Invalid value
+        var_pars.hz.nLag = atoi(opt.nL->answer);
+        if (var_pars.hz.nLag < 1) {       // Invalid value
             G_message(_("Number of horizontal pieces must be at least 1. Default value will be used..."));
-        else {
-            var_pars.hz.nLag = atof(opt.nL->answer);
+            var_pars.hz.nLag = 20;
         }
     }
 
@@ -474,11 +477,6 @@ int main(int argc, char *argv[])
         read_tmp_vals("variogram_hz_tmp.txt", &var_pars.hz, &xD);       // read properties of horizontal variogram from temp file
         read_tmp_vals("variogram_vert_tmp.txt", &var_pars.vert, &xD);   // read properties of vertical variogram from temp file
 
-        if (xD.report.name) {   // report file available: 
-            xD.report.write2file = TRUE;
-            xD.report.fp = fopen(xD.report.name, "a");
-        }
-
         T_variogram(0, TRUE, opt, &var_pars.hz, &xD.report);    // compute theoretical variogram - hz
         T_variogram(1, TRUE, opt, &var_pars.vert, &xD.report);  // compute theoretical variogram - vert
 
@@ -513,13 +511,6 @@ int main(int argc, char *argv[])
         }
         else {                  // 2D kriging
             read_tmp_vals("variogram_hz_tmp.txt", &var_pars.fin, &xD);
-        }
-
-        if (xD.report.name) {   // if report name available:
-            xD.report.write2file = TRUE;
-            xD.report.fp = fopen(xD.report.name, "a");
-            if (xD.report.fp == NULL)   // ... the file does not exist:
-                G_fatal_error(_("Cannot open the file..."));
         }
 
         // check variogram settings

@@ -632,9 +632,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
 
     FILE *fp;
 
-    if (crossvalid->name) {     // CV report file available:
-        fp = fopen(crossvalid->name, "w");
-    }
+    fp = fopen(crossvalid->name, "w");
 
     for (i = 0; i < n; i++) {   // for each input point [r0]:
         list = G_new_ilist();   // create list of overlapping rectangles

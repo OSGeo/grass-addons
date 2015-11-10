@@ -522,12 +522,11 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
     // Cell/voxel center coords (location of interpolated value)
     r0 = (double *)G_malloc(3 * sizeof(double));
 
-    if (report->name) {         // report file available:
-        report->write2file = TRUE;
-        report->fp = fopen(report->name, "a");
+    if (report->write2file) {         // report file available:
         time(&report->now);
         fprintf(report->fp, "Interpolating values started on %s\n\n",
                 ctime(&report->now));
+        fflush(report->fp);
     }
 
     G_message(_("Interpolating unknown values..."));
@@ -545,7 +544,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
     var_par->GM = G_matrix_copy(GM);    // copy matrix because of cross validation
 
     // perform cross validation...
-    if (crossvalid->name) {     // ... if desired
+    if (crossvalid->write2file) {     // ... if desired
         crossvalidation(xD, pnts, var_par);
     }
 
@@ -603,7 +602,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
                     rslt_OK = vals[list->value[0] - 1]; // Estimated cell/voxel value rslt_OK = w x inputs
                 }
                 else if (list->n_values == 0) {
-                    if (report->name) { // report file available:
+                    if (report->write2file) { // report file available:
                         fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
                         fclose(report->fp);
@@ -621,7 +620,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
 
                 // write output to the (3D) raster layer
                 if (write2layer(xD, reg, out, col, row, dep, rslt_OK) == 0) {
-                    if (report->name) { // report file available
+                    if (report->write2file) { // report file available
                         fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
                         fclose(report->fp);     // close report file
@@ -632,7 +631,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
         }                       // end row 
     }                           // end dep
 
-    if (report->name) {
+    if (report->write2file) {
         fprintf(report->fp,
                 "\n************************************************\n\n");
         time(&report->now);
