@@ -126,7 +126,7 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
     """
 
     for i in range(rounds):
-        if i in range(maxagents - len(world.agents)):
+        for i in range(maxagents - len(world.agents)):
             world.bear(agentlife)
         for i in range(len(world.agents)):
             agent = world.agents[i]
