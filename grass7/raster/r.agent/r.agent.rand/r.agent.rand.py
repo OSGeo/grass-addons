@@ -133,7 +133,7 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             position = agent.getposition()
             newvalue = world.playground.getcellvalue('RESULT', position) + mark
             world.playground.setcellvalue('RESULT', positon, newvalue)
-    world.playground.writelayer("copy")
+    world.playground.writelayer("copy", False, overwrite)
 
 def main():
     try:
