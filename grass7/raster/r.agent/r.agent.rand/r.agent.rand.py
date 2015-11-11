@@ -133,7 +133,6 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             agent.step()
             position = agent.getposition()
             newvalue = world.playground.getcellvalue('RESULT', position) + mark
-            grass.message("setting " + position + " to new value " + newvalue)
             world.playground.setcellvalue('RESULT', position, newvalue)
     world.playground.writelayer('RESULT', False, overwrite)
 
