@@ -69,6 +69,11 @@
 #%rules
 #% required: csvfile,vectormap
 #%end
+#% flag
+#% key: r
+#% description: Adjust region to input map
+#%END
+
 
 import os
 import atexit
@@ -82,7 +87,7 @@ def cleanup():
     if grass.find_file(temporary_vect, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
-    if grass.find_file(temporary_clumped_rast, element='raster')['name']:
+    if grass.find_file(temporary_clumped_rast, element='cell')['name']:
             grass.run_command('g.remove', flags='f', type_='raster',
                     name=temporary_clumped_rast, quiet=True)
     if insert_sql:
@@ -91,7 +96,6 @@ def cleanup():
 
 def main():
 
-    grass.use_temp_region()
 
     segment_map = options['map']
     csvfile = options['csvfile'] if options['csvfile'] else []
@@ -117,7 +121,10 @@ def main():
             'coeff_var': 11, 'variance': 10, 'sum_abs': 13, 'perc_90': 17,
             'mean': 7}
     
-    grass.run_command('g.region', raster=segment_map)
+    if flags['r']:
+        grass.use_temp_region()
+        grass.run_command('g.region', raster=segment_map)
+
     grass.run_command('r.clump',
                       input_=segment_map,
                       output=temporary_clumped_rast,
