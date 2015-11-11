@@ -48,6 +48,71 @@ import grass.script as grass
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
 
+def coeff(name, rl):
+    a = c = None
+    if name == 'H_002':
+        if rl < 40: 
+            a = 0.166
+            c = 0.701
+        elif rl < 120:
+            a = 0.237
+            c = 0.803
+        elif rl < 1440:
+            a = 0.235
+            c = 0.801
+    elif name == 'H_005':
+        if rl < 40:
+            a = 0.171
+            c = 0.688
+        elif rl <120:
+            a = 0.265
+            c = 0.803
+        elif rl < 1440:
+            a = 0.324
+            c = 0.845
+    elif name == 'H_010':
+        if rl < 40:
+            a = 0.163
+            c = 0.656
+        elif rl <120:
+            a = 0.280
+            c = 0.803
+        elif rl < 1440:
+            a = 0.380
+            c = 0.867
+    elif name == 'H_020':
+        if rl < 40:
+            a = 0.169
+            c = 0.648
+        elif rl > 40 and rl < 120:
+            a = 0.300
+            c = 0.803
+        elif rl < 1440:
+            a = 0.463
+            c = 0.894
+    elif name == 'H_050':
+        if rl < 40:
+            a = 0.174
+            c = 0.638
+        elif rl < 120:
+            a = 0.323
+            c = 0.803
+        elif rl < 1440:
+            a = 0.580
+            c = 0.925
+    elif name == 'H_100':
+        if rl < 40:
+            a = 0.173
+            c = 0.625
+        elif rl < 120:
+            a = 0.335
+            c = 0.803
+        elif rl < 1440:
+            a = 0.642
+            c = 0.939
+
+    return a, c
+
 def main():
     # get list of existing columns
     try:
@@ -73,9 +138,12 @@ def main():
         # perform zonal statistics
         grass.message('Processing <{}>...'.format(rast))
         table = '{}_table'.format(name)
-        # TODO: handle null values
         Module('v.rast.stats', flags='c', map=opt['map'], raster=rast,
                column_prefix=name, method='average', quiet=True)
+        # TODO: handle null values (very small areas)
+        # Module('v.what.rast', map=opt['map'], raster=rast, type='centroid',
+        #       column='{}_average'.format(name),
+        #       where='{}_average is NULL'.format(name))
         
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
@@ -85,68 +153,7 @@ def main():
                    columns='{} double precision'.format(field_name))
 
         # determine coefficient for calculation
-        a = c = None
-        if name == 'H_002':
-            if rl < 40: 
-                a = 0.166
-                c = 0.701
-            elif rl < 120:
-                a = 0.237
-                c = 0.803
-            elif rl < 1440:
-                a = 0.235
-                c = 0.801
-        elif name == 'H_005':
-            if rl < 40:
-                a = 0.171
-                c = 0.688
-            elif rl <120:
-                a = 0.265
-                c = 0.803
-            elif rl < 1440:
-                a = 0.324
-                c = 0.845
-        elif name == 'H_010':
-            if rl < 40:
-                a = 0.163
-                c = 0.656
-            elif rl <120:
-                a = 0.280
-                c = 0.803
-            elif rl < 1440:
-                a = 0.380
-                c = 0.867
-        elif name == 'H_020':
-            if rl < 40:
-                a = 0.169
-                c = 0.648
-            elif rl > 40 and rl < 120:
-                a = 0.300
-                c = 0.803
-            elif rl < 1440:
-                a = 0.463
-                c = 0.894
-        elif name == 'H_050':
-            if rl < 40:
-                a = 0.174
-                c = 0.638
-            elif rl < 120:
-                a = 0.323
-                c = 0.803
-            elif rl < 1440:
-                a = 0.580
-                c = 0.925
-        elif name == 'H_100':
-            if rl < 40:
-                a = 0.173
-                c = 0.625
-            elif rl < 120:
-                a = 0.335
-                c = 0.803
-            elif rl < 1440:
-                a = 0.642
-                c = 0.939
-        
+        a, c = coeff(rast, rl)
         if a is None or c is None:
             grass.fatal("Unable to calculate coefficients")
         
