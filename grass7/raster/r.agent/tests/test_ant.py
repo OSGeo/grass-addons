@@ -143,12 +143,12 @@ class TestAnt(unittest.TestCase):
 
 #    def test_move(self):
         # This is an Agent method, tested there..
-#        pass    
-    
+#        pass
+
     def test_age(self):
         # This is an Agent method, tested there..
-        pass    
-    
+        pass
+
     def test_snuffit(self):
         # This is an Agent method, tested there..
         pass

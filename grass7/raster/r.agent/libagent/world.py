@@ -81,7 +81,7 @@ class World(object):
                 return position
             else:
                 return False
-        else:              
+        else:
             return self.playground.getrandomposition()
 
     def bear(self, timetolive, position=None, agenttype=None):

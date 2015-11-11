@@ -44,7 +44,7 @@ class TestPlayground(unittest.TestCase):
         ew = 1
         r = self.pg.region["rows"]
         c = self.pg.region["cols"]
-  
+
         self.assertIsNotNone(n)
         self.assertIsNotNone(s)
         self.assertIsNotNone(w)
