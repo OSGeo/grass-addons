@@ -1,6 +1,6 @@
 MODULE_TOPDIR =../..
 
-PGM = r.agent.aco
+PGM = r.agent
 
 SUBDIRS = r.agent.aco \
 			r.agent.rand \
@@ -8,7 +8,7 @@ SUBDIRS = r.agent.aco \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: script parsubdirs
+default: parsubdirs htmldir
 
 install: installsubdirs
 		$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
