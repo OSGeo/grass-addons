@@ -117,8 +117,8 @@ def setmaps(cost, output):
         raise error.DataError("r.agent.rand:", "The output map is mandatory.")
     world.playground.grassmapnames['RESULT'] = output
     #TODO hopefully not really needed - workaround for broken(?) garray
-    world.playground.createlayer("copy", output, True)
-    world.playground.grassmapnames["copy"] = output
+#    world.playground.createlayer("copy", output, True)
+#    world.playground.grassmapnames["copy"] = output
 
 def run(rounds, maxagents, agentlife, mark, overwrite):
     """
@@ -132,8 +132,10 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             agent.step()
             position = agent.getposition()
             newvalue = world.playground.getcellvalue('RESULT', position) + mark
+            if options['verbose']:
+                grass.message("setting " + positon + " to new value " + newvalue)
             world.playground.setcellvalue('RESULT', positon, newvalue)
-    world.playground.writelayer("copy", False, overwrite)
+    world.playground.writelayer('RESULT', False, overwrite)
 
 def main():
     try:
