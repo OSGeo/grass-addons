@@ -133,8 +133,7 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             agent.step()
             position = agent.getposition()
             newvalue = world.playground.getcellvalue('RESULT', position) + mark
-            if options['verbose']:
-                grass.message("setting " + positon + " to new value " + newvalue)
+            grass.message("setting " + positon + " to new value " + newvalue)
             world.playground.setcellvalue('RESULT', positon, newvalue)
     world.playground.writelayer('RESULT', False, overwrite)
 
