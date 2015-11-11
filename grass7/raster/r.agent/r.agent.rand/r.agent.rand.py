@@ -113,9 +113,10 @@ def setmaps(cost, output):
     if output:
         if -1 == output.find('@'):
             output = output + '@' + grass.gisenv()['MAPSET']
+        world.playground.setgrasslayer('RESULT', output, True)
     else:
         raise error.DataError("r.agent.rand:", "The output map is mandatory.")
-    world.playground.grassmapnames['RESULT'] = output
+#    world.playground.grassmapnames['RESULT'] = output
     #TODO hopefully not really needed - workaround for broken(?) garray
 #    world.playground.createlayer("copy", output, True)
 #    world.playground.grassmapnames["copy"] = output
