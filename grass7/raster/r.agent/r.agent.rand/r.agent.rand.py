@@ -85,7 +85,7 @@ from random import randint
 import grass.script as grass
 from grass.pygrass.utils import get_lib_path
 
-path = get_lib_path(modname='r.agent.rand', libname='libagent')
+path = get_lib_path(modname='r.agent', libname='libagent')
 if path is None:
     grass.fatal("Not able to find the agent library directory.")
 sys.path.append(path)
