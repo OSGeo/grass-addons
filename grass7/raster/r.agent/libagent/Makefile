@@ -5,7 +5,7 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = agent anthill ant error grassland playground world
 
-ETCDIR = $(ETC)/r.agent.aco
+ETCDIR = $(ETC)/r.agent
 
 PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))
