@@ -1,21 +1,16 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.agent</em> shall provide an inital base for organizing worlds
-with raster playgrounds and agents in.
-<p>
-As this is only a first implementation the encapsulation that grants
-a modular usage is still suffering..
-<p>
-<em>r.agent</em> is written in python for more transparency and
-better extendability.
-<p>
-As a first world example there is an ACO-based environment
+As a first real example of a world there is an ACO-based environment
 (see <a href="http://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms">Ant Colony Optimization</a>)
-available (in <em>libold</em> see below..).
+available.
 <p>
 The basic concept of such an ACO world, is to take some cost surface
-and transform it to a penalty layer - where for human ants for example
-this penalty layer may be expressed by the walking velocity, e.g. calculated
+and transform it to a penalty layer. Even if the algorithm comes from
+the realm of insects, it might be adopted to different animal kingdoms.
+Depending on the type of agent this penalty layer must be reinterpreted:
+if for example we want to talk about human
+agents
+the penalty layer may be expressed by the walking velocity, e.g. calculated
 with the algorithm proposed by
 <a href="http://www.geodyssey.com/papers/tobler93.html">Tobler1993</a>.
 The actors on the playground will wander around on the playground
@@ -36,17 +31,6 @@ inspirations from previous work conducted at the
 <h2>NOTES</h2>
 
 The state of this software is: "first do it".
-This is work in progress and its structure will probably change quite a lot
-in the future due to a better integration in GRASS and other refactoring.
-<p>
-The refactoring causes <em>r.agent</em> to not work for the moment. The general
-behaviour can be seen by changeing the imports in <em>r.agent.aco</em>
-to the old library <em>libold</em> -- <em>libagent</em> is coming soon.
-<p>
-Unfortunately the colletion is not very well included in GRASS yet.
-At the moment <em>libold</em> only handles ASCII grid and vector in- and
-output data. With a better GRASS integration (arrays) not only will the code
-get lighter but also these drawbacks shall vanish.
 <p>
 ACO works best on dynamic maps -- it constantly tries to improve paths...
 
