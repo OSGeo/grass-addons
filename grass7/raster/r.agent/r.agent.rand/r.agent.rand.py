@@ -124,7 +124,6 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
     """
     Organize the agents on the playground.
     """
-
     for i in range(rounds):
         for i in range(int(maxagents) - len(world.agents)):
             world.bear(agentlife)
@@ -134,8 +133,6 @@ def run(rounds, maxagents, agentlife, mark, overwrite):
             position = agent.getposition()
             newvalue = world.playground.getcellvalue('RESULT', position) + mark
             world.playground.setcellvalue('RESULT', positon, newvalue)
-        run += 1
-
     world.playground.writelayer("copy")
 
 def main():
