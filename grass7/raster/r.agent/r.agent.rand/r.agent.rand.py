@@ -145,7 +145,7 @@ def main():
     if options['maxagents']:
         maxagents = int(options['maxagents'])
     else:
-        maxagents = 0
+        maxagents = 99
     if options['agentslife']:
         agentslife = int(options['agentslife'])
     else:
