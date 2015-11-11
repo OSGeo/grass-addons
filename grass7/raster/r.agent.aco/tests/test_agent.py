@@ -25,9 +25,18 @@ class TestAgent(unittest.TestCase):
         self.assertEqual(position,
                     self.agent.randomposition([position, position]))
 
-#    def test_move(self):
-# not implemented yet
-#        pass
+    def test_step(self):
+        position = self.agent.getposition();
+        oldposition = [position[0],position[1]]
+        agentneighbours = self.world.getneighbourpositions(position);
+        for i in range(len(agentneighbours)):
+            p = [agentneighbours[i][0],agentneighbours[i][1]]
+            agentneighbours[i] = p
+
+        self.agent.step()
+        newposition = self.agent.getposition()
+        self.assertIn(newposition, agentneighbours)
+        self.assertFalse(newposition == oldposition)
 
     def test_age(self):
         self.agent.ttl = 1

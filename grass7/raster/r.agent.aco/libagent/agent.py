@@ -43,7 +43,7 @@ class Agent(object):
         Ask the agent for its current position
         @return list coordinate of the current position
         """
-#TODO not very meaningfull yet..
+#TODO not very meaningful yet..
         return self.position
 
     def randomposition(self, positions):
@@ -54,15 +54,16 @@ class Agent(object):
         """
         return positions[randint(0, len(positions)-1)]
 
-#    def move(self, nrofsteps, direction):
-# not implemented yet
-#        """
-#        Let the agent move
-#        @param int the number of steps to walk
-#        @param char the direction to go
-#        @return list coordinate of the current position
-#        """
-#        return self.position
+    def step(self):
+        """
+        Move to a neighbour position, as in making a single step
+        @param list coordinates of a certain cell
+        @param list coordinates of a certain cell
+        """
+        position = self.getposition()
+        positions = self.world.getneighbourpositions(position)
+        # positions are already shuffled
+        self.setposition(positions[0])
 
     def age(self):
         """
