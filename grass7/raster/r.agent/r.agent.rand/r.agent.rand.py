@@ -144,8 +144,20 @@ def main():
     except error.DataError:
         grass.fatal("Failed to parse args..")
         sys.exit(1)
-    run(int(options['rounds']), options['maxagents'], options['agentslife'],
-            options['mark'], flags['p'])
+    if options['maxagents']:
+        maxagents = int(options['maxagents']
+    else:
+        maxagents = 0
+    if options['agentslife']:
+        agentslife = int(options['agentslife'])
+    else:
+        agentslife = 99
+    if options['mark']:
+        mark = int(options['mark']
+    else:
+        mark = 99
+        
+    run(int(options['rounds']), maxagents, agentslife, mark, flags['p'])
     grass.message("FINISH")
 
 if __name__ == "__main__":
