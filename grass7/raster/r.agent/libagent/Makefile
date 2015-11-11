@@ -13,10 +13,10 @@ PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))
 default: $(PYFILES) $(PYCFILES)
 
 $(ETCDIR):
-    $(MKDIR) $@
+	$(MKDIR) $@
 
 $(ETCDIR)/%: % | $(ETCDIR)
-    $(INSTALL_DATA) $< $@
+	$(INSTALL_DATA) $< $@
 
 install:
-    cp -r $(ETCDIR) $(INST_DIR)/etc
+	cp -r $(ETCDIR) $(INST_DIR)/etc
