@@ -1,42 +1,56 @@
 <h2>DESCRIPTION</h2>
 
+<p>
 <em>v.class.mlR</em> uses machine learning functions in R to classify
 features in a vector map using training features in a second map for 
 supervised learning.
 
+<p>
 At the current stage it is just a quick and dirty hack to allow students to 
 do such classification in the framework of a course. It is meant as a very
 simplistic alternative to v.class.ml which can be a bit overwhelming for
 newbies.
 
+<p>
 Currently, only support vector machine classification is implemented, using
 the e1071 CRAN contrib package (which is automatically installed if necessary).
 The user has to chose between different kernel types. The module then goes
 through tuning across a range of possible parameters using 10-fold cross-
-validation. Optionally, the user can fix certain parameters so that they 
-will be excluded from tuning.
+validation. Optionally, the user can determine fixed values for certain 
+parameters so that they will be excluded from tuning. This speeds up the tuning
+process.
 
 <h2>NOTES</h2>
 
+<p>
 The module automatically excludes columns that contain empty values in the map
 of all features.
 
+<p>
+Running the same model with exactly the same specifications generally leads
+to differing classification errors. This is due to the cross-validation for
+which training and validation sets are drawn randomly. The user can run the
+same model call several times to get an idea of the variances of the error.
+
+<p>
 The module can be used in a tool chain together with <a href="i.segment.html">i.segment</a>
 and the addon <em>i.segment.stats</em> for object-based classification of 
 satellite imagery.
 
 <h2>TODO</h2>
 
+<p>
 If the module is deemed to deserve a longer life-span, than it should possibly
 be recoded to use rpy2 instead of simple text batch files for R (although this
 latter solution is quite useful in a computer lab where rpy2 is not installed).
 
+<p>
 Other classifiers should be included.
 
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-v.class.mlR segments training=basins_training2 classcol=classe outcol=classe_watershed
+v.class.mlR segments training=training_areas classcol=class outcol=class_linear kernel=linear
 </pre></div>
 
 <h2>SEE ALSO</h2>

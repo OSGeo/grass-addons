@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       v.class.Re1071svm.py
+# MODULE:       v.class.mlR
 # AUTHOR:       Moritz Lennert
 # PURPOSE:      Provides supervised machine learning based classification
 #               (using support vector machine from R package e1071)
@@ -44,36 +44,49 @@
 #% required: yes
 #%end
 #%option
+#% key: classifier
+#% type: string
+#% description: Classifier to use
+#% required: yes
+#% options: svm
+#% answer: svm
+#% end
+#%option
 #% key: kernel
 #% type: string
 #% description: Kernel to use
 #% required: yes
 #% options: linear,polynomial,radial,sigmoid
 #% answer: linear
+#% guisection: svm
 #%end
 #%option
 #% key: cost
 #% type: double
 #% description: cost value
 #% required: no
+#% guisection: svm
 #%end
 #%option
 #% key: degree
 #% type: double
 #% description: degree value (for polynomial kernel)
 #% required: no
+#% guisection: svm
 #%end
 #%option
 #% key: gamma
 #% type: double
 #% description: gamma value (for all kernels except linear)
 #% required: no
+#% guisection: svm
 #%end
 #%option
 #% key: coeff0
 #% type: double
 #% description: coeff0 value (for polynomial and sigmoid kernels)
 #% required: no
+#% guisection: svm
 #%end
 
 import atexit
@@ -130,11 +143,14 @@ def main():
     r_file = open(r_commands, 'w')
 
     install = "if(!is.element('e1071', installed.packages()[,1])) "
-    install += "{install.packages('e1071', "
+    install += "{cat('\n\nInstalling e1071 package from CRAN\n\n')\n"
+    install += "install.packages('e1071', "
     install += "repos='https://mirror.ibcp.fr/pub/CRAN/')}"
     r_file.write(install)
     r_file.write("\n")
     r_file.write('library(e1071)')
+    r_file.write("\n")
+    r_file.write("cat('\nRunning R to tune and apply model...\n')")
     r_file.write("\n")
     r_file.write('features<-read.csv("%s", sep="|", header=TRUE)' % feature_vars)
     r_file.write("\n")
@@ -142,7 +158,9 @@ def main():
     r_file.write("\n")
     r_file.write('training<-read.csv("%s", sep="|", header=TRUE)' % training_vars)
     r_file.write("\n")
-    r_file.write("training = data.frame(training[names(features)], classe=training$%s)" % classcol)
+    data_string = "training = data.frame(training[names(training)[names(training)"
+    data_string += "%%in%% names(features)]], classe=training$%s)" % classcol
+    r_file.write(data_string)
     r_file.write("\n")
     r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
     r_file.write("\n")
@@ -193,7 +211,7 @@ def main():
     r_file.write("\n")
     r_file.write("cat(model$best.performance)")
     r_file.write("\n")
-    r_file.write("cat('\n\nSpecification of best model:')")
+    r_file.write("cat('\n\nTuning call and specification of best model:')")
     r_file.write("\n")
     r_file.write("print(model$best.model)")
     r_file.write("\n")
@@ -205,7 +223,6 @@ def main():
     r_file.write("\n")
     r_file.close()
 
-    grass.message('Running R to tune and apply "best" model')
     subprocess.call(['Rscript', r_commands])
 
     f = open(model_output_desc, 'w')
