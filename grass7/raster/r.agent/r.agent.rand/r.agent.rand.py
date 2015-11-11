@@ -145,7 +145,7 @@ def main():
         grass.fatal("Failed to parse args..")
         sys.exit(1)
     if options['maxagents']:
-        maxagents = int(options['maxagents']
+        maxagents = int(options['maxagents'])
     else:
         maxagents = 0
     if options['agentslife']:
@@ -153,7 +153,7 @@ def main():
     else:
         agentslife = 99
     if options['mark']:
-        mark = int(options['mark']
+        mark = int(options['mark'])
     else:
         mark = 99
         
