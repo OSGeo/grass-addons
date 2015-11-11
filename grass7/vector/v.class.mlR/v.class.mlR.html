@@ -1,0 +1,51 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.class.mlR</em> uses machine learning functions in R to classify
+features in a vector map using training features in a second map for 
+supervised learning.
+
+At the current stage it is just a quick and dirty hack to allow students to 
+do such classification in the framework of a course. It is meant as a very
+simplistic alternative to v.class.ml which can be a bit overwhelming for
+newbies.
+
+Currently, only support vector machine classification is implemented, using
+the e1071 CRAN contrib package (which is automatically installed if necessary).
+The user has to chose between different kernel types. The module then goes
+through tuning across a range of possible parameters using 10-fold cross-
+validation. Optionally, the user can fix certain parameters so that they 
+will be excluded from tuning.
+
+<h2>NOTES</h2>
+
+The module automatically excludes columns that contain empty values in the map
+of all features.
+
+The module can be used in a tool chain together with <a href="i.segment.html">i.segment</a>
+and the addon <em>i.segment.stats</em> for object-based classification of 
+satellite imagery.
+
+<h2>TODO</h2>
+
+If the module is deemed to deserve a longer life-span, than it should possibly
+be recoded to use rpy2 instead of simple text batch files for R (although this
+latter solution is quite useful in a computer lab where rpy2 is not installed).
+
+Other classifiers should be included.
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+v.class.mlR segments training=basins_training2 classcol=classe outcol=classe_watershed
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.segment.html">i.segment</a>,
+</em>
+
+<h2>AUTHOR</h2>
+Moritz Lennert
+
+<p><i>Last changed: $Date: 2015-06-05 14:55:16 +0200 (ven 05 jun 2015) $</i>
