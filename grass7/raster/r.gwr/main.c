@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
                   *output_res, *output_est, *output_b, *output_opt,
 		  *bw_opt, *kernel_opt, *vf_opt;
     struct Flag *shell_style, *estimate;
-    struct Flag *adaptive;
+    /*struct Flag *adaptive;*/
     struct Cell_head region;
     struct GModule *module;
 
@@ -131,9 +131,9 @@ int main(int argc, char *argv[])
     estimate->key = 'e';
     estimate->description = _("Estimate optimal bandwidth");
 
-    adaptive = G_define_flag();
+    /*adaptive = G_define_flag();
     adaptive->key = 'a';
-    adaptive->description = _("Adaptive kernel size");
+    adaptive->description = _("Adaptive kernel size");*/
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     if (bw < 2)
 	G_fatal_error(_("Option <%s> must be > 1"), bw_opt->key);
 
-    if(adaptive->answer)
+    /*if(adaptive->answer)*/
         /*IN MAKING*/
 
     set_wfn(kernel_opt->answer, atoi(vf_opt->answer));

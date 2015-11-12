@@ -1,6 +1,6 @@
 struct rb
 {
-    int fd;
+    int fd;             /* File Descriptor */
     int bw;		/* bandwidth */
     int nsize;		/* bw * 2 + 1 */
     int row;		/* next row to read */
