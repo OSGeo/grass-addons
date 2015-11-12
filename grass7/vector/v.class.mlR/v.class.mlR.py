@@ -69,7 +69,7 @@
 #%end
 #%option
 #% key: degree
-#% type: double
+#% type: integer
 #% description: degree value (for polynomial kernel)
 #% required: no
 #% guisection: svm
@@ -164,58 +164,82 @@ def main():
     r_file.write("\n")
     r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
     r_file.write("\n")
-    model_string = "model=tune(svm, %s~., data=training[-1], " % classcol
-    model_string += "nrepeat=10, "
-    model_string += "sampling='cross', cross=10"
-    model_string += ", kernel='%s'" % kernel
-    if cost:
-        model_string += ", cost = %s, " % cost
-    if gamma:
-        model_string += ", gamma = %s, " % gamma
-    if degree:
-        model_string += ", degree = %s, " % degree
-    if coeff0:
-        model_string += ", coeff0 = %s, " % coeff0
-    if not cost or not gamma or not degree or not coeff0:
-        model_string += ", ranges=list("
-        first = True
+    tune = True
+    if kernel == 'linear' and cost:
+        model_string = "model=svm(%s~., data=training[-1])" % classcol
+        tune = False
+    if kernel == 'polynomial' and cost and degree and gamma and coeff0:
+        model_string = "model=svm(%s~., data=training[-1], " % classcol
+        model_string += "cost = %f, " % cost
+        model_string += "degree = %d, " % degree
+        model_string += "gamma = %f, " % gamma
+        model_string += "coeff0 = %f)" % coeff0
+        tune = False
+    if kernel == 'radial' and cost and gamma:
+        model_string = "model=svm(%s~., data=training[-1], " % classcol
+        model_string += "cost = %f, " % cost
+        model_string += "gamma = %f)" % gamma
+        tune = False
+    if kernel == 'sigmoid' and cost and gamma and coeff0:
+        model_string = "model=svm(%s~., data=training[-1], " % classcol
+        model_string += "cost = %f, " % cost
+        model_string += "gamma = %f, " % gamma
+        model_string += "coeff0 = %f)" % coeff0
+        tune = False
+    if tune:
+        model_string = "model=tune(svm, %s~., data=training[-1], " % classcol
+        model_string += "nrepeat=10, "
+        model_string += "sampling='cross', cross=10"
+        model_string += ", kernel='%s'" % kernel
+        if cost:
+            model_string += ", cost = %s, " % cost
+        if gamma:
+            model_string += ", gamma = %s, " % gamma
+        if degree:
+            model_string += ", degree = %s, " % degree
+        if coeff0:
+            model_string += ", coeff0 = %s, " % coeff0
+        if not cost or not gamma or not degree or not coeff0:
+            model_string += ", ranges=list("
+            first = True
 
-        if not cost:
-            model_string += "cost=c(0.01, 0.1, 1, 5, 10)"
-            first = False
-
-        if not gamma:
-            if first:
-                model_string += "gamma=seq(0,0.5,0.1)"
+            if not cost:
+                model_string += "cost=c(0.01, 0.1, 1, 5, 10)"
                 first = False
-            else:
-                model_string += ", gamma=seq(0,0.5,0.1)"
 
-        if not degree:
-            if first:
-                model_string += "degree=seq(2,4,1)"
-                first = False
-            else:
-                model_string += ", degree=seq(2,4,1)"
+            if not gamma and not kernel == 'linear':
+                if first:
+                    model_string += "gamma=seq(0,0.5,0.1)"
+                    first = False
+                else:
+                    model_string += ", gamma=seq(0,0.5,0.1)"
 
-        if not coeff0:
-            if first:
-                model_string += "coeff0=seq(0,0.5,0.1)"
-            else:
-                model_string += ", coeff0=seq(0,0.5,0.1)"
-        model_string += "))"
+            if not degree and kernel == 'polynomial':
+                if first:
+                    model_string += "degree=seq(2,4,1)"
+                    first = False
+                else:
+                    model_string += ", degree=seq(2,4,1)"
+
+            if not coeff0 and (kernel == 'polynomial' or kernel == 'sigmoid'):
+                if first:
+                    model_string += "coeff0=seq(0,0.5,0.1)"
+                else:
+                    model_string += ", coeff0=seq(0,0.5,0.1)"
+
+            model_string += "))"
 
     r_file.write(model_string)
     r_file.write("\n")
-    r_file.write("cat('\nSample classification error: ')")
+    r_file.write("cat('\nTuning (or model) summary: ')")
     r_file.write("\n")
-    r_file.write("cat(model$best.performance)")
+    r_file.write("summary(model)")
     r_file.write("\n")
-    r_file.write("cat('\n\nTuning call and specification of best model:')")
-    r_file.write("\n")
-    r_file.write("print(model$best.model)")
-    r_file.write("\n")
-    r_file.write("%s=predict(model$best.model, features[-1])" % output_classcol)
+    if tune:
+        r_file.write("%s=predict(model$best.model, features[-1])" % output_classcol)
+    else:
+        r_file.write("%s=predict(model, features[-1])" % output_classcol)
+
     r_file.write("\n")
     write_string = "write.csv(data.frame(cat=features$cat, %s), " % output_classcol
     write_string += "'%s', row.names=FALSE, quote=FALSE)" % model_output
