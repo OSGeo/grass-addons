@@ -58,35 +58,39 @@
 #% required: yes
 #% options: linear,polynomial,radial,sigmoid
 #% answer: linear
-#% guisection: svm
+#% guisection: SVM
 #%end
 #%option
 #% key: cost
 #% type: double
-#% description: cost value
+#% description: Cost value
 #% required: no
-#% guisection: svm
+#% guisection: SVM
 #%end
 #%option
 #% key: degree
 #% type: integer
-#% description: degree value (for polynomial kernel)
+#% description: Degree value (for polynomial kernel)
 #% required: no
-#% guisection: svm
+#% guisection: SVM
 #%end
 #%option
 #% key: gamma
 #% type: double
-#% description: gamma value (for all kernels except linear)
+#% description: Gamma value (for all kernels except linear)
 #% required: no
-#% guisection: svm
+#% guisection: SVM
 #%end
 #%option
 #% key: coeff0
 #% type: double
-#% description: coeff0 value (for polynomial and sigmoid kernels)
+#% description: Coeff0 value (for polynomial and sigmoid kernels)
 #% required: no
-#% guisection: svm
+#% guisection: SVM
+#%end
+#%flag
+#% key: t
+#% description: Only tune model, do not update attribute table
 #%end
 
 import atexit
@@ -101,7 +105,8 @@ def cleanup():
     os.remove(model_output)
     os.remove(model_output_desc)
     os.remove(r_commands)
-    grass.run_command('db.droptable', table=temptable, flags='f', quiet=True)
+    if not flags['t']:
+	grass.run_command('db.droptable', table=temptable, flags='f', quiet=True)
 
 def main():
 
@@ -109,6 +114,7 @@ def main():
     training = options['training']
     classcol = options['class_column']
     output_classcol = options['output_column']
+    #output_classcol = classcol + '_model'
     kernel = options['kernel']
     cost = options['cost']
     gamma = options['gamma']
@@ -159,35 +165,34 @@ def main():
     r_file.write('training<-read.csv("%s", sep="|", header=TRUE)' % training_vars)
     r_file.write("\n")
     data_string = "training = data.frame(training[names(training)[names(training)"
-    data_string += "%%in%% names(features)]], classe=training$%s)" % classcol
+    data_string += "%%in%% names(features)]], trainingclass=training$%s)" % classcol
     r_file.write(data_string)
     r_file.write("\n")
-    r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
+    r_file.write("training$trainingclass <- as.factor(training$trainingclass)")
     r_file.write("\n")
+    model_string = "model=svm(trainingclass~., data=training[-1], "
+    model_string += "kernel = '%s', " % kernel
     tune = True
     if kernel == 'linear' and cost:
-        model_string = "model=svm(%s~., data=training[-1])" % classcol
+        model_string += "cost = %f)" % cost
         tune = False
     if kernel == 'polynomial' and cost and degree and gamma and coeff0:
-        model_string = "model=svm(%s~., data=training[-1], " % classcol
         model_string += "cost = %f, " % cost
         model_string += "degree = %d, " % degree
         model_string += "gamma = %f, " % gamma
         model_string += "coeff0 = %f)" % coeff0
         tune = False
     if kernel == 'radial' and cost and gamma:
-        model_string = "model=svm(%s~., data=training[-1], " % classcol
         model_string += "cost = %f, " % cost
         model_string += "gamma = %f)" % gamma
         tune = False
     if kernel == 'sigmoid' and cost and gamma and coeff0:
-        model_string = "model=svm(%s~., data=training[-1], " % classcol
         model_string += "cost = %f, " % cost
         model_string += "gamma = %f, " % gamma
         model_string += "coeff0 = %f)" % coeff0
         tune = False
     if tune:
-        model_string = "model=tune(svm, %s~., data=training[-1], " % classcol
+        model_string = "model=tune(svm, trainingclass~., data=training[-1], "
         model_string += "nrepeat=10, "
         model_string += "sampling='cross', cross=10"
         model_string += ", kernel='%s'" % kernel
@@ -253,12 +258,13 @@ def main():
     f.write('"Integer","Integer"\n')
     f.close()
 
-    grass.message("Loading results into attribute table")
-    grass.run_command('db.in.ogr', input_=model_output, output=temptable,
-            overwrite=True, quiet=True)
-    grass.run_command('v.db.join', map_=allfeatures, column='cat',
-                        otable=temptable, ocolumn='cat_', 
-                        subset_columns=output_classcol, quiet=True)
+    if not flags['t']:
+    	grass.message("Loading results into attribute table")
+	grass.run_command('db.in.ogr', input_=model_output, output=temptable,
+			   overwrite=True, quiet=True)
+	grass.run_command('v.db.join', map_=allfeatures, column='cat',
+			   otable=temptable, ocolumn='cat_', 
+			   subset_columns=output_classcol, quiet=True)
 
 
 if __name__ == "__main__":
