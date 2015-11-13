@@ -115,8 +115,8 @@ def main():
             rules='-', stdin=segment_input, quiet=True)
 
     center_distances = grass.pipe_command('v.distance',
-            _from=tmp_centerpoints_map, to=tmp_centerpoints_map, upload='dist',
-            column='dist', flags='pa', quiet=True)
+            from_=tmp_centerpoints_map, to=tmp_centerpoints_map, upload='dist',
+            flags='pa', quiet=True)
 
     cats = []
     mean_dists = []
@@ -247,13 +247,13 @@ def main():
 
         # Get coordinates of closest points on all input lines
         if search_range:
-            points = grass.pipe_command('v.distance', _from=tmp_points_map,
+            points = grass.pipe_command('v.distance', from_=tmp_points_map,
                         from_layer=2, to=input, upload='to_x,to_y',
-                        col='x,y', dmax=search_range, flags='pa', quiet=True)
+                        dmax=search_range, flags='pa', quiet=True)
         else:
-            points = grass.pipe_command('v.distance', _from=tmp_points_map,
+            points = grass.pipe_command('v.distance', from_=tmp_points_map,
                         from_layer=2, to=input, upload='to_x,to_y',
-                        col='x,y', flags='pa', quiet=True)
+                        flags='pa', quiet=True)
 
         firstline = True
         for point in points.stdout:
