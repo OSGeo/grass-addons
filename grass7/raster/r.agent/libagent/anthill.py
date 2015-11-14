@@ -2,7 +2,7 @@
 MODULE:       r.agent.*
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      library file for the r.agent.* suite
-COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
+COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,8 +19,15 @@ from random import randint
 
 class Anthill(world.World):
     """
-    World class for using the Ant Colony Optimization Algorithm for
-    modelling Agent Based worlds.
+    This kind of world makes use of the Ant Colony Optimization (ACO)
+    algorithm for coordinating its agent's actions (for ACO, see
+    https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms).
+
+    The agents are implemented as ants, wandering around by chance
+    if they find a goal cell they will mark their way back home
+    with pheromone. The following ants then choose the marked cells
+    on the playground more likely then unmarked spots. The pheromone
+    evaporates over time.
     """
     # constant names for the layers
     SITE = "sitemap"
@@ -29,8 +36,8 @@ class Anthill(world.World):
 
     def __init__(self, pg=None):
         """
-        Create a world based on the natural laws of the Ant Colony Optimization
-        algorithm (plus adaptions honouring the complexity of the raster case).
+        Create a world based on the natural laws of the ACO algorithm
+        (plus adaptions honouring the complexity of the raster case).
         """
         # get all attributes from the basic world
         super(Anthill, self).__init__(pg, ant.Ant)

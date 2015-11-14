@@ -15,7 +15,19 @@ import error
 #from grass.script import core as grass
 
 class Ant(agent.Agent):
-    """Implementation of an Ant Agent for an Anthill, an ACO kind of World."""
+    """
+    Implementation of an Ant like Agent for an Anthill, a kind of World
+    that works after ACO rules (see Anthill).
+
+    Ants are wandering around by chance until they find some goal cell,
+    then they will mark their way back home with pheromone. Following ants
+    choose the marked cells on the playground more likely then unmarked
+    spots.
+
+    There are several optimizations / idealizations to choose from,
+    as ACO comes from graph theory and raster layers map quite large
+    graphs (e.g. loops are a major source of sorrow).
+    """
 
     def __init__(self, timetolive, world, position):
         """

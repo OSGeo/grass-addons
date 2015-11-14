@@ -2,7 +2,7 @@
 MODULE:       r.agent.*
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      library file for the r.agent.* suite
-COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
+COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
@@ -16,7 +16,16 @@ import agent
 from math import sqrt
 
 class World(object):
-    """Generic World class as basis for more complex worlds."""
+    """
+    Generic World class as basis for more complex worlds.
+    A world is a place where things happen. A world normally
+    consists of some playground, i.e. a setup of various
+    layers. Furthermore it holds a list of agents that will
+    act in that world, e.g. change values on layers. More
+    complex worlds might also hold lists of some artefacts
+    (e.g. attractors) or vector-coordinates to indicate points
+    on the playground...
+    """
     # walking constants
     ## agents default ability to move
     FREEDOM = 8

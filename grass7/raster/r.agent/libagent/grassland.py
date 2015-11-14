@@ -2,7 +2,7 @@
 MODULE:       r.agent.*
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      library file for the r.agent.* suite
-COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
+COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
@@ -14,7 +14,13 @@ import grass.script as grass
 from grass.script import array as garray
 
 class Grassland(playground.Playground):
-    """A GrassLand is a Playground and the interface to GRASS."""
+    """
+    A GrassLand is a Playground and the interface to GRASS.
+
+    Besides the plain raster layers it also connects them to the
+    layer names used in GRASS and it can parse vector layers (for
+    now only point vectors though) from GRASS too.
+    """
 
     # internal logging class name
     ME = "r.agent::libagent.grassland.Grassland()"
