@@ -58,6 +58,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #%flag
 #% key: l
 #% description: Avoid loops on the way back
+#%end
 #%option
 #% key: sitesmap
 #% type: string
