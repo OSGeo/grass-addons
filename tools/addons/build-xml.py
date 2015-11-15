@@ -11,9 +11,9 @@ ADDON_PATH = os.path.join(os.getenv('HOME'), 'src', 'grass-addons')
 DIST = 'dist.x86_64-unknown-linux-gnu'
 
 def get_list(addons):
-    mlist = os.listdir(os.path.join(addons))
-    for f in ('logs', 'modules.xml'):
-        mlist.remove(f)
+    mlist = [d for d in os.listdir(os.path.join(addons)) if os.path.isdir(os.path.join(addons, d))]
+    if 'logs' in mlist:
+        mlist.remove('logs')
     mlist.sort()
     return mlist
 
