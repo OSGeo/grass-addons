@@ -13,7 +13,7 @@ The flexural solution is generated for the current computational region, so be s
 <!--Add equation or a link to paper, etc.-->
 <b>input</b> is a 2-D array of loads in a GRASS raster. These are in units of stress, and equal the density of the material times the acceleration due to gravity times the thickness of the column. This is not affected by what you choose for <b>g</b>, later: it is pre-calculated by the user.
 <p>
-<b>te</b>, written in standard text as T<sub>e</sub> is the lithospheric elastic thickness.
+<b>te</b>, written in standard text as T<sub>e</sub>, is the lithospheric elastic thickness.
 <p>
 Several boundary conditions are available, and these depend on if the solution method is finite differece (FD) or superposition of analytical solutions (SAS). In the latter, it is assumed that there are no loads outside of those that are explicitly listed, so the boundary conditions are "NoOutsideLoads". As this is the implicit case, the boundary conditions all default to this.
 <p>
@@ -49,9 +49,13 @@ The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling Syst
 
 <h2>REFERENCES</h2>
 
+
+
+Wickert, A. D. (2015), Open-source modular solutions for flexural isostasy: gFlex v1.0, <i>Geoscientific Model Development Discussions</i>, <i>8</i>(6), 4245&ndash;4292, doi:10.5194/gmdd-8-4245-2015.
+<p>
 Wickert, A. D., G. E. Tucker, E. W. H. Hutton, B. Yan, and S. D. Peckham (2011), <a href="http://csdms.colorado.edu/wiki/CSDMS_2011_annual_meeting_Andrew_Wickert">Feedbacks between surface processes and flexural isostasy: a motivation for coupling models</a>, in <i>CSDMS 2011 Meeting: Impact of time and process scales</i>, Student Keynote, Boulder, CO.
 <p>
-Wees, J. D., Cloetingh, S. and van Wees, J. D.: A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, Geophys. J. Int., 117(1), 179&ndash;195, doi:10.1111/j.1365-246X.1994.tb03311.x, 1994.
+van Wees, J. D., and S. Cloetingh (1994), A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, <i>Geophysical Journal International</i>, <i>117</i>(1), 179&ndash;195, doi:10.1111/j.1365-246X.1994.tb03311.x.
 
 <h2>AUTHOR</h2>
 
