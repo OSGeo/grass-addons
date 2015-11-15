@@ -84,6 +84,7 @@ generate () {
 <h2>GRASS GIS ${major} Addons Manual pages</h2>
 
 <!-- Generated from: /home/martinl/src/grass-addons/tools/addons/ -->
+<!--       See also: https://svn.osgeo.org/grass/grass-addons/tools/addons/README.txt -->
 
 <table><tr><td>
 <script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>

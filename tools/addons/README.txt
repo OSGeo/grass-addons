@@ -4,25 +4,27 @@ publishing server (grass.osgeo.org).
 
 WORKFLOW
 
-On building server (currently geo102.fsv.cvut.cz) are runing two
-scripts (see crontab.build):
+On building server (currently geo102.fsv.cvut.cz) two scripts are
+running (see file crontab.build):
 
-1) grass-addons.sh to recompile GRASS Addons locally
+1) grass-addons.sh to recompile GRASS Addons on it;
 
 2) grass-addons-build.sh to create addons packages, the script
-provides tarballs with created addons manual pages and logs for
-publishing.
+   provides tarballs with created addons manual pages and logs for
+   publication on the publishing server.
 
-On publishing server (grass.osgeo.org) is running one script (see
-crontab.publish):
+   On publishing server (grass.osgeo.org) one script is running (see
+   file crontab.publish):
 
 3) grass-addons-publish.sh downloads provided tarballs (2) from
-building server and creates index.html page on publishing server.
+   building server and creates index.html page on publishing server at
+   https://grass.osgeo.org/grass70/manuals/addons/index.html
+
 
 SCRIPTS OVERVIEW
 
 * build-xml.py - support Python script called by compile-xml.sh
-* compile.sh - support script to compile GRASS Addons modules called by compile-xml.sh
+* compile.sh   - support script to compile GRASS Addons modules called by compile-xml.sh
 * compile-xml.sh - creates XML file for each addons module (used by g.extension)
 * grass-addons-index.sh - creates ovewview index page, called by grass-addons-publish.sh
 * grass-addons-build.sh - called on Building server (2)
