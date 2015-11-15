@@ -176,14 +176,14 @@ class Ant(agent.Agent):
         """
         self.position = self.nextstep
         if len(self.laststeps) > 1:
-            # walk only up to the gates of the hometown
-            self.nextstep = self.laststeps.pop()
             # try to avoid loops
             if (self.world.antavoidsloops):
                 # Find the first occurence of this step in the path array
-                i = self.laststeps.index(self.nextstep)
+                i = self.laststeps.index(self.laststeps[-1])
                 # Forget the path (the loop) inbetween
-                self.laststeps = self.laststeps[0:i]
+                self.laststeps = self.laststeps[0:i+1]
+            # walk only up to the gates of the hometown
+            self.nextstep = self.laststeps.pop()
             self.penalty += self.nextstep[3] + \
                               self.world.getpenalty(self.nextstep)
         else:

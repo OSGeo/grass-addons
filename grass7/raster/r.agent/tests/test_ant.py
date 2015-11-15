@@ -108,6 +108,10 @@ class TestAnt(unittest.TestCase):
         self.agent.walkhome()
         expected = []
         self.assertEqual(expected, self.agent.laststeps)
+        self.agent.laststeps = [[1,1,0,0], [0,1,0,0], [0,0,0,0]]
+        self.agent.walkhome()
+        expected = [[1,1,0,0], [0,1,0,0]]
+        self.assertEqual(expected, self.agent.laststeps)
 
     def test_walkaround(self):
         self.agent.position = [0,0]
