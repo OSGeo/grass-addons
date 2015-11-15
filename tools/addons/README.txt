@@ -4,18 +4,20 @@ publishing server (grass.osgeo.org).
 
 WORKFLOW
 
-On building server are run two scripts (see crontab.build):
+On building server (currently geo102.fsv.cvut.cz) are runing two
+scripts (see crontab.build):
 
-1) grass-addons.sh to recompile GRASS locally  (<<-- WHERE? osgeo6?)
+1) grass-addons.sh to recompile GRASS Addons locally
 
-2) grass-addons-build.sh to build addons modules on build server (<<-- WHERE? osgeo6?),
-the script provides tarballs with created addons manual pages and logs for
+2) grass-addons-build.sh to create addons packages, the script
+provides tarballs with created addons manual pages and logs for
 publishing.
 
-Result is copied to publishing server grass.osgeo.org (see crontab.publish).
+On publishing server (grass.osgeo.org) is running one script (see
+crontab.publish):
 
-3) grass-addons-publish.sh downloads provided tarballs (2) from WHERE?? and creates
-index.html page on publishing server grass.osgeo.org.
+3) grass-addons-publish.sh downloads provided tarballs (2) from
+building server and creates index.html page on publishing server.
 
 SCRIPTS OVERVIEW
 
