@@ -84,6 +84,7 @@ class Anthill(world.World):
         self.maxants = self.playground.gettotalcount()
         ## the ants ttl will be set by user or based on playground size
         self.antslife = 2 * self.playground.getdiagonalcount()
+        self.antavoidsloops = False
         self.decisionbase = "standard"
         self.evaluationbase = "standard"
         self.numberofpaths = 0

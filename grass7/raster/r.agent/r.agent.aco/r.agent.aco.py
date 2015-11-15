@@ -55,6 +55,9 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% key: a
 #% description: Auto-convert cost (slope..) to penalty map (using "tobler", see docu)
 #%end
+#%flag
+#% key: l
+#% description: Avoid loops on the way back
 #%option
 #% key: sitesmap
 #% type: string
@@ -333,6 +336,8 @@ def main():
         elif flags['s'] and options['outrounds'] > 0:
             world.addsequencenumber = True
 
+        if flags['s']:
+            world.antavoidsloops = True
         if options['lowcostlimit']:
             world.minpenalty = int(options['lowcostlimit'])
         if options['highcostlimit']:

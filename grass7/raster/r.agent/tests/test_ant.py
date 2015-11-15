@@ -90,7 +90,6 @@ class TestAnt(unittest.TestCase):
         self.assertEqual(1, self.world.numberofpaths)
 
     def test_walkhome(self):
-        #TODO walking home
         self.agent.nextstep = [0,0,0,0]
         self.agent.laststeps = [[1,1,0,0], [0,1,0,0]]
         self.agent.walkhome()
@@ -99,6 +98,16 @@ class TestAnt(unittest.TestCase):
         self.assertEqual([[1,1,0,0]], self.agent.laststeps)
         self.agent.walkhome()
         self.assertEqual(0, len(self.world.agents))
+        self.world.antavoidsloops = False
+        self.agent.laststeps = [[1,1,0,0], [0,1,0,0], [1,1,0,0]]
+        self.agent.walkhome()
+        expected = [[1,1,0,0], [0,1,0,0]]
+        self.assertEqual(expected, self.agent.laststeps)
+        self.world.antavoidsloops = True
+        self.agent.laststeps = [[1,1,0,0], [0,1,0,0], [1,1,0,0]]
+        self.agent.walkhome()
+        expected = []
+        self.assertEqual(expected, self.agent.laststeps)
 
     def test_walkaround(self):
         self.agent.position = [0,0]

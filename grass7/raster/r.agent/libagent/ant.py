@@ -2,7 +2,7 @@
 MODULE:       r.agent.*
 AUTHOR(S):    michael lustenberger inofix.ch
 PURPOSE:      library file for the r.agent.* suite
-COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
+COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
@@ -178,6 +178,12 @@ class Ant(agent.Agent):
         if len(self.laststeps) > 1:
             # walk only up to the gates of the hometown
             self.nextstep = self.laststeps.pop()
+            # try to avoid loops
+            if (self.world.antavoidsloops):
+                # Find the first occurence of this step in the path array
+                i = self.laststeps.index(self.nextstep)
+                # Forget the path (the loop) inbetween
+                self.laststeps = self.laststeps[0:i]
             self.penalty += self.nextstep[3] + \
                               self.world.getpenalty(self.nextstep)
         else:
@@ -205,9 +211,9 @@ class Ant(agent.Agent):
         if not self.age():
             # exit if we died in the meantime..
             return False
-        # past this point we must have decided yet where to go to next..
+        # at this point either we already know where to go to next..
         if self.nextstep[0] == None:
-            # so we'll have to decide it now if it was not clear yet
+            # ..or we'll have to decide it now if it was not clear yet
             self.choose()
             self.penalty += self.nextstep[3] + \
                                 self.world.getpenalty(self.nextstep)
