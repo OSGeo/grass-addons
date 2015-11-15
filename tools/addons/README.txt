@@ -6,16 +6,16 @@ WORKFLOW
 
 On building server are run two scripts (see crontab.build):
 
-1) grass-addons.sh to recompile GRASS locally
+1) grass-addons.sh to recompile GRASS locally  (<<-- WHERE? osgeo6?)
 
-2) grass-addons-build.sh to build addons modules on build server, the
-script provides tarballs with created addons manual pages and logs for
-publishing
+2) grass-addons-build.sh to build addons modules on build server (<<-- WHERE? osgeo6?),
+the script provides tarballs with created addons manual pages and logs for
+publishing.
 
-Result is copied to publishing server by (see crontab.publish):
+Result is copied to publishing server grass.osgeo.org (see crontab.publish).
 
-3) grass-addons-publish.sh downloads provided tarballs (2) and creates
-index.html page on publishing server
+3) grass-addons-publish.sh downloads provided tarballs (2) from WHERE?? and creates
+index.html page on publishing server grass.osgeo.org.
 
 SCRIPTS OVERVIEW
 
@@ -33,7 +33,9 @@ RESULTS
 
 * manual pages at: http://grass.osgeo.org/grass70/manuals/addons/
 * XML file at: https://grass.osgeo.org/addons/
+* winGRASS exe files at: http://wingrass.fsv.cvut.cz/grass70/addons/
 
 SEE ALSO
 
 https://trac.osgeo.org/grass/wiki/AddOnsManagement
+
