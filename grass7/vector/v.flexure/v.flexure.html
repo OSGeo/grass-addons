@@ -8,7 +8,7 @@ As both <em>v.flexure</em> and <a href="r.flexure"><em>r.flexure</em></a> are in
 
 <b>input</b> is a vector points file containing the loads in units of force. Typically, this will be a representation of a distributed field of loads as a set of points, so the user will implicitly include the area over which a stress (vertical load) acts into the quantities in the database table of <b>input</b>.
 <p>
-<b>te</b>, written in standard text as T<sub>e</sub> is the lithospheric elastic thickness.
+<b>te</b>, written in standard text as T<sub>e</sub>, is the lithospheric elastic thickness.
 <p>
 <b>output</b> is provided as a grid of vector points corresponding to the GRASS region when this command is invoked. Be sure to use <em>g.region</em> to properly set the input region! <b>raster_output</b> is the same output, except converted to a raster grid at the same resolution as the current computational region. If you have a grid spacing that is much smaller than a flexural wavelength, it is possible to interpolate the vector output to a much finer resolution than this raster output provides.
 <p>
