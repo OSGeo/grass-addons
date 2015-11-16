@@ -148,10 +148,18 @@ def main():
 
     r_file = open(r_commands, 'w')
 
+    create_dir = 'homeR = paste(Sys.getenv("HOME"), "/R/personal", sep="")\n'
+    create_dir += "if(!file.exists(homeR)) {dir.create(homeR, recursive=TRUE)}\n"
+    create_dir += ".libPaths(homeR)"
+    r_file.write(create_dir)
+    r_file.write("\n")
     install = "if(!is.element('e1071', installed.packages()[,1])) "
-    install += "{cat('\n\nInstalling e1071 package from CRAN\n\n')\n"
+    install += "{cat('\n\nInstalling e1071 package from CRAN into\n')\n"
+    install += "cat(homeR)\n"
+    install += "cat('\n')\n"
     install += "install.packages('e1071', "
-    install += "repos='https://mirror.ibcp.fr/pub/CRAN/')}"
+    install += "repos='https://mirror.ibcp.fr/pub/CRAN/', "
+    install += "lib = homeR)}"
     r_file.write(install)
     r_file.write("\n")
     r_file.write('library(e1071)')
@@ -236,7 +244,13 @@ def main():
 
     r_file.write(model_string)
     r_file.write("\n")
-    r_file.write("cat('\nTuning (or model) summary: ')")
+    r_file.write("cat('\nTuning (or model) summary: \n\n')")
+    r_file.write("\n")
+    r_file.write("cat('Kernel used: ')")
+    r_file.write("\n")
+    r_file.write("cat('%s\n')" % kernel)
+    r_file.write("\n")
+    install += "cat('\n')"
     r_file.write("\n")
     r_file.write("summary(model)")
     r_file.write("\n")
