@@ -282,6 +282,8 @@ def main():
                                              b=purged_elevation,
                                              overwrite=gcore.overwrite()))
 
+    gscript.raster_history(local_relief_output)
+
     # set color tables
     if save_intermediates:
         # same color table as input
@@ -319,6 +321,7 @@ def main():
             gscript.run_command('r.colors', flags=rcolors_flags,
                                 map=local_relief_output,
                                 color=color_table, quiet=True)
+        gscript.raster_history(shaded_local_relief_output)
     else:
         if not user_color_table:
             color_table = 'grey'

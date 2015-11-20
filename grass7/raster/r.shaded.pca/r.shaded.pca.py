@@ -253,6 +253,7 @@ def main():
                       blue=pca_maps[2],
                       output=pca_shade_output,
                       overwrite=core.overwrite(), quiet=True)
+    grass.raster_history(pca_shade_output)
 
     if pca_basename_user:
         set_color_table(pca_maps, map_=shade_maps[0])

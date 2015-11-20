@@ -197,6 +197,8 @@ def main():
                               flags=rcolors_flags)
         gcore.run_command('r.shade', shade=output, color=color_raster_tmp,
                           output=colorized_output)
+        grast.raster_history(colorized_output)
+    grast.raster_history(output)
     return 0
 
 
