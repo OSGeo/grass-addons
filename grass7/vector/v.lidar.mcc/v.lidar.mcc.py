@@ -14,7 +14,7 @@
 #############################################################################
 
 #%module
-#% description: Reclassifies points of a LiDAR point cloud as ground / non-ground sing a multiscale curvature based classification algorithm.
+#% description: Reclassifies points of a LiDAR point cloud as ground / non-ground using a multiscale curvature based classification algorithm.
 #% keyword: vector
 #% keyword: lidar
 #% keyword: classification
@@ -25,19 +25,19 @@
 #%end
 #%option G_OPT_V_INPUT
 #% description: Input vector point map
-#% label: Input point layer.
+#% label: Input point layer
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: ground
 #% label: Output ground return points
-#% description: Output vector point map containing points classified as ground return.
+#% description: Output vector point map containing points classified as ground return
 #% required: yes
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: nonground
 #% label: Output non-ground return points
-#% description: Output vector point map containing points NOT classified as ground return.
+#% description: Output vector point map containing points NOT classified as ground return
 #% required: yes
 #%end
 #%option nl
