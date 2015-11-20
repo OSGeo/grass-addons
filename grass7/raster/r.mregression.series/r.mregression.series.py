@@ -7,7 +7,7 @@
 #
 # AUTHOR(S):    Dmitry Kolesov <kolesov.dm@gmail.com>
 #
-# PURPOSE:      multiple regression between two time series
+# PURPOSE:      multiple regression between several time series
 #
 # COPYRIGHT:    (C) 2015 by the GRASS Development Team
 #
@@ -18,7 +18,7 @@
 #############################################################################
 
 #%Module
-#% description: Program calculates multiple regression between two series: Y = a1*X1 + ... + an*Xn
+#% description: Program calculates multiple regression between time series: Y = b1*X1 + ... + bn*Xn
 #% overwrite: yes
 #%End
 #%option
@@ -244,7 +244,6 @@ class DataModel(object):
                         b.put(r, c, coefs[i])
         finally:
             self.close_rasters()
-        print 'ols'
 
 
 def main(options, flags):
