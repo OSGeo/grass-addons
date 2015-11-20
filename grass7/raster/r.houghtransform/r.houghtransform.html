@@ -5,8 +5,6 @@ or generally any raster lines, in a raster map using the Hough transform.
 An edge is considered as potential line feature previously detected by
 some other algorithm represented by value 1 in the raster map.
 
-<h3>Algorithm</h3>
-
 <p>
 In general, the Hough transform is a method for finding geometry structures in
 images. This module uses the Hough transform for straight line detection.
@@ -18,6 +16,9 @@ contains only edges, or generally any lines, represented as raster map.
 It is not necessary but for practical reasons, these edges or lines should
 be thin e.g., those produced <em><a href="r.thin.html">r.thin</a></em> module
 or by <em><a href="i.edge.html">i.edge</a></em> module (Canny edge detector).
+
+
+<h3>Algorithm</h3>
 
 <p>
 Lines can be mathematically represented in many ways. For this module,
@@ -45,8 +46,8 @@ Hough image. One point (pixel) in the original image is represented by a curve
 in the Hough image and one point in the Hough image defines a line in
 the original image by  <i>r</i> and <i>&#920;</i> parameters. One line in
 the original image is represented by an intersection of curves.
-More points (pixels) in one line lead to higher value of the curves’ intersection
-point.
+More points (pixels) in one line lead to a higher value in the point of
+curves' intersection.
 
 <p>
 For further evaluation, it is necessary to extract local maximum values from
@@ -135,7 +136,7 @@ number of all resulting lines.
 
 <p>
 The edge directions (e.g. the optional output of
-<em><a href="i.edge.html">i.edge</a></em>) can serve as an addritional input to
+<em><a href="i.edge.html">i.edge</a></em>) can serve as an additional input to
 <em>r.houghtransform</em> module. The availability of edge directions
 reduces significantly the time needed for the computation without
 any negative effect on the result.
