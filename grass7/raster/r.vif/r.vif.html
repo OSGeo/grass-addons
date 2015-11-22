@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.vif</em> This module will compute variance inflation factor 
+<em>r.vif</em> This module will compute a stepwise variance inflation factor 
 (VIF) and the square root of the VIF. The VIF quantifies how much 
 the variance (the square of the estimate's standard deviation) of an 
 estimated regression coefficient is increased because of 
@@ -12,7 +12,9 @@ model.
 <p>By default the VIF is calculated for each variable. If the user 
 sets a VIF threshold value (maxvif) the VIF will calculated again 
 after removing the variable with the highest VIF. This will be 
-repeated till the VIF is smaller than maxvif.
+repeated till the VIF is smaller than maxvif. This can thus be used 
+to select a sub-set of variables for e.g., multiple regression 
+analysis.
 
 <p>The user has the option to compute the VIF over a random subset 
 of the raster cells (to speed up computation). Like in the r.random 
@@ -24,7 +26,7 @@ be stated as decimals.
 
 <h2>Notes</h2>
 
-<p> This add-on doesn't work in GRASS 6.* as it depends on 
+This add-on doesn't work in GRASS 6.* as it depends on 
 r.regression.multi, which is available in GRASS 7+ main only. 
 
 <h2>AUTHOR</h2>
