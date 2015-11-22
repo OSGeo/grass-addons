@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.vif</em> This module will compute a stepwise variance inflation factor 
+The <em>r.vif</em> module computes a stepwise variance inflation factor 
 (VIF) and the square root of the VIF. The VIF quantifies how much 
 the variance (the square of the estimate's standard deviation) of an 
 estimated regression coefficient is increased because of 
@@ -10,24 +10,84 @@ variable were uncorrelated with the other predictor variables in the
 model. 
 
 <p>By default the VIF is calculated for each variable. If the user 
-sets a VIF threshold value (maxvif) the VIF will calculated again 
+sets a VIF threshold value (maxvif) the VIF will be calculated again 
 after removing the variable with the highest VIF. This will be 
 repeated till the VIF is smaller than maxvif. This can thus be used 
 to select a sub-set of variables for e.g., multiple regression 
-analysis.
+analysis. 
 
-<p>The user has the option to compute the VIF over a random subset 
-of the raster cells (to speed up computation). Like in the r.random 
-module (which is used to select the random set of raster cells), the 
-user may specify the quantity of random cells either as a positive 
-integer (e.g., 10), or as a percentage of the raster map layer's 
-cells (e.g., 10%, or 3.05%). Percentages less than one percent may 
-be stated as decimals. 
+<p>The user can optionally select one or more variables to be 
+retained in the stepwise selection. For example, the user selects 
+the variable <i>bio_5</i> to be retained. If in any step this 
+variable has the highest VIF, the variable with the next highet VIF 
+will be removed instead (see the examples).
 
-<h2>Notes</h2>
+<h2>EXAMPLES</h2>
 
-This add-on doesn't work in GRASS 6.* as it depends on 
-r.regression.multi, which is available in GRASS 7+ main only. 
+Run VIF for five variables, setting the maximum VIF at 10
+
+<div class="code"><pre>r.vif maps=bio_1,bio_2,bio_3,bio_4,bio_5 
+maxvif=10 file=results.txt
+
+VIF bio_1 = 76.6694778809
+VIF bio_2 = 13.0044084945
+VIF bio_3 = 5.30160850802
+VIF bio_4 = 4.24765529428
+VIF bio_5 = 96.27418889
+VIF bio_1 = 1.09855463167
+VIF bio_2 = 1.99532296297
+VIF bio_3 = 4.36471563878
+VIF bio_4 = 3.76425240065
+
+selected variables are:
+bio_1, bio_2, bio_3, bio_4
+with as maximum VIF: 4.36471563878
+
+Statistics are written to results.txt
+</pre></div>
+
+Run VIF for five variables, setting the maximum VIF at 10, and opt 
+to retain the variable bio_5.
+
+<div class="code"><pre>r.vif maps=bio_1,bio_2,bio_3,bio_4,bio_5 
+maxvif=10 retain=bio_5 file=results.txt
+
+VIF bio_1 = 76.6694778809
+VIF bio_2 = 13.0044084945
+VIF bio_3 = 5.30160850802
+VIF bio_4 = 4.24765529428
+VIF bio_5 = 96.27418889
+VIF bio_2 = 2.11511290473
+VIF bio_3 = 4.34705117783
+VIF bio_4 = 3.83640053556
+VIF bio_5 = 1.37949300873
+
+selected variables are:
+bio_2, bio_3, bio_4, bio_5
+with as maximum VIF: 4.34705117783
+
+Statistics are written to results.txt
+</pre></div>
+
+In the second example, the bio_5 variable is retained, and the 
+variable bio_1, which has the next highest VIF, is removed. Note 
+that the final VIF of the second example is in fact (slightly) 
+lower, showing that default procedure may not always result in the 
+lowest possible VIF.
+
+<h2>SEE ALSO</h2>
+
+This add-on depends on <em><a href="http://grass.osgeo.org/grass70/manuals/r.regression.multi.html">
+r.regression.multi</a></em>
+
+<h2>Citation</h2>
+
+Suggested citation:
+
+<p>van Breugel, P., Friis, I., 
+Sebsebe Demissew, Lillesø, J-P.B., Kindt, R., [in publ.] Current and 
+future fire regimes and their influence on natural vegetation in 
+Ethiopia. Ecosystems (accepted for publication)
 
 <h2>AUTHOR</h2>
 
