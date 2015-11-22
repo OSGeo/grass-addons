@@ -42,6 +42,16 @@
 #% multiple: yes
 #%end
 
+#%option
+#% key: retain
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: variables to retain
+#% key_desc: name
+#% required: no
+#% multiple: yes
+#%end
+
 #%option G_OPT_F_OUTPUT
 #% key:file
 #% description: Name of output text file
@@ -66,7 +76,7 @@
 #%end
 
 # Test purposes
-#options = {"maps":"bio1,bio5,bio6", "output":"bb", "nsp":"100", "maxvif":"100"}
+#options = {"maps":"bio1,bio5,bio6", "output":"bb", "nsp":"100", "retain":"bio1,bio2", "maxvif":"100", "file":"aa.txt"}
 #flags = {"m":True, "k":True, "n":False, "i":True, "k":True}
 
 #=======================================================================
@@ -81,6 +91,7 @@ import atexit
 import math
 import tempfile
 import string
+import collections
 import numpy as np
 import grass.script as grass
 
@@ -104,6 +115,18 @@ def main():
     IPF = options['maps']
     IPF = IPF.split(',')
     IPFn = [i.split('@')[0] for i in IPF]
+    IPR = options['retain']
+    if IPR != '':
+        IPR = IPR.split(',')
+        IPRn = [i.split('@')[0] for i in IPR]
+        iprn = collections.Counter(IPRn)
+        ipfn = collections.Counter(IPFn)
+        IPFn = list((ipfn-iprn).elements())
+        ipr = collections.Counter(IPR)
+        ipf = collections.Counter(IPF)
+        IPF = list((ipf-ipr).elements())
+        if len(IPFn) == 0:
+            grass.fatal("No variables to remove")
     OPF = options['file']
     if OPF == '':
         OPF = tempfile.mkstemp()[1]
@@ -145,6 +168,8 @@ def main():
 
     # Open text file for writing and write heading
     text_file = open(OPF, "w")
+
+HIER GEBLEVEN... NU NOG UITVOGELEN HOE DE VARIABLES ALTIJD BEWAARD BLIJVEN
 
     # Calculate VIF and write results to text file
     rvifmx = MXVIF + 1
