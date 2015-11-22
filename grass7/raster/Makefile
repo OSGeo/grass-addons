@@ -45,7 +45,6 @@ SUBDIRS = \
 	r.houghtransform \
 	r.hydrodem \
 	r.hypso \
-	r.import \
 	r.in.arc \
 	r.in.srtm.region \
 	r.in.wcs \

@@ -20,7 +20,6 @@ SUBDIRS = \
 	v.external.all \
 	v.flexure \
 	v.habitat.dem \
-	v.import \
 	v.in.gbif \
 	v.in.geopaparazzi \
 	v.in.gps \
