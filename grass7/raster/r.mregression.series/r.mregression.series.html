@@ -18,7 +18,7 @@ The module assumes a simple linear regression of the form
 <h2>NOTES</h2>
 
 The number of maps in <em>X</em> and <em>Y</em> must be 
-identical.
+identical (see examples below).
 <p>
 The list of inputs for each cell (including NULLs) is passed to the 
 regression function. The functin compute the parameters over the 
@@ -62,7 +62,6 @@ and "coef.precipitation".
 <div class="code"><pre>
 r.mregression.series samples=settings result_prefix="coef."
 </pre></div>
-
 <p>
 If the regression model includes the intercept 
 <div class="code"><pre>
@@ -85,6 +84,67 @@ Then the command
 r.mregression.series samples=settings result_prefix="coef."
 </pre></div>
 produces three raster maps: "coef.offset", "coef.elevation", "coef.precipitation".    
+
+<h3>EXAMPLE 1</h3>
+We create test data for the example. Suppose we have five <em>Y</em> maps and
+5 pairs of <em>X</em> = <em>(x1, x2)</em> maps.
+<p>
+Create <em>X</em> variables (random numbers):
+<div class="code"><pre>
+r.mapcalc -s "x11 = rand(0, 20)"
+r.mapcalc -s "x21 = rand(0, 20)"
+r.mapcalc -s "x31 = rand(0, 20)"
+r.mapcalc -s "x41 = rand(0, 20)"
+r.mapcalc -s "x51 = rand(0, 20)"
+</pre></div>
+<div class="code"><pre>
+r.mapcalc -s "x12 = rand(0, 20)"
+r.mapcalc -s "x22 = rand(0, 20)"
+r.mapcalc -s "x32 = rand(0, 20)"
+r.mapcalc -s "x42 = rand(0, 20)"
+r.mapcalc -s "x52 = rand(0, 20)"
+</pre></div>
+<p>
+Create constant raster for intercept:
+
+<div class="code"><pre>
+r.mapcalc  "ones = 1.0"
+</pre></div>
+<p>
+Suppose <em>Y</em> is a linear function of <em>x1</em> and <em>x2</em> variables
+plus a random error.
+(For testing purposes we assume that <em>Y</em> = <em>12 + 5*x1 + 3*x2</em>).
+Create 5 Y rasters:
+<div class="code"><pre>
+r.mapcalc -s "y1 = 12 + 5* x11 + 3*x12 + rand(0, 4)"
+r.mapcalc -s "y2 = 12 + 5* x21 + 3*x22 + rand(0, 4)"
+r.mapcalc -s "y3 = 12 + 5* x31 + 3*x32 + rand(0, 4)"
+r.mapcalc -s "y4 = 12 + 5* x41 + 3*x42 + rand(0, 4)"
+r.mapcalc -s "y5 = 12 + 5* x51 + 3*x52 + rand(0, 4)"
+</pre></div>
+<p>
+So we have five test rasters <em>Y</em> and <em>X</em>. 
+Forget for a moment that we know the function and try
+to find the coeffitinents.
+<p>
+Create <em>samples</em> csv file:
+<div class="code"><pre>
+echo "y,bias,x1,x2
+y1,ones,x11,x12
+y2,ones,x21,x22
+y3,ones,x31,x32
+y4,ones,x41,x42
+y5,ones,x51,x52" > settings.csv
+</pre></div>
+<p>
+Run the command
+<div class="code"><pre>
+r.mregression.series samples=settings.csv result_prefix="coef."
+</pre></div>
+<p>
+Three raster maps will be created: "coef.bias", "coef.x1", "coef.x2".    
+This rasters contains the fitted coefitients.
+
 
 <h2>SEE ALSO</h2>
 

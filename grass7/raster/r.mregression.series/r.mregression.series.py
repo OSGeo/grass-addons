@@ -58,7 +58,7 @@ from grass.pygrass.gis.region import Region
 try:
     import statsmodels.api as sm
 except ImportError:
-    grass.error("Can't import statsmodels. Install scipy package.")
+    grass.error("Can't import statsmodels. Install statmodels package.")
     sys.exit(1)
 
 
