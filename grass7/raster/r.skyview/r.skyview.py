@@ -105,8 +105,9 @@ CLEANUP = True
 
 def cleanup():
     if CLEANUP:
+        gcore.verbose(_("Cleaning temporary maps..."))
         gcore.run_command('g.remove', flags='f', type='raster',
-                          pattern=TMP_NAME + "*")
+                          pattern=TMP_NAME + "*", quiet=True)
 
 
 def main():
