@@ -21,7 +21,7 @@ d.rast hemisphere
 
 # run r.viewshed
 r.viewshed hemisphere out=hemisphere_viewshed coord=250,250 max=1000000 obs=100 mem=2000 --o
-r.shaded.relief hemisphere --o
+r.relief hemisphere --o
 d.his h=hemisphere_viewshed i=hemisphere.shade
 
 # compare to r.los

@@ -24,6 +24,8 @@ This module outputs:
 The following example presents a bigger flooding in rural area of North
 Carolina sample dataset and included also visualization examples.
 <div class="code"><pre>
+# using unix-like shell syntax
+
 # set computational region
 g.region raster=elev_lid792_1m
 # prepare input data
@@ -38,7 +40,7 @@ g.gui.animation strds=flooding
 
 # alternatively explore maps from dataset
 # prepare shaded relief map
-r.shaded.relief in=elev_lid792_1m out=elev_lid792_1m_shade
+r.relief input=elev_lid792_1m output=elev_lid792_1m_shade
 # set color table for streams
 r.colors map=rural_streams rules=- &lt;&lt;EOF
 1 blue
