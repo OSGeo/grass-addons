@@ -185,6 +185,18 @@ def main():
 
     # controls first creation of the output map before patching
     ng_output_exists = False
+    # append and do not build topology
+    vpatch_flags = 'ab'
+
+    # 7.x requires topology to see z coordinate
+    # 7.1 v.patch has flags to use z even without topology
+    # see #2433 on Trac and r66822 in Subversion
+    build_before_patch = True
+    unused, gver_minor, unused = grass.version()['version'].split('.')
+    if int(gver_minor) >= 1:
+        build_before_patch = False
+        # do not expect topology and expect z
+        vpatch_flags += 'nz'
 
     # Loop through scale domaines
     while ( l <= l_stop ) :
@@ -235,10 +247,12 @@ def main():
             # Set convergence level
             if ( nc > 0 ) :
                 convergence = float( float(ng) / float(nc) )
-                grass.run_command('v.build', map=temp_ng, stderr=nuldev)
+                if build_before_patch:
+                    grass.run_command('v.build', map=temp_ng, stderr=nuldev)
                 # Patch non-ground points to non-ground output map
                 if ng_output_exists:
-                    grass.run_command('v.patch', input=temp_ng, output=ng_output, flags="ab",
+                    grass.run_command('v.patch', input=temp_ng,
+                                      output=ng_output, flags=vpatch_flags,
                                       overwrite=True, quiet=True, stderr=nuldev)
                 else:
                     grass.run_command('g.copy', vector=(temp_ng, ng_output), stderr=nuldev)
