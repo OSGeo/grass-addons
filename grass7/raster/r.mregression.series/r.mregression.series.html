@@ -17,20 +17,20 @@ The module assumes a simple linear regression of the form
 
 <h2>NOTES</h2>
 
-The number of predictor variables (<em>X</em> maps) need to be the same in 
-each (time) series (see examples bellow). If the different time series have irregular 
+The number of predictor variables (<em>X</em> maps) needs to be the same in 
+each (time) series (see examples below). If the different time series have irregular 
 time intervals, NULL raster maps can be inserted into time series to
 make time intervals equal. 
 <p>
 The list of inputs for each cell (including NULLs) is passed to the 
-regression function. The functin compute the parameters over the 
+regression function. The function computes the parameters over the 
 non-NULL values, producing a NULL result only if there aren't enough 
 non-NULL values for computing.
 
 
 
 <h2>EXAMPLES</h2>
-The most important paramether is <em>samples</em>, it provides the list
+The most important paramether is <em>samples</em>; it provides the list
 of <em>X</em> and <em>Y</em> maps. The parameter is the name of csv file
 of the next structure: the first line is a header, other lines provide names
 of the <em>X</em> and <em>Y</em> maps. The header contains the names of the
@@ -55,7 +55,7 @@ second predictor variables are "elevation" and "precipitation" accordingly.
 <p>
 The second paramether is  <em>result_prefix</em>. It is used for 
 construction of the coefficient names. For example if result_prefix="coef.",
-the names of the regression coefficients are "coef.elevation"
+the names of the regression coefficients will be "coef.elevation"
 and "coef.precipitation".
 
 <div class="code"><pre>
