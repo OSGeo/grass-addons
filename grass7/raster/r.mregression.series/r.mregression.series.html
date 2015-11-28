@@ -17,18 +17,17 @@ The module assumes a simple linear regression of the form
 
 <h2>NOTES</h2>
 
-The number of maps in <em>X</em> and <em>Y</em> must be 
-identical (see examples below).
+The number of predictor variables (<em>X</em> maps) need to be the same in 
+each (time) series (see examples bellow). If the different time series have irregular 
+time intervals, NULL raster maps can be inserted into time series to
+make time intervals equal. 
 <p>
 The list of inputs for each cell (including NULLs) is passed to the 
 regression function. The functin compute the parameters over the 
 non-NULL values, producing a NULL result only if there aren't enough 
 non-NULL values for computing.
-<p>
-Linear regression  requires an equal number of <em>X</em> and 
-<em>Y</em> maps.  If the different time series have irregular 
-time intervals, NULL raster maps can be inserted into time series to
-make time intervals equal. 
+
+
 
 <h2>EXAMPLES</h2>
 The most important paramether is <em>samples</em>, it provides the list
@@ -52,11 +51,11 @@ ndvi_n,elev_n,precip_n
 </pre></div>
 "ndvi_t" are names of the NDVI rasters, "precip_t" are names 
 of precipitation rasters. The names of the first and the 
-second variables are "elevation" and "precipitation" accordingly.
+second predictor variables are "elevation" and "precipitation" accordingly.
 <p>
 The second paramether is  <em>result_prefix</em>. It is used for 
-coefficient names construction. For example if result_prefix="coef.",
-the names of the regression coefficient names are "coef.elevation"
+construction of the coefficient names. For example if result_prefix="coef.",
+the names of the regression coefficients are "coef.elevation"
 and "coef.precipitation".
 
 <div class="code"><pre>
@@ -87,7 +86,7 @@ produces three raster maps: "coef.offset", "coef.elevation", "coef.precipitation
 
 <h3>EXAMPLE 1</h3>
 We create test data for the example. Suppose we have five <em>Y</em> maps and
-5 pairs of <em>X</em> = <em>(x1, x2)</em> maps.
+5 pairs of predictor <em>X</em> = <em>(x1, x2)</em> maps.
 <p>
 Create <em>X</em> variables (random numbers):
 <div class="code"><pre>
@@ -105,7 +104,7 @@ r.mapcalc -s "x42 = rand(0, 20)"
 r.mapcalc -s "x52 = rand(0, 20)"
 </pre></div>
 <p>
-Create constant raster for intercept:
+Create constant raster for the intercept:
 
 <div class="code"><pre>
 r.mapcalc  "ones = 1.0"
@@ -125,7 +124,7 @@ r.mapcalc -s "y5 = 12 + 5* x51 + 3*x52 + rand(0, 4)"
 <p>
 So we have five test rasters <em>Y</em> and <em>X</em>. 
 Forget for a moment that we know the function and try
-to find the coeffitinents.
+to find the coeffitients.
 <p>
 Create <em>samples</em> csv file:
 <div class="code"><pre>
