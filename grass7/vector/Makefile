@@ -23,6 +23,7 @@ SUBDIRS = \
 	v.in.gbif \
 	v.in.geopaparazzi \
 	v.in.gps \
+	v.in.natura2000 \
 	v.in.ply \
 	v.in.redlist \
 	v.in.redwg \
