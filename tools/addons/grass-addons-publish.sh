@@ -15,7 +15,7 @@ process () {
     major=$1
     minor=$2
 
-    echo "Updating manuals for GRASS ${major}.${minor}..."
+    # echo "Updating manuals for GRASS ${major}.${minor}..."
     wget -q $URL/grass${major}/modules.xml -O /var/www/grass/grass-cms/addons/grass${major}/modules.xml
     wget -q $URL/grass${major}/logs.tar.gz -O logs.tar.gz
     wget -q $URL/grass${major}/html.tar.gz -O html.tar.gz
