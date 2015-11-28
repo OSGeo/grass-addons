@@ -126,13 +126,16 @@ def _filter(row_data, winsize, order):
 
     return result
 
+def _non_zero(x):
+    return x.nonzero()[0]
+
 def _fill_nulls(arr):
     """Fill no-data values in arr
     Return np.array with filled data
     """
-    nz = lambda z: z.nonzero()[0]
     nans = np.isnan(arr)
-    arr[nans] = np.interp(nz(nans), nz(~nans), arr[~nans])
+    if not all(nans):
+        arr[nans] = np.interp(_non_zero(nans), _non_zero(~nans), arr[~nans])
 
     return arr
 
@@ -146,17 +149,26 @@ def filter(names, winsize, order, prefix):
 
         reg = Region()
         for i in range(reg.rows):
-            row_data = np.array([r.get_row(i) for r in inputs])
-            filtered_rows = _filter(row_data, winsize, order)
             # import ipdb; ipdb.set_trace()
+            row_data = np.array([_get_val_or_nan(r, i) for r in inputs])
+            filtered_rows = _filter(row_data, winsize, order)
             for map_num in range(len(outputs)):
                 map = outputs[map_num]
-                row = filtered_rows[map_num]
+                row = filtered_rows[map_num, :]
                 buf = Buffer(row.shape, map.mtype, row)
                 map.put_row(i, buf)
     finally:
         close_rasters(outputs)
         close_rasters(inputs)
+
+def _get_val_or_nan(raster, row_num):
+    row = raster.get_row(row_num)
+    if raster.mtype != 'CELL':
+        return row
+    nans = (row == CNULL)
+    row = row.astype(np.float64)
+    row[nans.astype(np.bool)] = np.nan
+    return row
 
 def main(options, flags):
     xnames = options['input']
