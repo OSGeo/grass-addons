@@ -1,0 +1,66 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.series.filter</em> is a module to filter raster time series <em>X</em>
+in time domain.
+<p>
+<em>input</em>   Raster names of equally spaced time series <em>X</em>. 
+<p>
+<em>result_prefix</em> Prefix for raster names of filterd <em>X</em>. 
+<em>method</em> filtering method. Savitzky-Golay filter is only implemented now.
+<em>winsize</em> The length of the filter window. <em>winsize</em> must be a positive odd integer.
+<em>order</em> The order of the polynomial used to fit the samples. <em>order</em> must be less than <em>winsize</em>.
+
+<h2>NOTES</h2>
+
+<em>X</em> must be equally spaced time series. If the series isn't equally
+spaced, insert NULL raster maps into <em>X</em>.
+
+
+<h2>EXAMPLES</h2>
+Create test data: <em>X = sin(t) + E</em>,
+where <em>X</em> is raster time series, <em>E</em> is a error term.
+<pre>
+for T in $(seq -w 0 10 360) 
+do
+  name="test_raster"$T
+  r.mapcalc -s "$name = sin($T) + rand(-0.3, 0.3)"
+done
+</pre>
+<p>
+Create smooth raster series using Savitzky-Golay method:
+<div class="code"><pre>
+maps=$(g.list rast patt="test_*" sep=,)
+r.series.filter input=$maps result_prefix="flt." method=savgol winsize=9 order=2 --o
+</pre></div>
+
+<p>
+Look at the result (plot the curves for a pixel):
+<div class="code"><pre>
+maps=$(g.list rast patt="test_*" sep=,)
+fmaps=$(g.list rast patt="flt.*" sep=,)
+
+eval $(g.region -cg)
+i.spectral -g raster=$maps coor=$center_easting,$center_northing out=signal.png
+i.spectral -g raster=$fmaps coor=$center_easting,$center_northing out=flt.png
+</pre></div>
+
+<center>
+<img src="signal.png" border="0" alt="Values of the time series in the central point">
+<img src="flt.png" border="0" alt="Filtered values of the time series in the central point">
+</center> 
+
+
+
+
+<h2>SEE ALSO</h2>
+
+<em><a href="addons/r.mregression.series.html">r.regression.series</a></em>,
+<em><a href="r.series.html">r.series</a></em>,
+<em><a href="r.regression.line.html">r.regression.line</a></em>,
+<em><a href="g.list.html">g.list</a></em>,
+
+<h2>AUTHOR</h2>
+
+Dmitry Kolesov
+
+<p><i>Last changed: $Date: 2015-11-20 17:36:50 +0300 (Пт., 20 нояб. 2015) $</i>
