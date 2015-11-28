@@ -1,0 +1,86 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.natura2000</em> imports  <a href="http://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/52E54BF3-ACDB-4959-9165-F3E4469BE610">Natura 2000 protected areas</a>. 
+The tool is implemented for the sqlite/spatialite version of this data 
+(size > 1 GB). Listing und import operations of <em>v.in.natura2000</em> 
+may be slow due to the huge data file size. Listing (already availabe 
+layers, biogeographic regions, EU member states codes, habitat codes, 
+species codes, protected area site types) and importing (all data, 
+protected areas of a defined habitat/species/member states/biogeographic 
+region) is limited to some small selection of  wide range of possible 
+cases.
+
+<h3>Important notes</h3>
+
+<p>
+Topological correctness of the input data is not guaranteed, overlapping 
+of (many) polygones may occur. According to GRASS GIS topological model, 
+imported data may have more layers in case of overlapping polygones . 
+
+The sqlite/spatialite data is shipped in EPSG:3035 projection.
+</p>
+
+<h2>EXAMPLE</h2>
+
+<div class="code">
+ <pre>
+# list spatial layer(s) already availabe in the sqlite/spatialite database 
+v.in.natura2000 -l input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# import already available spatial layer
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+existing_layer=sv1800 
+
+# list biogeographic regions
+v.in.natura2000 -b input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# list EU member states codes
+v.in.natura2000 -m input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# list habitats of community interest
+v.in.natura2000 -h input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# list species of community interest
+v.in.natura2000 -s input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# list protected area site types
+v.in.natura2000 -t input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+
+# import protected areas of type A
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+output=pa_typeA sitetype=A
+
+# import protected areas with habitat 3230
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+output=pa_habitat3230 habitat_code=3230
+
+# import protected areas with species 1800
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+output=pa_species1800 species_code=1800
+
+# import protected areas within the Alpine biogeographical region
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+output=pa_alpineregion biogeographic_region=Alpine
+
+# import protected areas of member state Austria
+v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+output=pa_austria member_state=AT
+ 
+ </pre>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.import.html">v.import</a>
+<a href="v.in.ogr.html">v.in.ogr</a>
+<a href="v.proj.html">v.proj</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Helmut Kudrnovsky
+
+<p>
+<i>Last changed: $Date: 2015-08-28 18:13:57 +0200 (Fr, 28 Aug 2015) $</i>
+</p>
