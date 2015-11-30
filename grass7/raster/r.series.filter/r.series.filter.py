@@ -21,6 +21,11 @@
 #% description: Perform filtering of raster time series X (in time domain)
 #% overwrite: yes
 #%End
+#%flag
+#% key: c
+#% description: Try to find optimal parameters for filtering
+#% guisection: Parameters
+#%end
 #%option
 #% key: input
 #% type: string
@@ -62,6 +67,32 @@
 #% multiple: no
 #% description: Order of the Savitzky-Golay filter
 #%end
+#%option
+#% key: opt_points
+#% type: integer
+#% answer: 50
+#% required: no
+#% multiple: no
+#% description: Count of random points used for parameter optimization
+#%end
+#%option
+#% key: diff_penalty
+#% type: double
+#% answer: 1.0
+#% required: no
+#% multiple: no
+#% description: Penalty for difference between original and filtered signals
+#%end
+#%option
+#% key: deriv_penalty
+#% type: double
+#% answer: 1.0
+#% required: no
+#% multiple: no
+#% description: Penalty for big derivates of the filtered signal
+#%end
+
+
 
 
 
@@ -121,7 +152,7 @@ def _filter(row_data, winsize, order):
     _, cols = row_data.shape
     for i in range(cols):
         arr = _fill_nulls(row_data[:, i])
-        arr = savgol_filter(arr, winsize, order)
+        arr = savgol_filter(arr, winsize, order, mode='nearest')
         result[:, i] = arr
 
     return result
@@ -139,6 +170,68 @@ def _fill_nulls(arr):
 
     return arr
 
+def fitting_quality(input_data, fitted_data, diff_penalty=1.0, deriv_penalty=1.0):
+    """Returns penalty for fitted curves:
+    :param input_data:      2d array of samples
+    :param fitted_data:     result of the fitting
+    :param diff_penalty:    penalty for difference between original data and fitted data
+    :param deriv_penalty:   penalty for derivations of the fitted data
+    """
+    difference = sum(abs(input_data.flatten() - fitted_data.flatten()))
+    deriv_diff = sum(abs(np.diff(fitted_data, axis=0).flatten()))
+
+    return diff_penalty * difference + deriv_penalty * deriv_diff
+
+
+def optimize_params(names, npoints, diff_penalty, deriv_penalty):
+    """Perform crossvalidation:
+        take 'npoints' random points,
+        find winsize and order that minimize the quality function
+    """
+
+    reg = Region()
+    map_count = len(names)
+    input_data = np.empty((map_count, npoints), dtype=float)
+    inputs = init_rasters(names)
+    # Select sample data points
+    try:
+        open_rasters(inputs)
+        i = attempt = 0
+        while i < npoints:
+            row = np.random.randint(reg.rows)
+            col = np.random.randint(reg.cols)
+            for map_num in range(len(inputs)):
+                map = inputs[map_num]
+                input_data[map_num, i] = get_val_or_nan(map, row=row, col=col)
+            if not all(np.isnan(input_data[:, i])):
+                i += 1
+                attempt = 0
+            else:
+                attempt += 1
+                grass.warning('Selected point contains NULL values in all input maps. Performing of selection another point.')
+                if attempt >= npoints:
+                    grass.fatal("Can't find points with non NULL data.")
+
+    finally:
+        close_rasters(inputs)
+
+    # Find the optima
+    best = np.inf
+    best_winsize = best_order = None
+    for winsize in range(5, map_count/2, 2):
+        for order in range(2, min(winsize - 2, 10)):    # 10 is a 'magic' number: we don't want very hight polynomyal fitting usually
+            for i in range(npoints):
+                test_data = np.copy(input_data)
+                test_data = _filter(test_data, winsize, order)
+                penalty = fitting_quality(input_data, test_data,
+                                          diff_penalty, deriv_penalty)
+                if penalty < best:
+                    best = penalty
+                    best_winsize, best_order = winsize, order
+
+    return best_winsize, best_order
+
+
 def filter(names, winsize, order, prefix):
     inputs = init_rasters(names)
     output_names = [prefix + name for name in names]
@@ -150,7 +243,7 @@ def filter(names, winsize, order, prefix):
         reg = Region()
         for i in range(reg.rows):
             # import ipdb; ipdb.set_trace()
-            row_data = np.array([_get_val_or_nan(r, i) for r in inputs])
+            row_data = np.array([_get_row_or_nan(r, i) for r in inputs])
             filtered_rows = _filter(row_data, winsize, order)
             for map_num in range(len(outputs)):
                 map = outputs[map_num]
@@ -161,7 +254,18 @@ def filter(names, winsize, order, prefix):
         close_rasters(outputs)
         close_rasters(inputs)
 
-def _get_val_or_nan(raster, row_num):
+
+def get_val_or_nan(map, row, col):
+    """
+    Return map value of the cell or FNULL (if the cell is null)
+    """
+    value = map.get(row, col)
+    if map.mtype == "CELL" and value == CNULL:
+        value = FNULL
+    return value
+
+
+def _get_row_or_nan(raster, row_num):
     row = raster.get_row(row_num)
     if raster.mtype != 'CELL':
         return row
@@ -171,6 +275,9 @@ def _get_val_or_nan(raster, row_num):
     return row
 
 def main(options, flags):
+
+    optimize = flags['c']
+
     xnames = options['input']
     xnames = xnames.split(',')
 
@@ -179,6 +286,16 @@ def main(options, flags):
 
     order = options['order']
     order = int(order)
+
+    opt_points = options['opt_points']
+    opt_points = int(opt_points)
+
+    diff_penalty = options['diff_penalty']
+    diff_penalty = float(diff_penalty)
+
+    deriv_penalty = options['deriv_penalty']
+    deriv_penalty = float(deriv_penalty)
+
 
     res_prefix = options['result_prefix']
 
@@ -194,6 +311,13 @@ def main(options, flags):
 
     if order >= winsize:
         grass.error("Order of the filter must be less than window length")
+
+    if optimize:
+        winsize, order = optimize_params(xnames, opt_points,
+                                         diff_penalty, deriv_penalty)
+        if winsize is None:
+            grass.error("Optimization procedure doesn't convergence.")
+            sys.exit(1)
 
     filter(xnames, winsize, order, res_prefix)
 

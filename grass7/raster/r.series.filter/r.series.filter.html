@@ -1,19 +1,51 @@
 <h2>DESCRIPTION</h2>
-
+<em>-c</em>	 Find optimal parameters of used filter. The function to optimize depends on
+				difference between original and filtered signals and on derivates of the
+				filtered signal.
+<p>
 <em>r.series.filter</em> is a module to filter raster time series <em>X</em>
 in time domain.
 <p>
 <em>input</em>   Raster names of equally spaced time series <em>X</em>. 
 <p>
 <em>result_prefix</em> Prefix for raster names of filterd <em>X</em>. 
+<p>
 <em>method</em> filtering method. Savitzky-Golay filter is only implemented now.
+<p>
 <em>winsize</em> The length of the filter window. <em>winsize</em> must be a positive odd integer.
-<em>order</em> The order of the polynomial used to fit the samples. <em>order</em> must be less than <em>winsize</em>.
+<p>
+<em>order</em> The order of the polynomial used to fit the samples. <em>order</em> must be less than <em>winsize</em>. 
+<p>
+<em>opt_points</em>		If <em>-c</em> is specifed, then random sample
+						<em>opt_points</em> and use them in parameter optimization. 
+<p>
+<em>diff_penalty</em>	Penalty for difference between original and filtered signals (see Notes).
+<p>
+<em>deriv_penalty</em>	Penalty for derivates of filtered signal (see Notes).
+
 
 <h2>NOTES</h2>
 
 <em>X</em> must be equally spaced time series. If the series isn't equally
 spaced, insert NULL raster maps into <em>X</em>.
+
+<p>
+There is a procedure for searching for good filtering parameters: it uses <em>opt_points</em>
+random points and perfoms filtering in that points. The result of the filtering can be tested
+for quality. The quality function is a tradeof two features: accuracy and smoothing. 
+Accuracy can be estimated as the (abs) difference between original and filtered data,
+quality of smoothing can be estimated as absalute values of the derivates. So there are two
+parameters <em>diff_penalty</em> and <em>deriv_penalty</em> that can ajust the tradeof.
+<p>
+So the optimizing procedure performs loop over filtering parameters and calculates
+	thequality  function
+<div class="code"><pre>
+penalty =quality  diff_penalty * sum(abs(Xi-Fi)) + sum(abs(dFi))
+</pre></div>
+where <em>Xi</em> are original signals in the samplig points, <em>Fi</em>
+are filtered signals in the sampling points.
+<p>
+Optimal parameters are used for signal filtering in the whole region.
 
 
 <h2>EXAMPLES</h2>
