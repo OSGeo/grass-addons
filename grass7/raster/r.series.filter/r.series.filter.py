@@ -91,6 +91,15 @@
 #% multiple: no
 #% description: Penalty for big derivates of the filtered signal
 #%end
+#%option
+#% key: iterations
+#% type: integer
+#% required: no
+#% multiple: no
+#% description: Number of iterations
+#% answer: 1
+#%end
+
 
 
 
@@ -149,15 +158,17 @@ def close_rasters(raster_list):
             r.close()
 
 
-def _filter(method, row_data, winsize, order):
+def _filter(method, row_data, winsize, order, itercount):
     result = np.empty(row_data.shape)
     _, cols = row_data.shape
     for i in range(cols):
         arr = _fill_nulls(row_data[:, i])
         if method == 'savgol':
-            arr = savgol_filter(arr, winsize, order, mode='nearest')
+            for j in range(itercount):
+                arr = savgol_filter(arr, winsize, order, mode='nearest')
         elif method == 'median':
-            arr = medfilt(arr, kernel_size=winsize)
+            for j in range(itercount):
+                arr = medfilt(arr, kernel_size=winsize)
         else:
             grass.fatal('The method is not implemented')
         result[:, i] = arr
@@ -184,13 +195,13 @@ def fitting_quality(input_data, fitted_data, diff_penalty=1.0, deriv_penalty=1.0
     :param diff_penalty:    penalty for difference between original data and fitted data
     :param deriv_penalty:   penalty for derivations of the fitted data
     """
-    difference = sum(abs(input_data.flatten() - fitted_data.flatten()))
-    deriv_diff = sum(abs(np.diff(fitted_data, axis=0).flatten()))
+    difference = np.nanmean(abs(input_data.flatten() - fitted_data.flatten()))
+    deriv_diff = np.nanmean(abs(np.diff(fitted_data, axis=0).flatten()))
 
     return diff_penalty * difference + deriv_penalty * deriv_diff
 
 
-def optimize_params(method, names, npoints, diff_penalty, deriv_penalty):
+def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercount):
     """Perform crossvalidation:
         take 'npoints' random points,
         find winsize and order that minimize the quality function
@@ -225,16 +236,18 @@ def optimize_params(method, names, npoints, diff_penalty, deriv_penalty):
     # Find the optima
     best_winsize = best_order = None
     if method == 'savgol':
-        best_winsize, best_order = _optimize_savgol(input_data)
+        best_winsize, best_order = _optimize_savgol(input_data, diff_penalty,
+                                                    deriv_penalty, itercount)
     elif method == 'median':
-        best_winsize = _optimize_median(input_data)
+        best_winsize = _optimize_median(input_data,
+                                        diff_penalty, deriv_penalty, itercount)
     else:
         grass.fatal('The method is not implemented')
 
     return best_winsize, best_order
 
 
-def _optimize_savgol(input_data, diff_penalty, deriv_penalty):
+def _optimize_savgol(input_data, diff_penalty, deriv_penalty, itercount):
     """Find optimal params for savgol_filter.
 
     Returns winsize and order
@@ -245,7 +258,7 @@ def _optimize_savgol(input_data, diff_penalty, deriv_penalty):
     for winsize in range(5, map_count/2, 2):
         for order in range(2, min(winsize - 2, 10)):    # 10 is a 'magic' number: we don't want very hight polynomyal fitting usually
             test_data = np.copy(input_data)
-            test_data = _filter('savgol', test_data, winsize, order)
+            test_data = _filter('savgol', test_data, winsize, order, itercount)
             penalty = fitting_quality(input_data, test_data,
                                       diff_penalty, deriv_penalty)
             if penalty < best:
@@ -254,7 +267,7 @@ def _optimize_savgol(input_data, diff_penalty, deriv_penalty):
 
     return best_winsize, best_order
 
-def _optimize_median(input_data, diff_penalty, deriv_penalty):
+def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
     """Find optimal params for median filter.
 
     Returns winsize
@@ -264,7 +277,7 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty):
     best_winsize = order = None
     for winsize in range(3, map_count/2, 2):
         test_data = np.copy(input_data)
-        test_data = _filter('median', test_data, winsize, order)
+        test_data = _filter('median', test_data, winsize, order, itercount)
         penalty = fitting_quality(input_data, test_data,
                                   diff_penalty, deriv_penalty)
         if penalty < best:
@@ -274,7 +287,7 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty):
     return best_winsize
 
 
-def filter(method, names, winsize, order, prefix):
+def filter(method, names, winsize, order, prefix, itercount):
     inputs = init_rasters(names)
     output_names = [prefix + name for name in names]
     outputs = init_rasters(output_names)
@@ -286,7 +299,7 @@ def filter(method, names, winsize, order, prefix):
         for i in range(reg.rows):
             # import ipdb; ipdb.set_trace()
             row_data = np.array([_get_row_or_nan(r, i) for r in inputs])
-            filtered_rows = _filter(method, row_data, winsize, order)
+            filtered_rows = _filter(method, row_data, winsize, order, itercount)
             for map_num in range(len(outputs)):
                 map = outputs[map_num]
                 row = filtered_rows[map_num, :]
@@ -340,6 +353,8 @@ def main(options, flags):
     deriv_penalty = options['deriv_penalty']
     deriv_penalty = float(deriv_penalty)
 
+    itercount = options['iterations']
+    itercount = int(itercount)
 
     res_prefix = options['result_prefix']
 
@@ -358,12 +373,12 @@ def main(options, flags):
 
     if optimize:
         winsize, order = optimize_params(method, xnames, opt_points,
-                                         diff_penalty, deriv_penalty)
+                                         diff_penalty, deriv_penalty, itercount)
         if winsize is None:
             grass.error("Optimization procedure doesn't convergence.")
             sys.exit(1)
 
-    filter(method, xnames, winsize, order, res_prefix)
+    filter(method, xnames, winsize, order, res_prefix, itercount)
 
 if __name__ == "__main__":
     options, flags = grass.parser()

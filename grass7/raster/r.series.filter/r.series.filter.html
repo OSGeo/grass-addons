@@ -15,7 +15,10 @@ in time domain.
 <p>
 <em>winsize</em> The length of the filter window. <em>winsize</em> must be a positive odd integer.
 <p>
-<em>order</em> The order of the polynomial used to fit the samples. <em>order</em> must be less than <em>winsize</em>. 
+<em>order</em> The order of the polynomial used to fit the samples. <em>order</em> 
+				must be less than <em>winsize</em>. (Savitzky-Golay only)
+<p>
+<em>iterations</em>  Number of filtering iterations.
 <p>
 <em>opt_points</em>		If <em>-c</em> is specifed, then random sample
 						<em>opt_points</em> and use them in parameter optimization. 
@@ -96,4 +99,4 @@ i.spectral -g raster=$fmaps coor=$center_easting,$center_northing out=flt.png
 
 Dmitry Kolesov
 
-<p><i>Last changed: $Date: 2015-11-20 17:36:50 +0300 (Пт., 20 нояб. 2015) $</i>
+<p><i>Last changed: $Date$</i>
