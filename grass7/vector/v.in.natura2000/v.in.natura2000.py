@@ -116,8 +116,11 @@ import csv
 import math
 import shutil
 import tempfile
-import pyspatialite.dbapi2 as db
 import grass.script as grass
+try:
+    import pyspatialite.dbapi2 as db
+except ImportError:
+    grass.warning( "pyspatialite has to be installed." )
 
 if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
