@@ -152,8 +152,8 @@ def main():
 		import pyspatialite.dbapi2 as db
     except:
 		grass.fatal( "pyspatialite is needed to run this script.\n"
-				     "source: https://pypi.python.org/pypi/pyspatialite \n"
-				     "Please activate/install it in your python stack.")	
+                    "source: https://pypi.python.org/pypi/pyspatialite \n"
+                    "Please activate/install it in your python stack.")	
 
     if list_n2k_layer :
         grass.message( "Available data layer(s):" )
