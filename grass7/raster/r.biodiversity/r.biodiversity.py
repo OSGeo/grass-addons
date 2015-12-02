@@ -166,7 +166,7 @@ def main():
     IN = options['input']
     IN = IN.split(',')
     CheckLayer(IN)
-    
+
     # Diversity indici
     flag_r = flags['r']
     flag_s = flags['s']
@@ -176,7 +176,7 @@ def main():
     flag_g = flags['g']
     flag_n = flags['n']
     if options['alpha']:
-        Q = map(float, options['alpha'].split(',')) 
+        Q = map(float, options['alpha'].split(','))
     else:
         Q = map(float, [])
     Qoriginal = list(Q)
@@ -206,73 +206,82 @@ def main():
     #--------------------------------------------------------------------------
     tmpt = tmpname("sht")
     clean_rast.add(tmpt)
-    grass.run_command("r.series", quiet=True, output=tmpt, 
-                      input=IN, method="sum")  
+    grass.run_command("r.series", quiet=True, output=tmpt,
+                      input=IN, method="sum")
 
     for n in xrange(len(Q)):
-        
+
         Qn = str(Q[n])
         Qn = Qn.replace('.', '_')
         out_renyi = OUT + "_Renyi_" + Qn
         tmpl = []
-        
-        if Q[n] == 1:      
+
+        if Q[n] == 1:
             # If alpha = 1
             for i in xrange(len(IN)):
                 tmpi = tmpname('shi' + str(i) + "_")
                 tmpl.append(tmpi)
                 clean_rast.add(tmpi)
-                grass.mapcalc("$tmpi = ($inl/$tmpt) * log(($inl/$tmpt))", 
+                grass.mapcalc("$tmpi = ($inl/$tmpt) * log(($inl/$tmpt))",
                               tmpi=tmpi,
                               inl=IN[i],
                               tmpt=tmpt,
                               quiet=True)
-            grass.run_command("r.series", output=out_renyi, input=tmpl, 
-                                  method="sum", quiet=True)  
-            grass.mapcalc("$outl = -1 * $outl", 
+            tmpta = tmpname("sht")
+            clean_rast.add(tmpta)
+            grass.run_command("r.series", output=tmpta, input=tmpl,
+                                  method="sum", quiet=True)
+            grass.mapcalc("$outl = -1 * $tmpta",
                               outl=out_renyi,
+                              tmpta=tmpta,
                               overwrite=True,
                               quiet=True)
+            grass.run_command("g.remove", type="raster",
+                              name=tmpta, flags="f")
         else:
             # If alpha != 1
             for i in xrange(len(IN)):
                 tmpi = tmpname('reni')
-                tmpl.append(tmpi)       
-                grass.mapcalc("$tmpi = if($inl==0,0,pow($inl/$tmpt,$alpha))", 
+                tmpl.append(tmpi)
+                grass.mapcalc("$tmpi = if($inl==0,0,pow($inl/$tmpt,$alpha))",
                               tmpi=tmpi,
                               tmpt=tmpt,
                               inl=IN[i],
                               alpha=Q[n],
                               quiet=True)
-            grass.run_command("r.series", output=out_renyi, input=tmpl, 
-                              method="sum", quiet=True, overwrite=True)
-            grass.mapcalc("$outl = (1/(1-$alpha)) * log($outl)", 
+            tmpta = tmpname("sht")
+            clean_rast.add(tmpta)
+            grass.run_command("r.series", output=tmpta, input=tmpl,
+                              method="sum", quiet=True)
+            grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmpta)",
                               outl=out_renyi,
+                              tmpta=tmpta,
                               alpha=Q[n],
-                              overwrite=True,
                               quiet=True)
-        grass.run_command("g.remove", type="raster", 
+            grass.run_command("g.remove", type="raster",
+                              name=tmpta, flags="f", quiet=True)
+        grass.run_command("g.remove", type="raster",
                           name=tmpl, flags="f", quiet=True)
-        
+
     #--------------------------------------------------------------------------
     # Species richness
     #--------------------------------------------------------------------------
     if flag_s:
-        out_div = OUT + "_richness"      
+        out_div = OUT + "_richness"
         in_div = OUT + "_Renyi_0_0"
         grass.mapcalc("$out_div = exp($in_div)",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
         if 0.0 not in Qoriginal and not flag_e:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
 
     #--------------------------------------------------------------------------
     # Shannon index
     #--------------------------------------------------------------------------
     if flag_h:
-        out_div = OUT + "_shannon"      
+        out_div = OUT + "_shannon"
         in_div = OUT + "_Renyi_1_0"
         if 1.0 in Qoriginal or flag_e or flag_n:
             grass.run_command("g.copy", raster=(in_div,out_div), quiet=True)
@@ -283,21 +292,21 @@ def main():
     # Shannon Effective Number of Species (ENS)
     #--------------------------------------------------------------------------
     if flag_n:
-        out_div = OUT + "_ens"      
+        out_div = OUT + "_ens"
         in_div = OUT + "_Renyi_1_0"
         grass.mapcalc("$out_div = exp($in_div)",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
         if 1.0 not in Qoriginal and not flag_e:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
 
     #--------------------------------------------------------------------------
     # Eveness
     #--------------------------------------------------------------------------
     if flag_e:
-        out_div = OUT + "_eveness"      
+        out_div = OUT + "_eveness"
         in_div1 = OUT + "_Renyi_0_0"
         in_div2 = OUT + "_Renyi_1_0"
         grass.mapcalc("$out_div = $in_div2 / $in_div1",
@@ -306,43 +315,43 @@ def main():
                       in_div2=in_div2,
                       quiet=True)
         if 0.0 not in Qoriginal:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div1, quiet=True)
         if 1.0 not in Qoriginal:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div2, quiet=True)
     #--------------------------------------------------------------------------
     # Inversed Simpson index
     #--------------------------------------------------------------------------
     if flag_p:
-        out_div = OUT + "_invsimpson"      
+        out_div = OUT + "_invsimpson"
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = exp($in_div)",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
         if 2.0 not in Qoriginal and not flag_g:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
-        
+
     #--------------------------------------------------------------------------
     # Gini Simpson index
     #--------------------------------------------------------------------------
     if flag_g:
-        out_div = OUT + "_ginisimpson"      
+        out_div = OUT + "_ginisimpson"
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = 1.0 - (1.0 / exp($in_div))",
                       out_div=out_div,
                       in_div=in_div,
                       quiet=True)
         if 2.0 not in Qoriginal:
-            grass.run_command("g.remove", flags="f", type="raster", 
+            grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
-        
+
     # Clean up temporary files
-    grass.run_command("g.remove", type="raster", name=tmpt, 
+    grass.run_command("g.remove", type="raster", name=tmpt,
                       flags="f", quiet=True)
-  
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)

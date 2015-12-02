@@ -117,24 +117,56 @@ r.mapcalc "spec4 = 1"
 r.mapcalc "spec5 = 4"
 </pre></div>
 
-<p>Now we can calculate the renyi index for alpha is 0, 1 and 2 (this 
-will give you 1.61, 1.06 and 0.83 respectively)
+<p>Now we can calculate the renyi index for alpha is 0, 1 and 2 
+(this should be 1.61, 1.06 and 0.83 respectively)
 
 <div class="code"><pre>
-r.biodiversity in=spec1,spec2,spec3,spec4,spec5 out=renyi alpha=0,1,2
+r.biodiversity -r in=spec1,spec2,spec3,spec4,spec5 out=renyi alpha=0,1,2
+
+r.info -r map=renyi_Renyi_0_0
+min=1.6094379124341
+max=1.6094379124341
+
+r.info -r map=renyi_Renyi_1_0
+min=1.05813420869358
+max=1.05813420869358
+
+r.info -r map=renyi_Renyi_2_0
+min=0.834250021537946
+max=0.834250021537946
 </pre></div>
 
-<p>You can also compute the species richness, shannon, simpson, 
-inverse simpson and gini-simpson indices
+<p>You can also compute the species richness, shannon, inverse 
+simpson and gini-simpson indices
 
 <div class="code"><pre>
-r.biodiversity -s -h -d -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
+r.biodiversity -s -h -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
 </pre></div>
 
 <p>The species richness you get should of course be 5. The shannon 
 index is the same as the renyi index with alpha=1 (1.06). The 
-simpson should be 0.43, and inverse simpson and gini-simpson will be 
-2.3 and 0.57 respectively.
+inverse simpson and gini-simpson should be 2.3 and 0.57 
+respectively. Let's check:
+
+<div class="code"><pre>
+r.info -r map=biodiversity_richness
+min=5
+max=5
+
+r.info -r map=biodiversity_shannon
+min=1.05813420869358
+max=1.05813420869358
+
+r.info -r map=biodiversity_invsimpson
+min=2.30308613542147
+max=2.30308613542147
+
+r.info -r map=biodiversity_ginisimpson
+min=0.5658
+max=0.5658
+</pre></div>
+
+
 
 <h2>SEE ALSO</h2>
 
