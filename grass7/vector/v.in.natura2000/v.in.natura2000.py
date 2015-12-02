@@ -117,10 +117,6 @@ import math
 import shutil
 import tempfile
 import grass.script as grass
-try:
-    import pyspatialite.dbapi2 as db
-except ImportError:
-    grass.warning( "pyspatialite has to be installed." )
 
 if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
@@ -151,7 +147,14 @@ def main():
     list_species = flags['s']
     list_site_type = flags['t']
     global tmp	 
- 
+
+    try:
+		import pyspatialite.dbapi2 as db
+    except:
+		grass.fatal( "pyspatialite is needed to run this script.\n"
+				     "source: https://pypi.python.org/pypi/pyspatialite \n"
+				     "Please activate/install it in your python stack.")	
+
     if list_n2k_layer :
         grass.message( "Available data layer(s):" )
         grass.message( "may take some time ..." )
