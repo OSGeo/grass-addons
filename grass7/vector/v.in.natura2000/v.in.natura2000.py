@@ -179,16 +179,26 @@ def main():
         grass.message( "habitat codes of EU community interest:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
-        for row in c.execute('SELECT HABITATCODE, DESCRIPTION FROM HABITATS GROUP BY HABITATCODE'):	
-                grass.message( row )
+        try:
+            for row in c.execute('SELECT HABITATCODE, DESCRIPTION FROM HABITATS GROUP BY HABITATCODE'):	
+                    grass.message( row )
+        except:
+            pass
+            grass.warning("Some problems querying habitat code or names occurred."
+                          " Please check columns HABITATCODE and DESCRIPTION of table HABITATS in the sqlite database.")
         conn.close()
 
     if list_species :
         grass.message( "species codes of EU community interest:" )
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
-        for row in c.execute('SELECT SPECIESCODE, SPECIESNAME FROM SPECIES GROUP BY SPECIESCODE'):	
-                grass.message( row )
+        try:
+            for row in c.execute('SELECT SPECIESCODE, SPECIESNAME FROM SPECIES GROUP BY SPECIESCODE'):	
+                    grass.message( row )
+        except:
+            pass
+            grass.warning("Some problems querying species code or names occurred."
+                          " Please check columns SPECIESCODE and SPECIESNAME of table SPECIES in the sqlite database.")
         conn.close()
 
     if list_site_type :
