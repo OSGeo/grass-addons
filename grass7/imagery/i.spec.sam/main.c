@@ -57,7 +57,7 @@ int  error_fd;
 char result_name[80];
 char *result_prefix;
 
-mat_struct  *open_files(char * matrixfile, char *img_grp);
+mat_struct  *open_files(char * matrixfile, char *img_grp, int type);
 float spectral_angle(vec_struct * Avector1, vec_struct * Avector2, int vtype);
 DCELL myround(double x);
 
@@ -75,6 +75,7 @@ int main(int argc,char * argv[])
     } parm;
 
     mat_struct *A; /*first use in open.c G_matrix_set()*/
+    mat_struct *AT; /*first use in open.c G_matrix_set()*/
     char *group;
     float spectangle; /*numerical value of the spectral angle*/
 
@@ -88,7 +89,7 @@ int main(int argc,char * argv[])
 
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
-    parm.group->description = "Imagery group to target for Spectral Mixture Analyis";
+    parm.group->description = "Imagery group to target for Spectral Mixture Analysis";
 
     parm.matrixfile = G_define_standard_option(G_OPT_F_INPUT);
     parm.matrixfile->description = "Matrix file containing spectral signatures";
@@ -107,7 +108,7 @@ int main(int argc,char * argv[])
     G_message("%s",result_prefix);
 
     /*Creating A, the spectral signature matrix here*/
-    A = open_files(parm.matrixfile->answer, parm.group->answer);
+    A = open_files(parm.matrixfile->answer, parm.group->answer, 1);
    /* Spectral Matrix is stored in A now */
 
   /* Check matrix orthogonality 
@@ -115,17 +116,21 @@ int main(int argc,char * argv[])
    *          using spectral unmixing and modeling spectral mixtrues with 
    *          TM data. Photogrammetric Engineering & Remote Sensing, Vol.63, No6.
    */
-     
+    AT = open_files(parm.matrixfile->answer, parm.group->answer, 0);
     G_message("/* Check matrix orthogonality*/"); 
     for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
     {
-     Avector = G_matvect_get_row(A, i);  /* go columnwise through matrix*/
+     Avector = G_matvect_get_column(AT, i);  /* go columnwise through matrix*/
+     G_message("Avector rows:%d cols:%d",Avector->rows,Avector->cols);
      for (j = 0; j < Ref.nfiles ; j++)
 	{
 	 if (j !=i)
 	    {
-	     b = G_matvect_get_row(A, j);      /* compare with next col in A */
+	     b = G_matvect_get_column(AT, j);      /* compare with next col in A */
+             G_message("b rows:%d cols:%d",b->rows,b->cols);
+             G_message("process spectangle %d %d %d",i,j, Ref.nfiles);
 	     spectangle = spectral_angle(Avector, b, RVEC);
+             G_message("processed spectangle");
 	     anglefield[i][j]= spectangle;
 	     G_vector_free(b);
 	    }
