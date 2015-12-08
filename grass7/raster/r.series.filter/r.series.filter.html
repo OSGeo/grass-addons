@@ -2,6 +2,8 @@
 <em>-c</em>	 Find optimal parameters of used filter. The function to optimize depends on
 				difference between original and filtered signals and on derivates of the
 				filtered signal.
+<em>-u</em>	 Filter usung upper boundary of the signal values. 
+				(Usefull for vegetation indexes filtering)
 <p>
 <em>r.series.filter</em> is a module to filter raster time series <em>X</em>
 in time domain.
@@ -51,6 +53,11 @@ are filtered signals in the sampling points.
 <p>
 The optimal parameters are used for signal filtering in the whole region.
 
+<p>
+If <em>-u</em> flag is specifed, then filter uses Chen's algorithm (see link bellow).
+The algorithm is usefull for vegetation indexes filtering. It creates a curve that
+flows on upper boundary of the signal.
+
 
 <h2>EXAMPLES</h2>
 Create test data: <em>X = sin(t) + E</em>,
@@ -85,7 +92,14 @@ i.spectral -g raster=$fmaps coor=$center_easting,$center_northing out=flt.png
 <img src="flt.png" border="0" alt="Filtered values of the time series in the central point">
 </center> 
 
+<h2>REFERENCES</h2>
 
+<ul>
+  <li>Chen, Jin, et al. "A simple method for reconstructing a high-quality
+        NDVI time-series data set based on the Savitzky–Golay filter."
+        Remote sensing of Environment 91.3 (2004): 332-344.
+ </li>
+</ul>
 
 
 <h2>SEE ALSO</h2>
