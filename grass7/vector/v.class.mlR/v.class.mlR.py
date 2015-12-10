@@ -177,22 +177,22 @@ def main():
     model_string += "kernel = '%s', " % kernel
     tune = True
     if kernel == 'linear' and cost:
-        model_string += "cost = %f)" % cost
+        model_string += "cost = %s)" % cost
         tune = False
     if kernel == 'polynomial' and cost and degree and gamma and coeff0:
-        model_string += "cost = %f, " % cost
-        model_string += "degree = %d, " % degree
-        model_string += "gamma = %f, " % gamma
-        model_string += "coeff0 = %f)" % coeff0
+        model_string += "cost = %s, " % cost
+        model_string += "degree = %s, " % degree
+        model_string += "gamma = %s, " % gamma
+        model_string += "coeff0 = %s)" % coeff0
         tune = False
     if kernel == 'radial' and cost and gamma:
-        model_string += "cost = %f, " % cost
-        model_string += "gamma = %f)" % gamma
+        model_string += "cost = %s, " % cost
+        model_string += "gamma = %s)" % gamma
         tune = False
     if kernel == 'sigmoid' and cost and gamma and coeff0:
-        model_string += "cost = %f, " % cost
-        model_string += "gamma = %f, " % gamma
-        model_string += "coeff0 = %f)" % coeff0
+        model_string += "cost = %s, " % cost
+        model_string += "gamma = %s, " % gamma
+        model_string += "coeff0 = %s)" % coeff0
         tune = False
     if tune:
         model_string = "model=tune(svm, trainingclass~., data=training[-1], "
