@@ -18,8 +18,9 @@ SUBDIRS = \
 	r.area \
 	r.basin \
 	r.bioclim \
-	r.biodiversity \
 	r.bitpattern \
+	r.catchment \
+	r.category.trim \
 	r.convergence \
 	r.cpt2grass \
 	r.crater \
@@ -28,6 +29,7 @@ SUBDIRS = \
 	r.diversity \
 	r.droka \
 	r.edm.eval \
+	r.exdet \
 	r.fidimo \
 	r.findtheriver \
 	r.flexure \
@@ -57,6 +59,7 @@ SUBDIRS = \
 	r.mcda.input \
 	r.mcda.output \
 	r.mcda.roughset \
+	r.meb \
 	r.mess \
 	r.modis \
 	r.mwprecip \
@@ -70,6 +73,8 @@ SUBDIRS = \
 	r.rock.stability \
 	r.roughness.vector \
 	r.sample.category \
+	r.series.decompose \
+	r.series.diversity \
 	r.shaded.pca \
 	r.shalstab \
 	r.skyview \
