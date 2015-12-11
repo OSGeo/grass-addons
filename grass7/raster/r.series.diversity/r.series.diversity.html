@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.biodiversity</em> computes one or more biodiversity indices 
+<em>r.series.diversity</em> computes one or more diversity indices 
 based on 2 or more input layers. Each layer should represents a 
 species (or other categories being used), and its raster values the 
 category count/value. The name of the output layers will consist of 
@@ -22,7 +22,7 @@ order diminishes the relative weights of rare species in the
 resulting index (Jost 2006, Legendre & Legendre 1998). The name of 
 the output layer is composed of the basename + renyi + alpha.
 
-<h4>Species richness</h4>
+<h4>Richness</h4>
 
 The species richness is simply the count of the number of layers. 
 It is a special case of the Reny enthropy: <i>S = exp(R0)</i>, 
@@ -121,7 +121,7 @@ r.mapcalc "spec5 = 4"
 (this should be 1.61, 1.06 and 0.83 respectively)
 
 <div class="code"><pre>
-r.biodiversity -r in=spec1,spec2,spec3,spec4,spec5 out=renyi alpha=0,1,2
+r.series.diversity -r in=spec1,spec2,spec3,spec4,spec5 out=renyi alpha=0,1,2
 
 r.info -r map=renyi_Renyi_0_0
 min=1.6094379124341
@@ -140,7 +140,7 @@ max=0.834250021537946
 simpson and gini-simpson indices
 
 <div class="code"><pre>
-r.biodiversity -s -h -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
+r.series.diversity -s -h -p -g in=spec1,spec2,spec3,spec4,spec5 out=biodiversity
 </pre></div>
 
 <p>The species richness you get should of course be 5. The shannon 

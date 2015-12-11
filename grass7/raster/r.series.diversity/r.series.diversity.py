@@ -3,7 +3,7 @@
 
 ########################################################################
 #
-# MODULE:       r.biodiversity
+# MODULE:       r.series.diversity
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
 # PURPOSE:      Compute biodiversity indici over input layers
 #
@@ -18,7 +18,7 @@
 ########################################################################
 #
 #%Module
-#% description: Compute biodiversity indici over input layers
+#% description: Compute diversity indici over input layers
 #% keyword: raster
 #% keyword: diversity index
 #% keyword: renyi entrophy
