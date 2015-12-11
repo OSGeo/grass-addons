@@ -22,6 +22,7 @@ SUBDIRS = \
 	v.habitat.dem \
 	v.in.gbif \
 	v.in.geopaparazzi \
+	v.in.gns \
 	v.in.gps \
 	v.in.natura2000 \
 	v.in.ply \
@@ -29,9 +30,12 @@ SUBDIRS = \
 	v.in.redwg \
 	v.in.wfs2 \
 	v.isochrones \
+	v.kriging \
 	v.lfp \
 	v.lidar.mcc \
 	v.link.precip \
+	v.mapcalc \
+	v.maxent.swd \
 	v.median \
 	v.neighborhoodmatrix \
 	v.net.salesman.opt \
@@ -44,8 +48,8 @@ SUBDIRS = \
 	v.surf.icw \
 	v.surf.mass \
 	v.transects \
-	v.what.strds \
-	v.vol.idw
+	v.vol.idw \
+	v.what.strds
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

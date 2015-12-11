@@ -63,6 +63,7 @@ SUBDIRS = \
 	r.mess \
 	r.modis \
 	r.mwprecip \
+	r.niche.similarity \
 	r.northerness.easterness \
 	r.out.arc \
 	r.out.tiff \
