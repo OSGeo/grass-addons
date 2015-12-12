@@ -154,8 +154,7 @@ def main():
     install += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
     install += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
     install += "chooseCRANmirror(ind=1)\n"
-    install += "install.packages('e1071', "
-    install += "repos='https://mirror.ibcp.fr/pub/CRAN/')}" 
+    install += "install.packages('e1071')}"
     r_file.write(install)
     r_file.write("\n")
     r_file.write('library(e1071)')
