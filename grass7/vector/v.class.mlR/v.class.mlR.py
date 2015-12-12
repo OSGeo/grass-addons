@@ -153,6 +153,7 @@ def main():
     install += "if(!file.exists(Sys.getenv('R_LIBS_USER'))){\n"
     install += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
     install += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
+    install += "chooseCRANmirror(ind=1)\n"
     install += "install.packages('e1071', "
     install += "repos='https://mirror.ibcp.fr/pub/CRAN/')}" 
     r_file.write(install)
@@ -271,6 +272,9 @@ def main():
     	grass.message("Loading results into attribute table")
 	grass.run_command('db.in.ogr', input_=model_output, output=temptable,
 			   overwrite=True, quiet=True)
+        index_creation = "CREATE INDEX idx_%s_cat" % temptable
+        index_creation += " ON %s (cat_)" % temptable
+        grass.run_command('db.execute', sql=index_creation)
 	grass.run_command('v.db.join', map_=allfeatures, column='cat',
 			   otable=temptable, ocolumn='cat_', 
 			   subset_columns=output_classcol, quiet=True)
