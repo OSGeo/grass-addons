@@ -3,7 +3,7 @@
 #
 ########################################################################
 #
-# MODULE:       r.legend.out
+# MODULE:       r.out.legend
 # AUTHOR(S):    Paulo van Breugel
 # DESCRIPTION:  Export the legend of a raster as image, which can be used
 #               in e.g., the map composer in QGIS.
@@ -63,7 +63,7 @@
 #% description: unit of the image dimensions
 #% key_desc: unit
 #% required: no
-#% options: cm,mm,inch
+#% options: cm,mm,inch,px
 #% answer: cm
 #% guisection: Image settings
 #%end
@@ -73,8 +73,7 @@
 #% type: integer
 #% description: resolution (dots/inch)
 #% key_desc: value
-#% required: yes
-#% answer:300
+#% required: no
 #% guisection: Image settings
 #%end
 
@@ -138,9 +137,9 @@
 
 #%option
 #% key: fontsize
-#% type: string
+#% type: integer
 #% description: Font size
-#% key_desc: float
+#% key_desc: integer
 #% required: no
 #% answer: 10
 #% guisection: Font settings
@@ -173,23 +172,30 @@ def main():
     # Variables / parameters
     outputfile    = options['file']
     filetype      = options['filetype']
+    unit          = options['unit']
+    resol         = options['resolution']
+    if resol == '':
+        if unit=='px':
+            resol=96
+        else:
+            resol=300
+    else:
+        resol = int(resol)
     dimensions    = options['dimensions']
     width, height = dimensions.split(",")
-    resol         = options['resolution']
-    unit          = options['unit']
     bgcolor       = options['bgcolor']
     inmap         = options['raster']
     labelnum      = options['labelnum']
     val_range     = options['range']
     font          = options['font']
-    fontsize      = options['fontsize']
-    digits          = int(options['digits'])
+    fontsize      = int(options['fontsize'])
+    digits        = int(options['digits'])
     flag_f        = flags['f']
 
     # Check if input layer exists
     CheckLayer(inmap)
 
-    # Compute output size
+    # Compute output size of legend bar in pixels
     if unit=='cm':
         w = math.ceil(float(width)/2.54*float(resol))
         h = math.ceil(float(height)/2.54*float(resol))
@@ -197,42 +203,56 @@ def main():
         w = math.ceil(float(width)/25.4*float(resol))
         h = math.ceil(float(height)/25.4*float(resol))
     elif unit=='inch':
-        w = math.ceil(height*resol)
+        w = math.ceil(width*resol)
         h = math.ceil(height*resol)
+    elif unit=="px":
+        w=float(width)
+        h=float(height)
     else:
-        grass.error('Unit must be inch, cm or mm')
+        grass.error('Unit must be inch, cm, mm or px')
 
-    # Compute fontsize
-    fz = round(float(fontsize) * (float(resol)/72.272))
-
-    # Compute image position
-    maprange = grass.raster_info(inmap)
-    maxval = round(maprange['max'],digits)
-    if maxval<1:
-        maxl=len(str(maxval)) -1
-    else:
-        maxl=len(str(maxval)) - 2
-
-    if float(height)>float(width):
-        iw = w + fz * maxl
+    # Check if fontsize = 0 ( = no raster values)
+    if fontsize==0:
+        iw = w
         ih = h
-        at = "1,99,1," + str((100*w/iw)-1)
+        fz = 1
+        at = "1,99,1,99"
     else:
-        margin_left = 0.5 * (len(str(maprange['min'])) - 1)
-        margin_right = 0.5 * maxl
-        iw = w + fz * (margin_left + margin_right)
-        ih = h + fz
-        at = str(100 - (100*h/ih)+5) + ",99," + \
-        str((100 * fz * margin_left / iw)) + "," + \
-        str(100 - (100 * fz * margin_right / iw))
+        fz = round(float(fontsize) * (float(resol)/72.272))
+
+        # Compute image position and position
+        maprange = grass.raster_info(inmap)
+        maxval = round(maprange['max'],digits)
+        if maxval<1:
+            maxl=len(str(maxval)) -1
+        else:
+            maxl=len(str(maxval)) - 2
+
+        if float(height)>float(width):
+            iw = w + fz * maxl
+            ih = h
+            at = "1,99,1," + str((100*w/iw)-1)
+        else:
+            minval = round(maprange['min'],digits)
+            margin_left = 0.5 * (len(str(minval)) - 1)
+            margin_right = 0.5 * maxl
+            iw = w + fz * (margin_left + margin_right)
+            ih = h + fz * 1.5
+            at = str(100 - (100*h/ih)) + ",99," + \
+            str((100 * fz * margin_left / iw)) + "," + \
+            str(100 - (100 * fz * margin_right / iw))
 
     # Open file connection, set font, write legend and close file
     grass.run_command("d.mon", start=filetype, output=outputfile, width=iw, height=ih,
                       resolution=1, bgcolor=bgcolor)
-    if flag_f:
-        flag='vsf'
+    if flag_f and fontsize==0:
+        flag='cfsv'
+    elif flag_f:
+        flag='fsv'
+    elif fontsize==0:
+        flag='csv'
     else:
-        flag="vs"
+        flag='sv'
     if val_range=='':
         grass.run_command("d.legend", flags=flag, raster=inmap, font=font,
                       at=at, fontsize=fz, labelnum=labelnum)
@@ -241,7 +261,25 @@ def main():
                       at=at, fontsize=fz, labelnum=labelnum, range=val_range)
 
     grass.run_command("d.mon", stop=filetype)
+    grass.info("----------------------------\n")
     grass.info("File saved as " + outputfile)
+    grass.info("The image dimensions are:\n")
+    grass.info(str(int(iw)) + "px wide and " + str(int(ih)) + "px heigh\n")
+    if unit=='inch':
+        wr = iw/resol
+        hr = ih/resol
+    elif unit=='cm':
+        wr = iw/resol*2.54
+        hr = ih/resol*2.54
+    elif unit=='mm':
+        wr = iw/resol*2.54*10
+        hr = ih/resol*2.54*10
+    else:
+        wr = "same"
+    if wr != "same":
+        grass.info("at a resolution of " + str(resol) + " ppi this is:")
+        grass.info(str(wr) + " " + unit + " x " + str(hr) + " " + unit + "\n")
+    grass.info("----------------------------\n")
 
 if __name__ == "__main__":
     options, flags = grass.parser()
