@@ -1,0 +1,76 @@
+<h2>DESCRIPTION</h2>
+
+The <em>r.out.legend</em> script provides a convenient way 
+to quickly create a smoothed legend image for floating point raster maps 
+(continous values as opposed to categories), with the dimensions and 
+resolution required. It is furthermore possible to set the font (default 
+is 'Arial') and font size (default=10). The legend can be saved as 
+<a href="https://grass.osgeo.org/grass64/manuals/pngdriver.html">PNG</a>, 
+<a href="https://grass.osgeo.org/grass64/manuals/psdriver.html">PS</a> 
+(postscript), BMP, PPM, PDF AND SVG. The latter four are supported through the 
+Cairo driver (see Notes). The images can be used to add a continuous 
+legends in maps created in e.g., QGIS composer or as part of a 
+Google Earth map.
+
+<h2>NOTES</h2>
+
+The user is required to set the dimensions of the legend bar. This 
+does not include the category values, which will thus add to the size of 
+the output image. How much will depend on the size of the raster values.
+
+<p>
+Note that one can use category maps as input, but <em>
+r.out.legend</em> will still create a smooth legend (by setting the 
+-f flag, see <em>d.legend</em>). 
+
+<p>
+The script is a wrapper of the functions 
+<a href="https://grass.osgeo.org/grass71/manuals/d.mon.html">d.mon</a> 
+and <a href="https://grass.osgeo.org/grass71/manuals/d.legend.html"> 
+d.legend</a>. For detailed explanations of the different options, 
+see the manual pages of these two functions. To find out the fonts 
+available on your system, you can run <a href="d.font">d.font -l</a>. For 
+a more interactive way to generate legend images, you can also try 
+<a href="https://grass.osgeo.org/grass70/manuals/ps.map.html">ps.map</a>.
+
+<p>
+The user may create a horizontal legend by making the box wider 
+than it is tall. Note that for vertical legends labels are placed to 
+the right of the legend box. For horizontal legends the text will 
+place text below. 
+
+<p>
+The <em>range</em> option lets the user define the limits of the 
+legend. Note however that the color scale will remain faithful to 
+the values as defined with r.colors.
+
+<p>
+The <a href="https://grass.osgeo.org/grass64/manuals/cairodriver.html">Cairo driver</a> 
+generates PNG, BMP, PPM, PS, PDF or SVG images 
+using the Cairo graphics library. The image format is selected from 
+the extension of the output file. For this option to work, GRASS has 
+to be configured with CAIRO support (if you compile GRASS yourself, 
+use --with-cairo when configuring GRASS). 
+
+<p>
+This script was originally written to create smooth legend for 
+use in the map composer of QGIS, which does has the option (yet) to 
+include smooth (continuous) legend. For some other nice solutions, 
+see this 
+<a href="http://gis.stackexchange.com/questions/91179/continuous-color-band-for-a-raster-legend-in-qgis-composer-legend">Q & A</a> 
+at gis.stackexchange. 
+
+<h2>SEE ALSO</h2>
+
+<em><a href="d.mon.html">d.mon</a></em>, 
+<em><a href="d.legend.html">d.legend</a></em>, 
+<em><a href="d.font.html">d.font</a></em>,
+<em><a href="d.out.file.html">d.out.file</a></em>,
+<em><a href="ps.map.html">ps.map</a></em>,
+<em><a href="r.category.trim">r.category.trim</a></em>
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel, paulo at ecodiv.org
+
+<p><em>Last changed: $Date$</em>
