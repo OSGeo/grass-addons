@@ -66,6 +66,7 @@ SUBDIRS = \
 	r.niche.similarity \
 	r.northerness.easterness \
 	r.out.arc \
+	r.out.legend \
 	r.out.tiff \
 	r.popgrowth \
 	r.random.weight \
