@@ -1,7 +1,0 @@
-sdesc: "GRASS GIS - nightly build of 6.4 branch"
-ldesc: "Geographic Resources Analysis Support System (GRASS GIS) - nightly build of 6.4 branch"
-category: Desktop
-requires: msvcrt iconv libtiff proj gdal freetype-mingw pdcurses zlib fftw libpng msys tcltk wxpython python-numpy python-pil pyopengl avce00 gpsbabel gs
-maintainer: MartinLanda
-curr: 6.4.3svn-r56391-596
-prev: 6.4.3svn-r56391-595
