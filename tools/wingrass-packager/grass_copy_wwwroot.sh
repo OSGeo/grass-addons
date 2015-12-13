@@ -1,40 +1,66 @@
 #!/bin/sh
 # Copy binaries to www server
+#
+# Options:
+#  - platform (32 or 64)
+#  - src version, eg. 700
+#  - version, eg. 7.0.1
 
 WWWDIR=/c/inetpub/wwwroot/wingrass
 HOME=/c/Users/landa/grass_packager
+if test -z "$1"; then
+    echo "platform not specified"
+    exit 1
+fi
+PLATFORM=$1
+export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+
+if [ "$PLATFORM" = "32" ] ; then
+    PLATFORM_DIR=x86
+else
+    PLATFORM_DIR=x86_64
+fi
 
 function copy {
-    cd $HOME/grass$1
+    DIR=$1
+    VERSION=$2
+    
+    cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
 
-    echo "Copying grass$1..."
+    echo "Copying grass${DIR}..."
     
-    rm -rf $WWWDIR/grass$1
-    mkdir $WWWDIR/grass$1
-    
-    cp    WinGRASS*.exe* $WWWDIR/grass$1
-    
-    mkdir $WWWDIR/grass$1/osgeo4w
-    cp    grass*.tar.bz2 $WWWDIR/grass$1/osgeo4w
-    
-    mkdir $WWWDIR/grass$1/logs
-    cp -r log-r*         $WWWDIR/grass$1/logs
+    if [ ! -d ${WWWDIR}/${PLATFORM_DIR} ] ; then
+	mkdir ${WWWDIR}/${PLATFORM_DIR}
+    fi
 
-    copy_addon $1 $2
+    DST_DIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR}
+
+    rm -rf $DST_DIR
+    mkdir  $DST_DIR
+    
+    cp    WinGRASS*.exe* $DST_DIR
+    
+    mkdir ${DST_DIR}/osgeo4w
+    cp    grass*.tar.bz2 ${DST_DIR}/osgeo4w
+    
+    mkdir ${DST_DIR}/logs
+    cp -r log-r*         ${DST_DIR}/logs
+
+    copy_addon $DIR $VERSION
 }
 
 function copy_addon {
-    version=$1
-    version_full=$2
-
-    cd $HOME/grass$version
-
-    echo "Copying AddOns for grass${version}..."
+    DIR=$1
+    VERSION=$2
     
-    if test -n "$2"; then
-	ADDONDIR=$WWWDIR/grass${version:0:2}/addons/grass-$version_full
+    cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
+
+    echo "Copying AddOns for grass${DIR}..."
+    
+    if test -n "$VERSION"; then
+	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}grass${DIR:0:2}/addons/grass-$VERSION
     else
-	ADDONDIR=$WWWDIR/grass${version:0:2}/addons
+	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}grass${DIR:0:2}/addons
     fi
         
     mkdir -p $ADDONDIR
@@ -46,25 +72,22 @@ function copy_addon {
 function create_zip {
     echo "Creating zip..."
     cd $WWWDIR
-    rm wingrass.zip
-    zip wingrass.zip grass64 grass70 grass71 -r -q
+    rm wingrass-$PLATFORM_DIR}.zip
+    zip wingrass-$PLATFORM_DIR}.zip ${PLATFORM_DIR} -r -q
 }
-
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
-
-if test -z $1 ; then
+if test -z $2 ; then
     # daily builds
     ### copy 64 6.4.5svn
     ### copy 65
-    copy 70 7.0.3svn
-    copy 71 7.1.svn
-    # releases
-    copy_addon 644      6.4.4
-    copy_addon 700      7.0.0
-    copy_addon 701      7.0.1
-    copy_addon 702      7.0.2
+    copy        70       7.0.3svn
+    copy        71       7.1.svn
+    # releases (TODO: enable later)
+    #copy_addon 644      6.4.4
+    #copy_addon 700      7.0.0
+    #copy_addon 701      7.0.1
+    #copy_addon 702      7.0.2
 else
-    copy $1 $2
+    copy        $2       $3
 fi
 
 create_zip

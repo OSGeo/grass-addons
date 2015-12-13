@@ -1,37 +1,39 @@
 #!/bin/sh
-# Compile AddOns GRASS versions
+# Compile GRASS GIS Addons
+#
+# Options:
+#  - platform (32 or 64)
+#  - src postfix, eg. '_trunk'
 
-SVN_PATH=/c/osgeo4w/usr/src/grass_addons
-GISBASE_PATH=/c/osgeo4w/usr/src
+if test -z "$1"; then
+    echo "platform not specified"
+    exit 1
+fi
+PLATFORM=$1
+export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+export PYTHONHOME=/c/OSGeo4W${PLATFORM}/apps/Python27
+export LANGUAGE=C
+
+SVN_PATH=/c/osgeo4w${PLATFORM}/usr/src/grass_addons
+GISBASE_PATH=/c/osgeo4w${PLATFORM}/usr/src
 ADDON_PATH=/c/Users/landa/grass_packager
+if [ "$PLATFORM" = "32" ] ; then
+    PLATFORM_DIR=x86
+else
+    PLATFORM_DIR=x86_64
+fi
 
-PATH_ORIG=`echo $PATH`
-
-(cd $SVN_PATH && \
- export PATH=$PATH_ORIG:/c/osgeo4w$3/apps/msys/bin:/c/Subversion/bin && \
- svn up || (svn cleanup && svn up) \
-)
-
-# see http://lists.osgeo.org/pipermail/grass-dev/2011-December/056938.html
-function tidy_citizen {
-    # move script/ and bin/ to main dir
-    mv bin/* .
-    mv scripts/* .
-    
-    # move man/ into docs/
-    mv man docs/
-    
-    # if empty, rmdir bin, etc, man, scripts
-    rmdir bin etc scripts
-}
+cd $SVN_PATH
+svn up || (svn cleanup && svn up)
 
 function compile {
-    export PATH=$PATH:/c/OSGeo4W$4/apps/msys/bin:/c/OSGeo4W$4/bin:$2/dist.i686-pc-mingw32/bin:$2/dist.i686-pc-mingw32/scripts:/c/subversion/bin/svn
-    export PYTHONHOME=/c/OSGeo4W$4/apps/Python27
+    SRC_ADDONS=$1
+    SRC_GRASS=$2
+    DST_DIR=$3
 
-    rm -rf $3
-    $SVN_PATH/tools/addons/compile.sh $1 $2 $3 1
-    cd $3
+    rm -rf $DST_DIR
+    $SVN_PATH/tools/addons/compile.sh $SRC_ADDONS $SRC_GRASS $DST_DIR 1
+    cd $DST_DIR
     for d in `ls -d */`; do
 	mod=${d%%/}
 	if [ $mod == "logs" ] ; then
@@ -49,29 +51,24 @@ function compile {
 	    sed "s/GISBASE/$replace_gisbase/" $f > tmp
 	    mv tmp $f
 	done
-	# if [ `echo $1 | sed -e 's/\(^.*\)\(.$\)/\2/'` = "6" ] ; then
-	#     tidy_citizen
-	# fi
 	zip -r $mod.zip *
 	mv $mod.zip ..
 	cd ..
 	md5sum $mod.zip > ${mod}.md5sum
     done
-    export PATH=$PATH_ORIG
 }
 
-export LANGUAGE=C
-
-if test -z $1 ; then
+if test -z $2 ; then
     ### compile $SVN_PATH/grass6 $GISBASE_PATH/grass644        $ADDON_PATH/grass644/addons
     ### compile $SVN_PATH/grass6 $GISBASE_PATH/grass64_release $ADDON_PATH/grass64/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass700        $ADDON_PATH/grass700/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass701        $ADDON_PATH/grass701/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass702        $ADDON_PATH/grass702/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release $ADDON_PATH/grass70/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     $ADDON_PATH/grass71/addons
+    # TODO: enable later
+    #compile $SVN_PATH/grass7 $GISBASE_PATH/grass700        $ADDON_PATH/grass700/addons
+    #compile $SVN_PATH/grass7 $GISBASE_PATH/grass701        $ADDON_PATH/grass701/addons
+    #compile $SVN_PATH/grass7 $GISBASE_PATH/grass702        $ADDON_PATH/grass702/addons
+    compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release ${ADDON_PATH}/${PLATFORM_DIR}/grass70/addons
+    compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     ${ADDON_PATH}/${PLATFORM_DIR}/grass71/addons
 else
-    compile $SVN_PATH/grass6 $GISBASE_PATH/grass$1         $ADDON_PATH/grass$1/addons
+    compile $SVN_PATH/grass6 $GISBASE_PATH/grass$2         ${ADDON_PATH}/${PLATFORM_DIR}/grass$2/addons
 fi
 
 exit 0

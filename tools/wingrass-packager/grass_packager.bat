@@ -3,68 +3,87 @@
 cd C:\Users\landa\grass_packager
 
 REM
-REM Clean-up
+echo Clean-up...
 REM
-REM rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.5svn
-REM rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.5.svn
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.3svn
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.1.svn
+call :cleanUp x86
+call :cleanUp x86_64
 
 REM
-REM Compile GRASS versions
+echo Compiling GRASS GIS...
 REM
-C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh
+C:\msys32\usr\bin\bash.exe .\grass_compile.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_compile.sh 64
 
 REM
-REM Clean-up
+echo Clean-up for packaging...
 REM
-REM if exist .\grass64 rmdir /S/Q .\grass64
-REM xcopy C:\OSGeo4W\usr\src\grass64_release\mswindows\* .\grass64 /S/V/F/I
-REM if exist .\grass65 rmdir /S/Q .\grass65
-REM xcopy C:\OSGeo4W\usr\src\grass6_devel\mswindows\* .\grass65 /S/V/F/I
-if exist .\grass70 rmdir /S/Q .\grass70
-xcopy C:\OSGeo4W\usr\src\grass70_release\mswindows\* .\grass70 /S/V/F/I
-if exist .\grass71 rmdir /S/Q .\grass71
-xcopy C:\OSGeo4W\usr\src\grass_trunk\mswindows\* .\grass71 /S/V/F/I
+REM call:cleanUpPkg x86
+REM call:cleanUpPkg x86_64
 
 REM
 echo Preparing packages...
 REM
-REM cd .\grass64
-REM call .\GRASS-Packager.bat > .\GRASS-Packager.log
-REM cd ..
-REM cd .\grass65
-REM call .\GRASS-Packager.bat
-REM cd ..
-cd .\grass70
-call .\GRASS-Packager.bat > .\GRASS-Packager.log
-cd ..
-cd .\grass71
-call .\GRASS-Packager.bat > .\GRASS-Packager.log
-cd ..
+call:preparePkg x86 32
+call:preparePkg x86_64 64
 
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh
+REM
+echo Finding latest package and update info...
+REM
+C:\msys32\usr\bin\bash.exe .\grass_osgeo4w.sh  32
+C:\msys64\usr\bin\bash.exe .\grass_osgeo4w.sh  64
+C:\msys32\usr\bin\bash.exe .\grass_svn_info.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_svn_info.sh 64
 
 REM
 echo Creating standalone installer...
 REM
-REM C:\DevTools\makensis.exe .\grass64\GRASS-Installer.nsi > .\grass64\GRASS-Installer.log
-REM C:\DevTools\makensis.exe .\grass65\GRASS-Installer.nsi
-C:\DevTools\makensis.exe .\grass70\GRASS-Installer.nsi > .\grass70\GRASS-Installer.log
-C:\DevTools\makensis.exe .\grass71\GRASS-Installer.nsi > .\grass71\GRASS-Installer.log
+call:createPkg x86
+call:createPkg x86_64
+
+pause
 
 REM
 REM Create md5sum files
 REM
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh
+C:\msys32\usr\bin\bash.exe .\grass_md5sum.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_md5sum.sh 64
 
 REM
 REM Build Addons 
 REM
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_addons.sh
+C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
 
 REM
 REM Copy packages
 REM
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_copy_wwwroot.sh
+C:\msys32\usr\bin\bash.exe .\grass_copy_wwwroot.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
+
+exit /b %ERRORLEVEL%
+
+:cleanUp
+for /d %%G in ("C:\OSGeo4W%~1\apps\grass\grass-7*svn") do rmdir /s /q "%%G"
+exit /b 0
+
+:cleanUpPkg
+	if not exist "%~1" mkdir %~1
+	if exist .\%~1\grass70 rmdir /S/Q .\%~1\grass70
+	xcopy C:\msys32\usr\src\grass70_release\mswindows\* .\%~1\grass70 /S/V/I > NUL
+	if exist .\%~1\grass71 rmdir /S/Q .\%~1\grass71
+	xcopy C:\msys32\usr\src\grass_trunk\mswindows\*     .\%~1\grass71 /S/V/I > NUL
+exit /b 0
+
+:preparePkg
+	cd .\%~1\grass70
+	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
+	cd ..\..
+	cd .\%~1\grass71
+	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
+	cd ..\..
+exit /b 0
+
+:createPkg
+	C:\DevTools\makensis.exe .\%~1\grass70\GRASS-Installer.nsi > .\%~1\grass71\GRASS-Installer.log
+	C:\DevTools\makensis.exe .\%~1\grass71\GRASS-Installer.nsi > .\%~1\grass71\GRASS-Installer.log
+exit /b 0

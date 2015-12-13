@@ -1,28 +1,47 @@
 #!/bin/sh
 # Update SVN version info
+#
+# Options:
+#  - platform (32 or 64)
+#  - src postfix, eg. '_trunk'
+#  - pkg patch number
 
-SRC=/usr/src
+SRC=usr/src
 PACKAGEDIR=mswindows/osgeo4w/package
 HOME=/c/Users/landa/grass_packager
 
+if test -z "$1"; then
+    echo "platform not specified"
+    exit 1
+fi
+PLATFORM=$1
+
+export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+
+if [ "$PLATFORM" = "32" ] ; then
+    PLATFORM_DIR=x86
+else
+    PLATFORM_DIR=x86_64
+fi
+
 function update {
-    if [ "$1" = "grass_trunk" ] ; then
-	SRC_PATH=/c/osgeo4w/$SRC/$1
-    else
-	SRC_PATH=/c/osgeo4w/$SRC/$1
-    fi
-    DEST_PATH=$HOME/$2
+    GRASS_DIR=$1
+    DST_DIR=$2
+    PATCH_NUM=$3
+
+    SRC_PATH=/c/msys${PLATFORM}/$SRC/$GRASS_DIR
+    DEST_PATH=${HOME}/${PLATFORM_DIR}/${DST_DIR}
     
     cd $SRC_PATH
 
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
-    if test -z $3 ; then
+    if test -z $PATCH_NUM ; then
 	NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
 	if [ "x$NUM" = "x" ]; then
 	    NUM=1
 	fi
     else
-	NUM=$3
+	NUM=$PATCH_NUM
     fi
     
     exec 3<include/VERSION 
@@ -46,7 +65,11 @@ function update {
 }
 
 function create_log {
-    cd $HOME/grass$1
+    VERSION=$1
+    REV=$2
+    PATCH=$3
+    
+    cd ${HOME}/${PLATFORM_DIR}/grass${VERSION}
     LOG_DIR=log-r$2-$3
     
     mkdir -p $LOG_DIR
@@ -54,19 +77,13 @@ function create_log {
     cp error.log $LOG_DIR/
 }
 
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/subversion/bin/svn
-
-VERSION=$1
-NUM=$2
-
-if test -z $VERSION ; then
+if test -z $2 ; then
     # dev packages
     ### update grass64_release grass64
-    ### update grass6_devel    grass65
     update grass70_release grass70
     update grass_trunk     grass71
 else
-    update grass$VERSION   grass$VERSION $NUM
+    update grass$2         grass$2 $3
 fi
 
 exit 0

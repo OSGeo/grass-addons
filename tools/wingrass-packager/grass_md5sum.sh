@@ -1,21 +1,37 @@
 #!/bin/sh
 # Create mdb5sum files for GRASS versions
+#
+# Options:
+#  - platform (32 or 64)
+#  - src postfix, eg. '70'
 
 HOME=/c/Users/landa/grass_packager
 
+if test -z "$1"; then
+    echo "platform not specified"
+    exit 1
+fi
+PLATFORM=$1
+export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+
 function create_md5sum {
-    cd $HOME/$1
+    GRASS_DIR=$1
+    
+    if [ "$PLATFORM" = "32" ] ; then
+	PLATFORM_DIR=x86
+    else
+	PLATFORM_DIR=x86_64
+    fi
+
+    cd ${HOME}/${PLATFORM_DIR}/${GRASS_DIR}
     for file in `ls WinGRASS*.exe`; do
 	md5sum $file > ${file}.md5sum
     done
 }
 
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
-
-if test -z $1 ; then
+if test -z $2 ; then
     # dev packages
     ### create_md5sum grass64
-    ### create_md5sum grass65
     create_md5sum grass70
     create_md5sum grass71
 else
