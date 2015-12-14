@@ -1,0 +1,19 @@
+<h2>DESCRIPTION</h2>
+
+<i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the sum change in elevation between a grid cell and its neighbours, over a user-specified moving window size. Unlike the original calculation in Riley et al., (1999) which used only a 3x3 neighbourhood, the TRI result is averaged over the number of neighbouring cells to allow the calculation to be extended over different window sizes. The calculation employed here produced exactly the same results as when using the terrain ruggedness focal function in the R raster package, which provides an alternative way to calculate the index using the R interface.
+
+<h2>NOTES</h2>
+<i>r.tri</i> uses <i>r.mapcalc</i> to calculate the sum of differences between the centre pixel and its neighbours. <i>r.mapcalc</i> statements are limited in character length, so only a range of neighbourhood sizes are allowed based on the methodology employed. If other window sizes are required, the R package <i>raster</i> can be used via <i>rgrass7</i>.
+
+<h2>TODO</h2>
+Null values are not evaluated at present, so there will be an edge effect and the resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. There is potential to calculate TRI at the image edges by using the <i>is.null()</i> r.mapcalc function.
+
+<h2>EXAMPLE</h2>
+r.tri dem=srtm wsize=3 output=tri
+
+<h2>REFERENCES</h2>
+Riley, S. J., S. D. DeGloria and R. Elliot (1999). A terrain ruggedness index that quantifies topographic heterogeneity, Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
+
+<h2>AUTHOR</h2>
+Steven Pawley
+<br><i>Last changed: Saturday 12 December 2015</i>
