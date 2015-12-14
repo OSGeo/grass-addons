@@ -14,15 +14,15 @@ fi
 PLATFORM=$1
 export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
 
+if [ "$PLATFORM" = "32" ] ; then
+    PLATFORM_DIR=x86
+else
+    PLATFORM_DIR=x86_64
+fi
+
 function create_md5sum {
     GRASS_DIR=$1
     
-    if [ "$PLATFORM" = "32" ] ; then
-	PLATFORM_DIR=x86
-    else
-	PLATFORM_DIR=x86_64
-    fi
-
     cd ${HOME}/${PLATFORM_DIR}/${GRASS_DIR}
     for file in `ls WinGRASS*.exe`; do
 	md5sum $file > ${file}.md5sum

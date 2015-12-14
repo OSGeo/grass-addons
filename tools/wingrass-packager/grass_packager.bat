@@ -17,8 +17,8 @@ C:\msys64\usr\bin\bash.exe .\grass_compile.sh 64
 REM
 echo Clean-up for packaging...
 REM
-REM call:cleanUpPkg x86
-REM call:cleanUpPkg x86_64
+call:cleanUpPkg x86
+call:cleanUpPkg x86_64
 
 REM
 echo Preparing packages...
@@ -40,8 +40,6 @@ REM
 call:createPkg x86
 call:createPkg x86_64
 
-pause
-
 REM
 REM Create md5sum files
 REM
@@ -49,16 +47,16 @@ C:\msys32\usr\bin\bash.exe .\grass_md5sum.sh 32
 C:\msys64\usr\bin\bash.exe .\grass_md5sum.sh 64
 
 REM
-REM Build Addons 
+echo Building addons...
 REM
-C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
-C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
+REM REM C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
+REM REM C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
 
 REM
 REM Copy packages
 REM
-C:\msys32\usr\bin\bash.exe .\grass_copy_wwwroot.sh 32
-C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
+REM REM C:\msys32\usr\bin\bash.exe .\grass_copy_wwwroot.sh 32
+REM REM C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
 
 exit /b %ERRORLEVEL%
 
@@ -84,6 +82,6 @@ exit /b 0
 exit /b 0
 
 :createPkg
-	C:\DevTools\makensis.exe .\%~1\grass70\GRASS-Installer.nsi > .\%~1\grass71\GRASS-Installer.log
+	C:\DevTools\makensis.exe .\%~1\grass70\GRASS-Installer.nsi > .\%~1\grass70\GRASS-Installer.log
 	C:\DevTools\makensis.exe .\%~1\grass71\GRASS-Installer.nsi > .\%~1\grass71\GRASS-Installer.log
 exit /b 0

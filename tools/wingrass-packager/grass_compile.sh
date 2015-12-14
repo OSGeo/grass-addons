@@ -41,7 +41,7 @@ function compile {
     
     echo "Compiling ${PLATFORM}bit $GRASS_DIR ($package)..."
     rm -f mswindows/osgeo4w/configure-stamp
-    PACKAGE_POSTFIX=$PACKAGE_POSTFIX OSGEO4W_POSTFIX=$PLATFORM ./mswindows/osgeo4w/package.sh
+    PACKAGE_PATCH=$package PACKAGE_POSTFIX=$PACKAGE_POSTFIX OSGEO4W_POSTFIX=$PLATFORM ./mswindows/osgeo4w/package.sh
 }
 
 if test -z $2 ; then

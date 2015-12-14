@@ -10,12 +10,14 @@ if test -z "$1"; then
     exit 1
 fi
 PLATFORM=$1
-export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+export PATH=/c/osgeo4w${PLATFORM}/bin:/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:${PATH}
+export GRASS_PYTHON=/c/OSGeo4W${PLATFORM}/pythonw.exe
+export GRASS_PYTHONPATH=/c/OSGeo4W${PLATFORM}/apps/Python27/Lib
 export PYTHONHOME=/c/OSGeo4W${PLATFORM}/apps/Python27
 export LANGUAGE=C
 
-SVN_PATH=/c/osgeo4w${PLATFORM}/usr/src/grass_addons
-GISBASE_PATH=/c/osgeo4w${PLATFORM}/usr/src
+SVN_PATH=/c/msys${PLATFORM}/usr/src/grass_addons
+GISBASE_PATH=/c/msys${PLATFORM}/usr/src
 ADDON_PATH=/c/Users/landa/grass_packager
 if [ "$PLATFORM" = "32" ] ; then
     PLATFORM_DIR=x86
@@ -66,7 +68,7 @@ if test -z $2 ; then
     #compile $SVN_PATH/grass7 $GISBASE_PATH/grass701        $ADDON_PATH/grass701/addons
     #compile $SVN_PATH/grass7 $GISBASE_PATH/grass702        $ADDON_PATH/grass702/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release ${ADDON_PATH}/${PLATFORM_DIR}/grass70/addons
-    compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     ${ADDON_PATH}/${PLATFORM_DIR}/grass71/addons
+    #compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     ${ADDON_PATH}/${PLATFORM_DIR}/grass71/addons
 else
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass$2         ${ADDON_PATH}/${PLATFORM_DIR}/grass$2/addons
 fi
