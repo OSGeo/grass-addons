@@ -17,13 +17,13 @@ C:\msys64\usr\bin\bash.exe .\grass_compile.sh 64
 REM
 echo Clean-up for packaging...
 REM
-call:cleanUpPkg x86
-call:cleanUpPkg x86_64
+call:cleanUpPkg x86    32
+call:cleanUpPkg x86_64 64
 
 REM
 echo Preparing packages...
 REM
-call:preparePkg x86 32
+call:preparePkg x86    32
 call:preparePkg x86_64 64
 
 REM
@@ -53,10 +53,10 @@ REM REM C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
 REM REM C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
 
 REM
-REM Copy packages
+echo Publishing packages...
 REM
-REM REM C:\msys32\usr\bin\bash.exe .\grass_copy_wwwroot.sh 32
-REM REM C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
+C:\msys32\usr\bin\bash.exe .\grass_copy_wwwroot.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
 
 exit /b %ERRORLEVEL%
 
@@ -67,9 +67,9 @@ exit /b 0
 :cleanUpPkg
 	if not exist "%~1" mkdir %~1
 	if exist .\%~1\grass70 rmdir /S/Q .\%~1\grass70
-	xcopy C:\msys32\usr\src\grass70_release\mswindows\* .\%~1\grass70 /S/V/I > NUL
+	xcopy C:\msys%~2\usr\src\grass70_release\mswindows\* .\%~1\grass70 /S/V/I > NUL
 	if exist .\%~1\grass71 rmdir /S/Q .\%~1\grass71
-	xcopy C:\msys32\usr\src\grass_trunk\mswindows\*     .\%~1\grass71 /S/V/I > NUL
+	xcopy C:\msys%~2\usr\src\grass_trunk\mswindows\*     .\%~1\grass71 /S/V/I > NUL
 exit /b 0
 
 :preparePkg

@@ -27,8 +27,6 @@ function copy {
     
     cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
 
-    echo "Copying grass${DIR}..."
-    
     if [ ! -d ${WWWDIR}/${PLATFORM_DIR} ] ; then
 	mkdir ${WWWDIR}/${PLATFORM_DIR}
     fi
@@ -46,7 +44,7 @@ function copy {
     mkdir ${DST_DIR}/logs
     cp -r log-r*         ${DST_DIR}/logs
 
-    copy_addon $DIR $VERSION
+    # copy_addon $DIR $VERSION
 }
 
 function copy_addon {
@@ -55,8 +53,6 @@ function copy_addon {
     
     cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
 
-    echo "Copying AddOns for grass${DIR}..."
-    
     if test -n "$VERSION"; then
 	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}grass${DIR:0:2}/addons/grass-$VERSION
     else
@@ -70,11 +66,14 @@ function copy_addon {
 }
 
 function create_zip {
-    echo "Creating zip..."
     cd $WWWDIR
-    rm wingrass-$PLATFORM_DIR}.zip
-    zip wingrass-$PLATFORM_DIR}.zip ${PLATFORM_DIR} -r -q
+    zipfile=wingrass-${PLATFORM_DIR}.zip
+    rm $zipfile
+    zip $zipfile ${PLATFORM_DIR} -r -q
 }
+
+echo "... ($PLATFORM_DIR)"
+
 if test -z $2 ; then
     # daily builds
     ### copy 64 6.4.5svn

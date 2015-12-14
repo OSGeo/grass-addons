@@ -17,17 +17,17 @@ fi
 PLATFORM=$1
 export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
 
+if [ "$PLATFORM" = "32" ] ; then
+    PLATFORM_DIR=x86
+else
+    PLATFORM_DIR=x86_64
+fi
+
 function rsync_package {
     POSTFIX=$1
     VERSION=$2
     PATCH=$3
 
-    if [ "$PLATFORM" = "32" ] ; then
-	PLATFORM_DIR=x86
-    else
-	PLATFORM_DIR=x86_64
-    fi
-    
     dir=${HOME}/${PLATFORM_DIR}/grass${POSTFIX}/osgeo4w/package
     curr=`ls -t $dir/ 2>/dev/null | head -n1 | cut -d'-' -f4 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
