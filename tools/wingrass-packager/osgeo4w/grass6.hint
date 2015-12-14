@@ -1,7 +1,0 @@
-sdesc: "GRASS GIS - old stable release"
-ldesc: "Geographic Resources Analysis Support System (GRASS GIS) - old stable release"
-category: Desktop
-requires: libintl msys msys-grass tcltk
-maintainer: MartinLanda
-curr: 6.4.4-1
-prev: 6.4.4RC1-1
