@@ -1,0 +1,30 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.vector.ruggedness</b></em> represents a measurement of terrain
+ruggedness based on the methodology conceived by Sappington et al.
+(2007). The measure is calculated by decomposing slope and aspect into
+3-dimensional vectors, and calculating the resultant vector magnitude
+within a user-specified moving window size, using <i>r.neighbors</i>.
+The user can specify neighborhood size to measure ruggedness across
+larger landscale scales. Neighborhood operations are performed using a
+rectangular window shape.
+
+<h2>NOTES</h2>
+
+<p>This script was adapted from the original Sappington et al. (2007)
+script.
+
+<h2>EXAMPLE</h2>
+
+r.vector.ruggedness elevation=srtm wsize=5 output=vrm
+
+<h2>REFERENCES</h2>
+
+Sappington, J.M., K.M. Longshore, and D.B. Thomson. 2007. Quantifying
+Landscape Ruggedness for Animal Habitat Analysis: A case Study Using
+Bighorn Sheep in the Mojave Desert. Journal of Wildlife Management.
+71(5): 1419 -1426.
+
+<h2>AUTHOR</h2>
+
+Steven Pawley <br><i>Last changed: Sunday 13 December 2015</i>
