@@ -2,21 +2,19 @@
 #
 ##############################################################################
 #
-# MODULE:       Topographic Ruggedness Index
+# MODULE:       Terrain Ruggedness Index
 #
 # AUTHOR(S):    Steven Pawley
 #
-# PURPOSE:      Calculates the Topographic Ruggedness Index (TRI) of
+# PURPOSE:      Calculates the Terrain Ruggedness Index (TRI) of
 #                           Riley et al. (1999)
 #
 # COPYRIGHT:    (C) 2015 Steven Pawley, and by the GRASS Development Team
 #
-# DATE:             May 5 2015
-#
 ##############################################################################
 
 #%module
-#% description: Topographic Ruggedness Index
+#% description: Terrain Ruggedness Index
 #%end
 
 #%option G_OPT_R_INPUT
@@ -26,7 +24,7 @@
 #%end
 
 #%option G_OPT_R_OUTPUT
-#% description: Output Topographic Ruggedness Index (TRI)
+#% description: Output Terrain Ruggedness Index (TRI)
 #% key: tri
 #% required : yes
 #%end
@@ -34,10 +32,9 @@
 #%option
 #% key: wsize
 #% type: integer
-#% description: Size of neighbourhood (valid 3,5,7,9,11)
-#% answer: 3
+#% description: Radius of neighbourhood in cells
+#% answer: 1
 #% guisection: Required
-#% options: 3,5,7,9,11
 #%end
 
 import sys
@@ -48,22 +45,28 @@ def main():
     dem = options['dem']
     tri = options['tri']
     wsize = int(options['wsize'])
-    neighcells = wsize^2 -1
+    neighcells = ((wsize*2+1)**2)-1
 
     # calculate TRI based on map calc statements
-    # NB could create script to calculate matrix but mapcalc is limited by statement length
     grass.message("Calculating the Topographic Ruggedness Index:")
-    if wsize == 3:
-        grass.mapcalc('{x} = (abs({a}[0,0]-{a}[-1,-1])+abs({a}[0,0]-{a}[0,-1])+abs({a}[0,0]-{a}[1,-1])+abs({a}[0,0]-{a}[-1,0])+abs({a}[0,0]-{a}[0,0])+abs({a}[0,0]-{a}[1,0])+abs({a}[0,0]-{a}[-1,1])+abs({a}[0,0]-{a}[0,1])+abs({a}[0,0]-{a}[1,1]))/1'.format(x=tri, a=dem, b=neighcells))
-    elif wsize == 5:
-        grass.mapcalc('{x} = (abs({a}[0,0]-{a}[-2,-2])+abs({a}[0,0]-{a}[-1,-2])+abs({a}[0,0]-{a}[0,-2])+abs({a}[0,0]-{a}[1,-2])+abs({a}[0,0]-{a}[2,-2])+abs({a}[0,0]-{a}[-2,-1])+abs({a}[0,0]-{a}[-1,-1])+abs({a}[0,0]-{a}[0,-1])+abs({a}[0,0]-{a}[1,-1])+abs({a}[0,0]-{a}[2,-1])+abs({a}[0,0]-{a}[-2,0])+abs({a}[0,0]-{a}[-1,0])+abs({a}[0,0]-{a}[0,0])+abs({a}[0,0]-{a}[1,0])+abs({a}[0,0]-{a}[2,0])+abs({a}[0,0]-{a}[-2,1])+abs({a}[0,0]-{a}[-1,1])+abs({a}[0,0]-{a}[0,1])+abs({a}[0,0]-{a}[1,1])+abs({a}[0,0]-{a}[2,1])+abs({a}[0,0]-{a}[-2,2])+abs({a}[0,0]-{a}[-1,2])+abs({a}[0,0]-{a}[0,2])+abs({a}[0,0]-{a}[1,2])+abs({a}[0,0]-{a}[2,2]))/{b}'.format(x=tri, a=dem, b=neighcells))
-    elif wsize == 7:
-        grass.mapcalc('{x} = (abs({a}[0,0]-{a}[-3,-3])+abs({a}[0,0]-{a}[-2,-3])+abs({a}[0,0]-{a}[-1,-3])+abs({a}[0,0]-{a}[0,-3])+abs({a}[0,0]-{a}[1,-3])+abs({a}[0,0]-{a}[2,-3])+abs({a}[0,0]-{a}[3,-3])+abs({a}[0,0]-{a}[-3,-2])+abs({a}[0,0]-{a}[-2,-2])+abs({a}[0,0]-{a}[-1,-2])+abs({a}[0,0]-{a}[0,-2])+abs({a}[0,0]-{a}[1,-2])+abs({a}[0,0]-{a}[2,-2])+abs({a}[0,0]-{a}[3,-2])+abs({a}[0,0]-{a}[-3,-1])+abs({a}[0,0]-{a}[-2,-1])+abs({a}[0,0]-{a}[-1,-1])+abs({a}[0,0]-{a}[0,-1])+abs({a}[0,0]-{a}[1,-1])+abs({a}[0,0]-{a}[2,-1])+abs({a}[0,0]-{a}[3,-1])+abs({a}[0,0]-{a}[-3,0])+abs({a}[0,0]-{a}[-2,0])+abs({a}[0,0]-{a}[-1,0])+abs({a}[0,0]-{a}[0,0])+abs({a}[0,0]-{a}[1,0])+abs({a}[0,0]-{a}[2,0])+abs({a}[0,0]-{a}[3,0])+abs({a}[0,0]-{a}[-3,1])+abs({a}[0,0]-{a}[-2,1])+abs({a}[0,0]-{a}[-1,1])+abs({a}[0,0]-{a}[0,1])+abs({a}[0,0]-{a}[1,1])+abs({a}[0,0]-{a}[2,1])+abs({a}[0,0]-{a}[3,1])+abs({a}[0,0]-{a}[-3,2])+abs({a}[0,0]-{a}[-2,2])+abs({a}[0,0]-{a}[-1,2])+abs({a}[0,0]-{a}[0,2])+abs({a}[0,0]-{a}[1,2])+abs({a}[0,0]-{a}[2,2])+abs({a}[0,0]-{a}[3,2])+abs({a}[0,0]-{a}[-3,3])+abs({a}[0,0]-{a}[-2,3])+abs({a}[0,0]-{a}[-1,3])+abs({a}[0,0]-{a}[0,3])+abs({a}[0,0]-{a}[1,3])+abs({a}[0,0]-{a}[2,3])+abs({a}[0,0]-{a}[3,3]))/{b}'.format(x=tri, a=dem, b=neighcells))
-    elif wsize == 9:
-        grass.mapcalc('{x} = (abs({a}[0,0]-{a}[-4,-4])+abs({a}[0,0]-{a}[-3,-4])+abs({a}[0,0]-{a}[-2,-4])+abs({a}[0,0]-{a}[-1,-4])+abs({a}[0,0]-{a}[0,-4])+abs({a}[0,0]-{a}[1,-4])+abs({a}[0,0]-{a}[2,-4])+abs({a}[0,0]-{a}[3,-4])+abs({a}[0,0]-{a}[4,-4])+abs({a}[0,0]-{a}[-4,-3])+abs({a}[0,0]-{a}[-3,-3])+abs({a}[0,0]-{a}[-2,-3])+abs({a}[0,0]-{a}[-1,-3])+abs({a}[0,0]-{a}[0,-3])+abs({a}[0,0]-{a}[1,-3])+abs({a}[0,0]-{a}[2,-3])+abs({a}[0,0]-{a}[3,-3])+abs({a}[0,0]-{a}[4,-3])+abs({a}[0,0]-{a}[-4,-2])+abs({a}[0,0]-{a}[-3,-2])+abs({a}[0,0]-{a}[-2,-2])+abs({a}[0,0]-{a}[-1,-2])+abs({a}[0,0]-{a}[0,-2])+abs({a}[0,0]-{a}[1,-2])+abs({a}[0,0]-{a}[2,-2])+abs({a}[0,0]-{a}[3,-2])+abs({a}[0,0]-{a}[4,-2])+abs({a}[0,0]-{a}[-4,-1])+abs({a}[0,0]-{a}[-3,-1])+abs({a}[0,0]-{a}[-2,-1])+abs({a}[0,0]-{a}[-1,-1])+abs({a}[0,0]-{a}[0,-1])+abs({a}[0,0]-{a}[1,-1])+abs({a}[0,0]-{a}[2,-1])+abs({a}[0,0]-{a}[3,-1])+abs({a}[0,0]-{a}[4,-1])+abs({a}[0,0]-{a}[-4,0])+abs({a}[0,0]-{a}[-3,0])+abs({a}[0,0]-{a}[-2,0])+abs({a}[0,0]-{a}[-1,0])+abs({a}[0,0]-{a}[0,0])+abs({a}[0,0]-{a}[1,0])+abs({a}[0,0]-{a}[2,0])+abs({a}[0,0]-{a}[3,0])+abs({a}[0,0]-{a}[4,0])+abs({a}[0,0]-{a}[-4,1])+abs({a}[0,0]-{a}[-3,1])+abs({a}[0,0]-{a}[-2,1])+abs({a}[0,0]-{a}[-1,1])+abs({a}[0,0]-{a}[0,1])+abs({a}[0,0]-{a}[1,1])+abs({a}[0,0]-{a}[2,1])+abs({a}[0,0]-{a}[3,1])+abs({a}[0,0]-{a}[4,1])+abs({a}[0,0]-{a}[-4,2])+abs({a}[0,0]-{a}[-3,2])+abs({a}[0,0]-{a}[-2,2])+abs({a}[0,0]-{a}[-1,2])+abs({a}[0,0]-{a}[0,2])+abs({a}[0,0]-{a}[1,2])+abs({a}[0,0]-{a}[2,2])+abs({a}[0,0]-{a}[3,2])+abs({a}[0,0]-{a}[4,2])+abs({a}[0,0]-{a}[-4,3])+abs({a}[0,0]-{a}[-3,3])+abs({a}[0,0]-{a}[-2,3])+abs({a}[0,0]-{a}[-1,3])+abs({a}[0,0]-{a}[0,3])+abs({a}[0,0]-{a}[1,3])+abs({a}[0,0]-{a}[2,3])+abs({a}[0,0]-{a}[3,3])+abs({a}[0,0]-{a}[4,3])+abs({a}[0,0]-{a}[-4,4])+abs({a}[0,0]-{a}[-3,4])+abs({a}[0,0]-{a}[-2,4])+abs({a}[0,0]-{a}[-1,4])+abs({a}[0,0]-{a}[0,4])+abs({a}[0,0]-{a}[1,4])+abs({a}[0,0]-{a}[2,4])+abs({a}[0,0]-{a}[3,4])+abs({a}[0,0]-{a}[4,4]))/{b}'.format(x=tri, a=dem, b=neighcells))
-    elif wsize == 11:
-        grass.mapcalc('{x} = (abs({a}[0,0]-{a}[-5,-5])+abs({a}[0,0]-{a}[-4,-5])+abs({a}[0,0]-{a}[-3,-5])+abs({a}[0,0]-{a}[-2,-5])+abs({a}[0,0]-{a}[-1,-5])+abs({a}[0,0]-{a}[0,-5])+abs({a}[0,0]-{a}[1,-5])+abs({a}[0,0]-{a}[2,-5])+abs({a}[0,0]-{a}[3,-5])+abs({a}[0,0]-{a}[4,-5])+abs({a}[0,0]-{a}[5,-5])+abs({a}[0,0]-{a}[-5,-4])+abs({a}[0,0]-{a}[-4,-4])+abs({a}[0,0]-{a}[-3,-4])+abs({a}[0,0]-{a}[-2,-4])+abs({a}[0,0]-{a}[-1,-4])+abs({a}[0,0]-{a}[0,-4])+abs({a}[0,0]-{a}[1,-4])+abs({a}[0,0]-{a}[2,-4])+abs({a}[0,0]-{a}[3,-4])+abs({a}[0,0]-{a}[4,-4])+abs({a}[0,0]-{a}[5,-4])+abs({a}[0,0]-{a}[-5,-3])+abs({a}[0,0]-{a}[-4,-3])+abs({a}[0,0]-{a}[-3,-3])+abs({a}[0,0]-{a}[-2,-3])+abs({a}[0,0]-{a}[-1,-3])+abs({a}[0,0]-{a}[0,-3])+abs({a}[0,0]-{a}[1,-3])+abs({a}[0,0]-{a}[2,-3])+abs({a}[0,0]-{a}[3,-3])+abs({a}[0,0]-{a}[4,-3])+abs({a}[0,0]-{a}[5,-3])+abs({a}[0,0]-{a}[-5,-2])+abs({a}[0,0]-{a}[-4,-2])+abs({a}[0,0]-{a}[-3,-2])+abs({a}[0,0]-{a}[-2,-2])+abs({a}[0,0]-{a}[-1,-2])+abs({a}[0,0]-{a}[0,-2])+abs({a}[0,0]-{a}[1,-2])+abs({a}[0,0]-{a}[2,-2])+abs({a}[0,0]-{a}[3,-2])+abs({a}[0,0]-{a}[4,-2])+abs({a}[0,0]-{a}[5,-2])+abs({a}[0,0]-{a}[-5,-1])+abs({a}[0,0]-{a}[-4,-1])+abs({a}[0,0]-{a}[-3,-1])+abs({a}[0,0]-{a}[-2,-1])+abs({a}[0,0]-{a}[-1,-1])+abs({a}[0,0]-{a}[0,-1])+abs({a}[0,0]-{a}[1,-1])+abs({a}[0,0]-{a}[2,-1])+abs({a}[0,0]-{a}[3,-1])+abs({a}[0,0]-{a}[4,-1])+abs({a}[0,0]-{a}[5,-1])+abs({a}[0,0]-{a}[-5,0])+abs({a}[0,0]-{a}[-4,0])+abs({a}[0,0]-{a}[-3,0])+abs({a}[0,0]-{a}[-2,0])+abs({a}[0,0]-{a}[-1,0])+abs({a}[0,0]-{a}[0,0])+abs({a}[0,0]-{a}[1,0])+abs({a}[0,0]-{a}[2,0])+abs({a}[0,0]-{a}[3,0])+abs({a}[0,0]-{a}[4,0])+abs({a}[0,0]-{a}[5,0])+abs({a}[0,0]-{a}[-5,1])+abs({a}[0,0]-{a}[-4,1])+abs({a}[0,0]-{a}[-3,1])+abs({a}[0,0]-{a}[-2,1])+abs({a}[0,0]-{a}[-1,1])+abs({a}[0,0]-{a}[0,1])+abs({a}[0,0]-{a}[1,1])+abs({a}[0,0]-{a}[2,1])+abs({a}[0,0]-{a}[3,1])+abs({a}[0,0]-{a}[4,1])+abs({a}[0,0]-{a}[5,1])+abs({a}[0,0]-{a}[-5,2])+abs({a}[0,0]-{a}[-4,2])+abs({a}[0,0]-{a}[-3,2])+abs({a}[0,0]-{a}[-2,2])+abs({a}[0,0]-{a}[-1,2])+abs({a}[0,0]-{a}[0,2])+abs({a}[0,0]-{a}[1,2])+abs({a}[0,0]-{a}[2,2])+abs({a}[0,0]-{a}[3,2])+abs({a}[0,0]-{a}[4,2])+abs({a}[0,0]-{a}[5,2])+abs({a}[0,0]-{a}[-5,3])+abs({a}[0,0]-{a}[-4,3])+abs({a}[0,0]-{a}[-3,3])+abs({a}[0,0]-{a}[-2,3])+abs({a}[0,0]-{a}[-1,3])+abs({a}[0,0]-{a}[0,3])+abs({a}[0,0]-{a}[1,3])+abs({a}[0,0]-{a}[2,3])+abs({a}[0,0]-{a}[3,3])+abs({a}[0,0]-{a}[4,3])+abs({a}[0,0]-{a}[5,3])+abs({a}[0,0]-{a}[-5,4])+abs({a}[0,0]-{a}[-4,4])+abs({a}[0,0]-{a}[-3,4])+abs({a}[0,0]-{a}[-2,4])+abs({a}[0,0]-{a}[-1,4])+abs({a}[0,0]-{a}[0,4])+abs({a}[0,0]-{a}[1,4])+abs({a}[0,0]-{a}[2,4])+abs({a}[0,0]-{a}[3,4])+abs({a}[0,0]-{a}[4,4])+abs({a}[0,0]-{a}[5,4])+abs({a}[0,0]-{a}[-5,5])+abs({a}[0,0]-{a}[-4,5])+abs({a}[0,0]-{a}[-3,5])+abs({a}[0,0]-{a}[-2,5])+abs({a}[0,0]-{a}[-1,5])+abs({a}[0,0]-{a}[0,5])+abs({a}[0,0]-{a}[1,5])+abs({a}[0,0]-{a}[2,5])+abs({a}[0,0]-{a}[3,5])+abs({a}[0,0]-{a}[4,5])+abs({a}[0,0]-{a}[5,5]))/{b}'.format(x=tri, a=dem, b=neighcells))
 
+    # generate a list of spatial neighbourhood indexs for the chosen radius
+    # ignoring the center cell
+    offsets = []
+    for j in range(-wsize, wsize+1):
+        for i in range(-wsize, wsize+1):
+            if (j,i) != (0,0):
+                offsets.append((j,i))
+
+    # define the calculation term
+    terms = ["abs($dem - $dem[%d,%d])" % d for d in offsets]
+
+    # define the calculation expression
+    expr = "$tri = (%s" % " + ".join(terms) + ") / $neighcells"
+
+    # perform the r.mapcalc calculation with the moving window
+    grass.mapcalc(expr, tri=tri, dem=dem, neighcells=neighcells)
+    
     return 0
 
 if __name__ == "__main__":
