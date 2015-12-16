@@ -9,7 +9,7 @@
 Like in many GRASS GIS algorithms, null values are not evaluated at present and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. There is potential to calculate TRI at the image edges by using a boolean operator to test for null values.
 
 <h2>EXAMPLE</h2>
-r.tri dem=srtm radius=1 output=tri
+r.tri dem=srtm wsize=1 output=tri
 
 <h2>REFERENCES</h2>
 Riley, S. J., S. D. DeGloria and R. Elliot (1999). A terrain ruggedness index that quantifies topographic heterogeneity, Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
