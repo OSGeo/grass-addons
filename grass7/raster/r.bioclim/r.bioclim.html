@@ -3,10 +3,12 @@
 <em><b>r.bioclim</b></em> calculates various bioclimatic indices from 
 monthly temperature and optional precipitation time series. The time 
 series can be averages for several years or monthly values for a 
-specific year. In any case all 12 months must be provided. It a precipitation 
-time series is not provided, only those indices based on temperature 
-are calculated. The names of the output maps are &lt;output&gt;.bio01, &lt;output&gt;.bio02, 
-&lt;output&gt;.bio03, etc. 
+specific year. In any case all 12 months must be provided. It a 
+precipitation time series is not provided, only those indices based on 
+temperature are calculated. The names of the output maps are 
+&lt;output&gt;bio01, &lt;output&gt;bio02, &lt;output&gt;bio03, etc. If 
+the suffix bioXY needs to be separated from the <b>output</b> prefix, 
+that separator must be part of the prefix, e.g. <i>output=eurolst_</i>.
 <p>
 If the input temperatures are scaled, e.g. as input = Celsius * 10, then 
 the <b>inscale</b> option must be set to 10. Similarly, the <b>outscale</b> 
@@ -65,7 +67,7 @@ Bioclimatic indices from worldclim data with 4 parallel processes:
 r.bioclim tmin=`g.list type=rast pat=tmin_* map=. sep=,` \
           tmax=`g.list type=rast pat=tmax_* map=. sep=,` \
           prec=`g.list type=rast pat=prec_* map=. sep=,` \
-          out=worldclim workers=4
+          out=worldclim_ workers=4
 </pre></div>
 
 <h2>SEE ALSO</h2>
