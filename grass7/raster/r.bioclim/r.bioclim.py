@@ -502,7 +502,7 @@ def main():
     grass.run_command('r.series', input = prec,
                       output = "%s,%s" % (precavg, precstddev),
                       method = 'average,stddev')
-    grass.mapcalc("$bio = round(100.0 * $precstddev / $precavg)",
+    grass.mapcalc("$bio = if($precavg == 0, 0, round(100.0 * $precstddev / $precavg))",
                   bio = outpre + '.bio15',
                   precstddev = precstddev,
                   precavg = precavg)
