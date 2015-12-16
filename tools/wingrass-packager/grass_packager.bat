@@ -5,8 +5,8 @@ cd C:\Users\landa\grass_packager
 REM
 echo Clean-up...
 REM
-call :cleanUp x86
-call :cleanUp x86_64
+call :cleanUp 32
+call :cleanUp 64
 
 REM
 echo Compiling GRASS GIS...
@@ -61,10 +61,12 @@ C:\msys64\usr\bin\bash.exe .\grass_copy_wwwroot.sh 64
 exit /b %ERRORLEVEL%
 
 :cleanUp
-for /d %%G in ("C:\OSGeo4W%~1\apps\grass\grass-7*svn") do rmdir /s /q "%%G"
+	echo ...(%~1)
+        for /d %%G in ("C:\OSGeo4W%~1\apps\grass\grass-7*svn") do rmdir /s /q "%%G"
 exit /b 0
 
 :cleanUpPkg
+	echo ...(%~1)
 	if not exist "%~1" mkdir %~1
 	if exist .\%~1\grass70 rmdir /S/Q .\%~1\grass70
 	xcopy C:\msys%~2\usr\src\grass70_release\mswindows\* .\%~1\grass70 /S/V/I > NUL
@@ -73,6 +75,7 @@ exit /b 0
 exit /b 0
 
 :preparePkg
+	echo ...(%~1)
 	cd .\%~1\grass70
 	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
 	cd ..\..
@@ -82,6 +85,7 @@ exit /b 0
 exit /b 0
 
 :createPkg
+	echo ...(%~1)
 	C:\DevTools\makensis.exe .\%~1\grass70\GRASS-Installer.nsi > .\%~1\grass70\GRASS-Installer.log
 	C:\DevTools\makensis.exe .\%~1\grass71\GRASS-Installer.nsi > .\%~1\grass71\GRASS-Installer.log
 exit /b 0
