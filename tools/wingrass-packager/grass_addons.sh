@@ -68,7 +68,7 @@ if test -z $2 ; then
     #compile $SVN_PATH/grass7 $GISBASE_PATH/grass701        $ADDON_PATH/grass701/addons
     #compile $SVN_PATH/grass7 $GISBASE_PATH/grass702        $ADDON_PATH/grass702/addons
     compile $SVN_PATH/grass7 $GISBASE_PATH/grass70_release ${ADDON_PATH}/${PLATFORM_DIR}/grass70/addons
-    #compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     ${ADDON_PATH}/${PLATFORM_DIR}/grass71/addons
+    compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     ${ADDON_PATH}/${PLATFORM_DIR}/grass71/addons
 else
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass$2         ${ADDON_PATH}/${PLATFORM_DIR}/grass$2/addons
 fi

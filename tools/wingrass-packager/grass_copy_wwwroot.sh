@@ -44,7 +44,7 @@ function copy {
     mkdir ${DST_DIR}/logs
     cp -r log-r*         ${DST_DIR}/logs
 
-    # copy_addon $DIR $VERSION
+    copy_addon $DIR $VERSION
 }
 
 function copy_addon {
@@ -54,9 +54,9 @@ function copy_addon {
     cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
 
     if test -n "$VERSION"; then
-	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}grass${DIR:0:2}/addons/grass-$VERSION
+	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR:0:2}/addons/grass-$VERSION
     else
-	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}grass${DIR:0:2}/addons
+	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR:0:2}/addons
     fi
         
     mkdir -p $ADDONDIR

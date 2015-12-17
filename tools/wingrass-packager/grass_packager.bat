@@ -49,8 +49,8 @@ C:\msys64\usr\bin\bash.exe .\grass_md5sum.sh 64
 REM
 echo Building addons...
 REM
-REM REM C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
-REM REM C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
+C:\msys32\usr\bin\bash.exe .\grass_addons.sh 32
+C:\msys64\usr\bin\bash.exe .\grass_addons.sh 64
 
 REM
 echo Publishing packages...
