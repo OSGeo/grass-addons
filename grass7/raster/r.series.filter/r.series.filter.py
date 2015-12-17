@@ -132,13 +132,13 @@ CNULL = -2147483648  # null value for CELL maps
 FNULL = np.nan       # null value for FCELL and DCELL maps
 
 
-def init_rasters(names):
+def init_rasters(names, mapset=""):
     """Get list of raster names,
     return array of the rasters
     """
     rasters = []
     for name in names:
-        r = raster.RasterSegment(name)
+        r = raster.RasterSegment(name, mapset=mapset)
         rasters.append(r)
     return rasters
 
@@ -342,9 +342,13 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
 
 
 def filter(method, names, winsize, order, prefix, itercount, fit_up):
+
+    current_mapset = grass.read_command('g.mapset', flags='p')
+    current_mapset = current_mapset.strip()
+
     inputs = init_rasters(names)
     output_names = [prefix + name for name in names]
-    outputs = init_rasters(output_names)
+    outputs = init_rasters(output_names, mapset=current_mapset)
     try:
         open_rasters(outputs, write=True)
         open_rasters(inputs)
