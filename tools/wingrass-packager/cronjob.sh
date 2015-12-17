@@ -83,8 +83,8 @@ download_unzip x86_64
 
 # summary.html -> index.html
 ### addons_index 64
-#addons_index 70
-#addons_index 71
+addons_index 70
+addons_index 71
 
 # remove old packages
 ### rm_7 64
