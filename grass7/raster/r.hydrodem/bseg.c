@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <grass/segment.h>
 #include <grass/glocale.h>
-#include "seg.h"
+#include "local_proto.h"
 
 int bseg_open(BSEG *bseg, int srows, int scols, int nsegs_in_memory)
 {
@@ -73,7 +73,7 @@ int bseg_close(BSEG *bseg)
     return 0;
 }
 
-int bseg_put(BSEG *bseg, char *value, int row, int col)
+int bseg_put(BSEG *bseg, char *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_put(&(bseg->seg), value, row, col) < 0) {
 	G_warning(_("Unable to write segment file"));
@@ -82,7 +82,7 @@ int bseg_put(BSEG *bseg, char *value, int row, int col)
     return 0;
 }
 
-int bseg_put_row(BSEG *bseg, char *value, int row)
+int bseg_put_row(BSEG *bseg, char *value, GW_LARGE_INT row)
 {
     if (Segment_put_row(&(bseg->seg), value, row) < 0) {
 	G_warning(_("Unable to write segment file"));
@@ -91,7 +91,7 @@ int bseg_put_row(BSEG *bseg, char *value, int row)
     return 0;
 }
 
-int bseg_get(BSEG *bseg, char *value, int row, int col)
+int bseg_get(BSEG *bseg, char *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_get(&(bseg->seg), value, row, col) < 0) {
 	G_warning(_("Unable to read segment file"));

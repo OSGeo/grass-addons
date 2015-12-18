@@ -92,7 +92,7 @@ int load_map(int ele_fd)
     Rast_close(ele_fd);
     G_free(ele_buf);
 
-    G_debug(1, "%d non-NULL cells", n_points);
+    G_debug(1, "%lld non-NULL cells", (long long int)n_points);
 
     return 1;
 }

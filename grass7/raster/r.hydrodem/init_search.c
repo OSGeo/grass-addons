@@ -11,8 +11,8 @@ int init_search(int depr_fd)
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     char asp_value, is_null;
     struct dir_flag df, df_nbr;
-    unsigned int n_depr_cells = 0;
-    unsigned int n_null_cells = nrows * ncols - n_points;
+    GW_LARGE_INT n_depr_cells = 0;
+    GW_LARGE_INT n_null_cells = (GW_LARGE_INT) nrows * ncols - n_points;
     int depr_map_type, depr_size;
 
     nxt_avail_pt = heap_size = 0;
@@ -141,9 +141,9 @@ int init_search(int depr_fd)
 	G_free(depr_buf);
     }
 
-    G_debug(1, "%d edge cells", heap_size - n_depr_cells);
+    G_debug(1, "%lld edge cells", (long long int) (heap_size - n_depr_cells));
     if (n_depr_cells)
-	G_debug(1, "%d cells in depressions", n_depr_cells);
+	G_debug(1, "%lld cells in depressions", (long long int) n_depr_cells);
 
     return 1;
 }

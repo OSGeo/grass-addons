@@ -4,8 +4,8 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-#define GET_PARENT(c) ((unsigned int)(((c) - 2) >> 2) + 1)
-#define GET_CHILD(p) ((unsigned int)((p) << 2) - 2)
+#define GET_PARENT(c) ((((GW_LARGE_INT)(c) - 2) >> 2) + 1)
+#define GET_CHILD(p) (((GW_LARGE_INT)(p) << 2) - 2)
 
 #define HEAP_CMP(a, b) (((a)->ele < (b)->ele) ? 1 : \
                        (((a)->ele > (b)->ele) ? 0 : \
@@ -19,7 +19,7 @@ double get_slope(CELL, CELL, double);
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    unsigned int count;
+    GW_LARGE_INT count;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
@@ -70,13 +70,13 @@ int do_astar(void)
     while (heap_size > 0) {
 	G_percent(count++, n_points, 1);
 	if (count > n_points)
-	    G_fatal_error(_("BUG in A* Search: %d surplus points"),
-	                  heap_size);
+	    G_fatal_error(_("BUG in A* Search: %lld surplus points"),
+	                  (long long int)heap_size);
 
 	if (heap_size > n_points)
 	    G_fatal_error
-		(_("BUG in A* Search: too many points in heap %d, should be %d"),
-		 heap_size, n_points);
+		(_("BUG in A* Search: too many points in heap %lld, should be %lld"),
+		 (long long int)heap_size, (long long int)n_points);
 
 	heap_p = heap_drop();
 
@@ -104,7 +104,8 @@ int do_astar(void)
 	    /* get r, c (r_nbr, c_nbr) for neighbours */
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
-	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
+	    slope[ct_dir] = -1;
+	    ele_nbr[ct_dir] = 0;
 
 	    /* check that neighbour is within region */
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
@@ -122,15 +123,15 @@ int do_astar(void)
 		                          dist_to_nbr[ct_dir]);
 	    }
 
-	    if (!is_in_list) {
-		if (ct_dir > 3 && slope[ct_dir] > 0) {
-		    if (slope[nbr_ew[ct_dir]] > 0) {
+	    if (!is_worked) {
+		if (ct_dir > 3 && slope[ct_dir] >= 0) {
+		    if (slope[nbr_ew[ct_dir]] >= 0) {
 			/* slope to ew nbr > slope to center */
 			if (slope[ct_dir] < get_slope(ele_nbr[nbr_ew[ct_dir]],
 			                              ele_nbr[ct_dir], ew_res))
 			    skip_diag = 1;
 		    }
-		    if (!skip_diag && slope[nbr_ns[ct_dir]] > 0) {
+		    if (!skip_diag && slope[nbr_ns[ct_dir]] >= 0) {
 			/* slope to ns nbr > slope to center */
 			if (slope[ct_dir] < get_slope(ele_nbr[nbr_ns[ct_dir]],
 			                              ele_nbr[ct_dir], ns_res))
@@ -210,7 +211,7 @@ int do_astar(void)
     G_percent(n_points, n_points, 1);	/* finish it */
 
     if (first_cum)
-	G_warning(_("processed points mismatch of %u"), first_cum);
+	G_warning(_("processed points mismatch of %lld"), (long long int)first_cum);
 
     return 1;
 }
@@ -231,9 +232,9 @@ static int heap_cmp(struct heap_point *a, struct heap_point *b)
     return 0;
 }
 
-int sift_up(unsigned int start, struct heap_point child_p)
+int sift_up(GW_LARGE_INT start, struct heap_point child_p)
 {
-    unsigned int parent, child;
+    GW_LARGE_INT parent, child;
     struct heap_point heap_p;
 
     child = start;
@@ -263,7 +264,7 @@ int sift_up(unsigned int start, struct heap_point child_p)
  * add item to heap
  * returns heap_size
  */
-unsigned int heap_add(int r, int c, CELL ele)
+GW_LARGE_INT heap_add(int r, int c, CELL ele)
 {
     struct heap_point heap_p;
 

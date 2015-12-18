@@ -4,10 +4,14 @@
 
 #include <grass/gis.h>
 #include <grass/raster.h>
+
+/* for grids with more than 2^31 - 1 cells */
+#define GW_LARGE_INT off_t
+
 #include "seg.h"
 #include "flag.h"
 
-#define INDEX(r, c) ((r) * ncols + (c))
+#define INDEX(r, c) ((GW_LARGE_INT)(r) * ncols + (c))
 #define MAXDEPTH 1000     /* maximum supported tree depth of stream network */
 
 struct ddir
@@ -22,7 +26,7 @@ struct point
 };
 
 struct heap_point {
-   unsigned int added;
+   GW_LARGE_INT added;
    CELL ele;
    int r, c;
 };
@@ -53,17 +57,17 @@ struct dir_flag
 
 extern struct snode *stream_node;
 extern int nrows, ncols;
-extern unsigned int n_search_points, n_points, nxt_avail_pt;
-extern unsigned int heap_size;
-extern unsigned int n_sinks;
+extern GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
+extern GW_LARGE_INT heap_size;
+extern int n_sinks;
 extern int n_mod_max, size_max;
 extern int do_all, keep_nat, nat_thresh;
-extern unsigned int n_stream_nodes, n_alloc_nodes;
+extern GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 extern struct point *outlets;
 extern struct sink_list *sinks, *first_sink;
-extern unsigned int n_outlets, n_alloc_outlets;
+extern GW_LARGE_INT n_outlets, n_alloc_outlets;
 extern char drain[3][3];
-extern unsigned int first_cum;
+extern GW_LARGE_INT first_cum;
 extern char sides;
 extern int c_fac;
 extern int ele_scale;
@@ -87,7 +91,7 @@ int init_search(int);
 
 /* do_astar.c */
 int do_astar(void);
-unsigned int heap_add(int, int, CELL);
+GW_LARGE_INT heap_add(int, int, CELL);
 
 /* hydro_con.c */
 int hydro_con(void);

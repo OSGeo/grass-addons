@@ -27,7 +27,7 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
                CELL *next_ele)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    CELL ele_val, ele_nbr;
+    CELL ele_nbr;
     int n_to_fill;
     int top, done;
     struct dir_flag df;
@@ -35,7 +35,6 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
     /* go upstream from spill point */
     r = peak_r;
     c = peak_c;
-    ele_val = peak_ele;
     *n_splits = 0;
     n_to_fill = 0;
     /* post-order traversal */
@@ -776,9 +775,9 @@ int one_cell_extrema(int do_peaks, int do_pits, int all)
     int ct_dir;
     int skipme;
     CELL ele_min, ele_max, ele_this, ele_nbr;
-    unsigned int n_pits = 0;
-    unsigned int n_peaks = 0;
-    unsigned int counter = 0;
+    GW_LARGE_INT n_pits = 0;
+    GW_LARGE_INT n_peaks = 0;
+    GW_LARGE_INT counter = 0;
     double sumofsquares, mean, stddev, upperci, lowerci;
     int n_valid;
 
@@ -871,9 +870,9 @@ int one_cell_extrema(int do_peaks, int do_pits, int all)
     }
     G_percent(nrows, nrows, 1);	/* finish it */
 
-    G_verbose_message("%u cells checked", counter);
-    G_verbose_message("%u one-cell peaks removed", n_peaks);
-    G_verbose_message("%u one-cell pits removed", n_pits);
+    G_verbose_message("%lld cells checked", (long long int)counter);
+    G_verbose_message("%lld one-cell peaks removed", (long long int)n_peaks);
+    G_verbose_message("%lld one-cell pits removed", (long long int)n_pits);
 
     return 1;
 }

@@ -1,10 +1,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <grass/glocale.h>
-#include "seg.h"
+#include "local_proto.h"
 
 int
-seg_open(SSEG *sseg, int nrows, int ncols, int row_in_seg, int col_in_seg,
+seg_open(SSEG *sseg, GW_LARGE_INT nrows, GW_LARGE_INT ncols, int row_in_seg, int col_in_seg,
 	 int nsegs_in_memory, int size_struct, int fill)
 {
     char *filename;
@@ -69,7 +69,7 @@ int seg_close(SSEG *sseg)
     return 0;
 }
 
-int seg_put(SSEG *sseg, char *value, int row, int col)
+int seg_put(SSEG *sseg, char *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_put(&(sseg->seg), value, row, col) < 0) {
 	G_warning(_("Unable to write segment file"));
@@ -78,7 +78,7 @@ int seg_put(SSEG *sseg, char *value, int row, int col)
     return 0;
 }
 
-int seg_put_row(SSEG *sseg, char *value, int row)
+int seg_put_row(SSEG *sseg, char *value, GW_LARGE_INT row)
 {
     if (Segment_put_row(&(sseg->seg), value, row) < 0) {
 	G_warning(_("seg_put_row(): could not write segment file"));
@@ -87,7 +87,7 @@ int seg_put_row(SSEG *sseg, char *value, int row)
     return 0;
 }
 
-int seg_get(SSEG *sseg, char *value, int row, int col)
+int seg_get(SSEG *sseg, char *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_get(&(sseg->seg), value, row, col) < 0) {
 	G_warning(_("Unable to read segment file"));
@@ -96,7 +96,7 @@ int seg_get(SSEG *sseg, char *value, int row, int col)
     return 0;
 }
 
-int seg_get_row(SSEG *sseg, char *value, int row)
+int seg_get_row(SSEG *sseg, char *value, GW_LARGE_INT row)
 {
     if (Segment_get_row(&(sseg->seg), value, row) < 0) {
 	G_warning(_("Unable to read segment file"));

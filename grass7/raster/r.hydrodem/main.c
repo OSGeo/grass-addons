@@ -22,19 +22,19 @@
 
 struct snode *stream_node;
 int nrows, ncols;
-unsigned int n_search_points, n_points, nxt_avail_pt;
-unsigned int heap_size;
-unsigned int n_sinks;
+GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
+GW_LARGE_INT heap_size;
+int n_sinks;
 int n_mod_max, size_max;
 int do_all, keep_nat, nat_thresh;
-unsigned int n_stream_nodes, n_alloc_nodes;
+GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 struct point *outlets;
 struct sink_list *sinks, *first_sink;
-unsigned int n_outlets, n_alloc_outlets;
+GW_LARGE_INT n_outlets, n_alloc_outlets;
 
 char drain[3][3] = { {7, 6, 5}, {8, 0, 4}, {1, 2, 3} };
 
-unsigned int first_cum;
+GW_LARGE_INT first_cum;
 char sides;
 int c_fac;
 int ele_scale;

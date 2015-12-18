@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <grass/segment.h>
 #include <grass/glocale.h>
-#include "seg.h"
+#include "local_proto.h"
 
 int dseg_open(DSEG *dseg, int srows, int scols, int nsegs_in_memory)
 {
@@ -74,7 +74,7 @@ int dseg_close(DSEG *dseg)
     return 0;
 }
 
-int dseg_put(DSEG *dseg, DCELL *value, int row, int col)
+int dseg_put(DSEG *dseg, DCELL *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_put(&(dseg->seg), (DCELL *) value, row, col) < 0) {
 	G_warning(_("Unable to write segment file"));
@@ -83,7 +83,7 @@ int dseg_put(DSEG *dseg, DCELL *value, int row, int col)
     return 0;
 }
 
-int dseg_put_row(DSEG *dseg, DCELL *value, int row)
+int dseg_put_row(DSEG *dseg, DCELL *value, GW_LARGE_INT row)
 {
     if (Segment_put_row(&(dseg->seg), (DCELL *) value, row) < 0) {
 	G_warning(_("Unable to write segment file"));
@@ -92,7 +92,7 @@ int dseg_put_row(DSEG *dseg, DCELL *value, int row)
     return 0;
 }
 
-int dseg_get(DSEG *dseg, DCELL *value, int row, int col)
+int dseg_get(DSEG *dseg, DCELL *value, GW_LARGE_INT row, GW_LARGE_INT col)
 {
     if (Segment_get(&(dseg->seg), (DCELL *) value, row, col) < 0) {
 	G_warning(_("Unable to read segment file"));
@@ -133,7 +133,7 @@ int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
     return 0;
 }
 
-int dseg_write_cellfile(DSEG *dseg, char *map_name)
+int dseg_write_raster(DSEG *dseg, char *map_name)
 {
     int map_fd;
     int row, nrows;
