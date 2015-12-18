@@ -1116,8 +1116,7 @@ class CSWConnectionPanel(wx.Panel):
                 self.parent.BrowserPanel.catalogCmb.Append(value)
             self.connectionLBox.Append(value)
             more, value, index = self.config.GetNextGroup(index)
-        n = self.connectionLBox.GetCount()
-        self.connectionLBox.SetString(n + 1, first)
+        self.connectionLBox.Append(first)
         if self.connectionLBox.GetCount() == 0:
             msg = 'No services/connections defined.'
             self.textMetadata.SetPage('<p><h3>%s</h3></p>' % msg)
