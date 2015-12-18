@@ -20,17 +20,16 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import os,sys
+import os
+import sys
 
 try:
     from owslib.iso import *
 except:
-    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+    sys.exit(
+        'owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
-from owslib.namespaces import Namespaces
-from owslib.etree import etree
 from owslib import util
-
 import string
 from grass.script import core as grass
 from grass.pygrass.modules import Module
@@ -38,28 +37,39 @@ from subprocess import PIPE
 from grass.pygrass.utils import get_lib_path
 import wx
 
+
 class StaticContext(object):
     def __init__(self):
         self.ppath = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join('wx.metadata','config')
-        self.configureLibPath = get_lib_path(modname=path ,libname='init_md.txt')
+
+        self.confDirPath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'config')
+        print self.confDirPath
+        path = os.path.join('wx.metadata', 'config')
+        self.connResources = get_lib_path(modname=path, libname='connections_resources.xml')
+        if self.connResources is None:
+            grass.fatal("Fatal error: library < %s > not found" % path)
+        else:
+            self.connResources = os.path.join(self.connResources, 'connections_resources.xml')
+
+        self.configureLibPath = get_lib_path(modname=path, libname='init_md.txt')
         if self.configureLibPath is None:
-            grass.fatal("Fatal error: library < %s > not found"%path)
+            grass.fatal("Fatal error: library < %s > not found" % path)
 
-        path=os.path.join('wx.metadata','profiles')
-        self.profilesLibPath = get_lib_path(modname= path,libname='basicProfile.xml')
-
+        path = os.path.join('wx.metadata', 'profiles')
+        self.profilesLibPath = get_lib_path(modname=path, libname='basicProfile.xml')
         if self.profilesLibPath is None:
-            grass.fatal("Fatal error: library < %s > not found"%path)
+            grass.fatal("Fatal error: library < %s > not found" % path)
 
-        self.lib_path = os.path.normpath(self.configureLibPath+ os.sep + os.pardir)
+        self.lib_path = os.path.normpath(self.configureLibPath + os.sep + os.pardir)
+
 
 def isTableExists(name):
-    res = Module('db.tables',flags='p',stdout_=PIPE)
+    res = Module('db.tables', flags='p', stdout_=PIPE)
     for line in res.outputs.stdout.splitlines():
         if name == line:
-                return True
+            return True
     return False
+
 
 def removeNonAscii(s):
     '''Removed non ASCII chars
@@ -69,7 +79,6 @@ def removeNonAscii(s):
 
 
 def yesNo(parent, question, caption='Yes or no?'):
-
     dlg = wx.MessageDialog(parent, question, caption, wx.YES_NO | wx.ICON_QUESTION)
     result = dlg.ShowModal() == wx.ID_YES
     dlg.Destroy()
@@ -130,17 +139,17 @@ def grassProfileValidator(md):
             result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
             errors += 3
         else:
-                if md.identification.contact[0].organization is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
-                    errors += 1
+            if md.identification.contact[0].organization is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+                errors += 1
 
-                if md.identification.contact[0].email is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
-                    errors += 1
+            if md.identification.contact[0].email is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+                errors += 1
 
-                if md.identification.contact[0].role is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
-                    errors += 1
+            if md.identification.contact[0].role is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
+                errors += 1
 
         if md.identification.title is (None or ''):
             result["errors"].append("gmd:md_DataIdentification: Title is missing")
@@ -174,7 +183,7 @@ def grassProfileValidator(md):
                     errors += 1
 
         if len(md.identification.date) < 1 or (md.identification.temporalextent_start is (
-                None or '') or md.identification.temporalextent_end is (None or '')):
+                    None or '') or md.identification.temporalextent_end is (None or '')):
             result["errors"].append("Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")
             errors += 1
 
@@ -192,17 +201,17 @@ def grassProfileValidator(md):
         result["errors"].append("gmd:role: Role is missing")
         errors += 3
     else:
-            if md.contact[0].organization is (None or ''):
-                result["errors"].append("gmd:contact: Organization name is missing")
-                errors += 1
+        if md.contact[0].organization is (None or ''):
+            result["errors"].append("gmd:contact: Organization name is missing")
+            errors += 1
 
-            if md.contact[0].email is (None or ''):
-                result["errors"].append("gmd:contact: E-mail is missing")
-                errors += 1
+        if md.contact[0].email is (None or ''):
+            result["errors"].append("gmd:contact: E-mail is missing")
+            errors += 1
 
-            if md.contact[0].role is (None or ''):
-                result["errors"].append("gmd:role: Role is missing")
-                errors += 1
+        if md.contact[0].role is (None or ''):
+            result["errors"].append("gmd:role: Role is missing")
+            errors += 1
 
     if errors > 0:
         result["status"] = "failed"
@@ -248,17 +257,17 @@ def isnpireValidator(md):
             errors += 3
         else:
 
-                if md.identification.contact[0].organization is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
-                    errors += 1
+            if md.identification.contact[0].organization is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: Organization name is missing")
+                errors += 1
 
-                if md.identification.contact[0].email is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
-                    errors += 1
+            if md.identification.contact[0].email is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: E-mail is missing")
+                errors += 1
 
-                if md.identification.contact[0].role is (None or ''):
-                    result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
-                    errors += 1
+            if md.identification.contact[0].role is (None or ''):
+                result["errors"].append("gmd:CI_ResponsibleParty: Role is missing")
+                errors += 1
 
         if md.identification.title is (None or ''):
             result["errors"].append("gmd:md_DataIdentification: Title is missing")
@@ -275,8 +284,8 @@ def isnpireValidator(md):
             result["errors"].append("gmd:language: Resource language is missing")
         else:
             if len(md.identification.resourcelanguage) < 1 or md.identification.resourcelanguage[0] == '':
-                    result["errors"].append("gmd:language: Resource language is missing")
-                    errors += 1
+                result["errors"].append("gmd:language: Resource language is missing")
+                errors += 1
 
         if md.identification.uricode is None:
             result["errors"].append("gmd:RS_Identifier: Unique Resource Identifier is missing")
@@ -295,34 +304,34 @@ def isnpireValidator(md):
                 errors += 1
 
         if md.identification.keywords is None or len(md.identification.keywords) < 1:
+            result["errors"].append("gmd:MD_Keywords: Keywords are missing")
+            result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
+            result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
+            result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
+            errors += 4
+        else:
+            if md.identification.keywords[0]['keywords'] is None or len(md.identification.keywords[0]['keywords']) < 1 \
+                    or str(md.identification.keywords[0]['keywords']) == "[u'']":
                 result["errors"].append("gmd:MD_Keywords: Keywords are missing")
+                errors += 1
+            if md.identification.keywords[0]['thesaurus'] is None:
                 result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
                 result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
                 result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
-                errors += 4
-        else:
-                if md.identification.keywords[0]['keywords'] is None or len(md.identification.keywords[0]['keywords']) < 1 \
-                        or str(md.identification.keywords[0]['keywords']) == "[u'']":
-                    result["errors"].append("gmd:MD_Keywords: Keywords are missing")
-                    errors += 1
-                if md.identification.keywords[0]['thesaurus'] is None:
+                errors += 3
+            else:
+                if md.identification.keywords[0]['thesaurus']['title'] is None \
+                        or len(md.identification.keywords[0]['thesaurus']['title']) < 1:
                     result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
+                    errors += 1
+                if md.identification.keywords[0]['thesaurus']['date'] is None \
+                        or len(md.identification.keywords[0]['thesaurus']['date']) < 1:
                     result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
+                    errors += 1
+                if md.identification.keywords[0]['thesaurus']['datetype'] is None \
+                        or len(md.identification.keywords[0]['thesaurus']['datetype']) < 1:
                     result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
-                    errors += 3
-                else:
-                    if md.identification.keywords[0]['thesaurus']['title'] is None \
-                            or len(md.identification.keywords[0]['thesaurus']['title']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus title is missing")
-                        errors += 1
-                    if md.identification.keywords[0]['thesaurus']['date'] is None \
-                            or len(md.identification.keywords[0]['thesaurus']['date']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus date is missing")
-                        errors += 1
-                    if md.identification.keywords[0]['thesaurus']['datetype'] is None \
-                            or len(md.identification.keywords[0]['thesaurus']['datetype']) < 1:
-                        result["errors"].append("gmd:thesaurusName: Thesaurus date type is missing")
-                        errors += 1
+                    errors += 1
 
         if md.identification.extent is None:
             result["errors"].append("gmd:EX_Extent: Extent element is missing")
@@ -347,7 +356,7 @@ def isnpireValidator(md):
                     errors += 1
 
         if len(md.identification.date) < 1 or (md.identification.temporalextent_start is (
-                None or '') or md.identification.temporalextent_end is (None or '')):
+                    None or '') or md.identification.temporalextent_end is (None or '')):
             result["errors"].append("Both gmd:EX_TemporalExtent and gmd:CI_Date are missing")
             errors += 1
 
@@ -402,17 +411,17 @@ def isnpireValidator(md):
         errors += 3
     else:
 
-            if md.contact[0].organization is (None or ''):
-                result["errors"].append("gmd:contact: Organization name is missing")
-                errors += 1
+        if md.contact[0].organization is (None or ''):
+            result["errors"].append("gmd:contact: Organization name is missing")
+            errors += 1
 
-            if md.contact[0].email is (None or ''):
-                result["errors"].append("gmd:contact: E-mail is missing")
-                errors += 1
+        if md.contact[0].email is (None or ''):
+            result["errors"].append("gmd:contact: E-mail is missing")
+            errors += 1
 
-            if md.contact[0].role is (None or ''):
-                result["errors"].append("gmd:role: Role is missing")
-                errors += 1
+        if md.contact[0].role is (None or ''):
+            result["errors"].append("gmd:role: Role is missing")
+            errors += 1
 
     if errors > 0:
         result["status"] = "failed"
@@ -421,10 +430,9 @@ def isnpireValidator(md):
     return result
 
 
-
 class MD_DataIdentification_MOD(MD_DataIdentification):
-    def __init__(self,md=None,identtype=None):
-        MD_DataIdentification.__init__(self,md,identtype)
+    def __init__(self, md=None, identtype=None):
+        MD_DataIdentification.__init__(self, md, identtype)
         if md is None:
             self.timeUnit = None
             self.temporalType = None
@@ -440,24 +448,34 @@ class MD_DataIdentification_MOD(MD_DataIdentification):
             extents.extend(md.findall(util.nspath_eval('srv:extent', namespaces)))
             for extent in extents:
                 if val2 is None:
-                    val2 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TM_PeriodDuration/gml:duration', namespaces))#TODO
+                    val2 = extent.find(util.nspath_eval(
+                        'gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:TM_PeriodDuration/gml:duration',
+                        namespaces))  # TODO
                 self.temporalType = util.testXMLValue(val2)
 
                 if val1 is None:
-                    val1 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:unit/gml:TimeUnitType', namespaces))
+                    val1 = extent.find(util.nspath_eval(
+                        'gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:unit/gml:TimeUnitType',
+                        namespaces))
                 self.timeUnit = util.testXMLValue(val1)
                 if val3 is None:
-                    val3 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:radix/gco:positiveInteger', namespaces))
+                    val3 = extent.find(util.nspath_eval(
+                        'gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:radix/gco:positiveInteger',
+                        namespaces))
                 self.radixT = util.testXMLValue(val3)
 
                 if val4 is None:
-                    val4 = extent.find(util.nspath_eval('gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:factor/gco:Integer', namespaces))
+                    val4 = extent.find(util.nspath_eval(
+                        'gmd:EX_Extent/gmd:temporalElement/gmd:EX_TemporalExtent/gmd:extent/gml:timeLength/gml:timeInterval/gml:factor/gco:Integer',
+                        namespaces))
                 self.factor = util.testXMLValue(val4)
+
 
 class MD_MetadataMOD(MD_Metadata):
     """ Process gmd:MD_Metadata """
+
     def __init__(self, md=None):
-        MD_Metadata.__init__(self,md)
+        MD_Metadata.__init__(self, md)
         if md is not None:
             val = md.find(util.nspath_eval('gmd:identificationInfo/gmd:MD_DataIdentification', namespaces))
             val2 = md.find(util.nspath_eval('gmd:identificationInfo/srv:SV_ServiceIdentification', namespaces))

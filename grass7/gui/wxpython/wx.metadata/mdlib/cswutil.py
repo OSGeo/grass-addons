@@ -46,7 +46,7 @@ def render_template(language, context, data, template):
     """Renders HTML display of metadata XML"""
 
     env = Environment(extensions=['jinja2.ext.i18n'],
-                      loader=FileSystemLoader(context.addonsPath))
+                      loader=FileSystemLoader(context.confDirPath))
     env.install_gettext_callables(gettext, ngettext, newstyle=True)
 
     template_file = template
@@ -77,7 +77,7 @@ def highlight_xml(context, xml):
     css = hformat.get_style_defs('.highlight')
     body = highlight(prettify_xml(xml), XmlLexer(), hformat)
 
-    env = Environment(loader=FileSystemLoader(context.addonsPath))
+    env = Environment(loader=FileSystemLoader(context.confDirPath))
 
     template_file = 'xml_highlight.html'
     template = env.get_template(template_file)
@@ -87,7 +87,7 @@ def highlight_xml(context, xml):
 def renderXML(context, xml):
     hformat = HtmlFormatter()
     body = highlight(prettify_xml(xml), XmlLexer(), hformat)
-    env = Environment(loader=FileSystemLoader(context.addonsPath))
+    env = Environment(loader=FileSystemLoader(context.confDirPath))
 
     template_file = 'xml_render.html'
     template = env.get_template(template_file)
