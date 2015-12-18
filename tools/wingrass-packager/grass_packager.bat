@@ -62,7 +62,7 @@ exit /b %ERRORLEVEL%
 
 :cleanUp
 	echo ...(%~1)
-        for /d %%G in ("C:\OSGeo4W%~1\apps\grass\grass-7*svn") do rmdir /s /q "%%G"
+        for /d %%G in ("C:\OSGeo4W%~1\apps\grass\grass-7*svn") do rmdir /S/Q "%%G"
 exit /b 0
 
 :cleanUpPkg
