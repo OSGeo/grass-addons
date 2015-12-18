@@ -24,7 +24,7 @@ else
     SEP=0
 fi
 
-if [ $ADDON_PATH == *"64"* ] ; then
+if [ `uname -m` = "x86_64" ] ; then
     PLATFORM=x86_64
 else
     PLATFORM=x86
