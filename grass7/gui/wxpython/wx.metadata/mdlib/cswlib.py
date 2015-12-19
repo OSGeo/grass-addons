@@ -17,7 +17,7 @@ try:
 except:
     sys.exit(
         'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-
+import tempfile
 from cswutil import *
 from mdutil import yesNo, StaticContext
 import json
@@ -263,8 +263,7 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnShowReguest(self, evt):
         request_html = encodeString(highlight_xml(self.context, self.catalog.request))
-        path = 'htmlRequest.html'
-
+        path = os.path.join(tempfile.gettempdir(),'htmlRequest.html')
         f = open(path, 'w')
         f.write(request_html)
         f.close()
@@ -274,7 +273,7 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnShowResponse(self, evt):
         response_html = encodeString(highlight_xml(self.context, self.catalog.response))
-        path = 'htmlResponse.html'
+        path = os.path.join(tempfile.gettempdir(),'htmlResponse.html')
         f = open(path, 'w')
         f.write(response_html)
         f.close()
@@ -540,7 +539,6 @@ class CSWBrowserPanel(wx.Panel):
 
     def _openWebServiceDiag(self, data_url):
         from web_services.dialogs import AddWSDialog
-        print "giface _openWebServiceDiag",self.giface
         if self.giface:
             self.WSDialog = AddWSDialog(self.parent, giface=self.giface)
             self.WSDialog.OnSettingsChanged([data_url, '', ''])
@@ -563,8 +561,7 @@ class CSWBrowserPanel(wx.Panel):
             dlg = wx.SingleChoiceDialog(
                 self, 'Choice of module for WMS service ', 'Service module',
                 service,
-                wx.CHOICEDLG_STYLE
-            )
+                wx.CHOICEDLG_STYLE)
 
             if dlg.ShowModal() == wx.ID_OK:
                 selected_module = dlg.GetStringSelection()
@@ -601,7 +598,6 @@ class CSWBrowserPanel(wx.Panel):
             dlg.Destroy()
 
         elif name == "Add WCS":
-
             data_url = item_data['wcs']
             self.gdalImport(False, data_url, type='wcs', evt=evt)
 
@@ -652,8 +648,6 @@ class CSWBrowserPanel(wx.Panel):
 
         # TODO: allow users to select resources types
         # to find ('service', 'dataset', etc.)
-        # print self.constraints
-
         try:
             self.catalog.getrecords2(constraints=self.constraints,
                                      maxrecords=self.maxrecords, esn='full')
@@ -704,12 +698,9 @@ class CSWBrowserPanel(wx.Panel):
 
         self.refreshResultList()
         position = self.catalog.results['returned'] + self.startfrom
-
         msg = 'Showing %s - %s of %s result(s)' % (self.startfrom + 1,
                                                    position,
-                                                   self.catalog.results['matches'],
-
-                                                   )
+                                                   self.catalog.results['matches'])
 
         self.findResNumLbl.SetLabel(msg)
         index = 0
