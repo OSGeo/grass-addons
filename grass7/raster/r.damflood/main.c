@@ -1433,8 +1433,7 @@ if (OUT_WAVEFRONT){
 	G_free_fmatrix(m_wavefront);
 }
 
-
-
+exit(EXIT_SUCCESS);
 
 } //END MAIN.C
 
