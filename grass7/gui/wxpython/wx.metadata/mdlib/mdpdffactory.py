@@ -3,8 +3,9 @@ try:
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile, sys, os
-from grass.pygrass.utils import set_path
+from grass.pygrass.utils import set_path,get_lib_path
 from grass.script import core as grass
+from core.gcmd import GError, GMessage, GWarning
 
 set_path(modulename='wx.metadata', dirname='mdlib')
 
@@ -49,13 +50,14 @@ class PdfCreator(object):
         grass.run_command('d.mon', start='cairo', output=f, width=200, height=200, overwrite=True)
         grass.run_command('d.erase')
         if self.type == 'raster':
+            grass.run_command('g.region', raster=self.map)
             grass.run_command('d.rast', map=self.map)
         if self.type == 'vector':
+            grass.run_command('g.region', vector=self.map)
             grass.run_command('d.vect', map=self.map)
         grass.run_command('d.mon', stop='cairo')
         grass.run_command('g.region', region='tmpPdf')
         return f
-
 
     def findItem(self, items, name2, idx=-1):
         values = []
@@ -134,8 +136,9 @@ class PdfCreator(object):
 
         self.doc.set_theme(MyTheme)
 
-        logo_path = '/home/matt/Dropbox/GSOC2015/pdfExp/logo.png'
-        self.doc.add_image(logo_path, 50, 50, LEFT)
+        logo_path = get_lib_path("wx.metadata",'config')
+        logo_path = os.path.join(logo_path,'logo_variant_bg.png')
+        self.doc.add_image(logo_path, 57, 73, LEFT)
 
         if self.map is None:
             self.doc.add_header(self.filename, T1)
@@ -180,9 +183,6 @@ class PdfCreator(object):
 
         ##################### Keywords ################################## TODO
 
-
-
-
         ##################### Geographic ##################################
         self.doc.add_spacer(25)
         self.doc.add_header('Geographic Location', H1)
@@ -198,10 +198,15 @@ class PdfCreator(object):
         self.doc.add_spacer(25)
         mapPath = MapBBFactory([[maxx, minx], [maxy, miny]], )
 
-        gmap = Image(mapPath.link1, 200, 200)
-        gmap1 = Image(mapPath.link2, 200, 200)
-        self.doc.add(Table([[gmap1, gmap]]))
-        self.doc.add(PageBreak())
+        ##################### Add google picture(extend) ##################################
+        try:
+            gmap = Image(mapPath.link1, 200, 200)
+            gmap1 = Image(mapPath.link2, 200, 200)
+            self.doc.add(Table([[gmap1, gmap]]))
+            self.doc.add(PageBreak())
+        except:
+            GWarning("Cannot download metadata picture of extend provided by Google API. Please check internet connection.")
+
         ##################### Temporal ##################################
         self.doc.add_spacer(25)
         self.doc.add_header('Temporal reference', H1)
@@ -428,7 +433,6 @@ class MD_ITEM():
 
     def addValue(self, value):
         self.value.append(value)
-
 
 class Point():
     """Stores a simple (x,y) point.  It is used for storing x/y pixels.
