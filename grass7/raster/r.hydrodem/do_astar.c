@@ -123,8 +123,8 @@ int do_astar(void)
 		                          dist_to_nbr[ct_dir]);
 	    }
 
-	    if (!is_worked) {
-		if (ct_dir > 3 && slope[ct_dir] >= 0) {
+	    if (!is_in_list || (!is_worked && df.dir < 0)) {
+		if (ct_dir > 3 && slope[ct_dir] > 0) {
 		    if (slope[nbr_ew[ct_dir]] >= 0) {
 			/* slope to ew nbr > slope to center */
 			if (slope[ct_dir] < get_slope(ele_nbr[nbr_ew[ct_dir]],
@@ -141,7 +141,7 @@ int do_astar(void)
 	    }
 
 	    if (!skip_diag) {
-		if (is_in_list == 0) {
+		if (!is_in_list) {
 		    df.dir = drain[r_nbr - r + 1][c_nbr - c + 1];
 		    FLAG_SET(df.flag, INLISTFLAG);
 		    seg_put(&dirflag, (char *)&df, r_nbr, c_nbr);
@@ -150,9 +150,9 @@ int do_astar(void)
 		    if (ele_nbr[ct_dir] < ele_val)
 			is_bottom = 0;
 		}
-		else if (is_in_list && is_worked == 0) {
+		else if (!is_worked) {
 		    if (FLAG_GET(df.flag, EDGEFLAG)) {
-			if (df.dir < 0) {
+			if (df.dir < 0 && slope[ct_dir] > 0) {
 			    /* update edge cell ? no */
 			    /* df.dir = drain[r_nbr - r + 1][c_nbr - c + 1]; */
 			    /* check if this causes trouble */
