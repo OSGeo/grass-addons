@@ -14,7 +14,7 @@ Classes:
  - g.gui.metadata::MdEditConfigPanel
  - g.gui.metadata::MdToolbar
 
-(C) 2014 by the GRASS Development Team
+(C) 2014-2015 by the GRASS Development Team
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
@@ -23,13 +23,18 @@ This program is free software under the GNU General Public License
 
 import sys
 import os
+
 from grass.pygrass.utils import set_path
 import grass.script as grass
 from grass.pydispatch import dispatcher
-from core.gcmd import RunCommand, GError, GMessage
-import grass.temporal as tgis
-#from datacatalog.tree import LocationMapTree
 from grass.pydispatch.signal import Signal
+import grass.temporal as tgis
+
+from grass.script.setup import set_gui_path
+set_gui_path()
+
+from core.gcmd import RunCommand, GError, GMessage
+#from datacatalog.tree import LocationMapTree
 from core.utils import GetListOfLocations, ListOfMapsets
 from core.debug import Debug
 
