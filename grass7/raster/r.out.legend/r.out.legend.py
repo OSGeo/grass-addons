@@ -197,26 +197,30 @@ def main():
 
     # Compute output size of legend bar in pixels
     if unit=='cm':
-        w = math.ceil(float(width)/2.54*float(resol))
-        h = math.ceil(float(height)/2.54*float(resol))
+        w = math.ceil(float(width)/2.54*float(resol)) + 6
+        h = math.ceil(float(height)/2.54*float(resol)) + 6
     elif unit=='mm':
-        w = math.ceil(float(width)/25.4*float(resol))
-        h = math.ceil(float(height)/25.4*float(resol))
+        w = math.ceil(float(width)/25.4*float(resol)) + 6
+        h = math.ceil(float(height)/25.4*float(resol)) + 6
     elif unit=='inch':
-        w = math.ceil(width*resol)
-        h = math.ceil(height*resol)
+        w = math.ceil(width*resol) + 6
+        h = math.ceil(height*resol) + 6
     elif unit=="px":
-        w=float(width)
-        h=float(height)
+        w=float(width) + 6
+        h=float(height) + 6
     else:
         grass.error('Unit must be inch, cm, mm or px')
+
+    # Margins
+    mw = 3 / w * 100
+    mh = 3 / h * 100
 
     # Check if fontsize = 0 ( = no raster values)
     if fontsize==0:
         iw = w
         ih = h
         fz = 1
-        at = "1,99,2,98"
+        at = mw + "," + 100-mw + "," + mh + "," + 100-mh
     else:
         fz = round(float(fontsize) * (float(resol)/72.272))
 
@@ -231,14 +235,14 @@ def main():
         if float(height)>float(width):
             iw = w + fz * maxl
             ih = h
-            at = "1,99,3," + str((100*w/iw)-1)
+            at = mh + "," + 100-mh + "," + mw + "," + str((100*w/iw)-1)
         else:
             minval = round(maprange['min'],digits)
             margin_left = 0.5 * (len(str(minval)) - 1)
             margin_right = 0.5 * maxl
             iw = w + fz * (margin_left + margin_right)
             ih = h + fz * 1.5
-            at = str(100 - (100*h/ih)) + ",96," + \
+            at = str(100 - (100*h/ih)) + 100-mh + \
             str((100 * fz * margin_left / iw)) + "," + \
             str(100 - (100 * fz * margin_right / iw))
 
