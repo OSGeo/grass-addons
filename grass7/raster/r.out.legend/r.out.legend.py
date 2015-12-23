@@ -216,7 +216,7 @@ def main():
         iw = w
         ih = h
         fz = 1
-        at = "1,99,1,99"
+        at = "1,99,2,98"
     else:
         fz = round(float(fontsize) * (float(resol)/72.272))
 
@@ -231,14 +231,14 @@ def main():
         if float(height)>float(width):
             iw = w + fz * maxl
             ih = h
-            at = "1,99,1," + str((100*w/iw)-1)
+            at = "1,99,3," + str((100*w/iw)-1)
         else:
             minval = round(maprange['min'],digits)
             margin_left = 0.5 * (len(str(minval)) - 1)
             margin_right = 0.5 * maxl
             iw = w + fz * (margin_left + margin_right)
             ih = h + fz * 1.5
-            at = str(100 - (100*h/ih)) + ",99," + \
+            at = str(100 - (100*h/ih)) + ",96," + \
             str((100 * fz * margin_left / iw)) + "," + \
             str(100 - (100 * fz * margin_right / iw))
 
@@ -260,7 +260,7 @@ def main():
         grass.run_command("d.legend", flags=flag, raster=inmap, font=font,
                       at=at, fontsize=fz, labelnum=labelnum, range=val_range)
 
-    grass.run_command("d.mon", stop=filetype)
+    grass.run_command("d.mon", flags="r", stop=filetype)
     grass.info("----------------------------\n")
     grass.info("File saved as " + outputfile)
     grass.info("The image dimensions are:\n")

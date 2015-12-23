@@ -34,6 +34,15 @@ a more interactive way to generate legend images, you can also try
 <a href="https://grass.osgeo.org/grass70/manuals/ps.map.html">ps.map</a>.
 
 <p>
+With file type set to 'png', the png driver is used to create 
+the image. An alternative way to create a png image file is to set 
+as file type 'cairo' and provide an output file name with as 
+extension '.png'. This will use the cairo driver to generate the png 
+image. One advantage of the cairo driver is that it uses 
+anti-aliasing, which might give nicer results (smoother lines and 
+numbers). Compare the output for example 1 and 4.
+
+<p>
 The user may create a horizontal legend by making the box wider 
 than it is tall. Note that for vertical legends labels are placed to 
 the right of the legend box. For horizontal legends the text will 
@@ -120,6 +129,19 @@ r.out.legend raster=elevation file=r_out_legend_3.png filetype=png \
 </pre></div>
 
 <p><img src="r_out_legend_3.png">
+
+<h3>Example 4</h3>
+
+Like example 1, but using the cairo driver to create the png image. 
+The difference is that the cairo driver uses anti-aliasing.
+
+<div class="code"><pre>
+r.out.legend raster=elevation file=r_out_legend_4.png filetype=cairo \
+    dimensions=4,0.4 labelnum=3 fontsize=7 unit="cm" resolution=150
+</pre></div
+
+<p><img src="r_out_legend_4.png">
+
 
 <h2>SEE ALSO</h2>
 
