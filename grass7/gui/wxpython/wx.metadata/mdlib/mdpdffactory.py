@@ -229,7 +229,7 @@ class PdfCreator(object):
         ###################### Constraints ########################
         self.doc.add_spacer(25)
         self.doc.add_header('Constraints', H1)
-        self.tableFactory("Condition applying to use", ["Use constraints"], 'identification')
+        self.tableFactory("Condition applying to use", ["Use limitation"], 'identification')
         self.tableFactory("Condition applying to access", ["Access constraints"], 'identification')
         self.tableFactory("Limitation on public access", ["Other constraintrs"], 'identification')
         ###################### Responsible party ########################
@@ -350,7 +350,8 @@ class PdfCreator(object):
             if md.identification.uselimitation is not None:
                 for limitation in md.identification.uselimitation:
                     if limitation is not (None or ''):
-                        metadata["identification"].append(MD_ITEM(limitation, "gmd:useLimitation", "Use limitation"))
+                        metadata["identification"].append(
+                            MD_ITEM(limitation, "gmd:useLimitation", "Use limitation"))
 
             if md.identification.accessconstraints is not None:
                 for accessconstraints in md.identification.accessconstraints:
