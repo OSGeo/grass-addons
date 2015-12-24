@@ -29,6 +29,7 @@ SUBDIRS = \
 	r.diversity \
 	r.droka \
 	r.edm.eval \
+	r.euro.ecosystem \
 	r.exdet \
 	r.fidimo \
 	r.findtheriver \
