@@ -122,6 +122,11 @@
 #% guisection: Extra options
 #%end
 
+#%flag:
+#% key: d
+#% description: Add histogram to legend
+#% guisection: Extra options
+#%end
 
 #------------------------------------------------------------------------------
 
@@ -191,40 +196,49 @@ def main():
     fontsize      = int(options['fontsize'])
     digits        = int(options['digits'])
     flag_f        = flags['f']
+    flag_d        = flags['d']
 
     # Check if input layer exists
     CheckLayer(inmap)
 
     # Compute output size of legend bar in pixels
     if unit=='cm':
-        w = math.ceil(float(width)/2.54*float(resol)) + 3
-        h = math.ceil(float(height)/2.54*float(resol)) + 3
+        bw = math.ceil(float(width)/2.54*float(resol))
+        bh = math.ceil(float(height)/2.54*float(resol))
     elif unit=='mm':
-        w = math.ceil(float(width)/25.4*float(resol)) + 3
-        h = math.ceil(float(height)/25.4*float(resol)) + 3
+        bw = math.ceil(float(width)/25.4*float(resol))
+        bh = math.ceil(float(height)/25.4*float(resol))
     elif unit=='inch':
-        w = math.ceil(width*resol) + 6
-        h = math.ceil(height*resol) + 6
+        bw = math.ceil(float(width)*float(resol))
+        bh = math.ceil(float(height)*float(resol))
     elif unit=="px":
-        w=float(width) + 6
-        h=float(height) + 6
+        bw=float(width)
+        bh=float(height)
     else:
         grass.error('Unit must be inch, cm, mm or px')
 
-    # Margins
-    mw = 2 / w * 100
-    mh = 2 / h * 100
+    # Add size of legend to w or h, if flag_d is set
+    if flag_d:
+        if float(height)>float(width):
+            w = bw * 2.75 + 4
+            h = bh + 4
+        else:
+           h  = bh * 2.75 + 4
+           w = bw + 4
+    else:
+        w = bw + 4
+        h = bh + 4
 
-    # Check if fontsize = 0 ( = no raster values)
+    # Determine image width and height
     if fontsize==0:
-        iw = w
-        ih = h
-        fz = 1
+        iw = w; ih = h; fz = 1
+        mw = 2 / w * 100
+        mh = 2 / h * 100
         at = str(mw) + "," + str(100-mw) + "," + str(mh) + "," + str(100-mh)
     else:
         fz = round(float(fontsize) * (float(resol)/72.272))
 
-        # Compute image position and position
+        # Allow for extra space at left (low) side if number with digits
         maprange = grass.raster_info(inmap)
         maxval = round(maprange['max'],digits)
         if maxval<1:
@@ -232,9 +246,15 @@ def main():
         else:
             maxl=len(str(maxval)) - 2
 
+        # Page width and height + position bar
         if float(height)>float(width):
-            iw = w + fz * maxl
-            ih = h
+            iw = w + fz * maxl; ih = h
+            if flag_d:
+                mw = (2 + (bw * 1.75)) / iw * 100
+                mh = 2 / ih * 100
+            else:
+                mw = 2 / iw * 100
+                mh = 2 / ih * 100
             at = str(mh) + "," + str(100-mh) + "," + str(mw) + "," + str((100*w/iw)-1)
         else:
             minval = round(maprange['min'],digits)
@@ -242,6 +262,12 @@ def main():
             margin_right = 0.5 * maxl
             iw = w + fz * (margin_left + margin_right)
             ih = h + fz * 1.5
+            if flag_d:
+                mh = (2 + (bh * 1.75)) / ih * 100
+                mw = 2 / iw * 100
+            else:
+                mw = 2 / w * 100
+                mh = 2 / h * 100
             at = str(100 - (100*h/ih)) + "," + str(100-mh) + "," + \
             str((100 * fz * margin_left / iw)) + "," + \
             str(100 - (100 * fz * margin_right / iw))
@@ -257,6 +283,8 @@ def main():
         flag='csv'
     else:
         flag='sv'
+    if flag_d:
+        flag=flag + 'd'
     if val_range=='':
         grass.run_command("d.legend", flags=flag, raster=inmap, font=font,
                       at=at, fontsize=fz, labelnum=labelnum)
@@ -288,6 +316,17 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
+
+
+
+
+
+
+
+
+
+
+
 
 
 

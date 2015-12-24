@@ -1,16 +1,18 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.out.legend</em> script provides a convenient way 
-to quickly create a smoothed legend image for floating point raster maps 
-(continuous values as opposed to categories), with the dimensions and 
-resolution required. It is furthermore possible to set the font (default 
-is 'Arial') and font size (default=10). The legend can be saved as 
+The <em>r.out.legend</em> script provides a convenient way to 
+quickly create a smoothed legend image for floating point raster 
+maps (continuous values as opposed to categories), with the 
+dimensions and resolution required. Optionally, a histogram can be 
+added along side the legend by setting the -d flag. It is 
+furthermore possible to set the font (default is 'Arial') and font 
+size (default=10). The legend can be saved as 
 <a href="https://grass.osgeo.org/grass64/manuals/pngdriver.html">PNG</a>, 
 <a href="https://grass.osgeo.org/grass64/manuals/psdriver.html">PS</a> 
-(postscript), BMP, PPM, PDF AND SVG. The latter four are supported through the 
-Cairo driver (see Notes). The images can be used to add a continuous 
-legends in maps created in e.g., QGIS composer or as part of a 
-Google Earth map.
+(postscript), BMP, PPM, PDF AND SVG. The latter four are supported 
+through the Cairo driver (see Notes). The images can be used to add 
+a continuous legends in maps created in e.g., QGIS composer or as 
+part of a Google Earth map.
 
 <h2>NOTES</h2>
 
@@ -23,6 +25,22 @@ unit set by the user is given in the console (see example 1).
 Note that one can use category maps as input, but <em>
 r.out.legend</em> will still create a smooth legend (by setting the 
 -f flag, see <em>d.legend</em>). 
+
+<p>
+The user may create a horizontal legend by making the box wider 
+than it is tall. Note that for vertical legends labels are placed to 
+the right of the legend box. For horizontal legends the text will 
+be places below the legend.
+
+<p> The -d flag is used to display a histogram distribution along 
+side the legend. For vertical legends, the histogram will be placed 
+left of the legend; if horizontal, it will be placed above the 
+legend bar. The histogram is 1.75 x the width (or height if 
+horizontal) of the legend bar. This thus adds to the final width of 
+the output image. Note that the statistics are calculated on the 
+current computational region settings set by g.region. The default 
+range however covers the entire natural bounds of the input map. If 
+the histogram appears empty, check your region settings. 
 
 <p>
 The script is a wrapper of <a href="https://grass.osgeo.org/grass71/manuals/d.mon.html">d.mon</a> 
@@ -41,12 +59,6 @@ extension '.png'. This will use the cairo driver to generate the png
 image. One advantage of the cairo driver is that it uses 
 anti-aliasing, which might give nicer results (smoother lines and 
 numbers). Compare the output for example 1 and 4.
-
-<p>
-The user may create a horizontal legend by making the box wider 
-than it is tall. Note that for vertical legends labels are placed to 
-the right of the legend box. For horizontal legends the text will 
-be places below the legend.
 
 <p> The default resolution is 300 px/inch (ppi), except when the unit is 
 set to <em>px</em>, in which case the default resolution is set to 
@@ -142,6 +154,44 @@ r.out.legend raster=elevation file=r_out_legend_4.png filetype=cairo \
 
 <p><img src="r_out_legend_4.png">
 
+<p>
+The dimensions (width and height) of the image:
+
+<div class="code"><pre>
+----------------------------
+File saved as r_out_legend_4.png
+The image dimensions are:
+286px wide and 50px heigh
+at a resolution of 150 ppi this is:
+4.84293333333 cm x 0.855133333333 cm
+----------------------------
+</pre></div>
+
+<h3>Example 5</h3>
+
+Like example 4, but adding a histogram. Note that the histogram adds 
+to the size of the image (while the dimensions of the bar remain the 
+same as in the previous example).
+
+<div class="code"><pre>
+r.out.legend raster=elevation file=r_out_legend_5.png filetype=cairo \
+    dimensions=4,0.4 labelnum=3 fontsize=7 unit="cm" resolution=150 -d
+</pre></div
+
+<p><img src="r_out_legend_5.png">
+
+<p>
+The dimensions (width and height) of the image:
+
+<div class="code"><pre>
+----------------------------
+File saved as r_out_legend_5.png
+The image dimensions are:
+286px wide and 92px heigh
+at a resolution of 150 ppi this is:
+4.84293333333 cm x 1.56633333333 cm
+----------------------------
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
