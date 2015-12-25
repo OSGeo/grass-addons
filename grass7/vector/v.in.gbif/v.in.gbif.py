@@ -81,7 +81,7 @@ def main():
     if in_proj['name'].lower() == 'xy_location_unprojected':
         grass.fatal(_("xy-locations are not supported"))
 		
-    # Extract vector line
+    # import GBIF data
     grass.message( "Starting importing GBIF data ..." )
     grass.message( "preparing data for vrt ..." )
 
