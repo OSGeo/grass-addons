@@ -67,7 +67,8 @@
 #% key_desc: method
 #% multiple: yes
 #% options: cells,min,max,range,mean,stddev,coeff_var,sum
-#% description: Provide the output aggregation method for the stream-specific variable: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
+#% label: Provide the output aggregation method for the stream-specific variable
+#% description: upstream cells numbers, minimum, maximum, range, mean, standard deviation, coefficient of variation, sum. Output datatype is Int32
 #% required:yes
 #%end
 
@@ -75,7 +76,8 @@
 #% key: scale
 #% type: double
 #% key_desc: value
-#% description: Provide a scale factor to multiply or divide the final stream-specific variable (e.g if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers) 
+#% label: Provide a scale factor to multiply or divide the final stream-specific variable
+#% description: Provide it e.g. if input raster values are between -1 and 1, use scale=1000 to inicrease the number of decimals - all outputs will be rounded to integers 
 #% answer: 1
 #% required:no
 #%end
