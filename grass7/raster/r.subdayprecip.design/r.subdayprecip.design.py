@@ -151,13 +151,21 @@ def main():
         if vinfo['areas'] > 0:
             Module('v.rast.stats', flags='c', map=opt['map'], raster=rast,
                    column_prefix=name, method='average', quiet=True)
+            # handle NULL values (areas smaller than raster resolution)
+            null_values = Module('v.db.select', map=opt['map'], columns='cat', flags='c',
+                                 where="{}_average is NULL".format(name), stdout_=grass.PIPE)
+            cats = null_values.outputs.stdout.splitlines()
+            if len(cats) > 0:
+                grass.warning(_("Input vector map <{}> contains very small areas (smaller than "
+                                "raster resolution). These areas will be proceeded by querying "
+                                "single raster cell.").format(opt['map']))
+                Module('v.what.rast', map=opt['map'], raster=rast, type='centroid',
+                       column='{}_average'.format(name), where="{}_average is NULL".format(name),
+                       quiet=True)
         else: # -> points
             Module('v.what.rast', map=opt['map'], raster=rast,
                    column='{}_average'.format(name), quiet=True)
-        # TODO: handle null values (very small areas)
-        # Module('v.what.rast', map=opt['map'], raster=rast, type='centroid',
-        #       column='{}_average'.format(name),
-        #       where='{}_average is NULL'.format(name))
+            
         
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
