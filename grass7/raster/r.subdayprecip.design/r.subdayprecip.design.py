@@ -114,6 +114,11 @@ def coeff(name, rl):
     return a, c
 
 def main():
+    # check if the map is in the current mapset
+    mapset = grass.find_file(opt['map'], element='vector')['mapset']
+    if not mapset or mapset != grass.gisenv()['MAPSET']:
+        grass.fatal(_("Vector map <{}> not found in the current mapset").format(opt['map']))
+    
     # get list of existing columns
     try:
         columns = grass.vector_columns(opt['map']).keys()
