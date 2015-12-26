@@ -121,6 +121,11 @@ def main():
         return 1
     
     allowed_rasters = ('H_002', 'H_005', 'H_010', 'H_020', 'H_050', 'H_100')
+
+    # test input feature type
+    vinfo = grass.vector_info_topo(opt['map'])
+    if vinfo['areas'] < 1 and vinfo['points'] < 1:
+        grass.fatal(_("No points or areas found in input vector map <{}>").format(opt['map']))
     
     # extract multi values to points
     for rast in opt['raster'].split(','):
@@ -138,8 +143,12 @@ def main():
         # perform zonal statistics
         grass.message('Processing <{}>...'.format(rast))
         table = '{}_table'.format(name)
-        Module('v.rast.stats', flags='c', map=opt['map'], raster=rast,
-               column_prefix=name, method='average', quiet=True)
+        if vinfo['areas'] > 0:
+            Module('v.rast.stats', flags='c', map=opt['map'], raster=rast,
+                   column_prefix=name, method='average', quiet=True)
+        else: # -> points
+            Module('v.what.rast', map=opt['map'], raster=rast,
+                   column='{}_average'.format(name), quiet=True)
         # TODO: handle null values (very small areas)
         # Module('v.what.rast', map=opt['map'], raster=rast, type='centroid',
         #       column='{}_average'.format(name),
