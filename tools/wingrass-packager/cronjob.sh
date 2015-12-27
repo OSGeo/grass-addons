@@ -14,14 +14,12 @@ rsync_grass() {
 
 rm_7() {
     for p in x86 x86_64; do
-	cd $p
 	for f in `find $SRC/${p}/grass$1/WinGRASS* -mtime +7`; do
 	    rm -rfv $f
 	done
 	for f in `find $SRC/${p}/grass$1/osgeo4w/grass*.tar.bz2 -mtime +7`; do
 	    rm -rfv $f
 	done
-	cd ..
     done
 }
 
@@ -41,22 +39,24 @@ update_setup() {
 }
 
 addons_index() {
-    cd $SRC/grass$1/addons
-    for d in $(find . -mindepth 1 -maxdepth 1 -type d) ; do
-	cd $d/logs
-	if [ -f "summary.html" ] ; then
-	    ln -sf summary.html index.html
-	fi
-	cd ../..
-    done
+    for p in x86 x86_64; do
+	cd ${SRC}/${p}/grass$1/addons
+	for d in $(find . -mindepth 1 -maxdepth 1 -type d) ; do
+	    cd $d/logs
+	    if [ -f "summary.html" ] ; then
+		ln -sf summary.html index.html
+	    fi
+	    cd ../..
+	done
 
-    if [ "$1" = "70" ] ; then
+	if [ "$1" = "70" ] ; then
         # create symlink to latest version
-        cd $SRC/grass$1/addons
-	rm latest
-	last_version=`ls -w1 | sort -r | head -n2 | tail -n1`
-	ln -sf $last_version latest
-    fi
+            cd ${SRC}/${p}/grass$1/addons
+	    rm latest
+	    last_version=`ls -w1 | sort -r | head -n2 | tail -n1`
+	    ln -sf $last_version latest
+	fi
+    done
 }
 
 report() {
