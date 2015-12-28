@@ -33,7 +33,10 @@ Most of the times the distribution of <em>I</em> values is logaritmic (the impac
 An example of the syntax for photovoltaic panels is reported below:<br />
 
 <div class="code"><pre>
- r.wind.sun -f dem=dem impact=visualImpact panels=placingPoints panels_height=1.60 panels_width=0.9 angle=30 orient=180 panels_center_height=1.52 resolution=20 min_dist_from_panel=5 max_dist_from_panel=5000
+r.wind.sun -f dem=dem impact=visualImpact panels=placingPoints \
+           panels_height=1.60 panels_width=0.9 angle=30 orient=180 \
+           panels_center_height=1.52 resolution=20 min_dist_from_panel=5 \
+           max_dist_from_panel=5000
 </pre></div>
 
 The output map logaritmically reclassified:
@@ -46,7 +49,7 @@ Figure 3: the output impact map reclassified.</br>
 Other outputs are the 2D and 3D models of panels and arogenerators.<br />
 This models can be useful to produce 3D visualizations of the site.<br />
 <br />
-<img src="2d3dAero.jpg">
+<img src="2d3dAero.png">
 <br />
 Figure 3: an example of 2D and 3D models for aerogenerators (the 3D is visualized in NVIZ)</br>
 <br />
