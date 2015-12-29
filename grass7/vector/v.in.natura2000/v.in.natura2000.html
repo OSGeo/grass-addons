@@ -28,45 +28,44 @@ for connecting to the sqlite/spatialite database.
 <div class="code">
  <pre>
 # list spatial layer(s) already availabe in the sqlite/spatialite database 
-v.in.natura2000 -l input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -l input=Natura2000_end2014.sqlite
 
 # import already available spatial layer
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
-existing_layer=sv1800 
+v.in.natura2000 input=Natura2000_end2014.sqlite existing_layer=sv1800 
 
 # list biogeographic regions
-v.in.natura2000 -b input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -b input=Natura2000_end2014.sqlite
 
 # list EU member states codes
-v.in.natura2000 -m input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -m input=Natura2000_end2014.sqlite
 
 # list habitats of community interest
-v.in.natura2000 -h input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -h input=Natura2000_end2014.sqlite
 
 # list species of community interest
-v.in.natura2000 -s input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -s input=Natura2000_end2014.sqlite
 
 # list protected area site types
-v.in.natura2000 -t input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite
+v.in.natura2000 -t input=Natura2000_end2014.sqlite
 
 # import protected areas of type A
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_typeA sitetype=A
 
 # import protected areas with habitat 3230
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_habitat3230 habitat_code=3230
 
 # import protected areas with species 1800
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_species1800 species_code=1800
 
 # import protected areas within the Alpine biogeographical region
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_alpineregion biogeographic_region=Alpine
 
 # import protected areas of member state Austria
-v.in.natura2000 input=C:\data\Natura2000_end2014_Spatialite\Natura2000_end2014.sqlite /
+v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_austria member_state=AT
  
  </pre>
