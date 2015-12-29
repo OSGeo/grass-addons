@@ -83,19 +83,19 @@
 
 #%flag
 #% key: m
-#% description: Use minimum values of IES layers to compute MES (MES_min)
+#% description: Use mean values of IES layers to compute MES
 #% guisection: Output
 #%end
 
 #%flag
 #% key: n
-#% description: Use mean values of IES layers to compute MES (MES_av)
+#% description: Use median values of IES layers to compute MES
 #% guisection: Output
 #%end
 
 #%flag
 #% key: o
-#% description: Use median values of IES layers to compute MES (MES_med)
+#% description: Use minimum values of IES layers to compute MES
 #% guisection: Output
 #%end
 
@@ -194,9 +194,6 @@ def defcol(mapname):
 # Compute EB for input file (simlay = similarity, reflay = reference layer)
 def EB(simlay, reflay):
 
-    # layer name
-    vn = simlay.split("@")[0]
-
     # Median and mad for whole region (within current mask)
     tmpf4 = tmpname('reb4')
     clean_rast.add(tmpf4)
@@ -227,9 +224,9 @@ def EB(simlay, reflay):
     EBstat = abs(d - e) / mad
 
     # Print results to screen and return results
-    grass.info("Median " + vn + " (all region) = " + str('%.3f') %d)
-    grass.info("Median " + vn + " (ref. area) = " + str('%.3f') %e)
-    grass.info("MAD " + vn + " (all region) = " + str('%.3f') %mad)
+    grass.info("Median (all region) = " + str('%.3f') %d)
+    grass.info("Median (ref. area) = " + str('%.3f') %e)
+    grass.info("MAD = " + str('%.3f') %mad)
     grass.info("EB = " + str('%.3f') %EBstat)
 
     # Clean up and return data
@@ -284,6 +281,7 @@ def main():
 
     ipi = []
     for j in xrange(len(ipl)):
+        grass.info("Computing ES for layer " + ipl[j])
 
         # Calculate the frequency distribution
         tmpf1 = tmpname('reb1')
@@ -345,25 +343,32 @@ def main():
 
     # EB MES
     if flag_m:
+        grass.info("Computing the MES")
         nmn = tmpf0 + "_MES_mean"
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="average")
         defcol(nmn)
+        grass.info("Computing the EB")
         ebm = EB(simlay=nmn, reflay=tmpref0)
 
     if flag_n:
+        grass.info("Computing the MES")
         nmn = tmpf0 + "_MES_median"
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="median")
         defcol(nmn)
+        grass.info("Computing the EB")
         ebn = EB(simlay=nmn, reflay=tmpref0)
 
     if flag_o:
+        grass.info("Computing the MES")
         nmn = tmpf0 + "_MES_minimum"
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum")
         defcol(nmn)
+        grass.info("Computing the EB")
         ebo = EB(simlay=nmn, reflay=tmpref0)
 
     # EB individual layers
     if flag_i:
+        grass.info("Computing the EB for the individual layers")
         ebi = {}
         for mm in xrange(len(ipi)):
             nmn = tmpf0 + "_" + ipn[mm]
