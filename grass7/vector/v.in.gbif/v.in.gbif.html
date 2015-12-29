@@ -31,11 +31,12 @@ instead.
 
 <div class="code">
  <pre>
-  v.in.gbif input=C:\data\0004248-150811131857512\0004248-150811131857512.csv output=chondrilla_12
+  # import GBIF data
+  v.in.gbif input=0004248-150811131857512.csv output=chondrilla
   
   # create GDAL VRT files based upon GBIF data in user defined directory by -c flag
-  v.in.gbif -c input=input=C:\data\0004248-150811131857512\0004248-150811131857512.csv /
-  output=chondrilla_13 dir=C:\data\0004248-150811131857512\
+  v.in.gbif -c input=0004248-150811131857512.csv /
+  output=chondrilla dir=C:\data\
  </pre>
 </div>
 
