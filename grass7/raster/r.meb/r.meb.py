@@ -200,32 +200,28 @@ def EB(simlay, reflay):
     # Median and mad for whole region (within current mask)
     tmpf4 = tmpname('reb4')
     clean_rast.add(tmpf4)
-    d = grass.read_command("r.quantile", quiet=True, input=simlay, percentiles="50")
+    d = grass.read_command("r.quantile", quiet=True, input=simlay,
+                           percentiles="50")
     d = d.split(":")
     d = float(string.replace(d[2], "\n", ""))
     grass.mapcalc("$tmpf4 = abs($map - $d)",
                   map=simlay,
                   tmpf4=tmpf4,
                   d=d, quiet=True)
-    mad = grass.read_command("r.quantile", quiet=True, input=tmpf4, percentiles="50")
+    mad = grass.read_command("r.quantile", quiet=True, input=tmpf4,
+                             percentiles="50")
     mad = mad.split(":")
     mad = float(string.replace(mad[2], "\n", ""))
-    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf4)
+    grass.run_command("g.remove", quiet=True, flags="f", type="raster",
+                      name=tmpf4)
 
     # Median and mad for reference layer
     tmpf5 = tmpname('reb5')
     clean_rast.add(tmpf5)
-    grass.run_command("r.null", map=reflay, setnull=0)
-    chlay = grass.parse_command("r.info", flags="r", map=reflay)
-    if chlay['max'] != '1' or chlay['min'] != '1':
-        grass.warning('please note that your layer is not a binary layer. Continuing assuming that all values other than 0 mark the area of interest')
-        grass.mapcalc("$tmpf5 = if($reflay != 0, 1, null())",
-                      tmpf5=tmpf5, reflay=reflay, quiet=True)
-    else:
-        grass.run_command("g.copy", raster=(reflay,tmpf5), quiet=True)
-    grass.mapcalc("$tmpf5 = $tmpf5 * $simlay", tmpf5=tmpf5,
-                  simlay=simlay, quiet=True, overwrite=True)
-    e = grass.read_command("r.quantile", quiet=True, input=tmpf5, percentiles="50")
+    grass.mapcalc("$tmpf5 = if($reflay==1, $simlay, null())", simlay=simlay,
+                                tmpf5=tmpf5, reflay=reflay, quiet=True)
+    e = grass.read_command("r.quantile", quiet=True, input=tmpf5,
+                           percentiles="50")
     e = e.split(":")
     e = float(string.replace(e[2], "\n", ""))
     EBstat = abs(d - e) / mad
@@ -239,7 +235,6 @@ def EB(simlay, reflay):
     # Clean up and return data
     grass.run_command("g.remove", flags="f", type="raster", name=tmpf5, quiet=True)
     return (mad, d, e, EBstat)
-
 
 def main():
 
