@@ -264,6 +264,15 @@ def main():
     digits = int(options['digits'])
     digits2 = pow(10, digits)
 
+    # Check input
+    reftype = grass.raster_info(ref)['datatype']
+    if reftype != 'CELL':
+        grass.fatal('Your reference map should be an integer binary map with 0 and 1')
+    else:
+        refrange = grass.parse_command("r.univar", flags="g", map=ref)
+        if refrange['min'] != '0' or refrange['max'] != '1':
+            grass.fatal('Your reference map should be an binary map with 0 and 1')
+
     #----------------------------------------------------------------------------
     # Compute MES
     #----------------------------------------------------------------------------
