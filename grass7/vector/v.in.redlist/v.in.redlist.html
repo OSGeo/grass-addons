@@ -20,13 +20,13 @@ One of the species mentioned by <i>-l</i> or <i>-s</i> flag has to be specified 
 <div class="code">
  <pre>
   # list species in column 'binomial' of the attribute table by -l flag
-  v.in.redlist -l input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp
+  v.in.redlist -l input=GYMNOPHIONA.shp
   
   # export species in column 'binomial' of the attribute table into a text file by -s flag  
-  v.in.redlist -s input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp dir=C:\dl\iucn\GYMNOPHIONA
+  v.in.redlist -s input=GYMNOPHIONA.shp dir=C:\data\iucn\GYMNOPHIONA
   
   # import spatial data for a user defined species 
-  v.in.redlist input=C:\dl\iucn\GYMNOPHIONA\GYMNOPHIONA.shp /
+  v.in.redlist input=GYMNOPHIONA.shp /
   output=Scolecomorphus_vittatus species_name=Scolecomorphus vittatus 
  </pre>
 </div>
