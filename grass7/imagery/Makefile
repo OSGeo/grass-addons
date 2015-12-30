@@ -3,6 +3,7 @@ MODULE_TOPDIR = ..
 # i.fusion.brovey deprecated
 
 SUBDIRS = \
+	i.alti \
 	i.destripe \
 	i.eb.hsebal95 \
 	i.eb.z0m \
