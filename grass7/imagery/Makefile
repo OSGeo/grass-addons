@@ -27,7 +27,8 @@ SUBDIRS = \
 	i.spec.unmix \
 	i.theilsen \
 	i.vi.mpi \
-	i.wavelet
+	i.wavelet \
+	i.water
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
