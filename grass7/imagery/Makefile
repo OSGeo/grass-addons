@@ -5,8 +5,10 @@ MODULE_TOPDIR = ..
 SUBDIRS = \
 	i.alti \
 	i.destripe \
+	i.eb.deltat \
 	i.eb.hsebal95 \
 	i.eb.z0m \
+	i.eb.z0m0 \
 	i.edge \
 	i.evapo.potrad \
 	i.evapo.senay \
