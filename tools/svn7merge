@@ -8,9 +8,18 @@
 # into. mind that you might want to run 'svn propdel svn:mergeinfo .'
 # before doing an untargeted 'svn commit'.
 
+echo ""
+echo "-->> NOTE: The preferred merge script is ./svn-merge.sh <<--"
+echo ""
+
 if [ $# -eq 1 ] ; then
   svn merge -c $1 https://svn.osgeo.org/grass/grass/trunk
 else
   echo "Merge: pull from trunk"
   echo "usage: cd grass70; svn7merge rev_number"
+  exit 1
 fi
+
+svn propdel svn:mergeinfo .
+
+exit 0
