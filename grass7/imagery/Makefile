@@ -28,7 +28,8 @@ SUBDIRS = \
 	i.theilsen \
 	i.vi.mpi \
 	i.wavelet \
-	i.water
+	i.water \
+	i.wi
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
