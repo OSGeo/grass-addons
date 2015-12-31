@@ -1,10 +1,13 @@
 @echo off
 
-rem Download GRASS from SVN
-rem
-rem Eg.
-rem svn checkout http://svn.osgeo.org/grass/grass/tags/release_20140625_grass_6_4_4 grass644
-rem
+REM Download GRASS from SVN
+REM
+REM eg. svn checkout http://svn.osgeo.org/grass/grass/tags/release_20140625_grass_6_4_4 grass644
+REM
+
+REM
+REM TODO: merge with grass_packager.bat
+REM
 
 cd C:\Users\landa\grass_packager
 
@@ -13,22 +16,75 @@ set MINOR=0
 set PATCH=3RC1
 set REV=1
 
-rem Compile GRASS versions
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%
-rem native & osgeo4w
-C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh %MAJOR%%MINOR%%PATCH% %MAJOR%%MINOR%%PATCH%
+set GVERSION=%MAJOR%%MINOR%%PATCH%
 
-rem Preparation
-if exist .\grass%MAJOR%%MINOR%%PATCH% rmdir /S/Q .\grass%MAJOR%%MINOR%%PATCH%
-xcopy C:\OSGeo4W\usr\src\grass%MAJOR%%MINOR%%PATCH%\mswindows\* .\grass%MAJOR%%MINOR%%PATCH% /S/V/F/I
+REM
+echo Clean-up...
+REM
+call :cleanUp 32
+call :cleanUp 64
 
-cd .\grass%MAJOR%%MINOR%%PATCH%
-call .\GRASS-Packager.bat
-cd ..
+REM
+echo Compiling GRASS GIS...
+REM
+C:\msys32\usr\bin\bash.exe .\grass_compile.sh 32 %GVERSION%
+C:\msys64\usr\bin\bash.exe .\grass_compile.sh 64 %GVERSION%
 
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh %MAJOR%%MINOR%%PATCH% %MAJOR%.%MINOR%.%PATCH% %REV%
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh %MAJOR%%MINOR%%PATCH% %REV%
+REM
+echo Clean-up for packaging...
+REM
+call:cleanUpPkg x86    32
+call:cleanUpPkg x86_64 64
 
-C:\DevTools\makensis.exe .\grass%MAJOR%%MINOR%%PATCH%\GRASS-Installer.nsi
+REM
+echo Preparing packages...
+REM
+call:preparePkg x86    32
+call:preparePkg x86_64 64
 
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh %MAJOR%%MINOR%%PATCH%
+REM
+echo Finding latest package and update info...
+REM
+C:\msys32\usr\bin\bash.exe .\grass_osgeo4w.sh  32 %GVERSION% %MAJOR%.%MINOR%.%PATCH% %REV%
+C:\msys64\usr\bin\bash.exe .\grass_osgeo4w.sh  64 %GVERSION% %MAJOR%.%MINOR%.%PATCH% %REV%
+C:\msys32\usr\bin\bash.exe .\grass_svn_info.sh 32 %GVERSION% %REV%
+C:\msys64\usr\bin\bash.exe .\grass_svn_info.sh 64 %GVERSION% %REV%
+
+REM
+echo Creating standalone installer...
+REM
+call:createPkg x86
+call:createPkg x86_64
+
+REM
+REM Create md5sum files
+REM
+C:\msys32\usr\bin\bash.exe .\grass_md5sum.sh 32 %GVERSION%
+C:\msys64\usr\bin\bash.exe .\grass_md5sum.sh 64 %GVERSION%
+
+exit /b %ERRORLEVEL%
+
+:cleanUp
+	echo ...(%~1)
+        rmdir /S/Q "C:\OSGeo4W%~1\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%"
+exit /b 0
+
+:cleanUpPkg
+	echo ...(%~1)
+	if not exist "%~1" mkdir %~1
+	if exist .\%~1\grass %GVERSION%rmdir /S/Q .\%~1\grass%GVERSION%
+	xcopy C:\msys%~2\usr\src\grass%GVERSION%\mswindows\* .\%~1\grass%GVERSION% /S/V/I > NUL
+exit /b 0
+
+:preparePkg
+	echo ...(%~1)
+	cd .\%~1\grass%GVERSION%
+	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
+	cd ..\..
+exit /b 0
+
+:createPkg
+	echo ...(%~1)
+	C:\DevTools\makensis.exe .\%~1\grass%GVERSION%\GRASS-Installer.nsi > .\%~1\grass%GVERSION%\GRASS-Installer.log
+exit /b 0
+
