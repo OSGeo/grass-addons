@@ -9,7 +9,7 @@
 # original author: Martin Landa
 
 DST=/var/www/grass
-DIST=dist.x86_64-unknown-linux-gnu
+DIST=dist.x86_64-pc-linux-gnu
 SRC=${HOME}/src/
 
 run=`ps aux | grep "${HOME}/cronjobs/grass-addons.sh c" | wc -l`

@@ -4,7 +4,7 @@
 
 if [ -z "$3" ]; then
     echo "usage: $0 svn_path topdir addons_path [separate]"
-    echo "eg. $0 ~/src/grass-addons/grass7/ ~/src/grass_trunk/dist.x86_64-unknown-linux-gnu ~/.grass7/addons"
+    echo "eg. $0 ~/src/grass-addons/grass7/ ~/src/grass_trunk/dist.x86_64-pc-linux-gnu ~/.grass7/addons"
     exit 1
 fi
 

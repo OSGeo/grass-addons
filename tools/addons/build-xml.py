@@ -8,7 +8,7 @@ import glob
 from   datetime import datetime
 
 ADDON_PATH = os.path.join(os.getenv('HOME'), 'src', 'grass-addons')
-DIST = 'dist.x86_64-unknown-linux-gnu'
+DIST = 'dist.x86_64-pc-linux-gnu'
 
 def get_list(addons):
     mlist = [d for d in os.listdir(os.path.join(addons)) if os.path.isdir(os.path.join(addons, d))]
