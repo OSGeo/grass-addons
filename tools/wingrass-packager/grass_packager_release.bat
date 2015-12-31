@@ -66,13 +66,13 @@ exit /b %ERRORLEVEL%
 
 :cleanUp
 	echo ...(%~1)
-        rmdir /S/Q "C:\OSGeo4W%~1\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%"
+        if exist "C:\OSGeo4W%~1\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%" rmdir /S/Q "C:\OSGeo4W%~1\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%"
 exit /b 0
 
 :cleanUpPkg
 	echo ...(%~1)
 	if not exist "%~1" mkdir %~1
-	if exist .\%~1\grass %GVERSION%rmdir /S/Q .\%~1\grass%GVERSION%
+	if exist .\%~1\grass%GVERSION% rmdir /S/Q .\%~1\grass%GVERSION%
 	xcopy C:\msys%~2\usr\src\grass%GVERSION%\mswindows\* .\%~1\grass%GVERSION% /S/V/I > NUL
 exit /b 0
 
