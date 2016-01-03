@@ -97,12 +97,14 @@ SUBDIRS = \
 	r.sun.hourly \
 	r.surf.idw2 \
 	r.surf.nnbathy \
+	r.terrain.texture \
 	r.threshold \
 	r.to.vect.lines \
 	r.to.vect.tiled \
 	r.traveltime \
 	r.univar2 \
 	r.valley.bottom \
+	r.vector.ruggedness \
 	r.vif \
 	r.vol.dem \
 	r.width.funct

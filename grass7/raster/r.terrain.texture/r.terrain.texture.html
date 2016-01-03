@@ -1,23 +1,50 @@
 <h2>DESCRIPTION</h2>
 
-<i>r.terrain.texture </i>calculates the Terrain Surface Texture of Iwahashi and Pike (2007). The calculation measures the frequency of peaks and pits in a DEM over a user specified window size. In practice, this measure represents terrain 'texture' or 'grain'.
+<i>r.terrain.texture </i>calculates the Terrain Surface Texture of
+Iwahashi and Pike (2007). The calculation measures the frequency of peaks and
+pits in a DEM over a user specified window size. In practice, this measure
+represents terrain 'texture' or 'grain'.
 
-The calculation attempts to follow the description in Iwahashi and Pike (2007). Pits and peaks are firstly identified in the DEM by passing the DEM through a median filter with a 3x3 neighbourhood, and the pits and peaks are identified based on the difference between this smoothed DEM and the original terrain surface. By default, the algorithm uses a threshold of zero (i.e., any difference is identified as a pit or peak), however a user specified 'flatness' threshold can also be specified.
+<p>
+The calculation attempts to follow the description in Iwahashi and Pike
+(2007). Pits and peaks are firstly identified in the DEM by passing the
+DEM through a median filter with a 3x3 neighbourhood, and the pits and
+peaks are identified based on the difference between this smoothed DEM
+and the original terrain surface. By default, the algorithm uses a
+threshold of zero (i.e., any difference is identified as a pit or
+peak), however a user specified 'flatness' threshold can also be
+specified.
 
-The final terrain surface texture calculation involves <i>r.neighbors</i> to count the number of pits and peaks occurring within a user specified window size (default is 21 x 21, as per Iwahashi and Pike (2007)), and then this is converted into a percentage.
+The final terrain surface texture calculation involves <i>r.neighbors</i> to
+count the number of pits and peaks occurring within a user specified window
+size (default is 21 x 21, as per Iwahashi and Pike (2007)), and then this
+is converted into a percentage.
 
 <h2>NOTES</h2>
-<i>r.terrain.texture</i> performs best when using larger window sizes, either 21 x 21 or 11 x 11 represent reasonable parameters. 
+<i>r.terrain.texture</i> performs best when using larger window sizes, either
+21 x 21 or 11 x 11 represent reasonable parameters. 
 
 <h2>TODO</h2>
-The same approach was also used by Iwahashi and Pike (2007) to calculate terrain surface convexity, but using convexities and concavities rather than pits and peaks. The ability to calculate this will be implemented in the future. Also, these two morphometric variables can serve as a basis to classify the landscape into generic geomorphic categories.
+The same approach was also used by Iwahashi and Pike (2007) to calculate
+terrain surface convexity, but using convexities and concavities rather
+than pits and peaks. The ability to calculate this will be implemented in
+the future. Also, these two morphometric variables can serve as a basis
+to classify the landscape into generic geomorphic categories.
 
 <h2>EXAMPLE</h2>
+
+<div class="code"><pre>
 r.terrain.texture.py elevation=DEM thres=0 pitdensity=Texture
+</pre></div>
 
 <h2>REFERENCES</h2>
-Iwahashi, J., and Pike, R.J. 2007. Automated classifications of topography from DEMs by an unsupervised nested-means algorithm and a three-part geometric signature. Geomorphology 86, 409-440.
+
+Iwahashi, J., and Pike, R.J. 2007. Automated classifications of topography
+from DEMs by an unsupervised nested-means algorithm and a three-part geometric
+signature. Geomorphology 86, 409-440.
 
 <h2>AUTHOR</h2>
+
 Steven Pawley
-<br><i>Last changed: Saturday 12 December 2015</i>
+
+<p><i>Last changed: $Date: 2015-10-31 17:33:38 +0100 (Sat, 31 Oct 2015) $</i>

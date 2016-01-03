@@ -37,6 +37,7 @@ SUBDIRS = \
 	v.mapcalc \
 	v.maxent.swd \
 	v.median \
+	v.mrmr \
 	v.neighborhoodmatrix \
 	v.net.salesman.opt \
 	v.out.gps \
