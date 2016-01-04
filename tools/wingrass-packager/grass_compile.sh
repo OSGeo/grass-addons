@@ -17,7 +17,7 @@ PLATFORM=$1
 export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
 
 function rm_package_7 {
-    for f in `/c/osgeo4w$1/apps/msys/bin/find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
+    for f in `find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
         rm -rfv $f
     done
 }
@@ -29,7 +29,7 @@ function compile {
     cd /c/msys${PLATFORM}/$SRC_DIR/$GRASS_DIR
     svn up || (svn cleanup && svn up)
     
-    rm_package_7 $PLATFORM
+    rm_package_7
     curr=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
 	num=$(($curr+1))

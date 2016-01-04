@@ -23,15 +23,6 @@ else
     PLATFORM_DIR=x86_64
 fi
 
-function rm_7 {
-    POSTFIX=$1
-
-    dir=${HOME}/${PLATFORM_DIR}/grass${POSTFIX}/osgeo4w/package
-    for f in `find $SRC/${p}/grass$1/osgeo4w/grass*.tar.bz2 -mtime +7`; do
-        rm -rfv $f
-    done
-}
-
 function rsync_package {
     POSTFIX=$1
     VERSION=$2
@@ -52,8 +43,6 @@ function rsync_package {
 	# release
 	cp $dir/grass*-$package*.tar.bz2 ${HOME}/${PLATFORM_DIR}/grass${POSTFIX}/grass-${VERSION}-${PATCH}.tar.bz2
     fi
-
-    rm_7 $POSTFIX
 }
 
 if test -z $2 ; then
