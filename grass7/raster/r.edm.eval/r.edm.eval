@@ -209,7 +209,7 @@ writeScript(){
 cat > $1 << "EOF"
 
 options(echo = TRUE)
-library(spgrass6)
+library(rgrass7)
 library(reshape)
 library(caTools)
 
@@ -226,8 +226,7 @@ rand.name <- function(base="tmp", l=6){
 }
 
 copy_rast.GRASS <- function(rast, remove.orig=FALSE){
-    require(spgrass6)
-    mpst <- gmeta6()$MAPSET
+    mpst <- gmeta()$MAPSET
     fft <- execGRASS("g.findfile", flags="quiet", element="cell", file=rast, mapset=mpst, Sys_ignore.stdout=TRUE)
     if(fft==0){
         rname <- rand.name()
@@ -238,9 +237,6 @@ copy_rast.GRASS <- function(rast, remove.orig=FALSE){
         print("the selected file does not exist")
     }
 }
-
-# Check grass version
-grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
 
 ## Get vector with variables
 obsmap <- Sys.getenv("GIS_OPT_OBS")
@@ -472,7 +468,7 @@ g.message message='Working on it...'
 g.message message='-----'
 g.message message=''
 
-##using R to create MESS layers
+#using R to create MESS layers
 R CMD BATCH --slave "$RGRASSSCRIPT" ${GIS_OPT_FSTATS}_log.txt;
 
 if  [ "$GIS_FLAG_L" -eq 0 ] ; then
