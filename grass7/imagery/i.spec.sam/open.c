@@ -13,7 +13,7 @@
 
 int G_matrix_read2(FILE * fp, mat_struct * out); /* Modified version of G_matrix_read(..). */
 
-mat_struct *open_files(char *matrixfile, char *img_grp, int type)
+mat_struct *open_files(char *matrixfile, char *img_grp)
 {
     char *name, *mapset;
     FILE *fp;
@@ -35,22 +35,23 @@ mat_struct *open_files(char *matrixfile, char *img_grp, int type)
     A = G_matrix_init(A_input.cols, A_input.rows, A_input.cols);/*changed r/c*/
     if (A == NULL)
         G_fatal_error(_("Unable to allocate memory for matrix"));
-    if(type==1)
-        A = G_matrix_transpose(&A_input);/*transposed for spec angle process*/
-    if(type==0){
-        A = G_matrix_copy(&A_input);/*for matrix orthogonality check*/
-        return A;
-    }
+    A = G_matrix_transpose(&A_input);/*transposed for spec angle process*/
+    /*if(type==1){
+        A = G_matrix_copy(&A_input);*//*for matrix orthogonality check*/
+       /*return A;*/
+    /*}*/
 /*    if(A->rows < A->cols)
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");*/
-    /*Only for debug, so temporary disabled*/
-    /*
-    G_verbose_message("Your spectral matrix = ");
-    if (G_verbose() > G_verbose_std())
+    G_message("Your spectral matrix");
+    int j;
+    for (i=0; i<A->rows; i++)
     {
-	m_output(A);
+        for (j=0; j<A->cols; j++)
+        {
+            G_message("%f ", A->vals[i*A->rows+j]);
+        }
+        G_message("\n");
     }
-    */
     matrixsize=A->rows;
 
     G_message("/* open input files from group */");

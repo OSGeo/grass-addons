@@ -57,7 +57,7 @@ int  error_fd;
 char result_name[80];
 char *result_prefix;
 
-mat_struct  *open_files(char * matrixfile, char *img_grp, int type);
+mat_struct  *open_files(char * matrixfile, char *img_grp);
 float spectral_angle(vec_struct * Avector1, vec_struct * Avector2, int vtype);
 DCELL myround(double x);
 
@@ -108,26 +108,34 @@ int main(int argc,char * argv[])
     G_message("%s",result_prefix);
 
     /*Creating A, the spectral signature matrix here*/
-    A = open_files(parm.matrixfile->answer, parm.group->answer, 1);
-   /* Spectral Matrix is stored in A now */
-
+    A = open_files(parm.matrixfile->answer, parm.group->answer);
+    /* Spectral Matrix is stored in A now */
+    G_message("Your incoming spectral signature matrix");
+    for (i=0; i<A->rows; i++)
+    {
+        for (j=0; j<A->cols; j++)
+        {
+            G_message("%f ", A->vals[i*A->rows+j]);
+        }
+        G_message("\n");
+    }
   /* Check matrix orthogonality 
    * Ref: Youngsinn Sohn, Roger M. McCoy 1997: Mapping desert shrub rangeland
    *          using spectral unmixing and modeling spectral mixtrues with 
    *          TM data. Photogrammetric Engineering & Remote Sensing, Vol.63, No6.
    */
-    AT = open_files(parm.matrixfile->answer, parm.group->answer, 0);
+    AT = open_files(parm.matrixfile->answer, parm.group->answer);
     G_message("/* Check matrix orthogonality*/"); 
     for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
     {
      Avector = G_matvect_get_column(AT, i);  /* go columnwise through matrix*/
-     G_message("Avector rows:%d cols:%d",Avector->rows,Avector->cols);
+     G_message("Avector rows:%d cols:%d, vals %f %f %f %f",Avector->rows,Avector->cols, Avector->vals[0], Avector->vals[1],Avector->vals[2],Avector->vals[3]);
      for (j = 0; j < Ref.nfiles ; j++)
 	{
 	 if (j !=i)
 	    {
 	     b = G_matvect_get_column(AT, j);      /* compare with next col in A */
-             G_message("b rows:%d cols:%d",b->rows,b->cols);
+             G_message("b rows:%d cols:%d, vals %f %f %f %f",b->rows,b->cols,b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
              G_message("process spectangle %d %d %d",i,j, Ref.nfiles);
 	     spectangle = spectral_angle(Avector, b, RVEC);
              G_message("processed spectangle");
@@ -203,9 +211,10 @@ int main(int argc,char * argv[])
 	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
 	{
 	    /* get pixel values of each band and store in b vector: */
-	     /*b = v_get(A->m);*/                   /* m=rows; dimension of vector = matrix size = Ref.nfiles*/
+            /* Yann: b is a spectral signature extracted for a given pixel */
+	    /*b = v_get(A->m); //m=rows; dim of vector=matrix size=Ref.nfiles*/
             b = G_vector_init(A->cols,A->cols,CVEC);
-	    for (band = 0; band < Ref.nfiles-1; band++)
+	    for (band = 0; band < Ref.nfiles; band++)
                  b->vals[band] = cell[band][col];  /* read input vector */
 	   
             /* calculate spectral angle for current pixel
@@ -215,6 +224,7 @@ int main(int argc,char * argv[])
              {
               Avector = G_matvect_get_column(A, i);  /* go row-wise through matrix*/
               G_verbose_message("Av: %f %f %f %f",Avector->vals[0],Avector->vals[1],Avector->vals[2],Avector->vals[3]);
+              G_verbose_message("b: %f %f %f %f",b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
 	      spectangle = spectral_angle(Avector, b, CVEC);
 	      result_cell[i][col] = myround (spectangle);
 	      G_vector_free(Avector);
@@ -224,7 +234,6 @@ int main(int argc,char * argv[])
 	 } /* columns loop */
 
 	/* write the resulting rows: */
-        for (i = 0; i < Ref.nfiles; i++)
         for (i = 0; i < Ref.nfiles; i++)
           Rast_put_d_row (resultfd[i], result_cell[i]);
 

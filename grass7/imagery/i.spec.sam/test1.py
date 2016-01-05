@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+#This creates 4 spectral maps
+#Each map has 4 horizontal sections
+#Each horizontal section is a test spectral class  
+
 # -*- coding: utf-8 -*-
 from __future__ import (nested_scopes, generators, division, absolute_import,
                         with_statement, print_function, unicode_literals)

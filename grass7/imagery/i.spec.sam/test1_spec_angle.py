@@ -37,7 +37,7 @@ def l2(v):
 	return np.sqrt((np.multiply(v,v)).sum(axis=0))
 
 
-#Define Spectral Angle of a vector pair
+#Define Spectral Angle (degrees) of a vector pair
 def specangle(v1,v2):
 	return np.arccos(prod(v1,v2)/(l2(v1)*l2(v2)))*180/np.pi
 
@@ -46,21 +46,25 @@ def specangle(v1,v2):
 print("cls1")
 print(cls1)
 print(cls1_wannabe)
+print(prod(cls1,cls1_wannabe))
 print (specangle(cls1,cls1_wannabe))
 
 print("cls2")
 print(cls2)
 print(cls2_wannabe)
+print(prod(cls2,cls2_wannabe))
 print (specangle(cls2,cls2_wannabe))
 
 print("cls3")
 print(cls3)
 print(cls3_wannabe)
+print(prod(cls3,cls3_wannabe))
 print (specangle(cls3,cls3_wannabe))
 
 print("cls4")
 print(cls4)
 print(cls4_wannabe)
+print(prod(cls4,cls4_wannabe))
 print (specangle(cls4,cls4_wannabe))
 
 
