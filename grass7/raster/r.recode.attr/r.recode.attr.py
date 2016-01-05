@@ -8,7 +8,7 @@
 # PURPOSE:      Recode raster to one or more new layers using an
 #               attribute table (csv file) as input
 #
-# COPYRIGHT: (C) 2014 Paulo van Breugel
+# COPYRIGHT: (C) 2015 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
 #
@@ -19,7 +19,7 @@
 ########################################################################
 #
 #%Module
-#% description: Recode raster using attribute table (csv file) as input
+#% description: Recode raster using attribute table (csv file) as input.
 #% keyword: raster
 #% keyword: recode
 #%End
@@ -48,6 +48,11 @@
 #% key: rules
 #% label: Full path to rules file
 #% required: yes
+#%end
+
+#%flag:
+#% key: a
+#% description: Align the current region to the input raster map
 #%end
 
 # import libraries
@@ -91,6 +96,7 @@ def main():
     rules = options['rules']
     outNames = outBase.split(',')
     lengthNames = len(outNames)
+    flag_a = flags['a']
 
     # Get attribute data
     myData = np.genfromtxt(rules, delimiter=',', skip_header=1)
@@ -111,11 +117,17 @@ def main():
         else:
             nmOutput = outNames[0] + '_' + nmsData[y]
 
-        grass.run_command('r.recode',
-                input = inputmap,
-                output = nmOutput,
-                rules = tmpname)
-
+        if flag_a:
+            grass.run_command('r.recode',
+                    input = inputmap,
+                    output = nmOutput,
+                    rules = tmpname,
+                    flags = "a")
+        else:
+            grass.run_command('r.recode',
+                    input = inputmap,
+                    output = nmOutput,
+                    rules = tmpname)
         os.remove(tmpname)
 
 
