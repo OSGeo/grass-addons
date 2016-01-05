@@ -3,14 +3,14 @@
 #
 ########################################################################
 #
-# MODULE:       r.category.clean
+# MODULE:       r.category.trim
 # AUTHOR(S):    Paulo van Breugel
-# DESCRIPTION:  Trim a cut out raster layer by removing non-existing categories
-#               and their color defintions. Optionally, a new map can be
-#               created to ensure consecutive categories values, but retaining
-#               the category labels and colors. The user als has the option to
-#               export the categories, category labels and color codes (RGB) as
-#               csv file or as a QGIS color map file.
+# DESCRIPTION:  Export the categories, category labels and colour codes (RGB)
+#               as csv file or as a QGIS colour map file. It will first remove
+#               non-existing categories and their colour definitions.
+#               Optionally, map values can be reclassed into consecutive
+#               categories values, whereby the category labels and colors are
+#               retained.
 #
 # COPYRIGHT: (C) 2015 Paulo van Breugel
 #            http://ecodiv.org
@@ -23,7 +23,7 @@
 ########################################################################
 #
 #%Module
-#% description: Trim redundant category labels and colors and export as QGIS colour file.
+#% description: Export categories and corresponding colors as QGIS colour file or csv file. Non-existing categories and their colour definitions will be removed.
 #% keyword: raster
 #% keyword: color
 #% keyword: color table
