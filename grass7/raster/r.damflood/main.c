@@ -216,11 +216,7 @@ int main(int argc, char *argv[]){
   int pippo;
   int temp_i;
   double temp_d, v_tot;
-  
-  
-  
-  
-  char* strcat(char* s, const char* ct);
+
   int m=1, M=1;
   int i, i_cont;
   double vel_0=0.0, vel_max=0.0, t;
