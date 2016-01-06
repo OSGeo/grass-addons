@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../..
 
 include $(MODULE_TOPDIR)/include/Make/Vars.make
 
-PGM = v.mapcalc
+PGM = v.feature.algebra
 
 LIBES = $(VECTORLIB) $(GISLIB) $(DLLIB) $(MATHLIB)
 DEPENDENCIES = $(VECTORDEP) $(GISDEP)

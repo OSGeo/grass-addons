@@ -1,5 +1,12 @@
 The code was written by Christoph Simon <ciccio@kiosknet.com.br>.
 
+Jan 2016: Renamed from v.mapcalc to v.feature.algebra. Another simpler
+module, more aligned with basic r.mapcalc functionality, will use the
+name v.mapcalc. Old name left everywhere here in the source code
+because the code is not usable anyway with GRASS GIS 7 in the current
+state.
+
+
 DESCRIPTION
 
 From ciccio@kiosknet.com.br Wed Aug  7 16:03:56 2002

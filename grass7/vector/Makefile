@@ -1,7 +1,5 @@
 MODULE_TOPDIR = ..
 
-# v.mapcalc
-
 SUBDIRS = \
 	v.area.stats \
 	v.area.weigh \
@@ -34,7 +32,6 @@ SUBDIRS = \
 	v.lfp \
 	v.lidar.mcc \
 	v.link.precip \
-	v.mapcalc \
 	v.maxent.swd \
 	v.median \
 	v.mrmr \
