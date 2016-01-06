@@ -47,7 +47,7 @@ def start_grass(g7 = True):
  
 def parse_modules(fd, mlist):
     indent = 4
-    blacklist = ['v.mapcalc']
+    blacklist = ['v.feature.algebra']
     for m in mlist:
         if m in blacklist:
             continue # skip blacklisted modules
