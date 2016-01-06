@@ -24,8 +24,7 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
 #% required: yes
 #%end
 
-import ply.lex as lex
-import ply.yacc as yacc
+
 import sys
 import re
 import os
@@ -415,6 +414,14 @@ def main():
     p.cmdlist.get_cmd_list()
     p.cmdlist.exec_cmd_list()
 
+
 if __name__ == "__main__":
     options, flags = grass.parser()
+
+    try:
+        import ply.lex as lex
+        import ply.yacc as yacc
+    except ImportError as error:
+        grass.fatal("You need to install Python PLY: {}".format(error))
+
     sys.exit(main())
