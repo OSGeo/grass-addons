@@ -105,39 +105,37 @@ int main(int argc,char * argv[])
 
     result_prefix = parm.output->answer;
 
-    G_message("%s",result_prefix);
-
     /*Creating A, the spectral signature matrix here*/
     A = open_files(parm.matrixfile->answer, parm.group->answer);
     /* Spectral Matrix is stored in A now */
-    G_message("Your incoming spectral signature matrix");
+    G_verbose_message("Your incoming spectral signature matrix");
     for (i=0; i<A->cols; i++)
     {
         for (j=0; j<A->rows; j++)
         {
-            G_message("%f ", A->vals[i*A->rows+j]);
+            G_verbose_message("%f ", A->vals[i*A->rows+j]);
         }
-        G_message("\n");
+        G_verbose_message("\n");
     }
   /* Check matrix orthogonality 
    * Ref: Youngsinn Sohn, Roger M. McCoy 1997: Mapping desert shrub rangeland
    *          using spectral unmixing and modeling spectral mixtrues with 
    *          TM data. Photogrammetric Engineering & Remote Sensing, Vol.63, No6.
    */
-    G_message("/* Check matrix orthogonality*/"); 
+    G_verbose_message("/* Check matrix orthogonality*/"); 
     for (i = 0; i < A->cols; i++) /* Number of spectral signatures in matrix input file*/
     {
      Avector = G_matvect_get_column(A, i);  /* go columnwise through matrix*/
-     G_message("Avector rows:%d cols:%d, vals %f %f %f %f",Avector->rows,Avector->cols, Avector->vals[0], Avector->vals[1],Avector->vals[2],Avector->vals[3]);
+     G_verbose_message("Avector rows:%d cols:%d, vals %f %f %f %f",Avector->rows,Avector->cols, Avector->vals[0], Avector->vals[1],Avector->vals[2],Avector->vals[3]);
      for (j = 0; j < A->cols ; j++)/* Number of spectral signatures in matrix input file*/
      {
      if (j !=i)
       {
 	     b = G_matvect_get_column(A, j);      /* compare with next col in A */
-             G_message("b rows:%d cols:%d, vals %f %f %f %f",b->rows,b->cols,b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
-             G_message("process spectangle %d %d %d",i,j, Ref.nfiles);
+             G_verbose_message("b rows:%d cols:%d, vals %f %f %f %f",b->rows,b->cols,b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
+             G_verbose_message("process spectangle %d %d %d",i,j, Ref.nfiles);
 	     spectangle = spectral_angle(Avector, b, RVEC);
-             G_message("processed spectangle");
+             G_verbose_message("processed spectangle");
 	     anglefield[i][j]= spectangle;
 	     G_vector_free(b);
       }

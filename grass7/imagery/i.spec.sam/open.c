@@ -30,33 +30,30 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	G_fatal_error(_("Unable to read matrix file %s."), matrixfile);
     fclose(fp);
 
-    G_message("matrixfile read");
-
     A = G_matrix_init(A_input.cols, A_input.rows, A_input.cols);/*changed r/c*/
     if (A == NULL)
         G_fatal_error(_("Unable to allocate memory for matrix"));
     A = G_matrix_transpose(&A_input);/*transposed for spec angle process*/
     
-    /*A = G_matrix_copy(&A_input);*//*for matrix orthogonality check*/
-   
     /*if(A->rows < A->cols)
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");*/
-    G_message("Your spectral matrix has %i rows and %i cols",A->rows,A->cols);
+    /*Display a message confirming what came from the matrix text file, not as stored!*/
+    G_message("Your input spectral matrix has %i spectral signatures",A->cols);
     int j;
     /*For each spectral signature*/
     for (i=0; i<A->cols; i++)
     {
-        G_message("Col #%i",i);
+        G_verbose_message("Col #%i",i);
         /*Display each value*/
         for (j=0; j<A->rows; j++)
         {
-            G_message("Col #%i Row #%i %f",i,j,A->vals[i*A->cols+j]);
+            G_verbose_message("Col #%i Row #%i %f",i,j,A->vals[i*A->cols+j]);
         }
-        G_message("\n");
+        G_verbose_message("\n");
     }
     matrixsize=A->rows;
 
-    G_message("/* open input files from group */");
+    G_verbose_message("/* open input files from group */");
     /* open input files from group */
     if (!I_find_group(img_grp))
     {
@@ -79,7 +76,7 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
  	G_fatal_error("       does not match matrix size (%i cols).\n", A->cols);
     }
 
-    G_message("/* get memory for input files */");
+    G_verbose_message("/* get memory for input files */");
     /* get memory for input files */
     cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
@@ -93,7 +90,7 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	    G_fatal_error("Unable to proceed\n");
     }
 
-    G_message("/* open files for results*/");
+    G_verbose_message("/* open files for results*/");
     /* open files for results*/
     result_cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
@@ -105,7 +102,7 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	resultfd[i] = Rast_open_new (result_name, DCELL_TYPE);
     }
 
-    G_message("open.c: Returning A");
+    G_verbose_message("open.c: Returning A");
  return A; /* give back number of output files (= Ref.nfiles) */
 }
 
@@ -130,9 +127,9 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
 	return -1;
     }
 
-    G_message("Set Matrix rows:%d by cols:%d",rows,cols);
+    G_verbose_message("Set Matrix rows:%d by cols:%d",rows,cols);
     err = G_matrix_set(out, rows, cols, rows);
-    G_message("Set Matrix rows:%d by cols:%d is done (err:%d)",rows,cols,err);
+    G_verbose_message("Set Matrix rows:%d by cols:%d is done (err:%d)",rows,cols,err);
 
 
     for (i = 0; i < rows; i++) {
