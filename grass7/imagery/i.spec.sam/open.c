@@ -36,26 +36,28 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
     if (A == NULL)
         G_fatal_error(_("Unable to allocate memory for matrix"));
     A = G_matrix_transpose(&A_input);/*transposed for spec angle process*/
-    /*if(type==1){
-        A = G_matrix_copy(&A_input);*//*for matrix orthogonality check*/
-       /*return A;*/
-    /*}*/
-/*    if(A->rows < A->cols)
+    
+    /*A = G_matrix_copy(&A_input);*//*for matrix orthogonality check*/
+   
+    /*if(A->rows < A->cols)
 	G_fatal_error("Need m (rows) >= n (cols) to obtain least squares fit\n");*/
-    G_message("Your spectral matrix");
+    G_message("Your spectral matrix has %i rows and %i cols",A->rows,A->cols);
     int j;
-    for (i=0; i<A->rows; i++)
+    /*For each spectral signature*/
+    for (i=0; i<A->cols; i++)
     {
-        for (j=0; j<A->cols; j++)
+        G_message("Col #%i",i);
+        /*Display each value*/
+        for (j=0; j<A->rows; j++)
         {
-            G_message("%f ", A->vals[i*A->rows+j]);
+            G_message("Col #%i Row #%i %f",i,j,A->vals[i*A->cols+j]);
         }
         G_message("\n");
     }
     matrixsize=A->rows;
 
     G_message("/* open input files from group */");
-/* open input files from group */
+    /* open input files from group */
     if (!I_find_group(img_grp))
     {
 	G_fatal_error("group=%s - not found\n", img_grp);
@@ -70,15 +72,15 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	    G_message("only has 1 file\n");
 	G_fatal_error("The group must have at least 2 files\n");
     }
-   /* Error check: input file number must be equal to matrix size */
+    /* Error check: input file number must be equal to matrix size */
     if (Ref.nfiles != matrixsize) 
     {
 	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, img_grp);
  	G_fatal_error("       does not match matrix size (%i cols).\n", A->cols);
     }
 
-   G_message("/* get memory for input files */");
-   /* get memory for input files */
+    G_message("/* get memory for input files */");
+    /* get memory for input files */
     cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
     for (i=0; i < Ref.nfiles; i++)
@@ -92,7 +94,7 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
     }
 
     G_message("/* open files for results*/");
-  /* open files for results*/
+    /* open files for results*/
     result_cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
     for (i=0; i < Ref.nfiles; i++)
