@@ -71,17 +71,17 @@ Different order of operations can lead to a different result.
 This example needed specific region setting. It should work in UTM and LL test locations. <br>
 First set the regions extent and create two vector maps with one random points, respectively:
 <div class="code"><pre>
-g.region s=0 n=80 w=0 e=120 b=0 t=50 res=10 res3=10 -p3
+g.region s=0 n=30 w=0 e=50 b=0 t=50 res=10 res3=10 -p3
 
-v.random --o -z output=point_1 n=1 seed=1 
+v.random --o -z output=point_1 n=1 seed=1
+v.random --o -z output=point_2 n=1 seed=2
 v.info point_1
-v.random --o -z output=point_2 n=1 seed=2 
 v.info point_2
 </pre></div>
 
 Then the vector algebra is used to create buffers around those points, cut out a subset and apply different boolean operation on the subsets in one statement:
 <div class="code"><pre>
-v.mapcalc --o expr="buff_and = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) & \
+v.mapcalc --o expr="buff_and = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) &amp; \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
 v.mapcalc --o expr="buff_or  = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) | \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
