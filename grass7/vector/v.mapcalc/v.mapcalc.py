@@ -13,13 +13,13 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
 """
 
 #%module
-#% description: Vector algebra
-#% keywords: vector, mapcalc, algebra
+#% description: Vector map calculator.
+#% keywords: vector, algebra
 #%end
 #%option
 #% key: expression
 #% type: string
-#% description: The vector mapcalc expression
+#% description: Expression to evaluate
 #% key_desc: expression
 #% required: yes
 #%end
