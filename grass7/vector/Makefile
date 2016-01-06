@@ -32,6 +32,7 @@ SUBDIRS = \
 	v.lfp \
 	v.lidar.mcc \
 	v.link.precip \
+	v.mapcalc \
 	v.maxent.swd \
 	v.median \
 	v.mrmr \
