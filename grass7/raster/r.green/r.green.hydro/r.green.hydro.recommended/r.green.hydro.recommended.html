@@ -69,18 +69,18 @@ name of the output vector with the viewed areas <br><br>
 
 -<b> p_min</b>=double [optional] <br>
 minimum mean power of the plant <br><br></blockquote>
-f
-The power is defined as :<br>
+
+The power (kW) is defined as:<br>
 
 <center>P=&eta; * &rho; * g * Q * &Delta;h</center>
 
 <blockquote>where &eta; is the efficiency of the plant <br>
 &rho; the density of water (1000 kg/m<sup>3</sup>) <br>
 g the gravity term (9,81 m/s<sup>2</sup>) <br>
-Q the discharge of the river<br>
-&Delta;h the gross head of the considered segment</blockquote><br>
+Q the discharge of the river (m<sup>3</sup>/s) <br>
+&Delta;h the gross head of the considered segment (m) </blockquote><br>
 
-The module maximizes the power over a given range by a brute-force search in order to examine all possible arrangements of Q and &Delta;h. Thus, the potential segments can be shorter than the maximum length plant chosen because it depends on the maximization of the product  Q * &Delta;h. For each potential segment, the potential power is given in kW in attribute.<br><br>
+The module maximizes the power over a given range by a brute-force search in order to examine all possible arrangements of Q and &Delta;h. Thus, the potential segments can be shorter than the maximum plant length chosen because it depends on the maximization of the product  Q * &Delta;h. For each potential segment, the potential power is given in kW in attribute.<br><br>
 
 <h2>EXAMPLES</h2>
 
@@ -127,7 +127,7 @@ As you can see in the output map below, this code calculates the energy potentia
 
 <center>
 <img src="r_green_hydro_recommended_output_PNAM3.png" alt="output park"><br><br>
-output vector map : superimposition of the potential segments vector file (potentialplants, in blue) and the excluded national park (in green) and the buffer (in dark green)
+output vector map: superimposition of the potential segments vector file (potentialplants, in blue) and the excluded national park (in green) and the buffer (in dark green)
 </center><br><br>
 
 <b><br>EXAMPLE 2</b><br><br>
@@ -142,11 +142,11 @@ In superimposition, there are the vector map (in grey) of the national park we w
 input vector map availablestreams with the national park and points of interest
 </center><br><br>
 
-Points of interest are placed in the park so two different cases are presented here :<br>
+Points of interest are placed in the park so two different cases are presented here:<br>
 1) The national park and a buffer of 200 m around it are excluded<br>
 2) The visibility zones from points of interest is excluded<br><br>
 
-<blockquote>1) In the first case, the code used is :<br>
+<blockquote>1) In the first case, the code used is:<br>
 <div class="code"><pre>
 r.green.hydro.recommended              \
     discharge_current=currentdischarge \
@@ -173,10 +173,10 @@ This command calculates the energy potential for a range of plant length from 10
 
 <center>
 <img src="r_green_hydro_recommended_output_park.png" alt="output park"><br>
-output vector map : superimposition of the potential segments vector file (potentialplants, in blue), the excluded national park (in grey) and the buffer (in light red)
+output vector map: superimposition of the potential segments vector file (potentialplants, in blue), the excluded national park (in grey) and the buffer (in light red)
 </center><br><br>
 
-2) In the second case, the code used is :<br>
+2) In the second case, the code used is:<br>
 <div class="code"><pre>
 r.green.hydro.recommended                \
     discharge_current=currentdischarge   \
@@ -205,7 +205,7 @@ This command calculates the energy potential for a plant length range from 10 to
 
 <center>
 <img src="r_green_hydro_recommended_output_points.png" alt="output points"><br>
-output vector map : superimposition of the potential segments vector file (potentialplants, in blue), the points of interest (in green) and the visibility zones (in light green)
+output vector map: superimposition of the potential segments vector file (potentialplants, in blue), the points of interest (in green) and the visibility zones (in light green)
 </center></blockquote>
 
 <h2>SEE ALSO</h2>
@@ -221,5 +221,5 @@ output vector map : superimposition of the potential segments vector file (poten
 
 <h2>AUTHORS</h2>
 Giulia Garegnani (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.<br>
-Last changed: $Date : 2015-07-08 14:46 GMT+1$
+Last changed: $Date: 2015-07-08 14:46 GMT+1$
 
