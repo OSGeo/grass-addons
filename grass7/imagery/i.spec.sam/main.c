@@ -41,7 +41,8 @@
 struct GModule *module;
 
 vec_struct *b, *Avector;
-int matrixsize;
+int signaturecount;
+int spectralcount;
 
 struct Ref Ref;
 
@@ -65,7 +66,7 @@ int main(int argc,char * argv[])
 {
     int nrows, ncols;
     int row, col;
-    int band;
+    int band, signature;
     int i, j, error=0;
     /*Assumes max 255 spectral signatures in input matrix*/
     float anglefield[255][255];
@@ -75,7 +76,6 @@ int main(int argc,char * argv[])
     } parm;
 
     mat_struct *A; /*first use in open.c G_matrix_set()*/
-    mat_struct *AT; /*first use in open.c G_matrix_set()*/
     char *group;
     float spectangle; /*numerical value of the spectral angle*/
 
@@ -149,7 +149,7 @@ int main(int argc,char * argv[])
       for (j = 0; j < A->cols ; j++)
 	{
          if (j !=i)
-         	G_message("  Angle between row %i and row %i: %g\n", (i+1), (j+1), anglefield[i][j]);
+         	G_message("  Angle between signature@row %i and signature@row %i: %g\n", (i+1), (j+1), anglefield[i][j]);
         }
     G_message("\n");
     
@@ -157,14 +157,13 @@ int main(int argc,char * argv[])
    for (i = 0; i < A->cols ; i++)
      for (j = 0; j < A->cols ; j++)
        if (j !=i)
-         if (anglefield[i][j] < 10.0)
-         {
-	     G_message("ERROR: Spectral entries row %i|%i in your matrix are linear dependent!\n",i,j);
-	     error=1;
-	 }
-
-    if (!error)
-	G_message("Spectral matrix is o.k. Proceeding...\n");
+         if (anglefield[i][j] < 10.0){
+	     G_verbose_message("WARNING: Spectral entries row %i|%i in your matrix are linear dependent!\n",i,j);
+             error=1;
+    }
+    if(error==1) G_message("Similarity of input signatures detected, use verbose mode for details");
+    
+    G_message("Proceeding...\n");
    
     /* check singular values of Matrix A
      * Ref: Boardman, J.W. 1989: Inversion of imaging spectrometry data
@@ -184,69 +183,65 @@ int main(int argc,char * argv[])
     }
     G_verbose_message("Singular values of Matrix A: run svdval");
     if(G_math_svdval(svdvalues, Avals, A->cols, A->rows))
-        G_fatal_error("Error in singular value decomposition, exiting...\n");
-    G_verbose_message("/*display values (replace v_output() in original version)*/");
-    /*display values (replace v_output() in original version)*/
+        G_verbose_message("Error in singular value decomposition, exiting...\n");
+    G_verbose_message("Display svd values");
+    /*display svd values*/
     for(i=0;i<A->cols;i++)
-        G_message("%f", svdvalues[i]);
+        G_verbose_message("%f", svdvalues[i]);
 
     G_verbose_message("/* alright, start Spectral angle mapping */");
+    /*****************************************/
     /* alright, start Spectral angle mapping */
+    /*****************************************/
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
     
     G_verbose_message("Calculating for %i x %i = %i pixels:\n",nrows,ncols, (ncols * ncols));
     G_verbose_message("%s ... ", G_program_name());
-    G_message("%s ... ", G_program_name());
 
-    for (row = 0; row < nrows; row++)                 /* rows loop*/
+    for (row = 0; row < nrows; row++)
     {
 	G_percent(row, nrows, 2);
-	for (band = 0; band < Ref.nfiles; band++)     /* get row for all bands*/
+        /* get row for all bands*/
+	for (band = 0; band < Ref.nfiles; band++)
 	    Rast_get_d_row (cellfd[band], cell[band], row);
 
-	for (col = 0; col < ncols; col++)             /* cols loop, work pixelwise for all bands */
-	{
+        /* cols loop, work pixelwise for all bands */
+	for (col = 0; col < ncols; col++)	
+        {
 	    /* get pixel values of each band and store in b vector: */
-            /* Yann: b is a spectral signature extracted for a given pixel */
-	    /*b = v_get(A->m); //m=rows; dim of vector=matrix size=Ref.nfiles*/
-            b = G_vector_init(A->cols,A->cols,CVEC);
+            /* b is a spectral signature extracted for a given pixel */
+            b = G_vector_init(A->cols,A->cols,RVEC);
+            /*Roll through spectral bands*/
 	    for (band = 0; band < Ref.nfiles; band++)
-                 b->vals[band] = cell[band][col];  /* read input vector */
-	   
+             b->vals[band] = cell[band][col];  /* read input vector */
             /* calculate spectral angle for current pixel
              * between pixel spectrum and reference spectrum
              * and write result in full degree */
-             for (i = 0; i < Ref.nfiles; i++) /* Ref.nfiles = matrixsize*/
-             {
-              Avector = G_matvect_get_column(A, i);  /* go row-wise through matrix*/
-              G_verbose_message("Av: %f %f %f %f",Avector->vals[0],Avector->vals[1],Avector->vals[2],Avector->vals[3]);
-              G_verbose_message("b: %f %f %f %f",b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
-	      spectangle = spectral_angle(Avector, b, CVEC);
-	      result_cell[i][col] = myround (spectangle);
-	      G_vector_free(Avector);
-             }
-	     G_vector_free(b);
-	     
-	 } /* columns loop */
+            for (signature=0;signature<signaturecount;signature++)
+            {
+             G_verbose_message("row[%i] col[%i] signature[%i]", row,col,signature);
+             /* go row-wise through matrix*/
+             Avector = G_matvect_get_row(A, signature);
+             G_verbose_message("Av: %f %f %f %f",Avector->vals[0],Avector->vals[1],Avector->vals[2],Avector->vals[3]);
+             G_verbose_message("b: %f %f %f %f",b->vals[0],b->vals[1],b->vals[2],b->vals[3]);
+	     spectangle = spectral_angle(Avector, b, RVEC);
+	     result_cell[signature][col] = myround (spectangle);
+	     G_vector_free(Avector);
+            }
+	    G_vector_free(b);
+	} /* columns loop */
 
 	/* write the resulting rows: */
-        for (i = 0; i < Ref.nfiles; i++)
-          Rast_put_d_row (resultfd[i], result_cell[i]);
-
+        for (signature=0; signature<signaturecount; signature++)
+         Rast_put_d_row (resultfd[signature], result_cell[signature]);
     } /* rows loop */
     G_percent(row, nrows, 2);
-	
    /* close files */
-    for (i = 0; i < Ref.nfiles; i++)
+    for (signature=0;signature<signaturecount;signature++)
     {
-	  Rast_close (resultfd[i]);
-	  Rast_unopen(cellfd[i]);
-	  /* make grey scale color table */
-	  /*sprintf(result_name, "%s.%d", result_prefix, (i+1));	               
-          sprintf(command, "r.colors map=%s color=grey >/dev/null", result_name);
-          system(command);*/ /*Commented by Yann*/
-          /* write a color table */
+	  Rast_close (resultfd[signature]);
+	  Rast_unopen(cellfd[signature]);
     }
     G_matrix_free(A);
     make_history(result_name, parm.group->answer, parm.matrixfile->answer);

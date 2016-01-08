@@ -14,7 +14,9 @@
 #define MAXFILES 255
 
 extern vec_struct *b, *Avector;
-extern int matrixsize;
+extern int signature;
+extern int signaturecount;
+extern int spectralcount;
 extern float curr_angle;
 
 extern char *group;

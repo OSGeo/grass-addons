@@ -51,7 +51,8 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
         }
         G_verbose_message("\n");
     }
-    matrixsize=A->rows;
+    signaturecount=A->cols;
+    spectralcount=A->rows;
 
     G_verbose_message("/* open input files from group */");
     /* open input files from group */
@@ -69,11 +70,11 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 	    G_message("only has 1 file\n");
 	G_fatal_error("The group must have at least 2 files\n");
     }
-    /* Error check: input file number must be equal to matrix size */
-    if (Ref.nfiles != matrixsize) 
+    /* Error check: input file number must be equal to spectral count */
+    if (Ref.nfiles != spectralcount) 
     {
 	G_message("Error: Number of %i input files in group <%s>\n", Ref.nfiles, img_grp);
- 	G_fatal_error("       does not match matrix size (%i cols).\n", A->cols);
+ 	G_fatal_error("       does not match spectral count (%i cols).\n", A->cols);
     }
 
     G_verbose_message("/* get memory for input files */");
@@ -92,14 +93,14 @@ mat_struct *open_files(char *matrixfile, char *img_grp)
 
     G_verbose_message("/* open files for results*/");
     /* open files for results*/
-    result_cell = (DCELL **) G_malloc (Ref.nfiles * sizeof (DCELL *));
-    resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
-    for (i=0; i < Ref.nfiles; i++)
+    result_cell = (DCELL **) G_malloc (signaturecount * sizeof (DCELL *));
+    resultfd = (int *) G_malloc (signaturecount * sizeof (int));
+    for (signature=0; signature < signaturecount; signature++)
     {
-	sprintf(result_name, "%s.%d", result_prefix, (i+1));
+	sprintf(result_name, "%s.%d", result_prefix, (signature+1));
 	G_verbose_message("Opening output file [%s]\n", result_name);	 
-	result_cell[i] = Rast_allocate_d_buf();
-	resultfd[i] = Rast_open_new (result_name, DCELL_TYPE);
+	result_cell[signature] = Rast_allocate_d_buf();
+	resultfd[signature] = Rast_open_new (result_name, DCELL_TYPE);
     }
 
     G_verbose_message("open.c: Returning A");
