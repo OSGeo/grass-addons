@@ -41,6 +41,7 @@
 struct GModule *module;
 
 vec_struct *b, *Avector;
+int signature;
 int signaturecount;
 int spectralcount;
 
