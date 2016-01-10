@@ -7,9 +7,8 @@ import time
 
 import grass.script as grass
 
-# TODO: replace by pygrass.utils.set_path()
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
-
+from grass.pygrass.utils import set_path
+set_path(modulename='g.gui.mwprecip')
 from grass.script.setup import set_gui_path
 set_gui_path()
 
