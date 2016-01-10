@@ -2,24 +2,24 @@
 VERSION = 1.2
 import sys
 import os
+import tempfile
+import time
+
+import grass.script as grass
 
 # TODO: replace by pygrass.utils.set_path()
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.mwprecip'))
-import grass.script as grass
-from mw_util        import *
-from mw3            import *
-import tempfile
-import time
 
 from grass.script.setup import set_gui_path
 set_gui_path()
 
+from mw_util        import *
+from mw3            import *
 from core.gcmd      import GMessage, GError
 from gui_core       import gselect
 from core.gthread   import gThread
 from gui_core.widgets import ColorTablesComboBox,PictureComboBox
 from core           import globalvar
-
 from core.utils     import  GetColorTables
 
 class DBconn(wx.ScrolledWindow):
