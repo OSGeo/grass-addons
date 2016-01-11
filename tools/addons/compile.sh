@@ -73,7 +73,7 @@ echo "AddOns '$ADDON_PATH'..."
 echo "-----------------------------------------------------"
 
 pwd=`pwd`
-for c in "gui/wxpython" "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector"; do
+for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" "gui/wxpython"; do
     if [ ! -d $c ]; then
 	continue
     fi
