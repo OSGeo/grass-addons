@@ -73,7 +73,7 @@ echo "AddOns '$ADDON_PATH'..."
 echo "-----------------------------------------------------"
 
 pwd=`pwd`
-for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" "gui/wxpython"; do
+for c in "gui/wxpython" "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector"; do
     if [ ! -d $c ]; then
 	continue
     fi
@@ -88,6 +88,7 @@ for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "
 	    path="$ADDON_PATH"
 	fi
 
+	export GRASS_ADDON_BASE=$path
 	echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
 	make MODULE_TOPDIR="$TOPDIR" \
@@ -109,6 +110,7 @@ for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "
 	cd ..
     done
     cd $pwd
+    unset GRASS_ADDON_BASE
 done
 
 echo "</table><hr />
