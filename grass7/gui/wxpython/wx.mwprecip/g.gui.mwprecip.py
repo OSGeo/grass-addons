@@ -558,6 +558,7 @@ class MWMainFrame(wx.Frame):
         self.logger=None
         context=StaticContext()
         self.workPath = context.getTmpPath()
+        self.initWorkingFoldrs()
         self.initLogger()
         self.initWorkingFoldrs()
         self.settings = {}
@@ -736,14 +737,10 @@ class MWMainFrame(wx.Frame):
             self.findProject()
 
     def initWorkingFoldrs(self):
-
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
 
-        tmpPath = os.path.join(self.workPath, 'temp')
-        if not os.path.exists(tmpPath):
-            os.makedirs(tmpPath)
 
     def findProject(self):
         try:
@@ -806,7 +803,6 @@ class MWMainFrame(wx.Frame):
         pass
 
     def onSetWorkPath(self,evt):
-        #f = tempfile.TemporaryFile()
         dlg = wx.DirDialog(self,
                            message="Select working directory",
                            defaultPath=self.workPath,
