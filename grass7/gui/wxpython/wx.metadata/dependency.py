@@ -29,6 +29,11 @@ try:
 except:
     print('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
+try:
+    import reportlab
+
+except:
+    print('python-import reportlab library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 if pycsw:
     import pycsw
@@ -43,4 +48,5 @@ if pycsw:
 from owslib.iso import *
 import jinja2
 from pycsw.core import admin
+import reportlab
 
