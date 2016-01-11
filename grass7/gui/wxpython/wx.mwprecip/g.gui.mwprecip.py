@@ -740,7 +740,7 @@ class MWMainFrame(wx.Frame):
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
-
+            
         tmpPath = os.path.join(self.workPath, 'temp')
         if not os.path.exists(tmpPath):
             os.makedirs(tmpPath)
