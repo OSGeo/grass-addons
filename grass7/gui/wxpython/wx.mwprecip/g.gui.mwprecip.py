@@ -550,16 +550,14 @@ class ExportData(wx.Panel):
 
         self.SetSizerAndFit(mainSizer)
 
-
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
-
+        self.loggerPath=None
+        self.worker = None
         self.logger=None
         context=StaticContext()
         self.workPath = context.getTmpPath()
-        self.initWorkingFoldrs()
-        self.initLogger()
         self.initWorkingFoldrs()
         self.settings = {}
         self.settingsLst = []
@@ -567,8 +565,6 @@ class MWMainFrame(wx.Frame):
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
 
-
-        self.worker = None
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
@@ -627,12 +623,12 @@ class MWMainFrame(wx.Frame):
         self.findProject()
         self.layout()
 
-    def initLogger(self):
-        logging.basicConfig(filename=os.path.join(self.workPath,'mwprecip.log'),
-                        level=logging.INFO,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                        datefmt='%m-%d %H:%M',
-                        filemode='w')
+    def initLogger(self,path):
+        logging.basicConfig(filename=path,
+                            level=logging.INFO,
+                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                            datefmt='%m-%d %H:%M',
+                            filemode='w')
 
 
         console = logging.StreamHandler()
@@ -727,20 +723,24 @@ class MWMainFrame(wx.Frame):
             pass
 
         self.settings['workSchema'] = self.profilSelection.GetValue()
-
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
         #print self.settings
         if toFile:
             tmpPath = os.path.join(self.workPath, 'save', self.settings['workSchema'])
+            profilePath=os.path.join(self.workPath,"logs")
+            if not os.path.exists(profilePath):
+                os.mkdir(profilePath)
+            self.loggerPath = os.path.join(profilePath,self.settings['workSchema']+".logg")
+            self.initLogger(self.loggerPath)
             saveDict(tmpPath, self.settings)
+
             self.findProject()
 
     def initWorkingFoldrs(self):
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
-
 
     def findProject(self):
         try:
@@ -872,7 +872,7 @@ class MWMainFrame(wx.Frame):
     def _onExport(self, evt=None):
         path = OnSaveAs(self)
         self.OnSaveSettings(toFile=False)
-        if not self.exportDMgr.chkprecip.GetValue():
+        if not self.exportDMgr.chkprecip.GetValue(): #if export only data from sql without computing
             attrTmp1 = ['link.linkid']
             attrTmp2 = []
             attrTmp3 = []
@@ -917,8 +917,6 @@ class MWMainFrame(wx.Frame):
             lines = ''
             for r in res:
                 lines += str(r)[1:][:-1].replace('datetime.datetime', '').replace("'", "") + '\n'
-            #print conn.pathworkSchemaDir
-            #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "w+")
             io0.writelines(lines)
             io0.close()
@@ -929,7 +927,6 @@ class MWMainFrame(wx.Frame):
             if YesNo(self, 'Export data only?'):
                 exportData['dataOnly'] = True
             self.settings['dataExport'] = exportData
-
             # if rain gauges
             if self.dataMgrMW.inpRainGauge.GetPath() is not None:
                 self.settings['IDtype'] = 'gaugeid'
@@ -978,7 +975,6 @@ class MWMainFrame(wx.Frame):
 
         self.worker = Gui2Model(self, self.settings,self.workPath)
         if self.worker.checkConn():
-
             if not self.worker.initConnection():
                 return
             self.worker.initVectorGrass()
@@ -1036,7 +1032,6 @@ class Gui2Model():
 
     def initConnection(self, info=False):
         conninfo = self.conninfo
-
         if 'workSchema' in self.settings:
             conninfo['workSchema'] = self.settings['workSchema']
         if 'schema' in self.settings:

@@ -1384,7 +1384,7 @@ class Database():
         self.linkVecMapName = linkVecMapName
         self.linkPointsVecName = linkPointsVecName
 
-        self.pathworkSchemaDir = os.path.join(workPath,'profiles', "tmp_%s" % self.schema)
+        self.pathworkSchemaDir = os.path.join(workPath,'profiles', "%s" % self.schema)
 
         self.pyConnection()
         self.grassConnectionRemote()
