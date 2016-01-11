@@ -22,7 +22,8 @@ class StaticContext():
     def __init__(self):
         gisenvDict = grass.gisenv()
         pathToMapset = os.path.join(gisenvDict['GISDBASE'], gisenvDict['LOCATION_NAME'], gisenvDict['MAPSET'])
-        self.tmp_mapset_path = os.path.join(pathToMapset, "temp")
+        self.tmp_mapset_path = os.path.join(pathToMapset, "mwprecip_data")
+
 
     def getTmpPath(self):
         return self.tmp_mapset_path

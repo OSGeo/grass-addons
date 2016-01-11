@@ -731,7 +731,7 @@ class MWMainFrame(wx.Frame):
             self.settings['workSchema'] = self.schema.GetValue()
         #print self.settings
         if toFile:
-            tmpPath = os.path.join(self.workPath, "save", self.settings['workSchema'])
+            tmpPath = os.path.join(self.workPath, 'save', self.settings['workSchema'])
             saveDict(tmpPath, self.settings)
             self.findProject()
 
@@ -740,7 +740,7 @@ class MWMainFrame(wx.Frame):
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
-            
+
         tmpPath = os.path.join(self.workPath, 'temp')
         if not os.path.exists(tmpPath):
             os.makedirs(tmpPath)
