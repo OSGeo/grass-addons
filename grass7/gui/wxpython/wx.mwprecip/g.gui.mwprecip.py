@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-VERSION = 1.2
+VERSION = 1.3
 import sys
 import os
 import tempfile
@@ -20,6 +20,10 @@ from core.gthread   import gThread
 from gui_core.widgets import ColorTablesComboBox,PictureComboBox
 from core           import globalvar
 from core.utils     import  GetColorTables
+import wx.lib.scrolledpanel as scrolled
+import tempfile
+import logging
+
 
 class DBconn(wx.ScrolledWindow):
     def __init__(self, parent, settings={}):
@@ -169,6 +173,10 @@ class BaselinePanel(wx.ScrolledWindow):
             self.loadSettings()
 
         self._layout()
+    def onChangeStatistic(self,evt=None):
+        if self.baselType.GetValue() == 'avg':
+            self.round.Disable()
+            self.quantile.Disable()
 
     def onChangeStatistic(self,evt=None):
         if self.baselType.GetValue() == 'avg':
@@ -546,8 +554,11 @@ class ExportData(wx.Panel):
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
+
+        self.logger=None
         context=StaticContext()
         self.workPath = context.getTmpPath()
+        self.initLogger()
         self.initWorkingFoldrs()
         self.settings = {}
         self.settingsLst = []
@@ -615,6 +626,26 @@ class MWMainFrame(wx.Frame):
         self.findProject()
         self.layout()
 
+    def initLogger(self):
+        logging.basicConfig(filename=os.path.join(self.workPath,'mwprecip.log'),
+                        level=logging.INFO,
+                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                        datefmt='%m-%d %H:%M',
+                        filemode='w')
+
+
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        # set a format which is simpler for console use
+        formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+        # tell the handler to use this format
+        console.setFormatter(formatter)
+        # add the handler to the root logger
+        logging.getLogger('').addHandler(console)
+
+        self.logger=logging.getLogger('mwprecip.GUI')
+
+
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
         GMessage( "ver: %s \n %s"%(VERSION,dir),self)
@@ -652,7 +683,7 @@ class MWMainFrame(wx.Frame):
     def OnLoadSettings(self, evt=None):
         currSelId = self.profilSelection.GetSelection()
         self.schema.SetValue(self.profilSelection.GetValue())
-        print  self.settingsLst[currSelId]
+        #print  self.settingsLst[currSelId]
         self.settings = self.settingsLst[currSelId]
 
         try:
@@ -695,15 +726,17 @@ class MWMainFrame(wx.Frame):
             pass
 
         self.settings['workSchema'] = self.profilSelection.GetValue()
+
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
-        print self.settings
+        #print self.settings
         if toFile:
             tmpPath = os.path.join(self.workPath, "save", self.settings['workSchema'])
             saveDict(tmpPath, self.settings)
             self.findProject()
 
     def initWorkingFoldrs(self):
+
         savePath = os.path.join(self.workPath, 'save')
         if not os.path.exists(savePath):
             os.makedirs(savePath)
@@ -719,7 +752,7 @@ class MWMainFrame(wx.Frame):
             GMessage('Cannot find "save" folder',self)
             return
         filePathList = getFilesInFoldr(projectDir, True)
-        print filePathList
+        #print filePathList
         # print 'filePathList',filePathList
         if filePathList != 0:
             self.profilSelection.Clear()
@@ -813,7 +846,7 @@ class MWMainFrame(wx.Frame):
 
     def _onSetDatabaseDLG(self, evt):
         self.settings = self.databasePnl.saveSettings()
-        print self.settings
+        #print self.settings
         self.dbDialog.Destroy()
 
     def createGeometry(self, type, name):
@@ -888,7 +921,7 @@ class MWMainFrame(wx.Frame):
             lines = ''
             for r in res:
                 lines += str(r)[1:][:-1].replace('datetime.datetime', '').replace("'", "") + '\n'
-            print conn.pathworkSchemaDir
+            #print conn.pathworkSchemaDir
             #path=os.path.join(conn.pathworkSchemaDir, "export")
             io0 = open(path, "w+")
             io0.writelines(lines)
@@ -1022,7 +1055,6 @@ class Gui2Model():
             conninfo['password'] = self.settings['passwd']
 
         conninfo['workPath'] = self.workPath
-
 
         if not info:  # prepare for computing
             self.dbConn = Database(**conninfo)
@@ -1180,3 +1212,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -11,6 +11,12 @@ import wx.lib.filebrowsebutton as filebrowse
 import codecs
 from core.gcmd          import GMessage, GError
 from grass.script       import core as grass
+import grass.script as grass
+
+import time
+from datetime import datetime
+import logging
+
 
 class StaticContext():
     def __init__(self):
@@ -418,6 +424,37 @@ def getFilesInFoldr(fpath, full=False):
     return tmp
 
 
+class MeasureTime():
+    def __init__(self):
+        self.startLast=None
+        self.end=None
+        self.start=None
+        self.logger = logging.getLogger('mwprecip.MeasureTime')
+
+    def timeMsg(self,msg,end=False):
+        if self.start is None:
+            self.start = time.time()
+            self.startLast= self.start
+            #grass.message("Measuring time - start: %s "%self.start)
+            self.logger.info("Measuring time - START: %s "%str(datetime.now()))
+        else:
+            self.end = time.time()
+            elapsedTotal=self.end - self.start
+            elapsedLast=self.end-self.startLast
+            self.startLast=self.end
+
+            #grass.message("Elapsed time from start < %s > : %s"%(msg,elapsed))
+            #grass.message("Elapsed time for last part < %s > : %s"%(msg,elapsedLast))
+
+            self.logger.info("TOTAL TIME < %s > : %s"%(msg,elapsedTotal))
+            self.logger.info("LAST PART TIME< %s > : %s"%(msg,elapsedLast))
+
+            if end:
+                #grass.message("Total time: %s"%(elapsed))
+                #grass.message("Measuring time - end: %s "%self.end)
+
+                self.logger.info("TOTAL TIME e: %s"%(elapsedTotal))
+                self.logger.info("Measuring time - END: %s "%str(datetime.now()))
 
 def isAttributExist(connection, schema, table, columns):
     sql = "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \
@@ -481,6 +518,8 @@ def readDict(fn):
         return (dict_rap)
     except IOError as e:
         print "I/O error({0}): {1}".format(e.errno, e.strerror)
+
+
 
 
 def randomWord(length):

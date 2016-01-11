@@ -4,6 +4,7 @@
 import sys
 import psycopg2 as ppg
 # import psycopg2.extensions
+import logging
 
 class pgwrapper:
     def __init__(self, dbname, host='', user='', passwd='', port=''):
@@ -14,6 +15,7 @@ class pgwrapper:
         self.password = passwd  # Password for login to the database.
         self.connection = self.setConnect()  # Set a connection to the database
         self.cursor = self.setCursor()  # Generate cursor.
+        self.logger = logging.getLogger('mwprecip')
 
     def setConnect(self):
         conn_string = "dbname='%s'" % self.dbname
@@ -28,7 +30,9 @@ class pgwrapper:
         try:
             conn = ppg.connect(conn_string)
         except:
-            print 'Cannot connect to database'
+            self.logger.error('Cannot connect to database')
+            self.print_message('Cannot connect to database')
+            return
 
         return conn
 
@@ -36,8 +40,8 @@ class pgwrapper:
         try:
             return self.connection.cursor()
         except:
-            print 'cannot set cursor'
-
+            self.logger.error('Cannot set cursor')
+            self.print_message('Cannot set cursor')
     '''
     def setIsoLvl(self, lvl='0'):
         if lvl == 0:
@@ -53,6 +57,8 @@ class pgwrapper:
 
         except Exception, err:
             self.connection.rollback()
+            self.logger.error(" Catched error (as expected):\n")
+            self.logger.error(err)
             self.print_message(" Catched error (as expected):\n")
             self.print_message(err)
 
@@ -67,6 +73,8 @@ class pgwrapper:
             self.connection.rollback()
             self.print_message(" Catched error (as expected):\n")
             self.print_message(err)
+            self.logger.error("Catched error (as expected):\n")
+            self.logger.error(err)
             pass
 
 
@@ -80,13 +88,14 @@ class pgwrapper:
 
     def executeSql(self, sql, results=True, commit=False):
         # Excute the SQL statement.
-        self.print_message (sql)
+        self.logger.debug(sql)
 
         try:
             self.cursor.execute(sql)
         except Exception, e:
             self.connection.rollback()
             self.print_message(e.pgerror)
+            self.logger.error(e.pgerror)
 
         if commit:
             self.connection.commit()
@@ -122,7 +131,6 @@ class pgwrapper:
             sql_update_col = 'UPDATE "' + table + '" SET ' + parse
         else:
             sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where
-        print "upcol %s" % sql_update_col
         # Excute the SQL statement.
         self.cursor.execute(sql_update_col)
 

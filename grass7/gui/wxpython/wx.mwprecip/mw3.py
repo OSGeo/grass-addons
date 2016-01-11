@@ -3,6 +3,7 @@
 
 from math import sin, cos, atan2, degrees, tan, sqrt
 from datetime import datetime
+from datetime import timedelta
 import shutil
 import psycopg2
 import time
@@ -17,9 +18,13 @@ import grass.script as grass
 import numpy as np
 from mw_util import *
 
+timeMes=MeasureTime()
+import logging
+logger = logging.getLogger('mwprecip.Computing')
+
 class PointInterpolation():
     def __init__(self, database, step, methodDist=False):
-        grass.message("Interpolating points along lines...")
+        timeMes.timeMsg("Interpolating points along lines...")
         self.step = float(step)
         self.database = database
         self.method = methodDist  # 'p' - points, else distance
@@ -89,6 +94,7 @@ class PointInterpolation():
         sql = "alter table %s.%s drop column long" % (
             self.database.schema, nametable)  # remove longtitude column from table
         self.database.connection.executeSql(sql, False, True)
+        timeMes.timeMsg("Interpolating points along lines-done")
 
     def destinationPointWGS(self, lat1, lon1, brng, s):
         a = 6378137
@@ -248,7 +254,7 @@ class RainGauge():
                 self.lon = float(f.next())
             f.close()
         except IOError as (errno, strerror):
-            grass.message( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error( "I/O error({0}): {1}".format(errno, strerror))
 
         gaugeTMPfile = "gauge_tmp"
         removeLines(old_file=path,
@@ -265,7 +271,7 @@ class RainGauge():
                     tmp.append(stri)
                 f.close()
         except IOError as (errno, strerror):
-            grass.message( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error( "I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
         try:
@@ -273,7 +279,7 @@ class RainGauge():
                 io.writelines(tmp)
                 io.close()
         except IOError as (errno, strerror):
-            grass.message( "I/O error({0}): {1}".format(errno, strerror))
+            grass.error( "I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
             # #create table for raingauge stations
@@ -308,15 +314,15 @@ class Baseline():
     def __init__(self, type='noDryWin', pathToFile=None, statFce='quantile', quantile=97, roundMode=3, aw=0):
         if quantile is None:
             quantile=97
-            grass.message('Quantile is not defined. Default is 97')
+            logger.info('Quantile is not defined. Default is 97')
         self.quantile = quantile
         if roundMode is None:
             roundMode=3
-            grass.message('Round is not defined. Default is 3 decimal places')
+            logger.info('Round is not defined. Default is 3 decimal places')
         self.roundMode = roundMode
         if aw is None:
             aw=0
-            grass.message('Antena wetting value is not defined. Default is 0')
+            logger.info('Antena wetting value is not defined. Default is 0')
         self.aw = aw
         self.pathToFile = pathToFile
         self.type = type
@@ -448,7 +454,8 @@ class TimeWindows():
         self.database.connection.executeSql(sql, False, True)
 
     def crateTimeWin(self):
-        grass.message('creating time windows')
+        timeMes.timeMsg('creating time windows')
+        #timeMes.timeMsg()
         time_const = 0
         nameList = []
         tgrass_vector = []
@@ -457,7 +464,7 @@ class TimeWindows():
         if self.typeID == 'gaugeid':
             prefix = 'g'
 
-        grass.message("from " + str(self.timestamp_min) + " to " + str(self.timestamp_max) + " per " + self.sumStep)
+        timeMes.timeMsg("from " + str(self.timestamp_min) + " to " + str(self.timestamp_max) + " per " + self.sumStep)
         # make timewindows from time interval
         while cur_timestamp < self.timestamp_max:
             self.numWindows += 1
@@ -489,8 +496,7 @@ class TimeWindows():
             # sql = "SELECT (timestamp'%s')+ %s* interval '1 second'" % (cur_timestamp, self.intervalStr)
             # cur_timestamp = self.database.connection.executeSql(sql)[0][0]
             # rint cur_timestamp
-            #print  timedelta(seconds=1)
-            #print self.intervalStr
+
             cur_timestamp = cur_timestamp + self.intervalStr * timedelta(seconds=1)
 
             # go to next time interval
@@ -507,7 +513,7 @@ class TimeWindows():
         except IOError as (errno, strerror):
             grass.warning('Cannot write temporal registration file  %s' % os.path.join(self.path, TMPname))
 
-        grass.message('creating time windows-done')
+        timeMes.timeMsg('creating time windows-done')
 
     def logMsg(self, msg):
         if self.status.get('msg') == 'Done':
@@ -583,6 +589,7 @@ class Computor():
             # io1.write('mode|' + str(baseline.aw))
             # io1.close
 
+
         def computeBaselineFromTime():
 
             def chckTimeValidity(tIn):
@@ -591,7 +598,7 @@ class Computor():
                 try:
                     tIn = datetime.strptime(tIn, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
-                    grass.message('Wrong datetime format')
+                    logger.info('Wrong datetime format')
                     return False
                 if tIn > tMax or tIn < tMin:
                     return False
@@ -664,7 +671,7 @@ class Computor():
                             try:
                                 time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
                             except ValueError:
-                                grass.message('Wrong datetime format')
+                                logger.info('Wrong datetime format')
                                 return False
                             st += str(time).replace("\n", "")
                             fromt = time + timedelta(seconds=-60)
@@ -758,7 +765,7 @@ class Computor():
                             try:
                                 time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
                             except ValueError:
-                                grass.message('Wrong datetime format')
+                                logger.info('Wrong datetime format')
                                 return False
                             st += str(time).replace("\n", "")
                             fromt = time + timedelta(seconds=-60)
@@ -883,7 +890,7 @@ class Computor():
             self.baselineDict = readBaselineFromText(self.baseline.pathTofile)
 
         elif self.baseline.type == 'fromDryWin' :
-            grass.message('Computing baselines "dry window" "%s"...' % self.baseline.statFce)
+            logger.info('Computing baselines "dry window" "%s"...' % self.baseline.statFce)
             if computeBaselineFromTime():
                 self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))
                 return True
@@ -891,7 +898,7 @@ class Computor():
                 return False
 
         elif  self.baseline.type == 'noDryWin':
-            grass.message('Computing baselines "no dry window" "%s"...' % self.baseline.statFce)
+            logger.info('Computing baselines "no dry window" "%s"...' % self.baseline.statFce)
             if computeBaselineFromTime():
                 self.baselineDict = readBaselineFromText(os.path.join(database.pathworkSchemaDir, 'baseline'))
                 return True
@@ -926,7 +933,7 @@ class Computor():
         if not self.timeWin.setTimestamp():
             self.logMsg("Out of available time interval",1)
             return False
-        grass.message("Quering data")
+        timeMes.timeMsg("Quering data")
 
         sql = "SELECT linkid,lenght,polarization,frequency \
                 FROM %s.link" % self.database.dataSchema
@@ -966,7 +973,7 @@ class Computor():
         sql = "SELECT * from %s.record" % self.database.schema
         resu = self.database.connection.executeSql(sql, True, True)
 
-        grass.message("Quering data-done")
+        timeMes.timeMsg("Quering data-done")
         '''
         sql = "SELECT n2.time, n2.txpower-n2.rxpower as a,n1.lenght,n1.polarization,n1.frequency,n1.linkid\
                 FROM %s.link AS n1 \
@@ -990,29 +997,29 @@ class Computor():
         # self.database.connection.setIsoLvl(0)  #TODO dont know what is that
 
         # choose baseline source (quantile, user values, ) get dict linkid, baseline
-        grass.message("Computing baseline")
+        timeMes.timeMsg("Computing baseline")
         if not self.getBaselDict():
             self.logMsg('Dry interval is out of defined time interval(from,to)',1)
             return False
         if len(self.baselineDict) == 0:
             self.logMsg('Baselines coputation faild. Check dry windows',1)
             return False
-        grass.message("Computing baseline-done")
+        timeMes.timeMsg("Computing baseline-done")
 
         # check if baseline from text is correct
         if len(self.baselineDict) < link_num:
             sql = "SELECT linkid FROM link"
             links = self.database.connection.executeSql(sql, True, True)
             for link in links:
-                # grass.message(type(link))
+                # logger.info(type(link))
                 if not link[0] in self.baselineDict:
-                    grass.message("Linkid= %s is missing in txtfile" % str(link[0]))
-            grass.message(
+                    logger.info("Linkid= %s is missing in txtfile" % str(link[0]))
+            logger.info(
                 'Missing values "linkid,baseline," in text file. Data are not available in dry interval(baseline) .')
 
         temp = []
         errLinkList=[]
-        grass.message("Computing precipitation")
+        timeMes.timeMsg("Computing precipitation")
         skippedList = []
         for record in resu:
             curLinkData = linksDict[record[0]]  # record[0] is linkid
@@ -1056,18 +1063,18 @@ class Computor():
                 out = str(record[0]) + "|" + str(record[1]) + "|" + str(R1) + "\n"
                 temp.append(out)
 
-        grass.message("Computing precipitation-done")
+        timeMes.timeMsg("Computing precipitation-done")
         pathExp = os.path.join(self.database.pathworkSchemaDir, "precip")
         io = open(pathExp, 'w+')
         io.writelines(temp)
         io.close()
         #if getData:
-        grass.message("Computed data has been saved to <%s>" % pathExp)
-        grass.message("File structure is <linkid> <time> <precipitation>")
+        logger.info("Computed data has been saved to <%s>" % pathExp)
+        logger.info("File structure is <linkid> <time> <precipitation>")
 
 
 
-        grass.message("Writing computed precipitation to database...")
+        logger.info("Writing computed precipitation to database...")
         io1 = open(os.path.join(self.database.pathworkSchemaDir, "precip"), "r")
         self.database.connection.copyfrom(io1, compPrecTab)
 
@@ -1162,7 +1169,7 @@ class GrassLayerMgr():
             self.makeRGB(map)
 
     def makeRGB(self, map):
-        grass.message('Creating RGB column in database')
+        timeMes.timeMsg('Creating RGB column in database')
         try:
             if self.rules not in [None,""]:
                 for lay in range(1, self.getNumLayer(self.database.linkVecMapName), 1):
@@ -1186,7 +1193,7 @@ class GrassLayerMgr():
                            quiet=True,
                            layer=lay)
 
-            grass.message('Creating RGB column in database-done')
+            timeMes.timeMsg('Creating RGB column in database-done')
         except Exception, e:
             grass.warning("v.color error < %s>"%e)
 
@@ -1225,7 +1232,7 @@ class GrassLayerMgr():
                        quiet=True)
 
     def connectDBaLayers(self):
-        grass.message('Connecting tables to maps')
+        timeMes.timeMsg('Connecting tables to maps')
         inputMap = self.database.linkVecMapName
         if '@' in self.database.linkVecMapName:
             self.database.linkVecMapName=self.database.linkVecMapName.split('@')[0]
@@ -1265,7 +1272,7 @@ class GrassLayerMgr():
         for win in f.read().splitlines():
             layerNum += 1
             win = self.database.schema + '.' + win
-            grass.message( win)
+            logger.info( win)
             RunCommand('v.db.connect',
                        driver='pg',
                        map=self.database.linkVecMapName,
@@ -1275,7 +1282,7 @@ class GrassLayerMgr():
                        overwrite=True,
                        quiet=True)
         f.close()
-        grass.message('Connecting tables to maps-done')
+        timeMes.timeMsg('Connecting tables to maps-done')
         return self.database.linkVecMapName
 
 
@@ -1320,7 +1327,7 @@ class GrassTemporalMgr():
         #print err
 
     def registerMaps(self):
-        grass.message('Registring maps to temporal database')
+        timeMes.timeMsg('Registring maps to temporal database')
         gisenv_grass = grass.gisenv()
         timeOfLay = self.timeWinConf.timestamp_min
         regTMP = ""
@@ -1336,8 +1343,8 @@ class GrassTemporalMgr():
         io1 = open(regFilePath, 'w+')
         io1.writelines(regTMP), io1.close
         io1.close()
-        grass.message( 'datasetName %s'% self.datasetName)
-        grass.message(regFilePath)
+        logger.info( 'datasetName %s'% self.datasetName)
+        logger.info(regFilePath)
 
         RunCommand('t.register',
                    input=self.datasetName,
@@ -1345,7 +1352,7 @@ class GrassTemporalMgr():
                    file=regFilePath,
                    overwrite=True)
 
-        grass.message('Registring maps to temporal database-done')
+        timeMes.timeMsg('Registring maps to temporal database-done')
 
 class Database():
     def __init__(self, name=None, user=None, password=None,
@@ -1493,15 +1500,15 @@ class Database():
 
     def firstPreparation(self):
         if not isAttributExist(self.connection, 'public', 'link', 'lenght'):
-            grass.message("Add colum lenght")
+            logger.info("Add colum lenght")
             sql = "ALTER TABLE link ADD COLUMN lenght real; "
             self.connection.executeSql(sql, False, True)
 
-            # grass.message("Add colum frequency")
+            # logger.info("Add colum frequency")
             # sql = "ALTER TABLE link ADD COLUMN frequency real; "
             # self.connection.executeSql(sql, False, True)
 
-            # grass.message("Optimalization of frequency attribute")
+            # logger.info("Optimalization of frequency attribute")
             # sql = "UPDATE link\
             # SET frequency = record.frequency\
             # FROM record\
@@ -1511,7 +1518,7 @@ class Database():
             #sql = "ALTER TABLE record DROP COLUMN frequency;"
             #self.connection.executeSql(sql, False, True)
 
-            grass.message("Add function for computing distance ")
+            logger.info("Add function for computing distance ")
             '''
             sql=r"CREATE OR REPLACE FUNCTION get_earth_distance1
                 (lon1 Float, lat1 Float, lon2 Float, lat2 Float, Radius Float DEFAULT 6387.7)
@@ -1530,7 +1537,7 @@ class Database():
             sql = r"CREATE OR REPLACE FUNCTION get_earth_distance1 (lon1 Float, lat1 Float, lon2 Float, lat2 Float, Radius Float DEFAULT 6387.7) RETURNS FLOAT AS ' DECLARE K FLOAT := 57.29577951; v_dist FLOAT; BEGIN v_dist := (Radius * ACOS((SIN(Lat1 / K) * SIN(Lat2 / K)) + (COS(Lat1 / K) * COS(Lat2 / K) * COS(Lon2 / K - Lon1 / K)))); RETURN round(CAST (v_dist AS Numeric),3); END; ' LANGUAGE 'plpgsql';"
             self.connection.executeSql(sql, False, True)
 
-            grass.message("Computing column lenght")
+            logger.info("Computing column lenght")
             sql = "UPDATE link SET lenght = get_earth_distance1(n1.long,n1.lat,n2.long,n2.lat) \
                     FROM node AS n1 JOIN \
                     link AS l ON n1.nodeid = fromnodeid \
@@ -1538,26 +1545,26 @@ class Database():
                     WHERE link.linkid = l.linkid; "
             self.connection.executeSql(sql, False, True)
 
-            #grass.message("Add column precip")
+            #logger.info("Add column precip")
             #sql = "ALTER TABLE record ADD COLUMN precip real; "
             #self.connection.executeSql(sql, False, True)
 
-            grass.message("Create sequence")
+            logger.info("Create sequence")
             sql = "CREATE SEQUENCE serial START 1; "
             self.connection.executeSql(sql, False, True)
 
-            grass.message("Add column recordid")
+            logger.info("Add column recordid")
             sql = "ALTER TABLE record add column recordid integer default nextval('serial'); "
             self.connection.executeSql(sql, False, True)
 
-            grass.message("Create index on recordid")
+            logger.info("Create index on recordid")
             sql = "CREATE INDEX idindex ON record USING btree(recordid); "
             self.connection.executeSql(sql, False, True)
 
             sql = "CREATE INDEX timeindex ON record USING btree (time); "
             self.connection.executeSql(sql, False, True)
 
-            grass.message("Add mode function")
+            logger.info("Add mode function")
             sql = "CREATE OR REPLACE FUNCTION _final_mode(anyarray)\
                         RETURNS anyelement AS $BODY$ SELECT a FROM unnest($1)\
                         a GROUP BY 1  ORDER BY COUNT(1) DESC, 1 LIMIT 1;\
