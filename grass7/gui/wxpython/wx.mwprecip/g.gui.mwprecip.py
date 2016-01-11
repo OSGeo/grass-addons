@@ -84,9 +84,9 @@ class DBconn(wx.ScrolledWindow):
         if 'passwd' in self.settings:
             self.passwd.SetValue(self.getSettVal('passwd'))
 
-    def saveSettings(self, settings=None):
-        if settings is not None:
-            self.settings = settings
+    def saveSettings(self, sett=None):
+        if sett is not None:
+            self.settings = sett
         self.settings['database'] = self.database.GetValue()
         self.settings['schema'] = self.schema.GetValue()
         self.settings['host'] = self.host.GetValue()
@@ -144,7 +144,7 @@ class PointInterpolationPanel(wx.ScrolledWindow):
 
 
 class BaselinePanel(wx.ScrolledWindow):
-    def __init__(self, parent, settings=dict()):
+    def __init__(self, parent, settings={}):
         wx.ScrolledWindow.__init__(self, parent,  wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL|wx.VSCROLL)
         self.SetScrollRate( 5, 5 )
         self.settings = settings
@@ -173,10 +173,6 @@ class BaselinePanel(wx.ScrolledWindow):
             self.loadSettings()
 
         self._layout()
-    def onChangeStatistic(self,evt=None):
-        if self.baselType.GetValue() == 'avg':
-            self.round.Disable()
-            self.quantile.Disable()
 
     def onChangeStatistic(self,evt=None):
         if self.baselType.GetValue() == 'avg':
@@ -608,7 +604,7 @@ class MWMainFrame(wx.Frame):
         self.profilSelection = wx.ComboBox(self.mainPanel,style=wx.CB_READONLY)
         self.schema = BaseInput(self.mainPanel, 'Name of new working profile')
         self.schema.text.Bind(wx.EVT_TEXT, self.OnSchemeTxtChange)
-        self.newScheme = wx.Button(self.mainPanel, label='Save new profile')
+        self.newScheme = wx.Button(self.mainPanel, label='Save profile')
         self.newScheme.Bind(wx.EVT_BUTTON, self.OnSaveSettings)
         self.newScheme.Disable()
         self.profilSelection.Bind(wx.EVT_COMBOBOX, self.OnLoadSettings)
@@ -680,17 +676,16 @@ class MWMainFrame(wx.Frame):
     def OnLoadSettings(self, evt=None):
         currSelId = self.profilSelection.GetSelection()
         self.schema.SetValue(self.profilSelection.GetValue())
-        #print  self.settingsLst[currSelId]
         self.settings = self.settingsLst[currSelId]
 
         try:
             self.dataMgrMW.loadSettings(self.settings)
         except:
             pass
-        try:
-            self.dataMgrRG.loadSettings(self.settings)
-        except:
-            pass
+        #try:
+        #    self.dataMgrRG.loadSettings(self.settings)
+        #except:
+        #    pass
         try:
             self.databasePnl.loadSettings(self.settings)
         except:
@@ -725,17 +720,17 @@ class MWMainFrame(wx.Frame):
         self.settings['workSchema'] = self.profilSelection.GetValue()
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
-        #print self.settings
+
+        tmpPath = os.path.join(self.workPath, 'save', self.settings['workSchema'])
+        profilePath=os.path.join(self.workPath,"logs")
+        if not os.path.exists(profilePath):
+            os.mkdir(profilePath)
+        self.loggerPath = os.path.join(profilePath,"%s.logg"% self.settings['workSchema'])
+        self.initLogger(self.loggerPath)
         if toFile:
-            tmpPath = os.path.join(self.workPath, 'save', self.settings['workSchema'])
-            profilePath=os.path.join(self.workPath,"logs")
-            if not os.path.exists(profilePath):
-                os.mkdir(profilePath)
-            self.loggerPath = os.path.join(profilePath,self.settings['workSchema']+".logg")
-            self.initLogger(self.loggerPath)
             saveDict(tmpPath, self.settings)
 
-            self.findProject()
+        self.findProject()
 
     def initWorkingFoldrs(self):
         savePath = os.path.join(self.workPath, 'save')
@@ -749,8 +744,6 @@ class MWMainFrame(wx.Frame):
             GMessage('Cannot find "save" folder',self)
             return
         filePathList = getFilesInFoldr(projectDir, True)
-        #print filePathList
-        # print 'filePathList',filePathList
         if filePathList != 0:
             self.profilSelection.Clear()
             for path in filePathList:
@@ -934,25 +927,29 @@ class MWMainFrame(wx.Frame):
                 self.settings['IDtype'] = 'linkid'
 
             interface = Gui2Model(self, self.settings,self.workPath)
+            if not interface.initConnection():
+                return
             interface.initVectorGrass()
             interface.initTimeWinMW()
             interface.initBaseline()
             interface.Run()
             if interface.connStatus:
                 conn= interface.dbConn
+                sql = 'SELECT * FROM %s.%s' % (interface.dbConn.schema, interface.dbConn.computedPrecip)
+                res = conn.connection.executeSql(sql, True, True)
 
-            sql = 'SELECT * FROM %s.%s' % (interface.dbConn.schema, interface.dbConn.computedPrecip)
-            res = conn.connection.executeSql(sql, True, True)
-            lines = ''
-            for r in res:
-                lines += str(r)[1:][:-1] + '\n'
+                lines = ''
+                for r in res:
+                    lines += str(r)[1:][:-1] + '\n'
 
-            print conn.pathworkSchemaDir
-            io0 = open(path, "w+")
-            io0.writelines(lines)
-            io0.close()
-            os.remove(os.path.join(interface.dbConn.pathworkSchemaDir, "precip"))
-            GMessage('Data exported<%s>' % path,self)
+                print conn.pathworkSchemaDir
+                io0 = open(path, "w+")
+                io0.writelines(lines)
+                io0.close()
+                os.remove(os.path.join(interface.dbConn.pathworkSchemaDir, "precip"))
+                GMessage('Data exported<%s>' % path,self)
+            else:
+                GMessage('Data not exported',self)
 
         self.exportDialog.Destroy()
 
@@ -1031,7 +1028,10 @@ class Gui2Model():
             return False
 
     def initConnection(self, info=False):
+        if self.conninfo is None:
+            self.checkConn()
         conninfo = self.conninfo
+
         if 'workSchema' in self.settings:
             conninfo['workSchema'] = self.settings['workSchema']
         if 'schema' in self.settings:
@@ -1078,14 +1078,17 @@ class Gui2Model():
             convertor.grass_vinASCII(linksASCII, self.dbConn.linkVecMapName)
 
     def initPInterpolation(self):
+        run=0
         if 'pitypeDist' in self.settings:
             pitypeDist = self.settings['pitypeDist']
+            run+=1
         if 'pivalue' in self.settings:
             pivalue = self.settings['pivalue']
+            run+=1
         else:
             self.errMsg('Missing value for interpolating points along lines')
-
-        PointInterpolation(self.dbConn, pivalue, pitypeDist)
+        if run == 2:
+            PointInterpolation(self.dbConn, pivalue, pitypeDist)
 
     def initBaseline(self):
         baselInit = {}
@@ -1165,7 +1168,6 @@ class Gui2Model():
         return
         #GMessage(msg)
         #self.initgrassManagement()
-
 
     def initGrassLayerMgr(self):
         grassLayerMgr = {}
