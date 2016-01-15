@@ -43,16 +43,16 @@ composed of the basename + shannon.
 
 <h4>Effective number of species (ENS)</h4>
 
-This option gives the Shannon index, converted to into equivalent 
-or effective numbers of species (also known as Hill numbers) (Lou 
-Jost, 2006). The Shannon index, and other indice, can be converted 
-so they represent the number of equally abundant species necessary 
-to produce the observed value of diversity (an analogue the concept 
-of effective population size in genetics). An advantage of the ENS 
-is a more intuitive behavious, e.g., if two communities with equally 
-abundant but totally distinct species are combined, the ENS of the 
-combined community is twice that of the original communities. See 
-for an explanation and examples this
+This option gives the Shannon index, converted to into equivalent or 
+effective numbers of species (also known as Hill numbers) (Lou Jost, 
+2006; Chase and Knight, 2013). The Shannon index, and other indice, 
+can be converted so they represent the number of equally abundant 
+species necessary to produce the observed value of diversity (an 
+analogue the concept of effective population size in genetics). An 
+advantage of the ENS is a more intuitive behavious, e.g., if two 
+communities with equally abundant but totally distinct species are 
+combined, the ENS of the combined community is twice that of the 
+original communities. See for an explanation and examples this
 <a href="http://www.loujost.com/Statistics%20and%20Physics/Diversity%20and%20Similarity/EffectiveNumberOfSpecies.htm">blog post</a>
 or <a href="http://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers">this one</a>.
 The name of the output layer is composed of the 
@@ -85,13 +85,13 @@ layer is composed of the basename + invsimpson.
 
 <h4>Gini-Simpson index</h4>
 
-An alternative way to overcome the problem of the 
-counter-intuitive nature of Simpson's Index is to use <i>1 - D)</i>. 
-The lowest value of this index is 1 and represent a community 
-containing only one species. The higher the value, the greater the 
-diversity. The maximum value is the number of species in the sample. 
-The name of the output layer is composed of the basename + 
-ginisimpson.
+An alternative way to overcome the problem of the counter-intuitive 
+nature of Simpson's Index is to use <i>1 - D)</i>. The lowest value 
+of this index is 1 and represent a community containing only one 
+species (Gini, 1912; Simpson, 1949). The higher the value, the 
+greater the diversity. The maximum value is the number of species in 
+the sample. The name of the output layer is composed of the basename 
++ ginisimpson.
 
 <h2>NOTES</h2>
 
@@ -180,8 +180,11 @@ max=0.5658
 
 <h2>REFERENCES</h2>
 <ul>
+<li>Chase and Knight (2013). “Scale-dependent effect sizes of ecological drivers on biodiversity: why standardised sampling is not enough”. Ecology Letters, Volume 16, Issue Supplement s1, pgs 17-26.</li>
+<li>Gini, C. 1912. Variabilità e mutabilità. Reprinted in Memorie di metodologica statistica (Ed. Pizetti E, Salvemini, T). Rome: Libreria Eredi Virgilio Veschi 1.</li>
 <li>Jost L. 2006. Entropy and diversity. Oikos 113:363-75</li>
 <li>Legendre P, Legendre L. 1998. Numerical Ecology. Second English edition. Elsevier, Amsterdam</li>
+<li>Simpson, E. H. 1949. Measurement of Diversity Nature 163</li>
 </ul>
 
 
