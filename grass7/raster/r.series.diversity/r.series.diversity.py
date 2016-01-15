@@ -133,7 +133,7 @@ if not os.environ.has_key("GISBASE"):
 clean_rast = set()
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove",
+        grass.run_command("g.remove", flags="f",
         type="rast", name = rast, quiet = True)
 
 def CheckLayer(envlay):
@@ -206,67 +206,50 @@ def main():
     #--------------------------------------------------------------------------
     tmpt = tmpname("sht")
     clean_rast.add(tmpt)
+    grass.info("Computing the sum across all input layers")
     grass.run_command("r.series", quiet=True, output=tmpt,
                       input=IN, method="sum")
-
     for n in xrange(len(Q)):
-
+        grass.info(_("Computing alpha = {n}").format(n=Q[n]))
         Qn = str(Q[n])
         Qn = Qn.replace('.', '_')
         out_renyi = OUT + "_Renyi_" + Qn
-        tmpl = []
-
         if Q[n] == 1:
             # If alpha = 1
+            grass.mapcalc("$tmpa = 0", tmpa=out_renyi, quiet=True)
             for i in xrange(len(IN)):
-                tmpi = tmpname('shi' + str(i) + "_")
-                tmpl.append(tmpi)
-                clean_rast.add(tmpi)
-                grass.mapcalc("$tmpi = ($inl/$tmpt) * log(($inl/$tmpt))",
-                              tmpi=tmpi,
+                grass.mapcalc("$tmpta = $tmpta - (($inl/$tmpt) * log(($inl/$tmpt)))",
+                              tmpta=out_renyi,
                               inl=IN[i],
                               tmpt=tmpt,
-                              quiet=True)
-            tmpta = tmpname("sht")
-            clean_rast.add(tmpta)
-            grass.run_command("r.series", output=tmpta, input=tmpl,
-                                  method="sum", quiet=True)
-            grass.mapcalc("$outl = -1 * $tmpta",
-                              outl=out_renyi,
-                              tmpta=tmpta,
                               overwrite=True,
                               quiet=True)
-            grass.run_command("g.remove", type="raster",
-                              name=tmpta, flags="f")
         else:
             # If alpha != 1
+            tmptb = tmpname("sht")
+            clean_rast.add(tmptb)
+            grass.mapcalc("$tmpb = 0", tmpb=tmptb, quiet=True)
             for i in xrange(len(IN)):
-                tmpi = tmpname('reni')
-                tmpl.append(tmpi)
-                grass.mapcalc("$tmpi = if($inl==0,0,pow($inl/$tmpt,$alpha))",
-                              tmpi=tmpi,
+                grass.mapcalc("$tmptb = if($inl==0,$tmptb+0, $tmptb+pow($inl/$tmpt,$alpha))",
+                              tmptb=tmptb,
                               tmpt=tmpt,
                               inl=IN[i],
                               alpha=Q[n],
-                              quiet=True)
-            tmpta = tmpname("sht")
-            clean_rast.add(tmpta)
-            grass.run_command("r.series", output=tmpta, input=tmpl,
-                              method="sum", quiet=True)
-            grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmpta)",
+                              quiet=True,
+                              overwrite=True)
+            grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmptb)",
                               outl=out_renyi,
-                              tmpta=tmpta,
+                              tmptb=tmptb,
                               alpha=Q[n],
                               quiet=True)
             grass.run_command("g.remove", type="raster",
-                              name=tmpta, flags="f", quiet=True)
-        grass.run_command("g.remove", type="raster",
-                          name=tmpl, flags="f", quiet=True)
+                              name=tmptb, flags="f", quiet=True)
 
     #--------------------------------------------------------------------------
     # Species richness
     #--------------------------------------------------------------------------
     if flag_s:
+        grass.info("Computing species richness map")
         out_div = OUT + "_richness"
         in_div = OUT + "_Renyi_0_0"
         grass.mapcalc("$out_div = exp($in_div)",
@@ -281,6 +264,7 @@ def main():
     # Shannon index
     #--------------------------------------------------------------------------
     if flag_h:
+        grass.info("Computing Shannon index map")
         out_div = OUT + "_shannon"
         in_div = OUT + "_Renyi_1_0"
         if 1.0 in Qoriginal or flag_e or flag_n:
@@ -292,6 +276,7 @@ def main():
     # Shannon Effective Number of Species (ENS)
     #--------------------------------------------------------------------------
     if flag_n:
+        grass.info("Computing ENS map")
         out_div = OUT + "_ens"
         in_div = OUT + "_Renyi_1_0"
         grass.mapcalc("$out_div = exp($in_div)",
@@ -306,6 +291,7 @@ def main():
     # Eveness
     #--------------------------------------------------------------------------
     if flag_e:
+        grass.info("Computing Eveness map")
         out_div = OUT + "_eveness"
         in_div1 = OUT + "_Renyi_0_0"
         in_div2 = OUT + "_Renyi_1_0"
@@ -324,6 +310,7 @@ def main():
     # Inversed Simpson index
     #--------------------------------------------------------------------------
     if flag_p:
+        grass.info("Computing inverse simpson map")
         out_div = OUT + "_invsimpson"
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = exp($in_div)",
@@ -338,6 +325,7 @@ def main():
     # Gini Simpson index
     #--------------------------------------------------------------------------
     if flag_g:
+        grass.info("Computing Gini simpson map")
         out_div = OUT + "_ginisimpson"
         in_div = OUT + "_Renyi_2_0"
         grass.mapcalc("$out_div = 1.0 - (1.0 / exp($in_div))",
@@ -349,8 +337,8 @@ def main():
                               name=in_div, quiet=True)
 
     # Clean up temporary files
-    grass.run_command("g.remove", type="raster", name=tmpt,
-                      flags="f", quiet=True)
+    # grass.run_command("g.remove", type="raster", name=tmpt,
+    #                 flags="f", quiet=True)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
