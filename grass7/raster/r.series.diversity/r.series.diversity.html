@@ -76,21 +76,21 @@ The Simpson's index is defined as <i>D = sum p_i^2</i>. This is
 equivalent to <i>-1 * 1 / exp(R2)</i>, with <i>R2</i> the renyi 
 index for <i>alpha=2</i>. With this index, 0 represents infinite 
 diversity and 1, no diversity. This is counterintuitive behavior for 
-a diversity index. An alternative is the inverse Simpson index is 
-defined as <i>ID = 1 / D)</i>. The index represents the probability 
-that two individuals randomly selected from a sample will belong to 
-different species. The value ranges between 0 and 1, with greater 
-values representing greater sample diversity. The name of the output 
-layer is composed of the basename + invsimpson.
+a diversity index. An alternative is the inverse Simpson index, 
+which is defined as <i>ID = 1 / D)</i>. The lowest value of this 
+index is 1 and represent a community containing only one species 
+(Gini, 1912; Simpson, 1949). The higher the value, the greater the 
+diversity. The maximum value is the number of species in the sample. 
+The name of the output layer is composed of the basename + invsimpson.
 
-<h4>Gini-Simpson index</h4>
+<h4>Gini-Simpson index (Simpson's index of diversity)</h4>
 
 An alternative way to overcome the problem of the counter-intuitive 
-nature of Simpson's Index is to use <i>1 - D)</i>. The lowest value 
-of this index is 1 and represent a community containing only one 
-species (Gini, 1912; Simpson, 1949). The higher the value, the 
-greater the diversity. The maximum value is the number of species in 
-the sample. The name of the output layer is composed of the basename 
+nature of Simpson's Index is to use <i>1 - D)</i>. The index 
+represents the probability that two individuals randomly selected 
+from a sample will belong to different species. The value ranges 
+between 0 and 1, with greater values representing greater sample 
+diversity. The name of the output layer is composed of the basename 
 + ginisimpson.
 
 <h2>NOTES</h2>
@@ -101,6 +101,10 @@ should have a look at the
 addon or the various related r.li.* addons (see 
 below). These functions requires one input layer and compute the 
 diversity using a moving window.
+
+<p>Currently when working with very large raster layers and many 
+input layers, computations can take a long time. On the todo list: 
+find a way to reduce this.
 
 <h2>EXAMPLES</h2>
 

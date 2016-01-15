@@ -106,6 +106,12 @@
 #% guisection: Indices
 #%end
 
+#%flag
+#% key: t
+#% description: Total counts
+#% guisection: Indices
+#%end
+
 #%rules
 #% required: -r,-s,-h,-e,-p,-g,-n
 #%end
@@ -162,6 +168,7 @@ def main():
     #--------------------------------------------------------------------------
 
     # Layers
+    grass.info("Preparing...")
     OUT = options['output']
     IN = options['input']
     IN = IN.split(',')
@@ -175,6 +182,7 @@ def main():
     flag_p = flags['p']
     flag_g = flags['g']
     flag_n = flags['n']
+    flag_t = flags['t']
     if options['alpha']:
         Q = map(float, options['alpha'].split(','))
     else:
@@ -204,46 +212,50 @@ def main():
     #--------------------------------------------------------------------------
     # Renyi entropy
     #--------------------------------------------------------------------------
-    tmpt = tmpname("sht")
-    clean_rast.add(tmpt)
-    grass.info("Computing the sum across all input layers")
-    grass.run_command("r.series", quiet=True, output=tmpt,
-                      input=IN, method="sum")
+    tmp_1 = tmpname("sht")
+    clean_rast.add(tmp_1)
+    grass.info("Computing the sum across all input layers (this may take a while)")
+    grass.run_command("r.series", quiet=True, output=tmp_1, input=IN, method="sum")
     for n in xrange(len(Q)):
         grass.info(_("Computing alpha = {n}").format(n=Q[n]))
         Qn = str(Q[n])
         Qn = Qn.replace('.', '_')
-        out_renyi = OUT + "_Renyi_" + Qn
+        renyi = OUT + "_Renyi_" + Qn
         if Q[n] == 1:
             # If alpha = 1
-            grass.mapcalc("$tmpa = 0", tmpa=out_renyi, quiet=True)
+            # TODO See email 14-01-16 about avoiding loop below
+            grass.mapcalc("$renyi = 0", renyi=renyi, quiet=True)
             for i in xrange(len(IN)):
-                grass.mapcalc("$tmpta = $tmpta - (($inl/$tmpt) * log(($inl/$tmpt)))",
-                              tmpta=out_renyi,
-                              inl=IN[i],
-                              tmpt=tmpt,
-                              overwrite=True,
-                              quiet=True)
+                grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
+                tmp_2 = tmpname("sht")
+                clean_rast.add(tmp_2)
+                grass.mapcalc("$tmp_2 = if($inl==0, $renyi, $renyi - \
+                (($inl/$tmp_1) * log(($inl/$tmp_1))))",
+                              renyi=renyi, tmp_2=tmp_2,
+                              inl=IN[i], tmp_1=tmp_1, quiet=True)
+                grass.run_command("g.rename", raster='%s,%s' % (tmp_2,renyi),
+                                  overwrite=True, quiet=True)
         else:
             # If alpha != 1
-            tmptb = tmpname("sht")
-            clean_rast.add(tmptb)
-            grass.mapcalc("$tmpb = 0", tmpb=tmptb, quiet=True)
+            tmp_3 = tmpname("sht")
+            clean_rast.add(tmp_3)
+            tmp_4 = tmpname("sht")
+            clean_rast.add(tmp_4)
+            grass.mapcalc("$tmp_3 = 0", tmp_3=tmp_3, quiet=True)
             for i in xrange(len(IN)):
-                grass.mapcalc("$tmptb = if($inl==0,$tmptb+0, $tmptb+pow($inl/$tmpt,$alpha))",
-                              tmptb=tmptb,
-                              tmpt=tmpt,
-                              inl=IN[i],
-                              alpha=Q[n],
-                              quiet=True,
-                              overwrite=True)
-            grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmptb)",
-                              outl=out_renyi,
-                              tmptb=tmptb,
-                              alpha=Q[n],
-                              quiet=True)
+                grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
+                grass.mapcalc("$tmp_4 = if($inl==0,$tmp_3+0, $tmp_3 + \
+                pow($inl/$tmp_1,$alpha))",
+                            tmp_3=tmp_3, tmp_4=tmp_4,
+                            tmp_1=tmp_1, inl=IN[i],
+                            alpha=Q[n],  quiet=True)
+                grass.run_command("g.rename", raster='%s,%s' % (tmp_4,tmp_3),
+                            overwrite=True, quiet=True)
+            grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmp_3)",
+                            outl=renyi, tmp_3=tmp_3,
+                            alpha=Q[n], quiet=True)
             grass.run_command("g.remove", type="raster",
-                              name=tmptb, flags="f", quiet=True)
+                              name=tmp_3, flags="f", quiet=True)
 
     #--------------------------------------------------------------------------
     # Species richness
@@ -336,9 +348,15 @@ def main():
             grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
 
-    # Clean up temporary files
-    # grass.run_command("g.remove", type="raster", name=tmpt,
-    #                 flags="f", quiet=True)
+    #--------------------------------------------------------------------------
+    # Total count (base unit, like individuals)
+    #--------------------------------------------------------------------------
+    if flag_t:
+        rast = OUT + "_count"
+        grass.run_command("g.rename", raster=(tmp_1,rast), quiet=True)
+    else:
+        grass.run_command("g.remove", type="raster", name=tmp_1, flags="f", quiet=True)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
