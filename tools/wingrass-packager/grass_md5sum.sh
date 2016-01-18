@@ -23,7 +23,7 @@ fi
 function create_md5sum {
     GRASS_DIR=$1
     
-    cd ${HOME}/${PLATFORM_DIR}/${GRASS_DIR}
+    cd ${HOME}/${GRASS_DIR}/${PLATFORM_DIR}
     for file in `ls WinGRASS*.exe`; do
 	md5sum $file > ${file}.md5sum
     done

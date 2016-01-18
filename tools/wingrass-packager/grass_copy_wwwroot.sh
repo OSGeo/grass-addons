@@ -25,13 +25,13 @@ function copy {
     DIR=$1
     VERSION=$2
     
-    cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
+    cd ${HOME}/grass${DIR}/${PLATFORM_DIR}
 
-    if [ ! -d ${WWWDIR}/${PLATFORM_DIR} ] ; then
-	mkdir ${WWWDIR}/${PLATFORM_DIR}
+    if [ ! -d ${WWWDIR}/grass${DIR} ] ; then
+	mkdir ${WWWDIR}/grass${DIR}
     fi
 
-    DST_DIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR}
+    DST_DIR=${WWWDIR}/grass${DIR}/${PLATFORM_DIR}
 
     rm -rf $DST_DIR
     mkdir  $DST_DIR
@@ -51,12 +51,12 @@ function copy_addon {
     DIR=$1
     VERSION=$2
     
-    cd ${HOME}/${PLATFORM_DIR}/grass${DIR}
+    cd ${HOME}/grass${DIR}/${PLATFORM_DIR}
 
     if test -n "$VERSION"; then
-	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR:0:2}/addons/grass-$VERSION
+	ADDONDIR=${WWWDIR}/grass${DIR:0:2}/${PLATFORM_DIR}/addons/grass-$VERSION
     else
-	ADDONDIR=${WWWDIR}/${PLATFORM_DIR}/grass${DIR:0:2}/addons
+	ADDONDIR=${WWWDIR}/grass${DIR:0:2}/${PLATFORM_DIR}/addons
     fi
         
     mkdir -p $ADDONDIR
@@ -67,9 +67,9 @@ function copy_addon {
 
 function create_zip {
     cd $WWWDIR
-    zipfile=wingrass-${PLATFORM_DIR}.zip
+    zipfile=wingrass.zip
     rm $zipfile
-    zip $zipfile ${PLATFORM_DIR} -r -q
+    zip $zipfile grass* -r -q
 }
 
 echo "... ($PLATFORM_DIR)"

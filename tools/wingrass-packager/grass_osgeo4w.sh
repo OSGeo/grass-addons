@@ -28,7 +28,7 @@ function rsync_package {
     VERSION=$2
     PATCH=$3
 
-    dir=${HOME}/${PLATFORM_DIR}/grass${POSTFIX}/osgeo4w/package
+    dir=${HOME}/grass${POSTFIX}/${PLATFORM_DIR}/osgeo4w/package
     curr=`ls -t $dir/ 2>/dev/null | head -n1 | cut -d'-' -f4 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
 	package=$curr
@@ -38,10 +38,10 @@ function rsync_package {
 
     if test -z $VERSION; then
 	# daily builds
-	cp $dir/grass*-$package*.tar.bz2 ${HOME}/${PLATFORM_DIR}/grass${POSTFIX}
+	cp $dir/grass*-$package*.tar.bz2 ${HOME}/grass${POSTFIX}/${PLATFORM_DIR}
     else
 	# release
-	cp $dir/grass*-$package*.tar.bz2 ${HOME}/${PLATFORM_DIR}/grass${POSTFIX}/grass-${VERSION}-${PATCH}.tar.bz2
+	cp $dir/grass*-$package*.tar.bz2 ${HOME}/grass${POSTFIX}/${PLATFORM_DIR}/grass-${VERSION}-${PATCH}.tar.bz2
     fi
 }
 

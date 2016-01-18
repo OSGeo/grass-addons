@@ -30,7 +30,7 @@ function update {
     PATCH_NUM=$3
 
     SRC_PATH=/c/msys${PLATFORM}/$SRC/$GRASS_DIR
-    DEST_PATH=${HOME}/${PLATFORM_DIR}/${DST_DIR}
+    DEST_PATH=${HOME}/${DST_DIR}/${PLATFORM_DIR}
     
     cd $SRC_PATH
 
@@ -69,7 +69,7 @@ function create_log {
     REV=$2
     PATCH=$3
     
-    cd ${HOME}/${PLATFORM_DIR}/grass${VERSION}
+    cd ${HOME}/grass${VERSION}/${PLATFORM_DIR}
     LOG_DIR=log-r$2-$3
     
     mkdir -p $LOG_DIR
