@@ -157,8 +157,11 @@ def main():
     if not gcore.overwrite() and color_raster_tmp:
         check_map_name(color_raster_tmp)
     try:
+        params = {}
+        if options['maxdistance']:
+            params['maxdistance'] = options['maxdistance']
         gcore.run_command('r.horizon', elevation=elev, step=horizon_step,
-                          output=TMP_NAME, flags='d')
+                          output=TMP_NAME, flags='d', **params)
 
         msgr.message(_("Computing sky view factor ..."))
         new_maps = _get_horizon_maps()
