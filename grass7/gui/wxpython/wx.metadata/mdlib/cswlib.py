@@ -186,8 +186,9 @@ class CSWBrowserPanel(wx.Panel):
                                         size=wx.DefaultSize,
                                         style=HW_DEFAULT_STYLE | HW_SCROLLBAR_AUTO,
                                         name="metadata")
+        self.htmlView.SetBorders(5)
         self.htmlView.Bind(EVT_HTML_LINK_CLICKED, self.onHtmlLinkClicked)
-        # self.htmlView=wx.html2.WebView.New(self.pnlRight, not supported in 2.8.12.1
+        # self.htmlView=wx.html2.WebView.New(self.pnlRight, not supported in wx 2.8.12.1
         self.refreshNavigationButt()
         self._layout()
 
@@ -559,7 +560,7 @@ class CSWBrowserPanel(wx.Panel):
             data_url = item_data['wms']
             service = ['r.in.gdal', 'r.in.wms', 'Add web service layer']
             dlg = wx.SingleChoiceDialog(
-                self, 'Choice of module for WMS service ', 'Service module',
+                self, 'Choice of module for WMS ', 'Web Service selection',
                 service,
                 wx.CHOICEDLG_STYLE)
 
@@ -580,7 +581,7 @@ class CSWBrowserPanel(wx.Panel):
             data_url = item_data['wfs']
             service = ['v.in.ogr', 'v.in.wfs', 'Add web service layer']
             dlg = wx.SingleChoiceDialog(
-                self, 'Choice module of WFS service ', 'Service module',
+                self, 'Choice of module for WFS ', 'Web Service selection',
                 service,
                 wx.CHOICEDLG_STYLE
             )
@@ -657,11 +658,10 @@ class CSWBrowserPanel(wx.Panel):
         except Exception, err:
             GError('Connection error: %s' % err)
             return
-
         if self.catalog.results['matches'] == 0:
             self.findResNumLbl.SetLabel('0 results')
+            self.refreshNavigationButt(True)
             return
-
         self.refreshNavigationButt(True)
         self.displyResults()
 
@@ -1022,6 +1022,9 @@ class CSWConnectionPanel(wx.Panel):
         key = '/connections/%s' % current_text
 
         self.catalog_url = self.config.Read('%s/url' % key)
+
+        if self.cswBrowser:
+            self.parent.BrowserPanel.loadSettings()
 
         if not self._get_csw():
             return
