@@ -263,20 +263,22 @@ class CSWBrowserPanel(wx.Panel):
         self.Fit()
 
     def OnShowReguest(self, evt):
-        request_html = encodeString(highlight_xml(self.context, self.catalog.request))
-        path = os.path.join(tempfile.gettempdir(),'htmlRequest.html')
+        #request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
+        path = os.path.join(tempfile.gettempdir(),'htmlRequest.xml')
+        if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
-        f.write(request_html)
+        f.writelines(self.catalog.request)
         f.close()
         if yesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
             open_url(path)
         self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
 
     def OnShowResponse(self, evt):
-        response_html = encodeString(highlight_xml(self.context, self.catalog.response))
-        path = os.path.join(tempfile.gettempdir(),'htmlResponse.html')
+        #response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
+        path = os.path.join(tempfile.gettempdir(),'htmlResponse.xml')
+        if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
-        f.write(response_html)
+        f.write(self.catalog.response)
         f.close()
         if yesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
             open_url(path)
