@@ -7,17 +7,17 @@ DST=/osgeo/download/osgeo4w
 rsync_grass() {
     for p in x86 x86_64; do
 	rsync -avg --delete --delete-excluded \
-	    ${SRC}/${p}/grass${1}/osgeo4w/ \
+	    ${SRC}/grass${1}/${p}/osgeo4w/ \
 	    martinl@upload.osgeo.org:$DST/${p}/release/grass/grass$2
     done
 }
 
 rm_7() {
     for p in x86 x86_64; do
-	for f in `find $SRC/${p}/grass$1/WinGRASS* -mtime +7`; do
+	for f in `find $SRC/grass$1/${p}/WinGRASS* -mtime +7`; do
 	    rm -rfv $f
 	done
-	for f in `find $SRC/${p}/grass$1/osgeo4w/grass*.tar.bz2 -mtime +7`; do
+	for f in `find $SRC/grass$1/${p}/osgeo4w/grass*.tar.bz2 -mtime +7`; do
 	    rm -rfv $f
 	done
     done
@@ -26,7 +26,7 @@ rm_7() {
 update_setup() {
     for p in x86 x86_64; do
 	file=${HOME}/src/grass$1/mswindows/osgeo4w/setup.hint
-	pattern=${SRC}/${p}/grass$1/osgeo4w/*[0-9].tar.bz2
+	pattern=${SRC}/grass$1/${p}/osgeo4w/*[0-9].tar.bz2
     
 	curr=`ls -r -w1 $pattern | head -n1 | cut -d'-' -f4,5 | cut -d'.' -f1`
 	prev=`ls -r -w1 $pattern | head -n2 | tail -n1 | cut -d'-' -f4,5 | cut -d'.' -f1`
@@ -34,13 +34,14 @@ update_setup() {
     
 	sed -e "s/curr:.*/curr: ${version}-$curr/" \
 	    -e "s/prev:.*/prev: ${version}-$prev/" $file > \
-	    ${SRC}/${p}/grass$1/osgeo4w/setup.hint
+	    ${SRC}/grass$1/${p}/osgeo4w/setup.hint
     done
 }
 
 addons_index() {
+    cd ${SRC}/grass$1
     for p in x86 x86_64; do
-	cd ${SRC}/${p}/grass$1/addons
+	cd ${p}/addons
 	for d in $(find . -mindepth 1 -maxdepth 1 -type d) ; do
 	    cd $d/logs
 	    if [ -f "summary.html" ] ; then
@@ -51,35 +52,37 @@ addons_index() {
 
 	if [ "$1" = "70" ] ; then
         # create symlink to latest version
-            cd ${SRC}/${p}/grass$1/addons
+            cd ${SRC}/grass$1/${p}/addons
 	    rm latest
 	    last_version=`ls -w1 | sort -r | head -n2 | tail -n1`
 	    ln -sf $last_version latest
 	fi
+	cd ../..
     done
 }
 
 report() {
     VERSION=$1
+    cd ${SRC}/grass${VERSION}
     for p in x86 x86_64; do
-	cd ${SRC}/${p}/grass${VERSION}/logs
+	cd ${p}/logs
 	last_log=`ls -t -w1 . | head -n1`
 	if [ -d $last_log ] ; then
 	    cat $last_log/error.log 1>&2
 	fi
+	cd ../..
     done
 }
 
 download_unzip() {
-    wget -q http://147.32.131.91/wingrass/wingrass-${1}.zip
-    unzip -o -q wingrass-${1}.zip
-    rm wingrass-${1}.zip
+    wget -q http://147.32.131.91/wingrass/wingrass.zip
+    unzip -o -q wingrass.zip
+    rm wingrass.zip
 }
 
 # geo103 (win) -> geo101
 cd $WWW/wingrass
-download_unzip x86
-download_unzip x86_64
+download_unzip
 
 # summary.html -> index.html
 ### addons_index 64
