@@ -21,11 +21,13 @@
     <h3>{{ gettext('Record Metadata') }} (<a href="{{ obj.xml_url }}">{{ gettext('View XML') }}</a>)</h3>
 </header>
 <section id="record-metadata">
-    <table>
-        <tr>
-            <td>{{ gettext('Identifier') }}</td>
-            <td>{{ obj.identifier }}</td>
+     <table>
+         <tr>
+              <td>{{ gettext('Identifier') }}</td>
+              <td>{{ obj.identifier }}</td>
         </tr>
+    </table>
+    <table>
         <tr>
             <td>{{ gettext('Title') }}</td>
             <td>{{ obj.title }}</td>
@@ -49,10 +51,6 @@
         <tr>
             <td>{{ gettext('Publisher') }}</td>
             <td>{{ obj.publisher}}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Contributor') }}</td>
-            <td>{{ obj.contributor}}</td>
         </tr>
         <tr>
             <td>{{ gettext('Modified') }}</td>

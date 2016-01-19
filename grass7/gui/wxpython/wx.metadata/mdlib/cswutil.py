@@ -47,6 +47,8 @@ def render_template(language, context, data, template):
 
     env = Environment(extensions=['jinja2.ext.i18n'],
                       loader=FileSystemLoader(context.confDirPath))
+    env.globals.update(zip=zip)
+
     env.install_gettext_callables(gettext, ngettext, newstyle=True)
 
     template_file = template

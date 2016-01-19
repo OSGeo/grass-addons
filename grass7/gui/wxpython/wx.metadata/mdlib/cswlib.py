@@ -41,7 +41,7 @@ from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 
 
-class ConstraintsBulder(wx.Panel):
+class ConstraintsBuilder(wx.Panel):
     def __init__(self, parent, settings=''):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.label = wx.StaticText(self, -1, label="Manual for creating constraints:\n\
@@ -93,6 +93,8 @@ class CSWBrowserPanel(wx.Panel):
         self.constraintsAdvanced = False
         self.idResults = []
         self.constString = ''
+        self.outpoutschema='dc'
+        self.warns=True
         sizeConst = 55
         self.splitterBrowser = SplitterWindow(self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER)
         self.context = StaticContext()
@@ -210,7 +212,7 @@ class CSWBrowserPanel(wx.Panel):
                                       pos=wx.DefaultPosition)
 
             self.geDialog.SetSize((500, 500))
-            self.constrPnl = ConstraintsBulder(self.geDialog, self.constString)
+            self.constrPnl = ConstraintsBuilder(self.geDialog, self.constString)
             self.constrPnl.applyBtt.Bind(wx.EVT_BUTTON, self.OnSetAdvancedConstraints)
             self.constrPnl.cancelBtt.Bind(wx.EVT_BUTTON, self._destroyDialog)
             dbSizer = wx.BoxSizer(wx.VERTICAL)
@@ -271,7 +273,8 @@ class CSWBrowserPanel(wx.Panel):
         f.close()
         if yesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
             open_url(path)
-        self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
+        else:
+            self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
 
     def OnShowResponse(self, evt):
         #response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
@@ -282,10 +285,12 @@ class CSWBrowserPanel(wx.Panel):
         f.close()
         if yesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
             open_url(path)
-        self.htmlView.SetPage((renderXML(self.context, self.catalog.response)))
+        else:
+            self.htmlView.SetPage((renderXML(self.context, self.catalog.response)))
 
     def OnRecord(self, evt):
         """show record metadata"""
+
         self.refreshServiceButt()
         curr = 0
         idx = self.resultList.GetNextItem(curr, wx.LIST_NEXT_ALL,
@@ -293,35 +298,67 @@ class CSWBrowserPanel(wx.Panel):
         if not idx:
             return
 
-        identifier = self.get_item_data(idx, 'identifier')
-        try:
+        if self.outpoutschema == 'gmd':
+            startfr=self.startfrom+idx+1
+
+            #identifier = self.get_item_data(idx, 'identifier')
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
-            cat.getrecordbyid(
-                [self.catalog.records[identifier].identifier])
-        except ExceptionReport, err:
-            GWarning('Error getting response: %s' % err)
-            return
-        except KeyError, err:
-            GWarning('Record parsing error, unable to locate record identifier')
-            return
 
-        record = cat.records[identifier]
-        record.xml_url = cat.request
+            try:
+               cat.getrecords2(constraints=self.constraints,
+                             maxrecords=1,
+                             startposition=startfr,
+                             outputschema='http://www.isotc211.org/2005/gmd')
+            except ExceptionReport, err:
+                GWarning('Error getting response: %s' % err)
+                return
+            except KeyError, err:
+                GWarning('Record parsing error, unable to locate record identifier')
+                return
 
-        if self.catalog:
-            path = 'record_metadata_dc.html'
-            metadata = render_template('en', self.context,
-                                       record,
-                                       path)
+            if self.catalog:
+                md=cat.records.values()[0]
+                path = 'record_metadata_gmd.html'
+                metadata = render_template('en', self.context,md,path)
 
-        try:
-            record = self.catalog.records[identifier]
-        except KeyError, err:
-            GWarning('@!Record parsing error, unable to locate record identifier')
-            return
+            #try:
+            #    record = self.catalog.records[identifier]
+            #except KeyError, err:
+            #    GWarning('@!Record parsing error, unable to locate record identifier')
+            #    return
 
-        self.htmlView.SetPage(metadata)
-        self.findServices(record, idx)
+            self.htmlView.SetPage(metadata)
+            #self.findServices(record, idx)
+
+        else:
+            identifier = self.get_item_data(idx, 'identifier')
+            cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
+            try:
+               cat.getrecordbyid([self.catalog.records[identifier].identifier])
+            except ExceptionReport, err:
+                GWarning('Error getting response: %s' % err)
+                return
+            except KeyError, err:
+                GWarning('Record parsing error, unable to locate record identifier')
+                return
+
+            record = cat.records[identifier]
+            record.xml_url = cat.request
+
+            if self.catalog:
+                path = 'record_metadata_dc.html'
+                metadata = render_template('en', self.context,
+                                           record,
+                                           path)
+
+            try:
+                record = self.catalog.records[identifier]
+            except KeyError, err:
+                GWarning('@!Record parsing error, unable to locate record identifier')
+                return
+
+            self.htmlView.SetPage(metadata)
+            self.findServices(record, idx)
 
     def findServices(self, record, item):
         """scan record for WMS/WMTS|WFS|WCS endpoints"""
@@ -415,6 +452,7 @@ class CSWBrowserPanel(wx.Panel):
             self.bttAddWcs.Enable()
 
     def OnNavigate(self, evt):
+
         name = evt.GetEventObject().GetLabel()
         if name == '<<':
             self.startfrom = 0
@@ -438,15 +476,25 @@ class CSWBrowserPanel(wx.Panel):
                     return
 
         self.loadConstraints()
+
         try:
-            self.catalog.getrecords2(constraints=self.constraints,
-                                     maxrecords=self.maxrecords,
-                                     startposition=self.startfrom, esn='full')
+            if self.outpoutschema == 'gmd':
+                self.catalog.getrecords2(constraints=self.constraints,
+                                         maxrecords=self.maxrecords, esn='full',startposition=self.startfrom,
+                                         outputschema='http://www.isotc211.org/2005/gmd')
+            else:
+                self.catalog.getrecords2(constraints=self.constraints,
+                                         maxrecords=self.maxrecords,
+                                         startposition=self.startfrom, esn='full')
         except ExceptionReport, err:
             GWarning('Search error: %s' % err)
             return
         except Exception, err:
             GWarning('Connection error: %s' % err)
+            return
+
+        if self.outpoutschema == 'gmd':
+            self.displyResultsGMD()
             return
 
         self.displyResults()
@@ -645,7 +693,7 @@ class CSWBrowserPanel(wx.Panel):
             self.constraints.append(BBox(bbox))
 
         # (a && b)
-        # build request
+        # build requestprint
         if not self._get_csw():
             return
 
@@ -654,17 +702,42 @@ class CSWBrowserPanel(wx.Panel):
         try:
             self.catalog.getrecords2(constraints=self.constraints,
                                      maxrecords=self.maxrecords, esn='full')
+            self.outpoutschema='dc'
         except ExceptionReport, err:
             GError('Search error: %s' % err)
             return
         except Exception, err:
             GError('Connection error: %s' % err)
             return
+        #work around for GMD records
+        if len(self.catalog.records)==0 and self.catalog.results['matches'] != 0:
+            try:
+                self.catalog.getrecords2(constraints=self.constraints,
+                                         maxrecords=self.maxrecords, esn='full',
+                                         outputschema='http://www.isotc211.org/2005/gmd')
+                self.outpoutschema='gmd'
+                if self.warns:
+                    GWarning("Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly.")
+                    self.warns=False
+
+            except ExceptionReport, err:
+                GError('Search error: %s' % err)
+                return
+            except Exception, err:
+                GError('Connection error: %s' % err)
+                return
+
         if self.catalog.results['matches'] == 0:
             self.findResNumLbl.SetLabel('0 results')
             self.refreshNavigationButt(True)
             return
+
         self.refreshNavigationButt(True)
+        #parsing for another html template(GMD)
+        if self.outpoutschema == 'gmd':
+            self.displyResultsGMD()
+            return
+
         self.displyResults()
 
     def get_item_data(self, index, field):
@@ -694,6 +767,34 @@ class CSWBrowserPanel(wx.Panel):
             if field == "link":
                 d[index]['link'] = value
             self.idResults.insert(index, d)
+
+    def displyResultsGMD(self):
+        self.refreshResultList()
+        position = self.catalog.results['returned'] + self.startfrom
+        msg = 'Showing %s - %s of %s result(s)' % (self.startfrom + 1,
+                                                   position,
+                                                   self.catalog.results['matches'])
+
+        self.findResNumLbl.SetLabel(msg)
+        index = 0
+        for rec in self.catalog.records:
+
+            if self.catalog.records[rec].identification.identtype:
+                item = wx.ListItem()
+                self.resultList.InsertStringItem(index, normalize_text(self.catalog.records[rec].identification.identtype))
+            else:
+                self.resultList.SetStringItem(index, 0, 'unknown')
+            if self.catalog.records[rec].identification.title:
+                self.resultList.SetStringItem(index, 1, normalize_text(self.catalog.records[rec].identification.title))
+
+            if self.catalog.records[rec].identification.title:
+                self.set_item_data(index, 'identifier',
+                                   self.catalog.records[rec].identification.title)
+            if index % 2:
+                self.resultList.SetItemBackgroundColour(index, "LIGHT GREY")
+            index += 1
+
+        self.Fit()
 
     def displyResults(self):
         """display search results"""
@@ -878,10 +979,24 @@ class CSWConnectionPanel(wx.Panel):
         self.serviceInfoBtt.Bind(wx.EVT_BUTTON, self.onServiceInfo)
 
         self.textMetadata.Bind(EVT_HTML_LINK_CLICKED, self.onHtmlLinkClicked)
+        self.textMetadata.Bind(wx.EVT_KEY_DOWN, self.OnHtmlKeyDown)
+
         self._layout()
 
-    def GetUrl(self):
-        return self.catalog_url
+    def OnHtmlKeyDown(self,event):
+        if self._is_copy(event):
+            self._add_selection_to_clipboard()
+        self.textMetadata.Parent.OnKey(event)
+        event.Skip()
+
+    def _is_copy(self, event):
+        return event.GetKeyCode() == ord('C') and event.CmdDown()
+
+    def _add_selection_to_clipboard(self):
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(wx.TextDataObject(self.textMetadata.SelectionToText()))
+        wx.TheClipboard.Close()
+
 
     def onNewconnection(self, evt=None, cancel=False):
         if self.newBtt.GetLabel() == "New":
@@ -904,7 +1019,6 @@ class CSWConnectionPanel(wx.Panel):
             self.stBoxConnections1Sizer.Add(self.connNameNew, 1, wx.EXPAND)
             self.stBoxConnections1Sizer.Add(self.connUrlNewLabel, 1, wx.EXPAND)
             self.stBoxConnections1Sizer.Add(self.connUrlNew, 1, wx.EXPAND)
-
 
         else:
             # test validity of connection

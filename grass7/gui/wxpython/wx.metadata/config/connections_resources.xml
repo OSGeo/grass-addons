@@ -14,4 +14,7 @@
     <csw name="UK Location Catalogue Publishing Service" url="http://csw.data.gov.uk/geonetwork/srv/en/csw" />
     <csw name="UNEP GRID-Geneva Metadata Catalog" url="http://metadata.grid.unep.ch:8080/geonetwork/srv/eng/csw" />
     <csw name="USA: Data.gov CSW" url="http://catalog.data.gov/csw-all" />
-<csw name="localhost" url="http://localhost:8000/" /><csw name="den" url="http://www.geodata-info.dk/registrant/srv/en/csw" /></qgsCSWConnections>
+    <csw name="localhost" url="http://localhost:8000/" />
+    <csw name="INSPIRE Geoportal Discovery Service(workaround for GMD)" url="http://data.jrc.ec.europa.eu/catalogue/service" />
+    <csw name="den" url="http://www.geodata-info.dk/registrant/srv/en/csw" />
+</qgsCSWConnections>
