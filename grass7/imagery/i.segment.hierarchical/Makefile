@@ -7,11 +7,11 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = isegpatch
 
-ETCDIR = $(ETC)/i.segment.hierarchical
+ETCDIR = $(ETC)/$(PGM)
 
-PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
+ETCFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 
-default: script $(PYFILES)
+default: $(ETCFILES) script 
 
 $(ETCDIR):
 	$(MKDIR) $@
