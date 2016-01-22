@@ -150,11 +150,7 @@ from grass.pygrass.modules.grid.split import split_region_tiles
 from grass.pygrass.gis import Location
 from grass.pygrass.utils import get_lib_path
 
-path = get_lib_path("i.segment.hierarchical", "")
-if path is None:
-    raise ImportError("Not able to find the path %s directory." % path)
-
-sys.path.append(path)
+set_path("i.segment.hierarchical")
 from isegpatch import rpatch_map
 
 
