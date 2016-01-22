@@ -1,0 +1,43 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.ortho.corr</em> create a new image, it search the images near the input map and the output contains part of near images where the camera angle value it's the best.
+<p>
+
+<h2>NOTES</h2>
+You must create a tile index contains all the images to correct, you can use gdaltindex to create it
+<div class="code"><pre>
+gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
+</pre></div>
+The <em>field</em> option it's used for the field's name which contain the path to the file, the default is <em>location</em> that it is used by gdaltindex
+The <em>exclude</em> option it serve to remove some tiles, for example you have tile of different flight, you can pass a string or a regex
+
+<h2>EXAMPLES</h2>
+Create tile index
+<div class="code"><pre>
+gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
+</pre></div>
+Import tile index inside the mapset
+<div class="code"><pre>
+v.in.ogr dns=tile.shp out=tile_images
+</pre></div>
+Start i.ortho.corr with the default parameters, the output map's name it will be <em>image.ortho_corr</em>. You can use default parameters if you didn't change the output prefix in i.ortho.photo
+<div class="code"><pre>
+i.ortho.corr input=image.ortho tiles=tile_images
+</pre></div>
+Start i.ortho.corr with different parameters
+<div class="code"><pre>
+i.ortho.corr input=image.photo tiles=tile_images osuffix=.photo csuffix=.camera 
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.ortho.photo.html">i.ortho.photo</a>,
+<a href="i.photo.rectify.html">i.photo.rectify</a>
+</em> 
+
+<h2>AUTHOR</h2>
+
+Luca Delucchi, Fondazione E. Mach (Italy)
+
+<p><i>Last changed: $Date$</i>
