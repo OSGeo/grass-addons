@@ -148,7 +148,7 @@ from grass.pygrass.modules.grid.grid import copy_rasters
 from grass.pygrass.modules.grid.split import split_region_tiles
 
 from grass.pygrass.gis import Location
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 
 set_path("i.segment.hierarchical")
 from isegpatch import rpatch_map
