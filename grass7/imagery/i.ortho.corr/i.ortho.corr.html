@@ -1,30 +1,52 @@
 <h2>DESCRIPTION</h2>
 
-<em>i.ortho.corr</em> create a new image, it search the images near the input map and the output contains part of near images where the camera angle value it's the best.
+<em>i.ortho.corr</em> allows to correct orthophotos using the camera
+angle map create by <em>i.ortho.photo</em>.
+
+<p>
+It creates a new image by searching further images adjacent to the input
+image. The output contains part of near images where the camera angle
+value is optimal.
 <p>
 
 <h2>NOTES</h2>
-You must create a tile index contains all the images to correct, you can use gdaltindex to create it
+
+It requires a tile index to be created containing all the images to be
+processed (e.g., GDAL's <em>gdaltindex</em> can create that):
+
 <div class="code"><pre>
 gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
 </pre></div>
-The <em>field</em> option it's used for the field's name which contain the path to the file, the default is <em>location</em> that it is used by gdaltindex
-The <em>exclude</em> option it serve to remove some tiles, for example you have tile of different flight, you can pass a string or a regex
+
+The <em>field</em> option is used for the field's name which contains the
+path to the file, the default is <em>location</em> that it is used by
+<em>gdaltindex</em>. The <em>exclude</em> option serves to remove some
+tiles, for example when having tiles from a different flight, they can be
+excluded by passing a string or a regular expression.
 
 <h2>EXAMPLES</h2>
-Create tile index
+
+Create tile index:
 <div class="code"><pre>
 gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
 </pre></div>
+
+<p>
 Import tile index inside the mapset
 <div class="code"><pre>
 v.in.ogr dns=tile.shp out=tile_images
 </pre></div>
-Start i.ortho.corr with the default parameters, the output map's name it will be <em>image.ortho_corr</em>. You can use default parameters if you didn't change the output prefix in i.ortho.photo
+
+<p>
+Start <em>i.ortho.corr</em> with the default parameters, the output map's
+name will be <tt>image.ortho_corr</tt>. You can use default parameters if
+you didn't change the output prefix in i.ortho.photo:
 <div class="code"><pre>
 i.ortho.corr input=image.ortho tiles=tile_images
 </pre></div>
-Start i.ortho.corr with different parameters
+
+<p>
+Start <em>i.ortho.corr</em> with different parameters
 <div class="code"><pre>
 i.ortho.corr input=image.photo tiles=tile_images osuffix=.photo csuffix=.camera 
 </pre></div>
