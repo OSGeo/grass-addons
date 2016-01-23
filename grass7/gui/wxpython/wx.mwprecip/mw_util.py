@@ -426,17 +426,19 @@ def getFilesInFoldr(fpath, full=False):
 
 
 class MeasureTime():
-    def __init__(self):
+    def __init__(self,total_count_step=14):
         self.startLast=None
+        self.total_count_step=total_count_step
         self.end=None
         self.start=None
         self.logger = logging.getLogger('mwprecip.MeasureTime')
+        self.set_counter=0
 
-    def timeMsg(self,msg,end=False):
+    def timeMsg(self,msg,end=False,step=1):
+        self.set_counter += 1
         if self.start is None:
             self.start = time.time()
             self.startLast= self.start
-            #grass.message("Measuring time - start: %s "%self.start)
             self.logger.info("Measuring time - START: %s "%str(datetime.now()))
         else:
             self.end = time.time()
@@ -444,16 +446,14 @@ class MeasureTime():
             elapsedLast=self.end-self.startLast
             self.startLast=self.end
 
-            #grass.message("Elapsed time from start < %s > : %s"%(msg,elapsed))
-            #grass.message("Elapsed time for last part < %s > : %s"%(msg,elapsedLast))
+            grass.percent(self.set_counter,self.total_count_step,1)
+            self.logger.info("counter num < %s >"%(self.set_counter))
 
             self.logger.info("TOTAL TIME < %s > : %s"%(msg,elapsedTotal))
             self.logger.info("LAST PART TIME< %s > : %s"%(msg,elapsedLast))
 
             if end:
-                #grass.message("Total time: %s"%(elapsed))
-                #grass.message("Measuring time - end: %s "%self.end)
-
+                grass.percent(self.total_count_step,self.total_count_step,1)
                 self.logger.info("TOTAL TIME e: %s"%(elapsedTotal))
                 self.logger.info("Measuring time - END: %s "%str(datetime.now()))
 
