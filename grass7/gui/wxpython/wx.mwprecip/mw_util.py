@@ -440,14 +440,13 @@ class MeasureTime():
             self.start = time.time()
             self.startLast= self.start
             self.logger.info("Measuring time - START: %s "%str(datetime.now()))
+            self.logger.info(msg)
         else:
             self.end = time.time()
             elapsedTotal=self.end - self.start
             elapsedLast=self.end-self.startLast
             self.startLast=self.end
-
             grass.percent(self.set_counter,self.total_count_step,1)
-            self.logger.info("counter num < %s >"%(self.set_counter))
 
             self.logger.info("TOTAL TIME < %s > : %s"%(msg,elapsedTotal))
             self.logger.info("LAST PART TIME< %s > : %s"%(msg,elapsedLast))
