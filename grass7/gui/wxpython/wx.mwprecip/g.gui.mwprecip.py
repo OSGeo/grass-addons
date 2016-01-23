@@ -549,7 +549,8 @@ class ExportData(wx.Panel):
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
-        self.loggerPath=None
+        #logging.getLogger().addHandler(logging.StreamHandler())
+        self.initConsoleLogger()
         self.worker = None
         self.logger=None
         context=StaticContext()
@@ -560,7 +561,7 @@ class MWMainFrame(wx.Frame):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.panelSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainPanel = wx.Panel(self,id=wx.ID_ANY)
-
+        self.loggerCurrentProfile=""
         menubar = wx.MenuBar()
         settMenu = wx.Menu()
         databaseItem = settMenu.Append(wx.ID_ANY, 'Database', 'Set database')
@@ -614,52 +615,52 @@ class MWMainFrame(wx.Frame):
         self.computeBtt.Disable()
         self.exportDataBtt = wx.Button(self.mainPanel, label='Export data')
         self.computeBtt.Bind(wx.EVT_BUTTON, self.startProcess)
+        self.exportDataBtt.Disable()
         self.exportDataBtt.Bind(wx.EVT_BUTTON, self.exportData)
 
         self.findProject()
         self.layout()
 
-    def initLogger(self,path):
-        logging.basicConfig(filename=path,
-                            level=logging.INFO,
-                            format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                            datefmt='%m-%d %H:%M',
-                            filemode='w')
+    def initFileLogger(self,path):
+        fileHandler = logging.FileHandler(filename=path,mode="w")
+        fileHandler.setLevel(logging.INFO)
+        fileFormater=logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+        fileHandler.setFormatter(fileFormater)
+        logging.getLogger('').addHandler(fileHandler)
+        logging.getLogger('mwprecip.GUI')
 
-
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        # set a format which is simpler for console use
+    def initConsoleLogger(self):
+        root = logging.getLogger()
+        root.setLevel(logging.INFO)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
         formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-        # tell the handler to use this format
-        console.setFormatter(formatter)
-        # add the handler to the root logger
-        logging.getLogger('').addHandler(console)
-
-        self.logger=logging.getLogger('mwprecip.GUI')
-
+        ch.setFormatter(formatter)
+        root.addHandler(ch)
 
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
         GMessage( "ver: %s \n %s"%(VERSION,dir),self)
 
-
     def getMinTime(self, evt=None):
-        self.OnSaveSettings(toFile=False)
+        if not self.OnSaveSettings(toFile=False):
+            return
         interface = Gui2Model(self, self.settings,self.workPath)  # TODO optimalize init
         if interface.checkConn():
             interface.initConnection()
             self.dataMgrMW.start.SetValue(interface.dbConn.minTimestamp())
 
     def getMaxTime(self, evt=None):
-        self.OnSaveSettings(toFile=False)
+        if not self.OnSaveSettings(toFile=False):
+            return
         interface = Gui2Model(self, self.settings,self.workPath)
         if interface.checkConn():
             interface.initConnection()
             self.dataMgrMW.end.SetValue(interface.dbConn.maxTimestamp())
 
     def GetConnection(self):
-        self.OnSaveSettings(toFile=False)
+        if not self.OnSaveSettings(toFile=False):
+            return
         interface = Gui2Model(self, self.settings,self.workPath)
         if interface.checkConn():
             interface.initConnection()
@@ -669,9 +670,11 @@ class MWMainFrame(wx.Frame):
         if self.schema.GetValue() is not None:
             self.newScheme.Enable()
             self.computeBtt.Enable()
+            self.exportDataBtt.Enable()
         else:
             self.newScheme.Disable()
             self.computeBtt.Disable()
+            self.exportDataBtt.Disable()
 
     def OnLoadSettings(self, evt=None):
         currSelId = self.profilSelection.GetSelection()
@@ -720,17 +723,16 @@ class MWMainFrame(wx.Frame):
         self.settings['workSchema'] = self.profilSelection.GetValue()
         if self.schema.GetValue() is not None:
             self.settings['workSchema'] = self.schema.GetValue()
-
+        else:
+            GMessage("Set working profile")
+            return False
         tmpPath = os.path.join(self.workPath, 'save', self.settings['workSchema'])
-        profilePath=os.path.join(self.workPath,"logs")
-        if not os.path.exists(profilePath):
-            os.mkdir(profilePath)
-        self.loggerPath = os.path.join(profilePath,"%s.logg"% self.settings['workSchema'])
-        self.initLogger(self.loggerPath)
+
         if toFile:
             saveDict(tmpPath, self.settings)
 
         self.findProject()
+        return True
 
     def initWorkingFoldrs(self):
         savePath = os.path.join(self.workPath, 'save')
@@ -864,7 +866,8 @@ class MWMainFrame(wx.Frame):
 
     def _onExport(self, evt=None):
         path = OnSaveAs(self)
-        self.OnSaveSettings(toFile=False)
+        if not self.OnSaveSettings(toFile=False):
+            return
         if not self.exportDMgr.chkprecip.GetValue(): #if export only data from sql without computing
             attrTmp1 = ['link.linkid']
             attrTmp2 = []
@@ -954,14 +957,23 @@ class MWMainFrame(wx.Frame):
         self.exportDialog.Destroy()
 
     def startProcess(self,evt=None):
+        profilePath=os.path.join(self.workPath,"logs")
+        if not os.path.exists(profilePath):
+            os.mkdir(profilePath)
+        self.initFileLogger(os.path.join(profilePath,"%s.log"% self.settings['workSchema']))
+        print "file logger initialized"
+
         self.thread=gThread()
         self.thread.Run(callable=self.runComp,
                         ondone=self.onFinish)
         self.computeBtt.Enable()
+        self.exportDataBtt.Enable()
 
     def runComp(self, evt=None):
         self.computeBtt.Disable()
+        self.exportDataBtt.Disable()
         self.OnSaveSettings(toFile=False)
+
         exportData = {'getData': False, 'dataOnly': False}
         self.settings['dataExport'] = exportData
 
@@ -976,10 +988,6 @@ class MWMainFrame(wx.Frame):
                 return
             self.worker.initVectorGrass()
 
-            #if interpolate points along lines
-            #if self.pointInter.interpolState.GetValue():
-            #    interface.initPInterpolation()
-
             self.worker.initTimeWinMW()
             self.worker.initBaseline()
             self.worker.Run()
@@ -987,6 +995,7 @@ class MWMainFrame(wx.Frame):
     def onFinish(self,evt):
         #self.computeBtt.SetLabel('Compute')
         self.computeBtt.Enable()
+        self.exportDataBtt.Enable()
         GMessage('Finish',self)
 
     def layout(self):
@@ -1159,14 +1168,12 @@ class Gui2Model():
         self.twin = TimeWindows(**winInit)
 
     def Run(self):
-        # GMessage('OK')
         comp = Computor(self.baseline, self.twin, self.dbConn, self.settings['dataExport'])
         state, msg = comp.GetStatus()
         if state:
             self.initGrassLayerMgr()
             self.initTemporalMgr()
         return
-        #GMessage(msg)
         #self.initgrassManagement()
 
     def initGrassLayerMgr(self):
@@ -1182,7 +1189,6 @@ class Gui2Model():
 
     def initTemporalMgr(self):
         GrassTemporalMgr(self.dbConn, self.twin)
-        #GMessage('Finish')
 
     def errMsg(self, label):
         print label
