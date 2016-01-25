@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 
     if (!strcasecmp(wiflag, "wi") && (!(opt.nir->answer)
                 || !(opt.green->answer) || !(opt.red->answer)
-                || !(opt.chan5->answer) || !(opt.chan7chan->answer)) )
+                || !(opt.chan5->answer) || !(opt.chan7->answer)) )
         G_fatal_error(_("wi requires green, red, nir, chan5 and chan7 maps"));
 
     /***************************************************/ 
