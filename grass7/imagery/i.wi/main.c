@@ -25,6 +25,7 @@ double ls_wi(double nirchan, double chan7chan);
 double ndwi_mcfeeters(double greenchan, double nirchan);
 double ndwi_xu(double greenchan, double chan5chan);
 double tcw(double bluechan, double greenchan, double redchan, double nirchan, double chan5chan, double band7chan);
+double wi( double greenchan, double redchan, double nirchan, double chan5chan, double chan7chan);
 
 int main(int argc, char *argv[]) 
 {
@@ -76,15 +77,16 @@ int main(int argc, char *argv[])
     opt.winame->description = _("Type of water index");
     desc = NULL;
     G_asprintf(&desc,
-               "awei_ns;%s;awei_s;%s;lswi;%s;ndwi_mf;%s;ndwi_x;%s;tcw;%s;",
+               "awei_ns;%s;awei_s;%s;lswi;%s;ndwi_mf;%s;ndwi_x;%s;tcw;%s;wi;%s;",
                _("Automated Water Extraction Index - No Shadow"),
                _("Automated Water Extraction Index - Shadow"),
                _("Land Soil Water Index"),
                _("Normalized Difference Water Index - Mc Feeters"),
                _("Normalized Difference Water Index - Xu"),
-               _("Tasseled Cap Water"));
+               _("Tasseled Cap Water"),
+               _("Water Index"));
     opt.winame->descriptions = desc;
-    opt.winame->options = "awei_ns,awei_s,lswi,ndwi_mf,ndwi_x,tcw";
+    opt.winame->options = "awei_ns,awei_s,lswi,ndwi_mf,ndwi_x,tcw,wi";
     opt.winame->answer = "lswi";
     opt.winame->key_desc = _("type");
 
@@ -180,6 +182,11 @@ int main(int argc, char *argv[])
                 || !(opt.nir->answer) || !(opt.green->answer) 
                 || !(opt.chan5->answer) || !(opt.chan7->answer)) )
         G_fatal_error(_("awei_shadow requires blue, green, red,  nir, chan5 and chan7 maps"));
+
+    if (!strcasecmp(wiflag, "wi") && (!(opt.nir->answer)
+                || !(opt.green->answer) || !(opt.red->answer)
+                || !(opt.chan5->answer) || !(opt.chan7chan->answer)) )
+        G_fatal_error(_("wi requires green, red, nir, chan5 and chan7 maps"));
 
     /***************************************************/ 
     if(bluechan)
@@ -388,6 +395,11 @@ int main(int argc, char *argv[])
                 /*calculate tcw                     */
 		if (!strcasecmp(wiflag, "tcw")) {
                 d = tcw(d_bluechan, d_greenchan, d_redchan, d_nirchan, d_chan5chan, d_chan7chan);
+                ((DCELL *) outrast)[col] = d;
+                }
+                /*calculate wi                      */
+		if (!strcasecmp(wiflag, "wi")) {
+                d = wi(d_greenchan, d_redchan, d_nirchan, d_chan5chan, d_chan7chan);
                 ((DCELL *) outrast)[col] = d;
                 }
 	    }
