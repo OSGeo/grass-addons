@@ -42,13 +42,13 @@ class SaveLoad(wx.Panel):
 
 class BaseInput(wx.Panel):
     # def __init__(self, parent, label,key, cats=False):
-    def __init__(self, parent, label):
+    def __init__(self, parent, label, style=0):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         statText = wx.StaticText(self, id=wx.ID_ANY, label=label)
         #if cats:
         #self.ctrl = gselect.VectorCategorySelect(parent=self, giface=self._giface)  # TODO gifece
         #else:
-        self.text = wx.TextCtrl(self, id=wx.ID_ANY)
+        self.text = wx.TextCtrl(self, id=wx.ID_ANY, style=style)
         #self.key=key
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(statText, flag=wx.EXPAND)

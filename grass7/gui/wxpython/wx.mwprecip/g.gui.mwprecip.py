@@ -35,9 +35,9 @@ class DBconn(wx.ScrolledWindow):
         self.host = BaseInput(self, label='Host name')
         self.user = BaseInput(self, label='User name')
         self.port = BaseInput(self, label='Port')
-        self.passwd = BaseInput(self, label='Password')
+        self.passwd = BaseInput(self, label='Password', style=wx.TE_PASSWORD)
         # self.saveLoad = SaveLoad(self)
-        self.okBtt = wx.Button(self, wx.ID_OK, label='ok and close')
+        self.okBtt = wx.Button(self, wx.ID_OK)
         self.okBtt.Bind(wx.EVT_BUTTON, self.saveSettings)
         if len(settings) > 0:
             self.loadSettings()
@@ -46,15 +46,16 @@ class DBconn(wx.ScrolledWindow):
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        panelSizer.Add(self.database, flag=wx.EXPAND)
-        panelSizer.Add(self.schema, flag=wx.EXPAND)
-        panelSizer.Add(self.host, flag=wx.EXPAND)
-        panelSizer.Add(self.user, flag=wx.EXPAND)
-        panelSizer.Add(self.port, flag=wx.EXPAND)
-        panelSizer.Add(self.passwd, flag=wx.EXPAND)
+        panelSizer.Add(self.database, flag=wx.EXPAND | wx.ALL, border=5)
+        panelSizer.Add(self.user, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.passwd, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.host, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.schema, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.port, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+
         panelSizer.AddSpacer(10, 0, wx.EXPAND)
         # panelSizer.Add(self.saveLoad, flag=wx.EXPAND)
-        panelSizer.Add(self.okBtt, flag=wx.EXPAND)
+        panelSizer.Add(self.okBtt, flag=wx.EXPAND | wx.ALL, border=5)
 
         self.SetSizerAndFit(panelSizer)
 
@@ -479,11 +480,11 @@ class GeometryPanel(wx.Panel):
     def layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        panelSizer.Add(self.label, flag=wx.EXPAND)
-        panelSizer.Add(self.linksExp, flag=wx.EXPAND)
-        panelSizer.Add(self.nodesExp, flag=wx.EXPAND)
-        panelSizer.Add(self.mapName, flag=wx.EXPAND)
-        panelSizer.Add(self.bttExport, flag=wx.EXPAND)
+        panelSizer.Add(self.label, flag=wx.EXPAND | wx.ALL, border=5)
+        panelSizer.Add(self.linksExp, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.nodesExp, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.mapName, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
+        panelSizer.Add(self.bttExport, flag=wx.EXPAND | wx.ALL, border=5)
         self.SetSizerAndFit(panelSizer)
 
     def GetOptions(self):
@@ -549,6 +550,8 @@ class ExportData(wx.Panel):
 class MWMainFrame(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title,style=wx.DEFAULT_FRAME_STYLE )
+        self.SetIcon(wx.Icon(os.path.join(globalvar.ICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
+
         #logging.getLogger().addHandler(logging.StreamHandler())
         self.initConsoleLogger()
         self.worker = None
@@ -640,7 +643,7 @@ class MWMainFrame(wx.Frame):
 
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
-        GMessage( "ver: %s \n %s"%(VERSION,dir),self)
+        GMessage( "wx.metadata\n\nVersion: %s \nDirectory: %s"%(VERSION,dir),self)
 
     def getMinTime(self, evt=None):
         if not self.OnSaveSettings(toFile=False):
@@ -762,8 +765,6 @@ class MWMainFrame(wx.Frame):
                                   size=wx.DefaultSize,
                                   pos=wx.DefaultPosition)
 
-        self.geDialog.SetSize((500, 500))
-
         if self.settings:
             self.geometryPnl = GeometryPanel(self.geDialog, self.settings)
         else:
@@ -774,6 +775,7 @@ class MWMainFrame(wx.Frame):
         dbSizer.Add(self.geometryPnl, flag=wx.EXPAND)
         self.geDialog.SetSizer(dbSizer)
         self.geDialog.SetBestFittingSize()
+        self.geDialog.SetSize((300, -1))
         self.geDialog.ShowModal()
         self.geDialog.Destroy()
 
@@ -815,12 +817,11 @@ class MWMainFrame(wx.Frame):
 
     def onSetDatabase(self, evt):
         self.dbDialog = wx.Dialog(self, id=wx.ID_ANY,
-                                  title='Database connection settings',
+                                  title='DB connection settings',
                                   style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-                                  size=wx.DefaultSize,
+                                  size=(300, -1),
                                   pos=wx.DefaultPosition)
 
-        self.dbDialog.SetSize((500, 500))
 
         if self.settings:
             self.databasePnl = DBconn(self.dbDialog, self.settings)
@@ -832,6 +833,7 @@ class MWMainFrame(wx.Frame):
         dbSizer.Add(self.databasePnl, flag=wx.EXPAND)
         self.dbDialog.SetSizer(dbSizer)
         self.dbDialog.SetBestFittingSize()
+        self.dbDialog.SetMinSize((300, -1))
         self.dbDialog.ShowModal()
         self.dbDialog.Destroy()
 
