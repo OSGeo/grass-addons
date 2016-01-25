@@ -27,15 +27,15 @@ open water features in remotely sensed imagery. International Journal of Remote
 Sensing, 27, 3025–3033. http://dx.doi.org/10.1080/01431160600589179.
      * Landsat TM/ETM+ : (b2-b5)/(b2+b5) (green-MIR)/(green+MIR)
      */ 
-double ndwi_xu(double greenchan, double mirchan) 
+double ndwi_xu(double greenchan, double chan5chan) 
 {
     double result;
 
-    if ((greenchan + mirchan) == 0.0) {
+    if ((greenchan + chan5chan) == 0.0) {
 	result = -1.0;
     }
     else {
-	result = (greenchan - mirchan) / (greenchan + mirchan);
+	result = (greenchan - chan5chan) / (greenchan + chan5chan);
     }
     return result;
 }
