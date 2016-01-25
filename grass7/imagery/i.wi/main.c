@@ -21,7 +21,7 @@
 #include <grass/glocale.h>
 double awei_noshadow(double greenchan, double nirchan, double chan5chan);
 double awei_shadow(double bluechan, double greenchan, double nirchan, double chan5chan, double band7chan);
-double ls_wi(double nirchan, double swirchan);
+double ls_wi(double nirchan, double chan7chan);
 double ndwi_mcfeeters(double greenchan, double nirchan);
 double ndwi_xu(double greenchan, double chan5chan);
 double tcw(double bluechan, double greenchan, double redchan, double nirchan, double chan5chan, double band7chan);
@@ -33,9 +33,10 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row, col;
     char *wiflag;		/*Switch for particular index */
+    char *desc;
     struct GModule *module;
     struct {
-        struct Option *viname, *red, *nir, *green, *blue, *chan5,
+        struct Option *winame, *red, *nir, *green, *blue, *chan5,
             *chan7, *bits, *output;
     } opt;
     struct Flag *flag1;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
     char *bluechan, *greenchan, *redchan, *nirchan, *chan5chan, *chan7chan;
     int i = 0, j = 0;
     void *inrast_bluechan, *inrast_greenchan, *inrast_redchan;
-    void *inrast_nirchan, *inrast_chan5chan, *inrast_chan7han;
+    void *inrast_nirchan, *inrast_chan5chan, *inrast_chan7chan;
 
     DCELL * outrast;
     RASTER_MAP_TYPE data_type_output = DCELL_TYPE;
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
     opt.winame->description = _("Type of water index");
     desc = NULL;
     G_asprintf(&desc,
-               "awei_noshadow;%s;awei_shadow;%s;lswi;%s;ndwi_McFeeters;%s;ndwi_Xu;%s;tcw;%s;",
+               "awei_ns;%s;awei_s;%s;lswi;%s;ndwi_mf;%s;ndwi_x;%s;tcw;%s;",
                _("Automated Water Extraction Index - No Shadow"),
                _("Automated Water Extraction Index - Shadow"),
                _("Land Soil Water Index"),
@@ -144,7 +145,7 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
     
-    wiflag = opt.viname->answer;
+    wiflag = opt.winame->answer;
     redchan = opt.red->answer;
     nirchan = opt.nir->answer;
     greenchan = opt.green->answer;
@@ -360,7 +361,7 @@ int main(int argc, char *argv[])
 			Rast_set_d_null_value(&outrast[col], 1);
 		}
 		else {
-			d = ls_wi(d_nirchan, d_swirchan);
+			d = ls_wi(d_nirchan, d_chan7chan);
 			((DCELL *) outrast)[col] = d;
 		    }
 		}
@@ -370,7 +371,7 @@ int main(int argc, char *argv[])
 	            Rast_set_d_null_value(&outrast[col], 1);
 		}
 		else {
-                    d = ndwi_mf(d_greenchan, d_nirchan);
+                    d = ndwi_mcfeeters(d_greenchan, d_nirchan);
                     ((DCELL *) outrast)[col] = d;
                 }
                 }
@@ -380,7 +381,7 @@ int main(int argc, char *argv[])
 	            Rast_set_d_null_value(&outrast[col], 1);
 		}
 		else {
-                    d = ndwi_x(d_greenchan, d_chan5chan);
+                    d = ndwi_xu(d_greenchan, d_chan5chan);
                     ((DCELL *) outrast)[col] = d;
                 }
                 }
