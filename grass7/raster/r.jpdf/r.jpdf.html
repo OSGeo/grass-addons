@@ -1,0 +1,51 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.jpdf</em> reads two series of raster maps and calculates for each raster cell the joint probability density function of the two input series. The output is set of raster maps, each containing the probability within a range of values from the first set and a range from the second set. NULL values are ignored when calculating the JPDF.
+<p>
+
+The number of output raster maps is determined by the number of "bins" specified by the user using the parameters <em>input1</em> and <em>input2</em>. The users gives the range and density of bins with <em> input1=Start1,End1,Nbins1 input2=Start2,End2,Nbins2</em>. In this case the data from the first data set will be assigned to <em>Nbins1</em> intervals between <em>Start1</em> and <em>End1</em> and <em>Nbins2</em> intervals between <em>Start2</em> and <em>End2</em> for the second data set. In addition, <em>r.jpdf</em> will calculate extra bins for values below or above the start and end values given by the user. In total, the output will consist of (<em>Nbins1</em>+2)&times;(<em>Nbins2</em>+2) raster maps. The naming of the output rasters is <em>Prefix_N1_N2</em> where <em>Prefix</em> is given by the parameter <em>output</em>. <em>N1</em> and <em>N2</em> may contain leading zeros.
+</p>
+
+
+
+<h2>NOTES</h2>
+
+<h3>Input series of different lengths</h3>
+Rasters from the two series of input data will be compared in the order in which they appear in the two lists. If one list is longer than the other, the trailing raster maps will be ignored.
+
+<h3>Memory consumption</h3>
+
+The (<em>Nbins1</em>+2)&times;(<em>Nbins2</em>+2) raster maps are held in memory until the end of the processing. On the other hand, only one raster from each of the two series of input rasters will be held in memory.
+
+
+<h2>EXAMPLES</h2>
+
+Using <em>r.jpdf</em> with wildcards:
+<br>
+<div class="code"><pre>
+r.series input1="`g.list pattern='temperature*' sep=,`" input2="`g.list pattern='pressure*' sep=,`"\
+         output=jpdf_temp_pres bins1=-20,40,10 bins2=950,1030,10 
+</pre></div>
+<p>
+Note the <em>g.list</em> script also supports regular expressions for
+selecting map names.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="g.list.html">g.list</a>,
+<a href="g.region.html">g.region</a>,
+<a href="r.quantile.html">r.quantile</a>,
+<a href="r.series.accumulate.html">r.series.accumulate</a>,
+<a href="r.series.interp.html">r.series.interp</a>,
+<a href="r.univar.html">r.univar</a>
+</em>
+<p>
+<a href="http://grasswiki.osgeo.org/wiki/Large_raster_data_processing">Hints for large raster data processing</a>
+
+<h2>AUTHOR</h2>
+
+Thomas Huld
+
+<p><i>Last changed: $Date: 2016-01-07 16:31:30 +0100 (Thu, 7 January 2016) $</i>
