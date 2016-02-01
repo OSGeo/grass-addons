@@ -30,7 +30,7 @@ double wi( double greenchan, double redchan, double nirchan, double chan5chan, d
 int main(int argc, char *argv[]) 
 {
     struct Cell_head cellhd;	/*region+header info */
-    char *mapset;		/*mapset name */
+    char *mapset="";		/*mapset name */
     int nrows, ncols;
     int row, col;
     char *wiflag;		/*Switch for particular index */
