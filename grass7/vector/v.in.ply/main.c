@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 	    db_append_string(&sql, buf);
 	}
 	db_append_string(&sql, ")");
-	G_debug(3, db_get_string(&sql));
+	G_debug(3, "%s", db_get_string(&sql));
 
 	driver =
 	    db_start_driver_open_database(Fi->driver,
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 
 	if (make_table) {
 	    db_append_string(&sql, " )");
-	    G_debug(3, db_get_string(&sql));
+	    G_debug(3, "%s", db_get_string(&sql));
 
 	    if (db_execute_immediate(driver, &sql) != DB_OK) {
 		db_close_database(driver);
