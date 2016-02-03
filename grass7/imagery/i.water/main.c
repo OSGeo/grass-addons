@@ -28,7 +28,7 @@ double water_modis(double surf_ref_7, double ndvi);
 int main(int argc, char *argv[]) 
 {
     struct Cell_head cellhd;	/*region+header info */
-    char *mapset;		/*mapset name */
+    char *mapset="";		/*mapset name */
     int nrows, ncols;
     int row, col;
     struct GModule *module;
