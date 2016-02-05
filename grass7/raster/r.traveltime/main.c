@@ -1,4 +1,4 @@
-/* main.c for r.traveltime, December 2007
+/* main.c for r.traveltime, December 2007, updated September 2014
  *
  * ############################################################################
  * #
@@ -6,11 +6,11 @@
  * #
  * # AUTHOR(S):    Kristian Foerster
  * #
- * # PURPOSE:      This programm calculates traveltimes from a digital
+ * # PURPOSE:      This program calculates traveltimes from a digital
  * #               terrain model, a roughness grid and some output
- * #               files from r.watershed. The aim of this tool is to
+ * #               files from r.watershed. This tool is designed to
  * #               estimate a unit hydrograph for precipitation-runoff
- * #               prediction
+ * #               prediction.
  * #
  * # COPYRIGHT:    (c) 2007 Kristian Foerster
  * #
@@ -32,7 +32,7 @@
 #include <grass/config.h>
 
 
-/* 
+/*
  * global declarations
  */
 extern CELL f_c(CELL);
@@ -46,10 +46,10 @@ int in_accu, in_dir, in_n, in_dtm, outfd;	/* file descriptor */
 RASTER_MAP_TYPE data_type_accu, data_type_dtm, data_type_n, data_type_dir;	/* type of the map (CELL/DCELL/...) */
 double **array_out;
 int ac_thres;
-double nc, b, ep, fdis;
+double nc, b, dis, slope_min;
 
 /*
- * the function inflow checks if an adjacent cell discharges in the active cell
+ * the function inflow checks if an adjacent cell discharges into the active cell
  */
 
 int inflow(int loc_x, int loc_y, int vec_x, int vec_y)
@@ -62,78 +62,85 @@ int inflow(int loc_x, int loc_y, int vec_x, int vec_y)
     value = ((CELL *) inrast_dir)[loc_x];
 
     // conversions of the flow direction classification to vectors
-
+    // Note: the flow directions categories have been changed to "agnps" format!
     switch (value) {
-    case 1:
-	x_exp = 1;
-	y_exp = -1;
-	break;
-    case 2:
-	x_exp = 0;
-	y_exp = -1;
-	break;
-    case 3:
-	x_exp = -1;
-	y_exp = -1;
-	break;
-    case 4:
-	x_exp = -1;
-	y_exp = 0;
-	break;
-    case 5:
-	x_exp = -1;
-	y_exp = 1;
-	break;
-    case 6:
-	x_exp = 0;
-	y_exp = 1;
-	break;
-    case 7:
-	x_exp = 1;
-	y_exp = 1;
-	break;
-    case 8:
-	x_exp = 1;
-	y_exp = 0;
-	break;
-    default:
-	x_exp = 1;
-	y_exp = 0;
-	break;
+        case 1:
+            x_exp = 0;
+            y_exp = -1;
+            break;
+        case 2:
+            x_exp = 1;
+            y_exp = -1;
+            break;
+        case 3:
+            x_exp = 1;
+            y_exp = 0;
+            break;
+        case 4:
+            x_exp = 1;
+            y_exp = 1;
+            break;
+        case 5:
+            x_exp = 0;
+            y_exp = 1;
+            break;
+        case 6:
+            x_exp = -1;
+            y_exp = 1;
+            break;
+        case 7:
+            x_exp = -1;
+            y_exp = 0;
+            break;
+        case 8:
+            x_exp = -1;
+            y_exp = -1;
+            break;
+        default:
+            x_exp = 1;
+            y_exp = 0;
+            break;
     }
+
     if ((vec_x == x_exp * (-1)) & (vec_y == y_exp * (-1)))
-	return 1;
+        return 1;
     else
-	return 0;
+        return 0;
 }
 
 /*
- * traveltime calculates traveltimes from one cell to another
+ * traveltime calculates travel times from one cell to another (time of concentration)
  */
 
 double traveltime(double length, double slope, double manning,
 		  double drainage)
 {
-    double slope_min = 0.001;
+    // double slope_min = 0.001;
     double t;
     double Q;
 
     if (slope < slope_min)
-	slope = slope_min;
+        slope = slope_min;
 
-    /* for areas with drainage accumulation < threshold surface runoff will be calculated
-     * areas with larger drainage accumulation the channel formula is used instead
+    /* for areas with drainage accumulation < threshold surface runoff will be calculated,
+     * for areas with larger drainage accumulation the channel formula is used instead
      */
-
     if (drainage < ac_thres) {
-	t = pow(length, 0.6) * pow(manning, 0.6) / pow(ep / 1000.0 / 3600.0, 0.4) / pow(slope, 0.3);	//surface runoff
+        /* overland flow according to
+         * Woolhiser and Liggett’s (1967)
+         * Muzik (1996)
+         * Melesse and Graham (2004)
+         * please note: this formula expects effective rain / surface runoff input in m/s
+         */
+        t = pow(length, 0.6) * pow(manning, 0.6) / pow(dis, 0.4) / pow(slope, 0.3);	//surface runoff
     }
     else {
-	Q = fdis * drainage * res_x * res_y * ep / 1000.0 / 3600.0;	//equilibrium runoff
-	t = length / pow(sqrt(slope) / nc * pow(Q / b, (2.0 / 3.0)), 0.6);	// channel runoff
+        // channel runoff
+        // specific discharge l/s/km^2
+        Q = dis * drainage * res_x * res_y;  //equilibrium runoff, ! changed !
+        t = length / pow(sqrt(slope) / nc * pow(Q / b, (2.0 / 3.0)), 0.6);
     }
-
-    return t / 60.0;		//seconds to minutes
+    return t;
 }
 
 /*
@@ -150,71 +157,92 @@ int ttime(double ftime, int x, int y, int dx, int dy)
     double z1, z2;
     double manningsn;
 
+    // get flow direction
     Rast_get_row(in_dir, inrast_dir, y, data_type_dir);
     dir = ((CELL *) inrast_dir)[x];
 
+    // get flow accumulation
     Rast_get_row(in_accu, inrast_accu, y, data_type_accu);
-    accu = ((CELL *) inrast_accu)[x];
+    /* $kf 2014-09-25: check input of accumulation map...
+     * Older versions of r.watershed generate CELL type
+     * maps whereas the newer versions write FCELL maps.
+     */
+    switch(data_type_accu)
+    {
+    case CELL_TYPE:
+        accu = ((CELL *) inrast_accu)[x];
+        break;
+    case DCELL_TYPE:
+        accu = (int) ((DCELL *) inrast_accu)[x];
+        break;
+    case FCELL_TYPE:
+        accu = (int) ((FCELL *) inrast_accu)[x];
+        break;
 
+    }
+
+    // get roughness
     Rast_get_row(in_n, inrast_n, y, data_type_n);
     switch (data_type_n) {
     case DCELL_TYPE:
-	manningsn = (double)((DCELL *) inrast_n)[x];
-	break;
+        manningsn = (double)((DCELL *) inrast_n)[x];
+        break;
     case FCELL_TYPE:
-	manningsn = (double)((FCELL *) inrast_n)[x];
-	break;
+        manningsn = (double)((FCELL *) inrast_n)[x];
+        break;
     }
 
+    // get elevation 2
     Rast_get_row(in_dtm, inrast_dtm, y, data_type_dtm);
     switch (data_type_dtm) {
     case CELL_TYPE:
-	z2 = (double)((CELL *) inrast_dtm)[x];
-	break;
+        z2 = (double)((CELL *) inrast_dtm)[x];
+        break;
     case DCELL_TYPE:
-	z2 = (double)((DCELL *) inrast_dtm)[x];
-	break;
+        z2 = (double)((DCELL *) inrast_dtm)[x];
+        break;
     case FCELL_TYPE:
-	z2 = (double)((FCELL *) inrast_dtm)[x];
-	break;
+        z2 = (double)((FCELL *) inrast_dtm)[x];
+        break;
     }
 
+    // get elevation 1
     Rast_get_row(in_dtm, inrast_dtm, y - dy, data_type_dtm);
     switch (data_type_dtm) {
     case CELL_TYPE:
-	z1 = (double)((CELL *) inrast_dtm)[x - dx];
-	break;
+        z1 = (double)((CELL *) inrast_dtm)[x - dx];
+        break;
     case DCELL_TYPE:
-	z1 = (double)((DCELL *) inrast_dtm)[x - dx];
-	break;
+        z1 = (double)((DCELL *) inrast_dtm)[x - dx];
+        break;
     case FCELL_TYPE:
-	z1 = (double)((FCELL *) inrast_dtm)[x - dx];
-	break;
+        z1 = (double)((FCELL *) inrast_dtm)[x - dx];
+        break;
     }
 
     for (i = -1; i < 2; i++) {
-	for (j = -1; j < 2; j++) {
-	    if (inflow(x + i, y + j, i, j) > 0) {
-		L = sqrt(pow(i * res_x, 2.0) + pow(j * res_y, 2.0));
-		J = 1.0 * (z2 - z1) / L;
-		// time from here to outlet
-		thist = ftime + traveltime(L, J, manningsn, accu);
-		array_out[y + j][x + i] = thist;
-		int r = ttime(thist, x + i, y + j, i, j);
+        for (j = -1; j < 2; j++) {
+            if (inflow(x + i, y + j, i, j) > 0) {
+                L = sqrt(pow(i * res_x, 2.0) + pow(j * res_y, 2.0));
+                J = 1.0 * (z2 - z1) / L;
+                // time from here to outlet
+                thist = ftime + traveltime(L, J, manningsn, accu);
+                array_out[y + j][x + i] = thist;
+                int r = ttime(thist, x + i, y + j, i, j);
 
-		v = 1;
-	    }
-	    else {
-		v = 0;
-	    }
-	}
+                v = 1;
+            }
+            else {
+                v = 0;
+            }
+        }
     }
     return v;
 }
 
 
 /*
- * main function
+ * main function of r.traveltime
  */
 
 int main(int argc, char *argv[])
@@ -233,7 +261,7 @@ int main(int argc, char *argv[])
     int row, col;
     int verbose;
     int cx, cy, x, y;
-    double factor;
+    double discharge;
 
     struct Cell_head window;
 
@@ -242,7 +270,9 @@ int main(int argc, char *argv[])
     /* options */
     struct Option *input_dir, *input_accu, *input_dtm, *input_n, *output,
 	*input_outlet_x, *input_outlet_y, *input_thres, *input_nc, *input_b,
-	*input_ep, *input_fdis;
+	*input_dis, *input_slmin;
+
+	struct Flag *flag1;		/* flags */
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -311,29 +341,32 @@ int main(int argc, char *argv[])
     input_nc->description = "Channel roughness (Manning's n)";
     input_nc->gisprompt = "old,cell,raster";
 
-    input_ep = G_define_option();
-    input_ep->key = "ep";
-    input_ep->type = TYPE_STRING;
-    input_ep->required = YES;
-    input_ep->description = "Excess precipitation [mm/h]";
-    input_ep->gisprompt = "old,cell,raster";
+    input_dis = G_define_option();
+    input_dis->key = "dis";
+    input_dis->type = TYPE_STRING;
+    input_dis->required = YES;
+    input_dis->description="Specific discharge [l/s/km**2]";
+    input_dis->gisprompt ="old,cell,raster";
 
-    input_fdis = G_define_option();
-    input_fdis->key = "fdis";
-    input_fdis->type = TYPE_STRING;
-    input_fdis->required = YES;
-    input_fdis->description =
-	"Reduction factor for equilibrium discharge, 0.0 < f <= 1.0 (default=1)";
-    input_fdis->gisprompt = "old,cell,raster";
+    input_slmin = G_define_option();
+    input_slmin->key = "slopemin";
+    input_slmin->type = TYPE_STRING;
+    input_slmin->required = NO;
+    input_slmin->description="Minimum slope for flat areas [m/m]";
+    input_slmin->gisprompt ="old,cell,raster";
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->key = "out";
-    output->description = "Output travel time map [minutes]";
+    output->description = "Output travel time map [seconds]";
+
+   /* Define the different flags */
+    flag1 = G_define_flag();
+    flag1->key = 'q';
+    flag1->description = _("Quiet");
 
     /* options and flags pareser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
-
+        exit(EXIT_FAILURE);
 
     /* stores options and flags to variables */
     map_accu = input_accu->answer;
@@ -345,16 +378,18 @@ int main(int argc, char *argv[])
     sscanf(input_thres->answer, "%d", &ac_thres);
     sscanf(input_b->answer, "%lf", &b);
     sscanf(input_nc->answer, "%lf", &nc);
-    sscanf(input_ep->answer, "%lf", &ep);
-    sscanf(input_fdis->answer, "%lf", &factor);
+    sscanf(input_dis->answer,"%lf",&discharge);
+        result = output->answer;
 
-    result = output->answer;
+    // options
+    if (input_slmin->answer == NULL)
+        slope_min = 0.001;
+    else
+        sscanf(input_slmin->answer,"%lf",&slope_min);
 
-    if (factor > 0 & factor <= 1.0)
-	fdis = factor;
-    else {
-	   G_fatal_error("Reduction factor is not valid!");
-    }
+    verbose = (!flag1->answer);
+
+    dis = discharge * 1.0E-9;   // l/s/km^2 => m/s
 
     mapset = G_find_raster2(map_dir, "");
     mapset = G_find_raster2(map_accu, "");
@@ -393,22 +428,21 @@ int main(int argc, char *argv[])
     outfd = Rast_open_new(result, FCELL_TYPE);
 
     /* output array */
-
     array_out = (double **)malloc(nrows * sizeof(double *));
     if ((NULL == array_out))
-	G_fatal_error("Out of memory ... !");
-    int i, j;
+        G_fatal_error("Out of memory ... !");
 
+    int i, j;
     for (i = 0; i < nrows; i++) {
-	array_out[i] = (double *)malloc(ncols * sizeof(double));
-	if ((NULL == array_out[i]))
-	    G_fatal_error("Out of memory ... !");
+        array_out[i] = (double *)malloc(ncols * sizeof(double));
+        if ((NULL == array_out[i]))
+            G_fatal_error("Out of memory ... !");
     }
 
     for (i = 0; i < nrows; i++) {
-	for (j = 0; j < ncols; j++) {
-	    array_out[i][j] = DBL_MAX;
-	}
+        for (j = 0; j < ncols; j++) {
+            array_out[i][j] = DBL_MAX;
+        }
     }
 
     /*
@@ -423,27 +457,27 @@ int main(int argc, char *argv[])
     cy = G_scan_northing(*input_outlet_y->answers, &outy, G_projection());
 
     if (!cx) {
-	array_out[y][x] = 0.0;
+        array_out[y][x] = 0.0;
 
-	fprintf(stderr, "Illegal east coordinate <%s>\n",
-		*input_outlet_y->answer);
-	G_usage();
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "Illegal east coordinate <%s>\n",
+            *input_outlet_y->answer);
+        G_usage();
+        exit(EXIT_FAILURE);
     }
 
     if (!cy) {
-	fprintf(stderr, "Illegal north coordinate <%s>\n",
-		*input_outlet_y->answer);
-	G_usage();
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "Illegal north coordinate <%s>\n",
+            *input_outlet_y->answer);
+        G_usage();
+        exit(EXIT_FAILURE);
     }
 
 
 
     if (outx < window.west || outx > window.east || outy < window.south ||
-	outy > window.north) {
-	fprintf(stderr, "Warning, ignoring point outside window: \n");
-	fprintf(stderr, "   %.4f,%.4f\n", outx, outy);
+        outy > window.north) {
+        fprintf(stderr, "Warning, ignoring point outside window: \n");
+        fprintf(stderr, "   %.4f,%.4f\n", outx, outy);
     }
 
 
@@ -453,28 +487,30 @@ int main(int argc, char *argv[])
     cy = (window.north - outy) / res_y;
     cx = (outx - window.west) / res_x;
     if (verbose)
-	printf
-	    ("\ngrid location of outlet x=%d, y=%d\n(resolution %.0fx%.0f map units, meters expected)\n",
+    {
+        printf("\ngrid location of outlet x=%d, y=%d\n(resolution %.0fx%.0f map units, meters expected)\n",
 	     cx, cy, res_x, res_y);
+        printf("minimum slope=%7.5f\n",slope_min);
+        printf("surface runoff: %f l/s/km**2 = %e m/s = %f mm/h\n", discharge, dis, (discharge * 1E-6 * 3600));
+    }
 
 
     x = cx;
     y = cy;
 
-
     /*
      * first call of traveltime function
      */
     array_out[y][x] = 0.0;
-    int m = ttime(0, x, y, 0, 0);
+    int m = ttime(0.0, x, y, 0, 0);
 
     /* output */
     for (row = 0; row < nrows; row++) {
-	for (col = 0; col < ncols; col++) {
-	    ((CELL *) outrast)[col] = array_out[row][col];
-	}
-	/* write raster row to output raster file */
-	Rast_put_row(outfd, outrast, CELL_TYPE);
+        for (col = 0; col < ncols; col++) {
+            ((CELL *) outrast)[col] = array_out[row][col];
+        }
+        /* write raster row to output raster file */
+        Rast_put_row(outfd, outrast, CELL_TYPE);
     }
 
     /* closing raster files */
@@ -484,9 +520,9 @@ int main(int argc, char *argv[])
 //    Rast_close(inrast_n);
 
     Rast_close(in_dir);
-    Rast_close(in_accu); 
-    Rast_close(in_n); 
-    Rast_close(in_dtm); 
+    Rast_close(in_accu);
+    Rast_close(in_n);
+    Rast_close(in_dtm);
     Rast_close(outfd);
 
     return 0;

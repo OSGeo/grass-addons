@@ -1,17 +1,14 @@
 <h2>DESCRIPTION</h2>
 <em>r.traveltime</em> computes the travel time of surface runoff to an
 outlet. The program starts at the basin outlet and calculates the travel
-time at each raster cell recursively. A drainage area related threhold
-considers even surface and also channel runoff. Travel times are
+time for each raster cell recursively. A drainage area related threshold
+considers either surface runoff or channel runoff. Travel times are
 derived by assuming kinematic wave approximation.<br>
-To derive channel flow velocities an equilibrium discharge for each
-cell is calculated (Q=Area*Excess_Prcipitation, Assumption: storm
-duration &gt;= time of concentration). This assumption may result
-in overestimated velocities. Therefor a factor is implemented to reduce
-velocities biased towards too large values.<br>
+In order to derive channel flow velocities, an equilibrium discharge 
+for each cell is calculated (Q=Area*specific discharge).<br>
 The results can be used to derive a time-area function. This might be
-usefull for precipitation-runoff calculations (estimation of flood
-predictions) with a lumped hydrologic model (user-specified unit
+useful for precipitation-runoff calculations (estimation of flood
+predictions) with a lumped hydrological model (user-specified unit
 hydrograph).
 
 <h2>REMARKS</h2>
@@ -19,6 +16,14 @@ The program ist restricted to SI units (meters). The algorithm is
 recursive. Maybe it will not work with extensive datasets. It is
 assumed that the minimum slope is 0.001. For smaller gradients the
 program uses this value.
+<br>
+Please not that the flow accumulation map must be defined as single
+direction. Multiple flow directions are not supported. Thus, the
+"SFD (D8) flow" option has to be set if, e.g., the r.watershed
+module is used to generate the input files (parameter s). The flow
+accumulation map should include positive values only (-a of
+r.watershed). Flow direction definitions are in accordance to the 
+r.fill.dir program using the "agnps" format option.
 
 <h2>KNOWN ISSUES</h2>
 The program does not work correctly if Manning's roughness grid is
@@ -28,20 +33,19 @@ roughness distribution try: r.mapcalc 'roughness = 0.1f'
 The region has to be set one row and column larger than the elevation
 map. See the example below to see how to do that with g.region.
 
+
 <h2>EXAMPLE</h2>
 <i>This example uses the North Carolina sample dataset.</i>
 <p>
 <div class="code"><pre>
-g.region raster=elev_lid792_1m n=n+1 s=s-1 w=w-1 e=e+1 -p
-r.watershed elev_lid792_1m thresh=5000 accum=accum_5K   drain=draindir_5K
-r.fill.dir elev_lid792_1m output=elev_filled outdir=elev_dir
-
-r.mapcalc "rough = 0.1f"
-r.traveltime dir=draindir_5K@user1 accu=accum_5K@user1 \
-      dtm=elev_filled@user1 manningsn=rough out_x=638741.43125 \
-      out_y=220269.7 threshold=1 b=1 nchannel=0.1 ep=40 fdis=1 \
-      out=travel_time
-r.colors travel_time col=gyr
+g.region raster=elevation
+r.mapcalc "n=0.1f"
+r.fill.dir input=elevation output=fill outdir=flowdir format=agnps
+r.fill.dir input=fill output=fill2 outdir=flowdir2 format=agnps
+r.watershed -a -s elevation=fill2 accumulation=accu
+r.traveltime --overwrite dir=flowdir2 accu=accu dtm=fill2 manningsn=n
+	out_x=634613 out_y=217014 threshold=250 b=3 nchannel=0.03 slopemin=0.01
+	dis=900 out=ttime
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -70,4 +74,4 @@ GIS</em>, Journal of the American Water Resources Association, 8,
 
 <h2>AUTHOR</h2>
 Kristian Foerster<br>
-<p><i>Last changed: $Date$</i>
+<p><i>Last changed: $Date 2014-09-26$</i>
