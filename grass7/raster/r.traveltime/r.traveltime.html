@@ -29,24 +29,26 @@ r.fill.dir program using the "agnps" format option.
 The program does not work correctly if Manning's roughness grid is
 defined as double (float expected). To define a simple uniform
 roughness distribution try: r.mapcalc 'roughness = 0.1f'
-<br>
-The region has to be set one row and column larger than the elevation
-map. See the example below to see how to do that with g.region.
-
 
 <h2>EXAMPLE</h2>
 <i>This example uses the North Carolina sample dataset.</i>
 <p>
 <div class="code"><pre>
 g.region raster=elevation
-r.mapcalc "n=0.1f"
-r.fill.dir input=elevation output=fill outdir=flowdir format=agnps
-r.fill.dir input=fill output=fill2 outdir=flowdir2 format=agnps
+r.mapcalc "n = 0.1f"
+r.fill.dir input=elevation output=fill direction=flowdir format=agnps
+r.fill.dir input=fill output=fill2 direction=flowdir2 format=agnps
 r.watershed -a -s elevation=fill2 accumulation=accu
-r.traveltime --overwrite dir=flowdir2 accu=accu dtm=fill2 manningsn=n
-	out_x=634613 out_y=217014 threshold=250 b=3 nchannel=0.03 slopemin=0.01
+r.traveltime --overwrite dir=flowdir2 accu=accu dtm=fill2 manningsn=n \
+	out_x=634613 out_y=217014 threshold=250 b=3 nchannel=0.03 slopemin=0.01 \
 	dis=900 out=ttime
+r.colors ttime colors=blues
 </pre></div>
+
+<center>
+        <img src="r_traveltime.png" border="1"><br>
+</center>
+
 
 <h2>SEE ALSO</h2>
 <em>
