@@ -391,20 +391,22 @@ int main(int argc, char *argv[])
 
     dis = discharge * 1.0E-9;   // l/s/km^2 => m/s
 
-    mapset = G_find_raster2(map_dir, "");
-    mapset = G_find_raster2(map_accu, "");
-    mapset = G_find_raster2(map_dtm, "");
-    mapset = G_find_raster2(map_n, "");
 
     /* determine the inputmap type (CELL/FCELL/DCELL) */
+    mapset = G_find_raster2(map_dir, "");
     data_type_dir = Rast_map_type(map_dir, mapset);
-    data_type_accu = Rast_map_type(map_accu, mapset);
-    data_type_n = Rast_map_type(map_n, mapset);
-    data_type_dtm = Rast_map_type(map_dtm, mapset);
-
     in_dir = Rast_open_old(map_dir, mapset);
+
+    mapset = G_find_raster2(map_accu, "");
+    data_type_accu = Rast_map_type(map_accu, mapset);
     in_accu = Rast_open_old(map_accu, mapset);
+
+    mapset = G_find_raster2(map_n, "");
+    data_type_n = Rast_map_type(map_n, mapset);
     in_n = Rast_open_old(map_n, mapset);
+
+    mapset = G_find_raster2(map_dtm, "");
+    data_type_dtm = Rast_map_type(map_dtm, mapset);
     in_dtm = Rast_open_old(map_dtm, mapset);
 
     G_debug(3, "number of rows %d", cellhd_accu.rows);
