@@ -40,7 +40,6 @@ from grass.script import parse_key_val
 from subprocess import PIPE
 from datetime import date, datetime
 
-from osgeo import osr
 class GrassMD():
 
     '''
@@ -216,6 +215,12 @@ class GrassMD():
             return epsg
 
     def wkt2standards(self,prj_txt):
+        try:
+            from osgeo import osr
+        except Exception , e:
+            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled'%e)
+            return None
+
         srs = osr.SpatialReference()
         srs.ImportFromESRI([prj_txt])
         srs.AutoIdentifyEPSG()
@@ -223,7 +228,7 @@ class GrassMD():
             int(srs.GetAuthorityCode(None))
             return srs.GetAuthorityCode(None)
         except:
-            grass.message('Attemp of identifiyng EPSG is not successful')
+            grass.message('Attempt of identifying EPSG is not successful')
             return None
 
     def createTemporalISO(self, profile=None):
