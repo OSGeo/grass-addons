@@ -35,7 +35,6 @@ from owslib.fes import BBox, PropertyIsLike
 from owslib.ows import ExceptionReport
 from gui_core.forms import GUI
 from core.gcmd import GError, GMessage, GWarning
-from modules.import_export import GdalImportDialog
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
@@ -83,18 +82,18 @@ Examples\n\
 
 class CSWBrowserPanel(wx.Panel):
     def __init__(self, parent, main, giface=None):
+        wx.Panel.__init__(self, parent)
         self.context = StaticContext()
         self.giface = giface
-        self.config = wx.Config('g.gui.cswbrowser')
-        wx.Panel.__init__(self, parent)
+        self.config = main.config
         self.parent = main
         self.constraintsWidgets = []
         self.constraintsWidgets1 = []
         self.constraintsAdvanced = False
         self.idResults = []
         self.constString = ''
-        self.outpoutschema='dc'
-        self.warns=True
+        self.outpoutschema = 'dc'
+        self.warns = True
         sizeConst = 55
         self.splitterBrowser = SplitterWindow(self, style=wx.SP_3D | wx.SP_LIVE_UPDATE | wx.SP_BORDER)
         self.context = StaticContext()
@@ -194,15 +193,6 @@ class CSWBrowserPanel(wx.Panel):
         self.refreshNavigationButt()
         self._layout()
 
-    '''
-    def OnTypeBB(self,evt):
-        raw_value = evt.GetValue().strip()
-        # numeric check
-        print raw_value
-        if all(x in '0123456789.+-' for x in raw_value):
-            evt.ChangeValue(raw_value)
-    '''
-
     def OnKeywordDialog(self, evt):
         if self.advanceChck.GetValue():
             self.geDialog = wx.Dialog(self, id=wx.ID_ANY,
@@ -265,8 +255,8 @@ class CSWBrowserPanel(wx.Panel):
         self.Fit()
 
     def OnShowReguest(self, evt):
-        #request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
-        path = os.path.join(tempfile.gettempdir(),'htmlRequest.xml')
+        # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
+        path = os.path.join(tempfile.gettempdir(), 'htmlRequest.xml')
         if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
         f.writelines(self.catalog.request)
@@ -277,8 +267,8 @@ class CSWBrowserPanel(wx.Panel):
             self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
 
     def OnShowResponse(self, evt):
-        #response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
-        path = os.path.join(tempfile.gettempdir(),'htmlResponse.xml')
+        # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
+        path = os.path.join(tempfile.gettempdir(), 'htmlResponse.xml')
         if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
         f.write(self.catalog.response)
@@ -287,6 +277,10 @@ class CSWBrowserPanel(wx.Panel):
             open_url(path)
         else:
             self.htmlView.SetPage((renderXML(self.context, self.catalog.response)))
+
+    def getTmpConnection(self, name):
+        key = '/connections/%s/url' % name
+        return self.config.Read(key)
 
     def OnRecord(self, evt):
         """show record metadata"""
@@ -299,16 +293,13 @@ class CSWBrowserPanel(wx.Panel):
             return
 
         if self.outpoutschema == 'gmd':
-            startfr=self.startfrom+idx+1
-
-            #identifier = self.get_item_data(idx, 'identifier')
+            startfr = self.startfrom + idx + 1
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
-
             try:
-               cat.getrecords2(constraints=self.constraints,
-                             maxrecords=1,
-                             startposition=startfr,
-                             outputschema='http://www.isotc211.org/2005/gmd')
+                cat.getrecords2(constraints=self.constraints,
+                                maxrecords=1,
+                                startposition=startfr,
+                                outputschema='http://www.isotc211.org/2005/gmd')
             except ExceptionReport, err:
                 GWarning('Error getting response: %s' % err)
                 return
@@ -317,24 +308,17 @@ class CSWBrowserPanel(wx.Panel):
                 return
 
             if self.catalog:
-                md=cat.records.values()[0]
+                md = cat.records.values()[0]
                 path = 'record_metadata_gmd.html'
-                metadata = render_template('en', self.context,md,path)
-
-            #try:
-            #    record = self.catalog.records[identifier]
-            #except KeyError, err:
-            #    GWarning('@!Record parsing error, unable to locate record identifier')
-            #    return
+                metadata = render_template('en', self.context, md, path)
 
             self.htmlView.SetPage(metadata)
-            #self.findServices(record, idx)
 
         else:
             identifier = self.get_item_data(idx, 'identifier')
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
             try:
-               cat.getrecordbyid([self.catalog.records[identifier].identifier])
+                cat.getrecordbyid([self.catalog.records[identifier].identifier])
             except ExceptionReport, err:
                 GWarning('Error getting response: %s' % err)
                 return
@@ -480,7 +464,7 @@ class CSWBrowserPanel(wx.Panel):
         try:
             if self.outpoutschema == 'gmd':
                 self.catalog.getrecords2(constraints=self.constraints,
-                                         maxrecords=self.maxrecords, esn='full',startposition=self.startfrom,
+                                         maxrecords=self.maxrecords, esn='full', startposition=self.startfrom,
                                          outputschema='http://www.isotc211.org/2005/gmd')
             else:
                 self.catalog.getrecords2(constraints=self.constraints,
@@ -571,23 +555,6 @@ class CSWBrowserPanel(wx.Panel):
                     continue
                 self.constraints[x] = PropertyIsLike('csw:AnyText', constraint)
 
-    def gdalImport(self, ogr, url, type, evt):
-        serviceDialog = GdalImportDialog(self, None, ogr=ogr, link=True)
-        dns = serviceDialog.dsnInput
-        dns.source.SetSelection(3)
-
-        dns.SetSourceType('pro')
-        if type == 'wms':
-            dns.protocolWidgets['format'].SetSelection(2)
-        if type == 'wcs':
-            dns.protocolWidgets['format'].SetSelection(1)
-        if type == 'wfs':
-            dns.protocolWidgets['format'].SetSelection(2)
-        dns.SetExtension(dns.protocolWidgets['format'].GetStringSelection())
-        dns.protocolWidgets['text'].SetValue(url)
-        dns.OnUpdate(evt)
-        serviceDialog.Show()
-
     def _openWebServiceDiag(self, data_url):
         from web_services.dialogs import AddWSDialog
         if self.giface:
@@ -608,7 +575,7 @@ class CSWBrowserPanel(wx.Panel):
         exec (item_data)
         if name == "Add WMS":
             data_url = item_data['wms']
-            service = ['r.in.gdal', 'r.in.wms', 'Add web service layer']
+            service = ['r.in.wms', 'Add web service layer']
             dlg = wx.SingleChoiceDialog(
                 self, 'Choice of module for WMS ', 'Web Service selection',
                 service,
@@ -617,19 +584,17 @@ class CSWBrowserPanel(wx.Panel):
             if dlg.ShowModal() == wx.ID_OK:
                 selected_module = dlg.GetStringSelection()
                 if selected_module == service[0]:
-                    self.gdalImport(False, data_url, type='wms', evt=evt)
-                elif selected_module == service[1]:
                     cmd.append('r.in.wms')
                     cmd.append('url=%s' % data_url)
                     GUI(parent=self, show=True, modal=True).ParseCommand(cmd=cmd)
-                elif selected_module == service[2]:
+                elif selected_module == service[1]:
                     self._openWebServiceDiag(data_url)
 
             dlg.Destroy()
 
         elif name == "Add WFS":
             data_url = item_data['wfs']
-            service = ['v.in.ogr', 'v.in.wfs', 'Add web service layer']
+            service = ['v.in.wfs', 'Add web service layer']
             dlg = wx.SingleChoiceDialog(
                 self, 'Choice of module for WFS ', 'Web Service selection',
                 service,
@@ -639,18 +604,15 @@ class CSWBrowserPanel(wx.Panel):
             if dlg.ShowModal() == wx.ID_OK:
                 selected_module = dlg.GetStringSelection()
                 if selected_module == service[0]:
-                    self.gdalImport(True, data_url, type='wfs', evt=evt)
-                elif selected_module == service[1]:
                     cmd.append('v.in.wfs')
                     cmd.append('url=%s' % data_url)
                     GUI(parent=self, show=True, modal=True).ParseCommand(cmd=cmd)
-                elif selected_module == service[2]:
+                elif selected_module == service[1]:
                     self._openWebServiceDiag(data_url)
             dlg.Destroy()
 
         elif name == "Add WCS":
-            data_url = item_data['wcs']
-            self.gdalImport(False, data_url, type='wcs', evt=evt)
+            GMessage("Not implemented")
 
     def GetQtype(self):  # TODO need to implement
         val = self.qtypeCb.GetValue()
@@ -661,6 +623,7 @@ class CSWBrowserPanel(wx.Panel):
 
     def OnSearch(self, evt):
         """execute search"""
+
         self.refreshResultList()
         self.catalog = None
         self.loadConstraints()
@@ -672,8 +635,8 @@ class CSWBrowserPanel(wx.Panel):
         if current_text == '':
             GMessage('Please set catalog')
             return
-        key = '/connections/%s' % current_text
-        self.catalog_url = self.config.Read('%s/url' % key)
+
+        self.catalog_url = self.getTmpConnection(current_text)
 
         # start position and number of records to return
         self.startfrom = 0
@@ -692,8 +655,6 @@ class CSWBrowserPanel(wx.Panel):
         if bbox != ['-180', '-90', '180', '90']:
             self.constraints.append(BBox(bbox))
 
-        # (a && b)
-        # build requestprint
         if not self._get_csw():
             return
 
@@ -702,23 +663,25 @@ class CSWBrowserPanel(wx.Panel):
         try:
             self.catalog.getrecords2(constraints=self.constraints,
                                      maxrecords=self.maxrecords, esn='full')
-            self.outpoutschema='dc'
+            self.outpoutschema = 'dc'
         except ExceptionReport, err:
             GError('Search error: %s' % err)
             return
         except Exception, err:
             GError('Connection error: %s' % err)
             return
-        #work around for GMD records
-        if len(self.catalog.records)==0 and self.catalog.results['matches'] != 0:
+
+        ###work around for GMD records
+        if len(self.catalog.records) == 0 and self.catalog.results['matches'] != 0:
             try:
                 self.catalog.getrecords2(constraints=self.constraints,
                                          maxrecords=self.maxrecords, esn='full',
                                          outputschema='http://www.isotc211.org/2005/gmd')
-                self.outpoutschema='gmd'
+                self.outpoutschema = 'gmd'
                 if self.warns:
-                    GWarning("Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly.")
-                    self.warns=False
+                    GWarning(
+                        "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly.")
+                    self.warns = False
 
             except ExceptionReport, err:
                 GError('Search error: %s' % err)
@@ -726,6 +689,7 @@ class CSWBrowserPanel(wx.Panel):
             except Exception, err:
                 GError('Connection error: %s' % err)
                 return
+        ###work around for GMD records- END
 
         if self.catalog.results['matches'] == 0:
             self.findResNumLbl.SetLabel('0 results')
@@ -733,7 +697,7 @@ class CSWBrowserPanel(wx.Panel):
             return
 
         self.refreshNavigationButt(True)
-        #parsing for another html template(GMD)
+        # parsing for another html template(GMD)
         if self.outpoutschema == 'gmd':
             self.displyResultsGMD()
             return
@@ -781,7 +745,8 @@ class CSWBrowserPanel(wx.Panel):
 
             if self.catalog.records[rec].identification.identtype:
                 item = wx.ListItem()
-                self.resultList.InsertStringItem(index, normalize_text(self.catalog.records[rec].identification.identtype))
+                self.resultList.InsertStringItem(index,
+                                                 normalize_text(self.catalog.records[rec].identification.identtype))
             else:
                 self.resultList.SetStringItem(index, 0, 'unknown')
             if self.catalog.records[rec].identification.title:
@@ -946,7 +911,7 @@ class CSWConnectionPanel(wx.Panel):
     def __init__(self, parent, main, cswBrowser=True):
         wx.Panel.__init__(self, parent)
         self.parent = main
-        self.config = wx.Config('g.gui.cswbrowser')
+        self.config = main.config
         self.cswBrowser = cswBrowser
         self.splitterConn = SplitterWindow(self, style=wx.SP_3D |
                                                        wx.SP_LIVE_UPDATE | wx.SP_BORDER)
@@ -983,7 +948,7 @@ class CSWConnectionPanel(wx.Panel):
 
         self._layout()
 
-    def OnHtmlKeyDown(self,event):
+    def OnHtmlKeyDown(self, event):
         if self._is_copy(event):
             self._add_selection_to_clipboard()
         self.textMetadata.Parent.OnKey(event)
@@ -996,7 +961,6 @@ class CSWConnectionPanel(wx.Panel):
         wx.TheClipboard.Open()
         wx.TheClipboard.SetData(wx.TextDataObject(self.textMetadata.SelectionToText()))
         wx.TheClipboard.Close()
-
 
     def onNewconnection(self, evt=None, cancel=False):
         if self.newBtt.GetLabel() == "New":
@@ -1094,9 +1058,7 @@ class CSWConnectionPanel(wx.Panel):
             GMessage('Please select catalog')
             return
         current_text = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
-        key = '/connections/%s' % current_text
-
-        self.catalog_url = self.config.Read('%s/url' % key)
+        self.catalog_url = self.getTmpConnection(current_text)
 
         if not self._get_csw():
             return
@@ -1135,9 +1097,8 @@ class CSWConnectionPanel(wx.Panel):
             GMessage('Please select catalog')
             return
         current_text = self.connectionLBox.GetString(self.connectionLBox.GetSelection())
-        key = '/connections/%s' % current_text
 
-        self.catalog_url = self.config.Read('%s/url' % key)
+        self.catalog_url = self.getTmpConnection(current_text)
 
         if self.cswBrowser:
             self.parent.BrowserPanel.loadSettings()
@@ -1170,6 +1131,7 @@ class CSWConnectionPanel(wx.Panel):
 
     def addDefaultConnections(self, path=None):
         """add default connections from file"""
+
         if path is not None:
             self.connectionFilePath = path
             if yesNo(self, "Do you want to remove temporary connections?", "Remove tmp connections"):
@@ -1181,27 +1143,33 @@ class CSWConnectionPanel(wx.Panel):
 
         if doc is None:
             return
-        self.config.SetPath('/connections')
 
         for server in doc.findall('csw'):
             name = server.attrib.get('name')
             url = server.attrib.get('url')
-            key = '/connections/%s' % name
-            self.config.Write('%s/url' % key, url)
+            self.addTmpConnection(name, url)
+
         self.updateConnectionList()
+
+    def addTmpConnection(self, name, url):
+        self.config.SetPath('/connections')
+        key = '/connections/%s/url' % name
+        self.config.Write(key, url)
+
+    def getTmpConnection(self, name):
+        key = '/connections/%s/url' % name
+        return self.config.Read(key)
 
     def addConection(self, name, url):
         conns = [self.connectionLBox.GetString(i) for i in range(self.connectionLBox.GetCount())]
-
         if name in conns:
             GMessage("Name of catalog is exists, new catalog is not saved")
             n = self.connectionLBox.FindString(name)
             self.connectionLBox.SetSelection(n)
             return False
-        self.config.SetPath('/connections')
-        key = '/connections/%s' % name
-        self.config.Write('%s/url' % key, url)
-        self.updateConnectionList()
+
+        self.addTmpConnection(name, url)
+
         if yesNo(self, "Do you want to add connection to default configuration file", "Default connection"):
             tree = ET.parse(self.connectionFilePath)
             root = tree.getroot()
@@ -1212,7 +1180,6 @@ class CSWConnectionPanel(wx.Panel):
         return True
 
     def updateConnectionList(self):
-
         """populate select box with connections"""
         self.connectionLBox.Clear()
 
