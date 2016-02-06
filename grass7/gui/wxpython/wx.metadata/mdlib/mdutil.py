@@ -43,7 +43,6 @@ class StaticContext(object):
         self.ppath = os.path.dirname(os.path.abspath(__file__))
 
         self.confDirPath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'wx.metadata', 'config')
-        print self.confDirPath
         path = os.path.join('wx.metadata', 'config')
         self.connResources = get_lib_path(modname=path, libname='connections_resources.xml')
         if self.connResources is None:
