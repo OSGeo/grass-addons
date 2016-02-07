@@ -51,6 +51,7 @@ SUBDIRS = \
 	r.in.arc \
 	r.in.srtm.region \
 	r.in.wcs \
+	r.jpdf \
 	r.lake.series \
 	r.lfp \
 	r.local.relief \
