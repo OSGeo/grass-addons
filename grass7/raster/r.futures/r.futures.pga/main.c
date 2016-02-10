@@ -39,12 +39,8 @@
 
     The main file containing both the model code and the data handing part.
 
-    A lot of parts of the code are dead code. May be useful as an alternative
-    algorithms. Some of the dead code is commented out and might need to
-    be revived if other parts will show as useful.
-
     The language of the code is subject to change. The goal is to use either
-    C or C++, not both mixed as it is now.
+    C or C++, not both mixed as it is now. Update: only C is used now.
 
     Major refactoring of the code is expected.
 */
@@ -80,26 +76,11 @@
 /** Max length of input line */
 #define N_MAXREADINLEN 8192
 
-/** for working out where to start reading data */
-#define _GIS_HEADER_LENGTH 6
-
-/** strictly-speaking, should probably parse these from GIS files */
-#define _GIS_NO_DATA_STRING "-9999"
-
 /** Value used to represent NULL (NoData) in some parts of the model */
 #define _GIS_NO_DATA_INT -9999
 
 /** use this for tDeveloped if cell still undeveloped */
 #define _N_NOT_YET_DEVELOPED -1
-
-/* algorithm to use */
-
-/** deterministic model */
-#define _N_ALGORITHM_DETERMINISTIC 1
-
-/** stochastic model with downweighting of logit probabilities and of devPressure over time */
-#define _N_ALGORITHM_STOCHASTIC_I 2
-#define _N_ALGORITHM_STOCHASTIC_II 3
 
 #define _MAX_RAND_FIND_SEED_FACTOR 25
 #define maxNumAddVariables 20
@@ -109,15 +90,6 @@
 #define MAX_YEARS 100
 /// maximum array size for undev cells (maximum: 1840198 for a county within 16 counties)
 #define MAX_UNDEV_SIZE 2000000
-
-
-/* Wenwu Tang */
-/// use absolute paths
-char dirName[100];
-
-/// string for temporarily storage
-char tempStr[100];
-
 
 
 typedef struct
@@ -221,14 +193,6 @@ typedef struct
     char *probLookupFile;
     int nProbLookup;
     double *adProbLookup;
-    // parameters provided in other ways
-    //      /* parameters that go into regression formula */
-    //      double          dIntercept;                                                                             /* 0.038884 */
-    //      double          dEmployAttraction;                                                              /* -0.0000091946 */
-    //      double          dInterchangeDistance;                                                   /* 0.000042021 */
-    //      double          dRoadDensity;                                                                   /* 0.00065813 */
-    //      double          dDevPressure;                                                                   /* -0.026190 */
-    /* size of square used to recalculate development pressure */
 
     int nDevNeighbourhood;  /** 8 (i.e. 8 in each direction, leading to 17 x 17 = 289 in total) */
 
@@ -236,15 +200,11 @@ typedef struct
     char *dumpFile;
     char *outputSeries;
 
-    /** 1 deterministic, 2 old stochastic, 3 new stochastic */
-    int nAlgorithm;
-
     /** file containing parcel size information */
     char *parcelSizeFile;
     double discountFactor;      ///< for calibrate patch size
 
     /** these parameters only relevant for new stochastic algorithm */
-    int sortProbs;
     double patchMean;
     double patchRange;
     /// 4 or 8 neighbors only
@@ -294,8 +254,6 @@ typedef struct
 t_Params sParams;
 t_Landscape sLandscape;
 
-int getUnDevIndex(t_Landscape * pLandscape);
-void Shuffle4(int *mat);
 double getDistance1(double x1, double y1, double x2, double y2);
 void readDevPotParams(t_Params * pParams, char *fn);
 void readIndexData(t_Landscape * pLandscape, t_Params * pParams);
@@ -323,11 +281,9 @@ void readDevPotParams(t_Params * pParams, char *fn)
                         " contains less than one line"), fn);
 
     char **tokens;
-    int ntokens;
 
     while (G_getl2(buf, buflen, fp)) {
         tokens = G_tokenize2(buf, fs, td);
-        ntokens = G_number_of_tokens(tokens);
 
         int idx;
         int id;
@@ -375,27 +331,6 @@ double uniformRandom()
     return ((double)nRet / (double)(RAND_MAX));
 }
 
-/**
-    Seed random number generator.
-
-    Encapsulated to allow easy replacement if necessary.
-*/
-void seedRandom(struct timeval ttime)
-{
-    srand((ttime.tv_sec * 100) + (ttime.tv_usec / 100));
-    //srand((unsigned int)time(NULL));
-}
-
-
-/**
-    Work out x and y position on the grid from index into siteMapping/landscape array.
-*/
-void xyFromPos(int nPos, int *pnX, int *pnY, t_Landscape * pLandscape)
-{
-    /* integer division just gives whole number part */
-    *pnX = nPos % pLandscape->maxX;
-    *pnY = nPos / pLandscape->maxX;
-}
 
 /**
     Work out index into asCells array from location.
@@ -473,11 +408,12 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
         void *buffer = Rast_allocate_buf(data_type);
 
         ii = 0;
-        for (int row = 0; row < pParams->xSize; row++) {
+        int row, col;
+        for (row = 0; row < pParams->xSize; row++) {
             Rast_get_row(fd, buffer, row, data_type);
             void *ptr = buffer;
 
-            for (int col = 0; col < pParams->ySize; col++,
+            for (col = 0; col < pParams->ySize; col++,
                  ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
                 if (data_type == DCELL_TYPE)
                     val = *(DCELL *) ptr;
@@ -519,11 +455,12 @@ void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
     G_verbose_message("Reading subregions %s", pParams->indexFile);
     int count_regions = 0;
     int index = 0;
-    for (int row = 0; row < pParams->xSize; row++) {
+    int row, col;
+    for (row = 0; row < pParams->xSize; row++) {
         Rast_get_row(fd, buffer, row, data_type);
         void *ptr = buffer;
 
-        for (int col = 0; col < pParams->ySize; col++,
+        for (col = 0; col < pParams->ySize; col++,
              ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
             if (Rast_is_null_value(ptr, data_type))
                 index = _GIS_NO_DATA_INT; // assign FUTURES representation of NULL value
@@ -595,13 +532,13 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
             bRet = 1;  /* can only get worse from here on in */
             RASTER_MAP_TYPE data_type = Rast_get_map_type(fd);
             void *buffer = Rast_allocate_buf(data_type);
-
-            for (int row = 0; row < pParams->xSize; row++) {
+            int row, col;
+            for (row = 0; row < pParams->xSize; row++) {
                 y = 0;
                 Rast_get_row(fd, buffer, row, data_type);
                 void *ptr = buffer;
 
-                for (int col = 0; col < pParams->ySize; col++,
+                for (col = 0; col < pParams->ySize; col++,
                      ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
                     CELL iVal;
 
@@ -719,45 +656,6 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
 
 
 /**
-    Compare two t_Undev structures.
-
-    To be used in qsort().
-
-    \note This sort function is in ascending order
-    (i.e. opposite to what we normally want).
-
-    \see undevCmpReverse()
-*/
-static int undevCmp(const void *a, const void *b)
-{
-    double da = ((t_Undev *) a)->logitVal;
-    double db = ((t_Undev *) b)->logitVal;
-
-    /* make sure untouched cells preferentially go to top of sort when there is asymmetry between a and b */
-    if (((t_Undev *) a)->bUntouched && !((t_Undev *) b)->bUntouched)
-        return -1;
-    if (((t_Undev *) b)->bUntouched && !((t_Undev *) a)->bUntouched)
-        return 1;
-    /* then sort by value */
-    if (da > db)
-        return 1;
-    if (da < db)
-        return -1;
-    return 0;
-}
-
-/**
-    Compare two t_Undev structures.
-
-    This is the correct way around sorting with undevCmp() and qsort().
- */
-static int undevCmpReverse(const void *a, const void *b)
-{
-    return -1 * undevCmp(a, b);
-}
-
-
-/**
     Write current state of developed areas.
 
     Called at end and dumps tDeveloped for all valid cells (NULL for all others)
@@ -773,10 +671,10 @@ void outputDevRasterStep(t_Landscape * pLandscape, t_Params * pParams,
 {
     int out_fd = Rast_open_new(rasterNameBase, CELL_TYPE);
     CELL *out_row = Rast_allocate_c_buf();
-
-    for (int x = 0; x < pLandscape->maxX; x++) {
+    int x, y;
+    for (x = 0; x < pLandscape->maxX; x++) {
         Rast_set_c_null_value(out_row, pLandscape->maxY);
-        for (int y = 0; y < pLandscape->maxY; y++) {
+        for (y = 0; y < pLandscape->maxY; y++) {
             // we don't check return values since we use landscape directly
             int cellId = posFromXY(x, y, pLandscape);
 
@@ -846,42 +744,6 @@ char *mapNameForStep(const char *basename, const int step, const int maxSteps)
     return G_generate_basename(basename, step, digits, 0);
 }
 
-/**
-    Work out how many cells to transition based on the control file.
-*/
-int parseControlLine(char *szBuff, char *szStepLabel, int *pnToConvert)
-{
-    char *pPtr;
-    int i;
-    int bRet;
-
-    bRet = 0;
-    /* strip newline */
-    pPtr = strpbrk(szBuff, "\r\n");
-    if (pPtr) {
-        pPtr[0] = '\0';
-    }
-    *pnToConvert = 0;
-    i = 0;
-    pPtr = strtok(szBuff, " \t");
-    while (pPtr && i < 2) {
-        switch (i) {
-        case 0:
-            strcpy(szStepLabel, pPtr);
-            break;
-        case 1:
-            *pnToConvert = atoi(pPtr);
-            break;
-        }
-        pPtr = strtok(NULL, " \t");
-        i++;
-    }
-    /* only process this line of the control file if it is well formed */
-    if (i == 2) {
-        bRet = 1;
-    }
-    return bRet;
-}
 
 /**
     Calculate probability of development.
@@ -911,136 +773,6 @@ double getDevProbability(t_Cell * pThis, t_Params * pParams)
     //cout<<"The probability:";
     //cout<<probAdd<<endl;
     return probAdd;
-}
-
-/*
-   double getDevProbability(t_Cell      *pThis, t_Params *pParams){
-   float probAdd; int i;
-   int id=pThis->index_region;
-   if(id==-9999)
-   return 0;
-   id=id-1;
-   probAdd = pParams->dIntercepts[id];
-   probAdd += pParams->dV1[id] * pThis->employAttraction;
-   probAdd += pParams->dV2[id] * pThis->interchangeDistance;
-   probAdd += pParams->dV3[id] * pThis->roadDensity;
-   probAdd += pParams->dV4[id] * pThis->devPressure;
-   for(i=0;i<2;i++){
-   probAdd+=pParams->addParameters[i][id]*pThis->additionVariable[i];
-   }
-   if (0<pThis->additionVariable[2]<=400)
-   {
-   probAdd = probAdd * 0.0005 ;
-   }
-   else { 
-   if(400<pThis->additionVariable[2]<=600)
-   {probAdd = probAdd * 0.024;}
-   else {
-   if(600<pThis->additionVariable[2]<=800)
-   {probAdd = probAdd * 0.912 ;}
-   else{
-   if(800<pThis->additionVariable[2]<=1000)
-   {probAdd = probAdd * 0.055 ;}
-   else{
-   if(1000<pThis->additionVariable[2]<=1200)
-   {probAdd = probAdd * 0.006 ;}
-   else{
-   if(1200<pThis->additionVariable[2]<=1400)
-   {probAdd = probAdd * 0.002 ;}
-   else{
-
-   {probAdd = probAdd * 0.0005;}
-
-   }
-   }
-   }
-
-   }
-
-   }
-
-
-   }
-
-
-   probAdd = 1.0/(1.0 + exp(-probAdd));
-   return probAdd;
-   }
-
- */
-
-
-/**
-    Recalculate probabilities for each unconverted cell.
-
-    Called each timestep.
-*/
-void findAndSortProbs(t_Landscape * pLandscape, t_Params * pParams,
-                      int nToConvert)
-{
-    int i, lookupPos;
-    t_Cell *pThis;
-
-    /* update calcs */
-    G_verbose_message("Recalculating probabilities...");
-    pLandscape->undevSites = 0;
-    for (i = 0; i < pLandscape->totalCells; i++) {
-        pThis = &(pLandscape->asCells[i]);
-        if (pThis->nCellType == _CELL_VALID) {
-            if (pThis->bUndeveloped) {
-                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[i] : 1;
-                if (consWeight > 0.0) {
-                    /* note that are no longer just storing the logit value, but instead the probability (allows consWeight to affect sort order) */
-                    pLandscape->asUndev[pLandscape->undevSites].cellID = i;
-                    pLandscape->asUndev[pLandscape->undevSites].logitVal =
-                        getDevProbability(pThis, pParams);
-                    /* lookup table of probabilities is applied before consWeight */
-                    if (pParams->nAlgorithm == _N_ALGORITHM_STOCHASTIC_II) {
-                        /* replace with value from lookup table */
-                        lookupPos =
-                            (int)(pLandscape->asUndev[pLandscape->undevSites].
-                                  logitVal * (pParams->nProbLookup - 1));
-                        pLandscape->asUndev[pLandscape->undevSites].logitVal =
-                            pParams->adProbLookup[lookupPos];
-                        // fprintf(stdout, "%f %d %f\n", pLandscape->asUndev[pLandscape->undevSites].logitVal, lookupPos, pParams->adProbLookup[lookupPos]);
-                    }
-                    // multiply consweight
-                    pLandscape->asUndev[pLandscape->undevSites].logitVal *= consWeight;
-                    pLandscape->asUndev[pLandscape->undevSites].bUntouched = pThis->bUntouched; /* need to store this to put correct elements near top of list */
-                    if (pLandscape->asUndev[pLandscape->undevSites].logitVal >
-                        0.0) {
-                        /* only add one more to the list if have a positive probability */
-                        pLandscape->undevSites++;
-                    }
-                }
-            }
-        }
-    }
-    /* sort */
-    /* can only be zero for algorithm=stochastic_ii */
-    if (pParams->sortProbs) {
-        G_verbose_message("Sorting %d unconserved undeveloped sites",
-                pLandscape->undevSites);
-        qsort(pLandscape->asUndev, pLandscape->undevSites, sizeof(t_Undev),
-              undevCmpReverse);
-    }
-    else {
-        G_verbose_message("Skipping sort as choosing cells randomly");
-    }
-    //calculate cumulative probability
-    // From Wenwu Tang
-    double sum = pLandscape->asUndev[0].logitVal;
-
-    for (i = 1; i < pLandscape->undevSites; i++) {
-        pLandscape->asUndev[i].cumulProb =
-            pLandscape->asUndev[i - 1].cumulProb +
-            pLandscape->asUndev[i].logitVal;
-        sum = sum + pLandscape->asUndev[i].logitVal;
-    }
-    for (i = 0; i < pLandscape->undevSites; i++) {
-        pLandscape->asUndev[i].cumulProb =
-            pLandscape->asUndev[i].cumulProb / sum;
-    }
 }
 
 
@@ -1159,35 +891,11 @@ static int sortNeighbours(const void *pOne, const void *pTwo)
     t_candidateNeighbour *pNOne = (t_candidateNeighbour *) pOne;
     t_candidateNeighbour *pNTwo = (t_candidateNeighbour *) pTwo;
 
-    /*
-       if(pNOne->newInList > pNTwo->newInList)
-       {
-       return -1;
-       }
-       if(pNTwo->newInList > pNOne->newInList)
-       {
-       return 1;
-       }
-     */
     float p = rand() / (float)RAND_MAX;
 
-    /*
-       if(p<0.0){
-       if(pNOne->distance> pNTwo->distance)
-       {
-       return 1;
-       }
-       if(pNTwo->distance > pNOne->distance)
-       {
-       return -1;
-       }
-       }
-     */
-    float alpha = 0.5;          // assign this from parameter file
-
-    alpha = (sParams.patchMean) - (sParams.patchRange) * 0.5;
+    float alpha = (sParams.patchMean) - (sParams.patchRange) * 0.5;
     alpha += p * sParams.patchRange;
-    //alpha=0;
+
     float p1, p2;
 
     p1 = pNOne->probAdd / pow(pNOne->distance, alpha);
@@ -1203,39 +911,6 @@ static int sortNeighbours(const void *pOne, const void *pTwo)
         return 1;
     }
     return 0;
-}
-
-/**
-    randomly shuffle the 4 neighbors
-*/
-void Shuffle4(int *mat)
-{
-    int proba[4], flag[4];
-    int size = 4, i;
-
-    for (i = 0; i < size; i++) {
-        proba[i] = rand() % 1000;
-        flag[i] = 1;
-    }
-
-    int numChecked = 0;
-    int max;
-    int index = 0;
-
-    while (numChecked != 4) {
-        max = -9999;
-        for (i = 0; i < size; i++) {
-            if (flag[i] != 0) {
-                if (proba[i] > max) {
-                    max = proba[i];
-                    index = i;
-                }
-            }
-        }
-        flag[index] = 0;
-        mat[numChecked] = index;
-        numChecked++;
-    }
 }
 
 void findNeighbours(int nThisID, t_Landscape * pLandscape,
@@ -1380,14 +1055,6 @@ int newPatchFinder(int nThisID, t_Landscape * pLandscape, t_Params * pParams,
 
                     qsort(sNeighbours.aCandidates, sNeighbours.nCandidates,
                           sizeof(t_candidateNeighbour), sortNeighbours);
-#if 0
-                    for (z = 0; z < sNeighbours.nCandidates; z++) {
-                        fprintf(stdout, "%d %d %f\n", z,
-                                sNeighbours.aCandidates[z].newInList,
-                                sNeighbours.aCandidates[z].probAdd);
-                    }
-                    fprintf(stdout, "***\n");
-#endif
                 }
             }
         }
@@ -1419,7 +1086,6 @@ int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
                            nWantToConvert);
         /* will actually always be the case */
         if (nToConvert > 0) {
-            //                      fprintf(stdout, "wanted %d, found %d\n", nWantToConvert, nToConvert);
             for (i = 0; i < nToConvert; i++) {
                 /* convert, updating dev press on neighbours */
                 pThis = &(pLandscape->asCells[anToConvert[i]]);
@@ -1427,7 +1093,7 @@ int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
                 pThis->bUntouched = 0;
                 pThis->tDeveloped = nStep + 1;
                 nDone++;
-                // fprintf(stdout, "%d total=%f dev=%f employment=%f interchange=%f roads=%f\n", pLandscape->asUndev[i].cellID, pLandscape->asUndev[i].logitVal, pParams->dDevPressure * pThis->devPressure, pParams->dEmployAttraction * pThis->employAttraction, pParams->dInterchangeDistance * pThis->interchangeDistance, pParams->dRoadDensity * pThis->roadDensity);
+
                 float dist = 0;
                 float force = 0;
 
@@ -1499,7 +1165,8 @@ void readDevDemand(t_Params * pParams)
     struct ilist *ids = G_new_ilist();
     int count;
     // skip first column which does not contain id of the region
-    for (int i = 1; i < ntokens; i++) {
+    int i;
+    for (i = 1; i < ntokens; i++) {
             G_chop(tokens[i]);
             G_ilist_add(ids, atoi(tokens[i]));
     }
@@ -1512,7 +1179,8 @@ void readDevDemand(t_Params * pParams)
         if (ntokens == 0)
             continue;
         count = 0;
-        for (int i = 1; i < ntokens; i++) {
+        int i;
+        for (i = 1; i < ntokens; i++) {
             // skip first column which is the year which we ignore
             int idx;
             if (KeyValueIntInt_find(pParams->region_map, ids->value[count], &idx)) {
@@ -1597,9 +1265,8 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
 
     nStep = step;
 
-    //fprintf(stdout, "entered updateMap()\n");
     nToConvert = pParams->devDemands[regionID][step];
-    //fprintf(stdout, "\tdoing step %s...controlFile requests conversion of %d cells\n", szStepLabel, nToConvert);
+
     if (nExtra > 0) {
         if (nToConvert - nExtra > 0) {
             nToConvert -= nExtra;
@@ -1613,86 +1280,64 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
     G_debug(1, "After accounting for extra cells, attempt %d cells", nToConvert);
     /* if have cells to convert this step */
     if (nToConvert > 0) {
-        //findAndSortProbs(pLandscape, pParams, nToConvert);
         /* if not enough cells to convert then alter number required */
         if (nToConvert > pLandscape->num_undevSites[regionID]) {
             G_warning("Not enough undeveloped sites... converting all");
             nToConvert = pLandscape->num_undevSites[regionID];
         }
-        /* update either in deterministic or stochastic fashion */
-        //fprintf(stdout, "\t\tupdating map\n");
-        switch (pParams->nAlgorithm) {
-        case _N_ALGORITHM_DETERMINISTIC:       /* deterministic */
-            nDone = 0;
-            for (i = 0; i < nToConvert && nDone < nToConvert; i++) {
-                nDone +=
-                    convertCells(pLandscape, pParams,
-                                 pLandscape->asUndev[i].cellID, nStep, 1, 1);
+        /* update in stochastic fashion */
+        nDone = 0;
+        i = 0;
+        nRandTries = 0;
+        bAllowTouched = 0;
+        /* loop until done enough cells...might need multiple passes */
+        while (nDone < nToConvert) {
+            if (i == pLandscape->num_undevSites[regionID]) {
+                /* if at the end of the grid, just loop around again until done */
+                i = 0;
+                /* allow previously considered cells if you have to */
+                bAllowTouched = 1;
             }
-            break;
-        case _N_ALGORITHM_STOCHASTIC_II:       /* stochastic */
-            nDone = 0;
-            i = 0;
-            nRandTries = 0;
-            bAllowTouched = 0;
-            /* loop until done enough cells...might need multiple passes */
-            while (nDone < nToConvert) {
-                if (i == pLandscape->num_undevSites[regionID]) {
-                    /* if at the end of the grid, just loop around again until done */
-                    i = 0;
-                    /* allow previously considered cells if you have to */
-                    bAllowTouched = 1;
-                }
-                /* if tried too many randomly in this step, give up on idea of only letting untouched cells convert */
-                if (nRandTries > _MAX_RAND_FIND_SEED_FACTOR * nToConvert) {
-                    bAllowTouched = 1;
-                }
-                if (pParams->sortProbs) {
-                    /* if sorted then choose the top cell and do nothing */
-                }
-                else {
-                    /* otherwise give a random undeveloped cell a go */
-                    if (sParams.seedSearch == 1)
-                        i = (int)(uniformRandom() *
-                                  pLandscape->num_undevSites[regionID]);
-                    //pick one according to their probability
-                    else
-                        G_debug(3, "nDone=%d, toConvert=%d", nDone,
-                                          nToConvert);
-                    i = getUnDevIndex1(pLandscape, regionID);
-                }
-                pThis =
+            /* if tried too many randomly in this step, give up on idea of only letting untouched cells convert */
+            if (nRandTries > _MAX_RAND_FIND_SEED_FACTOR * nToConvert) {
+                bAllowTouched = 1;
+            }
+            else {
+                /* otherwise give a random undeveloped cell a go */
+                if (sParams.seedSearch == 1)
+                    i = (int)(uniformRandom() *
+                              pLandscape->num_undevSites[regionID]);
+                //pick one according to their probability
+                else
+                    G_debug(3, "nDone=%d, toConvert=%d", nDone,
+                            nToConvert);
+                i = getUnDevIndex1(pLandscape, regionID);
+            }
+            pThis =
                     &(pLandscape->asCells
                       [pLandscape->asUndevs[regionID][i].cellID]);
 
-                /* need to check is still undeveloped */
-                if (pThis->bUndeveloped) {
-                    if (bAllowTouched || pThis->bUntouched) {
-                        /* Doug's "back to front" logit */
-                        //  dProb = 1.0/(1.0 + exp(pLandscape->asUndev[i].logitVal));
-                        dProb = pLandscape->asUndevs[regionID][i].logitVal;
-                        if (uniformRandom() < dProb) {
-                            nDone +=
+            /* need to check is still undeveloped */
+            if (pThis->bUndeveloped) {
+                if (bAllowTouched || pThis->bUntouched) {
+                    /* Doug's "back to front" logit */
+                    //  dProb = 1.0/(1.0 + exp(pLandscape->asUndev[i].logitVal));
+                    dProb = pLandscape->asUndevs[regionID][i].logitVal;
+                    if (uniformRandom() < dProb) {
+                        nDone +=
                                 convertCells(pLandscape, pParams,
                                              pLandscape->asUndevs[regionID]
                                              [i].cellID, nStep, bAllowTouched,
                                              0);
-                        }
                     }
-                    pThis->bUntouched = 0;
                 }
-                if (pParams->sortProbs) {
-                    i++;
-                }
-                else {
-                    nRandTries++;
-                }
+                pThis->bUntouched = 0;
             }
-            break;
-        default:
-            G_fatal_error("Unknown algorithm...exiting");
-            break;
+            else {
+                nRandTries++;
+            }
         }
+
         G_debug(1, "Converted %d sites", nDone);
         nExtra += (nDone - nToConvert);
         // save overflow for the next time
@@ -1701,55 +1346,6 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
     }
 }
 
-
-/**
-    Check Doug's calculation of devPressure.
-
-    No longer called.
- */
-void testDevPressure(t_Landscape * pLandscape, t_Params * pParams)
-{
-    int x, y, xN, yN, cellID, nCell, testPressure;
-
-    for (y = 0; y < pLandscape->maxY; y++) {
-        for (x = 0; x < pLandscape->maxX; x++) {
-            cellID = posFromXY(x, y, pLandscape);
-            if (cellID != _CELL_OUT_OF_RANGE) { /* should never happen */
-                if (pLandscape->asCells[cellID].nCellType == _CELL_VALID) {
-                    if (pLandscape->asCells[cellID].bUndeveloped) {
-                        if (pLandscape->asCells[cellID].devPressure) {
-                            fprintf(stdout,
-                                    "(x,y)=(%d,%d) cellType=%d bUndev=%d devPress=%f\n",
-                                    x, y,
-                                    pLandscape->asCells[cellID].nCellType,
-                                    pLandscape->asCells[cellID].bUndeveloped,
-                                    pLandscape->asCells[cellID].devPressure);
-                            testPressure = 0;
-                            for (xN = x - pParams->nDevNeighbourhood;
-                                 xN <= x + pParams->nDevNeighbourhood; xN++) {
-                                for (yN = y - pParams->nDevNeighbourhood;
-                                     yN <= y + pParams->nDevNeighbourhood;
-                                     yN++) {
-                                    nCell = posFromXY(xN, yN, pLandscape);
-                                    if (nCell != _CELL_OUT_OF_RANGE) {
-                                        if (pLandscape->asCells[nCell].
-                                            nCellType == _CELL_VALID) {
-                                            if (pLandscape->asCells[nCell].
-                                                bUndeveloped == 0) {
-                                                testPressure++;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            fprintf(stdout, "\t%d\n", testPressure);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 int readParcelSizes(t_Landscape * pLandscape, t_Params * pParams)
 {
@@ -2086,93 +1682,81 @@ int main(int argc, char **argv)
 
     sParams.discountFactor = atof(opt.discountFactor->answer);
 
-    // TODO: remove all sortProbs != 0 code if it does not make sense for Stochastic 2
-    // always 0 for Stochastic 2
-    sParams.sortProbs = 0;
 
-    // TODO: remove remaining stochastic 1 and deterministic code
-    // stochastic 1 and deterministic not maintained, reimplementing considered as easier
-    // then fixing it (old code will be still available in the old version)
-    // always use Stochastic II
-    sParams.nAlgorithm = _N_ALGORITHM_STOCHASTIC_II;
+    int parsedOK, i;
+    FILE *fp;
+    char inBuff[N_MAXREADINLEN];
+    char *pPtr;
 
-    if (sParams.nAlgorithm == _N_ALGORITHM_STOCHASTIC_II) {
+    G_verbose_message("Reading probability lookup ...");
+    sParams.probLookupFile = opt.probLookupFile->answer;
 
-        int parsedOK, i;
-        FILE *fp;
-        char inBuff[N_MAXREADINLEN];
-        char *pPtr;
-
-        G_verbose_message("Reading probability lookup ...");
-        sParams.probLookupFile = opt.probLookupFile->answer;
-
-        fp = fopen(sParams.probLookupFile, "r");
-        if (fp) {
-            parsedOK = 0;
-            if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-                if (inBuff[0] == ',') {
-                    sParams.nProbLookup = atoi(inBuff + 1);
-                    if (sParams.nProbLookup > 0) {
-                        sParams.adProbLookup =
+    fp = fopen(sParams.probLookupFile, "r");
+    if (fp) {
+        parsedOK = 0;
+        if (fgets(inBuff, N_MAXREADINLEN, fp)) {
+            if (inBuff[0] == ',') {
+                sParams.nProbLookup = atoi(inBuff + 1);
+                if (sParams.nProbLookup > 0) {
+                    sParams.adProbLookup =
                             (double *)malloc(sizeof(double) *
                                              sParams.nProbLookup);
-                        if (sParams.adProbLookup) {
-                            parsedOK = 1;
-                            i = 0;
-                            while (parsedOK && i < sParams.nProbLookup) {
-                                parsedOK = 0;
-                                if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-                                    if (pPtr = strchr(inBuff, ',')) {
-                                        parsedOK = 1;
-                                        sParams.adProbLookup[i] =
+                    if (sParams.adProbLookup) {
+                        parsedOK = 1;
+                        i = 0;
+                        while (parsedOK && i < sParams.nProbLookup) {
+                            parsedOK = 0;
+                            if (fgets(inBuff, N_MAXREADINLEN, fp)) {
+                                if (pPtr = strchr(inBuff, ',')) {
+                                    parsedOK = 1;
+                                    sParams.adProbLookup[i] =
                                             atof(pPtr + 1);
-                                        G_debug(3,
-                                                "probability lookup table: i=%d, i/(n-1)=%f, result=%f",
-                                                i,
-                                                i * 1.0 /
-                                                (sParams.nProbLookup - 1),
-                                                sParams.adProbLookup[i]);
-                                    }
+                                    G_debug(3,
+                                            "probability lookup table: i=%d, i/(n-1)=%f, result=%f",
+                                            i,
+                                            i * 1.0 /
+                                            (sParams.nProbLookup - 1),
+                                            sParams.adProbLookup[i]);
                                 }
-                                i++;
                             }
+                            i++;
                         }
                     }
                 }
             }
-            if (!parsedOK) {
-                G_fatal_error("Error parsing probability lookup file '%s'",
-                        sParams.probLookupFile);
-            }
-            fclose(fp);
         }
-        else {
-            G_fatal_error("Error opening probability lookup file '%s'",
-                    sParams.probLookupFile);
+        if (!parsedOK) {
+            G_fatal_error("Error parsing probability lookup file '%s'",
+                          sParams.probLookupFile);
         }
-
-        sParams.patchMean = atof(opt.patchMean->answer);
-        sParams.patchRange = atof(opt.patchRange->answer);
-        sParams.numNeighbors = atoi(opt.numNeighbors->answer);
-        // TODO: convert to options or flag: 1: uniform distribution 2: based on dev. proba.
-        sParams.seedSearch = atoi(opt.seedSearch->answer);
-        sParams.devPressureApproach = atoi(opt.devPressureApproach->answer);
-        if (strcmp(opt.devPressureApproach->answer, "occurrence") == 0)
-            sParams.devPressureApproach = 1;
-        else if (strcmp(opt.devPressureApproach->answer, "gravity") == 0)
-            sParams.devPressureApproach = 2;
-        else if (strcmp(opt.devPressureApproach->answer, "kernel") == 0)
-            sParams.devPressureApproach = 3;
-        else
-            G_fatal_error(_("Approach doesn't exist"));
-        if (sParams.devPressureApproach != 1) {
-            sParams.alpha = atof(opt.alpha->answer);
-            sParams.scalingFactor = atof(opt.scalingFactor->answer);
-        }
-
-        sParams.indexFile = opt.indexFile->answer;
-        sParams.controlFileAll = opt.controlFileAll->answer;
+        fclose(fp);
     }
+    else {
+        G_fatal_error("Error opening probability lookup file '%s'",
+                      sParams.probLookupFile);
+    }
+
+    sParams.patchMean = atof(opt.patchMean->answer);
+    sParams.patchRange = atof(opt.patchRange->answer);
+    sParams.numNeighbors = atoi(opt.numNeighbors->answer);
+    // TODO: convert to options or flag: 1: uniform distribution 2: based on dev. proba.
+    sParams.seedSearch = atoi(opt.seedSearch->answer);
+    sParams.devPressureApproach = atoi(opt.devPressureApproach->answer);
+    if (strcmp(opt.devPressureApproach->answer, "occurrence") == 0)
+        sParams.devPressureApproach = 1;
+    else if (strcmp(opt.devPressureApproach->answer, "gravity") == 0)
+        sParams.devPressureApproach = 2;
+    else if (strcmp(opt.devPressureApproach->answer, "kernel") == 0)
+        sParams.devPressureApproach = 3;
+    else
+        G_fatal_error(_("Approach doesn't exist"));
+    if (sParams.devPressureApproach != 1) {
+        sParams.alpha = atof(opt.alpha->answer);
+        sParams.scalingFactor = atof(opt.scalingFactor->answer);
+    }
+
+    sParams.indexFile = opt.indexFile->answer;
+    sParams.controlFileAll = opt.controlFileAll->answer;
 
     /* allocate memory */
     if (buildLandscape(&sLandscape, &sParams)) {
@@ -2181,7 +1765,8 @@ int main(int argc, char **argv)
             readData4AdditionalVariables(&sLandscape, &sParams);
             readIndexData(&sLandscape, &sParams);
             // initialize the overflow demands to zero
-            for (int i = 0; i < sParams.num_Regions; i++) {
+            int i;
+            for (i = 0; i < sParams.num_Regions; i++) {
                 sParams.overflowDevDemands[i] = 0;
             }
             readDevDemand(&sParams);
@@ -2216,20 +1801,6 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
-int getUnDevIndex(t_Landscape * pLandscape)
-{
-    float p = rand() / (double)RAND_MAX;
-    int i;
-
-    for (i = 0; i < pLandscape->undevSites; i++) {
-        if (p < pLandscape->asUndev[i].cumulProb) {
-            return i;
-        }
-    }
-    // TODO: returning at least something but should be something more meaningful
-    return 0;
-}
-
 int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
 {
     float p = rand() / (double)RAND_MAX;
@@ -2249,6 +1820,11 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
     return 0;
 }
 
+/**
+    Recalculate probabilities for each unconverted cell.
+
+    Called each timestep.
+*/
 void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                          int step)
 {
@@ -2291,21 +1867,16 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                         logitVal = val;
                     G_debug(2, "logit value %f", val);
                     /* lookup table of probabilities is applied before consWeight */
-                    if (pParams->nAlgorithm == _N_ALGORITHM_STOCHASTIC_II) {
-                        /* replace with value from lookup table */
-                        lookupPos = (int)(pLandscape->asUndevs[id]
-                                          [pLandscape->num_undevSites[id]].
-                                          logitVal * (pParams->nProbLookup -
-                                                      1));
-                        if (lookupPos >= pParams->nProbLookup ||
-                            lookupPos < 0)
-                            G_fatal_error
-                                ("lookup position (%d) out of range [0, %d]",
-                                 lookupPos, pParams->nProbLookup - 1);
-                        pLandscape->asUndevs[id][pLandscape->
-                                                 num_undevSites[id]].
+                    /* replace with value from lookup table */
+                    lookupPos = (int)(pLandscape->asUndevs[id]
+                                      [pLandscape->num_undevSites[id]].
+                            logitVal * (pParams->nProbLookup - 1));
+                    if (lookupPos >= pParams->nProbLookup || lookupPos < 0)
+                        G_fatal_error("lookup position (%d) out of range [0, %d]",
+                                      lookupPos, pParams->nProbLookup - 1);
+                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
                             logitVal = pParams->adProbLookup[lookupPos];
-                    }
+
                     // discount by a conservation factor
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= consWeight;
                     /* need to store this to put correct elements near top of list */
@@ -2319,17 +1890,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
             }
         }
     }
-    /* sort */
-    /* can only be zero for algorithm=stochastic_ii */
-    if (pParams->sortProbs) {
-        G_debug(1, "Sorting %d unconserved undeveloped sites",
-                pLandscape->undevSites);
-        qsort(pLandscape->asUndev, pLandscape->undevSites, sizeof(t_Undev),
-              undevCmpReverse);
-    }
-    else {
-        G_debug(1, "Skipping sort as choosing cells randomly");
-    }
+
     //calculate cumulative probability // From Wenwu Tang
     int j;
 
