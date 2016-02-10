@@ -29,7 +29,7 @@ function compile {
     cd /c/msys${PLATFORM}/$SRC_DIR/$GRASS_DIR
     svn up || (svn cleanup && svn up)
 
-    rm d*.o # remove obj dumps
+    rm -f d*.o # remove obj dumps
     rm_package_7
     curr=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then

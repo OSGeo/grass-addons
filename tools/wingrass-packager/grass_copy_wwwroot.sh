@@ -78,7 +78,7 @@ if test -z $2 ; then
     # daily builds
     ### copy 64 6.4.5svn
     ### copy 65
-    copy        70       7.0.3svn
+    copy        70       `ls ${HOME}/grass70/x86/grass*.bz2 | cut -d'-' -f 3`
     copy        71       7.1.svn
     # releases (TODO: enable later)
     #copy_addon 644      6.4.4
