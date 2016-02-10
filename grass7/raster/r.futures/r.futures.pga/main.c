@@ -10,11 +10,12 @@
  *               Douglas A. Shoemaker
  *               Jennifer A. Koch
  *               Vaclav Petras <wenzeslaus gmail com>
+ *               Anna Petrasova
  *               (See the manual page for details and references.)
  *
  * PURPOSE:      Simulation of urban-rural landscape structure (FUTURES model)
  *
- * COPYRIGHT:    (C) 2013-2014 by Meentemeyer et al.
+ * COPYRIGHT:    (C) 2013-2016 by Anna Petrasova and Meentemeyer et al.
  *
  *               This program is free software: you can redistribute it and/or
  *               modify it under the terms of the GNU General Public License
@@ -50,22 +51,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <map>
 
-extern "C"
-{
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-}
+
+#include "keyvalue.h"
 
 //#include "distance.h"
 
@@ -114,7 +109,6 @@ extern "C"
 #define MAX_YEARS 100
 /// maximum array size for undev cells (maximum: 1840198 for a county within 16 counties)
 #define MAX_UNDEV_SIZE 2000000
-using namespace std;
 
 
 /* Wenwu Tang */
@@ -201,12 +195,16 @@ typedef struct
 
     /** number in that sample */
     int parcelSizes;
-      std::vector < std::vector < t_Undev > >asUndevs;  //WT
+    //  std::vector < std::vector < t_Undev > >asUndevs;  //WT
+    t_Undev **asUndevs;
+    size_t asUndevs_m;
+    size_t *asUndevs_ns;
     int num_undevSites[MAXNUM_COUNTY];  //WT
 
     /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
     double *predictors;
 } t_Landscape;
+
 
 typedef struct
 {
@@ -289,7 +287,7 @@ typedef struct
     int overflowDevDemands[MAXNUM_COUNTY];
     /// number of simulation steps
     int nSteps;
-    std::map<int,int> *region_map;
+    struct KeyValueIntInt *region_map;
 } t_Params;
 
 
@@ -311,33 +309,55 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID);
 
 void readDevPotParams(t_Params * pParams, char *fn)
 {
-    ifstream f;
-    f.open(fn);
-    if (!f.is_open())
+    FILE *fp;
+    if ((fp = fopen(fn, "r")) == NULL)
         G_fatal_error(_("Cannot open development potential parameters file <%s>"),
                       fn);
 
-    string line;
-    getline(f, line);
-    int idx = 0;
-    int id, j;
-    double di, d4, val;
-    while(f >> id) {
-        f >>  di >> d4;
-        if (pParams->region_map->count(id) > 0) {
-            idx = (*pParams->region_map)[id];
+    const char *fs = "\t";
+    const char *td = "\"";
+
+    size_t buflen = 4000;
+    char buf[buflen];
+    if (G_getl2(buf, buflen, fp) == 0)
+        G_fatal_error(_("Development potential parameters file <%s>"
+                        " contains less than one line"), fn);
+
+    char **tokens;
+    int ntokens;
+
+    while (G_getl2(buf, buflen, fp)) {
+        tokens = G_tokenize2(buf, fs, td);
+        ntokens = G_number_of_tokens(tokens);
+
+        int idx;
+        int id;
+        double di, d4;
+        double val;
+        int j;
+
+        G_chop(tokens[0]);
+        id = atoi(tokens[0]);
+
+        if (KeyValueIntInt_find(pParams->region_map, id, &idx)) {
+            G_chop(tokens[1]);
+            di = atof(tokens[1]);
+            G_chop(tokens[2]);
+            d4 = atof(tokens[2]);
             pParams->dIntercepts[idx] = di;
             pParams->dV4[idx] = d4;
             for (j = 0; j < pParams->numAddVariables; j++) {
-                f >> val;
+                G_chop(tokens[j + 3]);
+                val = atof(tokens[j + 3]);
                 pParams->addParameters[j][idx] = val;
             }
         }
-        else
-            for (j = 0; j < pParams->numAddVariables; j++)
-                f >> val;
+        // else ignoring the line with region which is not used
+
+        G_free_tokens(tokens);
     }
-    f.close();
+
+    fclose(fp);
 }
 
 /**
@@ -510,10 +530,10 @@ void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
                 index = _GIS_NO_DATA_INT; // assign FUTURES representation of NULL value
             else {
                 val = *(CELL *) ptr;
-                if (pParams->region_map->count(val) > 0)
-                    index = (*pParams->region_map)[val];
+                if (KeyValueIntInt_find(pParams->region_map, val, &index))
+                    ; // pass
                 else {
-                    (*pParams->region_map)[val] = count_regions;
+                    KeyValueIntInt_set(pParams->region_map, val, count_regions);
                     index = count_regions;
                     count_regions++;
                 }
@@ -1457,58 +1477,87 @@ int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
 
 void readDevDemand(t_Params * pParams)
 {
-    ifstream  data(pParams->controlFileAll);
-    string line;
-    // header
-    int count = 0;
-    //    int count_regions = 0;
-    string value;
-    getline(data, line);
-    stringstream  lineStream(line);
-    std::vector<int> ids;
-    while(getline(lineStream, value, '\t'))
-    {
-        if (count != 0) {
-            ids.push_back(atoi(value.c_str()));
-        }
-        count++;
+    FILE *fp;
+    if ((fp = fopen(pParams->controlFileAll, "r")) == NULL)
+        G_fatal_error(_("Cannot open population demand file <%s>"),
+                      pParams->controlFileAll);
+
+    size_t buflen = 4000;
+    char buf[buflen];
+    if (G_getl2(buf, buflen, fp) == 0)
+        G_fatal_error(_("Population demand file <%s>"
+                        " contains less than one line"), pParams->controlFileAll);
+
+    char **tokens;
+    int ntokens;
+
+    const char *fs = "\t";
+    const char *td = "\"";
+
+    tokens = G_tokenize2(buf, fs, td);
+    ntokens = G_number_of_tokens(tokens);
+    if (ntokens == 0)
+        G_fatal_error("No columns in the header row");
+
+    struct ilist *ids = G_new_ilist();
+    int count;
+    // skip first column which does not contain id of the region
+    for (int i = 1; i < ntokens; i++) {
+            G_chop(tokens[i]);
+            G_ilist_add(ids, atoi(tokens[i]));
     }
 
     int years = 0;
-    while(getline(data, line))
-    {
-        stringstream lineStream2(line);
-        count = -1;
-        while(getline(lineStream2, value, '\t'))
-        {
-            if (count >= 0 && pParams->region_map->count(ids[count]) > 0) {
-                int idx = (*pParams->region_map)[ids[count]];
-                pParams->devDemands[idx][years] = atoi(value.c_str());
+    while(G_getl2(buf, buflen, fp)) {
+        tokens = G_tokenize2(buf, fs, td);
+        ntokens = G_number_of_tokens(tokens);
+        // skip empty lines
+        if (ntokens == 0)
+            continue;
+        count = 0;
+        for (int i = 1; i < ntokens; i++) {
+            // skip first column which is the year which we ignore
+            int idx;
+            if (KeyValueIntInt_find(pParams->region_map, ids->value[count], &idx)) {
+                G_chop(tokens[i]);
+                pParams->devDemands[idx][years] = atoi(tokens[i]);
             }
             count++;
         }
+        // each line is a year
         years++;
     }
+    G_verbose_message("Number of steps in demand file: %d", years);
     if (!sParams.nSteps)
         sParams.nSteps = years;
-    data.close();
+    G_free_ilist(ids);
+    G_free_tokens(tokens);
 }
 
 void initializeUnDev(t_Landscape * pLandscape, t_Params * pParams)
 {
     int i;
 
-    pLandscape->asUndevs.clear();
-    pLandscape->asUndevs.resize(pParams->num_Regions,
-                                std::vector < t_Undev > (MAX_UNDEV_SIZE));
+    pLandscape->asUndevs = (t_Undev **) G_malloc(pParams->num_Regions * sizeof(t_Undev *));
+    pLandscape->asUndevs_m = pParams->num_Regions;
+    pLandscape->asUndevs_ns = (size_t *) G_malloc(pParams->num_Regions * sizeof(t_Undev *));
+
     for (i = 0; i < pParams->num_Regions; i++) {
+        pLandscape->asUndevs[i] = (t_Undev *) G_malloc(MAX_UNDEV_SIZE * sizeof(t_Undev));
+        pLandscape->asUndevs_ns[i] = MAX_UNDEV_SIZE;
         pLandscape->num_undevSites[i] = 0;
     }
 }
 
 void finalizeUnDev(t_Landscape * pLandscape, t_Params * pParams)
 {
+    int i;
 
+    for (i = 0; i < pParams->num_Regions; i++) {
+        G_free(pLandscape->asUndevs[i]);
+    }
+    G_free(pLandscape->asUndevs);
+    G_free(pLandscape->asUndevs_ns);
 }
 
 /*
@@ -2008,7 +2057,7 @@ int main(int argc, char **argv)
 
     /* blank everything out */
     memset(&sParams, 0, sizeof(t_Params));
-    sParams.region_map = new std::map<int,int> ();
+    sParams.region_map = KeyValueIntInt_create();
 
     /* parameters dependednt on region */
     sParams.xSize = Rast_window_rows();
@@ -2162,7 +2211,7 @@ int main(int argc, char **argv)
     else {
         G_fatal_error("Initialization failed");
     }
-    delete sParams.region_map;
+    KeyValueIntInt_free(sParams.region_map);
     G_free(sLandscape.predictors);
 
     return EXIT_SUCCESS;
@@ -2232,12 +2281,9 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                                       id, pParams->num_Regions - 1,
                                       pThis->index_region);
 
-                    if (pLandscape->num_undevSites[id] >=
-                        pLandscape->asUndevs[id].size())
-                        pLandscape->asUndevs[id].resize(pLandscape->
-                                                        asUndevs[id].size() *
-                                                        2);
-
+                    if (pLandscape->num_undevSites[id] >= pLandscape->asUndevs_ns[id]) {
+                        pLandscape->asUndevs[id] = (t_Undev *) G_realloc(pLandscape->asUndevs[id], pLandscape->asUndevs_ns[id] * 2 * sizeof(t_Undev));
+                    }
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
                         cellID = i;
                     val = getDevProbability(pThis, pParams);
