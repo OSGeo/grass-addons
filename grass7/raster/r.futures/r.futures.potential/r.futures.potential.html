@@ -1,0 +1,50 @@
+<h2>DESCRIPTION</h2>
+Module <em>r.futures.potential</em> implements POTENTIAL submodel
+as a part of <a href="r.futures.html">FUTURES</a> land change model.
+POTENTIAL is implemented using a set of coefficients that
+relate a selection of site suitability factors to the probability
+of a place becoming developed. This is implemented using
+the parameter table in combination with maps of those site
+suitability factors (mapped predictors).
+
+The coefficients are obtained by conducting multilevel logistic regression in R
+with package <a href="https://cran.r-project.org/web/packages/lme4/index.html">lme4</a>
+where the coefficients may vary by county.
+The best model is selected automatically using <tt>dredge</tt>
+function from package
+<a href="https://cran.r-project.org/web/packages/MuMIn/index.html">MuMIn</a>
+(which has numerous caveats).
+
+<h2>NOTES</h2>
+Note that this module is designed to automate the FUTURES workflow by brute-force
+selection of model, which has numerous caveats.
+
+<h2>EXAMPLES</h2>
+
+<h2>SEE ALSO</h2>
+
+<a href="r.futures.html">FUTURES</a>,
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.sample.category.html">r.sample.category</a></em>
+
+<h2>REFERENCES</h2>
+<ul>
+<li>
+    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
+    <a href="http://dx.doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
+    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
+    Annals of the Association of American Geographers, 103(4), 785-807.
+<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+   <a href="http://dx.doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
+    tradeoffs between conservation planning strategies</a>.
+    Landscape and Urban Planning, 136, 28-39.</li>
+</ul>
+
+<h2>AUTHOR</h2>
+
+Anna Petrasova, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a><br>
+
+<p><i>Last changed: $Date: 2015-02-12 14:32:45 -0500 (Thu, 12 Feb 2015) $</i>
