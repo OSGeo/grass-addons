@@ -55,7 +55,10 @@
 #include <sys/time.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <vector>
+#include <map>
 
 extern "C"
 {
@@ -104,10 +107,10 @@ extern "C"
 #define _N_ALGORITHM_STOCHASTIC_II 3
 
 #define _MAX_RAND_FIND_SEED_FACTOR 25
-#define maxNumAddVariables 10
+#define maxNumAddVariables 20
 
 /** maximal number of counties allowed */
-#define MAXNUM_COUNTY 50
+#define MAXNUM_COUNTY 200
 #define MAX_YEARS 100
 /// maximum array size for undev cells (maximum: 1840198 for a county within 16 counties)
 #define MAX_UNDEV_SIZE 2000000
@@ -151,10 +154,9 @@ typedef struct
     /** multiplicative factor on the probabilities */
     double consWeight;
 
-    /** additional variables */
-    double additionVariable[maxNumAddVariables];
+    /** additional variables, see t_Landscape.predictors */
+    double *additionVariable;
     int index_region;
-    float devProba;
 } t_Cell;
 
 typedef struct
@@ -201,6 +203,9 @@ typedef struct
     int parcelSizes;
       std::vector < std::vector < t_Undev > >asUndevs;  //WT
     int num_undevSites[MAXNUM_COUNTY];  //WT
+
+    /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
+    double *predictors;
 } t_Landscape;
 
 typedef struct
@@ -284,6 +289,7 @@ typedef struct
     int overflowDevDemands[MAXNUM_COUNTY];
     /// number of simulation steps
     int nSteps;
+    std::map<int,int> *region_map;
 } t_Params;
 
 
@@ -305,29 +311,31 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID);
 
 void readDevPotParams(t_Params * pParams, char *fn)
 {
-    char str[200];
-    int id;
-    double di, d4, val;
-
-    // TODO: d5 is in file but unused
-    int i, j;
     ifstream f;
-
     f.open(fn);
     if (!f.is_open())
         G_fatal_error(_("Cannot open development potential parameters file <%s>"),
                       fn);
 
-    f.getline(str, 200);
-    for (i = 0; i < pParams->num_Regions; i++) {
-        // TODO: read by lines to count the variables
-        f >> id >> di >> d4;
-        pParams->dIntercepts[i] = di;
-        pParams->dV4[i] = d4;
-        for (j = 0; j < pParams->numAddVariables; j++) {
-            f >> val;
-            pParams->addParameters[j][i] = val;
+    string line;
+    getline(f, line);
+    int idx = 0;
+    int id, j;
+    double di, d4, val;
+    while(f >> id) {
+        f >>  di >> d4;
+        if (pParams->region_map->count(id) > 0) {
+            idx = (*pParams->region_map)[id];
+            pParams->dIntercepts[idx] = di;
+            pParams->dV4[idx] = d4;
+            for (j = 0; j < pParams->numAddVariables; j++) {
+                f >> val;
+                pParams->addParameters[j][idx] = val;
+            }
         }
+        else
+            for (j = 0; j < pParams->numAddVariables; j++)
+                f >> val;
     }
     f.close();
 }
@@ -414,16 +422,14 @@ int buildLandscape(t_Landscape * pLandscape, t_Params * pParams)
     pLandscape->maxX = pParams->xSize;
     pLandscape->maxY = pParams->ySize;
     pLandscape->totalCells = pLandscape->maxX * pLandscape->maxY;
-    int a = sizeof(t_Cell);
+
     pLandscape->asCells =
         (t_Cell *) malloc(sizeof(t_Cell) * pLandscape->totalCells);
     if (pLandscape->asCells) {
-        if (pParams->num_Regions > 1) {
-            /* just allocate enough space for every cell to be undev */
-            pLandscape->asUndev = (t_Undev *) malloc(sizeof(t_Undev) * pLandscape->totalCells);
-            if (pLandscape->asUndev) {
-                bRet = 1;
-            }
+        /* just allocate enough space for every cell to be undev */
+        pLandscape->asUndev = (t_Undev *) malloc(sizeof(t_Undev) * pLandscape->totalCells);
+        if (pLandscape->asUndev) {
+            bRet = 1;
         }
         else
             bRet = 1;
@@ -438,6 +444,7 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
     int ii;
     double val;
 
+    double *predictors = (double *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(double));
     for (i = 0; i < pParams->numAddVariables; i++) {
         G_verbose_message("Reading predictor variables %s...", pParams->addVariableFile[i]);
 
@@ -464,6 +471,8 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
                     pLandscape->asCells[ii].nCellType =
                         _CELL_OUT_OF_COUNTY;
                 }
+                if (i == 0)
+                    pLandscape->asCells[ii].additionVariable = &predictors[pParams->numAddVariables * ii];
                 if (pLandscape->asCells[ii].nCellType == _CELL_VALID)
                     pLandscape->asCells[ii].additionVariable[i] = val;
                 else
@@ -489,6 +498,8 @@ void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
     void *buffer = Rast_allocate_buf(data_type);
 
     G_verbose_message("Reading subregions %s", pParams->indexFile);
+    int count_regions = 0;
+    int index = 0;
     for (int row = 0; row < pParams->xSize; row++) {
         Rast_get_row(fd, buffer, row, data_type);
         void *ptr = buffer;
@@ -496,22 +507,23 @@ void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
         for (int col = 0; col < pParams->ySize; col++,
              ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
             if (Rast_is_null_value(ptr, data_type))
-                val = _GIS_NO_DATA_INT; // assign FUTURES representation of NULL value
+                index = _GIS_NO_DATA_INT; // assign FUTURES representation of NULL value
             else {
                 val = *(CELL *) ptr;
-                if (val > pParams->num_Regions)
-                    G_fatal_error(_("Region ID (%d) inconsistent with number of regions (%d) in map <%s>"),
-                                  val, pParams->num_Regions,
-                                  pParams->indexFile);
-                if (val < 1)
-                    G_fatal_error(_("Region ID (%d) is smaller then 1 in map <%s>"),
-                                  val, pParams->indexFile);
+                if (pParams->region_map->count(val) > 0)
+                    index = (*pParams->region_map)[val];
+                else {
+                    (*pParams->region_map)[val] = count_regions;
+                    index = count_regions;
+                    count_regions++;
+                }
             }
 
-            pLandscape->asCells[ii].index_region = val;
+            pLandscape->asCells[ii].index_region = index;
             ii++;
         }
     }
+    pParams->num_Regions = count_regions;
     G_verbose_message("Done");
 }
 
@@ -867,7 +879,6 @@ double getDevProbability(t_Cell * pThis, t_Params * pParams)
 
     if (id == -9999)
         return 0;
-    id = id - 1;
     probAdd = pParams->dIntercepts[id];
     //cout<<"intercept\t"<<probAdd<<endl;
     probAdd += pParams->dV4[id] * pThis->devPressure;
@@ -1446,42 +1457,41 @@ int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
 
 void readDevDemand(t_Params * pParams)
 {
-    ifstream f1;
-
-    /*
-       f1.open(pParams->controlFile);
-       int counter=0;
-       int val1,val2;
-       while(!f1.eof()){
-       f1>>val1>>val2;
-       pParams->devDemand[counter]=val2;
-       counter++;
-       }
-       pParams->nSteps=counter;
-       f1.close();
-     */
-    //read land demand for each region
-    int i;
-    int val1;
-    char str[200];
-
-    f1.open(pParams->controlFileAll);
-    f1 >> str >> val1;
-    pParams->nSteps = val1;
-    f1.getline(str, 200);
-    f1.getline(str, 200);  //skip the header
-    int ii;
-
-    for (ii = 0; ii < pParams->nSteps; ii++) {
-        f1 >> val1;
-        for (i = 0; i < pParams->num_Regions; i++) {
-            f1 >> val1;
-            pParams->devDemands[i][ii] = val1;
+    ifstream  data(pParams->controlFileAll);
+    string line;
+    // header
+    int count = 0;
+    //    int count_regions = 0;
+    string value;
+    getline(data, line);
+    stringstream  lineStream(line);
+    std::vector<int> ids;
+    while(getline(lineStream, value, '\t'))
+    {
+        if (count != 0) {
+            ids.push_back(atoi(value.c_str()));
         }
-
+        count++;
     }
-    f1.close();
 
+    int years = 0;
+    while(getline(data, line))
+    {
+        stringstream lineStream2(line);
+        count = -1;
+        while(getline(lineStream2, value, '\t'))
+        {
+            if (count >= 0 && pParams->region_map->count(ids[count]) > 0) {
+                int idx = (*pParams->region_map)[ids[count]];
+                pParams->devDemands[idx][years] = atoi(value.c_str());
+            }
+            count++;
+        }
+        years++;
+    }
+    if (!sParams.nSteps)
+        sParams.nSteps = years;
+    data.close();
 }
 
 void initializeUnDev(t_Landscape * pLandscape, t_Params * pParams)
@@ -1748,7 +1758,7 @@ int main(int argc, char **argv)
             *probLookupFile,
             *patchMean, *patchRange, *numNeighbors, *seedSearch,
             *devPressureApproach, *alpha, *scalingFactor, *num_Regions,
-            *indexFile, *controlFileAll, *seed;
+            *numSteps, *indexFile, *controlFileAll, *seed;
 
     } opt;
 
@@ -1905,13 +1915,13 @@ int main(int argc, char **argv)
     opt.indexFile->description = _("Raster map of subregions with categories starting with 1");
     opt.indexFile->guisection = _("Basic input");
 
-    opt.num_Regions = G_define_option();
-    opt.num_Regions->key = "num_regions";
-    opt.num_Regions->type = TYPE_INTEGER;
-    opt.num_Regions->required = YES;
-    opt.num_Regions->description =
-        _("Number of sub-regions (e.g., counties) to be simulated");
-    opt.num_Regions->guisection = _("Basic input");
+    opt.numSteps = G_define_option();
+    opt.numSteps->key = "num_steps";
+    opt.numSteps->type = TYPE_INTEGER;
+    opt.numSteps->required = NO;
+    opt.numSteps->description =
+        _("Number of steps to be simulated");
+    opt.numSteps->guisection = _("Basic input");
 
     opt.probLookupFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.probLookupFile->key = "incentive_table";
@@ -1998,6 +2008,7 @@ int main(int argc, char **argv)
 
     /* blank everything out */
     memset(&sParams, 0, sizeof(t_Params));
+    sParams.region_map = new std::map<int,int> ();
 
     /* parameters dependednt on region */
     sParams.xSize = Rast_window_rows();
@@ -2010,6 +2021,8 @@ int main(int argc, char **argv)
     sParams.devPressureFile = opt.devPressureFile->answer;
     sParams.consWeightFile = opt.consWeightFile->answer;
     sParams.numAddVariables = 0;
+    if (opt.numSteps->answer)
+        sParams.nSteps = atoi(opt.numSteps->answer);
 
     size_t num_answers = 0;
     while (opt.addVariableFiles->answers[num_answers]) {
@@ -2111,25 +2124,23 @@ int main(int argc, char **argv)
             sParams.scalingFactor = atof(opt.scalingFactor->answer);
         }
 
-        sParams.num_Regions = atoi(opt.num_Regions->answer);
         sParams.indexFile = opt.indexFile->answer;
         sParams.controlFileAll = opt.controlFileAll->answer;
     }
 
-    if (sParams.num_Regions > 1)
-        readDevPotParams(&sParams, opt.devpotParamsFile->answer);
-
-    readDevDemand(&sParams);
-    // initialize the overflow demands to zero
-    for (int i = 0; i < sParams.num_Regions; i++) {
-        sParams.overflowDevDemands[i] = 0;
-    }
     /* allocate memory */
     if (buildLandscape(&sLandscape, &sParams)) {
         /* read data */
         if (readData(&sLandscape, &sParams)) {
             readData4AdditionalVariables(&sLandscape, &sParams);
             readIndexData(&sLandscape, &sParams);
+            // initialize the overflow demands to zero
+            for (int i = 0; i < sParams.num_Regions; i++) {
+                sParams.overflowDevDemands[i] = 0;
+            }
+            readDevDemand(&sParams);
+            if (sParams.num_Regions > 1)
+                readDevPotParams(&sParams, opt.devpotParamsFile->answer);
             if (readParcelSizes(&sLandscape, &sParams)) {
                 //testDevPressure(&sLandscape, &sParams);
                 /* do calculation and dump result */
@@ -2151,6 +2162,8 @@ int main(int argc, char **argv)
     else {
         G_fatal_error("Initialization failed");
     }
+    delete sParams.region_map;
+    G_free(sLandscape.predictors);
 
     return EXIT_SUCCESS;
 }
@@ -2207,7 +2220,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
         if (pThis->nCellType == _CELL_VALID) {
             if (pThis->bUndeveloped) {
                 if (pThis->consWeight > 0.0) {
-                    id = pThis->index_region - 1;
+                    id = pThis->index_region;
                     if (pThis->index_region == -9999)
                         continue;
                     /* note that are no longer just storing the logit value,
@@ -2231,7 +2244,6 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
                         logitVal = val;
                     G_debug(2, "logit value %f", val);
-                    pThis->devProba = val;
                     /* lookup table of probabilities is applied before consWeight */
                     if (pParams->nAlgorithm == _N_ALGORITHM_STOCHASTIC_II) {
                         /* replace with value from lookup table */
@@ -2248,9 +2260,6 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                                                  num_undevSites[id]].
                             logitVal = pParams->adProbLookup[lookupPos];
                     }
-                    pThis->devProba =
-                        pLandscape->asUndevs[id][pLandscape->
-                                                 num_undevSites[id]].logitVal;
                     // discount by a conservation factor
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= pThis->consWeight;
                     /* need to store this to put correct elements near top of list */
