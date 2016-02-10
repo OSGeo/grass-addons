@@ -145,9 +145,6 @@ typedef struct
     /** timestep on which developed (0 for developed at start, _N_NOT_YET_DEVELOPED for not developed yet ) */
     int tDeveloped;
 
-    /** multiplicative factor on the probabilities */
-    double consWeight;
-
     /** additional variables, see t_Landscape.predictors */
     double *additionVariable;
     int index_region;
@@ -203,6 +200,8 @@ typedef struct
 
     /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
     double *predictors;
+    /** multiplicative factor on the probabilities */
+    double *consWeight;
 } t_Landscape;
 
 
@@ -464,7 +463,7 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
     int ii;
     double val;
 
-    double *predictors = (double *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(double));
+    pLandscape->predictors = (double *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(double));
     for (i = 0; i < pParams->numAddVariables; i++) {
         G_verbose_message("Reading predictor variables %s...", pParams->addVariableFile[i]);
 
@@ -492,7 +491,7 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
                         _CELL_OUT_OF_COUNTY;
                 }
                 if (i == 0)
-                    pLandscape->asCells[ii].additionVariable = &predictors[pParams->numAddVariables * ii];
+                    pLandscape->asCells[ii].additionVariable = &pLandscape->predictors[pParams->numAddVariables * ii];
                 if (pLandscape->asCells[ii].nCellType == _CELL_VALID)
                     pLandscape->asCells[ii].additionVariable[i] = val;
                 else
@@ -566,16 +565,11 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
         for (j = 0; j < 3; j++) {
             /* workaround to skip loading constraint map so that it can be omitted in input */
             if (j == 2) {
-                if (!pParams->consWeightFile) {
-                    i = 0;
-                    for (int row = 0; row < pParams->xSize; row++) {
-                        for (int col = 0; col < pParams->ySize; col++) {
-                            pLandscape->asCells[i].consWeight = 1;
-                            i++;
-                        }
-                    }
+                pLandscape->consWeight = NULL;
+                if (pParams->consWeightFile)
+                    pLandscape->consWeight = (double *)G_malloc(pLandscape->totalCells * sizeof(double));
+                else
                     continue;
-                }
             }
             switch (j) {        /* get correct filename */
             case 0:
@@ -660,7 +654,9 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
                             pLandscape->asCells[i].devPressure = (int)dVal;
                             break;
                         case 2:
-                            pLandscape->asCells[i].consWeight = dVal;
+                            if (pLandscape->consWeight) {
+                                pLandscape->consWeight[i] = dVal;
+                            }
                             break;
                         default:
                             G_fatal_error("readData(): shouldn't get here");
@@ -992,7 +988,8 @@ void findAndSortProbs(t_Landscape * pLandscape, t_Params * pParams,
         pThis = &(pLandscape->asCells[i]);
         if (pThis->nCellType == _CELL_VALID) {
             if (pThis->bUndeveloped) {
-                if (pThis->consWeight > 0.0) {
+                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[i] : 1;
+                if (consWeight > 0.0) {
                     /* note that are no longer just storing the logit value, but instead the probability (allows consWeight to affect sort order) */
                     pLandscape->asUndev[pLandscape->undevSites].cellID = i;
                     pLandscape->asUndev[pLandscape->undevSites].logitVal =
@@ -1008,8 +1005,7 @@ void findAndSortProbs(t_Landscape * pLandscape, t_Params * pParams,
                         // fprintf(stdout, "%f %d %f\n", pLandscape->asUndev[pLandscape->undevSites].logitVal, lookupPos, pParams->adProbLookup[lookupPos]);
                     }
                     // multiply consweight
-                    pLandscape->asUndev[pLandscape->undevSites].logitVal *=
-                        pThis->consWeight;
+                    pLandscape->asUndev[pLandscape->undevSites].logitVal *= consWeight;
                     pLandscape->asUndev[pLandscape->undevSites].bUntouched = pThis->bUntouched; /* need to store this to put correct elements near top of list */
                     if (pLandscape->asUndev[pLandscape->undevSites].logitVal >
                         0.0) {
@@ -1088,7 +1084,8 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
         if (pThis->nCellType == _CELL_VALID) {
             pThis->bUntouched = 0;
             if (pThis->bUndeveloped) {
-                if (pThis->consWeight > 0.0) {
+                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[thisPos] : 1;
+                if (consWeight > 0.0) {
                     /* need to add this cell... */
 
                     /* ...either refresh its element in list if already there */
@@ -1133,7 +1130,7 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
                         lookupPos =
                             (int)(probAdd * (pParams->nProbLookup - 1));
                         probAdd = pParams->adProbLookup[lookupPos];
-                        probAdd *= pThis->consWeight;
+                        probAdd *= consWeight;
                         pNeighbours->aCandidates[pNeighbours->nCandidates].
                             probAdd = probAdd;
                         /* only actually add it if will ever transition */
@@ -2213,6 +2210,8 @@ int main(int argc, char **argv)
     }
     KeyValueIntInt_free(sParams.region_map);
     G_free(sLandscape.predictors);
+    if (sLandscape.consWeight)
+        G_free(sLandscape.consWeight);
 
     return EXIT_SUCCESS;
 }
@@ -2268,7 +2267,8 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
         pThis = &(pLandscape->asCells[i]);
         if (pThis->nCellType == _CELL_VALID) {
             if (pThis->bUndeveloped) {
-                if (pThis->consWeight > 0.0) {
+                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[i] : 1;
+                if (consWeight > 0.0) {
                     id = pThis->index_region;
                     if (pThis->index_region == -9999)
                         continue;
@@ -2307,7 +2307,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                             logitVal = pParams->adProbLookup[lookupPos];
                     }
                     // discount by a conservation factor
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= pThis->consWeight;
+                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= consWeight;
                     /* need to store this to put correct elements near top of list */
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].bUntouched = pThis->bUntouched;
                     if (pLandscape->asUndevs[id]
