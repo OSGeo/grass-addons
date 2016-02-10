@@ -13,7 +13,10 @@ that separator must be part of the prefix, e.g. <i>output=eurolst_</i>.
 If the input temperatures are scaled, e.g. as input = Celsius * 10, then 
 the <b>inscale</b> option must be set to 10. Similarly, the <b>outscale</b> 
 option is by default 10, and temperature output is in this case Celsius * 10. 
-Exceptions are BIO3, BIO4, and BIO15 which are always multiplied with 100 (see below).
+Exceptions are BIO3, BIO4, and BIO15 which are always multiplied with 100
+(see below). The reason that <b>outscale</b> is set to 10 by default is that
+the output layers are integers (for compatibility with WORLDCLIM), and a
+scaling factor of 10 (or higher power of 10) ensures a minimum of precision.
 
 <h2>NOTES</h2>
 <h4>Quarter years</h4>
