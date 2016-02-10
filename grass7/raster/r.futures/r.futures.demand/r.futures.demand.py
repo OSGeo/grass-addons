@@ -64,7 +64,8 @@
 #%option G_OPT_F_OUTPUT
 #% key: plot
 #% required: no
-#% description: Save plotted relationship between developed cells and population into a file
+#% label: Save plotted relationship between developed cells and population into a file
+#% description: File type is given by extension (.pfd, .png, .svg)
 #% guisection: Output
 #%end
 #%option G_OPT_F_OUTPUT
@@ -75,6 +76,7 @@
 #%option G_OPT_F_SEP
 #% label: Separator used in input CSV files
 #% guisection: Input population
+#% answer: comma
 #%end
 
 
@@ -216,7 +218,6 @@ def main():
 
     # write demand
     with open(options['demand'], 'w') as f:
-        f.write('Years_to_simulate: {sim}\n'.format(sim=len(simulation_times)))
         header = observed_popul.dtype.names  # the order is kept here
         f.write('\t'.join(header))
         f.write('\n')

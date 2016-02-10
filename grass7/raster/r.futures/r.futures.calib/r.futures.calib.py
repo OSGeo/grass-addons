@@ -102,7 +102,7 @@
 #% guisection: PGA
 #%end
 #%option G_OPT_R_INPUT
-#% key: cons_weight
+#% key: constrain_weight
 #% required: no
 #% label: Name of raster map representing development potential constraint weight for scenarios
 #% description: Values must be between 0 and 1, 1 means no constraint
@@ -183,11 +183,11 @@
 #% guisection: PGA
 #%end
 #%option
-#% key: num_regions
+#% key: num_steps
 #% type: integer
-#% required: yes
+#% required: no
 #% multiple: no
-#% description: Number of sub-regions (e.g., counties) to be simulated
+#% description: Number of steps to be simulated
 #% guisection: PGA
 #%end
 #%option G_OPT_R_INPUT
@@ -294,11 +294,11 @@ def run_simulation(development_start, development_end, compactness_mean, compact
                               devpot_params=fut_options['devpot_params'], incentive_table=fut_options['incentive_table'],
                               num_neighbors=fut_options['num_neighbors'], seed_search=fut_options['seed_search'],
                               development_pressure_approach=fut_options['development_pressure_approach'], gamma=fut_options['gamma'],
-                              scaling_factor=fut_options['scaling_factor'], num_regions=fut_options['num_regions'],
+                              scaling_factor=fut_options['scaling_factor'],
                               subregions=fut_options['subregions'], demand=fut_options['demand'],
                               output=development_end)
     parameters.update(futures_parameters)
-    for not_required in ('cons_weight',):
+    for not_required in ('constrain_weight', 'num_steps'):
         if options[not_required]:
             parameters.update({not_required: options[not_required]})
 

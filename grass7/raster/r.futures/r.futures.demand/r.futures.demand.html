@@ -13,7 +13,8 @@ For these years, user has to provide the population numbers for each subregion
 in parameter <b>observed_population</b> as a CSV file.
 The format is as follows. First column is time
 (matching the time of rasters used in parameter <b>development</b>) and
-first row is the category of the subregion.
+first row is the category of the subregion. The separator can be set
+with parameter <b>separator</b>.
 <pre>
 year	1	2	...
 1985	19860	10980	...
@@ -51,7 +52,6 @@ based on RMSE. Recommended methods are logarithmic or linear.
 <p>
 The format of the output <b>demand</b> table is:
 <pre>
-Years_to_simulate: 24
 year	1	2	...
 2016	2900	243	...
 2017	2790	240	...
@@ -69,6 +69,7 @@ By changing the "Years_to_simulate" number, user can control the simulation.
 <p>
 An optional output <b>plot</b> is a plot of the relations for each subregion.
 It allows to more effectively assess the relation suitable for each subregion.
+Format of the file is determined from the extension and can be for example PNG, PDF, SVG.
 
 <center>
 <img src="r_futures_demand_plot.png">
@@ -93,7 +94,25 @@ demand=demand_sub1.txt plot=regression_lin.pdf method=linear
 
 <h2>SEE ALSO</h2>
 
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>
+<a href="r.futures.html">FUTURES</a>,
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.sample.category.html">r.sample.category</a></em>
+
+<h2>REFERENCES</h2>
+<ul>
+<li>
+    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
+    <a href="http://dx.doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
+    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
+    Annals of the Association of American Geographers, 103(4), 785-807.
+<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+   <a href="http://dx.doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
+    tradeoffs between conservation planning strategies</a>.
+    Landscape and Urban Planning, 136, 28-39.</li>
+</ul>
 
 <h2>AUTHOR</h2>
 
