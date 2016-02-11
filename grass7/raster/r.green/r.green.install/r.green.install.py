@@ -260,9 +260,12 @@ def fix_rgreen_libraries(move=False):
             if not os.path.exists(greendir):
                 os.makedirs(greendir)
 
-            msg = 'Moving r.green library (%s) from: %s to: %s'
+            print('You should (manually or using "-m" flag) move the:')
+            msg = 'r.green library (%s) from: %s to: %s'
             print(msg % (lib, wrongpath, greendir))
             if move:
+                if os.path.exists(greendir):
+                    shutil.rmtree(greendir)
                 shutil.move(wrongpath, greendir)
         else:
             if os.path.exists(greendir):
