@@ -303,24 +303,23 @@ def main(options, flags):
             command = 'q_spec =0.0086*%s+0.03416*%s-24.5694' % (rain, h_mean)
             q_spec = 'q_spec'
             mapcalc(command)
-    else:
-        command = '%s = %s * %s/1000.0' % (q_river, q_spec, a_river)
-        mapcalc(command)
+            command = '%s = %s * %s/1000.0' % (q_river, q_spec, a_river)
+            mapcalc(command)
     # compute MVF with Regione Veneto Formula
+    min_flow = options['mfd']
     if options['k_b']:
         msgr.warning("Regione Veneto plan")
         k_b = options['k_b']  # raster
         k_n = options['k_n']  # raster
-        min_flow = options['mfd']
         regione_veneto(a_river, q_spec, k_b, k_n,
                        min_flow)
     elif k_mat:
         msgr.warning("Piedmont Plan")
         command = '%s=%s*%s*%s*%s*%s/1000.0' % (min_flow, k_mat, a_river,
-                                                     q_spec, m_mat, a_mat)
+                                                q_spec, m_mat, a_mat)
         mapcalc(command, overwrite=True)
     else:
-        msgr.warning("No formula fot the MVF")
+        msgr.warning("No formula for the MVF")
     if corr_fact:
     # if corr_fact coumpute the environemtal flow else the minimum flow"
         command = '%s=if(not(%s), %s, %s*%s)' % (env_area, min_flow,
