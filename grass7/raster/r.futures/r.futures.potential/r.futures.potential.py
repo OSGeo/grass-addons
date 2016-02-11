@@ -97,7 +97,7 @@ predictors <- predictors[predictors != opt$response]
 
 interc <- paste("(1|", opt$level, ")")
 fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
-model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
+model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.omit")
 
 if(opt$usedredge) {
     #create all possible models, always include county as the level
@@ -171,7 +171,7 @@ def main():
             if i == 0:
                 row[0] = "ID"
                 row[1] = "Intercept"
-            fout.write(' '.join(row))
+            fout.write('\t'.join(row))
             fout.write('\n')
             i += 1
 
