@@ -105,20 +105,20 @@ typedef struct
     int thisY;
 
     /** whether this site is still undeveloped; varies.  Note if bUndeveloped = 0 the values of employAttraction etc. are not to be trusted */
-    int bUndeveloped;
+    bool bUndeveloped;
     // TODO: is the following int or double (defined as double but usually casting to int in assignment, was as int in some print)
 
     /** development pressure; varies */
-    double devPressure;
+    float devPressure;
 
     /** stores whether this site has been considered for development, to handle "protection" */
-    int bUntouched;
+    bool bUntouched;
 
     /** timestep on which developed (0 for developed at start, _N_NOT_YET_DEVELOPED for not developed yet ) */
     int tDeveloped;
 
     /** additional variables, see t_Landscape.predictors */
-    double *additionVariable;
+    float *additionVariable;
     int index_region;
 } t_Cell;
 
@@ -171,7 +171,7 @@ typedef struct
     int num_undevSites[MAXNUM_COUNTY];  //WT
 
     /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
-    double *predictors;
+    float *predictors;
     /** multiplicative factor on the probabilities */
     double *consWeight;
 } t_Landscape;
@@ -398,7 +398,7 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
     int ii;
     double val;
 
-    pLandscape->predictors = (double *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(double));
+    pLandscape->predictors = (float *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(float));
     for (i = 0; i < pParams->numAddVariables; i++) {
         G_verbose_message("Reading predictor variables %s...", pParams->addVariableFile[i]);
 
@@ -588,7 +588,7 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
                             }
                             break;
                         case 1:
-                            pLandscape->asCells[i].devPressure = (int)dVal;
+                            pLandscape->asCells[i].devPressure = dVal;
                             break;
                         case 2:
                             if (pLandscape->consWeight) {
