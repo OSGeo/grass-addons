@@ -38,22 +38,22 @@
 #%end
 
 import sys
-from grass.script import core as grass
-
+import grass.script as grass
 
 def main():
     # if no output filename, output to stdout
     input = options['input']
     player = int(options['player'])
     output = options['output']
-    sep = options['separator']
+    sep = grass.utils.separator(options['separator'])
     bidirectional = flags['b']
     tempmapname='neighborhoodmatrix_tempmap'
     #TODO: automatically determine the first available layer in file
     blayer = player+1
 
     grass.run_command('v.category', input=input, output=tempmapname,
-            option='add', layer=blayer, type='boundary', quiet=True)
+            option='add', layer=blayer, type='boundary', quiet=True,
+            overwrite=True)
     vtodb_results=grass.read_command('v.to.db', flags='p', map=tempmapname,
             type='boundary', option='sides', layer=blayer, qlayer=player, quiet=True)
     grass.run_command('g.remove', flags='f', type='vector', name=tempmapname, quiet=True)
