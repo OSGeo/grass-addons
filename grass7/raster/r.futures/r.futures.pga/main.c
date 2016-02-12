@@ -129,13 +129,13 @@ typedef struct
     int cellID;
 
     /** value of the logit */
-    double logitVal;
+    float logitVal;
 
     /** whether or not cell previously considered...need to use this in the sort */
-    int bUntouched;
+    bool bUntouched;
 
     /** to support random pick based on their logitVal */
-    double cumulProb;
+    float cumulProb;
 } t_Undev;
 
 typedef struct
@@ -378,10 +378,10 @@ int buildLandscape(t_Landscape * pLandscape, t_Params * pParams)
     pLandscape->totalCells = pLandscape->maxX * pLandscape->maxY;
 
     pLandscape->asCells =
-        (t_Cell *) malloc(sizeof(t_Cell) * pLandscape->totalCells);
+        (t_Cell *) G_malloc(sizeof(t_Cell) * pLandscape->totalCells);
     if (pLandscape->asCells) {
         /* just allocate enough space for every cell to be undev */
-        pLandscape->asUndev = (t_Undev *) malloc(sizeof(t_Undev) * pLandscape->totalCells);
+        pLandscape->asUndev = (t_Undev *) G_malloc(sizeof(t_Undev) * pLandscape->totalCells);
         if (pLandscape->asUndev) {
             bRet = 1;
         }
@@ -1810,6 +1810,7 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
     int i;
 
     for (i = 0; i < pLandscape->num_undevSites[regionID]; i++) {
+        // TODO: these might not me initialized (says also valgrind)
         if (p < pLandscape->asUndevs[regionID][i].cumulProb) {
             G_debug(3, _("getUnDevIndex1: cumulProb=%f"),
                               pLandscape->asUndevs[regionID][i].cumulProb);
@@ -1895,6 +1896,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
     int j;
 
     for (j = 0; j < pParams->num_Regions; j++) {
+        // TODO: value of pLandscape->asUndevs[j][0].cumulProb is what?
         double sum = pLandscape->asUndevs[j][0].logitVal;
 
         for (i = 1; i < pLandscape->num_undevSites[j]; i++) {
