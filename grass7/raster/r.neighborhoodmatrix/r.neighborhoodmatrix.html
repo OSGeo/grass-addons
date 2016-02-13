@@ -1,0 +1,61 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.neighborhoodmatrix</em> identifies all adjacency relations between
+segments (or clumps) in a raster map and exports these as a 2xn matrix 
+where n is the number of neighborhood relations with each relation listed 
+in both directions (i.e. if a is neighbor of b, the list will contain 
+a,b and b,a).
+
+Neighborhood relations are determined pixel by pixel, and by default only 
+pixels that share a common pixel boundary are considered neighbors. When
+the <em>-d</em> flag is set pixels sharing a common corner (i.e. diagonal
+neighbors) are also taken into account.
+
+If a path to an output file is specified, the matrix will be written to that 
+file, otherwise it will be sent to standard output.
+
+<h2>NOTES</h2>
+
+The module (without the <em>-d</em> flag) should give the same result as the equivalent call to 
+<a href="v.neighborhoodmatrix.html">v.neighborhoodmatrix</a> with the <em>-b</em>
+flag. Currently it actually seems faster for some maps to transform the raster 
+to vector and then run the latter. More tests are needed, though, to confirm
+this.
+
+<h2>TODO</h2>
+
+Add flag to only output half matrix with each relation only shown once.
+
+<h2>EXAMPLE</h2>
+
+Send the neighborhood matrix of the counties in the boundary_county map of the 
+North Carolina dataset to standard output:
+
+<div class="code"><pre>
+r.neighborhoodmatrix in=boundary_county_500m sep=comma
+</pre></div>
+
+Idem, but sending the output to a file:
+
+<div class="code"><pre>
+r.neighborhoodmatrix in=boundary_county_500m sep=comma output=county_neighbors.csv
+</pre></div>
+
+Transforming the raster to vector (without attribute table or topology) and the using
+<a href="v.neighborhoodmatrix.html">v.neighborhoodmatrix</a>:
+
+<div class="code"><pre>
+r.to.vect -tbv in=boundary_county_500m out=boundary_county_500m type=area
+v.neighborhoodmatrix in=boundary_county_500m sep=comma
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.neighborhoodmatrix.html">v.neighborhoodmatrix</a>
+</em>
+
+<h2>AUTHOR</h2>
+ Moritz Lennert
+
+<p><i>Last changed: $Date: 2014-10-20 12:38:08 +0200 (lun 20 oct 2014) $</i>
