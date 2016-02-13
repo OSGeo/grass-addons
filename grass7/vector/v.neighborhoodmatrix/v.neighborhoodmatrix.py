@@ -38,25 +38,32 @@
 #%end
 
 import sys
-import grass.script as grass
+import os
+import atexit
+import grass.script as gscript
+from grass.script.utils import separator
+
+def cleanup():
+    gscript.run_command('g.remove', flags='f', type='vector',
+                      pat=tempmapname, quiet=True)
 
 def main():
     # if no output filename, output to stdout
     input = options['input']
     player = int(options['player'])
     output = options['output']
-    sep = grass.utils.separator(options['separator'])
+    sep = separator(options['separator'])
     bidirectional = flags['b']
-    tempmapname='neighborhoodmatrix_tempmap'
+    global tempmapname
+    tempmapname='neighborhoodmatrix_tempmap_%d' % os.getpid() 
     #TODO: automatically determine the first available layer in file
     blayer = player+1
 
-    grass.run_command('v.category', input=input, output=tempmapname,
+    gscript.run_command('v.category', input=input, output=tempmapname,
             option='add', layer=blayer, type='boundary', quiet=True,
             overwrite=True)
-    vtodb_results=grass.read_command('v.to.db', flags='p', map=tempmapname,
+    vtodb_results=gscript.read_command('v.to.db', flags='p', map=tempmapname,
             type='boundary', option='sides', layer=blayer, qlayer=player, quiet=True)
-    grass.run_command('g.remove', flags='f', type='vector', name=tempmapname, quiet=True)
 
     #put result into a list of integer pairs
     temp_neighbors=[]
@@ -64,27 +71,17 @@ def main():
         if line.split('|')[1]<>'-1' and line.split('|')[2]<>'-1':
                 temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
 
-    #uniqify the list of integer pairs
-    n = len(temp_neighbors)
-    t=list(temp_neighbors)
-    t.sort()
-    assert n > 0
-    last = t[0]
-    lasti = i = 1
-    while i < n:
-        if t[i] != last:
-                t[lasti] = last = t[i]
-                lasti += 1
-        i += 1
-    neighbors=t[:lasti]
+    #temp_neighbors.sort()
 
     #if user wants bidirectional matrix, add the inversed pairs to the original
     if bidirectional:
         neighbors_reversed=[]
-        for pair in neighbors:
+        for pair in temp_neighbors:
                 neighbors_reversed.append([pair[1], pair[0]])
-        neighbors += neighbors_reversed
+        temp_neighbors += neighbors_reversed
 
+    #uniqify the list of integer pairs
+    neighbors = [list(x) for x in set(tuple(x) for x in temp_neighbors)]
     neighbors.sort()
 
     if output and output != '-':
@@ -101,5 +98,6 @@ def main():
     sys.exit()
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gscript.parser()
+    atexit.register(cleanup)
     main()
