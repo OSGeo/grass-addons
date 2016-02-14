@@ -1303,17 +1303,15 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
             if (nRandTries > _MAX_RAND_FIND_SEED_FACTOR * nToConvert) {
                 bAllowTouched = 1;
             }
+            /* give a random undeveloped cell a go */
+            if (sParams.seedSearch == 1)
+                i = (int)(uniformRandom() *
+                          pLandscape->num_undevSites[regionID]);
+            //pick one according to their probability
             else {
-                /* otherwise give a random undeveloped cell a go */
-                if (sParams.seedSearch == 1)
-                    i = (int)(uniformRandom() *
-                              pLandscape->num_undevSites[regionID]);
-                //pick one according to their probability
-                else {
-                    G_debug(3, "Step %d, nDone=%d, toConvert=%d", nStep, nDone,
-                            nToConvert);
-                    i = getUnDevIndex1(pLandscape, regionID);
-                }
+                G_debug(3, "Step %d, nDone=%d, toConvert=%d", nStep, nDone,
+                        nToConvert);
+                i = getUnDevIndex1(pLandscape, regionID);
             }
             pThis =
                     &(pLandscape->asCells
@@ -1332,6 +1330,9 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
                                              [i].cellID, nStep, bAllowTouched,
                                              0);
                     }
+                }
+                else {
+                    nRandTries++;
                 }
                 pThis->bUntouched = 0;
             }
@@ -1809,15 +1810,27 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
 
     G_debug(4, _("getUnDevIndex1: regionID=%d, num_undevSites=%d, p=%f"),
                       regionID, pLandscape->num_undevSites[regionID], p);
-    int i;
-
-    for (i = 0; i < pLandscape->num_undevSites[regionID]; i++) {
+    // bisect
+    int first = 0;
+    int last = pLandscape->num_undevSites[regionID] - 1;
+    int middle = (first + last) / 2;
+    if (p <= pLandscape->asUndevs[regionID][first].cumulProb)
+        return 0;
+    if (p >= pLandscape->asUndevs[regionID][last].cumulProb)
+        return last;
+    while (first <= last) {
         // TODO: these might not me initialized (says also valgrind)
-        if (p < pLandscape->asUndevs[regionID][i].cumulProb) {
+        if (pLandscape->asUndevs[regionID][middle].cumulProb < p)
+            first = middle + 1;
+        else if (pLandscape->asUndevs[regionID][middle - 1].cumulProb < p &&
+                 pLandscape->asUndevs[regionID][middle].cumulProb >= p) {
             G_debug(5, _("getUnDevIndex1: cumulProb=%f"),
-                              pLandscape->asUndevs[regionID][i].cumulProb);
-            return i;
+                    pLandscape->asUndevs[regionID][middle].cumulProb);
+            return middle;
         }
+        else
+            last = middle - 1;
+        middle = (first + last)/2;
     }
     // TODO: returning at least something but should be something more meaningful
     return 0;
