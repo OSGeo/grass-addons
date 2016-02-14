@@ -988,6 +988,7 @@ int newPatchFinder(int nThisID, t_Landscape * pLandscape, t_Params * pParams,
     int bTrying, i, nFound, j;
     t_neighbourList sNeighbours;
 
+    G_debug(3, "Finding patch of size %d", nWantToConvert);
     memset(&sNeighbours, 0, sizeof(t_neighbourList));
     anToConvert[0] = nThisID;
     pLandscape->asCells[nThisID].bUntouched = 0;
@@ -1308,10 +1309,11 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
                     i = (int)(uniformRandom() *
                               pLandscape->num_undevSites[regionID]);
                 //pick one according to their probability
-                else
-                    G_debug(3, "nDone=%d, toConvert=%d", nDone,
+                else {
+                    G_debug(3, "Step %d, nDone=%d, toConvert=%d", nStep, nDone,
                             nToConvert);
-                i = getUnDevIndex1(pLandscape, regionID);
+                    i = getUnDevIndex1(pLandscape, regionID);
+                }
             }
             pThis =
                     &(pLandscape->asCells
@@ -1338,7 +1340,7 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
             }
         }
 
-        G_debug(1, "Converted %d sites", nDone);
+        G_debug(1, "Step %d: converted %d sites", nStep, nDone);
         nExtra += (nDone - nToConvert);
         // save overflow for the next time
         pParams->overflowDevDemands[regionID] = nExtra;
@@ -1805,14 +1807,14 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
 {
     float p = rand() / (double)RAND_MAX;
 
-    G_debug(3, _("getUnDevIndex1: regionID=%d, num_undevSites=%d, p=%f"),
+    G_debug(4, _("getUnDevIndex1: regionID=%d, num_undevSites=%d, p=%f"),
                       regionID, pLandscape->num_undevSites[regionID], p);
     int i;
 
     for (i = 0; i < pLandscape->num_undevSites[regionID]; i++) {
         // TODO: these might not me initialized (says also valgrind)
         if (p < pLandscape->asUndevs[regionID][i].cumulProb) {
-            G_debug(3, _("getUnDevIndex1: cumulProb=%f"),
+            G_debug(5, _("getUnDevIndex1: cumulProb=%f"),
                               pLandscape->asUndevs[regionID][i].cumulProb);
             return i;
         }
@@ -1866,7 +1868,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                     val = getDevProbability(pThis, pParams);
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
                         logitVal = val;
-                    G_debug(2, "logit value %f", val);
+                    G_debug(5, "logit value %f", val);
                     /* lookup table of probabilities is applied before consWeight */
                     /* replace with value from lookup table */
                     lookupPos = (int)(pLandscape->asUndevs[id]
