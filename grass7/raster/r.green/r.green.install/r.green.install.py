@@ -27,11 +27,15 @@
 #% key: m
 #% description: Move r.green libraries in the right place
 #%end
-
+#%flag
+#% key: x
+#% description: Add r.green menu to the GRASS GUI
+#%end
 
 # import system libraries
 from __future__ import print_function
 import os
+from os.path import join
 import sys
 import imp
 import tempfile
@@ -41,6 +45,7 @@ import shutil
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
 import urllib2
+import xml.etree.ElementTree as ET
 
 from collections import namedtuple
 import platform
@@ -57,6 +62,90 @@ Pkg = namedtuple('Pkg', ['name', 'version', 'py', 'un', 'platform'])
 CHECK_LIBRARIES = ['scipy', 'numexpr']
 CHECK_RGREENLIB = [('libgreen', '..'),
                    ('libhydro', os.path.join('..', 'r.green.hydro'))]
+
+PATHSYSXML = []
+PATHLOCXML = []
+
+XMLMAINMENU = "Energy"
+
+XMLENERGYTOOLBOX = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE toolboxes SYSTEM "toolboxes.dtd">
+<toolboxes>
+  <toolbox name="{XMLMAINMENU}">
+    <label>&amp;Energy</label>
+    <items>
+      <subtoolbox name="Biomass"/>
+      <subtoolbox name="Hydro"/>
+    </items>
+  </toolbox>
+  <toolbox name="Biomass">
+    <label>Biomass</label>
+    <items>
+      <subtoolbox name="Forestry"/>
+    </items>
+  </toolbox>
+  <toolbox name="Forestry">
+    <label>Forestry biomass potential</label>
+    <items>
+      <module-item name="r.green.biomassfor.theoretical">
+        <label>Theoretical potential</label>
+      </module-item>
+      <module-item name="r.green.biomassfor.legal">
+        <label>Legal constraints</label>
+      </module-item>
+      <module-item name="r.green.biomassfor.technical">
+        <label>Technical constraints</label>
+      </module-item>
+      <module-item name="r.green.biomassfor.recommended">
+        <label>Extra constraints</label>
+      </module-item>
+      <module-item name="r.green.biomassfor.economic">
+        <label>Financial constraints</label>
+      </module-item>
+      <separator/>
+      <module-item name="r.green.biomassfor.impact">
+        <label>Impact on Ecosystem Services</label>
+      </module-item>
+      <module-item name="r.green.biomassfor.co2">
+        <label>CO2 balance</label>
+      </module-item>
+    </items>
+  </toolbox>
+  <toolbox name="Hydro">
+    <label>Hydro-power potential</label>
+    <items>
+      <module-item name="r.green.hydro.theoretical">
+        <label>Theoretical potential</label>
+      </module-item>
+      <module-item name="r.green.hydro.recommended">
+        <label>Legal and extra constraints</label>
+      </module-item>
+      <module-item name="r.green.hydro.technical">
+        <label>Technical constraints</label>
+      </module-item>
+      <module-item name="r.green.hydro.financial">
+        <label>Financial constraints</label>
+      </module-item>
+      <separator/>
+      <module-item name="r.green.hydro.closest">
+        <label>Move power plants to the closest river's point</label>
+      </module-item>
+      <module-item name="r.green.hydro.discharge">
+        <label>Compute natural discharge and minimal flow</label>
+      </module-item>
+      <module-item name="r.green.hydro.optimal">
+        <label>Identify optimal river segment</label>
+      </module-item>
+      <module-item name="r.green.hydro.structure">
+        <label>Compute channels and penstocks</label>
+      </module-item>
+      <module-item name="r.green.hydro.delplants">
+        <label>Delete segments where there is an existing plant</label>
+      </module-item>
+    </items>
+  </toolbox>
+</toolboxes>
+""".format(XMLMAINMENU=XMLMAINMENU)
 
 
 def value_not_none(method):
@@ -121,6 +210,16 @@ class PkgHTMLParser(HTMLParser):
         self.value['decl'].append(data)
 
 
+def get_settings_path():
+    """Get full path to the settings directory
+    """
+    # TODO: remove this function once the GetSettingsPath function is moved in
+    # grass.script.utils or similia
+    return (join(os.getenv('APPDATA'), 'GRASS%d' % 7)
+            if sys.platform.startswith('win') else
+            join(os.getenv('HOME'), '.grass%d' % 7))
+
+
 def check_install_pip(install=False):
     """Check if pip is available"""
     # run pip and check return code
@@ -166,7 +265,7 @@ def fix_missing_libraries(install=False):
                     break
             if result is None:
                 print('=> Library not found for your system', cppy, pltf[:-4])
-                sys.exit()
+                sys.exit(1)
             return result
 
         # check the cache
@@ -185,7 +284,7 @@ def fix_missing_libraries(install=False):
             print(lib, 'not in the package list:')
             from pprint import pprint
             pprint(sorted(parser.packages))
-            sys.exit()
+            sys.exit(1)
 
         pkg = match()
         return ('http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/' + pkg,
@@ -206,7 +305,7 @@ def fix_missing_libraries(install=False):
             print('Something went wrong during the installation, '
                   'please fix this manually')
             print(cmd)
-            sys.exit()
+            sys.exit(1)
 
     to_be_installed = []
     for lib in CHECK_LIBRARIES:
@@ -236,7 +335,7 @@ def fix_missing_libraries(install=False):
                     print('Something went wrong during the installation, '
                           'please fix this manually')
                     print(cmd)
-                    sys.exit()
+                    sys.exit(1)
 
 
 def fix_rgreen_libraries(move=False):
@@ -255,7 +354,7 @@ def fix_rgreen_libraries(move=False):
         """Move r.green libraries directories into the GRASS addons
         standard directory"""
         wrongpath = os.path.join(gaddons, lib)
-        greendir = os.path.join(gaddons, 'etc', 'r.green')
+        greendir = os.path.join(gaddons, 'etc', 'r.green', lib)
         if os.path.exists(wrongpath):
             if not os.path.exists(greendir):
                 os.makedirs(greendir)
@@ -290,9 +389,69 @@ def fix_rgreen_libraries(move=False):
             print('- ', path)
 
 
+def add_rgreen_menu():
+    """Add/Update the xml used to define the GRASS GUI"""
+
+    def toolboxes2dict(toolboxes):
+        """Trnsform a list of toolbox elements into a dictionary"""
+        return {toolbox.find('label').text: toolbox for toolbox in toolboxes}
+
+    main = 'main_menu.xml'
+    tool = 'toolboxes.xml'
+    grass_toolboxes_path = join(os.getenv('GISBASE'), 'gui', 'wxpython', 'xml')
+    user_toolboxes_path = join(get_settings_path(), 'toolboxes')
+
+    # check if XML files already exist
+    main_path = join(user_toolboxes_path, main)
+    tool_path = join(user_toolboxes_path, tool)
+
+    if not os.path.exists(main_path):
+        print('Copying %s to %s' % (join(grass_toolboxes_path, main),
+                                    main_path))
+        shutil.copyfile(join(grass_toolboxes_path, main), main_path)
+
+    if not os.path.exists(tool_path):
+        print('Copying %s to %s' % (join(grass_toolboxes_path, tool),
+                                    tool_path))
+        shutil.copyfile(join(grass_toolboxes_path, tool), tool_path)
+
+    # read XML input files
+    main_tree = ET.parse(main_path)
+    main_root = main_tree.getroot()
+    tool_tree = ET.parse(tool_path)
+    tool_root = tool_tree.getroot()
+
+    # check if the update of the main xml it is necessary
+    main_items = main_root.find('items')
+    update_main = True
+    for item in main_items:
+        if item.attrib['name'] == XMLMAINMENU:
+            update_main = False
+
+    if update_main:
+        print("Updating", main_path)
+        menrg = main_items[0].copy()
+        menrg.attrib['name'] = XMLMAINMENU
+        main_items.append(menrg)
+        main_tree.write(main_path)
+
+    toolboxes = toolboxes2dict(tool_root.findall('toolbox'))
+    enrg_tools = toolboxes2dict(ET.fromstring(XMLENERGYTOOLBOX))
+
+    # update the energy toolboxes
+    print("Updating", tool_path)
+    for key in enrg_tools:
+        if key in toolboxes:
+            tool_root.remove(toolboxes[key])
+        tool_root.append(enrg_tools[key])
+    tool_tree.write(tool_path)
+
+
 if __name__ == "__main__":
     opts, flgs = gcore.parser()
 
     check_install_pip(flgs['i'])
     fix_missing_libraries(flgs['i'])
     fix_rgreen_libraries(flgs['m'])
+    if flgs['x']:
+        add_rgreen_menu()
