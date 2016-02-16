@@ -1283,7 +1283,9 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
     if (nToConvert > 0) {
         /* if not enough cells to convert then alter number required */
         if (nToConvert > pLandscape->num_undevSites[regionID]) {
-            G_warning("Not enough undeveloped sites... converting all");
+            G_warning("Not enough undeveloped sites (requested: %d,"
+                      " available: %d). Converting all available.",
+                       nToConvert, pLandscape->num_undevSites[regionID]);
             nToConvert = pLandscape->num_undevSites[regionID];
         }
         /* update in stochastic fashion */
@@ -1773,8 +1775,7 @@ int main(int argc, char **argv)
                 sParams.overflowDevDemands[i] = 0;
             }
             readDevDemand(&sParams);
-            if (sParams.num_Regions > 1)
-                readDevPotParams(&sParams, opt.devpotParamsFile->answer);
+            readDevPotParams(&sParams, opt.devpotParamsFile->answer);
             if (readParcelSizes(&sLandscape, &sParams)) {
                 //testDevPressure(&sLandscape, &sParams);
                 /* do calculation and dump result */
@@ -1874,7 +1875,11 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                                       pThis->index_region);
 
                     if (pLandscape->num_undevSites[id] >= pLandscape->asUndevs_ns[id]) {
-                        pLandscape->asUndevs[id] = (t_Undev *) G_realloc(pLandscape->asUndevs[id], pLandscape->asUndevs_ns[id] * 2 * sizeof(t_Undev));
+                        size_t new_size = 2 * pLandscape->asUndevs_ns[id];
+                        pLandscape->asUndevs[id] =
+                            (t_Undev *) G_realloc(pLandscape->asUndevs[id],
+                                                  new_size * sizeof(t_Undev));
+                        pLandscape->asUndevs_ns[id] = new_size;
                     }
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
                         cellID = i;
