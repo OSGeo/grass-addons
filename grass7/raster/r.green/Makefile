@@ -2,8 +2,7 @@ MODULE_TOPDIR = ../..
 
 PGM=r.green
 
-SUBDIRS = r.green.hydro/libhydro \
-	r.green.biomassfor \
+SUBDIRS = r.green.biomassfor \
 	r.green.hydro \
 	r.green.install \
 	libgreen
