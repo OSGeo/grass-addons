@@ -5,8 +5,9 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = utils checkparameter __init__
 
-LIBGREENDIR = r.green/libgreen
-ETCDIR = $(ETC)/$(LIBGREENDIR)
+PGM = r.green
+LIBDIR = libgreen
+ETCDIR = $(ETC)/$(PGM)/$(LIBDIR)
 
 PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))
@@ -20,4 +21,5 @@ $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
 
 install:
-	cp -r $(ETCDIR) $(INST_DIR)/etc/$(LIBGREENDIR)
+	$(MKDIR) $(INST_DIR)/etc/$(PGM)
+	cp -r $(ETCDIR) $(INST_DIR)/etc/$(PGM)/$(LIBDIR)
