@@ -173,7 +173,7 @@ typedef struct
     /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
     float *predictors;
     /** multiplicative factor on the probabilities */
-    double *consWeight;
+    float *consWeight;
 } t_Landscape;
 
 
@@ -435,6 +435,7 @@ void readData4AdditionalVariables(t_Landscape * pLandscape,
                 ii++;
             }
         }
+        G_free(buffer);
         Rast_close(fd);
         G_verbose_message("Done");
     }
@@ -479,6 +480,8 @@ void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
             ii++;
         }
     }
+    G_free(buffer);
+    Rast_close(fd);
     pParams->num_Regions = count_regions;
     G_verbose_message("Done");
 }
@@ -497,14 +500,14 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
 
     G_verbose_message("Reading input rasters...");
     bRet = 0;
-    szBuff = (char *)malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
+    szBuff = (char *) G_malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
     if (szBuff) {
         for (j = 0; j < 3; j++) {
             /* workaround to skip loading constraint map so that it can be omitted in input */
             if (j == 2) {
                 pLandscape->consWeight = NULL;
                 if (pParams->consWeightFile)
-                    pLandscape->consWeight = (double *)G_malloc(pLandscape->totalCells * sizeof(double));
+                    pLandscape->consWeight = (float *)G_malloc(pLandscape->totalCells * sizeof(float));
                 else
                     continue;
             }
@@ -645,6 +648,7 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
 
                 }
             }
+            G_free(buffer);
             Rast_close(fd);
 
         }
@@ -693,6 +697,7 @@ void outputDevRasterStep(t_Landscape * pLandscape, t_Params * pParams,
         }
         Rast_put_c_row(out_fd, out_row);
     }
+    G_free(out_row);
     Rast_close(out_fd);
 
     struct Colors colors;
@@ -836,9 +841,9 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
                                 _N_NEIGHBOUR_LIST_BLOCK_SIZE;
                             pNeighbours->aCandidates =
                                 (t_candidateNeighbour *)
-                                realloc(pNeighbours->aCandidates,
-                                        pNeighbours->nSpace *
-                                        sizeof(t_candidateNeighbour));
+                                G_realloc(pNeighbours->aCandidates,
+                                          pNeighbours->nSpace *
+                                          sizeof(t_candidateNeighbour));
                             if (!pNeighbours->aCandidates) {
                                 G_fatal_error("Memory error in addNeighbourIfPoss()");
                             }
@@ -1079,7 +1084,7 @@ int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
     nWantToConvert = pLandscape->aParcelSizes[(int)
                                               (uniformRandom() *
                                                pLandscape->parcelSizes)];
-    anToConvert = (int *)malloc(sizeof(int) * nWantToConvert);
+    anToConvert = (int *) G_malloc(sizeof(int) * nWantToConvert);
     if (anToConvert) {
         /* in here goes code to fill up list of neighbours */
         nToConvert =
@@ -1364,7 +1369,7 @@ int readParcelSizes(t_Landscape * pLandscape, t_Params * pParams)
     G_verbose_message("Reading patch sizes...");
     fIn = fopen(pParams->parcelSizeFile, "rb");
     if (fIn) {
-        szBuff = (char *)malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
+        szBuff = (char *) G_malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
         if (szBuff) {
             /* just scan the file twice */
             nMaxParcels = 0;
@@ -1374,7 +1379,7 @@ int readParcelSizes(t_Landscape * pLandscape, t_Params * pParams)
             rewind(fIn);
             if (nMaxParcels) {
                 pLandscape->aParcelSizes =
-                    (int *)malloc(sizeof(int) * nMaxParcels);
+                    (int *) G_malloc(sizeof(int) * nMaxParcels);
                 if (pLandscape->aParcelSizes) {
                     while (fgets(szBuff, _N_MAX_DYNAMIC_BUFF_LEN, fIn)) {
                         pLandscape->aParcelSizes[pLandscape->parcelSizes] =
@@ -1704,8 +1709,8 @@ int main(int argc, char **argv)
                 sParams.nProbLookup = atoi(inBuff + 1);
                 if (sParams.nProbLookup > 0) {
                     sParams.adProbLookup =
-                            (double *)malloc(sizeof(double) *
-                                             sParams.nProbLookup);
+                            (double *) G_malloc(sizeof(double) *
+                                                sParams.nProbLookup);
                     if (sParams.adProbLookup) {
                         parsedOK = 1;
                         i = 0;
