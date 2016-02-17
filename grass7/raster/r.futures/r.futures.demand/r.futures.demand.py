@@ -56,8 +56,8 @@
 #% multiple: yes
 #% required: yes
 #% description: Relationship between developed cells (dependent) and population (explanatory)
-#% options: linear, logarithmic, exponential
-#% descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX)
+#% options: linear, logarithmic, exponential, exp_approach
+#% descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX);exp_approach;y = (1 - e^(-A(x - B))) + C
 #% answer: linear,logarithmic
 #% guisection: Optional
 #%end
@@ -81,10 +81,19 @@
 
 
 import sys
+import math
 import numpy as np
 
 import grass.script.core as gcore
 import grass.script.utils as gutils
+
+
+def exp_approach(x, a, b, c):
+    return (1 - np.exp(-a * (x - b))) + c
+
+
+def magnitude(x):
+    return int(math.log10(x))
 
 
 def main():
@@ -97,6 +106,16 @@ def main():
     plot = options['plot']
     simulation_times = [float(each) for each in options['simulation_times'].split(',')]
 
+    for each in methods:
+        if each in ('exp_approach',):
+            try:
+                from scipy.optimize import curve_fit
+            except ImportError:
+                gcore.fatal(_("Importing scipy failed. Method 'exp_approach' is not available"))
+
+    # exp approach needs at least 3 data points
+    if len(developments) <= 2 and 'exp_approach' in methods:
+        gcore.fatal(_("Not enough data for method 'exp_approach'"))
     observed_popul = np.genfromtxt(observed_popul_file, dtype=float, delimiter=sep, names=True)
     projected_popul = np.genfromtxt(projected_popul_file, dtype=float, delimiter=sep, names=True)
     year_col = observed_popul.dtype.names[0]
@@ -149,29 +168,53 @@ def main():
         for method in methods:
             # observed population points for subregion
             reg_pop = observed_popul[subregionId]
-            if method == 'logarithmic':
-                reg_pop = np.log(reg_pop)
-            if method == 'exponential':
-                y = np.log(table_developed[subregionId])
-            else:
-                y = table_developed[subregionId]
-            A = np.vstack((reg_pop, np.ones(len(reg_pop)))).T
-            m, c = np.linalg.lstsq(A, y)[0]  # y = mx + c
-            coeff[method] = m, c
             simulated[method] = np.array(population_for_simulated_times[subregionId])
-            if method == 'logarithmic':
-                predicted[method] = np.log(simulated[method]) * m + c
-                r = (reg_pop * m + c) - table_developed[subregionId]
-            elif method == 'exponential':
-                predicted[method] = np.exp(m * simulated[method] + c)
-                r = np.exp(m * reg_pop + c) - table_developed[subregionId]
-            else:  # linear
-                predicted[method] = simulated[method] * m + c
-                r = (reg_pop * m + c) - table_developed[subregionId]
-            # RMSE
-            rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 2)))
+
+            if method in ('exp_approach',):
+                # we have to scale it first
+                y = np.array(table_developed[subregionId])
+                magn = float(np.power(10, max(magnitude(np.max(reg_pop)), magnitude(np.max(y)))))
+                x = reg_pop / magn
+                y = y / magn
+                initial = (0.5, np.mean(x), np.mean(y))  # this seems to work best for our data
+                try:
+                    popt, pcov = curve_fit(globals()[method], x, y, p0=initial)
+                except RuntimeError:
+                    rmse[method] = sys.maxsize  # so that other method is selected
+                    gcore.warning(_("Method '{m}' cannot converge for subregion {reg}".format(m=method, reg=subregionId)))
+                    if len(methods) == 1:
+                        gcore.fatal(_("Method '{m}' failed for subregion {reg},"
+                                    " please select at least one other method").format(m=method, reg=subregionId))
+                else:
+                    predicted[method] = globals()[method](simulated[method] / magn, *popt) * magn
+                    r = globals()[method](x, *popt) * magn - table_developed[subregionId]
+                    coeff[method] = popt
+                    rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 2)))
+            else:
+                if method == 'logarithmic':
+                    reg_pop = np.log(reg_pop)
+                if method == 'exponential':
+                    y = np.log(table_developed[subregionId])
+                else:
+                    y = table_developed[subregionId]
+                A = np.vstack((reg_pop, np.ones(len(reg_pop)))).T
+                m, c = np.linalg.lstsq(A, y)[0]  # y = mx + c
+                coeff[method] = m, c
+
+                if method == 'logarithmic':
+                    predicted[method] = np.log(simulated[method]) * m + c
+                    r = (reg_pop * m + c) - table_developed[subregionId]
+                elif method == 'exponential':
+                    predicted[method] = np.exp(m * simulated[method] + c)
+                    r = np.exp(m * reg_pop + c) - table_developed[subregionId]
+                else:  # linear
+                    predicted[method] = simulated[method] * m + c
+                    r = (reg_pop * m + c) - table_developed[subregionId]
+                # RMSE
+                rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 2)))
 
         method = min(rmse, key=rmse.get)
+        gcore.verbose(_("Method '{meth}' was selected for subregion {reg}").format(meth=method, reg=subregionId))
         # write demand
         demand[subregionId] = predicted[method]
         demand[subregionId] = np.diff(demand[subregionId])
@@ -179,7 +222,7 @@ def main():
             gcore.warning(_("Subregion {sub} has negative numbers"
                             " of newly developed cells, changing to zero".format(sub=subregionId)))
             demand[subregionId][demand[subregionId] < 0] = 0
-        if m < 0:
+        if coeff[method][0] < 0:
             demand[subregionId].fill(0)
             gcore.warning(_("For subregion {sub} population and development are inversely proportional,"
                             "will result in zero demand".format(sub=subregionId)))
@@ -187,7 +230,7 @@ def main():
         # draw
         if plot:
             ax = fig.add_subplot(n_plots, n_plots, i)
-            ax.set_title(subregionId + ', RMSE: ' + str(rmse[method]))
+            ax.set_title("{sid}, RMSE: {rmse:.3f}".format(sid=subregionId, rmse=rmse[method]))
             ax.set_xlabel('population')
             ax.set_ylabel('developed cells')
             # plot known points
@@ -197,16 +240,20 @@ def main():
             # plot predicted curve
             x_pred = np.linspace(np.min(x),
                                  np.max(np.array(population_for_simulated_times[subregionId])), 10)
-            m, c = coeff[method]
+            cf = coeff[method]
             if method == 'linear':
-                line = x_pred * m + c
-                label = "$y = {c:.3f} + {m:.3f} x$".format(m=m, c=c)
+                line = x_pred * cf[0] + cf[1]
+                label = "$y = {c:.3f} + {m:.3f} x$".format(m=cf[0], c=cf[1])
             elif method == 'logarithmic':
-                line = np.log(x_pred) * m + c
-                label = "$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=m, c=c)
-            else:
-                line = np.exp(x_pred * m + c)
-                label = "$y = {c:.3f} e^{{{m:.3f}x}}$".format(m=m, c=np.exp(c))
+                line = np.log(x_pred) * cf[0] + cf[1]
+                label = "$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=cf[0], c=cf[1])
+            elif method == 'exponential':
+                line = np.exp(x_pred * cf[0] + cf[1])
+                label = "$y = {c:.3f} e^{{{m:.3f}x}}$".format(m=cf[0], c=np.exp(cf[1]))
+            elif method == 'exp_approach':
+                line = exp_approach(x_pred / magn, *cf) * magn
+                label = "$y = (1 -  e^{{-{A:.3f}(x-{B:.3f})}}) + {C:.3f}$".format(A=cf[0], B=cf[1], C=cf[2])
+
             ax.plot(x_pred, line, label=label)
             ax.plot(simulated[method], predicted[method], linestyle='', marker='o', markerfacecolor='None')
             plt.legend(loc=0)

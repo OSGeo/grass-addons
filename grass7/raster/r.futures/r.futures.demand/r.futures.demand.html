@@ -45,9 +45,10 @@ seq -s, 2015 2030
 <p>
 The <b>method</b> parameter allows to choose the type of relation
 between population and developed area. The available methods
-include linear, logarithmic and exponential relation.
+include linear, logarithmic, exponential and exponential approach relation.
 If more than one method is checked, the best relation is selected
-based on RMSE. Recommended methods are logarithmic or linear.
+based on RMSE. Recommended methods are logarithmic, linear and exponential approach.
+Method exponential approach requires <a href="http://scipy.org/">scipy</a>.
 
 <p>
 The format of the output <b>demand</b> table is:
@@ -64,7 +65,6 @@ where each value represents the number of new developed cells in each step.
 In case the demand values would be negative (in case of population decrease
 or if the relation is inversely proportional) the values are turned into zeros,
 since FUTURES does not simulate change from developed to undeveloped sites.
-By changing the "Years_to_simulate" number, user can control the simulation.
 
 <p>
 An optional output <b>plot</b> is a plot of the relations for each subregion.
