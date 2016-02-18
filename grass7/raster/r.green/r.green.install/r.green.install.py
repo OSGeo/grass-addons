@@ -24,10 +24,6 @@
 #% description: Install missing libraries
 #%end
 #%flag
-#% key: m
-#% description: Move r.green libraries in the right place
-#%end
-#%flag
 #% key: x
 #% description: Add r.green menu to the GRASS GUI
 #%end
@@ -53,15 +49,16 @@ import platform
 
 # import grass libraries
 from grass.script import core as gcore
-from grass.pygrass.utils import set_path
 
 
 Pkg = namedtuple('Pkg', ['name', 'version', 'py', 'un', 'platform'])
 
 
+# list packages required by the module
 CHECK_LIBRARIES = ['scipy', 'numexpr']
 CHECK_RGREENLIB = [('libgreen', '..'),
                    ('libhydro', os.path.join('..', 'r.green.hydro'))]
+
 
 PATHSYSXML = []
 PATHLOCXML = []
@@ -223,19 +220,21 @@ def get_settings_path():
 def check_install_pip(install=False):
     """Check if pip is available"""
     # run pip and check return code
-    popen_pip = subprocess.Popen(['pip', '--help'], stdout=subprocess.PIPE)
+    popen_pip = subprocess.Popen(['pip', '--help'],
+                                 stdout=subprocess.PIPE, shell=True)
     if popen_pip.wait():
         print('pip is not available')
         if install:
             print('Downloading pip')
             # download get_pip.py
             response = urllib2.urlopen('https://bootstrap.pypa.io/get-pip.py')
-            with open('get_pip.py', mode='w') as getpip:
+            dst = os.path.join(tempfile.gettempdir(), 'get_pip.py')
+            with open(dst, mode='w') as getpip:
                 getpip.write(response.read())
 
             # install pip
             print('Installing pip')
-            popen_py = subprocess.Popen([sys.executable, 'get_pip.py'])
+            popen_py = subprocess.Popen([sys.executable, dst])
             if popen_py.returncode:
                 print('Something wrong during the installation of pip,'
                       ' perhaps permissions')
@@ -248,6 +247,7 @@ def fix_missing_libraries(install=False):
     available in the current path."""
 
     urlwin = 'http://www.lfd.uci.edu/~gohlke/pythonlibs'
+    urlwhl = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/'
 
     def get_url(lib, _parser=[None, ]):
         """Return the complete url to download the wheel file for windows"""
@@ -255,11 +255,12 @@ def fix_missing_libraries(install=False):
         def match():
             """Match platform with available wheel files on the web page"""
             pkgs = parser.packages[lib]
-            cppy = 'cp' + str(sys.version_info.major) + str(sys.version_info.minor)
-            pltf = 'win_amd64.whl' if platform.architecture() == '64bit' else 'win32.whl'
+            cppy = 'cp%d%d' % (sys.version_info.major, sys.version_info.minor)
+            pltf = ('win_amd64.whl'
+                    if platform.architecture()[0] == '64bit' else 'win32.whl')
             result = None
             for pki in pkgs[::-1]:
-                pkk = Pkg(*pkg.split('-'))
+                pkk = Pkg(*pki.split('-'))
                 if pkk.py == cppy and pkk.platform == pltf:
                     result = pki
                     break
@@ -287,25 +288,58 @@ def fix_missing_libraries(install=False):
             sys.exit(1)
 
         pkg = match()
-        return ('http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/' + pkg,
-                pkg)
+        return (urlwhl + pkg, pkg)
 
-    def win_install(lib):
+    def win_install(libs):
         """Download and install missing libraries under windows"""
-        # get wheel url
-        urlwhl, pkg = get_url(lib)
-        dst = os.path.join(tempfile.gettempdir(), pkg)
-        print('Downloading:', urlwhl, 'file in:', dst)
-        response = urllib2.urlopen(urlwhl)
-        with open(dst, mode='w') as getwhl:
-            getwhl.write(response.read())
-        cmd = ['pip', 'install', dst, '--user']
-        popen_pip = subprocess.Popen(cmd)
-        if popen_pip.wait():
-            print('Something went wrong during the installation, '
-                  'please fix this manually')
-            print(cmd)
-            sys.exit(1)
+        def get_user_input():
+            """Ask what to do to the user"""
+            key = raw_input("press ENTER to continue or q to exit.\n")
+            if key in ('', 'q'):
+                return key
+            else:
+                print("{key} is not supported!\n".format(key=key))
+                return get_user_input()
+
+        def pip_install(whl, *pipargs):
+            """Install a whl using pip"""
+            cmd = ['pip', 'install', whl]
+            cmd.extend(pipargs)
+            popen_pip = subprocess.Popen(cmd, shell=True)
+            if popen_pip.wait():
+                print(('Something went wrong during the installation, '
+                       'of {whl} please fix this '
+                       'manually. Running: ').format(whl=whl))
+                print(' '.join(cmd))
+                sys.exit(1)
+
+        # dst = os.path.join(tempfile.gettempdir(), pkg)
+        dst = os.environ['GISBASE']
+        print("Please download:")
+        dlibs = {lib: get_url(lib) for lib in libs}
+
+        get_url('numpy')
+        msg = """- {lib}: {pkg}
+  from: {urlwhl}"""
+        for lib in dlibs:
+            print(msg.format(lib=lib, urlwhl=dlibs[lib][1], pkg=dlibs[lib][0]))
+
+        print(('\nDownload the aforementioned files with your browser'
+               ' and save them in the following directory:\n  '
+               '{dst}\n').format(dst=dst))
+
+        print("\nOnce you have done ", end='')
+        key = get_user_input()
+
+        if key == 'q':
+            sys.exit()
+
+        for lib in libs:
+            whlpath = join(dst, dlibs[lib][1])
+            if not os.path.exists(whlpath):
+                print("Wheel file: {whl} not found! Exit.".format(whl=whlpath))
+                sys.exit(1)
+            pip_install(whlpath, '--user', '--upgrade')
 
     to_be_installed = []
     for lib in CHECK_LIBRARIES:
@@ -321,12 +355,13 @@ def fix_missing_libraries(install=False):
             print('- ', lib)
 
         if install:
-            if sys.platform.startswith('win') or sys.platform.startswith('cyg'):
+            if 'win' in sys.platform:
                 # download precompiled wheel and install them
                 print('Download the wheel file manually for your platform from:')
-                # http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/numexpr-2.4.6-cp27-none-win_amd64.whl
-                for lib in to_be_installed:
-                    win_install(lib)
+                # add numpy+mkl
+                to_be_installed.insert(0, 'numpy')
+                win_install(to_be_installed)
+                # win_install(lib)
             else:
                 cmd = ['pip', 'install'].extend(to_be_installed)
                 cmd.append('--user')
@@ -338,57 +373,6 @@ def fix_missing_libraries(install=False):
                     sys.exit(1)
 
 
-def fix_rgreen_libraries(move=False):
-    """Check if r.green libraries are correctly positioned
-
-    move from addos into etc/r.green directory:
-    ~/.grass7/addons/libgreen => ~/.grass7/addons/etc/r.green/libgreen
-    ~/.grass7/addons/libhydro => ~/.grass7/addons/etc/r.green/libhydro
-    """
-    gaddons = os.environ['GRASS_ADDON_BASE']
-    if not gaddons:
-        print('Environmental variable GRASS_ADDON_BASE not set!')
-        return
-
-    def mvlibs(lib):
-        """Move r.green libraries directories into the GRASS addons
-        standard directory"""
-        wrongpath = os.path.join(gaddons, lib)
-        greendir = os.path.join(gaddons, 'etc', 'r.green', lib)
-        if os.path.exists(wrongpath):
-            if not os.path.exists(greendir):
-                os.makedirs(greendir)
-
-            print('You should (manually or using "-m" flag) move the:')
-            msg = 'r.green library (%s) from: %s to: %s'
-            print(msg % (lib, wrongpath, greendir))
-            if move:
-                if os.path.exists(greendir):
-                    shutil.rmtree(greendir)
-                shutil.move(wrongpath, greendir)
-        else:
-            if os.path.exists(greendir):
-                print(lib, 'already in the right place:', greendir)
-
-    mvlibs('libgreen')
-    mvlibs('libhydro')
-
-    path_problems = False
-    # finally import the module in the library
-    for lib, relativepath in CHECK_RGREENLIB:
-        set_path('r.green', lib, relativepath)
-        try:
-            imp.find_module(lib)
-        except ImportError:
-            print('Not able to import %s' % lib)
-            path_problems = True
-
-    if path_problems:
-        print('Some libraries seem not available in the current path:')
-        for path in sys.path:
-            print('- ', path)
-
-
 def add_rgreen_menu():
     """Add/Update the xml used to define the GRASS GUI"""
 
@@ -396,55 +380,56 @@ def add_rgreen_menu():
         """Trnsform a list of toolbox elements into a dictionary"""
         return {toolbox.find('label').text: toolbox for toolbox in toolboxes}
 
-    main = 'main_menu.xml'
-    tool = 'toolboxes.xml'
-    grass_toolboxes_path = join(os.getenv('GISBASE'), 'gui', 'wxpython', 'xml')
-    user_toolboxes_path = join(get_settings_path(), 'toolboxes')
+    def get_or_create(xmlfile, sysdir, usrdir):
+        """Check if XML files already exist"""
+        xml_path = join(usrdir, xmlfile)
 
-    # check if XML files already exist
-    main_path = join(user_toolboxes_path, main)
-    tool_path = join(user_toolboxes_path, tool)
+        if not os.path.exists(xml_path):
+            print('Copying %s to %s' % (join(sysdir, xmlfile),
+                                        xml_path))
+            shutil.copyfile(join(sysdir, xmlfile), xml_path)
+        return xml_path
 
-    if not os.path.exists(main_path):
-        print('Copying %s to %s' % (join(grass_toolboxes_path, main),
-                                    main_path))
-        shutil.copyfile(join(grass_toolboxes_path, main), main_path)
+    def read_update_xml(main_path, tool_path):
+        """Read XML files and update toolboxes acordingly"""
+        main_tree = ET.parse(main_path)
+        main_root = main_tree.getroot()
+        tool_tree = ET.parse(tool_path)
+        tool_root = tool_tree.getroot()
 
-    if not os.path.exists(tool_path):
-        print('Copying %s to %s' % (join(grass_toolboxes_path, tool),
-                                    tool_path))
-        shutil.copyfile(join(grass_toolboxes_path, tool), tool_path)
+        # check if the update of the main xml it is necessary
+        main_items = main_root.find('items')
+        update_main = True
+        for item in main_items:
+            if item.attrib['name'] == XMLMAINMENU:
+                update_main = False
+
+        if update_main:
+            print("Updating", main_path)
+            menrg = main_items[0].copy()
+            menrg.attrib['name'] = XMLMAINMENU
+            main_items.insert(-1, menrg)
+            main_tree.write(main_path)
+
+        toolboxes = toolboxes2dict(tool_root.findall('toolbox'))
+        enrg_tools = toolboxes2dict(ET.fromstring(XMLENERGYTOOLBOX))
+
+        # update the energy toolboxes
+        print("Updating", tool_path)
+        for key in enrg_tools:
+            if key in toolboxes:
+                tool_root.remove(toolboxes[key])
+            tool_root.append(enrg_tools[key])
+        tool_tree.write(tool_path)
+
+    grass_tool_path = join(os.getenv('GISBASE'), 'gui', 'wxpython', 'xml')
+    user_tool_path = join(get_settings_path(), 'toolboxes')
 
     # read XML input files
-    main_tree = ET.parse(main_path)
-    main_root = main_tree.getroot()
-    tool_tree = ET.parse(tool_path)
-    tool_root = tool_tree.getroot()
+    main_path = get_or_create('main_menu.xml', grass_tool_path, user_tool_path)
+    tool_path = get_or_create('toolboxes.xml', grass_tool_path, user_tool_path)
 
-    # check if the update of the main xml it is necessary
-    main_items = main_root.find('items')
-    update_main = True
-    for item in main_items:
-        if item.attrib['name'] == XMLMAINMENU:
-            update_main = False
-
-    if update_main:
-        print("Updating", main_path)
-        menrg = main_items[0].copy()
-        menrg.attrib['name'] = XMLMAINMENU
-        main_items.append(menrg)
-        main_tree.write(main_path)
-
-    toolboxes = toolboxes2dict(tool_root.findall('toolbox'))
-    enrg_tools = toolboxes2dict(ET.fromstring(XMLENERGYTOOLBOX))
-
-    # update the energy toolboxes
-    print("Updating", tool_path)
-    for key in enrg_tools:
-        if key in toolboxes:
-            tool_root.remove(toolboxes[key])
-        tool_root.append(enrg_tools[key])
-    tool_tree.write(tool_path)
+    read_update_xml(main_path, tool_path)
 
 
 if __name__ == "__main__":
@@ -452,6 +437,6 @@ if __name__ == "__main__":
 
     check_install_pip(flgs['i'])
     fix_missing_libraries(flgs['i'])
-    fix_rgreen_libraries(flgs['m'])
+
     if flgs['x']:
         add_rgreen_menu()
