@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.neighbors
+PGM = r.change.info
 
 LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB) $(MATHLIB)
 DEPENDENCIES = $(STATSDEP) $(RASTERDEP) $(GISDEP)

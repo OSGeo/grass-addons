@@ -1,17 +1,13 @@
 
 /****************************************************************************
  *
- * MODULE:       r.neighbors
- * AUTHOR(S):    Michael Shapiro, CERL (original contributor)
- *               Markus Neteler <neteler itc.it>, Bob Covill <bcovill tekmap.ns.ca>,
- *               Brad Douglas <rez touchofmadness.com>, Glynn Clements <glynn gclements.plus.com>,
- *               Jachym Cepicky <jachym les-ejk.cz>, Jan-Oliver Wagner <jan intevation.de>,
- *               Radim Blazek <radim.blazek gmail.com>
+ * MODULE:       r.change.info
+ * AUTHOR(S):    Markus Metz
+ *               based on r.neighbors
  *
- * PURPOSE:      Makes each cell category value a function of the category values 
- *               assigned to the cells around it, and stores new cell values in an
- *               output raster map layer
- * COPYRIGHT:    (C) 1999-2006 by the GRASS Development Team
+ * PURPOSE:      Change assessment for categorical raster series
+ * 
+ * COPYRIGHT:    (C) 2014 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -21,61 +17,49 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/stats.h>
 #include "ncb.h"
+#include "window.h"
 #include "local_proto.h"
 
-typedef int (*ifunc) (void);
+typedef DCELL dfunc(void);
 
 struct menu
 {
-    stat_func *method;		/* routine to compute new value */
-    stat_func_w *method_w;	/* routine to compute new value (weighted) */
-    ifunc cat_names;		/* routine to make category names */
-    int copycolr;		/* flag if color table can be copied */
-    int half;			/* whether to add 0.5 to result (redundant) */
-    int otype;			/* output type */
+    dfunc *method;		/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
-};
-
-enum out_type {
-    T_FLOAT	= 1,
-    T_INT	= 2,
-    T_COUNT	= 3,
-    T_COPY	= 4,
-    T_SUM	= 5
 };
 
 #define NO_CATS 0
 
 /* modify this table to add new methods */
 static struct menu menu[] = {
-    {c_ave, w_ave, NO_CATS, 1, 1, T_FLOAT, "average", "average value"},
-    {c_median, w_median, NO_CATS, 1, 0, T_FLOAT, "median", "median value"},
-    {c_mode, w_mode, NO_CATS, 1, 0, T_COPY, "mode", "most frequently occurring value"},
-    {c_min, NULL, NO_CATS, 1, 0, T_COPY, "minimum", "lowest value"},
-    {c_max, NULL, NO_CATS, 1, 0, T_COPY, "maximum", "highest value"},
-    {c_range, NULL, NO_CATS, 1, 0, T_COPY, "range", "range value"},
-    {c_stddev, w_stddev, NO_CATS, 0, 1, T_FLOAT, "stddev", "standard deviation"},
-    {c_sum, w_sum, NO_CATS, 1, 0, T_SUM, "sum", "sum of values"},
-    {c_count, w_count, NO_CATS, 0, 0, T_COUNT, "count", "count of non-NULL values"},
-    {c_var, w_var, NO_CATS, 0, 1, T_FLOAT, "variance", "statistical variance"},
-    {c_divr, NULL, divr_cats, 0, 0, T_INT, "diversity",
-     "number of different values"},
-    {c_intr, NULL, intr_cats, 0, 0, T_INT, "interspersion",
-     "number of values different than center value"},
-    {c_quart1, w_quart1, NO_CATS, 1, 0, T_FLOAT, "quart1", "first quartile"},
-    {c_quart3, w_quart3, NO_CATS, 1, 0, T_FLOAT, "quart3", "third quartile"},
-    {c_perc90, w_perc90, NO_CATS, 1, 0, T_FLOAT, "perc90", "ninetieth percentile"},
-    {c_quant, w_quant, NO_CATS, 1, 0, T_FLOAT, "quantile", "arbitrary quantile"},
-    {0, 0, 0, 0, 0, 0, 0, 0}
+    {pc, "pc", "proportion of changes"},
+    {gain1, "gain1", "Information gain for category distributions"},
+    {gain2, "gain2", "Information gain for size distributions"},
+    {gain3, "gain3", "Information gain for category and size distributions"},
+    {ratio1, "ratio1", "Information gain ratio for category distributions"},
+    {ratio2, "ratio2", "Information gain ratio for size distributions"},
+    {ratio3, "ratio3", "Information gain ratio for category and size distributions"},
+    {gini1, "gini1", "Gini impurity for category distributions"},
+    {gini2, "gini2", "Gini impurity for size distributions"},
+    {gini3, "gini3", "Gini impurity for category and size distributions"},
+    {dist1, "dist1", "Statistical distance for category distributions"},
+    {dist2, "dist2", "Statistical distance for size distributions"},
+    {dist3, "dist3", "Statistical distance for category and size distributions"},
+    {chisq1, "chisq1", "CHI-square for category distributions"},
+    {chisq2, "chisq2", "CHI-square for size distributions"},
+    {chisq3, "chisq3", "CHI-square for category and size distributions"},
+    {NULL, NULL, NULL}
 };
 
 struct ncb ncb;
+struct changeinfo ci;
+
 
 struct output
 {
@@ -83,12 +67,7 @@ struct output
     char title[1024];
     int fd;
     DCELL *buf;
-    stat_func *method_fn;
-    stat_func_w *method_fn_w;
-    int copycolr;
-    ifunc cat_names;
-    int map_type;
-    double quantile;
+    dfunc *method_fn;
 };
 
 static int find_method(const char *method_name)
@@ -104,95 +83,71 @@ static int find_method(const char *method_name)
     return -1;
 }
 
-static RASTER_MAP_TYPE output_type(RASTER_MAP_TYPE input_type, int weighted, int mode)
-{
-    switch (mode) {
-    case T_FLOAT:
-	return DCELL_TYPE;
-    case T_INT:
-	return CELL_TYPE;
-    case T_COUNT:
-	return weighted ? DCELL_TYPE : CELL_TYPE;
-    case T_COPY:
-	return input_type;
-    case T_SUM:
-	return weighted ? DCELL_TYPE : input_type;
-    default:
-	G_fatal_error(_("Invalid out_type enumeration: %d"), mode);
-	return -1;
-    }
-}
+int make_colors(struct Colors *colr, DCELL min, DCELL max);
+
 
 int main(int argc, char *argv[])
 {
-    char *p;
-    int in_fd;
-    int selection_fd;
+    char *p, *pp;
+    size_t dlen;
     int num_outputs;
     struct output *outputs = NULL;
-    int copycolr, weights, have_weights_mask;
-    char *selection;
     RASTER_MAP_TYPE map_type;
-    int row, col;
+    int row, col, ocol, roff, coff;
+    int rspill, cspill;
+    int orows, ocols;
     int readrow;
     int nrows, ncols;
+    struct Range range;
+    struct FPRange drange;
+    DCELL dmin, dmax;
+    CELL min, max, imin, imax;
     int i, n;
+    int step;
+    double alpha;
     struct Colors colr;
     struct Cell_head cellhd;
-    struct Cell_head window;
+    struct Cell_head window, owind;
     struct History history;
     struct GModule *module;
     struct
     {
-	struct Option *input, *output, *selection;
-	struct Option *method, *size;
-	struct Option *title;
-	struct Option *weight;
-	struct Option *gauss;
-	struct Option *quantile;
+	struct Option *input, *output;
+	struct Option *method, *wsize, *step, *alpha;
     } parm;
     struct
     {
 	struct Flag *align, *circle;
     } flag;
 
-    DCELL *values;		/* list of neighborhood values */
-    DCELL *values_tmp;		/* list of neighborhood values */
-    DCELL(*values_w)[2];	/* list of neighborhood values and weights */
-    DCELL(*values_w_tmp)[2];	/* list of neighborhood values and weights */
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
     G_add_keyword(_("raster"));
-    G_add_keyword(_("algebra"));
     G_add_keyword(_("statistics"));
-    G_add_keyword(_("aggregation"));
-    G_add_keyword(_("neighbor"));
-    G_add_keyword(_("focal statistics"));
-    G_add_keyword(_("filter"));
+    G_add_keyword(_("change detection"));
+    G_add_keyword(_("landscape structure"));
     module->description =
-	_("Makes each cell category value a "
-	  "function of the category values assigned to the cells "
-	  "around it, and stores new cell values in an output raster "
-	  "map layer.");
+	_("Landscape change assessment");
 
-    parm.input = G_define_standard_option(G_OPT_R_INPUT);
-
-    parm.selection = G_define_standard_option(G_OPT_R_INPUT);
-    parm.selection->key = "selection";
-    parm.selection->required = NO;
-    parm.selection->description = _("Name of an input raster map to select the cells which should be processed");
+    parm.input = G_define_standard_option(G_OPT_R_INPUTS);
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
+    parm.output->description = _("Name for output raster map(s)");
     parm.output->multiple = YES;
 
     parm.method = G_define_option();
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = NO;
-    parm.method->answer = "average";
-    p = G_malloc(1024);
+    parm.method->answer = "ratio3";
+    dlen = 0;
+    for (n = 0; menu[n].name; n++) {
+	dlen += strlen(menu[n].name);
+    }
+    dlen += n;
+    p = G_malloc(dlen);
     for (n = 0; menu[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -201,86 +156,168 @@ int main(int argc, char *argv[])
 	strcat(p, menu[n].name);
     }
     parm.method->options = p;
-    parm.method->description = _("Neighborhood operation");
+    parm.method->description = _("Change assessment");
+    dlen = 0;
+    for (n = 0; menu[n].name; n++) {
+	dlen += strlen(menu[n].name);
+	dlen += strlen(menu[n].text);
+    }
+    dlen += n * 2;
+    pp = G_malloc(dlen);
+    for (n = 0; menu[n].name; n++) {
+	if (n)
+	    strcat(pp, ";");
+	else
+	    *pp = 0;
+	strcat(pp, menu[n].name);
+	strcat(pp, ";");
+	strcat(pp, menu[n].text);
+    }
+    parm.method->descriptions = pp;
     parm.method->multiple = YES;
-    parm.method->guisection = _("Neighborhood");
 
-    parm.size = G_define_option();
-    parm.size->key = "size";
-    parm.size->type = TYPE_INTEGER;
-    parm.size->required = NO;
-    parm.size->description = _("Neighborhood size");
-    parm.size->answer = "3";
-    parm.size->guisection = _("Neighborhood");
+    parm.wsize = G_define_option();
+    parm.wsize->key = "size";
+    parm.wsize->type = TYPE_INTEGER;
+    parm.wsize->required = NO;
+    parm.wsize->description = _("Window size (cells)");
+    parm.wsize->answer = "40";
+    parm.wsize->guisection = _("Moving window");
 
-    parm.title = G_define_option();
-    parm.title->key = "title";
-    parm.title->key_desc = "phrase";
-    parm.title->type = TYPE_STRING;
-    parm.title->required = NO;
-    parm.title->description = _("Title for output raster map");
+    parm.step = G_define_option();
+    parm.step->key = "step";
+    parm.step->type = TYPE_INTEGER;
+    parm.step->required = NO;
+    parm.step->description = _("Processing step (cells)");
+    parm.step->answer = "40";
+    parm.step->guisection = _("Moving window");
 
-    parm.weight = G_define_standard_option(G_OPT_F_INPUT);
-    parm.weight->key = "weight";
-    parm.weight->required = NO;
-    parm.weight->description = _("Text file containing weights");
-
-    parm.gauss = G_define_option();
-    parm.gauss->key = "gauss";
-    parm.gauss->type = TYPE_DOUBLE;
-    parm.gauss->required = NO;
-    parm.gauss->description = _("Sigma (in cells) for Gaussian filter");
-
-    parm.quantile = G_define_option();
-    parm.quantile->key = "quantile";
-    parm.quantile->type = TYPE_DOUBLE;
-    parm.quantile->required = NO;
-    parm.quantile->multiple = YES;
-    parm.quantile->description = _("Quantile to calculate for method=quantile");
-    parm.quantile->options = "0.0-1.0";
+    parm.alpha = G_define_option();
+    parm.alpha->key = "alpha";
+    parm.alpha->type = TYPE_DOUBLE;
+    parm.alpha->required = NO;
+    parm.alpha->label = _("Alpha for general entropy");
+    parm.alpha->description = _("Default = 1 for Shannon Entropy");
+    parm.alpha->answer = "1";
 
     flag.align = G_define_flag();
     flag.align->key = 'a';
-    flag.align->description = _("Do not align output with the input");
+    flag.align->description = _("Do not align input region with input maps");
 
     flag.circle = G_define_flag();
     flag.circle->key = 'c';
-    flag.circle->description = _("Use circular neighborhood");
-    flag.circle->guisection = _("Neighborhood");
+    flag.circle->description = _("Use circular mask");
+    flag.circle->guisection = _("Moving window");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    sscanf(parm.size->answer, "%d", &ncb.nsize);
-    if (ncb.nsize <= 0)
-	G_fatal_error(_("Neighborhood size must be positive"));
-    if (ncb.nsize % 2 == 0)
-	G_fatal_error(_("Neighborhood size must be odd"));
-    ncb.dist = ncb.nsize / 2;
+    sscanf(parm.wsize->answer, "%d", &ncb.nsize);
+    if (ncb.nsize <= 1)
+	G_fatal_error(_("Window size must be > 1"));
+    ncb.n = ncb.nsize * ncb.nsize;
 
-    if (parm.weight->answer && flag.circle->answer)
-	G_fatal_error(_("-%c and %s= are mutually exclusive"),
-			flag.circle->key, parm.weight->key);
+    sscanf(parm.step->answer, "%d", &step);
+    if (step <= 0)
+	G_fatal_error(_("Processing step must be positive"));
+    
+    if (step > ncb.nsize)
+	G_fatal_error(_("Processing step can not be larger than window size"));
 
-    if (parm.weight->answer && parm.gauss->answer)
-	G_fatal_error(_("%s= and %s= are mutually exclusive"),
-			parm.weight->key, parm.gauss->key);
+    sscanf(parm.alpha->answer, "%lf", &alpha);
+    if (alpha <= 0)
+	G_fatal_error(_("Alpha for general entropy must be positive"));
+    set_alpha(alpha);
 
-    ncb.oldcell = parm.input->answer;
+    for (i = 0; parm.input->answers[i]; i++)
+	;
+    ncb.nin = i;
+    if (ncb.nin < 2)
+	G_fatal_error(_("At least two input maps are required"));
+    
+    ncb.in = G_malloc(ncb.nin * sizeof(struct input));
+    
+    for (i = 0; i < ncb.nin; i++)
+	ncb.in[i].name = parm.input->answers[i];
 
+    Rast_get_cellhd(ncb.in[0].name, "", &cellhd);
+    G_get_window(&window);
     if (!flag.align->answer) {
-	Rast_get_cellhd(ncb.oldcell, "", &cellhd);
-	G_get_window(&window);
 	Rast_align_window(&window, &cellhd);
-	Rast_set_window(&window);
     }
+    if (cellhd.rows < ncb.nsize)
+	G_fatal_error(_("The current region is too small, it must have at least %d rows"), ncb.nsize);
+    nrows = cellhd.rows;
+    if (cellhd.cols < ncb.nsize)
+	G_fatal_error(_("The current region is too small, it must have at least %d cols"), ncb.nsize);
+    ncols = cellhd.cols;
 
-    nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
+    /* adjust the input window */
+    roff = coff = 0;
 
-    /* open raster maps */
-    in_fd = Rast_open_old(ncb.oldcell, "");
-    map_type = Rast_get_map_type(in_fd);
+    /* number of steps fitting into input rows */
+    orows = (nrows - ncb.nsize) / step + 1;
+    /* number of steps fitting into input cols */
+    ocols = (ncols - ncb.nsize) / step + 1;
+
+    rspill = nrows - ncb.nsize - (orows - 1) * step;
+    if (rspill) {
+	/* shrink input window */
+	roff = rspill / 2;
+	if (roff) {
+	    /* shift input north */
+	    window.north -= roff * window.ns_res;
+	}
+	/* shift input south */
+	window.south += (rspill - roff) * window.ns_res;
+	window.rows -= rspill;
+    }
+    cspill = ncols - ncb.nsize - (ocols - 1) * step;
+    if (cspill) {
+	/* shrink input window */
+	coff = cspill / 2;
+	if (coff) {
+	    /* shift input west */
+	    window.west += coff * window.ew_res;
+	}
+	/* shift input east */
+	window.east -= (cspill - coff) * window.ew_res;
+	window.cols -= cspill;
+    }
+    /* not needed */
+    G_adjust_Cell_head(&window, 0, 0);
+
+    Rast_set_input_window(&window);
+
+    nrows = Rast_input_window_rows();
+    ncols = Rast_input_window_cols();
+
+    /* construct the output window */
+    owind = window;
+    owind.rows = orows;
+    owind.cols = ocols;
+    owind.ns_res = step * window.ns_res;
+    owind.ew_res = step * window.ew_res;
+
+    if (ncb.nsize != step) {
+	owind.north = owind.north - ((ncb.nsize - step) / 2.0) * window.ns_res;
+	owind.south = owind.south + ((ncb.nsize - step) / 2.0) * window.ns_res;
+
+	owind.east = owind.east - ((ncb.nsize - step) / 2.0) * window.ew_res;
+	owind.west = owind.west + ((ncb.nsize - step) / 2.0) * window.ew_res;
+    }
+    /* needed */
+    G_adjust_Cell_head(&owind, 1, 1);
+
+    Rast_set_output_window(&owind);
+
+    /* open input raster maps */
+    for (i = 0; i < ncb.nin; i++) {
+	ncb.in[i].fd = Rast_open_old(ncb.in[i].name, "");
+	map_type = Rast_get_map_type(ncb.in[i].fd);
+	if (map_type != CELL_TYPE)
+	    G_warning(_("Input raster <%s> is not of type CELL"), ncb.in[i].name);
+    }
 
     /* process the output maps */
     for (i = 0; parm.output->answers[i]; i++)
@@ -290,159 +327,108 @@ int main(int argc, char *argv[])
     for (i = 0; parm.method->answers[i]; i++)
 	;
     if (num_outputs != i)
-	G_fatal_error(_("%s= and %s= must have the same number of values"),
-			parm.output->key, parm.method->key);
+	G_fatal_error(_("output= and method= must have the same number of values"));
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
 
-    /* read the weights */
-    weights = 0;
-    ncb.weights = NULL;
     ncb.mask = NULL;
-    if (parm.weight->answer) {
-	read_weights(parm.weight->answer);
-	weights = 1;
-    }
-    else if (parm.gauss->answer) {
-	gaussian_weights(atof(parm.gauss->answer));
-	weights = 1;
-    }
-    
-    copycolr = 0;
-    have_weights_mask = 0;
 
     for (i = 0; i < num_outputs; i++) {
 	struct output *out = &outputs[i];
 	const char *output_name = parm.output->answers[i];
 	const char *method_name = parm.method->answers[i];
 	int method = find_method(method_name);
-	RASTER_MAP_TYPE otype = output_type(map_type, weights, menu[method].otype);
 
 	out->name = output_name;
-	if (weights) {
-	    if (menu[method].method_w) {
-		out->method_fn = NULL;
-		out->method_fn_w = menu[method].method_w;
-	    }
-	    else {
-		if (parm.weight->answer) {
-		    G_warning(_("Method %s not compatible with weighing window, using weight mask instead"),
-			      method_name);
-		    if (!have_weights_mask) {
-			weights_mask();
-			have_weights_mask = 1;
-		    }
-		}
-		else if (parm.gauss->answer) {
-		    G_warning(_("Method %s not compatible with Gaussian filter, using unweighed version instead"),
-			      method_name);
-		}
-		
-		out->method_fn = menu[method].method;
-		out->method_fn_w = NULL;
-	    }
-	}
-	else {
-	    out->method_fn = menu[method].method;
-	    out->method_fn_w = NULL;
-	}
-	out->copycolr = menu[method].copycolr;
-	out->cat_names = menu[method].cat_names;
-	if (out->copycolr)
-	    copycolr = 1;
-	out->quantile = (parm.quantile->answer && parm.quantile->answers[i])
-	    ? atof(parm.quantile->answers[i])
-	    : 0;
-	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name, otype);
-	/* TODO: method=mode should propagate its type */
+	out->method_fn = menu[method].method;
 
-	/* get title, initialize the category and stat info */
-	if (parm.title->answer)
-	    strcpy(out->title, parm.title->answer);
-	else
-	    sprintf(out->title, "%dx%d neighborhood: %s of %s",
-		    ncb.nsize, ncb.nsize, menu[method].name, ncb.oldcell);
-    }
+	out->buf = Rast_allocate_d_output_buf();
+	out->fd = Rast_open_new(output_name, DCELL_TYPE);
 
-    /* copy color table? */
-    if (copycolr) {
-	G_suppress_warnings(1);
-	copycolr =
-	    (Rast_read_colors(ncb.oldcell, "", &colr) > 0);
-	G_suppress_warnings(0);
-    }
-
-    /* allocate the cell buffers */
-    allocate_bufs();
-
-    /* initialize the cell bufs with 'dist' rows of the old cellfile */
-    readrow = 0;
-    for (row = 0; row < ncb.dist; row++)
-	readcell(in_fd, readrow++, nrows, ncols);
-
-    /* open the selection raster map */
-    if (parm.selection->answer) {
-	G_message(_("Opening selection map <%s>"), parm.selection->answer);
-	selection_fd = Rast_open_old(parm.selection->answer, "");
-        selection = Rast_allocate_null_buf();
-    } else {
-        selection_fd = -1;
-        selection = NULL;
+	sprintf(out->title, "%s, %dx%d window, step %d",
+		menu[method].text, ncb.nsize, ncb.nsize, step);
     }
 
     if (flag.circle->answer)
 	circle_mask();
 
-    values_w = NULL;
-    values_w_tmp = NULL;
-    if (weights) {
-	values_w =
-	    (DCELL(*)[2]) G_malloc(ncb.nsize * ncb.nsize * 2 * sizeof(DCELL));
-	values_w_tmp =
-	    (DCELL(*)[2]) G_malloc(ncb.nsize * ncb.nsize * 2 * sizeof(DCELL));
+    /* initialize change info */
+    frexp(ncb.n, &ci.nsizebins);
+    G_debug(1, "n cells: %d, size * size: %d", ncb.n, ncb.nsize * ncb.nsize);
+    G_debug(1, "nsizebins: %d", ci.nsizebins);
+
+    /* max number of different types */
+    Rast_init_range(&range);
+    Rast_read_range(ncb.in[0].name, "", &range);
+    Rast_get_range_min_max(&range, &min, &max);
+    for (i = 1; i < ncb.nin; i++) {
+	Rast_init_range(&range);
+	Rast_read_range(ncb.in[i].name, "", &range);
+	Rast_get_range_min_max(&range, &imin, &imax);
+	if (min > imin)
+	    min = imin;
+	if (max < imax)
+	    max = imax;
     }
-    values = (DCELL *) G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
-    values_tmp = (DCELL *) G_malloc(ncb.nsize * ncb.nsize * sizeof(DCELL));
+    ci.tmin = min;
+    ci.ntypes = max - min + 1;
+    ci.dts_size = ci.ntypes * ci.nsizebins;
 
-    for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
-	readcell(in_fd, readrow++, nrows, ncols);
+    ci.n = G_malloc(ncb.nin * sizeof(int));
+    ci.dt = G_malloc(ncb.nin * sizeof(double *));
+    ci.dt[0] = G_malloc(ncb.nin * ci.ntypes * sizeof(double));
+    ci.ds = G_malloc(ncb.nin * sizeof(double *));
+    ci.ds[0] = G_malloc(ncb.nin * ci.nsizebins * sizeof(double));
+    ci.dts = G_malloc(ncb.nin * sizeof(double *));
+    ci.dts[0] = G_malloc(ncb.nin * ci.dts_size * sizeof(double));
+    ci.ht = G_malloc(ncb.nin * sizeof(double));
+    ci.hs = G_malloc(ncb.nin * sizeof(double));
+    ci.hts = G_malloc(ncb.nin * sizeof(double));
 
-	if (selection)
-            Rast_get_null_value_row(selection_fd, selection, row);
+    ci.ch = G_malloc(ncb.nin * sizeof(struct c_h));
 
-	for (col = 0; col < ncols; col++) {
+    for (i = 0; i < ncb.nin; i++) {
+	ci.ch[i].palloc = ci.ntypes;
+	ci.ch[i].pst = G_malloc(ci.ntypes * sizeof(struct pst));
 
-            if (selection && selection[col]) {
-                /* ncb.buf length is region row length + 2 * ncb.dist (eq. floor(neighborhood/2))
-                 * Thus original data start is shifted by ncb.dist! */
-		for (i = 0; i < num_outputs; i++)
-		    outputs[i].buf[col] = ncb.buf[ncb.dist][col + ncb.dist];
-		continue;
-	    }
+	ci.ch[i].pid_curr = G_malloc(ncb.nsize * sizeof(int));
+	ci.ch[i].pid_prev = G_malloc(ncb.nsize * sizeof(int));
 
-	    if (weights)
-		n = gather_w(values, values_w, col);
-	    else
-		n = gather(values, col);
+	if (i > 0) {
+	    ci.dt[i] = ci.dt[i - 1] + ci.ntypes;
+	    ci.ds[i] = ci.ds[i - 1] + ci.nsizebins;
+	    ci.dts[i] = ci.dts[i - 1] + ci.dts_size;
+	}
+    }
+
+    /* allocate the cell buffers */
+    allocate_bufs();
+
+    /* initialize the cell bufs with 'nsize - 1' rows of the old cellfile */
+    readrow = 0;
+    for (row = 0; row < ncb.nsize - 1; row++)
+	readcell(readrow++, nrows, ncols);
+
+    for (row = 0; row < nrows - ncb.nsize + 1; row++) {
+	G_percent(row, nrows, 5);
+	readcell(readrow++, nrows, ncols);
+	
+	if (row % step)
+	    continue;
+
+	for (col = 0, ocol = 0; col < ncols - ncb.nsize + 1; col += step, ocol++) {
+
+	    n = gather(col);
 
 	    for (i = 0; i < num_outputs; i++) {
 		struct output *out = &outputs[i];
-		DCELL *rp = &out->buf[col];
+		DCELL *rp = &out->buf[ocol];
 
 		if (n == 0) {
 		    Rast_set_d_null_value(rp, 1);
 		}
 		else {
-		    if (out->method_fn_w) {
-			memcpy(values_w_tmp, values_w, n * 2 * sizeof(DCELL));
-			(*out->method_fn_w)(rp, values_w_tmp, n, &out->quantile);
-		    }
-		    else {
-			memcpy(values_tmp, values, n * sizeof(DCELL));
-			(*out->method_fn)(rp, values_tmp, n, &out->quantile);
-		    }
+		    *rp = (*out->method_fn)();
 		}
 	    }
 	}
@@ -455,29 +441,87 @@ int main(int argc, char *argv[])
     }
     G_percent(row, nrows, 2);
 
-    Rast_close(in_fd);
+    for (i = 0; i < ncb.nin; i++)
+	Rast_close(ncb.in[i].fd);
 
-    if (selection)
-        Rast_close(selection_fd);
 
     for (i = 0; i < num_outputs; i++) {
+	char ncs;
+	int nc;
+	
 	Rast_close(outputs[i].fd);
-
-	/* put out category info */
-	null_cats(outputs[i].title);
-	if (outputs[i].cat_names)
-	    outputs[i].cat_names();
-
-	Rast_write_cats(outputs[i].name, &ncb.cats);
-
-	if (copycolr && outputs[i].copycolr)
-	    Rast_write_colors(outputs[i].name, G_mapset(), &colr);
 
 	Rast_short_history(outputs[i].name, "raster", &history);
 	Rast_command_history(&history);
+	ncs = parm.method->answers[i][strlen(parm.method->answers[i]) - 1];
+	nc = 0;
+	if (ncs == '1')
+	    nc = ci.ntypes;
+	else if (ncs == '2')
+	    nc = ci.nsizebins;
+	else if (ncs == '3')
+	    nc = ci.dts_size;
+	Rast_format_history(&history, HIST_DATSRC_1,
+			    "Change assessment with %s, %d classes, window size %d, step %d",
+			    parm.method->answers[i], nc, ncb.nsize, step);
 	Rast_write_history(outputs[i].name, &history);
+	
+	Rast_put_cell_title(outputs[i].name, outputs[i].title);
+
+	Rast_init_fp_range(&drange);
+	Rast_read_fp_range(outputs[i].name, G_mapset(), &drange);
+	Rast_get_fp_range_min_max(&drange, &dmin, &dmax);
+	make_colors(&colr, dmin, dmax);
+	Rast_write_colors(outputs[i].name, G_mapset(), &colr);
     }
 
     exit(EXIT_SUCCESS);
 }
 
+int make_colors(struct Colors *colr, DCELL min, DCELL max)
+{
+    DCELL val1, val2;
+    int r1, g1, b1, r2, g2, b2;
+    DCELL rng;
+
+    if (Rast_is_d_null_value(&min)) {
+	min = 0;
+	max = 1;
+    }
+    if (min > 0)
+	min = 0;
+
+    rng = max - min;
+
+    /* colors: green -> yellow -> orange -> red */
+    Rast_init_colors(colr);
+    val1 = min;
+    val2 = min + rng * 0.2;
+    r1 = 150;
+    g1 = 255;
+    b1 = 150;
+    r2 = 255;
+    g2 = 255;
+    b2 = 0;
+    Rast_add_d_color_rule(&val1, r1, g1, b1, &val2, r2, g2, b2, colr);
+    val1 = val2;
+    r1 = r2;
+    g1 = g2;
+    b1 = b2;
+    val2 = min + rng * 0.5;
+    r2 = 255;
+    g2 = 122;
+    b2 = 0;
+    Rast_add_d_color_rule(&val1, r1, g1, b1, &val2, r2, g2, b2, colr);
+    val1 = val2;
+    r1 = r2;
+    g1 = g2;
+    b1 = b2;
+    val2 = max + 1.0e-12;
+    r2 = 255;
+    g2 = 0;
+    b2 = 0;
+    Rast_add_d_color_rule(&val1, r1, g1, b1, &val2, r2, g2, b2, colr);
+    
+    return 1;
+}

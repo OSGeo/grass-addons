@@ -2,24 +2,42 @@
 extern int allocate_bufs(void);
 extern int rotate_bufs(void);
 
-/* gather */
+/* mask */
 extern void circle_mask(void);
-extern void weights_mask(void);
-extern int gather(DCELL *, int);
-extern int gather_w(DCELL *, DCELL(*)[2], int);
+
+/* gather */
+int gather(int);
+int set_alpha(double);
+double eai(double);
+double eah(double);
+double shi(double);
+double shh(double);
 
 /* readcell.c */
-extern int readcell(int, int, int, int);
+extern int readcell(int, int, int);
 
-/* divr_cats.c */
-extern int divr_cats(void);
+/* gain.c */
+DCELL pc(void);
+DCELL gain1(void);
+DCELL gain2(void);
+DCELL gain3(void);
 
-/* intr_cats.c */
-extern int intr_cats(void);
+/* ratio.c */
+DCELL ratio1(void);
+DCELL ratio2(void);
+DCELL ratio3(void);
 
-/* null_cats.c */
-extern int null_cats(const char *);
+/* gini.c */
+DCELL gini1(void);
+DCELL gini2(void);
+DCELL gini3(void);
 
-/* read_weights.c */
-extern void read_weights(const char *);
-extern void gaussian_weights(double);
+/* dist.c */
+DCELL dist1(void);
+DCELL dist2(void);
+DCELL dist3(void);
+
+/* chisq.c */
+DCELL chisq1(void);
+DCELL chisq2(void);
+DCELL chisq3(void);
