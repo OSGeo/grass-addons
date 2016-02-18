@@ -283,7 +283,15 @@ void readDevPotParams(t_Params * pParams, char *fn)
     char **tokens;
 
     while (G_getl2(buf, buflen, fp)) {
+        if (!buf || buf[0] == '\0')
+            continue;
         tokens = G_tokenize2(buf, fs, td);
+        int ntokens = G_number_of_tokens(tokens);
+        if (ntokens == 0)
+            continue;
+        // id + intercept + devpressure + predictores
+        if (ntokens != pParams->numAddVariables + 3)
+            G_fatal_error(_("Wrong number of columns in line: %s"), buf);
 
         int idx;
         int id;
@@ -293,7 +301,6 @@ void readDevPotParams(t_Params * pParams, char *fn)
 
         G_chop(tokens[0]);
         id = atoi(tokens[0]);
-
         if (KeyValueIntInt_find(pParams->region_map, id, &idx)) {
             G_chop(tokens[1]);
             di = atof(tokens[1]);
@@ -1179,11 +1186,15 @@ void readDevDemand(t_Params * pParams)
 
     int years = 0;
     while(G_getl2(buf, buflen, fp)) {
-        tokens = G_tokenize2(buf, fs, td);
-        ntokens = G_number_of_tokens(tokens);
-        // skip empty lines
-        if (ntokens == 0)
+        if (!buf || buf[0] == '\0')
             continue;
+        tokens = G_tokenize2(buf, fs, td);
+        int ntokens2 = G_number_of_tokens(tokens);
+        if (ntokens2 == 0)
+            continue;
+        if (ntokens2 != ntokens)
+            G_fatal_error(_("Wrong number of columns in line: %s"), buf);
+
         count = 0;
         int i;
         for (i = 1; i < ntokens; i++) {
