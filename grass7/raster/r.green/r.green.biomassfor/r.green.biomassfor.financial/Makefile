@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../../..
 
-PGM = r.green.biomassfor.economic
+PGM = r.green.biomassfor.financial
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

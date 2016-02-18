@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../../..
 
 PGM=r.green.biomassfor
 
-SUBDIRS = r.green.biomassfor.economic \
+SUBDIRS = r.green.biomassfor.financial \
           r.green.biomassfor.theoretical \
           r.green.biomassfor.recommended \
           r.green.biomassfor.technical \
