@@ -6,7 +6,9 @@
 #
 # MODULE:      r.green.biomassfor.economic
 # AUTHOR(S):   Sandro Sacchelli, Francesco Geri
-#              Converted to Python by Pietro Zambelli and Francesco Geri, reviewed by Marco Ciolli
+#              Converted to Python by Pietro Zambelli, Francesco Geri,
+#              reviewed by Marco Ciolli
+#              Last version rewritten by Giulia Garegnani, Gianluca Grilli
 # PURPOSE:     Calculates the economic value of a forests in terms of bioenergy assortments
 # COPYRIGHT:   (C) 2013 by the GRASS Development Team
 #
@@ -31,33 +33,6 @@
 #% required : yes
 #%end
 #%option G_OPT_V_INPUT
-#% key: boundaries
-#% type: string
-#% description: Name of vector boundaries map (boolean map)
-#% label: Name of vector boundaries map (boolean map)
-#% required : yes
-#%end
-#%option 
-#% key: forest_column_price
-#% type: string
-#% description: Vector field of wood typologies
-#% required : yes
-#%end
-#%option 
-#% key: conditions
-#% type: string
-#% description: List of wood assorments:price
-#% required : yes
-#%end
-#%option 
-#% key: output_basename
-#% type: string
-#% description: Basename for economic bioenergy (HF,CC and total)
-#% gisprompt: new
-#% key_desc : name
-#% required : yes
-#%end
-#%option G_OPT_V_INPUT
 #% key: dhp
 #% type: string
 #% description: Name of vector district heating points
@@ -76,7 +51,7 @@
 #% description: Vector field of stand surface (ha)
 #% required : yes
 #%end
-#%option 
+#%option
 #% key: forest_column_management
 #% type: string
 #% description: Vector field of forest management (1: high forest, 2:coppice)
@@ -86,6 +61,12 @@
 #% key: forest_column_treatment
 #% type: string
 #% description: Vector field of forest treatment (1: final felling, 2:thinning)
+#% required : yes
+#%end
+#%option
+#% key: forest_column_wood_price
+#% type: string
+#% description: Vector field of wood prices
 #% required : yes
 #%end
 #%option G_OPT_V_INPUT
@@ -102,11 +83,29 @@
 #% label: Vector map of main roads
 #% required : yes
 #%end
+#%option G_OPT_R_ELEV
+#% required: yes
+#%end
 #%option G_OPT_R_INPUT
-#% key: dtm2
+#% key: technical_bioenergy
 #% type: string
-#% description: Name of Digital terrain model map
-#% required : yes
+#% description: Total technical biomass potential [MWh/year]
+#% guisection: Opt files
+#% required : no
+#%end
+#%option G_OPT_R_INPUT
+#% key: tech_bioc
+#% type: string
+#% description: Technical biomass potential for coppices [MWh/year]
+#% guisection: Opt files
+#% required : no
+#%end
+#%option G_OPT_R_INPUT
+#% key: tech_biohf
+#% type: string
+#% description: Technical biomass potential in high forest [MWh/year]
+#% guisection: Opt files
+#% required : no
 #%end
 #%option G_OPT_R_INPUT
 #% key: soilp2_map
@@ -271,594 +270,789 @@
 #% guisection: Costs
 #%end
 #%option
-#% key: energy_tops_hf
+#% key: ton_tops_hf
 #% type: double
-#% description: Energy for tops and branches in high forest in MWh/m³
-#% answer: 0.49
-#% guisection: Energy
+#% description: BEF for tops and branches in high forest [ton/m3]
+#% answer: 0.25
+#% guisection: Forest
 #%end
 #%option
-#% key: energy_cormometric_vol_hf
+#% key: ton_vol_hf
 #% type: double
-#% description: Energy for the whole tree in high forest (tops, branches and stem) in MWh/m³
-#% answer: 1.97
-#% guisection: Energy
+#% description: BEF for the whole tree in high forest (tops, branches and stem) in ton/m³
+#% answer: 1
+#% guisection: Plant
 #%end
 #%option
-#% key: energy_tops_cop
+#% key: ton_tops_cop
 #% type: double
-#% description: Energy for tops and branches for Coppices in MWh/m³
-#% answer: 0.55
-#% guisection: Energy
+#% description: BEF for tops and branches for Coppices in ton/m³
+#% answer: 0.30
+#% guisection: Forest
 #%end
 #%flag
 #% key: r
 #% description: Remove all operational maps
 #%end
-
-
-
+#%option G_OPT_R_OUTPUT
+#% key: econ_bioenergy
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the financial potential of bioenergy [Mwh/year]
+#% required: yes
+#% guisection: Output maps
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: net_revenues
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the net present value [€/year]
+#% required: yes
+#% answer: net_revenues
+#% guisection: Output maps
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: total_revenues
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the total revenues [€/year]
+#% required: no
+#% guisection: Output maps
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: total_cost
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the total cost [€/year]
+#% required: no
+#% guisection: Output maps
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: econ_bioenergyhf
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the financial potential of bioenergy in high forest [Mwh/year]
+#% required: no
+#% guisection: Output maps
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: econ_bioenergyc
+#% type: string
+#% key_desc: name
+#% description: Name of raster map with the financial potential of bioenergy for coppices[Mwh/year]
+#% required: no
+#% guisection: Output maps
+#%end
 
 import grass.script as grass
-from grass.script.core import run_command, parser,overwrite
+from grass.script.core import run_command, parser, overwrite, warning
 from grass.pygrass.raster import RasterRow
+from grass.pygrass.modules.shortcuts import raster as r
 import numpy as np
-
-
+import os
+import atexit
+from grass.pygrass.utils import set_path
+set_path('r.green', 'libhydro', '..')
+set_path('r.green', 'libgreen', os.path.join('..', '..'))
+# finally import the module in the library
+from libgreen.utils import cleanup
 
 ow = overwrite()
 
 
+def conmbination(management, treatment):
+    pid = os.getpid()
+    # set combination to avoid several if
+    m1t1 = "tmprgreen_%i_m1t1" % pid
+    exp = ("{combination}=if(({management}=={c1} && ({treatment}=={c2}"
+           "||{treatment}==99999)),1,0)")
+    r.mapcalc(exp.format(combination=m1t1,
+                         management=management,
+                         c1=1,
+                         treatment=treatment,
+                         c2=1),
+              overwrite=ow)
+    run_command("r.null", map=m1t1, null=0)
+    m1t2 = "tmprgreen_%i_m1t2" % pid
+    exp = ("{combination}=if(({management}=={c1} && {treatment}=={c2}),1,0)")
+    r.mapcalc(exp.format(combination=m1t2,
+                         management=management,
+                         c1=1,
+                         treatment=treatment,
+                         c2=2),
+              overwrite=ow)
+    run_command("r.null", map=m1t2, null=0)
+    m2 = "tmprgreen_%i_m2" % pid
+    exp = ("{combination}=if({management}=={c1},1,0)")
+    r.mapcalc(exp.format(combination=m2,
+                         management=management,
+                         c1=2),
+              overwrite=ow)
+    run_command("r.null", map=m2, null=0)
+    m1 = "tmprgreen_%i_m1" % pid
+    exp = ("{combination}=if({management}=={c1},1,0)")
+    r.mapcalc(exp.format(combination=m1,
+                         management=management,
+                         c1=1),
+              overwrite=ow)
+    run_command("r.null", map=m1, null=0)
+    not2 = "tmprgreen_%i_not2" % pid
+    exp = ("{combination}=if(({treatment}=={c1} && {treatment}=={c2}),1,0)")
+    r.mapcalc(exp.format(combination=not2,
+                         c1=1,
+                         treatment=treatment,
+                         c2=99999),
+              overwrite=ow)
+    run_command("r.null", map=not2, null=0)
+    #TODO: try to remove all the r.nulle, since I
+    # have done it at the beginning
+    return m1t1, m1t2, m1, m2, not2
 
 
-def remove_map(opts, flgs):
-
-    prf_yield = opts['field_prefix']
-
-    pricelist=opts['prices'].split(',')
-
-    run_command("g.remove", type="raster", flags="f", name="tot_roads")
-    run_command("g.remove", type="raster", flags="f", name="tot_roads_neg")
-    run_command("g.remove", type="raster", flags="f", name="frict_surf_tr1")
-    run_command("g.remove", type="raster", flags="f", name="frict_surf_tr")
-    run_command("g.remove", type="raster", flags="f", name="transp_dist")
-    run_command("g.remove", type="raster", flags="f", name="transport_prod")
-    run_command("g.remove", type="raster", flags="f", name="fell_costHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="chipp_cost")
-    run_command("g.remove", type="raster", flags="f", name="fell_costHFtr2")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_costC")
-    run_command("g.remove", type="raster", flags="f", name="proc_costHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="proc_costHFtr2")
-    run_command("g.remove", type="raster", flags="f", name="extr_cost_cablehf")
-    run_command("g.remove", type="raster", flags="f", name="extr_cost_forw")
-    run_command("g.remove", type="raster", flags="f", name="extr_cost_other")
-    run_command("g.remove", type="raster", flags="f", name="transport_cost")
-    run_command("g.remove", type="raster", flags="f", name="prod_costs")
-    run_command("g.remove", type="raster", flags="f", name="direction_cost")
-    run_command("g.remove", type="raster", flags="f", name="administrative_cost")
-    run_command("g.remove", type="raster", flags="f", name="total_costs")
-    run_command("g.remove", type="raster", flags="f", name="interests")
-    run_command("g.remove", type="raster", flags="f", name="net_revenues")
-    run_command("g.remove", type="raster", flags="f", name="positive_net_revenues")
-    run_command("g.remove", type="raster", flags="f", name="net_rev_pos")
-    run_command("g.remove", type="raster", flags="f", name="economic_surface")
-    run_command("g.remove", type="raster", flags="f", name="chipp_prod")
-    run_command("g.remove", type="raster", flags="f", name="chipp_prodHF")
-    run_command("g.remove", type="raster", flags="f", name="chipp_prodC")
-    run_command("g.remove", type="raster", flags="f", name="extr_cost_cableC")
-    run_command("g.remove", type="raster", flags="f", name="cable_crane_extraction")
-    run_command("g.remove", type="raster", flags="f", name="extr_dist")
-    run_command("g.remove", type="raster", flags="f", name="extr_product_other")
-    run_command("g.remove", type="raster", flags="f", name="extr_cableHF_em")
-    run_command("g.remove", type="raster", flags="f", name="extr_product_cableC")
-    run_command("g.remove", type="raster", flags="f", name="extr_product_cableHF")
-    run_command("g.remove", type="raster", flags="f", name="extr_product_forw")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_costHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_costHFtr2")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_productC")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_productHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="fell_proc_productHFtr2")
-    run_command("g.remove", type="raster", flags="f", name="fell_productHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="fell_productHFtr2")
-    run_command("g.remove", type="raster", flags="f", name="forwarder_extraction")
-    run_command("g.remove", type="raster", flags="f", name="frict_surf_extr")
-    run_command("g.remove", type="raster", flags="f", name="other_extraction")
-    run_command("g.remove", type="raster", flags="f", name="pix_cross")
-    run_command("g.remove", type="raster", flags="f", name="proc_productHFtr1")
-    run_command("g.remove", type="raster", flags="f", name="techn_pix_comp")
-    run_command("g.remove", type="raster", flags="f", name="technical_surface")
-    run_command("g.remove", type="raster", flags="f", name="tot_dist")
-    run_command("g.remove", type="raster", flags="f", name="total_revenues")
-    run_command("g.remove", type="raster", flags="f", name="total_revenues1")
-    run_command("g.remove", type="raster", flags="f", name="total_revenues2")
-    run_command("g.remove", type="raster", flags="f", name="yield_pix")
-    run_command("g.remove", type="raster", flags="f", name="yield_pix1")
-    run_command("g.remove", type="raster", flags="f", name="yield_pix2")
-    run_command("g.remove", type="raster", flags="f", name="yield_pixp")
-    run_command("g.remove", type="raster", flags="f", name="technical_bioenergy")
-    run_command("g.remove", type="raster", flags="f", name="slope__")
-    run_command("g.remove", type="raster", flags="f", name="slope___")
-    run_command("g.remove", type="raster", flags="f", name="slope_deg__")
-
-    for x in range(1,len(pricelist)+1):
-        mapvol1=prf_yield+'_vol_typ'+str(x)+'pix'
-        mapvol2=prf_yield+'_vol_typ'+str(x)+'pix2'
-        run_command("g.remove", type="raster", flags="f", name=mapvol1)
-        run_command("g.remove", type="raster", flags="f", name=mapvol2)
+def slope_computation(opts):
+    pid = os.getpid()
+    tmp_slope = 'tmprgreen_%i_slope' % pid
+    tmp_slope_deg = 'tmprgreen_%i_slope_deg' % pid
+    run_command("r.slope.aspect", overwrite=ow,
+                elevation=opts['elevation'], slope=tmp_slope, format="percent")
+    run_command("r.slope.aspect", overwrite=ow,
+                elevation=opts['elevation'], slope=tmp_slope_deg)
 
 
-def yield_pix_process(opts, flgs,vector_forest,yield_,yield_surface,rivers,lakes,forest_roads,management,treatment,roughness):
-
-
-    run_command("r.slope.aspect", overwrite=ow,elevation=opts['dtm2'], slope="slope__", format="percent")
-    run_command("r.slope.aspect", overwrite=ow,elevation=opts['dtm2'], slope="slope_deg__")
+def yield_pix_process(opts, vector_forest, yield_, yield_surface,
+                      rivers, lakes, forest_roads, m1, m2,
+                      m1t1, m1t2, roughness):
+    pid = os.getpid()
+    tmp_slope = 'tmprgreen_%i_slope' % pid
+    tmp_slope_deg = 'tmprgreen_%i_slope_deg' % pid
+    technical_surface = "tmprgreen_%i_technical_surface" % pid
+    cable_crane_extraction = "cable_crane_extraction"
+    forwarder_extraction = "forwarder_extraction"
+    other_extraction = "other_extraction"
 
     run_command("r.param.scale", overwrite=ow,
-                input=opts['dtm2'], output="morphometric_features",
+                input=opts['elevation'], output="morphometric_features",
                 size=3, method="feature")
+    # peaks have an higher cost/distance in order not to change the valley
 
-
+    expr = "{pix_cross} = ((ewres()+nsres())/2)/ cos({tmp_slope_deg})"
+    r.mapcalc(expr.format(pix_cross=('tmprgreen_%i_pix_cross' % pid),
+                          tmp_slope_deg=tmp_slope_deg),
+              overwrite=ow)
+    #FIXME: yield surface is a plan surface and not the real one of the forest
+    #unit, do I compute the real one?#
+    # if yield_pix1 == 0 then yield is 0, then I can use yield or
+    #  use yeld_pix but I will compute it only once in the code
     run_command("r.mapcalc", overwrite=ow,
-            expression='pix_cross = ((ewres()+nsres())/2)/ cos(slope_deg__)')
-
-    run_command("r.mapcalc", overwrite=ow,  
-        expression='yield_pix1 = ('+yield_+'/'+yield_surface+')*((ewres()*nsres())/10000)')
+                expression=('yield_pix1 = (' + yield_+'/' +
+                            yield_surface+')*((ewres()*nsres())/10000)'))
 
     run_command("r.null", map="yield_pix1", null=0)
     run_command("r.null", map="morphometric_features", null=0)
 
-    exprmap='frict_surf_extr = pix_cross + if(yield_pix1<=0, 99999) + if(morphometric_features==6, 99999)'
+# FIXME: initial control on the yield in order to verify if it is positive
+#    exprmap = ("{frict_surf_extr} = {pix_cross} + if(yield_pix1<=0, 99999)"
+#               "+ if({morphometric_features}==6, 99999)")
 
-
-    if rivers!='':
-        run_command("v.to.rast", input=rivers,output="rivers", use="val", overwrite=True)
-        rivers="rivers"
+    exprmap = ("{frict_surf_extr} = {pix_cross}"
+               "+ if({morphometric_features}==6, 99999)")
+    if rivers:
+        run_command("v.to.rast", input=rivers, output=('tmprgreen_%i_rivers'
+                                                       % pid),
+                    use="val", value=99999, overwrite=True)
         run_command("r.null", map=rivers, null=0)
-        exprmap+='+ if('+rivers+'>=1, 99999)'
+        exprmap += "+ %s" % ('tmprgreen_%i_rivers' % pid)
 
-    if lakes!='':        
-        run_command("v.to.rast", input=lakes,output="lakes", use="val", overwrite=True)
-        lakes="lakes"
+    if lakes:
+        run_command("v.to.rast", input=lakes, output=('tmprgreen_%i_lakes'
+                                                      % pid),
+                    use="val", value=99999, overwrite=True)
         run_command("r.null", map=lakes, null=0)
-        exprmap+='+ if('+lakes+'>=1, 99999)'
+        exprmap += '+ %s' % ('tmprgreen_%i_lakes' % pid)
 
-
-    run_command("r.mapcalc",overwrite=ow,expression=exprmap)
+    frict_surf_extr = 'tmprgreen_%i_frict_surf_extr' % pid
+    extr_dist = 'tmprgreen_%i_extr_dist' % pid
+    r.mapcalc(exprmap.format(frict_surf_extr=frict_surf_extr,
+                             pix_cross=('tmprgreen_%i_pix_cross' % pid),
+                             morphometric_features='morphometric_features',
+                             ),
+              overwrite=ow)
 
     run_command("r.cost", overwrite=ow,
-            input="frict_surf_extr", output="extr_dist",
-            stop_points=vector_forest, start_rast=forest_roads,
-            max_cost=1500)
+                input=frict_surf_extr, output=extr_dist,
+                stop_points=vector_forest,
+                start_rast='tmprgreen_%i_forest_roads' % pid,
+                max_cost=1500)
+    slp_min_cc = opts['slp_min_cc']
+    slp_max_cc = opts['slp_max_cc']
+    dist_max_cc = opts['dist_max_cc']
+    ccextr = ("{cable_crane_extraction} = if({yield_} >0 && {tmp_slope}"
+              "> {slp_min_cc} && {tmp_slope} <= {slp_max_cc} && {extr_dist}<"
+              "{dist_max_cc} , 1)")
+    r.mapcalc(ccextr.format(cable_crane_extraction=cable_crane_extraction,
+                            yield_=yield_, tmp_slope=tmp_slope,
+                            slp_min_cc=slp_min_cc, slp_max_cc=slp_max_cc,
+                            dist_max_cc=dist_max_cc,
+                            extr_dist=extr_dist),
+              overwrite=ow)
 
-    CCEXTR = 'cable_crane_extraction = if('+yield_+'>0 && slope__>'+opts['slp_min_cc']+' && slope__<='+opts['slp_max_cc']+' && extr_dist<'+opts['dist_max_cc']+', 1)'
+    fwextr = ("{forwarder_extraction} = if({yield_}>0 && {tmp_slope}<="
+              "{slp_max_fw} && ({roughness} ==0 ||"
+              "{roughness}==1 || {roughness}==99999) &&"
+              "{extr_dist}<{dist_max_fw}, {m1}*1)")
 
-    FWEXTR = 'forwarder_extraction = if('+yield_+'>0 && slope__<='+opts['slp_max_fw']+' && '+management+'==1 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_fw']+', 1)'
-    
-    OEXTR = 'other_extraction = if('+yield_+'>0 && slope__<='+opts['slp_max_cop']+' && '+management+'==2 && ('+roughness+'==0 || '+roughness+'==1 || '+roughness+'==99999) && extr_dist<'+opts['dist_max_cop']+', 1)'
+    r.mapcalc(fwextr.format(forwarder_extraction=forwarder_extraction,
+                            yield_=yield_, tmp_slope=tmp_slope,
+                            slp_max_fw=opts['slp_max_fw'],
+                            m1=m1,
+                            roughness=roughness,
+                            dist_max_fw=opts['dist_max_fw'],
+                            extr_dist=extr_dist),
+              overwrite=ow)
 
+    oextr = ("{other_extraction} = if({yield_}>0 &&"
+             "{tmp_slope}<={slp_max_cop} &&"
+             "({roughness}==0 || {roughness}==1 ||"
+             "{roughness}==99999) && {extr_dist}< {dist_max_cop}, {m2}*1)")
 
-    run_command("r.mapcalc", overwrite=ow,expression=CCEXTR)
-    run_command("r.mapcalc", overwrite=ow,expression=FWEXTR)
-    run_command("r.mapcalc", overwrite=ow,expression=OEXTR)
+    r.mapcalc(oextr.format(other_extraction=other_extraction,
+                           yield_=yield_, tmp_slope=tmp_slope,
+                           slp_max_cop=opts['slp_max_cop'],
+                           m2=m2, roughness=roughness,
+                           dist_max_cop=opts['dist_max_cop'],
+                           extr_dist=extr_dist),
+              overwrite=ow)
 
+    run_command("r.null", map=cable_crane_extraction, null=0)
+    run_command("r.null", map=forwarder_extraction, null=0)
+    run_command("r.null", map=other_extraction, null=0)
+# FIXME: or instead of plus
+    expression = ("{technical_surface} = {cable_crane_extraction} +"
+                  "{forwarder_extraction} + {other_extraction}")
+    r.mapcalc(expression.format(technical_surface=technical_surface,
+                                cable_crane_extraction=cable_crane_extraction,
+                                forwarder_extraction=forwarder_extraction,
+                                other_extraction=other_extraction),
+              overwrite=ow)
 
-    run_command("r.null", map="cable_crane_extraction", null=0)
-    run_command("r.null", map="forwarder_extraction", null=0)
-    run_command("r.null", map="other_extraction", null=0)
+    run_command("r.null", map=technical_surface, null=0)
+# FIXME: in my opinion we cannot sum two different energy coefficients
+# is the energy_vol_hf including the energy_tops?
+    ehf = ("{tech_bioHF} = {technical_surface}*{yield_pix}*"
+           "({m1t1}*{ton_tops_hf}+"
+           "{m1t2}*({ton_vol_hf}+{ton_tops_hf}))")
+    tech_bioHF = ('tmprgreen_%i_tech_bioenergyHF' % pid)
+    r.mapcalc(ehf.format(tech_bioHF=tech_bioHF,
+                         technical_surface=technical_surface,
+                         m1t1=m1t1, m1t2=m1t2,
+                         yield_pix='yield_pix1',
+                         ton_tops_hf=opts['ton_tops_hf'],
+                         ton_vol_hf=opts['ton_vol_hf']),
+              overwrite=ow)
+    tech_bioC = 'tmprgreen_%i_tech_bioenergyC' % pid
+    ecc = ("{tech_bioC} = {technical_surface}*{m2}*{yield_pix}"
+           "*{ton_tops_cop}")
+    r.mapcalc(ecc.format(tech_bioC=tech_bioC,
+                         technical_surface=technical_surface,
+                         m2=m2,
+                         yield_pix='yield_pix1',
+                         ton_tops_cop=opts['ton_tops_cop']),
+              overwrite=ow)
+    technical_bioenergy = "tmprgreen_%i_techbio" % pid
+    exp = "{technical_bioenergy}={tech_bioHF}+{tech_bioC}"
+    r.mapcalc(exp.format(technical_bioenergy=technical_bioenergy,
+                         tech_bioC=tech_bioC,
+                         tech_bioHF=tech_bioHF),
+              overwrite=ow)
 
+    run_command("r.null", map=technical_bioenergy, null=0)
 
-    run_command("r.mapcalc", overwrite=ow,expression='technical_surface = cable_crane_extraction + forwarder_extraction + other_extraction')
-    
-    run_command("r.null", map="technical_surface", null=0)
-
-
-    EHF = 'tech_bioenergyHF = technical_surface*(if('+management+'==1 && '+treatment+'==1 || '+management+'==1 && '+treatment+'==99999, yield_pix*'+opts['energy_tops_hf']+', if('+management+'==1 && '+treatment+'==2, yield_pix *'+opts['energy_tops_hf']+' + yield_pix * '+opts['energy_cormometric_vol_hf']+')))'
-
-    ECC = 'tech_bioenergyC = technical_surface*(if('+management+' == 2, yield_pix*'+opts['energy_tops_cop']+'))'
-
-    ET='technical_bioenergy=tech_bioenergyHF+tech_bioenergyC'
-
-    # run_command("r.stats.zonal", overwrite=ow,
-    #             base="compartment", cover="technical_surface", method="sum",
-    #             output="techn_pix_comp")
-
-    # run_command("r.mapcalc", overwrite=ow,
-    #     expression='yield_pix2 = yield/(technical_surface*techn_pix_comp)')   
-    
-    # YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
-
-    # run_command("r.mapcalc", overwrite=ow,
-    #             expression=YPIX % (1 if flgs['u'] else 0, 0 if flgs['u'] else 1,))
-
-    run_command("r.mapcalc", overwrite=ow,expression="yield_pix=yield_pix1")
-
-    # run_command("r.mapcalc", overwrite=ow,expression=YPIX)
-
-    run_command("r.mapcalc", overwrite=ow,expression=EHF)
-    run_command("r.mapcalc", overwrite=ow,expression=ECC)
-    run_command("r.mapcalc", overwrite=ow,expression=ET)
-
-    run_command("g.remove", type="raster", flags="f", name="tech_bioenergyHF,tech_bioenergyC")
-
-    run_command("r.null", map="technical_bioenergy", null=0)
-
-    tech_bioenergy="technical_bioenergy"
-
-    with RasterRow(tech_bioenergy) as pT:
+    with RasterRow(technical_bioenergy) as pT:
         T = np.array(pT)
-    print ("Tech bioenergy stimated (Mwh): %.2f" % np.nansum(T))
+    print ("Tech bioenergy stimated (ton): %.2f" % np.nansum(T))
+    return technical_bioenergy, tech_bioC, tech_bioHF
 
 
-def revenues(opts, flgs,yield_surface,management,treatment,forest,yield_):
+def revenues(opts, yield_surface, m1t1, m1t2, m1, m2,
+             forest, yield_, technical_bioenergy):
     # Calculate revenues
-    fieldprice=opts['forest_column_price']
-    fieldcond=opts['conditions']
+    pid = os.getpid()
+    #FIXME: tmp_yield is the raster yield in the other sections of the module
+    tmp_yield = 'tmprgreen_%i_yield' % pid
+    tmp_wood = 'tmprgreen_%i_wood_price' % pid
+    tmp_rev_wood = 'tmprgreen_%i_rev_wood' % pid
 
-    
+    exprpix = '%s=%s*%s/%s*(ewres()*nsres()/10000)' % (tmp_rev_wood, tmp_wood,
+                                                       tmp_yield,
+                                                       yield_surface)
+    run_command("r.mapcalc", overwrite=ow, expression=exprpix)
+    # FIXME: Does the coppice produces timber?
+    tr1 = ("{total_revenues} ="
+           "{technical_surface}*(({m1t1}|||{m2})*({tmp_rev_wood} +"
+           "{technical_bioenergy}*{price_energy_woodchips})+"
+           "{m1t2}*{technical_bioenergy}*{price_energy_woodchips})")
 
-    # pricelist=opts['prices'].split(',') #convert the string in list of string
-
-
-    # for x in range(1,len(pricelist)+1):
-    #     price_field=prf_yield+"_voltyp"+str(x)
-    #     run_command("r.mapcalc", overwrite=ow,expression=prf_yield+'_vol_typ'+str(x)+'pix = ('+price_field+'/'+yield_surface+')*(ewres()*nsres()/10000)')
-    #     run_command("r.null", map=prf_yield+'_vol_typ'+str(x)+'pix', null=0)
-
-    listwoods=fieldcond.split(',')
-
-    prices=''
-
-    for wood in listwoods:
-        #import ipdb; ipdb.set_trace()
-        woodprice=wood.split('=')
-        where_cond=fieldprice+" like "+"'"+woodprice[0]+"'"
-        run_command("v.to.rast",input=forest,output='forest_'+woodprice[0],use="attr", attrcolumn=yield_, where=where_cond)
-        exprpix='forest_'+woodprice[0]+'_pix=(forest_'+woodprice[0]+"/"+yield_surface+')*(ewres()*nsres()/10000)'
-        run_command("r.mapcalc", overwrite=ow, expression=exprpix)
-        nullmap='forest_'+woodprice[0]+'_pix'
-        run_command("r.null", map=nullmap,null=0)
-        prices+=nullmap+'*'+woodprice[1]+"+"
-    prices=prices[:-1]
-        
-    #prices = '+'.join(["vol_typ%dpix*%f" % (i+1, price) for i, price in enumerate(opts['prices'])])
-    #prices = '+'.join([prf_yield+"_vol_typ%dpix*%f" % (i+1, float(price)) for i, price in enumerate(pricelist)])
-
-    #import ipdb; ipdb.set_trace()
-
-    price_energy_woodchips=float(opts['price_energy_woodchips'])   
-    
-
-    TR1='total_revenues1 = technical_surface*(if('+management+' == 1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'==99999 || '+management+' == 2,('+prices+'+(technical_bioenergy*'+str(price_energy_woodchips)+')), if('+management+' == 1 && '+treatment+'==2, technical_bioenergy*'+str(price_energy_woodchips)+')))'
+    r.mapcalc(tr1.format(total_revenues=("tmprgreen_%i_total_revenues" % pid),
+                         technical_surface=('tmprgreen_%i_technical_surface'
+                                            % pid),
+                         m1t1=m1t1, m2=m2, m1t2=m1t2,
+                         tmp_rev_wood=tmp_rev_wood,
+                         technical_bioenergy=technical_bioenergy,
+                         price_energy_woodchips=opts['price_energy_woodchips']
+                         ),
+              overwrite=ow)
+    return ("tmprgreen_%i_total_revenues" % pid)
 
 
-    run_command("r.mapcalc", overwrite=ow, expression=TR1)
-
-
-    run_command("r.mapcalc",overwrite=ow,expression='total_revenues=total_revenues1')
-
-    
-    
-def productivity(opts, flgs,management,treatment,soilp2_map,tree_diam,tree_vol,forest_roads,main_roads):
-
-    if tree_diam == '':
-        tree_diam="99999"
-    if tree_vol == '':
-        tree_vol="9.999"
-    if soilp2_map == '':
-        soilp2_map="99999"
-
-    dhp=opts['dhp']
-
-    run_command("r.mapcalc",overwrite=ow,
-                expression="slope___=if(slope__<=100,slope__,100)")
-
+def productivity(opts,
+                 m1t1, m1t2, m1, m2, not2, soilp2_map,
+                 tree_diam, tree_vol, forest_roads, main_roads):
+    # return a dictionary with the productivity maps as key and
+    # the cost form the GUI as value
+#    if tree_diam == '':
+#        tree_diam="99999"
+#    if tree_vol == '':
+#        tree_vol="9.999"
+#    if soilp2_map == '':
+#        soilp2_map="99999"
+    pid = os.getpid()
+    dhp = opts['dhp']
+    fell_productHFtr1 = "tmprgreen_%i_fell_productHFtr1" % pid
+    fell_productHFtr2 = "tmprgreen_%i_fell_productHFtr2" % pid
+    fell_proc_productC = "tmprgreen_%i_fell_proc_productC" % pid
+    proc_productHFtr1 = "tmprgreen_%i_proc_productHFtr1" % pid
+    fell_proc_productHFtr1 = "tmprgreen_%i_fell_proc_productHFtr1" % pid
+    fell_proc_productHFtr2 = "tmprgreen_%i_fell_proc_productHFtr2" % pid
+    chipp_prod = "tmprgreen_%i_chipp_prod" % pid
+    extr_dist = "tmprgreen_%i_extr_dist" % pid
+    extr_product_cableHF = "tmprgreen_%i_extr_product_cableHF" % pid
+    extr_product_cableC = "tmprgreen_%i_extr_product_cableC" % pid
+    extr_product_forw = "tmprgreen_%i_extr_product_forw" % pid
+    extr_product_other = "tmprgreen_%i_extr_product_other" % pid
+    transport_prod = "tmprgreen_%i_transport_prod" % pid
+    dic1 = {fell_productHFtr1: opts['cost_chainsaw'],
+            fell_productHFtr2: opts['cost_chainsaw'],
+            fell_proc_productC: opts['cost_chainsaw'],
+            proc_productHFtr1: opts['cost_processor'],
+            fell_proc_productHFtr1: opts['cost_harvester'],
+            fell_proc_productHFtr2: opts['cost_harvester'],
+            extr_product_cableHF: opts['cost_cablehf'],
+            extr_product_cableC: opts['cost_cablec'],
+            extr_product_forw: opts['cost_forwarder'],
+            extr_product_other: opts['cost_skidder']}
+    dic2 = {chipp_prod: opts['cost_chipping'],
+            transport_prod: opts['cost_transport']}
     # Calculate productivity
+    #FIXME:in my opinion is better to exclude area with negative slope!!!
+    expression = "{tmp_slope}=if({tmp_slope}<=100,{tmp_slope},100)"
+    r.mapcalc(expression.format(tmp_slope="tmprgreen_%i_slope" % pid),
+              overwrite=ow)
     #view the paper appendix for the formulas
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_productHFtr1 = if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-(slope___/100)), if('+management+' ==1 && ('+treatment+' ==1 || '+treatment+' ==99999) && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-(slope___/100))))')
-    run_command("r.null", map="fell_productHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_productHFtr2 = if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' <99999,(cable_crane_extraction*(42-(2.6*'+tree_diam+'))/(-20))*1.65*(1-((1000-(90*slope___)/(-80))/100)), if('+management+' ==1 && '+treatment+' ==2 && '+tree_diam+' == 99999,(cable_crane_extraction*(42-(2.6*35))/(-20))*1.65*(1-((1000-(90*slope___)/(-80))/100))))')
-    run_command("r.null", map="fell_productHFtr2", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productC = if('+management+' ==2 && '+soilp2_map+' <99999,((0.3-(1.1*'+soilp2_map+'))/(-4))*(1-(slope___/100)), if('+management+' ==2 && '+soilp2_map+' == 99999,((0.3-(1.1*3))/(-4))*(1-(slope___/100))))')
-    run_command("r.null", map="fell_proc_productC", null=0)
+    expr = ("{fell_productHFtr1} = {mt}*{cable_crane_extraction}"
+            "*(42-2.6*{tree_diam})/(-20.0)*1.65*(1-{slope___}/100.0)")
+    r.mapcalc(expr.format(fell_productHFtr1=fell_productHFtr1,
+                          mt=m1t1,
+                          cable_crane_extraction="cable_crane_extraction",
+                          tree_diam="tmprgreen_%i_tree_diam" % pid,
+                          slope___='tmprgreen_%i_slope' % pid), overwrite=ow)
+    run_command("r.null", map=fell_productHFtr1, null=0)
+
+    expr = ("{fell_productHFtr2} = {mt}*{cable_crane_extraction}*"
+            "(42-2.6*{tree_diam})/(-20)*1.65*(1-(1000-90*{slope}/(-80))/100)")
+    r.mapcalc(expr.format(fell_productHFtr2=fell_productHFtr2,
+                          mt=m1t2,
+                          cable_crane_extraction="cable_crane_extraction",
+                          tree_diam="tmprgreen_%i_tree_diam" % pid,
+                          slope='tmprgreen_%i_slope' % pid), overwrite=ow)
+    run_command("r.null", map=fell_productHFtr2, null=0)
+    #FIXME: it is different from the paper, to check
+    expr = ("{fell_proc_productC} = {m2}*"
+            "(0.3-1.1*{soilp2_map})/(-4)*(1-{slope}/100)")
+    r.mapcalc(expr.format(fell_proc_productC=fell_proc_productC,
+                          m2=m2,
+                          soilp2_map="tmprgreen_%i_soilp2_map" % pid,
+                          slope='tmprgreen_%i_slope' % pid), overwrite=ow)
+    run_command("r.null", map=fell_proc_productC, null=0)
+
     ###### check fell_proc_productC ######
+    #9999: default value, if is present take into the process
+    #the average value (in case of fertility is 33) Giulia is it 3?
 
-    #9999: default value, if is present take into the process the average value (in case of fertility is 33)
+    expr = ("{proc_productHFtr1} = {mt}*{cable_crane_extraction}"
+            "*0.363*{tree_diam}^1.116")
+    r.mapcalc(expr.format(proc_productHFtr1=proc_productHFtr1,
+                          mt=m1t1,
+                          cable_crane_extraction="cable_crane_extraction",
+                          tree_diam="tmprgreen_%i_tree_diam" % pid),
+              overwrite=ow)
+    run_command("r.null", map=proc_productHFtr1, null=0)
+    expr = ("{out} = {mt}*{extraction}"
+            "*60/({k}*"
+            "exp(0.1480-0.3894*{st}+0.0002*({slope}^2)-0.2674*{sb})"
+            "+1.0667+0.3094/{tree_vol}-0.1846*{perc})")
+    r.mapcalc(expr.format(out=fell_proc_productHFtr1,
+                          mt=m1t1,
+                          extraction="forwarder_extraction",
+                          k=1.5, st=2, sb=2.5,
+                          tree_vol="tmprgreen_%i_tree_vol" % pid,
+                          slope="tmprgreen_%i_slope" % pid,
+                          perc=1),
+              overwrite=ow)
+    r.mapcalc(expr.format(out=fell_proc_productHFtr2,
+                          mt=m1t2,
+                          extraction="forwarder_extraction",
+                          k=1.5, st=2, sb=2.5,
+                          tree_vol="tmprgreen_%i_tree_vol" % pid,
+                          slope="tmprgreen_%i_slope" % pid,
+                          perc=0.8),
+              overwrite=ow)
+    run_command("r.null", map=fell_proc_productHFtr1, null=0)
+    run_command("r.null", map=fell_proc_productHFtr2, null=0)
 
+    expr = ("{chipp_prod} = {m1t1}*{yield_pix}/{num11}"
+            "+{m1t2}*{yield_pix}/{num12}"
+            "+{m2}*{yield_pix}/{num2}")
+    r.mapcalc(expr.format(chipp_prod=chipp_prod,
+                          yield_pix="yield_pix1",
+                          m1t1=m1t1,
+                          num11=34,
+                          m1t2=m1t2,
+                          num12=20.1,
+                          m2=m2,
+                          num2=45.9
+                          ),
+              overwrite=ow)
+    run_command("r.null", map=chipp_prod, null=0)
 
+    extr_product = {}
+    extr_product[extr_product_cableHF] = [m1, 'cable_crane_extraction',
+                                          149.33, extr_dist,
+                                          -1.3438, 0.75]
+    extr_product[extr_product_cableC] = [m2, 'cable_crane_extraction',
+                                         149.33, extr_dist,
+                                         -1.3438, 0.75]
+    extr_product[extr_product_forw] = [1, 'forwarder_extraction',
+                                       36.293, extr_dist,
+                                       -1.1791, 0.6]
+    extr_product[extr_product_other] = [1, 'other_extraction',
+                                        36.293, extr_dist,
+                                        -1.1791, 0.6]
+    expr = ("{extr_product} = {m}*{extraction}"
+            "*{coef1}*({extr_dist}^{expo})* {extr_dist}/8*{coef2}")
+    for key, val in extr_product.items():
+        r.mapcalc(expr.format(extr_product=key,
+                              m=val[0],
+                              extraction=val[1],
+                              coef1=val[2],
+                              extr_dist=val[3],
+                              expo=val[4],
+                              coef2=val[5]),
+                  overwrite=ow)
+        run_command("r.null", map=key, null=0)
 
-    run_command("r.mapcalc", overwrite=ow,
-                expression='proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'==99999, cable_crane_extraction*0.363*35^1.116, if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_diam+'<99999, cable_crane_extraction*0.363*'+tree_diam+'^1.116))')
-    run_command("r.null", map="proc_productHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productHFtr1 = if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/'+tree_vol+')-0.1846*1)), if('+management+' == 1 && ('+treatment+' == 1 || '+treatment+' ==99999) && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))))')
-    run_command("r.null", map="fell_proc_productHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_productHFtr2 = if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'<9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/'+tree_vol+')-0.1846*1))*0.8, if('+management+' == 1 && '+treatment+' == 2 && '+tree_vol+'==9.999, forwarder_extraction*60/(1.5*(2.71^(0.1480-0.3894*2+0.0002*(slope___^2)-0.2674*2.5))+(1.0667+(0.3094/0.7)-0.1846*1))*0.8))')
-    run_command("r.null", map="fell_proc_productHFtr2", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='chipp_prodHF = if('+management+' ==1 && ('+treatment+' == 1 ||  '+treatment+' == 99999), yield_pix/34, if('+management+' ==1 && '+treatment+' == 2, yield_pix/20.1))')
-    run_command("r.null", map="chipp_prodHF", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='chipp_prodC = if('+management+' ==2, yield_pix/45.9)')
-    run_command("r.null", map="chipp_prodC", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='chipp_prod = chipp_prodHF + chipp_prodC')
-    run_command("r.null", map="chipp_prod", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_product_cableHF = if('+management+' ==1, cable_crane_extraction*149.33*(extr_dist^-1.3438)* extr_dist/8*0.75)')
-    run_command("r.null", map="extr_product_cableHF", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_product_cableC = if('+management+' ==2, cable_crane_extraction*149.33*(extr_dist^-1.3438)* extr_dist/8*0.75)')
-    run_command("r.null", map="extr_product_cableC", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_product_forw = forwarder_extraction*36.293*(extr_dist^-1.1791)* extr_dist/8*0.6')
-    run_command("r.null", map="extr_product_forw", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_product_other = other_extraction*36.293*(extr_dist^-1.1791)* extr_dist/8*0.6')
-    run_command("r.null", map="extr_product_other", null=0)
-        
     #cost of the transport distance
     #this is becouse the wood must be sell to the collection point
     #instead the residual must be brung to the heating points
-    
+    tot_roads = "tmprgreen_%i_tot_roads" % pid
     run_command("r.mapcalc", overwrite=ow,
-                expression='tot_roads = '+forest_roads+' ||| '+main_roads)
-    run_command("r.null", map="tot_roads", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='tot_roads_neg = if(tot_roads==1,0,1)')
-    run_command("r.null", map="tot_roads_neg", null=1)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='frict_surf_tr1 =  frict_surf_extr*tot_roads_neg')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='frict_surf_tr = frict_surf_tr1+(tot_roads*((ewres()+nsres())/2))')
+                expression=('%s = %s ||| %s' % (tot_roads,
+                                                forest_roads, main_roads)))
+    run_command("r.null", map=tot_roads, null=0)
 
+    expr = ("{frict_surf_tr}={frict_surf_extr}*not({tot_roads})"
+            "*{tot_roads}*((ewres()+nsres())/2)")
+    r.mapcalc(expr.format(frict_surf_tr="tmprgreen_%i_frict_surf_tr" % pid,
+                          frict_surf_extr='tmprgreen_%i_frict_surf_extr' % pid,
+                          tot_roads=tot_roads
+                          ),
+              overwrite=ow)
+
+    transp_dist = "tmprgreen_%i_transp_dist" % pid
+    extr_dist = "tmprgreen_%i_extr_dist" % pid
     try:
-        run_command("r.cost", overwrite=ow, input="frict_surf_tr",
-                    output="tot_dist", stop_points=opts['forest'], start_points=dhp,
+        tot_dist = "tmprgreen_%i_tot_dist" % pid
+        run_command("r.cost", overwrite=ow,
+                    input=("tmprgreen_%i_frict_surf_tr" % pid),
+                    output=tot_dist,
+                    stop_points=opts['forest'],
+                    start_points=dhp,
                     max_cost=100000)
         run_command("r.mapcalc", overwrite=ow,
-                    expression='transp_dist = tot_dist -  extr_dist')
+                    expression=("%s = %s - %s"
+                                % (transp_dist, tot_dist, extr_dist)))
     except:
         run_command("r.mapcalc", overwrite=ow,
-                    expression='transp_dist = extr_dist')
+                    expression=('% = %s' % (transp_dist, extr_dist)))
 
-    run_command("r.mapcalc", overwrite=ow,
-                expression='transport_prod = if(('+treatment+' == 1 ||  '+treatment+' == 99999), ((transp_dist/1000/30)*(yield_pix*1/32)*2), if('+management+' ==1 && '+treatment+' == 2, ((transp_dist/1000/30)*(yield_pix*2.7/32)*2)))')
+    expr = ("{transport_prod} = {transp_dist}/30000"
+            "*({not2}*({yield_pix}/32)*2 +{m1t2}*({yield_pix}*2.7/32)*2)")
 
-    #the cost of distance transport derived by the negative of the friction surface
+    r.mapcalc(expr.format(transport_prod=transport_prod,
+                          yield_pix="yield_pix1",
+                          not2=not2,
+                          m1t2=m1t2,
+                          transp_dist="tmprgreen_%i_transp_dist" % pid
+                          ),
+              overwrite=ow)
+    #the cost of distance transport derived by the negative of the
+    # friction surface
     #the DHP must be inside the study area and connected with the road network
+    #FIXME: move the DHP on the closest road
+    return dic1, dic2
 
-def costs(opts, flgs):
+
+def costs(opts, dic1, dic2, total_revenues, yield_pix):
     # Calculate costs
+    pid = os.getpid()
+    expr = "{out} = {cost}/{productivity}*{yield_pix}"
+    command = "tmprgreen_%i_prod_cost = " % pid
+    for key, val in dic1.items():
+        r.mapcalc(expr.format(out="tmprgreen_%i_cost_%s" % (pid, key),
+                              yield_pix="yield_pix1",
+                              cost=val,
+                              productivity=key
+                              ),
+                  overwrite=ow)
+        run_command("r.null",
+                    map=("tmprgreen_%i_cost_%s" % (pid, key)),
+                    null=0)
+        command += "tmprgreen_%i_cost_%s+" % (pid, key)
+
+    expr = "{out} = {cost}*{productivity}"
+    for key, val in dic2.items():
+        r.mapcalc(expr.format(out="tmprgreen_%i_cost_%s" % (pid, key),
+                              cost=val,
+                              productivity=key
+                              ),
+                  overwrite=ow)
+        run_command("r.null",
+                    map=("tmprgreen_%i_cost_%s" % (pid, key)),
+                    null=0)
+        command += "tmprgreen_%i_cost_%s+" % (pid, key)
 
     run_command("r.mapcalc", overwrite=ow,
-                expression='fell_costHFtr1 = '+opts['cost_chainsaw']+'/fell_productHFtr1*yield_pix')
-    run_command("r.null", map="fell_costHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_costHFtr2 = '+opts['cost_chainsaw']+'/fell_productHFtr2*yield_pix')
-    run_command("r.null", map="fell_costHFtr2", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_costC = '+opts['cost_chainsaw']+'/fell_proc_productC*yield_pix')
-    run_command("r.null", map="fell_proc_costC", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='proc_costHFtr1 = '+opts['cost_processor']+'/proc_productHFtr1*yield_pix')
-    run_command("r.null", map="proc_costHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_costHFtr1 = '+opts['cost_harvester']+'/fell_proc_productHFtr1*yield_pix')
-    run_command("r.null", map="fell_proc_costHFtr1", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='fell_proc_costHFtr2 = '+opts['cost_harvester']+'/fell_proc_productHFtr2*yield_pix')
-    run_command("r.null", map="fell_proc_costHFtr2", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='chipp_cost = '+opts['cost_chipping']+'*chipp_prod')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_cost_cableHF = '+opts['cost_cablehf']+'/extr_product_cableHF*yield_pix')
-    run_command("r.null", map="extr_cost_cableHF", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_cost_cableC = '+opts['cost_cablec']+'/extr_product_cableC*yield_pix')
-    run_command("r.null", map="extr_cost_cableC", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_cost_forw ='+opts['cost_forwarder']+'/extr_product_forw*yield_pix')
-    run_command("r.null", map="extr_cost_forw", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='extr_cost_other = '+opts['cost_skidder']+'/extr_product_other*yield_pix')
-    run_command("r.null", map="extr_cost_other", null=0)
-    run_command("r.mapcalc", overwrite=ow,
-                expression='transport_cost = '+opts['cost_transport']+'*transport_prod')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='prod_costs1 = fell_costHFtr1 +  fell_costHFtr2+ fell_proc_costC + proc_costHFtr1 + fell_proc_costHFtr1 + fell_proc_costHFtr2 + chipp_cost + extr_cost_cableHF + extr_cost_cableC + extr_cost_forw + extr_product_other + transport_cost')
-    
-
-
+                expression=command[:-1])
+    #FIXME: the correction about negative cost have to be done in
+    # the productivity single map in my opinion
     ######## patch to correct problem of negative costs #######
-    run_command("r.mapcalc", overwrite=ow,expression='prod_costs =  prod_costs1>=0 ? prod_costs1 : 0')
+    prod_costs = "tmprgreen_%i_prod_cost" % pid
+    expr = '{prod_costs} =  {prod_costs}>=0 ? {prod_costs} : 0'
+    r.mapcalc(expr.format(prod_costs=prod_costs,
+                          ),
+              overwrite=ow)
     ######## end patch ##############
+    direction_cost = "tmprgreen_%i_direction_cost" % pid
+    administrative_cost = "tmprgreen_%i_administrative_cost" % pid
+    interests = "tmprgreen_%i_interests" % pid
+    run_command("r.mapcalc", overwrite=ow,
+                expression='%s =  %s *0.05' % (direction_cost,
+                                               prod_costs))
+    run_command("r.mapcalc", overwrite=ow,
+                expression=('%s =  %s*0.07' % (administrative_cost,
+                                               total_revenues)))
+    run_command("r.mapcalc", overwrite=ow,
+                expression=('%s= (%s + %s)*0.03/4'
+                            % (interests, prod_costs, administrative_cost)))
 
-    run_command("r.mapcalc", overwrite=ow,
-                expression='direction_cost =  prod_costs *0.05')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='administrative_cost =  total_revenues*0.07')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='interests = (prod_costs +  administrative_cost)*0.03/4')
-                
-    
     #management and administration costs
-    
+
     ###########################
-    # patch for solve the absence of some optional maps 
-                
-    map_prodcost=grass.find_file('prod_costs',element='cell')
-    map_admcost=grass.find_file('administrative_cost',element='cell')
-    map_dircost=grass.find_file('direction_cost',element='cell')
-    
-    listcost=''
-    
-    if map_admcost['fullname']!='':
-        listcost+=map_admcost['fullname']
-    if map_dircost['fullname']!='':
-        listcost+="+"+map_dircost['fullname']
-    if map_prodcost['fullname']!='':
-        listcost+="+"+map_prodcost['fullname']  
-        
+    # patch for solve the absence of some optional mapss
+
+    map_prodcost = grass.find_file(prod_costs, element='cell')
+    map_admcost = grass.find_file(administrative_cost, element='cell')
+    map_dircost = grass.find_file(direction_cost, element='cell')
+
+    listcost = ''
+
+    if map_admcost['fullname'] != '':
+        listcost += map_admcost['fullname']
+    if map_dircost['fullname'] != '':
+        listcost += "+" + map_dircost['fullname']
+    if map_prodcost['fullname'] != '':
+        listcost += "+" + map_prodcost['fullname']
+
     # end of patch
     ###########################
-    
-    
+    total_cost = "tmprgreen_%i_total_cost" % pid
     run_command("r.mapcalc", overwrite=ow,
-                expression='total_costs = %s' % listcost)
+                expression='%s = %s' % (total_cost, listcost))
+    return total_cost
 
 
-def net_revenues(opts, flgs,management,treatment):
+def net_revenues(opts, technical_bioenergy, tech_bioC,
+                 tech_bioHF, total_revenues, total_costs):
+    pid = os.getpid()
+    #TODO: I will split the outputs
+    # each maps is an output:
+    # mandatory maps: econ_bioenergy, net_revenues
+    # optional: econ_bioenergyHF, econ_bioenergyC
+    #         : total_revenues, total_cost
+    econ_bioenergy = opts['econ_bioenergy']
+    econ_bioenergyC = (opts['econ_bioenergyc'] if opts['econ_bioenergyc']
+                       else "tmprgreen_%i_econ_bioenergyc" % pid)
+    econ_bioenergyHF = (opts['econ_bioenergyhf'] if opts['econ_bioenergyhf']
+                        else "tmprgreen_%i_econ_bioenergyhf" % pid)
+    net_revenues = opts['net_revenues']
 
-
-
-    output = opts['output_basename']
-
-    econ_bioenergyHF=output+'_econ_bioenergyHF'
-    econ_bioenergyC=output+'_econ_bioenergyC'
-    econ_bioenergy=output+'_econ_bioenergy'
-
-    
     # Calculate net revenues and economic biomass
     run_command("r.mapcalc", overwrite=ow,
-                expression='net_revenues = total_revenues - total_costs')
+                expression='%s = %s - %s' % (net_revenues, total_revenues,
+                                             total_costs))
+    positive_net_revenues = "tmprgreen_%i_positive_net_revenues" % pid
     run_command("r.mapcalc", overwrite=ow,
-                expression='positive_net_revenues = if(net_revenues<=0,0,1)')
-    run_command("r.mapcalc", overwrite=ow,
-                expression='net_rev_pos = net_revenues*positive_net_revenues')
-    
-    #per evitare che vi siano pixel con revenues>0 sparsi si riclassifica la mappa
-    #in order to avoid pixel greater than 0 scattered the map must be reclassified
+                expression=('%s = if(%s<=0,0,1)' % (positive_net_revenues,
+                                                    net_revenues)))
+
+    #per evitare che vi siano pixel con revenues>0 sparsi
+    #si riclassifica la mappa
+    #in order to avoid pixel greater than 0 scattered
+    #the map must be reclassified
     #considering only the aree clustered greater than 1 hectares
-
-    
+    economic_surface = "tmprgreen_%i_economic_surface" % pid
     run_command("r.reclass.area", overwrite=ow,
-                input="positive_net_revenues",
-                output="economic_surface", value=1, mode="greater")
+                input=positive_net_revenues,
+                output=economic_surface, value=1, mode="greater")
 
-    ECONHF=econ_bioenergyHF+' = economic_surface*(if('+management+' == 1 && '+treatment+'==1 || '+management+' == 1 && '+treatment+'== 99999,yield_pix*'+opts['energy_tops_hf']+', if('+management+' == 1 && '+treatment+'==2, yield_pix*'+opts['energy_tops_hf']+'+yield_pix*'+opts['energy_cormometric_vol_hf']+')))'
-    ECONC=econ_bioenergyC+'= economic_surface*(if('+management+' == 2, yield_pix*'+opts['energy_tops_cop']+'))'
-    ECONTOT=econ_bioenergy+' = ('+econ_bioenergyHF+' + '+econ_bioenergyC+')'
+    expr = "{econ_bioenergy} = {economic_surface}*{tech_bio}"
+    r.mapcalc(expr.format(econ_bioenergy=econ_bioenergyHF,
+                          economic_surface=economic_surface,
+                          tech_bio=tech_bioHF
+                          ),
+              overwrite=ow)
+    r.mapcalc(expr.format(econ_bioenergy=econ_bioenergyC,
+                          economic_surface="economic_surface",
+                          tech_bio=tech_bioC
+                          ),
+              overwrite=ow)
+
+    econtot = ("%s = %s + %s" % (econ_bioenergy, econ_bioenergyC,
+                                 econ_bioenergyHF))
+    run_command("r.mapcalc", overwrite=ow, expression=econtot)
 
 
-
-    run_command("r.mapcalc", overwrite=ow, expression=ECONHF)
-
-    run_command("r.mapcalc", overwrite=ow, expression=ECONC)
-
-    run_command("r.mapcalc", overwrite=ow, expression=ECONTOT)
+def sel_columns(element):
+    if len(element) > 0:
+        return (element[:13] == 'forest_column')
+    return False
 
 
 def main(opts, flgs):
+    pid = os.getpid()
+    pat = "tmprgreen_%i_*" % pid
+    DEBUG = False
+    #FIXME: debug from flag
+    atexit.register(cleanup,
+                    pattern=pat,
+                    debug=DEBUG)
 
+    forest = opts['forest']
 
-    output = opts['output_basename']
-
-    forest=opts['forest']
-    boundaries=opts['boundaries']
-    yield_=opts['forest_column_yield']
-    management=opts['forest_column_management']
-    treatment=opts['forest_column_treatment']
-    yield_surface=opts['forest_column_yield_surface']
-    roughness=opts['forest_column_roughness']
-    forest_roads=opts['forest_roads']
-    main_roads=opts['main_roads']
-
-    rivers=opts['rivers']
-    lakes=opts['lakes']
-
-    tree_diam=opts['tree_diam']
-    tree_vol=opts['tree_vol']
-    soilp2_map=opts['soilp2_map']
-
-    fieldprice=opts['forest_column_price']
-    fieldcond=opts['conditions']
-
-
-    econ_bioenergyHF=output+'_econ_bioenergyHF'
-    econ_bioenergyC=output+'_econ_bioenergyC'
-    econ_bioenergy=output+'_econ_bioenergy'
-
-
+    forest_roads = opts['forest_roads']
+    main_roads = opts['main_roads']
 
     ######## start import and convert ########
 
-    run_command("g.region",vect=boundaries)
-    run_command("v.to.rast", input=forest,output="yield", use="attr", attrcolumn=yield_,overwrite=True)
-    run_command("v.to.rast", input=forest,output="yield_surface", use="attr", attrcolumn=yield_surface,overwrite=True)
-    run_command("v.to.rast", input=forest,output="treatment", use="attr", attrcolumn=treatment,overwrite=True)
-    run_command("v.to.rast", input=forest,output="management", use="attr", attrcolumn=management,overwrite=True)
+    for key in filter(sel_columns, opts.keys()):
+        try:
+            run_command("v.to.rast",
+                        input=forest,
+                        output=('tmprgreen_%i_%s' % (pid, key[14:])),
+                        use="attr",
+                        attrcolumn=opts[key], overwrite=True)
+            run_command("r.null", map=('tmprgreen_%i_%s' % (pid, key[14:])),
+                        null=0)
+        except Exception:
+            warning('no column %s selectd, values set to 0' % key)
+            run_command("r.mapcalc", overwrite=ow,
+                        expression=('%s=0' % 'tmprgreen_%i_%s'
+                                    % (pid, key[14:])))
 
-    run_command("v.to.rast", input=forest_roads,output="forest_roads", use="val", overwrite=True)
-    run_command("v.to.rast", input=main_roads,output="main_roads", use="val", overwrite=True)
-
-
-
-    run_command("r.null", map='yield',null=0)
-    run_command("r.null", map='yield_surface',null=0)
-    run_command("r.null", map='treatment',null=0)
-    run_command("r.null", map='management',null=0)
-
-
+    run_command("v.to.rast", input=forest_roads,
+                output=('tmprgreen_%i_forest_roads' % pid),
+                use="val", overwrite=True)
+    run_command("v.to.rast", input=main_roads,
+                output=('tmprgreen_%i_main_roads' % pid),
+                use="val", overwrite=True)
+# FIXME: yiel surface can be computed by the code, plan surface or real?
+# FIXME: this map can be create here
+    yield_pix = 'tmprgreen_%i_yield_pix' % pid
+    expr = ("{pix} = {yield_}/{yield_surface}*"
+            "((ewres()*nsres())/10000)")
+    r.mapcalc(expr.format(pix=yield_pix,
+                          yield_=('tmprgreen_%i_yield' % pid),
+                          yield_surface='tmprgreen_%i_yield_surface' % pid),
+              overwrite=True)
+    # TODO: add r.null
     ######## end import and convert ########
+    dic = {'tree_diam': 35, 'tree_vol': 3, 'soilp2_map': 0.7}
+    for key, val in dic.items():
+        if not(opts[key]):
+            warning("Not %s map, value set to %f" % (key, val))
+            output = 'tmprgreen_%i_%s' % (pid, key)
+            run_command("r.mapcalc", overwrite=ow,
+                        expression=('%s=%f' % (output, val)))
+    # create combination maps to avoid if construction
+    m1t1, m1t2, m1, m2, not2 = conmbination(management=
+                                            ('tmprgreen_%i_management' % pid),
+                                            treatment=('tmprgreen_%i_treatment'
+                                                       % pid))
 
+    slope_computation(opts)
 
-    ######## temp patch to link map and fields ######
-
-    management="management"
-    treatment="treatment"
-    yield_surface="yield_surface"
-    yield_="yield"
-    forest_roads="forest_roads"
-    main_roads="main_roads"
-
-    ######## end temp patch to link map and fields ######
-
-    if roughness=='':
-        run_command("r.mapcalc",overwrite=ow,expression='roughness=0')
-        roughness='roughness'
+    if (opts['technical_bioenergy'] and opts['tech_bioc']
+        and opts['tech_biohf']):
+            technical_bioenergy = opts['technical_bioenergy']
+            tech_bioC = opts['tech_bioc']
+            tech_bioHF = opts['tech_biohf']
+            technical_surface = 'tmprgreen_%i_technical_surface' % pid
+            expr = "{technical_surface} = if({technical_bioenergy}, 1, 0)"
+            r.mapcalc(expr.format(technical_surface=technical_surface,
+                                  technical_bioenergy=technical_bioenergy
+                                  ),
+                                  overwrite=ow)
+            
     else:
-        run_command("v.to.rast", input=forest,output="roughness", use="attr", attrcolumn=roughness,overwrite=True)
-        run_command("r.null", map='roughness',null=0)
-        roughness='roughness'
+        out = yield_pix_process(opts=opts, vector_forest=forest,
+                                yield_=('tmprgreen_%i_yield' % pid),
+                                yield_surface=('tmprgreen_%i_yield_surface' % pid),
+                                rivers=opts['rivers'],
+                                lakes=opts['lakes'],
+                                forest_roads=('tmprgreen_%i_forest_roads' % pid),
+                                m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2,
+                                roughness=('tmprgreen_%i_roughness' % pid))
+        technical_bioenergy, tech_bioC, tech_bioHF = out
 
-    if tree_diam=='':
-        run_command("r.mapcalc",overwrite=ow,expression='tree_diam=99999')
-        tree_diam='tree_diam'
+    total_revenues = revenues(opts=opts,
+                              yield_surface=('tmprgreen_%i_yield_surface'
+                                             % pid),
+                              m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2,
+                              forest=forest,
+                              yield_=('tmprgreen_%i_yield' % pid),
+                              technical_bioenergy=technical_bioenergy)
 
-    if tree_vol=='':
-        run_command("r.mapcalc",overwrite=ow,expression='tree_vol=9.999')
-        tree_diam='tree_vol'
+    dic1, dic2 = productivity(opts=opts,
+                              m1t1=m1t1, m1t2=m1t2, m1=m1, m2=m2, not2=not2,
+                              soilp2_map=('tmprgreen_%i_soilp2_map' % pid),
+                              tree_diam=('tmprgreen_%i_tree_diam' % pid),
+                              tree_vol=('tmprgreen_%i_tree_vol' % pid),
+                              forest_roads=('tmprgreen_%i_forest_roads' % pid),
+                              main_roads=('tmprgreen_%i_main_roads' % pid))
+    total_costs = costs(opts, total_revenues=total_revenues,
+                        dic1=dic1, dic2=dic2, yield_pix="yield_pix1")
+    net_revenues(opts=opts,
+                 total_revenues=total_revenues,
+                 technical_bioenergy=technical_bioenergy,
+                 tech_bioC=tech_bioC, tech_bioHF=tech_bioHF,
+                 total_costs=total_costs)
 
-    if soilp2_map=='':
-        run_command("r.mapcalc",overwrite=ow,expression='soil_map=99999')
-        soilp2_map='soil_map'
+#TODO: create a function based on r.univar or delete it
+#    with RasterRow(econ_bioenergy) as pT:
+#        T = np.array(pT)
+#
+#    print "Resulted maps: "+output+"_econ_bioenergyHF, "+output+"_econ_bioenergyC, "+output+"_econ_bioenergy"
+#    print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
-
-    yield_pix_process(opts,flgs,forest,yield_,yield_surface,rivers,lakes,forest_roads,management,treatment,roughness)
-    
-
-    revenues(opts, flgs,yield_surface,management,treatment,forest,yield_)
-    
-    productivity(opts, flgs,management,treatment,soilp2_map,tree_diam,tree_vol,forest_roads,main_roads)
-    costs(opts, flgs)
-    net_revenues(opts, flgs,management,treatment)
-
-    if flgs['r'] == True:
-         remove_map(opts, flgs)
-
-
-    with RasterRow(econ_bioenergy) as pT:
-        T = np.array(pT)
-
-    print "Resulted maps: "+output+"_econ_bioenergyHF, "+output+"_econ_bioenergyC, "+output+"_econ_bioenergy"
-    print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
-
-
-    
 
 if __name__ == "__main__":
     main(*parser())
