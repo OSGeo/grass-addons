@@ -2,10 +2,10 @@ MODULE_TOPDIR = ../..
 
 PGM=r.green
 
-SUBDIRS = r.green.biomassfor \
+SUBDIRS = libgreen \
+	r.green.biomassfor \
 	r.green.hydro \
-	r.green.install \
-	libgreen
+	r.green.install
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
