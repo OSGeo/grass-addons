@@ -126,6 +126,8 @@ def main():
     # open new 3D vector map
     Vect_open_new(map_info, outmap, True)
 
+    Vect_hist_command(outmap)
+
     # Create and initialize structs to store points/lines and category numbers
     Points = Vect_new_line_struct()
     Cats = Vect_new_cats_struct()
