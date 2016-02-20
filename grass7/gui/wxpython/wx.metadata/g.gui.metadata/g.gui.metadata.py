@@ -40,11 +40,11 @@ from core.debug import Debug
 
 set_path(modulename='wx.metadata', dirname='mdlib')
 
-import mdgrass
-import mdutil
-from mdpdffactory import PdfCreator
-from cswlib import CSWConnectionPanel
-from mdeditorfactory import MdMainEditor
+from mdlib import mdgrass
+from mdlib import mdutil
+from mdlib.mdpdffactory import PdfCreator
+from mdlib.cswlib import CSWConnectionPanel
+from mdlib.mdeditorfactory import MdMainEditor
 
 from lxml import etree
 import wx

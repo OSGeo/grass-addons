@@ -117,14 +117,14 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 import sys
 import os
 import ConfigParser
+import getopt
 
 from grass.script import core as grass
 from grass.pygrass.utils import set_path
 
 set_path(modulename='wx.metadata', dirname='mdlib')
 
-import getopt
-from cswutil import *
+from mdlib.cswutil import *
 
 try:
     from pycsw.core import admin, config

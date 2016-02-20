@@ -19,7 +19,7 @@ import wx
 from grass.script.setup import set_gui_path
 set_gui_path()
 
-from cswlib import CSWBrowserPanel, CSWConnectionPanel
+from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
 
 class CswBrowserMainDialog(wx.Frame):
     def __init__(self,giface=None):

@@ -44,7 +44,7 @@ set_path(modulename='wx.metadata', dirname='mdlib')
 
 def main():
     # load metadata library
-    from mdgrass import GrassMD
+    from mdlib.mdgrass import GrassMD
 
     if not options['output']:
         destination = None
