@@ -24,6 +24,7 @@ SUBDIRS = \
 	v.in.gps \
 	v.in.natura2000 \
 	v.in.ply \
+	v.in.osm \
 	v.in.redlist \
 	v.in.redwg \
 	v.in.wfs2 \

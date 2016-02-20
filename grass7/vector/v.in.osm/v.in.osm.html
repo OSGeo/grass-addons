@@ -1,0 +1,26 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.osm</em> imports OpenStreetMap data.
+
+<h2>EXAMPLES</h2>
+
+
+<div class="code"><pre>
+v.in.osm input="PG:host=localhost dbname=gis user=ostepok" table=planet_osm_line output=roads type=point,line where="highway is not null" 
+</pre></div>
+
+<h2>REQUIREMENTS</h2>
+PostgreSQL, PostGIS, osm2pgsql
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.in.ogr.html">v.in.ogr</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Stepan Turek
+
+<p>
+<i>Last changed: $Date$</i>
