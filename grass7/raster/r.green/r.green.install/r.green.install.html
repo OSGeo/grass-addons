@@ -8,11 +8,13 @@
 The module installs the missing python librariers for different operating systems and provide a general menu in the grass GUI.
 
 <h3>Microsoft Windows</h3><br><br> 
-You sould have installed <a href="https://grass.osgeo.org/download/software/ms-windows/">GRASS</a> with admin rights, stand-alone installer or OSGeo4W package, in directory with full controll permissions, to be able to intall the r.green modules.
+You should install <a href="https://grass.osgeo.org/download/software/ms-windows/">GRASS</a> with admin rights, stand-alone installer or OSGeo4W package, in directory with full controll permissions, to be able to intall the r.green modules.
 
+<center>
 <img src="r_green_install_permissions.png" alt="Microsoft Windows Permissions"><br>
-
-After the installation, please download the following mandatory libraries according with your download (32bit or 64bit) in the installation path:
+Microsoft Windows Permissions
+</center><br><br>
+The r.green modules are based on python libraries. The module r.green.install -i is able to download and install them. However some troubles can raise due to new links or versions. In this case, you can manually download the following libraries in your GRASS installation directory from  <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">http://www.lfd.uci.edu/~gohlke/pythonlibs/</a> according with your GRASS download (32bit or 64bit):
 <table border="1">
   <tr>
     <th>32bit</th>
@@ -20,35 +22,41 @@ After the installation, please download the following mandatory libraries accord
   </tr>
   <tr>
     <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/numpy-1.11.0b3+mkl-cp27-cp27m-win32.whl">numpy-1.11.0b3+mkl-cp27-cp27m-win32.whl</a>
+    numpy-1.11.0b3+mkl-cp27-cp27m-win32.whl
     </td>		
     <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/numpy-1.11.0b3+mkl-cp27-cp27m-win_amd64.whl">numpy-1.11.0b3+mkl-cp27-cp27m-win_amd64.whl</a>
+    numpy-1.11.0b3+mkl-cp27-cp27m-win_amd64.whl
     </td>	
   </tr>
   <tr>
     <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/scipy-0.17.0-cp27-none-win_amd64.whl">scipy-0.17.0-cp27-none-win_amd64.whl</a>
-    </td>		
-    <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/scipy-0.17.0-cp27-none-win32.whl">scipy-0.17.0-cp27-none-win32.whl</a>
+    scipy-0.17.0-cp27-none-win32.whl
     </td>
+    <td>
+    scipy-0.17.0-cp27-none-win_amd64.whl
+    </td>		
   </tr>
   <tr>
     <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/numexpr-2.5-cp27-cp27m-win32.whl">numexpr-2.5-cp27-cp27m-win32.whl</a>
+    numexpr-2.5-cp27-cp27m-win32.whl
     </td>		
     <td>
-    <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/numexpr-2.5-cp27-cp27m-win_amd64.whl">numexpr-2.5-cp27-cp27m-win_amd64.whl</a>
+    numexpr-2.5-cp27-cp27m-win_amd64.whl
     </td>	
   </tr>
 </table>
 After the downloading, in the grass Command Console use the following code to install libraries and the r.green menu:
 <div class="code"><pre>
-r.green.istall -ix
+r.green.istall -i
 </pre></div><br>
 
 Check the list of suggested libraries with the previous table. If they agree, you can proceede with the installation.
+
+If you install the Energy menu, use the following command:
+<div class="code"><pre>
+r.green.istall -x
+</pre></div><br>
+
 Close GRASS and restart the programm to have in the the menu the session energy with all the r.green modules.
 
 
