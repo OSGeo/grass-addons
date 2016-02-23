@@ -167,6 +167,26 @@ def get_coo(raster, i, j):
     return p_x, p_y
 
 
+def sel_columns(element, vector_column):
+    """Return all the element in the opts that are column of the
+    vector. In the GUI the columns start with namevector_column prefix.
+
+    Parameters
+    ----------
+
+    elemet: element to be selected
+    vector_column: prefix with namevector_column
+
+    Returns
+    -------
+
+    False if the element is not present or True if present
+    """
+    if len(element) > 0:
+        return (element[:len(vector_column)] == vector_column)
+    return False
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
