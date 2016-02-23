@@ -8,7 +8,8 @@ SUBDIRS = r.green.biomassfor.financial \
           r.green.biomassfor.technical \
           r.green.biomassfor.legal \
           r.green.biomassfor.impact \
-          r.green.biomassfor.co2
+          r.green.biomassfor.co2 \
+          libforest
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
