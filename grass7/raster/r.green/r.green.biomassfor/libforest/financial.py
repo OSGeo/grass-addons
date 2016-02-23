@@ -13,7 +13,7 @@
 #############################################################################
 #
 import os
-import grass.script.find_file as find_file
+from grass.script.core import find_file
 from grass.script.core import run_command
 from grass.pygrass.modules.shortcuts import raster as r
 
