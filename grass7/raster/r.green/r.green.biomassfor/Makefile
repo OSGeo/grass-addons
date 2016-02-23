@@ -2,15 +2,15 @@ MODULE_TOPDIR = ../../..
 
 PGM=r.green.biomassfor
 
-SUBDIRS = r.green.biomassfor.financial \
+SUBDIRS = libforest\
+	  r.green.biomassfor.financial \
           r.green.biomassfor.theoretical \
           r.green.biomassfor.recommended \
           r.green.biomassfor.technical \
           r.green.biomassfor.legal \
           r.green.biomassfor.impact \
-          r.green.biomassfor.co2 \
-          libforest
-
+          r.green.biomassfor.co2
+          
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default: parsubdirs htmldir

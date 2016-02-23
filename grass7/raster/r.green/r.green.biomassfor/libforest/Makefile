@@ -3,10 +3,10 @@ MODULE_TOPDIR = ../../../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-MODULES = financial harvesting __init__
+MODULES = harvesting financial __init__
 
 PGM = r.green
-LIBDIR = libhydro
+LIBDIR = libforest
 ETCDIR = $(ETC)/$(PGM)/$(LIBDIR)
 
 PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))

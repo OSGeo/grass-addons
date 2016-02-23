@@ -364,7 +364,7 @@ try:
     from libforest.financial import revenues, productivity, costs, net_revenues
     from libforest.harvesting import combination, slope_computation, yield_pix_process
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    warning('libgreen and libforest not in the python path!')
 
 
 def main(opts, flgs):
@@ -423,10 +423,9 @@ def main(opts, flgs):
             run_command("r.mapcalc", overwrite=True,
                         expression=('%s=%f' % (output, val)))
     # create combination maps to avoid if construction
-    m1t1, m1t2, m1, m2, not2 = combination(management=
-                                           ('tmprgreen_%i_management' % pid),
-                                           treatment=('tmprgreen_%i_treatment'
-                                                      % pid))
+    import ipdb; ipdb.set_trace()
+    m1t1, m1t2, m1, m2, not2 = combination('tmprgreen_%i_management' % pid,
+                                           'tmprgreen_%i_treatment' % pid)
 
     slope_computation(opts['elevation'])
 
