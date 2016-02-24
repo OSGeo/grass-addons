@@ -32,9 +32,11 @@
 from __future__ import print_function
 import os
 from os.path import join
+from urllib2 import build_opener
 import sys
 import imp
-import tempfile
+from tempfile import gettempdir
+import time
 import subprocess
 import shutil
 
@@ -59,6 +61,8 @@ CHECK_LIBRARIES = ['scipy', 'numexpr']
 CHECK_RGREENLIB = [('libgreen', '..'),
                    ('libhydro', os.path.join('..', 'r.green.hydro'))]
 
+UAGENT = ('Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) '
+          'Gecko/20100101 Firefox/44.0')
 
 PATHSYSXML = []
 PATHLOCXML = []
@@ -159,9 +163,23 @@ def value_not_none(method):
     return decorator
 
 
+def get_vals(string):
+    """Extract values to decript url from a string
+
+    >>> string = ('javascript:dl([105,121,76,112,51,111,45,50,108,99,104,'
+    ...           '101,116,46,122,110,87,47,114,55,73,52,119,67,48,69,72]'
+    ...           ', "BD@C>2IJAG1<:5?6H=74=E6937C6?5?;6F0?47=F:8")')
+    >>> get_vals(string)
+    ([105,121,76,112,51,111,45,50,108,99,104,101,116,46,122,110,87,47,114,55,73,52,119,67,48,69,72],
+     'BD@C>2IJAG1<:5?6H=74=E6937C6?5?;6F0?47=F:8')
+    """
+    nums, chars = string[string.find('(')+1:string.find(')')].split(', ')
+    return [int(n) for n in nums[1:-1].split(',')], chars.strip('"')
+
+
 class PkgHTMLParser(HTMLParser):
     """Extract all the <li> ... </li> elements from a webpage"""
-    tag = 'li'
+    tag = 'a'
     values = []
     value = None
     packages = {}
@@ -176,10 +194,16 @@ class PkgHTMLParser(HTMLParser):
             if self.value is not None and len(self.value['data']) > 1:
                 pname = ''.join(self.value['data'])
                 pkey = pname.split('-')[0]
-                plist = self.packages.get(pkey, [])
-                plist.append(pname)
-                self.values.append(self.value)
-                self.packages[pkey] = plist
+                pdict = self.packages.get(pkey, {})
+
+                dval = dict(self.value['attrs'])
+                # save only if onclick is in the attrs
+                if 'onclick' in dval:
+                    nums, chars = get_vals(dval['onclick'])
+                    self.value['url'] = get_decripted_url(nums, chars)
+                    pdict[pname] = self.value['url']
+                    self.values.append(self.value)
+                    self.packages[pkey] = pdict
             self.value = None
 
     @value_not_none
@@ -217,6 +241,145 @@ def get_settings_path():
             join(os.getenv('HOME'), '.grass%d' % 7))
 
 
+def download(url, filepath, overwrite=False):
+    """Download a pkg from URLWHL"""
+    if os.path.exists(filepath):
+        print('The file: %s already exist!' % filepath)
+        if overwrite:
+            print('Removing previous downloaded version')
+            os.remove(filepath)
+        else:
+            return filepath
+    print('Downloading from:', url)
+    print('Saving to:', filepath)
+    opener = build_opener()
+    opener.addheaders = [('User-agent', UAGENT)]
+    response = opener.open(url)
+    with open(filepath, mode='wb') as fpath:
+        fpath.write(response.read())
+    print('Done!')
+    return filepath
+
+
+def get_decripted_url(nums, chars):
+    """Return the decripted url
+
+    Example
+    --------
+
+    >>> nums = [50, 99, 108, 117, 101, 106, 51, 109, 45, 121, 103,
+    ...         113, 114, 47, 110, 56, 116, 55, 115, 46, 112, 111,
+    ...         105, 119, 104]
+    >>> chars = ("@3:9&lt;H;E=BF7D245BE&#62;86C?C081D"
+    ...          "0A81D0A78GF&#62;60CGH2")
+    >>> get_decripted_url(nums, chars)
+    "tugyrhqo/simplejson-3.8.2-cp27-cp27m-win32.whl"
+
+    Javascript code
+    ----------------
+
+    function dl(ml,mi){
+        mi=mi.replace('&lt;','<');
+        mi=mi.replace('&#62;','>');
+        mi=mi.replace('&#38;','&')
+    setTimeout(function(){dl1(ml,mi)},1500);
+    }
+
+    function dl1(ml,mi){
+        var ot="";
+        for(var j=0;j<mi.length;j++)
+            ot+=String.fromCharCode(ml[mi.charCodeAt(j)-48]);
+        location.href=ot;
+    }
+
+    javascript:dl([99,113,118,117,116,52,51,121,46,103,114,
+                   119,110,97,105,45,47,101,108,49,112,109,111,104,50],
+                  "4397:G1F@D7E2D=H?H858C?0D65?&lt;F&lt;A?;&#62;&lt;6H8;GB")
+
+    """
+    def transform(chars):
+        chars = chars.replace('&lt;', '<')
+        chars = chars.replace('&#62;', '>')
+        return chars.replace('&#38;', '&')
+    return ''.join([chr(nums[ord(c)-48]) for c in transform(chars)])
+
+
+def get_url(lib, _parser=[None, ]):
+    """Return the complete url to download the wheel file for windows"""
+
+    urlwin = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/'
+
+    def match():
+        """Match platform with available wheel files on the web page"""
+        pkgs = sorted(parser.packages[lib].keys())
+        cppy = 'cp%d%d' % (sys.version_info.major, sys.version_info.minor)
+        pltf = ('win_amd64.whl'
+                if platform.architecture()[0] == '64bit' else 'win32.whl')
+        result = None
+        for pki in pkgs[::-1]:
+            pkk = Pkg(*pki.split('-'))
+            if pkk.py == cppy and pkk.platform == pltf:
+                result = pki
+                break
+        if result is None:
+            print('=> Library not found for your system', cppy, pltf[:-4])
+            sys.exit(1)
+        return result, parser.packages[lib][result]
+
+    # check the cache
+    if _parser[0] is None:
+        # read and parse the HTML page
+        opener = build_opener()
+        opener.addheaders = [('User-agent', UAGENT)]
+        response = opener.open(urlwin)
+        parser = PkgHTMLParser()
+        parser.feed(response.read())
+        # save the instance to the cache
+        _parser[0] = parser
+    else:
+        # load the instance from the cache
+        parser = _parser[0]
+
+    if lib not in parser.packages:
+        print(lib, 'not in the package list:')
+        from pprint import pprint
+        pprint(sorted(parser.packages))
+        sys.exit(1)
+
+    pkg, pkgurl = match()
+    return (urlwin + pkgurl, pkg)
+
+
+def get_pip_win_env():
+    """Add pip path to the windows environmental variable"""
+    os_pth = os.__file__.split(os.path.sep)
+    script_pth = os.path.join(*(os_pth[:-2] + ['Scripts', ]))
+    if not os.path.exists(script_pth):
+        msg = "The directory containing python scripts does not exist!"
+        raise Exception(msg)
+
+    env = os.environ.copy()
+    path = env['PATH'].split(';')
+    if script_pth not in path:
+        path.append(script_pth)
+        env['PATH'] = ';'.join(path)
+
+    return env
+
+
+def pip_install(whl, *pipargs):
+    """Install a whl using pip"""
+    cmd = ['pip', 'install', whl]
+    cmd.extend(pipargs)
+    popen_pip = subprocess.Popen(cmd, shell=True, env=get_pip_win_env())
+    if popen_pip.wait():
+        print(('Something went wrong during the installation, '
+               'of {whl} please fix this '
+               'manually. Running: ').format(whl=whl))
+        print(' '.join(cmd))
+        sys.exit(1)
+
+
 def check_install_pip(install=False):
     """Check if pip is available"""
     # run pip and check return code
@@ -227,11 +390,8 @@ def check_install_pip(install=False):
         if install:
             print('Downloading pip')
             # download get_pip.py
-            response = urllib2.urlopen('https://bootstrap.pypa.io/get-pip.py')
-            dst = os.path.join(tempfile.gettempdir(), 'get_pip.py')
-            with open(dst, mode='w') as getpip:
-                getpip.write(response.read())
-
+            dst = download('https://bootstrap.pypa.io/get-pip.py',
+                           os.path.join(gettempdir(), 'get_pip.py'))
             # install pip
             print('Installing pip')
             popen_py = subprocess.Popen([sys.executable, dst])
@@ -242,105 +402,26 @@ def check_install_pip(install=False):
         print('pip is available on the sys path')
 
 
+def win_install(libs):
+    """Download and install missing libraries under windows"""
+    dlibs = {lib: get_url(lib) for lib in libs}
+    msg = "- {lib}: {pkg}\n  from: {urlwhl}"
+    print("Downloading:")
+    for lib in libs:
+        print(msg.format(lib=lib, urlwhl=dlibs[lib][0], pkg=dlibs[lib][1]))
+
+    for lib in libs:
+        urlwhl, pkg = dlibs[lib]
+        # download wheel file
+        whlpath = download(urlwhl, os.path.join(gettempdir(), pkg))
+        pip_install(whlpath, '--user', '--upgrade')
+
+    print("\n\nMissiging libreries %s installed!\n" % ', '.join(libs))
+
+
 def fix_missing_libraries(install=False):
     """Check if the external libraries used by r.green are
     available in the current path."""
-
-    urlwin = 'http://www.lfd.uci.edu/~gohlke/pythonlibs'
-    urlwhl = 'http://www.lfd.uci.edu/~gohlke/pythonlibs/bofhrmxk/'
-
-    def get_url(lib, _parser=[None, ]):
-        """Return the complete url to download the wheel file for windows"""
-
-        def match():
-            """Match platform with available wheel files on the web page"""
-            pkgs = parser.packages[lib]
-            cppy = 'cp%d%d' % (sys.version_info.major, sys.version_info.minor)
-            pltf = ('win_amd64.whl'
-                    if platform.architecture()[0] == '64bit' else 'win32.whl')
-            result = None
-            for pki in pkgs[::-1]:
-                pkk = Pkg(*pki.split('-'))
-                if pkk.py == cppy and pkk.platform == pltf:
-                    result = pki
-                    break
-            if result is None:
-                print('=> Library not found for your system', cppy, pltf[:-4])
-                sys.exit(1)
-            return result
-
-        # check the cache
-        if _parser[0] is None:
-            # read and parse the HTML page
-            response = urllib2.urlopen(urlwin)
-            parser = PkgHTMLParser()
-            parser.feed(response.read())
-            # save the instance to the cache
-            _parser[0] = parser
-        else:
-            # load the instance from the cache
-            parser = _parser[0]
-
-        if lib not in parser.packages:
-            print(lib, 'not in the package list:')
-            from pprint import pprint
-            pprint(sorted(parser.packages))
-            sys.exit(1)
-
-        pkg = match()
-        return (urlwhl + pkg, pkg)
-
-    def win_install(libs):
-        """Download and install missing libraries under windows"""
-        def get_user_input():
-            """Ask what to do to the user"""
-            key = raw_input("press ENTER to continue or q to exit.\n")
-            if key in ('', 'q'):
-                return key
-            else:
-                print("{key} is not supported!\n".format(key=key))
-                return get_user_input()
-
-        def pip_install(whl, *pipargs):
-            """Install a whl using pip"""
-            cmd = ['pip', 'install', whl]
-            cmd.extend(pipargs)
-            popen_pip = subprocess.Popen(cmd, shell=True)
-            if popen_pip.wait():
-                print(('Something went wrong during the installation, '
-                       'of {whl} please fix this '
-                       'manually. Running: ').format(whl=whl))
-                print(' '.join(cmd))
-                sys.exit(1)
-
-        # dst = os.path.join(tempfile.gettempdir(), pkg)
-        dst = os.environ['GISBASE']
-        print("Please download:")
-        dlibs = {lib: get_url(lib) for lib in libs}
-
-        get_url('numpy')
-        msg = """- {lib}: {pkg}
-  from: {urlwhl}"""
-        for lib in dlibs:
-            print(msg.format(lib=lib, urlwhl=dlibs[lib][1], pkg=dlibs[lib][0]))
-
-        print(('\nDownload the aforementioned files with your browser'
-               ' and save them in the following directory:\n  '
-               '{dst}\n').format(dst=dst))
-
-        print("\nOnce you have done ", end='')
-        key = get_user_input()
-
-        if key == 'q':
-            sys.exit()
-
-        for lib in libs:
-            whlpath = join(dst, dlibs[lib][1])
-            if not os.path.exists(whlpath):
-                print("Wheel file: {whl} not found! Exit.".format(whl=whlpath))
-                sys.exit(1)
-            pip_install(whlpath, '--user', '--upgrade')
-
     to_be_installed = []
     for lib in CHECK_LIBRARIES:
         try:
@@ -357,7 +438,7 @@ def fix_missing_libraries(install=False):
         if install:
             if 'win' in sys.platform:
                 # download precompiled wheel and install them
-                print('Download the wheel file manually for your platform from:')
+                print('Download the wheel file for your platform from:')
                 # add numpy+mkl
                 to_be_installed.insert(0, 'numpy')
                 win_install(to_be_installed)
