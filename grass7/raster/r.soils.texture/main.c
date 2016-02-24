@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 
     /* Allocate output buffer, use input Sand map data_type */
     nrows = Rast_window_rows();
-    ncols = Rast_window_rows();
+    ncols = Rast_window_cols();
     outrast = Rast_allocate_buf(data_type_Sand);
     data_type = data_type_Sand;
 
@@ -194,39 +194,38 @@ int main(int argc, char *argv[])
 
     /* for each row */
     for (row = 0; row < nrows; row++) {
-	if (verbose)
-	    G_percent(row, nrows, 2);
+		G_percent(row, nrows, 2);
 
-	/* read input Sand map */
-	Rast_get_row(infdSand, inrastSand, row, data_type_Sand);
-	/* read input Sand map */
-	Rast_get_row(infdClay, inrastClay, row, data_type_Sand);
+		/* read input Sand map */
+		Rast_get_row(infdSand, inrastSand, row, data_type_Sand);
+		/* read input Sand map */
+		Rast_get_row(infdClay, inrastClay, row, data_type_Sand);
 
 
 	/* process the data */
-	for (col = 0; col < ncols; col++) {
-	    /* use different function for each data type */
-	    switch (data_type) {
-	    case CELL_TYPE:
-		c_sand = ((CELL *) inrastSand)[col];
-		c_clay = ((CELL *) inrastClay)[col];
-		c = c_calc(c_sand, c_clay, punt_lista, &polygons);	/* calculate */
-		((CELL *) outrast)[col] = c;
-		break;
-	    case FCELL_TYPE:
-		f_sand = ((FCELL *) inrastSand)[col];
-		f_clay = ((FCELL *) inrastClay)[col];
-		f = f_calc(f_sand, f_clay, punt_lista, &polygons);	/* calculate */
-		((FCELL *) outrast)[col] = f;
-		break;
-	    case DCELL_TYPE:
-		d_sand = ((DCELL *) inrastSand)[col];
-		d_clay = ((DCELL *) inrastClay)[col];
-		d = d_calc(d_sand, d_clay, punt_lista, &polygons);	/* calculate */
-		((DCELL *) outrast)[col] = d;
-		break;
-	    }
-	}
+		for (col = 0; col < ncols; col++) {
+			/* use different function for each data type */
+			switch (data_type) {
+			case CELL_TYPE:
+			c_sand = ((CELL *) inrastSand)[col];
+			c_clay = ((CELL *) inrastClay)[col];
+			c = c_calc(c_sand, c_clay, punt_lista, &polygons);	/* calculate */
+			((CELL *) outrast)[col] = c;
+			break;
+			case FCELL_TYPE:
+			f_sand = ((FCELL *) inrastSand)[col];
+			f_clay = ((FCELL *) inrastClay)[col];
+			f = f_calc(f_sand, f_clay, punt_lista, &polygons);	/* calculate */
+			((FCELL *) outrast)[col] = f;
+			break;
+			case DCELL_TYPE:
+			d_sand = ((DCELL *) inrastSand)[col];
+			d_clay = ((DCELL *) inrastClay)[col];
+			d = d_calc(d_sand, d_clay, punt_lista, &polygons);	/* calculate */
+			((DCELL *) outrast)[col] = d;
+			break;
+			}
+		}
 
 	/* write raster row to output raster file */
 	Rast_put_row(outfd, outrast, data_type);
@@ -341,11 +340,9 @@ int DefineTexture(int numVert, float *xSand, float *yClay, float SandVal,
     for (i = 0, j = numVert - 1; i < numVert; j = i++) {
 	if ((((yClay[i] <= ClayVal) && (ClayVal < yClay[j])) ||
 	     ((yClay[j] <= ClayVal) && (ClayVal < yClay[i]))) &&
-	    (SandVal <
-	     (xSand[j] - xSand[i]) * (ClayVal - yClay[i]) / (yClay[j] -
-							     yClay[i]) +
-	     xSand[i]))
-	    textureVER = !textureVER;
+	    (SandVal <= (xSand[j] - xSand[i]) * (ClayVal - yClay[i]) / (yClay[j] -
+		yClay[i]) + xSand[i]))
+	textureVER = !textureVER;
     }
 
     if (textureVER == 1) {
@@ -355,7 +352,6 @@ int DefineTexture(int numVert, float *xSand, float *yClay, float SandVal,
 	textureVER = 0;
     }
     return textureVER;
-
 
 }
 
@@ -406,3 +402,4 @@ void reclassTexture(char *SchemeName, char *result)
     fclose(fp_dat);
     /*return (0); */
 }
+
