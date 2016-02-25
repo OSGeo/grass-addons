@@ -160,7 +160,7 @@
 #%option
 #% key: memory
 #% type: integer
-#% description: Total memory to allocate (will be divided by processes)
+#% description: Total memory (in MB) to allocate (will be divided by processes)
 #% required: yes
 #% answer: 300
 #%end
