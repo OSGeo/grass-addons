@@ -15,10 +15,18 @@
 #
 #############################################################################
 # References:
-# TODO
-#  
-# 
+# G. M. Espindola , G. Camara , I. A. Reis , L. S. Bins , A. M. Monteiroi
+# (2006),
+#Parameter selection for region-growing image segmentation algorithms using
+#spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
+#14, pp. 3035-3040, http://dx.doi.org/10.1080%2f01431160600617194
 #
+#B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
+#(2015),
+#Image Segmentation Parameter Optimization Considering Within- and
+#Between-Segment Heterogeneity at Multiple Scale Levels: Test Case for Mapping
+#Residential Areas Using Landsat Imagery, ISPRS International Journal of
+#Geo-Information, 4(4), pp. 2292-2305, http://dx.doi.org/10.3390/ijgi4042292
 #############################################################################
 
 #%Module
@@ -190,26 +198,28 @@ import os
 import atexit
 from multiprocessing import Process, Queue, current_process
 
+# check requirements
+def check_progs():
+   found_missing = False
+   for prog in ['r.neighborhoodmatrix']:
+       if not gscript.find_program(prog, '--help'):
+
+           found_missing = True
+           gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+   if found_missing:
+       gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+
+
 def cleanup():
     """ Delete temporary maps """
 
     if not keep:
-        gscript.run_command('g.remove',
-                            flags='f',
-                            type='raster',
-                            pat=temp_segment_map+"*",
-                            quiet=True)
-    gscript.run_command('g.remove',
-                        flags='f',
-                        type='raster',
-                        name=temp_variance_map,
-                        quiet=True)
-    if gscript.find_file(temp_vector_map, element='vector')['name']:
-        gscript.run_command('g.remove',
-                            flags='f',
-                            type='vector',
-                            name=temp_vector_map,
-                            quiet=True)
+        for mapname in maplist:
+            gscript.run_command('g.remove',
+                                flags='f',
+                                type='raster',
+                                pat=mapname,
+                                quiet=True)
 
 def drange(start, stop, step):
     """ xrange for floats """
@@ -219,91 +229,122 @@ def drange(start, stop, step):
         yield r
         r += step
 
-def hier_worker(region, thresholds, minsize_queue, done_queue):
+def hier_worker(parms, thresholds, minsize_queue, done_queue):
     """ Launch parallel processes for hierarchical segmentation """
 
     try:
         for minsize in iter(minsize_queue.get, 'STOP'):
-            hierarchical_seg(region, thresholds, minsize)
-            done_queue.put("%s_%d ok" % (region, minsize))
+            map_list = hierarchical_seg(parms, thresholds, minsize)
+            done_queue.put(map_list)
     except:
-        done_queue.put("%s: %s_%d failed" % (current_process().name, region,
-                                             minsize))
+        done_queue.put(["%s: %s_%d failed" % (current_process().name,
+                                             parms['region'],
+                                             minsize)])
 
     return True
 
-def nonhier_worker(region, parameter_queue, done_queue):
+def nonhier_worker(parms, parameter_queue, done_queue):
     """ Launch parallel processes for non-hierarchical segmentation """
 
     try:
         for threshold, minsize in iter(parameter_queue.get, 'STOP'):
-            non_hierarchical_seg(region, threshold, minsize)
-            done_queue.put("%s_%f_%d ok" % (region, threshold, minsize))
+            mapname = non_hierarchical_seg(parms, threshold, minsize)
+            done_queue.put([mapname])
     except:
-        done_queue.put("%s: %s_%f_%d failed" % (current_process().name, region,
-                                                threshold, minsize))
+        done_queue.put(["%s: %s_%f_%d failed" % (current_process().name, 
+                                                parms ['region'],
+                                                threshold, minsize)])
         
     return True
 
 
-def hierarchical_seg(region, thresholds, minsize):
+def hierarchical_seg(parms, thresholds, minsize):
     """ Do hierarchical segmentation for a vector of thresholds and a specific minsize"""
 
-    outputs_prefix = temp_segment_map + "_%s" % region
+    outputs_prefix = parms['temp_segment_map'] + "_%s" % parms['region']
     outputs_prefix += "__%.2f"
     outputs_prefix += "__%d" % minsize
-    gscript.run_command('i.segment.hierarchical',
-                      group=group,
-                      thresholds=thresholds,
-                      minsizes=minsize,
-                      output=temp_segment_map,
-                      outputs_prefix=outputs_prefix,
-                      memory=memory,
-                      quiet=True)
+    previous = None
+    gscript.message("Hierarchically segmenting with minsize = %d" % minsize)
+    map_list = []
+    for threshold in thresholds:
+        temp_segment_map_thresh = outputs_prefix % threshold
+        map_list.append(temp_segment_map_thresh)
+        if previous == None:
+            gscript.run_command('i.segment',
+                                group=parms['group'],
+                                threshold=threshold,
+                                minsize=minsize,
+                                output=temp_segment_map_thresh,
+                                memory=parms['memory'],
+                                quiet=True,
+                                overwrite=True) 
+            previous = temp_segment_map_thresh
+        else:
+            gscript.run_command('i.segment',
+                                group=parms['group'],
+                                threshold=threshold,
+                                minsize=minsize,
+                                output=temp_segment_map_thresh,
+                                seeds=previous,
+                                memory=parms['memory'],
+                                quiet=True,
+                                overwrite=True) 
+            previous = temp_segment_map_thresh
 
-def non_hierarchical_seg(region, threshold, minsize):
+    return map_list
+
+def non_hierarchical_seg(parms, threshold, minsize):
     """ Do non-hierarchical segmentation for a specific threshold and minsize"""
 
-    temp_segment_map_thresh = temp_segment_map + "_%s" % region
+    temp_segment_map_thresh = parms['temp_segment_map'] + "_%s" % parms['region']
     temp_segment_map_thresh += "__%.2f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
+    msg = "Non-hierarchically segmenting with threshold = %.2f, " % threshold
+    msg += "minsize = %d " % minsize
+    gscript.message(msg)
     gscript.run_command('i.segment',
-                        group=group,
+                        group=parms['group'],
                         threshold=threshold,
                         minsize=minsize,
                         output=temp_segment_map_thresh,
-                        memory=memory,
+                        memory=parms['memory'],
                         quiet=True,
                         overwrite=True) 
 
+    return temp_segment_map_thresh
 
-def variable_worker(region, parameter_queue, result_queue):
+
+def variable_worker(parms, parameter_queue, result_queue):
     """ Launch parallel processes for calculating optimization criteria """
 
     for threshold, minsize in iter(parameter_queue.get, 'STOP'):
-       temp_segment_map_thresh = temp_segment_map + "_%s" % region
+       temp_segment_map_thresh = parms['temp_segment_map'] + "_%s" % parms['region']
        temp_segment_map_thresh += "__%.2f" % threshold
        temp_segment_map_thresh += "__%d" % minsize
        variance_per_raster = []
        autocor_per_raster = []
        neighbordict = get_nb_matrix(temp_segment_map_thresh)
-       for raster in rasters:
+       msg = "Calculating optimization criteria for threshold = %.2f, " % threshold
+       msg += "minsize = %d " % minsize
+       gscript.message(msg)
+       for raster in parms['rasters']:
            var = get_variance(temp_segment_map_thresh, raster)
            variance_per_raster.append(var)
            autocor = get_autocorrelation(temp_segment_map_thresh, raster,
-   	                                 neighbordict, indicator)
+   	                                 neighbordict, parms['indicator'])
            autocor_per_raster.append(autocor)
 
        mean_lv = sum(variance_per_raster) / len(variance_per_raster)
        mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
-       result_queue.put([temp_segment_map_thresh, mean_lv, mean_autocor,
+       result_queue.put([mean_lv, mean_autocor,
 			threshold, minsize])
 
 
 def get_variance(mapname, raster):
     """ Calculate intra-segment variance of the values of the given raster"""
 
-    temp_map = temp_variance_map + current_process().name.replace('-', '_')
+    temp_map = "isegmentuspo_temp_variance_map_%d_%s" % (os.getpid(), current_process().name.replace('-', '_'))
     gscript.run_command('r.stats.zonal',
                         base=mapname,
                         cover=raster,
@@ -433,11 +474,21 @@ def find_optimal_value_indices(optlist, nb_best):
     return opt_indices
 
 def main():
-    global group
+    global maplist
+    global keep
+    maplist = []
+    keep = False
+    if flags['k']:
+        keep = True
+
+    check_progs()
+
+    parms = {}
     group = options['group']
+    parms['group'] = group
     output = options['output']
-    global indicator
     indicator = options['autocorrelation_indicator']
+    parms['indicator'] = indicator
     opt_function = options['optimization_function']
     alpha = float(options['f_function_alpha'])
 
@@ -450,7 +501,6 @@ def main():
 	segmented_map = None
 
     # If no list of rasters is given we take all members of the group
-    global rasters
     if options['maps']:
         rasters = options['maps'].split(',')
     else:
@@ -459,6 +509,7 @@ def main():
                                             flags='gl',
                                             quiet=True)
         rasters = list_rasters.split('\n')[:-1]
+    parms['rasters'] = rasters
 
     if options['thresholds']:
         thresholds = [float(x) for x in options['thresholds'].split(',')]
@@ -485,21 +536,12 @@ def main():
 	regions = False
 
     nb_best = int(options['number_best'])
-    global memory
     memory = int(options['memory'])
     processes = int(options['processes'])
-    memory /= processes
+    parms['memory'] = memory / processes
 
-
-    global keep
-    keep = False
-    if flags['k']:
-        keep = True
-
-    global temp_segment_map, temp_variance_map, temp_vector_map
-    temp_segment_map = "segment_uspo_temp_segment_map_%d" % os.getpid()
-    temp_variance_map = "segment_uspo_temp_variance_map_%d" % os.getpid()
-    temp_vector_map = "segment_uspo_temp_vector_map_%d" % os.getpid()
+    temp_segment_map = "temp_segment_uspo_%d" % os.getpid()
+    parms['temp_segment_map'] = temp_segment_map
 
     # Don't change general mapset region settings when switching regions
     gscript.use_temp_region()
@@ -510,6 +552,7 @@ def main():
     for region in regions:
 
         gscript.message("Working on region %s\n" % region)
+        parms['region'] = region
 
         gscript.run_command('g.region', 
                             region=region,
@@ -523,7 +566,7 @@ def main():
             for minsize in minsizes:
                 minsize_queue.put(minsize)
             for p in xrange(processes):
-                proc = Process(target=hier_worker, args=(region, thresholds,
+                proc = Process(target=hier_worker, args=(parms, thresholds,
                                minsize_queue, done_queue))
                 proc.start()
                 processes_list.append(proc)
@@ -533,11 +576,11 @@ def main():
             done_queue.put('STOP')
         else:
             parameter_queue = Queue()
-            for threshold in thresholds:
-                for minsize in minsizes:
+            for minsize in minsizes:
+                for threshold in thresholds:
                     parameter_queue.put([threshold, minsize])
             for p in xrange(processes):
-                proc = Process(target=nonhier_worker, args=(region,
+                proc = Process(target=nonhier_worker, args=(parms,
                                parameter_queue, done_queue))
                 proc.start()
                 processes_list.append(proc)
@@ -546,16 +589,18 @@ def main():
                 p.join()
             done_queue.put('STOP')
 
+        for maps in iter(done_queue.get, 'STOP'):
+            maplist += maps
 
 	# Launch calculation of optimization values in parallel processes
     	processes_list = []
     	parameter_queue = Queue()
 	result_queue=Queue()
-    	for threshold in thresholds:
-	    for minsize in minsizes:
+        for minsize in minsizes:
+            for threshold in thresholds:
 	    	parameter_queue.put([threshold, minsize])
 	for p in xrange(processes):
-	    proc = Process(target=variable_worker, args=(region, 
+	    proc = Process(target=variable_worker, args=(parms, 
 			       parameter_queue, result_queue))
 	    proc.start()
 	    processes_list.append(proc)
@@ -565,14 +610,12 @@ def main():
 	result_queue.put('STOP')
 
 	# Construct result lists
-	maplist = []
         threshlist = []
 	minsizelist = []
         variancelist = []
         autocorlist = []
 
-	for segmap, lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
-	    maplist.append(segmap)
+	for lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
 	    variancelist.append(lv)
 	    autocorlist.append(autocor)
 	    threshlist.append(threshold)
@@ -629,12 +672,14 @@ def main():
 
 
     # Keep copies of segmentation results with best values
+
     if segmented_map:
         for bestmap in maps_to_keep:
 	    outputmap = bestmap.replace(temp_segment_map, segmented_map)
             gscript.run_command('g.copy',
                                 raster=[bestmap,outputmap],
-                                quiet=True)
+                                quiet=True,
+                                overwrite=gscript.overwrite())
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
