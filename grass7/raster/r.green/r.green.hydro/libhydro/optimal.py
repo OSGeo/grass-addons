@@ -292,7 +292,6 @@ def find_segments(river, discharge, dtm, range_plant, distance, p_max):
     raster_dtm.open('r')
     reg = Region()
     plants = []
-    import ipdb; ipdb.set_trace()
     for line in vec:
         count = 0
         # args is prog, h,  q
