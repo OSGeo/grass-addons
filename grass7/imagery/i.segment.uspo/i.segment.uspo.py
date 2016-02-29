@@ -229,29 +229,57 @@ def drange(start, stop, step):
         yield r
         r += step
 
-def hier_worker(parms, thresholds, minsize_queue, done_queue):
+def hier_worker(parms, thresholds, minsize_queue, result_queue):
     """ Launch parallel processes for hierarchical segmentation """
 
     try:
         for minsize in iter(minsize_queue.get, 'STOP'):
             map_list = hierarchical_seg(parms, thresholds, minsize)
-            done_queue.put(map_list)
+            for mapname, threshold, minsize in map_list:
+                variance_per_raster = []
+                autocor_per_raster = []
+                neighbordict = get_nb_matrix(mapname)
+                for raster in parms['rasters']:
+                    var = get_variance(mapname, raster)
+                    variance_per_raster.append(var)
+                    autocor = get_autocorrelation(mapname, raster,
+                                                  neighbordict, parms['indicator'])
+                    autocor_per_raster.append(autocor)
+
+                mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+                mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+                result_queue.put([mapname, mean_lv, mean_autocor, 
+                                 threshold, minsize])
+
     except:
-        done_queue.put(["%s: %s_%d failed" % (current_process().name,
+        result_queue.put(["%s: %s_%d failed" % (current_process().name,
                                              parms['region'],
                                              minsize)])
 
     return True
 
-def nonhier_worker(parms, parameter_queue, done_queue):
+def nonhier_worker(parms, parameter_queue, result_queue):
     """ Launch parallel processes for non-hierarchical segmentation """
 
     try:
         for threshold, minsize in iter(parameter_queue.get, 'STOP'):
             mapname = non_hierarchical_seg(parms, threshold, minsize)
-            done_queue.put([mapname])
+            variance_per_raster = []
+            autocor_per_raster = []
+            neighbordict = get_nb_matrix(mapname)
+            for raster in parms['rasters']:
+                var = get_variance(mapname, raster)
+                variance_per_raster.append(var)
+                autocor = get_autocorrelation(mapname, raster,
+                                              neighbordict, parms['indicator'])
+                autocor_per_raster.append(autocor)
+
+            mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+            mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+            result_queue.put([mapname, mean_lv, mean_autocor, threshold, minsize])
+            
     except:
-        done_queue.put(["%s: %s_%f_%d failed" % (current_process().name, 
+        result_queue.put(["%s: %s_%f_%d failed" % (current_process().name, 
                                                 parms ['region'],
                                                 threshold, minsize)])
         
@@ -265,11 +293,10 @@ def hierarchical_seg(parms, thresholds, minsize):
     outputs_prefix += "__%.2f"
     outputs_prefix += "__%d" % minsize
     previous = None
-    gscript.message("Hierarchically segmenting with minsize = %d" % minsize)
     map_list = []
     for threshold in thresholds:
         temp_segment_map_thresh = outputs_prefix % threshold
-        map_list.append(temp_segment_map_thresh)
+        map_list.append([temp_segment_map_thresh, threshold, minsize])
         if previous == None:
             gscript.run_command('i.segment',
                                 group=parms['group'],
@@ -300,9 +327,6 @@ def non_hierarchical_seg(parms, threshold, minsize):
     temp_segment_map_thresh = parms['temp_segment_map'] + "_%s" % parms['region']
     temp_segment_map_thresh += "__%.2f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
-    msg = "Non-hierarchically segmenting with threshold = %.2f, " % threshold
-    msg += "minsize = %d " % minsize
-    gscript.message(msg)
     gscript.run_command('i.segment',
                         group=parms['group'],
                         threshold=threshold,
@@ -315,35 +339,11 @@ def non_hierarchical_seg(parms, threshold, minsize):
     return temp_segment_map_thresh
 
 
-def variable_worker(parms, parameter_queue, result_queue):
-    """ Launch parallel processes for calculating optimization criteria """
-
-    for threshold, minsize in iter(parameter_queue.get, 'STOP'):
-       temp_segment_map_thresh = parms['temp_segment_map'] + "_%s" % parms['region']
-       temp_segment_map_thresh += "__%.2f" % threshold
-       temp_segment_map_thresh += "__%d" % minsize
-       variance_per_raster = []
-       autocor_per_raster = []
-       neighbordict = get_nb_matrix(temp_segment_map_thresh)
-       msg = "Calculating optimization criteria for threshold = %.2f, " % threshold
-       msg += "minsize = %d " % minsize
-       gscript.message(msg)
-       for raster in parms['rasters']:
-           var = get_variance(temp_segment_map_thresh, raster)
-           variance_per_raster.append(var)
-           autocor = get_autocorrelation(temp_segment_map_thresh, raster,
-   	                                 neighbordict, parms['indicator'])
-           autocor_per_raster.append(autocor)
-
-       mean_lv = sum(variance_per_raster) / len(variance_per_raster)
-       mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
-       result_queue.put([mean_lv, mean_autocor,
-			threshold, minsize])
-
-
 def get_variance(mapname, raster):
     """ Calculate intra-segment variance of the values of the given raster"""
 
+    # current_process name contains '-' which can cause problems so we replace
+    # with '_'
     temp_map = "isegmentuspo_temp_variance_map_%d_%s" % (os.getpid(), current_process().name.replace('-', '_'))
     gscript.run_command('r.stats.zonal',
                         base=mapname,
@@ -558,22 +558,22 @@ def main():
                             region=region,
                             quiet=True)
 
-	# Launch segmentation in parallel processes
+	# Launch segmentation and optimization calculation in parallel processes
     	processes_list = []
-    	done_queue = Queue()
+    	result_queue = Queue()
         if not flags['n']:
             minsize_queue = Queue()
             for minsize in minsizes:
                 minsize_queue.put(minsize)
             for p in xrange(processes):
                 proc = Process(target=hier_worker, args=(parms, thresholds,
-                               minsize_queue, done_queue))
+                               minsize_queue, result_queue))
                 proc.start()
                 processes_list.append(proc)
                 minsize_queue.put('STOP')
             for p in processes_list:
                 p.join()
-            done_queue.put('STOP')
+            result_queue.put('STOP')
         else:
             parameter_queue = Queue()
             for minsize in minsizes:
@@ -581,59 +581,42 @@ def main():
                     parameter_queue.put([threshold, minsize])
             for p in xrange(processes):
                 proc = Process(target=nonhier_worker, args=(parms,
-                               parameter_queue, done_queue))
+                               parameter_queue, result_queue))
                 proc.start()
                 processes_list.append(proc)
                 parameter_queue.put('STOP')
             for p in processes_list:
                 p.join()
-            done_queue.put('STOP')
-
-        for maps in iter(done_queue.get, 'STOP'):
-            maplist += maps
-
-	# Launch calculation of optimization values in parallel processes
-    	processes_list = []
-    	parameter_queue = Queue()
-	result_queue=Queue()
-        for minsize in minsizes:
-            for threshold in thresholds:
-	    	parameter_queue.put([threshold, minsize])
-	for p in xrange(processes):
-	    proc = Process(target=variable_worker, args=(parms, 
-			       parameter_queue, result_queue))
-	    proc.start()
-	    processes_list.append(proc)
-            parameter_queue.put('STOP')
-	for p in processes_list:
-	    p.join()
-	result_queue.put('STOP')
+            result_queue.put('STOP')
 
 	# Construct result lists
+        regional_maplist = []
         threshlist = []
 	minsizelist = []
         variancelist = []
         autocorlist = []
 
-	for lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
+	for mapname, lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
+            regional_maplist.append(mapname)
 	    variancelist.append(lv)
 	    autocorlist.append(autocor)
 	    threshlist.append(threshold)
 	    minsizelist.append(minsize)
 		
+        maplist += regional_maplist
 	# Calculate optimization function values and get indices of best values
         optlist = create_optimization_list(variancelist,
                                            autocorlist,
                                            opt_function,
                                            alpha,
                                            directions[indicator])
-	regiondict[region] = zip(threshlist, minsizelist, variancelist, autocorlist, optlist)
+	regiondict[region] = zip(regional_maplist, variancelist, autocorlist, optlist)
 
 	optimal_indices = find_optimal_value_indices(optlist, nb_best)
         best_values[region] = []
      	for optind in optimal_indices:
 	    best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
-	    maps_to_keep.append(maplist[optind])
+	    maps_to_keep.append(regional_maplist[optind])
 
     # Create output
 
@@ -654,7 +637,6 @@ def main():
         for region, resultslist in regiondict.iteritems():
 	    for result in resultslist:
                 output_string = "%s," % region
-                print region, ",".join(map(str, result))
 		output_string += ",".join(map(str, result))
                 output_string += "\n"
                 of.write(output_string)
