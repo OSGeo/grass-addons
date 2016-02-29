@@ -531,7 +531,7 @@ def main():
         minsizes = range(start,stop,step)
 
     if options['regions']:
-	regions = options['regions'].split(',')
+	regions = [r.split('@')[0] for r in options['regions'].split(',')]
     else:
 	regions = False
 
