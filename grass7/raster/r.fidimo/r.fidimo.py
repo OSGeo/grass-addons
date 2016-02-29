@@ -422,7 +422,7 @@ def main():
 						  columns="adj_X DOUBLE, adj_Y DOUBLE")					
 		grass.run_command("v.distance",
 						  overwrite = True,
-						  _from="barriers_tmp_%d" % os.getpid(),
+						  from_="barriers_tmp_%d" % os.getpid(),
 						  to="river_vector_tmp_%d" % os.getpid(),
 						  upload="to_x,to_y",
 						  column="adj_X,adj_Y")
@@ -915,7 +915,7 @@ def main():
 
 					for l in barriers_list:
 
-						cat = int(l[0])
+						barrier_cat = int(l[0])
 						adj_X = float(l[1])
 						adj_Y = float(l[2])
 						dist = float(l[3])
@@ -946,7 +946,7 @@ def main():
 						if univar_upstream_barrier_density:
 							sum_upstream_barrier_density = float(univar_upstream_barrier_density.split('\n')[d['sum']].split(':')[1])
 						else:
-							# if no upstream density to allocate than stop that "barrier-loop" and contiue with next barrier
+							# if no upstream density to allocate than stop that "barrier-loop" and continue with next barrier
 							grass.message(_("No upstream denisty to allocate downstream for that barrier: "+coors_barriers))
 							continue							
 		
