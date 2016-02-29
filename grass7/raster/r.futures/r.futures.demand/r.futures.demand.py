@@ -56,8 +56,8 @@
 #% multiple: yes
 #% required: yes
 #% description: Relationship between developed cells (dependent) and population (explanatory)
-#% options: linear, logarithmic, exponential, exp_approach
-#% descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX);exp_approach;y = (1 - e^(-A(x - B))) + C
+#% options: linear, logarithmic, exponential, exp_approach, logarithmic2
+#% descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX);exp_approach;y = (1 - e^(-A(x - B))) + C   (SciPy);logarithmic2;y = A + B * ln(x - C)   (SciPy)
 #% answer: linear,logarithmic
 #% guisection: Optional
 #%end
@@ -92,6 +92,14 @@ def exp_approach(x, a, b, c):
     return (1 - np.exp(-a * (x - b))) + c
 
 
+def logarithmic2(x, a, b, c):
+    return a + b * np.log(x - c)
+
+
+def logarithmic(x, a, b):
+    return a + b * np.log(x)
+
+
 def magnitude(x):
     return int(math.log10(x))
 
@@ -107,15 +115,18 @@ def main():
     simulation_times = [float(each) for each in options['simulation_times'].split(',')]
 
     for each in methods:
-        if each in ('exp_approach',):
+        if each in ('exp_approach', 'logarithmic2'):
             try:
                 from scipy.optimize import curve_fit
             except ImportError:
-                gcore.fatal(_("Importing scipy failed. Method 'exp_approach' is not available"))
+                gcore.fatal(_("Importing scipy failed. Method '{m}' is not available").format(m=each))
 
     # exp approach needs at least 3 data points
-    if len(developments) <= 2 and 'exp_approach' in methods:
+    if len(developments) <= 2 and ('exp_approach' in methods or 'logarithmic2' in methods):
         gcore.fatal(_("Not enough data for method 'exp_approach'"))
+    if len(developments) == 3 and ('exp_approach' in methods and 'logarithmic2' in methods):
+        gcore.warning(_("Can't decide between 'exp_approach' and 'logarithmic2' methods"
+                        " because both methods can have exact solutions for 3 data points resulting in RMSE = 0"))
     observed_popul = np.genfromtxt(observed_popul_file, dtype=float, delimiter=sep, names=True)
     projected_popul = np.genfromtxt(projected_popul_file, dtype=float, delimiter=sep, names=True)
     year_col = observed_popul.dtype.names[0]
@@ -170,26 +181,31 @@ def main():
             reg_pop = observed_popul[subregionId]
             simulated[method] = np.array(population_for_simulated_times[subregionId])
 
-            if method in ('exp_approach',):
+            if method in ('exp_approach', 'logarithmic2'):
                 # we have to scale it first
                 y = np.array(table_developed[subregionId])
                 magn = float(np.power(10, max(magnitude(np.max(reg_pop)), magnitude(np.max(y)))))
                 x = reg_pop / magn
                 y = y / magn
-                initial = (0.5, np.mean(x), np.mean(y))  # this seems to work best for our data
-                try:
-                    popt, pcov = curve_fit(globals()[method], x, y, p0=initial)
-                except RuntimeError:
-                    rmse[method] = sys.maxsize  # so that other method is selected
-                    gcore.warning(_("Method '{m}' cannot converge for subregion {reg}".format(m=method, reg=subregionId)))
-                    if len(methods) == 1:
-                        gcore.fatal(_("Method '{m}' failed for subregion {reg},"
-                                    " please select at least one other method").format(m=method, reg=subregionId))
-                else:
-                    predicted[method] = globals()[method](simulated[method] / magn, *popt) * magn
-                    r = globals()[method](x, *popt) * magn - table_developed[subregionId]
-                    coeff[method] = popt
-                    rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 2)))
+                if method == 'exp_approach':
+                    initial = (0.5, np.mean(x), np.mean(y))  # this seems to work best for our data for exp_approach
+                elif method == 'logarithmic2':
+                    popt, pcov = curve_fit(logarithmic, x, y)
+                    initial = (popt[0], popt[1], 0)
+                with np.errstate(invalid='warn'):  # when 'raise' it stops every time on FloatingPointError
+                    try:
+                        popt, pcov = curve_fit(globals()[method], x, y, p0=initial)
+                    except (FloatingPointError, RuntimeError):
+                        rmse[method] = sys.maxsize  # so that other method is selected
+                        gcore.warning(_("Method '{m}' cannot converge for subregion {reg}".format(m=method, reg=subregionId)))
+                        if len(methods) == 1:
+                            gcore.fatal(_("Method '{m}' failed for subregion {reg},"
+                                        " please select at least one other method").format(m=method, reg=subregionId))
+                    else:
+                        predicted[method] = globals()[method](simulated[method] / magn, *popt) * magn
+                        r = globals()[method](x, *popt) * magn - table_developed[subregionId]
+                        coeff[method] = popt
+                        rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 2)))
             else:
                 if method == 'logarithmic':
                     reg_pop = np.log(reg_pop)
@@ -239,7 +255,7 @@ def main():
             ax.plot(x, y, marker='o', linestyle='', markersize=8)
             # plot predicted curve
             x_pred = np.linspace(np.min(x),
-                                 np.max(np.array(population_for_simulated_times[subregionId])), 10)
+                                 np.max(np.array(population_for_simulated_times[subregionId])), 30)
             cf = coeff[method]
             if method == 'linear':
                 line = x_pred * cf[0] + cf[1]
@@ -253,6 +269,9 @@ def main():
             elif method == 'exp_approach':
                 line = exp_approach(x_pred / magn, *cf) * magn
                 label = "$y = (1 -  e^{{-{A:.3f}(x-{B:.3f})}}) + {C:.3f}$".format(A=cf[0], B=cf[1], C=cf[2])
+            elif method == 'logarithmic2':
+                line = logarithmic2(x_pred / magn, *cf) * magn
+                label = "$y = {A:.3f} + {B:.3f} \ln(x-{C:.3f})$".format(A=cf[0], B=cf[1], C=cf[2])
 
             ax.plot(x_pred, line, label=label)
             ax.plot(simulated[method], predicted[method], linestyle='', marker='o', markerfacecolor='None')

@@ -43,53 +43,65 @@ seq -s, 2015 2030
 </pre>
 
 <p>
-The <b>method</b> parameter allows to choose the type of relation
-between population and developed area. The available methods
-include linear, logarithmic, exponential and exponential approach relation.
-If more than one method is checked, the best relation is selected
-based on RMSE. Recommended methods are logarithmic, linear and exponential approach.
-Method exponential approach requires <a href="http://scipy.org/">scipy</a>.
-
-<p>
 The format of the output <b>demand</b> table is:
 <pre>
-year	1	2	...
-2016	2900	243	...
-2017	2790	240	...
-2018	2660	232	...
-2019	2345	221	...
-2020	2154	215	...
+    year	37037	37063	37069	...
+    2012	1362	6677	513	...
+    2013	1856	4850	1589	...
+    2014	1791	5972	903	...
+    2015	1743	5497	1094	...
+    2016	1722	5388	1022	...
+    2017	1690	5285	1077	...
+    2018	1667	5183	1029	...
 ...
 </pre>
 where each value represents the number of new developed cells in each step.
+It's a standard CSV file with tabulators as separators, so it can be opened
+in a text editor or a spreadsheet application if needed.
 In case the demand values would be negative (in case of population decrease
 or if the relation is inversely proportional) the values are turned into zeros,
 since FUTURES does not simulate change from developed to undeveloped sites.
 
 <p>
+The <b>method</b> parameter allows to choose the type of relation
+between population and developed area. The available methods
+include linear, logarithmic (2 options), exponential and exponential approach relation.
+If more than one method is checked, the best relation is selected
+based on RMSE. Recommended methods are <em>logarithmic</em>, <em>logarithmic2</em>, <em>linear</em> and <em>exp_approach</em>.
+Methods exponential approach and logarithmic2 require <a href="http://scipy.org/">scipy</a>
+and at least 3 data points (raster maps of developed area).
+
+<p>
 An optional output <b>plot</b> is a plot of the relations for each subregion.
 It allows to more effectively assess the relation suitable for each subregion.
 Format of the file is determined from the extension and can be for example PNG, PDF, SVG.
-
-<center>
-<img src="r_futures_demand_plot.png">
 <p>
-Figure: Example of logarithmic relation between population and developed area
-(generated with option <b>plot</b>).
+<center>
+<img src="r_futures_demand_plot_exponential.png">
+<img src="r_futures_demand_plot_linear.png">
+<img src="r_futures_demand_plot_logarithmic.png">
+<img src="r_futures_demand_plot_logarithmic2.png">
+<img src="r_futures_demand_plot_exp_approach.png">
+<p>
+Figure: Example of different relations between population and developed area
+(generated with option <b>plot</b>). Starting from the left:
+exponential, linear, logarithmic with 2 unknown variables, logarithmic with 3 unknown variables, exponential approach
 </center>
 
 <h2>NOTES</h2>
 <em>r.futures.demand</em> computes the relation
 between population and developed area using simple
-regression. It therefore serves as starting point
-for demand computation which can be further improved.
+regression and in case of method <em>exp_approach</em> and <em>logarithmic2</em>
+using <a href="http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.optimize.curve_fit.html">
+scipy.optimize.curve_fit</a>.
+It is possible to manually create a custom demand file where each column could be taken from
+a run with most suitable method.
 
 <h2>EXAMPLES</h2>
 <div class="code"><pre>
-r.futures.demand devel=ash_lc_1976,ash_lc_1985,ash_lc_1995,ash_lc_2006 \
-sub=index2_in observ_pop=ashvile_observed_population.csv \
-proj_pop=ashvile_projected_population.csv simul=`seq -s, 2007 2030` sep=comma \
-demand=demand_sub1.txt plot=regression_lin.pdf method=linear
+r.futures.demand development=urban_1992,urban_2001,urban_2011 subregions=counties \
+observed_population=population_trend.csv projected_population=population_projection.csv \
+simulation_times=`seq -s, 2011 2035` plot=plot_demand.pdf demand=demand.csv
 </pre></div>
 
 <h2>SEE ALSO</h2>
