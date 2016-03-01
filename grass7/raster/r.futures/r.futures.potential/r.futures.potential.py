@@ -97,7 +97,7 @@ predictors <- predictors[predictors != opt$response]
 
 interc <- paste("(1|", opt$level, ")")
 fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
-model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.omit")
+model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
 
 if(opt$usedredge) {
     #create all possible models, always include county as the level
@@ -145,7 +145,10 @@ def main():
     TMP_POT = gscript.tempfile(create=False) + '_potential.csv'
 
     columns += [binary, level]
-    gscript.run_command('v.db.select', map=vinput, columns=columns, separator='comma', file=TMP_CSV)
+    where = "{c} IS NOT NULL".format(c=columns[0])
+    for c in columns[1:]:
+        where += " AND {c} IS NOT NULL".format(c=c)
+    gscript.run_command('v.db.select', map=vinput, columns=columns, separator='comma', where=where, file=TMP_CSV)
 
     if dredge:
         gscript.info(_("Running automatic model selection ..."))

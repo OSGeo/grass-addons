@@ -9,7 +9,7 @@
 #
 # PURPOSE:      FUTURES patches calibration tool
 #
-# COPYRIGHT:    (C) 2015 by the GRASS Development Team
+# COPYRIGHT:    (C) 2016 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -38,7 +38,7 @@
 #% type: integer
 #% key: repeat
 #% description: How many times is the simulation repeated
-#% required: yes
+#% required: no
 #% answer: 10
 #% guisection: Calibration
 #%end
@@ -46,7 +46,7 @@
 #% key: compactness_mean
 #% type: double
 #% description: Patch compactness mean to be tested
-#% required: yes
+#% required: no
 #% multiple: yes
 #% guisection: Calibration
 #%end
@@ -54,7 +54,7 @@
 #% type: double
 #% key: compactness_range
 #% description: Patch compactness range to be tested
-#% required: yes
+#% required: no
 #% multiple: yes
 #% guisection: Calibration
 #%end
@@ -64,7 +64,7 @@
 #% description: Patch size discount factor
 #% key: discount_factor
 #% multiple: yes
-#% required: yes
+#% required: no
 #% guisection: Calibration
 #%end
 #%option
@@ -84,7 +84,7 @@
 #%option G_OPT_F_OUTPUT
 #% key: calibration_results
 #% description: Output file with calibration results
-#% required: yes
+#% required: no
 #% guisection: Calibration
 #%end
 #%option
@@ -97,7 +97,7 @@
 #%end
 #%option G_OPT_R_INPUT
 #% key: development_pressure
-#% required: yes
+#% required: no
 #% description: Raster map of development pressure
 #% guisection: PGA
 #%end
@@ -110,7 +110,7 @@
 #%end
 #%option G_OPT_R_INPUTS
 #% key: predictors
-#% required: yes
+#% required: no
 #% multiple: yes
 #% description: Names of predictor variable raster maps
 #% guisection: PGA
@@ -119,12 +119,12 @@
 #% key: n_dev_neighbourhood
 #% type: integer
 #% description: Size of square used to recalculate development pressure
-#% required: yes
+#% required: no
 #% guisection: PGA
 #%end
 #%option G_OPT_F_INPUT
 #% key: devpot_params
-#% required: yes
+#% required: no
 #% multiple: yes
 #% label: Development potential parameters for each region
 #% description: Each line should contain region ID followed by parameters. Values are separated by whitespace (spaces or tabs). First line is ignored, so it can be used for header
@@ -132,14 +132,14 @@
 #%end
 #%option G_OPT_F_INPUT
 #% key: incentive_table
-#% required: yes
+#% required: no
 #% description: File containing incentive lookup table (infill vs. sprawl)
 #% guisection: PGA
 #%end
 #%option
 #% key: num_neighbors
 #% type: integer
-#% required: yes
+#% required: no
 #% multiple: no
 #% options: 4,8
 #% answer: 4
@@ -149,7 +149,7 @@
 #%option
 #% key: seed_search
 #% type: integer
-#% required: yes
+#% required: no
 #% multiple: no
 #% options: 1,2
 #% answer: 2
@@ -159,7 +159,7 @@
 #%option
 #% key: development_pressure_approach
 #% type: string
-#% required: yes
+#% required: no
 #% multiple: no
 #% options: occurrence,gravity,kernel
 #% answer: gravity
@@ -169,7 +169,7 @@
 #%option
 #% key: gamma
 #% type: double
-#% required: yes
+#% required: no
 #% multiple: no
 #% description: Influence of distance between neighboring cells
 #% guisection: PGA
@@ -177,9 +177,9 @@
 #%option
 #% key: scaling_factor
 #% type: double
-#% required: yes
+#% required: no
 #% multiple: no
-#% description: Scaling factor
+#% description: Scaling factor of development pressure
 #% guisection: PGA
 #%end
 #%option
@@ -198,11 +198,52 @@
 #%end
 #%option G_OPT_F_INPUT
 #% key: demand
-#% required: yes
+#% required: no
 #% description: Control file with number of cells to convert
 #% guisection: PGA
 #%end
-
+#%flag
+#% key: l
+#% description: Only create patch size distribution file
+#% guisection: Calibration
+#%end
+#%rules
+#% collective: demand,scaling_factor,gamma,development_pressure_approach,seed_search,num_neighbors,incentive_table,devpot_params,n_dev_neighbourhood,predictors,development_pressure,calibration_results,discount_factor,compactness_range,compactness_mean,repeat
+#% exclusive: -l,demand
+#% exclusive: -l,num_steps
+#% exclusive: -l,scaling_factor
+#% exclusive: -l,gamma
+#% exclusive: -l,development_pressure_approach
+#% exclusive: -l,seed_search
+#% exclusive: -l,num_neighbors
+#% exclusive: -l,incentive_table
+#% exclusive: -l,devpot_params
+#% exclusive: -l,n_dev_neighbourhood
+#% exclusive: -l,predictors
+#% exclusive: -l,constrain_weight
+#% exclusive: -l,development_pressure
+#% exclusive: -l,calibration_results
+#% exclusive: -l,discount_factor
+#% exclusive: -l,compactness_range
+#% exclusive: -l,compactness_mean
+#% exclusive: -l,repeat
+#% required: -l,demand
+#% required: -l,scaling_factor
+#% required: -l,gamma
+#% required: -l,development_pressure_approach
+#% required: -l,seed_search
+#% required: -l,num_neighbors
+#% required: -l,incentive_table
+#% required: -l,devpot_params
+#% required: -l,n_dev_neighbourhood
+#% required: -l,predictors
+#% required: -l,development_pressure
+#% required: -l,calibration_results
+#% required: -l,discount_factor
+#% required: -l,compactness_range
+#% required: -l,compactness_mean
+#% required: -l,repeat
+#%end
 
 import sys
 import os
@@ -366,10 +407,12 @@ def compactness(area, perimeter):
 def main():
     dev_start = options['development_start']
     dev_end = options['development_end']
-    repeat = int(options['repeat'])
-    compactness_means = [float(each) for each in options['compactness_mean'].split(',')]
-    compactness_ranges = [float(each) for each in options['compactness_range'].split(',')]
-    discount_factors = [float(each) for each in options['discount_factor'].split(',')]
+    only_file = flags['l']
+    if not only_file:
+        repeat = int(options['repeat'])
+        compactness_means = [float(each) for each in options['compactness_mean'].split(',')]
+        compactness_ranges = [float(each) for each in options['compactness_range'].split(',')]
+        discount_factors = [float(each) for each in options['discount_factor'].split(',')]
     patches_file = options['patch_sizes']
     threshold = float(options['patch_threshold'])
     # v.clean removes size <= threshold, we want to keep size == threshold
@@ -397,9 +440,12 @@ def main():
     gcore.message(_("Analyzing original patches..."))
     diff_development(dev_start, dev_end, options['subregions'], orig_patch_diff)
     patch_analysis(orig_patch_diff, threshold, tmp_patch_vect, tmp_patch_vect2, temp_file.name)
+    if only_file:
+        write_patches_file(tmp_patch_vect, cell_size, patches_file)
+        return
+
     area, perimeter = np.loadtxt(fname=temp_file.name, unpack=True)
     compact = compactness(area, perimeter)
-    write_patches_file(tmp_patch_vect, cell_size, patches_file)
 
     # area histogram
     area = area / cell_size

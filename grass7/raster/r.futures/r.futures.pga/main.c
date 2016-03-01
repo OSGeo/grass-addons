@@ -1453,6 +1453,34 @@ int main(int argc, char **argv)
         _("Raster map of developed areas (=1), undeveloped (=0) and excluded (no data)");
     opt.developedFile->guisection = _("Basic input");
 
+    opt.indexFile = G_define_standard_option(G_OPT_R_INPUT);
+    opt.indexFile->key = "subregions";
+    opt.indexFile->required = YES;
+    opt.indexFile->description = _("Raster map of subregions");
+    opt.indexFile->guisection = _("Basic input");
+
+    opt.dumpFile = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt.dumpFile->key = "output";
+    opt.dumpFile->required = YES;
+    opt.dumpFile->description =
+        _("State of the development at the end of simulation");
+    opt.dumpFile->guisection = _("Output");
+
+    opt.outputSeries = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
+    opt.outputSeries->key = "output_series";
+    opt.outputSeries->required = NO;
+    opt.outputSeries->label =
+        _("Basename for raster maps of development generated after each step");
+    opt.outputSeries->guisection = _("Output");
+
+    opt.numSteps = G_define_option();
+    opt.numSteps->key = "num_steps";
+    opt.numSteps->type = TYPE_INTEGER;
+    opt.numSteps->required = NO;
+    opt.numSteps->description =
+        _("Number of steps to be simulated");
+    opt.numSteps->guisection = _("Basic input");
+
     opt.addVariableFiles = G_define_standard_option(G_OPT_R_INPUTS);
     opt.addVariableFiles->key = "predictors";
     opt.addVariableFiles->required = YES;
@@ -1460,14 +1488,6 @@ int main(int argc, char **argv)
     opt.addVariableFiles->label = _("Names of predictor variable raster maps");
     opt.addVariableFiles->description = _("Listed in the same order as in the development potential table");
     opt.addVariableFiles->guisection = _("Potential");
-
-    opt.controlFileAll = G_define_standard_option(G_OPT_F_INPUT);
-    opt.controlFileAll->key = "demand";
-    opt.controlFileAll->required = YES;
-    opt.controlFileAll->description =
-        _("Control file with number of cells to convert");
-    opt.controlFileAll->guisection = _("Demand");
-
 
     opt.devpotParamsFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.devpotParamsFile->key = "devpot_params";
@@ -1477,9 +1497,57 @@ int main(int argc, char **argv)
     opt.devpotParamsFile->description =
         _("Each line should contain region ID followed"
           " by parameters (intercepts, development pressure, other predictors)."
-          " Values are separated by whitespace (spaces or tabs)."
+          " Values are separated by tabs."
           " First line is ignored, so it can be used for header");
     opt.devpotParamsFile->guisection = _("Potential");
+
+    opt.devPressureFile = G_define_standard_option(G_OPT_R_INPUT);
+    opt.devPressureFile->key = "development_pressure";
+    opt.devPressureFile->required = YES;
+    opt.devPressureFile->description =
+        _("Raster map of development pressure");
+    opt.devPressureFile->guisection = _("Development pressure");
+
+    opt.nDevNeighbourhood = G_define_option();
+    opt.nDevNeighbourhood->key = "n_dev_neighbourhood";
+    opt.nDevNeighbourhood->type = TYPE_INTEGER;
+    opt.nDevNeighbourhood->required = YES;
+    opt.nDevNeighbourhood->description =
+        _("Size of square used to recalculate development pressure");
+    opt.nDevNeighbourhood->guisection = _("Development pressure");
+
+    opt.devPressureApproach = G_define_option();
+    opt.devPressureApproach->key = "development_pressure_approach";
+    opt.devPressureApproach->type = TYPE_STRING;
+    opt.devPressureApproach->required = YES;
+    opt.devPressureApproach->options = "occurrence,gravity,kernel";
+    opt.devPressureApproach->description =
+        _("Approaches to derive development pressure");
+    opt.devPressureApproach->answer = "gravity";
+    opt.devPressureApproach->guisection = _("Development pressure");
+
+    opt.alpha = G_define_option();
+    opt.alpha->key = "gamma";
+    opt.alpha->type = TYPE_DOUBLE;
+    opt.alpha->required = YES;
+    opt.alpha->description =
+        _("Influence of distance between neighboring cells");
+    opt.alpha->guisection = _("Development pressure");
+
+    opt.scalingFactor = G_define_option();
+    opt.scalingFactor->key = "scaling_factor";
+    opt.scalingFactor->type = TYPE_DOUBLE;
+    opt.scalingFactor->required = YES;
+    opt.scalingFactor->description =
+        _("Scaling factor of development pressure");
+    opt.scalingFactor->guisection = _("Development pressure");
+
+    opt.controlFileAll = G_define_standard_option(G_OPT_F_INPUT);
+    opt.controlFileAll->key = "demand";
+    opt.controlFileAll->required = YES;
+    opt.controlFileAll->description =
+        _("Control file with number of cells to convert");
+    opt.controlFileAll->guisection = _("Demand");
 
     opt.discountFactor = G_define_option();
     opt.discountFactor->key = "discount_factor";
@@ -1531,60 +1599,6 @@ int main(int argc, char **argv)
         _("File containing list of patch sizes to use");
     opt.parcelSizeFile->guisection = _("PGA");
 
-    opt.devPressureFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.devPressureFile->key = "development_pressure";
-    opt.devPressureFile->required = YES;
-    opt.devPressureFile->description =
-        _("Raster map of development pressure");
-    opt.devPressureFile->guisection = _("Development pressure");
-
-    opt.nDevNeighbourhood = G_define_option();
-    opt.nDevNeighbourhood->key = "n_dev_neighbourhood";
-    opt.nDevNeighbourhood->type = TYPE_INTEGER;
-    opt.nDevNeighbourhood->required = YES;
-    opt.nDevNeighbourhood->description =
-        _("Size of square used to recalculate development pressure");
-    opt.nDevNeighbourhood->guisection = _("Development pressure");
-
-    opt.devPressureApproach = G_define_option();
-    opt.devPressureApproach->key = "development_pressure_approach";
-    opt.devPressureApproach->type = TYPE_STRING;
-    opt.devPressureApproach->required = YES;
-    opt.devPressureApproach->options = "occurrence,gravity,kernel";
-    opt.devPressureApproach->description =
-        _("Approaches to derive development pressure");
-    opt.devPressureApproach->answer = "gravity";
-    opt.devPressureApproach->guisection = _("Development pressure");
-
-    opt.alpha = G_define_option();
-    opt.alpha->key = "gamma";
-    opt.alpha->type = TYPE_DOUBLE;
-    opt.alpha->required = YES;
-    opt.alpha->description =
-        _("Influence of distance between neighboring cells");
-    opt.alpha->guisection = _("Development pressure");
-
-    opt.scalingFactor = G_define_option();
-    opt.scalingFactor->key = "scaling_factor";
-    opt.scalingFactor->type = TYPE_DOUBLE;
-    opt.scalingFactor->required = YES;
-    opt.scalingFactor->description =
-        _("Scaling factor");
-    opt.scalingFactor->guisection = _("Development pressure");
-
-    opt.indexFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.indexFile->key = "subregions";
-    opt.indexFile->required = YES;
-    opt.indexFile->description = _("Raster map of subregions with categories starting with 1");
-    opt.indexFile->guisection = _("Basic input");
-
-    opt.numSteps = G_define_option();
-    opt.numSteps->key = "num_steps";
-    opt.numSteps->type = TYPE_INTEGER;
-    opt.numSteps->required = NO;
-    opt.numSteps->description =
-        _("Number of steps to be simulated");
-    opt.numSteps->guisection = _("Basic input");
 
     opt.probLookupFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.probLookupFile->key = "incentive_table";
@@ -1623,19 +1637,6 @@ int main(int argc, char **argv)
           " generator (use when you don't want to provide the seed option)");
     flg.generateSeed->guisection = _("Random numbers");
 
-    opt.dumpFile = G_define_standard_option(G_OPT_R_OUTPUT);
-    opt.dumpFile->key = "output";
-    opt.dumpFile->required = YES;
-    opt.dumpFile->description =
-        _("State of the development at the end of simulation");
-    opt.dumpFile->guisection = _("Output");
-
-    opt.outputSeries = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
-    opt.outputSeries->key = "output_series";
-    opt.outputSeries->required = NO;
-    opt.outputSeries->label =
-        _("Basename for raster maps of development generated after each step");
-    opt.outputSeries->guisection = _("Output");
     // TODO: add mutually exclusive?
     // TODO: add flags or options to control values in series and final rasters
 
