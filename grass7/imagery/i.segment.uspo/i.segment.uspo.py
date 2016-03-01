@@ -531,7 +531,7 @@ def main():
         minsizes = range(start,stop,step)
 
     if options['regions']:
-	regions = [r.split('@')[0] for r in options['regions'].split(',')]
+	regions = options['regions'].split(',')
     else:
 	regions = False
 
@@ -552,7 +552,7 @@ def main():
     for region in regions:
 
         gscript.message("Working on region %s\n" % region)
-        parms['region'] = region
+        parms['region'] = region.split('@')[0]
 
         gscript.run_command('g.region', 
                             region=region,
