@@ -871,9 +871,11 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
                          */
                         probAdd = getDevProbability(pThis, pParams);
                         /* replace with value from lookup table */
-                        lookupPos =
-                            (int)(probAdd * (pParams->nProbLookup - 1));
-                        probAdd = pParams->adProbLookup[lookupPos];
+                        if (pParams->adProbLookup) {
+                            lookupPos =
+                                    (int)(probAdd * (pParams->nProbLookup - 1));
+                            probAdd = pParams->adProbLookup[lookupPos];
+                        }
                         probAdd *= consWeight;
                         pNeighbours->aCandidates[pNeighbours->nCandidates].
                             probAdd = probAdd;
@@ -1602,7 +1604,7 @@ int main(int argc, char **argv)
 
     opt.probLookupFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.probLookupFile->key = "incentive_table";
-    opt.probLookupFile->required = YES;
+    opt.probLookupFile->required = NO;
     opt.probLookupFile->label =
         _("File containing incentive lookup table (infill vs. sprawl)");
     opt.probLookupFile->description =
@@ -1709,53 +1711,58 @@ int main(int argc, char **argv)
     FILE *fp;
     char inBuff[N_MAXREADINLEN];
     char *pPtr;
+    if (opt.probLookupFile->answer) {
+        G_verbose_message("Reading probability lookup ...");
+        sParams.probLookupFile = opt.probLookupFile->answer;
 
-    G_verbose_message("Reading probability lookup ...");
-    sParams.probLookupFile = opt.probLookupFile->answer;
-
-    fp = fopen(sParams.probLookupFile, "r");
-    if (fp) {
-        parsedOK = 0;
-        if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-            if (inBuff[0] == ',') {
-                sParams.nProbLookup = atoi(inBuff + 1);
-                if (sParams.nProbLookup > 0) {
-                    sParams.adProbLookup =
-                            (double *) G_malloc(sizeof(double) *
-                                                sParams.nProbLookup);
-                    if (sParams.adProbLookup) {
-                        parsedOK = 1;
-                        i = 0;
-                        while (parsedOK && i < sParams.nProbLookup) {
-                            parsedOK = 0;
-                            if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-                                if (pPtr = strchr(inBuff, ',')) {
-                                    parsedOK = 1;
-                                    sParams.adProbLookup[i] =
-                                            atof(pPtr + 1);
-                                    G_debug(3,
-                                            "probability lookup table: i=%d, i/(n-1)=%f, result=%f",
-                                            i,
-                                            i * 1.0 /
-                                            (sParams.nProbLookup - 1),
-                                            sParams.adProbLookup[i]);
+        fp = fopen(sParams.probLookupFile, "r");
+        if (fp) {
+            parsedOK = 0;
+            if (fgets(inBuff, N_MAXREADINLEN, fp)) {
+                if (inBuff[0] == ',') {
+                    sParams.nProbLookup = atoi(inBuff + 1);
+                    if (sParams.nProbLookup > 0) {
+                        sParams.adProbLookup =
+                                (double *) G_malloc(sizeof(double) *
+                                                    sParams.nProbLookup);
+                        if (sParams.adProbLookup) {
+                            parsedOK = 1;
+                            i = 0;
+                            while (parsedOK && i < sParams.nProbLookup) {
+                                parsedOK = 0;
+                                if (fgets(inBuff, N_MAXREADINLEN, fp)) {
+                                    if (pPtr = strchr(inBuff, ',')) {
+                                        parsedOK = 1;
+                                        sParams.adProbLookup[i] =
+                                                atof(pPtr + 1);
+                                        G_debug(3,
+                                                "probability lookup table: i=%d, i/(n-1)=%f, result=%f",
+                                                i,
+                                                i * 1.0 /
+                                                (sParams.nProbLookup - 1),
+                                                sParams.adProbLookup[i]);
+                                    }
                                 }
+                                i++;
                             }
-                            i++;
                         }
                     }
                 }
             }
+            if (!parsedOK) {
+                G_fatal_error("Error parsing probability lookup file '%s'",
+                              sParams.probLookupFile);
+            }
+            fclose(fp);
         }
-        if (!parsedOK) {
-            G_fatal_error("Error parsing probability lookup file '%s'",
+        else {
+            G_fatal_error("Error opening probability lookup file '%s'",
                           sParams.probLookupFile);
         }
-        fclose(fp);
     }
     else {
-        G_fatal_error("Error opening probability lookup file '%s'",
-                      sParams.probLookupFile);
+        sParams.nProbLookup = 0;
+        sParams.adProbLookup = NULL;
     }
 
     sParams.patchMean = atof(opt.patchMean->answer);
@@ -1906,15 +1913,16 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                     G_debug(5, "logit value %f", val);
                     /* lookup table of probabilities is applied before consWeight */
                     /* replace with value from lookup table */
-                    lookupPos = (int)(pLandscape->asUndevs[id]
-                                      [pLandscape->num_undevSites[id]].
-                            logitVal * (pParams->nProbLookup - 1));
-                    if (lookupPos >= pParams->nProbLookup || lookupPos < 0)
-                        G_fatal_error("lookup position (%d) out of range [0, %d]",
-                                      lookupPos, pParams->nProbLookup - 1);
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
-                            logitVal = pParams->adProbLookup[lookupPos];
-
+                    if (pParams->adProbLookup) {
+                        lookupPos = (int)(pLandscape->asUndevs[id]
+                                          [pLandscape->num_undevSites[id]].
+                                logitVal * (pParams->nProbLookup - 1));
+                        if (lookupPos >= pParams->nProbLookup || lookupPos < 0)
+                            G_fatal_error("lookup position (%d) out of range [0, %d]",
+                                          lookupPos, pParams->nProbLookup - 1);
+                        pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
+                                logitVal = pParams->adProbLookup[lookupPos];
+                    }
                     // discount by a conservation factor
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= consWeight;
                     /* need to store this to put correct elements near top of list */
