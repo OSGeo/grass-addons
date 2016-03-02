@@ -119,7 +119,7 @@
 #%option
 #% key: minsize_step
 #% type: integer
-#% description: Step to use between thresholds
+#% description: Step to use between minimum segment sizes
 #% required: no
 #%end
 #
@@ -240,6 +240,9 @@ def hier_worker(parms, thresholds, minsize_queue, result_queue):
                 autocor_per_raster = []
                 neighbordict = get_nb_matrix(mapname)
                 for raster in parms['rasters']:
+                    # there seems to be some trouble in ms windows with qualified
+                    # map names
+                    raster = raster.split('@')[0]
                     var = get_variance(mapname, raster)
                     variance_per_raster.append(var)
                     autocor = get_autocorrelation(mapname, raster,
