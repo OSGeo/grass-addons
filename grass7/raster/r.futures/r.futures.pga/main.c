@@ -1420,7 +1420,7 @@ int main(int argc, char **argv)
             *consWeightFile, *addVariableFiles, *nDevNeighbourhood,
             *devpotParamsFile, *dumpFile, *outputSeries,
             *parcelSizeFile, *discountFactor,
-            *probLookupFile,
+            /* *probLookupFile,*/ *incentivePower,
             *patchMean, *patchRange, *numNeighbors, *seedSearch,
             *devPressureApproach, *alpha, *scalingFactor, *num_Regions,
             *numSteps, *indexFile, *controlFileAll, *seed;
@@ -1602,6 +1602,7 @@ int main(int argc, char **argv)
     opt.parcelSizeFile->guisection = _("PGA");
 
 
+    /*  replaced by incentive power
     opt.probLookupFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.probLookupFile->key = "incentive_table";
     opt.probLookupFile->required = NO;
@@ -1610,6 +1611,19 @@ int main(int argc, char **argv)
     opt.probLookupFile->description =
         _("Format is tightly constrained. See documentation.");
     opt.probLookupFile->guisection = _("Scenarios");
+    */
+
+    opt.incentivePower = G_define_option();
+    opt.incentivePower->key = "incentive_power";
+    opt.incentivePower->required = NO;
+    opt.incentivePower->type = TYPE_DOUBLE;
+    opt.incentivePower->answer = "1";
+    opt.incentivePower->label =
+        _("Exponent to transform probability values p to p^x to simulate infill vs. sprawl");
+    opt.incentivePower->description =
+        _("Values > 1 encourage infill, < 1 urban sprawl");
+    opt.incentivePower->guisection = _("Scenarios");
+    opt.incentivePower->options = "0-10";
 
     opt.consWeightFile = G_define_standard_option(G_OPT_R_INPUT);
     opt.consWeightFile->key = "constrain_weight";
@@ -1707,6 +1721,19 @@ int main(int argc, char **argv)
     sParams.discountFactor = atof(opt.discountFactor->answer);
 
 
+    if (opt.incentivePower->answer) {
+        float exponent = atof(opt.incentivePower->answer);
+        sParams.nProbLookup = 1001;
+        sParams.adProbLookup = (double *) G_malloc(sizeof(double) *
+                                                   sParams.nProbLookup);
+        int i = 0;
+        double step = 1. / (sParams.nProbLookup - 1);
+        while (i < sParams.nProbLookup) {
+            sParams.adProbLookup[i] = pow(i * step, exponent);
+            i++;
+        }
+    }
+    /*  replaced by incentive power
     int parsedOK, i;
     FILE *fp;
     char inBuff[N_MAXREADINLEN];
@@ -1760,11 +1787,11 @@ int main(int argc, char **argv)
                           sParams.probLookupFile);
         }
     }
+    */
     else {
         sParams.nProbLookup = 0;
         sParams.adProbLookup = NULL;
     }
-
     sParams.patchMean = atof(opt.patchMean->answer);
     sParams.patchRange = atof(opt.patchRange->answer);
     sParams.numNeighbors = atoi(opt.numNeighbors->answer);

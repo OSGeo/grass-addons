@@ -42,20 +42,8 @@ are then used as input for
 
 <h3>Scenarios</h3>
 Scenarios involving policies that encourage infill versus sprawl
-can be explored using the <b>incentive_table</b> parameter,
+can be explored using the <b>incentive_power</b> parameter,
 which uses a power function to transform the probability in POTENTIAL.
-
-A simple incentive table can be generated using the
-following commands in Python:
-<div class="code"><pre>
-import numpy as np
-power = 2
-length = 1001
-x = np.linspace(0, 1, length)
-np.savetxt(fname="incentive_table.txt", fmt='%1.3f', delimiter=',', 
-           X=np.column_stack((x, np.power(x, power))),
-           header=",{}".format(length), comments='')
-</pre></div>
 
 <center>
 <img src="incentive.png">
@@ -107,7 +95,7 @@ r.futures.pga -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope \
   compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=2 \
   patch_sizes=patch_sizes.txt development_pressure=gdp n_dev_neighbourhood=10 \
   development_pressure_approach=gravity gamma=2 scaling_factor=1 \
-  subregions=subregions incentive_table=probLookup.csv \
+  subregions=subregions incentive_power=2 \
   constrain_weight=weight_1 output=final_results output_series=development
 </pre></div>
 

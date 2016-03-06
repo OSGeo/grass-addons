@@ -101,6 +101,17 @@
 #% description: Raster map of development pressure
 #% guisection: PGA
 #%end
+#%option
+#% key: incentive_power
+#% type: double
+#% required: no
+#% multiple: no
+#% options: 0-10
+#% label: Exponent to transform probability values p to p^x to simulate infill vs. sprawl
+#% description: Values > 1 encourage infill, < 1 urban sprawl
+#% answer: 1
+#% guisection: PGA
+#%end
 #%option G_OPT_R_INPUT
 #% key: constrain_weight
 #% required: no
@@ -128,12 +139,6 @@
 #% multiple: yes
 #% label: Development potential parameters for each region
 #% description: Each line should contain region ID followed by parameters. Values are separated by whitespace (spaces or tabs). First line is ignored, so it can be used for header
-#% guisection: PGA
-#%end
-#%option G_OPT_F_INPUT
-#% key: incentive_table
-#% required: no
-#% description: File containing incentive lookup table (infill vs. sprawl)
 #% guisection: PGA
 #%end
 #%option
@@ -208,7 +213,7 @@
 #% guisection: Calibration
 #%end
 #%rules
-#% collective: demand,scaling_factor,gamma,development_pressure_approach,seed_search,num_neighbors,incentive_table,devpot_params,n_dev_neighbourhood,predictors,development_pressure,calibration_results,discount_factor,compactness_range,compactness_mean,repeat
+#% collective: demand,scaling_factor,gamma,development_pressure_approach,seed_search,num_neighbors,devpot_params,n_dev_neighbourhood,predictors,development_pressure,calibration_results,discount_factor,compactness_range,compactness_mean,repeat
 #% exclusive: -l,demand
 #% exclusive: -l,num_steps
 #% exclusive: -l,scaling_factor
@@ -216,7 +221,7 @@
 #% exclusive: -l,development_pressure_approach
 #% exclusive: -l,seed_search
 #% exclusive: -l,num_neighbors
-#% exclusive: -l,incentive_table
+#% exclusive: -l,incentive_power
 #% exclusive: -l,devpot_params
 #% exclusive: -l,n_dev_neighbourhood
 #% exclusive: -l,predictors
@@ -233,7 +238,6 @@
 #% required: -l,development_pressure_approach
 #% required: -l,seed_search
 #% required: -l,num_neighbors
-#% required: -l,incentive_table
 #% required: -l,devpot_params
 #% required: -l,n_dev_neighbourhood
 #% required: -l,predictors
@@ -332,14 +336,14 @@ def run_simulation(development_start, development_end, compactness_mean, compact
                       developed=development_start)
     futures_parameters = dict(development_pressure=fut_options['development_pressure'],
                               predictors=fut_options['predictors'], n_dev_neighbourhood=fut_options['n_dev_neighbourhood'],
-                              devpot_params=fut_options['devpot_params'], incentive_table=fut_options['incentive_table'],
+                              devpot_params=fut_options['devpot_params'],
                               num_neighbors=fut_options['num_neighbors'], seed_search=fut_options['seed_search'],
                               development_pressure_approach=fut_options['development_pressure_approach'], gamma=fut_options['gamma'],
                               scaling_factor=fut_options['scaling_factor'],
                               subregions=fut_options['subregions'], demand=fut_options['demand'],
                               output=development_end)
     parameters.update(futures_parameters)
-    for not_required in ('constrain_weight', 'num_steps'):
+    for not_required in ('constrain_weight', 'num_steps', 'incentive_power'):
         if options[not_required]:
             parameters.update({not_required: options[not_required]})
 
