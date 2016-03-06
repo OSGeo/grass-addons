@@ -1,0 +1,54 @@
+<h2>DESCRIPTION</h2>
+Module <em>r.futures.potsurface</em> is a support tool for
+computing development probability surface based on maps and coefficients
+selected by <em><a href="r.futures.potential.html">r.futures.potential</a></em>.
+It computes the initial probability surface used in the patch growing algorithm in
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>.
+It is not necessary to use this module, however it is useful to inspect
+the potential surface to better understand the input data
+and how the predictors influence the probability.
+The values range from 0 (unlikely to be developed) to 1 (high probability of development).
+<p>
+The inputs are the output file from <em><a href="r.futures.potential.html">r.futures.potential</a></em>
+and the name of the <b>subregions</b> raster map.
+
+
+<h2>EXAMPLES</h2>
+<div class="code"><pre>
+r.futures.potsurface input=potential.csv subregions=counties output=pot_surface
+</pre></div>
+<center>
+<img src="r_futures_potsurface.png">
+<p>
+Figure: We can visualize the potential surface in 3D and drape raster
+representing developed (red) and undeveloped (green) cells over it.
+</center>
+
+<h2>SEE ALSO</h2>
+
+<a href="r.futures.html">FUTURES</a>,
+<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
+<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.sample.category.html">r.sample.category</a></em>
+
+<h2>REFERENCES</h2>
+<ul>
+<li>
+    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
+    <a href="http://dx.doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
+    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
+    Annals of the Association of American Geographers, 103(4), 785-807.
+<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+   <a href="http://dx.doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
+    tradeoffs between conservation planning strategies</a>.
+    Landscape and Urban Planning, 136, 28-39.</li>
+</ul>
+
+<h2>AUTHOR</h2>
+
+Anna Petrasova, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a><br>
+
+<p><i>Last changed: $Date: 2015-02-12 14:32:45 -0500 (Thu, 12 Feb 2015) $</i>

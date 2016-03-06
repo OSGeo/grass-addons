@@ -7,6 +7,7 @@ SUBDIRS = \
 		r.futures.devpressure \
 		r.futures.demand \
 		r.futures.potential \
+		r.futures.potsurface \
 		r.futures.pga
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make

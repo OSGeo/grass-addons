@@ -9,11 +9,34 @@ suitability factors (mapped predictors).
 
 The coefficients are obtained by conducting multilevel logistic regression in R
 with package <a href="https://cran.r-project.org/web/packages/lme4/index.html">lme4</a>
-where the coefficients may vary by county.
+where the coefficients may vary by subregions.
 The best model is selected automatically using <tt>dredge</tt>
 function from package
 <a href="https://cran.r-project.org/web/packages/MuMIn/index.html">MuMIn</a>
 (which has numerous caveats).
+
+<p>
+Module <em>r.futures.potential</em> can run it two modes. Without the <b>-d</b>
+flag, it uses all the given predictors to construct the model. With <b>-d</b>
+flag, it evaluates all the different combinations of predictors
+and picks the best one based on AIC.
+
+<h3>Format</h3>
+The format of the output file is a CSV file (but with tabs as delimiters).
+The header contains the names of the predictor maps and the first column
+contains the identifiers of the subregions. The order of columns is important,
+the second column represents intercept, the third development pressure and
+then the predictors.
+
+<pre>
+ID	Intercept	devpressure_0_5	slope	road_dens_perc	forest_smooth_perc ...
+37037	-1.873	12.595	-0.0758	0.0907	-0.0223	...
+37063	-2.039	12.595	-0.0758	0.0907	-0.0223	...
+37069	-1.795	12.595	-0.0758	0.0907	-0.0223	...
+37077	-1.264	12.595	-0.0758	0.0907	-0.0223	...
+37085	-1.925	12.595	-0.0758	0.0907	-0.0223	...
+...
+</pre>
 
 <h2>NOTES</h2>
 Note that this module is designed to automate the FUTURES workflow by brute-force
@@ -26,6 +49,7 @@ selection of model, which has numerous caveats.
 <a href="r.futures.html">FUTURES</a>,
 <em><a href="r.futures.pga.html">r.futures.pga</a></em>,
 <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.potsurface.html">r.futures.potsurface</a></em>,
 <em><a href="r.futures.demand.html">r.futures.demand</a></em>,
 <em><a href="r.futures.calib.html">r.futures.calib</a></em>,
 <em><a href="r.sample.category.html">r.sample.category</a></em>
