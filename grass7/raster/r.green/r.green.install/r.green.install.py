@@ -353,7 +353,7 @@ def get_url(lib, _parser=[None, ]):
 def get_pip_win_env():
     """Add pip path to the windows environmental variable"""
     os_pth = os.__file__.split(os.path.sep)
-    script_pth = os.path.join(*(os_pth[:-2] + ['Scripts', ]))
+    script_pth = os.sep.join(os_pth[:-2] + ['Scripts', ])
     if not os.path.exists(script_pth):
         msg = "The directory containing python scripts does not exist!"
         raise Exception(msg)
@@ -382,9 +382,10 @@ def pip_install(whl, *pipargs):
 
 def check_install_pip(install=False):
     """Check if pip is available"""
+    env = get_pip_win_env() if 'win' in sys.platform else {}
     # run pip and check return code
     popen_pip = subprocess.Popen(['pip', '--help'],
-                                 stdout=subprocess.PIPE, shell=True)
+                                 stdout=subprocess.PIPE, shell=True, env=env)
     if popen_pip.wait():
         print('pip is not available')
         if install:
