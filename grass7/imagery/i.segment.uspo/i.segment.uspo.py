@@ -97,7 +97,7 @@
 #%option
 #% key: minsizes
 #% type: integer
-#% description: Minimum number of cells in a segment
+#% description: Minimum number of cells in a segment to test
 #% multiple: yes
 #% required: no
 #%end
@@ -292,7 +292,7 @@ def nonhier_worker(parms, parameter_queue, result_queue):
 def hierarchical_seg(parms, thresholds, minsize):
     """ Do hierarchical segmentation for a vector of thresholds and a specific minsize"""
 
-    outputs_prefix = parms['temp_segment_map'] + "_%s" % parms['region']
+    outputs_prefix = parms['temp_segment_map'] + "__%s" % parms['region']
     outputs_prefix += "__%.2f"
     outputs_prefix += "__%d" % minsize
     previous = None
@@ -327,7 +327,7 @@ def hierarchical_seg(parms, thresholds, minsize):
 def non_hierarchical_seg(parms, threshold, minsize):
     """ Do non-hierarchical segmentation for a specific threshold and minsize"""
 
-    temp_segment_map_thresh = parms['temp_segment_map'] + "_%s" % parms['region']
+    temp_segment_map_thresh = parms['temp_segment_map'] + "__%s" % parms['region']
     temp_segment_map_thresh += "__%.2f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
     gscript.run_command('i.segment',
@@ -470,6 +470,8 @@ def find_optimal_value_indices(optlist, nb_best):
     """ Find the nb_best values in the list of optimization function values and return their indices """
 
     sorted_list = sorted(optlist, reverse=True)
+    if len(sorted_list) < nb_best:
+        nb_best = len(sorted_list)
     opt_indices = [] 
     for best in range(nb_best):
 	 opt_indices.append(optlist.index(sorted_list[best]))
@@ -613,18 +615,20 @@ def main():
                                            opt_function,
                                            alpha,
                                            directions[indicator])
-	regiondict[region] = zip(regional_maplist, variancelist, autocorlist, optlist)
+	regiondict[region] = zip(threshlist, minsizelist, variancelist, autocorlist, optlist)
 
 	optimal_indices = find_optimal_value_indices(optlist, nb_best)
         best_values[region] = []
+        rank = 1
      	for optind in optimal_indices:
 	    best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
-	    maps_to_keep.append(regional_maplist[optind])
+	    maps_to_keep.append([regional_maplist[optind], rank])
+            rank += 1
 
     # Create output
 
     # Output of results of all attempts
-    header_string = "region,threshold,minsize,variance,spatial_autocorrelation,optimization criteria\n"
+    header_string = "region,threshold,minsize,variance,spatial_autocorrelation,optimization_criteria\n"
 
     if output == '-':
         sys.stdout.write(header_string)	
@@ -659,8 +663,9 @@ def main():
     # Keep copies of segmentation results with best values
 
     if segmented_map:
-        for bestmap in maps_to_keep:
-	    outputmap = bestmap.replace(temp_segment_map, segmented_map)
+        for bestmap, rank in maps_to_keep:
+            segmented_map_name = segmented_map + "__rank%d" % rank
+	    outputmap = bestmap.replace(temp_segment_map, segmented_map_name)
             gscript.run_command('g.copy',
                                 raster=[bestmap,outputmap],
                                 quiet=True,

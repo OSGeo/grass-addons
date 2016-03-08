@@ -4,8 +4,8 @@
 optimization for <em><a href="i.segment.html">i.segment</a></em>. It runs
 segmentation across a user defined set of thresholds and minimum segment sizes
 and then selects the parameters providing the highest values of a given
-optimization function. The number of parameter sets to provide to the user is
-defined by <b>number_best</b>.
+optimization function. The number of "best" parameter combinations to provide 
+to the user per <b>region</b> is defined by <b>number_best</b>.
 
 <p>The user provides an imagery <b>group</b> and the name of an <b>output</b>
 text file where parameter and optimization values for all tested segmentations
@@ -25,19 +25,22 @@ href="https://en.wikipedia.org/wiki/Moran%27s_I">Moran's I</a> or <a
 href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>.
 
 <p> The user can chose between hierarchical and non-hierarchical segmentation
-using the <b>n</b> flag within a given minimum segment size.  The former uses <a
-href="https://grass.osgeo.org/grass70/manuals/addons/i.segment.hierarchical.html">i.segment.hierarchical</a> which uses
-each segmentation at a given threshold level as seed for the segmentation at the
-next threshold level.  <p> The <b>segment_map</b> parameter allows to provide a
+using the <b>n</b> flag. The former uses each segmentation at a given threshold
+level as seed for the segmentation at the next threshold level within a given 
+minimum segment size.i
+
+<p>The <b>segment_map</b> parameter allows to provide a
 basename for keeping the <b>number_best</b> best segmentations for each given
 <b>region</b> according to the optimization function. The resulting map names
-will be a combination of this basename, the region, the threshold and the
-minsize value.
+will be a combination of this basename, the region, the threshold, the
+minsize and the rank of the map within the region according to its optimization
+criteria value.
 
 <p> The module uses high-level parallelisation (running different segmentations
 in parallel and then running the collection of parameter values in parallel).
 The parameter <b>processes</b> allows to define how many processes should be run
-in parallel.
+in parallel. Note that when using hierarchical segmentation the number of parallel 
+processes is limited to the number of different mininum segment sizes to test.
 
 <p> The <b>k</b> flag allows to keep all segmentation maps created during the
 process.
@@ -77,20 +80,26 @@ i.segment.uspo group=ortho regions=region1,region2 \
 G. M. Espindola , G. Camara , I. A. Reis , L. S. Bins , A. M. Monteiroi (2006),
 Parameter selection for region-growing image segmentation algorithms using
 spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
-14, pp. 3035-3040, http://dx.doi.org/10.1080%2f01431160600617194
+14, pp. 3035-3040, <a href="http://dx.doi.org/10.1080%2f01431160600617194">
+	http://dx.doi.org/10.1080%2f01431160600617194</a>
+<br>
 <br>
 B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog (2015),
 Image Segmentation Parameter Optimization Considering Within- and
 Between-Segment Heterogeneity at Multiple Scale Levels: Test Case for Mapping
 Residential Areas Using Landsat Imagery, ISPRS International Journal of
-Geo-Information, 4(4), pp. 2292-2305, http://dx.doi.org/10.3390/ijgi4042292
+Geo-Information, 4(4), pp. 2292-2305, <a href="http://dx.doi.org/10.3390/ijgi4042292">
+	http://dx.doi.org/10.3390/ijgi4042292</a>
 
 <h2>SEE ALSO</h2>
 
 <a href="i.segment.html">i.segment</a>,<br>
+<a href="i.group.html">i.group</a>,<br>
 <a href="https://grass.osgeo.org/grass70/manuals/addons/i.segment.hierarchical.html">i.segment.hierarchical</a>,<br>
 <a href="https://grass.osgeo.org/grass70/manuals/addons/r.neighborhoodmatrix.html">r.neighborhoodmatrix</a><br>
 
-<h2>AUTHOR</h2> Moritz Lennert
+<h2>AUTHOR</h2> 
+
+Moritz Lennert
 
 <p><i>Last changed: $Date$</i>
