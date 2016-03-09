@@ -3,6 +3,7 @@ MODULE_TOPDIR = ..
 
 # display gui misc raster3d
 SUBDIRS = \
+	db \
 	display \
 	general \
 	imagery \
