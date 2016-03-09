@@ -12,6 +12,8 @@
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
 #
+# TODO: use "BEGIN TRANSACTION" 
+#            or f.write("{}\n".format(grass.db_begin_transaction(fi['driver']))) ?
 #############################################################################
 
 #%module
@@ -147,11 +149,13 @@ def main():
 
         # add only the new column to the table
         if colname not in all_cols_tt:
-            try:
-                grass.run_command('db.addcolumn', table=table,
-                                  columns=colspec)
-            except CalledModuleError:
-                grass.fatal(_("Error creating column <%s>") % colname)
+            p = grass.feed_command('db.execute', input = '-', database = database, driver = driver)
+            p.stdin.write("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
+            grass.debug("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
+            p.stdin.close()
+            if p.wait() != 0:
+                grass.fatal(_("Unable to add column <%s>.") % colname)
+
 
         stmt = template.substitute(table=table, column=column,
                                    otable=otable, ocolumn=ocolumn,
