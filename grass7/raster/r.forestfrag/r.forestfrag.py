@@ -398,7 +398,7 @@ def main():
         text_file.write("It thus (roughly) estimates the conditional probability that, given a\n")
         text_file.write("pixel of forest, its neighbor is also forest")
         text_file.close()
-        grass.run_command("r.support", map="Mosaic1_pf@forestfrag",
+        grass.run_command("r.support", map=pff,
                           title="Conditional probability neighboring cell is forest",
                           units="Proportion",
                           source1="based on " + ipl,
