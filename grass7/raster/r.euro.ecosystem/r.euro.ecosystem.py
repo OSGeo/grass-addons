@@ -203,6 +203,8 @@ def main():
         134|A3_4 Infralittoral and circalittoral rock and other hard substrata
         105|A5 Sublittoral sediment
         106|A6 Deep-sea bed
+        109|X1 Estuaries
+        110|X2_3 Coastal lagoons
         181|A1_8 Littoral rock and other hard substrata and sea ice
         182|A2_8 Littoral sediment and sea ice
         128|A1_2_8 Littoral rock or sediment and sea ice
