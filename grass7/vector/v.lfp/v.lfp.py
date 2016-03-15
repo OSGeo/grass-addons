@@ -99,7 +99,7 @@ def convert_lfp(input, output, coords):
         firstcat = ""
         for line in p.stdout:
             line = line.rstrip("\n")
-            if line == "cat|value|length":
+            if line.startswith("cat|value|"):
                 continue
             cols = line.split("|")
             firstcat = cols[0]
