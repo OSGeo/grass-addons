@@ -12,8 +12,6 @@
 #               will calculated again after removing the variables with the
 #               highest VIF. This will be repeated till the VIF falls below
 #               the user defined VIF threshold value.
-# TODO          Include the option to force the function to retain one or more
-#               variables
 # Dependency:    r.regression.multi
 #
 # COPYRIGHT: (C) 2015 Paulo van Breugel
@@ -38,9 +36,9 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: variables
-#% key_desc: name
 #% required: yes
 #% multiple: yes
+#% guisection: Input
 #%end
 
 #%option
@@ -48,16 +46,16 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: variables to retain
-#% key_desc: name
 #% required: no
 #% multiple: yes
+#% guisection: Input
 #%end
 
 #%option G_OPT_F_OUTPUT
 #% key:file
 #% description: Name of output text file
-#% key_desc: name
 #% required: no
+#% guisection: Input
 #%end
 
 #%option
@@ -65,6 +63,7 @@
 #% type: string
 #% description: Maximum vif
 #% key_desc: number
+#% guisection: Input
 #%end
 
 # Testing
