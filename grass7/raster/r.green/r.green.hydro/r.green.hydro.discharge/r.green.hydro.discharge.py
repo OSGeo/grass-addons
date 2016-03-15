@@ -94,7 +94,7 @@
 #% type: string
 #% key_desc: name
 #% description: Name of raster map with minimum flow along the river [m3/s]
-#% required: yes
+#% required: no
 #%end
 #%option G_OPT_R_OUTPUT
 #% key: a_river
@@ -195,7 +195,7 @@ def compute_a(threshold, dtm, stream, a_river, acc):
         the accumulation map and the new streams
     """
     pid = os.getpid()
-    info = gcore.parse_command('g.region', flags='pg')
+    info = gcore.parse_command('g.region', flags='pgm')
     area_px = float(info['nsres'])*float(info['ewres'])
     tmp_stream = 'tmprgreen_%i_stream' % pid
     tmp_tmp_stream = 'tmprgreen_%i_tmpstream' % pid
@@ -219,7 +219,7 @@ def compute_q(threshold, q_spec, q_river, dtm):
     """ Compute the discharge along the river given the specific discharge
     """
     pid = os.getpid()
-    info = gcore.parse_command('g.region', flags='pg')
+    info = gcore.parse_command('g.region', flags='pgm')
     area_px = float(info['nsres'])*float(info['ewres'])
     q_cum = "tmprgreen_%i_q_cum" % pid
     gcore.run_command('r.watershed',
