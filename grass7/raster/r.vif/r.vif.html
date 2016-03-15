@@ -24,56 +24,66 @@ will be removed instead (see the examples).
 
 <h2>EXAMPLES</h2>
 
-Run VIF for five variables, setting the maximum VIF at 10
+The following examples are based on the nc_climate_spm_2000_2012
+sample data set which you can download from
+<a href="https://grass.osgeo.org/download/sample-data/">GRASS GIS sample
+data download page</a>. This data set contains monthly rainfall and
+temperature data for the years 2000 - 2012. In the examples below
+the monthly data of 2000 is used. The analyses are run on a smaller
+region, set below, to reduce the run time.
 
-<div class="code"><pre>r.vif maps=bio_1,bio_2,bio_3,bio_4,bio_5 
-maxvif=10 file=results.txt
+<div class="code"><pre>g.region n=226000 s=168500 w=229500 e=298500</pre></div>
 
-VIF bio_1 = 76.6694778809
-VIF bio_2 = 13.0044084945
-VIF bio_3 = 5.30160850802
-VIF bio_4 = 4.24765529428
-VIF bio_5 = 96.27418889
-VIF bio_1 = 1.09855463167
-VIF bio_2 = 1.99532296297
-VIF bio_3 = 4.36471563878
-VIF bio_4 = 3.76425240065
+<p>Example 1: Run VIF, setting the maximum VIF at 10. The function
+will print the VIF computed at each step to the console. The same
+will also be written to a text file. Below only the last part is
+shown with the VIF values of the finally selected variables are
+shown. The maximum VIF of 7.58 below is thus based on the R^2 of the
+regression of 2011_07_precip against the other 5 selected variables.
 
-selected variables are:
-bio_1, bio_2, bio_3, bio_4
-with as maximum VIF: 4.36471563878
+<div class="code"><pre>MAPS=`g.list type=raster pattern=*2011*precip sep=,`
+r.vif maps=$MAPS file=results1.txt maxvif=10
 
-Statistics are written to results.txt
-</pre></div>
-
-Run VIF for five variables, setting the maximum VIF at 10, and opt 
-to retain the variable bio_5.
-
-<div class="code"><pre>r.vif maps=bio_1,bio_2,bio_3,bio_4,bio_5 
-maxvif=10 retain=bio_5 file=results.txt
-
-VIF bio_1 = 76.6694778809
-VIF bio_2 = 13.0044084945
-VIF bio_3 = 5.30160850802
-VIF bio_4 = 4.24765529428
-VIF bio_5 = 96.27418889
-VIF bio_2 = 2.11511290473
-VIF bio_3 = 4.34705117783
-VIF bio_4 = 3.83640053556
-VIF bio_5 = 1.37949300873
+...
+VIF 2011_01_precip = 4.24671728754
+VIF 2011_04_precip = 5.22212300189
+VIF 2011_05_precip = 4.86092882628
+VIF 2011_06_precip = 7.12641548428
+VIF 2011_07_precip = 7.5778242551
+VIF 2011_08_precip = 3.3151772128
 
 selected variables are:
-bio_2, bio_3, bio_4, bio_5
-with as maximum VIF: 4.34705117783
+2011_01_precip, 2011_04_precip, 2011_05_precip, 2011_06_precip,
+2011_07_precip, 2011_08_precip
+with as maximum VIF: 7.5778242551
 
-Statistics are written to results.txt
+Statistics are written to results1.txt
 </pre></div>
 
-In the second example, the bio_5 variable is retained, and the 
-variable bio_1, which has the next highest VIF, is removed. Note 
-that the final VIF of the second example is in fact (slightly) 
-lower, showing that default procedure may not always result in the 
-lowest possible VIF.
+<p>Example 2: Run the same VIF analysis as above, but this time tell
+the function to retain the variable 2011_02_precip. The maximum VIF
+of 9.72 below is based on the R^2 of the regression of
+2011_06_precip against the other 6 selected variables.
+
+<div class="code"><pre>MAPS=`g.list type=raster pattern=*2011*precip sep=,`
+r.vif maps=$MAPS maxvif=10 retain=2011_02_precip file=results2.txt
+
+...
+VIF 2011_02_precip = 9.29298936882
+VIF 2011_03_precip = 9.01810836159
+VIF 2011_04_precip = 6.2991729186
+VIF 2011_05_precip = 4.99445615367
+VIF 2011_06_precip = 9.71883412866
+VIF 2011_07_precip = 8.35889762858
+VIF 2011_08_precip = 3.30091831548
+
+selected variables are:
+2011_02_precip, 2011_03_precip, 2011_04_precip, 2011_05_precip,
+2011_06_precip, 2011_07_precip, 2011_08_precip
+with as maximum VIF: 9.71883412866
+
+Statistics are written to results2.txt
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
