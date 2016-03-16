@@ -712,7 +712,7 @@ def dtm_corr(dtm, river, dtm_corr, lake=None):
     """
     pid = os.getpid()
     msgr = get_msgr()
-    info = gcore.parse_command('g.region', flags='pg')
+    info = gcore.parse_command('g.region', flags='pgm')
 
     if lake:
         tmp_network = "tmprgreen_%i_network" % pid
