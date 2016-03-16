@@ -183,7 +183,6 @@ def main(options, flags):
         warn = ("Discharge map doesn't overlay all the stream map."
                 "It covers only the %s %% of rivers") % (perc_overlay)
         msgr.warning(warn)
-        import ipdb; ipdb.set_trace()
 
     msgr.message("\Init basins\n")
     #pdb.set_trace()
