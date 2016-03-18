@@ -56,7 +56,7 @@ def calculate_lfp(input, output, coords):
 
     try:
         grass.run_command("v.to.rast", overwrite=True,
-                          input=outlet, output=outlet, use="cat")
+                          input=outlet, output=outlet, use="cat", type="point")
     except CalledModuleError:
         grass.fatal(_("Cannot convert outlet vector to raster"))
 
