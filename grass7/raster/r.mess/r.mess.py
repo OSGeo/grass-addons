@@ -478,12 +478,9 @@ def main():
 
     # sum(IES), where IES < 0
     if flk:
-        MinMes = grass.read_command("r.info", quiet=True, flags="r", map=opc)
-        MinMes = str.splitlines(MinMes)
-        MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
         mod = opc + "SumNeg"
         c0 = -0.01/digits2
-        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="sum", range=(MinMes,c0))
+        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="sum", range=('-inf',c0))
         grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
 
     # Number of layers with negative values
