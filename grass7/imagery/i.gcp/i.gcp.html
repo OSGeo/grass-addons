@@ -1,0 +1,94 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.gcp</em> manages Ground Control Points (GCPs) non-interactively.
+
+
+<h2>NOTES</h2>
+
+Unlike <em>g.gui.gcp</em>, <em>i.gcp</em> can be invoked from the command line
+or scripts to manage GCPs. It is recommended to create a backup copy of the
+original POINTS file using <b>-b</b> before making changes to the file. The
+backup POINTS file (POINTS_BAK) can be restored using <b>-r</b> or removed
+later using <b>-B</b>. GCPs in the backup POINTS file can be listed using
+<b>-L</b>.
+
+
+<h2>EXAMPLES</h2>
+
+List all GCPs in group &quot;sar&quot;:
+<div class="code"><pre>
+i.gcp -l group=sar
+</pre></div>
+
+Create a backup copy of the current POINTS file:
+<div class="code"><pre>
+i.gcp -b group=sar
+</pre></div>
+
+Clear all GCPs first by removing the POINTS file:
+<div class="code"><pre>
+i.gcp -c group=sar
+</pre></div>
+
+Add new GCPs at the bottom-left and top-right corners of the satellite imagery:
+<div class="code"><pre>
+i.gcp group=sar image_coordinates=0,0,31996,32239 target_coordinates=493920,3880490,529470,3916310
+</pre></div>
+
+Add another GCP that will be ignored for now and list all GCPs:
+<div class="code"><pre>
+i.gcp -l group=sar image_coordinates=100,100 target_coordinates=500000,4000000 status=ignore
+</pre></div>
+
+Use the GCP just added and list all:
+<div class="code"><pre>
+i.gcp -u -l group=sar point=3
+</pre></div>
+
+Delete point 1:
+<div class="code"><pre>
+i.gcp -d -l group=sar point=1
+</pre></div>
+
+Ignore points 1-2:
+<div class="code"><pre>
+i.gcp -i -l group=sar point=1-2
+</pre></div>
+
+List GCPs in the backup POINTS file:
+<div class="code"><pre>
+i.gcp -L group=sar
+</pre></div>
+
+Restore the backup POINTS file:
+<div class="code"><pre>
+i.gcp -r group=sar
+</pre></div>
+
+Remove the backup POINTS file:
+<div class="code"><pre>
+i.gcp -B group=sar
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+The GRASS 4 <em>
+<a href="http://grass.OSGeo.org/gdp/imagery/grass4_image_processing.pdf">Image
+Processing manual</a></em>
+
+<p>
+<em>
+<a href="i.group.html">i.group</a><br>
+<a href="i.target.html">i.target</a><br>
+<a href="i.rectify.html">i.rectify</a><br>
+<a href="wxGUI.GCP_Manager.html">Ground Control Point Manager</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>
+
+<p>
+<i>Last changed: $Date: 2012-04-10 14:52:23 -0400 (Tue, 10 Apr 2012) $</i>
