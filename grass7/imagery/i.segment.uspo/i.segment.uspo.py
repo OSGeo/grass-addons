@@ -622,7 +622,7 @@ def main():
         rank = 1
      	for optind in optimal_indices:
 	    best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
-	    maps_to_keep.append([regional_maplist[optind], rank])
+	    maps_to_keep.append([regional_maplist[optind], rank, region])
             rank += 1
 
     # Create output
@@ -663,9 +663,8 @@ def main():
     # Keep copies of segmentation results with best values
 
     if segmented_map:
-        for bestmap, rank in maps_to_keep:
-            segmented_map_name = segmented_map + "__rank%d" % rank
-	    outputmap = bestmap.replace(temp_segment_map, segmented_map_name)
+        for bestmap, rank, region in maps_to_keep:
+            outputmap = region + "__rank%d" % rank
             gscript.run_command('g.copy',
                                 raster=[bestmap,outputmap],
                                 quiet=True,
