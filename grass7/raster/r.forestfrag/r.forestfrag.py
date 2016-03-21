@@ -101,10 +101,11 @@ if not os.environ.has_key("GISBASE"):
     sys.exit(1)
 
 # create set to store names of temporary maps to be deleted upon exit
-clean_rast = set()
+clean_rast = []
 
 def cleanup():
-    for rast in clean_rast:
+    cleanrast = list(reversed(clean_rast))
+    for rast in cleanrast:
         grass.run_command("g.remove", flags="f", type="rast", name=rast, quiet=True)
 
 #----------------------------------------------------------------------------
@@ -119,7 +120,7 @@ def CheckLayer(envlay):
 def tmpname(prefix):
     tmpf = prefix + str(uuid.uuid4())
     tmpf = string.replace(tmpf, '-', '_')
-    clean_rast.add(tmpf)
+    clean_rast.append(tmpf)
     return tmpf
 
 #----------------------------------------------------------------------------
@@ -182,11 +183,6 @@ def main():
     grass.mapcalc("$pf = float($tmpA2) / float($tmpC3)", pf=pf,
                   tmpA2=tmpA2, tmpC3=tmpC3,quiet=True)
 
-    # Clean up
-    grass.run_command("g.remove", quiet=True,
-                      flags="f", type="raster",
-                      name=[tmpA2, tmpC3])
-
     #------------------------------------------------------------------------
     # computing pff values
     #------------------------------------------------------------------------
@@ -205,7 +201,7 @@ def main():
     SWn= int((wz - 1) / 2)
 
     # Write mapcalc expression to tmpf - rows
-    tmpfile2 = tempfile.mkstemp()[1]
+    fd2, tmpfile2 = tempfile.mkstemp()
     tmpl4 = tmpname('pff1_')
     text_file = open(tmpfile2, "w")
     text_file.write(tmpl4 + " = ")
@@ -227,12 +223,13 @@ def main():
     text_file.close()
 
     grass.run_command("r.mapcalc", file=tmpfile2, quiet=True)
+    os.close(fd2)
     os.remove(tmpfile2)
 
     # number of 'forest patches
     #------------------------------------------------------------------------
 
-    tmpfile3 = tempfile.mkstemp()[1]
+    fd3, tmpfile3 = tempfile.mkstemp()
     tmpl5 = tmpname('pff2_')
     text_file = open(tmpfile3, "w")
     text_file.write(tmpl5 + " = ")
@@ -255,6 +252,7 @@ def main():
     text_file.close()
 
     grass.run_command("r.mapcalc", file=tmpfile3, quiet=True)
+    os.close(fd3)
     os.remove(tmpfile3)
 
     # create pff map
@@ -298,8 +296,8 @@ def main():
 
     #create categories
     indexfin3 =  tmpname('indexfin3_')
-    tmprul = tempfile.mkstemp()
-    text_file = open(tmprul[1], "w")
+    fd4, tmprul = tempfile.mkstemp()
+    text_file = open(tmprul, "w")
     text_file.write("0 = 0 nonforest\n")
     text_file.write("1 = 1 patch\n")
     text_file.write("2 = 2 transitional\n")
@@ -309,8 +307,9 @@ def main():
     text_file.write("6 = 6 undetermined\n")
     text_file.close()
     grass.run_command("r.reclass", quiet=True, input=indexfin2, output=indexfin3,
-                      title="fragmentation index", rules=tmprul[1])
-    os.remove(tmprul[1])
+                      title="fragmentation index", rules=tmprul)
+    os.close(fd4)
+    os.remove(tmprul)
 
     # Shrink the region
     if flag_a:
@@ -327,12 +326,10 @@ def main():
                           quiet=True)
     grass.mapcalc("$opl = $if3", opl=opl, if3=indexfin3, quiet=True)
     grass.run_command("r.null", map=opl, null=0, quiet=True)
-    grass.run_command("g.remove", flags="f", quiet=True, type="rast", name=[indexfin3])
-    grass.run_command("g.remove", flags="f", quiet=True, type="rast", name=[indexfin2])
 
     #create color codes
-    tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol[1], "w")
+    fd5, tmpcol = tempfile.mkstemp()
+    text_file = open(tmpcol, "w")
     text_file.write("0 255:255:0\n")
     text_file.write("1 215:48:39\n")
     text_file.write("2 252:141:89\n")
@@ -341,8 +338,9 @@ def main():
     text_file.write("5 26:152:80\n")
     text_file.write("6 145:207:96\n")
     text_file.close()
-    grass.run_command("r.colors", quiet=True, map=opl, rules=tmpcol[1])
-    os.remove(tmpcol[1])
+    grass.run_command("r.colors", quiet=True, map=opl, rules=tmpcol)
+    os.close(fd5)
+    os.remove(tmpcol)
 
     # Function call
 
@@ -358,8 +356,8 @@ def main():
             "\n\twindow=" + str(wz) + rflag + tflag + sflag + aflag
 
     # Write metadata for main layer
-    tmphist = tempfile.mkstemp()
-    text_file = open(tmphist[1], "w")
+    fd6, tmphist = tempfile.mkstemp()
+    text_file = open(tmphist, "w")
     text_file.write("Forest fragmentation index (6 classes) following Riiters et al. (2000)\n\
 \t(1) patch\n\t(2) transitional\n\t(3) edge\n\t(4) perforated\n\t(5) interior\n\t(6) undetermined\n")
     text_file.write("\ncreated using:\n")
@@ -370,12 +368,14 @@ def main():
                       source1="based on " + ipl,
                       source2="",
                       description="Forst fragmentation index (6 classes)",
-                      loadhistory=tmphist[1])
+                      loadhistory=tmphist)
+    os.close(fd6)
+    os.remove(tmphist)
 
     # Write metadata for intermediate layers
     if flag_t:
         # pf layer
-        tmphist = tempfile.mkstemp()
+        fd7, tmphist = tempfile.mkstemp()
         text_file = open(tmphist[1], "w")
         text_file.write("created using:\n")
         text_file.write(desctxt + "\n")
@@ -386,11 +386,13 @@ def main():
                           source1="based on " + ipl,
                           source2="",
                           description="Proportion of pixels in the moving window that is forested",
-                          loadhistory=tmphist[1])
+                          loadhistory=tmphist)
+        os.close(fd7)
+        os.remove(tmphist)
 
         # pff layer
-        tmphist = tempfile.mkstemp()
-        text_file = open(tmphist[1], "w")
+        fd8, tmphist = tempfile.mkstemp()
+        text_file = open(tmphist, "w")
         text_file.write("created using:\n")
         text_file.write(desctxt + "\n\n")
         text_file.write("Proportion of all adjacent (cardinal directions only) pixel pairs that\n")
@@ -405,7 +407,8 @@ def main():
                           source2="",
                           description="Probability neighbor of forest cell is forest",
                           loadhistory=tmphist[1])
-
+        os.close(fd8)
+        os.remove(tmphist)
 
     #------------------------------------------------------------------------
     # Report fragmentation index and names of layers created
@@ -422,20 +425,15 @@ def main():
         grass.run_command("g.rename", quiet=True, raster=[pff,opl + "_pff"])
         grass.info("The proportion forested (pf): " + opl + "_pf\n")
         grass.info("The proportion forested pixel pairs: " + opl + "_pff\n")
-    else:
-        grass.run_command("g.remove", flags="f", quiet=True, type="rast", name=[pf,pff])
+        clean_rast.remove(pf)
+        clean_rast.remove(pff)
 
     #------------------------------------------------------------------------
     # Clean up
     #------------------------------------------------------------------------
     if flag_a:
         grass.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
-        grass.run_command("g.remove", flags="f", type="region", quiet=True, name=regionoriginal)
     os.removedirs(tmpdir)
-    os.remove(tmphist[1])
-    grass.run_command("g.remove", flags="f", quiet=True, type="rast", name=[f1,f2,f3,f4,f5,f6, pf2])
-    grass.run_command("g.remove", flags="f", quiet=True, type="rast", name=[tmpl4,tmpl5,Index])
-
 
 if __name__ == "__main__":
     options, flags = grass.parser()
