@@ -162,8 +162,8 @@ if not os.environ.has_key("GISBASE"):
 clean_rast = set()
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove",
-        type="rast", name = rast, quiet = True)
+        grass.run_command("g.remove", type=["rast", "region"], name = rast,
+                          quiet = True, flags="f")
 
 def CheckLayer(envlay):
     for chl in xrange(len(envlay)):
@@ -217,7 +217,8 @@ def main():
         ipl2 = ipl2.split(',')
         CheckLayer(ipl2)
         if len(ipl2) != len(ipl) and len(ipl2) != 0:
-            grass.fatal('number of old and new environmental variables is not the same')
+            msg = 'number of old and new environmental variables is not the same'
+            grass.fatal(msg)
 
     # output layers
     opl = options['output']
@@ -238,8 +239,8 @@ def main():
     digits2 = pow(10, digits)
 
     # Color table
-    tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol[1], "w")
+    fd1, tmpcol = tempfile.mkstemp()
+    text_file = open(tmpcol, "w")
     text_file.write("0% 244:109:67\n")
     text_file.write("0 255:255:210\n")
     text_file.write("100% 50:136:189\n")
@@ -330,8 +331,8 @@ def main():
             a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
             b1 = np.hstack([(0), c])
 
-            tmprule = tempfile.mkstemp(suffix=ipn[i])
-            text_file = open(tmprule[1], "w")
+            fd2, tmprule = tempfile.mkstemp(suffix=ipn[i])
+            text_file = open(tmprule, "w")
             for k in np.arange(0,len(b1.T)):
                 rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
                 text_file.write(rtmp + "\n")
@@ -339,24 +340,22 @@ def main():
 
             # Create the recode layer and calculate the IES
             tmpf3 = tmpname('rmess_tmp3')
-            grass.run_command("r.recode", input=tmpf2, output=tmpf3, rules=tmprule[1])
+            grass.run_command("r.recode", input=tmpf2, output=tmpf3, rules=tmprule)
             z1 = ipi[i] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
             z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
             z3 = ", if(" + tmpf3 + "<100, 2*(100-float(" + tmpf3 + "))"
             z4 = ", (" + str(float(envmax)) + "- float(" + tmpf2 + "))/(" + str(float(envmax)) + "-" + str(float(envmin)) +  ") * 100.0)))"
             calcc = z1 + z2 + z3 + z4
             grass.mapcalc(calcc, quiet=True)
-            grass.run_command("r.colors", quiet=True, map=ipi[i], rules=tmpcol[1])
-            grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=[tmpf1,tmpf2,tmpf3])
-            os.remove(tmprule[1])
+            grass.run_command("r.colors", quiet=True, map=ipi[i], rules=tmpcol)
+            os.close(fd2)
+            os.remove(tmprule)
             grass.run_command("g.region", quiet=True, region=regionbackup)
 
         if citiam['fullname'] != '':
             grass.mapcalc("MASK1 = 1 * MASK", overwrite=True)
             grass.run_command("r.mask", quiet=True, flags="r")
-            grass.run_command("g.remove", quiet=True, flags="fb", type="raster", pattern=rname)
             grass.run_command("g.rename", raster=("MASK1","MASK"))
-        grass.run_command("g.remove", quiet=True, flags="f", type="raster", pattern=tmpf0)
 
     #----------------------------------------------------------------------------
     # Create the recode table - Reference distribution is vector
@@ -424,8 +423,8 @@ def main():
             a2 = np.hstack([a0 -1, (e2) ])
             b1 = np.hstack([(0), c])
 
-            tmprule = tempfile.mkstemp(suffix=ipn[m])
-            text_file = open(tmprule[1], "w")
+            fd3, tmprule = tempfile.mkstemp(suffix=ipn[m])
+            text_file = open(tmprule, "w")
             for k in np.arange(0,len(b1)):
                 rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
                 text_file.write(rtmp + "\n")
@@ -433,7 +432,7 @@ def main():
 
             # Create the recode layer and calculate the IES
             tmpf3 = tmpname('rmess_tmp3')
-            grass.run_command("r.recode", quiet=True, input=tmpf2, output=tmpf3, rules=tmprule[1])
+            grass.run_command("r.recode", quiet=True, input=tmpf2, output=tmpf3, rules=tmprule)
 
             z1 = ipi[m] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
             z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
@@ -441,16 +440,12 @@ def main():
             z4 = ", (" + str(float(envmax)) + "- float(" + tmpf2 + "))/(" + str(float(envmax)) + "-" + str(float(envmin)) +  ") * 100.0)))"
             calcc = z1 + z2 + z3 + z4
             grass.mapcalc(calcc, quiet=True)
-            grass.run_command("r.colors", quiet=True, map=ipi[m], rules=tmpcol[1])
+            grass.run_command("r.colors", quiet=True, map=ipi[m], rules=tmpcol)
 
             # Clean up
-            grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=[tmpf2,tmpf3])
-            os.remove(tmprule[1])
+            os.close(fd3)
+            os.remove(tmprule)
             grass.run_command("g.region", quiet=True, region=regionbackup)
-
-        # Clean up
-        grass.run_command("g.remove", quiet=True, flags="f", type="vector", name=tmpf0)
-
 
     #-----------------------------------------------------------------------
     # Calculate MESS statistics
@@ -458,7 +453,11 @@ def main():
 
     # MESS
     grass.run_command("r.series", quiet=True, output=opc, input=ipi, method="minimum")
-    grass.run_command("r.colors", quiet=True, map=opc, rules=tmpcol[1])
+    grass.run_command("r.colors", quiet=True, map=opc, rules=tmpcol)
+    grass.message("\n")
+    grass.message("The following layers were created:")
+    grass.message("\n")
+    grass.message("MES layer:       " + opc)
 
     # Area with negative MESS
     if fln:
@@ -468,13 +467,15 @@ def main():
     if flm:
         mod = opc + "_MoD"
         grass.run_command("r.series", quiet=True, output=mod, input=ipi, method="min_raster")
-        tmpcat = tempfile.mkstemp()
-        text_file = open(tmpcat[1], "w")
+        fd4, tmpcat = tempfile.mkstemp()
+        text_file = open(tmpcat, "w")
         for cats in xrange(len(ipi)):
             text_file.write(str(cats) + ":" + ipi[cats] + "\n")
         text_file.close()
-        grass.run_command("r.category", quiet=True, map=mod, rules=tmpcat[1], separator=":")
-        os.remove(tmpcat[1])
+        grass.run_command("r.category", quiet=True, map=mod, rules=tmpcat, separator=":")
+        os.close(fd4)
+        os.remove(tmpcat)
+        grass.message("MoD layer:       " + mod)
 
     # sum(IES), where IES < 0
     if flk:
@@ -482,6 +483,7 @@ def main():
         c0 = -0.01/digits2
         grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="sum", range=('-inf',c0))
         grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
+        grass.message("Sum(IES):        " + mod)
 
     # Number of layers with negative values
     if fll:
@@ -492,21 +494,14 @@ def main():
         c0 = -0.0001/digits2
         grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="count", range=(MinMes,c0))
         grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
+        grass.message("Count(layers<0): " + mod)
+        grass.message("\n")
 
     # Remove IES layers
     if fli:
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
 
-    #=======================================================================
-    ## Clean up
-    #=======================================================================
-
-    grass.run_command("g.remove", type="region", flags="f", quiet=True, name=regionbackup)
-    os.remove(tmpcol[1])
-
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     sys.exit(main())
-
-
