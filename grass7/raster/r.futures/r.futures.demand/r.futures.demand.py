@@ -166,6 +166,8 @@ def main():
     demand = {}
     i = 0
     if plot:
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         n_plots = np.ceil(np.sqrt(len(subregionIds)))
         fig = plt.figure(figsize=(5 * n_plots, 5 * n_plots))
