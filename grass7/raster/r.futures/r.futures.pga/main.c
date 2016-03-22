@@ -174,6 +174,7 @@ typedef struct
     float *predictors;
     /** multiplicative factor on the probabilities */
     float *consWeight;
+    float *stimulus;
 } t_Landscape;
 
 
@@ -190,6 +191,7 @@ typedef struct
     char *developedFile;
     char *devPressureFile;
     char *consWeightFile;
+    char *stimulus;
     char *probLookupFile;
     int nProbLookup;
     double *adProbLookup;
@@ -509,12 +511,19 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
     bRet = 0;
     szBuff = (char *) G_malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
     if (szBuff) {
-        for (j = 0; j < 3; j++) {
+        for (j = 0; j < 4; j++) {
             /* workaround to skip loading constraint map so that it can be omitted in input */
             if (j == 2) {
                 pLandscape->consWeight = NULL;
                 if (pParams->consWeightFile)
                     pLandscape->consWeight = (float *)G_malloc(pLandscape->totalCells * sizeof(float));
+                else
+                    continue;
+            }
+            if (j == 3) {
+                pLandscape->stimulus = NULL;
+                if (pParams->stimulus)
+                    pLandscape->stimulus = (float *)G_malloc(pLandscape->totalCells * sizeof(float));
                 else
                     continue;
             }
@@ -527,6 +536,9 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
                 break;
             case 2:
                 strcpy(szFName, pParams->consWeightFile);
+                break;
+            case 3:
+                strcpy(szFName, pParams->stimulus);
                 break;
             default:
                 G_fatal_error("readData(): shouldn't get here");
@@ -603,6 +615,11 @@ int readData(t_Landscape * pLandscape, t_Params * pParams)
                         case 2:
                             if (pLandscape->consWeight) {
                                 pLandscape->consWeight[i] = dVal;
+                            }
+                            break;
+                        case 3:
+                            if (pLandscape->stimulus) {
+                                pLandscape->stimulus[i] = dVal;
                             }
                             break;
                         default:
@@ -829,6 +846,7 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
             pThis->bUntouched = 0;
             if (pThis->bUndeveloped) {
                 double consWeight = pLandscape->consWeight ? pLandscape->consWeight[thisPos] : 1;
+                double stimulus = pLandscape->stimulus ? pLandscape->stimulus[thisPos] : 0;
                 if (consWeight > 0.0) {
                     /* need to add this cell... */
 
@@ -877,6 +895,9 @@ int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
                             probAdd = pParams->adProbLookup[lookupPos];
                         }
                         probAdd *= consWeight;
+                        // encourage development
+                        if (stimulus > 0)
+                            probAdd = probAdd + stimulus - probAdd * stimulus;
                         pNeighbours->aCandidates[pNeighbours->nCandidates].
                             probAdd = probAdd;
                         /* only actually add it if will ever transition */
@@ -1420,7 +1441,7 @@ int main(int argc, char **argv)
             *consWeightFile, *addVariableFiles, *nDevNeighbourhood,
             *devpotParamsFile, *dumpFile, *outputSeries,
             *parcelSizeFile, *discountFactor,
-            /* *probLookupFile,*/ *incentivePower,
+            /* *probLookupFile,*/ *incentivePower, *stimulus,
             *patchMean, *patchRange, *numNeighbors, *seedSearch,
             *devPressureApproach, *alpha, *scalingFactor, *num_Regions,
             *numSteps, *indexFile, *controlFileAll, *seed;
@@ -1634,6 +1655,15 @@ int main(int argc, char **argv)
         _("Values must be between 0 and 1, 1 means no constraint.");
     opt.consWeightFile->guisection = _("Scenarios");
 
+    opt.stimulus = G_define_standard_option(G_OPT_R_INPUT);
+    opt.stimulus->key = "stimulus";
+    opt.stimulus->required = NO;
+    opt.stimulus->label =
+        _("Raster map representing an increase in development potential for scenarios.");
+    opt.stimulus->description =
+        _("Values must be between 0 and 1, 0 means no increase.");
+    opt.stimulus->guisection = _("Scenarios");
+
     opt.seed = G_define_option();
     opt.seed->key = "random_seed";
     opt.seed->type = TYPE_INTEGER;
@@ -1700,6 +1730,7 @@ int main(int argc, char **argv)
     sParams.developedFile = opt.developedFile->answer;
     sParams.devPressureFile = opt.devPressureFile->answer;
     sParams.consWeightFile = opt.consWeightFile->answer;
+    sParams.stimulus = opt.stimulus->answer;
     sParams.numAddVariables = 0;
     if (opt.numSteps->answer)
         sParams.nSteps = atoi(opt.numSteps->answer);
@@ -1852,6 +1883,8 @@ int main(int argc, char **argv)
     G_free(sLandscape.predictors);
     if (sLandscape.consWeight)
         G_free(sLandscape.consWeight);
+    if (sLandscape.stimulus)
+        G_free(sLandscape.stimulus);
 
     return EXIT_SUCCESS;
 }
@@ -1912,6 +1945,7 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
         if (pThis->nCellType == _CELL_VALID) {
             if (pThis->bUndeveloped) {
                 double consWeight = pLandscape->consWeight ? pLandscape->consWeight[i] : 1;
+                double stimulus = pLandscape->stimulus ? pLandscape->stimulus[i] : 0;
                 if (consWeight > 0.0) {
                     id = pThis->index_region;
                     if (pThis->index_region == -9999)
@@ -1952,6 +1986,11 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
                     }
                     // discount by a conservation factor
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= consWeight;
+                    // encourage development
+                    if (stimulus > 0) {
+                        float logit = pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal;
+                        pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal = logit + stimulus - logit * stimulus;
+                    }
                     /* need to store this to put correct elements near top of list */
                     pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].bUntouched = pThis->bUntouched;
                     if (pLandscape->asUndevs[id]

@@ -66,6 +66,13 @@ The probability surface is simply multiplied by the <b>constrain_weight</b> valu
 which results in decreased site suitability in areas,
 where the <b>constrain_weight</b> values are lower than 1.
 
+<p>Similarly, parameter <b>stimulus</b> (raster map from 0 to 1)
+enables to include policies to encourage growth in an area.
+Using this option results in increased site suitability in areas,
+where the <b>stimulus</b> values are greater than 0.
+The probability surface is transformed from initial probability <em>p</em>
+with stimulus <em>s</em> to p + s - p * s.
+
 <h3>Output</h3>
 After the simulation ends, raster specified in parameter <b>output</b> is written.
 If optional parameter <b>output_series</b> is specified, additional output
@@ -130,6 +137,7 @@ Some inputs are not yet documented.
 <em><a href="r.futures.calib.html">r.futures.calib</a></em>,
 <em><a href="r.futures.demand.html">r.futures.demand</a></em>,
 <em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.parallelpga.html">r.futures.parallelpga</a></em>,
 <em><a href="r.sample.category.html">r.sample.category</a></em>
 
 
