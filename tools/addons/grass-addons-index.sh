@@ -19,39 +19,49 @@ module_prefix () {
     case "$1" in
 	"db")
 	    label="Database"
+	    anchor="db"
 	    ;;
 	"d")
 	    label="Display"
+            anchor="d"
 	    ;;
 	"g")
 	    label="General"
+            anchor="g"
 	    ;;
 	"i")
 	    label="Imagery"
+            anchor="i"
 	    ;;
 	"m")
 	    label="Miscellaneous"
+            anchor="m"
 	    ;;
-
 	"r")
 	    label="Raster"
+            anchor="r"
 	    ;;
 	"r3")
 	    label="3D raster"
+            anchor="r3"
 	    ;;
 	"v")
 	    label="Vector"
+            anchor="v"
 	    ;;
 	"t")
 	    label="Temporal"
+            anchor="t"
 	    ;;
 	"ps")
 	    label="Postscript"
+            anchor="ps"
 	    ;;
 	*)
 	    label="unknown"
 	    ;;
     esac
+    echo "<a name=\"$anchor\"></a>"
     echo "<h3>$label</h3>"
 }
 
@@ -110,7 +120,22 @@ See also log files of compilation:
 <a href=\"http://wingrass.fsv.cvut.cz/grass70/x86/addons/latest/logs/\">Windows log files</a>
 
 </tr></table>
-<hr>" > index.html
+<hr>
+<div class=\"toc\">
+<h4 class=\"toc\">Table of contents</h4>
+<ul class=\"toc\">
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#d\">Display commands (d.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#db\">Database commands (db.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#g\">General commands (g.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#i\">Imagery commands (i.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#m\">Miscellaneous commands (m.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#ps\">PostScript commands (ps.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#r\">Raster commands (r.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#r3\">3D raster commands (r3.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#t\">Temporal commands (t.*)</a></li>
+<li class=\"toc\"><a class=\"toc\" href=\"index.html#v\">Vector commands (v.*)</a></li>
+</ul>
+</div>" > index.html
 
     prefix_last=""
     for currfile in `ls -1 *.html | grep -v index.html` ; do
