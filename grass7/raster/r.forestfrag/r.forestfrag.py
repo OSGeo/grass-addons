@@ -376,7 +376,7 @@ def main():
     if flag_t:
         # pf layer
         fd7, tmphist = tempfile.mkstemp()
-        text_file = open(tmphist[1], "w")
+        text_file = open(tmphist, "w")
         text_file.write("created using:\n")
         text_file.write(desctxt + "\n")
         text_file.close()
@@ -406,7 +406,7 @@ def main():
                           source1="based on " + ipl,
                           source2="",
                           description="Probability neighbor of forest cell is forest",
-                          loadhistory=tmphist[1])
+                          loadhistory=tmphist)
         os.close(fd8)
         os.remove(tmphist)
 
