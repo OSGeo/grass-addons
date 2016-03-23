@@ -44,7 +44,7 @@
 #% multiple: no
 #%end
 
-#%option G_OPT_F_OUTPUT
+#%option G_OPT_F_INPUT
 #% key: rules
 #% label: Full path to rules file
 #% required: yes
@@ -59,28 +59,8 @@
 import os
 import sys
 import numpy as np
-from tempfile import gettempdir, gettempprefix
-from os.path import join
-from string import ascii_lowercase, digits
-from random import choice
+import tempfile
 import grass.script as grass
-
-def cleanup():
-	grass.run_command('g.remove',
-      type = 'raster',
-      pattern = 'tmp_map',
-      flags='f',
-      quiet = True)
-
-def CreateFileName():
-    (suffix1, suffix2) = ("", "")
-    for _ in xrange( 8 ):
-        suffix1 += choice( ascii_lowercase )
-        suffix2 += choice( digits )
-    flname = join(gettempdir(), '-'.join([gettempprefix(), suffix1, suffix2 ]))
-    while os.path.isfile(flname):
-        flname = flname + "1"
-    return flname
 
 # main function
 def main():
@@ -88,7 +68,7 @@ def main():
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
     # return an error advice
-       grass.fatal(_("You must be in GRASS GIS to run this program"))
+       grass.fatal("You must be in GRASS GIS to run this program")
 
     # input raster map and parameters
     inputmap = options['input']
@@ -109,13 +89,19 @@ def main():
     for x in numVar:
         y = x + 1
         myRecode = np.column_stack((myData[:,0], myData[:,0], myData[:,y]))
-        tmpname = CreateFileName()
+
+        fd1, tmpname = tempfile.mkstemp()
         np.savetxt(tmpname, myRecode, delimiter=":")
 
         if len(numVar) == lengthNames:
             nmOutput = outNames[x]
         else:
             nmOutput = outNames[0] + '_' + nmsData[y]
+
+        cf = grass.find_file(name=nmOutput, element = 'cell',
+                          mapset=grass.gisenv()['MAPSET'])
+        if cf['fullname'] != '':
+            grass.fatal("The layer " + nmOutput + " already exist in this mapset")
 
         if flag_a:
             grass.run_command('r.recode',
@@ -128,6 +114,7 @@ def main():
                     input = inputmap,
                     output = nmOutput,
                     rules = tmpname)
+        os.close(fd1)
         os.remove(tmpname)
 
 
