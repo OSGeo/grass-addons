@@ -66,9 +66,6 @@
 #% guisection: Input
 #%end
 
-# Testing
-#options = {"maps":"bio_1_Africa,bio_2_Africa,bio_3_Africa,bio_4_Africa,bio_5_Africa", "output":"bb.txt", retain":"bio_1_Africa", "maxvif":"20", "file":"aa.txt"}
-
 #=======================================================================
 ## General
 #=======================================================================
@@ -76,7 +73,6 @@
 # import libraries
 import os
 import sys
-import atexit
 import math
 import tempfile
 import numpy as np
@@ -94,14 +90,6 @@ def CheckLayer(envlay):
         if ffile['fullname'] == '':
             grass.fatal("The layer " + envlay[chl] + " does not exist.")
 
-# create set to store names of temporary maps to be deleted upon exit
-clean_rast = set()
-
-def cleanup():
-    for rast in clean_rast:
-        grass.run_command("g.remove",
-        type="rast", name=rast, quiet=True)
-
 # main function
 def main():
 
@@ -109,28 +97,23 @@ def main():
     IPF = options['maps']
     IPF = IPF.split(',')
     CheckLayer(IPF)
-    IPFn = [i.split('@')[0] for i in IPF]
-    MXVIF = options['maxvif']
-    if MXVIF != '':
-        MXVIF = float(MXVIF)
     IPR = options['retain']
     if IPR != '':
         IPR = IPR.split(',')
         CheckLayer(IPR)
+
+        for k in xrange(len(IPR)):
+            if IPR[k] not in IPF:
+                IPF.extend([IPR[k]])
+    IPFn = [i.split('@')[0] for i in IPF]
     IPRn = [i.split('@')[0] for i in IPR]
+
+    MXVIF = options['maxvif']
+    if MXVIF != '':
+        MXVIF = float(MXVIF)
     OPF = options['file']
     if OPF == '':
-        OPF = tempfile.mkstemp()[1]
-
-    # Test if text file exists. If so, append _v1 to file name
-    k = 0
-    while os.path.isfile(OPF):
-        k = k + 1
-        opft = OPF.split('.')
-        if len(opft) == 1:
-            OPF = opft[0] + "_v" + str(k)
-        else:
-            OPF = opft[0] + "_v" + str(k) + "." + opft[1]
+        idf, OPF = tempfile.mkstemp()
 
     #=======================================================================
     ## Calculate VIF and write to standard output (& optionally to file)
@@ -162,7 +145,12 @@ def main():
     else:
         text_file = open(OPF, "w")
         rvifmx = MXVIF + 1
+        m = 0
         while MXVIF < rvifmx:
+            m += 1
+            grass.info("\n")
+            grass.info("VIF round " + str(m))
+            grass.info("----------------------------------------")
             rvif = np.zeros(len(IPF))
             text_file.write("variable\tvif\tsqrtvif\n")
             for k in xrange(len(IPF)):
@@ -206,6 +194,7 @@ def main():
         # Write to std output
         grass.info("")
         grass.info("selected variables are: ")
+        grass.info("----------------------------------------")
         grass.info(', '.join(IPFn))
         grass.info("with as maximum VIF: " + str(rvifmx))
     grass.info("")
@@ -214,7 +203,6 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
-    atexit.register(cleanup)
     sys.exit(main())
 
 
