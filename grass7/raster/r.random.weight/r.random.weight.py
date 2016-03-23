@@ -90,7 +90,7 @@ import grass.script as grass
 clean_rast = set()
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove",
+        grass.run_command("g.remove", flags="f",
         type="rast", name = rast, quiet = True)
 
 # Create temporary name
@@ -155,7 +155,6 @@ def main():
             outmap = outmap,
             tmp_map = tmp_map, quiet=True)
 
-    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmp_map)
     if not subsample == '':
         grass.run_command('r.null',
             map = outmap,
