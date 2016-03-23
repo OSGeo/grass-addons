@@ -95,25 +95,8 @@ clean_rast = set()
 
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove",
+        grass.run_command("g.remove", flags="f",
         type="rast", name=rast, quiet=True)
-
-
-def fileexist(fname, suffix):
-    k = 0
-    fname2 = fname[:]
-    fname2 = fname2.split('.')
-    while os.path.isfile(fname):
-        k = k + 1
-        opft = fname.split('.')
-        if len(opft) == 1:
-            fname = opft[0] + "_" + str(k)
-        else:
-            fname = fname2[0] + suffix + str(k) + "." + fname2[1]
-    if k > 0:
-        grass.info("there is already a file " + fname2[0] + ".")
-        grass.info("Using " + fname + " instead")
-    return fname
 
 ##----------------------------------------------------------------------------
 ## main function
@@ -129,8 +112,6 @@ def main():
     OPF = options['output']
     if OPF == '':
         OPF = tempfile.mkstemp()[1]
-    else:
-        OPF = fileexist(OPF, "v_")
     flag_i = flags['i']
     flag_d = flags['d']
     flag_c = flags['c']
@@ -180,7 +161,6 @@ def main():
                              quiet=True)
                 NO = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf0)['sum'])
                 NOV = 1 - (0.5 * NO)
-                grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf0)
                 text_file.write("D," + nvar1 + "," + nvar2 + "," + str(NOV) + "\n")
                 grass.message("Niche overlap (D) of " + nvar1 + " and " + nvar2 + ": " + str(round(NOV, 3)))
 
@@ -202,7 +182,6 @@ def main():
                              quiet=True)
                 NE = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf1)['sum'])
                 NEQ = 1 - (0.5 * NE)
-                grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf1)
                 text_file.write("I," + nvar1 + "," + nvar2 + "," + str(NEQ) + "\n")
                 grass.message("Niche overlap (I) of " + nvar1 + " and " + nvar2 + ": " + str(round(NEQ, 3)))
 
