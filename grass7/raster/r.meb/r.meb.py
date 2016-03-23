@@ -112,12 +112,6 @@
 #%end
 
 #----------------------------------------------------------------------------
-#Test
-#----------------------------------------------------------------------------
-#options = {"env":"bio_1@climate,bio_2@climate,bio_3@climate", "file":"test.txt", "ref":"PAs2", "output":"AAA_test", "digits":"5"}
-#flags = {"m":True, "n":True, "o":True, "i":True}
-
-#----------------------------------------------------------------------------
 # Standard
 #----------------------------------------------------------------------------
 
@@ -143,10 +137,13 @@ if not os.environ.has_key("GISBASE"):
 
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = set()
-
 def cleanup():
     for rast in clean_rast:
-        grass.run_command("g.remove", type="rast", name=rast, quiet=True)
+        cf = grass.find_file(name=rast, element = 'cell',
+                          mapset=grass.gisenv()['MAPSET'])
+        if cf['fullname'] != '':
+            grass.run_command("g.remove", type="raster",
+                              name=rast, quiet=True, flags="f")
 
 #----------------------------------------------------------------------------
 # Functions
@@ -181,15 +178,16 @@ def CheckLayer(envlay):
 # Write color rule file
 def defcol(mapname):
     # Color table
-    tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol[1], "w")
+    fd1, tmpcol = tempfile.mkstemp()
+    text_file = open(tmpcol, "w")
     text_file.write("0% 244:109:67\n")
     text_file.write("50 255:255:210\n")
     text_file.write("100% 50:136:189\n")
     text_file.close()
     # Assign color table
-    grass.run_command("r.colors", flags="n", quiet=True, map=mapname, rules=tmpcol[1])
-    os.remove(tmpcol[1])
+    grass.run_command("r.colors", flags="n", quiet=True, map=mapname, rules=tmpcol)
+    os.close(fd1)
+    os.remove(tmpcol)
 
 # Compute EB for input file (simlay = similarity, reflay = reference layer)
 def EB(simlay, reflay):
@@ -280,8 +278,12 @@ def main():
     grass.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
 
     ipi = []
+
+    grass.info("\n")
+    grass.info("Computing the ES for:")
+    grass.info("-------------------------------------------")
     for j in xrange(len(ipl)):
-        grass.info("Computing ES for layer " + ipl[j])
+        grass.info("Data layer " + ipl[j])
 
         # Calculate the frequency distribution
         tmpf1 = tmpname('reb1')
@@ -314,8 +316,8 @@ def main():
         a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
         b1 = np.hstack([(0), c])
 
-        tmprule = tempfile.mkstemp()
-        text_file = open(tmprule[1], "w")
+        fd2, tmprule = tempfile.mkstemp()
+        text_file = open(tmprule, "w")
         for k in np.arange(0, len(b1.T)):
             rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
             text_file.write(rtmp + "\n")
@@ -324,7 +326,7 @@ def main():
         # Create the recode layer and calculate the IES
         tmpf2 = tmpname('reb2')
         clean_rast.add(tmpf2)
-        grass.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule[1])
+        grass.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule)
 
         tmpf3 = tmpname('reb3')
         clean_rast.add(tmpf3)
@@ -334,55 +336,69 @@ def main():
         grass.mapcalc(calcc, quiet=True)
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf2)
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf1)
-        #os.remove(tmprule[1])
+        os.close(fd2)
+        os.remove(tmprule)
         ipi.append(tmpf3)
-
+    grass.info("\n")
     #-----------------------------------------------------------------------
     # Calculate EB statistics
     #-----------------------------------------------------------------------
 
     # EB MES
     if flag_m:
-        grass.info("Computing the MES")
+        grass.info("Computing the EB based on mean ES values")
+        grass.info("-------------------------------------------")
         nmn = tmpf0 + "_MES_mean"
+        if out == '':
+            clean_rast.add(nmn)
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="average")
         defcol(nmn)
-        grass.info("Computing the EB")
         ebm = EB(simlay=nmn, reflay=tmpref0)
+        grass.info("\n")
 
     if flag_n:
-        grass.info("Computing the MES")
+        grass.info("Computing the EB based on median ES values")
+        grass.info("-------------------------------------------")
         nmn = tmpf0 + "_MES_median"
+        if out == '':
+            clean_rast.add(nmn)
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="median")
         defcol(nmn)
-        grass.info("Computing the EB")
         ebn = EB(simlay=nmn, reflay=tmpref0)
+        grass.info("\n")
 
     if flag_o:
-        grass.info("Computing the MES")
+        grass.info("Computing the EB based on minimum ES values")
+        grass.info("-------------------------------------------")
         nmn = tmpf0 + "_MES_minimum"
+        if out == '':
+            clean_rast.add(nmn)
         grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum")
         defcol(nmn)
-        grass.info("Computing the EB")
         ebo = EB(simlay=nmn, reflay=tmpref0)
+        grass.info("\n")
 
     # EB individual layers
     if flag_i:
         grass.info("Computing the EB for the individual layers")
+        grass.info("-------------------------------------------")
         ebi = {}
         for mm in xrange(len(ipi)):
             nmn = tmpf0 + "_" + ipn[mm]
+            if out == '':
+                clean_rast.add(nmn)
             grass.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
             defcol(nmn)
+            grass.info("Computing the EB for " + ipn[mm])
             value = EB(simlay=nmn, reflay=tmpref0)
-            ebi[nmn] = value
+            ebi[ipn[mm]] = value
+            grass.info("\n")
     else:
         grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
 
-    # Remove temporary copy of ref layer
-    grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpref0)
-
     if filename != '':
+        grass.info("Writing results to text file")
+        grass.info("-------------------------------------------")
         with open(filename, 'wb') as csvfile:
             fieldnames = ['variable', 'median_region', 'median_reference', 'mad', 'eb']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -403,7 +419,7 @@ def main():
                     writer.writerow({'variable':vari,'median_region':ebj[1],
                         'median_reference':ebj[2], 'mad':ebj[0],'eb':ebj[3]})
         grass.info("\nThe results are written to " + filename + "\n")
-        grass.info("\n-------------------------------------------\n")
+        grass.info("\n")
 
 if __name__ == "__main__":
     options, flags = grass.parser()
