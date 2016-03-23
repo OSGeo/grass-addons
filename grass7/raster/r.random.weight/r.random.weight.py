@@ -87,14 +87,18 @@ import string
 import atexit
 import grass.script as grass
 
-# Runs modules silently
-os.environ['GRASS_VERBOSE']='-1'
-
 clean_rast = set()
 def cleanup():
     for rast in clean_rast:
         grass.run_command("g.remove",
         type="rast", name = rast, quiet = True)
+
+# Create temporary name
+def tmpname(name):
+    tmpf = name + "_" + str(uuid.uuid4())
+    tmpf = string.replace(tmpf, '-', '_')
+    clean_rast.add(tmpf)
+    return tmpf
 
 # main function
 def main():
@@ -112,62 +116,63 @@ def main():
     seed = options['seed']
     flag_n = flags['n']
 
+    # Check set minimum/maximum against map min and max
+    if minval > minmax['min'] or maxval < minmax['max']:
+    grass.message("You defined the minimum and maximum weights as: "
+        + minval + " & " + maxval + ". Value range of weight raster is: "
+        + minmax['min'] + " - " + minmax['max'] +". Continuing...")
+
     # setup temporary files and seed
-    tmp_map = "r_w_rand_" + str(uuid.uuid4())
-    tmp_map = string.replace(tmp_map, '-', '_')
+    tmp_map = tmpname('r_w_rand')
 
     # Compute minimum and maximum value raster
     minmax = grass.parse_command('r.univar',
         map = weight,
-        flags='g')
+        flags='g', quiet=True)
 
     if seed == "auto":
         grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))",
             seed='auto',
             minval = minval,
             maxval = maxval,
-            tmp_map = tmp_map)
+            tmp_map = tmp_map, quiet=True)
     else:
         grass.mapcalc("$tmp_map = rand(float(${minval}),float(${maxval}))",
             seed=int(seed),
             minval = minval,
             maxval = maxval,
-            tmp_map = tmp_map)
+            tmp_map = tmp_map, quiet=True)
     clean_rast.add(tmp_map)
 
     if flag_n:
         grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,0)",
             weight = weight,
             outmap = outmap,
-            tmp_map = tmp_map)
+            tmp_map = tmp_map, quiet=True)
     else:
         grass.mapcalc("${outmap} = if($tmp_map <= ${weight},1,null())",
             weight = weight,
             outmap = outmap,
-            tmp_map = tmp_map)
+            tmp_map = tmp_map, quiet=True)
 
     grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmp_map)
     if not subsample == '':
         grass.run_command('r.null',
             map = outmap,
-            setnull = 0)
+            setnull = 0, quiet=True)
         grass.run_command('r.random',
             input = outmap,
             n = subsample,
             raster_output = outmap,
-            overwrite=True)
+            overwrite=True, quiet=True)
         if flag_n:
             grass.run_command('r.null',
                 map = outmap,
-                null = 0)
+                null = 0, quiet=True)
 
     grass.message("------------------")
     grass.message("Ready!")
     grass.message("The name of raster created is " + outmap)
-    #if minval > minmax['min'] or maxval < minmax['max']:
-    grass.warning("You defined the minimum and maximum weights as: "
-        + minval + " & " + maxval + ". Value range of weight raster is: "
-        + minmax['min'] + " - " + minmax['max'])
 
 if __name__ == "__main__":
     options, flags = grass.parser()
