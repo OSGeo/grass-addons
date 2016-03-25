@@ -5,7 +5,7 @@
 #
 # MODULE:       r.forestfrag
 #
-# AUTHOR(S):   Emmanuel Sambale, Stefan Sylla and Paulo van Breugel
+# AUTHOR(S):   Paulo van Breugel, Emmanuel Sambale, Stefan Sylla
 # Maintainer:  Paulo van Breugel (paulo@ecodiv.org)
 #
 # PURPOSE:    Creates forest fragmentation index map from a forest-non-forest
@@ -15,7 +15,7 @@
 #             [online] URL:http://www.consecol.org/vol4/iss2/art3/
 #
 #
-# COPYRIGHT:    (C) 1997-2015 by the GRASS Development Team
+# COPYRIGHT:    (C) 1997-2016 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -168,20 +168,18 @@ def main():
     # let forested pixels be x and number of all pixels in moving window
     # be y, then pf=x/y"
 
-    # generate grid with pixel-value=number of forest-pixels in 3x3
-    # moving-window:
-    tmpA2 = tmpname('tmpA2_')
-    grass.run_command("r.neighbors", quiet=True, input=ipl,
-                      output=tmpA2, method="sum", size=wz)
-
+    # generate grid with pixel-value=number of forest-pixels in window
     # generate grid with pixel-value=number of pixels in moving window:
-    tmpC3 = tmpname('tmpC3_')
-    grass.mapcalc("$tmpC3 = float($wz^2)",tmpC3=tmpC3,wz=str(wz),quiet=True)
+    tmpA2 = tmpname('tmpA01_')
+    tmpC3 = tmpname('tmpA02_')
+    grass.run_command("r.neighbors", quiet=True, input=ipl,
+                      output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
+    #grass.mapcalc("$tmpC3 = float($wz^2)",tmpC3=tmpC3a,wz=str(wz),quiet=True)
 
     # create pf map
-    pf = tmpname('pf_')
-    grass.mapcalc("$pf = float($tmpA2) / float($tmpC3)", pf=pf,
-                  tmpA2=tmpA2, tmpC3=tmpC3,quiet=True)
+    pf = tmpname('tmpA03_')
+    grass.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
+                  tmpA2=tmpA2, tmpC3=tmpC3, quiet=True)
 
     #------------------------------------------------------------------------
     # computing pff values
@@ -194,6 +192,11 @@ def main():
 
     grass.info("step 2: computing pff values ...\n")
 
+    # Create copy of forest map and convert NULL to 0 (if any)
+    tmpC4 = tmpname('tmpA04_')
+    grass.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
+    grass.run_command("r.null", map=tmpC4, null=0, quiet=True)
+
     # calculate number of 'forest-forest' pairs
     #------------------------------------------------------------------------
 
@@ -202,7 +205,7 @@ def main():
 
     # Write mapcalc expression to tmpf - rows
     fd2, tmpfile2 = tempfile.mkstemp()
-    tmpl4 = tmpname('pff1_')
+    tmpl4 = tmpname('tmpA05_')
     text_file = open(tmpfile2, "w")
     text_file.write(tmpl4 + " = ")
 
@@ -211,13 +214,13 @@ def main():
     csub=range(-SWn, SWn, 1)
     for k in rsub:
       for l in csub:
-        text_file.write(ipl + "[" + str(k) + "," + str(l) + "]*"
-        + ipl + "[" + str(k) + "," + str(l+1) + "] + ")
+        text_file.write(tmpC4 + "[" + str(k) + "," + str(l) + "]*"
+        + tmpC4 + "[" + str(k) + "," + str(l+1) + "] + ")
     rsub=range(-SWn, SWn+1, 1)
     csub=range(SWn, -SWn, -1)
     for k in rsub:
       for l in csub:
-          text_file.write(ipl + "[" + str(l) + "," + str(k) + "]*" + ipl
+          text_file.write(tmpC4 + "[" + str(l) + "," + str(k) + "]*" + tmpC4
           + "[" + str(l-1) + "," + str(k) + "] + ")
     text_file.write("0")
     text_file.close()
@@ -230,7 +233,7 @@ def main():
     #------------------------------------------------------------------------
 
     fd3, tmpfile3 = tempfile.mkstemp()
-    tmpl5 = tmpname('pff2_')
+    tmpl5 = tmpname('tmpA06_')
     text_file = open(tmpfile3, "w")
     text_file.write(tmpl5 + " = ")
 
@@ -240,14 +243,14 @@ def main():
     csub=range(-SWn, SWn, 1)
     for k in rsub:
       for l in csub:
-        text_file.write("if((" + ipl + "[" + str(k) + "," + str(l) + "]+"
-        + ipl + "[" + str(k) + "," + str(l+1) + "])>0,1) + ")
+        text_file.write("if((" + tmpC4 + "[" + str(k) + "," + str(l) + "]+"
+        + tmpC4 + "[" + str(k) + "," + str(l+1) + "])>0,1) + ")
     rsub=range(-SWn, SWn+1, 1)
     csub=range(SWn, -SWn, -1)
     for k in rsub:
       for l in csub:
-          text_file.write("if((" + ipl + "[" + str(l) + "," + str(k) + "]+"
-        + ipl + "[" + str(l-1) + "," + str(k) + "])>0,1) + ")
+          text_file.write("if((" + tmpC4 + "[" + str(l) + "," + str(k) + "]+"
+        + tmpC4 + "[" + str(l-1) + "," + str(k) + "])>0,1) + ")
     text_file.write("0")
     text_file.close()
 
@@ -258,8 +261,8 @@ def main():
     # create pff map
     #------------------------------------------------------------------------
 
-    pff = tmpname('pff3_')
-    grass.mapcalc("$pff = float($tmpl4) / float($tmpl5)", tmpl4=tmpl4,
+    pff = tmpname('tmpA07_')
+    grass.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))", tmpl4=tmpl4,
                   tmpl5=tmpl5, pff=pff,quiet=True)
 
     #------------------------------------------------------------------------
@@ -267,35 +270,29 @@ def main():
     #------------------------------------------------------------------------
 
     grass.info("step 3: computing fragmentation index ...\n")
-    pf2 = tmpname('pf2_')
+    pf2 = tmpname('tmpA08_')
     grass.mapcalc("$pf2 = $pf - $pff", pf2=pf2, pf=pf, pff=pff, quiet=True)
-    f1 = tmpname('f1_') # patch
-    grass.mapcalc("$f1 = if($pf<0.4,1,0)",
-                  f1=f1, pf=pf, quiet=True)
-    f2 = tmpname('f2_') # transitional
-    grass.mapcalc("$f2 = if($pf>=0.4 && $pf<0.6,2,0)",
-                  pf=pf, f2=f2, quiet=True)
-    f3 = tmpname('f3_') # edge
-    grass.mapcalc("$f3 = if($pf>=0.6 && $pf2<0,3,0)",
-                  pf=pf, pf2=pf2, f3=f3, quiet=True)
-    f4 = tmpname('f4_') # perforate
-    grass.mapcalc("$f4 = if($pf>0.6 && $pf2>0,4,0)",
-                  pf=pf, pf2=pf2, f4=f4, quiet=True)
-    f5 = tmpname('f5_') # interior
-    grass.mapcalc("$f5 = if($pf==1 && $pff==1,5,0)",
-                  pf=pf, pff=pff, f5=f5, quiet=True)
-    f6 = tmpname('f6_') # undetermined
-    grass.mapcalc("$f6 = if($pf>0.6 && $pf<1 && $pf2==0,6,0)",
-                  pf=pf, pf2=pf2, pff=pff, f6=f6, quiet=True) # undetermined
-    Index = tmpname('index_')
+    f1 = tmpname('tmpA09_') # patch
+    grass.mapcalc("$f1 = if($pf<0.4,1,0)", f1=f1, pf=pf, quiet=True)
+    f2 = tmpname('tmpA10_') # transitional
+    grass.mapcalc("$f2 = if($pf>=0.4 && $pf<0.6,2,0)", pf=pf, f2=f2, quiet=True)
+    f3 = tmpname('tmpA11_') # edge
+    grass.mapcalc("$f3 = if($pf>=0.6 && $pf2<0,3,0)", pf=pf, pf2=pf2, f3=f3, quiet=True)
+    f4 = tmpname('tmpA12_') # perforate
+    grass.mapcalc("$f4 = if($pf>0.6 && $pf<1 && $pf2>0,4,0)", pf=pf, pf2=pf2, f4=f4, quiet=True)
+    f5 = tmpname('tmpA13_') # interior
+    grass.mapcalc("$f5 = if($pf==1,5,0)", pf=pf, pff=pff, f5=f5, quiet=True)
+    f6 = tmpname('tmpA14_') # undetermined
+    grass.mapcalc("$f6 = if($pf>0.6 && $pf<1 && $pf2==0,6,0)", pf=pf, pf2=pf2, pff=pff, f6=f6, quiet=True) # undetermined
+    Index = tmpname('tmpA15_')
     grass.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
                       method="sum", quiet=True)
-    indexfin2 = tmpname('indexfin2_')
+    indexfin2 = tmpname('tmpA16_')
     grass.mapcalc("$if2 = $ipl * $Index", if2=indexfin2, ipl=ipl,
                            Index=Index, quiet=True)
 
     #create categories
-    indexfin3 =  tmpname('indexfin3_')
+    indexfin3 =  tmpname('tmpA17_')
     fd4, tmprul = tempfile.mkstemp()
     text_file = open(tmprul, "w")
     text_file.write("0 = 0 nonforest\n")
@@ -305,6 +302,7 @@ def main():
     text_file.write("4 = 4 perforated\n")
     text_file.write("5 = 5 interior\n")
     text_file.write("6 = 6 undetermined\n")
+    text_file.write("* = NULL\n")
     text_file.close()
     grass.run_command("r.reclass", quiet=True, input=indexfin2, output=indexfin3,
                       title="fragmentation index", rules=tmprul)
@@ -313,7 +311,7 @@ def main():
 
     # Shrink the region
     if flag_a:
-        regionoriginal = tmpname('region_')
+        regionoriginal = tmpname('tmpA18_')
         grass.run_command("g.region", save=regionoriginal, quiet=True, overwrite=True)
         reginfo = grass.parse_command("g.region", flags="gp")
         NSCOR = SWn * float(reginfo['nsres'])
@@ -325,7 +323,6 @@ def main():
                           w=float(reginfo['w'])+EWCOR,
                           quiet=True)
     grass.mapcalc("$opl = $if3", opl=opl, if3=indexfin3, quiet=True)
-    grass.run_command("r.null", map=opl, null=0, quiet=True)
 
     #create color codes
     fd5, tmpcol = tempfile.mkstemp()
@@ -343,7 +340,6 @@ def main():
     os.remove(tmpcol)
 
     # Function call
-
     if flag_r:rflag="\n\t-r"
     else: rflag=""
     if flag_t: tflag="\n\t-t"
