@@ -97,8 +97,6 @@ try:
 except ImportError:
     raise error.EnvError("r.agent.rand:", "Please run inside GRASS.")
 
-world = world.World(grassland.Grassland())
-
 def setmaps(cost, output):
     """
     Set the user maps in place
@@ -160,5 +158,6 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+    world = world.World(grassland.Grassland())
     main()
 
