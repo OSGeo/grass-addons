@@ -238,8 +238,6 @@ try:
 except ImportError:
     raise error.EnvError("r.agent.aco:", "Please run inside GRASS.")
 
-world = anthill.Anthill(grassland.Grassland())
-
 def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
     """
     Set the user maps in place
@@ -383,5 +381,6 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+    world = anthill.Anthill(grassland.Grassland())
     main()
 
