@@ -254,7 +254,7 @@ def main():
        sqlhabitatspatial1 += '"b"."COVER_HA" AS "COVER_HA", "b"."CAVES" AS "CAVES", "b"."REPRESENTATIVITY" AS "REPRESENTATIVITY", '  
        sqlhabitatspatial1 += '"b"."RELSURFACE" AS "RELSURFACE", "b"."CONSERVATION" AS "CONSERVATION", '
        sqlhabitatspatial1 += '"b"."GLOBAL_ASSESMENT" AS "GLOBAL_ASSESMENT", "b"."DATAQUALITY" AS "DATAQUALITY", '
-       sqlhabitatspatial1 += '"b"."PERCENTAGE_COVER" AS "PERCENTAGE_COVER" '
+       sqlhabitatspatial1 += '"b"."PERCENTAGECOVER" AS "PERCENTAGECOVER" '
        sqlhabitatspatial1 += 'FROM "Natura2000polygon" AS "a" '  
        sqlhabitatspatial1 += 'JOIN %s AS "b" USING ("SITECODE") ' % (habitat_view)   
        sqlhabitatspatial1 += 'ORDER BY "a"."SITECODE";'	   
