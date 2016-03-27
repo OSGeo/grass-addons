@@ -14,6 +14,7 @@ SUBDIRS = \
 	i.evapo.zk \
 	i.feotio2 \
 	i.fusion.brovey \
+	i.gcp \
 	i.gravity \
 	i.histo.match \
 	i.lmf \
