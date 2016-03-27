@@ -40,7 +40,15 @@
 #%option G_OPT_R_OUTPUT
 #% key: output
 #% required: yes
-#% label: Output Classification Map
+#% label: Output Map
+#%end
+
+#%option string
+#% key: mode
+#% required: yes
+#% label: Classification or regression mode
+#% answer: classification
+#% options: classification,regression
 #%end
 
 #%option
@@ -100,15 +108,31 @@
 #% guisection: Optional
 #%end
 
-# user set variables
-import atexit, os, random, string
+# standard modules
+import atexit, os, random, string, imp
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 import grass.script as grass
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
 import numpy as np
+
+# non-standard modules
+def module_exists(module_name):
+    try:
+        imp.find_module(module_name)
+        return(True)
+    except ImportError:
+        print(module_name + " python package not installed....exiting")
+        return(False)
+
+if module_exists("sklearn") == True:
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+else:
+    exit()
+if module_exists("pandas") == True:
+    import pandas as pd
+else:
+    exit()
 
 def cleanup():
     # We can then close the rasters and the roi image
@@ -121,6 +145,7 @@ def main():
     igroup = options['igroup']
     roi = options['roi']
     output = options['output']
+    mode = options['mode']
     ntrees = options['ntrees']
     balanced = flags['b']
     class_probabilities = flags['p']
@@ -129,9 +154,27 @@ def main():
     minsplit = int(options['minsplit'])
     randst = int(options['randst'])
 
-    if mfeatures == -1: mfeatures = str('auto')
-
-    # Fetch individual raster names from group
+    ##################### error checking for valid input parameters ############################################
+    if mfeatures == -1:
+        mfeatures = str('auto')
+    if mfeatures == 0:
+        print("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures) setting.....exiting")
+        exit()
+    if minsplit == 0:
+        print("minsplit must be greater than zero.....exiting")
+        exit()
+    if rowincr <= 0:
+        print("rowincr must be greater than zero....exiting")
+        exit()
+    if ntrees < 1:
+        print("ntrees must be greater than zero.....exiting")
+        exit()
+    if mode == 'regression' and balanced == True:
+        print ("balanced mode is ignored in Random Forests in regression mode....continuing")
+    if mode == 'regression' and class_probabilities == True:
+        print ("option to output class probabiltities is ignored in regression mode....continuing")
+    
+    ######################  Fetch individual raster names from group ###########################################
     groupmaps = grass.read_command("i.group", group = igroup, flags = "g")
 
     if os.name == "nt":
@@ -187,18 +230,25 @@ def main():
         print("ROI raster does not exist.... exiting")
         exit()
     
-    # Count number of labelled pixels
-    tdir = grass.tempdir()
-    tfile = tdir + '/' + 'rstats.csv'
+    # determine cell storage type of training roi raster    
+    roi_type = grass.read_command("r.info", map = roi, flags = 'g')
+    roi_type = str(roi_type)    
+    roi_list = roi_type.split('\r\n')
+    dtype = roi_list[9].split('=')[1]
     
-    grass.run_command("r.univar", flags=("gt"), map = roi, separator = 'comma', output = tfile)
-    roi_stats = pd.read_csv(tfile)
-    roi_stats
-    nlabel_pixels = roi_stats['non_null_cells'][0]
+    # check if training rois are valid for classification and regression
+    if mode == 'classification' and dtype != 'CELL':
+        print ("Classification mode requires an integer CELL type training roi map.....exiting")
+        exit()
+    
+    # Count number of labelled pixels
+    roi_stats = str(grass.read_command("r.univar", flags=("g"), map = roi))
+    roi_stats = roi_stats.split('\r\n')[0]
+    ncells = str(roi_stats).split('=')[1]
+    nlabel_pixels = int(ncells)
     
     # Create a numpy array filled with zeros, with the dimensions of the number of columns in the region
-    # and the number of bands plus an additional band to attach the labels
-    
+    # and the number of bands plus an additional band to attach the labels    
     tindex=0
     training_labels = []
     training_data = np.zeros((nlabel_pixels, nbands+1))
@@ -238,11 +288,15 @@ def main():
     training_data = training_data[:, 0:nbands]
     
     ############################### Training the classifier #######################################
-    if balanced == True:
-        rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-        class_weight = "balanced", max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+    if mode == 'classification':
+        if balanced == True:
+            rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+            class_weight = 'balanced', max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+        else:
+            rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+            max_features = mfeatures, min_samples_split = minsplit, random_state = randst)            
     else:
-        rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+        rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
         max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
     rf = rf.fit(training_data, training_labels)
     print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
@@ -266,10 +320,16 @@ def main():
     # anything in memory, we save it to a GRASS raster object, row-by-row.
 
     classification = RasterRow(output)
-    classification.open('w', 'CELL',  overwrite = True)
-
+    if mode == 'classification':
+        ftype = 'CELL'
+        nodata = -2147483648
+    else:
+        ftype = 'FCELL'
+        nodata = np.nan
+    classification.open('w', ftype,  overwrite = True)
+    
     # create and open RasterRow objects for classification and probabilities if enabled    
-    if class_probabilities == True:
+    if class_probabilities == True and mode == 'classification':
         prob_out_raster = [0] * nclasses
         prob = [0] * nclasses
         for iclass in range(nclasses):
@@ -303,16 +363,16 @@ def main():
         
         # replace NaN values so that the prediction surface does not have a border
         result_NaN = np.ma.masked_array(result, mask=nanmask, fill_value=np.nan)
-        result_masked = result_NaN.filled([-2147483648]) #Return a copy of result, with masked values filled with a given value
+        result_masked = result_NaN.filled([nodata]) #Return a copy of result, with masked values filled with a given value
         
         # for each row we can perform computation, and write the result into   
         for row in range(rowincr):
-            newrow = Buffer((result_masked.shape[1],), mtype='CELL')
+            newrow = Buffer((result_masked.shape[1],), mtype=ftype)
             newrow[:] = result_masked[row, :]
             classification.put_row(newrow)
         
         # same for probabilities
-        if class_probabilities == True:
+        if class_probabilities == True and mode == 'classification':
             result_proba = rf.predict_proba(flat_pixels_noNaN)
             for iclass in range(nclasses):
                 result_proba_class = result_proba[:, iclass]
@@ -326,7 +386,7 @@ def main():
     
     classification.close()
 
-    if class_probabilities == True:
+    if class_probabilities == True and mode == 'classification':
         for iclass in range(nclasses): prob[iclass].close()
     
 if __name__ == "__main__":
