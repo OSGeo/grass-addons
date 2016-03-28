@@ -141,6 +141,13 @@ def cleanup():
     roi_raster.close()
     grass.run_command("g.remove", name = rfmask, flags = "f", type = "raster")
 
+def normalize_newlines(string):
+    # Windows and nix platforms have different line endings. DOS uses carriage return and
+    # line feed ("\r\n") as a line ending, which Unix uses just line feed ("\n").
+    # This script normalizes the line endings to unix format "\n"
+    import re
+    return re.sub(r'(\r\n|\r|\n)', '\n', string)
+
 def main():
     igroup = options['igroup']
     roi = options['roi']
@@ -176,13 +183,9 @@ def main():
     
     ######################  Fetch individual raster names from group ###########################################
     groupmaps = grass.read_command("i.group", group = igroup, flags = "g")
-
-    if os.name == "nt":
-        groupmaps = groupmaps[0:len(groupmaps)-2] # to remove the last line ending and return characters
-        maplist = groupmaps.split('\r\n')
-    else:
-        groupmaps = groupmaps[0:len(groupmaps)-1] # to remove the last line ending and return characters
-        maplist = groupmaps.split('\n')
+    groupmaps = normalize_newlines(groupmaps)
+    maplist = groupmaps.split('\n')
+    maplist = maplist[0:len(maplist)-1]
     
     ######################### Obtain information about GRASS rasters to be classified ######################
     
@@ -232,16 +235,8 @@ def main():
     
     # determine cell storage type of training roi raster    
     roi_type = grass.read_command("r.info", map = roi, flags = 'g')
-    
-    if os.name == "nt":
-        roi_type = roi_type[0:len(roi_type)-2] # to remove the last line ending and return characters
-        roi_type = str(roi_type)
-        roi_list = roi_type.split('\r\n')
-    else:
-        roi_type = roi_type[0:len(roi_type)-1] # to remove the last line ending and return characters
-        roi_type = str(roi_type)
-        roi_list = roi_type.split('\n')    
-    
+    roi_type = normalize_newlines(str(roi_type))
+    roi_list = roi_type.split('\n')
     dtype = roi_list[9].split('=')[1]
     
     # check if training rois are valid for classification and regression
