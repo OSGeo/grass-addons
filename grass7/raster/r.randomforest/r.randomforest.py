@@ -329,13 +329,16 @@ def main():
             else:
                 rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
                 max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+            rf = rf.fit(training_data, training_labels)
+            print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
         else:
             rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
             max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
-        rf = rf.fit(training_data, training_labels)
+            rf = rf.fit(training_data, training_labels)
+            print('Our coefficient of determination R^2 of the prediction is: {r2}%'.format \
+            (r2=rf.score(X = training_data, y=training_labels)))
     
         # diagnostics
-        print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
         rfimp = pd.DataFrame(rf.feature_importances_)
         rfimp.insert(loc=0, column='Raster', value = maplist)
         rfimp.columns = ['Raster', 'Importance']
