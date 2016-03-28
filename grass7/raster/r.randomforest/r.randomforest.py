@@ -25,9 +25,9 @@
 #%option G_OPT_I_GROUP
 #% key: igroup
 #% label: Imagery group to be classified (predictors)
-#% description: Series of raster maps (e.g. imagery bands) to be used in the random forest classification
+#% description: Series of raster maps to be used in the random forest classification
 #% required: yes
-#% multiple: yes
+#% multiple: no
 #%end
 
 #%option G_OPT_R_INPUT
@@ -57,34 +57,34 @@
 #% description: Number of trees in the forest
 #% answer: 500
 #% required: yes
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%option
 #% key: mfeatures
 #% type: integer
-#% description: The number of features to consider when looking for the best split. Sqrt(n_features) is used by default
+#% description: The number of features allowed at each split. Sqrt(n_features) is used by default
 #% answer: -1
 #% required: yes
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%option
-#% key: minsplit 
+#% key: minsplit
 #% type: integer
 #% description: The minimum number of samples required to split an internal node
 #% answer: 2
 #% required: yes
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%option
-#% key: randst 
+#% key: randst
 #% type: integer
 #% description: Seed to pass onto the random state for reproducible results
 #% answer: 1
 #% required: yes
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%option
@@ -99,12 +99,26 @@
 #%flag
 #% key: p
 #% label: Output class membership probabilities
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%flag
 #% key: b
 #% description: Balance classes by weighting
+#% guisection: Random Forest Options
+#%end
+
+#%option G_OPT_F_OUTPUT
+#% key: savefile
+#% label: Save model from file
+#% required: no
+#% guisection: Optional
+#%end
+
+#%option G_OPT_F_INPUT
+#% key: loadfile
+#% label: Load model from file
+#% required: no
 #% guisection: Optional
 #%end
 
@@ -120,13 +134,14 @@ import numpy as np
 def module_exists(module_name):
     try:
         imp.find_module(module_name)
-        return(True)
+        return True
     except ImportError:
         print(module_name + " python package not installed....exiting")
-        return(False)
+        return False
 
 if module_exists("sklearn") == True:
     from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.externals import joblib
 else:
     exit()
 if module_exists("pandas") == True:
@@ -160,12 +175,14 @@ def main():
     mfeatures = int(options['mfeatures'])
     minsplit = int(options['minsplit'])
     randst = int(options['randst'])
+    model_save = options['savefile']
+    model_load = options['loadfile']
 
-    ##################### error checking for valid input parameters ############################################
+    ##################### error checking for valid input parameters ########################################
     if mfeatures == -1:
         mfeatures = str('auto')
     if mfeatures == 0:
-        print("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures) setting.....exiting")
+        print("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures).....exiting")
         exit()
     if minsplit == 0:
         print("minsplit must be greater than zero.....exiting")
@@ -180,24 +197,27 @@ def main():
         print ("balanced mode is ignored in Random Forests in regression mode....continuing")
     if mode == 'regression' and class_probabilities == True:
         print ("option to output class probabiltities is ignored in regression mode....continuing")
-    
-    ######################  Fetch individual raster names from group ###########################################
+    if model_save != '' and model_load != '':
+        print("Cannot save and load a model at the same time")
+        exit()
+
+    ######################  Fetch individual raster names from group ###################################
     groupmaps = grass.read_command("i.group", group = igroup, flags = "g")
     groupmaps = normalize_newlines(groupmaps)
     maplist = groupmaps.split('\n')
     maplist = maplist[0:len(maplist)-1]
-    
-    ######################### Obtain information about GRASS rasters to be classified ######################
-    
-    # Determine number of bands (i.e. elements in the list) and then create a list of GRASS rasterrow objects
-    global nbands    
+
+    ######################### Obtain information about GRASS rasters to be classified ##################
+
+    # Determine number of bands and then create a list of GRASS rasterrow objects
+    global nbands
     nbands = len(maplist)
-    
+
     global rasstack
     rasstack = [0] * nbands
     for i in range(nbands):
         rasstack[i] = RasterRow(maplist[i])
-    
+
     # Check to see if each raster in the list exists
     for i in range(nbands):
         if rasstack[i].exist() == True:
@@ -205,124 +225,135 @@ def main():
         else:
             print("GRASS raster " + maplist[i] + " does not exist.... exiting")
             exit()
-    
+
     # Use grass.pygrass.gis.region to get information about the current region, particularly
     # the number of rows and columns. We are going to sample and classify the data row-by-row,
-    # and not load all of the rasters into memory in a numpy array 
+    # and not load all of the rasters into memory in a numpy array
     current = Region()
-    
-    ########################### Create a imagery mask ###################################################
+
+    ########################### Create a imagery mask ###############################################
     # The input rasters might have slightly different dimensions in terms of value and non-value pixels.
     # We will use the GRASS r.series module to automatically create a mask by propagating the null values
-    
+
     global rfmask
     rfmask = 'tmp_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
     grass.run_command("r.series", output = rfmask, input = maplist, method = 'count', flags = 'n', overwrite=True)
 
-    global mask_raster    
+    global mask_raster
     mask_raster = RasterRow(rfmask)
     mask_raster.open('r')
-    
-    ######################### Sample training data using training ROI ##################################
-    global roi_raster    
+
+    ######################### Sample training data using training ROI ##############################
+    global roi_raster
     roi_raster = RasterRow(roi)
-    
+
     if roi_raster.exist() == True:
         roi_raster.open('r')
     else:
         print("ROI raster does not exist.... exiting")
         exit()
     
-    # determine cell storage type of training roi raster    
-    roi_type = grass.read_command("r.info", map = roi, flags = 'g')
-    roi_type = normalize_newlines(str(roi_type))
-    roi_list = roi_type.split('\n')
-    dtype = roi_list[9].split('=')[1]
-    
-    # check if training rois are valid for classification and regression
-    if mode == 'classification' and dtype != 'CELL':
-        print ("Classification mode requires an integer CELL type training roi map.....exiting")
-        exit()
-    
-    # Count number of labelled pixels
-    roi_stats = str(grass.read_command("r.univar", flags=("g"), map = roi))
-    if os.name == "nt":
-        roi_stats = roi_stats[0:len(roi_stats)-2] # to remove the last line ending and return characters
-        roi_stats = roi_stats.split('\r\n')[0]
+    # load the model
+    if model_load != '':
+        rf = joblib.load(model_load)
     else:
-        roi_stats = roi_stats[0:len(roi_stats)-1] # to remove the last line ending and return characters
-        roi_stats = roi_stats.split('\n')[0]
-
-    ncells = str(roi_stats).split('=')[1]
-    nlabel_pixels = int(ncells)
+        # determine cell storage type of training roi raster
+        roi_type = grass.read_command("r.info", map = roi, flags = 'g')
+        roi_type = normalize_newlines(str(roi_type))
+        roi_list = roi_type.split('\n')
+        dtype = roi_list[9].split('=')[1]
     
-    # Create a numpy array filled with zeros, with the dimensions of the number of columns in the region
-    # and the number of bands plus an additional band to attach the labels    
-    tindex=0
-    training_labels = []
-    training_data = np.zeros((nlabel_pixels, nbands+1))
-    training_data[:] = np.NAN
+        # check if training rois are valid for classification and regression
+        if mode == 'classification' and dtype != 'CELL':
+            print ("Classification mode requires an integer CELL type training roi map.....exiting")
+            exit()
     
-    # Loop through each row of the raster, get the pixels from that row in the ROI raster
-    # and check if any of those pixels are labelled (i.e. they are not nan).
-    # If labelled pixels are encountered, loop through each imagery band for that row and put the data into
-    # the img_row_band_np array. Also attach the label values onto the last column.
-    
-    for row in range(current.rows):
-        roi_row_np = roi_raster[row]
-        is_train = np.nonzero(roi_row_np > -2147483648)
-        training_labels = np.append(training_labels, roi_row_np[is_train])
-        nlabels_in_row = np.array(is_train).shape[1]
-        if np.isnan(roi_row_np).all() != True:
-            for band in range(nbands):
-                imagerow_np = rasstack[band][row]
-                training_data[tindex : tindex+nlabels_in_row, band] = imagerow_np[is_train]
-            tindex = tindex + nlabels_in_row
-    
-    # Determine the number of class labels using np.unique
-    nclasses = len(np.unique(training_labels))
-    
-    # attach training label values onto last dimension of numpy array    
-    training_data[0:nlabel_pixels, nbands] = training_labels
-    
-    # Remove nan rows from numpy array. Explanation: np.isnan(a) returns a similar array with True
-    # where NaN, False elsewhere. .any(axis=1) reduces an m*n array to n with an logical or operation
-    # on the whole rows, ~ inverts True/False and a[  ] chooses just the rows from the original array,
-    # which have True within the brackets.
-    
-    training_data = training_data[~np.isnan(training_data).any(axis=1)]
-    
-    # Split the numpy array into training_labels and training_data arrays to pass to the classifier
-    training_labels = training_data[:, nbands]
-    training_data = training_data[:, 0:nbands]
-    
-    ############################### Training the classifier #######################################
-    if mode == 'classification':
-        if balanced == True:
-            rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-            class_weight = 'balanced', max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+        # Count number of labelled pixels
+        roi_stats = str(grass.read_command("r.univar", flags=("g"), map = roi))
+        if os.name == "nt":
+            roi_stats = roi_stats[0:len(roi_stats)-2] # to remove the last line ending and return characters
+            roi_stats = roi_stats.split('\r\n')[0]
         else:
-            rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-            max_features = mfeatures, min_samples_split = minsplit, random_state = randst)            
-    else:
-        rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-        max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
-    rf = rf.fit(training_data, training_labels)
-    print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
-    rfimp = pd.DataFrame(rf.feature_importances_)
-    rfimp.insert(loc=0, column='Raster', value = maplist)
-    rfimp.columns = ['Raster', 'Importance']
-    print(rfimp)
+            roi_stats = roi_stats[0:len(roi_stats)-1] # to remove the last line ending and return characters
+            roi_stats = roi_stats.split('\n')[0]
+    
+        ncells = str(roi_stats).split('=')[1]
+        nlabel_pixels = int(ncells)
+    
+        # Create a numpy array filled with zeros, with the dimensions of the number of columns in the region
+        # and the number of bands plus an additional band to attach the labels
+        tindex=0
+        training_labels = []
+        training_data = np.zeros((nlabel_pixels, nbands+1))
+        training_data[:] = np.NAN
+    
+        # Loop through each row of the raster, get the pixels from that row in the ROI raster
+        # and check if any of those pixels are labelled (i.e. they are not nan).
+        # If labelled pixels are encountered, loop through each imagery band for that row and put the data into
+        # the img_row_band_np array. Also attach the label values onto the last column.
+    
+        for row in range(current.rows):
+            roi_row_np = roi_raster[row]
+            is_train = np.nonzero(roi_row_np > -2147483648)
+            training_labels = np.append(training_labels, roi_row_np[is_train])
+            nlabels_in_row = np.array(is_train).shape[1]
+            if np.isnan(roi_row_np).all() != True:
+                for band in range(nbands):
+                    imagerow_np = rasstack[band][row]
+                    training_data[tindex : tindex+nlabels_in_row, band] = imagerow_np[is_train]
+                tindex = tindex + nlabels_in_row
+    
+        # Determine the number of class labels using np.unique
+        nclasses = len(np.unique(training_labels))
+    
+        # attach training label values onto last dimension of numpy array
+        training_data[0:nlabel_pixels, nbands] = training_labels
+    
+        # Remove nan rows from numpy array. Explanation: np.isnan(a) returns a similar array with True
+        # where NaN, False elsewhere. .any(axis=1) reduces an m*n array to n with an logical or operation
+        # on the whole rows, ~ inverts True/False and a[  ] chooses just the rows from the original array,
+        # which have True within the brackets.
+    
+        training_data = training_data[~np.isnan(training_data).any(axis=1)]
+    
+        # Split the numpy array into training_labels and training_data arrays to pass to the classifier
+        training_labels = training_data[:, nbands]
+        training_data = training_data[:, 0:nbands]
+
+    ############################### Training the classifier #######################################
+    if model_load == '':
+        if mode == 'classification':
+            if balanced == True:
+                rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+                class_weight = 'balanced', max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+            else:
+                rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+                max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+        else:
+            rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+            max_features = mfeatures, min_samples_split = minsplit, random_state = randst)
+        rf = rf.fit(training_data, training_labels)
+    
+        # diagnostics
+        print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
+        rfimp = pd.DataFrame(rf.feature_importances_)
+        rfimp.insert(loc=0, column='Raster', value = maplist)
+        rfimp.columns = ['Raster', 'Importance']
+        print(rfimp)
+
+        # save the model
+        if model_save != '':
+            joblib.dump(rf, model_save + ".pkl")
 
     ################################ Prediction on the rest of the raster stack ###################
     # Create a np.array that can store each raster row for all of the bands, i.e. it is a long as the current columns,
     # and as wide as the number of bands
     # Loop through the raster, row-by-row and get the row values for each band, adding these to the img_np_row np.array,
     # which adds rowincr rows together to pass to the classifier. Otherwise, row-by-row is too inefficient.
-    
+
     # The scikit learn predict function expects a list of pixels, not an NxM matrix. We therefore need to reshape each row
     # matrix into a list. The total matrix size = cols * nbands. Therefore we can use the np.reshape function to convert
-    # the image into a list with the number of rows equal to n_samples, and the number of columns equal to the number of bands. 
+    # the image into a list with the number of rows equal to n_samples, and the number of columns equal to the number of bands.
     # Then we remove any NaN values because the scikit-learn predict function cannot handle NaNs. Here we replace them with a
     # small value using the np.nan_to_num function.
     # The flat_pixels is then passed onto the prediction function. After the prediction is performed on the row, to save keeping
@@ -336,8 +367,8 @@ def main():
         ftype = 'FCELL'
         nodata = np.nan
     classification.open('w', ftype,  overwrite = True)
-    
-    # create and open RasterRow objects for classification and probabilities if enabled    
+
+    # create and open RasterRow objects for classification and probabilities if enabled
     if class_probabilities == True and mode == 'classification':
         prob_out_raster = [0] * nclasses
         prob = [0] * nclasses
@@ -351,35 +382,35 @@ def main():
         if rowblock+rowincr > current.rows: rowincr = current.rows - rowblock
         img_np_row = np.zeros((rowincr, current.cols, nbands))
         mask_np_row = np.zeros((rowincr, current.cols))
-        
+
         # loop through each row, and each band and add these values to the 2D array img_np_row
         for row in range(rowblock, rowblock+rowincr, 1):
             mask_np_row[row-rowblock, :] = np.array(mask_raster[row])
             for band in range(nbands):
                 img_np_row[row-rowblock, :, band] = np.array(rasstack[band][row])
-                
+
         mask_np_row[mask_np_row == -2147483648] = np.nan
         nanmask = np.isnan(mask_np_row) # True in the mask means invalid data
-        
+
         # reshape each row-band matrix into a list
         nsamples = rowincr * current.cols
         flat_pixels = img_np_row.reshape((nsamples, nbands))
-        
+
         # remove NaN values and perform the prediction
         flat_pixels_noNaN = np.nan_to_num(flat_pixels)
         result = rf.predict(flat_pixels_noNaN)
         result = result.reshape((rowincr, current.cols))
-        
+
         # replace NaN values so that the prediction surface does not have a border
         result_NaN = np.ma.masked_array(result, mask=nanmask, fill_value=np.nan)
         result_masked = result_NaN.filled([nodata]) #Return a copy of result, with masked values filled with a given value
-        
-        # for each row we can perform computation, and write the result into   
+
+        # for each row we can perform computation, and write the result into
         for row in range(rowincr):
             newrow = Buffer((result_masked.shape[1],), mtype=ftype)
             newrow[:] = result_masked[row, :]
             classification.put_row(newrow)
-        
+
         # same for probabilities
         if class_probabilities == True and mode == 'classification':
             result_proba = rf.predict_proba(flat_pixels_noNaN)
@@ -392,12 +423,12 @@ def main():
                     newrow = Buffer((result_proba_class_masked.shape[1],), mtype='FCELL')
                     newrow[:] = result_proba_class_masked[row, :]
                     prob[iclass].put_row(newrow)
-    
+
     classification.close()
 
     if class_probabilities == True and mode == 'classification':
         for iclass in range(nclasses): prob[iclass].close()
-    
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
