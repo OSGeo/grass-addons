@@ -26,7 +26,27 @@ The random forests scikit-learn implementation also includes a measure of variab
 
 <h2>EXAMPLE</h2>
 
-r.randomforest igroup=lsat7_2000@landsat roi=landcover_1m@PERMANENT output=rf_classification mode=classification ntrees=500 mfeatures=-1 minsplit=2 randst=1 lines=100
+Here we are going to use the GRASS GIS sample North Carolina data set as a basis to perform a landsat classification. We are going to classify a Landsat 7 scene from 2000, using training information from an older (1996) land cover dataset.
+
+<figure>
+<img src="lsat7_2000_b742.png" alt="Landsat 7 (2000) bands 7,4,2 color composite example">
+<figcaption>Landsat 7 (2000) bands 7,4,2 color composite example</figcaption>
+</figure>
+
+<br><br>First, we are going to generate some training pixels from an older (1996) land cover classification:
+<div class="code"><pre>
+r.random input=landclass96m@PERMANENT npoints=1000 raster=landclass96_roi@landsat
+</pre></div>
+
+<br><br>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:
+<div class="code"><pre>
+r.randomforest igroup=lsat7_2000@landsat roi=landclass96_roi@landsat output=rf_classification mode=classification ntrees=500 mfeatures=-1 minsplit=2 randst=1 lines=100
+</pre></div>
+
+<figure>
+<img src="rfclassification.png" alt="Random forest classification result">
+<figcaption>Random forest classification result</figcaption>
+</figure>
 
 <h2>REFERENCES</h2>
 
