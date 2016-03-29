@@ -22,7 +22,11 @@
 #%module
 #% label: Simulates landuse change using FUTURES (r.futures.pga) on multiple CPUs in parallel.
 #% description: Module uses Patch-Growing Algorithm (PGA) to simulate urban-rural landscape structure development.
-#% keyword: raster, patch growing, urban, landscape, modeling
+#% keyword: raster
+#% keyword: patch growing
+#% keyword: urban
+#% keyword: landscape
+#% keyword: modeling
 #%end
 #%flag
 #% key: d
@@ -316,9 +320,9 @@ def main():
         gscript.fatal(_("Raster map <{r}> already exists."
                      " To overwrite, use the --overwrite flag").format(r=options['output'] + '_run_1'))
     global TMP_RASTERS
-    gscript.message(_("Splitting subregions"))
     cats = []
     if tosplit:
+        gscript.message(_("Splitting subregions"))
         cats = gscript.read_command('r.stats', flags='n', input=subregions).strip().splitlines()
         if len(cats) < 2:
             gscript.fatal(_("Not enough subregions to split computation. Do not use -d flag."))
