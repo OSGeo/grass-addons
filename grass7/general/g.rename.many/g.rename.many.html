@@ -65,7 +65,7 @@ for example in command line (bash syntax):
 
 <div class="code"><pre>
 g.list type=raster mapset=. sep=",
-" > raster_names.csv
+" &gt; raster_names.csv
 </pre></div>
 
 <p>
@@ -77,7 +77,7 @@ With some further processing file template can be made more complete
 by including map names twice (bash syntax):
 
 <div class="code"><pre>
-g.list type=raster mapset=. | sed -e "s/\(.*\)/\1,\1/g" > raster_names.csv
+g.list type=raster mapset=. | sed -e "s/\(.*\)/\1,\1/g" &gt; raster_names.csv
 </pre></div>
 
 The <em>sed</em> expression used here takes whatever is on a line
