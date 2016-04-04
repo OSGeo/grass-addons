@@ -324,6 +324,7 @@ def main():
 
         # Determine the number of class labels using np.unique
         nclasses = len(np.unique(training_labels))
+        class_list = np.unique(training_labels)
 
         # attach training label values onto last dimension of numpy array
         training_data[0:nlabel_pixels, nbands] = training_labels
@@ -407,7 +408,7 @@ def main():
         prob_out_raster = [0] * nclasses
         prob = [0] * nclasses
         for iclass in range(nclasses):
-            prob_out_raster[iclass] = output + '_p' + str(iclass)
+            prob_out_raster[iclass] = output + '_p' + str(class_list[iclass])
             prob[iclass] = RasterRow(prob_out_raster[iclass])
             prob[iclass].open('w', 'FCELL', overwrite=True)
 
