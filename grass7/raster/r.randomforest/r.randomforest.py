@@ -150,7 +150,8 @@ def module_exists(module_name):
         imp.find_module(module_name)
         return True
     except ImportError:
-        print(module_name + " python package not installed....exiting")
+        grass.fatal(_("{} Python package not installed."
+                      " Exiting").format(module_name))
         return False
 
 if module_exists("sklearn") == True:
