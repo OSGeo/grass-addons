@@ -150,7 +150,7 @@ def module_exists(module_name):
         imp.find_module(module_name)
         return True
     except ImportError:
-        grass.fatal(_("{} Python package not installed."
+        grass.error(_("{} Python package not installed."
                       " Exiting").format(module_name))
         return False
 
