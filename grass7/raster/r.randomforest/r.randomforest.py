@@ -154,16 +154,6 @@ def module_exists(module_name):
                       " Exiting").format(module_name))
         return False
 
-if module_exists("sklearn") == True:
-    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-    from sklearn.externals import joblib
-else:
-    exit()
-if module_exists("pandas") == True:
-    import pandas as pd
-else:
-    exit()
-
 def cleanup():
     # We can then close the rasters and the roi image
     for i in range(nbands): rasstack[i].close()
@@ -215,6 +205,17 @@ def main():
         print ("option to output class probabiltities is ignored in regression mode....continuing")
     if model_save != '' and model_load != '':
         print("Cannot save and load a model at the same time")
+        exit()
+
+    # lazy imports
+    if module_exists("sklearn") == True:
+        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+        from sklearn.externals import joblib
+    else:
+        exit()
+    if module_exists("pandas") == True:
+        import pandas as pd
+    else:
         exit()
 
     ######################  Fetch individual raster names from group ###############################
