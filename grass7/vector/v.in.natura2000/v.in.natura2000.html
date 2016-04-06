@@ -23,6 +23,19 @@ The script uses <a href="https://pypi.python.org/pypi/pyspatialite/3.0.1-alpha-0
 for connecting to the sqlite/spatialite database.
 </p>
 
+<p>
+With the database update by end 2015 the column <i>PERCENTAGE_COVER</i> 
+in the HABITATS table was renamed to <i>PERCENTAGECOVER</i>. The addon 
+script was adapted accordingly; for Natura 2000 database versions < 
+2015, the column has to be renamed back.
+</p>
+
+<p>
+Depending on which taxonomy was used to identify species, different 
+species codes may be used for species across EU member states. Check the 
+<a href="http://bd.eionet.europa.eu/activities/Natura_2000/reference_portal">Reference Portal for Natura 2000</a>
+ (<i>Codelist for species (Annex II,IV,V)</i>) for species and their synonyms.</p>
+
 <h2>EXAMPLE</h2>
 
 <div class="code">
