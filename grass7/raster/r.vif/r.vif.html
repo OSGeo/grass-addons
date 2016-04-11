@@ -1,20 +1,24 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.vif</em> module computes a stepwise variance inflation factor 
-(VIF) and the square root of the VIF. The VIF quantifies how much 
+The <em>r.vif</em> module computes the variance inflation factor 
+(<a href="https://en.wikipedia.org/wiki/Variance_inflation_factor">VIF</a>)
+[1] and the square root of the VIF. The VIF quantifies how much 
 the variance (the square of the estimate's standard deviation) of an 
 estimated regression coefficient is increased because of 
-collinearity. The square root of VIF is a measure of how much larger 
+<a href="https://en.wikipedia.org/wiki/Multicollinearity">multi-collinearity</a>.
+The square root of VIF is a measure of how much larger 
 the standard error is, compared with what it would be if that 
 variable were uncorrelated with the other predictor variables in the 
 model. 
 
-<p>By default the VIF is calculated for each variable. If the user 
-sets a VIF threshold value (maxvif) the VIF will be calculated again 
-after removing the variable with the highest VIF. This will be 
-repeated till the VIF is smaller than maxvif. This can thus be used 
-to select a sub-set of variables for e.g., multiple regression 
-analysis. 
+<p>By default the VIF is calculated for each variable. If the user
+sets a VIF threshold value (maxvif) a stepwise variable selection
+procedure [2] is used whereby after computing the VIF for each
+explanatory variable, the variable with the highest VIF is removed.
+Next, the VIF values are computed again for the reduced set of
+variables. This will be repeated till the VIF is smaller than
+maxvif. This can thus be used to select a sub-set of variables for
+e.g., multiple regression analysis.
 
 <p>The user can optionally select one or more variables to be 
 retained in the stepwise selection. For example, the user selects 
@@ -85,11 +89,6 @@ with as maximum VIF: 9.71883412866
 Statistics are written to results2.txt
 </pre></div>
 
-<h2>SEE ALSO</h2>
-
-This add-on depends on <em><a href="http://grass.osgeo.org/grass70/manuals/r.regression.multi.html">
-r.regression.multi</a></em>
-
 <h2>Citation</h2>
 
 Suggested citation:
@@ -99,6 +98,14 @@ Kindt, R. 2015. Current and Future Fire Regimes and Their Influence
 on Natural Vegetation in Ethiopia. Ecosystems. doi: 
 10.1007/s10021-015-9938-x.
 
+
+<h2>References</h2>
+[1] Graham, M.H. 2003. Confronting
+multicollinearity in ecological multiple regression. Ecology 84:
+2809–2815.
+[2] Craney, T.A., & Surles, J.G. 2002. Model-Dependent
+Variance Inflation Factor Cutoff Values. Quality Engineering 14:
+391–403.
 
 <h2>AUTHOR</h2>
 

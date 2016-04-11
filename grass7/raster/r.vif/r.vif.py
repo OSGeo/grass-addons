@@ -120,12 +120,16 @@ def main():
     #=======================================================================
 
     # Calculate VIF and write results to text file
+    name_lengths = []
+    for i in IPF:
+        name_lengths.append(len(i))
+    nlength = max(name_lengths)
     if MXVIF =='':
         text_file = open(OPF, "w")
-        text_file.write("variable\tvif\tsqrtvif\n")
+        text_file.write("variable,vif,sqrtvif\n")
+        grass.info('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(['variable', 'vif', 'sqrtvif'], nlength))
         for k in xrange(len(IPF)):
             MAPy = IPF[k]
-            nMAPy = IPFn[k]
             MAPx = IPF[:]
             del MAPx[k]
             vifstat = grass.read_command("r.regression.multi",
@@ -134,13 +138,15 @@ def main():
             vifstat = vifstat.split('\n')
             vifstat = [i.split('=') for i in vifstat]
             if float(vifstat[1][1]) > 0.9999999999:
-                rsqr = 0.9999999999
+                vif = float("inf")
+                sqrtvif = float("inf")
             else:
                 rsqr = float(vifstat[1][1])
-            vif = 1 / (1 - rsqr)
-            sqrtvif = math.sqrt(vif)
-            text_file.write(nMAPy + "\t" + str(round(vif, 3)) + "\t" + str(round(sqrtvif, 3)) + "\n")
-            print("VIF " + MAPy + " = " + str(vif))
+                vif = 1 / (1 - rsqr)
+                sqrtvif = math.sqrt(vif)
+            RES = [MAPy, vif, sqrtvif]
+            text_file.write('{0[0]}, {0[1]}, {0[2]}\n'.format(RES))
+            grass.info('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format(RES, nlength))
         text_file.close()
     else:
         text_file = open(OPF, "w")
@@ -153,9 +159,9 @@ def main():
             grass.info("----------------------------------------")
             rvif = np.zeros(len(IPF))
             text_file.write("variable\tvif\tsqrtvif\n")
+            grass.info('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(['variable', 'vif', 'sqrtvif'], nlength))
             for k in xrange(len(IPF)):
                 MAPy = IPF[k]
-                nMAPy = IPFn[k]
                 MAPx = IPF[:]
                 del MAPx[k]
                 vifstat = grass.read_command("r.regression.multi",
@@ -164,17 +170,19 @@ def main():
                 vifstat = vifstat.split('\n')
                 vifstat = [i.split('=') for i in vifstat]
                 if float(vifstat[1][1]) > 0.9999999999:
-                    rsqr = 0.9999999999
+                    vif = float("inf")
+                    sqrtvif = float("inf")
                 else:
                     rsqr = float(vifstat[1][1])
-                vif = 1 / (1 - rsqr)
-                sqrtvif = math.sqrt(vif)
-                text_file.write(nMAPy + "\t" + str(round(vif, 3)) + "\t" + str(round(sqrtvif, 3)) + "\n")
+                    vif = 1 / (1 - rsqr)
+                    sqrtvif = math.sqrt(vif)
+                RES = [MAPy, vif, sqrtvif]
+                text_file.write('{0[0]}, {0[1]}, {0[2]}\n'.format(RES))
+                grass.info('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format(RES, nlength))
                 if IPFn[k] in IPRn:
                     rvif[k] = -9999
                 else:
                     rvif[k] = vif
-                print("VIF " + MAPy + " = " + str(vif))
 
             rvifmx = max(rvif)
             if rvifmx >= MXVIF:
@@ -198,7 +206,8 @@ def main():
         grass.info(', '.join(IPFn))
         grass.info("with as maximum VIF: " + str(rvifmx))
     grass.info("")
-    grass.info("Statistics are written to " + OPF)
+    if options['file'] != '':
+        grass.info("Statistics are written to " + OPF + "\n")
     grass.info("")
 
 if __name__ == "__main__":
