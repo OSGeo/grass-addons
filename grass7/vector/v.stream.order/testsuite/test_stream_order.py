@@ -1,7 +1,7 @@
 """Test v.stream.order
 
 @author
-IGB-Berlin,Johannes Radinger; Implementation: Soeren Gebbert"
+IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 and has been funded by the German Federal Ministry for Education and
 Research (grant number 01LC1205). 

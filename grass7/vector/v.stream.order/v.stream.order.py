@@ -3,7 +3,7 @@
 ############################################################################
 #
 # MODULE:       v.stream.order
-# AUTHOR(S):    IGB-Berlin,Johannes Radinger; Implementation: Soeren Gebbert"
+# AUTHOR(S):    IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 #
 #               This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 #               and has been funded by the German Federal Ministry for Education and

@@ -2,7 +2,7 @@
 # This script creates the water outlet points
 # for different stream networks in the "streams@PERMANENT"
 # vector map layer in the nc location
-# Author: IGB-Berlin,Johannes Radinger; Implementation: Soeren Gebbert"
+# Author: IGB-Berlin,Johannes Radinger; Implementation: Geoinformatikbuero Dassau GmbH , Soeren Gebbert
 # This tool was developed as part of the BiodivERsA-net project 'FISHCON'
 # and has been funded by the German Federal Ministry for Education and
 # Research (grant number 01LC1205). 
