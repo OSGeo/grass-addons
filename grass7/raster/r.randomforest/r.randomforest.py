@@ -34,7 +34,8 @@
 #% key: roi
 #% label: Raster map with labelled pixels
 #% description: Raster map with labelled pixels
-#% required: yes
+#% required: no
+#% guisection: Required
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -188,35 +189,36 @@ def main():
     if mfeatures == -1:
         mfeatures = str('auto')
     if mfeatures == 0:
-        print("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures)...exiting")
+        grass.fatal_error("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures)...exiting")
         exit()
     if minsplit == 0:
-        print("minsplit must be greater than zero.....exiting")
+        grass.fatal_error("minsplit must be greater than zero.....exiting")
         exit()
     if rowincr <= 0:
-        print("rowincr must be greater than zero....exiting")
+        grass.fatal_error("rowincr must be greater than zero....exiting")
         exit()
     if ntrees < 1:
-        print("ntrees must be greater than zero.....exiting")
+        grass.fatal_error("ntrees must be greater than zero.....exiting")
         exit()
     if mode == 'regression' and balanced == True:
-        print ("balanced mode is ignored in Random Forests in regression mode....continuing")
+        grass.warning(_("balanced mode is ignored in Random Forests in regression mode....continuing"))
     if mode == 'regression' and class_probabilities == True:
-        print ("option to output class probabiltities is ignored in regression mode....continuing")
+        grass.warning(_("option to output class probabiltities is ignored in regression mode....continuing"))
     if model_save != '' and model_load != '':
-        print("Cannot save and load a model at the same time")
-        exit()
+        grass.fatal_error("Cannot save and load a model at the same time.....exiting")
+    if model_load == '' and roi == '':
+        grass.fatal_error("Require labelled pixels regions of interest.....exiting")
 
     # lazy imports
     if module_exists("sklearn") == True:
         from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
         from sklearn.externals import joblib
     else:
-        exit()
+        grass.fatal_error("Scikit-learn python module is not installed.....exiting")
     if module_exists("pandas") == True:
         import pandas as pd
     else:
-        exit()
+        grass.fatal_error("Pandas python module is not installed.....exiting")
 
     ######################  Fetch individual raster names from group ###############################
     groupmaps = grass.read_command("i.group", group=igroup, flags="g")
@@ -240,8 +242,7 @@ def main():
         if rasstack[i].exist() == True:
             rasstack[i].open('r')
         else:
-            print("GRASS raster " + maplist[i] + " does not exist.... exiting")
-            exit()
+            grass.fatal_error("GRASS raster " + maplist[i] + " does not exist.... exiting")
 
     # Use grass.pygrass.gis.region to get information about the current region, particularly
     # the number of rows and columns. We are going to sample and classify the data row-by-row,
@@ -271,8 +272,7 @@ def main():
     if roi_raster.exist() == True:
         roi_raster.open('r')
     else:
-        print("ROI raster does not exist.... exiting")
-        exit()
+        grass.fatal_error("ROI raster does not exist.... exiting")
 
     # load the model
     if model_load != '':
@@ -286,18 +286,12 @@ def main():
 
         # check if training rois are valid for classification and regression
         if mode == 'classification' and dtype != 'CELL':
-            print ("Classification mode requires an integer CELL type training roi map.....exiting")
-            exit()
+            grass.fatal_error("Classification mode requires an integer CELL type training roi map.....exiting")
 
         # Count number of labelled pixels
         roi_stats = str(grass.read_command("r.univar", flags=("g"), map=roi))
-        if os.name == "nt":
-            roi_stats = roi_stats[0:len(roi_stats)-2]
-            roi_stats = roi_stats.split('\r\n')[0]
-        else:
-            roi_stats = roi_stats[0:len(roi_stats)-1]
-            roi_stats = roi_stats.split('\n')[0]
-
+        roi_stats = normalize_newlines(roi_stats)
+        roi_stats = roi_stats.split('\n')[0]
         ncells = str(roi_stats).split('=')[1]
         nlabel_pixels = int(ncells)
 
@@ -350,14 +344,14 @@ def main():
                 max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
             rf = rf.fit(training_data, training_labels)
             acc = float(rf.oob_score_)
-            print('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100))
+            grass.message(_('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100)))
         else:
             rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
             max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
             rf = rf.fit(training_data, training_labels)
             acc = rf.score(X=training_data, y=training_labels)
-            print('Our coefficient of determination R^2 of the prediction is: {r2}%'.format \
-            (r2=rf.score(X=training_data, y=training_labels)))
+            grass.message(_('Our coefficient of determination R^2 of the prediction is: {r2}%'.format \
+            (r2=rf.score(X=training_data, y=training_labels))))
 
         # diagnostics
         rfimp = pd.DataFrame(rf.feature_importances_)
