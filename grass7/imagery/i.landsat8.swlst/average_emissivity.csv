@@ -1,0 +1,11 @@
+Emissivity Class|TIRS10|TIRS11|Class Code
+Cropland|0.971|0.968|(10, 11, 12, 13)
+Forest|0.995|0.996|(20, 21, 22, 23, 24)
+Grasslands|0.97|0.971|(30, 31, 32, 51, 72)
+Shrublands|0.969|0.97|(40, 71)
+Wetlands|0.992|0.998|
+Waterbodies|0.992|0.998|(50, 60, 61, 62, 63)
+Tundra|0.98|0.984|
+Impervious|0.973|0.981|(80, 81, 82)
+Barren Land|0.969|0.978|(90, 52, 91, 92, 93, 94, 95, 96)
+Snow and ice|0.992|0.998|(100, 101, 102)
