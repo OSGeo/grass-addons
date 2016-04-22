@@ -4,7 +4,7 @@
 # MODULE:       r.randomforest
 # AUTHOR:       Steven Pawley
 # PURPOSE:      Provides supervised random forest classification and regression
-#               (using python scikit-learn and pandas)
+#               (using python scikit-learn)
 #
 # COPYRIGHT:    (c) 2015 Steven Pawley, and the GRASS Development Team
 #               This program is free software under the GNU General Public
@@ -18,7 +18,6 @@
 #% keyword: classification
 #% keyword: machine learning
 #% keyword: scikit-learn
-#% keyword: pandas
 #% keyword: random forests
 #%end
 
@@ -80,6 +79,15 @@
 #%end
 
 #%option
+#% key: cv
+#% type: integer
+#% description: Use k-fold cross-validation when cv > 1
+#% answer: 1
+#% required: yes
+#% guisection: Random Forest Options
+#%end
+
+#%option
 #% key: randst
 #% type: integer
 #% description: Seed to pass onto the random state for reproducible results
@@ -92,9 +100,9 @@
 #% key: lines
 #% type: integer
 #% description: Processing block size in terms of number of rows
-#% answer: 20
+#% answer: 50
 #% required: yes
-#% guisection: Optional
+#% guisection: Random Forest Options
 #%end
 
 #%flag
@@ -129,11 +137,8 @@
 #% guisection: Optional
 #%end
 
-#%option G_OPT_F_OUTPUT
-#% key: fimportance
-#% label: Save feature importance and accuracy to csv
-#% required: no
-#% guisection: Optional
+#%rules
+#% exclusive: roi,loadfile
 #%end
 
 # standard modules
@@ -151,16 +156,14 @@ def module_exists(module_name):
         imp.find_module(module_name)
         return True
     except ImportError:
-        grass.error(_("{} Python package not installed."
-                      " Exiting").format(module_name))
+        grass.fatal("{} Python package not installed. Exiting").format(module_name)
         return False
 
 def cleanup():
     # We can then close the rasters and the roi image
     for i in range(nbands): rasstack[i].close()
-    mask_raster.close()
     roi_raster.close()
-    grass.run_command("g.remove", name=rfmask, flags="f", type="raster")
+    if rfmask != '': grass.run_command("g.remove", name=rfmask, flags="f", type="raster")
 
 def normalize_newlines(string):
     # Windows uses carriage return and line feed ("\r\n") as a line ending
@@ -168,12 +171,42 @@ def normalize_newlines(string):
     import re
     return re.sub(r'(\r\n|\r|\n)', '\n', string)
 
+def scoreresults(X, y, clf, kfolds):
+    from sklearn import cross_validation, metrics
+    kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True)
+
+    pr = np.zeros((kfolds, 5))
+    pr.shape
+    i=0
+
+    for train_index, test_index in kf:
+        X_train, X_test =  X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        fit = clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        
+        pr[i,0] = metrics.accuracy_score(y_test, y_pred)
+
+        # check if the response variable is binary, then calculate roc_auc and set average to binary
+        if len(np.unique(y)) == 2:
+            statmethod = 'binary'
+            pr[i,1] = metrics.roc_auc_score(y_test, y_pred)
+        else:
+            statmethod = 'micro'
+
+        pr[i,2] = metrics.precision_score(y_test, y_pred, average=statmethod)
+        pr[i,3] = metrics.recall_score(y_test, y_pred, average=statmethod)   
+        pr[i,4] = metrics.cohen_kappa_score(y_test, y_pred)
+        i+= 1
+    return(pr)
+
 def main():
     igroup = options['igroup']
     roi = options['roi']
     output = options['output']
     mode = options['mode']
     ntrees = options['ntrees']
+    cv = int(options['cv'])
     balanced = flags['b']
     modelonly = flags['m']
     class_probabilities = flags['p']
@@ -183,42 +216,38 @@ def main():
     randst = int(options['randst'])
     model_save = options['savefile']
     model_load = options['loadfile']
-    fimportance = options['fimportance']
 
     ##################### error checking for valid input parameters ################################
     if mfeatures == -1:
         mfeatures = str('auto')
     if mfeatures == 0:
-        grass.fatal_error("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures)...exiting")
+        grass.fatal("mfeatures must be greater than zero, or -1 which uses the sqrt(nfeatures)...exiting")
         exit()
     if minsplit == 0:
-        grass.fatal_error("minsplit must be greater than zero.....exiting")
+        grass.fatal("minsplit must be greater than zero.....exiting")
         exit()
     if rowincr <= 0:
-        grass.fatal_error("rowincr must be greater than zero....exiting")
+        grass.fatal("rowincr must be greater than zero....exiting")
         exit()
     if ntrees < 1:
-        grass.fatal_error("ntrees must be greater than zero.....exiting")
+        grass.fatal("ntrees must be greater than zero.....exiting")
         exit()
     if mode == 'regression' and balanced == True:
         grass.warning(_("balanced mode is ignored in Random Forests in regression mode....continuing"))
     if mode == 'regression' and class_probabilities == True:
         grass.warning(_("option to output class probabiltities is ignored in regression mode....continuing"))
     if model_save != '' and model_load != '':
-        grass.fatal_error("Cannot save and load a model at the same time.....exiting")
+        grass.fatal("Cannot save and load a model at the same time.....exiting")
     if model_load == '' and roi == '':
-        grass.fatal_error("Require labelled pixels regions of interest.....exiting")
+        grass.fatal("Require labelled pixels regions of interest.....exiting")
 
     # lazy imports
     if module_exists("sklearn") == True:
         from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
         from sklearn.externals import joblib
+        from sklearn import cross_validation, metrics
     else:
-        grass.fatal_error("Scikit-learn python module is not installed.....exiting")
-    if module_exists("pandas") == True:
-        import pandas as pd
-    else:
-        grass.fatal_error("Pandas python module is not installed.....exiting")
+        grass.fatal("Scikit-learn python module is not installed.....exiting")
 
     ######################  Fetch individual raster names from group ###############################
     groupmaps = grass.read_command("i.group", group=igroup, flags="g")
@@ -242,42 +271,31 @@ def main():
         if rasstack[i].exist() == True:
             rasstack[i].open('r')
         else:
-            grass.fatal_error("GRASS raster " + maplist[i] + " does not exist.... exiting")
+            grass.fatal("GRASS raster " + maplist[i] + " does not exist.... exiting")
 
     # Use grass.pygrass.gis.region to get information about the current region, particularly
     # the number of rows and columns. We are going to sample and classify the data row-by-row,
     # and not load all of the rasters into memory in a numpy array
     current = Region()
 
-    ########################### Create a imagery mask ##############################################
-    # The input rasters might have different dimensions in terms of value and non-value pixels.
-    # We will use the r.series module to automatically create a mask by propagating the null values
-
+    # Define name of mask raster
     global rfmask
-
-    rfmask = 'tmp_' + ''.join([random.choice(string.ascii_letters + string.digits) \
-    for n in xrange(8)])
-
-    grass.run_command("r.series", output=rfmask, input=maplist, method='count', flags='n', \
-    overwrite=True)
-
-    global mask_raster
-    mask_raster = RasterRow(rfmask)
-    mask_raster.open('r')
-
+    rfmask = ''
+    
     ######################### Sample training data using training ROI ##############################
     global roi_raster
     roi_raster = RasterRow(roi)
-
-    if roi_raster.exist() == True:
-        roi_raster.open('r')
-    else:
-        grass.fatal_error("ROI raster does not exist.... exiting")
 
     # load the model
     if model_load != '':
         rf = joblib.load(model_load)
     else:
+        # Check if ROI raster exists if model is not loaded
+        if roi_raster.exist() == True:
+            roi_raster.open('r')
+        else:
+            grass.fatal("ROI raster does not exist.... exiting")
+            
         # determine cell storage type of training roi raster
         roi_type = grass.read_command("r.info", map=roi, flags='g')
         roi_type = normalize_newlines(str(roi_type))
@@ -286,7 +304,7 @@ def main():
 
         # check if training rois are valid for classification and regression
         if mode == 'classification' and dtype != 'CELL':
-            grass.fatal_error("Classification mode requires an integer CELL type training roi map.....exiting")
+            grass.fatal("Classification mode requires an integer CELL type training roi map.....exiting")
 
         # Count number of labelled pixels
         roi_stats = str(grass.read_command("r.univar", flags=("g"), map=roi))
@@ -333,47 +351,77 @@ def main():
         training_data = training_data[:, 0:nbands]
 
     ############################### Training the classifier #######################################
+
+    # define classifier for classification or regression mode, and balanced or unbalanced datasets
     if model_load == '':
         if mode == 'classification':
             if balanced == True:
                 rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-                class_weight='balanced', max_features=mfeatures, min_samples_split=minsplit, \
-                random_state=randst)
+                                            class_weight='balanced', max_features=mfeatures, min_samples_split=minsplit, \
+                                            random_state=randst)
             else:
                 rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-                max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
-            rf = rf.fit(training_data, training_labels)
+                                            max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
+        else:
+            rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+                                       max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
+
+        # train classifier
+        rf = rf.fit(training_data, training_labels)
+
+        # use cross-validation
+        if cv > 1:
+            grass.message(_("\r\n"))
+            grass.message(_("Global performance measures......:"))
+            if mode == 'classification':
+                scores = scoreresults(training_data, training_labels, rf, cv)
+                grass.message(_("accuracy: \t {mean} \t +/- \t {error}".format(mean=scores[:,0].mean(), error=scores[:,0].std() * 2)))
+                if len(np.unique(training_labels)) == 2:
+                    grass.message(_("roc_auc: \t {mean} \t +/- \t {error}".format(mean=scores[:,1].mean(), error=scores[:,1].std() * 2)))
+                grass.message(_("precision: \t {mean} \t +/- \t {error}".format(mean=scores[:,2].mean(), error=scores[:,2].std() * 2)))
+                grass.message(_("recall: \t {mean} \t +/- \t {error}".format(mean=scores[:,3].mean(), error=scores[:,3].std() * 2)))
+                grass.message(_("kappa: \t {mean} \t +/- \t {error}".format(mean=scores[:,4].mean(), error=scores[:,4].std() * 2)))
+            else:
+                scores = cross_validation.cross_val_score(rf, training_data, training_labels, cv=cv, scoring='r2')
+                grass.message(_("R2: \t {mean} \t +/- \t {error}".format(mean=scores.mean(), error=scores.std())))
+
+        # output internal performance measures
+        grass.message(_("\r\n"))
+        if mode == 'classification':
             acc = float(rf.oob_score_)
             grass.message(_('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100)))
         else:
-            rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
-            max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
-            rf = rf.fit(training_data, training_labels)
             acc = rf.score(X=training_data, y=training_labels)
             grass.message(_('Our coefficient of determination R^2 of the prediction is: {r2}%'.format \
-            (r2=rf.score(X=training_data, y=training_labels))))
+                            (r2=rf.score(X=training_data, y=training_labels))))
 
         # diagnostics
-        rfimp = pd.DataFrame(rf.feature_importances_)
-        rfimp.insert(loc=0, column='Raster', value=maplist)
-        rfimp.columns = ['Raster', 'Importance']
-        print(rfimp)
-        
-        # save diagnostics to file        
-        if fimportance != '':
-            rfimp.to_csv(path_or_buf = fimportance)
-            fd = open(fimportance, 'a')
-            fd.write(str(rfimp.shape[0]) + ',' + 'Performance measure (OOB or R2)' + ',' + str(acc))
-            fd.close()
+        rfimp = rf.feature_importances_
+        grass.message(_("Random forest feature importance"))
+        grass.message(_("id" + "\t" + "Raster" + "\t" + "Importance"))
+        for i in range(len(rfimp)):
+             grass.message(_(str(i) + "\t" + maplist[i] + "\t" + str(rfimp[i])))
         
         # save the model
         if model_save != '':
             joblib.dump(rf, model_save + ".pkl")
         
         if modelonly == True:
-            exit()
+            grass.fatal("Model built and now exiting")
 
     ################################ Prediction on the rest of the raster stack ###################
+
+    # Create a imagery mask
+    # The input rasters might have different dimensions in terms of value and non-value pixels.
+    # We will use the r.series module to automatically create a mask by propagating the null values
+    rfmask = 'tmp_' + ''.join([random.choice(string.ascii_letters + string.digits) \
+                               for n in xrange(8)])
+    grass.run_command("r.series", output=rfmask, input=maplist, method='count', flags='n')
+
+    global mask_raster
+    mask_raster = RasterRow(rfmask)
+    mask_raster.open('r')
+    
     # 1. Create a np.array that can store each raster row for all of the bands
     # 2. Loop through the raster, row-by-row and get the row values for each band
     #    adding these to the img_np_row np.array,
@@ -458,6 +506,7 @@ def main():
                     prob[iclass].put_row(newrow)
 
     classification.close()
+    mask_raster.close()
 
     if class_probabilities == True and mode == 'classification':
         for iclass in range(nclasses): prob[iclass].close()
