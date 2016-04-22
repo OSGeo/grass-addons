@@ -262,7 +262,7 @@ def checkValues(res, alpha=False):
         reso[i] = float(reso[i])
         if reso[i] % 2 == 0:
             # return the error advice
-            grass.fatal(_("The size/alpha setting must be an integer number " \
+            grass.fatal(_("The size/alpha setting must be an odd number " \
                           "(found %d)" % reso[i]))
     # create a range
     if typ == 'range':
