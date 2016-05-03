@@ -184,7 +184,10 @@ int main(int argc, char *argv[])
     if (estimate->answer) {
 	bw = estimate_bandwidth(mapx_fd, n_predictors, mapy_fd, rows, cols,
 				yest, bw);
-	G_message("Estimated optimal bandwidth: %d", bw);
+	if (shell_style->answer)
+	    fprintf(stdout, "estimate=%d\n", bw);
+	else
+	    G_message("Estimated optimal bandwidth: %d", bw);
 
 	exit(EXIT_SUCCESS);
     }
@@ -432,7 +435,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < n_predictors; i++) {
 
-	fprintf(stdout, "\npredictor%d=%s\n", i + 1, input_mapx->answers[i]);
+	fprintf(stdout, "predictor%d=%s\n", i + 1, input_mapx->answers[i]);
 	Bmean[i + 1] = Bsum[i + 1] / bcount;
 	fprintf(stdout, "bmean%d=%g\n", i + 1, Bmean[i + 1]);
 	Bstddev = sqrt(Bsumsq[i + 1] / bcount - (Bmean[i + 1] * Bmean[i + 1]));
