@@ -70,7 +70,7 @@
 #% key: albedo
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+#% description: Name of the ground albedo coefficient input raster map [-]
 #% required : no
 #%end
 
