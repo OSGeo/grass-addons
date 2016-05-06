@@ -30,7 +30,7 @@
 #% key: input
 #% type: string
 #% key_desc: name
-#% gisprompt: "old,cell,raster";
+#% gisprompt: "old,cell,raster"
 #% required: yes
 #% description: Name of input raster map
 #%end
@@ -38,7 +38,7 @@
 #% key: output
 #% type: string
 #% key_desc: name
-#% gisprompt: "new,vector,vector";
+#% gisprompt: "new,vector,vector"
 #% required: yes
 #% description: Name for output vector map
 #%end
