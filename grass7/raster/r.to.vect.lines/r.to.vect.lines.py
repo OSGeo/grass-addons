@@ -60,10 +60,11 @@ import sys
 from grass.script import core as grass
 from grass.lib.gis import *
 from grass.lib.vector import *
+from grass.lib.raster import *
 from ctypes import *
 
 # check if GRASS is running or not
-if not os.environ.has_key("GISBASE"):
+if "GISBASE" not in os.environ:
     sys.exit("You must be in GRASS GIS to run this program")
 
 
@@ -76,7 +77,7 @@ def main():
     go_vert = flags['v']
 
     if go_vert:
-	sys.exit("Vertical lines are yet to do.")
+        sys.exit("Vertical lines are yet to do.")
 
     ##### Query the region
     region = Cell_head()
@@ -88,12 +89,12 @@ def main():
     if '@' in inmap:
         inmap, mapset = inmap.split('@')
 
-    gfile = grass.find_file(name = inmap, element = 'cell', mapset = mapset)
+    gfile = grass.find_file(name=inmap, element='cell', mapset=mapset)
     if not gfile['name']:
         grass.fatal(_("Raster map <%s> not found") % inmap)
 
     # determine the inputmap type (CELL/FCELL/DCELL)
-    data_type = Rast_get_map_type(inmap, mapset)
+    data_type = Rast_map_type(inmap, mapset)
 
     if data_type == CELL_TYPE:
         ptype = POINTER(c_int)
@@ -107,14 +108,13 @@ def main():
 
     #print "Raster map <%s> contains data type %s." % (inmap, type_name)
 
-    in_fd   = G_open_cell_old(inmap, mapset)
-    in_rast = G_allocate_raster_buf(data_type)
+    in_fd = Rast_open_old(inmap, mapset)
+    in_rast = Rast_allocate_buf(data_type)
     in_rast = cast(c_void_p(in_rast), ptype)
 
-    rows = G_window_rows()
-    cols = G_window_cols()
+    rows = Rast_window_rows()
+    cols = Rast_window_cols()
     #print "Current region is %d rows x %d columns" % (rows, cols)
-
 
     #### Vector map setup
     # define map structure
@@ -125,8 +125,8 @@ def main():
 
     # open new 3D vector map
     Vect_open_new(map_info, outmap, True)
-
-    Vect_hist_command(outmap)
+    print 'ddd'
+    Vect_hist_command(map_info)
 
     # Create and initialize structs to store points/lines and category numbers
     Points = Vect_new_line_struct()
@@ -138,37 +138,36 @@ def main():
     yL = LineArrayType()
     zL = LineArrayType()
 
-
     #### iterate through map rows
     for row in xrange(rows):
         if row % skip != 0:
             continue
 
         # read a row of raster data into memory, then print it
-        G_get_raster_row(in_fd, in_rast, row, data_type)
+        Rast_get_row(in_fd, in_rast, row, data_type)
         #print row, in_rast[0:cols]
-	#print row, in_rast[0:5]
+        #print row, in_rast[0:5]
 
         # y-value
-        coor_row_static = G_row_to_northing((row + 0.5), byref(region))
+        coor_row_static = Rast_row_to_northing((row + 0.5), byref(region))
         # x-end nodes
         #coor_col_min = G_col_to_easting((0 + 0.5), byref(region))
-	#coor_col_max = G_col_to_easting((cols - 0.5), byref(region))
+        #coor_col_max = G_col_to_easting((cols - 0.5), byref(region))
         #print '  ',coor_row_static,coor_col_min,coor_col_max
 
         # reset
-	n = 0
+        n = 0
         for col in xrange(cols):
-	   xL[col] = yL[col] = zL[col] = 0
+            xL[col] = yL[col] = zL[col] = 0
 
         # TODO check for NULL
         for col in xrange(cols):
 #            if not G_is_null_value(byref(in_rast[col]), data_type):
             if in_rast[col] > -2e9:
-                xL[n] = G_col_to_easting((col + 0.5), byref(region))
+                xL[n] = Rast_col_to_easting((col + 0.5), byref(region))
                 yL[n] = coor_row_static
                 zL[n] = in_rast[col]
-		n = n + 1
+                n = n + 1
 
         #print valid_cols,n
         Vect_cat_del(Cats, 1)
@@ -178,11 +177,10 @@ def main():
         Vect_copy_xyz_to_pnts(Points, xL, yL, zL, n)
         Vect_write_line(map_info, fea_type, Points, Cats)
 
-
     # Build topology for vector map and close them all
     Vect_build(map_info)
     Vect_close(map_info)
-    G_close_cell(in_fd)
+    Rast_close(in_fd)
     G_done_msg('')
 
 
