@@ -1,5 +1,5 @@
 <h2 id="description">DESCRIPTION</h2>
-<p><em>i.landsat8.swlst</em> is an implementation of a robust and practical Split-Window (SW) algorithm estimating land surface temperature (LST), from the Thermal Infra-Red Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K. [1]</p>
+<p><em>i.landsat8.swlst</em> is an implementation of a robust and practical Slit-Window (SW) algorithm estimating land surface temperature (LST), from the Thermal Infra-Red Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K. [1]</p>
 <h3 id="overview">Overview</h3>
 <p>The components of the algorithm estimating LST values are at-satellite brightness temperature (BT); land surface emissivity (LSE); and the coefficients of the main Split-Window equation (SWC).</p>
 <p>LSEs are derived from an established look-up table linking the FROM-GLC classification scheme to average emissivities. The NDVI and the FVC are <em>not</em> computed each time an LST estimation is requested. Read [0] for details.</p>
@@ -252,7 +252,7 @@ The shortest call for processing a complete Landsat8 scene normally is:
 </ul>
 <h2 id="references">REFERENCES</h2>
 <ul>
-<li><p>[0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015. &quot;A Practical Split-Window Algorithm for Estimating Land Surface Temperature from Landsat 8 Data.&quot; Remote Sens. 7, no. 1: 647-665. http://www.mdpi.com/2072-4292/7/1/647/htm#sthash.ba1pt9hj.dpuf</p></li>
+<li><p>[0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015. &quot;A Practical Split-Window Algorithm for Estimating Land Surface Temperature from Landsat 8 Data.&quot; Remote Sens. 7, no. 1: 647-665. http://www.mdpi.com/2072-4292/7/1/647/htm</p></li>
 <li><p>[1] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng, and Jing Li. &quot;Atmospheric Water Vapor Retrieval from Landsat 8 and Its Validation.&quot; 3045--3048. IEEE, 2014.</p></li>
 <li><p>[2] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., &amp; Meng, J. (2015). Atmospheric water vapor retrieval from Landsat 8 thermal infrared images. Journal of Geophysical Research: Atmospheres, 120(5), 1723-1738.</p></li>
 </ul>

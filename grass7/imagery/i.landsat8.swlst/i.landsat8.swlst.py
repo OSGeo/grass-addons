@@ -350,6 +350,9 @@ def cleanup():
     """
     grass.run_command('g.remove', flags='f', type="rast",
                       pattern='tmp.{pid}*'.format(pid=os.getpid()), quiet=True)
+    
+    if grass.find_file(name='MASK', element='cell')['file']:
+        r.mask(flags='r', verbose=True)
 
 
 def tmp_map_name(name):
@@ -552,8 +555,9 @@ def tirs_to_at_satellite_temperature(tirs_1x, mtl_file):
     # save Brightness Temperature map?
     if brightness_temperature_prefix:
         bt_output = brightness_temperature_prefix + band_number
-        run('g.copy', raster=(tmp_brightness_temperature, bt_output))
-    del(bt_output)
+        run('g.rename', raster=(tmp_brightness_temperature, bt_output))
+        tmp_brightness_temperature = bt_output
+        del(bt_output)
 
     return tmp_brightness_temperature
 
@@ -575,21 +579,21 @@ def mask_clouds(qa_band, qa_pixel):
            'in the Quality Assessment band.'.format(qap=qa_pixel))
     g.message(msg)
 
-    tmp_cloudmask = tmp_map_name('cloudmask')
-    qabits_expression = 'if({band} == {pixel}, 1, null())'.format(band=qa_band,
-                                                                  pixel=qa_pixel)
+    #tmp_cloudmask = tmp_map_name('cloudmask')
+    #qabits_expression = 'if({band} == {pixel}, 1, null())'.format(band=qa_band,
+    #                                                              pixel=qa_pixel)
 
-    cloud_masking_equation = equation.format(result=tmp_cloudmask,
-                                             expression=qabits_expression)
-    grass.mapcalc(cloud_masking_equation)
+    #cloud_masking_equation = equation.format(result=tmp_cloudmask,
+    #                                         expression=qabits_expression)
+    #grass.mapcalc(cloud_masking_equation)
 
-    r.mask(raster=tmp_cloudmask, flags='i', overwrite=True)
+    r.mask(raster=qa_band, maskcats=qa_pixel, flags='i', overwrite=True)
 
     # save for debuging
     #save_map(tmp_cloudmask)
 
-    del(qabits_expression)
-    del(cloud_masking_equation)
+    #del(qabits_expression)
+    #del(cloud_masking_equation)
 
 
 def replace_dummies(string, *args, **kwargs):
@@ -714,7 +718,7 @@ def determine_average_emissivity(outname, landcover_map, avg_lse_expression):
     
     # save land surface emissivity map?
     if emissivity_output:
-        run('g.copy', raster=(outname, emissivity_output))
+        run('g.rename', raster=(outname, emissivity_output))
 
 
 def determine_delta_emissivity(outname, landcover_map, delta_lse_expression):
@@ -746,7 +750,7 @@ def determine_delta_emissivity(outname, landcover_map, delta_lse_expression):
 
     # save delta land surface emissivity map?
     if delta_emissivity_output:
-        run('g.copy', raster=(outname, delta_emissivity_output))
+        run('g.rename', raster=(outname, delta_emissivity_output))
 
 
 def get_cwv_window_means(outname, t1x, t1x_mean_expression):
@@ -835,7 +839,7 @@ def estimate_column_water_vapor(outname, ratio, cwv_expression):
 
     # save Column Water Vapor map?
     if cwv_output:
-        run('g.copy', raster=(outname, cwv_output))
+        run('g.rename', raster=(outname, cwv_output))
 
     # save for debuging
     #save_map(outname)
@@ -884,7 +888,7 @@ def estimate_cwv_big_expression(outname, t10, t11, cwv_expression):
             source1=source1_cwv, source2=source2_cwv,
             history=history_cwv)
 
-        run('g.copy', raster=(outname, cwv_output))
+        run('g.rename', raster=(outname, cwv_output))
 
     del(cwv_expression)
     del(cwv_equation)
@@ -933,8 +937,13 @@ def estimate_lst(outname, t10, t11, avg_lse_map, delta_lse_map, cwv_map, lst_exp
                                                   out_ti=t10,
                                                   in_tj=DUMMY_MAPCALC_STRING_T11,
                                                   out_tj=t11)
-
-    split_window_equation = equation.format(result=outname,
+    # Convert to Celsius?
+    if celsius:
+        split_window_expression = '({swe}) - 273.15'.format(swe=split_window_expression)
+        split_window_equation = equation.format(result=outname,
+                                            expression=split_window_expression)
+    else:
+        split_window_equation = equation.format(result=outname,
                                             expression=split_window_expression)
 
     grass.mapcalc(split_window_equation, overwrite=True)
@@ -944,26 +953,6 @@ def estimate_lst(outname, t10, t11, avg_lse_map, delta_lse_map, cwv_map, lst_exp
 
     del(split_window_expression)
     del(split_window_equation)
-
-
-def kelvin_to_celsius(outname, lst_map):
-    """
-    Convert Kelvin to Celsius
-    """
-    msg = '\n|i Converting LST output from Kelvin to Celsius degrees'
-    #g.message(msg)
-
-    kelvin_to_celsius_expression = '{lst} - 273.15'.format(lst=lst_map)
-    kelvin_to_celsius_equation = equation.format(result=lst_map,
-            expression=kelvin_to_celsius_expression)
-    grass.mapcalc(kelvin_to_celsius_equation, overwrite=True)
-
-    msg += '\n|i Applying the "Celsius" color table'
-    g.message(msg)
-    run('r.colors', map=lst_map, color='celsius')
-
-    del(kelvin_to_celsius_expression)
-    del(kelvin_to_celsius_equation)
 
 def main():
     """
@@ -982,7 +971,7 @@ def main():
     tmp_avg_lse = tmp_map_name('avg_lse')
     tmp_delta_lse = tmp_map_name('delta_lse')
     tmp_cwv = tmp_map_name('cwv')
-    tmp_lst = tmp_map_name('lst')
+    #tmp_lst = tmp_map_name('lst')
 
     # basic equation for mapcalc
     global equation, citation_lst
@@ -1023,7 +1012,10 @@ def main():
     
     # save Brightness Temperature maps?
     global brightness_temperature_prefix
-    brightness_temperature_prefix = options['prefix_bt']
+    if options['prefix_bt']:
+        brightness_temperature_prefix = options['prefix_bt']
+    else:
+        brightness_temperature_prefix = None
 
     global cwv_output
     cwv_window_size = int(options['window'])
@@ -1050,9 +1042,11 @@ def main():
     global info, null
     info = flags['i']
     keep_region = flags['k']
-    celsius = flags['c']
     timestamping = flags['t']
     null = flags['n']
+    
+    global celsius
+    celsius = flags['c']
 
     # ToDo:
     # shell = flags['g']
@@ -1070,11 +1064,11 @@ def main():
         # Improve below!
 
         if b10:
-            run('g.region', rast=b10)
+            run('g.region', rast=b10, align=b10)
             msg = msg.format(name=b10)
 
         elif t10:
-            run('g.region', rast=t10)
+            run('g.region', rast=t10, align=t10)
             msg = msg.format(name=t10)
 
         g.message(msg)
@@ -1155,12 +1149,17 @@ def main():
         if not average_emissivity_map:
             determine_average_emissivity(tmp_avg_lse, landcover_map,
                                          split_window_lst.average_lse_mapcalc)
+            if options['emissivity_out']:
+                tmp_avg_lse = options['emissivity_out']
+
         if delta_emissivity_map:
             tmp_delta_lse = delta_emissivity_map
 
         if not delta_emissivity_map:
             determine_delta_emissivity(tmp_delta_lse, landcover_map,
                                        split_window_lst.delta_lse_mapcalc)
+            if options['delta_emissivity_out']:
+                tmp_delta_lse = options['delta_emissivity_out']
 
     #
     # 4. Modified Split-Window Variance-Covariance Matrix > Column Water Vapor
@@ -1175,6 +1174,8 @@ def main():
     cwv = Column_Water_Vapor(cwv_window_size, t10, t11)
     citation_cwv = cwv.citation
     estimate_cwv_big_expression(tmp_cwv, t10, t11, cwv._big_cwv_expression())
+    if cwv_output:
+        tmp_cwv = cwv_output
 
     #
     # 5. Estimate Land Surface Temperature
@@ -1184,7 +1185,7 @@ def main():
         msg = '\n|* Will pick a random emissivity class!'
         grass.verbose(msg)
 
-    estimate_lst(tmp_lst, t10, t11,
+    estimate_lst(lst_output, t10, t11,
                  tmp_avg_lse, tmp_delta_lse, tmp_cwv,
                  split_window_lst.sw_lst_mapcalc)
 
@@ -1197,18 +1198,17 @@ def main():
 
     # time-stamping
     if timestamping:
-        add_timestamp(mtl_file, tmp_lst)
+        add_timestamp(mtl_file, lst_output)
 
         if cwv_output:
             add_timestamp(mtl_file, cwv_output)
 
-    # convert to celsius and apply color table?
+    # Apply color table
     if celsius:
-        kelvin_to_celsius(tmp_lst, tmp_lst)
-
+        run('r.colors', map=lst_output, color='celsius')
     else:
         # color table for kelvin
-        run('r.colors', map=tmp_lst, color='kelvin')
+        run('r.colors', map=lst_output, color='kelvin')
 
     # ToDo: helper function for r.support
     # strings for metadata
@@ -1231,13 +1231,13 @@ def main():
     source2_lst = landsat8_metadata.origin
 
     # history entry
-    run("r.support", map=tmp_lst, title=title_lst,
+    run("r.support", map=lst_output, title=title_lst,
         units=units_lst, description=description_lst,
         source1=source1_lst, source2=source2_lst,
         history=history_lst)
 
     # (re)name the LST product
-    run("g.rename", rast=(tmp_lst, lst_output))
+    #run("g.rename", rast=(tmp_lst, lst_output))
 
     # restore region
     if not keep_region:
