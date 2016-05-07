@@ -142,8 +142,7 @@
 #%end
 
 # standard modules
-from __future__ import print_function
-import atexit, os, random, string, imp
+import atexit, random, string, imp, re
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
@@ -158,47 +157,118 @@ def module_exists(module_name):
     except ImportError:
         grass.fatal("{} Python package not installed. Exiting").format(module_name)
         return False
+        
+# lazy imports
+if module_exists("sklearn") == True:
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.externals import joblib
+    from sklearn import cross_validation, metrics
+    import warnings
+    warnings.filterwarnings("ignore")
+else:
+    grass.fatal("Scikit-learn python module is not installed.....exiting")
 
 def cleanup():
     # We can then close the rasters and the roi image
     for i in range(nbands): rasstack[i].close()
     roi_raster.close()
-    if rfmask != '': grass.run_command("g.remove", name=rfmask, flags="f", type="raster")
+    if rfmask != '': grass.run_command("g.remove", name=rfmask, flags="f",
+                                       type="raster")
 
 def normalize_newlines(string):
     # Windows uses carriage return and line feed ("\r\n") as a line ending
     # Unix uses just line feed ("\n"). This function normalizes strings to "\n"
-    import re
     return re.sub(r'(\r\n|\r|\n)', '\n', string)
 
-def scoreresults(X, y, clf, kfolds):
-    from sklearn import cross_validation, metrics
-    kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True)
+def score_classification_results(X, y, clf, kfolds, rstate):
+    # This custom function performs cross validation on a classification model,
+    # RETURNS: a 1D list representing accuracy, AUROC, precision, recall, kappa and specificity
+    # (using our custom function)
+        
+    kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True, random_state=rstate)
 
-    pr = np.zeros((kfolds, 5))
-    pr.shape
-    i=0
+    acc, auc, kappa = [], [], []
 
     for train_index, test_index in kf:
         X_train, X_test =  X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
         fit = clf.fit(X_train, y_train)
-        y_pred = clf.predict(X_test)
-        
-        pr[i,0] = metrics.accuracy_score(y_test, y_pred)
+        y_pred = fit.predict(X_test)
+
+        acc = np.append(acc, metrics.accuracy_score(y_test, y_pred))
+        classes_in_fold = np.unique(y_test)
 
         # check if the response variable is binary, then calculate roc_auc and set average to binary
         if len(np.unique(y)) == 2:
             statmethod = 'binary'
-            pr[i,1] = metrics.roc_auc_score(y_test, y_pred)
+            auc = np.append(auc, metrics.roc_auc_score(y_test, y_pred))
         else:
+            auc=0
             statmethod = 'micro'
 
-        pr[i,2] = metrics.precision_score(y_test, y_pred, average=statmethod)
-        pr[i,3] = metrics.recall_score(y_test, y_pred, average=statmethod)   
-        pr[i,4] = metrics.cohen_kappa_score(y_test, y_pred)
-        i+= 1
+        kappa = np.append(kappa, metrics.cohen_kappa_score(y_test, y_pred))
+        
+    return(acc, auc, kappa)
+
+def score_regression_results(X, y, clf, kfolds, rstate):
+    # This custom function performs cross validation on a regression model,
+    # RETURNS: single value of R2
+    
+    from sklearn import cross_validation, metrics
+    kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True, random_state=rstate)
+
+    pr = []
+
+    for train_index, test_index in kf:
+        X_train, X_test =  X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        fit = clf.fit(X_train, y_train)
+        y_pred = fit.predict(X_test)
+        
+        pr = np.append(pr, metrics.r2_score(y_test, y_pred))
+
     return(pr)
+
+def cv_performance_byClass(X, y, clf, kfolds, rstate):
+    # RETURNS: 2D list of CLASS and mean performance measure result
+    # RETURNS: 2D list of CLASS and standard deviation of performance measure result
+    # Performance measures are sensitivity, recall
+
+    class_list = np.unique(y)
+    nclasses = len(np.unique(y))
+
+    kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True,
+                                random_state=rstate)
+
+    # Store performance measures per class
+    recall = np.zeros((nclasses, kfolds))
+    precision = np.zeros((nclasses, kfolds))
+
+    classmeans = np.zeros((nclasses, 2))
+    classstds = np.zeros((nclasses, 2))
+
+    # Loop through CV partitions
+    fold=0
+    for train_index, test_index in kf:
+        X_train, X_test =  X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        fit = clf.fit(X_train, y_train)
+        y_pred = fit.predict(X_test)
+
+        # Get performance measures by class     
+        for cindex in range(nclasses):
+            recall[cindex, fold] = metrics.recall_score(y_test, y_pred, labels = [class_list[cindex]], average = 'macro')
+            precision[cindex, fold] = metrics.precision_score(y_test, y_pred, labels = [class_list[cindex]], average = 'macro')
+        fold+= 1
+
+    for cindex in range(nclasses):
+        classmeans[cindex, 0] = recall[cindex, :].mean()
+        classmeans[cindex, 1] = precision[cindex, :].mean()
+
+        classstds[cindex, 0] = recall[cindex, :].std()
+        classstds[cindex, 1] = precision[cindex,:].std()
+    
+    return(classmeans, classstds)
 
 def main():
     igroup = options['igroup']
@@ -240,14 +310,6 @@ def main():
         grass.fatal("Cannot save and load a model at the same time.....exiting")
     if model_load == '' and roi == '':
         grass.fatal("Require labelled pixels regions of interest.....exiting")
-
-    # lazy imports
-    if module_exists("sklearn") == True:
-        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-        from sklearn.externals import joblib
-        from sklearn import cross_validation, metrics
-    else:
-        grass.fatal("Scikit-learn python module is not installed.....exiting")
 
     ######################  Fetch individual raster names from group ###############################
     groupmaps = grass.read_command("i.group", group=igroup, flags="g")
@@ -363,40 +425,54 @@ def main():
                 rf = RandomForestClassifier(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
                                             max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
         else:
-            rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=True, \
+            rf = RandomForestRegressor(n_jobs=-1, n_estimators=int(ntrees), oob_score=False, \
                                        max_features=mfeatures, min_samples_split=minsplit, random_state=randst)
 
         # train classifier
         rf = rf.fit(training_data, training_labels)
-
-        # use cross-validation
-        if cv > 1:
-            grass.message(_("\r\n"))
-            grass.message(_("Global performance measures......:"))
-            if mode == 'classification':
-                scores = scoreresults(training_data, training_labels, rf, cv)
-                grass.message(_("accuracy: \t {mean} \t +/- \t {error}".format(mean=scores[:,0].mean(), error=scores[:,0].std() * 2)))
-                if len(np.unique(training_labels)) == 2:
-                    grass.message(_("roc_auc: \t {mean} \t +/- \t {error}".format(mean=scores[:,1].mean(), error=scores[:,1].std() * 2)))
-                grass.message(_("precision: \t {mean} \t +/- \t {error}".format(mean=scores[:,2].mean(), error=scores[:,2].std() * 2)))
-                grass.message(_("recall: \t {mean} \t +/- \t {error}".format(mean=scores[:,3].mean(), error=scores[:,3].std() * 2)))
-                grass.message(_("kappa: \t {mean} \t +/- \t {error}".format(mean=scores[:,4].mean(), error=scores[:,4].std() * 2)))
-            else:
-                scores = cross_validation.cross_val_score(rf, training_data, training_labels, cv=cv, scoring='r2')
-                grass.message(_("R2: \t {mean} \t +/- \t {error}".format(mean=scores.mean(), error=scores.std())))
-
+        
         # output internal performance measures
         grass.message(_("\r\n"))
         if mode == 'classification':
-            acc = float(rf.oob_score_)
-            grass.message(_('Our OOB prediction of accuracy is: {oob}%'.format(oob=rf.oob_score_ * 100)))
+            grass.message(_('RF OOB prediction  accuracy: \t {oob}%'.format(oob=rf.oob_score_ * 100)))
         else:
-            acc = rf.score(X=training_data, y=training_labels)
-            grass.message(_('Our coefficient of determination R^2 of the prediction is: {r2}%'.format \
+            grass.message(_('Rf coefficient of determination R^2: \t {r2}%'.format \
                             (r2=rf.score(X=training_data, y=training_labels))))
-
+       
+        # use cross-validation
+        if cv > 1:
+            grass.message(_('\r\n'))
+            grass.message(_("Cross validation global performance measures......:"))
+        
+            if mode == 'classification':
+                acc, auc, kappa  = score_classification_results(training_data, training_labels, rf, cv, randst)
+                
+                grass.message(_("Acc:\t{mean}\t+/-2SD\t{error}".format(mean=round(acc.mean(),3), error=round(acc.std() * 2,3))))
+                
+                if len(np.unique(training_labels)) == 2:
+                    grass.message(_("AUROC:\t{mean}\t+/-2SD\t{error}".format(mean=round(auc.mean(),3), error=round(auc.std() * 2,3))))
+                
+                grass.message(_("Kappa:\t{mean}\t+/-2SD\t{error}".format(mean=round(kappa.mean(),3), error=round(kappa.std() * 2,3))))
+                        
+                # calculate scores by class
+                Cmean, Cstd = cv_performance_byClass(training_data, training_labels, rf, cv, randst)
+    
+                grass.message(_("\r\n"))
+                grass.message(_("Performance measures by class......:"))
+                grass.message(_("CLASS\tRecall\t2SD\tPrecision\t2SD"))
+                for i in range(nclasses):
+                    row = str(int(class_list[i])) + '\t'
+                    for j in range(2):
+                        row += str( round(Cmean[i,j],3) ) + '\t' +  str( round(Cstd[i,j]*2,3) ) + '\t'
+                    grass.message(_(row))
+                
+            else:
+                scores = score_regression_results(training_data, training_labels, rf, cv, randst)
+                grass.message(_("R2:\t{mean}\t+/-\t{error}".format(mean=scores[:].mean(), error=scores[:].std() * 2)))
+        
         # diagnostics
         rfimp = rf.feature_importances_
+        grass.message(_("\r\n"))
         grass.message(_("Random forest feature importance"))
         grass.message(_("id" + "\t" + "Raster" + "\t" + "Importance"))
         for i in range(len(rfimp)):
@@ -476,33 +552,33 @@ def main():
         flat_pixels = img_np_row.reshape((nsamples, nbands))
 
         # remove NaN values and perform the prediction
-        flat_pixels_noNaN = np.nan_to_num(flat_pixels)
-        result = rf.predict(flat_pixels_noNaN)
+        flat_pixels = np.nan_to_num(flat_pixels)
+        result = rf.predict(flat_pixels)
         result = result.reshape((rowincr, current.cols))
 
         # replace NaN values so that the prediction surface does not have a border
-        result_NaN = np.ma.masked_array(result, mask=nanmask, fill_value=np.nan)
+        result = np.ma.masked_array(result, mask=nanmask, fill_value=np.nan)
 
         # return a copy of result, with masked values filled with a given value
-        result_masked = result_NaN.filled([nodata])
+        result = result.filled([nodata])
 
         # for each row we can perform computation, and write the result into
         for row in range(rowincr):
-            newrow = Buffer((result_masked.shape[1],), mtype=ftype)
-            newrow[:] = result_masked[row, :]
+            newrow = Buffer((result.shape[1],), mtype=ftype)
+            newrow[:] = result[row, :]
             classification.put_row(newrow)
 
         # same for probabilities
         if class_probabilities == True and mode == 'classification':
-            result_proba = rf.predict_proba(flat_pixels_noNaN)
+            result_proba = rf.predict_proba(flat_pixels)
             for iclass in range(nclasses):
                 result_proba_class = result_proba[:, iclass]
                 result_proba_class = result_proba_class.reshape((rowincr, current.cols))
-                result_proba_class_NaN = np.ma.masked_array(result_proba_class, mask=nanmask, fill_value=np.nan)
-                result_proba_class_masked = result_proba_class_NaN.filled([np.nan])
+                result_proba_class = np.ma.masked_array(result_proba_class, mask=nanmask, fill_value=np.nan)
+                result_proba_class = result_proba_class.filled([np.nan])
                 for row in range(rowincr):
-                    newrow = Buffer((result_proba_class_masked.shape[1],), mtype='FCELL')
-                    newrow[:] = result_proba_class_masked[row, :]
+                    newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
+                    newrow[:] = result_proba_class[row, :]
                     prob[iclass].put_row(newrow)
 
     classification.close()
