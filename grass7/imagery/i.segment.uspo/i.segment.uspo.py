@@ -664,7 +664,7 @@ def main():
 
     if segmented_map:
         for bestmap, rank, region in maps_to_keep:
-            outputmap = segmented_map + "_" + region + "_rank%d" % rank
+            outputmap = segmented_map + "_" + parms['region'] + "_rank%d" % rank
             gscript.run_command('g.copy',
                                 raster=[bestmap,outputmap],
                                 quiet=True,
