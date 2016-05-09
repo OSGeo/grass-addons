@@ -4,13 +4,23 @@
 
 <h2>EXAMPLES</h2>
 
+Import from PostgreSQL DB:
 
 <div class="code"><pre>
-v.in.osm input="PG:host=localhost dbname=gis user=ostepok" table=planet_osm_line output=roads type=point,line where="highway is not null" 
+v.in.osm input="PG:host=localhost dbname=gis user=ostepok" table=planet_osm_line \
+         type=point,line output=roads where="highway is not null" 
+</pre></div>
+
+<p>
+Import from OSM PBF file:
+
+<div class="code"><pre>
+v.in.osm input=saarland-latest.osm.pbf table=lines type=point,line output=roads \
+         where="highway is not null"
 </pre></div>
 
 <h2>REQUIREMENTS</h2>
-PostgreSQL, PostGIS, osm2pgsql
+PostgreSQL, PostGIS, <a href="http://wiki.openstreetmap.org/wiki/Osm2pgsql">osm2pgsql</a>
 
 <h2>SEE ALSO</h2>
 
