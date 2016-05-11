@@ -119,7 +119,7 @@
 #%option
 #% key: velocity_derivation
 #% type: double
-#% description: Flow velocity in the derivation pipe [m^(1/3)/s]
+#% description: Flow velocity in the derivation pipe [m/s]
 #% required: no
 #% answer: 1.
 #% guisection: Head losses
