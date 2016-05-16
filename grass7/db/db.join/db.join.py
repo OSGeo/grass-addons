@@ -32,18 +32,18 @@
 #% required : yes
 #%end
 
-#%option G_OPT_DB_TABLE
-#% key: other_table
-#% description: Other table name
-#% required: yes
-#% guidependency: ocolumn,scolumns
-#%end
-
 #%option G_OPT_DB_DATABASE
 #%end
 
 #%option G_OPT_DB_DRIVER
 #% options: dbf,odbc,ogr,sqlite,pg
+#%end
+
+#%option G_OPT_DB_TABLE
+#% key: other_table
+#% description: Other table name
+#% required: yes
+#% guidependency: ocolumn,scolumns
 #%end
 
 #%option G_OPT_DB_COLUMN
