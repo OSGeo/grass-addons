@@ -79,9 +79,16 @@ unset_exe()
 # will only set if previously empty
 set_keywords()
 {
+   # check if set at all
    if [ `svn proplist "$1" | grep -c 'svn:keywords'` -eq 0 ] ; then
       svn propset svn:keywords "Author Date Id" "$1"
    fi
+   # check if any keyword is missing
+   for keyword in Author Date Id ; do
+      if [ `svn proplist -v "$1" | grep -c "$keyword"` -eq 0 ] ; then
+         svn propset svn:keywords "Author Date Id" "$1"
+      fi
+   done
 }
 
 
