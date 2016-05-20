@@ -1,15 +1,16 @@
 <h2>DESCRIPTION</h2>
 
-<p>Removing unreliable pixels is a fundamental and one of the first steps in 
+Removing unreliable pixels is a fundamental and one of the first steps in 
 remote sensing. Landsat8 provides a Quality Assessment (QA) band which can be 
-used for this purpose.</p>
+used for this purpose.
 
-<p>The <em>i.landsat8.qc</em> module filters (reclasifies) the QA band according 
-to pixel quality characteristics the user defines as unacceptable.</p>
+<p>The <em>i.landsat8.qc</em> module generates reclassification rule files which
+ can be used in <a href="r.reclass.html">r.reclass</a> for filtering the 
+ QA band according to pixel quality characteristics the user defines as 
+ unacceptable.</p>
 
 <p>Values defined as unacceptable for a given condition will be set to NULL
-in the output raster map. All other values will be set to 1. The <em>i</em>-
-flag inverts this behavior.</p>
+in the output raster map. All other values will be set to 1.</p>
 
 <p>The Quality Assessment (QA) band from Landsat8 contains 16bit integer 
 values that represent "bit-packed combinations of surface, atmosphere, and 
@@ -20,7 +21,7 @@ The QA band is currently only available for Landsat 8 OLI/TIRS data.</p>
 <p>The following quality relevant conditions are represented as "single bits" 
 in the Landsat8 QA band:</p>
 
-<table border="1" padding="0" spacing="1" style="width:300px;">
+<table border="1" padding="0" spacing="1">
   <tr>
     <td>Condition</td>
     <td>QA Bit Position</td>
@@ -45,7 +46,7 @@ in the Landsat8 QA band:</p>
 
 <p>Possible choices for the "single bits" are:</p>
 
-<table border="1" padding="0" spacing="1" style="width:300px;">
+<table border="1" padding="0" spacing="1">
   <tr>
     <td>Value</td>
 	<td>Description</td>
@@ -66,30 +67,30 @@ in the Landsat8 QA band:</p>
 <p>The following quality relevant conditions are represented as "double bits" 
 in the Landsat8 QA band:</p>
 
-<table>
+<table border="1" padding="0" spacing="1">
   <tr>
-    <td>QA Bit</td>
-    <td>Description Confidence</td>
+    <td>Condition</td>
+    <td>QA Bit Position</td>
   </tr>
   <tr>
-    <td>4-5</td>
     <td>Water Confidence</td>
+    <td>4-5</td>
   </tr>
   <tr>
-    <td>6-7</td>
     <td>Reserved (not currently used)</td>
+    <td>6-7</td>
   </tr>
   <tr>
-    <td>8-9</td>
     <td>Vegetation Confidence</td>
+    <td>8-9</td>
   </tr>
   <tr>
-    <td>10-11</td>
     <td>Snow/Ice Confidence</td>
+    <td>10-11</td>
   </tr>
   <tr>
-    <td>12-13</td>
     <td>Cirrus Confidence</td>
+    <td>12-13</td>
   </tr>
   <tr>
     <td>14-15</td>
@@ -99,7 +100,7 @@ in the Landsat8 QA band:</p>
 
 <p>Possible choices for the "double bits" are:</p>
 
-<table border="1" padding="0" spacing="1" style="width:300px;">
+<table border="1" padding="0" spacing="1">
   <tr>
     <td>Value</td>
 	<td>Description</td>
@@ -132,10 +133,10 @@ in the Landsat8 QA band:</p>
 
 <h2>NOTES</h2>
 
-<p>The Landsat Quality Assessment band is an artificial band which represents 
+The Landsat Quality Assessment band is an artificial band which represents 
 an analysis based on <a href=https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf>
 defined algorithms</a>. The USGS provides the users with the following note on 
-how the QA band should be used:</p>
+how the QA band should be used:
 
 <p>"Rigorous science applications seeking to optimize the value of pixels used 
 in a study will find QA bits useful as a first level indicator of certain 
@@ -146,21 +147,27 @@ that can be easily misinterpreted and it is not recommended for general use."</p
 
 <div class="code"><pre>
 #Create a cloud mask:
-i.landsat8.qc --overwrite --verbose input=LC81980182015183LGN00_BQA \
-    cloud="Not Determined,Maybe,Yes" output=LC81980182015183LGN00_Cloud_Mask
+i.landsat8.qc --overwrite --verbose cloud="Maybe,Yes" \
+    output=./Cloud_Mask_rules.txt
+r.reclass input=LC81980182015183LGN00_BQA \
+    output=LC81980182015183LGN00_Cloud_Mask rules=./Cloud_Mask_rules.txt
 
 #Create a water mask:
-i.landsat8.qc --overwrite --verbose input=LC81980182015183LGN00_BQA \
-    water="Not Determined,Maybe,Yes" output=LC81980182015183LGN00_Water_Mask
+i.landsat8.qc --overwrite --verbose water="Maybe,Yes" \
+    output=./Water_Mask_rules.txt
+r.reclass input=LC81980182015183LGN00_BQA \
+    output=LC81980182015183LGN00_Water_Mask rules=./Water_Mask_rules.txt
+
 </pre></div>
 
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="i.modis.qc.html">i.landsat8.swlst.html</a>,
-<a href="r.bitpattern.html">r.bitpattern.html</a>,
-<a href="i.landsat8.swlst.html">i.landsat8.swlst.html</a>,
+<a href="r.reclass.html">r.reclass</a>,
+<a href="i.modis.qc.html">i.modis.qc</a>,
+<a href="r.bitpattern.html">r.bitpattern</a>,
+<a href="i.landsat8.swlst.html">i.landsat8.swlst</a>
 </em>
 
 <h2>REFERENCES</h2>

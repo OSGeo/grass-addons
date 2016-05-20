@@ -25,28 +25,15 @@
 #% keywords: landsat8
 #%End
 
-#%flag
-#% key: i
-#% description: Invert filter (default is set unacceptable pixels to NULL)
-#%end
-
-#%flag
-#% key: p
-#% guisection: Main
-#% description: Print effect of bitpattern filter in number of pixels filtered and exit
-#%end
-
-#%option G_OPT_R_INPUT
-#% guisection: Main
-#% description: Landsat8 QA band
-#% required : yes
+#%option G_OPT_F_OUTPUT
+#% description: Output file with reclass rules
+#% required: no
 #%end
 
 #%option
 #% key: designated_fill
 #% multiple: No
 #% description: Unacceptable conditions for Designated Fill (bit 0)
-#% guisection: QA bit filter
 #% options: No, Yes
 #% required : no
 #%end
@@ -55,7 +42,6 @@
 #% key: dropped_frame
 #% multiple: No
 #% description: Unacceptable conditions for Dropped Frame (bit 1)
-#% guisection: QA bit filter
 #% options: No, Yes
 #% required : no
 #%end
@@ -64,7 +50,6 @@
 #% key: terrain_occlusion
 #% multiple: No
 #% description: Unacceptable conditions for Terrain Occlusion (bit 2)
-#% guisection: QA bit filter
 #% options: No, Yes
 #% required : no
 #%end
@@ -73,7 +58,6 @@
 ##% key: reserved
 ##% multiple: No
 ##% description: Unacceptable conditions for Reserved (not currently used) (bit 3)
-##% guisection: QA bit filter
 ##% options: No, Yes
 ##% required : no
 ##%end
@@ -82,7 +66,6 @@
 #% key: water
 #% multiple: yes
 #% description: Unacceptable conditions for Water Confidence (bit 4-5)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
 #%end
@@ -91,7 +74,6 @@
 #% key: cloud_shaddow
 #% multiple: yes
 #% description: Unacceptable conditions for Cloud Shaddow Confidence (bit 6-7)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
 #%end
@@ -100,7 +82,6 @@
 #% key: vegetation
 #% multiple: yes
 #% description: Unacceptable conditions for Vegetation Confidence (bit 8-9)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
 #%end
@@ -109,7 +90,6 @@
 #% key: snow_ice
 #% multiple: yes
 #% description: Unacceptable conditions for Snow/Ice Confidence (bit 10-11)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
 #%end
@@ -118,7 +98,6 @@
 #% key: cirrus
 #% multiple: yes
 #% description: Unacceptable conditions for Cirrus Confidence (bit 12-13)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
 #%end
@@ -127,15 +106,8 @@
 #% key: cloud
 #% multiple: yes
 #% description: Unacceptable conditions for Cloud Confidence (bit 14-15)
-#% guisection: QA bit filter
 #% options: Not Determined, No, Maybe, Yes
 #% required : no
-#%end
-
-#%option G_OPT_R_OUTPUT
-#% description: Name for output QA band filter
-#% guisection: Main
-#% required: no
 #%end
 
 #%rules
@@ -156,41 +128,26 @@ def main():
     Main program
     """
 
-    # flags
-    invert = flags['i']
-    print_effect = flags['p']
-
     # Parse options
-    input = options['input']
     output = options['output']
 
-    # Define bitpattern filter (bf)
-    bf = {'designated_fill': options['designated_fill'],
-          'dropped_frame': options['dropped_frame'],
-          'terrain_occlusion': options['terrain_occlusion'],
-          # 'reserved': options[''],
-          'water': options['water'],
-          'cloud_shaddow': options['cloud_shaddow'],
-          'vegetation': options['vegetation'],
-          'snow_ice': options['snow_ice'],
-          'cirrus': options['cirrus'],
-          'cloud': options['cloud']}
+    # Extract bitpattern filter from user input
+    bit_filter = []
+    for f in options.keys():
+        if options[f] and f != 'output':
+            bit_filter.append(f)
 
     # Check if propper input is provided:
-    if print_effect and output:
-        grass.fatal("output option and p-flag are mutually exclusive")
-
-    if print_effect and invert:
-        grass.fatal("i-flag and p-flag are mutually exclusive")
-
-    for o in ['water', 'cloud_shaddow', 'vegetation',
-              'snow_ice', 'cirrus', 'cloud']:
-        if len(bf[o].split(',')) >= 4 and not invert:
-            grass.fatal("""All conditions for {} specified as 
+    for o in bit_filter:
+        if len(options[o].split(',')) >= 4:
+            grass.fatal("""All conditions for {} specified as
             unacceptable, this will result in an empty map.""".format(o))
-        if not bf[o] and invert:
-            grass.fatal("""No conditions for {} selected for an
-            invers filter, this will result in an empty map.""".format(o))
+
+    # Define length of Landsat8 QA bitpattern
+    number_of_bits = 16
+
+    # Get maximum integer representation
+    max_int = int(''.join([str(1)] * number_of_bits), 2)
 
     # Define bitpattern characteristics according to
     # http://landsat.usgs.gov/qualityband.php
@@ -263,63 +220,47 @@ right, represent levels of confidence that a condition exists:
                    'Maybe': '10',
                    'Yes': '11'}
 
-    # Get categories and number of pixels from QA band raster
-    qa_cats = grass.parse_command('r.stats', flags='cn', input=input).keys()
+    # List for categories representing pixels of unacceptable quality
+    rc = []
 
-    # Initialise string for reclass rules
-    rc = ''
+    # Loop over all possible integer representations of a 16-bit bitpattern
+    # given as category values in the QA band
+    for cat in range(max_int + 1):
+        # Get the binary equivalent of the integer value
+        bin_cat = '{0:016b}'.format(cat)
 
-    # Initialise dictionary for printing the effect of the different bitpattern
-    if print_effect:
-        pe = {}
+        # Loop over user-defined the bitpattern filter (bit_filter) elements
+        for k in bit_filter:
+            # Calculate bit positions end (bpe)
+            bpe = bps[k] + bl[k]
 
-    # Loop over category values present in the QA band (qa_cats)
-    for line in qa_cats:
-        cat, pixels = line.split(' ')
-        # Convert integer categories into bitpattern
-        bin_cat = '{0:016b}'.format(int(cat))
+            # Extract unnacceptable bitpatterns (bp) form bitpattern filter
+            for bp in options[k].split(','):
 
-        # Loop over the bitpattern filter (bf) elements defined by the user
-        for k in bf.keys():
-            # Only work on bits included in the user`s bitpattern filter (bf)
-            if bf[k]:
-                # Calculate bit positions end (bpe)
-                bpe = bps[k] + bl[k]
-                # Extract unnacceptable bitpatterns (bp) form bitpattern filter
-                for bp in bf[k].split(','):
-                    if bl[k] == 1:
-                        bits = single_bits[bp]
-                    else:
-                        bits = double_bits[bp]
-                    # Check if bitpattern of the category should be filtered
-                    if bits == bin_cat[len(bin_cat) -
-                                       bpe:len(bin_cat) - bps[k]]:
-                        # Add category to recassification rule
-                        rc = rc + ' {}'.format(cat)
-                        # Calculate nuber of pixels which are filtered using
-                        # the current bitpattern
-                        if print_effect:
-                            pe_key = '{} = {}'.format(k, bp)
-                            if pe_key not in pe.keys():
-                                pe[pe_key] = int(pixels)
-                            else:
-                                pe[pe_key] = pe[pe_key] + int(pixels)
+                if bl[k] == 1:
+                    bits = single_bits[bp]
+                else:
+                    bits = double_bits[bp]
+
+                # Check if bitpattern of the category should be filtered
+                if bits == bin_cat[len(bin_cat) - bpe:len(bin_cat) - bps[k]]:
+                    # Add category to recassification rule
+                    rc.append(str(cat) + ' = NULL')
+                    break
+            # Avoid duplicates in reclass rules when several filter are applied
+            if bits == bin_cat[len(bin_cat) - bpe:len(bin_cat) - bps[k]]:
+                break
 
     # Construct rules for reclassification
-    if invert:
-        rc = rc + ' = 1\n * = NULL'
-    else:
-        rc = rc + ' = NULL\n * = 1'
+    rules = '\n'.join(rc) + '\n* = 1\n'
 
-    # Print filterstistics if requested, else reclassify
-    if print_effect:
-        for k in pe.keys():
-            sys.stdout.write('{} {}\n'.format(k, pe[k]))
+    # Print to stdout if no output file is specified
+    if not options['output']:
+            sys.stdout.write(rules)
     else:
-        grass.write_command('r.reclass', flags='', input=input, output=output,
-                            rules='-', stdin=rc)
+        with open(output, 'w') as o:
+            o.write(rules)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-
