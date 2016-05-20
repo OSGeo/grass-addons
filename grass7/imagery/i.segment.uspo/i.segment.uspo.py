@@ -557,7 +557,7 @@ def main():
     for region in regions:
 
         gscript.message("Working on region %s\n" % region)
-        parms['region'] = region.split('@')[0]
+        parms['region'] = region.replace('@', '_at_')
 
         gscript.run_command('g.region', 
                             region=region,
@@ -622,7 +622,8 @@ def main():
         rank = 1
      	for optind in optimal_indices:
 	    best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
-	    maps_to_keep.append([regional_maplist[optind], rank, region])
+	    maps_to_keep.append([regional_maplist[optind], rank,
+                parms['region']])
             rank += 1
 
     # Create output
@@ -664,7 +665,7 @@ def main():
 
     if segmented_map:
         for bestmap, rank, region in maps_to_keep:
-            outputmap = segmented_map + "_" + parms['region'] + "_rank%d" % rank
+            outputmap = segmented_map + "_" + region + "_rank%d" % rank
             gscript.run_command('g.copy',
                                 raster=[bestmap,outputmap],
                                 quiet=True,
