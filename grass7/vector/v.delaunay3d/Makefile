@@ -1,4 +1,4 @@
-MODULE_TOPDIR = /usr/lib/grass70
+MODULE_TOPDIR = ../..
 
 PGM = v.delaunay3d
 
