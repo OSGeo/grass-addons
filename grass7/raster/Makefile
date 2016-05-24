@@ -69,6 +69,7 @@ SUBDIRS = \
 	r.northerness.easterness \
 	r.out.arc \
 	r.out.legend \
+	r.out.ntv2 \
 	r.out.tiff \
 	r.popgrowth \
 	r.random.weight \
