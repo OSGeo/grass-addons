@@ -21,6 +21,7 @@ SUBDIRS = \
 	r.bitpattern \
 	r.catchment \
 	r.category.trim \
+	r.colors.matplotlib \
 	r.convergence \
 	r.cpt2grass \
 	r.crater \
