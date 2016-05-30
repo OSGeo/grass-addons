@@ -48,7 +48,7 @@ function compile {
 if test -z $2 ; then
     # dev packages
     ### compile grass64_release 64-dev 
-    compile grass70_release -dev
+    compile grass72_release -dev
     compile grass_trunk     -daily
 else
     compile grass$2         $3 

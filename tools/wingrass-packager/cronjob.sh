@@ -87,28 +87,31 @@ download_unzip
 # summary.html -> index.html
 ### addons_index 64
 addons_index 70
-addons_index 71
+addons_index 72
+addons_index 73
 
 # remove old packages
 ### rm_7 64
 rm_7 70
-rm_7 71
+rm_7 72
+rm_7 73
 
 # update setup.ini
 ### update_setup 64
 ### update_setup 70
-update_setup 71
+update_setup 73
 
 # geo101 -> upload.osgeo.org
 ### rsync_grass 64
 ### rsync_grass 70
-rsync_grass 71 -daily
+rsync_grass 73 -daily
 
 # promote changes
 ~/cronjobs/osgeo4w-promote.sh
 
 ### report 64
 report 70
-report 71
+report 72
+report 73
 
 exit 0

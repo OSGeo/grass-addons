@@ -49,7 +49,8 @@ if test -z $2 ; then
     # dev packages
     ### rsync_package 64
     rsync_package 70
-    rsync_package 71
+    rsync_package 72
+    rsync_package 73
 else
     rsync_package $2 $3 $4
 fi
