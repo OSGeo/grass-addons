@@ -1,62 +1,69 @@
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>v.class.mlR</em> uses machine learning functions in R to classify
-features in a vector map using training features in a second map for 
-supervised learning.
+<em>v.class.mlR</em> is a wrapper script that uses the R caret package 
+for machine learning in R to classify features using training features 
+by supervised learning.
 
-<p>
-At the current stage it is just a quick and dirty hack to allow students to 
-do such classification in the framework of a course. It is meant as a very
-simplistic alternative to v.class.ml which can be a bit overwhelming for
-newbies.
+<p>The user can provide input either as vector maps, or as csv files, or 
+a combination of both. Output can consist of either additional columns in
+the vector input map of features, a text file or reclassed raster maps.
 
-<p>
-Currently, only support vector machine classification is implemented, using
-the e1071 CRAN contrib package (which is automatically installed if necessary).
-The user has to chose between different kernel types. The module then goes
-through tuning across a range of possible parameters using 10-fold cross-
-validation. Optionally, the user can determine fixed values for certain 
-parameters so that they will be excluded from tuning. This speeds up the tuning
-process.
+<p>Different classifiers are proposed: k-nearest neighbor (knn and knn1 
+for k=1), support vector machine with a radial kernel (svmRadial), random 
+forest (rf) and recursive partitioning (rpart). Each of these classifiers
+is tuned automatically throught repeated cross-validation. See the 
+<a href="https://topepo.github.io/caret/index.html">caret webpage</a> for
+more information about the tuning parameters for each classifier, and
+more generally for the information about how caret works.
 
-<p>
-For the details of the parameters see the <a href="http://www.inside-r.org/node/57517">
-manual of the svm function</a> in the e1071 package.
+<p>The user can chose to include the individual classifiers results in
+the output using the <em>i</em> flag, but by default the output will be
+the result of a voting scheme merging the results of the different 
+classifiers. The voting schemes available are: simple majority vote without 
+weighting (smv), simple weighted majority vote (swv), best-worst weighted 
+vote (bwwv) and quadratic best-worst weighted vote (qbwwv). For more details
+about these voting schemes see [TODO: include reference].
+
+<p>In the output (as attribute columns or text file) each weighting schemes 
+result is provided accompanied by an estimation of the probability of the
+classification, based on the equation used in [TODO: include reference].
+
+<p>Optional output of the module include a box-and-whisker plot indicating
+the variance of the cross-validation results for each classifier 
+(<em>bw_plot_file</em>) and a csv file containing accuracy measures (overall
+accuracy and kappa) for each classifier (<em>accuracy_file</em>). The user
+can also chose to write the R script constructed and used internally to a text
+file for study or further modification.
 
 <h2>NOTES</h2>
-
-<p>
-The module automatically excludes columns that contain empty values in the map
-of all features.
-
-<p>
-Running the same model with exactly the same specifications generally leads
-to differing classification errors. This is due to the cross-validation for
-which training and validation sets are drawn randomly. The user can run the
-same model call several times to get an idea of the variances of the error.
 
 <p>
 The module can be used in a tool chain together with <a href="i.segment.html">i.segment</a>
 and the addon <em>i.segment.stats</em> for object-based classification of 
 satellite imagery.
 
+<h2>DEPENDENCIES</h2>
+
+<p>This modules uses R. The following R-packages have to be installed to be able to use this
+module: 'caret', 'kernlab', 'randomForest', 'rpart', 'ggplot2', 'lattice'.
+
 <h2>TODO</h2>
 
-<p>
-If the module is deemed to deserve a longer life-span, than it should possibly
-be recoded to use rpy2 instead of simple text batch files for R (although this
-latter solution is quite useful in a computer lab where rpy2 is not installed).
-
-<p>
-Other classifiers should be included. One option would be to use the 'caret' 
-R package but this would mean handling the different dependency packages for
-the different methods.
+Add automagic installation of missing R packages.
 
 <h2>EXAMPLE</h2>
 
+<p>
+Using existing vector maps as input and writing the output to the attribute table of the segments map, including the individual classifier results:
 <div class="code"><pre>
-v.class.mlR segments training=training_areas classcol=class outcol=class_linear kernel=linear
+v.class.mlR segments_map=seg training_map=training train_class_column=class weighting_mode=smv,swv,qbwwv -i
+</pre></div>
+
+<p>
+Using text files with segment characteristics as input and writing output to raster files and a csv file
+<div class="code"><pre>
+v.class.mlR segments_file=segstats.csv training_file=training.csv train_class_column=class weighting_mode=smv,swv,qbwwv raster_segments_map=seg classified_map=vote classification_results=class_results.csv
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -66,6 +73,8 @@ v.class.mlR segments training=training_areas classcol=class outcol=class_linear 
 </em>
 
 <h2>AUTHOR</h2>
-Moritz Lennert
+Moritz Lennert, Université Libre de Bruxelles (ULB)
+based on an initial R-script by Ruben Van de Kerckove, also ULB at the time
+
 
 <p><i>Last changed: $Date$</i>
