@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 	for (j = 0; j < A->cols; j++)
 	    if (j != i)
 		if (anglefield[i][j] < 8.0)
-		    G_fatal_error(_("Spectral entries row %i: and row %i: in "
+		    G_message(_("Spectral entries row %i: and row %i: in "
 				    "your matrix are linear dependent!\nYou "
 				    "have to revise your reference spectra."),
 				  i, j);
