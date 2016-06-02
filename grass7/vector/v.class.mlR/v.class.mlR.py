@@ -100,6 +100,14 @@
 #% options: smv,swv,bwwv,qbwwv
 #% answer: smv
 #%end
+#%option
+#% key: weighting_metric
+#% type: string
+#% description: Metric to use for weighting
+#% required: yes
+#% options: accuracy,kappa
+#% answer: accuracy
+#%end
 #%option G_OPT_F_OUTPUT
 #% key: classification_results
 #% description: File for saving results of all classifiers
@@ -185,10 +193,10 @@ def main():
     voting_function += "return(list(maj_class=maj_class, prob=prob))\n}"
 
     weighting_functions = {}
-    weighting_functions['smv'] = "weights <- rep(1/length(accuracy_means), length(accuracy_means))"
-    weighting_functions['swv'] = "weights <- accuracy_means/sum(accuracy_means)"
-    weighting_functions['bwwv'] = "weights <- 1-(max(accuracy_means) - accuracy_means)/(max(accuracy_means) - min(accuracy_means))"
-    weighting_functions['qbwwv'] = "weights <- ((min(accuracy_means) - accuracy_means)/(max(accuracy_means) - min(accuracy_means)))**2"
+    weighting_functions['smv'] = "weights <- rep(1/length(weighting_base), length(weighting_base))"
+    weighting_functions['swv'] = "weights <- weighting_base/sum(weighting_base)"
+    weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
+    weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
     if options['segments_map']:
         allfeatures = options['segments_map']
@@ -211,6 +219,7 @@ def main():
         output_probcol = options['output_prob_column']
     classifiers = options['classifiers'].split(',')
     weighting_modes = options['weighting_modes'].split(',')
+    weighting_metric = options['weighting_metric']
 
     classification_results = None
     if options['classification_results']:
@@ -320,6 +329,11 @@ def main():
     r_file.write(voting_function)
     r_file.write("\n")
 
+    if weighting_metric == 'kappa':
+        r_file.write("weighting_base <- kappa_means")
+    else:
+        r_file.write("weighting_base <- accuracy_means")
+    r_file.write("\n")
     for weighting_mode in weighting_modes:
         r_file.write(weighting_functions[weighting_mode])
         r_file.write("\n")

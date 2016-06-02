@@ -5,37 +5,55 @@
 for machine learning in R to classify features using training features 
 by supervised learning.
 
-<p>The user can provide input either as vector maps, or as csv files, or 
-a combination of both. Output can consist of either additional columns in
-the vector input map of features, a text file or reclassed raster maps.
+<p>The user can provide input either as vector maps (<em>segments_map</em>
+and <em>training_map</em>, or as csv files (<em>segments_file</em> and
+<em>training file</em>, or a combination of both. Csv files have to be
+formatted in line with the default output of 
+<a href"v.db.select.html">v.db.select</a>, i.e. with a header and the
+pipe character as field separator.  Output can consist of either 
+additional columns in the vector input map of features, a text file 
+(<em>classification_results</em>) or reclassed raster maps 
+(<em>classified_map</em>).
+
+<p>The user has to provide the name of the column in the training data
+that contains the class values (<em>train_class_column</em>), the prefix
+of the columns that will contain the final class after classification
+(<em>output_class_column</em>) as well as the prefix of the columns that
+will contain the probability values linked to these classifications 
+(<em>output_prob_column</em> - see below).
 
 <p>Different classifiers are proposed: k-nearest neighbor (knn and knn1 
 for k=1), support vector machine with a radial kernel (svmRadial), random 
 forest (rf) and recursive partitioning (rpart). Each of these classifiers
-is tuned automatically throught repeated cross-validation. See the 
-<a href="https://topepo.github.io/caret/index.html">caret webpage</a> for
+is tuned automatically throught repeated cross-validation. caret will 
+automatically determine a reasonable set of values for tuning. See the 
+<a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> for
 more information about the tuning parameters for each classifier, and
 more generally for the information about how caret works.
 
 <p>The user can chose to include the individual classifiers results in
 the output using the <em>i</em> flag, but by default the output will be
 the result of a voting scheme merging the results of the different 
-classifiers. The voting schemes available are: simple majority vote without 
-weighting (smv), simple weighted majority vote (swv), best-worst weighted 
-vote (bwwv) and quadratic best-worst weighted vote (qbwwv). For more details
-about these voting schemes see [TODO: include reference].
+classifiers. Votes can be weighted according to a user-defined mode 
+(<em>weighting_mode</em>): simple majority vote without weighting, i.e. 
+all weights are equal (smv), simple weighted majority vote (swv), 
+best-worst weighted vote (bwwv) and quadratic best-worst weighted vote 
+(qbwwv). For more details about these voting modes see [TODO: include 
+reference]. By default, the weights are calculated based on the accuracy 
+metric, but the user can chose the kappa value as an alternative 
+(<em>weighting_metric</em>).
 
 <p>In the output (as attribute columns or text file) each weighting schemes 
-result is provided accompanied by an estimation of the probability of the
-classification, based on the equation used in [TODO: include reference].
+result is provided accompanied by a value that can be considered as an
+estimation of the probability of the classification after weighted vote, 
+based on the equation used in [TODO: include reference].
 
 <p>Optional output of the module include a box-and-whisker plot indicating
-the variance of the cross-validation results for each classifier 
+the resampling variance based on the cross-validation for each classifier 
 (<em>bw_plot_file</em>) and a csv file containing accuracy measures (overall
 accuracy and kappa) for each classifier (<em>accuracy_file</em>). The user
 can also chose to write the R script constructed and used internally to a text
 file for study or further modification.
-
 <h2>NOTES</h2>
 
 <p>
@@ -50,7 +68,12 @@ module: 'caret', 'kernlab', 'randomForest', 'rpart', 'ggplot2', 'lattice'.
 
 <h2>TODO</h2>
 
-Add automagic installation of missing R packages.
+<ul>
+	<li>Add automagic installation of missing R packages.</li>
+	<li>Add output with confusion matrix
+	<li>Add option to manually define grid of tuning parameters</li>
+</ul>
+- 
 
 <h2>EXAMPLE</h2>
 
