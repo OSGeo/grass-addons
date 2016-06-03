@@ -24,6 +24,7 @@
 #% keyword: vector
 #% keyword: classification
 #% keyword: supervised
+#% keyword: machine learning
 #%end
 #%option G_OPT_V_MAP
 #%  key: input
