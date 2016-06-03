@@ -22,13 +22,14 @@ of the columns that will contain the final class after classification
 will contain the probability values linked to these classifications 
 (<em>output_prob_column</em> - see below).
 
-<p>Different classifiers are proposed: k-nearest neighbor (knn and knn1 
-for k=1), support vector machine with a radial kernel (svmRadial), random 
-forest (rf) and recursive partitioning (rpart). Each of these classifiers
-is tuned automatically throught repeated cross-validation. caret will 
-automatically determine a reasonable set of values for tuning. See the 
-<a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> for
-more information about the tuning parameters for each classifier, and
+<p>Different classifiers are proposed <em>classifiers</em>: 
+k-nearest neighbor (knn and knn1 for k=1), support vector machine 
+with a radial kernel (svmRadial), random forest (rf) and recursive 
+partitioning (rpart). Each of these classifiers is tuned automatically 
+throught repeated cross-validation. caret will automatically determine 
+a reasonable set of values for tuning. See the 
+<a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> 
+for more information about the tuning parameters for each classifier, and
 more generally for the information about how caret works.
 
 <p>The user can chose to include the individual classifiers results in
@@ -38,15 +39,15 @@ classifiers. Votes can be weighted according to a user-defined mode
 (<em>weighting_mode</em>): simple majority vote without weighting, i.e. 
 all weights are equal (smv), simple weighted majority vote (swv), 
 best-worst weighted vote (bwwv) and quadratic best-worst weighted vote 
-(qbwwv). For more details about these voting modes see [TODO: include 
-reference]. By default, the weights are calculated based on the accuracy 
+(qbwwv). For more details about these voting modes see Moreno-Seco et al 
+(2006). By default, the weights are calculated based on the accuracy 
 metric, but the user can chose the kappa value as an alternative 
 (<em>weighting_metric</em>).
 
 <p>In the output (as attribute columns or text file) each weighting schemes 
 result is provided accompanied by a value that can be considered as an
 estimation of the probability of the classification after weighted vote, 
-based on the equation used in [TODO: include reference].
+based on equation (2) in Moreno et al (2006), page 709.
 
 <p>Optional output of the module include a box-and-whisker plot indicating
 the resampling variance based on the cross-validation for each classifier 
@@ -54,6 +55,7 @@ the resampling variance based on the cross-validation for each classifier
 accuracy and kappa) for each classifier (<em>accuracy_file</em>). The user
 can also chose to write the R script constructed and used internally to a text
 file for study or further modification.
+
 <h2>NOTES</h2>
 
 <p>
@@ -88,6 +90,10 @@ Using text files with segment characteristics as input and writing output to ras
 <div class="code"><pre>
 v.class.mlR segments_file=segstats.csv training_file=training.csv train_class_column=class weighting_mode=smv,swv,qbwwv raster_segments_map=seg classified_map=vote classification_results=class_results.csv
 </pre></div>
+
+<h2>REFERENCES</h2>
+
+<p>Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion Methods for Classification in Pattern Recognition Tasks. In D.-Y. Yeung et al., eds. Structural, Syntactic, and Statistical Pattern Recognition. Lecture Notes in Computer Science. Springer Berlin Heidelberg, pp. 705–713, <a href="http://dx.doi.org/10.1007/11815921_77">http://dx.doi.org/10.1007/11815921_77</a>. 
 
 <h2>SEE ALSO</h2>
 

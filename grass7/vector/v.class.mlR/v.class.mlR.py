@@ -12,7 +12,13 @@
 #               for details.
 #
 #############################################################################
-
+# References:
+#Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion Methods for
+#Classification in Pattern Recognition Tasks. In D.-Y. Yeung et al., eds.
+#Structural, Syntactic, and Statistical Pattern Recognition. Lecture Notes in
+#Computer Science. Springer Berlin Heidelberg, pp. 705–713, 
+#http://dx.doi.org/10.1007/11815921_77</a>.
+#############################################################################
 #%module
 #% description: Provides supervised support vector machine classification
 #% keyword: classification
