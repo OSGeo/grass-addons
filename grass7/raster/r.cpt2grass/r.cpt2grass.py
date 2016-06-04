@@ -51,7 +51,6 @@
 #%rules
 #% required: input,url
 #% exclusive: input,url
-#% requires: -s,map
 #%end
 
 import sys
