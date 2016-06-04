@@ -119,10 +119,12 @@ def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
         v1 = 100 * (crange - (cmax - v1)) / float(crange)
         if discrete:
             v2 = 100 * (crange - (cmax - v2)) / float(crange)
-
-        r1 = int(r1 * 255)
-        g1 = int(g1 * 255)
-        b1 = int(b1 * 255)
+        # multiply to get 255 after integer
+        # assuming nobody uses smaller faction than 0.001
+        # taken from color_rules.c
+        r1 = int(r1 * 255.999)
+        g1 = int(g1 * 255.999)
+        b1 = int(b1 * 255.999)
         rules.append(values_to_rule(value=v1, red=r1, green=g1,
                                     blue=b1, percent=True))
         if discrete:
