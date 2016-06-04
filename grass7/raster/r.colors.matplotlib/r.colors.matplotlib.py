@@ -85,7 +85,7 @@
 import os
 import sys
 import grass.script as gscript
-import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
 def values_to_rule(value, red, green, blue, percent):
@@ -139,7 +139,16 @@ def main(options, flags):
     if flags['n']:
         name += '_r'
 
-    cmap = plt.get_cmap(name, lut=n_colors)
+    # not sure if datad is part of the API but it is in one example
+    # datad might be potentially better way of getting the table
+    # it contains the raw data, but on the other hand it might not be
+    # clear if you can interpolate linearly in between (but likely yes)
+    if hasattr(cm, 'datad') and name not in cm.datad.keys():
+        import matplotlib as mpl
+        gscript.fatal(_("Matplotlib {v} does not contain color table"
+                        " <{n}>").format(v=mpl.__version__, n=name))
+
+    cmap = cm.get_cmap(name, lut=n_colors)
 
     comments = []
     comments.append(
