@@ -49,12 +49,16 @@ result is provided accompanied by a value that can be considered as an
 estimation of the probability of the classification after weighted vote, 
 based on equation (2) in Moreno et al (2006), page 709.
 
-<p>Optional output of the module include a box-and-whisker plot indicating
-the resampling variance based on the cross-validation for each classifier 
-(<em>bw_plot_file</em>) and a csv file containing accuracy measures (overall
-accuracy and kappa) for each classifier (<em>accuracy_file</em>). The user
-can also chose to write the R script constructed and used internally to a text
-file for study or further modification.
+<p>Optional output of the module include detailed information about the 
+different classifier models and their cross-validation results 
+<em>model_details</em> (for details of these results see the train, 
+resamples and confusionMatrix.train functions in the caret package)  a 
+box-and-whisker plot indicating the resampling variance based on the 
+cross-validation for each classifier (<em>bw_plot_file</em>) and a csv 
+file containing accuracy measures (overall accuracy and kappa) for each 
+classifier (<em>accuracy_file</em>). The user can also chose to write the 
+R script constructed and used internally to a text file for study or further 
+modification.
 
 <h2>NOTES</h2>
 
@@ -72,8 +76,9 @@ module: 'caret', 'kernlab', 'randomForest', 'rpart', 'ggplot2', 'lattice'.
 
 <ul>
 	<li>Add automagic installation of missing R packages.</li>
-	<li>Add output with confusion matrix
 	<li>Add option to manually define grid of tuning parameters</li>
+	<li>Check for existing file created by R as no overwrite check is 
+	    done in R</li>
 </ul>
 - 
 

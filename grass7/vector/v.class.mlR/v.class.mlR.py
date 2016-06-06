@@ -127,6 +127,12 @@
 #% guisection: Optional output
 #%end
 #%option G_OPT_F_OUTPUT
+#% key: model_details
+#% description: File for saving details about the classifier module runs
+#% required: no
+#% guisection: Optional output
+#%end
+#%option G_OPT_F_OUTPUT
 #% key: bw_plot_file
 #% description: PNG file for saving box-whisker plot of classifier performance
 #% required: no
@@ -234,6 +240,10 @@ def main():
     if flags['f'] and not classification_results:
         gscript.fatal("A classification_results file is necessary for flag 'f'")
 
+    model_details = None
+    if options['model_details']:
+        model_details = options['model_details']
+
     raster_segments_map = None
     if options['raster_segments_map']:
         raster_segments_map = options['raster_segments_map']
@@ -289,8 +299,6 @@ def main():
     r_file.write("\n")
     r_file.write("\n")
     r_file.write('require(caret)')
-    r_file.write("\n")
-    r_file.write("cat('\\nRunning R...\\n')")
     r_file.write("\n")
     r_file.write('features <- read.csv("%s", sep="|", header=TRUE, row.names=1)' % feature_vars)
     r_file.write("\n")
@@ -380,6 +388,42 @@ def main():
         r_file.write("\n")
         r_file.write("write.csv(df_means, '%s', row.names=FALSE, quote=FALSE)" % accuracy_file)
         r_file.write("\n")
+    if model_details:
+        r_file.write("conf.mat.cv <- lapply(models.cv, function(x) confusionMatrix(x))")
+        r_file.write("\n")
+        r_file.write("sink('%s')" % model_details)
+        r_file.write("\n")
+        r_file.write("cat('BEST TUNING VALUES\n')")
+        r_file.write("\n")
+        r_file.write("cat('******************************\n\n')")
+        r_file.write("\n")
+        r_file.write("lapply(models.cv, function(x) x$best)")
+        r_file.write("\n")
+        r_file.write("cat('\n')")
+        r_file.write("\n")
+        r_file.write("cat('\nSUMMARY OF RESAMPLING RESULTS\n')")
+        r_file.write("\n")
+        r_file.write("cat('******************************\n\n')")
+        r_file.write("\n")
+        r_file.write("summary(resamps.cv)")
+        r_file.write("\n")
+        r_file.write("cat('\n')")
+        r_file.write("\n")
+        r_file.write("cat('\nRESAMPLED CONFUSION MATRICES\n')")
+        r_file.write("\n")
+        r_file.write("cat('******************************\n\n')")
+        r_file.write("\n")
+        r_file.write("print(conf.mat.cv)")
+        r_file.write("\n")
+        r_file.write("cat('\nDETAILED CV RESULTS\n')")
+        r_file.write("\n")
+        r_file.write("cat('******************************\n\n')")
+        r_file.write("\n")
+        r_file.write("lapply(models.cv, function(x) x$results)")
+        r_file.write("\n")
+        r_file.write("sink()")
+        r_file.write("\n")
+
     if bw_plot_file:
         r_file.write("png('%s.png')" % bw_plot_file)
         r_file.write("\n")
@@ -391,7 +435,13 @@ def main():
     if r_script_file:
         shutil.copy(r_commands, r_script_file)
 
-    subprocess.call(['Rscript', r_commands], stdout=open(os.devnull, 'wb'))
+    gscript.message("Running R now. Following output is R output.")
+    try:
+        subprocess.check_call(['Rscript', r_commands], stderr=subprocess.STDOUT, )
+    except subprocess.CalledProcessError:
+        gscript.fatal("There was an error in the execution of the R script.\nPlease check the R output.")
+
+    gscript.message("Finished running R.")
 
     if allmap and not flags['f']:
 
