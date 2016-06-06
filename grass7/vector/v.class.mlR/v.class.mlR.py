@@ -145,6 +145,7 @@
 #%flag
 #% key: i
 #% description: Include individual classifier results in output
+#% guisection: Optional output
 #%end
 #
 #%rules
