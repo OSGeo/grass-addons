@@ -47,7 +47,9 @@ metric, but the user can chose the kappa value as an alternative
 <p>In the output (as attribute columns or text file) each weighting schemes 
 result is provided accompanied by a value that can be considered as an
 estimation of the probability of the classification after weighted vote, 
-based on equation (2) in Moreno et al (2006), page 709.
+based on equation (2) in Moreno et al (2006), page 709. At this stage, this
+estimation does not, however, take into account the probabilities determined
+individually by each classifier.
 
 <p>Optional output of the module include detailed information about the 
 different classifier models and their cross-validation results 
@@ -78,9 +80,10 @@ module: 'caret', 'kernlab', 'randomForest', 'rpart', 'ggplot2', 'lattice'.
 	<li>Add automagic installation of missing R packages.</li>
 	<li>Add option to manually define grid of tuning parameters</li>
 	<li>Check for existing file created by R as no overwrite check is 
-	    done in R</li>
+		done in R</li>
+	<li>Use class probabilities determined by individual classifiers
+		to calculate overall class probabilities</li>
 </ul>
-- 
 
 <h2>EXAMPLE</h2>
 

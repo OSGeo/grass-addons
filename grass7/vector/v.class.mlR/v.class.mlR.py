@@ -328,11 +328,23 @@ def main():
             r_file.write("models.cv$%s <- %sModel.cv" % (classifier, classifier))
             r_file.write("\n")
 
+    r_file.write("if (length(models.cv)>1) {")
+    r_file.write("\n")
     r_file.write("resamps.cv <- resamples(models.cv)")
     r_file.write("\n")
     r_file.write("accuracy_means <- as.vector(apply(resamps.cv$values[seq(2,length(resamps.cv$values), by=2)], 2, mean))")
     r_file.write("\n")
     r_file.write("kappa_means <- as.vector(apply(resamps.cv$values[seq(3,length(resamps.cv$values), by=2)], 2, mean))")
+    r_file.write("\n")
+    r_file.write("} else {")
+    r_file.write("\n")
+    r_file.write("resamps.cv <- models.cv[[1]]$resample")
+    r_file.write("\n")
+    r_file.write("accuracy_means <- mean(resamps.cv$Accuracy)")
+    r_file.write("\n")
+    r_file.write("kappa_means <- mean(resamps.cv$Kappa)")
+    r_file.write("\n")
+    r_file.write("}")
     r_file.write("\n")
     r_file.write("predicted <- data.frame(predict(models.cv, features))")
     r_file.write("\n")
@@ -360,8 +372,9 @@ def main():
         r_file.write("\n")
         r_file.write("resultsdf$%s_%s <- vote$V1" % (output_classcol, weighting_mode))
         r_file.write("\n")
-        r_file.write("resultsdf$%s_%s <- vote$V2" % (output_probcol, weighting_mode))
-        r_file.write("\n")
+        if len(classifiers) > 1:
+            r_file.write("resultsdf$%s_%s <- vote$V2" % (output_probcol, weighting_mode))
+            r_file.write("\n")
 
     if allmap and not flags['f']:
         model_output = '.gscript_tmp_model_output_%d.csv' % os.getpid()
@@ -384,13 +397,11 @@ def main():
         r_file.write("write.csv(resultsdf, '%s', row.names=FALSE, quote=FALSE)" % classification_results)
         r_file.write("\n")
     if accuracy_file:
-        r_file.write("df_means <- data.frame(method=names(resamps.cv$methods),accuracy=accuracy_means, kappa=kappa_means)")
+        r_file.write("df_means <- data.frame(method=names(model.cv),accuracy=accuracy_means, kappa=kappa_means)")
         r_file.write("\n")
         r_file.write("write.csv(df_means, '%s', row.names=FALSE, quote=FALSE)" % accuracy_file)
         r_file.write("\n")
     if model_details:
-        r_file.write("conf.mat.cv <- lapply(models.cv, function(x) confusionMatrix(x))")
-        r_file.write("\n")
         r_file.write("sink('%s')" % model_details)
         r_file.write("\n")
         r_file.write("cat('BEST TUNING VALUES\n')")
@@ -413,6 +424,8 @@ def main():
         r_file.write("\n")
         r_file.write("cat('******************************\n\n')")
         r_file.write("\n")
+        r_file.write("conf.mat.cv <- lapply(models.cv, function(x) confusionMatrix(x))")
+        r_file.write("\n")
         r_file.write("print(conf.mat.cv)")
         r_file.write("\n")
         r_file.write("cat('\nDETAILED CV RESULTS\n')")
@@ -424,7 +437,7 @@ def main():
         r_file.write("sink()")
         r_file.write("\n")
 
-    if bw_plot_file:
+    if bw_plot_file and len(classifiers) > 1:
         r_file.write("png('%s.png')" % bw_plot_file)
         r_file.write("\n")
         r_file.write("print(bwplot(resamps.cv))")
@@ -451,11 +464,15 @@ def main():
         f = open(model_output_desc, 'w')
         header_string = '"Integer"'
         if flags['i']:
-            for model in classifiers:
+            for classifier in classifiers:
                 header_string += ',"Integer"'
-        for weighting_mode in weighting_modes:
+        if len(classifiers) > 1:
+            for weighting_mode in weighting_modes:
+                header_string += ',"Integer"'
+                header_string += ',"Real"'
+        else:
             header_string += ',"Integer"'
-            header_string += ',"Real"'
+
         f.write(header_string)
         f.close()
 
