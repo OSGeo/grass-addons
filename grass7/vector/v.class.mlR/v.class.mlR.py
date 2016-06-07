@@ -98,6 +98,30 @@
 #% answer: svmRadial,rf,rpart,knn,knn1
 #%end
 #%option
+#% key: folds
+#% type: integer
+#% description: Number of folds to use for cross-validation
+#% required: yes
+#% answer: 5
+#% guisection: Cross-validation and voting
+#%end
+#%option
+#% key: partitions
+#% type: integer
+#% description: Number of different partitions to use for cross-validation
+#% required: yes
+#% answer: 10
+#% guisection: Cross-validation and voting
+#%end
+#%option
+#% key: tunelength
+#% type: integer
+#% description: Number of levels to test for each tuning parameter
+#% required: yes
+#% answer: 10
+#% guisection: Cross-validation and voting
+#%end
+#%option
 #% key: weighting_modes
 #% type: string
 #% description: Type of weighting to use
@@ -105,6 +129,7 @@
 #% multiple: yes
 #% options: smv,swv,bwwv,qbwwv
 #% answer: smv
+#% guisection: Cross-validation and voting
 #%end
 #%option
 #% key: weighting_metric
@@ -113,6 +138,7 @@
 #% required: yes
 #% options: accuracy,kappa
 #% answer: accuracy
+#% guisection: Cross-validation and voting
 #%end
 #%option G_OPT_F_OUTPUT
 #% key: classification_results
@@ -144,9 +170,16 @@
 #% required: no
 #% guisection: Optional output
 #%end
+#%option
+#% key: processes
+#% type: integer
+#% description: Number of processes to run in parallel
+#% answer: 1
+#%end
 #%flag
 #% key: f
 #% description: Only write results to text file, do not update vector map
+#% guisection: Optional output
 #%end
 #%flag
 #% key: i
@@ -233,6 +266,10 @@ def main():
     classifiers = options['classifiers'].split(',')
     weighting_modes = options['weighting_modes'].split(',')
     weighting_metric = options['weighting_metric']
+    processes = int(options['processes'])
+    folds = options['folds']
+    partitions = options['partitions']
+    tunelength = options['tunelength']
 
     classification_results = None
     if options['classification_results']:
@@ -306,7 +343,13 @@ def main():
     r_file.write("\n")
     r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
     r_file.write("\n")
-    r_file.write("MyFolds.cv <- createMultiFolds(training$%s, k=5, times=10)" % classcol)
+    if processes > 1:
+        r_file.write("library(doParallel)")
+        r_file.write("\n")
+        r_file.write("registerDoParallel(cores = %d)" % processes)
+        r_file.write("\n")
+    r_file.write("MyFolds.cv <- createMultiFolds(training$%s, k=%s, times=%s)" %
+            (classcol, folds, partitions))
     r_file.write("\n")
     r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv)")
     r_file.write("\n")
@@ -323,7 +366,8 @@ def main():
             r_file.write("models.cv$knn1 <- knn1Model.cv")
             r_file.write("\n")
         else:
-            r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv,tuneLength=10)" % (classifier, classifier))
+            r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv,tuneLength=%s)" % (classifier,
+                        classifier, tunelength))
             r_file.write("\n")
             r_file.write("models.cv$%s <- %sModel.cv" % (classifier, classifier))
             r_file.write("\n")

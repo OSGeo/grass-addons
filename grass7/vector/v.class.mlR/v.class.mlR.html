@@ -30,7 +30,16 @@ throught repeated cross-validation. caret will automatically determine
 a reasonable set of values for tuning. See the 
 <a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> 
 for more information about the tuning parameters for each classifier, and
-more generally for the information about how caret works.
+more generally for the information about how caret works. By default, the
+module creates 10 5-fold partitions for cross-validation and tests 10 
+possible values of the tuning parameters. These values can be changed 
+using, repectively, the <em>partitions</em>, <em>folds</em> and
+<em>tunelength</em> parameters.
+
+<p>The module can run the model tuning using parallel processing. In order
+for this to work, the R-package <em>doParallel</em> has to be installed. The
+<em>processes</em> parameter allows to chose the number of processes to
+run.
 
 <p>The user can chose to include the individual classifiers results in
 the output using the <em>i</em> flag, but by default the output will be
@@ -69,10 +78,16 @@ The module can be used in a tool chain together with <a href="i.segment.html">i.
 and the addon <em>i.segment.stats</em> for object-based classification of 
 satellite imagery.
 
+<p><em>WARNING:</em> The option output files are created by R and currently
+no checking is done of whether files of the same name already exist. If they 
+exist, they are silently overwritten, regardless of whether the GRASS GIS 
+<em>--o</em> flag is set or not.
+
 <h2>DEPENDENCIES</h2>
 
-<p>This modules uses R. The following R-packages have to be installed to be able to use this
-module: 'caret', 'kernlab', 'randomForest', 'rpart', 'ggplot2', 'lattice'.
+<p>This modules uses R. The following R-packages have to be installed to be 
+able to use this module: 'caret', 'kernlab', 'randomForest', 'rpart', 
+'ggplot2', 'lattice', 'doParallel' (if parallel processing is desired).
 
 <h2>TODO</h2>
 
