@@ -397,7 +397,7 @@ def main():
         r_file.write("write.csv(resultsdf, '%s', row.names=FALSE, quote=FALSE)" % classification_results)
         r_file.write("\n")
     if accuracy_file:
-        r_file.write("df_means <- data.frame(method=names(model.cv),accuracy=accuracy_means, kappa=kappa_means)")
+        r_file.write("df_means <- data.frame(method=names(models.cv),accuracy=accuracy_means, kappa=kappa_means)")
         r_file.write("\n")
         r_file.write("write.csv(df_means, '%s', row.names=FALSE, quote=FALSE)" % accuracy_file)
         r_file.write("\n")
