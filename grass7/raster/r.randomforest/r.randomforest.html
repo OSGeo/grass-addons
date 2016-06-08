@@ -55,8 +55,19 @@ r.random input=landclass96 npoints=1000 raster=landclass96_roi
 <div class="code"><pre>
 r.randomforest igroup=lsat7_2000 roi=landclass96_roi output=rf_classification \
   mode=classification ntrees=500 mfeatures=-1 minsplit=2 randst=1 lines=100
+
+# copy category labels from landclass training map to result
+r.category rf_classification raster=landclass96_roi
+
+# copy color scheme from landclass training map to result
+r.colors rf_classification raster=landclass96_roi
 r.category rf_classification
 </pre></div>
+
+<!-- also nice
+r.composite b=lsat7_2002_10 g=lsat7_2002_20 r=lsat7_2002_30 output=lsat7_2002.rgb
+g.gui.mapswipe first=lsat7_2002.rgb second=rf_classification
+-->
 
 <br><br>Random forest classification result:
 <center>
