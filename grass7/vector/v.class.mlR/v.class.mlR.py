@@ -33,11 +33,25 @@
 #% required: no
 #% guisection: Vector input
 #%end
+#%option G_OPT_V_FIELD
+#% key: segments_layer
+#% label: Layer of the segments map where attributes are stored
+#% required: no
+#% answer: 1
+#% guisection: Vector input
+#%end
 #%option G_OPT_V_INPUT
 #% key: training_map
 #% label: Vector map with training areas
 #% description: Vector map with training areas and relevant attributes
 #% required: no
+#% guisection: Vector input
+#%end
+#%option G_OPT_V_FIELD
+#% key: training_layer
+#% label: Layer of the training map where attributes are stored
+#% required: no
+#% answer: 1
 #% guisection: Vector input
 #%end
 #%option G_OPT_F_INPUT
@@ -189,8 +203,11 @@
 #
 #%rules
 #% required: segments_map,segments_file
+#% exclusive: segments_map,segments_file
 #% required: training_map,training_file
+#% exclusive: training_map,training_file
 #% requires: classified_map,raster_segments_map
+#% requires: -f,classification_results
 #%end
 
 import atexit
@@ -246,6 +263,7 @@ def main():
 
     if options['segments_map']:
         allfeatures = options['segments_map']
+        segments_layer = options['segments_layer']
         allmap = True
     else:
         allfeatures = options['segments_file']
@@ -253,6 +271,7 @@ def main():
     
     if options['training_map']:
         training = options['training_map']
+        training_layer = options['training_layer']
         trainmap = True
     else:
         training = options['training_file']
@@ -274,8 +293,6 @@ def main():
     classification_results = None
     if options['classification_results']:
         classification_results = options['classification_results']
-    if flags['f'] and not classification_results:
-        gscript.fatal("A classification_results file is necessary for flag 'f'")
 
     model_details = None
     if options['model_details']:
@@ -306,6 +323,7 @@ def main():
         gscript.run_command('v.db.select',
                             map_=allfeatures,
                             file_=feature_vars,
+                            layer=segments_layer,
                             quiet=True,
                             overwrite=True)
     else:
@@ -316,6 +334,7 @@ def main():
         gscript.run_command('v.db.select',
                             map_=training,
                             file_=training_vars,
+                            layer=training_layer,
                             quiet=True,
                             overwrite=True)
     else:
@@ -533,9 +552,10 @@ def main():
                             quiet=True)
         columns = gscript.read_command('db.columns',
                                        table=temptable).splitlines()[1:]
+        orig_cat = gscript.vector_db(allfeatures)[int(segments_layer)]['key']
 	gscript.run_command('v.db.join',
                             map_=allfeatures,
-                            column='cat',
+                            column=orig_cat,
 			    otable=temptable,
                             ocolumn='id', 
 			    subset_columns=columns,
