@@ -269,13 +269,50 @@ def diam_pen(discharge, length, gross_head, percentage, epsilon=0.015):
 
 
 def losses_Colebrooke(discharge, length, diameter, epsilon=0.015):
+    """ Return the Darcy-Weisbach losses with f computed with
+        the Colebrook-White formula
+
+        Parameters
+        -----------
+        discharge: float [m³/s]
+            Design discharge
+        length: float [m]
+            Design length of the pipe/derivation
+        diameter: float [m]
+            Design diameter for the derivation pipe
+        epsilon: [mm]
+            Roughness
+
+        Example
+        -------
+
+        >>> Q, d, l = 1., 2., 1000.
+        >>> hc = losses_Colebrooke(discharge=Q, length=l, diameter=d)
+        >>> hc == 0.032861244804694816 * 1000.0
+        """
 
     def coeff_f(x, *args):
-        q, l, d, e = args
-        return x + 2 * log10((e * 0.001) / (3.71 * d) +
-                             (x * 2.51 * 0.000001 * pi * d ** 2) / (4 * q * l))
+        """
+        Solve the Colebrook-White formula and return 1/radq(f)
+        Parameters
+        -----------
+        discharge: float [m³/s]
+            Design discharge
+        diameter: float [m]
+            Design diameter for the derivation pipe
+        epsilon: [mm]
+            Roughness
+        """
+        # TODO epsilon coefficient from GUI
+        q, d, e = args
+        first_log_arg = (e * 0.001) / (3.71 * d)  # epsilon [mm]
+        rho_water = 1000.  # kg/m2
+        mu_water = 0.001  # Pa
+        vel = discharge / (pi * d**2./4.)
+        re_number = rho_water * vel * d / mu_water
+        return x + 2 * log10(first_log_arg + 2.51*x/re_number)
 
-    out = fsolve(coeff_f, 0, args=(discharge, length, diameter, epsilon))
+    out = fsolve(coeff_f, 0, args=(discharge, diameter, epsilon))
     f = 1 / out**2
     h_colebrooke = (
         (f[0] * 8 * length * discharge ** 2) /
