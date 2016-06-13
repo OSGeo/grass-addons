@@ -133,19 +133,19 @@ def main():
     if grass.verbosity() > 2:
         quiet = False
     # if method and exclude option are not null return an error
-    if methods != '' and excludes != '':
+    if methods != 'simpson,shannon,pielou,renyi' and excludes != '':
         grass.fatal(_("You can either use 'method' or 'exclude' option but not both"))
-    # calculate method
-    elif methods != '':
-        methods = methods.split(',')
-        checkAlpha(methods, alpha_value)
-        calculateM(rlidir, map_in, map_out, resolution, alpha_value, methods,
-                   quiet, overwrite)
     # calculate not excluded index
     elif excludes != '':
         excludes = excludes.split(',')
         checkAlpha(excludes, alpha_value, True)
         calculateE(rlidir, map_in, map_out, resolution, alpha_value, excludes,
+                   quiet, overwrite)
+    # calculate method
+    elif methods != '':
+        methods = methods.split(',')
+        checkAlpha(methods, alpha_value)
+        calculateM(rlidir, map_in, map_out, resolution, alpha_value, methods,
                    quiet, overwrite)
     # remove configuration files
     if not flags['t']:
@@ -259,7 +259,7 @@ def checkValues(res, alpha=False):
     # transform string to int and check if is a odd number
     for i in range(len(reso)):
         # check if is a odd number
-        reso[i] = float(reso[i])
+        reso[i] = int(reso[i])
         if reso[i] % 2 == 0:
             # return the error advice
             grass.fatal(_("The size/alpha setting must be an odd number " \
