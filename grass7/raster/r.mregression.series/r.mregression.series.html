@@ -2,7 +2,7 @@
 
 <em>r.mregression.series</em> is a module to calculate multiple 
 linear regression parameters between several time series, e.g. NDVI and
-elevation, precipitation.
+elevation, precipitation. It uses the <em>python-statmodels</em> package.
 <p>
 The module makes each output cell value a function of the values
 assigned to the corresponding cells in the input raster map series.
@@ -26,7 +26,6 @@ The list of inputs for each cell (including NULLs) is passed to the
 regression function. The function computes the parameters over the 
 non-NULL values, producing a NULL result only if there aren't enough 
 non-NULL values for computing.
-
 
 
 <h2>EXAMPLES</h2>
@@ -147,11 +146,13 @@ This rasters contains the fitted coefitients.
 
 <h2>SEE ALSO</h2>
 
-<em><a href="addons/r.regression.series.html">r.regression.series</a></em>,
-<em><a href="r.series.html">r.series</a></em>,
-<em><a href="r.regression.line.html">r.regression.line</a></em>,
-<em><a href="g.list.html">g.list</a></em>,
-<em><a href="g.region.html">g.region</a></em>
+<em>
+<a href="r.regression.series.html">r.regression.series</a>,
+<a href="r.series.html">r.series</a>,
+<a href="r.regression.line.html">r.regression.line</a>,
+<a href="g.list.html">g.list</a>,
+<a href="g.region.html">g.region</a>
+</em>
 
 <h2>AUTHOR</h2>
 
