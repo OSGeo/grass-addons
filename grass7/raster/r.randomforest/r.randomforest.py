@@ -155,7 +155,7 @@ def module_exists(module_name):
         imp.find_module(module_name)
         return True
     except ImportError:
-        grass.fatal("Python package <%s> not installed. Exiting" % module_name)
+        grass.fatal("Python package <%s> not installed (python-sklearn). Exiting" % module_name)
         return False
         
 # lazy imports
@@ -166,7 +166,7 @@ if module_exists("sklearn") == True:
     import warnings
     warnings.filterwarnings("ignore")
 else:
-    grass.fatal("Scikit-learn python module is not installed.....exiting")
+    grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting")
 
 def cleanup():
     # We can then close the rasters and the roi image
