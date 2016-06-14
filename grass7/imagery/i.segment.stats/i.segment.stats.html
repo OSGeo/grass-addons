@@ -1,29 +1,41 @@
 <h2>DESCRIPTION</h2>
 
+<p>
 <em>i.segment.stats</em> calculates statistics for areas in a raster
 map. Areas are defined by adjacent pixels with the same value. Such
 areas can be the output of <a href="i.segment.html">i.segment</a> or
 <a href="r.clump.html">r.clump</a>.
 
+<p>
 Available statistics are those related to the shape and size of the areas
 (see the <a href="v.to.db.html">v.to.db</a> man page for more information
 on the statistics) and aggregated statistics of pixel values of other
 raster maps (see <a href="v.univar.html">v.univar</a> for details).
 
+<p>
 The user can chose between output in the form of a vector map of the areas
 with the statistics in the attribute table and/or in the form of a CSV
 text file.
 
 <h2>NOTES</h2>
 
+<p>
 The module respects the current region settings. The <em>-r</em> flag allows
 to force the module to adjust the region to the input raster map before
 calculating the statistics.
 
+<p>
 This module is a simple front-end to <a href="v.univar.html">v.univar</a>
 and <a href="v.to.db.html">v.to.db</a>. If other statistics are desired,
 these should probably be implemented in those (or other) modules which
 can then be called from this module.
+
+<p>
+Problems can arise in the calculation of some form statistics for certain
+segment forms. If errors arise, the user might want to try to run 
+<a href="r.clump.html">r.clump</a> on the input raster file before running
+<em>i.segment.stats</em>.
+
 
 <h2>EXAMPLE</h2>
 

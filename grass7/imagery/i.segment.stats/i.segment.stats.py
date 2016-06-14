@@ -87,9 +87,6 @@ def cleanup():
     if grass.find_file(temporary_vect, element='vector')['name']:
             grass.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
-    if grass.find_file(temporary_clumped_rast, element='cell')['name']:
-            grass.run_command('g.remove', flags='f', type_='raster',
-                    name=temporary_clumped_rast, quiet=True)
     if insert_sql:
         os.remove(insert_sql)
 
@@ -111,8 +108,6 @@ def main():
     insert_sql = None
 
     global temporary_vect
-    global temporary_clumped_rast
-    temporary_clumped_rast = 'segmstat_tmp_clumpedrast_%d' % os.getpid()
     temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
 
     raster_stat_dict = {'zone': 0, 'min': 4, 'third_quart': 16, 'max': 5, 'sum':
@@ -125,12 +120,8 @@ def main():
         grass.use_temp_region()
         grass.run_command('g.region', raster=segment_map)
 
-    grass.run_command('r.clump',
-                      input_=segment_map,
-                      output=temporary_clumped_rast,
-                      quiet=True)
     grass.run_command('r.to.vect',
-                      input_=temporary_clumped_rast,
+                      input_=segment_map,
                       output=temporary_vect,
                       type_='area',
                       flags='vt')
@@ -153,7 +144,7 @@ def main():
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
         res=grass.read_command('r.univar',
                                map_=raster,
-                               zones=temporary_clumped_rast,
+                               zones=segment_map,
                                flags='et').splitlines()[1:]
         for element in res:
             values = element.split('|')
