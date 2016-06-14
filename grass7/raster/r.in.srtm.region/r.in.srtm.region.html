@@ -17,6 +17,21 @@ and SRTM V2.1 tiles from:
 or optionally uses a local folder with previously downloaded files if 
 the <b>local</b> option is given.
 
+<h2>NOTES</h2>
+
+This module only operates in LatLong locations.
+<!-- TODO: add r.import support -->
+
+<h2>EXAMPLE</h2>
+
+Import of SRTM V3 (1 arc seconds ~ 30m) covering the current region:
+
+<div class="code"><pre>
+# run in LatLong location
+r.in.srtm.region -1 output=srtmV3 memory=2000
+</pre></div>
+
+
 <h2>SEE ALSO</h2>
 
 <em>
