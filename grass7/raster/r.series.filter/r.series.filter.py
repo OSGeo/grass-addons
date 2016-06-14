@@ -18,7 +18,7 @@
 #############################################################################
 
 #%Module
-#% description: Perform filtering of raster time series X (in time domain)
+#% description: Perform filtering of raster time series X (in time domain).
 #% overwrite: yes
 #%End
 #%flag
@@ -35,7 +35,7 @@
 #% key: input
 #% type: string
 #% gisprompt: list of raster names
-#% description: Raster names of equally spaced time series.
+#% description: Raster names of equally spaced time series
 #% required : yes
 #% multiple: yes
 #%end
@@ -113,11 +113,6 @@
 import os
 import sys
 
-import numpy as np
-from scipy.signal import savgol_filter
-from scipy.signal import medfilt
-
-
 if "GISBASE" not in os.environ:
     sys.stderr.write("You must be in GRASS GIS to run this program.\n")
     sys.exit(1)
@@ -127,6 +122,15 @@ from grass.pygrass import raster
 from grass.pygrass.raster.buffer import Buffer
 from grass.exceptions import OpenError
 from grass.pygrass.gis.region import Region
+
+import numpy as np
+try:
+    from scipy.signal import savgol_filter
+except ImportError:
+    grass.error("Cannot import savgol_filter from scipy. Install python-scipy version 0.14 or later package first")
+    sys.exit(1)
+from scipy.signal import medfilt
+
 
 CNULL = -2147483648  # null value for CELL maps
 FNULL = np.nan       # null value for FCELL and DCELL maps

@@ -1,12 +1,15 @@
 <h2>DESCRIPTION</h2>
+
+<em>r.series.filter</em> is a module to filter raster time series <em>X</em>
+in time domain.
+It requires <em>python-scipy</em> (version 0.14 or later).
+
+<p>
 <em>-c</em>	 Find optimal parameters of used filter. The function to optimize depends on
 				difference between original and filtered signals and on derivates of the
 				filtered signal.
-<em>-u</em>	 Filter usung upper boundary of the signal values. 
-				(Usefull for vegetation indexes filtering)
-<p>
-<em>r.series.filter</em> is a module to filter raster time series <em>X</em>
-in time domain.
+<em>-u</em>	 Filter using upper boundary of the signal values. 
+				(Useful for vegetation indexes filtering)
 <p>
 <em>input</em>   Raster names of equally spaced time series <em>X</em>. 
 <p>
@@ -104,10 +107,12 @@ i.spectral -g raster=$fmaps coor=$center_easting,$center_northing out=flt.png
 
 <h2>SEE ALSO</h2>
 
-<em><a href="addons/r.regression.series.html">r.regression.series</a></em>,
-<em><a href="r.series.html">r.series</a></em>,
-<em><a href="r.regression.line.html">r.regression.line</a></em>,
-<em><a href="g.list.html">g.list</a></em>,
+<em>
+<a href="r.regression.series.html">r.regression.series</a>,
+<a href="r.series.html">r.series</a>,
+<a href="r.regression.line.html">r.regression.line</a>,
+<a href="g.list.html">g.list</a>
+</em>
 
 <h2>AUTHOR</h2>
 
