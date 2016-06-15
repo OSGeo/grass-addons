@@ -68,6 +68,10 @@
 #% required: no
 #% guisection: Text input
 #%end
+#%option G_OPT_F_SEP
+#% description: Field separator in input text files
+#% guisection: Text input
+#%end
 #%option G_OPT_R_INPUT
 #% key: raster_segments_map
 #% label: Raster map with segments
@@ -289,6 +293,7 @@ def main():
     folds = options['folds']
     partitions = options['partitions']
     tunelength = options['tunelength']
+    separator = gscript.separator(options['separator'])
 
     classification_results = None
     if options['classification_results']:
@@ -356,9 +361,9 @@ def main():
     r_file.write("\n")
     r_file.write('require(caret)')
     r_file.write("\n")
-    r_file.write('features <- read.csv("%s", sep="|", header=TRUE, row.names=1)' % feature_vars)
+    r_file.write('features <- read.csv("%s", sep="%s", header=TRUE, row.names=1)' % (feature_vars, separator))
     r_file.write("\n")
-    r_file.write('training <- read.csv("%s", sep="|", header=TRUE, row.names=1)' % training_vars)
+    r_file.write('training <- read.csv("%s", sep="%s", header=TRUE, row.names=1)' % (training_vars, separator))
     r_file.write("\n")
     r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
     r_file.write("\n")
