@@ -214,12 +214,30 @@ class TestForestFragXY(TestCase):
         self.runModule('r.in.ascii', input='-', stdin_=reference,
                        output=self.forest_frag_ref)
         self.to_remove.append(self.forest_frag_ref)
-        self.assertRasterMinMax(self.forest_frag_ref, refmin=0, refmax=6)
+        # just check if the reference is all right
+        theoretical_min = 0
+        theoretical_max = 6
+        self.assertRasterMinMax(self.forest_frag_ref,
+                                refmin=theoretical_min,
+                                refmax=theoretical_max)
+        ref_univar = dict(n=770, null_cells=0, cells=770)
+        self.assertRasterFitsUnivar(raster=self.forest_frag_ref,
+                                    reference=ref_univar, precision=0)
+
+        # actually run the module
         self.assertModule('r.forestfrag', input=self.forest,
                           output=self.forest_frag, window=window)
         self.assertRasterExists(self.forest_frag)
         self.to_remove.append(self.forest_frag)
-        self.assertRasterMinMax(self.forest_frag, refmin=0, refmax=6)
+
+        # check the basic properties
+        self.assertRasterMinMax(self.forest_frag,
+                                refmin=theoretical_min,
+                                refmax=theoretical_max)
+        self.assertRasterFitsUnivar(raster=self.forest_frag,
+                                    reference=ref_univar, precision=0)
+
+        # check cell by cell
         self.assertRastersNoDifference(actual=self.forest_frag,
                                        reference=self.forest_frag_ref,
                                        precision=0)  # it's CELL type
