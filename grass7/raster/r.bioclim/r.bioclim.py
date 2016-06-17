@@ -40,7 +40,7 @@
 #%option G_OPT_R_INPUTS
 #% key: precipitation
 #% label: Monthly precipitation
-#% description: Monthly maximum temperatures for 12 months
+#% description: Monthly average precipitation for 12 months
 #% required: NO
 #%end
 #%option
