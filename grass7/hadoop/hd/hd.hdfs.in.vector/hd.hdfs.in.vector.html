@@ -1,0 +1,60 @@
+<h2>DESCRIPTION</h2>
+
+<em>hd.hdfs.in.vector</em> module is provide conversion of GRASS map serialized GeoJSON and copy it to HDFS
+
+<p>
+
+
+<h2>NOTES</h2>
+Vector maps in native GRASS format are not
+suitable for serialization which is needed to exploit the potential of
+spatial frameworks for Hadoop. The effective way and in the most cases the only
+possible is to store spatial data in JSON, especially GeoJSON. This format suits well
+for serialization and library for reading is available in catalog of Hive.
+
+Module <a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>  supports transformation of GRASS map to
+GeoJSON format and transfer to HDFS. Behind the module there are two main steps. Firstly, the map is
+converted to GeoJSON using <em>v.out.ogr</em> and edited to format which is
+suitable for parsing by widely used SerDe functions for Hive. After that,
+custom GeoJSON format is uploaded to the  destination on HDFS. By default, the
+HDFS path is set to <em>hdfs://grass_data_hdfs/LOCATION_NAME/MAPSET/vector</em>.
+
+In addition, hd.hdfs.* package also includes module <a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>  which allows
+transfer of external files to HDFS. Usage of this module becomes important for
+uploading CSV or GeoJSON files outside of GRASS. For uploading external GoeJSON files to HDFS it is
+necessary to modify its standardized format. The serialization  for
+JSON has several formatting requirements. See documentation on wiki page.
+
+<h2>EXAMPLES</h2>
+
+PUT vector map to HDFS
+<div class="code"><pre>
+hd.hdfs.in.vector  driver=webhdfs  hdfs=/data map=klad_zm10 layer=1
+</pre>
+</div>
+
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
+<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
+<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
+<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
+<a href="hd.hive.execute.html">hd.hive.execute</a>,
+<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
+<a href="hd.hive.select.html">hd.hive.select</a>,
+<a href="hd.hive.info.html">hd.hive.info</a>,
+<a href="hd.hive.json.table.html">hd.hive.json.table</a>
+</em>
+
+<p>
+    See also related <a href="http://grasswiki.osgeo.org/wiki/">wiki page</a>.
+
+
+<h2>AUTHOR</h2>
+
+Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
+at the Czech Technical University in Prague, developed
+during master thesis project 2016 (mentor: Martin Landa)

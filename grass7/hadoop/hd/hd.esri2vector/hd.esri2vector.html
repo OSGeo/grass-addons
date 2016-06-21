@@ -1,0 +1,45 @@
+<h2>DESCRIPTION</h2>
+
+<em>hd.esri2vector</em> module for conversion Hive table stored serialised Esri GeoJSON to GRASS vector map.
+
+<p>
+
+
+<h2>NOTES</h2>
+
+<h3>Usage</h3>
+By default is exported only geometry features of map. Parameter <em>attribute</em> specify attributes which will be linked to the map.
+Check <a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a> for GET Hive table from Hadoop server.
+<h2>EXAMPLES</h2>
+
+Conversion of Hive table stored on local computer.
+<div class="code"><pre>
+hd.esri2vector out=europe_aggregation attributes='count int,bin_id int' path=/path/to/hive/table
+</pre>
+</div>
+
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
+<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
+<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
+<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
+<a href="hd.hive.execute.html">hd.hive.execute</a>,
+<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
+<a href="hd.hive.select.html">hd.hive.select</a>,
+<a href="hd.hive.info.html">hd.hive.info</a>,
+<a href="hd.hive.json.table.html">hd.hive.json.table</a>
+</em>
+
+<p>
+    See also related <a href="http://grasswiki.osgeo.org/wiki/">wiki page</a>.
+
+
+<h2>AUTHOR</h2>
+
+Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
+at the Czech Technical University in Prague, developed
+during master thesis project 2016 (mentor: Martin Landa)
