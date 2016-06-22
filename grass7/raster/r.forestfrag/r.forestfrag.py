@@ -50,6 +50,20 @@
 #% required: yes
 #%end
 
+#%option G_OPT_R_OUTPUT
+#% key: pf
+#% label: Name for output Pf (forest area density) raster map
+#% description: Proportion of area which is forested (amount of forest)
+#% required: no
+#%end
+
+#%option G_OPT_R_OUTPUT
+#% key: pff
+#% label: Name for output Pff (forest connectivity) raster map
+#% description: Conditional probability that neighboring cell is forest
+#% required: no
+#%end
+
 #%flag
 #% key: r
 #% description: Set computational region to input raster map
@@ -112,8 +126,20 @@ def main():
     wz  = int(options['window'])
     if wz % 2 == 0:
         gs.fatal(_("Please provide an odd number for the moving window"))
+    # user wants pf or pff
+    user_pf = options['pf']
+    user_pff = options['pff']
+    # backwards compatibility
+    if flags['t']:
+        gs.warning(_("The -t flag is deprecated, use pf and pff options"
+                     " instead"))
+    if not user_pf and not user_pff and flags['t']:
+        user_pf = opl + '_pf'
+        user_pff = opl + '_pff'
+    elif flags['t']:
+        gs.warning(_("When pf or pff option is used, the -t flag"
+                     " is ignored"))
     flag_r = flags['r']
-    flag_t = flags['t']
     flag_s = flags['s']
     flag_a = flags['a']
 
@@ -150,7 +176,10 @@ def main():
                    output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
 
     # create pf map
-    pf = tmpname('tmpA03_')
+    if user_pf:
+        pf = user_pf
+    else:
+        pf = tmpname('tmpA03_')
     gs.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
                tmpA2=tmpA2, tmpC3=tmpC3)
 
@@ -228,8 +257,10 @@ def main():
     os.remove(tmpfile3)
 
     # create pff map
-
-    pff = tmpname('tmpA07_')
+    if user_pff:
+        pff = user_pff
+    else:
+        pff = tmpname('tmpA07_')
     gs.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))",
                tmpl4=tmpl4, tmpl5=tmpl5, pff=pff, quiet=True)
 
@@ -314,7 +345,7 @@ def main():
     gs.raster_history(opl)
 
     # Write metadata for intermediate layers
-    if flag_t:
+    if user_pf:
         # pf layer
         gs.run_command("r.support", map=pf,
                        title="Proportion forested",
@@ -323,6 +354,7 @@ def main():
                        description="Proportion of pixels in the moving window that is forested")
         gs.raster_history(pf)
 
+    if user_pff:
         # pff layer
         fd8, tmphist = tempfile.mkstemp()
         text_file = open(tmphist, "w")
@@ -344,16 +376,12 @@ def main():
     if flag_s:
         gs.run_command("r.report", map=opl, units=["h", "p"],
                        flags="n", page_width=50, quiet=True)
-    gs.info("\n")
-    gs.info(_("The following layers were created\n"))
-    gs.info(_("The fragmentation index: " + opl +"\n"))
-    if flag_t:
-        gs.run_command("g.rename", quiet=True, raster=[pf,opl + "_pf"])
-        gs.run_command("g.rename", quiet=True, raster=[pff,opl + "_pff"])
-        gs.info(_("The proportion forested (pf): " + opl + "_pf\n"))
-        gs.info(_("The proportion forested pixel pairs: " + opl + "_pff\n"))
-        clean_rast.remove(pf)
-        clean_rast.remove(pff)
+    gs.info(_("The following layers were created"))
+    gs.info(_("The fragmentation index: %s") % opl)
+    if user_pf:
+        gs.info(_("The proportion forested (pf): %s") % pf)
+    if user_pff:
+        gs.info(_("The proportion forested pixel pairs (pff): %s") % pff)
 
     # Clean up
     if flag_a:

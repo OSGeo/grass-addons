@@ -117,16 +117,15 @@ class TestForestFragTrivial(TestCase):
                                     reference=ref_univar, precision=0)
 
         # actually run the module
+        pf = self.forest_frag + '_pf'
+        pff = self.forest_frag + '_pff'
         self.assertModule('r.forestfrag', input=self.forest,
                           output=self.forest_frag, window=window,
-                          flags='t')
+                          pf=pf, pff=pff)
         self.assertRasterExists(self.forest_frag)
         self.to_remove.append(self.forest_frag)
-
-        pf = self.forest_frag + '_pf'
         self.assertRasterExists(pf)
         self.to_remove.append(pf)
-        pff = self.forest_frag + '_pff'
         self.assertRasterExists(pff)
         self.to_remove.append(pff)
 
