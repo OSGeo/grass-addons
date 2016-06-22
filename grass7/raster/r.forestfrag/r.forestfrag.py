@@ -24,27 +24,20 @@
 #############################################################################
 
 #%Module
-#% description: Computes the forest fragmentation index (Riitters et. al 2000).
+#% description: Computes the forest fragmentation index (Riitters et al. 2000)
 #% keyword: raster
 #% keyword: forest
 #% keyword: fragmentation index
+#% keyword: landscape structure analysis
 #% keyword: Riitters
 #%End
 
-#%Option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
+#%option G_OPT_R_INPUT
 #% description: Name of forest raster map (where forest=1, non-forest=0)
 #% required : yes
 #%End
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Name output layer
-#% key_desc: name
+#%option G_OPT_R_OUTPUT
 #% required: yes
 #%end
 
@@ -59,12 +52,12 @@
 
 #%flag
 #% key: r
-#% description: Set region to raster?
+#% description: Set computational region to input raster map
 #%end
 
 #%flag
 #%  key: t
-#%  description: keep pf and pff maps
+#%  description: Keep Pf and Pff maps
 #%END
 
 #%flag
@@ -74,7 +67,7 @@
 
 #%flag
 #%  key: a
-#%  description: trim the output map to avoid border effects?
+#%  description: Trim the output map to avoid border effects
 #%END
 
 
@@ -138,7 +131,7 @@ def main():
     opl = options['output']
     wz  = int(options['window'])
     if wz % 2 == 0:
-        grass.fatal("Please provide an odd number for the moving window)")
+        grass.fatal("Please provide an odd number for the moving window")
     flag_r = flags['r']
     flag_t = flags['t']
     flag_s = flags['s']
@@ -147,7 +140,7 @@ def main():
 
     #set to current input map region (user option, default=current region)
     if flag_r:
-        grass.message("setting region to input map ...")
+        grass.message("Setting region to input map...")
         grass.run_command('g.region', quiet=True, raster=ipl)
 
     # Check if map values are limited to 1 and 0
@@ -163,7 +156,7 @@ def main():
     #------------------------------------------------------------------------
     # computing pf values
     #------------------------------------------------------------------------
-    grass.info("step 1: computing pf values ...\n")
+    grass.info("Step 1: Computing Pf values...")
 
     # let forested pixels be x and number of all pixels in moving window
     # be y, then pf=x/y"
@@ -190,7 +183,7 @@ def main():
     ## one forested pixel, and y of those pairs are forest-forest pairs, so pff equals
     ## y/x"
 
-    grass.info("step 2: computing pff values ...\n")
+    grass.info("Step 2: Computing Pff values...")
 
     # Create copy of forest map and convert NULL to 0 (if any)
     tmpC4 = tmpname('tmpA04_')
@@ -269,7 +262,7 @@ def main():
     # computing fragmentation index
     #------------------------------------------------------------------------
 
-    grass.info("step 3: computing fragmentation index ...\n")
+    grass.info("Step 3: Computing fragmentation index...")
     pf2 = tmpname('tmpA08_')
     grass.mapcalc("$pf2 = $pf - $pff", pf2=pf2, pf=pf, pff=pff, quiet=True)
     f1 = tmpname('tmpA09_') # patch
