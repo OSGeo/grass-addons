@@ -78,10 +78,10 @@ import uuid
 import atexit
 import tempfile
 import string
-import grass.script as grass
+import grass.script as gs
 
 if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
+    gs.message(_("You must be in GRASS GIS to run this program."))
     sys.exit(1)
 
 # create set to store names of temporary maps to be deleted upon exit
@@ -91,14 +91,14 @@ clean_rast = []
 def cleanup():
     cleanrast = list(reversed(clean_rast))
     for rast in cleanrast:
-        grass.run_command("g.remove", flags="f", type="rast", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="rast", name=rast, quiet=True)
 
 # Functions
 
-def CheckLayer(envlay):
-    ffile = grass.find_file(envlay, element = 'cell')
-    if ffile['fullname'] == '':
-        grass.fatal("The layer " + envlay + " does not exist.")
+def raster_exists(envlay):
+    ffile = gs.find_file(envlay, element = 'cell')
+    if not ffile['fullname']:
+        gs.fatal(_("Raster map <%s> not found") % envlay)
 
 def tmpname(prefix):
     tmpf = prefix + str(uuid.uuid4())
@@ -111,11 +111,11 @@ def tmpname(prefix):
 def main():
     # Variables
     ipl = options['input']
-    CheckLayer(ipl)
+    raster_exists(ipl)
     opl = options['output']
     wz  = int(options['window'])
     if wz % 2 == 0:
-        grass.fatal("Please provide an odd number for the moving window")
+        gs.fatal(_("Please provide an odd number for the moving window"))
     flag_r = flags['r']
     flag_t = flags['t']
     flag_s = flags['s']
@@ -124,24 +124,24 @@ def main():
 
     # set to current input map region (user option, default=current region)
     if flag_r:
-        grass.message("Setting region to input map...")
-        grass.run_command('g.region', quiet=True, raster=ipl)
+        gs.message(_("Setting region to input map..."))
+        gs.run_command('g.region', quiet=True, raster=ipl)
 
     # check if map values are limited to 1 and 0
-    input_info = grass.raster_info(ipl)
+    input_info = gs.raster_info(ipl)
     # we know what we are doing only when input is integer
     if input_info['datatype'] != 'CELL':
-        grass.fatal(_("The input raster map must have type CELL"
-                      " (integer)"))
+        gs.fatal(_("The input raster map must have type CELL"
+                   " (integer)"))
     # for integer, we just need to text min and max
     if input_info['min'] != 0 or input_info['max'] != 1:
-        grass.fatal(_("The input raster map must be a binary raster,"
-                      " i.e. it should contain only values 0 and 1"
-                      " (now the minimum is %d and maximum is %d)")
-                    % (input_info['min'], input_info['max']))
+        gs.fatal(_("The input raster map must be a binary raster,"
+                   " i.e. it should contain only values 0 and 1"
+                   " (now the minimum is %d and maximum is %d)")
+                 % (input_info['min'], input_info['max']))
 
     # computing pf values
-    grass.info("Step 1: Computing Pf values...")
+    gs.info(_("Step 1: Computing Pf values..."))
 
     # let forested pixels be x and number of all pixels in moving window
     # be y, then pf=x/y"
@@ -150,13 +150,13 @@ def main():
     # generate grid with pixel-value=number of pixels in moving window:
     tmpA2 = tmpname('tmpA01_')
     tmpC3 = tmpname('tmpA02_')
-    grass.run_command("r.neighbors", quiet=True, input=ipl,
-                      output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
+    gs.run_command("r.neighbors", quiet=True, input=ipl,
+                   output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
 
     # create pf map
     pf = tmpname('tmpA03_')
-    grass.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
-                  tmpA2=tmpA2, tmpC3=tmpC3, quiet=True)
+    gs.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
+               tmpA2=tmpA2, tmpC3=tmpC3)
 
     # computing pff values
 
@@ -165,12 +165,12 @@ def main():
     ## one forested pixel, and y of those pairs are forest-forest pairs, so pff equals
     ## y/x"
 
-    grass.info("Step 2: Computing Pff values...")
+    gs.info(_("Step 2: Computing Pff values..."))
 
     # Create copy of forest map and convert NULL to 0 (if any)
     tmpC4 = tmpname('tmpA04_')
-    grass.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
-    grass.run_command("r.null", map=tmpC4, null=0, quiet=True)
+    gs.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
+    gs.run_command("r.null", map=tmpC4, null=0, quiet=True)
 
     # calculate number of 'forest-forest' pairs
 
@@ -199,7 +199,7 @@ def main():
     text_file.write("0")
     text_file.close()
 
-    grass.run_command("r.mapcalc", file=tmpfile2, quiet=True)
+    gs.run_command("r.mapcalc", file=tmpfile2)
     os.close(fd2)
     os.remove(tmpfile2)
 
@@ -227,39 +227,39 @@ def main():
     text_file.write("0")
     text_file.close()
 
-    grass.run_command("r.mapcalc", file=tmpfile3, quiet=True)
+    gs.run_command("r.mapcalc", file=tmpfile3)
     os.close(fd3)
     os.remove(tmpfile3)
 
     # create pff map
 
     pff = tmpname('tmpA07_')
-    grass.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))", tmpl4=tmpl4,
-                  tmpl5=tmpl5, pff=pff,quiet=True)
+    gs.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))",
+               tmpl4=tmpl4, tmpl5=tmpl5, pff=pff, quiet=True)
 
     # computing fragmentation index
 
-    grass.info("Step 3: Computing fragmentation index...")
+    gs.info(_("Step 3: Computing fragmentation index..."))
     pf2 = tmpname('tmpA08_')
-    grass.mapcalc("$pf2 = $pf - $pff", pf2=pf2, pf=pf, pff=pff, quiet=True)
+    gs.mapcalc("$pf2 = $pf - $pff", pf2=pf2, pf=pf, pff=pff, quiet=True)
     f1 = tmpname('tmpA09_') # patch
-    grass.mapcalc("$f1 = if($pf<0.4,1,0)", f1=f1, pf=pf, quiet=True)
+    gs.mapcalc("$f1 = if($pf<0.4,1,0)", f1=f1, pf=pf, quiet=True)
     f2 = tmpname('tmpA10_') # transitional
-    grass.mapcalc("$f2 = if($pf>=0.4 && $pf<0.6,2,0)", pf=pf, f2=f2, quiet=True)
+    gs.mapcalc("$f2 = if($pf>=0.4 && $pf<0.6,2,0)", pf=pf, f2=f2, quiet=True)
     f3 = tmpname('tmpA11_') # edge
-    grass.mapcalc("$f3 = if($pf>=0.6 && $pf2<0,3,0)", pf=pf, pf2=pf2, f3=f3, quiet=True)
+    gs.mapcalc("$f3 = if($pf>=0.6 && $pf2<0,3,0)", pf=pf, pf2=pf2, f3=f3, quiet=True)
     f4 = tmpname('tmpA12_') # perforate
-    grass.mapcalc("$f4 = if($pf>0.6 && $pf<1 && $pf2>0,4,0)", pf=pf, pf2=pf2, f4=f4, quiet=True)
+    gs.mapcalc("$f4 = if($pf>0.6 && $pf<1 && $pf2>0,4,0)", pf=pf, pf2=pf2, f4=f4, quiet=True)
     f5 = tmpname('tmpA13_') # interior
-    grass.mapcalc("$f5 = if($pf==1,5,0)", pf=pf, pff=pff, f5=f5, quiet=True)
+    gs.mapcalc("$f5 = if($pf==1,5,0)", pf=pf, pff=pff, f5=f5, quiet=True)
     f6 = tmpname('tmpA14_') # undetermined
-    grass.mapcalc("$f6 = if($pf>0.6 && $pf<1 && $pf2==0,6,0)", pf=pf, pf2=pf2, pff=pff, f6=f6, quiet=True) # undetermined
+    gs.mapcalc("$f6 = if($pf>0.6 && $pf<1 && $pf2==0,6,0)", pf=pf, pf2=pf2, pff=pff, f6=f6, quiet=True) # undetermined
     Index = tmpname('tmpA15_')
-    grass.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
+    gs.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
                       method="sum", quiet=True)
     indexfin2 = tmpname('tmpA16_')
-    grass.mapcalc("$if2 = $ipl * $Index", if2=indexfin2, ipl=ipl,
-                           Index=Index, quiet=True)
+    gs.mapcalc("$if2 = $ipl * $Index",
+               if2=indexfin2, ipl=ipl, Index=Index)
 
     #create categories
     indexfin3 =  tmpname('tmpA17_')
@@ -274,25 +274,25 @@ def main():
     text_file.write("6 = 6 undetermined\n")
     text_file.write("* = NULL\n")
     text_file.close()
-    grass.run_command("r.reclass", quiet=True, input=indexfin2, output=indexfin3,
-                      title="fragmentation index", rules=tmprul)
+    gs.run_command("r.reclass", quiet=True, input=indexfin2, output=indexfin3,
+                   title="fragmentation index", rules=tmprul)
     os.close(fd4)
     os.remove(tmprul)
 
     # Shrink the region
     if flag_a:
         regionoriginal = tmpname('tmpA18_')
-        grass.run_command("g.region", save=regionoriginal, quiet=True, overwrite=True)
-        reginfo = grass.parse_command("g.region", flags="gp")
+        gs.run_command("g.region", save=regionoriginal, quiet=True, overwrite=True)
+        reginfo = gs.parse_command("g.region", flags="gp")
         NSCOR = SWn * float(reginfo['nsres'])
         EWCOR = SWn * float(reginfo['ewres'])
-        grass.run_command("g.region",
-                          n=float(reginfo['n'])-NSCOR,
-                          s=float(reginfo['s'])+NSCOR,
-                          e=float(reginfo['e'])-EWCOR,
-                          w=float(reginfo['w'])+EWCOR,
-                          quiet=True)
-    grass.mapcalc("$opl = $if3", opl=opl, if3=indexfin3, quiet=True)
+        gs.run_command("g.region",
+                       n=float(reginfo['n'])-NSCOR,
+                       s=float(reginfo['s'])+NSCOR,
+                       e=float(reginfo['e'])-EWCOR,
+                       w=float(reginfo['w'])+EWCOR,
+                       quiet=True)
+    gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin3, quiet=True)
 
     #create color codes
     fd5, tmpcol = tempfile.mkstemp()
@@ -305,27 +305,27 @@ def main():
     text_file.write("5 26:152:80\n")
     text_file.write("6 145:207:96\n")
     text_file.close()
-    grass.run_command("r.colors", quiet=True, map=opl, rules=tmpcol)
+    gs.run_command("r.colors", quiet=True, map=opl, rules=tmpcol)
     os.close(fd5)
     os.remove(tmpcol)
 
     # Write metadata for main layer
-    grass.run_command("r.support", map=opl,
-                      title="Forest fragmentation",
-                      source1="Based on %s" % ipl,
-                      source2="",  # to remove what r.recode creates
-                      description="Forest fragmentation index (6 classes)")
-    grass.raster_history(opl)
+    gs.run_command("r.support", map=opl,
+                   title="Forest fragmentation",
+                   source1="Based on %s" % ipl,
+                   source2="",  # to remove what r.recode creates
+                   description="Forest fragmentation index (6 classes)")
+    gs.raster_history(opl)
 
     # Write metadata for intermediate layers
     if flag_t:
         # pf layer
-        grass.run_command("r.support", map=pf,
-                          title="Proportion forested",
-                          units="Proportion",
-                          source1="Based on %s" % ipl,
-                          description="Proportion of pixels in the moving window that is forested")
-        grass.raster_history(pf)
+        gs.run_command("r.support", map=pf,
+                       title="Proportion forested",
+                       units="Proportion",
+                       source1="Based on %s" % ipl,
+                       description="Proportion of pixels in the moving window that is forested")
+        gs.raster_history(pf)
 
         # pff layer
         fd8, tmphist = tempfile.mkstemp()
@@ -335,36 +335,36 @@ def main():
         text_file.write("It thus (roughly) estimates the conditional probability that, given a\n")
         text_file.write("pixel of forest, its neighbor is also forest.")
         text_file.close()
-        grass.run_command("r.support", map=pff,
-                          title="Conditional probability neighboring cell is forest",
-                          units="Proportion",
-                          source1="Based on %s" % ipl,
-                          description="Probability neighbor of forest cell is forest",
-                          loadhistory=tmphist)
-        grass.raster_history(pff)
+        gs.run_command("r.support", map=pff,
+                       title="Conditional probability neighboring cell is forest",
+                       units="Proportion",
+                       source1="Based on %s" % ipl,
+                       description="Probability neighbor of forest cell is forest",
+                       loadhistory=tmphist)
+        gs.raster_history(pff)
 
     # Report fragmentation index and names of layers created
 
     if flag_s:
-        grass.run_command("r.report", map=opl, units=["h","p"],
-                          flags="n", page_width=50, quiet=True)
-    grass.info("\n")
-    grass.info("The following layers were created\n")
-    grass.info("The fragmentation index: " + opl +"\n")
+        gs.run_command("r.report", map=opl, units=["h", "p"],
+                       flags="n", page_width=50, quiet=True)
+    gs.info("\n")
+    gs.info(_("The following layers were created\n"))
+    gs.info(_("The fragmentation index: " + opl +"\n"))
     if flag_t:
-        grass.run_command("g.rename", quiet=True, raster=[pf,opl + "_pf"])
-        grass.run_command("g.rename", quiet=True, raster=[pff,opl + "_pff"])
-        grass.info("The proportion forested (pf): " + opl + "_pf\n")
-        grass.info("The proportion forested pixel pairs: " + opl + "_pff\n")
+        gs.run_command("g.rename", quiet=True, raster=[pf,opl + "_pf"])
+        gs.run_command("g.rename", quiet=True, raster=[pff,opl + "_pff"])
+        gs.info(_("The proportion forested (pf): " + opl + "_pf\n"))
+        gs.info(_("The proportion forested pixel pairs: " + opl + "_pff\n"))
         clean_rast.remove(pf)
         clean_rast.remove(pff)
 
     # Clean up
     if flag_a:
-        grass.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
+        gs.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())
