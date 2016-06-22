@@ -26,9 +26,9 @@
 #%module
 #% description: Computes the forest fragmentation index (Riitters et al. 2000)
 #% keyword: raster
+#% keyword: landscape structure analysis
 #% keyword: forest
 #% keyword: fragmentation index
-#% keyword: landscape structure analysis
 #% keyword: Riitters
 #%end
 
