@@ -322,59 +322,39 @@ def main():
             "\n\twindow=" + str(wz) + rflag + tflag + sflag + aflag
 
     # Write metadata for main layer
-    fd6, tmphist = tempfile.mkstemp()
-    text_file = open(tmphist, "w")
-    text_file.write("Forest fragmentation index (6 classes) following Riiters et al. (2000)\n\
-\t(1) patch\n\t(2) transitional\n\t(3) edge\n\t(4) perforated\n\t(5) interior\n\t(6) undetermined\n")
-    text_file.write("\ncreated using:\n")
-    text_file.write(desctxt)
-    text_file.close()
-    grass.run_command("r.support", map=opl, title="Forest fragmentation",
-                      units="Fragmentation classes (6)",
-                      source1="based on " + ipl,
-                      source2="",
-                      description="Forst fragmentation index (6 classes)",
-                      loadhistory=tmphist)
-    os.close(fd6)
-    os.remove(tmphist)
+    grass.run_command("r.support", map=opl,
+                      title="Forest fragmentation",
+                      source1="Based on %s" % ipl,
+                      source2="",  # to remove what r.recode creates
+                      description="Forest fragmentation index (6 classes)")
 
+    grass.raster_history(opl)
+    
     # Write metadata for intermediate layers
     if flag_t:
         # pf layer
-        fd7, tmphist = tempfile.mkstemp()
-        text_file = open(tmphist, "w")
-        text_file.write("created using:\n")
-        text_file.write(desctxt + "\n")
-        text_file.close()
         grass.run_command("r.support", map=pf,
                           title="Proportion forested",
                           units="Proportion",
-                          source1="based on " + ipl,
-                          source2="",
-                          description="Proportion of pixels in the moving window that is forested",
-                          loadhistory=tmphist)
-        os.close(fd7)
-        os.remove(tmphist)
+                          source1="Based on %s" % ipl,
+                          description="Proportion of pixels in the moving window that is forested")
+        grass.raster_history(pf)
 
         # pff layer
         fd8, tmphist = tempfile.mkstemp()
         text_file = open(tmphist, "w")
-        text_file.write("created using:\n")
-        text_file.write(desctxt + "\n\n")
         text_file.write("Proportion of all adjacent (cardinal directions only) pixel pairs that\n")
         text_file.write("include at least one forest pixel for which both pixels are forested.\n")
         text_file.write("It thus (roughly) estimates the conditional probability that, given a\n")
-        text_file.write("pixel of forest, its neighbor is also forest")
+        text_file.write("pixel of forest, its neighbor is also forest.")
         text_file.close()
         grass.run_command("r.support", map=pff,
                           title="Conditional probability neighboring cell is forest",
                           units="Proportion",
-                          source1="based on " + ipl,
-                          source2="",
+                          source1="Based on %s" % ipl,
                           description="Probability neighbor of forest cell is forest",
                           loadhistory=tmphist)
-        os.close(fd8)
-        os.remove(tmphist)
+        grass.raster_history(pff)
 
     # Report fragmentation index and names of layers created
 
