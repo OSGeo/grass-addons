@@ -74,7 +74,6 @@
 # import libraries
 import os
 import sys
-import numpy as np
 import uuid
 import atexit
 import tempfile
@@ -128,15 +127,18 @@ def main():
         grass.message("Setting region to input map...")
         grass.run_command('g.region', quiet=True, raster=ipl)
 
-    # Check if map values are limited to 1 and 0
-    tmpdir = tempfile.mkdtemp()
-    tmpfile = tmpdir + 'forestfrag1'
-    grass.run_command("r.stats", flags="cn", overwrite=True,
-                      quiet=True, input=ipl, output=tmpfile, separator="|")
-    tstf = np.loadtxt(tmpfile, delimiter="|", dtype="int")
-    os.remove(tmpfile)
-    if min(tstf[:,0]) != 0 or max(tstf[:,0]) != 1:
-        grass.fatal("Your input map must be binary, with values 0 and 1")
+    # check if map values are limited to 1 and 0
+    input_info = grass.raster_info(ipl)
+    # we know what we are doing only when input is integer
+    if input_info['datatype'] != 'CELL':
+        grass.fatal(_("The input raster map must have type CELL"
+                      " (integer)"))
+    # for integer, we just need to text min and max
+    if input_info['min'] != 0 or input_info['max'] != 1:
+        grass.fatal(_("The input raster map must be a binary raster,"
+                      " i.e. it should contain only values 0 and 1"
+                      " (now the minimum is %d and maximum is %d)")
+                    % (input_info['min'], input_info['max']))
 
     # computing pf values
     grass.info("Step 1: Computing Pf values...")
@@ -393,7 +395,7 @@ def main():
     # Clean up
     if flag_a:
         grass.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
-    os.removedirs(tmpdir)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
