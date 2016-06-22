@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+
+############################################################################
+#
+# MODULE:        r_forestfrag_ncspm
+# AUTHOR:        Vaclav Petras
+# PURPOSE:       Test using NC SPM data
+# COPYRIGHT:     (C) 2016 by Vaclav Petras and the GRASS Development Team
+#
+#                This program is free software under the GNU General Public
+#                License (>=v2). Read the file COPYING that comes with GRASS
+#                for details.
+#
+#############################################################################
+
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 import grass.script.raster as gr
@@ -38,8 +53,8 @@ class TestForestFrag(TestCase):
                                   reference=ref, precision=0.0006)
         ref = dict(n=249323, null_cells=1, cells=249324, min=0, max=5,
                    range=5, mean=2.2925, mean_of_abs=2.2925,
-                   stddev=2.3564, variance=5.5526, coeff_var=102.7886,
-                   sum=571564)
+                   stddev=2.3564, variance=5.5527, coeff_var=102.7879,
+                   sum=571572)
         self.assertRasterFitsUnivar(raster=self.forest_frag,
                                     reference=ref, precision=0.0006)
 

@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+
+############################################################################
+#
+# MODULE:        r_forestfrag_xy
+# AUTHOR:        Vaclav Petras
+# PURPOSE:       Test with complete but small ref output (diff windows)
+# COPYRIGHT:     (C) 2016 by Vaclav Petras and the GRASS Development Team
+#
+#                This program is free software under the GNU General Public
+#                License (>=v2). Read the file COPYING that comes with GRASS
+#                for details.
+#
+#############################################################################
+
+
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -74,7 +90,7 @@ rows: 22
 cols: 35
 0 0 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 2 1 1 1 0 0 0 1
 0 0 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 3 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 3 3 0 0 0 0 0 0 0 0 0
+0 0 0 3 3 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 3 3 0 0 0 0 0 0 0 0 0
 0 0 3 3 3 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 3 3 0 0 0 0 0 0 0 0 0
 0 0 3 3 4 5 5 5 5 5 5 5 5 5 5 4 3 3 4 3 4 4 4 4 3 3 0 0 0 1 0 0 0 0 0
 0 0 4 5 5 5 5 5 5 5 5 5 5 5 4 3 3 3 3 3 3 3 4 3 3 3 3 0 0 2 2 0 0 0 0
@@ -106,9 +122,9 @@ cols: 35
 0 0 0 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 2 2 1 1 1 0 0 0 1
 0 0 0 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 0 0 0 0 0 0 0 0 0
 0 0 0 0 0 0 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 3 3 3 5 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 4 3 0 0 0 0 0 0 0 0 0
-0 0 0 3 3 3 5 5 5 5 5 5 5 4 4 4 4 4 4 4 4 4 4 4 3 3 0 0 0 1 0 0 0 0 0
-0 0 0 3 3 3 3 3 3 4 5 5 4 4 4 4 4 4 4 4 4 4 4 4 3 3 3 0 0 2 2 0 0 0 0
+0 0 0 3 3 3 5 5 5 5 5 5 5 5 4 3 3 3 4 4 4 4 4 4 3 3 0 0 0 0 0 0 0 0 0
+0 0 0 3 3 3 5 5 5 5 5 5 5 4 3 3 3 3 3 3 3 3 3 3 3 3 0 0 0 1 0 0 0 0 0
+0 0 0 3 3 3 3 3 3 4 5 5 4 3 3 3 3 4 3 4 4 4 4 4 3 3 3 0 0 2 2 0 0 0 0
 0 0 0 3 3 3 3 3 3 3 5 5 4 4 4 4 4 0 0 0 4 0 4 4 3 3 3 3 2 2 2 1 1 0 0
 0 2 2 2 3 3 3 3 3 3 5 5 4 4 4 4 0 0 0 0 0 0 4 4 3 3 3 3 2 2 2 1 1 0 0
 0 0 0 0 0 0 0 3 3 3 5 5 4 4 4 0 0 4 4 4 4 0 4 3 3 3 3 2 2 2 1 1 0 0 0
@@ -201,8 +217,8 @@ class TestForestFragXY(TestCase):
         self.use_temp_region()
         self.runModule('r.in.ascii', input='-', stdin_=FOREST,
                        output=self.forest)
-        self.runModule('g.region', raster=self.forest)
         self.to_remove.append(self.forest)
+        self.runModule('g.region', raster=self.forest)
 
     def tearDown(self):
         self.del_temp_region()
