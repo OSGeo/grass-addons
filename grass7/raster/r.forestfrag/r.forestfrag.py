@@ -309,27 +309,14 @@ def main():
     os.close(fd5)
     os.remove(tmpcol)
 
-    # Function call
-    if flag_r:rflag="\n\t-r"
-    else: rflag=""
-    if flag_t: tflag="\n\t-t"
-    else: tflag=""
-    if flag_s: sflag="\n\t-s"
-    else: sflag=""
-    if flag_a: aflag="\n\t-a"
-    else: aflag=""
-    desctxt = "r.forestfrag \n\tinput=" + ipl + "\n\toutput=" + opl + \
-            "\n\twindow=" + str(wz) + rflag + tflag + sflag + aflag
-
     # Write metadata for main layer
     grass.run_command("r.support", map=opl,
                       title="Forest fragmentation",
                       source1="Based on %s" % ipl,
                       source2="",  # to remove what r.recode creates
                       description="Forest fragmentation index (6 classes)")
-
     grass.raster_history(opl)
-    
+
     # Write metadata for intermediate layers
     if flag_t:
         # pf layer
