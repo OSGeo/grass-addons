@@ -253,6 +253,7 @@ def main():
     model_output = model_output_desc  =  temptable  =  r_commands = None
     reclass_files = None
 
+    packages = {'svmRadial': 'kernlab', 'rf': 'randomForest', 'rpart': 'rpart'}
     voting_function = "voting <- function (x, w) {\n"
     voting_function += "res <- tapply(w, x, sum, simplify = TRUE)\n"
     voting_function += "maj_class <- as.numeric(names(res)[which.max(res)])\n"
@@ -264,6 +265,14 @@ def main():
     weighting_functions['swv'] = "weights <- weighting_base/sum(weighting_base)"
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
+
+    install_package = "if(!is.element('%s', installed.packages()[,1])){\n"
+    install_package += "cat('\\n\\nInstalling %s package from CRAN\n')\n"
+    install_package += "if(!file.exists(Sys.getenv('R_LIBS_USER'))){\n"
+    install_package += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
+    install_package += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
+    install_package += "chooseCRANmirror(ind=1)\n"
+    install_package += "install.packages('%s')}"
 
     if options['segments_map']:
         allfeatures = options['segments_map']
@@ -349,15 +358,19 @@ def main():
 
     r_file = open(r_commands, 'w')
 
-    install = "if(!is.element('caret', installed.packages()[,1])){\n"
-    install += "cat('\\n\\nInstalling caret package from CRAN\n')\n"
-    install += "if(!file.exists(Sys.getenv('R_LIBS_USER'))){\n"
-    install += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
-    install += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
-    install += "chooseCRANmirror(ind=1)\n"
-    install += "install.packages('caret')}"
+
+    # automatic installation of missing R packages
+    install = install_package % ('caret', 'caret', 'caret')
     r_file.write(install)
     r_file.write("\n")
+    for classifier in classifiers:
+        # knn is included in caret
+	if classifier == "knn" or classifier == "knn1":
+	    continue	
+        package = packages[classifier]
+        install = install_package % (package, package, package)
+	r_file.write(install)
+	r_file.write("\n")
     r_file.write("\n")
     r_file.write('require(caret)')
     r_file.write("\n")
@@ -452,8 +465,19 @@ def main():
         r_file.write("\n")
     if classified_map:
         reclass_files = {}
+        if flags['i']:
+            for classifier in classifiers:
+                tmpfilename = gscript.tempfile()
+                reclass_files[classifier] = tmpfilename.replace("\\", "/")
+                r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s)" % (classifier))
+                r_file.write("\n")
+                r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
+                r_file.write("\n")
+                r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[classifier])
+                r_file.write("\n")
         for weighting_mode in weighting_modes:
-            reclass_files[weighting_mode] = gscript.tempfile()
+            tmpfilename = gscript.tempfile()
+            reclass_files[weighting_mode] = tmpfilename.replace("\\", "/")
             r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s_%s)" % (output_classcol, weighting_mode))
             r_file.write("\n")
             r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
@@ -567,8 +591,8 @@ def main():
                             quiet=True)
 
     if classified_map:
-        for weighting_mode, reclass_file in reclass_files.iteritems():
-            output_map = classified_map + '_' + weighting_mode
+        for classification, reclass_file in reclass_files.iteritems():
+            output_map = classified_map + '_' + classification
             gscript.run_command('r.reclass',
                                 input=raster_segments_map,
                                 output=output_map,
