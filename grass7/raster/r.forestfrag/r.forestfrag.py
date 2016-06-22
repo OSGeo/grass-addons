@@ -80,10 +80,6 @@ import tempfile
 import string
 import grass.script as gs
 
-if not os.environ.has_key("GISBASE"):
-    gs.message(_("You must be in GRASS GIS to run this program."))
-    sys.exit(1)
-
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = []
 
