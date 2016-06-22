@@ -1,41 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
+
 ############################################################################
 #
-# MODULE:       r.forestfrag
+# MODULE:    r.forestfrag
 #
-# AUTHOR(S):   Paulo van Breugel, Emmanuel Sambale, Stefan Sylla
-# Maintainer:  Paulo van Breugel (paulo@ecodiv.org)
+# AUTHOR(S): Emmanuel Sambale, Stefan Sylla,
+#            Paulo van Breugel (Python version, paulo@ecodiv.org)
 #
-# PURPOSE:    Creates forest fragmentation index map from a forest-non-forest
-#             raster; The index map is based on Riitters, K., J. Wickham,
-#             R. O'Neill, B. Jones, and E. Smith. 2000. in: Global-scale
-#             patterns of forest fragmentation. Conservation Ecology 4(2): 3.
-#             [online] URL:http://www.consecol.org/vol4/iss2/art3/
+# PURPOSE:   Creates forest fragmentation index map from a
+#            forest-non-forest raster; The index map is based on
+#            Riitters, K., J. Wickham, R. O'Neill, B. Jones, and
+#            E. Smith. 2000. in: Global-scalepatterns of forest
+#            fragmentation. Conservation Ecology 4(2): 3. [online]
+#            URL: http://www.consecol.org/vol4/iss2/art3/
 #
+# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
 #
-# COPYRIGHT:    (C) 1997-2016 by the GRASS Development Team
-#
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
+#            This program is free software under the GNU General Public
+#            License (>=v2). Read the file COPYING that comes with GRASS
+#            for details.
 #
 #############################################################################
 
-#%Module
+#%module
 #% description: Computes the forest fragmentation index (Riitters et al. 2000)
 #% keyword: raster
 #% keyword: forest
 #% keyword: fragmentation index
 #% keyword: landscape structure analysis
 #% keyword: Riitters
-#%End
+#%end
 
 #%option G_OPT_R_INPUT
 #% description: Name of forest raster map (where forest=1, non-forest=0)
-#% required : yes
-#%End
+#% required: yes
+#%end
 
 #%option G_OPT_R_OUTPUT
 #% required: yes
@@ -46,7 +46,7 @@
 #% type: integer
 #% description: Moving window size (odd number)
 #% key_desc: number
-#% answer : 3
+#% answer: 3
 #% required: yes
 #%end
 
@@ -56,28 +56,20 @@
 #%end
 
 #%flag
-#%  key: t
-#%  description: Keep Pf and Pff maps
-#%END
+#% key: t
+#% description: Keep Pf and Pff maps
+#%end
 
 #%flag
-#%  key: s
-#%  description: Run r.report on output map
-#%END
+#% key: s
+#% description: Run r.report on output map
+#%end
 
 #%flag
-#%  key: a
-#%  description: Trim the output map to avoid border effects
-#%END
+#% key: a
+#% description: Trim the output map to avoid border effects
+#%end
 
-
-# For testing purposes
-#options = {"input":"forest96@forestfrag", "output":"mosaicindex", "window":"5"}
-#flags = {"r":False, "t":True, "s":True, "a":False}
-
-#----------------------------------------------------------------------------
-# Standard
-#----------------------------------------------------------------------------
 
 # import libraries
 import os
@@ -96,14 +88,13 @@ if not os.environ.has_key("GISBASE"):
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = []
 
+
 def cleanup():
     cleanrast = list(reversed(clean_rast))
     for rast in cleanrast:
         grass.run_command("g.remove", flags="f", type="rast", name=rast, quiet=True)
 
-#----------------------------------------------------------------------------
 # Functions
-#----------------------------------------------------------------------------
 
 def CheckLayer(envlay):
     ffile = grass.find_file(envlay, element = 'cell')
@@ -116,16 +107,10 @@ def tmpname(prefix):
     clean_rast.append(tmpf)
     return tmpf
 
-#----------------------------------------------------------------------------
 # Main
-#----------------------------------------------------------------------------
 
 def main():
-
-    #------------------------------------------------------------------------
     # Variables
-    #------------------------------------------------------------------------
-
     ipl = options['input']
     CheckLayer(ipl)
     opl = options['output']
@@ -138,7 +123,7 @@ def main():
     flag_a = flags['a']
 
 
-    #set to current input map region (user option, default=current region)
+    # set to current input map region (user option, default=current region)
     if flag_r:
         grass.message("Setting region to input map...")
         grass.run_command('g.region', quiet=True, raster=ipl)
@@ -153,9 +138,7 @@ def main():
     if min(tstf[:,0]) != 0 or max(tstf[:,0]) != 1:
         grass.fatal("Your input map must be binary, with values 0 and 1")
 
-    #------------------------------------------------------------------------
     # computing pf values
-    #------------------------------------------------------------------------
     grass.info("Step 1: Computing Pf values...")
 
     # let forested pixels be x and number of all pixels in moving window
@@ -167,16 +150,13 @@ def main():
     tmpC3 = tmpname('tmpA02_')
     grass.run_command("r.neighbors", quiet=True, input=ipl,
                       output=[tmpA2, tmpC3], method=["sum", "count"], size=wz)
-    #grass.mapcalc("$tmpC3 = float($wz^2)",tmpC3=tmpC3a,wz=str(wz),quiet=True)
 
     # create pf map
     pf = tmpname('tmpA03_')
     grass.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
                   tmpA2=tmpA2, tmpC3=tmpC3, quiet=True)
 
-    #------------------------------------------------------------------------
     # computing pff values
-    #------------------------------------------------------------------------
 
     ## Considering pairs of pixels in cardinal directions in a 3x3 window, the total
     ## number of adjacent pixel pairs is 12. Assuming that x pairs include at least
@@ -191,7 +171,6 @@ def main():
     grass.run_command("r.null", map=tmpC4, null=0, quiet=True)
 
     # calculate number of 'forest-forest' pairs
-    #------------------------------------------------------------------------
 
     # Compute matrix dimensions
     SWn= int((wz - 1) / 2)
@@ -223,7 +202,6 @@ def main():
     os.remove(tmpfile2)
 
     # number of 'forest patches
-    #------------------------------------------------------------------------
 
     fd3, tmpfile3 = tempfile.mkstemp()
     tmpl5 = tmpname('tmpA06_')
@@ -252,15 +230,12 @@ def main():
     os.remove(tmpfile3)
 
     # create pff map
-    #------------------------------------------------------------------------
 
     pff = tmpname('tmpA07_')
     grass.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))", tmpl4=tmpl4,
                   tmpl5=tmpl5, pff=pff,quiet=True)
 
-    #------------------------------------------------------------------------
     # computing fragmentation index
-    #------------------------------------------------------------------------
 
     grass.info("Step 3: Computing fragmentation index...")
     pf2 = tmpname('tmpA08_')
@@ -399,9 +374,7 @@ def main():
         os.close(fd8)
         os.remove(tmphist)
 
-    #------------------------------------------------------------------------
     # Report fragmentation index and names of layers created
-    #------------------------------------------------------------------------
 
     if flag_s:
         grass.run_command("r.report", map=opl, units=["h","p"],
@@ -417,9 +390,7 @@ def main():
         clean_rast.remove(pf)
         clean_rast.remove(pff)
 
-    #------------------------------------------------------------------------
     # Clean up
-    #------------------------------------------------------------------------
     if flag_a:
         grass.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
     os.removedirs(tmpdir)
@@ -428,7 +399,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     sys.exit(main())
-
-
-
-
