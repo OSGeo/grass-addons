@@ -182,7 +182,7 @@ def main():
                      " is ignored"))
     flag_r = flags['r']
     flag_s = flags['s']
-    flag_a = flags['a']
+    clip_output = flags['a']
 
 
     # set to current input map region (user option, default=current region)
@@ -325,14 +325,16 @@ def main():
     Index = tmpname('tmpA15_')
     gs.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
                       method="sum", quiet=True)
-    indexfin2 = tmpname('tmpA16_')
+    if clip_output:
+        indexfin2 = tmpname('tmpA16_')
+    else:
+        indexfin2 = opl
     gs.mapcalc("$if2 = int($ipl * $Index)",
                if2=indexfin2, ipl=ipl, Index=Index)
 
     # Shrink the region
-    if flag_a:
-        regionoriginal = tmpname('tmpA18_')
-        gs.run_command("g.region", save=regionoriginal, quiet=True, overwrite=True)
+    if clip_output:
+        gs.use_temp_region()
         reginfo = gs.parse_command("g.region", flags="gp")
         NSCOR = SWn * float(reginfo['nsres'])
         EWCOR = SWn * float(reginfo['ewres'])
@@ -342,7 +344,7 @@ def main():
                        e=float(reginfo['e'])-EWCOR,
                        w=float(reginfo['w'])+EWCOR,
                        quiet=True)
-    gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
+        gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
 
     # create categories
     # TODO: parametrize classes (also in r.mapcalc, r.colors and desc)?
@@ -401,10 +403,6 @@ def main():
         gs.info(_("The proportion forested (pf): %s") % pf)
     if user_pff:
         gs.info(_("The proportion forested pixel pairs (pff): %s") % pff)
-
-    # Clean up
-    if flag_a:
-        gs.run_command("g.region", region=regionoriginal, quiet=True, overwrite=True)
 
 
 if __name__ == "__main__":
