@@ -101,6 +101,28 @@ import tempfile
 import string
 import grass.script as gs
 
+
+LABELS = """\
+0 nonforest
+1 patch
+2 transitional
+3 edge
+4 perforated
+5 interior
+6 undetermined
+"""
+
+COLORS_SAMBALE = """\
+0 255:255:0
+1 215:48:39
+2 252:141:89
+3 254:224:139
+4 217:239:139
+5 26:152:80
+6 145:207:96
+"""
+
+
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = []
 
@@ -304,26 +326,8 @@ def main():
     gs.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
                       method="sum", quiet=True)
     indexfin2 = tmpname('tmpA16_')
-    gs.mapcalc("$if2 = $ipl * $Index",
+    gs.mapcalc("$if2 = int($ipl * $Index)",
                if2=indexfin2, ipl=ipl, Index=Index)
-
-    #create categories
-    indexfin3 =  tmpname('tmpA17_')
-    fd4, tmprul = tempfile.mkstemp()
-    text_file = open(tmprul, "w")
-    text_file.write("0 = 0 nonforest\n")
-    text_file.write("1 = 1 patch\n")
-    text_file.write("2 = 2 transitional\n")
-    text_file.write("3 = 3 edge\n")
-    text_file.write("4 = 4 perforated\n")
-    text_file.write("5 = 5 interior\n")
-    text_file.write("6 = 6 undetermined\n")
-    text_file.write("* = NULL\n")
-    text_file.close()
-    gs.run_command("r.reclass", quiet=True, input=indexfin2, output=indexfin3,
-                   title="fragmentation index", rules=tmprul)
-    os.close(fd4)
-    os.remove(tmprul)
 
     # Shrink the region
     if flag_a:
@@ -338,28 +342,24 @@ def main():
                        e=float(reginfo['e'])-EWCOR,
                        w=float(reginfo['w'])+EWCOR,
                        quiet=True)
-    gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin3, quiet=True)
+    gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
 
-    #create color codes
-    fd5, tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol, "w")
-    text_file.write("0 255:255:0\n")
-    text_file.write("1 215:48:39\n")
-    text_file.write("2 252:141:89\n")
-    text_file.write("3 254:224:139\n")
-    text_file.write("4 217:239:139\n")
-    text_file.write("5 26:152:80\n")
-    text_file.write("6 145:207:96\n")
-    text_file.close()
-    gs.run_command("r.colors", quiet=True, map=opl, rules=tmpcol)
-    os.close(fd5)
-    os.remove(tmpcol)
+    # create categories
+    # TODO: parametrize classes (also in r.mapcalc, r.colors and desc)?
+    # TODO: translatable labels?
+    labels = LABELS
+    gs.write_command("r.category", quiet=True, map=opl,
+                     rules='-', stdin=labels, separator='space')
+
+    # create color table
+    colors = COLORS_SAMBALE
+    gs.write_command("r.colors", map=opl, rules='-',
+                        stdin=colors, quiet=True)
 
     # Write metadata for main layer
     gs.run_command("r.support", map=opl,
                    title="Forest fragmentation",
                    source1="Based on %s" % ipl,
-                   source2="",  # to remove what r.recode creates
                    description="Forest fragmentation index (6 classes)")
     gs.raster_history(opl)
 
