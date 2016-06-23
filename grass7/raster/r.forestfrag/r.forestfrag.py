@@ -47,6 +47,7 @@
 #% description: Moving window size (odd number)
 #% key_desc: number
 #% options: 3-
+#% answer : 3
 #% required: no
 #%end
 
@@ -124,30 +125,46 @@ COLORS_SAMBALE = """\
 
 
 # create set to store names of temporary maps to be deleted upon exit
-clean_rast = []
+CLEAN_RAST = []
 
 
 def cleanup():
-    cleanrast = list(reversed(clean_rast))
+    """Remove temporary maps specified in the global list"""
+    cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        gs.run_command("g.remove", flags="f", type="rast", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster", name=rast,
+                       quiet=True)
 
-# Functions
 
-def raster_exists(envlay):
-    ffile = gs.find_file(envlay, element = 'cell')
+def raster_exists(name):
+    """Check if the raster map exists, call GRASS fatal otherwise"""
+    ffile = gs.find_file(name, element='cell')
     if not ffile['fullname']:
-        gs.fatal(_("Raster map <%s> not found") % envlay)
+        gs.fatal(_("Raster map <%s> not found") % name)
+
 
 def tmpname(prefix):
+    """Generate a tmp name which conatins prefix
+
+    Store the name in the global list.
+    Use only for raster maps.
+    """
     tmpf = prefix + str(uuid.uuid4())
     tmpf = string.replace(tmpf, '-', '_')
-    clean_rast.append(tmpf)
+    CLEAN_RAST.append(tmpf)
     return tmpf
 
 
 def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
-    s = max_index  # just for shorter
+    """Generate window (matrix) expression
+
+    :param map_name: name of the map to index
+    :param max_index: the maximum positive index to use
+                      usually (window_size - 1) / 2
+    :param combine_op: operator used to combine values in the pair
+    :param aggregate_op: operator used to combine all pairs together
+    """
+    s = max_index  # just to be brief
     base_expr = "({m}[{a},{b}] {o} {m}[{c},{d}])"
     expr = []
     for j in range(-s, s + 1):
@@ -160,10 +177,9 @@ def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
                 m=map_name, o=combine_op, a=i, b=j, c=i, d=j + 1))
     return aggregate_op.join(expr)
 
-# Main
 
-def main():
-    # Variables
+def main(options, flags):
+    # options and flags into variables
     ipl = options['input']
     raster_exists(ipl)
     opl = options['output']
@@ -171,11 +187,11 @@ def main():
     if not options['size'] and not options['window']:
         gs.fatal(_("Required parameter <%s> not set") % 'size')
     if options['size']:
-        wz  = int(options['size'])
+        wz = int(options['size'])
     if options['window']:
         gs.warning(_("The window option is deprecated, use the option"
                      " size instead"))
-        wz  = int(options['window'])
+        wz = int(options['window'])
     if options['size'] and options['size'] != '3' and options['window']:
         gs.warning(_("When the obsolete window option is used, the"
                      " new size option is ignored"))
@@ -199,8 +215,10 @@ def main():
     flag_s = flags['s']
     clip_output = flags['a']
 
-
-    # set to current input map region (user option, default=current region)
+    # set to current input map region if requested by the user
+    # default is (and should be) the current region
+    # we could use tmp region for this but if the flag is there
+    # it makes sense to use it from now on
     if flag_r:
         gs.message(_("Setting region to input map..."))
         gs.run_command('g.region', quiet=True, raster=ipl)
@@ -240,15 +258,14 @@ def main():
                ipl=ipl, pf=pf, tmpA2=tmpA2, tmpC3=tmpC3)
 
     # computing pff values
-
-    ## Considering pairs of pixels in cardinal directions in a 3x3 window, the total
-    ## number of adjacent pixel pairs is 12. Assuming that x pairs include at least
-    ## one forested pixel, and y of those pairs are forest-forest pairs, so pff equals
-    ## y/x"
-
     gs.info(_("Step 2: Computing Pff values..."))
 
-    # Create copy of forest map and convert NULL to 0 (if any)
+    # Considering pairs of pixels in cardinal directions in
+    # a 3x3 window, the total number of adjacent pixel pairs is 12.
+    # Assuming that x pairs include at least one forested pixel, and
+    # y of those pairs are forest-forest pairs, so pff equals y/x.
+
+    # create copy of forest map and convert NULL to 0 (if any)
     tmpC4 = tmpname('tmpA04_')
     gs.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
     gs.run_command("r.null", map=tmpC4, null=0, quiet=True)
@@ -280,7 +297,7 @@ def main():
     # (3 4) perforated, if Pf > 0.6 and Pf - Pff > 0
     # (4 5) interior, if Pf = 1.0
     # (5 1) patch, if Pf < 0.4
-    # (6 2) transitional, if 0.4 < Pf < 0.6 
+    # (6 2) transitional, if 0.4 < Pf < 0.6
 
     gs.info(_("Step 3: Computing fragmentation index..."))
 
@@ -307,24 +324,25 @@ def main():
         "undetermined = if(isnull(undetermined), 0, undetermined),"
         # combine classes (they don't overlap)
         # more readable than nested ifs from the ifs above
-        "all = patch + transitional + edge + perforated + interior + undetermined"
+        "all = patch + transitional + edge + perforated + interior"
+        " + undetermined"
         ")\n"
         # mask result by non-forest (according to the input)
         # removes the nonsense data created in the non-forested areas
-        "$out = all * $binary_forest",# 
+        "$out = all * $binary_forest",
         out=indexfin2, binary_forest=ipl, pf=pf, pff=pff)
 
-    # Shrink the region
+    # shrink the region
     if clip_output:
         gs.use_temp_region()
         reginfo = gs.parse_command("g.region", flags="gp")
-        NSCOR = SWn * float(reginfo['nsres'])
-        EWCOR = SWn * float(reginfo['ewres'])
+        nscor = max_index * float(reginfo['nsres'])
+        ewcor = max_index * float(reginfo['ewres'])
         gs.run_command("g.region",
-                       n=float(reginfo['n'])-NSCOR,
-                       s=float(reginfo['s'])+NSCOR,
-                       e=float(reginfo['e'])-EWCOR,
-                       w=float(reginfo['w'])+EWCOR,
+                       n=float(reginfo['n']) - nscor,
+                       s=float(reginfo['s']) + nscor,
+                       e=float(reginfo['e']) - ewcor,
+                       w=float(reginfo['w']) + ewcor,
                        quiet=True)
         gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
 
@@ -338,43 +356,50 @@ def main():
     # create color table
     colors = COLORS_SAMBALE
     gs.write_command("r.colors", map=opl, rules='-',
-                        stdin=colors, quiet=True)
+                     stdin=colors, quiet=True)
 
-    # Write metadata for main layer
+    # write metadata for main layer
     gs.run_command("r.support", map=opl,
                    title="Forest fragmentation",
                    source1="Based on %s" % ipl,
                    description="Forest fragmentation index (6 classes)")
     gs.raster_history(opl)
 
-    # Write metadata for intermediate layers
+    # write metadata for intermediate layers
     if user_pf:
         # pf layer
         gs.run_command("r.support", map=pf,
                        title="Proportion forested",
                        units="Proportion",
                        source1="Based on %s" % ipl,
-                       description="Proportion of pixels in the moving window that is forested")
+                       description="Proportion of pixels in the moving"
+                                   " window that is forested")
         gs.raster_history(pf)
 
     if user_pff:
         # pff layer
-        fd8, tmphist = tempfile.mkstemp()
+        unused, tmphist = tempfile.mkstemp()
         text_file = open(tmphist, "w")
-        text_file.write("Proportion of all adjacent (cardinal directions only) pixel pairs that\n")
-        text_file.write("include at least one forest pixel for which both pixels are forested.\n")
-        text_file.write("It thus (roughly) estimates the conditional probability that, given a\n")
-        text_file.write("pixel of forest, its neighbor is also forest.")
+        long_description = """\
+Proportion of all adjacent (cardinal directions only) pixel pairs that
+include at least one forest pixel for which both pixels are forested.
+It thus (roughly) estimates the conditional probability that, given a
+pixel of forest, its neighbor is also forest.
+"""
+        text_file.write(long_description)
         text_file.close()
         gs.run_command("r.support", map=pff,
-                       title="Conditional probability neighboring cell is forest",
+                       title="Conditional probability neighboring cell"
+                             " is forest",
                        units="Proportion",
                        source1="Based on %s" % ipl,
-                       description="Probability neighbor of forest cell is forest",
+                       description="Probability neighbor of forest cell"
+                                   " is forest",
                        loadhistory=tmphist)
         gs.raster_history(pff)
+        os.remove(tmphist)
 
-    # Report fragmentation index and names of layers created
+    # report fragmentation index and names of layers created
 
     if flag_s:
         gs.run_command("r.report", map=opl, units=["h", "p"],
@@ -388,6 +413,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gs.parser()
     atexit.register(cleanup)
-    sys.exit(main())
+    sys.exit(main(*gs.parser()))
