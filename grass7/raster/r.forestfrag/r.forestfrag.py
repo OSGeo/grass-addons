@@ -221,8 +221,8 @@ def main():
         pf = user_pf
     else:
         pf = tmpname('tmpA03_')
-    gs.mapcalc("$pf = if(" + ipl + ">=0, float($tmpA2) / float($tmpC3))", pf=pf,
-               tmpA2=tmpA2, tmpC3=tmpC3)
+    gs.mapcalc("$pf = if( $ipl >=0, float($tmpA2) / float($tmpC3))",
+               ipl=ipl, pf=pf, tmpA2=tmpA2, tmpC3=tmpC3)
 
     # computing pff values
 
@@ -254,14 +254,14 @@ def main():
     csub=range(-SWn, SWn, 1)
     for k in rsub:
       for l in csub:
-        text_file.write(tmpC4 + "[" + str(k) + "," + str(l) + "]*"
-        + tmpC4 + "[" + str(k) + "," + str(l+1) + "] + ")
+        text_file.write("{tmpC4}[{a},{b}]*{tmpC4}[{c},{d}] + ".format(
+                        tmpC4=tmpC4, a=k, b=l, c=k, d=l + 1))
     rsub=range(-SWn, SWn+1, 1)
     csub=range(SWn, -SWn, -1)
     for k in rsub:
       for l in csub:
-          text_file.write(tmpC4 + "[" + str(l) + "," + str(k) + "]*" + tmpC4
-          + "[" + str(l-1) + "," + str(k) + "] + ")
+          text_file.write("{tmpC4}[{a},{b}]*{tmpC4}[{c},{d}] + ".format(
+                          tmpC4=tmpC4, a=l, b=k, c=l - 1, d=k))
     text_file.write("0")
     text_file.close()
 
@@ -282,14 +282,14 @@ def main():
     csub=range(-SWn, SWn, 1)
     for k in rsub:
       for l in csub:
-        text_file.write("if((" + tmpC4 + "[" + str(k) + "," + str(l) + "]+"
-        + tmpC4 + "[" + str(k) + "," + str(l+1) + "])>0,1) + ")
+        text_file.write("if(({tmpC4}[{a},{b}]+{tmpC4}[{c},{d}])>0,1) + ".format(
+                        tmpC4=tmpC4, a=k, b=l, c=k, d=l + 1))
     rsub=range(-SWn, SWn+1, 1)
     csub=range(SWn, -SWn, -1)
     for k in rsub:
       for l in csub:
-          text_file.write("if((" + tmpC4 + "[" + str(l) + "," + str(k) + "]+"
-        + tmpC4 + "[" + str(l-1) + "," + str(k) + "])>0,1) + ")
+            text_file.write("if(({tmpC4}[{a},{b}]+{tmpC4}[{c},{d}])>0,1) + ".format(
+                            tmpC4=tmpC4, a=l, b=k, c=l - 1, d=k))
     text_file.write("0")
     text_file.close()
 
@@ -302,35 +302,53 @@ def main():
         pff = user_pff
     else:
         pff = tmpname('tmpA07_')
-    gs.mapcalc("$pff = if(" + ipl + " >= 0, float($tmpl4) / float($tmpl5))",
-               tmpl4=tmpl4, tmpl5=tmpl5, pff=pff, quiet=True)
+    gs.mapcalc("$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
+               ipl=ipl, tmpl4=tmpl4, tmpl5=tmpl5, pff=pff,
+               quiet=True)
 
     # computing fragmentation index
+    # (a b) name, condition
+    # where a is a number used by Riitters et al. in ERRATUM (2)
+    # and b is a number used in the sh script by Sambale and Sylla
+    # b also defines 0 for non-forested which is consistent with input
+    # (1 1) edge, if Pf > 0.6 and Pf - Pff < 0
+    # (2 6) undetermined, if Pf > 0.6 and Pf = Pff
+    # (3 4) perforated, if Pf > 0.6 and Pf - Pff > 0
+    # (4 5) interior, if Pf = 1.0
+    # (5 1) patch, if Pf < 0.4
+    # (6 2) transitional, if 0.4 < Pf < 0.6 
 
     gs.info(_("Step 3: Computing fragmentation index..."))
-    pf2 = tmpname('tmpA08_')
-    gs.mapcalc("$pf2 = $pf - $pff", pf2=pf2, pf=pf, pff=pff, quiet=True)
-    f1 = tmpname('tmpA09_') # patch
-    gs.mapcalc("$f1 = if($pf<0.4,1,0)", f1=f1, pf=pf, quiet=True)
-    f2 = tmpname('tmpA10_') # transitional
-    gs.mapcalc("$f2 = if($pf>=0.4 && $pf<0.6,2,0)", pf=pf, f2=f2, quiet=True)
-    f3 = tmpname('tmpA11_') # edge
-    gs.mapcalc("$f3 = if($pf>=0.6 && $pf2<0,3,0)", pf=pf, pf2=pf2, f3=f3, quiet=True)
-    f4 = tmpname('tmpA12_') # perforate
-    gs.mapcalc("$f4 = if($pf>0.6 && $pf<1 && $pf2>0,4,0)", pf=pf, pf2=pf2, f4=f4, quiet=True)
-    f5 = tmpname('tmpA13_') # interior
-    gs.mapcalc("$f5 = if($pf==1,5,0)", pf=pf, pff=pff, f5=f5, quiet=True)
-    f6 = tmpname('tmpA14_') # undetermined
-    gs.mapcalc("$f6 = if($pf>0.6 && $pf<1 && $pf2==0,6,0)", pf=pf, pf2=pf2, pff=pff, f6=f6, quiet=True) # undetermined
-    Index = tmpname('tmpA15_')
-    gs.run_command("r.series", input=[f1,f2,f3,f4,f5,f6], output=Index,
-                      method="sum", quiet=True)
+
     if clip_output:
         indexfin2 = tmpname('tmpA16_')
     else:
         indexfin2 = opl
-    gs.mapcalc("$if2 = int($ipl * $Index)",
-               if2=indexfin2, ipl=ipl, Index=Index)
+    gs.mapcalc(
+        "eval("
+        "dpf = $pf - $pff,"
+        # individual classes
+        "patch = if($pf < 0.4, 1, 0),"
+        "transitional = if($pf >= 0.4 && $pf < 0.6, 2, 0),"
+        "edge = if($pf >= 0.6 && dpf<0,3,0),"
+        "perforated = if($pf > 0.6 && $pf < 1 && dpf > 0, 4, 0),"
+        "interior = if($pf == 1, 5, 0),"
+        "undetermined = if($pf > 0.6 && $pf < 1 && dpf == 0, 6, 0),"
+        # null is considered as non-forest and we need to do it before +
+        "patch = if(isnull(patch), 0, patch),"
+        "transitional = if(isnull(transitional), 0, transitional),"
+        "edge = if(isnull(edge), 0, edge),"
+        "perforated = if(isnull(perforated), 0, perforated),"
+        "interior = if(isnull(interior), 0, interior),"
+        "undetermined = if(isnull(undetermined), 0, undetermined),"
+        # combine classes (they don't overlap)
+        # more readable than nested ifs from the ifs above
+        "all = patch + transitional + edge + perforated + interior + undetermined"
+        ")\n"
+        # mask result by non-forest (according to the input)
+        # removes the nonsense data created in the non-forested areas
+        "$out = all * $binary_forest",# 
+        out=indexfin2, binary_forest=ipl, pf=pf, pff=pff)
 
     # Shrink the region
     if clip_output:
