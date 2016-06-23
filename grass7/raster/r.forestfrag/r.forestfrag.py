@@ -42,12 +42,12 @@
 #%end
 
 #%option
-#% key: window
+#% key: size
 #% type: integer
 #% description: Moving window size (odd number)
 #% key_desc: number
-#% answer: 3
-#% required: yes
+#% options: 3-
+#% required: no
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -84,6 +84,13 @@
 #% description: Trim the output map to avoid border effects
 #%end
 
+#%option
+#% key: window
+#% type: integer
+#% label: This option is deprecated, use the option size instead
+#% options: 3-
+#% required: no
+#%end
 
 # import libraries
 import os
@@ -123,9 +130,21 @@ def main():
     ipl = options['input']
     raster_exists(ipl)
     opl = options['output']
-    wz  = int(options['window'])
+    # size option backwards compatibility with window
+    if not options['size'] and not options['window']:
+        gs.fatal(_("Required parameter <%s> not set") % 'size')
+    if options['size']:
+        wz  = int(options['size'])
+    if options['window']:
+        gs.warning(_("The window option is deprecated, use the option"
+                     " size instead"))
+        wz  = int(options['window'])
+    if options['size'] and options['size'] != '3' and options['window']:
+        gs.warning(_("When the obsolete window option is used, the"
+                     " new size option is ignored"))
     if wz % 2 == 0:
-        gs.fatal(_("Please provide an odd number for the moving window"))
+        gs.fatal(_("Please provide an odd number for the moving"
+                   " window size, not %d") % wz)
     # user wants pf or pff
     user_pf = options['pf']
     user_pff = options['pff']
