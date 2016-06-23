@@ -145,6 +145,21 @@ def tmpname(prefix):
     clean_rast.append(tmpf)
     return tmpf
 
+
+def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
+    s = max_index  # just for shorter
+    base_expr = "({m}[{a},{b}] {o} {m}[{c},{d}])"
+    expr = []
+    for j in range(-s, s + 1):
+        for i in range(-s, s):
+            expr.append(base_expr.format(
+                m=map_name, o=combine_op, a=i, b=j, c=i + 1, d=j))
+    for i in range(-s, s + 1):
+        for j in range(-s, s):
+            expr.append(base_expr.format(
+                m=map_name, o=combine_op, a=i, b=j, c=i, d=j + 1))
+    return aggregate_op.join(expr)
+
 # Main
 
 def main():
@@ -238,73 +253,22 @@ def main():
     gs.run_command("g.copy", raster=[ipl, tmpC4], quiet=True)
     gs.run_command("r.null", map=tmpC4, null=0, quiet=True)
 
-    # calculate number of 'forest-forest' pairs
-
-    # Compute matrix dimensions
-    SWn= int((wz - 1) / 2)
-
-    # Write mapcalc expression to tmpf - rows
-    fd2, tmpfile2 = tempfile.mkstemp()
-    tmpl4 = tmpname('tmpA05_')
-    text_file = open(tmpfile2, "w")
-    text_file.write(tmpl4 + " = ")
-
-    # Write mapcalc expression to tmpf (rows and columns)
-    rsub=range(SWn, -SWn-1, -1)
-    csub=range(-SWn, SWn, 1)
-    for k in rsub:
-      for l in csub:
-        text_file.write("{tmpC4}[{a},{b}]*{tmpC4}[{c},{d}] + ".format(
-                        tmpC4=tmpC4, a=k, b=l, c=k, d=l + 1))
-    rsub=range(-SWn, SWn+1, 1)
-    csub=range(SWn, -SWn, -1)
-    for k in rsub:
-      for l in csub:
-          text_file.write("{tmpC4}[{a},{b}]*{tmpC4}[{c},{d}] + ".format(
-                          tmpC4=tmpC4, a=l, b=k, c=l - 1, d=k))
-    text_file.write("0")
-    text_file.close()
-
-    gs.run_command("r.mapcalc", file=tmpfile2)
-    os.close(fd2)
-    os.remove(tmpfile2)
-
-    # number of 'forest patches
-
-    fd3, tmpfile3 = tempfile.mkstemp()
-    tmpl5 = tmpname('tmpA06_')
-    text_file = open(tmpfile3, "w")
-    text_file.write(tmpl5 + " = ")
-
-
-    # Write mapcalc expression to tmpf - rows and columns
-    rsub=range(SWn, -SWn-1, -1)
-    csub=range(-SWn, SWn, 1)
-    for k in rsub:
-      for l in csub:
-        text_file.write("if(({tmpC4}[{a},{b}]+{tmpC4}[{c},{d}])>0,1) + ".format(
-                        tmpC4=tmpC4, a=k, b=l, c=k, d=l + 1))
-    rsub=range(-SWn, SWn+1, 1)
-    csub=range(SWn, -SWn, -1)
-    for k in rsub:
-      for l in csub:
-            text_file.write("if(({tmpC4}[{a},{b}]+{tmpC4}[{c},{d}])>0,1) + ".format(
-                            tmpC4=tmpC4, a=l, b=k, c=l - 1, d=k))
-    text_file.write("0")
-    text_file.close()
-
-    gs.run_command("r.mapcalc", file=tmpfile3)
-    os.close(fd3)
-    os.remove(tmpfile3)
-
+    # window dimensions
+    max_index = int((wz - 1) / 2)
+    # number of 'forest-forest' pairs
+    expr1 = pairs_expression(map_name=tmpC4, max_index=max_index,
+                             combine_op='&')
+    # number of 'nonforest-forest' pairs
+    expr2 = pairs_expression(map_name=tmpC4, max_index=max_index,
+                             combine_op='|')
     # create pff map
     if user_pff:
         pff = user_pff
     else:
         pff = tmpname('tmpA07_')
+    # potentially this can be split and parallelized
     gs.mapcalc("$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
-               ipl=ipl, tmpl4=tmpl4, tmpl5=tmpl5, pff=pff,
-               quiet=True)
+               ipl=ipl, tmpl4=expr1, tmpl5=expr2, pff=pff)
 
     # computing fragmentation index
     # (a b) name, condition
