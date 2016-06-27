@@ -3,13 +3,13 @@
 #
 # MODULE:       r.randomforest
 # AUTHOR:       Steven Pawley
-# PURPOSE:      Provides supervised random forest classification and regression
-#               (using python scikit-learn)
+# PURPOSE:    Provides supervised random forest classification and regression
+#                      using python scikit-learn)
 #
-# COPYRIGHT:    (c) 2015 Steven Pawley, and the GRASS Development Team
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
+# COPYRIGHT: (c) 2015 Steven Pawley, and the GRASS Development Team
+#                      This program is free software under the GNU General Public
+#                      License (>=v2). Read the file COPYING that comes with GRASS
+#                      for details.
 #
 #############################################################################
 
@@ -100,7 +100,7 @@
 #% key: lines
 #% type: integer
 #% description: Processing block size in terms of number of rows
-#% answer: 50
+#% answer: 25
 #% required: yes
 #% guisection: Random Forest Options
 #%end
@@ -141,49 +141,24 @@
 #% exclusive: roi,loadfile
 #%end
 
-# standard modules
-import atexit, random, string, imp, re
+# import standard modules
+import atexit, random, string, re, os
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 import grass.script as grass
 import numpy as np
-
-# non-standard modules
-def module_exists(module_name):
-    try:
-        imp.find_module(module_name)
-        return True
-    except ImportError:
-        grass.fatal("Python package <%s> not installed (python-sklearn). Exiting" % module_name)
-        return False
-        
-# lazy imports
-if module_exists("sklearn") == True:
-    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-    from sklearn.externals import joblib
-    from sklearn import cross_validation, metrics
-    import warnings
-    warnings.filterwarnings("ignore")
-else:
-    grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting")
-
+       
 def cleanup():
-    # We can then close the rasters and the roi image
+    # close the GRASS raster objects and the roi raster object
     for i in range(nbands): rasstack[i].close()
     roi_raster.close()
     if rfmask != '': grass.run_command("g.remove", name=rfmask, flags="f",
                                        type="raster")
 
-def normalize_newlines(string):
-    # Windows uses carriage return and line feed ("\r\n") as a line ending
-    # Unix uses just line feed ("\n"). This function normalizes strings to "\n"
-    return re.sub(r'(\r\n|\r|\n)', '\n', string)
-
 def score_classification_results(X, y, clf, kfolds, rstate):
-    # This custom function performs cross validation on a classification model,
+    # PURPOSE: custom function performs cross validation on a classification model,
     # RETURNS: a 1D list representing accuracy, AUROC, precision, recall, kappa and specificity
-    # (using our custom function)
         
     kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True, random_state=rstate)
 
@@ -211,10 +186,14 @@ def score_classification_results(X, y, clf, kfolds, rstate):
     return(acc, auc, kappa)
 
 def score_regression_results(X, y, clf, kfolds, rstate):
-    # This custom function performs cross validation on a regression model,
+    # PURPOSE: performs cross validation on a regression model
     # RETURNS: single value of R2
     
-    from sklearn import cross_validation, metrics
+    try:
+        from sklearn import cross_validation, metrics
+    except:
+        grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting") 
+        
     kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True, random_state=rstate)
 
     pr = []
@@ -230,6 +209,7 @@ def score_regression_results(X, y, clf, kfolds, rstate):
     return(pr)
 
 def cv_performance_byClass(X, y, clf, kfolds, rstate):
+    # PURPOSE: k-fold cross-validation performance measures by class
     # RETURNS: 2D list of CLASS and mean performance measure result
     # RETURNS: 2D list of CLASS and standard deviation of performance measure result
     # Performance measures are sensitivity, recall
@@ -287,7 +267,10 @@ def main():
     model_save = options['savefile']
     model_load = options['loadfile']
 
-    ##################### error checking for valid input parameters ################################
+    """
+    Error checking for valid input parameters
+    """
+   
     if mfeatures == -1:
         mfeatures = str('auto')
     if mfeatures == 0:
@@ -311,15 +294,17 @@ def main():
     if model_load == '' and roi == '':
         grass.fatal("Require labelled pixels regions of interest.....exiting")
 
-    ######################  Fetch individual raster names from group ###############################
+    """
+    Obtain information about GRASS rasters to be classified
+    """
+
+   # fetch individual raster names from group
+    
     groupmaps = grass.read_command("i.group", group=igroup, flags="g")
-    groupmaps = normalize_newlines(groupmaps)
-    maplist = groupmaps.split('\n')
+    maplist = groupmaps.split(os.linesep)
     maplist = maplist[0:len(maplist)-1]
 
-    ######################### Obtain information about GRASS rasters to be classified ##############
-
-    # Determine number of bands and then create a list of GRASS rasterrow objects
+    # determine number of bands and then create a list of GRASS rasterrow objects
     global nbands
     nbands = len(maplist)
 
@@ -328,23 +313,34 @@ def main():
     for i in range(nbands):
         rasstack[i] = RasterRow(maplist[i])
 
-    # Check to see if each raster in the list exists
+    # check to see if each raster in the list exists
     for i in range(nbands):
         if rasstack[i].exist() == True:
             rasstack[i].open('r')
         else:
             grass.fatal("GRASS raster " + maplist[i] + " does not exist.... exiting")
 
-    # Use grass.pygrass.gis.region to get information about the current region, particularly
-    # the number of rows and columns. We are going to sample and classify the data row-by-row,
-    # and not load all of the rasters into memory in a numpy array
+    # use grass.pygrass.gis.region to get information about the current region, particularly
     current = Region()
 
     # Define name of mask raster
     global rfmask
     rfmask = ''
+
+    # lazy import of sklearn
+    try:
+        from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+        from sklearn.externals import joblib
+        from sklearn import cross_validation, metrics
+        import warnings
+        warnings.filterwarnings("ignore")
+    except:
+        grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting")
     
-    ######################### Sample training data using training ROI ##############################
+    """
+    Sample training data using training ROI
+    """
+    
     global roi_raster
     roi_raster = RasterRow(roi)
 
@@ -360,8 +356,8 @@ def main():
             
         # determine cell storage type of training roi raster
         roi_type = grass.read_command("r.info", map=roi, flags='g')
-        roi_type = normalize_newlines(str(roi_type))
-        roi_list = roi_type.split('\n')
+        roi_list = str(roi_type).split(os.linesep)
+        roi_type.split('\n')
         dtype = roi_list[9].split('=')[1]
 
         # check if training rois are valid for classification and regression
@@ -370,8 +366,7 @@ def main():
 
         # Count number of labelled pixels
         roi_stats = str(grass.read_command("r.univar", flags=("g"), map=roi))
-        roi_stats = normalize_newlines(roi_stats)
-        roi_stats = roi_stats.split('\n')[0]
+        roi_stats = roi_stats.split(os.linesep)[0]
         ncells = str(roi_stats).split('=')[1]
         nlabel_pixels = int(ncells)
 
@@ -412,7 +407,9 @@ def main():
         training_labels = training_data[:, nbands]
         training_data = training_data[:, 0:nbands]
 
-    ############################### Training the classifier #######################################
+    """
+    Train the randomforest classifier and perform cross-validation
+    """
 
     # define classifier for classification or regression mode, and balanced or unbalanced datasets
     if model_load == '':
@@ -485,11 +482,13 @@ def main():
         if modelonly == True:
             grass.fatal("Model built and now exiting")
 
-    ################################ Prediction on the rest of the raster stack ###################
+    """
+    Prediction on the rest of the GRASS rasters in the imagery group
+    """
 
-    # Create a imagery mask
-    # The input rasters might have different dimensions in terms of value and non-value pixels.
-    # We will use the r.series module to automatically create a mask by propagating the null values
+    # create a imagery mask
+    # the input rasters might have different dimensions in terms of value and non-value pixels.
+    # r.series used to automatically create a mask by propagating the null values
     rfmask = 'tmp_' + ''.join([random.choice(string.ascii_letters + string.digits) \
                                for n in xrange(8)])
     grass.run_command("r.series", output=rfmask, input=maplist, method='count', flags='n')
@@ -498,22 +497,24 @@ def main():
     mask_raster = RasterRow(rfmask)
     mask_raster.open('r')
     
-    # 1. Create a np.array that can store each raster row for all of the bands
-    # 2. Loop through the raster, row-by-row and get the row values for each band
-    #    adding these to the img_np_row np.array,
-    #    which bundles rowincr rows together to pass to the classifier,
-    #    otherwise, row-by-row is too inefficient.
-    # 3. The scikit learn predict function expects a list of pixels, not an NxM matrix.
-    #    We therefore need to reshape each row matrix into a list.
-    #    The total matrix size = cols * nbands.
-    #    Therefore we can use the np.reshape function to convert the image into a list
-    #    with the number of rows = n_samples, and the number of columns = the number of bands.
-    # 4. Then we remove any NaN values because the scikit-learn predict function cannot handle NaNs.
-    #    Here we replace them with a small value using the np.nan_to_num function.
-    # 5. The flat_pixels is then passed onto the prediction function.
-    # 6. After the prediction is performed on the row, to save keeping
-    #    anything in memory, we save it to a GRASS raster object, row-by-row.
-
+    """
+    PROCEDURE
+    1. Create a np.array that can store each raster row for all of the bands
+    2. Loop through the raster, row-by-row and get the row values for each band
+        adding these to the img_np_row np.array,
+        which bundles rowincr rows together to pass to the classifier
+    3. The scikit learn predict function expects a list of pixels, not an NxM matrix.
+        We therefore need to reshape each row matrix into a list.
+        The total matrix size = cols * nbands.
+        Therefore we can use the np.reshape function to convert the image into a list
+        with the number of rows = n_samples, and the number of columns = the number of bands.
+    4. Then we remove any NaN values because the scikit-learn predict function cannot handle NaNs.
+        Here we replace them with a small value using the np.nan_to_num function.
+    5. The flat_pixels is then passed onto the prediction function.
+    6. After the prediction is performed on the row, to save keeping
+        anything in memory, we save it to a GRASS raster object, row-by-row.
+    """
+    # create and open RasterRow objects for classification
     classification = RasterRow(output)
     if mode == 'classification':
         ftype = 'CELL'
@@ -523,14 +524,18 @@ def main():
         nodata = np.nan
     classification.open('w', ftype, overwrite=True)
 
-    # create and open RasterRow objects for classification and probabilities if enabled
+    # create and open RasterRow objects for  probabilities if enabled
     if class_probabilities == True and mode == 'classification':
         prob_out_raster = [0] * nclasses
         prob = [0] * nclasses
         for iclass in range(nclasses):
-            prob_out_raster[iclass] = output + '_p' + str(class_list[iclass])
+            prob_out_raster[iclass] = output + '_classPr' + str(int(class_list[iclass]))
             prob[iclass] = RasterRow(prob_out_raster[iclass])
             prob[iclass].open('w', 'FCELL', overwrite=True)
+
+    """
+    Prediction using row blocks
+    """
 
     for rowblock in range(0, current.rows, rowincr):
         # check that the row increment does not exceed the number of rows

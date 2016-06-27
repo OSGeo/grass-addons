@@ -25,7 +25,7 @@ For Linux users, this package should be available through the linux package mana
 For MS-Windows users, the easiest way of installing the packages is by using the precompiled binaries from <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph Gohlke</a> and by using the <a href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a> installation method of GRASS, where the python setuptools can also be installed. You can then use 'easy_install pip' to install the pip package manager. Then, you can download the NumPy-1.10+MKL and scikit-learn .whl files and install them using 'pip install packagename.whl'.
 
 <p>
-<em><b>r.randomforest</b></em> is designed to keep system memory requirements relatively low. For this purpose, the rasters are read from the disk row-by-row, using the RasterRow method in PyGRASS. This however does not represent an efficient volume of data to pass to the classifier, which is multithreaded by default. Therefore, groups of rows specified by the <i>lines</i> parameter are passed to the classifier, and the reclassified image is reconstructed and written row-by-row back to the disk. <i>Lines=50</i> should be reasonable for most systems with 4-8 GB of ram. However, if you have a workstation with much larger resources, then <i>lines</i> could be set to a much larger size (including to a value that is equal or greater than the number of rows in the current region setting) in which case the entire image will be loaded into memory to classification.
+<em><b>r.randomforest</b></em> is designed to keep system memory requirements relatively low. For this purpose, the rasters are read from the disk row-by-row, using the RasterRow method in PyGRASS. This however does not represent an efficient volume of data to pass to the classifier, which is multithreaded by default. Therefore, groups of rows specified by the <i>lines</i> parameter are passed to the classifier, and the reclassified image is reconstructed and written row-by-row back to the disk. <i>Lines=25</i> should be reasonable for most systems with 4-8 GB of ram. However, if you have a workstation with much larger resources, then <i>lines</i> could be set to a much larger size (including to a value that is equal or greater than the number of rows in the current region setting) in which case the entire image will be loaded into memory to classification.
 
 <br><br> The bootstrapping process involved within random forests also causes a small amount of variation in the classification results, out-of-bag error, and feature importances. To enable reproducible results, a seed is supplied to the classifier. This can be changed using the <i>randst</i> parameter.
 
@@ -54,7 +54,7 @@ r.random input=landclass96 npoints=1000 raster=landclass96_roi
 <br><br>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:
 <div class="code"><pre>
 r.randomforest igroup=lsat7_2000 roi=landclass96_roi output=rf_classification \
-  mode=classification ntrees=500 mfeatures=-1 minsplit=2 randst=1 lines=100
+  mode=classification ntrees=500 mfeatures=-1 minsplit=2 randst=1 lines=25
 
 # copy category labels from landclass training map to result
 r.category rf_classification raster=landclass96_roi
