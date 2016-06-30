@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <math.h>
+#include <omp.h>
 
 #include <grass/config.h>
 #ifndef HAVE_LIBBLAS
@@ -208,6 +209,7 @@ int main(int argc,char * argv[])
 	    Rast_get_d_row (cellfd[band], cell[band], row);
 
         /* cols loop, work pixelwise for all bands */
+        #pragma omp parallel for default(shared) private(col,b,band,signature,Avector,spectangle)
 	for (col = 0; col < ncols; col++)	
         {
 	    /* get pixel values of each band and store in b vector: */
@@ -232,6 +234,7 @@ int main(int argc,char * argv[])
             }
 	    G_vector_free(b);
 	} /* columns loop */
+	#pragma omp barrier
 
 	/* write the resulting rows: */
         for (signature=0; signature<signaturecount; signature++)
