@@ -1,0 +1,112 @@
+<h2>DESCRIPTION</h2>
+
+<em>d.vect.legend</em> draws vector legend.
+<p>
+TO DO
+Example taken from d.vect.thematic
+<h2>NOTES</h2>
+
+The <b>-l</b> flag instructs the module to print legend information
+(<i>class min | class max | number of observations in class |
+color</i>) to standard output for futher use in graphical software.
+When combined with the <b>-e</b> flag, the legend information will
+be extended with some additional statistical information. If the
+<b>-n</b> flag is set, the module will only print the legend 
+information without drawing the map. If the user gives a
+<b>legendfile</b>, the module will
+write <em><a href="d.graph.html">d.graph</a></em> instructions for
+painting a legend into that file.
+
+
+<h2>EXAMPLES</h2>
+
+<h3>Thematic map with classes</h3>
+
+<div class="code"><pre>
+d.vect.thematic -l map=communes3 column=pop \
+  breaks=111393.250000,222785.500000,334177.750000 \
+  colors="255:0:0,0:255:0,0:0:255,0,0,0"
+</pre></div>
+
+<h3>Thematic map with calculated class breaks</h3>
+
+The following example uses a calculated attribute (<tt>density = 
+pop/area</tt>) and the standard deviation algorithm to calculate class 
+breaks for 5 classes:
+
+<div class="code"><pre>
+d.vect.thematic -l map=communes2 column=pop/area algorithm=std \
+  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0"
+</pre></div>
+
+To actually draw the legend for the polygons in the graphical
+display, the procedure is:
+
+<div class="code"><pre>
+# first save legend instructions to a file	
+d.vect.thematic -n map=communes2 column=pop/area algorithm=std \
+  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0" \
+  legendfile=legend_pop_dens  
+
+# open a monitor
+d.mon wx0
+
+# draw the map
+d.vect.thematic map=communes2 column=pop/area algorithm=std \
+  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0"
+
+# draw the legend
+d.graph input=legend_pop_dens
+</pre></div>
+
+In order to further enhance this legend, edit the legend file accordingly
+and rerun the process.
+
+<h3>Thematic map with calculated class breaks</h3>
+
+<!-- TODO: find better example -->
+
+Example for the North Carolina sample dataset, colorizing polygons by
+area size:
+
+<div class="code"><pre>
+# first save legend instructions to a file
+d.vect.thematic -n map=geology column=SHAPE_area algorithm=int nclasses=6 \
+ colors=215:48:39,252:141:89,254:224:139,217:239:139,145:207:96,26:152:80 \
+ legendfile=geology.leg
+
+# open the graphical display
+d.mon wx0
+# draw outline of polygons
+d.vect map=geology type=boundary
+# draw color fill
+d.vect.thematic map=geology column=SHAPE_area algorithm=int nclasses=6 \
+ colors="215:48:39,252:141:89,254:224:139,217:239:139,145:207:96,26:152:80" \
+# draw legend
+d.graph input=geology.leg
+</pre></div>
+
+<center>
+<img src="d_vect_thematic.png" alt="d_vect_thematic example" border=1><br>
+Thematic map of area sizes
+</center>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.class.html">v.class</a>,
+<a href="d.vect.html">d.vect</a>,
+<a href="d.graph.html">d.graph</a>,
+<a href="v.univar.html">v.univar</a>
+</em>
+
+<p>
+Check also Python module from
+AddOns: <em><a href="http://grass.osgeo.org/grass70/manuals/addons/d.vect.thematic2.html">d.vect.thematic2</a></em>
+
+<h2>AUTHOR</h2>
+
+Moritz Lennert
+
+<p>
+<i>Last changed: $Date: 2015-08-11 23:06:03 +0200 (Út, 11 srp 2015) $</i>

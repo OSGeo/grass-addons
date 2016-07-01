@@ -1,0 +1,11 @@
+|||||buildings
+basic/box|red|grey|15|2|hospital
+basic/box|red|yellow|15|3|firefighters
+basic/box|blue|yellow|15|3|police
+|||||land_use
+basic/octagon|green|blue|15|20|water
+basic/octagon|yellow|brown|15|3|fields
+basic/octagon|black|gray|15|3|urban
+|||||transport
+geology/strike_parallel|green|none|7|1|lajna
+geology/strike_line|blue|none|7|1|znak4
