@@ -1,0 +1,58 @@
+<h2>DESCRIPTION</h2>
+
+<em>r3.what</em> queries 3D raster at specified coordinates. The <em>input</em>
+parameter is a valid 3D raster map in the current mapset search path.
+The <em>output</em> parameter is used to output results in a text file.
+If <em>output</em> is not specified or '-' is used, then standard output
+ (stdout) is used.
+ 
+<p>
+Coordinates can be specified directly using options <b>coordinates</b>
+as coordinate pairs (east, north), or using option <b>coordinates_3d</b>
+as east, north and top. If the coordinates are 2D, the result will be
+a list of values representing the vertical column of the 3D raster at that
+coordinates (from bottom to top). If 3D coordinates are provided only one value
+is returned. User can specify multiple coordinates. 
+<p>
+Another option is to specify
+vector points map using option <b>points</b>. It can be either 2D or 3D.
+If a 3D vector points map is specified, one 3D raster value per point is printed.
+If that is not desired, flag <b>z</b> will ignore the z coordinate and
+the module returns values for the vertical column.
+
+<h2>Example</h2>
+We create a 3D raster where values depend on the depth.
+We query the 3D raster with two 2D coordinates:
+<div class="code"><pre>
+g.region s=0 n=100 w=0 e=100 b=0 t=100 res3=1 res=1 tbres=10 -p3
+r3.mapcalc "new = depth()"
+r3.what input=new@user1 coordinates=10,20,50,50
+</pre></div>
+
+<pre>
+10.000000|20.000000|1.000000|2.000000|3.000000|4.000000|5.000000|6.000000|7.000000|8.000000|9.000000|10.000000
+50.000000|50.000000|1.000000|2.000000|3.000000|4.000000|5.000000|6.000000|7.000000|8.000000|9.000000|10.000000
+</pre>
+Here we query the 3D raster with two 3D coordinates:
+<div class="code"><pre>
+r3.what input=new@user1 coordinates_3d=10,10,1,10,10,11
+</pre></div>
+
+<pre>
+10.000000|10.000000|1.000000|1.000000
+10.000000|10.000000|11.000000|2.000000
+</pre>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.what.html">r.what</a>,
+<a href="r3.out.ascii.html">r3.out.ascii</a>,
+<a href="v.what.rast3.html">v.what.rast3</a>,
+<a href="g.region.html">g.region</a>
+</em>
+
+<h2>AUTHORS</h2>
+Anna Petrasova, NCSU GeoForAll Lab
+
+<p><i>Last changed: $Date$</i>
