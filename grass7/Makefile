@@ -1,13 +1,14 @@
 
 MODULE_TOPDIR = ..
 
-# display gui misc raster3d
+# display gui misc
 SUBDIRS = \
 	db \
 	display \
 	general \
 	imagery \
 	raster \
+	raster3d \
 	vector \
 	temporal
 
