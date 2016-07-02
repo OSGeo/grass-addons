@@ -328,7 +328,7 @@ class Triang(object):
                           output=self.namecurved,
                           overwrite=True, quiet=True)
 
-    @time_func
+    # @time_func
     def get_tin_maxmin(self, map_info):
         """ Return
         """
@@ -352,7 +352,7 @@ class Triang(object):
                 max_z = max_ptos
         return [int(math.floor(min_z)), int(math.ceil(max_z))]
 
-    @time_func
+    # @time_func
     def get_rectas(self, map_info):
         """ Return
         """

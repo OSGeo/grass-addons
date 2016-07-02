@@ -337,7 +337,7 @@ class RoadTable(object):
     def __len__(self):
         return len(self.rows)
 
-#    @time_func
+    # @time_func
     def _init_table(self):
         """Return
         """
@@ -460,7 +460,7 @@ class RoadTable(object):
         table.conn.commit()
         self.polygon.close()
 
-#    @time_func
+    # @time_func
     def rewrite_obj(self, obj, attrs):
         """Return
         """
@@ -472,8 +472,8 @@ class RoadTable(object):
             type_obj = 'lines'
 
         obj_org = self.polygon.cat(attrs[0], type_obj, self.layer)[0]
-
-        self.polygon.rewrite(obj_org, obj, attrs[1:])
+        obj_org.x, obj_org.y, obj_org.z = obj.x, obj.y, obj.z
+        self.polygon.rewrite(obj_org, attrs[0], attrs[1:])
         self.polygon.table.conn.commit()
         self.polygon.close()
 
@@ -777,7 +777,7 @@ class RoadTables(object):
                 names.append([self.road_name, tab_name, ''])
         return names
 
-    @time_func
+    # @time_func
     def new_map(self, mapa, layer, tab_sufix, objs, values, tab_subname=''):
         """Return
         """
@@ -808,7 +808,7 @@ class RoadTables(object):
         map_out.table.conn.commit()
         map_out.close()
 
-    @time_func
+    # @time_func
     def gen_tables(self):
         """Return None
         """
@@ -821,7 +821,7 @@ class RoadTables(object):
                 RoadTable(self.polygon, self.polyline, i + 1, name[0] +
                           name[1] + name[2], name[1])
 
-    @time_func
+    # @time_func
     def update_tables(self):
         """Return None
         """
@@ -831,7 +831,7 @@ class RoadTables(object):
             elif name != 'first':
                 tab.update_table()
 
-    @time_func
+    # @time_func
     def update_tables_pnts(self, plant):
         """Return None
         """

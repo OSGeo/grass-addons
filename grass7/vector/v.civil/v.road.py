@@ -521,11 +521,15 @@ Created on Wed Jul 23 18:37:36 2014
 import os
 import sys
 
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.road'))
-
-# import math
-# import road as Road
+#sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.road'))
 import grass.script as grass
+from grass.pygrass.utils import get_lib_path
+
+path = get_lib_path(modname='v.road')
+if path is None:
+    grass.fatal("Not able to find the modis library directory.")
+sys.path.append(path)
+
 import road_road as Road
 import road_crosstools as Tools2
 import road_topotools as Topotools

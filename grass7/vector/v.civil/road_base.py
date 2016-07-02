@@ -84,7 +84,7 @@ def aprox_coord2(radio, tau):
     c_y = 0
     for n_i in range(n_iter):
         c_x += (((-1) ** n_i * (2 * tau ** (2 * n_i + 1) /
-                 ((4 * n_i + 1) * math.factorial(2 * n_i)))) -
+                ((4 * n_i + 1) * math.factorial(2 * n_i)))) -
                 ((-1) ** n_i * (tau ** (2 * n_i + 1) /
                  math.factorial(2 * n_i + 1))))
 
@@ -188,7 +188,7 @@ def format_pk(funcion_f):
 
 
 def write_objs(allrectas, radio):
-    """
+    """ Return
     """
     new2 = VectorTopo('AAAAA__' + str(int(radio)))
     # cols = [(u'cat',       'INTEGER PRIMARY KEY'),
@@ -559,7 +559,7 @@ class RoadObj(object):
         return self.leng_accum + self.leng_obj
 
     def is_in(self, r_pnt):
-        """
+        """ Return
         """
         if self.leng_accum <= r_pnt.npk < self.leng_accum + self.leng_obj:
             return True

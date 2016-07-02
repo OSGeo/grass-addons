@@ -22,7 +22,7 @@ import road_plant as Plant
 
 
 def write_objs(allrectas, radio):
-    """
+    """ R
     """
     new2 = VectorTopo('AACC__' + str(int(radio)))
     # cols = [(u'cat',       'INTEGER PRIMARY KEY'),
@@ -418,7 +418,7 @@ class DisplLine(Aligns, object):
         else:
             return 'right'
 
-    def _find_superelev(self, index, r_pnt, elev, dist_displ):
+    def _find_superelev(self, r_pnt, elev, dist_displ):
         """Return
         """
         for line in self.plant.superelev_lim:
@@ -429,7 +429,7 @@ class DisplLine(Aligns, object):
             dist1, dist2, bom1, peralte, bom2, radio = line
             pks_1 = dist1 + dist2
 
-            if (pks_1[0] < r_pnt.npk < pks_1[-1]):
+            if pks_1[0] < r_pnt.npk < pks_1[-1]:
                 break
 
 #        pend_1 = [-bom1, 0, bom1, peralte, peralte, bom2, 0, -bom2]
@@ -484,13 +484,13 @@ class DisplLine(Aligns, object):
 #                                        dist_displ)
 #
 #        else:
-        elev = self.elev_lim[index] + ((r_pnt.npk - self.list_lim[index]) *
-                                       (self.elev_lim[index + 1] -
-                                       self.elev_lim[index])) / \
-                                      (self.list_lim[index + 1] -
-                                       self.list_lim[index])
+        elev = self.elev_lim[index] + \
+            ((r_pnt.npk - self.list_lim[index]) *
+             (self.elev_lim[index + 1] - self.elev_lim[index])) / \
+            (self.list_lim[index + 1] - self.list_lim[index])
+
         if self.plant.bombeo:
-            elev = self._find_superelev(index, r_pnt, elev, dist_displ)
+            elev = self._find_superelev(r_pnt, elev, dist_displ)
 
         return elev
 

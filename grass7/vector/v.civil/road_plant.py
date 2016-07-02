@@ -242,7 +242,7 @@ class Aligns(object):
             if ali is not None:
 
                 list_attrs.append([ali.get_leng_accum2(),
-                           r_pnt.get_azi(), r_pnt.p_type, 'L=0'])
+                                   r_pnt.get_azi(), r_pnt.p_type, 'L=0'])
                 break
         return list_obj, list_attrs
 
@@ -605,7 +605,7 @@ class Plant(Aligns, object):
         else:
             raise ValueError("Error: For change the radio sing a straight must be \
                              between the radios")
-            return None, None, None
+#            return [None, None, None]
 
         pnt_t1 = pnt_center.project(abs(dat1['radio'] + out_local['y_o']),
                                     azi_in - out_local['tau'])
@@ -655,7 +655,7 @@ class Plant(Aligns, object):
         else:
             raise ValueError("Error: For change the radio sing a straight \
                              must be between the radios")
-            return None, None, None
+#            return (None, None, None)
 
         pnt_t1 = pnt_center.project(abs(dat1['radio'] + out_local['y_o']),
                                     azi_in + out_local['tau'])
@@ -669,8 +669,8 @@ class Plant(Aligns, object):
         pnt_c2 = pnt_t2.project(abs(dat2['radio'] + in_local['y_o']),
                                 azi_in + out_local['tau'] + 2 * g90)
 
-        pnt_ra2 = pnt_c2.project(abs(dat2['radio']), azi_in + out_local['tau']
-                                 - in_local['tau'] + alpha)
+        pnt_ra2 = pnt_c2.project(abs(dat2['radio']), azi_in +
+                                 out_local['tau'] - in_local['tau'] + alpha)
 
         if dat1['a_out'] != 0:
             cloth = Base.Clothoid(dat1['a_out'], dat1['radio'],
@@ -778,7 +778,7 @@ class Plant(Aligns, object):
             list_pnt.append(pnt)
         return list_pnt
 
-    @time_func
+    # @time_func
     def set_roadline(self, start, end, intr, intc):
         """ Return
         """
@@ -791,8 +791,8 @@ class Plant(Aligns, object):
     def add_pks(self, list_pks):
         """ Return
         """
-        for pk in list_pks:
-            self.roadline.insert(self.get_roadpoint(pk))
+        for npk in list_pks:
+            self.roadline.insert(self.get_roadpoint(npk))
 
 
 if __name__ == '__main__':

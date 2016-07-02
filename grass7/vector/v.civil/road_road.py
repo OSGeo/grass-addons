@@ -77,7 +77,7 @@ class Road(object):
     def __repr__(self):
         return str(self.mapa)
 
-    @time_func
+    # @time_func
     def plant_generate(self, table_to_plant=False, bombeo=0):
         """Set plant.
         """
@@ -111,7 +111,7 @@ class Road(object):
         objs, values = self.plant.get_curves_centers()
         self.rtab.new_map(map_out, 3, '__Plant_C', objs, values)
 
-    @time_func
+    # @time_func
     def elev_generate(self):
         """ Return
         """
@@ -130,7 +130,7 @@ class Road(object):
         objs, values = self.vert.get_charact_pnts()
         self.rtab.new_map(map_out, 2, '__Vertical_PC', objs, values)
 
-    @time_func
+    # @time_func
     def displ_generate(self, tab_subname=''):
         """ Return
         """
@@ -159,13 +159,13 @@ class Road(object):
         objs, values = self.displ.get_areas(opts)
         self.rtab.new_map(map_out, 1, tab_sufix, objs, values, tab_subname)
 
-    @time_func
+    # @time_func
     def terr_generate(self, dem_map):
         """ Return
         """
         self.terr = Terr.Terrain(dem_map)
 
-    @time_func
+    # @time_func
     def trans_generate(self):
         """ Return
         """
@@ -198,7 +198,7 @@ class Road(object):
                                                       self.terr)
         self.rtab.new_map(map_out, 3, '__Trans_PT', objs, values)
 
-    @time_func
+    # @time_func
     def taludes_generate(self):
         """ Return
         """
@@ -221,7 +221,7 @@ class Road(object):
         objs, values = self.taludes.get_areas(self.displ)
         self.rtab.new_map(map_out, 1, '__Slopes_Areas', objs, values)
 
-    @time_func
+    # @time_func
     def long_profile_generate(self, options, scale, offset):
         """Return
         """
@@ -248,7 +248,7 @@ class Road(object):
         objs, vals = self.long_prof.get_axes_marks(self.plant.roadline)
         self.rtab.new_map(map_out, 4, '__LProfile_Ticks', objs, vals)
 
-    @time_func
+    # @time_func
     def trans_profiles_generate(self, options1, options2, scale, offset):
         """Return
         """
@@ -277,7 +277,7 @@ class Road(object):
         objs, vals = self.trans_prof.get_axes_marks()
         self.rtab.new_map(map_out, 4, '__TProfile_Ticks', objs, vals)
 
-    @time_func
+    # @time_func
     def marks_generate(self, tab_subname=''):
         """ Return
         """

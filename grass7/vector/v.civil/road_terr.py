@@ -13,9 +13,10 @@ from grass.pygrass.raster import RasterRow
 
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.gis.region import Region
-from grass.pygrass.vector.geometry import Line
+# from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.geometry import Boundary
-from grass.pygrass.vector.geometry import Area
+# from grass.pygrass.vector.geometry import Area
+
 
 def get_rgb(type_terr):
     """ Return
