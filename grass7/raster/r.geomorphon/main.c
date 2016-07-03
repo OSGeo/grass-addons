@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	par_multi_prefix->key = "prefix";
 	par_multi_prefix->type = TYPE_STRING;
 	par_multi_prefix->description =
-	    _("prefix for maps resulting from multiresolution approach");
+	    _("Prefix for maps resulting from multiresolution approach");
 	par_multi_prefix->guisection = _("multires");
 
 	par_multi_step = G_define_option();
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 	par_multi_step->type = TYPE_DOUBLE;
 	par_multi_step->answer = "0";
 	par_multi_step->description =
-	    _("distance step for every iteration (zero to omit)");
+	    _("Distance step for every iteration (zero to omit)");
 	par_multi_step->guisection = _("multires");
 
 	par_multi_start = G_define_option();
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 	par_multi_start->type = TYPE_DOUBLE;
 	par_multi_start->answer = "0";
 	par_multi_start->description =
-	    _("distance where serch will start in multiple mode (zero to omit)");
+	    _("Distance where serch will start in multiple mode (zero to omit)");
 	par_multi_start->guisection = _("multires");
 
 	flag_units = G_define_flag();
