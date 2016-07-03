@@ -487,7 +487,7 @@ int main(int argc, char **argv)
 	if (opt_output[o_range]->answer)
 	    write_contrast_colors(opt_output[o_range]->answer);
 
-	G_message("Done!");
+	G_done_msg("");
 	exit(EXIT_SUCCESS);
     }				/* end of multiresolution */
 
