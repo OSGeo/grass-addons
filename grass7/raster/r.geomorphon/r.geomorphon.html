@@ -57,7 +57,7 @@ especially with low resolution DEMS.
 <DL>
 <DT><b>-m</b></DT>
 <DD>All distance parameters (search, skip, flat distances) are supplied as meters instead of cells (default). To avoid situation when supplied distances is smaller than one cell program first check if supplied distance is longer than one cell in both NS and WE directions. For LatLong projection only NS distance checked, because in latitude angular unit comprise always bigger or equal distance than longitude one. If distance is supplied in cells, For all projections is recalculated into meters according formula: <code>number_of_cells*resolution_along_NS_direction</code>. It is important if geomorphons are calculate for large areas in LatLong projecton.</DD>
-<DT><b>dem</b></DT>
+<DT><b>elevation</b></DT>
 <DD>Digital elevation model. Data can be of any type and any projection. During calculation DEM is stored as floating point raster.</DD>
 <DT><b>search</b></DT>
 <DD>Determines length on the geodesic distances in all eight directions where line-of-sight is calculated. To speed up calculation is determines only these cells which centers falls into the distance</DD>
@@ -118,7 +118,7 @@ Geomorphon calculation example using the EU DEM 25m:
 
 <div class="code"><pre>
 g.region raster=eu_dem_25m -p
-r.geomorphon dem=eu_dem_25m forms=eu_dem_25m_geomorph
+r.geomorphon elevation=eu_dem_25m forms=eu_dem_25m_geomorph
 
 # verify terrestial landforms found in DEM
 r.category eu_dem_25m_geomorph
@@ -145,10 +145,10 @@ Using the resulting terrestial landforms map, single landforms can
 be extracted, e.g. the summits, and converted into a vector point map:
 
 <div class="code"><pre>
-r.mapcalc "eu_dem_25m_summits = if(eu_dem_25m_geomorph == 2, 1, null())"
-r.thin eu_dem_25m_summits output=eu_dem_25m_summits_thinned
-r.to.vect eu_dem_25m_summits_thinned output=eu_dem_25m_summits type=point
-v.info eu_dem_25m_summits
+r.mapcalc expression="eu_dem_25m_summits = if(eu_dem_25m_geomorph == 2, 1, null())"
+r.thin input=eu_dem_25m_summits output=eu_dem_25m_summits_thinned
+r.to.vect input=eu_dem_25m_summits_thinned output=eu_dem_25m_summits type=point
+v.info input=eu_dem_25m_summits
 </pre></div>
 
 <center>
