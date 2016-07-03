@@ -30,34 +30,34 @@ typedef enum
 int main(int argc, char **argv)
 {
     IO rasters[] = {		/* rasters stores output buffers */
-	{"dem", YES, "Input dem", "input", UNKNOWN, -1, NULL},	/* WARNING: this one map is input */
-	{"forms", NO, "Most common geomorphic forms", "patterns", CELL_TYPE,
+	{"elevation", YES, "Input dem", "input", UNKNOWN, -1, NULL},	/* WARNING: this one map is input */
+	{"forms", NO, "Most common geomorphic forms", "Patterns", CELL_TYPE,
 	 -1, NULL},
-	{"ternary", NO, "code of ternary patterns", "patterns", CELL_TYPE, -1,
+	{"ternary", NO, "Code of ternary patterns", "Patterns", CELL_TYPE, -1,
 	 NULL},
-	{"positive", NO, "code of binary positive patterns", "patterns",
+	{"positive", NO, "Code of binary positive patterns", "Patterns",
 	 CELL_TYPE, -1, NULL},
-	{"negative", NO, "code of binary negative patterns", "patterns",
+	{"negative", NO, "Code of binary negative patterns", "Patterns",
 	 CELL_TYPE, -1, NULL},
 	{"intensity", NO,
-	 "rasters containing mean relative elevation of the form", "geometry",
+	 "Rasters containing mean relative elevation of the form", "Geometry",
 	 FCELL_TYPE, -1, NULL},
 	{"exposition", NO,
-	 "rasters containing maximum difference between extend and central cell",
-	 "geometry", FCELL_TYPE, -1, NULL},
+	 "Rasters containing maximum difference between extend and central cell",
+	 "Geometry", FCELL_TYPE, -1, NULL},
 	{"range", NO,
-	 "rasters containing difference between max and min elevation of the form extend",
-	 "geometry", FCELL_TYPE, -1, NULL},
-	{"variance", NO, "rasters containing variance of form boundary",
-	 "geometry", FCELL_TYPE, -1, NULL},
-	{"elongation", NO, "rasters containing local elongation", "geometry",
+	 "Rasters containing difference between max and min elevation of the form extend",
+	 "Geometry", FCELL_TYPE, -1, NULL},
+	{"variance", NO, "Rasters containing variance of form boundary",
+	 "Geometry", FCELL_TYPE, -1, NULL},
+	{"elongation", NO, "Rasters containing local elongation", "Geometry",
 	 FCELL_TYPE, -1, NULL},
-	{"azimuth", NO, "rasters containing local azimuth of the elongation",
-	 "geometry", FCELL_TYPE, -1, NULL},
-	{"extend", NO, "rasters containing local extend (area) of the form",
-	 "geometry", FCELL_TYPE, -1, NULL},
-	{"width", NO, "rasters containing local width of the form",
-	 "geometry", FCELL_TYPE, -1, NULL}
+	{"azimuth", NO, "Rasters containing local azimuth of the elongation",
+	 "Geometry", FCELL_TYPE, -1, NULL},
+	{"extend", NO, "Rasters containing local extend (area) of the form",
+	 "Geometry", FCELL_TYPE, -1, NULL},
+	{"width", NO, "Rasters containing local width of the form",
+	 "Geometry", FCELL_TYPE, -1, NULL}
     };				/* adding more maps change IOSIZE macro */
 
     CATCOLORS ccolors[CNT] = {	/* colors and cats for forms */
@@ -100,12 +100,13 @@ int main(int argc, char **argv)
     {				/* interface  parameters */
 	module = G_define_module();
 	module->description =
-	    _("Calculate geomorphons (terrain forms)and associated geometry using machine vision approach");
-	G_add_keyword("Geomorphons");
-	G_add_keyword("Terrain patterns");
-	G_add_keyword("Machine vision geomorphometry");
+	    _("Calculates geomorphons (terrain forms) and associated geometry using machine vision approach.");
+        G_add_keyword(_("raster"));
+	G_add_keyword(_("geomorphons"));
+	G_add_keyword(_("terrain patterns"));
+	G_add_keyword(_("machine vision geomorphometry"));
 
-	opt_input = G_define_standard_option(G_OPT_R_INPUT);
+	opt_input = G_define_standard_option(G_OPT_R_ELEV);
 	opt_input->key = rasters[0].name;
 	opt_input->required = rasters[0].required;
 	opt_input->description = _(rasters[0].description);
