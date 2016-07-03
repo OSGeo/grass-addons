@@ -30,7 +30,7 @@ typedef enum
 int main(int argc, char **argv)
 {
     IO rasters[] = {		/* rasters stores output buffers */
-	{"elevation", YES, "Input dem", "input", UNKNOWN, -1, NULL},	/* WARNING: this one map is input */
+	{"elevation", YES, "Name of input elevation raster map", "input", UNKNOWN, -1, NULL},	/* WARNING: this one map is input */
 	{"forms", NO, "Most common geomorphic forms", "Patterns", CELL_TYPE,
 	 -1, NULL},
 	{"ternary", NO, "Code of ternary patterns", "Patterns", CELL_TYPE, -1,
