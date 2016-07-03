@@ -159,6 +159,12 @@ def cleanup():
 def score_classification_results(X, y, clf, kfolds, rstate):
     # PURPOSE: custom function performs cross validation on a classification model,
     # RETURNS: a 1D list representing accuracy, AUROC, precision, recall, kappa and specificity
+    
+    # lazy import of sklearn
+    try:
+        from sklearn import cross_validation, metrics
+    except:
+        grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting")
         
     kf = cross_validation.KFold(len(y), n_folds=kfolds, shuffle=True, random_state=rstate)
 
@@ -213,6 +219,12 @@ def cv_performance_byClass(X, y, clf, kfolds, rstate):
     # RETURNS: 2D list of CLASS and mean performance measure result
     # RETURNS: 2D list of CLASS and standard deviation of performance measure result
     # Performance measures are sensitivity, recall
+    
+    # lazy import of sklearn
+    try:
+        from sklearn import cross_validation, metrics
+    except:
+        grass.fatal("Scikit-learn python module (python-sklearn) is not installed.....exiting")
 
     class_list = np.unique(y)
     nclasses = len(np.unique(y))
