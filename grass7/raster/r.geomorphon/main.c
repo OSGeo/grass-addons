@@ -280,21 +280,21 @@ int main(int argc, char **argv)
 	}			/* end multires preparation */
 
 	/* print information about distances */
-	G_message("Search distance m: %f, cells: %d", search_distance,
+	G_verbose_message("Search distance m: %f, cells: %d", search_distance,
 		  search_cells);
-	G_message("Skip distance m: %f, cells: %d", skip_distance,
+	G_verbose_message("Skip distance m: %f, cells: %d", skip_distance,
 		  skip_cells);
-	G_message("Flat threshold distance m: %f, height: %f", flat_distance,
+	G_verbose_message("Flat threshold distance m: %f, height: %f", flat_distance,
 		  flat_threshold_height);
-	G_message("%s version", (extended) ? "extended" : "basic");
+	G_verbose_message("%s version", (extended) ? "Extended" : "Basic");
 	if (multires) {
-	    G_message
+	    G_verbose_message
 		("Multiresolution mode: search start at: m: %f, cells: %d",
 		 start_distance, start_cells);
-	    G_message
+	    G_verbose_message
 		("Multiresolution mode: search step is: m: %f, number of steps %d",
 		 step_distance, num_of_steps);
-	    G_message("Prefix for output: %s", prefix);
+	    G_verbose_message("Prefix for output: %s", prefix);
 	}
     }
 
