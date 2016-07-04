@@ -17,6 +17,7 @@
 # import system libraries
 import os
 
+import numpy as np
 import itertools
 import math
 #import pdb
@@ -519,7 +520,7 @@ def build_network(stream, dtm, basins_tot):
     river = raster2numpy(stream)
     river_comp = raster2compressM(stream).tocoo()
     gcore.run_command('r.neighbors', input=stream,
-                      output=tmp_neighbors, method="minimu", size='5',
+                      output=tmp_neighbors, method="minimum", size='5',
                       quantile='0.5')
 
     formula = '%s = %s-%s' % (tmp_closure, tmp_neighbors, stream)
@@ -564,13 +565,11 @@ def area_of_watershed(watershed):
     return temp
 
 
-def fill_energyown(bas, h_mean):
+def fill_energyown(bas):
     """
-    Fill basins dictionary with discharge, h_mean and compute the power
+    Fill basins dictionary with discharge and compute the power
     """
 
-    bas.h_mean = h_mean
-    # basins_tot[count].h_closure = float(info_c[count])
     delta = bas.h_mean - bas.h_closure
     #TODO: modify power with potential
     bas.E_own = (E_hydro(delta, bas.discharge_own))
@@ -587,8 +586,9 @@ def fill_discharge_tot(bas, discharge_n, stream_n):
     warn = ("%i") % bas.ID
     ttt = discharge_n[stream_n == bas.ID]
     #import ipdb; ipdb.set_trace()
-    bas.discharge_tot = 0.0
+    # bas.discharge_tot = 0.0
     ttt.sort()
+    ttt = ttt[~np.isnan(ttt)]
     #FIXME: take the second bgger value to avoid to take the value of
     # another catchment, it is not so elegant
     # the low value is the upper part of the basin and the greater
@@ -650,14 +650,14 @@ def fill_basins(inputs, basins_tot, basins, dtm, discharge, stream):
     #pdb.set_trace()
     for count in inputs:
         if info_h[str(count)] != '':
-            area = area_of_basins(basins, count, dtm)
-            basins_tot[count].area = float(area)
-            h_mean = float(info_h[str(count)])
+            # area = area_of_basins(basins, count, dtm)
+            # basins_tot[count].area = float(area)
+            basins_tot[count].h_mean = float(info_h[str(count)])
             fill_discharge_tot(basins_tot[count], discharge, stream)
 
     for b in inputs:
         fill_discharge_own(basins_tot, b)
-        fill_energyown(basins_tot[b], h_mean)
+        fill_energyown(basins_tot[b])
 
     for b in inputs:
         fill_Eup(basins_tot, b)
