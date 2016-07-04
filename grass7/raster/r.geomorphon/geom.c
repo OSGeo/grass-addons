@@ -1,5 +1,5 @@
 #include "local_proto.h"
-static double dirs[8] = { 0.7854, 0., 5.4978, 4.7124, 3.9270, 3.1416, 2.3562, 1.5708 };	/* radians */
+/* static double dirs[8] = { 0.7854, 0., 5.4978, 4.7124, 3.9270, 3.1416, 2.3562, 1.5708 };*/	/* radians */
 static double sins[8] = { 0.7071067812, 0, -0.7071067812, -1, -0.7071067812, 0, 0.7071067812, 1 };	/* sinus */
 static double coss[8] = { 0.7071067812, 1, 0.7071067812, 0, -0.7071067812, -1, -0.7071067812, 0 };	/* cosinus */
 
@@ -19,7 +19,6 @@ unsigned int ternary_rotate(unsigned int value)
     unsigned int code = 10000, tmp_code, rev_code = 10000, tmp_rev_code;
     int power = 1;
     int i, j, k;
-    int res;
 
     for (i = 0; i < 8; i++) {
 	pattern[i] = value % 3;

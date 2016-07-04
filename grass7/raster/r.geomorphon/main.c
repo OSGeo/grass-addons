@@ -88,9 +88,9 @@ int main(int argc, char **argv)
 
     struct History history;
 
-    int i, j, n;
+    int i;
     int meters = 0, multires = 0, extended = 0;	/* flags */
-    int row, cur_row, col, radius;
+    int row, cur_row, col;
     int pattern_size;
     double max_resolution;
     char prefix[20];
@@ -310,7 +310,6 @@ int main(int argc, char **argv)
 	PATTERN *pattern;
 	PATTERN patterns[4];
 	void *pointer_buf;
-	int formA, formB, formC;
 	double search_dist = search_distance;
 	double skip_dist = skip_distance;
 	double flat_dist = flat_distance;
@@ -487,7 +486,7 @@ int main(int argc, char **argv)
 	if (opt_output[o_range]->answer)
 	    write_contrast_colors(opt_output[o_range]->answer);
 
-	G_done_msg("");
+	G_done_msg(" ");
 	exit(EXIT_SUCCESS);
     }				/* end of multiresolution */
 

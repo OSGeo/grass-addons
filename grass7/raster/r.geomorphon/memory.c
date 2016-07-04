@@ -4,10 +4,8 @@ int open_map(MAPS * rast)
 {
 
     int row, col;
-    int fd;
     char *mapset;
     struct Cell_head cellhd;
-    int bufsize;
     void *tmp_buf;
 
     mapset = (char *)G_find_raster2(rast->elevname, "");
@@ -72,7 +70,7 @@ int shift_buffers(int row)
     int i;
     int col;
     void *tmp_buf;
-    FCELL *tmp_elev_buf, *slope_tmp, *aspect_tmp;
+    FCELL *tmp_elev_buf;
 
     tmp_buf = Rast_allocate_buf(elevation.raster_type);
     tmp_elev_buf = elevation.elev[0];
@@ -128,7 +126,7 @@ int write_form_cat_colors(char *raster, CATCOLORS * ccolors)
 int write_contrast_colors(char *raster)
 {
     struct Colors colors;
-    struct Categories cats;
+    /* struct Categories cats; */
 
     FCOLORS fcolors[9] = {	/* colors for positive openness */
 	{-2500, 0, 0, 50, NULL},
