@@ -127,7 +127,7 @@ def main(options, flags):
     # inizialitation
     #############################################################
     pid = os.getpid()
-    DEBUG = False
+    DEBUG = flags['d']
     atexit.register(cleanup, pattern=("tmprgreen_%i*" % pid), debug=DEBUG)
     #TOD_add the possibilities to have q_points
     # required
@@ -154,7 +154,6 @@ def main(options, flags):
 #    other_kind_turbine = options['other_kind_turbine']
 
     # optional
-    DEBUG = flags['d']
 
     msgr = get_msgr()
     # info = gcore.parse_command('g.region', flags='m')
@@ -201,7 +200,7 @@ def main(options, flags):
     basin.build_network(stream, dtm, basins_tot)
     stream_n = raster2numpy(stream)
     discharge_n = raster2numpy(discharge)
-    #pdb.set_trace()
+    import ipdb; ipdb.set_trace()
     basin.fill_basins(inputs, basins_tot, basins, dtm, discharge_n, stream_n)
 
     ###################################################################
