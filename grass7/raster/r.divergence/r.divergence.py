@@ -51,7 +51,7 @@ CLEANUP = True
 
 def cleanup():
     if CLEANUP:
-        gcore.run_command('g.remove', flags='f', type='raster', name=TMP)
+        gcore.run_command('g.remove', flags='f', type='raster', name=TMP, quiet=True)
 
 
 def main():
