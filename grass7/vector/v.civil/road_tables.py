@@ -8,6 +8,8 @@ Created on Thu Oct  2 18:24:22 2014
 # from grass.pygrass.vector.table import Link
 import time
 import grass.script as grass
+import grass.lib.vector as libvect
+from grass.pygrass.errors import GrassError
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.vector import sql
 from grass.pygrass.vector.table import Link
@@ -465,15 +467,36 @@ class RoadTable(object):
         """Return
         """
         self.polygon.open('rw', self.layer, with_z=True)
+        cat = attrs[0]
 
-        if isinstance(obj, Point):
-            type_obj = 'points'
-        else:
-            type_obj = 'lines'
+        if obj.gtype == 1:
+            vtype = 'points'
+        elif obj.gtype == 2:
+            vtype = 'lines'
+        elif obj.gtype == 3:
+            vtype = 'boundary'
+        elif obj.gtype == 4:
+            vtype = 'centroid'
 
-        obj_org = self.polygon.cat(attrs[0], type_obj, self.layer)[0]
-        obj_org.x, obj_org.y, obj_org.z = obj.x, obj.y, obj.z
-        self.polygon.rewrite(obj_org, attrs[0], attrs[1:])
+        line = self.polygon.cat(cat, vtype, self.layer)[0]
+
+        if self.polygon.table is not None and attrs:
+            self.polygon.table.update(key=line.cat, values=attrs[1:])
+        elif self.polygon.table is None and attrs:
+            print("Table for vector {name} does not exist, attributes not"
+                  " loaded".format(name=self.name))
+        # libvect.Vect_cat_set(obj.c_cats, self.layer, line.cat)
+
+        result = libvect.Vect_rewrite_line(self.polygon.c_mapinfo,
+                                           line.id, obj.gtype,
+                                           obj.c_points,
+                                           line.c_cats)
+        if result == -1:
+            raise GrassError("Not able to write the vector feature.")
+
+        # return offset into file where the feature starts
+        obj.offset = result
+
         self.polygon.table.conn.commit()
         self.polygon.close()
 

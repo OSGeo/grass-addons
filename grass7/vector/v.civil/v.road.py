@@ -680,8 +680,7 @@ def main():
             # if 'nnbathy' in tinraster:
                 # tin.nnbathy()
 
-        else:
-            sys.exit(0)
+        sys.exit(0)
 
 ################### Backup ##################
 
