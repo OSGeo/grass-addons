@@ -200,7 +200,6 @@ def main(options, flags):
     basin.build_network(stream, dtm, basins_tot)
     stream_n = raster2numpy(stream)
     discharge_n = raster2numpy(discharge)
-    import ipdb; ipdb.set_trace()
     basin.fill_basins(inputs, basins_tot, basins, dtm, discharge_n, stream_n)
 
     ###################################################################
