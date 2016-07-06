@@ -9,10 +9,7 @@
 #               surface (MESS) as proposed by Elith et al., 2010,
 #               Methods in Ecology & Evolution, 1(330–342).
 #
-#
-# COPYRIGHT: (C) 2014 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -21,31 +18,26 @@
 ########################################################################
 #
 #%Module
-#% description: Computes multivariate environmental similarity surface
+#% description: Computes multivariate environmental similarity surface (MES)
 #% keyword: raster
 #% keyword: modelling
 #%End
 
-#%option
+#%option G_OPT_R_INPUT
 #% key: ref_rast
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Reference distribution as raster (1 = presence, 0 = absence)
-#% label: Reference layer (raster)
+#% label: Reference/sample area (raster)
+#% description: Reference areas (1 = presence, 0 = absence)
 #% key_desc: name
 #% required: no
-#% multiple: no
 #% guisection: reference distribution
 #%end
 
-#%option
+#%option G_OPT_V_MAP
 #% key: ref_vect
-#% type: string
-#% gisprompt: old,vector
-#% description: Reference distribution as point vector layer
+#% label: Reference/sample points (vector)
+#% description: Point vector layer with presence locations
 #% key_desc: name
 #% required: no
-#% multiple: no
 #% guisection: reference distribution
 #%end
 
@@ -53,32 +45,23 @@
 #%exclusive: ref_rast,ref_vect
 #%end
 
-#%option
-#% key: env_old
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input (predictor) raster map(s)
+#%option G_OPT_R_INPUTS
+#% key: env
+#% description: Reference / baseline environmental data layers
 #% key_desc: names
 #% required: yes
-#% multiple: yes
 #% guisection: predictors
 #%end
 
-#%option
-#% key: env_new
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Input (predictor) raster map(s)
+#%option G_OPT_R_INPUTS
+#% key: env_proj
+#% description: Projected / test environmental data layers
 #% key_desc: names
 #% required: no
-#% multiple: yes
 #% guisection: predictors
 #%end
 
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
+#%option G_OPT_R_BASENAME_OUTPUT
 #% description: Root name of the output MESS data layers
 #% key_desc: name
 #% required: yes
@@ -117,21 +100,10 @@
 #% guisection: Output
 #%end
 
-##%flag
-##% key: b
-##% description: Only compute MESS for areas with novel conditions (faster)
-##% guisection: Output
-##%end
-
 #%flag:  IES
 #% key: i
 #% description: Remove individual environmental similarity layers (IES)
 #% guisection: Output
-#%end
-
-#%flag
-#% key: r
-#% description: Keep current region (otherwise set to match env_new)
 #%end
 
 #----------------------------------------------------------------------------
@@ -147,82 +119,116 @@ import atexit
 import tempfile
 import operator
 import string
-import grass.script as grass
+import grass.script as gs
 from grass.script import db as db
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
+COLORS_MES = """\
+0% 244:109:67
+0 255:255:210
+100% 50:136:189
+"""
+
+RECL_MESNEG = """\
+0\twithin range
+1\tnovel conditions
+"""
 
 #----------------------------------------------------------------------------
 # Functions
 #----------------------------------------------------------------------------
 
 # create set to store names of temporary maps to be deleted upon exit
-clean_rast = set()
-def cleanup():
-    for rast in clean_rast:
-        grass.run_command("g.remove", type=["rast", "region"], name = rast,
-                          quiet = True, flags="f")
+CLEAN_RAST = []
 
-def CheckLayer(envlay):
+
+def cleanup():
+    """Remove temporary maps specified in the global list"""
+    cleanrast = list(reversed(CLEAN_RAST))
+    for rast in cleanrast:
+        gs.run_command("g.remove", flags="f", type="all",
+                       name=rast, quiet=True)
+
+
+def raster_exists(envlay):
+    """Check if the raster map exists, call GRASS fatal otherwise"""
     for chl in xrange(len(envlay)):
-        ffile = grass.find_file(envlay[chl], element = 'cell')
-        if ffile['fullname'] == '':
-            grass.fatal("The layer " + envlay[chl] + " does not exist.")
+        ffile = gs.find_file(envlay[chl], element='cell')
+        if not ffile['fullname']:
+            gs.fatal(_("The layer <%s> does not exist") % envlay[chl])
+
 
 # Create temporary name
-def tmpname(name):
-    tmpf = name + "_" + str(uuid.uuid4())
+def tmpname(prefix):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    Use only for raster maps.
+    """
+    tmpf = prefix + str(uuid.uuid4())
     tmpf = string.replace(tmpf, '-', '_')
-    clean_rast.add(tmpf)
+    CLEAN_RAST.append(tmpf)
     return tmpf
+
+
+def compute_ies(INtmprule, INipi, INtmpf2, INenvmin, INenvmax):
+    """
+    Compute the environmental similarity layer for the individual variables
+    """
+    tmpf3 = tmpname('tmp6')
+    gs.run_command("r.recode", input=INtmpf2, output=tmpf3, rules=INtmprule)
+
+    calcc = "{0} = if({1} == 0, (float({2}) - {3}) / ({4} - {3}) " \
+            "* 100.0, if({1} <= 50, 2 * float({1}), "\
+            "if({1} < 100, 2*(100-float({1})), " \
+            "({4} - float({2})) / ({4} - {3}) * 100.0)))" \
+            .format(INipi, tmpf3, INtmpf2, float(INenvmin), float(INenvmax))
+    gs.mapcalc(calcc, quiet=True)
+    gs.write_command("r.colors", map=INipi, rules='-',
+                     stdin=COLORS_MES, quiet=True)
 
 #----------------------------------------------------------------------------
 # main function
 #----------------------------------------------------------------------------
 
-def main():
 
-    #----------------------------------------------------------------------------
-    # Variables
-    #----------------------------------------------------------------------------
+def main(options, flags):
+
+    gisbase = os.getenv('GISBASE')
+    if not gisbase:
+        gs.fatal(_('$GISBASE not defined'))
+        return 0
+
+    #-------------------------------------------------------------------------
+    # Variables, options and flags into variables
+    #-------------------------------------------------------------------------
 
     # reference layer
-    REF_VECT = options['ref_vect']
-    REF_RAST = options['ref_rast']
-    if len(REF_VECT) == 0 and len(REF_RAST) == 0:
-        grass.fatal("You did not provide the reference distribution layer")
-    if len(REF_RAST) > 0:
-        vtl = REF_RAST
-        rtl = 'R'
-    else:
-        vtl = REF_VECT
-        rtl = 'V'
+    ref_rast = options['ref_rast']
+    ref_vect = options['ref_vect']
 
     # old environmental layers & variable names
-    ipl = options['env_old']
-    ipl = ipl.split(',')
-    CheckLayer(ipl)
-    ipn = [z.split('@')[0] for z in ipl]
+    REF = options['env']
+    REF = REF.split(',')
+    raster_exists(REF)
+    ipn = [z.split('@')[0] for z in REF]
     ipn = [x.lower() for x in ipn]
 
     # new environmental variables
-    ipl2 = options['env_new']
-    if ipl2 == '':
-        ipl_dif = False
-        ipl2 = ipl
+    PROJ = options['env_proj']
+    if not PROJ:
+        RP = False
+        PROJ = REF
     else:
-        ipl_dif = True
-        ipl2 = ipl2.split(',')
-        CheckLayer(ipl2)
-        if len(ipl2) != len(ipl) and len(ipl2) != 0:
-            msg = 'number of old and new environmental variables is not the same'
-            grass.fatal(msg)
+        RP = True
+        PROJ = PROJ.split(',')
+        raster_exists(PROJ)
+        if len(PROJ) != len(REF) and len(PROJ) != 0:
+            gs.fatal(_("The number of reference and predictor variables"
+                       " should be the same. You provided %d reference and %d"
+                       " projection variables") % (len(REF), len(PROJ)))
 
     # output layers
     opl = options['output']
-    opc = opl + '_MESS'
+    opc = opl + '_MES'
     ipi = [opl + '_' + i for i in ipn]
 
     # flags
@@ -230,91 +236,123 @@ def main():
     flk = flags['k']
     fln = flags['n']
     fli = flags['i']
-    flr = flags['r']
-    fll = flags['c']
-    #flb = flags['b']
+    flc = flags['c']
 
     # digits / precision
     digits = int(options['digits'])
     digits2 = pow(10, digits)
 
-    # Color table
-    fd1, tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol, "w")
-    text_file.write("0% 244:109:67\n")
-    text_file.write("0 255:255:210\n")
-    text_file.write("100% 50:136:189\n")
+    # get current region settings, to compare to new ones later
+    region_1 = gs.parse_command("g.region", flags="g")
+
+    #-------------------------------------------------------------------------
+    # Text for history in metadata
+    #-------------------------------------------------------------------------
+
+    if flm:
+        a1 = " -m"
+    else:
+        a1 = ""
+    if flk:
+        a2 = " -k"
+    else:
+        a2 = ""
+    if fln:
+        a3 = " -n"
+    else:
+        a3 = ""
+    if fli:
+        a4 = " -i"
+    else:
+        a4 = ""
+    if flc:
+        a5 = " -c\n"
+    else:
+        a5 = "\n"
+    a6 = "       env={}\n".format(options['env'])
+    if options['env_proj']:
+        a7 = "       env_proj={}\n".format(options['env_proj'])
+    else:
+        a7 = ""
+    if ref_rast:
+        a8 = "       ref_rast={}\n".format(ref_rast)
+    else:
+        a8 = ""
+    if ref_vect:
+        a9 = "       ref_vect={}\n".format(ref_vect)
+    else:
+        a9 = ""
+    a10 = "       output={}\n".format(options['output'])
+    hist = "r.mess{}{}{}{}{}{}{}{}{}" \
+           .format(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+
+    unused, tmphist = tempfile.mkstemp()
+    text_file = open(tmphist, "w")
+    text_file.write(hist)
     text_file.close()
 
-    # Copy current region
-    regionbackup = tmpname("mess_region_backup")
-    grass.run_command("g.region", save=regionbackup)
+    # Create reference layer if not defined
+    if not ref_rast and not ref_vect:
+        ref_rast = tmpname("tmp0")
+        gs.mapcalc("$i = if(isnull($r),null(),1)", i=ref_rast, r=REF[0],
+                   quiet=True)
 
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Create the recode table - Reference distribution is raster
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
-    if rtl=="R":
+    citiam = gs.find_file(name='MASK', element='cell',
+                          mapset=gs.gisenv()['MAPSET'])
+    if citiam['fullname']:
+        rname = tmpname('tmp3')
+        gs.mapcalc('$rname = MASK', rname=rname, quiet=True)
 
-        # Copy mask (if there is one) to temporary layer
-        citiam = grass.find_file(name='MASK', element = 'cell',
-                                 mapset=grass.gisenv()['MAPSET'])
-        if citiam['fullname'] != '':
-            rname = tmpname('MASK')
-            grass.mapcalc('$rname = MASK', rname=rname, quiet=True)
+    if ref_rast:
+        vtl = ref_rast
 
         # Create temporary layer based on reference layer
-        tmpf0 = tmpname('rmess_tmp')
-        grass.mapcalc("$tmpf0 = $vtl * 1", vtl = vtl, tmpf0=tmpf0, quiet=True)
-        grass.run_command("r.null", map=tmpf0, setnull=0, quiet=True)
-
-        # Remove mask
-        if citiam['fullname'] != '':
-            grass.run_command("r.mask", quiet=True, flags="r")
-
-        for i in xrange(len(ipl)):
+        tmpf0 = tmpname('tmp2')
+        gs.mapcalc("$tmpf0 = int($vtl * 1)", vtl=vtl, tmpf0=tmpf0, quiet=True)
+        gs.run_command("r.null", map=tmpf0, setnull=0, quiet=True)
+        if citiam['fullname']:
+            gs.run_command("r.mask", flags="r", quiet=True)
+        for i in xrange(len(REF)):
 
             # Create mask based on combined MASK/reference layer
-            grass.run_command("r.mask", quiet=True, overwrite=True, raster=tmpf0)
+            gs.run_command("r.mask", raster=tmpf0, quiet=True)
 
             # Calculate the frequency distribution
-            tmpf1 = tmpname('rmess_tmp1')
-            grass.mapcalc("$tmpf1 = int($dignum * $inplay)", tmpf1=tmpf1,
-                          inplay=ipl[i],
-                          dignum=digits2,
-                          quiet=True)
-            p = grass.pipe_command('r.stats', quiet=True, flags = 'cn', input = tmpf1, sort = 'asc', sep=';')
+            tmpf1 = tmpname('tmp4')
+            gs.mapcalc("$tmpf1 = int($dignum * $inplay)", tmpf1=tmpf1,
+                       inplay=REF[i], dignum=digits2, quiet=True)
+            p = gs.pipe_command('r.stats', quiet=True, flags='cn',
+                                input=tmpf1, sort='asc', sep=';')
             stval = {}
             for line in p.stdout:
-                [val,count] = line.strip(os.linesep).split(';')
+                [val, count] = line.strip(os.linesep).split(';')
                 stval[float(val)] = float(count)
             p.wait()
             sstval = sorted(stval.items(), key=operator.itemgetter(0))
             sstval = np.matrix(sstval)
             a = np.cumsum(np.array(sstval), axis=0)
             b = np.sum(np.array(sstval), axis=0)
-            c = a[:,1] / b[1] * 100
+            c = a[:, 1] / b[1] * 100
 
-            # Restore mask and set region to new env_new
-            # Note: if region env_new is different from region env_old, setting
-            # the mask will not do anything. If there is partial overlap, the mask
-            # may affect the area where the two overlap
-            if citiam['fullname'] != '':
-                grass.run_command("r.mask", flags="r", quiet=True)
-                grass.run_command("r.mask", raster=rname, quiet=True)
-            else:
-                grass.run_command("r.mask", quiet=True, flags="r")
-            if ipl_dif and not flr:
-                grass.run_command("g.region", quiet=True, raster=ipl2[0])
+            # Remove tmp mask and set region to env_proj if needed
+            gs.run_command("r.mask", quiet=True, flags="r")
+            if RP:
+                gs.use_temp_region()
+                gs.run_command("g.region", quiet=True, raster=PROJ[0])
+
+            # get new region settings, to compare to original ones later
+            region_2 = gs.parse_command("g.region", flags="g")
 
             # Get min and max values for recode table (based on full map)
-            tmpf2 = tmpname('rmess_tmp2')
-            grass.mapcalc("$tmpf2 = int($dignum * $inplay)",
-                          tmpf2 = tmpf2,
-                          inplay = ipl2[i],
-                          dignum = digits2,
-                          quiet=True)
-            d = grass.parse_command("r.univar",quiet=True, flags="g", map=tmpf2)
+            tmpf2 = tmpname('tmp5')
+            gs.mapcalc("$tmpf2 = int($dignum * $inplay)",
+                       tmpf2=tmpf2, inplay=PROJ[i], dignum=digits2,
+                       quiet=True)
+            d = gs.parse_command("r.univar", flags="g", map=tmpf2, quiet=True)
 
             # Create recode rules
             Dmin = int(d['min'])
@@ -322,186 +360,278 @@ def main():
             envmin = np.min(np.array(sstval), axis=0)[0]
             envmax = np.max(np.array(sstval), axis=0)[0]
 
-            if Dmin < envmin: e1 = Dmin - 1
-            else: e1 = envmin -1
-            if Dmax > envmax: e2 = Dmax + 1
-            else: e2 = envmax + 1
+            if Dmin < envmin:
+                e1 = Dmin - 1
+            else:
+                e1 = envmin - 1
+            if Dmax > envmax:
+                e2 = Dmax + 1
+            else:
+                e2 = envmax + 1
 
-            a1 = np.hstack([(e1), np.array(sstval.T[0])[0,:] ])
-            a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
+            a1 = np.hstack([(e1), np.array(sstval.T[0])[0, :]])
+            a2 = np.hstack([np.array(sstval.T[0])[0, :] - 1, (e2)])
             b1 = np.hstack([(0), c])
 
             fd2, tmprule = tempfile.mkstemp(suffix=ipn[i])
             text_file = open(tmprule, "w")
-            for k in np.arange(0,len(b1.T)):
-                rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
-                text_file.write(rtmp + "\n")
+            for k in np.arange(0, len(b1.T)):
+                text_file.write("%s:%s:%s\n" % (str(int(a1[k])),
+                                str(int(a2[k])),
+                                str(b1[k])))
             text_file.close()
 
             # Create the recode layer and calculate the IES
-            tmpf3 = tmpname('rmess_tmp3')
-            grass.run_command("r.recode", input=tmpf2, output=tmpf3, rules=tmprule)
-            z1 = ipi[i] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
-            z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
-            z3 = ", if(" + tmpf3 + "<100, 2*(100-float(" + tmpf3 + "))"
-            z4 = ", (" + str(float(envmax)) + "- float(" + tmpf2 + "))/(" + str(float(envmax)) + "-" + str(float(envmin)) +  ") * 100.0)))"
-            calcc = z1 + z2 + z3 + z4
-            grass.mapcalc(calcc, quiet=True)
-            grass.run_command("r.colors", quiet=True, map=ipi[i], rules=tmpcol)
+            compute_ies(tmprule, ipi[i], tmpf2, envmin, envmax)
+            gs.run_command("r.support", map=ipi[i],
+                           title="IES {}".format(REF[i]),
+                           units="0-100 (relative score",
+                           description="Environmental similarity {}"
+                           .format(REF[i]), loadhistory=tmphist)
+
+            # Clean up
             os.close(fd2)
             os.remove(tmprule)
-            grass.run_command("g.region", quiet=True, region=regionbackup)
 
-        if citiam['fullname'] != '':
-            grass.mapcalc("MASK1 = 1 * MASK", overwrite=True)
-            grass.run_command("r.mask", quiet=True, flags="r")
-            grass.run_command("g.rename", raster=("MASK1","MASK"))
+            # Change region back to original
+            gs.del_temp_region()
 
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Create the recode table - Reference distribution is vector
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
-    if rtl=="V":
+    else:
+        vtl = ref_vect
 
         # Copy point layer and add columns for variables
-        tmpf0 = tmpname('rmess_tmp0')
-        grass.run_command("v.extract", quiet=True, flags="t", input=vtl, type="point", output=tmpf0)
-        grass.run_command("v.db.addtable", quiet=True, map=tmpf0)
+        tmpf0 = tmpname('tmp7')
+        gs.run_command("v.extract", quiet=True, flags="t", input=vtl,
+                       type="point", output=tmpf0)
+        gs.run_command("v.db.addtable", quiet=True, map=tmpf0)
+
+        # TODO: mask is removed here because in the for loop below it is set and
+        # and removed at each iteration. Need a better way to do this.
+        if citiam['fullname']:
+            gs.run_command("r.mask", quiet=True, flags="r")
 
         # Upload raster values and get value in python as frequency table
-        check_n = len(np.hstack(db.db_select(sql = "SELECT cat FROM " + tmpf0)))
-        for m in xrange(len(ipl)):
+        sql1 = "SELECT cat FROM %s" % tmpf0
+        cn = len(np.hstack(db.db_select(sql=sql1)))
+        for m in xrange(len(REF)):
+
+            # Set mask back (this means that points outside the mask will
+            # be ignored in the computation of the frequency distribution
+            # of the reference variabele env(m))
+            if citiam['fullname']:
+                gs.run_command("g.copy", raster=[rname, 'MASK'], quiet=True)
+
+            # Compute frequency distribution of variable(m)
             mid = str(m)
-            laytype = grass.raster_info(ipl[m])['datatype']
-            if laytype =='CELL':
-                columns = "envvar" + mid + " integer"
+            laytype = gs.raster_info(REF[m])['datatype']
+            if laytype == 'CELL':
+                columns = "envvar_%s integer" % mid
             else:
-                columns = "envvar" + mid + " double precision"
-            grass.run_command("v.db.addcolumn", quiet=True, map=tmpf0, columns=columns)
-            grass.run_command("db.execute" , quiet=True, sql = "UPDATE " + tmpf0 + " SET envvar" + mid + " = NULL")
-            grass.run_command("v.what.rast", quiet=True, map=tmpf0, layer=1, raster=ipl[m], column="envvar" + mid)
-            volval = np.vstack(db.db_select(sql = "SELECT envvar" + mid + ",count(envvar" + mid +") from " + tmpf0 +
-                " WHERE envvar" + mid + " IS NOT NULL GROUP BY envvar" + mid + " ORDER BY envvar" + mid))
+                columns = "envvar_%s double precision" % mid
+            gs.run_command("v.db.addcolumn", map=tmpf0, columns=columns,
+                           quiet=True)
+            sql2 = "UPDATE %s SET envvar_%s = NULL" % (tmpf0, mid)
+            gs.run_command("db.execute", sql=sql2, quiet=True)
+            coln = "envvar_%s" % mid
+            gs.run_command("v.what.rast", quiet=True, map=tmpf0,
+                           layer=1, raster=REF[m], column=coln)
+            sql3 = ("SELECT {0}, count({0}) from {1} WHERE {0} IS NOT NULL "
+                    "GROUP BY {0} ORDER BY {0}").format(coln, tmpf0)
+            volval = np.vstack(db.db_select(sql=sql3))
             volval = volval.astype(np.float, copy=False)
-            a = np.cumsum(volval[:,1], axis=0)
-            b = np.sum(volval[:,1], axis=0)
+            a = np.cumsum(volval[:, 1], axis=0)
+            b = np.sum(volval[:, 1], axis=0)
             c = a / b * 100
 
             # Check for point without values
-            if b < check_n:
-                 grass.info("Please note that there were " + str(check_n - b) + " points without value")
-                 grass.info("This is probably because they lies outside the current region or input rasters")
+            if b < cn:
+                gs.info(_("Please note that there were %d points without "
+                          "value. This is probably because they are outside "
+                          "the computational region or mask") % (cn - b))
 
-            # Set region to env_new layers (if different from env_old)
-            if ipl_dif and not flr:
-                grass.run_command("g.region", quiet=True, raster=ipl2[0])
+            # Set region to env_proj layers (if different from env) and remove
+            # mask (if set above)
+            if citiam['fullname']:
+                gs.run_command("r.mask", quiet=True, flags="r")
+            if RP:
+                gs.use_temp_region()
+                gs.run_command("g.region", quiet=True, raster=PROJ[0])
+            region_2 = gs.parse_command("g.region", flags="g")
 
-            # Multiply env layer with dignum
-            tmpf2 = tmpname('rmess_tmp2')
-            grass.mapcalc("$tmpf2 = int($dignum * $inplay)", tmpf2=tmpf2,
-                          inplay=ipl[m],
-                          dignum=digits2,
-                          quiet=True)
+            # Multiply env_proj layer with dignum
+            tmpf2 = tmpname('tmp8')
+            gs.mapcalc("$tmpf2 = int($dignum * $inplay)", tmpf2=tmpf2,
+                       inplay=PROJ[m], dignum=digits2, quiet=True)
 
             # Calculate min and max values of sample points and raster layer
-            envmin = int(min(volval[:,0]) * digits2)
-            envmax = int(max(volval[:,0]) * digits2)
-            Drange = grass.read_command("r.info", flags="r", map=tmpf2)
+            envmin = int(min(volval[:, 0]) * digits2)
+            envmax = int(max(volval[:, 0]) * digits2)
+            Drange = gs.read_command("r.info", flags="r", map=tmpf2)
             Drange = str.splitlines(Drange)
             Drange = np.hstack([i.split('=') for i in Drange])
             Dmin = int(Drange[1])
             Dmax = int(Drange[3])
 
-            if Dmin < envmin: e1 = Dmin - 1
-            else: e1 = envmin -1
-            if Dmax > envmax: e2 = Dmax + 1
-            else: e2 = envmax + 1
+            if Dmin < envmin:
+                e1 = Dmin - 1
+            else:
+                e1 = envmin - 1
+            if Dmax > envmax:
+                e2 = Dmax + 1
+            else:
+                e2 = envmax + 1
 
-            a0 = volval[:,0] * digits2
+            a0 = volval[:, 0] * digits2
             a0 = a0.astype(np.int, copy=False)
-            a1 = np.hstack([(e1) , a0 ])
-            a2 = np.hstack([a0 -1, (e2) ])
+            a1 = np.hstack([(e1), a0])
+            a2 = np.hstack([a0 - 1, (e2)])
             b1 = np.hstack([(0), c])
 
             fd3, tmprule = tempfile.mkstemp(suffix=ipn[m])
             text_file = open(tmprule, "w")
-            for k in np.arange(0,len(b1)):
-                rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
-                text_file.write(rtmp + "\n")
+            for k in np.arange(0, len(b1)):
+                rtmp = "{}:{}:{}\n".format(str(int(a1[k])),
+                                           str(int(a2[k])),
+                                           str(b1[k]))
+                text_file.write(rtmp)
             text_file.close()
 
             # Create the recode layer and calculate the IES
-            tmpf3 = tmpname('rmess_tmp3')
-            grass.run_command("r.recode", quiet=True, input=tmpf2, output=tmpf3, rules=tmprule)
-
-            z1 = ipi[m] + " = if(" + tmpf3 + "==0, (float(" + tmpf2 + ")-" + str(float(envmin)) + ")/(" + str(float(envmax)) + "-" + str(float(envmin)) + ") * 100"
-            z2 = ", if(" + tmpf3 + "<=50, 2*float(" + tmpf3 + ")"
-            z3 = ", if(" + tmpf3 + "<100, 2*(100-float(" + tmpf3 + "))"
-            z4 = ", (" + str(float(envmax)) + "- float(" + tmpf2 + "))/(" + str(float(envmax)) + "-" + str(float(envmin)) +  ") * 100.0)))"
-            calcc = z1 + z2 + z3 + z4
-            grass.mapcalc(calcc, quiet=True)
-            grass.run_command("r.colors", quiet=True, map=ipi[m], rules=tmpcol)
+            compute_ies(tmprule, ipi[m], tmpf2, envmin, envmax)
+            gs.run_command("r.support", map=ipi[m],
+                           title="IES {}".format(REF[m]),
+                           units="0-100 (relative score",
+                           description="Environmental similarity {}"
+                           .format(REF[m]), loadhistory=tmphist)
 
             # Clean up
             os.close(fd3)
             os.remove(tmprule)
-            grass.run_command("g.region", quiet=True, region=regionbackup)
+
+            # Change region back to original
+            gs.del_temp_region()
 
     #-----------------------------------------------------------------------
     # Calculate MESS statistics
     #-----------------------------------------------------------------------
 
-    # MESS
-    grass.run_command("r.series", quiet=True, output=opc, input=ipi, method="minimum")
-    grass.run_command("r.colors", quiet=True, map=opc, rules=tmpcol)
-    grass.message("\n")
-    grass.message("The following layers were created:")
-    grass.message("\n")
-    grass.message("MES layer:       " + opc)
+    # Set region to env_proj layers (if different from env)
+    # Note: this changes the region, to ensure the newly created layers
+    # are actually visible to the user. This goes against normal practise
+    # There will be a warning.
+    if RP:
+        gs.run_command("g.region", quiet=True, raster=PROJ[0])
 
-    # Area with negative MESS
+    # MES
+    gs.run_command("r.series", quiet=True, output=opc, input=ipi,
+                   method="minimum")
+    gs.write_command("r.colors", map=opc, rules='-',
+                     stdin=COLORS_MES, quiet=True)
+
+    # Write layer metadata
+    gs.run_command("r.support", map=opc,
+                   title="Areas with novel conditions",
+                   units="0-100 (relative score",
+                   description="The multivariate environmental similarity"
+                   "(MES)", loadhistory=tmphist)
+
+    # Area with negative MES
     if fln:
-        grass.mapcalc(opc + "_neg = if(" + opc + "<0,1,0)", quiet=True)
+        mod1 = "{}_novel".format(opl)
+        gs.mapcalc("$mod1 = int(if( $opc < 0, 1, 0))",
+                   mod1=mod1, opc=opc, quiet=True)
+
+        # Write category labels
+        gs.write_command("r.category", map=mod1, rules='-', stdin=RECL_MESNEG,
+                         quiet=True)
+
+        # Write layer metadata
+        gs.run_command("r.support", map=mod1,
+                       title="Areas with novel conditions",
+                       units="-",
+                       source1="Based on {}".format(opc),
+                       description="1 = novel conditions, 0 = within range",
+                       loadhistory=tmphist)
 
     # Most dissimilar variable (MoD)
     if flm:
-        mod = opc + "_MoD"
-        grass.run_command("r.series", quiet=True, output=mod, input=ipi, method="min_raster")
+        tmpf4 = tmpname('tmp9')
+        mod2 = "{}_MoD".format(opl)
+        gs.run_command("r.series", quiet=True, output=tmpf4,
+                       input=ipi, method="min_raster")
+        gs.mapcalc("$mod2 = int($tmpf4)", mod2=mod2, tmpf4=tmpf4, quiet=True)
+
         fd4, tmpcat = tempfile.mkstemp()
         text_file = open(tmpcat, "w")
         for cats in xrange(len(ipi)):
-            text_file.write(str(cats) + ":" + ipi[cats] + "\n")
+            text_file.write("{}:{}\n".format(str(cats), REF[cats]))
         text_file.close()
-        grass.run_command("r.category", quiet=True, map=mod, rules=tmpcat, separator=":")
+        gs.run_command("r.category", quiet=True, map=mod2, rules=tmpcat,
+                       separator=":")
         os.close(fd4)
         os.remove(tmpcat)
-        grass.message("MoD layer:       " + mod)
+
+        # Write layer metadata
+        gs.run_command("r.support", map=mod2,
+                       title="Most dissimilar variable (MoD)",
+                       units="-",
+                       source1="Based on {}".format(opc),
+                       description="Name of most dissimilar variable",
+                       loadhistory=tmphist)
 
     # sum(IES), where IES < 0
     if flk:
-        mod = opc + "SumNeg"
+        mod3 = "{}_SumNeg".format(opl)
         c0 = -0.01/digits2
-        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="sum", range=('-inf',c0))
-        grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
-        grass.message("Sum(IES):        " + mod)
+        gs.run_command("r.series", quiet=True, input=ipi, method="sum",
+                       range=('-inf', c0), output=mod3)
+        gs.write_command("r.colors", map=mod3, rules='-',
+                         stdin=COLORS_MES, quiet=True)
+
+        # Write layer metadata
+        gs.run_command("r.support", map=mod3,
+                       title="Sum of negative IES values",
+                       units="-",
+                       source1="Based on {}".format(opc),
+                       description="Sum of negative IES values",
+                       loadhistory=tmphist)
 
     # Number of layers with negative values
-    if fll:
-        MinMes = grass.read_command("r.info", quiet=True, flags="r", map=opc)
+    if flc:
+        tmpf5 = tmpname('tmp10')
+        mod4 = "{}_CountNeg".format(opl)
+        MinMes = gs.read_command("r.info", quiet=True, flags="r", map=opc)
         MinMes = str.splitlines(MinMes)
         MinMes = float(np.hstack([i.split('=') for i in MinMes])[1])
-        mod = opc + "CountNeg"
         c0 = -0.0001/digits2
-        grass.run_command("r.series", quiet=True, input=ipi, output=mod, method="count", range=(MinMes,c0))
-        grass.run_command("r.colors", quiet=True, map=mod, col="ryg")
-        grass.message("Count(layers<0): " + mod)
-        grass.message("\n")
+        gs.run_command("r.series", quiet=True, input=ipi, output=tmpf5,
+                       method="count", range=(MinMes, c0))
+        gs.mapcalc("$mod4 = int($tmpf5)", mod4=mod4, tmpf5=tmpf5, quiet=True)
+
+        # Write layer metadata
+        gs.run_command("r.support", map=mod4,
+                       title="Number of layers with negative values",
+                       units="-",
+                       source1="Based on {}".format(opc),
+                       description="Number of layers with negative values",
+                       loadhistory=tmphist)
 
     # Remove IES layers
     if fli:
-        grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
+        gs.run_command("g.remove", quiet=True, flags="f", type="raster",
+                       name=ipi)
+    # Clean up tmp file
+    os.remove(tmphist)
+
+    gs.message(_("Finished ...\n"))
+    if region_1 != region_2:
+        gs.message(_("\nPlease note that the region has been changes to match"
+                     " the set of projection (env_proj) variables.\n"))
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
     atexit.register(cleanup)
-    sys.exit(main())
+    sys.exit(main(*gs.parser()))
