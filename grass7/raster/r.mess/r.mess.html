@@ -2,8 +2,8 @@
 
 The Multivariate Environmental Similarity (MES) surfaces was
 proposed by Elith et al (2010) [1] and originally implemented in the
-<a href="https://www.cs.princeton.edu/~schapire/maxent/">Maxent
-software</a>. The MES provides a measure of the portional distance
+<a href="https://www.cs.princeton.edu/~schapire/maxent/">Maxent software</a>.
+The MES provides a measure of the portional distance
 of any points (in the projection data) with respect to the range of
 individual covariates from reference data. More precisely, the MES
 represents how similar a point is to a reference set of points, with
@@ -54,8 +54,8 @@ temperature), bio12 (annual precipitation) and bio15 (precipitation
 seasonality) in Kenya and Uganda. All climate layers (current and
 future) are from http://www.worldclim.org. The protected areas layer
 includes all nationally designated protected areas with a IUCN
-category of II or higher from <a href="http://www.protectedplanet.net/">
-protectedplanet.net</a>.
+category of II or higher from
+<a href="http://www.protectedplanet.net/">protectedplanet.net</a>.
 
 <h3>Example 1</h3>
 
@@ -75,15 +75,17 @@ whole region, in terms of mean annual temperature (bio1), mean
 annual precipitation (bio12), precipitation seasonality (bio15) and
 the three combined (MES).
 
-<p><img src="r_mess_Ex_01.png">
+<center>
+<img src="r_mess_Ex_01.png">
+</center>
 
 <h3>Example 2</h3>
 
 In the second example, conditions in the whole region are compared
 to those in the region's protected areas (ppa), which thus serves as
-the reference/sample area. See <a href=
-"http://dx.doi.org/10.1371/journal.pone.0121444">van Breugel et al.
-(2015)</a> [3] for an example how this can be useful.
+the reference/sample area. See
+<a href="http://dx.doi.org/10.1371/journal.pone.0121444">van Breugel et al.(2015)</a> 
+[3] for an example how this can be useful.
 
 <div class="code"><pre>
 g.region raster=bio1
@@ -97,7 +99,9 @@ annual precipitation, mean annual temperature and precipitation
 seasonality gradients. Areas with novel conditions can be found in
 northern Kenya.
 
-<p><img src="r_mess_Ex_02.png">
+<center>
+<img src="r_mess_Ex_02.png">
+</center>
 
 <h3>Example 3</h3>
 
@@ -125,16 +129,16 @@ scores. Thus, the values in the <i>MES</i> and <i>SumNeg</i> maps
 only differ were the MES of more than one variable is negative (dark
 grey areas in the <i>Count</i> map).
 
-<p><img src="r_mess_Ex_03.png">
+<center>
+<img src="r_mess_Ex_03.png">
+</center>
+
 
 <h2>REFERENCES</h2>
 
 [1] Elith, J., Kearney, M., &amp; Phillips, S.
 2010. The art of modelling range-shifting species. Methods in
-Ecology and Evolution 1:330-342. See the <a href=
-"http://onlinelibrary.wiley.com/store/10.1111/j.2041-210X.2010.00036.x/asset/supinfo/MEE3_36_sm_AppendixS1-S7.pdf?v=1&s=1e415b952c1daabefb048c21520c727158760bc7">
-supplementary materials</a> supplementary materials</a> for a detailed
-description of how to compute the MES.
+Ecology and Evolution 1:330-342. 
 
 <p>[2] Mesgaran, M.B., Cousens, R.D. & Webber, B.L. (2014) Here be 
 dragons: a tool for quantifying novelty due to covariate range and 
