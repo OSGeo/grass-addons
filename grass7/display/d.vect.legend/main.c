@@ -21,9 +21,9 @@
 int main(int argc, char **argv)
 {
     struct GModule *module;
-    struct Option *opt_input, *opt_sep, *opt_at, *opt_font, *opt_fontsize, *opt_fontcolor,
-            *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font, *opt_sub_fontsize,
-            *opt_bcolor, *opt_bgcolor;
+    struct Option *opt_input, *opt_sep, *opt_at, *opt_cols, *opt_font, *opt_fontsize,
+            *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
+            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor;
     struct Flag *fl_bg;
 
     double LL, LT;
@@ -32,6 +32,7 @@ int main(int argc, char **argv)
     char *sep;
     int fontsize, fontcolor, tit_size, sub_size;
     char *font, *tit_font, *sub_font;
+    int cols;
 
 
     /* Initialize the GIS calls */
@@ -53,8 +54,6 @@ int main(int argc, char **argv)
     opt_input->guisection = _("Input");
 
     opt_sep = G_define_standard_option(G_OPT_F_SEP);
-    opt_sep->key = "delim";
-    opt_sep->description = _("Text separator");
     opt_sep->guisection = _("Input");
 
     opt_at = G_define_option();
@@ -67,6 +66,15 @@ int main(int argc, char **argv)
     opt_at->description =
     _("Screen position of legend to be drawn (percentage, [0,0] is lower left)");
     opt_at->guisection = _("Position");
+
+    opt_cols = G_define_option();
+    opt_cols->key = "columns";
+    opt_cols->type = TYPE_INTEGER;
+    opt_cols->answer = "1";
+    opt_cols->required = NO;
+    opt_cols->description =
+    _("Number of legend columns");
+    opt_cols->guisection = _("Position");
 
     opt_title = G_define_option();
     opt_title->key = "title";
@@ -169,6 +177,11 @@ int main(int argc, char **argv)
     else
         title = "";
 
+    if (opt_cols->answer)
+        sscanf(opt_cols->answer, "%d", &cols);
+    else
+        cols = 1;
+
     /* Background */
     do_bg = fl_bg->answer;
     bcolor = D_parse_color(opt_bcolor->answer, TRUE);
@@ -205,9 +218,9 @@ int main(int argc, char **argv)
     fontcolor = D_parse_color(opt_fontcolor->answer, FALSE); /*default color: black */
 
     if (do_bg)
-        draw(file_name, sep, LL, LT, title, bgcolor, bcolor, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
+        draw(file_name, sep, LL, LT, title, cols, bgcolor, bcolor, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
 
-    draw(file_name, sep, LL, LT, title, bgcolor, bcolor, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
+    draw(file_name, sep, LL, LT, title, cols, bgcolor, bcolor, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
 
     D_close_driver();
 

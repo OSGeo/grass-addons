@@ -9,30 +9,36 @@
  */
 
 #include <string.h>
+#include <math.h>
 #include <grass/display.h>
 #include <grass/glocale.h>
 #include <grass/colors.h>
 #include "local_proto.h"
 
-void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgcolor, int bcolor,
-          int do_bg, char* tit_font, int tit_size, char *sub_font, int sub_size, char *font,
-          int fontsize, int fontcolor)
+void draw(char *file_name, char *sep, double LL, double LT, char *title, int cols, int bgcolor,
+          int bcolor, int do_bg, char* tit_font, int tit_size, char *sub_font, int sub_size,
+          char *font, int fontsize, int fontcolor)
 {
     double db, dt, dl, dr;
     double bb, bt, bl, br;
     double x0, y0;
-    double offs_y, row_ind;
+    double offs_y, row_ind, offs_x;
+    double x, y;
     FILE *file_in;
     char buf[512];
     int got_new;
     SYMBOL *Symb;
     char *symb_name, *line_color_str, *fill_color_str, *label;
     double size, line_width;
-    double row_w, row_h;
+    double row_w, text_h, title_h, title_w;
     RGBA_Color *line_color, *fill_color;
     int ret, R, G, B;
     char *part, *sub_delim;
     double maxlblw, sym_lbl_space;
+    double symb_h, symb_w;
+    int item_count, item;
+    double it_per_col;
+    double margin, bg_h, bg_w;
 
 
 
@@ -40,19 +46,17 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgc
     x0 = dl + (int)((dr - dl) * LL / 100.);
     y0 = dt + (int)((db - dt) * (100 - LT) / 100.);
 
-    maxlblw = 0;
-    offs_y = 0;
-
     /* Draw title */
     if (strlen(title) > 0) {
         D_text_size(tit_size, tit_size);
         D_font(tit_font);
         D_get_text_box(title, &bb, &bt, &bl, &br);
-        row_h = bb - bt;
-        offs_y += row_h;
-        maxlblw = br - bl;
+        title_h = bb - bt;
+        title_w = br - bl;
         if (! do_bg) {
-            D_pos_abs(x0, y0 + offs_y);
+            x = x0;
+            y = y0 + title_h;
+            D_pos_abs(x, y);
             D_use_color(fontcolor);
             D_text(title);
         }
@@ -62,15 +66,53 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgc
     if (!file_in)
         G_fatal_error(_("Unable to open input file <%s>"), file_name);
 
-    row_ind = 5;
-    sym_lbl_space = 5;
-    sub_delim = G_malloc(strlen(buf)+1);
-    snprintf(sub_delim, sizeof(sub_delim), "%s%s%s%s%s", sep, sep, sep, sep, sep);
-
+    /* Get number of legend row(item) */
+    item_count = 0;
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
     while (got_new) {
+        item_count++;
+        got_new = G_getl2(buf, sizeof(buf), file_in);
+        G_strip(buf);
+    }
+    rewind(file_in);
+    it_per_col = ceil(item_count / (cols * 1.0));
+
+//    D_pos_abs(x0 + 200, y0 + offs_y);
+//    D_use_color(fontcolor);
+//    label = G_malloc(strlen(buf)+1);
+//    sprintf(label, "%d", item_count);
+//    D_text(label);
+
+
+    bg_h = 0;
+    maxlblw = 0;
+    offs_y = 0;
+    row_ind = 5;
+    sym_lbl_space = 5;
+    item = 0;
+    offs_x = 0;
+    margin = 10;
+    sub_delim = G_malloc(strlen(buf)+1);
+    snprintf(sub_delim, sizeof(strlen(buf)+1), "%s%s%s%s%s", sep, sep, sep, sep, sep);
+
+    got_new = G_getl2(buf, sizeof(buf), file_in);
+    G_strip(buf);
+
+    while (got_new) {
+        if (item < it_per_col)
+            item++;
+        else {
+            if (bg_h < offs_y)
+                bg_h = offs_y + symb_h/2.;
+            offs_x += maxlblw + margin;
+            offs_y = 0;
+            maxlblw = 0;
+            item = 1;
+
+        }
         if (strstr(buf, sub_delim) != NULL) {
+            /* Group subtitle */
             label = G_malloc(strlen(buf)+1);
             part = strtok(buf, sep);
             sscanf(part, "%s", label);
@@ -78,20 +120,24 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgc
             D_text_size(sub_size, sub_size);
             D_font(sub_font);
             D_get_text_box(label, &bb, &bt, &bl, &br);
-            row_h = bb - bt;
-            row_w = br - bb;
-            offs_y += row_h + row_ind;
+            text_h = bb - bt;
+            row_w = br - bl;
+            offs_y += text_h + row_ind;
+            if (bg_h < offs_y)
+                bg_h = offs_y + symb_h/2.;
             if (row_w > maxlblw)
                 maxlblw = row_w;
 
             if (! do_bg) {
-                D_pos_abs(x0, y0 + offs_y);
+                x = x0 + offs_x;
+                y = y0 + title_h + offs_y;
+                D_pos_abs(x, y);
                 D_use_color(fontcolor);
                 D_text(label);
             }
         }
         else {
-            /* Parse the line */
+            /* Items */
             symb_name = G_malloc(strlen(buf) + 1);
             line_color_str = G_malloc(strlen(buf) + 1);
             fill_color_str = G_malloc(strlen(buf) + 1);
@@ -146,17 +192,26 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgc
             D_text_size(fontsize, fontsize);
             D_font(font);
             D_get_text_box(label, &bb, &bt, &bl, &br);
-            row_h = bb - bt;
-            row_w = row_h + sym_lbl_space + br - bb;
-            offs_y += row_h + row_ind;
+
+            symb_h = Symb->yscale * size * 2;
+            symb_w = Symb->xscale * size * 2;
+            text_h = bb - bt;
+            row_w = symb_w + sym_lbl_space + br - bl;
+            offs_y += symb_h + row_ind;
+            if (bg_h < offs_y)
+                bg_h = offs_y + symb_h/2.;
             if (row_w > maxlblw)
                 maxlblw = row_w;
 
             if (! do_bg) {
                 S_stroke(Symb, size, 0, 0);
-                D_symbol(Symb, x0 + row_h/2, y0 + offs_y - row_h/2, line_color, fill_color);
+                x = x0 + offs_x + symb_h/2;
+                y = y0 + title_h + offs_y - symb_h/2;
+                D_symbol(Symb, x, y, line_color, fill_color);
 
-                D_pos_abs(x0 + row_h + sym_lbl_space, y0 + offs_y);
+                x = x0 + offs_x + symb_w + sym_lbl_space;
+                y = y0 + title_h + offs_y - symb_h/2. + text_h/2.;
+                D_pos_abs(x, y);
                 D_use_color(fontcolor);
                 D_text(label);
             }
@@ -166,27 +221,20 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int bgc
         G_strip(buf);
     }
 
-    //            // Pomocny ctverec
-    //            D_begin();
-    //            D_move_abs(x0, y0 + offs_y);
-    //            D_cont_abs(x0 + row_h, y0 + offs_y);
-    //            D_cont_abs(x0 + row_h, y0 + offs_y - row_h);
-    //            D_cont_abs(x0, y0 + offs_y - row_h);
-    //            D_close();
-    //            D_end();
-    //            D_stroke();
-    //            // Pomocny ctverec
-
     fclose(file_in);
 
     /* Draw background */
     if (do_bg) {
-        double x0bg, y0bg, x1bg, y1bg, bg_margin;
-        bg_margin = 10;
-        x0bg = x0 - bg_margin;
-        y0bg = y0 - bg_margin;
-        x1bg = x0 + maxlblw + bg_margin;
-        y1bg = y0 + offs_y + bg_margin;
+        double x0bg, y0bg, x1bg, y1bg;
+        if (title_w > offs_x + maxlblw)
+            bg_w = title_w;
+        else
+            bg_w = offs_x + maxlblw;
+
+        x0bg = x0 - margin;
+        y0bg = y0 - margin;
+        x1bg = x0 + bg_w + margin;
+        y1bg = y0 + bg_h + margin;
 
         if (bgcolor) {
             D_use_color(bgcolor);
