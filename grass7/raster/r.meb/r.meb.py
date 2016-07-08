@@ -19,9 +19,7 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 2015 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -35,31 +33,22 @@
 #% keyword: modelling
 #%End
 
-#%option
+#%option G_OPT_R_INPUTS
 #% key: env
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: Raster map(s) of environmental conditions
 #% key_desc: names
-#% required: yes
-#% multiple: yes
 #% guisection: Input
 #%end
 
-#%option
+#%option G_OPT_R_INPUTS
 #% key: ref
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: Area for which EB should be computed (binary map with 1 and 0)
 #% key_desc: names
-#% required: yes
 #% guisection: Input
 #%end
 
-#%option
+#%option G_OPT_R_OUTPUT
 #% key: output
-#% type: string
-#% gisprompt: new,cell,raster
 #% description: Output MES layer (and root for IES layers if kept)
 #% key_desc: names
 #% required: no
@@ -125,305 +114,290 @@ import operator
 import atexit
 import tempfile
 import string
-import grass.script as grass
+import grass.script as gs
 
-#----------------------------------------------------------------------------
-# Standard
-#----------------------------------------------------------------------------
-
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
-# create set to store names of temporary maps to be deleted upon exit
-clean_rast = set()
-def cleanup():
-    for rast in clean_rast:
-        cf = grass.find_file(name=rast, element = 'cell',
-                          mapset=grass.gisenv()['MAPSET'])
-        if cf['fullname'] != '':
-            grass.run_command("g.remove", type="raster",
-                              name=rast, quiet=True, flags="f")
+# Rules
+COLORS_MES = """\
+0% 244:109:67
+0 255:255:210
+100% 50:136:189
+"""
 
 #----------------------------------------------------------------------------
 # Functions
 #----------------------------------------------------------------------------
 
+# create set to store names of temporary maps to be deleted upon exit
+CLEAN_RAST = []
+
+
+def cleanup():
+    """Remove temporary maps specified in the global list"""
+    for rast in CLEAN_RAST:
+        cf = gs.find_file(name=rast, element="cell",
+                          mapset=gs.gisenv()["MAPSET"])
+        if cf["fullname"] != "":
+            gs.run_command("g.remove", type="raster",
+                           name=rast, quiet=True, flags="f")
+
+
 # Create temporary name
-def tmpname(name):
-    tmpf = name + "_" + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
-    clean_rast.add(tmpf)
+def tmpname(prefix):
+    """Generate a tmp name which contains prefix
+    Store the name in the global list.
+    Use only for raster maps.
+    """
+    tmpf = prefix + str(uuid.uuid4())
+    tmpf = string.replace(tmpf, "-", "_")
+    CLEAN_RAST.append(tmpf)
     return tmpf
 
-# Create temporary filename
-def CreateFileName(outputfile):
-    flname = outputfile
-    k = 0
-    while os.path.isfile(flname):
-        k = k + 1
-        fn = flname.split('.')
-        if len(fn) == 1:
-            flname = fn[0] + "_" + str(k)
-        else:
-            flname = fn[0] + "_" + str(k) + "." + fn[1]
-    return flname
 
-def CheckLayer(envlay):
+def raster_exists(envlay):
+    """Check if the raster map exists, call GRASS fatal otherwise"""
     for chl in xrange(len(envlay)):
-        ffile = grass.find_file(envlay[chl], element = 'cell')
-        if ffile['fullname'] == '':
-            grass.fatal("The layer " + envlay[chl] + " does not exist.")
+        ffile = gs.find_file(envlay[chl], element="cell")
+        if not ffile["fullname"]:
+            gs.fatal(_("The layer {} does not exist").format(envlay[chl]))
 
-# Write color rule file
-def defcol(mapname):
-    # Color table
-    fd1, tmpcol = tempfile.mkstemp()
-    text_file = open(tmpcol, "w")
-    text_file.write("0% 244:109:67\n")
-    text_file.write("50 255:255:210\n")
-    text_file.write("100% 50:136:189\n")
-    text_file.close()
-    # Assign color table
-    grass.run_command("r.colors", flags="n", quiet=True, map=mapname, rules=tmpcol)
-    os.close(fd1)
-    os.remove(tmpcol)
 
 # Compute EB for input file (simlay = similarity, reflay = reference layer)
 def EB(simlay, reflay):
-
+    """Computation of the envirionmental bias and print to stdout"""
     # Median and mad for whole region (within current mask)
-    tmpf4 = tmpname('reb4')
-    clean_rast.add(tmpf4)
-    d = grass.read_command("r.quantile", quiet=True, input=simlay,
-                           percentiles="50")
+    tmpf4 = tmpname("reb4")
+    CLEAN_RAST.append(tmpf4)
+    d = gs.read_command("r.quantile", quiet=True, input=simlay,
+                        percentiles="50")
     d = d.split(":")
     d = float(string.replace(d[2], "\n", ""))
-    grass.mapcalc("$tmpf4 = abs($map - $d)",
-                  map=simlay,
-                  tmpf4=tmpf4,
-                  d=d, quiet=True)
-    mad = grass.read_command("r.quantile", quiet=True, input=tmpf4,
-                             percentiles="50")
+    gs.mapcalc("$tmpf4 = abs($map - $d)",
+               map=simlay,
+               tmpf4=tmpf4,
+               d=d, quiet=True)
+    mad = gs.read_command("r.quantile", quiet=True, input=tmpf4,
+                          percentiles="50")
     mad = mad.split(":")
     mad = float(string.replace(mad[2], "\n", ""))
-    grass.run_command("g.remove", quiet=True, flags="f", type="raster",
-                      name=tmpf4)
+    gs.run_command("g.remove", quiet=True, flags="f", type="raster",
+                   name=tmpf4)
 
     # Median and mad for reference layer
-    tmpf5 = tmpname('reb5')
-    clean_rast.add(tmpf5)
-    grass.mapcalc("$tmpf5 = if($reflay==1, $simlay, null())", simlay=simlay,
-                                tmpf5=tmpf5, reflay=reflay, quiet=True)
-    e = grass.read_command("r.quantile", quiet=True, input=tmpf5,
-                           percentiles="50")
+    tmpf5 = tmpname("reb5")
+    CLEAN_RAST.append(tmpf5)
+    gs.mapcalc("$tmpf5 = if($reflay==1, $simlay, null())", simlay=simlay,
+               tmpf5=tmpf5, reflay=reflay, quiet=True)
+    e = gs.read_command("r.quantile", quiet=True, input=tmpf5,
+                        percentiles="50")
     e = e.split(":")
     e = float(string.replace(e[2], "\n", ""))
     EBstat = abs(d - e) / mad
 
     # Print results to screen and return results
-    grass.info("Median (all region) = " + str('%.3f') %d)
-    grass.info("Median (ref. area) = " + str('%.3f') %e)
-    grass.info("MAD = " + str('%.3f') %mad)
-    grass.info("EB = " + str('%.3f') %EBstat)
+    gs.info(_("Median (all region) = {:.3f}").format(d))
+    gs.info(_("Median (ref. area) = {:.3f}").format(e))
+    gs.info(_("MAD = {:.3f}").format(mad))
+    gs.info(_("EB = {:.3f}").format(EBstat))
 
     # Clean up and return data
-    grass.run_command("g.remove", flags="f", type="raster", name=tmpf5, quiet=True)
+    gs.run_command("g.remove", flags="f", type="raster", name=tmpf5,
+                   quiet=True)
     return (mad, d, e, EBstat)
 
-def main():
 
-    #----------------------------------------------------------------------------
+def main(options, flags):
+
+    # Check if running in GRASS
+    gisbase = os.getenv("GISBASE")
+    if not gisbase:
+        gs.fatal(_("$GISBASE not defined"))
+        return 0
+
+    #-------------------------------------------------------------------------
     # Variables
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     # variables
-    ipl = options['env']
-    ipl = ipl.split(',')
-    CheckLayer(ipl)
-    ipn = [z.split('@')[0] for z in ipl]
+    ipl = options["env"]
+    ipl = ipl.split(",")
+    raster_exists(ipl)
+    ipn = [z.split("@")[0] for z in ipl]
     ipn = [x.lower() for x in ipn]
-    out = options['output']
-    if out == '':
-        tmpf0 = tmpname('reb0')
-    else:
+    out = options["output"]
+    if out:
         tmpf0 = out
-    filename = options['file']
-    if filename != '':
-        filename = CreateFileName(filename)
-    ref = options['ref']
-    flag_m = flags['m']
-    flag_n = flags['n']
-    flag_o = flags['o']
-    flag_i = flags['i']
-    digits = int(options['digits'])
+    else:
+        tmpf0 = tmpname("reb0")
+    filename = options["file"]
+    ref = options["ref"]
+    flag_m = flags["m"]
+    flag_n = flags["n"]
+    flag_o = flags["o"]
+    flag_i = flags["i"]
+    digits = int(options["digits"])
     digits2 = pow(10, digits)
 
-    # Check input
-    reftype = grass.raster_info(ref)['datatype']
-    if reftype != 'CELL':
-        grass.fatal('Your reference map should be an integer binary map with 0 and 1')
-    else:
-        refrange = grass.parse_command("r.univar", flags="g", map=ref)
-        if refrange['min'] != '0' or refrange['max'] != '1':
-            grass.fatal('Your reference map should be an binary map with 0 and 1')
+    # Check if ref map is of type cell and values are limited to 1 and 0
+    reftype = gs.raster_info(ref)
+    if reftype['datatype'] != "CELL":
+        gs.fatal(_("Your reference map must have type CELL (integer)"))
+    if reftype['min'] != 0 or reftype['max'] != 1:
+        grass.fatal(_("The input raster map must be a binary raster,"
+                      " i.e. it should contain only values 0 and 1"
+                      " (now the minimum is %d and maximum is %d)")
+                    % (reftype['min'], reftype['max']))
 
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Compute MES
-    #----------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
 
     # Create temporary copy of ref layer
-    tmpref0 = tmpname('reb1')
-    clean_rast.add(tmpref0)
-    grass.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
+    tmpref0 = tmpname("reb1")
+    CLEAN_RAST.append(tmpref0)
+    gs.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
 
     ipi = []
-
-    grass.info("\n")
-    grass.info("Computing the ES for:")
-    grass.info("-------------------------------------------")
     for j in xrange(len(ipl)):
-        grass.info("Data layer " + ipl[j])
+        gs.info(_("Computing the ES for {}\n").format(ipl[j]))
 
         # Calculate the frequency distribution
-        tmpf1 = tmpname('reb1')
-        clean_rast.add(tmpf1)
-        laytype = grass.raster_info(ipl[j])['datatype']
-        if laytype == 'CELL':
-            grass.run_command("g.copy", quiet=True, raster=(ipl[j], tmpf1))
+        tmpf1 = tmpname("reb1")
+        CLEAN_RAST.append(tmpf1)
+        laytype = gs.raster_info(ipl[j])["datatype"]
+        if laytype == "CELL":
+            gs.run_command("g.copy", quiet=True, raster=(ipl[j], tmpf1))
         else:
-            grass.mapcalc("$tmpf1 = int($dignum * $inplay)",
-                          tmpf1=tmpf1,
-                          inplay=ipl[j],
-                          dignum=digits2,
-                          quiet=True)
-        p = grass.pipe_command('r.stats', quiet=True, flags='cn', input=tmpf1, sort='asc', sep=';')
+            gs.mapcalc("$tmpf1 = int($dignum * $inplay)", tmpf1=tmpf1,
+                       inplay=ipl[j], dignum=digits2, quiet=True)
+        p = gs.pipe_command("r.stats", quiet=True, flags="cn", input=tmpf1,
+                            sort="asc", sep=";")
         stval = {}
         for line in p.stdout:
-            [val, count] = line.strip(os.linesep).split(';')
+            [val, count] = line.strip(os.linesep).split(";")
             stval[float(val)] = float(count)
         p.wait()
         sstval = sorted(stval.items(), key=operator.itemgetter(0))
         sstval = np.matrix(sstval)
         a = np.cumsum(np.array(sstval), axis=0)
         b = np.sum(np.array(sstval), axis=0)
-        c = a[:,1] / b[1] * 100
+        c = a[:, 1] / b[1] * 100
 
         # Create recode rules
         e1 = np.min(np.array(sstval), axis=0)[0] - 99999
         e2 = np.max(np.array(sstval), axis=0)[0] + 99999
         a1 = np.hstack([(e1), np.array(sstval.T[0])[0, :]])
-        a2 = np.hstack([np.array(sstval.T[0])[0,:] -1, (e2)])
+        a2 = np.hstack([np.array(sstval.T[0])[0, :] - 1, (e2)])
         b1 = np.hstack([(0), c])
 
         fd2, tmprule = tempfile.mkstemp()
         text_file = open(tmprule, "w")
         for k in np.arange(0, len(b1.T)):
-            rtmp = str(int(a1[k])) + ":" + str(int(a2[k])) + ":" + str(b1[k])
-            text_file.write(rtmp + "\n")
+            text_file.write("{}:{}:{}\n".format(int(a1[k]), int(a2[k]), b1[k]))
         text_file.close()
 
         # Create the recode layer and calculate the IES
-        tmpf2 = tmpname('reb2')
-        clean_rast.add(tmpf2)
-        grass.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule)
+        tmpf2 = tmpname("reb2")
+        CLEAN_RAST.append(tmpf2)
+        gs.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule)
 
-        tmpf3 = tmpname('reb3')
-        clean_rast.add(tmpf3)
-        z1 = tmpf3 + " = if(" + tmpf2 + "<=50, 2*float(" + tmpf2 + ")"
-        z3 = ", if(" + tmpf2 + "<100, 2*(100-float(" + tmpf2 + "))))"
-        calcc = z1 + z3
-        grass.mapcalc(calcc, quiet=True)
-        grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf2)
-        grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf1)
+        tmpf3 = tmpname("reb3")
+        CLEAN_RAST.append(tmpf3)
+
+        calcc = "{1} = if({0} <= 50, 2 * float({0}), if({0} < 100, " \
+                "2 * (100 - float({0}))))".format(tmpf2, tmpf3)
+        gs.mapcalc(calcc, quiet=True)
+        gs.run_command("g.remove", quiet=True, flags="f", type="raster",
+                       name=(tmpf2, tmpf1))
         os.close(fd2)
         os.remove(tmprule)
         ipi.append(tmpf3)
-    grass.info("\n")
+
     #-----------------------------------------------------------------------
     # Calculate EB statistics
     #-----------------------------------------------------------------------
 
     # EB MES
     if flag_m:
-        grass.info("Computing the EB based on mean ES values")
-        grass.info("-------------------------------------------")
-        nmn = tmpf0 + "_MES_mean"
-        if out == '':
-            clean_rast.add(nmn)
-        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="average")
-        defcol(nmn)
+        gs.info(_("Computing the EB based on mean ES values\n"))
+        nmn = "{}_MES_mean".format(tmpf0)
+        if not out:
+            CLEAN_RAST.append(nmn)
+        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
+                       method="average")
+        gs.write_command("r.colors", map=nmn, rules="-",
+                         stdin=COLORS_MES, quiet=True)
         ebm = EB(simlay=nmn, reflay=tmpref0)
-        grass.info("\n")
 
     if flag_n:
-        grass.info("Computing the EB based on median ES values")
-        grass.info("-------------------------------------------")
-        nmn = tmpf0 + "_MES_median"
-        if out == '':
-            clean_rast.add(nmn)
-        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="median")
-        defcol(nmn)
+        gs.info(_("Computing the EB based on median ES values\n"))
+        nmn = "{}_MES_median".format(tmpf0)
+        if not out:
+            CLEAN_RAST.append(nmn)
+        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
+                       method="median")
+        gs.write_command("r.colors", map=nmn, rules="-",
+                         stdin=COLORS_MES, quiet=True)
         ebn = EB(simlay=nmn, reflay=tmpref0)
-        grass.info("\n")
 
     if flag_o:
-        grass.info("Computing the EB based on minimum ES values")
-        grass.info("-------------------------------------------")
-        nmn = tmpf0 + "_MES_minimum"
-        if out == '':
-            clean_rast.add(nmn)
-        grass.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi), method="minimum")
-        defcol(nmn)
+        gs.info(_("Computing the EB based on minimum ES values\n"))
+        nmn = "{}_MES_minimum".format(tmpf0)
+        if not out:
+            CLEAN_RAST.append(nmn)
+        gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
+                       method="minimum")
+        gs.write_command("r.colors", map=nmn, rules="-",
+                         stdin=COLORS_MES, quiet=True)
         ebo = EB(simlay=nmn, reflay=tmpref0)
-        grass.info("\n")
 
     # EB individual layers
     if flag_i:
-        grass.info("Computing the EB for the individual layers")
-        grass.info("-------------------------------------------")
         ebi = {}
         for mm in xrange(len(ipi)):
-            nmn = tmpf0 + "_" + ipn[mm]
-            if out == '':
-                clean_rast.add(nmn)
-            grass.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
-            defcol(nmn)
-            grass.info("Computing the EB for " + ipn[mm])
+            nmn = "{}_{}".format(tmpf0, ipn[mm])
+            if not out:
+                CLEAN_RAST.append(nmn)
+            gs.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
+            gs.write_command("r.colors", map=nmn, rules="-",
+                             stdin=COLORS_MES, quiet=True)
+            gs.info(_("Computing the EB for {}\n").format(ipn[mm]))
             value = EB(simlay=nmn, reflay=tmpref0)
             ebi[ipn[mm]] = value
-            grass.info("\n")
     else:
-        grass.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
+        gs.run_command("g.remove", quiet=True, flags="f", type="raster",
+                       name=ipi)
 
-    if filename != '':
-        grass.info("Writing results to text file")
-        grass.info("-------------------------------------------")
-        with open(filename, 'wb') as csvfile:
-            fieldnames = ['variable', 'median_region', 'median_reference', 'mad', 'eb']
+    if filename:
+        with open(filename, "wb") as csvfile:
+            fieldnames = ["variable", "median_region", "median_reference",
+                          "mad", "eb"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             if flag_m:
-                writer.writerow({'variable':'MES_mean', 'median_region':ebm[1],
-                                'median_reference':ebm[2],'mad':ebm[0],'eb':ebm[3]})
+                writer.writerow({"variable": "MES_mean",
+                                 "median_region": ebm[1],
+                                 "median_reference": ebm[2],
+                                 "mad": ebm[0], "eb": ebm[3]})
             if flag_n:
-                writer.writerow({'variable':'MES_median', 'median_region':ebn[1],
-                    'median_reference':ebn[2], 'mad':ebn[0],'eb':ebn[3]})
+                writer.writerow({"variable": "MES_median",
+                                 "median_region": ebn[1],
+                                 "median_reference": ebn[2],
+                                 "mad": ebn[0], "eb": ebn[3]})
             if flag_o:
-                writer.writerow({'variable':'MES_minimum','median_region':ebo[1],
-                    'median_reference':ebo[2], 'mad':ebo[0],'eb':ebo[3]})
+                writer.writerow({"variable": "MES_minimum",
+                                 "median_region": ebo[1],
+                                 "median_reference": ebo[2],
+                                 "mad": ebo[0], "eb": ebo[3]})
             if flag_i:
                 mykeys = ebi.keys()
                 for vari in mykeys:
                     ebj = ebi[vari]
-                    writer.writerow({'variable':vari,'median_region':ebj[1],
-                        'median_reference':ebj[2], 'mad':ebj[0],'eb':ebj[3]})
-        grass.info("\nThe results are written to " + filename + "\n")
-        grass.info("\n")
+                    writer.writerow({"variable": vari, "median_region": ebj[1],
+                                     "median_reference": ebj[2], "mad": ebj[0],
+                                     "eb": ebj[3]})
+        gs.info(_("The results are written to {}\n").format(filename))
+        gs.info("\n")
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
     atexit.register(cleanup)
-    sys.exit(main())
-
-
+    sys.exit(main(*gs.parser()))
