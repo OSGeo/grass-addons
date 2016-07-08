@@ -205,6 +205,17 @@ def main(options, flags):
     ref_rast = options['ref_rast']
     ref_vect = options['ref_vect']
 
+    # Check if ref_rast map is of type cell and values are limited to 1 and 0
+    if ref_rast:
+        reftype = gs.raster_info(ref_rast)
+        if reftype['datatype'] != "CELL":
+            gs.fatal(_("The ref_rast map must have type CELL (integer)"))
+        if reftype['min'] != 0 or reftype['max'] != 1:
+            grass.fatal(_("The ref_rast map must be a binary raster,"
+                          " i.e. it should contain only values 0 and 1"
+                          " (now the minimum is %d and maximum is %d)")
+                        % (reftype['min'], reftype['max']))
+
     # old environmental layers & variable names
     REF = options['env']
     REF = REF.split(',')
@@ -409,8 +420,7 @@ def main(options, flags):
                        type="point", output=tmpf0)
         gs.run_command("v.db.addtable", quiet=True, map=tmpf0)
 
-        # TODO: mask is removed here because in the for loop below it is set and
-        # and removed at each iteration. Need a better way to do this.
+        # TODO: see if there is a more efficient way to handle the mask
         if citiam['fullname']:
             gs.run_command("r.mask", quiet=True, flags="r")
 
