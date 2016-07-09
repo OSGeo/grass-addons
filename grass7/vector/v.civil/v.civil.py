@@ -703,7 +703,7 @@ def main():
             road.plant_generate(False, float(options['camber']))
 
         if 'plan' in plan_opt:
-            road.rtab.update_tables_pnts(road.plant)
+            road.rtab.update_tables(road.plant)
 
         road.elev_generate()
 
