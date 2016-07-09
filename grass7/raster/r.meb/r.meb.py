@@ -19,7 +19,7 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
+# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -29,12 +29,14 @@
 #
 #%Module
 #% description: Compute the multivariate environmental bias (MEB)
+#% keyword: similarity
 #% keyword: raster
 #% keyword: modelling
 #%End
 
 #%option G_OPT_R_INPUTS
 #% key: env
+#% label: Environmental layers
 #% description: Raster map(s) of environmental conditions
 #% key_desc: names
 #% guisection: Input
@@ -42,13 +44,16 @@
 
 #%option G_OPT_R_INPUTS
 #% key: ref
-#% description: Area for which EB should be computed (binary map with 1 and 0)
+#% label: Reference area
+#% description: Sub-area (1) within region (1+0) for which to compute the EB
 #% key_desc: names
+#% multiple: no
 #% guisection: Input
 #%end
 
 #%option G_OPT_R_OUTPUT
 #% key: output
+#% label: Root of name output layers
 #% description: Output MES layer (and root for IES layers if kept)
 #% key_desc: names
 #% required: no
@@ -58,6 +63,7 @@
 
 #%option G_OPT_F_OUTPUT
 #% key:file
+#% label: Name of output text file
 #% description: Name of output text file (csv format)
 #% key_desc: name
 #% required: no
@@ -213,10 +219,6 @@ def main(options, flags):
         gs.fatal(_("$GISBASE not defined"))
         return 0
 
-    #-------------------------------------------------------------------------
-    # Variables
-    #-------------------------------------------------------------------------
-
     # variables
     ipl = options["env"]
     ipl = ipl.split(",")
@@ -242,10 +244,19 @@ def main(options, flags):
     if reftype['datatype'] != "CELL":
         gs.fatal(_("Your reference map must have type CELL (integer)"))
     if reftype['min'] != 0 or reftype['max'] != 1:
-        grass.fatal(_("The input raster map must be a binary raster,"
-                      " i.e. it should contain only values 0 and 1"
-                      " (now the minimum is %d and maximum is %d)")
-                    % (reftype['min'], reftype['max']))
+        gs.fatal(_("The input raster map must be a binary raster,"
+                   " i.e. it should contain only values 0 and 1 "
+                   " (now the minimum is %d and maximum is %d)")
+                 % (reftype['min'], reftype['max']))
+
+    # Text for history in metadata
+    opt2 = dict((k, v) for k, v in options.iteritems() if v)
+    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    hist = "r.meb {}".format(hist)
+    unused, tmphist = tempfile.mkstemp()
+    text_file = open(tmphist, "w")
+    text_file.write(hist)
+    text_file.close()
 
     #-------------------------------------------------------------------------
     # Compute MES
@@ -258,8 +269,6 @@ def main(options, flags):
 
     ipi = []
     for j in xrange(len(ipl)):
-        gs.info(_("Computing the ES for {}\n").format(ipl[j]))
-
         # Calculate the frequency distribution
         tmpf1 = tmpname("reb1")
         CLEAN_RAST.append(tmpf1)
@@ -318,37 +327,62 @@ def main(options, flags):
 
     # EB MES
     if flag_m:
-        gs.info(_("Computing the EB based on mean ES values\n"))
+        gs.info(_("\nThe EB based on mean ES values:\n"))
         nmn = "{}_MES_mean".format(tmpf0)
-        if not out:
-            CLEAN_RAST.append(nmn)
         gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
                        method="average")
         gs.write_command("r.colors", map=nmn, rules="-",
                          stdin=COLORS_MES, quiet=True)
         ebm = EB(simlay=nmn, reflay=tmpref0)
+        if not out:
+            # Add to list of layers to be removed at completion
+            CLEAN_RAST.append(nmn)
+        else:
+            # Write layer metadata
+            gs.run_command("r.support", map=nmn,
+                           title="Multivariate environmental similarity (MES)",
+                           units="0-100 (relative score",
+                           description="MES (compuated as the average of "
+                           "the individual similarity layers",
+                           loadhistory=tmphist)
 
     if flag_n:
-        gs.info(_("Computing the EB based on median ES values\n"))
+        gs.info(_("\nThe EB based on median ES values:\n"))
         nmn = "{}_MES_median".format(tmpf0)
-        if not out:
-            CLEAN_RAST.append(nmn)
         gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
                        method="median")
         gs.write_command("r.colors", map=nmn, rules="-",
                          stdin=COLORS_MES, quiet=True)
         ebn = EB(simlay=nmn, reflay=tmpref0)
-
-    if flag_o:
-        gs.info(_("Computing the EB based on minimum ES values\n"))
-        nmn = "{}_MES_minimum".format(tmpf0)
         if not out:
             CLEAN_RAST.append(nmn)
+        else:
+            # Write layer metadata
+            gs.run_command("r.support", map=nmn,
+                           title="Multivariate environmental similarity (MES)",
+                           units="0-100 (relative score",
+                           description="MES (compuated as the median of "
+                           "the individual similarity layers",
+                           loadhistory=tmphist)
+
+    if flag_o:
+        gs.info(_("\nThe EB based on minimum ES values:\n"))
+        nmn = "{}_MES_minimum".format(tmpf0)
         gs.run_command("r.series", quiet=True, output=nmn, input=tuple(ipi),
                        method="minimum")
         gs.write_command("r.colors", map=nmn, rules="-",
                          stdin=COLORS_MES, quiet=True)
         ebo = EB(simlay=nmn, reflay=tmpref0)
+        if not out:
+            CLEAN_RAST.append(nmn)
+        else:
+        # Write layer metadata
+            gs.run_command("r.support", map=nmn,
+                           title="Multivariate environmental similarity (MES)",
+                           units="0-100 (relative score",
+                           description="MES (compuated as the minimum of "
+                           "the individual similarity layers",
+                           loadhistory=tmphist)
 
     # EB individual layers
     if flag_i:
@@ -360,9 +394,15 @@ def main(options, flags):
             gs.run_command("g.rename", quiet=True, raster=(ipi[mm], nmn))
             gs.write_command("r.colors", map=nmn, rules="-",
                              stdin=COLORS_MES, quiet=True)
-            gs.info(_("Computing the EB for {}\n").format(ipn[mm]))
+            gs.info(_("\nThe EB for {}:\n").format(ipn[mm]))
             value = EB(simlay=nmn, reflay=tmpref0)
             ebi[ipn[mm]] = value
+            gs.run_command("r.support", map=nmn,
+                           title="Environmental similarity (ES) for "
+                           "{}".format(ipn[mm]), units="0-100 (relative score",
+                           description="Environmental similarity (ES) for "
+                           "{}".format(ipn[mm]),
+                           loadhistory=tmphist)
     else:
         gs.run_command("g.remove", quiet=True, flags="f", type="raster",
                        name=ipi)
@@ -395,7 +435,7 @@ def main(options, flags):
                     writer.writerow({"variable": vari, "median_region": ebj[1],
                                      "median_reference": ebj[2], "mad": ebj[0],
                                      "eb": ebj[3]})
-        gs.info(_("The results are written to {}\n").format(filename))
+        gs.info(_("\nThe results are written to {}\n").format(filename))
         gs.info("\n")
 
 if __name__ == "__main__":
