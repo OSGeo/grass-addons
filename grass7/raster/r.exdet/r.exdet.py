@@ -12,7 +12,7 @@
 #               combinations between covariates (NT2).
 #               Based on Mesgaran et al.2014 [1]
 #
-# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
+# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
 #
 #        This program is free software under the GNU General Public
 #        License (>=v2). Read the file COPYING that comes with GRASS
@@ -29,7 +29,8 @@
 
 #%option G_OPT_R_INPUTS
 #% key: reference
-#% description: Reference environmental raster layers
+#% label: Reference conditions
+#% description: Reference environmental conditions
 #% key_desc: raster
 #% required: yes
 #% multiple: yes
@@ -38,9 +39,10 @@
 
 #%option G_OPT_R_INPUTS
 #% key: projection
-#% description: Projected environmental raster layers
+#% label: Projected conditions
+#% description: Projected conditions to be compared to reference conditions
 #% key_desc: raster
-#% required: yes
+#% required: no
 #% multiple: yes
 #% guisection: Input
 #%end
@@ -49,7 +51,8 @@
 #% key: region
 #% type: string
 #% gisprompt: new,region
-#% description: Region defining the projected area
+#% label: Projection region
+#% description: Region defining the area to be compared to the reference area
 #% key_desc: region
 #% required: no
 #% multiple: no
@@ -62,6 +65,7 @@
 
 #%option G_OPT_R_BASENAME_OUTPUT
 #% key: output
+#% label: Suffix name output layers
 #% description: Root name of the output layers
 #% key_desc: raster
 #% required: yes
@@ -86,9 +90,6 @@
 #% key: d
 #% description: Keep layer mahalanobis distance?
 #%end
-
-# Dependencies
-# Numpy >= 1.8, Scipy, grass >= 7.0
 
 # import libraries
 import os
@@ -123,7 +124,7 @@ def cleanup():
 
 def checkmask():
     """Check if there is a MASK set"""
-    ffile = gs.find_file("MASK", element="CELL",
+    ffile = gs.find_file(name="MASK", element="cell",
                          mapset=gs.gisenv()['MAPSET'])
     mask_presence = ffile['fullname'] != ''
     return mask_presence
@@ -159,10 +160,13 @@ def main(options, flags):
 
     # Variables
     ref = options['reference']
-    ref = ref.split(',')
+    REF = ref.split(',')
     pro = options['projection']
-    pro = pro.split(',')
-    opn = [z.split('@')[0] for z in pro]
+    if pro:
+        PRO = pro.split(',')
+    else:
+        PRO = REF
+    opn = [z.split('@')[0] for z in PRO]
     opn = [x.lower() for x in opn]
     out = options['output']
     region = options['region']
@@ -174,30 +178,38 @@ def main(options, flags):
         ffile = gs.find_file(region, element="region")
         if not ffile:
             gs.fatal(_("the region {} does not exist").format(region))
-    if ref == pro and checkmask() is False and not region:
-        gs.fatal(_("Reference and projected layers are the same, and "
-                   "there are no mask or region defined. This means"
-                   "that there is difference between the  reference and "
-                   "projection areas"))
-    if len(ref) != len(pro):
-        gs.fatal(_("be the same. Your provided %d reference and %d"
-                   "projection variables") % (len(ref), len(pro)))
+    if not pro and not checkmask() and not region:
+        gs.fatal(_("You need to provide projected layers, a region, or "
+                   "a mask has to be set"))
+    if pro and len(REF) != len(PRO):
+        gs.fatal(_("The number of reference and projection layers need to "
+                   "be the same. Your provided %d reference and %d"
+                   "projection variables") % (len(REF), len(PRO)))
+
+    # Text for history in metadata
+    opt2 = dict((k, v) for k, v in options.iteritems() if v)
+    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    hist = "r.exdet {}".format(hist)
+    unused, tmphist = tempfile.mkstemp()
+    text_file = open(tmphist, "w")
+    text_file.write(hist)
+    text_file.close()
 
     # Create covariance table
     tmpcov = tempfile.mkstemp()[1]
     text_file = open(tmpcov, "w")
-    text_file.write(gs.read_command("r.covar", quiet=True, map=ref))
+    text_file.write(gs.read_command("r.covar", quiet=True, map=REF))
     text_file.close()
     covar = np.loadtxt(tmpcov, skiprows=1)
     VI = np.linalg.inv(covar)
     os.remove(tmpcov)
 
     # Import reference data & compute univar stats per reference layer
-    s = len(ref)
+    s = len(REF)
     dat_ref = stat_mean = stat_min = stat_max = None
     layer = garray.array()
 
-    for i, map in enumerate(ref):
+    for i, map in enumerate(REF):
         layer.read(map, null=np.nan)
         r, c = layer.shape
         if dat_ref is None:
@@ -226,18 +238,17 @@ def main(options, flags):
     if region:
         gs.run_command("g.region", region=region)
         gs.info(_("The region has set to the region {}").format(region))
-    if options['projection']:
-        gs.run_command("g.region", raster=pro[0])
-        # TODO: only set region to pro[0] when different from current region
+    if pro:
+        gs.run_command("g.region", raster=PRO[0])
+        # TODO: only set region to PRO[0] when different from current region
         gs.info(_("The region has set to match the proj raster layers"))
 
     # Import projected layers in numpy array
-    s = len(pro)
+    s = len(PRO)
     dat_pro = None
     layer = garray.array()
-    for i, map in enumerate(pro):
+    for i, map in enumerate(PRO):
         layer.read(map, null=np.nan)
-        s = len(pro)
         r, c = layer.shape
         if dat_pro is None:
             dat_pro = np.empty((s, r, c), dtype=np.double)
@@ -250,39 +261,56 @@ def main(options, flags):
         mapname = "{}_mahalanobis".format(out)
         mahal_pro.write(mapname=mapname)
         gs.info(_("Mahalanobis distance map saved: {}").format(mapname))
+        gs.run_command("r.support", map=mapname,
+                       title="Mahalanobis distance map", units="unitless",
+                       description="Mahalanobis distance map",
+                       loadhistory=tmphist)
 
     # Compute NT2
     nt2map = garray.array()
     nt2map[...] = mahal_pro / mahal_ref_max
-    nt2 = "{}__NT2".format(out)
-    CLEAN_LAY.append(nt2)
+    nt2 = "{}_NT2".format(out)
     nt2map.write(mapname=nt2)
+    gs.run_command("r.support", map=nt2, units="unitless",
+                   title="Type 2 similarity",
+                   description="Type 2 similarity (NT2)",
+                   loadhistory=tmphist)
 
     # Compute NT1
     tmplay = tmpname(out)
-    mnames = [None] * len(ref)
-    for i in xrange(len(ref)):
-        tmpout = "{}_{}".format(out, opn[i])
-        CLEAN_LAY.append(tmpout)
+    mnames = [None] * len(REF)
+    for i in xrange(len(REF)):
+        tmpout = tmpname("exdet")
         gs.mapcalc("$Dij = min(($prolay - $refmin), ($refmax - $prolay),"
-                   "0) / ($refmax - $refmin)", Dij=tmpout, prolay=pro[i],
+                   "0) / ($refmax - $refmin)", Dij=tmpout, prolay=PRO[i],
                    refmin=stat_min[i], refmax=stat_max[i], quiet=True)
         mnames[i] = tmpout
     nt1 = "{}_NT1".format(out)
     gs.run_command("r.series", quiet=True, input=mnames, output=nt1,
                    method="sum")
+    gs.run_command("r.support", map=nt1, units="unitless",
+                   title="Type 1 similarity",
+                   description="Type 1 similarity (NT1)",
+                   loadhistory=tmphist)
 
     # Compute exdet novelty map
-    gs.mapcalc("$final = if($nt1<0,$nt1,$nt2)", final=out, nt1=nt1,
-               nt2=nt2, quiet=True, overwrite=True)
+    novelty = "{}_NT1NT2".format(out)
+    gs.mapcalc("$final = if($nt1<0,$nt1,$nt2)", final=novelty,
+               nt1=nt1, nt2=nt2, quiet=True, overwrite=True)
+    gs.run_command("r.support", map=novelty, units="unitless",
+                   title="Type 1 + 2 novelty / similarity",
+                   description="Type 1 + 2 similarity (NT1)",
+                   loadhistory=tmphist)
 
     # Color table
-    gs.write_command("r.colors", map=out, rules='-', stdin=COLORS_MES,
+    gs.write_command("r.colors", map=novelty, rules='-', stdin=COLORS_EXDET,
                      quiet=True)
 
-    # Compute  most influential covariate (MIC) metric for NT1
+    # Compute most influential covariate (MIC) metric for NT1
+    # TODO: compute MIC for NT2 as well (see email exchange with authors
+    # exdet program about deviating results)
     if flag_o:
-        mod = "{}_MIC1".format(out)
+        mod = "{}_MICNT1".format(out)
         gs.run_command("r.series", quiet=True, output=mod, input=mnames,
                        method="min_raster")
         tmpcat = tempfile.mkstemp()
@@ -293,84 +321,14 @@ def main(options, flags):
         gs.run_command("r.category", quiet=True, map=mod, rules=tmpcat[1],
                        separator=":")
         os.remove(tmpcat[1])
+        gs.run_command("r.support", map=mod, units="unitless",
+                       title="MIC for NT1",
+                       description="Most influential covariate for NT1",
+                       loadhistory=tmphist)
 
-    # Compute  most influential covariate (MIC) metric for NT2
-    # TODO: Not implemented yet
-
-#    if flag_p:
-#        laylist = []
-#        layer = garray.array()
-#        # compute ICp values
-#        for i, map in enumerate(pro):
-#            VItmp = array(VI)
-#            VItmp[:,i] = 0
-#            VItmp[i,:] = 0
-#            ymap = mahal(v=dat_pro, m=stat_mean, VI=VItmp)
-#            icp = (mahal_pro - ymap) / mahal_pro * 100
-#            layer[:,:] = icp
-#            layer.write(mapname=out + "_icp_" + opn[i])
-#            laylist.append(out + "_icp_" + opn[i])
-#        # Combine ICp layers
-#        icpname = out + "_MIC2"
-#        icptemp = tmpname(name="icp")
-#        gs.run_command("r.series", quiet=True, output=icptemp,
-#                          input=laylist, method="max_raster")
-#        # ICp values apply only to parts where NT2 > 1 and NT1 = 0
-#        gs.mapcalc("$icpname = if($nt1<0,-888,if($nt2>1,$icptemp,-999))",
-#                      nt1=nt1, nt2=nt2, icpname=icpname, icptemp=icptemp,
-#                      quiet=True)
-#        # Write categories
-#        tmpcat = tempfile.mkstemp()
-#        text_file = open(tmpcat[1], "w")
-#        text_file.write(str(-999) + ":None\n")
-#        text_file.write(str(-888) + ":NT1 range\n")
-#        for cats in xrange(len(opn)):
-#           text_file.write(str(cats) + ":" + opn[cats] + "\n")
-#        text_file.close()
-#        gs.run_command("r.category", quiet=True, map=icpname,
-#                          rules=tmpcat[1], separator=":")
-#        os.remove(tmpcat[1])
-#        gs.run_command("g.remove", quiet=True, type="raster", name=icptemp, flags="f")
-
-    #=======================================================================
-    ## Clean up
-    #=======================================================================
-
-    gs.run_command("g.remove", type="raster", flags="f",
-                      quiet=True, pattern=tmplay + "*")
-    gs.run_command("g.remove", quiet=True, type="raster",
-                      name=mnames, flags="f")
-    if flag_m:
-        gs.run_command("g.rename", raster=[mask_backup,"MASK"])
-        gs.info("Note, the original mask was restored")
-
-    gs.info("Done....")
-    if flag_r:
-        gs.info("Original region is restored")
-    else:
-        gs.info("Region is set to match the projected/test layers")
-
+    # Finalize
+    gs.info(_("Done...."))
 
 if __name__ == "__main__":
     atexit.register(cleanup)
     sys.exit(main(*gs.parser()))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
