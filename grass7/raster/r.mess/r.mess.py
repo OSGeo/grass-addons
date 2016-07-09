@@ -9,7 +9,7 @@
 #               surface (MESS) as proposed by Elith et al., 2010,
 #               Methods in Ecology & Evolution, 1(330–342).
 #
-# COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
+# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,46 +19,47 @@
 #
 #%Module
 #% description: Computes multivariate environmental similarity surface (MES)
+#% keyword: similarity
 #% keyword: raster
 #% keyword: modelling
 #%End
 
-#%option G_OPT_R_INPUT
-#% key: ref_rast
-#% label: Reference/sample area (raster)
-#% description: Reference areas (1 = presence, 0 = absence)
-#% key_desc: name
-#% required: no
-#% guisection: reference distribution
-#%end
-
-#%option G_OPT_V_MAP
-#% key: ref_vect
-#% label: Reference/sample points (vector)
-#% description: Point vector layer with presence locations
-#% key_desc: name
-#% required: no
-#% guisection: reference distribution
-#%end
-
-#%rules
-#%exclusive: ref_rast,ref_vect
-#%end
-
 #%option G_OPT_R_INPUTS
 #% key: env
-#% description: Reference / baseline environmental data layers
+#% description: Reference conditions
 #% key_desc: names
 #% required: yes
-#% guisection: predictors
+#% guisection: Input
 #%end
 
 #%option G_OPT_R_INPUTS
 #% key: env_proj
-#% description: Projected / test environmental data layers
+#% description: Projected conditions
 #% key_desc: names
 #% required: no
-#% guisection: predictors
+#% guisection: Input
+#%end
+
+#%option G_OPT_R_INPUT
+#% key: ref_rast
+#% label: Reference area (raster)
+#% description: Reference areas (1 = presence, 0 or null = absence)
+#% key_desc: name
+#% required: no
+#% guisection: Input
+#%end
+
+#%option G_OPT_V_MAP
+#% key: ref_vect
+#% label: Reference points (vector)
+#% description: Point vector layer with presence locations
+#% key_desc: name
+#% required: no
+#% guisection: Input
+#%end
+
+#%rules
+#%exclusive: ref_rast,ref_vect
 #%end
 
 #%option G_OPT_R_BASENAME_OUTPUT
@@ -105,10 +106,6 @@
 #% description: Remove individual environmental similarity layers (IES)
 #% guisection: Output
 #%end
-
-#----------------------------------------------------------------------------
-# Standard
-#----------------------------------------------------------------------------
 
 # import libraries
 import os
@@ -185,10 +182,6 @@ def compute_ies(INtmprule, INipi, INtmpf2, INenvmin, INenvmax):
     gs.write_command("r.colors", map=INipi, rules='-',
                      stdin=COLORS_MES, quiet=True)
 
-#----------------------------------------------------------------------------
-# main function
-#----------------------------------------------------------------------------
-
 
 def main(options, flags):
 
@@ -197,24 +190,19 @@ def main(options, flags):
         gs.fatal(_('$GISBASE not defined'))
         return 0
 
-    #-------------------------------------------------------------------------
-    # Variables, options and flags into variables
-    #-------------------------------------------------------------------------
-
-    # reference layer
+    # Reference / sample area or points
     ref_rast = options['ref_rast']
     ref_vect = options['ref_vect']
-
-    # Check if ref_rast map is of type cell and values are limited to 1 and 0
     if ref_rast:
         reftype = gs.raster_info(ref_rast)
         if reftype['datatype'] != "CELL":
             gs.fatal(_("The ref_rast map must have type CELL (integer)"))
-        if reftype['min'] != 0 or reftype['max'] != 1:
-            grass.fatal(_("The ref_rast map must be a binary raster,"
-                          " i.e. it should contain only values 0 and 1"
-                          " (now the minimum is %d and maximum is %d)")
-                        % (reftype['min'], reftype['max']))
+        if ((reftype['min'] != 0 and reftype['min'] != 1) or
+           reftype['max'] != 1):
+            gs.fatal(_("The ref_rast map must be a binary raster,"
+                       " i.e. it should contain only values 0 and 1 or 1 only"
+                       " (now the minimum is %d and maximum is %d)")
+                     % (reftype['min'], reftype['max']))
 
     # old environmental layers & variable names
     REF = options['env']
@@ -256,47 +244,10 @@ def main(options, flags):
     # get current region settings, to compare to new ones later
     region_1 = gs.parse_command("g.region", flags="g")
 
-    #-------------------------------------------------------------------------
     # Text for history in metadata
-    #-------------------------------------------------------------------------
-
-    if flm:
-        a1 = " -m"
-    else:
-        a1 = ""
-    if flk:
-        a2 = " -k"
-    else:
-        a2 = ""
-    if fln:
-        a3 = " -n"
-    else:
-        a3 = ""
-    if fli:
-        a4 = " -i"
-    else:
-        a4 = ""
-    if flc:
-        a5 = " -c\n"
-    else:
-        a5 = "\n"
-    a6 = "       env={}\n".format(options['env'])
-    if options['env_proj']:
-        a7 = "       env_proj={}\n".format(options['env_proj'])
-    else:
-        a7 = ""
-    if ref_rast:
-        a8 = "       ref_rast={}\n".format(ref_rast)
-    else:
-        a8 = ""
-    if ref_vect:
-        a9 = "       ref_vect={}\n".format(ref_vect)
-    else:
-        a9 = ""
-    a10 = "       output={}\n".format(options['output'])
-    hist = "r.mess{}{}{}{}{}{}{}{}{}" \
-           .format(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-
+    opt2 = dict((k, v) for k, v in options.iteritems() if v)
+    hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    hist = "r.mess {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
     text_file = open(tmphist, "w")
     text_file.write(hist)
@@ -308,10 +259,7 @@ def main(options, flags):
         gs.mapcalc("$i = if(isnull($r),null(),1)", i=ref_rast, r=REF[0],
                    quiet=True)
 
-    #-------------------------------------------------------------------------
     # Create the recode table - Reference distribution is raster
-    #-------------------------------------------------------------------------
-
     citiam = gs.find_file(name='MASK', element='cell',
                           mapset=gs.gisenv()['MAPSET'])
     if citiam['fullname']:
@@ -407,10 +355,7 @@ def main(options, flags):
             # Change region back to original
             gs.del_temp_region()
 
-    #-------------------------------------------------------------------------
     # Create the recode table - Reference distribution is vector
-    #-------------------------------------------------------------------------
-
     else:
         vtl = ref_vect
 
@@ -525,10 +470,7 @@ def main(options, flags):
             # Change region back to original
             gs.del_temp_region()
 
-    #-----------------------------------------------------------------------
     # Calculate MESS statistics
-    #-----------------------------------------------------------------------
-
     # Set region to env_proj layers (if different from env)
     # Note: this changes the region, to ensure the newly created layers
     # are actually visible to the user. This goes against normal practise
