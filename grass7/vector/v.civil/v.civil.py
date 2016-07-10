@@ -525,9 +525,9 @@ import sys
 import grass.script as grass
 from grass.pygrass.utils import get_lib_path
 
-path = get_lib_path(modname='v.road')
+path = get_lib_path(modname='v.civil')
 if path is None:
-    grass.fatal("Not able to find the modis library directory.")
+    grass.fatal("Not able to find the civil library directory.")
 sys.path.append(path)
 
 import road_road as Road
