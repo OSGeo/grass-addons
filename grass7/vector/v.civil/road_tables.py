@@ -710,8 +710,8 @@ class RoadTable(object):
         cats = [row[0] for row in self.rows]
 
         if plant:
-            self.rows[-1][1] = plant.length()
-            for i, row in enumerate(self.rows):
+            self.rows[-1][1] = plant.length()  # set real length
+            for i, row in enumerate(self.rows):  # sort if new line is inserted
                 r_pnt = plant.get_roadpoint(row[1])
                 if row[0] > i + 1 and i + 1 not in cats:
                     self.rewrite_new(r_pnt, row, i + 1)
@@ -836,6 +836,7 @@ class RoadTables(object):
         """Return None
         """
         for i, name in enumerate(self.get_tables_names()):
+
             namedic = name[1] + name[2]
             if name[1] == '':
                 namedic = 'first'
@@ -845,22 +846,22 @@ class RoadTables(object):
                           name[1] + name[2], name[1])
 
     # @time_func
-    def update_tables(self):
+    def update_tables(self, plant):
         """Return None
         """
         for name, tab in self.tables.items():
             if name == '_Plan':
                 tab.update_table_plan()
             elif name != 'first':
-                tab.update_table()
+                tab.update_table(plant)
 
     # @time_func
-    def update_tables_pnts(self, plant):
-        """Return None
-        """
-        for tab in self.tables.values():
-            if tab.name not in ['', '_Plan']:
-                tab.update_table(plant)
+#    def update_tables_pnts(self, plant):
+#        """Return None
+#        """
+#        for tab in self.tables.values():
+#            if tab.name not in ['', '_Plan']:
+#                tab.update_table(plant)
 
     def add_table(self, tab_sufix, tab_subname):
         """Return
