@@ -9,6 +9,7 @@ SUBDIRS = \
 	v.civil \
 	v.class.ml \
 	v.class.mlpy \
+	v.clip \
 	v.colors2 \
 	v.concave.hull \
 	v.convert \
