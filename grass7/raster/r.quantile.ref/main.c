@@ -1,12 +1,10 @@
 
 /****************************************************************************
  *
- * MODULE:       r.series
- * AUTHOR(S):    Glynn Clements <glynn gclements.plus.com> (original contributor)
- *               Hamish Bowman <hamish_b yahoo.com>, Jachym Cepicky <jachym les-ejk.cz>,
- *               Martin Wegmann <wegmann biozentrum.uni-wuerzburg.de>
- * PURPOSE:      
- * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
+ * MODULE:       r.quantile.ref
+ * AUTHOR(S):    Markus Metz
+ * PURPOSE:      Get quantile of the input value from reference maps
+ * COPYRIGHT:    (C) 2015 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,116 +18,103 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/stats.h>
 
-struct menu
-{
-    stat_func *method;		/* routine to compute new value */
-    stat_func_w *method_w;	/* routine to compute new value (weighted) */
-    int is_int;			/* result is an integer */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
-} menu[] = {
-    {c_ave,    w_ave,    0, "average",    "average value"},
-    {c_count,  w_count,  1, "count",      "count of non-NULL cells"},
-    {c_median, w_median, 0, "median",     "median value"},
-    {c_mode,   w_mode,   0, "mode",       "most frequently occurring value"},
-    {c_min,    NULL,     0, "minimum",    "lowest value"},
-    {c_minx,   NULL,     1, "min_raster", "raster with lowest value"},
-    {c_max,    NULL,     0, "maximum",    "highest value"},
-    {c_maxx,   NULL,     1, "max_raster", "raster with highest value"},
-    {c_stddev, w_stddev, 0, "stddev",     "standard deviation"},
-    {c_range,  NULL,     0, "range",      "range of values"},
-    {c_sum,    w_sum,    0, "sum",        "sum of values"},
-    {c_var,    w_var,    0, "variance",   "statistical variance"},
-    {c_divr,   NULL,     1, "diversity",  "number of different values"},
-    {c_reg_m,  w_reg_m,  0, "slope",      "linear regression slope"},
-    {c_reg_c,  w_reg_c,  0, "offset",     "linear regression offset"},
-    {c_reg_r2, w_reg_r2, 0, "detcoeff",   "linear regression coefficient of determination"},
-    {c_reg_t,  w_reg_t,  0, "tvalue",     "linear regression t-value"},
-    {c_quart1, w_quart1, 0, "quart1",     "first quartile"},
-    {c_quart3, w_quart3, 0, "quart3",     "third quartile"},
-    {c_perc90, w_perc90, 0, "perc90",     "ninetieth percentile"},
-    {c_quant,  w_quant,  0, "quantile",   "arbitrary quantile"},
-    {c_skew,   w_skew,   0, "skewness",   "skewness"},
-    {c_kurt,   w_kurt,   0, "kurtosis",   "kurtosis"},
-    {NULL,     NULL,     0, NULL,         NULL}
-};
 
 struct input
 {
-    const char *name;
+    const char *name, *mapset;
     int fd;
     DCELL *buf;
-    DCELL weight;
 };
 
 struct output
 {
     const char *name;
     int fd;
-    DCELL *buf;
-    stat_func *method_fn;
-    stat_func_w *method_fn_w;
-    double quantile;
+    FCELL *buf;
 };
 
-static char *build_method_list(void)
+static int cmp_dcell(const void *a, const void *b)
 {
-    char *buf = G_malloc(1024);
-    char *p = buf;
-    int i;
+    DCELL da = *(DCELL *) a;
+    DCELL db = *(DCELL *) b;
+    
+    return (da < db ? -1 : (da > db));
+}
 
-    for (i = 0; menu[i].name; i++) {
-	char *q;
+/* return the smallest array index where values[idx] <= v 
+ * return -1 if v < values[0] 
+ * return n if v > values[n - 1] */
+static int bsearch_refidx(DCELL v, DCELL *values, int n)
+{
+    int mid, lo, hi;
 
-	if (i)
-	    *p++ = ',';
-	for (q = menu[i].name; *q; p++, q++)
-	    *p = *q;
+    /* tests */
+    if (n < 1)
+	return -1;
+
+    lo = 0;
+    hi = n - 1;
+
+    if (values[lo] < v && v < values[hi]) {
+	/* bsearch */
+	mid = lo;
+	while (lo < hi) {
+	    mid = (lo + hi) / 2;
+
+	    if (values[mid] < v) {
+		lo = mid + 1;
+	    }
+	    else {
+		hi = mid;
+	    }
+	}
+
+	if (values[mid] > v) {
+	    mid--;
+	}
+
+	return mid;
     }
-    *p = '\0';
 
-    return buf;
+    if (values[0] > v)
+	return -1;
+
+    if (values[0] == v)
+	return 0;
+
+    if (values[n - 1] == v)
+	return n - 1;
+
+    if (values[n - 1] < v)
+	return n;
+
+    return 0;
 }
 
-static int find_method(const char *method_name)
-{
-    int i;
-
-    for (i = 0; menu[i].name; i++)
-	if (strcmp(menu[i].name, method_name) == 0)
-	    return i;
-
-    G_fatal_error(_("Unknown method <%s>"), method_name);
-
-    return -1;
-}
 
 int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct
     {
-	struct Option *input, *file, *output, *method, *weights, *quantile, *range;
+	struct Option *input, *ref, *file, *output, *range;
     } parm;
     struct
     {
-	struct Flag *nulls, *lazy;
+	struct Flag *lazy;
     } flag;
-    int i;
+    int i, n, idx;
     int num_inputs;
-    struct input *inputs = NULL;
-    int num_outputs;
-    struct output *outputs = NULL;
+    struct input vinput, *refs;
+    struct output out;
     struct History history;
-    DCELL *values = NULL, *values_tmp = NULL;
-    DCELL(*values_w)[2];	/* list of values and weights */
-    DCELL(*values_w_tmp)[2];	/* list of values and weights */
-    int have_weights;
+    struct Colors colors;
+    DCELL *values;
+    int dcellsize;
     int nrows, ncols;
     int row, col;
-    double lo, hi;
+    DCELL lo, hi;
 
     G_gisinit(argv[0]);
 
@@ -138,53 +123,28 @@ int main(int argc, char *argv[])
     G_add_keyword(_("aggregation"));
     G_add_keyword(_("series"));
     module->description =
-	_("Makes each output cell value a "
-	  "function of the values assigned to the corresponding cells "
-	  "in the input raster map layers.");
+	_("Determines quantile for input value from reference "
+	  "raster map layers.");
 
-    parm.input = G_define_standard_option(G_OPT_R_INPUTS);
-    parm.input->required = NO;
+    parm.input = G_define_standard_option(G_OPT_R_INPUT);
+
+    parm.ref = G_define_standard_option(G_OPT_R_INPUTS);
+    parm.ref->key = "reference";
+    parm.ref->description =_("List ofreference raster maps");
+    parm.ref->required = NO;
 
     parm.file = G_define_standard_option(G_OPT_F_INPUT);
     parm.file->key = "file";
-    parm.file->description = _("Input file with one raster map name and optional one weight per line, field separator between name and weight is |");
+    parm.file->description = _("Input file with one reference raster map name per line");
     parm.file->required = NO;
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
-    parm.output->multiple = YES;
 
-    parm.method = G_define_option();
-    parm.method->key = "method";
-    parm.method->type = TYPE_STRING;
-    parm.method->required = YES;
-    parm.method->options = build_method_list();
-    parm.method->description = _("Aggregate operation");
-    parm.method->multiple = YES;
-
-    parm.quantile = G_define_option();
-    parm.quantile->key = "quantile";
-    parm.quantile->type = TYPE_DOUBLE;
-    parm.quantile->required = NO;
-    parm.quantile->description = _("Quantile to calculate for method=quantile");
-    parm.quantile->options = "0.0-1.0";
-    parm.quantile->multiple = YES;
-
-    parm.weights = G_define_option();
-    parm.weights->key = "weights";
-    parm.weights->type = TYPE_DOUBLE;
-    parm.weights->required = NO;
-    parm.weights->description = _("Weighting factor for each input map, default value is 1.0 for each input map");
-    parm.weights->multiple = YES;
-    
     parm.range = G_define_option();
     parm.range->key = "range";
     parm.range->type = TYPE_DOUBLE;
     parm.range->key_desc = "lo,hi";
     parm.range->description = _("Ignore values outside this range");
-
-    flag.nulls = G_define_flag();
-    flag.nulls->key = 'n';
-    flag.nulls->description = _("Propagate NULLs");
 
     flag.lazy = G_define_flag();
     flag.lazy->key = 'z';
@@ -193,24 +153,22 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    lo = -1.0 / 0.0; /* -inf */
-    hi = 1.0 / 0.0; /* inf */
+    lo = -1.0 / 0.0;
+    hi = 1.0 / 0.0;
     if (parm.range->answer) {
 	lo = atof(parm.range->answers[0]);
 	hi = atof(parm.range->answers[1]);
     }
-    
-    if (parm.input->answer && parm.file->answer)
-        G_fatal_error(_("%s= and %s= are mutually exclusive"),
-			parm.input->key, parm.file->key);
- 
-    if (!parm.input->answer && !parm.file->answer)
-        G_fatal_error(_("Please specify %s= or %s="),
-			parm.input->key, parm.file->key);
 
-    have_weights = 0;
+    /* open input map */
+    vinput.name = parm.input->answer;
+    vinput.mapset = G_find_raster2(vinput.name, "");
+    if (!vinput.mapset)
+	G_fatal_error(_("Raster map <%s> not found"), vinput.name);
+    vinput.fd = Rast_open_old(vinput.name, vinput.mapset);
+    vinput.buf = Rast_allocate_d_buf();
 
-    /* process the input maps from the file */
+    /* process the reference maps */
     if (parm.file->answer) {
 	FILE *in;
 	int max_inputs;
@@ -225,33 +183,17 @@ int main(int argc, char *argv[])
     
 	num_inputs = 0;
 	max_inputs = 0;
+	refs = NULL;
 
 	for (;;) {
-	    char buf[GNAME_MAX + 50]; /* Name and weight*/
-            char tok_buf[GNAME_MAX + 50];
+	    char buf[GNAME_MAX];
 	    char *name;
-            int ntokens;
-            char **tokens;
 	    struct input *p;
-            double weight = 1.0;
 
 	    if (!G_getl2(buf, sizeof(buf), in))
 		break;
 
-            strcpy(tok_buf, buf);
-            tokens = G_tokenize(tok_buf, "|");
-            ntokens = G_number_of_tokens(tokens);
-
-	    name = G_chop(tokens[0]);
-            if (ntokens > 1) {
-	        weight = atof(G_chop(tokens[1]));
-
-		if (weight <= 0)
-		    G_fatal_error(_("Weights must be positive"));
-
-		if (weight != 1)
-		    have_weights = 1;
-            }
+	    name = G_chop(buf);
 
 	    /* Ignore empty lines */
 	    if (!*name)
@@ -259,125 +201,56 @@ int main(int argc, char *argv[])
 
 	    if (num_inputs >= max_inputs) {
 		max_inputs += 100;
-		inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
+		refs = G_realloc(refs, max_inputs * sizeof(struct input));
 	    }
-	    p = &inputs[num_inputs++];
+	    p = &refs[num_inputs++];
 
 	    p->name = G_store(name);
-            p->weight = weight;
-	    G_verbose_message(_("Reading raster map <%s> using weight %f..."), p->name, p->weight);
+	    p->mapset = G_find_raster2(p->name, "");
 	    p->buf = Rast_allocate_d_buf();
 	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
+		p->fd = Rast_open_old(p->name, p->mapset);
 	}
 
-	if (num_inputs < 1)
-	    G_fatal_error(_("No raster map name found in input file"));
-        
 	fclose(in);
+
+	if (num_inputs < 2)
+	    G_fatal_error(_("At least two reference raster maps are required"));
     }
     else {
-	int num_weights;
+	for (i = 0; parm.ref->answers[i]; i++) ;
+	num_inputs = i;
 
-    	for (i = 0; parm.input->answers[i]; i++)
-	    ;
-    	num_inputs = i;
+	if (num_inputs < 2)
+	    G_fatal_error(_("At least two reference raster maps are required"));
 
-    	if (num_inputs < 1)
-	    G_fatal_error(_("Raster map not found"));
+	refs = G_malloc(num_inputs * sizeof(struct input));
 
-        /* count weights */
-	num_weights = 0;
-        if (parm.weights->answers) {
-            for (i = 0; parm.weights->answers[i]; i++)
-                    ;
-            num_weights = i;
-        }
-    
-        if (num_weights && num_weights != num_inputs)
-                G_fatal_error(_("input= and weights= must have the same number of values"));
+	/* open reference maps */
+	for (i = 0; i < num_inputs; i++) {
+	    struct input *p = &refs[i];
 
-    	inputs = G_malloc(num_inputs * sizeof(struct input));
-
-    	for (i = 0; i < num_inputs; i++) {
-	    struct input *p = &inputs[i];
-
-	    p->name = parm.input->answers[i];
-	    p->weight = 1.0;
-
-            if (num_weights) {
-                p->weight = (DCELL)atof(parm.weights->answers[i]);
-
-		if (p->weight <= 0)
-		    G_fatal_error(_("Weights must be positive"));
-
-		if (p->weight != 1)
-		    have_weights = 1;
-            }
-
-	    G_verbose_message(_("Reading raster map <%s> using weight %f..."), p->name, p->weight);
-	    p->buf = Rast_allocate_d_buf();
+	    p->name = parm.ref->answers[i];
+	    p->mapset = G_find_raster2(p->name, "");
+	    if (!p->mapset)
+		G_fatal_error(_("Raster map <%s> not found"), p->name);
 	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-    	}
+		p->fd = Rast_open_old(p->name, p->mapset);
+	    p->buf = Rast_allocate_d_buf();
+	}
     }
 
-    /* process the output maps */
-    for (i = 0; parm.output->answers[i]; i++)
-	;
-    num_outputs = i;
+    dcellsize = sizeof(DCELL);
 
-    for (i = 0; parm.method->answers[i]; i++)
-	;
-    if (num_outputs != i)
-	G_fatal_error(_("output= and method= must have the same number of values"));
-
-    outputs = G_calloc(num_outputs, sizeof(struct output));
-
-    for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
-	const char *output_name = parm.output->answers[i];
-	const char *method_name = parm.method->answers[i];
-	int method = find_method(method_name);
-
-	out->name = output_name;
-
-	if (have_weights) {
-	    if (menu[method].method_w) {
-		out->method_fn = NULL;
-		out->method_fn_w = menu[method].method_w;
-	    }
-	    else {
-		G_warning(_("Method %s not compatible with weights, using unweighed version instead"),
-			  method_name);
-
-		out->method_fn = menu[method].method;
-		out->method_fn_w = NULL;
-	    }
-	    menu[method].is_int = 0;
-	}
-	else {
-	    out->method_fn = menu[method].method;
-	    out->method_fn_w = NULL;
-	}
-
-	out->quantile = (parm.quantile->answer && parm.quantile->answers[i])
-	    ? atof(parm.quantile->answers[i])
-	    : 0;
-	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name,
-				menu[method].is_int ? CELL_TYPE : DCELL_TYPE);
-    }
+    /* open output */
+    out.name = parm.output->answer;
+    out.buf = Rast_allocate_f_buf();
+    out.fd = Rast_open_new(out.name, FCELL_TYPE);
+    if (out.fd < 0)
+	G_fatal_error(_("Unable to create raster map <%s>"), out.name);
 
     /* initialise variables */
     values = G_malloc(num_inputs * sizeof(DCELL));
-    values_tmp = G_malloc(num_inputs * sizeof(DCELL));
-    values_w = NULL;
-    values_w_tmp = NULL;
-    if (have_weights) {
-	values_w = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
-	values_w_tmp = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
-    }
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -389,77 +262,114 @@ int main(int argc, char *argv[])
 	G_percent(row, nrows, 2);
 
 	if (flag.lazy->answer) {
-	    /* Open the files only on run time */
+	    /* Open the raster maps only one at a time */
 	    for (i = 0; i < num_inputs; i++) {
-		inputs[i].fd = Rast_open_old(inputs[i].name, "");
-		Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
-		Rast_close(inputs[i].fd);
+		refs[i].fd = Rast_open_old(refs[i].name, refs[i].mapset);
+		Rast_get_d_row(refs[i].fd, refs[i].buf, row);
 	    }
 	}
 	else {
 	    for (i = 0; i < num_inputs; i++)
-	        Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
+		Rast_get_d_row(refs[i].fd, refs[i].buf, row);
 	}
 
+	Rast_get_d_row(vinput.fd, vinput.buf, row);
+
 	for (col = 0; col < ncols; col++) {
+	    DCELL v;
 	    int null = 0;
 
+	    n = 0;
 	    for (i = 0; i < num_inputs; i++) {
-		DCELL v = inputs[i].buf[col];
+		v = refs[i].buf[col];
 
 		if (Rast_is_d_null_value(&v))
 		    null = 1;
 		else if (parm.range->answer && (v < lo || v > hi)) {
-		    Rast_set_d_null_value(&v, 1);
 		    null = 1;
 		}
-		values[i] = v;
-		if (have_weights) {
-		    values_w[i][0] = v;
-		    values_w[i][1] = inputs[i].weight;
-		}
+		else
+		    values[n++] = v;
 	    }
+	    
+	    v = vinput.buf[col];
 
-	    for (i = 0; i < num_outputs; i++) {
-		struct output *out = &outputs[i];
-
-		if (null && flag.nulls->answer)
-		    Rast_set_d_null_value(&out->buf[col], 1);
+	    if (Rast_is_d_null_value(&v) || null)
+		Rast_set_f_null_value(&out.buf[col], 1);
+	    else if (n == 0)
+		Rast_set_f_null_value(&out.buf[col], 1);
+	    else if (n == 1) {
+		out.buf[col] = 0.5;
+		if (v < values[0])
+		    out.buf[col] = -1;
+		else if (v > values[n - 1])
+		    out.buf[col] = 2;
+	    }
+	    else { /* n > 1 */
+		qsort(values, n, dcellsize, cmp_dcell);
+		
+		if (v < values[0])
+		    out.buf[col] = -1;
+		else if (v > values[n - 1])
+		    out.buf[col] = 2;
 		else {
-		    if (out->method_fn_w) {
-			memcpy(values_w_tmp, values_w, num_inputs * 2 * sizeof(DCELL));
-			(*out->method_fn_w)(&out->buf[col], values_w_tmp, num_inputs, &out->quantile);
+		    idx = bsearch_refidx(v, values, n);
+
+		    if (v == values[idx]) {
+			int idx1 = idx;
+
+			while (idx1 < n - 1 && values[idx1 + 1] == v) {
+			    idx1++;
+			}
+
+			out.buf[col] = ((FCELL) (idx + idx1)) / (2 * (n - 1));
 		    }
-		    else {
-			memcpy(values_tmp, values, num_inputs * sizeof(DCELL));
-			(*out->method_fn)(&out->buf[col], values_tmp, num_inputs, &out->quantile);
+		    else { /* values[idx] < v < values[idx + 1] */
+			double w = v - values[idx];
+			double wtot = values[idx + 1] - values[idx];
+
+			out.buf[col] = (idx + w / wtot) / (n - 1);
 		    }
 		}
 	    }
 	}
 
-	for (i = 0; i < num_outputs; i++)
-	    Rast_put_d_row(outputs[i].fd, outputs[i].buf);
+	Rast_put_f_row(out.fd, out.buf);
     }
 
     G_percent(row, nrows, 2);
 
-    /* close output maps */
-    for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
+    /* close maps */
+    Rast_close(vinput.fd);
+    for (i = 0; i < num_inputs; i++)
+	Rast_close(refs[i].fd);
 
-	Rast_close(out->fd);
+    Rast_close(out.fd);
 
-	Rast_short_history(out->name, "raster", &history);
-	Rast_command_history(&history);
-	Rast_write_history(out->name, &history);
-    }
+    Rast_short_history(out.name, "raster", &history);
+    Rast_command_history(&history);
+    Rast_write_history(out.name, &history);
 
-    /* Close input maps */
-    if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs; i++)
-	    Rast_close(inputs[i].fd);
-    }
+    Rast_init_colors(&colors);
+    lo = -1;
+    hi = 0;
+    Rast_add_d_color_rule(&lo, 255, 0, 0, &hi, 255, 0, 0, &colors);
+    lo = 0;
+    hi = 0.3;
+    Rast_add_d_color_rule(&lo, 255, 0, 0, &hi, 220, 220, 0, &colors);
+    lo = 0.3;
+    hi = 0.5;
+    Rast_add_d_color_rule(&lo, 220, 220, 0, &hi, 180, 180, 180, &colors);
+    lo = 0.5;
+    hi = 0.7;
+    Rast_add_d_color_rule(&lo, 180, 180, 180, &hi, 0, 220, 220, &colors);
+    lo = 0.7;
+    hi = 1;
+    Rast_add_d_color_rule(&lo, 0, 220, 220, &hi, 0, 0, 255, &colors);
+    lo = 1;
+    hi = 2;
+    Rast_add_d_color_rule(&lo, 0, 0, 255, &hi, 0, 0, 255, &colors);
+    Rast_write_colors(out.name, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
 }

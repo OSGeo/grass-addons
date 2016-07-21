@@ -1,9 +1,9 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.series
+PGM = r.quantile.ref
 
-LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB)
-DEPENDENCIES = $(STATSDEP) $(RASTERDEP) $(GISDEP)
+LIBES = $(RASTERLIB) $(GISLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
