@@ -1,0 +1,111 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.fusion.hpf</em> is an implementation of the High Pass Filter Additive
+(HPFA) Fusion Technique. It combines high-resolution panchromatic data with
+lower resolution multispectral data, resulting in an output with both excellent
+detail and a realistic representation of original multispectral scene colors.
+
+The process involves a convolution using a High Pass Filter (HPF) on the high 
+resolution data, then combining this with the lower resolution multispectral 
+data. Optionally, a linear histogram matching technique is performed in a way that 
+matches the resulting Pan-Sharpened image to the statistical mean and standard 
+deviation of the original multi-spectral image.<br>
+
+<h3>Background</h3>
+<ol type="1">
+    <li>Computing ratio of low (Multi-Spectral) to high (Panchromatic)
+        resolutions</li>
+    <li>High Pass Filtering the Panchromatic Image</li>
+    <li>Resampling MSX image to the higher resolution</li>
+    <li>Adding weighted High-Pass-Filetred image to the upsampled MSX
+        image</li>
+    <li>Optionally, matching histogram of Pansharpened image to the one of
+        the original MSX image</li>
+</ol>
+
+<pre>
+Figure:
+ ____________________________________________________________________________
++                                                                            +
+| Pan Img ->  High Pass Filter  ->  HP Img                                   |
+|                                      |                                     |
+|                                      v                                     |
+| MSx Img ->  Weighting Factors ->  Weighted HP Img                          |
+|       |                              |                                     |
+|       |                              v                                     |
+|       +------------------------>  Addition to MSx Img  =>  Fused MSx Image |
++____________________________________________________________________________+
+
+</pre>
+Source: Gangkofner, 2008
+
+<h2>NOTES</h2>
+<ul>
+        <li> Grasping and testing the various parameters that define the High-Pass
+        filter's kernel size and center value is a matter of short time.</li>
+    <li> Works with any number and type of raster imagery (8-bit, 16-bit)</li>
+    <li> The "black border" effect, possibly caused due to a non-perfect match of the high vs. the low 
+        resolution of the input images, can be trimmed out by using the <code>trim</code>
+        option --a floating point "trimming factor" with which to multiply the
+        pixel size of the low resolution image-- and shrink the extent of the
+        output image.</li>
+</ul>
+
+<h2>EXAMPLE</h2>
+The module is fairly easy to use. Arbitrary examples:
+<ul>
+    <li>for one band
+<div class="code"><pre>
+ i.fusion.hpf pan=Panchromatic msx=Red
+</pre></div></li>
+
+    <li>for multiple bands
+<div class="code"><pre>
+i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR
+</pre></div></li>
+</ul>
+    
+Various illustrated examples detailed in the document <a
+    href="https://github.com/NikosAlexandris/i.fusion.hpf/blob/master/Documentation.pdf">i.fusion.hpf, implementation of the High Pass Filter Additive (HPFA) Image Fusion Technique</a> (PDF) 
+
+<h2>TODO</h2>
+<ul>
+    <li> Go through <a
+        href="http://trac.osgeo.org/grass/wiki/Submitting/Python">Submitting
+        Python</a></li>
+    <li> Access input raster by row I/O</li>
+    <li> Support for parallel processing</li>
+    <li> Proper command history tracking.</li>
+    <li> Add timestamps (r.timestamp, temporal framework)</li>
+    <li> Deduplicate code where applicable</li>
+    <li> Make verbose level messages shorter, yet more informative (ie report center cell)</li>
+    <li> Test if it compiles in other systems</li>
+    <li> Check options to integrate in <a href="i.pansharpen.html">i.pansharpen</a>. Think of FFM methods vs. Others?</li>
+    <li> Improve Documentation.lyx</li>
+</ul>
+
+<h2>REFERENCES</h2>
+<ul>
+    <li>Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008). Optimizing
+the high-pass filter addition technique for image fusion.
+PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107--1118.</li>
+
+    <li>"ERDAS IMAGINE." Accessed March 19, 2015. <a
+     href="http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm">ERDAS
+     IMAGINE Help</a>.</li>
+
+    <li>Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
+        high-resolution WorldView-2 images, International Journal of Remote
+        Sensing, 34:23, 8336-8359</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="i.pansharpen.html">i.pansharpen</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Nikos Alexandris<br>
+
