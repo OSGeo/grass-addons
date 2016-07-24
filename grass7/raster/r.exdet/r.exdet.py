@@ -74,21 +74,21 @@
 #%end
 
 #%flag
-#% key: o
-#% description: Most influential covariate (MIC) for NT1
+#% key: p
+#% description: Most influential covariates (MIC)
 #% guisection: Output
 #%end
 
-## Not implemented yet
-##%flag
-##% key: p
-##% description: Most influential covariate (MIC) for NT2
-##% guisection: Output
-##%end
-
 #%flag
 #% key: d
-#% description: Keep layer mahalanobis distance?
+#% label: Mahalanobis distance in projection domain?
+#% description: Keep layer mahalanobis distance in projection domain?
+#%end
+
+#%flag
+#% key: e
+#% label: Mahalanobis distance in reference domain
+#% description: Keep layer mahalanobis distance in reference domain?
 #%end
 
 # import libraries
@@ -101,13 +101,16 @@ import grass.script.array as garray
 import tempfile
 import uuid
 import string
+from grass.pygrass.modules import Module
+from subprocess import PIPE
 
 COLORS_EXDET = """\
 0% 255:0:0
-0 255:200:200
-0.000001 200:255:200
-1.000001 200:200:255
-100% 0:0:255
+0 255:240:240
+0.000001 240:255:240
+1 0:128:0
+1.000001 255:221:160
+100% 219:65:0
 """
 
 # Functions
@@ -141,6 +144,18 @@ def tmpname(prefix):
     return tmpf
 
 
+def CoVar(maps):
+    """Compute the covariance matrix over reference layers"""
+    tmpcov = tempfile.mkstemp()[1]
+    text_file = open(tmpcov, "w")
+    text_file.write(gs.read_command("r.covar", quiet=True, map=maps))
+    text_file.close()
+    covar = np.loadtxt(tmpcov, skiprows=1)
+    os.remove(tmpcov)
+    VI = np.linalg.inv(covar)
+    return VI
+
+
 def mahal(v, m, VI):
     """Compute the mahalanobis distance over reference layers"""
     delta = v - m[:, None, None]
@@ -167,13 +182,17 @@ def main(options, flags):
     else:
         PRO = REF
     opn = [z.split('@')[0] for z in PRO]
-    opn = [x.lower() for x in opn]
     out = options['output']
     region = options['region']
     flag_d = flags['d']
-    flag_o = flags['o']
-    #TODO: flag_p = flags['p']
+    flag_e = flags['e']
+    flag_p = flags['p']
 
+    # get current region settings, to compare to new ones later
+    regbu1 = tmpname("region")
+    gs.parse_command("g.region", save=regbu1)
+
+    # Check if region, projected layers or mask is given
     if region:
         ffile = gs.find_file(region, element="region")
         if not ffile:
@@ -196,13 +215,7 @@ def main(options, flags):
     text_file.close()
 
     # Create covariance table
-    tmpcov = tempfile.mkstemp()[1]
-    text_file = open(tmpcov, "w")
-    text_file.write(gs.read_command("r.covar", quiet=True, map=REF))
-    text_file.close()
-    covar = np.loadtxt(tmpcov, skiprows=1)
-    VI = np.linalg.inv(covar)
-    os.remove(tmpcov)
+    VI = CoVar(maps=REF)
 
     # Import reference data & compute univar stats per reference layer
     s = len(REF)
@@ -229,6 +242,14 @@ def main(options, flags):
     # Compute mahalanobis over full set of reference layers
     mahal_ref = mahal(v=dat_ref, m=stat_mean, VI=VI)
     mahal_ref_max = max(mahal_ref[np.isfinite(mahal_ref)])
+    if flag_e:
+        mahalref = "{}_mahalref".format(out)
+        mahal_ref.write(mapname=mahalref)
+        gs.info(_("Mahalanobis distance map saved: {}").format(mahalref))
+        gs.run_command("r.support", map=mahalref,
+                       title="Mahalanobis distance map", units="unitless",
+                       description="Mahalanobis distance map in reference "
+                                   "domain", loadhistory=tmphist)
     del mahal_ref
 
     # Remove mask and set new region based on user-defined region or
@@ -258,73 +279,123 @@ def main(options, flags):
     # Compute mahalanobis distance
     mahal_pro = mahal(v=dat_pro, m=stat_mean, VI=VI)
     if flag_d:
-        mapname = "{}_mahalanobis".format(out)
-        mahal_pro.write(mapname=mapname)
-        gs.info(_("Mahalanobis distance map saved: {}").format(mapname))
-        gs.run_command("r.support", map=mapname,
-                       title="Mahalanobis distance map", units="unitless",
-                       description="Mahalanobis distance map",
-                       loadhistory=tmphist)
-
-    # Compute NT2
-    nt2map = garray.array()
-    nt2map[...] = mahal_pro / mahal_ref_max
-    nt2 = "{}_NT2".format(out)
-    nt2map.write(mapname=nt2)
-    gs.run_command("r.support", map=nt2, units="unitless",
-                   title="Type 2 similarity",
-                   description="Type 2 similarity (NT2)",
-                   loadhistory=tmphist)
+        mahalpro = "{}_mahalpro".format(out)
+        mahal_pro.write(mapname=mahalpro)
+        gs.info(_("Mahalanobis distance map saved: {}").format(mahalpro))
+        gs.run_command("r.support", map=mahalpro,
+                       title="Mahalanobis distance map projection domain",
+                       units="unitless", loadhistory=tmphist, description=
+                       "Mahalanobis distance map in projection domain "
+                       "estimated using covariance of refence data")
 
     # Compute NT1
     tmplay = tmpname(out)
     mnames = [None] * len(REF)
     for i in xrange(len(REF)):
         tmpout = tmpname("exdet")
-        gs.mapcalc("$Dij = min(($prolay - $refmin), ($refmax - $prolay),"
-                   "0) / ($refmax - $refmin)", Dij=tmpout, prolay=PRO[i],
-                   refmin=stat_min[i], refmax=stat_max[i], quiet=True)
+        # TODO: computations below sometimes result in very small negative
+        # numbers, which are not 'real', but rather due to some differences
+        # in handling digits in grass and python, hence second mapcalc
+        # statement. Need to figure out how to handle this better.
+        gs.mapcalc("eval("
+                   "tmp = min(($prolay - $refmin), ($refmax - $prolay),0) / "
+                   "($refmax - $refmin))\n"
+                   "$Dij = if(tmp > -0.000000001, 0, tmp)",
+                   Dij=tmpout, prolay=PRO[i], refmin=stat_min[i],
+                   refmax=stat_max[i], quiet=True)
         mnames[i] = tmpout
-    nt1 = "{}_NT1".format(out)
-    gs.run_command("r.series", quiet=True, input=mnames, output=nt1,
+    gs.run_command("r.series", quiet=True, input=mnames, output=tmplay,
                    method="sum")
+
+    # Compute most influential covariate (MIC) metric for NT1
+    if flag_p:
+        tmpla1 = tmpname(out)
+        gs.run_command("r.series", quiet=True, output=tmpla1, input=mnames,
+                       method="min_raster")
+
+    # Compute NT2
+    tmpla2 = tmpname(out)
+    nt2map = garray.array()
+    nt2map[...] = mahal_pro / mahal_ref_max
+    nt2map.write(mapname=tmpla2)
+
+    # Compute  most influential covariate (MIC) metric for NT2
+    if flag_p:
+        tmpla3 = tmpname(out)
+        laylist = []
+        layer = garray.array()
+        for i, map in enumerate(opn):
+            gs.use_temp_region()
+            gs.run_command("g.region", quiet=True, region=regbu1)
+            REFtmp = [x for num, x in enumerate(REF) if not num == i]
+            stattmp = np.delete(stat_mean, i, axis=0)
+            VItmp = CoVar(maps=REFtmp)
+            gs.del_temp_region()
+            dat_protmp = np.delete(dat_pro, i, axis=0)
+            ymap = mahal(v=dat_protmp, m=stattmp, VI=VItmp)
+            # in Mesgaran et al, the MIC2 is the max icp, but that is the
+            # same as the minimum mahalanobis distance (ymap)
+            # icp = (mahal_pro - ymap) / mahal_pro * 100
+            layer[:, :] = ymap
+            tmpmahal = tmpname(out)
+            layer.write(tmpmahal)
+            laylist.append(tmpmahal)
+        gs.run_command("r.series", quiet=True, output=tmpla3,
+                       input=laylist, method="min_raster", overwrite=True)
+
+    # Compute nt1, nt2, and nt1and2 novelty maps
+    nt1 = "{}_NT1".format(out)
+    nt2 = "{}_NT2".format(out)
+    nt12 = "{}_NT1NT2".format(out)
+    expr = ";".join([
+        "$nt12 = if($tmplay < 0, $tmplay, $tmpla2)",
+        "$nt2 = if($tmplay >= 0, $tmpla2, null())",
+        "$nt1 = if($tmplay < 0, $tmplay, null())"])
+    gs.mapcalc(expr, nt12=nt12, nt1=nt1, nt2=nt2, tmplay=tmplay,
+               tmpla2=tmpla2, quiet=True)
+
+    # Write metadata nt1, nt2, nt1and2  maps
     gs.run_command("r.support", map=nt1, units="unitless",
                    title="Type 1 similarity",
                    description="Type 1 similarity (NT1)",
                    loadhistory=tmphist)
-
-    # Compute exdet novelty map
-    novelty = "{}_NT1NT2".format(out)
-    gs.mapcalc("$final = if($nt1<0,$nt1,$nt2)", final=novelty,
-               nt1=nt1, nt2=nt2, quiet=True, overwrite=True)
-    gs.run_command("r.support", map=novelty, units="unitless",
+    gs.run_command("r.support", map=nt2, units="unitless",
+                   title="Type 2 similarity",
+                   description="Type 2 similarity (NT2)",
+                   loadhistory=tmphist)
+    gs.run_command("r.support", map=nt12, units="unitless",
                    title="Type 1 + 2 novelty / similarity",
                    description="Type 1 + 2 similarity (NT1)",
                    loadhistory=tmphist)
 
-    # Color table
-    gs.write_command("r.colors", map=novelty, rules='-', stdin=COLORS_EXDET,
-                     quiet=True)
+    # Compute MIC maps
+    if flag_p:
+        mic12 = "{}_MICNT1and2".format(out)
+        expr = "$mic12 = if($tmplay < 0, $tmpla1, " \
+               "if($tmpla2>1, $tmpla3, -1))"
+        gs.mapcalc(expr, tmplay=tmplay, tmpla1=tmpla1, tmpla2=tmpla2,
+                   tmpla3=tmpla3, mic12=mic12, quiet=True)
 
-    # Compute most influential covariate (MIC) metric for NT1
-    # TODO: compute MIC for NT2 as well (see email exchange with authors
-    # exdet program about deviating results)
-    if flag_o:
-        mod = "{}_MICNT1".format(out)
-        gs.run_command("r.series", quiet=True, output=mod, input=mnames,
-                       method="min_raster")
+        # Write category labels to MIC maps
         tmpcat = tempfile.mkstemp()
         text_file = open(tmpcat[1], "w")
+        text_file.write("-1:None\n")
         for cats in xrange(len(opn)):
             text_file.write("{}:{}\n".format(cats, opn[cats]))
         text_file.close()
-        gs.run_command("r.category", quiet=True, map=mod, rules=tmpcat[1],
+        gs.run_command("r.category", quiet=True, map=mic12, rules=tmpcat[1],
                        separator=":")
         os.remove(tmpcat[1])
-        gs.run_command("r.support", map=mod, units="unitless",
-                       title="MIC for NT1",
-                       description="Most influential covariate for NT1",
-                       loadhistory=tmphist)
+        CATV = Module('r.category', map=mic12, stdout_=PIPE).outputs.stdout
+        Module('r.category', map=mic12, rules="-", stdin_=CATV, quiet=True)
+        gs.run_command("r.support", map=mic12, units="unitless",
+                       title="Most influential covariate",
+                       description="Most influential covariate (MIC) for NT1"
+                                   "and NT2", loadhistory=tmphist)
+
+    # Write color table
+    gs.write_command("r.colors", map=nt12, rules='-', stdin=COLORS_EXDET,
+                     quiet=True)
 
     # Finalize
     gs.info(_("Done...."))

@@ -14,12 +14,10 @@ identify such areas and to interpret model results with care.
 <p>The <em>r.exdet</em> function allows you to identify areas with
 novel conditions, following methods developed by Mesgaran et al.
 (2014) [1][2]. This includes areas where conditions fall outside the
-range of values observed in the reference / callibration data set
-(Type 1 novelty) or areas with novel combinations between the
-envirionmental variables (Type 2 novelty). It furthermore compute
-the most influential covariate (MIC; i.e., the most dissimilar
-variable) for areas where conditions of at least one of the variables
-fall outside the range of values observed in the reference data set.
+range of values observed in the reference / callibration data set (
+<i>NT1</i>: Type 1 novelty) or areas with novel combinations between
+the envirionmental variables (<i>NT2</i>: Type 2 novelty), which
+Mesgaran et al. call the multivariate combination novelty index.
 
 <p>The type 1 (<em>NT1</em>) similarity is similar to how the 
 multi-environmental similarity messure (MESS) computes novel 
@@ -41,25 +39,42 @@ similarity (in terms of both univariate range and multivariate
 combination), with values closer to zero being more similar. Values 
 larger than one are indicative of novel combinations.[1]
 
-<p>The function essentially compares the environmental conditions in 
-one area (the reference set) with those of another area (the 
-projected set). For the reference set, the function respects the 
-region and the mask, if any. The projection data can be of the same 
-region (e.g., when comparing current and future climates; see 
-example 1 below), or another region (e.g., when comparing conditions 
-in one country with those in another country; see example 2 below). 
-In the second case, the projected data can be defined by raster 
-layers covering a different region. One can also use a 
+<p><em>r.exdet</em> can also compute the most influential covariate (
+<i>MIC</i> ). For areas with novel conditions, this is the variable
+that has the lowest <i>NT1</i> value. For areas with multivariate
+combination novelty, this is the variable that yields the largest
+percentage reduction in the Mahalanobis distance if dropped.
+
+<p>The function can be used to compare (1) conditions at two
+different times (e.g., current climate conditions and climate
+conditions in 2085). As input, the user needs to provide two
+different sets of environmental variables, each representing
+conditions at different times. The function can also be used to
+compare the conditions in two different areas. This can be done in
+three different ways:
+
+<ul>
+<li>The user can provide two different sets of environmental
+variables, each covering a different area.</li>
+<li>The user can provide a mask and a set of data layers describing
+the reference conditions. Conditions outside the area defined by the
+mask will then be compared with the conditions within the area defined
+by the mask.</li>
+<li>The user can provide a
 <a href="http://grass.osgeo.org/grass64/manuals/g.region.html">region</a>
-to define the projected area (see example 3 below). 
- 
+and a set of data layers describing the reference conditions. 
+Conditions in the region defined by the user are compared to the
+conditions in the current computational region.</li>
+</ul>
+
+<p>Some of the options can be combined. For example, the use can set
+a mask, a set of layers describing current conditions (reference)
+and a set of layers providing future conditions (projection). In
+this case, the future conditions in the whole region are compared to
+the current conditions within the area defined by the MASK. (todo:
+provide some examples)
 
 <h2>EXAMPLES</h2>
-
-<h3>Example 1</h3>
-todo
-
-<h3>Example 2</h3>
 
 You can download a sample data set from <a href=
 "http://www.climond.org/ExDet.aspx">http://www.climond.org/ExDet</a>. 
@@ -72,17 +87,20 @@ location/mapset (the coordinate system is latlon, EPSG 4326).
 
 <div class="code"><pre>
 g.region raster=AusBio13 
-r.exdet -o reference=AusBio13@example,AusBio14,AusBio5,AusBio6 projection=SaBio13,SaBio14,SaBio5,SaBio6 output=AusSa
+r.exdet -p reference=AusBio13@example,AusBio14,AusBio5,AusBio6 projection=SaBio13,SaBio14,SaBio5,SaBio6 output=AusSa
 </pre></div>
-
-<h3>Example 3</h3>
-todo
 
 <h2>CITATION</h2>
 
-When using this tool, please use the citation to the original paper describing the method in your publications or other derived products. 
+When using this tool, please cite the paper describing the method in your publications or other derived products. 
 
 <ul><li>Mesgaran, M.B., Cousens, R.D. and Webber, B.L. (2014) Here be dragons: a tool for quantifying novelty due to covariate range and correlation change when projecting species distribution models. Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.</li></ul>
+
+<p>If you want, in addition, to cite this tool, you can use:
+
+<ul><li>van Breugel, P. (2016) r.exdet, a GRASS GIS addon for the
+quantification of novel uni- and multi-variate environments. URL:
+https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html</li></ul>
 
 <h2>REFERENCES</h2> 
 
