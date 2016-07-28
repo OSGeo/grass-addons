@@ -116,12 +116,12 @@ def main():
 
         mapcalc1 = copy.deepcopy(mapcalc)
         mapcalc_list.append(mapcalc1)
-        m = mapcalc1(expression='{x} = sin({a})'.format(x=xyRaster, a=SlopeRaster))
+        m = mapcalc1(expression='{x} = float(sin({a}))'.format(x=xyRaster, a=SlopeRaster))
         queue.put(m)
 
         mapcalc2 = copy.deepcopy(mapcalc)
         mapcalc_list.append(mapcalc2)
-        m = mapcalc2(expression='{x} = cos({a})'.format(x=zRaster, a=SlopeRaster))
+        m = mapcalc2(expression='{x} = float(cos({a}))'.format(x=zRaster, a=SlopeRaster))
         queue.put(m)
 
         queue.wait()
@@ -133,20 +133,20 @@ def main():
 
         mapcalc1 = copy.deepcopy(mapcalc)
         mapcalc_list.append(mapcalc1)
-        m = mapcalc1(expression='{x} = sin({a}) * {b}'.format(x=xRaster, a=AspectRaster, b=xyRaster))
+        m = mapcalc1(expression='{x} = float(sin({a}) * {b})'.format(x=xRaster, a=AspectRaster, b=xyRaster))
         queue.put(m)
 
         mapcalc2 = copy.deepcopy(mapcalc)
         mapcalc_list.append(mapcalc2)
-        m = mapcalc2(expression='{x} = cos({a}) * {b}'.format(x=yRaster, a=AspectRaster, b=xyRaster))
+        m = mapcalc2(expression='{x} = float(cos({a}) * {b})'.format(x=yRaster, a=AspectRaster, b=xyRaster))
         queue.put(m)
 
         queue.wait()
     else:
-        grass.mapcalc('{x} = sin({a})'.format(x=xyRaster, a=SlopeRaster))
-        grass.mapcalc('{x} = cos({a})'.format(x=zRaster, a=SlopeRaster))
-        grass.mapcalc('{x} = sin({a}) * {b}'.format(x=xRaster, a=AspectRaster, b=xyRaster))
-        grass.mapcalc('{x} = cos({a}) * {b}'.format(x=yRaster, a=AspectRaster, b=xyRaster))
+        grass.mapcalc('{x} = float(sin({a}))'.format(x=xyRaster, a=SlopeRaster))
+        grass.mapcalc('{x} = float(cos({a}))'.format(x=zRaster, a=SlopeRaster))
+        grass.mapcalc('{x} = float(sin({a}) * {b})'.format(x=xRaster, a=AspectRaster, b=xyRaster))
+        grass.mapcalc('{x} = float(cos({a}) * {b})'.format(x=yRaster, a=AspectRaster, b=xyRaster))
 
     # Calculate sums of x, y, and z rasters for selected neighborhood size
 
@@ -183,7 +183,7 @@ def main():
     # Modified from the original script to multiple each SumRaster by the n neighborhood cells to get the sum
     grass.message("Calculating the final ruggedness raster...")
     maxValue = int(neighborhood_size) * int(neighborhood_size)
-    grass.mapcalc('{x} = 1-( (sqrt(({a}*{d})^2 + ({b}*{d})^2 + ({c}*{d})^2) / {e}))'.format(x=OutRaster, a=xSumRaster, b=ySumRaster, c=zSumRaster, d=maxValue, e=maxValue))
+    grass.mapcalc('{x} = float(1-( (sqrt(({a}*{d})^2 + ({b}*{d})^2 + ({c}*{d})^2) / {e})))'.format(x=OutRaster, a=xSumRaster, b=ySumRaster, c=zSumRaster, d=maxValue, e=maxValue))
 
     # Set the default color table
     grass.run_command("r.colors", flags = 'e', map = OutRaster, color = "ryb")
