@@ -78,7 +78,7 @@ v.info -c precip_30ynormals
 
 # run the interpolation:
 v.surf.icw input=precip_30ynormals column=annual output=annual_interp.3 \
-   cost_map=navigable_mask friction=3 --quiet
+   cost_map=navigable_mask friction=3 --verbose
 
 # equalize colors to show maximum detail:
 r.colors -e annual_interp.3 color=bcyr
