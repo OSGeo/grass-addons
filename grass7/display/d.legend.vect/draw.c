@@ -15,9 +15,9 @@
 #include <grass/colors.h>
 #include "local_proto.h"
 
-void draw(char *file_name, char *sep, double LL, double LT, char *title, int cols, int bgcolor,
+void draw(char *file_name, double LL, double LT, char *title, int cols, int bgcolor,
           int bcolor, int do_bg, char* tit_font, int tit_size, char *sub_font, int sub_size,
-          char *font, int fontsize, int fontcolor)
+          char *font, int fontsize, int fontcolor, int symb_size)
 {
     double db, dt, dl, dr;
     double bb, bt, bl, br;
@@ -28,18 +28,18 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
     char buf[512];
     int got_new;
     SYMBOL *Symb;
-    char *symb_name, *line_color_str, *fill_color_str, *label;
+    char *symb_name, *line_color_str, *fill_color_str, *label, *type_str;
     double size, line_width;
     double row_w, text_h, title_h, title_w;
     RGBA_Color *line_color, *fill_color;
     int ret, R, G, B;
     char *part, *sub_delim;
     double maxlblw, sym_lbl_space;
-    double symb_h, symb_w;
+    double symb_h, symb_w, max_symb_w;
     int item_count, item;
     double it_per_col;
     double margin, bg_h, bg_w;
-
+    char *sep;
 
 
     D_get_src(&dt, &db, &dl, &dr);
@@ -47,10 +47,12 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
     y0 = dt + (int)((db - dt) * (100 - LT) / 100.);
 
     /* Draw title */
+    title_h = 0;
     if (strlen(title) > 0) {
-        D_text_size(tit_size, tit_size);
         D_font(tit_font);
+        D_text_size(tit_size, tit_size);
         D_get_text_box(title, &bb, &bt, &bl, &br);
+        margin = 10;
         title_h = bb - bt;
         title_w = br - bl;
         if (! do_bg) {
@@ -63,14 +65,54 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
     }
 
     file_in = fopen(file_name, "r");
+    sep = "|";
     if (!file_in)
         G_fatal_error(_("Unable to open input file <%s>"), file_name);
 
-    /* Get number of legend row(item) */
+    /* Get number of legend row(item) and the biggest symbol*/
     item_count = 0;
+    max_symb_w = 0;
+
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
     while (got_new) {
+        /* Get the maximum symbol size */
+        symb_name = G_malloc(strlen(buf) + 1);
+        type_str = G_malloc(strlen(buf) + 1);
+        line_color_str = G_malloc(strlen(buf) + 1);
+        fill_color_str = G_malloc(strlen(buf) + 1);
+
+        part = strtok(buf, sep);
+        sscanf(part, "%s", symb_name);
+        part = strtok(NULL, sep);
+        sscanf(part, "%s", type_str);
+        part = strtok(NULL, sep);
+        sscanf(part, "%s", line_color_str);
+        part = strtok(NULL, sep);
+        sscanf(part, "%s", fill_color_str);
+        part = strtok(NULL, sep);
+        sscanf(part, "%lf", &size);
+
+        /* Symbol */
+        if (strcmp(type_str,"area")==0) {
+            symb_name = "legend/area";
+            size = symb_size;
+        }
+        else if (strcmp(type_str,"line")==0) {
+            symb_name = "legend/line";
+            size = symb_size;
+        }
+
+        Symb = S_read(symb_name);
+        if (Symb == NULL)
+            G_warning(_("Cannot read symbol"));
+        else
+            S_stroke(Symb, size, 0, 0);
+        symb_w = Symb->xscale * size * 2;
+
+        if (symb_w > max_symb_w)
+                max_symb_w = symb_w;
+
         item_count++;
         got_new = G_getl2(buf, sizeof(buf), file_in);
         G_strip(buf);
@@ -78,38 +120,34 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
     rewind(file_in);
     it_per_col = ceil(item_count / (cols * 1.0));
 
-//    D_pos_abs(x0 + 200, y0 + offs_y);
-//    D_use_color(fontcolor);
-//    label = G_malloc(strlen(buf)+1);
-//    sprintf(label, "%d", item_count);
-//    D_text(label);
-
-
     bg_h = 0;
     maxlblw = 0;
-    offs_y = 0;
-    row_ind = 5;
-    sym_lbl_space = 5;
+    offs_y = title_h;
+    sym_lbl_space = 15;
     item = 0;
     offs_x = 0;
     margin = 10;
     sub_delim = G_malloc(strlen(buf)+1);
     snprintf(sub_delim, sizeof(strlen(buf)+1), "%s%s%s%s%s", sep, sep, sep, sep, sep);
 
+
+
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
 
     while (got_new) {
-        if (item < it_per_col)
+        if (item < it_per_col){
+            row_ind = 5;
             item++;
+        }
         else {
             if (bg_h < offs_y)
                 bg_h = offs_y + symb_h/2.;
             offs_x += maxlblw + margin;
-            offs_y = 0;
+            offs_y = title_h + row_ind;
             maxlblw = 0;
             item = 1;
-
+            row_ind = 0;
         }
         if (strstr(buf, sub_delim) != NULL) {
             /* Group subtitle */
@@ -130,15 +168,16 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
 
             if (! do_bg) {
                 x = x0 + offs_x;
-                y = y0 + title_h + offs_y;
+                y = y0 + offs_y;
                 D_pos_abs(x, y);
                 D_use_color(fontcolor);
                 D_text(label);
             }
         }
         else {
-            /* Items */
+            /* Map layers */
             symb_name = G_malloc(strlen(buf) + 1);
+            type_str = G_malloc(strlen(buf) + 1);
             line_color_str = G_malloc(strlen(buf) + 1);
             fill_color_str = G_malloc(strlen(buf) + 1);
             label = G_malloc(strlen(buf)+1);
@@ -147,6 +186,8 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
 
             part = strtok(buf, sep);
             sscanf(part, "%s", symb_name);
+            part = strtok(NULL, sep);
+            sscanf(part, "%s", type_str);
             part = strtok(NULL, sep);
             sscanf(part, "%s", line_color_str);
             part = strtok(NULL, sep);
@@ -159,11 +200,20 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
             sscanf(part, "%s", label);
 
             /* Symbol */
+            if (strcmp(type_str,"area")==0) {
+                symb_name = "legend/area";
+                size = symb_size;
+            }
+            else if (strcmp(type_str,"line")==0) {
+                symb_name = "legend/line";
+                size = symb_size;
+            }
             Symb = S_read(symb_name);
             if (Symb == NULL)
                 G_warning(_("Cannot read symbol"));
             else
                 S_stroke(Symb, size, 0, 0);
+
             /* parse line color */
             ret = G_str_to_color(line_color_str, &R, &G, &B);
             line_color->r = (unsigned char)R;
@@ -194,23 +244,26 @@ void draw(char *file_name, char *sep, double LL, double LT, char *title, int col
             D_get_text_box(label, &bb, &bt, &bl, &br);
 
             symb_h = Symb->yscale * size * 2;
-            symb_w = Symb->xscale * size * 2;
             text_h = bb - bt;
-            row_w = symb_w + sym_lbl_space + br - bl;
-            offs_y += symb_h + row_ind;
-            if (bg_h < offs_y)
+            row_w = max_symb_w + sym_lbl_space + br - bl;
+            if (symb_h >= text_h)
+                offs_y += symb_h + row_ind;
+            else
+                offs_y += text_h + row_ind;
+
+            if (bg_h <= offs_y)
                 bg_h = offs_y + symb_h/2.;
             if (row_w > maxlblw)
                 maxlblw = row_w;
 
             if (! do_bg) {
                 S_stroke(Symb, size, 0, 0);
-                x = x0 + offs_x + symb_h/2;
-                y = y0 + title_h + offs_y - symb_h/2;
+                x = x0 + offs_x + max_symb_w/2.;
+                y = y0 + offs_y - symb_h/2;
                 D_symbol(Symb, x, y, line_color, fill_color);
 
-                x = x0 + offs_x + symb_w + sym_lbl_space;
-                y = y0 + title_h + offs_y - symb_h/2. + text_h/2.;
+                x = x0 + offs_x + max_symb_w + sym_lbl_space;
+                y = y0 + offs_y - symb_h/2. + text_h/2.;
                 D_pos_abs(x, y);
                 D_use_color(fontcolor);
                 D_text(label);

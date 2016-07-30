@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = d.vect.legend
+PGM = d.legend.vect
 
 LIBES = $(DISPLAYLIB) $(GISLIB) $(SYMBLIB) 
 DEPENDENCIES = $(DISPLAYDEP) $(GISDEP) $(SYMBDEP)

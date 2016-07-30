@@ -21,18 +21,18 @@
 int main(int argc, char **argv)
 {
     struct GModule *module;
-    struct Option *opt_input, *opt_sep, *opt_at, *opt_cols, *opt_font, *opt_fontsize,
+//    struct Option *opt_input, *opt_sep;
+    struct Option *opt_at, *opt_cols, *opt_font, *opt_fontsize,
             *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
-            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor;
+            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size;
     struct Flag *fl_bg;
 
     double LL, LT;
-    char *title, *file_name;
+    char *title, *file_name, *leg_dir;
     int bcolor, bgcolor, do_bg;
-    char *sep;
     int fontsize, fontcolor, tit_size, sub_size;
     char *font, *tit_font, *sub_font;
-    int cols;
+    int cols, symb_size;
 
 
     /* Initialize the GIS calls */
@@ -47,21 +47,20 @@ int main(int argc, char **argv)
     _("Displays a vector legend "
       "in the active graphics frame.");
 
-    opt_input = G_define_standard_option(G_OPT_F_INPUT);
-    opt_input->required = YES;
-    opt_input->key = "input";
-    opt_input->description = _("Input file");
-    opt_input->guisection = _("Input");
+//    opt_input = G_define_standard_option(G_OPT_F_INPUT);
+//    opt_input->key = "input";
+//    opt_input->description = _("Input file");
+//    opt_input->guisection = _("Input");
 
-    opt_sep = G_define_standard_option(G_OPT_F_SEP);
-    opt_sep->guisection = _("Input");
+//    opt_sep = G_define_standard_option(G_OPT_F_SEP);
+//    opt_sep->guisection = _("Input");
 
     opt_at = G_define_option();
     opt_at->key = "at";
     opt_at->key_desc = "left,top";
     opt_at->type = TYPE_DOUBLE;
     opt_at->options = "0-100";
-    opt_at->answer = "20,80";
+    opt_at->answer = "10,40";
     opt_at->required = NO;
     opt_at->description =
     _("Screen position of legend to be drawn (percentage, [0,0] is lower left)");
@@ -82,6 +81,14 @@ int main(int argc, char **argv)
     opt_title->required = NO;
     opt_title->description = _("Legend title");
     opt_title->guisection = _("Title");
+
+    opt_symb_size = G_define_option();
+    opt_symb_size->key = "symbol_size";
+    opt_symb_size->type = TYPE_INTEGER;
+    opt_symb_size->required = NO;
+    opt_symb_size->description = _("Symbol size");
+    opt_symb_size->answer = "20";
+    opt_symb_size->guisection = _("Symbols");
 
     opt_bcolor = G_define_standard_option(G_OPT_CN);
     opt_bcolor->key = "border_color";
@@ -164,8 +171,10 @@ int main(int argc, char **argv)
     D_setup_unity(0);
 
     /* parse and check options and flags */
-    file_name = opt_input->answer;
-    sep = G_option_to_separator(opt_sep);
+    file_name = getenv("GRASS_LEGEND_FILE");
+//    file_name = opt_input->answer;
+    if (!file_name)
+        G_fatal_error("No legend file defined.");
 
     if (opt_at->answer) {
         sscanf(opt_at->answers[0], "%lf", &LL);
@@ -181,6 +190,8 @@ int main(int argc, char **argv)
         sscanf(opt_cols->answer, "%d", &cols);
     else
         cols = 1;
+
+    sscanf(opt_symb_size->answer, "%d", &symb_size);
 
     /* Background */
     do_bg = fl_bg->answer;
@@ -217,10 +228,12 @@ int main(int argc, char **argv)
 
     fontcolor = D_parse_color(opt_fontcolor->answer, FALSE); /*default color: black */
 
+    /* Pre-calculate the layout */
     if (do_bg)
-        draw(file_name, sep, LL, LT, title, cols, bgcolor, bcolor, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
+        draw(file_name, LL, LT, title, cols, bgcolor, bcolor, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
 
-    draw(file_name, sep, LL, LT, title, cols, bgcolor, bcolor, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor);
+    /* Draw legend */
+    draw(file_name, LL, LT, title, cols, bgcolor, bcolor, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
 
     D_close_driver();
 
