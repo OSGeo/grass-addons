@@ -210,6 +210,10 @@ def main():
                                      output = '-', flags = 'r',
 				     **addl_opts).splitlines()
 
+    # Needed to strip away empty entries from MS Windows newlines
+    #   list() is needed for Python 3 compatibility
+    points_list = list(filter(None, points_list))
+
     # convert into a 2D list, drop unneeded cat column
     # to drop cat col, add this to the end of the line [:-1]
     #fixme: how does this all react for 3D starting points?
