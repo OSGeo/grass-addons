@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Markus Metz
 #
-# PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or v3 tiles
+# PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles
 #
 # COPYRIGHT:    (C) 2011 GRASS development team
 #
@@ -17,7 +17,7 @@
 #############################################################################
 
 #%module
-#% description: Creates a DEM from 3 arcsec SRTM v2.1 or v3 tiles.
+#% description: Creates a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles.
 #% keyword: raster
 #% keyword: import
 #%end

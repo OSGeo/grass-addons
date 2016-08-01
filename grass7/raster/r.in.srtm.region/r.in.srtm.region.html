@@ -3,19 +3,19 @@
 <em>r.in.srtm.region</em> imports all SRTM tiles covering the 
 current region or region extents given with <b>region</b> into GRASS, 
 patches the tiles together and optionally interpolates holes for 
-SRTM V2.1.
+SRTM V2.1. The SRTM V3 ("SRTM Plus") are already void-filled.
 <p>
-<em>r.in.srtm.region</em> downloads SRTM V3 tiles at 3 arc seconds resolution from:<br>
-<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/</a> 
-<br>
-SRTM V3 tiles at 1 arc second resolution from:<br>
-<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/</a> 
-<br>
-and SRTM V2.1 tiles from:
-<a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">http://dds.cr.usgs.gov/srtm/</a>
-<br>
-or optionally uses a local folder with previously downloaded files if 
-the <b>local</b> option is given.
+<em>r.in.srtm.region</em> downloads
+<ul>
+<li> SRTM V3 tiles at 1 arc second resolution from:<br>
+<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/</a></li>
+<li> SRTM V3 tiles at 3 arc seconds resolution from:<br>
+<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/</a></li>
+<li> SRTM V2.1 tiles at 3 arc second resolution from:
+<a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">http://dds.cr.usgs.gov/srtm/</a></li>
+<li> or optionally it uses a local folder with previously downloaded files if 
+  the <b>local</b> option is given.</li>
+</ul>
 
 <h2>NOTES</h2>
 
@@ -24,7 +24,7 @@ This module only operates in LatLong locations.
 
 <h2>EXAMPLE</h2>
 
-Import of SRTM V3 (1 arc seconds ~ 30m) covering the current region:
+Import of SRTM V3 (1 arc seconds ~ 30m) covering the current computational region:
 
 <div class="code"><pre>
 # run in LatLong location
@@ -39,15 +39,18 @@ r.in.srtm.region -1 output=srtmV3 memory=2000
 </em>
 <p>
 The <a href="http://www2.jpl.nasa.gov/srtm/">Shuttle Radar Topography Mission</a>
-homepage at NASA's JPL.
+homepage at NASA's JPL (see also <a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table">MEaSUREs Data Product Table</a>).
 <p>
-The <a href="https://lpdaac.usgs.gov/sites/default/files/public/measures/docs/NASA_SRTM_V3.pdf/">SRTM v3 documentation</a>.
+The <a href="https://lpdaac.usgs.gov/sites/default/files/public/measures/docs/NASA_SRTM_V3.pdf">SRTM v3 documentation</a>.
 <p>
-The <a href="http://pub7.bravenet.com/forum/537683448/">SRTM Web Forum</a>
+<a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table/srtmgl1_v003">SRTMGL1: NASA Shuttle Radar Topography Mission Global 1 arc second V003</a>
+<p>
+NASA JPL. (2013). <i>NASA Shuttle Radar Topography Mission Global 1 arc second.</i> NASA LP DAAC. http://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003
 
 <h2>REFERENCES</h2>
 
-M. Neteler, 2005. <a href="http://grass.osgeo.org/newsletter/GRASSNews_vol3.pdf">SRTM and VMAP0 data in OGR and GRASS.</a> <i><a href="http://grass.osgeo.org/newsletter/">GRASS Newsletter</a></i>, Vol.3, pp. 2-6, June 2005. ISSN 1614-8746.
+M. Neteler, 2005. <a href="http://grass.osgeo.org/newsletter/GRASSNews_vol3.pdf">SRTM and VMAP0 data in OGR and GRASS.</a>
+<i><a href="http://grass.osgeo.org/newsletter/">GRASS Newsletter</a></i>, Vol.3, pp. 2-6, June 2005. ISSN 1614-8746.
 
 
 <h2>AUTHOR</h2>
