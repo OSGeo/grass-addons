@@ -40,6 +40,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     double it_per_col;
     double margin, bg_h, bg_w;
     char *sep;
+    int type_count;
 
 
     D_get_src(&dt, &db, &dl, &dr);
@@ -77,32 +78,20 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     G_strip(buf);
     while (got_new) {
         /* Get the maximum symbol size */
+        label = G_malloc(strlen(buf) + 1);
         symb_name = G_malloc(strlen(buf) + 1);
-        type_str = G_malloc(strlen(buf) + 1);
-        line_color_str = G_malloc(strlen(buf) + 1);
-        fill_color_str = G_malloc(strlen(buf) + 1);
 
         part = strtok(buf, sep);
+        sscanf(part, "%s", label);
+        part = strtok(NULL, sep);
         sscanf(part, "%s", symb_name);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", type_str);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", line_color_str);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", fill_color_str);
         part = strtok(NULL, sep);
         sscanf(part, "%lf", &size);
 
-        /* Symbol */
-        if (strcmp(type_str,"area")==0) {
-            symb_name = "legend/area";
-            size = symb_size;
-        }
-        else if (strcmp(type_str,"line")==0) {
-            symb_name = "legend/line";
-            size = symb_size;
-        }
 
+        /* Symbol */
+        if ((strcmp(symb_name,"legend/area")==0) || (strcmp(symb_name,"legend/line")==0))
+            size = symb_size;
         Symb = S_read(symb_name);
         if (Symb == NULL)
             G_warning(_("Cannot read symbol"));
@@ -129,8 +118,6 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     margin = 10;
     sub_delim = G_malloc(strlen(buf)+1);
     snprintf(sub_delim, sizeof(strlen(buf)+1), "%s%s%s%s%s", sep, sep, sep, sep, sep);
-
-
 
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
@@ -185,29 +172,25 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             fill_color = G_malloc(sizeof(RGBA_Color));
 
             part = strtok(buf, sep);
+            sscanf(part, "%s", label);
+            part = strtok(NULL, sep);
             sscanf(part, "%s", symb_name);
             part = strtok(NULL, sep);
-            sscanf(part, "%s", type_str);
+            sscanf(part, "%lf", &size);
             part = strtok(NULL, sep);
             sscanf(part, "%s", line_color_str);
             part = strtok(NULL, sep);
             sscanf(part, "%s", fill_color_str);
             part = strtok(NULL, sep);
-            sscanf(part, "%lf", &size);
-            part = strtok(NULL, sep);
             sscanf(part, "%lf", &line_width);
             part = strtok(NULL, sep);
-            sscanf(part, "%s", label);
+            sscanf(part, "%s", type_str);
+            part = strtok(NULL, sep);
+            sscanf(part, "%d", &type_count);
 
             /* Symbol */
-            if (strcmp(type_str,"area")==0) {
-                symb_name = "legend/area";
+            if ((strcmp(symb_name,"legend/area")==0) || (strcmp(symb_name,"legend/line")==0))
                 size = symb_size;
-            }
-            else if (strcmp(type_str,"line")==0) {
-                symb_name = "legend/line";
-                size = symb_size;
-            }
             Symb = S_read(symb_name);
             if (Symb == NULL)
                 G_warning(_("Cannot read symbol"));
@@ -268,7 +251,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
                 D_use_color(fontcolor);
                 D_text(label);
             }
-        } /* end of Parse the line */
+        }
 
         got_new = G_getl2(buf, sizeof(buf), file_in);
         G_strip(buf);

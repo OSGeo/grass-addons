@@ -47,14 +47,6 @@ int main(int argc, char **argv)
     _("Displays a vector legend "
       "in the active graphics frame.");
 
-//    opt_input = G_define_standard_option(G_OPT_F_INPUT);
-//    opt_input->key = "input";
-//    opt_input->description = _("Input file");
-//    opt_input->guisection = _("Input");
-
-//    opt_sep = G_define_standard_option(G_OPT_F_SEP);
-//    opt_sep->guisection = _("Input");
-
     opt_at = G_define_option();
     opt_at->key = "at";
     opt_at->key_desc = "left,top";
