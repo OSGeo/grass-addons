@@ -70,6 +70,13 @@
 #%required: no
 #%description: Tide correction to the time of satellite image capture
 #%end
+#%option
+#% key: calibration_column
+#%type: string
+#%multiple: no
+#%required: yes
+#%description: Name of the column which stores depth values 
+#%end
 #%flag
 #%key: b
 #% description: select kernel function as bi-square
@@ -98,10 +105,11 @@ def main():
     Additional_band4 = options['additional_band4']
     bathymetry = options['depth_estimate']
     tide_height = options['tide_height']
+    calibration_column = options['calibration_column']
     bisquare = flags['b']
     g.run_command('g.region', raster=Green)
     g.run_command('v.to.rast', input=Calibration_points, type='point',
-                  use='attr', attribute_column='value',
+                  use='attr', attribute_column=calibration_column,
                   output='tmp_Calibration_points')
     if tide_height:
         cal = g.parse_command('r.univar', map='tmp_Calibration_points',
