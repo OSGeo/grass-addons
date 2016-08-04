@@ -29,11 +29,12 @@ variogram values, more details in (<i>Stopkova, 2014</i>).
 
 <h4>Case study: Slovakia 3D precipitation</h4>
 <p>
-The case study is based on the input points of annual precipitation <a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a>.
+The case study is based on the input points of annual precipitation
+<a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a>.
 Although positions of the points are given in three-dimensional space, the points are concentrated at the terrain and thus
 interpolation above and below the terrain would become imprecise in deeper / higher areas of the dataset. That is the reason
 to test just cross-section from interpolated 3D raster comparing it with cross-section from the RST result obtained using 
-<a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a> according to (<i>Neteler and Mitasova, 2004</i>).
+<a href="v.vol.rst.html">v.vol.rst</a> according to (<i>Neteler and Mitasova, 2004</i>).
 
 <p>As the algorithm still needs to be optimized for large datasets, the original region was used with lower resolution 
 (hz: 5000 m, vert: 500 m). To test also original resolution, the points in smaller region (<b>Tab. 1</b>) were extracted.
@@ -127,7 +128,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td></td>
-		<td align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td align="center">Linear</td>
 		<td align="center">Exponential</td>
 		<td align="center">Spherical</td>
@@ -196,7 +197,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table  border="1" style="text-align: right;">
 	<tr>
 		<td></td>
-		<td align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td align="center">Linear</td>
 		<td align="center" style="color: greenyellow;">Exponential</td>
 		<td align="center">Spherical</td>
@@ -265,7 +266,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td></td>
-		<td align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td align="center" style="color: greenyellow;">Linear</td>
 		<td align="center">Exponential</td>
 		<td align="center">Spherical</td>
@@ -334,7 +335,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td></td>
-		<td align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td align="center">Exponential</td>
 		<td align="center">Spherical</td>
 		<td align="center">Gaussian</td>
@@ -382,7 +383,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 
 <p>
 <b>The results</b> were compared just using cross sections because of the distribution of the points. The column <i>RST</i>
- in following tables summarize statistical characteristics of the cross section by <i><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></i>. Other columns represent 
+ in following tables summarize statistical characteristics of the cross section by <i><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></i>. Other columns represent 
  statistical characteristics of the cross section <i>values</i> and of the <i>differences</i> (between RST and kriging cross sections)
  produced by each type of variogram.
  
@@ -390,7 +391,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td rowspan="2"></td>
-		<td rowspan="2" align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td rowspan="2" align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td colspan="2" align="center">Linear</td>
 		<td colspan="2" align="center">Exponential</td>
 		<td colspan="2" align="center">Spherical</td>
@@ -510,7 +511,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td rowspan="2"></td>
-		<td rowspan="2" align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td rowspan="2" align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td colspan="2" align="center">Linear</td>
 		<td colspan="2" align="center" style="color: greenyellow;">Exponential</td>
 		<td colspan="2" align="center">Spherical</td>
@@ -603,7 +604,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td rowspan="2"></td>
-		<td rowspan="2" align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td rowspan="2" align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td colspan="2" align="center" style="color: greenyellow;">Linear</td>
 		<td colspan="2" align="center">Exponential</td>
 		<td colspan="2" align="center">Spherical</td>
@@ -696,7 +697,7 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table border="1" style="text-align: right;">
 	<tr>
 		<td rowspan="2"></td>
-		<td rowspan="2" align="center"><a href="http://grass.osgeo.org/grass64/manuals/v.vol.rst.html" target="_blank">v.vol.rst</a></td>
+		<td rowspan="2" align="center"><a href="v.vol.rst.html" target="_blank">v.vol.rst</a></td>
 		<td colspan="2" align="center">Exponential</td>
 		<td colspan="2" align="center">Spherical</td>
 		<td colspan="2" align="center">Gaussian</td>
@@ -857,7 +858,7 @@ Variogram modelling was compared with the result of variogram analysis in <i>Sur
 </table>
 The difference in coefficient of the linear function might be caused by using slightly different lag size or by different approach to the computation (spatial index in <i>v.kriging</i>, optimization algorithms in <i>Surfer</i> (<i>Golden Software, Inc.</i>) etc.).
 
-<p><b>The results</b> were compared with the values interpolated using the module <i><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></i> and kriging tool of <i>Surfer</i> (<i>Golden Software, Inc.</i>). <b>Fig. 9a</b> - <b>9c</b> show interpolated DEM and the comparisons with the results of another interpolation tools. Statistical characteristics of the results are summarized in <b>Tab. 10</b>.
+<p><b>The results</b> were compared with the values interpolated using the module <i><a href="v.surf.rst.html">v.surf.rst</a></i> and kriging tool of <i>Surfer</i> (<i>Golden Software, Inc.</i>). <b>Fig. 9a</b> - <b>9c</b> show interpolated DEM and the comparisons with the results of another interpolation tools. Statistical characteristics of the results are summarized in <b>Tab. 10</b>.
 <p>
 <table>
 	<tr>
@@ -869,7 +870,7 @@ The difference in coefficient of the linear function might be caused by using sl
 	</tr>	
 	<tr>
 		<td>
-			<b>Fig. 9:</b> <b>a</b> - the DEM interpolated using <i>v.kriging</i>, <b>b</b> - the difference between <i>v.kriging</i> and <i><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></i>, <b>c</b> - the difference between <i>v.kriging</i> and <i>Surfer</i> (<i>Golden Software, Inc.</i>))
+			<b>Fig. 9:</b> <b>a</b> - the DEM interpolated using <i>v.kriging</i>, <b>b</b> - the difference between <i>v.kriging</i> and <i><a href="v.surf.rst.html">v.surf.rst</a></i>, <b>c</b> - the difference between <i>v.kriging</i> and <i>Surfer</i> (<i>Golden Software, Inc.</i>))
 		</td>	
 	</tr>
 </table>
@@ -880,7 +881,7 @@ The difference in coefficient of the linear function might be caused by using sl
 	<tr>
 		<td rowspan="2" style="text-align: center;"><b>Results</b></td>
 		<td rowspan="2" style="text-align: center;">v.kriging</td>
-		<td colspan="2" style="text-align: center;"><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></td>
+		<td colspan="2" style="text-align: center;"><a href="v.surf.rst.html">v.surf.rst</a></td>
 		<td colspan="2" style="text-align: center;">Surfer (<i>Golden Software, Inc.</i>)</td>
 	</tr>
 	<tr>
@@ -976,13 +977,17 @@ The difference in coefficient of the linear function might be caused by using sl
 
 <br>
 
-Also <b>cross validation</b> results of all the methods mentioned above and their statistical characteristics have been compared.  Cross validation using <i><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></i> was performed with these settings:
+Also <b>cross validation</b> results of all the methods mentioned above and their statistical
+characteristics have been compared.  Cross validation using <i><a href="v.surf.rst.html">v.surf.rst</a></i>
+was performed with these settings:
 <div class="code"><pre>
 v.surf.rst -c input="elev_lid792_selected@test_kriging" layer="1" zcolumn="value" \
 cvdev="lid792_500_rst_xval" tension=40 segmax=30 npmin=120 dmin=5.000000 dmax=25.000000 zscale=1.0
 </pre></div>
 
-Cross validation points are shown in <b>Fig. 10</b> (bigger circles represent kriging results, smaller circles represent the results of RST). Statistical characteristics of the cross validation are summarized in <b>Tab. 11</b>.
+Cross validation points are shown in <b>Fig. 10</b> (bigger circles represent kriging results,
+smaller circles represent the results of RST). Statistical characteristics of the cross validation
+are summarized in <b>Tab. 11</b>.
 
 <br>
 
@@ -994,7 +999,7 @@ Cross validation points are shown in <b>Fig. 10</b> (bigger circles represent kr
 	</tr>	
 	<tr>
 		<td>
-			<b>Fig. 10:</b> Cross validation by <i>v.kriging</i> and <i><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></i>
+			<b>Fig. 10:</b> Cross validation by <i>v.kriging</i> and <i><a href="v.surf.rst.html">v.surf.rst</a></i>
 		</td>
 	</tr>
 </table>
@@ -1002,7 +1007,7 @@ Cross validation points are shown in <b>Fig. 10</b> (bigger circles represent kr
 	<tr>
 		<td style="text-align: center;"><b>Cross validation</b></td>
 		<td>v.kriging</td>
-		<td><a href="http://grass.osgeo.org/grass64/manuals/v.surf.rst.html" target="blank">v.surf.rst</a></td>
+		<td><a href="v.surf.rst.html">v.surf.rst</a></td>
 		<td>Surfer (<i>Golden Software, Inc.</i>)</td>
 	</tr>
 	<tr>
