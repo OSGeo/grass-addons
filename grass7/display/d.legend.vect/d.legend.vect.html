@@ -1,103 +1,49 @@
 <h2>DESCRIPTION</h2>
 
 <em>d.vect.legend</em> draws vector legend.
-<p>
-TO DO
-Example taken from d.vect.thematic
-<h2>NOTES</h2>
 
-The <b>-l</b> flag instructs the module to print legend information
-(<i>class min | class max | number of observations in class |
-color</i>) to standard output for futher use in graphical software.
-When combined with the <b>-e</b> flag, the legend information will
-be extended with some additional statistical information. If the
-<b>-n</b> flag is set, the module will only print the legend 
-information without drawing the map. If the user gives a
-<b>legendfile</b>, the module will
-write <em><a href="d.graph.html">d.graph</a></em> instructions for
-painting a legend into that file.
+<h2>NOTES</h2>
+<p>
+<em>d.vect.legend</em> draws vector legend based on legend file defined in ['GRASS_LEGEND_FILE']. This file is automatically created and updated whenever <em><a href="d.vect.html">d.vect</a></em> command used. User can create custom legend file and then use <em>export GRASS_LEGEND_FILE=path/to/file</em>.<br> Legend file has this format:<br>
+label|symbol_name|feature_color|fill_color|size|line_width|geometry_type|feature_count<br>
+By default the legend file is stored in grassdata/location/mapset/.tmp/user directory (in case of d.mon deeper in /monitor_name directory).<br>
+<p>
+Parameter <b>at</b> defines the screen position of upper-left legend corner. <b>columns</b> defines the number of legend columns.
+<p>
+Paramter <b>title</b> defines the title. User can use parameters <b>font, font_size, title_font, title_font_size, sub_font, sub_font_size</b> to set the font settings.
+<p>
+Flag <b>-b</b> shows the background and user can specify its properties with <b>border_color, bgcolor, border_width</b>
+<p>
+<b>symbol_size</b> defines the size of line and area symbols. The size of point symbols is defined in legend file via <em><a href="d.vect.html">d.vect</a></em> command.
 
 
 <h2>EXAMPLES</h2>
 
-<h3>Thematic map with classes</h3>
+<h3>Open monitor and add layers</h3>
 
 <div class="code"><pre>
-d.vect.thematic -l map=communes3 column=pop \
-  breaks=111393.250000,222785.500000,334177.750000 \
-  colors="255:0:0,0:255:0,0:0:255,0,0,0"
+d.mon cairo
+d.vect map=nc_state color=139:105:20 fill_color=227:227:186 width=3 icon_area=legend/area legend_label=state_boundary
+d.vect map=urbanarea color=0:128:0 fill_color=144:238:14 width=1 icon_area=legend/area2
+d.vect map=railroads color=232:146:34 width=2 icon_line=legend/line
+d.vect map=hospitals color=red fill_color=white icon=basic/cross2 size=10
 </pre></div>
 
-<h3>Thematic map with calculated class breaks</h3>
-
-The following example uses a calculated attribute (<tt>density = 
-pop/area</tt>) and the standard deviation algorithm to calculate class 
-breaks for 5 classes:
-
+<h3>Display legend</h3>
 <div class="code"><pre>
-d.vect.thematic -l map=communes2 column=pop/area algorithm=std \
-  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0"
-</pre></div>
-
-To actually draw the legend for the polygons in the graphical
-display, the procedure is:
-
-<div class="code"><pre>
-# first save legend instructions to a file	
-d.vect.thematic -n map=communes2 column=pop/area algorithm=std \
-  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0" \
-  legendfile=legend_pop_dens  
-
-# open a monitor
-d.mon wx0
-
-# draw the map
-d.vect.thematic map=communes2 column=pop/area algorithm=std \
-  nbclasses=5 colors="0:0:255,50:100:255,255:100:50,255:0:0,156:0:0"
-
-# draw the legend
-d.graph input=legend_pop_dens
-</pre></div>
-
-In order to further enhance this legend, edit the legend file accordingly
-and rerun the process.
-
-<h3>Thematic map with calculated class breaks</h3>
-
-<!-- TODO: find better example -->
-
-Example for the North Carolina sample dataset, colorizing polygons by
-area size:
-
-<div class="code"><pre>
-# first save legend instructions to a file
-d.vect.thematic -n map=geology column=SHAPE_area algorithm=int nclasses=6 \
- colors=215:48:39,252:141:89,254:224:139,217:239:139,145:207:96,26:152:80 \
- legendfile=geology.leg
-
-# open the graphical display
-d.mon wx0
-# draw outline of polygons
-d.vect map=geology type=boundary
-# draw color fill
-d.vect.thematic map=geology column=SHAPE_area algorithm=int nclasses=6 \
- colors="215:48:39,252:141:89,254:224:139,217:239:139,145:207:96,26:152:80" \
-# draw legend
-d.graph input=geology.leg
+d.legend.vect -b at=10,40 title="North Caroline" symbol_size=25
 </pre></div>
 
 <center>
-<img src="d_vect_thematic.png" alt="d_vect_thematic example" border=1><br>
-Thematic map of area sizes
+<img src="d.legend.vect.png" alt="d.legend.vect example" border=1><br>
+Vector legend
 </center>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="v.class.html">v.class</a>,
 <a href="d.vect.html">d.vect</a>,
-<a href="d.graph.html">d.graph</a>,
-<a href="v.univar.html">v.univar</a>
+<a href="d.legend.html">v.univar</a>
 </em>
 
 <p>
@@ -106,7 +52,8 @@ AddOns: <em><a href="http://grass.osgeo.org/grass70/manuals/addons/d.vect.themat
 
 <h2>AUTHOR</h2>
 
-Moritz Lennert
+Adam Laza, during GSoC 2016
+Mentors: Anna Petrasova, Vaclav Petras, Martin Landa
 
 <p>
 <i>Last changed: $Date: 2015-08-11 23:06:03 +0200 (Út, 11 srp 2015) $</i>

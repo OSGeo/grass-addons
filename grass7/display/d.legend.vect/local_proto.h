@@ -1,3 +1,3 @@
 /* draw.c */
-void draw(char *, double, double, char *, int, int, int,
+void draw(char *, double, double, char *, int, int, int, int,
           int, char *, int, char *, int, char *, int, int, int);
