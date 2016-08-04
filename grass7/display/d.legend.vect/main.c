@@ -24,15 +24,16 @@ int main(int argc, char **argv)
 //    struct Option *opt_input, *opt_sep;
     struct Option *opt_at, *opt_cols, *opt_font, *opt_fontsize,
             *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
-            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size;
+            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size, *opt_line_width,
+            *opt_bg_width;
     struct Flag *fl_bg;
 
     double LL, LT;
-    char *title, *file_name, *leg_dir;
+    char *title, *file_name;
     int bcolor, bgcolor, do_bg;
     int fontsize, fontcolor, tit_size, sub_size;
     char *font, *tit_font, *sub_font;
-    int cols, symb_size;
+    int cols, symb_size, bg_width;
 
 
     /* Initialize the GIS calls */
@@ -93,6 +94,13 @@ int main(int argc, char **argv)
     opt_bgcolor->answer = "white";
     opt_bgcolor->label = _("Background color");
     opt_bgcolor->guisection = _("Background");
+
+    opt_bg_width = G_define_option();
+    opt_bg_width->type = TYPE_INTEGER;
+    opt_bg_width->key = "border_width";
+    opt_bg_width->answer = "2";
+    opt_bg_width->label = _("Background border width");
+    opt_bg_width->guisection = _("Background");
 
     opt_tit_font = G_define_option();
     opt_tit_font->key = "title_font";
@@ -164,7 +172,6 @@ int main(int argc, char **argv)
 
     /* parse and check options and flags */
     file_name = getenv("GRASS_LEGEND_FILE");
-//    file_name = opt_input->answer;
     if (!file_name)
         G_fatal_error("No legend file defined.");
 
@@ -184,6 +191,7 @@ int main(int argc, char **argv)
         cols = 1;
 
     sscanf(opt_symb_size->answer, "%d", &symb_size);
+    sscanf(opt_bg_width->answer, "%d", &bg_width);
 
     /* Background */
     do_bg = fl_bg->answer;
@@ -222,10 +230,10 @@ int main(int argc, char **argv)
 
     /* Pre-calculate the layout */
     if (do_bg)
-        draw(file_name, LL, LT, title, cols, bgcolor, bcolor, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
+        draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
 
     /* Draw legend */
-    draw(file_name, LL, LT, title, cols, bgcolor, bcolor, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
+    draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
 
     D_close_driver();
 
