@@ -162,7 +162,8 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
 		sprintf(buf2, "%g, ", stright);
 	    strcat(buf, buf2);
 
-	    if (Rast_is_d_null_value(&sinusoid))
+	    if (Rast_is_d_null_value(&sinusoid) || 
+	        Rast_is_d_null_value(&stright) || stright == 0)
 		sprintf(buf2, "null, ");
 	    else
 		sprintf(buf2, "%g, ", sinusoid);
@@ -186,7 +187,8 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
 		sprintf(buf2, "%g, ", drop);
 	    strcat(buf, buf2);
 
-	    if (Rast_is_d_null_value(&gradient))
+	    if (Rast_is_d_null_value(&gradient) || 
+	        Rast_is_d_null_value(&length) || length <= 0)
 		sprintf(buf2, "null )");
 	    else
 		sprintf(buf2, "%g )", gradient);
@@ -400,7 +402,8 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 	    sprintf(buf2, "%g, ", stright);
 	strcat(buf, buf2);
 
-	if (Rast_is_d_null_value(&sinusoid))
+	if (Rast_is_d_null_value(&sinusoid) || 
+	    Rast_is_d_null_value(&stright) || stright == 0)
 	    sprintf(buf2, "null, ");
 	else
 	    sprintf(buf2, "%g, ", sinusoid);
@@ -424,7 +427,8 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 	    sprintf(buf2, "%g, ", drop);
 	strcat(buf, buf2);
 
-	if (Rast_is_d_null_value(&gradient))
+	if (Rast_is_d_null_value(&gradient) ||
+	    Rast_is_d_null_value(&length) || length <= 0)
 	    sprintf(buf2, "null, ");
 	else
 	    sprintf(buf2, "%g, ", gradient);
@@ -454,7 +458,8 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 	    sprintf(buf2, "%g, ", out_drop);
 	strcat(buf, buf2);
 
-	if (Rast_is_d_null_value(&out_gradient))
+	if (Rast_is_d_null_value(&out_gradient) ||
+	    Rast_is_d_null_value(&out_length) || out_length == 0)
 	    sprintf(buf2, "null, ");
 	else
 	    sprintf(buf2, "%g, ", out_gradient);
