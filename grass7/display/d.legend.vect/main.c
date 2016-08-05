@@ -13,6 +13,8 @@
  *****************************************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <grass/display.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
@@ -25,7 +27,7 @@ int main(int argc, char **argv)
     struct Option *opt_at, *opt_cols, *opt_font, *opt_fontsize,
             *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
             *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size,
-            *opt_bg_width;
+            *opt_bg_width, *opt_output, *opt_input;
     struct Flag *fl_bg;
 
     double LL, LT;
@@ -34,6 +36,9 @@ int main(int argc, char **argv)
     int fontsize, fontcolor, tit_size, sub_size;
     char *font, *tit_font, *sub_font;
     int cols, symb_size, bg_width;
+    char *out_file;
+    FILE *source, *target;
+    char buf[512];
 
 
     /* Initialize the GIS calls */
@@ -160,6 +165,18 @@ int main(int argc, char **argv)
     fl_bg->description = _("Display legend background");
     fl_bg->guisection = _("Background");
 
+    opt_output = G_define_standard_option(G_OPT_F_OUTPUT);
+    opt_output->label = _("Output csv file");
+    opt_output->description = _("Path to output file or '-' "
+                                "for standard output");
+    opt_output->required = NO;
+    opt_output->guisection = _("In/Out");
+
+    opt_input = G_define_standard_option(G_OPT_F_INPUT);
+    opt_input->label = _("Input legend file");
+    opt_input->description = _("Path to legend file ");
+    opt_input->required = NO;
+    opt_input->guisection = _("In/Out");
 
     /* Check command line */
     if (G_parser(argc, argv)) {
@@ -170,10 +187,6 @@ int main(int argc, char **argv)
     D_setup_unity(0);
 
     /* parse and check options and flags */
-    file_name = getenv("GRASS_LEGEND_FILE");
-    if (!file_name)
-        G_fatal_error("No legend file defined.");
-
     if (opt_at->answer) {
         sscanf(opt_at->answers[0], "%lf", &LL);
         sscanf(opt_at->answers[1], "%lf", &LT);
@@ -230,6 +243,41 @@ int main(int argc, char **argv)
         sub_size = fontsize;
 
     fontcolor = D_parse_color(opt_fontcolor->answer, FALSE); /*default color: black */
+
+    /* I/O */
+    if (opt_input->answer) {
+        file_name = opt_input->answer;
+        if (!file_name)
+            G_fatal_error(_("Unable to open input file <%s>"), file_name);
+    }
+    else {
+        file_name = getenv("GRASS_LEGEND_FILE");
+        if (!file_name)
+            G_fatal_error("No legend file defined.");
+    }
+
+
+    if (opt_output->answer) {
+        source = fopen(file_name, "r");
+        if (!source)
+            G_fatal_error(_("Unable to open input file <%s>"), file_name);
+
+        if (strcmp(opt_output->answer,"-") == 0)
+            while (fgets (buf, sizeof(buf), source) != NULL)
+                puts (buf);
+        else {
+            out_file = opt_output->answer;
+            target = fopen(out_file, "w");
+            if (!target) {
+                fclose(source);
+                G_fatal_error(_("Unable to create output file <%s>"), out_file);
+            }
+            while (fgets (buf, sizeof(buf), source) != NULL)
+                fputs (buf, target);
+            fclose(target);
+        }
+        fclose(source);
+    }
 
     /* Pre-calculate the layout */
     if (do_bg)
