@@ -113,7 +113,6 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             G_warning(_("Cannot read symbol"));
         else
             S_stroke(Symb, size, 0, 0);
-//        symb_w = Symb->xscale * size * 2;
         symb_w = size;
 
         if (symb_w > def_symb_w)
@@ -245,7 +244,6 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             D_font(font);
             D_get_text_box(label, &bb, &bt, &bl, &br);
 
-//            symb_h = Symb->yscale * size * 2;
             symb_h = size;
             if (symb_h < def_symb_h)
                 symb_h = def_symb_h;

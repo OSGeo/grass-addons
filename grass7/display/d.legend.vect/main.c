@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 //    struct Option *opt_input, *opt_sep;
     struct Option *opt_at, *opt_cols, *opt_font, *opt_fontsize,
             *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
-            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size, *opt_line_width,
+            *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size,
             *opt_bg_width;
     struct Flag *fl_bg;
 
@@ -57,7 +57,6 @@ int main(int argc, char **argv)
     opt_at->required = NO;
     opt_at->description =
     _("Screen position of legend to be drawn (percentage, [0,0] is lower left)");
-    opt_at->guisection = _("Position");
 
     opt_cols = G_define_option();
     opt_cols->key = "columns";
@@ -66,7 +65,7 @@ int main(int argc, char **argv)
     opt_cols->required = NO;
     opt_cols->description =
     _("Number of legend columns");
-    opt_cols->guisection = _("Position");
+    opt_cols->guisection = _("Layout");
 
     opt_title = G_define_option();
     opt_title->key = "title";
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
     opt_symb_size->required = NO;
     opt_symb_size->description = _("Symbol size");
     opt_symb_size->answer = "20";
-    opt_symb_size->guisection = _("Symbols");
+    opt_symb_size->guisection = _("Layout");
 
     opt_bcolor = G_define_standard_option(G_OPT_CN);
     opt_bcolor->key = "border_color";
@@ -101,6 +100,22 @@ int main(int argc, char **argv)
     opt_bg_width->answer = "2";
     opt_bg_width->label = _("Background border width");
     opt_bg_width->guisection = _("Background");
+
+    opt_font = G_define_option();
+    opt_font->key = "font";
+    opt_font->type = TYPE_STRING;
+    opt_font->required = NO;
+    opt_font->description = _("Font name");
+    opt_font->guisection = _("Font settings");
+
+    opt_fontsize = G_define_option();
+    opt_fontsize->key = "fontsize";
+    opt_fontsize->type = TYPE_DOUBLE;
+    opt_fontsize->required = NO;
+    opt_fontsize->options = "1-360";
+    opt_fontsize->label = _("Font size");
+    opt_fontsize->description = _("Default: 12");
+    opt_fontsize->guisection = _("Font settings");
 
     opt_tit_font = G_define_option();
     opt_tit_font->key = "title_font";
@@ -134,26 +149,10 @@ int main(int argc, char **argv)
     opt_sub_fontsize->description = _("Default: 14");
     opt_sub_fontsize->guisection = _("Font settings");
 
-    opt_font = G_define_option();
-    opt_font->key = "font";
-    opt_font->type = TYPE_STRING;
-    opt_font->required = NO;
-    opt_font->description = _("Font name");
-    opt_font->guisection = _("Font settings");
-
-    opt_fontsize = G_define_option();
-    opt_fontsize->key = "fontsize";
-    opt_fontsize->type = TYPE_DOUBLE;
-    opt_fontsize->required = NO;
-    opt_fontsize->options = "1-360";
-    opt_fontsize->label = _("Font size");
-    opt_fontsize->description = _("Default: 12");
-    opt_fontsize->guisection = _("Font settings");
-
-    opt_fontcolor = G_define_standard_option(G_OPT_CN);
+    opt_fontcolor = G_define_standard_option(G_OPT_C);
     opt_fontcolor->key = "fontcolor";
     opt_fontcolor->answer = "black";
-    opt_fontcolor->label = _("font color");
+    opt_fontcolor->label = _("Font color");
     opt_fontcolor->guisection = _("Font settings");
 
     fl_bg = G_define_flag();
@@ -178,6 +177,10 @@ int main(int argc, char **argv)
     if (opt_at->answer) {
         sscanf(opt_at->answers[0], "%lf", &LL);
         sscanf(opt_at->answers[1], "%lf", &LT);
+    }
+    else {
+        LL = 10;
+        LT = 40;
     }
 
     if (opt_title->answer)
