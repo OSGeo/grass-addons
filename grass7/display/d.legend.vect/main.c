@@ -37,9 +37,10 @@ int main(int argc, char **argv)
     char *font, *tit_font, *sub_font;
     int cols, symb_size, bg_width;
     char *out_file;
-    FILE *source, *target;
+    FILE *source;
     char buf[BUFFSIZE];
     char *sep;
+    size_t nread;
 
 
     /* Initialize the GIS calls */
@@ -166,6 +167,12 @@ int main(int argc, char **argv)
     fl_bg->description = _("Display legend background");
     fl_bg->guisection = _("Background");
 
+    opt_input = G_define_standard_option(G_OPT_F_INPUT);
+    opt_input->label = _("Input legend file");
+    opt_input->description = _("Path to legend file ");
+    opt_input->required = NO;
+    opt_input->guisection = _("In/Out");
+
     opt_output = G_define_standard_option(G_OPT_F_OUTPUT);
     opt_output->label = _("Output csv file");
     opt_output->description = _("Path to output file or '-' "
@@ -173,14 +180,8 @@ int main(int argc, char **argv)
     opt_output->required = NO;
     opt_output->guisection = _("In/Out");
 
-    opt_input = G_define_standard_option(G_OPT_F_INPUT);
-    opt_input->label = _("Input legend file");
-    opt_input->description = _("Path to legend file ");
-    opt_input->required = NO;
-    opt_input->guisection = _("In/Out");
-
     opt_sep = G_define_standard_option(G_OPT_F_SEP);
-    opt_sep->guisection = _("Input");
+    opt_sep->guisection = _("In/Out");
 
     /* Check command line */
     if (G_parser(argc, argv)) {
@@ -264,25 +265,18 @@ int main(int argc, char **argv)
 
 
     if (opt_output->answer) {
-        source = fopen(file_name, "r");
-        if (!source)
-            G_fatal_error(_("Unable to open input file <%s>"), file_name);
-
-        if (strcmp(opt_output->answer,"-") == 0)
-            while (fgets (buf, sizeof(GNAME_MAX), source) != NULL)
-                puts (buf);
+        if (strcmp(opt_output->answer,"-") == 0) {
+            source = fopen(file_name, "r");
+            if (!source)
+                G_fatal_error(_("Unable to open input file <%s>"), file_name);
+            while ((nread = fread(buf, 1, sizeof(buf), source)))
+                fwrite(buf, 1, nread, stdout);
+            fclose(source);
+        }
         else {
             out_file = opt_output->answer;
-            target = fopen(out_file, "w");
-            if (!target) {
-                fclose(source);
-                G_fatal_error(_("Unable to create output file <%s>"), out_file);
-            }
-            while (fgets (buf, sizeof(GNAME_MAX), source) != NULL)
-                fputs (buf, target);
-            fclose(target);
+            G_copy_file(file_name, out_file);
         }
-        fclose(source);
     }
 
     /* Pre-calculate the layout */
