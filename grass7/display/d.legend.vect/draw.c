@@ -17,7 +17,7 @@
 
 void draw(char *file_name, double LL, double LT, char *title, int cols, int bgcolor,
           int bcolor, int bg_width, int do_bg, char* tit_font, int tit_size, char *sub_font,
-          int sub_size, char *font, int fontsize, int fontcolor, int symb_size)
+          int sub_size, char *font, int fontsize, int fontcolor, int symb_size, char *sep)
 {
     double db, dt, dl, dr;
     double bb, bt, bl, br;
@@ -25,7 +25,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     double offs_y, row_ind, offs_x;
     double x, y;
     FILE *file_in;
-    char buf[512];
+    char buf[BUFFSIZE];
     int got_new;
     SYMBOL *Symb;
     char *symb_name, *line_color_str, *fill_color_str, *label, *type_str;
@@ -39,8 +39,8 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     int item_count, item;
     double it_per_col;
     double margin, bg_h, bg_w;
-    char *sep;
     int type_count;
+    char **tokens;
 
 
     D_get_src(&dt, &db, &dl, &dr);
@@ -66,7 +66,8 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     }
 
     file_in = fopen(file_name, "r");
-    sep = "|";
+    sub_delim = G_malloc(GNAME_MAX);
+    snprintf(sub_delim, sizeof(GNAME_MAX), "%s%s%s%s%s", sep, sep, sep, sep, sep);
     if (!file_in)
         G_fatal_error(_("Unable to open input file <%s>"), file_name);
 
@@ -77,47 +78,42 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
     while (got_new) {
-        /* Get the maximum symbol size */
-        symb_name = G_malloc(strlen(buf) + 1);
-        type_str = G_malloc(strlen(buf) + 1);
-        line_color_str = G_malloc(strlen(buf) + 1);
-        fill_color_str = G_malloc(strlen(buf) + 1);
-        label = G_malloc(strlen(buf)+1);
-        line_color = G_malloc(sizeof(RGBA_Color));
-        fill_color = G_malloc(sizeof(RGBA_Color));
+        if (strstr(buf, sub_delim) == NULL) {
+            /* Get the maximum symbol size */
+            symb_name = G_malloc(GNAME_MAX);
+            type_str = G_malloc(GNAME_MAX);
+            line_color_str = G_malloc(GNAME_MAX);
+            fill_color_str = G_malloc(GNAME_MAX);
+            label = G_malloc(GNAME_MAX);
+            line_color = G_malloc(sizeof(RGBA_Color));
+            fill_color = G_malloc(sizeof(RGBA_Color));
 
-        part = strtok(buf, sep);
-        sscanf(part, "%s", label);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", symb_name);
-        part = strtok(NULL, sep);
-        sscanf(part, "%lf", &size);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", line_color_str);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", fill_color_str);
-        part = strtok(NULL, sep);
-        sscanf(part, "%lf", &line_width);
-        part = strtok(NULL, sep);
-        sscanf(part, "%s", type_str);
-        part = strtok(NULL, sep);
-        sscanf(part, "%d", &type_count);
+            tokens = G_tokenize(buf, sep);
+            sscanf(tokens[0], "%s", label);
+            sscanf(tokens[1], "%s", symb_name);
+            sscanf(tokens[2], "%lf", &size);
+            sscanf(tokens[3], "%s", line_color_str);
+            sscanf(tokens[4], "%s", fill_color_str);
+            sscanf(tokens[5], "%lf", &line_width);
+            sscanf(tokens[6], "%s", type_str);
+            sscanf(tokens[6], "%d", &type_count);
+            G_free_tokens(tokens);
 
-        /* Symbol */
-        if (strcmp(type_str,"point")!=0) {
-            size = symb_size;
+            /* Symbol */
+            if (strcmp(type_str,"point")!=0) {
+                size = symb_size;
+            }
+            D_line_width(line_width);
+            Symb = S_read(symb_name);
+            if (Symb == NULL)
+                G_warning(_("Cannot read symbol"));
+            else
+                S_stroke(Symb, size, 0, 0);
+            symb_w = size;
+
+            if (symb_w > def_symb_w)
+                def_symb_w = symb_w;
         }
-        D_line_width(line_width);
-        Symb = S_read(symb_name);
-        if (Symb == NULL)
-            G_warning(_("Cannot read symbol"));
-        else
-            S_stroke(Symb, size, 0, 0);
-        symb_w = size;
-
-        if (symb_w > def_symb_w)
-            def_symb_w = symb_w;
-
         item_count++;
         got_new = G_getl2(buf, sizeof(buf), file_in);
         G_strip(buf);
@@ -133,8 +129,6 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     item = 0;
     offs_x = 0;
     margin = 10;
-    sub_delim = G_malloc(strlen(buf)+1);
-    snprintf(sub_delim, sizeof(strlen(buf)+1), "%s%s%s%s%s", sep, sep, sep, sep, sep);
 
     got_new = G_getl2(buf, sizeof(buf), file_in);
     G_strip(buf);
@@ -155,7 +149,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
         }
         if (strstr(buf, sub_delim) != NULL) {
             /* Group subtitle */
-            label = G_malloc(strlen(buf)+1);
+            label = G_malloc(GNAME_MAX);
             part = strtok(buf, sep);
             sscanf(part, "%s", label);
 
@@ -180,33 +174,27 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
         }
         else {
             /* Map layers */
-            symb_name = G_malloc(strlen(buf) + 1);
-            type_str = G_malloc(strlen(buf) + 1);
-            line_color_str = G_malloc(strlen(buf) + 1);
-            fill_color_str = G_malloc(strlen(buf) + 1);
-            label = G_malloc(strlen(buf)+1);
+            symb_name = G_malloc(GNAME_MAX);
+            type_str = G_malloc(GNAME_MAX);
+            line_color_str = G_malloc(GNAME_MAX);
+            fill_color_str = G_malloc(GNAME_MAX);
+            label = G_malloc(GNAME_MAX);
             line_color = G_malloc(sizeof(RGBA_Color));
             fill_color = G_malloc(sizeof(RGBA_Color));
 
-            part = strtok(buf, sep);
-            sscanf(part, "%s", label);
-            part = strtok(NULL, sep);
-            sscanf(part, "%s", symb_name);
-            part = strtok(NULL, sep);
-            sscanf(part, "%lf", &size);
-            part = strtok(NULL, sep);
-            sscanf(part, "%s", line_color_str);
-            part = strtok(NULL, sep);
-            sscanf(part, "%s", fill_color_str);
-            part = strtok(NULL, sep);
-            sscanf(part, "%lf", &line_width);
-            part = strtok(NULL, sep);
-            sscanf(part, "%s", type_str);
-            part = strtok(NULL, sep);
-            sscanf(part, "%d", &type_count);
+            tokens = G_tokenize(buf, sep);
+            sscanf(tokens[0], "%s", label);
+            sscanf(tokens[1], "%s", symb_name);
+            sscanf(tokens[2], "%lf", &size);
+            sscanf(tokens[3], "%s", line_color_str);
+            sscanf(tokens[4], "%s", fill_color_str);
+            sscanf(tokens[5], "%lf", &line_width);
+            sscanf(tokens[6], "%s", type_str);
+            sscanf(tokens[6], "%d", &type_count);
+            G_free_tokens(tokens);
 
             /* Symbol */
-            if (strcmp(type_str,"point") != 0){
+            if ((strcmp(type_str,"point") != 0) && (strcmp(type_str, "centroid") != 0)) {
                 size = symb_size;
             }
             Symb = S_read(symb_name);

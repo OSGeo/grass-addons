@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     struct Option *opt_at, *opt_cols, *opt_font, *opt_fontsize,
             *opt_fontcolor, *opt_title, *opt_tit_font, *opt_tit_fontsize, *opt_sub_font,
             *opt_sub_fontsize, *opt_bcolor, *opt_bgcolor, *opt_symb_size,
-            *opt_bg_width, *opt_output, *opt_input;
+            *opt_bg_width, *opt_output, *opt_input, *opt_sep;
     struct Flag *fl_bg;
 
     double LL, LT;
@@ -38,7 +38,8 @@ int main(int argc, char **argv)
     int cols, symb_size, bg_width;
     char *out_file;
     FILE *source, *target;
-    char buf[512];
+    char buf[BUFFSIZE];
+    char *sep;
 
 
     /* Initialize the GIS calls */
@@ -178,6 +179,9 @@ int main(int argc, char **argv)
     opt_input->required = NO;
     opt_input->guisection = _("In/Out");
 
+    opt_sep = G_define_standard_option(G_OPT_F_SEP);
+    opt_sep->guisection = _("Input");
+
     /* Check command line */
     if (G_parser(argc, argv)) {
         exit(EXIT_FAILURE);
@@ -245,6 +249,8 @@ int main(int argc, char **argv)
     fontcolor = D_parse_color(opt_fontcolor->answer, FALSE); /*default color: black */
 
     /* I/O */
+    sep = G_option_to_separator(opt_sep);
+
     if (opt_input->answer) {
         file_name = opt_input->answer;
         if (!file_name)
@@ -263,7 +269,7 @@ int main(int argc, char **argv)
             G_fatal_error(_("Unable to open input file <%s>"), file_name);
 
         if (strcmp(opt_output->answer,"-") == 0)
-            while (fgets (buf, sizeof(buf), source) != NULL)
+            while (fgets (buf, sizeof(GNAME_MAX), source) != NULL)
                 puts (buf);
         else {
             out_file = opt_output->answer;
@@ -272,7 +278,7 @@ int main(int argc, char **argv)
                 fclose(source);
                 G_fatal_error(_("Unable to create output file <%s>"), out_file);
             }
-            while (fgets (buf, sizeof(buf), source) != NULL)
+            while (fgets (buf, sizeof(GNAME_MAX), source) != NULL)
                 fputs (buf, target);
             fclose(target);
         }
@@ -281,10 +287,10 @@ int main(int argc, char **argv)
 
     /* Pre-calculate the layout */
     if (do_bg)
-        draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
+        draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 1, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size, sep);
 
     /* Draw legend */
-    draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size);
+    draw(file_name, LL, LT, title, cols, bgcolor, bcolor, bg_width, 0, tit_font, tit_size, sub_font, sub_size, font, fontsize, fontcolor, symb_size, sep);
 
     D_close_driver();
 
