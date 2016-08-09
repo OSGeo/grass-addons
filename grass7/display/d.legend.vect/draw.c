@@ -9,6 +9,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 #include <grass/display.h>
 #include <grass/glocale.h>
@@ -39,7 +40,6 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     int item_count, item;
     double it_per_col;
     double margin, bg_h, bg_w;
-    int type_count;
     char **tokens;
 
 
@@ -80,30 +80,16 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
     while (got_new) {
         if (strstr(buf, sub_delim) == NULL) {
             /* Get the maximum symbol size */
-            symb_name = G_malloc(GNAME_MAX);
-            type_str = G_malloc(GNAME_MAX);
-            line_color_str = G_malloc(GNAME_MAX);
-            fill_color_str = G_malloc(GNAME_MAX);
-            label = G_malloc(GNAME_MAX);
-            line_color = G_malloc(sizeof(RGBA_Color));
-            fill_color = G_malloc(sizeof(RGBA_Color));
-
             tokens = G_tokenize(buf, sep);
-            sscanf(tokens[0], "%s", label);
-            sscanf(tokens[1], "%s", symb_name);
-            sscanf(tokens[2], "%lf", &size);
-            sscanf(tokens[3], "%s", line_color_str);
-            sscanf(tokens[4], "%s", fill_color_str);
-            sscanf(tokens[5], "%lf", &line_width);
-            sscanf(tokens[6], "%s", type_str);
-            sscanf(tokens[6], "%d", &type_count);
+            symb_name = G_store(tokens[1]);
+            size = atof(tokens[2]);
+            type_str = G_store(tokens[6]);
             G_free_tokens(tokens);
 
             /* Symbol */
             if (strcmp(type_str,"point")!=0) {
                 size = symb_size;
             }
-            D_line_width(line_width);
             Symb = S_read(symb_name);
             if (Symb == NULL)
                 G_warning(_("Cannot read symbol"));
@@ -174,23 +160,17 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
         }
         else {
             /* Map layers */
-            symb_name = G_malloc(GNAME_MAX);
-            type_str = G_malloc(GNAME_MAX);
-            line_color_str = G_malloc(GNAME_MAX);
-            fill_color_str = G_malloc(GNAME_MAX);
-            label = G_malloc(GNAME_MAX);
             line_color = G_malloc(sizeof(RGBA_Color));
             fill_color = G_malloc(sizeof(RGBA_Color));
 
             tokens = G_tokenize(buf, sep);
-            sscanf(tokens[0], "%s", label);
-            sscanf(tokens[1], "%s", symb_name);
-            sscanf(tokens[2], "%lf", &size);
-            sscanf(tokens[3], "%s", line_color_str);
-            sscanf(tokens[4], "%s", fill_color_str);
-            sscanf(tokens[5], "%lf", &line_width);
-            sscanf(tokens[6], "%s", type_str);
-            sscanf(tokens[6], "%d", &type_count);
+            label = G_store(tokens[0]);
+            symb_name = G_store(tokens[1]);
+            size = atof(tokens[2]);
+            line_color_str = G_store(tokens[3]);
+            fill_color_str = G_store(tokens[4]);
+            line_width = atof(tokens[5]);
+            type_str = G_store(tokens[6]);
             G_free_tokens(tokens);
 
             /* Symbol */
