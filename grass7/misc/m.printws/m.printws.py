@@ -640,8 +640,13 @@ def main():
                               1], e=extents[2], n=extents[3])
             regionmode = 'window'
 
-        #setting GRASS rendering environment
+        # setting GRASS rendering environment
         
+        # dummy file name is defined since the following lines
+        # when switching on the cairo driver would create
+        # an empty map.png in the current directory
+        os.environ['GRASS_RENDER_FILE'] = os.path.join(TMPDIR, str(os.getpid(
+                    )) + '_DIS_' + str(00) + '_GEN_' + str(00) + '.png')
         os.environ['GRASS_RENDER_IMMEDIATE'] = 'cairo'
         os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
         os.environ['GRASS_RENDER_TRANSPARENT'] = 'TRUE'
