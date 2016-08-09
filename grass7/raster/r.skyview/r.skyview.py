@@ -165,9 +165,9 @@ def main():
 
         msgr.message(_("Computing sky view factor ..."))
         new_maps = _get_horizon_maps()
-        expr = "{out} = 1 - (sin({first}) ".format(first=new_maps[0], out=output)
+        expr = '"{out}" = 1 - (sin("{first}") '.format(first=new_maps[0], out=output)
         for horizon in new_maps[1:]:
-            expr += "+ sin({name}) ".format(name=horizon)
+            expr += '+ sin("{name}") '.format(name=horizon)
         expr += ") / {n}.".format(n=len(new_maps))
 
         grast.mapcalc(exp=expr)
