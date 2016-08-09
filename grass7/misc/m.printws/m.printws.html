@@ -1,0 +1,168 @@
+<h2>DESCRIPTION</h2>
+
+<em>m.printws</em> adds a quick '<b>print w</b>ork<b>s</b>pace'
+function to GRASS GIS. Its purpose is to read a saved workspace file
+and render its content into a bitmap or PDF file similar to what the
+user configured in the workspace file for screen display, originally.
+As an opposite to other methods, the user is not required to create a separate map definition.
+<p>
+The module creates bitmap files so it is <b>not suitable to produce professional cartographic quality</b>.
+However, the following usage scenarios are recommended:
+<p>
+<ul>
+<li>Get a high resolution bitmap or PDF copy of a workspace composition to send in e-mail or include in office documents.
+</li>
+<li>Produce a quick printable page of the current screen composition.
+</li>
+<li>Use the main GRASS GIS window as a mapset composer. Supporting multiple displays whole mapset compositions
+could be saved as normal workspaces and printed in one run. Being a regular GRASS script it could be called from other
+scripts and command line as well. Even no GUI is necessary for it to run since it processes saved workspace files.
+</li>
+</ul>
+
+<h2>NOTES</h2>
+
+The module is set up to run with a full set of default values. To get quick result
+it is enough to specify the workspace file as input and the name of the output file without its exentsion
+since it is added autmatically depending on the selected output format. It creates a PDF format A4 landscape
+page at 150 dpi as default. Margins are 25mm, map area is 1000mm. Map frame is centered between the margins.
+<p>
+When selecting font, font names visible to GRASS GIS are not self evident. To ease font selection an "*" can be used to ask
+the script to look for a matching font. For example: <em>titlefont="Open*"</em> should find OpenSans or similar variations.
+<p>
+While running, the module modifies the map area edges ratio according to the region edges ratio.
+It also reduces the map area to fit between margins.
+It means that even faulty settings are corrected automatically.
+<b>This is why initial settings of 1000mm map size and -1,-1 placement results an optimally filled and fitted page.</b>
+<p>
+When reducing the target dpi resolution the content gerenation is very fast.
+It is recommended to run tests around 100dpi or lower and once we are satisfied with the layout
+it is time to set the final target dpi.
+<p>
+The module tries to render everything what are checked on the layer list and also adds overlays like barscale,
+legend and north arrow<b>*</b> <p>
+
+<small><i><b>*=as of July 2016 overlay modules positioning is buggy when rendering to file...</b></i></small>
+<p>
+<br>
+<br>
+Some <b>drawbacks</b> of the module which should be taken into consideration:
+<ul>
+<li>Depending on the number of layers with opacity lower than 100% the number of
+temporarily generated files may increase. An A4 300 dpi page consumes ~33MB
+disk space and when joining the layers all these are read into memory or swapped
+to disk by ImageMagick. Using many transparent layers, higher page size or higher
+resolution may slows down processing. Please check you system monitor while the module
+runs to follow memory and disk consumption. <b>The default 150 dpi</b> is good for testing compositions
+meanwhile also saves disk space and processing time. 300 dpi or more is recommended for production printouts only.
+</li>
+<li>Font size of <b>label files</b> is not fitted yet to the dpi set by the user. Label
+files should be regenerated to lower or higher font size according to dpi size.
+Please consider that modern screens are around 100dpi or higher. If you render
+300 dpi your labels should be drawn using 3 times bigger font size measured in dots.
+</li>
+</ul>
+The module saves current region and sets it back when finished.
+
+<h3>Multiple display support</h3>
+When your workspace contains more than one display definitions m.printws would create multiple maps printing all displays on a
+separate page in a separate file.
+File naming is automatic and works like demonstrated blow if having to displays named 'Downtown' and 'OVERVIEW OF CITY':
+<ul>
+<li>File name entered for output: /path/to/file/outname.pdf</li>
+<li>Generated map 1: /path/to/file/outname_DISPLAY_1_Downtown.pdf
+</li>
+<li>Generated map 2: /path/to/file/outname_DISPLAY_2_OVERVIEW OF CITY.pdf
+</li>
+</ul>
+When regenerating the map the files are overwritten. Selecting a full name as output (outname_DISPLAY_2_Downtown.pdf)
+the module will recognize its own additinons _DISPLAY_2_.... and .pdf and won't duplicate them in the newly generated filenames.
+<h3>Tips and tricks</h3>
+There is a macro possibility for titles.
+<ul>
+  <li>%DISPLAY% - as it is in the <b>title</b> field by default - in any of the text fields the name
+of the corresponting display will be used for text.</li>
+  <li>%USERNAME% - for user login name</li>
+  <li>%TIME24% - 15:25:33</li>
+  <li>%DATEYMD% - like 2016.08.02</li>
+  <li>%DATEMDY% - like 08/02/2016</li>
+  <li>%GXW% - name of the workspace file printed (full path)</li>
+  
+</ul>
+
+<h3>Windows specific settings for ImageMagick</h3>
+
+ImageMagick (IM) is essential for merging createt map layers and convert to the desired format. On Windows,
+IM should be installed by the user and be sure to add IM program directory to the PATH. It is done by the
+IM installation program on windows. However, for GRASS GIS, the OSGeo4W environment should be changed.
+
+Find the <em>o4w_env.bat</em> file in the OSGeo4W installation path. This is usually
+under C:\OSGeo4W\bin.
+
+Look at this part:
+
+<div class="code"><pre>
+REM start with clean path
+set Path=%OSGEO4W_ROOT%\bin;%WINDIR%\system32;%WINDIR%;%WINDIR%\WBem
+</pre></div>
+
+and put back Windows path or if there is a collision in your system, add only
+IM path at the beginning (add %Path%; before the first occurence of %WINDIR%).
+
+<div class="code"><pre>
+REM start with clean path
+set Path=%OSGEO4W_ROOT%\bin;%Path%;%WINDIR%\system32;%WINDIR%;%WINDIR%\WBem
+</pre></div>
+Save the .bat file. Restart GRASS GIS after this change. To check whether IM is accessible, in the GRASS GIS
+Layer Manager window click on <em>the Command console</em> tab and enter:
+<div class="code"><pre>
+magick convert
+</pre></div>
+If everything went fine, you will see the IM convert command help.
+<p>
+
+
+
+<h2>EXAMPLE</h2>
+
+
+<div class="code"><pre>
+# create a landscape 150dpi PDF copy of a workspace
+m.printws input=/home/kuszi/grassdata/Duna/maps/VP/nice_vectors_workspace.gxw \
+output=/home/kuszi/grassdata/Duna/maps/VP/sample_generated_printws maintitle=MAIN \
+subtitle=sub psunderleft=left psunderright=right psundercentral=center \
+region=cartosim_2@PERMANENT pagemargin=10
+</pre></div>
+
+<center>
+  <img src="m.printws_screen.png" alt="Screen view of workspace" width="400px"><br>
+  <em>Figure: Screen view of workspace</em>
+</center><br>
+<center>
+  <img src="m.printws_sample_print.png" alt="m.printws run example" width="400px"><br>
+  <em>Figure: m.printws run example created from the same workspace</em>
+</center>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="g.gui.html">d.erase</a>,
+  <a href="ps.map.html">ps.map</a>,
+  <a href="d.label.html">d.label</a>,
+  <a href="http://www.imagemagick.org">ImageMagick</a>
+</em>
+
+<p>
+  <a href="variables.html#list-of-selected-grass-environment-variables-for-rendering">GRASS environment variables for
+  rendering</a> (GRASS_RENDER_FRAME)
+  
+<h2>AUTHOR</h2>
+
+Robert Kuszinger, Giscom Kkt Hungary
+
+<p>
+Based on <em>d.*</em> commands and their functions in GRASS 7 by many authors.<br>
+Depends on <em>ImageMagick</em> multi-platform image manipulation tools.<br>
+
+<p>
+<i>Last changed: $Date: 2017-07-03 15:17:49 +0000 $</i>
