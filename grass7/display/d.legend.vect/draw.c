@@ -87,7 +87,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             G_free_tokens(tokens);
 
             /* Symbol */
-            if (strcmp(type_str,"point")!=0) {
+            if (((strcmp(type_str,"point") != 0) && (strcmp(type_str, "centroid") != 0)) || size < 0) {
                 size = symb_size;
             }
             Symb = S_read(symb_name);
@@ -137,7 +137,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             /* Group subtitle */
             label = G_malloc(GNAME_MAX);
             part = strtok(buf, sep);
-            sscanf(part, "%s", label);
+            label = G_store(part);
 
             D_text_size(sub_size, sub_size);
             D_font(sub_font);
@@ -174,7 +174,7 @@ void draw(char *file_name, double LL, double LT, char *title, int cols, int bgco
             G_free_tokens(tokens);
 
             /* Symbol */
-            if ((strcmp(type_str,"point") != 0) && (strcmp(type_str, "centroid") != 0)) {
+            if (((strcmp(type_str,"point") != 0) && (strcmp(type_str, "centroid") != 0)) || size < 0) {
                 size = symb_size;
             }
             Symb = S_read(symb_name);
