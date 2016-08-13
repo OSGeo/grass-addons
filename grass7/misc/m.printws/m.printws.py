@@ -177,14 +177,16 @@ import os
 import pwd
 import atexit
 import re
-#from subprocess import call
 import tempfile
-
 import grass.script as grass
 from grass.exceptions import CalledModuleError
 from grass.script.utils import try_rmdir
 import copy
 import time
+import unicodedata
+
+# workspace file is XML so we use an XML parser
+import xml.dom.minidom
 
 # initialize global vars
 TMPFORMAT = 'BMP'
@@ -236,6 +238,10 @@ def cleanup():
     grass.verbose(_("Module cleanup"))
 
 
+
+
+
+
 def upsizeifnecessary(task, lastparam, value, upsize):
     val = UPSD.get('*').get(lastparam, 0.0)
     if val > 0:
@@ -254,122 +260,82 @@ def htmldecode(str):
     return answer
 
 
+
+def processlayer(dom,flagdic,paramdic):
+    task = dom.getElementsByTagName("task")[0]
+    command = task.getAttribute('name')
+    params = task.getElementsByTagName("parameter")
+    paramdic['task'] = command
+    for p in params:
+        paramdic[p.getAttribute('name')] = p.getElementsByTagName("value")[0].childNodes[0].data
+    
+    flags = task.getElementsByTagName("flag")
+    for f in flags:
+        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite'):
+            flagdic [f.getAttribute('name')] = f.getAttribute('name')
+
+
+def processoverlay(dom,flagdic,paramdic):
+    params = dom.getElementsByTagName("parameter")
+    for p in params:
+        paramdic[p.getAttribute('name')] = p.getElementsByTagName("value")[0].childNodes[0].data
+    
+    flags = dom.getElementsByTagName("flag")
+    for f in flags:
+        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite'):
+            flagdic [f.getAttribute('name')] = f.getAttribute('name')
+
+
+def processlayers(dom,l):
+    # processing layers of a display. Layers are returned in the l array
+    for lay in dom:
+        if lay.getAttribute('checked') == '1':
+            paramdic = {}
+            flagdic = {}
+            opacity = lay.getAttribute('opacity')
+            if opacity.startswith('1'):
+                opacity = '1'
+            processlayer(lay,flagdic,paramdic)
+            l.insert(
+                0, (opacity, paramdic['task'] , paramdic, flagdic))
+
+def processoverlays(dom,l):
+    # processing layers of a display. Layers are returned in the l array
+    for lay in dom:
+        paramdic = {}
+        flagdic = {}
+        task = lay.getAttribute('name')
+        paramdic['task'] = task
+        opacity = '1'
+        processoverlay(lay,flagdic,paramdic)
+        l.append((opacity, paramdic['task'] , paramdic, flagdic))
+
+
 def readworkspace(wspname, upsize):
     # READS WORKSPACE FILE
-    # Anyone familiar with XML please replace to a well formed parser
-    # returns an array of two element arrays, where the two elements are:
-    # opacity as string, being '1' for opacity 1 and
-    # grass command reconstructed as a string from the worskpace definition
-    # the bottommost layer should be first on the list, meanwhile any overlays (barscale
-    # etc) should be last. The algorythm below does this exactly but using
-    # regex
-
-    searchmode = 'display'
-    extents = []
-    startnew = False
-    parameters = ''    # working method
-    flag = ''
     displaydic = {}    # adding support for more displays
-    paramdic = {}      # migrating to grass.run calls / done 2016.07.30
-    flagdic = {}
-    task = ''
-    layers = []
     grass.verbose(_("Layers: "))
     f = open(wspname, 'r')
-    for line in f:
-
-        if searchmode == 'display':
-            # grass.message("  DISPLAY:"+line)    #was debug message
-            # NEED TO HANDLE more displays...!
-            m = re.search(
-                '(display name="([a-zA-Z\ 0-9]+)".+dim="([0-9\,]+)".+extent="([0-9\.\-\,]+)")', line)
-            if m:
-                display = m.group(2)
-                extentall = m.group(4)
-                extents = extentall.split(",")
-                dimall = m.group(3)
-                dims = dimall.split(",")
-                extents.extend(dims)
-                searchmode = 'layer'
-        if searchmode == 'layer':
-            m = re.search(
-                '(layer type="([a-zA-Z]+)".+checked="1"\ opacity="([0-9\.]+)"|overlay name="([a-zA-Z\.]+)")', line)
-            if m:
-                if m.group(2):
-                    layer = m.group(2)
-                    # if it is an overly, opacity is 100..... handle this
-                    opacity = m.group(3)
-                    startnew = True
-                    if m.group(3).startswith('1'):
-                        startnew = False
-                    searchmode = 'task'
-                elif m.group(4):
-                    opactiy = '1'
-                    task = m.group(4)
-                    paramdic['task'] = task
-                    startnew = False
-                    searchmode = 'parameters'
-            # in layer mode a /display could also come
-            m = re.search('</display>', line)
-            if m:
-                # storing layers under display in a dictionary
-                layers.insert(0, extents)
-                displaydic[display] = copy.deepcopy(layers)
-                layers = []
-                searchmode = 'display'
-        elif searchmode == 'task':
-            m = re.search('task name="(.+)"', line)
-            if m:
-                task = m.group(1)
-                searchmode = 'parameters'
-                paramdic['task'] = task
-        elif searchmode == 'parameters':
-            m = re.search('(parameter) name="(.+)"|(flag) name="(.+)"', line)
-            if m:
-                if m.group(1) == 'parameter':
-                    parameters = parameters + ' ' + m.group(2) + '="'
-                    lastparam = m.group(2)
-                else:  # adding flags handling
-                    flag = flag + ' -' + m.group(4)
-                    flagdic[m.group(4)] = m.group(4)
-                    # grass.message("FLAG: "+m.group(4))    # was debug message
-            else:
-                m = re.search('<value>(.*)</value>', line)
-                if m:
-                    htmldecoded = htmldecode(m.group(1))
-                    upsized = upsizeifnecessary(
-                        task, lastparam, htmldecoded, upsize)
-                    parameters = parameters + '' + str(upsized) + '"'
-                    paramdic[lastparam] = str(upsized)
-                else:
-                    m = re.search('(</layer>)|(</overlay>)', line)
-                    if m:
-                        if startnew:
-                            if m.group(1):
-                                layers.insert(
-                                    0, (opacity, task + flag + parameters, paramdic, flagdic))
-                            else:
-                                layers.append(
-                                    (opacity, task + flag + parameters, paramdic, flagdic))
-                            grass.verbose(_(opacity + ' >> ' + str(display) + " >> " + task +
-                                            flag + parameters + " pd:" + str(paramdic) + " fd:" + str(flagdic)))
-                        else:
-                            if m.group(1):
-                                layers.insert(
-                                    0, ('1', task + flag + parameters, paramdic, flagdic))
-                            else:
-                                layers.append(
-                                    ('1', task + flag + parameters, paramdic, flagdic))
-                            grass.verbose(_('1 >> ' + str(display) + " >> " + task + flag +
-                                            parameters + " pd:" + str(paramdic) + " fd:" + str(flagdic)))
-                        parameters = ''
-                        paramdic = {}
-                        flag = ''
-                        flagdic = {}
-                        searchmode = 'layer'
+    text = f.read()
     f.close()
+    model = xml.dom.minidom.parseString(text)
+    displays = model.getElementsByTagName("display")
+    for display in displays:
+        extents = []
+        layers = []
+        displayname = display.getAttribute('name')
+        extentall = display.getAttribute('extent')
+        extents = extentall.split(",")
+        dimall = display.getAttribute('dim')
+        dims = dimall.split(",")
+        extents.extend(dims)
+        layersmodel = display.getElementsByTagName('layer')
+        processlayers(layersmodel,layers)
+        overlaysmodel = display.getElementsByTagName('overlay')
+        processoverlays(overlaysmodel,layers)
+        layers.insert(0, extents)
+        displaydic[displayname]=layers
     return displaydic
-
 
 def converttommfrom(value, fromunit):
     #converting some basic units to mm
@@ -677,19 +643,20 @@ def main():
         else:
             titlecolor = black
 
-        if len(options['maintitlesize']) > 1:
+        if len(options['maintitlesize']) > 0:
             maintitlesize = converttommfrom(
                 float(options['maintitlesize']), options['layunits'])
         else:
             maintitlesize = 10.0
 
-        if len(options['subtitlesize']) > 1:
+        if len(options['subtitlesize']) > 0:
             subtitlesize = converttommfrom(
                 float(options['subtitlesize']), options['layunits'])
         else:
             subtitlesize = 7.0
 
-        if len(options['pssize']) > 1:
+
+        if len(options['pssize']) > 0:
             pssize = converttommfrom(
                 float(options['pssize']), options['layunits'])
         else:
@@ -701,17 +668,19 @@ def main():
         pagesizes = getpagesizes(pageoption)
         pagesizesindots = dictodots(pagesizes, dpioption)
 
-        # Leave space for titles up and ps down
+        # Leave space for titles up and ps down - still in mm !!
         upperspace = 0
         subtitletop = 0
+        titletop = 0
         if len(options['maintitle']) > 0:
-            upperspace = upperspace + maintitlesize * 1.2
-            subtitletop = maintitlesize * 1.2
+            titletop = 0.4 * maintitlesize
+            upperspace = upperspace + titletop + maintitlesize
         if len(options['subtitle']) > 0:
-            upperspace = upperspace + subtitlesize * 1.2
+            subtitletop = upperspace + 0.4 * subtitlesize
+            upperspace = subtitletop + subtitlesize + 1
         lowerspace = 0
         if (len(options['psundercentral']) > 0) or (len(options['psunderright']) > 0) or (len(options['psunderleft']) > 0):
-            lowerspace = lowerspace + pssize * 1.2
+            lowerspace = lowerspace + pssize + 2
 
         os.environ['GRASS_RENDER_WIDTH'] = str(pagesizesindots['w'])
         os.environ['GRASS_RENDER_HEIGHT'] = str(pagesizesindots['h'])
@@ -725,13 +694,16 @@ def main():
         maxframe = str(mxfd['t']) + ',' + str(mxfd['b']) + \
             ',' + str(mxfd['l']) + ',' + str(mxfd['r'])
 
-        # convert font size to percentage for d.text
+        # convert font size in mm to percentage for d.text
         mxfmm = dictomm(mxfd, dpioption)
-        maintitlesize = maintitlesize / (mxfmm['b'] - mxfmm['t']) * 100.0
-        subtitlesize = subtitlesize / (mxfmm['b'] - mxfmm['t']) * 100.0
-        pssize = pssize / (mxfmm['r'] - mxfmm['l']) * 100.0
+        maintitlesize = float(maintitlesize) / (mxfmm['b'] - mxfmm['t']) * 100.0
+        subtitlesize = float(subtitlesize) / (mxfmm['b'] - mxfmm['t']) * 100.0
+        
+        pssize = float(pssize) / (mxfmm['r'] - mxfmm['l']) * 100.0
         # subtitle location is another issue
         subtitletoppercent = 100.0 - subtitletop / \
+            (mxfmm['b'] - mxfmm['t']) * 100.0
+        titletoppercent = 100.0 - titletop / \
             (mxfmm['b'] - mxfmm['t']) * 100.0
 
         mapul = getmapUL(options['mapupperleft'], options['layunits'])
@@ -872,7 +844,7 @@ def main():
 
         if len(options['maintitle']) > 1:
             dict['text'] = decodetextmacros(options['maintitle'], textmacros)
-            dict['at'] = "50,99"
+            dict['at'] = "50," + str(titletoppercent)
             dict['align'] = "uc"
             dict['size'] = str(maintitlesize)
             render(str(dict), dict, {})
