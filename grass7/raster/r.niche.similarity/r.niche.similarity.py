@@ -66,154 +66,146 @@
 #%required: -i,-d,-c
 #%end
 
-##----------------------------------------------------------------------------
-# Test purposes
-##----------------------------------------------------------------------------
-#options = {"maps":"bio_1,bio_2,bio_3,bio_4,bio_5,bio_6,bio_7,bio_8, bio_9", "output":""}
-#flags = {"i":True, "d":True, "c":True}
-
-##----------------------------------------------------------------------------
-## STANDARD ##
-##----------------------------------------------------------------------------
-
 # import libraries
 import os
 import sys
 import atexit
 import uuid
 import string
-import tempfile
-import grass.script as grass
-
-# Check if running in GRASS
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
+import grass.script as gs
 
 # Cleanup
-clean_rast = set()
+CLEAN_LAY = []
+
 
 def cleanup():
-    for rast in clean_rast:
-        grass.run_command("g.remove", flags="f",
-        type="rast", name=rast, quiet=True)
+    """Remove temporary maps specified in the global list"""
+    cleanrast = list(reversed(CLEAN_LAY))
+    for rast in cleanrast:
+        gs.run_command("g.remove", type="raster",
+                       name=rast, quiet=True, flags="f")
 
-##----------------------------------------------------------------------------
-## main function
-##----------------------------------------------------------------------------
 
-def main():
+def tmpname(prefix):
+    """Generate a tmp name which contains prefix, store the name in the
+    global list.
+    """
+    tmpf = prefix + str(uuid.uuid4())
+    tmpf = string.replace(tmpf, '-', '_')
+    CLEAN_LAY.append(tmpf)
+    return tmpf
 
-    ## input
-    #--------------------------------------------------------------------------
+
+def D_index(n1, n2, v1, v2, txtf):
+    """Calculate D (Schoener's 1968)"""
+    tmpf0 = tmpname("rniche")
+    gs.mapcalc("$tmpf0 = abs(double($n1)/$v1 - double($n2)/$v2)",
+               tmpf0=tmpf0, n1=n1, v1=v1, n2=n2, v2=v2, quiet=True)
+    NO = float(gs.parse_command("r.univar", quiet=True, flags="g",
+                                map=tmpf0)['sum'])
+    NOV = 1 - (0.5 * NO)
+    gs.info(_("Niche overlap (D) of {} and {} {}").format(n1.split('@')[0],
+            n2.split('@')[0], round(NOV, 3)))
+    return ['Niche overlap (D)', n1, n2, NOV]
+
+
+def I_index(n1, v1, n2, v2, txtf):
+    """Calculate I (Warren et al. 2008). Note that the sqrt in the
+    H formulation and the ^2 in the I formation  cancel each other out,
+    hence the formulation below """
+    tmpf1 = tmpname("rniche")
+    gs.mapcalc("$tmpf1 = (sqrt(double($n1)/$v1) - sqrt(double($n2)/$v2))^2",
+               tmpf1=tmpf1, n1=n1, v1=v1, n2=n2, v2=v2, quiet=True)
+    NE = float(gs.parse_command("r.univar", quiet=True, flags="g",
+                                map=tmpf1)['sum'])
+    NEQ = 1 - (0.5 * NE)
+    gs.info(_("Niche overlap (I) of {} and {} {}").format(n1.split('@')[0],
+            n2.split('@')[0], round(NEQ, 3)))
+    return ['Niche overlap (I)', n1, n2, NEQ]
+
+
+def C_index(n1, n2, txtf):
+    """Calculate correlation"""
+    corl = gs.read_command("r.covar", quiet=True, flags="r", map=(n1, n2))
+    corl = corl.split('N = ')[1]
+    corl = float(corl.split(' ')[1])
+    gs.info(_("Correlation coeff of {} and {} {}").format(n1.split('@')[0],
+            n2.split('@')[0], round(corl, 3)))
+    return ["Correlation coeff", n1, n2, corl]
+
+
+def main(options, flags):
+
+    # Check if running in GRASS
+    gisbase = os.getenv("GISBASE")
+    if not gisbase:
+        gs.fatal(_("$GISBASE not defined"))
+        return 0
+
+    # input
     INMAPS = options['maps']
     INMAPS = INMAPS.split(',')
     VARI = [i.split('@')[0] for i in INMAPS]
     OPF = options['output']
-    if OPF == '':
-        OPF = tempfile.mkstemp()[1]
     flag_i = flags['i']
     flag_d = flags['d']
     flag_c = flags['c']
 
-    ## Checks
-    #--------------------------------------------------------------------------
-
     # Check if there are more than 1 input maps
     NLAY = len(INMAPS)
     if NLAY < 2:
-        grass.fatal("You need to provide 2 or more raster maps")
-
-    #=======================================================================
-    ## Calculate D and I and write to standard output (& optionally to file)
-    #=======================================================================
-
-    # Open text file for writing and write heading
-    text_file = open(OPF, "w")
-    text_file.write("statistic,raster1,raster2,value" + "\n")
+        gs.fatal("You need to provide 2 or more raster maps")
 
     # Write D and I values to standard output and optionally to text file
+    Dind = []
+    Iind = []
+    Cind = []
+
     i = 0
     while i < NLAY:
         nlay1 = INMAPS[i]
         nvar1 = VARI[i]
-        vsum1 = float(grass.parse_command("r.univar", quiet=True, flags="g", map=nlay1)['sum'])
-
+        vsum1 = float(gs.parse_command("r.univar", quiet=True, flags="g",
+                                       map=nlay1)['sum'])
         j = i + 1
         while j < NLAY:
             nlay2 = INMAPS[j]
             nvar2 = VARI[j]
-            vsum2 = float(grass.parse_command("r.univar", quiet=True, flags="g", map=nlay2)['sum'])
+            vsum2 = float(gs.parse_command("r.univar", quiet=True,
+                                           flags="g", map=nlay2)['sum'])
 
-            ## Calculate D (Schoener's 1968)
-            #=======================================================================
-
+            # Calculate D (Schoener's 1968)
             if flag_d:
-                tmpf0 = "rniche_" + str(uuid.uuid4())
-                tmpf0 = string.replace(tmpf0, '-', '_')
-                clean_rast.add(tmpf0)
-                grass.mapcalc("$tmpf0 = abs(double($nlay1)/$vsum1 - double($nlay2)/$vsum2)",
-                             tmpf0=tmpf0,
-                             nlay1=nlay1,
-                             vsum1=vsum1,
-                             nlay2=nlay2,
-                             vsum2=vsum2,
-                             quiet=True)
-                NO = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf0)['sum'])
-                NOV = 1 - (0.5 * NO)
-                text_file.write("D," + nvar1 + "," + nvar2 + "," + str(NOV) + "\n")
-                grass.message("Niche overlap (D) of " + nvar1 + " and " + nvar2 + ": " + str(round(NOV, 3)))
+                di = D_index(n1=nlay1, n2=nlay2, v1=vsum1, v2=vsum2, txtf=OPF)
+                Dind.append(di)
 
-            ## Calculate I (Warren et al. 2008). Note that the sqrt in the
-            # H formulation and the ^2 in the I formation  cancel each other out,
-            # hence the formulation below.
-            #=======================================================================
-
+            # Calculate I (Warren et al. 2008)
             if flag_i:
-                tmpf1 = "rniche_" + str(uuid.uuid4())
-                tmpf1 = string.replace(tmpf1, '-', '_')
-                clean_rast.add(tmpf1)
-                grass.mapcalc("$tmpf1 = (sqrt(double($nlay1)/$vsum1) - sqrt(double($nlay2)/$vsum2))^2",
-                             tmpf1=tmpf1,
-                             nlay1=nlay1,
-                             vsum1=vsum1,
-                             nlay2=nlay2,
-                             vsum2=vsum2,
-                             quiet=True)
-                NE = float(grass.parse_command("r.univar", quiet=True, flags="g", map=tmpf1)['sum'])
-                NEQ = 1 - (0.5 * NE)
-                text_file.write("I," + nvar1 + "," + nvar2 + "," + str(NEQ) + "\n")
-                grass.message("Niche overlap (I) of " + nvar1 + " and " + nvar2 + ": " + str(round(NEQ, 3)))
+                ii = I_index(n1=nlay1, v1=vsum1, n2=nlay2, v2=vsum2, txtf=OPF)
+                Iind.append(ii)
 
-            ## Calculate correlation
-            #=======================================================================
-
+            # Calculate correlation
             if flag_c:
-                corl = grass.read_command("r.covar", quiet=True, flags="r", map=(nlay1,nlay2))
-                corl = corl.split('N = ')[1]
-                corl = float(corl.split(' ')[1])
-                text_file.write("corr," + nvar1 + "," + nvar2 + "," + str(corl) + "\n")
-                grass.message("Correlation of " + nvar1 + " and " + nvar2 + ": " + str(round(corl, 3)))
+                ci = C_index(n1=nlay1, n2=nlay2, txtf=OPF)
+                Cind.append(ci)
 
-            grass.message("--------------------------------------")
+            # Set counter
+            gs.info("--------------------------------------")
             j = j + 1
+
+        # Set counter i
         i = i + 1
 
-    text_file.close()
+    # Write results to csv file
+    if OPF:
+        IND = [["Statistic", "Layer 1", "Layer 2", "value"]] + \
+                Dind + Iind + Cind
+        import csv
+        with open(OPF, "wb") as f:
+            writer = csv.writer(f)
+            writer.writerows(IND)
+        gs.info(_("Results written to {}").format(OPF))
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
     atexit.register(cleanup)
-    sys.exit(main())
-
-
-
-
-
-
-
-
-
-
-
-
+    sys.exit(main(*gs.parser()))
