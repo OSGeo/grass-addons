@@ -137,8 +137,8 @@ def main():
     if flags['e']:
         flagstring += 'e'
     #get the coords from the vector map, and check if we want to name them
-    if flags['k'] and options["name_col"] is not '':
-        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",", columns=options["name_col"]).strip()    # note that the "r" flag will constrain to points in the current geographic region.
+    if flags['k'] and options["name_column"] is not '':
+        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",", columns=options["name_column"]).strip()    # note that the "r" flag will constrain to points in the current geographic region.
     else:
         output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",").strip()    # note that the "r" flag will constrain to points in the current geographic region.
     grass.message(_("Note that the routine is constrained to points in the current geographic region."))
@@ -149,7 +149,7 @@ def main():
     #now, loop through the master list and run r.viewshed for each of the sites, and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
     for site in masterlist:
-        if flags['k'] and options["name_col"] is not '':
+        if flags['k'] and options["name_column"] is not '':
             ptname = site[3]
         else:
             ptname = site[2]
