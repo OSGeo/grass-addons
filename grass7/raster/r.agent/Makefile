@@ -2,9 +2,9 @@ MODULE_TOPDIR =../..
 
 PGM = r.agent
 
-SUBDIRS = r.agent.aco \
-            r.agent.rand \
-            libagent
+SUBDIRS = libagent \
+	r.agent.aco \
+	r.agent.rand
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
