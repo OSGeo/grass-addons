@@ -50,8 +50,8 @@
 #% label: Area measurements to include in the output
 #% required: no
 #% multiple: yes
-#% options: area,perimeter,compact,fd
-#% answer: area,perimeter,compact,fd
+#% options: area,perimeter,compact_circle,compact_square,fd
+#% answer: area,perimeter,compact_circle,fd
 #% guisection: shape_statistics
 #%end
 #%option G_OPT_F_OUTPUT
@@ -79,16 +79,19 @@ import os
 import atexit
 import collections
 import math
-import grass.script as grass
+import grass.script as gscript
     
 
 def cleanup():
 
-    if grass.find_file(temporary_vect, element='vector')['name']:
-            grass.run_command('g.remove', flags='f', type_='vector',
+    if temporary_vect:
+        if gscript.find_file(temporary_vect, element='vector')['name']:
+            gscript.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
     if insert_sql:
         os.remove(insert_sql)
+
+    os.remove(stats_temp_file)
 
 
 def main():
@@ -99,6 +102,14 @@ def main():
     vectormap = options['vectormap'] if options['vectormap'] else []
     rasters = options['rasters'].split(',') if options['rasters'] else []
     area_measures = options['area_measures'].split(',') if options['area_measures'] else []
+    r_object_geometry = True
+    if area_measures:
+	if not gscript.find_program('r.object.geometry', '--help'):
+		message = _("You need to install the addon 'r.object.geometry' to be able")
+		message += _(" to calculate area measures. Ignoring these measures for now")
+		gscript.warning(message)
+		r_object_geometry = False
+
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
 
     output_header = ['cat']
@@ -106,59 +117,100 @@ def main():
 
     global insert_sql
     insert_sql = None
-
     global temporary_vect
-    temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
+    temporary_vect = None
 
     raster_stat_dict = {'zone': 0, 'min': 4, 'third_quart': 16, 'max': 5, 'sum':
             12, 'null_cells': 3, 'median': 15, 'label': 1, 'first_quart': 14,
             'range': 6, 'mean_of_abs': 8, 'stddev': 9, 'non_null_cells': 2,
             'coeff_var': 11, 'variance': 10, 'sum_abs': 13, 'perc_90': 17,
             'mean': 7}
+
+    geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
+			'compact_square': 3, 'compact_circle': 4, 'fd' : 5}
     
     if flags['r']:
-        grass.use_temp_region()
-        grass.run_command('g.region', raster=segment_map)
+        gscript.use_temp_region()
+        gscript.run_command('g.region', raster=segment_map)
 
-    grass.run_command('r.to.vect',
-                      input_=segment_map,
-                      output=temporary_vect,
-                      type_='area',
-                      flags='vt')
-
-    for area_measure in area_measures:
-        output_header.append(area_measure)
-        res=grass.read_command('v.to.db', map_=temporary_vect,
-                option=area_measure, column=area_measure,
-                flags='p').splitlines()[1:]
-        for element in res:
-            values = element.split('|')
-            output_dict[values[0]].append(values[1])
+    global stats_temp_file
+    stats_temp_file = gscript.tempfile()
+    if area_measures and r_object_geometry:
+	gscript.message(_("Calculating geometry statistics"))
+	output_header += area_measures
+	stat_indices = [geometry_stat_dict[x] for x in area_measures]
+        gscript.run_command('r.object.geometry',
+     		      	    input_=segment_map,
+		      	    output=stats_temp_file,
+		      	    overwrite=True,
+		      	    quiet=True)
+    
+	firstline = True
+    	with open(stats_temp_file, 'r') as fin:
+	    for line in fin:
+		if firstline:
+		    firstline = False
+		    continue
+		values = line.rstrip().split('|')
+		output_dict[values[0]] = [values[x] for x in stat_indices]
 
     for raster in rasters:
-        if not grass.find_file(raster, element='raster')['name']:
-            grass.message(_("Cannot find raster %s" % raster))
+	gscript.message(_("Calculating statistics for raster %s" % raster))
+        if not gscript.find_file(raster, element='raster')['name']:
+            gscript.message(_("Cannot find raster %s" % raster))
             continue
         rastername=raster.split('@')[0]
         output_header += [rastername + "_" + x for x in raster_statistics]
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
-        res=grass.read_command('r.univar',
-                               map_=raster,
-                               zones=segment_map,
-                               flags='et').splitlines()[1:]
-        for element in res:
-            values = element.split('|')
-            output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
+        gscript.run_command('r.univar',
+                            map_=raster,
+                            zones=segment_map,
+			    output=stats_temp_file,
+                            flags='et',
+			    overwrite=True,
+			    quiet=True)
+
+	firstline = True
+    	with open(stats_temp_file, 'r') as fin:
+	    for line in fin:
+		if firstline:
+		    firstline = False
+		    continue
+		values = line.rstrip().split('|')
+		values = line.rstrip().split('|')
+	    	if area_measures:
+            	    output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
+	    	else:
+            	    output_dict[values[0]] = [values[x] for x in stat_indices]
+
+    message = _("Some values could not be calculated for the objects below. ")
+    message += _("These objects are thus not included in the results. ")
+    message += _("HINT: Check some of the raster maps for null values ")
+    message += _("and possibly fill these values with r.fillnulls.")
+    error_objects = []
 
     if csvfile:
         with open(csvfile, 'wb') as f:
             f.write(",".join(output_header)+"\n")
             for key in output_dict:
-                f.write(key+","+",".join(output_dict[key])+"\n")
+		if len(output_dict[key]) + 1 == len(output_header):
+                    f.write(key+","+",".join(output_dict[key])+"\n")
+		else:
+		    error_objects.append(key)
         f.close()
 
     if vectormap:
-        insert_sql = grass.tempfile()
+	gscript.message(_("Creating vector map"))
+        temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
+        gscript.run_command('r.to.vect',
+                            input_=segment_map,
+                            output=temporary_vect,
+                            type_='area',
+                            flags='vt',
+			    overwrite=True,
+			    quiet=True)
+
+        insert_sql = gscript.tempfile()
         fsql = open(insert_sql, 'w')
         fsql.write('BEGIN TRANSACTION;\n')
         create_statement = 'CREATE TABLE ' + vectormap + ' (cat int, '
@@ -167,17 +219,28 @@ def main():
         create_statement += output_header[-1] + ' double precision);\n'
         fsql.write(create_statement)
         for key in output_dict:
-                sql = "INSERT INTO " + vectormap + " VALUES (" + key+","+",".join(output_dict[key])+");\n"
-                sql = sql.replace('inf', 'NULL')
-                fsql.write(sql)
+		if len(output_dict[key]) + 1  == len(output_header):
+                    sql = "INSERT INTO " + vectormap + " VALUES (" + key+","+",".join(output_dict[key])+");\n"
+                    sql = sql.replace('inf', 'NULL')
+                    fsql.write(sql)
+		else:
+		    if not csvfile:
+		    	error_objects.append(key)
+		
         fsql.write('END TRANSACTION;')
         fsql.close()
-        grass.run_command('g.copy', vector=temporary_vect+','+vectormap)
-        grass.run_command('db.execute', input=insert_sql)
-        grass.run_command('v.db.connect', map_=vectormap, table=vectormap)
 
+        gscript.run_command('g.copy', vector=temporary_vect+','+vectormap, quiet=True)
+        gscript.run_command('db.execute', input=insert_sql, quiet=True)
+        gscript.run_command('v.db.connect', map_=vectormap, table=vectormap, quiet=True)
+
+    if error_objects:
+	object_string = ', '.join(error_objects)
+	message += _("\n\nObjects with errors: %s" % object_string)
+	gscript.warning(message)
+		
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gscript.parser()
     atexit.register(cleanup)
     main()

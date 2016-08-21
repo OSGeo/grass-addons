@@ -8,7 +8,9 @@ areas can be the output of <a href="i.segment.html">i.segment</a> or
 
 <p>
 Available statistics are those related to the shape and size of the areas
-(see the <a href="v.to.db.html">v.to.db</a> man page for more information
+(see the 
+<a href="<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry</a>
+addon man page for more information
 on the statistics) and aggregated statistics of pixel values of other
 raster maps (see <a href="v.univar.html">v.univar</a> for details).
 
@@ -26,15 +28,23 @@ calculating the statistics.
 
 <p>
 This module is a simple front-end to <a href="v.univar.html">v.univar</a>
-and <a href="v.to.db.html">v.to.db</a>. If other statistics are desired,
-these should probably be implemented in those (or other) modules which
-can then be called from this module.
+and the 
+<a href="<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry</a>
+add-on. It is the user's responsibility to install the
+latter using <a href="g.extension.html">g.extension</a>. If other statistics 
+are desired, these should probably be implemented in those (or other) modules
+which can then be called from this module.
 
 <p>
 Problems can arise in the calculation of some form statistics for certain
 segment forms. If errors arise, the user might want to try to run 
 <a href="r.clump.html">r.clump</a> on the input raster file before running
 <em>i.segment.stats</em>.
+
+<p>
+When treating files with a large number objects, creating the vector map
+can be very time-consuming. In that case, it might be easier to only work
+with the csv-format output.
 
 
 <h2>EXAMPLE</h2>
@@ -51,9 +61,13 @@ i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
 
 <em>
 <a href="i.segment.html">i.segment</a>,
-<a href="v.to.db.html">v.to.db</a>,
 <a href="v.univar.html">v.univar</a>,
 <a href="v.rast.stats.html">v.rast.stats</a> 
+</em>
+<p>
+<em>
+<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry (Addon)</a>
+<a href="https://grass.osgeo.org/grass70/manuals/addons/v.class.mlR.html">v.class.mlR (Addon)</a>
 </em>
 
 <h2>AUTHOR</h2>
