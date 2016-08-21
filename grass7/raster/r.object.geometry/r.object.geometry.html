@@ -1,0 +1,55 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>r.object.geometry</em> calculates form statistics of raster objects
+in the <em>input</em> map and writes it to the <em>output</em> text file,
+with fields separated by the chosen <em>separator</em>.  Objects are defined
+ as clumps of adjacent cells with the same category value (e.g. output of 
+<a href="r.clump.html">r.clump</a> or <a href="i.segment.html">i.segment</a>).
+
+<p>
+By default, values are in pixels. If values in meters is desired, the user
+can set the <em>-m</em> flag.
+
+<p>
+Statistics currently calculated are exactly the same as in
+<a href="v.to.db.html">v.to.db</a> (except for compact_square):
+
+<ul>
+<li>area</li>
+<li>perimeter</li>
+<li>compact_square ( compactness compared to a square: 
+	compact_square = 4 * sqrt(area) / perimeter )
+<li>compact_circle ( compactness compared to a circle: 
+	compact_circle = perimeter / ( 2 * sqrt(PI * area) ) )</li>
+<li>fractal dimension ( fd = 2 * ( log(perimeter) / log(area + 1) ) )<li>
+</ul>
+
+More statistics might be added in the future.
+
+<h2>NOTES</h2>
+
+
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+g.region rast=soilsID
+r.object.geometry soilsID out=soils_geom
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.segment.html">i.segment</a>,
+<a href="r.clump.html">r.clump</a>,
+<a href="v.to.db.html">v.to.db</a>,
+</em>
+
+<h2>AUTHOR</h2>
+
+Moritz Lennert<br>
+Markus Metz (diagonal clump tracing)
+
+<p>
+<i>Last changed: $Date: 2016-05-31 00:01:21 +0200 (Tue, 31 May 2016) $</i>
