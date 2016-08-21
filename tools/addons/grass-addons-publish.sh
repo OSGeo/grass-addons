@@ -7,6 +7,7 @@
 #
 # original author: Martin Landa
 # updated for new CMS path MN 8/2015
+set -e
 
 URL=http://geo102.fsv.cvut.cz/grass/addons/
 ADDONS=${HOME}/src/grass-addons
