@@ -88,7 +88,7 @@ try:
 except ImportError:
     raise error.EnvError("r.agent.rand:", "Please run inside GRASS.")
 
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 
 set_path('r.agent', 'libagent', '..')
 from libagent import error, grassland, world
