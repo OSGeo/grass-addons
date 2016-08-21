@@ -82,20 +82,16 @@ from sys  import exit, maxsize
 from math import sqrt
 from math import exp
 from random import randint
-import grass.script as grass
-from grass.pygrass.utils import get_lib_path
-
-path = get_lib_path(modname='r.agent', libname='libagent')
-if path is None:
-    grass.fatal("Not able to find the agent library directory.")
-sys.path.append(path)
-
-import error, grassland, world
 
 try:
     from grass.script import core as grass
 except ImportError:
     raise error.EnvError("r.agent.rand:", "Please run inside GRASS.")
+
+from grass.pygrass.utils import get_lib_path
+
+set_path('r.agent', 'libagent', '..')
+from libagent import error, grassland, world
 
 def setmaps(cost, output):
     """

@@ -3,9 +3,11 @@ MODULE_TOPDIR = ../../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-MODULES = agent anthill ant error grassland playground world
+MODULES = agent anthill ant error grassland playground world __init__
 
-ETCDIR = $(ETC)/r.agent
+PGM = r.agent
+LIBDIR = libagent
+ETCDIR = $(ETC)/$(PGM)/$(LIBDIR)
 
 PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))
@@ -19,4 +21,5 @@ $(ETCDIR)/%: % | $(ETCDIR)
 	$(INSTALL_DATA) $< $@
 
 install:
-	cp -r $(ETCDIR) $(INST_DIR)/etc
+	$(MKDIR) $(INST_DIR)/etc/$(PGM)
+	cp -r $(ETCDIR) $(INST_DIR)/etc/$(PGM)/$(LIBDIR)
