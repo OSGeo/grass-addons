@@ -69,6 +69,7 @@ SUBDIRS = \
 	r.mwprecip \
 	r.niche.similarity \
 	r.northerness.easterness \
+	r.object.geometry \
 	r.out.arc \
 	r.out.legend \
 	r.out.ntv2 \
