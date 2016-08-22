@@ -60,6 +60,9 @@
 #% required: no
 #% guisection: output
 #%end
+#%option G_OPT_F_SEP
+#% guisection: output
+#%end
 #% option G_OPT_V_OUTPUT
 #% key: vectormap
 #% label: Optional vector output map with statistics as attributes
@@ -105,12 +108,14 @@ def main():
     r_object_geometry = True
     if area_measures:
 	if not gscript.find_program('r.object.geometry', '--help'):
-		message = _("You need to install the addon 'r.object.geometry' to be able")
-		message += _(" to calculate area measures. Ignoring these measures for now")
+		message = _("You need to install the addon r.object.geometry to be able")
+		message += _(" to calculate area measures. Ignoring these measures for now.")
+		message += _(" You can install the addon with 'g.extension r.object.geometry'")
 		gscript.warning(message)
 		r_object_geometry = False
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
+    separator = gscript.separator(options['separator'])
 
     output_header = ['cat']
     output_dict = collections.defaultdict(list)
@@ -191,10 +196,10 @@ def main():
 
     if csvfile:
         with open(csvfile, 'wb') as f:
-            f.write(",".join(output_header)+"\n")
+            f.write(separator.join(output_header)+"\n")
             for key in output_dict:
 		if len(output_dict[key]) + 1 == len(output_header):
-                    f.write(key+","+",".join(output_dict[key])+"\n")
+                    f.write(key+separator+separator.join(output_dict[key])+"\n")
 		else:
 		    error_objects.append(key)
         f.close()
