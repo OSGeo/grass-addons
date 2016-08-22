@@ -1,4 +1,4 @@
-*i.landsat8.swlst* is a GRASS GIS add-on, implementating a practical Slit-Window (SW)
+*i.landsat8.swlst* is a GRASS GIS add-on, implementating a practical Split-Window (SW)
 algorithm, estimating land surface temperature (LST), from the Thermal Infra-Red
 Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K.
 

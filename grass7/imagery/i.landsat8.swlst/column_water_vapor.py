@@ -126,7 +126,7 @@ class Column_Water_Vapor():
 
         # window of N (= n by n) pixels, adjacent pixels
         assert window_size % 2 != 0, "Window size should be an even number!"
-        assert window_size >= 7, "Window size should be larger than 5"
+        assert window_size >= 7, "Window size should be equal to/larger than 7."
         self.window_size = window_size
 
         self.window_height = self.window_size
@@ -163,7 +163,9 @@ class Column_Water_Vapor():
         """
         The object's self string
         """
-        msg = 'Expression for r.mapcalc to determine column water vapor: '
+        msg = '- Window size: ' + str(self.window_size) + " by " + str(self.window_size)
+        msg += '\n'
+        msg += '  - Expression for r.mapcalc to determine column water vapor: '
         return msg + str(self.column_water_vapor_expression)
 
     def compute_column_water_vapor(self, tik, tjk):

@@ -11,6 +11,11 @@ from column_water_vapor import *
 
 
 # helper functions
+def random_window_size():
+    """
+    """
+    return random.randint(7, 21)
+
 def random_adjacent_pixel_values(pixel_modifiers):
     """
     """
@@ -36,7 +41,8 @@ def test_column_water_vapor():
     print "Testing the Column_Water_Vapor class"
     print
 
-    obj = Column_Water_Vapor(3, 'A', 'B')
+    window_size = random_window_size()
+    obj = Column_Water_Vapor(window_size, 'A', 'B')
     print " | Testing the '__str__' method:\n\n ", obj
     print
 

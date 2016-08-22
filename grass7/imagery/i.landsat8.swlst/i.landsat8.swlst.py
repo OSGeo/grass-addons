@@ -1041,7 +1041,8 @@ def main():
     # flags
     global info, null
     info = flags['i']
-    keep_region = flags['k']
+    # keep_region = flags['k']
+    scene_extent = flags['k']
     timestamping = flags['t']
     null = flags['n']
     
@@ -1056,7 +1057,8 @@ def main():
     #
 
     # Set Region
-    if not keep_region:
+    # if not keep_region:
+    if scene_extent:
         grass.use_temp_region()  # safely modify the region
         msg = "\n|! Matching region extent to map {name}"
 
@@ -1073,7 +1075,8 @@ def main():
 
         g.message(msg)
 
-    elif keep_region:
+    # elif keep_region:
+    elif scene_extent:
         grass.warning(_('Operating on current region'))
 
     #
@@ -1240,7 +1243,8 @@ def main():
     #run("g.rename", rast=(tmp_lst, lst_output))
 
     # restore region
-    if not keep_region:
+    # if not keep_region:
+    if scene_extent:
         grass.del_temp_region()  # restoring previous region settings
         g.message("|! Original Region restored")
 
