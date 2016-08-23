@@ -16,7 +16,7 @@ However, the following usage scenarios are recommended:
 </li>
 <li>Use the main GRASS GIS window as a mapset composer. Supporting multiple displays whole mapset compositions
 could be saved as normal workspaces and printed in one run. Being a regular GRASS script it could be called from other
-scripts and command line as well. Even no GUI is necessary for it to run since it processes saved workspace files.
+scripts and command line as well. No GUI is necessary to be started since m.printws processes saved workspace files.
 </li>
 </ul>
 
@@ -42,9 +42,10 @@ it is time to set the final target dpi.
 The module tries to render everything what are checked on the layer list and also adds overlays like barscale,
 legend and north arrow<b>*</b> <p>
 
-<small><i><b>*=as of July 2016 overlay modules positioning is buggy when rendering to file...</b></i></small>
+<small><i><b>*=As of August, 2016 overlay modules positioning is slightly different on a map display compared
+to the created maps in files. With manual aligment and saving the workspace again the required positions
+could be set manually.</b></i></small>
 <p>
-<br>
 <br>
 Some <b>drawbacks</b> of the module which should be taken into consideration:
 <ul>
@@ -64,6 +65,36 @@ Please consider that modern screens are around 100dpi or higher. If you render
 </ul>
 The module saves current region and sets it back when finished.
 
+<h3>Vector legend (d.legend.vect) information</h3>
+
+The d.legend.vect module integrates well with the GRASS GIS Layer Manager. However, when the user exits the gui, its temporal settings
+and status are not valid anymore. It means that d.legend.vect may face problems when restarting GRASS GIS and trying to use the
+saved workspace file with m.printws. To prevent such issues do the following steps:
+
+<ol>
+<li>Compose your vector legend using the GUI as it is provided by d.legend.vect.
+</li>
+<li>When you are staisfied with the result or preparing for printing with m.printws, set an output CSV file in the
+d.legend.vect dialog. This could be done on the In/Out tab.
+<li>Click the OK button.</li>
+<li>In the background, your composed legend contents will be listed
+to the corresponding CSV file.
+</li>
+<li>Reopen the d.legend.vect dialog. 
+</li>
+<li>On the In/Out tab cut hte text from the "Output csv file:" field and paste it to the "Input legend file:"
+</li>
+<li>Clik OK and check if you legend is still the same as you want it to be.
+</li>
+<li>Save the workspace as usual.
+</li>
+</ol>
+
+Such a prepared vector legend will be printed correctly by m.printws.
+
+If you would like to modify your legend, delete the "Input legend file:" field on the In/Out tab and also repeat the process above
+before printing.
+
 <h3>Multiple display support</h3>
 When your workspace contains more than one display definitions m.printws would create multiple maps printing all displays on a
 separate page in a separate file.
@@ -77,18 +108,6 @@ File naming is automatic and works like demonstrated blow if having to displays 
 </ul>
 When regenerating the map the files are overwritten. Selecting a full name as output (outname_DISPLAY_2_Downtown.pdf)
 the module will recognize its own additinons _DISPLAY_2_.... and .pdf and won't duplicate them in the newly generated filenames.
-<h3>Tips and tricks</h3>
-There is a macro possibility for titles.
-<ul>
-  <li>%DISPLAY% - as it is in the <b>title</b> field by default - in any of the text fields the name
-of the corresponting display will be used for text.</li>
-  <li>%USERNAME% - for user login name</li>
-  <li>%TIME24% - 15:25:33</li>
-  <li>%DATEYMD% - like 2016.08.02</li>
-  <li>%DATEMDY% - like 08/02/2016</li>
-  <li>%GXW% - name of the workspace file printed (full path)</li>
-  
-</ul>
 
 <h3>Windows specific settings for ImageMagick</h3>
 
@@ -121,7 +140,42 @@ magick convert
 If everything went fine, you will see the IM convert command help.
 <p>
 
+<h2>Tips and tricks</h2>
+<h3>Title macros</h3>
+There is a macro possibility for titles.
+<ul>
+  <li>%DISPLAY% - as it is in the <b>title</b> field by default - in any of the text fields the name
+of the corresponting display will be used for text.</li>
+  <li>%USERNAME% - for user login name</li>
+  <li>%TIME24% - 15:25:33</li>
+  <li>%DATEYMD% - like 2016.08.02</li>
+  <li>%DATEMDY% - like 08/02/2016</li>
+  <li>%GXW% - name of the workspace file printed (full path)</li>
+</ul>
 
+<h3>Fill your map display</h3>
+By filling the map display of GRASS GIS positioning of map gadgets like legends,
+scale and north arrow could be more consequent. A fully drawn map window is also a space saver
+on paper hardcopies.
+
+<center>
+  <img src="m.printws_fullwindow.png" alt="Filled map display" height="100px">
+  <img src="m.printws_smallerwindow.png" alt="Partly filled map display" height="100px"><br>
+  <em>Figure: Demonstration of filled or partly filled map displays</em>
+</center><br>
+
+On the figures above the difference is clearly visible. Before running m.printws it is recommended to fill the
+map display fully with map content. It could be easily done with the <i>Pan</i> tool.
+
+<center>
+  <img src="m.printws_pan.png" alt="Pan function" height="100px">&nbsp;&nbsp;
+  <img src="m.printws_filledagainwindow.png" alt="Partly filled map display" height="100px"><br>
+  <em>Figure: Using Pan function display could be filled again</em>
+</center><br>
+
+Using the tool and making a minor movement or a simple click the map will fill the display
+again. After this alignment with the <i>Pan</i> tool the workspace must be saved again
+so m.printws could print up to the newly set extents.
 
 <h2>EXAMPLE</h2>
 
@@ -146,8 +200,9 @@ region=cartosim_2@PERMANENT pagemargin=10
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="g.gui.html">d.erase</a>,
-  <a href="ps.map.html">ps.map</a>,
+  <a href="d.legend.vect.html">d.legend.vect</a>,
+  <a href="g.gui.html">g.gui</a>,
+  <a href="ps.map.html">ps.map</a> is an alternative option,
   <a href="d.label.html">d.label</a>,
   <a href="http://www.imagemagick.org">ImageMagick</a>
 </em>
@@ -163,6 +218,3 @@ Robert Kuszinger, Giscom Kkt Hungary
 <p>
 Based on <em>d.*</em> commands and their functions in GRASS 7 by many authors.<br>
 Depends on <em>ImageMagick</em> multi-platform image manipulation tools.<br>
-
-<p>
-<i>Last changed: $Date: 2017-07-03 15:17:49 +0000 $</i>
