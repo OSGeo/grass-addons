@@ -2,11 +2,11 @@
 #
 ############################################################################
 #
-# MODULE:	i.segment.variance
+# MODULE:	i.segment.uspo
 # AUTHOR(S):	Moritz Lennert
 #
-# PURPOSE:	Calculate variation of variance by variation of 
-#		segmentation threshold
+# PURPOSE:	Finds optimimal segmentation parameters in an unsupervised
+#		process
 # COPYRIGHT:	(C) 1997-2016 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -30,7 +30,7 @@
 #############################################################################
 
 #%Module
-#% description: Analyzes variation of variance with variation of segmentation threshold
+#% description: Unsupervised segmentation parameter optimization
 #% keyword: imagery
 #% keyword: variance
 #% keyword: segmentation
@@ -66,11 +66,21 @@
 #%end
 #
 #%option
+#% key: segmentation_method
+#% type: string
+#% description: Segmentation method to use
+#% required: yes
+#% options: region_growing,mean_shift
+#% answer: region_growing
+#%end
+#
+#%option
 #% key: thresholds
 #% type: double
 #% description: Thresholds to test
 #% required: no
 #% multiple: yes
+#% guisection: General
 #%end
 #
 #%option
@@ -78,6 +88,7 @@
 #% type: double
 #% description: Lowest threshold to test
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -85,6 +96,7 @@
 #% type: double
 #% description: Threshold at which to stop (not included)
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -92,6 +104,7 @@
 #% type: double
 #% description: Step to use between thresholds
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -100,6 +113,7 @@
 #% description: Minimum number of cells in a segment to test
 #% multiple: yes
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -107,6 +121,7 @@
 #% type: integer
 #% description: Lowest minimum segment size to test
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -114,6 +129,7 @@
 #% type: integer
 #% description: Value for minimum segment size at which to stop (not included)
 #% required: no
+#% guisection: General
 #%end
 #
 #%option
@@ -121,6 +137,73 @@
 #% type: integer
 #% description: Step to use between minimum segment sizes
 #% required: no
+#% guisection: General
+#%end
+#
+#%option
+#% key: radiuses
+#% type: double
+#% description: Radiuses to test
+#% required: no
+#% multiple: yes
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: radius_start
+#% type: double
+#% description: Lowest radius to test
+#% required: no
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: radius_stop
+#% type: double
+#% description: Radius at which to stop (not included)
+#% required: no
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: radius_step
+#% type: double
+#% description: Step to use between radiuses
+#% required: no
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: hrs
+#% type: double
+#% description: Spectral bandwidths to test
+#% required: no
+#% multiple: yes
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: hr_start
+#% type: double
+#% description: Lowest spectral bandwith to test
+#% required: no
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: hr_stop
+#% type: double
+#% description: Spectral bandwith at which to stop (not included)
+#% required: no
+#% guisection: Mean Shift
+#%end
+#
+#%option
+#% key: hr_step
+#% type: double
+#% description: Step to use between spectral bandwidths
+#% required: no
+#% guisection: Mean Shift
 #%end
 #
 #%option
@@ -130,6 +213,7 @@
 #% required: no
 #% options: morans,geary
 #% answer: morans
+#% guisection: Evaluation
 #%end
 #
 #%option
@@ -139,6 +223,7 @@
 #% required: no
 #% options: sum,f
 #% answer: sum
+#% guisection: Evaluation
 #%end
 #
 #%option
@@ -147,6 +232,7 @@
 #% description: Alpha value used for F-measure optimization function
 #% required: no
 #% answer: 1
+#% guisection: Evaluation
 #%end
 #
 #%option
@@ -161,7 +247,7 @@
 #% key: memory
 #% type: integer
 #% description: Total memory (in MB) to allocate (will be divided by processes)
-#% required: yes
+#% required: no
 #% answer: 300
 #%end
 #
@@ -169,7 +255,7 @@
 #% key: processes
 #% type: integer
 #% description: Number of processes to run in parallel
-#% required: yes
+#% required: no
 #% answer: 1
 #%end
 #
@@ -183,6 +269,12 @@
 #% description: Non-hierarchical segmentation
 #%end
 #
+#%flag
+#% key: a
+#% description: Use adaptive spectral bandwidth (with mean shift)
+#% guisection: Mean Shift
+#%end
+#
 #%rules
 #% required: thresholds,threshold_start
 #% excludes: thresholds,threshold_start,threshold_stop,threshold_step
@@ -190,6 +282,10 @@
 #% required: minsizes,minsize_start
 #% excludes: minsizes,minsize_start,minsize_stop,minsize_step
 #% collective: minsize_start,minsize_stop,minsize_step
+#% excludes: radiuses,radius_start,radius_stop,radius_step
+#% excludes: hrs,hr_start,hr_stop,hr_step
+#% collective: radius_start,radius_stop,radius_step
+#% collective: hr_start,hr_stop,hr_step
 #%end
 
 import grass.script as gscript
@@ -229,12 +325,12 @@ def drange(start, stop, step):
         yield r
         r += step
 
-def hier_worker(parms, thresholds, minsize_queue, result_queue):
+def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
     """ Launch parallel processes for hierarchical segmentation """
 
     try:
         for minsize in iter(minsize_queue.get, 'STOP'):
-            map_list = hierarchical_seg(parms, thresholds, minsize)
+            map_list = rg_hierarchical_seg(parms, thresholds, minsize)
             for mapname, threshold, minsize in map_list:
                 variance_per_raster = []
                 autocor_per_raster = []
@@ -261,12 +357,12 @@ def hier_worker(parms, thresholds, minsize_queue, result_queue):
 
     return True
 
-def nonhier_worker(parms, parameter_queue, result_queue):
+def rg_nonhier_worker(parms, parameter_queue, result_queue):
     """ Launch parallel processes for non-hierarchical segmentation """
 
     try:
         for threshold, minsize in iter(parameter_queue.get, 'STOP'):
-            mapname = non_hierarchical_seg(parms, threshold, minsize)
+            mapname = rg_non_hierarchical_seg(parms, threshold, minsize)
             variance_per_raster = []
             autocor_per_raster = []
             neighbordict = get_nb_matrix(mapname)
@@ -288,8 +384,7 @@ def nonhier_worker(parms, parameter_queue, result_queue):
         
     return True
 
-
-def hierarchical_seg(parms, thresholds, minsize):
+def rg_hierarchical_seg(parms, thresholds, minsize):
     """ Do hierarchical segmentation for a vector of thresholds and a specific minsize"""
 
     outputs_prefix = parms['temp_segment_map'] + "__%s" % parms['region']
@@ -324,7 +419,7 @@ def hierarchical_seg(parms, thresholds, minsize):
 
     return map_list
 
-def non_hierarchical_seg(parms, threshold, minsize):
+def rg_non_hierarchical_seg(parms, threshold, minsize):
     """ Do non-hierarchical segmentation for a specific threshold and minsize"""
 
     temp_segment_map_thresh = parms['temp_segment_map'] + "__%s" % parms['region']
@@ -338,6 +433,70 @@ def non_hierarchical_seg(parms, threshold, minsize):
                         memory=parms['memory'],
                         quiet=True,
                         overwrite=True) 
+
+    return temp_segment_map_thresh
+
+def ms_worker(parms, parameter_queue, result_queue):
+    """ Launch parallel processes for non-hierarchical segmentation """
+
+    try:
+        for threshold, hr, radius, minsize in iter(parameter_queue.get, 'STOP'):
+            mapname = ms_seg(parms, threshold, hr, radius, minsize)
+            variance_per_raster = []
+            autocor_per_raster = []
+            neighbordict = get_nb_matrix(mapname)
+            for raster in parms['rasters']:
+                var = get_variance(mapname, raster)
+                variance_per_raster.append(var)
+                autocor = get_autocorrelation(mapname, raster,
+                                              neighbordict, parms['indicator'])
+                autocor_per_raster.append(autocor)
+
+            mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+            mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+            result_queue.put([mapname, mean_lv, mean_autocor, threshold, hr,
+                radius, minsize])
+            
+    except:
+        result_queue.put(["%s: %s_%f_%f_%f_%d failed" % (current_process().name, 
+                                                parms ['region'],
+                                                threshold, hr, radius, minsize)])
+        
+    return True
+
+def ms_seg(parms, threshold, hr, radius, minsize):
+    """ Do non-hierarchical segmentation for a specific threshold and minsize"""
+
+    temp_segment_map_thresh = parms['temp_segment_map'] + "__%s" % parms['region']
+    temp_segment_map_thresh += "__%.2f" % threshold
+    temp_segment_map_thresh += "__%.2f" % hr
+    temp_segment_map_thresh += "__%.2f" % radius
+    temp_segment_map_thresh += "__%d" % minsize
+    if parms['adaptive']:
+        gscript.run_command('i.segment.ms',
+                            group=parms['group'],
+                            threshold=threshold,
+                            hr=hr,
+                            radius=radius,
+                            minsize=minsize,
+                            method='mean_shift',
+                            output=temp_segment_map_thresh,
+                            memory=parms['memory'],
+                            flags='a',
+                            quiet=True,
+                            overwrite=True) 
+    else:
+        gscript.run_command('i.segment.ms',
+                            group=parms['group'],
+                            threshold=threshold,
+                            hr=hr,
+                            radius=radius,
+                            minsize=minsize,
+                            method='mean_shift',
+                            output=temp_segment_map_thresh,
+                            memory=parms['memory'],
+                            quiet=True,
+                            overwrite=True) 
 
     return temp_segment_map_thresh
 
@@ -491,11 +650,19 @@ def main():
     parms = {}
     group = options['group']
     parms['group'] = group
+    method = options['segmentation_method']
+    rg = False
+    if method == 'region_growing':
+        rg = True
     output = options['output']
     indicator = options['autocorrelation_indicator']
     parms['indicator'] = indicator
     opt_function = options['optimization_function']
     alpha = float(options['f_function_alpha'])
+    parms['adaptive'] = False
+    if flags['a']:
+        parms['adaptive'] = True
+   
 
     # which is "better", higher or lower ?
     directions = {'morans': 'low', 'geary': 'high'}
@@ -535,6 +702,28 @@ def main():
         stop = int(options['minsize_stop'])
         minsizes = range(start,stop,step)
 
+    if options['hrs']:
+        hrs = [float(x) for x in options['hrs'].split(',')]
+    else:
+        step = float(options['hr_step'])
+        start = float(options['hr_start'])
+        stop = float(options['hr_stop'])
+        iter_hrs = drange(start,stop,step)
+        # We want to keep a specific precision, so we go through string
+        # representation and back to float
+        hrs = [float(y) for y in ["%.2f" % x for x in iter_hrs]]
+
+    if options['radiuses']:
+        radiuses = [float(x) for x in options['radiuses'].split(',')]
+    else:
+        step = float(options['radius_step'])
+        start = float(options['radiues_start'])
+        stop = float(options['radius_stop'])
+        iter_radiuses = drange(start,stop,step)
+        # We want to keep a specific precision, so we go through string
+        # representation and back to float
+        radiuses = [float(y) for y in ["%.2f" % x for x in iter_radiuses]]
+
     if options['regions']:
 	regions = options['regions'].split(',')
     else:
@@ -566,26 +755,44 @@ def main():
 	# Launch segmentation and optimization calculation in parallel processes
     	processes_list = []
     	result_queue = Queue()
-        if not flags['n']:
-            minsize_queue = Queue()
-            for minsize in minsizes:
-                minsize_queue.put(minsize)
-            for p in xrange(processes):
-                proc = Process(target=hier_worker, args=(parms, thresholds,
-                               minsize_queue, result_queue))
-                proc.start()
-                processes_list.append(proc)
-                minsize_queue.put('STOP')
-            for p in processes_list:
-                p.join()
-            result_queue.put('STOP')
+        if rg:
+            if not flags['n']:
+                minsize_queue = Queue()
+                for minsize in minsizes:
+                    minsize_queue.put(minsize)
+                for p in xrange(processes):
+                    proc = Process(target=rg_hier_worker, args=(parms, thresholds,
+                                   minsize_queue, result_queue))
+                    proc.start()
+                    processes_list.append(proc)
+                    minsize_queue.put('STOP')
+                for p in processes_list:
+                    p.join()
+                result_queue.put('STOP')
+            else:
+                parameter_queue = Queue()
+                for minsize in minsizes:
+                    for threshold in thresholds:
+                        parameter_queue.put([threshold, minsize])
+                for p in xrange(processes):
+                    proc = Process(target=rg_nonhier_worker, args=(parms,
+                                   parameter_queue, result_queue))
+                    proc.start()
+                    processes_list.append(proc)
+                    parameter_queue.put('STOP')
+                for p in processes_list:
+                    p.join()
+                result_queue.put('STOP')
+
         else:
             parameter_queue = Queue()
             for minsize in minsizes:
                 for threshold in thresholds:
-                    parameter_queue.put([threshold, minsize])
+                    for hr in hrs:
+                        for radius in radiuses:
+                            parameter_queue.put([threshold, hr, radius, minsize])
             for p in xrange(processes):
-                proc = Process(target=nonhier_worker, args=(parms,
+                proc = Process(target=ms_worker, args=(parms,
                                parameter_queue, result_queue))
                 proc.start()
                 processes_list.append(proc)
@@ -601,12 +808,24 @@ def main():
         variancelist = []
         autocorlist = []
 
-	for mapname, lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
-            regional_maplist.append(mapname)
-	    variancelist.append(lv)
-	    autocorlist.append(autocor)
-	    threshlist.append(threshold)
-	    minsizelist.append(minsize)
+        if rg:
+            for mapname, lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
+                regional_maplist.append(mapname)
+                variancelist.append(lv)
+                autocorlist.append(autocor)
+                threshlist.append(threshold)
+                minsizelist.append(minsize)
+        else:
+            hrlist = []
+            radiuslist = []
+            for mapname, lv, autocor, threshold, hr, radius, minsize in iter(result_queue.get, 'STOP'):
+                regional_maplist.append(mapname)
+                variancelist.append(lv)
+                autocorlist.append(autocor)
+                threshlist.append(threshold)
+                hrlist.append(hr)
+                radiuslist.append(radius)
+                minsizelist.append(minsize)
 		
         maplist += regional_maplist
 	# Calculate optimization function values and get indices of best values
@@ -615,13 +834,20 @@ def main():
                                            opt_function,
                                            alpha,
                                            directions[indicator])
-	regiondict[region] = zip(threshlist, minsizelist, variancelist, autocorlist, optlist)
+        if rg:
+            regiondict[region] = zip(threshlist, minsizelist, variancelist, autocorlist, optlist)
+        else:
+            regiondict[region] = zip(threshlist, hrlist, radiuslist, minsizelist, variancelist, autocorlist, optlist)
 
 	optimal_indices = find_optimal_value_indices(optlist, nb_best)
         best_values[region] = []
         rank = 1
      	for optind in optimal_indices:
-	    best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
+            if rg:
+                best_values[region].append([threshlist[optind], minsizelist[optind], optlist[optind]])
+            else:
+                best_values[region].append([threshlist[optind], hrlist[optind],
+                    radiuslist[optind], minsizelist[optind], optlist[optind]])
 	    maps_to_keep.append([regional_maplist[optind], rank,
                 parms['region']])
             rank += 1
@@ -629,7 +855,10 @@ def main():
     # Create output
 
     # Output of results of all attempts
-    header_string = "region,threshold,minsize,variance,spatial_autocorrelation,optimization_criteria\n"
+    if rg:
+        header_string = "region,threshold,minsize,variance,spatial_autocorrelation,optimization_criteria\n"
+    else:
+        header_string = "region,threshold,hr,radius,minsize,variance,spatial_autocorrelation,optimization_criteria\n"
 
     if output == '-':
         sys.stdout.write(header_string)	
@@ -652,7 +881,10 @@ def main():
 
     # Output of best values found
     msg = "Best values:\n"
-    msg += "Region\tThresh\tMinsize\tOptimization\n"
+    if rg:
+        msg += "Region\tThresh\tMinsize\tOptimization\n"
+    else:
+        msg += "Region\tThresh\tHr\tRadius\tMinsize\tOptimization\n"
     for region, resultlist in best_values.iteritems():
 	for result in resultlist:
 	    msg += "%s\t" % region
