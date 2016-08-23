@@ -2,10 +2,9 @@ MODULE_TOPDIR =../..
 
 PGM = r.modis
 
-SUBDIRS = \
+SUBDIRS = libmodis \
         r.modis.download \
         r.modis.import \
-	libmodis
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
