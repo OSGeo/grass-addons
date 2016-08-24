@@ -2,10 +2,14 @@
 
 <p><em>i.segment.uspo</em> provides unsupervised segmentation parameter
 optimization for <em><a href="i.segment.html">i.segment</a></em>. It runs
-segmentation across a user defined set of thresholds and minimum segment sizes
-and then selects the parameters providing the highest values of a given
-optimization function. The number of "best" parameter combinations to provide 
-to the user per <b>region</b> is defined by <b>number_best</b>.
+segmentation across a user defined set of thresholds and minimum segment sizes,
+as well, for the mean shift algorithm, a set of spectral and spatial bandwiths. 
+For the mean shift algorithm, you can also activate adaptive bandwidth using
+the <em>-a</em> flag.
+
+<p>The module then selects the parameters providing the highest values of a
+given optimization function. The number of "best" parameter combinations to 
+provide to the user per <b>region</b> is defined by <b>number_best</b>.
 
 <p>The user provides an imagery <b>group</b> and the name of an <b>output</b>
 text file where parameter and optimization values for all tested segmentations
@@ -53,6 +57,11 @@ The module depends on the addon <a href="https://grass.osgeo.org/grass70/manuals
 <p> Any unsupervised optimization can at best be a support to the user.  Visual
 and other types of validation of the results, possibly comparing several of the
 "best" solutions, remain necessary.
+
+<p> Even though the module allows the user to test different <em>minsizes</em>,
+it is probably better to run the module with minsizes=1 and then adapt the 
+minsize in the final run of <a href="i.segment.html">i.segment</a> depending 
+on the desired minimum mapping unit.
 
 <p> In hierarchical segmentation mode, the processes are divided between
 different calls to <a

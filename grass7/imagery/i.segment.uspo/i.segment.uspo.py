@@ -704,7 +704,7 @@ def main():
 
     if options['hrs']:
         hrs = [float(x) for x in options['hrs'].split(',')]
-    else:
+    if options['hr_step']:
         step = float(options['hr_step'])
         start = float(options['hr_start'])
         stop = float(options['hr_stop'])
@@ -715,7 +715,7 @@ def main():
 
     if options['radiuses']:
         radiuses = [float(x) for x in options['radiuses'].split(',')]
-    else:
+    if options['radius_step']:
         step = float(options['radius_step'])
         start = float(options['radiues_start'])
         stop = float(options['radius_stop'])
