@@ -46,36 +46,72 @@ always completely loaded to memory.
 
 <h2>EXAMPLES</h2>
 
+The computational region setting for the following examples:
+
+<div class="code"><pre>
+g.region -p rast=elev_state_500m
+</pre></div>
+
 <h3>Basic interpolation</h3>
 Interpolation of 30 year precipitation normals in the North Carlolina 
 sample dataset:
 
 <div class="code"><pre>
-g.region -p rast=elev_state_500m
-v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d min=140
+v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d \
+           column=annual min=140
 </pre></div>
 
 <h3>Interpolation with a covariable</h3>
 
 <div class="code"><pre>
-v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d min=140 \
-           covars=elev_state_500m
+v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d \
+           column=annual min=140 covars=elev_state_500m
 </pre></div>
 
 <h3>Interpolation with a covariable and smoothing</h3>
 
 <div class="code"><pre>
-v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d min=140 \
-           covars=elev_state_500m smooth=0.1
+v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d \
+           column=annual min=140 covars=elev_state_500m smooth=0.1
 </pre></div>
 
 <h3>Tiled interpolation with a covariable and smoothing</h3>
 
 <div class="code"><pre>
-v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d min=20 \
-           overlap=0.1 covars=elev_state_500m smooth=0.1
+v.surf.tps input=precip_30ynormals_3d output=precip_30ynormals_3d \
+           column=annual min=20 covars=elev_state_500m smooth=0.1 \
+           overlap=0.1
 </pre></div>
 
+<!--
+r.colors map=precip_30ynormals_3d rules=- <<EOF
+950 red
+1000 orange
+1200 yellow
+1400 cyan
+1600 aqua
+1800 blue
+2500 violet
+EOF
+m.nviz.image elevation_map=elev_state_500m -a \
+    mode=fine resolution_fine=1 color_map=precip_30ynormals_3d \
+    position=0.59,0.74 height=40959 perspective=20 twist=0 \
+    zexag=10 focus=105434,77092,1073 \
+    light_position=0.68,-0.68,0.80 light_brightness=80 \
+    output=v_surf_tps.tif format=tif size=798,585
+d.legend -b raster=precip_30ynormals_3d label_step=300 \
+    title="Annual Precipitation in Western North Carolina"
+mogrify -trim -resize 600x -format png v_surf_tps.tif
+optipng -o5 v_surf_tps.png
+-->
+
+<center>
+    <img src="v_surf_tps.png">
+    <p><em>
+        Precipitation computed based on annual normals and
+        elevation as a covariable
+    </em></p>
+</center>
 
 <h2>REFERENCES</h2>
 
