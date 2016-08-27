@@ -215,8 +215,14 @@ class Column_Water_Vapor():
         [ 0, -1] [ 0, 0] [ 0, 1]
         [ 1, -1] [ 1, 0] [ 1, 1]
         """
-        return [[col-1, row-1] for col in xrange(self.window_width)
-                for row in xrange(self.window_height)]
+        # center row indexing
+        half_height = (self.window_height - 1) / 2
+
+        # center col indexing
+        half_width = (self.window_width - 1) / 2
+
+        return [[col, row] for col in xrange(-half_width + 1, half_width)
+                for row in xrange(-half_height + 1, half_height)]
 
     def _derive_modifiers(self, tx):
         """

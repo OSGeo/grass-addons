@@ -42,6 +42,7 @@ def test_column_water_vapor():
     print
 
     window_size = random_window_size()
+    # window_size = 7
     obj = Column_Water_Vapor(window_size, 'A', 'B')
     print " | Testing the '__str__' method:\n\n ", obj
     print
