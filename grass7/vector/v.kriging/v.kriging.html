@@ -75,24 +75,59 @@ v.kriging in=precip3d@PERMANENT phase=middle hz_fun=exponential vert_fun=gaussia
 <table>
 	<tr>
 		<td>
-			<b>Fig. 1:</b> Experimental and theoretical variograms in horiontl and vertical direction<br>
-			left: whole region; middle: small region; right: small region with modified horizontal range
+			<b>Fig. 1:</b> Experimental and theoretical variograms in horizontal and vertical direction<br>
 		</td>
 	</tr>
 	<tr>
 		<td>
-			<img src="images/v_kriging_variogram_hz_100000.png" alt="var_hz_initial" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_hz_20000.png" alt="var_hz_small_initial" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_hz_15000.png" alt="var_hz_small_add" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
+			a) whole region (horizontal direction):
 		</td>
 	</tr>
-</table>
-
-<table>
 	<tr>
 		<td>
-			<img src="images/v_kriging_variogram_vertical_1600.png" alt="var_vert" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_vertical_1200.png" alt="var_vert_add" style="float: left; width: 24%; margin-left: 12%; margin-bottom: 0.5em;">
+			<img src="images/v_kriging_variogram_hz_100000.png" alt="var_hz_initial" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			b) small region (horizontal direction):
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_hz_20000.png" alt="var_hz_small_initial" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			c) small region with modified horizontal range (horizontal direction):
+		</td>
+	</tr>
+	<tr>
+		<td>	
+			<img src="images/small/v_kriging_variogram_hz_15000.png" alt="var_hz_small_add" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			d) whole region (vertical direction):
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/v_kriging_variogram_vertical_1600.png" alt="var_vert" style="float: left; width: 75%; 
+			margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			e) small region (vertical direction):
+		</td>
+	</tr>
+	<tr>
+		<td>	
+			<img src="images/small/v_kriging_variogram_vertical_1200.png" alt="var_vert_add" style="float: left; width: 75%; 
+			margin-right: 1%; margin-bottom: 0.5em;">
 		</td>
 	</tr>
 </table>
@@ -115,10 +150,43 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table>
 	<tr>
 		<td>
-			<img src="images/v_kriging_variogram_linear.png" alt="linear" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/v_kriging_variogram_exponential.png" alt="exponential" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/v_kriging_variogram_spherical.png" alt="spherical" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/v_kriging_variogram_gaussian.png" alt="gaussian" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
+			a) linear 
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/v_kriging_variogram_linear.png" alt="linear" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			b) exponential 
+		</td>
+	</tr>
+	<tr>
+		<td>	
+			<img src="images/v_kriging_variogram_exponential.png" alt="exponential" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			c) spherical 
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/v_kriging_variogram_spherical.png" alt="spherical" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			d) Gaussian 
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/v_kriging_variogram_gaussian.png" alt="gaussian" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
 	</tr>
 	<caption>
 		<b>Fig. 2:</b> Variogram modelling of the whole region with horizontal range of 100 000 m and vertical range of 1 600 m
@@ -183,10 +251,42 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table>
 	<tr>
 		<td>
-			<img src="images/small/v_kriging_variogram_linear.png" alt="small_linear" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_exponential.png" alt="small_exp" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_spherical.png" alt="small_spher" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_gauss.png" alt="small_gauss" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
+			a) linear:
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_linear.png" alt="small_linear" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			b) exponential:
+		</td>
+	</tr>
+	<tr>
+		<td>		
+			<img src="images/small/v_kriging_variogram_exponential.png" alt="small_exp" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			c) spherical:
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_spherical.png" alt="small_spher" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			d) Gaussian:
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_gauss.png" alt="small_gauss" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
 		</td>
 	</tr>
 	<caption>
@@ -252,10 +352,42 @@ cvdev="cxvalidation_rst_final" segmax=50 npmin=200 npmax=700 wscale=1.0 zscale=5
 <table>
 	<tr>
 		<td>
-			<img src="images/small/v_kriging_variogram_linear_1.png" alt="small_linear_1" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_exponential_1.png" alt="small_exp_1" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_spherical_1.png" alt="small_spher_1" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
-			<img src="images/small/v_kriging_variogram_gauss_1.png" alt="small_gauss_1" style="float: left; width: 24%; margin-right: 1%; margin-bottom: 0.5em;">
+			a) linear		
+		</td>	
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_linear_1.png" alt="small_linear_1" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			b) exponential		
+		</td>	
+	</tr>
+	<tr>
+		<td>		
+			<img src="images/small/v_kriging_variogram_exponential_1.png" alt="small_exp_1" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			c) spherical		
+		</td>	
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_spherical_1.png" alt="small_spher_1" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
+		</td>
+	</tr>
+	<tr>
+		<td>
+			d) Gaussian		
+		</td>	
+	</tr>
+	<tr>
+		<td>
+			<img src="images/small/v_kriging_variogram_gauss_1.png" alt="small_gauss_1" style="float: left; width: 75%; margin-right: 1%; margin-bottom: 0.5em;">
 		</td>
 	</tr>
 	<caption>
