@@ -94,11 +94,18 @@ def cleanup():
     if insert_sql:
         os.remove(insert_sql)
 
-    os.remove(stats_temp_file)
+    if stats_temp_file:
+        os.remove(stats_temp_file)
 
 
 def main():
 
+    global insert_sql
+    insert_sql = None
+    global temporary_vect
+    temporary_vect = None
+    global stats_temp_file
+    stats_temp_file = None
 
     segment_map = options['map']
     csvfile = options['csvfile'] if options['csvfile'] else []
@@ -109,21 +116,15 @@ def main():
     if area_measures:
 	if not gscript.find_program('r.object.geometry', '--help'):
 		message = _("You need to install the addon r.object.geometry to be able")
-		message += _(" to calculate area measures. Ignoring these measures for now.")
+		message += _(" to calculate area measures.\n")
 		message += _(" You can install the addon with 'g.extension r.object.geometry'")
-		gscript.warning(message)
-		r_object_geometry = False
+		gscript.fatal(message)
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
     separator = gscript.separator(options['separator'])
 
     output_header = ['cat']
     output_dict = collections.defaultdict(list)
-
-    global insert_sql
-    insert_sql = None
-    global temporary_vect
-    temporary_vect = None
 
     raster_stat_dict = {'zone': 0, 'min': 4, 'third_quart': 16, 'max': 5, 'sum':
             12, 'null_cells': 3, 'median': 15, 'label': 1, 'first_quart': 14,
@@ -138,7 +139,6 @@ def main():
         gscript.use_temp_region()
         gscript.run_command('g.region', raster=segment_map)
 
-    global stats_temp_file
     stats_temp_file = gscript.tempfile()
     if area_measures and r_object_geometry:
 	gscript.message(_("Calculating geometry statistics"))
