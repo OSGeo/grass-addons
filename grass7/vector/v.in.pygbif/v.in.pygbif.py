@@ -348,7 +348,7 @@ def main():
     if allow_no_geom:
         hasCoordinate = False
 
-    # Set reporjection parameters
+    # Set reprojection parameters
     # Set target projection of current LOCATION
     target = osr.SpatialReference()
     target.ImportFromProj4(grass.read_command('g.proj', flags='fj'))
@@ -424,7 +424,7 @@ def main():
                                                       verbose=True)
                 key = species_match['usageKey']
             except:
-                grass.error('Data request for taxon {} faild. Are you online?'.format(s))
+                grass.error('Data request for taxon {} failed. Are you online?'.format(s))
                 continue
 
         # Return matching taxon and alternatives and exit
