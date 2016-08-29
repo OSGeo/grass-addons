@@ -473,7 +473,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
     temp_segment_map_thresh += "__%.2f" % radius
     temp_segment_map_thresh += "__%d" % minsize
     if parms['adaptive']:
-        gscript.run_command('i.segment.ms',
+        gscript.run_command('i.segment',
                             group=parms['group'],
                             threshold=threshold,
                             hr=hr,
@@ -486,7 +486,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
                             quiet=True,
                             overwrite=True) 
     else:
-        gscript.run_command('i.segment.ms',
+        gscript.run_command('i.segment',
                             group=parms['group'],
                             threshold=threshold,
                             hr=hr,
