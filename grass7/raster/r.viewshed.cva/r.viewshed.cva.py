@@ -109,7 +109,6 @@
 #%end
 
 
-
 import sys
 import os
 grass_install_tree = os.getenv('GISBASE')
@@ -117,16 +116,16 @@ sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
 import grass.script as grass
 
 
-#main block of code starts here
+# main block of code starts here
 def main():
-    #bring in input variables
+    # bring in input variables
     elev = options["input"]
     vect = options["vector"]
     viewshed_options = {}
     for option in ('observer_elevation', 'target_elevation', 'max_distance', 'memory', 'refraction_coeff'):
         viewshed_options[option] = options[option]
     out = options["output"]
-    #assemble flag string
+    # assemble flag string
     flagstring = ''
     if flags['r']:
         flagstring += 'r'
@@ -136,17 +135,22 @@ def main():
         flagstring += 'b'
     if flags['e']:
         flagstring += 'e'
-    #get the coords from the vector map, and check if we want to name them
+    # get the coords from the vector map, and check if we want to name them
     if flags['k'] and options["name_column"] is not '':
-        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",", columns=options["name_column"]).strip()    # note that the "r" flag will constrain to points in the current geographic region.
+        # note that the "r" flag will constrain to points in the current geographic region.
+        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point",
+                                           format="point", separator=",", columns=options["name_column"]).strip()
     else:
-        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point", format="point", separator=",").strip()    # note that the "r" flag will constrain to points in the current geographic region.
+        # note that the "r" flag will constrain to points in the current geographic region.
+        output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point",
+                                           format="point", separator=",").strip()
     grass.message(_("Note that the routine is constrained to points in the current geographic region."))
-    #read the coordinates, and parse them up.
+    # read the coordinates, and parse them up.
     masterlist = []
     for line in output_points.splitlines():
         masterlist.append(line.strip().split(','))
-    #now, loop through the master list and run r.viewshed for each of the sites, and append the viewsheds to a list (so we can work with them later)
+    # now, loop through the master list and run r.viewshed for each of the sites,
+    # and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
     for site in masterlist:
         if flags['k'] and options["name_column"] is not '':
@@ -156,11 +160,13 @@ def main():
         grass.verbose(_('Calculating viewshed for location %s,%s (point name = %s)') % (site[0], site[1], ptname))
         tempry = "vshed_%s" % ptname
         vshed_list.append(tempry)
-        grass.run_command("r.viewshed", quiet = True, overwrite=grass.overwrite(), flags=flagstring, input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
-    #now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
+        grass.run_command("r.viewshed", quiet=True, overwrite=grass.overwrite(), flags=flagstring,
+                          input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
+    # now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
     grass.message(_("Calculating \"Cumulative Viewshed\" map"))
-    grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(), input=(",").join(vshed_list), output=out, method="count")
-    #Clean up temporary maps, if requested
+    grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(),
+                      input=(",").join(vshed_list), output=out, method="count")
+    # Clean up temporary maps, if requested
     if flags['k']:
         grass.message(_("Temporary viewshed maps will not removed"))
     else:
