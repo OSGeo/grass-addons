@@ -221,6 +221,12 @@ apply_Sql_code()
    unset_exe "$1"
 }
 
+apply_svg()
+{
+   set_mime_type "$1" "image/svg+xml"
+   set_native_eol "$1"
+   unset_exe "$1"
+}
 
 ########
 
@@ -278,7 +284,7 @@ for FILE in $* ; do
     pdf)
 	apply_pdf "$FILE"
 	;;
-    png | jpg | jpeg | gif | bmp | svg | xpm | xcf | ico)
+    png | jpg | jpeg | gif | bmp | xpm | xcf | ico)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
 	    FILE_SUFFIX="jpeg"
 	elif [ "$FILE_SUFFIX" = "svg" ] ; then
@@ -301,6 +307,9 @@ for FILE in $* ; do
 	;;
     sql)
 	apply_Sql_code "$FILE"
+	;;
+    svg)
+	apply_svg "$FILE"
 	;;
     *)
 	if [ "`basename $FILE`" = "Makefile" ] ; then
