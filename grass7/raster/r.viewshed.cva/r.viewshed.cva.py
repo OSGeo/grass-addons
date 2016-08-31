@@ -144,8 +144,8 @@ def main():
     grass.message(_("Note that the routine is constrained to points in the current geographic region."))
     #read the coordinates, and parse them up.
     masterlist = []
-    for line in output_points.split(os.linesep):
-        masterlist.append(line.split(','))
+    for line in output_points.splitlines():
+        masterlist.append(line.strip().split(','))
     #now, loop through the master list and run r.viewshed for each of the sites, and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
     for site in masterlist:
