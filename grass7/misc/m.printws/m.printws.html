@@ -82,7 +82,7 @@ to the corresponding CSV file.
 </li>
 <li>Reopen the d.legend.vect dialog. 
 </li>
-<li>On the In/Out tab cut hte text from the "Output csv file:" field and paste it to the "Input legend file:"
+<li>On the In/Out tab cut the text from the "Output csv file:" field and paste it to the "Input legend file:"
 </li>
 <li>Clik OK and check if you legend is still the same as you want it to be.
 </li>
@@ -144,14 +144,23 @@ If everything went fine, you will see the IM convert command help.
 <h3>Title macros</h3>
 There is a macro possibility for titles.
 <ul>
-  <li>%DISPLAY% - as it is in the <b>title</b> field by default - in any of the text fields the name
+  <li>$DISPLAY - as it is in the <b>title</b> field by default - in any of the text fields the name
 of the corresponting display will be used for text.</li>
-  <li>%USERNAME% - for user login name</li>
-  <li>%TIME24% - 15:25:33</li>
-  <li>%DATEYMD% - like 2016.08.02</li>
-  <li>%DATEMDY% - like 08/02/2016</li>
-  <li>%GXW% - name of the workspace file printed (full path)</li>
+  <li>$USERNAME - for user login name</li>
+  <li>$TIME24 - 15:25:33</li>
+  <li>$DATEYMD - 2016.08.02</li>
+  <li>$DATEMDY - 08/02/2016</li>
+  <li>$GXW - name of the workspace file printed (full path)</li>
 </ul>
+
+Please take care of possible command line variable expansion rules of your
+own operating system or shell. For example on Linux or generally in Bash <b>$</b> sign
+is used for shell variables. So, when calling m.printws from command line take care
+to use single quotes around such parameter values like this to prevent substitution:
+<div class="code"><pre>
+... maintitle='$DISPLAY' ...
+</pre></div>
+
 
 <h3>Fill your map display</h3>
 By filling the map display of GRASS GIS positioning of map gadgets like legends,
@@ -181,7 +190,7 @@ so m.printws could print up to the newly set extents.
 
 
 <div class="code"><pre>
-# create a landscape 150dpi PDF copy of a workspace
+# create am A4 landscape 150dpi PDF copy of a workspace
 m.printws input=/home/kuszi/grassdata/Duna/maps/VP/nice_vectors_workspace.gxw \
 output=/home/kuszi/grassdata/Duna/maps/VP/sample_generated_printws maintitle=MAIN \
 subtitle=sub psunderleft=left psunderright=right psundercentral=center \

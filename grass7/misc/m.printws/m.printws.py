@@ -64,7 +64,6 @@
 #%option
 #% key: maintitle
 #% type: string
-#% answer: %DISPLAY%
 #% description: Main title of map sheet
 #% guisection: Titles
 #%end
@@ -198,18 +197,28 @@ LAYERCOUNT = 10
 REMOVE_TMPDIR = True
 PROXIES = {}
 
+# UPSIZE is better global as it is universal at a moment
+# an we save a lot of parameter passing when parsing xml
+global UPSIZE
+UPSIZE = 1.0
 
 # set upsize "constants"
 
 UPSD = {}
 ALLTASKDIC = {}
 ALLTASKDIC['width'] = 1.0  # 1 by 1 correction if any
-ALLTASKDIC['fontsize'] = 1.0  # 1 by 1 correction if any
 UPSD['*'] = ALLTASKDIC
 
 DVECTDIC = {}
-DVECTDIC['size'] = 1.0  # 1 by 1 correction if any
+DVECTDIC['size'] = 1.0  # symbol size
+DVECTDIC['label_size'] = 1.5  # label size
 UPSD['d.vect'] = DVECTDIC
+
+DGRIDDIC = {}
+DGRIDDIC['size'] = 0.0  # force not touching grid line distance
+DGRIDDIC['fontsize'] = 1.0  # 1 by 1 correction if any
+UPSD['d.grid'] = DGRIDDIC
+
 
 
 # PAGE dictionary
@@ -240,15 +249,19 @@ def cleanup():
 
 
 
-
+# test
+# m.printws.py --overwrite input=/home/kuszi/grassdata/workspaces_7/EURASEAA.gxw dpi=100 output=/home/kuszi/grassdata/mapdefs/euraseeaa.bmp page=A4portrait maintitle=$DISPLAY pagemargin=0
 
 def upsizeifnecessary(task, lastparam, value, upsize):
     val = UPSD.get('*').get(lastparam, 0.0)
+    print task + " " + lastparam + " " + str(value) + " " + str(upsize)
     if val > 0:
-        return str(float(value) * val * upsize)
+        print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        return str(float(value) * val * UPSIZE)
     val = UPSD.get(task, {}).get(lastparam, 0.0)
     if val > 0:
-        return str(float(value) * val * upsize)
+        print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        return str(float(value) * val * UPSIZE)
     return value
 
 
@@ -267,22 +280,22 @@ def processlayer(dom,flagdic,paramdic):
     params = task.getElementsByTagName("parameter")
     paramdic['task'] = command
     for p in params:
-        paramdic[p.getAttribute('name')] = p.getElementsByTagName("value")[0].childNodes[0].data
+        paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),p.getElementsByTagName("value")[0].childNodes[0].data,UPSIZE)
     
     flags = task.getElementsByTagName("flag")
     for f in flags:
-        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite'):
+        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite') and (f.getAttribute('name') <> 'quiet'):
             flagdic [f.getAttribute('name')] = f.getAttribute('name')
 
 
 def processoverlay(dom,flagdic,paramdic):
     params = dom.getElementsByTagName("parameter")
     for p in params:
-        paramdic[p.getAttribute('name')] = p.getElementsByTagName("value")[0].childNodes[0].data
+        paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),p.getElementsByTagName("value")[0].childNodes[0].data,UPSIZE)
     
     flags = dom.getElementsByTagName("flag")
     for f in flags:
-        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite'):
+        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite') and (f.getAttribute('name') <> 'quiet'):
             flagdic [f.getAttribute('name')] = f.getAttribute('name')
 
 
@@ -311,7 +324,7 @@ def processoverlays(dom,l):
         l.append((opacity, paramdic['task'] , paramdic, flagdic))
 
 
-def readworkspace(wspname, upsize):
+def readworkspace(wspname):
     # READS WORKSPACE FILE
     displaydic = {}    # adding support for more displays
     grass.verbose(_("Layers: "))
@@ -530,6 +543,7 @@ def getfontbypattern(kindpattern):
 
 
 def decodetextmacros(text, dic):
+    # Yes, indeed, macros ARE case sensitive !!!
     result = text
     for key in dic:
         result = re.sub(key, dic[key], result)
@@ -549,10 +563,20 @@ def main():
 
     global GISDBASE, LAYERCOUNT, LASTFILE
     textmacros = {}
+    # %nam% macros are kept for backward compatibility
     textmacros['%TIME24%'] = time.strftime("%H:%M:%S")
     textmacros['%DATEYMD%'] = time.strftime("%Y.%m.%d")
     textmacros['%DATEMDY%'] = time.strftime("%m/%d/%Y")
     textmacros['%USERNAME%'] = pwd.getpwuid(os.getuid())[0]
+    # using $ for macros in the future. New items should be created
+    # exclusively as $macros later on
+    textmacros['\$TIME24'] = textmacros['%TIME24%']
+    textmacros['\$DATEYMD'] = textmacros['%DATEYMD%']
+    textmacros['\$DATEMDY'] = textmacros['%DATEMDY%']
+    textmacros['\$USERNAME'] = textmacros['%USERNAME%']
+
+    textmacros['\$SPC'] = u'\u00A0' #?? d.text won't display at string end hmmm
+
 
     # saves region for restoring at end
     savedregionname = "tmp.%s.%d" % (
@@ -571,14 +595,16 @@ def main():
     else:
         screendpioption = 100.0
 
-    upsize = dpioption / screendpioption
+    global UPSIZE
+    UPSIZE = float(dpioption) / float(screendpioption)
 
     if len(options['input']) > 0:
-        displays = readworkspace(options['input'], upsize)
+        displays = readworkspace(options['input'])
     else:
         quit()
 
     textmacros['%GXW%'] = options['input']
+    textmacros['\$GXW'] = textmacros['%GXW%']
 
     displaycounter = 0
 
@@ -586,6 +612,7 @@ def main():
     # each display is a whole and independent file assembly
     for key in displays:
         textmacros['%DISPLAY%'] = key
+        textmacros['\$DISPLAY'] = key
         grass.verbose(_('printws: rendering display: ' + key))
         displaycounter = displaycounter + 1
         layers = copy.deepcopy(displays[key])
@@ -627,7 +654,7 @@ def main():
             pageoption = 'A4landscape'
         # parsing titles, etc.
 
-        if len(options['titlefont']) > 1:
+        if len(options['titlefont']) > 0:
             isAsterisk = options['titlefont'].find('*')
             if isAsterisk > 0:
                 titlefont = getfontbypattern(
@@ -638,7 +665,7 @@ def main():
             titlefont = getfontbypattern('Open')  # try to find something UTF-8
         grass.verbose(_("printws: titlefont: " + titlefont))
 
-        if len(options['titlecolor']) > 1:
+        if len(options['titlecolor']) > 0:
             titlecolor = options['titlecolor']
         else:
             titlecolor = black
@@ -749,18 +776,21 @@ def main():
         mapsizesindots = dictodots(mapsizes, dpioption)
 
         # changing region resolution to match print resolution
-        # to eliminate unnecessary CPU/data transfer (make it faster
-        # with invisible detail loss only). Does only downscale.
+        # to eliminate unnecessary CPU heating/data transfer
+        # so as to make it faster
+        # with only invisible detail loss.
         colsregiontomap = mapsizesindots['w'] / regioncols
         rowsregiontomap = mapsizesindots['h'] / regionrows
 
         newewres = ewres
         newnsres = nsres
 
-        if colsregiontomap < 1:
-            newewres = ewres / colsregiontomap
-        if rowsregiontomap < 1:
-            newnsres = nsres / rowsregiontomap
+        # if colsregiontomap < 1: 
+        # CHANGE: also enables raising of resolution to prevent
+        # pixelation because of low resolution setting...
+        newewres = ewres / colsregiontomap
+        # if rowsregiontomap < 1:
+        newnsres = nsres / rowsregiontomap
 
         grass.run_command("g.region", ewres=str(newewres), nsres=str(newnsres))
 
