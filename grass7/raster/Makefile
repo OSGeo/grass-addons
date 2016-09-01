@@ -67,6 +67,7 @@ SUBDIRS = \
 	r.mess \
 	r.modis \
 	r.mwprecip \
+	r.neighborhoodmatrix \
 	r.niche.similarity \
 	r.northerness.easterness \
 	r.object.geometry \
