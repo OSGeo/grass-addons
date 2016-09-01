@@ -173,7 +173,11 @@
 
 import sys
 import os
-import pwd
+
+if os.name <> 'nt':
+    import pwd
+
+
 import atexit
 import re
 import tempfile
@@ -567,7 +571,10 @@ def main():
     textmacros['%TIME24%'] = time.strftime("%H:%M:%S")
     textmacros['%DATEYMD%'] = time.strftime("%Y.%m.%d")
     textmacros['%DATEMDY%'] = time.strftime("%m/%d/%Y")
-    textmacros['%USERNAME%'] = pwd.getpwuid(os.getuid())[0]
+    if os.name == 'nt':
+        textmacros['%USERNAME%'] = '(windows user)'
+    else:
+        textmacros['%USERNAME%'] = pwd.getpwuid(os.getuid())[0]
     # using $ for macros in the future. New items should be created
     # exclusively as $macros later on
     textmacros['\$TIME24'] = textmacros['%TIME24%']
