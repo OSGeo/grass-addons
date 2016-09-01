@@ -76,6 +76,7 @@ SUBDIRS = \
 	r.out.ntv2 \
 	r.out.tiff \
 	r.popgrowth \
+	r.quantile.ref \
 	r.random.weight \
 	r.randomforest \
 	r.recode.attr \
