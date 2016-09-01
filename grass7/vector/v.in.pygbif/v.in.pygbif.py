@@ -20,6 +20,8 @@ COPYRIGHT: (C) 2016 by the GRASS Development Team
 To Dos:
 - use proper cleanup routine, esp if using csv + vrt (copy from other modules)
 - handle layers in mask input
+- add progress bar
+
 """
 
 #%module
@@ -73,6 +75,7 @@ To Dos:
 #%flag
 #% key: p
 #% description: Print result from matching taxa names and exit
+#% guisection: Print
 #% suppress_required: yes
 #%end
 
@@ -84,12 +87,14 @@ To Dos:
 #%flag
 #% key: g
 #% description: Print result from matching taxon names in shell script style and exit
+#% guisection: Print
 #% suppress_required: yes
 #%end
 
 #%flag
 #% key: o
 #% description: Print number of matching occurrences per taxon and exit
+#% guisection: Print
 #% suppress_required: yes
 #%end
 
@@ -609,12 +614,12 @@ def main():
         # Close the current map if a map for each species is requested
         if species_maps:
             new.table.conn.commit()
-            new.close
+            new.close()
 
     # Close the output map if not a map for each species is requested
     if not species_maps and not print_species and not print_species_shell and not print_occ_number:
         new.table.conn.commit()
-        new.close
+        new.close()
 
 # Run the module
 # ToDo: Add an atexit procedure which closes and removes the current map
