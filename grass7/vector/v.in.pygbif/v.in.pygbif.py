@@ -30,13 +30,13 @@ To Dos:
 
 #%option G_OPT_V_OUTPUT
 #% key: output
-#% description: Name of resulting vector map with species occurrences
+#% description: Name of resulting vector map with occurrences
 #% required : yes
 #%end
 
 #%option
-#% key: species
-#% description: Comma separated list of species names or keys to fetch data for
+#% key: taxa
+#% description: Comma separated list of taxon names or keys to fetch data for
 #% required : yes
 #%end
 
@@ -72,24 +72,24 @@ To Dos:
 
 #%flag
 #% key: p
-#% description: Print result from matching species names and exit
+#% description: Print result from matching taxa names and exit
 #% suppress_required: yes
 #%end
 
 #%flag
 #% key: i
-#% description: Produce individual map for each species
+#% description: Produce individual map for each taxon
 #%end
 
 #%flag
 #% key: g
-#% description: Print result from matching species names in shell script style and exit
+#% description: Print result from matching taxon names in shell script style and exit
 #% suppress_required: yes
 #%end
 
 #%flag
 #% key: o
-#% description: Print number of matching occurrences per species and exit
+#% description: Print number of matching occurrences per taxon and exit
 #% suppress_required: yes
 #%end
 
@@ -194,7 +194,7 @@ def main():
     print_occ_number = flags['o']
     allow_no_geom = flags['n']
     hasGeoIssue = flags['s']
-    splist = options['species'].split(',')
+    taxa_list = options['taxa'].split(',')
     institutionCode = options['institutioncode']
     basisofrecord = options['basisofrecord']
     recordedby = options['recordedby'].split(',')
@@ -208,7 +208,8 @@ def main():
     # Number of occurrences to fetch in one request
     chunk_size = 300
     # lat/lon proj string
-    latlon = '+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0.000,0.000,0.000'
+    latlon_crs = ['+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0.000,0.000,0.000',
+              '+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0,0,0,0,0,0,0']
     # List attributes available in Darwin Core
     # not all attributes are returned in each request
     # to avoid key errors when accessing the dictionary returned by pygbif
@@ -350,7 +351,7 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    target_crs = grass.read_command('g.proj', flags='fj').rstrip('\n')
+    target_crs = grass.read_command('g.proj', flags='fj').rstrip(os.linesep)
     target = osr.SpatialReference(target_crs)
     target.ImportFromProj4(target_crs)
     if target == 'XY location (unprojected)':
@@ -359,7 +360,7 @@ def main():
     # Set source projection from GBIF
     source = osr.SpatialReference()
     source.ImportFromEPSG(4326)
-    if target_crs != source:
+    if target_crs not in latlon_crs:
         transform = osr.CoordinateTransformation(source, target)
         reverse_transform = osr.CoordinateTransformation(target, source)
 
@@ -386,10 +387,10 @@ def main():
     else:
         # Do not limit import spatially if LOCATION is able to take global data
         if no_region_limit:
-            if target_crs != latlon:
-                grass.fatal('Import of data outside the current region is'
-                            'only supported in an WGS84 location!')
-            pol = None
+            if target_crs not in latlon_crs:
+                grass.fatal('Import of data from outside the current region is'
+                            'only supported in a WGS84 location!')
+            region_pol = None
         else:
             # Limit import spatially to current region
             # if LOCATION is !NOT! able to take global data
@@ -399,7 +400,7 @@ def main():
                          region['n'], region['w'], region['s'])
 
     # Do not reproject in latlon LOCATIONS
-    if target_crs != source:
+    if target_crs not in latlon_crs:
         pol = ogr.CreateGeometryFromWkt(region_pol)
         pol.Transform(reverse_transform)
         pol = pol.ExportToWkt()
@@ -414,7 +415,7 @@ def main():
         cat = 1
 
     # Import data for each species
-    for s in splist:
+    for s in taxa_list:
         # Get the taxon key if not the taxon key is provided as input
         try:
             key = int(s)
@@ -440,8 +441,12 @@ def main():
                 print 'No alternatives found for the given taxon'
             continue
         if print_species_shell:
-            for m in species_match['alternatives']:
-                print m['scientificName'] + ' ' + m['status']
+            print 'match={}'.format(species_match['scientificName'])
+            if 'alternatives' in species_match.keys():
+                alternatives = []
+                for m in species_match['alternatives']:
+                    alternatives.append(m['scientificName'])
+                print 'alternatives={}'.format(','.join(alternatives))
             continue
         try:
             returns_n = occurrences.search(taxonKey=key,
@@ -468,7 +473,7 @@ def main():
             grass.warning('No occurrences for current search for taxon {0}...'.format(s))
             continue
         elif returns_n >= 200000:
-            grass.warning('Your search returns {0} records.\n'
+            grass.warning('Your search for {1} returns {0} records.\n'
                           'Unfortunately, the GBIF search API is limited to 200,000 records per request.\n'
                            'The download will be incomplete. Please consider to split up your search.'.format(returns_n, s))
 
@@ -508,14 +513,14 @@ def main():
 
             # Write the returned data to map and attribute table
             for res in returns['results']:
-                if source != target:
+                if target_crs not in latlon_crs:
                     point = ogr.CreateGeometryFromWkt('POINT ({} {})'.format(res['decimalLongitude'], res['decimalLatitude']))
                     point.Transform(transform)
                     x = point.GetX()
                     y = point.GetY()
                 else:
                     x = res['decimalLatitude']
-                    x = res['decimalLongitude']
+                    y = res['decimalLongitude']
 
                 point = Point(x, y)
 
