@@ -23,6 +23,7 @@ SUBDIRS = \
 	i.segment.gsoc \
 	i.segment.hierarchical \
 	i.segment.stats \
+	i.segment.uspo \
 	i.spec.sam \
 	i.spec.unmix \
 	i.theilsen \
