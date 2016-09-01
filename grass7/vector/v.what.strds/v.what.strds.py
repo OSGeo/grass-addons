@@ -53,7 +53,7 @@ from grass.exceptions import CalledModuleError
 
 class Sample(object):
     def __init__(self, start=None, end=None, raster_names=None,
-                 strds_name=None):
+                 strds_name=None, granularity=None):
         self.start = start
         self.end = end
         if raster_names is not None:
@@ -61,6 +61,7 @@ class Sample(object):
         else:
             self.raster_names = []
         self.strds_name = strds_name
+        self.granu = granularity
 
     def __str__(self):
         return "Start: %s\nEnd: %s\nNames: %s\n" % (str(self.start),
@@ -68,13 +69,18 @@ class Sample(object):
                                                     str(self.raster_names))
 
     def printDay(self, date='start'):
+        output = ''
         if date == 'start':
-            return str(self.start).split(' ')[0].replace('-', '_')
+            output = str(self.start).split(' ')[0].replace('-', '_')
         elif date == 'end':
-            return str(self.end).split(' ')[0].replace('-', '_')
+            output = str(self.end).split(' ')[0].replace('-', '_')
         else:
             grass.fatal("The values accepted by printDay in Sample are:"
                         " 'start', 'end'")
+        if self.granu:
+            if self.granu.find('minute') != -1 or self.granu.find('second') != -1:
+                output += '_' + str(self.start).split(' ')[1].replace(':', '_')
+        return output
 
 ############################################################################
 
@@ -111,6 +117,7 @@ def main():
     first_strds = tgis.open_old_stds(strds_names[0], "strds", dbif)
     # Single space time raster dataset
     if len(strds_names) == 1:
+        granu = first_strds.get_granularity()
         rows = first_strds.get_registered_maps("name,mapset,start_time,end_time",
                                                tempwhere, "start_time",
                                                dbif)
@@ -119,13 +126,12 @@ def main():
             dbif.close()
             grass.fatal(_("Space time raster dataset <%s> is empty") %
                         first_strds.get_id())
-
         for row in rows:
             start = row["start_time"]
             end = row["end_time"]
             raster_maps = [row["name"] + "@" + row["mapset"], ]
 
-            s = Sample(start, end, raster_maps, first_strds.get_name())
+            s = Sample(start, end, raster_maps, first_strds.get_name(), granu)
             samples.append(s)
     else:
         # Multiple space time raster datasets
@@ -146,7 +152,7 @@ def main():
                                                         False, None,
                                                         "equal", False,
                                                         False)
-
+        #TODO check granularity for multiple STRDS
         for i in xrange(len(mapmatrizes[0])):
             isvalid = True
             mapname_list = []
@@ -186,11 +192,13 @@ def main():
 
     if len(pymap.dblinks) == 0:
         try:
+            pymap.close()
             grass.run_command("v.db.addtable", map=output)
         except CalledModuleError:
             dbif.close()
             grass.fatal(_("Impossible add table to vector %s" % output))
-    pymap.close()
+    if pymap.is_open():
+            pymap.close()
     for sample in samples:
         raster_names = sample.raster_names
         # Call v.what.rast for each raster map
