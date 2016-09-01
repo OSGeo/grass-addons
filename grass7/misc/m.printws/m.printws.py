@@ -254,13 +254,13 @@ def cleanup():
 
 def upsizeifnecessary(task, lastparam, value, upsize):
     val = UPSD.get('*').get(lastparam, 0.0)
-    print task + " " + lastparam + " " + str(value) + " " + str(upsize)
+    #print task + " " + lastparam + " " + str(value) + " " + str(upsize)
     if val > 0:
-        print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        #print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
         return str(float(value) * val * UPSIZE)
     val = UPSD.get(task, {}).get(lastparam, 0.0)
     if val > 0:
-        print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        #print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
         return str(float(value) * val * UPSIZE)
     return value
 
