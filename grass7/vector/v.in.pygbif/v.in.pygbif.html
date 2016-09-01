@@ -8,9 +8,16 @@ filter criteria.</p>
 import is limited to the current computational region in order to avoid 
 possible projection errors, e.g. when projecting global data into UTM locations. 
 However, in lat/lon location this limitation can be skiped using the <b><em>-r</em></b>
-flag.</p>
+flag.<br>
+Providing a mask overrides the limitation of the search to the current computational region.</p>
+
 <p>Terminology in v.in.pygbif is oriented on the <em>Darwin Core</em> standard:
 <a href=http://rs.tdwg.org/dwc/> http://rs.tdwg.org/dwc/</a>.</p>
+
+<p>Please note that the GBIF Search API has a hard limit of 200,000 occurrences 
+per request. If you want to fetch more records, either subivide your area of 
+interest or split up your search by using different search criteria.<br>
+When a list of taxa is given as input, v.in.pygbif issues a search for each species individually. Thus, in order to slpit up a search it is recommended to either use different filters on time or space.</p>
 
 <div id="examples">
 
