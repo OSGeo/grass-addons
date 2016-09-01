@@ -350,15 +350,16 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    target = osr.SpatialReference()
-    target.ImportFromProj4(grass.read_command('g.proj', flags='fj'))
+    target_crs = grass.read_command('g.proj', flags='fj').rstrip('\n')
+    target = osr.SpatialReference(target_crs)
+    target.ImportFromProj4(target_crs)
     if target == 'XY location (unprojected)':
         grass.fatal("Sorry, XY locations are not supported!")
 
     # Set source projection from GBIF
     source = osr.SpatialReference()
     source.ImportFromEPSG(4326)
-    if target != source:
+    if target_crs != source:
         transform = osr.CoordinateTransformation(source, target)
         reverse_transform = osr.CoordinateTransformation(target, source)
 
@@ -385,7 +386,7 @@ def main():
     else:
         # Do not limit import spatially if LOCATION is able to take global data
         if no_region_limit:
-            if target != latlon:
+            if target_crs != latlon:
                 grass.fatal('Import of data outside the current region is'
                             'only supported in an WGS84 location!')
             pol = None
@@ -398,7 +399,7 @@ def main():
                          region['n'], region['w'], region['s'])
 
     # Do not reproject in latlon LOCATIONS
-    if target != source:
+    if target_crs != source:
         pol = ogr.CreateGeometryFromWkt(region_pol)
         pol.Transform(reverse_transform)
         pol = pol.ExportToWkt()
@@ -466,6 +467,10 @@ def main():
         elif returns_n <= 0:
             grass.warning('No occurrences for current search for taxon {0}...'.format(s))
             continue
+        elif returns_n >= 200000:
+            grass.warning('Your search returns {0} records.\n'
+                          'Unfortunately, the GBIF search API is limited to 200,000 records per request.\n'
+                           'The download will be incomplete. Please consider to split up your search.'.format(returns_n, s))
 
         # Get the number of chunks to download
         chunks = int(math.ceil(returns_n / float(chunk_size)))
@@ -481,6 +486,13 @@ def main():
 
         # Download the data from GBIF
         for c in range(chunks):
+            # Define offset
+            offset = c * chunk_size 
+            # Adjust chunk_size to the hard limit of 200,000 records in GBIF API
+            # if necessary
+            if offset + chunk_size >= 200000:
+                chunk_size = 200000 - offset
+            # Get the returns for the next chunk
             returns = occurrences.search(taxonKey=key,
                                          hasGeospatialIssue=hasGeospatialIssue,
                                          hasCoordinate=hasCoordinate,
@@ -492,7 +504,7 @@ def main():
                                          country=country,
                                          geometry=pol,
                                          limit=chunk_size,
-                                         offset=c * chunk_size)
+                                         offset=offset)
 
             # Write the returned data to map and attribute table
             for res in returns['results']:
@@ -509,9 +521,9 @@ def main():
 
                 for k in dwc_keys:
                     if k not in res.keys():
-                        res.update({k: 1})
+                        res.update({k: None})
 
-                new.write(point, cat=cat, attrs=(
+                new.write(point, attrs=(
                           res['key'],
                           res['taxonRank'],
                           res['taxonKey'],
