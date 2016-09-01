@@ -49,6 +49,7 @@ SUBDIRS = \
 	v.stats \
 	v.surf.icw \
 	v.surf.mass \
+	v.surf.tps \
 	v.transects \
 	v.vol.idw \
 	v.what.strds \
