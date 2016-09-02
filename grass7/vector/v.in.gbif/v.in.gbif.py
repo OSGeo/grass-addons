@@ -142,7 +142,7 @@ def main():
 		<Field name="g_catalognumber" src="catalognumber" type="String" width="255" />
 		<Field name="g_recordnumber" src="recordnumber" type="String" width="255" />
 		<Field name="g_identifiedby" src="identifiedby" type="String" width="255" />
-		<Field name="g_rights" src="rights" type="String" width="255" />
+		<Field name="g_license" src="license" type="String" width="255" />
 		<Field name="g_rightsholder" src="rightsholder" type="String" width="255" />
 		<Field name="g_recordedby" src="recordedby" type="String" width="255" />
 		<Field name="g_typestatus" src="typestatus" type="String" width="255" />
