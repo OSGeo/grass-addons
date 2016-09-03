@@ -61,7 +61,7 @@ int attributes(char *in, struct Map_info *Out)
 	    fi->table, clen);
     db_append_string(&sql, buf);
 
-    G_debug(1, db_get_string(&sql));
+    G_debug(1, "%s", db_get_string(&sql));
 
     driver = db_start_driver(fi->driver);
     if (driver == NULL)
@@ -102,7 +102,7 @@ int attributes(char *in, struct Map_info *Out)
 	sprintf(buf, "insert into %s values ( %d, '%s')", fi->table, cat,
 		db_get_string(&lab));
 	db_set_string(&sql, buf);
-	G_debug(3, db_get_string(&sql));
+	G_debug(3, "%s", db_get_string(&sql));
 
 	if (db_execute_immediate(driver, &sql) != DB_OK) {
 	    G_fatal_error(_("Unable to insert new record: '%s'"),
