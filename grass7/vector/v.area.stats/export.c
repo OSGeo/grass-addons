@@ -93,8 +93,8 @@ int export2csv(int length)
 		if (Values[idx].area_id){
 			get_vals(str_vals, Values[idx]);
 			buf = join(options.separator, str_vals, LENVALS, buf);
-			/* G_debug(3, "buf:%s\n", buf); */
-			printf(buf);
+			G_debug(3, "buf:%s", buf);
+			/* printf(buf); */
 		}
 	}
 
