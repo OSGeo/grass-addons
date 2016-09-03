@@ -115,8 +115,7 @@ int main(int argc, char *argv[])
     if (cell_type != CELL_TYPE)
         G_fatal_error(_("This module currently only works for integer (CELL) maps"));
 
-    G_message(_n("Interpolating raster map <%s>... %d row... ",
-        "Interpolating raster map <%s>... %d rows... ", window.rows),
+    G_message(_("Interpolating raster map <%s>... %d rows... "),
 	      parm.output->answer, window.rows);
 
     north = window.north - window.ns_res / 2.0;
