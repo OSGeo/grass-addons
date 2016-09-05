@@ -186,6 +186,30 @@ Using the tool and making a minor movement or a simple click the map will fill t
 again. After this alignment with the <i>Pan</i> tool the workspace must be saved again
 so m.printws could print up to the newly set extents.
 
+<h3>Illustration with the <i>Flexi</i> page option</h3>
+When creating figures for scientific articles or book illustration purposes maps usually
+don't have elements like titles and others outside the map frame.
+In research papers map content is described in subtitles as <i>Figure nn.:</i>
+and so on.
+In this case page options like A4, or A4 landscape would always have white stripes on
+the top/bottom or left/right even when margin is set to be zero.
+This is because the ratio of the
+edges of the map never exactly follows the ratio of the A4 or other page
+edges. Supporting the creation of publication ready images (especially when
+the target format is tif, png or jpg) the <b>Flexi option is introduced</b>
+as a virtual page size. Using the Flexi page:
+<ul>
+  <li>Titles and other external elements won't be generated even if they would be defined.</li>
+  <li>Page content will be reduced to the map area only.</li>
+  <li>There will be no margin independently of the ratio of the map edges.</li>
+</ul>
+<small><i><b>Background:</b> The Flexi mechanism actually sets up the same layout
+as it is specified with margins and titles on a 300x300mm page and then
+cuts off everything outside the map frame together with cancelling the
+rendering of title elements.</i></small><br><br>
+Using the dpi option of m.printws an ideal resolution could easily be set.
+
+
 <h2>EXAMPLE</h2>
 
 

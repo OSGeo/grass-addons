@@ -48,7 +48,7 @@
 #%option
 #% key: page
 #% type: string
-#% options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait
+#% options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait,Flexi
 #% answer: A4landscape
 #% description: Output map page size
 #% guisection: Output
@@ -56,7 +56,7 @@
 #%option
 #% key: format
 #% type: string
-#% options: jpg,png,bmp,pdf,ppm
+#% options: pdf,png,tiff,bmp,ppm,jpg
 #% answer: pdf
 #% description: Output file format
 #% guisection: Output
@@ -194,9 +194,10 @@ import xml.dom.minidom
 # initialize global vars
 TMPFORMAT = 'BMP'
 TMPLOC = None
+LAYERCOUNT = 10
+# Following declarations MAY will used in future for sure.
 SRCGISRC = None
 GISDBASE = None
-LAYERCOUNT = 10
 # temp dir
 REMOVE_TMPDIR = True
 PROXIES = {}
@@ -234,6 +235,8 @@ PAGEDIC['A3portrait'] = (297.0, 420.0, '', 'A3')
 PAGEDIC['A3landscape'] = (420.0, 297.0, '', 'A3')
 PAGEDIC['LETTERportrait'] = (215.9, 297.4, '', 'Letter')
 PAGEDIC['LETTERlandscape'] = (297.4, 215.9, '', 'Letter')
+PAGEDIC['Flexi'] = (300, 300, '', 'Flexi')
+
 
 # HTML DECODE
 HTMLDIC = {}
@@ -565,7 +568,21 @@ def decodetextmacros(text, dic):
 
 def main():
 
+    # Following declarations MAY will used in future for sure.
     global GISDBASE, LAYERCOUNT, LASTFILE
+    
+    # Check if ImageMagick is available since it is essential
+    if os.name == 'nt':
+        if grass.find_program('magick', '-version'):
+            grass.verbose(_('printws: ImageMagick is available: OK!'))
+        else:
+            grass.fatal('ImageMagick is not accessible. See documentation of m.printws module for details.')
+    else:
+        if grass.find_program('convert', '-version'):
+            grass.verbose(_('printws: ImageMagick is available: OK!'))
+        else:
+            grass.fatal('ImageMagick is not accessible. See documentation of m.printws module for details.')
+    
     textmacros = {}
     # %nam% macros are kept for backward compatibility
     textmacros['%TIME24%'] = time.strftime("%H:%M:%S")
@@ -582,13 +599,12 @@ def main():
     textmacros['\$DATEMDY'] = textmacros['%DATEMDY%']
     textmacros['\$USERNAME'] = textmacros['%USERNAME%']
 
-    textmacros['\$SPC'] = u'\u00A0' #?? d.text won't display at string end hmmm
+    textmacros['\$SPC'] = u'\u00A0' #?? d.text won't display this at string end hmmm
 
 
     # saves region for restoring at end
-    savedregionname = "tmp.%s.%d" % (
-        os.path.basename(sys.argv[0]), os.getpid())
-    grass.run_command("g.region", save=savedregionname, overwrite=True)
+    # doing with official method:
+    grass.use_temp_region()
 
     # getting/setting screen/print dpi ratio
 
@@ -659,8 +675,8 @@ def main():
             pageoption = options['page']
         else:
             pageoption = 'A4landscape'
+        
         # parsing titles, etc.
-
         if len(options['titlefont']) > 0:
             isAsterisk = options['titlefont'].find('*')
             if isAsterisk > 0:
@@ -811,6 +827,17 @@ def main():
             pagemarginsindotstitles, pagesizesindots)
 
         mpfd = getmapframeindots(mapulindots, mapsizesindots, mxfdtitles)
+        if pageoption == 'Flexi':
+            # For 'Flexi' page we modify the setup to create
+            # a page containing only the map without margins
+            grass.verbose(_("printws: pre Flexi mapframe: " + str(mpfd)))
+            mpfd['b'] = mpfd['b'] - mpfd['t']
+            mpfd['t'] = 0
+            mpfd['r'] = mpfd['r'] - mpfd['l']
+            mpfd['l'] = 0
+            os.environ['GRASS_RENDER_WIDTH'] = str(mpfd['r'])
+            os.environ['GRASS_RENDER_HEIGHT'] = str(mpfd['b'])
+            grass.verbose(_("printws: post Flexi mapframe: " + str(mpfd)))
         mapframe = str(mpfd['t']) + ',' + str(mpfd['b']) + \
             ',' + str(mpfd['l']) + ',' + str(mpfd['r'])
 
@@ -831,7 +858,9 @@ def main():
 
         # ------------------- INMAP -------------------
 
-        imcommand = 'convert  -limit memory 720000000 -limit map 720000000 -units PixelsPerInch -density ' + \
+        # Do not limit -map. It was: -limit map 720000000 before...
+        # So we can grow on disk as long as it lasts
+        imcommand = 'convert  -limit memory 720000000 -units PixelsPerInch -density ' + \
             str(int(dpioption)) + ' '
 
         if os.name == 'nt':
@@ -871,47 +900,50 @@ def main():
         grass.run_command("g.region", ewres=str(newewres), nsres=str(newnsres))
 
         # ------------------- OUTSIDE MAP texts, etc -------------------
-        os.environ['GRASS_RENDER_FRAME'] = maxframe
+        if pageoption =='Flexi':
+            grass.verbose(_('m.printws: WARNING! Felxi mode, will not create titles, etc...'))
+        else:
+            os.environ['GRASS_RENDER_FRAME'] = maxframe
 
-        dict = {}
-        dict['task'] = "d.text"
-        dict['color'] = titlecolor
-        dict['font'] = titlefont
-        dict['charset'] = "UTF-8"
+            dict = {}
+            dict['task'] = "d.text"
+            dict['color'] = titlecolor
+            dict['font'] = titlefont
+            dict['charset'] = "UTF-8"
 
-        if len(options['maintitle']) > 1:
-            dict['text'] = decodetextmacros(options['maintitle'], textmacros)
-            dict['at'] = "50," + str(titletoppercent)
-            dict['align'] = "uc"
-            dict['size'] = str(maintitlesize)
-            render(str(dict), dict, {})
+            if len(options['maintitle']) > 1:
+                dict['text'] = decodetextmacros(options['maintitle'], textmacros)
+                dict['at'] = "50," + str(titletoppercent)
+                dict['align'] = "uc"
+                dict['size'] = str(maintitlesize)
+                render(str(dict), dict, {})
 
-        if len(options['subtitle']) > 1:
-            dict['text'] = decodetextmacros(options['subtitle'], textmacros)
-            dict['at'] = "50," + str(subtitletoppercent)
-            dict['align'] = "uc"
-            dict['size'] = str(subtitlesize)
-            render(str(dict), dict, {})
+            if len(options['subtitle']) > 1:
+                dict['text'] = decodetextmacros(options['subtitle'], textmacros)
+                dict['at'] = "50," + str(subtitletoppercent)
+                dict['align'] = "uc"
+                dict['size'] = str(subtitlesize)
+                render(str(dict), dict, {})
 
-        dict['size'] = str(pssize)
+            dict['size'] = str(pssize)
 
-        if len(options['psundercentral']) > 1:
-            dict['text'] = decodetextmacros(
-                options['psundercentral'], textmacros)
-            dict['at'] = "50,1"
-            dict['align'] = "lc"
-            render(str(dict), dict, {})
-        if len(options['psunderleft']) > 1:
-            dict['text'] = decodetextmacros(options['psunderleft'], textmacros)
-            dict['at'] = "0,1"
-            dict['align'] = "ll"
-            render(str(dict), dict, {})
-        if len(options['psunderright']) > 1:
-            dict['text'] = decodetextmacros(
-                options['psunderright'], textmacros)
-            dict['at'] = "100,1"
-            dict['align'] = "lr"
-            render(str(dict), dict, {})
+            if len(options['psundercentral']) > 1:
+                dict['text'] = decodetextmacros(
+                    options['psundercentral'], textmacros)
+                dict['at'] = "50,1"
+                dict['align'] = "lc"
+                render(str(dict), dict, {})
+            if len(options['psunderleft']) > 1:
+                dict['text'] = decodetextmacros(options['psunderleft'], textmacros)
+                dict['at'] = "0,1"
+                dict['align'] = "ll"
+                render(str(dict), dict, {})
+            if len(options['psunderright']) > 1:
+                dict['text'] = decodetextmacros(
+                    options['psunderright'], textmacros)
+                dict['at'] = "100,1"
+                dict['align'] = "lr"
+                render(str(dict), dict, {})
 
         # ------------------- GENERATING OUTPUT FILE -------------------
 
@@ -957,9 +989,7 @@ def main():
             sys.stderr.write('%s\n' % TMPDIR % ' <---- this')
 
     # restoring pre-script region
-    grass.run_command("g.region", region=savedregionname, overwrite=True)
-    grass.run_command('g.remove', flags="f", type="region",
-                      pattern=savedregionname)
+    # - not necessary as we are using grass.use_temp_region() in the future
 
     return 0
 
