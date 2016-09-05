@@ -73,7 +73,9 @@ echo "AddOns '$ADDON_PATH'..."
 echo "-----------------------------------------------------"
 
 pwd=`pwd`
-for c in "database" "display" "general" "imagery" "misc" "postscript" "raster" "raster3d" "vector" "gui/wxpython"; do
+# .. "hadoop"
+# from ../../grass7/
+for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "raster3d" "temporal" "vector" ; do
     if [ ! -d $c ]; then
 	continue
     fi
