@@ -376,7 +376,7 @@ from grass.pygrass.vector import Vector
 from grass.pygrass.modules import Module
 from grass.script.core import parser, overwrite
 
-set_path('v.class.ml', '..')
+set_path('v.class.ml')
 
 from training_extraction import extract_training
 from sqlite2npy import save2npy
