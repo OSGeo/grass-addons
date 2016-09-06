@@ -370,18 +370,13 @@ from fnmatch import fnmatch
 
 import numpy as np
 
-from grass.pygrass.utils import get_lib_path
+from grass.pygrass.utils import set_path
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import Vector
 from grass.pygrass.modules import Module
 from grass.script.core import parser, overwrite
 
-path = get_lib_path("v.class.ml", "")
-if path is None:
-    raise ImportError("Not able to find the path %s directory." % path)
-
-sys.path.append(path)
-
+set_path('v.class.ml', '..')
 
 from training_extraction import extract_training
 from sqlite2npy import save2npy
