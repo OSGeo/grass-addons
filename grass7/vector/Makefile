@@ -31,6 +31,7 @@ SUBDIRS = \
 	v.in.redwg \
 	v.in.wfs2 \
 	v.isochrones \
+	v.krige \
 	v.kriging \
 	v.lfp \
 	v.lidar.mcc \
