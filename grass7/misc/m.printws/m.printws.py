@@ -68,9 +68,9 @@
 #% guisection: Titles
 #%end
 #%option
-#% key: titlefont
+#% key: font
 #% type: string
-#% description: Font for title and postscript under the map
+#% description: Font for title above and postscript under the map
 #% guisection: Titles
 #%end
 #%option G_OPT_C
@@ -94,7 +94,7 @@
 #%option
 #% key: subtitlesize
 #% type: integer
-#% description: Main title font size in layout units
+#% description: Subtitle font size in layout units
 #% guisection: Titles
 #%end
 #%option
@@ -174,8 +174,12 @@
 import sys
 import os
 
-if os.name <> 'nt':
+# Windows pwd module workaround
+hasPwd = True
+try:
     import pwd
+except ImportError:
+    hasPwd = False
 
 
 import atexit
@@ -246,15 +250,33 @@ HTMLDIC['&amp;'] = '&'
 HTMLDIC['&quot;'] = '"'
 
 
+
+def cleanthisandthat(intext):
+    # As of 10. September 2016 some modules (d.wms) creates
+    # lines in XML workspace files which are not well-formed
+    # before parsing them, we need to correct it.
+    # Handled errors:
+    #    single & which is not &amp; in urls
+    # Once workspace files are always good this function could be NOOP
+    outtext = ''
+    for line in intext.splitlines():
+        m = re.search('http\://',line)
+        if m:
+            line2 = re.sub('\&amp\;','SAVED___amp\;',line)
+            line3 = re.sub('\&','&amp;',line2)
+            line4 = re.sub('SAVED___amp\;','&amp;',line3)
+            outtext = outtext + line4 + "\n"
+        else:
+            outtext = outtext + line + "\n"
+    return outtext
+
+
 def cleanup():
 
     # No cleanup is done here
     # see end of main()
     # kept for later
     grass.verbose(_("Module cleanup"))
-
-
-
 
 # test
 # m.printws.py --overwrite input=/home/kuszi/grassdata/workspaces_7/EURASEAA.gxw dpi=100 output=/home/kuszi/grassdata/mapdefs/euraseeaa.bmp page=A4portrait maintitle=$DISPLAY pagemargin=0
@@ -287,7 +309,11 @@ def processlayer(dom,flagdic,paramdic):
     params = task.getElementsByTagName("parameter")
     paramdic['task'] = command
     for p in params:
-        paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),p.getElementsByTagName("value")[0].childNodes[0].data,UPSIZE)
+        elements = p.getElementsByTagName("value") #sometimes there are empty <value> tags in workspace files
+        if len(elements) > 0:
+            nodes = elements[0].childNodes
+            if len(nodes) > 0:
+                paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),nodes[0].data,UPSIZE)
     
     flags = task.getElementsByTagName("flag")
     for f in flags:
@@ -298,7 +324,9 @@ def processlayer(dom,flagdic,paramdic):
 def processoverlay(dom,flagdic,paramdic):
     params = dom.getElementsByTagName("parameter")
     for p in params:
-        paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),p.getElementsByTagName("value")[0].childNodes[0].data,UPSIZE)
+        elements=p.getElementsByTagName("value") #sometimes there are empty <value> tags in workspace files
+        if len(elements) > 0:
+            paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),elements[0].childNodes[0].data,UPSIZE)
     
     flags = dom.getElementsByTagName("flag")
     for f in flags:
@@ -336,8 +364,9 @@ def readworkspace(wspname):
     displaydic = {}    # adding support for more displays
     grass.verbose(_("Layers: "))
     f = open(wspname, 'r')
-    text = f.read()
+    textraw = f.read()
     f.close()
+    text = cleanthisandthat(textraw)
     model = xml.dom.minidom.parseString(text)
     displays = model.getElementsByTagName("display")
     for display in displays:
@@ -588,8 +617,8 @@ def main():
     textmacros['%TIME24%'] = time.strftime("%H:%M:%S")
     textmacros['%DATEYMD%'] = time.strftime("%Y.%m.%d")
     textmacros['%DATEMDY%'] = time.strftime("%m/%d/%Y")
-    if os.name == 'nt':
-        textmacros['%USERNAME%'] = '(windows user)'
+    if not hasPwd:
+        textmacros['%USERNAME%'] = '(user unknown)'
     else:
         textmacros['%USERNAME%'] = pwd.getpwuid(os.getuid())[0]
     # using $ for macros in the future. New items should be created
@@ -677,13 +706,13 @@ def main():
             pageoption = 'A4landscape'
         
         # parsing titles, etc.
-        if len(options['titlefont']) > 0:
-            isAsterisk = options['titlefont'].find('*')
+        if len(options['font']) > 0:
+            isAsterisk = options['font'].find('*')
             if isAsterisk > 0:
                 titlefont = getfontbypattern(
-                    options['titlefont'].replace('*', ''))
+                    options['font'].replace('*', ''))
             else:
-                titlefont = options['titlefont']
+                titlefont = options['font']
         else:
             titlefont = getfontbypattern('Open')  # try to find something UTF-8
         grass.verbose(_("printws: titlefont: " + titlefont))
@@ -817,6 +846,25 @@ def main():
 
         grass.run_command("g.region", ewres=str(newewres), nsres=str(newnsres))
 
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # it seems that d.wms uses the GRASS_REGION from region info
+        # others may also do so we set it
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        kv2 = {}
+        kv2['e'] = kv['east']
+        kv2['n'] = kv['north']
+        kv2['s'] = kv['south']
+        kv2['w'] = kv['west']
+        kv2['ewres'] = str(newewres)
+        kv2['nsres'] = str(newnsres)
+        #kv2['rows']    #- autocalculated to resolution - no need to set explicitly
+        #kv2['cols']    #- autocalculated to resolution - no need to set explicitly
+        #grass.message(str(kv2))
+        #grass.message(grass.region_env(**kv2))
+        #grass.message(s)
+        os.environ['GRASS_REGION'] = grass.region_env(**kv2)
+
+
         # Getting mapping area in dots
         # Correcting mxfd to leave space for title and subscript
         pagemarginstitles = copy.deepcopy(pagemargins)
@@ -849,14 +897,15 @@ def main():
         grass.verbose(_("printws: page: " + str(pagesizesindots)))
         grass.verbose(_("printws: margins: " + str(pagemarginsindots)))
         grass.verbose(_("printws: mapUL: " + str(mapulindots)))
-        grass.verbose(
-            _("printws: mapsizes (corrected): " + str(mapsizesindots)))
+        grass.verbose(_("printws: mapsizes (corrected): " + str(mapsizesindots)))
         grass.verbose(_("printws: ewres (corrected): " + str(newewres)))
         grass.verbose(_("printws: nsres (corrected): " + str(newnsres)))
 
         # quit()
 
         # ------------------- INMAP -------------------
+
+
 
         # Do not limit -map. It was: -limit map 720000000 before...
         # So we can grow on disk as long as it lasts
@@ -875,8 +924,9 @@ def main():
             grass.verbose(_(lay[1] + ' at: ' + lay[0] + ' opacity'))
             if lay[0] == '1':
                 if lastopacity <> '1':
-                    LASTFILE = os.path.join(TMPDIR, str(os.getpid(
-                    )) + '_DIS_' + str(displaycounter) + '_GEN_' + str(LAYERCOUNT) + '.' + TMPFORMAT)
+                    LASTFILE = os.path.join(TMPDIR, str(os.getpid()) + \
+                        '_DIS_' + str(displaycounter) + '_GEN_' + \
+                        str(LAYERCOUNT) + '.' + TMPFORMAT)
                     os.environ['GRASS_RENDER_FILE'] = LASTFILE
                     LAYERCOUNT = LAYERCOUNT + 2
                     imcommand = imcommand + ' ' + LASTFILE
@@ -896,8 +946,11 @@ def main():
 
         # setting resolution back to pre-script state since map rendering is
         # finished
+        # CHANGE: not necessary anymore since we use temp_region now
+        # However, since we did set GRASS_REGION, let's redo it here
 
-        grass.run_command("g.region", ewres=str(newewres), nsres=str(newnsres))
+        os.environ.pop('GRASS_REGION')
+
 
         # ------------------- OUTSIDE MAP texts, etc -------------------
         if pageoption =='Flexi':

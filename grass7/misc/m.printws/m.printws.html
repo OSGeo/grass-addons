@@ -18,6 +18,8 @@ However, the following usage scenarios are recommended:
 could be saved as normal workspaces and printed in one run. Being a regular GRASS script it could be called from other
 scripts and command line as well. No GUI is necessary to be started since m.printws processes saved workspace files.
 </li>
+<li>Automatic redraw and regeneration of illustrations attached to a publication (See Flexi option).
+</li>
 </ul>
 
 <h2>NOTES</h2>
@@ -62,14 +64,25 @@ files should be regenerated to lower or higher font size according to dpi size.
 Please consider that modern screens are around 100dpi or higher. If you render
 300 dpi your labels should be drawn using 3 times bigger font size measured in dots.
 </li>
+<li>Some modules like d.wms (which can be added to displayed layers list
+in GUI to download, transform and display external WMS data source) download
+data again for each run. This is normal, however slower than rendering to a map
+display window. <i>The reason is that map display windows won't download again the
+data if you simply redraw the screen meanwhile m.printws cleans up after
+each run so there is no chance to create a cache mehcanism in the background.</i>
+</li>
 </ul>
-The module saves current region and sets it back when finished.
+The module changes region meanwhile it runs but restores the original when
+finished.
 
 <h3>Vector legend (d.legend.vect) information</h3>
 
-The d.legend.vect module integrates well with the GRASS GIS Layer Manager. However, when the user exits the gui, its temporal settings
-and status are not valid anymore. It means that d.legend.vect may face problems when restarting GRASS GIS and trying to use the
-saved workspace file with m.printws. To prevent such issues do the following steps:
+The d.legend.vect module integrates well with the GRASS GIS Layer Manager.
+When the user exits the GUI, its settings
+and status became invalid. It means that d.legend.vect may face problems
+when restarting GRASS GIS and trying to use the
+saved workspace file with m.printws with its old settings.
+To prevent such issues do the following steps:
 
 <ol>
 <li>Compose your vector legend using the GUI as it is provided by d.legend.vect.
@@ -90,7 +103,7 @@ to the corresponding CSV file.
 </li>
 </ol>
 
-Such a prepared vector legend will be printed correctly by m.printws.
+Thusly prepared vector legends will be printed correctly by m.printws.
 
 If you would like to modify your legend, delete the "Input legend file:" field on the In/Out tab and also repeat the process above
 before printing.
@@ -186,7 +199,7 @@ Using the tool and making a minor movement or a simple click the map will fill t
 again. After this alignment with the <i>Pan</i> tool the workspace must be saved again
 so m.printws could print up to the newly set extents.
 
-<h3>Illustration with the <i>Flexi</i> page option</h3>
+<h3>Making illustrations with the <i>Flexi</i> page option</h3>
 When creating figures for scientific articles or book illustration purposes maps usually
 don't have elements like titles and others outside the map frame.
 In research papers map content is described in subtitles as <i>Figure nn.:</i>
@@ -202,12 +215,15 @@ as a virtual page size. Using the Flexi page:
   <li>Titles and other external elements won't be generated even if they would be defined.</li>
   <li>Page content will be reduced to the map area only.</li>
   <li>There will be no margin independently of the ratio of the map edges.</li>
-</ul>
+  <li>No postprocess is necessary (for example: cutting to size in photoshop ).
+  Illustration redraw can be fully automatic in case of content change
+  by repeating the m.printws run</li>
+</ul><br><br>
 <small><i><b>Background:</b> The Flexi mechanism actually sets up the same layout
 as it is specified with margins and titles on a 300x300mm page and then
 cuts off everything outside the map frame together with cancelling the
 rendering of title elements.</i></small><br><br>
-Using the dpi option of m.printws an ideal resolution could easily be set.
+An ideal resolution could easily be set using the dpi option of m.printws.
 
 
 <h2>EXAMPLE</h2>
