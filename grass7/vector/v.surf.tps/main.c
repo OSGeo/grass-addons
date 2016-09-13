@@ -477,15 +477,15 @@ int main(int argc, char *argv[])
 	pthin = 0;
 
     if (n_points <= min_points) {
-	if (map_tps(out_fd, var_fd, n_vars, mask_fd, pnts, n_points,
-	            regularization) != 1) {
+	if (global_tps(out_fd, var_fd, n_vars, mask_fd, pnts, n_points,
+	               regularization) != 1) {
 	    G_fatal_error(_("TPS interpolation failed"));
 	}
     }
     else {
-	if (cell_tps(out_fd, var_fd, n_vars, mask_fd, pnts, n_points,
-	             min_points, regularization, overlap, pthin,
-		     c_flag->answer, segs_mb) != 1) {
+	if (local_tps(out_fd, var_fd, n_vars, mask_fd, pnts, n_points,
+	              min_points, regularization, overlap, pthin,
+		      c_flag->answer, segs_mb) != 1) {
 	    G_fatal_error(_("TPS interpolation failed"));
 	}
     }
