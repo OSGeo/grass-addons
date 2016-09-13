@@ -139,7 +139,7 @@ def main():
         gscript.run_command('g.region', raster=segment_map)
 
     stats_temp_file = gscript.tempfile()
-    if area_measures
+    if area_measures:
 	gscript.message(_("Calculating geometry statistics"))
 	output_header += area_measures
 	stat_indices = [geometry_stat_dict[x] for x in area_measures]
