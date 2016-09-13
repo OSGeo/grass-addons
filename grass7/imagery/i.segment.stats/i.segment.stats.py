@@ -112,7 +112,6 @@ def main():
     vectormap = options['vectormap'] if options['vectormap'] else []
     rasters = options['rasters'].split(',') if options['rasters'] else []
     area_measures = options['area_measures'].split(',') if options['area_measures'] else []
-    r_object_geometry = True
     if area_measures:
 	if not gscript.find_program('r.object.geometry', '--help'):
 		message = _("You need to install the addon r.object.geometry to be able")
@@ -140,7 +139,7 @@ def main():
         gscript.run_command('g.region', raster=segment_map)
 
     stats_temp_file = gscript.tempfile()
-    if area_measures and r_object_geometry:
+    if area_measures
 	gscript.message(_("Calculating geometry statistics"))
 	output_header += area_measures
 	stat_indices = [geometry_stat_dict[x] for x in area_measures]
