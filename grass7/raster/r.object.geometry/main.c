@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
     fprintf(out_fp, "perimeter%s", sep);
     fprintf(out_fp, "compact_square%s", sep);
     fprintf(out_fp, "compact_circle%s", sep);
-    fprintf(out_fp, "fd", sep);
+    fprintf(out_fp, "fd");
     fprintf(out_fp, "\n");
 
     /* print table body */
