@@ -148,7 +148,8 @@ def main():
     # read the coordinates, and parse them up.
     masterlist = []
     for line in output_points.splitlines():
-        masterlist.append(line.strip().split(','))
+        if line:  # see ticket #3155
+            masterlist.append(line.strip().split(','))
     # now, loop through the master list and run r.viewshed for each of the sites,
     # and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
