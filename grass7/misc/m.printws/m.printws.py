@@ -220,7 +220,7 @@ UPSD['*'] = ALLTASKDIC
 
 DVECTDIC = {}
 DVECTDIC['size'] = 1.0  # symbol size
-DVECTDIC['label_size'] = 1.5  # label size
+DVECTDIC['label_size'] = 1.0  # label size
 UPSD['d.vect'] = DVECTDIC
 
 DGRIDDIC = {}
@@ -585,6 +585,12 @@ def decodetextmacros(text, dic):
         result = re.sub(key, dic[key], result)
     return result
 
+def decdeg2dms(dd):
+    mnt,sec = divmod(dd*3600,60)
+    deg,mnt = divmod(mnt,60)
+    return str(int(deg)) + ':' + str(int(mnt)) + ':' + str(sec)
+
+
 #-----------------------------------------------------
 #-----------------------------------------------------
 #-----------------------------------------------------
@@ -794,24 +800,38 @@ def main():
         # Correcting map area ratio to ratio of region edges
         # OR screen window edges depeding on "regionmode"
         # for later:     grass.use_temp_region()
+        ISLATLONG=False
         s = grass.read_command("g.region", flags='p')
         kv = grass.parse_key_val(s, sep=':')
         regioncols = float(kv['cols'].strip())
         regionrows = float(kv['rows'].strip())
-        ewres = float(kv['ewres'].strip())
-        nsres = float(kv['nsres'].strip())
+        ewrestemp = kv['ewres'].strip()
+        nsrestemp = kv['nsres'].strip()
+        if ewrestemp.find(':') > 0:
+            ISLATLONG=True
+            ewrestemp = ewrestemp.split(':')
+            ewres = float(ewrestemp[0]) + float(ewrestemp[1]) / 60.0 + float(ewrestemp[2]) / 3600.0
+            nsrestemp = nsrestemp.split(':')
+            nsres = float(nsrestemp[0]) + float(nsrestemp[1]) / 60.0 + float(nsrestemp[2]) / 3600.0
+        else:
+            ewres = float(ewrestemp)
+            nsres = float(nsrestemp)
+        
         sizex = regioncols * ewres
         sizey = regionrows * nsres
-
+        
+        grass.verbose(_("printws: sizex " + str(sizex)))
+        grass.verbose(_("printws: sizey " + str(sizey)))
+        
         if regionmode == 'region':
-            hregionratio = sizex / sizey
-            grass.verbose(_("printws: REGION MODE - region "))
+            hregionratio = float(sizex) / float(sizey)
+            grass.verbose(_("printws: REGION MODE -> region "))
         else:  # surprisingly doing the SAME
             # using screen window ratio for map area
             # next line was a test for this but didn't help on gadgets positioning
             #hregionratio = float(extents[8]) / float(extents[9])
-            hregionratio = sizex / sizey
-            grass.verbose(_("printws: REGION MODE - window"))
+            hregionratio = float(sizex) / float(sizey)
+            grass.verbose(_("printws: REGION MODE -> window"))
         hmapratio = mapsizes['w'] / mapsizes['h']
 
         grass.verbose(_("printws: raw mapsizes: " + str(mapsizesindots)))
@@ -831,8 +851,8 @@ def main():
         # to eliminate unnecessary CPU heating/data transfer
         # so as to make it faster
         # with only invisible detail loss.
-        colsregiontomap = mapsizesindots['w'] / regioncols
-        rowsregiontomap = mapsizesindots['h'] / regionrows
+        colsregiontomap = float(mapsizesindots['w']) / regioncols
+        rowsregiontomap = float(mapsizesindots['h']) / regionrows
 
         newewres = ewres
         newnsres = nsres
@@ -843,8 +863,16 @@ def main():
         newewres = ewres / colsregiontomap
         # if rowsregiontomap < 1:
         newnsres = nsres / rowsregiontomap
-
-        grass.run_command("g.region", ewres=str(newewres), nsres=str(newnsres))
+        
+        # WOW - no necessary to convert back to DMS for nsres / ewres
+        #if ISLATLONG:
+        #    newewresstr=decdeg2dms(newewres)
+        #    newnsresstr=decdeg2dms(newnsres)
+        #else:
+        newewresstr=str(newewres)
+        newnsresstr=str(newnsres)
+        
+        grass.run_command("g.region", ewres=newewresstr, nsres=newnsresstr)
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # it seems that d.wms uses the GRASS_REGION from region info
@@ -855,8 +883,8 @@ def main():
         kv2['n'] = kv['north']
         kv2['s'] = kv['south']
         kv2['w'] = kv['west']
-        kv2['ewres'] = str(newewres)
-        kv2['nsres'] = str(newnsres)
+        kv2['ewres'] = newewresstr
+        kv2['nsres'] = newnsresstr
         #kv2['rows']    #- autocalculated to resolution - no need to set explicitly
         #kv2['cols']    #- autocalculated to resolution - no need to set explicitly
         #grass.message(str(kv2))
