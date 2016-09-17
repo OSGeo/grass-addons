@@ -67,6 +67,11 @@ To Dos:
 
 # Import will allways be limited to current region except for latlon locations
 #%flag
+#% key: b
+#% description: Do not build topology
+#%end
+
+#%flag
 #% key: r
 #% description: Do not limit import to current region (works only in lat/lon)
 #% guisection: Spatial filter
@@ -94,6 +99,13 @@ To Dos:
 #%flag
 #% key: o
 #% description: Print number of matching occurrences per taxon and exit
+#% guisection: Print
+#% suppress_required: yes
+#%end
+
+#%flag
+#% key: t
+#% description: Print result of taxon matching in table format and exit
 #% guisection: Print
 #% suppress_required: yes
 #%end
@@ -186,6 +198,20 @@ except ImportError:
                   " or ensure that it is on path"
                   " (use PYTHONPATH variable)."))
 
+def set_output_encoding(encoding='utf-8'):
+    import sys
+    import codecs
+    '''When piping to the terminal, python knows the encoding needed, and
+       sets it automatically. But when piping to another program (for example,
+       | less), python can not check the output encoding. In that case, it 
+       is None. What I am doing here is to catch this situation for both 
+       stdout and stderr and force the encoding'''
+    current = sys.stdout.encoding
+    if current is None :
+        sys.stdout = codecs.getwriter(encoding)(sys.stdout)
+    current = sys.stderr.encoding
+    if current is None :
+        sys.stderr = codecs.getwriter(encoding)(sys.stderr)
 
 def main():
 
@@ -194,7 +220,9 @@ def main():
     mask = options['mask']
     species_maps = flags['i']
     no_region_limit = flags['r']
+    no_topo = flags['b']
     print_species = flags['p']
+    print_species_table = flags['t']
     print_species_shell = flags['g']
     print_occ_number = flags['o']
     allow_no_geom = flags['n']
@@ -242,6 +270,7 @@ def main():
                 'extensions', 'language']
     # Deinfe columns for attribute table
     cols = [(u'cat',       'INTEGER PRIMARY KEY'),
+            (u'g_search',       'varchar(100)'),
             (u'g_key',       'integer'),
             (u'g_taxonrank',       'varchar(50)'),
             (u'g_taxonkey',       'integer'),
@@ -317,6 +346,7 @@ def main():
             (u'g_extensions',       'text'),
             (u'g_language',       'varchar(50)')]
 
+    set_output_encoding()
     # Set temporal filter if requested by user
     # Initialize eventDate filter
     eventDate = None
@@ -413,7 +443,7 @@ def main():
         pol = region_pol
 
     # Create output map if not output maps for each species are requested
-    if not species_maps and not print_species and not print_species_shell and not print_occ_number:
+    if not species_maps and not print_species and not print_species_shell and not print_occ_number and not print_species_table:
         mapname = output
         new = Vector(mapname)
         new.open('w', tab_name=mapname, tab_cols=cols)
@@ -436,22 +466,33 @@ def main():
 
         # Return matching taxon and alternatives and exit
         if print_species:
-            print 'Matching taxon for {} is:'.format(s)
-            print species_match['scientificName'] + ' ' + species_match['status']
+            print u'Matching taxon for {} is:'.format(s)
+            print u'{} {}'.format(species_match['scientificName'], species_match['status'])
             if 'alternatives' in species_match.keys():
                 print 'Alternative matches might be:'.format(s)
                 for m in species_match['alternatives']:
-                    print m['scientificName'] + ' ' + m['status']
+                    print u'{} {}'.format(m['scientificName'], m['status'])
             else:
                 print 'No alternatives found for the given taxon'
             continue
         if print_species_shell:
-            print 'match={}'.format(species_match['scientificName'])
+            print u'match={}'.format(species_match['scientificName'])
             if 'alternatives' in species_match.keys():
                 alternatives = []
                 for m in species_match['alternatives']:
                     alternatives.append(m['scientificName'])
-                print 'alternatives={}'.format(','.join(alternatives))
+                print u'alternatives={}'.format(u','.join(alternatives))
+            continue
+        if print_species_table:
+            if 'alternatives' in species_match.keys():
+                if len(species_match['alternatives']) == 0:
+                    print u'{0}|{1}|{2}|'.format(s, key, species_match['scientificName'])
+                else:
+                    alternatives = []
+                    for m in species_match['alternatives']:
+                        alternatives.append(m['scientificName'])
+                    print u'{0}|{1}|{2}|{3}'.format(s, key, species_match['scientificName'],
+                                                    u','.join(alternatives))
             continue
         try:
             returns_n = occurrences.search(taxonKey=key,
@@ -535,6 +576,7 @@ def main():
 
                 new.write(point, attrs=(
                           res['key'],
+                          u'{}'.format(s),
                           res['taxonRank'],
                           res['taxonKey'],
                           res['taxonID'],
@@ -584,14 +626,14 @@ def main():
                           res['identifier'],
                           res['recordedBy'],
                           res['identificationID'],
-                          ','.join(res['identifiers']),
+                          u','.join(res['identifiers']),
                           str(res['dateIdentified']),
                           str(res['modified']),
                           res['institutionCode'],
                           str(res['lastInterpreted']),
                           str(res['lastParsed']),
                           res['references'],
-                          ','.join(res['relations']),
+                          u','.join(res['relations']),
                           res['catalogNumber'],
                           str(res['occurrenceDetails']),
                           res['datasetKey'],
@@ -604,9 +646,9 @@ def main():
                           res['publishingCountry'],
                           str(res['lastCrawled']),
                           res['specificEpithet'],
-                          ','.join(res['facts']),
-                          ','.join(res['issues']),
-                          ','.join(res['extensions']),
+                          u','.join(res['facts']),
+                          u','.join(res['issues']),
+                          u','.join(res['extensions']),
                           res['language'],))
 
                 cat = cat + 1
@@ -615,11 +657,15 @@ def main():
         if species_maps:
             new.table.conn.commit()
             new.close()
+            if not no_topo:
+                grass.run_command('v.build', map=mapname, option='build')
 
     # Close the output map if not a map for each species is requested
-    if not species_maps and not print_species and not print_species_shell and not print_occ_number:
+    if not species_maps and not print_species and not print_species_shell and not print_occ_number and not print_species_table:
         new.table.conn.commit()
         new.close()
+        if not no_topo:
+            grass.run_command('v.build', map=mapname, option='build')
 
 # Run the module
 # ToDo: Add an atexit procedure which closes and removes the current map
