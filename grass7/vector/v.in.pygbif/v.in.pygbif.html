@@ -1,7 +1,10 @@
 <h2>DESCRIPTION:</h2>
 <p>The module <em>v.in.pygbif</em> is a wrapper around the 
-<a href=http://pygbif.readthedocs.io/en/latest/index.html>pygbif</a> package. 
-Through pygbif, it allows to download data from the Global Biodiversity 
+<a href=http://pygbif.readthedocs.io/en/latest/index.html>pygbif</a> package.<br>
+Thus, <em>pygbif</em> is a dependency of v.in.pygbif. pygbif can be installed like this:<br>
+<div class="code"><pre>pip install pygbif</pre></div>
+
+Through <em>pygbif</em>, the module allows to download data from the Global Biodiversity 
 Information Facility (<a href=www.gbif.org>GBIF</a>) using different search / 
 filter criteria.</p>
 <p>The point data is downloaded and projected into the current location. By default 
@@ -9,7 +12,8 @@ import is limited to the current computational region in order to avoid
 possible projection errors, e.g. when projecting global data into UTM locations. 
 However, in lat/lon location this limitation can be skiped using the <b><em>-r</em></b>
 flag.<br>
-Providing a mask overrides the limitation of the search to the current computational region.</p>
+Providing a mask automatically overrides the limitation of the search to the current 
+computational region.</p>
 
 <p>Terminology in v.in.pygbif is oriented on the <em>Darwin Core</em> standard:
 <a href=http://rs.tdwg.org/dwc/> http://rs.tdwg.org/dwc/</a>.</p>
@@ -24,16 +28,19 @@ When a list of taxa is given as input, v.in.pygbif issues a search for each taxo
 <h2>EXAMPLES:</h2>
 <div class="code"><pre>
 # Check matching taxon names and alternatives in GBIF:
-v.in.pygbif species="Poa,Plantago" rank=genus  -p
+v.in.pygbif taxa="Poa,Plantago" rank=genus  -p
+
+# Check matching taxon names and alternatives in GBIF and print output in table:
+v.in.pygbif taxa="Poa pratensis,Plantago media,Acer negundo" rank=species -t
 
 # Get number of occurrences for two geni:
-v.in.pygbif species="Poa,Plantago" rank=genus  -o
+v.in.pygbif taxa="Poa,Plantago" rank=genus  -o
 
 # Get number of occurrences for two species:
-v.in.pygbif species="Poa pratensis,Plantago media" rank=species  -o
+v.in.pygbif taxa="Poa pratensis,Plantago media" rank=species  -o
 
 # Fetch occurrences for two species into a map for each species:
-v.in.pygbif species="Poa pratensis,Plantago media" rank=species output=gbif -i
+v.in.pygbif taxa="Poa pratensis,Plantago media" rank=species output=gbif -i
 
 </pre></div>
 </div>
