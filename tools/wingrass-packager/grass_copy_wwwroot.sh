@@ -88,7 +88,7 @@ if test -z $2 ; then
     #copy_addon 702      7.0.2
     copy_addon 703       7.0.3
     copy_addon 704       7.0.4
-    copy_addon 705RC1    7.0.5RC1
+    copy_addon 705RC2    7.0.5RC2
 else
     copy        $2       $3
 fi
