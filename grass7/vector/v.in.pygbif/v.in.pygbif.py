@@ -188,16 +188,6 @@ if not os.environ.has_key("GISBASE"):
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
-try:
-    from pygbif import occurrences
-    from pygbif import species
-except ImportError:
-    grass.fatal(_("Cannot import pygbif (https://github.com/sckott/pygbif)"
-                  " library."
-                  " Please install it (pip install pygbif)"
-                  " or ensure that it is on path"
-                  " (use PYTHONPATH variable)."))
-
 def set_output_encoding(encoding='utf-8'):
     import sys
     import codecs
@@ -214,6 +204,16 @@ def set_output_encoding(encoding='utf-8'):
         sys.stderr = codecs.getwriter(encoding)(sys.stderr)
 
 def main():
+
+    try:
+        from pygbif import occurrences
+        from pygbif import species
+    except ImportError:
+        grass.fatal(_("Cannot import pygbif (https://github.com/sckott/pygbif)"
+                      " library."
+                      " Please install it (pip install pygbif)"
+                      " or ensure that it is on path"
+                      " (use PYTHONPATH variable)."))
 
     # Parse input options
     output = options['output']
@@ -575,8 +575,8 @@ def main():
                         res.update({k: None})
 
                 new.write(point, attrs=(
-                          res['key'],
                           u'{}'.format(s),
+                          res['key'],
                           res['taxonRank'],
                           res['taxonKey'],
                           res['taxonID'],
