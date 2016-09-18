@@ -7,6 +7,9 @@ Thus, <em>pygbif</em> is a dependency of v.in.pygbif. pygbif can be installed li
 Through <em>pygbif</em>, the module allows to download data from the Global Biodiversity 
 Information Facility (<a href=www.gbif.org>GBIF</a>) using different search / 
 filter criteria.</p>
+<p>Since some of the Darwin Core attribute columns represent SQL key-words, the prefix "g_" 
+was added to all attribute columns. The names of taxa provided at input to the search are 
+written to the column "g_search".</p>
 <p>The point data is downloaded and projected into the current location. By default 
 import is limited to the current computational region in order to avoid 
 possible projection errors, e.g. when projecting global data into UTM locations. 
@@ -66,4 +69,5 @@ http://www.gbif.org/developer/summary</a>
 
 <h2>AUTHOR:</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway
+Helmut Kudrnovsky
 </div>
