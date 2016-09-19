@@ -158,7 +158,7 @@ To Dos:
 #% type: string
 #% description: The continent in which the occurrence was recorded
 #% guisection: Spatial filter
-#% options: africa, antarctica, asia, europe, north_america, oceania, south_america
+#% options: africa,antarctica,asia,europe,north_america,oceania,south_america
 #%end
 
 #%flag
