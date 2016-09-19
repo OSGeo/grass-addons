@@ -565,8 +565,8 @@ def main():
                     x = point.GetX()
                     y = point.GetY()
                 else:
-                    x = res['decimalLatitude']
-                    y = res['decimalLongitude']
+                    x = res['decimalLongitude']
+                    y = res['decimalLatitude']
 
                 point = Point(x, y)
 
