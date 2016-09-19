@@ -1,3 +1,15 @@
+/*
+ * Declarations for the whole module
+ *
+ * Author: Bob Covill <bcovill tekmap.ns.ca>
+ *
+ * Copyright 2000 by Bob Covill, and the GRASS Development Team
+ *
+ * This program is free software licensed under the GPL (>=v2).
+ * Read the COPYING file that comes with GRASS for details.
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

@@ -1,9 +1,14 @@
 /*
- * Copyright (C) 2000 by the GRASS Development Team
- * Author: Bob Covill <bcovill@tekmap.ns.ca>
- * 
- * This Program is free software under the GPL (>=v2)
- * Read the file COPYING coming with GRASS for details
+ * Reading raster and writing output during profiling
+ *
+ * Authors:
+ *   Bob Covill <bcovill tekmap.ns.ca>
+ *   Vaclav Petras <wenzeslaus gmail com>
+ *
+ * Copyright 2000-2016 by Bob Covill, and the GRASS Development Team
+ *
+ * This program is free software licensed under the GPL (>=v2).
+ * Read the COPYING file that comes with GRASS for details.
  *
  */
 
@@ -11,12 +16,13 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
-
-int read_rast(double east, double north, double dist, int fd, int coords,
-              RASTER_MAP_TYPE data_type, FILE * fp, char *null_string)
+#include "double_list.h"
+int read_rast(double east, double north, double dist, RASTER3D_Map * fd,
+              int coords, RASTER_MAP_TYPE data_type, FILE * fp,
+              char *null_string, RASTER3D_Region * region, int depth,
+              struct DoubleList *values)
 {
     static DCELL *dcell;
-    static int cur_row = -1;
     static CELL nullcell;
     static int nrows, ncols;
     static struct Cell_head window;
@@ -31,42 +37,44 @@ int read_rast(double east, double north, double dist, int fd, int coords,
         ncols = window.cols;
     }
 
-    row = (window.north - north) / window.ns_res;
-    col = (east - window.west) / window.ew_res;
+    int unused;
+
+    Rast3d_location2coord(region, north, east, 0, &col, &row, &unused);
     G_debug(4, "row=%d:%d  col=%d:%d", row, nrows, col, ncols);
 
+    /* TODO: use 3D region */
     if ((row < 0) || (row >= nrows) || (col < 0) || (col >= ncols))
         outofbounds = TRUE;
 
+    double val;
+
     if (!outofbounds) {
-        if (row != cur_row)
-            Rast_get_d_row(fd, dcell, row);
-        cur_row = row;
+        Rast3d_get_value(fd, col, row, depth, &val, DCELL_TYPE);
     }
 
+    if (values)
+        double_list_add_item(values, val);
+
+    /* TODO: handle textual outputs systematically */
+    /* TODO: enable colors */
+    /* TODO: enable xyz coordinates output */
+    /*
+       if (coords)
+       fprintf(fp, "%f %f", east, north);
+     */
+
     if (coords)
-        fprintf(fp, "%f %f", east, north);
+        fprintf(fp, "%f %d", dist, depth);
 
-    fprintf(fp, " %f", dist);
+    /*fprintf(fp, " %f", dist); */
 
-    if (outofbounds || Rast_is_d_null_value(&dcell[col]))
+    if (outofbounds || Rast_is_d_null_value(&val))
         fprintf(fp, " %s", null_string);
     else {
         if (data_type == CELL_TYPE)
-            fprintf(fp, " %d", (int)dcell[col]);
+            fprintf(fp, " %d", (int)val);
         else
-            fprintf(fp, " %f", dcell[col]);
-    }
-
-    if (clr) {
-        int red, green, blue;
-
-        if (outofbounds)
-            Rast_get_c_color(&nullcell, &red, &green, &blue, &colors);
-        else
-            Rast_get_d_color(&dcell[col], &red, &green, &blue, &colors);
-
-        fprintf(fp, " %03d:%03d:%03d", red, green, blue);
+            fprintf(fp, " %f", val);
     }
 
     fprintf(fp, "\n");
