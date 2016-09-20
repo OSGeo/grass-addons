@@ -327,6 +327,12 @@ int main(int argc, char *argv[])
     Rast3d_close(fd);
     fclose(fp);
 
+    struct Colors colors;
+
+    /* with any profile we always get the same colors */
+    Rast3d_read_colors(name, mapset, &colors);
+    Rast_write_colors(parm.raster_output->answer, G_mapset(), &colors);
+
     exit(EXIT_SUCCESS);
 }                               /* Done with main */
 
