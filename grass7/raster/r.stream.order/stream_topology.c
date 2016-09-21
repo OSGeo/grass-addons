@@ -147,9 +147,6 @@ int ram_stream_geometry(CELL **streams, CELL **dirs)
 	    next_c = NC(d);
 
 	    if (d < 1 || NOT_IN_REGION(d) || !streams[next_r][next_c]) {
-		cur_length = (window.ns_res + window.ew_res) / 2;
-		SA[cur_stream].accum_length += cur_length;
-		SA[cur_stream].length += cur_length;
 		SA[cur_stream].stright =
 		    G_distance(cur_easting, cur_northing, init_easting,
 			       init_northing);
@@ -377,9 +374,6 @@ int seg_stream_geometry(SEGMENT *streams, SEGMENT *dirs)
 		Segment_get(streams, &next_stream, next_r, next_c);
 
 	    if (d < 1 || NOT_IN_REGION(d) || !next_stream) {
-		cur_length = (window.ns_res + window.ew_res) / 2;
-		SA[cur_stream].accum_length += cur_length;
-		SA[cur_stream].length += cur_length;
 		SA[cur_stream].stright =
 		    G_distance(cur_easting, cur_northing, init_easting,
 			       init_northing);
