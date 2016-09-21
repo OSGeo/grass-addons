@@ -46,14 +46,15 @@ int ram_create_vector(CELL ** streams, CELL ** dirs, char *out_vector,
 	    next_r = NR(d);
 	    next_c = NC(d);
 
-	    easting = window.west + (next_c + .5) * window.ew_res;
-	    northing = window.north - (next_r + .5) * window.ns_res;
-	    Vect_append_point(Segments, easting, northing, 0);
-
 	    if (d < 1 || NOT_IN_REGION(d) || !streams[next_r][next_c]) {
 		add_outlet = 1;
 		break;
 	    }
+
+	    easting = window.west + (next_c + .5) * window.ew_res;
+	    northing = window.north - (next_r + .5) * window.ns_res;
+	    Vect_append_point(Segments, easting, northing, 0);
+
 	    r = next_r;
 	    c = next_c;
 	}			/* end while */
@@ -132,10 +133,6 @@ int seg_create_vector(SEGMENT * streams, SEGMENT * dirs, char *out_vector,
 	    next_r = NR(d);
 	    next_c = NC(d);
 
-	    easting = window.west + (next_c + .5) * window.ew_res;
-	    northing = window.north - (next_r + .5) * window.ns_res;
-	    Vect_append_point(Segments, easting, northing, 0);
-
 	    if (NOT_IN_REGION(d))
 		Rast_set_c_null_value(&next_stream, 1);
 	    else
@@ -145,6 +142,11 @@ int seg_create_vector(SEGMENT * streams, SEGMENT * dirs, char *out_vector,
 		add_outlet = 1;
 		break;
 	    }
+
+	    easting = window.west + (next_c + .5) * window.ew_res;
+	    northing = window.north - (next_r + .5) * window.ns_res;
+	    Vect_append_point(Segments, easting, northing, 0);
+
 	    r = next_r;
 	    c = next_c;
 	    Segment_get(streams, &streams_cell, r, c);
