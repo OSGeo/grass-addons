@@ -8,7 +8,7 @@ int ram_create_vector(CELL ** streams, CELL ** dirs, char *out_vector,
     int next_r, next_c;
     int add_outlet = 0;
     int cur_stream;
-    float northing, easting;
+    double northing, easting;
     struct Cell_head window;
     struct line_pnts *Segments;
     struct line_cats *Cats;
@@ -94,7 +94,7 @@ int seg_create_vector(SEGMENT * streams, SEGMENT * dirs, char *out_vector,
     int add_outlet;
     int streams_cell, dirs_cell;
     int cur_stream, next_stream;
-    float northing, easting;
+    double northing, easting;
     struct Cell_head window;
     struct line_pnts *Segments;
     struct line_cats *Cats;

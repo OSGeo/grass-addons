@@ -113,9 +113,9 @@ int ram_stream_geometry(CELL **streams, CELL **dirs)
     int next_r, next_c;
     int prev_r, prev_c;
     int cur_stream;
-    float cur_northing, cur_easting;
-    float next_northing, next_easting;
-    float init_northing, init_easting;
+    double cur_northing, cur_easting;
+    double next_northing, next_easting;
+    double init_northing, init_easting;
     double cur_length = 0.;
     double cur_accum_length = 0.;
     STREAM *SA = stream_attributes;	/* for better code readability */
@@ -334,9 +334,9 @@ int seg_stream_geometry(SEGMENT *streams, SEGMENT *dirs)
     int next_r, next_c;
     int prev_r, prev_c;
     int cur_stream, next_stream, dirs_cell;
-    float cur_northing, cur_easting;
-    float next_northing, next_easting;
-    float init_northing, init_easting;
+    double cur_northing, cur_easting;
+    double next_northing, next_easting;
+    double init_northing, init_easting;
     double cur_length = 0.;
     double cur_accum_length = 0.;
     STREAM *SA = stream_attributes;	/* for better code readability */
