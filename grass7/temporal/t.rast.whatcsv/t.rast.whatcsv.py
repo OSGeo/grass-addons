@@ -81,9 +81,9 @@ import sys
 import copy
 import csv
 import grass.script as gscript
+from grass.script import core as gcore
 import grass.temporal as tgis
 import grass.pygrass.modules as pymod
-from grass.gunittest.gmodules import SimpleModule
 
 
 ############################################################################
@@ -127,10 +127,12 @@ def main(options, flags):
         separator = "\n"
 
 
-    r_what = SimpleModule("r.what", map="dummy",
+    r_what = gcore.read_command("r.what", map="dummy",
                                     output="-",
                                     separator=separator,
                                     quiet=True)
+    if len(s) == 0:
+        gcore.fatal(_('No data returned from query'))
 
     reader = csv.reader(open(csv_file, "r"), delimiter=separator)
 
