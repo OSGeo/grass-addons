@@ -181,8 +181,8 @@ int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation)
     int done = 1;
     int r, c;
     int next_r, next_c;
-    float cur_northing, cur_easting;
-    float next_northing, next_easting;
+    double cur_northing, cur_easting;
+    double next_northing, next_easting;
     float diff_elev;
     double cur_length;
     struct Cell_head window;
@@ -261,8 +261,8 @@ int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs,
     int done = 1;
     int r, c;
     int next_r, next_c;
-    float cur_northing, cur_easting;
-    float next_northing, next_easting;
+    double cur_northing, cur_easting;
+    double next_northing, next_easting;
     float diff_elev;
     double cur_length;
     CELL streams_cell, dirs_cell;

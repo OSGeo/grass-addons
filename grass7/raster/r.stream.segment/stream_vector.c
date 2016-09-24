@@ -5,7 +5,7 @@ int create_sector_vector(char *out_vector, int number_of_streams, int radians)
     int i, j, k;
     int r, c, d;
     int start, stop;
-    float northing, easting;
+    double northing, easting;
     struct Map_info Out;
     struct line_pnts *Segments;
     struct line_cats *Cats;
@@ -221,7 +221,7 @@ int create_segment_vector(char *out_vector, int number_of_streams,
 {
     int i, k;
     int r, c, d;
-    float northing, easting;
+    double northing, easting;
     struct Map_info Out;
     struct line_pnts *Segments;
     struct line_cats *Cats;
