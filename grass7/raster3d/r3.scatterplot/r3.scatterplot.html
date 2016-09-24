@@ -1,0 +1,201 @@
+<h2>DESCRIPTION</h2>
+
+The <em>r3.scatterplot</em> module takes 3D raster maps and creates
+a scatter plot which is a vector map and where individual points in
+the scatter plot are vector points. As with any scatter plot the X
+coordinates of the points represent values from the first raster map
+and the Y coordinates represent values from the second raster map.
+Consequently, the vector map is placed in the combined value space of
+the original raster maps and its geographic position should be ignored.
+Typically, it is necessary to zoom or to change computational in order
+to view the scatter plot or to perform further computations on the result.
+
+<p>
+With the default settings, the <em>r3.scatterplot</em> output allows
+measuring and querying of the values in the scatter plot. Settings
+such as <b>xscale</b> or <b>position</b> option change the coordinates
+and make some of the measurements wrong.
+
+
+<h3>Multiple variables</h3>
+
+If more than two raster maps are provided to the <b>input</b> option,
+<em>r3.scatterplot</em> creates a scatter plot for each unique pair
+of input maps. For example, if A, B, C, and D are the inputs,
+<em>r3.scatterplot</em> creates scatter plots for A and B, A and C,
+A and D, B and C, B and D, and finally C and D. Each pair is part of
+different vector map layer. <em>r3.scatterplot</em> provides textual
+output which specifies the pairs and associated layers.
+
+<p>
+A 3D scatter plot can be generated when the <b>z_raster</b> option is
+provided. A third variable is added to each scatter plot and each point
+has Z coordinate which represents this third variable.
+
+<p>
+Each point can also have a color based on an additional variable
+based on the values from <b>color_raster</b>. Values from a raster are
+stored as categories, i.e. floating point values are truncated to
+integers, and a color table based on the input raster color table is
+assigned to the vector map.
+
+<p>
+The <b>z_raster</b> and <b>color_raster</b> can be the same. This can help
+with understanding the 3D scatter plot and makes the third variable
+visible in 2D as well.
+When <b>z_raster</b> and <b>color_raster</b> are the same, total of four
+variables are associated with one point.
+
+<center>
+<img src="r3_scatterplot_2_variables.png">
+<img src="r3_scatterplot_2_variables_3rd_color.png">
+<img src="r3_scatterplot_2_variables_3rd_z.png">
+<p><em>
+    Figure: One scatter plot of two variables (left),
+    the same scatter plot but with color showing third variable (middle),
+    again the same scatter plot in 3D where Z represents a third variable (right).
+</em></p>
+</center>
+
+<center>
+<img src="r3_scatterplot_2_variables_3rd_z_4th_color.png">
+<img src="r3_scatterplot_2_variables_3rd_z_4th_color2.png">
+<p><em>
+    Figure: One scatter plot in with one variable as Z coordinate and
+    another variable as color (two rotated views).
+</em></p>
+</center>
+
+
+<h3>Layout</h3>
+
+When working only with variable, X axis represents the first one
+and Y axis the second one. With more than one variable, the individual
+scatter plots for individual pairs of variables are at the same
+place. In this case, the coordinates show the actual values of the
+variables. Each scatter plot is placed into a separate layer of
+the output vector map.
+
+<center>
+<img src="r3_scatterplot_3_variables_3_colors_overlap.png">
+<p><em>
+    Figure: Three overlapping scatter plots of three variables A, B, and C.
+    Individual scatter plots are distinguished by color.
+    The colors can be obtained using <tt>d.vect layer=-1 -c</tt>.
+</em></p>
+</center>
+
+<p>
+If visualization is more important than preserving the actual values,
+the <b>-s</b> flag can be used. This will place the scatter plots next
+to each other separated by values provided using <b>spacing</b> option.
+
+<p>
+The layout options can be still combined with additional variables
+represented as Z coordinate or color. In that case, Z coordinate
+or color is same for all the scatter plots.
+
+<center>
+<img src="r3_scatterplot_3_variables_3_colors.png">
+<p><em>
+    Figure: Three scatter plots of three variables A, B, and C.
+    First one is A and B, second A and C, and third B and C.
+</em></p>
+</center>
+
+<center>
+<img src="r3_scatterplot_3_variables.png">
+<p><em>
+    Figure: Three scatter plots of three variables A, B, and C
+    with color showing a fourth variable D in all scatter plots.
+</em></p>
+</center>
+
+The options <b>xscale</b>, <b>yscale</b> and <b>zscale</b> will cause
+the values to be rescaled before they are stored as point coordinates.
+This is useful for visualization when one of the variables has
+significantly different range than the other or when the scatter plot
+is shown with other data and must fit a certain area.
+
+The <b>position</b> option is used to place the scatter plot to any
+given coordinates. Similarly, <b>-w</b> flag can be used to place it
+to the south-west corner of the computation region.
+
+
+<h2>NOTES</h2>
+
+<p>
+The resulting vector will have as many points as there is 3D raster
+cells in the current computational region. It might be appropriate to
+use coarser resolution for the scatter plot than for the other
+computations. However, note that the some values will be skipped
+which may lead, e.g. to missing some outliers.
+
+<p>
+The <b>color_raster</b> input is expected to be categorical raster
+or have values which won't loose anything when converted from floating
+point to integer. This is because vector categories are used to store
+the <b>color_raster</b> values and carry association with the color.
+
+<p>
+The visualization of the output vector map has potentially the same
+issue as visualization of any vector with many points. The points
+cover each other and above certain density of points, it is not possible
+to compare relative density in the scatter plot. Furthermore, if colors
+are associated with the points, the colors of points rendered last are
+those which are visible, not actually showing the prevailing color
+(value). The modules <em><a href="v.mkgrid.html">v.mkgrid</a></em> and
+<em><a href="v.vect.stats.html">v.vect.stats</a></em> can be used to
+overcome this issue.
+
+<h2>EXAMPLES</h2>
+
+<h3>Example with generated data</h3>
+
+Set the computational region for generating data and subsequent
+analysis:
+
+<div class="code"><pre>
+g.region s=0 n=100 w=0 e=100 b=0 t=50 res=10 res3=10 tbres=1 -p3
+</pre></div>
+
+Generate data using raster algebra:
+
+<div class="code"><pre>
+r3.mapcalc "A = if(depth() &lt; ndepths()/ 2,  row()+col()+depth(), col())" -s
+r3.mapcalc "B = if(row() &lt; nrows()/2, rand(0, nrows()) + col() + depth(), depth() + rand(0, nrows()))" -s
+r3.mapcalc "C = if(col() &lt; ncols()/3, row() + depth(), rand(0, ncols()))" -s
+r3.mapcalc "D = depth()"
+</pre></div>
+
+Create a scatter plot of correlations between A and B.
+Use C for the Z axes (height) and D for the color.
+
+<div class="code"><pre>
+r3.scatterplot input=A,B output=scatterplot z_raster=C color_raster=D
+</pre></div>
+
+<center>
+<img src="r3_scatterplot_2d.png">
+<img src="r3_scatterplot.png">
+<p><em>
+    Figure: 2D scatter plot showing third variable as color
+    and 3D scatter plot showing third variable as color and fourth variable on Z axis
+    which uncovers another group of values not visible from the 2D scatter plot
+</em></p>
+</center>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r3.stats.html">r3.stats</a>,
+<a href="d.correlate.html">d.correlate</a>,
+<a href="v.mkgrid.html">v.mkgrid</a>,
+<a href="v.vect.stats.html">v.vect.stats</a>,
+<a href="g.region.html">g.region</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a>
