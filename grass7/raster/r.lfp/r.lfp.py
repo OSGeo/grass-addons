@@ -35,7 +35,20 @@ import grass.script as grass
 from grass.exceptions import CalledModuleError
 
 
+# check requirements
+def check_progs():
+    found_missing = False
+    prog = 'r.stream.distance'
+    if not grass.find_program(prog, '--help'):
+        found_missing = True
+        grass.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
+    if found_missing:
+        grass.fatal(_("An ERROR occurred running r.lfp"))
+
 def main():
+    # check dependencies
+    check_progs()
+
     input = options["input"]
     output = options["output"]
     coords = options["coordinates"]
