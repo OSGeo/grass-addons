@@ -1,0 +1,30 @@
+<h2>DESCRIPTION</h2>
+
+<em>r3.count.cats</em> iterates over whole numbers (categories, classes)
+in the 3D raster (considers values to be integers) and for each vertical
+column counts them in the given column.
+ 
+<p>
+The 3D raster map is considered to be integer, i.e. all values are
+converted to integer values with truncation. When some conversion
+is appropriate the <b>multiply</b> option can be used to scale
+the value before conversion. For example, if the values are percentages
+with values between 0 and 1, value 100 can be used to obtain percentages
+between 0 and 100. The values will be then preserved with precision 1
+(decimal part is truncated).
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r3.to.rast.html">r3.to.rast</a>,
+<a href="r3.to.group.html">r3.to.group</a>,
+<a href="r3.what.html">r3.what</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a>
+
+<p><i>Last changed: $Date$</i>

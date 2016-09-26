@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	r3.count.cats \
 	r3.profile \
 	r3.scatterplot \
 	r3.what
