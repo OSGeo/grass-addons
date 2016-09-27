@@ -32,10 +32,10 @@ g.region raster=elevation -p
 r.watershed elevation=elevation drainage=drain_directions
 
 # calculate outlet point related watershed
-r.water.outlet input=drain_directions output=basin coordinates=642309,222806
+r.water.outlet input=drain_directions output=basin coordinates=642455,222614
 
 # calculate longest flow path
-r.lfp input=drain_directions output=lfp coordinates=640304,223199
+r.lfp input=drain_directions output=lfp coordinates=642455,222614
 </pre></div>
 
 <h2>SEE ALSO</h2>
