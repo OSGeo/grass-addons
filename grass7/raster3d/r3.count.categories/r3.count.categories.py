@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:        r3.count.cats
+# MODULE:        r3.count.categories
 # AUTHOR(S):     Vaclav Petras <wenzeslaus gmail com>
 # PURPOSE:       Count categories in vertical direction
 # COPYRIGHT:     (C) 2016 by Vaclav Petras, and the GRASS Development Team
@@ -174,7 +174,6 @@ def main():
             call = gs  # fall back to grass.script
             parallel = False
         for i in range(map_min, map_max + 1):
-            # TODO: parallelize here
             call.mapcalc(expr, num=i)
         if parallel:
             execute_by_module(call, nprocs=4)
