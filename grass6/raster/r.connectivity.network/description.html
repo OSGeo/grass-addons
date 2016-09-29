@@ -1,23 +1,30 @@
 <h2>DESCRIPTION</h2>
-<dl>
+
 Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.network is intended to make graph-theory more easily available to conservation planning. 
-<br><br>
+
+<p>
 r.connectivity.network is the 2nd tool of the r.connectivity.* toolchain and performs the (core) network analysis (usig the igraph-package in R) on the network data prepared with r.connectivity.distance. This network data is analysed on graph, edge and vertex level.
-<br><br>
+
+<p>
 Connectivity measures for the graph level are: number of vertices, number of edges, number of clusters, size of the largest cluster, average cluster size, diameter, density, modularity, number of communities, community size (in number of vertices) Network characteristics are visualised in a plot showing an  overview over number of connections, number of components and and the size of the largest network component within the network with regards to cost-distance between patches.
-<br><br>
+
+<p>
 Connectivity measures calculated for the edges are:
 Minimum-spanning-trees, directness, edge-betweenness, local edge-betweenness, edge-betweenness-community, bridges (biconnected components), tree edges (biconnected components), and potential connectors of clusters and communities.
-<br><br>
+
+<p>
 Connectivity measures calculated for the vertices are:
 Degree-centrality, Eigenvector-centrality, closeness centrality, vertex-betweenness, local vertex-betweenness, cluster-membership, edge betweenness community  structure, community-membership, neighbourhood size, local neighbourhood size, articulation points, and articulation.
-<br><br>
+
+<p>
 Most measured can be calculated both on a directed and/or an undirected graph.
-<br><br>
+
+<p>
 Analysis is based on a negative exponential decay kernel (as described e.g. in Bunn et al. (2000), which the user can modify according to the dispersal characteristics of her/his species or habitat type.
-<br><br>
+
+<p>
 !!!This script is designed to work based on the output of r.connectivity.distance!!!
-</dl>
+
 
 <h2>REQUIREMENTS</h2>
 For running this tool R language and environment for statistical computing and graphics has to be installed (see: <a href=http://www.r-project.org>http://www.r-project.org</a>). On Windows the path to R has to be added to the %path% variable in the environment settings (see: <a href=http://grass.osgeo.org/wiki/R_statistics#MS_Windows>http://grass.osgeo.org/wiki/R_statistics#MS_Windows</a>) and GRASS GIS has to be started after that.<br>Furthermore the <a href=http://cran.r-project.org/web/packages/igraph/index.html>igraph</a> package in R is required with version 0.6-2 or newer.<br>For parallel processing (at the moment only supported for Linux) the R packages <a href=http://cran.r-project.org/web/packages/doMC/index.html>doMC</a>, <a href=http://cran.r-project.org/web/packages/multicore/index.html>multicore</a>, <a href=http://cran.r-project.org/web/packages/iterators/index.html>iterators</a>, <a href=http://cran.r-project.org/web/packages/codetools/index.html>codetools</a> and <a href=http://cran.r-project.org/web/packages/foreach/index.html>foreach</a> are required as well.<br>All R packages can be installed by running the AddOn using the <em><b>i-flag (-i)</b></em>. Installation of R packages requires internet access.<br>For postscript output (overview and kernel plot) also <a href=http://www.ghostscript.com/>ghostscript</a> is required. 

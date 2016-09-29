@@ -1,18 +1,22 @@
 <h2>DESCRIPTION</h2>
-<dl>
+
 Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.corridors is intended to make graph-theory more easily available to conservation planning.
-<br><br>
+
+<p>
 r.connectivity.corridors is th 3rd tool of the r.connectivity.* toolchain.
-<br><br>
+
+<p>
 r.connectivity.corridors loops through the attribute-table of the edge- output vector map from r.connectivity.network and computes the corridor for each edge of a user-defined set of edges. r.connectivity.corridors can account for the importance of the corridors for the entire networkby reclassifying them with regards to network measures from r.connectivity.network.
-<br><br>
+
+<p>
 Finally, all individual corridors are being put together using r.series. In this step the values of the cells in all corridor maps are summed up, which indicates the importance of an area (raster cell) for the network of the given patches (either the number of corridors a cell is part of, or other graph-theoretical measures for corridor importance).
-<br><br>
+
+<p>
 !!!Corridors are only computed for an undirected graph.!!!
-<br><br>
+
+<p>
 Output raster maps are named according to a user defined prefix and suffix.
 
-</dl>
 
 <h2>EXAMPLE</h2>
 
