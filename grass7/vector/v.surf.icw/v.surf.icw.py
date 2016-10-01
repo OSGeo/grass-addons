@@ -126,12 +126,14 @@ import atexit
 import grass.script as grass
 from grass.exceptions import CalledModuleError
 
+TMP_FILE = None
 
 def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = 'tmp_icw_' + str(os.getpid()) + '_'
     grass.run_command('g.remove', flags = 'f', type = 'raster', pattern = tmp_base + '*',
     		      quiet = True)
+    grass.try_remove(TMP_FILE)
 
 
 def main():
@@ -381,14 +383,19 @@ def main():
     grass.message(_("Summation of cost weights ..."))
 
     input_maps = tmp_base + '1by_cost_site_sq.%05d' % 1
-    for i in range(2, n+1):
-        input_maps += ',%s1by_cost_site_sq.%05d' % (tmp_base, i)
+    
+    global TMP_FILE
+    TMP_FILE = grass.tempfile()
+    with open(TMP_FILE, 'w') as maplist:
+        for i in range(2, n+1):
+            mapname = '%s1by_cost_site_sq.%05d' % (tmp_base, i)
+            maplist.write(mapname + '\n')
 
     #grass.run_command('g.list', type = 'raster', mapset = '.')
 
     sum_of_1by_cost_sqs = tmp_base + 'sum_of_1by_cost_sqs'
     try:
-        grass.run_command('r.series', method='sum', input=input_maps,
+        grass.run_command('r.series', method='sum', file=TMP_FILE,
                           output=sum_of_1by_cost_sqs)
     except CalledModuleError:
         grass.fatal(_('Problem running %s') % 'r.series')
