@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         _("Calculates area of clumped areas and remove areas smaller than given threshold.");
 
     input = G_define_standard_option(G_OPT_R_INPUT);
-    input->description = _("Map created with r.clump");
+    input->description = _("Name of cell category map, e.g., maps created with r.clump");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->description = _("Map with area size (in cells)");
