@@ -75,7 +75,7 @@ report() {
 }
 
 download_unzip() {
-    wget -q http://147.32.131.91/wingrass/wingrass.zip
+    wget -q http://147.32.131.147/wingrass/wingrass.zip
     unzip -o -q wingrass.zip
     rm wingrass.zip
 }
