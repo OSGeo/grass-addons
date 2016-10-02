@@ -15,70 +15,71 @@
 #############################################################################
 
 #%module
-#% description: Satellite Derived Bathymetry (SDB) from multispectral images
-#% keyword: Bathymetry
-#% keyword: Satellite
+#% description: Satellite Derived Bathymetry (SDB) from multispectral images.
+#% keywords: imagery
+#% keywords: bathymetry
+#% keywords: satellite
 #%end
 #%option G_OPT_R_INPUT
 #% key: blue_band
-#%required: no
+#% required: no
 #%end
 #%option G_OPT_R_INPUT
 #% key: green_band
-#%required: yes
+#% required: yes
 #%end
 #%option G_OPT_R_INPUT
 #% key: red_band
-#%required: yes
+#% required: yes
 #%end
 #%option G_OPT_R_INPUT
 #% key: nir_band
-#%required: yes
+#% required: yes
 #%end
 #%option G_OPT_R_INPUT
 #% key: band_for_correction
-#%required: yes
+#% required: yes
 #%end
 #%option G_OPT_V_INPUT
 #% key: calibration_points
-#%required: yes
+#% required: yes
 #%end
 #%option G_OPT_R_INPUT
 #% key: additional_band1
-#%required: no
+#% required: no
 #%end
 #%option G_OPT_R_INPUT
 #% key: additional_band2
-#%required: no
+#% required: no
 #%end
 #%option G_OPT_R_INPUT
 #% key: additional_band3
-#%required: no
+#% required: no
 #%end
 #%option G_OPT_R_INPUT
 #% key: additional_band4
-#%required: no
+#% required: no
 #%end
 #%option G_OPT_R_OUTPUT
 #% key: depth_estimate
-#%required: yes
+#% required: yes
 #%end
 #%option
 #% key: tide_height
-#%type: double
-#%multiple: no
-#%required: no
-#%description: Tide correction to the time of satellite image capture
+#% type: double
+#% multiple: no
+#% required: no
+#% description: Tide correction to the time of satellite image capture
 #%end
 #%option
 #% key: calibration_column
-#%type: string
-#%multiple: no
-#%required: yes
-#%description: Name of the column which stores depth values 
+#% type: string
+#% multiple: no
+#% required: yes
+#% description: Name of the column which stores depth values 
 #%end
 #%flag
-#%key: b
+#% key: b
 #% description: select kernel function as bi-square
 #%end
 
@@ -322,3 +323,4 @@ def cleanup():
 if __name__ == '__main__':
     atexit.register(cleanup)
     main()
+
