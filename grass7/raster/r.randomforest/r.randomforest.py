@@ -831,7 +831,7 @@ def main():
         if model == 'RandomForestRegressor':
             grass.message(_("\r\n"))
             grass.message(_('Coefficient of determination R^2: \t %0.3f' %
-                         (clf.score(X=training_data, y=training_labels))))
+                         (clf.score(X, y))))
        
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1:
