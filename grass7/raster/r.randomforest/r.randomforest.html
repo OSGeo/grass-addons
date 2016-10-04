@@ -2,40 +2,54 @@
 
 <em><b>r.randomforest</b></em> represents a front-end to the scikit learn machine learning python package for the purpose of performing classification and regression on a suite of predictors within a GRASS imagery group. The module also provides access random forest classification, and several other classifiers that are commonly used in remote sensing and spatial modelling. For more information concerning the details of any of the algorithms, consult the scikit-learn documentation directly. The choice of classifier is set using the <i>model</i> parameter.
 
-<br><br>The RandomForestsClassifier and RandomForestsRegressor (Breiman, 2001) options represent ensemble classification and regression tree methods, respectively. These methods construct a forest of uncorrelated decision trees based on a random subset of predictor variables, which occurs independently at every node split in each tree. Each tree produces a prediction probability, and the final classification result is obtained by averaging of the prediction probabilities across all of the trees. Random forests require relatively few user-specified parameter choices, principally consisting of the number of trees in the forest (<i>ntrees_rf</i>), and the number of variables that are allowed to be chosen from at each node split (<i>m_features_rf</i>), which controls the degree of correlation between the trees. Random forests also includes built-in accuracy assessment, termed the 'out-of-bag' (OOB) error. This is computed through bagging, where 33% of the training data are held-out during the construction of each tree, and then OOB data are used to evaluate the prediction accuracy.
+<p>
+The RandomForestsClassifier and RandomForestsRegressor (Breiman, 2001) options represent ensemble classification and regression tree methods, respectively. These methods construct a forest of uncorrelated decision trees based on a random subset of predictor variables, which occurs independently at every node split in each tree. Each tree produces a prediction probability, and the final classification result is obtained by averaging of the prediction probabilities across all of the trees. Random forests require relatively few user-specified parameter choices, principally consisting of the number of trees in the forest (<i>ntrees_rf</i>), and the number of variables that are allowed to be chosen from at each node split (<i>m_features_rf</i>), which controls the degree of correlation between the trees. Random forests also includes built-in accuracy assessment, termed the 'out-of-bag' (OOB) error. This is computed through bagging, where 33% of the training data are held-out during the construction of each tree, and then OOB data are used to evaluate the prediction accuracy.
 
-<br><br>LogisticRegression, despite its name, represents a linear model for classification rather than regression. This module provides access to two parameters, <i>C_lr</i> the inverse of the regularization strength, and <i>i</i> which specifies if a constant (a.k.a. bias or intercept) should be added to the decision function.
+<p>
+LogisticRegression, despite its name, represents a linear model for classification rather than regression. This module provides access to two parameters, <i>C_lr</i> the inverse of the regularization strength, and <i>i</i> which specifies if a constant (a.k.a. bias or intercept) should be added to the decision function.
 
-<br><br>LinearDiscriminantAnalysis and QuadraticDiscriminantAnalysis are two classifiers with a linear and a quadratic decision surface, respectively. These classifiers do not take any parameters.
+<p>
+LinearDiscriminantAnalysis and QuadraticDiscriminantAnalysis are two classifiers with a linear and a quadratic decision surface, respectively. These classifiers do not take any parameters.
 
-<br><br>GaussianNB implements the Gaussian Naive Bayes algorithm for classification. Naive Bayes methods are a set of supervised learning algorithms based on applying Bayes’ theorem with the “naive” assumption of independence between every pair of features. This classifier does not take any parameters.
+<p>
+GaussianNB implements the Gaussian Naive Bayes algorithm for classification. Naive Bayes methods are a set of supervised learning algorithms based on applying Bayes’ theorem with the “naive” assumption of independence between every pair of features. This classifier does not take any parameters.
 
-<br><br>The DecisionTreeClassifier and DecisionTreeRegressor represent non-parametric supervised learning methods used for classification and regression, respectively. Several parameter choices are available, relating to the node splitting method, the number of features to consider at each split, and the minimum number of samples in a split or leaf node.
+<p>
+The DecisionTreeClassifier and DecisionTreeRegressor represent non-parametric supervised learning methods used for classification and regression, respectively. Several parameter choices are available, relating to the node splitting method, the number of features to consider at each split, and the minimum number of samples in a split or leaf node.
 
-<br><br>The GradientBoostingClassifier and GradientBoostingRegressor use an ensemble of boosted decision trees for classification and regression, respectively. Gradient tree boosting produces a prediction model in the form of an ensemble of weak prediction models from decision trees, but the model is built in a stage-wise fashion. Gradient tree boosting includes many parameter choices, although the module provides access to the most common parameters that may require tuning for optimal performance.
+<p>
+The GradientBoostingClassifier and GradientBoostingRegressor use an ensemble of boosted decision trees for classification and regression, respectively. Gradient tree boosting produces a prediction model in the form of an ensemble of weak prediction models from decision trees, but the model is built in a stage-wise fashion. Gradient tree boosting includes many parameter choices, although the module provides access to the most common parameters that may require tuning for optimal performance.
 
-<br><br>The tree-based classifiers include a measure of variable importance based on the Gini impurity criterion, which measures how each variable contributes to the homogeneity of the nodes, with important variables causing a larger decrease in the Gini coefficient in successive node splits. This variable importance allows the contributions of the individual predictors to be determined. The feature importance scores are displayed in the command output.
+<p>
+The tree-based classifiers include a measure of variable importance based on the Gini impurity criterion, which measures how each variable contributes to the homogeneity of the nodes, with important variables causing a larger decrease in the Gini coefficient in successive node splits. This variable importance allows the contributions of the individual predictors to be determined. The feature importance scores are displayed in the command output.
 
-<br><br>Cross validation can be performed by setting the <i>cv</i> parameters to > 1. Cross-validation is performed using stratified kfolds, and multiple global and per-class accuracy measures are produced, consisting of accuracy, kappa, precision, recall, f1 measure, and if the response variable is binary (0,1), area under the receiver operating curve (auc). Note in a multiclass classification, the global precision, recall and f1 measures represent a weighted average of the per-class metrics (weighted by number of samples per class). Also note that this cross-validation is performed on a pixel basis. If there is a strong autocorrelation between pixels (i.e. the pixels represent polygons) then the training/test splits will not represent independent samples and will overestimate the accuracy. In this case you should train/split manually and use <i>i.kappa</i>.
+<p>
+Cross validation can be performed by setting the <i>cv</i> parameters to > 1. Cross-validation is performed using stratified kfolds, and multiple global and per-class accuracy measures are produced, consisting of accuracy, kappa, precision, recall, f1 measure, and if the response variable is binary (0,1), area under the receiver operating curve (auc). Note in a multiclass classification, the global precision, recall and f1 measures represent a weighted average of the per-class metrics (weighted by number of samples per class). Also note that this cross-validation is performed on a pixel basis. If there is a strong autocorrelation between pixels (i.e. the pixels represent polygons) then the training/test splits will not represent independent samples and will overestimate the accuracy. In this case you should train/split manually and use <i>i.kappa</i>.
 
-<br><br>Most machine learning algorithms do not perform well in the case of a large class imbalance. In this case, the classifier will seek to reduce the overall model error, but this will occur by predicting the majority class with a very high accuracy, but at the expense of the minority class. If you have a highly imbalanced dataset, the 'balanced'  <i>b</i> flag can be set. The scikit-learn implementation balanced mode then automatically adjust weights inversely proportional to class frequencies. This only applies to the LogisticRegression, DecisionTree, RandomForest, and GradientBoostingClassifiers.
+<p>
+Most machine learning algorithms do not perform well in the case of a large class imbalance. In this case, the classifier will seek to reduce the overall model error, but this will occur by predicting the majority class with a very high accuracy, but at the expense of the minority class. If you have a highly imbalanced dataset, the 'balanced'  <i>b</i> flag can be set. The scikit-learn implementation balanced mode then automatically adjust weights inversely proportional to class frequencies. This only applies to the LogisticRegression, DecisionTree, RandomForest, and GradientBoostingClassifiers.
 
-<br><br>The module also offers the ability to save and load a classification or regression model. The model is saved as a list of filenames (starting with the extension .pkl which is added automatically) for each numpy array. This list can involve a large number of files, so it makes sense to save each model in a separate directory. To load the model, you need to select the .pkl file that was saved. Saving and loading a model represents a useful feature because it allows a model to be built on one imagery group (ie. set of predictor variables), and then the prediction can be performed on other imagery groups. This approach is commonly employed in species prediction modelling, or landslide susceptibility modelling, where a classification or regression model is built with one set of predictors (e.g. which include present-day climatic variables) and then predictions can be performed on other imagery groups containing forecasted climatic variables.
+<p>
+The module also offers the ability to save and load a classification or regression model. The model is saved as a list of filenames (starting with the extension .pkl which is added automatically) for each numpy array. This list can involve a large number of files, so it makes sense to save each model in a separate directory. To load the model, you need to select the .pkl file that was saved. Saving and loading a model represents a useful feature because it allows a model to be built on one imagery group (ie. set of predictor variables), and then the prediction can be performed on other imagery groups. This approach is commonly employed in species prediction modelling, or landslide susceptibility modelling, where a classification or regression model is built with one set of predictors (e.g. which include present-day climatic variables) and then predictions can be performed on other imagery groups containing forecasted climatic variables.
 
-<br><br>For convenience when performing repeated classifications using different classifiers or parameters, the training data can be saved to a csv file using the <i>save_training</i> option. This data can then be loaded into subsequent classification runs, saving time by avoiding the need to repeatedly query the predictors.
+<p>
+For convenience when performing repeated classifications using different classifiers or parameters, the training data can be saved to a csv file using the <i>save_training</i> option. This data can then be loaded into subsequent classification runs, saving time by avoiding the need to repeatedly query the predictors.
 
 <h2>NOTES</h2>
 
 <em><b>r.randomforest</b></em> uses the "scikit-learn" machine learning python package. This python package needs to be installed within your GRASS GIS Python environment for <em><b>r.randomforest</b></em> to work.
-<br>
+
+<p>
 For Linux users, this package should be available through the linux package manager in most distributions (named for example "python-scikit-learn").
-<br>
+
+<p>
 For MS-Windows users using a 64 bit GRASS, the easiest way of installing the packages is by using the precompiled binaries from <a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph Gohlke</a> and by using the <a href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a> installation method of GRASS, where the python setuptools can also be installed. You can then use 'easy_install pip' to install the pip package manager. Then, you can download the NumPy-1.10+MKL and scikit-learn .whl files and install them using 'pip install packagename.whl'. For MS-Windows with a 32 bit GRASS, scikit-learn is available in the OSGeo4W installer.
 
 <p>
-<em><b>r.randomforest</b></em> is designed to keep system memory requirements relatively low. For this purpose, the rasters are read from the disk row-by-row, using the RasterRow method in PyGRASS. This however does not represent an efficient volume of data to pass to the classifier, which is multithreaded by default. Therefore, groups of rows specified by the <i>lines</i> parameter are passed to the classifier, and the reclassified image is reconstructed and written row-by-row back to the disk. <i>Lines=25</i> should be reasonable for most systems with 4-8 GB of ram. However, the sampling of the training data set is slow using a row-by-row basis, and the default approach requires enough memory to load one predictor into memory at a time. If this still exceeds the system memory then the <i>l</i> flag can be set to perform row-by-row sampling.
+<em><b>r.randomforest</b></em> is designed to keep system memory requirements relatively low. For this purpose, the rasters are read from the disk row-by-row, using the RasterRow method in PyGRASS. This however does not represent an efficient volume of data to pass to  the classifiers, which are mostly multithreaded. Therefore, groups of rows specified by the <i>lines</i> parameter are passed to the classifier, and the reclassified image is reconstructed and written row-by-row back to the disk. <i>Lines=25</i> should be reasonable for most systems with 4-8 GB of ram. The row-by-row access however results in slow performance when sampling the imagery group to build the training data set. Instead, the default behaviour is to read each predictor into memory at a time. If this still exceeds the system memory then the <i>l</i> flag can be set to perform row-by-row sampling, and classification/regression can then be performed on rasters of any size irrespective of the available memory (although it will be slow).
 
-<br><br> Many of the classifiers involve a random process which can causes a small amount of variation in the classification results, out-of-bag error, and feature importances. To enable reproducible results, a seed is supplied to the classifier. This can be changed using the <i>randst</i> parameter.
+<p>
+Many of the classifiers involve a random process which can causes a small amount of variation in the classification results, out-of-bag error, and feature importances. To enable reproducible results, a seed is supplied to the classifier. This can be changed using the <i>randst</i> parameter.
 
 <h2>TODO</h2>
 
@@ -46,20 +60,23 @@ Provide option to perform spatial and non-spatial cross-validation.
 
 Here we are going to use the GRASS GIS sample North Carolina data set as a basis to perform a landsat classification. We are going to classify a Landsat 7 scene from 2000, using training information from an older (1996) land cover dataset.
 
-<br><br>Landsat 7 (2000) bands 7,4,2 color composite example:
+<p>
+Landsat 7 (2000) bands 7,4,2 color composite example:
 <center>
 <img src="lsat7_2000_b742.png" alt="Landsat 7 (2000) bands 7,4,2 color composite example">
 </center>
 
 Note that this example must be run in the "landsat" mapset of the North Carolina sample data set location.
 
-<br><br>First, we are going to generate some training pixels from an older (1996) land cover classification:
+<p>
+First, we are going to generate some training pixels from an older (1996) land cover classification:
 <div class="code"><pre>
 g.region raster=landclass96 -p
 r.random input=landclass96 npoints=1000 raster=landclass96_roi
 </pre></div>
 
-<br><br>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:
+<p>
+Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:
 <div class="code"><pre>
 r.randomforest igroup=lsat7_2000 roi=landclass96_roi output=rf_classification \
   model=RandomForestClassifier ntrees_rf=500 m_features_rf=-1 minsplit_rf=2 randst=1 lines=25
@@ -72,7 +89,8 @@ r.colors rf_classification raster=landclass96_roi
 r.category rf_classification
 </pre></div>
 
-<br><br>Random forest classification result:
+<p>
+Random forest classification result:
 <center>
 <img src="rfclassification.png" alt="Random forest classification result">
 </center>
