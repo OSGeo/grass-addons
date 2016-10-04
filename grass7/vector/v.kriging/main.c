@@ -319,17 +319,27 @@ int main(int argc, char *argv[])
     if (opt.report->answer) {
         xD.report.write2file = TRUE;
         xD.report.name = opt.report->answer;
-        // Do not truncate existing report files
-        // Some users might not change report file name after initial run
-        // thus leading to loss of report content of initial run.
+
+        // initial phase: check if the file exists
+        if (xD.phase == 0 && access(xD.report.name, F_OK) != -1) {
+            G_fatal_error(_("Report file exists; please set up different name..."));
+        }
+
+        // middle / final phase: check if file does not exist
+        if (xD.phase != 0 && access(xD.report.name, F_OK) != 0) {
+            G_fatal_error(_("Report file does not exist; please check the name or repeat initial phase..."));
+        }
+
         xD.report.fp = fopen(xD.report.name, "a");
         time(&xD.report.now);
         fprintf(xD.report.fp, "v.kriging started on %s\n\n",
                 ctime(&xD.report.now));
         G_message(_("Report is being written to %s..."), xD.report.name);
     }
-    else
+    else {
         xD.report.write2file = FALSE;
+        G_warning(_("The name of report file missing..."));
+    }
 
     if (opt.crossvalid->answer) {
         xD.crossvalid.write2file = TRUE;
@@ -349,7 +359,7 @@ int main(int argc, char *argv[])
 
     if (opt.nL->answer) {       // Test if nL have been set up (optional)
         var_pars.hz.nLag = atoi(opt.nL->answer);
-        if (var_pars.hz.nLag < 1) {       // Invalid value
+        if (var_pars.hz.nLag < 1) {     // Invalid value
             G_message(_("Number of horizontal pieces must be at least 1. Default value will be used..."));
             var_pars.hz.nLag = 20;
         }
@@ -424,7 +434,6 @@ int main(int argc, char *argv[])
     }                           // end if 3D interpolation
 
     else {                      // 2D interpolation:
-        G_warning(_("Not recommended to process for sparse or spatially heterogeneous data. The result can be inaccurate - trying to solve asap..."));
         var_pars.vert.nLag = -1;        // abs will be used in next steps
         if (xD.v3 == TRUE) {
             if (xD.report.write2file == TRUE) { // close report file
@@ -464,12 +473,19 @@ int main(int argc, char *argv[])
             }
         }
         E_variogram(0, &xD, &pnts, &var_pars);  // horizontal variogram (for both 2D and 3D interpolation)
-        if (xD.i3 == TRUE) {    // 3D interpolation:
-            E_variogram(1, &xD, &pnts, &var_pars);      // vertical variogram
-            G_message(_("You may continue to computing theoretical variograms (middle phase)..."));
+
+        if (xD.report.write2file == FALSE) {
+            G_message(_("\nExperimental variogram of your data has been computed. To continue interpolation performance, please repeat initial phase with non-empty <report> parameter..."));
         }
+
         else {
-            G_message(_("You may continue to computing theoretical variograms (final phase)..."));
+            if (xD.i3 == TRUE) {        // 3D interpolation:
+                E_variogram(1, &xD, &pnts, &var_pars);  // vertical variogram
+                G_message(_("\nExperimental variogram of your data has been computed. If you wish to continue with theoretical variograms computation (middle phase), please do not erase temporary files <dataE.dat> and <variogram_hz_tmp.txt> in your working directory. The files are required in the middle phase and they will be deleted automatically."));
+            }
+            else {
+                G_message(_("\nExperimental variogram of your data has been computed. If you wish to continue with theoretical variogram computation and interpolation (final phase), please do not erase temporary files <dataE.dat> and <variogram_hz_tmp.txt> in your working directory. The files are required in the final phase and they will be deleted automatically."));
+            }
         }
         goto end;
 
@@ -614,8 +630,6 @@ int main(int argc, char *argv[])
         }
 
         T_variogram(var_pars.fin.type, xD.i3, opt, &var_pars.fin, &xD.report);  // compute theoretical variogram
-
-        G_debug(0, "sill: %f", var_pars.fin.sill);
         break;
     }
 

@@ -234,7 +234,7 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
     switch (type) {
     case 0:                    // horizontal variogram
         fp = fopen("variogram_hz_tmp.txt", "w");
-        if (xD->report.name) {  // write name of report file
+        if (xD->report.write2file) {    // write name of report file
             file_length = strlen(xD->report.name);
             if (file_length < 4) {      // 4 types of variogram
                 G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error

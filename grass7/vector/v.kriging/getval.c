@@ -170,7 +170,7 @@ double *get_col_values(struct Map_info *map, struct int_par *xD,
         pnts->trend = T;
     }
 
-    if (xD->phase == 0 && xD->report.name) {
+    if (xD->report.write2file && xD->phase == 0) {
         write2file_values(&xD->report, column);
         test_normality(n, values, &xD->report);
     }
@@ -368,7 +368,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
         G_message(_("Unused points: %d (out of region)"), out_reg);
     }
 
-    if (xD->phase == 0) {       // initial phase:
+    if (xD->report.write2file == TRUE && xD->phase == 0) {      // initial phase:
         write2file_vector(xD, point);   // describe properties
     }
 }
@@ -433,7 +433,8 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par,
 
     fp = fopen(file_name, "r");
     if (fp == NULL) {
-        G_fatal_error(_("Temporary file is missing, please repeat an initial phase..."));
+        G_fatal_error(_("Temporary file <%s> is missing, please repeat an initial phase..."),
+                      file_name);
     }
 
     else {                      // file exists:

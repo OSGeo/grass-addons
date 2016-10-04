@@ -506,7 +506,7 @@ void plot_experimental_variogram(struct int_par *xD,
 
     gamma = &gamma_M->vals[0];  // values of gamma matrix
 
-    gp = fopen("dataE.dat", "w");       // open file to write experimental variogram
+    gp = fopen("dataE.dat", "w");       // open file to write experimental variogram (initial phase)
     if (access("dataE.dat", W_OK) < 0) {
         G_fatal_error(_("Something went wrong opening tmp file..."));
     }
@@ -588,6 +588,7 @@ void plot_experimental_variogram(struct int_par *xD,
                 "splot 'dataE.dat' every ::1:1 matrix title \"experimental variogram\"\n");
     }
 
+    // plot experimental variogram
     else {                      // univariate variogram
         char dim[6];
 
@@ -618,6 +619,10 @@ void plot_experimental_variogram(struct int_par *xD,
                 "plot 'dataE.dat' using 1:2 title \"experimental variogram\" pointtype 5\n");
     }
     fclose(gp);
+
+    if (xD->report.write2file == FALSE) {
+        remove("dataE.dat");
+    }
 }
 
 // plot experimental and theoretical variogram

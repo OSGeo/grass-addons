@@ -7,8 +7,6 @@ DEPENDENCIES = $(VECTORDEP) $(DBMIDEP) $(GISDEP) $(GMATHDEP) $(IOSTREAMDEP) $(RT
 EXTRA_INC = $(VECT_INC) $(PROJINC)
 EXTRA_CFLAGS = $(VECT_CFLAGS)
 
-VPATH=%.png images
-
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
 default: cmd

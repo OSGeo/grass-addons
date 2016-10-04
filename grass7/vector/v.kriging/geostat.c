@@ -229,7 +229,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                             ddir1 = dir - tv;   // difference between bearing and azimuth
                             ddir2 = (dir + PI) - tv;
 
-                            if (fabs(ddir1) <= td || fabs(ddir2) <= td) {     // angle test: compare the diff with critical value
+                            if (fabs(ddir1) <= td || fabs(ddir2) <= td) {       // angle test: compare the diff with critical value
                                 // test squared distance: vertical variogram => 0., ...
                                 rv = type == 1 ? 0. : radius_hz_diff(dr);       // ... otherwise horizontal distance
 
@@ -238,11 +238,11 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                 }
 
                                 rvh = sqrt(rv) - *h;    // the difference between distance and lag
-                                if (rv <= radius && fabs(rvh) <= lag) {        // distance test: compare the distance with critical value and find out if the j-point is located within i-lag
+                                if (rv <= radius && fabs(rvh) <= lag) { // distance test: compare the distance with critical value and find out if the j-point is located within i-lag
                                     if (type == 2) {    // vertical test for bivariate variogram:
                                         rvh = *(dr + 2) - *vert;        // compare vertical
 
-                                        if (fabs(rvh) <= lag_vert) {   // elevation test: vertical lag
+                                        if (fabs(rvh) <= lag_vert) {    // elevation test: vertical lag
                                             goto delta_V;
                                         }
                                         else {
@@ -490,6 +490,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
                       struct points *pnts, struct var_par *pars,
                       struct output *out)
 {
+    G_fatal_error(_("Interpolating values is currently under maintenance (optimization). Theoretical variogram of your data has been computed."));
     // Local variables
     int i3 = xD->i3;
     double *vals = pnts->invals;        // values to be used for interpolation
@@ -522,7 +523,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
     // Cell/voxel center coords (location of interpolated value)
     r0 = (double *)G_malloc(3 * sizeof(double));
 
-    if (report->write2file) {         // report file available:
+    if (report->write2file) {   // report file available:
         time(&report->now);
         fprintf(report->fp, "Interpolating values started on %s\n\n",
                 ctime(&report->now));
@@ -530,6 +531,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
     }
 
     G_message(_("Interpolating unknown values..."));
+    G_fatal_error(_("... is currently under maintenance (optimization). Theoretical variogram of your data has been computed."));
     if (percents) {
         G_percent_reset();
     }
@@ -544,7 +546,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
     var_par->GM = G_matrix_copy(GM);    // copy matrix because of cross validation
 
     // perform cross validation...
-    if (crossvalid->write2file) {     // ... if desired
+    if (crossvalid->write2file) {       // ... if desired
         crossvalidation(xD, pnts, var_par);
     }
 
@@ -602,7 +604,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
                     rslt_OK = vals[list->value[0] - 1]; // Estimated cell/voxel value rslt_OK = w x inputs
                 }
                 else if (list->n_values == 0) {
-                    if (report->write2file) { // report file available:
+                    if (report->write2file) {   // report file available:
                         fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
                         fclose(report->fp);
@@ -620,7 +622,7 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
 
                 // write output to the (3D) raster layer
                 if (write2layer(xD, reg, out, col, row, dep, rslt_OK) == 0) {
-                    if (report->write2file) { // report file available
+                    if (report->write2file) {   // report file available
                         fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
                         fclose(report->fp);     // close report file
