@@ -559,6 +559,69 @@ def shuffle_data(X, y, rstate):
     
     return(X, y)
 
+def cross_val_classification(clf, X, y, cv, rstate):
+    # custom function to calculate classification metrics
+    # eliminated need to calculate each metric separately using cross_val_score function
+    # returns: a 1D list of accuracy, kappa and auc scores
+    # returns: mean precision/recall and std precision/recall per class
+
+    from sklearn import cross_validation, metrics
+    
+    class_list = np.unique(y)
+    nclasses = len(np.unique(y))
+    
+    # Store performance measures per class
+    byclass_metrics = {
+        'precision': np.zeros((nclasses, cv)),
+        'recall': np.zeros((nclasses, cv)),
+        'f1': np.zeros((nclasses, cv))
+    }
+    
+    # generate Kfold indices
+    k_fold = cross_validation.StratifiedKFold(y, n_folds=cv, shuffle=False, random_state=rstate)
+
+    # dictionary of lists to store metrics
+    cmstats = {
+        'accuracy': [],
+        'precision': [],
+        'recall': [],
+        'f1': [],
+        'kappa': [],
+        'auc': []
+    }
+
+    # loop through each fold
+    fold=0
+    for train_indices, test_indices in k_fold:
+
+        X_train, X_test =  X[train_indices], X[test_indices]
+        y_train, y_test = y[train_indices], y[test_indices]
+
+        # fit the model on the training data and predict the test data
+        fit = clf.fit(X_train, y_train)
+        y_pred = fit.predict(X_test)
+
+        # calculate metrics
+        cmstats['accuracy'] = np.append(cmstats['accuracy'], metrics.accuracy_score(y_test, y_pred))
+        cmstats['precision'] = np.append(cmstats['precision'], metrics.precision_score(y_test, y_pred, average='weighted'))
+        cmstats['recall'] = np.append(cmstats['recall'], metrics.recall_score(y_test, y_pred, average='weighted'))
+        cmstats['f1'] = np.append(cmstats['f1'], metrics.f1_score(y_test, y_pred, average='weighted'))
+        cmstats['kappa'] = np.append(cmstats['kappa'], metrics.cohen_kappa_score(y_test, y_pred))
+
+        # test for if binary and classes equal 0,1
+        if len(np.unique(y)) == 2 and all ([0,1] == np.unique(y)):
+            y_pred_proba = fit.predict_proba(X_test)[:,1]
+            cmstats['auc'] = np.append(cmstats['auc'], metrics.roc_auc_score(y_test, y_pred_proba))
+        
+        # Get performance measures by class     
+        for cindex in range(nclasses):
+            byclass_metrics['recall'][cindex, fold] = metrics.recall_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
+            byclass_metrics['precision'][cindex, fold] = metrics.precision_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
+            byclass_metrics['f1'][cindex, fold] = metrics.f1_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
+        fold+=1
+        
+    return(cmstats, byclass_metrics)
+
 def save_training_data(X, y, file):
     # append X and y and save to csv
     training_data = np.zeros((y.shape[0], X.shape[1]+1))
@@ -831,29 +894,48 @@ def main():
         if model == 'RandomForestRegressor':
             grass.message(_("\r\n"))
             grass.message(_('Coefficient of determination R^2: \t %0.3f' %
-                         (clf.score(X, y))))
+                         (clf.score(X=training_data, y=training_labels))))
        
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1:
-            from sklearn.cross_validation import cross_val_score
-            from sklearn.metrics import classification_report
             from sklearn.cross_validation import cross_val_predict
 
             grass.message(_('\r\n'))
             grass.message(_("Cross validation global performance measures......:"))
 
             if mode == 'classification':
-                accuracy = cross_val_score(clf, X, y, scoring='accuracy', cv=cv, n_jobs=-1)
-                grass.message(_("Accuracy   :\t%0.2f\t+/-2SD\t%0.2f" %(accuracy.mean(), accuracy.std() * 2)))
-                if len(np.unique(y)) == 2:
-                    auc = cross_val_score(clf, X, y, cv=cv, scoring='roc_auc', n_jobs=-1)
-                    grass.message(_("ROC AUC    :\t%0.2f\t+/-2SD\t%0.2f" % (auc.mean(), auc.std() * 2)))
+                # get metrics from kfold cross validation
+                cmstats, byclass_stats = cross_val_classification(clf, X, y, cv, randst)
                 
-                # calculate scores by class using classification report
-                y_pred = cross_val_predict(clf, X, y, cv=cv, n_jobs=-1)
-                grass.message(_("\n"))
-                grass.message(_("Classification report:"))
-                grass.message(_(classification_report(y, y_pred)))
+                grass.message(_("Accuracy                  :\t%0.2f\t+/-SD\t%0.2f" \
+                    %(cmstats['accuracy'].mean(), cmstats['accuracy'].std())))
+                grass.message(_("Kappa                     :\t%0.2f\t+/-SD\t%0.2f" \
+                    % (cmstats['kappa'].mean(), cmstats['kappa'].std())))
+                grass.message(_("Precision weighted average:\t%0.2f\t+/-SD\t%0.2f" \
+                    % (cmstats['precision'].mean(), cmstats['precision'].std())))
+                grass.message(_("Recall weighted average   :\t%0.2f\t+/-SD\t%0.2f" \
+                    % (cmstats['recall'].mean(), cmstats['recall'].std())))
+                grass.message(_("f1 weighted average       :\t%0.2f\t+/-SD\t%0.2f" \
+                    % (cmstats['f1'].mean(), cmstats['f1'].std())))
+                
+                # test for if binary and classes equal 0,1
+                if len(np.unique(y)) == 2 and all ([0,1] == np.unique(y)):
+                    grass.message(_("ROC AUC                   :\t%0.2f\t+/-SD\t%0.2f"\
+                        % (cmstats['auc'].mean(), cmstats['auc'].std())))
+                
+                # calculate scores by class
+                grass.message(_("\r\n"))
+                grass.message(_("Performance measures by class......:"))
+                grass.message(_("Cla\tRecall\t2SD \tPrecision\t2SD\tf1  \tSD"))
+
+                byclass_scores = ['recall', 'precision', 'f1']
+                
+                for i in range(nclasses):
+                    row = str(int(class_list[i])) + '\t'
+                    for method in byclass_scores:
+                        row += ('%.2f' % byclass_stats[method][i, :].mean() ) +\
+                        '\t' + ('%.2f' % byclass_stats[method][i, :].std() ) + '\t'
+                    grass.message(_(row))
                 
             else:
                 r2 = cross_val_score(clf, X, y, cv=cv, scoring='r2', n_jobs=-1)
