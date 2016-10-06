@@ -29,6 +29,7 @@ SUBDIRS = \
 	v.in.osm \
 	v.in.redlist \
 	v.in.redwg \
+	v.in.survey \
 	v.in.wfs2 \
 	v.isochrones \
 	v.krige \
