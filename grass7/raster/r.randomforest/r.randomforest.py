@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 ############################################################################
-#
-# MODULE:       r.scikit.learn
+# MODULE:       r.randomforest
 # AUTHOR:       Steven Pawley
 # PURPOSE:      Supervised classification and regression of GRASS rasters using the 
 #               python scikit-learn package
@@ -227,6 +226,14 @@
 #% guisection: Optional
 #%end
 
+#%option
+#% key: ncores
+#% type: integer
+#% description: Number of processing cores. Default -1 is all cores
+#% answer: -1
+#% guisection: Optional
+#%end
+
 #%flag
 #% key: p
 #% label: Output class membership probabilities
@@ -303,7 +310,8 @@ from grass.pygrass.modules.shortcuts import imagery as im
        
 def cleanup():
 
-    grass.run_command("g.remove", name='clfmasktmp', flags="f", type="raster", quiet=True)
+    grass.run_command("g.remove", name='clfmasktmp', flags="f",
+                      type="raster", quiet=True)
 
 def sample_predictors_byrow(response, predictors):
 
@@ -320,9 +328,10 @@ def sample_predictors_byrow(response, predictors):
         if rasstack[i].exist() == True:
             rasstack[i].open('r')
         else:
-            grass.fatal("GRASS raster " + maplist[i] + " does not exist.... exiting")
+            grass.fatal("GRASS raster " + maplist[i] +
+                        " does not exist.... exiting")
         
-    # use grass.pygrass.gis.region to get information about the current region, particularly
+    # use grass.pygrass.gis.region to get information about the current region
     current = Region()
 
     # determine cell storage type of training roi raster
@@ -335,7 +344,7 @@ def sample_predictors_byrow(response, predictors):
     roi_stats = roi_stats.split(os.linesep)[0]
     nlabel_pixels = int(str(roi_stats).split('=')[1])
 
-    # Create a zero numpy array with the dimensions of the number of columns in the region
+    # Create a zero numpy array with the dimensions of the number of columns
     # and the number of bands plus an additional band to attach the labels
     tindex = 0
     training_labels = []
@@ -348,20 +357,25 @@ def sample_predictors_byrow(response, predictors):
         roi_row_np = roi_raster[row]
 
         # check if any of those pixels are labelled (not equal to nodata)
-        # can use even if roi is FCELL because nodata will be nan and this is not returned anyway
+        # can use even if roi is FCELL because nodata will be nan and this is
+
+        # not returned anyway
         is_train = np.nonzero(roi_row_np > -2147483648)
         training_labels = np.append(training_labels, roi_row_np[is_train])
         nlabels_in_row = np.array(is_train).shape[1]
 
         # if there are any labelled pixels
-        # loop through each imagery band for that row and put the data into the img_row_band_np array
+        # loop through each imagery band for that row and put the data into
+
+        # the img_row_band_np array
         if np.isnan(roi_row_np).all() != True:
 
             for band in range(n_features):
                 imagerow_np = rasstack[band][row]
 
                 # attach the label values onto the last column
-                training_data[tindex : tindex+nlabels_in_row, band] = imagerow_np[is_train]
+                training_data[tindex : tindex+nlabels_in_row, band] =\
+                    imagerow_np[is_train]
 
             tindex = tindex + nlabels_in_row
 
@@ -402,10 +416,12 @@ def sample_predictors(response, predictors):
     
     for i in range(n_features):
         if RasterRow(predictors[i]).exist() != True:
-            grass.fatal("GRASS raster " + predictors[i] + " does not exist.... exiting")
+            grass.fatal("GRASS raster " + predictors[i]
+                        + " does not exist.... exiting")
 
     # check if any of those pixels are labelled (not equal to nodata)
-    # can use even if roi is FCELL because nodata will be nan and this is not returned anyway
+    # can use even if roi is FCELL because nodata will be nan and this is not
+    # returned anyway
     is_train = np.nonzero(response_np > -2147483648)
     training_labels = response_np[is_train]
     n_labels = np.array(is_train).shape[1]
@@ -430,13 +446,13 @@ def sample_predictors(response, predictors):
 
     # Remove nan rows from training data
     training_data = training_data[~np.isnan(training_data).any(axis=1)]
-
     roi_gr.close()
     
     # return X and y data
     return(training_data[:, 0:n_features], training_data[:, n_features])
 
-def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labels):
+def prediction(clf, predictors, class_probabilities,
+               rowincr, output, mode, labels):
     
     class_list = np.unique(labels)
     nclasses = len(class_list)
@@ -449,16 +465,18 @@ def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labe
         if rasstack[i].exist() == True:
             rasstack[i].open('r')
         else:
-            grass.fatal("GRASS raster " + maplist[i] + " does not exist.... exiting")
+            grass.fatal("GRASS raster " + maplist[i]
+                        + " does not exist.... exiting")
     
-    # use grass.pygrass.gis.region to get information about the current region, particularly
+    # use grass.pygrass.gis.region to get information about the current region
     current = Region()
     
     # create a imagery mask
-    # the input rasters might have different dimensions in terms of value and non-value pixels.
-    # r.series used to automatically create a mask by propagating the null values
+    # the input rasters might have different dimensions and non-value pixels.
+    # r.series used to automatically create a mask by propagating the nulls
     clfmask = 'clfmasktmp'
-    grass.run_command("r.series", output=clfmask, input=predictors, method='count', flags='n')
+    grass.run_command("r.series", output=clfmask,
+                      input=predictors, method='count', flags='n')
 
     mask_raster = RasterRow(clfmask)
     mask_raster.open('r')
@@ -478,7 +496,8 @@ def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labe
         prob_out_raster = [0] * nclasses
         prob = [0] * nclasses
         for iclass in range(nclasses):
-            prob_out_raster[iclass] = output + '_classPr' + str(int(class_list[iclass]))
+            prob_out_raster[iclass] = output + \
+                '_classPr' + str(int(class_list[iclass]))
             prob[iclass] = RasterRow(prob_out_raster[iclass])
             prob[iclass].open('w', 'FCELL', overwrite=True)
 
@@ -493,11 +512,14 @@ def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labe
         img_np_row = np.zeros((rowincr, current.cols, n_features))
         mask_np_row = np.zeros((rowincr, current.cols))
 
-        # loop through each row, and each band and add these values to the 2D array img_np_row
+        # loop through each row, and each band
+
+        # and add these values to the 2D array img_np_row
         for row in range(rowblock, rowblock+rowincr, 1):
             mask_np_row[row-rowblock, :] = np.array(mask_raster[row])
             for band in range(n_features):
-                img_np_row[row-rowblock, :, band] = np.array(rasstack[band][row])
+                img_np_row[row-rowblock, :, band] = \
+                    np.array(rasstack[band][row])
 
         mask_np_row[mask_np_row == -2147483648] = np.nan
         nanmask = np.isnan(mask_np_row) # True in the mask means invalid data
@@ -511,10 +533,10 @@ def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labe
         result = clf.predict(flat_pixels)
         result = result.reshape((rowincr, current.cols))
 
-        # replace NaN values so that the prediction surface does not have a border
+        # replace NaN values so that the prediction does not have a border
         result = np.ma.masked_array(result, mask=nanmask, fill_value=np.nan)
 
-        # return a copy of result, with masked values filled with a given value
+        # return a copy of result, with masked values filled with a value
         result = result.filled([nodata])
 
         # for each row we can perform computation, and write the result into
@@ -526,13 +548,20 @@ def prediction(clf, predictors, class_probabilities, rowincr, output, mode, labe
         # same for probabilities
         if class_probabilities == True and mode == 'classification':
             result_proba = clf.predict_proba(flat_pixels)
+
             for iclass in range(nclasses):
                 result_proba_class = result_proba[:, iclass]
-                result_proba_class = result_proba_class.reshape((rowincr, current.cols))
-                result_proba_class = np.ma.masked_array(result_proba_class, mask=nanmask, fill_value=np.nan)
+                result_proba_class = \
+                    result_proba_class.reshape((rowincr, current.cols))
+                    
+                result_proba_class = \
+                    np.ma.masked_array(result_proba_class,
+                                       mask=nanmask, fill_value=np.nan)
                 result_proba_class = result_proba_class.filled([np.nan])
+
                 for row in range(rowincr):
-                    newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
+                    newrow = Buffer((result_proba_class.shape[1],),
+                                     mtype='FCELL')
                     newrow[:] = result_proba_class[row, :]
                     prob[iclass].put_row(newrow)
 
@@ -561,7 +590,7 @@ def shuffle_data(X, y, rstate):
 
 def cross_val_classification(clf, X, y, cv, rstate):
     # custom function to calculate classification metrics
-    # eliminated need to calculate each metric separately using cross_val_score function
+    # eliminates need to calculate each metric  using cross_val_score
     # returns: a 1D list of accuracy, kappa and auc scores
     # returns: mean precision/recall and std precision/recall per class
 
@@ -578,7 +607,9 @@ def cross_val_classification(clf, X, y, cv, rstate):
     }
     
     # generate Kfold indices
-    k_fold = cross_validation.StratifiedKFold(y, n_folds=cv, shuffle=False, random_state=rstate)
+    k_fold = cross_validation.StratifiedKFold(y, n_folds=cv,
+                                              shuffle=False,
+                                              random_state=rstate)
 
     # dictionary of lists to store metrics
     cmstats = {
@@ -602,22 +633,54 @@ def cross_val_classification(clf, X, y, cv, rstate):
         y_pred = fit.predict(X_test)
 
         # calculate metrics
-        cmstats['accuracy'] = np.append(cmstats['accuracy'], metrics.accuracy_score(y_test, y_pred))
-        cmstats['precision'] = np.append(cmstats['precision'], metrics.precision_score(y_test, y_pred, average='weighted'))
-        cmstats['recall'] = np.append(cmstats['recall'], metrics.recall_score(y_test, y_pred, average='weighted'))
-        cmstats['f1'] = np.append(cmstats['f1'], metrics.f1_score(y_test, y_pred, average='weighted'))
-        cmstats['kappa'] = np.append(cmstats['kappa'], metrics.cohen_kappa_score(y_test, y_pred))
+        cmstats['accuracy'] = np.append(cmstats['accuracy'],
+                                        metrics.accuracy_score(y_test, y_pred))
+
+        cmstats['precision'] = np.append(cmstats['precision'],
+                                         metrics.precision_score(y_test,
+                                                                 y_pred,
+                                                                 average='weighted'))
+
+
+        cmstats['recall'] = np.append(cmstats['recall'],
+                                     metrics.recall_score(y_test, y_pred,
+                                                          average='weighted'))
+
+        cmstats['f1'] = np.append(cmstats['f1'],
+                                  metrics.f1_score(y_test, y_pred,
+                                                   average='weighted'))
+
+        cmstats['kappa'] = np.append(cmstats['kappa'],
+                                     metrics.cohen_kappa_score(y_test, y_pred))
 
         # test for if binary and classes equal 0,1
         if len(np.unique(y)) == 2 and all ([0,1] == np.unique(y)):
+            
+            stat_method = "binary"
+            
             y_pred_proba = fit.predict_proba(X_test)[:,1]
-            cmstats['auc'] = np.append(cmstats['auc'], metrics.roc_auc_score(y_test, y_pred_proba))
+            cmstats['auc'] = np.append(cmstats['auc'],
+                                       metrics.roc_auc_score(y_test,
+                                                             y_pred_proba))
+        else:
+            stat_method = "micro"
         
         # Get performance measures by class     
         for cindex in range(nclasses):
-            byclass_metrics['recall'][cindex, fold] = metrics.recall_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
-            byclass_metrics['precision'][cindex, fold] = metrics.precision_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
-            byclass_metrics['f1'][cindex, fold] = metrics.f1_score(y_test, y_pred, labels = [class_list[cindex]], pos_label=class_list[cindex])
+            byclass_metrics['recall'][cindex, fold] = \
+                metrics.recall_score(y_test, y_pred, labels =
+                                    [class_list[cindex]],
+                                    pos_label=class_list[cindex], average = stat_method)
+
+            byclass_metrics['precision'][cindex, fold] = \
+                metrics.precision_score(y_test, y_pred, labels =
+                                        [class_list[cindex]],
+                                        pos_label=class_list[cindex], average = stat_method)
+
+            byclass_metrics['f1'][cindex, fold] = \
+                metrics.f1_score(y_test, y_pred, labels =
+                                [class_list[cindex]],
+                                pos_label=class_list[cindex], average = stat_method)
         fold+=1
         
     return(cmstats, byclass_metrics)
@@ -657,6 +720,7 @@ def main():
     importances = flags['f']
     weighting = flags['b']
     lowmem = flags['l']
+    ncores = int(options['ncores'])
 
     # logistic regression
     c_lr = float(options['c_lr'])
@@ -692,7 +756,6 @@ def main():
     or model == 'GaussianNB' \
     or model == 'LinearDiscriminantAnalysis' \
     or model == 'QuadraticDiscriminantAnalysis':
-
         mode = 'classification'
     else:
         mode = 'regression'
@@ -755,7 +818,9 @@ def main():
     """
     
     # fetch individual raster names from group
-    groupmaps = im.group(group=igroup, flags="g", quiet = True, stdout_=PIPE).outputs.stdout
+    groupmaps = im.group(group=igroup, flags="g",
+                         quiet = True, stdout_=PIPE).outputs.stdout
+                         
     maplist = groupmaps.split(os.linesep)
     maplist = maplist[0:len(maplist)-1]
     n_features = len(maplist)
@@ -825,7 +890,7 @@ def main():
         from sklearn.ensemble import GradientBoostingRegressor
         
         classifiers = {
-            'LogisticRegression': LogisticRegression(C=c_lr, fit_intercept=fi, n_jobs=-1, class_weight=weighting),
+            'LogisticRegression': LogisticRegression(C=c_lr, fit_intercept=fi, n_jobs=ncores, class_weight=weighting),
             'DecisionTreeClassifier': DecisionTreeClassifier(splitter=splitter_dt,
                                                              max_features=m_features_dt,
                                                              min_samples_split=min_samples_split_dt,
@@ -844,9 +909,9 @@ def main():
                                                              max_features=m_features_rf,
                                                              min_samples_split=minsplit_rf,
                                                              random_state=randst,
-                                                             n_jobs=-1,
+                                                             n_jobs=ncores,
                                                              class_weight=weighting),
-            'RandomForestRegressor': RandomForestRegressor(n_jobs=-1,
+            'RandomForestRegressor': RandomForestRegressor(n_jobs=ncores,
                                                            n_estimators=ntrees_rf,
                                                            oob_score=False,
                                                            max_features=m_features_rf,
@@ -898,7 +963,8 @@ def main():
        
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1:
-            from sklearn.cross_validation import cross_val_predict
+            from sklearn.cross_validation import cross_val_predict, cross_val_score
+            from sklearn.metrics import classification_report
 
             grass.message(_('\r\n'))
             grass.message(_("Cross validation global performance measures......:"))
@@ -938,10 +1004,9 @@ def main():
                     grass.message(_(row))
                 
             else:
-                r2 = cross_val_score(clf, X, y, cv=cv, scoring='r2', n_jobs=-1)
+                r2 = cross_val_score(clf, X, y, cv=cv, scoring='r2', n_jobs=ncores)
                 grass.message(_("R2:\t%0.2f\t+/-\t%0.2f" % (r2.mean(), r2.std() * 2)))
                 
-
         # diagnostics
         if importances == True:
             if (model == 'RandomForestClassifier' or 
@@ -957,7 +1022,8 @@ def main():
                     grass.message(_("id" + "\t" + "Raster" + "\t" + "Importance"))
                     
                     for i in range(len(clfimp)):
-                         grass.message(_(str(i) + "\t" + maplist[i] + "\t" + str(round(clfimp[i], 4))))
+                         grass.message(_(str(i) + "\t" + maplist[i]
+                                         + "\t" + str(round(clfimp[i], 4))))
         
         # save the model
         if model_save != '':
