@@ -196,10 +196,11 @@ def main():
 									 
     grass.run_command("v.db.addcolumn", map = voutpoint,
                                      layer = 1, 
-                                     columns = "cat_2 integer,distance double")	
+                                     columns = "cat_2 integer,distance double,cat_line integer")	
 
     grass.run_command("db.execute", sql = "UPDATE %s SET cat_2 =  field_2" % (voutpoint))	
-    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  field_4" % (voutpoint))										 
+    grass.run_command("db.execute", sql = "UPDATE %s SET distance =  field_4" % (voutpoint))
+    grass.run_command("db.execute", sql = "UPDATE %s SET cat_line =  %d" % (voutpoint, int(vcat)))	
     grass.run_command("db.execute", sql = "UPDATE %s SET distance =  %s WHERE cat = %s" %(voutpoint, vector_line_length, number_segmentpoints_with_end))
 	
     grass.run_command("db.dropcolumn", table = voutpoint,
