@@ -71,7 +71,7 @@
 #%end
 
 #%option
-#% key: cloud_shaddow
+#% key: cloud_shadow
 #% multiple: yes
 #% description: Unacceptable conditions for Cloud Shaddow Confidence (bit 6-7)
 #% options: Not Determined, No, Maybe, Yes
@@ -111,7 +111,7 @@
 #%end
 
 #%rules
-#% required: designated_fill,dropped_frame,terrain_occlusion,water,cloud_shaddow,vegetation,snow_ice,cirrus,cloud
+#% required: designated_fill,dropped_frame,terrain_occlusion,water,cloud_shadow,vegetation,snow_ice,cirrus,cloud
 #%end
 
 import os
@@ -172,7 +172,7 @@ def main():
           'terrain_occlusion': 1,
           # 'reserved': 1,
           'water': 2,
-          'cloud_shaddow': 2,
+          'cloud_shadow': 2,
           'vegetation': 2,
           'snow_ice': 2,
           'cirrus': 2,
@@ -185,7 +185,7 @@ def main():
         'terrain_occlusion': 2,
         # 'reserved': 3,
         'water': 4,
-        'cloud_shaddow': 6,
+        'cloud_shadow': 6,
         'vegetation': 8,
         'snow_ice': 10,
         'cirrus': 12,
