@@ -294,8 +294,11 @@
 
 #%rules
 #% exclusive: roi,loadfile
+#% exclusive: roi,load_training
 #% exclusive: save_training,load_training
 #%end
+
+
 
 # import standard modules
 import atexit, random, string, re, os
@@ -307,13 +310,34 @@ from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.modules.shortcuts import imagery as im
-       
+
+
+
 def cleanup():
 
     grass.run_command("g.remove", name='clfmasktmp', flags="f",
                       type="raster", quiet=True)
 
+
+
 def sample_predictors_byrow(response, predictors):
+
+    """
+    Samples a list of GRASS rasters using a labelled raster
+    Row-by-row sampling
+    
+    Parameters
+    ----------
+    response: String; GRASS raster with labelled pixels
+    predictors: List of GRASS rasters containing explanatory variables
+
+    Returns
+    -------
+    
+    training_data: Numpy array of extracted raster values
+    training_labels: Numpy array of labels
+    
+    """
 
     # create response rasterrow and open
     roi_raster = RasterRow(response)
@@ -401,7 +425,26 @@ def sample_predictors_byrow(response, predictors):
     
     return(training_data, training_labels)
 
+
+
 def sample_predictors(response, predictors):
+    
+    """
+    Samples a list of GRASS rasters using a labelled raster
+    Per raster sampling
+    
+    Parameters
+    ----------
+    response: String; GRASS raster with labelled pixels
+    predictors: List of GRASS rasters containing explanatory variables
+
+    Returns
+    -------
+    
+    training_data: Numpy array of extracted raster values
+    training_labels: Numpy array of labels
+    
+    """
     
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() == True:
@@ -451,11 +494,25 @@ def sample_predictors(response, predictors):
     # return X and y data
     return(training_data[:, 0:n_features], training_data[:, n_features])
 
+
+
 def prediction(clf, predictors, class_probabilities,
-               rowincr, output, mode, labels):
+               rowincr, output, mode):
     
-    class_list = np.unique(labels)
-    nclasses = len(class_list)
+    """
+    Prediction on list of GRASS rasters using a fitted scikit learn model
+    
+    Parameters
+    ----------
+    clf: Scikit learn estimator object
+    predictors: List of paths to GDAL rasters that represent the predictor variables
+    output: Name of GRASS raster to output classification results
+    rowincr: Integer of raster rows to process at one time
+    class_probabilties: Boolean of whether probabilities of each class should also be predicted
+    mode: String, classification or regression mode
+    labels: Numpy array of the labels used for the classification
+    
+    """
     
     # create a list of rasterrow objects for predictors
     n_features = len(predictors)
@@ -549,7 +606,7 @@ def prediction(clf, predictors, class_probabilities,
         if class_probabilities == True and mode == 'classification':
             result_proba = clf.predict_proba(flat_pixels)
 
-            for iclass in range(nclasses):
+            for iclass in range(result_proba.shape[1]):
                 result_proba_class = result_proba[:, iclass]
                 result_proba_class = \
                     result_proba_class.reshape((rowincr, current.cols))
@@ -571,7 +628,25 @@ def prediction(clf, predictors, class_probabilities,
     if class_probabilities == True and mode == 'classification':
         for iclass in range(nclasses): prob[iclass].close()
 
+
+
 def shuffle_data(X, y, rstate):
+
+    """
+    Uses scikit learn to shuffle data
+    
+    Parameters
+    ----------
+    X: Numpy array containing predictor values
+    y: Numpy array containing labels
+    rstate: Seed for random generator
+    
+    Returns
+    -------
+    X: Numpy array containing predictor values
+    y: Numpy array containing labels
+
+    """
 
     from sklearn.utils import shuffle
 
@@ -588,12 +663,30 @@ def shuffle_data(X, y, rstate):
     
     return(X, y)
 
-def cross_val_classification(clf, X, y, cv, rstate):
-    # custom function to calculate classification metrics
-    # eliminates need to calculate each metric  using cross_val_score
-    # returns: a 1D list of accuracy, kappa and auc scores
-    # returns: mean precision/recall and std precision/recall per class
 
+
+def cross_val_classification(clf, X, y, cv, rstate):
+    
+    """
+    Stratified Kfold cross-validation
+    Generates several scoring_metrics without the need to repeatedly use cross_val_score
+    Also produces by-class scores
+    
+    Parameters
+    ----------
+    clf: Scikit learn estimator object
+    X: Numpy array containing predictor values
+    y: Numpy array containing labels
+    cv: Integer of cross-validation folds
+    rstate: Seed to pass to the random number generator
+    
+    Returns
+    -------
+    cmstats: Dictionary of global accuracy measures per fold
+    byclass_metrics: Dictionary of by-class accuracy measures per fold
+
+    """
+    
     from sklearn import cross_validation, metrics
     
     class_list = np.unique(y)
@@ -686,23 +779,55 @@ def cross_val_classification(clf, X, y, cv, rstate):
     return(cmstats, byclass_metrics)
 
 def save_training_data(X, y, file):
-    # append X and y and save to csv
+
+    """
+    Saves any extracted training data to a csv file
+    
+    Parameters
+    ----------
+    X: Numpy array containing predictor values
+    y: Numpy array containing labels
+    file: Path to a csv file to save data to
+
+    """
+
     training_data = np.zeros((y.shape[0], X.shape[1]+1))
     training_data[:, 0:X.shape[1]] = X
     training_data[:, X.shape[1]] = y
     np.savetxt(file, training_data, delimiter = ',')
 
+
+
 def load_training_data(file):
+    
+    """
+    Loads training data and labels from a csv file
+    
+    Parameters
+    ----------
+    file: Path to a csv file to save data to
+    
+    Returns
+    -------
+    X: Numpy array containing predictor values
+    y: Numpy array containing labels
+
+    """
+    
     training_data = np.loadtxt(file, delimiter = ',')
     n_features = training_data.shape[1]
     X = training_data[:, 0:n_features-1]
     y = training_data[:, n_features-1]
+    
     return(X, y)
 
 def main():
+    
     """
     GRASS options and flags
+    -----------------------
     """
+    
     # General options and flags
     igroup = options['igroup']
     roi = options['roi']
@@ -760,8 +885,10 @@ def main():
     else:
         mode = 'regression'
 
+
     """
     Error checking for valid input parameters
+    -----------------------------------------
     """
 
     # decision trees
@@ -813,8 +940,10 @@ def main():
     else:
         weighting = None
 
+
     """
     Obtain information about GRASS rasters to be classified
+    -------------------------------------------------------
     """
     
     # fetch individual raster names from group
@@ -835,9 +964,11 @@ def main():
         warnings.filterwarnings("ignore")
     except:
         grass.fatal("Scikit-learn python module is not installed...exiting")
-    
+
+
     """
     Sample training data using training ROI
+    ---------------------------------------
     """
     
     # load the model or training data
@@ -867,9 +998,11 @@ def main():
     if m_features_dt > n_features: m_features_dt = n_features
     if m_features_rf > n_features: m_features_rf = n_features
     if max_features_gtb > n_features: max_features_gtb = n_features
-    
+
+
     """
     Train the classifier
+    --------------------
     """
 
     # define classifier unless model is to be loaded from file
@@ -947,8 +1080,10 @@ def main():
         clf.fit(X, y)
         grass.message(_("Model built with: " + model))
         
+        
         """
         Cross Validation
+        ----------------
         """
 
         # output internal performance measures for random forests
@@ -1032,11 +1167,13 @@ def main():
         if modelonly == True:
             grass.fatal("Model built and now exiting")
 
+
     """
     Prediction on the rest of the GRASS rasters in the imagery group
+    ----------------------------------------------------------------
     """
     
-    prediction(clf, maplist, class_probabilities, rowincr, output, mode, y)
+    prediction(clf, maplist, class_probabilities, rowincr, output, mode)
     
 
 if __name__ == "__main__":
