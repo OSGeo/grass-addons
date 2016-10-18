@@ -160,7 +160,7 @@ def main():
 
     for raster in rasters:
 	gscript.message(_("Calculating statistics for raster %s" % raster))
-        if not gscript.find_file(raster, element='raster')['name']:
+        if not gscript.find_file(raster, element='cell')['name']:
             gscript.message(_("Cannot find raster %s" % raster))
             continue
         rastername=raster.split('@')[0]
