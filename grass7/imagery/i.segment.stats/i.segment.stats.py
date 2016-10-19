@@ -163,7 +163,8 @@ def main():
         if not gscript.find_file(raster, element='cell')['name']:
             gscript.message(_("Cannot find raster %s" % raster))
             continue
-        rastername=raster.split('@')[0]
+        rastername = raster.split('@')[0]
+        rastername = rastername.replace('.', '_')
         output_header += [rastername + "_" + x for x in raster_statistics]
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
         gscript.run_command('r.univar',
