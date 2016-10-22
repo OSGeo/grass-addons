@@ -47,9 +47,9 @@ When <b>z_raster</b> and <b>color_raster</b> are the same, total of four
 variables are associated with one point.
 
 <center>
-<img src="r3_scatterplot_2_variables.png">
-<img src="r3_scatterplot_2_variables_3rd_color.png">
-<img src="r3_scatterplot_2_variables_3rd_z.png">
+<img src="r_scatterplot_2_variables.png">
+<img src="r_scatterplot_2_variables_3rd_color.png">
+<img src="r_scatterplot_2_variables_3rd_z.png">
 <p><em>
     Figure: One scatter plot of two variables (left),
     the same scatter plot but with color showing third variable (middle),
@@ -57,9 +57,13 @@ variables are associated with one point.
 </em></p>
 </center>
 
+<!--
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40 output=scatterplot \
+    color_raster=landclass96 z_raster=lsat7_2002_50
+-->
 <center>
-<img src="r3_scatterplot_2_variables_3rd_z_4th_color.png">
-<img src="r3_scatterplot_2_variables_3rd_z_4th_color2.png">
+<img src="r_scatterplot_2_variables_3rd_z_4th_color.png">
+<img src="r_scatterplot_2_variables_3rd_z_4th_color2.png">
 <p><em>
     Figure: One scatter plot in with one variable as Z coordinate and
     another variable as color (two rotated views).
@@ -76,8 +80,12 @@ place. In this case, the coordinates show the actual values of the
 variables. Each scatter plot is placed into a separate layer of
 the output vector map.
 
+<!--
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 output=scatterplot
+d.vect -c map=scatterplot layer=-1 color=none width=1 icon=basic/point
+-->
 <center>
-<img src="r3_scatterplot_3_variables_3_colors_overlap.png">
+<img src="r_scatterplot_3_variables_3_colors_overlap.png">
 <p><em>
     Figure: Three overlapping scatter plots of three variables A, B, and C.
     Individual scatter plots are distinguished by color.
@@ -95,16 +103,22 @@ The layout options can be still combined with additional variables
 represented as Z coordinate or color. In that case, Z coordinate
 or color is same for all the scatter plots.
 
+<!--
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 output=scatterplot -f
+-->
 <center>
-<img src="r3_scatterplot_3_variables_3_colors.png">
+<img src="r_scatterplot_3_variables_3_colors.png">
 <p><em>
     Figure: Three scatter plots of three variables A, B, and C.
     First one is A and B, second A and C, and third B and C.
 </em></p>
 </center>
 
+<!--
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 output=scatterplot color_raster=landclass96 -f
+-->
 <center>
-<img src="r3_scatterplot_3_variables.png">
+<img src="r_scatterplot_3_variables.png">
 <p><em>
     Figure: Three scatter plots of three variables A, B, and C
     with color showing a fourth variable D in all scatter plots.
@@ -152,7 +166,8 @@ overcome this issue.
 
 <h3>Landsat bands</h3>
 
-Set the computation region to one of the raster maps:
+In the full North Carolina sample location,
+set the computation region to one of the raster maps:
 
 <div class="code"><pre>
 g.region raster=lsat7_2002_30
@@ -172,7 +187,8 @@ d.legend -c raster=landclass96
 <center>
 <img src="r_scatterplot.png">
 <p><em>
-    Figure: Scatter plot showing third variable as color
+    Figure: Scatter plot showing red and near infrared Landsat bands
+    colored using land cover classes
 </em></p>
 </center>
 
@@ -182,6 +198,7 @@ d.legend -c raster=landclass96
 <em>
 <a href="r.stats.html">r.stats</a>,
 <a href="d.correlate.html">d.correlate</a>,
+<a href="r3.scatterplot.html">r3.scatterplot</a>,
 <a href="v.mkgrid.html">v.mkgrid</a>,
 <a href="v.vect.stats.html">v.vect.stats</a>,
 <a href="g.region.html">g.region</a>
