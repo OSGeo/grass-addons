@@ -84,6 +84,7 @@ SUBDIRS = \
 	r.rock.stability \
 	r.roughness.vector \
 	r.sample.category \
+	r.scatterplot \
 	r.series.decompose \
 	r.series.diversity \
 	r.shaded.pca \

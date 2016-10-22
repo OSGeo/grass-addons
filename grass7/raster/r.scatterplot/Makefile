@@ -1,0 +1,13 @@
+MODULE_TOPDIR = ../..
+
+PGM = r.scatterplot
+
+LIBES = $(RASTERLIB) $(VECTORLIB) $(GISLIB) $(MATHLIB)
+DEPENDENCIES = $(RASTERDEP) $(VECTORDEP) $(GISDEP)
+
+EXTRA_INC = $(VECT_INC)
+EXTRA_CFLAGS = $(VECT_CFLAGS)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
