@@ -299,8 +299,6 @@ int main(int argc, char *argv[])
     if (opt.z_raster->answer)
         z_raster = open_raster(opt.z_raster->answer);
 
-    G_message("clr: %s %d", opt.color_raster->answer, color_raster);
-
     struct VectorMask vector_mask;
     int use_vector_mask = FALSE;
     if (opt.vector_mask->answer) {

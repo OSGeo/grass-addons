@@ -193,6 +193,112 @@ d.legend -c raster=landclass96
 </center>
 
 
+<h3>High density scatter plots</h3>
+
+In an ideal case, the scatter plot is computed with the computation region
+resolution set to the resolutions of one of the rasters (which ideally
+matches the other raster as well):
+
+<div class="code"><pre>
+g.region raster=lsat7_2002_30 -p
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40 output=scatterplot_full_res
+</pre></div>
+
+This best describes the actual state of the data, but unfortunately
+this creates a lot of points which must be processed and rendered.
+Therefore, it is also possible to compute the scatter plot in a lower
+resolution by changing the computational region resolution:
+
+<div class="code"><pre>
+g.region raster=lsat7_2002_30 res=120 -p
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40 output=scatterplot_res_120
+</pre></div>
+
+Reducing the resolution creates a possibility of missing some outliers
+or even smaller groups as some of the cells are just ignored, but
+typically the general shape of the scatter plot is preserved.
+In any case, with less points, every operation will by much faster.
+
+<center>
+<img src="r_scatterplot_density_full.png">
+<img src="r_scatterplot_density_res_120.png">
+<img src="r_scatterplot_density_res_240.png">
+<p><em>
+    Figure: Scatter plots computed with different computational region
+    resolutions; first one is with full raster resolution (~30 m)
+    second with resolution 120 m, and third with 240 m
+</em></p>
+</center>
+
+Another way of dealing with hight density scatter plots
+is to bin the points into cells of a rectangular grid.
+Number of points per cells with influence color of the cell,
+so the density will be expressed clearly.
+The scatter plot can be computed in full resolution:
+
+<div class="code"><pre>
+g.region raster=lsat7_2002_30 -p
+r.scatterplot input=lsat7_2002_30,lsat7_2002_40 output=scatterplot
+</pre></div>
+
+To create the grid the computation region extent should match
+the scatter plot extent. The resolution determines the size of the grid
+cells. 5 is a good size for data from 0 to 255.
+
+<div class="code"><pre>
+g.region vector=scatterplot res=5 -p
+</pre></div>
+
+The grid can be created using <em><a href="v.mkgrid.html">v.mkgrid</a></em>
+module, the binning done using
+<em><a href="v.vect.stats.html">v.vect.stats</a></em>, and finally the
+color is set using <em><a href="v.colors">v.colors</a></em>.
+
+<div class="code"><pre>
+v.mkgrid map=scatterplot_grid
+v.vect.stats points=scatterplot areas=scatterplot_grid count_column=count
+v.colors map=scatterplot_grid use=attr column=count color=viridis
+</pre></div>
+
+The <em><a href="d.vect">d.vect</a></em> module picks up the color table
+automatically, but it is advantageous to also specify that only
+the grid cells with non-zero count of points should be displayed
+using <tt>where="count > 0"</tt>:
+
+<div class="code"><pre>
+d.vect map=scatterplot_grid where="count > 0" icon=basic/point
+</pre></div>
+
+To get more interesting and sometimes smoother look, hexagonal
+grid can be used:
+
+<div class="code"><pre>
+v.mkgrid -h map=scatterplot_grid
+</pre></div>
+
+Alternatively, a smaller cell size can be used. When the cell size
+is the same as the distance between the points, like for example
+using cells size 1 with integer rasters, the grid needs to be shifted
+so that the points fall into the middle of the cells rather than
+on the edges or corners. For these purposes the
+<em><a href="g.region.html">g.region</a></em> accepts modifications of
+the current extent values:
+
+<div class="code"><pre>
+g.region vector=scatterplot res=1 w=w-0.5 e=e+0.5 s=s-0.5 n=n+0.5
+</pre></div>
+
+<center>
+<img src="r_scatterplot_density_grid_rectangles.png">
+<img src="r_scatterplot_density_grid_hexagons.png">
+<img src="r_scatterplot_density_grid_rectangles_res_1.png">
+<p><em>
+    Figure: High density scatter plot visualized using binning into
+    rectangular grid, hexagonal grid, and dense rectangular grid
+</em></p>
+</center>
+
+
 <h2>SEE ALSO</h2>
 
 <em>
