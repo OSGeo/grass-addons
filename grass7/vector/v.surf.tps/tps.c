@@ -109,7 +109,7 @@ static int load_tps_pnts(struct tps_pnt *pnts, int n_points, int n_vars,
 	}
 
 	/* TPS */
-	for (k = 0; k < n_points; k++) {
+	for (k = 0; k <= i; k++) {
 	    dx = (pnts[i].c -pnts[k].c) * 2.0;
 	    dy = (pnts[i].r -pnts[k].r) * 2.0;
 	    
@@ -118,9 +118,17 @@ static int load_tps_pnts(struct tps_pnt *pnts, int n_points, int n_vars,
 	    if (dist2 > 0)
 		dist = dist2 * log(dist2) * 0.5;
 
-	    m[i + 1 + n_vars][k + 1 + n_vars] = m[k + 1 + n_vars][i + 1 + n_vars] = dist;
-	    if (regularization > 0 && dist2 > 0)
-		distsum += sqrt(dist2);
+	    m[i + 1 + n_vars][k + 1 + n_vars] = dist;
+	    
+	    if (regularization > 0 && dist2 > 0) {
+		dist = sqrt(dist2);
+		distsum += dist;
+	    }
+	    if (k != i) {
+		m[k + 1 + n_vars][i + 1 + n_vars] = m[i + 1 + n_vars][k + 1 + n_vars];
+		if (regularization > 0 && dist2 > 0)
+		    distsum += dist;
+	    }
 	}
     }
     
@@ -338,14 +346,14 @@ static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
 int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
               struct tps_pnt *pnts, int n_points, int min_points,
 	      double regularization, double overlap, double pthin,
-	      int do_bfs, double segs_mb)
+	      int clustered, double segs_mb)
 {
     int ridx, cidx, row, col, nrows, ncols;
     double **m, *a, *B;
     int i, j;
     int kdalloc, palloc, n_cur_points;
     struct tps_pnt *cur_pnts;
-    double dx, dy, dist, dist2, ovlfactor;
+    double dx, dy, dist, dist2, mfactor;
     DCELL **dbuf, result, *outbuf, *varbuf;
     CELL *maskbuf;
     int solved;
@@ -405,11 +413,9 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 	maskbuf = NULL;
     }
 
-    do_bfs = (do_bfs > 0);
-
     /* create and init SEG structs */
     varsize = n_vars * sizeof(DCELL);
-    segsize = (double)64 * 64 * (sizeof(struct tps_out) + varsize + do_bfs * sizeof(int));
+    segsize = (double)64 * 64 * (sizeof(struct tps_out) + varsize + clustered * sizeof(int));
     nsegs = 1024. * 1024. * segs_mb / segsize;
     
     if (Segment_open(&out_seg, G_tempfile(), nrows, ncols, 64, 64, 
@@ -432,7 +438,7 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 	}
     }
 
-    if (do_bfs) {
+    if (clustered) {
 	G_message("Creating temporary point map...");
 
 	if (Segment_open(&p_seg, G_tempfile(), nrows, ncols, 64, 64, 
@@ -623,7 +629,7 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		}
 		pfound = kdfound;
 
-		if (do_bfs) {
+		if (clustered) {
 		    /* collect points with breadth-first search
 		     * min dist must be > max dist of nearest neighbors */
 
@@ -735,31 +741,36 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		    cmax = cur_pnts[i].c;
 	    }
 
-	    /* must be < 0.5 */
-	    ovlfactor = 0.3;
+	    /* must be <= 0.5 */
+	    mfactor = 0.0;
+	    /* min: 0
+	     * max: 0.5
+	     * 1 - 1 / d: -> 0 for dense spacing
+	     *            1 for sparse points
+	     */
+
+	    if (clustered) {
+		double mfactoradj;
+		double dmin;
+		double dmax;
+
+		dmin = 2.0 * sqrt(2.0 * kdfound / M_PI);
+		dmax = rmax - rmin;
+		if (dmax < cmax - cmin)
+		    dmax = cmax - cmin;
+
+		mfactoradj = 0.0;
+		if (dmax > dmin) {
+		    mfactoradj = pow((1 - dmin / dmax), 2.0) * 0.5;
+		    G_debug(1, "adjusted mfactor: %g", mfactoradj);
+		}
+		mfactor = mfactoradj;
+	    }
 	    
-	    irow1 = rmin + (int)((rmax - rmin) * overlap * ovlfactor);
-	    irow2 = rmax - (int)((rmax - rmin) * overlap * ovlfactor);
-	    icol1 = cmin + (int)((cmax - cmin) * overlap * ovlfactor);
-	    icol2 = cmax - (int)((cmax - cmin) * overlap * ovlfactor);
-
-	    if (rmin == rminp)
-		irow1 = 0;
-	    if (rmax == rmaxp)
-		irow2 = nrows - 1;
-	    if (cmin == cminp)
-		icol1 = 0;
-	    if (cmax == cmaxp)
-		icol2 = ncols - 1;
-
-	    if (irow1 < 0)
-		irow1 = 0;
-	    if (irow2 > nrows - 1)
-		irow2 = nrows - 1;
-	    if (icol1 < 0)
-		icol1 = 0;
-	    if (icol2 > ncols - 1)
-		icol2 = ncols - 1;
+	    irow1 = rmin + (int)((rmax - rmin) * mfactor);
+	    irow2 = rmax - (int)((rmax - rmin) * mfactor);
+	    icol1 = cmin + (int)((cmax - cmin) * mfactor);
+	    icol2 = cmax - (int)((cmax - cmin) * mfactor);
 
 	    if (irow1 > row) {
 		irow2 -= irow1 - row;
@@ -778,6 +789,15 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		icol2 = col;
 	    }
 
+	    if (rmin == rminp)
+		irow1 = 0;
+	    if (rmax == rmaxp)
+		irow2 = nrows - 1;
+	    if (cmin == cminp)
+		icol1 = 0;
+	    if (cmax == cmaxp)
+		icol2 = ncols - 1;
+
 	    if (irow1 < 0)
 		irow1 = 0;
 	    if (irow2 > nrows - 1)
@@ -786,9 +806,6 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		icol1 = 0;
 	    if (icol2 > ncols - 1)
 		icol2 = ncols - 1;
-
-	    dx = icol2 - icol1;
-	    dy = irow2 - irow1;
 
 	    dxi = icol2 - icol1 + 1;
 	    dyi = irow2 - irow1 + 1;
@@ -867,7 +884,7 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     if (n_vars)
 	Segment_close(&var_seg);
 
-    if (do_bfs)
+    if (clustered)
 	Segment_close(&p_seg);
 
     outbuf = Rast_allocate_d_buf();
