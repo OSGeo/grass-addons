@@ -45,7 +45,7 @@ struct output
 static int solvemat(double **m, double a[], double B[], int n)
 {
     int i, j, i2, j2, imark;
-    double factor, temp;
+    double factor, temp, *tempp;
     double pivot;		/* ACTUAL VALUE OF THE LARGEST PIVOT CANDIDATE */
 
     for (i = 0; i < n; i++) {
@@ -75,11 +75,17 @@ static int solvemat(double **m, double a[], double B[], int n)
 	/* if row with highest pivot is not the current row, switch them */
 
 	if (imark != i) {
+	    /*
 	    for (j2 = 0; j2 < n; j2++) {
 		temp = m[imark][j2];
 		m[imark][j2] = m[i][j2];
 		m[i][j2] = temp;
 	    }
+	    */
+
+	    tempp = m[imark];
+	    m[imark] = m[i];
+	    m[i] = tempp;
 
 	    temp = a[imark];
 	    a[imark] = a[i];
@@ -144,7 +150,7 @@ int main(int argc, char *argv[])
     int row, col;
     double lo, hi, fet, *cs, *sn, *ts, delta;
     int bl;
-    double **mat, **mat_t, **A, *Azero, *za, *zr, maxerrlo, maxerrhi;
+    double **mat, **mat_t, **A, *Av, *Azero, *za, *zr, maxerrlo, maxerrhi;
     int asize;
     int dod, nf, nr, nout, noutmax;
     int rejlo, rejhi, *useval;
@@ -467,6 +473,7 @@ int main(int argc, char *argv[])
     mat = G_alloc_matrix(nr, num_inputs);
     mat_t = G_alloc_matrix(num_inputs, nr);
     A = G_alloc_matrix(nr, nr);
+    Av = *A;
     Azero = G_alloc_vector(nr * nr);
     asize = nr * nr * sizeof(double);
     za = G_alloc_vector(nr);
@@ -566,7 +573,7 @@ int main(int argc, char *argv[])
 		     * A temp: nr, num_inputs
 		     * A: nr, nr */
 
-		    memcpy(*A, Azero, asize);
+		    memcpy(Av, Azero, asize);
 		    for (i = 0; i < nr; i++) {
 			za[i] = 0;
 			for (j = 0; j < num_inputs; j++) {
@@ -604,7 +611,6 @@ int main(int argc, char *argv[])
 				maxerrlo = rc[i] - values[i];
 			    if (maxerrhi < values[i] - rc[i])
 				maxerrhi = values[i] - rc[i];
-
 			}
 		    }
 		    if (rejlo || rejhi) {
@@ -613,20 +619,20 @@ int main(int argc, char *argv[])
 			    done = 0;
 			if (rejhi && maxerrhi > fet)
 			    done = 0;
-		    }
 		    
-		    if (!done && (rejlo || rejhi)) {
-			/* filter outliers */
-			for (i = 0; i < num_inputs; i++) {
+			if (!done) {
+			    /* filter outliers */
+			    for (i = 0; i < num_inputs; i++) {
 
-			    if (useval[i]) {
-				if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
-				    useval[i] = 0;
-				    nout++;
-				}
-				if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
-				    useval[i] = 0;
-				    nout++;
+				if (useval[i]) {
+				    if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
+					useval[i] = 0;
+					nout++;
+				    }
+				    if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
+					useval[i] = 0;
+					nout++;
+				    }
 				}
 			    }
 			}
@@ -641,8 +647,12 @@ int main(int argc, char *argv[])
 
 		for (i = 0; i < num_outputs; i++) {
 		    struct output *out = &outputs[i];
-		    
+
 		    out->buf[col] = rc[i];
+		    if (rc[i] < lo)
+			out->buf[col] = lo;
+		    else if (rc[i] > hi)
+			out->buf[col] = hi;
 		}
 
 		if (do_amp || do_phase) {
