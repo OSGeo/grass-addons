@@ -214,8 +214,10 @@ int global_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 			break;
 		    }
 		}
-		if (isnull)
+		if (isnull) {
+		    Rast_set_d_null_value(&outbuf[col], 1);
 		    continue;
+		}
 	    }
 
 	    result = B[0];
@@ -544,6 +546,13 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     wmin = 10;
     wmax = 0;
 
+    if (overlap > 1.0)
+	overlap = 1.0;
+    if (overlap < 0.0)
+	overlap = 0.0;
+    /* keep in sync with weight calculation below */
+    overlap = exp((overlap - 1.0) * 8.0);
+
     for (ridx = 0; ridx < nrows; ridx++) {
 
 	G_percent(ridx, nrows, 1);
@@ -851,15 +860,12 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 			}
 		    }
 
-		    dx = abs(icol - col) / dxi;
-		    dy = abs(irow - row) / dyi;
-
-		    dx = fabs(icol - (icol2 + icol1) / 2.0) / dxi;
-		    dy = fabs(irow - (irow2 + irow1) / 2.0) / dyi;
+		    dx = fabs(2.0 * icol - (icol2 + icol1)) / dxi;
+		    dy = fabs(2.0 * irow - (irow2 + irow1)) / dyi;
 
 		    dist2 = (dx * dx + dy * dy);
 
-		    weight = exp(-dist2 * 2);
+		    weight = exp(-dist2 * 4.0);
 
 		    if (wmin > weight)
 			wmin = weight;

@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     ov_opt->key = "overlap";
     ov_opt->type = TYPE_DOUBLE;
     ov_opt->required = NO;
-    ov_opt->answer = "0.8";
+    ov_opt->answer = "0.1";
     ov_opt->label =
 	_("Overlap factor <= 1");
     ov_opt->description =
