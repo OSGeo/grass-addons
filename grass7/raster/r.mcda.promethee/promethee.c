@@ -30,7 +30,9 @@ void build_weight_vect(int ncriteria,struct Option *weight,
 
 
     if (nweight != ncriteria)
+	{
         G_fatal_error(_("criteria number  and weight number are different"));
+	}
 
 
     for (i = 0; i < nweight; i++)
@@ -59,7 +61,7 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 /* make pairwise comparation and build positive flow matrix */
 	for (i = 0; i < ncriteria; i++)
 	{
-		G_percent(i, (ncriteria), 1);
+		G_message("Processing criteria #%d ...",i+1);
 		for (row1 = 0; row1 < nrows; row1++)
 		{
 			for (col1 = 0; col1 < ncols; col1++)
@@ -70,18 +72,23 @@ void build_flow_matrix(int nrows, int ncols, int ncriteria,
 					//G_percent(row2, (nrows), 2);
 					for (col2 = 0; col2 < ncols; col2++)
 					{
+						G_percent(row2, (nrows), 2);
 						threshold = (decision_vol[row1][col1][i] - decision_vol[row2][col2][i]);
+
 						if (threshold>0) /* if therehold is positive, it fill the positive flow*/
 							{
 							positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1]+(threshold*weight_vect[i]);
 							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1];
 
 							}
-						else /* if thershold is negative, it  fill the negative flow*/
+						else if (threshold<0)/* if thershold is negative, it  fill the negative flow*/
 							{
 							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1]+(-threshold*weight_vect[i]);
 							positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1];
 							}
+						else
+							negative_flow_vol[row1][col1]=negative_flow_vol[row1][col1];
+							positive_flow_vol[row1][col1]=positive_flow_vol[row1][col1];
 					}
 				}
 			}
