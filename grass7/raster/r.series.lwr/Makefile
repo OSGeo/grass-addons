@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.hants
+PGM = r.series.lwr
 
 LIBES = $(GMATHLIB) $(RASTERLIB) $(GISLIB)
 DEPENDENCIES = $(GMATHDEP) $(RASTERDEP) $(GISDEP)

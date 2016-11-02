@@ -1,13 +1,11 @@
 
 /****************************************************************************
  *
- * MODULE:       r.hants
- * AUTHOR(S):    Wout Verhoef, NLR, Remote Sensing Dept., June 1998
- *               Mohammad Abouali, converted to MATLAB, 2011
- *               Markus Metz, converted to C, 2013
- *               based on r.series
+ * MODULE:       r.series.lwr
+ * AUTHOR(S):    Markus Metz
+ *               based on r.hants
  * PURPOSE:      time series correction
- * COPYRIGHT:    (C) 2013 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2016 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -26,8 +24,6 @@
 #include <grass/glocale.h>
 #include <grass/gmath.h>
 
-/* TODO: add option for amplitude and phase output */
-
 struct input
 {
     const char *name;
@@ -41,6 +37,87 @@ struct output
     int fd;
     DCELL *buf;
 };
+
+static double uniform(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+
+    if (dist < 1)
+	return 1;
+
+    return 0;
+}
+
+static double triangular(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+
+    if (dist == 0)
+	return 1;
+
+    if (dist >= 1)
+	return 0;
+
+    return (1.0 - dist);
+}
+
+static double epanechnikov(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+
+    if (dist == 0)
+	return 1;
+
+    if (dist >= 1)
+	return 0;
+
+    return (1.0 - dist * dist);
+}
+
+static double quartic(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+    double tmp;
+
+    if (dist == 0)
+	return 1;
+
+    if (dist >= 1)
+	return 0;
+
+    tmp = 1.0 - dist * dist;
+
+    return (tmp * tmp);
+}
+
+static double tricube(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+    double tmp;
+
+    if (dist == 0)
+	return 1;
+
+    if (dist >= 1)
+	return 0;
+
+    tmp = 1.0 - dist * dist * dist;
+
+    return (tmp * tmp * tmp);
+}
+
+static double cosine(double ref, double x, double max)
+{
+    double dist = fabs(x - ref) / max;
+
+    if (dist == 0)
+	return 1;
+
+    if (dist >= 1)
+	return 0;
+
+    return (cos(M_PI_2 * dist));
+}
 
 static int solvemat(double **m, double a[], double B[], int n)
 {
@@ -68,7 +145,7 @@ static int solvemat(double **m, double a[], double B[], int n)
 	/* co-linear points results in a solution with rounding error */
 
 	if (pivot == 0.0) {
-	    G_warning(_("Matrix is unsolvable"));
+	    G_debug(4, "Matrix is unsolvable");
 	    return 0;
 	}
 
@@ -115,6 +192,21 @@ static int solvemat(double **m, double a[], double B[], int n)
     return 1;
 }
 
+static double term(int term, double x)
+{
+    switch (term) {
+    case 0:
+	return 1.0;
+    case 1:
+	return x;
+    case 2:
+	return x * x;
+    case 3:
+	return x * x * x;
+    }
+
+    return 0.0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -122,39 +214,43 @@ int main(int argc, char *argv[])
     struct
     {
 	struct Option *input, *file, *suffix,
-	              *amp,	/* prefix for amplitude output */
-	              *phase,	/* prefix for phase output */
-	              *nf,	/* number of harmonics */
+	              *order,	/* polynomial order */
+		      *weight,	/* weighing function */
 		      *fet,	/* fit error tolerance */
+		      *ts,	/* time steps */
 		      *dod,	/* degree of over-determination */
-	              *range,	/* low/high threshold */
-		      *ts,	/* time steps*/
-		      *bl,	/* length of base period */
+		      *range,	/* range of valid values */
 		      *delta;	/* threshold for high amplitudes */
     } parm;
     struct
     {
 	struct Flag *lo, *hi, *lazy;
     } flag;
-    int i, j, k;
-    int num_inputs;
+    int i, j, k, n;
+    int num_inputs, in_lo, in_hi;
     struct input *inputs = NULL;
     int num_outputs;
     struct output *outputs = NULL;
-    struct output *out_amp = NULL;
-    struct output *out_phase = NULL;
     char *suffix;
     struct History history;
-    DCELL *values = NULL, *rc = NULL;
+    struct Colors colors;
+    DCELL *values = NULL, *values2 = NULL;
     int nrows, ncols;
     int row, col;
-    double lo, hi, fet, *cs, *sn, *ts, delta;
-    int bl;
-    double **mat, **mat_t, **A, *Av, *Azero, *za, *zr, maxerrlo, maxerrhi;
-    int asize;
-    int dod, nf, nr, nout, noutmax;
-    int rejlo, rejhi, *useval;
-    int do_amp, do_phase;
+    int order;
+    double fet, maxerrlo, maxerrhi, lo, hi;
+    DCELL *resultn;
+    int msize;
+    double **m, **m2, *a, *a2, *B;
+    double *ts, weight;
+    double (*weight_func)(double, double, double);
+    int dod;
+    int *isnull, n_nulls;
+    int min_points, n_points;
+    int this_margin;
+    double max_ts, tsdiff1, tsdiff2;
+    double delta;
+    int rejlo, rejhi;
 
     G_gisinit(argv[0]);
 
@@ -178,27 +274,24 @@ int main(int argc, char *argv[])
     parm.suffix->key = "suffix";
     parm.suffix->type = TYPE_STRING;
     parm.suffix->required = NO;
-    parm.suffix->answer = "_hants";
+    parm.suffix->answer = "lwr";
     parm.suffix->label = _("Suffix for output maps");
     parm.suffix->description = _("The suffix will be appended to input map names");
 
-    parm.amp = G_define_option();
-    parm.amp->key = "amplitude";
-    parm.amp->type = TYPE_STRING;
-    parm.amp->required = NO;
-    parm.amp->label = _("Prefix for output amplitude maps");
+    parm.order = G_define_option();
+    parm.order->key = "order";
+    parm.order->type = TYPE_INTEGER;
+    parm.order->required = NO;
+    parm.order->options = "1,2,3";
+    parm.order->answer = "2";
+    parm.order->description = _("order number");
 
-    parm.phase = G_define_option();
-    parm.phase->key = "phase";
-    parm.phase->type = TYPE_STRING;
-    parm.phase->required = NO;
-    parm.phase->label = _("Prefix for output phase maps");
-
-    parm.nf = G_define_option();
-    parm.nf->key = "nf";
-    parm.nf->type = TYPE_INTEGER;
-    parm.nf->required = YES;
-    parm.nf->description = _("Number of frequencies");
+    parm.weight = G_define_option();
+    parm.weight->key = "weight";
+    parm.weight->type = TYPE_STRING;
+    parm.weight->required = NO;
+    parm.weight->options = "uniform,triangular,epanechnikov,quartic,tricube,cosine";
+    parm.weight->answer = "tricube";
 
     parm.fet = G_define_option();
     parm.fet->key = "fet";
@@ -211,7 +304,7 @@ int main(int argc, char *argv[])
     parm.dod->key = "dod";
     parm.dod->type = TYPE_INTEGER;
     parm.dod->required = NO;
-    parm.dod->answer = "0";
+    parm.dod->answer = "1";
     parm.dod->description = _("Degree of over-determination");
 
     parm.range = G_define_option();
@@ -225,11 +318,6 @@ int main(int argc, char *argv[])
     parm.ts->type = TYPE_DOUBLE;
     parm.ts->multiple = YES;
     parm.ts->description = _("Time steps of the input maps");
-
-    parm.bl = G_define_option();
-    parm.bl->key = "base_period";
-    parm.bl->type = TYPE_INTEGER;
-    parm.bl->description = _("Length of the base period");
 
     parm.delta = G_define_option();
     parm.delta->key = "delta";
@@ -260,17 +348,11 @@ int main(int argc, char *argv[])
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
-    if (parm.amp->answer && parm.phase->answer) {
-	if (strcmp(parm.amp->answer, parm.phase->answer) == 0)
-	    G_fatal_error(_("'%s' and '%s' options must be different"),
-			  parm.amp->key, parm.phase->key);
-    }
-    do_amp = parm.amp->answer != NULL;
-    do_phase = parm.phase->answer != NULL;
-
-    nf = atoi(parm.nf->answer);
-    if (nf < 1)
-	G_fatal_error(_("The number of frequencies must be > 0"));
+    order = atoi(parm.order->answer);
+    if (order < 1)
+	G_fatal_error(_("The order number must be > 0"));
+    if (order > 3)
+	G_fatal_error(_("The order number must be <= 3"));
 
     fet = DBL_MAX;
     if (parm.fet->answer) {
@@ -301,6 +383,23 @@ int main(int argc, char *argv[])
     rejhi = flag.hi->answer;
     if ((rejlo || rejhi) && !parm.fet->answer)
 	G_fatal_error(_("Fit error tolerance is required when outliers should be rejected"));
+
+    weight_func = tricube;
+    if (strcmp(parm.weight->answer, "uniform") == 0)
+	weight_func = uniform;
+    else if (strcmp(parm.weight->answer, "triangular") == 0)
+	weight_func = triangular;
+    else if (strcmp(parm.weight->answer, "epanechnikov") == 0)
+	weight_func = epanechnikov;
+    else if (strcmp(parm.weight->answer, "quartic") == 0)
+	weight_func = quartic;
+    else if (strcmp(parm.weight->answer, "tricube") == 0)
+	weight_func = tricube;
+    else if (strcmp(parm.weight->answer, "cosine") == 0)
+	weight_func = cosine;
+    else 
+	G_fatal_error(_("Unknown weighing function '%s'"),
+	              parm.weight->answer);
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -369,11 +468,23 @@ int main(int argc, char *argv[])
     if (num_inputs < 3)
 	G_fatal_error(_("At least 3 input maps are required"));
 
-    /* length of base period */
-    if (parm.bl->answer)
-	bl = atoi(parm.bl->answer);
-    else
-	bl = num_inputs;
+    ts = G_malloc(num_inputs * sizeof(double));
+
+    if (parm.ts->answer) {
+    	for (i = 0; parm.ts->answers[i]; i++);
+	if (i != num_inputs)
+	    G_fatal_error(_("Number of time steps does not match number of input maps"));
+    	for (i = 0; parm.ts->answers[i]; i++) {
+	    ts[i] = atof(parm.ts->answers[i]);
+	    if (i > 0 && ts[i - 1] >= ts[i])
+		G_fatal_error(_("Time steps must increase"));
+	}
+    }
+    else {
+	for (i = 0; i < num_inputs; i++) {
+	    ts[i] = i;
+	}
+    }
 
     /* open output maps */
     num_outputs = num_inputs;
@@ -382,7 +493,7 @@ int main(int argc, char *argv[])
     
     suffix = parm.suffix->answer;
     if (!suffix)
-	suffix = "_hants";
+	suffix = "_lwr";
 
     for (i = 0; i < num_outputs; i++) {
 	struct output *out = &outputs[i];
@@ -395,128 +506,35 @@ int main(int argc, char *argv[])
 	out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
-    nr = 2 * nf + 1;
+    min_points = 1 + order + dod;
 
-    if (nr > num_inputs)
-	G_fatal_error(_("The maximum number of frequencies for %d input maps is %d."),
-	                num_inputs, (num_inputs - 1) / 2);
-
-    noutmax = num_inputs - nr - dod;
-
-    if (noutmax < 0)
-	G_fatal_error(_("The degree of overdetermination can not be larger than %d "
-			"for %d input maps and %d frequencies."),
-			dod + noutmax, num_inputs, nf);
-
-    if (noutmax == 0)
-	G_warning(_("Missing values can not be reconstructed, "
-	            "please reduce either '%s' or '%s'"),
-		    parm.nf->key, parm.dod->key);
-
-    if (do_amp) {
-	/* open output amplitude */
-	out_amp = G_calloc(nf, sizeof(struct output));
-
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.amp->answer, i);
-
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
-    }
-
-    if (do_phase) {
-	/* open output phase */
-	out_phase = G_calloc(nf, sizeof(struct output));
-
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.phase->answer, i);
-
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
-    }
+    if (min_points > num_inputs)
+	G_fatal_error(_("At least %d input maps are required for "
+			"order number %d and "
+	                "degree of over-determination %d."),
+	                min_points, order, dod);
 
     /* initialise variables */
     values = G_malloc(num_inputs * sizeof(DCELL));
+    values2 = G_malloc(num_inputs * sizeof(DCELL));
+    resultn = G_malloc(num_inputs * sizeof(DCELL));
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    cs = G_alloc_vector(bl);
-    sn = G_alloc_vector(bl);
-    ts = G_alloc_vector(num_inputs);
-    rc = G_malloc(num_inputs * sizeof(DCELL));
-    useval = G_malloc(num_inputs * sizeof(int));
+    isnull = G_malloc(num_inputs * sizeof(int));
 
-    if (parm.ts->answer) {
-    	for (i = 0; parm.ts->answers[i]; i++);
-	if (i != num_inputs)
-	    G_fatal_error(_("Number of time steps does not match number of input maps"));
-    	for (i = 0; parm.ts->answers[i]; i++)
-	    ts[i] = atof(parm.ts->answers[i]);
-    }
-    else {
-	for (i = 0; i < num_inputs; i++) {
-	    ts[i] = i;
-	}
-    }
+    msize = 1 + order;
+    m = G_alloc_matrix(msize, msize);
+    m2 = G_alloc_matrix(msize, msize);
+    a = G_alloc_vector(msize);
+    a2 = G_alloc_vector(msize);
+    B = G_alloc_vector(msize);
 
-    mat = G_alloc_matrix(nr, num_inputs);
-    mat_t = G_alloc_matrix(num_inputs, nr);
-    A = G_alloc_matrix(nr, nr);
-    Av = *A;
-    Azero = G_alloc_vector(nr * nr);
-    asize = nr * nr * sizeof(double);
-    za = G_alloc_vector(nr);
-    zr = G_alloc_vector(nr);
-    rc = G_alloc_vector(num_inputs);
-
-    for (i = 0; i < nr * nr; i++)
-	Azero[i] = 0;
-
-    for (i = 0; i < bl; i++) {
-	double ang = 2.0 * M_PI * i / bl;
-
-	cs[i] = cos(ang);
-	sn[i] = sin(ang);
-    }
-    for (j = 0; j < num_inputs; j++) {
-	mat[0][j] = 1.;
-	mat_t[j][0] = 1.;
-    }
-
-    for (i = 0; i < nr / 2; i++) {
-	int i1 = 2 * i + 1;
-	int i2 = 2 * i + 2;
-
-	for (j = 0; j < num_inputs; j++) {
-
-	    int idx = (int) ((i + 1) * (ts[j])) % bl;
-
-	    if (idx >= bl)
-		G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
-
-	    if (i2 >= nr)
-		G_fatal_error("mat index out of range: %d, %d", 2 * i + 2, nr);
-		
-	    mat[i1][j] = cs[idx];
-	    mat[i2][j] = sn[idx];
-	    mat_t[j][i1] = mat[i1][j];
-	    mat_t[j][i2] = mat[i2][j];
-	}
-    }
+    /* calculate weights for different margins */
 
     /* process the data */
-    G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
+    G_message(_("Local weighted regression of %d input maps..."), num_inputs);
 
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 4);
@@ -535,146 +553,205 @@ int main(int argc, char *argv[])
 	}
 
 	for (col = 0; col < ncols; col++) {
-	    int null = 0, non_null = 0;
 
+	    n_nulls = 0;
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL v = inputs[i].buf[col];
 
-		useval[i] = 0;
+		isnull[i] = 0;
 		if (Rast_is_d_null_value(&v)) {
-		    null++;
+		    isnull[i] = 1;
+		    n_nulls++;
 		}
 		else if (parm.range->answer && (v < lo || v > hi)) {
 		    Rast_set_d_null_value(&v, 1);
-		    null++;
+		    isnull[i] = 1;
+		    n_nulls++;
 		}
-		else {
-		    non_null++;
-		    useval[i] = 1;
-		}
-
 		values[i] = v;
 	    }
-	    nout = null;
 
-	    /* HANTS */
-	    if (nout <= noutmax) {
-		int n = 0, done = 0;
+	    /* LWR */
+	    if (num_inputs - n_nulls >= min_points) {
 
-		while (!done) {
-		    
-		    /* za = mat * y */
+		for (i = 0; i < num_inputs; i++) {
+		    DCELL result;
 
-		    /* A = mat * diag(p) * mat' */
-
-		    /* mat: nr, num_inputs
-		     * diag(p): num_inputs, num_inputs 
-		     * mat_t: num_inputs, nr
-		     * A temp: nr, num_inputs
-		     * A: nr, nr */
-
-		    memcpy(Av, Azero, asize);
-		    for (i = 0; i < nr; i++) {
-			za[i] = 0;
-			for (j = 0; j < num_inputs; j++) {
-			    if (useval[j]) {
-				za[i] += mat[i][j] * values[j];
-
-				for (k = 0; k < nr; k++)
-				    A[i][k] += mat[i][j] * mat_t[j][k];
+		    /* margin around i */
+		    n_points = 0;
+		    in_lo = in_hi = i;
+		    this_margin = 0;
+		    if (!isnull[i])
+			n_points++;
+		    for (j = 1; j < num_inputs; j++) {
+			if (i - j >= 0) {
+			    if (!isnull[i - j]) {
+				n_points++;
+				in_lo = i - j;
 			    }
 			}
+			if (i + j < num_inputs) {
+			    if (!isnull[i + j]) {
+				n_points++;
+				in_hi = i + j;
+			    }
+			}
+			if (n_points >= min_points) {
+			    this_margin = j;
+			    break;
+			}
+		    }
 
-			if (i > 0) {
-			    A[i][i] += delta;
+		    tsdiff1 = ts[i] - ts[in_lo];
+		    tsdiff2 = ts[in_hi] - ts[i];
+			
+		    max_ts = tsdiff1;
+		    if (max_ts < tsdiff2)
+			max_ts = tsdiff2;
+		    
+		    max_ts *= (1.0 + 1.0 / this_margin);
+
+		    /* initialize matrix and vectors */
+		    for (j = 0; j <= order; j++) {
+			a[j] = 0;
+			B[j] = 0;
+			m[j][j] = 0;
+			for (k = 0; k < j; k++) {
+			    m[j][k] = m[k][j] = 0;
 			}
 		    }
 		    
-		    /* zr = A \ za
-		     * solve A * zr = za */
-		    if (!solvemat(A, za, zr, nr)) {
-			done = -1;
-			Rast_set_d_null_value(rc, num_outputs);
-			break;
-		    }
-		    /* G_math_solver_gauss(A, zr, za, nr) is much slower */
+		    /* load points */
+		    for (n = in_lo; n <= in_hi; n++) {
+			if (isnull[n])
+			    continue;
 
-		    /* rc = mat' * zr */
-		    maxerrlo = maxerrhi = 0;
-		    for (i = 0; i < num_inputs; i++) {
-			rc[i] = 0;
-			for (j = 0; j < nr; j++) {
-			    rc[i] += mat_t[i][j] * zr[j];
-			}
-			if (useval[i]) {
-			    if (maxerrlo < rc[i] - values[i])
-				maxerrlo = rc[i] - values[i];
-			    if (maxerrhi < values[i] - rc[i])
-				maxerrhi = values[i] - rc[i];
+			weight = weight_func(ts[i], ts[n], max_ts);
+			for (j = 0; j <= order; j++) {
+			    double val1 = term(j, ts[n]);
+
+			    for (k = j; k <= order; k++) {
+				double val2 = term(k, ts[n]);
+
+				m[j][k] += val1 * val2 * weight;
+			    }
+			    a[j] += values[n] * val1 * weight;
 			}
 		    }
-		    if (rejlo || rejhi) {
-			done = 1;
-			if (rejlo && maxerrlo > fet)
-			    done = 0;
-			if (rejhi && maxerrhi > fet)
-			    done = 0;
-		    
-			if (!done) {
-			    /* filter outliers */
-			    for (i = 0; i < num_inputs; i++) {
 
-				if (useval[i]) {
-				    if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
-					useval[i] = 0;
-					nout++;
+		    /* TRANSPOSE VALUES IN UPPER HALF OF M TO OTHER HALF */
+		    m2[0][0] = m[0][0];
+		    a2[0] = a[0];
+		    for (j = 1; j <= order; j++) {
+			for (k = 0; k < j; k++) {
+			    m[j][k] = m[k][j];
+			    m2[j][k] = m2[k][j] = m[k][j];
+			}
+			m[j][j] *= (1 + delta);
+			m2[j][j] = m[j][j];
+			a2[j] = a[j];
+		    }
+
+		    if (solvemat(m2, a2, B, order + 1) != 0) {
+			/* get estimate */
+			result = 0.0;
+			for (j = 0; j <= order; j++) {
+			    result += B[j] * term(j, ts[i]);
+			}
+			
+			if (rejlo || rejhi) {
+			    int done = 0;
+
+			    for (n = in_lo; n <= in_hi; n++) {
+				if (isnull[n])
+				    continue;
+				
+				values2[n] = values[n];
+			    }
+
+			    while (!done) {
+				done = 1;
+
+				maxerrlo = maxerrhi = 0;
+				for (n = in_lo; n <= in_hi; n++) {
+				    if (isnull[n])
+					continue;
+
+				    resultn[n] = 0.0;
+				    for (j = 0; j <= order; j++) {
+					resultn[n] += B[j] * term(j, ts[n]);
 				    }
-				    if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
-					useval[i] = 0;
-					nout++;
+				    if (maxerrlo < resultn[n] - values2[n])
+					maxerrlo = resultn[n] - values2[n];
+				    if (maxerrhi < values2[n] - resultn[n])
+					maxerrhi = values2[n] - resultn[n];
+				}
+
+				if (rejlo && maxerrlo > fet)
+				    done = 0;
+				if (rejhi && maxerrhi > fet)
+				    done = 0;
+
+				if (!done) {
+
+				    a2[0] = 0;
+				    m2[0][0] = m[0][0];
+				    for (j = 1; j <= order; j++) {
+					for (k = 0; k < j; k++) {
+					    m2[j][k] = m2[k][j] = m[k][j];
+					}
+					m2[j][j] = m[j][j];
+					a2[j] = 0;
+				    }
+
+				    /* replace outliers */
+				    for (n = in_lo; n <= in_hi; n++) {
+					if (isnull[n])
+					    continue;
+
+					weight = weight_func(ts[i], ts[n], max_ts);
+					if (rejlo && resultn[n] - values2[n] > maxerrlo * 0.5) {
+					    values2[n] = (resultn[n] + values2[n]) * 0.5;
+					}
+					if (rejhi && values2[n] - resultn[n] > maxerrhi * 0.5) {
+					    values2[n] = (values2[n] + resultn[n]) * 0.5;
+					}
+					for (j = 0; j <= order; j++) {
+					    double val1 = term(j, ts[n]);
+
+					    a2[j] += values2[n] * val1 * weight;
+					}
+				    }
+				    done = 1;
+				    if (solvemat(m2, a2, B, order + 1) != 0) {
+					/* update estimate */
+					result = 0.0;
+					for (j = 0; j <= order; j++) {
+					    result += B[j] * term(j, ts[i]);
+					}
+					done = 0;
 				    }
 				}
 			    }
 			}
 		    }
+		    else {
+			double wsum = 0.0;
 
-		    n++;
-		    if (n >= num_inputs)
-			done = 1;
-		    if (nout > noutmax)
-			done = 1;
-		}
+			G_warning(_("Points are (nearly) co-linear, using weighted average"));
 
-		for (i = 0; i < num_outputs; i++) {
-		    struct output *out = &outputs[i];
-
-		    out->buf[col] = rc[i];
-		    if (rc[i] < lo)
-			out->buf[col] = lo;
-		    else if (rc[i] > hi)
-			out->buf[col] = hi;
-		}
-
-		if (do_amp || do_phase) {
-		    /* amplitude and phase */
-		    /* skip constant */
-
-		    for (i = 1; i < nr; i += 2) {
-			int ifr = i >> 1;
-
-			if (do_amp) {
-			    out_amp[ifr].buf[col] = sqrt(zr[i] * zr[i] +
-						    zr[i + 1] * zr[i + 1]);
+			result = 0.0;
+			for (n = in_lo; n <= in_hi; n++) {
+			    if (isnull[n])
+				continue;
+			    
+			    weight = weight_func(ts[i], ts[n], max_ts);
+			    result += values[n] * weight;
+			    wsum += weight;
 			}
-
-			if (do_phase) {
-			    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
-
-			    if (angle < 0)
-				angle += 360;
-			    out_phase[ifr].buf[col] = angle;
-			}
+			result /= wsum;
 		    }
+		    outputs[i].buf[col] = result;
 		}
 	    }
 	    else {
@@ -683,73 +760,31 @@ int main(int argc, char *argv[])
 
 		    Rast_set_d_null_value(&out->buf[col], 1);
 		}
-		if (do_amp || do_phase) {
-		    for (i = 0; i < nf; i++) {
-			if (do_amp)
-			    Rast_set_d_null_value(&out_amp[i].buf[col], 1);
-			if (do_phase)
-			    Rast_set_d_null_value(&out_phase[i].buf[col], 1);
-		    }
-		}
 	    }
 	}
 
 	for (i = 0; i < num_outputs; i++)
 	    Rast_put_d_row(outputs[i].fd, outputs[i].buf);
-	
-	if (do_amp || do_phase) {
-	    for (i = 0; i < nf; i++) {
-		if (do_amp)
-		    Rast_put_d_row(out_amp[i].fd, out_amp[i].buf);
-		if (do_phase)
-		    Rast_put_d_row(out_phase[i].fd, out_phase[i].buf);
-	    }
-	}
     }
 
     G_percent(row, nrows, 2);
 
-    /* Close input maps */
-    if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs; i++)
-	    Rast_close(inputs[i].fd);
-    }
-
-    /* close output maps */
+    /* close input and output maps */
     for (i = 0; i < num_outputs; i++) {
+	struct input *in = &inputs[i];
 	struct output *out = &outputs[i];
+
+	if (!flag.lazy->answer)
+	    Rast_close(in->fd);
 
 	Rast_close(out->fd);
 
 	Rast_short_history(out->name, "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(out->name, &history);
-    }
 
-    if (do_amp) {
-	/* close output amplitudes */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
-
-	    Rast_close(out->fd);
-
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
-    }
-
-    if (do_phase) {
-	/* close output phases */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
-
-	    Rast_close(out->fd);
-
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
+	if (Rast_read_colors(in->name, "", &colors) == 1)
+	    Rast_write_colors(out->name, G_mapset(), &colors);
     }
 
     exit(EXIT_SUCCESS);
