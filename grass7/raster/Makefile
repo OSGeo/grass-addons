@@ -87,6 +87,7 @@ SUBDIRS = \
 	r.scatterplot \
 	r.series.decompose \
 	r.series.diversity \
+	r.series.lwr \
 	r.shaded.pca \
 	r.shalstab \
 	r.skyview \
