@@ -367,6 +367,9 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
             autocor_per_raster = []
             neighbordict = get_nb_matrix(mapname)
             for raster in parms['rasters']:
+                # there seems to be some trouble in ms windows with qualified
+                # map names
+                raster = raster.split('@')[0]
                 var = get_variance(mapname, raster)
                 variance_per_raster.append(var)
                 autocor = get_autocorrelation(mapname, raster,
@@ -388,7 +391,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
     """ Do hierarchical segmentation for a vector of thresholds and a specific minsize"""
 
     outputs_prefix = parms['temp_segment_map'] + "__%s" % parms['region']
-    outputs_prefix += "__%.2f"
+    outputs_prefix += "__%.4f"
     outputs_prefix += "__%d" % minsize
     previous = None
     map_list = []
@@ -423,7 +426,7 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
     """ Do non-hierarchical segmentation for a specific threshold and minsize"""
 
     temp_segment_map_thresh = parms['temp_segment_map'] + "__%s" % parms['region']
-    temp_segment_map_thresh += "__%.2f" % threshold
+    temp_segment_map_thresh += "__%.4f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
     gscript.run_command('i.segment',
                         group=parms['group'],
@@ -692,7 +695,7 @@ def main():
         iter_thresh = drange(start,stop,step)
         # We want to keep a specific precision, so we go through string
         # representation and back to float
-        thresholds = [float(y) for y in ["%.2f" % x for x in iter_thresh]]
+        thresholds = [float(y) for y in ["%.4f" % x for x in iter_thresh]]
 
     if options['minsizes']:
         minsizes = [int(x) for x in options['minsizes'].split(',')]
