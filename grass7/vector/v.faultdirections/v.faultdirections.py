@@ -47,6 +47,8 @@
 
 import sys
 import numpy as np
+import matplotlib #required by windows
+matplotlib.use('wx') #required by windows
 import matplotlib.pyplot as plt
 import grass.script as gscript
 
