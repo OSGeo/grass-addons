@@ -17,6 +17,7 @@ SUBDIRS = \
 	v.delaunay3d \
 	v.ellipse \
 	v.external.all \
+	v.faultdirections \
 	v.flexure \
 	v.habitat.dem \
 	v.in.gbif \
