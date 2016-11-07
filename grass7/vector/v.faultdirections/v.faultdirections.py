@@ -81,10 +81,15 @@ def main():
     ax = plt.subplot(111, projection='polar')
     ax.set_theta_direction(-1)
     ax.set_theta_offset(np.pi/2.0)
-    base = 5 if max(radii) > 10 else 2
-    labelstep = round((max(radii) - min(radii)) / 5)
-    labelstep = int(base * round(float(labelstep) / base))
-    labelradii = [x for x in np.arange(0, int(np.ceil(max(radii))), labelstep) if x > 0]
+    unique_radii = [x for x in set(radii) if x > 0]
+    range_radii = max(radii) - min(radii)
+    if range_radii > 4:
+        base = 5 if max(radii) > 10 else 2
+        labelstep = np.ceil((range_radii) / 5)
+        labelstep = int(base * round(labelstep / base))
+        labelradii = [x for x in np.arange(0, int(np.ceil(max(radii))), labelstep) if x > 0]
+    else:
+        labelradii = unique_radii
     ax.set_rgrids(labelradii, angle=legend_angle)
     ax.text(legend_angle*(np.pi/180), max(radii)*1.1, label)
     bars = ax.bar(theta, radii, width=width, bottom=0.0)
