@@ -2,6 +2,7 @@ MODULE_TOPDIR = ..
 
 SUBDIRS = \
 	r3.count.categories \
+	r3.r3.forestfrag \
 	r3.profile \
 	r3.scatterplot \
 	r3.what

@@ -1,7 +1,9 @@
 <h2>DESCRIPTION</h2>
 
+TODO: Create a description specific for 3D version
+
 <em>r.forestfrag</em> Computes the forest fragmentation following 
-the methodology proposed by Riitters et al. (2000). See 
+the methodology proposed by Riitters et. al (2000). See 
 <a href="http://www.consecol.org/vol4/iss2/art3/">this article</a> for a 
 detailed explanation.
 
@@ -30,10 +32,10 @@ classification model then identifies six fragmentation categories as:
 
 <div class="code"><pre>
 interior:       Pf = 1.0
-patch:          Pf &lt; 0.4
-transitional:   0.4 &le; Pf &lt; 0.6
-edge:           Pf &ge; 0.6 and Pf - Pff &lt; 0
-perforated:     Pf &ge; 0.6 and Pf - Pff &gt; 0
+patch:          Pf < 0.4
+transitional:   0.4 &le; Pf < 0.6
+edge:           Pf &ge; 0.6 and Pf - Pff < 0
+perforated:     Pf &ge; 0.6 and Pf - Pff > 0
 undetermined:   Pf &ge; 0.6 and Pf = Pff
 </pre></div>
 
@@ -52,61 +54,19 @@ window.
 to set the region to match the input layer.
 </ul>
 
-
-<h2>EXAMPLE</h2>
-
-In the North Carolina sample Location, set the computational region
-to match the land classification raster map:
-
-<div class="code"><pre>
-g.region raster=landclass96
-</pre></div>
-
-Then mark all cells which are forest as 1 and everything else as zero:
-
-<div class="code"><pre>
-r.mapcalc "forest = if(landclass96 == 5, 1, 0)"
-</pre></div>
-
-Use the new forest presence raster map to compute the forest
-fragmentation index with window size 7:
-
-<div class="code"><pre>
-r.forestfrag input=forest output=fragmentation window=7
-</pre></div>
-
-<center>
-<img src="r_forestfrag_window_7.png" alt="r.forestfrag output with window size 7">
-<img src="r_forestfrag_window_11.png" alt="r.forestfrag output with window size 11">
-<p><em>
-Two forest fragmentation indices with window size 7 (left) and
-11 (right) show how increasing window size increases the amount of
-edges.
-</em></p>
-</center>
-
-
 <h2>SEE ALSO</h2>
-
-<em>
-<a href="r.mapcalc.html">r.mapcalc</a>,
-<a href="r.li.html">r.li</a>
-</em>
-
-<p>
 The addon is based on the
-<a href="https://grasswiki.osgeo.org/wiki/AddOns/GRASS_6#r.forestfrag">
+<a href="http://grasswiki.osgeo.org/wiki/AddOns/GRASS_6#r.forestfrag>">
 r.forestfrag.sh</a> script, with as extra options user-defined
 moving window size, option to trim the region (by default it
 respects the region) and a better handling of no-data cells.
 
-
 <h2>AUTHORS</h2>
-<em>Paulo van Breugel</em>: Rewritten in Python, added option to set
-moving window size, and improved handling no-data cells<br> 
+<em>Paulo van Breugel<em>: Rewritten in Python, added option to set
+moving window size, and improved handling no-data cells 
 <em>Stefan Sylla</em>: Revised / updated the r.forestfrag.sh for
 GRASS GIS 6<br>
-<em>Emmanuel Sambale</em>: Author original shell script
+<em>Emmanuel Sambale</em>: Author original shell script<br>
 
 <h2>REFERENCES</h2> 
 Riitters, K., J. Wickham, R. O'Neill, B. Jones, 

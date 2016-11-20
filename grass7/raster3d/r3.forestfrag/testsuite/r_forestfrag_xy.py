@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO: create a 3D version of this to test r3.forestfrag
+
 ############################################################################
 #
 # MODULE:        r_forestfrag_xy
