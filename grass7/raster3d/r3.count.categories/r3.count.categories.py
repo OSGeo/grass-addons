@@ -53,6 +53,23 @@
 #% label: Moving window size
 #% description: By default, only the given cell is considered
 #%end
+#%option G_OPT_R_INPUT
+#% key: surface
+#% required: no
+#% description: Count only those cells which are under the surface (in cells)
+#%end
+#%flag
+#% key: d
+#% description: Divide count by the number of cells in the surface
+#%end
+#%flag
+#% key: s
+#% label: Expect the slices to be already present
+#% description: When running the module over and over, this saves the slicing 3D raster step
+#%end
+#%rules
+#% exclusive: size, surface
+#%end
 
 
 import grass.script as gs
@@ -63,7 +80,14 @@ def check_raster3d_exists(name):
     """Check if the raster map exists, call GRASS fatal otherwise"""
     file_info = gs.find_file(name, element='grid3')
     if not file_info['fullname']:
-        gs.fatal(_("3D Raster map <%s> not found") % name)
+        gs.fatal(_("3D raster map <%s> not found") % name)
+
+
+def check_raster2d_exists(name):
+    """Check if the raster map exists, call GRASS fatal otherwise"""
+    file_info = gs.find_file(name, element='cell')
+    if not file_info['fullname']:
+        gs.fatal(_("2D raster map <%s> not found") % name)
 
 
 def remove(maps):
@@ -99,11 +123,18 @@ def create_tmp_map_name(name):
 def main():
     options, flags = gs.parser()
 
+    # TODO: allow using existing slices with a flag
     input_ = options['input']
     output_basename = options['output']
     slices_basename = options['slices']
+    surface = options['surface']
+
+    divide = flags['d']
+    use_slices = flags['s']
 
     check_raster3d_exists(input_)
+    if surface:
+        check_raster2d_exists(surface)
 
     size = None
     if options['size']:
@@ -120,15 +151,16 @@ def main():
     additional_options['type'] = 'CELL'
 
     basename_sep = "_"
-    output_pattern = "%s%s[0-9]+" % (output_basename, basename_sep)
-    slices_pattern = "%s%s[0-9]+" % (slices_basename, basename_sep)
+    output_pattern = "^%s%s[0-9]+$" % (output_basename, basename_sep)
+    slices_pattern = "^%s%s[0-9]+$" % (slices_basename, basename_sep)
+    # TODO: slices test seems to be broken
 
     overwrite = gs.overwrite()
     rasters = list_in_current_mapset(output_pattern)
     if not overwrite and rasters:
         basename_in_use_message(output_basename, rasters)
     rasters = list_in_current_mapset(slices_pattern)
-    if not overwrite and rasters:
+    if not use_slices and not overwrite and rasters:
         basename_in_use_message(slices_basename, rasters)
 
     # TODO: list of categories would be better
@@ -141,8 +173,9 @@ def main():
     try:
         # TODO: we should switch to 3D region for the following computations?
         # or should we require resolutions to be the same?
-        gs.run_command('r3.to.rast', input=input_, output=slices_basename,
-                       **additional_options)
+        if not use_slices:
+            gs.run_command('r3.to.rast', input=input_, output=slices_basename,
+                           **additional_options)
         # it's clear we created just the ones in the current mapset
         # and we need to make the command line as short as possible
         rasters = list_in_current_mapset(slices_pattern)
@@ -160,10 +193,23 @@ def main():
                 out=output_basename, sep=basename_sep,
                 inp=expr)
         else:
-            expr = "{out}{sep}$num = int({inp} == $num)".format(
-                out=output_basename, sep=basename_sep,
-                inp=" == $num) + int(".join(rasters))
-
+            if surface:
+                # TODO: < or <= ?
+                base_expr = "if({d} < {s}, int({m} == $num), 0)"
+                expr_list = []
+                for depth, raster in enumerate(rasters):
+                    expr_list.append(base_expr.format(
+                            m=raster, d=depth + 1, s=surface))
+                expr = " + ".join(expr_list)
+                if divide:
+                    expr = "({e}) / {otype}({s})".format(
+                        e=expr, otype='float', s=surface)
+                expr = "{out}{sep}$num = {inp}".format(
+                    out=output_basename, sep=basename_sep, inp=expr)
+            else:
+                expr = "{out}{sep}$num = int({inp} == $num)".format(
+                    out=output_basename, sep=basename_sep,
+                    inp=" == $num) + int(".join(rasters))
         # TODO: define behavior when the map is empty or has just one class
         try:
             # TODO: this uses uncommitted experimental code for trunk
