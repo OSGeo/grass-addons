@@ -5,8 +5,10 @@
 #
 # MODULE:    r.forestfrag
 #
-# AUTHOR(S): Emmanuel Sambale, Stefan Sylla,
+# AUTHOR(S): Emmanuel Sambale (original shell version)
+#            Stefan Sylla (original shell version)
 #            Paulo van Breugel (Python version, paulo@ecodiv.org)
+#            Vaclav Petras (major code clean up, wenzeslaus gmail com)
 #
 # PURPOSE:   Creates forest fragmentation index map from a
 #            forest-non-forest raster; The index map is based on
@@ -93,7 +95,6 @@
 #% required: no
 #%end
 
-# import libraries
 import os
 import sys
 import uuid
@@ -101,10 +102,12 @@ import atexit
 import tempfile
 import string
 import grass.script as gs
+# neutral naming for better compatibility between 2D and 3D version
+from grass.script.raster import mapcalc
 
 
 LABELS = """\
-0 nonforest
+0 exterior
 1 patch
 2 transitional
 3 edge
@@ -122,7 +125,6 @@ COLORS_SAMBALE = """\
 5 26:152:80
 6 145:207:96
 """
-
 
 # create set to store names of temporary maps to be deleted upon exit
 CLEAN_RAST = []
@@ -159,7 +161,7 @@ def pairs_expression(map_name, max_index, combine_op, aggregate_op="+"):
     """Generate window (matrix) expression
 
     :param map_name: name of the map to index
-    :param max_index: the maximum positive index to use
+    :param max_index: the maximum positive index to use;
                       usually (window_size - 1) / 2
     :param combine_op: operator used to combine values in the pair
     :param aggregate_op: operator used to combine all pairs together
@@ -218,10 +220,10 @@ def main(options, flags):
     # set to current input map region if requested by the user
     # default is (and should be) the current region
     # we could use tmp region for this but if the flag is there
-    # it makes sense to use it from now on
+    # it makes sense to use it from now on (but we should reconsider)
     if flag_r:
         gs.message(_("Setting region to input map..."))
-        gs.run_command('g.region', quiet=True, raster=ipl)
+        gs.run_command('g.region', raster=ipl, quiet=True)
 
     # check if map values are limited to 1 and 0
     input_info = gs.raster_info(ipl)
@@ -237,10 +239,10 @@ def main(options, flags):
                  % (input_info['min'], input_info['max']))
 
     # computing pf values
-    gs.info(_("Step 1: Computing Pf values..."))
-
     # let forested pixels be x and number of all pixels in moving window
     # be y, then pf=x/y"
+
+    gs.info(_("Step 1: Computing Pf values..."))
 
     # generate grid with pixel-value=number of forest-pixels in window
     # generate grid with pixel-value=number of pixels in moving window:
@@ -254,16 +256,16 @@ def main(options, flags):
         pf = user_pf
     else:
         pf = tmpname('tmpA03_')
-    gs.mapcalc("$pf = if( $ipl >=0, float($tmpA2) / float($tmpC3))",
-               ipl=ipl, pf=pf, tmpA2=tmpA2, tmpC3=tmpC3)
+    mapcalc("$pf = if( $ipl >=0, float($tmpA2) / float($tmpC3))",
+            ipl=ipl, pf=pf, tmpA2=tmpA2, tmpC3=tmpC3)
 
     # computing pff values
-    gs.info(_("Step 2: Computing Pff values..."))
-
     # Considering pairs of pixels in cardinal directions in
     # a 3x3 window, the total number of adjacent pixel pairs is 12.
     # Assuming that x pairs include at least one forested pixel, and
     # y of those pairs are forest-forest pairs, so pff equals y/x.
+
+    gs.info(_("Step 2: Computing Pff values..."))
 
     # create copy of forest map and convert NULL to 0 (if any)
     tmpC4 = tmpname('tmpA04_')
@@ -284,15 +286,15 @@ def main(options, flags):
     else:
         pff = tmpname('tmpA07_')
     # potentially this can be split and parallelized
-    gs.mapcalc("$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
-               ipl=ipl, tmpl4=expr1, tmpl5=expr2, pff=pff)
+    mapcalc("$pff = if($ipl >= 0, float($tmpl4) / float($tmpl5))",
+            ipl=ipl, tmpl4=expr1, tmpl5=expr2, pff=pff)
 
     # computing fragmentation index
     # (a b) name, condition
     # where a is a number used by Riitters et al. in ERRATUM (2)
     # and b is a number used in the sh script by Sambale and Sylla
     # b also defines 0 for non-forested which is consistent with input
-    # (1 1) edge, if Pf > 0.6 and Pf - Pff < 0
+    # (1 3) edge, if Pf > 0.6 and Pf - Pff < 0
     # (2 6) undetermined, if Pf > 0.6 and Pf = Pff
     # (3 4) perforated, if Pf > 0.6 and Pf - Pff > 0
     # (4 5) interior, if Pf = 1.0
@@ -305,7 +307,7 @@ def main(options, flags):
         indexfin2 = tmpname('tmpA16_')
     else:
         indexfin2 = opl
-    gs.mapcalc(
+    mapcalc(
         "eval("
         "dpf = $pf - $pff,"
         # individual classes
@@ -344,7 +346,7 @@ def main(options, flags):
                        e=float(reginfo['e']) - ewcor,
                        w=float(reginfo['w']) + ewcor,
                        quiet=True)
-        gs.mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
+        mapcalc("$opl = $if3", opl=opl, if3=indexfin2, quiet=True)
 
     # create categories
     # TODO: parametrize classes (also in r.mapcalc, r.colors and desc)?
@@ -404,12 +406,13 @@ pixel of forest, its neighbor is also forest.
     if flag_s:
         gs.run_command("r.report", map=opl, units=["h", "p"],
                        flags="n", page_width=50, quiet=True)
+
     gs.info(_("The following layers were created"))
     gs.info(_("The fragmentation index: %s") % opl)
     if user_pf:
-        gs.info(_("The proportion forested (pf): %s") % pf)
+        gs.info(_("The proportion forested (Pf): %s") % pf)
     if user_pff:
-        gs.info(_("The proportion forested pixel pairs (pff): %s") % pff)
+        gs.info(_("The proportion forested pixel pairs (Pff): %s") % pff)
 
 
 if __name__ == "__main__":
