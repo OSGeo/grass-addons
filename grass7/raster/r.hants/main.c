@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *lo, *hi, *lazy;
+	struct Flag *lo, *hi, *lazy, *int_only;
     } flag;
     int i, j, k;
     int num_inputs;
@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
     int bl;
     double **mat, **mat_t, **A, *Av, *Azero, *za, *zr, maxerrlo, maxerrhi;
     int asize;
+    int first, last, interp_only;
     int dod, nf, nr, nout, noutmax;
     int rejlo, rejhi, *useval;
     int do_amp, do_phase;
@@ -250,6 +251,10 @@ int main(int argc, char *argv[])
     flag.lazy->key = 'z';
     flag.lazy->description = _("Don't keep files open");
 
+    flag.int_only = G_define_flag();
+    flag.int_only->key = 'i';
+    flag.int_only->description = _("Do not extrapolate, only interpolate");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -301,6 +306,8 @@ int main(int argc, char *argv[])
     rejhi = flag.hi->answer;
     if ((rejlo || rejhi) && !parm.fet->answer)
 	G_fatal_error(_("Fit error tolerance is required when outliers should be rejected"));
+
+    interp_only = flag.int_only->answer;
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -537,6 +544,8 @@ int main(int argc, char *argv[])
 	for (col = 0; col < ncols; col++) {
 	    int null = 0, non_null = 0;
 
+	    first = last = -1;
+
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL v = inputs[i].buf[col];
 
@@ -551,11 +560,20 @@ int main(int argc, char *argv[])
 		else {
 		    non_null++;
 		    useval[i] = 1;
+
+		    if (first == -1)
+			first = i;
+		    last = i;
 		}
 
 		values[i] = v;
 	    }
 	    nout = null;
+
+	    if (!interp_only) {
+		first = 0;
+		last = num_inputs - 1;
+	    }
 
 	    /* HANTS */
 	    if (nout <= noutmax) {
@@ -645,7 +663,15 @@ int main(int argc, char *argv[])
 			done = 1;
 		}
 
-		for (i = 0; i < num_outputs; i++) {
+		i = 0;
+		while (i < first) {
+		    struct output *out = &outputs[i];
+
+		    Rast_set_d_null_value(&out->buf[col], 1);
+		    i++;
+		}
+
+		for (i = first; i <= last; i++) {
 		    struct output *out = &outputs[i];
 
 		    out->buf[col] = rc[i];
@@ -653,6 +679,14 @@ int main(int argc, char *argv[])
 			out->buf[col] = lo;
 		    else if (rc[i] > hi)
 			out->buf[col] = hi;
+		}
+
+		i = last + 1;
+		while (i < num_outputs) {
+		    struct output *out = &outputs[i];
+
+		    Rast_set_d_null_value(&out->buf[col], 1);
+		    i++;
 		}
 
 		if (do_amp || do_phase) {
