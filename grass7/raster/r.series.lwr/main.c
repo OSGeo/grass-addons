@@ -144,7 +144,7 @@ static int solvemat(double **m, double a[], double B[], int n)
 	/* co-linear points result in an undefined matrix, and nearly */
 	/* co-linear points results in a solution with rounding error */
 
-	if (pivot == 0.0) {
+	if (fabs(pivot) < GRASS_EPSILON) {
 	    G_debug(4, "Matrix is unsolvable");
 	    return 0;
 	}
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *lo, *hi, *lazy;
+	struct Flag *lo, *hi, *lazy, *int_only;
     } flag;
     int i, j, k, n;
     int num_inputs, in_lo, in_hi;
@@ -247,6 +247,7 @@ int main(int argc, char *argv[])
     int dod;
     int *isnull, n_nulls;
     int min_points, n_points;
+    int first, last, interp_only;
     int this_margin;
     double max_ts, tsdiff1, tsdiff2;
     double delta;
@@ -338,6 +339,10 @@ int main(int argc, char *argv[])
     flag.lazy->key = 'z';
     flag.lazy->description = _("Don't keep files open");
 
+    flag.int_only = G_define_flag();
+    flag.int_only->key = 'i';
+    flag.int_only->description = _("Do not extrapolate, only interpolate");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -400,6 +405,8 @@ int main(int argc, char *argv[])
     else 
 	G_fatal_error(_("Unknown weighing function '%s'"),
 	              parm.weight->answer);
+
+    interp_only = flag.int_only->answer;
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -554,6 +561,7 @@ int main(int argc, char *argv[])
 
 	for (col = 0; col < ncols; col++) {
 
+	    first = last = -1;
 	    n_nulls = 0;
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL v = inputs[i].buf[col];
@@ -568,13 +576,22 @@ int main(int argc, char *argv[])
 		    isnull[i] = 1;
 		    n_nulls++;
 		}
+		else {
+		    if (first == -1)
+			first = i;
+		    last = i;
+		}
 		values[i] = v;
+	    }
+	    if (!interp_only) {
+		first = 0;
+		last = num_inputs - 1;
 	    }
 
 	    /* LWR */
 	    if (num_inputs - n_nulls >= min_points) {
 
-		for (i = 0; i < num_inputs; i++) {
+		for (i = first; i <= last; i++) {
 		    DCELL result;
 
 		    /* margin around i */
