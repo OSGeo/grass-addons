@@ -349,9 +349,14 @@
 #%end
 #%option
 #%  key: electro_layer
-#%  description: Name of the vector map layer of the grid
+#%  description: Vector map layer of the grid
 #%  required: no
 #%  answer: 1
+#%end
+#%option
+#%  key: elines
+#%  description: Output name of the vector map with power lines
+#%  required: no
 #%end
 
 #############################################################################
@@ -446,14 +451,7 @@
 #%  key: operative_hours
 #%  type: double
 #%  description: Number of operative hours per year [hours/year]
-#%  answer: 6500.
-#%  guisection: Revenues
-#%end
-#%option
-#%  key: alpha_revenue
-#%  type: double
-#%  description: Coefficient to transform installed power to mean power
-#%  answer: 1.0
+#%  answer: 3650.
 #%  guisection: Revenues
 #%end
 #%option
@@ -495,20 +493,24 @@
 from __future__ import print_function
 
 import os
+import sys
 import atexit
 import numpy as np
-from grass.script import core as gcore
 from grass.exceptions import ParameterError
 from grass.script.core import parser, overwrite, warning
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 
 from grass.pygrass.utils import set_path
-from grass.pygrass.raster import RasterRow
 from grass.pygrass.vector import VectorTopo, sql
 from grass.pygrass.vector.basic import Cats
+from grass.pygrass.vector import geometry as geo
+from grass.pygrass.gis.region import Region
 
 from grass.pygrass.messages import get_msgr
+
+#from grass.script import mapcalc
+version = 70  # 71
 
 try:
     import numexpr as ne
@@ -704,19 +706,41 @@ def get_electro_length(opts):
         # open vector map with the existing electroline
         ename = opts['electro']
         ename, emapset = ename.split('@') if '@' in ename else (ename, '')
-        with VectorTopo(ename, mapset=emapset, layer=int(opts['electro_layer']),
+        ltemp=[]
+        with VectorTopo(ename, mapset=emapset,
+                        layer=int(opts['electro_layer']),
                         mode='r') as electro:
-            for line in vect:
-                if line.attrs[kcol] == ktype:
+            pid = os.getpid()
+            elines = (opts['elines'] if opts['elines']
+                      else ('tmprgreen_%i_elines' % pid))
+            for cat, line in enumerate(vect):
+                if line.attrs[kcol] == ktype and line.attrs['side']=='option1':
                     # the turbine is the last point of the penstock
                     turbine = line[-1]
                     # find the closest electro line
                     eline = electro.find['by_point'].geo(turbine, maxdist=1e6)
                     dist = eline.distance(turbine)
-                    line.attrs['electro_length'] = dist.dist
+                    # line.attrs['electro_length'] = dist.dist
+                    ltemp.append([geo.Line([turbine, dist.point]),
+                                 (line.attrs['plant_id'], line.attrs['side'])])
                 else:
                     line.attrs['electro_length'] = 0.
             vect.table.conn.commit()
+        new = VectorTopo(elines)  # new vec with elines
+        new.layer = 1
+        cols = [(u'cat', 'INTEGER PRIMARY KEY'),
+                (u'plant_id',  'VARCHAR(10)'),
+                (u'side', 'VARCHAR(10)'), ]
+        new.open('w', tab_cols=cols)
+        reg = Region()
+        for cat, line in enumerate(ltemp):
+            if version == 70:
+                new.write(line[0], line[1])
+            else:
+                new.write(line[0], cat=cat, attrs=line[1])
+        new.table.conn.commit()
+        new.comment = (' '.join(sys.argv))
+        new.close()
 
 
 def get_gamma_NPV(r=0.03, y=30):
@@ -847,6 +871,36 @@ def economic2segment(economic, segment, basename='eco_',
             print('Finish')
 
 
+def write2struct(elines, opts):
+    msgr = get_msgr()
+    ktype = opts['struct_kind_turbine']
+    kcol = opts['struct_column_kind']
+    pname = opts['struct']
+    pname, vmapset = pname.split('@') if '@' in pname else (pname, '')
+    with VectorTopo(pname, mapset=vmapset, layer=int(opts['struct_layer']),
+                    mode='r') as vect:
+
+        if 'el_comp_exc' not in vect.table.columns:
+            vect.table.columns.add('el_comp_exc', 'double precision')
+        ename, emapset = elines.split('@') if '@' in elines else (elines, '')
+        with VectorTopo(ename, mapset=emapset,
+                        mode='r') as electro:
+            for line in vect:
+                if line.attrs[kcol] == ktype:
+                    plant_id = line.attrs['plant_id']
+                    line.attrs['el_comp_exc'] = 0.
+                    for eline in electro:
+                        if plant_id == eline.attrs['plant_id']:
+                            msgr.message(plant_id)
+                            cost = ((eline.attrs['comp_cost_sum'] +
+                                     eline.attrs['exc_cost_sum'])
+                                    if eline.attrs['comp_cost_sum'] else 0)
+                            line.attrs['el_comp_exc'] = cost
+                            electro.rewind()
+                            break
+            vect.table.conn.commit()
+
+
 def main(opts, flgs):
     pid = os.getpid()
     pat = "tmprgreen_%i_*" % pid
@@ -920,6 +974,16 @@ def main(opts, flgs):
                 alpha=float(opts['lc_electro']), length='electro_length',
                 vlayer=vlayer, ctype='double precision',  overwrite=overw)
 
+    # add excavation cost and compensation cost for electroline
+    elines = (opts['elines'] if opts['elines']
+              else ('tmprgreen_%i_elines' % pid))
+    v.rast_stats(map=elines, layer=vlayer, flags='c',
+                 raster=comp, column_prefix='comp_cost', method='sum')
+    # add excavation costs
+    v.rast_stats(map=elines, layer=vlayer, flags='c',
+                 raster=exc, column_prefix='exc_cost', method='sum')
+    write2struct(elines, opts)
+
     xcost = "{cname} = {alpha} * {em}"
     # add power station costs
     vcolcalc(vname=struct, vlayer=vlayer,
@@ -933,7 +997,7 @@ def main(opts, flgs):
                                alpha=opts['alpha_inlet']))
     # add total inlet costs
     # TODO: to be check to avoid to count cost more than one time I have moltiplied by 0.5
-    tot = ('tot_cost = (comp_cost_sum + em_cost + '
+    tot = ('tot_cost = (comp_cost_sum + em_cost + el_comp_exc +'
            'lin_pipe_cost + lin_electro_cost + '
            'station_cost + inlet_cost + {grid}*0.5) * '
            '(1 + {general} + {hindrances})')
@@ -983,7 +1047,7 @@ def main(opts, flgs):
                                const=opts['const_maintenance']))
 
     # compute yearly revenues
-    rev = "{cname} = {eta} * {power} * {eprice} * {ophours} * {alpha} + {const}"
+    rev = "{cname} = {eta} * {power} * {eprice} * {ophours}  + {const}"
     vcolcalc(vname=opts['output_struct'], vlayer=vlayer,
              ctype='double precision', notfinitesubstitute=0.,
              expr=rev.format(cname='revenue',
@@ -991,7 +1055,6 @@ def main(opts, flgs):
                              power=opts['struct_column_power'],
                              eprice=opts['energy_price'],
                              ophours=opts['operative_hours'],
-                             alpha=opts['alpha_revenue'],
                              const=opts['const_revenue']))
 
     # compute the Net Present Value
