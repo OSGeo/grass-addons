@@ -77,9 +77,18 @@ average, any predictors are mostly ignored. A too large bandwidth will
 produce results similar to a global regression, and spatial 
 non-stationarity can not be explored.
 
+<h4>Adaptive bandwidth</h4>
+Instead of using a fixed bandwidth (search radius for each cell), an 
+adaptive bandwidth can be used by specifying the number of points to be 
+used for each local regression with the <em>npoints</em> option. The 
+module will find the nearest <em>npoints</em> points for each cell, 
+adapt the bandwith accordingly and then calculate a local weighted 
+regression.
+
 <h4>Kernel functions</h4>
-The kernel function has little influence on the result, much more important is the 
-bandwidth. Available kernel funtions to calculate weights are
+The kernel function has little influence on the result, much more 
+important is the bandwidth. Available kernel funtions to calculate 
+weights are
 
 <dl>
 <dt><b>Epanechnikov</b></dt>
@@ -96,6 +105,10 @@ with<br>
 w = weight for current cell<br>
 d = distance to the current cell<br>
 bw = bandwidth
+
+<h4>Masking</h4>
+A <em>mask</em> map can be provided to restrict LWR to those cells 
+where the mask map is not NULL and not 0 (zero).
 
 <h2>REFERENCES</h2>
 

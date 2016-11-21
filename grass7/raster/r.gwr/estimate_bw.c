@@ -140,9 +140,9 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 	    readrast(&ybuf3, nrows, ncols);
 	}
 
-	w1 = w_fn(prevbw);
-	w2 = w_fn(bw);
-	w3 = w_fn(nextbw);
+	w1 = calc_weights(prevbw);
+	w2 = calc_weights(bw);
+	w3 = calc_weights(nextbw);
 	/* leave one out: the center cell */
 	w1[prevbw][prevbw] = 0.;
 	w2[bw][bw] = 0.;

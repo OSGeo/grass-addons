@@ -10,99 +10,72 @@
 
 static double vf = -0.5;
 
-double ** (*w_fn) (int);
+double (*w_fn) (double, double);
 
-double **epanechnikov(int bw)
+double epanechnikov(double d2, double bw)
 {
-    int r, c;
-    double bw2, bw2d, d, **w;
+    double bw2, bw2d, w;
 
-    w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
     bw2 = (bw + 1);
     bw2d = bw * bw;
-    
-    for (r = -bw; r <= bw; r++) {
-	for (c = -bw; c <= bw; c++) {
-	    d = r * r + c * c;
-	    w[r + bw][c + bw] = 0;
 
-	    if (d <= bw2d) {
-		w[r + bw][c + bw] = 1 - d / bw2;
-	    }
-	}
+    w = 0;
+
+    if (d2 <= bw2d) {
+	w = 1 - d2 / bw2;
     }
-    
+
     return w;
 }
 
-double **bisquare(int bw)
+double bisquare(double d2, double bw)
 {
-    int r, c;
-    double bw2, bw2d, d, **w, t;
+    double bw2, bw2d, w, t;
 
-    w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
     bw2 = (bw + 1) * (bw + 1);
     bw2d = bw * bw;
-    
-    for (r = -bw; r <= bw; r++) {
-	for (c = -bw; c <= bw; c++) {
-	    d = r * r + c * c;
-	    w[r + bw][c + bw] = 0;
 
-	    if (d <= bw2d) {
-		t = 1 - d / bw2;
-		w[r + bw][c + bw] = t * t;
-	    }
-	}
+    w = 0;
+
+    if (d2 <= bw2d) {
+	t = 1 - d2 / bw2;
+	w = t * t;
     }
     
     return w;
 }
 
-double **tricubic(int bw)
+double tricubic(double d2, double bw)
 {
-    int r, c;
-    double bw3, bw3d, d, **w, t;
+    double bw3, bw3d, w, d3, t;
 
-    w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
     bw3 = (bw + 1) * (bw + 1) * (bw + 1);
     bw3d = bw * bw * bw;
-    
-    for (r = -bw; r <= bw; r++) {
-	for (c = -bw; c <= bw; c++) {
-	    d = sqrt(r * r + c * c);
-	    d = d * d * d;
-	    w[r + bw][c + bw] = 0;
 
-	    if (d <= bw3d) {
-		t = 1 - d / bw3;
-		w[r + bw][c + bw] = t * t * t;
-	    }
-	}
+    d3 = sqrt(d2);
+    d3 = d3 * d3 * d3;
+    w = 0;
+
+    if (d3 <= bw3d) {
+	t = 1 - d3 / bw3;
+	w = t * t * t;
     }
     
     return w;
 }
 
-double **gauss(int bw)
+double gauss(double d2, double bw)
 {
-    int r, c;
-    double bw2, d, **w;
+    double bw2, w;
 
-    w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
     bw2 = bw * bw;
 
     /* Gaussian function: exp(-x^2 / ( 2 * variance) */
 
-    for (r = -bw; r <= bw; r++) {
-	for (c = -bw; c <= bw; c++) {
-	    d = r * r + c * c;
-	    w[r + bw][c + bw] = 0;
+    w = 0;
 
-	    if (d <= bw2) {
-		w[r + bw][c + bw] = exp(vf * d / bw2);
-	    }
-	}
+    if (d2 <= bw2) {
+	w = exp(vf * d2 / bw2);
     }
 
     return w;
@@ -123,4 +96,25 @@ void set_wfn(char *name, int vfu)
 	w_fn = tricubic;
     else
 	G_fatal_error(_("Invalid kernel option '%s'"), name);
+}
+
+double **calc_weights(int bw)
+{
+    int r, c, count;
+    double d2, **w;
+
+    w = G_alloc_matrix(bw * 2 + 1, bw * 2 + 1);
+
+    count = 0;
+    for (r = -bw; r <= bw; r++) {
+	for (c = -bw; c <= bw; c++) {
+	    d2 = r * r + c * c;
+	    w[r + bw][c + bw] = w_fn(d2, bw);
+	    if (w[r + bw][c + bw] > 0)
+		count++;
+	}
+    }
+    G_verbose_message(_("%d cells for bandwidth %d"), count, bw);
+
+    return w;
 }

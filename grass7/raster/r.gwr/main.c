@@ -10,7 +10,7 @@
  *               y = b0 + b1*x1 + b2*x2 + ... +  bn*xn + e
  *               with localized b coefficients 
  * 
- * COPYRIGHT:    (C) 2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2011-2016 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -31,7 +31,7 @@
 int main(int argc, char *argv[])
 {
     unsigned int r, c, rows, cols, count;
-    int *mapx_fd, mapy_fd, mapres_fd, mapest_fd;
+    int *mapx_fd, mapy_fd, mapres_fd, mapest_fd, mask_fd;
     int i, j, k, n_predictors;
     double yres;
     double *B, *Bmin, *Bmax, *Bsum, *Bsumsq, *Bmean, Bstddev;
@@ -41,20 +41,25 @@ int main(int argc, char *argv[])
     double SStot, SSerr, SSreg, *SSerr_without;
     double Rsq, Rsqadj, SE, F, t, AIC, AICc, BIC;
     DCELL *mapx_val, mapy_val, *mapy_buf, *mapres_buf, *mapest_buf;
+    CELL *mask_buf;
     struct rb *xbuf, ybuf;
+    SEGMENT in_seg;
+    DCELL **segx_buf, *seg_val;
+    int segsize, nseg;
+    double mem_mb;
+    FLAG *null_flag;
     struct outputb {
 	int fd;
 	char name[GNAME_MAX];
 	DCELL *buf;
     } *outb, *outbp;
     double **weights;
-    int bw;
+    int bw, npnts;
     char *name;
-    struct Option *input_mapx, *input_mapy,
+    struct Option *input_mapx, *input_mapy, *mask_opt,
                   *output_res, *output_est, *output_b, *output_opt,
-		  *bw_opt, *kernel_opt, *vf_opt;
+		  *kernel_opt, *vf_opt, *bw_opt, *pnts_opt, *mem_opt;
     struct Flag *shell_style, *estimate;
-    /*struct Flag *adaptive;*/
     struct Cell_head region;
     struct GModule *module;
 
@@ -74,6 +79,12 @@ int main(int argc, char *argv[])
     input_mapy = G_define_standard_option(G_OPT_R_INPUT);
     input_mapy->key = "mapy";
     input_mapy->description = (_("Map with Y variable"));
+
+    mask_opt = G_define_standard_option(G_OPT_R_INPUT);
+    mask_opt->key = "mask";
+    mask_opt->label = _("Raster map to use for masking");
+    mask_opt->description = _("Only cells that are not NULL and not zero are processed");
+    mask_opt->required = NO;
 
     output_res = G_define_standard_option(G_OPT_R_OUTPUT);
     output_res->key = "residuals";
@@ -110,7 +121,7 @@ int main(int argc, char *argv[])
     bw_opt->key = "bandwidth";
     bw_opt->type = TYPE_INTEGER;
     bw_opt->answer = "10";
-    bw_opt->required = YES;
+    bw_opt->required = NO;
     bw_opt->description =
 	(_("Bandwidth of the weighing kernel."));
 
@@ -123,6 +134,21 @@ int main(int argc, char *argv[])
     vf_opt->description =
 	(_("Variance factor for Gaussian kernel: variance = bandwith / factor."));
 
+    pnts_opt = G_define_option();
+    pnts_opt->key = "npoints";
+    pnts_opt->type = TYPE_INTEGER;
+    pnts_opt->required = NO;
+    pnts_opt->answer = "0";
+    pnts_opt->label = _("Number of points for adaptive bandwidth");
+    pnts_opt->description = _("If 0, fixed bandwidth is used");
+
+    mem_opt = G_define_option();
+    mem_opt->key = "memory";
+    mem_opt->type = TYPE_INTEGER;
+    mem_opt->required = NO;
+    mem_opt->answer = "300";
+    mem_opt->description = _("Memory in MB for adaptive bandwidth");
+
     shell_style = G_define_flag();
     shell_style->key = 'g';
     shell_style->description = _("Print in shell script style");
@@ -130,10 +156,6 @@ int main(int argc, char *argv[])
     estimate = G_define_flag();
     estimate->key = 'e';
     estimate->description = _("Estimate optimal bandwidth");
-
-    /*adaptive = G_define_flag();
-    adaptive->key = 'a';
-    adaptive->description = _("Adaptive kernel size");*/
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -163,9 +185,6 @@ int main(int argc, char *argv[])
     if (bw < 2)
 	G_fatal_error(_("Option <%s> must be > 1"), bw_opt->key);
 
-    /*if(adaptive->answer)*/
-        /*IN MAKING*/
-
     set_wfn(kernel_opt->answer, atoi(vf_opt->answer));
 
     /* open maps */
@@ -175,6 +194,13 @@ int main(int argc, char *argv[])
 	mapx_fd[i] = Rast_open_old(input_mapx->answers[i], "");
     }
     mapy_fd = Rast_open_old(input_mapy->answer, "");
+
+    mask_fd = -1;
+    mask_buf = NULL;
+    if (mask_opt->answer) {
+	mask_fd = Rast_open_old(mask_opt->answer, "");
+	mask_buf = Rast_allocate_c_buf();
+    }
 
     for (i = 0; i < n_predictors; i++) {
 	SSerr_without[i] = 0.0;
@@ -192,12 +218,21 @@ int main(int argc, char *argv[])
 	exit(EXIT_SUCCESS);
     }
 
+    npnts = 0;
+    if (pnts_opt->answer) {
+	npnts = atoi(pnts_opt->answer);
+	if (npnts != 0 && npnts < n_predictors + 1)
+	    G_fatal_error(_("Option <%s> must be > %d"), pnts_opt->key, n_predictors + 1);
+    }
+
     xbuf = (struct rb *)G_malloc(n_predictors * sizeof(struct rb));
 
-    for (i = 0; i < n_predictors; i++) {
-	allocate_bufs(&xbuf[i], cols, bw, mapx_fd[i]);
+    if (npnts == 0) {
+	for (i = 0; i < n_predictors; i++) {
+	    allocate_bufs(&xbuf[i], cols, bw, mapx_fd[i]);
+	}
+	allocate_bufs(&ybuf, cols, bw, mapy_fd);
     }
-    allocate_bufs(&ybuf, cols, bw, mapy_fd);
 
     meanY = sumY = 0.0;
 
@@ -225,32 +260,29 @@ int main(int argc, char *argv[])
     if (count < (unsigned int) (n_predictors + 1))
 	G_fatal_error(_("Not enough valid cells available"));
 
+    if (npnts > 0 && (unsigned int) npnts > count)
+	G_fatal_error(_("The number of points for adaptive bandwidth is larger than the number of valid cells"));
+
     meanY = sumY / count;
 
     /* residuals output */
+    mapres_fd = -1;
+    mapres_buf = NULL;
     if (output_res->answer) {
 	mapres_fd = Rast_open_new(output_res->answer, DCELL_TYPE);
 	mapres_buf = Rast_allocate_d_buf();
     }
-    else {
-	mapres_fd = -1;
-	mapres_buf = NULL;
-    }
 
     /* estimates output */
+    mapest_fd = -1;
+    mapest_buf = NULL;
     if (output_est->answer) {
 	mapest_fd = Rast_open_new(output_est->answer, DCELL_TYPE);
 	mapest_buf = Rast_allocate_d_buf();
     }
-    else {
-	mapest_fd = -1;
-	mapest_buf = NULL;
-    }
 
     /* gwr for each cell: get estimate */
-    G_message(_("Geographically weighted regression..."));
 
-    weights = w_fn(bw);
     count = 0;
     mapx_val[0] = 1.0;
     SStot = SSerr = SSreg = 0.0;
@@ -258,12 +290,81 @@ int main(int argc, char *argv[])
 	SSerr_without[i] = 0.0;
     }
 
-    /* initialize the raster buffers with 'bw' rows */
-    for (i = 0; i < bw; i++) {
-	for (j = 0; j < n_predictors; j++)
-	    readrast(&(xbuf[j]), rows, cols);
-	readrast(&ybuf, rows, cols);
+    segsize = 0;
+    seg_val = NULL;
+    null_flag = NULL;
+    weights = NULL;
+    if (npnts == 0) {
+	weights = calc_weights(bw);
+
+	/* initialize the raster buffers with 'bw' rows */
+	for (i = 0; i < bw; i++) {
+	    for (j = 0; j < n_predictors; j++)
+		readrast(&(xbuf[j]), rows, cols);
+	    readrast(&ybuf, rows, cols);
+	}
     }
+    else {
+	G_message(_("Loading input maps to temporary file..."));
+
+	segsize = sizeof(DCELL) * (n_predictors + 1);
+	seg_val = G_malloc(segsize);
+
+	segx_buf = G_malloc(sizeof(DCELL *) * n_predictors);
+	for (i = 0; i < n_predictors; i++)
+	    segx_buf[i] = Rast_allocate_d_buf();
+
+	mem_mb = 300;
+	if (mem_opt->answer)
+	    mem_mb = atoi(mem_opt->answer);
+	if (mem_mb < 10)
+	    mem_mb = 10;
+	
+	nseg = mem_mb * 1024.0 / (64 * 64 * segsize);
+	
+	Segment_open(&in_seg, G_tempfile(), rows, cols, 64, 64,
+	             segsize, nseg);
+
+	null_flag = flag_create(rows, cols);
+
+	for (r = 0; r < rows; r++) {
+	    G_percent(r, rows, 2);
+
+	    for (i = 0; i < n_predictors; i++) {
+		Rast_get_d_row(mapx_fd[i], segx_buf[i], r);
+	    }
+	    Rast_get_d_row(mapy_fd, mapy_buf, r);
+
+	    for (c = 0; c < cols; c++) {
+		int x_null;
+		
+		x_null = 0;
+
+		for (i = 0; i < n_predictors; i++) {
+		    seg_val[i] = segx_buf[i][c];
+		    if (Rast_is_d_null_value(&seg_val[i])) {
+			Rast_set_d_null_value(seg_val, n_predictors + 1);
+			x_null = 1;
+			break;
+		    }
+		}
+		if (!x_null) {
+		    seg_val[n_predictors] = mapy_buf[c];
+		}
+		if (Segment_put(&in_seg, (void *)seg_val, r, c) != 1)
+		    G_fatal_error(_("Unable to write to temporary file"));
+		
+		if (!x_null && !Rast_is_d_null_value(&mapy_buf[c]))
+		    FLAG_SET(null_flag, r, c);
+	    }
+	}
+	G_percent(1, 1, 1);
+	
+	for (i = 0; i < n_predictors; i++)
+	    G_free(segx_buf[i]);
+	G_free(segx_buf);
+    }
+    G_free(mapy_buf);
 
     /* initialize coefficient statistics */
     Bmin = G_malloc((n_predictors + 1) * sizeof(double));
@@ -293,14 +394,19 @@ int main(int argc, char *argv[])
 	}
     }
 
+    G_message(_("Geographically weighted regression..."));
     for (r = 0; r < rows; r++) {
 	G_percent(r, rows, 2);
 
-	for (i = 0; i < n_predictors; i++) {
-	    readrast(&(xbuf[i]), rows, cols);
+	if (npnts == 0) {
+	    for (i = 0; i < n_predictors; i++) {
+		readrast(&(xbuf[i]), rows, cols);
+	    }
+	    readrast(&ybuf, rows, cols);
 	}
-
-	readrast(&ybuf, rows, cols);
+	
+	if (mask_buf)
+	    Rast_get_c_row(mask_fd, mask_buf, r);
 
 	if (mapres_buf)
 	    Rast_set_d_null_value(mapres_buf, cols);
@@ -316,20 +422,42 @@ int main(int argc, char *argv[])
 
 	for (c = 0; c < cols; c++) {
 	    int isnull = 0;
-
-	    for (i = 0; i < n_predictors; i++) {
-		mapx_val[i + 1] = xbuf[i].buf[bw][c + bw];
-		if (Rast_is_d_null_value(&(mapx_val[i + 1]))) {
-		    isnull = 1;
-		    break;
-		}
+	    
+	    if (mask_buf) {
+		if (Rast_is_c_null_value(&mask_buf[c]) || mask_buf[c] == 0)
+		    continue;
 	    }
+
+	    if (npnts == 0) {
+		for (i = 0; i < n_predictors; i++) {
+		    mapx_val[i + 1] = xbuf[i].buf[bw][c + bw];
+		    if (Rast_is_d_null_value(&(mapx_val[i + 1]))) {
+			isnull = 1;
+			break;
+		    }
+		}
+		mapy_val = ybuf.buf[bw][c + bw];
+	    }
+	    else {
+		Segment_get(&in_seg, (void *)seg_val, r, c);
+		if (Rast_is_d_null_value(&(seg_val[0]))) {
+		    isnull = 1;
+		}
+		mapy_val = seg_val[n_predictors];
+	    }
+
 	    if (isnull)
 		continue;
 
-	    if (!gwr(xbuf, n_predictors, &ybuf, c, bw, weights, yest, &B)) {
-		G_warning(_("Unable to determine coefficients. Consider increasing the bandwidth."));
-		continue;
+	    if (npnts == 0) {
+		if (!gwr(xbuf, n_predictors, &ybuf, c, bw, weights, yest, &B)) {
+		    continue;
+		}
+	    }
+	    else {
+		if (!gwra(&in_seg, null_flag, n_predictors, r, c, npnts, yest, &B)) {
+		    continue;
+		}
 	    }
 	    
 	    /* coefficient stats */
@@ -353,7 +481,6 @@ int main(int argc, char *argv[])
 	    if (mapest_buf)
 		mapest_buf[c] = yest[0];
 
-	    mapy_val = ybuf.buf[bw][c + bw];
 	    if (Rast_is_d_null_value(&mapy_val))
 		continue;
 
@@ -507,8 +634,13 @@ int main(int argc, char *argv[])
 	Rast_close(mapx_fd[i]);
     }
     Rast_close(mapy_fd);
-    G_free(mapy_buf);
-    
+
+    if (mask_buf)
+	Rast_close(mask_fd);
+
+    if (npnts > 0)
+	Segment_close(&in_seg);
+
     if (mapres_fd > -1) {
 	struct History history;
 

@@ -6,19 +6,12 @@
 #include <grass/glocale.h>
 #include <grass/raster.h>
 #include "local_proto.h"
+#include "gwr.h"
 
 /* geographically weighted regression:
  * estimate coefficients for given cell */
 
-struct MATRIX
-{
-    int n;			/* SIZE OF THIS MATRIX (N x N) */
-    double **v;
-};
-
-#define M(m,row,col) (m)->v[(row)][(col)]
-
-static int solvemat(struct MATRIX *m, double a[], double B[])
+int solvemat(struct MATRIX *m, double a[], double B[])
 {
     int i, j, i2, j2, imark;
     double factor, temp, *tempp;
@@ -43,7 +36,7 @@ static int solvemat(struct MATRIX *m, double a[], double B[])
 	/* co-linear points result in an undefined matrix, and nearly */
 	/* co-linear points results in a solution with rounding error */
 
-	if (pivot == 0.0) {
+	if (fabs(pivot) < GRASS_EPSILON) {
 	    G_debug(1, "Matrix is unsolvable");
 	    return 0;
 	}
@@ -99,7 +92,7 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
     int nsize;
     static DCELL *xval = NULL;
     DCELL yval;
-    int count, isnull;;
+    int count, isnull, solved;
     /* OLS */
     static double **a = NULL;
     static double **B = NULL;
@@ -210,17 +203,17 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
 		    }
 		}
 	    }
-
 	    count++;
 	}
     }
-    
-    /* estimate coefficients */
+
     if (count < ninx + 1) {
-	G_debug(4, "Not enough valid cells available");
+	G_message(_("Unable to determine coefficients. Consider increasing the bandwidth."));
 	return 0;
     }
 
+    /* estimate coefficients */
+    solved = ninx + 1;
     for (k = 0; k <= ninx; k++) {
 	m = &(m_all[k]);
 
@@ -235,17 +228,16 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
 		fprintf(stdout, "b%d=0.0\n", i);
 	    }
 	    */
-	    G_debug(1, "Try a larger bandwidth");
-	    count = 0;
+	    G_debug(1, "Solving matrix %d failed", k);
+	    solved--;
 	}
     }
-    if (count < ninx + 1) {
+    if (solved < ninx + 1) {
+	G_debug(3, "%d of %d equation systems could not be solved", ninx + 1 - solved, ninx + 1);
 	return 0;
     }
 
     /* second pass: calculate estimates */
-    c = cc;
-
     isnull = 0;
     for (i = 0; i < ninx; i++) {
 
