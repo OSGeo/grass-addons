@@ -4,13 +4,16 @@
 #include <math.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include <grass/vector.h>
-#include <grass/glocale.h>
-#include <grass/kdtree.h>
 #include <grass/segment.h>
+#include <grass/rbtree.h>
+#include <grass/glocale.h>
 #include "tps.h"
 #include "flag.h"
 #include "rclist.h"
+
+#ifdef USE_RC
+#undef USE_RC
+#endif
 
 static int solvemat(double **m, double a[], double B[], int n)
 {
@@ -85,34 +88,88 @@ static int solvemat(double **m, double a[], double B[], int n)
     return 1;
 }
 
-static int load_tps_pnts(struct tps_pnt *pnts, int n_points, int n_vars, 
+static int row_src2dst(int row, struct Cell_head *src, struct Cell_head *dst)
+{
+    return (dst->north - src->north + (row + 0.5) * src->ns_res) / dst->ns_res;
+}
+
+static int row_dst2src(int row, struct Cell_head *src, struct Cell_head *dst)
+{
+    return (src->north - dst->north + (row + 0.5) * dst->ns_res) / src->ns_res;
+}
+
+static int col_src2dst(int col, struct Cell_head *src, struct Cell_head *dst)
+{
+    return (src->west - dst->west + (col + 0.5) * src->ew_res) / dst->ew_res;
+}
+
+static int col_dst2src(int col, struct Cell_head *src, struct Cell_head *dst)
+{
+    return (dst->west - src->west + (col + 0.5) * dst->ew_res) / src->ew_res;
+}
+
+static int cmp_pnts(const void *first, const void *second)
+{
+    struct tps_pnt *a = (struct tps_pnt *)first;
+    struct tps_pnt *b = (struct tps_pnt *)second;
+
+    if (a->r == b->r)
+	return (a->c - b->c);
+
+    return (a->r - b->r);
+}
+
+static int load_tps_pnts(SEGMENT *in_seg, int n_vars, 
+                         struct tps_pnt *pnts, int n_points,
+			 struct Cell_head *src, struct Cell_head *dst, 
 			 double regularization, double **m, double *a)
 {
     int i, j, k;
     double dx, dy, dist, dist2, distsum, reg;
+    DCELL *dval;
+    
+    dval = G_malloc((1 + n_vars) * sizeof(DCELL));
     
     for (i = 0; i <= n_vars; i++) {
 	a[i] = 0.0;
-	for (j = 0; j <= n_vars; j++) {
+	m[i][i] = 0.0;
+	for (j = 0; j < i; j++) {
 	    m[i][j] = m[j][i] = 0.0;
 	}
     }
 
     distsum = 0;
     for (i = 0; i < n_points; i++) {
+
+	Segment_get(in_seg, (void *)dval, pnts[i].r, pnts[i].c);
+
 	/* global */
-	a[i + 1 + n_vars] = pnts[i].val;
+	a[i + 1 + n_vars] = dval[0];
 	m[0][i + 1 + n_vars] = m[i + 1 + n_vars][0] = 1.0;
 
 	for (j = 0; j < n_vars; j++) {
-	    m[j + 1][i + 1 + n_vars] = m[i + 1 + n_vars][j + 1] = pnts[i].vars[j];
+	    m[j + 1][i + 1 + n_vars] = m[i + 1 + n_vars][j + 1] = dval[j + 1];
 	}
+
+	/* convert src r,c to dst r,c or to n,s */
+#ifdef USE_RC
+	pnts[i].r = row_src2dst(pnts[i].r, src, dst);
+	pnts[i].c = col_src2dst(pnts[i].c, src, dst);
+#else
+	pnts[i].r = src->north - (pnts[i].r + 0.5) * src->ns_res;
+	pnts[i].c = src->west + (pnts[i].c + 0.5) * src->ew_res;
+#endif
 
 	/* TPS */
 	for (k = 0; k <= i; k++) {
+
+#ifdef USE_RC
 	    dx = (pnts[i].c -pnts[k].c) * 2.0;
 	    dy = (pnts[i].r -pnts[k].r) * 2.0;
-	    
+#else
+	    dx = (pnts[i].c -pnts[k].c);
+	    dy = (pnts[i].r -pnts[k].r);
+#endif	    
 	    dist2 = dx * dx + dy * dy;
 	    dist = 0;
 	    if (dist2 > 0)
@@ -131,7 +188,9 @@ static int load_tps_pnts(struct tps_pnt *pnts, int n_points, int n_vars,
 	    }
 	}
     }
-    
+
+    G_free(dval);
+
     if (regularization > 0) {
 	distsum /= (n_points * n_points);
 	reg = regularization * distsum * distsum;
@@ -143,116 +202,6 @@ static int load_tps_pnts(struct tps_pnt *pnts, int n_points, int n_vars,
     return 1;
 }
 
-int global_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
-	       struct tps_pnt *pnts, int n_points, double regularization)
-{
-    int row, col, nrows, ncols;
-    double **m, *a, *B;
-    int i, j;
-    int nalloc;
-    double dx, dy, dist, dist2;
-    DCELL **dbuf, result, *outbuf;
-    CELL *maskbuf;
-
-    G_message(_("Global TPS interpolation with %d points..."), n_points);
-
-    nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
-
-    /* alloc */
-    outbuf = Rast_allocate_d_buf();
-    nalloc = n_points;
-    a = G_malloc((nalloc + 1 + n_vars) * sizeof(double));
-    B = G_malloc((nalloc + 1 + n_vars) * sizeof(double));
-    m = G_malloc((nalloc + 1 + n_vars) * sizeof(double *));
-    for (i = 0; i < (nalloc + 1 + n_vars); i++)
-	m[i] = G_malloc((nalloc + 1 + n_vars) * sizeof(double));
-
-    dbuf = NULL;
-    if (n_vars) {
-	dbuf = G_malloc(n_vars * sizeof(DCELL *));
-	for (i = 0; i < n_vars; i++) {
-	    dbuf[i] = Rast_allocate_d_buf();
-	}
-    }
-
-    maskbuf = NULL;
-    if (mask_fd >= 0)
-	maskbuf = Rast_allocate_c_buf();
-
-    /* load points to matrix */
-    load_tps_pnts(pnts, n_points, n_vars, regularization, m, a);
-
-    /* solve */
-    if (!solvemat(m, a, B, n_points + 1 + n_vars))
-	G_fatal_error(_("Matrix is unsolvable"));
-
-    for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
-
-	for (j = 0; j < n_vars; j++)
-	    Rast_get_d_row(var_fd[j], dbuf[j], row);
-	if (maskbuf)
-	    Rast_get_c_row(mask_fd, maskbuf, row);
-
-	for (col = 0; col < ncols; col++) {
-
-	    if (maskbuf &&
-	        (Rast_is_c_null_value(&maskbuf[col]) || maskbuf[col] == 0)) {
-
-		Rast_set_d_null_value(&outbuf[col], 1);
-
-		continue;
-	    }
-
-	    if (n_vars) {
-		int isnull = 0;
-
-		for (j = 0; j < n_vars; j++) {
-		    if (Rast_is_d_null_value(&dbuf[j][col])) {
-			isnull = 1;
-			break;
-		    }
-		}
-		if (isnull) {
-		    Rast_set_d_null_value(&outbuf[col], 1);
-		    continue;
-		}
-	    }
-
-	    result = B[0];
-	    for (j = 0; j < n_vars; j++)
-		result += dbuf[j][col] * B[j + 1];
-
-	    for (i = 0; i < n_points; i++) {
-		dx = (pnts[i].c - col) * 2.0;
-		dy = (pnts[i].r - row) * 2.0;
-		
-		dist2 = dx * dx + dy * dy;
-		dist = 0;
-		if (dist2 > 0) {
-		    dist = dist2 * log(dist2) * 0.5;
-		    result += B[1 + n_vars + i] * dist;
-		}
-	    }
-	    outbuf[col] = result;
-	}
-	Rast_put_d_row(out_fd, outbuf);
-    }
-    G_percent(1, 1, 1);
-
-    if (n_vars) {
-	for (i = 0; i < n_vars; i++) {
-	    G_free(dbuf[i]);
-	}
-	G_free(dbuf);
-    }
-    if (maskbuf)
-	G_free(maskbuf);
-    G_free(outbuf);
-
-    return 1;
-}
 
 static int cmp_rc(const void *first, const void *second)
 {
@@ -264,16 +213,118 @@ static int cmp_rc(const void *first, const void *second)
     return (a->row - b->row);
 }
 
-static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
-                      int row, int col,
+static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
+                         struct tps_pnt *cur_pnts, int max_points,
+                         int row, int col,
+			 int *rmin, int *rmax, int *cmin, int *cmax, 
+			 double *distmax)
+{
+    int nrows, ncols, rown, coln;
+    int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
+    int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
+    int n, found;
+    struct rc next, ngbr_rc;
+    struct rclist rilist;
+    struct RB_TREE *visited;
+    double dx, dy, dist;
+
+    visited = rbtree_create(cmp_rc, sizeof(struct rc));
+    ngbr_rc.row = row;
+    ngbr_rc.col = col;
+    rbtree_insert(visited, &ngbr_rc);
+
+    nrows = src->rows;
+    ncols = src->cols;
+
+    found = 0;
+    *distmax = 0.0;
+
+    if (FLAG_GET(pnt_flag, row, col)) {
+	/* add to cur_pnts */
+	cur_pnts[found].r = row;
+	cur_pnts[found].c = col;
+	found++;
+
+	if (*rmin > row)
+	    *rmin = row;
+	if (*rmax < row)
+	    *rmax = row;
+	if (*cmin > col)
+	    *cmin = col;
+	if (*cmax < col)
+	    *cmax = col;
+    }
+
+    /* breadth-first search */
+    next.row = row;
+    next.col = col;
+    rclist_init(&rilist);
+
+    do {
+	for (n = 0; n < 8; n++) {
+	    rown = next.row + nextr[n];
+	    coln = next.col + nextc[n];
+	    
+	    if (rown < 0 || rown >= nrows || coln < 0 || coln >= ncols)
+		continue;
+
+	    ngbr_rc.row = rown;
+	    ngbr_rc.col = coln;
+
+	    if (rbtree_find(visited, &ngbr_rc))
+		continue;
+
+	    rbtree_insert(visited, &ngbr_rc);
+	    rclist_add(&rilist, rown, coln);
+
+	    if (FLAG_GET(pnt_flag, rown, coln)) {
+
+		dx = coln - col;
+		dy = rown - row;
+		
+		dist = dx * dx + dy * dy;
+		
+		if (*distmax < dist)
+		    *distmax = dist;
+
+		cur_pnts[found].r = rown;
+		cur_pnts[found].c = coln;
+		found++;
+
+		if (*rmin > rown)
+		    *rmin = rown;
+		if (*rmax < rown)
+		    *rmax = rown;
+		if (*cmin > coln)
+		    *cmin = coln;
+		if (*cmax < coln)
+		    *cmax = coln;
+	    }
+
+	    if (found == max_points)
+		break;
+	}
+	if (found == max_points)
+	    break;
+    } while (rclist_drop(&rilist, &next));   /* while there are cells to check */
+
+
+    rclist_destroy(&rilist);
+    rbtree_destroy(visited);
+
+    return found;
+}
+
+static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
+                      struct tps_pnt *cur_pnts,
+		      int row, int col,
                       int max_points, double min_dist,
 		      int rmin, int rmax, int cmin, int cmax)
 {
     int nrows, ncols, rown, coln;
-    int nextr[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    int nextc[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
+    int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    int pid;
     struct rc next, ngbr_rc;
     struct rclist rilist;
     struct RB_TREE *visited;
@@ -285,8 +336,8 @@ static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
     ngbr_rc.col = col;
     rbtree_insert(visited, &ngbr_rc);
 
-    nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
+    nrows = src->rows;
+    ncols = src->cols;
 
     /* breadth-first search */
     next.row = row;
@@ -304,8 +355,6 @@ static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
 		continue;
 	    if (rown < rmin || rown > rmax || coln < cmin || coln > cmax)
 		continue;
-	    if ((FLAG_GET(mask_flag, rown, coln)))
-		continue;
 
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
@@ -315,19 +364,18 @@ static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
 
 	    rbtree_insert(visited, &ngbr_rc);
 
-	    Segment_get(p_seg, (void *)&pid, rown, coln);
-	    
-	    if (pid < 0) {
+	    if (!(FLAG_GET(pnt_flag, rown, coln))) {
 		rclist_add(&rilist, rown, coln);
 	    }
-	    else if (rown >= rmin && rown <= rmax && coln >= cmin && coln <= cmax) {
+	    else {
 		dx = coln - col;
 		dy = rown - row;
 		
 		dist = dx * dx + dy * dy;
 		
 		if (dist > min_dist) {
-		    bfsid[found] = pid;
+		    cur_pnts[found].r = rown;
+		    cur_pnts[found].c = coln;
 		    found++;
 		}
 	    }
@@ -338,17 +386,17 @@ static int bfs_search(SEGMENT *p_seg, FLAG *mask_flag, int *bfsid,
 	    break;
     } while (rclist_drop(&rilist, &next));   /* while there are cells to check */
 
-
     rclist_destroy(&rilist);
     rbtree_destroy(visited);
 
     return found;
 }
 
-int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
-              struct tps_pnt *pnts, int n_points, int min_points,
-	      double regularization, double overlap, double pthin,
-	      int clustered, double segs_mb)
+int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
+              SEGMENT *out_seg, int out_fd, char *mask_name,
+              struct Cell_head *src, struct Cell_head *dst,
+	      off_t n_points, int min_points,
+	      double regularization, double overlap, int clustered)
 {
     int ridx, cidx, row, col, nrows, ncols;
     double **m, *a, *B;
@@ -356,31 +404,23 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     int kdalloc, palloc, n_cur_points;
     struct tps_pnt *cur_pnts;
     double dx, dy, dist, dist2, mfactor;
-    DCELL **dbuf, result, *outbuf, *varbuf;
+    DCELL *dval, result, *outbuf, *varbuf;
     CELL *maskbuf;
     int solved;
-    struct kdtree *kdt;
-    double c[2];
-    int *kduid, kdfound;
-    double *kddist;
-    int *bfsid, bfsfound, pfound;
+    int kdfound, bfsfound, pfound;
+    double distmax;
 
-    FLAG *mask_flag;
-    SEGMENT var_seg, out_seg, p_seg;
-    int nsegs;
-    double segsize;
-    int varsize;
-    struct tps_out {
-	double val;
-	double wsum;
-	double wmax;
-    } tps_out;
+    int mask_fd;
+    FLAG *mask_flag, *pnt_flag;
+    struct tps_out tps_out;
+    double *pvar;
     double weight, dxi, dyi;
     double wmin, wmax;
     int rmin, rmax, cmin, cmax, rminp, rmaxp, cminp, cmaxp;
     int irow, irow1, irow2, icol, icol1, icol2;
-    int nskipped;
-    double pthin2;
+#ifndef USE_RC
+    double i_n, i_e;
+#endif
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -392,16 +432,26 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     for (i = 0; i < (palloc + 1 + n_vars); i++)
 	m[i] = G_malloc((palloc + 1 + n_vars) * sizeof(double));
     cur_pnts = G_malloc(palloc * 5 * sizeof(struct tps_pnt));
-    kduid = G_malloc(palloc * sizeof(int));
-    kddist = G_malloc(palloc * sizeof(double));
+    
+    pvar = NULL;
+    varbuf = NULL;
+    if (n_vars) {
+	pvar = G_malloc(palloc * 5 * n_vars * sizeof(double));
+	cur_pnts[0].vars = pvar;
+	for (i = 1; i < palloc * 5; i++)
+	    cur_pnts[i].vars = cur_pnts[i - 1].vars + n_vars;
 
-    bfsid = G_malloc(min_points * sizeof(int));
+	varbuf = G_malloc(n_vars * sizeof(DCELL));
+    }
+
+    dval = G_malloc((1 + n_vars) * sizeof(DCELL));
 
     mask_flag = flag_create(nrows, ncols);
 
     maskbuf = NULL;
-    if (mask_fd >= 0) {
+    if (mask_name) {
 	G_message("Loading mask map...");
+	mask_fd = Rast_open_old(mask_name, "");
 	maskbuf = Rast_allocate_c_buf();
 
 	for (row = 0; row < nrows; row++) {
@@ -411,60 +461,41 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		    FLAG_SET(mask_flag, row, col);
 	    }
 	}
+	Rast_close(mask_fd);
 	G_free(maskbuf);
 	maskbuf = NULL;
     }
 
-    /* create and init SEG structs */
-    varsize = n_vars * sizeof(DCELL);
-    segsize = (double)64 * 64 * (sizeof(struct tps_out) + varsize + clustered * sizeof(int));
-    nsegs = 1024. * 1024. * segs_mb / segsize;
-    
-    if (Segment_open(&out_seg, G_tempfile(), nrows, ncols, 64, 64, 
-                     sizeof(struct tps_out), nsegs) != 1) {
-	G_fatal_error("Unable to create input temporary files");
-    }
+    G_message(_("Analyzing input ..."));
+    pnt_flag = flag_create(src->rows, src->cols);
 
-    dbuf = NULL;
-    varbuf = NULL;
-    if (n_vars) {
-	dbuf = G_malloc(n_vars * sizeof(DCELL *));
-	varbuf = G_malloc(n_vars * sizeof(DCELL));
-	for (i = 0; i < n_vars; i++) {
-	    dbuf[i] = Rast_allocate_d_buf();
-	}
+    rminp = src->rows;
+    rmaxp = 0;
+    cminp = src->cols;
+    cmaxp = 0;
+    for (row = 0; row < src->rows; row++) {
+	G_percent(row, src->rows, 2);
 
-	if (Segment_open(&var_seg, G_tempfile(), nrows, ncols, 64, 64, 
-			 varsize, nsegs) != 1) {
-	    G_fatal_error("Unable to create input temporary files");
-	}
-    }
-
-    if (clustered) {
-	G_message("Creating temporary point map...");
-
-	if (Segment_open(&p_seg, G_tempfile(), nrows, ncols, 64, 64, 
-			 sizeof(int), nsegs) != 1) {
-	    G_fatal_error("Unable to create input temporary files");
-	}
-	i = -1;
-	for (row = 0; row < nrows; row++) {
-	    G_percent(row, nrows, 2);
-
-	    for (col = 0; col < ncols; col++) {
-		if (Segment_put(&p_seg, (void *)&i, row, col) != 1)
-		    G_fatal_error(_("Unable to write to temporary file"));
+	for (col = 0; col < src->cols; col++) {
+	    Segment_get(in_seg, (void *)dval, row, col);
+	    if (!Rast_is_d_null_value(dval)) {
+		FLAG_SET(pnt_flag, row, col);
+		if (rminp > row)
+		    rminp = row;
+		if (rmaxp < row)
+		    rmaxp = row;
+		if (cminp > col)
+		    cminp = col;
+		if (cmaxp < col)
+		    cmaxp = col;
 	    }
 	}
-	for (i = 0; i < n_points; i++) {
-	    G_percent(i, n_points, 2);
-	    if (pnts[i].r < 0 || pnts[i].r >= nrows ||
-	        pnts[i].c < 0 || pnts[i].c >= ncols)
-		continue;
-	    if (Segment_put(&p_seg, (void *)&i, pnts[i].r, pnts[i].c) != 1)
-		G_fatal_error(_("Unable to write to temporary file"));
-	}
     }
+    rminp = row_src2dst(rminp, src, dst);
+    rmaxp = row_src2dst(rmaxp, src, dst);
+    cminp = col_src2dst(cminp, src, dst);
+    cmaxp = col_src2dst(cmaxp, src, dst);
+    G_percent(1, 1, 2);
 
     G_message(_("Initializing output ..."));
     tps_out.val = 0;
@@ -472,76 +503,15 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     tps_out.wmax = 0;
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
-	if (n_vars) {
-	    for (j = 0; j < n_vars; j++)
-		Rast_get_d_row(var_fd[j], dbuf[j], row);
-	}
 
 	for (col = 0; col < ncols; col++) {
-	    if (n_vars) {
-		for (j = 0; j < n_vars; j++) {
-		    varbuf[j] = dbuf[j][col];
-		}
-		if (Segment_put(&var_seg, (void *)varbuf, row, col) != 1)
-		    G_fatal_error(_("Unable to write to temporary file"));
-	    }
-	    if (Segment_put(&out_seg, (void *)&tps_out, row, col) != 1)
+	    if (Segment_put(out_seg, (void *)&tps_out, row, col) != 1)
 		G_fatal_error(_("Unable to write to temporary file"));
 	}
     }
-    if (n_vars) {
-	for (j = 0; j < n_vars; j++)
-	    G_free(dbuf[j]);
-	G_free(dbuf);
-	dbuf = NULL;
-    }
     G_percent(1, 1, 2);
 
-    /* create k-d tree */
-    G_message(_("Creating search index ..."));
-    pthin2 = pthin * pthin;
-    if (pthin > 0)
-	G_message(_("Thinning points with minimum distance %g"), pthin);
-    kdt = kdtree_create(2, NULL);
-    nskipped = 0;
-    rminp = nrows;
-    rmaxp = 0;
-    cminp = ncols;
-    cmaxp = 0;
-    for (i = 0; i < n_points; i++) {
-	G_percent(i, n_points, 2);
-
-	c[0] = pnts[i].c;
-	c[1] = pnts[i].r;
-
-	if (pthin > 0 && i > 0) {
-	    kdfound = kdtree_knn(kdt, c, kduid, kddist, 1, NULL);
-	    if (kdfound && kddist[0] <= pthin2) {
-		nskipped++;
-		continue;
-	    }
-	}
-
-	kdtree_insert(kdt, c, i, 0);
-
-	if (rminp > pnts[i].r)
-	    rminp = pnts[i].r;
-	if (rmaxp < pnts[i].r)
-	    rmaxp = pnts[i].r;
-	if (cminp > pnts[i].c)
-	    cminp = pnts[i].c;
-	if (cmaxp < pnts[i].c)
-	    cmaxp = pnts[i].c;
-    }
-    kdtree_optimize(kdt, 2);
-    G_percent(1, 1, 2);
-    
-    if (nskipped) {
-	G_message(_("%d of %d points were thinned out"), nskipped, n_points);
-	n_points -= nskipped;
-    }
-
-    G_message(_("Local TPS interpolation with %d points..."), n_points);
+    G_message(_("Local TPS interpolation with %ld points..."), n_points);
 
     wmin = 10;
     wmax = 0;
@@ -572,28 +542,20 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 	    }
 
 	    if (n_vars) {
-		int isnull = 0;
 
-		Segment_get(&var_seg, (void *)varbuf, row, col);
-		for (j = 0; j < n_vars; j++) {
-		    if (Rast_is_d_null_value(&varbuf[j])) {
-			isnull = 1;
-			break;
-		    }
-		}
-		if (isnull)
+		Segment_get(var_seg, (void *)varbuf, row, col);
+
+		if (Rast_is_d_null_value(varbuf))
 		    continue;
 	    }
 	    
-	    Segment_get(&out_seg, (void *)&tps_out, row, col);
+	    Segment_get(out_seg, (void *)&tps_out, row, col);
 	    if (tps_out.wmax > overlap)
 		continue;
 
 	    solved = 0;
 	    n_cur_points = 0;
 	    kdfound = 0;
-	    c[0] = col;
-	    c[1] = row;
 	    
 	    while (!solved) {
 		
@@ -604,38 +566,34 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 
 		/* alloc */
 		if (kdalloc < n_cur_points) {
-		    G_free(kduid);
-		    G_free(kddist);
-		    G_free(bfsid);
 		    G_free(cur_pnts);
 
 		    kdalloc = n_cur_points;
 
-		    kduid = G_malloc(kdalloc * sizeof(int));
-		    kddist = G_malloc(kdalloc * sizeof(double));
-		    bfsid = G_malloc(kdalloc * sizeof(int));
 		    cur_pnts = G_malloc(kdalloc * 5 * sizeof(struct tps_pnt));
+		    if (n_vars) {
+			G_free(pvar);
+			pvar = G_malloc(kdalloc * 5 * n_vars * sizeof(double));
+			cur_pnts[0].vars = pvar;
+			for (i = 1; i < kdalloc * 5; i++)
+			    cur_pnts[i].vars = cur_pnts[i - 1].vars + n_vars;
+		    }
 		}
 
 		/* collect nearest neighbors */
-		kdfound = kdtree_knn(kdt, c, kduid, kddist, n_cur_points, NULL);
-
-		/* load points to matrix */
-		rmin = nrows;
+		rmin = src->rows;
 		rmax = 0;
-		cmin = ncols;
+		cmin = src->cols;
 		cmax = 0;
-		for (i = 0; i < kdfound; i++) {
-		    cur_pnts[i] = pnts[kduid[i]];
-		    if (rmin > cur_pnts[i].r)
-			rmin = cur_pnts[i].r;
-		    if (rmax < cur_pnts[i].r)
-			rmax = cur_pnts[i].r;
-		    if (cmin > cur_pnts[i].c)
-			cmin = cur_pnts[i].c;
-		    if (cmax < cur_pnts[i].c)
-			cmax = cur_pnts[i].c;
-		}
+		kdfound = bfs_search_nn(pnt_flag, src, cur_pnts,
+		                        n_cur_points,
+					row_dst2src(row, src, dst),
+					col_dst2src(col, src, dst), 
+					&rmin, &rmax, &cmin, &cmax, 
+					&distmax);
+
+		/* convert src min/max to dst min/max */
+
 		pfound = kdfound;
 
 		if (clustered) {
@@ -644,65 +602,65 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 
 		    /* qrt1: 0, row, col + 1, ncols - 1 */
 		    if (rminp <= row && cmaxp > col) {
-			bfsfound = bfs_search(&p_seg, mask_flag, bfsid,
-			           row, col, n_cur_points / 2,
-				   kddist[kdfound - 1],
-				   0, row, col + 1, ncols - 1);
+			bfsfound = bfs_search(pnt_flag, src,
+			           cur_pnts + pfound,
+			           row_dst2src(row, src, dst),
+				   col_dst2src(col, src, dst), 
+				   n_cur_points / 3, distmax,
+				   0, row_dst2src(row, src, dst),
+				   col_dst2src(col, src, dst) + 1, src->cols - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for NE quadrant");
 
-			for (i = 0; i < bfsfound; i++) {
-			    cur_pnts[pfound + i] = pnts[bfsid[i]];
-			}
 			pfound += bfsfound;
 		    }
 
 		    /* qrt2: 0, row - 1, 0, col */
 		    if (rminp < row && cminp <= col) {
-			bfsfound = bfs_search(&p_seg, mask_flag, bfsid,
-			           row, col, n_cur_points / 2,
-				   kddist[kdfound - 1],
-				   0, row - 1, 0, col);
+			bfsfound = bfs_search(pnt_flag, src,
+			           cur_pnts + pfound,
+			           row_dst2src(row, src, dst),
+				   col_dst2src(col, src, dst), 
+				   n_cur_points / 3, distmax,
+				   0, row_dst2src(row, src, dst) - 1,
+				   0, col_dst2src(col, src, dst));
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for NW quadrant");
 
-			for (i = 0; i < bfsfound; i++) {
-			    cur_pnts[pfound + i] = pnts[bfsid[i]];
-			}
 			pfound += bfsfound;
 		    }
 
 		    /* qrt3: row, nrows - 1, 0, col - 1 */
 		    if (rmaxp >= row && cminp < col) {
-			bfsfound = bfs_search(&p_seg, mask_flag, bfsid,
-			           row, col, n_cur_points / 2,
-				   kddist[kdfound - 1],
-				   row, nrows - 1, 0, col - 1);
+			bfsfound = bfs_search(pnt_flag, src,
+			           cur_pnts + pfound,
+			           row_dst2src(row, src, dst),
+				   col_dst2src(col, src, dst), 
+				   n_cur_points / 3, distmax,
+				   row_dst2src(row, src, dst), src->rows - 1,
+				   0, col_dst2src(col, src, dst) - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for SW quadrant");
 
-			for (i = 0; i < bfsfound; i++) {
-			    cur_pnts[pfound + i] = pnts[bfsid[i]];
-			}
 			pfound += bfsfound;
 		    }
 
 		    /* qrt4: row + 1, nrows - 1, col, ncols - 1 */
 		    if (rmaxp > row && cmaxp >= col) {
-			bfsfound = bfs_search(&p_seg, mask_flag, bfsid,
-			           row, col, n_cur_points / 2,
-				   kddist[kdfound - 1],
-				   row + 1, nrows - 1, col, ncols - 1);
+			bfsfound = bfs_search(pnt_flag, src,
+			           cur_pnts + pfound,
+			           row_dst2src(row, src, dst),
+				   col_dst2src(col, src, dst), 
+				   n_cur_points / 3, distmax,
+				   row_dst2src(row, src, dst) + 1, src->rows - 1,
+				   col_dst2src(col, src, dst), src->cols - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for SE quadrant");
 
-			for (i = 0; i < bfsfound; i++) {
-			    cur_pnts[pfound + i] = pnts[bfsid[i]];
-			}
 			pfound += bfsfound;
 		    }
 		}
@@ -722,32 +680,19 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 			m[i] = G_malloc((palloc + 1 + n_vars) * sizeof(double));
 		}
 
-
 		/* sort points */
 		/* qsort(cur_pnts, kdfound, sizeof(struct tps_pnt), cmp_pnts); */
 
-		load_tps_pnts(cur_pnts, pfound, n_vars, regularization, m, a);
+		qsort(cur_pnts, pfound, sizeof(struct tps_pnt), cmp_pnts);
+
+		load_tps_pnts(in_seg, n_vars, cur_pnts, pfound, src, dst,
+		              regularization, m, a);
 
 		/* solve */
 		solved = solvemat(m, a, B, pfound + 1 + n_vars);
 
 		if (!solved && n_cur_points == n_points)
 		    G_fatal_error(_("Matrix is unsolvable"));
-	    }
-
-	    rmin = nrows;
-	    rmax = 0;
-	    cmin = ncols;
-	    cmax = 0;
-	    for (i = 0; i < kdfound; i++) {
-		if (rmin > cur_pnts[i].r)
-		    rmin = cur_pnts[i].r;
-		if (rmax < cur_pnts[i].r)
-		    rmax = cur_pnts[i].r;
-		if (cmin > cur_pnts[i].c)
-		    cmin = cur_pnts[i].c;
-		if (cmax < cur_pnts[i].c)
-		    cmax = cur_pnts[i].c;
 	    }
 
 	    /* must be <= 0.5 */
@@ -770,12 +715,17 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 
 		mfactoradj = 0.0;
 		if (dmax > dmin) {
-		    mfactoradj = pow((1 - dmin / dmax), 2.0) * 0.5;
+		    mfactoradj = pow(1 - dmin / dmax, 2.0) * 0.5;
 		    G_debug(1, "adjusted mfactor: %g", mfactoradj);
 		}
 		mfactor = mfactoradj;
 	    }
-	    
+
+	    rmin = row_src2dst(rmin, src, dst);
+	    rmax = row_src2dst(rmax, src, dst);
+	    cmin = col_src2dst(cmin, src, dst);
+	    cmax = col_src2dst(cmax, src, dst);
+
 	    irow1 = rmin + (int)((rmax - rmin) * mfactor);
 	    irow2 = rmax - (int)((rmax - rmin) * mfactor);
 	    icol1 = cmin + (int)((cmax - cmin) * mfactor);
@@ -820,38 +770,46 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 	    dyi = irow2 - irow1 + 1;
 
 	    for (irow = irow1; irow <= irow2; irow++) {
+
+#ifndef USE_RC
+		i_n = dst->north - (irow + 0.5) * dst->ns_res;
+#endif
 		for (icol = icol1; icol <= icol2; icol++) {
 		    if ((FLAG_GET(mask_flag, irow, icol))) {
 			continue;
 		    }
 
 		    if (n_vars) {
-			int isnull = 0;
 
-			Segment_get(&var_seg, (void *)varbuf, irow, icol);
-			for (j = 0; j < n_vars; j++) {
-			    if (Rast_is_d_null_value(&varbuf[j])) {
-				isnull = 1;
-				break;
-			    }
-			}
-			if (isnull)
+			Segment_get(var_seg, (void *)varbuf, irow, icol);
+			if (Rast_is_d_null_value(varbuf)) {
 			    continue;
+			}
 		    }
 
-		    Segment_get(&out_seg, (void *)&tps_out, irow, icol);
+#ifndef USE_RC
+		    i_e = dst->west + (icol + 0.5) * dst->ew_res;
+#endif
+		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
+
+		    j = 0;
 
 		    result = B[0];
 		    if (n_vars) {
-			Segment_get(&var_seg, (void *)varbuf, irow, icol);
-			for (j = 0; j < n_vars; j++)
+			for (j = 0; j < n_vars; j++) {
 			    result += varbuf[j] * B[j + 1];
+			}
 		    }
 
 		    for (i = 0; i < pfound; i++) {
+#ifdef USE_RC
 			dx = (cur_pnts[i].c - icol) * 2.0;
 			dy = (cur_pnts[i].r - irow) * 2.0;
-			
+#else
+			dx = cur_pnts[i].c - i_e;
+			dy = cur_pnts[i].r - i_n;
+#endif
+
 			dist2 = dx * dx + dy * dy;
 			dist = 0;
 			if (dist2 > 0) {
@@ -871,27 +829,23 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 			wmin = weight;
 		    if (wmax < weight)
 			wmax = weight;
-		    
+
 		    if (tps_out.wmax < weight)
 			tps_out.wmax = weight;
 
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
-		    Segment_put(&out_seg, (void *)&tps_out, irow, icol);
+		    Segment_put(out_seg, (void *)&tps_out, irow, icol);
 		}
 	    }
 	}
     }
     G_percent(1, 1, 1);
 
-    G_debug(1, "wmin: %g", wmin);
-    G_debug(1, "wmax: %g", wmax);
+    G_debug(0, "wmin: %g", wmin);
+    G_debug(0, "wmax: %g", wmax);
 
-    if (n_vars)
-	Segment_close(&var_seg);
-
-    if (clustered)
-	Segment_close(&p_seg);
+    flag_destroy(pnt_flag);
 
     outbuf = Rast_allocate_d_buf();
 
@@ -906,7 +860,7 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
 		continue;
 	    }
 	    
-	    Segment_get(&out_seg, (void *)&tps_out, row, col);
+	    Segment_get(out_seg, (void *)&tps_out, row, col);
 	    
 	    if (tps_out.wsum == 0)
 		Rast_set_d_null_value(&outbuf[col], 1);
@@ -918,7 +872,7 @@ int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
     G_percent(1, 1, 2);
 
     G_free(outbuf);
-    Segment_close(&out_seg);
+    flag_destroy(mask_flag);
 
     return 1;
 }

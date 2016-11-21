@@ -1,14 +1,19 @@
 
 struct tps_pnt
 {
-    int r, c;		/* row, col in target window */
+    double r, c;	/* row, col in source window */
     double val;		/* value to interpolate */
     double *vars;	/* values of covariables */
 };
 
-int global_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
-	       struct tps_pnt *pnts, int n_points, double regularization);
-int local_tps(int out_fd, int *var_fd, int n_vars, int mask_fd,
-              struct tps_pnt *pnts, int n_points, int min_points,
-	      double regularization, double overlap, double pthin,
-	      int do_bfs, double segs_mb);
+struct tps_out {
+    double val;
+    double wsum;
+    double wmax;
+};
+
+int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
+              SEGMENT *out_seg, int out_fd, char *mask_name,
+              struct Cell_head *src, struct Cell_head *dst,
+	      off_t n_points, int min_points,
+	      double regularization, double overlap, int do_bfs);
