@@ -96,7 +96,11 @@
 #%option G_OPT_V_OUTPUT
 #% key: output_struct
 #% label: Name of output vector with potential plants and their structure
-#% required: yes
+#%end
+#%option G_OPT_V_INPUT
+#% key: input_struct
+#% label: Name of input vector with potential plants and their structure
+#% required: no
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: output_plant
@@ -202,6 +206,10 @@
 #%  guisection: Contour
 #%end
 
+#%rules
+#% exclusive: input_struct,output_struct
+#%end
+
 # import system libraries
 from __future__ import print_function
 import os
@@ -242,6 +250,7 @@ TMPRAST = []
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
+
 
 def add_columns(vector, cols):
     """Add new column if not already present in the vector table.
@@ -671,17 +680,11 @@ def main(options, flags):
     elevation = options['elevation']
     plant = options['plant']
     output_struct = options['output_struct']
+    input_struct = options['input_struct']
     output_plant = options['output_plant']
     percentage_losses = float(options['percentage_losses'])
     roughness_penstock = float(options['roughness_penstock'])
     ks_derivation = float(options['ks_derivation'])
-    plant_layer = float(options['plant_layer'])
-    plant_column_discharge = options['plant_column_discharge']
-    plant_column_plant_id = options['plant_column_plant_id']
-    plant_column_point_id = options['plant_column_point_id']
-    plant_column_elevup = options['plant_column_elevup']
-    plant_column_elevdown = options['plant_column_elevdown']
-    plant_column_power = options['plant_column_power']
     turbine_folder = (options['turbine_folder'] if options['turbine_folder']
                       else os.path.join(os.path.abspath('.'), 'turbines'))
     turbine_list = (options['turbine_list'] if options['turbine_list'] else
@@ -714,10 +717,13 @@ def main(options, flags):
                        contour=options['contour'], overwrite=gcore.overwrite())
     if options['resolution']:
         struct_opts['resolution'] = options['resolution']
-## --------------------------------------------------------------------------        
-    gcore.run_command('r.green.hydro.structure', **struct_opts)
-
-    gcore.run_command('v.build', map=output_struct)
+## --------------------------------------------------------------------------
+    if output_struct:
+        gcore.run_command('r.green.hydro.structure', **struct_opts)
+        gcore.run_command('v.build', map=output_struct)
+    else:
+        output_struct = input_struct
+        # FIXME: check the structure of the input file
 ## --------------------------------------------------------------------------
     gcore.run_command('g.copy', vector=(plant, output_plant))
     with VectorTopo(output_struct, mode='rw') as struct:
