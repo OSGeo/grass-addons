@@ -93,7 +93,7 @@ def sort_by_west2east(line):
     return line
 
 
-def splitline(line, point):
+def splitline(line, point, max_dist):
     """Split a line using a point. return two lines that start with the point.
 
                   point
@@ -107,7 +107,8 @@ def splitline(line, point):
     dist = line.distance(point)
     l0 = line.segment(0, dist.sldist)
     l0.reverse()
-    l1 = line.segment(dist.sldist, line.length())
+    max_l = min([max_dist, line.length()-dist.sldist])
+    l1 = line.segment(dist.sldist, dist.sldist+max_l)
     return l0, l1
 
 
@@ -211,7 +212,6 @@ def write_structures(plants, output, elev, stream=None,
                     levels.append(closest(itk.elevation, ndigits=ndigits,
                                           resolution=resolution))
             levels = sorted(set(levels))
-
             # generate the contur line that pass to the point
             r.contour(input='%s@%s' % (elev.name, elev.mapset),
                       output=contour, step=0, levels=levels, overwrite=True)
@@ -487,7 +487,8 @@ class Plant(object):
             return conduct, penstock
 
         def get_all_structs(contur, itk, res):
-            l0, l1 = splitline(contur, itk.point)
+            l0, l1 = splitline(contur, itk.point,
+                               3*itk.point.distance(res.point))
             # get structs
             c0, p0 = get_struct(l0, res.point)
             c1, p1 = get_struct(l1, res.point)
