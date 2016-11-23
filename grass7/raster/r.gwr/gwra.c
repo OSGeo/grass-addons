@@ -5,8 +5,8 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/raster.h>
-#include <grass/rbtree.h>
 #include "rclist.h"
+#include "pavl.h"
 #include "local_proto.h"
 #include "gwr.h"
 
@@ -19,7 +19,7 @@ struct gwr_pnt
     int r, c;		/* row, col in target window */
 };
 
-static int cmp_rc(const void *first, const void *second)
+static int cmp_rc(const void *first, const void *second, void *avl_param)
 {
     struct rc *a = (struct rc *)first, *b = (struct rc *)second;
 
@@ -40,6 +40,11 @@ static int cmp_pnts(const void *first, const void *second)
     return (a->r - b->r);
 }
 
+static void avl_free_item(void *avl_item, void *avl_param)
+{
+    G_free(avl_item);
+}
+
 static int bfs_search(FLAG *null_flag, struct gwr_pnt *cur_pnts,
                       int max_points, int row, int col, double *distmax)
 {
@@ -47,15 +52,19 @@ static int bfs_search(FLAG *null_flag, struct gwr_pnt *cur_pnts,
     int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
     int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    struct rc next, ngbr_rc;
+    struct rc next, ngbr_rc, *pngbr_rc;
     struct rclist rilist;
-    struct RB_TREE *visited;
+    struct pavl_table *visited;
     double dx, dy, dist;
 
-    visited = rbtree_create(cmp_rc, sizeof(struct rc));
     ngbr_rc.row = row;
     ngbr_rc.col = col;
-    rbtree_insert(visited, &ngbr_rc);
+
+    visited = pavl_create(cmp_rc, NULL, NULL);
+    pngbr_rc = G_malloc(sizeof(struct rc));
+    *pngbr_rc = ngbr_rc;
+    pavl_insert(visited, pngbr_rc);
+    pngbr_rc = NULL;
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -86,10 +95,17 @@ static int bfs_search(FLAG *null_flag, struct gwr_pnt *cur_pnts,
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
 
-	    if (rbtree_find(visited, &ngbr_rc))
-		continue;
+	    if (pngbr_rc == NULL)
+		pngbr_rc = G_malloc(sizeof(struct rc));
 
-	    rbtree_insert(visited, &ngbr_rc);
+	    *pngbr_rc = ngbr_rc;
+
+	    if (pavl_insert(visited, pngbr_rc) != NULL) {
+		continue;
+	    }
+	    
+	    pngbr_rc = NULL;
+
 	    rclist_add(&rilist, rown, coln);
 
 	    if (FLAG_GET(null_flag, rown, coln)) {
@@ -116,7 +132,9 @@ static int bfs_search(FLAG *null_flag, struct gwr_pnt *cur_pnts,
 
 
     rclist_destroy(&rilist);
-    rbtree_destroy(visited);
+    if (pngbr_rc)
+	G_free(pngbr_rc);
+    pavl_destroy(visited, avl_free_item);
 
     return found;
 }
