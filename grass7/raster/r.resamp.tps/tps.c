@@ -5,11 +5,11 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/segment.h>
-#include <grass/rbtree.h>
 #include <grass/glocale.h>
 #include "tps.h"
 #include "flag.h"
 #include "rclist.h"
+#include "pavl.h"
 
 #ifdef USE_RC
 #undef USE_RC
@@ -93,19 +93,9 @@ static int row_src2dst(int row, struct Cell_head *src, struct Cell_head *dst)
     return (dst->north - src->north + (row + 0.5) * src->ns_res) / dst->ns_res;
 }
 
-static int row_dst2src(int row, struct Cell_head *src, struct Cell_head *dst)
-{
-    return (src->north - dst->north + (row + 0.5) * dst->ns_res) / src->ns_res;
-}
-
 static int col_src2dst(int col, struct Cell_head *src, struct Cell_head *dst)
 {
     return (src->west - dst->west + (col + 0.5) * src->ew_res) / dst->ew_res;
-}
-
-static int col_dst2src(int col, struct Cell_head *src, struct Cell_head *dst)
-{
-    return (dst->west - src->west + (col + 0.5) * dst->ew_res) / src->ew_res;
 }
 
 static int cmp_pnts(const void *first, const void *second)
@@ -203,7 +193,7 @@ static int load_tps_pnts(SEGMENT *in_seg, int n_vars,
 }
 
 
-static int cmp_rc(const void *first, const void *second)
+static int cmp_rc(const void *first, const void *second, void *avl_param)
 {
     struct rc *a = (struct rc *)first, *b = (struct rc *)second;
 
@@ -211,6 +201,11 @@ static int cmp_rc(const void *first, const void *second)
 	return (a->col - b->col);
 
     return (a->row - b->row);
+}
+
+static void avl_free_item(void *avl_item, void *avl_param)
+{
+    G_free(avl_item);
 }
 
 static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
@@ -223,15 +218,19 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
     int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
     int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    struct rc next, ngbr_rc;
+    struct rc next, ngbr_rc, *pngbr_rc;
     struct rclist rilist;
-    struct RB_TREE *visited;
+    struct pavl_table *visited;
     double dx, dy, dist;
 
-    visited = rbtree_create(cmp_rc, sizeof(struct rc));
+    visited = pavl_create(cmp_rc, NULL, NULL);
+
     ngbr_rc.row = row;
     ngbr_rc.col = col;
-    rbtree_insert(visited, &ngbr_rc);
+    pngbr_rc = G_malloc(sizeof(struct rc));
+    *pngbr_rc = ngbr_rc;
+    pavl_insert(visited, pngbr_rc);
+    pngbr_rc = NULL;
 
     nrows = src->rows;
     ncols = src->cols;
@@ -271,10 +270,17 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
 
-	    if (rbtree_find(visited, &ngbr_rc))
-		continue;
+	    if (pngbr_rc == NULL)
+		pngbr_rc = G_malloc(sizeof(struct rc));
 
-	    rbtree_insert(visited, &ngbr_rc);
+	    *pngbr_rc = ngbr_rc;
+
+	    if (pavl_insert(visited, pngbr_rc) != NULL) {
+		continue;
+	    }
+	    
+	    pngbr_rc = NULL;
+
 	    rclist_add(&rilist, rown, coln);
 
 	    if (FLAG_GET(pnt_flag, rown, coln)) {
@@ -310,7 +316,9 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
 
 
     rclist_destroy(&rilist);
-    rbtree_destroy(visited);
+    if (pngbr_rc)
+	G_free(pngbr_rc);
+    pavl_destroy(visited, avl_free_item);
 
     return found;
 }
@@ -325,16 +333,19 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
     int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    struct rc next, ngbr_rc;
+    struct rc next, ngbr_rc, *pngbr_rc;
     struct rclist rilist;
-    struct RB_TREE *visited;
+    struct pavl_table *visited;
     double dx, dy, dist;
 
+    visited = pavl_create(cmp_rc, NULL, NULL);
 
-    visited = rbtree_create(cmp_rc, sizeof(struct rc));
     ngbr_rc.row = row;
     ngbr_rc.col = col;
-    rbtree_insert(visited, &ngbr_rc);
+    pngbr_rc = G_malloc(sizeof(struct rc));
+    *pngbr_rc = ngbr_rc;
+    pavl_insert(visited, pngbr_rc);
+    pngbr_rc = NULL;
 
     nrows = src->rows;
     ncols = src->cols;
@@ -359,10 +370,16 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
 
-	    if (rbtree_find(visited, &ngbr_rc))
-		continue;
+	    if (pngbr_rc == NULL)
+		pngbr_rc = G_malloc(sizeof(struct rc));
 
-	    rbtree_insert(visited, &ngbr_rc);
+	    *pngbr_rc = ngbr_rc;
+
+	    if (pavl_insert(visited, pngbr_rc) != NULL) {
+		continue;
+	    }
+	    
+	    pngbr_rc = NULL;
 
 	    if (!(FLAG_GET(pnt_flag, rown, coln))) {
 		rclist_add(&rilist, rown, coln);
@@ -387,7 +404,9 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     } while (rclist_drop(&rilist, &next));   /* while there are cells to check */
 
     rclist_destroy(&rilist);
-    rbtree_destroy(visited);
+    if (pngbr_rc == NULL)
+	G_free(pngbr_rc);
+    pavl_destroy(visited, avl_free_item);
 
     return found;
 }
@@ -398,7 +417,7 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	      off_t n_points, int min_points,
 	      double regularization, double overlap, int clustered)
 {
-    int ridx, cidx, row, col, nrows, ncols;
+    int ridx, cidx, row, col, nrows, ncols, src_row, src_col;
     double **m, *a, *B;
     int i, j;
     int kdalloc, palloc, n_cur_points;
@@ -408,8 +427,8 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     CELL *maskbuf;
     int solved;
     int kdfound, bfsfound, pfound;
-    double distmax;
-
+    double distmax, mindist;
+    int do_clustered;
     int mask_fd;
     FLAG *mask_flag, *pnt_flag;
     struct tps_out tps_out;
@@ -531,6 +550,8 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	if (ridx & 1)
 	    row = nrows - 1 - row;
 
+	src_row = row_src2dst(row, dst, src);
+
 	for (cidx = 0; cidx < ncols; cidx++) {
 
 	    col = (cidx >> 1);
@@ -556,6 +577,7 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	    solved = 0;
 	    n_cur_points = 0;
 	    kdfound = 0;
+	    src_col = col_src2dst(col, dst, src);
 	    
 	    while (!solved) {
 		
@@ -587,16 +609,24 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		cmax = 0;
 		kdfound = bfs_search_nn(pnt_flag, src, cur_pnts,
 		                        n_cur_points,
-					row_dst2src(row, src, dst),
-					col_dst2src(col, src, dst), 
+					src_row, src_col, 
 					&rmin, &rmax, &cmin, &cmax, 
 					&distmax);
 
-		/* convert src min/max to dst min/max */
+
+		mindist = n_cur_points / M_PI * 1.5;
+
+		do_clustered = 0;
+		if (distmax > mindist ||
+		    rmin >= src_row || rmax <= src_row ||
+		    cmin >= src_col || cmax <= src_col) {
+
+		    do_clustered = 1;
+		}
 
 		pfound = kdfound;
 
-		if (clustered) {
+		if (clustered && do_clustered) {
 		    /* collect points with breadth-first search
 		     * min dist must be > max dist of nearest neighbors */
 
@@ -604,11 +634,10 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    if (rminp <= row && cmaxp > col) {
 			bfsfound = bfs_search(pnt_flag, src,
 			           cur_pnts + pfound,
-			           row_dst2src(row, src, dst),
-				   col_dst2src(col, src, dst), 
+				   src_row, src_col, 
 				   n_cur_points / 3, distmax,
-				   0, row_dst2src(row, src, dst),
-				   col_dst2src(col, src, dst) + 1, src->cols - 1);
+				   0, src_row,
+				   src_col + 1, src->cols - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for NE quadrant");
@@ -620,11 +649,10 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    if (rminp < row && cminp <= col) {
 			bfsfound = bfs_search(pnt_flag, src,
 			           cur_pnts + pfound,
-			           row_dst2src(row, src, dst),
-				   col_dst2src(col, src, dst), 
+				   src_row, src_col, 
 				   n_cur_points / 3, distmax,
-				   0, row_dst2src(row, src, dst) - 1,
-				   0, col_dst2src(col, src, dst));
+				   0, src_row - 1,
+				   0, src_col);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for NW quadrant");
@@ -636,11 +664,10 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    if (rmaxp >= row && cminp < col) {
 			bfsfound = bfs_search(pnt_flag, src,
 			           cur_pnts + pfound,
-			           row_dst2src(row, src, dst),
-				   col_dst2src(col, src, dst), 
+				   src_row, src_col, 
 				   n_cur_points / 3, distmax,
-				   row_dst2src(row, src, dst), src->rows - 1,
-				   0, col_dst2src(col, src, dst) - 1);
+				   src_row, src->rows - 1,
+				   0, src_col - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for SW quadrant");
@@ -652,11 +679,10 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    if (rmaxp > row && cmaxp >= col) {
 			bfsfound = bfs_search(pnt_flag, src,
 			           cur_pnts + pfound,
-			           row_dst2src(row, src, dst),
-				   col_dst2src(col, src, dst), 
+				   src_row, src_col, 
 				   n_cur_points / 3, distmax,
-				   row_dst2src(row, src, dst) + 1, src->rows - 1,
-				   col_dst2src(col, src, dst), src->cols - 1);
+				   src_row + 1, src->rows - 1,
+				   src_col, src->cols - 1);
 
 			if (bfsfound == 0)
 			    G_debug(4, "No BFS points for SE quadrant");
