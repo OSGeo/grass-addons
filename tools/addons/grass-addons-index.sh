@@ -104,7 +104,8 @@ anyone may develop his/her own extensions.  The <a
 href=\"http://grasswiki.osgeo.org/wiki/AddOns/GRASS_${major}\">GRASS GIS
 Add-ons Wiki page</a> contains a growing list of links to GRASS GIS
 extensions, which are currently not part of the standard
-distribution. They can be easily added to the local installation
+distribution.<br>
+They can be easily <b>installed</b> in the local installation
 through the graphical user interface (<i>Menu - Settings - Addons
 Extension - Install</i>) or via the <a
 href=\"../g.extension.html\">g.extension</a> command.  <p> <i>These
@@ -114,6 +115,8 @@ manual pages are updated daily.</i>
 Further details about gaining write access to our SVN repository can be found in
 <a href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this document</a>.
 Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
+<p> How to get the source code:
+<p> <tt>svn checkout https://svn.osgeo.org/grass/grass-addons/grass7 grass7_addons</tt>
 <p>
 See also log files of compilation:
 <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
