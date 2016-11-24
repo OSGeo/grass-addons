@@ -54,14 +54,14 @@
 #% required: yes
 #%end
 
-#%option G_OPT_R_OUTPUT
+#%option G_OPT_R3_OUTPUT
 #% key: pf
 #% label: Name for output Pf (forest area density) raster map
 #% description: Proportion of area which is forested (amount of forest)
 #% required: no
 #%end
 
-#%option G_OPT_R_OUTPUT
+#%option G_OPT_R3_OUTPUT
 #% key: pff
 #% label: Name for output Pff (forest connectivity) raster map
 #% description: Conditional probability that neighboring cell is forest
