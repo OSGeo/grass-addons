@@ -300,12 +300,12 @@ int main(int argc, char *argv[])
         if (!output_initialized) {
             Rast_get_window(&output_region);
             output_region.south = 0;
-            output_region.north = region.depths;
+            output_region.north = res * region.depths;
             output_region.west = 0;
-            output_region.east = values.num_items;
-            /* TODO: make the distances in the x and y directions right */
-            output_region.ew_res = 1;
-            output_region.ns_res = 1;
+            output_region.east = region.tb_res * values.num_items;
+            /* TODO: ew_res is more complex than just res, perhaps mean of distances if we store them */
+            output_region.ew_res = res;
+            output_region.ns_res = region.tb_res;
 
             Rast_set_output_window(&output_region);
             outfd = Rast_open_new(parm.raster_output->answer, data_type);
