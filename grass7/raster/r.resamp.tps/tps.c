@@ -193,7 +193,7 @@ static int load_tps_pnts(SEGMENT *in_seg, int n_vars,
 }
 
 
-static int cmp_rc(const void *first, const void *second, void *avl_param)
+static int cmp_rc(const void *first, const void *second)
 {
     struct rc *a = (struct rc *)first, *b = (struct rc *)second;
 
@@ -203,7 +203,7 @@ static int cmp_rc(const void *first, const void *second, void *avl_param)
     return (a->row - b->row);
 }
 
-static void avl_free_item(void *avl_item, void *avl_param)
+static void avl_free_item(void *avl_item)
 {
     G_free(avl_item);
 }
@@ -223,7 +223,7 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
     struct pavl_table *visited;
     double dx, dy, dist;
 
-    visited = pavl_create(cmp_rc, NULL, NULL);
+    visited = pavl_create(cmp_rc, NULL);
 
     ngbr_rc.row = row;
     ngbr_rc.col = col;
@@ -338,7 +338,7 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     struct pavl_table *visited;
     double dx, dy, dist;
 
-    visited = pavl_create(cmp_rc, NULL, NULL);
+    visited = pavl_create(cmp_rc, NULL);
 
     ngbr_rc.row = row;
     ngbr_rc.col = col;
@@ -411,11 +411,69 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     return found;
 }
 
-int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
-              SEGMENT *out_seg, int out_fd, char *mask_name,
-              struct Cell_head *src, struct Cell_head *dst,
-	      off_t n_points, int min_points,
-	      double regularization, double overlap, int clustered)
+static int window_pnts(FLAG *pnt_flag, struct Cell_head *src,
+                       struct tps_pnt *cur_pnts, int radius,
+                       int row, int col,
+		       int *rmin, int *rmax, int *cmin, int *cmax, 
+		       double *distmax)
+{
+    int rown, coln, row1, row2, col1, col2;
+    int found;
+    double dx, dy, dist;
+
+    found = 0;
+    *distmax = 0.0;
+
+    row1 = row - radius;
+    if (row1 < 0)
+	row1 = 0;
+    row2 = row + radius;
+    if (row2 > src->rows - 1)
+	row2 = src->rows - 1;
+
+    col1 = col - radius;
+    if (col1 < 0)
+	col1 = 0;
+    col2 = col + radius;
+    if (col2 > src->cols - 1)
+	col2 = src->cols - 1;
+
+    for (rown = row1; rown <= row2; rown++) {
+	for (coln = col1; coln <= col2; coln++) {
+	    if (FLAG_GET(pnt_flag, rown, coln)) {
+		/* add to cur_pnts */
+		cur_pnts[found].r = rown;
+		cur_pnts[found].c = coln;
+		found++;
+
+		if (*rmin > rown)
+		    *rmin = rown;
+		if (*rmax < rown)
+		    *rmax = rown;
+		if (*cmin > coln)
+		    *cmin = coln;
+		if (*cmax < coln)
+		    *cmax = coln;
+
+		dx = coln - col;
+		dy = rown - row;
+		
+		dist = dx * dx + dy * dy;
+		
+		if (*distmax < dist)
+		    *distmax = dist;
+	    }
+	}
+    }
+
+    return found;
+}
+
+int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
+           SEGMENT *out_seg, int out_fd, char *mask_name,
+           struct Cell_head *src, struct Cell_head *dst,
+	   off_t n_points, int min_points,
+	   double regularization, double overlap, int clustered)
 {
     int ridx, cidx, row, col, nrows, ncols, src_row, src_col;
     double **m, *a, *B;
@@ -530,7 +588,7 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     }
     G_percent(1, 1, 2);
 
-    G_message(_("Local TPS interpolation with %ld points..."), n_points);
+    G_message(_("Nearest neighbor TPS interpolation with %ld points..."), n_points);
 
     wmin = 10;
     wmax = 0;
@@ -868,8 +926,420 @@ int local_tps(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     }
     G_percent(1, 1, 1);
 
-    G_debug(0, "wmin: %g", wmin);
-    G_debug(0, "wmax: %g", wmax);
+    G_debug(1, "wmin: %g", wmin);
+    G_debug(1, "wmax: %g", wmax);
+
+    flag_destroy(pnt_flag);
+
+    outbuf = Rast_allocate_d_buf();
+
+    G_message(_("Writing output..."));
+    for (row = 0; row < nrows; row++) {
+	G_percent(row, nrows, 2);
+
+	for (col = 0; col < ncols; col++) {
+
+	    if ((FLAG_GET(mask_flag, row, col))) {
+		Rast_set_d_null_value(&outbuf[col], 1);
+		continue;
+	    }
+	    
+	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    
+	    if (tps_out.wsum == 0)
+		Rast_set_d_null_value(&outbuf[col], 1);
+	    else
+		outbuf[col] = tps_out.val / tps_out.wsum;
+	}
+	Rast_put_d_row(out_fd, outbuf);
+    }
+    G_percent(1, 1, 2);
+
+    G_free(outbuf);
+    flag_destroy(mask_flag);
+
+    return 1;
+}
+
+int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
+               SEGMENT *out_seg, int out_fd, char *mask_name,
+               struct Cell_head *src, struct Cell_head *dst,
+	       off_t n_points,
+	       double regularization, double overlap, int radius)
+{
+    int ridx, cidx, row, col, nrows, ncols, src_row, src_col;
+    double **m, *a, *B;
+    int i, j;
+    int palloc;
+    struct tps_pnt *cur_pnts;
+    double dx, dy, dist, dist2, mfactor;
+    DCELL *dval, result, *outbuf, *varbuf;
+    CELL *maskbuf;
+    int solved;
+    int pfound;
+    double distmax, mindist;
+    int mask_fd;
+    FLAG *mask_flag, *pnt_flag;
+    struct tps_out tps_out;
+    double *pvar;
+    double weight, dxi, dyi;
+    double wmin, wmax;
+    int rmin, rmax, cmin, cmax, rminp, rmaxp, cminp, cmaxp;
+    int irow, irow1, irow2, icol, icol1, icol2;
+    int wsize;
+    double dxyw;
+#ifndef USE_RC
+    double i_n, i_e;
+#endif
+
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
+
+    wsize = (radius * 2 + 1) * (radius * 2 + 1);
+    dxyw = (src->ew_res + src->ns_res) * 0.5 * (radius + 1);
+
+    palloc = wsize;
+    a = G_malloc((palloc + 1 + n_vars) * sizeof(double));
+    B = G_malloc((palloc + 1 + n_vars) * sizeof(double));
+    m = G_malloc((palloc + 1 + n_vars) * sizeof(double *));
+    for (i = 0; i < (palloc + 1 + n_vars); i++)
+	m[i] = G_malloc((palloc + 1 + n_vars) * sizeof(double));
+    cur_pnts = G_malloc(palloc * sizeof(struct tps_pnt));
+    
+    pvar = NULL;
+    varbuf = NULL;
+    if (n_vars) {
+	pvar = G_malloc(palloc * n_vars * sizeof(double));
+	cur_pnts[0].vars = pvar;
+	for (i = 1; i < palloc; i++)
+	    cur_pnts[i].vars = cur_pnts[i - 1].vars + n_vars;
+
+	varbuf = G_malloc(n_vars * sizeof(DCELL));
+    }
+
+    dval = G_malloc((1 + n_vars) * sizeof(DCELL));
+
+    mask_flag = flag_create(nrows, ncols);
+
+    maskbuf = NULL;
+    if (mask_name) {
+	G_message("Loading mask map...");
+	mask_fd = Rast_open_old(mask_name, "");
+	maskbuf = Rast_allocate_c_buf();
+
+	for (row = 0; row < nrows; row++) {
+	    Rast_get_c_row(mask_fd, maskbuf, row);
+	    for (col = 0; col < ncols; col++) {
+		if (Rast_is_c_null_value(&maskbuf[col]) || maskbuf[col] == 0)
+		    FLAG_SET(mask_flag, row, col);
+	    }
+	}
+	Rast_close(mask_fd);
+	G_free(maskbuf);
+	maskbuf = NULL;
+    }
+
+    G_message(_("Analyzing input ..."));
+    pnt_flag = flag_create(src->rows, src->cols);
+
+    rminp = src->rows;
+    rmaxp = 0;
+    cminp = src->cols;
+    cmaxp = 0;
+    for (row = 0; row < src->rows; row++) {
+	G_percent(row, src->rows, 2);
+
+	for (col = 0; col < src->cols; col++) {
+	    Segment_get(in_seg, (void *)dval, row, col);
+	    if (!Rast_is_d_null_value(dval)) {
+		FLAG_SET(pnt_flag, row, col);
+		if (rminp > row)
+		    rminp = row;
+		if (rmaxp < row)
+		    rmaxp = row;
+		if (cminp > col)
+		    cminp = col;
+		if (cmaxp < col)
+		    cmaxp = col;
+	    }
+	}
+    }
+    rminp = row_src2dst(rminp, src, dst);
+    rmaxp = row_src2dst(rmaxp, src, dst);
+    cminp = col_src2dst(cminp, src, dst);
+    cmaxp = col_src2dst(cmaxp, src, dst);
+    G_percent(1, 1, 2);
+
+    G_message(_("Initializing output ..."));
+    tps_out.val = 0;
+    tps_out.wsum = 0;
+    tps_out.wmax = 0;
+    for (row = 0; row < nrows; row++) {
+	G_percent(row, nrows, 2);
+
+	for (col = 0; col < ncols; col++) {
+	    if (Segment_put(out_seg, (void *)&tps_out, row, col) != 1)
+		G_fatal_error(_("Unable to write to temporary file"));
+	}
+    }
+    G_percent(1, 1, 2);
+
+    G_message(_("Moving window TPS interpolation with %ld points..."), n_points);
+
+    wmin = 10;
+    wmax = 0;
+
+    if (overlap > 1.0)
+	overlap = 1.0;
+    if (overlap < 0.0)
+	overlap = 0.0;
+    /* keep in sync with weight calculation below */
+    overlap = exp((overlap - 1.0) * 8.0);
+
+    for (ridx = 0; ridx < nrows; ridx++) {
+
+	G_percent(ridx, nrows, 1);
+
+	row = (ridx >> 1);
+	if (ridx & 1)
+	    row = nrows - 1 - row;
+
+	src_row = row_src2dst(row, dst, src);
+
+	for (cidx = 0; cidx < ncols; cidx++) {
+
+	    col = (cidx >> 1);
+	    if (cidx & 1)
+		col = ncols - 1 - col;
+
+	    if ((FLAG_GET(mask_flag, row, col))) {
+		continue;
+	    }
+
+	    if (n_vars) {
+
+		Segment_get(var_seg, (void *)varbuf, row, col);
+
+		if (Rast_is_d_null_value(varbuf))
+		    continue;
+	    }
+	    
+	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    if (tps_out.wmax > overlap)
+		continue;
+
+	    solved = 0;
+	    pfound = 0;
+	    src_col = col_src2dst(col, dst, src);
+	    
+	    /* collect points within moving window */
+	    rmin = src->rows;
+	    rmax = 0;
+	    cmin = src->cols;
+	    cmax = 0;
+	    pfound = window_pnts(pnt_flag, src, cur_pnts,
+				 radius,
+				 src_row, src_col, 
+				 &rmin, &rmax, &cmin, &cmax, 
+				 &distmax);
+
+	    if (pfound > 2) {
+		/* sort points */
+		qsort(cur_pnts, pfound, sizeof(struct tps_pnt), cmp_pnts);
+
+		load_tps_pnts(in_seg, n_vars, cur_pnts, pfound, src, dst,
+			      regularization, m, a);
+
+		/* solve */
+		solved = solvemat(m, a, B, pfound + 1 + n_vars);
+		if (!solved) {
+		    for (i = 0; i < pfound; i++) {
+			cur_pnts[i].r = (src->north - cur_pnts[i].r) / src->ns_res;
+			cur_pnts[i].c = (cur_pnts[i].c - src->west) / src->ew_res;
+		    }
+		}
+	    }
+
+	    if (!solved) {
+		if (pfound > 0) {
+		    /* weighted average */
+		    double wsum, maxweight;
+
+		    i_n = dst->north - (row + 0.5) * dst->ns_res;
+		    i_e = dst->west + (col + 0.5) * dst->ew_res;
+
+		    mindist = -1;
+		    result = 0;
+		    wsum = 0;
+		    maxweight = 0;
+		    for (i = 0; i < pfound; i++) {
+
+			Segment_get(in_seg, (void *)dval, cur_pnts[i].r, cur_pnts[i].c);
+
+			cur_pnts[i].r = src->north - (cur_pnts[i].r + 0.5) * src->ns_res;
+			cur_pnts[i].c = src->west + (cur_pnts[i].c + 0.5) * src->ew_res;
+			
+			dx = cur_pnts[i].c - i_e;
+			dy = cur_pnts[i].r - i_n;
+
+			/* weight for average */
+			dx = fabs(dx) / dxyw;
+			dy = fabs(dx) / dxyw;
+			dist2 = dx * dx + dy * dy;
+			weight = exp(-dist2 * 4.0);
+			
+			/* weight for tps */
+			if (mindist > dist2 || mindist > 0)
+			    maxweight = weight;
+
+			wsum += weight;
+			result += dval[0] * weight;
+		    }
+		    result /= wsum;
+		    weight = maxweight;
+
+		    /* weight according to distance to nearest point */
+		    if (tps_out.wmax < weight)
+			tps_out.wmax = weight;
+
+		    tps_out.val += result * weight;
+		    tps_out.wsum += weight;
+		    Segment_put(out_seg, (void *)&tps_out, row, col);
+		}
+		continue;
+	    }
+
+	    /* must be <= 0.5 */
+	    mfactor = 0.0;
+	    /* min: 0
+	     * max: 0.5
+	     * 1 - 1 / d: -> 0 for dense spacing
+	     *            1 for sparse points
+	     */
+
+	    rmin = row_src2dst(rmin, src, dst);
+	    rmax = row_src2dst(rmax, src, dst);
+	    cmin = col_src2dst(cmin, src, dst);
+	    cmax = col_src2dst(cmax, src, dst);
+
+	    irow1 = rmin + (int)((rmax - rmin) * mfactor);
+	    irow2 = rmax - (int)((rmax - rmin) * mfactor);
+	    icol1 = cmin + (int)((cmax - cmin) * mfactor);
+	    icol2 = cmax - (int)((cmax - cmin) * mfactor);
+
+	    if (irow1 > row) {
+		irow2 -= irow1 - row;
+		irow1 = row;
+	    }
+	    if (irow2 < row) {
+		irow1 += row - irow2;
+		irow2 = row;
+	    }
+	    if (icol1 > col) {
+		icol2 -= icol1 - col;
+		icol1 = col;
+	    }
+	    if (icol2 < col) {
+		icol1 += col - icol2;
+		icol2 = col;
+	    }
+
+	    if (rmin == rminp)
+		irow1 = 0;
+	    if (rmax == rmaxp)
+		irow2 = nrows - 1;
+	    if (cmin == cminp)
+		icol1 = 0;
+	    if (cmax == cmaxp)
+		icol2 = ncols - 1;
+
+	    if (irow1 < 0)
+		irow1 = 0;
+	    if (irow2 > nrows - 1)
+		irow2 = nrows - 1;
+	    if (icol1 < 0)
+		icol1 = 0;
+	    if (icol2 > ncols - 1)
+		icol2 = ncols - 1;
+
+	    dxi = icol2 - icol1 + 1;
+	    dyi = irow2 - irow1 + 1;
+
+	    for (irow = irow1; irow <= irow2; irow++) {
+
+#ifndef USE_RC
+		i_n = dst->north - (irow + 0.5) * dst->ns_res;
+#endif
+		for (icol = icol1; icol <= icol2; icol++) {
+		    if ((FLAG_GET(mask_flag, irow, icol))) {
+			continue;
+		    }
+
+		    if (n_vars) {
+
+			Segment_get(var_seg, (void *)varbuf, irow, icol);
+			if (Rast_is_d_null_value(varbuf)) {
+			    continue;
+			}
+		    }
+
+#ifndef USE_RC
+		    i_e = dst->west + (icol + 0.5) * dst->ew_res;
+#endif
+		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
+
+		    j = 0;
+
+		    result = B[0];
+		    if (n_vars) {
+			for (j = 0; j < n_vars; j++) {
+			    result += varbuf[j] * B[j + 1];
+			}
+		    }
+
+		    for (i = 0; i < pfound; i++) {
+#ifdef USE_RC
+			dx = (cur_pnts[i].c - icol) * 2.0;
+			dy = (cur_pnts[i].r - irow) * 2.0;
+#else
+			dx = cur_pnts[i].c - i_e;
+			dy = cur_pnts[i].r - i_n;
+#endif
+
+			dist2 = dx * dx + dy * dy;
+			dist = 0;
+			if (dist2 > 0) {
+			    dist = dist2 * log(dist2) * 0.5;
+			    result += B[1 + n_vars + i] * dist;
+			}
+		    }
+
+		    dx = fabs(2.0 * icol - (icol2 + icol1)) / dxi;
+		    dy = fabs(2.0 * irow - (irow2 + irow1)) / dyi;
+
+		    dist2 = (dx * dx + dy * dy);
+
+		    weight = exp(-dist2 * 4.0);
+
+		    if (wmin > weight)
+			wmin = weight;
+		    if (wmax < weight)
+			wmax = weight;
+
+		    if (tps_out.wmax < weight)
+			tps_out.wmax = weight;
+
+		    tps_out.val += result * weight;
+		    tps_out.wsum += weight;
+		    Segment_put(out_seg, (void *)&tps_out, irow, icol);
+		}
+	    }
+	}
+    }
+    G_percent(1, 1, 1);
+
+    G_debug(1, "wmin: %g", wmin);
+    G_debug(1, "wmax: %g", wmax);
 
     flag_destroy(pnt_flag);
 

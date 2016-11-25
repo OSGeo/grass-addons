@@ -35,13 +35,13 @@ int main(int argc, char *argv[])
 
     struct GModule *module;
     struct Option *in_opt, *ivar_opt, *ovar_opt, *out_opt, *minpnts_opt,
-		  *reg_opt, *ov_opt, *mask_opt, *mem_opt;
+		  *radius_opt, *reg_opt, *ov_opt, *mask_opt, *mem_opt;
     struct Flag *c_flag;
     struct Cell_head cellhd, src, dst;
 
     int n_ivars, n_ovars, n_vars;
     off_t n_points;
-    int min_points;
+    int min_points, radius;
 
     int r, c, nrows, ncols;
     DCELL **dbuf, *dval;
@@ -91,6 +91,17 @@ int main(int argc, char *argv[])
     minpnts_opt->description =
 	_("Minimum number of points to use for TPS interpolation");
     minpnts_opt->guisection = _("Settings");
+
+    radius_opt = G_define_option();
+    radius_opt->key = "radius";
+    radius_opt->type = TYPE_INTEGER;
+    radius_opt->required = NO;
+    radius_opt->answer = "0";
+    radius_opt->label =
+	_("Radius for moving window interpolation");
+    radius_opt->description =
+	_("If radius is > 0, moving window interpolation will be used instead of nearest neighbor search");
+    radius_opt->guisection = _("Settings");
 
     ivar_opt = G_define_standard_option(G_OPT_R_INPUTS);
     ivar_opt->key = "icovars";
@@ -325,6 +336,10 @@ int main(int argc, char *argv[])
 	          min_points);
     }
 
+    radius = atoi(radius_opt->answer);
+    if (radius < 0)
+	radius = 0;
+
     regularization = atof(reg_opt->answer);
     if (regularization < 0)
 	regularization = 0;
@@ -335,11 +350,21 @@ int main(int argc, char *argv[])
     if (overlap > 1)
 	overlap = 1;
 
-    if (local_tps(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
-                  mask_opt->answer, &src, &dst, n_points,
-		  min_points, regularization, overlap,
-		  c_flag->answer) != 1) {
-	G_fatal_error(_("TPS interpolation failed"));
+    if (radius) {
+	if (tps_window(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
+		       mask_opt->answer, &src, &dst, n_points,
+		       regularization, overlap,
+		       radius) != 1) {
+	    G_fatal_error(_("TPS interpolation failed"));
+	}
+    }
+    else {
+	if (tps_nn(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
+		   mask_opt->answer, &src, &dst, n_points,
+		   min_points, regularization, overlap,
+		   c_flag->answer) != 1) {
+	    G_fatal_error(_("TPS interpolation failed"));
+	}
     }
 
     Segment_close(&in_seg);
