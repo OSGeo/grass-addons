@@ -523,12 +523,14 @@ try:
     # set python path to the shared r.green libraries
     set_path('r.green', 'libhydro', '..')
     set_path('r.green', 'libgreen', os.path.join('..', '..'))
-
     from libgreen.utils import cleanup
-    from libgreen.checkparameter import check_required_columns, exception2error
-    from libhydro.plant import read_plants, write_structures
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    try:
+        set_path('r.green', 'libhydro', '../etc')
+        set_path('r.green', 'libgreen', '../etc')
+        from libgreen.utils import cleanup
+    except ImportError:
+        warning('libgreen and libhydro not in the python path!')
 
 
 def rname(base):
@@ -706,7 +708,7 @@ def get_electro_length(opts):
         # open vector map with the existing electroline
         ename = opts['electro']
         ename, emapset = ename.split('@') if '@' in ename else (ename, '')
-        ltemp=[]
+        ltemp = []
         with VectorTopo(ename, mapset=emapset,
                         layer=int(opts['electro_layer']),
                         mode='r') as electro:

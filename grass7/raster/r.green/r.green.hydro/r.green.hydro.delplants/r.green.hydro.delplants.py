@@ -100,25 +100,31 @@ import atexit
 
 # import GRASS libraries
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite
+from grass.script.core import parser, overwrite, warning
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.modules.shortcuts import vector as v
-from grass.pygrass.messages import get_msgr
 from grass.pygrass.utils import set_path
 
 
 try:
+    # set python path to the shared r.green libraries
     set_path('r.green', 'libhydro', '..')
     set_path('r.green', 'libgreen', os.path.join('..', '..'))
-
-    # finally import the module in the library
     from libgreen.utils import cleanup
     from libgreen.checkparameter import (check_required_columns,
                                          exception2error)
     from libhydro.plant import read_plants, write_plants
 except ImportError:
-    warning('libgreen and libhydro not in the python path!')
+    try:
+        set_path('r.green', 'libhydro', '../etc')
+        set_path('r.green', 'libgreen', '../etc')
+        from libgreen.utils import cleanup
+        from libgreen.checkparameter import (check_required_columns,
+                                             exception2error)
+        from libhydro.plant import read_plants, write_plants
+    except ImportError:
+        warning('libgreen and libhydro not in the python path!')
 
 
 def main(opts, flgs):

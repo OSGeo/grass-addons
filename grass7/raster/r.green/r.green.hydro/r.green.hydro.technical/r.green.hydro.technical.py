@@ -231,7 +231,7 @@ from grass.pygrass.utils import set_path
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import VectorTopo
 
-from math import pi, log10, sin, acos, asin, sqrt, atan
+from math import pi, log10, sin, acos, asin, sqrt
 
 try:
     from scipy.optimize import fsolve
@@ -241,17 +241,23 @@ except ImportError:
 
 import numpy as np
 
-
 try:
     # set python path to the shared r.green libraries
     set_path('r.green', 'libhydro', '..')
     set_path('r.green', 'libgreen', os.path.join('..', '..'))
-    # finally import the module in the library
     from libgreen.utils import cleanup
-    from libhydro.optimal import conv_segpoints
     from libhydro.plant import power2energy
+    from libhydro.optimal import conv_segpoints
 except ImportError:
-    gcore.warning('libgreen and libhydro not in the python path!')
+    try:
+        set_path('r.green', 'libhydro', '../etc')
+        set_path('r.green', 'libgreen', '../etc')
+        from libgreen.utils import cleanup
+        from libhydro.plant import power2energy
+        from libhydro.optimal import conv_segpoints
+    except ImportError:
+        gcore.warning('libgreen and libhydro not in the python path!')
+
 
 DEBUG = False
 TMPRAST = []
