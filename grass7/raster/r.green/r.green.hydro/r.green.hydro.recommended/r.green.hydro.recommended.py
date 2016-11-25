@@ -356,7 +356,6 @@ def main(opts, flgs):
                       len_min=len_min,
                       efficiency=efficiency,
                       p_min=p_min)
-    import ipdb; ipdb.set_trace()
     power2energy(output_plant, 'pot_power', float(options['n']))
     print('r.green.hydro.recommended completed!')
 
