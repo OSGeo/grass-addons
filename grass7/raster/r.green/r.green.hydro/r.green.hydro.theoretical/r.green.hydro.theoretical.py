@@ -83,7 +83,7 @@
 #% key: output
 #% type: string
 #% key_desc: name
-#% description: Name of output vector map with basin potential
+#% description: Name of output vector map with basin potential [MWh]
 #% required: yes
 #% guisection: Basin Potential
 #%END
@@ -108,6 +108,7 @@ try:
     # finally import the module in the library
     from libgreen.utils import cleanup
     from libhydro.basin import dtm_corr
+    from libhydro.plant import power2energy
     from libhydro import basin
     from libgreen.utils import check_overlay_rr
     #from libgreen.utils import check_overlay_rv
@@ -178,10 +179,16 @@ def main(options, flags):
 
     perc_overlay = check_overlay_rr(discharge, stream)
     #pdb.set_trace()
-    if float(perc_overlay) < 90:
-        warn = ("Discharge map doesn't overlay all the stream map."
-                "It covers only the %s %% of rivers") % (perc_overlay)
-        msgr.warning(warn)
+    try:
+        p = float(perc_overlay)
+        if p < 90:
+            warn = ("Discharge map doesn't overlay all the stream map."
+                    "It covers only the %s %% of rivers") % (perc_overlay)
+            msgr.warning(warn)
+    except ValueError:
+        msgr.error("Could not convert data to a float")
+    except:
+        msgr.error("Unexpected error")
 
     msgr.message("\Init basins\n")
     #pdb.set_trace()
@@ -216,6 +223,7 @@ def main(options, flags):
     msgr.message("\nWrite results\n")
 
     basin.write_results2newvec(stream, E, basins_tot, inputs)
+    power2energy(E, 'Etot_kW', 8760)
 
 
 if __name__ == "__main__":

@@ -172,6 +172,7 @@ def main(options, flags):
     plants = find_segments(river, discharge, elevation, range_plant, distance,
                            p_max)
 
+    # add l_min
     if output_point:
         write_points(plants, output_point, efficiency, p_min)
     write_plants(plants, output_plant, efficiency, p_min)

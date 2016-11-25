@@ -161,6 +161,14 @@
 #% guisection: Turbine
 #%end
 #%option
+#% key: n
+#% type: double
+#% description: Number of operative hours per year [hours/year]
+#% required: no
+#% answer: 3392
+#% guisection: Efficiency
+#%end
+#%option
 #% key: efficiency_shaft
 #% type: double
 #% description: Efficiency of the shaft (bearings friction) [-]
@@ -241,6 +249,7 @@ try:
     # finally import the module in the library
     from libgreen.utils import cleanup
     from libhydro.optimal import conv_segpoints
+    from libhydro.plant import power2energy
 except ImportError:
     gcore.warning('libgreen and libhydro not in the python path!')
 
@@ -756,6 +765,8 @@ def main(options, flags):
                     if value:
                         seg.attrs[col] = value
         out.table.conn.commit()
+
+    power2energy(output_plant, 'power', float(options['n']))  
 
 
 if __name__ == "__main__":

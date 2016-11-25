@@ -78,6 +78,13 @@
 #% answer: 10.0
 #% required: no
 #%end
+#%option
+#% key: n
+#% type: double
+#% description: Number of operative hours per year [hours/year]
+#% required: no
+#% answer: 3392
+#%end
 
 ##
 ## OPTIONAL INPUTS: LEGAL DISCHARGE
@@ -204,6 +211,7 @@ try:
     set_path('r.green', 'libgreen', os.path.join('..', '..'))
     # finally import the module in the library
     from libgreen.utils import cleanup
+    from libhydro.plant import power2energy
 except ImportError:
     gcore.warning('libgreen and libhydro not in the python path!')
 
@@ -348,7 +356,8 @@ def main(opts, flgs):
                       len_min=len_min,
                       efficiency=efficiency,
                       p_min=p_min)
-
+    import ipdb; ipdb.set_trace()
+    power2energy(output_plant, 'pot_power', float(options['n']))
     print('r.green.hydro.recommended completed!')
 
 if __name__ == "__main__":
