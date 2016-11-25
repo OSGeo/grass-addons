@@ -117,8 +117,8 @@ try:
     from libhydro.plant import read_plants, write_plants
 except ImportError:
     try:
-        set_path('r.green', 'libhydro', '../etc')
-        set_path('r.green', 'libgreen', '../etc')
+        set_path('r.green', 'libhydro', os.path.join('..', 'etc', 'r.green'))
+        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
         from libgreen.utils import cleanup
         from libgreen.checkparameter import (check_required_columns,
                                              exception2error)

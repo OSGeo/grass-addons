@@ -213,8 +213,8 @@ try:
     from libhydro.plant import power2energy
 except ImportError:
     try:
-        set_path('r.green', 'libhydro', '../etc')
-        set_path('r.green', 'libgreen', '../etc')
+        set_path('r.green', 'libhydro', os.path.join('..', 'etc', 'r.green'))
+        set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
         from libgreen.utils import cleanup
         from libhydro.plant import power2energy
     except ImportError:
