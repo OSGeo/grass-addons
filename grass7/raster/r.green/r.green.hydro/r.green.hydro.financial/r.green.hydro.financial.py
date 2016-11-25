@@ -451,7 +451,7 @@
 #%  key: operative_hours
 #%  type: double
 #%  description: Number of operative hours per year [hours/year]
-#%  answer: 3650.
+#%  answer: 3392.
 #%  guisection: Revenues
 #%end
 #%option
