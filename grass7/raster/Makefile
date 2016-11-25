@@ -23,6 +23,7 @@ SUBDIRS = \
 	r.category.trim \
 	r.colors.cubehelix \
 	r.colors.matplotlib \
+	r.colors.out_sld \
 	r.convergence \
 	r.cpt2grass \
 	r.crater \
