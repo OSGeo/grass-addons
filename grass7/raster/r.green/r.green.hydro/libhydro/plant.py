@@ -11,6 +11,7 @@ from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.table import Link
 from grass.pygrass import utils
+from grass.script import core as gcore
 
 
 COLS = [(u'cat',       'INTEGER PRIMARY KEY'),
@@ -33,6 +34,16 @@ COLS_points = [(u'cat',       'INTEGER PRIMARY KEY'),
 
 HydroStruct = namedtuple('HydroStruct',
                          ['intake', 'conduct', 'penstock', 'side'])
+
+
+def power2energy(vect, power, n):
+    """ add a column with energy potential (MWh) given the
+    output file and the name of the column with the power (kW), n is
+    the number of working hours"""
+    new_col = 'E_potMW'
+    gcore.run_command('v.db.addcolumn', map=vect, columns=new_col)
+    gcore.run_command('v.db.update', map=vect, layer=1, column=new_col,
+                      query_column='%s * %f' % (power, n/1000.0))
 
 
 def closest(number, ndigits=0, resolution=None):
