@@ -10,6 +10,7 @@ import os
 import sys
 
 import numpy as np
+import math
 
 #from grass.script import mapcalc
 version = 70  # 71
@@ -55,6 +56,50 @@ def f(x, *params):
     dh = fun_h(x[0]) - fun_h(x[0]+x[1])
     # pdb.set_trace()
     return -dh*fun_q(x[0])
+
+
+def find_s_z(s, *params):
+    #msgr = get_msgr()
+    x0, prog, h, l_max = params
+    fun_h = interpolate.interp1d(prog, h, bounds_error=False, fill_value=0)
+    delta_h = abs(fun_h(x0+s) - fun_h(x0))
+    theta = math.atan(delta_h/s)
+    return l_max-abs(s/math.cos(theta))
+
+
+def min_len_plant_z(prog, h, l_max, range_plant, range_line, tol=10.):
+    start, end = range_line
+    len_plant = []
+    if end - start > tol:
+        num = int((end-start-tol)/tol)
+        for x0 in np.linspace(start, end-1, num=num):
+            sol, infodict, ier, mesg = fsolve(find_s_z, [0], args=(x0,
+                                              prog, h, l_max),
+                                              full_output=True)
+            if ier == 1:
+                #import pdb; pdb.set_trace()
+                len_plant.append(sol[0])
+            else:
+                len_plant.append(0)
+
+        len_plant = np.array(len_plant)
+        order = np.argsort(len_plant)
+        x_ink = np.linspace(start, end-tol, num=num)[order]
+        x_rest = x_ink + len_plant[order]
+        s = len_plant[order]
+        aaa = x_rest < end
+        bbb = s > 0
+        ccc = aaa * bbb
+        if ccc.any():
+            if len_plant.sum() == 0:
+                return (start, end-start)
+            else:
+                return (x_ink[ccc][0],
+                        s[ccc][0])
+        else:
+            return (start, end-start)
+    else:
+        return (start, end-start)
 
 
 def find_s(s, *params):
@@ -178,7 +223,7 @@ def find_optimal(args, range_plant, ranges):
 
 
 def recursive_plant(args, range_plant, distance,
-                    start, end, rank, cat, line, plants, count, p_max):
+                    start, end, rank, cat, line, plants, count, p_max,):
     msgr = get_msgr()
     count = count + 1
     #import ipdb; ipdb.set_trace()
@@ -199,16 +244,21 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
     prog, h, q = args
     fun_h = interpolate.interp1d(prog, h,  bounds_error=False, fill_value=0)
     fun_q = interpolate.interp1d(prog, q,  bounds_error=False, fill_value=0)
-    len_plant = range_plant[1]
-    len_min = range_plant[0]
+    delta_h = fun_h(end) - fun_h(start)
+    theta = math.atan(delta_h/(end-start))
+    len_p = end-start
+    dis = abs(distance*math.cos(theta))
+    len_plant = range_plant[1]*math.cos(theta)
+    len_min = range_plant[0]*math.cos(theta)
     if count < 6:
-        if (end-start) > len_plant + 2*distance:
+        if len_p > len_plant + 2*dis:
+        # if (end-start) > len_plant + 2*distance:
             if not(p_max):
-                x_min = find_optimal(args, range_plant,
-                                     (start+distance, end-distance))
+                x_min = find_optimal(args, (len_min, len_plant),
+                                     (start+dis, end-dis))
             else:
-                x_min = min_len_plant(prog, h, q, p_max, range_plant,
-                                      (start+distance, end-distance))
+                x_min = min_len_plant(prog, h, q, p_max, (len_min, len_plant),
+                                      (start+dis, end-dis))
             seg = line.segment(x_min[0], x_min[0]+x_min[1])
             if seg:
                 ink = Intake(id_point=str(1), id_plants=rank, id_stream=cat,
@@ -223,16 +273,18 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
                           restitution=res, intakes=(ink,),
                           line=seg)
                 return p, x_min
-        elif ((end-start-2*distance) > len_min
-              and ((end-start) < len_plant + 2*distance)):
-            len_plant = end-start-2*distance
-            range_plant = (len_min, len_plant)
+        elif ((len_p-2*dis) > len_min
+              and (len_p < len_plant + 2*dis)):
+            len_plant = end-start-2*dis
+            range_plant = (range_plant[0], len_plant/math.cos(theta))
             if not(p_max):
                 x_min = find_optimal(args, range_plant,
-                                     (start+distance, end-distance))
+                                     (start+dis, end-dis))
+#                x_min = min_len_plant_z(prog, h, l_max, range_plant,
+#                                        (start+distance, end-distance))
             else:
                 x_min = min_len_plant(prog, h, q, p_max, range_plant,
-                                      (start+distance, end-distance))
+                                      (start+dis, end-dis))
             seg = line.segment(x_min[0], x_min[0]+x_min[1])
             if seg:
                 ink = Intake(id_point=str(1), id_plants=rank, id_stream=cat,
