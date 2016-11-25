@@ -1,0 +1,36 @@
+<h2>DESCRIPTION:</h2>
+<p>The module <em>r.colors.out_sld</em> exports the colors of a raster map into 
+the Styled Layer Description (SLD) format according to OGC standard.</p>
+For raster maps of tyoe CELL also lables are exported. The export if lables 
+requires that the input map is read and may thus take a bit longer than the 
+export of contious color rules (ramp).</p>
+<p>Currently only SLD v1.0.0 is implemented.</p>
+
+<div id="examples">
+
+<h2>EXAMPLES:</h2>
+<div class="code"><pre>
+# Exporting a color ramp
+r.out.colors_sld map=Testmap style_name=Celsius
+
+</pre></div>
+</div>
+
+<div id="seealso">
+
+<h2>SEE ALSO:</h2>
+<a href="r.colors.out.html">r.colors.out</a>
+</div>
+
+<div id="references">
+
+<h2>REFERENCES:</h2>
+<a href="http://www.opengeospatial.org/standards/sld">
+http://www.opengeospatial.org/standards/sld</a><br></div>
+
+<div id="author">
+
+<h2>AUTHORS:</h2>
+Hamish Bowman<br>
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
+</div>
