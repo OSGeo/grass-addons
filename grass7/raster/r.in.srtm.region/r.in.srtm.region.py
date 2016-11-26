@@ -215,6 +215,8 @@ def main():
     srtmv3 = (flags['2'] == 0)
     one = flags['1']
 
+    overwrite = grass.overwrite()
+
     res = '00:00:03'
     if srtmv3:
         fillnulls = 0
@@ -262,7 +264,7 @@ def main():
     # get extents
     reg = grass.region()
     tmpregionname = 'r_in_srtm_tmp_region'
-    grass.run_command('g.region', save = tmpregionname)
+    grass.run_command('g.region', save = tmpregionname, overwrite=overwrite)
     if options['region'] is None or options['region'] == '':
 	north = reg['n']
 	south = reg['s']
@@ -387,9 +389,12 @@ def main():
     grass.run_command('g.region', raster = str(srtmtiles));
     
     if fillnulls == 0:
-	grass.run_command('r.patch', input = srtmtiles, output = output)
+        if valid_tiles > 1:
+            grass.run_command('r.patch', input = srtmtiles, output = output)
+        else:
+            grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
     else:
-	ncells = grass.region()['cells'] 
+        ncells = grass.region()['cells'] 
 	if long(ncells) > 1000000000:
 	    grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
 	grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
