@@ -5,10 +5,11 @@
 # MODULE:       r.in.srtm.region
 #
 # AUTHOR(S):    Markus Metz
+#               URL authenticaton added by Jonas Strobel, intern at mundialis and terrestris, Bonn
 #
 # PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles
 #
-# COPYRIGHT:    (C) 2011 GRASS development team
+# COPYRIGHT:    (C) 2011-2016 GRASS development team
 #
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -26,14 +27,24 @@
 #% required: yes
 #%end
 #%option
+#% key: username
+#% description: Username for authentication
+#% required: yes
+#%end
+#%option
+#% key: password
+#% description: Password for authentication
+#% required: yes
+#%end
+#%option
 #% key: url
-#% description: base url to fetch SRTM tiles
+#% description: Base URL to fetch SRTM tiles
 #% required: no
 #%end
 #%option G_OPT_M_DIR
 #% key: local
-#% label: local folder with SRTM tiles
-#% description: use local folder instead of url to retrieve SRTM tiles
+#% label: Local folder with SRTM tiles
+#% description: Use local folder instead of URL to retrieve SRTM tiles
 #% required: no
 #%end
 #%option
@@ -75,14 +86,12 @@ proj = ''.join([
     'UNIT["degree",0.0174532925199433]',
     ']'])
 
-import sys
 import os
-import shutil
 import atexit
 import urllib
 import urllib2
 import time
-
+from cookielib import CookieJar
 import grass.script as grass
 
 def import_local_tile(tile, local, pid, srtmv3, one):
@@ -118,7 +127,7 @@ def import_local_tile(tile, local, pid, srtmv3, one):
 
     return 0
 
-def download_tile(tile, url, pid, srtmv3, one):
+def download_tile(tile, url, pid, srtmv3, one, username, password):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
 	if one:
@@ -133,31 +142,42 @@ def download_tile(tile, url, pid, srtmv3, one):
     if srtmv3:
 	remote_tile = str(url) + local_tile
 	goturl = 1
-    
+
 	try:
-	    f = urllib2.urlopen(remote_tile)
+	    password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+	    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", username, password)
+
+	    cookie_jar = CookieJar()
+
+	    opener = urllib2.build_opener(
+			urllib2.HTTPBasicAuthHandler(password_manager),
+			#urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
+			#urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
+			urllib2.HTTPCookieProcessor(cookie_jar))
+	    urllib2.install_opener(opener)
+
+	    request = urllib2.Request(remote_tile)
+	    response = urllib2.urlopen(request)
+
 	    fo = open(local_tile, 'w+b')
-	    fo.write(f.read())
+	    fo.write(response.read())
 	    fo.close
 	    time.sleep(0.5)
-	    # does not work:
-	    #urllib.urlretrieve(remote_tile, local_tile, data = None)
 	except:
 	    goturl = 0
 	    pass
 	
 	return goturl
-        
-
+	
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
 	remote_tile = str(url) + str(srtmdir) + '/' + local_tile
 	goturl = 1
     
 	try:
-	    f = urllib2.urlopen(remote_tile)
+	    response = urllib2.urlopen(request)
 	    fo = open(local_tile, 'w+b')
-	    fo.write(f.read())
+	    fo.write(response.read())
 	    fo.close
 	    time.sleep(0.5)
 	    # does not work:
@@ -186,6 +206,8 @@ def main():
     in_temp = False
 
     url = options['url']
+    username = options['username']
+    password = options['password']
     local = options['local']
     output = options['output']
     memory = options['memory']
@@ -310,7 +332,7 @@ def main():
 	    if local != tmpdir:
 		gotit = import_local_tile(tile, local, pid, srtmv3, one)
 	    else:
-		gotit = download_tile(tile, url, pid, srtmv3, one)
+		gotit = download_tile(tile, url, pid, srtmv3, one, username, password)
 		if gotit == 1:
 		    gotit = import_local_tile(tile, tmpdir, pid, srtmv3, one)
 	    if gotit == 1:
@@ -360,7 +382,7 @@ def main():
 	if local != tmpdir:
 	    grass.fatal(_("Please check if local folder <%s> is correct.") % local)
 	else:
-	    grass.fatal(_("Please check internet connection and if url <%s> is correct.") % url)
+	    grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
     grass.run_command('g.region', raster = str(srtmtiles));
     
