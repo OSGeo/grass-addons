@@ -1,9 +1,9 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.hants
+PGM = r.seasons
 
-LIBES = $(GMATHLIB) $(RASTERLIB) $(GISLIB)
-DEPENDENCIES = $(GMATHDEP) $(RASTERDEP) $(GISDEP)
+LIBES = $(RASTERLIB) $(GISLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 

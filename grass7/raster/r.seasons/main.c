@@ -1,32 +1,21 @@
 
 /****************************************************************************
  *
- * MODULE:       r.hants
- * AUTHOR(S):    Wout Verhoef, NLR, Remote Sensing Dept., June 1998
- *               Mohammad Abouali, converted to MATLAB, 2011
- *               Markus Metz, converted to C, 2013
- *               based on r.series
- * PURPOSE:      time series correction
- * COPYRIGHT:    (C) 2013 by the GRASS Development Team
+ * MODULE:       r.seasons
+ * AUTHOR(S):    Markus Metz
+ * PURPOSE:      season extraction from a time series
+ * COPYRIGHT:    (C) 2016 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
  *               for details.
  *
  *****************************************************************************/
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <float.h>
-#include <math.h>
 
+#include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/gmath.h>
-
-/* TODO: add option for amplitude and phase output */
 
 struct input
 {
@@ -42,120 +31,178 @@ struct output
     DCELL *buf;
 };
 
-static int solvemat(double **m, double a[], double B[], int n)
+static int (*cmp_dbl)(double a, double b);
+
+static int cmp_dbl_lo(double a, double b)
 {
-    int i, j, i2, j2, imark;
-    double factor, temp, *tempp;
-    double pivot;		/* ACTUAL VALUE OF THE LARGEST PIVOT CANDIDATE */
+    if (a > b)
+	return -1;
 
-    for (i = 0; i < n; i++) {
-	j = i;
+    return (a < b);
+}
 
-	/* find row with largest magnitude value for pivot value */
+static int cmp_dbl_hi(double a, double b)
+{
+    if (a < b)
+	return -1;
 
-	pivot = m[i][j];
-	imark = i;
-	for (i2 = i + 1; i2 < n; i2++) {
-	    temp = fabs(m[i2][j]);
-	    if (temp > fabs(pivot)) {
-		pivot = m[i2][j];
-		imark = i2;
+    return (a > b);
+}
+
+static int get_season(double *val, char *isnull, double *ts, int i0,
+                      int n, double threshold, double minlen,
+		      int *start1, int *start2,
+		      int *end1, int *end2)
+{
+    int i, startin, startout, endout;
+    double blenin, blenout;
+
+    if (i0 >= n)
+	return 0;
+
+    /* get first in-season block of at least minlen */
+    blenin = blenout = 0;
+    *start1 = *end1 = i0;
+    *start2 = *end2 = i0;
+    for (i = i0; i < n; i++) {
+	if (isnull[i] == 0 && cmp_dbl(val[i], threshold) >= 0) {
+	    if (blenin == 0) {
+		*start1 = i;
 	    }
+	    *end1 = i;
+	    if (i < n - 1)
+		blenin = (ts[i] + ts[i + 1]) / 2.0;
+	    else
+		blenin = ts[i] + (ts[i] - ts[i - 1]) / 2.0;
+
+	    if (*start1 > 0)
+		blenin -= (ts[*start1 - 1] + ts[*start1]) / 2.0;
+	    else
+		blenin -= ts[*start1] - (ts[*start1 + 1] - ts[*start1]) / 2.0;
+	    
+	    if (blenin >= minlen)
+		break;
 	}
-
-	/* if the pivot is very small then the points are nearly co-linear */
-	/* co-linear points result in an undefined matrix, and nearly */
-	/* co-linear points results in a solution with rounding error */
-
-	if (pivot == 0.0) {
-	    G_warning(_("Matrix is unsolvable"));
-	    return 0;
-	}
-
-	/* if row with highest pivot is not the current row, switch them */
-
-	if (imark != i) {
-	    /*
-	    for (j2 = 0; j2 < n; j2++) {
-		temp = m[imark][j2];
-		m[imark][j2] = m[i][j2];
-		m[i][j2] = temp;
-	    }
-	    */
-
-	    tempp = m[imark];
-	    m[imark] = m[i];
-	    m[i] = tempp;
-
-	    temp = a[imark];
-	    a[imark] = a[i];
-	    a[i] = temp;
-	}
-
-	/* compute zeros above and below the pivot, and compute
-	   values for the rest of the row as well */
-
-	for (i2 = 0; i2 < n; i2++) {
-	    if (i2 != i) {
-		factor = m[i2][j] / pivot;
-		for (j2 = j; j2 < n; j2++)
-		    m[i2][j2] -= factor * m[i][j2];
-		a[i2] -= factor * a[i];
-	    }
+	else {
+	    blenin = 0;
 	}
     }
+    if (blenin < minlen)
+	return 0;
 
-    /* SINCE ALL OTHER VALUES IN THE MATRIX ARE ZERO NOW, CALCULATE THE
-       COEFFICIENTS BY DIVIDING THE COLUMN VECTORS BY THE DIAGONAL VALUES. */
+    /* go back from start1, find start2 */
+    blenout = 0;
+    *start2 = *start1;
+    endout = *start1 - 1;
+    for (i = *start1 - 1; i >= i0; i--) {
+	if (isnull[i] == 0 && cmp_dbl(val[i], threshold) >= 0) {
+	    blenout = 0;
+	    *start2 = i;
+	}
+	else {
+	    if (blenout == 0)
+		endout = i;
 
-    for (i = 0; i < n; i++) {
-	B[i] = a[i] / m[i][i];
+	    if (endout < n - 1)
+		blenout = (ts[endout] + ts[endout + 1]) / 2.0;
+	    else
+		blenout = ts[endout] + (ts[endout] - ts[endout - 1]) / 2.0;
+
+	    if (i > 0)
+		blenout -= (ts[i - 1] + ts[i]) / 2.0;
+	    else
+		blenout -= ts[i] - (ts[i + 1] - ts[i]) / 2.0;
+	    
+	    if (blenout >= minlen)
+		break;
+	}
+    }
+    
+    /* go forward from end1, find end2 */
+    /* shift end1 if there is another in-season block of at least minlen */
+    blenin = blenout = 0;
+    *end2 = *end1;
+    startout = *end1;
+    startin = *end1;
+    for (i = *end1 + 1; i < n; i++) {
+	if (isnull[i] == 0 && cmp_dbl(val[i], threshold) >= 0) {
+	    blenout = 0;
+	    if (blenin == 0)
+		startin = i;
+	    *end2 = i;
+
+	    if (i < n - 1)
+		blenin = (ts[i] + ts[i + 1]) / 2.0;
+	    else
+		blenin = ts[i] + (ts[i] - ts[i - 1]) / 2.0;
+
+	    if (startin > 0)
+		blenin -= (ts[startin - 1] + ts[startin]) / 2.0;
+	    else
+		blenin -= ts[startin] - (ts[startin + 1] - ts[startin]) / 2.0;
+	    
+	    if (blenin >= minlen)
+		*end2 = i;
+	}
+	else {
+	    blenin = 0;
+	    if (blenout == 0)
+		startout = i;
+	    
+	    if (i < n - 1)
+		blenout = (ts[i] + ts[i + 1]) / 2.0;
+	    else
+		blenout = ts[i] + (ts[i] - ts[i - 1]) / 2.0;
+
+	    if (startout > 0)
+		blenout -= (ts[startout - 1] + ts[startout]) / 2.0;
+	    else
+		blenout -= ts[startout] - (ts[startout + 1] - ts[startout]) / 2.0;
+	    
+	    if (blenout >= minlen)
+		break;
+	}
     }
 
     return 1;
 }
-
 
 int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct
     {
-	struct Option *input, *file, *suffix,
-	              *amp,	/* prefix for amplitude output */
-	              *phase,	/* prefix for phase output */
-	              *nf,	/* number of harmonics */
-		      *fet,	/* fit error tolerance */
-		      *dod,	/* degree of over-determination */
-	              *range,	/* low/high threshold */
-		      *ts,	/* time steps*/
-		      *bl,	/* length of base period */
-		      *delta;	/* threshold for high amplitudes */
+	struct Option *input, *file, *prefix,
+		      *ts,		/* time steps*/
+		      *ns,		/* number of seasons */
+		      *nsout,		/* output map for number of seasons */
+		      *threshold,	/* threshold to start/stop a season */
+		      *min;		/* minimum length in time to recognize a start/stop event */
     } parm;
     struct
     {
-	struct Flag *lo, *hi, *lazy, *int_only;
+	struct Flag *lo, *lazy;
     } flag;
-    int i, j, k;
+    int i;
     int num_inputs;
     struct input *inputs = NULL;
     int num_outputs;
     struct output *outputs = NULL;
-    struct output *out_amp = NULL;
-    struct output *out_phase = NULL;
-    char *suffix;
+    int nsout_fd;
+    CELL *nsoutbuf;
+    char *prefix;
     struct History history;
-    DCELL *values = NULL, *rc = NULL;
+    DCELL *values = NULL;
     int nrows, ncols;
     int row, col;
-    double lo, hi, fet, *cs, *sn, *ts, delta;
-    int bl;
-    double **mat, **mat_t, **A, *Av, *Azero, *za, *zr, maxerrlo, maxerrhi;
-    int asize;
-    int first, last, interp_only;
-    int dod, nf, nr, nout, noutmax;
-    int rejlo, rejhi, *useval;
-    int do_amp, do_phase;
+    double minlen;
+    int ns, nsmax, nfound;
+    double threshold;
+    double *ts;
+    char *isnull;
+    int n_nulls;
+    int start1, start2, end1, end2;
+    int i0;
 
     G_gisinit(argv[0]);
 
@@ -175,51 +222,12 @@ int main(int argc, char *argv[])
     parm.file->description = _("Input file with raster map names, one per line");
     parm.file->required = NO;
 
-    parm.suffix = G_define_option();
-    parm.suffix->key = "suffix";
-    parm.suffix->type = TYPE_STRING;
-    parm.suffix->required = NO;
-    parm.suffix->answer = "_hants";
-    parm.suffix->label = _("Suffix for output maps");
-    parm.suffix->description = _("The suffix will be appended to input map names");
-
-    parm.amp = G_define_option();
-    parm.amp->key = "amplitude";
-    parm.amp->type = TYPE_STRING;
-    parm.amp->required = NO;
-    parm.amp->label = _("Prefix for output amplitude maps");
-
-    parm.phase = G_define_option();
-    parm.phase->key = "phase";
-    parm.phase->type = TYPE_STRING;
-    parm.phase->required = NO;
-    parm.phase->label = _("Prefix for output phase maps");
-
-    parm.nf = G_define_option();
-    parm.nf->key = "nf";
-    parm.nf->type = TYPE_INTEGER;
-    parm.nf->required = YES;
-    parm.nf->description = _("Number of frequencies");
-
-    parm.fet = G_define_option();
-    parm.fet->key = "fet";
-    parm.fet->type = TYPE_DOUBLE;
-    parm.fet->required = NO;
-    parm.fet->multiple = NO;
-    parm.fet->description = _("Fit error tolerance");
-
-    parm.dod = G_define_option();
-    parm.dod->key = "dod";
-    parm.dod->type = TYPE_INTEGER;
-    parm.dod->required = NO;
-    parm.dod->answer = "0";
-    parm.dod->description = _("Degree of over-determination");
-
-    parm.range = G_define_option();
-    parm.range->key = "range";
-    parm.range->type = TYPE_DOUBLE;
-    parm.range->key_desc = "lo,hi";
-    parm.range->description = _("Ignore values outside this range");
+    parm.prefix = G_define_option();
+    parm.prefix->key = "prefix";
+    parm.prefix->type = TYPE_STRING;
+    parm.prefix->required = NO;
+    parm.prefix->label = _("Prefix for output maps");
+    parm.prefix->description = _("The prefix will be prepended to input map names");
 
     parm.ts = G_define_option();
     parm.ts->key = "time_steps";
@@ -227,33 +235,37 @@ int main(int argc, char *argv[])
     parm.ts->multiple = YES;
     parm.ts->description = _("Time steps of the input maps");
 
-    parm.bl = G_define_option();
-    parm.bl->key = "base_period";
-    parm.bl->type = TYPE_INTEGER;
-    parm.bl->description = _("Length of the base period");
+    parm.ns = G_define_option();
+    parm.ns->key = "n";
+    parm.ns->type = TYPE_INTEGER;
+    parm.ns->required = YES;
+    parm.ns->description = _("Number of seasons to detect");
 
-    parm.delta = G_define_option();
-    parm.delta->key = "delta";
-    parm.delta->type = TYPE_DOUBLE;
-    parm.delta->answer = "0";
-    parm.delta->label = _("Threshold for high amplitudes");
-    parm.delta->description = _("Delta should be between 0 and 1");
+    parm.nsout = G_define_standard_option(G_OPT_R_OUTPUT);
+    parm.nsout->key = "nout";
+    parm.nsout->required = NO;
+    parm.nsout->description = _("Name of output map with detected number of seasons");
+
+    parm.threshold = G_define_option();
+    parm.threshold->key = "threshold";
+    parm.threshold->type = TYPE_DOUBLE;
+    parm.threshold->required = YES;
+    parm.threshold->description = _("Threshold to start/stop a season");
+
+    parm.min = G_define_option();
+    parm.min->key = "min";
+    parm.min->type = TYPE_DOUBLE;
+    parm.min->required = YES;
+    parm.min->label = _("Minimum number of time steps");
+    parm.min->description = _("A season must be at least min long, otherwise the data are considered as noise");
 
     flag.lo = G_define_flag();
     flag.lo->key = 'l';
-    flag.lo->description = _("Reject low outliers");
-
-    flag.hi = G_define_flag();
-    flag.hi->key = 'h';
-    flag.hi->description = _("Reject high outliers");
+    flag.lo->description = _("Stop a season when a value is above threshold (default: below threshold");
 
     flag.lazy = G_define_flag();
     flag.lazy->key = 'z';
     flag.lazy->description = _("Don't keep files open");
-
-    flag.int_only = G_define_flag();
-    flag.int_only->key = 'i';
-    flag.int_only->description = _("Do not extrapolate, only interpolate");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -265,49 +277,24 @@ int main(int argc, char *argv[])
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
-    if (parm.amp->answer && parm.phase->answer) {
-	if (strcmp(parm.amp->answer, parm.phase->answer) == 0)
-	    G_fatal_error(_("'%s' and '%s' options must be different"),
-			  parm.amp->key, parm.phase->key);
-    }
-    do_amp = parm.amp->answer != NULL;
-    do_phase = parm.phase->answer != NULL;
+    if (!parm.prefix->answer && !parm.nsout->answer)
+	G_fatal_error(_("Neither <%s> nor <%s> output requested"),
+	              parm.prefix->key, parm.nsout->key);
 
-    nf = atoi(parm.nf->answer);
-    if (nf < 1)
-	G_fatal_error(_("The number of frequencies must be > 0"));
+    ns = atoi(parm.ns->answer);
+    if (ns < 1)
+	G_fatal_error(_("Number of seasons must be positive integer"));
 
-    fet = DBL_MAX;
-    if (parm.fet->answer) {
-	fet = atof(parm.fet->answer);
-	if (fet < 0)
-	    G_fatal_error(_("The fit error tolerance must be >= 0"));
-    }
-    dod = 0;
-    if (parm.dod->answer) {
-	dod = atoi(parm.dod->answer);
-	if (dod < 0)
-	    G_fatal_error(_("The degree of over-determination must be >= 0"));
-    }
-    lo = -DBL_MAX;
-    hi = DBL_MAX;
-    if (parm.range->answer) {
-	lo = atof(parm.range->answers[0]);
-	hi = atof(parm.range->answers[1]);
-    }
-    delta = 0;
-    if (parm.delta->answer) {
-	delta = atof(parm.delta->answer);
-	if (delta < 0 || delta > 1)
-	    G_fatal_error(_("The threshold for high amplitudes must be >= 0 and <= 1"));
-    }
-    
-    rejlo = flag.lo->answer;
-    rejhi = flag.hi->answer;
-    if ((rejlo || rejhi) && !parm.fet->answer)
-	G_fatal_error(_("Fit error tolerance is required when outliers should be rejected"));
+    minlen = atof(parm.min->answer);
+    if (minlen <= 0)
+	G_fatal_error(_("Minimum season length must be positive"));
+    threshold = atof(parm.threshold->answer);
 
-    interp_only = flag.int_only->answer;
+
+    if (flag.lo->answer)
+	cmp_dbl = cmp_dbl_lo;
+    else
+	cmp_dbl = cmp_dbl_hi;
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -376,80 +363,67 @@ int main(int argc, char *argv[])
     if (num_inputs < 3)
 	G_fatal_error(_("At least 3 input maps are required"));
 
-    /* length of base period */
-    if (parm.bl->answer)
-	bl = atoi(parm.bl->answer);
-    else
-	bl = num_inputs;
+    ts = G_malloc(num_inputs * sizeof(double));
+
+    if (parm.ts->answer) {
+    	for (i = 0; parm.ts->answers[i]; i++);
+	if (i != num_inputs)
+	    G_fatal_error(_("Number of time steps does not match number of input maps"));
+    	for (i = 0; parm.ts->answers[i]; i++) {
+	    ts[i] = atof(parm.ts->answers[i]);
+	    if (i > 0 && ts[i - 1] >= ts[i])
+		G_fatal_error(_("Time steps must increase"));
+	}
+    }
+    else {
+	for (i = 0; i < num_inputs; i++) {
+	    ts[i] = i;
+	}
+    }
 
     /* open output maps */
-    num_outputs = num_inputs;
+    num_outputs = 0;
+    prefix = parm.prefix->answer;
+    if (prefix) {
+	num_outputs = ns * 4;
 
-    outputs = G_calloc(num_outputs, sizeof(struct output));
+	outputs = G_calloc(num_outputs, sizeof(struct output));
+
+	for (i = 0; i < ns; i++) {
+	    struct output *out;
+	    char output_name[GNAME_MAX];
+	    
+	    out = &outputs[i * 4];
+	    sprintf(output_name, "%s%d_%s", prefix, i + 1, "start1");
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(out->name, DCELL_TYPE);
+
+	    out = &outputs[i * 4 + 1];
+	    sprintf(output_name, "%s%d_%s", prefix, i + 1, "start2");
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(out->name, DCELL_TYPE);
+
+	    out = &outputs[i * 4 + 2];
+	    sprintf(output_name, "%s%d_%s", prefix, i + 1, "end1");
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(out->name, DCELL_TYPE);
+
+	    out = &outputs[i * 4 + 3];
+	    sprintf(output_name, "%s%d_%s", prefix, i + 1, "end2");
+	    out->name = G_store(output_name);
+	    out->buf = Rast_allocate_d_buf();
+	    out->fd = Rast_open_new(out->name, DCELL_TYPE);
+	}
+    }
     
-    suffix = parm.suffix->answer;
-    if (!suffix)
-	suffix = "_hants";
-
-    for (i = 0; i < num_outputs; i++) {
-	struct output *out = &outputs[i];
-	char output_name[GNAME_MAX];
-	
-	sprintf(output_name, "%s%s", inputs[i].name, suffix);
-
-	out->name = G_store(output_name);
-	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name, DCELL_TYPE);
-    }
-
-    nr = 2 * nf + 1;
-
-    if (nr > num_inputs)
-	G_fatal_error(_("The maximum number of frequencies for %d input maps is %d."),
-	                num_inputs, (num_inputs - 1) / 2);
-
-    noutmax = num_inputs - nr - dod;
-
-    if (noutmax < 0)
-	G_fatal_error(_("The degree of overdetermination can not be larger than %d "
-			"for %d input maps and %d frequencies."),
-			dod + noutmax, num_inputs, nf);
-
-    if (noutmax == 0)
-	G_warning(_("Missing values can not be reconstructed, "
-	            "please reduce either '%s' or '%s'"),
-		    parm.nf->key, parm.dod->key);
-
-    if (do_amp) {
-	/* open output amplitude */
-	out_amp = G_calloc(nf, sizeof(struct output));
-
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.amp->answer, i);
-
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
-    }
-
-    if (do_phase) {
-	/* open output phase */
-	out_phase = G_calloc(nf, sizeof(struct output));
-
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
-	    char output_name[GNAME_MAX];
-	    
-	    sprintf(output_name, "%s.%d", parm.phase->answer, i);
-
-	    out->name = G_store(output_name);
-	    out->buf = Rast_allocate_d_buf();
-	    out->fd = Rast_open_new(output_name, DCELL_TYPE);
-	}
+    nsout_fd = -1;
+    nsoutbuf = NULL;
+    if (parm.nsout->answer) {
+	nsout_fd = Rast_open_new(parm.nsout->answer, CELL_TYPE);
+	nsoutbuf = Rast_allocate_c_buf();
     }
 
     /* initialise variables */
@@ -458,73 +432,12 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    cs = G_alloc_vector(bl);
-    sn = G_alloc_vector(bl);
-    ts = G_alloc_vector(num_inputs);
-    rc = G_malloc(num_inputs * sizeof(DCELL));
-    useval = G_malloc(num_inputs * sizeof(int));
-
-    if (parm.ts->answer) {
-    	for (i = 0; parm.ts->answers[i]; i++);
-	if (i != num_inputs)
-	    G_fatal_error(_("Number of time steps does not match number of input maps"));
-    	for (i = 0; parm.ts->answers[i]; i++)
-	    ts[i] = atof(parm.ts->answers[i]);
-    }
-    else {
-	for (i = 0; i < num_inputs; i++) {
-	    ts[i] = i;
-	}
-    }
-
-    mat = G_alloc_matrix(nr, num_inputs);
-    mat_t = G_alloc_matrix(num_inputs, nr);
-    A = G_alloc_matrix(nr, nr);
-    Av = *A;
-    Azero = G_alloc_vector(nr * nr);
-    asize = nr * nr * sizeof(double);
-    za = G_alloc_vector(nr);
-    zr = G_alloc_vector(nr);
-    rc = G_alloc_vector(num_inputs);
-
-    for (i = 0; i < nr * nr; i++)
-	Azero[i] = 0;
-
-    for (i = 0; i < bl; i++) {
-	double ang = 2.0 * M_PI * i / bl;
-
-	cs[i] = cos(ang);
-	sn[i] = sin(ang);
-    }
-    for (j = 0; j < num_inputs; j++) {
-	mat[0][j] = 1.;
-	mat_t[j][0] = 1.;
-    }
-
-    for (i = 0; i < nr / 2; i++) {
-	int i1 = 2 * i + 1;
-	int i2 = 2 * i + 2;
-
-	for (j = 0; j < num_inputs; j++) {
-
-	    int idx = (int) ((i + 1) * (ts[j])) % bl;
-
-	    if (idx >= bl)
-		G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
-
-	    if (i2 >= nr)
-		G_fatal_error("mat index out of range: %d, %d", 2 * i + 2, nr);
-		
-	    mat[i1][j] = cs[idx];
-	    mat[i2][j] = sn[idx];
-	    mat_t[j][i1] = mat[i1][j];
-	    mat_t[j][i2] = mat[i2][j];
-	}
-    }
+    isnull = G_malloc(num_inputs * sizeof(char));
 
     /* process the data */
-    G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
+    G_message(_("Detecting seasons for %d input maps..."), num_inputs);
 
+    nsmax = 0;
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 4);
 
@@ -542,211 +455,76 @@ int main(int argc, char *argv[])
 	}
 
 	for (col = 0; col < ncols; col++) {
-	    int null = 0, non_null = 0;
 
-	    first = last = -1;
-
+	    n_nulls = 0;
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL v = inputs[i].buf[col];
 
-		useval[i] = 0;
+		isnull[i] = 0;
 		if (Rast_is_d_null_value(&v)) {
-		    null++;
+		    isnull[i] = 1;
+		    n_nulls++;
 		}
-		else if (parm.range->answer && (v < lo || v > hi)) {
-		    Rast_set_d_null_value(&v, 1);
-		    null++;
-		}
-		else {
-		    non_null++;
-		    useval[i] = 1;
-
-		    if (first == -1)
-			first = i;
-		    last = i;
-		}
-
 		values[i] = v;
 	    }
-	    nout = null;
 
-	    if (!interp_only) {
-		first = 0;
-		last = num_inputs - 1;
+
+	    nfound = 0;
+	    i0 = 0;
+	    while (get_season(values, isnull, ts, i0, num_inputs,
+		  threshold, minlen, &start1, &start2, &end1, &end2)) {
+
+		i0 = end2 + 1;
+
+		if (prefix && nfound < ns) {
+		    i = nfound * 4;
+		    outputs[i].buf[col] = ts[start1];
+		    outputs[i + 1].buf[col] = ts[start2];
+		    outputs[i + 2].buf[col] = ts[end1];
+		    outputs[i + 3].buf[col] = ts[end2];
+		}
+		nfound++;
+	    }
+	    if (nsmax < nfound)
+		nsmax = nfound;
+
+	    if (prefix) {
+		for (i = nfound * 4; i < num_outputs; i++) {
+		    Rast_set_d_null_value(&outputs[i].buf[col], 1);
+		}
 	    }
 
-	    /* HANTS */
-	    if (nout <= noutmax) {
-		int n = 0, done = 0;
-
-		while (!done) {
-		    
-		    /* za = mat * y */
-
-		    /* A = mat * diag(p) * mat' */
-
-		    /* mat: nr, num_inputs
-		     * diag(p): num_inputs, num_inputs 
-		     * mat_t: num_inputs, nr
-		     * A temp: nr, num_inputs
-		     * A: nr, nr */
-
-		    memcpy(Av, Azero, asize);
-		    for (i = 0; i < nr; i++) {
-			za[i] = 0;
-			for (j = 0; j < num_inputs; j++) {
-			    if (useval[j]) {
-				za[i] += mat[i][j] * values[j];
-
-				for (k = 0; k < nr; k++)
-				    A[i][k] += mat[i][j] * mat_t[j][k];
-			    }
-			}
-
-			if (i > 0) {
-			    A[i][i] += delta;
-			}
-		    }
-		    
-		    /* zr = A \ za
-		     * solve A * zr = za */
-		    if (!solvemat(A, za, zr, nr)) {
-			done = -1;
-			Rast_set_d_null_value(rc, num_outputs);
-			break;
-		    }
-		    /* G_math_solver_gauss(A, zr, za, nr) is much slower */
-
-		    /* rc = mat' * zr */
-		    maxerrlo = maxerrhi = 0;
-		    for (i = 0; i < num_inputs; i++) {
-			rc[i] = 0;
-			for (j = 0; j < nr; j++) {
-			    rc[i] += mat_t[i][j] * zr[j];
-			}
-			if (useval[i]) {
-			    if (maxerrlo < rc[i] - values[i])
-				maxerrlo = rc[i] - values[i];
-			    if (maxerrhi < values[i] - rc[i])
-				maxerrhi = values[i] - rc[i];
-			}
-		    }
-		    if (rejlo || rejhi) {
-			done = 1;
-			if (rejlo && maxerrlo > fet)
-			    done = 0;
-			if (rejhi && maxerrhi > fet)
-			    done = 0;
-		    
-			if (!done) {
-			    /* filter outliers */
-			    for (i = 0; i < num_inputs; i++) {
-
-				if (useval[i]) {
-				    if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
-					useval[i] = 0;
-					nout++;
-				    }
-				    if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
-					useval[i] = 0;
-					nout++;
-				    }
-				}
-			    }
-			}
-		    }
-
-		    n++;
-		    if (n >= num_inputs)
-			done = 1;
-		    if (nout > noutmax)
-			done = 1;
-		}
-
-		i = 0;
-		while (i < first) {
-		    struct output *out = &outputs[i];
-
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		    i++;
-		}
-
-		for (i = first; i <= last; i++) {
-		    struct output *out = &outputs[i];
-
-		    out->buf[col] = rc[i];
-		    if (rc[i] < lo)
-			out->buf[col] = lo;
-		    else if (rc[i] > hi)
-			out->buf[col] = hi;
-		}
-
-		i = last + 1;
-		while (i < num_outputs) {
-		    struct output *out = &outputs[i];
-
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		    i++;
-		}
-
-		if (do_amp || do_phase) {
-		    /* amplitude and phase */
-		    /* skip constant */
-
-		    for (i = 1; i < nr; i += 2) {
-			int ifr = i >> 1;
-
-			if (do_amp) {
-			    out_amp[ifr].buf[col] = sqrt(zr[i] * zr[i] +
-						    zr[i + 1] * zr[i + 1]);
-			}
-
-			if (do_phase) {
-			    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
-
-			    if (angle < 0)
-				angle += 360;
-			    out_phase[ifr].buf[col] = angle;
-			}
-		    }
-		}
-	    }
-	    else {
-		for (i = 0; i < num_outputs; i++) {
-		    struct output *out = &outputs[i];
-
-		    Rast_set_d_null_value(&out->buf[col], 1);
-		}
-		if (do_amp || do_phase) {
-		    for (i = 0; i < nf; i++) {
-			if (do_amp)
-			    Rast_set_d_null_value(&out_amp[i].buf[col], 1);
-			if (do_phase)
-			    Rast_set_d_null_value(&out_phase[i].buf[col], 1);
-		    }
-		}
+	    if (nsoutbuf) {
+		if (n_nulls == num_inputs)
+		    Rast_set_c_null_value(&nsoutbuf[col], 1);
+		else
+		    nsoutbuf[col] = nfound;
 	    }
 	}
 
-	for (i = 0; i < num_outputs; i++)
-	    Rast_put_d_row(outputs[i].fd, outputs[i].buf);
-	
-	if (do_amp || do_phase) {
-	    for (i = 0; i < nf; i++) {
-		if (do_amp)
-		    Rast_put_d_row(out_amp[i].fd, out_amp[i].buf);
-		if (do_phase)
-		    Rast_put_d_row(out_phase[i].fd, out_phase[i].buf);
+	if (prefix) {
+	    for (i = 0; i < num_outputs; i++) {
+		Rast_put_d_row(outputs[i].fd, outputs[i].buf);
 	    }
 	}
+	if (nsoutbuf)
+	    Rast_put_c_row(nsout_fd, nsoutbuf);
     }
 
     G_percent(row, nrows, 2);
 
-    /* Close input maps */
-    if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs; i++)
-	    Rast_close(inputs[i].fd);
+    G_message(_("A maximum of %d seasons have been detected"), nsmax);
+    if (nsmax > ns)
+	G_important_message(_("The number of output seasons (%d) is smaller than the maximum number of detected seasons (%d)."),
+	                    ns, nsmax);
+
+    /* close input maps */
+    for (i = 0; i < num_inputs; i++) {
+	struct input *in = &inputs[i];
+
+	if (!flag.lazy->answer)
+	    Rast_close(in->fd);
+
     }
 
     /* close output maps */
@@ -759,31 +537,12 @@ int main(int argc, char *argv[])
 	Rast_command_history(&history);
 	Rast_write_history(out->name, &history);
     }
+    if (nsout_fd >= 0) {
+	Rast_close(nsout_fd);
 
-    if (do_amp) {
-	/* close output amplitudes */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_amp[i];
-
-	    Rast_close(out->fd);
-
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
-    }
-
-    if (do_phase) {
-	/* close output phases */
-	for (i = 0; i < nf; i++) {
-	    struct output *out = &out_phase[i];
-
-	    Rast_close(out->fd);
-
-	    Rast_short_history(out->name, "raster", &history);
-	    Rast_command_history(&history);
-	    Rast_write_history(out->name, &history);
-	}
+	Rast_short_history(parm.nsout->answer, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(parm.nsout->answer, &history);
     }
 
     exit(EXIT_SUCCESS);
