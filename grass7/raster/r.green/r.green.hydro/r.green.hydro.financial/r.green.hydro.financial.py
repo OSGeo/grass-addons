@@ -497,7 +497,7 @@ import sys
 import atexit
 import numpy as np
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite, warning
+from grass.script.core import parser, overwrite, warning, run_command
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 
@@ -623,6 +623,7 @@ def vcolcalc(vname, vlayer, ctype, expr, condition=lambda x: x is None,
     cname = expr[:equal].strip()
     expr = expr[(equal + 1):].strip()
     cnames = get_cnames(expr)
+    run_command('v.build', map=vname)
     vname, vmapset = vname.split('@') if '@' in vname else (vname, '')
     with VectorTopo(vname, mapset=vmapset, layer=vlayer, mode='r') as vect:
         if vect.table is None:
