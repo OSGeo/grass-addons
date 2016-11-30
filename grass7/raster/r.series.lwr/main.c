@@ -598,6 +598,12 @@ int main(int argc, char *argv[])
 		first = 0;
 		last = num_inputs - 1;
 	    }
+	    else {
+		for (i = 0; i < first; i++)
+		    Rast_set_d_null_value(&outputs[i].buf[col], 1);
+		for (i = last + 1; i < num_inputs; i++)
+		    Rast_set_d_null_value(&outputs[i].buf[col], 1);
+	    }
 
 	    /* LWR */
 	    if (num_inputs - n_nulls >= min_points) {
