@@ -218,6 +218,7 @@ int main(int argc, char *argv[])
 		      *weight,	/* weighing function */
 		      *fet,	/* fit error tolerance */
 		      *ts,	/* time steps */
+		      *maxgap,	/* maximum gap size */
 		      *dod,	/* degree of over-determination */
 		      *range,	/* range of valid values */
 		      *delta;	/* threshold for high amplitudes */
@@ -242,7 +243,7 @@ int main(int argc, char *argv[])
     DCELL *resultn;
     int msize;
     double **m, **m2, *a, *a2, *B;
-    double *ts, weight;
+    double *ts, maxgap, thisgap, prev_ts, next_ts, weight;
     double (*weight_func)(double, double, double);
     int dod;
     int *isnull, n_nulls;
@@ -319,6 +320,11 @@ int main(int argc, char *argv[])
     parm.ts->type = TYPE_DOUBLE;
     parm.ts->multiple = YES;
     parm.ts->description = _("Time steps of the input maps");
+
+    parm.maxgap = G_define_option();
+    parm.maxgap->key = "maxgap";
+    parm.maxgap->type = TYPE_DOUBLE;
+    parm.maxgap->description = _("Maximum gap size to be interpolated");
 
     parm.delta = G_define_option();
     parm.delta->key = "delta";
@@ -493,6 +499,11 @@ int main(int argc, char *argv[])
 	}
     }
 
+    maxgap = ts[num_inputs - 1] - ts[0];
+    if (parm.maxgap->answer) {
+	maxgap = atof(parm.maxgap->answer);
+    }
+
     /* open output maps */
     num_outputs = num_inputs;
 
@@ -590,9 +601,41 @@ int main(int argc, char *argv[])
 
 	    /* LWR */
 	    if (num_inputs - n_nulls >= min_points) {
+		
+		thisgap = 0;
+		prev_ts = next_ts = ts[0] - (ts[1] - ts[0]);
 
 		for (i = first; i <= last; i++) {
 		    DCELL result;
+
+		    if (isnull[i]) {
+			if (next_ts < ts[i]) {
+			    if (i > 0)
+				prev_ts = ts[i] - (ts[i] - ts[i - 1]) / 2.0;
+			    else
+				prev_ts = ts[i] - (ts[i + 1] - ts[i]) / 2.0;
+			    
+			    if (i < num_inputs - 1)
+				next_ts = ts[i] + (ts[i + 1] - ts[i]) / 2.0;
+			    else
+				next_ts = ts[i] + (ts[i] - ts[i - 1]) / 2.0;
+
+			    j = i;
+			    while (j < num_inputs - 1 && isnull[j + 1])
+				j++;
+
+			    if (j > i)
+				next_ts = ts[j] + (ts[j + 1] - ts[j]) / 2.0;
+			    else
+				next_ts = ts[j] + (ts[j] - ts[j - 1]) / 2.0;
+
+			    thisgap = next_ts - prev_ts;
+			}
+			if (thisgap > maxgap) {
+			    Rast_set_d_null_value(&outputs[i].buf[col], 1);
+			    continue;
+			}
+		    }
 
 		    /* margin around i */
 		    n_points = 0;
@@ -617,6 +660,12 @@ int main(int argc, char *argv[])
 			    this_margin = j;
 			    break;
 			}
+		    }
+		    if (interp_only && isnull[i] &&
+		        (in_lo == i || in_hi == i)) {
+
+			Rast_set_d_null_value(&outputs[i].buf[col], 1);
+			continue;
 		    }
 
 		    tsdiff1 = ts[i] - ts[in_lo];

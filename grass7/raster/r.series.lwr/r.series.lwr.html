@@ -32,6 +32,17 @@ slowing down the module and are only needed when the time series
 contains many outliers. A few outliers are handled well with the 
 default settings.
 
+<p>
+Gaps in the time series are by default interpolated, as long as the 
+time series contains sufficient non-NULL points. Optionally, the 
+maximum size of gaps to be interpolated can be set with the 
+<em>maxgap</em> option.
+
+<p>
+Extrapolation can be avoided with the <em>-i</em> flag. In this case, 
+LWR is performed only from the first non-NULL point to the last 
+non-NULL point in the time series.
+
 <h2>NOTES</h2>
 
 If the <em>range</em> option is given, any values which fall outside
