@@ -40,10 +40,11 @@ def power2energy(vect, power, n):
     """ add a column with energy potential (MWh) given the
     output file and the name of the column with the power (kW), n is
     the number of working hours"""
-    new_col = 'E_potMW'
+    new_col = 'E_potMWh double precision'
     gcore.run_command('v.db.addcolumn', map=vect, columns=new_col)
     gcore.run_command('v.db.update', map=vect, layer=1, column=new_col,
                       query_column='%s * %f' % (power, n/1000.0))
+    gcore.run_command('v.build', map=vect)
 
 
 def closest(number, ndigits=0, resolution=None):
