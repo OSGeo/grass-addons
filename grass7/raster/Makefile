@@ -82,10 +82,12 @@ SUBDIRS = \
 	r.randomforest \
 	r.recode.attr \
 	r.regression.series \
+	r.resamp.tps \
 	r.rock.stability \
 	r.roughness.vector \
 	r.sample.category \
 	r.scatterplot \
+	r.seasons \
 	r.series.decompose \
 	r.series.diversity \
 	r.series.lwr \
