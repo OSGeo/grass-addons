@@ -264,20 +264,20 @@ void *pavl_delete(struct pavl_table *tree, const void *item)
 
     assert(tree != NULL && item != NULL);
 
-    if (tree->pavl_root == NULL)
-	return NULL;
-
     p = tree->pavl_root;
     dir = 0;
-    cmp = tree->pavl_compare(item, p->pavl_data);
-    while (cmp != 0) {
+    while (p != NULL) {
+	cmp = tree->pavl_compare(item, p->pavl_data);
+
+	if (cmp == 0)
+	    break;
+
 	dir = cmp > 0;
 	p = p->pavl_link[dir];
-	if (p == NULL)
-	    return NULL;
-
-	cmp = tree->pavl_compare(item, p->pavl_data);
     }
+    if (p == NULL)
+	return NULL;
+
     item = p->pavl_data;
 
     q = p->pavl_parent;

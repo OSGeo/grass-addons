@@ -977,7 +977,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     CELL *maskbuf;
     int solved;
     int pfound;
-    double distmax, mindist;
+    double distmax;
     int mask_fd;
     FLAG *mask_flag, *pnt_flag;
     struct tps_out tps_out;
@@ -987,6 +987,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     int rmin, rmax, cmin, cmax, rminp, rmaxp, cminp, cmaxp;
     int irow, irow1, irow2, icol, icol1, icol2;
     int wsize;
+    unsigned int wacnt;
     double dxyw;
 #ifndef USE_RC
     double i_n, i_e;
@@ -1088,6 +1089,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
     wmin = 10;
     wmax = 0;
+    wacnt = 0;
 
     if (overlap > 1.0)
 	overlap = 1.0;
@@ -1168,7 +1170,6 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    i_n = dst->north - (row + 0.5) * dst->ns_res;
 		    i_e = dst->west + (col + 0.5) * dst->ew_res;
 
-		    mindist = -1;
 		    result = 0;
 		    wsum = 0;
 		    maxweight = 0;
@@ -1189,7 +1190,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			weight = exp(-dist2 * 4.0);
 			
 			/* weight for tps */
-			if (mindist > dist2 || mindist > 0)
+			if (maxweight < weight)
 			    maxweight = weight;
 
 			wsum += weight;
@@ -1205,6 +1206,8 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
 		    Segment_put(out_seg, (void *)&tps_out, row, col);
+
+		    wacnt++;
 		}
 		continue;
 	    }
@@ -1340,6 +1343,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
     G_debug(1, "wmin: %g", wmin);
     G_debug(1, "wmax: %g", wmax);
+    G_debug(1, "wacnt: %u", wacnt);
 
     flag_destroy(pnt_flag);
 
