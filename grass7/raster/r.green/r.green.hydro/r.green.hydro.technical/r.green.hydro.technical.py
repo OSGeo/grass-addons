@@ -595,7 +595,7 @@ def compute_power(struct, list_intakeid, turbine_list, turbine_folder,
                     if efficiency[i] == eta:
                         kind_turbine = possible_turb[i]
             else:
-                eta = 0
+                eta = 0.9
                 kind_turbine = 'not found'
 
             # TODO: names of the columns as inputs and check if already in the
