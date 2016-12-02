@@ -8,6 +8,12 @@ or cost attribute (<b>cost_column</b>), one or several starting points
 GRASS GIS modules, and the user can chose the approach with the <b>method</b> option
 (see the notes section for details).
 
+<p>
+The spatial precision of the analysis is defined by the current computational 
+region. The user can define this with 
+<em><a href="g.region.html">g.region</a></em>. 
+Care should be taken to not define a too high resolution for the spatial extent
+covered. Otherwise the user might be confronted with memory issues.
 
 
 <h2>NOTES</h2>
