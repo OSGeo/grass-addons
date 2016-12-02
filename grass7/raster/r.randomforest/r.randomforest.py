@@ -317,6 +317,8 @@ def main():
     ratio = float(options['ratio'])
     errors_file = options['errors_file']
     fimp_file = options['fimp_file']
+    validation = options['validation']
+    ratio = float(options['ratio'])
 
     if flags['b'] is True:
         class_weight = 'balanced'
