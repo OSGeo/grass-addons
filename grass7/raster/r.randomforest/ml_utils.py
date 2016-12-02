@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import grass.script as grass
+import tempfile
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
@@ -102,7 +103,6 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
 
     """
     current = Region()
-    tmpdir = grass.tempdir()
 
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() is True:
@@ -112,9 +112,9 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
         if lowmem is False:        
             response_np = np.array(roi_gr)
         else:
-            response_np = np.memmap(filename=os.path.join(tmpdir, 'response'),
+            response_np = np.memmap(tempfile.NamedTemporaryFile(),
                                     dtype='float32', mode='w+',
-                                    shape=((current.rows, current.cols)))
+                                    shape=(current.rows, current.cols))
             response_np[:] = np.array(roi_gr)[:]
     else:
         grass.fatal("GRASS response raster does not exist.... exiting")
@@ -138,15 +138,15 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
     if lowmem is False:
         training_data = np.zeros((n_labels, n_features))
     else:
-        training_data = np.memmap(os.path.join(tmpdir, 'training'),
+        training_data = np.memmap(tempfile.NamedTemporaryFile(),
                                   dtype='float32', mode='w+',
-                                  shape=((n_labels, n_features)))
+                                  shape=(n_labels, n_features))
 
     # Loop through each raster and sample pixel values at training indexes
     if lowmem is True:
-        feature_np = np.memmap(os.path.join(tmpdir, 'feature'),
+        feature_np = np.memmap(tempfile.NamedTemporaryFile(),
 					   dtype='float32', mode='w+',
-                               shape=((current.rows, current.cols)))
+                               shape=(current.rows, current.cols))
 
     for f in range(n_features):
         predictor_gr = RasterRow(predictors[f])
