@@ -102,7 +102,7 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
 
     """
     current = Region()
-	tmpdir = grass.tempdir()
+    tmpdir = grass.tempdir()
 
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() is True:
@@ -135,18 +135,18 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
     n_labels = np.array(is_train).shape[1]
 
     # Create a zero numpy array of len training labels
-	if lowmem is False:
-		training_data = np.zeros((n_labels, n_features))
-	else:
-		training_data = np.memmap(os.path.join(tmpdir, 'training'),
+    if lowmem is False:
+        training_data = np.zeros((n_labels, n_features))
+    else:
+        training_data = np.memmap(os.path.join(tmpdir, 'training'),
                                   dtype='float32', mode='w+',
                                   shape=(n_labels, n_features))
 
     # Loop through each raster and sample pixel values at training indexes
     if lowmem is True:
-		feature_np = np.memmap(os.path.join(tmpdir, 'feature',
-							   dtype='float32', mode='w+',
-                               shape=(current.rows, current.cols))  
+        feature_np = np.memmap(os.path.join(tmpdir, 'feature',
+					   dtype='float32', mode='w+',
+                               shape=(current.rows, current.cols)))  
 
     for f in range(n_features):
         predictor_gr = RasterRow(predictors[f])
