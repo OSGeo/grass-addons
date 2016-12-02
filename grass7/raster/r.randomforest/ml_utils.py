@@ -112,7 +112,7 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
         if lowmem is False:        
             response_np = np.array(roi_gr)
         else:
-            response_np = np.memmap(os.path.join(tmpdir, 'response'),
+            response_np = np.memmap(filename=os.path.join(tmpdir, 'response'),
                                     dtype='float32', mode='w+',
                                     shape=(current.rows, current.cols))
             response_np[:] = np.array(roi_gr)[:]
@@ -144,9 +144,9 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
 
     # Loop through each raster and sample pixel values at training indexes
     if lowmem is True:
-        feature_np = np.memmap(os.path.join(tmpdir, 'feature',
+        feature_np = np.memmap(os.path.join(tmpdir, 'feature'),
 					   dtype='float32', mode='w+',
-                               shape=(current.rows, current.cols)))  
+                               shape=(current.rows, current.cols))
 
     for f in range(n_features):
         predictor_gr = RasterRow(predictors[f])
