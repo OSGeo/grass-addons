@@ -19,7 +19,6 @@ from grass.pygrass.modules.shortcuts import raster as r
 from sklearn.cluster import KMeans
 
 
-
 def save_training_data(X, y, groups, file):
 
     """
@@ -83,7 +82,7 @@ def load_training_data(file):
     return(X, y, groups)
 
 
-def sample_predictors(response, predictors, shuffle_data=True, random_state=1):
+def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, random_state=1):
 
     """
     Samples a list of GRASS rasters using a labelled raster
@@ -102,12 +101,20 @@ def sample_predictors(response, predictors, shuffle_data=True, random_state=1):
     y_indexes: Row and Columns of label positions
 
     """
-
+    current = Region()
+    
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() is True:
         roi_gr = RasterRow(response)
         roi_gr.open('r')
-        response_np = np.array(roi_gr)
+        
+        if lowmem is False:        
+            response_np = np.array(roi_gr)
+        else:
+            response_np = np.memmap(grass.tempfile(create=False),
+                                    dtype='float32', mode='w+',
+                                    shape=(current.rows, current.cols))
+            response_np[:] = np.array(roi_gr)
     else:
         grass.fatal("GRASS response raster does not exist.... exiting")
 
@@ -130,10 +137,21 @@ def sample_predictors(response, predictors, shuffle_data=True, random_state=1):
     training_data = np.zeros((n_labels, n_features))
 
     # Loop through each raster and sample pixel values at training indexes
+    if lowmem is True:
+        tmp = grass.tempfile(create=False)
+
     for f in range(n_features):
         predictor_gr = RasterRow(predictors[f])
         predictor_gr.open('r')
-        feature_np = np.array(predictor_gr)
+        
+        if lowmem is False:
+            feature_np = np.array(predictor_gr)
+        else:
+            feature_np = np.memmap(tmp, dtype='float32', mode='w+',
+                                   shape=(current.rows, current.cols))    
+            
+            feature_np[:] = np.array(predictor_gr)
+
         training_data[0:n_labels, f] = feature_np[is_train]
         predictor_gr.close()
 
@@ -423,7 +441,8 @@ def feature_importances(clf, X, y):
     return (clfimp)
 
 
-def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save, load_training, save_training, random_state):
+def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
+                         load_training, save_training, lowmem, random_state):
     
     # load the model or training data
     if model_load != '':
@@ -442,7 +461,8 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save, load_
                 maplist2.append('tmp_roi_clumped')
                 X, y, sample_coords = sample_predictors(response=roi,
                                                         predictors=maplist2,
-                                                        shuffle_data=False)
+                                                        shuffle_data=False,
+                                                        lowmem=lowmem)
                  # take Id from last column
                 Id = X[:, X.shape[1]-1]
 
@@ -452,7 +472,8 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save, load_
                 # query predictor rasters with training features
                 Id = None
                 X, y, sample_coords = sample_predictors(
-                    roi, maplist, shuffle_data=True, random_state=random_state)
+                    response=roi, predictors=maplist, shuffle_data=True,
+                    lowmem=lowmem, random_state=random_state)
 
             if save_training != '':
                 save_training_data(X, y, Id, save_training)

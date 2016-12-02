@@ -78,7 +78,7 @@
 #%option
 #% key: min_samples_split
 #% type: integer
-#% description: The minimum number of samples required to split an internal node for tree-based classifiers
+#% description: The minimum number of samples required for node splitting in tree-based classifiers
 #% answer: 2
 #% guisection: Classifier Parameters
 #%end
@@ -86,7 +86,7 @@
 #%option
 #% key: min_samples_leaf
 #% type: integer
-#% description: The minimum number of samples required to be at a leaf node for tree-based classifiers
+#% description: The minimum number of samples required to form a leaf node for tree-based classifiers
 #% answer: 1
 #% guisection: Classifier Parameters
 #%end
@@ -118,15 +118,14 @@
 # General options
 
 #%flag
-#% key: g
-#% label: Print as a shell style script
+#% key: l
+#% label: Use memory swap
 #% guisection: Optional
 #%end
 
-
 #%flag
-#% key: n
-#% label: Normalization
+#% key: s
+#% label: Standardization preprocessing
 #% guisection: Optional
 #%end
 
@@ -301,7 +300,7 @@ def main():
     roi = options['roi']
     output = options['output']
     model = options['model']
-    norm_data = flags['n']
+    norm_data = flags['s']
     cv = int(options['cv'])
     cvtype = options['cvtype']
     modelonly = flags['m']
@@ -314,7 +313,7 @@ def main():
     save_training = options['save_training']
     importances = flags['f']
     tuning = flags['h']
-    shell = flags['g']
+    lowmem = flags['l']
     ratio = float(options['ratio'])
     errors_file = options['errors_file']
     fimp_file = options['fimp_file']
@@ -366,8 +365,9 @@ def main():
     # load or sample training data
     X, y, Id, clf = sample_training_data(roi, maplist, cv, cvtype, model_load,
                                          model_save, load_training,
-                                         save_training, random_state)
-
+                                         save_training, lowmem, random_state)
+                            
+                                         
     # determine the number of class labels using np.unique
     labels = np.unique(y)
 
@@ -402,13 +402,12 @@ def main():
             X, X_devel, y, y_devel, Id, Id_devel, clf = \
                 tune_split(X, y, Id, clf, param_grid, ratio, random_state)
 
-            if shell is False:
-                grass.message('\n')
-                grass.message('Searched parameters:')
-                grass.message(str(clf.param_grid))
-                grass.message('\n')
-                grass.message('Best parameters:')
-                grass.message(str(clf.best_params_))
+            grass.message('\n')
+            grass.message('Searched parameters:')
+            grass.message(str(clf.param_grid))
+            grass.message('\n')
+            grass.message('Best parameters:')
+            grass.message(str(clf.best_params_))
 
             clf = clf.best_estimator_
 
