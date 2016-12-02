@@ -82,7 +82,7 @@ def load_training_data(file):
     return(X, y, groups)
 
 
-def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, random_state=1):
+def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
 
     """
     Samples a list of GRASS rasters using a labelled raster
@@ -102,6 +102,7 @@ def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, ran
 
     """
     current = Region()
+	tmpdir = grass.tempdir()
     
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() is True:
@@ -111,10 +112,10 @@ def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, ran
         if lowmem is False:        
             response_np = np.array(roi_gr)
         else:
-            response_np = np.memmap(grass.tempfile(create=False),
+            response_np = np.memmap(os.path.join(tmpdir, 'response'),
                                     dtype='float32', mode='w+',
                                     shape=(current.rows, current.cols))
-            response_np[:] = np.array(roi_gr)
+            response_np[:] = np.array(roi_gr)[:]
     else:
         grass.fatal("GRASS response raster does not exist.... exiting")
 
@@ -134,11 +135,18 @@ def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, ran
     n_labels = np.array(is_train).shape[1]
 
     # Create a zero numpy array of len training labels
-    training_data = np.zeros((n_labels, n_features))
+	if lowmem is False:
+		training_data = np.zeros((n_labels, n_features))
+	else:
+		training_data = np.memmap(os.path.join(tmpdir, 'training'),
+                                  dtype='float32', mode='w+',
+                                  shape=(n_labels, n_features))
 
     # Loop through each raster and sample pixel values at training indexes
     if lowmem is True:
-        tmp = grass.tempfile(create=False)
+		feature_np = np.memmap(os.path.join(tmpdir, 'feature',
+							   dtype='float32', mode='w+',
+                               shape=(current.rows, current.cols))  
 
     for f in range(n_features):
         predictor_gr = RasterRow(predictors[f])
@@ -147,10 +155,7 @@ def sample_predictors(response, predictors, shuffle_data=True, lowmem=False, ran
         if lowmem is False:
             feature_np = np.array(predictor_gr)
         else:
-            feature_np = np.memmap(tmp, dtype='float32', mode='w+',
-                                   shape=(current.rows, current.cols))    
-            
-            feature_np[:] = np.array(predictor_gr)
+            feature_np[:] = np.array(predictor_gr)[:]
 
         training_data[0:n_labels, f] = feature_np[is_train]
         predictor_gr.close()
@@ -489,46 +494,3 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
         Id = clusters.labels_
 
     return (X, y, Id, clf)
-
-
-def classifier_comparision(classifiers, X, y, cv, scoring_metric, param_grids=None):
-
-    import pandas as pd
-    from sklearn import cross_validation
-
-    # compare multiple models with parameter grid search
-
-    # lists and pandas dataframes to store model and accuracy results
-    n_models = len(classifiers)
-    model = [0] * n_models
-    cmstats = [0] * n_models
-    comparison_df = pd.DataFrame(index=range(n_models), columns=['Model',
-                                                                 'mean_score',
-                                                                 'min_score',
-                                                                 'max_score',
-                                                                 'std_score',
-                                                                 'scores'])
-
-    # perform cross validation on each classifer and param_grid in list
-    for clfm, i in zip(classifiers, range(n_models)):
-
-        # use nested cross validation with parameter tuning
-        if param_grids is not None:
-            model[i], cmstats[i] = (
-                nested_cross_val(classifiers[clfm], X, y, param_grids[clfm],
-                                 cv=cv, scoring_metric=scoring_metric))
-
-        # or use default classifier settings with no tuning
-        else:
-            cmstats[i] = cross_validation.cross_val_score(
-                classifiers[clfm], X, y, scoring=scoring_metric, cv=cv)
-
-        comparison_df.iloc[i, 0] = clfm
-        comparison_df.iloc[i, 1] = cmstats[i].mean()
-        comparison_df.iloc[i, 2] = cmstats[i].min()
-        comparison_df.iloc[i, 3] = cmstats[i].max()
-        comparison_df.iloc[i, 4] = cmstats[i].std()
-        comparison_df.iloc[i, 5] = cmstats[i]
-
-    return (comparison_df)
-
