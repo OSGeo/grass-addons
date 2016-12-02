@@ -103,12 +103,12 @@ def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
     """
     current = Region()
 	tmpdir = grass.tempdir()
-    
+
     # open response raster as rasterrow and read as np array
     if RasterRow(response).exist() is True:
         roi_gr = RasterRow(response)
         roi_gr.open('r')
-        
+
         if lowmem is False:        
             response_np = np.array(roi_gr)
         else:
