@@ -1,6 +1,7 @@
 import numpy as np
 import grass.script as grass
 import tempfile
+import copy
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
@@ -9,7 +10,6 @@ from sklearn import metrics
 from sklearn.model_selection import GroupKFold
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
-from sklearn import preprocessing
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 from sklearn.utils import shuffle
@@ -387,8 +387,11 @@ def cross_val_classification(clf, X, y, group_ids, cv, rstate):
         y_pred_agg = np.append(y_pred_agg, y_pred)
 
         # calculate metrics
-        scores['accuracy'] = np.append(
-            scores['accuracy'], metrics.accuracy_score(y_test, y_pred))
+        try:
+            scores['accuracy'] = np.append(
+                scores['accuracy'], metrics.accuracy_score(y_test, y_pred))
+        except:
+            pass
 
         scores['r2'] = np.append(
             scores['r2'], metrics.r2_score(y_test, y_pred))
@@ -406,7 +409,7 @@ def cross_val_classification(clf, X, y, group_ids, cv, rstate):
     return(scores, y_test_agg, y_pred_agg)
 
 
-def tune_split(X, y, Id, estimator, params, test_size, random_state):
+def tune_split(X, y, Id, estimator, metric, params, test_size, random_state):
 
     if Id is None:
         X, X_devel, y, y_devel = train_test_split(X, y, test_size=test_size,
@@ -417,7 +420,7 @@ def tune_split(X, y, Id, estimator, params, test_size, random_state):
                             random_state=random_state, stratify=Id)
 
     clf = GridSearchCV(estimator=estimator, cv=3, param_grid=params,
-                              scoring="accuracy", n_jobs=-1)
+                              scoring=metric, n_jobs=-1)
     
     clf.fit(X_devel, y_devel)
 
@@ -426,25 +429,17 @@ def tune_split(X, y, Id, estimator, params, test_size, random_state):
 
 def feature_importances(clf, X, y):
 
-    min_max_scaler = preprocessing.MinMaxScaler()
-
     try:
-        clfimp = min_max_scaler.fit_transform(
-                    clf.feature_importances_.reshape(-1, 1))
+        clfimp = clf.feature_importances_
     except:
-        try:
-            clfimp = min_max_scaler.fit_transform(
-                        abs(clf.coef_.T).reshape(-1, 1))
-        except:
-            sk = SelectKBest(f_classif, k='all')
-            sk_fit = sk.fit(X, y)
-            clfimp = min_max_scaler.fit_transform(
-                        sk_fit.scores_.reshape(-1, 1))
+        sk = SelectKBest(f_classif, k='all')
+        sk_fit = sk.fit(X, y)
+        clfimp = sk_fit.scores_
 
     return (clfimp)
 
 
-def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
+def sample_training_data(roi, maplist, cv, cvtype, model_load,
                          load_training, save_training, lowmem, random_state):
     
     # load the model or training data
@@ -460,17 +455,18 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
             # create clumped roi for spatial cross validation
             if cv > 1 and cvtype == 'clumped':
                 r.clump(input=roi, output='tmp_roi_clumped', overwrite=True, quiet=True)
-                maplist2 = maplist
+                maplist2 = copy.deepcopy(maplist)
                 maplist2.append('tmp_roi_clumped')
                 X, y, sample_coords = sample_predictors(response=roi,
                                                         predictors=maplist2,
                                                         shuffle_data=False,
-                                                        lowmem=lowmem)
+                                                        lowmem=lowmem,
+                                                        random_state=random_state)
                  # take Id from last column
-                Id = X[:, X.shape[1]-1]
+                Id = X[:, -1]
 
                 # remove Id column from predictors
-                X = X[:, 0:X.shape[1]]
+                X = X[:, 0:X.shape[1]-1]
             else:
                 # query predictor rasters with training features
                 Id = None
@@ -487,8 +483,6 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
 
             if save_training != '':
                 save_training_data(X, y, Id, save_training)
-                
-            if model_save != '':
-                save_training_data(X, y, Id, model_save + ".csv")
 
+    
     return (X, y, Id, clf)

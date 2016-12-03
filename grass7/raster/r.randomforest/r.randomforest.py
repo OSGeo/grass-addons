@@ -338,6 +338,12 @@ def main():
         max_features = str('auto')
     if max_depth == -1:
         max_depth = None
+
+    if (model == 'LinearDiscriminantAnalysis' or
+    model == 'QuadraticDiscriminantAnalysis' or
+    model == 'GaussianNB'):
+        grass.warning('No parameters to tune for selected model...ignoring')
+        tuning = False
         
     """
     Obtain information about GRASS rasters to be classified
@@ -365,7 +371,7 @@ def main():
 
     # load or sample training data
     X, y, Id, clf = sample_training_data(roi, maplist, cv, cvtype, model_load,
-                                         model_save, load_training,
+                                         load_training,
                                          save_training, lowmem, random_state)
 
     # determine the number of class labels using np.unique
@@ -386,21 +392,32 @@ def main():
     --------------------
     """
 
+    grass.message("Model=" + model)
+    clf, param_grid, mode =\
+        model_classifiers(model, random_state,
+                          class_weight, C, max_depth,
+                          max_features, min_samples_split,
+                          min_samples_leaf, n_estimators,
+                          subsample, learning_rate)
+
+    # check for classification or regression mode
+    if mode == 'regression' and probability is True:
+        grass.warning('Class probabilities only possible for classifications...ignoring')
+        probability = False
+
     # define classifier unless model is to be loaded from file
     if model_load == '':
 
-        grass.message("Model=" + model)
-        clf, param_grid, mode =\
-            model_classifiers(model, random_state,
-                              class_weight, C, max_depth,
-                              max_features, min_samples_split,
-                              min_samples_leaf, n_estimators,
-                              subsample, learning_rate)
-
         # data splitting for automatic parameter tuning
-        if tuning is True:
+        if tuning is True:                
+
+            if mode == 'classification':
+                metric = 'accuracy'
+            else:
+                metric = 'r2'
+            
             X, X_devel, y, y_devel, Id, Id_devel, clf = \
-                tune_split(X, y, Id, clf, param_grid, ratio, random_state)
+                tune_split(X, y, Id, clf, metric, param_grid, ratio, random_state)
 
             grass.message('\n')
             grass.message('Searched parameters:')
@@ -478,9 +495,8 @@ def main():
 
             # output to GRASS message
             grass.message("\r\n")
-            grass.message("Normalized feature importances")
+            grass.message("Feature importances")
             grass.message("id" + "\t" + "Raster" + "\t" + "Importance")
-
             for i in range(len(clfimp)):
                 grass.message(
                     str(i) + "\t" + maplist[i] +
@@ -488,7 +504,7 @@ def main():
 
             if fimp_file != '':
                 fimp_output = pd.DataFrame(
-                    {'grass raster': maplist, 'importance': clfimp[:, 0]})
+                    {'grass raster': maplist, 'importance': clfimp})
                 fimp_output.to_csv(
                     path_or_buf=fimp_file,
                     header=['grass raster', 'importance'])
@@ -499,7 +515,11 @@ def main():
         """
 
         if model_save != '':
-            joblib.dump(clf, model_save + ".pkl")
+            joblib.dump(clf, model_save)
+
+            save_training_data(
+                X, y, Id, model_save.replace(".pkl", ".csv"))
+
 
         if modelonly is True:
             grass.fatal("Model built and now exiting")
@@ -508,7 +528,6 @@ def main():
     Prediction on the rest of the GRASS rasters in the imagery group
     ----------------------------------------------------------------
     """
-
     prediction(clf, labels, maplist, scaler, probability,
                rowincr, output, mode)
 
