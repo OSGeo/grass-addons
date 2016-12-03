@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import grass.script as grass
 import tempfile
@@ -65,21 +64,20 @@ def load_training_data(file):
     """
 
     training_data = np.loadtxt(file, delimiter=',')
+    n_features = training_data.shape[1]-1
 
     # check to see if last column contains group labels or nans
-    lastcol = training_data[:, training_data.shape[1]-1]
+    groups = training_data[:, -1]
+    training_data = training_data[:, 0:n_features]
 
-    if np.isnan(lastcol).all() is True:
-        n_features = training_data.shape[1]-1
-        groups = lastcol
-    else:
-        n_features = training_data.shape[1]
+    if np.isnan(groups).all() is True:
+        # if all nans then ignore last column
         groups = None
 
-    # retreave X and y
+    # fetch X and y
     X = training_data[:, 0:n_features-1]
-    y = training_data[:, n_features-1]
-
+    y = training_data[:, -1]
+    
     return(X, y, groups)
 
 
@@ -479,18 +477,18 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load, model_save,
                 X, y, sample_coords = sample_predictors(
                     response=roi, predictors=maplist, shuffle_data=True,
                     lowmem=lowmem, random_state=random_state)
+                
+                # perform kmeans clustering on point coordinates
+                if cv > 1 and cvtype == 'kmeans':
+                    clusters = KMeans(
+                        n_clusters=cv, random_state=random_state, n_jobs=-1)
+                    clusters.fit(sample_coords)
+                    Id = clusters.labels_
 
             if save_training != '':
                 save_training_data(X, y, Id, save_training)
                 
             if model_save != '':
                 save_training_data(X, y, Id, model_save + ".csv")
-
-    # perform kmeans clustering on point coordinates
-    if cv > 1 and cvtype == 'kmeans':
-        clusters = KMeans(
-            n_clusters=cv, random_state=random_state, n_jobs=-1)
-        clusters.fit(sample_coords)
-        Id = clusters.labels_
 
     return (X, y, Id, clf)

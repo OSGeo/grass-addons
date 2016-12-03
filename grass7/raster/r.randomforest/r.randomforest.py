@@ -367,8 +367,7 @@ def main():
     X, y, Id, clf = sample_training_data(roi, maplist, cv, cvtype, model_load,
                                          model_save, load_training,
                                          save_training, lowmem, random_state)
-                            
-                                         
+
     # determine the number of class labels using np.unique
     labels = np.unique(y)
 
@@ -489,7 +488,7 @@ def main():
 
             if fimp_file != '':
                 fimp_output = pd.DataFrame(
-                    {'grass raster': maplist, 'importance': clfimp})
+                    {'grass raster': maplist, 'importance': clfimp[:, 0]})
                 fimp_output.to_csv(
                     path_or_buf=fimp_file,
                     header=['grass raster', 'importance'])
