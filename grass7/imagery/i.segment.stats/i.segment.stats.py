@@ -14,13 +14,13 @@
 #############################################################################
 
 #%module
-#% description: Calculates statistics describing raster areas
+#% description: Calculates statistics describing raster areas.
 #% keyword: imagery
 #% keyword: segmentation
 #% keyword: statistics
 #%end
 #%option G_OPT_R_MAP
-#% label: Raster map with areas (all pixels of an area have same id)
+#% label: Name for input raster map with areas (all pixels of an area have same id)
 #% description: Raster map with areas, such as the output of i.segment
 #% required: yes
 #%end
@@ -29,17 +29,17 @@
 #% description: Name of input raster maps for statistics
 #% multiple: yes
 #% required: no
-#% guisection: raster_statistics
+#% guisection: Raster statistics
 #%end
 #%option
 #% key: raster_statistics
 #% type: string
-#% label: Statistics to calulate for each input raster map
+#% label: Statistics to calculate for each input raster map
 #% required: no
 #% multiple: yes
 #% options: min,max,range,mean,mean_of_abs,stddev,variance,coeff_var,sum,sum_abs,first_quart,median,third_quart,perc_90
 #% answer: mean,stddev,sum
-#% guisection: raster_statistics
+#% guisection: Raster statistics
 #%end
 #%rules
 #% requires: raster_statistics,rasters
@@ -52,22 +52,22 @@
 #% multiple: yes
 #% options: area,perimeter,compact_circle,compact_square,fd
 #% answer: area,perimeter,compact_circle,fd
-#% guisection: shape_statistics
+#% guisection: Shape statistics
 #%end
 #%option G_OPT_F_OUTPUT
 #% key: csvfile
-#% label: CSV output file containing statistics
+#% description: Name for output CSV file containing statistics
 #% required: no
-#% guisection: output
+#% guisection: Output
 #%end
 #%option G_OPT_F_SEP
-#% guisection: output
+#% guisection: Output
 #%end
 #% option G_OPT_V_OUTPUT
 #% key: vectormap
-#% label: Optional vector output map with statistics as attributes
+#% description: Name for optional vector output map with statistics as attributes
 #% required: no
-#% guisection: output
+#% guisection: Output
 #%end
 #%rules
 #% required: csvfile,vectormap

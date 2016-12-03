@@ -3,48 +3,47 @@
 <p>
 <em>i.segment.stats</em> calculates statistics for areas in a raster
 map. Areas are defined by adjacent pixels with the same value. Such
-areas can be the output of <a href="i.segment.html">i.segment</a> or
-<a href="r.clump.html">r.clump</a>.
+areas can be the output of <em><a href="i.segment.html">i.segment</a></em> or
+<em><a href="r.clump.html">r.clump</a></em>.
 
 <p>
 Available statistics are those related to the shape and size of the areas
-(see the 
-<a href="<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry</a>
+(see the <em><a href="r.object.geometry.html">r.object.geometry</a></em>
 addon man page for more information
 on the statistics) and aggregated statistics of pixel values of other
-raster maps (see <a href="v.univar.html">v.univar</a> for details).
+raster maps (see <em><a href="v.univar.html">v.univar</a></em> for details).
 
 <p>
-The user can chose between output in the form of a vector map of the areas
-with the statistics in the attribute table and/or in the form of a CSV
-text file.
+The user can chose between output in the form of a vector map of the
+areas with the statistics in the attribute table (<b>vectormap</b>)
+and/or in the form of a CSV text file (<b>csvfile</b>).
 
 <h2>NOTES</h2>
 
 <p>
-The module respects the current region settings. The <em>-r</em> flag allows
+The module respects the current region settings. The <b>-r</b> flag allows
 to force the module to adjust the region to the input raster map before
 calculating the statistics.
 
 <p>
-This module is a simple front-end to <a href="v.univar.html">v.univar</a>
+This module is a simple front-end to <em><a href="v.univar.html">v.univar</a></em>
 and the 
-<a href="<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry</a>
+<em><a href="r.object.geometry.html">r.object.geometry</a></em>
 add-on. It is the user's responsibility to install the
-latter using <a href="g.extension.html">g.extension</a>. If other statistics 
+latter using <em><a href="g.extension.html">g.extension</a></em>. If other statistics 
 are desired, these should probably be implemented in those (or other) modules
 which can then be called from this module.
 
 <p>
 Problems can arise in the calculation of some form statistics for certain
 segment forms. If errors arise, the user might want to try to run 
-<a href="r.clump.html">r.clump</a> on the input raster file before running
+<em><a href="r.clump.html">r.clump</a></em> on the input raster file before running
 <em>i.segment.stats</em>.
 
 <p>
 When treating files with a large number objects, creating the vector map
 can be very time-consuming. In that case, it might be easier to only work
-with the csv-format output.
+with the <b>csvfile</b> output.
 
 
 <h2>EXAMPLE</h2>
@@ -66,11 +65,13 @@ i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
 </em>
 <p>
 <em>
-<a href="https://grass.osgeo.org/grass70/manuals/addons/r.object.geometry.html">r.object.geometry (Addon)</a>
-<a href="https://grass.osgeo.org/grass70/manuals/addons/v.class.mlR.html">v.class.mlR (Addon)</a>
+<a href="r.object.geometry.html">r.object.geometry (Addon)</a>
+<a href="v.class.mlR.html">v.class.mlR (Addon)</a>
 </em>
 
 <h2>AUTHOR</h2>
+
 Moritz Lennert
 
-<p><i>Last changed: $Date$</i>
+<p>
+<i>Last changed: $Date$</i>
