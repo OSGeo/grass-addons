@@ -20,8 +20,8 @@
 #% keyword: statistics
 #%end
 #%option G_OPT_R_MAP
-#% label: Name for input raster map with areas (all pixels of an area have same id)
-#% description: Raster map with areas, such as the output of i.segment
+#% label: Name for input raster map with areas 
+#% description: Raster map with areas (all pixels of an area have same id), such as the output of i.segment
 #% required: yes
 #%end
 #%option G_OPT_R_INPUTS
