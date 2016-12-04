@@ -976,6 +976,18 @@ def main(opts, flgs):
     linear_cost(vname=struct, cname='lin_electro_cost',
                 alpha=float(opts['lc_electro']), length='electro_length',
                 vlayer=vlayer, ctype='double precision',  overwrite=overw)
+    # Compensation raster costs for electroline
+    comp = (opts['compensation']+'el' if
+            opts['compensation']
+            else ('tmprgreen_%i_compensation_el' % pid))
+    exc = (opts['excavation']+'el'
+           if opts['excavation']
+           else ('tmprgreen_%i_excavation' % pid))
+    compensation_cost(comp, lan, tri, upper,
+                      irate, float(opts['gamma_comp']), life, 0.6, overw)
+    # Excavation raster costs for electroline
+    excavation_cost(exc, excmin, excmax, opts['slope'],
+                    slim, 0.6, 0.6, overw)
 
     # add excavation cost and compensation cost for electroline
     elines = (opts['elines'] if opts['elines']
