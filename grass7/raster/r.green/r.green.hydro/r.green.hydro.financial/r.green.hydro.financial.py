@@ -982,7 +982,7 @@ def main(opts, flgs):
             else ('tmprgreen_%i_compensation_el' % pid))
     exc = (opts['excavation']+'el'
            if opts['excavation']
-           else ('tmprgreen_%i_excavation' % pid))
+           else ('tmprgreen_%i_excavation_el' % pid))
     compensation_cost(comp, lan, tri, upper,
                       irate, float(opts['gamma_comp']), life, 0.6, overw)
     # Excavation raster costs for electroline
