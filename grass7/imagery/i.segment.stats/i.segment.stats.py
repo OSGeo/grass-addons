@@ -140,7 +140,7 @@ def main():
 
     stats_temp_file = gscript.tempfile()
     if area_measures:
-	gscript.message(_("Calculating geometry statistics"))
+	gscript.message(_("Calculating geometry statistics..."))
 	output_header += area_measures
 	stat_indices = [geometry_stat_dict[x] for x in area_measures]
         gscript.run_command('r.object.geometry',
@@ -159,7 +159,7 @@ def main():
 		output_dict[values[0]] = [values[x] for x in stat_indices]
 
     for raster in rasters:
-	gscript.message(_("Calculating statistics for raster %s" % raster))
+	gscript.message(_("Calculating statistics for raster map <%s>..." % raster))
         if not gscript.find_file(raster, element='cell')['name']:
             gscript.message(_("Cannot find raster %s" % raster))
             continue
@@ -205,7 +205,7 @@ def main():
         f.close()
 
     if vectormap:
-	gscript.message(_("Creating vector map"))
+	gscript.message(_("Creating output vector map..."))
         temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
         gscript.run_command('r.to.vect',
                             input_=segment_map,
