@@ -1,5 +1,44 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+Sun et al.'s
+(2007) <a href="http://www.cs.cf.ac.uk/meshfiltering/index_files/Page342.htm">denoising
+algorithm</a> is a feature-preserving mesh denoising algorithm that
+smooths the surfaces of computer models of three dimensional objects
+such as those used in computer-aided design and graphics.  It removes
+random noise while preserving sharp features and smoothing with
+minimal changes to the original data. <em>r.denoise</em> is a UNIX
+shell script that allows the algorithm to be run on DEMs from
+within <em>GRASS</em>.  Denoising DEMs can improve clarity and quality
+of derived products such as slope and hydraulic maps.
+
+<p>
+The amount of smoothing is controlled by the <em>threshold</em>
+and <em>iterations</em> parameters.  Increasing the <em>threshold</em>
+decreases how sharp a feature needs to be to be preserved
+e.g. decreases the smoothing.  To preserve ridge crests in mountain
+areas, T > 0.9 is recommended. Setting T too high results in the
+preservation of noise.  For SRTM data, which is already partly
+smoothed by NASA, T = 0.99 can be used.  Increasing the number
+of <em>iterations</em> increases the smoothing and the range of
+spatial correlation of the output dataset.  A small number, e.g. 5 or
+fewer, typically gives the best results.  See the REFERENCES for more
+detailed information.
+
+<h2>NOTES</h2>
+<p>
+<em>r.denoise</em> works with a cartesian coordinate system.  Thus
+data in geographic (lat-long) coordinates require projection during
+processing.  The script is able to do this if
+the <a href="http://www.epsg-registry.org/">EPSG code</a> of a
+suitable coordinate system is provided.
+
 <h2>REQUIREMENTS</h2>
-<em><b>r.denoise</em></b> requires that <em>mdenoise</em>, the executable version of Sun et al.'s (2007) denoising algorithm, is available on the $PATH.  <em>mdenoise</em> can be compiled and installed as follows:
+
+<em><b>r.denoise</em></b> requires that <em>mdenoise</em>, the
+executable version of Sun et al.'s (2007) denoising algorithm, is
+available on the $PATH.  <em>mdenoise</em> can be compiled and
+installed as follows:
 
 <div class="code"><pre>
 wget http://www.cs.cf.ac.uk/meshfiltering/index_files/Doc/mdsource.zip
@@ -9,29 +48,18 @@ g++ -o mdenoise mdenoise.cpp triangle.c
 ln -s `pwd`/mdenoise /some/directory/on/the/$PATH
 </pre></div>
 
-<br>
-The python version of <em>r.denoise</em> uses <a href="https://github.com/jswhit/pyproj">pyproj</a>:
+<p>
+The python version of <em>r.denoise</em>
+uses <a href="https://github.com/jswhit/pyproj">pyproj</a>:
 <div class="code"><pre>
 pip install pyproj
 </pre></div>
 
-
-<h2>DESCRIPTION</h2>
-
-<p>
-Sun et al.'s (2007) <a href="http://www.cs.cf.ac.uk/meshfiltering/index_files/Page342.htm">denoising algorithm</a> is a feature-preserving mesh denoising algorithm that smooths the surfaces of computer models of three dimensional objects such as those used in computer-aided design and graphics.  It removes random noise while preserving sharp features and smoothing with minimal changes to the original data. <em>r.denoise</em> is a UNIX shell script that allows the algorithm to be run on DEMs from within <em>GRASS</em>.  Denoising DEMs can improve clarity and quality of derived products such as slope and hydraulic maps.
-<p>
-The amount of smoothing is controlled by the <em>threshold</em> and <em>iterations</em> parameters.  Increasing the <em>threshold</em> decreases how sharp a feature needs to be to be preserved e.g. decreases the smoothing.  To preserve ridge crests in mountain areas, T > 0.9 is recommended. Setting T too high results in the preservation of noise.  For SRTM data, which is already partly smoothed by NASA, T = 0.99 can be used.  Increasing the number of <em>iterations</em> increases the smoothing and the range of spatial correlation of the output dataset.  A small number, e.g. 5 or fewer, typically gives the best results.  See the REFERENCES for more detailed information.
-
-<h2>NOTES</h2>
-<p>
-<em>r.denoise</em> works with a cartesian coordinate system.  Thus data in geographic (lat-long) coordinates require projection during processing.  The script is able to do this if the <a href="http://www.epsg-registry.org/">EPSG code</a> of a suitable coordinate system is provided.
-
 <h2>REFERENCES</h2>
 <ul>
-	<li>For further information on denoising DEMs, see: <a href="http://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/">Using Sun's denoising algorithm on topographic data</a>.
-	<li>Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective Feature-Preserving Mesh Denoising. IEEE Transactions on Visualisation and Computer Graphics, 13(5):925-938 <a href="http://dx.doi.org/10.1109/TVCG.2007.1065">doi:10.1109/TVCG.2007.1065</a></li>
-	<li>Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other topographic data with a denoising algorithm. Geomorphology, <i>Article in press, Accepted manuscript</i>. <a href="http://dx.doi.org/10.1016/j.geomorph.2009.07.006">doi:10.1016/j.geomorph.2009.07.006</a></li>
+  <li>For further information on denoising DEMs, see: <a href="http://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/">Using Sun's denoising algorithm on topographic data</a>.
+  <li>Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective Feature-Preserving Mesh Denoising. IEEE Transactions on Visualisation and Computer Graphics, 13(5):925-938 <a href="http://dx.doi.org/10.1109/TVCG.2007.1065">doi:10.1109/TVCG.2007.1065</a></li>
+  <li>Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other topographic data with a denoising algorithm. Geomorphology, <i>Article in press, Accepted manuscript</i>. <a href="http://dx.doi.org/10.1016/j.geomorph.2009.07.006">doi:10.1016/j.geomorph.2009.07.006</a></li>
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -39,16 +67,19 @@ The amount of smoothing is controlled by the <em>threshold</em> and <em>iteratio
 <a href="r.stats.html">r.stats</a>,
 <a href="r.in.xyz.html">r.in.xyz</a>,
 <a href="r.neighbors.html">r.neighbors</a>,
-<a href="r.topidx.html">r.topidx</a>,
+<a href="r.topidx.html">r.topidx</a>
 </em>
 
 <h2>AUTHOR</h2>
 John A Stevenson<br>
 johnalexanderstevenson <i>at</i> yahoo <i>dot</i> co <i>dot</i> uk<br><br>
 
-The module was written as part of a project funded by <a href="http://www.epsrc.ac.uk">EPSRC</a> Grant no. EP/C007972/1 (P.I. Paul Rosin, Cardiff University).<br>
+The module was written as part of a project funded
+by <a href="http://www.epsrc.ac.uk">EPSRC</a> Grant no. EP/C007972/1
+(P.I. Paul Rosin, Cardiff University).<br>
 
-Module ported to Python by <a href="http://carlosgrohmann.com/">Carlos H. Grohmann</a><br>
+Module ported to Python by <a href="http://carlosgrohmann.com/">Carlos
+H. Grohmann</a><br>
 
 <p>
 <i>Last changed: $Date$</i>
