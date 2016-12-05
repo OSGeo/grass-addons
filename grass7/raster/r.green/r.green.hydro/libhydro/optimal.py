@@ -197,6 +197,8 @@ def build_array(line, raster_q, raster_dtm):
     # we should avoid to take discharge in another branch
     #import ipdb; ipdb.set_trace()
     if len(h) > 3:
+        if line.cat==100:
+            import ipdb; ipdb.set_trace()
         h_diff = np.array(h[0: -2])-np.array(h[1: -1])
         if h_diff.sum() < 0:
             q = q[::-1]
@@ -250,7 +252,7 @@ def check_plant(args, range_plant, distance, start, end, rank, cat,
     dis = abs(distance*math.cos(theta))
     len_plant = range_plant[1]*math.cos(theta)
     len_min = range_plant[0]*math.cos(theta)
-    if count < 6:
+    if count < 100:
         if len_p > len_plant + 2*dis:
         # if (end-start) > len_plant + 2*distance:
             if not(p_max):
