@@ -197,8 +197,6 @@ def build_array(line, raster_q, raster_dtm):
     # we should avoid to take discharge in another branch
     #import ipdb; ipdb.set_trace()
     if len(h) > 3:
-        if line.cat==100:
-            import ipdb; ipdb.set_trace()
         h_diff = np.array(h[0: -2])-np.array(h[1: -1])
         if h_diff.sum() < 0:
             q = q[::-1]
