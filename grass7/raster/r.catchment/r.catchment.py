@@ -321,11 +321,11 @@ def main():
         "units." % (int(cutoff), displayarea)))
     ####################################################
         grass.verbose(_('Creating output map'))
-        temp = grass.tempfile()
+        temp = open(grass.tempfile(), w+)
         temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
         temp.flush()
         grass.run_command('r.reclass', overwrite=grass.overwrite(), input=cost,
-                    output='cost.reclass.%s' % pid, rules=temp.name)
+                    output='cost.reclass.%s' % pid, rules=temp)
         temp.close()
         grass.mapcalc("${out}=if(isnull(${cost}), null(), ${cost})",
                     overwrite=grass.overwrite(), quiet=True,
