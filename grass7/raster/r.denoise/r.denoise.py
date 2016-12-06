@@ -56,13 +56,14 @@
 #% type: double
 #% description: Edge-sharpness threshold
 #% answer: 0.93
-#% options: 0-1
+#% options: 0.0-1.0
 #% required : no
 #%end
 #%option
 #% key: epsg
 #% type: integer
 #% description: EPSG projection code (required if current location is not projected)
+#% required : no
 #%end
 
 import sys
@@ -70,9 +71,7 @@ import os
 import atexit
 import subprocess
 from itertools import izip
-
 import grass.script as grass
-# from grass.exceptions import CalledModuleError
 
 # pyproj
 try:
@@ -93,7 +92,6 @@ def cleanup():
             os.remove(fname)
     except OSError:
         pass
-    # grass.run_command('g.remove', quiet=True, flags='f', type='raster', name=tmp_rmaps)
 
 # test if requirements are present
 def check_requirements():
@@ -107,8 +105,12 @@ def check_proj(epsg):
     if grass.parse_command('g.proj', flags='j')['+proj'] == 'longlat':
         # if not projected, check if EPSG code was supplied for reprojection
         if epsg:
-            # With EPSG code, check that it corresponds to a projected locality. # WGS84 LatLong: 4326
-            out_proj = pyproj.Proj(init='epsg:'+str(epsg))
+            # Check if EPSG code exists in database
+            try:
+                 out_proj = pyproj.Proj(init='epsg:'+str(epsg))
+            except RuntimeError:
+                grass.fatal(_("EPSG code is not found. Please check."))
+            # With EPSG code, check that it corresponds to a projected locality. # WGS84 LatLong: 4326   
             if out_proj.is_latlong() == False:
                 reproject = True
             else:
@@ -122,7 +124,7 @@ def check_proj(epsg):
 
 # reproject data
 def do_proj(xyz_in, xyz_out, in_proj, out_proj):
-    # grass.message(_("Projecting..."))
+    grass.message(_("Projecting..."))
     # open files
     f_in = open(xyz_in, 'r')
     f_out = open(xyz_out, 'w')
@@ -139,6 +141,7 @@ def do_proj(xyz_in, xyz_out, in_proj, out_proj):
 
 
 def main():
+    # PID
     global unique
 
     # user keys
@@ -152,14 +155,6 @@ def main():
     if not grass.find_file(in_raster)['file']:
         grass.fatal(_("Raster map <%s> not found") % in_raster)
 
-    # check if current location is in a projected coordinate system
-    reproject = check_proj(epsg)
-
-    # define projections
-    loc_proj = grass.read_command('g.proj', flags='jf')
-    loc_proj = pyproj.Proj(loc_proj.strip())
-    epsg_proj = pyproj.Proj(init='epsg:'+ str(epsg))
-
     # name the files
     tmp_xyz = 'tmp_xyz_%s.xyz' % unique
     tmp_xyz_orig = 'tmp_xyz_%s.xyz' % unique
@@ -172,10 +167,17 @@ def main():
 
     # Export the map to xyz points.
     grass.message(_("Exporting points..."))
-    grass.run_command('r.stats', flags='1g', input=in_raster, output=tmp_xyz, overwrite=True)
+    grass.run_command('r.out.xyz', input=in_raster, output=tmp_xyz, separator='space', overwrite=True)
+
+    # check if current location is in a projected coordinate system
+    reproject = check_proj(epsg)
 
     # Reproject if necessary
     if reproject:
+        # define projections
+        loc_proj = grass.read_command('g.proj', flags='jf')
+        loc_proj = pyproj.Proj(loc_proj.strip())
+        epsg_proj = pyproj.Proj(init='epsg:'+ str(epsg))
         do_proj(xyz_in=tmp_xyz, xyz_out=tmp_xyz_proj, in_proj=loc_proj, out_proj=epsg_proj)
         tmp_xyz = tmp_xyz_proj  
 
@@ -184,14 +186,8 @@ def main():
     cmd = ['mdenoise'] + ['-i'] + [tmp_xyz] + ['-t'] + [str(threshold)] + ['-n'] + [str(iterations)] + ['-z'] + ['-o'] + [tmp_out_dnoise]
     grass.call(cmd)
 
-    # If reprojected, it is necessary to return to original coordinate system.
-    #### actually, there's no need for this, since we will use only the Z coordinates from the denoised data ####
-    # if reproject:
-    #     do_proj(xyz_in=tmp_out_dnoise, xyz_out=tmp_out_dnoise_proj, in_proj=epsg_proj, out_proj=loc_proj)
-    #     tmp_out_dnoise = tmp_out_dnoise_proj
-
-    # As only the z coordinates have changed in denoising, to prevent rounding
-    # errors, the new z coordinates are combined with the original xy coordinates.
+    # As only the z coordinates have changed in denoising, 
+    # the new z coordinates are combined with the original xy coordinates.
     f_merged = open(tmp_xyz_merge, 'w') # new, merged
     #read input coordinates file
     with open(tmp_out_dnoise) as f_dnoise, open(tmp_xyz_orig) as f_orig: 
@@ -226,15 +222,3 @@ if __name__ == "__main__":
     atexit.register(cleanup)
     check_requirements()
     main()
-
-
-
-
-
-
-
-
-
-
-
-
