@@ -7,9 +7,9 @@ algorithm</a> is a feature-preserving mesh denoising algorithm that
 smooths the surfaces of computer models of three dimensional objects
 such as those used in computer-aided design and graphics.  It removes
 random noise while preserving sharp features and smoothing with
-minimal changes to the original data. <em>r.denoise</em> is a UNIX
-shell script that allows the algorithm to be run on DEMs from
-within <em>GRASS</em>.  Denoising DEMs can improve clarity and quality
+minimal changes to the original data. <em>r.denoise</em> is a python 
+script that allows the algorithm to be run on DEMs from within 
+<em>GRASS</em>.  Denoising DEMs can improve clarity and quality
 of derived products such as slope and hydraulic maps.
 
 <p>
@@ -58,7 +58,7 @@ pip install pyproj
 <ul>
   <li>For further information on denoising DEMs, see: <a href="http://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/">Using Sun's denoising algorithm on topographic data</a>.
   <li>Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective Feature-Preserving Mesh Denoising. IEEE Transactions on Visualisation and Computer Graphics, 13(5):925-938 <a href="http://dx.doi.org/10.1109/TVCG.2007.1065">doi:10.1109/TVCG.2007.1065</a></li>
-  <li>Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other topographic data with a denoising algorithm. Geomorphology, <i>Article in press, Accepted manuscript</i>. <a href="http://dx.doi.org/10.1016/j.geomorph.2009.07.006">doi:10.1016/j.geomorph.2009.07.006</a></li>
+  <li>Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other topographic data with a denoising algorithm. Geomorphology, 144:238-252. <a href="http://dx.doi.org/10.1016/j.geomorph.2009.07.006">doi:10.1016/j.geomorph.2009.07.006</a></li>
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -75,10 +75,11 @@ johnalexanderstevenson <i>at</i> yahoo <i>dot</i> co <i>dot</i> uk<br><br>
 
 The module was written as part of a project funded
 by <a href="http://www.epsrc.ac.uk">EPSRC</a> Grant no. EP/C007972/1
-(P.I. Paul Rosin, Cardiff University).<br>
+(P.I. Paul Rosin, Cardiff University).<br><br>
 
 Module ported to Python by <a href="http://carlosgrohmann.com/">Carlos
 H. Grohmann</a><br>
+Institute of Energy and Environment, University of Sao Paulo, Brazil<br>
 
 <p>
 <i>Last changed: $Date$</i>
