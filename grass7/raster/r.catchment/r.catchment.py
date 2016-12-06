@@ -127,8 +127,6 @@
 import sys
 import os
 import subprocess
-import tempfile
-
 # Just in case system can't find where grass.script is
 grass_install_tree = os.getenv('GISBASE')
 sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
@@ -141,7 +139,8 @@ import grass.script as grass
 # stdout where the keys are numeric values, n is the character that separates
 # the key from the data, o is a defined blank dictionary to write results to
 def out2dictnum(m, n, o):
-    """Execute a grass command, and parse it to a dictionary"""
+    """Execute a grass command, and parse it to a dictionary
+    This works differently than standard grass.parse_command syntax"""
     p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
     p2 = p1.stdout.readlines()
     for y in p2:
@@ -322,7 +321,7 @@ def main():
         "units." % (int(cutoff), displayarea)))
     ####################################################
         grass.verbose(_('Creating output map'))
-        temp = tempfile.NamedTemporaryFile()
+        temp = grass.tempfile()
         temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
         temp.flush()
         grass.run_command('r.reclass', overwrite=grass.overwrite(), input=cost,
