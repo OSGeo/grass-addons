@@ -553,8 +553,6 @@ class Plant(object):
                        "Therefore %d will be used.")
                 print(msg % (contur_itk.id, contur_res.id, cnt.name,
                              contur_itk.id))
-                if contur_itk.id==5381:
-                    import ipdb; ipdb.set_trace()
 
             # check contour
             contur = not_overlaped(contur_itk)
