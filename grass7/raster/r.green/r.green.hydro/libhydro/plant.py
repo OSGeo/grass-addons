@@ -120,8 +120,8 @@ def splitline(line, point, max_dist):
     dist = line.distance(point)
     l0 = line.segment(0, dist.sldist)
     l0.reverse()
-    max_l = min([max_dist, line.length()-dist.sldist])
-    l1 = line.segment(dist.sldist, dist.sldist+max_l)
+    lngth = min([max_dist+dist.sldist, line.length()])
+    l1 = line.segment(dist.sldist, lngth)
     return l0, l1
 
 
@@ -553,6 +553,8 @@ class Plant(object):
                        "Therefore %d will be used.")
                 print(msg % (contur_itk.id, contur_res.id, cnt.name,
                              contur_itk.id))
+                if contur_itk.id==5381:
+                    import ipdb; ipdb.set_trace()
 
             # check contour
             contur = not_overlaped(contur_itk)
