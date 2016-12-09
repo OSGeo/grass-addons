@@ -39,6 +39,11 @@
 #%option G_OPT_F_SEP
 #%end
 
+#%flag
+#% key: i
+#% description: Include no data values
+#%end
+
 import grass.script as gscript
 import grass.temporal as tgis
 
@@ -48,6 +53,9 @@ def main(options, flags):
     out_name = options["output"]
     where = options["where"]
     sep = options["separator"]
+    donodata = ''
+    if flags['i']:
+        donodata = 'i'
     # Make sure the temporal database exists
     tgis.init()
     # We need a database interface
@@ -63,7 +71,7 @@ def main(options, flags):
     mapnames = [mapp.get_name() for mapp in maps]
     try:
         gscript.run_command("r.out.xyz", input=','.join(mapnames),
-                            output=out_name, separator=sep,
+                            output=out_name, separator=sep, flags=donodata,
                             overwrite=gscript.overwrite())
         gscript.message(_("Space time raster dataset {st} exported to "
                           "{pa}".format(st=strds, pa=out_name)))
