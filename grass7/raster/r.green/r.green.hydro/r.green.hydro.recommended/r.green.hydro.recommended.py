@@ -349,7 +349,7 @@ def main(opts, flgs):
                                          percentage)
         mapcalc(formula, overwrite=OVW)
         formula = '%s=if(%s>0, %s, 0)' % (tmp_disch, tmp_disch, tmp_disch)
-        mapcalc(formula, overwrite=OVW)
+        mapcalc(formula, overwrite=True)
         TMPRAST.append(tmp_disch)
         discharge_current = tmp_disch
 
