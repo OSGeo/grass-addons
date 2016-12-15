@@ -717,15 +717,16 @@ def get_electro_length(opts):
             elines = (opts['elines'] if opts['elines']
                       else ('tmprgreen_%i_elines' % pid))
             for cat, line in enumerate(vect):
-                if line.attrs[kcol] == ktype and line.attrs['side']=='option1':
+                if line.attrs[kcol] == ktype:
                     # the turbine is the last point of the penstock
                     turbine = line[-1]
                     # find the closest electro line
                     eline = electro.find['by_point'].geo(turbine, maxdist=1e6)
                     dist = eline.distance(turbine)
                     line.attrs['electro_length'] = dist.dist
-                    ltemp.append([geo.Line([turbine, dist.point]),
-                                 (line.attrs['plant_id'], line.attrs['side'])])
+                    if line.attrs['side'] == 'option1':
+                        ltemp.append([geo.Line([turbine, dist.point]),
+                                     (line.attrs['plant_id'], line.attrs['side'])])
                 else:
                     line.attrs['electro_length'] = 0.
             vect.table.conn.commit()
