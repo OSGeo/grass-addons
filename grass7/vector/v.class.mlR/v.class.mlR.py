@@ -112,8 +112,8 @@
 #% description: Classifiers to use
 #% required: yes
 #% multiple: yes
-#% options: svmRadial,rf,rpart,knn,knn1
-#% answer: svmRadial,rf,rpart,knn,knn1
+#% options: svmRadial,rf,rpart,C5.0,knn,knn1
+#% answer: svmRadial,rf,rpart,C5.0,knn,knn1
 #%end
 #%option
 #% key: folds
@@ -137,6 +137,13 @@
 #% description: Number of levels to test for each tuning parameter
 #% required: yes
 #% answer: 10
+#% guisection: Cross-validation and voting
+#%end
+#%option
+#% key: tunegrids
+#% type: string
+#% description: Python dictionary of customized tunegrids
+#% required: no
 #% guisection: Cross-validation and voting
 #%end
 #%option
@@ -217,6 +224,7 @@
 import atexit
 import subprocess
 import os, shutil
+from ast import literal_eval
 import grass.script as gscript
 
 def cleanup():
@@ -253,7 +261,6 @@ def main():
     model_output = model_output_desc  =  temptable  =  r_commands = None
     reclass_files = None
 
-    packages = {'svmRadial': 'kernlab', 'rf': 'randomForest', 'rpart': 'rpart'}
     voting_function = "voting <- function (x, w) {\n"
     voting_function += "res <- tapply(w, x, sum, simplify = TRUE)\n"
     voting_function += "maj_class <- as.numeric(names(res)[which.max(res)])\n"
@@ -266,13 +273,15 @@ def main():
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
+    packages = {'svmRadial': 'kernlab', 'rf': 'randomForest', 'rpart': 'rpart', 'C5.0': 'C50'}
+
     install_package = "if(!is.element('%s', installed.packages()[,1])){\n"
     install_package += "cat('\\n\\nInstalling %s package from CRAN\n')\n"
     install_package += "if(!file.exists(Sys.getenv('R_LIBS_USER'))){\n"
     install_package += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
     install_package += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
     install_package += "chooseCRANmirror(ind=1)\n"
-    install_package += "install.packages('%s')}"
+    install_package += "install.packages('%s', dependencies=TRUE)}"
 
     if options['segments_map']:
         allfeatures = options['segments_map']
@@ -299,10 +308,17 @@ def main():
     weighting_modes = options['weighting_modes'].split(',')
     weighting_metric = options['weighting_metric']
     processes = int(options['processes'])
+    if processes > 1:
+	install = install_package % ('doParallel', 'doParallel', 'doParallel')
+	r_file.write(install)
+	r_file.write("\n")
+
+        
     folds = options['folds']
     partitions = options['partitions']
     tunelength = options['tunelength']
     separator = gscript.separator(options['separator'])
+    tunegrids = literal_eval(options['tunegrids']) if options['tunegrids'] else {}
 
     classification_results = None
     if options['classification_results']:
@@ -363,6 +379,9 @@ def main():
     install = install_package % ('caret', 'caret', 'caret')
     r_file.write(install)
     r_file.write("\n")
+    install = install_package % ('e1071', 'e1071', 'e1071')
+    r_file.write(install)
+    r_file.write("\n")
     for classifier in classifiers:
         # knn is included in caret
 	if classifier == "knn" or classifier == "knn1":
@@ -403,8 +422,14 @@ def main():
             r_file.write("models.cv$knn1 <- knn1Model.cv")
             r_file.write("\n")
         else:
-            r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv,tuneLength=%s)" % (classifier,
-                        classifier, tunelength))
+            if classifier in tunegrids:
+                r_file.write("Grid <- expand.grid(%s)" % tunegrids[classifier])
+                r_file.write("\n")
+                r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv, tuneGrid=Grid)" % (classifier,
+                            classifier))
+            else:
+                r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv, tuneLength=%s)" % (classifier,
+                            classifier, tunelength))
             r_file.write("\n")
             r_file.write("models.cv$%s <- %sModel.cv" % (classifier, classifier))
             r_file.write("\n")

@@ -36,22 +36,29 @@ possible values of the tuning parameters. These values can be changed
 using, repectively, the <em>partitions</em>, <em>folds</em> and
 <em>tunelength</em> parameters.
 
+<p>The user can define a customized tunegrid for each classifier, using
+the <em>tunegrids</em> parameter. Any customized tunegrid has to be defined
+as a Python dictionary, with the classifiers as keys, and tunegrid data frames
+as content as defined 
+<a href="http://topepo.github.io/caret/model-training-and-tuning.html#alternate-tuning-grids">
+	in the caret documentation</a>.
+
 <p>The module can run the model tuning using parallel processing. In order
 for this to work, the R-package <em>doParallel</em> has to be installed. The
 <em>processes</em> parameter allows to chose the number of processes to
 run.
 
 <p>The user can chose to include the individual classifiers results in
-the output using the <em>i</em> flag, but by default the output will be
-the result of a voting scheme merging the results of the different 
-classifiers. Votes can be weighted according to a user-defined mode 
-(<em>weighting_mode</em>): simple majority vote without weighting, i.e. 
-all weights are equal (smv), simple weighted majority vote (swv), 
-best-worst weighted vote (bwwv) and quadratic best-worst weighted vote 
-(qbwwv). For more details about these voting modes see Moreno-Seco et al 
-(2006). By default, the weights are calculated based on the accuracy 
-metric, but the user can chose the kappa value as an alternative 
-(<em>weighting_metric</em>).
+the output (the attributes and/or the raster maps) using the <em>i</em>
+flag, but by default the output will be the result of a voting scheme 
+merging the results of the different classifiers. Votes can be weighted 
+according to a user-defined mode (<em>weighting_mode</em>): simple majority
+vote without weighting, i.e. all weights are equal (smv), simple weighted 
+majority vote (swv), best-worst weighted vote (bwwv) and quadratic 
+best-worst weighted vote (qbwwv). For more details about these voting 
+modes see Moreno-Seco et al (2006). By default, the weights are calculated 
+based on the accuracy metric, but the user can chose the kappa value as an 
+alternative (<em>weighting_metric</em>).
 
 <p>In the output (as attribute columns or text file) each weighting schemes 
 result is provided accompanied by a value that can be considered as an
@@ -89,15 +96,14 @@ proceed to relevant checks before launching the module.
 
 <h2>DEPENDENCIES</h2>
 
-<p>This modules uses R. The following R-packages have to be installed to be 
-able to use this module: 'caret', 'kernlab', 'randomForest', 'rpart', 
-'ggplot2', 'lattice', 'doParallel' (if parallel processing is desired).
+<p>This module uses R. It tries to install necessary R packages automatically
+if necessary. These include : 'caret', 'kernlab', 'e1071', 'randomForest', and 'rpart'. 
+Other packages can be necessary such as 'ggplot2', 'lattice' (for the plots), 
+and 'doParallel' (if parallel processing is desired).
 
 <h2>TODO</h2>
 
 <ul>
-	<li>Add automagic installation of missing R packages.</li>
-	<li>Add option to manually define grid of tuning parameters</li>
 	<li>Check for existing file created by R as no overwrite check is 
 		done in R</li>
 	<li>Use class probabilities determined by individual classifiers
