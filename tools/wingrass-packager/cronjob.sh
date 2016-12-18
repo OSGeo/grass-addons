@@ -25,7 +25,8 @@ rm_7() {
 
 update_setup() {
     for p in x86 x86_64; do
-	file=${HOME}/src/grass$1/mswindows/osgeo4w/setup.hint
+	(cd ${HOME}/src/grass$1 && svn up && cd mswindows/osgeo4w && make)
+	file=${HOME}/src/grass$1/mswindows/osgeo4w/setup_${p}.hint
 	pattern=${SRC}/grass$1/${p}/osgeo4w/*[0-9].tar.bz2
     
 	curr=`ls -r -w1 $pattern | head -n1 | cut -d'-' -f4,5 | cut -d'.' -f1`
