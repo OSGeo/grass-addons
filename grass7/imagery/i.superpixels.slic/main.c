@@ -511,7 +511,7 @@ struct Cell_head g_cellhd;
             if(hexgrid > 0 )
 			{
 				seedx = x*offset+(xoff<<(y&0x1))+xe;
-				seedx = min(g_width-1,seedx);
+				seedx = fmin(double (g_width-1), seedx);
 			} //for hex grid sampling
 			
 			int seedy = (y*offset+yoff+ye);
