@@ -1,15 +1,15 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.vif</em> module computes the variance inflation factor 
+The <em>r.vif</em> module computes the variance inflation factor
 (<a href="https://en.wikipedia.org/wiki/Variance_inflation_factor">VIF</a>)
-[1] and the square root of the VIF. The VIF quantifies how much 
-the variance (the square of the estimate's standard deviation) of an 
-estimated regression coefficient is increased because of 
+[1] and the square root of the VIF. The VIF quantifies how much
+the variance (the square of the estimate's standard deviation) of an
+estimated regression coefficient is increased because of
 <a href="https://en.wikipedia.org/wiki/Multicollinearity">multi-collinearity</a>.
-The square root of VIF is a measure of how much larger 
-the standard error is, compared with what it would be if that 
-variable were uncorrelated with the other predictor variables in the 
-model. 
+The square root of VIF is a measure of how much larger
+the standard error is, compared with what it would be if that
+variable were uncorrelated with the other predictor variables in the
+model.
 
 <p>By default the VIF is calculated for each variable. If the user
 sets a VIF threshold value (maxvif) a stepwise variable selection
@@ -20,10 +20,10 @@ variables. This will be repeated till the VIF is smaller than
 maxvif. This can thus be used to select a sub-set of variables for
 e.g., multiple regression analysis.
 
-<p>The user can optionally select one or more variables to be 
-retained in the stepwise selection. For example, the user selects 
-the variable <i>bio_5</i> to be retained. If in any step this 
-variable has the highest VIF, the variable with the next highest VIF 
+<p>The user can optionally select one or more variables to be
+retained in the stepwise selection. For example, the user selects
+the variable <i>bio_5</i> to be retained. If in any step this
+variable has the highest VIF, the variable with the next highest VIF
 will be removed instead (see the examples).
 
 <p>The user can set the 's' flag to only print the finally selected
@@ -47,7 +47,7 @@ region, set below, to reduce the run time.
 
 Run VIF, setting the maximum VIF at 10. The function will print the
 VIF computed at each step to the console. The same will also be
-written to a text file. 
+written to a text file.
 
 <div class="code"><pre>MAPS=`g.list type=raster pattern=*2011*precip sep=,`
 r.vif maps=$MAPS file=results1.csv maxvif=10
@@ -79,7 +79,7 @@ variable            vif  sqrtvif
 2011_07_precip     7.58     2.75
 2011_08_precip     3.32     1.82
 
-selected variables are: 
+selected variables are:
 --------------------------------------
 2011_01_precip, 2011_04_precip, 2011_05_precip, 2011_06_precip, 2011_07_precip, 2011_08_precip
 
@@ -121,7 +121,7 @@ variable            vif  sqrtvif
 2011_07_precip     8.36     2.89
 2011_08_precip     3.30     1.82
 
-selected variables are: 
+selected variables are:
 --------------------------------------
 2011_02_precip, 2011_03_precip, 2011_04_precip, 2011_05_precip, 2011_06_precip, 2011_07_precip, 2011_08_precip
 
@@ -134,7 +134,7 @@ Statistics are written to results2.csv
 Like example 1, but without writing the results to
 file, and with the 's' flag set, which means only the list with
 finally selected variables are printed to screen. This output can be
-directl parsed in a script. 
+directl parsed in a script.
 
 <div class="code"><pre>MAPS=`g.list type=raster pattern=*2011*precip sep=,`
 r.vif -s maps=$MAPS maxvif=10
@@ -173,19 +173,21 @@ Adding raster map <2011_08_precip@climate_1970_2012> to group
 
 Suggested citation:
 
-<p>van Breugel, P., Friis, I., Demissew, S., Lilles&oslash;, J.-P. B., & 
-Kindt, R. 2015. Current and Future Fire Regimes and Their Influence 
-on Natural Vegetation in Ethiopia. Ecosystems. doi: 
+<p>van Breugel, P., Friis, I., Demissew, S., Lilles&oslash;, J.-P. B., &
+Kindt, R. 2015. Current and Future Fire Regimes and Their Influence
+on Natural Vegetation in Ethiopia. Ecosystems. doi:
 10.1007/s10021-015-9938-x.
 
 
 <h2>References</h2>
+
 [1] Graham, M.H. 2003. Confronting
 multicollinearity in ecological multiple regression. Ecology 84:
-2809–2815.
-[2] Craney, T.A., & Surles, J.G. 2002. Model-Dependent
+2809-2815.
+
+<p>[2] Craney, T.A., & Surles, J.G. 2002. Model-Dependent
 Variance Inflation Factor Cutoff Values. Quality Engineering 14:
-391–403.
+391-403.
 
 <h2>AUTHOR</h2>
 

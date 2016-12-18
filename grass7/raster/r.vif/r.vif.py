@@ -75,9 +75,9 @@
 #%requires_all: -s,maxvif
 #%end
 
-#==============================================================================
-## General
-#==============================================================================
+# =============================================================================
+# General
+# =============================================================================
 
 # import libraries
 import os
@@ -91,12 +91,14 @@ if not os.environ.has_key("GISBASE"):
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
+
 # Check if layers exist
 def CheckLayer(envlay):
     for chl in xrange(len(envlay)):
-        ffile = grass.find_file(envlay[chl], element = 'cell')
+        ffile = grass.find_file(envlay[chl], element='cell')
         if ffile['fullname'] == '':
             grass.fatal("The layer " + envlay[chl] + " does not exist.")
+
 
 # main function
 def main():
@@ -122,9 +124,9 @@ def main():
     OPF = options['file']
     flag_s = flags['s']
 
-    #==========================================================================
-    ## Calculate VIF and write to standard output (& optionally to file)
-    #==========================================================================
+    # =========================================================================
+    # Calculate VIF and write to standard output (& optionally to file)
+    # =========================================================================
 
     # Determine maximum width of the columns to be printed to std output
     name_lengths = []
@@ -139,8 +141,8 @@ def main():
     out_round = []
 
     # VIF is computed for each variable
-    #--------------------------------------------------------------------------
-    if MXVIF =='':
+    # -------------------------------------------------------------------------
+    if MXVIF == '':
         # Print header of table to std output
         print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
             ['variable', 'vif', 'sqrtvif'], nlength))
@@ -151,8 +153,8 @@ def main():
             MAPx = IPF[:]
             del MAPx[k]
             vifstat = grass.read_command("r.regression.multi",
-                               flags="g", quiet=True,
-                               mapx=MAPx, mapy=MAPy)
+                                         flags="g", quiet=True,
+                                         mapx=MAPx, mapy=MAPy)
             vifstat = vifstat.split('\n')
             vifstat = [i.split('=') for i in vifstat]
             if float(vifstat[1][1]) > 0.9999999999:
@@ -175,7 +177,7 @@ def main():
             print("Statistics are written to " + OPF + "\n")
 
     # The stepwise variable selection procedure is run
-    #--------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     else:
         rvifmx = MXVIF + 1
         m = 0
@@ -207,8 +209,8 @@ def main():
                 MAPx = IPF[:]
                 del MAPx[k]
                 vifstat = grass.read_command("r.regression.multi",
-                                   flags="g", quiet=True,
-                                   mapx=MAPx, mapy=MAPy)
+                                             flags="g", quiet=True,
+                                             mapx=MAPx, mapy=MAPy)
                 vifstat = vifstat.split('\n')
                 vifstat = [i.split('=') for i in vifstat]
                 if float(vifstat[1][1]) > 0.9999999999:
@@ -248,7 +250,6 @@ def main():
                 del IPF[rvifindex]
                 del IPFn[rvifindex]
 
-
         # Write final selected variables to std output
         if not flag_s:
             print
@@ -262,27 +263,23 @@ def main():
         else:
             print(','.join(IPFn))
 
-    if len(OPF) > 0:
-        try:
-            text_file = open(OPF, "w")
-            if MXVIF =='':
-                text_file.write("variable,vif,sqrtvif\n")
-                for i in xrange(len(out_vif)):
-                    text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
-                        out_variable[i], out_vif[i], out_sqrt[i]))
-            else:
-                text_file.write("round,removed,variable,vif,sqrtvif\n")
-                for i in xrange(len(out_vif)):
-                    text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.format(
-                        out_round[i], out_removed[i],out_variable[i],
-                         out_vif[i], out_sqrt[i]))
+        if len(OPF) > 0:
+            try:
+                text_file = open(OPF, "w")
+        if MXVIF == '':
+            text_file.write("variable,vif,sqrtvif\n")
+        for i in xrange(len(out_vif)):
+            text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
+                out_variable[i], out_vif[i], out_sqrt[i]))
+        else:
+            text_file.write("round,removed,variable,vif,sqrtvif\n")
+        for i in xrange(len(out_vif)):
+            text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.
+                            format(out_round[i], out_removed[i],
+                                   out_variable[i], out_vif[i], out_sqrt[i]))
         finally:
             text_file.close()
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-
-
-
-
