@@ -263,20 +263,20 @@ def main():
         else:
             print(','.join(IPFn))
 
-        if len(OPF) > 0:
-            try:
-                text_file = open(OPF, "w")
-        if MXVIF == '':
-            text_file.write("variable,vif,sqrtvif\n")
-        for i in xrange(len(out_vif)):
-            text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
-                out_variable[i], out_vif[i], out_sqrt[i]))
-        else:
-            text_file.write("round,removed,variable,vif,sqrtvif\n")
-        for i in xrange(len(out_vif)):
-            text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.
-                            format(out_round[i], out_removed[i],
-                                   out_variable[i], out_vif[i], out_sqrt[i]))
+    if len(OPF) > 0:
+        try:
+            text_file = open(OPF, "w")
+            if MXVIF == '':
+                text_file.write("variable,vif,sqrtvif\n")
+                for i in xrange(len(out_vif)):
+                    text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
+                        out_variable[i], out_vif[i], out_sqrt[i]))
+            else:
+                text_file.write("round,removed,variable,vif,sqrtvif\n")
+                for i in xrange(len(out_vif)):
+                    text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.format(
+                    out_round[i], out_removed[i], out_variable[i],
+                    out_vif[i], out_sqrt[i]))
         finally:
             text_file.close()
 
