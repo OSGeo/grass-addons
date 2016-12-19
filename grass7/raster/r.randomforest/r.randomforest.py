@@ -7,7 +7,6 @@
 #
 # COPYRIGHT: (c) 2016 Steven Pawley, and the GRASS Development Team
 #                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
 #                for details.
 #
 #############################################################################
@@ -259,11 +258,6 @@ from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.modules.shortcuts import raster as r
-
-try:
-    import pandas as pd
-except:
-    grass.fatal("Pandas not installed")
 
 try:
     import sklearn
@@ -1001,7 +995,8 @@ def main():
                 metric = 'r2'
             
             X, X_devel, y, y_devel, Id, Id_devel, clf = \
-                tune_split(X, y, Id, clf, metric, param_grid, ratio, random_state)
+                tune_split(X, y, Id, clf, metric, param_grid,
+                           ratio, random_state)
 
             grass.message('\n')
             grass.message('Searched parameters:')
@@ -1043,19 +1038,25 @@ def main():
                 # classification report
                 grass.message("\n")
                 grass.message("Classification report:")
-                grass.message(metrics.classification_report(y_test, y_pred))
-
-                if errors_file != '':
-                    errors = pd.DataFrame({'accuracy': scores['accuracy']})
-                    errors.to_csv(errors_file, mode='w')
+                grass.message(metrics.classification_report(y_test, y_pred))                   
 
             else:
                 grass.message("R2:\t%0.2f\t+/-\t%0.2f" %
                               (scores['r2'].mean(), scores['r2'].std()))
-
-                if errors_file != '':
-                    errors = pd.DataFrame({'r2': scores['accuracy']})
+            
+            # write cross-validation results for csv file
+            if errors_file != '':
+                try:
+                    import pandas as pd
+                    
+                    if mode == 'classification':
+                        errors = pd.DataFrame({'accuracy': scores['accuracy'],
+                                               'auc': scores['auc']})
+                    else:
+                        errors = pd.DataFrame({'r2': scores['r2']})
                     errors.to_csv(errors_file, mode='w')
+                except:
+                    grass.warning("Pandas is not installed. Pandas is required to write the cross-validation results to file")
 
         # train classifier
         clf.fit(X, y)
