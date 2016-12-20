@@ -28,9 +28,9 @@
 #%end
 
 #%option G_OPT_R_INPUTS
-#% key: raster
+#% key: return_period
 #% description: Rainfall raster maps of required return period
-#% options: H_002,H_005,H_010,H_020,H_050,H_100
+#% options: N2,N5,N10,N20,N50,N100
 #%end
 
 #%option
@@ -50,7 +50,7 @@ from grass.exceptions import CalledModuleError
 
 def coeff(name, rl):
     a = c = None
-    if name == 'H_002':
+    if name == 'N2':
         if rl < 40: 
             a = 0.166
             c = 0.701
@@ -60,7 +60,7 @@ def coeff(name, rl):
         elif rl < 1440:
             a = 0.235
             c = 0.801
-    elif name == 'H_005':
+    elif name == 'N5':
         if rl < 40:
             a = 0.171
             c = 0.688
@@ -70,7 +70,7 @@ def coeff(name, rl):
         elif rl < 1440:
             a = 0.324
             c = 0.845
-    elif name == 'H_010':
+    elif name == 'N10':
         if rl < 40:
             a = 0.163
             c = 0.656
@@ -80,7 +80,7 @@ def coeff(name, rl):
         elif rl < 1440:
             a = 0.380
             c = 0.867
-    elif name == 'H_020':
+    elif name == 'N20':
         if rl < 40:
             a = 0.169
             c = 0.648
@@ -90,7 +90,7 @@ def coeff(name, rl):
         elif rl < 1440:
             a = 0.463
             c = 0.894
-    elif name == 'H_050':
+    elif name == 'N50':
         if rl < 40:
             a = 0.174
             c = 0.638
@@ -100,7 +100,7 @@ def coeff(name, rl):
         elif rl < 1440:
             a = 0.580
             c = 0.925
-    elif name == 'H_100':
+    elif name == 'N100':
         if rl < 40:
             a = 0.173
             c = 0.625
@@ -125,7 +125,7 @@ def main():
     except CalledModuleError as e:
         return 1
     
-    allowed_rasters = ('H_002', 'H_005', 'H_010', 'H_020', 'H_050', 'H_100')
+    allowed_rasters = ('N2', 'N5', 'N10', 'N20', 'N50', 'N100')
 
     # test input feature type
     vinfo = grass.vector_info_topo(opt['map'])
@@ -133,7 +133,7 @@ def main():
         grass.fatal(_("No points or areas found in input vector map <{}>").format(opt['map']))
     
     # extract multi values to points
-    for rast in opt['raster'].split(','):
+    for rast in opt['return_period'].split(','):
         # check valid rasters
         name = grass.find_file(rast, element='cell')['name']
         if not name:
@@ -169,7 +169,7 @@ def main():
         
         # add column to the attribute table if not exists
         rl = float(opt['rainlength'])
-        field_name='{}_{}'.format(name, opt['rainlength'])
+        field_name='H_{}T{}'.format(name, opt['rainlength'])
         if field_name not in columns:
             Module('v.db.addcolumn', map=opt['map'],
                    columns='{} double precision'.format(field_name))

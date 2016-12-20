@@ -22,9 +22,9 @@ drainage systems, flood mitigation measures etc.
 <p>
 First automatization has been implemented by well-known method
 which is based on reduction of 24 hours design precipitation to
-shorter time. GIS is used for spatial supervised classification of
+shorter time. GIS can used for spatial supervised classification of
 point values of specified return periods (2, 10, 20, 50 and 100
-years) over the area of the Czech Republic.
+years).
 
 <center>
 <table>
@@ -41,14 +41,14 @@ years) over the area of the Czech Republic.
 
 <img src="r_subdayprecip_design_result.png">
 <p>
-<em>Figure: IV.order basins colored by mean H_002_60 value (in millimeters)</em>
+<em>Figure: IV.order basins colored by mean H_N2T60 value (in millimeters)</em>
 
 </center>
 
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.subdayprecip.design map=basin raster=H_002,H_005,H_010,H_020 rainlength=60
+r.subdayprecip.design map=basin return_period=N2,N5,N10,N20 rainlength=60
 </pre></div>    
 
 <h2>REFERENCES</h2>
@@ -74,7 +74,8 @@ r.subdayprecip.design map=basin raster=H_002,H_005,H_010,H_020 rainlength=60
 
 <h3>Acknowledgement</h3>
 
-This work has been supported by the <a href="http://rain.fsv.cvut.cz">research project QJ1520265</a> -
+This work has been supported by
+the <a href="http://rain.fsv.cvut.cz">research project QJ1520265</a> -
 &quot;Variability of Short-term Precipitation and Runoff in Small
 Czech Drainage Basins and its Influence on Water Resources
 Management&quot;.
@@ -88,9 +89,11 @@ Management&quot;.
 
 <h2>AUTHORS</h2>
 
-Martin Landa, OSGeoREL, Czech Technical University in Prague, Czech
-Republic<br> The module is inspired by Python script developed for
-Esri ArcGIS platform by M. Tomasu in 2013.
+Martin Landa, GeoForAll (OSGeoREL) Lab, Czech Technical University in Prague, Czech
+Republic<br>
+
+The module is inspired by Python script developed for Esri ArcGIS
+platform by M. Tomasu in 2013.
 
 <p>
 <i>Last changed: $Date$</i>
