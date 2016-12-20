@@ -87,7 +87,7 @@ import string
 import glob
 import shutil
 import grass.script as grass
-from datetime import date
+from datetime import datetime
 from datetime import timedelta
 from grass.pygrass.utils import get_lib_path
 import tempfile
@@ -101,6 +101,19 @@ from rmodislib import resampling, product, projection, get_proj
 from convertmodis import convertModis, createMosaic
 from convertmodis_gdal import createMosaicGDAL, convertModisGDAL
 from parsemodis import parseModis
+
+class grassParseModis:
+    """Class to reproduce parseModis class when VRT is used for mosaic
+
+       :param str filename: the name of MODIS hdf file
+    """
+
+    def __init__(self, filename, date):
+        self.hdfname = filename
+        self.date = date
+
+    def retRangeTime(self):
+        return {'RangeBeginningDate': self.date}
 
 
 def list_files(opt, mosaik=False):
@@ -202,7 +215,7 @@ def metadata(pars, mapp):
     # timestamp
     rangetime = pars.retRangeTime()
     data = rangetime['RangeBeginningDate'].split('-')
-    dataobj = date(int(data[0]), int(data[1]), int(data[2]))
+    dataobj = datetime(int(data[0]), int(data[1]), int(data[2]))
     grass.run_command('r.timestamp', map=mapp, quiet=True,
                       date=dataobj.strftime("%d %b %Y"))
     return dataobj
@@ -288,6 +301,13 @@ def findfile(pref, suff):
         grass.warning(_("Raster map <%s> not found") % (pref + suff))
 
 
+def doy2date(modis):
+    """From he MODIS code to YYYY-MM-DD string date"""
+    year = modis[:4]
+    doy = modis[-3:]
+    dat = datetime.strptime('{ye} {doy}'.format(ye=year,  doy=doy), '%Y %j')
+    return dat.strftime('%Y-%m-%d')
+
 def single(options, remove, an, ow, fil):
     """Convert the HDF file to TIF and import it
     """
@@ -342,7 +362,7 @@ def mosaic(options, remove, an, ow, fil):
         prod = product().fromcode(pref.split('.')[0])
         spectr = spectral(options, prod, an)
         spectr = spectr.lstrip('( ').rstrip(' )')
-        outname = "%s.%s.mosaic" % (pref.split('.')[0], pref.split('.')[1])
+        outname = "%s.%s_mosaic" % (pref.split('.')[0], pref.split('.')[1])
         outname = outname.replace(' ', '_')
         # create mosaic
         if options['mrtpath']:
@@ -356,30 +376,36 @@ def mosaic(options, remove, an, ow, fil):
             cm = createMosaic(tempfile.name, outname, options['mrtpath'],
                               spectr)
             cm.run()
+            hdfiles = glob.glob1(basedir, outname + "*.hdf")
         else:
             basedir = targetdir
             listfiles = [os.path.join(basedir, i) for i in listfiles]
             cm = createMosaicGDAL(listfiles, spectr)
             cm.write_vrt(outname)
-        # list of hdf files
-        hdfiles = glob.glob1(basedir, outname + "*.hdf")
+            hdfiles = glob.glob1(basedir, outname + "*.vrt")
         for i in hdfiles:
             # the full path to hdf file
             hdf = os.path.join(basedir, i)
-            pm = parseModis(hdf)
+            try:
+                pm = parseModis(hdf)
+            except:
+                out = i.replace('.vrt', '')
+                data = doy2date(dat[1:])
+                pm = grassParseModis(out, data)
             # create convertModis class and convert it in tif file
             if options['mrtpath']:
                 # create conf file fro mrt tools
                 confname = confile(pm, options, an, True)
                 execmodis = convertModis(hdf, confname, options['mrtpath'])
             else:
+                confname = None
                 projwkt = get_proj('w')
                 projObj = projection()
-                if projwkt.returned() != 'GEO':
+                if projObj.returned() != 'GEO':
                     res = int(prod['res']) * int(projObj.proj['meters'])
                 else:
                     res = None
-                execmodis = convertModisGDAL(hdf, outname, res, wkt=projwkt,
+                execmodis = convertModisGDAL(hdf, out, spectr, res, wkt=projwkt,
                                              vrt=True)
             execmodis.run()
             # remove hdf
@@ -387,8 +413,11 @@ def mosaic(options, remove, an, ow, fil):
                 # import tif files
                 import_tif(basedir=basedir, rem=remove, write=ow,
                            pm=pm, listfile=fil, prod=prod)
-                os.remove(hdf)
-                os.remove(hdf + '.xml')
+                try:
+                    os.remove(hdf)
+                    os.remove(hdf + '.xml')
+                except OSError:
+                    pass
             # move the hdf and hdf.xml to the dir where are the original files
             else:
                 # import tif files
@@ -397,10 +426,13 @@ def mosaic(options, remove, an, ow, fil):
                 try:
                     shutil.move(hdf, targetdir)
                     shutil.move(hdf + '.xml', targetdir)
-                except:
+                except OSError:
                     pass
             # remove the conf file
-            os.remove(confname)
+            try:
+                os.remove(confname)
+            except (OSError, TypeError) as e:
+                pass
         if options['mrtpath']:
             grass.try_remove(tempfile.name)
         grass.try_remove(os.path.join(targetdir, 'mosaic', pid))
