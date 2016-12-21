@@ -162,8 +162,8 @@ def main():
         if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
-            user = 'anonymous'
-            passwd = raw_input(_('Insert password (your e-mail): '))
+            user = raw_input(_('Insert username: '))
+            passwd = raw_input(_('Insert password: '))
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing "
                           "the username and password"))

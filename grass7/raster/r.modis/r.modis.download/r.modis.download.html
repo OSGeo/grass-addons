@@ -6,21 +6,25 @@ for each MODIS product.
 
 <h2>NOTE</h2>
 
-<!-- isn't FTP outdated? Then remove here -->
-The connection to the FTP data site requires a default login.
+To be able to download data you need user and password provided by NASA.
+Please register at <a href="https://urs.earthdata.nasa.gov/users/new"
+target="_blank">https://urs.earthdata.nasa.gov/users/new</a>;
+now login and move to your profile page.
+Go to “My application” tab and approve the following applications
+“LP DAAC Data Pool” and “Earthdata Search”.
+<p>
+If you are an already registered user, login and enable the applications
+at <a href="https://urs.earthdata.nasa.gov/home" target="_blank">https://urs.earthdata.nasa.gov/home</a>
+<p>
 To set the username and password options the user has to use
 the <em>setting</em> option; a file can be used (in this case the first
 line is the username, usually it is 'anonymous', in the second line
 the password is given, usually the user's e-mail address):
 <div class="code"><pre>
-  your_NASA_FTP_username
-  your_NASA_FTP_password
+  your_NASA_username
+  your_NASA_password
 </pre></div>
 As an alternative, the user can pass the values from standard input.
-<p>
-Since 2013 NASA switched to the HTTP protocol for some of the MODIS repositories,
-so the password it is no more necessary. If you are sure that for the product
-of interest the HTTP protocol is used, you can skip to set the password.
 <p>
 
 <b>Warning</b>: As per NASA policy not more than ten simultaneous connections
@@ -34,7 +38,7 @@ option. The user has to set the <em>folder</em> option if
 user and password are sent by standard input.
 <p>
 The needed time for the download depends on the number of requested tiles, days
-and the type of the MODIS product. For example, the NDVI product ranges 
+and the type of the MODIS product. For example, the NDVI product ranges
 from 5 MB to 270 MB and the LST product ranges from 2 MB to 21 MB.
 
 <h2>EXAMPLES</h2>
@@ -75,7 +79,7 @@ r.modis.download -g setting=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 en
 <a href="r.modis.import.html">r.modis.import</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>
-<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
+<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
 
 <h2>AUTHOR</h2>
 
