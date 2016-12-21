@@ -86,15 +86,17 @@ import os
 import sys
 from subprocess import PIPE
 from grass.pygrass.modules import Module
-import grass.script as grass
+import grass.script as gs
 
-# Check if running in GRASS
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
 
-# main function
-def main():
+def main(options, flags):
+
+    # Check if running in GRASS
+    gisbase = os.getenv("GISBASE")
+    if not gisbase:
+        gs.fatal(_("$GISBASE not defined. You must be in GRASS GIS to run \
+        this program"))
+        return 0
 
     # Input
     IP = options['input']
@@ -104,47 +106,52 @@ def main():
     flags_n = flags['n']
 
     # Check if raster is integer
-    iscell = grass.raster.raster_info(IP)["datatype"]
+    iscell = gs.raster.raster_info(IP)["datatype"]
     if iscell != u'CELL':
-        grass.error('Input should be an integer raster layer')
+        gs.error(_('Input should be an integer raster layer'))
 
     # Get map category values and their labels
     CATV = Module('r.category', map=IP, stdout_=PIPE).outputs.stdout
     RCAT = CATV.split('\n')
-    RCAT = filter(None,RCAT)
+    RCAT = filter(None, RCAT)
     RID = [z.split('\t')[0] for z in RCAT]
     RIDI = map(int, RID)
 
     # Get full color table
-    RCOL = grass.read_command("r.colors.out", map=IP).split('\n')
-    RCOL = [ x for x in RCOL if "nv" not in x and 'default' not in x]
+    RCOL = gs.read_command("r.colors.out", map=IP).split('\n')
+    RCOL = [x for x in RCOL if "nv" not in x and 'default' not in x]
     RCOL = filter(None, RCOL)
     CCAT = [z.split(' ')[0] for z in RCOL]
     CCAT = map(int, CCAT)
 
     # Set strings / list to be used in loop
-    CR = ""; RECO = ""; CL = ""; CV = []
+    CR = ""
+    RECO = ""
+    CL = ""
+    CV = []
 
     # recode to consecutive category values
     if flags_n:
         RIDN = range(1, len(RID) + 1)
         RLAB = [z.split('\t')[1] for z in RCAT]
         for j in xrange(len(RID)):
-            RECO = RECO + RID[j] + ":" + RID[j] + ":" + str(RIDN[j]) + "\n"
+            RECO = '{0}{1}:{1}:{2}\n'.format(RECO, RID[j], RIDN[J])
             A = map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]])
             CV.append(RCOL[A[0]].split(' ')[1])
-            CR = CR + str(RIDN[j]) + " " + CV[j] + "\n"
-            CL = CL + str(RIDN[j]) + "|" + RLAB[j] + "\n"
+            CR = '{}{} {}\n'.format(CR, RIDN[j], CV[j])
+            CL = '{}{}|{}\n'.format(CL, RIDN[j], RLAB[j])
 
-        CR = CR + 'nv 255:255:255\ndefault 255:255:255\n'
-        Module("r.recode", flags="a", input=IP, output=OP, rules="-", stdin_=RECO, quiet=True)
+        CR = '{}nv 255:255:255\ndefault 255:255:255\n'.format(CR)
+        Module("r.recode", flags="a", input=IP, output=OP, rules="-",
+               stdin_=RECO, quiet=True)
         Module("r.colors", map=OP, rules="-", stdin_=CR, quiet=True)
-        Module("r.category", map=OP, rules="-", stdin_=CL, quiet=True, separator="pipe")
+        Module("r.category", map=OP, rules="-", stdin_=CL, quiet=True,
+               separator="pipe")
     else:
         # Check if new layer should be created
         if len(OP) > 0:
-            k = IP + "," + OP
-            grass.run_command("g.copy", raster=k)
+            k = '{},{}'.format(IP, OP)
+            gs.run_command("g.copy", raster=k)
         else:
             OP = IP
 
@@ -156,47 +163,41 @@ def main():
             A = map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]])
             CV.append(RCOL[A[0]].split(' ')[1])
             CR = CR + str(RIDI[j]) + " " + CV[j] + "\n"
-        CR = CR + 'nv 255:255:255\ndefault 255:255:255\n'
+        CR = '{}nv 255:255:255\ndefault 255:255:255\n'.format(CR)
         Module("r.colors", map=OP, rules="-", stdin_=CR, quiet=True)
 
     # If attribute table (csv format) should be written
     if len(CSV) > 0:
         if flags_n:
-            RCAT1 = CL.split('\n'); RCAT1 = filter(None,RCAT1)
-            RCAT1 = [w.replace('|', ',') for w in RCAT1]
+            RCAT1 = [w.replace('|', ',') for w in filter(None, CL.split('\n'))]
         else:
             RCAT1 = [w.replace('\t', ',') for w in RCAT]
         RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
-        CV1 = list(CV); CV1.insert(0,"RGB")
+        CV1 = list(CV)
+        CV1.insert(0,"RGB")
         text_file = open(CSV, "w")
         for k in xrange(len(RCAT1)):
-            text_file.write(RCAT1[k] + "," + CV1[k] + "\n")
+            text_file.write('{},{}\n'.format(RCAT1[k], CV1[k]))
         text_file.close()
 
     # If QGIS Color Map text files should be written
     if len(QGIS) > 0:
         RGB = [w.replace(':', ',') for w in CV]
         if flags_n:
-            RCAT = CL.split('\n'); RCAT = filter(None,RCAT)
+            RCAT = filter(None, CL.split('\n'))
             RCAT = [w.replace('|', ',') for w in RCAT]
         else:
             RCAT = [w.replace('\t', ',') for w in RCAT]
         text_file = open(QGIS, "w")
-        text_file.write("# QGIS color map for " + OP + "\n")
+        text_file.write('# QGIS color map for {}\n'.format(OP))
         text_file.write("INTERPOLATION:EXACT\n")
         for k in xrange(len(RCAT)):
             RC2 = RCAT[k].split(',')
-            text_file.write(RC2[0] + "," + RGB[k] + ",255," + RC2[1] + "\n")
+            text_file.write('{},{},255,{}\n'.format(RC2[0], RGB[k], RC2[1]))
         text_file.close()
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
-    sys.exit(main())
-
-
-
-
-
+    sys.exit(main(*gs.parser()))
 
 
 
