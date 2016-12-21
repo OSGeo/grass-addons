@@ -99,8 +99,12 @@ def main():
     if maptype == 'CELL':
         grass.verbose('Reading category lables, may take a while...')
         categories = grass.parse_command('r.category', map=map, separator='=')
-    if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
-        use_categories = True
+        if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
+            use_categories = True
+        else:
+            use_categories = False
+    else:
+        use_categories = False
 
     # Initialize SLD with header
     sld = u"""<?xml version="1.0" encoding="UTF-8"?>
