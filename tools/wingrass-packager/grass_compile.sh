@@ -14,7 +14,12 @@ if test -z "$1"; then
     exit 1
 fi
 PLATFORM=$1
-export PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+PATH=/c/msys${PLATFORM}/usr/bin:/c/msys${PLATFORM}/mingw${PLATFORM}/bin:/c/osgeo4w${PLATFORM}/bin:${PATH}
+if [ "$PLATFORM" == "64" ] ; then
+    export PATH=${PATH}:/c/windows/syswow64
+else
+    export PATH=${PATH}:/c/windows/system32
+fi
 
 function rm_package_7 {
     for f in `find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
