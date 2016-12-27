@@ -49,6 +49,7 @@ SUBDIRS = \
 	v.out.png \
 	v.ply.rectify \
 	v.profile \
+	v.profile.points \
 	v.stats \
 	v.surf.icw \
 	v.surf.mass \
