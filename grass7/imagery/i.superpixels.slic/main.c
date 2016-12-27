@@ -28,6 +28,13 @@
 #include <limits.h>
 #include <float.h>
 
+#ifndef MAX
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#endif
+#ifndef MIN
+#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#endif
+
 
 void SLIC_EnforceLabelConnectivity(
 	int*				labels,
@@ -511,7 +518,7 @@ struct Cell_head g_cellhd;
             if(hexgrid > 0 )
 			{
 				seedx = x*offset+(xoff<<(y&0x1))+xe;
-				seedx = fmin(double (g_width-1), seedx);
+				seedx = MIN(g_width-1,seedx);
 			} //for hex grid sampling
 			
 			int seedy = (y*offset+yoff+ye);
@@ -588,10 +595,10 @@ struct Cell_head g_cellhd;
 		int n;
 		for(  n = 0; n < numk; n++ )
 		{
-			y1 = (int)fmax(0.0,	 kseedsy[n]-dbl_offset);
-			y2 = (int)fmin(he,   kseedsy[n]+dbl_offset);
-			x1 = (int)fmax(0.0,	 kseedsx[n]-dbl_offset);
-			x2 = (int)fmin(wi,	 kseedsx[n]+dbl_offset);
+			y1 = (int)MAX(0.0,	 kseedsy[n]-dbl_offset);
+			y2 = (int)MIN(he,   kseedsy[n]+dbl_offset);
+			x1 = (int)MAX(0.0,	 kseedsx[n]-dbl_offset);
+			x2 = (int)MIN(wi,	 kseedsx[n]+dbl_offset);
 			
 			int y;
 
