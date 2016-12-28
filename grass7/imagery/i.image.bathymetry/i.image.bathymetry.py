@@ -191,6 +191,7 @@ def main():
             g.run_command('r.mask', raster='tmp_water', overwrite=True)
             g.mapcalc("{tmp_crctd} = ({tmp_crctd} * 1)"
                       .format(tmp_crctd='tmp_crctd' + str(j)))
+
         crctd_lst.append('tmp_crctd' + str(j))
     try:
         Module('r.gwr')
