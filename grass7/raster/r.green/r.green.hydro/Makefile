@@ -4,7 +4,7 @@ PGM=r.green.hydro
 
 SUBDIRS = libhydro \
 	r.green.hydro.theoretical  \
-	r.green.hydro.recommended  \
+	r.green.hydro.planning  \
 	r.green.hydro.technical    \
 	r.green.hydro.financial    \
 	r.green.hydro.closest      \
