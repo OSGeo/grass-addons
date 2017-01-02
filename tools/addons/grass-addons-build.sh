@@ -53,6 +53,6 @@ promote() {
 }
 
 promote 6 4
-promote 7 0
+promote 7 2
 
 exit 0

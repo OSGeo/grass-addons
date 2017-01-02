@@ -23,14 +23,14 @@ build_addons() {
     	cd $XMLDIR/grass${version}/logs
     done
 
-    update_manual 7 0
+    update_manual 7 2
     update_manual 6 4
 }
 
 recompile_grass() {
     cd $DIR
 
-    for gdir in "grass70_release" "grass64_release" ; do
+    for gdir in "grass72_release" "grass64_release" ; do
 	cd $gdir
         echo "Recompiling $gdir..." 1>&2
 	svn up
