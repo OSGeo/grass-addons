@@ -259,37 +259,6 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.modules.shortcuts import raster as r
 
-try:
-    import sklearn
-    from sklearn.externals import joblib
-    from sklearn import metrics
-    from sklearn import preprocessing
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import GroupKFold
-    from sklearn.model_selection import train_test_split
-    from sklearn.model_selection import GridSearchCV
-    from sklearn.feature_selection import SelectKBest
-    from sklearn.feature_selection import f_classif
-    from sklearn.utils import shuffle
-    from sklearn.cluster import KMeans
-    
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-    from sklearn.naive_bayes import GaussianNB
-    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-    from sklearn.ensemble import GradientBoostingClassifier
-    from sklearn.ensemble import GradientBoostingRegressor
-    from sklearn.svm import SVC
-
-except:
-    grass.fatal("Scikit learn is not installed")
-
-if (sklearn.__version__) < 0.18:
-    grass.fatal("Scikit learn 0.18 or newer is required")
-
-
 def cleanup():
 
     grass.run_command("g.remove", name='tmp_clfmask',
@@ -302,6 +271,16 @@ def model_classifiers(estimator, random_state, class_weight,
                       C, max_depth, max_features,
                       min_samples_split, min_samples_leaf,
                       n_estimators, subsample, learning_rate):
+    
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.ensemble import GradientBoostingRegressor
+    from sklearn.svm import SVC
     
     classifiers = {
         'SVC': SVC(C=C, probability=True, random_state=random_state),
@@ -460,6 +439,8 @@ def load_training_data(file):
 
 
 def sample_predictors(response, predictors, shuffle_data, lowmem, random_state):
+    
+    from sklearn.utils import shuffle
 
     """
     Samples a list of GRASS rasters using a labelled raster
@@ -705,7 +686,11 @@ def prediction(clf, labels, predictors, scaler, class_probabilities,
 
 
 def cross_val_classification(clf, X, y, group_ids, cv, rstate):
-
+    
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import GroupKFold
+    from sklearn import metrics
+    
     """
     Stratified Kfold cross-validation
     Generates several scoring_metrics
@@ -788,6 +773,9 @@ def cross_val_classification(clf, X, y, group_ids, cv, rstate):
 
 
 def tune_split(X, y, Id, estimator, metric, params, test_size, random_state):
+    
+    from sklearn.model_selection import train_test_split
+    from sklearn.model_selection import GridSearchCV    
 
     if Id is None:
         X, X_devel, y, y_devel = train_test_split(X, y, test_size=test_size,
@@ -806,6 +794,9 @@ def tune_split(X, y, Id, estimator, metric, params, test_size, random_state):
 
 
 def feature_importances(clf, X, y):
+    
+    from sklearn.feature_selection import SelectKBest
+    from sklearn.feature_selection import f_classif
 
     try:
         clfimp = clf.feature_importances_
@@ -819,6 +810,9 @@ def feature_importances(clf, X, y):
 
 def sample_training_data(roi, maplist, cv, cvtype, model_load,
                          load_training, save_training, lowmem, random_state):
+    
+    from sklearn.externals import joblib
+    from sklearn.cluster import KMeans
     
     # load the model or training data
     if model_load != '':
@@ -867,6 +861,13 @@ def sample_training_data(roi, maplist, cv, cvtype, model_load,
 
 
 def main():
+    
+    try:
+        from sklearn import preprocessing
+        from sklearn import metrics
+        from sklearn.externals import joblib
+    except:
+        grass.fatal("Scikit learn 0.18 or newer is not installed")
 
     """
     GRASS options and flags
