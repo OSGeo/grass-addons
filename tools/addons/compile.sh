@@ -11,14 +11,14 @@ fi
 SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
-GRASS_VERSION=`echo $ADDON_PATH | cut -d'/' -f7 | sed 's/grass//g'`
+GRASS_VERSION="$4"
 INDEX_FILE="index"
 
 if [ ! -d "$3" ] ; then
     mkdir -p "$3"
 fi
 
-if [ -n "$4" ] ; then
+if [ -n "$5" ] ; then
     SEP=1 # useful for collecting files (see build-xml.py)
 else
     SEP=0
@@ -98,7 +98,9 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
 	    HTMLDIR="$path/docs/html" \
 	    MANDIR="$path/docs/man/man1" \
 	    SCRIPTDIR="$path/scripts" \
-	    ETC="$path/etc" > "$ADDON_PATH/logs/$m.log" 2>&1
+	    ETC="$path/etc" \
+            SOURCE_URL="https://trac.osgeo.org/grass/browser/grass-addons/grass${GRASS_VERSION}/" > \
+            "$ADDON_PATH/logs/$m.log" 2>&1
 	if [ `echo $?` -eq 0 ] ; then
 	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/${INDEX_FILE}.log"
 	    echo " SUCCESS"

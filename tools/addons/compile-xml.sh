@@ -7,7 +7,7 @@ fi
 DEST="$1"
 
 compile() {
-    ./compile.sh $1 $2 $3 1
+    ./compile.sh $1 $2 $3 $4 1
 }
 
 build_xml() {
@@ -20,8 +20,8 @@ build_xml() {
 (cd ..; svn up || (svn cleanup && svn up))
 
 # compile AddOns for GRASS 7 and GRASS 6.5
-compile ../../grass7 ~/src/grass70_release/dist.x86_64-pc-linux-gnu /tmp/.grass7/addons
-compile ../../grass6 ~/src/grass64_release/dist.x86_64-pc-linux-gnu /tmp/.grass6/addons
+compile ../../grass7 ~/src/grass72_release/dist.x86_64-pc-linux-gnu /tmp/.grass7/addons 7
+compile ../../grass6 ~/src/grass64_release/dist.x86_64-pc-linux-gnu /tmp/.grass6/addons 6
 
 # create XML file for AddOns
 build_xml /tmp/.grass7/addons 7

@@ -28,7 +28,7 @@ def get_gui_list(g7 = True):
                       
 def start_grass(g7 = True):
     if g7:
-        ver = 'grass70_release'
+        ver = 'grass72_release'
     else:
         ver = 'grass64_release'
     gisbase = os.environ['GISBASE'] = os.path.join(os.getenv('HOME'),
