@@ -845,7 +845,9 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
 
             # Combine Earth with LogisticRegression in a pipeline to do classification
             earth_classifier = Pipeline([('Earth',
-                Earth()), ('Logistic', LogisticRegression())])
+                Earth(max_degree=max_degree,
+                     penalty=penalty,
+                     minspan_alpha=minspan_alpha)), ('Logistic', LogisticRegression())])
 
             classifiers = {'EarthClassifier': earth_classifier,
                            'EarthRegressor': Earth(max_degree=max_degree,
@@ -925,7 +927,10 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
     SVCOpts = {'C': randint(1, 100), 'shrinking': [True, False]}
     EarthOpts = {'max_degree': randint(1,10),
                  'penalty': uniform(0.5, 5),
-                 'minspan_alpha': uniform(0.05, 1)}
+                 'minspan_alpha': uniform(0.05, 1.0)}
+    EarthClassifierOpts = {'Earth__max_degree': randint(1,5),
+                         'Earth__penalty': uniform(0.5, 5),
+                         'Earth__minspan_alpha': uniform()}
 
     param_grids = {
         'SVC': SVCOpts,
@@ -939,7 +944,7 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
         'GaussianNB': {},
         'LinearDiscriminantAnalysis': {},
         'QuadraticDiscriminantAnalysis': {},
-        'EarthClassifier': EarthOpts,
+        'EarthClassifier': EarthClassifierOpts,
         'EarthRegressor': EarthOpts
     }
 
