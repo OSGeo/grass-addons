@@ -1497,15 +1497,15 @@ def main():
     if model_save != '':
         joblib.dump(learn_m, model_save)
 
-    if modelonly is True:
-        grass.fatal("Model built and now exiting")
 
     """
     Prediction on the rest of the GRASS rasters in the imagery group
     ----------------------------------------------------------------
     """
-
-    learn_m.predict(maplist, output, probability, rowincr)
+    if modelonly is not True:
+        learn_m.predict(maplist, output, probability, rowincr)
+    else:
+        grass.message("Model built and now exiting")
 
 if __name__ == "__main__":
     options, flags = grass.parser()
