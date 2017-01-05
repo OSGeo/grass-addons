@@ -56,6 +56,7 @@ SUBDIRS = \
 	r.in.wcs \
 	r.jpdf \
 	r.lake.series \
+	r.learn.ml \
 	r.lfp \
 	r.local.relief \
 	r.los \
@@ -79,7 +80,6 @@ SUBDIRS = \
 	r.popgrowth \
 	r.quantile.ref \
 	r.random.weight \
-	r.randomforest \
 	r.recode.attr \
 	r.regression.series \
 	r.resamp.tps \
