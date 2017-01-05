@@ -11,14 +11,14 @@ fi
 SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
-GRASS_VERSION="$4"
+GRASS_VERSION=`echo -n ${SVN_PATH} | tail -c 1`
 INDEX_FILE="index"
 
 if [ ! -d "$3" ] ; then
     mkdir -p "$3"
 fi
 
-if [ -n "$5" ] ; then
+if [ -n "$4" ] ; then
     SEP=1 # useful for collecting files (see build-xml.py)
 else
     SEP=0
