@@ -915,22 +915,22 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
 
     LogisticRegressionOpts = {'C': randint(1, 1000)}
     DecisionTreeOpts = {'max_depth': randint(2, 20),
-                        'min_samples_split': uniform(0, 0.2)}
+                        'min_samples_split': uniform(0, 0.02)}
     RandomForestOpts = {'max_features': uniform()}
-    GradientBoostingOpts = {'learning_rate': uniform(0.001, 0.1),
+    GradientBoostingOpts = {'learning_rate': uniform(0.01, 0.1),
                             'max_depth': randint(3, 10),
                             'max_features': uniform(),
                             'n_estimators': randint(50, 500),
-                            'min_samples_split': uniform(0, 0.2),
-                            'min_samples_leaf': uniform(0, 0.2),
+                            'min_samples_split': uniform(0, 0.02),
+                            'min_samples_leaf': uniform(0, 0.02),
                             'subsample': uniform()}
     SVCOpts = {'C': randint(1, 100), 'shrinking': [True, False]}
-    EarthOpts = {'max_degree': randint(1,10),
-                 'penalty': uniform(0.5, 5),
+    EarthOpts = {'max_degree': randint(1,5),
+                 'penalty': uniform(0.5, 2),
                  'minspan_alpha': uniform(0.05, 1.0)}
     EarthClassifierOpts = {'Earth__max_degree': randint(1,5),
-                         'Earth__penalty': uniform(0.5, 5),
-                         'Earth__minspan_alpha': uniform()}
+                           'Earth__penalty': uniform(0.5, 2),
+                           'Earth__minspan_alpha': uniform(0.05, 1.0)}
 
     param_grids = {
         'SVC': SVCOpts,
