@@ -765,7 +765,8 @@ class train():
             nsamples = rowincr * current.cols
             flat_pixels = img_np_row.reshape((nsamples, n_features))
 
-            # remove NaN values
+            # remove NaN values and GRASS CELL nodata vals
+            flat_pixels[flat_pixels == -2147483648] = np.nan
             flat_pixels = np.nan_to_num(flat_pixels)
 
             # onehot-encoding
