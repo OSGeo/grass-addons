@@ -144,6 +144,13 @@
 #%end
 
 #%option string
+#% key: categorymaps
+#% required: no
+#% label: Indices of categorical rasters within the imagery group (0..n)
+#% description: Indices of categorical rasters within the imagery group (0..n)
+#%end
+
+#%option string
 #% key: cvtype
 #% required: no
 #% label: Non-spatial or spatial cross-validation
@@ -293,7 +300,7 @@ from grass.pygrass.raster.buffer import Buffer
 
 class train():
 
-    def __init__(self, estimator, X, y, groups=None):
+    def __init__(self, estimator, X, y, groups=None, categorical_var=None):
         """
         Train class to perform preprocessing, fitting, parameter search and
         cross-validation in a single step
@@ -303,6 +310,7 @@ class train():
         estimator: Scikit-learn compatible estimator object
         X, y: training data and labels as numpy arrays
         groups: groups to be used for cross-validation
+        categorical_var: 1D list containing indices of categorical predictors
         """
 
         self.estimator = estimator
@@ -310,11 +318,41 @@ class train():
         self.y = y
         self.groups = groups
 
+        # for onehot-encoding
+        self.enc = None
+        self.categorical_var = categorical_var
+        self.category_values = None
+        
+        if self.categorical_var:
+            self.onehotencode()
+        
+        # for standardization
         self.scaler = None
 
+        # for cross-validation scores
         self.scores = None
         self.scores_cm = None
         self.fimp = None
+
+
+    def onehotencode(self):
+        """
+        Method to convert a list of categorical arrays in X into a suite of
+        binary predictors which are added to the left of the array
+        """
+
+        from sklearn.preprocessing import OneHotEncoder
+
+        # store original range of values
+        self.category_values = [0] * len(self.categorical_var)
+        for i, cat in enumerate(self.categorical_var):
+            self.category_values[i] = np.unique(self.X[:, cat])
+        
+        # fit and transform categorical grids to a suite of binary features
+        self.enc = OneHotEncoder(categorical_features=self.categorical_var,
+                                 sparse=False)
+        self.enc.fit(self.X)
+        self.X = self.enc.transform(self.X)    
 
 
     def fit(self, param_distribution=None, n_iter=3, scorers='multiclass',
@@ -492,11 +530,6 @@ class train():
         """
 
         # dictionary of lists to store metrics
-        if scorers == 'accuracy':
-            self.scores = {
-                'accuracy': []
-            }
-
         if scorers == 'binary':
             self.scores = {
                 'accuracy': [],
@@ -549,23 +582,15 @@ class train():
             labels = np.unique(y_pred)
 
             # calculate metrics
-            if scorers == 'accuracy':
-                                self.scores['accuracy'] = np.append(
-                    self.scores['accuracy'],
-                    metrics.accuracy_score(y_test, y_pred))
-
             if scorers == 'binary':
                 self.scores['accuracy'] = np.append(
                     self.scores['accuracy'],
                     metrics.accuracy_score(y_test, y_pred))
 
-                if len(np.unique(self.y)) == 2 and \
-                    all([0, 1] == np.unique(self.y)):
-
-                    y_pred_proba = fit.predict_proba(X_test)[:, 1]
-                    self.scores['auc'] = np.append(
-                        self.scores['auc'],
-                        metrics.roc_auc_score(y_test, y_pred_proba))
+                y_pred_proba = fit.predict_proba(X_test)[:, 1]
+                self.scores['auc'] = np.append(
+                    self.scores['auc'],
+                    metrics.roc_auc_score(y_test, y_pred_proba))
 
                 self.scores['precision'] = np.append(
                     self.scores['precision'], metrics.precision_score(
@@ -597,10 +622,6 @@ class train():
                     self.scores['kappa'],
                     metrics.cohen_kappa_score(y_test, y_pred))
 
-                self.scores['f1'] = np.append(
-                    self.scores['f1'], metrics.f1_score(
-                        y_test, y_pred, labels, average='weighted'))
-
             elif scorers == 'regression':
                 self.scores['r2'] = np.append(
                     self.scores['r2'], metrics.r2_score(y_test, y_pred))
@@ -619,6 +640,31 @@ class train():
 
         self.scores_cm = metrics.classification_report(y_test_agg, y_pred_agg)
 
+        # convert onehot-encoded feature importances back to original vars
+        if self.fimp is not None and self.enc is not None:
+            
+            from copy import deepcopy
+
+            # get start,end positions of each suite of onehot-encoded vars
+            feature_ranges = deepcopy(self.enc.feature_indices_)
+            for i in range(0, len(self.enc.feature_indices_)-1):
+                feature_ranges[i+1] = feature_ranges[i] + len(self.category_values[i])
+            
+            # take sum of each onehot-encoded feature
+            ohe_feature = [0] * len(self.categorical_var)
+            ohe_sum = [0] * len(self.categorical_var)
+            
+            for i in range(len(self.categorical_var)):
+                ohe_feature[i] = self.fimp[:, feature_ranges[i]:feature_ranges[i+1]]
+                ohe_sum[i] = ohe_feature[i].sum(axis=1)
+                
+            # remove onehot-encoded features from the importances array
+            features_for_removal = np.array(range(feature_ranges[-1]))
+            self.fimp = np.delete(self.fimp, features_for_removal, axis=1)      
+            
+            # insert summed importances into original positions
+            for index in self.categorical_var:
+                self.fimp = np.insert(self.fimp, np.array(index), ohe_sum[0], axis=1)
 
     def predict(self, predictors, output, class_probabilities=False,
                rowincr=25):
@@ -714,7 +760,7 @@ class train():
 
             mask_np_row[mask_np_row == -2147483648] = np.nan
             nanmask = np.isnan(mask_np_row)  # True in mask means invalid data
-
+            
             # reshape each row-band matrix into a n*m array
             nsamples = rowincr * current.cols
             flat_pixels = img_np_row.reshape((nsamples, n_features))
@@ -722,6 +768,10 @@ class train():
             # remove NaN values
             flat_pixels = np.nan_to_num(flat_pixels)
 
+            # onehot-encoding
+            if self.enc is not None:
+                flat_pixels = self.enc.transform(flat_pixels)
+            
             # rescale
             if self.scaler is not None:
                 flat_pixels = self.scaler.transform(flat_pixels)
@@ -877,6 +927,7 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
                                        class_weight=class_weight,
                                        max_features=max_features,
                                        min_samples_split=min_samples_split,
+                                       min_samples_leaf=min_samples_leaf,
                                        random_state=random_state,
                                        n_jobs=-1,
                                        oob_score=False),
@@ -884,6 +935,7 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
                 RandomForestRegressor(n_estimators=n_estimators,
                                       max_features=max_features,
                                       min_samples_split=min_samples_split,
+                                      min_samples_leaf=min_samples_leaf,
                                       random_state=random_state,
                                       n_jobs=-1,
                                       oob_score=False),
@@ -1254,6 +1306,7 @@ def main():
     norm_data = flags['s']
     cv = int(options['cv'])
     group_raster = options['group_raster']
+    categorymaps = options['categorymaps']    
     cvtype = options['cvtype']
     modelonly = flags['m']
     probability = flags['p']
@@ -1274,6 +1327,13 @@ def main():
         class_weight = 'balanced'
     else:
         class_weight = None
+    
+    # convert comma-delimited string into int list
+    if categorymaps != '':
+        categorymaps = categorymaps.split(',')
+        for i in range(len(categorymaps)): categorymaps[i] = int(categorymaps[i])
+    else:
+        categorymaps = None
 
     # classifier options
     max_degree = int(options['max_degree'])
@@ -1369,8 +1429,8 @@ def main():
                 'Class probabilities only valid for classifications...ignoring')
             probability = False
 
-        # create training object
-        learn_m = train(clf, X, y, group_id)
+        # create training object - onehot-encoded on-the-fly
+        learn_m = train(clf, X, y, group_id, categorical_var=categorymaps)
 
         # preprocessing
         if norm_data is True:
@@ -1435,10 +1495,6 @@ def main():
                         (learn_m.scores['accuracy'].mean(),
                          learn_m.scores['accuracy'].std()))
                     grass.message(
-                        "F1      :\t%0.2f\t+/-SD\t%0.2f" %
-                        (learn_m.scores['f1'].mean(),
-                         learn_m.scores['f1'].std()))
-                    grass.message(
                         "Kappa   :\t%0.2f\t+/-SD\t%0.2f" %
                         (learn_m.scores['kappa'].mean(),
                          learn_m.scores['kappa'].std()))
@@ -1464,24 +1520,17 @@ def main():
 
             # feature importances
             if importances is True:
-                import pandas as pd
                 grass.message("\r\n")
                 grass.message("Feature importances")
                 grass.message("id" + "\t" + "Raster" + "\t" + "Importance")
 
-                for i in range(len(learn_m.fimp)):
-                    # mean of cross-validation feature importances
+                # mean of cross-validation feature importances
+                for i in range(len(learn_m.fimp.mean(axis=0))):
                     grass.message(
                         str(i) + "\t" + maplist[i] +
-                        "\t" + str(round(learn_m.fimp[i].mean(axis=0), 4)))
+                        "\t" + str(round(learn_m.fimp.mean(axis=0)[i], 4)))
 
                 if fimp_file != '':
-#                    fimp_output = pd.DataFrame(
-#                        {'grass raster': maplist, 'importance': learn_m.fimp})
-#                    fimp_output = pd.DataFrame(learn_m.fimp)
-#                    fimp_output.to_csv(
-#                        path_or_buf=fimp_file,
-#                        header=['grass raster', 'importance'])
                     np.savetxt(fname=fimp_file, X=learn_m.fimp, delimiter=',',
                                header=','.join(maplist), comments='')
     else:
