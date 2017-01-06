@@ -771,7 +771,14 @@ class train():
 
             # onehot-encoding
             if self.enc is not None:
-                flat_pixels = self.enc.transform(flat_pixels)
+                try:
+                    flat_pixels = self.enc.transform(flat_pixels)
+                except:
+                    # if this fails it is because the onehot-encoder was fitted
+                    # on the training samples, but the prediction data contains
+                    # new values, i.e. the training data has not sampled all of
+                    # categories
+                    grass.fatal('There are values in the categorical rasters that are not present in the training data set, i.e. the training data has not sampled all of the categories')
             
             # rescale
             if self.scaler is not None:
