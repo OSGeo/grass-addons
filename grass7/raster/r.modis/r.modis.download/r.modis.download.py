@@ -91,9 +91,6 @@ if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
-from rmodislib import product
-from downmodis import downModis
-
 
 def check(home):
     """ Check if a folder it is writable by the user that launch the process
@@ -152,6 +149,11 @@ def checkdate(options):
 
 # main function
 def main():
+    try:
+        from rmodislib import product
+        from downmodis import downModis
+    except:
+        grass.fatal("r.modis library is not installed")
     # check if you are in GRASS
     gisbase = os.getenv('GISBASE')
     if not gisbase:

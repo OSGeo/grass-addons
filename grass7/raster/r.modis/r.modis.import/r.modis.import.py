@@ -96,11 +96,6 @@ if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
-# try to import pymodis (modis) and some classes for r.modis.download
-from rmodislib import resampling, product, projection, get_proj
-from convertmodis import convertModis, createMosaic
-from convertmodis_gdal import createMosaicGDAL, convertModisGDAL
-from parsemodis import parseModis
 
 class grassParseModis:
     """Class to reproduce parseModis class when VRT is used for mosaic
@@ -439,6 +434,15 @@ def mosaic(options, remove, an, ow, fil):
 
 
 def main():
+
+    try:
+        # try to import pymodis (modis) and some classes for r.modis.download
+        from rmodislib import resampling, product, projection, get_proj
+        from convertmodis import convertModis, createMosaic
+        from convertmodis_gdal import createMosaicGDAL, convertModisGDAL
+        from parsemodis import parseModis
+    except:
+        grass.fatal("r.modis library is not installed")
     # check if you are in GRASS
     gisbase = os.getenv('GISBASE')
     if not gisbase:
