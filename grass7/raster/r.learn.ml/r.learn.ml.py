@@ -159,6 +159,14 @@
 #% options: non-spatial,clumped,kmeans
 #%end
 
+#%option
+#% key: n_partitions
+#% type: integer
+#% description: Number of kmeans partitions
+#% answer: 10
+#% guisection: Optional
+#%end
+
 #%option G_OPT_R_INPUT
 #% key: group_raster
 #% label: Custom group ids for labelled pixels from GRASS raster
@@ -363,8 +371,7 @@ class train():
         self.X = self.enc.transform(self.X)    
 
 
-    def fit(self, param_distribution=None, n_iter=3, scorers='multiclass',
-            cv=3, tune_cv=3, feature_importances=False, n_permutations=1,
+    def fit(self, param_distribution=None, n_iter=3, cv=3,
             random_state=None):
 
         """
@@ -376,40 +383,36 @@ class train():
         param_distribution: continuous parameter distribution to be used in a
         randomizedCVsearch
         n_iter: Number of randomized search iterations
-        scorers: Suite of metrics to obtain
-        cv: Number of cross-validation folds
-        tune_cv: Number of cross-validation folds for parameter tuning
-        feature_importances: Boolean to perform permuatation-based importances
-        during cross-validation
-        n_permutations: Number of random permutations during feature importance
+        cv: Number of cross-validation folds for parameter tuning
         random_state: seed to be used during random number generation
         """
+        
         from sklearn.model_selection import RandomizedSearchCV
         from sklearn.model_selection import GroupKFold
 
+        # RandomizedSearchCV if parameter_distributions
         if param_distribution is not None and n_iter > 1:
             
             # use groupkfold for hyperparameter search if groups are present
             if self.groups is not None:
-                cv_search = GroupKFold(n_splits=tune_cv)
+                cv_search = GroupKFold(n_splits=cv)
             else:
-                cv_search = tune_cv
+                cv_search = cv
                 
             self.estimator = RandomizedSearchCV(
                 estimator=self.estimator,
                 param_distributions=param_distribution,
                 n_iter=n_iter, cv=cv_search, random_state=random_state)
-        
+
+            # if groups then fit RandomizedSearchCV.fit requires groups param
             if self.groups is None:
                 self.estimator.fit(self.X, self.y)
             else:
                 self.estimator.fit(self.X, self.y, groups=self.groups)
+        
+        # Fitting without parameter search
         else:
             self.estimator.fit(self.X, self.y)
-
-        if cv > 1:
-            self.cross_val(
-                scorers, cv, feature_importances, n_permutations, random_state)
 
 
     def standardization(self):
@@ -527,8 +530,8 @@ class train():
         return (specificity)
 
 
-    def cross_val(self, scorers, cv, feature_importances, n_permutations,
-                  random_state):
+    def cross_val(self, scorers='binary', cv=3, feature_importances=False,
+                  n_permutations=25, random_state=None):
 
         from sklearn.model_selection import StratifiedKFold
         from sklearn.model_selection import GroupKFold
@@ -695,6 +698,7 @@ class train():
             # insert summed importances into original positions
             for index in self.categorical_var:
                 self.fimp = np.insert(self.fimp, np.array(index), ohe_sum[0], axis=1)
+
 
     def predict(self, predictors, output, class_probabilities=False,
                rowincr=25):
@@ -1343,9 +1347,11 @@ def main():
     classifier = options['classifier']
     norm_data = flags['s']
     cv = int(options['cv'])
+    cvtype = options['cvtype']
     group_raster = options['group_raster']
     categorymaps = options['categorymaps']    
-    cvtype = options['cvtype']
+    n_partitions = options['n_partitions']
+    n_partitions = int(options['n_partitions'])
     modelonly = flags['m']
     probability = flags['p']
     rowincr = int(options['lines'])
@@ -1436,7 +1442,7 @@ def main():
             X, y, group_id = load_training_data(load_training)
         else:
             X, y, group_id = sample_training_data(
-                response, maplist, group_raster, cv, cvtype,
+                response, maplist, group_raster, n_partitions, cvtype,
                 lowmem, random_state)
 
         # option to save extracted data to .csv file
@@ -1480,10 +1486,8 @@ def main():
         ----------------
         """
 
-        # fit, search and cross-validate the training object
-        learn_m.fit(param_grid, n_iter, scorers, cv, tune_cv,
-                    feature_importances=importances,
-                    n_permutations=n_permutations,
+        # fit and parameter search
+        learn_m.fit(param_grid, n_iter, tune_cv,
                     random_state=random_state)
 
         if n_iter > 1:
@@ -1496,6 +1500,10 @@ def main():
             grass.message('\r\n')
             grass.message(
                 "Cross validation global performance measures......:")
+            
+            # cross-validate the training object
+            learn_m.cross_val(scorers, cv, importances, n_permutations=n_permutations,
+                              random_state=random_state)
 
             if mode == 'classification':
                 if scorers == 'binary':
