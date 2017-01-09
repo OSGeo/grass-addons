@@ -225,6 +225,14 @@
 #%end
 
 #%option
+#% key: tune_cv
+#% type: integer
+#% description: Number of cross-validation folds used for parameter tuning
+#% answer: 3
+#% guisection: Optional
+#%end
+
+#%option
 #% key: n_permutations
 #% type: integer
 #% description: Number of permutations to perform for feature importances
@@ -356,10 +364,8 @@ class train():
 
 
     def fit(self, param_distribution=None, n_iter=3, scorers='multiclass',
-            cv=3, feature_importances=False, n_permutations=1,
+            cv=3, tune_cv=3, feature_importances=False, n_permutations=1,
             random_state=None):
-
-        from sklearn.model_selection import RandomizedSearchCV
 
         """
         Main fit method for the train object. Performs fitting, hyperparameter
@@ -372,20 +378,34 @@ class train():
         n_iter: Number of randomized search iterations
         scorers: Suite of metrics to obtain
         cv: Number of cross-validation folds
+        tune_cv: Number of cross-validation folds for parameter tuning
         feature_importances: Boolean to perform permuatation-based importances
         during cross-validation
         n_permutations: Number of random permutations during feature importance
-
         random_state: seed to be used during random number generation
         """
+        from sklearn.model_selection import RandomizedSearchCV
+        from sklearn.model_selection import GroupKFold
 
         if param_distribution is not None and n_iter > 1:
+            
+            # use groupkfold for hyperparameter search if groups are present
+            if self.groups is not None:
+                cv_search = GroupKFold(n_splits=tune_cv)
+            else:
+                cv_search = tune_cv
+                
             self.estimator = RandomizedSearchCV(
                 estimator=self.estimator,
                 param_distributions=param_distribution,
-                n_iter=n_iter, cv=n_iter, random_state=random_state)
-
-        self.estimator.fit(self.X, self.y)
+                n_iter=n_iter, cv=cv_search, random_state=random_state)
+        
+            if self.groups is None:
+                self.estimator.fit(self.X, self.y)
+            else:
+                self.estimator.fit(self.X, self.y, groups=self.groups)
+        else:
+            self.estimator.fit(self.X, self.y)
 
         if cv > 1:
             self.cross_val(
@@ -512,6 +532,7 @@ class train():
 
         from sklearn.model_selection import StratifiedKFold
         from sklearn.model_selection import GroupKFold
+        from sklearn.model_selection import RandomizedSearchCV
         from sklearn import metrics
 
         """
@@ -569,11 +590,20 @@ class train():
 
         for train_indices, test_indices in k_fold:
 
+            # get indices for train and test partitions
             X_train, X_test = self.X[train_indices], self.X[test_indices]
             y_train, y_test = self.y[train_indices], self.y[test_indices]
-
+            
+            # also get indices of groups for the training partition
             # fit the model on the training data and predict the test data
-            fit = self.estimator.fit(X_train, y_train)
+            # need the groups parameter because the estimator can be a 
+            # RandomizedSearchCV estimator where cv=GroupKFold
+            if self.groups is not None and isinstance(self.estimator, RandomizedSearchCV):
+                groups_train = self.groups[train_indices]
+                fit = self.estimator.fit(X_train, y_train, groups=groups_train)            
+            else:
+                fit = self.estimator.fit(X_train, y_train)   
+
             y_pred = fit.predict(X_test)
 
             y_test_agg = np.append(y_test_agg, y_test)
@@ -1326,6 +1356,7 @@ def main():
     save_training = options['save_training']
     importances = flags['f']
     n_iter = int(options['n_iter'])
+    tune_cv = int(options['tune_cv'])
     n_permutations = int(options['n_permutations'])
     lowmem = flags['l']
     errors_file = options['errors_file']
@@ -1450,7 +1481,7 @@ def main():
         """
 
         # fit, search and cross-validate the training object
-        learn_m.fit(param_grid, n_iter, scorers, cv,
+        learn_m.fit(param_grid, n_iter, scorers, cv, tune_cv,
                     feature_importances=importances,
                     n_permutations=n_permutations,
                     random_state=random_state)
