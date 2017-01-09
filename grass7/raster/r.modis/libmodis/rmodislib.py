@@ -260,9 +260,9 @@ class product:
         elif self.products_swath.keys().count(self.prod) == 1:
             return self.products_swath[self.prod]
         else:
-            grass.fatal(_("The code insert is not supported yet. Consider "
-                          "to ask on the grass-dev mailing list for future "
-                          "support"))
+            grass.fatal(_("The MODIS product inserted is not supported yet. "
+                          "Consider to ask on the grass-dev mailing list "
+                          "for future support"))
 
     def fromcode(self, code):
         import string
@@ -272,8 +272,9 @@ class product:
         for k, v in self.products_swath.iteritems():
             if string.find(v['prod'], code) != -1:
                 return self.products_swath[k]
-        grass.fatal(_("The code insert is not supported yet. Consider to "
-                      "ask on the grass-dev mailing list for future support"))
+        grass.fatal(_("The MODIS product inserted is not supported yet. "
+                      "Consider to ask on the grass-dev mailing list "
+                      "for future support"))
 
     def color(self, code=None):
         if code:
