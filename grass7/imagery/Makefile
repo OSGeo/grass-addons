@@ -17,6 +17,7 @@ SUBDIRS = \
 	i.gcp \
 	i.gravity \
 	i.histo.match \
+	i.in.probav \
 	i.lmf \
 	i.points.auto \
 	i.rotate \
