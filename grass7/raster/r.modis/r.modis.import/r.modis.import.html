@@ -30,41 +30,35 @@ obtaining a successful result.<br>
 Import a single file with the all the subsets with QA layer analysis to
 remove bad pixels using GDAL:
 <div class="code"><pre>
-r.modis.import dsn=/path/to/file
+r.modis.import input=/path/to/file
 </pre></div>
 
 Import more files with the default subset with QA layer using MRT:
 <div class="code"><pre>
-r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
+r.modis.import files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
 Import more files like daily mosaic with the default subset without QA
 layer check using MRT:
 <div class="code"><pre>
-r.modis.import -mq filename=/path/to/listfile mrtpath=/path/to/mrt
-</pre></div>
-
-Import a single file with the default subset without QA layer analysis and without
-rescaling the pixel values using GDAL:
-<div class="code"><pre>
-r.modis.import -rq dsn=/path/to/file
+r.modis.import -mq files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
 Import a single file with your own subset of layers (for power user) using GDAL:
 <div class="code"><pre>
-r.modis.import dsn=/path/to/file spectral="( 1 0 1 0 )"
+r.modis.import input=/path/to/file spectral="( 1 0 1 0 )"
 </pre></div>
 
 Import more files with your own subset of layers and without QA layer
 analysis (for power users) using MRT:
 <div class="code"><pre>
-r.modis.import -q filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
+r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
 Import more files and write the file to be use in <em>t.register</em>
 to create a temporal dataset using GDAL, you specify only a subset:
 <div class="code"><pre>
-r.modis.import -wq filename=/path/to/listfile spectral="( 1 )"
+r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -74,7 +68,7 @@ r.modis.import -wq filename=/path/to/listfile spectral="( 1 )"
 <a href="r.modis.download.html">r.modis.download</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em><br>
-<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
+<a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
 
 <h2>AUTHOR</h2>
 
