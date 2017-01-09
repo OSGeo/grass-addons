@@ -288,13 +288,22 @@ class product:
         else:
             return self.returned()['suff']
 
+    def print_prods(self):
+        oldprod = self.prod
+        for key in self.products.keys():
+            print(key),
+            self.prod = key
+            print(self)
+        self.prod = oldprod
+
     def __str__(self):
         prod = self.returned()
-        string = "url: " + prod['url'] + ", folder: " + prod['folder']
+        string = "product: " + prod['prod'] + ", url: " + prod['url']
         if prod.keys().count('spec') == 1:
-            string += ", spectral subset: " + prod['spec']
+            string += ", spectral_subset: " + prod['spec']
         if prod.keys().count('spec_qa') == 1:
-            string += ", spectral subset qa:" + prod['spec_qa']
+            if prod['spec_qa'] != None:
+                string += ", spectral_subset_qa:" + prod['spec_qa']
         return string
 
 

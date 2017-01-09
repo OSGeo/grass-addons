@@ -33,6 +33,10 @@
 #% key: c
 #% description: Does not perform GDAL check on downloaded images
 #%end
+#%flag
+#% key: l
+#% description: List more info about the supported MODIS products
+#%end
 #%option G_OPT_F_INPUT
 #% key: settings
 #% label: Full path to settings file
@@ -158,6 +162,10 @@ def main():
     gisbase = os.getenv('GISBASE')
     if not gisbase:
         grass.fatal(_('$GISBASE not defined'))
+        return 0
+    if flags['l']:
+        prod = product()
+        prod.print_prods()
         return 0
     # set username, password and folder if settings are insert by stdin
     if options['settings'] == '-':
