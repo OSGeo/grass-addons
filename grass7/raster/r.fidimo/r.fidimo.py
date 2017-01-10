@@ -97,7 +97,7 @@
 #% multiple: no
 #% description: Time interval for model step [d]
 #% guisection: Dispersal parameters
-#% options: 1-3285
+#% options: 1-3650
 #% answer: 30
 #%End
 #%option
