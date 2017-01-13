@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     parm.suffix->key = "suffix";
     parm.suffix->type = TYPE_STRING;
     parm.suffix->required = NO;
-    parm.suffix->answer = "lwr";
+    parm.suffix->answer = "_lwr";
     parm.suffix->label = _("Suffix for output maps");
     parm.suffix->description = _("The suffix will be appended to input map names");
 
@@ -284,9 +284,10 @@ int main(int argc, char *argv[])
     parm.order->key = "order";
     parm.order->type = TYPE_INTEGER;
     parm.order->required = NO;
-    parm.order->options = "1,2,3";
+    parm.order->options = "0,1,2,3";
     parm.order->answer = "2";
-    parm.order->description = _("order number");
+    parm.order->label = _("order number");
+    parm.order->description = _("Order of the polynomial fitting function, 0 means weighted average");
 
     parm.weight = G_define_option();
     parm.weight->key = "weight";
@@ -360,8 +361,8 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Please specify input= or file="));
 
     order = atoi(parm.order->answer);
-    if (order < 1)
-	G_fatal_error(_("The order number must be > 0"));
+    if (order < 0)
+	G_fatal_error(_("The order number must be >= 0"));
     if (order > 3)
 	G_fatal_error(_("The order number must be <= 3"));
 
