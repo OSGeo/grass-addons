@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct Option *in_opt, *ivar_opt, *ovar_opt, *out_opt, *minpnts_opt,
 		  *maxpnts_opt, *radius_opt, *reg_opt, *ov_opt, 
-		  *lm_opt, *mask_opt, *mem_opt;
+		  *lm_opt, *ep_opt, *mask_opt, *mem_opt;
     struct Flag *c_flag;
     struct Cell_head cellhd, src, dst;
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     int r, c, nrows, ncols;
     DCELL **dbuf, *dval;
-    double regularization, overlap, lm_thresh;
+    double regularization, overlap, lm_thresh, ep_thresh;
     SEGMENT in_seg, var_seg, out_seg;
     int insize, varsize;
     double segsize;
@@ -134,8 +134,19 @@ int main(int argc, char *argv[])
     lm_opt->label =
 	_("Threshold to avoid interpolation outliers when using covariables");
     lm_opt->description =
-	_("Disabled when set to zero");
+	_("Disabled when set to zero, larger values will cause more outliers");
     lm_opt->guisection = _("Settings");
+
+    ep_opt = G_define_option();
+    ep_opt->key = "epfilter";
+    ep_opt->type = TYPE_DOUBLE;
+    ep_opt->required = NO;
+    ep_opt->answer = "0";
+    ep_opt->label =
+	_("Threshold to avoid extrapolation when using covariables");
+    ep_opt->description =
+	_("Disabled when set to zero, smaller values will cause more outliers");
+    ep_opt->guisection = _("Settings");
 
     out_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_opt->key = "output";
@@ -230,7 +241,6 @@ int main(int argc, char *argv[])
 	cellhd.west + ceil((src.east - cellhd.west) / cellhd.ew_res) * cellhd.ew_res;
     src.west =
 	cellhd.west + floor((src.west - cellhd.west) / cellhd.ew_res) * cellhd.ew_res;
-
 
     /* open segment structures for input and output */
 
@@ -408,6 +418,13 @@ int main(int argc, char *argv[])
 	    lm_thresh = 0;
     }
 
+    ep_thresh = 0;
+    if (ep_opt->answer) {
+	ep_thresh = atof(ep_opt->answer);
+	if (ep_thresh < 0)
+	    ep_thresh = 0;
+    }
+
     if (radius) {
 	if (tps_window(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
 		       mask_opt->answer, &src, &dst, n_points,
@@ -420,7 +437,7 @@ int main(int argc, char *argv[])
 	if (tps_nn(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
 		   mask_opt->answer, &src, &dst, n_points,
 		   min_points, max_points, regularization, overlap,
-		   c_flag->answer, lm_thresh) != 1) {
+		   c_flag->answer, lm_thresh, ep_thresh) != 1) {
 	    G_fatal_error(_("TPS interpolation failed"));
 	}
     }

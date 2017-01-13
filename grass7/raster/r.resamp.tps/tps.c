@@ -108,8 +108,11 @@ static int cmp_pnts(const void *first, const void *second)
 static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
                          struct tps_pnt *pnts, int n_points,
 			 struct Cell_head *src, struct Cell_head *dst,
-			 double regularization, double **m, double *a,
-			 double **mvars, double *avars)
+			 double regularization,
+			 double **m, double *a,
+			 double **mvars, double *avars,
+			 double **mpnts, double *apnts,
+			 double *vmin, double *vmax)
 {
     int i, j, k;
     double dx, dy, dist, dist2, distsum, reg;
@@ -122,7 +125,7 @@ static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
 	}
     }
 
-    if (n_vars) {
+    if (n_vars && mvars) {
 	for (i = 0; i <= n_vars; i++) {
 	    avars[i] = 0.0;
 	    mvars[i][i] = 0.0;
@@ -143,9 +146,21 @@ static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
 
 	for (j = 0; j < n_vars; j++) {
 	    m[j + 1][i + 1 + n_vars] = m[i + 1 + n_vars][j + 1] = dval[j + 1];
+	    
+	    if (vmin) {
+		if (i == 0) {
+		    vmin[j] = vmax[j] = dval[j + 1];
+		}
+		else {
+		    if (vmin[j] > dval[j + 1])
+			vmin[j] = dval[j + 1];
+		    if (vmax[j] < dval[j + 1])
+			vmax[j] = dval[j + 1];
+		}
+	    }
 	}
 
-	if (n_vars) {
+	if (n_vars && mvars) {
 	    avars[0] += dval[0];
 	    mvars[0][0] += 1;
 	    for (j = 1; j <= n_vars; j++) {
@@ -194,6 +209,22 @@ static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
 	
 	for (i = 0; i < n_points; i++)
 	    m[i + 1 + n_vars][i + 1 + n_vars] = reg;
+    }
+
+    if (n_vars && mpnts) {
+	mpnts[0][0] = m[0][0];
+	apnts[0] = a[0];
+	for (i = 0; i < n_points; i++) {
+	    mpnts[0][i + 1] = m[0][i + 1 + n_vars];
+	    mpnts[i + 1][0] = m[i + 1 + n_vars][0];
+	    
+	    mpnts[i + 1][i + 1] = m[i + 1 + n_vars][i + 1 + n_vars];
+	    for (j = 0; j < i; j++) {
+		mpnts[i + 1][j + 1] = m[i + 1 + n_vars][j + 1 + n_vars];
+		mpnts[j + 1][i + 1] = m[j + 1 + n_vars][i + 1 + n_vars];
+	    }
+	    apnts[i + 1] = a[i + 1 + n_vars];
+	}
     }
 
     return 1;
@@ -574,18 +605,22 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
            struct Cell_head *src, struct Cell_head *dst,
 	   off_t n_points, int min_points, int max_points,
 	   double regularization, double overlap, int clustered,
-	   double lm_thresh)
+	   double lm_thresh, double efac)
 {
     int ridx, cidx, row, col, nrows, ncols, src_row, src_col;
     double **m, *a, *B;
+    double **mfull, *afull, *Bfull;
+    double **mpnts, *apnts, *Bpnts;
     double **mvars, *avars, *Bvars;
+    double *Bc;
     int i, j;
     int kdalloc, palloc, n_cur_points;
     struct tps_pnt *cur_pnts;
     double dx, dy, dist, dist2, mfactor;
     DCELL *dval, result, *outbuf, *varbuf;
     CELL *maskbuf;
-    int solved, solved_tps_lm, solved_tps, solved_lm, n_vars_i;
+    int solved, solved_tps_lm, solved_tps, solved_lm;
+    int n_vars_i, n_vars_ic;
     double rsqr;
     int kdfound, bfsfound, pfound;
     double distmax, mindist;
@@ -598,8 +633,9 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     double wmin, wmax;
     int rmin, rmax, cmin, cmax, rminp, rmaxp, cminp, cmaxp;
     int irow, irow1, irow2, icol, icol1, icol2;
-    unsigned int cnt_wa, cnt_tps_lm, cnt_tps;
+    unsigned int cnt_wa, cnt_tps_lm, cnt_tps, cnt_efac;
     double i_n, i_e;
+    double *vmin, *vmax;
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -611,12 +647,25 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     for (i = 0; i < (palloc + 1 + n_vars); i++)
 	m[i] = G_malloc((palloc + 1 + n_vars) * sizeof(double));
     cur_pnts = G_malloc(palloc * 5 * sizeof(struct tps_pnt));
+
+    afull = a;
+    Bfull = B;
+    mfull = m;
     
     pvar = NULL;
     varbuf = NULL;
     mvars = NULL;
     avars = NULL;
     Bvars = NULL;
+
+    mpnts = NULL;
+    apnts = NULL;
+    Bpnts = NULL;
+
+    Bc = NULL;
+    
+    vmin = NULL;
+    vmax = NULL;
     if (n_vars) {
 	pvar = G_malloc(palloc * 5 * n_vars * sizeof(double));
 	cur_pnts[0].vars = pvar;
@@ -630,6 +679,15 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	mvars = G_malloc((1 + n_vars) * sizeof(double *));
 	for (i = 0; i < (1 + n_vars); i++)
 	    mvars[i] = G_malloc((1 + n_vars) * sizeof(double));
+
+	apnts = G_malloc((palloc + 1) * sizeof(double));
+	Bpnts = G_malloc((palloc + 1) * sizeof(double));
+	mpnts = G_malloc((palloc + 1) * sizeof(double *));
+	for (i = 0; i < (palloc + 1); i++)
+	    mpnts[i] = G_malloc((palloc + 1) * sizeof(double));
+
+	vmin = G_malloc(n_vars * sizeof(double));
+	vmax = G_malloc(n_vars * sizeof(double));
     }
 
     dval = G_malloc((1 + n_vars) * sizeof(DCELL));
@@ -706,6 +764,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     cnt_wa = 0;
     cnt_tps_lm = 0;
     cnt_tps = 0;
+    cnt_efac = 0;
 
     if (overlap > 1.0)
 	overlap = 1.0;
@@ -876,6 +935,10 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			pfound += bfsfound;
 		    }
 		}
+		
+		m = mfull;
+		a = afull;
+		B = Bfull;
 
 		if (palloc < pfound) {
 		    G_free(a);
@@ -890,6 +953,22 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    m = G_malloc((palloc + 1 + n_vars) * sizeof(double *));
 		    for (i = 0; i < (palloc + 1 + n_vars); i++)
 			m[i] = G_malloc((palloc + 1 + n_vars) * sizeof(double));
+
+		    mfull = m;
+		    afull = a;
+		    Bfull = B;
+
+		    G_free(apnts);
+		    G_free(Bpnts);
+		    for (i = 0; i < (palloc + 1); i++)
+			G_free(mpnts[i]);
+		    G_free(mpnts);
+
+		    apnts = G_malloc((palloc + 1) * sizeof(double));
+		    Bpnts = G_malloc((palloc + 1) * sizeof(double));
+		    mpnts = G_malloc((palloc + 1) * sizeof(double *));
+		    for (i = 0; i < (palloc + 1); i++)
+			mpnts[i] = G_malloc((palloc + 1) * sizeof(double));
 		}
 
 		/* sort points */
@@ -898,7 +977,8 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		qsort(cur_pnts, pfound, sizeof(struct tps_pnt), cmp_pnts);
 
 		load_tps_pnts(in_seg, dval, n_vars, cur_pnts, pfound,
-		              src, dst, regularization, m, a, mvars, avars);
+		              src, dst, regularization, m, a,
+			      mvars, avars, mpnts, apnts, vmin, vmax);
 
 		/* solve */
 		/* it can happen that a simple linear model with the 
@@ -907,6 +987,9 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		 */
 		solved_tps_lm = solved_tps = 0;
 		n_vars_i = n_vars;
+		m = mfull;
+		a = afull;
+		B = Bfull;
 		if (n_vars) {
 
 		    solved_tps_lm = solvemat(m, a, B, pfound + 1 + n_vars);
@@ -938,22 +1021,32 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			}
 		    }
 
+		    if (efac) {
+			for (i = 0; i < n_vars; i++) {
+			    double diff;
+
+			    diff = efac * (vmax[i] - vmin[i]);
+			    vmin[i] -= diff;
+			    vmax[i] += diff;
+			}
+
+			solved_tps = solvemat(mpnts, apnts, Bpnts, pfound + 1);
+		    }
+
 		    if (!solved_tps_lm) {
 			n_vars_i = 0;
-			for (i = 0; i < pfound; i++) {
-			    cur_pnts[i].r = (int)((src->north - cur_pnts[i].r) / src->ns_res);
-			    cur_pnts[i].c = (int)((cur_pnts[i].c - src->west) / src->ew_res);
-			}
-			load_tps_pnts(in_seg, dval, 0, cur_pnts, pfound,
-				      src, dst, regularization, m, a, NULL, NULL);
+			m = mpnts;
+			a = apnts;
+			B = Bpnts;
+			if (efac == 0)
+			    solved_tps = solvemat(m, a, B, pfound + 1);
 		    }
 		}
-
-		if (!solved_tps_lm) {
+		else {
 		    solved_tps = solvemat(m, a, B, pfound + 1);
 		}
 		
-		solved = (solved_tps_lm || solved_tps);
+		solved = (solved_tps_lm | solved_tps);
 
 		if (!solved && n_cur_points == n_points)
 		    G_fatal_error(_("Matrix is unsolvable"));
@@ -1076,6 +1169,9 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    if ((FLAG_GET(mask_flag, irow, icol))) {
 			continue;
 		    }
+		    
+		    n_vars_ic = n_vars_i;
+		    Bc = B;
 
 		    if (n_vars_i) {
 
@@ -1084,28 +1180,26 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			    continue;
 			}
 
-			/* TODO: check current vars against range 
-			 * of observed vars
-			 */
-			/*
-			use_tps = 0;
-			for (i = 0; i < n_vars_i; i++) {
-			    if (varbuf[i] < min[i] - factor * (max[i] - min[i]) ||
-			    varbuf[i] > max[i] + factor * (max[i] - min[i]))
-				use_tps = 1;
+			if (efac && solved_tps) {
+			    for (i = 0; i < n_vars_i; i++) {
+				if (varbuf[i] < vmin[i] || varbuf[i] > vmax[i]) {
+				    n_vars_ic = 0;
+				    cnt_efac++;
+				    Bc = Bpnts;
+				    break;
+				}
+			    }
 			}
-			*/
-
 		    }
 
 		    i_e = dst->west + (icol + 0.5) * dst->ew_res;
 
 		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
 
-		    result = B[0];
-		    if (n_vars_i) {
-			for (j = 0; j < n_vars_i; j++) {
-			    result += varbuf[j] * B[j + 1];
+		    result = Bc[0];
+		    if (n_vars_ic) {
+			for (j = 0; j < n_vars_ic; j++) {
+			    result += varbuf[j] * Bc[j + 1];
 			}
 		    }
 
@@ -1117,7 +1211,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			dist = 0;
 			if (dist2 > 0) {
 			    dist = dist2 * log(dist2) * 0.5;
-			    result += B[1 + n_vars_i + i] * dist;
+			    result += Bc[1 + n_vars_i + i] * dist;
 			}
 		    }
 
@@ -1159,6 +1253,10 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	perc_no_vars = (double) 100.0 * cnt_tps / (cnt_tps + cnt_tps_lm);
 	G_verbose_message(_("Percentage of TPS interpolations without covariables: %.2f"),
 			  perc_no_vars);
+    }
+    if (cnt_efac) {
+	G_verbose_message(_("Number of TPS interpolations avoiding extrapolation: %u"),
+	                  cnt_efac);
     }
 
     flag_destroy(pnt_flag);
@@ -1388,7 +1486,8 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	    qsort(cur_pnts, pfound, sizeof(struct tps_pnt), cmp_pnts);
 
 	    load_tps_pnts(in_seg, dval, n_vars, cur_pnts, pfound,
-			  src, dst, regularization, m, a, mvars, avars);
+			  src, dst, regularization, m, a, mvars, avars,
+			  NULL, NULL, NULL, NULL);
 
 	    n_vars_i = n_vars;
 	    if (pfound > 2) {
@@ -1430,7 +1529,8 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			    cur_pnts[i].c = (int)((cur_pnts[i].c - src->west) / src->ew_res);
 			}
 			load_tps_pnts(in_seg, dval, 0, cur_pnts, pfound,
-				      src, dst, regularization, m, a, NULL, NULL);
+				      src, dst, regularization, m, a,
+				      NULL, NULL, NULL, NULL, NULL, NULL);
 		    }
 		}
 

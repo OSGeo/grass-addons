@@ -17,7 +17,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
            struct Cell_head *src, struct Cell_head *dst,
 	   off_t n_points, int min_points, int max_points,
 	   double regularization, double overlap, int do_bfs,
-	   double lm_thresh);
+	   double lm_thresh, double ep_thresh);
 
 int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
                SEGMENT *out_seg, int out_fd, char *mask_name,
