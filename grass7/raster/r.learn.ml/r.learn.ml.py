@@ -224,14 +224,6 @@
 #%end
 
 #%option
-#% key: n_iter
-#% type: integer
-#% description: Number of randomized parameter tuning steps
-#% answer: 1
-#% guisection: Optional
-#%end
-
-#%option
 #% key: tune_cv
 #% type: integer
 #% description: Number of cross-validation folds used for parameter tuning
@@ -621,7 +613,7 @@ class train():
 
         from sklearn.model_selection import StratifiedKFold
         from sklearn.model_selection import GroupKFold
-        from sklearn.model_selection import RandomizedSearchCV
+        from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
         from sklearn import metrics
 
         """
@@ -683,22 +675,30 @@ class train():
             X_train, X_test = self.X[train_indices], self.X[test_indices]
             y_train, y_test = self.y[train_indices], self.y[test_indices]         
             
-            # also get indices of groups for the training partition
-            if self.groups is not None:
-                groups_train = self.groups[train_indices]
-
             # balance the fold
             if self.balance == True:
                 X_train, y_train = self.random_oversampling(X_train, y_train, random_state=random_state)                
                 if self.groups is not None:
+                    groups_train = self.groups[train_indices]
                     groups_train, _ = self.random_oversampling(
-                        groups_train, y_train, random_state=random_state) 
-                
+                        groups_train, self.y[train_indices], random_state=random_state) 
+
+            else:
+                # also get indices of groups for the training partition
+                if self.groups is not None:
+                    groups_train = self.groups[train_indices]
+                    
             # fit the model on the training data and predict the test data
             # need the groups parameter because the estimator can be a 
             # RandomizedSearchCV estimator where cv=GroupKFold
-            if self.groups is not None and isinstance(self.estimator, RandomizedSearchCV):
-                fit = self.estimator.fit(X_train, y_train, groups=groups_train)            
+            if isinstance(self.estimator, RandomizedSearchCV) == True \
+            or isinstance(self.estimator, GridSearchCV):
+                param_search = True
+            else:
+                param_search = False
+            
+            if self.groups is not None and param_search == True:
+                fit = self.estimator.fit(X_train, y_train, groups=groups_train)
             else:
                 fit = self.estimator.fit(X_train, y_train)   
 
