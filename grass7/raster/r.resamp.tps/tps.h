@@ -15,11 +15,12 @@ struct tps_out {
 int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
            SEGMENT *out_seg, int out_fd, char *mask_name,
            struct Cell_head *src, struct Cell_head *dst,
-	   off_t n_points, int min_points,
-	   double regularization, double overlap, int do_bfs);
+	   off_t n_points, int min_points, int max_points,
+	   double regularization, double overlap, int do_bfs,
+	   double lm_thresh);
 
 int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
                SEGMENT *out_seg, int out_fd, char *mask_name,
                struct Cell_head *src, struct Cell_head *dst,
-	       off_t n_points,
-	       double regularization, double overlap, int radius);
+	       off_t n_points, double regularization, double overlap,
+	       int radius, double lm_thresh);

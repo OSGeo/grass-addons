@@ -35,17 +35,18 @@ int main(int argc, char *argv[])
 
     struct GModule *module;
     struct Option *in_opt, *ivar_opt, *ovar_opt, *out_opt, *minpnts_opt,
-		  *radius_opt, *reg_opt, *ov_opt, *mask_opt, *mem_opt;
+		  *maxpnts_opt, *radius_opt, *reg_opt, *ov_opt, 
+		  *lm_opt, *mask_opt, *mem_opt;
     struct Flag *c_flag;
     struct Cell_head cellhd, src, dst;
 
     int n_ivars, n_ovars, n_vars;
     off_t n_points;
-    int min_points, radius;
+    int min_points, max_points, radius;
 
     int r, c, nrows, ncols;
     DCELL **dbuf, *dval;
-    double regularization, overlap;
+    double regularization, overlap, lm_thresh;
     SEGMENT in_seg, var_seg, out_seg;
     int insize, varsize;
     double segsize;
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
     ov_opt->key = "overlap";
     ov_opt->type = TYPE_DOUBLE;
     ov_opt->required = NO;
-    ov_opt->answer = "0.8";
+    ov_opt->answer = "0.2";
     ov_opt->label =
 	_("Overlap factor <= 1");
     ov_opt->description =
@@ -87,10 +88,18 @@ int main(int argc, char *argv[])
     minpnts_opt->key = "min";
     minpnts_opt->type = TYPE_DOUBLE;
     minpnts_opt->required = NO;
-    minpnts_opt->answer = "20";
+    minpnts_opt->answer = "100";
     minpnts_opt->description =
 	_("Minimum number of points to use for TPS interpolation");
     minpnts_opt->guisection = _("Settings");
+
+    maxpnts_opt = G_define_option();
+    maxpnts_opt->key = "max";
+    maxpnts_opt->type = TYPE_DOUBLE;
+    maxpnts_opt->required = NO;
+    maxpnts_opt->description =
+	_("Maximum number of points to use for TPS interpolation");
+    maxpnts_opt->guisection = _("Settings");
 
     radius_opt = G_define_option();
     radius_opt->key = "radius";
@@ -117,6 +126,17 @@ int main(int argc, char *argv[])
 	_("Name of input raster map(s) to use as covariables matching the current region");
     ovar_opt->guisection = _("Settings");
 
+    lm_opt = G_define_option();
+    lm_opt->key = "lmfilter";
+    lm_opt->type = TYPE_DOUBLE;
+    lm_opt->required = NO;
+    lm_opt->answer = "0";
+    lm_opt->label =
+	_("Threshold to avoid interpolation outliers when using covariables");
+    lm_opt->description =
+	_("Disabled when set to zero");
+    lm_opt->guisection = _("Settings");
+
     out_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_opt->key = "output";
     out_opt->required = YES;
@@ -138,11 +158,14 @@ int main(int argc, char *argv[])
     c_flag->key = 'c';
     c_flag->description = _("Input points are dense clusters separated by empty areas");
 
-
     /* Parsing */
     G_gisinit(argv[0]);
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    if (!minpnts_opt->answer && !radius_opt->answer)
+	G_fatal_error(_("Either <%s> or <%s> must be given"),
+	              minpnts_opt->key, radius_opt->key);
 
     outname = out_opt->answer;
 
@@ -193,7 +216,21 @@ int main(int argc, char *argv[])
 
     /* align dst to cellhd  */
     src = dst;
+    /*
     Rast_align_window(&src, &cellhd);
+    */
+    src.ns_res = cellhd.ns_res;
+    src.ew_res = cellhd.ew_res;
+
+    src.south =
+	cellhd.north - ceil((cellhd.north - src.south) / cellhd.ns_res) * cellhd.ns_res;
+    src.north =
+	cellhd.north - floor((cellhd.north - src.north) / cellhd.ns_res) * cellhd.ns_res;
+    src.east =
+	cellhd.west + ceil((src.east - cellhd.west) / cellhd.ew_res) * cellhd.ew_res;
+    src.west =
+	cellhd.west + floor((src.west - cellhd.west) / cellhd.ew_res) * cellhd.ew_res;
+
 
     /* open segment structures for input and output */
 
@@ -329,16 +366,30 @@ int main(int argc, char *argv[])
 
     out_fd = Rast_open_new(outname, DCELL_TYPE);
 
-    min_points = atoi(minpnts_opt->answer);
-    if (min_points < 3 + n_vars) {
-	min_points = 3 + n_vars;
-	G_warning(_("Minimum number of points is too small, set to %d"),
-	          min_points);
+    min_points = 0;
+    if (minpnts_opt->answer) {
+	min_points = atoi(minpnts_opt->answer);
+	if (min_points < 3 + n_vars) {
+	    min_points = 3 + n_vars;
+	    G_warning(_("Minimum number of points is too small, set to %d"),
+		      min_points);
+	}
+    }
+    max_points = 0;
+    if (maxpnts_opt->answer) {
+	max_points = atoi(maxpnts_opt->answer);
+	if (max_points < min_points) {
+	    G_warning(_("Maximum number of points must be equal to or larger than minimum number of points, disabling"));
+	    max_points = 0;
+	}
     }
 
-    radius = atoi(radius_opt->answer);
-    if (radius < 0)
-	radius = 0;
+    radius = 0;
+    if (radius_opt->answer) {
+	radius = atoi(radius_opt->answer);
+	if (radius < 0)
+	    radius = 0;
+    }
 
     regularization = atof(reg_opt->answer);
     if (regularization < 0)
@@ -350,19 +401,26 @@ int main(int argc, char *argv[])
     if (overlap > 1)
 	overlap = 1;
 
+    lm_thresh = 0;
+    if (lm_opt->answer) {
+	lm_thresh = atof(lm_opt->answer);
+	if (lm_thresh < 0)
+	    lm_thresh = 0;
+    }
+
     if (radius) {
 	if (tps_window(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
 		       mask_opt->answer, &src, &dst, n_points,
 		       regularization, overlap,
-		       radius) != 1) {
+		       radius, lm_thresh) != 1) {
 	    G_fatal_error(_("TPS interpolation failed"));
 	}
     }
     else {
 	if (tps_nn(&in_seg, &var_seg, n_vars, &out_seg, out_fd,
 		   mask_opt->answer, &src, &dst, n_points,
-		   min_points, regularization, overlap,
-		   c_flag->answer) != 1) {
+		   min_points, max_points, regularization, overlap,
+		   c_flag->answer, lm_thresh) != 1) {
 	    G_fatal_error(_("TPS interpolation failed"));
 	}
     }
