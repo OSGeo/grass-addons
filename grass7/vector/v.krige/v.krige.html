@@ -17,9 +17,10 @@ result. Good knowledge of the dataset is more valuable than hundreds
 of parameters or powerful hardware. See Isaaks and Srivastava's book,
 exhaustive and clear even if a bit outdated.
 
-<p>Auto-fit variogram option will update sill, nugget, range and kappa values
+<p>Auto-fit variogram option will update partial sill, nugget, range and kappa values
 with fitted ones. Enabling the values will pass them to auto-fit and thus
 preserve from modification and thus they might differ from fitted ones.
+Sill value can be tetermined by summing partial sill with nugget.
 
 <h3>Dependencies</h3>
 
@@ -37,6 +38,7 @@ preserve from modification and thus they might differ from fitted ones.
 Install the packages via R command line (or your preferred GUI):
 <div class="code"><pre>
   install.packages("rgeos", dep=T)
+  install.packages("rgdal", dep=T)
   install.packages("gstat", dep=T)
   install.packages("rgrass7", dep=T)
   install.packages("automap", dep=T)
@@ -127,7 +129,7 @@ by R package automap. The variogram models tested by the fitting
 functions are: exponential, spherical, Gaussian, Matern, M.Stein's
 parametrisation. A wider range of models is available from gstat
 package and can be tested on the GUI via the variogram plotting. If a
-model is specified in the CLI, also sill, nugget and range values are
+model is specified in the CLI, also partial sill, nugget and range values are
 to be provided, otherwise an error is raised (see second example of
 <em>v.krige</em> command).
 
@@ -139,7 +141,7 @@ v.krige input=rand2k_elev_filt column=elevation \
 # define variogram model, create variance map as well
 v.krige input=rand2k_elev_filt column=elevation \
         output=rand2k_elev_filt_kriging output_var=rand2k_elev_filt_kriging_var \
-        model=Mat sill=2500 nugget=0 range=1000 
+        model=Mat psill=2500 nugget=0 range=1000 
 </pre></div>
 
 Or run wxGUI, to interactively fit the variogram and explore options:

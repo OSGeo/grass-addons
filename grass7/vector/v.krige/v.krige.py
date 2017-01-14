@@ -77,9 +77,9 @@ for details.
 #% required : no
 #%end
 #%option
-#% key: sill
+#% key: psill
 #% type: integer
-#% label: Sill value
+#% label: Partial sill value
 #% description: Automatically fixed if not set
 #% required : no
 #%end
@@ -108,6 +108,16 @@ if "GISBASE" not in os.environ:
     sys.exit(1)
 
 gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'))
+
+sys.path.append(os.path.join(os.getenv('GISBASE'), 'gui', 'wxpython'))
+
+from grass.pygrass.utils import get_lib_path
+
+path = get_lib_path("v.krige", "")
+if path is None:
+    raise ImportError(_("Not able to find the path %s directory.") % path)
+
+sys.path.append(path)
 
 # dependencies to be checked once, as they are quite time-consuming. cfr. grass.parser.
 # GRASS binding
@@ -197,11 +207,11 @@ class Controller:
             predictor = 'x+y'
         else:
             predictor = '1'
-        print(column + "~" + predictor)
+
         Formula = robjects.Formula(column + "~" + predictor)
         return Formula
 
-    def FitVariogram(self, formula, inputdata, sill, nugget, range, kappa, model=''):
+    def FitVariogram(self, formula, inputdata, psill, nugget, range, kappa, model=''):
         """ Fits variogram either automagically either specifying all parameters.
         Returns a list containing data and model variograms. """
 
@@ -210,8 +220,7 @@ class Controller:
         if model is '':
             robjects.r.require('automap')
             DottedParams = {}
-            #print (nugget.r_repr(), sill, range)
-            DottedParams['fix.values'] = robjects.r.c(nugget, range, sill)
+            DottedParams['fix.values'] = robjects.r.c(nugget, range, psill)
 
             if not isinstance(kappa, float):
                 # autofit gives strange results if kappa is NA
@@ -219,7 +228,6 @@ class Controller:
             else:
                 VariogramModel = robjects.r.autofitVariogram(
                     formula, inputdata, kappa=kappa, **DottedParams)
-            # print robjects.r.warnings()
             Variograms['datavariogram'] = VariogramModel.rx('exp_var')[0]
             Variograms['variogrammodel'] = VariogramModel.rx('var_model')[0]
             # obtain the model name. *Too* complicated to get the string instead of
@@ -231,7 +239,7 @@ class Controller:
         else:
             DataVariogram = robjects.r['variogram'](formula, inputdata)
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
-                                                         model=robjects.r.vgm(psill=sill,
+                                                         model=robjects.r.vgm(psill=psill,
                                                                               model=model,
                                                                               nugget=nugget,
                                                                               range=range,
@@ -245,7 +253,6 @@ class Controller:
         DottedParams = {'debug.level': -1}  # let krige() print percentage status
         if block is not '':  # @FIXME(anne): but it's a string!! and krige accepts it!!
             DottedParams['block'] = block
-        # print DottedParams
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
 
@@ -262,7 +269,7 @@ class Controller:
                               map=name,
                               history='Model chosen by automatic fitting: ' + variograms['model'])
 
-    def Run(self, input, column, output, package, sill, nugget, range, kappa, logger,
+    def Run(self, input, column, output, package, psill, nugget, range, kappa, logger,
             overwrite, model, block, output_var, command, **kwargs):
         """ Wrapper for all functions above. """
 
@@ -273,7 +280,6 @@ class Controller:
         if self.InputData is None:
             self.InputData = self.ImportMap(input, column)
         # and from here over, InputData refers to the global variable
-        #print(robjects.r.slot(InputData, 'data').names)
         logger.message(_("Data successfully imported."))
 
         GridPredicted = self.CreateGrid(self.InputData)
@@ -288,7 +294,7 @@ class Controller:
             self.Variogram = self.FitVariogram(robjects.Formula(column + "~" + self.predictor),
                                                self.InputData,
                                                model=model,
-                                               sill=sill,
+                                               psill=psill,
                                                nugget=nugget,
                                                range=range,
                                                kappa=kappa)
@@ -332,7 +338,7 @@ def main(argv=None):
         if not os.getenv("GRASS_WXBUNDLED"):
             from core import globalvar
             globalvar.CheckForWx()
-        from modules import vkrige as GUI
+        import vkrige as GUI
 
         import wx
 
@@ -379,12 +385,11 @@ def main(argv=None):
             except ImportError as e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
         else:
-            if options['sill'] is '' or options['nugget'] is '' or options['range'] is '':
+            if options['psill'] is '' or options['nugget'] is '' or options['range'] is '':
                 grass.fatal(
-                    _("You have specified model, but forgot at least one of sill, nugget and range."))
+                    _("You have specified model, but forgot at least one of psill, nugget and range."))
 
         #@TODO: let GRASS remount its commandstring. Until then, keep that 4 lines below.
-        # print grass.write_command(argv)
         command = ""
         notnulloptions = {}
         for k, v in options.items():
@@ -393,12 +398,9 @@ def main(argv=None):
         command = command.join("%s=%s " % (k, v) for k, v in notnulloptions.items())
 
         # re-cast integers from strings, as parser() cast everything to string.
-        for each in ("sill", "nugget", "range", "kappa"):
+        for each in ("psill", "nugget", "range", "kappa"):
             if options[each] is not '':
-                if each == "kappa":
-                    options[each] = float(options[each])
-                else:
-                    options[each] = int(options[each])
+                options[each] = float(options[each])
             else:
                 options[each] = robjects.r('''NA''')
 
@@ -410,7 +412,7 @@ def main(argv=None):
                        package=options['package'],
                        model=options['model'],
                        block=options['block'],
-                       sill=options['sill'],
+                       psill=options['psill'],
                        nugget=options['nugget'],
                        range=options['range'],
                        kappa=options['kappa'],
@@ -439,15 +441,16 @@ def importR():
         # ok for other OSes?
         grass.fatal(_("Python module 'Rpy2' not found. Please install it and re-run v.krige."))
 
+    if not robjects.r.require("automap", quietly=True)[0]:
+        grass.warning(_("R package \"automap\" is missing. It provides variogram autofitting functionality and thus is recomended."))
+    
     # R packages check. Will create one error message after check of all packages.
     missingPackagesList = []
-    for each in ["rgeos", "gstat", "rgrass7", "maptools"]:
+    for each in ["rgeos", "gstat", "rgrass7", "maptools", "rgdal"]:
         if not robjects.r.require(each, quietly=True)[0]:
             missingPackagesList.append(each)
     if missingPackagesList:
-        errorString = _("R package(s) ") + \
-            ", ".join(map(str, missingPackagesList)) + \
-            _(" missing. Install it/them and re-run v.krige.")
+        errorString = _("R package(s) %s missing. Install it/them and re-run v.krige.") % ", ".join(map(str, missingPackagesList))
         grass.fatal(errorString)
 
 if __name__ == '__main__':
