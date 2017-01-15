@@ -1029,8 +1029,6 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			    vmin[i] -= diff;
 			    vmax[i] += diff;
 			}
-
-			solved_tps = solvemat(mpnts, apnts, Bpnts, pfound + 1);
 		    }
 
 		    if (!solved_tps_lm) {
@@ -1038,8 +1036,8 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			m = mpnts;
 			a = apnts;
 			B = Bpnts;
-			if (efac == 0)
-			    solved_tps = solvemat(m, a, B, pfound + 1);
+
+			solved_tps = solvemat(m, a, B, pfound + 1);
 		    }
 		}
 		else {
@@ -1180,12 +1178,16 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			    continue;
 			}
 
-			if (efac && solved_tps) {
+			if (efac) {
 			    for (i = 0; i < n_vars_i; i++) {
 				if (varbuf[i] < vmin[i] || varbuf[i] > vmax[i]) {
-				    n_vars_ic = 0;
-				    cnt_efac++;
-				    Bc = Bpnts;
+				    if (!solved_tps)
+					solved_tps = solvemat(mpnts, apnts, Bpnts, pfound + 1);
+				    if (solved_tps) {
+					n_vars_ic = 0;
+					Bc = Bpnts;
+					cnt_efac++;
+				    }
 				    break;
 				}
 			    }
@@ -1211,7 +1213,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			dist = 0;
 			if (dist2 > 0) {
 			    dist = dist2 * log(dist2) * 0.5;
-			    result += Bc[1 + n_vars_i + i] * dist;
+			    result += Bc[1 + n_vars_ic + i] * dist;
 			}
 		    }
 

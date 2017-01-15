@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     lm_opt->label =
 	_("Threshold to avoid interpolation outliers when using covariables");
     lm_opt->description =
-	_("Disabled when set to zero, larger values will cause more outliers");
+	_("Disabled when set to zero, must be within [0, 1], larger values will cause more outliers");
     lm_opt->guisection = _("Settings");
 
     ep_opt = G_define_option();
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
     ep_opt->label =
 	_("Threshold to avoid extrapolation when using covariables");
     ep_opt->description =
-	_("Disabled when set to zero, smaller values will cause more outliers");
+	_("Disabled when set to zero, must be > 0, smaller values will cause more outliers");
     ep_opt->guisection = _("Settings");
 
     out_opt = G_define_standard_option(G_OPT_R_OUTPUT);
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     mask_opt = G_define_standard_option(G_OPT_R_INPUT);
     mask_opt->key = "mask";
     mask_opt->label = _("Raster map to use for masking");
-    mask_opt->description = _("Only cells that are not NULL and not zero are interpolated");
+    mask_opt->description = _("Only cells where the mask map is not NULL and not zero are interpolated");
     mask_opt->required = NO;
 
     mem_opt = G_define_option();
