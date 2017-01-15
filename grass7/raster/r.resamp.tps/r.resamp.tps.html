@@ -43,6 +43,21 @@ output of <em>r.resamp.tps</em> and the data interpolated with a
 different method).
 
 <p>
+When using covariables, outliers might be created if the values of the 
+covariables of the current output cell are far outside the observed 
+range of covariables, or if the linear regression component of the TPS 
+interpolation for the covariables does not provide a good solution. Two 
+methods are provided to avoid outliers caused by covariables. The first 
+method (<em>lmfilter</em>) will discard covariables if R squared is 
+larger than the value provided with the <em>lmfilter</em> option. The 
+second method (<em>epfilter</em>) will discard covariables if the 
+current value of a covariable is outside the observed range of 
+covariables by a factor of (<em>epfilter</em>). The <em>epfilter</em> 
+option typically results in more interpolations using the supplied 
+covariables than the <em>lmfilter</em> option when both are adjusted to 
+reject the same outliers.
+
+<p>
 The <b>memory</b> option controls only how much memory should be used 
 for the covariables and the intermediate output. The data needed for 
 TPS interpolation are always completely loaded to memory.
