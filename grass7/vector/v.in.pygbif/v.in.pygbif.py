@@ -21,6 +21,7 @@ To Dos:
 - use proper cleanup routine, esp if using csv + vrt (copy from other modules)
 - handle layers in mask input
 - add progress bar
+- make date_from and date_to dependent on each other or use today as date_to if not specified
 
 """
 
@@ -184,6 +185,9 @@ from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 from dateutil.parser import parse
 
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
+
 if not os.environ.has_key("GISBASE"):
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
@@ -238,6 +242,8 @@ def main():
     rank = options['rank']
 
     # Define static variable
+    #Initialize cat
+    cat = 0
     # Number of occurrences to fetch in one request
     chunk_size = 300
     # lat/lon proj string
@@ -533,7 +539,7 @@ def main():
 
             new = Vector(mapname)
             new.open('w', tab_name=mapname, tab_cols=cols)
-            cat = 1
+            cat = 0
 
         # Download the data from GBIF
         for c in range(chunks):
@@ -574,8 +580,9 @@ def main():
                     if k not in res.keys():
                         res.update({k: None})
 
-                new.write(point, attrs=(
-                          u'{}'.format(s),
+                cat = cat + 1
+                new.write(point, cat=cat, attrs=(
+                          u'{}'.format(s.decode('utf-8')),
                           res['key'],
                           res['taxonRank'],
                           res['taxonKey'],
@@ -596,8 +603,8 @@ def main():
                           res['phylumKey'],
                           res['kingdom'],
                           res['kingdomKey'],
-                          str(res['eventDate']),
-                          str(res['verbatimEventDate']),
+                          u'{}'.format(res['eventDate']) if res['eventDate'] else None,
+                          u'{}'.format(res['verbatimEventDate']) if res['verbatimEventDate'] else None,
                           res['startDayOfYear'],
                           res['endDayOfYear'],
                           res['year'],
@@ -627,15 +634,15 @@ def main():
                           res['recordedBy'],
                           res['identificationID'],
                           u','.join(res['identifiers']),
-                          str(res['dateIdentified']),
-                          str(res['modified']),
+                          u'{}'.format(res['dateIdentified']) if res['dateIdentified'] else None,
+                          u'{}'.format(res['modified']) if res['modified'] else None,
                           res['institutionCode'],
-                          str(res['lastInterpreted']),
-                          str(res['lastParsed']),
+                          u'{}'.format(res['lastInterpreted']) if res['lastInterpreted'] else None,
+                          u'{}'.format(res['lastParsed']) if res['lastParsed'] else None,
                           res['references'],
                           u','.join(res['relations']),
                           res['catalogNumber'],
-                          str(res['occurrenceDetails']),
+                          u'{}'.format(res['occurrenceDetails']) if res['occurrenceDetails'] else None,
                           res['datasetKey'],
                           res['datasetName'],
                           res['collectionCode'],
@@ -644,7 +651,7 @@ def main():
                           res['license'],
                           res['publishingOrgKey'],
                           res['publishingCountry'],
-                          str(res['lastCrawled']),
+                          u'{}'.format(res['lastCrawled']) if res['lastCrawled'] else None,
                           res['specificEpithet'],
                           u','.join(res['facts']),
                           u','.join(res['issues']),
