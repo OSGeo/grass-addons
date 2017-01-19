@@ -1,8 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-<em>i.lmf</em> calculates the Local maximum fitting of a temporal time-series, intially for vegetation indices, it also works for surface reflectance.
-
+<em>i.lmf</em> calculates the Local maximum fitting of a temporal image series,
+intially for vegetation indices, it also works for surface reflectance.
+<p>
 This is a first level port, only a fast fitting is done, see TODO.
+
+<p>
+The number of bands is potentially several years, <b>nfiles</b> and <b>ndates</b>
+are respectively the number of pixels and the number of pixels in a year.
+
 
 <h2>NOTES</h2>
 Original links are found here
@@ -19,11 +25,13 @@ http://www.rsgis.ait.ac.th/~honda/lmf/lmf.html
 
 <h2>TODO</h2>
 Port the full detailed algorithm from Fortran, and vastly unemcomber/clean it.
-It will make the algorithm must slower though, gaining only a marginal fitting strength, for my actual experience with VIs curves.
+It will make the algorithm must slower though, gaining only a marginal fitting
+strength, for my actual experience with VIs curves.
 
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="r.series.html">r.series</a>
 </em>
 
 

@@ -1,83 +1,6 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.edm.eval</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.edm.eval</b></em>  - Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
-<h2>KEYWORDS</h2>
-<h2>SYNOPSIS</h2>
-<div id="name"><b>r.edm.eval</b><br></div>
-<b>r.edm.eval help</b><br>
-<div id="synopsis"><b>r.edm.eval</b> [-<b>bl</b>] <b>obs</b>=<em>Raster name</em> <b>mod</b>=<em>Raster name</em> <b>fstats</b>=<em>File name</em>  [<b>n_bins</b>=<em>integer</em>]   [<b>buffer_abs</b>=<em>buffer zone (km)</em>]   [<b>buffer_pres</b>=<em>buffer zone (km)</em>]   [<b>preval</b>=<em><0-1></em>]   [<b>num_pres</b>=<em>integer</em>]   [<b>num_abs</b>=<em>integer</em>]   [--<b>help</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-</div>
-
-<div id="flags">
-<h3>Flags:</h3>
-<dl>
-<dt><b>-b</b></dt>
-<dd>add presence to background?</dd>
-
-<dt><b>-l</b></dt>
-<dd>print log file to file?</dd>
-
-<dt><b>--help</b></dt>
-<dd>Print usage summary</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-</div>
-
-<div id="parameters">
-<h3>Parameters:</h3>
-<dl>
-<dt><b>obs</b>=<em>Raster name</em>&nbsp;<b>[required]</b></dt>
-<dd>Observed distribution</dd>
-
-<dt><b>mod</b>=<em>Raster name</em>&nbsp;<b>[required]</b></dt>
-<dd>Modeled distribution</dd>
-
-<dt><b>fstats</b>=<em>File name</em>&nbsp;<b>[required]</b></dt>
-<dd>Name of output files (without extension)</dd>
-
-<dt><b>n_bins</b>=<em>integer</em></dt>
-<dd>Number of bins in which to divide the modeled distribution scores</dd>
-<dd>Default: <em>200</em></dd>
-
-<dt><b>buffer_abs</b>=<em>buffer zone (km)</em></dt>
-<dd>Restrict absence area to x km buffer</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>buffer_pres</b>=<em>buffer zone (km)</em></dt>
-<dd>Restrict presence area to x km buffer</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>preval</b>=<em><0-1></em></dt>
-<dd>Prevalence of presence points</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>num_pres</b>=<em>integer</em></dt>
-<dd>number of presence points (this will not work if parab &gt; 0)</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>num_abs</b>=<em>integer</em></dt>
-<dd>number of absence points (this will not work if parab &gt; 0)</dd>
-<dd>Default: <em>0</em></dd>
-
-</dl>
-</div>
-
 <h2>DESCRIPTION</h2>
 
-<p><em>r.edm.eval</em>Environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The function returns a number of evaluation statistics (on the command line and as text file with user defined name), including the AUC, maximum sum of specificity and sensitivity (spec. + sens), the maximum true skill statistic (TSS - which is just spec + sens - 1), and the the maximum kappa. For all three statistics, the corresponding probabilty threshold values are also given.
+<p><em>r.edm.eval</em> is an environmentalal distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The function returns a number of evaluation statistics (on the command line and as text file with user defined name), including the AUC, maximum sum of specificity and sensitivity (spec. + sens), the maximum true skill statistic (TSS - which is just spec + sens - 1), and the the maximum kappa. For all three statistics, the corresponding probabilty threshold values are also given.
 
 <p>In addition, a csv file (with user-defined name) is created with the number of true and false positives (TP,FP), true and false negatives (TN,FN), the true and false positive rate (TPR,FPR), the true negative rate (TNR) and the three statistics mentioned above are given. The user can use this to create for example the receiver operating characteristic (ROC) curve and other evaluation statistics in her/his favorite software.
 
@@ -110,11 +33,5 @@
 
 <h2>AUTHOR</h2>
 Paulo van Breugel <http://www.ecodiv.org/about/contact-us/>
-<br>
 
-<hr>
-<p><a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/index.html">Main index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/raster.html">Raster index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/topics.html">Topics index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/keywords.html">Keywords Index</a> - <a href="file:///usr/local/grass7/grass-7.0.svn/docs/html/full_index.html">Full index</a></p>
-<p>&copy; 2003-2013 <a href="http://grass.osgeo.org">GRASS Development Team</a>, GRASS GIS 7.0.svn Reference Manual</p>
-
-</body>
-</html>
+<p><i>Last changed: $Date$</i>

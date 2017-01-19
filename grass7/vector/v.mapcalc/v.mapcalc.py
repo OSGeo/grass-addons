@@ -14,7 +14,8 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
 
 #%module
 #% description: Vector map calculator.
-#% keywords: vector, algebra
+#% keyword: vector
+#% keyword: algebra
 #%end
 #%option
 #% key: expression

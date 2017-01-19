@@ -24,7 +24,8 @@
 ############################################################################
 #%Module 
 #%  description: Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries. 
-#%  keywords: vector
+#%  keyword: vector
+#%  keyword: topology
 #%End
 #%Option
 #%  key: input

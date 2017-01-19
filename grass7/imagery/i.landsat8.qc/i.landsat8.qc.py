@@ -17,12 +17,12 @@
 """
 
 #%Module
-#% description: Reclass Landsat8 QA band according to acceptable pixel quality as defined by the user
-#% keywords: imagery
-#% keywords: qc
-#% keywords: bitpattern
-#% keywords: mask
-#% keywords: landsat8
+#% description: Reclassifies Landsat8 QA band according to acceptable pixel quality as defined by the user.
+#% keyword: imagery
+#% keyword: qc
+#% keyword: bitpattern
+#% keyword: mask
+#% keyword: landsat8
 #%End
 
 #%option G_OPT_F_OUTPUT

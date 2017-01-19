@@ -17,9 +17,9 @@
 
 #%module
 #% description: Runs r.sun for multiple days in loop (mode 2)
-#% keywords: raster
-#% keywords: solar
-#% keywords: sun energy
+#% keyword: raster
+#% keyword: solar
+#% keyword: sun energy
 #%end
 
 #%option G_OPT_R_ELEV

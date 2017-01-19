@@ -28,7 +28,7 @@
 #############################################################################
 
 #%Module
-#% description: Brovey transform to merge multispectral and high-res panchromatic channels
+#% description: Brovey transform to merge multispectral and high-res panchromatic channels.
 #% keyword: imagery
 #% keyword: fusion
 #% keyword: Brovey

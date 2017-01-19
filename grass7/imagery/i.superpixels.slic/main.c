@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   G_add_keyword(_("segmentation"));
   G_add_keyword(_("superpixels"));
   G_add_keyword(_("SLIC"));
-  module->description = _("SLIC segmenation");
+  module->description = _("Performa image segmentation using the SLIC segmentation method.");
 
   grp = G_define_standard_option(G_OPT_I_GROUP);
 

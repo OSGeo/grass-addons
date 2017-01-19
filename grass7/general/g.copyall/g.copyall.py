@@ -19,7 +19,7 @@
 #############################################################################
 
 #%Module
-#% description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset
+#% description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset.
 #% keyword: copy
 #% keyword: general
 #% overwrite: yes

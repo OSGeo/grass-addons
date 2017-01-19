@@ -87,7 +87,8 @@ int main(int argc, char *argv[])
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
-	module->keywords = _("raster, series");
+	G_add_keyword(_("raster"));
+	G_add_keyword(_("series"));
 	module->description =
 	_("From two series of input raster maps, calculates the joint probability function and outputs the probabilities of occurrence in the specified bins.");
 

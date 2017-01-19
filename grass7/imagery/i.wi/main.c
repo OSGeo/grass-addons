@@ -5,7 +5,7 @@
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates water indices 
  *
- * COPYRIGHT:    (C) 2008-2016 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2016 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("index"));
     G_add_keyword(_("biophysical"));
     module->description =
-	_("Water indices (designed on Landsat satellites)");
+	_("Calculates different types of vegetation indices.");
     
     /* Define the different options */
 

@@ -13,7 +13,6 @@ SUBDIRS = \
 	i.evapo.senay \
 	i.evapo.zk \
 	i.feotio2 \
-	i.fusion.brovey \
 	i.gcp \
 	i.gravity \
 	i.histo.match \

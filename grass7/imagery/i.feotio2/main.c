@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("FeO"));
     G_add_keyword(_("TiO2"));
     G_add_keyword(_("reflectance"));
-    module->description = _("Computes wt%FeO, OMAT or wt%TiO2 from various bands.");
+    module->description = _("Calculates the FeO or TiO2 contents from the Clementine project Moon data.");
 
     /* Define the different options */
     in0 = G_define_standard_option(G_OPT_R_INPUT);

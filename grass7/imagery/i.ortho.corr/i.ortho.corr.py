@@ -3,10 +3,10 @@
 
 ############################################################################
 #
-# MODULE:    i.ortho.corr
-# AUTHOR(S):    Luca Delucchi
-# PURPOSE:    It is useful to correct orthophoto using the camera angle map
-#        create by i.ortho.photo
+# MODULE:     i.ortho.corr
+# AUTHOR(S):  Luca Delucchi
+# PURPOSE:    Useful to correct orthophoto using the camera angle map
+#             create by i.ortho.photo
 #
 # COPYRIGHT:    (C) 2011 by Luca Delucchi
 #
@@ -16,8 +16,9 @@
 #
 #############################################################################
 #%module
-#% description: Correct orthophoto taking part of the near orthophotos using the camera angle map
-#% keywords: imagery
+#% description: Corrects orthophoto taking part of the adjacent orthophotos using a camera angle map.
+#% keyword: imagery
+#% keyword: orthorectification
 #%end
 #%option
 #% key: input

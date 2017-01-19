@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("heat flux"));
     G_add_keyword(_("energy balance"));
-    module->description = _("Sensible Heat Flux iteration SEBAL 95");
+    module->description = _("Performs sensible heat flux iteration (SEBAL 95).");
 
     /* Define different options */
     input_T = G_define_standard_option(G_OPT_R_INPUT);

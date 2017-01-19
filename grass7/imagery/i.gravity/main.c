@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("Eotvos"));
     G_add_keyword(_("Free Air"));
     module->description =
-	_("Bouguer anomaly computation (full slab).");
+	_("Bouguer gravity anomaly computation (full slab).");
     
     /* Define the different options */ 
     in0 = G_define_standard_option(G_OPT_R_INPUT);

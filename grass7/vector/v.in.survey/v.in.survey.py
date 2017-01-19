@@ -20,10 +20,10 @@
 
 #%module
 #% description: Creates multiple vector layers from just one textfile
-#% keywords: vector
-#% keywords: import
-#% keywords: ASCII
-#% keywords: multiple
+#% keyword: vector
+#% keyword: import
+#% keyword: ASCII
+#% keyword: multiple
 #%end
 
 #% option G_OPT_F_INPUT

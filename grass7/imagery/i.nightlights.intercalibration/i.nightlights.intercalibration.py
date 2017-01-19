@@ -113,13 +113,13 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 """
 
 #%Module
-#%  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series
-#%  keywords: imagery
-#%  keywords: inter-satellite
-#%  keywords: calibration
-#%  keywords: nighttime lights
-#%  keywords: time series
-#%  keywords: DMSP-OLS
+#%  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series.
+#%  keyword: imagery
+#%  keyword: inter-satellite
+#%  keyword: calibration
+#%  keyword: nighttime lights
+#%  keyword: time series
+#%  keyword: DMSP-OLS
 #%End
 
 #%flag

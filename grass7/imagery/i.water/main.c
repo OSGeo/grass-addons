@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("water"));
     G_add_keyword(_("detection"));
-    module->description = _("Water detection, 1 if found, 0 if not");
+    module->description = _("Water detection from satellite data derived indices, 1 if found, 0 if not");
     
     /* Define the different options */ 
     input1 = G_define_standard_option(G_OPT_R_INPUT);

@@ -16,7 +16,7 @@
 #
 #############################################################################
 #%module
-#% description: Connects GRASS session with another one in a cluster system.
+#% description: Connects a local GRASS GIS session to another one in a cluster system.
 #% keyword: general
 #% keyword: cloud computing
 #%end

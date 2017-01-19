@@ -30,7 +30,7 @@
 ##############################################################################
 
 #%Module
-#% description: Compute LSWT from TOA Brightness Temperatures
+#% description: Computes Lake Surface Water Temperatures (inland water bodies) from TOA Brightness Temperatures.
 #% keyword: imagery
 #% keyword: LSWT
 #% keyword: MODIS

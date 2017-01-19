@@ -74,12 +74,13 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
+    G_add_keyword(_("imagery"));
     G_add_keyword(_("LMF"));
     G_add_keyword(_("Vegetation Indices"));
     G_add_keyword(_("Atmospheric correction"));
     G_add_keyword(_("Temporal"));
     module->description =
-	_("Temporal Local Maximum Fitting of vegetation indices, works also for surface reflectance data. Number of bands is potentially several years, nfiles and ndates are respectively the number of pixels and the number of pixels in a year\n");
+	_("Performs Temporal Local Maximum Fitting of vegetation indices, works also for surface reflectance data.");
 
     /* Define the different options */
 

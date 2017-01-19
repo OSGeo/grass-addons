@@ -24,7 +24,10 @@
 ############################################################################
 #%Module 
 #%  description: "Explode" polylines, splitting them to separate lines (uses v.split + v.category)
-#%  keywords: display, graphics, vector, symbology
+#%  keyword: display
+#%  keyword: graphics
+#%  keyword: vector
+#%  keyword: symbology
 #%End
 #%Option
 #%  key: input

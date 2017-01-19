@@ -6,7 +6,15 @@ of bedrock elevations, as well as several environmental variables,
 and computes the net change in elevation due to erosion and
 deposition on the hill-slopes using the USPED equation, and in the
 stream channels using a process equation based either on the excess stream
-power or shear stress. The module has the ability to run recursively,
+power or shear stress.
+
+<p>
+This module uses appropriate flow on different landforms by default;
+however, singular flow regimes can be chosen by manipulating the cutoff points.
+THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE!
+
+<p>
+The module has the ability to run recursively,
 looping over several iterations. The time interval represented by
 each iteration is determined by the scale of the input environmental
 variables, and as such, all input variables should be on the same

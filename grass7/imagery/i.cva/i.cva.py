@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #%module
-#% description: Performs Change Vector Analysis (CVA) in two dimensions
+#% description: Performs Change Vector Analysis (CVA) in two dimensions.
 #% keyword: imagery
 #%end
 #%option G_OPT_R_INPUT

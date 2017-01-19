@@ -166,8 +166,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("canny"));
     G_add_keyword(_("edge detection"));
     module->description =
-        _("Canny edge detector. Region shall be set to input map. "
-	  "Can work only on small images since map is loaded into memory.");
+        _("Canny edge detector.");
 
     /* Define the different options as defined in gis.h */
     input = G_define_standard_option(G_OPT_R_INPUT);

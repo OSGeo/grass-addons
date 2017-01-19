@@ -16,8 +16,8 @@
 #%module
 #% description: Runs r.sun in loop for given time range (mode 1)
 #% keyword: raster
-#% keywords: solar
-#% keywords: sun energy
+#% keyword: solar
+#% keyword: sun energy
 #% overwrite: yes
 #%end
 #%option

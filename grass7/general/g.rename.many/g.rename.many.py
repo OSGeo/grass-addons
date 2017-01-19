@@ -20,7 +20,7 @@
 ############################################################################
 
 #%module
-#% description: Renames maps in the current mapset
+#% description: Renames multiple maps in the current mapset.
 #% keyword: general
 #% keyword: map management
 #% keyword: rename

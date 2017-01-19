@@ -55,7 +55,7 @@
 #
 
 #%module
-#% description: Csw wsgi handler
+#% description: CSW wsgi handler
 #% keyword: csw
 #% keyword: metadata
 #%end

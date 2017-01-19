@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("SEBS"));
     G_add_keyword(_("roughness length"));
     module->description =
-	_("Momentum roughness length (z0m) and surface roughness for heat transport (z0h) as seen in Bastiaanssen (2004)");
+	_("Computes momentum roughness length (z0m) and surface roughness for heat transport (z0h) after Bastiaanssen (2004).");
     
     /* Define the different options */ 
     input1 = G_define_standard_option(G_OPT_R_INPUT);

@@ -16,7 +16,7 @@
 
 
 #%Module
-#% description: Creates a raster buffer of specified area around vector points using cost distances using r.walk. NOTE: please run g.region first to make sure region boundaries and resolution match input elevation map.
+#% description: Creates a raster buffer of specified area around vector points using cost distances using r.walk.
 #% keyword: raster
 #% keyword: buffer
 #%END

@@ -33,7 +33,9 @@ To Dos:
 
 #%Module
 #% description: Exports the color table associated with a raster map layer in SLD format.
-#% keywords: raster, export, color table
+#% keyword: raster
+#% keyword: export
+#% keyword: color table
 #%End
 
 #%Option G_OPT_R_MAP

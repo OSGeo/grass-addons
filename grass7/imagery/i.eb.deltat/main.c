@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("SEBS"));
     G_add_keyword(_("delta T"));
     module->description =
-	_("difference of temperature between two heights as seen in Pawan (2004), this is part of sensible heat flux calculations, as in SEBAL (Bastiaanssen, 1995). A 'w' flag allows for a very generic approximation.");
+	_("Computes the difference of temperature between surface skin temperature and air temperature at 2m as part of sensible heat flux calculations.");
     
     /* Define the different options */ 
     input1 = G_define_standard_option(G_OPT_R_INPUT);

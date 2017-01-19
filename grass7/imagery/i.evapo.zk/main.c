@@ -67,8 +67,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("evapotranspiration"));
     module->description =
-	_("Computes global evapotranspiration calculation "
-	  "Zhang, Kimball, Nemani and Running formulation, 2010.");
+	_("Computes global evapotranspiration calculation after Zhang, Kimball, Nemani and Running formulation, 2010.");
     
     /* Define different options */
 

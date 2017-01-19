@@ -85,12 +85,12 @@
 
 #%Module
 #%  description: Practical split-window algorithm estimating Land Surface Temperature from Landsat 8 OLI/TIRS imagery (Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015)
-#%  keywords: imagery
-#%  keywords: split window
-#%  keywords: column water vapor
-#%  keywords: land surface temperature
-#%  keywords: lst
-#%  keywords: landsat8
+#%  keyword: imagery
+#%  keyword: split window
+#%  keyword: column water vapor
+#%  keyword: land surface temperature
+#%  keyword: lst
+#%  keyword: landsat8
 #%End
 
 #%flag

@@ -15,9 +15,10 @@
 #############################################################################
 
 #%module
-#% description: Satellite Derived Bathymetry (SDB) from multispectral images
-#% keyword: Bathymetry
-#% keyword: Satellite
+#% description: Estimates Satellite Derived Bathymetry (SDB) from multispectral images.
+#% keyword: imagery
+#% keyword: bathymetry
+#% keyword: satellite
 #%end
 #%option G_OPT_R_INPUT
 #% key: blue_band

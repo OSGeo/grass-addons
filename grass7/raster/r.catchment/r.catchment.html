@@ -15,10 +15,15 @@ a particular size (e.g., certain number of square meters needed for
 farmed fields), and doesn't want to spend time via trial and error 
 experimenting with different cost radii. 
 
+<p>
 Additionally, this module allows the user to enter a slope threshold 
 (option <b>sigma</b>), which will mask out areas of higher slope. 
 This is useful for delimiting catchments that are of generally flat 
 land (e.g., areas where agriculture are likely).
+
+<p>
+Important: The user must run <b>g.region</b> first to make sure that
+the region boundaries and the resolution match the input elevation map.
 
 <h3>Options and flags:</h3>
 

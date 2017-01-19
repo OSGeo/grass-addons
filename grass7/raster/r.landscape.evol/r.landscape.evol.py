@@ -20,7 +20,7 @@
 #
 #############################################################################/
 #%Module
-#% description: Simulates the cumulative effect of erosion and deposition on a landscape over time. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen by manipulating the cutoff points. This module requires GRASS 6.4 or greater. THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE!
+#% description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
 #% keyword: raster
 #% keyword: modelling
 #%End

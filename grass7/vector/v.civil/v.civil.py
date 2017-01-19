@@ -24,8 +24,12 @@ Created on Wed Jul 23 18:37:36 2014
 #############################################################################
 
 #%Module
-#% description: Generate a alignment for desing roads, channels, ports...
-#% keywords: vector, ROADS, CHANNELS, PORTS.
+#% description: Generates a alignment for designing roads, channels, and ports in civil engineering
+#% keyword: vector
+#% keyword: civil engineering
+#% keyword: roads
+#% keyword: channels
+#% keyword: ports
 #%End
 
 #######################
