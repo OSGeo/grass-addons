@@ -947,6 +947,14 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			G_free(m[i]);
 		    G_free(m);
 
+		    if (n_vars) {
+			G_free(apnts);
+			G_free(Bpnts);
+			for (i = 0; i < (palloc + 1); i++)
+			    G_free(mpnts[i]);
+			G_free(mpnts);
+		    }
+
 		    palloc = pfound;
 		    a = G_malloc((palloc + 1 + n_vars) * sizeof(double));
 		    B = G_malloc((palloc + 1 + n_vars) * sizeof(double));
@@ -958,17 +966,13 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		    afull = a;
 		    Bfull = B;
 
-		    G_free(apnts);
-		    G_free(Bpnts);
-		    for (i = 0; i < (palloc + 1); i++)
-			G_free(mpnts[i]);
-		    G_free(mpnts);
-
-		    apnts = G_malloc((palloc + 1) * sizeof(double));
-		    Bpnts = G_malloc((palloc + 1) * sizeof(double));
-		    mpnts = G_malloc((palloc + 1) * sizeof(double *));
-		    for (i = 0; i < (palloc + 1); i++)
-			mpnts[i] = G_malloc((palloc + 1) * sizeof(double));
+		    if (n_vars) {
+			apnts = G_malloc((palloc + 1) * sizeof(double));
+			Bpnts = G_malloc((palloc + 1) * sizeof(double));
+			mpnts = G_malloc((palloc + 1) * sizeof(double *));
+			for (i = 0; i < (palloc + 1); i++)
+			    mpnts[i] = G_malloc((palloc + 1) * sizeof(double));
+		    }
 		}
 
 		/* sort points */
