@@ -49,9 +49,11 @@ int main(int argc, char *argv[])
     struct ilist *Catlist;
     FILE *ascii;
 
-    int i, dp, type, otype, id, ncols, nrows, ncats, col, more, open3d,
+    int i, dp, type, otype, id, nrows, ncats, col, more, open3d,
         layer, pro_layer, *cats, c, field_index, cat;
-    size_t rescount;
+    size_t j, rescount;
+    /* GCC */
+    int ncols = 0;
     double xval, yval, bufsize;
     const char *mapset, *pro_mapset;
     char sql[200], *fs;
@@ -544,20 +546,20 @@ int main(int argc, char *argv[])
     }
 
     /* Print out result */
-    for (i = 0; i < rescount; i++) {
-        fprintf(ascii, "%d%s%.*f", i + 1, fs, dp, resultset[i].distance);
+    for (j = 0; j < rescount; j++) {
+        fprintf(ascii, "%zu%s%.*f", j + 1, fs, dp, resultset[j].distance);
         if (open3d == WITH_Z)
-            fprintf(ascii, "%s%.*f", fs, dp, resultset[i].z);
+            fprintf(ascii, "%s%.*f", fs, dp, resultset[j].z);
         if (Fi != NULL) {
             sprintf(sql, "select * from %s where %s=%d", Fi->table, Fi->key,
-                    resultset[i].cat);
+                    resultset[j].cat);
             G_debug(2, "SQL: \"%s\"", sql);
             db_set_string(&dbsql, sql);
             /* driver IS initialized here in case if Fi != NULL */
             if (db_open_select_cursor(driver, &dbsql, &cursor, DB_SEQUENTIAL)
                 != DB_OK)
                 G_warning(_("Unabale to get attribute data for cat %d"),
-                          resultset[i].cat);
+                          resultset[j].cat);
             else {
                 nrows = db_get_num_rows(&cursor);
                 G_debug(1, "Result count: %d", nrows);
@@ -566,7 +568,7 @@ int main(int argc, char *argv[])
                 if (nrows > 0) {
                     if (db_fetch(&cursor, DB_NEXT, &more) != DB_OK) {
                         G_warning(_("Error while retreiving database record for cat %d"),
-                                  resultset[i].cat);
+                                  resultset[j].cat);
                     }
                     else {
                         for (col = 0; col < ncols; col++) {
