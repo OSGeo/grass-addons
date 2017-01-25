@@ -55,8 +55,13 @@ use other GIS programs
 
 
 <h2>NOTE</h2>
-The file is only useful for categorical maps.
-Therefore only integer maps are accepted as input.
+
+The file is only useful for categorical maps. Therefore only integer maps are
+accepted as input. To export color maps for continuous raster layers (or as an
+alternative to this plugin), have a look at the r.colors.out_sld plugin. To
+get QGIS color files, you need a two step approach: (1) create a sld file using
+the r.colors.out_sld plugin, and (2) in QGIS, use the SLD4raster plugin to
+convert this to a qml file.
 
 <p>When you use the option to recode the map, you need to set an
 output map as well. It uses the <em><a href="r.recode">r.recode </a></em>
@@ -71,6 +76,8 @@ See <a href="https://pvanb.wordpress.com/grass-gis-categorical-raster-layers-in-
 <a href="r.category.html">r.category</a>,
 <a href="r.colors.html">r.colors</a>,
 <a href="r.recode.html">r.recode</a>
+<a href="https://grass.osgeo.org/grass70/manuals/addons/r.colors.out_sld.html">
+r.colors.out_sld</a>
 </em>
 
 <h2>AUTHOR</h2>

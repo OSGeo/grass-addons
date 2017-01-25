@@ -135,7 +135,7 @@ def main(options, flags):
         RIDN = range(1, len(RID) + 1)
         RLAB = [z.split('\t')[1] for z in RCAT]
         for j in xrange(len(RID)):
-            RECO = '{0}{1}:{1}:{2}\n'.format(RECO, RID[j], RIDN[J])
+            RECO = '{0}{1}:{1}:{2}\n'.format(RECO, RID[j], RIDN[j])
             A = map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]])
             CV.append(RCOL[A[0]].split(' ')[1])
             CR = '{}{} {}\n'.format(CR, RIDN[j], CV[j])
