@@ -54,23 +54,21 @@ int main(int argc, char *argv[])
 
   char grp_name[INAME_LEN];
 
-  int nfiles;
-
-  int n_iterations, n_super_pixels, n_compactness;
+  int n_iterations, n_super_pixels;
 
   struct Option *output;  /* option for output */
 
   int nrows, ncols;
   
-  int **pdata;
+  DCELL **pdata;
 
   off_t sz;
 
   /* loop variables */
   int nf;
-  int i_fd, index, row, col;
-  RASTER_MAP_TYPE i_data_type;
-  void *i_band;
+  int *ifd, index, row, col, nbands;
+  DCELL **ibuf, *min, *max, *rng;
+  struct FPRange drange;
 
   double compactness;
   int superpixelsize;
@@ -102,13 +100,14 @@ int main(int argc, char *argv[])
 
   int x1, y1, x2, y2, itr;
   double dist, distxy, dx, dy, dbl_offset;
+  double distsum;
  
   
   int* nlabels;
   int k, r, c, ind, i;
   int k_offset, np, outfd, z;
 
-  CELL *ubuff;
+  CELL *obuf;
   perturbseeds = 0;
   hexgrid = 0;
   compactness = 0;
@@ -144,7 +143,7 @@ int main(int argc, char *argv[])
 
   opt_compactness = G_define_option();
   opt_compactness->key = "co";
-  opt_compactness->type = TYPE_INTEGER;
+  opt_compactness->type = TYPE_DOUBLE;
   opt_compactness->required = NO;
   opt_compactness->description = _("Compactness");
   opt_compactness->answer = "20";
@@ -166,13 +165,13 @@ int main(int argc, char *argv[])
   /* get the group ref */
   if (!I_get_group_ref(grp_name, (struct Ref *)&group_ref))
     G_fatal_error(_("Could not read REF file for group <%s>"), grp_name);
-  nfiles = group_ref.nfiles;
-  if (nfiles <= 0) {
+  nbands = group_ref.nfiles;
+  if (nbands <= 0) {
     G_important_message(_("Group <%s> contains no raster maps; run i.group"),
 			grp->answer);
     exit(EXIT_SUCCESS);
   }
-	
+  
 
   if (opt_iteration->answer) {
     if ( sscanf(opt_iteration->answer, "%d", &n_iterations) != 1 ) {
@@ -194,53 +193,72 @@ int main(int argc, char *argv[])
   }
 
   if (opt_compactness->answer) {
-    if ( sscanf(opt_compactness->answer, "%d", &n_compactness) != 1 ) {
+    if ( sscanf(opt_compactness->answer, "%lf", &compactness) != 1 ) {
       G_fatal_error(_("Illegal value for co (%s)"),  opt_compactness->answer);
     }
   }
   else {
-    n_compactness = 20;
+    compactness = 20;
   }
   
-  const char*  result = output->answer;
+  const char *outname = output->answer;
  
   nrows = Rast_window_rows();
   ncols = Rast_window_cols();
 
-  pdata  = G_malloc (sizeof (int) * group_ref.nfiles);
+  pdata  = G_malloc (sizeof (DCELL *) * group_ref.nfiles);
 
   sz = nrows * ncols;
    
+  ifd = G_malloc (sizeof (int *) * group_ref.nfiles);
+  ibuf = G_malloc (sizeof (DCELL **) * group_ref.nfiles);
+  min = G_malloc (sizeof (DCELL) * group_ref.nfiles);
+  max = G_malloc (sizeof (DCELL) * group_ref.nfiles);
+  rng = G_malloc (sizeof (DCELL) * group_ref.nfiles);
+
   for (nf = 0; nf < group_ref.nfiles; nf++) {
+    ibuf[nf] = Rast_allocate_d_buf();
+    ifd[nf] = Rast_open_old(group_ref.file[nf].name, group_ref.file[nf].mapset);
 
-    i_fd = -1;
-    i_data_type = -1;
-    i_band = NULL;
-		
-    index = 0;
-		
-    i_fd = Rast_open_old(group_ref.file[nf].name, group_ref.file[nf].mapset);
-    i_data_type = Rast_map_type(group_ref.file[nf].name, group_ref.file[nf].mapset);
-    i_band = Rast_allocate_buf(i_data_type);
+    Rast_read_fp_range(group_ref.file[nf].name, group_ref.file[nf].mapset,
+		       &drange);
+    Rast_get_fp_range_min_max(&drange, &min[nf], &max[nf]);
+    rng[nf] = max[nf] - min[nf];
 
-    pdata[nf]  = G_malloc (sizeof (int) * sz);
-    memset (pdata[nf], 0, sizeof (int) * sz);
-    for (row = 0; row < nrows; row++) {
-      G_percent(row, nrows, 2);
-      Rast_get_row(i_fd, i_band, row, i_data_type);
-      for (col = 0; col < ncols; col++) {
-	pdata[nf][index] = ((int *) i_band)[col];
-	index++;
+    pdata[nf]  = G_malloc (sizeof (DCELL) * sz);
+    memset (pdata[nf], 0, sizeof (DCELL) * sz);
+  }
+
+  for (row = 0; row < nrows; row++) {
+    G_percent(row, nrows, 2);
+
+    for (nf = 0; nf < group_ref.nfiles; nf++)
+      Rast_get_d_row(ifd[nf], ibuf[nf], row);
+    for (col = 0; col < ncols; col++) {
+      int isnull = 0;
+
+      for (nf = 0; nf < group_ref.nfiles; nf++) {
+	if (Rast_is_d_null_value(&ibuf[nf][col])) {
+	    isnull = 1;
+	    break;
+	}
+        pdata[nf][row * ncols + col] = (ibuf[nf][col] - min[nf]) / rng[nf];
+      }
+      if (isnull) {
+        for (nf = 0; nf < group_ref.nfiles; nf++)
+	  Rast_set_d_null_value(&pdata[nf][row * ncols + col], 1);
       }
     }
-
-    G_free(i_band);
-    Rast_close(i_fd);
-
   }
+
+  for (nf = 0; nf < group_ref.nfiles; nf++) {
+    Rast_close(ifd[nf]);
+    G_free(ibuf[nf]);
+  }
+  G_free(ifd);
+  G_free(ibuf);
 	
   
-  compactness = (double) n_compactness;
   superpixelsize = 0.5+(double)ncols * (double)nrows / (double)n_super_pixels;
 
 
@@ -298,7 +316,7 @@ int main(int argc, char *argv[])
   printf("numseeds=%d\n", numseeds);
 #endif
 
-  kseeds  = G_malloc (sizeof (int) * group_ref.nfiles);
+  kseeds  = G_malloc (sizeof (double *) * group_ref.nfiles);
   for (nf = 0; nf < group_ref.nfiles; nf++) {
     G_percent(nf, group_ref.nfiles, 2);
     kseeds[nf] = G_malloc (sizeof (double) * numseeds);
@@ -337,7 +355,7 @@ int main(int argc, char *argv[])
   inv = G_malloc (sizeof (double) * numk);
   memset (inv, 0, sizeof (double) * numk);
 
-  sigma  = G_malloc (sizeof (int) * group_ref.nfiles);
+  sigma  = G_malloc (sizeof (double *) * group_ref.nfiles);
   for (nf = 0; nf < group_ref.nfiles; nf++)	{
     sigma[nf] = G_malloc (sizeof (double) * numk);
     memset (sigma[nf], 0, sizeof (double) * numk);		
@@ -353,15 +371,31 @@ int main(int argc, char *argv[])
   double *distvec;
   distvec = G_malloc (sizeof (double) * sz);
 
-  invwt = 1.0/((offset/compactness)*(offset/compactness));
+  double *distspec;
+  distspec = G_malloc (sizeof (double) * sz);
+
+  for( s = 0; s < sz; s++ )
+    distspec[s] = 0;
+
+  double *maxdistspec;
+  maxdistspec = G_malloc (sizeof (double) * numk);
+
+  for(  n = 0; n < numk; n++ )
+    maxdistspec[n] = 1;
+
+  invwt = compactness * 0.005 / (offset * offset);
 
 
   dbl_offset = (double)offset;
   for( itr = 0; itr <  n_iterations ; itr++ ) {
+    G_percent(itr, n_iterations, 2);
+
     for( p = 0; p < sz; p++ )
       distvec[p] = 1E+9;
 	
-    G_percent(itr, n_iterations, 2);
+    for( p = 0; p < sz; p++ )
+      distspec[p] = 0;
+
 		
     for(  n = 0; n < numk; n++ )  {
       y1 = (int)MAX(0.0,	 kseedsy[n]-dbl_offset);
@@ -379,15 +413,17 @@ int main(int argc, char *argv[])
 	  for (nf = 0; nf < group_ref.nfiles; nf++) {
 	    dist += ((pdata[nf][i] - kseeds[nf][n]) * (pdata[nf][i] - kseeds[nf][n]));
 	  }
+	  dist /= nbands;
 	  distxy = (dx - kseedsx[n])*(dx - kseedsx[n]) +
 	    (dy - kseedsy[n])*(dy - kseedsy[n]);
 					
 	  /* ----------------------------------------------------------------------- */
-	  dist += distxy*invwt;
-	  /* dist = sqrt(dist) + sqrt(distxy*invwt); /* this is more exact */
+	  distsum = dist / maxdistspec[n] + distxy*invwt;
+	  /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
 	  /*------------------------------------------------------------------------ */
-	  if( dist < distvec[i] ) {
-	    distvec[i] = dist;
+	  if( distsum < distvec[i] ) {
+	    distvec[i] = distsum;
+	    distspec[i] = dist;
 	    klabels[i]  = n;
 	  }
 
@@ -395,7 +431,16 @@ int main(int argc, char *argv[])
       } /* for( y=y1 */
     } /* for (n=0 */
 		
-		
+#if 0
+    if (itr == 0) {
+      for(  n = 0; n < numk; n++ )
+	maxdistspec[n] = 0;
+    }
+    for( s = 0; s < sz; s++ ) {
+      if (maxdistspec[klabels[s]] < distspec[s])
+	maxdistspec[klabels[s]] = distspec[s];
+    }
+#endif		
     for (nf = 0; nf < group_ref.nfiles; nf++) {
       memset (sigma[nf], 0, sizeof (double) * numk);
     }
@@ -440,6 +485,7 @@ int main(int argc, char *argv[])
       /*------------------------------------*/
     }
   }
+  G_percent(1, 1, 1);
 
 
 
@@ -463,16 +509,15 @@ int main(int argc, char *argv[])
     G_free(nlabels);
 
   z = 0;
-  outfd = Rast_open_new(result, CELL_TYPE);  
+  outfd = Rast_open_new(outname, CELL_TYPE);  
+  obuf = Rast_allocate_c_buf();
   for (row = 0; row < nrows; row++)	 {
-    CELL *ubuff = Rast_allocate_c_buf();
     for(col = 0; col < ncols; col++) {
-      ubuff[col] = klabels[z]+1; /* +1 to avoid category value 0*/
+      obuf[col] = klabels[z]+1; /* +1 to avoid category value 0*/
       z++;
     }
 
-    Rast_put_row(outfd, ubuff, CELL_TYPE);
-    G_free(ubuff);
+    Rast_put_row(outfd, obuf, CELL_TYPE);
   }
 	
 	
@@ -571,7 +616,7 @@ void SLIC_EnforceLabelConnectivity(int*   labels,
 	 If segment size is less then a limit, assign an
 	 adjacent label found before, and decrement label count.
 	-------------------------------------------------------*/
-	if(count <= SUPSZ >> 2) {
+	if(count <= 0) {
 	  for( c = 0; c < count; c++ ) {
 	    ind = yvec[c]*width+xvec[c];
 	    nlabels[ind] = adjlabel;
