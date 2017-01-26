@@ -350,14 +350,8 @@ int main(int argc, char *argv[])
   memset (sigmay, 0, sizeof (double) * numk);
 
 
-  /* 
-     double *distvec;
-     distvec = G_malloc (sizeof (double) * sz);
-  */
-
-  double distvec[sz];
-
-  for( p = 0; p < sz; p++ ) distvec[p] = 1E+9;
+  double *distvec;
+  distvec = G_malloc (sizeof (double) * sz);
 
   invwt = 1.0/((offset/compactness)*(offset/compactness));
 
