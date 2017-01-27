@@ -42,10 +42,11 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 int main(int argc, char *argv[])
 {
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *grp;		/* imagery group input option */
+    struct Option *opt_grp;		/* imagery group input option */
     struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
                   *opt_compactness, *opt_minsize;
-    struct Option *output;	/* option for output */
+    struct Option *opt_out;	/* option for output */
+    struct Flag *flag_n;
 
     struct Ref group_ref;
     char grp_name[INAME_LEN];
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
     int outfd;
     CELL *obuf;
 
-    int n_iterations, n_super_pixels, numk, numlabels;
+    int n_iterations, n_super_pixels, numk, numlabels, slic0;
     int nrows, ncols, row, col, b, k;
 
     double compactness;
@@ -98,9 +99,9 @@ int main(int argc, char *argv[])
     module->description =
 	_("Perform image segmentation using the SLIC segmentation method.");
 
-    grp = G_define_standard_option(G_OPT_I_GROUP);
+    opt_grp = G_define_standard_option(G_OPT_I_GROUP);
 
-    output = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt_out = G_define_standard_option(G_OPT_R_OUTPUT);
 
     opt_iteration = G_define_option();
     opt_iteration->key = "iter";
@@ -138,19 +139,23 @@ int main(int argc, char *argv[])
     opt_minsize->description = _("Minimum superpixel size");
     opt_minsize->answer = "1";
 
+    flag_n = G_define_flag();
+    flag_n->key = 'n';
+    flag_n->label = _("Normalize spectral distances");
+    flag_n->description = _("Equvivalent to SLIC zero (SCLI0)");
+
 
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-
 
     perturbseeds = 0;
     hexgrid = 0;
     compactness = 0;
     superpixelsize = 0;
 
-    G_strip(grp->answer);
-    strcpy(grp_name, grp->answer);
+    G_strip(opt_grp->answer);
+    strcpy(grp_name, opt_grp->answer);
 
     /* find group */
     if (!I_find_group(grp_name))
@@ -159,13 +164,13 @@ int main(int argc, char *argv[])
     /* get the group ref */
     if (!I_get_group_ref(grp_name, (struct Ref *)&group_ref))
 	G_fatal_error(_("Could not read REF file for group <%s>"), grp_name);
+
     nbands = group_ref.nfiles;
     if (nbands <= 0) {
 	G_important_message(_("Group <%s> contains no raster maps; run i.group"),
-			    grp->answer);
+			    opt_grp->answer);
 	exit(EXIT_SUCCESS);
     }
-
 
     n_iterations = 10;
     if (opt_iteration->answer) {
@@ -174,7 +179,6 @@ int main(int argc, char *argv[])
 			  opt_iteration->answer);
 	}
     }
-
 
     n_super_pixels = 200;
     if (opt_super_pixels->answer) {
@@ -208,10 +212,51 @@ int main(int argc, char *argv[])
 	}
     }
 
-    outname = output->answer;
+    slic0 = flag_n->answer;
+
+    outname = opt_out->answer;
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
+
+    /* determine seed grid */
+    offset = step;
+    superpixelsize = step * step;
+    if (step < 5) {
+	superpixelsize = 0.5 + (double)nrows * ncols / n_super_pixels;
+
+	offset = sqrt((double)superpixelsize) + 0.5;
+    }
+
+    xstrips = (0.5 + (double)ncols / offset);
+    ystrips = (0.5 + (double)nrows / offset);
+
+    xerr = ncols - offset * xstrips;
+    if (xerr < 0) {
+	xstrips--;
+	xerr = ncols - offset * xstrips;
+    }
+
+    yerr = nrows - offset * ystrips;
+    if (yerr < 0) {
+	ystrips--;
+	yerr = nrows - offset * ystrips;
+    }
+
+    xerrperstrip = (double)xerr / xstrips;
+    yerrperstrip = (double)yerr / ystrips;
+
+    xoff = offset / 2;
+    yoff = offset / 2;
+
+    numk = xstrips * ystrips;
+
+    G_debug(1, "superpixelsize = %d", superpixelsize);
+    G_debug(1, "nrows = %d", nrows);
+    G_debug(1, "ncols = %d", ncols);
+    G_debug(1, "xerrperstrip = %g", xerrperstrip);
+    G_debug(1, "yerrperstrip = %g", yerrperstrip);
+    G_debug(1, "numk = %d", numk);
 
     /* load input bands */
     pdata = G_malloc(sizeof(DCELL *) * nbands);
@@ -263,46 +308,6 @@ int main(int argc, char *argv[])
     G_free(ifd);
     G_free(ibuf);
 
-
-    /* initialize seeds */
-    offset = step;
-    superpixelsize = step * step;
-    if (step < 10) {
-	superpixelsize = 0.5 + (double)nrows * ncols / n_super_pixels;
-
-	offset = sqrt((double)superpixelsize) + 0.5;
-    }
-
-    xstrips = (0.5 + (double)ncols / offset);
-    ystrips = (0.5 + (double)nrows / offset);
-
-    xerr = ncols - offset * xstrips;
-    if (xerr < 0) {
-	xstrips--;
-	xerr = ncols - offset * xstrips;
-    }
-
-    yerr = nrows - offset * ystrips;
-    if (yerr < 0) {
-	ystrips--;
-	yerr = nrows - offset * ystrips;
-    }
-
-    xerrperstrip = (double)xerr / xstrips;
-    yerrperstrip = (double)yerr / ystrips;
-
-    xoff = offset / 2;
-    yoff = offset / 2;
-
-    numk = xstrips * ystrips;
-
-    G_debug(1, "superpixelsize = %d", superpixelsize);
-    G_debug(1, "nrows = %d", nrows);
-    G_debug(1, "ncols = %d", ncols);
-    G_debug(1, "xerrperstrip = %g", xerrperstrip);
-    G_debug(1, "yerrperstrip = %g", yerrperstrip);
-    G_debug(1, "numk = %d", numk);
-
     /* allocate seed variables */
     kseedsb = G_malloc(sizeof(double *) * numk);
     for (k = 0; k < numk; k++) {
@@ -316,6 +321,7 @@ int main(int argc, char *argv[])
     kseedsy = G_malloc(sizeof(double) * numk);
     memset(kseedsy, 0, sizeof(double) * numk);
 
+    /* initial seed values */
     k = 0;
     for (y = 0; y < ystrips; y++) {
 	ye = y * yerrperstrip;
@@ -417,7 +423,7 @@ int main(int argc, char *argv[])
 		    dist /= nbands;
 
 		    dx = x - kseedsx[k];
-		    distxy = (dx * dx + dy * dy) / 2;
+		    distxy = (dx * dx + dy * dy) / 2.0;
 
 		    /* ----------------------------------------------------------------------- */
 		    distsum = dist / maxdistspec[k] + distxy * invwt;
@@ -433,16 +439,19 @@ int main(int argc, char *argv[])
 	    }			/* for( y=y1 */
 	}			/* for (n=0 */
 
-	/* adaptive m for SLIC zero */
-	if (itr == 0) {
-	    for (k = 0; k < numk; k++)
-		maxdistspec[k] = 1.0 / nbands;
-	}
-	for (row = 0; row < nrows; row++) {
-	    for (col = 0; col < ncols; col++) {
-		if (klabels[row][col] >= 0) {
-		    if (maxdistspec[klabels[row][col]] < distspec[row][col])
-			maxdistspec[klabels[row][col]] = distspec[row][col];
+	if (slic0) {
+	    /* adaptive m for SLIC zero */
+	    if (itr == 0) {
+		for (k = 0; k < numk; k++)
+		    maxdistspec[k] = 1.0 / nbands;
+	    }
+	    for (row = 0; row < nrows; row++) {
+		for (col = 0; col < ncols; col++) {
+		    k = klabels[row][col];
+		    if (k >= 0) {
+			if (maxdistspec[k] < distspec[row][col])
+			    maxdistspec[k] = distspec[row][col];
+		    }
 		}
 	    }
 	}
@@ -502,7 +511,8 @@ int main(int argc, char *argv[])
 
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    klabels[row][col] = nlabels[row][col];
+	    if (klabels[row][col] >= 0)
+		klabels[row][col] = nlabels[row][col];
 	}
     }
 
@@ -510,20 +520,26 @@ int main(int argc, char *argv[])
     obuf = Rast_allocate_c_buf();
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    obuf[col] = klabels[row][col] + 1;	/* +1 to avoid category value 0 */
+	    if (klabels[row][col] < 0)
+		Rast_set_c_null_value(&obuf[col], 1);
+	    else
+		obuf[col] = klabels[row][col] + 1;	/* +1 to avoid category value 0 */
 	}
 	Rast_put_row(outfd, obuf, CELL_TYPE);
     }
 
     Rast_close(outfd);
 
+    /* history */
+
+    /* random colors */
+
     exit(EXIT_SUCCESS);
 }
 
 
-
-
-int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows, int **nlabels,	/*new labels */
+int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
+                                  int **nlabels,	/*new labels */
 				  int minsize)
 {
 
@@ -549,7 +565,7 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows, int **nlab
 
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    if (labels[row][col] >= 0 && nlabels[row][col] <= 0) {
+	    if (labels[row][col] >= 0 && nlabels[row][col] < 0) {
 		nlabels[row][col] = label;
 
 		/*--------------------
