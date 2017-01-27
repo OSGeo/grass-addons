@@ -1,7 +1,9 @@
+
 /*******************************************************************************
  *
  * MODULE:       i.superpixels.slic
  * AUTHOR(S):    Rashad Kanavath <rashadkm gmail>
+ *               Markus Metz
  *               based on the C++ SLIC implmenetation from:  
  *               http://ivrl.epfl.ch/research/superpixels
  * PURPOSE:      Perform superpixel segmenation
@@ -27,8 +29,6 @@
 #include <limits.h>
 #include <float.h>
 
-/*#define MY_DEBUG 1 */
-
 #ifndef MAX
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #endif
@@ -36,601 +36,586 @@
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #endif
 
-void SLIC_EnforceLabelConnectivity(int* labels, int width, int height,
-				     int* nlabels, int numlabels, int K_offset);
+int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
+				   int **nlabels, int minsize);
 
 int main(int argc, char *argv[])
 {
+    struct GModule *module;	/* GRASS module for parsing arguments */
+    struct Option *grp;		/* imagery group input option */
+    struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
+                  *opt_compactness, *opt_minsize;
+    struct Option *output;	/* option for output */
 
-  struct GModule *module;	/* GRASS module for parsing arguments */
+    struct Ref group_ref;
+    char grp_name[INAME_LEN];
+    int *ifd, nbands;
+    DCELL **ibuf, *min, *max, *rng;
+    struct FPRange drange;
+    char *outname;
+    int outfd;
+    CELL *obuf;
 
-  struct Option *grp;        /* imagery group input option */
+    int n_iterations, n_super_pixels, numk, numlabels;
+    int nrows, ncols, row, col, b, k;
 
-  struct Option *opt_iteration, *opt_super_pixels, *opt_compactness;
+    double compactness;
+    int superpixelsize, minsize;
+    int step;
+    int offset;
+    DCELL ***pdata;
+    int **klabels, **nlabels;
+    double **distvec, **distspec;
+
+    double xerrperstrip, yerrperstrip;
+    int xstrips, ystrips, xoff, yoff, xerr, yerr;
+
+    double xe, ye;
+    int x, y, x1, y1, x2, y2, itr;
+    short hexgrid, perturbseeds;
+    int seedx, seedy;
+
+    int *clustersize;
+    double *kseedsx, *kseedsy;
+    double **kseedsb;
+    double **sigmab, *sigmax, *sigmay;
+    double *maxdistspec;
+
+    double invwt;
+    double dist, distxy, dx, dy;
+    double distsum;
 
 
+    /* initialize GIS environment */
+    G_gisinit(argv[0]);
 
-  struct Ref group_ref;
+    /* initialize module */
+    module = G_define_module();
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("segmentation"));
+    G_add_keyword(_("superpixels"));
+    G_add_keyword(_("SLIC"));
+    module->description =
+	_("Perform image segmentation using the SLIC segmentation method.");
 
-  char grp_name[INAME_LEN];
+    grp = G_define_standard_option(G_OPT_I_GROUP);
 
-  int n_iterations, n_super_pixels;
+    output = G_define_standard_option(G_OPT_R_OUTPUT);
 
-  struct Option *output;  /* option for output */
+    opt_iteration = G_define_option();
+    opt_iteration->key = "iter";
+    opt_iteration->type = TYPE_INTEGER;
+    opt_iteration->required = NO;
+    opt_iteration->description = _("Maximum number of iterations");
+    opt_iteration->answer = "10";
 
-  int nrows, ncols;
-  
-  DCELL **pdata;
+    opt_super_pixels = G_define_option();
+    opt_super_pixels->key = "k";
+    opt_super_pixels->type = TYPE_INTEGER;
+    opt_super_pixels->required = NO;
+    opt_super_pixels->description = _("Number of super pixels");
+    opt_super_pixels->answer = "200";
 
-  off_t sz;
+    opt_step = G_define_option();
+    opt_step->key = "step";
+    opt_step->type = TYPE_INTEGER;
+    opt_step->required = NO;
+    opt_step->label = _("Step size between super pixels");
+    opt_step->description = _("Step size has precedence of number of super pixels");
+    opt_step->answer = "0";
 
-  /* loop variables */
-  int nf;
-  int *ifd, index, row, col, nbands;
-  DCELL **ibuf, *min, *max, *rng;
-  struct FPRange drange;
+    opt_compactness = G_define_option();
+    opt_compactness->key = "co";
+    opt_compactness->type = TYPE_DOUBLE;
+    opt_compactness->required = NO;
+    opt_compactness->description = _("Compactness");
+    opt_compactness->answer = "1";
 
-  double compactness;
-  int superpixelsize;
-  int* klabels = NULL;
-  int offset;
+    opt_minsize = G_define_option();
+    opt_minsize->key = "min";
+    opt_minsize->type = TYPE_INTEGER;
+    opt_minsize->required = NO;
+    opt_minsize->description = _("Minimum superpixel size");
+    opt_minsize->answer = "1";
 
-  double d_nrows, d_ncols, xerrperstrip, yerrperstrip;
-  int xstrips, ystrips, xerr, yerr, xoff, yoff;
-  double *kseedsx, *kseedsy;
-  double **kseeds;
 
-  int n;
+    /* options and flags parser */
+    if (G_parser(argc, argv))
+	exit(EXIT_FAILURE);
 
-  /* loop variables */
-  int s, x, y, xe, ye, seedx;
-  short hexgrid, perturbseeds;
-  int seedy, cindex;
 
-  double *edgemag;
+    perturbseeds = 0;
+    hexgrid = 0;
+    compactness = 0;
+    superpixelsize = 0;
 
-  double *clustersize, *inv, *sigmax, *sigmay;
-  
-  double** sigma;
+    G_strip(grp->answer);
+    strcpy(grp_name, grp->answer);
 
-  /* loop variables */
-  int p;
+    /* find group */
+    if (!I_find_group(grp_name))
+	G_fatal_error(_("Group <%s> not found"), grp_name);
 
-  double invwt;
-
-  int x1, y1, x2, y2, itr;
-  double dist, distxy, dx, dy, dbl_offset;
-  double distsum;
- 
-  
-  int* nlabels;
-  int k, r, c, ind, i;
-  int k_offset, np, outfd, z;
-
-  CELL *obuf;
-  perturbseeds = 0;
-  hexgrid = 0;
-  compactness = 0;
-  superpixelsize = 0; 
- 
-
-  /* initialize GIS environment */
-  G_gisinit(argv[0]);
-
-  /* initialize module */
-  module = G_define_module();
-  G_add_keyword(_("imagery"));
-  G_add_keyword(_("segmentation"));
-  G_add_keyword(_("superpixels"));
-  G_add_keyword(_("SLIC"));
-  module->description = _("Perform image segmentation using the SLIC segmentation method.");
-
-  grp = G_define_standard_option(G_OPT_I_GROUP);
-
-  opt_iteration = G_define_option();
-  opt_iteration->key = "iter";
-  opt_iteration->type = TYPE_INTEGER;
-  opt_iteration->required = NO;
-  opt_iteration->description = _("Maximum number of iterations");
-  opt_iteration->answer = "10";
-
-  opt_super_pixels = G_define_option();
-  opt_super_pixels->key = "k";
-  opt_super_pixels->type = TYPE_INTEGER;
-  opt_super_pixels->required = NO;
-  opt_super_pixels->description = _("Number of super pixels");
-  opt_super_pixels->answer = "200";
-
-  opt_compactness = G_define_option();
-  opt_compactness->key = "co";
-  opt_compactness->type = TYPE_DOUBLE;
-  opt_compactness->required = NO;
-  opt_compactness->description = _("Compactness");
-  opt_compactness->answer = "20";
-  
-	
-  output = G_define_standard_option(G_OPT_R_OUTPUT);
-		 
-  /* options and flags parser */
-  if (G_parser(argc, argv))
-    exit(EXIT_FAILURE);
-  
-  G_strip(grp->answer);
-  strcpy(grp_name, grp->answer);
-
-  /* find group */
-  if (!I_find_group(grp_name))
-    G_fatal_error(_("Group <%s> not found"), grp_name);
-
-  /* get the group ref */
-  if (!I_get_group_ref(grp_name, (struct Ref *)&group_ref))
-    G_fatal_error(_("Could not read REF file for group <%s>"), grp_name);
-  nbands = group_ref.nfiles;
-  if (nbands <= 0) {
-    G_important_message(_("Group <%s> contains no raster maps; run i.group"),
-			grp->answer);
-    exit(EXIT_SUCCESS);
-  }
-  
-
-  if (opt_iteration->answer) {
-    if ( sscanf(opt_iteration->answer, "%d", &n_iterations) != 1 ) {
-      G_fatal_error(_("Illegal value for iter (%s)"),  opt_iteration->answer);
+    /* get the group ref */
+    if (!I_get_group_ref(grp_name, (struct Ref *)&group_ref))
+	G_fatal_error(_("Could not read REF file for group <%s>"), grp_name);
+    nbands = group_ref.nfiles;
+    if (nbands <= 0) {
+	G_important_message(_("Group <%s> contains no raster maps; run i.group"),
+			    grp->answer);
+	exit(EXIT_SUCCESS);
     }
-  }
-  else {
+
+
     n_iterations = 10;
-  }
-
-  
-  if (opt_super_pixels->answer) {
-    if ( sscanf(opt_super_pixels->answer, "%d", &n_super_pixels) != 1 ) {
-      G_fatal_error(_("Illegal value for k (%s)"),  opt_super_pixels->answer);
+    if (opt_iteration->answer) {
+	if (sscanf(opt_iteration->answer, "%d", &n_iterations) != 1) {
+	    G_fatal_error(_("Illegal value for iter (%s)"),
+			  opt_iteration->answer);
+	}
     }
-  }
-  else {
+
+
     n_super_pixels = 200;
-  }
-
-  if (opt_compactness->answer) {
-    if ( sscanf(opt_compactness->answer, "%lf", &compactness) != 1 ) {
-      G_fatal_error(_("Illegal value for co (%s)"),  opt_compactness->answer);
-    }
-  }
-  else {
-    compactness = 20;
-  }
-  
-  const char *outname = output->answer;
- 
-  nrows = Rast_window_rows();
-  ncols = Rast_window_cols();
-
-  pdata  = G_malloc (sizeof (DCELL *) * group_ref.nfiles);
-
-  sz = nrows * ncols;
-   
-  ifd = G_malloc (sizeof (int *) * group_ref.nfiles);
-  ibuf = G_malloc (sizeof (DCELL **) * group_ref.nfiles);
-  min = G_malloc (sizeof (DCELL) * group_ref.nfiles);
-  max = G_malloc (sizeof (DCELL) * group_ref.nfiles);
-  rng = G_malloc (sizeof (DCELL) * group_ref.nfiles);
-
-  for (nf = 0; nf < group_ref.nfiles; nf++) {
-    ibuf[nf] = Rast_allocate_d_buf();
-    ifd[nf] = Rast_open_old(group_ref.file[nf].name, group_ref.file[nf].mapset);
-
-    Rast_read_fp_range(group_ref.file[nf].name, group_ref.file[nf].mapset,
-		       &drange);
-    Rast_get_fp_range_min_max(&drange, &min[nf], &max[nf]);
-    rng[nf] = max[nf] - min[nf];
-
-    pdata[nf]  = G_malloc (sizeof (DCELL) * sz);
-    memset (pdata[nf], 0, sizeof (DCELL) * sz);
-  }
-
-  for (row = 0; row < nrows; row++) {
-    G_percent(row, nrows, 2);
-
-    for (nf = 0; nf < group_ref.nfiles; nf++)
-      Rast_get_d_row(ifd[nf], ibuf[nf], row);
-    for (col = 0; col < ncols; col++) {
-      int isnull = 0;
-
-      for (nf = 0; nf < group_ref.nfiles; nf++) {
-	if (Rast_is_d_null_value(&ibuf[nf][col])) {
-	    isnull = 1;
-	    break;
+    if (opt_super_pixels->answer) {
+	if (sscanf(opt_super_pixels->answer, "%d", &n_super_pixels) != 1) {
+	    G_fatal_error(_("Illegal value for k (%s)"),
+			  opt_super_pixels->answer);
 	}
-        pdata[nf][row * ncols + col] = (ibuf[nf][col] - min[nf]) / rng[nf];
-      }
-      if (isnull) {
-        for (nf = 0; nf < group_ref.nfiles; nf++)
-	  Rast_set_d_null_value(&pdata[nf][row * ncols + col], 1);
-      }
     }
-  }
 
-  for (nf = 0; nf < group_ref.nfiles; nf++) {
-    Rast_close(ifd[nf]);
-    G_free(ibuf[nf]);
-  }
-  G_free(ifd);
-  G_free(ibuf);
-	
-  
-  superpixelsize = 0.5+(double)ncols * (double)nrows / (double)n_super_pixels;
-
-
-  klabels = G_malloc (sizeof (int) * sz);
-  for( s = 0; s < sz; s++ )
-    klabels[s] = -1;
-	
-  offset =  sqrt((double)superpixelsize) + 0.5;
-
-  d_nrows = (double)nrows;
-  d_ncols = (double)ncols;
-	
-  /* :GetLABXYSeeds_ForGivenStepSize */
-	 
-  
-  xstrips = (0.5+d_ncols / (double)offset);
-  ystrips = (0.5+d_nrows / (double)offset);
-
-  xerr = ncols  - offset*xstrips;
-  if(xerr < 0) {
-    xstrips--;
-    xerr = ncols - offset*xstrips;
-  }
-    
-  yerr = nrows - offset*ystrips;
-  if(yerr < 0)  {
-    ystrips--;
-    yerr = nrows - offset*ystrips;
-  }
-
-
-  xerrperstrip = (double)xerr/(double)xstrips;
-  yerrperstrip = (double)yerr/(double)ystrips;
-
-  
-  xoff = offset/2;
-  yoff = offset/2;
-  
-  const int numseeds = xstrips*ystrips; 
-
-  kseedsx = G_malloc (sizeof (double) * numseeds);
-  memset (kseedsx, 0, sizeof (double) * numseeds);
-	
-  kseedsy = G_malloc (sizeof (double) * numseeds);
-  memset (kseedsy, 0, sizeof (double) * numseeds);
-
-  n = 0;
-
-#ifdef MY_DEBUG
-  printf("superpixelsize=%d\n", superpixelsize);
-  printf("nrows=%d\n", nrows);
-  printf("ncols=%d\n", ncols);  
-  printf("xerrperstrip=%f\n", xerrperstrip);
-  printf("yerrperstrip=%f\n", yerrperstrip);
-  printf("numseeds=%d\n", numseeds);
-#endif
-
-  kseeds  = G_malloc (sizeof (double *) * group_ref.nfiles);
-  for (nf = 0; nf < group_ref.nfiles; nf++) {
-    G_percent(nf, group_ref.nfiles, 2);
-    kseeds[nf] = G_malloc (sizeof (double) * numseeds);
-    memset (kseeds[nf], 0, sizeof (double) * numseeds);		
-  }
-
-
-  for(  y = 0; y < ystrips; y++ ) {
-    ye = y*yerrperstrip;
-    for(  x = 0; x < xstrips; x++ )  {
-      xe = x*xerrperstrip;
-      seedx = (x*offset+xoff+xe);
-      if(hexgrid > 0 ) {
-	seedx = x*offset+(xoff<<(y&0x1))+xe;
-	seedx = MIN(ncols-1,seedx);
-      } /* for hex grid sampling */
-			
-      seedy = (y*offset+yoff+ye);
-      cindex = seedy*ncols + seedx;
-
-			
-      for (nf = 0; nf < group_ref.nfiles; nf++) {
-	kseeds[nf][n] = pdata[nf][cindex]; 
-      }
-      kseedsx[n] = seedx;
-      kseedsy[n] = seedy;
-      n++;
-    }
-  }
-
-  const int numk = numseeds;
-
-  clustersize = G_malloc (sizeof (double) * numk);
-  memset (clustersize, 0, sizeof (double) * numk);
-
-  inv = G_malloc (sizeof (double) * numk);
-  memset (inv, 0, sizeof (double) * numk);
-
-  sigma  = G_malloc (sizeof (double *) * group_ref.nfiles);
-  for (nf = 0; nf < group_ref.nfiles; nf++)	{
-    sigma[nf] = G_malloc (sizeof (double) * numk);
-    memset (sigma[nf], 0, sizeof (double) * numk);		
-  }
-
-  sigmax = G_malloc (sizeof (double) * numk);
-  memset (sigmax, 0, sizeof (double) * numk);
-
-  sigmay = G_malloc (sizeof (double) * numk);
-  memset (sigmay, 0, sizeof (double) * numk);
-
-
-  double *distvec;
-  distvec = G_malloc (sizeof (double) * sz);
-
-  double *distspec;
-  distspec = G_malloc (sizeof (double) * sz);
-
-  for( s = 0; s < sz; s++ )
-    distspec[s] = 0;
-
-  double *maxdistspec;
-  maxdistspec = G_malloc (sizeof (double) * numk);
-
-  for(  n = 0; n < numk; n++ )
-    maxdistspec[n] = 1;
-
-  invwt = compactness * 0.005 / (offset * offset);
-
-
-  dbl_offset = (double)offset;
-  for( itr = 0; itr <  n_iterations ; itr++ ) {
-    G_percent(itr, n_iterations, 2);
-
-    for( p = 0; p < sz; p++ )
-      distvec[p] = 1E+9;
-	
-    for( p = 0; p < sz; p++ )
-      distspec[p] = 0;
-
-		
-    for(  n = 0; n < numk; n++ )  {
-      y1 = (int)MAX(0.0,	 kseedsy[n]-dbl_offset);
-      y2 = (int)MIN(d_nrows,     kseedsy[n]+dbl_offset);
-      x1 = (int)MAX(0.0,	 kseedsx[n]-dbl_offset);
-      x2 = (int)MIN(d_ncols,	 kseedsx[n]+dbl_offset);
-												
-      for( y = y1; y < y2; y++ ) {				
-	for(  x = x1; x < x2; x++ ) {
-	  i = y* ncols + x;
-	  dx = (double)x;
-	  dy = (double)y;
-			    
-	  dist = 0.0;
-	  for (nf = 0; nf < group_ref.nfiles; nf++) {
-	    dist += ((pdata[nf][i] - kseeds[nf][n]) * (pdata[nf][i] - kseeds[nf][n]));
-	  }
-	  dist /= nbands;
-	  distxy = (dx - kseedsx[n])*(dx - kseedsx[n]) +
-	    (dy - kseedsy[n])*(dy - kseedsy[n]);
-					
-	  /* ----------------------------------------------------------------------- */
-	  distsum = dist / maxdistspec[n] + distxy*invwt;
-	  /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
-	  /*------------------------------------------------------------------------ */
-	  if( distsum < distvec[i] ) {
-	    distvec[i] = distsum;
-	    distspec[i] = dist;
-	    klabels[i]  = n;
-	  }
-
-	} /* for( x=x1 */
-      } /* for( y=y1 */
-    } /* for (n=0 */
-		
-#if 0
-    if (itr == 0) {
-      for(  n = 0; n < numk; n++ )
-	maxdistspec[n] = 0;
-    }
-    for( s = 0; s < sz; s++ ) {
-      if (maxdistspec[klabels[s]] < distspec[s])
-	maxdistspec[klabels[s]] = distspec[s];
-    }
-#endif		
-    for (nf = 0; nf < group_ref.nfiles; nf++) {
-      memset (sigma[nf], 0, sizeof (double) * numk);
-    }
-		
-    memset (sigmax, 0, sizeof (double) * numk);
-    memset (sigmay, 0, sizeof (double) * numk);
-    memset (clustersize, 0, sizeof (double) * numk);		
-
-    ind = 0;   		
-    for( r = 0; r < nrows; r++ )	{
-      for(  c = 0; c < ncols; c++ ) {
-	for (nf = 0; nf < group_ref.nfiles; nf++) {
-	  sigma[nf][klabels[ind]] += pdata[nf][ind];
+    step = 0;
+    if (opt_step->answer) {
+	if (sscanf(opt_step->answer, "%d", &step) != 1) {
+	    G_fatal_error(_("Illegal value for step size (%s)"),
+			  opt_step->answer);
 	}
-	sigmax[klabels[ind]] += c;
-	sigmay[klabels[ind]] += r;
-	/*-------------------------------------------*/
-	/* edgesum[klabels[ind]] += edgemag[ind];    */
-	/*-------------------------------------------*/
-	clustersize[klabels[ind]] += 1.0;
-	ind++;
-      }
     }
+
+    compactness = 1;
+    if (opt_compactness->answer) {
+	if (sscanf(opt_compactness->answer, "%lf", &compactness) != 1) {
+	    G_fatal_error(_("Illegal value for co (%s)"),
+			  opt_compactness->answer);
+	}
+    }
+
+    minsize = 1;
+    if (opt_minsize->answer) {
+	if (sscanf(opt_minsize->answer, "%d", &minsize) != 1) {
+	    G_fatal_error(_("Illegal value for minsize (%s)"),
+			  opt_minsize->answer);
+	}
+    }
+
+    outname = output->answer;
+
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
+
+    /* load input bands */
+    pdata = G_malloc(sizeof(DCELL *) * nbands);
+
+    ifd = G_malloc(sizeof(int *) * nbands);
+    ibuf = G_malloc(sizeof(DCELL **) * nbands);
+    min = G_malloc(sizeof(DCELL) * nbands);
+    max = G_malloc(sizeof(DCELL) * nbands);
+    rng = G_malloc(sizeof(DCELL) * nbands);
+
+    for (b = 0; b < nbands; b++) {
+	ibuf[b] = Rast_allocate_d_buf();
+	ifd[b] =
+	    Rast_open_old(group_ref.file[b].name, group_ref.file[b].mapset);
+
+	Rast_read_fp_range(group_ref.file[b].name, group_ref.file[b].mapset,
+			   &drange);
+	Rast_get_fp_range_min_max(&drange, &min[b], &max[b]);
+	rng[b] = max[b] - min[b];
+
+    }
+
+    pdata = G_malloc(sizeof(DCELL **) * nrows);
+    for (row = 0; row < nrows; row++) {
+	G_percent(row, nrows, 2);
+
+	pdata[row] = G_malloc(sizeof(DCELL *) * ncols);
+
+	for (b = 0; b < nbands; b++)
+	    Rast_get_d_row(ifd[b], ibuf[b], row);
+	for (col = 0; col < ncols; col++) {
+
+	    pdata[row][col] = G_malloc(sizeof(DCELL) * nbands);
+
+	    for (b = 0; b < nbands; b++) {
+		if (Rast_is_d_null_value(&ibuf[b][col])) {
+		    Rast_set_d_null_value(pdata[row][col], nbands);
+		    break;
+		}
+		pdata[row][col][b] = (ibuf[b][col] - min[b]) / rng[b];
+	    }
+	}
+    }
+
+    for (b = 0; b < nbands; b++) {
+	Rast_close(ifd[b]);
+	G_free(ibuf[b]);
+    }
+    G_free(ifd);
+    G_free(ibuf);
+
+
+    /* initialize seeds */
+    offset = step;
+    superpixelsize = step * step;
+    if (step < 10) {
+	superpixelsize = 0.5 + (double)nrows * ncols / n_super_pixels;
+
+	offset = sqrt((double)superpixelsize) + 0.5;
+    }
+
+    xstrips = (0.5 + (double)ncols / offset);
+    ystrips = (0.5 + (double)nrows / offset);
+
+    xerr = ncols - offset * xstrips;
+    if (xerr < 0) {
+	xstrips--;
+	xerr = ncols - offset * xstrips;
+    }
+
+    yerr = nrows - offset * ystrips;
+    if (yerr < 0) {
+	ystrips--;
+	yerr = nrows - offset * ystrips;
+    }
+
+    xerrperstrip = (double)xerr / xstrips;
+    yerrperstrip = (double)yerr / ystrips;
+
+    xoff = offset / 2;
+    yoff = offset / 2;
+
+    numk = xstrips * ystrips;
+
+    G_debug(1, "superpixelsize = %d", superpixelsize);
+    G_debug(1, "nrows = %d", nrows);
+    G_debug(1, "ncols = %d", ncols);
+    G_debug(1, "xerrperstrip = %g", xerrperstrip);
+    G_debug(1, "yerrperstrip = %g", yerrperstrip);
+    G_debug(1, "numk = %d", numk);
+
+    /* allocate seed variables */
+    kseedsb = G_malloc(sizeof(double *) * numk);
+    for (k = 0; k < numk; k++) {
+	kseedsb[k] = G_malloc(sizeof(double) * nbands);
+	memset(kseedsb[k], 0, sizeof(double) * nbands);
+    }
+
+    kseedsx = G_malloc(sizeof(double) * numk);
+    memset(kseedsx, 0, sizeof(double) * numk);
+
+    kseedsy = G_malloc(sizeof(double) * numk);
+    memset(kseedsy, 0, sizeof(double) * numk);
+
+    k = 0;
+    for (y = 0; y < ystrips; y++) {
+	ye = y * yerrperstrip;
+	for (x = 0; x < xstrips; x++) {
+	    xe = x * xerrperstrip;
+	    seedx = (x * offset + xoff + xe);
+	    if (hexgrid > 0) {
+		seedx = x * offset + (xoff << (y & 0x1)) + xe;
+		seedx = MIN(ncols - 1, seedx);
+	    }			/* for hex grid sampling */
+
+	    seedy = (y * offset + yoff + ye);
+
+	    if (!Rast_is_d_null_value(pdata[seedy][seedx])) {
+		for (b = 0; b < nbands; b++) {
+		    kseedsb[k][b] = pdata[seedy][seedx][b];
+		}
+		kseedsx[k] = seedx;
+		kseedsy[k] = seedy;
+		k++;
+	    }
+	}
+    }
+    if (k != numk)
+	G_warning(_("Initialized %d of %d seeds"), k, numk);
+
+    clustersize = G_malloc(sizeof(int) * numk);
+    memset(clustersize, 0, sizeof(int) * numk);
+
+    sigmab = G_malloc(sizeof(double *) * numk);
+    for (k = 0; k < numk; k++) {
+	sigmab[k] = G_malloc(sizeof(double) * nbands);
+	memset(sigmab[k], 0, sizeof(double) * nbands);
+    }
+
+    sigmax = G_malloc(sizeof(double) * numk);
+    memset(sigmax, 0, sizeof(double) * numk);
+
+    sigmay = G_malloc(sizeof(double) * numk);
+    memset(sigmay, 0, sizeof(double) * numk);
+
+
+    /* allocate cell variables */
+    klabels = G_malloc(sizeof(int *) * nrows);
+
+    for (row = 0; row < nrows; row++) {
+	klabels[row] = G_malloc(sizeof(int) * ncols);
+	for (col = 0; col < ncols; col++)
+	    klabels[row][col] = -1;
+    }
+
+    distvec = G_malloc(sizeof(double *) * nrows);
+    for (row = 0; row < nrows; row++)
+	distvec[row] = G_malloc(sizeof(double) * ncols);
+
+    distspec = G_malloc(sizeof(double *) * nrows);
+    for (row = 0; row < nrows; row++) {
+	distspec[row] = G_malloc(sizeof(double) * ncols);
+	for (col = 0; col < ncols; col++)
+	    distspec[row][col] = 0;
+    }
+
+    maxdistspec = G_malloc(sizeof(double) * numk);
+
+    for (k = 0; k < numk; k++)
+	maxdistspec[k] = 1;
+
+    /* magic factor */
+    invwt = 0.1 * compactness / (offset * offset);
+
+    for (itr = 0; itr < n_iterations; itr++) {
+	G_percent(itr, n_iterations, 2);
+
+	for (row = 0; row < nrows; row++) {
+	    for (col = 0; col < ncols; col++) {
+		distvec[row][col] = 1E+9;
+		distspec[row][col] = 0;
+	    }
+	}
+
+	for (k = 0; k < numk; k++) {
+	    y1 = (int)MAX(0.0, kseedsy[k] - offset);
+	    y2 = (int)MIN(nrows - 1, kseedsy[k] + offset);
+	    x1 = (int)MAX(0.0, kseedsx[k] - offset);
+	    x2 = (int)MIN(ncols - 1, kseedsx[k] + offset);
+
+	    for (y = y1; y <= y2; y++) {
+		dy = y - kseedsy[k];
 		
-    for( k = 0; k < numk; k++ ) {
-      if( clustersize[k] <= 0 )
-	clustersize[k] = 1;
-		  
-      /* computing inverse now to multiply, than divide later */
-      inv[k] = 1.0/clustersize[k]; 
-    }
+		for (x = x1; x <= x2; x++) {
+		    if (Rast_is_d_null_value(pdata[y][x]))
+			continue;
+		    
+		    dist = 0.0;
+		    for (b = 0; b < nbands; b++) {
+			dist += (pdata[y][x][b] - kseedsb[k][b]) *
+			        (pdata[y][x][b] - kseedsb[k][b]);
+		    }
+		    dist /= nbands;
 
-	   
-    for( k = 0; k < numk; k++ ) {
-      for (nf = 0; nf < group_ref.nfiles; nf++)  {
-	kseeds[nf][k] = sigma[nf][k]*inv[k];
-      }
-      kseedsx[k] = sigmax[k]*inv[k];
-      kseedsy[k] = sigmay[k]*inv[k];
+		    dx = x - kseedsx[k];
+		    distxy = (dx * dx + dy * dy) / 2;
+
+		    /* ----------------------------------------------------------------------- */
+		    distsum = dist / maxdistspec[k] + distxy * invwt;
+		    /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
+		    /*------------------------------------------------------------------------ */
+		    if (distsum < distvec[y][x]) {
+			distvec[y][x] = distsum;
+			distspec[y][x] = dist;
+			klabels[y][x] = k;
+		    }
+
+		}		/* for( x=x1 */
+	    }			/* for( y=y1 */
+	}			/* for (n=0 */
+
+	/* adaptive m for SLIC zero */
+	if (itr == 0) {
+	    for (k = 0; k < numk; k++)
+		maxdistspec[k] = 1.0 / nbands;
+	}
+	for (row = 0; row < nrows; row++) {
+	    for (col = 0; col < ncols; col++) {
+		if (klabels[row][col] >= 0) {
+		    if (maxdistspec[klabels[row][col]] < distspec[row][col])
+			maxdistspec[klabels[row][col]] = distspec[row][col];
+		}
+	    }
+	}
+
+	for (k = 0; k < numk; k++) {
+	    memset(sigmab[k], 0, sizeof(double) * nbands);
+	}
+
+	memset(sigmax, 0, sizeof(double) * numk);
+	memset(sigmay, 0, sizeof(double) * numk);
+	memset(clustersize, 0, sizeof(int) * numk);
+
+	for (row = 0; row < nrows; row++) {
+	    for (col = 0; col < ncols; col++) {
+		if (klabels[row][col] >= 0) {
+		    for (b = 0; b < nbands; b++) {
+			sigmab[klabels[row][col]][b] += pdata[row][col][b];
+		    }
+		    sigmax[klabels[row][col]] += col;
+		    sigmay[klabels[row][col]] += row;
+
+	    /*-------------------------------------------*/
+		    /* edgesum[klabels[ind]] += edgemag[ind];    */
+
+	    /*-------------------------------------------*/
+		    clustersize[klabels[row][col]] += 1;
+		}
+	    }
+	}
+
+	for (k = 0; k < numk; k++) {
+	    if (clustersize[k] <= 0)
+		clustersize[k] = 1;
+
+	    for (b = 0; b < nbands; b++) {
+		kseedsb[k][b] = sigmab[k][b] / clustersize[k];
+	    }
+	    kseedsx[k] = sigmax[k] / clustersize[k];
+	    kseedsy[k] = sigmay[k] / clustersize[k];
+
       /*------------------------------------*/
-      /* edgesum[k] *= inv[k];              */
+	    /* edgesum[k] *= inv[k];              */
+
       /*------------------------------------*/
+	}
     }
-  }
-  G_percent(1, 1, 1);
+    G_percent(1, 1, 1);
 
-
-
-  const int numlabels = numk;
-
-#ifdef MY_DEBUG
-  printf("numk=%d\n", numk);
-#endif
-
-
-  nlabels = G_malloc (sizeof (int) * sz);
-  memset (nlabels, 0, sizeof (int) * sz);
-
-  k_offset = (double)sz/((double)(offset*offset));
-  SLIC_EnforceLabelConnectivity(klabels, ncols, nrows, nlabels, numlabels, k_offset);
-
-  for( i = 0; i < sz; i++ )
-    klabels[i] = nlabels[i];
-   	
-  if(nlabels)
-    G_free(nlabels);
-
-  z = 0;
-  outfd = Rast_open_new(outname, CELL_TYPE);  
-  obuf = Rast_allocate_c_buf();
-  for (row = 0; row < nrows; row++)	 {
-    for(col = 0; col < ncols; col++) {
-      obuf[col] = klabels[z]+1; /* +1 to avoid category value 0*/
-      z++;
+    nlabels = G_malloc(sizeof(int *) * nrows);
+    for (row = 0; row < nrows; row++) {
+	nlabels[row] = G_malloc(sizeof(int) * ncols);
+	memset(nlabels[row], 0, sizeof(int) * ncols);
     }
 
-    Rast_put_row(outfd, obuf, CELL_TYPE);
-  }
-	
-	
-  G_free(kseedsx);
-  G_free(kseedsy);
+    numlabels = SLIC_EnforceLabelConnectivity(klabels, ncols, nrows, 
+                                              nlabels, minsize);
 
-  G_free(sigmax);
-  G_free(sigmay);
-	
-  G_free(klabels);
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++) {
+	    klabels[row][col] = nlabels[row][col];
+	}
+    }
 
-  for (nf = 0; nf < group_ref.nfiles; nf++) {
-    G_free(kseeds[nf]);
-    G_free(sigma[nf]);
-  }
-	
-  Rast_close(outfd);
+    outfd = Rast_open_new(outname, CELL_TYPE);
+    obuf = Rast_allocate_c_buf();
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++) {
+	    obuf[col] = klabels[row][col] + 1;	/* +1 to avoid category value 0 */
+	}
+	Rast_put_row(outfd, obuf, CELL_TYPE);
+    }
 
+    Rast_close(outfd);
 
-  exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }
 
 
 
 
-void SLIC_EnforceLabelConnectivity(int*   labels,
-				   int    width,
-				   int    height,
-				   int*   nlabels, /*new labels */
-				   int    numlabels,
-				   int    K_offset)  {
-  
-  const int dx4[4] = {-1,  0,  1,  0};
-  const int dy4[4] = { 0, -1,  0,  1};
+int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows, int **nlabels,	/*new labels */
+				  int minsize)
+{
 
-  int i, j, k, n, label, oindex, adjlabel;
-  int x,y, nindex, c, count, ind;
-  int *xvec, *yvec;
-    
-  const int sz = width*height;
-  const int SUPSZ = sz/K_offset;
+    const int dx4[4] = { -1, 0, 1, 0 };
+    const int dy4[4] = { 0, -1, 0, 1 };
 
-  for( i = 0; i < sz; i++ ) nlabels[i] = -1;
-  label = 0;
-  
-  xvec = G_malloc (sizeof (int) * sz);
-  memset (xvec, 0, sizeof (int) * sz);
-  
-  yvec = G_malloc (sizeof (int) * sz);
-  memset (yvec, 0, sizeof (int) * sz);  
+    int n, label, adjlabel;
+    int row, col;
+    int x, y, c, count;
+    int *xvec, *yvec, vec_alloc;
 
-  oindex = 0;
-  adjlabel = 0; /* adjacent label */
-  
-  for( j = 0; j < height; j++ ) {
-    for( k = 0; k < width; k++ )  {
-      if( 0 > nlabels[oindex] )     { 
-	nlabels[oindex] = label;
-	/*--------------------
-	 Start a new segment
-	 --------------------*/
-	xvec[0] = k;
-	yvec[0] = j;
-	/*-------------------------------------------------------
-	 Quickly find an adjacent label for use later if needed
-	 -------------------------------------------------------*/
-
-	for( n = 0; n < 4; n++ ) {
-	  x = xvec[0] + dx4[n];
-	  y = yvec[0] + dy4[n];
-	  if( (x >= 0 && x < width) && (y >= 0 && y < height) ) {
-	    nindex = y*width + x;
-	    if(nlabels[nindex] >= 0) adjlabel = nlabels[nindex];
-	  }
-	}
-
-	count = 1;
-	for( c = 0; c < count; c++ ) {
-	  for( n = 0; n < 4; n++ ) {
-	    x = xvec[c] + dx4[n];
-	    y = yvec[c] + dy4[n];
-	    
-	    if( (x >= 0 && x < width) && (y >= 0 && y < height) ) {
-	      nindex = y*width + x;
-	      
-	      if( 0 > nlabels[nindex] && labels[oindex] == labels[nindex] ) {
-		xvec[count] = x;
-		yvec[count] = y;
-		nlabels[nindex] = label;
-		count++;
-	      }
-	    }  
-	  }
-	}
-	/*-------------------------------------------------------
-	 If segment size is less then a limit, assign an
-	 adjacent label found before, and decrement label count.
-	-------------------------------------------------------*/
-	if(count <= 0) {
-	  for( c = 0; c < count; c++ ) {
-	    ind = yvec[c]*width+xvec[c];
-	    nlabels[ind] = adjlabel;
-	  }
-	  label--;
-	}
-	label++;
-      }
-      oindex++;
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++)
+	    nlabels[row][col] = -1;
     }
-  }
-  numlabels = label;
-  
-  if(xvec) G_free(xvec);
-  if(yvec) G_free(yvec);
-  
+    label = 0;
+
+    vec_alloc = 100;
+    xvec = G_malloc(sizeof(int) * vec_alloc);
+    yvec = G_malloc(sizeof(int) * vec_alloc);
+
+    adjlabel = 0;		/* adjacent label */
+
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++) {
+	    if (labels[row][col] >= 0 && nlabels[row][col] <= 0) {
+		nlabels[row][col] = label;
+
+		/*--------------------
+		 Start a new segment
+		 --------------------*/
+		xvec[0] = col;
+		yvec[0] = row;
+
+		/*-------------------------------------------------------
+		 Quickly find an adjacent label for use later if needed
+		 -------------------------------------------------------*/
+
+		for (n = 0; n < 4; n++) {
+		    x = xvec[0] + dx4[n];
+		    y = yvec[0] + dy4[n];
+		    if ((x >= 0 && x < ncols) && (y >= 0 && y < nrows)) {
+			if (nlabels[y][x] >= 0)
+			    adjlabel = nlabels[y][x];
+		    }
+		}
+
+		count = 1;
+		for (c = 0; c < count; c++) {
+		    for (n = 0; n < 4; n++) {
+			x = xvec[c] + dx4[n];
+			y = yvec[c] + dy4[n];
+
+			if ((x >= 0 && x < ncols) && (y >= 0 && y < nrows)) {
+
+			    if (0 > nlabels[y][x] &&
+				labels[row][col] == labels[y][x]) {
+				if (vec_alloc <= count) {
+				    vec_alloc += 100;
+				    xvec =
+					G_realloc(xvec,
+						  sizeof(int) * vec_alloc);
+				    yvec =
+					G_realloc(yvec,
+						  sizeof(int) * vec_alloc);
+				}
+				xvec[count] = x;
+				yvec[count] = y;
+				nlabels[y][x] = label;
+				count++;
+			    }
+			}
+		    }
+		}
+
+		/*-------------------------------------------------------
+		 If segment size is less than a limit, assign an
+		 adjacent label found before, and decrement label count.
+		-------------------------------------------------------*/
+		if (count < minsize) {
+		    for (c = 0; c < count; c++) {
+			nlabels[yvec[c]][xvec[c]] = adjlabel;
+		    }
+		    label--;
+		}
+		label++;
+	    }
+	}
+    }
+
+    G_free(xvec);
+    G_free(yvec);
+
+    return label;
 }
