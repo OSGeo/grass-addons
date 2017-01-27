@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     int step;
     int offset;
     DCELL ***pdata;
-    int **klabels, **nlabels;
+    int **klabels, **nlabels, label_change;
     double **distvec, **distspec;
 
     double xerrperstrip, yerrperstrip;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     double *kseedsx, *kseedsy;
     double **kseedsb;
     double **sigmab, *sigmax, *sigmay;
-    double *maxdistspec;
+    double *maxdistspeck, maxdistspec, maxdistspecprev;
 
     double invwt;
     double dist, distxy, dx, dy;
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     opt_iteration->type = TYPE_INTEGER;
     opt_iteration->required = NO;
     opt_iteration->description = _("Maximum number of iterations");
-    opt_iteration->answer = "10";
+    opt_iteration->answer = "100";
 
     opt_super_pixels = G_define_option();
     opt_super_pixels->key = "k";
@@ -384,16 +384,19 @@ int main(int argc, char *argv[])
 	    distspec[row][col] = 0;
     }
 
-    maxdistspec = G_malloc(sizeof(double) * numk);
+    maxdistspeck = G_malloc(sizeof(double) * numk);
+    maxdistspec = maxdistspecprev = 0;
 
     for (k = 0; k < numk; k++)
-	maxdistspec[k] = 1;
+	maxdistspeck[k] = 1;
 
     /* magic factor */
     invwt = 0.1 * compactness / (offset * offset);
 
     for (itr = 0; itr < n_iterations; itr++) {
 	G_percent(itr, n_iterations, 2);
+
+	label_change = 0;
 
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
@@ -426,12 +429,14 @@ int main(int argc, char *argv[])
 		    distxy = (dx * dx + dy * dy) / 2.0;
 
 		    /* ----------------------------------------------------------------------- */
-		    distsum = dist / maxdistspec[k] + distxy * invwt;
+		    distsum = dist / maxdistspeck[k] + distxy * invwt;
 		    /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
 		    /*------------------------------------------------------------------------ */
 		    if (distsum < distvec[y][x]) {
 			distvec[y][x] = distsum;
 			distspec[y][x] = dist;
+			if (klabels[y][x] != k)
+			    label_change++;
 			klabels[y][x] = k;
 		    }
 
@@ -443,17 +448,33 @@ int main(int argc, char *argv[])
 	    /* adaptive m for SLIC zero */
 	    if (itr == 0) {
 		for (k = 0; k < numk; k++)
-		    maxdistspec[k] = 1.0 / nbands;
+		    maxdistspeck[k] = 1.0 / nbands;
 	    }
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
 		    k = klabels[row][col];
 		    if (k >= 0) {
-			if (maxdistspec[k] < distspec[row][col])
-			    maxdistspec[k] = distspec[row][col];
+			if (maxdistspeck[k] < distspec[row][col])
+			    maxdistspeck[k] = distspec[row][col];
 		    }
 		}
 	    }
+	}
+	else {
+	    maxdistspecprev = maxdistspec;
+	    maxdistspec = 0;
+	    for (row = 0; row < nrows; row++) {
+		for (col = 0; col < ncols; col++) {
+		    k = klabels[row][col];
+		    if (k >= 0) {
+			if (maxdistspec < distspec[row][col])
+			    maxdistspec = distspec[row][col];
+		    }
+		}
+	    }
+	    for (k = 0; k < numk; k++)
+		maxdistspeck[k] = maxdistspec;
+	    G_debug(3, "maxdistspec = %.15g", maxdistspec);
 	}
 
 	for (k = 0; k < numk; k++) {
@@ -497,8 +518,16 @@ int main(int argc, char *argv[])
 
       /*------------------------------------*/
 	}
+	if (label_change == 0)
+	    break;
+	G_debug(3, "Number of changed labels: %d", label_change);
+	if (!slic0 && maxdistspecprev == maxdistspec)
+	    break;
     }
     G_percent(1, 1, 1);
+
+    if (itr < n_iterations)
+	G_message(_("SLIC converged after %d iterations"), itr);
 
     nlabels = G_malloc(sizeof(int *) * nrows);
     for (row = 0; row < nrows; row++) {
