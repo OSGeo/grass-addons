@@ -391,6 +391,7 @@ def main(opts, flgs):
                         output=('tmprgreen_%i_%s' % (pid, key[14:])),
                         use="attr",
                         attrcolumn=opts[key], overwrite=True)
+            #FIXME: not to show the ERROR
             run_command("r.null", map=('tmprgreen_%i_%s' % (pid, key[14:])),
                         null=0)
         except Exception:
