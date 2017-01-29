@@ -6,7 +6,7 @@
  *               Markus Metz
  *               based on the C++ SLIC implmenetation from:  
  *               http://ivrl.epfl.ch/research/superpixels
- * PURPOSE:      Perform superpixel segmenation
+ * PURPOSE:      Perform superpixel segmentation
  *
  * This code performs superpixel segmentation as explained in the paper:
  * "SLIC Superpixels", Radhakrishna Achanta, Appu Shaji, 

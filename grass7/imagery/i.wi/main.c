@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("index"));
     G_add_keyword(_("biophysical"));
     module->description =
-	_("Calculates different types of vegetation indices.");
+	_("Calculates different types of water indices.");
     
     /* Define the different options */
 

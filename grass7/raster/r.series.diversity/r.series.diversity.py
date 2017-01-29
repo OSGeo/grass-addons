@@ -5,7 +5,7 @@
 #
 # MODULE:       r.series.diversity
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
-# PURPOSE:      Compute biodiversity indici over input layers
+# PURPOSE:      Compute biodiversity indices over input layers
 #
 # COPYRIGHT: (C) 2014 Paulo van Breugel
 #            http://ecodiv.org
@@ -18,7 +18,7 @@
 ########################################################################
 #
 #%Module
-#% description: Compute diversity indici over input layers
+#% description: Compute diversity indices over input layers
 #% keyword: raster
 #% keyword: diversity index
 #% keyword: renyi entrophy
