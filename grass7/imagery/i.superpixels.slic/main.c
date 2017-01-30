@@ -60,6 +60,8 @@ int main(int argc, char *argv[])
     char *outname;
     int outfd;
     CELL *obuf;
+    struct Colors colors;
+    struct History hist;
 
     int n_iterations, n_super_pixels, numk, numlabels, slic0;
     int nrows, ncols, row, col, b, k;
@@ -580,8 +582,8 @@ int main(int argc, char *argv[])
     G_free(nlabels);
 
     if (minsize > 1)
-	merge_small_clumps(pdata, nbands, klabels, numlabels, 0,
-	                   minsize);
+	numlabels = merge_small_clumps(pdata, nbands, klabels,
+	                               numlabels, 0, minsize);
 
     outfd = Rast_open_new(outname, CELL_TYPE);
     obuf = Rast_allocate_c_buf();
@@ -598,8 +600,14 @@ int main(int argc, char *argv[])
     Rast_close(outfd);
 
     /* history */
+    Rast_short_history(outname, "raster", &hist);
+    Rast_command_history(&hist);
+    Rast_write_history(outname, &hist);
 
     /* random colors */
+    Rast_init_colors(&colors);
+    Rast_make_random_colors(&colors, 1, numlabels);
+    Rast_write_colors(outname, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
 }

@@ -403,5 +403,5 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
     G_free(clumpbsum);
     G_free(clumpsize);
 
-    return 1;
+    return n_clumps_new;
 }
