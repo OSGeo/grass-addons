@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 	    /* adaptive m for SLIC zero */
 	    if (itr == 0) {
 		for (k = 0; k < numk; k++)
-		    maxdistspeck[k] = 1.0 / nbands;
+		    maxdistspeck[k] = 0;
 	    }
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
