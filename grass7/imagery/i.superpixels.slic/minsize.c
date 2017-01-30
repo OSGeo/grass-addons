@@ -1,5 +1,6 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
+#include <grass/segment.h>	
 #include <grass/glocale.h>
 #include "pavl.h"
 #include "rclist.h"
@@ -138,18 +139,20 @@ static int get_four_neighbors(int row, int col, int nrows, int ncols,
 static int (*get_neighbors)(int row, int col, int nrows, int ncols,
 			       int neighbors[8][2]);
 
-static int update_cid(int **klabels, int row, int col, int old_id, int new_id)
+static int update_cid(SEGMENT *k_seg, int row, int col, int old_id, int new_id)
 {
     int nrows, ncols, rown, coln, n;
+    int this_id;
     int neighbors[8][2];
     struct rc next;
     struct rclist rilist;
 
-    if (klabels[row][col] != old_id) {
+    Segment_get(k_seg, (void *)&this_id, row, col);
+    if (this_id != old_id) {
 	G_fatal_error(_("Wrong id %d for row %d, col %d"), 
-	              klabels[row][col], row, col);
+	              this_id, row, col);
     }
-    klabels[row][col] = new_id;
+    Segment_put(k_seg, (void *)&new_id, row, col);
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -166,8 +169,9 @@ static int update_cid(int **klabels, int row, int col, int old_id, int new_id)
 	    rown = neighbors[n][0];
 	    coln = neighbors[n][1];
 
-	    if (klabels[rown][coln] == old_id) {
-		klabels[rown][coln] = new_id;
+	    Segment_get(k_seg, (void *)&this_id, rown, coln);
+	    if (this_id == old_id) {
+		Segment_put(k_seg, (void *)&new_id, rown, coln);
 		rclist_add(&rilist, rown, coln);
 	    }
 
@@ -180,7 +184,7 @@ static int update_cid(int **klabels, int row, int col, int old_id, int new_id)
 }
 
 static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
-                               int **klabels, int row, int col,
+                               SEGMENT *k_seg, int row, int col,
 			       int this_id, int *best_id)
 {
     int rown, coln, n, count, b;
@@ -222,7 +226,9 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
 	    rown = neighbors[n][0];
 	    coln = neighbors[n][1];
 
-	    if (klabels[rown][coln] < 0)
+	    /* get neighbor ID */
+	    Segment_get(k_seg, (void *)&ngbr_id, rown, coln);
+	    if (ngbr_id < 0)
 		continue;
 
 	    ngbr_rc.row = rown;
@@ -236,8 +242,6 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
 	    if (pavl_insert(visited, pngbr_rc) == NULL) {
 		pngbr_rc = NULL;
 
-		/* get neighbor ID */
-		ngbr_id = klabels[rown][coln];
 		/* same neighbour */
 		if (ngbr_id == this_id) {
 		    count++;
@@ -285,8 +289,8 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
     return (*best_id >= 0);
 }
 
-int merge_small_clumps(DCELL ***pdata, int nbands,
-                       int **klabels, int nlabels,
+int merge_small_clumps(SEGMENT *bands_seg, int nbands,
+                       SEGMENT *k_seg, int nlabels,
                        int diag, int minsize)
 {
     int row, col, nrows, ncols, i, b;
@@ -295,6 +299,7 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
     int reg_size;
     int *clumpsize, n_clumps_new;
     DCELL **clumpbsum;
+    DCELL *pdata;
 
     /* merge with best (most similar) neighbour */
 
@@ -324,17 +329,19 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
 	for (b = 0; b < nbands; b++)
 	    clumpbsum[i][b] = 0;
     }
+    pdata = G_malloc(sizeof(DCELL) * nbands);
 
     G_message(_("Merging clumps smaller than %d cells..."), minsize);
 
     /* get clump sizes and band sums */
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    this_id = klabels[row][col];
+	    Segment_get(k_seg, (void *)&this_id, row, col);
 	    if (this_id >= 0) {
 		clumpsize[this_id]++;
+		Segment_get(bands_seg, (void *)pdata, row, col);
 		for (b = 0; b < nbands; b++)
-		    clumpbsum[this_id][b] += pdata[row][col][b];
+		    clumpbsum[this_id][b] += pdata[b];
 	    }
 	}
     }
@@ -347,7 +354,7 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
 	for (col = 0; col < ncols; col++) {
 
 	    /* get clump id */
-	    this_id = klabels[row][col];
+	    Segment_get(k_seg, (void *)&this_id, row, col);
 	    if (this_id < 0)
 		continue;
 
@@ -357,12 +364,12 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
 	    while (reg_size < minsize && best_id >= 0) {
 		best_id = -1;
 
-		find_best_neighbour(clumpbsum, nbands, clumpsize, klabels,
+		find_best_neighbour(clumpbsum, nbands, clumpsize, k_seg,
 				    row, col, this_id, &best_id);
 
 		if (best_id >= 0) {
 		    /* update cid */
-		    update_cid(klabels, row, col, this_id, best_id);
+		    update_cid(k_seg, row, col, this_id, best_id);
 		    /* mark as merged */
 		    for (b = 0; b < nbands; b++)
 			clumpbsum[best_id][b] += clumpbsum[this_id][b];
@@ -391,9 +398,11 @@ int merge_small_clumps(DCELL ***pdata, int nbands,
 
 	for (col = 0; col < ncols; col++) {
 
-	    this_id = klabels[row][col];
-	    if (this_id >= 0)
-		klabels[row][col] = clumpsize[this_id];
+	    Segment_get(k_seg, (void *)&this_id, row, col);
+	    if (this_id >= 0) {
+		this_id = clumpsize[this_id];
+		Segment_put(k_seg, (void *)&this_id, row, col);
+	    }
 	}
     }
     G_percent(1, 1, 1);

@@ -1,23 +1,67 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<EM>i.superpixels.slic</EM> performs superpixel segmentation
-
-<H2>NOTES</H2>
-
-This code performs superpixel segmentation as explained in the paper:
-"SLIC Superpixels", Radhakrishna Achanta, Appu Shaji,  Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk.
-EPFL Technical Report no. 149300, June 2010. 
-
+<em>i.superpixels.slic</em> performs superpixel segmentation using a 
+k means method. The number of superpixels is determined either with the 
+<b>k</b> option (number of superpixels) or with the <b>step</b> option 
+(distance between initial super pixel centers).
 <p>
+The <b>co</b> option controls the compactness of the resulting 
+superpixels. A larger <b>co</b> value will cause spatially more 
+compact, but also spectrally more heterogeneous superpixels. This is 
+the most important parameter of the module. A reasonable value should 
+be determined for small test regions before applying the module to a 
+large region.
 
-<H2>TODO</H2>
+<h2>NOTES</h2>
+In each iteration, the assigned of pixels to superpixels and the 
+superpixels themselves (spatial and spectral means) are updated until 
+either the maximum number of iterations is reached or until the 
+superpixels do not change any more. More iterations will provide better 
+results but will increase processing time. Recommended are about 500 
+iterations for best results (stabilized superpixels).
+<p> 
+If a minimum segment size of 2 or larger is given with the <b>min</b> 
+parameter, segments with a smaller pixel count will be merged with 
+their most similar neighbor.
+<p>
+If the <b>-n</b> flag is used, the spectral distance of a pixel to a 
+given superpixel is divided by the maximum previously observed spectral 
+distance to that superpixel. This is the so-called <em>SLIC0</em> (SLIC 
+zero) method. After each iteration, the largest spectral distance is 
+determined for each superpixel separately. In the next iteration, 
+spectral distances of pixels to superpixels are normalized by the 
+largest spectral distance of the current superpixel.
+<p>
+That means that more heterogeneous superpixels have a larger maximum 
+spectral distance. For a given pixel, the normalized spectral distance 
+will be smaller for a more heterogeneous superpixel than for a more 
+homogeneous superpixel. This favours more heterogeneous superpixels 
+which can steal pixels from more homogeneous superpixels even if the 
+not normalized spectral distance of a pixel to a homogeneous superpixel 
+is smaller than to a heterogeneous pixel. As a consequence, 
+heterogeneous superpixels can become larger and and even more 
+heterogeneous. This effect becomes stronger with larger differences in 
+the spectral homogeneity of neighboring superpixels.
 
-<H2>SEE ALSO</H2>
+<h2>REFERENCES</h2>
+"SLIC Superpixels", Radhakrishna Achanta, Appu Shaji,  Kevin Smith, 
+Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk. EPFL Technical 
+Report no. 149300, June 2010. 
 
-<H2>AUTHORS</H2>
+<h2>SEE ALSO</h2>
+<em>
+<a href="g.gui.iclass.html">g.gui.iclass</a>,
+<a href="i.group.html">i.group</a>, 
+<a href="i.segment.html">i.segment</a>, 
+<a href="i.maxlik.html">i.maxlik</a>, 
+<a href="i.smap.html">i.smap</a>, 
+<a href="r.kappa.html">r.kappa</a>
+</em>
 
-Rashad Kanavath, India <BR>
+<h2>AUTHORS</h2>
 
+Rashad Kanavath, India <br>
+Markus Metz
 
 <p>
 <i>Last changed: $Date$</i>

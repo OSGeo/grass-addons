@@ -17,17 +17,14 @@
  *
  *****************************************************************************/
 
-#include <grass/config.h>
-#include <grass/gis.h>
-#include <grass/raster.h>
-#include <grass/glocale.h>
-#include <grass/imagery.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <limits.h>
-#include <float.h>
+#include <grass/gis.h>
+#include <grass/raster.h>
+#include <grass/segment.h>	
+#include <grass/imagery.h>
+#include <grass/glocale.h>
 
 #ifndef MAX
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
@@ -36,11 +33,11 @@
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #endif
 
-int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
-				   int **nlabels, int minsize);
+int SLIC_EnforceLabelConnectivity(SEGMENT *k_seg, int ncols, int nrows,
+				  SEGMENT *nk_seg, int minsize);
 
-int merge_small_clumps(DCELL ***pdata, int nbands,
-                       int **klabels, int nlabels,
+int merge_small_clumps(SEGMENT *bands_seg, int nbands,
+                       SEGMENT *k_seg, int nlabels,
                        int diag, int minsize);
 
 int main(int argc, char *argv[])
@@ -48,7 +45,7 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *opt_grp;		/* imagery group input option */
     struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
-                  *opt_compactness, *opt_minsize;
+                  *opt_compactness, *opt_minsize, *opt_mem;
     struct Option *opt_out;	/* option for output */
     struct Flag *flag_n;
 
@@ -62,6 +59,9 @@ int main(int argc, char *argv[])
     CELL *obuf;
     struct Colors colors;
     struct History hist;
+    
+    int nseg;
+    double segs_mb, k_mb;
 
     int n_iterations, n_super_pixels, numk, numlabels, slic0;
     int nrows, ncols, row, col, b, k;
@@ -70,9 +70,10 @@ int main(int argc, char *argv[])
     int superpixelsize, minsize;
     int step;
     int offset;
-    DCELL ***pdata;
-    int **klabels, **nlabels, schange;
-    double ***dists;
+    DCELL *pdata;
+    double *dists;
+    SEGMENT bands_seg, k_seg, nk_seg, dist_seg;
+    int schange;
 
     double xerrperstrip, yerrperstrip;
     int xstrips, ystrips, xoff, yoff, xerr, yerr;
@@ -126,15 +127,16 @@ int main(int argc, char *argv[])
     opt_step->key = "step";
     opt_step->type = TYPE_INTEGER;
     opt_step->required = NO;
-    opt_step->label = _("Step size between super pixels");
-    opt_step->description = _("Step size has precedence of number of super pixels");
+    opt_step->label = _("Distance (number of cells) between initial super pixel centers");
+    opt_step->description = _("A step size > 0 overrides the number of super pixels");
     opt_step->answer = "0";
 
     opt_compactness = G_define_option();
     opt_compactness->key = "co";
     opt_compactness->type = TYPE_DOUBLE;
     opt_compactness->required = NO;
-    opt_compactness->description = _("Compactness");
+    opt_compactness->label = _("Compactness");
+    opt_compactness->description = _("A larger value causes more compact superpixels");
     opt_compactness->answer = "1";
 
     opt_minsize = G_define_option();
@@ -144,10 +146,17 @@ int main(int argc, char *argv[])
     opt_minsize->description = _("Minimum superpixel size");
     opt_minsize->answer = "1";
 
+    opt_mem = G_define_option();
+    opt_mem->key = "memory";
+    opt_mem->type = TYPE_INTEGER;
+    opt_mem->required = NO;
+    opt_mem->answer = "300";
+    opt_mem->description = _("Memory in MB");
+
     flag_n = G_define_flag();
     flag_n->key = 'n';
     flag_n->label = _("Normalize spectral distances");
-    flag_n->description = _("Equvivalent to SLIC zero (SCLI0)");
+    flag_n->description = _("Equvivalent to SLIC zero (SLIC0)");
 
 
     /* options and flags parser */
@@ -217,6 +226,17 @@ int main(int argc, char *argv[])
 	}
     }
 
+    segs_mb = 300;
+    if (opt_mem->answer) {
+	int mb = 300;
+
+	if (sscanf(opt_mem->answer, "%d", &mb) != 1) {
+	    G_fatal_error(_("Illegal value for memory (%s)"),
+			  opt_mem->answer);
+	}
+	segs_mb = mb;
+    }
+
     slic0 = flag_n->answer;
 
     outname = opt_out->answer;
@@ -263,6 +283,33 @@ int main(int argc, char *argv[])
     G_debug(1, "yerrperstrip = %g", yerrperstrip);
     G_debug(1, "numk = %d", numk);
 
+    /* segment structures */
+    k_mb = 2 * (sizeof(DCELL) * nbands + 2 * sizeof(double)) + sizeof(double);
+    k_mb = k_mb * numk / (1024. * 1024.);
+
+    G_debug(1, "MB for seeds: %g", k_mb);
+    if (k_mb >= segs_mb)
+	G_fatal_error(_("Not enough memory, increase %s option"), opt_mem->answer);
+
+    segs_mb -= k_mb;
+    G_debug(1, "MB for temporary data: %g", segs_mb);
+
+    nseg = 1024. * 1024. * segs_mb / (64 * 64 * (sizeof(DCELL) * nbands + sizeof(double) * 2 + sizeof(int)));
+    G_debug(1, "Number of segments in memory: %d", nseg);
+
+    if (Segment_open(&bands_seg, G_tempfile(), nrows, ncols, 64, 64,
+                     sizeof(DCELL) * nbands, nseg) != 1)
+	G_fatal_error("Unable to create input temporary file");
+
+    if (Segment_open(&k_seg, G_tempfile(), nrows, ncols, 64, 64,
+                     sizeof(int), nseg) != 1)
+	G_fatal_error("Unable to create input temporary file");
+
+    if (Segment_open(&dist_seg, G_tempfile(), nrows, ncols, 64, 64,
+                     sizeof(double) * 2, nseg) != 1)
+	G_fatal_error("Unable to create input temporary file");
+
+
     /* load input bands */
     G_message(_("Loading input..."));
     pdata = G_malloc(sizeof(DCELL *) * nbands);
@@ -282,28 +329,33 @@ int main(int argc, char *argv[])
 			   &drange);
 	Rast_get_fp_range_min_max(&drange, &min[b], &max[b]);
 	rng[b] = max[b] - min[b];
-
     }
 
-    pdata = G_malloc(sizeof(DCELL **) * nrows);
+    pdata = G_malloc(sizeof(DCELL) * nbands);
+    dists = G_malloc(sizeof(double) * 2);
+    dists[0] = dists[1] = 0;
+    k = -1;
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
-
-	pdata[row] = G_malloc(sizeof(DCELL *) * ncols);
 
 	for (b = 0; b < nbands; b++)
 	    Rast_get_d_row(ifd[b], ibuf[b], row);
 	for (col = 0; col < ncols; col++) {
-
-	    pdata[row][col] = G_malloc(sizeof(DCELL) * nbands);
-
 	    for (b = 0; b < nbands; b++) {
 		if (Rast_is_d_null_value(&ibuf[b][col])) {
-		    Rast_set_d_null_value(pdata[row][col], nbands);
+		    Rast_set_d_null_value(pdata, nbands);
 		    break;
 		}
-		pdata[row][col][b] = (ibuf[b][col] - min[b]) / rng[b];
+		pdata[b] = (ibuf[b][col] - min[b]) / rng[b];
 	    }
+	    if (Segment_put(&bands_seg, (void *)pdata, row, col) != 1)
+		G_fatal_error(_("Unable to write to temporary file"));
+
+	    if (Segment_put(&k_seg, (void *)&k, row, col) != 1)
+		G_fatal_error(_("Unable to write to temporary file"));
+
+	    if (Segment_put(&dist_seg, (void *)&dists, row, col) != 1)
+		G_fatal_error(_("Unable to write to temporary file"));
 	}
     }
     G_percent(nrows, nrows, 2);
@@ -362,9 +414,10 @@ int main(int argc, char *argv[])
 
 	    seedy = (y * offset + yoff + ye);
 
-	    if (!Rast_is_d_null_value(pdata[seedy][seedx])) {
+	    Segment_get(&bands_seg, (void *)pdata, seedy, seedx);
+	    if (!Rast_is_d_null_value(pdata)) {
 		for (b = 0; b < nbands; b++) {
-		    kseedsb[k][b] = pdata[seedy][seedx][b];
+		    kseedsb[k][b] = pdata[b];
 		}
 		kseedsx[k] = seedx;
 		kseedsy[k] = seedy;
@@ -374,23 +427,6 @@ int main(int argc, char *argv[])
     }
     if (k != numk)
 	G_warning(_("Initialized %d of %d seeds"), k, numk);
-
-    /* allocate cell variables */
-    klabels = G_malloc(sizeof(int *) * nrows);
-
-    for (row = 0; row < nrows; row++) {
-	klabels[row] = G_malloc(sizeof(int) * ncols);
-	for (col = 0; col < ncols; col++)
-	    klabels[row][col] = -1;
-    }
-
-    dists = G_malloc(sizeof(double **) * nrows);
-    for (row = 0; row < nrows; row++) {
-	dists[row] = G_malloc(sizeof(double *) * ncols);
-	for (col = 0; col < ncols; col++) {
-	    dists[row][col] = G_malloc(sizeof(double) * 2);
-	}
-    }
 
     maxdistspec = maxdistspecprev = 0;
 
@@ -403,10 +439,11 @@ int main(int argc, char *argv[])
 
 	schange = 0;
 
+	dists[0] = 0;
+	dists[1] = 1E+9;
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		dists[row][col][0] = 0;
-		dists[row][col][1] = 1E+9;
+		Segment_put(&dist_seg, (void *)&dists, row, col);
 	    }
 	}
 
@@ -420,13 +457,15 @@ int main(int argc, char *argv[])
 		dy = y - kseedsy[k];
 		
 		for (x = x1; x <= x2; x++) {
-		    if (Rast_is_d_null_value(pdata[y][x]))
+		    Segment_get(&bands_seg, (void *)pdata, y, x);
+		    if (Rast_is_d_null_value(pdata))
 			continue;
-		    
+
+		    Segment_get(&dist_seg, (void *)dists, y, x);
 		    dist = 0.0;
 		    for (b = 0; b < nbands; b++) {
-			dist += (pdata[y][x][b] - kseedsb[k][b]) *
-			        (pdata[y][x][b] - kseedsb[k][b]);
+			dist += (pdata[b] - kseedsb[k][b]) *
+			        (pdata[b] - kseedsb[k][b]);
 		    }
 		    dist /= nbands;
 
@@ -437,10 +476,12 @@ int main(int argc, char *argv[])
 		    distsum = dist / maxdistspeck[k] + distxy * invwt;
 		    /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
 		    /*------------------------------------------------------------------------ */
-		    if (distsum < dists[y][x][1]) {
-			dists[y][x][0] = dist;
-			dists[y][x][1] = distsum;
-			klabels[y][x] = k;
+		    if (distsum < dists[1]) {
+			dists[0] = dist;
+			dists[1] = distsum;
+
+			Segment_put(&dist_seg, (void *)dists, y, x);
+			Segment_put(&k_seg, (void *)&k, y, x);
 		    }
 
 		}		/* for( x=x1 */
@@ -455,10 +496,11 @@ int main(int argc, char *argv[])
 	    }
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
-		    k = klabels[row][col];
+		    Segment_get(&k_seg, (void *)&k, row, col);
 		    if (k >= 0) {
-			if (maxdistspeck[k] < dists[row][col][0])
-			    maxdistspeck[k] = dists[row][col][0];
+			Segment_get(&dist_seg, (void *)dists, row, col);
+			if (maxdistspeck[k] < dists[0])
+			    maxdistspeck[k] = dists[0];
 		    }
 		}
 	    }
@@ -468,10 +510,11 @@ int main(int argc, char *argv[])
 	    maxdistspec = 0;
 	    for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
-		    k = klabels[row][col];
+		    Segment_get(&k_seg, (void *)&k, row, col);
 		    if (k >= 0) {
-			if (maxdistspec < dists[row][col][0])
-			    maxdistspec = dists[row][col][0];
+			Segment_get(&dist_seg, (void *)dists, row, col);
+			if (maxdistspec < dists[0])
+			    maxdistspec = dists[0];
 		    }
 		}
 	    }
@@ -490,13 +533,15 @@ int main(int argc, char *argv[])
 
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		if (klabels[row][col] >= 0) {
+		Segment_get(&k_seg, (void *)&k, row, col);
+		if (k >= 0) {
+		    Segment_get(&bands_seg, (void *)pdata, row, col);
 		    for (b = 0; b < nbands; b++) {
-			sigmab[klabels[row][col]][b] += pdata[row][col][b];
+			sigmab[k][b] += pdata[b];
 		    }
-		    sigmax[klabels[row][col]] += col;
-		    sigmay[klabels[row][col]] += row;
-		    clustersize[klabels[row][col]] += 1;
+		    sigmax[k] += col;
+		    sigmay[k] += row;
+		    clustersize[k] += 1;
 		}
 	    }
 	}
@@ -545,12 +590,6 @@ int main(int argc, char *argv[])
 	G_message(_("SLIC converged after %d iterations"), itr);
 
     /* free */
-    for (row = 0; row < nrows; row++) {
-	for (col = 0; col < ncols; col++)
-	    G_free(dists[row][col]);
-	G_free(dists[row]);
-    }
-    G_free(dists);
 
     for (k = 0; k < numk; k++) {
 	G_free(kseedsb[k]);
@@ -564,40 +603,49 @@ int main(int argc, char *argv[])
     G_free(sigmay);
     G_free(clustersize);
 
-    nlabels = G_malloc(sizeof(int *) * nrows);
-    for (row = 0; row < nrows; row++) {
-	nlabels[row] = G_malloc(sizeof(int) * ncols);
-	memset(nlabels[row], 0, sizeof(int) * ncols);
-    }
+    Segment_close(&dist_seg);
 
-    numlabels = SLIC_EnforceLabelConnectivity(klabels, ncols, nrows, 
-                                              nlabels, 0);
+    if (Segment_open(&nk_seg, G_tempfile(), nrows, ncols, 64, 64,
+                     sizeof(int), nseg) != 1)
+	G_fatal_error("Unable to create input temporary file");
+
+    numlabels = SLIC_EnforceLabelConnectivity(&k_seg, ncols, nrows, 
+                                              &nk_seg, 0);
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    if (klabels[row][col] >= 0)
-		klabels[row][col] = nlabels[row][col];
+	    Segment_get(&k_seg, (void *)&k, row, col);
+	    if (k >= 0) {
+		int n;
+
+		Segment_get(&nk_seg, (void *)&n, row, col);
+		Segment_put(&k_seg, (void *)&n, row, col);
+	    }
 	}
     }
-    
-    G_free(nlabels);
+
+    Segment_close(&nk_seg);
 
     if (minsize > 1)
-	numlabels = merge_small_clumps(pdata, nbands, klabels,
+	numlabels = merge_small_clumps(&bands_seg, nbands, &k_seg,
 	                               numlabels, 0, minsize);
+
+    Segment_close(&bands_seg);
 
     outfd = Rast_open_new(outname, CELL_TYPE);
     obuf = Rast_allocate_c_buf();
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    if (klabels[row][col] < 0)
+	    Segment_get(&k_seg, (void *)&k, row, col);
+	    if (k < 0)
 		Rast_set_c_null_value(&obuf[col], 1);
 	    else
-		obuf[col] = klabels[row][col] + 1;	/* +1 to avoid category value 0 */
+		obuf[col] = k + 1;	/* +1 to avoid category value 0 */
 	}
 	Rast_put_row(outfd, obuf, CELL_TYPE);
     }
 
     Rast_close(outfd);
+    Segment_close(&k_seg);
 
     /* history */
     Rast_short_history(outname, "raster", &hist);
@@ -613,22 +661,23 @@ int main(int argc, char *argv[])
 }
 
 
-int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
-                                  int **nlabels,	/*new labels */
+int SLIC_EnforceLabelConnectivity(SEGMENT *k_seg, int ncols, int nrows,
+                                  SEGMENT *nk_seg,	/*new labels */
 				  int minsize)
 {
 
     const int dx4[4] = { -1, 0, 1, 0 };
     const int dy4[4] = { 0, -1, 0, 1 };
 
-    int n, label, adjlabel;
+    int n, label, adjlabel, k, k2, nk;
     int row, col;
     int x, y, c, count;
     int *xvec, *yvec, vec_alloc;
 
+    nk = -1;
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++)
-	    nlabels[row][col] = -1;
+	    Segment_put(nk_seg, (void *)&nk, row, col);
     }
     label = 0;
 
@@ -640,8 +689,10 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    if (labels[row][col] >= 0 && nlabels[row][col] < 0) {
-		nlabels[row][col] = label;
+	    Segment_get(k_seg, (void *)&k, row, col);
+	    Segment_get(nk_seg, (void *)&nk, row, col);
+	    if (k >= 0 && nk < 0) {
+		Segment_put(nk_seg, (void *)&label, row, col);
 
 		/*--------------------
 		 Start a new segment
@@ -657,8 +708,9 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 		    x = xvec[0] + dx4[n];
 		    y = yvec[0] + dy4[n];
 		    if ((x >= 0 && x < ncols) && (y >= 0 && y < nrows)) {
-			if (nlabels[y][x] >= 0)
-			    adjlabel = nlabels[y][x];
+			Segment_get(nk_seg, (void *)&nk, y, x);
+			if (nk >= 0)
+			    adjlabel = nk;
 		    }
 		}
 
@@ -670,8 +722,9 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 
 			if ((x >= 0 && x < ncols) && (y >= 0 && y < nrows)) {
 
-			    if (0 > nlabels[y][x] &&
-				labels[row][col] == labels[y][x]) {
+			    Segment_get(k_seg, (void *)&k2, y, x);
+			    Segment_get(nk_seg, (void *)&nk, y, x);
+			    if (0 > nk && k == k2) {
 				if (vec_alloc <= count) {
 				    vec_alloc += 100;
 				    xvec =
@@ -683,7 +736,7 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 				}
 				xvec[count] = x;
 				yvec[count] = y;
-				nlabels[y][x] = label;
+				Segment_put(nk_seg, (void *)&label, y, x);
 				count++;
 			    }
 			}
@@ -696,7 +749,7 @@ int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 		-------------------------------------------------------*/
 		if (count < minsize) {
 		    for (c = 0; c < count; c++) {
-			nlabels[yvec[c]][xvec[c]] = adjlabel;
+			Segment_put(nk_seg, (void *)&adjlabel, yvec[c], xvec[c]);
 		    }
 		    label--;
 		}
