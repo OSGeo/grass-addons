@@ -39,6 +39,10 @@
 int SLIC_EnforceLabelConnectivity(int **labels, int ncols, int nrows,
 				   int **nlabels, int minsize);
 
+int merge_small_clumps(DCELL ***pdata, int nbands,
+                       int **klabels, int nlabels,
+                       int diag, int minsize);
+
 int main(int argc, char *argv[])
 {
     struct GModule *module;	/* GRASS module for parsing arguments */
@@ -65,8 +69,8 @@ int main(int argc, char *argv[])
     int step;
     int offset;
     DCELL ***pdata;
-    int **klabels, **nlabels, label_change;
-    double **distvec, **distspec;
+    int **klabels, **nlabels, schange;
+    double ***dists;
 
     double xerrperstrip, yerrperstrip;
     int xstrips, ystrips, xoff, yoff, xerr, yerr;
@@ -77,9 +81,8 @@ int main(int argc, char *argv[])
     int seedx, seedy;
 
     int *clustersize;
-    double *kseedsx, *kseedsy;
-    double **kseedsb;
-    double **sigmab, *sigmax, *sigmay;
+    double *kseedsx, *kseedsy, *sigmax, *sigmay;
+    DCELL **kseedsb, **sigmab;
     double *maxdistspeck, maxdistspec, maxdistspecprev;
 
     double invwt;
@@ -108,7 +111,7 @@ int main(int argc, char *argv[])
     opt_iteration->type = TYPE_INTEGER;
     opt_iteration->required = NO;
     opt_iteration->description = _("Maximum number of iterations");
-    opt_iteration->answer = "100";
+    opt_iteration->answer = "10";
 
     opt_super_pixels = G_define_option();
     opt_super_pixels->key = "k";
@@ -259,6 +262,7 @@ int main(int argc, char *argv[])
     G_debug(1, "numk = %d", numk);
 
     /* load input bands */
+    G_message(_("Loading input..."));
     pdata = G_malloc(sizeof(DCELL *) * nbands);
 
     ifd = G_malloc(sizeof(int *) * nbands);
@@ -300,6 +304,7 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
+    G_percent(nrows, nrows, 2);
 
     for (b = 0; b < nbands; b++) {
 	Rast_close(ifd[b]);
@@ -309,10 +314,10 @@ int main(int argc, char *argv[])
     G_free(ibuf);
 
     /* allocate seed variables */
-    kseedsb = G_malloc(sizeof(double *) * numk);
+    kseedsb = G_malloc(sizeof(DCELL *) * numk);
     for (k = 0; k < numk; k++) {
-	kseedsb[k] = G_malloc(sizeof(double) * nbands);
-	memset(kseedsb[k], 0, sizeof(double) * nbands);
+	kseedsb[k] = G_malloc(sizeof(DCELL) * nbands);
+	memset(kseedsb[k], 0, sizeof(DCELL) * nbands);
     }
 
     kseedsx = G_malloc(sizeof(double) * numk);
@@ -320,6 +325,26 @@ int main(int argc, char *argv[])
 
     kseedsy = G_malloc(sizeof(double) * numk);
     memset(kseedsy, 0, sizeof(double) * numk);
+
+    clustersize = G_malloc(sizeof(int) * numk);
+    memset(clustersize, 0, sizeof(int) * numk);
+
+    sigmab = G_malloc(sizeof(DCELL *) * numk);
+    for (k = 0; k < numk; k++) {
+	sigmab[k] = G_malloc(sizeof(DCELL) * nbands);
+	memset(sigmab[k], 0, sizeof(DCELL) * nbands);
+    }
+
+    sigmax = G_malloc(sizeof(double) * numk);
+    memset(sigmax, 0, sizeof(double) * numk);
+
+    sigmay = G_malloc(sizeof(double) * numk);
+    memset(sigmay, 0, sizeof(double) * numk);
+
+    maxdistspeck = G_malloc(sizeof(double) * numk);
+    for (k = 0; k < numk; k++)
+	maxdistspeck[k] = 1;
+
 
     /* initial seed values */
     k = 0;
@@ -348,22 +373,6 @@ int main(int argc, char *argv[])
     if (k != numk)
 	G_warning(_("Initialized %d of %d seeds"), k, numk);
 
-    clustersize = G_malloc(sizeof(int) * numk);
-    memset(clustersize, 0, sizeof(int) * numk);
-
-    sigmab = G_malloc(sizeof(double *) * numk);
-    for (k = 0; k < numk; k++) {
-	sigmab[k] = G_malloc(sizeof(double) * nbands);
-	memset(sigmab[k], 0, sizeof(double) * nbands);
-    }
-
-    sigmax = G_malloc(sizeof(double) * numk);
-    memset(sigmax, 0, sizeof(double) * numk);
-
-    sigmay = G_malloc(sizeof(double) * numk);
-    memset(sigmay, 0, sizeof(double) * numk);
-
-
     /* allocate cell variables */
     klabels = G_malloc(sizeof(int *) * nrows);
 
@@ -373,35 +382,29 @@ int main(int argc, char *argv[])
 	    klabels[row][col] = -1;
     }
 
-    distvec = G_malloc(sizeof(double *) * nrows);
-    for (row = 0; row < nrows; row++)
-	distvec[row] = G_malloc(sizeof(double) * ncols);
-
-    distspec = G_malloc(sizeof(double *) * nrows);
+    dists = G_malloc(sizeof(double **) * nrows);
     for (row = 0; row < nrows; row++) {
-	distspec[row] = G_malloc(sizeof(double) * ncols);
-	for (col = 0; col < ncols; col++)
-	    distspec[row][col] = 0;
+	dists[row] = G_malloc(sizeof(double *) * ncols);
+	for (col = 0; col < ncols; col++) {
+	    dists[row][col] = G_malloc(sizeof(double) * 2);
+	}
     }
 
-    maxdistspeck = G_malloc(sizeof(double) * numk);
     maxdistspec = maxdistspecprev = 0;
-
-    for (k = 0; k < numk; k++)
-	maxdistspeck[k] = 1;
 
     /* magic factor */
     invwt = 0.1 * compactness / (offset * offset);
 
+    G_message(_("Performing k mean segmentation..."));
     for (itr = 0; itr < n_iterations; itr++) {
 	G_percent(itr, n_iterations, 2);
 
-	label_change = 0;
+	schange = 0;
 
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
-		distvec[row][col] = 1E+9;
-		distspec[row][col] = 0;
+		dists[row][col][0] = 0;
+		dists[row][col][1] = 1E+9;
 	    }
 	}
 
@@ -432,11 +435,9 @@ int main(int argc, char *argv[])
 		    distsum = dist / maxdistspeck[k] + distxy * invwt;
 		    /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
 		    /*------------------------------------------------------------------------ */
-		    if (distsum < distvec[y][x]) {
-			distvec[y][x] = distsum;
-			distspec[y][x] = dist;
-			if (klabels[y][x] != k)
-			    label_change++;
+		    if (distsum < dists[y][x][1]) {
+			dists[y][x][0] = dist;
+			dists[y][x][1] = distsum;
 			klabels[y][x] = k;
 		    }
 
@@ -454,8 +455,8 @@ int main(int argc, char *argv[])
 		for (col = 0; col < ncols; col++) {
 		    k = klabels[row][col];
 		    if (k >= 0) {
-			if (maxdistspeck[k] < distspec[row][col])
-			    maxdistspeck[k] = distspec[row][col];
+			if (maxdistspeck[k] < dists[row][col][0])
+			    maxdistspeck[k] = dists[row][col][0];
 		    }
 		}
 	    }
@@ -467,14 +468,14 @@ int main(int argc, char *argv[])
 		for (col = 0; col < ncols; col++) {
 		    k = klabels[row][col];
 		    if (k >= 0) {
-			if (maxdistspec < distspec[row][col])
-			    maxdistspec = distspec[row][col];
+			if (maxdistspec < dists[row][col][0])
+			    maxdistspec = dists[row][col][0];
 		    }
 		}
 	    }
 	    for (k = 0; k < numk; k++)
 		maxdistspeck[k] = maxdistspec;
-	    G_debug(3, "maxdistspec = %.15g", maxdistspec);
+	    G_debug(1, "Largest spectral distance = %.15g", maxdistspec);
 	}
 
 	for (k = 0; k < numk; k++) {
@@ -493,41 +494,73 @@ int main(int argc, char *argv[])
 		    }
 		    sigmax[klabels[row][col]] += col;
 		    sigmay[klabels[row][col]] += row;
-
-	    /*-------------------------------------------*/
-		    /* edgesum[klabels[ind]] += edgemag[ind];    */
-
-	    /*-------------------------------------------*/
 		    clustersize[klabels[row][col]] += 1;
 		}
 	    }
 	}
 
 	for (k = 0; k < numk; k++) {
+	    double newxy;
+	    int kchange = 0;
+
 	    if (clustersize[k] <= 0)
 		clustersize[k] = 1;
 
 	    for (b = 0; b < nbands; b++) {
-		kseedsb[k][b] = sigmab[k][b] / clustersize[k];
+		DCELL newb;
+
+		newb = sigmab[k][b] / clustersize[k];
+		
+		if (kseedsb[k][b] != newb)
+		    kchange = 1;
+
+		kseedsb[k][b] = newb;
 	    }
-	    kseedsx[k] = sigmax[k] / clustersize[k];
-	    kseedsy[k] = sigmay[k] / clustersize[k];
+	    newxy = sigmax[k] / clustersize[k];
+	    if (kseedsx[k] != newxy)
+		kchange = 1;
+	    kseedsx[k] = newxy;
+	    newxy = sigmay[k] / clustersize[k];
+	    if (kseedsy[k] != newxy)
+		kchange = 1;
+	    kseedsy[k] = newxy;
 
-      /*------------------------------------*/
-	    /* edgesum[k] *= inv[k];              */
-
-      /*------------------------------------*/
+	    if (kchange)
+		schange++;
 	}
-	if (label_change == 0)
+	/* SLIC (k mean) converges */
+	G_debug(1, "Number of changed seeds: %d", schange);
+	if (schange == 0)
 	    break;
-	G_debug(3, "Number of changed labels: %d", label_change);
+#if 0
 	if (!slic0 && maxdistspecprev == maxdistspec)
 	    break;
+#endif
     }
     G_percent(1, 1, 1);
 
     if (itr < n_iterations)
 	G_message(_("SLIC converged after %d iterations"), itr);
+
+    /* free */
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++)
+	    G_free(dists[row][col]);
+	G_free(dists[row]);
+    }
+    G_free(dists);
+
+    for (k = 0; k < numk; k++) {
+	G_free(kseedsb[k]);
+	G_free(sigmab[k]);
+    }
+    G_free(kseedsb);
+    G_free(kseedsx);
+    G_free(kseedsy);
+    G_free(sigmab);
+    G_free(sigmax);
+    G_free(sigmay);
+    G_free(clustersize);
 
     nlabels = G_malloc(sizeof(int *) * nrows);
     for (row = 0; row < nrows; row++) {
@@ -536,14 +569,19 @@ int main(int argc, char *argv[])
     }
 
     numlabels = SLIC_EnforceLabelConnectivity(klabels, ncols, nrows, 
-                                              nlabels, minsize);
-
+                                              nlabels, 0);
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
 	    if (klabels[row][col] >= 0)
 		klabels[row][col] = nlabels[row][col];
 	}
     }
+    
+    G_free(nlabels);
+
+    if (minsize > 1)
+	merge_small_clumps(pdata, nbands, klabels, numlabels, 0,
+	                   minsize);
 
     outfd = Rast_open_new(outname, CELL_TYPE);
     obuf = Rast_allocate_c_buf();
