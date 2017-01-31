@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     opt_out = G_define_standard_option(G_OPT_R_OUTPUT);
 
     opt_iteration = G_define_option();
-    opt_iteration->key = "iter";
+    opt_iteration->key = "iterations";
     opt_iteration->type = TYPE_INTEGER;
     opt_iteration->required = NO;
     opt_iteration->description = _("Maximum number of iterations");
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     opt_step->answer = "0";
 
     opt_compactness = G_define_option();
-    opt_compactness->key = "co";
+    opt_compactness->key = "compactness";
     opt_compactness->type = TYPE_DOUBLE;
     opt_compactness->required = NO;
     opt_compactness->label = _("Compactness");
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     opt_compactness->answer = "1";
 
     opt_minsize = G_define_option();
-    opt_minsize->key = "min";
+    opt_minsize->key = "minsize";
     opt_minsize->type = TYPE_INTEGER;
     opt_minsize->required = NO;
     opt_minsize->description = _("Minimum superpixel size");
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
     k_mb = k_mb * numk / (1024. * 1024.);
 
     G_debug(1, "MB for seeds: %g", k_mb);
-    if (k_mb >= segs_mb)
+    if (k_mb >= segs_mb - 10)
 	G_fatal_error(_("Not enough memory, increase %s option"), opt_mem->answer);
 
     segs_mb -= k_mb;
@@ -434,6 +434,7 @@ int main(int argc, char *argv[])
     invwt = 0.1 * compactness / (offset * offset);
 
     G_message(_("Performing k mean segmentation..."));
+    schange = 0;
     for (itr = 0; itr < n_iterations; itr++) {
 	G_percent(itr, n_iterations, 2);
 
@@ -588,6 +589,9 @@ int main(int argc, char *argv[])
 
     if (itr < n_iterations)
 	G_message(_("SLIC converged after %d iterations"), itr);
+    if (schange > 0)
+	G_verbose_message(_("%d of %d superpixels were modified in the last iteration"),
+	                  schange, numk);
 
     /* free */
 
@@ -656,6 +660,8 @@ int main(int argc, char *argv[])
     Rast_init_colors(&colors);
     Rast_make_random_colors(&colors, 1, numlabels);
     Rast_write_colors(outname, G_mapset(), &colors);
+
+    G_done_msg(" ");
 
     exit(EXIT_SUCCESS);
 }

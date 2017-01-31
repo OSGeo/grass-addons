@@ -5,32 +5,52 @@ k means method. The number of superpixels is determined either with the
 <b>k</b> option (number of superpixels) or with the <b>step</b> option 
 (distance between initial super pixel centers).
 <p>
-The <b>co</b> option controls the compactness of the resulting 
-superpixels. A larger <b>co</b> value will cause spatially more 
-compact, but also spectrally more heterogeneous superpixels. This is 
+The <b>compactness</b> option controls the compactness of the resulting 
+superpixels. A larger <b>compactness</b> value will cause spatially more 
+compact, but spectrally more heterogeneous superpixels. This is 
 the most important parameter of the module. A reasonable value should 
 be determined for small test regions before applying the module to a 
 large region.
 
 <h2>NOTES</h2>
+
+<h4>Iterations</h4>
 In each iteration, the assignment of pixels to superpixels and the 
 superpixels themselves (spatial and spectral means) are updated until 
 either the maximum number of iterations is reached or until the 
 superpixels no longer change. More iterations will provide better 
-results but will increase processing time. Recommended are about 500 
-iterations for best results (stabilized superpixels).
-<p> 
-If a minimum segment size of 2 or larger is given with the <b>min</b> 
+results but will increase processing time. The module will stop earlier 
+if convergence is reached, but it can take 1000 or more iterations 
+until convergence is reached.
+
+<h4>Minimum clump size</h4>
+If a minimum segment size of 2 or larger is given with the <b>minsize</b> 
 parameter, segments with a smaller pixel count will be merged with 
 their most similar neighbor.
-<p>
+
+<h4>Creating seeds for <em>i.segment</em></h4>
+If the purpose is to create seeds for <em>i.segment</em>, a small number 
+of iterations (at least 10) should be sufficient. Further on, a large 
+number of superpixels or a small step should be used, and small clumps 
+should not be merged.
+
+<h4>Image segmentation</h4>
+If the purpose is to perform image segmentation with 
+<em>i.superpixels.slic</em>, a larger number of iterations (e.g. 100) 
+should be used in order to obtain more stable superpixels. In this 
+case, larger superpixels can be used and small clumps can be removed 
+with the <b>minsize</b> option.
+
+<h4>Normalization of spectral distances (SLIC0)</h4>
 If the <b>-n</b> flag is used, the spectral distance of a pixel to a 
 given superpixel is divided by the maximum previously observed spectral 
 distance to that superpixel. This is the so-called <em>SLIC0</em> (SLIC 
-zero) method. After each iteration, the largest spectral distance is 
-determined for each superpixel separately. In the next iteration, 
-spectral distances of pixels to superpixels are normalized by the 
-largest spectral distance of the current superpixel.
+zero) method. After each iteration, the largest spectral distance to a 
+superpixel is determined from all pixels assigned to that superpixel. 
+In the next iteration, pixel assignment to superpixels is updated and 
+spectral distances of pixels to superpixels are divided by the largest 
+spectral distance of the current superpixel when evaluating a potential 
+assignment of a pixel to a superpixel.
 <p>
 That means that more heterogeneous superpixels have a larger maximum 
 spectral distance. For a given pixel, the normalized spectral distance 
@@ -53,6 +73,7 @@ Report no. 149300, June 2010.
 <a href="g.gui.iclass.html">g.gui.iclass</a>,
 <a href="i.group.html">i.group</a>, 
 <a href="i.segment.html">i.segment</a>, 
+<a href="i.clump.html">i.clump</a>, 
 <a href="i.maxlik.html">i.maxlik</a>, 
 <a href="i.smap.html">i.smap</a>, 
 <a href="r.kappa.html">r.kappa</a>
