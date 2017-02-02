@@ -1,9 +1,10 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include <grass/segment.h>	
+#include <grass/segment.h>
 #include <grass/glocale.h>
 #include "pavl.h"
 #include "rclist.h"
+#include "cache.h"
 
 struct nbr_cnt {
     int id;
@@ -139,7 +140,7 @@ static int get_four_neighbors(int row, int col, int nrows, int ncols,
 static int (*get_neighbors)(int row, int col, int nrows, int ncols,
 			       int neighbors[8][2]);
 
-static int update_cid(SEGMENT *k_seg, int row, int col, int old_id, int new_id)
+static int update_cid(struct cache *k_seg, int row, int col, int old_id, int new_id)
 {
     int nrows, ncols, rown, coln, n;
     int this_id;
@@ -147,12 +148,12 @@ static int update_cid(SEGMENT *k_seg, int row, int col, int old_id, int new_id)
     struct rc next;
     struct rclist rilist;
 
-    Segment_get(k_seg, (void *)&this_id, row, col);
+    cache_get(k_seg, &this_id, row, col);
     if (this_id != old_id) {
 	G_fatal_error(_("Wrong id %d for row %d, col %d"), 
 	              this_id, row, col);
     }
-    Segment_put(k_seg, (void *)&new_id, row, col);
+    cache_put(k_seg, &new_id, row, col);
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -169,9 +170,9 @@ static int update_cid(SEGMENT *k_seg, int row, int col, int old_id, int new_id)
 	    rown = neighbors[n][0];
 	    coln = neighbors[n][1];
 
-	    Segment_get(k_seg, (void *)&this_id, rown, coln);
+	    cache_get(k_seg, &this_id, rown, coln);
 	    if (this_id == old_id) {
-		Segment_put(k_seg, (void *)&new_id, rown, coln);
+		cache_put(k_seg, &new_id, rown, coln);
 		rclist_add(&rilist, rown, coln);
 	    }
 
@@ -184,7 +185,7 @@ static int update_cid(SEGMENT *k_seg, int row, int col, int old_id, int new_id)
 }
 
 static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
-                               SEGMENT *k_seg, int row, int col,
+                               struct cache *k_seg, int row, int col,
 			       int this_id, int *best_id)
 {
     int rown, coln, n, count, b;
@@ -227,7 +228,7 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
 	    coln = neighbors[n][1];
 
 	    /* get neighbor ID */
-	    Segment_get(k_seg, (void *)&ngbr_id, rown, coln);
+	    cache_get(k_seg, &ngbr_id, rown, coln);
 	    if (ngbr_id < 0)
 		continue;
 
@@ -289,8 +290,8 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
     return (*best_id >= 0);
 }
 
-int merge_small_clumps(SEGMENT *bands_seg, int nbands,
-                       SEGMENT *k_seg, int nlabels,
+int merge_small_clumps(struct cache *bands_seg, int nbands,
+                       struct cache *k_seg, int nlabels,
                        int diag, int minsize)
 {
     int row, col, nrows, ncols, i, b;
@@ -336,10 +337,10 @@ int merge_small_clumps(SEGMENT *bands_seg, int nbands,
     /* get clump sizes and band sums */
     for (row = 0; row < nrows; row++) {
 	for (col = 0; col < ncols; col++) {
-	    Segment_get(k_seg, (void *)&this_id, row, col);
+	    cache_get(k_seg, &this_id, row, col);
 	    if (this_id >= 0) {
 		clumpsize[this_id]++;
-		Segment_get(bands_seg, (void *)pdata, row, col);
+		cache_get(bands_seg, pdata, row, col);
 		for (b = 0; b < nbands; b++)
 		    clumpbsum[this_id][b] += pdata[b];
 	    }
@@ -354,7 +355,7 @@ int merge_small_clumps(SEGMENT *bands_seg, int nbands,
 	for (col = 0; col < ncols; col++) {
 
 	    /* get clump id */
-	    Segment_get(k_seg, (void *)&this_id, row, col);
+	    cache_get(k_seg, &this_id, row, col);
 	    if (this_id < 0)
 		continue;
 
@@ -398,10 +399,10 @@ int merge_small_clumps(SEGMENT *bands_seg, int nbands,
 
 	for (col = 0; col < ncols; col++) {
 
-	    Segment_get(k_seg, (void *)&this_id, row, col);
+	    cache_get(k_seg, &this_id, row, col);
 	    if (this_id >= 0) {
 		this_id = clumpsize[this_id];
-		Segment_put(k_seg, (void *)&this_id, row, col);
+		cache_put(k_seg, &this_id, row, col);
 	    }
 	}
     }
