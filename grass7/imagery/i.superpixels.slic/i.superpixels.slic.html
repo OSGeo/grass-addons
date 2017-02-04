@@ -63,10 +63,27 @@ heterogeneous superpixels can become larger and and even more
 heterogeneous. This effect becomes stronger with larger differences in 
 the spectral homogeneity of neighboring superpixels.
 
+<h4>Perturbing initial superpixel centers</h4>
+Initial superpixel centers can be optimized with the <b>perturb</b> 
+option. The objective of this optimization of initial superpixel 
+centers is to create more distinct and more homogeneous superpixels. 
+Superpixel centers are shifted to more uniform areas, the 
+pixel with the smallest gradient. The module guarantees that no two 
+superpixel centers are shifted to the same position. The <b>perturb</b> 
+option is interpreted as percent of the maximum allowable shift 
+distance such that no two superpixel centers can obtain the same 
+position.
+
 <h2>REFERENCES</h2>
-"SLIC Superpixels", Radhakrishna Achanta, Appu Shaji,  Kevin Smith, 
+SLIC Superpixels. 2010. Radhakrishna Achanta, Appu Shaji, Kevin Smith, 
 Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk. EPFL Technical 
-Report no. 149300, June 2010. 
+Report no. 149300. <br>
+SLIC Superpixels Compared to State-of-the-art Superpixel Methods. 2012. 
+Radhakrishna Achanta, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal 
+Fua, and Sabine S&uuml;sstrunk. IEEE Transactions on Pattern Analysis 
+and Machine Intelligence, 34(11), 2274 - 2282. <br>
+<a href="http://ivrl.epfl.ch/research/superpixels">SLIC(0) website</a>
+
 
 <h2>SEE ALSO</h2>
 <em>

@@ -37,6 +37,9 @@
 int SLIC_EnforceLabelConnectivity(struct cache *k_seg, int ncols, int nrows,
 				  struct cache *nk_seg, int minsize);
 
+int perturb_seeds(struct cache *bands_seg, int nbands, DCELL **kseedsb,
+		  double *kseedsx, double *kseedsy, int numk, int offset);
+
 int merge_small_clumps(struct cache *bands_seg, int nbands,
                        struct cache *k_seg, int nlabels,
                        int diag, int minsize);
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *opt_grp;		/* imagery group input option */
     struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
-                  *opt_compactness, *opt_minsize, *opt_mem;
+                  *opt_compactness, *opt_perturb, *opt_minsize, *opt_mem;
     struct Option *opt_out;	/* option for output */
     struct Flag *flag_n;
 
@@ -81,7 +84,8 @@ int main(int argc, char *argv[])
 
     double xe, ye;
     int x, y, x1, y1, x2, y2, itr;
-    short hexgrid, perturbseeds;
+    short int hexgrid;
+    int perturbseeds;
     int seedx, seedy;
 
     int *clustersize;
@@ -131,6 +135,15 @@ int main(int argc, char *argv[])
     opt_step->label = _("Distance (number of cells) between initial super pixel centers");
     opt_step->description = _("A step size > 0 overrides the number of super pixels");
     opt_step->answer = "0";
+
+    opt_perturb = G_define_option();
+    opt_perturb->key = "perturb";
+    opt_perturb->type = TYPE_INTEGER;
+    opt_perturb->required = NO;
+    opt_perturb->options = "0-100";
+    opt_perturb->label = _("Perturb initial super pixel centers");
+    opt_perturb->description = _("Percent of intitial superpixel radius");
+    opt_perturb->answer = "0";
 
     opt_compactness = G_define_option();
     opt_compactness->key = "compactness";
@@ -246,34 +259,33 @@ int main(int argc, char *argv[])
     ncols = Rast_window_cols();
 
     /* determine seed grid */
-    offset = step;
     superpixelsize = step * step;
     if (step < 5) {
 	superpixelsize = 0.5 + (double)nrows * ncols / n_super_pixels;
 
-	offset = sqrt((double)superpixelsize) + 0.5;
+	step = sqrt((double)superpixelsize) + 0.5;
     }
 
-    xstrips = (0.5 + (double)ncols / offset);
-    ystrips = (0.5 + (double)nrows / offset);
+    xstrips = (0.5 + (double)ncols / step);
+    ystrips = (0.5 + (double)nrows / step);
 
-    xerr = ncols - offset * xstrips;
+    xerr = ncols - step * xstrips;
     if (xerr < 0) {
 	xstrips--;
-	xerr = ncols - offset * xstrips;
+	xerr = ncols - step * xstrips;
     }
 
-    yerr = nrows - offset * ystrips;
+    yerr = nrows - step * ystrips;
     if (yerr < 0) {
 	ystrips--;
-	yerr = nrows - offset * ystrips;
+	yerr = nrows - step * ystrips;
     }
 
     xerrperstrip = (double)xerr / xstrips;
     yerrperstrip = (double)yerr / ystrips;
 
-    xoff = offset / 2;
-    yoff = offset / 2;
+    xoff = step / 2;
+    yoff = step / 2;
 
     numk = xstrips * ystrips;
 
@@ -432,13 +444,13 @@ int main(int argc, char *argv[])
 	ye = y * yerrperstrip;
 	for (x = 0; x < xstrips; x++) {
 	    xe = x * xerrperstrip;
-	    seedx = (x * offset + xoff + xe);
+	    seedx = (x * step + xoff + xe);
 	    if (hexgrid > 0) {
-		seedx = x * offset + (xoff << (y & 0x1)) + xe;
+		seedx = x * step + (xoff << (y & 0x1)) + xe;
 		seedx = MIN(ncols - 1, seedx);
 	    }			/* for hex grid sampling */
 
-	    seedy = (y * offset + yoff + ye);
+	    seedy = (y * step + yoff + ye);
 
 	    cache_get(&bands_seg, pdata, seedy, seedx);
 	    if (!Rast_is_d_null_value(pdata)) {
@@ -454,8 +466,24 @@ int main(int argc, char *argv[])
     if (k != numk)
 	G_warning(_("Initialized %d of %d seeds"), k, numk);
 
+    perturbseeds = 0;
+    if (opt_perturb->answer) {
+	if (sscanf(opt_perturb->answer, "%d", &perturbseeds) != 1) {
+	    G_fatal_error(_("Illegal value for <%s>"),
+			  opt_perturb->answer);
+	}
+	if (perturbseeds > 0) {
+	    perturbseeds = (step - 1) * perturbseeds / (2 * 100);
+	    if (perturbseeds == 0)
+		perturbseeds = 1;
+	    perturb_seeds(&bands_seg, nbands, kseedsb, kseedsx, kseedsy,
+	                  numk, perturbseeds);
+	}
+    }
+
     maxdistspec = maxdistspecprev = 0;
 
+    offset = step;	/* offset could also be step * 1.5 */
     /* magic factor */
     invwt = 0.1 * compactness / (offset * offset);
 
@@ -792,4 +820,132 @@ int SLIC_EnforceLabelConnectivity(struct cache *k_seg, int ncols, int nrows,
     G_free(yvec);
 
     return label;
+}
+
+int perturb_seeds(struct cache *bands_seg, int nbands, DCELL **kseedsb,
+		  double *kseedsx, double *kseedsy, int numk, int offset)
+{
+    int row, col, rown, coln, nrows, ncols, k, b;
+    int nperturbed;
+    double g, gmin, d, ds;
+    int gn;
+    int x, y, xmin, ymin;
+    DCELL *pdata, *pdatan;
+
+    G_message(_("Perturbing seeds..."));
+    G_verbose_message(_("Perturbing distance : %d"), offset);
+
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
+
+    pdata = G_malloc(sizeof(DCELL) * nbands);
+    pdatan = G_malloc(sizeof(DCELL) * nbands);
+
+    nperturbed = 0;
+    for (k = 0; k < numk; k++) {
+	x = kseedsx[k];
+	y = kseedsy[k];
+	xmin = x;
+	ymin = y;
+
+	gmin = -1;
+	for (row = y - offset; row <= y + offset; row++) {
+	    if (row < 0 || row >= nrows)
+		continue;
+	    for (col = x - offset; col <= x + offset; col++) {
+		if (col < 0 || col >= ncols)
+		    continue;
+		
+		cache_get(bands_seg, pdata, row, col);
+		
+		if (Rast_is_d_null_value(pdata))
+		    continue;
+
+		/* get gradient */
+		g = 0;
+		gn = 0;
+
+		rown = row - 1;
+		coln = col;
+		if (rown >= 0 && rown < nrows && coln >= 0 && coln < ncols) {
+		    cache_get(bands_seg, pdatan, rown, coln);
+		    if (!Rast_is_d_null_value(pdatan)) {
+			ds = 0;
+			for (b = 0; b < nbands; b++) {
+			    d = pdata[b] - pdatan[b];
+			    ds += d * d;
+			}
+			g += ds / nbands;
+			gn++;
+		    }
+		}
+		rown = row + 1;
+		coln = col;
+		if (rown >= 0 && rown < nrows && coln >= 0 && coln < ncols) {
+		    cache_get(bands_seg, pdatan, rown, coln);
+		    if (!Rast_is_d_null_value(pdatan)) {
+			ds = 0;
+			for (b = 0; b < nbands; b++) {
+			    d = pdata[b] - pdatan[b];
+			    ds += d * d;
+			}
+			g += ds / nbands;
+			gn++;
+		    }
+		}
+		rown = row;
+		coln = col - 1;
+		if (rown >= 0 && rown < nrows && coln >= 0 && coln < ncols) {
+		    cache_get(bands_seg, pdatan, rown, coln);
+		    if (!Rast_is_d_null_value(pdatan)) {
+			ds = 0;
+			for (b = 0; b < nbands; b++) {
+			    d = pdata[b] - pdatan[b];
+			    ds += d * d;
+			}
+			g += ds / nbands;
+			gn++;
+		    }
+		}
+		rown = row;
+		coln = col + 1;
+		if (rown >= 0 && rown < nrows && coln >= 0 && coln < ncols) {
+		    cache_get(bands_seg, pdatan, rown, coln);
+		    if (!Rast_is_d_null_value(pdatan)) {
+			ds = 0;
+			for (b = 0; b < nbands; b++) {
+			    d = pdata[b] - pdatan[b];
+			    ds += d * d;
+			}
+			g += ds / nbands;
+			gn++;
+		    }
+		}
+
+		if (gn > 0) {
+		    g /= gn;
+		    if (gmin == -1 || gmin > g) {
+			gmin = g;
+			ymin = row;
+			xmin = col;
+		    }
+		}
+	    }
+	}
+	if (xmin != x || ymin != y) {
+	    kseedsx[k] = xmin;
+	    kseedsy[k] = ymin;
+	    cache_get(bands_seg, pdatan, ymin, xmin);
+	    memcpy(kseedsb[k], pdatan, sizeof(DCELL) * nbands);
+	    nperturbed++;
+	}
+    }
+
+    G_free(pdata);
+    G_free(pdatan);
+
+    G_verbose_message(_("%d of %d seeds have been perturbed"),
+                      nperturbed, numk);
+
+    return nperturbed;
 }
