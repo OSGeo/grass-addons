@@ -48,7 +48,7 @@
 #% label: Classifier
 #% description: Supervised learning model to use
 #% answer: RandomForestClassifier
-#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor
+#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
 #%end
 
 #%option
@@ -1045,12 +1045,31 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
                            'EarthRegressor': Earth(max_degree=max_degree)}
         except:
             grass.fatal('Py-earth package not installed')
+            
+    elif estimator == 'XGBClassifier' or estimator == 'XGBRegressor':
+        try:
+            from xgboost import XGBClassifier, XGBRegressor
+
+            if max_depth is None:
+                max_depth = int(3)
+
+            classifiers = {'XGBClassifier': XGBClassifier(learning_rate=learning_rate,
+                                                          n_estimators=n_estimators,
+                                                          max_depth=max_depth,
+                                                          subsample=subsample),
+                           'XGBRegressor': XGBRegressor(learning_rate=learning_rate,
+                                                        n_estimators=n_estimators,
+                                                        max_depth=max_depth,
+                                                        subsample=subsample)}
+        except:
+            grass.fatal('Py-earth package not installed')
     else:
         # core sklearn classifiers go here
         classifiers = {
             'SVC': SVC(C=C, probability=True, random_state=random_state),
             'LogisticRegression':
-                LogisticRegression(C=C, random_state=random_state, n_jobs=-1),
+                LogisticRegression(C=C, random_state=random_state, n_jobs=-1,
+                                   fit_intercept=True),
             'DecisionTreeClassifier':
                 DecisionTreeClassifier(max_depth=max_depth,
                                        max_features=max_features,
@@ -1113,6 +1132,7 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
         or estimator == 'LinearDiscriminantAnalysis' \
         or estimator == 'QuadraticDiscriminantAnalysis' \
         or estimator == 'EarthClassifier' \
+        or estimator == 'XGBClassifier' \
             or estimator == 'SVC':
             mode = 'classification'
     else:
@@ -1506,7 +1526,7 @@ def main():
             param_grid['max_depth'] = [int(i) for i in max_depth.split(',')]
             max_depth = None
         else:
-            max_depth = float(max_depth)
+            max_depth = int(max_depth)
 
     max_features = options['max_features']
     if max_features == '':
