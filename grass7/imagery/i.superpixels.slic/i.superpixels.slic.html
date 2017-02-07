@@ -21,7 +21,8 @@ RGB input images (which are internally transformed into LAB color space,
 <em>i.superpixels.slic</em> allows the use of any number of input bands. 
 These bands can be either spectral bands of imagery, or any other 
 pseudo-bands relevant to the analysis at hand (NDVI, texture, 
-precipitation, etc).
+precipitation, etc). All band values are normalized to a common 0-1 scale
+to ensure comparability in the spectral distance calculations.
 
 <h4>Iterations</h4>
 In each iteration, the assignment of pixels to superpixels and the 
