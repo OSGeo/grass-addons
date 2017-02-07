@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
     opt_iteration->answer = "10";
 
     opt_super_pixels = G_define_option();
-    opt_super_pixels->key = "k";
+    opt_super_pixels->key = "num_pixels";
     opt_super_pixels->type = TYPE_INTEGER;
     opt_super_pixels->required = NO;
-    opt_super_pixels->description = _("Number of super pixels");
+    opt_super_pixels->description = _("Approximate number of output super pixels");
     opt_super_pixels->answer = "200";
 
     opt_step = G_define_option();
@@ -484,7 +484,10 @@ int main(int argc, char *argv[])
     maxdistspec = maxdistspecprev = 0;
 
     offset = step;	/* offset could also be step * 1.5 */
-    /* magic factor */
+
+    /* 0.1 * compactness as this seems to give nice results for a default value of compactness = 1. */
+    /* We do not square compactness as this would make the result very sensitive to small changes   */
+    /* of compactness.										    */
     invwt = 0.1 * compactness / (offset * offset);
 
     G_message(_("Performing k mean segmentation..."));
@@ -529,7 +532,12 @@ int main(int argc, char *argv[])
 
 		    /* ----------------------------------------------------------------------- */
 		    distsum = dist / maxdistspeck[k] + distxy * invwt;
-		    /* dist = sqrt(dist) + sqrt(distxy*invwt);  this is more exact */
+		    /* We use a slightly different formula than that of Achanta et al.:        */
+		    /* D^2 = (dc / m)^2 + c * (ds / S)^2				       */	
+		    /* This means that m and S are always determined within the code and c is  */
+		    /* a factor to weigh the relative importance between color similarity and  */
+		    /* spatial proximity. Thus user-determined compactness is always taken     */
+		    /* into account, even in SLIC0, and is independent of the number of bands. */
 		    /*------------------------------------------------------------------------ */
 		    if (distsum < dists[1]) {
 			dists[0] = dist;

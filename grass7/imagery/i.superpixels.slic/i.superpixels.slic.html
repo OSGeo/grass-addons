@@ -1,9 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.superpixels.slic</em> performs superpixel segmentation using a 
-k means method. The number of superpixels is determined either with the 
-<b>k</b> option (number of superpixels) or with the <b>step</b> option 
-(distance between initial super pixel centers).
+k means method, based on the work of Achanta et al. 
+The number of superpixels is determined either with the 
+<b>num_pixels</b> option (number of superpixels) or with the <b>step</b> 
+option (distance between initial super pixel centers).
 <p>
 The <b>compactness</b> option controls the compactness of the resulting 
 superpixels. A larger <b>compactness</b> value will cause spatially more 
@@ -13,6 +14,14 @@ be determined for small test regions before applying the module to a
 large region.
 
 <h2>NOTES</h2>
+
+<h4>Input bands</h4>
+Contrary to the original Achanta et al. SLIC algorithm which allows only
+RGB input images (which are internally transformed into LAB color space, 
+<em>i.superpixels.slic</em> allows the use of any number of input bands. 
+These bands can be either spectral bands of imagery, or any other 
+pseudo-bands relevant to the analysis at hand (NDVI, texture, 
+precipitation, etc).
 
 <h4>Iterations</h4>
 In each iteration, the assignment of pixels to superpixels and the 
@@ -44,15 +53,21 @@ with the <b>minsize</b> option.
 <h4>Normalization of spectral distances (SLIC0)</h4>
 If the <b>-n</b> flag is used, the spectral distance of a pixel to a 
 given superpixel is divided by the maximum previously observed spectral 
-distance to that superpixel. This is the so-called <em>SLIC0</em> (SLIC 
-zero) method. After each iteration, the largest spectral distance to a 
+distance to that superpixel. This is an adaptation of the so-called 
+<em>SLIC0</em> (SLIC zero) method. 
+<p>
+After each iteration, the largest spectral distance to a 
 superpixel is determined from all pixels assigned to that superpixel. 
 In the next iteration, pixel assignment to superpixels is updated and 
 spectral distances of pixels to superpixels are divided by the largest 
 spectral distance of the current superpixel when evaluating a potential 
 assignment of a pixel to a superpixel.
 <p>
-That means that more heterogeneous superpixels have a larger maximum 
+Contrary to the Achanta et al. version of SLIC0, <em>i.superpixels.slic</em>
+takes into account the <em>compactness</em> value chosen by the user even
+when the <b>-n</b> flag is used.
+<p>
+SLIC0 implies that more heterogeneous superpixels have a larger maximum 
 spectral distance. For a given pixel, the normalized spectral distance 
 will be smaller for a more heterogeneous superpixel than for a more 
 homogeneous superpixel. This favours more heterogeneous superpixels 
@@ -61,7 +76,8 @@ not normalized spectral distance of a pixel to a homogeneous superpixel
 is smaller than to a heterogeneous pixel. As a consequence, 
 heterogeneous superpixels can become larger and and even more 
 heterogeneous. This effect becomes stronger with larger differences in 
-the spectral homogeneity of neighboring superpixels.
+the spectral homogeneity of neighboring superpixels, and with a lower
+<em>compactness</em> value, as spectral difference then gets a bigger weight.
 
 <h4>Perturbing initial superpixel centers</h4>
 Initial superpixel centers can be optimized with the <b>perturb</b> 
