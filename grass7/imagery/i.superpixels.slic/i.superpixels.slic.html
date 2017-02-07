@@ -74,6 +74,74 @@ option is interpreted as percent of the maximum allowable shift
 distance such that no two superpixel centers can obtain the same 
 position.
 
+<h2>EXAMPLES</h2>
+
+<h3>Segmentation of Landsat images and NDVI</h3>
+
+List Landsat imagery in the full NC sample dataset:
+
+<div class="code"><pre>
+g.list type=raster pattern='lsat*' sep=comma
+</pre></div>
+
+Set the computation region to one of the rasters (all have the same
+extent and resolution):
+
+<div class="code"><pre>
+g.region raster=lsat7_2002_10
+</pre></div>
+
+Use the list to create an imagery group:
+
+<div class="code"><pre>
+i.group group=lsat subgroup=lsat input=`g.list type=raster pattern='lsat*' sep=comma`
+</pre></div>
+
+Perform the segmentation:
+
+<div class="code"><pre>
+i.superpixels.slic group=lsat output=segments k=2000
+</pre></div>
+
+Convert the segments to vectors for further analysis and visualization:
+
+<div class="code"><pre>
+r.to.vect input=segments output=segments type=area
+</pre></div>
+
+Show the boundaries between the segments with false color image
+in the background:
+
+<div class="code"><pre>
+d.rgb red=lsat7_2002_70 green=lsat7_2002_50 blue=lsat7_2002_30
+d.vect map=segments fill_color=none
+</pre></div>
+
+Let's compute the NDVI using <em><a href="r.mapcalc.html">r.mapcalc</a></em>
+and assign average NDVI to each of the vector areas:
+
+<div class="code"><pre>
+r.mapcalc "ndvi = float(lsat7_2002_40 - lsat7_2002_30) / float(lsat7_2002_40 + lsat7_2002_30)"
+r.colors map=ndvi color=ndvi
+v.rast.stats map=segments raster=ndvi column_prefix=ndvi method=average
+</pre></div>
+
+And now visualize the segments using the NDVI value for coloring the
+areas with the <tt>ndvi</tt> color table but keeping the area boundaries
+black:
+
+<div class="code"><pre>
+g.copy vector=segments,segments_color
+v.colors map=segments_color use=attr column=ndvi_average color=ndvi
+d.vect map=segments_color width=2 icon=basic/point
+d.vect map=segments fill_color=none
+</pre></div>
+
+<center>
+<img src="i_superpixels_slic.png" alt="Average NDVI in superpixel">
+<p><em>Average NVDI in each superpixel area (segment)</em>
+</center>
+
 <h2>REFERENCES</h2>
 SLIC Superpixels. 2010. Radhakrishna Achanta, Appu Shaji, Kevin Smith, 
 Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk. EPFL Technical 
