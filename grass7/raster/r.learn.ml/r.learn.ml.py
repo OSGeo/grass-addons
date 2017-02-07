@@ -417,8 +417,8 @@ class train():
         self.enc.fit(self.X)
         self.X = self.enc.transform(self.X)
 
-    def fit(self, param_distributions=None, param_grid=None, n_iter=3, cv=3,
-            random_state=None):
+    def fit(self, param_distributions=None, param_grid=None,
+            scoring=None, n_iter=3, cv=3, random_state=None):
 
         """
         Main fit method for the train object. Performs fitting, hyperparameter
@@ -466,14 +466,15 @@ class train():
                 self.estimator = RandomizedSearchCV(
                     estimator=self.estimator,
                     param_distributions=param_distributions,
-                    n_iter=n_iter,
+                    n_iter=n_iter, scoring=scoring,
                     cv=cv_search)
 
             # Grid Search
             if param_grid is not None:
                 self.estimator = GridSearchCV(self.estimator,
                                               param_grid,
-                                              n_jobs=-1, cv=cv_search)
+                                              n_jobs=-1, cv=cv_search,
+                                              scoring=scoring)
 
             # if groups then fit RandomizedSearchCV.fit requires groups param
             if self.groups is None:
@@ -745,6 +746,9 @@ class train():
                     self.scores['kappa'],
                     metrics.cohen_kappa_score(y_test, y_pred))
 
+                self.scores_cm = metrics.classification_report(
+                        y_test_agg, y_pred_agg)
+
             elif scorers == 'multiclass':
 
                 self.scores['accuracy'] = np.append(
@@ -755,13 +759,16 @@ class train():
                     self.scores['kappa'],
                     metrics.cohen_kappa_score(y_test, y_pred))
 
+                self.scores_cm = metrics.classification_report(
+                        y_test_agg, y_pred_agg)
+
             elif scorers == 'regression':
                 self.scores['r2'] = np.append(
                     self.scores['r2'], metrics.r2_score(y_test, y_pred))
 
             # feature importances using permutation
             if feature_importances is True:
-                if (self.fimp==0).all() == True:
+                if bool((self.fimp == 0).all()) is True:
                     self.fimp = self.varImp_permutation(
                         fit_train, X_test, y_test, n_permutations, scorers,
                         random_state)
@@ -770,8 +777,6 @@ class train():
                         (self.fimp, self.varImp_permutation(
                             fit_train, X_test, y_test,
                             n_permutations, scorers, random_state)))
-
-        self.scores_cm = metrics.classification_report(y_test_agg, y_pred_agg)
 
         # convert onehot-encoded feature importances back to original vars
         if self.fimp is not None and self.enc is not None:
@@ -819,7 +824,7 @@ class train():
         # determine output data type and nodata
         predicted = self.estimator.predict(self.X)
 
-        if (predicted % 1 == 0).all() == True:
+        if bool((predicted % 1 == 0).all()) is True:
             ftype = 'CELL'
             nodata = -2147483648
         else:
@@ -1045,7 +1050,7 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
                            'EarthRegressor': Earth(max_degree=max_degree)}
         except:
             grass.fatal('Py-earth package not installed')
-            
+
     elif estimator == 'XGBClassifier' or estimator == 'XGBRegressor':
         try:
             from xgboost import XGBClassifier, XGBRegressor
@@ -1053,14 +1058,17 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
             if max_depth is None:
                 max_depth = int(3)
 
-            classifiers = {'XGBClassifier': XGBClassifier(learning_rate=learning_rate,
-                                                          n_estimators=n_estimators,
-                                                          max_depth=max_depth,
-                                                          subsample=subsample),
-                           'XGBRegressor': XGBRegressor(learning_rate=learning_rate,
-                                                        n_estimators=n_estimators,
-                                                        max_depth=max_depth,
-                                                        subsample=subsample)}
+            classifiers = {
+                'XGBClassifier':
+                    XGBClassifier(learning_rate=learning_rate,
+                                  n_estimators=n_estimators,
+                                  max_depth=max_depth,
+                                  subsample=subsample),
+                'XGBRegressor':
+                    XGBRegressor(learning_rate=learning_rate,
+                                 n_estimators=n_estimators,
+                                 max_depth=max_depth,
+                                 subsample=subsample)}
         except:
             grass.fatal('Py-earth package not installed')
     else:
@@ -1187,7 +1195,7 @@ def load_training_data(file):
     groups = training_data[:, -1]
 
     # if all nans then set groups to None
-    if np.isnan(groups).all() == True:
+    if bool(np.isnan(groups).all()) is True:
         groups = None
 
     # fetch X and y
@@ -1307,91 +1315,6 @@ def sample_predictors(response, predictors, impute=False, shuffle_data=True,
     return(X, y, y_indexes)
 
 
-def sample_training_data(response, maplist, group_raster='', n_partitions=3,
-                         cvtype='', impute=False, lowmem=False,
-                         random_state=None):
-
-    """
-    Samples predictor and optional group id raster for cross-val
-
-    Args
-    ----
-    roi: String; GRASS raster with labelled pixels
-    maplist: List of GRASS rasters containing explanatory variables
-    group_raster: GRASS raster containing group ids of labelled pixels
-    n_partitions: Number of spatial partitions
-    cvtype: Type of spatial clustering
-    save_training: Save extracted training data to .csv file
-    lowmem: Boolean to use numpy memmap during extraction
-    random_state: Seed
-
-    Returns
-    -------
-    X: Numpy array of extracted raster values
-    y: Numpy array of labels
-    group_id: Group ids of labels
-    """
-
-    from sklearn.cluster import KMeans
-
-    # clump the labelled pixel raster if labels represent polygons
-    # then set the group_raster to the clumped raster to extract the group_ids
-    # used in the GroupKFold cross-validation
-    # ------------------------------------------------------------------------
-    if cvtype == 'clumped' and group_raster == '':
-        r.clump(input=response, output='tmp_roi_clumped',
-                overwrite=True, quiet=True)
-        group_raster = 'tmp_roi_clumped'
-
-    # extract training data from maplist and take group ids from
-    # group_raster. Shuffle=False so that group ids and labels align
-    # because cross-validation will be performed spatially
-    # ---------------------------------------------------------------
-    if group_raster != '':
-        maplist2 = deepcopy(maplist)
-        maplist2.append(group_raster)
-        X, y, sample_coords = sample_predictors(response=response,
-                                                predictors=maplist2,
-                                                impute=impute,
-                                                shuffle_data=False,
-                                                lowmem=False,
-                                                random_state=random_state)
-        # take group id from last column and remove column from predictors
-        group_id = X[:, -1]
-        X = np.delete(X, -1, axis=1)
-
-        # remove the clumped raster
-        try:
-            grass.run_command(
-                "g.remove", name='tmp_roi_clumped', flags="f",
-                type="raster", quiet=True)
-        except:
-            pass
-
-    # extract training data from maplist without group Ids
-    # shuffle this data by default
-    # ----------------------------------------------------
-    else:
-        X, y, sample_coords = sample_predictors(
-            response=response, predictors=maplist,
-            impute=impute,
-            shuffle_data=True,
-            lowmem=lowmem,
-            random_state=random_state)
-
-        group_id = None
-
-        if cvtype == 'kmeans':
-            clusters = KMeans(n_clusters=n_partitions,
-                              random_state=random_state,
-                              n_jobs=-1)
-
-            clusters.fit(sample_coords)
-            group_id = clusters.labels_
-
-    return (X, y, group_id)
-
-
 def maps_from_group(group):
     """
     Parse individual rasters into a list from an imagery group
@@ -1420,7 +1343,8 @@ def main():
 
     try:
         from sklearn.externals import joblib
-
+        from sklearn.cluster import KMeans
+        from sklearn.metrics import make_scorer, cohen_kappa_score
     except:
         grass.fatal("Scikit learn 0.18 or newer is not installed")
 
@@ -1553,27 +1477,80 @@ def main():
     maplist, map_names = maps_from_group(group)
 
     """
-    Train the classifier
+    Sample training data and group ids
     --------------------
     """
 
-    # Sample training data and group ids
-    # Perform parameter tuning and cross-validation
-    # Unless a previously fitted model is to be loaded
-    # ------------------------------------------------
     if model_load == '':
 
         # Sample training data and group id
         if load_training != '':
             X, y, group_id = load_training_data(load_training)
         else:
-            X, y, group_id = sample_training_data(
-                response, maplist, group_raster, n_partitions, cvtype,
-                impute, lowmem, random_state)
+            # clump the labelled pixel raster if labels represent polygons
+            # then set the group_raster to the clumped raster to extract the
+            # group_ids used in the GroupKFold cross-validation
+            if cvtype == 'clumped' and group_raster == '':
+                r.clump(input=response, output='tmp_roi_clumped',
+                        overwrite=True, quiet=True)
+                group_raster = 'tmp_roi_clumped'
+
+            # extract training data from maplist and take group ids from
+            # group_raster. Shuffle=False so that group ids and labels align
+            # because cross-validation will be performed spatially
+            if group_raster != '':
+                maplist2 = deepcopy(maplist)
+                maplist2.append(group_raster)
+                X, y, sample_coords = sample_predictors(
+                        response=response, predictors=maplist2,
+                        impute=impute, shuffle_data=False, lowmem=False,
+                        random_state=random_state)
+
+                # take group id from last column and remove from predictors
+                group_id = X[:, -1]
+                X = np.delete(X, -1, axis=1)
+
+                # remove the clumped raster
+                try:
+                    grass.run_command(
+                        "g.remove", name='tmp_roi_clumped', flags="f",
+                        type="raster", quiet=True)
+                except:
+                    pass
+
+            else:
+                # extract training data from maplist without group Ids
+                # shuffle this data by default
+                X, y, sample_coords = sample_predictors(
+                    response=response, predictors=maplist,
+                    impute=impute,
+                    shuffle_data=True,
+                    lowmem=lowmem,
+                    random_state=random_state)
+
+                group_id = None
+
+                if cvtype == 'kmeans':
+                    clusters = KMeans(n_clusters=n_partitions,
+                                      random_state=random_state,
+                                      n_jobs=-1)
+
+                    clusters.fit(sample_coords)
+                    group_id = clusters.labels_
+
+            # check for labelled pixels and training data
+            if y.shape[0] == 0 or X.shape[0] == 0:
+                grass.fatal(('No training pixels or pixels in imagery group '
+                             '...check computational region'))
 
         # option to save extracted data to .csv file
         if save_training != '':
             save_training_data(X, y, group_id, save_training)
+
+        """
+        Train the classifier
+        --------------------
+        """
 
         # retrieve sklearn classifier object and parameters
         grass.message("Classifier = " + classifier)
@@ -1600,14 +1577,16 @@ def main():
         if any(param_grid) is not True:
             param_grid = None
 
-        # Decide on scoring metric scheme
+        # Decide on scoring metric scheme and scorer to for grid search
         if mode == 'classification':
             if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
                 scorers = 'binary'
             else:
                 scorers = 'multiclass'
+            search_scorer = make_scorer(cohen_kappa_score)
         else:
             scorers = 'regression'
+            search_scorer = 'r2'
 
         if mode == 'regression' and probability is True:
             grass.warning(
@@ -1625,7 +1604,7 @@ def main():
         """
 
         # fit and parameter search
-        learn_m.fit(param_grid=param_grid, cv=tune_cv,
+        learn_m.fit(param_grid=param_grid, cv=tune_cv, scoring=search_scorer,
                     random_state=random_state)
 
         if param_grid is not None:
