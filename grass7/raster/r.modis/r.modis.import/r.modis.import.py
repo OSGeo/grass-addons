@@ -28,7 +28,7 @@
 #%end
 #%flag
 #% key: m
-#% description: Create a mosaic for each day
+#% description: Create a mosaic for each date
 #%end
 #%flag
 #% key: t
@@ -60,7 +60,7 @@
 #% key: method
 #% type: string
 #% key_desc: resampling
-#% description: Code of spatial resampling method
+#% description: Name of spatial resampling method
 #% options: nearest, bilinear, cubic
 #% answer: nearest
 #% required: no
@@ -77,7 +77,7 @@
 #% key: spectral
 #% type: string
 #% key_desc: spectral subset
-#% description: String to choose subset of layers in HDF file for import
+#% description: String of the form "( 1 0 1 0 )" to choose a subset of HDF layers to import
 #% required: no
 #%end
 

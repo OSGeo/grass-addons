@@ -39,7 +39,7 @@
 #%end
 #%option G_OPT_F_INPUT
 #% key: settings
-#% label: Full path to settings file
+#% label: Full path to settings file or '-' for standard input
 #% required: yes
 #% guisection: Define
 #%end
@@ -55,7 +55,7 @@
 #%option
 #% key: tiles
 #% type: string
-#% label: The name(s) of tile(s) to download (comma separated)
+#% label: The name(s) of tile(s) to download (comma separated). If not set, all available tiles are downloaded.
 #% description: e.g.: h18v04
 #% required: no
 #%end
@@ -63,21 +63,21 @@
 #% key: startday
 #% type: string
 #% label: First date to download
-#% description: Format: YYYY-MM-DD. If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
+#% description: Format: YYYY-MM-DD. If not set the download starts from current date and goes back 10 days. If not endday is set, the download stops 10 days after the startday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
 #% label: Last date to download
-#% description: Format: YYYY-MM-DD. To use only together with startday
+#% description: Format: YYYY-MM-DD. To use only with startday
 #% required: no
 #%end
 #%option
 #% key: folder
 #% type: string
 #% label: Folder to store the downloaded data
-#% description: If not set, path of settings file is used
+#% description: If not set, path to settings file is used
 #% required: no
 #%end
 
@@ -142,7 +142,7 @@ def checkdate(options):
         valueDay = lastday.strftime("%Y-%m-%d")
     # set only start day
     elif options['startday'] == '' and options['endday'] != '':
-        grass.fatal(_("It is not possible use <endday> option without "
+        grass.fatal(_("It is not possible to use <endday> option without "
                       "<startday> option"))
     # set start and end day
     elif options['startday'] != '' and options['endday'] != '':

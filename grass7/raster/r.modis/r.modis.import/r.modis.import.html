@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.import</em> import Level 3 MODIS product into GRASS GIS.
+<em>r.modis.import</em> imports Level 3 MODIS products into GRASS GIS.
 
 <h2>NOTE</h2>
 
@@ -18,45 +18,45 @@ obtaining a successful result.<br>
 
 <b>Warning</b>:
 <ul>
-  <li>Using MODIS Reprojection Tools to convert HDF files only
+  <li>If using MODIS Reprojection Tools to convert HDF files, only
    the following projection systems are supported: Lambert Azimuthal Equal Area,
    Lambert Conformal Conic, Mercator, Polar Stereographic, Transverse Mercator,
    Universal Transverse Mercator</li>
-  <li>Using GDAL you can manage all the projection systems supported by Proj4</li>
+  <li>Using GDAL allows to handle all the projection systems supported by Proj4</li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
-Import a single file with the all the subsets with QA layer analysis to
-remove bad pixels using GDAL:
+Import a single file with all the subsets (QA layers included) using GDAL.
 <div class="code"><pre>
 r.modis.import input=/path/to/file
 </pre></div>
 
-Import more files with the default subset with QA layer using MRT:
+Import files from a list with all the subsets using MRT (if mrtpath is not
+provided, GDAL is used).
 <div class="code"><pre>
 r.modis.import files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files like daily mosaic with the default subset without QA
-layer check using MRT:
+Import files from a list as mosaics per date without QA layers using MRT.
 <div class="code"><pre>
 r.modis.import -mq files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import a single file with your own subset of layers (for power user) using GDAL:
+Import a single file with user-specific subset of layers using GDAL.
 <div class="code"><pre>
 r.modis.import input=/path/to/file spectral="( 1 0 1 0 )"
 </pre></div>
 
-Import more files with your own subset of layers and without QA layer
-analysis (for power users) using MRT:
+Import files from a list with user-specific subset of layers and without QA
+layer using MRT.
 <div class="code"><pre>
 r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
-Import more files and write the file to be use in <em>t.register</em>
-to create a temporal dataset using GDAL, you specify only a subset:
+Import a single subset of layers (i.e.: spectral="( 1 )") from each file from a
+list and write a file to be used in <em>t.register</em> to create a temporal
+dataset. This option uses GDAL.
 <div class="code"><pre>
 r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 </pre></div>
@@ -66,6 +66,7 @@ r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 <em>
 <a href="r.modis.html">r.modis</a>,
 <a href="r.modis.download.html">r.modis.download</a>
+<a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em><br>
 <a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
