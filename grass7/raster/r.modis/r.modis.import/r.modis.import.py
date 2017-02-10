@@ -165,6 +165,11 @@ def spectral(opts, prod, q, m=False):
 
 def confile(pm, opts, q, mosaik=False):
     """Create the configuration file for MRT software"""
+    try:
+        # try to import pymodis (modis) and some classes for r.modis.download
+        from rmodislib import resampling, product, projection
+    except:
+        grass.fatal("r.modis library is not installed")
     # return projection and datum
     projObj = projection()
     proj = projObj.returned()
@@ -182,7 +187,7 @@ def confile(pm, opts, q, mosaik=False):
     else:
         spectr = spectral(opts, prod, q)
     # out prefix
-    pref = prefix(opts)
+    pref = modis_prefix(pm.hdfname)
     # resampling
     resampl = resampling(opts['method']).returned()
     # projpar
@@ -239,6 +244,11 @@ def modis_prefix(inp, mosaic=False):
 
 def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
     """Import TIF files"""
+    try:
+        # try to import pymodis (modis) and some classes for r.modis.download
+        from rmodislib import projection
+    except:
+        grass.fatal("r.modis library is not installed")
     # list of tif files
     pref = modis_prefix(pm.hdfname)
     tifiles = glob.glob1(basedir, "{pr}*.tif".format(pr=pref))
@@ -306,6 +316,17 @@ def doy2date(modis):
 def single(options, remove, an, ow, fil):
     """Convert the HDF file to TIF and import it
     """
+    try:
+        # try to import pymodis (modis) and some classes for r.modis.download
+        from rmodislib import product, projection, get_proj
+    except:
+        grass.fatal("r.modis library is not installed")
+    try:
+        from pymodis.convertmodis import convertModis
+        from pymodis.convertmodis_gdal import convertModisGDAL
+        from pymodis.parsemodis import parseModis
+    except:
+        grass.fatal("pymodis library is not installed")
     listfile, basedir = list_files(options)
     # for each file
     for i in listfile:
@@ -349,6 +370,17 @@ def single(options, remove, an, ow, fil):
 def mosaic(options, remove, an, ow, fil):
     """Create a daily mosaic of HDF files convert to TIF and import it
     """
+    try:
+        # try to import pymodis (modis) and some classes for r.modis.download
+        from rmodislib import product, projection, get_proj
+    except:
+        grass.fatal("r.modis library is not installed")
+    try:
+        from pymodis.convertmodis import convertModis, createMosaic
+        from pymodis.convertmodis_gdal import createMosaicGDAL, convertModisGDAL
+        from pymodis.parsemodis import parseModis
+    except:
+        grass.fatal("pymodis library is not installed")
     dictfile, targetdir = list_files(options, True)
     pid = str(os.getpid())
     # for each day
@@ -434,15 +466,6 @@ def mosaic(options, remove, an, ow, fil):
 
 
 def main():
-
-    try:
-        # try to import pymodis (modis) and some classes for r.modis.download
-        from rmodislib import resampling, product, projection, get_proj
-        from convertmodis import convertModis, createMosaic
-        from convertmodis_gdal import createMosaicGDAL, convertModisGDAL
-        from parsemodis import parseModis
-    except:
-        grass.fatal("r.modis library is not installed")
     # check if you are in GRASS
     gisbase = os.getenv('GISBASE')
     if not gisbase:

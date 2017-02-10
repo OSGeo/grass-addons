@@ -155,7 +155,7 @@ def checkdate(options):
 def main():
     try:
         from rmodislib import product
-        from downmodis import downModis
+        from pymodis.downmodis import downModis
     except:
         grass.fatal("r.modis library is not installed")
     # check if you are in GRASS

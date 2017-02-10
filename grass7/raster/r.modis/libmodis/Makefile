@@ -3,7 +3,7 @@ MODULE_TOPDIR = ../../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-MODULES = downmodis rmodislib convertmodis parsemodis convertmodis_gdal __init__
+MODULES = rmodislib __init__
 
 ETCDIR = $(ETC)/r.modis
 
