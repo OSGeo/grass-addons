@@ -42,7 +42,10 @@
 #% key: w
 #% description: Create a text file to use into t.register
 #%end
-
+#%flag
+#% key: l
+#% description: List more info about the supported MODIS products
+#%end
 #%option
 #% key: input
 #% type: string
@@ -470,6 +473,14 @@ def main():
     gisbase = os.getenv('GISBASE')
     if not gisbase:
         grass.fatal(_('$GISBASE not defined'))
+        return 0
+    if flags['l']:
+        try:
+            from rmodislib import product
+        except:
+            grass.fatal("r.modis library is not installed")
+        prod = product()
+        prod.print_prods()
         return 0
     # return an error if q and spectral are set
     if not flags['q'] and options['spectral'] != '':
