@@ -65,7 +65,7 @@
 #% type: integer
 #% description: Number of features to consider during splitting for tree based classifiers. Default is sqrt(n_features) for classification, and n_features for regression
 #% required: no
-#% answer:
+#% answer:0
 #% multiple: yes
 #% guisection: Classifier Parameters
 #%end
@@ -75,7 +75,7 @@
 #% type: integer
 #% description: Optionally specifiy maximum tree depth. Otherwise full-growing occurs for decision trees and random forests, and max_depth=3 for gradient boosting
 #% required: no
-#% answer:
+#% answer:0
 #% multiple: yes
 #% guisection: Classifier Parameters
 #%end
@@ -230,14 +230,6 @@
 #%end
 
 #%option
-#% key: tune_cv
-#% type: integer
-#% description: Number of cross-validation folds used for parameter tuning
-#% answer: 3
-#% guisection: Optional
-#%end
-
-#%option
 #% key: n_permutations
 #% type: integer
 #% description: Number of permutations to perform for feature importances
@@ -299,6 +291,7 @@
 #%end
 
 import atexit
+import os
 import numpy as np
 import grass.script as grass
 from copy import deepcopy
@@ -308,31 +301,39 @@ from grass.pygrass.utils import set_path
 set_path('r.learn.ml')
 from raster_learning import train, model_classifiers
 from raster_learning import save_training_data, load_training_data
-from raster_learning import extract, maps_from_group
+from raster_learning import extract, maps_from_group, random_oversampling
+
+tmp_rast = []
 
 
 def cleanup():
-    grass.run_command("g.remove", name='tmp_clfmask',
-                      flags="f", type="raster", quiet=True)
-    grass.run_command("g.remove", name='tmp_roi_clumped',
-                      flags="f", type="raster", quiet=True)
+    for rast in tmp_rast:
+        grass.run_command("g.remove", rast=rast, quiet=True)
 
 
 def main():
+
+    """
+    Lazy imports for main------------------------------------------------------
+    """
 
     try:
         from sklearn.externals import joblib
         from sklearn.cluster import KMeans
         from sklearn.metrics import make_scorer, cohen_kappa_score
+        from sklearn.model_selection import StratifiedKFold, GroupKFold
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.model_selection import GridSearchCV
+        import warnings
+        warnings.filterwarnings('ignore')  # turn off UndefinedMetricWarning
     except:
         grass.fatal("Scikit learn 0.18 or newer is not installed")
 
     """
-    GRASS options and flags
-    -----------------------
+    GRASS options and flags----------------------------------------------------
     """
 
-    # General options and flags
+    # General options and flags -----------------------------------------------
     group = options['group']
     response = options['trainingmap']
     output = options['output']
@@ -352,7 +353,6 @@ def main():
     load_training = options['load_training']
     save_training = options['save_training']
     importances = flags['f']
-    tune_cv = int(options['tune_cv'])
     n_permutations = int(options['n_permutations'])
     lowmem = flags['l']
     impute = flags['i']
@@ -365,6 +365,7 @@ def main():
     else:
         categorymaps = None
 
+    # classifier options and parameter grid settings --------------------------
     param_grid = {'C': None,
                   'min_samples_split': None,
                   'min_samples_leaf': None,
@@ -375,7 +376,6 @@ def main():
                   'max_features': None,
                   'max_degree': None}
 
-    # classifier options
     C = options['c']
     if ',' in C:
         param_grid['C'] = [float(i) for i in C.split(',')]
@@ -422,7 +422,7 @@ def main():
         subsample = float(subsample)
 
     max_depth = options['max_depth']
-    if max_depth == '':
+    if max_depth == '0':
         max_depth = None
     else:
         if ',' in max_depth:
@@ -432,7 +432,7 @@ def main():
             max_depth = int(max_depth)
 
     max_features = options['max_features']
-    if max_features == '':
+    if max_features == '0':
         max_features = 'auto'
     else:
         if ',' in max_features:
@@ -449,15 +449,17 @@ def main():
     else:
         max_degree = int(max_degree)
 
+    # remove empty items from the param_grid dict
+    param_grid = {k: v for k, v in param_grid.iteritems() if v is not None}
+
     if importances is True and cv == 1:
         grass.fatal('Feature importances require cross-validation cv > 1')
 
-    # fetch individual raster names from group
+    # fetch individual raster names from group --------------------------------
     maplist, map_names = maps_from_group(group)
 
     """
-    Sample training data and group ids
-    --------------------
+    Sample training data and group ids ----------------------------------------
     """
 
     if model_load == '':
@@ -466,13 +468,17 @@ def main():
         if load_training != '':
             X, y, group_id = load_training_data(load_training)
         else:
+            grass.message('Extracting training data')
+
             # clump the labelled pixel raster if labels represent polygons
             # then set the group_raster to the clumped raster to extract the
             # group_ids used in the GroupKFold cross-validation
             if cvtype == 'clumped' and group_raster == '':
-                r.clump(input=response, output='tmp_roi_clumped',
+                clumped_trainingmap = 'tmp_clumped_trainingmap'
+                tmp_rast.append(clumped_trainingmap)
+                r.clump(input=response, output=clumped_trainingmap,
                         overwrite=True, quiet=True)
-                group_raster = 'tmp_roi_clumped'
+                group_raster = clumped_trainingmap
 
             # extract training data from maplist and take group ids from
             # group_raster. Shuffle=False so that group ids and labels align
@@ -488,15 +494,6 @@ def main():
                 # take group id from last column and remove from predictors
                 group_id = X[:, -1]
                 X = np.delete(X, -1, axis=1)
-
-                # remove the clumped raster
-                try:
-                    grass.run_command(
-                        "g.remove", name='tmp_roi_clumped', flags="f",
-                        type="raster", quiet=True)
-                except:
-                    pass
-
             else:
                 # extract training data from maplist without group Ids
                 # shuffle this data by default
@@ -527,26 +524,46 @@ def main():
             save_training_data(X, y, group_id, save_training)
 
         """
-        Train the classifier
-        --------------------
+        Train the classifier --------------------------------------------------
         """
 
-        # retrieve sklearn classifier object and parameters
-        grass.message("Classifier = " + classifier)
-
+        # retrieve sklearn classifier object and parameters -------------------
         clf, mode = \
             model_classifiers(classifier, random_state,
                               C, max_depth, max_features, min_samples_split,
                               min_samples_leaf, n_estimators,
                               subsample, learning_rate, max_degree)
 
-        # turn off balancing if mode = regression
-        if mode == 'regression' and balance is True:
-            balance = False
+        # set other parameters based on classification or regression ----------
+        if mode == 'classification':
+            if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
+                scorers = 'binary'
+            else:
+                scorers = 'multiclass'
+            search_scorer = make_scorer(cohen_kappa_score)
+            labels = np.unique(y)
+        else:
+            scorers = 'regression'
+            search_scorer = 'r2'
+            labels = None  # no classes
+            balance = False  # no balancing for regression
+            if probability is True:
+                grass.warning(
+                        'Class probabilities only valid for classifications...'
+                        'ignoring')
+                probability = False
 
-        # remove empty items from the param_grid dict
-        param_grid = {k: v for k, v in param_grid.iteritems() if v is not None}
+        # setup model selection model -----------------------------------------
+        if any(param_grid) is True and cv == 1:
+            grass.fatal('Hyperparameter search requires cv > 1')
+        if any(param_grid) is True or cv > 1:
+            if group_id is None:
+                search_cv_method = StratifiedKFold(
+                        n_splits=cv, random_state=random_state)
+            else:
+                search_cv_method = GroupKFold(n_splits=cv)
 
+        # set-up parameter grid for hyperparameter search ---------------------
         # check that dict keys are compatible for the selected classifier
         clf_params = clf.get_params()
         param_grid = { key: value for key, value in param_grid.iteritems() if key in clf_params}
@@ -555,130 +572,172 @@ def main():
         # so that the train object will not perform GridSearchCV
         if any(param_grid) is not True:
             param_grid = None
-
-        # Decide on scoring metric scheme and scorer to for grid search
-        if mode == 'classification':
-            if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
-                scorers = 'binary'
-            else:
-                scorers = 'multiclass'
-            search_scorer = make_scorer(cohen_kappa_score)
         else:
-            scorers = 'regression'
-            search_scorer = 'r2'
+            clf = GridSearchCV(estimator=clf, param_grid=param_grid,
+                               scoring=search_scorer, n_jobs=-1,
+                               cv=search_cv_method)
 
-        if mode == 'regression' and probability is True:
-            grass.warning(
-                'Class probabilities only valid for classifications...'
-                'ignoring')
-            probability = False
+        # preprocessing options -----------------------------------------------
+        if balance is True:
+            sampling = random_oversampling(random_state)
+        else:
+            sampling = None
 
-        # create training object - onehot-encoded on-the-fly
-        learn_m = train(clf, X, y, group_id, categorical_var=categorymaps,
-                        standardize=norm_data, balance=balance)
+        if norm_data is True:
+            scaler = StandardScaler()
+        else:
+            scaler = None
+
+        # create training object ----------------------------------------------
+        learn_m = train(clf, categorical_var=categorymaps,
+                        preprocessing=scaler, sampling=sampling)
 
         """
-        Fitting, parameter search and cross-validation
-        ----------------
+        Fitting, parameter search and cross-validation ------------------------
         """
 
         # fit and parameter search
-        learn_m.fit(param_grid=param_grid, cv=tune_cv, scoring=search_scorer,
-                    random_state=random_state)
+        grass.message(os.linesep)
+        grass.message(('Fitting model using ' + classifier))
+        learn_m.fit(X, y, group_id)
 
         if param_grid is not None:
-            grass.message('\n')
+            grass.message(os.linesep)
             grass.message('Best parameters:')
             grass.message(str(learn_m.estimator.best_params_))
-
+            
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1:
-            grass.message('\r\n')
-            grass.message(
-                "Cross validation global performance measures......:")
-
-            # cross-validate the training object
-            learn_m.cross_val(scorers, cv, importances,
-                              n_permutations=n_permutations,
-                              random_state=random_state)
-
-            if mode == 'classification':
-                if scorers == 'binary':
-                    grass.message(
-                        "Accuracy   :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['accuracy'].mean(),
-                         learn_m.scores['accuracy'].std()))
-                    grass.message(
-                        "AUC        :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['auc'].mean(),
-                         learn_m.scores['auc'].std()))
-                    grass.message(
-                        "Kappa      :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['kappa'].mean(),
-                         learn_m.scores['kappa'].std()))
-                    grass.message(
-                        "Precision  :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['precision'].mean(),
-                         learn_m.scores['precision'].std()))
-                    grass.message(
-                        "Recall     :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['recall'].mean(),
-                         learn_m.scores['recall'].std()))
-                    grass.message(
-                        "Specificity:\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['specificity'].mean(),
-                         learn_m.scores['specificity'].std()))
-                    grass.message(
-                        "F1         :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['f1'].mean(),
-                         learn_m.scores['f1'].std()))
-
-                if scorers == 'multiclass':
-                    grass.message(
-                        "Accuracy:\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['accuracy'].mean(),
-                         learn_m.scores['accuracy'].std()))
-                    grass.message(
-                        "Kappa   :\t%0.3f\t+/-SD\t%0.3f" %
-                        (learn_m.scores['kappa'].mean(),
-                         learn_m.scores['kappa'].std()))
-
-                # classification report
-                grass.message("\n")
-                grass.message("Classification report:")
-                grass.message(learn_m.scores_cm)
-
+            # check that a sufficient number of samples are present per class
+            if cv > np.histogram(y, bins=len(labels))[0].min():
+                grass.message(os.linesep)
+                grass.message('Number of cv folds is greater than number of '
+                              'samples in some classes. Cross-validation is being'
+                              ' skipped')
             else:
-                grass.message("R2:\t%0.3f\t+/-\t%0.3f" %
-                              (learn_m.scores['r2'].mean(),
-                               learn_m.scores['r2'].std()))
+                grass.message(os.linesep)
+                grass.message(
+                    "Cross validation global performance measures......:")
 
-            # write cross-validation results for csv file
-            if errors_file != '':
-                try:
-                    import pandas as pd
-                    errors = pd.DataFrame(learn_m.scores)
-                    errors.to_csv(errors_file, mode='w')
-                except:
-                    grass.warning('Pandas is not installed. Pandas is '
-                                  'required to write the cross-validation '
-                                  'results to file')
+                # cross-validate the training object
+                learn_m.cross_val(search_cv_method, X, y, group_id,
+                                  scorers, importances,
+                                  n_permutations=n_permutations,
+                                  random_state=random_state)
 
-            # feature importances
-            if importances is True:
-                grass.message("\r\n")
-                grass.message("Feature importances")
-                grass.message("id" + "\t" + "Raster" + "\t" + "Importance")
+                scores = learn_m.get_cross_val_scores()
 
-                # mean of cross-validation feature importances
-                for i in range(len(learn_m.fimp.mean(axis=0))):
-                    grass.message(
-                        str(i) + "\t" + maplist[i] +
-                        "\t" + str(round(learn_m.fimp.mean(axis=0)[i], 4)))
+                if mode == 'classification':
+                    if scorers == 'binary':
+                        grass.message(
+                            "Accuracy   :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['accuracy'].mean(),
+                             scores['accuracy'].std()))
+                        grass.message(
+                            "AUC        :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['auc'].mean(),
+                             scores['auc'].std()))
+                        grass.message(
+                            "Kappa      :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['kappa'].mean(),
+                             scores['kappa'].std()))
+                        grass.message(
+                            "Precision  :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['precision'].mean(),
+                             scores['precision'].std()))
+                        grass.message(
+                            "Recall     :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['recall'].mean(),
+                             scores['recall'].std()))
+                        grass.message(
+                            "Specificity:\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['specificity'].mean(),
+                             scores['specificity'].std()))
+                        grass.message(
+                            "F1         :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['f1'].mean(),
+                             scores['f1'].std()))
 
-                if fimp_file != '':
-                    np.savetxt(fname=fimp_file, X=learn_m.fimp, delimiter=',',
-                               header=','.join(maplist), comments='')
+                    if scorers == 'multiclass':
+                        # global scores
+                        grass.message(
+                            "Accuracy:\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['accuracy'].mean(),
+                             scores['accuracy'].std()))
+                        grass.message(
+                            "Kappa   :\t%0.3f\t+/-SD\t%0.3f" %
+                            (scores['kappa'].mean(),
+                             scores['kappa'].std()))
+
+                        # per class scores
+                        grass.message(os.linesep)
+                        grass.message('Cross validation class performance measures......:')
+                        mat_precision = np.matrix(scores['precision'])
+                        mat_recall = np.matrix(scores['recall'])
+                        mat_f1 = np.matrix(scores['f1'])
+
+                        grass.message('Class \t' + '\t'.join(map(str, labels)))
+                        grass.message(
+                            'Precision mean \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_precision.mean(axis=0), 2)[0])))
+                        grass.message(
+                            'Precision std \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_precision.std(axis=0), 2)[0])))
+                        grass.message(
+                            'Recall mean \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_recall.mean(axis=0), 2)[0])))
+                        grass.message(
+                            'Recall std \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_recall.std(axis=0), 2)[0])))
+                        grass.message(
+                            'F1 score mean \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_f1.mean(axis=0), 2)[0])))
+                        grass.message(
+                            'F1 score std \t' + '\t'.join(
+                                    map(str, np.round(
+                                            mat_f1.std(axis=0), 2)[0])))
+
+                        # remove perclass scores from dict
+                        del scores['precision']
+                        del scores['recall']
+                        del scores['f1']
+
+                else:
+                    grass.message("R2:\t%0.3f\t+/-\t%0.3f" %
+                                  (scores['r2'].mean(),
+                                   scores['r2'].std()))
+
+                # write cross-validation results for csv file
+                if errors_file != '':
+                    try:
+                        import pandas as pd
+                        errors = pd.DataFrame(scores)
+                        errors.to_csv(errors_file, mode='w')
+                    except:
+                        grass.warning('Pandas is not installed. Pandas is '
+                                      'required to write the cross-validation '
+                                      'results to file')
+
+                # feature importances
+                if importances is True:
+                    grass.message(os.linesep)
+                    grass.message("Feature importances")
+                    grass.message("id" + "\t" + "Raster" + "\t" + "Importance")
+
+                    # mean of cross-validation feature importances
+                    for i in range(len(learn_m.fimp.mean(axis=0))):
+                        grass.message(
+                            str(i) + "\t" + maplist[i] +
+                            "\t" + str(round(learn_m.fimp.mean(axis=0)[i], 4)))
+
+                    if fimp_file != '':
+                        np.savetxt(fname=fimp_file, X=learn_m.fimp, delimiter=',',
+                                   header=','.join(maplist), comments='')
     else:
         # load a previously fitted train object
         # -------------------------------------
@@ -686,20 +745,18 @@ def main():
             # load a previously fitted model
             learn_m = joblib.load(model_load)
 
-    """
-    Optionally save the fitted model
-    ---------------------
-    """
-
+    # Optionally save the fitted model
     if model_save != '':
         joblib.dump(learn_m, model_save)
 
     """
-    Prediction on the rest of the GRASS rasters in the imagery group
-    ----------------------------------------------------------------
+    Prediction on the rest of the GRASS rasters in the imagery group ----------
     """
+
     if modelonly is not True:
-        learn_m.predict(maplist, output, probability, rowincr)
+        grass.message(os.linesep)
+        grass.message('Predicting raster...')
+        learn_m.predict(maplist, output, labels, probability, rowincr)
     else:
         grass.message("Model built and now exiting")
 

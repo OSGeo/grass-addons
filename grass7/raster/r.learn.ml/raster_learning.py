@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Feb  7 09:03:10 2017
-
-@author: steve
-"""
 
 import os
+import scipy
 import numpy as np
+from numpy.random import RandomState
 from copy import deepcopy
 import tempfile
 import grass.script as grass
@@ -17,59 +14,27 @@ from grass.pygrass.modules.shortcuts import imagery as im
 from subprocess import PIPE
 
 
-class train():
+class random_oversampling():
 
-    def __init__(self, estimator, X, y, groups=None, categorical_var=None,
-                 standardize=False, balance=False):
-        """
-        Train class to perform preprocessing, fitting, parameter search and
-        cross-validation in a single step
-
-        Args
-        ----
-        estimator: Scikit-learn compatible estimator object
-        X, y: training data and labels as numpy arrays
-        groups: groups to be used for cross-validation
-        categorical_var: 1D list containing indices of categorical predictors
-        standardize: Transform predictors
-        balance: boolean to balance number of classes
-        """
-
-        # fitting data
-        self.estimator = estimator
-        self.X = X
-        self.y = y
-        self.groups = groups
-        self.balance = balance
-
-        # for onehot-encoding
-        self.enc = None
-        self.categorical_var = categorical_var
-        self.category_values = None
-
-        if self.categorical_var:
-            self.__onehotencode()
-
-        # for standardization
-        if standardize is True:
-            self.standardization()
-        else:
-            self.scaler = None
-
-        # for cross-validation scores
-        self.scores = None
-        self.scores_cm = None
-        self.fimp = None
-
-    def __random_oversampling(self, X, y, random_state=None):
+    def __init__(self, random_state):
         """
         Balances X, y observations using simple oversampling
 
         Args
         ----
+        random_state: Seed to pass onto random number generator
+        """
+
+        self.random_state = random_state
+
+    def fit_sample(self, X, y):
+        """
+        Performs equal balancing of response and explanatory variances
+
+        Args
+        ----
         X: numpy array of training data
         y: 1D numpy array of response data
-        random_state: Seed to pass onto random number generator
 
         Returns
         -------
@@ -77,7 +42,7 @@ class train():
         y_resampled: Numpy array of resampled response data
         """
 
-        np.random.seed(seed=random_state)
+        np.random.seed(seed=self.random_state)
 
         # count the number of observations per class
         y_classes = np.unique(y)
@@ -103,10 +68,54 @@ class train():
 
         return (X_resampled, y_resampled)
 
-    def __onehotencode(self):
+
+class train():
+
+    def __init__(self, estimator, categorical_var=None,
+                 preprocessing=None, sampling=None):
+        """
+        Train class to perform preprocessing, fitting, parameter search and
+        cross-validation in a single step
+
+        Args
+        ----
+        estimator: Scikit-learn compatible estimator object
+        categorical_var: 1D list containing indices of categorical predictors
+        preprocessing: Sklearn preprocessing scaler
+        sampling: Balancing object e.g. from imbalance-learn
+        """
+
+        # fitting data
+        self.estimator = estimator
+
+        # for onehot-encoding
+        self.enc = None
+        self.categorical_var = categorical_var
+        self.category_values = None
+
+        if self.categorical_var:
+            self.__onehotencode()
+
+        # for preprocessing of data
+        self.sampling = sampling
+        self.preprocessing = preprocessing
+
+        # for cross-validation scores
+        self.scores = None
+        self.scores_cm = None
+        self.fimp = None
+        self.mean_tpr = None
+        self.mean_fpr = None
+
+    def __onehotencode(self, X):
+
         """
         Method to convert a list of categorical arrays in X into a suite of
-        binary predictors which are added to the left of the array
+        binary predictors which are added to the end of the array
+
+        Args
+        ----
+        X: 2D numpy array containing training data
         """
 
         from sklearn.preprocessing import OneHotEncoder
@@ -114,138 +123,87 @@ class train():
         # store original range of values
         self.category_values = [0] * len(self.categorical_var)
         for i, cat in enumerate(self.categorical_var):
-            self.category_values[i] = np.unique(self.X[:, cat])
+            self.category_values[i] = np.unique(X[:, cat])
 
         # fit and transform categorical grids to a suite of binary features
         self.enc = OneHotEncoder(categorical_features=self.categorical_var,
                                  sparse=False)
-        self.enc.fit(self.X)
-        self.X = self.enc.transform(self.X)
+        self.enc.fit(X)
+        X = self.enc.transform(X)
 
-    def fit(self, param_distributions=None, param_grid=None,
-            scoring=None, n_iter=3, cv=3, random_state=None):
+        return(X)
+
+    def fit(self, X, y, groups=None):
 
         """
-        Main fit method for the train object. Performs fitting, hyperparameter
-        search and cross-validation in one step (inspired from R's CARET)
+        Main fit method for the train object
 
         Args
         ----
-        param_distributions: continuous parameter distribution to be used in a
-        randomizedCVsearch
-        param_grid: Dist of non-continuous parameters to grid search
-        n_iter: Number of randomized search iterations
-        cv: Number of cross-validation folds for parameter tuning
-        random_state: seed to be used during random number generation
+        X, y: training data and labels as numpy arrays
+        groups: groups to be used for cross-validation
         """
 
         from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-        from sklearn.model_selection import GroupKFold
 
-        # Balance classes
-        if self.balance is True:
-            X, y = self.__random_oversampling(
-                    self.X, self.y, random_state=random_state)
+        # Balance classes prior to fitting
+        if self.sampling is not None:
+            # balance samples
+            y_original = deepcopy(y)
+            X, y = self.sampling.fit_sample(X, y)
 
-            if self.groups is not None:
-                groups, _ = self.__random_oversampling(
-                    self.groups, self.y, random_state=random_state)
-            else:
-                groups = None
+            # balance groups if present
+            if groups is not None:
+                groups, _ = self.sampling.fit_sample(
+                        groups.reshape(-1, 1), y_original)
+
+        if self.preprocessing is not None:
+            X = self.__preprocessor(X)
+
+        if self.categorical_var is not None:
+            X = self.__onehotencode(X)
+
+        # fit the model on the training data and predict the test data
+        # need the groups parameter because the estimator can be a
+        # RandomizedSearchCV or GridSearchCV estimator where cv=GroupKFold
+        if isinstance(self.estimator, RandomizedSearchCV) \
+                or isinstance(self.estimator, GridSearchCV):
+            param_search = True
         else:
-            X = self.X
-            y = self.y
-            groups = self.groups
+            param_search = False
 
-        # Randomized or grid search
-        if param_distributions is not None or param_grid is not None:
-
-            # use groupkfold for hyperparameter search if groups are present
-            if self.groups is not None:
-                cv_search = GroupKFold(n_splits=cv)
-            else:
-                cv_search = cv
-
-            # Randomized search
-            if param_distributions is not None:
-                self.estimator = RandomizedSearchCV(
-                    estimator=self.estimator,
-                    param_distributions=param_distributions,
-                    n_iter=n_iter, scoring=scoring,
-                    cv=cv_search)
-
-            # Grid Search
-            if param_grid is not None:
-                self.estimator = GridSearchCV(self.estimator,
-                                              param_grid,
-                                              n_jobs=-1, cv=cv_search,
-                                              scoring=scoring)
-
-            # if groups then fit RandomizedSearchCV.fit requires groups param
-            if self.groups is None:
-                self.estimator.fit(X, y)
-            else:
-                self.estimator.fit(X, y, groups=groups)
-
-        # Fitting without parameter search
+        if groups is not None and param_search is True:
+            self.estimator.fit(X, y, groups=groups)
         else:
             self.estimator.fit(X, y)
 
-    def standardization(self):
+    def __preprocessor(self, X):
         """
         Transforms the non-categorical X
-        """
 
-        from sklearn.preprocessing import StandardScaler
+        Args
+        ----
+        X; 2D numpy array to transform
+        """
 
         # create mask so that indices that represent categorical
         # predictors are not selected
         if self.categorical_var is not None:
-            idx = np.arange(self.X.shape[1])
+            idx = np.arange(X.shape[1])
             mask = np.ones(len(idx), dtype=bool)
             mask[self.categorical_var] = False
         else:
-            mask = np.arange(self.X.shape[1])
+            mask = np.arange(X.shape[1])
 
-        X_continuous = self.X[:, mask]
-        self.scaler = StandardScaler()
-        self.scaler.fit(X_continuous)
-        self.X[:, mask] = self.scaler.transform(X_continuous)
+        X_continuous = X[:, mask]
+        self.preprocessing.fit(X=X_continuous)
+        X[:, mask] = self.preprocessing.transform(X_continuous)
 
-    def __pred_func(self, estimator, X_test, y_true, scorers):
-        """
-        Calculates a single performance metric depending on if scorer type
-        is binary, multiclass or regression
+        return(X)
 
-        To be called from the varImp_permutation
-
-        Args
-        ----
-        estimator: fitted estimator on training set
-        X_test: Test training data
-        y_true: Test labelled data
-        scorers: String indicating which type of scorer to be used
-        """
-
-        from sklearn import metrics
-
-        if scorers == 'binary':
-            scorer = metrics.roc_auc_score
-            y_pred = estimator.predict_proba(X_test)[:, 1]
-        if scorers == 'multiclass':
-            scorer = metrics.accuracy_score
-            y_pred = estimator.predict(X_test)
-        if scorers == 'regression':
-            scorer = metrics.r2_score
-            y_pred = estimator.predict(X_test)
-
-        score = scorer(y_true, y_pred)
-
-        return (score)
-
-    def __varImp_permutation(self, estimator, X_test, y_true,
-                             n_permutations, scorers,
-                             random_state):
+    def varImp_permutation(self, estimator, X_test, y_true,
+                           n_permutations, scorers,
+                           random_state):
 
         """
         Method to perform permutation-based feature importance during
@@ -272,11 +230,19 @@ class train():
         scores: AUC scores for each predictor following permutation
         """
 
+        from sklearn import metrics
+        if scorers == 'binary' or scorers == 'multiclass':
+            scorer = metrics.accuracy_score
+        if scorers == 'regression':
+            scorer = metrics.r2_score
+
         # calculate score on original variables without permutation
         # determine best metric type for binary/multiclass/regression scenarios
-        best_score = self.__pred_func(estimator, X_test, y_true, scorers)
+        y_pred = estimator.predict(X_test)
+        best_score = scorer(y_true, y_pred)
 
         np.random.seed(seed=random_state)
+        rstate = RandomState(random_state)
         scores = np.zeros((n_permutations, X_test.shape[1]))
 
         # outer loop to repeat the pemutation rep times
@@ -286,11 +252,11 @@ class train():
             # difference in auc
             for i in range(X_test.shape[1]):
                 Xscram = np.copy(X_test)
-                Xscram[:, i] = np.random.choice(X_test[:, i], X_test.shape[0])
+                Xscram[:, i] = rstate.choice(X_test[:, i], X_test.shape[0])
 
                 # fit the model on the training data and predict the test data
-                scores[rep, i] = best_score-self.__pred_func(
-                    estimator, Xscram, y_true, scorers)
+                y_pred = estimator.predict(Xscram)
+                scores[rep, i] = best_score-scorer(y_true, y_pred)
                 if scores[rep, i] < 0:
                     scores[rep, i] = 0
 
@@ -300,6 +266,19 @@ class train():
         return(scores)
 
     def specificity_score(self, y_true, y_pred):
+
+        """
+        Simple method to calculate specificity score
+
+        Args
+        ----
+        y_true: 1D numpy array of truth values
+        y_pred: 1D numpy array of predicted classes
+
+        Returns
+        -------
+        specificity: specificity score
+        """
 
         from sklearn.metrics import confusion_matrix
 
@@ -314,11 +293,10 @@ class train():
 
         return (specificity)
 
-    def cross_val(self, scorers='binary', cv=3, feature_importances=False,
-                  n_permutations=25, random_state=None):
+    def cross_val(self, splitter, X, y, groups=None, scorers='binary',
+                  feature_importances=False, n_permutations=25,
+                  random_state=None):
 
-        from sklearn.model_selection import StratifiedKFold
-        from sklearn.model_selection import GroupKFold
         from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
         from sklearn import metrics
 
@@ -330,17 +308,33 @@ class train():
 
         Args
         ----
-        scorers: Suite of performance metrics to use
-        cv: Integer of cross-validation folds
+        splitter: Scikit learn model_selection object, e.g. StratifiedKFold
+        X, y: 2D numpy array of training data and 1D array of labels
+        groups: 1D numpy array of groups to be used for cross-validation
+        scorers: String specifying suite of performance metrics to use
         feature_importances: Boolean to perform permutation-based importances
         n_permutations: Number of permutations during feature importance
         random_state: Seed to pass to the random number generator
         """
 
+        # preprocessing -------------------------------------------------------
+        if self.preprocessing is not None:
+            X = self.__preprocessor(X)
+
+        if self.categorical_var is not None:
+            X = self.__onehotencode(X)
+
         # create copy of fitting estimator for cross-val fitting
         fit_train = deepcopy(self.estimator)
 
-        # dictionary of lists to store metrics
+        # create dictionary of lists to store metrics -------------------------
+        n_classes = len(np.unique(y))
+
+        if scorers == 'accuracy':
+            self.scores = {
+                'accuracy': []
+            }
+
         if scorers == 'binary':
             self.scores = {
                 'accuracy': [],
@@ -355,73 +349,85 @@ class train():
         if scorers == 'multiclass':
             self.scores = {
                 'accuracy': [],
-                'f1': [],
-                'kappa': []
-            }
+                'kappa': [],
+                'precision': np.zeros((0, n_classes)),  # scores per sample
+                'recall': np.zeros((0, n_classes)),
+                'f1': np.zeros((0, n_classes))
+                }
 
         if scorers == 'regression':
             self.scores = {
                 'r2': []
             }
 
-        y_test_agg = []
-        y_pred_agg = []
-        self.fimp = np.zeros((cv, self.X.shape[1]))
+        self.mean_tpr = 0
+        self.mean_fpr = np.linspace(0, 1, 100)
 
-        # generate Kfold indices
-        if self.groups is None:
-            k_fold = StratifiedKFold(
-                n_splits=cv,
-                shuffle=False,
-                random_state=random_state).split(self.X, self.y)
+        # create np array to store feature importance scores
+        # for each predictor per fold
+        if feature_importances is True:
+            self.fimp = np.zeros((splitter.get_n_splits(), X.shape[1]))
+            self.fimp[:] = np.nan
+
+        # generate Kfold indices ----------------------------------------------
+
+        if groups is None:
+            k_fold = splitter.split(X, y)
         else:
-            k_fold = GroupKFold(n_splits=cv).split(
-                self.X, self.y, groups=self.groups)
+            k_fold = splitter.split(
+                X, y, groups=groups)
+
+        # train on k-1 folds and test of k folds ------------------------------
 
         for train_indices, test_indices in k_fold:
 
             # get indices for train and test partitions
-            X_train, X_test = self.X[train_indices], self.X[test_indices]
-            y_train, y_test = self.y[train_indices], self.y[test_indices]
+            X_train, X_test = X[train_indices], X[test_indices]
+            y_train, y_test = y[train_indices], y[test_indices]
+            if groups is not None:
+                groups_train = groups[train_indices]
 
             # balance the fold
-            if self.balance is True:
-                X_train, y_train = self.__random_oversampling(
-                        X_train, y_train, random_state=random_state)
-                if self.groups is not None:
-                    groups_train = self.groups[train_indices]
-                    groups_train, _ = self.__random_oversampling(
-                        groups_train, self.y[train_indices],
-                        random_state=random_state)
+            if self.sampling is not None:
+                y_train_original = deepcopy(y_train)
+                X_train, y_train = self.sampling.fit_sample(
+                    X_train, y_train)
+
+                if groups is not None:
+                    groups_train, _ = self.sampling.fit_sample(
+                        groups_train.reshape(-1, 1), y_train_original)
 
             else:
                 # also get indices of groups for the training partition
-                if self.groups is not None:
-                    groups_train = self.groups[train_indices]
+                if groups is not None:
+                    groups_train = groups[train_indices]
 
             # fit the model on the training data and predict the test data
             # need the groups parameter because the estimator can be a
-            # RandomizedSearchCV estimator where cv=GroupKFold
-            if isinstance(self.estimator, RandomizedSearchCV) is True \
-                    or isinstance(self.estimator, GridSearchCV):
+            # RandomizedSearchCV or GridSearchCV estimator where cv=GroupKFold
+            if isinstance(fit_train, RandomizedSearchCV) is True \
+                    or isinstance(fit_train, GridSearchCV):
                 param_search = True
             else:
                 param_search = False
 
-            if self.groups is not None and param_search is True:
+            # train fit_train on training fold
+            if groups is not None and param_search is True:
                 fit_train.fit(X_train, y_train, groups=groups_train)
             else:
                 fit_train.fit(X_train, y_train)
 
+            # prediction of test fold
             y_pred = fit_train.predict(X_test)
-
-            y_test_agg = np.append(y_test_agg, y_test)
-            y_pred_agg = np.append(y_pred_agg, y_pred)
-
             labels = np.unique(y_pred)
 
             # calculate metrics
-            if scorers == 'binary':
+            if scorers == 'accuracy':
+                self.scores['accuracy'] = np.append(
+                    self.scores['accuracy'],
+                    metrics.accuracy_score(y_test, y_pred))
+
+            elif scorers == 'binary':
                 self.scores['accuracy'] = np.append(
                     self.scores['accuracy'],
                     metrics.accuracy_score(y_test, y_pred))
@@ -451,8 +457,9 @@ class train():
                     self.scores['kappa'],
                     metrics.cohen_kappa_score(y_test, y_pred))
 
-                self.scores_cm = metrics.classification_report(
-                        y_test_agg, y_pred_agg)
+                fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred_proba)
+                self.mean_tpr += scipy.interp(self.mean_fpr, fpr, tpr)
+                self.mean_tpr[0] = 0.0
 
             elif scorers == 'multiclass':
 
@@ -464,8 +471,20 @@ class train():
                     self.scores['kappa'],
                     metrics.cohen_kappa_score(y_test, y_pred))
 
-                self.scores_cm = metrics.classification_report(
-                        y_test_agg, y_pred_agg)
+                self.scores['precision'] = np.vstack((
+                    self.scores['precision'],
+                    np.array(metrics.precision_score(
+                        y_test, y_pred, average=None))))
+
+                self.scores['recall'] = np.vstack((
+                    self.scores['recall'],
+                    np.array(metrics.recall_score(
+                        y_test, y_pred, average=None))))
+
+                self.scores['f1'] = np.vstack((
+                    self.scores['f1'],
+                    np.array(metrics.f1_score(
+                        y_test, y_pred, average=None))))
 
             elif scorers == 'regression':
                 self.scores['r2'] = np.append(
@@ -473,15 +492,17 @@ class train():
 
             # feature importances using permutation
             if feature_importances is True:
-                if bool((self.fimp == 0).all()) is True:
-                    self.fimp = self.__varImp_permutation(
+                if bool((np.isnan(self.fimp)).all()) is True:
+                    self.fimp = self.varImp_permutation(
                         fit_train, X_test, y_test, n_permutations, scorers,
                         random_state)
                 else:
                     self.fimp = np.row_stack(
-                        (self.fimp, self.__varImp_permutation(
+                        (self.fimp, self.varImp_permutation(
                             fit_train, X_test, y_test,
                             n_permutations, scorers, random_state)))
+
+        # summarize data ------------------------------------------------------
 
         # convert onehot-encoded feature importances back to original vars
         if self.fimp is not None and self.enc is not None:
@@ -489,8 +510,8 @@ class train():
             # get start,end positions of each suite of onehot-encoded vars
             feature_ranges = deepcopy(self.enc.feature_indices_)
             for i in range(0, len(self.enc.feature_indices_)-1):
-                feature_ranges[i+1] =\
-                    feature_ranges[i] + len(self.category_values[i])
+                feature_ranges[i+1] = feature_ranges[i] + \
+                              len(self.category_values[i])
 
             # take sum of each onehot-encoded feature
             ohe_feature = [0] * len(self.categorical_var)
@@ -498,7 +519,7 @@ class train():
 
             for i in range(len(self.categorical_var)):
                 ohe_feature[i] = \
-                    self.fimp[:, feature_ranges[i]:feature_ranges[i+1]]
+                           self.fimp[:, feature_ranges[i]:feature_ranges[i+1]]
                 ohe_sum[i] = ohe_feature[i].sum(axis=1)
 
             # remove onehot-encoded features from the importances array
@@ -507,11 +528,21 @@ class train():
 
             # insert summed importances into original positions
             for index in self.categorical_var:
-                self.fimp = np.insert(
-                        self.fimp, np.array(index), ohe_sum[0], axis=1)
+                self.fimp = np.insert(self.fimp, np.array(index),
+                                      ohe_sum[0], axis=1)
 
-    def predict(self, predictors, output, class_probabilities=False,
-                rowincr=25):
+        if scorers == 'binary':
+            self.mean_tpr /= splitter.get_n_splits(X, y)
+            self.mean_tpr[-1] = 1.0
+
+    def get_roc_curve(self):
+        return (self.mean_tpr, self.mean_fpr)
+
+    def get_cross_val_scores(self):
+        return (self.scores)
+
+    def predict(self, predictors, output, labels=None,
+                class_probabilities=False, rowincr=25):
 
         """
         Prediction on list of GRASS rasters using a fitted scikit learn model
@@ -527,9 +558,7 @@ class train():
         """
 
         # determine output data type and nodata
-        predicted = self.estimator.predict(self.X)
-
-        if bool((predicted % 1 == 0).all()) is True:
+        if labels is not None:
             ftype = 'CELL'
             nodata = -2147483648
         else:
@@ -568,7 +597,6 @@ class train():
         if class_probabilities is True:
 
             # determine number of classes
-            labels = np.unique(self.y)
             nclasses = len(labels)
 
             prob_out_raster = [0] * nclasses
@@ -583,116 +611,120 @@ class train():
         """
         Prediction using row blocks
         """
-
-        for rowblock in range(0, current.rows, rowincr):
-
-            # check that the row increment does not exceed the number of rows
-            if rowblock+rowincr > current.rows:
-                rowincr = current.rows - rowblock
-            img_np_row = np.zeros((rowincr, current.cols, n_features))
-            mask_np_row = np.zeros((rowincr, current.cols))
-
-            # loop through each row, and each band
-            # and add these values to the 2D array img_np_row
-            for row in range(rowblock, rowblock+rowincr, 1):
-                mask_np_row[row-rowblock, :] = np.array(mask_raster[row])
-
-                for band in range(n_features):
-                    img_np_row[row-rowblock, :, band] = \
-                        np.array(rasstack[band][row])
-
-            mask_np_row[mask_np_row == -2147483648] = np.nan
-            nanmask = np.isnan(mask_np_row)  # True in mask means invalid data
-
-            # reshape each row-band matrix into a n*m array
-            nsamples = rowincr * current.cols
-            flat_pixels = img_np_row.reshape((nsamples, n_features))
-
-            # remove NaN values and GRASS CELL nodata vals
-            flat_pixels[flat_pixels == -2147483648] = np.nan
-            flat_pixels = np.nan_to_num(flat_pixels)
-
-            # onehot-encoding
-            if self.enc is not None:
-                try:
-                    flat_pixels = self.enc.transform(flat_pixels)
-                except:
-                    # if this fails it is because the onehot-encoder was fitted
-                    # on the training samples, but the prediction data contains
-                    # new values, i.e. the training data has not sampled all of
-                    # categories
-                    grass.fatal('There are values in the categorical rasters '
-                                'that are not present in the training data '
-                                'set, i.e. the training data has not sampled '
-                                'all of the categories')
-
-            # rescale
-            if self.scaler is not None:
-                # create mask so that indices that represent categorical
-                # predictors are not selected
-                if self.categorical_var is not None:
-                    idx = np.arange(self.X.shape[1])
-                    mask = np.ones(len(idx), dtype=bool)
-                    mask[self.categorical_var] = False
-                else:
-                    mask = np.arange(self.X.shape[1])
-                flat_pixels_continuous = flat_pixels[:, mask]
-                flat_pixels[:, mask] = self.scaler.transform(
-                        flat_pixels_continuous)
-
-            # perform prediction
-            result = self.estimator.predict(flat_pixels)
-            result = result.reshape((rowincr, current.cols))
-
-            # replace NaN values so that the prediction does not have a border
-            result = np.ma.masked_array(
-                result, mask=nanmask, fill_value=-99999)
-
-            # return a copy of result, with masked values filled with a value
-            result = result.filled([nodata])
-
-            # for each row we can perform computation, and write the result
-            for row in range(rowincr):
-                newrow = Buffer((result.shape[1],), mtype=ftype)
-                newrow[:] = result[row, :]
-                classification.put_row(newrow)
-
-            # same for probabilities
-            if class_probabilities is True:
-                result_proba = self.estimator.predict_proba(flat_pixels)
-
-                for iclass in range(result_proba.shape[1]):
-
-                    result_proba_class = result_proba[:, iclass]
-                    result_proba_class = result_proba_class.reshape(
-                                            (rowincr, current.cols))
-
-                    result_proba_class = np.ma.masked_array(
-                        result_proba_class, mask=nanmask, fill_value=np.nan)
-
-                    result_proba_class = result_proba_class.filled([np.nan])
-
-                    for row in range(rowincr):
-
-                        newrow = Buffer((
-                                    result_proba_class.shape[1],),
-                                    mtype='FCELL')
-
-                        newrow[:] = result_proba_class[row, :]
-                        prob[iclass].put_row(newrow)
-
-        # close all maps
-        for i in range(n_features):
-            rasstack[i].close()
-
-        classification.close()
-        mask_raster.close()
-
         try:
-            for iclass in range(nclasses):
-                prob[iclass].close()
-        except:
-            pass
+            for rowblock in range(0, current.rows, rowincr):
+                grass.percent(rowblock, current.rows, rowincr)
+                # check that the row increment does not exceed the number of rows
+                if rowblock+rowincr > current.rows:
+                    rowincr = current.rows - rowblock
+                img_np_row = np.zeros((rowincr, current.cols, n_features))
+                mask_np_row = np.zeros((rowincr, current.cols))
+
+                # loop through each row, and each band
+                # and add these values to the 2D array img_np_row
+                for row in range(rowblock, rowblock+rowincr, 1):
+                    mask_np_row[row-rowblock, :] = np.array(mask_raster[row])
+
+                    for band in range(n_features):
+                        img_np_row[row-rowblock, :, band] = \
+                            np.array(rasstack[band][row])
+
+                mask_np_row[mask_np_row == -2147483648] = np.nan
+                nanmask = np.isnan(mask_np_row)  # True in mask means invalid data
+
+                # reshape each row-band matrix into a n*m array
+                nsamples = rowincr * current.cols
+                flat_pixels = img_np_row.reshape((nsamples, n_features))
+
+                # remove NaN values and GRASS CELL nodata vals
+                flat_pixels[flat_pixels == -2147483648] = np.nan
+                flat_pixels = np.nan_to_num(flat_pixels)
+
+                # rescale
+                if self.preprocessing is not None:
+                    # create mask so that indices that represent categorical
+                    # predictors are not selected
+                    if self.categorical_var is not None:
+                        idx = np.arange(n_features)
+                        mask = np.ones(len(idx), dtype=bool)
+                        mask[self.categorical_var] = False
+                    else:
+                        mask = np.arange(n_features)
+                    flat_pixels_continuous = flat_pixels[:, mask]
+                    flat_pixels[:, mask] = self.preprocessing.transform(
+                            flat_pixels_continuous)
+
+                # onehot-encoding
+                if self.enc is not None:
+                    try:
+                        flat_pixels = self.enc.transform(flat_pixels)
+                    except:
+                        # if this fails it is because the onehot-encoder was fitted
+                        # on the training samples, but the prediction data contains
+                        # new values, i.e. the training data has not sampled all of
+                        # categories
+                        grass.fatal('There are values in the categorical rasters '
+                                    'that are not present in the training data '
+                                    'set, i.e. the training data has not sampled '
+                                    'all of the categories')
+
+                # perform prediction
+                result = self.estimator.predict(flat_pixels)
+                result = result.reshape((rowincr, current.cols))
+
+                # replace NaN values so that the prediction does not have a border
+                result = np.ma.masked_array(
+                    result, mask=nanmask, fill_value=-99999)
+
+                # return a copy of result, with masked values filled with a value
+                result = result.filled([nodata])
+
+                # for each row we can perform computation, and write the result
+                for row in range(rowincr):
+                    newrow = Buffer((result.shape[1],), mtype=ftype)
+                    newrow[:] = result[row, :]
+                    classification.put_row(newrow)
+
+                # same for probabilities
+                if class_probabilities is True:
+                    result_proba = self.estimator.predict_proba(flat_pixels)
+
+                    for iclass in range(result_proba.shape[1]):
+
+                        result_proba_class = result_proba[:, iclass]
+                        result_proba_class = result_proba_class.reshape(
+                                                (rowincr, current.cols))
+
+                        result_proba_class = np.ma.masked_array(
+                            result_proba_class, mask=nanmask, fill_value=np.nan)
+
+                        result_proba_class = result_proba_class.filled([np.nan])
+
+                        for row in range(rowincr):
+                            newrow = Buffer((
+                                        result_proba_class.shape[1],),
+                                        mtype='FCELL')
+
+                            newrow[:] = result_proba_class[row, :]
+                            prob[iclass].put_row(newrow)
+        finally:
+            # close all predictors
+            for i in range(n_features):
+                rasstack[i].close()
+
+            # close classification and mask maps
+            classification.close()
+            mask_raster.close()
+
+            grass.run_command("g.remove", name='tmp_clfmask',
+                              flags="f", type="raster", quiet=True)
+
+            # close all class probability maps
+            try:
+                for iclass in range(nclasses):
+                    prob[iclass].close()
+            except:
+                pass
 
 
 def model_classifiers(estimator='LogisticRegression', random_state=None,
