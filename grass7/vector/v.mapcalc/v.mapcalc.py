@@ -16,6 +16,7 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
 #% description: Vector map calculator.
 #% keyword: vector
 #% keyword: algebra
+#% overwrite: yes
 #%end
 #%option
 #% key: expression
@@ -222,7 +223,7 @@ class VectorAlgebraParser(object):
 
         if self.run:
             m = mod.Module('g.rename', vector=(t[3], t[1]),
-                           overwrite=grass.overwrite, run_=False)
+                           overwrite=grass.overwrite(), run_=False)
             self.cmdlist.add_cmd(m)
         self.remove_intermediate_vector_maps()
 
