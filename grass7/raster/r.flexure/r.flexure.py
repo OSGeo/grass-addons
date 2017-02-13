@@ -297,7 +297,7 @@ def main():
     # Create a new garray buffer and write to it
     outbuffer = garray.array() # Instantiate output buffer
     outbuffer[...] = flex.w
-    outbuffer.write(options['output'], overwrite=grass.overwrite) # Write it with the desired name
+    outbuffer.write(options['output'], overwrite=grass.overwrite()) # Write it with the desired name
     # And create a nice colormap!
     grass.run_command('r.colors', map=options['output'], color='differences', quiet=True)
 
