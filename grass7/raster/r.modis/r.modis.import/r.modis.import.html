@@ -4,62 +4,75 @@
 
 <h2>NOTE</h2>
 
-r.modis modules need <a href="www.pymodis.org" target="_blank">pyModis</a> library.
-Please install it before.
+The <em>r.modis</em> modules need the <a href="www.pymodis.org">pyModis</a> library.
+Please install it beforehand.
 
+<p>
 The input file is given as list of full paths to the MODIS HDF files,
 one per line. The input file(s) have to be inside the folder where
 the HDF files are stored.
+<p>
 <b>If <em>mrtpath</em> is not used, pyModis will use GDAL to convert HDF
 files to TIF (which is faster).</b>
 <p>
 The <em>mrtpath</em> option is the path to the main folder of the
 MODIS Reprojection Tools (MRT) binaries, i.e. the folder which contains
 the bin/ and the data/ folder since these two folders are essential for
-obtaining a successful result.<br>
+obtaining a successful result.
 <p>
 
 <b>Warning</b>:
 <ul>
-  <li>If using MODIS Reprojection Tools to convert HDF files, only
+  <li>When using the MODIS Reprojection Tools to convert HDF files, only
    the following projection systems are supported: Lambert Azimuthal Equal Area,
    Lambert Conformal Conic, Mercator, Polar Stereographic, Transverse Mercator,
-   Universal Transverse Mercator</li>
-  <li>Using GDAL allows to handle all the projection systems supported by Proj4</li>
+   Universal Transverse Mercator.</li>
+  <li>Using GDAL allows to handle all projections supported by Proj4.</li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
-Import a single file with all the subsets (QA layers included) using GDAL.
+Import of a single file with all the subsets (QA layers included) using GDAL:
+
 <div class="code"><pre>
 r.modis.import input=/path/to/file
 </pre></div>
 
-Import files from a list with all the subsets using MRT (if mrtpath is not
-provided, GDAL is used).
+<p>
+Import of files from a list with all the subsets using MRT (if mrtpath is not
+provided, GDAL is used):
+
 <div class="code"><pre>
 r.modis.import files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import files from a list as mosaics per date without QA layers using MRT.
+<p>
+Import of files from a list as mosaics per date without QA layers using MRT:
+
 <div class="code"><pre>
 r.modis.import -mq files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import a single file with user-specific subset of layers using GDAL.
+<p>
+Import of a single file with user-specific subset of layers using GDAL:
+
 <div class="code"><pre>
 r.modis.import input=/path/to/file spectral="( 1 0 1 0 )"
 </pre></div>
 
-Import files from a list with user-specific subset of layers and without QA
-layer using MRT.
+<p>
+Import of files from a list with user-specific subset of layers and without QA
+layer using MRT:
+
 <div class="code"><pre>
 r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
-Import a single subset of layers (i.e.: spectral="( 1 )") from each file from a
+<p>
+Import of a single subset of layers (i.e.: spectral="( 1 )") from each file from a
 list and write a file to be used in <em>t.register</em> to create a temporal
-dataset. This option uses GDAL.
+dataset. This option uses GDAL:
+
 <div class="code"><pre>
 r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 </pre></div>
@@ -68,7 +81,7 @@ r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 
 <em>
 <a href="r.modis.html">r.modis</a>,
-<a href="r.modis.download.html">r.modis.download</a>
+<a href="r.modis.download.html">r.modis.download</a>,
 <a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em><br>
