@@ -6,26 +6,29 @@ for each MODIS product.
 
 <h2>NOTE</h2>
 
-r.modis modules need <a href="www.pymodis.org" target="_blank">pyModis</a> library.
-Please install it before.
-
-To be able to download data the user needs a <em>user</em> and <em>password</em>
-provided by NASA. The user should register at <a href="https://urs.earthdata.nasa.gov/users/new"
-target="_blank">https://urs.earthdata.nasa.gov/users/new</a>;
-then login and move to his/her profile page. Once there, under 'My applications'
-tab, the user needs to approve the following applications: 'LP DAAC Data Pool'
-and 'Earthdata Search'.
+The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+library. Please install it beforehand.
 <p>
-If the user is already registered, he/she just needs to login and enable the
-mentioned applications at <a href="https://urs.earthdata.nasa.gov/home" target="_blank">https://urs.earthdata.nasa.gov/home</a>
+To be able to download data the user needs to obtain <em>user</em> and
+<em>password</em> for the NASA Earthdata Login:
+<ul>
+<li> First time user: The user has to register at
+ <a href="https://urs.earthdata.nasa.gov/users/new">https://urs.earthdata.nasa.gov/users/new</a>;
+ then to login and change to his/her profile page. Once there, under the "My applications"
+ tab, the user needs to approve the following applications: "LP DAAC Data Pool"
+ and "Earthdata Search".</li>
+<li> If the user is already registered, he/she just needs to login and enable the
+ aforementioned applications at
+ <a href="https://urs.earthdata.nasa.gov/home">https://urs.earthdata.nasa.gov/home</a>
+ if not already done.</li>
+</ul>
 <p>
-In order to download the desired product(s), the username and password must be
-provided through the <em>settings</em> option. This There are two alternatives;
-either pass a file in which the first line is the username, usually 'anonymous'
-and, the second line is the password, usually the user's e-mail address, as below:
+In order to download the desired MODIS product(s), the username and password must be
+provided through the <em>settings</em> option. There are two ways: either pass a file
+in which the first row is the username, and the second row is the password, like as below:
 <div class="code"><pre>
-  your_NASA_username
-  your_NASA_password
+your_NASA_username
+your_NASA_password
 </pre></div>
 or, the user can pass the values from the standard input when prompted.
 <p>
@@ -33,10 +36,10 @@ or, the user can pass the values from the standard input when prompted.
 <b>Warning</b>: As per NASA policy no more than ten simultaneous connections
 are permitted in parallel with their server. Hence, no more than ten processes
 of <em>r.modis.download</em> should run at the same time to avoid that your
-actual IP address gets blacklisted.
+actual IP address will get blacklisted.
 <p>
-By default, the downloaded files are stored in the path where the settings
-file is saved. The user can change this directory with the <em>folder</em>
+By default, the downloaded files are stored in the path in which the settings
+file was saved. The user can change this directory with the <em>folder</em>
 option. The <em>folder</em> option is required when user and password are
 passed through the standard input.
 <p>
@@ -46,40 +49,52 @@ to 270 MB and the LST product ranges from 2 MB to 21 MB.
 
 <h2>EXAMPLES</h2>
 
-Download the daily MODIS LST product from the Terra satellite using the default
-options (all available tiles from newest available date) and passing the user
-and password from standard input. Note that when settings is read from standard
-input, the option folder must be specified.
+Download of the daily MODIS LST product "lst_terra_daily_1000" from the
+Terra satellite using the default options (all available tiles from newest
+available date) and passing the user and password through standard input.
+Note that when settings is read from standard input, the option folder
+must be specified:
+
 <div class="code"><pre>
 r.modis.download settings=- folder=/tmp
 </pre></div>
 
-Reading the user and password options from a file. Images will be downloaded to
-the folder where the SETTING file is.
+<p>
+Reading the user and password options from a file (this will download per default
+the "lst_terra_daily_1000" product). MODIS data will be downloaded to
+the folder where the SETTING file is:
+
 <div class="code"><pre>
 r.modis.download settings=$HOME/.grass7/r.modis/SETTING
 </pre></div>
 
-Download LST Terra product using the default options and changing the starting
-and ending dates to custom values.
+<p>
+Download of the LST Terra product using the default options and change of
+the starting and ending dates to custom values:
+
 <div class="code"><pre>
 r.modis.download settings=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
-Download a different product (for example <em>Snow eight days 500 m</em>),
-default options.
+<p>
+Download of a different product (for example <em>Snow eight days 500 m</em>),
+default options:
+
 <div class="code"><pre>
 r.modis.download settings=$HOME/.grass7/r.modis/SETTING product=snow_terra_eight_500
 </pre></div>
 
-To use <em>r.modis.download</em> in a script and concatenate with another module,
+<p>
+To use <em>r.modis.download</em> in a script and to concatenate it with another module,
 the user needs to set the <em>-g</em> flag to return the name of the file that
 contains the list of downloaded HDF files:
+
 <div class="code"><pre>
 r.modis.download -g settings=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <h2>SEE ALSO</h2>
+
 <em>
 <a href="r.modis.html">r.modis</a>,
 <a href="r.modis.import.html">r.modis.import</a>
