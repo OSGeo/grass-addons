@@ -77,11 +77,20 @@ r.modis.download settings=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endd
 </pre></div>
 
 <p>
-Download of a different product (for example <em>Snow eight days 500 m</em>),
+Download of a different product (here: <em>Snow eight days 500 m</em>),
 default options:
 
 <div class="code"><pre>
 r.modis.download settings=$HOME/.grass7/r.modis/SETTING product=snow_terra_eight_500
+</pre></div>
+
+<p>
+Download of a global MODIS product (here: <em>MOD13C1 - MODIS/Terra Vegetation Indices
+16-Day L3 Global 0.05Deg CMG V006</em>), of a specific month:
+
+<div class="code"><pre>
+# note: provided in Geographic Lat/Long Grid
+r.modis.download settings=$HOME/.grass7/r.modis/SETTING product=ndvi_terra_sixteen_5600 startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <p>
