@@ -91,6 +91,16 @@ option is interpreted as percent of the maximum allowable shift
 distance such that no two superpixel centers can obtain the same 
 position.
 
+<h4>Memory vs disk cache</h4>
+<em>i.superpixels.slic</em> can handle very large amounts of data. Depending 
+on the amount of data and the available RAM memory, as defined by the 
+<em>memory</em> parameter, the module will either work with memory cache,
+storing everything in memory, or with a disk cache, storing elements on disk
+and only retrieving the data when necessary. Disk cache is slower, but the data
+can be much larger than the RAM memory can hold. By default, the 
+<em>memory</em> parameter is set fairly low for modern computer systems 
+(500MB). Users should thus make sure to adjust the value to their system.
+
 <h2>EXAMPLES</h2>
 
 <h3>Segmentation of Landsat images and NDVI</h3>
