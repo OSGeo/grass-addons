@@ -8,7 +8,7 @@
 # PURPOSE:	Here there are some important class to run r.modis modules
 #
 #
-# COPYRIGHT:	(C) 2011 by Luca Delucchi
+# COPYRIGHT:	(C) 2011-2017 by Luca Delucchi
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
@@ -153,7 +153,7 @@ class product:
               'ndvi_terra_sixteen_500': {'url': urlbase, 'folder': 'MOLT/',
                                          'prod': 'MOD13A1.006',
                                          'spec': vi_spec, 'spec_qa': vi_specqa,
-                                         'suff': vi1km_suff, 'res': 500,
+                                         'suff': vi500m_suff, 'res': 500,
                                          'color': vi_color, 'days': sixteen},
               'ndvi_aqua_sixteen_500': {'url': urlbase, 'folder': 'MOLA/',
                                         'prod': 'MYD13A1.006',
@@ -163,7 +163,7 @@ class product:
               'ndvi_terra_sixteen_1000': {'url': urlbase, 'folder': 'MOLT/',
                                           'prod': 'MOD13A2.006',
                                           'spec': vi_spec, 'spec_qa': vi_specqa,
-                                          'suff': vi500m_suff, 'res': 1000,
+                                          'suff': vi1km_suff, 'res': 1000,
                                           'color': vi_color, 'days': sixteen},
               'ndvi_aqua_sixteen_1000': {'url': urlbase, 'folder': 'MOLA/',
                                          'prod': 'MYD13A2.006',
