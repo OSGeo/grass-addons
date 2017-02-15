@@ -20,7 +20,10 @@
 
 #%Module
 #% description: Program calculates decomposition of time series X
-#% overwrite: yes
+#% keyword: raster
+#% keyword: statistics
+#% keyword: series
+#% keyword: decomposition
 #%End
 #%option
 #% key: input

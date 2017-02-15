@@ -168,7 +168,9 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("statistics"));
     G_add_keyword(_("series"));
+    G_add_keyword(_("regression"));
     module->description =
 	_("Makes each output cell value a "
 	  "function of the values assigned to the corresponding cells "
