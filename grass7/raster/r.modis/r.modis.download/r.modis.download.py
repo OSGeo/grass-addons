@@ -8,7 +8,7 @@
 # PURPOSE:       r.in.modis.download is an interface to pyModis for download
 #                several tiles of MODIS produts from NASA ftp
 #
-# COPYRIGHT:        (C) 2011 by Luca Delucchi
+# COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -17,9 +17,10 @@
 #############################################################################
 
 #%module
-#% description: Download several tiles of MODIS products using pyModis
+#% description: Download single or multiple tiles of MODIS products using pyModis.
 #% keyword: raster
 #% keyword: import
+#% keyword: MODIS
 #%end
 #%flag
 #% key: d

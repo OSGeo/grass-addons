@@ -8,7 +8,7 @@
 # PURPOSE:       r.modis.import is an interface to pyModis for import into
 #                GRASS GIS level 3 MODIS produts
 #
-# COPYRIGHT:        (C) 2011 by Luca Delucchi
+# COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -22,8 +22,9 @@
 #############################################################################
 
 #%module
-#% description: Import single or multiple tiles of MODIS products using pyModis
+#% description: Import single or multiple tiles of MODIS products using pyModis.
 #% keyword: raster
+#% keyword: import
 #% keyword: MODIS
 #%end
 #%flag

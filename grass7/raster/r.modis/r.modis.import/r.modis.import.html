@@ -36,6 +36,8 @@ NOTE: In order to work with the temporal framework of GRASS GIS the flag
 
 <h2>EXAMPLES</h2>
 
+<h3>General examples</h3>
+
 Import of a single file with all the subsets (QA layers included) using GDAL:
 
 <div class="code"><pre>
@@ -80,6 +82,29 @@ dataset. This option uses GDAL:
 <div class="code"><pre>
 r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 </pre></div>
+
+<h3>Import of global MODIS NDVI data</h3>
+
+The MOD13C1 is a global NDVI/EVI 16 days map product which can be downloaded
+and imported as follows in a latitude-longitude GRASS GIS location:
+
+<div class="code"><pre>
+# download the two years worth of data
+r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
+  startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
+# import band 1 = NDVI
+r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" method=bilinear -w
+# create empty temporal DB
+t.create type=strds temporaltype=absolute output=ndvi_16_5600m title="Global NDVI 16 days MOD13C1" \
+  description="MOD13C1 Global NDVI 16 days" semantictype=mean
+# register datasets (tempfile name is provided by r.modis.import -w
+t.register input=ndvi_16_5600m file=$USER/tmp/grass7-user-5370/tmp_rGPcg
+
+# verify and visualize timeline
+t.rast.list ndvi_16_5600m
+g.gui.timeline ndvi_16_5600m
+</pre></div>
+
 
 <h2>SEE ALSO</h2>
 
