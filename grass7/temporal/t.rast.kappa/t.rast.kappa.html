@@ -1,0 +1,50 @@
+<h2>DESCRIPTION</h2>
+
+The t.rast.kappa calculate kappa parameter in a space time raster dataset.
+It can calculate kappa values using two different algorithm, the one provided
+by <a href="r.kappa.html">r.kappa</a> and the one provided by
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html" target="_blank">SciKit-Learn metrics</a> library
+
+<h2>EXAMPLE</h2>
+
+<h3>Using r.kappa as backend</h3>
+In this example t.rast.kappa is using <a href="r.kappa.html">r.kappa</a> as backend,
+it return the results inside the <em>/tmp</em>em> directory into files with <em>mystrds</em> as prefix.
+<em>weight</em> option is not considered using <a href="r.kappa.html">r.kappa</a> as backend.
+<div class="code">
+    <pre>
+        t.rast.kappa -k strds=mystrds output=/tmp/mystrds
+    </pre>
+</div>
+
+<h3>Using SciKit-Learn as backend, text as output</h3>
+In this example t.rast.kappa is using
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html" target="_blank">SciKit-Learn metrics</a>
+library as backend, without <em>output</em> option, the module print the results to standard output
+<div class="code">
+    <pre>
+        t.rast.kappa strds=mystrds where="start_time >= '1999-12-01' weight='linear'
+    </pre>
+</div>
+
+<h3>Using SciKit-Learn as backend, map as output</h3>
+In this example t.rast.kappa is using
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html" target="_blank">SciKit-Learn metrics</a>
+library as backend, the output is a map with the kappa values calculated for each pixel.
+The <em>splittingday</em> option is required to split the space time raster dataset in two groups and analyze them;
+the two groups must have the same number of maps, otherwise and error will be reported.
+<div class="code">
+    <pre>
+        t.rast.kappa -p strds=mystrds output=mykappa splittingday='2005-01-01'
+    </pre>
+</div>
+
+
+<h2>SEE ALSO</h2>
+
+<a href="r.kappa.html">r.kappa</a>
+
+
+<h2>AUTHOR</h2>
+
+Luca Delucchi, <i>Fondazione Edmund Mach</i>
