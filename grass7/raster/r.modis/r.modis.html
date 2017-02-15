@@ -32,7 +32,7 @@ These products are currently supported:
 <h3>MODIS LST - Land Surface Temperature</h3>
 <ul>
   <li><b>Land Surface Temperature daily 1 Km (Terra/Aqua)</b>: product provides per-pixel temperature
-      and emissivity values in a sequence of swath-based to grid-based global products in sinusoidal projection.
+      and emissivity values in a sequence of swath-based to grid-based global products in Sinusoidal projection.
       The MODIS/Terra-Aqua LST/E Daily L3 Global 1 km Grid product (MOD11A1/MYD11A1), is tile-based
       and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution.
       (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a1_v006">MOD11A1</a> and
@@ -49,9 +49,9 @@ These products are currently supported:
       product pages)</li>
   <li><b>Land Surface Temperature eight day 6 Km (Terra/Aqua)</b>: products provide per-pixel
       temperature and emissivity values in a sequence of swath-based to grid-based
-      global products. The MODIS/Terra-Aqua LST/E Daily L3 Global 5 Km Grid
+      global products. The MODIS/Terra-Aqua LST/E Daily L3 Global 6 Km Grid
       (Short name: MOD11B1/MYD11B1), is tile-based and gridded in the Sinusoidal projection,
-      and produced daily at 5 km spatial resolution
+      and produced daily at 5600m spatial resolution
       (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11b1_v006">MOD11B1</a> and
       <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11b1_v006">MYD11B1</a> 
       product pages)</li>
@@ -60,9 +60,9 @@ These products are currently supported:
 <h3>MODIS VI - Vegetation Indices</h3>
 
 <ul>
-  <li><b>VI sixteen days 250 m (Terra/Aqua)</b>: Global MODIS vegetation indices are designed
-      to provide consistent spatial and temporal comparisons of vegetation conditions.
-      Blue, red, and near-infrared reflectances, centered at 469-nanometers,
+  <li><b>VI sixteen days 250 m (Terra/Aqua)</b>: Global MOD13Q1/MYD13Q1 MODIS vegetation indices
+      are designed to provide consistent spatial and temporal comparisons of vegetation.
+      conditions. Blue, red, and near-infrared reflectances, centered at 469-nanometers,
       645-nanometers, and 858-nanometers, respectively, are used to determine
       the MODIS daily vegetation indices.<br>
       The MODIS Normalized Difference Vegetation Index (NDVI) complements NOAA's
@@ -78,11 +78,11 @@ These products are currently supported:
       as a gridded level-3 product in the Sinusoidal projection. Lacking a 250m
       blue band, the EVI algorithm uses the 500m blue band to correct for residual
       atmospheric effects, with negligible spatial artifacts
-      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11b1_v006">MOD11B1</a> and
-      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11b1_v006">MYD11B1</a> 
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13q1_v006">MOD13Q1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd13q1_v006">MYD13Q1</a> 
       product pages)</li>
-  <li><b>VI sixteen days 500 m (Terra/Aqua)</b>: Global MODIS vegetation indices are
-      designed to provide consistent spatial and temporal comparisons of vegetation
+  <li><b>VI sixteen days 500 m (Terra/Aqua)</b>: Global MOD13A1/MYD13A1 MODIS vegetation indices
+      are designed to provide consistent spatial and temporal comparisons of vegetation
       conditions. Blue, red, and near-infrared reflectances, centered at
       469-nanometers, 645-nanometers, and 858-nanometers, respectively, are used
       to determine the MODIS daily vegetation indices.<br>
@@ -103,7 +103,32 @@ These products are currently supported:
       These data may be used as input for modeling global biogeochemical and
       hydrologic processes and global and regional climate. These data also may
       be used for characterizing land surface biophysical properties and processes,
-      including primary production and land cover conversion.</li>
+      including primary production and land cover conversion
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13a1_v006">MOD13A1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd13a1_v006">MYD13A1</a> 
+      product pages)</li>
+  <li><b>VI sixteen days 1 Km (Terra/Aqua)</b>:
+      The MOD13A2 product provides a Vegetation Index (VI) value at a per pixel basis. There
+      are 2 primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI)
+      which is referred to as the continuity index to the existing National Oceanic and Atmospheric
+      Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second
+      vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
+      high biomass regions. The data are provided at 1000 m resolution as a gridded level-3 product
+      in the Sinusoidal projection
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13a2_v006">MOD13A2</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd13a2_v006">MYD13A2</a> 
+      product pages)</li>
+  <li><b>VI sixteen days Global 0.05Deg CMG (Terra/Aqua)</b>:
+      The MOD13C1 product provides a Vegetation Index (VI) value at a per pixel basis. There
+      are 2 primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI)
+      which is referred to as the continuity index to the existing National Oceanic and Atmospheric
+      Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second
+      vegetation layer is the Enhanced Vegetation Index (EVI), which has improved sensitivity over
+      high biomass regions. The Climate Modeling Grid (CMG) consists 3600 rows and 7200 columns
+      of 5600 m pixels and is provided as a global latitude/longitude grid
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod13c1_v006">MOD13C1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd13c1_v006">MYD13C1</a> 
+      product pages)</li>
 </ul>
 
 <h3>MODIS Snow</h3>
@@ -118,7 +143,10 @@ These products are currently supported:
       two to eight days of input. There may not always be eight days of input,
       because of various reasons, so the user should check the attributes to
       determine on what days observations were obtained. See the validation webpage
-      for details on the validation and validation definitions.</li>
+      for details on the validation and validation definitions
+      (related <a href="https://nsidc.org/data/MOD10A2">MOD10A2</a> and
+      <a href="https://nsidc.org/data/MYD10A2">MYD10A2</a> 
+      product pages)</li>
   <li><b>Snow daily 500 m (Terra/Aqua)</b>: MOD10A1 and MYD10A1 are tiles of daily
       snow cover at 500 m spatial resolution. The daily observation selected from
       multiple observations in a MOD10A1 (or MYD10A1) cell is the observation
@@ -130,7 +158,10 @@ These products are currently supported:
       daily level 3 snow product is the result of selecting an observation from
       the multiple observations mapped to a cell of the MOD10_L2G (or MYD10_L2G)
       product. See the validation webpage for details on the validation and
-      validation definitions.</li>
+      validation definitions
+      (related <a href="https://nsidc.org/data/MOD10A1">MOD10A1</a> and
+      <a href="https://nsidc.org/data/MYD10A1">MYD10A1</a> 
+      product pages)</li>
 </ul>
 
 <h2>NOTES</h2>
