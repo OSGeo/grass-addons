@@ -93,16 +93,12 @@ class train():
         self.categorical_var = categorical_var
         self.category_values = None
 
-        if self.categorical_var:
-            self.__onehotencode()
-
         # for preprocessing of data
         self.sampling = sampling
         self.preprocessing = preprocessing
 
         # for cross-validation scores
         self.scores = None
-        self.scores_cm = None
         self.fimp = None
         self.mean_tpr = None
         self.mean_fpr = None
@@ -148,14 +144,13 @@ class train():
 
         # Balance classes prior to fitting
         if self.sampling is not None:
-            # balance samples
-            y_original = deepcopy(y)
-            X, y = self.sampling.fit_sample(X, y)
-
-            # balance groups if present
-            if groups is not None:
-                groups, _ = self.sampling.fit_sample(
-                        groups.reshape(-1, 1), y_original)
+            if groups is None:
+                X, y = self.sampling.fit_sample(X, y)
+            else:
+                X = np.hstack((X, groups.reshape(-1, 1)))
+                X, y = self.sampling.fit_sample(X, y)
+                groups = X[:, -1]
+                X = X[:, :-1]
 
         if self.preprocessing is not None:
             X = self.__preprocessor(X)
@@ -387,15 +382,17 @@ class train():
             if groups is not None:
                 groups_train = groups[train_indices]
 
-            # balance the fold
+            # balance the training fold
             if self.sampling is not None:
-                y_train_original = deepcopy(y_train)
-                X_train, y_train = self.sampling.fit_sample(
-                    X_train, y_train)
-
-                if groups is not None:
-                    groups_train, _ = self.sampling.fit_sample(
-                        groups_train.reshape(-1, 1), y_train_original)
+                if groups is None:
+                    X_train, y_train = self.sampling.fit_sample(
+                            X_train, y_train)
+                else:
+                    X_train = np.hstack((X_train, groups_train.reshape(-1, 1)))
+                    X_train, y_train = self.sampling.fit_sample(
+                            X_train, y_train)
+                    groups_train = X_train[:, -1]
+                    X_train = X_train[:, :-1]
 
             else:
                 # also get indices of groups for the training partition
