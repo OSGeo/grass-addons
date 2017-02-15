@@ -18,7 +18,8 @@
 #############################################################################
 
 #%Module
-#% description: Perform filtering of raster time series X (in time domain).
+#% description: Performs filtering of raster time series X (in time domain).
+#% overwrite: yes
 #% keyword: raster
 #% keyword: statistics
 #% keyword: filter

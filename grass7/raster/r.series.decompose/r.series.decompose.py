@@ -19,7 +19,8 @@
 #############################################################################
 
 #%Module
-#% description: Program calculates decomposition of time series X
+#% description: Calculates decomposition of time series X.
+#% overwrite: yes
 #% keyword: raster
 #% keyword: statistics
 #% keyword: series

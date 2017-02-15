@@ -18,7 +18,8 @@
 #############################################################################
 
 #%Module
-#% description: Program calculates multiple regression between time series: Y = b1*X1 + ... + bn*Xn
+#% description: Calculates multiple regression between time series: Y = b1*X1 + ... + bn*Xn.
+#% overwrite: yes
 #% keyword: raster
 #% keyword: statistics
 #% keyword: regression
