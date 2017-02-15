@@ -1,48 +1,65 @@
 <h2>DESCRIPTION</h2>
 
 The <em>r.modis</em> suite is a toolset to import MODIS satellite data into GRASS GIS.
-It uses the <a href="http://pymodis.fem-environment.eu">pyModis</a>
-library and either the <a href="http://gdal.org/">GDAL library</a> or the
+It uses the <a href="http://www.pymodis.org">pyModis</a> library and either the
+<a href="http://gdal.org/">GDAL library</a> or the
 <a href="https://lpdaac.usgs.gov/tools/modis_reprojection_tool"> MODIS Reprojection Tool</a> (MRT)
 software to convert, mosaik and process MODIS data.
 <p>
-The <em>r.modis</em> suite requires the GDAL or MRT software to be installed while
-<a href="http://pymodis.fem-environment.eu">pyModis</a> is already included.
+The <em>r.modis</em> suite requires the pyModis library and either the GDAL or MRT
+software to be installed.
 <p>
-The suite offers three modules as interface with MODIS data. Each modules
-is dedicated to for a specific operation. The module <em>r.modis.download</em>
+The <em>r.modis</em> suite offers three modules as interface to MODIS data. Each modules
+is dedicated for a specific operation. The module <em>r.modis.download</em>
 is used to download MODIS HDF products from NASA servers. These files can then
 be imported with <em>r.modis.import</em> which supports import of Level 3
-MODIS products as single image or daily mosaik into GRASS GIS. At this point
-you can create a temporal dataset using <em>t.create</em> and register the maps
-with <em>t.register</em>, to work with temporal framework you have to remember
-to set the flag <em>w</em> during the import with <em>r.modis.import</em>.
+MODIS products as a single image or as a mosaik into GRASS GIS.
 <p>
-The user can download several MODIS products, by single or multiple tiles and
-also ranges of observation days retrieving data from the related NASA servers.
+Subsequently, the user can create a temporal dataset using <em>t.create</em> and register
+the maps with <em>t.register</em>. NOTE: In order to work with the temporal framework of
+GRASS GIS the flag <em>w</em> must be set during the import with <em>r.modis.import</em>.
+<p>
+The user can choose from several MODIS products, distributed as single or multiple tiles
+and also ranges of observation days retrieving data from the related NASA servers.
 <!--
 The suite process Level 2 data using the <em>r.modis.process</em> module.
 -->
-It imports Level 3 (georeferenced) products either as single image or as daily mosaik.
+The suite imports Level 3 (georeferenced) products either as single image or as daily mosaik.
 
-<h4>Products</h4>
-The products already supported:
+<h2>Supported MODIS products</h2>
+These products are currently supported:
+
+<h3>MODIS LST - Land Surface Temperature</h3>
 <ul>
   <li><b>Land Surface Temperature daily 1 Km (Terra/Aqua)</b>: product provides per-pixel temperature
-      and emissivity values in a sequence of swath-based to grid-based global products.
+      and emissivity values in a sequence of swath-based to grid-based global products in sinusoidal projection.
       The MODIS/Terra-Aqua LST/E Daily L3 Global 1 km Grid product (MOD11A1/MYD11A1), is tile-based
-      and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution. </li>
-  <li><b>Land Surface Temperature daily 6 Km (Terra/Aqua)</b>: data are composed from the daily
+      and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution.
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a1_v006">MOD11A1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11a1_v006">MYD11A1</a> 
+      product pages)</li>
+  <li><b>Land Surface Temperature daily 1 Km (Terra/Aqua)</b>: data are composed from the daily
       1-kilometer LST product (MOD11A1/MYD11A1) and stored on a 1-km Sinusoidal grid as the
       average values of clear-sky LSTs during an 8-day period.<br>
       MOD11A2/MYD11A2 is comprised of daytime and nighttime LSTs, quality assessment,
       observation times, view angles, bits of clear sky days and nights, and
-      emissivities estimated in Bands 31 and 32 from land cover types.</li>
-  <li><b>Land Surface Temperature eight day 1 Km (Terra/Aqua)</b>: products provide per-pixel
+      emissivities estimated in Bands 31 and 32 from land cover types
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a2_v006">MOD11A2</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11a2_v006">MYD11A2</a> 
+      product pages)</li>
+  <li><b>Land Surface Temperature eight day 6 Km (Terra/Aqua)</b>: products provide per-pixel
       temperature and emissivity values in a sequence of swath-based to grid-based
       global products. The MODIS/Terra-Aqua LST/E Daily L3 Global 5 Km Grid
       (Short name: MOD11B1/MYD11B1), is tile-based and gridded in the Sinusoidal projection,
-      and produced daily at 5 km spatial resolution.</li>
+      and produced daily at 5 km spatial resolution
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11b1_v006">MOD11B1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11b1_v006">MYD11B1</a> 
+      product pages)</li>
+</ul>
+
+<h3>MODIS VI - Vegetation Indices</h3>
+
+<ul>
   <li><b>VI sixteen days 250 m (Terra/Aqua)</b>: Global MODIS vegetation indices are designed
       to provide consistent spatial and temporal comparisons of vegetation conditions.
       Blue, red, and near-infrared reflectances, centered at 469-nanometers,
@@ -60,7 +77,10 @@ The products already supported:
       Global MOD13Q1/MYD13Q1 data are provided every 16 days at 250-meter spatial resolution
       as a gridded level-3 product in the Sinusoidal projection. Lacking a 250m
       blue band, the EVI algorithm uses the 500m blue band to correct for residual
-      atmospheric effects, with negligible spatial artifacts.</li>
+      atmospheric effects, with negligible spatial artifacts
+      (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11b1_v006">MOD11B1</a> and
+      <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11b1_v006">MYD11B1</a> 
+      product pages)</li>
   <li><b>VI sixteen days 500 m (Terra/Aqua)</b>: Global MODIS vegetation indices are
       designed to provide consistent spatial and temporal comparisons of vegetation
       conditions. Blue, red, and near-infrared reflectances, centered at
@@ -84,6 +104,10 @@ The products already supported:
       hydrologic processes and global and regional climate. These data also may
       be used for characterizing land surface biophysical properties and processes,
       including primary production and land cover conversion.</li>
+</ul>
+
+<h3>MODIS Snow</h3>
+<ul>
   <li><b>Snow eight days 500 m (Terra/Aqua)</b>: The MOD10A2 and MYD10A2 products
       are composites of eight days of snow maps in the sinusoidal grid.
       An eight-day compositing period was chosen because that is the exact ground
@@ -109,9 +133,10 @@ The products already supported:
       validation definitions.</li>
 </ul>
 
-<h2>NOTE</h2>
-r.modis modules need <a href="www.pymodis.org" target="_blank">pyModis</a> library.
-Please install it before.
+<h2>NOTES</h2>
+
+The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+library. Please install it beforehand.
 
 <h2>SEE ALSO</h2>
 

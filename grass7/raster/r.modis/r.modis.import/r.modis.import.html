@@ -2,10 +2,10 @@
 
 <em>r.modis.import</em> imports Level 3 MODIS products into GRASS GIS.
 
-<h2>NOTE</h2>
+<h2>NOTES</h2>
 
-The <em>r.modis</em> modules need the <a href="www.pymodis.org">pyModis</a> library.
-Please install it beforehand.
+The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+library. Please install it beforehand.
 
 <p>
 The input file is given as list of full paths to the MODIS HDF files,
@@ -29,6 +29,10 @@ obtaining a successful result.
    Universal Transverse Mercator.</li>
   <li>Using GDAL allows to handle all projections supported by Proj4.</li>
 </ul>
+
+<p>
+NOTE: In order to work with the temporal framework of GRASS GIS the flag
+<em>w</em> must be set during the import with <em>r.modis.import</em>.
 
 <h2>EXAMPLES</h2>
 
@@ -84,7 +88,8 @@ r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
 <a href="r.modis.download.html">r.modis.download</a>,
 <a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
-</em><br>
+</em>
+<p>
 <a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
 
 <h2>AUTHOR</h2>
