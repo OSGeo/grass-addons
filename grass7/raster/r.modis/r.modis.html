@@ -4,18 +4,18 @@ The <em>r.modis</em> suite is a toolset to import MODIS satellite data into GRAS
 It uses the <a href="http://www.pymodis.org">pyModis</a> library and either the
 <a href="http://gdal.org/">GDAL library</a> or the
 <a href="https://lpdaac.usgs.gov/tools/modis_reprojection_tool"> MODIS Reprojection Tool</a> (MRT)
-software to convert, mosaik and process MODIS data.
+software to convert, mosaic and process MODIS data.
 <p>
 The <em>r.modis</em> suite requires the pyModis library and either the GDAL or MRT
 software to be installed.
 <p>
-The <em>r.modis</em> suite offers three modules as interface to MODIS data. Each modules
-is dedicated for a specific operation. The module <em>r.modis.download</em>
+The <em>r.modis</em> suite offers two modules as interface to MODIS data. Each module
+is dedicated to a specific operation. The module <em>r.modis.download</em>
 is used to download MODIS HDF products from NASA servers. These files can then
 be imported with <em>r.modis.import</em> which supports import of Level 3
-MODIS products as a single image or as a mosaik into GRASS GIS.
+MODIS products as a single image or as a mosaic into GRASS GIS.
 <p>
-Subsequently, the user can create a temporal dataset using <em>t.create</em> and register
+Subsequently, the user can create a temporal dataset using <em>t.create</em> and, register
 the maps with <em>t.register</em>. NOTE: In order to work with the temporal framework of
 GRASS GIS the flag <em>w</em> must be set during the import with <em>r.modis.import</em>.
 <p>
@@ -24,7 +24,8 @@ and also ranges of observation days retrieving data from the related NASA server
 <!--
 The suite process Level 2 data using the <em>r.modis.process</em> module.
 -->
-The suite imports Level 3 (georeferenced) products either as single image or as daily mosaik.
+The suite imports Level 3 (georeferenced) products either as single images or as mosaics for
+each date.
 
 <h2>Supported MODIS products</h2>
 These products are currently supported:
@@ -38,7 +39,7 @@ These products are currently supported:
       (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a1_v006">MOD11A1</a> and
       <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11a1_v006">MYD11A1</a> 
       product pages)</li>
-  <li><b>Land Surface Temperature daily 1 Km (Terra/Aqua)</b>: data are composed from the daily
+  <li><b>Land Surface Temperature eight day 1 Km (Terra/Aqua)</b>: data are composed from the daily
       1-kilometer LST product (MOD11A1/MYD11A1) and stored on a 1-km Sinusoidal grid as the
       average values of clear-sky LSTs during an 8-day period.<br>
       MOD11A2/MYD11A2 is comprised of daytime and nighttime LSTs, quality assessment,
@@ -47,7 +48,7 @@ These products are currently supported:
       (related <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/mod11a2_v006">MOD11A2</a> and
       <a href="https://lpdaac.usgs.gov/dataset_discovery/modis/modis_products_table/myd11a2_v006">MYD11A2</a> 
       product pages)</li>
-  <li><b>Land Surface Temperature eight day 6 Km (Terra/Aqua)</b>: products provide per-pixel
+  <li><b>Land Surface Temperature eight day ~6 Km (Terra/Aqua)</b>: products provide per-pixel
       temperature and emissivity values in a sequence of swath-based to grid-based
       global products. The MODIS/Terra-Aqua LST/E Daily L3 Global 6 Km Grid
       (Short name: MOD11B1/MYD11B1), is tile-based and gridded in the Sinusoidal projection,

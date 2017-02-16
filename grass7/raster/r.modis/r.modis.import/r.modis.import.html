@@ -8,7 +8,7 @@ The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</
 library. Please install it beforehand.
 
 <p>
-The input file is given as list of full paths to the MODIS HDF files,
+The input file is given as a list of full paths to the MODIS HDF files,
 one per line. The input file(s) have to be inside the folder where
 the HDF files are stored.
 <p>
@@ -17,7 +17,7 @@ files to TIF (which is faster).</b>
 <p>
 The <em>mrtpath</em> option is the path to the main folder of the
 MODIS Reprojection Tools (MRT) binaries, i.e. the folder which contains
-the bin/ and the data/ folder since these two folders are essential for
+the bin/ and the data/ folder, since these two folders are essential for
 obtaining a successful result.
 <p>
 
@@ -105,12 +105,81 @@ t.rast.list ndvi_16_5600m
 g.gui.timeline ndvi_16_5600m
 </pre></div>
 
+<h3>Example of a complete workflow</h3>
+
+Download the data: MOD11A1 from 2016-12-23 to 2016-12-31, tiles h18v04,h18v05
+
+<div class="code"><pre>
+r.modis.download settings=$HOME/SETTING product=lst_terra_eight_1000 \
+ tiles=h18v04,h18v05 startday=2016-12-23 endday=2016-12-31
+</pre></div>
+
+Import mosaics of LST Day and QC Day bands for all dates in the list of files:
+
+<div class="code"><pre>
+r.modis.import -m files=$HOME/listfileMOD11A1.006.txt \
+ spectral="( 1 1 0 0 0 0 0 0 0 0 0 0 )"
+</pre></div>
+
+Extract and apply the mandatory QA band (for more details see 
+<a href="i.modis.qc.html">i.modis.qc</a>):
+
+<div class="code"><pre>
+for map in `g.list type=raster pattern=*_QC_Day` ; do
+ i.modis.qc input=${map} output=${map}_mandatory_qa \
+  productname=mod11A1 qcname=mandatory_qa_11A1
+done
+
+for m in `g.list rast pat=*2016*LST_Day_1km` ; do
+ # get name of product and date from filenames
+ i=`echo $m | cut -c 1-16`
+ # apply qa flags
+ r.mapcalc --o expression="${m} = if(${i}_mosaic_QC_Day_mandatory_qa < 2, ${m}, null())"
+done
+</pre></div>
+
+Create the time series (i.e.: temporal database) and register maps:
+
+<div class="code"><pre>
+t.create type=strds temporaltype=absolute output=LST_Day_daily \
+ title="Daily LST Day 1km" \
+ description="Daily LST Day 1km MOD11A1.006, December 2016"
+t.register -i input=LST_Day_daily \
+ maps=`g.list type=raster pattern=*2016*LST_Day_1km separator=,` \
+ start="2016-12-21" increment="1 day" --o
+</pre></div>
+
+Verify list of maps and dates and visualize timeline:
+
+<div class="code"><pre>
+t.rast.list LST_Day_daily
+g.gui.timeline LST_Day_daily
+</pre></div>
+
+<p>
+It is also possible to create a time series using the list of maps with start and
+end time written by <em>r.modis.import</em> with the <em>w</em> flag.
+
+<div class="code"><pre>
+# Import mosaics of LST Day for all dates using the list of downloaded files from 
+# r.modis.download (see above) and get a list of the imported files along with
+# dates to use with t.register in the temporal framework
+r.modis.import -mw files=$HOME/listfileMOD11A1.006.txt \
+ spectral="( 1 0 0 0 0 0 0 0 0 0 0 0 )"
+
+# Create time series and register maps
+t.create type=strds temporaltype=absolute output=LST_Day_daily \
+ title="Daily LST Day 1km" \
+ description="Daily LST Day 1km MOD11A1.006, December 2016"
+t.register input=LST_Day_daily file=$HOME/tmp/grass7-user-5370/tmp_rGPcg
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
 <em>
 <a href="r.modis.html">r.modis</a>,
 <a href="r.modis.download.html">r.modis.download</a>,
+<a href="i.modis.qc.html">i.modis.qc</a>
 <a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>

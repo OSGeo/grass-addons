@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.modis.download</em> downloads selected MODIS products. The module
-can download several tiles at once and also multiple observation days
+can download several tiles at once and also multiple observation dates
 for each MODIS product.
 
 <h2>NOTES</h2>
@@ -14,7 +14,7 @@ To be able to download data the user needs to obtain <em>user</em> and
 <ul>
 <li> First time user: The user has to register at
  <a href="https://urs.earthdata.nasa.gov/users/new">https://urs.earthdata.nasa.gov/users/new</a>;
- then to login and change to his/her profile page. Once there, under the "My applications"
+ then login and change to his/her profile page. Once there, under the "My applications"
  tab, the user needs to approve the following applications: "LP DAAC Data Pool"
  and "Earthdata Search".</li>
 <li> If the user is already registered, he/she just needs to login and enable the
@@ -25,7 +25,7 @@ To be able to download data the user needs to obtain <em>user</em> and
 <p>
 In order to download the desired MODIS product(s), the username and password must be
 provided through the <em>settings</em> option. There are two ways: either pass a file
-in which the first row is the username, and the second row is the password, like as below:
+in which the first row is the username, and the second row is the password, as showed below:
 <div class="code"><pre>
 your_NASA_username
 your_NASA_password
@@ -35,8 +35,8 @@ or, the user can pass the values from the standard input when prompted.
 
 <b>Warning</b>: As per NASA policy no more than ten simultaneous connections
 are permitted in parallel with their server. Hence, no more than ten processes
-of <em>r.modis.download</em> should run at the same time to avoid that your
-actual IP address will get blacklisted.
+of <em>r.modis.download</em> should run at the same time to avoid that user's
+actual IP address gets blacklisted.
 <p>
 By default, the downloaded files are stored in the path in which the settings
 file was saved. The user can change this directory with the <em>folder</em>
@@ -60,7 +60,7 @@ r.modis.download settings=- folder=/tmp
 </pre></div>
 
 <p>
-Reading the user and password options from a file (this will download per default
+Reading the user and password options from a file (this will download by default
 the "lst_terra_daily_1000" product). MODIS data will be downloaded to
 the folder where the SETTING file is:
 
