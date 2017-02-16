@@ -1,6 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.import</em> imports Level 3 MODIS products into GRASS GIS.
+<em>r.modis.import</em> imports Level-3 MODIS (Moderate Resolution Imaging
+Spectroradiometer, flown on the two NASA spacecrafts Terra and Aqua)
+products into GRASS GIS.
 
 <h2>NOTES</h2>
 
@@ -125,7 +127,7 @@ Extract and apply the mandatory QA band (for more details see
 <a href="i.modis.qc.html">i.modis.qc</a>):
 
 <div class="code"><pre>
-for map in `g.list type=raster pattern=*_QC_Day` ; do
+for map in `g.list type=raster pattern="*_QC_Day"` ; do
  i.modis.qc input=${map} output=${map}_mandatory_qa \
   productname=mod11A1 qcname=mandatory_qa_11A1
 done
@@ -145,8 +147,8 @@ t.create type=strds temporaltype=absolute output=LST_Day_daily \
  title="Daily LST Day 1km" \
  description="Daily LST Day 1km MOD11A1.006, December 2016"
 t.register -i input=LST_Day_daily \
- maps=`g.list type=raster pattern=*2016*LST_Day_1km separator=,` \
- start="2016-12-21" increment="1 day" --o
+ maps=`g.list type=raster pattern="*2016*LST_Day_1km" separator=comma` \
+ start="2016-12-21" increment="1 day"
 </pre></div>
 
 Verify list of maps and dates and visualize timeline:
@@ -183,6 +185,8 @@ t.register input=LST_Day_daily file=$HOME/tmp/grass7-user-5370/tmp_rGPcg
 <a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>
+<p>
+<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal processing</a>
 <p>
 <a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
 
