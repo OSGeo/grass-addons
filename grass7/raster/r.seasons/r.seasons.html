@@ -49,6 +49,87 @@ maps.
 The input and file options are mutually exclusive. Input is a 
 text file with a new line separated list of raster map names.
 
+<h2>EXAMPLES</h2>
+
+Determine occurrence/number of seasons with their respective start and end
+dates (in the form of map indexes) in global NDVI data. Let's use the example
+from <em>r.modis.import</em> to download and import NDVI global data and,
+create a time series with it:
+
+<div class="code"><pre>
+# download two years of data: MOD13C1, global NDVI, 16-days, 5600 m
+r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
+  startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
+
+# import band 1 = NDVI
+r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt \
+  spectral="( 1 )" method=bilinear -w
+
+# create empty temporal DB
+t.create type=strds temporaltype=absolute output=ndvi_16_5600m \
+  title="Global NDVI 16 days MOD13C1" \
+  description="MOD13C1 Global NDVI 16 days" semantictype=mean
+
+# register datasets (tempfile name is provided by r.modis.import -w
+t.register input=ndvi_16_5600m file=$USER/tmp/grass7-user-5370/tmp_rGPcg
+</pre></div>
+
+First, visualize the NDVI time series in a location with <em>g.gui.tplot</em>:
+
+<div class="code"><pre>
+g.gui.tplot strds=ndvi_16_5600m coordinates=146.537059538,-29.744835966
+</pre></div>
+
+<center>
+<img src="global_ndvi.png" alt="Global NDVI from MOD13C1 product">
+<img src="time_series_ndvi.png" alt="NDVI time series, 2015-2016">
+<p><em>Global NDVI from MOD13C1 product (right) and an example of a time series in southeastern Australia.</em>
+</center>
+
+Now, identify seasons based on a fixed threshold and a minimum duration. The
+threshold and duration were visually estimated from the time series plot for
+the example.
+
+<div class="code"><pre>
+r.seasons input=`g.list rast pat=MOD13* sep=,` prefix=ndvi_season n=3 \
+  nout=ndvi_season threshold=3000 min=6
+
+# the outputs are: 
+g.list type=raster pattern=ndvi_season*
+ndvi_season
+ndvi_season1_end1
+ndvi_season1_end2
+ndvi_season1_start1
+ndvi_season1_start2
+ndvi_season2_end1
+ndvi_season2_end2
+ndvi_season2_start1
+ndvi_season2_start2
+ndvi_season3_end1
+ndvi_season3_end2
+ndvi_season3_start1
+ndvi_season3_start2
+</pre></div>
+
+And finally, let's visualize ndvi_season and start1 and end1 of season 2:
+
+<div class="code"><pre>
+# set comparable color table to plot start and end
+r.colors map=ndvi_season2_start1,ndvi_season2_end1 color=viridis
+</pre></div>
+
+<center>
+<img src="number_seasons_ndvi.png" alt="Number of seasons in global NDVI">
+<p><em>Number of seasons in global NDVI, 2015-2016.</em>
+</center>
+
+<p>
+<center>
+<img src="ndvi_season2_start1.png" alt="Start of season 2">
+<img src="ndvi_season2_end1.png" alt="End of season 2">
+<p><em>Start (right) and end (left) of season 2 (unit is map index).</em>
+</center>
+
 <h2>SEE ALSO</h2>
 
 <em><a href="r.series.html">r.series</a></em>, 
