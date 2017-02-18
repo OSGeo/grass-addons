@@ -80,11 +80,14 @@ First, visualize the NDVI time series in a location with <em>g.gui.tplot</em>:
 g.gui.tplot strds=ndvi_16_5600m coordinates=146.537059538,-29.744835966
 </pre></div>
 
-<center>
-<img src="global_ndvi.png" alt="Global NDVI from MOD13C1 product">
-<img src="time_series_ndvi.png" alt="NDVI time series, 2015-2016">
-<p><em>Global NDVI from MOD13C1 product (right) and an example of a time series in southeastern Australia.</em>
-</center>
+<div align="center" style="margin: 10px">
+<a href="global_ndvi.png">
+<img src="global_ndvi.png" width="500" alt="Global NDVI from MOD13C1 product" border=0>
+<a href="time_series_ndvi.png">
+<img src="time_series_ndvi.png" width="400" alt="NDVI time series, 2015-2016" border=0>
+</a><br>
+<i>Global NDVI from MOD13C1 product (right) and an example of a time series in southeastern Australia (left).</i>
+</div>
 
 Now, identify seasons based on a fixed threshold and a minimum duration. The
 threshold and duration were visually estimated from the time series plot for
@@ -118,17 +121,22 @@ And finally, let's visualize ndvi_season and start1 and end1 of season 2:
 r.colors map=ndvi_season2_start1,ndvi_season2_end1 color=viridis
 </pre></div>
 
-<center>
-<img src="number_seasons_ndvi.png" alt="Number of seasons in global NDVI">
-<p><em>Number of seasons in global NDVI, 2015-2016.</em>
-</center>
+<div align="center" style="margin: 10px">
+<a href="number_seasons_ndvi.png">
+<img src="number_seasons_ndvi.png" width="600" alt="Number of seasons in global NDVI" border=0>
+</a><br>
+<i>Number of seasons in global NDVI, 2015-2016.</i>
+</div>
 
 <p>
-<center>
-<img src="ndvi_season2_start1.png" alt="Start of season 2">
-<img src="ndvi_season2_end1.png" alt="End of season 2">
-<p><em>Start (right) and end (left) of season 2 (unit is map index).</em>
-</center>
+<div align="center" style="margin: 10px">
+<a href=".ndvi_season2_start1png">
+<img src="ndvi_season2_start1.png" width="500" alt="Start of season 2" border=0>
+<a href="ndvi_season2_end1.png">
+<img src="ndvi_season2_end1.png" width="500" alt="End of season 2" border=0>
+</a><br>
+<i>Start (right) and end (left) of season 2 (unit is map index).</i>
+</div>
 
 <h2>SEE ALSO</h2>
 

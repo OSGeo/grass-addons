@@ -148,7 +148,7 @@ t.create type=strds temporaltype=absolute output=LST_Day_daily \
  description="Daily LST Day 1km MOD11A1.006, December 2016"
 t.register -i input=LST_Day_daily \
  maps=`g.list type=raster pattern="*2016*LST_Day_1km" separator=comma` \
- start="2016-12-21" increment="1 day"
+ start="2016-12-23" increment="1 day"
 </pre></div>
 
 Verify list of maps and dates and visualize timeline:
@@ -182,11 +182,10 @@ t.register input=LST_Day_daily file=$HOME/tmp/grass7-user-5370/tmp_rGPcg
 <a href="r.modis.html">r.modis</a>,
 <a href="r.modis.download.html">r.modis.download</a>,
 <a href="i.modis.qc.html">i.modis.qc</a>
-<a href="i.modis.qc.html">i.modis.qc</a>
 <!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>
 <p>
-<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal processing</a>
+<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>
 <p>
 <a href="https://lpdaac.usgs.gov/dataset_discovery/modis">Map of MODIS Land products' Sinusoidal grid tiling system</a>
 
