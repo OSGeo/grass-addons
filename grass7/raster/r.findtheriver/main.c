@@ -20,40 +20,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include "point_list.h"
-
-#define THRESHOLD_DISTANCE 100
-
-/*
- * global function declaration
- */
-
- /**
-\brief Find stream pixels in a given window of the UAA raster
-
-\param[in] fd UAA raster file descriptor
-\param[in] name Name of UAA raster map
-\param[in] mapset Name of the GRASS mapset from which UAA raster should be read
-\param[in] dataType Data type of UAA raster
-\param[in] windowSize Size of the search window, must be an odd integer >= 3
-\param[in] threshold to use for distinguishing stream pixels by comparing log(UAA) values
-\param[in] nrows_less_one Number of rows in the current window, minus 1
-\param[in] ncols_less_one Number of columns in the current window, minus 1
-\param[in] currRow, Row of pixel that will be compared to pixels in the window
-\param[in] currCol, Column of pixel that will be compared to pixels in the window
-
-\return Pointer to PointList_t representing a list of stream pixels found in the window
-*/
-PointList_t *find_stream_pixels_in_window(int fd, char *name,
-					  const char *mapset,
-					  RASTER_MAP_TYPE dataType,
-					  int windowSize, double threshold,
-					  int nrows_less_one,
-					  int ncols_less_one, int currRow,
-					  int currCol);
+#include "global.h"
 
 int main(int argc, char *argv[])
 {
@@ -78,7 +47,7 @@ int main(int argc, char *argv[])
     struct Cell_head window;
     int windowSize;
     double threshold;
-    char sep;
+    char *sep;
     int debug;
 
     /* initialize GIS environment */
@@ -92,11 +61,7 @@ int main(int argc, char *argv[])
 	_("Find the stream pixel nearest the input coordinate");
 
     /* Define command options */
-    opt.input = G_define_option();
-    opt.input->key = "accumulation";
-    opt.input->type = TYPE_STRING;
-    opt.input->required = YES;
-    opt.input->gisprompt = "old,cell,raster";
+    opt.input = G_define_standard_option(G_OPT_R_MAP);
     opt.input->description =
 	_("Name of input upstream accumulation area raster map");
 
@@ -191,16 +156,7 @@ int main(int argc, char *argv[])
     G_verbose_message(_("Input coordinates, easting %f, northing %f\n"), E,
 		      N);
 
-    if (strcmp(opt.separator->answer, "newline") == 0)
-	sep = '\n';
-    else if (strcmp(opt.separator->answer, "comma") == 0)
-	sep = ',';
-    else if (strcmp(opt.separator->answer, "space") == 0)
-	sep = ' ';
-    else if (strcmp(opt.separator->answer, "tab") == 0)
-	sep = '\t';
-    else
-	sep = opt.separator->answer[0];
+    sep = G_option_to_separator(opt.separator);
 
     /* Open the raster - returns file descriptor (>0) */
     if ((infd = Rast_open_old(name, mapset)) < 0)
@@ -228,6 +184,8 @@ int main(int argc, char *argv[])
 	find_nearest_point(streamPixels, colIdx, rowIdx);
 
     if (NULL != nearestStreamPixel) {
+	double nearestEasting, nearestNorthing;
+
 	if (debug) {
 	    double nearestValue;
 	    void *tmpRow = Rast_allocate_buf(data_type);
@@ -256,13 +214,13 @@ int main(int argc, char *argv[])
 	}
 
 	/* Get center of each column */
-	double nearestEasting =
+	nearestEasting =
 	    Rast_col_to_easting(nearestStreamPixel->col + 0.5, &window);
-	double nearestNorthing =
+	nearestNorthing =
 	    Rast_row_to_northing(nearestStreamPixel->row + 0.5, &window);
 
 	/* Print snapped coordinates */
-	fprintf(stdout, "%f%c%f\n", nearestEasting, sep, nearestNorthing);
+	fprintf(stdout, "%f%s%f\n", nearestEasting, sep, nearestNorthing);
 	fflush(stdout);
     }
 
@@ -273,142 +231,4 @@ int main(int argc, char *argv[])
     destroy_list(streamPixels);
 
     exit(EXIT_SUCCESS);
-}
-
-/*
- * function definitions
- */
-PointList_t *find_stream_pixels_in_window(int fd, char *name,
-					  const char *mapset,
-					  RASTER_MAP_TYPE dataType,
-					  int windowSize, double threshold,
-					  int nrows_less_one,
-					  int ncols_less_one, int currRow,
-					  int currCol)
-{
-    PointList_t *streamPixels = NULL;
-    DCELL centralValue, tmpValue;
-    double logCentralValue, logTmpValue;
-    void *tmpRow = Rast_allocate_buf(dataType);
-
-    /* Get value of central cell */
-    Rast_get_row(fd, tmpRow, currRow, dataType);
-
-    switch (dataType) {
-    case FCELL_TYPE:
-	centralValue = (double)((FCELL *) tmpRow)[currCol];
-	break;
-    case DCELL_TYPE:
-	centralValue = (double)((DCELL *) tmpRow)[currCol];
-	break;
-    default:
-	centralValue = (double)((CELL *) tmpRow)[currCol];
-	break;
-    }
-    if (centralValue <= 0)
-	centralValue = 1;
-    logCentralValue = log10(centralValue);
-
-    G_debug(1, "logCentralValue: %f", logCentralValue);
-
-    /* Determine threshold if need be */
-    if (-1.0 == threshold) {
-	struct FPRange *range =
-	    (struct FPRange *)G_malloc(sizeof(struct FPRange));
-	if (Rast_read_fp_range(name, mapset, range) < 0) {
-	    G_fatal_error(_("Unable to determine range of raster map <%s>"),
-			  name);
-	}
-	double max = range->max;
-
-	G_free(range);		// eggs or is it chicken?
-	if (max == centralValue)
-	    return streamPixels;
-
-	double logMax = log10(max);
-
-	threshold = floor(logMax - logCentralValue);
-	if (threshold <= 0.0) {
-	    threshold = 1.0;
-	}
-	else if (threshold > 2.0) {
-	    threshold = 2.0;
-	}
-
-	G_debug(1, "logMax: %f", logMax);
-    }
-
-    G_verbose_message(_("Threshold: %f\n"), threshold);
-
-    /* Define window bounds */
-    int windowOffset = (windowSize - 1) / 2;
-    int minCol = currCol - windowOffset;
-
-    if (minCol < 0)
-	minCol = 0;
-    int maxCol = currCol + windowOffset;
-
-    if (maxCol > ncols_less_one)
-	maxCol = ncols_less_one;
-    int minRow = currRow - windowOffset;
-
-    if (minRow < 0)
-	minRow = 0;
-    int maxRow = currRow + windowOffset;
-
-    if (maxRow > nrows_less_one)
-	maxRow = nrows_less_one;
-
-    G_debug(1, "currCol: %d, currRow: %d", currCol, currRow);
-    G_debug(1, "min. col: %d, max. col: %d", minCol, maxCol);
-    G_debug(1, "min. row: %d, max. row: %d", minRow, maxRow);
-
-    /* Search for stream pixels within the window */
-    int row, col;
-
-    for (row = minRow; row <= maxRow; row++) {
-	G_debug(1, "row: %d", row);
-	/* Get the current row */
-	Rast_get_row(fd, tmpRow, row, dataType);
-
-	for (col = minCol; col <= maxCol; col++) {
-	    G_debug(1, "  col: %d", col);
-
-	    switch (dataType) {
-	    case FCELL_TYPE:
-		tmpValue = (double)((FCELL *) tmpRow)[col];
-		break;
-	    case DCELL_TYPE:
-		tmpValue = (double)((DCELL *) tmpRow)[col];
-		break;
-	    default:
-		tmpValue = (double)((CELL *) tmpRow)[col];
-		break;
-	    }
-	    logTmpValue = log10(tmpValue);
-	    /* Test for nearby pixels that are stream pixels when compared to the central pixel */
-	    G_debug(1, "    tmpValue: %f, centralValue: %f",
-		    tmpValue, centralValue);
-	    G_debug(1, "    logTmpValue: %f, logCentralValue: %f",
-		    logTmpValue, logCentralValue);
-
-	    if (logTmpValue - logCentralValue > threshold) {
-		/* Add to list of stream pixels */
-		if (NULL == streamPixels)
-		    streamPixels = create_list(col, row);
-		else
-		    append_point(streamPixels, col, row);
-	    }
-	    else if (logCentralValue - logTmpValue > threshold) {
-		/* Add to list of stream pixels */
-		if (NULL == streamPixels)
-		    streamPixels = create_list(currCol, currRow);
-		else
-		    append_point(streamPixels, currCol, currRow);
-	    }
-	}
-    }
-    G_free(tmpRow);
-
-    return streamPixels;
 }

@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <grass/gis.h>
-#include "point_list.h"
+#include "global.h"
 
 PointList_t *create_list(int col, int row)
 {
