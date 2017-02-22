@@ -344,8 +344,8 @@ def run_simulation(development_start, development_end, compactness_mean, compact
                               output=development_end)
     parameters.update(futures_parameters)
     for not_required in ('constrain_weight', 'num_steps', 'incentive_power'):
-        if options[not_required]:
-            parameters.update({not_required: options[not_required]})
+        if fut_options[not_required]:
+            parameters.update({not_required: fut_options[not_required]})
 
     gcore.run_command('r.futures.pga', flags='s', overwrite=True, **parameters)
 
