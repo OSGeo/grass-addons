@@ -3,17 +3,23 @@
 <em>r.in.srtm.region</em> imports all SRTM tiles covering the 
 current region or region extents given with <b>region</b> into GRASS, 
 patches the tiles together and optionally interpolates holes for 
-SRTM V2.1. The SRTM V3 ("SRTM Plus") are already void-filled.
+SRTM V2.1. The SRTM V003 products are already void-filled.
 <p>
 <em>r.in.srtm.region</em> downloads
 <ul>
-<li> SRTM V3 tiles at 1 arc second resolution from:<br>
-<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/</a></li>
-<li> SRTM V3 tiles at 3 arc seconds resolution from:<br>
-<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/</a></li>
-<li> SRTM V2.1 tiles at 3 arc second resolution from:
+<li> SRTMGL1 V003 tiles at 1 arc second (about 30 meters) resolution, void-filled
+ (<a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table/srtmgl1_v003">product description</a>)
+ from:<br>
+ <a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/</a></li>
+
+<li> SRTMGL3 V003 tiles at 3 arc seconds (about 90 meters) resolution, void-filled
+ (<a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table/srtmgl3_v003">product description</a>)
+ from:<br>
+ <a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/</a></li>
+
+<li> SRTM V2.1 tiles at 3 arc second (about 90 meters) resolution from:
 <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">http://dds.cr.usgs.gov/srtm/</a></li>
-<li> or optionally it uses a local folder with previously downloaded files if 
+<li> or, optionally <em>r.in.srtm.region</em> uses a local folder with previously downloaded SRTM data files if 
   the <b>local</b> option is given.</li>
 </ul>
 
@@ -22,23 +28,34 @@ Importantly, for the SRTM tiles download a user registration is needed at
 <p>
 In the user profile, two specific applications must be approved in the "My application" tab:
 <ul>
-<li>LP DAAC Data Pool, and</li>
-<li>Earthdata Search</li>
+<li>"LP DAAC Data Pool" application, and</li>
+<li>"Earthdata Search" application.</li>
 </ul>
 
 <h2>NOTES</h2>
 
-This module only operates in LatLong locations.
+This module only operates in Latitude-Longitude locations (EPSG 4326).
 <!-- TODO: add r.import support -->
 
 <h2>EXAMPLE</h2>
 
-Import of SRTM V3 (1 arc seconds ~ 30m) covering the current computational region:
+Import of SRTMGL1 V003 (1 arc seconds ~ 30m) covering the current computational region:
 
 <div class="code"><pre>
-# run in LatLong location
-r.in.srtm.region -1 output=srtmV3 memory=2000
+# run in LatLong location - Sicily East, Italy
+g.region n=39 s=37 w=14 e=16 res=0:00:01 -p
+
+# use own credentials here
+r.in.srtm.region -1 user="my_nasa_user" password="my_nasa_pw" output=srtm_sicily_1arc memory=2000
+r.univar srtm_sicily_1arc
 </pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_in_srtm_region_etna.png">
+<img src="r_in_srtm_region_etna.png" width="600" alt="r.in.srtm.region example" border=0>
+</a><br>
+<i>Figure: Eta volcano (Sicily, Italy) shown in NVIZ</i>
+</div>
 
 
 <h2>SEE ALSO</h2>
@@ -48,7 +65,7 @@ r.in.srtm.region -1 output=srtmV3 memory=2000
 </em>
 <p>
 The <a href="http://www2.jpl.nasa.gov/srtm/">Shuttle Radar Topography Mission</a>
-homepage at NASA's JPL (see also <a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table">MEaSUREs Data Product Table</a>).
+homepage at NASA's JPL (see also <a href="https://lpdaac.usgs.gov/dataset_discovery/measures/measures_products_table">MEaSUREs Data Product Table - SRTM</a>).
 <p>
 The <a href="https://lpdaac.usgs.gov/sites/default/files/public/measures/docs/NASA_SRTM_V3.pdf">SRTM v3 documentation</a>.
 <p>
