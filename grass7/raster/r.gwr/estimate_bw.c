@@ -63,6 +63,7 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     double ss1, ss2, ss3;
     double **w1, **w2, **w3;
     DCELL *ybuf, yval;
+    DCELL est1, est2, est3;
     int nr, nc, nrt, nct, count, gwrfailed;
     
     ybuf = Rast_allocate_d_buf();
@@ -154,7 +155,6 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 	nrt = nr;
 	nct = nc;
 	count = 0;
-	gwrfailed = 0;
 
 	for (r = 0; r < nrows; r++) {
 	    G_percent(r, nrows, 4);
@@ -174,48 +174,42 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 		if (Rast_is_d_null_value(&yval))
 		    continue;
 		
+		gwrfailed = 0;
+
 		if (make_rand() % nct < nrt) {
 		    nrt--;
 		    count++;
 
 		    if (gwr(xbuf1, ninx, &ybuf1, c, prevbw, w1, est, NULL)) {
-			ss1 += (est[0] - yval) * (est[0] - yval);
-			n1++;
+			est1 = est[0];
+		    }
+		    else {
+			gwrfailed = 1;
 		    }
 		    if (gwr(xbuf2, ninx, &ybuf2, c, bw, w2, est, NULL)) {
-			ss2 += (est[0] - yval) * (est[0] - yval);
-			n2++;
+			est2 = est[0];
 		    }
 		    else {
-			/* enforce increase */
-			bwmin = bw + 2;
 			gwrfailed = 1;
-			break;
 		    }
 		    if (gwr(xbuf3, ninx, &ybuf3, c, nextbw, w3, est, NULL)) {
-			ss3 += (est[0] - yval) * (est[0] - yval);
-			n3++;
+			est3 = est[0];
 		    }
 		    else {
-			/* enforce increase */
-			bwmin = nextbw + 2;
 			gwrfailed = 1;
-			break;
 		    }
+		    if (!gwrfailed) {
+			ss1 += (est1 - yval) * (est1 - yval);
+			n1++;
+			ss2 += (est2 - yval) * (est2 - yval);
+			n2++;
+			ss3 += (est3 - yval) * (est3 - yval);
+			n3++;
+		    }
+		    else
+			nct++;
 		}
 		nct--;
-	    }
-	    if (gwrfailed) {
-		G_message(_("Unable to determine coefficients for bandwidth %d, "
-		            "continuing with new minimum of %d."), bw, bwmin);
-
-		bw = bwmin;
-		ss1 = 3;
-		ss2 = 2;
-		ss3 = 1;
-		n1 = n2 = n3 = 1;
-
-		break;
 	    }
 	}
 	G_percent(nrows, nrows, 4);
@@ -231,8 +225,14 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 	G_debug(3, "count: %d", count);
 
-	if (n1 == 0 || n2 == 0 || n3 == 0)
-	    G_fatal_error(_("Unable to calculate sum of squares"));
+	if (n1 == 0 || n2 == 0 || n3 == 0) {
+	    bw = nextbw + 2;
+	    ss1 = 3;
+	    ss2 = 2;
+	    ss3 = 1;
+	    n1 = n2 = n3 = 1;
+	    continue;
+	}
 
 	ss1 /= n1;
 	ss2 /= n2;
@@ -265,12 +265,6 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 /* deactivate to get sum of squares for (newbw = bw; newbw > 1; newbw--) */
 #if 1
-	if (gwrfailed) {
-	    bw = bwmin;
-	    prevbw = bw - 1;
-	    nextbw = bw + 1;
-	    continue;
-	}
 
 	newbw = bw;
 
@@ -281,10 +275,10 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 	/* local maximum */
 	if (ss2 > ss1 && ss2 > ss3) {
 	    G_warning(_("Detected local maximum"));
-	    if (bw > bwmin)
-		newbw = bw - 1;
+	    if (bw < bwmin)
+		newbw = bw + 2;
 	    else
-		newbw = bw + 1;
+		newbw = bw - 2;
 	}
 	else {
 	    /* determine new bandwidth */
@@ -310,12 +304,12 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 	if (ss1 < ss2 && newbw > bw) {
 	    /* moving bw to wrong direction: stop here? */
 	    G_debug(0, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
-	    newbw = bw - 1;
+	    newbw = bw - 2;
 	}
 	if (ss3 < ss2 && newbw < bw) {
 	    /* moving bw to wrong direction: stop here? */
 	    G_debug(0, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
-	    newbw = bw + 1;
+	    newbw = bw + 2;
 	}
 	
 	if (newbw == bw)

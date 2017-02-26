@@ -208,7 +208,7 @@ int gwr(struct rb *xbuf, int ninx, struct rb *ybuf, int cc,
     }
 
     if (count < ninx + 1) {
-	G_message(_("Unable to determine coefficients. Consider increasing the bandwidth."));
+	G_verbose_message(_("Unable to determine coefficients. Consider increasing the bandwidth."));
 	return 0;
     }
 
