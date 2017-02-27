@@ -56,7 +56,7 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     int i;
     int r, c;
     struct rb *xbuf1, *xbuf2, *xbuf3, ybuf1, ybuf2, ybuf3;
-    int prevbw, nextbw, newbw;
+    int prevbw, nextbw, newbw, bestbw;
     int bwmin, bwmax;
     int n1, n2, n3;
     double f11, f12, f2;
@@ -64,8 +64,8 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     double **w1, **w2, **w3;
     DCELL *ybuf, yval;
     DCELL est1, est2, est3;
-    int nr, nc, nrt, nct, count, gwrfailed;
-    
+    int nr, nc, nrt, nct, count, gwrfailed, status;
+
     ybuf = Rast_allocate_d_buf();
     
     G_message(_("Estimating optimal bandwidth..."));
@@ -108,6 +108,8 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     xbuf2 = G_malloc(ninx * sizeof(struct rb));
     xbuf3 = G_malloc(ninx * sizeof(struct rb));
 
+    status = 0;
+    bestbw = bw;
     while (1) {
 
 	if (bw > bwmax)
@@ -177,8 +179,6 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 		gwrfailed = 0;
 
 		if (make_rand() % nct < nrt) {
-		    nrt--;
-		    count++;
 
 		    if (gwr(xbuf1, ninx, &ybuf1, c, prevbw, w1, est, NULL)) {
 			est1 = est[0];
@@ -205,9 +205,10 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 			n2++;
 			ss3 += (est3 - yval) * (est3 - yval);
 			n3++;
+
+			nrt--;
+			count++;
 		    }
-		    else
-			nct++;
 		}
 		nct--;
 	    }
@@ -227,6 +228,8 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 	if (n1 == 0 || n2 == 0 || n3 == 0) {
 	    bw = nextbw + 2;
+	    prevbw = bw - 1;
+	    nextbw = bw + 1;
 	    ss1 = 3;
 	    ss2 = 2;
 	    ss3 = 1;
@@ -265,22 +268,39 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 /* deactivate to get sum of squares for (newbw = bw; newbw > 1; newbw--) */
 #if 1
-
 	newbw = bw;
 
 	/* local minimum */
-	if (ss2 < ss1 && ss2 < ss3)
-	    break;
+	if (ss2 < ss1 && ss2 < ss3) {
+	    if (status == 0) {
+		G_message(_("Verifying bandwidth %d"), bw);
+		G_debug(1, "gradients %g, %g", f11, f12);
+		newbw = bw + 2;
+		bestbw = bw;
+		status = 1;
+	    }
+	    else {
+		if (bestbw == bw)
+		    break;
+		else {
+		    G_message(_("Verification of bandwidth %d failed, trying bandwidth %d"),
+		              bestbw, bw);
+		    newbw = bw + 2;
+		    bestbw = bw;
+		    status = 1;
+		}
+	    }
+	}
 
 	/* local maximum */
 	if (ss2 > ss1 && ss2 > ss3) {
-	    G_warning(_("Detected local maximum"));
+	    G_verbose_message(_("Detected local maximum"));
 	    if (bw < bwmin)
 		newbw = bw + 2;
 	    else
 		newbw = bw - 2;
 	}
-	else {
+	else if ((ss1 <= ss2 && ss2 <= ss3) || (ss1 >= ss2 && ss2 >= ss3)) {
 	    /* determine new bandwidth */
 	    if (f2 > 0) {
 		/* Newton's method to find the extremum */
@@ -303,12 +323,12 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 	if (ss1 < ss2 && newbw > bw) {
 	    /* moving bw to wrong direction: stop here? */
-	    G_debug(0, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
+	    G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
 	    newbw = bw - 2;
 	}
 	if (ss3 < ss2 && newbw < bw) {
 	    /* moving bw to wrong direction: stop here? */
-	    G_debug(0, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
+	    G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
 	    newbw = bw + 2;
 	}
 	
