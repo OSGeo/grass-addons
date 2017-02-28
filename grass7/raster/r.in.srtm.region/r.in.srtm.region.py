@@ -343,22 +343,22 @@ def main():
 	    else:
 		# create tile with zeros
 		# north
-		if ndeg < 0:
+		if ndeg < -1:
 		    tmpn = '%02d:59:58.5S' % (abs(ndeg) - 2)
 		else:
 		    tmpn = '%02d:00:01.5N' % (ndeg + 1)
 		# south
-		if ndeg <= 0:
+		if ndeg < 1:
 		    tmps = '%02d:00:01.5S' % abs(ndeg)
 		else:
 		    tmps = '%02d:59:58.5N' % (ndeg - 1)
 		# east
-		if edeg < 0:
+		if edeg < -1:
 		    tmpe = '%03d:59:58.5W' % (abs(edeg) - 2)
 		else:
 		    tmpe = '%03d:00:01.5E' % (edeg + 1)
 		# west
-		if edeg <= 0:
+		if edeg < 1:
 		    tmpw = '%03d:00:01.5W' % abs(edeg)
 		else:
 		    tmpw = '%03d:59:58.5E' % (edeg - 1)
