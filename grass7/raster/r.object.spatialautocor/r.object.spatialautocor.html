@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>r.object.spatialautocor</em> calculates global spatial autocorrelation
+<em>r.object.spatialautocor</em> calculates global spatial autocorrelation
 of the raster objects in the <em>object_map</em> based on the values in the
 <em>variable_map</em>. The user can choose between Moran's I or Geary's G
 indicator using the <em>method</em> parameter.
@@ -11,25 +11,26 @@ the <em>-d</em> flag.
 
 <h2>NOTES</h2>
 
-<p>
-The module depends on the addon <a href="https://grass.osgeo.org/grass70/manuals/addons/r.neighborhoodmatrix.html">r.neighborhoodmatrix</a> which needs to be installed.
-
+The module depends on the addon
+<a href="https://grass.osgeo.org/grass7/manuals/addons/r.neighborhoodmatrix.html">r.neighborhoodmatrix</a>
+which needs to be installed.
 
 <h2>EXAMPLE</h2>
 
-<p>Calculate the spatial autocorrelation of altitude in the elevation map using
-individual patches in the landclass96 as objects:
+Calculate the spatial autocorrelation of altitude in the elevation map using
+individual patches in the landclass96 (North Carolina sample dataset) as objects:
 
 <p>
 <div class="code"><pre> 
-g.region rast=elevation
-r.clump landclass96 out=objects
+g.region raster=elevation
+r.clump landclass96 output=objects
 r.object.spatialautocor ob=objects var=elevation method=moran
 r.object.spatialautocor ob=objects var=elevation method=geary
 </pre></div>
 
 <h2>REFERENCES</h2>
-Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37, 17–23. 
+
+Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37, 17-23. 
 <a href="https://dx.doi.org/10.2307%2F2332142">https://dx.doi.org/10.2307%2F2332142</a>
 <br><br>
 Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The Incorporated Statistician 5, 115.
