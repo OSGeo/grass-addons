@@ -76,6 +76,10 @@
 #% key: 1
 #% description: Import 1-arcsec tiles (default: 3-arcsec)
 #%end
+#%flag
+#% key: z
+#% description: create zero elevation for missing tiles
+#%end
 
 
 proj = ''.join([
@@ -214,6 +218,7 @@ def main():
     fillnulls = flags['n']
     srtmv3 = (flags['2'] == 0)
     one = flags['1']
+    dozerotile = flags['z']
 
     overwrite = grass.overwrite()
 
@@ -340,28 +345,50 @@ def main():
 	    if gotit == 1:
 		grass.verbose(_("Tile %s successfully imported") % tile)
 		valid_tiles += 1
-	    else:
+	    elif dozerotile:
 		# create tile with zeros
-		# north
-		if ndeg < -1:
-		    tmpn = '%02d:59:58.5S' % (abs(ndeg) - 2)
+		if one:
+		    # north
+		    if ndeg < -1:
+			tmpn = '%02d:59:59.5S' % (abs(ndeg) - 2)
+		    else:
+			tmpn = '%02d:00:00.5N' % (ndeg + 1)
+		    # south
+		    if ndeg < 1:
+			tmps = '%02d:00:00.5S' % abs(ndeg)
+		    else:
+			tmps = '%02d:59:59.5N' % (ndeg - 1)
+		    # east
+		    if edeg < -1:
+			tmpe = '%03d:59:59.5W' % (abs(edeg) - 2)
+		    else:
+			tmpe = '%03d:00:00.5E' % (edeg + 1)
+		    # west
+		    if edeg < 1:
+			tmpw = '%03d:00:00.5W' % abs(edeg)
+		    else:
+			tmpw = '%03d:59:59.5E' % (edeg - 1)
 		else:
-		    tmpn = '%02d:00:01.5N' % (ndeg + 1)
-		# south
-		if ndeg < 1:
-		    tmps = '%02d:00:01.5S' % abs(ndeg)
-		else:
-		    tmps = '%02d:59:58.5N' % (ndeg - 1)
-		# east
-		if edeg < -1:
-		    tmpe = '%03d:59:58.5W' % (abs(edeg) - 2)
-		else:
-		    tmpe = '%03d:00:01.5E' % (edeg + 1)
-		# west
-		if edeg < 1:
-		    tmpw = '%03d:00:01.5W' % abs(edeg)
-		else:
-		    tmpw = '%03d:59:58.5E' % (edeg - 1)
+		    # north
+		    if ndeg < -1:
+			tmpn = '%02d:59:58.5S' % (abs(ndeg) - 2)
+		    else:
+			tmpn = '%02d:00:01.5N' % (ndeg + 1)
+		    # south
+		    if ndeg < 1:
+			tmps = '%02d:00:01.5S' % abs(ndeg)
+		    else:
+			tmps = '%02d:59:58.5N' % (ndeg - 1)
+		    # east
+		    if edeg < -1:
+			tmpe = '%03d:59:58.5W' % (abs(edeg) - 2)
+		    else:
+			tmpe = '%03d:00:01.5E' % (edeg + 1)
+		    # west
+		    if edeg < 1:
+			tmpw = '%03d:00:01.5W' % abs(edeg)
+		    else:
+			tmpw = '%03d:59:58.5E' % (edeg - 1)
 
 		grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = res)
 		grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
