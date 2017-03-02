@@ -44,6 +44,10 @@
 #% key: calibration_points
 #%required: yes
 #%end
+#%option G_OPT_V_INPUT
+#% key: area_of_interest
+#%required: no
+#%end
 #%option G_OPT_R_INPUT
 #% key: additional_band1
 #%required: no
@@ -71,26 +75,23 @@
 #%required: no
 #%description: Tide correction to the time of satellite image capture
 #%end
-#%option
+#%option G_OPT_DB_COLUMN
 #% key: calibration_column
-#%type: string
-#%multiple: no
 #%required: yes
 #%description: Name of the column which stores depth values
 #%end
 #%flag
 #%key: f
-#% description: select if only want to run Fixed-GWR model
+#%description: select if only want to run Fixed-GWR model
 #%end
 #%flag
 #%key: b
-#% description: select kernel function as bi-square
+#%description: select kernel function as bi-square
 #%end
 
 import atexit
 import grass.script as g
 from grass.pygrass.raster import RasterRow
-from grass.pygrass.modules import Module
 import subprocess
 import os
 crctd_lst = []
@@ -104,6 +105,7 @@ def main():
     NIR = options['nir_band']
     SWIR = options['band_for_correction']
     Calibration_points = options['calibration_points']
+    Area_of_interest = options['area_of_interest']
     Additional_band1 = options['additional_band1']
     Additional_band2 = options['additional_band2']
     Additional_band3 = options['additional_band3']
@@ -113,7 +115,7 @@ def main():
     calibration_column = options['calibration_column']
     bisquare = flags['b']
     fixed_GWR = flags['f']
-
+    
     res = g.parse_command('g.region', raster=Green, flags='g')
     g.run_command('v.to.rast', input=Calibration_points, type='point',
                   use='attr', attribute_column=calibration_column,
@@ -171,34 +173,40 @@ def main():
             tmp_coe = g.parse_command('r.regression.line', mapx=SWIR,
                                       mapy=str(i), flags='g')
             g.message("Deep water ditermination for %s" % i)
-            g.run_command('r.mask', vector='tmp_buffer', overwrite=True)
-            g.run_command('g.region', vector=Calibration_points)
-            g.mapcalc(exp="{tmp_crctd}=log({tmp_band}-{a}-{b}*{SWIR})"
-                          .format(tmp_crctd='tmp_crctd' + str(j),
+            if Area_of_interest:
+                g.run_command('r.mask', vector=Area_of_interest, overwrite=True)
+                g.run_command('g.region', vector=Area_of_interest)
+            else:
+                g.run_command('r.mask', vector='tmp_buffer', overwrite=True)
+                g.run_command('g.region', vector=Calibration_points)
+            g.mapcalc(exp="{tmp_crct}=log({tmp_band}-{a}-{b}*{SWIR})"
+                          .format(tmp_crct='tmp_crct' + str(j),
                                   tmp_band=str(i), a=float(tmp_coe['a']),
                                   b=float(tmp_coe['b']), SWIR=SWIR),
-                          overwrite=True)
+                           overwrite=True)
             g.run_command('r.mask', raster='tmp_water', overwrite=True)
-            g.mapcalc("{tmp_crctd} = ({tmp_crctd} * 1)"
-                      .format(tmp_crctd='tmp_crctd' + str(j)))
+            g.mapcalc("{tmp_crctd} = ({tmp_crct} * 1)"
+                      .format(tmp_crct='tmp_crct'+str(j), tmp_crctd='tmp_crctd' + str(j)))
         except:
             g.message("Cannot find deep water pixels")
-            g.run_command('r.mask', vector='tmp_buffer', overwrite=True)
-            g.run_command('g.region', vector=Calibration_points)
-            g.mapcalc("{tmp_crctd} = log({tmp_band}-{SWIR})"
-                      .format(tmp_crctd='tmp_crctd' + str(j), tmp_band=str(i),
-                              SWIR=SWIR),
-                      overwrite=True)
+            if Area_of_interest:
+                g.run_command('r.mask', vector=Area_of_interest, overwrite=True)
+                g.run_command('g.region', vector=Area_of_interest)
+            else:
+                g.run_command('r.mask', vector='tmp_buffer', overwrite=True)
+                g.run_command('g.region', vector=Calibration_points)
+            g.mapcalc(exp="{tmp_crct}=log({tmp_band}-{a}-{b}*{SWIR})"
+                          .format(tmp_crct='tmp_crct' + str(j),
+                                  tmp_band=str(i), a=float(tmp_coe['a']),
+                                  b=float(tmp_coe['b']), SWIR=SWIR),
+                           overwrite=True)
             g.run_command('r.mask', raster='tmp_water', overwrite=True)
-            g.mapcalc("{tmp_crctd} = ({tmp_crctd} * 1)"
-                      .format(tmp_crctd='tmp_crctd' + str(j)))
-
+            g.mapcalc("{tmp_crctd} = ({tmp_crct} * 1)"
+                      .format(tmp_crct='tmp_crct'+str(j), tmp_crctd='tmp_crctd' + str(j)))
         crctd_lst.append('tmp_crctd' + str(j))
-    try:
-        Module('r.gwr')
-    except:
-        g.run_command('g.extension', extension='r.gwr')
     if fixed_GWR:
+        if not g.find_program('r.gwr', '--help'):
+            g.run_command('g.extension', extension='r.gwr')
         if bisquare:
             g.message("Calculating optimal bandwidth using bisqare kernel...")
             bw = g.parse_command('r.gwr', mapx=crctd_lst,
@@ -219,9 +227,12 @@ def main():
                           estimates='tmp_bathymetry',
                           bandwidth=int(bw['estimate']))
     else:
+        global r
+        global predict
         try:
             # For GWmodel in R
-            r_file = open('crctd.R', 'w')
+            r = g.tempfile()
+            r_file = open(r, 'w')
             libs = ['GWmodel', 'data.table', 'rgrass7', 'rgdal', 'raster']
             for i in libs:
                 install = 'if(!is.element("%s", installed.packages()[,1])){\n' % i
@@ -248,7 +259,7 @@ def main():
                 r_file.write('grass_file = readRAST("tmp_crctd%s")\n' % j)
                 r_file.write('raster_file = raster(grass_file)\n')
                 r_file.write('frame_pred%s = as.data.frame(raster_file, na.rm = TRUE,'
-                     'xy = TRUE)\n' % j)
+                             'xy = TRUE)\n' % j)
                 pred_file = 'frame_pred_green=data.frame(frame_pred%s)\n' % Green_new
                 pred_file += 'pred=merge(pred, frame_pred%s)\n' % j
                 r_file.write(pred_file)
@@ -279,6 +290,7 @@ def main():
                     '(Rapid_ref.sdf))\n'
             r_file.write(ref_file)
             l = []
+            predict = g.read_command("g.tempfile", pid=os.getpid()).strip() + '.txt'
             # Join the corrected bands in to a string
             le = len(crctd_lst)
             for i in crctd_lst:
@@ -320,16 +332,19 @@ def main():
                 r_file.write(ref_fla)
             ref_fil = 'Sp_frame = as.data.frame(GWR_Rapid_pred.sdf$SDF)\n'
             r_file.write(ref_fil)
-            r_file.write('write.table(Sp_frame, quote=FALSE, sep=",",' \
-                     '"prediction.txt")\n')
+            export = 'write.table(Sp_frame, quote=FALSE, sep=",",' \
+                         '"%s")\n' % predict
+            r_file.write(export)
             r_file.close()
-            subprocess.check_call(['Rscript', 'crctd.R'], shell=False)
-            g.run_command('r.in.xyz', input='prediction.txt',
+            subprocess.check_call(['Rscript', r], shell=False)
+            g.run_command('r.in.xyz', input=predict,
                       output='tmp_bathymetry', skip=1, separator=",",
                       x=(int(le) + 5), y=(int(le) + 6), z=(int(le) + 3),
                       overwrite=True)
         except subprocess.CalledProcessError:
             g.message("Integer outflow... ")
+            if not g.find_program('r.gwr', '--help'):
+                g.run_command('g.extension', extension='r.gwr')
             if bisquare:
                 g.message("Running Fixed-GWR using bisqare kernel...")
                 bw = g.parse_command('r.gwr', mapx=crctd_lst,
@@ -341,10 +356,6 @@ def main():
                           bandwidth=int(bw['estimate']))
             else:
                 g.message("Running Fixed-GWR using gaussian kernel...")
-                try:
-                    Module('r.gwr')
-                except:
-                    g.run_command('g.extension', extension='r.gwr')
                 bw = g.parse_command('r.gwr', mapx=crctd_lst,
                                  mapy='tmp_Calibration_points', flags='ge')
                 g.run_command('r.gwr', mapx=crctd_lst,
@@ -361,12 +372,12 @@ def main():
 
 
 def cleanup():
-    g.run_command('g.remove', type='raster', pattern='MASK', flags='f')
+    g.run_command('g.remove', type='raster', name='MASK', flags='f')
     g.run_command('g.remove', type='all', pattern='*tmp*', flags='f')
     try:
-        os.remove('crctd.R')
-        os.remove('prediction.txt')
-    except OSError:
+        g.try_remove(predict)
+        g.try_remove(r)
+    except:
         pass
 
 if __name__ == '__main__':

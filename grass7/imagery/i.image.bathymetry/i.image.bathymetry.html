@@ -27,11 +27,14 @@ charts or depth pints derived from LiDAR survey or derived from Sonar
 survey can be used as reference depth for calibration. The calibration 
 depth points provided by the user are used to ditermine the Area of 
 Interest, therefore it is suggested to provide calibration depth points 
-in order to cover user's estimation region boundary.
+in order to cover user's estimation region boundary. In addition, an 
+optional parameter is also available to provide a polygon vector 
+file for user's to ditermine the area to be estimated (see first 
+example).
 <br><br>
- The tide height at the time of reference depth collection and 
-satellite imagery capture should be normalized if it is not. An  option 
-is available in the module to provide tide hieght at the tide of image 
+The tide height at the time of reference depth collection and satellite 
+imagery capture should be normalized if it is not. An  option is 
+available in the module to provide tide hieght at the tide of image 
 captured and the module will correct the reference depth accordingly. 
 This option asuumes that the reference depth given is corrected zero 
 tide height. The tide lower than zero can be added as negative value.
@@ -58,7 +61,7 @@ is shown below, where depth value is stored in column named 'Z'<br>
 i.image.bathymetry blue_band='B2' green_band='B3' red_band='B4' 
 nir_band='B8' band_for_correction='B11' 
 calibration_points='Calibration_points' calibration_column='Z' 
-depth_estimate='output'
+depth_estimate='output' area_of_interest='AOI'
 </pre></div> 
 <br>
 If SWIR band is not available near-infrared band can be used as 
