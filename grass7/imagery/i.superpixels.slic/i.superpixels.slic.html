@@ -12,6 +12,14 @@ compact, but spectrally more heterogeneous superpixels. This is
 the most important parameter of the module. A reasonable value should 
 be determined for small test regions before applying the module to a 
 large region.
+<p>
+The resultant number of superpixels will most often be larger than the 
+initial number of superpixels because the initial number of superpixels 
+is used to create seeds and SLIC assigns pixels to seeds. Pixels 
+assigned to the same seed are usually not connected. The final 
+number of superpixels is the number of clumps, also known as 
+connected components, objects, regions, or blobs. The final number of 
+superpixels can be reduced with the <b>minsize</b> option.
 
 <h2>NOTES</h2>
 
@@ -22,7 +30,8 @@ RGB input images (which are internally transformed into LAB color space,
 These bands can be either spectral bands of imagery, or any other 
 pseudo-bands relevant to the analysis at hand (NDVI, texture, 
 precipitation, etc). All band values are normalized to a common 0-1 scale
-to ensure comparability in the spectral distance calculations.
+to ensure comparability in the spectral distance calculations. 
+Therefore results will not be identical with the original implementation.
 
 <h4>Iterations</h4>
 In each iteration, the assignment of pixels to superpixels and the 
@@ -33,10 +42,17 @@ results but will increase processing time. The module will stop earlier
 if convergence is reached, but it can take 1000 or more iterations 
 until convergence is reached.
 
-<h4>Minimum clump size</h4>
+<h4>Minimum segment size</h4>
 If a minimum segment size of 2 or larger is given with the <b>minsize</b> 
 parameter, segments with a smaller pixel count will be merged with 
 their most similar neighbor.
+<p>
+In the original implementation of Achanta et al., a minimum segment 
+size is internally determined, and segments smaller than this minimum 
+segment size are merged with an arbitrarily chosen neigbour. Therefore 
+results will not be identical with the original implementation, even if 
+a minimum segment size identical to the minimum segment size internally 
+determined in the original implementation of Achanta et al. is used.
 
 <h4>Creating seeds for <em>i.segment</em></h4>
 If the purpose is to create seeds for <em>i.segment</em>, a small number 
