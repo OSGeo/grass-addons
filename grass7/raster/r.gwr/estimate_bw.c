@@ -56,15 +56,15 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     int i;
     int r, c;
     struct rb *xbuf1, *xbuf2, *xbuf3, ybuf1, ybuf2, ybuf3;
-    int prevbw, nextbw, newbw, bestbw;
+    int prevbw, nextbw, newbw, lastbw, bestbw, bwhi;
     int bwmin, bwmax;
     int n1, n2, n3;
     double f11, f12, f2;
-    double ss1, ss2, ss3;
+    double ss1, ss2, ss3, ssmin;
     double **w1, **w2, **w3;
     DCELL *ybuf, yval;
     DCELL est1, est2, est3;
-    int nr, nc, nrt, nct, count, gwrfailed, status;
+    int nr, nc, nrt, nct, count, gwrfailed, step, havemin;
 
     ybuf = Rast_allocate_d_buf();
     
@@ -96,11 +96,8 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 	bw = 2;
     }
 
-    bwmin = 2;
+    bwmin = 1;
     bwmax = sqrt((double) nrows * nrows + (double) ncols * ncols);
-
-    prevbw = bw - 1;
-    nextbw = bw + 1;
 
     init_rand();
 
@@ -108,12 +105,21 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
     xbuf2 = G_malloc(ninx * sizeof(struct rb));
     xbuf3 = G_malloc(ninx * sizeof(struct rb));
 
-    status = 0;
-    bestbw = bw;
+    lastbw = bestbw = bw;
+    ssmin = 1.0 / 0.0;
+    bwhi = 0;
+    step = 2;
+    havemin = 0;
     while (1) {
 
 	if (bw > bwmax)
 	    break;
+	
+	if (bwhi < bw)
+	    bwhi = bw;
+
+	prevbw = bw - step;
+	nextbw = bw + step;
 
 	G_message(_("Testing bandwidth %d"), bw);
 
@@ -207,8 +213,8 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 			n3++;
 
 			nrt--;
-			count++;
 		    }
+		    count++;
 		}
 		nct--;
 	    }
@@ -226,10 +232,10 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 
 	G_debug(3, "count: %d", count);
 
-	if (n1 == 0 || n2 == 0 || n3 == 0) {
-	    bw = nextbw + 2;
-	    prevbw = bw - 1;
-	    nextbw = bw + 1;
+	if (n1 < count || n2 < count || n3 < count) {
+	    G_debug(1, "increasing bwmin to %d", bw + 1);
+	    bwmin = bw + 1;
+	    bw += step + 1;
 	    ss1 = 3;
 	    ss2 = 2;
 	    ss3 = 1;
@@ -270,72 +276,126 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 #if 1
 	newbw = bw;
 
-	/* local minimum */
 	if (ss2 < ss1 && ss2 < ss3) {
-	    if (status == 0) {
-		G_message(_("Verifying bandwidth %d"), bw);
-		G_debug(1, "gradients %g, %g", f11, f12);
+	    /* local minimum */
+	    havemin = 1;
+
+	    if (lastbw > bw)
+		newbw = bw - 2;
+	    else
 		newbw = bw + 2;
-		bestbw = bw;
-		status = 1;
+
+	    if (ss2 < ssmin) {
+		G_debug(1, "New candidate %d", bw);
 	    }
-	    else {
-		if (bestbw == bw)
-		    break;
-		else {
-		    G_message(_("Verification of bandwidth %d failed, trying bandwidth %d"),
-		              bestbw, bw);
-		    newbw = bw + 2;
-		    bestbw = bw;
-		    status = 1;
+	    else if (ss2 > ssmin) {
+		G_debug(1, "Local minimum at %d is larger than %d", bw, bestbw);
+	    }
+	    else {   /* ss2 == ssmin */
+		break;
+	    }
+	}
+	else if (ss2 > ss1 && ss2 > ss3) {
+	    /* local maximum */
+	    G_debug(1, "Detected local maximum at bw %d", bw);
+	    if (ss1 < ss3) {
+		newbw = bw - 1;
+		if (newbw == lastbw)
+		    newbw--;
+		if (newbw - step < bwmin) {
+		    newbw = bw + 3;
+		    if (newbw == lastbw)
+			newbw++;
 		}
 	    }
+	    else {
+		newbw = bw + 1;
+		if (newbw == lastbw)
+		    newbw++;
+	    }
 	}
-
-	/* local maximum */
-	if (ss2 > ss1 && ss2 > ss3) {
-	    G_verbose_message(_("Detected local maximum"));
-	    if (bw < bwmin)
-		newbw = bw + 2;
-	    else
-		newbw = bw - 2;
-	}
-	else if ((ss1 <= ss2 && ss2 <= ss3) || (ss1 >= ss2 && ss2 >= ss3)) {
+	else {
 	    /* determine new bandwidth */
 	    if (f2 > 0) {
 		/* Newton's method to find the extremum */
-		newbw = bw - (f11 + f12) / (2. * f2) + 0.5;
+		newbw = bw - (f11 + f12) / (step * f2) + 0.5;
+		if (newbw == bw) {
+		    if (ss1 > ss3) {
+			/* increase bandwidth */
+			newbw = bw + 1;
+		    }
+		    else {
+			newbw = bw - 1;
+		    }
+		}
+		if (newbw - step < bwmin)
+		    newbw = bwmin + step;
+		G_debug(1, "Newton: bw %d, new %d", bw, newbw);
 	    }
 	    else {
 		if (ss1 < ss3) {
 		    /* decrease bandwidth */
-		    newbw = bw - bw / 2;
+		    newbw = (bw + bwmin) / 2;
+		    if (newbw - step < bwmin) {
+			newbw = bwmin + step;
+			if (newbw == bw)
+			    newbw++;
+			if (newbw == lastbw)
+			    newbw++;
+		    }
 		}
 		else if (ss1 > ss3) {
 		    /* increase bandwidth */
 		    newbw = bw + bw / 2;
 		}
-		else {  /* ss1 == ss3 && ss1 == ss2 */
+		else {  /* ss1 == ss3 */
 		    newbw = bw + 1;
+		    if (newbw == lastbw)
+			newbw++;
 		}
 	    }
-	}
 
-	if (ss1 < ss2 && newbw > bw) {
-	    /* moving bw to wrong direction: stop here? */
-	    G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
-	    newbw = bw - 2;
-	}
-	if (ss3 < ss2 && newbw < bw) {
-	    /* moving bw to wrong direction: stop here? */
-	    G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
-	    newbw = bw + 2;
+	    if (ss1 < ss2 && newbw > bw) {
+		/* moving bw to wrong direction: stop here? */
+		G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
+		if (f11 > 0 && f12 > 0)
+		    newbw = bw - 2;
+		else
+		    newbw = bw + 2;
+	    }
+	    if (ss3 < ss2 && newbw < bw) {
+		/* moving bw to wrong direction: stop here? */
+		G_debug(1, "f11: %g, f12: %g, f2: %g", f11, f12, f2);
+		if (f11 > 0 && f12 > 0)
+		    newbw = bw - 2;
+		else
+		    newbw = bw + 2;
+	    }
+	    if (newbw - step < bwmin) {
+		newbw = bwmin + step;
+		if (newbw == bw)
+		    newbw++;
+		if (newbw == lastbw)
+		    newbw++;
+	    }
 	}
 	
+
+	if (ssmin > ss2) {
+	    ssmin = ss2;
+	    bestbw = bw;
+	}
+
+	if (newbw - step < bwmin) {
+	    newbw = bwhi + step;
+	}
+
 	if (newbw == bw)
 	    break;
 #else
 	newbw = bw - 1;
+	if (newbw < bwmin)
+	    break;
 #endif
 	
 	if (newbw < bwmin) {
@@ -346,16 +406,17 @@ int estimate_bandwidth(int *inx, int ninx, int iny, int nrows, int ncols,
 		break;
 	}
 
+	lastbw = bw;
 	bw = newbw;
-
-	prevbw = bw - 1;
-	nextbw = bw + 1;
     }
 
     if (bw < bwmin)
 	bw = bwmin;
     if (bw > bwmax)
 	bw = bwmax;
+
+    if (!havemin)
+	G_warning(_("Could not find minimum"));
 
     return bw;
 }
