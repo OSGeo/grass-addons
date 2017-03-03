@@ -1,0 +1,99 @@
+<h2>DESCRIPTION</h2>
+
+<p>Following the Woodcock and Strahler (1987), <em>i.variance</em> resamples 
+a raster <em>input</em> layer (normally a remotely sensed image) to 
+successively decreasing resolutions and calculates the mean local variance of
+the entire image at each resolution. Local variance is defined as the variance
+in a 3x3 window.
+
+<p>
+The modules starts at the current computing region resolution and then decreases
+the resolution (increases the pixel size) by <em>step</em> until it
+reaches the maximum size of pixels (aka minimum resolution) determined by
+the <em>max_size</em> parameter, or when the number of total pixels falls below
+<em>min_cells</em>. If both are given, <em>min_cells</em> takes precedence.
+
+<p>
+Resampling to lower resolution uses the average of higher resolution pixels.
+
+<p>
+By default, the module prints a comma separated list to stdout containing each
+resolution that represents a local maximum of variance (higher variance than
+the resolution before and after in the iterations) as well as the difference in
+variance with the neighbor with most similar variance.
+
+<p>
+In addition, the user can choose to output the results in the form of a graph 
+plotting variance against resolution (<em>plot_output</em>) either to a file
+by giving a file name (its extension determines the output format) or to
+the screen using '-'. The entire data of variance depending on resolution can
+also be saved in a csv file using <em>csv_output</em>.
+
+<h2>NOTES</h2>
+
+The aim of this module is to provide diagnostics to the user about the size of
+detectable "objects" in an image. This can provide helpful input to modules
+that take a window size or desired object size as input, such as, for example,
+<a href="r.texture.html">r.texture</a> and 
+<a href="i.segment.html">i.segment</a>.
+
+<p>
+As Woodcock and Strahler (1980) write: "The reasoning
+behind this measure is as follows. If the spatial resolution is 
+considerably finer than the objects in the scene, most of the measurements in 
+the image will be highly correlated with their neighbors and a measure of 
+local variance will be low. If the objects approximate the size of the
+resolution cells, then the likelihood of neighbors being similar decreases and 
+the local variance rises. As the size of the resolution cells increase and many
+objects are found in a single resolution cell, the local variance decreases."
+
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre> 
+g.region rast=ortho_2001_t792_1m
+i.variance ortho_2001_t792_1m max_size=50 plot_output=i_variance_plot.png
+<br>
+resolution,min_diff
+1,106.964
+9,0.120383
+11,0.199415
+14,0.332985
+19,0.132208
+21,0.318132
+25,0.0357517
+28,2.2714
+30,1.7073
+32,1.65568
+37,1.7664
+42,1.12972
+45,1.25903
+48,4.41572
+50,0.154997
+</pre></div>
+
+
+<center>
+	        <img src="i_variance_plot.png" border="1"><br>
+		 Plot of variance against resolution
+</center>
+
+<h2>REFERENCES</h2>
+
+Woodcock, C.E., Strahler, A.H., 1987. The factor of scale in remote sensing. 
+	Remote Sensing of Environment 21, 311–332. 
+	http://doi.org/10.1016/0034-4257(87)90015-0
+
+<h2>SEE ALSO</h2>
+
+<a href="r.resamp.stats.html">r.resamp.stats</a>,<br>
+<a href="r.neighbors.html">r.neighbors</a>,<br>
+<a href="r.univar.html">r.univar</a>,<br>
+<a href="i.segment.html">i.segment</a>,<br>
+<a href="r.texture.html">r.texture</a>
+
+<h2>AUTHOR</h2> 
+
+Moritz Lennert
+
+<p><i>Last changed: $Date$</i>
