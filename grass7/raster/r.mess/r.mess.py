@@ -9,7 +9,7 @@
 #               surface (MESS) as proposed by Elith et al., 2010,
 #               Methods in Ecology & Evolution, 1(330–342).
 #
-# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -130,9 +130,9 @@ RECL_MESNEG = """\
 1\tnovel conditions
 """
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Functions
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # create set to store names of temporary maps to be deleted upon exit
 CLEAN_RAST = []
@@ -151,7 +151,7 @@ def raster_exists(envlay):
     for chl in xrange(len(envlay)):
         ffile = gs.find_file(envlay[chl], element='cell')
         if not ffile['fullname']:
-            gs.fatal(_("The layer <%s> does not exist") % envlay[chl])
+            gs.fatal(_("The layer {} does not exist".format(envlay[chl])))
 
 
 # Create temporary name
@@ -249,9 +249,8 @@ def main(options, flags):
     hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
     hist = "r.mess {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
-    text_file = open(tmphist, "w")
-    text_file.write(hist)
-    text_file.close()
+    with open(tmphist, "w") as text_file:
+        text_file.write(hist)
 
     # Create reference layer if not defined
     if not ref_rast and not ref_vect:
