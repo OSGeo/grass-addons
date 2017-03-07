@@ -5,7 +5,7 @@
 # AUTHOR(S):    Huidae Cho
 # PURPOSE:      Calculates the longest flow path for a given outlet point.
 #
-# COPYRIGHT:    (C) 2014 by the GRASS Development Team
+# COPYRIGHT:    (C) 2014, 2017 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -107,8 +107,7 @@ def calculate_lfp(input, output, coords):
     if p.returncode != 0 or max == "":
         grass.fatal(_("Cannot find max flds+flus cell value"))
 
-    max = float(max) + 1
-    min = max - 2
+    min = float(max) - 0.0005
 
     try:
         grass.run_command("r.mapcalc",
