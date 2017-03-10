@@ -621,17 +621,12 @@ int main(int argc, char *argv[])
 				prev_ts = ts[i] - (ts[i] - ts[i - 1]) / 2.0;
 			    else
 				prev_ts = ts[i] - (ts[i + 1] - ts[i]) / 2.0;
-			    
-			    if (i < num_inputs - 1)
-				next_ts = ts[i] + (ts[i + 1] - ts[i]) / 2.0;
-			    else
-				next_ts = ts[i] + (ts[i] - ts[i - 1]) / 2.0;
 
 			    j = i;
 			    while (j < num_inputs - 1 && isnull[j + 1])
 				j++;
 
-			    if (j > i)
+			    if (j < num_inputs - 1)
 				next_ts = ts[j] + (ts[j + 1] - ts[j]) / 2.0;
 			    else
 				next_ts = ts[j] + (ts[j] - ts[j - 1]) / 2.0;
