@@ -6,7 +6,7 @@
 # PURPOSE:      Converts a longest flow path raster map created by r.lfp to
 #               a vector map.
 #
-# COPYRIGHT:    (C) 2014 by the GRASS Development Team
+# COPYRIGHT:    (C) 2014, 2017 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -45,6 +45,7 @@ def main():
     convert_lfp(input, output, coords)
 
 def convert_lfp(input, output, coords):
+    # calculate the diagonal resolution
     p = grass.pipe_command("r.info", flags="g", map=input)
     res = ""
     for line in p.stdout:
@@ -54,72 +55,66 @@ def convert_lfp(input, output, coords):
             break
     p.wait()
     if p.returncode != 0 or res == "":
-        grass.fatal(_("Cannot read the resolution of int input raster map"))
+        grass.fatal(_("Cannot read the resolution of the input raster map"))
     res = float(res)
-    danglelen = math.ceil(math.sqrt(2)*res)
+    diagres = math.ceil(math.sqrt(2)*res)
 
+    # convert the input lfp raster to vector
     try:
         grass.run_command("r.to.vect", input=input, output=output, type="line")
     except CalledModuleError:
         grass.fatal(_("Cannot convert the input raster map to a vector map"))
 
+    # r.to.vect sometimes produces continous line segments that are not
+    # connected; merge them first
+    try:
+        grass.run_command("v.edit", map=output, tool="merge", where="")
+    except CalledModuleError:
+        grass.fatal(_("Cannot merge features in the output vector map"))
+
+    # remove dangles
     try:
         grass.run_command("v.edit", map=output, tool="delete",
-                          query="dangle", threshold="0,0,-%f" % danglelen)
+                          query="dangle", threshold="0,0,-%f" % diagres)
     except CalledModuleError:
         grass.fatal(_("Cannot delete dangles from the output vector map"))
 
-    success = False
-    for i in range(0, 100):
-        try:
-            grass.run_command("v.edit", map=output, tool="merge", where="")
-        except CalledModuleError:
-            grass.fatal(_("Cannot merge features in the output vector map"))
+    try:
+        grass.run_command("v.edit", map=output, tool="merge", where="")
+    except CalledModuleError:
+        grass.fatal(_("Cannot merge features in the output vector map"))
 
-        p = grass.pipe_command("v.info", flags="t", map=output)
-        lines = ""
-        for line in p.stdout:
-            line = line.rstrip("\n")
-            if line.startswith("lines="):
-                lines = line.split("=")[1]
-                break
-        p.wait()
-        if p.returncode != 0 or lines == "":
-            grass.fatal(_("Cannot read lines from the output vector map info"))
+    # remove the shorter path from closed loops; these are not dangles
+    try:
+        grass.run_command("v.edit", map=output, tool="delete",
+                          query="length", threshold="0,0,-%f" % diagres)
+    except CalledModuleError:
+        grass.fatal(_("Cannot delete dangles from the output vector map"))
 
-        lines = int(lines)
-        if lines == 0:
-            grass.fatal(_("Cannot process the output vector map"))
-        elif lines == 1:
-            success = True
+    try:
+        grass.run_command("v.edit", map=output, tool="merge", where="")
+    except CalledModuleError:
+        grass.fatal(_("Cannot merge features in the output vector map"))
+
+    # see how many lines are left
+    p = grass.pipe_command("v.info", flags="t", map=output)
+    lines = ""
+    for line in p.stdout:
+        line = line.rstrip("\n")
+        if line.startswith("lines="):
+            lines = line.split("=")[1]
             break
+    p.wait()
+    if p.returncode != 0 or lines == "":
+        grass.fatal(_("Cannot read lines from the output vector map info"))
 
-        p = grass.pipe_command("v.report", map=output, option="length",
-                sort="asc")
-        firstcat = ""
-        for line in p.stdout:
-            line = line.rstrip("\n")
-            if line.startswith("cat|value|"):
-                continue
-            cols = line.split("|")
-            firstcat = cols[0]
-            break
-        p.wait()
-        if p.returncode != 0:
-            grass.fatal(_("Cannot read the output vector map report"))
-
-        if firstcat == "":
-            grass.fatal(_("Cannot further simplify the longest flow path"))
-
-        try:
-            grass.run_command("v.edit", map=output, tool="delete",
-                              cats=firstcat)
-        except CalledModuleError:
-            grass.fatal(_("Cannot delete short segments from the output vector map"))
-
-    if success == False:
+    lines = int(lines)
+    if lines == 0:
+        grass.fatal(_("Cannot create the longest flow path"))
+    elif lines > 1:
         grass.fatal(_("Cannot simplify the longest flow path"))
 
+    # leave only the minimum category
     p = grass.pipe_command("v.report", map=output, option="length")
     mincat = ""
     maxcat = ""
@@ -144,6 +139,8 @@ def convert_lfp(input, output, coords):
     except CalledModuleError:
         grass.fatal(_("Cannot delete categories from the output vector map"))
 
+    # if the outlet coordinates are given, flip the longest flow path so that
+    # its end node is at the downstream end
     if coords != "":
         p = grass.pipe_command("v.to.db", flags="p", map=output, option="start")
         startx = ""
