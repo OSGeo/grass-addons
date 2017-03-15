@@ -4,7 +4,7 @@
 ########################################################################
 #
 # MODULE:       r.category.trim
-# AUTHOR(S):    Paulo van Breugel
+# AUTHOR(S):    Paulo van Breugel (paulo AT ecodiv DOT earth)
 # DESCRIPTION:  Export the categories, category labels and colour codes (RGB)
 #               as csv file or as a QGIS colour map file. It will first remove
 #               non-existing categories and their colour definitions.
@@ -12,9 +12,7 @@
 #               categories values, whereby the category labels and colors are
 #               retained.
 #
-# COPYRIGHT: (C) 2015 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (C) 2015-2017 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -174,11 +172,10 @@ def main(options, flags):
             RCAT1 = [w.replace('\t', ',') for w in RCAT]
         RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
         CV1 = list(CV)
-        CV1.insert(0,"RGB")
-        text_file = open(CSV, "w")
-        for k in xrange(len(RCAT1)):
-            text_file.write('{},{}\n'.format(RCAT1[k], CV1[k]))
-        text_file.close()
+        CV1.insert(0, "RGB")
+        with open(CSV, "w") as text_file:
+            for k in xrange(len(RCAT1)):
+                text_file.write('{},{}\n'.format(RCAT1[k], CV1[k]))
 
     # If QGIS Color Map text files should be written
     if len(QGIS) > 0:
@@ -188,32 +185,13 @@ def main(options, flags):
             RCAT = [w.replace('|', ',') for w in RCAT]
         else:
             RCAT = [w.replace('\t', ',') for w in RCAT]
-        text_file = open(QGIS, "w")
-        text_file.write('# QGIS color map for {}\n'.format(OP))
-        text_file.write("INTERPOLATION:EXACT\n")
-        for k in xrange(len(RCAT)):
-            RC2 = RCAT[k].split(',')
-            text_file.write('{},{},255,{}\n'.format(RC2[0], RGB[k], RC2[1]))
-        text_file.close()
+        with open(QGIS, "w") as text_file:
+            text_file.write('# QGIS color map for {}\n'.format(OP))
+            text_file.write("INTERPOLATION:EXACT\n")
+            for k in xrange(len(RCAT)):
+                RC2 = RCAT[k].split(',')
+                text_file.write('{},{},255,{}\n'.format(RC2[0], RGB[k],
+                                RC2[1]))
 
 if __name__ == "__main__":
     sys.exit(main(*gs.parser()))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
