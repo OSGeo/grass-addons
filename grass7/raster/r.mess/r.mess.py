@@ -332,12 +332,11 @@ def main(options, flags):
             b1 = np.hstack([(0), c])
 
             fd2, tmprule = tempfile.mkstemp(suffix=ipn[i])
-            text_file = open(tmprule, "w")
-            for k in np.arange(0, len(b1.T)):
-                text_file.write("%s:%s:%s\n" % (str(int(a1[k])),
-                                str(int(a2[k])),
-                                str(b1[k])))
-            text_file.close()
+            with open(tmprule, "w") as text_file:
+                for k in np.arange(0, len(b1.T)):
+                    text_file.write("%s:%s:%s\n" % (str(int(a1[k])),
+                                    str(int(a2[k])),
+                                    str(b1[k])))
 
             # Create the recode layer and calculate the IES
             compute_ies(tmprule, ipi[i], tmpf2, envmin, envmax)
@@ -446,13 +445,11 @@ def main(options, flags):
             b1 = np.hstack([(0), c])
 
             fd3, tmprule = tempfile.mkstemp(suffix=ipn[m])
-            text_file = open(tmprule, "w")
-            for k in np.arange(0, len(b1)):
-                rtmp = "{}:{}:{}\n".format(str(int(a1[k])),
-                                           str(int(a2[k])),
-                                           str(b1[k]))
-                text_file.write(rtmp)
-            text_file.close()
+            with open(tmprule, "w") as text_file:
+                for k in np.arange(0, len(b1)):
+                    rtmp = "{}:{}:{}\n".format(str(int(a1[k])),
+                                               str(int(a2[k])), str(b1[k]))
+                    text_file.write(rtmp)
 
             # Create the recode layer and calculate the IES
             compute_ies(tmprule, ipi[m], tmpf2, envmin, envmax)
@@ -517,10 +514,9 @@ def main(options, flags):
         gs.mapcalc("$mod2 = int($tmpf4)", mod2=mod2, tmpf4=tmpf4, quiet=True)
 
         fd4, tmpcat = tempfile.mkstemp()
-        text_file = open(tmpcat, "w")
-        for cats in xrange(len(ipi)):
-            text_file.write("{}:{}\n".format(str(cats), REF[cats]))
-        text_file.close()
+        with open(tmpcat, "w") as text_file:
+            for cats in xrange(len(ipi)):
+                text_file.write("{}:{}\n".format(str(cats), REF[cats]))
         gs.run_command("r.category", quiet=True, map=mod2, rules=tmpcat,
                        separator=":")
         os.close(fd4)
