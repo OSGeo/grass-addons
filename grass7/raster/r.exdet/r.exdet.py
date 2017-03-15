@@ -4,7 +4,7 @@
 ##############################################################################
 #
 # MODULE:       r.exdet
-# AUTHOR(S):    paulo van Breugel <paulo at ecodiv.org>
+# AUTHOR(S):    paulo van Breugel <paulo at ecodiv.earth>
 # PURPOSE:      Detection and quantification of novel environments, with
 #               points / locations being novel because they are outside
 #               the range of individual covariates (NT1) and points/locations
@@ -12,7 +12,7 @@
 #               combinations between covariates (NT2).
 #               Based on Mesgaran et al.2014 [1]
 #
-# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
 #
 #        This program is free software under the GNU General Public
 #        License (>=v2). Read the file COPYING that comes with GRASS
@@ -147,9 +147,8 @@ def tmpname(prefix):
 def CoVar(maps):
     """Compute the covariance matrix over reference layers"""
     tmpcov = tempfile.mkstemp()[1]
-    text_file = open(tmpcov, "w")
-    text_file.write(gs.read_command("r.covar", quiet=True, map=maps))
-    text_file.close()
+    with open(tmpcov, "w") as text_file:
+        text_file.write(gs.read_command("r.covar", quiet=True, map=maps))
     covar = np.loadtxt(tmpcov, skiprows=1)
     os.remove(tmpcov)
     VI = np.linalg.inv(covar)
@@ -210,9 +209,8 @@ def main(options, flags):
     hist = ' '.join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
     hist = "r.exdet {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
-    text_file = open(tmphist, "w")
-    text_file.write(hist)
-    text_file.close()
+    with open(tmphist, "w") as text_file:
+        text_file.write(hist)
 
     # Create covariance table
     VI = CoVar(maps=REF)
@@ -284,9 +282,9 @@ def main(options, flags):
         gs.info(_("Mahalanobis distance map saved: {}").format(mahalpro))
         gs.run_command("r.support", map=mahalpro,
                        title="Mahalanobis distance map projection domain",
-                       units="unitless", loadhistory=tmphist, description=
-                       "Mahalanobis distance map in projection domain "
-                       "estimated using covariance of refence data")
+                       units="unitless", loadhistory=tmphist,
+                       description="Mahalanobis distance map in projection "
+                       "domain estimated using covariance of refence data")
 
     # Compute NT1
     tmplay = tmpname(out)
@@ -378,11 +376,10 @@ def main(options, flags):
 
         # Write category labels to MIC maps
         tmpcat = tempfile.mkstemp()
-        text_file = open(tmpcat[1], "w")
-        text_file.write("-1:None\n")
-        for cats in xrange(len(opn)):
-            text_file.write("{}:{}\n".format(cats, opn[cats]))
-        text_file.close()
+        with open(tmpcat[1], "w") as text_file:
+            text_file.write("-1:None\n")
+            for cats in xrange(len(opn)):
+                text_file.write("{}:{}\n".format(cats, opn[cats]))
         gs.run_command("r.category", quiet=True, map=mic12, rules=tmpcat[1],
                        separator=":")
         os.remove(tmpcat[1])

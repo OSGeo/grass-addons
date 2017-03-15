@@ -1,14 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-Correlative species distribution models (SDMs) often involve some 
-degree of projection into conditions non-analogous to those under 
-which it has been calibrated. This projection into areas with novel 
-environmental condtions is risky as it may be ecologically and 
-statistically invalid. However, depending on the research question 
-it may be difficult to avoid or indeed the objective of research to 
-do so. An example is the prediction of potential distribution of 
-species under future climates. The latter may include conditions 
-hitherto not encountered in the area of interest. It is important to 
+Correlative species distribution models (SDMs) often involve some
+degree of projection into conditions non-analogous to those under
+which it has been calibrated. This projection into areas with novel
+environmental condtions is risky as it may be ecologically and
+statistically invalid. However, depending on the research question
+it may be difficult to avoid or indeed the objective of research to
+do so. An example is the prediction of potential distribution of
+species under future climates. The latter may include conditions
+hitherto not encountered in the area of interest. It is important to
 identify such areas and to interpret model results with care.
 
 <p>The <em>r.exdet</em> function allows you to identify areas with
@@ -19,24 +19,24 @@ range of values observed in the reference / callibration data set (
 the envirionmental variables (<i>NT2</i>: Type 2 novelty), which
 Mesgaran et al. call the multivariate combination novelty index.
 
-<p>The type 1 (<em>NT1</em>) similarity is similar to how the 
-multi-environmental similarity messure (MESS) computes novel 
-climates [3]. In both cases if a point is outside the range of a 
-given covariate, it gets a negative value based on its distance to 
-the minimum/maximum of that covariate. The difference is that the 
-MESS is based on the most negative value amongst these covariates. 
-The NT1 on the other hand is the sum of all these distances. The NT1 
-thus accounts for all variables [2]. The <em>NT1</em> can have 
-infinite negative values to zero where zero indicates no 
+<p>The type 1 (<em>NT1</em>) similarity is similar to how the
+multi-environmental similarity messure (MESS) computes novel
+climates [3]. In both cases if a point is outside the range of a
+given covariate, it gets a negative value based on its distance to
+the minimum/maximum of that covariate. The difference is that the
+MESS is based on the most negative value amongst these covariates.
+The NT1 on the other hand is the sum of all these distances. The NT1
+thus accounts for all variables [2]. The <em>NT1</em> can have
+infinite negative values to zero where zero indicates no
 extrapolation beyond the univariate coverage of reference data.
 
-<p>The type 2 (<em>NT2</em>) similarity is based on the Mahalanobis 
-distance and is used to identify areas where conditions are within 
-the range of univariate variation but which exhibits novel 
-combinations between covariates. <em>NT2</em> can range from zero up 
-to infinite positive values. Values ranging from 0 to 1 indicate 
-similarity (in terms of both univariate range and multivariate 
-combination), with values closer to zero being more similar. Values 
+<p>The type 2 (<em>NT2</em>) similarity is based on the Mahalanobis
+distance and is used to identify areas where conditions are within
+the range of univariate variation but which exhibits novel
+combinations between covariates. <em>NT2</em> can range from zero up
+to infinite positive values. Values ranging from 0 to 1 indicate
+similarity (in terms of both univariate range and multivariate
+combination), with values closer to zero being more similar. Values
 larger than one are indicative of novel combinations.[1]
 
 <p><em>r.exdet</em> can also compute the most influential covariate (
@@ -62,7 +62,7 @@ mask will then be compared with the conditions within the area defined
 by the mask.</li>
 <li>The user can provide a
 <a href="http://grass.osgeo.org/grass64/manuals/g.region.html">region</a>
-and a set of data layers describing the reference conditions. 
+and a set of data layers describing the reference conditions.
 Conditions in the region defined by the user are compared to the
 conditions in the current computational region.</li>
 </ul>
@@ -77,22 +77,22 @@ provide some examples)
 <h2>EXAMPLES</h2>
 
 You can download a sample data set from <a href=
-"http://www.climond.org/ExDet.aspx">http://www.climond.org/ExDet</a>. 
-The sample data contains 4 clipped Bioclim variable layers for 
-Australia and South Africa sourced from the CliMond dataset. In this 
-example we will use the Australia data as reference and the South 
-Africa data as projected or test. In the example below I will assume 
-you have downloaded the data and imported it in the currently open 
+"http://www.climond.org/ExDet.aspx">http://www.climond.org/ExDet</a>.
+The sample data contains 4 clipped Bioclim variable layers for
+Australia and South Africa sourced from the CliMond dataset. In this
+example we will use the Australia data as reference and the South
+Africa data as projected or test. In the example below I will assume
+you have downloaded the data and imported it in the currently open
 location/mapset (the coordinate system is latlon, EPSG 4326).
 
 <div class="code"><pre>
-g.region raster=AusBio13 
+g.region raster=AusBio13
 r.exdet -p reference=AusBio13@example,AusBio14,AusBio5,AusBio6 projection=SaBio13,SaBio14,SaBio5,SaBio6 output=AusSa
 </pre></div>
 
 <h2>CITATION</h2>
 
-When using this tool, please cite the paper describing the method in your publications or other derived products. 
+When using this tool, please cite the paper describing the method in your publications or other derived products.
 
 <ul><li>Mesgaran, M.B., Cousens, R.D. and Webber, B.L. (2014) Here be dragons: a tool for quantifying novelty due to covariate range and correlation change when projecting species distribution models. Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.</li></ul>
 
@@ -102,7 +102,7 @@ When using this tool, please cite the paper describing the method in your public
 quantification of novel uni- and multi-variate environments. URL:
 https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html</li></ul>
 
-<h2>REFERENCES</h2> 
+<h2>REFERENCES</h2>
 
 [1] Mesgaran, M.B., Cousens, R.D. and Webber, B.L. (2014) Here be dragons: a tool for quantifying novelty due to covariate range and correlation change when projecting species distribution models. Diversity &  Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.
 
@@ -116,7 +116,7 @@ https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html</li></ul>
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel, paulo at ecodiv.org
+Paulo van Breugel, paulo at ecodiv.earth
 
 
 <p><i>Last changed: $Date$</i>
