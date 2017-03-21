@@ -50,32 +50,91 @@ objects are found in a single resolution cell, the local variance decreases."
 
 <h2>EXAMPLE</h2>
 
+<p>
+The three examples based on the North Carolina demo data orthophoto show how 
+different types of objects in images lead to different forms of the variance
+curve with different resolutions showing peak values of variance.
+
+<h3>Region 1</h3>
 <div class="code"><pre> 
-g.region rast=ortho_2001_t792_1m
-i.variance ortho_2001_t792_1m max_size=50 plot_output=i_variance_plot.png
+g.region n=220558 s=220066 w=639394 e=640114 res=1 -p
+i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region1_plot.png
 <br>
 resolution,min_diff
-1,106.964
-9,0.120383
-11,0.199415
-14,0.332985
-19,0.132208
-21,0.318132
-25,0.0357517
-28,2.2714
-30,1.7073
-32,1.65568
-37,1.7664
-42,1.12972
-45,1.25903
-48,4.41572
-50,0.154997
+1,29.2433
+12,0.820265
+14,2.75311
+19,0.300205
+23,3.85219
+26,4.47146
+28,1.30447
+34,10.3549
+36,5.48933
+40,8.77106
+42,9.19453
+47,8.14879
+50,3.92238
 </pre></div>
 
+<center>
+	        <img src="i_variance_region1.png" border="1"><br>
+		Image of region 1 and plot of variance against resolution
+</center>
+
+<h3>Region 2</h3>
+<div class="code"><pre> 
+region 2
+g.region n=222166 s=221890 w=637562 e=637966 res=1 -p
+i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region2_plot.png
+<br>
+resolution,min_diff
+1,108.991
+6,1.65447
+8,0.296192
+12,2.46681
+19,15.3195
+23,11.8194
+28,1.7359
+30,21.5443
+33,30.5452
+36,4.32951
+40,6.17552
+46,12.1585
+48,22.9854
+50,22.0149
+</pre></div>
 
 <center>
-	        <img src="i_variance_plot.png" border="1"><br>
-		 Plot of variance against resolution
+	        <img src="i_variance_region2.png" border="1"><br>
+		Image of region 2 and plot of variance against resolution
+</center>
+
+<h3>Region 3</h3>
+<div class="code"><pre> 
+region 3
+g.region n=220723 s=220218 w=638347 e=639086 res=1
+i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region3_plot.png
+<br>
+resolution,min_diff
+1,47.6132
+18,0.911684
+21,6.41979
+23,0.737023
+25,7.311
+27,1.77098
+30,10.2106
+33,2.5862
+37,8.43631
+39,9.10274
+41,5.67096
+44,1.48503
+47,5.0448
+50,0.622958
+</pre></div>
+
+<center>
+	        <img src="i_variance_region3.png" border="1"><br>
+		Image of region 3 and plot of variance against resolution
 </center>
 
 <h2>REFERENCES</h2>
