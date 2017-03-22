@@ -38,10 +38,16 @@ using, repectively, the <em>partitions</em>, <em>folds</em> and
 
 <p>The user can define a customized tunegrid for each classifier, using
 the <em>tunegrids</em> parameter. Any customized tunegrid has to be defined
-as a Python dictionary, with the classifiers as keys, and tunegrid data frames
-as content as defined 
+as a Python dictionary, with the classifiers as keys, and the input to 
+expand.grid() as content as defined 
 <a href="http://topepo.github.io/caret/model-training-and-tuning.html#alternate-tuning-grids">
 	in the caret documentation</a>.
+
+<p>For example, to define customized tuning grids for svmRadial and 
+RandomForest, the user can define the paramter as:<br>
+<div class="code"><pre>
+tunegrids="{'svmRadial': 'sigma=c(0.01,0.05,0.1), C=c(1,16,128)', 'rf': 'mtry=c(3,10,20)'}"
+</pre></div>
 
 <p>The module can run the model tuning using parallel processing. In order
 for this to work, the R-package <em>doParallel</em> has to be installed. The

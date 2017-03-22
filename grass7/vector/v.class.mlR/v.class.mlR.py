@@ -112,8 +112,8 @@
 #% description: Classifiers to use
 #% required: yes
 #% multiple: yes
-#% options: svmRadial,rf,rpart,C5.0,knn,knn1
-#% answer: svmRadial,rf,rpart,C5.0,knn,knn1
+#% options: svmRadial,rf,rpart,C5.0,knn,knn1,xgbTree
+#% answer: svmRadial,rf,C5.0,xgbTree
 #%end
 #%option
 #% key: folds
@@ -273,7 +273,7 @@ def main():
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
-    packages = {'svmRadial': 'kernlab', 'rf': 'randomForest', 'rpart': 'rpart', 'C5.0': 'C50'}
+    packages = {'svmRadial': ['kernlab'], 'rf': ['randomForest'], 'rpart': ['rpart'], 'C5.0': ['C50'], 'xgbTree': ['xgboost', 'plyr']}
 
     install_package = "if(!is.element('%s', installed.packages()[,1])){\n"
     install_package += "cat('\\n\\nInstalling %s package from CRAN\n')\n"
@@ -308,12 +308,6 @@ def main():
     weighting_modes = options['weighting_modes'].split(',')
     weighting_metric = options['weighting_metric']
     processes = int(options['processes'])
-    if processes > 1:
-	install = install_package % ('doParallel', 'doParallel', 'doParallel')
-	r_file.write(install)
-	r_file.write("\n")
-
-        
     folds = options['folds']
     partitions = options['partitions']
     tunelength = options['tunelength']
@@ -374,6 +368,10 @@ def main():
 
     r_file = open(r_commands, 'w')
 
+    if processes > 1:
+	install = install_package % ('doParallel', 'doParallel', 'doParallel')
+	r_file.write(install)
+	r_file.write("\n")
 
     # automatic installation of missing R packages
     install = install_package % ('caret', 'caret', 'caret')
@@ -386,10 +384,10 @@ def main():
         # knn is included in caret
 	if classifier == "knn" or classifier == "knn1":
 	    continue	
-        package = packages[classifier]
-        install = install_package % (package, package, package)
-	r_file.write(install)
-	r_file.write("\n")
+        for package in packages[classifier]:
+            install = install_package % (package, package, package)
+            r_file.write(install)
+            r_file.write("\n")
     r_file.write("\n")
     r_file.write('require(caret)')
     r_file.write("\n")
