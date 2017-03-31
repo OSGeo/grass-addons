@@ -49,10 +49,11 @@ be taken when many of the equations are underdetermined (when the vif is
 <i>Inf</i>).
 
 <p>As an alternative, the user can set the <em>f</em> flag to evoke the
-'low-memory option'. This will use <a
-href="r.regression.multi">r.regression.multi</a> in the background (this is an
-addon that needs to be installed first). It uses all raster values and can
-handle very large raster layers. The disadvantage is that it runs much slower.
+'low-memory option'. This will use the <a
+href="r.regression.multi">r.regression.multi</a> function in the background to
+compute R<sup>2</sup>, the most memory demanding part of the computation. With
+this option, the addon can handle much larger data sets. The disadvantage is
+that it runs much slower.
 
 <h2>EXAMPLES</h2>
 
