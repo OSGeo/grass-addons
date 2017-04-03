@@ -1,0 +1,14 @@
+MODULE_TOPDIR = ../..
+
+PGM = r.sun.mp
+
+LIBES = $(GPROJLIB) $(RASTERLIB) $(GISLIB) $(MATHLIB) $(PROJLIB)
+DEPENDENCIES = $(GPROJDEP) $(RASTERDEP) $(GISDEP)
+EXTRA_INC = $(PROJINC) $(OCLINCPATH)
+EXTRA_CFLAGS=-fopenmp
+EXTRA_LIBS = $(OCLLIB) $(GISLIB) -lgomp $(MATHLIB)
+#needed?  LIBES += $(OCLLIBPATH)  or  EXTRA_LDFLAGS = $(OCLLIBPATH)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
