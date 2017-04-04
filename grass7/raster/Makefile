@@ -73,6 +73,7 @@ SUBDIRS = \
 	r.niche.similarity \
 	r.northerness.easterness \
 	r.object.geometry \
+	r.object.spatialautocor \
 	r.out.arc \
 	r.out.legend \
 	r.out.ntv2 \
