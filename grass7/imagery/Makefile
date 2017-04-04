@@ -27,6 +27,7 @@ SUBDIRS = \
 	i.spec.sam \
 	i.spec.unmix \
 	i.theilsen \
+	i.variance \
 	i.vi.mpi \
 	i.wavelet \
 	i.water \
