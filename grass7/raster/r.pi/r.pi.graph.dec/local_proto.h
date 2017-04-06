@@ -1,0 +1,124 @@
+#ifndef LOCAL_PROTO_H
+#define LOCAL_PROTO_H
+
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <math.h>
+#include <time.h>
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include <grass/stats.h>
+#include "../r.pi.library/r_pi.h"
+
+#ifdef MAIN
+#define GLOBAL
+#else
+#define GLOBAL extern
+#endif
+
+typedef struct
+{
+    Coords *first_cell;
+    int count;
+} Patch;
+
+typedef struct
+{
+    int *first_patch;
+    int count;
+} Cluster;
+
+typedef void (f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
+				int fragcount, DCELL max_dist);
+typedef void (f_index) (DCELL * values, Cluster * cluster_list,
+			 int cluster_count, int *adjacency_matrix,
+			 Patch * fragments, int fragcount,
+			 DCELL * distmatrix);
+typedef int (f_choice) (int cluster_index, Cluster * cluster_list,
+			 int cluster_count, int *adjacency_matrix,
+			 Patch * fragments, int fragcount,
+			 DCELL * distmatrix);
+
+/* frag.c */
+int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
+		   int nbr_cnt);
+
+/* func.c */
+int get_dist_matrix(DCELL * distmatrix, Patch * fragments, int fragcount);
+
+void f_nearest_neighbor(int *adjacency_matrix, DCELL * distmatrix,
+			int fragcount, DCELL max_dist);
+void f_relative_neighbor(int *adjacency_matrix, DCELL * distmatrix,
+			 int fragcount, DCELL max_dist);
+void f_gabriel(int *adjacency_matrix, DCELL * distmatrix, int fragcount,
+	       DCELL max_dist);
+void f_spanning_tree(int *adjacency_matrix, DCELL * distmatrix, int fragcount,
+		     DCELL max_dist);
+
+void f_connectance_index(DCELL * values, Cluster * cluster_list,
+			 int cluster_count, int *adjacency_matrix,
+			 Patch * fragments, int fragcount,
+			 DCELL * distmatrix);
+void f_gyration_radius(DCELL * values, Cluster * cluster_list,
+		       int cluster_count, int *adjacency_matrix,
+		       Patch * fragments, int fragcount, DCELL * distmatrix);
+void f_cohesion_index(DCELL * values, Cluster * cluster_list,
+		      int cluster_count, int *adjacency_matrix,
+		      Patch * fragments, int fragcount, DCELL * distmatrix);
+void f_percent_patches(DCELL * values, Cluster * cluster_list,
+		       int cluster_count, int *adjacency_matrix,
+		       Patch * fragments, int fragcount, DCELL * distmatrix);
+void f_percent_area(DCELL * values, Cluster * cluster_list, int cluster_count,
+		    int *adjacency_matrix, Patch * fragments, int fragcount,
+		    DCELL * distmatrix);
+void f_number_patches(DCELL * values, Cluster * cluster_list,
+		      int cluster_count, int *adjacency_matrix,
+		      Patch * fragments, int fragcount, DCELL * distmatrix);
+void f_number_links(DCELL * values, Cluster * cluster_list, int cluster_count,
+		    int *adjacency_matrix, Patch * fragments, int fragcount,
+		    DCELL * distmatrix);
+void f_mean_patch_size(DCELL * values, Cluster * cluster_list,
+		       int cluster_count, int *adjacency_matrix,
+		       Patch * fragments, int fragcount, DCELL * distmatrix);
+void f_largest_patch_size(DCELL * values, Cluster * cluster_list,
+			  int cluster_count, int *adjacency_matrix,
+			  Patch * fragments, int fragcount,
+			  DCELL * distmatrix);
+void f_largest_patch_diameter(DCELL * values, Cluster * cluster_list,
+			      int cluster_count, int *adjacency_matrix,
+			      Patch * fragments, int fragcount,
+			      DCELL * distmatrix);
+void f_graph_diameter_max(DCELL * values, Cluster * cluster_list,
+			  int cluster_count, int *adjacency_matrix,
+			  Patch * fragments, int fragcount,
+			  DCELL * distmatrix);
+
+int find_clusters(Cluster * cluster_list, int *adjacency_matrix,
+		  int fragcount);
+
+DCELL nearest_points(Patch * frags, int n1, int n2, Coords * np1,
+		     Coords * np2);
+
+/* choice.c */
+/* returns index of the patch to delete next in the cluster (or the patch index in the fragments list if landscape wide choice is performed) */
+int f_smallest_first(int cluster_index, Cluster * cluster_list,
+		     int cluster_count, int *adjacency_matrix,
+		     Patch * fragments, int fragcount, DCELL * distmatrix);
+int f_biggest_first(int cluster_index, Cluster * cluster_list,
+		    int cluster_count, int *adjacency_matrix,
+		    Patch * fragments, int fragcount, DCELL * distmatrix);
+int f_random(int cluster_index, Cluster * cluster_list, int cluster_count,
+	     int *adjacency_matrix, Patch * fragments, int fragcount,
+	     DCELL * distmatrix);
+int f_link_min(int cluster_index, Cluster * cluster_list, int cluster_count,
+	       int *adjacency_matrix, Patch * fragments, int fragcount,
+	       DCELL * distmatrix);
+int f_link_max(int cluster_index, Cluster * cluster_list, int cluster_count,
+	       int *adjacency_matrix, Patch * fragments, int fragcount,
+	       DCELL * distmatrix);
+
+/* global variables */
+GLOBAL int nrows, ncols;
+
+#endif /* LOCAL_PROTO_H */

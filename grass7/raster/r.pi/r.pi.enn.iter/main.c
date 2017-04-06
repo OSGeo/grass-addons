@@ -1,0 +1,328 @@
+/*
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.enn.iter
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Iterative removal of patches and analysis of patch relevance
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
+
+#define MAIN
+
+#include "local_proto.h"
+
+struct method
+{
+    f_func *method;		/* routine to compute new value */
+    char *name;			/* method name */
+    char *text;			/* menu display - full description */
+};
+
+struct statmethod
+{
+    f_statmethod *statmethod;		/* routine to compute new value */
+    char *name;			/* method name */
+    char *text;			/* menu display - full description */
+};
+
+static struct method methods[] = {
+    {f_distance, "distance", "distance to the nearest patch"},
+    {f_area, "area", "area of the nearest patch"},
+    {0, 0, 0}
+};
+
+static struct statmethod statmethods[] = {
+    {sum, "sum", "sum of diferences"},
+    {average, "average", "average of diferences"},
+    {0, 0, 0}
+};
+
+int main(int argc, char *argv[])
+{
+    /* input */
+    char *oldname, *oldmapset, *newname, *newmapset;
+    char outname[GNAME_MAX];
+
+    /* in and out file pointers */
+    int in_fd;			/* raster - input */
+    int out_fd;			/* raster - output */
+
+    /* parameters */
+    int keyval;
+    int neighb_count;
+    int method;
+    f_func *perform_method;
+    int statmethod;
+    f_statmethod *perform_statmethod;
+
+    /* other parameters */
+    char title[1024];
+
+    /* helper variables */
+    RASTER_MAP_TYPE map_type;
+    int i, j;
+    int row, col;
+    int nrows, ncols;
+    int act_method;
+    DCELL *result;
+    struct Cell_head ch, window;
+    char *p;
+
+    int *flagbuf;
+    DCELL *values;
+    Coords *actpos;
+
+    struct GModule *module;
+    struct
+    {
+	struct Option *input, *output;
+	struct Option *keyval, *method;
+	struct Option *statmethod, *title;
+    } parm;
+    struct
+    {
+	struct Flag *adjacent, *quiet;
+    } flag;
+
+    G_gisinit(argv[0]);
+
+    module = G_define_module();
+    module->keywords = _("raster");
+    module->description = _("Patch relevance for Euclidean Nearest Neighbor patches.");
+
+    parm.input = G_define_standard_option(G_OPT_R_INPUT);
+
+    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
+
+    parm.keyval = G_define_option();
+    parm.keyval->key = "keyval";
+    parm.keyval->type = TYPE_INTEGER;
+    parm.keyval->required = YES;
+    parm.keyval->description = _("Key value of patches in the input file");
+
+    parm.method = G_define_option();
+    parm.method->key = "method";
+    parm.method->type = TYPE_STRING;
+    parm.method->required = YES;
+    p = G_malloc(1024);
+    for (act_method = 0; methods[act_method].name; act_method++) {
+	if (act_method > 0)
+	    strcat(p, ",");
+	else
+	    *p = 0;
+	strcat(p, methods[act_method].name);
+    }
+    parm.method->options = p;
+    parm.method->description = _("Aspect of the nearest patch to use.");
+
+    parm.statmethod = G_define_option();
+    parm.statmethod->key = "statmethod";
+    parm.statmethod->type = TYPE_STRING;
+    parm.statmethod->required = YES;
+    p = G_malloc(1024);
+    for (act_method = 0; statmethods[act_method].name; act_method++) {
+	if (act_method > 0)
+	    strcat(p, ",");
+	else
+	    *p = 0;
+	strcat(p, statmethods[act_method].name);
+    }
+    parm.statmethod->options = p;
+    parm.statmethod->description =
+	_("Statistical method to perform on differences.");
+
+    parm.title = G_define_option();
+    parm.title->key = "title";
+    parm.title->key_desc = "\"phrase\"";
+    parm.title->type = TYPE_STRING;
+    parm.title->required = NO;
+    parm.title->description = _("Title for resultant raster map");
+
+    flag.adjacent = G_define_flag();
+    flag.adjacent->key = 'a';
+    flag.adjacent->description =
+	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
+
+    flag.quiet = G_define_flag();
+    flag.quiet->key = 'q';
+    flag.quiet->description = _("Run quietly");
+
+    if (G_parser(argc, argv))
+	exit(EXIT_FAILURE);
+
+    /* get name of input file */
+    oldname = parm.input->answer;
+
+    /* test input files existance */
+    if (oldname && NULL == (oldmapset = G_find_cell2(oldname, ""))) {
+	G_warning(_("%s: <%s> raster file not found\n"),
+		  G_program_name(), oldname);
+	exit(EXIT_FAILURE);
+    }
+
+    /* check if the new file name is correct */
+    newname = parm.output->answer;
+    if (G_legal_filename(newname) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), newname);
+    newmapset = G_mapset();
+
+    /* get size */
+    nrows = G_window_rows();
+    ncols = G_window_cols();
+
+    /* open cell files */
+    in_fd = G_open_cell_old(oldname, oldmapset);
+    if (in_fd < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+
+    /* get map type */
+    map_type = DCELL_TYPE;
+
+    /* get key value */
+    sscanf(parm.keyval->answer, "%d", &keyval);
+
+    /* get number of cell-neighbors */
+    neighb_count = flag.adjacent->answer ? 8 : 4;
+
+    /* get method */
+    for (method = 0; (p = methods[method].name); method++)
+	if ((strcmp(p, parm.method->answer) == 0))
+	    break;
+    if (!p) {
+	G_warning(_("<%s=%s> unknown %s"),
+		  parm.method->key, parm.method->answer, parm.method->key);
+	G_usage();
+	exit(EXIT_FAILURE);
+    }
+
+    /* establish the method routine */
+    perform_method = methods[method].method;
+
+    /* get statmethod */
+    for (statmethod = 0; (p = statmethods[statmethod].name); statmethod++)
+	if ((strcmp(p, parm.statmethod->answer) == 0))
+	    break;
+    if (!p) {
+	G_warning(_("<%s=%s> unknown %s"),
+		  parm.statmethod->key, parm.statmethod->answer,
+		  parm.statmethod->key);
+	G_usage();
+	exit(EXIT_FAILURE);
+    }
+
+    /* establish the statmethod routine */
+    perform_statmethod = statmethods[statmethod].statmethod;
+
+    /* get title */
+    if (parm.title->answer)
+	strcpy(title, parm.title->answer);
+    else
+	sprintf(title, "Fragmentation of file: %s", oldname);
+
+    /* allocate the cell buffers */
+    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
+    fragments = (Coords **) G_malloc(nrows * ncols * sizeof(Coords *));
+    flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
+    result = G_allocate_d_raster_buf();
+
+    /* find fragments */
+    for (row = 0; row < nrows; row++) {
+	G_get_d_raster_row(in_fd, result, row);
+	for (col = 0; col < ncols; col++) {
+	    if (result[col] == keyval)
+		flagbuf[row * ncols + col] = 1;
+	}
+    }
+
+    writeFragments(flagbuf, nrows, ncols, neighb_count);
+
+    /* perform actual function on the patches */
+    values = (DCELL *) G_malloc(3 * fragcount * sizeof(DCELL));
+    perform_method(values, fragments, fragcount, perform_statmethod);
+
+    /* open new cellfile  */
+    strcpy(outname, newname);
+    strcat(outname, ".diff");
+    out_fd = G_open_raster_new(outname, map_type);
+	if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+
+    /* write the output file */
+    for (row = 0; row < nrows; row++) {
+	G_set_d_null_value(result, ncols);
+
+	for (i = 0; i < fragcount; i++) {
+	    for (actpos = fragments[i]; actpos < fragments[i + 1]; actpos++) {
+		if (actpos->y == row) {
+		    result[actpos->x] = values[3 * i];
+		}
+	    }
+	}
+
+	G_put_d_raster_row(out_fd, result);
+    }
+    G_close_cell(out_fd);
+
+    /* open new cellfile  */
+    strcpy(outname, newname);
+    strcat(outname, ".PP");
+    out_fd = G_open_raster_new(outname, map_type);
+	if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+
+    /* write the output file */
+    for (row = 0; row < nrows; row++) {
+	G_set_d_null_value(result, ncols);
+
+	for (i = 0; i < fragcount; i++) {
+	    for (actpos = fragments[i]; actpos < fragments[i + 1]; actpos++) {
+		if (actpos->y == row) {
+		    result[actpos->x] = values[3 * i + 1];
+		}
+	    }
+	}
+
+	G_put_d_raster_row(out_fd, result);
+    }
+    G_close_cell(out_fd);
+
+    /* open new cellfile  */
+    strcpy(outname, newname);
+    strcat(outname, ".PA");
+    out_fd = G_open_raster_new(outname, map_type);
+	if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), outname);
+
+    /* write the output file */
+    for (row = 0; row < nrows; row++) {
+	G_set_d_null_value(result, ncols);
+
+	for (i = 0; i < fragcount; i++) {
+	    for (actpos = fragments[i]; actpos < fragments[i + 1]; actpos++) {
+		if (actpos->y == row) {
+		    result[actpos->x] = values[3 * i + 2];
+		}
+	    }
+	}
+
+	G_put_d_raster_row(out_fd, result);
+    }
+    G_close_cell(out_fd);
+
+    if (verbose)
+	G_percent(1, 1, 2);
+
+    G_close_cell(in_fd);
+
+    G_free(cells);
+    G_free(fragments);
+    G_free(flagbuf);
+
+    exit(EXIT_SUCCESS);
+}

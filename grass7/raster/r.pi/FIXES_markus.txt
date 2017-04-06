@@ -1,0 +1,40 @@
+Hi authors,
+
+I have made a series of fixes.
+
+major stuff
+- added r.pi.corrwin r.pi.index r.pi.rectangle to this copy in Dropbox for completion
+- renamed since caps letters are undesired:
+   r.fragment.NN -> r.fragment.nn
+   r.fragment.ENN -> r.fragment.enn
+- corrected all global variable definitions, in order to make code
+  compilable with these flags: -Wall  -fno-common -fexceptions (a test
+  for code portability)
+- fixed include file order: first system, then grass includes
+- use M_PI instead of private PI definition
+- use GNAME_MAX instead of 256 chars length
+- mv man_pages/rpi_overview.html description.html
+  in order to autogenerate main description page
+- updated ./description.html
+   - all HTML tags should be minor case, not caps
+   - linked modules
+   - broken long lines
+
+minor stuff
+- added GRASS GPL header in all main.c files, PURPOSE field yet to be compiled
+- fixed file permissions
+- fixed main Makefile
+- removed empty directories and cruft
+- removed superfluous */makeit.sh files. For compilation, simply use
+   make MODULE_TOPDIR=$HOME/grass64/
+   make MODULE_TOPDIR=$HOME/grass64/ install
+ and
+   make MODULE_TOPDIR=$HOME/grass64/ clean
+- fixed C code layout with this helper script:
+   grass64/tools/grass_indent.sh
+
+
+Cheers
+Markus Neteler
+4/2011
+http://gis.cri.fmach.it
