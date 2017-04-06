@@ -4,13 +4,13 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 {
     FILE *out_fp;
     int res = 0;
-    char *mapset;
+    const char *mapset;
     int out_fd;
     int row, col, i;
     DCELL *result;
 
     /* allocate memory for result-row */
-    result = G_allocate_d_raster_buf();
+    result = Rast_allocate_d_buf();
 
     /* open ASCII-file or use stdout */
     if (!(out_fp = fopen(name, "w"))) {
@@ -33,7 +33,7 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 	mapset = G_mapset();
 
 	/* open the new cellfile */
-	out_fd = G_open_raster_new(name, DCELL_TYPE);
+	out_fd = Rast_open_new(name, DCELL_TYPE);
 	if (out_fd < 0) {
 	    char msg[200];
 
@@ -45,7 +45,7 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 	else {
 	    /* write data */
 	    for (row = 0; row < nrows; row++) {
-		G_set_d_null_value(result, ncols);
+		Rast_set_d_null_value(result, ncols);
 
 		for (i = 0; i < count; i++) {
 		    for (actpos = frags[i]; actpos < frags[i + 1]; actpos++) {
@@ -55,10 +55,10 @@ int writeDistMatrixAndID(char *name, Coords ** frags, int count)
 		    }
 		}
 
-		G_put_d_raster_row(out_fd, result);
+		Rast_put_d_row(out_fd, result);
 	    }
 	}
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* free memory */

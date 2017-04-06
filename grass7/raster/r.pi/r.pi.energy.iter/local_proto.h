@@ -20,6 +20,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
     double dir;
     DCELL energy;
     int finished;
@@ -43,17 +48,14 @@ typedef struct
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
-void perform_search(int *map, DCELL * costmap, DCELL * suitmap,
-		    int remove_indi);
+void perform_search(int *map, DCELL * costmap, int remove_indi, int n, int fragcount, int sx, int sy);
 
 
 /* parameters */
-GLOBAL int sx, sy;
 GLOBAL int keyval;
-GLOBAL int n;
 GLOBAL double energy;
 GLOBAL double percent;
 GLOBAL int step_length;
@@ -65,18 +67,17 @@ GLOBAL int setback;
 /* more global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *immigrants;
 GLOBAL int *migrants;
 GLOBAL int *emigrants;
-GLOBAL int *patch_registry;	// ( patch1(indi1, indi2, ...), patch2(...), ... )
+GLOBAL int *patch_registry;	/* ( patch1(indi1, indi2, ...), patch2(...), ... ) */
 GLOBAL int *lost;
 GLOBAL int *migrants_succ;
 GLOBAL char *deleted_arr;
 
-GLOBAL char *newname, *newmapset;
+GLOBAL char *newname;
 GLOBAL char outname[GNAME_MAX];
 
 

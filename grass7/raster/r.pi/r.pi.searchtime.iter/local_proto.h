@@ -20,6 +20,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
     double dir;
     DCELL path;
     int finished;
@@ -39,10 +44,6 @@ typedef struct
 
 typedef DCELL(f_statmethod) (DCELL *, int);
 
-/* helpers.c */
-int Round(double d);
-int Random(int max);
-double Randomf();
 void print_buffer(int *buffer, int sx, int sy);
 void print_d_buffer(DCELL * buffer, int sx, int sy);
 void print_map(double *map, int size);
@@ -50,11 +51,11 @@ void print_array(DCELL * buffer, int size);
 void print_fragments();
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap,
-		    f_statmethod **stats, int stat_count);
+		    f_statmethod **stats, int stat_count, int n, int fragcount, int sx, int sy);
 
 /* stat_method.c */
 DCELL average(DCELL * vals, int count);
@@ -65,9 +66,7 @@ DCELL min(DCELL * vals, int count);
 DCELL max(DCELL * vals, int count);
 
 /* global parameters */
-GLOBAL int sx, sy;
 GLOBAL int keyval;
-GLOBAL int n;
 GLOBAL double percent;
 GLOBAL int maxsteps;
 GLOBAL int step_length;
@@ -79,13 +78,13 @@ GLOBAL double multiplicator;
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *patch_imi;
 GLOBAL char *deleted_arr;
 
-GLOBAL char *newname, *newmapset;
-GLOBAL char *iminame, *imimapset;
+GLOBAL char *newname;
+GLOBAL char *iminame;
+GLOBAL const char *imimapset;
 
 #endif /* LOCAL_PROTO_H */

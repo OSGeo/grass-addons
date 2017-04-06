@@ -1,6 +1,6 @@
 #include "local_proto.h"
 
-void create_map(int *res)
+void create_map(int *res, int size)
 {
     double *fractbuf = (double *)G_malloc(size * size * sizeof(double));
     double min, max;
@@ -16,7 +16,7 @@ void create_map(int *res)
     /* replace nan values with min value */
     MinMax(fractbuf, &min, &max, size * size);
     for (i = 0; i < size * size; i++)
-	if (G_is_d_null_value(&fractbuf[i]))
+	if (Rast_is_d_null_value(&fractbuf[i]))
 	    fractbuf[i] = min;
 
     /* find edge */

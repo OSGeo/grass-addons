@@ -24,13 +24,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -41,6 +41,7 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
 	    }
 	}
     }
+
     return min;
 }
 
@@ -64,7 +65,7 @@ DCELL *get_dist_matrix(int count)
     return distmatrix;
 }
 
-void compute_values(DCELL * vals, int min, int max, f_func stat_method)
+void compute_values(DCELL * vals, int fragcount, int min, int max, f_func stat_method)
 {
     int i, j;
     int counter;
@@ -93,7 +94,7 @@ void compute_values(DCELL * vals, int min, int max, f_func stat_method)
 	   fprintf(stderr, "\n"); */
 
 	vals[i] = stat_method(patch_vals, counter);
-	// fprintf(stderr, "vals[%d] = %0.2f\n", i, vals[i]);
+	/* fprintf(stderr, "vals[%d] = %0.2f\n", i, vals[i]); */
     }
 
     G_free(distmatrix);

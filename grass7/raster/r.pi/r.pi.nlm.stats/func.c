@@ -4,7 +4,7 @@ int GetCell(double *map, int x, int y, int size, double *res)
 {
     if ((x >= 0) && (x < size) && (y >= 0) && (y < size)) {
 	*res = map[x + y * size];
-	if (G_is_d_null_value(res)) {
+	if (Rast_is_d_null_value(res)) {
 	    double min, max;
 
 	    MinMax(map, &min, &max, size * size);
@@ -12,18 +12,18 @@ int GetCell(double *map, int x, int y, int size, double *res)
 	}
 	return 1;
     }
-    else {
-	*res = 0;
-	return 0;
-    }
+
+    *res = 0;
+
+    return 0;
 }
 
 void SetCell(double *map, int x, int y, int size, double value)
 {
-    //      fprintf(stderr, "writing value = %f to x = %d y = %d\n", value, x, y);
-    if (!G_is_d_null_value(&map[x + y * size]))
+    /*      fprintf(stderr, "writing value = %f to x = %d y = %d\n", value, x, y); */
+    if (!Rast_is_d_null_value(&map[x + y * size]))
 	map[x + y * size] = value;
-    //      fprintf(stderr, "map[%d,%d] = %f\n", x, y, map[x + y * size]);
+    /*      fprintf(stderr, "map[%d,%d] = %f\n", x, y, map[x + y * size]); */
 }
 
 double DownSample(double *map, int x, int y, int newcols, int newrows,
@@ -79,7 +79,7 @@ double UpSample(int *map, int x, int y, int oldcols, int oldrows, int newsize)
     double res = 0;
 
     if (map[oldx + oldy * oldcols] != 0) {
-	G_set_d_null_value(&res, 1);
+	Rast_set_d_null_value(&res, 1);
     }
     return res;
 }
@@ -88,13 +88,14 @@ void MinMax(double *map, double *min, double *max, int size)
 {
     int i;
 
+    *min = MAX_DOUBLE;
+    *max = MIN_DOUBLE;
+
     if (size == 0)
 	return;
 
-    *min = MAX_DOUBLE;
-    *max = MIN_DOUBLE;
     for (i = 1; i < size; i++) {
-	if (!G_is_d_null_value(&map[i])) {
+	if (!Rast_is_d_null_value(&map[i])) {
 	    if (map[i] < *min)
 		*min = map[i];
 	    if (map[i] > *max)
@@ -105,35 +106,34 @@ void MinMax(double *map, double *min, double *max, int size)
 
 double CutValues(double *map, double mapcover, int size)
 {
-    int values[RESOLUTION - 1];
-    double min, max, span, c;
+    int values[RESOLUTION];
+    double min, max, span;
     int pixels;
-    int i, j, index;
+    int i, index;
     int bottom, top;
     int topdif, bottomdif;
 
-    // get parameters
+    /* get parameters */
     MinMax(map, &min, &max, size);
     span = max - min;
-    c = min / span;
     pixels = Round(size * mapcover);
 
-    // classify heights
+    /* classify heights */
     memset(values, 0, RESOLUTION * sizeof(int));
     for (i = 0; i < size; i++) {
 	index = floor(RESOLUTION * (map[i] - min) / span);
 	if (index >= RESOLUTION)
 	    index = RESOLUTION - 1;
-	//              index:= RES * map[i] / span - c;
+	/*              index:= RES * map[i] / span - c; */
 	values[index]++;
     }
 
-    // accumulate top to bottom
+    /* accumulate top to bottom */
     for (i = RESOLUTION - 1; i > 0; i--) {
 	values[i - 1] += values[i];
     }
 
-    // find matching height
+    /* find matching height */
     bottom = 0;
     top = RESOLUTION - 1;
     while (bottom < top) {
@@ -147,7 +147,7 @@ double CutValues(double *map, double mapcover, int size)
     if (values[top] >= pixels)
 	top++;
 
-    // find the closest to the landcover
+    /* find the closest to the landcover */
     topdif = abs(values[top] - pixels);
     bottomdif = abs(values[bottom] - pixels);
 
@@ -167,7 +167,7 @@ void FractalStep(double *map, Point v1, Point v2, Point v3, Point v4,
     double mval;
     double r;
 
-    // get values
+    /* get values */
     int cnt = 0;
 
     if (GetCell(map, v1.x, v1.y, size, &val1))
@@ -179,15 +179,15 @@ void FractalStep(double *map, Point v1, Point v2, Point v3, Point v4,
     if (GetCell(map, v4.x, v4.y, size, &val4))
 	cnt++;
 
-    // calculate midpoints
+    /* calculate midpoints */
     mid.x = (v1.x + v2.x + v3.x + v4.x) / 4;
     mid.y = (v1.y + v2.y + v3.y + v4.y) / 4;
 
-    // calc mid values
+    /* calc mid values */
     r = (Randomf() - 0.5) * 2;
     mval = (val1 + val2 + val3 + val4) / cnt + r * d;
 
-    // set new values
+    /* set new values */
     SetCell(map, mid.x, mid.y, size, mval);
 }
 
@@ -199,17 +199,17 @@ void FractalIter(double *map, double d, double dmod, int n, int size)
     double actd = d;
     int xdisp;
 
-    // initialize corners
+    /* initialize corners */
     SetCell(map, 0, 0, size, 2 * (Randomf() - 0.5));
     SetCell(map, size - 1, 0, size, 2 * (Randomf() - 0.5));
     SetCell(map, 0, size - 1, size, 2 * (Randomf() - 0.5));
     SetCell(map, size - 1, size - 1, size, 2 * (Randomf() - 0.5));
 
-    // calculate starting step width
+    /* calculate starting step width */
     step = size;
 
     for (i = 0; i < n; i++) {
-	// do diamond step
+	/* do diamond step */
 	for (x = 0; x < (1 << i); x++) {
 	    for (y = 0; y < (1 << i); y++) {
 		v1.x = x * step;
@@ -224,10 +224,10 @@ void FractalIter(double *map, double d, double dmod, int n, int size)
 	    }
 	}
 
-	// adjust step
+	/* adjust step */
 	step >>= 1;
 
-	// do square step
+	/* do square step */
 	xdisp = 1;
 	for (y = 0; y <= (1 << (i + 1)); y++) {
 	    for (x = 0; x <= (1 << i) - xdisp; x++) {
@@ -243,7 +243,7 @@ void FractalIter(double *map, double d, double dmod, int n, int size)
 		FractalStep(map, v1, v2, v3, v4, actd, size);
 	    }
 
-	    // switch row offset
+	    /* switch row offset */
 	    if (xdisp == 0) {
 		xdisp = 1;
 	    }
@@ -252,7 +252,7 @@ void FractalIter(double *map, double d, double dmod, int n, int size)
 	    }
 	}
 
-	// adjust displacement
+	/* adjust displacement */
 	actd = actd * dmod;
     }
 }

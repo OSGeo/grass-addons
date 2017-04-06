@@ -1,6 +1,5 @@
 /* bufs.c */
 extern int allocate_bufs(void);
-
 extern int rotate_bufs(int);
 
 /* gather */

@@ -31,6 +31,7 @@ Operations which <em>r.pi.fnn</em> can perform are:
 
 <p>
 
+<dl>
 <dt><b>Distance</b> 
 
 <dd>The <em>Distance to Nearest</em> computes the nearest edge-to-edge
@@ -60,12 +61,13 @@ edge-to-edge distance patch. It is based on <em>Distance</em> not on
 
 <dd>The <em>SHAPE</em> computes the SHAPE Index of the nearest edge-to-edge
 distance patch. It is based on <em>Distance</em> not on <em> path Distance</em>.
-
+</dl>
 
 The <em>statsmethod</em> operators determine calculation is done on the
 distance. <em>Average</em>, <em>Variance</em>,<em>Stddev</em> and
 <em>value</em> can be used.
 
+<dl>
 <dt><b>Average</b> 
 
 <dd>The <em>Average</em> computes the average value defined in
@@ -87,15 +89,13 @@ distance. <em>Average</em>, <em>Variance</em>,<em>Stddev</em> and
 between two patches. The output of <em>value</em> is the actual value.
 E.g. NN==5 of <em>area</em> gives the size of the 5th NN while
 <em>Average</em> gives the average of the area of 1-5th NN.
-
+</dl>
 
 The input options are either one NN: <em>1</em> or several NN separated
 by <em>,</em>: 1,2,5,8 or a range of NN: 1-6.
 
 <p>
 Merging these options is possible as well: 1-5,8,9,13,15-19,22 etc.
-
-</dl>
 
 <h2>EXAMPLE</h2>
 

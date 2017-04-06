@@ -1,8 +1,9 @@
 /*
  ****************************************************************************
  *
- * MODULE:       r.pi.nlm.2
+ * MODULE:       r.pi.nlm
  * AUTHOR(S):    Elshad Shirinov, Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Generation of Neutral Landscapes (fractal landscapes), similar to r.pi.nlm, but fractal landscapes instead of circular growth
  *
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
@@ -18,10 +19,11 @@
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* output */
-    char *newname, *newmapset;
+    char *newname;
 
     /* in and out file pointers */
     int in_fd, out_fd;
@@ -34,9 +36,6 @@ int main(int argc, char *argv[])
     double sharpness;
     int rand_seed;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
     RASTER_MAP_TYPE map_type;
     int *buffer;
@@ -44,11 +43,9 @@ int main(int argc, char *argv[])
     int i, j;
     int row, col;
     int cnt;
-    Point *list;
     CELL *result;
     int size, n;
     double edge;
-    struct Cell_head ch, window;
     double min, max;
 
     struct GModule *module;
@@ -67,7 +64,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Creates a random generated map with values 0 or 1"
 	  "by given landcover and fragment count.");
@@ -130,10 +127,11 @@ int main(int argc, char *argv[])
 
     /* get name of input file */
     oldname = parm.input->answer;
+    oldmapset = NULL;
 
     /* test input files existance */
-    if (oldname && NULL == (oldmapset = G_find_cell2(oldname, "")))
-	    G_fatal_error(_("Raster map <%s> not found"), oldname);
+    if (oldname && NULL == (oldmapset = G_find_raster2(oldname, "")))
+	G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* if input specified get keyval */
     if (oldname) {
@@ -142,20 +140,19 @@ int main(int argc, char *argv[])
 	}
 	else if (!parm.landcover->answer) {
 		G_fatal_error("Specify either landcover or an input file with key value for landcover to be acquired!");
-	    }
+	}
     }
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     map_type = CELL_TYPE;
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     size = 1;
     n = 0;
@@ -182,7 +179,7 @@ int main(int argc, char *argv[])
     else {
 	if (!oldname)
 	   G_fatal_error("Specify either landcover or an input file with key value for landcover to be acquired!");
-	}
+    }
 
     /* get sharpness */
     if (parm.sharpness->answer) {
@@ -192,11 +189,10 @@ int main(int argc, char *argv[])
 	sharpness = Randomf();
     }
 
-
     /* allocate the cell buffer */
     buffer = (int *)G_malloc(sx * sy * sizeof(int));
     bigbuf = (double *)G_malloc(size * size * sizeof(double));
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
 
     /* init buffers */
     memset(bigbuf, 0, size * size * sizeof(double));
@@ -207,13 +203,13 @@ int main(int argc, char *argv[])
 	pixel_count = 0;
 
 	/* open cell files */
-    in_fd = G_open_cell_old(oldname, oldmapset);
-    if (in_fd < 0)
-        G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	in_fd = Rast_open_old(oldname, oldmapset);
+	if (in_fd < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
 	/* init buffer with values from input and get landcover */
 	for (row = 0; row < sy; row++) {
-	    G_get_c_raster_row(in_fd, result, row);
+	    Rast_get_c_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		if (parm.nullval->answers) {
 		    for (i = 0; parm.nullval->answers[i] != NULL; i++) {
@@ -228,6 +224,7 @@ int main(int argc, char *argv[])
 		    pixel_count++;
 	    }
 	}
+	Rast_close(in_fd);
 
 	/* calculate landcover */
 	if (parm.keyval->answer)
@@ -249,7 +246,7 @@ int main(int argc, char *argv[])
     MinMax(bigbuf, &min, &max, size * size);
 
     for (i = 0; i < size * size; i++)
-	if (G_is_d_null_value(&bigbuf[i]))
+	if (Rast_is_d_null_value(&bigbuf[i]))
 	    bigbuf[i] = min;
 
     /* find edge */
@@ -272,9 +269,9 @@ int main(int argc, char *argv[])
 
 
     /* write output file */
-    out_fd = G_open_raster_new(newname, map_type);
+    out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     for (j = 0; j < sy; j++) {
 	for (i = 0; i < sx; i++) {
@@ -284,14 +281,13 @@ int main(int argc, char *argv[])
 		result[i] = 1;
 	    }
 	    else {
-		G_set_c_null_value(result + i, 1);
+		Rast_set_c_null_value(result + i, 1);
 	    }
 	}
-	G_put_c_raster_row(out_fd, result);
+	Rast_put_c_row(out_fd, result);
     }
 
-    G_close_cell(in_fd);
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* print report */
     if (flag.report->answer) {
@@ -303,7 +299,7 @@ int main(int argc, char *argv[])
 	    if (buffer[i] == 1)
 		cnt++;
 	landcover = (double)cnt / ((double)sx * (double)sy) * 100;
-	fprintf(stdout, "landcover: %0.2lf%%\n", landcover);
+	fprintf(stdout, "landcover: %0.2f%%\n", landcover);
     }
 
     G_free(buffer);

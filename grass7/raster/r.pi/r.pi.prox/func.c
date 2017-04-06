@@ -24,13 +24,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -41,6 +41,7 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
 	    }
 	}
     }
+
     return min;
 }
 
@@ -85,6 +86,7 @@ int f_proximity(DCELL * vals, Coords ** frags, int count, int min, int max)
     }
 
     G_free(distmatrix);
+
     return 0;
 }
 
@@ -96,6 +98,7 @@ int f_modified_prox(DCELL * vals, Coords ** frags, int count, int min,
 
     for (i = 0; i < count; i++) {
 	DCELL prox = 0.0;
+	DCELL area;
 
 	for (j = 0; j < count; j++) {
 	    if (i != j) {
@@ -106,12 +109,13 @@ int f_modified_prox(DCELL * vals, Coords ** frags, int count, int min,
 		    prox += area / d;
 	    }
 	}
-	DCELL area = (DCELL) (frags[i + 1] - frags[i]);
+	area = (DCELL) (frags[i + 1] - frags[i]);
 
 	vals[i] = prox * area;
     }
 
     G_free(distmatrix);
+
     return 0;
 }
 
@@ -135,5 +139,6 @@ int f_neighborhood(DCELL * vals, Coords ** frags, int count, int min, int max)
     }
 
     G_free(distmatrix);
+
     return 0;
 }

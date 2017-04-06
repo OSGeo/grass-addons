@@ -16,8 +16,7 @@ int nx, ny, sizex, sizey;
 /*
    initializes all individuals for a window
  */
-void init_individuals(int x, int y, int sizex, int sizey, int *map,
-		      DCELL * costmap, int n)
+void init_individuals(int x, int y, DCELL * costmap, int n, int sx)
 {
     int i, j, index;
     Displacement *cell;
@@ -57,7 +56,7 @@ void init_individuals(int x, int y, int sizex, int sizey, int *map,
 /*
    sets back an individual, when position is illegal
  */
-void set_back(int *map, int indi)
+void set_back(int indi)
 {
     int index;
     Displacement *cell;
@@ -150,7 +149,7 @@ void calculate_displacement(Displacement * values, int radius)
    fills a weighted array with possible next positions
  */
 void pick_nextpos(WeightedCoords * result, int indi, int *map,
-		  DCELL * costmap)
+		  DCELL * costmap, int sx, int sy)
 {
     int i;
     double ex_step, ex_pos;
@@ -215,7 +214,7 @@ void pick_nextpos(WeightedCoords * result, int indi, int *map,
 /*
    performs a single step for an individual
  */
-void indi_step(int indi, int *map, DCELL * costmap, double step)
+void indi_step(int indi, int *map, DCELL * costmap, int sx, int sy)
 {
     int i;
     double sum;
@@ -237,10 +236,10 @@ void indi_step(int indi, int *map, DCELL * costmap, double step)
     }
 
     /* test output */
-    //      fprintf(stderr, "actpos: x = %0.2f, y = %0.2f\n", individual->x, individual->y);
+    /* fprintf(stderr, "actpos: x = %0.2f, y = %0.2f\n", individual->x, individual->y); */
 
     /* write an array with possible next positions */
-    pick_nextpos(pos_arr, indi, map, costmap);
+    pick_nextpos(pos_arr, indi, map, costmap, sx, sy);
 
     /* test output */
     /*      G_message("Nextpos array:\n");
@@ -255,7 +254,7 @@ void indi_step(int indi, int *map, DCELL * costmap, double step)
 	sum += pos_arr[i].weight;
     }
     if (sum == 0) {
-	set_back(map, indi);
+	set_back(indi);
 
 	return;
     }
@@ -275,11 +274,11 @@ void indi_step(int indi, int *map, DCELL * costmap, double step)
     newdir = pos_arr[i].dir;
 
     /* test output */
-    //      fprintf(stderr, "pick: x = %0.2f, y = %0.2f\n\n", newx, newy);
+    /* fprintf(stderr, "pick: x = %0.2f, y = %0.2f\n\n", newx, newy); */
 
     /* if new position is out of limits, then set back */
     if (newx < 0 || newx >= sx || newy < 0 || newy >= sy) {
-	set_back(map, indi);
+	set_back(indi);
 
 	return;
     }
@@ -311,24 +310,23 @@ void indi_step(int indi, int *map, DCELL * costmap, double step)
 /*
    performs a search run for a single fragment
  */
-DCELL window_run(int x, int y, int *map, DCELL * costmap)
+DCELL window_run(int x, int y, int *map, DCELL * costmap, int n, int sx, int sy)
 {
     int i;
-    DCELL res = 0;
     int step_cnt = 0;
     int finished_cnt = 0;
     int limit = ceil(n * percent / 100);
 
-    init_individuals(x, y, sizex, sizey, map, costmap, n);
+    init_individuals(x, y, costmap, n, sx);
 
     /* perform a step for each individual */
     finished_cnt = 0;
     while (finished_cnt < limit && step_cnt <= maxsteps) {
 	for (i = 0; i < n; i++) {
 	    if (!indi_array[i].finished) {
-		indi_step(i, map, costmap, step_length);
+		indi_step(i, map, costmap, sx, sy);
 
-		/* test if new individual finished */
+		/* test if new individuum finished */
 		if (indi_array[i].finished) {
 		    finished_cnt++;
 
@@ -351,10 +349,9 @@ DCELL window_run(int x, int y, int *map, DCELL * costmap)
    performs a search run for each fragment
  */
 void perform_search(DCELL * values, int *map, DCELL * costmap, int size,
-		    f_statmethod **stats, int stat_count)
+		    f_statmethod **stats, int stat_count, int n, int fragcount, int sx, int sy)
 {
-    int fragment, i;
-    int steps;
+    int i;
     f_statmethod *func;
     int x, y;
 
@@ -404,7 +401,7 @@ void perform_search(DCELL * values, int *map, DCELL * costmap, int size,
     /* perform a search run for each window */
     for (x = 0; x < nx; x++) {
 	for (y = 0; y < ny; y++) {
-	    steps = window_run(x, y, map, costmap);
+	    window_run(x, y, map, costmap, n, sx, sy);
 
 	    for (i = 0; i < n; i++) {
 		indi_paths[i] = indi_array[i].path;

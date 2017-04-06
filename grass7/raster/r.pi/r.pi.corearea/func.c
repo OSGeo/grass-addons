@@ -1,26 +1,25 @@
 #include "local_proto.h"
 
-void valmap_output()
+void valmap_output(int nrows, int ncols)
 {
     int out_fd;
+    int row;
     DCELL *result;
 
-    result = (DCELL *) G_allocate_c_raster_buf();
+    result = (DCELL *) Rast_allocate_c_buf();
 
     /* write output */
     /* open the new cellfile  */
-    out_fd = G_open_raster_new("test_valmap", DCELL_TYPE);
+    out_fd = Rast_open_new("test_valmap", DCELL_TYPE);
     if (out_fd < 0) {
 	G_fatal_error(_("can't create new cell file test_valmap\n"));
 	exit(EXIT_FAILURE);
     }
 
     /* write the output file */
-    int row, i;
-    Position *p;
 
     for (row = 0; row < nrows; row++) {
-	G_put_d_raster_row(out_fd, &valmap[row * ncols]);
+	Rast_put_d_row(out_fd, &valmap[row * ncols]);
     }
 
     G_free(result);
@@ -28,27 +27,26 @@ void valmap_output()
 
 /* find one contour strting at the given cell poition */
 Position *find_contour(int *flagbuf, Position start, int dirx, int diry,
-		       Position * list, int patch)
+		       int nrows, int ncols, Position * list, int patch)
 {
     /* start with the given cell */
     int x = start.x;
     int y = start.y;
     int dx = dirx;
     int dy = diry;
-
     int curpos = 0;
 
     list[curpos].x = x;
     list[curpos].y = y;
 
-    while (1) {			// sorry for this while(true) loop
+    while (1) {			/* sorry for this while(true) loop */
 	x += dx;
 	y += dy;
 
 	if (x >= 0 && x < ncols && y >= 0 && y < nrows) {
 	    if (flagbuf[y * ncols + x] == patch + 1) {
 		/* a patch cell is encountered */
-		int neighbors;
+		int tmp;
 
 		/* if it is not the current cell again */
 		if (!(x == list[curpos].x && y == list[curpos].y)) {
@@ -73,7 +71,7 @@ Position *find_contour(int *flagbuf, Position start, int dirx, int diry,
 		y -= dy;
 
 		/* turn left */
-		int tmp = dx;
+		tmp = dx;
 
 		dx = dy;
 		dy = -tmp;
@@ -100,7 +98,7 @@ Position *find_contour(int *flagbuf, Position start, int dirx, int diry,
 	    dx = -dy;
 	    dy = tmp;
 	}
-    }				// while(1)
+    }				/* while(1) */
 
     /* adjust the patch border references */
     curpos++;
@@ -109,13 +107,21 @@ Position *find_contour(int *flagbuf, Position start, int dirx, int diry,
 }
 
 /* find borders of a patch and sort cells accordingly */
-void find_borders_patch(int *flagbuf, int patch)
+void find_borders_patch(int *flagbuf, int patch, int nrows, int ncols)
 {
     /* copy border cells into a separate border array */
     int cell_count = fragments[patch + 1] - fragments[patch];
-    Position border[cell_count * 2];
+    Position *border;
+    PatchBorderList *list;
     int border_count = 0;
     Coords *p;
+    int i;
+    int curpos = 0;
+    int first;
+    int dx = 0;
+    int dy = -1;
+    
+    border = G_malloc(cell_count * 2 * sizeof(Position));
 
     for (p = fragments[patch]; p < fragments[patch + 1]; p++) {
 	if (p->neighbors < 4) {
@@ -126,7 +132,6 @@ void find_borders_patch(int *flagbuf, int patch)
     }
 
     /* test output */
-    int i;
 
     /*fprintf(stderr, "Border cells for patch %d:", patch);
        for(i = 0; i < border_count; i++) {
@@ -134,10 +139,10 @@ void find_borders_patch(int *flagbuf, int patch)
        }
        fprintf(stderr, "\n"); */
 
-    //G_message("Allocating for patch %d, border_count = %d", patch, border_count);
+    /* G_message("Allocating for patch %d, border_count = %d", patch, border_count); */
 
     /* initialize current patch border list */
-    PatchBorderList *list = patch_borders + patch;
+    list = patch_borders + patch;
 
     list->positions =
 	(Position *) G_malloc(2 * border_count * sizeof(Position));
@@ -155,8 +160,6 @@ void find_borders_patch(int *flagbuf, int patch)
     }
 
     /* find the top-left border cell */
-    int curpos = 0;
-    int first;
 
     for (first = i = curpos; i < border_count; i++) {
 	if (border[i].y < border[first].y ||
@@ -166,19 +169,17 @@ void find_borders_patch(int *flagbuf, int patch)
 	}
     }
 
-    //G_message("top-left border cell: (%d,%d)", border[first].x, border[first].y);
+    /* G_message("top-left border cell: (%d,%d)", border[first].x, border[first].y); */
 
     /* set direction for the first run */
-    int dx = 0;
-    int dy = -1;
 
     /* repeat until all borders have been found */
-    Position *nextpos = list->positions;
-
     do {
+	int pos;
+
 	/* find next contour */
 	list->borders[list->count + 1] =
-	    find_contour(flagbuf, border[first], dx, dy,
+	    find_contour(flagbuf, border[first], dx, dy, nrows, ncols,
 			 list->borders[list->count], patch);
 
 	list->count++;
@@ -205,14 +206,13 @@ void find_borders_patch(int *flagbuf, int patch)
 
 	/* find a border cell which still has at least one unvisited empty neighbor */
 	first = -1;
-	int pos;
 
 	for (pos = 0; pos < border_count; pos++) {
-	    Position *p = border + pos;
+	    Position *pt = border + pos;
 
-	    int nx, ny;		// neighbor
-	    int x = p->x;
-	    int y = p->y;
+	    int nx, ny;		/* neighbor */
+	    int x = pt->x;
+	    int y = pt->y;
 
 	    /* test right neighbor */
 	    nx = x + 1;
@@ -263,20 +263,22 @@ void find_borders_patch(int *flagbuf, int patch)
 }
 
 /* find borders of all patches and sort cells accordingly */
-void find_borders(int *flagbuf)
+void find_borders(int *flagbuf, int nrows, int ncols, int fragcount)
 {
     int i;
 
     for (i = 0; i < fragcount; i++) {
-	//    for(i = 10; i < 11; i++) {
-	//G_message("Border %d", i);
-	find_borders_patch(flagbuf, i);
+	/*
+	for(i = 10; i < 11; i++)
+	G_message("Border %d", i);
+	*/
+	find_borders_patch(flagbuf, i, nrows, ncols);
 
 	G_percent(i + 1, fragcount, 1);
-	//G_message("%d of %d", i, fragcount);
+	/*G_message("%d of %d", i, fragcount); */
     }
 
-    //valmap_output();    
+    /* valmap_output(); */
 }
 
 /* gets normal to the patch border in the given cell's position */
@@ -286,30 +288,30 @@ Vector2 normal(int patch, int border_index, int cell)
     Position *border = list.borders[border_index];
     int cell_count =
 	list.borders[border_index + 1] - list.borders[border_index];
+    Position cell1, cell2, cell3;
+    int dx1, dy1, dx2, dy2;
+    double l;
+    Vector2 res = {1.0, 0.0};
 
-    //G_message("Enter: patch = %d, cell_cnt = %d", patch, cell_count);
+    /* G_message("Enter: patch = %d, cell_cnt = %d", patch, cell_count); */
 
     /* handle 1-pixel patches separately */
     if (cell_count <= 1) {
-	return (Vector2) {
-	1.0, 0.0};
+	return res; 
     }
 
-    //    G_message("first cells: (%d, %d)", border[0].x, border[0].y);
+    /*    G_message("first cells: (%d, %d)", border[0].x, border[0].y); */
 
     /* get three consequtive cells */
-    Position cell1 = border[((cell - 1) + cell_count) % cell_count];
-    Position cell2 = border[cell];
-    Position cell3 = border[(cell + 1) % cell_count];
+    cell1 = border[((cell - 1) + cell_count) % cell_count];
+    cell2 = border[cell];
+    cell3 = border[(cell + 1) % cell_count];
 
-    //    G_message("Middle");
+    dx1 = cell2.x - cell1.x;
+    dy1 = cell2.y - cell1.y;
+    dx2 = cell3.x - cell2.x;
+    dy2 = cell3.y - cell2.y;
 
-    int dx1 = cell2.x - cell1.x;
-    int dy1 = cell2.y - cell1.y;
-    int dx2 = cell3.x - cell2.x;
-    int dy2 = cell3.y - cell2.y;
-
-    Vector2 res;
 
     res.x = 0.5 * (dy1 + dy2);
     res.y = -0.5 * (dx1 + dx2);
@@ -320,17 +322,16 @@ Vector2 normal(int patch, int border_index, int cell)
     }
 
     /* normalize resulting vector */
-    double l = sqrt(res.x * res.x + res.y * res.y);
+    l = sqrt(res.x * res.x + res.y * res.y);
 
     res.x /= l;
     res.y /= l;
 
-    //    G_message("Exit");
     return res;
 }
 
 /* returns a value from the cost map */
-DCELL get_cost_value(int x, int y)
+DCELL get_cost_value(int x, int y, int nrows, int ncols)
 {
     if (x >= 0 && x < ncols && y >= 0 && y < nrows) {
 	return map[y * ncols + x];
@@ -343,12 +344,12 @@ DCELL get_cost_value(int x, int y)
 /* gets an array with values of the cost matrix cells in the range of the effect cone of */
 /* the given cell with the given normal */
 int get_cost_values(DCELL * res, Position cell, Vector2 n, double distance,
-		    double angle, double weight_param)
+		    double angle, double weight_param, int nrows, int ncols)
 {
     int d = (int)distance;
     double ref = cos(0.5 * angle);
 
-    //fprintf(stderr, "Cell (%d, %d): ", cell.x, cell.y);
+    /* fprintf(stderr, "Cell (%d, %d): ", cell.x, cell.y); */
 
     int x, y;
     int count = 0;
@@ -362,7 +363,7 @@ int get_cost_values(DCELL * res, Position cell, Vector2 n, double distance,
 
 	    double angcos = (dx * n.x + dy * n.y) / l;
 
-	    DCELL val = get_cost_value(x, y);
+	    DCELL val = get_cost_value(x, y, nrows, ncols);
 
 	    if (angcos >= ref && l <= distance && val >= 0) {
 		/* incorporate distance */
@@ -374,27 +375,30 @@ int get_cost_values(DCELL * res, Position cell, Vector2 n, double distance,
 		res[count] = val;
 		count++;
 
-		//fprintf(stderr, "%0.2f ", val);
+		/* fprintf(stderr, "%0.2f ", val); */
 	    }
 	}
     }
 
-    //fprintf(stderr, "\n");
+    /* fprintf(stderr, "\n"); */
 
     return count;
 }
 
 /* initializes border cell values for propagation */
 void init_border_values(double distance, double angle, int buffer,
-			f_statmethod stat, double dist_weight)
+			f_statmethod stat, double dist_weight,
+			int nrows, int ncols, int fragcount)
 {
     int patch;
     int size = (int)distance * 2 + 1;
+    DCELL *cost_values;
+    double weight_param;
 
     size *= size;
-    DCELL *cost_values = (DCELL *) G_malloc(size * sizeof(DCELL));
+    cost_values = (DCELL *) G_malloc(size * sizeof(DCELL));
 
-    double weight_param = tan(dist_weight * 0.5 * M_PI);
+    weight_param = tan(dist_weight * 0.5 * M_PI);
 
     for (patch = 0; patch < fragcount; patch++) {
 	PatchBorderList list = patch_borders[patch];
@@ -412,30 +416,32 @@ void init_border_values(double distance, double angle, int buffer,
 		int border_count =
 		    list.borders[contour + 1] - list.borders[contour];
 
-		int count;
+		int count, value;
+		DCELL *buf;
 
 		if (border_count == 1) {
 		    count =
 			get_cost_values(cost_values, *p, n, distance,
-					2 * M_PI, weight_param);
+					2 * M_PI, weight_param,
+					nrows, ncols);
 		}
 		else {
 		    count =
 			get_cost_values(cost_values, *p, n, distance, angle,
-					weight_param);
+					weight_param, nrows, ncols);
 		}
 
-		int value = Round(stat(cost_values, count) * (DCELL) buffer);
+		value = Round(stat(cost_values, count) * (DCELL) buffer);
 
-		DCELL *buf = &valmap[p->y * ncols + p->x];
+		buf = &valmap[p->y * ncols + p->x];
 
 		if (*buf >= 0 && *buf < value) {
 		    *buf = value;
 		}
 
-		//G_message("Value for (%d, %d) = %d", p->x, p->y, value);
+		/* G_message("Value for (%d, %d) = %d", p->x, p->y, value); */
 
-		//G_message("Normal to (%d, %d) is (%0.2f, %0.2f)", p->x, p->y, n.x, n.y);
+		/* G_message("Normal to (%d, %d) is (%0.2f, %0.2f)", p->x, p->y, n.x, n.y); */
 	    }
 	}
     }
@@ -503,10 +509,9 @@ int get_neighbors(Position * res, int x, int y, int nx, int ny, int nbr_cnt)
 }
 
 /* propagates border values of a patch with a linear decrease */
-void propagate_patch(int patch, int neighbor_count, f_propmethod prop_method)
+void propagate_patch(int patch, int neighbor_count,
+                     f_propmethod prop_method, int nrows, int ncols)
 {
-    PatchBorderList list = patch_borders[patch];
-
     Position *nbr_list =
 	(Position *) G_malloc(neighbor_count * sizeof(Position));
     int cell_count = fragments[patch + 1] - fragments[patch];
@@ -527,26 +532,29 @@ void propagate_patch(int patch, int neighbor_count, f_propmethod prop_method)
 
     /* propagate values */
     while (top > stack) {
+	int x, y;
+	DCELL value;
+	int nbr_cnt, i;
+
 	/* pop from stack */
 	top--;
-	int x = top->x;
-	int y = top->y;
-	DCELL value = valmap[y * ncols + x];
+	x = top->x;
+	y = top->y;
+	value = valmap[y * ncols + x];
 
 	/* get neighbors */
-	int nbr_cnt =
+	nbr_cnt =
 	    get_neighbors(nbr_list, x, y, ncols, nrows, neighbor_count);
 
 	/* for each neighbor */
-	int i;
-
 	for (i = 0; i < nbr_cnt; i++) {
+	    DCELL nbr_val, pass_val;
+
 	    x = nbr_list[i].x;
 	    y = nbr_list[i].y;
-	    DCELL nbr_val = valmap[y * ncols + x];
+	    nbr_val = valmap[y * ncols + x];
 
-	    //int pass_val = value - 1 >= 0 ? value - 1 : 0;
-	    DCELL pass_val = prop_method(value, propmap[y * ncols + x]);
+	    pass_val = prop_method(value, propmap[y * ncols + x]);
 
 	    if (pass_val > nbr_val) {
 		/* pass value and push neighbor on stack */
@@ -562,14 +570,15 @@ void propagate_patch(int patch, int neighbor_count, f_propmethod prop_method)
 }
 
 /* propagates border values with a linear decrease */
-void propagate(int neighbor_count, f_propmethod prop_method)
+void propagate(int neighbor_count, f_propmethod prop_method,
+               int nrows, int ncols, int fragcount)
 {
-    G_message("Propagating Values ...");
-
     int patch;
 
+    G_message("Propagating Values ...");
+
     for (patch = 0; patch < fragcount; patch++) {
-	propagate_patch(patch, neighbor_count, prop_method);
+	propagate_patch(patch, neighbor_count, prop_method, nrows, ncols);
 
 	G_percent(patch + 1, fragcount, 1);
     }

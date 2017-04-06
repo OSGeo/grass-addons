@@ -9,7 +9,7 @@
 #define GLOBAL extern
 #endif
 
-extern void writeFrag(int row, int col, int nbr_cnt);
+extern void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt);
 
 extern int f_area(DCELL * vals, Coords ** frags, int);
 extern int f_perim(DCELL * vals, Coords ** frags, int);
@@ -22,9 +22,7 @@ extern int f_frac_dim(DCELL *, Coords **, int);
 extern int f_nearest_dist(DCELL *, Coords **, int);
 
 /* global variables */
-GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
-GLOBAL int *flagbuf;
 GLOBAL Coords *actpos;
 
 #endif /* LOCAL_PROTO_H */

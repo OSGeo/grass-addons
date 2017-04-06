@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.nlm.stats
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Generation of Neutral Landscapes and statistical analysis 
  *                               of fragmentation indices
  *
@@ -54,7 +55,8 @@ static struct statmethod statmethodlist[] = {
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* in and out file pointers */
     int in_fd;			/* raster - input */
@@ -70,18 +72,10 @@ int main(int argc, char *argv[])
     int statmethods[GNAME_MAX];
     int neighb_count;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
-    RASTER_MAP_TYPE map_type;
     int i, j;
     int row, col;
-    int cnt;
     CELL *result;
-    double edge;
-    struct Cell_head ch, window;
-    double min, max;
     int pos;
 
     int *real_landscape;
@@ -89,6 +83,8 @@ int main(int argc, char *argv[])
     DCELL *res_values;
     int save_fragcount;
     int *fragcounts;
+    int fragcount;
+    int size;
 
     int *resmap;
 
@@ -107,13 +103,13 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *adjacent, *quiet;
+	struct Flag *adjacent;
     } flag;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description = _("Neutral Landscape Generator - index statistics");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
@@ -214,18 +210,15 @@ int main(int argc, char *argv[])
     flag.adjacent->description =
 	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = _("Run quietly");
-
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     /* get name of input file */
     oldname = parm.input->answer;
+    oldmapset = NULL;
 
     /* test input files existance */
-    if (oldname && NULL == (oldmapset = G_find_cell2(oldname, "")))
+    if (oldname && NULL == (oldmapset = G_find_raster2(oldname, "")))
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* if input specified get keyval */
@@ -235,11 +228,9 @@ int main(int argc, char *argv[])
 	}
     }
 
-    map_type = CELL_TYPE;
-
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     size = 1;
     power = 0;
@@ -280,9 +271,6 @@ int main(int argc, char *argv[])
 
     /* get number of cell-neighbors */
     neighb_count = flag.adjacent->answer ? 8 : 4;
-
-    /* get verbose */
-    verbose = !flag.quiet->answer;
 
     /* scan all method answers */
     for (method_count = 0; parm.method->answers[method_count] != NULL;
@@ -325,7 +313,7 @@ int main(int argc, char *argv[])
     buffer = (int *)G_malloc(sx * sy * sizeof(int));
     bigbuf = (double *)G_malloc(size * size * sizeof(double));
     resmap = (int *)G_malloc(sx * sy * sizeof(int));
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
     cells = (Coords *) G_malloc(sx * sy * sizeof(Coords));
     fragments = (Coords **) G_malloc(sx * sy * sizeof(Coords *));
     /* res_values = (method1(statmethod1(1..n))(statmethod2(1..n))) */
@@ -354,13 +342,13 @@ int main(int argc, char *argv[])
 	pixel_count = 0;
 
 	/* open cell files */
-	in_fd = G_open_cell_old(oldname, oldmapset);
+	in_fd = Rast_open_old(oldname, oldmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
 	/* init buffer with values from input and get landcover */
 	for (row = 0; row < sy; row++) {
-	    G_get_c_raster_row(in_fd, result, row);
+	    Rast_get_c_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		if (parm.nullval->answers) {
 		    for (i = 0; parm.nullval->answers[i] != NULL; i++) {
@@ -377,6 +365,7 @@ int main(int argc, char *argv[])
 		}
 	    }
 	}
+	Rast_close(in_fd);
 
 	/* test output */
 	/*              G_message("real landscape");
@@ -400,8 +389,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* apply methods to real landscape */
-
-	writeFragments(real_landscape, sy, sx, neighb_count);
+	fragcount = writeFragments(real_landscape, sy, sx, neighb_count);
 
 	/* allocate memory for result */
 	res = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
@@ -441,9 +429,9 @@ int main(int argc, char *argv[])
 
 	G_percent(i, n, 1);
 
-	create_map(resmap);
+	create_map(resmap, size);
 
-	writeFragments(resmap, sy, sx, neighb_count);
+	fragcount = writeFragments(resmap, sy, sx, neighb_count);
 
 	/* save fragcount */
 	fragcounts[i] = fragcount;
@@ -453,7 +441,6 @@ int main(int argc, char *argv[])
 
 	/* calculate requested values */
 	for (m = 0; m < method_count; m++) {
-	    int cnt;
 
 	    f_func *calculate;
 

@@ -6,7 +6,6 @@ SUBDIRS = \
 	r.pi.library \
 	r.pi.corearea \
 	r.pi.corrwin \
-	r.pi.corrwindow \
 	r.pi.csr.mw \
 	r.pi.energy \
 	r.pi.energy.iter \

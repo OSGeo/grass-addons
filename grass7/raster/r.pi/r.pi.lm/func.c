@@ -11,6 +11,14 @@ void linear_regression(DCELL * x, DCELL * y, int count, DCELL * res_offset,
     DCELL sum_xx = 0;
     DCELL sum_yy = 0;
 
+    DCELL r_n;
+    DCELL var_x;
+    DCELL var_y;
+    DCELL covar;
+    DCELL beta;
+    DCELL alpha;
+    DCELL corr;
+
     if (count <= 0)
 	return;
 
@@ -25,13 +33,13 @@ void linear_regression(DCELL * x, DCELL * y, int count, DCELL * res_offset,
 	sum_yy += yi * yi;
     }
 
-    DCELL r_n = 1.0 / (DCELL) count;
-    DCELL var_x = (sum_xx - sum_x * sum_x * r_n) * r_n;
-    DCELL var_y = (sum_yy - sum_y * sum_y * r_n) * r_n;
-    DCELL covar = (sum_xy - sum_x * sum_y * r_n) * r_n;
-    DCELL beta = covar / var_x;
-    DCELL alpha = (sum_y - beta * sum_x) * r_n;
-    DCELL corr = beta * sqrt(var_x) / sqrt(var_y);
+    r_n = 1.0 / (DCELL) count;
+    var_x = (sum_xx - sum_x * sum_x * r_n) * r_n;
+    var_y = (sum_yy - sum_y * sum_y * r_n) * r_n;
+    covar = (sum_xy - sum_x * sum_y * r_n) * r_n;
+    beta = covar / var_x;
+    alpha = (sum_y - beta * sum_x) * r_n;
+    corr = beta * sqrt(var_x) / sqrt(var_y);
 
     *res_slope = beta;
     *res_offset = alpha;

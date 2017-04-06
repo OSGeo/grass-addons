@@ -98,15 +98,10 @@ void writeFrag(int row, int col, int nbr_cnt)
 	int r = first->y;
 	int c = first->x;
 
-	first++;
-
-	int left = c > 0 ? c - 1 : 0;
-	int top = r > 0 ? r - 1 : 0;
-	int right = c < ncols - 1 ? c + 1 : ncols - 1;
-	int bottom = r < nrows - 1 ? r + 1 : nrows - 1;
-
 	/* add neighbors to fifo-list */
 	int cnt = getNeighbors(nbr_list, c, r, ncols, nrows, nbr_cnt);
+
+	first++;
 
 	for (i = 0; i < cnt; i++) {
 	    x = nbr_list[i].x;
@@ -139,5 +134,6 @@ void writeFrag(int row, int col, int nbr_cnt)
 
     G_free(list);
     G_free(nbr_list);
+
     return;
 }

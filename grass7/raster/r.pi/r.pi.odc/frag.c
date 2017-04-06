@@ -1,10 +1,5 @@
 #include "local_proto.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 		  int ncols, int nbr_cnt);
 int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
@@ -40,6 +35,7 @@ int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
 	    cnt++;
 	}
 	break;
+
     case 8:			/* Moore neighborhood */
 	left = x > 0 ? x - 1 : 0;
 	top = y > 0 ? y - 1 : 0;
@@ -98,16 +94,11 @@ Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 	int r = first->y;
 	int c = first->x;
 
-	first++;
-
-	int left = c > 0 ? c - 1 : 0;
-	int top = r > 0 ? r - 1 : 0;
-	int right = c < ncols - 1 ? c + 1 : ncols - 1;
-	int bottom = r < nrows - 1 ? r + 1 : nrows - 1;
-
 	/* add neighbors to fifo-list */
 	int cnt =
 	    getNeighbors(nbr_list, flagbuf, c, r, ncols, nrows, nbr_cnt);
+
+	first++;
 
 	for (i = 0; i < cnt; i++) {
 	    x = nbr_list[i].x;
@@ -140,16 +131,14 @@ Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 
     G_free(list);
     G_free(nbr_list);
+
     return actpos;
 }
 
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt)
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt)
 {
-    int row, col, i;
-    Coords *p;
-
-    fragcount = 0;
-    Coords *actpos = fragments[0];
+    int row, col;
+    int fragcount = 0;
 
     /* find fragments */
     for (row = 0; row < nrows; row++) {
@@ -164,5 +153,5 @@ void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt)
 	}
     }
 
-    return;
+    return fragcount;
 }

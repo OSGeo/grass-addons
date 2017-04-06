@@ -5,8 +5,8 @@ PGM = r.pi.prob.mw
 LIB_NAME = grass_rpi
 RPI_LIB  = -l$(LIB_NAME)
 
-LIBES = $(STATSLIB) $(GISLIB) $(RPI_LIB)
-DEPENDENCIES = $(STATSDEP) $(GISDEP)
+LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB) $(RPI_LIB)
+DEPENDENCIES = $(STATSDEP) $(RASTERDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 

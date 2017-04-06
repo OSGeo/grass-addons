@@ -1,3 +1,14 @@
+#ifndef LOCAL_PROTO_H
+#define LOCAL_PROTO_H
+
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <math.h>
+#include <time.h>
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
 
 #ifdef MAIN
@@ -7,7 +18,7 @@
 #endif
 
 /* frag.c */
-void writeFrag(int row, int col, int nbr_cnt);
+void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols,int nbr_cnt);
 
 /* func.c */
 int f_proximity(DCELL *, Coords **, int, int, int);
@@ -16,8 +27,7 @@ int f_modified_prox(DCELL * vals, Coords ** frags, int count, int min,
 int f_neighborhood(DCELL *, Coords **, int, int, int);
 
 /* global variables */
-GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
-GLOBAL int *flagbuf;
 GLOBAL Coords *actpos;
-GLOBAL int cnt;
+
+#endif /* LOCAL_PROTO_H */

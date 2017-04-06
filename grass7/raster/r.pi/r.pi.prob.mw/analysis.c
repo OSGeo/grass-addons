@@ -1,12 +1,7 @@
 #include "local_proto.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 int gather_positions(Position * res, int *map, int *mask, int x, int y,
-		     int sizex, int sizey, int patch_only)
+		     int sx, int sizex, int sizey, int patch_only)
 {
     int i, j;
     int count = 0;
@@ -26,7 +21,7 @@ int gather_positions(Position * res, int *map, int *mask, int x, int y,
     return count;
 }
 
-int perform_test(Position * positions, int count, int *map, int x, int y)
+int perform_test(Position * positions, int count, int *map, int sx)
 {
     int p1, p2;
     int x1, x2, y1, y2;
@@ -54,7 +49,7 @@ int perform_test(Position * positions, int count, int *map, int x, int y)
 }
 
 void perform_analysis(DCELL * values, int *map, int *mask, int n, int size,
-		      int patch_only)
+		      int patch_only, int sx, int sy)
 {
     int x, y, nx, ny, sizex, sizey, i;
     Position *pos_arr;
@@ -79,14 +74,14 @@ void perform_analysis(DCELL * values, int *map, int *mask, int n, int size,
 	for (x = 0; x < nx; x++) {
 	    /* get relevant positions */
 	    count =
-		gather_positions(pos_arr, map, mask, x, y, sizex, sizey,
+		gather_positions(pos_arr, map, mask, x, y, sx, sizex, sizey,
 				 patch_only);
 
 	    if (count > 0) {
 		/* perform test n times */
 		value = 0;
 		for (i = 0; i < n; i++) {
-		    value += perform_test(pos_arr, count, map, x, y);
+		    value += perform_test(pos_arr, count, map, sx);
 		}
 	    }
 	    else {

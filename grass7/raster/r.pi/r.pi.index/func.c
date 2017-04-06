@@ -295,6 +295,7 @@ int f_proximity(DCELL * vals, Coords ** frags, int count, DCELL param)
     for (i = 0; i < count; i++) {
 	for (j = 0; j < count; j++) {
 	    if (i != j) {
+		/* ??? */
 	    }
 	}
     }

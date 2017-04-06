@@ -131,10 +131,10 @@ void list_shuffle(int patch)
     Point *list = list_array[patch].list;
     Point tmp;
 
-    //      fprintf(stderr, "shuffling:\n");
+    /*      fprintf(stderr, "shuffling:\n"); */
     for (i = 0; i < cnt - 1; i++) {
 	pos = Random(cnt - i) + i;
-	//              fprintf(stderr, " %d <-> %d ", i, pos);
+	/*              fprintf(stderr, " %d <-> %d ", i, pos); */
 	tmp = list[i];
 	list[i] = list[pos];
 	list[pos] = tmp;

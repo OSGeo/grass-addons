@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.nlm.circ
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      a simple r.nlm (neutral landscape model) module based on circular growth
  * 
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
@@ -68,7 +69,7 @@ void plant(int *buffer, int sx, int sy, int x, int y, int patch)
     int top = y + 1 < sy ? y + 1 : sy - 1;
     int bottom = y > 0 ? y - 1 : 0;
 
-    int ix, iy, index, i, cell;
+    int ix, iy, index, cell;
 
     /* remove cell from border list */
     list_remove(patch, list_indexOf(patch, x, y));
@@ -140,7 +141,7 @@ void create_patches(int *buffer, int sx, int sy, int patch_count,
 
     /* now plant new cells at random but always at the border */
     while (pixels > 0) {
-	int patch, pos, cnt;
+	int patch, pos;
 	Point p;
 	int flag;
 
@@ -190,7 +191,7 @@ void create_patches(int *buffer, int sx, int sy, int patch_count,
 int main(int argc, char *argv[])
 {
     /* output */
-    char *newname, *newmapset;
+    char *newname;
 
     /* out file pointer */
     int out_fd;
@@ -202,16 +203,10 @@ int main(int argc, char *argv[])
     int patch_count;
     int rand_seed;
 
-    /* other parameters */
-    int verbose;
-    char *title;
-
     /* helper variables */
     RASTER_MAP_TYPE map_type;
     int *buffer;
     int i, j;
-    int cnt;
-    Point *list;
     CELL *result;
 
     struct GModule *module;
@@ -221,17 +216,11 @@ int main(int argc, char *argv[])
 	struct Option *landcover, *count;
 	struct Option *randseed, *title;
     } parm;
-    struct
-    {
-	struct Flag *quiet;
-    } flag;
-
-    struct Cell_head ch, window;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Creates a random landscape with defined attributes.");
 
@@ -269,18 +258,13 @@ int main(int argc, char *argv[])
     parm.title->required = NO;
     parm.title->description = _("Title for resultant raster map");
 
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = _("Run quietly");
-
     if (G_parser(argc, argv))
 	    exit(EXIT_FAILURE);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     map_type = CELL_TYPE;
 
@@ -294,9 +278,6 @@ int main(int argc, char *argv[])
 
     /* get patchcount */
     sscanf(parm.count->answer, "%d", &patch_count);
-
-    /* get verbose */
-    verbose = !flag.quiet->answer;
 
     /* get random seed and init random */
     if (parm.randseed->answer) {
@@ -319,7 +300,7 @@ int main(int argc, char *argv[])
     /* allocate the cell buffer */
     buffer = (int *)G_malloc(sx * sy * sizeof(int));
     memset(buffer, -1, sx * sy * sizeof(int));
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
 
     create_patches(buffer, sx, sy, patch_count, pixel_count);
 
@@ -347,9 +328,9 @@ int main(int argc, char *argv[])
        } */
 
     /* write output file */
-    out_fd = G_open_raster_new(newname, map_type);
+    out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     for (j = 0; j < sy; j++) {
 	for (i = 0; i < sx; i++) {
@@ -359,15 +340,12 @@ int main(int argc, char *argv[])
 		result[i] = 1;
 	    }
 	    else {
-		G_set_c_null_value(result + i, 1);
+		Rast_set_c_null_value(result + i, 1);
 	    }
 	}
-	G_put_c_raster_row(out_fd, result);
+	Rast_put_c_row(out_fd, result);
     }
-    G_close_cell(out_fd);
-
-    if (verbose)
-	G_percent(100, 100, 2);
+    Rast_close(out_fd);
 
     exit(EXIT_SUCCESS);
 }

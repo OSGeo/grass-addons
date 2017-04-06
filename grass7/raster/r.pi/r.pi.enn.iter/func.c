@@ -24,13 +24,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -41,6 +41,7 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
 	    }
 	}
     }
+
     return min;
 }
 
@@ -154,6 +155,7 @@ void f_distance(DCELL * vals, Coords ** frags, int count,
     G_free(distmatrix);
     G_free(neighb_indices);
     G_free(differences);
+
     return;
 }
 
@@ -200,5 +202,6 @@ void f_area(DCELL * vals, Coords ** frags, int count, f_statmethod statmethod)
     G_free(distmatrix);
     G_free(neighb_indices);
     G_free(differences);
+
     return;
 }

@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.lm
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Linear regression analysis for patches (not pixel based)
  *
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
@@ -18,16 +19,14 @@
 int main(int argc, char *argv[])
 {
     /* input */
-    char *newname, *oldname1, *oldname2, *newmapset, *oldmapset1, *oldmapset2;
-    char fullname[GNAME_MAX];
+    char *newname, *oldname1, *oldname2;
+    const char *oldmapset1, *oldmapset2;
 
     /* in and out file pointers */
     int in_fd;
     int out_fd;
-    FILE out_fp;
 
     /* parameters */
-    int keyval;
     int nbr_count;
     int patch_values;
 
@@ -35,10 +34,15 @@ int main(int argc, char *argv[])
     RASTER_MAP_TYPE map_type;
 
     /* helpers */
+    int i;
     DCELL *result;
     DCELL *map;
     int row, col;
     int nrows, ncols;
+    DCELL *x, *y;
+    int *flagbuf;
+    int value_count;
+    DCELL offset, slope, correlation, *residuals;
 
     struct GModule *module;
     struct
@@ -53,7 +57,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description = _("Linear regression analysis for patches.");
 
     parm.input1 = G_define_standard_option(G_OPT_R_INPUT);
@@ -74,29 +78,28 @@ int main(int argc, char *argv[])
     flag.patch_values->description = _("Set to use patch values");
 
     if (G_parser(argc, argv))
-	    exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname1 = parm.input1->answer;
     oldname2 = parm.input2->answer;
 
     /* test input files existance */
-    oldmapset1 = G_find_cell2(oldname1, "");
-	if (oldmapset1 == NULL)
+    oldmapset1 = G_find_raster2(oldname1, "");
+    if (oldmapset1 == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname1);
-    oldmapset2 = G_find_cell2(oldname2, "");
-	if (oldmapset2 == NULL)
+    oldmapset2 = G_find_raster2(oldname2, "");
+    if (oldmapset2 == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname2);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
 
     /* get size */
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     /* get map type */
     map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
@@ -113,13 +116,13 @@ int main(int argc, char *argv[])
     G_message("Loading patches...");
 
     /* open first cell file */
-    in_fd = G_open_cell_old(oldname1, oldmapset1);
+    in_fd = Rast_open_old(oldname1, oldmapset1);
     if (in_fd < 0)
         G_fatal_error(_("Unable to open raster map <%s>"), oldname1);
 
     /* read map */
     for (row = 0; row < nrows; row++) {
-	G_get_d_raster_row(in_fd, map + row * ncols, row);
+	Rast_get_d_row(in_fd, map + row * ncols, row);
 
 	G_percent(row + 1, nrows, 1);
     }
@@ -133,35 +136,33 @@ int main(int argc, char *argv[])
        } */
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* open second cell file */
-    in_fd = G_open_cell_old(oldname2, oldmapset2);
+    in_fd = Rast_open_old(oldname2, oldmapset2);
     if (in_fd < 0)
         G_fatal_error(_("Unable to open raster map <%s>"), oldname2);
 
     /* gather pixel or patch values */
     /* TODO: patch values */
-    result = G_allocate_d_raster_buf();
-    DCELL *x = (DCELL *) malloc(nrows * ncols * sizeof(DCELL));
-    DCELL *y = (DCELL *) malloc(nrows * ncols * sizeof(DCELL));
-    int *flagbuf = (int *)malloc(nrows * ncols * sizeof(int));
+    result = Rast_allocate_d_buf();
+    x = (DCELL *) malloc(nrows * ncols * sizeof(DCELL));
+    y = (DCELL *) malloc(nrows * ncols * sizeof(DCELL));
+    flagbuf = (int *)malloc(nrows * ncols * sizeof(int));
 
     /* initialize flag buffer with -1 */
-    int i;
-
     for (i = 0; i < nrows * ncols; i++) {
 	flagbuf[i] = -1;
     }
-    int value_count = 0;
+    value_count = 0;
 
     for (row = 0; row < nrows; row++) {
-	G_get_d_raster_row(in_fd, result, row);
+	Rast_get_d_row(in_fd, result, row);
 
 	for (col = 0; col < ncols; col++) {
 	    DCELL val = map[row * ncols + col];
 
-	    if (!G_is_d_null_value(&val)) {
+	    if (!Rast_is_d_null_value(&val)) {
 		x[value_count] = val;
 		y[value_count] = result[col];
 
@@ -198,8 +199,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-    DCELL *residuals = (DCELL *) malloc(value_count * sizeof(DCELL));
-    DCELL offset, slope, correlation;
+    residuals = (DCELL *) malloc(value_count * sizeof(DCELL));
 
     /* calculate data */
     linear_regression(x, y, value_count, &offset, &slope, residuals,
@@ -210,12 +210,12 @@ int main(int argc, char *argv[])
     G_free(y);
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* write output */
     G_message("Writing output...");
 
-    G_message("Offset: %lf, Slope: %lf, Correlation: %lf\n", offset, slope,
+    G_message("Offset: %f, Slope: %f, Correlation: %f\n", offset, slope,
 	      correlation);
 
     /* ================================== 
@@ -223,13 +223,13 @@ int main(int argc, char *argv[])
        ================================== */
 
     /* open the new cellfile  */
-    out_fd = G_open_raster_new(newname, map_type);
+    out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write values */
     for (row = 0; row < nrows; row++) {
-	G_set_d_null_value(result, ncols);
+	Rast_set_d_null_value(result, ncols);
 
 	for (col = 0; col < ncols; col++) {
 	    int flagval = flagbuf[row * ncols + col];
@@ -239,13 +239,13 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, result);
+	Rast_put_d_row(out_fd, result);
 
 	G_percent(row + 1, nrows, 1);
     }
 
     /* close output file */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* =====================
        ==== free memory ====

@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.import
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Import of patch information based on ID patch raster 
  *                               (Reads a text-file with Patch IDs and values and creates 
  *                               a raster file with these values for patches)
@@ -22,10 +23,11 @@
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* output */
-    char *newname, *newmapset;
+    char *newname;
 
     /* in and out file pointers */
     int in_fd;
@@ -40,23 +42,15 @@ int main(int argc, char *argv[])
     /* maps */
     int *map;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
     int row, col;
+    int sx, sy;
     DCELL *d_res;
     DCELL *values;
     int *result;
-    int i, n;
-    int x, y;
+    int i;
     Coords *p;
-    char output_name[GNAME_MAX];
-    char *str;
-    DCELL val;
-
-    RASTER_MAP_TYPE map_type;
-    struct Cell_head ch, window;
+    int fragcount;
 
     struct GModule *module;
     struct
@@ -67,13 +61,13 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *adjacent, *quiet;
+	struct Flag *adjacent;
     } flag;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description = _("Import and generation of patch raster data");
 
     parm.input = G_define_option();
@@ -125,7 +119,7 @@ int main(int argc, char *argv[])
     oldname = parm.raster->answer;
 
     /* test raster files existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
@@ -144,18 +138,17 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     /* allocate map buffers */
     map = (int *)G_malloc(sx * sy * sizeof(int));
     values = (DCELL *) G_malloc(sx * sy * sizeof(DCELL));
-    d_res = G_allocate_d_raster_buf();
-    result = G_allocate_c_raster_buf();
+    d_res = Rast_allocate_d_buf();
+    result = Rast_allocate_c_buf();
     cells = (Coords *) G_malloc(sx * sy * sizeof(Coords));
     fragments = (Coords **) G_malloc(sx * sy * sizeof(Coords *));
     fragments[0] = cells;
@@ -163,14 +156,14 @@ int main(int argc, char *argv[])
     memset(map, 0, sx * sy * sizeof(int));
 
     /* open map */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map file... ");
     for (row = 0; row < sy; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < sx; col++) {
 	    if (result[col] == keyval)
 		map[row * sx + col] = 1;
@@ -181,24 +174,24 @@ int main(int argc, char *argv[])
     G_percent(1, 1, 2);
 
     /* close map */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* find fragment values */
-    writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(map, sy, sx, neighb_count);
 
     /* parse input */
-    parse(values, parm.input->answer, id_col, val_col);
+    parse(values, parm.input->answer, id_col, val_col, fragcount);
 
     G_message("Writing output...");
 
     /* open new cellfile  */
-    out_fd = G_open_raster_new(newname, DCELL_TYPE);
+    out_fd = Rast_open_new(newname, DCELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write the output file */
     for (row = 0; row < sy; row++) {
-	G_set_d_null_value(d_res, sx);
+	Rast_set_d_null_value(d_res, sx);
 
 	for (i = 0; i < fragcount; i++) {
 	    for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -208,13 +201,13 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
 
 	G_percent(row + 1, sy, 1);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* free allocated resources */
     G_free(map);

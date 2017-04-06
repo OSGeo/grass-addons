@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.graph.red
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Graph Theory approach for connectivity analysis on patch 
  *                               level - decreasing distance threshold option
  *
@@ -79,22 +80,18 @@ static struct statmethod statmethods[] = {
     {std_deviat, "std_deviat", "std", "standard deviation of the values"},
     {min, "min", "min", "minimum of the values"},
     {max, "max", "max", "maximum of the values"},
-    {0, 0, 0}
+    {0, 0, 0, 0}
 };
 
 
 int main(int argc, char *argv[])
 {
-    /* result */
-    int exitres = 0;
-
     /* input */
-    char *newname, *oldname, *newmapset, *oldmapset;
-    char fullname[GNAME_MAX];
+    char *newname, *oldname;
+    const char *oldmapset;
 
     /* in and out file pointers */
     int in_fd;
-    int out_fd;
     FILE *out_fp;		/* ASCII - output */
 
     /* parameters */
@@ -107,20 +104,27 @@ int main(int argc, char *argv[])
     DCELL distance;
     DCELL step;
 
-    /* map_type and categories */
-    RASTER_MAP_TYPE map_type;
-
     /* helpers */
     char *p;
-    int row, col, i, j, m;
+    int nrows, ncols;
+    int row, col, i;
     int n;
     f_neighborhood *build_graph;
     f_index *calc_index;
     f_statmethod *calc_stat;
-    int *curpos;
     CELL *result;
-    DCELL *d_res;
-    CELL *clustermap;
+    Coords *cells;
+    Patch *fragments;
+    int *flagbuf;
+    int fragcount;
+    DCELL *distmatrix;
+    int *adjmatrix;
+    int *patches;
+    Cluster *clusters;
+    int val_rows;
+    DCELL *values;
+    int *cluster_counts;
+    DCELL temp_d;
 
     struct GModule *module;
     struct
@@ -134,12 +138,10 @@ int main(int argc, char *argv[])
 	struct Flag *adjacent;
     } flag;
 
-    struct Cell_head ch, window;
-
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Graph Theory - decreasing distance threshold option.");
 
@@ -229,28 +231,24 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     G_message("rows = %d, cols = %d", nrows, ncols);
 
     /* open cell files */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
-
-    /* get map type */
-    map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -306,19 +304,19 @@ int main(int argc, char *argv[])
     nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
-    Coords *cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
-    Patch *fragments = (Patch *) G_malloc(nrows * ncols * sizeof(Patch));
+    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
+    fragments = (Patch *) G_malloc(nrows * ncols * sizeof(Patch));
 
     fragments[0].first_cell = cells;
-    int *flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
+    flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
 
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
 
     G_message("Loading patches...");
 
     /* read map */
     for (row = 0; row < nrows; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < ncols; col++) {
 	    if (result[col] == keyval)
 		flagbuf[row * ncols + col] = 1;
@@ -328,7 +326,7 @@ int main(int argc, char *argv[])
     }
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /*G_message("map");
        for(row = 0; row < nrows; row++) {
@@ -339,11 +337,11 @@ int main(int argc, char *argv[])
        } */
 
     /* find fragments */
-    int fragcount =
+    fragcount =
 	writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
-    DCELL *distmatrix =
+    distmatrix =
 	(DCELL *) G_malloc(fragcount * fragcount * sizeof(DCELL));
     memset(distmatrix, 0, fragcount * fragcount * sizeof(DCELL));
 
@@ -351,11 +349,11 @@ int main(int argc, char *argv[])
     get_dist_matrix(distmatrix, fragments, fragcount);
 
     /* allocate adjacency matrix */
-    int *adjmatrix = (int *)G_malloc(fragcount * fragcount * sizeof(int));
+    adjmatrix = (int *)G_malloc(fragcount * fragcount * sizeof(int));
 
     /* allocate clusters */
-    int *patches = (int *)G_malloc(fragcount * sizeof(int));
-    Cluster *clusters = (Cluster *) G_malloc((fragcount) * sizeof(Cluster));
+    patches = (int *)G_malloc(fragcount * sizeof(int));
+    clusters = (Cluster *) G_malloc((fragcount) * sizeof(Cluster));
 
     clusters[0].first_patch = patches;
 
@@ -370,14 +368,14 @@ int main(int argc, char *argv[])
        fprintf(stderr, "\n");
        } */
 
-    int val_rows = (int)(distance / step) + 1;
+    val_rows = (int)(distance / step) + 1;
 
     /* values = (clustercount, cluster1_index1, cluster2_index1, ...), () */
-    DCELL *values =
+    values =
 	(DCELL *) G_malloc(val_rows * index_count * fragcount *
 			   sizeof(DCELL));
 
-    int *cluster_counts = (int *)G_malloc(val_rows * sizeof(int));
+    cluster_counts = (int *)G_malloc(val_rows * sizeof(int));
 
     /*      calc_index = indices[index].method;
        calc_index(ref_values, clusters, clustercount, adjmatrix, fragments, fragcount, distmatrix);
@@ -391,9 +389,12 @@ int main(int argc, char *argv[])
     /* perform distance reduction analysis */
     /* for each patch */
     G_message("Performing distance reduction...");
-    DCELL temp_d = distance;
+    temp_d = distance;
 
     for (i = 0; i < val_rows; i++, temp_d -= step) {
+	int idx;
+	DCELL *vals;
+
 	/* build graph with current distance */
 	memset(adjmatrix, 0, fragcount * fragcount * sizeof(int));
 	build_graph(adjmatrix, distmatrix, fragcount, temp_d);
@@ -410,8 +411,7 @@ int main(int argc, char *argv[])
 	cluster_counts[i] = find_clusters(clusters, adjmatrix, fragcount);
 
 	/* calculate and save indices */
-	int idx;
-	DCELL *vals = &(values[i * index_count * fragcount]);
+	vals = &(values[i * index_count * fragcount]);
 
 	for (idx = 0; idx < index_count; idx++, vals += fragcount) {
 	    int cur_index = index[idx];
@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
     }
 
     /* test output */
-    fprintf(stderr, "Values:");
+    /*fprintf(stderr, "Values:");
     for (row = 0; row < val_rows; row++) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Clusters: %d --- ", cluster_counts[row]);
@@ -434,7 +434,7 @@ int main(int argc, char *argv[])
 		    values[row * index_count * fragcount + i]);
 	}
     }
-    fprintf(stderr, "\n");
+    fprintf(stderr, "\n"); */
 
     /* write output */
     G_message("Writing output...");
@@ -464,17 +464,17 @@ int main(int argc, char *argv[])
     /* write values */
     temp_d = distance;
     for (i = 0; i < val_rows; i++, temp_d -= step) {
-	fprintf(out_fp, "%lf %d", temp_d, cluster_counts[i]);
-
 	int idx;
-	DCELL *vals = &(values[i * index_count * fragcount]);
+	DCELL *vals;
+
+	fprintf(out_fp, "%f %d", temp_d, cluster_counts[i]);
+
+	vals = &(values[i * index_count * fragcount]);
 
 	for (idx = 0; idx < index_count; idx++, vals += fragcount) {
-	    int cur_index = index[idx];
-
 	    DCELL val = calc_stat(vals, cluster_counts[i]);
 
-	    fprintf(out_fp, " %lf", val);
+	    fprintf(out_fp, " %f", val);
 	}
 
 	fprintf(out_fp, "\n");

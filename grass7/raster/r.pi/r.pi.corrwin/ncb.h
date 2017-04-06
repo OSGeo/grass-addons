@@ -11,9 +11,8 @@ struct ncb			/* neighborhood control block */
     struct
     {
 	char *name;
-	char *mapset;
-    }
-    oldcell1, oldcell2, newcell;
+	const char *mapset;
+    } oldcell1, oldcell2, newcell;
 };
 
 extern struct ncb ncb;

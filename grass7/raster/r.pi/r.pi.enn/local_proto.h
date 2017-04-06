@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -45,7 +46,6 @@ GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
 GLOBAL int *flagbuf;
 GLOBAL Coords *actpos;
-GLOBAL int verbose;
 GLOBAL DCELL *distmatrix;
 GLOBAL int *nearest_indices;
 GLOBAL int patch_n;

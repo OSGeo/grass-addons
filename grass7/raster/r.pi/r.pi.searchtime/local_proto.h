@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -16,6 +17,11 @@
 #else
 #define GLOBAL extern
 #endif
+
+typedef struct
+{
+    int x, y;
+} Position;
 
 typedef struct
 {
@@ -46,20 +52,18 @@ void print_array(DCELL * buffer, int size);
 void print_fragments();
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap,
-		    f_statmethod **stats, int stat_count);
+		    f_statmethod **stats, int stat_count, int n, int fragcount, int sx, int sy);
 
 /* indices.c */
 DCELL shannon_index(int patch);
 DCELL simpson_index(int patch);
 
 /* global parameters */
-GLOBAL int sx, sy;
 GLOBAL int keyval;
-GLOBAL int n;
 GLOBAL double percent;
 GLOBAL int maxsteps;
 GLOBAL int step_length;
@@ -72,13 +76,13 @@ GLOBAL double multiplicator;
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *patch_imi;
 
-GLOBAL char *newname, *newmapset;
-GLOBAL char *iminame, *imimapset;
+GLOBAL char *newname;
+GLOBAL char *iminame;
+GLOBAL const char *imimapset;
 
 GLOBAL int *immi_matrix, *mig_matrix;
 

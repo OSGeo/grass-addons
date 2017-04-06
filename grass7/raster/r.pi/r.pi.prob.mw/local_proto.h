@@ -17,6 +17,11 @@
 #define GLOBAL extern
 #endif
 
+typedef struct
+{
+    int x, y;
+} Position;
+
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 void print_buffer(int *buffer, int sx, int sy);
@@ -26,17 +31,13 @@ void print_array(DCELL * buffer, int size);
 void print_fragments();
 
 /* analysis.c */
-void perform_analysis(DCELL * values, int *map, int *mask, int n, int size, int patch_only);
+void perform_analysis(DCELL * values, int *map, int *mask, int n, int size, int patch_only, int sx, int sy);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, double distance);
-
-/* global parameters */
-GLOBAL int sx, sy;
+int writeFragments(int *flagbuf, int nrows, int ncols, double distance);
 
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 #endif /* LOCAL_PROTO_H */

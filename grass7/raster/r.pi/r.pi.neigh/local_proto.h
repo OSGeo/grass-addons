@@ -16,16 +16,12 @@
 typedef DCELL(f_func) (DCELL * values, int count);
 
 /* frag.c */
-void writeFrag(int row, int col, int nbr_cnt);
+void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt);
 
 /* func.c */
-void compute_values(DCELL * vals, int min, int max, f_func stat_method);
+void compute_values(DCELL * vals, int fragcount, int min, int max, f_func stat_method);
 
 /* global variables */
-GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
-GLOBAL int fragcount;
-GLOBAL int *flagbuf;
 GLOBAL DCELL *valsbuf;
 GLOBAL Coords *actpos;
-GLOBAL int cnt;

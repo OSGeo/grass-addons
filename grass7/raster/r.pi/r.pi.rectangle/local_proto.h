@@ -4,12 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
+#include <time.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
-#include <math.h>
-#include <time.h>
 
 /* buffer.c */
 void set_buffer(CELL * buffer, int x, int y, int width, int height, int sx,

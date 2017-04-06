@@ -119,6 +119,5 @@ int f_link_max(int cluster_index, Cluster * cluster_list, int cluster_count,
 	       DCELL * distmatrix);
 
 /* global variables */
-GLOBAL int nrows, ncols;
 
 #endif /* LOCAL_PROTO_H */

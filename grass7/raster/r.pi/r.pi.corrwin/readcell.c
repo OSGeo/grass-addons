@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include "ncb.h"
 #include "local_proto.h"
 
@@ -15,13 +16,13 @@ int readcell(int fd, int bufnumber, int row, int nrows, int ncols)
 
     if (row < nrows)
 	if (bufnumber == 1)
-	    G_get_d_raster_row(fd, ncb.buf1[ncb.nsize - 1] + ncb.dist, row);
+	    Rast_get_d_row(fd, ncb.buf1[ncb.nsize - 1] + ncb.dist, row);
 	else
-	    G_get_d_raster_row(fd, ncb.buf2[ncb.nsize - 1] + ncb.dist, row);
+	    Rast_get_d_row(fd, ncb.buf2[ncb.nsize - 1] + ncb.dist, row);
     else if (bufnumber == 1)
-	G_set_d_null_value(ncb.buf1[ncb.nsize - 1] + ncb.dist, ncols);
+	Rast_set_d_null_value(ncb.buf1[ncb.nsize - 1] + ncb.dist, ncols);
     else
-	G_set_d_null_value(ncb.buf2[ncb.nsize - 1] + ncb.dist, ncols);
+	Rast_set_d_null_value(ncb.buf2[ncb.nsize - 1] + ncb.dist, ncols);
 
     return 0;
 }

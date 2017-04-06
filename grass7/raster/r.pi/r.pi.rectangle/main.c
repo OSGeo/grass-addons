@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.rectangle
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Delineation of rectangular study areas based on GPS location
  *                               of the respective corners
  *
@@ -35,10 +36,11 @@ static struct alignment alignments[] = {
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* input */
-    char *newname, *newmapset;
+    char *newname;
 
     /* in and out file pointers */
     int in_fd;
@@ -53,17 +55,12 @@ int main(int argc, char *argv[])
     /* maps */
     CELL *map, *newmap;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
     int row, col;
     CELL *result;
     char *str;
-    int n, i;
-    RASTER_MAP_TYPE map_type;
+    int n;
 
-    struct Cell_head ch, window;
     struct GModule *module;
     struct
     {
@@ -76,7 +73,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Generates a rectangle based on a corner coordinate.");
 
@@ -137,15 +134,14 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existence */
-    oldmapset = G_find_cell2(oldname, "");
-	if (oldmapset == NULL)
+    oldmapset = G_find_raster2(oldname, "");
+    if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
 
     /* read keyval */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -157,8 +153,8 @@ int main(int argc, char *argv[])
     sscanf(parm.y->answer, "%d", &y);
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     /* find alignment */
     for (n = 0; (str = alignments[n].name); n++)
@@ -178,20 +174,20 @@ int main(int argc, char *argv[])
     /* allocate map buffers */
     map = (CELL *) G_malloc(sx * sy * sizeof(CELL));
     newmap = (CELL *) G_malloc(sx * sy * sizeof(CELL));
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
 
     /* fill newmap with null */
-    G_set_c_null_value(newmap, sx * sy);
+    Rast_set_c_null_value(newmap, sx * sy);
 
     /* open map */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map:");
     for (row = 0; row < sy; row++) {
-	G_get_c_raster_row(in_fd, map + row * sx, row);
+	Rast_get_c_row(in_fd, map + row * sx, row);
 
 	G_percent(row + 1, sy, 1);
     }
@@ -206,34 +202,31 @@ int main(int argc, char *argv[])
     }
 
     /* close map */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* write the output file */
     G_message("Writing output...");
 
-    /* open cell file */
-    if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
-    }
     /* open new cell file  */
-    out_fd = G_open_raster_new(newname, CELL_TYPE);
+    out_fd = Rast_open_new(newname, CELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write output */
     for (row = 0; row < sy; row++) {
-	G_set_c_null_value(result, sx);
+	Rast_set_c_null_value(result, sx);
 
 	for (col = 0; col < sx; col++) {
 	    result[col] = newmap[row * sx + col];
 	}
 
-	G_put_c_raster_row(out_fd, result);
+	Rast_put_c_row(out_fd, result);
 
 	G_percent(row + 1, sy, 1);
     }
 
     /* close new file */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* free allocated resources */
     G_free(map);

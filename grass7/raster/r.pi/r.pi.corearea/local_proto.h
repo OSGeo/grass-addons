@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -37,24 +38,23 @@ typedef DCELL(f_statmethod) (DCELL *, int);
 typedef DCELL(f_propmethod) (DCELL, DCELL);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* func.c */
-void find_borders(int *flagbuf);
+void find_borders(int *flagbuf, int nrows, int ncols, int fragcount);
 void init_border_values(double distance, double angle, int buffer,
-			f_statmethod stat, double dist_weight);
-void propagate(int neighbor_count, f_propmethod prop_method);
+			f_statmethod stat, double dist_weight,
+			int nrows, int ncols, int fragcount);
+void propagate(int neighbor_count, f_propmethod prop_method,
+               int nrows, int ncols, int fragcount);
 
 /* prop_method.c */
 DCELL linear(DCELL value, DCELL propcost);
 DCELL exponential(DCELL value, DCELL propcost);
 
 /* global variables */
-GLOBAL int nrows, ncols;
 GLOBAL Coords *cells;
 GLOBAL Coords **fragments;
-GLOBAL int fragcount;
-GLOBAL int *flagbuf;
 GLOBAL DCELL *map;
 GLOBAL DCELL *valmap;
 GLOBAL DCELL *propmap;

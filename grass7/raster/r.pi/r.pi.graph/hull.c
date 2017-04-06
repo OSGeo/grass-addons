@@ -27,30 +27,39 @@ int concave(Position p1, Position p2, Position p3)
 /* quicksort */
 void sort_vertices(Position * list, int begin, int end, Position ref)
 {
-    if (begin >= end)
-	return;
-
     int b = begin + 1;
     int e = end;
-    Position piv = list[begin];
+    Position piv;
+    Position tmp;
 
-    //G_message("begin=(%d,%d), end=(%d,%d), piv=(%d,%d), ref=(%d,%d)", list[b].x, list[b].y, list[e].x, list[e].y, piv.x, piv.y, ref.x, ref.y);
+    if (begin >= end)
+	return;
+    
+    piv = list[begin];
+
+    /*
+    G_message("begin=(%d,%d), end=(%d,%d), piv=(%d,%d), ref=(%d,%d)", list[b].x, list[b].y, list[e].x, list[e].y, piv.x, piv.y, ref.x, ref.y);
+    */
 
     while (b <= e) {
-	//G_message("begin=%d, end=%d, piv=(%d,%d), ref=(%d,%d)", b, e, piv.x, piv.y, ref.x, ref.y);
+	/*
+	G_message("begin=%d, end=%d, piv=(%d,%d), ref=(%d,%d)", b, e, piv.x, piv.y, ref.x, ref.y);
 
-	//G_message("is_less(%d, %d) = %d", list[b].x, list[b].y, is_less(list[b], piv, ref));
+	G_message("is_less(%d, %d) = %d", list[b].x, list[b].y, is_less(list[b], piv, ref));
+	*/
 	while (is_less(list[b], piv, ref)) {
 	    b++;
 	}
-	//G_message("is_bigger(%d, %d) = %d", list[e].x, list[e].y, is_less(piv, list[e], ref));
+	/*
+	G_message("is_bigger(%d, %d) = %d", list[e].x, list[e].y, is_less(piv, list[e], ref));
+	*/
 	while (is_less(piv, list[e], ref)) {
 	    e--;
 	}
 	if (b <= e) {
-	    //G_message("swap %d with %d", b, e);
+	    /* G_message("swap %d with %d", b, e); */
 
-	    Position tmp = list[b];
+	    tmp = list[b];
 
 	    list[b] = list[e];
 	    list[e] = tmp;
@@ -58,8 +67,8 @@ void sort_vertices(Position * list, int begin, int end, Position ref)
     }
 
     /* put piveau element to its place */
-    //G_message("swap %d with %d", begin, e);
-    Position tmp = list[begin];
+    /* G_message("swap %d with %d", begin, e); */
+    tmp = list[begin];
 
     list[begin] = list[e];
     list[e] = tmp;
@@ -70,28 +79,31 @@ void sort_vertices(Position * list, int begin, int end, Position ref)
 	sort_vertices(list, b, end, ref);
 }
 
-void convex_hull_cluster(int *map, int cluster)
+void convex_hull_cluster(int *map, int cluster, int nrows, int ncols)
 {
     int i;
     int *p;
     int area = 0;
+    Position *vertices;
+    Position tmp;
+    Position centroid = { 0, 0 };
+    int vertexcount = 0;
 
     /* calculate sum of the patch areas */
     for (p = clusters[cluster]; p < clusters[cluster + 1]; p++) {
 	area += fragments[*p + 1] - fragments[*p];
     }
 
-    //G_message("Cluster%d area = %d", cluster, area);
+    /* G_message("Cluster%d area = %d", cluster, area); */
 
     /* allocate memory for the vertex list */
-    Position *vertices = (Position *) G_malloc((area + 1) * sizeof(Position));
+    vertices = (Position *) G_malloc((area + 1) * sizeof(Position));
 
     /* fill vertex list */
-    int vertexcount = 0;
 
     /* for each patch in the cluster */
     for (p = clusters[cluster]; p < clusters[cluster + 1]; p++) {
-	//G_message("Analyzing Patch%d", *p);
+	/* G_message("Analyzing Patch%d", *p); */
 
 	Coords *c;
 
@@ -110,6 +122,7 @@ void convex_hull_cluster(int *map, int cluster)
     if (vertexcount > 1) {
 	/* find the top-left cell */
 	int min = 0;
+	int k;
 
 	for (i = 0; i < vertexcount; i++) {
 	    if (vertices[i].y < vertices[min].y ||
@@ -120,7 +133,7 @@ void convex_hull_cluster(int *map, int cluster)
 	}
 
 	/* put min at the first position */
-	Position tmp = vertices[0];
+	tmp = vertices[0];
 
 	vertices[0] = vertices[min];
 	vertices[min] = tmp;
@@ -135,8 +148,8 @@ void convex_hull_cluster(int *map, int cluster)
 	sort_vertices(vertices, 1, vertexcount - 1, vertices[0]);
 
 	/* copy min to the last position */
-	//vertices[vertexcount] = vertices[0];
-	//vertexcount++;
+	/* vertices[vertexcount] = vertices[0]; */
+	/* vertexcount++; */
 
 	/*G_message("Vertex list:");
 	   for(i = 0; i < vertexcount; i++) {
@@ -147,7 +160,6 @@ void convex_hull_cluster(int *map, int cluster)
 	/* process points and bridge concave angles */
 	/* first h cells of the result are the hull cells */
 	i = 2;
-	int k;
 
 	for (k = 2; k < vertexcount; k++, i++) {
 	    /* swap cells i and k */
@@ -176,7 +188,6 @@ void convex_hull_cluster(int *map, int cluster)
        }
        fprintf(stderr, "\n"); */
 
-    Position centroid = { 0, 0 };
     for (i = 0; i < vertexcount; i++) {
 	Position p1 = vertices[i];
 	Position p2 = vertices[(i + 1) % vertexcount];
@@ -201,11 +212,11 @@ void convex_hull_cluster(int *map, int cluster)
     G_free(vertices);
 }
 
-void convex_hull(int *map)
+void convex_hull(int *map, int nrows, int ncols)
 {
     int cluster;
 
     for (cluster = 0; cluster < clustercount; cluster++) {
-	convex_hull_cluster(map, cluster);
+	convex_hull_cluster(map, cluster, nrows, ncols);
     }
 }

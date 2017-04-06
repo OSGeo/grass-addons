@@ -20,6 +20,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
 } Point;
 
 typedef struct
@@ -38,14 +43,14 @@ void print_array(DCELL * buffer, int size);
 void print_fragments();
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* voronoi.c */
-void voronoi(DCELL * values, int *map, int sx, int sy, int diag_move);
+void voronoi(DCELL * values, int *map, int sx, int sy, int diag_move, int fragcount);
 void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
 		    int stat_count, f_compensate compensate,
-		    int neighbor_level);
-void getNeighborCount(DCELL * res);
+		    int neighbor_level, int fragcount);
+void getNeighborCount(DCELL * res, int fragcount);
 
 /* compensation.c */
 DCELL none(DCELL value, int frag);
@@ -57,8 +62,6 @@ DCELL perim_odd(DCELL value, int frag);
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
-GLOBAL int sx, sy;
 
 GLOBAL int *adj_matrix;
 

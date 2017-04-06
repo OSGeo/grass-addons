@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.csr.mw
  * AUTHOR(S):    Elshad Shirinov, Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Analysis of CSR (complete spatial randomness) based on movinw window
  *
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
@@ -31,34 +32,18 @@ static struct method methods[] = {
     {0, 0, 0}
 };
 
-struct statmethod
-{
-    f_statmethod *method;	/* routine to compute new value */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
-    char *suffix;		/* output suffix */
-};
-
-static struct statmethod statmethods[] = {
-    {average, "average", "average of values", "avg"},
-    {variance, "variance", "variance of values", "var"},
-    {std_deviat, "standard deviation", "standard deviation of values", "dev"},
-    {median, "median", "median of values", "med"},
-    {min, "min", "minimum of values", "min"},
-    {max, "max", "maximum of values", "max"},
-    {0, 0, 0, 0}
-};
-
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* output */
-    char *newname, *newmapset;
+    char *newname;
 
     /* mask */
-    char *maskname, *maskmapset;
+    char *maskname;
+    const char *maskmapset;
 
     /* in and out file pointers */
     int in_fd, out_fd;
@@ -67,29 +52,21 @@ int main(int argc, char *argv[])
     int keyval;
     int n;
     int size;
-    int method;
     f_method *method_func;
 
     /* maps */
     int *map;
     int *mask;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
     int row, col;
     CELL *result;
     DCELL *d_res;
     DCELL *values;
-    int i, j;
-    Coords *p;
+    int i;
     char *str;
     int m;
     int nx, ny;
-
-    RASTER_MAP_TYPE map_type;
-    struct Cell_head ch, window;
 
     struct GModule *module;
     struct
@@ -102,7 +79,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Complete Spatial Randomness analysis on moving window.");
 
@@ -162,16 +139,17 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* get name of mask */
     maskname = parm.mask->answer;
+    maskmapset = NULL;
 
     /* test costmap existance */
-    if (maskname && (maskmapset = G_find_cell2(maskname, "")) == NULL)
-	        G_fatal_error(_("Raster map <%s> not found"), maskname);
+    if (maskname && (maskmapset = G_find_raster2(maskname, "")) == NULL)
+	G_fatal_error(_("Raster map <%s> not found"), maskname);
 
     /* get keyval */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -205,14 +183,11 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
-
-    map_type = DCELL_TYPE;
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     /* test output */
     /*      G_message("TEST OUTPUT :");
@@ -229,22 +204,22 @@ int main(int argc, char *argv[])
     map = (int *)G_malloc(sx * sy * sizeof(int));
     mask = (int *) G_malloc(sx * sy * sizeof(int));
 
-    result = G_allocate_c_raster_buf();
-    d_res = G_allocate_d_raster_buf();
+    result = Rast_allocate_c_buf();
+    d_res = Rast_allocate_d_buf();
 
     nx = size > 0 ? sx - size + 1 : 1;
     ny = size > 0 ? sy - size + 1 : 1;
     values = (DCELL *) G_malloc(nx * ny * sizeof(Coords));
 
     /* open map */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map:");
     for (row = 0; row < sy; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < sx; col++) {
 	    if (result[col] == keyval)
 		map[row * sx + col] = 1;
@@ -255,7 +230,7 @@ int main(int argc, char *argv[])
     G_percent(1, 1, 2);
 
     /* close map */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* test output */
     /*      G_message("map:\n");
@@ -264,14 +239,14 @@ int main(int argc, char *argv[])
     /* if mask specified, read mask */
     if (maskname) {
 	/* open mask file */
-	in_fd = G_open_cell_old(maskname, maskmapset);
+	in_fd = Rast_open_old(maskname, maskmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), maskname);
 
 	/* read mask */
 	G_message("Reading mask file:");
 	for (row = 0; row < sy; row++) {
-	    G_get_c_raster_row(in_fd, result, row);
+	    Rast_get_c_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		mask[row * sx + col] = result[col];
 	    }
@@ -281,7 +256,7 @@ int main(int argc, char *argv[])
 	G_percent(1, 1, 2);
 
 	/* close mask */
-	G_close_cell(in_fd);
+	Rast_close(in_fd);
     }
     else {
 	/* if no costmap specified, fill mask with 1 */
@@ -307,13 +282,13 @@ int main(int argc, char *argv[])
 	G_message("Writing output...");
 
 	/* open the new cellfile  */
-	out_fd = G_open_raster_new(newname, map_type);
+	out_fd = Rast_open_new(newname, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    if (row >= size / 2 && row < ny + size / 2) {
 		for (col = 0; col < nx; col++) {
@@ -322,17 +297,16 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 
 	    G_percent(row + 1, sy, 1);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
-
+	Rast_close(out_fd);
     }
     else {
-	fprintf(stdout, "\n\noutput = %lf\n\n", values[0]);
+	fprintf(stdout, "\n\noutput = %f\n\n", values[0]);
     }
 
     /* free allocated resources */

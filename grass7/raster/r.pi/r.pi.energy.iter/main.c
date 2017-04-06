@@ -3,8 +3,9 @@
  *
  * MODULE:       r.pi.energy.iter
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
- * PURPOSE:      Individual-based dispersal model for connectivity analysis 
- *                              - energy-based - iterative removal of paches for patch relevance analysis
+ *               Markus Metz (update to GRASS 7)
+ * PURPOSE:      Individual-based dispersal model for connectivity analysis - energy-based
+ *                - iterative removal of patches for patch relevance analysis
  *
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
  *
@@ -39,13 +40,16 @@ static struct statmethod statmethods[] = {
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
 
     /* costmap */
-    char *costname, *costmapset;
+    char *costname;
+    const char *costmapset;
 
     /* suitability map */
-    char *suitname, *suitmapset;
+    char *suitname;
+    const char *suitmapset;
 
     /* in and out file pointers */
     int in_fd, out_fd;
@@ -62,22 +66,20 @@ int main(int argc, char *argv[])
     int remove_indi;
     int seed;
 
-    /* other parameters */
-    char *title;
-
     /* helper variables */
     int row, col;
+    int sx, sy;
     CELL *result;
     DCELL *d_res;
     int neighb_count;
-    int i, j;
+    int i;
     Coords *p;
     char *str;
     int method;
-    char outname[GNAME_MAX];
-    int sum;
     int out_progress, out_max;
     int frag;
+    int fragcount;
+    int n;
 
     int *dif_immi;
     int *dif_mig;
@@ -93,9 +95,6 @@ int main(int argc, char *argv[])
 
     DCELL *dummy;
     DCELL *ref;
-
-    RASTER_MAP_TYPE map_type;
-    struct Cell_head ch, window;
 
     struct GModule *module;
     struct
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Individual-based dispersal model for connectivity analysis (energy based) using iterative patch removal.");
 
@@ -271,22 +270,24 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input file existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* get name of costmap */
     costname = parm.costmap->answer;
+    costmapset = NULL;
 
     /* test costmap existance */
-    if (costname && (costmapset = G_find_cell2(costname, "")) == NULL)
+    if (costname && (costmapset = G_find_raster2(costname, "")) == NULL)
 	G_fatal_error(_("Raster map <%s> not found"), costname);
 
     /* get name of suitability map */
     suitname = parm.suitability->answer;
+    suitmapset = NULL;
 
-    /* test costmap existance */
-    if (suitname && (suitmapset = G_find_cell2(suitname, "")) == NULL)
+    /* test suitmap existance */
+    if (suitname && (suitmapset = G_find_raster2(suitname, "")) == NULL)
         G_fatal_error(_("Raster map <%s> not found"), suitname);
 
     /* get keyval */
@@ -360,12 +361,11 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     /* test output */
     /*fprintf(stderr, "TEST OUTPUT : \n");
@@ -384,33 +384,34 @@ int main(int argc, char *argv[])
 
     /* allocate map buffers */
     map = (int *)G_malloc(sx * sy * sizeof(int));
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
     costmap = (DCELL *) G_malloc(sx * sy * sizeof(DCELL));
     suitmap = (DCELL *) G_malloc(sx * sy * sizeof(DCELL));
-    d_res = G_allocate_d_raster_buf();
+    d_res = Rast_allocate_d_buf();
     cells = (Coords *) G_malloc(sx * sy * sizeof(Coords));
     fragments = (Coords **) G_malloc(sx * sy * sizeof(Coords *));
     fragments[0] = cells;
 
     /* open map */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map:");
     for (row = 0; row < sy; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < sx; col++) {
 	    if (result[col] == keyval)
 		map[row * sx + col] = 1;
 	}
 
-	G_percent(row + 1, sy, 1);
+	G_percent(row, sy, 2);
     }
+    G_percent(1, 1, 2);
 
     /* close map */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* test output */
     /*      G_message("map:\n");
@@ -419,23 +420,24 @@ int main(int argc, char *argv[])
     /* if costmap specified, read costmap */
     if (costname != NULL) {
 	/* open costmap */
-	in_fd = G_open_cell_old(costname, costmapset);
+	in_fd = Rast_open_old(costname, costmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), costname);
 
 	/* read costmap */
 	G_message("Reading costmap:");
 	for (row = 0; row < sy; row++) {
-	    G_get_d_raster_row(in_fd, d_res, row);
+	    Rast_get_d_row(in_fd, d_res, row);
 	    for (col = 0; col < sx; col++) {
 		costmap[row * sx + col] = d_res[col];
 	    }
 
-	    G_percent(row + 1, sy, 1);
+	    G_percent(row, sy, 2);
 	}
+	G_percent(1, 1, 2);
 
 	/* close costmap */
-	G_close_cell(in_fd);
+	Rast_close(in_fd);
     }
     else {
 	/* if no costmap specified, fill costmap with 1 */
@@ -447,13 +449,14 @@ int main(int argc, char *argv[])
     /* if suitability map specified, read it */
     if (suitname != NULL) {
 	/* open suitability map */
+	in_fd = Rast_open_old(suitname, suitmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), suitname);
 
 	/* read suitability map */
 	G_message("Reading suitability map file:");
 	for (row = 0; row < sy; row++) {
-	    G_get_d_raster_row(in_fd, d_res, row);
+	    Rast_get_d_row(in_fd, d_res, row);
 	    for (col = 0; col < sx; col++) {
 		suitmap[row * sx + col] = d_res[col];
 	    }
@@ -462,7 +465,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* close suitability map */
-	G_close_cell(in_fd);
+	Rast_close(in_fd);
     }
     else {
 	/* if no suitability map specified, fill it with 100 */
@@ -476,7 +479,7 @@ int main(int argc, char *argv[])
        print_d_buffer(costmap, sx, sy); */
 
     /* find fragments */
-    writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(map, sy, sx, neighb_count);
 
     /* test output */
     /*      print_fragments(); */
@@ -513,7 +516,7 @@ int main(int argc, char *argv[])
     dif_lost = (int *)G_malloc((fragcount + 1) * fragcount * sizeof(int));
 
     /* perform first reference search run */
-    perform_search(map, costmap, suitmap, remove_indi);
+    perform_search(map, costmap, remove_indi, n, fragcount, sx, sy);
 
     /* test output */
     /* G_message("Reference run:");
@@ -534,7 +537,7 @@ int main(int argc, char *argv[])
     /* perform test runs */
     for (frag = 0; frag < fragcount; frag++) {
 	deleted_arr[frag] = 1;
-	perform_search(map, costmap, suitmap, remove_indi);
+	perform_search(map, costmap, remove_indi, n, fragcount, sx, sy);
 	deleted_arr[frag] = 0;
 
 	/* G_message("Frag %d deleted:", frag);
@@ -603,7 +606,8 @@ int main(int argc, char *argv[])
 	}
 	for (method = 0; method < stat_count; method++) {
 	    f_statmethod *func = statmethods[stats[method]].method;
-	    int index = method * fragcount + frag;
+
+	    index = method * fragcount + frag;
 
 	    out_immi[index] = func(dummy, fragcount - 1);
 	    out_mig[index] = func(dummy + fragcount - 1, fragcount - 1);
@@ -656,13 +660,13 @@ int main(int argc, char *argv[])
 	/* open the new cellfile  */
 	sprintf(outname, "%s_imi_%s", newname,
 		statmethods[stats[method]].suffix);
-	out_fd = G_open_raster_new(outname, DCELL_TYPE);
+	out_fd = Rast_open_new(outname, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), outname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (frag = 0; frag < fragcount; frag++) {
 		for (p = fragments[frag]; p < fragments[frag + 1]; p++) {
@@ -672,13 +676,13 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 
 	    G_percent(++out_progress, out_max, 1);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* write migrants */
@@ -687,13 +691,13 @@ int main(int argc, char *argv[])
 	/* open the new cellfile  */
 	sprintf(outname, "%s_mig_%s", newname,
 		statmethods[stats[method]].suffix);
-	out_fd = G_open_raster_new(outname, DCELL_TYPE);
+	out_fd = Rast_open_new(outname, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), outname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (frag = 0; frag < fragcount; frag++) {
 		for (p = fragments[frag]; p < fragments[frag + 1]; p++) {
@@ -703,13 +707,13 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 
 	    G_percent(++out_progress, out_max, 1);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* write successful migrants */
@@ -718,13 +722,13 @@ int main(int argc, char *argv[])
 	/* open the new cellfile  */
 	sprintf(outname, "%s_mig_succ_%s", newname,
 		statmethods[stats[method]].suffix);
-	out_fd = G_open_raster_new(outname, DCELL_TYPE);
+	out_fd = Rast_open_new(outname, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), outname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (frag = 0; frag < fragcount; frag++) {
 		for (p = fragments[frag]; p < fragments[frag + 1]; p++) {
@@ -734,13 +738,13 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 
 	    G_percent(++out_progress, out_max, 1);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* write emigrants */
@@ -749,13 +753,13 @@ int main(int argc, char *argv[])
 	/* open the new cellfile  */
 	sprintf(outname, "%s_emi_%s", newname,
 		statmethods[stats[method]].suffix);
-	out_fd = G_open_raster_new(outname, DCELL_TYPE);
+	out_fd = Rast_open_new(outname, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), outname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (frag = 0; frag < fragcount; frag++) {
 		for (p = fragments[frag]; p < fragments[frag + 1]; p++) {
@@ -765,13 +769,13 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 
 	    G_percent(++out_progress, out_max, 1);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     if (!setback) {
@@ -781,13 +785,13 @@ int main(int argc, char *argv[])
 	    /* open the new cellfile  */
 	    sprintf(outname, "%s_lost_%s", newname,
 		    statmethods[stats[method]].suffix);
-	    out_fd = G_open_raster_new(outname, DCELL_TYPE);
+	    out_fd = Rast_open_new(outname, DCELL_TYPE);
 	    if (out_fd < 0)
 		    G_fatal_error(_("Cannot create raster map <%s>"), outname);
 
 	    /* write the output file */
 	    for (row = 0; row < sy; row++) {
-		G_set_d_null_value(d_res, sx);
+		Rast_set_d_null_value(d_res, sx);
 
 		for (frag = 0; frag < fragcount; frag++) {
 		    for (p = fragments[frag]; p < fragments[frag + 1]; p++) {
@@ -797,13 +801,13 @@ int main(int argc, char *argv[])
 		    }
 		}
 
-		G_put_d_raster_row(out_fd, d_res);
+		Rast_put_d_row(out_fd, d_res);
 
 		G_percent(++out_progress, out_max, 1);
 	    }
 
 	    /* close output */
-	    G_close_cell(out_fd);
+	    Rast_close(out_fd);
 	}
     }
 

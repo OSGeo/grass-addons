@@ -20,6 +20,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
 } Point;
 
 typedef DCELL(f_statmethod) (DCELL *, int);
@@ -45,23 +50,20 @@ int f_shapeindex(DCELL * vals, Coords ** frags, int count);
 int f_frac_dim(DCELL * vals, Coords ** frags, int count);
 
 /* fractal.c */
-void create_map(int *res);
+void create_map(int *res, int size);
 
 /* frag.c */
-/* writes one fragment */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* global parameters */
-GLOBAL int verbose;
 GLOBAL int *buffer;
 GLOBAL double *bigbuf;
 GLOBAL double landcover;
 GLOBAL int sx, sy;
-GLOBAL int power, size;
+GLOBAL int power;
 GLOBAL double sharpness;
 
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 #endif /* LOCAL_PROTO_H */

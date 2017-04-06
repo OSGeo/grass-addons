@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -16,6 +17,11 @@
 #else
 #define GLOBAL extern
 #endif
+
+typedef struct
+{
+    int x, y;
+} Position;
 
 typedef DCELL(f_statmethod) (DCELL *, int);
 typedef void (f_method) (DCELL * values, int *map, int *mask, int n,
@@ -31,6 +37,5 @@ GLOBAL int sx, sy;
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 #endif /* LOCAL_PROTO_H */

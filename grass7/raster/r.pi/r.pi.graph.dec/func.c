@@ -17,15 +17,15 @@ DCELL min_dist(Patch * frags, int n1, int n2)
     int p1, p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = 0; p1 < frags[n1].count; p1++) {
 	Coords *c1 = frags[n1].first_cell + p1;
 
-	// if cell at the border
+	/* if cell at the border */
 	if (c1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = 0; p2 < frags[n2].count; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		Coords *c2 = frags[n2].first_cell + p2;
 
 		if (c2->neighbors < 4) {
@@ -38,6 +38,7 @@ DCELL min_dist(Patch * frags, int n1, int n2)
 	    }
 	}
     }
+
     return min;
 }
 
@@ -47,17 +48,17 @@ DCELL nearest_points(Patch * frags, int n1, int n2, Coords * np1,
     int p1, p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = 0; p1 < frags[n1].count; p1++) {
 	Coords *c1 = frags[n1].first_cell + p1;
 
-	// if cell at the border
+	/* if cell at the border */
 	if (c1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = 0; p2 < frags[n2].count; p2++) {
 		Coords *c2 = frags[n2].first_cell + p2;
 
-		// if cell at the border
+		/* if cell at the border */
 		if (c2->neighbors < 4) {
 		    DCELL d = dist(c1, c2);
 
@@ -70,6 +71,7 @@ DCELL nearest_points(Patch * frags, int n1, int n2, Coords * np1,
 	    }
 	}
     }
+
     return min;
 }
 
@@ -79,11 +81,11 @@ DCELL min_dist_to_location(Patch * frags, int patch, double loc_x,
     int p;
     DCELL min = MAX_DOUBLE;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p = 0; p < frags[patch].count; p++) {
 	Coords *cell = frags[patch].first_cell + p;
 
-	// if cell at the border
+	/* if cell at the border */
 	if (cell->neighbors < 4) {
 	    DCELL dx = loc_x - cell->x;
 	    DCELL dy = loc_y - cell->y;
@@ -94,6 +96,7 @@ DCELL min_dist_to_location(Patch * frags, int patch, double loc_x,
 	    }
 	}
     }
+
     return min;
 }
 
@@ -135,11 +138,14 @@ int *find_cluster(int *adjacency_matrix, int patch, int fragcount,
 		  int *curpos, int *flag_arr)
 {
     int i;
-    int *p;
-    int list[fragcount];
-    int *first = list;
-    int *last = list + 1;
+    int *list;
+    int *first;
+    int *last;
     int offset;
+
+    list = G_malloc(fragcount * sizeof(int));
+    first = list;
+    last = list + 1;
 
     list[0] = patch;
     flag_arr[patch] = 1;
@@ -163,6 +169,8 @@ int *find_cluster(int *adjacency_matrix, int patch, int fragcount,
 	first++;
     }
 
+    G_free(list);
+
     return curpos;
 }
 
@@ -170,14 +178,12 @@ int find_clusters(Cluster * cluster_list, int *adjacency_matrix,
 		  int fragcount)
 {
     int i;
-
     int count = 0;
-
-    int flag_arr[fragcount];
-
-    memset(flag_arr, 0, fragcount * sizeof(int));
-
+    int *flag_arr;
     int *curpos = cluster_list[0].first_patch;
+
+    flag_arr = G_malloc(fragcount * sizeof(int));
+    memset(flag_arr, 0, fragcount * sizeof(int));
 
     for (i = 0; i < fragcount; i++) {
 	if (flag_arr[i] == 0) {
@@ -201,6 +207,8 @@ int find_clusters(Cluster * cluster_list, int *adjacency_matrix,
        }
        fprintf(stderr, "\n");
        } */
+
+    G_free(flag_arr);
 
     return count;
 }
@@ -306,11 +314,14 @@ void f_spanning_tree(int *adjacency_matrix, DCELL * distmatrix, int fragcount,
 		     DCELL max_dist)
 {
     int i, j;
-    int parents[fragcount];
-    DCELL distances[fragcount];
+    int *parents;
+    DCELL *distances;
     int curmin;
     int nextmin = 0;
     int parent;
+
+    parents = G_malloc(fragcount * sizeof(int));
+    distances = G_malloc(fragcount * sizeof(DCELL));
 
     /* init parents and distances list */
     for (i = 0; i < fragcount; i++) {
@@ -338,12 +349,12 @@ void f_spanning_tree(int *adjacency_matrix, DCELL * distmatrix, int fragcount,
 
 	/* find the next node for minimum spanning tree */
 	for (j = 0; j < fragcount; j++) {
+	    /* get distance to the current minimum node */
+	    DCELL dist = distmatrix[curmin * fragcount + j];
+
 	    /* skip the current minimum node */
 	    if (j == curmin)
 		continue;
-
-	    /* get distance to the current minimum node */
-	    DCELL dist = distmatrix[curmin * fragcount + j];
 
 	    /* if this distance is smaller than the stored one */
 	    /* then set a new distance and update parent list  */
@@ -359,6 +370,9 @@ void f_spanning_tree(int *adjacency_matrix, DCELL * distmatrix, int fragcount,
 	    }
 	}
     }
+
+    G_free(parents);
+    G_free(distances);
 }
 
 /*********************************
@@ -375,7 +389,6 @@ void f_connectance_index(DCELL * values, Cluster * cluster_list,
     /* for each cluster */
     for (i = 0; i < cluster_count; i++) {
 	int n = cluster_list[i].count;
-	DCELL c = 100.0 / (n * (n - 1) * 0.5);
 	DCELL val = 0;
 
 	/* no patches are 0% connected */
@@ -457,7 +470,6 @@ void f_cohesion_index(DCELL * values, Cluster * cluster_list,
 
     /* for each cluster */
     for (i = 0; i < cluster_count; i++) {
-	int n = cluster_list[i].count;
 	int total_area = 0;
 	DCELL num = 0.0;
 	DCELL denom = 0.0;
@@ -513,8 +525,7 @@ void f_percent_area(DCELL * values, Cluster * cluster_list, int cluster_count,
 		    DCELL * distmatrix)
 {
     int i;
-    int *p, *q;
-    Coords *cell;
+    int *p;
 
     int area_all = 0;
 
@@ -635,17 +646,17 @@ DCELL get_diameter(Patch * frags, int n)
     int p1, p2;
     DCELL max = 0.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = 0; p1 < frags[n].count; p1++) {
 	Coords *c1 = frags[n].first_cell + p1;
 
-	// if cell at the border
+	/* if cell at the border */
 	if (c1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = p1 + 1; p2 < frags[n].count; p2++) {
 		Coords *c2 = frags[n].first_cell + p2;
 
-		// if cell at the border
+		/* if cell at the border */
 		if (c2->neighbors < 4) {
 		    DCELL d = dist(c1, c2);
 
@@ -692,14 +703,13 @@ void f_graph_diameter_max(DCELL * values, Cluster * cluster_list,
 			  DCELL * distmatrix)
 {
     int i, j, k;
+    DCELL *pathmatrix;
 
     /* initialize path matrix */
-    DCELL pathmatrix[fragcount * fragcount * sizeof(DCELL)];
+    pathmatrix = G_malloc(fragcount * fragcount * sizeof(DCELL));
 
     for (i = 0; i < fragcount; i++) {
 	pathmatrix[i * fragcount + i] = 0.0;
-
-	int j;
 
 	for (j = i + 1; j < fragcount; j++) {
 	    int index = i * fragcount + j;
@@ -760,4 +770,6 @@ void f_graph_diameter_max(DCELL * values, Cluster * cluster_list,
 
 	values[i] = max_dist;
     }
+
+    G_free(pathmatrix);
 }

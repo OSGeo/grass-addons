@@ -13,20 +13,19 @@ DCELL *indi_steps;
 /*
    output raster with current simulation state
  */
-void test_output(int *map, int patch, int step, int n)
+void test_output(int *map, int patch, int step, int n, int sx, int sy)
 {
     int out_fd;
-    int row, col, i;
-    char outname[GNAME_MAX];
+    int row, i;
     DCELL *outmap = (DCELL *) G_malloc(sx * sy * sizeof(DCELL));
 
     /* open the new cellfile  */
     sprintf(outname, "%s_patch%d_step%d", newname, patch, step);
 
-    out_fd = G_open_raster_new(outname, DCELL_TYPE);
+    out_fd = Rast_open_new(outname, DCELL_TYPE);
     if (out_fd < 0) {
 	G_fatal_error(_("can't create new cell file <%s> in mapset %s\n"),
-		      outname, newmapset);
+		      outname, G_mapset());
 	exit(EXIT_FAILURE);
     }
 
@@ -43,7 +42,7 @@ void test_output(int *map, int patch, int step, int n)
 	x = indi->x;
 	y = indi->y;
 
-	//              fprintf(stderr, "indi%d: (%d, %d)\n", i, x, y);
+	/*              fprintf(stderr, "indi%d: (%d, %d)\n", i, x, y); */
 	if (!indi->lost) {
 	    outmap[x + y * sx]++;
 	}
@@ -64,11 +63,11 @@ void test_output(int *map, int patch, int step, int n)
 
     /* write output */
     for (row = 0; row < sy; row++) {
-	G_put_d_raster_row(out_fd, outmap + row * sx);
+	Rast_put_d_row(out_fd, outmap + row * sx);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
     G_free(outmap);
 }
 
@@ -108,7 +107,7 @@ int sort_frag(Coords * frag, int size)
 /*
    picks a random direction pointing outwards a patch
  */
-double pick_dir(int *map, Coords * frag)
+double pick_dir(int *map, Coords * frag, int sx, int sy)
 {
     double dirs[4];
     int i;
@@ -136,18 +135,18 @@ double pick_dir(int *map, Coords * frag)
 	    if (res < 0) {
 		res++;
 	    }
-	    //                      res = res < 0 ? 2 * M_PI + res : res;
+	    /* res = res < 0 ? 2 * M_PI + res : res; */
 	    return res;
 	}
     }
 
-    return -1;			// error
+    return -1;			/* error */
 }
 
 /*
    initializes all individuals for a fragment
  */
-void init_individuals(int *map, int frag, int size, int n)
+void init_individuals(int *map, int frag, int size, int n, int sx, int sy)
 {
     int i, border_count, index;
     Coords *cell;
@@ -155,10 +154,10 @@ void init_individuals(int *map, int frag, int size, int n)
 
     border_count = sort_frag(fragment, size);
 
-    //      G_message("Initializing");
+    /* G_message("Initializing individuals"); */
 
     for (i = 0; i < n; i++) {
-	//              G_message("border_count = %d", border_count);
+	/* G_message("border_count = %d", border_count); */
 
 	/* pick border cell */
 	index = Random(border_count);
@@ -166,24 +165,26 @@ void init_individuals(int *map, int frag, int size, int n)
 
 	indi_array[i].x = cell->x + 0.5;
 	indi_array[i].y = cell->y + 0.5;
-	indi_array[i].dir = pick_dir(map, cell);	//2 * M_PI * Randomf();
+	indi_array[i].dir = pick_dir(map, cell, sx, sy);	/* 2 * M_PI * Randomf(); */
 	indi_array[i].energy = energy;
 	indi_array[i].finished = 0;
 	indi_array[i].immigrated = 0;
 	indi_array[i].last_cat = frag;
 	indi_array[i].lost = 0;
 
-	//              fprintf(stderr, "indi%d: ", i);
-	//              fprintf(stderr, "x=%0.2f, y=%0.2f, dir=%0.2f, finished=%d\n",
-	//                              indi_array[i].x, indi_array[i].y, indi_array[i].dir, indi_array[i].finished);
+	/*
+	              fprintf(stderr, "indi%d: ", i);
+	              fprintf(stderr, "x=%0.2f, y=%0.2f, dir=%0.2f, finished=%d\n",
+	                              indi_array[i].x, indi_array[i].y, indi_array[i].dir, indi_array[i].finished);
+	*/
     }
-    //      G_message("End initialization");
+    /* G_message("End initialization"); */
 }
 
 /*
    sets back an individual, when position is illegal
  */
-void set_back(int *map, int indi, int frag)
+void set_back(int *map, int indi, int frag, int sx, int sy)
 {
     int index;
     Coords *cell;
@@ -196,7 +197,7 @@ void set_back(int *map, int indi, int frag)
 
     indi_array[indi].x = cell->x;
     indi_array[indi].y = cell->y;
-    indi_array[indi].dir = pick_dir(map, cell);
+    indi_array[indi].dir = pick_dir(map, cell, sx, sy);
     indi_array[indi].finished = 0;
     indi_array[indi].last_cat = frag;
 }
@@ -279,7 +280,7 @@ void calculate_displacement(Displacement * values, int radius)
    fills a weighted array with possible next positions
  */
 void pick_nextpos(WeightedCoords * result, int indi, int *map,
-		  DCELL * suitmap, int frag)
+		  DCELL * suitmap, int frag, int sx, int sy)
 {
     int i;
     double ex_step, ex_pos;
@@ -344,7 +345,7 @@ void pick_nextpos(WeightedCoords * result, int indi, int *map,
 /*
    performs a single step for an individual
  */
-void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
+void indi_step(int indi, int frag, int *map, DCELL * costmap, int n, int fragcount, int sx, int sy)
 {
     int i;
     double sum;
@@ -362,7 +363,7 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
     /* if new position is out of limits, then set back */
     if (newx < 0 || newx >= sx || newy < 0 || newy >= sy) {
 	if (setback) {
-	    set_back(map, indi, frag);
+	    set_back(map, indi, frag, sx, sy);
 	}
 	else {
 	    /* individual is lost */
@@ -403,8 +404,8 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
 
 	/* if emigrating from a patch */
 	if (last_cell > -1 && last_cell != frag) {
-	    patch_registry[last_cell * n + indi] = 2;	// now migrant
-	    //immigrants[last_cell]--;
+	    patch_registry[last_cell * n + indi] = 2;	/* now migrant */
+	    /* immigrants[last_cell]--; */
 	    migrants[last_cell]++;
 	    mig_matrix[frag * fragcount + last_cell]++;
 	}
@@ -422,10 +423,11 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
 	}
     }
 
+    /* remember last category */
     individual->last_cat = act_cell;
 
     /* write an array with possible next positions */
-    pick_nextpos(pos_arr, indi, map, costmap, frag);
+    pick_nextpos(pos_arr, indi, map, costmap, frag, sx, sy);
 
     /* if no next position is possible, then set back */
     sum = 0;
@@ -434,7 +436,7 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
     }
     if (sum == 0) {
 	if (setback) {
-	    set_back(map, indi, frag);
+	    set_back(map, indi, frag, sx, sy);
 	}
 	else {
 	    /* individual is lost */
@@ -456,7 +458,6 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
 	if (pos_arr[i].weight > rnd)
 	    break;
     }
-
     individual->dir = pos_arr[i].dir;
 
     return;
@@ -465,18 +466,17 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, double step)
 /*
    performs a search run for a single fragment
  */
-DCELL frag_run(int *map, DCELL * costmap, int frag)
+DCELL frag_run(int *map, DCELL * costmap, int frag, int n, int fragcount, int sx, int sy)
 {
     int i, j;
-    DCELL res = 0;
     int step_cnt = 0;
     int finished_cnt = 0;
     int limit = 0.01 * percent * n;
 
-    //      fprintf(stderr, "\nstarting run:\n");
-    //      fprintf(stderr, "limit = %d\n", limit); 
+    /*      fprintf(stderr, "\nstarting run:\n"); */
+    /*      fprintf(stderr, "limit = %d\n", limit); */
 
-    init_individuals(map, frag, fragments[frag + 1] - fragments[frag], n);
+    init_individuals(map, frag, fragments[frag + 1] - fragments[frag], n, sx, sy);
 
     memset(patch_registry, 0, fragcount * n * sizeof(int));
 
@@ -484,13 +484,12 @@ DCELL frag_run(int *map, DCELL * costmap, int frag)
     finished_cnt = 0;
     while (finished_cnt < limit) {
 	if (out_freq > 0 && (step_cnt % out_freq == 0)) {
-	    test_output(map, frag, step_cnt, n);
+	    test_output(map, frag, step_cnt, n, sx, sy);
 	}
 
 	for (i = 0; i < n; i++) {
 	    if (!indi_array[i].finished) {
-
-		indi_step(i, frag, map, costmap, step_length);
+		indi_step(i, frag, map, costmap, n, fragcount, sx, sy);
 
 		/* test if new individuum finished */
 		if (indi_array[i].finished) {
@@ -521,20 +520,20 @@ DCELL frag_run(int *map, DCELL * costmap, int frag)
     }
 
     if (out_freq > 0 && (step_cnt % out_freq == 0)) {
-	test_output(map, frag, step_cnt, n);
+	test_output(map, frag, step_cnt, n, sx, sy);
     }
 
-    //      fprintf(stderr, "stepcnt = %d\n", step_cnt);
+    /*      fprintf(stderr, "stepcnt = %d\n", step_cnt); */
+
     return (DCELL) step_cnt;
 }
 
 /*
    performs a search run for each fragment
  */
-void perform_search(int *map, DCELL * costmap, DCELL * suitmap)
+void perform_search(int *map, DCELL * costmap, int n, int fragcount, int sx, int sy)
 {
-    int fragment, i;
-    int steps;
+    int fragment;
     f_statmethod func;
 
     /* allocate paths array */
@@ -580,7 +579,7 @@ void perform_search(int *map, DCELL * costmap, DCELL * suitmap)
 
     /* perform a search run for each fragment */
     for (fragment = 0; fragment < fragcount; fragment++) {
-	frag_run(map, costmap, fragment);
+	frag_run(map, costmap, fragment, n, fragcount, sx, sy);
     }
 
     G_free(indi_steps);

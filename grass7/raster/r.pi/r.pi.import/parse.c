@@ -32,16 +32,15 @@ void parse_line(DCELL * values, char *buffer, int id_col, int val_col)
     values[id] = value;
 }
 
-void parse(DCELL * values, char *file_name, int id_col, int val_col)
+void parse(DCELL * values, char *file_name, int id_col, int val_col, int fragcount)
 {
     char buffer[GNAME_MAX];
     FILE *fp;
-    int i;
 
     fp = fopen(file_name, "r");
 
     /* fill values with NULL */
-    G_set_d_null_value(values, fragcount);
+    Rast_set_d_null_value(values, fragcount);
 
     if (fp == NULL) {
 	G_fatal_error("Couldn't open input file!");

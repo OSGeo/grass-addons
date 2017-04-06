@@ -32,6 +32,7 @@ DCELL variance(DCELL * vals, int count)
     }
 
     mean = s / (DCELL) count;
+
     return ss / count - mean * mean;
 }
 
@@ -123,17 +124,18 @@ DCELL mode(DCELL * vals, int count)
     DCELL actval, maxval;
     int actcnt, maxcnt;
     int actpos;
-    int i;
 
     if (count <= 0)
 	return 0;
 
     quicksort(vals, 0, count - 1);
 
+    /*
     fprintf(stderr, "vals = (%0.2f", vals[0]);
     for (i = 1; i < count; i++)
 	fprintf(stderr, ",%0.2f", vals[i]);
     fprintf(stderr, ")\n\n");
+    */
 
     maxval = 0;
     maxcnt = 0;
@@ -188,11 +190,11 @@ DCELL max(DCELL * vals, int count)
 
 DCELL sum(DCELL * vals, int count)
 {
-    if (count <= 0)
-	return 0;
-
     int i;
     DCELL res = 0;
+
+    if (count <= 0)
+	return 0;
 
     for (i = 0; i < count; i++)
 	res += vals[i];
@@ -203,6 +205,7 @@ DCELL sum(DCELL * vals, int count)
 DCELL linear(DCELL value, DCELL propcost)
 {
     value -= propcost;
+
     return value >= 0.0 ? value : 0.0;
 }
 

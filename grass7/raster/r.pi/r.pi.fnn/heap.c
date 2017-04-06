@@ -25,13 +25,13 @@ void downheap(int pos)
 {
     int son = pos * 2 + 1;
 
-    // actual element has left son
+    /* actual element has left son */
     if (son < heapsize) {
-	// actual element has right son, which is the smaller son
+	/* actual element has right son, which is the smaller son */
 	if (son + 1 < heapsize && heap[son + 1].f < heap[son].f)
 	    son++;
-	// son is now the smaller son
-	// if son smaller then actual element
+	/* son is now the smaller son */
+	/* if son smaller then actual element */
 	if (heap[pos].f > heap[son].f) {
 	    exchange(pos, son);
 	    downheap(son);

@@ -6,12 +6,11 @@
 DCELL *areas;
 Point *empty_space;
 PatchPoint *new_edge;
-int new_count;
 
 /*
    allocates memory, initializes the buffers
  */
-void init_voronoi(int *map, int sx, int sy)
+void init_voronoi(int *map, int sx, int sy, int fragcount)
 {
     int x, y;
 
@@ -33,8 +32,6 @@ void init_voronoi(int *map, int sx, int sy)
 	    }
 	}
     }
-
-    new_count = 0;
 }
 
 /*
@@ -47,6 +44,7 @@ int delete_stride(int index, int count, Point * list, int size)
 
     memcpy(list + index, list + index + count,
 	   (size - index - count) * sizeof(Point));
+
     return size - count;
 }
 
@@ -60,6 +58,7 @@ int delete_point(int index, Point * list, int size)
 
     memcpy(list + index, list + index + 1,
 	   (size - index - 1) * sizeof(Point));
+
     return size - 1;
 }
 
@@ -78,7 +77,7 @@ int add_point(int x, int y, Point * list, int size)
    gathers neighbors of a pixel
  */
 int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
-		     int diag_grow)
+		     int diag_grow, int fragcount)
 {
     int r, l, t, b;
     int nx, ny;
@@ -111,7 +110,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 	}
     }
     else {
-	if (x > 0) {		// left
+	if (x > 0) {		/* left */
 	    val = map[x - 1 + y * sx];
 	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
@@ -119,7 +118,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 		count++;
 	    }
 	}
-	if (x < sx - 1) {	// right
+	if (x < sx - 1) {	/* right */
 	    val = map[x + 1 + y * sx];
 	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
@@ -127,7 +126,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 		count++;
 	    }
 	}
-	if (y > 0) {		// up
+	if (y > 0) {		/* up */
 	    val = map[x + (y - 1) * sx];
 	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
@@ -135,7 +134,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 		count++;
 	    }
 	}
-	if (y < sy - 1) {	// left
+	if (y < sy - 1) {	/* down */
 	    val = map[x + (y + 1) * sx];
 	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
@@ -152,7 +151,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 /*
    grows patches by 1 pixel
  */
-void grow_step(int *map, int sx, int sy, int diag_grow)
+void grow_step(int *map, int sx, int sy, int diag_grow, int fragcount)
 {
     int i, j;
     int *neighbors;
@@ -160,12 +159,12 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
     int patch;
     int neighb_cnt;
     DCELL area;
+    int new_count = 0;
 
     /* alocate memory */
     neighbors = (int *)G_malloc(fragcount * sizeof(int));
 
     /* iterate through empty space */
-    new_count = 0;
 
     for (i = empty_count - 1; i >= 0; i--) {
 	x = empty_space[i].x;
@@ -173,7 +172,7 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
 
 	/* if at least one patch edge adjacent */
 	neighb_cnt =
-	    gather_neighbors(neighbors, map, x, y, sx, sy, diag_grow);
+	    gather_neighbors(neighbors, map, x, y, sx, sy, diag_grow, fragcount);
 
 	if (neighb_cnt > 0) {
 	    empty_count = delete_point(i, empty_space, empty_count);
@@ -202,12 +201,12 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
 	if (patch > TYPE_NOTHING) {
 	    /* test adjacency and mark adjacent patches in the matrix */
 	    neighb_cnt =
-		gather_neighbors(neighbors, map, x, y, sx, sy, diag_grow);
+		gather_neighbors(neighbors, map, x, y, sx, sy, diag_grow, fragcount);
 	    for (j = 0; j < neighb_cnt; j++) {
 		int index1 = patch;
 		int index2 = neighbors[j];
 
-		//                              G_message(_("patches %d and %d are adjacent"), index1, index2);
+		/* G_message(_("patches %d and %d are adjacent"), index1, index2); */
 
 		if (index1 != index2) {
 		    adj_matrix[index1 + index2 * fragcount] = 1;
@@ -221,9 +220,9 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
 /*
    Expands one patch
  */
-void expand_patch(int patch)
+void expand_patch(int patch, int fragcount)
 {
-    int i, j;
+    int i;
     int *list = (int *)G_malloc(fragcount * sizeof(int));
     int *begin = list;
     int *end = list;
@@ -241,7 +240,7 @@ void expand_patch(int patch)
 	}
     }
 
-    //      while(unleveled > 0) {
+    /* while(unleveled > 0) { */
     while (begin < end) {
 	new_count = 0;
 	/* for each patch on the list */
@@ -279,15 +278,17 @@ void expand_patch(int patch)
 	   G_message("Unleveled: %d", unleveled); */
     }
 
+    /*
     for (i = 0; i < fragcount - 1; i++) {
 	int j;
 
 	for (j = i + 1; j < fragcount; j++) {
 	    if (adj_matrix[i * fragcount + j] == 0) {
-		//G_message("Patch %d und %d sind nicht verbunden!",  i, j);
+		G_message("Patch %d und %d sind nicht verbunden!",  i, j);
 	    }
 	}
     }
+    */
 
     G_free(list);
 }
@@ -295,34 +296,33 @@ void expand_patch(int patch)
 /*
    Expands adjacency matrix by including neighbors of higher grade
  */
-void expand_matrix()
+void expand_matrix(int fragcount)
 {
     int row;
 
     for (row = 0; row < fragcount; row++) {
-	expand_patch(row);
+	expand_patch(row, fragcount);
     }
 }
 
 /*
    constucts a voronoi diagram
  */
-void voronoi(DCELL * values, int *map, int sx, int sy, int diag_grow)
+void voronoi(DCELL * values, int *map, int sx, int sy, int diag_grow, int fragcount)
 {
-    int i, j;
-    int running = 1;
+    int i;
     int max_empty;
     int last_empty = 0;
 
     /* init buffers */
-    init_voronoi(map, sx, sy);
+    init_voronoi(map, sx, sy, fragcount);
 
     /* while empty_space not empty ready grow patch buffers by 1 */
 
     max_empty = empty_count;
     while (empty_count != last_empty) {
 	last_empty = empty_count;
-	grow_step(map, sx, sy, diag_grow);
+	grow_step(map, sx, sy, diag_grow, fragcount);
 
 	G_percent(max_empty - empty_count, max_empty, 1);
     }
@@ -332,7 +332,7 @@ void voronoi(DCELL * values, int *map, int sx, int sy, int diag_grow)
 	values[i] = areas[i];
     }
 
-    expand_matrix();
+    expand_matrix(fragcount);
 
     G_free(areas);
     G_free(empty_space);
@@ -349,12 +349,12 @@ void voronoi(DCELL * values, int *map, int sx, int sy, int diag_grow)
  */
 void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
 		    int stat_count, f_compensate compensate,
-		    int neighbor_level)
+		    int neighbor_level, int fragcount)
 {
     int i, j, method;
     int count;
     DCELL val;
-    DCELL *areas = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
+    DCELL *areasn = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
     DCELL *odds = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
     DCELL *ratios = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
 
@@ -365,7 +365,7 @@ void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
 	for (j = 0; j < fragcount; j++) {
 	    /* if patch i(focal) and patch j(neighbor) are adjacent */
 	    if (adj_matrix[j + i * fragcount] == neighbor_level) {
-		areas[count] = fragments[j + 1] - fragments[j];
+		areasn[count] = fragments[j + 1] - fragments[j];
 		odds[count] = focals[j];
 		ratios[count] = compensate(odds[count], count);
 		count++;
@@ -376,7 +376,7 @@ void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
 	/* use the statistical methods to combine these */
 	for (method = 0; method < stat_count; method++) {
 	    /* write areas for neighbors of patch i */
-	    val = methods[method] (areas, count);
+	    val = methods[method] (areasn, count);
 	    res[method * fragcount + i] = val;
 
 	    /* write odds for neighbors of patch i */
@@ -395,7 +395,7 @@ void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
     return;
 }
 
-void getNeighborCount(DCELL * res)
+void getNeighborCount(DCELL * res, int fragcount)
 {
     int i, j;
 

@@ -20,6 +20,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
     double dir;
     DCELL path;
     int finished;
@@ -40,15 +45,13 @@ typedef struct
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap, int size,
-		    f_statmethod **stats, int stat_count);
+		    f_statmethod **stats, int stat_count, int n, int fragcount, int sx, int sy);
 
 /* global parameters */
-GLOBAL int sx, sy;
-GLOBAL int n;
 GLOBAL double percent;
 GLOBAL int maxsteps;
 GLOBAL int step_length;
@@ -60,7 +63,6 @@ GLOBAL double multiplicator;
 /* global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *patch_imi;

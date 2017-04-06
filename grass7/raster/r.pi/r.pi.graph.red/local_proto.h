@@ -100,7 +100,4 @@ DCELL nearest_points(Patch * frags, int n1, int n2, Coords * np1,
 void draw_line(int *map, int val, int x1, int y1, int x2, int y2, int sx,
 	       int sy, int width);
 
-/* global variables */
-GLOBAL int nrows, ncols;
-
 #endif /* LOCAL_PROTO_H */

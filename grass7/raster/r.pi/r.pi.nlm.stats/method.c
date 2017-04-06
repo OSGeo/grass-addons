@@ -129,7 +129,7 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	ax = ay = axy = 0;
 	bx = by = 0;
 	/* for all cells in a patch */
-	//              fprintf(stderr, "\npatch %d: ", i);
+	/*              fprintf(stderr, "\npatch %d: ", i); */
 	for (p = frags[i]; p < frags[i + 1]; p++, n++) {
 	    int x = p->x;
 	    int y = p->y;
@@ -140,13 +140,13 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	    axy += xy;
 	    bx += x * x;
 	    by += y * y;
-	    //                      fprintf(stderr, "x_%d = %d, y_%d = %d; ", n, x, n, y);
+	    /*                      fprintf(stderr, "x_%d = %d, y_%d = %d; ", n, x, n, y); */
 	}
 	invn = 1.0 / (DCELL) n;
 	vx = ((DCELL) bx - (DCELL) ax * (DCELL) ax * invn) * invn;
 	vy = ((DCELL) by - (DCELL) ay * (DCELL) ay * invn) * invn;
 	vxy = ((DCELL) axy - (DCELL) ax * (DCELL) ay * invn) * invn;
-	//              fprintf(stderr, " axy = %d, ax = %d, ay = %d, n = %d", axy, ax, ay, n);
+	/*              fprintf(stderr, " axy = %d, ax = %d, ay = %d, n = %d", axy, ax, ay, n); */
 	vsum = vx + vy;
 	vals[i] = 2 * sqrt(0.25 * vsum * vsum + vxy * vxy - vx * vy) / vsum;
     }
@@ -210,13 +210,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -227,6 +227,7 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
 	    }
 	}
     }
+
     return min;
 }
 

@@ -19,7 +19,6 @@ int f_smallest_first(int cluster_index,
 
 	for (i = 0; i < cluster.count; i++) {
 	    int patch_index = cluster.first_patch[i];
-
 	    int area = fragments[patch_index].count;
 
 	    if (area < min_area) {
@@ -55,7 +54,6 @@ int f_biggest_first(int cluster_index,
 
 	for (i = 0; i < cluster.count; i++) {
 	    int patch_index = cluster.first_patch[i];
-
 	    int area = fragments[patch_index].count;
 
 	    if (area > max_area) {
@@ -83,7 +81,7 @@ int f_random(int cluster_index,
     int end = cluster_index >= 0 ? cluster_index : cluster_count - 1;
 
     int patchcount = 0;
-    int c;
+    int r, c;
 
     for (c = begin; c <= end; c++) {
 	Cluster cluster = cluster_list[c];
@@ -91,12 +89,12 @@ int f_random(int cluster_index,
 	patchcount += cluster.count;
     }
 
-    int r = rand() % patchcount;
+    r = rand() % patchcount;
 
     for (c = begin; c <= end; c++) {
-	Cluster cluster = cluster_list[c];
-
 	int i;
+
+	Cluster cluster = cluster_list[c];
 
 	for (i = 0; i < cluster.count; i++) {
 	    if (r == 0) {
@@ -129,15 +127,14 @@ int f_link_min(int cluster_index,
     int c;
 
     for (c = begin; c <= end; c++) {
-	Cluster cluster = cluster_list[c];
-
 	int i;
 
-	for (i = 0; i < cluster.count; i++) {
-	    int patch_index = cluster.first_patch[i];
+	Cluster cluster = cluster_list[c];
 
+	for (i = 0; i < cluster.count; i++) {
 	    int links = 0;
 	    int j;
+	    int patch_index = cluster.first_patch[i];
 
 	    for (j = 0; j < fragcount; j++) {
 		if (adjacency_matrix[patch_index * fragcount + j]) {
@@ -173,15 +170,14 @@ int f_link_max(int cluster_index,
     int c;
 
     for (c = begin; c <= end; c++) {
-	Cluster cluster = cluster_list[c];
-
 	int i;
 
-	for (i = 0; i < cluster.count; i++) {
-	    int patch_index = cluster.first_patch[i];
+	Cluster cluster = cluster_list[c];
 
+	for (i = 0; i < cluster.count; i++) {
 	    int links = 0;
 	    int j;
+	    int patch_index = cluster.first_patch[i];
 
 	    for (j = 0; j < fragcount; j++) {
 		if (adjacency_matrix[patch_index * fragcount + j]) {

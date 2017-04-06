@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.graph.iter
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Graph Theory approach for connectivity analysis on patch 
  *                              level - iterative patch removal option (patch relevance)
  *
@@ -68,11 +69,9 @@ static struct index indices[] = {
 
 int main(int argc, char *argv[])
 {
-    /* result */
-    int exitres = 0;
-
     /* input */
-    char *newname, *oldname, *newmapset, *oldmapset;
+    char *newname, *oldname;
+    const char *oldmapset;
     char fullname[GNAME_MAX];
 
     /* in and out file pointers */
@@ -91,7 +90,8 @@ int main(int argc, char *argv[])
 
     /* helpers */
     char *p;
-    int row, col, i, j, m;
+    int nrows, ncols;
+    int row, col, i;
     int n;
     f_neighborhood *build_graph;
     f_index *calc_index;
@@ -99,6 +99,17 @@ int main(int argc, char *argv[])
     CELL *result;
     DCELL *d_res;
     CELL *clustermap;
+    Coords *cells;
+    Patch *fragments;
+    int *flagbuf;
+    int fragcount;
+    DCELL *distmatrix;
+    int *adjmatrix;
+    int *patches;
+    Cluster *clusters;
+    int clustercount;
+    DCELL *values, *ref_values, *temp_values;
+    int *splitter_patches;
 
     struct GModule *module;
     struct
@@ -112,12 +123,10 @@ int main(int argc, char *argv[])
 	struct Flag *adjacent, *percent;
     } flag;
 
-    struct Cell_head ch, window;
-
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description =
 	_("Graph Theory - iterative removal (patch relevance analysis).");
 
@@ -190,25 +199,24 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     G_message("rows = %d, cols = %d", nrows, ncols);
 
     /* open cell files */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get map type */
     map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
@@ -246,19 +254,19 @@ int main(int argc, char *argv[])
     nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
-    Coords *cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
-    Patch *fragments = (Patch *) G_malloc(nrows * ncols * sizeof(Patch));
+    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
+    fragments = (Patch *) G_malloc(nrows * ncols * sizeof(Patch));
 
     fragments[0].first_cell = cells;
-    int *flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
+    flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
 
-    result = G_allocate_c_raster_buf();
+    result = Rast_allocate_c_buf();
 
     G_message("Loading patches...");
 
     /* read map */
     for (row = 0; row < nrows; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < ncols; col++) {
 	    if (result[col] == keyval)
 		flagbuf[row * ncols + col] = 1;
@@ -268,7 +276,7 @@ int main(int argc, char *argv[])
     }
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /*G_message("map");
        for(row = 0; row < nrows; row++) {
@@ -279,11 +287,11 @@ int main(int argc, char *argv[])
        } */
 
     /* find fragments */
-    int fragcount =
+    fragcount =
 	writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
-    DCELL *distmatrix =
+    distmatrix =
 	(DCELL *) G_malloc(fragcount * fragcount * sizeof(DCELL));
     memset(distmatrix, 0, fragcount * fragcount * sizeof(DCELL));
 
@@ -299,7 +307,7 @@ int main(int argc, char *argv[])
        } */
 
     /* build adjacency matrix */
-    int *adjmatrix = (int *)G_malloc(fragcount * fragcount * sizeof(int));
+    adjmatrix = (int *)G_malloc(fragcount * fragcount * sizeof(int));
 
     memset(adjmatrix, 0, fragcount * fragcount * sizeof(int));
 
@@ -315,12 +323,12 @@ int main(int argc, char *argv[])
        } */
 
     /* find clusters */
-    int *patches = (int *)G_malloc(fragcount * sizeof(int));
-    Cluster *clusters = (Cluster *) G_malloc((fragcount) * sizeof(Cluster));
+    patches = (int *)G_malloc(fragcount * sizeof(int));
+    clusters = (Cluster *) G_malloc((fragcount) * sizeof(Cluster));
 
     clusters[0].first_patch = patches;
 
-    int clustercount = find_clusters(clusters, adjmatrix, fragcount);
+    clustercount = find_clusters(clusters, adjmatrix, fragcount);
 
     /*for(i = 0; i < clustercount; i++) {
        fprintf(stderr, "Cluster_%d:", i);
@@ -330,10 +338,10 @@ int main(int argc, char *argv[])
        fprintf(stderr, "\n");
        } */
 
-    DCELL *values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
+    values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
 
-    DCELL *ref_values = (DCELL *) G_malloc(clustercount * sizeof(DCELL));
-    DCELL *temp_values = (DCELL *) G_malloc(clustercount * sizeof(DCELL));
+    ref_values = (DCELL *) G_malloc(clustercount * sizeof(DCELL));
+    temp_values = (DCELL *) G_malloc(clustercount * sizeof(DCELL));
 
     calc_index = indices[index].method;
     calc_index(ref_values, clusters, clustercount, adjmatrix, fragments,
@@ -346,14 +354,23 @@ int main(int argc, char *argv[])
        fprintf(stderr, "\n"); */
 
     /* perform iterative deletion analysis */
-    int *splitter_patches = (int *)G_malloc(fragcount * sizeof(int));
+    splitter_patches = (int *)G_malloc(fragcount * sizeof(int));
 
     memset(splitter_patches, 0, fragcount * sizeof(int));
 
     /* for each patch */
     G_message("Performing iterative deletion...");
     for (i = 0; i < fragcount; i++) {
+	DCELL *temp_distm;
 	int temp_fragcount = fragcount - 1;
+	int p1, p2;
+	int tp1 = 0;
+	int *temp_adjm;
+	int *temp_p;
+	Cluster *temp_c;
+	int temp_cc;
+	int c;
+	int focal_cluster;
 
 	/* delete i-th patch... */
 
@@ -366,14 +383,11 @@ int main(int argc, char *argv[])
 	       (fragcount - i - 1) * sizeof(Patch));
 
 	/* from distance matrix */
-	DCELL *temp_distm =
+	temp_distm =
 	    (DCELL *) G_malloc(temp_fragcount * temp_fragcount *
 			       sizeof(DCELL));
 	memset(temp_distm, 0,
 	       temp_fragcount * temp_fragcount * sizeof(DCELL));
-
-	int p1, p2;
-	int tp1 = 0;
 
 	for (p1 = 0; p1 < fragcount; p1++) {
 	    if (p1 != i) {
@@ -400,7 +414,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* build graph and see if the cluster is splitted */
-	int *temp_adjm = (int *)G_malloc(fragcount * fragcount * sizeof(int));
+	temp_adjm = (int *)G_malloc(fragcount * fragcount * sizeof(int));
 
 	memset(temp_adjm, 0, fragcount * fragcount * sizeof(int));
 
@@ -414,12 +428,12 @@ int main(int argc, char *argv[])
 	   fprintf(stderr, "\n");
 	   } */
 
-	int *temp_p = (int *)G_malloc(fragcount * sizeof(int));
-	Cluster *temp_c = (Cluster *) G_malloc(fragcount * sizeof(Cluster));
+	temp_p = (int *)G_malloc(fragcount * sizeof(int));
+	temp_c = (Cluster *) G_malloc(fragcount * sizeof(Cluster));
 
 	temp_c[0].first_patch = temp_p;
 
-	int temp_cc = find_clusters(temp_c, temp_adjm, temp_fragcount);
+	temp_cc = find_clusters(temp_c, temp_adjm, temp_fragcount);
 
 	/* G_message("Clustercount = %d", temp_cc); */
 
@@ -433,8 +447,6 @@ int main(int argc, char *argv[])
 
 	/* from adjacency matrix */
 	memcpy(temp_adjm, adjmatrix, fragcount * fragcount * sizeof(int));
-
-	int index;
 
 	for (index = 0; index < fragcount; index++) {
 	    temp_adjm[index * fragcount + i] = 0;
@@ -452,15 +464,15 @@ int main(int argc, char *argv[])
 	/* from cluster list */
 
 	/* for each cluster */
-	int c;
-	int focal_cluster = -1;
-	int *curpos = temp_p;
+	focal_cluster = -1;
+	curpos = temp_p;
 
 	for (c = 0; c < clustercount; c++) {
+	    int *patch;
+
 	    temp_c[c].first_patch = curpos;
 
 	    /* for each patch in the cluster */
-	    int *patch;
 
 	    for (patch = clusters[c].first_patch;
 		 patch < clusters[c].first_patch + clusters[c].count;
@@ -524,18 +536,18 @@ int main(int argc, char *argv[])
        ================================== */
 
     /* open the new cellfile  */
-    out_fd = G_open_raster_new(newname, map_type);
+    out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* allocate result row variable */
-    d_res = G_allocate_d_raster_buf();
+    d_res = Rast_allocate_d_buf();
 
     /* write values */
     for (row = 0; row < nrows; row++) {
-	G_set_d_null_value(d_res, ncols);
-
 	int patch_index;
+
+	Rast_set_d_null_value(d_res, ncols);
 
 	for (patch_index = 0; patch_index < fragcount; patch_index++) {
 	    int cell_index;
@@ -550,27 +562,24 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
 
 	G_percent(row + 1, 2 * nrows, 1);
     }
 
     /* close output file */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* write splitter patch map */
     /* open the new cellfile  */
     sprintf(fullname, "%s_split", newname);
-    out_fd = G_open_raster_new(fullname, CELL_TYPE);
+    out_fd = Rast_open_new(fullname, CELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), fullname);
-
-    /* allocate result row variable */
-    d_res = G_allocate_d_raster_buf();
+	G_fatal_error(_("Cannot create raster map <%s>"), fullname);
 
     /* write values */
     for (row = 0; row < nrows; row++) {
-	G_set_d_null_value(d_res, ncols);
+	Rast_set_d_null_value(d_res, ncols);
 
 	for (i = 0; i < clustercount; i++) {
 	    for (curpos = clusters[i].first_patch;
@@ -590,13 +599,13 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
 
 	G_percent(row + 1, 2 * nrows, 1);
     }
 
     /* close output file */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* ================================== 
        ==========  cluster map  ========= 
@@ -604,13 +613,13 @@ int main(int argc, char *argv[])
 
     /* open the new cellfile */
     sprintf(fullname, "%s_clusters", newname);
-    out_fd = G_open_raster_new(fullname, CELL_TYPE);
+    out_fd = Rast_open_new(fullname, CELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), fullname);
+	G_fatal_error(_("Cannot create raster map <%s>"), fullname);
 
     /* allocate and initialize the clustermap */
     clustermap = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
-    G_set_c_null_value(clustermap, nrows * ncols);
+    Rast_set_c_null_value(clustermap, nrows * ncols);
 
     /* for each cluster */
     for (i = 0; i < clustercount; i++) {
@@ -621,6 +630,7 @@ int main(int argc, char *argv[])
 	     this < clusters[i].first_patch + clusters[i].count; this++) {
 	    /* for each cell in the patch */
 	    int cell_index;
+	    int *other;
 
 	    for (cell_index = 0; cell_index < fragments[*this].count;
 		 cell_index++) {
@@ -630,8 +640,6 @@ int main(int argc, char *argv[])
 	    }
 
 	    /* for each patch in the cluster */
-	    int *other;
-
 	    for (other = this + 1;
 		 other < clusters[i].first_patch + clusters[i].count;
 		 other++) {
@@ -649,7 +657,7 @@ int main(int argc, char *argv[])
 
     /* write output */
     for (row = 0; row < nrows; row++) {
-	G_put_c_raster_row(out_fd, clustermap + row * ncols);
+	Rast_put_c_row(out_fd, clustermap + row * ncols);
 
 	G_percent(nrows + row + 1, 2 * nrows, 1);
     }
@@ -657,7 +665,7 @@ int main(int argc, char *argv[])
     G_free(clustermap);
 
     /* close output file */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
 
     /* =============================

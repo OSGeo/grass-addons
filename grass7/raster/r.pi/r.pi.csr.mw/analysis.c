@@ -1,10 +1,5 @@
 #include "local_proto.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 int gather_positions(Position * res, int *map, int value, int x, int y,
 		     int sizex, int sizey)
 {
@@ -42,7 +37,6 @@ void get_random_positions(Position * res, int pos_count, Position * free_arr,
     /* choose n random positions */
     /* delete used positions, to prevent DCELL choice */
     for (i = 0; i < pos_count; i++) {
-	Position tmp;
 	int pos = Random(cur_size);
 
 	res[cur_pos].x = temp[pos].x;
@@ -85,7 +79,6 @@ void get_n_smallest(DCELL * res, DCELL * dist_matrix, int count, int index,
 		    int n)
 {
     int i, j;
-    int min;
     int cur_size = count - 1;
     DCELL *temp = (DCELL *) G_malloc(count * sizeof(DCELL));
     int border = n < count ? n : count;
@@ -100,7 +93,6 @@ void get_n_smallest(DCELL * res, DCELL * dist_matrix, int count, int index,
 	for (j = 0; j < cur_size; j++) {
 	    if (temp[j] < res[i]) {
 		res[i] = temp[j];
-		min = j;
 	    }
 	}
 
@@ -263,7 +255,7 @@ void donnelly(DCELL * values, int *map, int *mask, int n, int size)
 		value = value / ref_value;
 	    }
 	    else {
-		G_set_d_null_value(&value, 1);
+		Rast_set_d_null_value(&value, 1);
 		progress += n;
 		G_percent(progress, n * nx * ny, 1);
 	    }

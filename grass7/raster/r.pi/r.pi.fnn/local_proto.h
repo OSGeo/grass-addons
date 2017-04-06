@@ -60,7 +60,6 @@ GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
 GLOBAL int *flagbuf;
 GLOBAL Coords *actpos;
-GLOBAL int verbose;
 GLOBAL DCELL *distmatrix;
 GLOBAL int *nearest_indices;
 GLOBAL int patch_n;

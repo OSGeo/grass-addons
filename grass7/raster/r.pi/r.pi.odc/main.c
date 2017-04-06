@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.odc
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      omnidirectional connectivity analysis based on polygons
  *                               (related to voronoi for points)
  *
@@ -53,26 +54,31 @@ static struct compensation compmethods[] = {
 int main(int argc, char *argv[])
 {
     /* input */
-    char *oldname, *oldmapset;
+    char *oldname;
+    const char *oldmapset;
+
     /* output */
-    char *newname, *newmapset;
+    char *newname;
+
     /* mask */
-    char *maskname, *maskmapset;
+    char *maskname;
+    const char *maskmapset;
+
     /* in and out file pointers */
     int in_fd, out_fd;
     FILE *out_fp;		/* ASCII - output */
+
     /* parameters */
     int keyval;
     int stats[GNAME_MAX];
     int stat_count;
-    int ratio;
     int diag_grow;
     int compmethod;
     int neighbor_level;
+
     /* maps */
     int *map;
-    /* other parameters */
-    char *title;
+
     /* helper variables */
     int row, col;
     CELL *result;
@@ -82,6 +88,7 @@ int main(int argc, char *argv[])
     int neighb_count;
     int i, n;
     int x, y;
+    int sx, sy;
     Coords *p;
     char output_name[GNAME_MAX];
     char *str;
@@ -89,9 +96,7 @@ int main(int argc, char *argv[])
     f_statmethod **method_array;
     DCELL area;
     f_compensate *compensate;
-
-    RASTER_MAP_TYPE map_type;
-    struct Cell_head ch, window;
+    int fragcount;
 
     struct GModule *module;
     struct
@@ -108,7 +113,7 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description = _("Omnidirectional connectivity analysis");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
@@ -199,15 +204,16 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* get name of mask file */
     maskname = parm.mask->answer;
+    maskmapset = NULL;
 
     /* test input files existance */
-    if (maskname && (maskmapset = G_find_cell2(maskname, "")) == NULL)
+    if (maskname && (maskmapset = G_find_raster2(maskname, "")) == NULL)
         G_fatal_error(_("Raster map <%s> not found"), maskname);
 
     /* get keyval */
@@ -231,13 +237,10 @@ int main(int argc, char *argv[])
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
-
-    map_type = DCELL_TYPE;
 
     /* get size */
-    sx = G_window_cols();
-    sy = G_window_rows();
+    sx = Rast_window_cols();
+    sy = Rast_window_rows();
 
     G_message("sx = %d, sy = %d", sx, sy);
 
@@ -275,21 +278,21 @@ int main(int argc, char *argv[])
 
     /* allocate map buffers */
     map = (int *)G_malloc(sx * sy * sizeof(int));
-    result = G_allocate_c_raster_buf();
-    d_res = G_allocate_d_raster_buf();
+    result = Rast_allocate_c_buf();
+    d_res = Rast_allocate_d_buf();
     cells = (Coords *) G_malloc(sx * sy * sizeof(Coords));
     fragments = (Coords **) G_malloc(sx * sy * sizeof(Coords *));
     fragments[0] = cells;
 
     /* open map */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
-	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
+	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map:");
     for (row = 0; row < sy; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < sx; col++) {
 	    if (result[col] == keyval)
 		map[row * sx + col] = 1;
@@ -308,23 +311,23 @@ int main(int argc, char *argv[])
        } */
 
     /* close map */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* find fragments */
-    writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(map, sy, sx, neighb_count);
 
     G_message("Found %d patches", fragcount);
 
     /* apply mask */
     if (maskname) {
 	/* open mask */
-	in_fd = G_open_cell_old(maskname, maskmapset);
+	in_fd = Rast_open_old(maskname, maskmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), maskname);
 
 	/* read mask */
 	for (row = 0; row < sy; row++) {
-	    G_get_c_raster_row(in_fd, result, row);
+	    Rast_get_c_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		if (result[col] == 1) {
 		    map[row * sx + col] = TYPE_NOTHING;
@@ -337,7 +340,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* close mask */
-	G_close_cell(in_fd);
+	Rast_close(in_fd);
     }
     else {
 	for (i = 0; i < sx * sy; i++) {
@@ -362,7 +365,7 @@ int main(int argc, char *argv[])
 
     memset(adj_matrix, 0, fragcount * fragcount * sizeof(int));
 
-    voronoi(values, map, sx, sy, diag_grow);
+    voronoi(values, map, sx, sy, diag_grow, fragcount);
 
     /* output skipped positions */
     G_message("Positions skipped: %d", empty_count);
@@ -376,13 +379,13 @@ int main(int argc, char *argv[])
     strcpy(output_name, newname);
     strcat(output_name, ".FP.area");
 
-    out_fd = G_open_raster_new(output_name, map_type);
+    out_fd = Rast_open_new(output_name, DCELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
+	G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
     /* write area of focal patch */
     for (row = 0; row < sy; row++) {
-	G_set_d_null_value(d_res, sx);
+	Rast_set_d_null_value(d_res, sx);
 
 	for (i = 0; i < fragcount; i++) {
 	    area = fragments[i + 1] - fragments[i];
@@ -393,23 +396,23 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* open the new cell file  */
     strcpy(output_name, newname);
     strcat(output_name, ".FP.odd");
 
-    out_fd = G_open_raster_new(output_name, map_type);
+    out_fd = Rast_open_new(output_name, DCELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
+	G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
     /* write ratio of focal patch */
     for (row = 0; row < sy; row++) {
-	G_set_d_null_value(d_res, sx);
+	Rast_set_d_null_value(d_res, sx);
 
 	for (i = 0; i < fragcount; i++) {
 	    for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -419,24 +422,24 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* open the new cell file  */
     strcpy(output_name, newname);
     strcat(output_name, ".ratioFP.");
     strcat(output_name, compmethods[compmethod].suffix);
 
-    out_fd = G_open_raster_new(output_name, map_type);
+    out_fd = Rast_open_new(output_name, DCELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
+	G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
     /* write odd of focal patch */
     for (row = 0; row < sy; row++) {
-	G_set_d_null_value(d_res, sx);
+	Rast_set_d_null_value(d_res, sx);
 
 	for (i = 0; i < fragcount; i++) {
 	    area = fragments[i + 1] - fragments[i];
@@ -447,11 +450,11 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /*
        =============================== TARGET PATCHES =========================================
@@ -465,7 +468,7 @@ int main(int argc, char *argv[])
     }
 
     calc_neighbors(neighb_values, values, method_array, stat_count,
-		   compensate, neighbor_level);
+		   compensate, neighbor_level, fragcount);
 
     /* write areas */
     for (method = 0; method < stat_count; method++) {
@@ -474,13 +477,13 @@ int main(int argc, char *argv[])
 	strcat(output_name, ".TP.area.");
 	strcat(output_name, statmethods[stats[method]].suffix);
 
-	out_fd = G_open_raster_new(output_name, map_type);
+	out_fd = Rast_open_new(output_name, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
 	/* write areas of target patches with current suffix for statmethod */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (i = 0; i < fragcount; i++) {
 		for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -490,11 +493,11 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* write odds */
@@ -504,13 +507,13 @@ int main(int argc, char *argv[])
 	strcat(output_name, ".TP.odd.");
 	strcat(output_name, statmethods[stats[method]].suffix);
 
-	out_fd = G_open_raster_new(output_name, map_type);
+	out_fd = Rast_open_new(output_name, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
 	/* write odd of target patches with current suffix for statmethod */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (i = 0; i < fragcount; i++) {
 		for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -522,11 +525,11 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /* write ratios */
@@ -538,13 +541,13 @@ int main(int argc, char *argv[])
 	strcat(output_name, ".");
 	strcat(output_name, statmethods[stats[method]].suffix);
 
-	out_fd = G_open_raster_new(output_name, map_type);
+	out_fd = Rast_open_new(output_name, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
 	/* write ratio of target patches with current suffix for statmethod */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (i = 0; i < fragcount; i++) {
 		for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -556,11 +559,11 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
     /*
        =============================== DIAGRAM =========================================
@@ -570,7 +573,7 @@ int main(int argc, char *argv[])
 	strcpy(output_name, newname);
 	strcat(output_name, ".diagram");
 
-	out_fd = G_open_raster_new(output_name, map_type);
+	out_fd = Rast_open_new(output_name, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
@@ -580,11 +583,11 @@ int main(int argc, char *argv[])
 		d_res[col] = map[row * sx + col];
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
     }
 
     /*
@@ -594,16 +597,16 @@ int main(int argc, char *argv[])
     strcpy(output_name, newname);
     strcat(output_name, ".TP.no");
 
-    out_fd = G_open_raster_new(output_name, map_type);
+    out_fd = Rast_open_new(output_name, DCELL_TYPE);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
+	G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
     /* get neighbor count */
-    getNeighborCount(values);
+    getNeighborCount(values, fragcount);
 
     /* write number of neighbors */
     for (row = 0; row < sy; row++) {
-	G_set_d_null_value(d_res, sx);
+	Rast_set_d_null_value(d_res, sx);
 
 	for (i = 0; i < fragcount; i++) {
 	    for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -613,11 +616,11 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_d_raster_row(out_fd, d_res);
+	Rast_put_d_row(out_fd, d_res);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /*
        =============================== DIAGRAM =========================================
@@ -627,13 +630,13 @@ int main(int argc, char *argv[])
 	strcpy(output_name, newname);
 	strcat(output_name, ".id");
 
-	out_fd = G_open_raster_new(output_name, map_type);
+	out_fd = Rast_open_new(output_name, DCELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), output_name);
 
 	/* write ids of patches */
 	for (row = 0; row < sy; row++) {
-	    G_set_d_null_value(d_res, sx);
+	    Rast_set_d_null_value(d_res, sx);
 
 	    for (i = 0; i < fragcount; i++) {
 		for (p = fragments[i]; p < fragments[i + 1]; p++) {
@@ -643,11 +646,11 @@ int main(int argc, char *argv[])
 		}
 	    }
 
-	    G_put_d_raster_row(out_fd, d_res);
+	    Rast_put_d_row(out_fd, d_res);
 	}
 
 	/* close output */
-	G_close_cell(out_fd);
+	Rast_close(out_fd);
 
 	/* output matrix */
 	strcpy(output_name, newname);

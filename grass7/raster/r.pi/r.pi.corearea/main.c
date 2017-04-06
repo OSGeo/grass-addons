@@ -3,6 +3,7 @@
  *
  * MODULE:       r.pi.corearea
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Non-linear core area analysis
  *
  * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
@@ -48,11 +49,8 @@ static struct propmethod propmethods[] = {
 
 int main(int argc, char *argv[])
 {
-    /* result */
-    int exitres = 0;
-
     /* input */
-    char *newname, *oldname, *newmapset, *oldmapset, *costname, *costmapset,
+    const char *newname, *oldname, *oldmapset, *costname, *costmapset,
 	*propname, *propmapset;
     char fullname[GNAME_MAX];
 
@@ -70,15 +68,14 @@ int main(int argc, char *argv[])
     f_propmethod *prop_method;
     double dist_weight;
 
-    /* map_type and categories */
-    RASTER_MAP_TYPE map_type;
-
     /* helpers */
     char *str;
-    int row, col, i, j, n;
-    DCELL *values;
+    int nrows, ncols;
+    int row, col, i, n;
     CELL *result;
-    DCELL *d_res;
+    int *flagbuf;
+    int patch;
+    int fragcount;
 
     struct GModule *module;
     struct
@@ -93,12 +90,10 @@ int main(int argc, char *argv[])
 	struct Flag *adjacent;
     } flag;
 
-    struct Cell_head ch, window;
-
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
     module->description = _("Variable edge effects and core area analysis");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
@@ -196,33 +191,30 @@ int main(int argc, char *argv[])
     propname = parm.propmap->answer;
 
     /* test input file existance */
-    oldmapset = G_find_cell2(oldname, "");
+    oldmapset = G_find_raster2(oldname, "");
     if (oldmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* test costmap file existance */
-    costmapset = G_find_cell2(costname, "");
-	if (costmapset == NULL)
+    costmapset = G_find_raster2(costname, "");
+    if (costmapset == NULL)
         G_fatal_error(_("Raster map <%s> not found"), costname);
 
     /* test propmap file existance */
-    if (propname && NULL == (propmapset = G_find_cell2(propname, "")))
+    propmapset = NULL;
+    if (propname && NULL == (propmapset = G_find_raster2(propname, "")))
 	    G_fatal_error(_("Raster map <%s> not found"), propname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
 	    G_fatal_error(_("<%s> is an illegal file name"), newname);
-    newmapset = G_mapset();
 
     /* get size */
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     G_message("rows = %d, cols = %d", nrows, ncols);
-
-    /* get map type */
-    map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -238,20 +230,28 @@ int main(int argc, char *argv[])
     angle *= M_PI / 180.0;
 
     /* get statistical method */
+    method = NULL;
     for (i = 0; (str = statmethods[i].name) != 0; i++) {
 	if (strcmp(str, parm.stats->answer) == 0) {
 	    method = statmethods[i].method;
 	    break;
 	}
     }
+    if (!method)
+	G_fatal_error(_("Unknown method <%s> for option <%s>"),
+		      parm.stats->answer, parm.stats->key);
 
     /* get propagation method */
+    prop_method = NULL;
     for (i = 0; (str = propmethods[i].name) != 0; i++) {
 	if (strcmp(str, parm.propmethod->answer) == 0) {
 	    prop_method = propmethods[i].method;
 	    break;
 	}
     }
+    if (!prop_method)
+	G_fatal_error(_("Unknown method <%s> for option <%s>"),
+		      parm.propmethod->answer, parm.propmethod->key);
 
     /* get distance weighting parameter */
     if (parm.dist_weight->answer) {
@@ -272,19 +272,18 @@ int main(int argc, char *argv[])
     map = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
     valmap = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
     propmap = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
-    result = G_allocate_c_raster_buf();
-    d_res = G_allocate_d_raster_buf();
+    result = Rast_allocate_c_buf();
 
     G_message("Loading Input files ... ");
 
     /* open input file */
-    in_fd = G_open_cell_old(oldname, oldmapset);
+    in_fd = Rast_open_old(oldname, oldmapset);
     if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read patch map */
     for (row = 0; row < nrows; row++) {
-	G_get_c_raster_row(in_fd, result, row);
+	Rast_get_c_row(in_fd, result, row);
 	for (col = 0; col < ncols; col++) {
 	    if (result[col] == keyval) {
 		flagbuf[row * ncols + col] = 1;
@@ -295,46 +294,46 @@ int main(int argc, char *argv[])
     }
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* open costmap file */
-    in_fd = G_open_cell_old(costname, oldmapset);
+    in_fd = Rast_open_old(costname, oldmapset);
     if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), costname);
 
-    /* read patch map */
+    /* read cost map */
     for (row = 0; row < nrows; row++) {
-	G_get_d_raster_row(in_fd, &map[row * ncols], row);
+	Rast_get_d_row(in_fd, &map[row * ncols], row);
 
 	for (col = 0; col < ncols; col++) {
-	    if (G_is_d_null_value(&map[row * ncols + col])) {
+	    if (Rast_is_d_null_value(&map[row * ncols + col])) {
 		map[row * ncols + col] = 0.0;
 	    }
 	}
     }
 
     /* close cell file */
-    G_close_cell(in_fd);
+    Rast_close(in_fd);
 
     /* open propmap file */
     if (propname) {
-	in_fd = G_open_cell_old(propname, propmapset);
+	in_fd = Rast_open_old(propname, propmapset);
 	if (in_fd < 0)
 	    G_fatal_error(_("Unable to open raster map <%s>"), propname);
 
 	/* read propagation map */
 	for (row = 0; row < nrows; row++) {
-	    G_get_d_raster_row(in_fd, &propmap[row * ncols], row);
+	    Rast_get_d_row(in_fd, &propmap[row * ncols], row);
 
 	    for (col = 0; col < ncols; col++) {
-		if (G_is_d_null_value(&propmap[row * ncols + col])) {
+		if (Rast_is_d_null_value(&propmap[row * ncols + col])) {
 		    propmap[row * ncols + col] = 0.0;
 		}
 	    }
 	}
 
 	/* close cell file */
-	G_close_cell(in_fd);
+	Rast_close(in_fd);
     }
     else {
 	for (row = 0; row < nrows; row++) {
@@ -353,7 +352,7 @@ int main(int argc, char *argv[])
        } */
 
     /* find fragments */
-    writeFragments(flagbuf, nrows, ncols, nbr_count);
+    fragcount = writeFragments(flagbuf, nrows, ncols, nbr_count);
 
     /* create a patch map */
     for (i = 0; i < fragcount; i++) {
@@ -368,21 +367,18 @@ int main(int argc, char *argv[])
     }
 
     /* allocate memory for border arrays */
-    int cell_cnt = fragments[fragcount] - fragments[0];
-
     patch_borders =
 	(PatchBorderList *) G_malloc((fragcount + 1) *
 				     sizeof(PatchBorderList));
 
     /* find borders */
     G_message("Identifying borders...");
-    find_borders(flagbuf);
+    find_borders(flagbuf, nrows, ncols, fragcount);
 
     /* flagbuf is not needed any more */
     G_free(flagbuf);
 
     /* test output */
-    int patch;
 
     /*G_message("Borders:");
        for(patch = 0; patch < fragcount; patch++) {
@@ -419,9 +415,10 @@ int main(int argc, char *argv[])
     }
 
     /* initialize border values for propagation */
-    init_border_values(distance, angle, buffer, method, dist_weight);
+    init_border_values(distance, angle, buffer, method, dist_weight,
+                       nrows, ncols, fragcount);
 
-    propagate(nbr_count, prop_method);
+    propagate(nbr_count, prop_method, nrows, ncols, fragcount);
 
     /*G_message("costmap");
        for(row = 0; row < nrows; row++) {
@@ -449,13 +446,13 @@ int main(int argc, char *argv[])
 
     /* write output */
     /* open the new cellfile  */
-	out_fd = G_open_raster_new(newname, CELL_TYPE);
+	out_fd = Rast_open_new(newname, CELL_TYPE);
 	if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write the output file */
     for (row = 0; row < nrows; row++) {
-	G_set_c_null_value(result, ncols);
+	Rast_set_c_null_value(result, ncols);
 
 	for (i = 0; i < fragcount; i++) {
 	    Coords *p;
@@ -469,30 +466,30 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	G_put_c_raster_row(out_fd, result);
+	Rast_put_c_row(out_fd, result);
 
 	G_percent(row + 1, 2 * nrows, 1);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* write map */
     /* open the new cellfile  */
     sprintf(fullname, "%s_%s", newname, "map");
-    out_fd = G_open_raster_new(fullname, DCELL_TYPE);
+    out_fd = Rast_open_new(fullname, DCELL_TYPE);
     if (out_fd < 0)
         G_fatal_error(_("Cannot create raster map <%s>"), fullname);
 
     /* write the output file */
     for (row = 0; row < nrows; row++) {
-	G_put_d_raster_row(out_fd, &valmap[row * ncols]);
+	Rast_put_d_row(out_fd, &valmap[row * ncols]);
 
 	G_percent(nrows + row + 1, 2 * nrows, 1);
     }
 
     /* close output */
-    G_close_cell(out_fd);
+    Rast_close(out_fd);
 
     /* free all buffers */
     for (patch = 0; patch < fragcount; patch++) {

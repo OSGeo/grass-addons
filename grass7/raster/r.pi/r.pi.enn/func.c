@@ -25,13 +25,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -129,7 +129,7 @@ int get_max_index(int *array, int size)
 
 int get_nearest_indices(int count, int *num_array, int num_count)
 {
-    int i, j, tmp;
+    int i;
     int max = 0;
 
     /* get maximum number */
@@ -137,15 +137,14 @@ int get_nearest_indices(int count, int *num_array, int num_count)
 
     patch_n = num_array[max] < count - 1 ? num_array[max] : count - 1;
 
-    //      fprintf(stderr, "\n%d nearest patches taken into account.\n\n", patch_n);
+    /* fprintf(stderr, "\n%d nearest patches taken into account.\n\n", patch_n); */
 
     nearest_indices = (int *)G_malloc(count * patch_n * sizeof(int));
 
     /* for all patches */
     for (i = 0; i < count; i++) {
 	/* display progress */
-	if (verbose)
-	    G_percent(i, count, 2);
+	G_percent(i, count, 2);
 
 	get_smallest_n_indices(nearest_indices + i * patch_n, distmatrix,
 			       patch_n, count, i);
@@ -182,6 +181,7 @@ int f_dist(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(distances);
+
     return 0;
 }
 
@@ -207,6 +207,7 @@ int f_area(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(areas);
+
     return 0;
 }
 
@@ -240,6 +241,7 @@ int f_perim(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(perims);
+
     return 0;
 }
 
@@ -275,6 +277,7 @@ int f_shapeindex(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(shapes);
+
     return 0;
 }
 
@@ -289,18 +292,19 @@ int f_path_dist(DCELL * vals, int count, int *num_array, int num_count,
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// clear flags array
-	memset(flags, 0, count * sizeof(int));
 	int act_patch = i;
 
+	/* clear flags array */
+	memset(flags, 0, count * sizeof(int));
+
 	for (j = 0; j < patch_n; j++) {
-	    // get nearest patch for the act_patch
-	    // ignore those already marked in flags
+	    /* get nearest patch for the act_patch */
+	    /* ignore those already marked in flags */
 	    k = 0;
 	    do {
 		index = nearest_indices[act_patch * patch_n + k++];
 	    } while (flags[index] == 1);
-	    // mark current patch
+	    /* mark current patch */
 	    flags[act_patch] = 1;
 
 	    distances[j] = distmatrix[act_patch * count + index];
@@ -318,5 +322,6 @@ int f_path_dist(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(distances);
+
     return 0;
 }

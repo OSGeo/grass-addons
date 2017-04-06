@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -16,6 +17,11 @@
 #else
 #define GLOBAL extern
 #endif
+
+typedef struct
+{
+    int x, y;
+} Position;
 
 typedef struct
 {
@@ -43,15 +49,13 @@ typedef struct
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
-void perform_search(int *map, DCELL * costmap, DCELL * suitmap);
+void perform_search(int *map, DCELL * costmap, int n, int fragcount, int sx, int sy);
 
 /* parameters */
-GLOBAL int sx, sy;
 GLOBAL int keyval;
-GLOBAL int n;
 GLOBAL double energy;
 GLOBAL double percent;
 GLOBAL int step_length;
@@ -64,19 +68,18 @@ GLOBAL double step_range;
 /* more global variables */
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 
 GLOBAL Individual *indi_array;
 GLOBAL int *immigrants;
 GLOBAL int *migrants;
 GLOBAL int *emigrants;
-GLOBAL int *patch_registry;	// ( patch1(indi1, indi2, ...), patch2(...), ... )
+GLOBAL int *patch_registry;	/* ( patch1(indi1, indi2, ...), patch2(...), ... ) */
 GLOBAL int *lost;
 GLOBAL int *migrants_succ;
 GLOBAL int *immi_matrix;
 GLOBAL int *mig_matrix;
 
-GLOBAL char *newname, *newmapset;
+GLOBAL char *newname;
 GLOBAL char outname[GNAME_MAX];
 
 

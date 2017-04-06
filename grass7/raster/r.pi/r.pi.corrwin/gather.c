@@ -1,4 +1,5 @@
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include "ncb.h"
 
 /*
@@ -9,12 +10,11 @@
 
 int gather(DCELL * values, int bufnumber, int offset)
 {
+    int row, col;
+    int n = 0;
+
     if (bufnumber < 1 || bufnumber > 2)
 	return -1;
-
-    int row, col;
-
-    int n = 0;
 
     *values = 0;
 
@@ -27,8 +27,8 @@ int gather(DCELL * values, int bufnumber, int offset)
 	    else
 		c = &ncb.buf2[row][offset + col];
 
-	    if (G_is_d_null_value(c))
-		G_set_d_null_value(&values[n], 1);
+	    if (Rast_is_d_null_value(c))
+		Rast_set_d_null_value(&values[n], 1);
 	    else
 		values[n] = *c;
 

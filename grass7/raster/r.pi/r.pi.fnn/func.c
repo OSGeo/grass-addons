@@ -18,9 +18,7 @@ DCELL euclid_dist(int x1, int y1, int x2, int y2)
 
 DCELL dist(Coords * p1, Coords * p2)
 {
-    int stepcounter = 0;
-
-    /* impementation of A* */
+    /* implementation of A* */
     char *flagmap = (char *)G_malloc(nrows * ncols * sizeof(char));
 
     memset(flagmap, 0, nrows * ncols * sizeof(char));
@@ -28,13 +26,11 @@ DCELL dist(Coords * p1, Coords * p2)
 
     heap_insert(p1->x, p1->y, 0, 0);
 
-    //      fprintf(stderr, "from - (%d, %d) -> (%d, %d)", p1->x, p1->y, p2->x, p2->y);
+    /* fprintf(stderr, "from - (%d, %d) -> (%d, %d)", p1->x, p1->y, p2->x, p2->y); */
 
     while (heapsize > 0) {
 	int upx, upy, downx, downy, dx, dy;
-	Path_Coords actpos = heap_delete(0);
-
-	Path_Coords *p;
+	Path_Coords actposh = heap_delete(0);
 
 	/*              char* c;
 
@@ -49,41 +45,42 @@ DCELL dist(Coords * p1, Coords * p2)
 	   } */
 
 	/* if actpos on closed */
-	if (flagmap[actpos.x + actpos.y * ncols] != 0)
+	if (flagmap[actposh.x + actposh.y * ncols] != 0)
 	    continue;
 	/* if actpos is goal */
-	if (actpos.x == p2->x && actpos.y == p2->y) {
+	if (actposh.x == p2->x && actposh.y == p2->y) {
 	    heap_free();
 	    G_free(flagmap);
-	    return actpos.g;
+
+	    return actposh.g;
 	}
 	/* add actpos to closed */
-	flagmap[actpos.x + actpos.y * ncols] = 1;
+	flagmap[actposh.x + actposh.y * ncols] = 1;
 
 	/* go through neighbors */
-	downx = actpos.x > 0 ? -1 : 0;
-	downy = actpos.y > 0 ? -1 : 0;
-	upx = actpos.x < ncols - 1 ? 1 : 0;
-	upy = actpos.y < nrows - 1 ? 1 : 0;
+	downx = actposh.x > 0 ? -1 : 0;
+	downy = actposh.y > 0 ? -1 : 0;
+	upx = actposh.x < ncols - 1 ? 1 : 0;
+	upy = actposh.y < nrows - 1 ? 1 : 0;
 
 	for (dx = downx; dx <= upx; dx++)
 	    for (dy = downy; dy <= upy; dy++)
-		// pick only neighbors, which are trespassable and not on closed list
+		/* pick only neighbors, which are trespassable and not on closed list */
 		if (!(dx == 0 && dy == 0) &&
-		    !G_is_d_null_value(costmap + actpos.x + dx +
-				       (actpos.y + dy) * ncols) &&
-		    flagmap[actpos.x + dx + (actpos.y + dy) * ncols] == 0) {
+		    !Rast_is_d_null_value(costmap + actposh.x + dx +
+				       (actposh.y + dy) * ncols) &&
+		    flagmap[actposh.x + dx + (actposh.y + dy) * ncols] == 0) {
 		    DCELL newf, newg;
 		    int i;
-		    int actx = actpos.x + dx;
-		    int acty = actpos.y + dy;
+		    int actx = actposh.x + dx;
+		    int acty = actposh.y + dy;
 
 		    /* calculate new path cost */
 		    if (dx == 0 || dy == 0)
-			newg = actpos.g + costmap[actx + acty * ncols];
+			newg = actposh.g + costmap[actx + acty * ncols];
 		    else
 			newg =
-			    actpos.g + M_SQRT2 * costmap[actx + acty * ncols];
+			    actposh.g + M_SQRT2 * costmap[actx + acty * ncols];
 
 		    /* calculate new estimate */
 		    newf = newg + euclid_dist(actx, acty, p2->x, p2->y);
@@ -117,6 +114,7 @@ DCELL dist(Coords * p1, Coords * p2)
 
     heap_free();
     G_free(flagmap);
+
     return 0;
 }
 
@@ -125,13 +123,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -227,7 +225,7 @@ int get_max_index(int *array, int size)
 
 int get_nearest_indices(int count, int *num_array, int num_count)
 {
-    int i, j, tmp;
+    int i;
     int max = 0;
 
     /* get maximum number */
@@ -235,15 +233,14 @@ int get_nearest_indices(int count, int *num_array, int num_count)
 
     patch_n = num_array[max] < count - 1 ? num_array[max] : count - 1;
 
-    //      fprintf(stderr, "\n%d nearest patches taken into account.\n\n", patch_n);
+    /* fprintf(stderr, "\n%d nearest patches taken into account.\n\n", patch_n); */
 
     nearest_indices = (int *)G_malloc(count * patch_n * sizeof(int));
 
     /* for all patches */
     for (i = 0; i < count; i++) {
 	/* display progress */
-	if (verbose)
-	    G_percent(i, count, 2);
+	G_percent(i, count, 2);
 
 	get_smallest_n_indices(nearest_indices + i * patch_n, distmatrix,
 			       patch_n, count, i);
@@ -284,6 +281,7 @@ int f_dist(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(distances);
+
     return 0;
 }
 
@@ -309,6 +307,7 @@ int f_area(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(areas);
+
     return 0;
 }
 
@@ -342,6 +341,7 @@ int f_perim(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(perims);
+
     return 0;
 }
 
@@ -377,6 +377,7 @@ int f_shapeindex(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(shapes);
+
     return 0;
 }
 
@@ -391,18 +392,19 @@ int f_path_dist(DCELL * vals, int count, int *num_array, int num_count,
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// clear flags array
-	memset(flags, 0, count * sizeof(int));
 	int act_patch = i;
 
+	/* clear flags array */
+	memset(flags, 0, count * sizeof(int));
+
 	for (j = 0; j < patch_n; j++) {
-	    // get nearest patch for the act_patch
-	    // ignore those already marked in flags
+	    /* get nearest patch for the act_patch
+	     * ignore those already marked in flags */
 	    k = 0;
 	    do {
 		index = nearest_indices[act_patch * patch_n + k++];
 	    } while (flags[index] == 1);
-	    // mark current patch
+	    /* mark current patch */
 	    flags[act_patch] = 1;
 
 	    distances[j] = distmatrix[act_patch * count + index];
@@ -420,5 +422,6 @@ int f_path_dist(DCELL * vals, int count, int *num_array, int num_count,
     }
 
     G_free(distances);
+
     return 0;
 }

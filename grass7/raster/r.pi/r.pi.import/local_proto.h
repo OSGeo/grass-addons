@@ -22,21 +22,22 @@
 #define GLOBAL extern
 #endif
 
+typedef struct
+{
+    int x, y;
+} Position;
+
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* parse.c */
-void parse(DCELL * values, char *file_name, int id_col, int val_col);
+void parse(DCELL * values, char *file_name, int id_col, int val_col, int fragcount);
 
 /* global variables */
-GLOBAL int verbose;
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
-GLOBAL int sx, sy;
-
 GLOBAL int *adj_matrix;
 
 #endif /* LOCAL_PROTO_H */

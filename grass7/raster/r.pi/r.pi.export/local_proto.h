@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
@@ -20,7 +21,7 @@
 typedef struct
 {
     int x, y;
-} Point;
+} Position;
 
 typedef struct
 {
@@ -31,13 +32,11 @@ typedef struct
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-void writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* global variables */
-GLOBAL int verbose;
 GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
-GLOBAL int fragcount;
 GLOBAL int sx, sy;
 GLOBAL int *id_map;
 
