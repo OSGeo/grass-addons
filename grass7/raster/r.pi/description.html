@@ -27,7 +27,6 @@ to get a better impression of problems, possibilities and caveats.
 <h2>OVERVIEW</h2>
 
 <li><em>r.pi.rectangle</em>  - Performs statistical analysis on values of patches from the given raster map.
-<li><em>r.pi.corrwindow</em>  - Calculates correlation of two raster maps by calculating correlation function of two corresponding rectangular areas for each raster point and writing the result into a new raster map.
 <li><em>r.pi.energy</em>  - Individual-based dispersal model for connectivity analysis - energy based.
 <li><em>r.pi.energy.iter</em>  - Individual-based dispersal model for connectivity analysis (energy based) using iterative patch removal.
 <li><em>r.pi.fragment.dist</em>  - Calculates correlation of two raster maps by calculating correlation function of two corresponding rectangular areas for each raster point and writing the result into a new raster map.
@@ -40,7 +39,7 @@ to get a better impression of problems, possibilities and caveats.
 <li><em>r.pi.nlm.circ</em>  - Creates a random landscape with defined attributes.
 <li><em>r.pi.nlm.stats</em>  - Neutral Landscape Generator - index statistics
 <li><em>r.pi.corearea</em>  - Variable edge effects and core area analysis
-<li><em>r.pi.corrwin</em>  - Moving window correlation analysis.
+<li><em>r.pi.corr.mw</em>  - Moving window correlation analysis.
 <li><em>r.pi.csr.mw</em>  - Complete Spatial Randomness analysis on moving window.
 <li><em>r.pi.export</em>  - Export of patch based information.
 <li><em>r.pi.graph</em>  - Graph Theory for connectivity analysis.
@@ -104,8 +103,7 @@ to get a better impression of problems, possibilities and caveats.
 <li><b><a href="r.pi.import.html">r.pi.import</a></b>:Import of values to corresponding patches</li>
 <li><b><a href="r.pi.export.html">r.pi.export</a></b>:Export of values from patches</li>
 <li><b><a href="r.pi.lm.html">r.pi.lm</a></b>:Residuals of a Linear Regression between 2 rasters are provided as raster</li>
-<li><b><a href="r.pi.corrwin.html">r.pi.corrwin</a></b>:A correlation between the pixels of two raster
-files inside a moving analysis is calculated</li>
+<li><b><a href="r.pi.corr.mw.html">r.pi.corr.mw</a></b>:Moving window correlation between two raster maps</li>
  </ul>
 
 <h2>EXAMPLES</h2>
@@ -151,7 +149,7 @@ the module and might also be influenced by the resolution.
 
 <em>
 <a href="r.buffer.rect.html">r.buffer.rect</a>,
-<a href="r.corrwindow.html">r.corrwindow</a>,
+<a href="r.corr.mw.html">r.corr.mw</a>,
 <a href="r.energy.html">r.energy</a>,
 <a href="r.energy.iter.html">r.energy.iter</a>,
 <a href="r.fragment.html">r.fragment</a>,
@@ -164,7 +162,6 @@ the module and might also be influenced by the resolution.
 <a href="r.nlm.fractal.html">r.nlm.fractal</a>,
 <a href="r.nlm.stats.html">r.nlm.stats</a>,
 <a href="r.pi.corearea.html">r.pi.corearea</a>,
-<a href="r.pi.corrwin.html">r.pi.corrwin</a>,
 <a href="r.pi.csr.mw.html">r.pi.csr.mw</a>,
 <a href="r.pi.export.html">r.pi.export</a>,
 <a href="r.pi.graph.html">r.pi.graph</a>,

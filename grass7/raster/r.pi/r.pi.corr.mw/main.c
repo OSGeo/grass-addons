@@ -1,7 +1,7 @@
 /*
  ****************************************************************************
  *
- * MODULE:       r.pi.corrwin
+ * MODULE:       r.pi.corr.mw
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
  *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Moving window correlation analysis
