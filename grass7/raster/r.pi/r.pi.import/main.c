@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
     Rast_close(in_fd);
 
     /* find fragment values */
-    fragcount = writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(fragments, map, sy, sx, neighb_count);
 
     /* parse input */
     parse(values, parm.input->answer, id_col, val_col, fragcount);

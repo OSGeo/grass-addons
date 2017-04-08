@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
        } */
 
     /* find fragments */
-    fragcount = writeFragments(flagbuf, nrows, ncols, nbr_count);
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
     distmatrix = (DCELL *) G_malloc(fragcount * fragcount * sizeof(DCELL));

@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
        print_d_buffer(costmap, sx, sy); */
 
     /* find fragments */
-    fragcount = writeFragments(map, sy, sx, distance);
+    fragcount = writeFragments_dist(map, sy, sx, distance);
 
     /* test output */
     /*      G_message("fragcount = %d", fragcount);

@@ -1,6 +1,6 @@
 #include "local_proto.h"
 
-Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
+Coords *writeFrag_DCELL(DCELL * flagbuf, Coords * actpos, int row, int col,
 		  int nrows, int ncols, int nbr_cnt, int fragcount);
 int getNeighbors(Position * res, DCELL * flagbuf, int x, int y, int nx,
 		 int ny, int nbr_cnt);
@@ -56,7 +56,7 @@ int getNeighbors(Position * res, DCELL * flagbuf, int x, int y, int nx,
     return cnt;
 }
 
-Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
+Coords *writeFrag_DCELL(DCELL * flagbuf, Coords * actpos, int row, int col,
 		  int nrows, int ncols, int nbr_cnt, int fragcount)
 {
     int x, y, i;
@@ -151,7 +151,7 @@ Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
     return actpos;
 }
 
-int writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt)
+int writeFragments_DCELL(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt)
 {
     int row, col;
     int fragcount = 0;
@@ -163,7 +163,7 @@ int writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt)
 		fragcount++;
 
 		fragments[fragcount] =
-		    writeFrag(flagbuf, fragments[fragcount - 1], row, col,
+		    writeFrag_DCELL(flagbuf, fragments[fragcount - 1], row, col,
 			      nrows, ncols, nbr_cnt, fragcount);
 	    }
 	}

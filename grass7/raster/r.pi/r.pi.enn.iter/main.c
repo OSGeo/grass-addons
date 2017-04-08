@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
     }
     Rast_close(in_fd);
 
-    fragcount = writeFragments(flagbuf, nrows, ncols, neighb_count);
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, neighb_count);
 
     /* perform actual function on the patches */
     values = (DCELL *) G_malloc(3 * fragcount * sizeof(DCELL));

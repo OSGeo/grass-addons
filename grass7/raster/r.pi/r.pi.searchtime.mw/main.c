@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     CELL *result;
     DCELL *d_res;
     DCELL *values;
-    int neighb_count;
+    int nbr_count;
     int i;
     Coords *p;
     char *str;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     sscanf(parm.percent->answer, "%lf", &percent);
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* get include_cost */
     include_cost = flag.cost->answer;
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
        print_d_buffer(costmap, sx, sy); */
 
     /* find fragments */
-    fragcount = writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(fragments, map, sy, sx, nbr_count);
 
     /* test output */
     /*      print_fragments(); */

@@ -20,11 +20,6 @@
 typedef struct
 {
     int x, y;
-} Position;
-
-typedef struct
-{
-    int x, y;
     double dir;
     DCELL path;
     int finished;
@@ -43,9 +38,6 @@ typedef struct
 } Displacement;
 
 typedef DCELL(f_statmethod) (DCELL *, int);
-
-/* frag.c */
-int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap, int size,

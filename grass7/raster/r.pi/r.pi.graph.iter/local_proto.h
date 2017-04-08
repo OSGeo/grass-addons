@@ -36,7 +36,7 @@ typedef void (f_index) (DCELL * values, Cluster * cluster_list,
 			 DCELL * distmatrix);
 
 /* frag.c */
-int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
+int writeFragments_local(Patch * fragments, int *flagbuf, int nrows, int ncols,
 		   int nbr_cnt);
 
 /* func.c */

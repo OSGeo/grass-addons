@@ -21,18 +21,13 @@
 typedef struct
 {
     int x, y;
-} Position;
-
-typedef struct
-{
-    int x, y;
     int patch;
 } PatchPoint;
 
 typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* frag.c */
-int writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt);
+int writeFragments_DCELL(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* global variables */
 GLOBAL Coords **fragments;

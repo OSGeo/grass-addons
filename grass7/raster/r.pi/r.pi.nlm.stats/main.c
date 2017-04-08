@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     int rand_seed;
     int methods[GNAME_MAX];
     int statmethods[GNAME_MAX];
-    int neighb_count;
+    int nbr_count;
 
     /* helper variables */
     int i, j;
@@ -270,7 +270,7 @@ int main(int argc, char *argv[])
     }
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* scan all method answers */
     for (method_count = 0; parm.method->answers[method_count] != NULL;
@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* apply methods to real landscape */
-	fragcount = writeFragments(real_landscape, sy, sx, neighb_count);
+	fragcount = writeFragments(fragments, real_landscape, sy, sx, nbr_count);
 
 	/* allocate memory for result */
 	res = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
@@ -431,7 +431,7 @@ int main(int argc, char *argv[])
 
 	create_map(resmap, size);
 
-	fragcount = writeFragments(resmap, sy, sx, neighb_count);
+	fragcount = writeFragments(fragments, resmap, sy, sx, nbr_count);
 
 	/* save fragcount */
 	fragcounts[i] = fragcount;

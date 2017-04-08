@@ -2,7 +2,10 @@ MODULE_TOPDIR = ../../..
 
 PGM = r.pi.import
 
-LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB)
+LIB_NAME = grass_rpi
+RPI_LIB  = -l$(LIB_NAME)
+
+LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB) $(RPI_LIB)
 DEPENDENCIES = $(STATSDEP) $(RASTERDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make

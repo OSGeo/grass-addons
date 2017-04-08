@@ -1,11 +1,7 @@
 #include "local_proto.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
 
-Coords *writeFrag(int *flagbuf, Coords * curpos, int row, int col, int nrows,
+Coords *writeFrag_local(int *flagbuf, Coords * curpos, int row, int col, int nrows,
 		  int ncols, int nbr_cnt);
 int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
 		 int nbr_cnt);
@@ -60,7 +56,7 @@ int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
     return cnt;
 }
 
-Coords *writeFrag(int *flagbuf, Coords * curpos, int row, int col, int nrows,
+Coords *writeFrag_local(int *flagbuf, Coords * curpos, int row, int col, int nrows,
 		  int ncols, int nbr_cnt)
 {
     int x, y, i;
@@ -72,13 +68,13 @@ Coords *writeFrag(int *flagbuf, Coords * curpos, int row, int col, int nrows,
     /* count neighbors */
     int neighbors = 0;
 
-    if (col <= 0 || flagbuf[row * ncols + col - 1] != 0)
+    if (x > 0 && flagbuf[y * ncols + x - 1] != 0)
 	neighbors++;
-    if (row <= 0 || flagbuf[(row - 1) * ncols + col] != 0)
+    if (y > 0 && flagbuf[(y - 1) * ncols + x] != 0)
 	neighbors++;
-    if (col >= ncols - 1 || flagbuf[row * ncols + col + 1] != 0)
+    if (x < ncols - 1 && flagbuf[y * ncols + x + 1] != 0)
 	neighbors++;
-    if (row >= nrows - 1 || flagbuf[(row + 1) * ncols + col] != 0)
+    if (y < nrows - 1 && flagbuf[(y + 1) * ncols + x] != 0)
 	neighbors++;
 
     /* write first cell */
@@ -115,13 +111,13 @@ Coords *writeFrag(int *flagbuf, Coords * curpos, int row, int col, int nrows,
 
 	    /* count neighbors */
 	    neighbors = 0;
-	    if (x <= 0 || flagbuf[y * ncols + x - 1] != 0)
+	    if (x > 0 && flagbuf[y * ncols + x - 1] != 0)
 		neighbors++;
-	    if (y <= 0 || flagbuf[(y - 1) * ncols + x] != 0)
+	    if (y > 0 && flagbuf[(y - 1) * ncols + x] != 0)
 		neighbors++;
-	    if (x >= ncols - 1 || flagbuf[y * ncols + x + 1] != 0)
+	    if (x < ncols - 1 && flagbuf[y * ncols + x + 1] != 0)
 		neighbors++;
-	    if (y >= nrows - 1 || flagbuf[(y + 1) * ncols + x] != 0)
+	    if (y < nrows - 1 && flagbuf[(y + 1) * ncols + x] != 0)
 		neighbors++;
 
 	    /* set values */
@@ -139,7 +135,7 @@ Coords *writeFrag(int *flagbuf, Coords * curpos, int row, int col, int nrows,
     return curpos;
 }
 
-int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
+int writeFragments_local(Patch * fragments, int *flagbuf, int nrows, int ncols,
 		   int nbr_cnt)
 {
     int row, col;
@@ -154,6 +150,7 @@ int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
 		fragments[fragcount].first_cell =
 		    writeFrag(flagbuf, fragments[fragcount - 1].first_cell,
 			      row, col, nrows, ncols, nbr_cnt);
+		/* divide by sizeof(Patch *) ? */
 		fragments[fragcount - 1].count =
 		    fragments[fragcount].first_cell - fragments[fragcount -
 								1].first_cell;

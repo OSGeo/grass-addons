@@ -22,6 +22,11 @@
 typedef struct
 {
     int x, y;
+} Position;
+
+typedef struct
+{
+    int x, y;
     int neighbors;
     double value;
 } Coords;
@@ -30,6 +35,11 @@ typedef struct
 /* draw.c */
 void draw_line(int *map, int val, int x1, int y1, int x2, int y2, int sx,
 	       int sy, int width);
+
+/* frag.c */
+Coords *writeFrag(int *flagbuf, Coords *actpos, int row, int col, int nrows,
+		  int ncols, int nbr_cnt);
+int writeFragments(Coords **fragments, int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* helpers.c */
 int Round(double d);

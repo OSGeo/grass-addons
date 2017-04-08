@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     char *p;
 
     /* neighbors count */
-    int neighb_count;
+    int nbr_count;
 
     int row, col, i, j, m;
     int method_count;
@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
     compute_stat = statmethods[statmethod].method;
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
     costmap = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
@@ -330,17 +330,10 @@ int main(int argc, char *argv[])
 	G_percent(row, nrows, 2);
     }
     Rast_close(in_fd);
-
-    for (row = 0; row < nrows; row++) {
-	for (col = 0; col < ncols; col++) {
-	    if (flagbuf[row * ncols + col] == 1) {
-		fragcount++;
-		writeFrag(row, col, neighb_count);
-		fragments[fragcount] = actpos;
-	    }
-	}
-    }
     G_percent(nrows, nrows, 2);
+
+    /* find fragments */
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* generate the distance matrix */
     get_dist_matrix(fragcount);

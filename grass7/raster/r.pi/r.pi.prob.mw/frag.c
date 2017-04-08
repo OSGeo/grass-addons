@@ -1,6 +1,6 @@
 #include "local_proto.h"
 
-Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
+Coords *writeFrag_dist(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 		  int ncols, double distance);
 int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
 		 double distance);
@@ -37,7 +37,7 @@ int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
     return cnt;
 }
 
-Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
+Coords *writeFrag_dist(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 		  int ncols, double distance)
 {
     int x, y, i;
@@ -51,13 +51,13 @@ Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
     /* count neighbors */
     int neighbors = 0;
 
-    if (col <= 0 || flagbuf[row * ncols + col - 1] != 0)
+    if (col > 0 && flagbuf[row * ncols + col - 1] != 0)
 	neighbors++;
-    if (row <= 0 || flagbuf[(row - 1) * ncols + col] != 0)
+    if (row > 0 && flagbuf[(row - 1) * ncols + col] != 0)
 	neighbors++;
-    if (col >= ncols - 1 || flagbuf[row * ncols + col + 1] != 0)
+    if (col < ncols - 1 && flagbuf[row * ncols + col + 1] != 0)
 	neighbors++;
-    if (row >= nrows - 1 || flagbuf[(row + 1) * ncols + col] != 0)
+    if (row < nrows - 1 && flagbuf[(row + 1) * ncols + col] != 0)
 	neighbors++;
 
     /* write first cell */
@@ -94,13 +94,13 @@ Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
 
 	    /* count neighbors */
 	    neighbors = 0;
-	    if (x <= 0 || flagbuf[y * ncols + x - 1] != 0)
+	    if (x > 0 && flagbuf[y * ncols + x - 1] != 0)
 		neighbors++;
-	    if (y <= 0 || flagbuf[(y - 1) * ncols + x] != 0)
+	    if (y > 0 && flagbuf[(y - 1) * ncols + x] != 0)
 		neighbors++;
-	    if (x >= ncols - 1 || flagbuf[y * ncols + x + 1] != 0)
+	    if (x < ncols - 1 && flagbuf[y * ncols + x + 1] != 0)
 		neighbors++;
-	    if (y >= nrows - 1 || flagbuf[(y + 1) * ncols + x] != 0)
+	    if (y < nrows - 1 && flagbuf[(y + 1) * ncols + x] != 0)
 		neighbors++;
 
 	    /* set values */
@@ -119,7 +119,7 @@ Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
     return actpos;
 }
 
-int writeFragments(int *flagbuf, int nrows, int ncols, double distance)
+int writeFragments_dist(int *flagbuf, int nrows, int ncols, double distance)
 {
     int row, col;
     int fragcount = 0;
@@ -131,7 +131,7 @@ int writeFragments(int *flagbuf, int nrows, int ncols, double distance)
 		fragcount++;
 
 		fragments[fragcount] =
-		    writeFrag(flagbuf, fragments[fragcount - 1], row, col,
+		    writeFrag_dist(flagbuf, fragments[fragcount - 1], row, col,
 			      nrows, ncols, distance);
 	    }
 	}

@@ -38,7 +38,7 @@ typedef DCELL (f_statmethod) (DCELL * vals, int count);
 
 
 /* frag.c */
-int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
+int writeFragments_local(Patch * fragments, int *flagbuf, int nrows, int ncols,
 		   int nbr_cnt);
 
 /* func.c */

@@ -19,11 +19,6 @@
 
 typedef struct
 {
-    int x, y;
-} Position;
-
-typedef struct
-{
     double x, y;
 } Vector2;
 
@@ -36,9 +31,6 @@ typedef struct
 
 typedef DCELL(f_statmethod) (DCELL *, int);
 typedef DCELL(f_propmethod) (DCELL, DCELL);
-
-/* frag.c */
-int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* func.c */
 void find_borders(int *flagbuf, int nrows, int ncols, int fragcount);

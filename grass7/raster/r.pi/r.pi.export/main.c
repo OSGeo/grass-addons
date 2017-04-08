@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
     Rast_close(in_fd);
 
     /* find fragments */
-    fragcount = writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments_DCELL(map, sy, sx, neighb_count);
 
     G_message("Writing output...");
 

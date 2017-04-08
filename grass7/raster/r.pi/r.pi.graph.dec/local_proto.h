@@ -41,9 +41,8 @@ typedef int (f_choice) (int cluster_index, Cluster * cluster_list,
 			 DCELL * distmatrix);
 
 /* frag.c */
-int writeFragments(Patch * fragments, int *flagbuf, int nrows, int ncols,
+int writeFragments_local(Patch * fragments, int *flagbuf, int nrows, int ncols,
 		   int nbr_cnt);
-
 /* func.c */
 int get_dist_matrix(DCELL * distmatrix, Patch * fragments, int fragcount);
 

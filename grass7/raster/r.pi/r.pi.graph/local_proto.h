@@ -16,16 +16,8 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 typedef void (f_neighborhood) (DCELL max_dist, int fragcount);
 typedef void (f_index) (DCELL * values, int fragcount);
-
-/* frag.c */
-int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* func.c */
 int get_dist_matrix(int fragcount);

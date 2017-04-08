@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
 	for (col = 0; col < ncols; col++) {
 	    if (flagbuf[row * ncols + col] == 1) {
 		fragcount++;
-		writeFrag(row, col, neighb_count);
+		writeFrag(flagbuf, actpos, row, col, nrows, ncols, neighb_count);
 		fragments[fragcount] = actpos;
 	    }
 	}

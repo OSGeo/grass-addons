@@ -15,9 +15,6 @@
 
 typedef DCELL(f_func) (DCELL * values, int count);
 
-/* frag.c */
-void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt);
-
 /* func.c */
 void compute_values(DCELL * vals, int fragcount, int min, int max, f_func stat_method);
 

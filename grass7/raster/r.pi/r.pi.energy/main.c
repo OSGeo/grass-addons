@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
        print_d_buffer(costmap, sx, sy); */
 
     /* find fragments */
-    fragcount = writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(fragments, map, sy, sx, neighb_count);
 
     /* test output */
     /*      print_fragments(); */

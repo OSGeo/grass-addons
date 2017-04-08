@@ -20,11 +20,6 @@
 typedef struct
 {
     int x, y;
-} Position;
-
-typedef struct
-{
-    int x, y;
     double dir;
     DCELL path;
     int finished;
@@ -49,9 +44,6 @@ void print_d_buffer(DCELL * buffer, int sx, int sy);
 void print_map(double *map, int size);
 void print_array(DCELL * buffer, int size);
 void print_fragments();
-
-/* frag.c */
-int writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap,

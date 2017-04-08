@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
 
     /* find fragments */
     fragcount =
-	writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
+	writeFragments_local(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* allocate distance matrix */
     distmatrix =

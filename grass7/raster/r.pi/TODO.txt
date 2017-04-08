@@ -1,14 +1,6 @@
 #####################################
 C-code:
 
-r.pi.corrwin and r.pi.corrwindow seem to be duplicates, the main.c version 
-are slightly different, but r.pi.corrwin seems to be newer - correct?
-
-- r.pi.energy,r.pi.energy.iter,r.pi.searchtime have "overwrite" as default, need to be changed to option "--o"
-
-- remmove custom 'quiet' flag
-- convert C++ style comments
-- code must conform to C89 (variable declarations)
 - fix all the unused variables
 - fix compiler warnings
 - there are LOTs of cloned files, put them into a r.pi library (example:
@@ -28,6 +20,34 @@ are slightly different, but r.pi.corrwin seems to be newer - correct?
        ls -l */$i
    done
 
+  frag.c, writeFrag()
+    outside is neighbor
+      r.pi.energy (keep in sync with search.c)
+      r.pi.energy.iter (keep in sync with search.c)
+      r.pi.export
+      r.pi.graph.dec
+      r.pi.graph.iter
+      r.pi.graph.red
+      r.pi.import
+      r.pi.prob.mw
+      r.pi.searchtime (keep in sync with search.c)
+      r.pi.searchtime.iter (keep in sync with search.c)
+      r.pi.searchtime.mw (keep in sync with search.c)
+
+    outside is NOT neighbor
+      r.pi.corearea
+      r.pi.enn
+      r.pi.enn.iter
+      r.pi.fnn
+      r.pi.graph
+      r.pi.index
+      r.pi.neigh
+      r.pi.nlm.stats
+      r.pi.odc
+      r.pi.prox
+ 
+- some modules allow to choose between 4 or 8 neighbors,
+  but hardcode neighbors to 4 (e.g. r.pi.energy)
 
 - fix SVN propsets with this helper script when uploading to Addons (Markus will do):
    grass-addons/tools/module_svn_propset.sh

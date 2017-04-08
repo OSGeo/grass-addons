@@ -18,11 +18,6 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 typedef DCELL(f_statmethod) (DCELL *, int);
 typedef void (f_method) (DCELL * values, int *map, int *mask, int n,
 			  int size);

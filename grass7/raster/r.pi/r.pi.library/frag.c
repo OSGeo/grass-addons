@@ -1,18 +1,10 @@
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <grass/gis.h>
-#include <grass/glocale.h>
-#include <grass/stats.h>
-#include <math.h>
-#include "local_proto.h"
+#include "r_pi.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
+int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
+		 int nbr_cnt);
 
-int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny, int nbr_cnt)
+int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny,
+		 int nbr_cnt)
 {
     int left, right, top, bottom;
     int i, j;
@@ -61,7 +53,8 @@ int getNeighbors(Position * res, int *flagbuf, int x, int y, int nx, int ny, int
     return cnt;
 }
 
-void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt)
+Coords *writeFrag(int *flagbuf, Coords * actpos, int row, int col, int nrows,
+		  int ncols, int nbr_cnt)
 {
     int x, y, i;
     Position *list = (Position *) G_malloc(nrows * ncols * sizeof(Position));
@@ -72,6 +65,12 @@ void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt
     /* count neighbors */
     int neighbors = 0;
 
+    /* cells outside the current region are treated as background,
+     * as in fragstats:
+     * "The distinction among nodata, background, border, and boundary
+     * and how they affect the landscape analysis and the calculations
+     * of various metrics is a source of great confusion and thus
+     * great importance." */
     if (col > 0 && flagbuf[row * ncols + col - 1] != 0)
 	neighbors++;
     if (row > 0 && flagbuf[(row - 1) * ncols + col] != 0)
@@ -99,7 +98,8 @@ void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt
 	int c = first->x;
 
 	/* add neighbors to fifo-list */
-	int cnt = getNeighbors(nbr_list, flagbuf, c, r, ncols, nrows, nbr_cnt);
+	int cnt =
+	    getNeighbors(nbr_list, flagbuf, c, r, ncols, nrows, nbr_cnt);
 
 	first++;
 
@@ -135,5 +135,26 @@ void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt
     G_free(list);
     G_free(nbr_list);
 
-    return;
+    return actpos;
+}
+
+int writeFragments(Coords **fragments, int *flagbuf, int nrows, int ncols, int nbr_cnt)
+{
+    int row, col;
+    int fragcount = 0;
+
+    /* find fragments */
+    for (row = 0; row < nrows; row++) {
+	for (col = 0; col < ncols; col++) {
+	    if (flagbuf[row * ncols + col] == 1) {
+		fragcount++;
+
+		fragments[fragcount] =
+		    writeFrag(flagbuf, fragments[fragcount - 1], row, col,
+			      nrows, ncols, nbr_cnt);
+	    }
+	}
+    }
+
+    return fragcount;
 }

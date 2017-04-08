@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
        } */
 
     /* find fragments */
-    fragcount = writeFragments(flagbuf, nrows, ncols, nbr_count);
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* create a patch map */
     for (i = 0; i < fragcount; i++) {

@@ -9,8 +9,6 @@
 #define GLOBAL extern
 #endif
 
-extern void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols, int nbr_cnt);
-
 extern int f_area(DCELL * vals, Coords ** frags, int);
 extern int f_perim(DCELL * vals, Coords ** frags, int);
 extern int f_shapeindex(DCELL *, Coords **, int);

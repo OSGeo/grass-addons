@@ -25,7 +25,7 @@ typedef struct
 typedef DCELL(f_statmethod) (DCELL *, int);
 typedef int (f_func) (DCELL *, int, int *, int, f_statmethod);
 
-void writeFrag(int row, int col, int nbr_cnt);
+void writeFrag_local(int row, int col, int nbr_cnt);
 
 DCELL value(DCELL * vals, int count);
 

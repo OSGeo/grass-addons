@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     f_func *compute_values;
 
     /* neighbors count */
-    int neighb_count;
+    int nbr_count;
 
     char *p;
 
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
     compute_values = menu[method].method;
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
     cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
@@ -220,17 +220,10 @@ int main(int argc, char *argv[])
 
 	G_percent(row, nrows, 2);
     }
-
-    for (row = 0; row < nrows; row++) {
-	for (col = 0; col < ncols; col++) {
-	    if (flagbuf[row * ncols + col] == 1) {
-		fragcount++;
-		writeFrag(flagbuf, row, col, nrows, ncols, neighb_count);
-		fragments[fragcount] = actpos;
-	    }
-	}
-    }
     G_percent(nrows, nrows, 2);
+
+    /* find fragments */
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* perform actual function on the patches */
     G_message("Performing operation...");

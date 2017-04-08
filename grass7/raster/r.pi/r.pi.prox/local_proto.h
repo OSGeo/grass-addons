@@ -17,9 +17,6 @@
 #define GLOBAL extern
 #endif
 
-/* frag.c */
-void writeFrag(int *flagbuf, int row, int col, int nrows, int ncols,int nbr_cnt);
-
 /* func.c */
 int f_proximity(DCELL *, Coords **, int, int, int);
 int f_modified_prox(DCELL * vals, Coords ** frags, int count, int min,

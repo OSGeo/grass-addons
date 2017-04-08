@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     char *p;
 
     /* neighbors count */
-    int neighb_count;
+    int nbr_count;
 
     int row, col, i;
     int nrows, ncols;
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
     compute_values = menu[method].method;
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
     cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
@@ -245,20 +245,10 @@ int main(int argc, char *argv[])
 		flagbuf[row * ncols + col] = 1;
 	}
     }
-
-    for (row = 0; row < nrows; row++) {
-	/* display progress */
-	G_percent(row, nrows, 2);
-
-	for (col = 0; col < ncols; col++) {
-	    if (flagbuf[row * ncols + col] == 1) {
-		fragcount++;
-		writeFrag(flagbuf, row, col, nrows, ncols, neighb_count);
-		fragments[fragcount] = actpos;
-	    }
-	}
-    }
     Rast_close(in_fd);
+
+    /* find fragments */
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, nbr_count);
 
     /* perform actual function on the patches */
     values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));

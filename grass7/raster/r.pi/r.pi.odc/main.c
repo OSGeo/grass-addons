@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     DCELL *d_res;
     DCELL *values;
     DCELL *neighb_values;
-    int neighb_count;
+    int nbr_count;
     int i, n;
     int x, y;
     int sx, sy;
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     sscanf(parm.keyval->answer, "%d", &keyval);
 
     /* get number of cell-neighbors */
-    neighb_count = flag.adjacent->answer ? 8 : 4;
+    nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* get neighbor level */
     if (parm.neighbor_level->answer) {
@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
     Rast_close(in_fd);
 
     /* find fragments */
-    fragcount = writeFragments(map, sy, sx, neighb_count);
+    fragcount = writeFragments(fragments, map, sy, sx, nbr_count);
 
     G_message("Found %d patches", fragcount);
 
