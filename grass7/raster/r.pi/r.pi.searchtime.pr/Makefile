@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM = r.pi.searchtime.iter
+PGM = r.pi.searchtime.pr
 
 LIB_NAME = grass_rpi
 RPI_LIB  = -l$(LIB_NAME)

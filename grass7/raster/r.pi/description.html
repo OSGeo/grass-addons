@@ -28,11 +28,11 @@ to get a better impression of problems, possibilities and caveats.
 
 <li><em>r.pi.rectangle</em>  - Performs statistical analysis on values of patches from the given raster map.
 <li><em>r.pi.energy</em>  - Individual-based dispersal model for connectivity analysis - energy based.
-<li><em>r.pi.energy.iter</em>  - Individual-based dispersal model for connectivity analysis (energy based) using iterative patch removal.
+<li><em>r.pi.energy.pr</em>  - Individual-based dispersal model for connectivity analysis (energy based) using iterative patch removal.
 <li><em>r.pi.fragment.dist</em>  - Calculates correlation of two raster maps by calculating correlation function of two corresponding rectangular areas for each raster point and writing the result into a new raster map.
 <li><em>r.pi.enn</em>  - Determines patches of given value and performs a nearest-neighbor analysis.
 <li><em>r.pi.index</em>  - Computation of fragmentation indices.
-<li><em>r.pi.enn.iter</em>  - Patch relevance for Euclidean Nearest Neighbor patches.
+<li><em>r.pi.enn.pr</em>  - Patch relevance for Euclidean Nearest Neighbor patches.
 <li><em>r.pi.neigh</em>  - Neighbourhood analysis - value of patches within a defined range.
 <li><em>r.pi.enn</em>  - Analysis of n-th Euclidean Nearest Neighbor distance.
 <li><em>r.pi.nlm</em>  - Creates a random generated map with values 0 or 1by given landcover and fragment count.
@@ -43,7 +43,7 @@ to get a better impression of problems, possibilities and caveats.
 <li><em>r.pi.csr.mw</em>  - Complete Spatial Randomness analysis on moving window.
 <li><em>r.pi.export</em>  - Export of patch based information.
 <li><em>r.pi.graph</em>  - Graph Theory for connectivity analysis.
-<li><em>r.pi.graph.iter</em>  - Graph Theory - iterative removal (patch relevance analysis).
+<li><em>r.pi.graph.pr</em>  - Graph Theory - iterative removal (patch relevance analysis).
 <li><em>r.pi.graph.red</em>  - Graph Theory - decreasing distance threshold option.
 <li><em>r.pi.grow</em>  - Size and suitability based region growing.
 <li><em>r.pi.import</em>  - Import and generation of patch raster data
@@ -52,7 +52,7 @@ to get a better impression of problems, possibilities and caveats.
 <li><em>r.pi.prob.mw</em>  - Probability analysis of 2 random points being in the same patch.
 <li><em>r.pi.rectangle</em>  - Generates a rectangle based on a corner coordinate.
 <li><em>r.pi.searchtime</em>  - Individual-based dispersal model for connectivity analysis (time-based)
-<li><em>r.pi.searchtime.iter</em>  - Individual-based dispersal model for connectivity analysis (time-based) using iterative removal of patches
+<li><em>r.pi.searchtime.pr</em>  - Individual-based dispersal model for connectivity analysis (time-based) using iterative removal of patches
 <li><em>r.pi.searchtime.mw</em>  - Individual-based dispersal model for connectivity analysis (time-based) using moving window
 
 <p>
@@ -81,9 +81,9 @@ to get a better impression of problems, possibilities and caveats.
 
 <h3>Patch-Relevance</h3>
  <ul>
-<li><b><a href="r.pi.enn.iter.html">r.pi.enn.iter</a></b>:Relevance of patches for maintenance of distance to first Nearest Neighbor</li>
-<li><b><a href="r.pi.searchtime.iter.html">r.pi.searchtime.iter</a></b>:Relevance of patches for maintenance of searchtime</li>
-<li><b><a href="r.pi.energy.iter.html">r.pi.energy.iter</a></b>:Relevance of patches for maintenance of immigration rate</li>
+<li><b><a href="r.pi.enn.pr.html">r.pi.enn.pr</a></b>:Relevance of patches for maintenance of distance to first Nearest Neighbor</li>
+<li><b><a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a></b>:Relevance of patches for maintenance of searchtime</li>
+<li><b><a href="r.pi.energy.pr.html">r.pi.energy.pr</a></b>:Relevance of patches for maintenance of immigration rate</li>
 <li><b><a href="r.pi.graph.red.html">r.pi.graph.red</a></b>:Relevance of patches ....</li>
 <li><b><a href="r.pi.graph.dec.html">r.pi.graph.dec</a></b>:Relevance of patches ....</li>
  </ul>
@@ -148,25 +148,22 @@ the module and might also be influenced by the resolution.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.buffer.rect.html">r.buffer.rect</a>,
-<a href="r.corr.mw.html">r.corr.mw</a>,
-<a href="r.energy.html">r.energy</a>,
-<a href="r.energy.iter.html">r.energy.iter</a>,
-<a href="r.fragment.html">r.fragment</a>,
-<a href="r.fragment.dist.html">r.fragment.dist</a>,
-<a href="r.fragment.enn.html">r.fragment.enn</a>,
-<a href="r.fragment.iter.html">r.fragment.iter</a>,
-<a href="r.fragment.neighbors.html">r.fragment.neighbors</a>,
-<a href="r.fragment.nn.html">r.fragment.nn</a>,
-<a href="r.nlm.html">r.nlm</a>,
-<a href="r.nlm.fractal.html">r.nlm.fractal</a>,
-<a href="r.nlm.stats.html">r.nlm.stats</a>,
+<a href="r.pi.corr.mw.html">r.pi.corr.mw</a>,
+<a href="r.pi.energy.html">r.pi.energy</a>,
+<a href="r.pi.energy.pr.html">r.energy.pr</a>,
+<a href="r.pi.enn.html">r.pi.enn</a>,
+<a href="r.pi.enn.pr.html">r.pi.enn.pr</a>,
+<a href="r.pi.neigh.html">r.pi.neigh</a>,
+<a href="r.pi.fnn.html">r.pi.fnn</a>,
+<a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a>,
+<a href="r.pi.nlm.html">r.pi.nlm</a>,
+<a href="r.pi.nlm.stats.html">r.nlm.stats</a>,
 <a href="r.pi.corearea.html">r.pi.corearea</a>,
 <a href="r.pi.csr.mw.html">r.pi.csr.mw</a>,
 <a href="r.pi.export.html">r.pi.export</a>,
 <a href="r.pi.graph.html">r.pi.graph</a>,
 <a href="r.pi.graph.dec.html">r.pi.graph.dec</a>,
-<a href="r.pi.graph.iter.html">r.pi.graph.iter</a>,
+<a href="r.pi.graph.pr.html">r.pi.graph.pr</a>,
 <a href="r.pi.graph.red.html">r.pi.graph.red</a>,
 <a href="r.pi.grow.html">r.pi.grow</a>,
 <a href="r.pi.import.html">r.pi.import</a>,
@@ -175,9 +172,9 @@ the module and might also be influenced by the resolution.
 <a href="r.pi.odc.html">r.pi.odc</a>,
 <a href="r.pi.prob.mw.html">r.pi.prob.mw</a>,
 <a href="r.pi.rectangle.html">r.pi.rectangle</a>,
-<a href="r.searchtime.html">r.searchtime</a>,
-<a href="r.searchtime.iter.html">r.searchtime.iter</a>,
-<a href="r.searchtime.mw.html">r.searchtime.mw</a>
+<a href="r.pi.searchtime.html">r.pi.searchtime</a>,
+<a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a>,
+<a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a>
 <p>
 <a href="r.le.html">r.le</a>,
 <a href="r.li.html">r.li</a>

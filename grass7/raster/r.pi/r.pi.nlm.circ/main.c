@@ -6,7 +6,7 @@
  *               Markus Metz (update to GRASS 7)
  * PURPOSE:      a simple r.nlm (neutral landscape model) module based on circular growth
  * 
- * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -204,7 +204,6 @@ int main(int argc, char *argv[])
     int rand_seed;
 
     /* helper variables */
-    RASTER_MAP_TYPE map_type;
     int *buffer;
     int i, j;
     CELL *result;
@@ -266,8 +265,6 @@ int main(int argc, char *argv[])
     if (G_legal_filename(newname) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), newname);
 
-    map_type = CELL_TYPE;
-
     /* get size */
     sscanf(parm.size->answers[0], "%d", &sx);
     sscanf(parm.size->answers[1], "%d", &sy);
@@ -328,7 +325,7 @@ int main(int argc, char *argv[])
        } */
 
     /* write output file */
-    out_fd = Rast_open_new(newname, map_type);
+    out_fd = Rast_open_new(newname, CELL_TYPE);
     if (out_fd < 0)
 	G_fatal_error(_("Cannot create raster map <%s>"), newname);
 

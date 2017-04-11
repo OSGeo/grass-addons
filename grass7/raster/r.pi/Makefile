@@ -8,14 +8,14 @@ SUBDIRS = \
 	r.pi.corrwin \
 	r.pi.csr.mw \
 	r.pi.energy \
-	r.pi.energy.iter \
+	r.pi.energy.pr \
 	r.pi.enn \
-	r.pi.enn.iter \
+	r.pi.enn.pr \
 	r.pi.export \
 	r.pi.fnn \
 	r.pi.graph \
 	r.pi.graph.dec \
-	r.pi.graph.iter \
+	r.pi.graph.pr \
 	r.pi.graph.red \
 	r.pi.grow \
 	r.pi.import \
@@ -30,8 +30,8 @@ SUBDIRS = \
 	r.pi.prox \
 	r.pi.rectangle \
 	r.pi.searchtime \
-	r.pi.searchtime.iter \
-	r.pi.searchtime.mw
+	r.pi.searchtime.mw \
+	r.pi.searchtime.pr
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

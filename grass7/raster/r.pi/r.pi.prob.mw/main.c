@@ -5,9 +5,9 @@
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
  *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Probability analysis of 2 randomly set points to be 
- *              located within the same patch - patch-to-patch distance setting optional
+ *               located within the same patch - patch-to-patch distance setting optional
  *
- * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS

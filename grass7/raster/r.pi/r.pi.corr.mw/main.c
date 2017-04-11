@@ -7,7 +7,7 @@
  * PURPOSE:      Moving window correlation analysis
  *               Put together from pieces of r.covar and r.neighbors
  *
- * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS

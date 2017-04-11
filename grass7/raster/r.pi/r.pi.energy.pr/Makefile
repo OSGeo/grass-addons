@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM = r.pi.graph.iter
+PGM = r.pi.energy.pr
 
 LIB_NAME = grass_rpi
 RPI_LIB  = -l$(LIB_NAME)
