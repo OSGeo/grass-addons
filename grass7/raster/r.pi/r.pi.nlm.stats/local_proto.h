@@ -30,7 +30,7 @@ void print_map(double *map, int size);
 
 /* func.c */
 void FractalIter(double *map, double d, double dmod, int n, int size);
-double DownSample(double *map, int x, int y, int newcols, int newrows,
+double DownSample(double *map, double min, int x, int y, int newcols, int newrows,
 		  int oldsize);
 double CutValues(double *map, double mapcover, int size);
 double UpSample(int *map, int x, int y, int oldcols, int oldrows,

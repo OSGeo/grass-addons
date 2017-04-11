@@ -22,10 +22,12 @@ void create_map(int *res, int size)
     /* find edge */
     edge = CutValues(fractbuf, landcover, size * size);
 
+    MinMax(fractbuf, &min, &max, size * size);
+
     /* resample map to desired size */
     for (i = 0; i < sx; i++) {
 	for (j = 0; j < sy; j++) {
-	    double val = DownSample(fractbuf, i, j, sx, sy, size);
+	    double val = DownSample(fractbuf, min, i, j, sx, sy, size);
 	    double old = buffer[i + j * sx];
 
 	    if (val >= edge && old == 0) {

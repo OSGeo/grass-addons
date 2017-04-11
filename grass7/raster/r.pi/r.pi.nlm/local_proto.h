@@ -4,12 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
+#include <time.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "../r.pi.library/r_pi.h"
-#include <math.h>
-#include <time.h>
 
 typedef struct
 {
@@ -42,7 +42,7 @@ void list_shuffle(int patch);
 
 /* func.c */
 void FractalIter(double *map, double d, double dmod, int n, int size);
-double DownSample(double *map, int x, int y, int newcols, int newrows,
+double DownSample(double *map, double min, int x, int y, int newcols, int newrows,
 		  int oldsize);
 double CutValues(double *map, double mapcover, int size);
 double UpSample(int *map, int x, int y, int oldcols, int oldrows,

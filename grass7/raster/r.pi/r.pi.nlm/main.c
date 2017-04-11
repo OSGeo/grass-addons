@@ -6,7 +6,7 @@
  *               Markus Metz (update to GRASS 7)
  * PURPOSE:      Generation of Neutral Landscapes (fractal landscapes), similar to r.pi.nlm, but fractal landscapes instead of circular growth
  *
- * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 
     /* init buffers */
     memset(bigbuf, 0, size * size * sizeof(double));
-    memset(buffer, TYPE_NOTHING, sx * sy * sizeof(int));
+    memset(buffer, 0, sx * sy * sizeof(int));
 
     /* load values from input file */
     if (oldname) {
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
     /* resample map to desired size */
     for (i = 0; i < sx; i++) {
 	for (j = 0; j < sy; j++) {
-	    double val = DownSample(bigbuf, i, j, sx, sy, size);
+	    double val = DownSample(bigbuf, min, i, j, sx, sy, size);
 	    double old = buffer[i + j * sx];
 
 	    if (val >= edge && old == 0) {

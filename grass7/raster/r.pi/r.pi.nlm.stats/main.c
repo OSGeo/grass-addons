@@ -7,7 +7,7 @@
  * PURPOSE:      Generation of Neutral Landscapes and statistical analysis 
  *                               of fragmentation indices
  *
- * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2009-2011,2017 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -326,7 +326,6 @@ int main(int argc, char *argv[])
 
     /* init fragments structure */
     fragments[0] = cells;
-
 
     /* init buffers */
     memset(bigbuf, 0, size * size * sizeof(double));
