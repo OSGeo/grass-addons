@@ -119,11 +119,11 @@ double pick_dir(int *map, Coords * frag, int sx, int sy)
 
     if (x < sx - 1 && map[x + 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.0;
-    if (y > 0 && map[x + (y + 1) * sx] == TYPE_NOTHING)
+    if (y < sy - 1 && map[x + (y + 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.25;
     if (x > 0 && map[x - 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.5;
-    if (y < sy - 1 && map[x + (y - 1) * sx] == TYPE_NOTHING)
+    if (y > 0 && map[x + (y - 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.75;
 
     pick = count * Randomf();

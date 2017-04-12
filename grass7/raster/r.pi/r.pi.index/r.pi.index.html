@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.fragment</em> is a patch based fragmentation analysis package.
+<em>r.pi.index</em> is a patch based fragmentation analysis package.
 Computation of basic fragmentation indices can be accomplished. 
 
 <p>
@@ -12,12 +12,13 @@ distance to euclidean nearest neighbour (ENN).
 
 <h2>NOTES</h2>
 
-The <em>Nearest Neighbour Index</em> (ENN) analyse the Euclidean Nearest 
-Neighbour to the first neighbouring patch. The output value is in pixel and can
-be converted to a distance values using g.region resolution information.
-<em>r.pi.enn</em> and <em>r.fragment.fnn</em> provide the same analysis concerning the
- first nearest neighbour (NN), but are extended to the n-th NN. However due to
-code construction does the <em>r.pi.index</em> distance analysis to first ENN perform faster.
+The <em>Nearest Neighbour Index</em> (ENN) analyse the Euclidean 
+Nearest Neighbour to the first neighbouring patch. The output value is 
+in pixel and can be converted to a distance values using g.region 
+resolution information. <em>r.pi.enn</em> and <em>r.pi.fnn</em> 
+provide the same analysis concerning the first nearest neighbour (NN), 
+but are extended to the n-th NN. However due to code construction does 
+the <em>r.pi.index</em> distance analysis to first ENN perform faster.
 
 
 <em>Methods:</em>
@@ -71,7 +72,8 @@ to the first nearest neighbour patch.
 
 <h2>EXAMPLE</h2>
 
-Examples based on the North Carolina sample dataset are provided below. Indices are calculated for the landscape class 5 (forest).
+Examples based on the North Carolina sample dataset are provided below. 
+Indices are calculated for the landscape class 5 (forest).
 
 set region settings to used landcover class map:
 

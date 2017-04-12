@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.corr.mw</em> provides information concerning the correlation
+<em>r.pi.corr.mw</em> provides information concerning the correlation
 of pixels inside a moving window between two raster files.
 <p>
 It calculates correlation of two raster maps by calculating correlation
@@ -22,7 +22,7 @@ Correlation of all pixels within a 7x7 sized window of two rasters
 precision
 <div class="code"><pre>
 g.region rast=elevation -p
-r.pi.corrwin input1=slope input2=elevation output=corrwin1 size=7 max=10000
+r.pi.corr.mw input1=slope input2=elevation output=corrwin1 size=7 max=10000
 r.colors corrwin1 col=bgyr
 </pre></div>
 

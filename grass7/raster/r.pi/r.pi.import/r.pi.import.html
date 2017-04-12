@@ -1,6 +1,7 @@
 <h2>DESCRIPTION</h2>
 
-Import and generation of patch raster data based on individual patch based raster data.
+Import and generation of patch raster data based on individual patch 
+based raster data.
 
 <h2>NOTES</h2>
 
@@ -10,7 +11,8 @@ Import and generation of patch raster data based on individual patch based raste
 
 An example for the North Carolina sample dataset:
 
-In order to run <em>r.pi.import</em> we need an exported patch index raster:
+In order to run <em>r.pi.import</em> we need an exported patch index 
+raster:
 <div class="code"><pre>
 r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area
 </pre></div>
@@ -26,7 +28,8 @@ modify it with R or just import the file again and assign the percentage coverag
 r.pi.import input=patch_area_values raster=landclass96 output=imported_values keyval=5 id_col=1 val_col=2
 </pre></div>
 
-if you want to export the patch values to R and do e.g. a linear regression of two patch values and import them again in GRASS, do:<br>
+if you want to export the patch values to R and do e.g. a linear 
+regression of two patch values and import them again in GRASS, do:<br>
 
 apply r.pi.export with two indices (A and B), in R do:
 
