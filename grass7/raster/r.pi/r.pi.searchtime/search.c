@@ -116,16 +116,14 @@ double pick_dir(int *map, Coords * frag, int sx, int sy)
     int y = frag->y;
     int count = 0;
 
-    if (x < sx - 1 && map[x + 1 + y * sx] == TYPE_NOTHING)
+    if (x >= sx - 1 || map[x + 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.0;
-    if (y < sy - 1 && map[x + (y + 1) * sx] == TYPE_NOTHING)
+    if (y >= sy - 1 || map[x + (y + 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.25;
-    if (x > 0 && map[x - 1 + y * sx] == TYPE_NOTHING)
+    if (x <= 0 || map[x - 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.5;
-    if (y > 0 && map[x + (y - 1) * sx] == TYPE_NOTHING)
+    if (y <= 0 || map[x + (y - 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.75;
-
-    /* G_message("Picks for (%d, %d): %0.2f, %0.2f, %0.2f, %0.2f, cnt=%d", x, y, dirs[0], dirs[1], dirs[2], dirs[3], count); */
 
     pick = count * Randomf();
 
@@ -137,7 +135,6 @@ double pick_dir(int *map, Coords * frag, int sx, int sy)
 		res++;
 	    }
 	    /* res = res < 0 ? 2 * M_PI + res : res; */
-	    /* G_message("dir = %0.2f", res); */
 	    return res;
 	}
     }
@@ -155,7 +152,7 @@ void init_individuals(int *map, Coords * frag, int size, int n, int sx, int sy)
 
     border_count = sort_frag(frag, size);
 
-    /* G_message("Initializing"); */
+    /* G_message("Initializing individuals"); */
 
     for (i = 0; i < n; i++) {
 	/* G_message("border_count = %d", border_count); */
@@ -351,11 +348,11 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int fragcount, int
     double newx, newy;
     int act_cell;
 
-    /* test output */
-    /* fprintf(stderr, "actpos: x = %0.2f, y = %0.2f\n", individual->x, individual->y); */
-
     /* make a step in the current direction */
     int dir_index = Round(individual->dir * 8.0 * (double)step_length);
+
+    /* test output */
+    /* fprintf(stderr, "actpos: x = %0.2f, y = %0.2f\n", individual->x, individual->y); */
 
     newx = individual->x + displacements[dir_index].x;
     newy = individual->y + displacements[dir_index].y;
@@ -367,7 +364,10 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int fragcount, int
 	return;
     }
 
-    /* set new position */
+    /* test output */
+    /* fprintf(stderr, "pick: x = %0.2f, y = %0.2f\n\n", newx, newy); */
+
+    /* set new position, which is now approved */
     individual->x = newx;
     individual->y = newy;
 
@@ -386,15 +386,13 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int fragcount, int
 	patch_imi[act_cell]++;
 	immi_matrix[frag * fragcount + act_cell]++;
 	individual->finished = 1;
-
-	return;
     }
 
     /* write an array with possible next positions */
     pick_nextpos(pos_arr, indi, map, costmap, frag, sx, sy);
 
     /* test output */
-    /*      G_message("Nextpos array:\n");
+    /* fprintf(stderr, "Nextpos array:\n");
        for(i = 0; i < pickpos_count; i++) {
        fprintf(stderr, "(x=%d,y=%d,dir=%0.2f,weight=%0.2f)\n", 
        pos_arr[i].x, pos_arr[i].y, pos_arr[i].dir, pos_arr[i].weight);
@@ -422,9 +420,6 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int fragcount, int
 	    break;
     }
     individual->dir = pos_arr[i].dir;
-
-    /* test output */
-    /* fprintf(stderr, "pick: x = %0.2f, y = %0.2f\n\n", newx, newy); */
 
     return;
 }
@@ -472,8 +467,6 @@ DCELL frag_run(int *map, DCELL * costmap, int frag, int n, int fragcount, int sx
 	step_cnt++;
     }
 
-    G_percent(frag + 1, fragcount, 1);
-
     if (out_freq > 0 && (step_cnt % out_freq == 0)) {
 	test_output(map, frag, step_cnt, n, sx, sy);
     }
@@ -519,11 +512,13 @@ void perform_search(DCELL * values, int *map, DCELL * costmap,
     memcpy(perception + 8 * perception_range, perception,
 	   8 * perception_range * sizeof(Displacement));
 
-    /*      fprintf(stderr, "Displacements:");
+    /* fprintf(stderr, "Displacements:\n");
        for(i = 0; i < pickpos_count; i++) {
        fprintf(stderr, " (%d, %d)", displacements[i].x, displacements[i].y);
-       } */
+       } 
+       fprintf(stderr, "\n"); */
 
+    /* initialize patch imigrants array */
     memset(patch_imi, 0, fragcount * sizeof(int));
 
     /* allocate immi_matrix and mig_matrix */
@@ -545,6 +540,12 @@ void perform_search(DCELL * values, int *map, DCELL * costmap,
 	    values[i * fragcount + fragment] = func(indi_paths, n);
 	}
     }
+
+    /*fprintf(stderr, "Values\n");
+       for(i = 0; i < fragcount * stat_count; i++) {
+       fprintf(stderr, "%0.2f ", values[i]);
+       }
+       fprintf(stderr, "\n"); */
 
     G_free(indi_paths);
     G_free(indi_array);

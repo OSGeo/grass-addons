@@ -42,7 +42,7 @@ void test_output(int *map, int patch, int step, int n, int sx, int sy)
 	x = indi->x;
 	y = indi->y;
 
-	/*              fprintf(stderr, "indi%d: (%d, %d)\n", i, x, y); */
+	/* fprintf(stderr, "indi%d: (%d, %d)\n", i, x, y); */
 	if (!indi->lost) {
 	    outmap[x + y * sx]++;
 	}
@@ -117,13 +117,13 @@ double pick_dir(int *map, Coords * frag, int sx, int sy)
     int y = frag->y;
     int count = 0;
 
-    if (x < sx - 1 && map[x + 1 + y * sx] == TYPE_NOTHING)
+    if (x >= sx - 1 || map[x + 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.0;
-    if (y < sy - 1 && map[x + (y + 1) * sx] == TYPE_NOTHING)
+    if (y >= sy - 1 || map[x + (y + 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.25;
-    if (x > 0 && map[x - 1 + y * sx] == TYPE_NOTHING)
+    if (x <= 0 || map[x - 1 + y * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.5;
-    if (y > 0 && map[x + (y - 1) * sx] == TYPE_NOTHING)
+    if (y <= 0 || map[x + (y - 1) * sx] == TYPE_NOTHING)
 	dirs[count++] = 0.75;
 
     pick = count * Randomf();
@@ -357,6 +357,9 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int n, int fragcou
     /* make a step in the current direction */
     int dir_index = Round(individual->dir * 8.0 * (double)step_length);
 
+    /* test output */
+    /* fprintf(stderr, "actpos: x = %0.2f, y = %0.2f\n", individual->x, individual->y); */
+
     newx = individual->x + displacements[dir_index].x;
     newy = individual->y + displacements[dir_index].y;
 
@@ -374,6 +377,9 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int n, int fragcou
 
 	return;
     }
+
+    /* test output */
+    /* fprintf(stderr, "pick: x = %0.2f, y = %0.2f\n\n", newx, newy); */
 
     /* set new position, which is now approved */
     individual->x = newx;
@@ -429,6 +435,13 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int n, int fragcou
     /* write an array with possible next positions */
     pick_nextpos(pos_arr, indi, map, costmap, frag, sx, sy);
 
+    /* test output */
+    /* fprintf(stderr, "Nextpos array:\n");
+       for(i = 0; i < pickpos_count; i++) {
+       fprintf(stderr, "(x=%d,y=%d,dir=%0.2f,weight=%0.2f)\n", 
+       pos_arr[i].x, pos_arr[i].y, pos_arr[i].dir, pos_arr[i].weight);
+       } */
+
     /* if no next position is possible, then set back */
     sum = 0;
     for (i = 0; i < pickpos_count; i++) {
@@ -471,7 +484,7 @@ DCELL frag_run(int *map, DCELL * costmap, int frag, int n, int fragcount, int sx
     int i, j;
     int step_cnt = 0;
     int finished_cnt = 0;
-    int limit = 0.01 * percent * n;
+    int limit = ceil(n * percent / 100);
 
     /*      fprintf(stderr, "\nstarting run:\n"); */
     /*      fprintf(stderr, "limit = %d\n", limit); */
@@ -534,7 +547,6 @@ DCELL frag_run(int *map, DCELL * costmap, int frag, int n, int fragcount, int sx
 void perform_search(int *map, DCELL * costmap, int n, int fragcount, int sx, int sy)
 {
     int fragment;
-    f_statmethod func;
 
     /* allocate paths array */
     indi_steps = (DCELL *) G_malloc(n * sizeof(DCELL));
@@ -563,6 +575,12 @@ void perform_search(int *map, DCELL * costmap, int n, int fragcount, int sx, int
     memcpy(perception + 8 * perception_range, perception,
 	   8 * perception_range * sizeof(Displacement));
 
+    /* fprintf(stderr, "Displacements:\n");
+       for(i = 0; i < pickpos_count; i++) {
+       fprintf(stderr, " (%d, %d)", displacements[i].x, displacements[i].y);
+       } 
+       fprintf(stderr, "\n"); */
+
     /* allocate patch_registry */
     patch_registry = (int *)G_malloc(fragcount * n * sizeof(int));
 
@@ -571,11 +589,6 @@ void perform_search(int *map, DCELL * costmap, int n, int fragcount, int sx, int
     memset(immi_matrix, 0, fragcount * fragcount * sizeof(int));
     mig_matrix = (int *)G_malloc(fragcount * fragcount * sizeof(int));
     memset(mig_matrix, 0, fragcount * fragcount * sizeof(int));
-
-    /*      fprintf(stderr, "Displacements:");
-       for(i = 0; i < pickpos_count; i++) {
-       fprintf(stderr, " (%d, %d)", displacements[i].x, displacements[i].y);
-       } */
 
     /* perform a search run for each fragment */
     for (fragment = 0; fragment < fragcount; fragment++) {

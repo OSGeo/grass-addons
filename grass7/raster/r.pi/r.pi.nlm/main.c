@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	landcover /= 100;
     }
     else {
-	if (!oldname)
+	if (!oldname || !parm.keyval->answer)
 	   G_fatal_error("Specify either landcover or an input file with key value for landcover to be acquired!");
     }
 
@@ -219,9 +219,11 @@ int main(int argc, char *argv[])
 		    }
 		}
 
-		/* count pixels for landcover */
-		if (result[col] == keyval)
-		    pixel_count++;
+		if (parm.keyval->answer) {
+		    /* count pixels for landcover */
+		    if (result[col] == keyval)
+			pixel_count++;
+		}
 	    }
 	}
 	Rast_close(in_fd);

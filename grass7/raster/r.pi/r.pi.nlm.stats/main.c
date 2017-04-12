@@ -350,18 +350,27 @@ int main(int argc, char *argv[])
 	    Rast_get_c_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		if (parm.nullval->answers) {
+		    real_landscape[row * sx + col] = 1;
 		    for (i = 0; parm.nullval->answers[i] != NULL; i++) {
 			sscanf(parm.nullval->answers[i], "%d", &nullval);
-			if (result[col] == nullval)
+			if (result[col] == nullval) {
 			    buffer[row * sx + col] = 1;
+			    real_landscape[row * sx + col] = 0;
+			}
 		    }
 		}
 
-		/* count pixels for landcover */
-		if (result[col] == keyval) {
-		    pixel_count++;
-		    real_landscape[row * sx + col] = 1;
+		if (parm.keyval->answer) {
+		    /* count pixels for landcover */
+		    if (result[col] == keyval) {
+			pixel_count++;
+			real_landscape[row * sx + col] = 1;
+		    }
+		    else
+			real_landscape[row * sx + col] = 0;
 		}
+		if (Rast_is_c_null_value(&result[col]))
+		    real_landscape[row * sx + col] = 0;
 	    }
 	}
 	Rast_close(in_fd);
