@@ -598,7 +598,7 @@ void perform_search(int *map, DCELL * costmap, int remove_indi, int n, int fragc
     /* perform a search run for each fragment */
     for (fragment = 0; fragment < fragcount; fragment++) {
 	if (!(remove_indi && deleted_arr[fragment])) {
-	    frag_run(map, costmap, n, fragment, fragcount, sx, sy);
+	    frag_run(map, costmap, fragment, n, fragcount, sx, sy);
 	}
     }
 

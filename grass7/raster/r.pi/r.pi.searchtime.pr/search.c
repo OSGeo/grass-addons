@@ -385,7 +385,6 @@ void indi_step(int indi, int frag, int *map, DCELL * costmap, int sx, int sy)
     if (act_cell > -1 && act_cell != frag && !deleted_arr[act_cell]) {
 	/* count patch immigrants for this patch */
 	patch_imi[act_cell]++;
-	immi_matrix[frag * fragcount + act_cell]++;
 	individual->finished = 1;
     }
 
