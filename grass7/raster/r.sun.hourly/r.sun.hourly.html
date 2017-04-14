@@ -19,11 +19,15 @@ to assign time without date.
 <p>
 For GRASS 6, only timestamp is assigned.
 
-<h2>EXAMPLE</h2>
+<h2>EXAMPLES</h2>
+
+Calculate for current region the beam irradiance (direct radiation)
+for DOY 355 in 2014 from 8am to 3pm:
 
 <div class="code"><pre>
+g.region -p
 r.sun.hourly elevation=elevation start_time=8 end_time=15 \
-             beam_rad_basename=beam nprocs=4 -t
+              day=355 year=2014 beam_rad_basename=beam nprocs=4 -t
 # show information about newly created space time dataset
 t.info beam
 
@@ -40,7 +44,7 @@ set one of the values (either shade or sunlight) as NULL.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.sun.html">r.sun</a>
+<a href="r.sun.html">r.sun</a>,
 <a href="r.sun.daily.html">r.sun.daily</a> in Addons
 </em>
 
