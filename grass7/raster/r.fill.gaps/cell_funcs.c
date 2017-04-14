@@ -21,31 +21,46 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
 #include "cell_funcs.h"
 
 
+RASTER_MAP_TYPE IN_TYPE;
+RASTER_MAP_TYPE OUT_TYPE;
+
+unsigned char CELL_IN_SIZE;
+unsigned char CELL_IN_PTR_SIZE;
+unsigned char CELL_OUT_SIZE;
+unsigned char CELL_OUT_PTR_SIZE;
+unsigned char CELL_ERR_SIZE;
+
+void (*WRITE_CELL_VAL) (void *, void *);
+void (*WRITE_DOUBLE_VAL) (void *, double);
+int (*IS_NULL) (void *);
+void (*SET_NULL) (void *, unsigned long);
+
 /*
  * Write cell values.
  */
 void write_cell_value_c(void *cell_output, void *cell_input)
 {
-    G_set_raster_value_c(cell_output,
-                         G_get_raster_value_c(cell_input, IN_TYPE), OUT_TYPE);
+    Rast_set_c_value(cell_output, Rast_get_c_value(cell_input, IN_TYPE),
+                     OUT_TYPE);
 }
 
 void write_cell_value_f(void *cell_output, void *cell_input)
 {
-    G_set_raster_value_f(cell_output,
-                         G_get_raster_value_f(cell_input, IN_TYPE), OUT_TYPE);
+    Rast_set_f_value(cell_output, Rast_get_f_value(cell_input, IN_TYPE),
+                     OUT_TYPE);
 }
 
 void write_cell_value_d(void *cell_output, void *cell_input)
 {
-    G_set_raster_value_d(cell_output,
-                         G_get_raster_value_d(cell_input, IN_TYPE), OUT_TYPE);
+    Rast_set_d_value(cell_output, Rast_get_d_value(cell_input, IN_TYPE),
+                     OUT_TYPE);
 }
 
 
@@ -55,17 +70,17 @@ void write_cell_value_d(void *cell_output, void *cell_input)
 
 void write_double_value_c(void *cell, double val)
 {
-    G_set_raster_value_c(cell, (CELL) val, OUT_TYPE);
+    Rast_set_c_value(cell, (CELL) val, OUT_TYPE);
 }
 
 void write_double_value_f(void *cell, double val)
 {
-    G_set_raster_value_f(cell, (FCELL) val, OUT_TYPE);
+    Rast_set_f_value(cell, (FCELL) val, OUT_TYPE);
 }
 
 void write_double_value_d(void *cell, double val)
 {
-    G_set_raster_value_d(cell, (DCELL) val, OUT_TYPE);
+    Rast_set_d_value(cell, (DCELL) val, OUT_TYPE);
 }
 
 
@@ -75,17 +90,17 @@ void write_double_value_d(void *cell, double val)
  */
 int is_null_value_c(void *cell)
 {
-    return (G_is_c_null_value((CELL *) cell));
+    return (Rast_is_c_null_value((CELL *) cell));
 }
 
 int is_null_value_f(void *cell)
 {
-    return (G_is_f_null_value((FCELL *) cell));
+    return (Rast_is_f_null_value((FCELL *) cell));
 }
 
 int is_null_value_d(void *cell)
 {
-    return (G_is_d_null_value((DCELL *) cell));
+    return (Rast_is_d_null_value((DCELL *) cell));
 }
 
 
@@ -94,17 +109,17 @@ int is_null_value_d(void *cell)
  */
 void set_null_c(void *cells, unsigned long count)
 {
-    G_set_c_null_value((CELL *) cells, count);
+    Rast_set_c_null_value((CELL *) cells, count);
 }
 
 void set_null_f(void *cells, unsigned long count)
 {
-    G_set_f_null_value((FCELL *) cells, count);
+    Rast_set_f_null_value((FCELL *) cells, count);
 }
 
 void set_null_d(void *cells, unsigned long count)
 {
-    G_set_d_null_value((DCELL *) cells, count);
+    Rast_set_d_null_value((DCELL *) cells, count);
 }
 
 

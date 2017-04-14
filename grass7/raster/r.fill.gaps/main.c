@@ -152,7 +152,7 @@ void print_weights_matrix(long int rows, long int cols)
 
     G_message(_("Spatial weights neighborhood (cells):"));
     for (i = 0; i < rows; i++) {
-        G_strncpy(weight_matrix_line_buf, "", 1);
+        weight_matrix_line_buf[0] = '\0';
         for (j = 0; j < cols; j++) {
             if (WEIGHTS[i][j] != -1.0) {
                 snprintf(weight_matrix_weight_buf, weight_matrix_line_length,
@@ -170,12 +170,12 @@ void print_weights_matrix(long int rows, long int cols)
             }
             if (strlen(weight_matrix_weight_buf) +
                 strlen(weight_matrix_line_buf) > weight_matrix_line_length) {
-                G_strncpy(weight_matrix_line_buf, "[line too long to print]",
-                          weight_matrix_line_length);
+                strncpy(weight_matrix_line_buf, "[line too long to print]",
+                        weight_matrix_line_length);
                 break;
             }
             else {
-                G_strcat(weight_matrix_line_buf, weight_matrix_weight_buf);
+                strcat(weight_matrix_line_buf, weight_matrix_weight_buf);
             }
         }
         fprintf(stdout, "%s\n", weight_matrix_line_buf);
@@ -356,11 +356,11 @@ void read_neighborhood(unsigned long row_index, unsigned long col,
                     /* center cell: copy through if needed */
                     stats->overwrite = G_malloc(sizeof(double));
                     *stats->overwrite =
-                        (double)G_get_raster_value_d(cell, IN_TYPE);
+                        (double)Rast_get_d_value(cell, IN_TYPE);
                 }
                 else {
                     /* only add non-null cells to stats */
-                    cell_value = (double)G_get_raster_value_d(cell, IN_TYPE);
+                    cell_value = (double)Rast_get_d_value(cell, IN_TYPE);
                     /* only add if within neighborhood */
                     if (WEIGHTS[i][j] != -1.0) {
                         /* get data needed for chosen statistic */
@@ -522,8 +522,7 @@ void advance_one_row(int file_desc, long current_row)
         cell_input += CELL_IN_SIZE;
 
     /* get next row from disk */
-    G_get_raster_row(file_desc, cell_input, current_row + DATA_HEIGHT,
-                     IN_TYPE);
+    Rast_get_row(file_desc, cell_input, current_row + DATA_HEIGHT, IN_TYPE);
 
     /* re-assign all row handlers below current replacement position */
     j = PADDING_HEIGHT;
@@ -568,7 +567,7 @@ void interpolate_row(unsigned long row_index, unsigned long cols,
         if (stats->num_values < min_cells) {
             SET_NULL(cell_output, 1);
             if (write_err)
-                G_set_f_null_value(err_output, 1);
+                Rast_set_f_null_value(err_output, 1);
         }
         else {
             if (stats->overwrite != NULL) {
@@ -583,10 +582,10 @@ void interpolate_row(unsigned long row_index, unsigned long cols,
             }
             /* write error/uncertainty output map? */
             if (write_err) {
-                G_set_raster_value_f(err_output,
-                                     (FCELL) 1.0 -
-                                     (stats->certainty / SUM_WEIGHTS),
-                                     FCELL_TYPE);
+                Rast_set_f_value(err_output,
+                                 (FCELL) 1.0 -
+                                 (stats->certainty / SUM_WEIGHTS),
+                                 FCELL_TYPE);
             }
         }
         /* advance cell pointers by one cell size */
@@ -1010,25 +1009,21 @@ int main(int argc, char *argv[])
     }
 
     /* open raster input map and get its storage type */
-    mapset = G_find_cell2(input, "");
+    mapset = G_find_raster(input, "");
     if (!mapset)
         G_fatal_error(_("Raster map <%s> not found"), input);
-    if (G_get_cellhd(input, mapset, &cellhd) < 0)
-        G_fatal_error(_("Unable to read header of raster map <%s@%s>"), input,
-                      mapset);
-    if ((in_fd = G_open_cell_old(input, mapset)) < 0)
-        G_fatal_error(_("Unable to open raster map <%s> in mapset <%s>"),
-                      input, mapset);
-    IN_TYPE = G_get_raster_map_type(in_fd);
+    Rast_get_cellhd(input, mapset, &cellhd);
+    in_fd = Rast_open_old(input, mapset);
+    IN_TYPE = Rast_get_map_type(in_fd);
 
     /* minimum and maximum values for interpolating range */
     if (IN_TYPE == CELL_TYPE) {
-        G_read_range(input, mapset, &int_range);
+        Rast_read_range(input, mapset, &int_range);
         min = (double)int_range.min;
         max = (double)int_range.max;
     }
     else {
-        G_read_fp_range(input, mapset, &fp_range);
+        Rast_read_fp_range(input, mapset, &fp_range);
         min = (double)fp_range.min;
         max = (double)fp_range.max;
     }
@@ -1074,26 +1069,26 @@ int main(int argc, char *argv[])
             }
         }
     }
-    char data_type_string_in[21];
-    char data_type_string_out[21];
+    char *data_type_string_in;
+    char *data_type_string_out;
 
     if (IN_TYPE == CELL_TYPE) {
-        G_strncpy(data_type_string_in, "integer", 20);
+        data_type_string_in = "integer";
     }
     else if (IN_TYPE == FCELL_TYPE) {
-        G_strncpy(data_type_string_in, "single", 20);
+        data_type_string_in = "single";
     }
     else if (IN_TYPE == DCELL_TYPE) {
-        G_strncpy(data_type_string_in, "double", 20);
+        data_type_string_in = "double";
     }
     if (OUT_TYPE == CELL_TYPE) {
-        G_strncpy(data_type_string_out, "integer", 20);
+        data_type_string_out = "integer";
     }
     else if (OUT_TYPE == FCELL_TYPE) {
-        G_strncpy(data_type_string_out, "single", 20);
+        data_type_string_out = "single";
     }
     else if (OUT_TYPE == DCELL_TYPE) {
-        G_strncpy(data_type_string_out, "double", 20);
+        data_type_string_out = "double";
     }
 
     /* initialize data type dependent cell handling functions */
@@ -1123,7 +1118,8 @@ int main(int argc, char *argv[])
         CELL_INPUT[i] = G_malloc(CELL_IN_SIZE * (cols + (PADDING_WIDTH * 2)));
     }
     for (i = 0; i < WINDOW_HEIGHT; i++) {
-        G_set_null_value(CELL_INPUT[i], cols + (PADDING_WIDTH * 2), IN_TYPE);
+        Rast_set_null_value(CELL_INPUT[i], cols + (PADDING_WIDTH * 2),
+                            IN_TYPE);
     }
 
     /*
@@ -1201,14 +1197,14 @@ int main(int argc, char *argv[])
      */
 
     /* Open output map with right data type */
-    out_fd = G_open_raster_new(output, OUT_TYPE);
+    out_fd = Rast_open_new(output, OUT_TYPE);
     if (out_fd < 0) {
         G_fatal_error("Cannot open output map.");
         exit(EXIT_FAILURE);
     }
 
     /* Reserve memory for one output row buffer */
-    CELL_OUTPUT = G_allocate_raster_buf(OUT_TYPE);
+    CELL_OUTPUT = Rast_allocate_buf(OUT_TYPE);
 
     /* initialize output row */
     SET_NULL(CELL_OUTPUT, cols);
@@ -1216,14 +1212,14 @@ int main(int argc, char *argv[])
     /* produce uncertainty output map? */
     if (parm.error->answer) {
         /* Open output map with right data type */
-        err_fd = G_open_raster_new(parm.error->answer, FCELL_TYPE);
+        err_fd = Rast_open_new(parm.error->answer, FCELL_TYPE);
         if (err_fd < 0) {
             G_fatal_error("Cannot open uncertainty output map.");
             exit(EXIT_FAILURE);
         }
-        ERR_OUTPUT = G_allocate_raster_buf(FCELL_TYPE);
+        ERR_OUTPUT = Rast_allocate_buf(FCELL_TYPE);
         /* initialize output row */
-        G_set_f_null_value(ERR_OUTPUT, cols);
+        Rast_set_f_null_value(ERR_OUTPUT, cols);
     }
 
     /* row indices to handle input data buffer */
@@ -1250,16 +1246,16 @@ int main(int argc, char *argv[])
         for (j = 0; j < PADDING_WIDTH; j++) {
             cell_input += CELL_IN_SIZE;
         }
-        G_get_raster_row(in_fd, cell_input, i, IN_TYPE);
+        Rast_get_row(in_fd, cell_input, i, IN_TYPE);
     }
     for (i = 0; i <= PADDING_HEIGHT; i++) {
         row_idx = PADDING_HEIGHT + i;
         interpolate_row(row_idx, cols, min, max, parm.preserve->answer,
                         min_cells, &cell_stats, write_error);
         /* write output row buffer to disk */
-        G_put_raster_row(out_fd, CELL_OUTPUT, OUT_TYPE);
+        Rast_put_row(out_fd, CELL_OUTPUT, OUT_TYPE);
         if (parm.error->answer)
-            G_put_raster_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
+            Rast_put_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
         G_percent(current_row + 1, rows, 2);
         current_row++;
     }
@@ -1273,9 +1269,9 @@ int main(int argc, char *argv[])
         interpolate_row(row_idx, cols, min, max, parm.preserve->answer,
                         min_cells, &cell_stats, write_error);
         /* write output row buffer to disk */
-        G_put_raster_row(out_fd, CELL_OUTPUT, OUT_TYPE);
+        Rast_put_row(out_fd, CELL_OUTPUT, OUT_TYPE);
         if (parm.error->answer)
-            G_put_raster_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
+            Rast_put_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
         G_percent(current_row + 1, rows, 2);
         current_row++;
     }
@@ -1285,25 +1281,25 @@ int main(int argc, char *argv[])
     for (i = rows - DATA_HEIGHT; i < rows; i++) {
         row_idx = (DATA_HEIGHT + PADDING_HEIGHT) - (rows - i);
         cell_input = get_input_row(row_idx);
-        G_get_raster_row(in_fd, cell_input, i, IN_TYPE);
+        Rast_get_row(in_fd, cell_input, i, IN_TYPE);
     }
     for (i = rows - PADDING_HEIGHT - 1; i < rows; i++) {
         row_idx = PADDING_HEIGHT + (DATA_HEIGHT) - (rows - i);
         interpolate_row(row_idx, cols, min, max, parm.preserve->answer,
                         min_cells, &cell_stats, write_error);
         /* write output row buffer to disk */
-        G_put_raster_row(out_fd, CELL_OUTPUT, OUT_TYPE);
+        Rast_put_row(out_fd, CELL_OUTPUT, OUT_TYPE);
         if (parm.error->answer)
-            G_put_raster_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
+            Rast_put_row(err_fd, ERR_OUTPUT, FCELL_TYPE);
         G_percent(current_row + 1, rows, 2);
         current_row++;
     }
 
     /* close all maps */
-    G_close_cell(out_fd);
-    G_close_cell(in_fd);
+    Rast_close(out_fd);
+    Rast_close(in_fd);
     if (parm.error->answer) {
-        G_close_cell(err_fd);
+        Rast_close(err_fd);
     }
 
     /* Free memory */
@@ -1330,31 +1326,34 @@ int main(int argc, char *argv[])
     G_free(cell_stats.frequencies);
 
     /* write metadata into result and error maps */
-    G_short_history(parm.output->answer, "raster", &hist);
-    sprintf(hist.title, "Result of interpolation/gap filling");
-    hist.edlinecnt = 2;
+    Rast_short_history(parm.output->answer, "raster", &hist);
+    Rast_put_cell_title(parm.output->answer,
+                        "Result of interpolation/gap filling");
     if (parm.dist_m->answer) {
-        sprintf(hist.edhist[0],
-                "Settings: mode=%s, distance (map units)=%.6f, power=%.3f",
-                parm.mode->answer, radius, power);
+        Rast_append_format_history(&hist,
+                                   "Settings: mode=%s, distance (map units)=%.6f, power=%.3f",
+                                   parm.mode->answer, radius, power);
     }
     else {
-        sprintf(hist.edhist[0],
-                "Settings: mode=%s, distance (cells)=%lu, power=%.3f",
-                parm.mode->answer, (unsigned long)radius, power);
+        Rast_append_format_history(&hist,
+                                   "Settings: mode=%s, distance (cells)=%lu, power=%.3f",
+                                   parm.mode->answer, (unsigned long)radius,
+                                   power);
     }
-    sprintf(hist.edhist[1], "          min=%.3f, max=%.3f, min. points=%lu",
-            min, max, min_cells);
-    G_write_history(parm.output->answer, &hist);
+    Rast_append_format_history(&hist,
+                               "          min=%.3f, max=%.3f, min. points=%lu",
+                               min, max, min_cells);
+    Rast_write_history(parm.output->answer, &hist);
 
     if (parm.error->answer) {
-        G_short_history(parm.error->answer, "raster", &hist);
-        sprintf(hist.title, "Uncertainty of interpolation/gap filling");
-        hist.edlinecnt = 2;
-        sprintf(hist.edhist[0], "Result map: %s", parm.output->answer);
-        sprintf(hist.edhist[1],
-                "Theoretic range is '0' (lowest) to '1' (highest).");
-        G_write_history(parm.error->answer, &hist);
+        Rast_short_history(parm.error->answer, "raster", &hist);
+        Rast_put_cell_title(parm.error->answer,
+                            "Uncertainty of interpolation/gap filling");
+        Rast_append_format_history(&hist, "Result map: %s",
+                                   parm.output->answer);
+        Rast_append_format_history(&hist,
+                                   "Theoretic range is '0' (lowest) to '1' (highest).");
+        Rast_write_history(parm.error->answer, &hist);
     }
 
     finish = time(NULL);
