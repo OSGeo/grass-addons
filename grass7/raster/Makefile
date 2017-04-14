@@ -35,6 +35,7 @@ SUBDIRS = \
 	r.euro.ecosystem \
 	r.exdet \
 	r.fidimo \
+	r.fill.gaps \
 	r.findtheriver \
 	r.flexure \
 	r.flip \
