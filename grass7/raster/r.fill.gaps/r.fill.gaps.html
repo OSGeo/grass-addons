@@ -225,6 +225,61 @@ Fill data gaps in a categorized raster map; preserve existing data:
 r.fill.gaps input=categories output=result dist=100 -m mode=mode -p
 </pre>
 
+<h3>Lidar point cloud example</h3>
+
+Inspect the point density and determine the extent of the point cloud
+using the <em><a href="r.in.lidar.html">r.in.lidar</a></em> module:
+
+<div class="code"><pre>
+r.in.lidar -e input=points.las output=density method=n resolution=5 class_filter=2
+</pre></div>
+
+Based on the result, set computational region extent and desired resolution:
+
+<div class="code"><pre>
+g.region -pa raster=density res=1
+</pre></div>
+
+Import the point cloud as raster using binning:
+
+<div class="code"><pre>
+r.in.lidar input=points.las output=ground_raw method=mean class_filter=2
+</pre></div>
+
+Fill in the cells with the three-cell search radius:
+
+<div class="code"><pre>
+r.fill.gaps input=ground output=ground_filled uncertainty=uncertainty distance=3 mode=wmean power=2.0 cells=8
+</pre></div>
+
+<center>
+<a href="r_fill_gaps_lidar.png"><img src="r_fill_gaps_lidar.png" alt="Point density and ground surface" width=600></a>
+<p>
+<em>Binning of lidar and resulting ground surface with filled gaps</em>
+</p>
+</center>
+
+<!--
+d.mon cairo output=r_fill_gaps_lidar.png width=1530 height=1530
+export GRASS_FONT=LiberationSans-Regular
+d.frame frame=ul at=50,100,0,50 -c
+d.rast density3
+d.legend raster=density3 title="Density" at=50,95,2,10 -bsf
+d.text text="density" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=ur at=50,100,50,100 -c
+d.rast ground
+d.text text="ground_raw" at=5,5 size=10 bgcolor=white color=black
+d.legend raster=ground title="Ground (raw)" at=50,95,2,10 -bsf
+d.frame frame=ll  at=0,50,0,50 -c
+d.rast uncertainty
+d.text text="uncertainty" at=5,5 size=10 bgcolor=white color=black
+d.legend raster=uncertainty title="Uncertainty" at=50,95,2,10 -bsf
+d.frame frame=lr at=0,50,50,100 -c
+d.rast ground_filled
+d.text text="ground_filled" at=5,5 size=10 bgcolor=white color=black
+d.legend raster=ground title="Ground (filled)" at=50,95,2,10 -bsf
+d.mon stop=cairo
+-->
 
 <h2>SEE ALSO</h2>
 
