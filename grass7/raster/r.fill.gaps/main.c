@@ -764,9 +764,13 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster,interpolation,IDW");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("surface"));
+    G_add_keyword(_("interpolation"));
+    G_add_keyword(_("IDW"));
+    G_add_keyword(_("null data"));
     module->description =
-        _("Rapidly fills 'no data' cells of a raster map with interpolated values (IDW).");
+        _("Rapidly fills 'no data' cells (NULLs) of a raster map with interpolated values (IDW).");
 
     /* parameters */
 
@@ -846,11 +850,13 @@ int main(int argc, char *argv[])
     parm.dist_m = G_define_flag();
     parm.dist_m->key = 'm';
     parm.dist_m->description =
-        _("Interpret distance as map units, not cell number");
+        _("Interpret distance as map units, not number of cells");
 
     parm.preserve = G_define_flag();
     parm.preserve->key = 'p';
-    parm.preserve->description = _("Preserve original cell values");
+    parm.preserve->label = _("Preserve original cell values");
+    parm.preserve->description =
+        _("By default original values are smoothed");
 
     parm.print_w = G_define_flag();
     parm.print_w->key = 'w';
