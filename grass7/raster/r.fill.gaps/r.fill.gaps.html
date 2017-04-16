@@ -173,6 +173,60 @@ and vice versa. For all other modes, all weights in the neighborhood
 are constant "1" and the uncertainty measure is a simple measure of how
 many input data cells were present in the search window.
 
+<h3>Smoothing</h3>
+
+<center>
+<img src="r_fill_gaps_smoothing.png" alt="Smooth versus preserve">
+<p><em>
+The top row shows resulting surface (ground surface from lidar point
+cloud), its slope, aspect, and profile curvature
+using <tt>mode=wmean</tt> and <tt>power=2</tt>.
+The bottom row shows the same but using the <b>-p</b> flag,
+i.e. the original cell values were used, not the interpolated (and thus
+smoothed) ones.
+</em></p>
+</center>
+
+<!-- TODO: discuss r.slope.aspect versus r.param.scale -->
+
+<!--
+r.fill.gaps input=ground output=ground_filled mode=wmean power=2.0 cells=8
+r.fill.gaps -p input=ground output=ground_filled2 mode=wmean power=2.0 cells=8
+
+r.slope.aspect elevation=ground_filled slope=slope aspect=aspect pcurvature=pcur tcurvature=tcur
+r.slope.aspect elevation=ground_filled2 slope=slope2 aspect=aspect2 pcurvature=pcur2 tcurvature=tcur2
+
+g.region n=219537 s=219172 w=636852 e=637218 -p
+
+d.mon cairo output=r_fill_gaps_smoothing.png width=600 height=300
+export GRASS_FONT=LiberationSans-Regular
+d.frame frame=u1 at=50,100,0,25 -c
+d.rast ground_filled
+d.text text="surf. (smoothed)" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=u2 at=50,100,25,50 -c
+d.rast slope
+d.text text="slope" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=u3 at=50,100,50,75 -c
+d.rast aspect
+d.text text="aspect" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=u4 at=50,100,75,100 -c
+d.rast pcur
+d.text text="prof. curvature" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=l1  at=0,50,0,25 -c
+d.rast ground_filled2
+d.text text="surf. (preserved)" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=l2 at=0,50,25,50 -c
+d.rast slope2
+d.text text="slope" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=l3 at=0,50,50,75 -c
+d.rast aspect2
+d.text text="aspect" at=5,5 size=10 bgcolor=white color=black
+d.frame frame=l4 at=0,50,75,100 -c
+d.rast pcur2
+d.text text="prof. curvature" at=5,5 size=10 bgcolor=white color=black
+d.mon stop=cairo
+-->
+
 <h3>Spatial weighting scheme</h3>
 
 The key to getting good gap filling results is to understand the
@@ -295,6 +349,11 @@ r.fill.gaps input=categories output=result dist=100 -m mode=mode -p
 </pre></div>
 
 <h3>Lidar point cloud example</h3>
+
+<!--
+Using:
+http://fatra.cnr.ncsu.edu/uav-lidar-analytics-course/midpines_2015_spm.las
+-->
 
 Inspect the point density and determine the extent of the point cloud
 using the <em><a href="r.in.lidar.html">r.in.lidar</a></em> module:
