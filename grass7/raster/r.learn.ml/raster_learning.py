@@ -1,734 +1,418 @@
-# -*- coding: utf-8 -*-
-
 import os
-import scipy
 import numpy as np
 from numpy.random import RandomState
-from copy import deepcopy
 import tempfile
+from copy import deepcopy
 import grass.script as grass
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.modules.shortcuts import imagery as im
+from grass.pygrass.vector import VectorTopo
+from grass.pygrass.vector.table import Link
+from grass.pygrass.utils import get_raster_for_points
 from subprocess import PIPE
 
-
-class random_oversampling():
-
-    def __init__(self, random_state):
-        """
-        Balances X, y observations using simple oversampling
-
-        Args
-        ----
-        random_state: Seed to pass onto random number generator
-        """
-
-        self.random_state = random_state
-
-    def fit_sample(self, X, y):
-        """
-        Performs equal balancing of response and explanatory variances
-
-        Args
-        ----
-        X: numpy array of training data
-        y: 1D numpy array of response data
-
-        Returns
-        -------
-        X_resampled: Numpy array of resampled training data
-        y_resampled: Numpy array of resampled response data
-        """
-
-        np.random.seed(seed=self.random_state)
-
-        # count the number of observations per class
-        y_classes = np.unique(y)
-        class_counts = np.histogram(y, bins=len(y_classes))[0]
-        maj_counts = class_counts.max()
-
-        y_resampled = y
-        X_resampled = X
-
-        for cla, counts in zip(y_classes, class_counts):
-            # get the number of samples needed to balance minority class
-            num_samples = maj_counts - counts
-
-            # get the indices of the ith class
-            indx = np.nonzero(y == cla)
-
-            # create some new indices
-            oversamp_indx = np.random.choice(indx[0], size=num_samples)
-
-            # concatenate to the original X and y
-            y_resampled = np.concatenate((y[oversamp_indx], y_resampled))
-            X_resampled = np.concatenate((X[oversamp_indx], X_resampled))
-
-        return (X_resampled, y_resampled)
-
-
-class train():
-
-    def __init__(self, estimator, categorical_var=None,
-                 preprocessing=None, sampling=None):
-        """
-        Train class to perform preprocessing, fitting, parameter search and
-        cross-validation in a single step
-
-        Args
-        ----
-        estimator: Scikit-learn compatible estimator object
-        categorical_var: 1D list containing indices of categorical predictors
-        preprocessing: Sklearn preprocessing scaler
-        sampling: Balancing object e.g. from imbalance-learn
-        """
-
-        # fitting data
-        self.estimator = estimator
-
-        # for onehot-encoding
-        self.enc = None
-        self.categorical_var = categorical_var
-        self.category_values = None
-
-        # for preprocessing of data
-        self.sampling = sampling
-        self.preprocessing = preprocessing
-
-        # for cross-validation scores
-        self.scores = None
-        self.fimp = None
-        self.mean_tpr = None
-        self.mean_fpr = None
-
-    def __onehotencode(self, X):
-
-        """
-        Method to convert a list of categorical arrays in X into a suite of
-        binary predictors which are added to the end of the array
-
-        Args
-        ----
-        X: 2D numpy array containing training data
-        """
-
-        from sklearn.preprocessing import OneHotEncoder
-
-        # store original range of values
-        self.category_values = [0] * len(self.categorical_var)
-        for i, cat in enumerate(self.categorical_var):
-            self.category_values[i] = np.unique(X[:, cat])
-
-        # fit and transform categorical grids to a suite of binary features
-        self.enc = OneHotEncoder(categorical_features=self.categorical_var,
-                                 sparse=False)
-        self.enc.fit(X)
-        X = self.enc.transform(X)
-
-        return(X)
-
-    def fit(self, X, y, groups=None):
-
-        """
-        Main fit method for the train object
-
-        Args
-        ----
-        X, y: training data and labels as numpy arrays
-        groups: groups to be used for cross-validation
-        """
-
-        from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-
-        # Balance classes prior to fitting
-        if self.sampling is not None:
-            if groups is None:
-                X, y = self.sampling.fit_sample(X, y)
-            else:
-                X = np.hstack((X, groups.reshape(-1, 1)))
-                X, y = self.sampling.fit_sample(X, y)
-                groups = X[:, -1]
-                X = X[:, :-1]
-
-        if self.preprocessing is not None:
-            X = self.__preprocessor(X)
-
-        if self.categorical_var is not None:
-            X = self.__onehotencode(X)
-
-        # fit the model on the training data and predict the test data
-        # need the groups parameter because the estimator can be a
-        # RandomizedSearchCV or GridSearchCV estimator where cv=GroupKFold
-        if isinstance(self.estimator, RandomizedSearchCV) \
-                or isinstance(self.estimator, GridSearchCV):
-            param_search = True
-        else:
-            param_search = False
-
-        if groups is not None and param_search is True:
-            self.estimator.fit(X, y, groups=groups)
-        else:
-            self.estimator.fit(X, y)
-
-    def __preprocessor(self, X):
-        """
-        Transforms the non-categorical X
-
-        Args
-        ----
-        X; 2D numpy array to transform
-        """
-
-        # create mask so that indices that represent categorical
-        # predictors are not selected
-        if self.categorical_var is not None:
-            idx = np.arange(X.shape[1])
-            mask = np.ones(len(idx), dtype=bool)
-            mask[self.categorical_var] = False
-        else:
-            mask = np.arange(X.shape[1])
-
-        X_continuous = X[:, mask]
-        self.preprocessing.fit(X=X_continuous)
-        X[:, mask] = self.preprocessing.transform(X_continuous)
-
-        return(X)
-
-    def varImp_permutation(self, estimator, X_test, y_true,
-                           n_permutations, scorers,
-                           random_state):
-
-        """
-        Method to perform permutation-based feature importance during
-        cross-validation (cross-validation is applied externally to this
-        method)
-
-        Procedure is:
-        1. Pass fitted estimator and test partition X y
-        2. Assess AUC on the test partition (bestauc)
-        3. Permute each variable and assess the difference between bestauc and
-           the messed-up variable
-        4. Repeat (3) for many random permutations
-        5. Average the repeats
-
-        Args
-        ----
-        estimator: estimator that has been fitted to a training partition
-        X_test, y_true: data and labels from a test partition
-        n_permutations: number of random permutations to apply
-        random_state: seed to pass to the numpy random.seed
-
-        Returns
-        -------
-        scores: AUC scores for each predictor following permutation
-        """
-
-        from sklearn import metrics
-        if scorers == 'binary' or scorers == 'multiclass':
-            scorer = metrics.accuracy_score
-        if scorers == 'regression':
-            scorer = metrics.r2_score
-
-        # calculate score on original variables without permutation
-        # determine best metric type for binary/multiclass/regression scenarios
-        y_pred = estimator.predict(X_test)
-        best_score = scorer(y_true, y_pred)
-
-        np.random.seed(seed=random_state)
-        rstate = RandomState(random_state)
-        scores = np.zeros((n_permutations, X_test.shape[1]))
-
-        # outer loop to repeat the pemutation rep times
-        for rep in range(n_permutations):
-
-            # inner loop to permute each predictor variable and assess
-            # difference in auc
-            for i in range(X_test.shape[1]):
-                Xscram = np.copy(X_test)
-                Xscram[:, i] = rstate.choice(X_test[:, i], X_test.shape[0])
-
-                # fit the model on the training data and predict the test data
-                y_pred = estimator.predict(Xscram)
-                scores[rep, i] = best_score-scorer(y_true, y_pred)
-                if scores[rep, i] < 0:
-                    scores[rep, i] = 0
-
-        # average the repetitions
-        scores = scores.mean(axis=0)
-
-        return(scores)
-
-    def specificity_score(self, y_true, y_pred):
-
-        """
-        Simple method to calculate specificity score
-
-        Args
-        ----
-        y_true: 1D numpy array of truth values
-        y_pred: 1D numpy array of predicted classes
-
-        Returns
-        -------
-        specificity: specificity score
-        """
-
-        from sklearn.metrics import confusion_matrix
-
-        cm = confusion_matrix(y_true, y_pred)
-
-        tn = float(cm[0][0])
-        # fn = float(cm[1][0])
-        # tp = float(cm[1][1])
-        fp = float(cm[0][1])
-
-        specificity = tn/(tn+fp)
-
-        return (specificity)
-
-    def cross_val(self, splitter, X, y, groups=None, scorers='binary',
-                  feature_importances=False, n_permutations=25,
-                  random_state=None):
-
-        from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-        from sklearn import metrics
-
-        """
-        Stratified Kfold and GroupFold cross-validation
-        Generates suites of scoring_metrics for binary classification,
-
-        multiclass classification and regression scenarios
-
-        Args
-        ----
-        splitter: Scikit learn model_selection object, e.g. StratifiedKFold
-        X, y: 2D numpy array of training data and 1D array of labels
-        groups: 1D numpy array of groups to be used for cross-validation
-        scorers: String specifying suite of performance metrics to use
-        feature_importances: Boolean to perform permutation-based importances
-        n_permutations: Number of permutations during feature importance
-        random_state: Seed to pass to the random number generator
-        """
-
-        # preprocessing -------------------------------------------------------
-        if self.preprocessing is not None:
-            X = self.__preprocessor(X)
-
-        if self.categorical_var is not None:
-            X = self.__onehotencode(X)
-
-        # create copy of fitting estimator for cross-val fitting
-        fit_train = deepcopy(self.estimator)
-
-        # create dictionary of lists to store metrics -------------------------
-        n_classes = len(np.unique(y))
-
-        if scorers == 'accuracy':
-            self.scores = {
-                'accuracy': []
-            }
-
-        if scorers == 'binary':
-            self.scores = {
-                'accuracy': [],
-                'precision': [],
-                'recall': [],
-                'specificity': [],
-                'f1': [],
-                'kappa': [],
-                'auc': []
-            }
-
-        if scorers == 'multiclass':
-            self.scores = {
-                'accuracy': [],
-                'kappa': [],
-                'precision': np.zeros((0, n_classes)),  # scores per sample
-                'recall': np.zeros((0, n_classes)),
-                'f1': np.zeros((0, n_classes))
-                }
-
-        if scorers == 'regression':
-            self.scores = {
-                'r2': []
-            }
-
-        self.mean_tpr = 0
-        self.mean_fpr = np.linspace(0, 1, 100)
-
-        # create np array to store feature importance scores
-        # for each predictor per fold
-        if feature_importances is True:
-            self.fimp = np.zeros((splitter.get_n_splits(), X.shape[1]))
-            self.fimp[:] = np.nan
-
-        # generate Kfold indices ----------------------------------------------
-
-        if groups is None:
-            k_fold = splitter.split(X, y)
-        else:
-            k_fold = splitter.split(
-                X, y, groups=groups)
-
-        # train on k-1 folds and test of k folds ------------------------------
-
-        for train_indices, test_indices in k_fold:
-
-            # get indices for train and test partitions
-            X_train, X_test = X[train_indices], X[test_indices]
-            y_train, y_test = y[train_indices], y[test_indices]
-            if groups is not None:
-                groups_train = groups[train_indices]
-
-            # balance the training fold
-            if self.sampling is not None:
-                if groups is None:
-                    X_train, y_train = self.sampling.fit_sample(
-                            X_train, y_train)
-                else:
-                    X_train = np.hstack((X_train, groups_train.reshape(-1, 1)))
-                    X_train, y_train = self.sampling.fit_sample(
-                            X_train, y_train)
-                    groups_train = X_train[:, -1]
-                    X_train = X_train[:, :-1]
-
-            else:
-                # also get indices of groups for the training partition
-                if groups is not None:
-                    groups_train = groups[train_indices]
+def specificity_score(y_true, y_pred):
+    """
+    Function to calculate specificity score
+
+    Args
+    ----
+    y_true: 1D numpy array of truth values
+    y_pred: 1D numpy array of predicted classes
+
+    Returns
+    -------
+    specificity: specificity score
+    """
+    from sklearn.metrics import confusion_matrix
+
+    cm = confusion_matrix(y_true, y_pred)
+    tn = float(cm[0][0])
+    fp = float(cm[0][1])
+
+    return (tn/(tn+fp))
+
+
+def varimp_permutation(estimator, X_test, y_true,
+                       n_permutations, scorer,
+                       random_state):
+
+    """
+    Method to perform permutation-based feature importance during
+    cross-validation (cross-validation is applied externally to this
+    method)
+
+    Procedure is:
+    1. Pass fitted estimator and test partition X y
+    2. Assess AUC on the test partition (bestauc)
+    3. Permute each variable and assess the difference between bestauc and
+       the messed-up variable
+    4. Repeat (3) for many random permutations
+    5. Average the repeats
+
+    Args
+    ----
+    estimator: estimator that has been fitted to a training partition
+    X_test, y_true: data and labels from a test partition
+    n_permutations: number of random permutations to apply
+    scorer: scikit-learn metric function to use
+    random_state: seed to pass to the numpy random.seed
+
+    Returns
+    -------
+    scores: scores for each predictor following permutation
+    """
+
+    # calculate score on original variables without permutation
+    # determine best metric type for binary/multiclass/regression scenarios
+    y_pred = estimator.predict(X_test)
+    best_score = scorer(y_true, y_pred)
+
+    np.random.seed(seed=random_state)
+    rstate = RandomState(random_state)
+    scores = np.zeros((n_permutations, X_test.shape[1]))
+
+    # outer loop to repeat the pemutation rep times
+    for rep in range(n_permutations):
+
+        # inner loop to permute each predictor variable and assess
+        # difference in auc
+        for i in range(X_test.shape[1]):
+            Xscram = np.copy(X_test)
+            Xscram[:, i] = rstate.choice(X_test[:, i], X_test.shape[0])
 
             # fit the model on the training data and predict the test data
-            # need the groups parameter because the estimator can be a
-            # RandomizedSearchCV or GridSearchCV estimator where cv=GroupKFold
-            if isinstance(fit_train, RandomizedSearchCV) is True \
-                    or isinstance(fit_train, GridSearchCV):
-                param_search = True
-            else:
-                param_search = False
+            y_pred = estimator.predict(Xscram)
+            scores[rep, i] = best_score-scorer(y_true, y_pred)
+            if scores[rep, i] < 0:
+                scores[rep, i] = 0
 
-            # train fit_train on training fold
-            if groups is not None and param_search is True:
-                fit_train.fit(X_train, y_train, groups=groups_train)
-            else:
-                fit_train.fit(X_train, y_train)
+    # average the repetitions
+    scores = scores.mean(axis=0)
 
-            # prediction of test fold
-            y_pred = fit_train.predict(X_test)
-            labels = np.unique(y_pred)
+    return(scores)
 
-            # calculate metrics
-            if scorers == 'accuracy':
-                self.scores['accuracy'] = np.append(
-                    self.scores['accuracy'],
-                    metrics.accuracy_score(y_test, y_pred))
 
-            elif scorers == 'binary':
-                self.scores['accuracy'] = np.append(
-                    self.scores['accuracy'],
-                    metrics.accuracy_score(y_test, y_pred))
+def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
+                     scoring=['accuracy'], feature_importances=False,
+                     n_permutations=25, random_state=None):
 
-                y_pred_proba = fit_train.predict_proba(X_test)[:, 1]
-                self.scores['auc'] = np.append(
-                    self.scores['auc'],
-                    metrics.roc_auc_score(y_test, y_pred_proba))
+    """
+    Stratified Kfold and GroupFold cross-validation using multiple
+    scoring metrics and permutation feature importances
 
-                self.scores['precision'] = np.append(
-                    self.scores['precision'], metrics.precision_score(
-                        y_test, y_pred, labels, average='binary'))
+    Args
+    ----
+    estimator: Scikit learn estimator
+    X: 2D numpy array of training data
+    y: 1D numpy array representing response variable
+    groups: 1D numpy array containing group labels
+    sample_weight: 1D numpy array[n_samples,] of sample weights
+    cv: Integer of cross-validation folds or sklearn.model_selection object
+    sampling: Over- or under-sampling object with fit_sample method
+    scoring: List of performance metrics to use
+    feature_importances: Boolean to perform permutation-based importances
+    n_permutations: Number of permutations during feature importance
+    random_state: Seed to pass to the random number generator
+    """
 
-                self.scores['recall'] = np.append(
-                    self.scores['recall'], metrics.recall_score(
-                        y_test, y_pred, labels, average='binary'))
+    from sklearn import metrics
+    from sklearn.model_selection import (
+        RandomizedSearchCV, GridSearchCV, StratifiedKFold)
 
-                self.scores['specificity'] = np.append(
-                    self.scores['specificity'], self.specificity_score(
-                        y_test, y_pred))
+    estimator = deepcopy(estimator)
 
-                self.scores['f1'] = np.append(
-                    self.scores['f1'], metrics.f1_score(
-                        y_test, y_pred, labels, average='binary'))
+    # create model_selection method
+    if isinstance(cv, int):
+        cv = StratifiedKFold(n_splits=cv)
 
-                self.scores['kappa'] = np.append(
-                    self.scores['kappa'],
-                    metrics.cohen_kappa_score(y_test, y_pred))
+    # fit the model on the training data and predict the test data
+    # need the groups parameter because the estimator can be a
+    # RandomizedSearchCV or GridSearchCV estimator where cv=GroupKFold
+    if isinstance(estimator, RandomizedSearchCV) is True \
+            or isinstance(estimator, GridSearchCV):
+        param_search = True
+    else:
+        param_search = False
 
-                fpr, tpr, thresholds = metrics.roc_curve(y_test, y_pred_proba)
-                self.mean_tpr += scipy.interp(self.mean_fpr, fpr, tpr)
-                self.mean_tpr[0] = 0.0
+    # create dictionary of lists to store metrics
+    scores = dict.fromkeys(scoring)
+    scores = { key: [] for key, value in scores.iteritems()}
+    scoring_methods = {'accuracy': metrics.accuracy_score,
+                       'balanced_accuracy': metrics.recall_score,
+                       'average_precision': metrics.average_precision_score,
+                       'brier_loss': metrics.brier_score_loss,
+                       'kappa': metrics.cohen_kappa_score,
+                       'f1': metrics.f1_score,
+                       'fbeta': metrics.fbeta_score,
+                       'hamming_loss': metrics.hamming_loss,
+                       'jaccard_similarity': metrics.jaccard_similarity_score,
+                       'log_loss': metrics.log_loss,
+                       'matthews_corrcoef': metrics.matthews_corrcoef,
+                       'precision': metrics.precision_score,
+                       'recall': metrics.recall_score,
+                       'specificity': specificity_score,
+                       'roc_auc': metrics.roc_auc_score,
+                       'zero_one_loss': metrics.zero_one_loss,
+                       'r2': metrics.r2_score,
+                       'neg_mean_squared_error': metrics.mean_squared_error}
 
-            elif scorers == 'multiclass':
+    byclass_methods = {'f1': metrics.f1_score,
+                      'fbeta': metrics.fbeta_score,
+                      'precision': metrics.precision_score,
+                      'recall': metrics.recall_score}
 
-                self.scores['accuracy'] = np.append(
-                    self.scores['accuracy'],
-                    metrics.accuracy_score(y_test, y_pred))
+    # create diction to store byclass metrics results
+    n_classes = len(np.unique(y))
+    labels = np.unique(y)
+    byclass_scores = dict.fromkeys(byclass_methods)
+    byclass_scores = { key: np.zeros((0, n_classes)) for key, value in byclass_scores.iteritems()}
 
-                self.scores['kappa'] = np.append(
-                    self.scores['kappa'],
-                    metrics.cohen_kappa_score(y_test, y_pred))
+    # remove any byclass_scorers that are not in the scoring list
+    byclass_scores = {key: value for key, value in byclass_scores.iteritems() if key in scores}
 
-                self.scores['precision'] = np.vstack((
-                    self.scores['precision'],
-                    np.array(metrics.precision_score(
-                        y_test, y_pred, average=None))))
+    # set averaging type for global binary or multiclass scores
+    if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
+        average='binary'
+    else:
+        average='macro'
 
-                self.scores['recall'] = np.vstack((
-                    self.scores['recall'],
-                    np.array(metrics.recall_score(
-                        y_test, y_pred, average=None))))
+    # check to see if scoring is a valid sklearn metric
+    for i in scores.keys():
+        try:
+            list(scoring_methods.keys()).index(i)
+        except:
+            print('Scoring ' + i + ' is not a valid scoring method')
+            print('Valid methods are:')
+            print(scoring_methods.keys())
 
-                self.scores['f1'] = np.vstack((
-                    self.scores['f1'],
-                    np.array(metrics.f1_score(
-                        y_test, y_pred, average=None))))
+    # create np array to store feature importance scores
+    if feature_importances is True:
+        fimp = np.zeros((cv.get_n_splits(), X.shape[1]))
+        fimp[:] = np.nan
+    else:
+        fimp = None
 
-            elif scorers == 'regression':
-                self.scores['r2'] = np.append(
-                    self.scores['r2'], metrics.r2_score(y_test, y_pred))
+    # generate Kfold indices
+    if groups is None:
+        k_fold = cv.split(X, y)
+    else:
+        k_fold = cv.split(X, y, groups=groups)
 
-            # feature importances using permutation
-            if feature_importances is True:
-                if bool((np.isnan(self.fimp)).all()) is True:
-                    self.fimp = self.varImp_permutation(
-                        fit_train, X_test, y_test, n_permutations, scorers,
-                        random_state)
-                else:
-                    self.fimp = np.row_stack(
-                        (self.fimp, self.varImp_permutation(
-                            fit_train, X_test, y_test,
-                            n_permutations, scorers, random_state)))
+    # train on k-1 folds and test of k folds
+    for train_indices, test_indices in k_fold:
 
-        # summarize data ------------------------------------------------------
+        # subset training and test fold data
+        X_train, X_test = X[train_indices], X[test_indices]
+        y_train, y_test = y[train_indices], y[test_indices]
 
-        # convert onehot-encoded feature importances back to original vars
-        if self.fimp is not None and self.enc is not None:
+        # subset training and test fold group ids
+        if groups is not None: groups_train = groups[train_indices]
+        else: groups_train = None
 
-            # get start,end positions of each suite of onehot-encoded vars
-            feature_ranges = deepcopy(self.enc.feature_indices_)
-            for i in range(0, len(self.enc.feature_indices_)-1):
-                feature_ranges[i+1] = feature_ranges[i] + \
-                              len(self.category_values[i])
+        # subset training and test fold sample_weight
+        if sample_weight is not None: weights = sample_weight[train_indices]
 
-            # take sum of each onehot-encoded feature
-            ohe_feature = [0] * len(self.categorical_var)
-            ohe_sum = [0] * len(self.categorical_var)
-
-            for i in range(len(self.categorical_var)):
-                ohe_feature[i] = \
-                           self.fimp[:, feature_ranges[i]:feature_ranges[i+1]]
-                ohe_sum[i] = ohe_feature[i].sum(axis=1)
-
-            # remove onehot-encoded features from the importances array
-            features_for_removal = np.array(range(feature_ranges[-1]))
-            self.fimp = np.delete(self.fimp, features_for_removal, axis=1)
-
-            # insert summed importances into original positions
-            for index in self.categorical_var:
-                self.fimp = np.insert(self.fimp, np.array(index),
-                                      ohe_sum[0], axis=1)
-
-        if scorers == 'binary':
-            self.mean_tpr /= splitter.get_n_splits(X, y)
-            self.mean_tpr[-1] = 1.0
-
-    def get_roc_curve(self):
-        return (self.mean_tpr, self.mean_fpr)
-
-    def get_cross_val_scores(self):
-        return (self.scores)
-
-    def predict(self, predictors, output, labels=None,
-                class_probabilities=False, rowincr=25):
-
-        """
-        Prediction on list of GRASS rasters using a fitted scikit learn model
-
-        Parameters
-        ----------
-        predictors: List of GRASS rasters
-
-        class_probabilties: Predict class probabilities
-
-        rowincr: Integer of raster rows to process at one time
-        output: Name of GRASS raster to output classification results
-        """
-
-        # determine output data type and nodata
-        if labels is not None:
-            ftype = 'CELL'
-            nodata = -2147483648
+        # train estimator on training fold
+        if groups is not None and param_search is True:
+            if sample_weight is None: estimator.fit(X_train, y_train, groups=groups_train)
+            else: estimator.fit(X_train, y_train, groups=groups_train, sample_weight=weights)
         else:
-            ftype = 'FCELL'
-            nodata = np.nan
+            if sample_weight is None: estimator.fit(X_train, y_train)
+            else: estimator.fit(X_train, y_train, sample_weight=weights)
 
-        # create a list of rasterrow objects for predictors
-        n_features = len(predictors)
-        rasstack = [0] * n_features
+        # prediction of test fold
+        y_pred = estimator.predict(X_test)
 
-        for i in range(n_features):
-            rasstack[i] = RasterRow(predictors[i])
-            if rasstack[i].exist() is True:
-                rasstack[i].open('r')
+        # calculate global performance metrics
+        for m in scores.keys():
+            # metrics that require probabilties
+            if m == 'brier_loss' or m == 'roc_auc':
+                y_prob = estimator.predict_proba(X_test)[:, 1]
+                scores[m] = np.append(
+                    scores[m], scoring_methods[m](y_test, y_prob))
+
+            # metrics that have no averaging for multiclass
+            elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
+            or m == 'hamming_loss' or m == 'jaccard_similarity' \
+            or m == 'log_loss' or m == 'zero_one_loss':
+                scores[m] = np.append(
+                    scores[m], scoring_methods[m](y_test, y_pred))
+
+            # balanced accuracy
+            elif m == 'balanced_accuracy':
+                scores[m] = np.append(
+                    scores[m], scoring_methods[m](
+                        y_test, y_pred, average='macro'))
+
+            # metrics that have averaging for multiclass
             else:
-                grass.fatal("GRASS raster " + predictors[i] +
-                            " does not exist.... exiting")
+                scores[m] = np.append(
+                    scores[m], scoring_methods[m](
+                        y_test, y_pred, average=average))
 
-        current = Region()
+        # calculate per-class performance metrics
+        for key in byclass_scores.keys():
+            byclass_scores[key] = np.vstack((
+                byclass_scores[key], byclass_methods[key](
+                    y_test, y_pred, labels=labels, average=None)))
 
-        # create a imagery mask
-        # the input rasters might have different dimensions and null pixels.
-        # r.series used to automatically create a mask by propagating the nulls
-        grass.run_command("r.series", output='tmp_clfmask',
-                          input=predictors, method='count', flags='n',
-                          overwrite=True)
+        # feature importances using permutation
+        if feature_importances is True:
+            if bool((np.isnan(fimp)).all()) is True:
+                fimp = varimp_permutation(
+                    estimator, X_test, y_test, n_permutations,
+                    scoring_methods[scoring[0]],
+                    random_state)
+            else:
+                fimp = np.row_stack(
+                    (fimp, varimp_permutation(
+                        estimator, X_test, y_test,
+                        n_permutations, scoring_methods[scoring[0]],
+                        random_state)))
 
-        mask_raster = RasterRow('tmp_clfmask')
-        mask_raster.open('r')
+    return(scores, byclass_scores, fimp)
 
-        # create and open RasterRow objects for classification
+
+def predict(estimator, predictors, output, predict_type='raw', labels=None,
+            index=None, rowincr=25):
+
+    """
+    Prediction on list of GRASS rasters using a fitted scikit learn model
+
+    Args
+    ----
+    estimator: scikit-learn estimator object
+    predictors: list of GRASS rasters
+    output: Name of GRASS raster to output classification results
+    predict_type: character, 'raw' for classification/regression;
+                  'prob' for class probabilities
+    index: Optional, list of class indices to export
+    rowincr: Integer of raster rows to process at one time
+    """
+
+    # current region
+    current = Region()
+
+    # determine output data type and nodata
+    if labels is not None:
+        ftype = 'CELL'
+        nodata = -2147483648
+    else:
+        ftype = 'FCELL'
+        nodata = np.nan
+
+    # open predictors as list of rasterrow objects
+    n_features = len(predictors)
+    rasstack = [0] * n_features
+
+    for i in range(n_features):
+        rasstack[i] = RasterRow(predictors[i])
+        if rasstack[i].exist() is True:
+            rasstack[i].open('r')
+        else:
+            grass.fatal("GRASS raster " + predictors[i] +
+                        " does not exist.... exiting")
+
+    # create and open RasterRow object for writing of classification result
+    if predict_type == 'raw':
         classification = RasterRow(output)
         classification.open('w', ftype, overwrite=True)
 
-        # create and open RasterRow objects for  probabilities if enabled
-        if class_probabilities is True:
+    # Prediction using row blocks
+    for rowblock in range(0, current.rows, rowincr):
+        grass.percent(rowblock, current.rows, rowincr)
 
-            # determine number of classes
-            nclasses = len(labels)
+        # check that the row increment does not exceed the number of rows
+        if rowblock+rowincr > current.rows:
+            rowincr = current.rows - rowblock
+        img_np_row = np.zeros((rowincr, current.cols, n_features))
 
-            prob_out_raster = [0] * nclasses
-            prob = [0] * nclasses
+        # loop through each row, and each band
+        # and add these values to the 2D array img_np_row
+        for row in range(rowblock, rowblock+rowincr, 1):
+            for band in range(n_features):
+                img_np_row[row-rowblock, :, band] = \
+                    np.array(rasstack[band][row])
 
-            for iclass in range(nclasses):
-                prob_out_raster[iclass] = output + \
-                    '_classPr' + str(int(labels[iclass]))
-                prob[iclass] = RasterRow(prob_out_raster[iclass])
-                prob[iclass].open('w', 'FCELL', overwrite=True)
+        # create mask
+        img_np_row[img_np_row == -2147483648] = np.nan
+        mask = np.zeros((img_np_row.shape[0], img_np_row.shape[1]))
+        for feature in range(n_features):
+            invalid_indexes = np.nonzero(np.isnan(img_np_row[:, :, feature]))
+            mask[invalid_indexes] = np.nan
 
-        """
-        Prediction using row blocks
-        """
-        try:
-            for rowblock in range(0, current.rows, rowincr):
-                grass.percent(rowblock, current.rows, rowincr)
-                # check that the row increment does not exceed the number of rows
-                if rowblock+rowincr > current.rows:
-                    rowincr = current.rows - rowblock
-                img_np_row = np.zeros((rowincr, current.cols, n_features))
-                mask_np_row = np.zeros((rowincr, current.cols))
+        # reshape each row-band matrix into a n*m array
+        nsamples = rowincr * current.cols
+        flat_pixels = img_np_row.reshape((nsamples, n_features))
 
-                # loop through each row, and each band
-                # and add these values to the 2D array img_np_row
-                for row in range(rowblock, rowblock+rowincr, 1):
-                    mask_np_row[row-rowblock, :] = np.array(mask_raster[row])
+        # remove NaNs prior to passing to scikit-learn predict
+        flat_pixels = np.nan_to_num(flat_pixels)
 
-                    for band in range(n_features):
-                        img_np_row[row-rowblock, :, band] = \
-                            np.array(rasstack[band][row])
+        # perform prediction for classification/regression
+        if predict_type == 'raw':
+            result = estimator.predict(flat_pixels)
+            result = result.reshape((rowincr, current.cols))
 
-                mask_np_row[mask_np_row == -2147483648] = np.nan
-                nanmask = np.isnan(mask_np_row)  # True in mask means invalid data
+            # replace NaN values so that the prediction does not have a border
+            result[np.nonzero(np.isnan(mask))] = nodata
 
-                # reshape each row-band matrix into a n*m array
-                nsamples = rowincr * current.cols
-                flat_pixels = img_np_row.reshape((nsamples, n_features))
+            # for each row we can perform computation, and write the result
+            for row in range(rowincr):
+                newrow = Buffer((result.shape[1],), mtype=ftype)
+                newrow[:] = result[row, :]
+                classification.put_row(newrow)
 
-                # remove NaN values and GRASS CELL nodata vals
-                flat_pixels[flat_pixels == -2147483648] = np.nan
-                flat_pixels = np.nan_to_num(flat_pixels)
+        # perform prediction for class probabilities
+        if predict_type == 'prob':
+            result_proba = estimator.predict_proba(flat_pixels)
 
-                # rescale
-                if self.preprocessing is not None:
-                    # create mask so that indices that represent categorical
-                    # predictors are not selected
-                    if self.categorical_var is not None:
-                        idx = np.arange(n_features)
-                        mask = np.ones(len(idx), dtype=bool)
-                        mask[self.categorical_var] = False
-                    else:
-                        mask = np.arange(n_features)
-                    flat_pixels_continuous = flat_pixels[:, mask]
-                    flat_pixels[:, mask] = self.preprocessing.transform(
-                            flat_pixels_continuous)
+            # on first loop determine number of probability classes
+            # and open rasterrow objects for writing
+            if rowblock == 0:
+                if index is None:
+                    index = range(result_proba.shape[1])
+                    n_classes = len(index)
+                else:
+                    n_classes = len(np.unique(index))
 
-                # onehot-encoding
-                if self.enc is not None:
-                    try:
-                        flat_pixels = self.enc.transform(flat_pixels)
-                    except:
-                        # if this fails it is because the onehot-encoder was fitted
-                        # on the training samples, but the prediction data contains
-                        # new values, i.e. the training data has not sampled all of
-                        # categories
-                        grass.fatal('There are values in the categorical rasters '
-                                    'that are not present in the training data '
-                                    'set, i.e. the training data has not sampled '
-                                    'all of the categories')
+                # create and open RasterRow objects for probabilities
+                prob_out_raster = [0] * n_classes
+                prob = [0] * n_classes
+                for iclass, label in enumerate(index):
+                    prob_out_raster[iclass] = output + '_classPr' + str(label)
+                    prob[iclass] = RasterRow(prob_out_raster[iclass])
+                    prob[iclass].open('w', 'FCELL', overwrite=True)
 
-                # perform prediction
-                result = self.estimator.predict(flat_pixels)
-                result = result.reshape((rowincr, current.cols))
+            for iclass, label in enumerate(index):
+                result_proba_class = result_proba[:, label]
+                result_proba_class = result_proba_class.reshape((rowincr, current.cols))
 
                 # replace NaN values so that the prediction does not have a border
-                result = np.ma.masked_array(
-                    result, mask=nanmask, fill_value=-99999)
+                result_proba_class[np.nonzero(np.isnan(mask))] = np.nan
 
-                # return a copy of result, with masked values filled with a value
-                result = result.filled([nodata])
-
-                # for each row we can perform computation, and write the result
                 for row in range(rowincr):
-                    newrow = Buffer((result.shape[1],), mtype=ftype)
-                    newrow[:] = result[row, :]
-                    classification.put_row(newrow)
+                    newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
+                    newrow[:] = result_proba_class[row, :]
+                    prob[iclass].put_row(newrow)
 
-                # same for probabilities
-                if class_probabilities is True:
-                    result_proba = self.estimator.predict_proba(flat_pixels)
+    # close all maps
+    for i in range(n_features): rasstack[i].close()
 
-                    for iclass in range(result_proba.shape[1]):
-
-                        result_proba_class = result_proba[:, iclass]
-                        result_proba_class = result_proba_class.reshape(
-                                                (rowincr, current.cols))
-
-                        result_proba_class = np.ma.masked_array(
-                            result_proba_class, mask=nanmask, fill_value=np.nan)
-
-                        result_proba_class = result_proba_class.filled([np.nan])
-
-                        for row in range(rowincr):
-                            newrow = Buffer((
-                                        result_proba_class.shape[1],),
-                                        mtype='FCELL')
-
-                            newrow[:] = result_proba_class[row, :]
-                            prob[iclass].put_row(newrow)
-        finally:
-            # close all predictors
-            for i in range(n_features):
-                rasstack[i].close()
-
-            # close classification and mask maps
-            classification.close()
-            mask_raster.close()
-
-            grass.run_command("g.remove", name='tmp_clfmask',
-                              flags="f", type="raster", quiet=True)
-
-            # close all class probability maps
-            try:
-                for iclass in range(nclasses):
-                    prob[iclass].close()
-            except:
-                pass
+    # close all class probability maps
+    if predict_type == 'raw':
+        classification.close()
+    if predict_type == 'prob':
+        try:
+            for iclass in range(n_classes):
+                prob[iclass].close()
+        except:
+            pass
 
 
-def model_classifiers(estimator='LogisticRegression', random_state=None,
-                      C=1, max_depth=None, max_features='auto',
-                      min_samples_split=2, min_samples_leaf=1,
-                      n_estimators=100, subsample=1.0,
-                      learning_rate=0.1, max_degree=1):
+def model_classifiers(estimator, random_state, p, weights=None):
 
     """
     Provides the classifiers and parameters using by the module
@@ -737,14 +421,8 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
     ----
     estimator: Name of estimator
     random_state: Seed to use in randomized components
-    C: Inverse of regularization strength
-    max_depth: Maximum depth for tree-based methods
-    min_samples_split: Minimum number of samples to split a node
-    min_samples_leaf: Minimum number of samples to form a leaf
-    n_estimators: Number of trees
-    subsample: Controls randomization in gradient boosting
-    learning_rate: Used in gradient boosting
-    max_degree: For earth
+    p: Dict, containing classifier setttings
+    weights: None, or 'balanced' to add class_weights
 
     Returns
     -------
@@ -758,7 +436,9 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
     from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
     from sklearn.naive_bayes import GaussianNB
     from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+    from sklearn.ensemble import (
+        RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier,
+        ExtraTreesRegressor)
     from sklearn.ensemble import GradientBoostingClassifier
     from sklearn.ensemble import GradientBoostingRegressor
     from sklearn.svm import SVC
@@ -770,11 +450,11 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
             from pyearth import Earth
 
             earth_classifier = Pipeline([('Earth',
-                                          Earth(max_degree=max_degree)),
-                                        ('Logistic', LogisticRegression())])
+                                          Earth(max_degree=p['max_degree'])),
+                                         ('Logistic', LogisticRegression())])
 
             classifiers = {'EarthClassifier': earth_classifier,
-                           'EarthRegressor': Earth(max_degree=max_degree)}
+                           'EarthRegressor': Earth(max_degree=p['max_degree'])}
         except:
             grass.fatal('Py-earth package not installed')
 
@@ -782,73 +462,99 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
         try:
             from xgboost import XGBClassifier, XGBRegressor
 
-            if max_depth is None:
-                max_depth = int(3)
+            if p['max_depth'] is None:
+                p['max_depth'] = int(3)
 
             classifiers = {
                 'XGBClassifier':
-                    XGBClassifier(learning_rate=learning_rate,
-                                  n_estimators=n_estimators,
-                                  max_depth=max_depth,
-                                  subsample=subsample),
+                    XGBClassifier(learning_rate=p['learning_rate'],
+                                  n_estimators=p['n_estimators'],
+                                  max_depth=p['max_depth'],
+                                  subsample=p['subsample']),
                 'XGBRegressor':
-                    XGBRegressor(learning_rate=learning_rate,
-                                 n_estimators=n_estimators,
-                                 max_depth=max_depth,
-                                 subsample=subsample)}
+                    XGBRegressor(learning_rate=p['learning_rate'],
+                                 n_estimators=p['n_estimators'],
+                                 max_depth=p['max_depth'],
+                                 subsample=p['subsample'])}
         except:
             grass.fatal('XGBoost package not installed')
     else:
         # core sklearn classifiers go here
         classifiers = {
-            'SVC': SVC(C=C, probability=True, random_state=random_state),
+            'SVC': SVC(C=p['C'],
+                       class_weight=weights,
+                       probability=True,
+                       random_state=random_state),
             'LogisticRegression':
-                LogisticRegression(C=C, random_state=random_state, n_jobs=-1,
+                LogisticRegression(C=p['C'],
+                                   class_weight=weights,
+                                   random_state=random_state,
+                                   n_jobs=-1,
                                    fit_intercept=True),
             'DecisionTreeClassifier':
-                DecisionTreeClassifier(max_depth=max_depth,
-                                       max_features=max_features,
-                                       min_samples_split=min_samples_split,
-                                       min_samples_leaf=min_samples_leaf,
+                DecisionTreeClassifier(max_depth=p['max_depth'],
+                                       max_features=p['max_features'],
+                                       min_samples_split=p['min_samples_split'],
+                                       min_samples_leaf=p['min_samples_leaf'],
+                                       class_weight=weights,
                                        random_state=random_state),
             'DecisionTreeRegressor':
-                DecisionTreeRegressor(max_features=max_features,
-                                      min_samples_split=min_samples_split,
-                                      min_samples_leaf=min_samples_leaf,
+                DecisionTreeRegressor(max_features=p['max_features'],
+                                      min_samples_split=p['min_samples_split'],
+                                      min_samples_leaf=p['min_samples_leaf'],
                                       random_state=random_state),
             'RandomForestClassifier':
-                RandomForestClassifier(n_estimators=n_estimators,
-                                       max_features=max_features,
-                                       min_samples_split=min_samples_split,
-                                       min_samples_leaf=min_samples_leaf,
+                RandomForestClassifier(n_estimators=p['n_estimators'],
+                                       max_features=p['max_features'],
+                                       min_samples_split=p['min_samples_split'],
+                                       min_samples_leaf=p['min_samples_leaf'],
+                                       class_weight=weights,
                                        random_state=random_state,
                                        n_jobs=-1,
                                        oob_score=False),
             'RandomForestRegressor':
-                RandomForestRegressor(n_estimators=n_estimators,
-                                      max_features=max_features,
-                                      min_samples_split=min_samples_split,
-                                      min_samples_leaf=min_samples_leaf,
+                RandomForestRegressor(n_estimators=p['n_estimators'],
+                                      max_features=p['max_features'],
+                                      min_samples_split=p['min_samples_split'],
+                                      min_samples_leaf=p['min_samples_leaf'],
                                       random_state=random_state,
                                       n_jobs=-1,
                                       oob_score=False),
+            'ExtraTreesClassifier':
+                ExtraTreesClassifier(n_estimators=p['n_estimators'],
+                                     max_features=p['max_features'],
+                                     min_samples_split=p['min_samples_split'],
+                                     min_samples_leaf=p['min_samples_leaf'],
+                                     class_weight=weights,
+                                     random_state=random_state,
+                                     n_jobs=-1,
+                                     oob_score=False),
+            'ExtraTreesRegressor':
+                ExtraTreesRegressor(n_estimators=p['n_estimators'],
+                                    max_features=p['max_features'],
+                                    min_samples_split=p['min_samples_split'],
+                                    min_samples_leaf=p['min_samples_leaf'],
+                                    random_state=random_state,
+                                    n_jobs=-1,
+                                    oob_score=False),
+
             'GradientBoostingClassifier':
-                GradientBoostingClassifier(learning_rate=learning_rate,
-                                           n_estimators=n_estimators,
-                                           max_depth=max_depth,
-                                           min_samples_split=min_samples_split,
-                                           min_samples_leaf=min_samples_leaf,
-                                           subsample=subsample,
-                                           max_features=max_features,
+                GradientBoostingClassifier(learning_rate=p['learning_rate'],
+                                           n_estimators=p['n_estimators'],
+                                           max_depth=p['max_depth'],
+                                           min_samples_split=p['min_samples_split'],
+                                           min_samples_leaf=p['min_samples_leaf'],
+                                           subsample=p['subsample'],
+                                           max_features=p['max_features'],
                                            random_state=random_state),
             'GradientBoostingRegressor':
-                GradientBoostingRegressor(learning_rate=learning_rate,
-                                          n_estimators=n_estimators,
-                                          max_depth=max_depth,
-                                          min_samples_split=min_samples_split,
-                                          min_samples_leaf=min_samples_leaf,
-                                          subsample=subsample,
-                                          max_features=max_features,
+                GradientBoostingRegressor(learning_rate=p['learning_rate'],
+                                          n_estimators=p['n_estimators'],
+                                          max_depth=p['max_depth'],
+                                          min_samples_split=p['min_samples_split'],
+                                          min_samples_leaf=p['min_samples_leaf'],
+                                          subsample=p['subsample'],
+                                          max_features=p['max_features'],
                                           random_state=random_state),
             'GaussianNB': GaussianNB(),
             'LinearDiscriminantAnalysis': LinearDiscriminantAnalysis(),
@@ -862,14 +568,15 @@ def model_classifiers(estimator='LogisticRegression', random_state=None,
     if estimator == 'LogisticRegression' \
         or estimator == 'DecisionTreeClassifier' \
         or estimator == 'RandomForestClassifier' \
+        or estimator == 'ExtraTreesClassifier' \
         or estimator == 'GradientBoostingClassifier' \
         or estimator == 'GaussianNB' \
         or estimator == 'LinearDiscriminantAnalysis' \
         or estimator == 'QuadraticDiscriminantAnalysis' \
         or estimator == 'EarthClassifier' \
         or estimator == 'XGBClassifier' \
-            or estimator == 'SVC':
-            mode = 'classification'
+        or estimator == 'SVC':
+        mode = 'classification'
     else:
         mode = 'regression'
 
@@ -932,8 +639,7 @@ def load_training_data(file):
     return(X, y, groups)
 
 
-def extract(response, predictors, impute=False, shuffle_data=True,
-            lowmem=False, random_state=None):
+def extract(response, predictors, lowmem=False):
 
     """
     Samples a list of GRASS rasters using a labelled raster
@@ -943,6 +649,7 @@ def extract(response, predictors, impute=False, shuffle_data=True,
     ----
     response: String; GRASS raster with labelled pixels
     predictors: List of GRASS rasters containing explanatory variables
+    lowmem: Boolean, use numpy memmap to query predictors
 
     Returns
     -------
@@ -951,9 +658,6 @@ def extract(response, predictors, impute=False, shuffle_data=True,
     training_labels: Numpy array of labels
     y_indexes: Row and Columns of label positions
     """
-
-    from sklearn.utils import shuffle
-    from sklearn.preprocessing import Imputer
 
     current = Region()
 
@@ -1022,24 +726,10 @@ def extract(response, predictors, impute=False, shuffle_data=True,
     # convert indexes of training pixels from tuple to n*2 np array
     is_train = np.array(is_train).T
 
-    # impute missing values
-    if impute is True:
-        missing = Imputer(strategy='median')
-        training_data = missing.fit_transform(training_data)
-
-    # Remove nan rows from training data
-    X = training_data[~np.isnan(training_data).any(axis=1)]
-    y = training_labels[~np.isnan(training_data).any(axis=1)]
-    y_indexes = is_train[~np.isnan(training_data).any(axis=1)]
-
-    # shuffle the training data
-    if shuffle_data is True:
-        X, y, y_indexes = shuffle(X, y, y_indexes, random_state=random_state)
-
     # close the response map
     roi_gr.close()
 
-    return(X, y, y_indexes)
+    return(training_data, training_labels, y_indexes)
 
 
 def maps_from_group(group):
@@ -1065,3 +755,55 @@ def maps_from_group(group):
         map_names.append(rastername.split('@')[0])
 
     return(maplist, map_names)
+
+
+def extract_points(gvector, grasters, field):
+    """
+    Extract values from grass rasters using vector points input
+
+    Args
+    ----
+    gvector: character, name of grass points vector
+    grasters: list of names of grass raster to query
+    field: character, name of field in table to use as response variable
+
+    Returns
+    -------
+    X: 2D numpy array of training data
+    y: 1D numpy array with the response variable
+    coordinates: 2D numpy array of sample coordinates
+    """
+
+    import pandas as pd
+
+    # open grass vector
+    points = VectorTopo(gvector.split('@')[0])
+    points.open('r')
+
+    # create link to attribute table
+    points.dblinks.by_name(name=gvector)
+    link = points.dblinks[0]
+
+    # convert to pandas array
+    gvector_df = pd.DataFrame(points.table_to_dict()).T
+    gvector_df.columns = points.table.columns
+    y = gvector_df.loc[:, field].as_matrix()
+    y = y.astype(float)
+
+    # extract training data
+    X = np.zeros((points.num_primitives()['point'], len(grasters)), dtype=float)
+    for i, raster in enumerate(grasters):
+        rio = RasterRow(raster)
+        values = np.asarray(get_raster_for_points(points, rio))
+        coordinates = values[:, 1:3]
+        X[:, i] = values[:, 3]
+
+    # remove missing response data
+    X = X[~np.isnan(y)]
+    coordinates = coordinates[~np.isnan(y)]
+    y = y[~np.isnan(y)]
+
+    # close
+    points.close()
+
+    return(X, y, coordinates)
