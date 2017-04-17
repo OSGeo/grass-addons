@@ -461,12 +461,15 @@ def main():
             # clump the labelled pixel raster if labels represent polygons
             # then set the group_raster to the clumped raster to extract the
             # group_ids used in the GroupKFold cross-validation
-            if cvtype == 'clumped' and group_raster == '':
+            if trainingmap != '' and cvtype == 'clumped' and group_raster == '':
                 clumped_trainingmap = 'tmp_clumped_trainingmap'
                 tmp_rast.append(clumped_trainingmap)
                 r.clump(input=trainingmap, output=clumped_trainingmap,
                         overwrite=True, quiet=True)
                 group_raster = clumped_trainingmap
+            elif trainingmap == '' and cvtype == 'clumped':
+                grass.fatal('Cross-validation using clumped training areas ',
+                            'requires raster-based training areas')
 
             # extract training data from maplist and take group ids from
             # group_raster. Shuffle=False so that group ids and labels align
@@ -524,7 +527,7 @@ def main():
             if group_id is not None:
                 X, y, sample_coords, group_id = shuffle(
                     X, y, sample_coords, group_id, random_state=random_state)
-
+        print(X[:, 0].min())
         # option to save extracted data to .csv file
         if save_training != '':
             save_training_data(X, y, group_id, save_training)

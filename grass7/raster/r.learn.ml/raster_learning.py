@@ -798,6 +798,9 @@ def extract_points(gvector, grasters, field):
         coordinates = values[:, 1:3]
         X[:, i] = values[:, 3]
 
+    # set any grass integer nodata values to NaN
+    X[X == -2147483648] = np.nan
+
     # remove missing response data
     X = X[~np.isnan(y)]
     coordinates = coordinates[~np.isnan(y)]
