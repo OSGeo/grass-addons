@@ -382,8 +382,8 @@ def main():
     if ',' in indexes:
         indexes = [int(i) for i in indexes.split(',')]
     else:
-        indexes = int(indexes)
-    if indexes == -1:
+        indexes = [int(indexes)] # predict expects list
+    if indexes == [-1]:
         indexes = None
     n_permutations = int(options['n_permutations'])
     lowmem = flags['l']
@@ -476,10 +476,10 @@ def main():
                 maplist2.append(group_raster)
                 if trainingmap != '':
                     X, y, sample_coords = extract(
-                        response=trainingmap, predictors=maplist2, lowmem=False)
+                        response=trainingmap, predictors=maplist2, lowmem=lowmem)
                 elif trainingpoints != '':
                     X, y, sample_coords = extract_points(
-                        trainingpoints, maplist, field)
+                        trainingpoints, maplist2, field)
 
                 # take group id from last column and remove from predictors
                 group_id = X[:, -1]
@@ -502,7 +502,6 @@ def main():
 
                     clusters.fit(sample_coords)
                     group_id = clusters.labels_
-
             # check for labelled pixels and training data
             if y.shape[0] == 0 or X.shape[0] == 0:
                 grass.fatal('No training pixels or pixels in imagery group '
