@@ -527,7 +527,7 @@ def main():
             if group_id is not None:
                 X, y, sample_coords, group_id = shuffle(
                     X, y, sample_coords, group_id, random_state=random_state)
-        print(X[:, 0].min())
+
         # option to save extracted data to .csv file
         if save_training != '':
             save_training_data(X, y, group_id, save_training)
