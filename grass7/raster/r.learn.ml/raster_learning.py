@@ -656,7 +656,7 @@ def extract(response, predictors, lowmem=False):
 
     training_data: Numpy array of extracted raster values
     training_labels: Numpy array of labels
-    y_indexes: Row and Columns of label positions
+    is_train: Row and Columns of label positions
     """
 
     current = Region()
@@ -729,7 +729,7 @@ def extract(response, predictors, lowmem=False):
     # close the response map
     roi_gr.close()
 
-    return(training_data, training_labels, y_indexes)
+    return(training_data, training_labels, is_train)
 
 
 def maps_from_group(group):
