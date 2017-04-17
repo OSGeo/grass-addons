@@ -175,8 +175,15 @@ many input data cells were present in the search window.
 
 <h3>Smoothing</h3>
 
+The <em>r.fill.gaps</em> uses the interpolated values to create
+a smooth surface. It can also preserve the original raster values
+and combine them with the interpolated ones when the <b>-p</b> flag
+is specified.
+
 <center>
-<img src="r_fill_gaps_smoothing.png" alt="Smooth versus preserve">
+<a href="r_fill_gaps_smoothing.png">
+    <img src="r_fill_gaps_smoothing.png" alt="Smooth versus preserve" width="600" height="300">
+</a>
 <p><em>
 The top row shows resulting surface (ground surface from lidar point
 cloud), its slope, aspect, and profile curvature
@@ -187,9 +194,23 @@ smoothed) ones.
 </em></p>
 </center>
 
-<!-- TODO: discuss r.slope.aspect versus r.param.scale -->
+When the slope, aspect, and profile curvature are computed using the
+<em><a href="r.slope.aspect.html">r.slope.aspect</a></em> module
+as in the figure above, only the immediate cell neighborhood is
+considered the result with may contain artifacts caused by combining
+the interpolated and original values in the surface (using the
+<b>-p</b> flag). The effect of this can be avoided with certain modules,
+for example the aspect and other morphometric parameters can computed
+using the <em><a href="r.param.scale.html">r.param.scale</a></em> module
+which considers larger cell neighborhood.
 
 <!--
+wget http://fatra.cnr.ncsu.edu/uav-lidar-analytics-course/midpines_2015_spm.las -O points.las
+
+g.region n=220220 s=218690 e=637800 w=636270 res=1
+
+r.in.lidar input=points.las output=ground method=mean class_filter=2
+
 r.fill.gaps input=ground output=ground_filled mode=wmean power=2.0 cells=8
 r.fill.gaps -p input=ground output=ground_filled2 mode=wmean power=2.0 cells=8
 
@@ -198,7 +219,7 @@ r.slope.aspect elevation=ground_filled2 slope=slope2 aspect=aspect2 pcurvature=p
 
 g.region n=219537 s=219172 w=636852 e=637218 -p
 
-d.mon cairo output=r_fill_gaps_smoothing.png width=600 height=300
+d.mon cairo output=r_fill_gaps_smoothing.png width=1464 height=730
 export GRASS_FONT=LiberationSans-Regular
 d.frame frame=u1 at=50,100,0,25 -c
 d.rast ground_filled
