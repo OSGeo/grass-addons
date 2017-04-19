@@ -2,6 +2,7 @@ import os
 import numpy as np
 from numpy.random import RandomState
 import tempfile
+import itertools
 from copy import deepcopy
 import grass.script as grass
 from grass.pygrass.raster import RasterRow
@@ -237,7 +238,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
             # metrics that have no averaging for multiclass
             elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
             or m == 'hamming_loss' or m == 'jaccard_similarity' \
-            or m == 'log_loss' or m == 'zero_one_loss':
+            or m == 'log_loss' or m == 'zero_one_loss' or m == 'matthews_corrcoef':
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_pred))
 
@@ -412,7 +413,7 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
             pass
 
 
-def model_classifiers(estimator, random_state, p, weights=None):
+def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
 
     """
     Provides the classifiers and parameters using by the module
@@ -421,6 +422,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
     ----
     estimator: Name of estimator
     random_state: Seed to use in randomized components
+    n_jobs: Integer, number of processing cores to use
     p: Dict, containing classifier setttings
     weights: None, or 'balanced' to add class_weights
 
@@ -451,7 +453,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
 
             earth_classifier = Pipeline([('Earth',
                                           Earth(max_degree=p['max_degree'])),
-                                         ('Logistic', LogisticRegression())])
+                                         ('Logistic', LogisticRegression(n_jobs=n_jobs))])
 
             classifiers = {'EarthClassifier': earth_classifier,
                            'EarthRegressor': Earth(max_degree=p['max_degree'])}
@@ -470,12 +472,14 @@ def model_classifiers(estimator, random_state, p, weights=None):
                     XGBClassifier(learning_rate=p['learning_rate'],
                                   n_estimators=p['n_estimators'],
                                   max_depth=p['max_depth'],
-                                  subsample=p['subsample']),
+                                  subsample=p['subsample'],
+                                  nthread=n_jobs),
                 'XGBRegressor':
                     XGBRegressor(learning_rate=p['learning_rate'],
                                  n_estimators=p['n_estimators'],
                                  max_depth=p['max_depth'],
-                                 subsample=p['subsample'])}
+                                 subsample=p['subsample'],
+                                 nthread=n_jobs)}
         except:
             grass.fatal('XGBoost package not installed')
     else:
@@ -489,7 +493,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
                 LogisticRegression(C=p['C'],
                                    class_weight=weights,
                                    random_state=random_state,
-                                   n_jobs=-1,
+                                   n_jobs=n_jobs,
                                    fit_intercept=True),
             'DecisionTreeClassifier':
                 DecisionTreeClassifier(max_depth=p['max_depth'],
@@ -510,7 +514,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
                                        min_samples_leaf=p['min_samples_leaf'],
                                        class_weight=weights,
                                        random_state=random_state,
-                                       n_jobs=-1,
+                                       n_jobs=n_jobs,
                                        oob_score=False),
             'RandomForestRegressor':
                 RandomForestRegressor(n_estimators=p['n_estimators'],
@@ -518,7 +522,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
                                       min_samples_split=p['min_samples_split'],
                                       min_samples_leaf=p['min_samples_leaf'],
                                       random_state=random_state,
-                                      n_jobs=-1,
+                                      n_jobs=n_jobs,
                                       oob_score=False),
             'ExtraTreesClassifier':
                 ExtraTreesClassifier(n_estimators=p['n_estimators'],
@@ -527,7 +531,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
                                      min_samples_leaf=p['min_samples_leaf'],
                                      class_weight=weights,
                                      random_state=random_state,
-                                     n_jobs=-1,
+                                     n_jobs=n_jobs,
                                      oob_score=False),
             'ExtraTreesRegressor':
                 ExtraTreesRegressor(n_estimators=p['n_estimators'],
@@ -535,7 +539,7 @@ def model_classifiers(estimator, random_state, p, weights=None):
                                     min_samples_split=p['min_samples_split'],
                                     min_samples_leaf=p['min_samples_leaf'],
                                     random_state=random_state,
-                                    n_jobs=-1,
+                                    n_jobs=n_jobs,
                                     oob_score=False),
 
             'GradientBoostingClassifier':
