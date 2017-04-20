@@ -22,7 +22,7 @@
 #%option G_OPT_I_GROUP
 #% key: group
 #% label: Imagery group to be classified
-#% description: Series of raster maps to be used in the random forest classification
+#% description: GRASS imagery group of raster maps to be used in the machine learning model
 #% required: yes
 #% multiple: no
 #%end
@@ -46,7 +46,7 @@
 #%option G_OPT_DB_COLUMN
 #% key: field
 #% label: Response attribute column
-#% description: Name of attribute column containing response value
+#% description: Name of attribute column in trainingpoints containing response value
 #% required: no
 #% guisection: Required
 #%end
@@ -65,119 +65,131 @@
 #% description: Supervised learning model to use
 #% answer: RandomForestClassifier
 #% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
-#% guisection: Required
-#% required: yes
+#% guisection: Classifier settings
+#% required: no
 #%end
 
 #%option
 #% key: c
 #% type: double
-#% description: Inverse of regularization strength
+#% label: Inverse of regularization strength
+#% description: Inverse of regularization strength (LogisticRegression and SVC)
 #% answer: 1.0
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: max_features
 #% type: integer
-#% description: Number of features avaiable during node splitting
+#% label: Number of features avaiable during node splitting
+#% description: Number of features avaiable during node splitting (tree-based classifiers and regressors)
 #% answer:0
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: max_depth
 #% type: integer
-#% description: Maximum tree depth; zero uses classifier defaults
+#% label: Maximum tree depth; zero uses classifier defaults
+#% description: Maximum tree depth for tree-based method; zero uses classifier defaults (full-growing for Decision trees and Randomforest, 3 for GBM and XGB)
 #% answer:0
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: min_samples_split
 #% type: integer
-#% description: The minimum number of samples required for node splitting
+#% label: The minimum number of samples required for node splitting
+#% description: The minimum number of samples required for node splitting in tree-based classifiers
 #% answer: 2
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: min_samples_leaf
 #% type: integer
-#% description: The minimum number of samples required to form a leaf node
+#% label: The minimum number of samples required to form a leaf node
+#% description: The minimum number of samples required to form a leaf node in tree-based classifiers
 #% answer: 1
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: n_estimators
 #% type: integer
-#% description: Number of estimators
+#% label: Number of estimators
+#% description: Number of estimators (trees) in ensemble tree-based classifiers
 #% answer: 100
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: learning_rate
 #% type: double
-#% description: learning rate
+#% label: learning rate
+#% description: learning rate (also known as shrinkage) for gradient boosting methods
 #% answer: 0.1
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option
 #% key: subsample
 #% type: double
-#% description: The fraction of samples to be used for fitting
+#% label: The fraction of samples to be used for fitting
+#% description: The fraction of samples to be used for fitting, controls stochastic behaviour of gradient boosting methods
 #% answer: 1.0
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option integer
 #% key: max_degree
-#% description: The maximum degree of terms in forward pass
+#% label: The maximum degree of terms in forward pass
+#% description: The maximum degree of terms in forward pass for Py-earth
 #% answer: 1
 #% multiple: yes
-#% guisection: Classifier Parameters
+#% guisection: Classifier settings
 #%end
 
 #%option integer
 #% key: categorymaps
 #% multiple: yes
 #% label: Indices of categorical rasters within the imagery group (0..n)
-#% description: Indices of categorical rasters within the imagery group (0..n)
+#% description: Indices of categorical rasters within the imagery group (0..n) that will be one-hot encoded
+#% guisection: Optional
 #%end
 
 #%option string
 #% key: cvtype
 #% label: Non-spatial or spatial cross-validation
-#% description: Non-spatial, clumped or clustered k-fold cross-validation
+#% description: Perform non-spatial, clumped or clustered k-fold cross-validation
 #% answer: Non-spatial
 #% options: non-spatial,clumped,kmeans
+#% guisection: Cross validation
 #%end
 
 #%option
 #% key: n_partitions
 #% type: integer
-#% description: Number of kmeans spatial partitions
+#% label: Number of kmeans spatial partitions
+#% description: Number of kmeans spatial partitions for kmeans clustered cross-validation
 #% answer: 10
-#% guisection: Optional
+#% guisection: Cross validation
 #%end
 
 #%option G_OPT_R_INPUT
 #% key: group_raster
-#% label: Custom group ids for labelled pixels from GRASS raster
-#% description: GRASS raster containing group ids for labelled pixels
+#% label: Custom group ids for training samples from GRASS raster
+#% description: GRASS raster containing group ids for training samples. Samples with the same group id will not be split between training and test cross-validation folds
 #% required: no
-#% guisection: Optional
+#% guisection: Cross validation
 #%end
 
 #%option
@@ -185,7 +197,48 @@
 #% type: integer
 #% description: Number of cross-validation folds
 #% answer: 1
-#% guisection: Optional
+#% guisection: Cross validation
+#%end
+
+#%option
+#% key: n_permutations
+#% type: integer
+#% description: Number of permutations to perform for feature importances
+#% answer: 50
+#% guisection: Cross validation
+#%end
+
+#%flag
+#% key: t
+#% description: Perform hyperparameter tuning only
+#% guisection: Cross validation
+#%end
+
+#%flag
+#% key: f
+#% description: Calculate permutation importances during cross validation
+#% guisection: Cross validation
+#%end
+
+#%option G_OPT_F_OUTPUT
+#% key: errors_file
+#% label: Save cross-validation global accuracy results to csv
+#% required: no
+#% guisection: Cross validation
+#%end
+
+#%option G_OPT_F_OUTPUT
+#% key: fimp_file
+#% label: Save feature importances to csv
+#% required: no
+#% guisection: Cross validation
+#%end
+
+#%option G_OPT_F_OUTPUT
+#% key: param_file
+#% label: Save hyperparameter search scores to csv
+#% required: no
+#% guisection: Cross validation
 #%end
 
 #%option
@@ -214,14 +267,6 @@
 #%end
 
 #%option
-#% key: n_permutations
-#% type: integer
-#% description: Number of permutations to perform for feature importances
-#% answer: 50
-#% guisection: Optional
-#%end
-
-#%option
 #% key: n_jobs
 #% type: integer
 #% description: Number of cores for multiprocessing, -2 is n_cores-1
@@ -237,7 +282,7 @@
 
 #%flag
 #% key: i
-#% label: Impute missing values in training data
+#% label: Impute training data preprocessing
 #% guisection: Optional
 #%end
 
@@ -260,18 +305,6 @@
 #%end
 
 #%flag
-#% key: t
-#% description: Perform hyperparameter tuning only
-#% guisection: Optional
-#%end
-
-#%flag
-#% key: f
-#% description: Calculate feature importances using permutation
-#% guisection: Optional
-#%end
-
-#%flag
 #% key: b
 #% description: Balance training data using class weights
 #% guisection: Optional
@@ -280,27 +313,6 @@
 #%flag
 #% key: l
 #% label: Use memory swap
-#% guisection: Optional
-#%end
-
-#%option G_OPT_F_OUTPUT
-#% key: errors_file
-#% label: Save cross-validation global accuracy results to csv
-#% required: no
-#% guisection: Optional
-#%end
-
-#%option G_OPT_F_OUTPUT
-#% key: fimp_file
-#% label: Save feature importances to csv
-#% required: no
-#% guisection: Optional
-#%end
-
-#%option G_OPT_F_OUTPUT
-#% key: param_file
-#% label: Save hyperparameter search scores to csv
-#% required: no
 #% guisection: Optional
 #%end
 
