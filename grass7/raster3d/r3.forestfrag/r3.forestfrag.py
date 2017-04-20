@@ -5,9 +5,9 @@
 #
 # MODULE:    r3.forestfrag
 #
-# AUTHOR(S): Vaclav Petras (based on r.forestfrag, wenzeslaus gmail com)
-#            Emmanuel Sambale (original shell version)
-#            Stefan Sylla (original shell version)
+# AUTHOR(S): Vaclav Petras (3D, based on r.forestfrag, wenzeslaus gmail com)
+#            Emmanuel Sambale (original shell version of r.forestfrag)
+#            Stefan Sylla (original shell version of r.forestfrag)
 #            Paulo van Breugel (Python version, paulo@ecodiv.org)
 #
 # PURPOSE:   Creates forest fragmentation index map from a
