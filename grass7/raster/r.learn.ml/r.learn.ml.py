@@ -65,7 +65,8 @@
 #% description: Supervised learning model to use
 #% answer: RandomForestClassifier
 #% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
-#% required: no
+#% guisection: Required
+#% required: yes
 #%end
 
 #%option
