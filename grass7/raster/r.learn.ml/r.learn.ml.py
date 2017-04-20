@@ -55,6 +55,7 @@
 #% key: output
 #% label: Output Map
 #% description: Prediction surface result from classification or regression model
+#% guisection: Required
 #% required: no
 #%end
 
