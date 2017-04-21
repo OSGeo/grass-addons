@@ -170,9 +170,11 @@ def convert_lfp(input, output, coords):
             except CalledModuleError:
                 grass.fatal(_("Cannot flip the longest flow path"))
 
-    # write history
-    grass.run_command("v.support", flags="h", map=output,
-                      cmdhist=os.environ["CMDLINE"])
+    # write history if supported
+    if int(grass.version()["revision"][1:]) >= 70740:
+        # v.support -h added in r70740
+        grass.run_command("v.support", flags="h", map=output,
+                          cmdhist=os.environ["CMDLINE"])
 
 
 if __name__ == "__main__":
