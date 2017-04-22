@@ -1,20 +1,29 @@
 #!/bin/bash
 
+# GRASS GIS transifex support script: fetches msg from transifex
 # Luca Delucchi 2017
+# based on gettext message merge procedure by Markus Neteler
 
-# this script has to be launched in `locale` directory.
-# the `locale` directory should contain a folder called `transifex`
-# inside the `transifex` folder you need to run the instruction documentated here
+# Required installation:
+# see
 # https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files 
+
+# Usage:
+# this script has to be launched in the `locale` directory.
+# upon proper installation, the `locale` directory contains a folder called `transifex`
 
 MSGMERGE="msgmerge -N --no-wrap"
 
-# download the translation from transifex
+if [ "`basename $PWD`" != "locale" ]; then
+  echo "ERROR: run $0 command in locale folder of GRASS GIS source code"
+  exit 1;
+fi
 
+# download the translation from transifex
 cd transifex
 
 if [ $? -ne 0 ]; then
-  echo "ECHO: transifex folder not found, you should run this command in locale folder"
+  echo "ERROR: transifex folder not found, for requirements see https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files"
   exit 1;
 fi
 
