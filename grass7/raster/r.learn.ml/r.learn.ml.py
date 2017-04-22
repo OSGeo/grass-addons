@@ -363,9 +363,9 @@ from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.utils import set_path
 
 set_path('r.learn.ml')
-from raster_learning import (
-    model_classifiers, save_training_data, load_training_data, extract,
-    maps_from_group, predict, cross_val_scores, extract_points)
+from raster_learning import model_classifiers
+from raster_learning import save_training_data, load_training_data
+from raster_learning import maps_from_group, predict, cross_val_scores, extract_points
 
 tmp_rast = []
 
