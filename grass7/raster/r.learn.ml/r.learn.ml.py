@@ -20,7 +20,6 @@
 #% keyword: machine learning
 #% keyword: scikit-learn
 #%end
-
 #%option G_OPT_I_GROUP
 #% key: group
 #% label: Imagery group to be classified
@@ -28,7 +27,6 @@
 #% required: yes
 #% multiple: no
 #%end
-
 #%option G_OPT_R_INPUT
 #% key: trainingmap
 #% label: Labelled pixels
@@ -36,7 +34,6 @@
 #% required: no
 #% guisection: Required
 #%end
-
 #%option G_OPT_V_INPUT
 #% key: trainingpoints
 #% label: Training point vector
@@ -44,7 +41,6 @@
 #% required: no
 #% guisection: Required
 #%end
-
 #%option G_OPT_DB_COLUMN
 #% key: field
 #% label: Response attribute column
@@ -52,7 +48,6 @@
 #% required: no
 #% guisection: Required
 #%end
-
 #%option G_OPT_R_OUTPUT
 #% key: output
 #% label: Output Map
@@ -60,7 +55,6 @@
 #% guisection: Required
 #% required: no
 #%end
-
 #%option string
 #% key: classifier
 #% label: Classifier
@@ -70,7 +64,6 @@
 #% guisection: Classifier settings
 #% required: no
 #%end
-
 #%option
 #% key: c
 #% type: double
@@ -80,7 +73,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: max_features
 #% type: integer
@@ -90,7 +82,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: max_depth
 #% type: integer
@@ -100,7 +91,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: min_samples_split
 #% type: integer
@@ -110,7 +100,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: min_samples_leaf
 #% type: integer
@@ -120,7 +109,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: n_estimators
 #% type: integer
@@ -130,7 +118,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: learning_rate
 #% type: double
@@ -140,7 +127,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option
 #% key: subsample
 #% type: double
@@ -150,7 +136,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option integer
 #% key: max_degree
 #% label: The maximum degree of terms in forward pass
@@ -159,7 +144,6 @@
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
-
 #%option integer
 #% key: categorymaps
 #% multiple: yes
@@ -167,7 +151,6 @@
 #% description: Indices of categorical rasters within the imagery group (0..n) that will be one-hot encoded
 #% guisection: Optional
 #%end
-
 #%option string
 #% key: cvtype
 #% label: Non-spatial or spatial cross-validation
@@ -176,7 +159,6 @@
 #% options: non-spatial,clumped,kmeans
 #% guisection: Cross validation
 #%end
-
 #%option
 #% key: n_partitions
 #% type: integer
@@ -185,7 +167,6 @@
 #% answer: 10
 #% guisection: Cross validation
 #%end
-
 #%option G_OPT_R_INPUT
 #% key: group_raster
 #% label: Custom group ids for training samples from GRASS raster
@@ -193,7 +174,6 @@
 #% required: no
 #% guisection: Cross validation
 #%end
-
 #%option
 #% key: cv
 #% type: integer
@@ -201,7 +181,6 @@
 #% answer: 1
 #% guisection: Cross validation
 #%end
-
 #%option
 #% key: n_permutations
 #% type: integer
@@ -209,40 +188,39 @@
 #% answer: 50
 #% guisection: Cross validation
 #%end
-
 #%flag
 #% key: t
 #% description: Perform hyperparameter tuning only
 #% guisection: Cross validation
 #%end
-
 #%flag
 #% key: f
 #% description: Calculate permutation importances during cross validation
 #% guisection: Cross validation
 #%end
-
+#%flag
+#% key: r
+#% label: Make predictions for cross validation resamples
+#% guisection: Cross validation
+#%end
 #%option G_OPT_F_OUTPUT
 #% key: errors_file
 #% label: Save cross-validation global accuracy results to csv
 #% required: no
 #% guisection: Cross validation
 #%end
-
 #%option G_OPT_F_OUTPUT
 #% key: fimp_file
 #% label: Save feature importances to csv
 #% required: no
 #% guisection: Cross validation
 #%end
-
 #%option G_OPT_F_OUTPUT
 #% key: param_file
 #% label: Save hyperparameter search scores to csv
 #% required: no
 #% guisection: Cross validation
 #%end
-
 #%option
 #% key: random_state
 #% type: integer
@@ -250,7 +228,6 @@
 #% answer: 1
 #% guisection: Optional
 #%end
-
 #%option
 #% key: lines
 #% type: integer
@@ -258,7 +235,6 @@
 #% answer: 25
 #% guisection: Optional
 #%end
-
 #%option
 #% key: indexes
 #% type: integer
@@ -267,7 +243,6 @@
 #% guisection: Optional
 #% multiple: yes
 #%end
-
 #%option
 #% key: n_jobs
 #% type: integer
@@ -275,77 +250,65 @@
 #% answer: -2
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: s
 #% label: Standardization preprocessing
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: i
 #% label: Impute training data preprocessing
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: p
 #% label: Output class membership probabilities
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: z
 #% label: Only predict class probabilities
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: m
 #% description: Build model only - do not perform prediction
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: b
 #% description: Balance training data using class weights
 #% guisection: Optional
 #%end
-
 #%flag
 #% key: l
 #% label: Use memory swap
 #% guisection: Optional
 #%end
-
 #%option G_OPT_F_OUTPUT
 #% key: save_training
 #% label: Save training data to csv
 #% required: no
 #% guisection: Optional
 #%end
-
 #%option G_OPT_F_INPUT
 #% key: load_training
 #% label: Load training data from csv
 #% required: no
 #% guisection: Optional
 #%end
-
 #%option G_OPT_F_OUTPUT
 #% key: save_model
 #% label: Save model from file
 #% required: no
 #% guisection: Optional
 #%end
-
 #%option G_OPT_F_INPUT
 #% key: load_model
 #% label: Load model from file
 #% required: no
 #% guisection: Optional
 #%end
-
 #%rules
 #% exclusive: trainingmap,load_model
 #% exclusive: load_training,save_training
@@ -463,7 +426,7 @@ def varimp_permutation(estimator, X_test, y_true,
 
 def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                      scoring=['accuracy'], feature_importances=False,
-                     n_permutations=25, random_state=None):
+                     n_permutations=25, models=False, random_state=None):
 
     """
     Stratified Kfold and GroupFold cross-validation using multiple
@@ -481,6 +444,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     scoring: List of performance metrics to use
     feature_importances: Boolean to perform permutation-based importances
     n_permutations: Number of permutations during feature importance
+    models: Boolean, return a list of the fitted models
     random_state: Seed to pass to the random number generator
     """
 
@@ -489,6 +453,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         RandomizedSearchCV, GridSearchCV, StratifiedKFold)
 
     estimator = deepcopy(estimator)
+    fitted_models = []
 
     # create model_selection method
     if isinstance(cv, int):
@@ -505,7 +470,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
     # create dictionary of lists to store metrics
     scores = dict.fromkeys(scoring)
-    scores = { key: [] for key, value in scores.iteritems()}
+    scores = {key: [] for key, value in scores.iteritems()}
     scoring_methods = {'accuracy': metrics.accuracy_score,
                        'balanced_accuracy': metrics.recall_score,
                        'average_precision': metrics.average_precision_score,
@@ -588,6 +553,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         else:
             if sample_weight is None: estimator.fit(X_train, y_train)
             else: estimator.fit(X_train, y_train, sample_weight=weights)
+        
+        if models is True:
+            fitted_models.append(deepcopy(estimator))
 
         # prediction of test fold
         y_pred = estimator.predict(X_test)
@@ -639,10 +607,10 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                         n_permutations, scoring_methods[scoring[0]],
                         random_state)))
 
-    return(scores, byclass_scores, fimp)
+    return(scores, byclass_scores, fimp, fitted_models)
 
 
-def predict(estimator, predictors, output, predict_type='raw', labels=None,
+def predict(estimator, predictors, output, predict_type='raw',
             index=None, rowincr=25):
 
     """
@@ -659,18 +627,8 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
     rowincr: Integer of raster rows to process at one time
     """
 
-    # current region
-    current = Region()
-
-    # determine output data type and nodata
-    if labels is not None:
-        ftype = 'CELL'
-        nodata = -2147483648
-    else:
-        ftype = 'FCELL'
-        nodata = np.nan
-
     # open predictors as list of rasterrow objects
+    current = Region()
     n_features = len(predictors)
     rasstack = [0] * n_features
 
@@ -681,11 +639,6 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
         else:
             grass.fatal("GRASS raster " + predictors[i] +
                         " does not exist.... exiting")
-
-    # create and open RasterRow object for writing of classification result
-    if predict_type == 'raw':
-        classification = RasterRow(output)
-        classification.open('w', ftype, overwrite=True)
 
     # Prediction using row blocks
     for rowblock in range(0, current.rows, rowincr):
@@ -722,10 +675,24 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
             result = estimator.predict(flat_pixels)
             result = result.reshape((rowincr, current.cols))
 
+            # determine nodata value and grass raster type
+            if result.dtype == 'float':
+                nodata = np.nan
+                ftype = 'FCELL'
+            else:
+                nodata = -2147483648
+                ftype = 'CELL'
+
             # replace NaN values so that the prediction does not have a border
             result[np.nonzero(np.isnan(mask))] = nodata
 
             # for each row we can perform computation, and write the result
+            if rowblock == 0:
+                # create and open RasterRow object for writing of classification result
+                if predict_type == 'raw':
+                    classification = RasterRow(output)
+                    classification.open('w', ftype, overwrite=True)
+
             for row in range(rowincr):
                 newrow = Buffer((result.shape[1],), mtype=ftype)
                 newrow[:] = result[row, :]
@@ -755,8 +722,6 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
             for iclass, label in enumerate(index):
                 result_proba_class = result_proba[:, label]
                 result_proba_class = result_proba_class.reshape((rowincr, current.cols))
-
-                # replace NaN values so that the prediction does not have a border
                 result_proba_class[np.nonzero(np.isnan(mask))] = np.nan
 
                 for row in range(rowincr):
@@ -766,10 +731,7 @@ def predict(estimator, predictors, output, predict_type='raw', labels=None,
 
     # close all maps
     for i in range(n_features): rasstack[i].close()
-
-    # close all class probability maps
-    if predict_type == 'raw':
-        classification.close()
+    if predict_type == 'raw': classification.close()
     if predict_type == 'prob':
         try:
             for iclass in range(n_classes):
@@ -906,7 +868,6 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
                                     random_state=random_state,
                                     n_jobs=n_jobs,
                                     oob_score=False),
-
             'GradientBoostingClassifier':
                 GradientBoostingClassifier(learning_rate=p['learning_rate'],
                                            n_estimators=p['n_estimators'],
@@ -1109,9 +1070,11 @@ def maps_from_group(group):
     Args
     ----
     group: String; GRASS imagery group
+
     Returns
     -------
-    maplist: Python list containing individual GRASS raster maps
+    maplist: List containing individual GRASS raster maps
+    map_names: List with print friendly map names
     """
     groupmaps = im.group(group=group, flags="g",
                          quiet=True, stdout_=PIPE).outputs.stdout
@@ -1142,24 +1105,19 @@ def extract_points(gvector, grasters, field):
     y: 1D numpy array with the response variable
     coordinates: 2D numpy array of sample coordinates
     """
-
-    import pandas as pd
-
     # open grass vector
     points = VectorTopo(gvector.split('@')[0])
     points.open('r')
 
     # create link to attribute table
     points.dblinks.by_name(name=gvector)
-    link = points.dblinks[0]
 
-    # convert to pandas array
-    gvector_df = pd.DataFrame(points.table_to_dict()).T
-    gvector_df.columns = points.table.columns
-    y = gvector_df.loc[:, field].as_matrix()
-    y = y.astype(float)
+    # extract table field to numpy array
+    table = points.table
+    cur = table.execute("SELECT {field} FROM {name}".format(field=field, name=table.name))
+    y = np.array([np.isnan if c is None else c[0] for c in cur])
 
-    # extract training data
+    # extract raster data
     X = np.zeros((points.num_primitives()['point'], len(grasters)), dtype=float)
     for i, raster in enumerate(grasters):
         rio = RasterRow(raster)
@@ -1197,11 +1155,6 @@ def main():
     except:
         grass.fatal("Scikit learn 0.18 or newer is not installed")
 
-    try:
-        import pandas as pd
-    except:
-        grass.fatal("Pandas is not installed")
-
     group = options['group']
     trainingmap = options['trainingmap']
     trainingpoints = options['trainingpoints']
@@ -1220,6 +1173,7 @@ def main():
     probability = flags['p']
     prob_only = flags['z']
     tuneonly = flags['t']
+    predict_resamples = flags['r']
     rowincr = int(options['lines'])
     random_state = int(options['random_state'])
     model_save = options['save_model']
@@ -1227,6 +1181,7 @@ def main():
     load_training = options['load_training']
     save_training = options['save_training']
     importances = flags['f']
+
     indexes = options['indexes']
     if ',' in indexes:
         indexes = [int(i) for i in indexes.split(',')]
@@ -1241,6 +1196,7 @@ def main():
     errors_file = options['errors_file']
     fimp_file = options['fimp_file']
     param_file = options['param_file']
+
     balance = flags['b']
     if balance is True:
         balance = 'balanced'
@@ -1248,16 +1204,16 @@ def main():
     if ',' in categorymaps:
         categorymaps = [int(i) for i in categorymaps.split(',')]
     else: categorymaps = None
-    
+
     # error checking
     # feature importances selected by no cross-validation scheme used
     if importances is True and cv == 1:
         grass.fatal('Feature importances require cross-validation cv > 1')
-    
+
     # output map has not been entered and modelonly is not set to True
     if output == '' and modelonly is True:
         grass.fatal('No output map specified')
-    
+
     # perform prediction only for class probabilities but probability flag is not set to True
     if prob_only is True:
         probability = True
@@ -1484,14 +1440,20 @@ def main():
             grass.message('Best parameters:')
             grass.message(str(clf.best_params_))
             if param_file != '':
-                param_df = pd.DataFrame(clf.cv_results_)
-                param_df.to_csv(param_file)
+                try:
+                    import pandas as pd
+                    param_df = pd.DataFrame(clf.cv_results_)
+                    param_df.to_csv(param_file)
+                except:
+                    grass.message((
+                        "Pandas is not installed ",
+                        "cannot export hyperparameter search results to csv"))
 
         # cross-validation
         # -----------------
 
         # If cv > 1 then use cross-validation to generate performance measures
-        if cv > 1 and tuneonly is not True :
+        if cv > 1 and tuneonly is not True:
             if mode == 'classification' and cv > np.histogram(
                     y, bins=len(np.unique(y)))[0].min():
                 grass.message(os.linesep)
@@ -1503,14 +1465,15 @@ def main():
                 grass.message(
                     "Cross validation global performance measures......:")
 
-                # cross-validate the training object
+                # cross-validate
                 if mode == 'classification' and \
                     len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
                     scoring.append('roc_auc')
-                    scoring.append('matthews_corrcoef'), 
-                scores, cscores, fimp = cross_val_scores(
+                    scoring.append('matthews_corrcoef')
+
+                scores, cscores, fimp, models = cross_val_scores(
                     clf, X, y, group_id, class_weights, resampling, scoring,
-                    importances, n_permutations, random_state)
+                    importances, n_permutations, predict_resamples, random_state)
 
                 # global scores
                 for method, val in scores.iteritems():
@@ -1572,17 +1535,35 @@ def main():
             if prob_only is False:
                 grass.message('Predicting classification raster...')
                 predict(estimator=clf, predictors=maplist, output=output, predict_type='raw',
-                        labels=np.unique(y), rowincr=rowincr)
+                        rowincr=rowincr)
+
+                if predict_resamples is True:
+                    for i in range(cv):
+                        resample_name = output + '_Resample' + str(i)
+                        predict(estimator=models[i], predictors=maplist, output=resample_name, predict_type='raw',
+                                rowincr=rowincr)
 
             if probability is True:
                 grass.message('Predicting class probabilities...')
                 predict(estimator=clf, predictors=maplist, output=output, predict_type='prob',
-                        labels=np.unique(y), index=indexes, rowincr=rowincr)
+                        index=indexes, rowincr=rowincr)
+
+                if predict_resamples is True:
+                    for i in range(cv):
+                        resample_name = output + '_Resample' + str(i)
+                        predict(estimator=models[i], predictors=maplist, output=resample_name, predict_type='prob',
+                                index=indexes, rowincr=rowincr)
 
         elif mode == 'regression':
             grass.message('Predicting regression raster...')
             predict(estimator=clf, predictors=maplist, output=output, predict_type='raw',
-                    labels=None, rowincr=rowincr)
+                    rowincr=rowincr)
+
+            if predict_resamples is True:
+                for i in range(cv):
+                    resample_name = output + '_Resample' + str(i)
+                    predict(estimator=models[i], predictors=maplist, output=resample_name, predict_type='prob',
+                            rowincr=rowincr)
     else:
         grass.message("Model built and now exiting")
 
