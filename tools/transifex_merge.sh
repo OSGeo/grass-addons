@@ -39,7 +39,8 @@ NEWLIBPODIR="${NEWPODIR}grass72.grasslibspot/"
 
 for fil in `ls $NEWLIBPODIR`;
 do
-  MYLANG=`echo $fil | rev | cut -c 13- | rev`
+  # TODO: keep uppercase for pt_BR etc - rename in SVN
+  MYLANG=`echo $fil | sed 's+_translation++g'`
   # fix undefined CHARSET in files pulled from transifex (grrr...)
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWLIBPODIR}${MYLANG}_translation > ${NEWLIBPODIR}${MYLANG}_translation_new
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation > ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new
@@ -53,8 +54,14 @@ do
     msgcat --use-first --no-wrap grasslibs_${MYLANG}.header ${NEWLIBPODIR}${MYLANG}_translation_new > ${NEWLIBPODIR}${MYLANG}_translation_new.2
     $MSGMERGE ${NEWLIBPODIR}${MYLANG}_translation_new.2 $POFILE -o $POFILE.2 &&  mv $POFILE.2 $POFILE && rm -f grasslibs_${MYLANG}.header
   else
-    # TODO: new file needs some header description!
-    cp ${NEWLIBPODIR}${MYLANG}_translation_new grasslibs_${MYLANG}.po
+    # update header for newly created files
+    # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
+    POFILE=${NEWLIBPODIR}${MYLANG}_translation_new
+    sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grasslibs_${MYLANG}.po+g" $POFILE
+    sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
+    sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
+    sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
+    cp $POFILE grasslibs_${MYLANG}.po
   fi
 
   if [ -f grassmods_${MYLANG}.po ]; then
@@ -63,8 +70,14 @@ do
     msgcat --use-first --no-wrap grassmods_${MYLANG}.header ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new > ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new.2
     $MSGMERGE ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new.2 grassmods_${MYLANG}.po -o grassmods_${MYLANG}.po2 &&  mv grassmods_${MYLANG}.po2 grassmods_${MYLANG}.po && rm -f grassmods_${MYLANG}.header
   else
-    # TODO: new file needs some header description!
-    cp ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new grassmods_${MYLANG}.po
+    # update header for newly created files
+    # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
+    POFILE=${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new
+    sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grassmods_${MYLANG}.po+g" $POFILE
+    sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
+    sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
+    sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
+    cp $POFILE grassmods_${MYLANG}.po
   fi
 
   if [ -f grasswxpy_${MYLANG}.po ]; then
@@ -73,8 +86,16 @@ do
     msgcat --use-first --no-wrap grasswxpy_${MYLANG}.header ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new > ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new.2
     $MSGMERGE ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new.2 grasswxpy_${MYLANG}.po -o grasswxpy_${MYLANG}.po2 &&  mv grasswxpy_${MYLANG}.po2 grasswxpy_${MYLANG}.po && rm -f grasswxpy_${MYLANG}.header
   else
-    # TODO: new file needs some header description!
-    cp ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new grasswxpy_${MYLANG}.po
+    # update header for newly created files
+    # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
+    POFILE=${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new
+    sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grasswxpy_${MYLANG}.po+g" $POFILE
+    sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
+    sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
+    sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
+    cp $POFILE grasswxpy_${MYLANG}.po
   fi
 done
+
+# cleanup the po files fetched from transifex
 rm -rf ${NEWLIBPODIR} ${NEWPODIR}grass72.grassmodspot/ ${NEWPODIR}grass72.grasswxpypot/
