@@ -1301,7 +1301,7 @@ def main():
 
     # scoring metrics
     if mode == 'classification':
-        scoring = ['matthews_corrcoef', 'accuracy', 'precision', 'recall', 'f1', 'kappa', 'balanced_accuracy']
+        scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa', 'balanced_accuracy']
         search_scorer = make_scorer(metrics.cohen_kappa_score)
     else:
         scoring = ['r2', 'neg_mean_squared_error']
@@ -1507,6 +1507,7 @@ def main():
                 if mode == 'classification' and \
                     len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
                     scoring.append('roc_auc')
+                    scoring.append('matthews_corrcoef'), 
                 scores, cscores, fimp = cross_val_scores(
                     clf, X, y, group_id, class_weights, resampling, scoring,
                     importances, n_permutations, random_state)
