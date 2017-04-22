@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import numpy as np
 from numpy.random import RandomState
@@ -161,9 +163,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                        'neg_mean_squared_error': metrics.mean_squared_error}
 
     byclass_methods = {'f1': metrics.f1_score,
-                      'fbeta': metrics.fbeta_score,
-                      'precision': metrics.precision_score,
-                      'recall': metrics.recall_score}
+                       'fbeta': metrics.fbeta_score,
+                       'precision': metrics.precision_score,
+                       'recall': metrics.recall_score}
 
     # create diction to store byclass metrics results
     n_classes = len(np.unique(y))

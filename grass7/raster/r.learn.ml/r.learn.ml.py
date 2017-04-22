@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -- coding: utf-8 --
+
 ############################################################################
 # MODULE:        r.learn.ml
 # AUTHOR:        Steven Pawley
@@ -409,6 +411,7 @@ def main():
     n_partitions = int(options['n_partitions'])
     modelonly = flags['m']
     probability = flags['p']
+    prob_only = flags['z']
     tuneonly = flags['t']
     rowincr = int(options['lines'])
     random_state = int(options['random_state'])
@@ -428,7 +431,6 @@ def main():
     n_jobs = int(options['n_jobs'])
     lowmem = flags['l']
     impute = flags['i']
-    prob_only = flags['z']
     errors_file = options['errors_file']
     fimp_file = options['fimp_file']
     param_file = options['param_file']
@@ -439,8 +441,19 @@ def main():
     if ',' in categorymaps:
         categorymaps = [int(i) for i in categorymaps.split(',')]
     else: categorymaps = None
+    
+    # error checking
+    # feature importances selected by no cross-validation scheme used
     if importances is True and cv == 1:
         grass.fatal('Feature importances require cross-validation cv > 1')
+    
+    # output map has not been entered and modelonly is not set to True
+    if output == '' and modelonly is True:
+        grass.fatal('No output map specified')
+    
+    # perform prediction only for class probabilities but probability flag is not set to True
+    if prob_only is True:
+        probability = True
 
     # make dicts for hyperparameters, datatypes and parameters for tuning
     hyperparams = {'C': options['c'],
