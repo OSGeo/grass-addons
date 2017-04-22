@@ -13,6 +13,11 @@ MSGMERGE="msgmerge -N --no-wrap"
 
 cd transifex
 
+if [ $? -ne 0 ]; then
+  echo "ECHO: transifex folder not found, you should run this command in locale folder"
+  exit 1;
+fi
+
 tx pull -a
 
 cd ..
