@@ -538,7 +538,7 @@ def main():
     if outfile:
         outfile.close()
         grass.message(_("You can continue with temporal framework, registering"
-                        " the maps using t.register input=your_strds"
+                        " the maps using t.register input=your_strds "
                         "'file={name}'".format(name=outfile.name)))
 
 if __name__ == "__main__":
