@@ -2,6 +2,9 @@
 # -- coding: utf-8 --
 
 import numpy as np
+import os
+import tempfile
+from copy import deepcopy
 from numpy.random import RandomState
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.raster import RasterRow
@@ -11,6 +14,7 @@ from grass.pygrass.modules.shortcuts import imagery as im
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.table import Link
 from grass.pygrass.utils import get_raster_for_points
+import grass.script as gscript
 from subprocess import PIPE
 
 def specificity_score(y_true, y_pred):
