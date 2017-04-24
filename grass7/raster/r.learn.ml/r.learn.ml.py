@@ -664,8 +664,8 @@ def main():
         gscript.message(os.linesep)
         gscript.message(('Fitting model using ' + classifier))
 
-        # pass groups to fit parameter GroupKFold and param_grid are present
-        if isinstance(inner, GroupKFold) and any(param_grid) is True:
+        # pass groups to fit parameter GroupKFold/GroupShuffleSplit and param_grid are present
+        if isinstance(inner, (GroupKFold, GroupShuffleSplit)) and any(param_grid) is True:
             if balance is True and classifier in (
                     'GradientBoostingClassifier', 'XGBClassifier'):
                 clf.fit(X=X, y=y, groups=group_id, sample_weight=class_weights)
