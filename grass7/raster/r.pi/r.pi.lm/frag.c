@@ -1,10 +1,5 @@
 #include "local_proto.h"
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 int getNeighbors(Position * res, DCELL * map, int x, int y, int nx, int ny,
 		 int nbr_cnt);
 

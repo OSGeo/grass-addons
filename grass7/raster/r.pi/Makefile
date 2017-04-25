@@ -5,7 +5,7 @@ PGM = r.pi
 SUBDIRS = \
 	r.pi.library \
 	r.pi.corearea \
-	r.pi.corrwin \
+	r.pi.corr.mw \
 	r.pi.csr.mw \
 	r.pi.energy \
 	r.pi.energy.pr \

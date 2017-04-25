@@ -17,11 +17,6 @@
 #define GLOBAL extern
 #endif
 
-typedef struct
-{
-    int x, y;
-} Position;
-
 typedef int (f_method) (Position *, int, int, int *, int, int);
 
 /* func.c */
