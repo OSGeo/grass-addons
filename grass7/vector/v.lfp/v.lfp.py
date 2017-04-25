@@ -171,7 +171,17 @@ def convert_lfp(input, output, coords):
                 grass.fatal(_("Cannot flip the longest flow path"))
 
     # write history if supported
-    if int(grass.version()["revision"][1:]) >= 70740:
+    version = grass.version()
+    if version["revision"] != "exported":
+        # the revision number is available
+        version = int(version["revision"][1:])
+    else:
+        # some binary distributions don't build from the SVN repository and
+        # revision is not available; use the libgis revision as a fallback in
+        # this case
+        version = int(version["libgis_revision"])
+
+    if version >= 70740:
         # v.support -h added in r70740
         grass.run_command("v.support", flags="h", map=output,
                           cmdhist=os.environ["CMDLINE"])
