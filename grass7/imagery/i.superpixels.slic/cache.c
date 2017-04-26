@@ -49,9 +49,15 @@ int cache_create(struct cache *c, int nrows, int ncols, int seg_size,
 	int row, col;
 
 	c->r = G_malloc(sizeof(char **) * c->rows);
-	for (row = 0; row < c->rows; row++) {
-	    c->r[row] = G_malloc(sizeof(char *) * c->cols);
-	    c->r[row][0] = G_malloc(sizeof(char) * c->cols * c->n);
+	row = 0;
+	c->r[row] = G_malloc(sizeof(char *) * c->rows * c->cols);
+	c->r[row][0] = G_malloc(sizeof(char) * c->rows * c->cols * c->n);
+	for (col = 1; col < c->cols; col++) {
+	    c->r[row][col] = c->r[row][col - 1] + c->n;
+	}
+	for (row = 1; row < c->rows; row++) {
+	    c->r[row] = c->r[row - 1] + c->cols;
+	    c->r[row][0] = c->r[row - 1][0] + c->cols * c->n;
 	    for (col = 1; col < c->cols; col++) {
 		c->r[row][col] = c->r[row][col - 1] + c->n;
 	    }
