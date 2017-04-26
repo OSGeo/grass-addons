@@ -23,7 +23,7 @@ DCELL dist(Coords * p1, Coords * p2)
 DCELL min_dist(Coords ** frags, int n1, int n2)
 {
     Coords *p1, *p2;
-    DCELL min = 1000000.0;
+    DCELL min = 0;
 
     /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
@@ -35,7 +35,7 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
-		    if (d < min) {
+		    if (min == 0 || d < min) {
 			min = d;
 		    }
 		}

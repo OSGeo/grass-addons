@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
     int keyval;
 
     int n;
-    int copycolr;
-    struct Colors colr;
     struct GModule *module;
     struct
     {
@@ -219,9 +217,6 @@ int main(int argc, char *argv[])
     if (in_fd < 0)
 	G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
-    /* copy color table */
-    copycolr = (Rast_read_colors(oldname, oldmapset, &colr) > 0);
-
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
 
@@ -289,23 +284,16 @@ int main(int argc, char *argv[])
 	for (col = 0; col < ncols; col++) {
 	    if (result[col] == keyval)
 		flagbuf[row * ncols + col] = 1;
+	    else
+		flagbuf[row * ncols + col] = 0;
 	}
 
 	G_percent(row, nrows, 2);
     }
     Rast_close(in_fd);
 
-    /* TODO: merge with previous loop */
-    for (row = 0; row < nrows; row++) {
-	for (col = 0; col < ncols; col++) {
-	    if (flagbuf[row * ncols + col] == 1) {
-		fragcount++;
-		writeFrag(flagbuf, actpos, row, col, nrows, ncols, neighb_count);
-		fragments[fragcount] = actpos;
-	    }
-	}
-    }
-    G_percent(nrows, nrows, 2);
+    /* find fragments */
+    fragcount = writeFragments(fragments, flagbuf, nrows, ncols, neighb_count);
 
     /* generate the distance matrix */
     get_dist_matrix(fragcount);
@@ -363,8 +351,10 @@ int main(int argc, char *argv[])
 	    }
 
 	    Rast_close(out_fd);
-	}
 
+	    Rast_init_cats(title, &cats);
+	    Rast_write_cats(fullname, &cats);
+	}
     }				/* for each method */
 
     G_percent(100, 100, 2);
@@ -387,12 +377,6 @@ int main(int argc, char *argv[])
 
     G_free(distmatrix);
     G_free(nearest_indices);
-
-    Rast_init_cats(title, &cats);
-    Rast_write_cats(newname, &cats);
-
-    if (copycolr)
-	Rast_write_colors(newname, G_mapset(), &colr);
 
     exit(exitres);
 }
