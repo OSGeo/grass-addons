@@ -263,7 +263,7 @@ def main(opts, flgs):
     DEBUG = flags['d']
     OVER = gcore.overwrite()
     tmpbase = "tmprgreen_%i" % pid
-    atexit.register(gpot.cleanup, pattern=(tmpbase + '*'), debug=DEBUG)
+    atexit.register(cleanup, pattern=(tmpbase + '*'), debug=DEBUG)
 
     heating_season = float(opts['heating_season']) * 24 * 60 * 60
     lifetime = float(opts['lifetime']) * 365 * 24 * 60 * 60
@@ -299,10 +299,12 @@ def main(opts, flgs):
     # START COMPUTATIONS
     uc = tmpbase + '_uc'
     gpot.r_norm_time(uc, heating_season, borehole_radius,
-                     ground_conductivity, ground_capacity, overwrite=OVER)
+                     ground_conductivity, ground_capacity, execute=True,
+                     overwrite=OVER)
     us = tmpbase + '_us'
     gpot.r_norm_time(us, lifetime, borehole_radius,
-                     ground_conductivity, ground_capacity, overwrite=OVER)
+                     ground_conductivity, ground_capacity, execute=True,
+                     overwrite=OVER)
 
     gmax = tmpbase + '_gmax'
     tc = heating_season / (365. * 24 * 60 * 60.)
