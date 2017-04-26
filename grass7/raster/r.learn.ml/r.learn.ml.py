@@ -592,17 +592,18 @@ def main():
                 inner = ShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
             else:
                 inner = GroupShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
-        
+
         else:
             inner = None
 
         # ---------------------------------------------------------------------
         # define the outer search resampling method
         # ---------------------------------------------------------------------
-        if group_id is None:
-            outer = StratifiedKFold(n_splits=cv, random_state=random_state)
-        else:
-            outer = GroupKFold(n_splits=cv)
+        if cv > 1:
+            if group_id is None:
+                outer = StratifiedKFold(n_splits=cv, random_state=random_state)
+            else:
+                outer = GroupKFold(n_splits=cv)
 
         # ---------------------------------------------------------------------
         # define sample weights for gradient boosting classifiers
