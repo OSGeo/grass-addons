@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     if (G_parser(argc, argv))
-	    exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname = parm.input->answer;
@@ -290,6 +290,7 @@ int main(int argc, char *argv[])
 
 	G_percent(row, nrows, 2);
     }
+    G_percent(1, 1, 2);
     Rast_close(in_fd);
 
     /* find fragments */
@@ -327,6 +328,9 @@ int main(int argc, char *argv[])
 	    /* open the new cellfile */
 	    sprintf(fullname, "%s.NN%d.%s", newname, parseres[j],
 		    menu[methods[m]].name);
+	    if (module->overwrite == 0 && G_find_raster(fullname, G_mapset()) != NULL)
+		G_fatal_error(_("Output raster <%s> exists. To overwrite, use the --overwrite flag"),
+			      fullname);
 	    out_fd = Rast_open_new(fullname, DCELL_TYPE);
 	    if (out_fd < 0)
 	        G_fatal_error(_("Cannot create raster map <%s>"), fullname);
