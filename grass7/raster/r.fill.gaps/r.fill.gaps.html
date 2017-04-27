@@ -2,19 +2,24 @@
 
 
 <em><b>r.fill.gaps</b></em> is a module for fast gap filling and
-interpolation of dense raster data.
+interpolation (with smoothing) of dense raster data.
 
 <p>
 
 The <em>r.fill.gaps</em> module is capable of quickly filling small
-"no data" areas (gaps) in large raster maps. As a rule of thumb, there
-should be at least as many data cells as there are "no data" cells in
+data gaps in large and high-resolution raster maps. It's primary purpose
+is to improve high-resolution, rasterized sensor data (such as Lidar
+data). As a rule of thumb, there
+should be at least as many data cells as there are "no data" (NULL) cells in
 the input raster map. Several interpolation modes are available. By
 default, all values of the input raster map will be replaced with
-locally interpolated values in the output raster map. With dense data
-and small gaps, this should result in only slight deviations from the
-original data and produce smooth output. Alternatively, setting the
-<b>-p</b> flag will preserve the original cell values.
+locally interpolated values in the output raster map. This is the
+equivalent of running a low-pass smoothing filter on the interpolated
+data and is often desirable, owing to noisy nature of high-resolution
+sensor data. With dense data and small gaps, this should result in only slight
+deviations from the original data and produce smooth output. Alternatively,
+setting the <b>-p</b> flag will disable the low-pass filter and preserve
+the original cell values.
 
 <p>
 
@@ -31,7 +36,7 @@ Available gap filling modes:
 The spatially weighted mean is equivalent to an Inverse Distance
 Weighting (IDW;
 see also <em><a href="r.surf.idw.html">r.surf.idw</a></em>)
-interpolation. The simple mean is equivalent to a low-pass filter.
+interpolation. The simple mean is equivalent to a simple low-pass filter.
 Median and mode replacements can also be achieved using
 <em><a href="r.neighbors.html">r.neighbors</a></em>.
 
@@ -45,13 +50,13 @@ distance threshold to the closest approximation in input raster cells
 and the use of a matrix of precomputed weights at cell resolution (see
 further down for details). Note also that processing time will increase
 exponentially with higher distance settings. Cells outside the distance
-threshold will not be interpolated, preserving the edges of the data
-zones in the input data.
+threshold will not be interpolated, preserving the edges of the original data
+extent.
 
 <p>
 
 This module is not well suited for interpolating sparse input data and
-closing large gaps. For such purposes solutions more appropriate
+closing large gaps. For such purposes more appropriate
 methods are available, such as
 <em><a href="v.surf.idw.html">v.surf.idw</a></em> or
 <em><a href="v.surf.rst.html">v.surf.rst</a></em>.
@@ -91,10 +96,9 @@ interpolators should be used.
 
 The most critical user-provided settings are the interpolation/gap
 filling method (<b>mode</b>) and the maximum distance, up to which
-<em>r.fill.gaps</em> will scan for given data points when attempting to
-fill/interpolate a value at any given location (<b>distance</b>).
+<em>r.fill.gaps</em> will scan for cells with values (<b>distance</b>).
 The distance can be expressed as a number of cells (default) or in the
-current location's units (if the <b>-m</b> flag is given). The latter
+current GRASS location's units (if the <b>-m</b> flag is given). The latter
 are typically meters, but can be any other units of a <em>planar</em>
 coordinate system.
 
@@ -109,7 +113,7 @@ the latitudinal and longitudinal axes.
 
 <p>
 
-Distances specfied in map units (<b>-m</b> flag) will be approximated
+Distances specified in map units (<b>-m</b> flag) will be approximated
 as accurately as the current region's cell resolution settings allow.
 The program will warn if the distance cannot be expressed as whole
 cells at the current region's resolution. In such case, the number of
@@ -120,7 +124,7 @@ diagonal larger than the one specified by the user.
 
 <p>
 
-The interpolator type "wmean" uses a pre-computed matrix of spatial
+The interpolator type "wmean" uses a precomputed matrix of spatial
 weights to speed up computation. This matrix can be examined (printed
 to the screen) before running the interpolation, by setting the
 <b>-w</b> flag. In mode "wmean", the <b>power</b> option has the usual
@@ -152,9 +156,10 @@ interpolation.
 
 <p>
 
-Unless the <b>-p</b> (replace) flag is given, data cells of the input
+Unless the <b>-p</b> (preserve) flag is given, data cells of the input
 map will be replaced with interpolated values instead of preserving
-them in the output.
+them in the output. In modes "wmean" and "mean", this results in a
+smoothing effect that includes the original data (see below)!
 
 <p>
 
@@ -175,34 +180,48 @@ many input data cells were present in the search window.
 
 <h3>Smoothing</h3>
 
-The <em>r.fill.gaps</em> uses the interpolated values to create
-a smooth surface. It can also preserve the original raster values
-and combine them with the interpolated ones when the <b>-p</b> flag
-is specified.
+The <em>r.fill.gaps</em> module uses the interpolated values to adjust
+the original values and create a smooth surface, which is akin to running
+a low-pass filter on the data. Since most high-resolution sensor data
+is noisy, this is normally a desired effect and results in output that
+is more suitable for deriving secondary products, such as slope, aspect
+and curvature maps. Larger settings for the search radius (<b>distance</b>)
+will result in a stronger smoothing. In practice, some experimentation
+with different settings for <b>distance</b> and <b>power</b> might be required
+to achieve good results. In some cases (e.g. when dealing with low-noise or
+classified data), it might be desirable to turn off data smoothing by
+setting the <b>-p</b> (preserve) flag. This will ensure that the original
+cell data is copied through to the result map without alteration. 
 
 <center>
 <a href="r_fill_gaps_smoothing.png">
     <img src="r_fill_gaps_smoothing.png" alt="Smooth versus preserve" width="600" height="300">
 </a>
 <p><em>
-The top row shows resulting surface (ground surface from lidar point
-cloud), its slope, aspect, and profile curvature
-using <tt>mode=wmean</tt> and <tt>power=2</tt>.
-The bottom row shows the same but using the <b>-p</b> flag,
-i.e. the original cell values were used, not the interpolated (and thus
-smoothed) ones.
+Effect of smoothing the original data: The top row shows a gap-filled surface computed from a rasterized Lidar point  
+cloud (using <tt>mode=wmean</tt> and <tt>power=2</tt>), and the derived slope, aspect,
+and profile curvature maps. The smoothing effect is clearly visible.
+The bottom row shows the effect of setting the <b>-p</b> flag: Preserving the original
+cell values in the interpolated output produces and unsmoothed, noisy surface, and likewise
+noisy derivative maps.
 </em></p>
 </center>
 
-When the slope, aspect, and profile curvature are computed using the
-<em><a href="r.slope.aspect.html">r.slope.aspect</a></em> module
-as in the figure above, only the immediate cell neighborhood is
-considered the result with may contain artifacts caused by combining
-the interpolated and original values in the surface (using the
-<b>-p</b> flag). The effect of this can be avoided with certain modules,
-for example the aspect and other morphometric parameters can computed
+The effect can be seen in the illustration above:
+Slope, aspect, and profile curvature are computed using the
+<em><a href="r.slope.aspect.html">r.slope.aspect</a></em> module, which
+uses a window (kernel) for computations that considers only the
+immediate neighborhood of each cell. When performed on noisy data,
+such local operations result in equally noisy derivatives if the
+original data is preserved (by setting the <b>-p</b> flag) and no smoothing
+is performed.  
+
+<p>
+
+(Note that the effects of noisy data can also be avoided by using modules
+that are not restricted to minimal kernel sizes. For example, aspect and other morphometric parameters can be computed
 using the <em><a href="r.param.scale.html">r.param.scale</a></em> module
-which considers larger cell neighborhood.
+which operates with variable-size cell neighborhoods.)
 
 <!--
 wget http://fatra.cnr.ncsu.edu/uav-lidar-analytics-course/midpines_2015_spm.las -O points.las
@@ -396,7 +415,7 @@ Import the point cloud as raster using binning:
 r.in.lidar input=points.las output=ground_raw method=mean class_filter=2
 </pre></div>
 
-Check that there is more non-NULL cells that NULL (no data) cells:
+Check that there are more non-NULL cells than NULL ("no data") cells:
 
 <div class="code"><pre>
 r.univar map=ground_raw
@@ -408,7 +427,7 @@ total null cells: 639184
 ...
 </pre>
 
-Fill in the cells with the three-cell search radius:
+Fill in the NULL cells using the default 3-cell search radius:
 
 <div class="code"><pre>
 r.fill.gaps input=ground output=ground_filled uncertainty=uncertainty distance=3 mode=wmean power=2.0 cells=8
@@ -417,9 +436,9 @@ r.fill.gaps input=ground output=ground_filled uncertainty=uncertainty distance=3
 <center>
 <a href="r_fill_gaps_lidar.png"><img src="r_fill_gaps_lidar.png" alt="Point density and ground surface" width=600></a>
 <p><em>
-Binning of lidar and resulting ground surface with filled gaps.
-Note the NULL cells (white) in the resulting ground surface.
-These are areas with lack of cells with values in close proximity.
+Binning of Lidar and resulting ground surface with filled gaps.
+Note the remaining NULL cells (white) in the resulting ground surface.
+These are areas with a lack of cells with values in close proximity.
 </em></p>
 </center>
 
