@@ -60,7 +60,7 @@
 #% label: Classifier
 #% description: Supervised learning model to use
 #% answer: RandomForestClassifier
-#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
+#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
 #% guisection: Classifier settings
 #% required: no
 #%end
@@ -141,6 +141,23 @@
 #% label: The maximum degree of terms in forward pass
 #% description: The maximum degree of terms in forward pass for Py-earth
 #% answer: 1
+#% multiple: yes
+#% guisection: Classifier settings
+#%end
+#%option integer
+#% key: n_neighbors
+#% label: Number of neighbors to use
+#% description: Number of neighbors to use
+#% answer: 5
+#% multiple: yes
+#% guisection: Classifier settings
+#%end
+#%option string
+#% key: weights
+#% label: weight function
+#% description: weight function for knn prediction
+#% answer: uniform
+#% options: uniform,distance
 #% multiple: yes
 #% guisection: Classifier settings
 #%end
@@ -392,7 +409,9 @@ def main():
         'subsample': options['subsample'],
         'max_depth': options['max_depth'],
         'max_features': options['max_features'],
-        'max_degree': options['max_degree']
+        'max_degree': options['max_degree'],
+        'n_neighbors': options['n_neighbors'],
+        'weights': options['weights']
         }
 
     # cross validation
@@ -459,14 +478,17 @@ def main():
     hyperparams_type['C'] = float
     hyperparams_type['learning_rate'] = float
     hyperparams_type['subsample'] = float
+    hyperparams_type['weights'] = str
     param_grid = deepcopy(hyperparams_type)
     param_grid = dict.fromkeys(param_grid, None)
 
     for key, val in hyperparams.iteritems():
         # split any comma separated strings and add them to the param_grid
-        if ',' in val: param_grid[key] = [hyperparams_type[key](i) for i in val.split(',')]
+        if ',' in val:
+            param_grid[key] = [hyperparams_type[key](i) for i in val.split(',')]
         # else convert the single strings to int or float
-        else: hyperparams[key] = hyperparams_type[key](val)
+        else:
+            hyperparams[key] = hyperparams_type[key](val)
 
     if hyperparams['max_depth'] == 0: hyperparams['max_depth'] = None
     if hyperparams['max_features'] == 0: hyperparams['max_features'] = 'auto'

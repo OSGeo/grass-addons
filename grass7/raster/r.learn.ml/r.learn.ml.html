@@ -7,6 +7,8 @@
 	
 	<li><em>LinearDiscriminantAnalysis</em> and <em>QuadraticDiscriminantAnalysis</em> are classifiers with linear and quadratic decision surfaces. These classifiers do not take any parameters and are inherently multiclass. They can only be used for classification.</li>
 	
+	<li><em>KNeighborsClassifier</em> is a simple classification method based on closest distance to a predefined number of training samples and making the prediction from this. Two hyperparameters are exposed in the gui, with <em>n_neighbors</em> governing the number of neighbors to use to decide the prediction label, and <em>weights</em> specifying whether these neighbors should have equal weights or whether they should be inversely weighted by their distance.</li>
+	
 	<li><em>GaussianNB</em> is the Gaussian Naive Bayes algorithm and can be used for classification only. Naive Bayes is a supervised learning algorithm based on applying Bayes theorem with the naive assumption of independence between every pair of features. This classifier does not take any parameters.</li>
 	
 	<li>The <em>DecisionTreeClassifier</em> and <em>DecisionTreeRegressor</em> map observations to a response variable using a hierarchy of splits and branches. The terminus of these branches, termed leaves, represent the prediction of the response variable. Decision trees are non-parametric and can model non-linear relationships between a response and predictor variables, and are insensitive the scaling of the predictors.</li>

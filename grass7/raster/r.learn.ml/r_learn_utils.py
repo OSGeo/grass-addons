@@ -436,6 +436,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     from sklearn.ensemble import GradientBoostingClassifier
     from sklearn.ensemble import GradientBoostingRegressor
     from sklearn.svm import SVC
+    from sklearn.neighbors import KNeighborsClassifier
 
     # convert balanced boolean to scikit learn method
     if weights is True:
@@ -559,6 +560,9 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
             'GaussianNB': GaussianNB(),
             'LinearDiscriminantAnalysis': LinearDiscriminantAnalysis(),
             'QuadraticDiscriminantAnalysis': QuadraticDiscriminantAnalysis(),
+            'KNeighborsClassifier': KNeighborsClassifier(n_neighbors=p['n_neighbors'],
+                                                         weights=p['weights'],
+                                                         n_jobs=n_jobs)
         }
 
     # define classifier
@@ -575,7 +579,8 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
         or estimator == 'QuadraticDiscriminantAnalysis' \
         or estimator == 'EarthClassifier' \
         or estimator == 'XGBClassifier' \
-        or estimator == 'SVC':
+        or estimator == 'SVC' \
+        or estimator == 'KNeighborsClassifier':
         mode = 'classification'
     else:
         mode = 'regression'
