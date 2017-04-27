@@ -326,6 +326,7 @@
 #% exclusive: trainingpoints,load_training
 #%end
 
+from __future__ import absolute_import
 import atexit
 import os
 import itertools
