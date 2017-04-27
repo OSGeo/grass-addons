@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
     /* allocate the cell buffers */
     cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
     fragments = (Coords **) G_malloc(nrows * ncols * sizeof(Coords *));
+    fragments[0] = cells;
     flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
     result = Rast_allocate_d_buf();
 
@@ -239,6 +240,7 @@ int main(int argc, char *argv[])
     }
     Rast_close(in_fd);
 
+    /* find fragments */
     fragcount = writeFragments(fragments, flagbuf, nrows, ncols, neighb_count);
 
     /* perform actual function on the patches */
@@ -248,6 +250,9 @@ int main(int argc, char *argv[])
     /* open new cellfile  */
     strcpy(outname, newname);
     strcat(outname, ".diff");
+    if (module->overwrite == 0 && G_find_raster(outname, G_mapset()) != NULL)
+	G_fatal_error(_("Output raster <%s> exists. To overwrite, use the --overwrite flag"),
+		      outname);
     out_fd = Rast_open_new(outname, map_type);
     if (out_fd < 0)
 	G_fatal_error(_("Cannot create raster map <%s>"), newname);
@@ -271,6 +276,9 @@ int main(int argc, char *argv[])
     /* open new cellfile  */
     strcpy(outname, newname);
     strcat(outname, ".PP");
+    if (module->overwrite == 0 && G_find_raster(outname, G_mapset()) != NULL)
+	G_fatal_error(_("Output raster <%s> exists. To overwrite, use the --overwrite flag"),
+		      outname);
     out_fd = Rast_open_new(outname, map_type);
     if (out_fd < 0)
 	G_fatal_error(_("Cannot create raster map <%s>"), newname);
@@ -294,6 +302,9 @@ int main(int argc, char *argv[])
     /* open new cellfile  */
     strcpy(outname, newname);
     strcat(outname, ".PA");
+    if (module->overwrite == 0 && G_find_raster(outname, G_mapset()) != NULL)
+	G_fatal_error(_("Output raster <%s> exists. To overwrite, use the --overwrite flag"),
+		      outname);
     out_fd = Rast_open_new(outname, map_type);
     if (out_fd < 0)
 	G_fatal_error(_("Cannot create raster map <%s>"), outname);
