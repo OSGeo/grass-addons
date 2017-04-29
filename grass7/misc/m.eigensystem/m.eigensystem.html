@@ -114,7 +114,7 @@ to form the desired components.
 For example, to get the eigen vectors for 3 layers:
 
 <div class="code"><pre>
-(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem
+(echo 3; r.covar map.1,map.2,map.3 | grep -v "N = ") | m.eigensystem
 </pre></div>
 
 Note that since m.covar only outputs the matrix, we must manually prepend
