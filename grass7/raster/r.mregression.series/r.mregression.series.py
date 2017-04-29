@@ -49,6 +49,7 @@ import csv
 import numpy as np
 from numpy.linalg.linalg import LinAlgError
 
+# statsmodels lazy imported at the end of the file
 
 if "GISBASE" not in os.environ:
     sys.stderr.write("You must be in GRASS GIS to run this program.\n")
@@ -57,13 +58,6 @@ if "GISBASE" not in os.environ:
 import grass.script as grass
 from grass.pygrass import raster
 from grass.pygrass.gis.region import Region
-
-try:
-    import statsmodels.api as sm
-except ImportError:
-    grass.error("Cannot import statsmodels. Install python-statmodels package first")
-    sys.exit(1)
-
 
 CNULL = -2147483648  # null value for CELL maps
 FNULL = np.nan       # null value for FCELL and DCELL maps
@@ -264,4 +258,12 @@ def main(options, flags):
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+
+    # lazy import (global to avoid import in a loop)
+    try:
+        import statsmodels.api as sm
+    except ImportError:
+        grass.fatal(_("Cannot import statsmodels."
+                      " Install python-statmodels package first"))
+
     main(options, flags)
