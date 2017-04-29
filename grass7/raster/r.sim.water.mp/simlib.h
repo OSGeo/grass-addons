@@ -99,10 +99,6 @@ struct options
 
 #ifdef PARALLEL
 
-int threads;
-
-time_t timer;
-
 void printTimeDiff(const char* message);
 
 struct options
