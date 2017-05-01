@@ -60,7 +60,7 @@ class product:
 
     def __init__(self, value=None):
         # url to download products
-        urlbase = 'http://e4ftl01.cr.usgs.gov'
+        urlbase = 'https://e4ftl01.cr.usgs.gov'
         usrsnow = 'ftp://n5eil01u.ecs.nsidc.org'
         # values of lst product:
         lst_spec = '( 1 0 0 0 1 0 0 0 0 0 0 0 )'
