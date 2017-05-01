@@ -14,7 +14,7 @@ from grass.pygrass.raster.buffer import Buffer
 from grass.pygrass.modules.shortcuts import imagery as im
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.table import Link
-from grass.pygrass.utils import get_raster_for_points
+from grass.pygrass.utils import get_raster_for_points, pixel2coor
 import grass.script as gscript
 from subprocess import PIPE
 
@@ -199,7 +199,11 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     else:
         k_fold = cv.split(X, y, groups=groups)
 
+    # store predictions and indices
+    predictions = np.zeros((len(y), 3)) # y_true, y_pred, fold
+
     # train on k-1 folds and test of k folds
+    fold = 0
     for train_indices, test_indices in k_fold:
 
         # create training and test folds
@@ -224,6 +228,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
         # prediction of test fold
         y_pred = estimator.predict(X_test)
+        predictions[test_indices, 0] = y_test
+        predictions[test_indices, 1] = y_pred
+        predictions[test_indices, 2] = fold
 
         # calculate global performance metrics
         for m in scores.keys():
@@ -271,8 +278,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                         estimator, X_test, y_test,
                         n_permutations, scoring_methods[scoring[0]],
                         random_state)))
+        fold += 1
 
-    return(scores, byclass_scores, fimp, fitted_models)
+    return(scores, byclass_scores, fimp, fitted_models, predictions)
 
 
 def predict(estimator, predictors, output, predict_type='raw',
@@ -588,7 +596,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     return (clf, mode)
 
 
-def save_training_data(X, y, groups, file):
+def save_training_data(X, y, groups, coords, file):
     """
     Saves any extracted training data to a csv file
 
@@ -597,6 +605,7 @@ def save_training_data(X, y, groups, file):
     X: Numpy array containing predictor values
     y: Numpy array containing labels
     groups: Numpy array of group labels
+    coords: Numpy array containing xy coordinates of samples
     file: Path to a csv file to save data to
     """
 
@@ -605,7 +614,7 @@ def save_training_data(X, y, groups, file):
         groups = np.empty((y.shape[0]))
         groups[:] = np.nan
 
-    training_data = np.column_stack([X, y, groups])
+    training_data = np.column_stack([coords, X, y, groups])
     np.savetxt(file, training_data, delimiter=',')
 
 
@@ -622,6 +631,7 @@ def load_training_data(file):
     X: Numpy array containing predictor values
     y: Numpy array containing labels
     groups: Numpy array of group labels, or None
+    coords: Numpy array containing x,y coordinates of samples
     """
 
     training_data = np.loadtxt(file, delimiter=',')
@@ -636,10 +646,11 @@ def load_training_data(file):
         groups = None
 
     # fetch X and y
-    X = training_data[:, 0:last_Xcol]
+    coords = training_data[:, 0:2]
+    X = training_data[:, 2:last_Xcol]
     y = training_data[:, -2]
 
-    return(X, y, groups)
+    return(X, y, groups, coords)
 
 
 def extract(response, predictors, lowmem=False):
@@ -727,6 +738,8 @@ def extract(response, predictors, lowmem=False):
 
     # convert indexes of training pixels from tuple to n*2 np array
     is_train = np.array(is_train).T
+    for i in range(is_train.shape[0]):
+        is_train[i, :] = np.array(pixel2coor(tuple(is_train[i]), current))
 
     # close the response map
     roi_gr.close()

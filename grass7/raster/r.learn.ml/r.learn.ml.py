@@ -267,6 +267,13 @@
 #%end
 
 #%option G_OPT_F_OUTPUT
+#% key: preds_file
+#% label: Save cross-validation predictions to csv
+#% required: no
+#% guisection: Cross validation
+#%end
+
+#%option G_OPT_F_OUTPUT
 #% key: fimp_file
 #% label: Save feature importances to csv
 #% required: no
@@ -472,6 +479,7 @@ def main():
     importances = flags['f']
     n_permutations = int(options['n_permutations'])
     errors_file = options['errors_file']
+    preds_file = options['preds_file']
     fimp_file = options['fimp_file']
     param_file = options['param_file']
 
@@ -573,7 +581,7 @@ def main():
 
         # Sample training data and group id
         if load_training != '':
-            X, y, group_id = load_training_data(load_training)
+            X, y, group_id, sample_coords = load_training_data(load_training)
         else:
             gscript.message('Extracting training data')
 
@@ -642,7 +650,7 @@ def main():
 
             # optionally save extracted data to .csv file
             if save_training != '':
-                save_training_data(X, y, group_id, save_training)
+                save_training_data(X, y, group_id, sample_coords, save_training)
 
         # ---------------------------------------------------------------------
         # define the inner search resampling method
@@ -792,9 +800,10 @@ def main():
                     scoring.append('matthews_corrcoef')
 
                 # perform the cross-validatation
-                scores, cscores, fimp, models = cross_val_scores(
+                scores, cscores, fimp, models, preds = cross_val_scores(
                     clf, X, y, group_id, class_weights, outer, scoring,
                     importances, n_permutations, predict_resamples, random_state)
+                preds = np.hstack((preds, sample_coords))
 
                 # global scores
                 for method, val in scores.iteritems():
@@ -821,6 +830,15 @@ def main():
                 if errors_file != '':
                     errors = pd.DataFrame(scores)
                     errors.to_csv(errors_file, mode='w')
+
+                # write cross-validation predictions to csv file
+                if preds_file != '':
+                    preds = pd.DataFrame(preds)
+                    preds.columns = ['y_true', 'y_pred', 'fold', 'x', 'y']
+                    preds.to_csv(preds_file, mode='w')
+                    text_file = open(preds_file + 't', "w")
+                    text_file.write('"Integer","Real","Real","integer","Real","Real"')
+                    text_file.close()
 
                 # feature importances
                 if importances is True:
