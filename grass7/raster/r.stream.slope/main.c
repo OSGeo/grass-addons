@@ -46,26 +46,21 @@ DCELL calculate_min_curvature(int r, int c);
 int main(int argc, char *argv[])
 {
     struct GModule *module;
-    struct Option *in_dir_opt,	/* options */
-     *in_elev_opt,
-	*out_differnce_opt,
-	*out_gradient_opt, *out_max_curv_opt, *out_min_curv_opt;
+    /* options */
+    struct Option *in_dir_opt, *in_elev_opt, *out_difference_opt,
+	          *out_gradient_opt, *out_max_curv_opt, *out_min_curv_opt;
     struct Cell_head cellhd;
     struct History history;
 
-    int r, c, /* d, */ i, cur_row;
-    int elev_map_type, elev_data_size;
-    /* int gradient; */
+    int r, c, i, cur_row;
 
     int in_dir_fd, in_elev_fd;
     int out_difference_fd, out_gradient_fd, out_max_curv_fd, out_min_curv_fd;
-    /* double cellsize; */
     char *mapset;
-    void *tmp_buffer;
     DCELL *tmp_elev_buf;
     CELL *tmp_dir_buf;
     DCELL *out_difference_buf, *out_gradient_buf, *out_max_curv_buf,
-	*out_min_curv_buf;
+	  *out_min_curv_buf;
 
     G_gisinit(argv[0]);
     module = G_define_module();
@@ -79,14 +74,14 @@ int main(int argc, char *argv[])
     in_dir_opt->key = "direction";
     in_dir_opt->description = _("Name of input raster map with flow direction");
 
-    in_elev_opt = G_define_standard_option(G_OPT_R_INPUT);
+    in_elev_opt = G_define_standard_option(G_OPT_R_ELEV);
 
-    out_differnce_opt = G_define_standard_option(G_OPT_R_OUTPUT);
-    out_differnce_opt->key = "difference";
-    out_differnce_opt->required = NO;
-    out_differnce_opt->description =
+    out_difference_opt = G_define_standard_option(G_OPT_R_OUTPUT);
+    out_difference_opt->key = "difference";
+    out_difference_opt->required = NO;
+    out_difference_opt->description =
       _("Name for output local downstream elevation difference raster map");
-    out_differnce_opt->guisection = _("Output maps");
+    out_difference_opt->guisection = _("Output maps");
 
     out_gradient_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_gradient_opt->key = "gradient";
@@ -119,7 +114,7 @@ int main(int argc, char *argv[])
     G_get_window(&window);
     Rast_get_cellhd(in_dir_opt->answer, mapset, &cellhd);
     if (window.ew_res != cellhd.ew_res || window.ns_res != cellhd.ns_res)
-          G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
+	G_fatal_error(_("Region resolution and raster map <%s> resolution differs. "
                           "Run 'g.region raster=%s' to set proper region resolution."),
                         in_dir_opt->answer, in_dir_opt->answer);
 
@@ -132,8 +127,6 @@ int main(int argc, char *argv[])
     if (mapset == NULL)
 	G_fatal_error(_("Raster map <%s> not found"), in_elev_opt->answer);
 
-    elev_map_type = Rast_map_type(in_elev_opt->answer, mapset);
-    elev_data_size = Rast_cell_size(elev_map_type);
     in_elev_fd = Rast_open_old(in_elev_opt->answer, mapset);
 
     nrows = Rast_window_rows();
@@ -141,22 +134,30 @@ int main(int argc, char *argv[])
 
     G_begin_distance_calculations();
 
-    if (out_differnce_opt->answer) {
+    out_difference_fd = -1;
+    out_difference_buf = NULL;
+    if (out_difference_opt->answer) {
 	out_difference_fd =
-	    Rast_open_new(out_differnce_opt->answer, DCELL_TYPE);
+	    Rast_open_new(out_difference_opt->answer, DCELL_TYPE);
 	out_difference_buf = Rast_allocate_d_buf();
     }
 
+    out_gradient_fd = -1;
+    out_gradient_buf = NULL;
     if (out_gradient_opt->answer) {
 	out_gradient_fd = Rast_open_new(out_gradient_opt->answer, DCELL_TYPE);
 	out_gradient_buf = Rast_allocate_d_buf();
     }
 
+    out_max_curv_fd = -1;
+    out_max_curv_buf = NULL;
     if (out_max_curv_opt->answer) {
 	out_max_curv_fd = Rast_open_new(out_max_curv_opt->answer, DCELL_TYPE);
 	out_max_curv_buf = Rast_allocate_d_buf();
     }
 
+    out_min_curv_fd = -1;
+    out_min_curv_buf = NULL;
     if (out_min_curv_opt->answer) {
 	out_min_curv_fd = Rast_open_new(out_min_curv_opt->answer, DCELL_TYPE);
 	out_min_curv_buf = Rast_allocate_d_buf();
@@ -165,21 +166,15 @@ int main(int argc, char *argv[])
     dir_rows = (CELL **) G_malloc(3 * sizeof(CELL *));
     elev_rows = (DCELL **) G_malloc(3 * sizeof(DCELL *));
 
-    /* init shift buffer */
-    tmp_buffer = Rast_allocate_buf(elev_map_type);
-
     for (i = 0; i < 3; ++i) {
 	dir_rows[i] = Rast_allocate_c_buf();
 	elev_rows[i] = Rast_allocate_d_buf();
 	Rast_get_row(in_dir_fd, dir_rows[i], i, CELL_TYPE);
-	Rast_get_row(in_elev_fd, tmp_buffer, i, elev_map_type);
-	for (c = 0; c < ncols; ++c)
-	    elev_rows[i][c] =
-		Rast_get_d_value(tmp_buffer + c * elev_data_size,
-				 elev_map_type);
+	Rast_get_row(in_elev_fd, elev_rows[i], i, DCELL_TYPE);
     }
 
-    for (r = 0; r < nrows; ++r) {	/*main loop */
+    /*main loop */
+    for (r = 0; r < nrows; ++r) {
 
 	G_percent(r, nrows, 2);
 
@@ -191,7 +186,7 @@ int main(int argc, char *argv[])
 	    cur_row = 1;
 
 	for (c = 0; c < ncols; ++c) {
-	    if (out_differnce_opt->answer)
+	    if (out_difference_opt->answer)
 		out_difference_buf[c] = calculate_difference(cur_row, c);
 	    if (out_gradient_opt->answer)
 		out_gradient_buf[c] = calculate_gradient(cur_row, c);
@@ -201,7 +196,7 @@ int main(int argc, char *argv[])
 		out_min_curv_buf[c] = calculate_min_curvature(cur_row, c);
 	}
 
-	if (out_differnce_opt->answer)
+	if (out_difference_opt->answer)
 	    Rast_put_row(out_difference_fd, out_difference_buf, DCELL_TYPE);
 	if (out_gradient_opt->answer)
 	    Rast_put_row(out_gradient_fd, out_gradient_buf, DCELL_TYPE);
@@ -225,22 +220,17 @@ int main(int argc, char *argv[])
 	    dir_rows[2] = tmp_dir_buf;
 	    elev_rows[2] = tmp_elev_buf;
 	    Rast_get_row(in_dir_fd, dir_rows[2], r + 2, CELL_TYPE);
-	    Rast_get_row(in_elev_fd, tmp_buffer, r + 2, elev_map_type);
-
-	    for (c = 0; c < ncols; ++c)
-		elev_rows[2][c] =
-		    Rast_get_d_value(tmp_buffer + c * elev_data_size,
-				     elev_map_type);
+	    Rast_get_row(in_elev_fd, elev_rows[2], r + 2, DCELL_TYPE);
 	}
     }
     G_percent(r, nrows, 2);
 
-    if (out_differnce_opt->answer) {
+    if (out_difference_opt->answer) {
 	G_free(out_difference_buf);
 	Rast_close(out_difference_fd);
-	Rast_short_history(out_differnce_opt->answer, "raster", &history);
+	Rast_short_history(out_difference_opt->answer, "raster", &history);
 	Rast_command_history(&history);
-	Rast_write_history(out_differnce_opt->answer, &history);
+	Rast_write_history(out_difference_opt->answer, &history);
     }
 
     if (out_gradient_opt->answer) {
@@ -278,6 +268,7 @@ DCELL calculate_difference(int r, int c)
 
     if (NOT_IN_REGION(d))
 	return 0.;
+
     return elev_rows[r][c] - elev_rows[NR(d)][NC(d)];
 }
 
@@ -358,7 +349,6 @@ DCELL calculate_max_curvature(int r, int c)
 DCELL calculate_min_curvature(int r, int c)
 {
     int i, j = 0, d;
-    /* int next_r, next_c; */
     double easting, northing, next_easting, next_northing;
     double elev_min = 9999;
     double diff_up, diff_down, diff_elev, first_derivative, second_derivative;
@@ -402,7 +392,7 @@ DCELL calculate_min_curvature(int r, int c)
     distance = distance_up + distance_down;
     first_derivative = diff_elev / distance;
     second_derivative = (diff_up - diff_down) / distance;
+
     return second_derivative / pow((1 + first_derivative * first_derivative),
 				   1.5);
-
 }
