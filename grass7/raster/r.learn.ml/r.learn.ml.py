@@ -248,8 +248,15 @@
 #%end
 
 #%flag
+#% key: n
+#% label: Use nested cross validation
+#% description: Use nested cross validation as part of hyperparameter tuning
+#% guisection: Cross validation
+#%end
+
+#%flag
 #% key: f
-#% label: Estimator permutation-based feature importances
+#% label: Estimate permutation-based feature importances
 #% description: Estimate feature importance using a permutation-based method
 #% guisection: Cross validation
 #%end
@@ -423,6 +430,11 @@ def cleanup():
     for rast in tmp_rast:
         gscript.run_command("g.remove", name=rast, type='raster', flags='f', quiet=True)
 
+def warn(*args, **kwargs):
+    pass
+
+import warnings
+warnings.warn = warn
 
 def main():
     try:
@@ -436,9 +448,7 @@ def main():
         from sklearn.pipeline import Pipeline
         from sklearn.utils import shuffle
         from sklearn import metrics
-        from sklearn.metrics import make_scorer, confusion_matrix
-        import warnings
-        warnings.filterwarnings('ignore')
+        from sklearn.metrics import make_scorer
     except:
         gscript.fatal("Scikit learn 0.18 or newer is not installed")
 
@@ -479,6 +489,7 @@ def main():
     tune_only = flags['t']
     predict_resamples = flags['r']
     importances = flags['f']
+    nested_cv = flags['n']
     n_permutations = int(options['n_permutations'])
     errors_file = options['errors_file']
     preds_file = options['preds_file']
@@ -776,6 +787,8 @@ def main():
             if param_file != '':
                 param_df = pd.DataFrame(clf.cv_results_)
                 param_df.to_csv(param_file)
+            if nested_cv is False:
+                clf = clf.best_estimator_
 
         # ---------------------------------------------------------------------
         # cross-validation

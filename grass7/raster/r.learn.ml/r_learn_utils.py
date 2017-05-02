@@ -243,17 +243,12 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
     trains, tests = [], []
     for train_indices, test_indices in k_fold:
-        trains.append(deepcopy(train_indices))
-        tests.append(deepcopy(test_indices))
+        trains.append(train_indices)
+        tests.append(test_indices)
 
     # -------------------------------------------------------------------------
     # Perform multiprocessing fitting of clf on each fold
     # -------------------------------------------------------------------------
-
-    # Multiprocessing-backed parallel loops cannot be nested, setting n_jobs=1
-    if isinstance(clf, (GridSearchCV, RandomizedSearchCV)):
-        n_jobs = 1
-        print(n_jobs)
 
     clf_resamples = Parallel(n_jobs=n_jobs)(
         delayed(parallel_fit)(clf, X, y, groups, train_indices,
