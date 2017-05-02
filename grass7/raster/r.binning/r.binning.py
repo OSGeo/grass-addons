@@ -3,7 +3,7 @@
 ############################################################################
 #
 # MODULE:    r.binning
-# AUTHOR(S): Vaclav Petras
+# AUTHOR(S): Vaclav Petras <wenzeslaus gmail com>
 # PURPOSE:
 # COPYRIGHT: (C) 2017 by Vaclav Petras and the GRASS Development Team
 #
@@ -30,7 +30,7 @@ import grass.script as gs
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     vector = options['input']
     layer = 1
