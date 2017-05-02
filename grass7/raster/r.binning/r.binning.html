@@ -1,0 +1,34 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.binning</em> bins points from a vector map into a raster map.
+
+<p>
+Use <em><a href="g.region.html">g.region</a></em> to set the extent and
+resolution of the resulting raster.
+
+
+<h2>EXAMPLES</h2>
+
+Calculate for current region the beam irradiance (direct radiation)
+for DOY 355 in 2014 from 8am to 3pm:
+
+<div class="code"><pre>
+g.region vect=elev_lid792_bepts res=10
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="g.region.html">g.region</a>,
+<a href="r.in.xyz.html">r.in.xyz</a>,
+<a href="r.in.lidar.html">r.in.lidar</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a>
+
+<p>
+<i>Last changed: $Date: 2017-04-14 18:20:35 -0400 (Fri, 14 Apr 2017) $</i>
