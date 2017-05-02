@@ -249,10 +249,11 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     # -------------------------------------------------------------------------
     # Perform multiprocessing fitting of clf on each fold
     # -------------------------------------------------------------------------
-    
+
     # Multiprocessing-backed parallel loops cannot be nested, setting n_jobs=1
     if isinstance(clf, (GridSearchCV, RandomizedSearchCV)):
         n_jobs = 1
+        print(n_jobs)
 
     clf_resamples = Parallel(n_jobs=n_jobs)(
         delayed(parallel_fit)(clf, X, y, groups, train_indices,
@@ -492,8 +493,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     from sklearn.ensemble import (
         RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier,
         ExtraTreesRegressor)
-    from sklearn.ensemble import GradientBoostingClassifier
-    from sklearn.ensemble import GradientBoostingRegressor
+    from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
     from sklearn.svm import SVC
     from sklearn.neighbors import KNeighborsClassifier
 
