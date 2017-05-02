@@ -7,7 +7,7 @@
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
 # PURPOSE:      Calculate the variance inflation factor of set of
 #               variables. The computation is done using an user defined number
-#               (or percentage) of random cells (default 10.000) as input. 
+#               (or percentage) of random cells (default 10.000) as input.
 #               The user can set a maximum VIF, in wich case the VIF will
 #               calculated again after removing the variables with the highest
 #               VIF. This will be repeated till the VIF falls below the user
@@ -91,7 +91,6 @@ import os
 import sys
 import math
 import numpy as np
-from scipy import stats
 import uuid
 import tempfile
 import atexit
