@@ -100,9 +100,34 @@ def varimp_permutation(estimator, X_test, y_true,
     return scores
 
 
+def parallel_fit(estimator, X, y, groups, train_indices, test_indices, sample_weight):
+
+    from sklearn.model_selection import (
+        RandomizedSearchCV, GridSearchCV, StratifiedKFold)
+
+    # create training and test folds
+    X_train, X_test = X[train_indices], X[test_indices]
+    y_train, y_test = y[train_indices], y[test_indices]
+    if groups is not None: groups_train = groups[train_indices]
+    else: groups_train = None
+
+    # subset training and test fold sample_weight
+    if sample_weight is not None: weights = sample_weight[train_indices]
+
+    # train estimator
+    if groups is not None and isinstance(estimator, (RandomizedSearchCV, GridSearchCV)) is True:
+        if sample_weight is None: estimator.fit(X_train, y_train, groups=groups_train)
+        else: estimator.fit(X_train, y_train, groups=groups_train, sample_weight=weights)
+    else:
+        if sample_weight is None: estimator.fit(X_train, y_train)
+        else: estimator.fit(X_train, y_train, sample_weight=weights)
+
+    return estimator
+
+
 def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                      scoring='accuracy', feature_importances=False,
-                     n_permutations=25, models=False, random_state=None):
+                     n_permutations=25, random_state=None, n_jobs=-1):
     """
     Stratified Kfold and GroupFold cross-validation using multiple
     scoring metrics and permutation feature importances
@@ -110,32 +135,46 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     Args
     ----
     estimator: Scikit learn estimator
-    X: 2D numpy array of training data
-    y: 1D numpy array representing response variable
+    X, y: 2D and 1D numpy array of training data and labels
     groups: 1D numpy array containing group labels
     sample_weight: 1D numpy array[n_samples,] of sample weights
     cv: Integer of cross-validation folds or sklearn.model_selection object
-    sampling: Over- or under-sampling object with fit_sample method
     scoring: List of performance metrics to use
     feature_importances: Boolean to perform permutation-based importances
     n_permutations: Number of permutations during feature importance
-    models: Boolean, return a list of the fitted models
     random_state: Seed to pass to the random number generator
+
+    Returns
+    -------
+    scores: Dict, containing lists of scores per cross-validation fold
+    byclass_scores: Dict, containing scores per class
+    fimp: 2D numpy array of permutation feature importances per feature
+    clf_resamples: List, fitted estimators
+    predictions: 2D numpy array with y_true, y_pred, fold
     """
 
     from sklearn import metrics
     from sklearn.model_selection import (
         RandomizedSearchCV, GridSearchCV, StratifiedKFold)
+    from sklearn.externals.joblib import Parallel, delayed
+
+    # -------------------------------------------------------------------------
+    # create copies of estimator and create cross-validation iterator
+    # -------------------------------------------------------------------------
 
     # deepcopy estimator
-    estimator = deepcopy(estimator)
-    fitted_models = []
+    clf = deepcopy(estimator)
 
     # create model_selection method
-    if isinstance(cv, int): cv = StratifiedKFold(n_splits=cv)
+    if isinstance(cv, int):
+        cv = StratifiedKFold(n_splits=cv)
 
+    # -------------------------------------------------------------------------
     # create dictionary of lists to store metrics
-    if isinstance(scoring, basestring): scoring = [scoring]
+    # -------------------------------------------------------------------------
+
+    if isinstance(scoring, basestring):
+        scoring = [scoring]
     scores = dict.fromkeys(scoring)
     scores = {key: [] for key, value in scores.iteritems()}
     scoring_methods = {'accuracy': metrics.accuracy_score,
@@ -162,7 +201,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                        'precision': metrics.precision_score,
                        'recall': metrics.recall_score}
 
-    # create diction to store byclass metrics results
+    # create dict to store byclass metrics results
     n_classes = len(np.unique(y))
     labels = np.unique(y)
     byclass_scores = dict.fromkeys(byclass_methods)
@@ -176,9 +215,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         try:
             list(scoring_methods.keys()).index(i)
         except:
-            print('Scoring ' + i + ' is not a valid scoring method')
-            print('Valid methods are:')
-            print(scoring_methods.keys())
+            gscript.fatal('Scoring ' + i + ' is not a valid scoring method')
+            gscript.message('Valid methods are:')
+            gscript.message(scoring_methods.keys())
 
     # set averaging type for global binary or multiclass scores
     if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
@@ -193,41 +232,48 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     else:
         fimp = None
 
-    # generate Kfold indices
+    # -------------------------------------------------------------------------
+    # extract cross-validation indices
+    # -------------------------------------------------------------------------
+
     if groups is None:
         k_fold = cv.split(X, y)
     else:
         k_fold = cv.split(X, y, groups=groups)
 
+    trains, tests = [], []
+    for train_indices, test_indices in k_fold:
+        trains.append(deepcopy(train_indices))
+        tests.append(deepcopy(test_indices))
+
+    # -------------------------------------------------------------------------
+    # Perform multiprocessing fitting of clf on each fold
+    # -------------------------------------------------------------------------
+    
+    # Multiprocessing-backed parallel loops cannot be nested, setting n_jobs=1
+    if isinstance(clf, (GridSearchCV, RandomizedSearchCV)):
+        n_jobs = 1
+
+    clf_resamples = Parallel(n_jobs=n_jobs)(
+        delayed(parallel_fit)(clf, X, y, groups, train_indices,
+                              test_indices, sample_weight)
+        for train_indices, test_indices in zip(trains, tests))
+
     # store predictions and indices
     predictions = np.zeros((len(y), 3)) # y_true, y_pred, fold
 
-    # train on k-1 folds and test of k folds
+    # -------------------------------------------------------------------------
+    # loop through each fold and calculate performance metrics
+    # -------------------------------------------------------------------------
     fold = 0
-    for train_indices, test_indices in k_fold:
+    for train_indices, test_indices in zip(trains, tests):
 
         # create training and test folds
         X_train, X_test = X[train_indices], X[test_indices]
         y_train, y_test = y[train_indices], y[test_indices]
-        if groups is not None: groups_train = groups[train_indices]
-        else: groups_train = None
-
-        # subset training and test fold sample_weight
-        if sample_weight is not None: weights = sample_weight[train_indices]
-
-        # train estimator
-        if groups is not None and isinstance(estimator, (RandomizedSearchCV, GridSearchCV)) is True:
-            if sample_weight is None: estimator.fit(X_train, y_train, groups=groups_train)
-            else: estimator.fit(X_train, y_train, groups=groups_train, sample_weight=weights)
-        else:
-            if sample_weight is None: estimator.fit(X_train, y_train)
-            else: estimator.fit(X_train, y_train, sample_weight=weights)
-
-        # optionally store the fitted models on each resample
-        if models is True: fitted_models.append(deepcopy(estimator))
 
         # prediction of test fold
-        y_pred = estimator.predict(X_test)
+        y_pred = clf_resamples[fold].predict(X_test)
         predictions[test_indices, 0] = y_test
         predictions[test_indices, 1] = y_pred
         predictions[test_indices, 2] = fold
@@ -236,7 +282,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         for m in scores.keys():
             # metrics that require probabilties
             if m == 'brier_loss' or m == 'roc_auc':
-                y_prob = estimator.predict_proba(X_test)[:, 1]
+                y_prob = clf_resamples[fold].predict_proba(X_test)[:, 1]
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_prob))
 
@@ -269,18 +315,18 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         if feature_importances is True:
             if bool((np.isnan(fimp)).all()) is True:
                 fimp = varimp_permutation(
-                    estimator, X_test, y_test, n_permutations,
+                    clf_resamples[fold], X_test, y_test, n_permutations,
                     scoring_methods[scoring[0]],
                     random_state)
             else:
                 fimp = np.row_stack(
                     (fimp, varimp_permutation(
-                        estimator, X_test, y_test,
+                        clf_resamples[fold], X_test, y_test,
                         n_permutations, scoring_methods[scoring[0]],
                         random_state)))
         fold += 1
 
-    return(scores, byclass_scores, fimp, fitted_models, predictions)
+    return(scores, byclass_scores, fimp, clf_resamples, predictions)
 
 
 def predict(estimator, predictors, output, predict_type='raw',
@@ -315,7 +361,10 @@ def predict(estimator, predictors, output, predict_type='raw',
             gscript.fatal("GRASS raster " + predictors[i] +
                           " does not exist.... exiting")
 
+    # -------------------------------------------------------------------------
     # Prediction using blocks of rows per iteration
+    # -------------------------------------------------------------------------
+
     for rowblock in range(0, current.rows, rowincr):
         gscript.percent(rowblock, current.rows, rowincr)
 
@@ -403,7 +452,9 @@ def predict(estimator, predictors, output, predict_type='raw',
                     newrow[:] = result_proba_class[row, :]
                     prob[iclass].put_row(newrow)
 
+    # -------------------------------------------------------------------------
     # close all maps
+    # -------------------------------------------------------------------------
     for i in range(n_features): rasstack[i].close()
     if predict_type == 'raw': classification.close()
     if predict_type == 'prob':

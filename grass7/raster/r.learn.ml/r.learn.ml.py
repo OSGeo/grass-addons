@@ -249,13 +249,15 @@
 
 #%flag
 #% key: f
-#% description: Calculate permutation importances during cross validation
+#% label: Estimator permutation-based feature importances
+#% description: Estimate feature importance using a permutation-based method
 #% guisection: Cross validation
 #%end
 
 #%flag
 #% key: r
 #% label: Make predictions for cross validation resamples
+#% description: Produce raster predictions for all cross validation resamples
 #% guisection: Cross validation
 #%end
 
@@ -672,7 +674,6 @@ def main():
                 inner = ShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
             else:
                 inner = GroupShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
-
         else:
             inner = None
 
@@ -802,10 +803,10 @@ def main():
                 # perform the cross-validatation
                 scores, cscores, fimp, models, preds = cross_val_scores(
                     clf, X, y, group_id, class_weights, outer, scoring,
-                    importances, n_permutations, predict_resamples, random_state)
+                    importances, n_permutations, random_state, n_jobs)
+
                 preds = np.hstack((preds, sample_coords))
 
-                # global scores
                 for method, val in scores.iteritems():
                     gscript.message(
                         method+":\t%0.3f\t+/-SD\t%0.3f" %
