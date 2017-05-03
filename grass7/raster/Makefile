@@ -74,6 +74,7 @@ SUBDIRS = \
 	r.neighborhoodmatrix \
 	r.niche.similarity \
 	r.northerness.easterness \
+	r.object.activelearning \
 	r.object.geometry \
 	r.object.spatialautocor \
 	r.out.arc \
