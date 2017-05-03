@@ -889,27 +889,27 @@ def main():
         if prob_only is False:
             gscript.message('Predicting classification/regression raster...')
             predict(estimator=clf, predictors=maplist, output=output,
-                    predict_type='raw', rowincr=rowincr)
+                    predict_type='raw', rowincr=rowincr, n_jobs=n_jobs)
 
             if predict_resamples is True:
                 for i in range(cv):
                     resample_name = output + '_Resample' + str(i)
                     predict(estimator=models[i], predictors=maplist,
                             output=resample_name, predict_type='raw',
-                            rowincr=rowincr)
+                            rowincr=rowincr, n_jobs=n_jobs)
 
         # predict class probabilities
         if probability is True:
             gscript.message('Predicting class probabilities...')
             predict(estimator=clf, predictors=maplist, output=output, predict_type='prob',
-                    index=indexes, rowincr=rowincr)
+                    index=indexes, rowincr=rowincr, n_jobs=n_jobs)
 
             if predict_resamples is True:
                 for i in range(cv):
                     resample_name = output + '_Resample' + str(i)
                     predict(estimator=models[i], predictors=maplist,
                             output=resample_name, predict_type='prob',
-                            index=indexes, rowincr=rowincr)
+                            index=indexes, rowincr=rowincr, n_jobs=n_jobs)
     else:
         gscript.message("Model built and now exiting")
 
