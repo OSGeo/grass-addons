@@ -73,11 +73,7 @@ import subprocess
 from itertools import izip
 import grass.script as grass
 
-# pyproj
-try:
-    import pyproj
-except ImportError:
-    grass.fatal(_("pyproj not found, install it first: pip install pyproj (https://jswhit.github.io/pyproj)"))
+# pyproj lazy imported at the end of the file
 
 # PID for temporary files
 unique = str(os.getpid()) 
@@ -219,6 +215,17 @@ def main():
 #run the module
 if __name__ == "__main__":
     options, flags = grass.parser()
+
+    # lazy import
+    # TODO: ideally, it should be done only if reprojection is needed
+    # or replace by pure GRASS GIS if pyproj not available
+    try:
+        import pyproj
+    except ImportError:
+        grass.fatal(_("pyproj not found, install it first, e.g.:"
+                      " pip install pyproj"
+                      " (https://jswhit.github.io/pyproj)"))
+
     atexit.register(cleanup)
     check_requirements()
     main()
