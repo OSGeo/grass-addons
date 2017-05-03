@@ -127,13 +127,7 @@ from grass.exceptions import OpenError
 from grass.pygrass.gis.region import Region
 
 import numpy as np
-try:
-    from scipy.signal import savgol_filter
-except ImportError:
-    grass.error("Cannot import savgol_filter from scipy. Install python-scipy version 0.14 or later package first")
-    sys.exit(1)
-from scipy.signal import medfilt
-
+# lazy import scipy at the end of the file
 
 CNULL = -2147483648  # null value for CELL maps
 FNULL = np.nan       # null value for FCELL and DCELL maps
@@ -447,4 +441,14 @@ def main(options, flags):
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+
+    # import only after the parser finished and the code actually runs
+    try:
+        from scipy.signal import savgol_filter
+    except ImportError:
+        grass.fatal("Cannot import savgol_filter from scipy."
+                    " Install python-scipy package version"
+                    " 0.14 or later first")
+    from scipy.signal import medfilt
+
     main(options, flags)
