@@ -18,10 +18,11 @@
  *                                                         *
  ************************************************************/
 
-#include <grass/gis.h>
-#include <grass/config.h>
 #include "patch.h"
 
+#include <grass/gis.h>
+#include <grass/config.h>
+#include <grass/raster.h>
 
 
 /* DEFINE GLOBAL VARIABLES */

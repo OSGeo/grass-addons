@@ -34,6 +34,8 @@
 #include <grass/gis.h>
 
 #define  SML   0.5
+// undefine library's MIN macro
+#undef MIN
 #define  MIN   2
 #define  EQ(a, b)    (a-b < 0.01 && a-b > -0.01 )
 #define  BIG   1000000000.0

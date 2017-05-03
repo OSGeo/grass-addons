@@ -29,6 +29,8 @@
 
 #define EQ(a, b)    (a-b < 0.01 && a-b > -0.01 )
 #define BIG   500000000.0
+// undefine library's macro
+#undef MIN
 #define MIN   5
 #define NULLPTR (PATCH *) 0
 

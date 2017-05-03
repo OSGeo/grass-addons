@@ -28,6 +28,8 @@
 #include <grass/gis.h>
 
 #define  BIG   1000000000.0
+// undefine library's macro
+#undef MAX
 #define  MAX   800
 
 typedef struct __dirdesc
