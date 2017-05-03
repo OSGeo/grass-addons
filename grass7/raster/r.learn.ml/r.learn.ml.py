@@ -237,7 +237,7 @@
 #% key: n_permutations
 #% type: integer
 #% description: Number of permutations to perform for feature importances
-#% answer: 50
+#% answer: 10
 #% guisection: Cross validation
 #%end
 
@@ -410,7 +410,6 @@
 from __future__ import absolute_import
 import atexit
 import os
-import itertools
 from copy import deepcopy
 import numpy as np
 
@@ -419,10 +418,10 @@ import grass.script as gscript
 from grass.pygrass.modules.shortcuts import raster as r
 
 set_path('r.learn.ml')
-from r_learn_utils import (
-    cross_val_scores, predict, model_classifiers, save_training_data,
-    load_training_data, extract, maps_from_group, extract_points)
-
+from rlearn_crossval import cross_val_scores
+from rlearn_rasters import predict, extract, extract_points
+from rlearn_utils import (
+    model_classifiers, save_training_data, load_training_data, maps_from_group)
 
 tmp_rast = []
 
