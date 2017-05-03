@@ -108,7 +108,7 @@
 #%end
 
 # import library
-import os, sys, pexpect, tarfile, ast, tempfile, getpass, itertools, collections, stat
+import os, sys, tarfile, ast, tempfile, getpass, itertools, collections, stat
 from types import *
 import grass.script as grass
 
@@ -126,10 +126,8 @@ python = os.getenv('GRASS_PYTHON', 'python')
 if cloudpath:
     sys.path.append(cloudpath)
 
-try:
-    import cloud_ssh as sshs
-except ImportError:
-    pass
+# lazy imports cloud_ssh
+
 
 def transposed(lists):
     """ Function to transpose list of variables """
@@ -291,6 +289,8 @@ def main():
 	    return 0
     # server option
     server = options['server']
+    # lazy import
+    import cloud_ssh as sshs
     # create the sshs session
     ssh_conn = sshs.ssh_session(user, server, session_path, passwd)
     if flags['a']:
