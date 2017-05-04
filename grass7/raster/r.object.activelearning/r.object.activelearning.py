@@ -95,6 +95,11 @@
 #%end
 
 
+try : # You can run the tests outside of grass where those imports are not available
+	import grass as grass
+	import grass.script as gcore
+except ImportError :
+	pass
 
 try :
 	from sklearn import svm
@@ -105,12 +110,6 @@ try :
 	from sklearn.metrics.pairwise import rbf_kernel
 except ImportError :
 	gcore.fatal("This module requires the scikit-learn python package. Please install it.")
-
-try : # You can run the tests outside of grass where those imports are not available
-	import grass as grass
-	import grass.script as gcore
-except ImportError :
-	pass
 
 import numpy as np 
 import scipy 
