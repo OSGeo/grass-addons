@@ -84,6 +84,11 @@
 #% description: String of the form "( 1 0 1 0 )" to choose a subset of HDF layers to import
 #% required: no
 #%end
+#%option G_OPT_F_OUTPUT
+#% key: outfile
+#% description: Full path to output file to use in t.register
+#% required: no
+#%end
 
 import os
 import sys
@@ -520,7 +525,9 @@ def main():
     else:
         count = 0
     outfile = None
-    if flags['w'] and count == 1:
+    if options['outfile']:
+        outfile = options['outfile']
+    elif flags['w'] and not options['outfile'] and count == 1:
         outfile = tempfile.NamedTemporaryFile(delete=False)
     elif flags['w'] and count != 1:
         grass.warning(_("To use correctly the file in t.rast.import you have "
