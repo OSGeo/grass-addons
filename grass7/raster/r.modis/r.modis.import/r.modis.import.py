@@ -527,7 +527,7 @@ def main():
         count = 0
     outfile = None
     if options['outfile']:
-        outfile = options['outfile']
+        outfile = open(options['outfile'], 'w')
     elif flags['w'] and not options['outfile'] and count == 1:
         outfile = tempfile.NamedTemporaryFile(delete=False)
     elif flags['w'] and count != 1:
