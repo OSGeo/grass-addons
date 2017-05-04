@@ -78,11 +78,11 @@ r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 
 <p>
 Import of a single subset of layers (i.e.: spectral="( 1 )") from each file from a
-list and write a file to be used in <em>t.register</em> to create a temporal
+list and write an  <em>outfile</em> to be used in <em>t.register</em> to create a temporal
 dataset. This option uses GDAL:
 
 <div class="code"><pre>
-r.modis.import -wq files=/path/to/listfile spectral="( 1 )"
+r.modis.import -wq files=/path/to/listfile spectral="( 1 )" outfile=/path/to/list_for_tregister.csv
 </pre></div>
 
 <h3>Import of global MODIS NDVI data</h3>
@@ -95,12 +95,13 @@ and imported as follows in a latitude-longitude GRASS GIS location:
 r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
   startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
 # import band 1 = NDVI
-r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" method=bilinear -w
+r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" \
+  method=bilinear outfile=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv -w
 # create empty temporal DB
 t.create type=strds temporaltype=absolute output=ndvi_16_5600m title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
-# register datasets (tempfile name is provided by r.modis.import -w
-t.register input=ndvi_16_5600m file=$USER/tmp/grass7-user-5370/tmp_rGPcg
+# register datasets (tempfile name is provided by r.modis.import -w with outfile
+t.register input=ndvi_16_5600m file=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv
 
 # verify and visualize timeline
 t.rast.list ndvi_16_5600m
@@ -136,7 +137,7 @@ for m in `g.list rast pat=*2016*LST_Day_1km` ; do
  # get name of product and date from filenames
  i=`echo $m | cut -c 1-16`
  # apply qa flags
- r.mapcalc --o expression="${m} = if(${i}_mosaic_QC_Day_mandatory_qa < 2, ${m}, null())"
+ r.mapcalc --o expression="${m} = if(${i}_mosaic_QC_Day_mandatory_qa &lt; 2, ${m}, null())"
 done
 </pre></div>
 
@@ -167,13 +168,13 @@ end time written by <em>r.modis.import</em> with the <em>w</em> flag.
 # r.modis.download (see above) and get a list of the imported files along with
 # dates to use with t.register in the temporal framework
 r.modis.import -mw files=$HOME/listfileMOD11A1.006.txt \
- spectral="( 1 0 0 0 0 0 0 0 0 0 0 0 )"
+ spectral="( 1 0 0 0 0 0 0 0 0 0 0 0 )" outfile=$HOME/list_for_tregister.csv
 
 # Create time series and register maps
 t.create type=strds temporaltype=absolute output=LST_Day_daily \
  title="Daily LST Day 1km" \
  description="Daily LST Day 1km MOD11A1.006, December 2016"
-t.register input=LST_Day_daily file=$HOME/tmp/grass7-user-5370/tmp_rGPcg
+t.register input=LST_Day_daily file=$HOME/list_for_tregister.csv
 </pre></div>
 
 <h2>SEE ALSO</h2>

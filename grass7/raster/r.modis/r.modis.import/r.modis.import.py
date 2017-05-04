@@ -17,7 +17,8 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#   -  MRT tools, https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool
+#   - either MRT tools, https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool
+#   - or GDAL
 #
 #############################################################################
 
@@ -41,7 +42,7 @@
 #%end
 #%flag
 #% key: w
-#% description: Create a text file to use into t.register
+#% description: Create a text file to use for import into t.register
 #%end
 #%flag
 #% key: l
@@ -86,7 +87,7 @@
 #%end
 #%option G_OPT_F_OUTPUT
 #% key: outfile
-#% description: Full path to output file to use in t.register
+#% description: Full path to output file to use for import into t.register
 #% required: no
 #%end
 
