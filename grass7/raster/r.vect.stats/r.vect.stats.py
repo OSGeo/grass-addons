@@ -36,8 +36,10 @@
 #% guisection: Attributes
 #%end
 
-import grass.script as gs
+import sys
 
+import grass.script as gs
+from grass.exceptions import CalledModuleError
 
 def main():
     options, flags = gs.parser()
@@ -49,12 +51,24 @@ def main():
     z = 3
     sep = 'pipe'
     out_args = {}
+
+    if not gs.find_file(vector, element='vector')['fullname']:
+        gs.fatal('Vector map <{0}> not found'.format(vector))
+
     if options['column']:
         method = options['method']
         z = 4
         out_args['column'] = options['column']
-        out_args['where'] = '{} IS NOT NULL'.format(options['column'])
-        
+        out_args['where'] = '{0} IS NOT NULL'.format(options['column'])
+
+        columns = gs.vector_columns(vector)
+
+        if options['column'] not in columns:
+            gs.fatal(_('Column <{0}> not found'.format(options['column']))) 
+        if columns[options['column']]['type'] not in ('INTEGER', 'DOUBLE PRECISION'):
+            gs.fatal(_('Column <{0}> is not numeric'.format(options['column']))) 
+
+
     out_process = gs.pipe_command(
         'v.out.ascii', input=vector, layer=layer, format='point',
         separator=sep, **out_args)
@@ -64,6 +78,7 @@ def main():
     in_process.communicate()
     out_process.wait()
 
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
