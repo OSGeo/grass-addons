@@ -47,13 +47,16 @@ def main():
     method = 'n'
     z = 3
     sep = 'pipe'
+    out_args = {}
     if options['column']:
         method = options['method']
         z = 4
-
+        out_args['column'] = options['column']
+        out_args['where'] = '{} IS NOT NULL'.format(options['column'])
+        
     out_process = gs.pipe_command(
         'v.out.ascii', input=vector, layer=layer, format='point',
-        column=options['column'], separator=sep)
+        separator=sep, **out_args)
     in_process = gs.start_command(
         'r.in.xyz', input='-', output=raster, method=method, z=z,
         separator=sep, stdin=out_process.stdout)
