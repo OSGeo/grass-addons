@@ -25,7 +25,15 @@
 #%end
 #%option G_OPT_R_OUTPUT
 #%end
-
+#%option G_OPT_DB_COLUMN
+#% description: Name of attribute column for statistics
+#%end
+#%option
+#% key: method
+#% description: Statistic to use for attribute column
+#% options: min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
+#% answer: mean
+#%end
 
 import grass.script as gs
 
@@ -36,14 +44,18 @@ def main():
     vector = options['input']
     layer = 1
     raster = options['output']
-    method = 'mean'
+    method = 'n'
+    z = 3
     sep = 'pipe'
+    if options['column']:
+        method = options['method']
+        z = 4
 
     out_process = gs.pipe_command(
         'v.out.ascii', input=vector, layer=layer, format='point',
-        separator=sep)
+        column=options['column'], separator=sep)
     in_process = gs.start_command(
-        'r.in.xyz', input='-', output=raster, method=method,
+        'r.in.xyz', input='-', output=raster, method=method, z=z,
         separator=sep, stdin=out_process.stdout)
     in_process.communicate()
     out_process.wait()
