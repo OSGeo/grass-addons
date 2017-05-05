@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:    r.binning
+# MODULE:    r.vect.stats
 # AUTHOR(S): Vaclav Petras <wenzeslaus gmail com>
 # PURPOSE:
 # COPYRIGHT: (C) 2017 by Vaclav Petras and the GRASS Development Team
@@ -14,12 +14,11 @@
 #############################################################################
 
 #%module
-#% description: Bin vector points into a raster map
+#% description: Bins vector points into a raster map.
 #% keyword: raster
 #% keyword: vector
 #% keyword: points
 #% keyword: binning
-#% overwrite: yes
 #%end
 #%option G_OPT_V_INPUT
 #%end
