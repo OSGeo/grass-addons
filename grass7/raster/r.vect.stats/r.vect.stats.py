@@ -18,6 +18,7 @@
 #% keyword: raster
 #% keyword: vector
 #% keyword: points
+#% keyword: binning
 #% overwrite: yes
 #%end
 #%option G_OPT_V_INPUT
