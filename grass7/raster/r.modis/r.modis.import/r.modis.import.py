@@ -42,7 +42,7 @@
 #%end
 #%flag
 #% key: w
-#% description: Create a text file to use for import into t.register
+#% description: Create a text file to use with t.register
 #%end
 #%flag
 #% key: l
@@ -87,7 +87,7 @@
 #%end
 #%option G_OPT_F_OUTPUT
 #% key: outfile
-#% description: Full path to output file to use for import into t.register
+#% description: Full path to output file to use with t.register
 #% required: no
 #%end
 

@@ -77,8 +77,9 @@ r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
 <p>
-Import of a single subset of layers (i.e.: spectral="( 1 )") from each file from a
-list and write an  <em>outfile</em> to be used in <em>t.register</em> to create a temporal
+Import of a single subset of layers (i.e.: spectral="( 1 )") from each file of a
+list and write an <em>outfile</em> to be used with <em>t.register</em> to assign
+timestamps to maps in the temporal database and register them in a spacetime 
 dataset. This option uses GDAL:
 
 <div class="code"><pre>
@@ -100,7 +101,8 @@ r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectra
 # create empty temporal DB
 t.create type=strds temporaltype=absolute output=ndvi_16_5600m title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
-# register datasets (tempfile name is provided by r.modis.import -w with outfile
+# register maps within spacetime datasets (the file name is provided by
+# r.modis.import using -w flag and outfile option)
 t.register input=ndvi_16_5600m file=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv
 
 # verify and visualize timeline
@@ -141,7 +143,7 @@ for m in `g.list rast pat=*2016*LST_Day_1km` ; do
 done
 </pre></div>
 
-Create the time series (i.e.: temporal database) and register maps:
+Create the time series (i.e.: spacetime dataset) and register maps in it:
 
 <div class="code"><pre>
 t.create type=strds temporaltype=absolute output=LST_Day_daily \
@@ -161,7 +163,7 @@ g.gui.timeline LST_Day_daily
 
 <p>
 It is also possible to create a time series using the list of maps with start and
-end time written by <em>r.modis.import</em> with the <em>w</em> flag.
+end time written by <em>r.modis.import</em> with the <em>w</em> flag and outfile option.
 
 <div class="code"><pre>
 # Import mosaics of LST Day for all dates using the list of downloaded files from 
