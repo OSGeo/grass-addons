@@ -71,7 +71,7 @@ def main():
 
     out_process = gs.pipe_command(
         'v.out.ascii', input=vector, layer=layer, format='point',
-        separator=sep, **out_args)
+        separator=sep, flags='r', **out_args)
     in_process = gs.start_command(
         'r.in.xyz', input='-', output=raster, method=method, z=z,
         separator=sep, stdin=out_process.stdout)
