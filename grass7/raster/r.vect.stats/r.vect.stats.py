@@ -26,12 +26,14 @@
 #%end
 #%option G_OPT_DB_COLUMN
 #% description: Name of attribute column for statistics
+#% guisection: Attributes
 #%end
 #%option
 #% key: method
 #% description: Statistic to use for attribute column
 #% options: min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
 #% answer: mean
+#% guisection: Attributes
 #%end
 
 import grass.script as gs
