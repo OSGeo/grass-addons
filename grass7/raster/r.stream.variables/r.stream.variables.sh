@@ -22,7 +22,10 @@
 
 #%Module
 #% description: Calculation of contiguous stream-specific variables that account for the upstream environment (based on r.stream.watersheds).
-#% keywords: drainage, stream, hydrology
+#% keyword: raster
+#% keyword: stream
+#% keyword: drainage
+#% keyword: hydrology
 #%End
 
 #%option

@@ -23,7 +23,10 @@
 
 #%Module
 #% description: Sub-watershed and sub-stream delineation based on the drainage direction and a gridded stream network.
-#% keywords: drainage, stream, hydrology
+#% keyword: raster
+#% keyword: stream
+#% keyword: drainage
+#% keyword: hydrology
 #%End
 
 #%option
