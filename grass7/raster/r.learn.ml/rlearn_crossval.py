@@ -136,9 +136,6 @@ def __parallel_fit(estimator, X, y, groups, train_indices, test_indices, sample_
                     applied only to XGBoost and Gradient Boosting classifiers
     """
 
-    from sklearn.model_selection import (
-        RandomizedSearchCV, GridSearchCV, StratifiedKFold)
-
     # create training and test folds
     X_train, X_test = X[train_indices], X[test_indices]
     y_train, y_test = y[train_indices], y[test_indices]
@@ -149,7 +146,7 @@ def __parallel_fit(estimator, X, y, groups, train_indices, test_indices, sample_
     if sample_weight is not None: weights = sample_weight[train_indices]
 
     # train estimator
-    if groups is not None and isinstance(estimator, (RandomizedSearchCV, GridSearchCV)) is True:
+    if groups is not None and type(estimator).__name__ in ['RandomizedSearchCV', 'GridSearchCV']:
         if sample_weight is None: estimator.fit(X_train, y_train, groups=groups_train)
         else: estimator.fit(X_train, y_train, groups=groups_train, sample_weight=weights)
     else:

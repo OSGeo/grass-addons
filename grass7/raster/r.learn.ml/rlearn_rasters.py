@@ -201,72 +201,187 @@ def predict(estimator, predictors, output, predict_type='raw',
                           " does not exist.... exiting")
 
     # -------------------------------------------------------------------------
-    # parallel prediction
+    # turn off multiprocessing for multi-threaded classifiers
     # -------------------------------------------------------------------------
 
-    # create lists of row increments
-    row_mins, row_maxs = [], []
-    for row in range(0, current.rows, rowincr):
-        if row+rowincr > current.rows:
-            rowincr = current.rows - row
-        row_mins.append(row)
-        row_maxs.append(row+rowincr)
+    # first unwrap the estimator from any potential pipelines or gridsearchCV
+    if type(estimator).__name__ == 'Pipeline':
+        clf_type = estimator.named_steps['classifier']
+    else:
+        clf_type = estimator
 
-    # perform predictions on lists of row increments in parallel
-    predictions = Parallel(n_jobs=n_jobs)(
-        delayed(__predict_parallel)
-        (estimator, predictors, predict_type, current, row_min, row_max)
-        for row_min, row_max in zip(row_mins, row_maxs))
+    if type(clf_type).__name__ == 'GridSearchCV' or \
+        type(clf_type).__name__ == 'RandomizedSearchCV':
+        clf_type = clf_type.best_estimator_
 
-    # unpack the results
-    results = []
-    ftypes = []
-    for block in predictions:
-        results.append(block[0])
-        ftypes.append(block[1])
+    # check name against already multithreaded classifiers
+    if n_jobs == 1 or type(clf_type).__name__ in ['RandomForestClassifier',
+                                                  'RandomForestRegressor',
+                                                  'ExtraTreesClassifier',
+                                                  'ExtraTreesRegressor',
+                                                  'KNeighborsClassifier',
+                                                  'XGBClassifier',
+                                                  'XGBRegressor']:
+        # ---------------------------------------------------------------------
+        # sequential prediction
+        # ---------------------------------------------------------------------
 
-    # -------------------------------------------------------------------------
-    #  writing of predicted results for classification
-    # -------------------------------------------------------------------------
-    if predict_type == 'raw':
-        classification = RasterRow(output)
-        classification.open('w', ftypes[0], overwrite=True)
+        # Prediction using blocks of rows per iteration
+        for rowblock in range(0, current.rows, rowincr):
+            gscript.percent(rowblock, current.rows, rowincr)
 
-        # write the classification result
-        for result_block in results:
-            for row in range(result_block.shape[0]):
-                newrow = Buffer((result_block.shape[1],), mtype=ftypes[0])
-                newrow[:] = result_block[row, :]
-                classification.put_row(newrow)
+            # check that the row increment does not exceed the number of rows
+            if rowblock+rowincr > current.rows:
+                rowincr = current.rows - rowblock
+            img_np_row = np.zeros((rowincr, current.cols, n_features))
 
-    # -------------------------------------------------------------------------
-    # writing of predicted results for probabilities
-    # -------------------------------------------------------------------------
-    if predict_type == 'prob':
-        # determine number of classes
-        if index is None:
-            index = range(results[0].shape[2])
-            n_classes = len(index)
-        else:
-            n_classes = len(np.unique(index))
+            # loop through each row, and each band and add to 2D img_np_row
+            for row in range(rowblock, rowblock+rowincr, 1):
+                for band in range(n_features):
+                    img_np_row[row-rowblock, :, band] = \
+                        np.array(rasstack[band][row])
 
-        # create and open RasterRow objects for probabilities
-        prob_out_raster = [0] * n_classes
-        prob = [0] * n_classes
-        for iclass, label in enumerate(index):
-            prob_out_raster[iclass] = output + '_classPr' + str(label)
-            prob[iclass] = RasterRow(prob_out_raster[iclass])
-            prob[iclass].open('w', 'FCELL', overwrite=True)
+            # create mask
+            img_np_row[img_np_row == -2147483648] = np.nan
+            mask = np.zeros((img_np_row.shape[0], img_np_row.shape[1]))
+            for feature in range(n_features):
+                invalid_indexes = np.nonzero(np.isnan(img_np_row[:, :, feature]))
+                mask[invalid_indexes] = np.nan
 
-        # write the class probability results
-        for results_proba_block in results:
+            # reshape each row-band matrix into a n*m array
+            nsamples = rowincr * current.cols
+            flat_pixels = img_np_row.reshape((nsamples, n_features))
+
+            # remove NaNs prior to passing to scikit-learn predict
+            flat_pixels = np.nan_to_num(flat_pixels)
+
+            # perform prediction for classification/regression
+            if predict_type == 'raw':
+                result = estimator.predict(flat_pixels)
+                result = result.reshape((rowincr, current.cols))
+
+                # determine nodata value and grass raster type
+                if result.dtype == 'float':
+                    nodata = np.nan
+                    ftype = 'FCELL'
+                else:
+                    nodata = -2147483648
+                    ftype = 'CELL'
+
+                # replace NaN values so that the prediction does not have a border
+                result[np.nonzero(np.isnan(mask))] = nodata
+
+                # on first iteration create the RasterRow object
+                if rowblock == 0:
+                    if predict_type == 'raw':
+                        classification = RasterRow(output)
+                        classification.open('w', ftype, overwrite=True)
+
+                # write the classification result
+                for row in range(rowincr):
+                    newrow = Buffer((result.shape[1],), mtype=ftype)
+                    newrow[:] = result[row, :]
+                    classification.put_row(newrow)
+
+            # perform prediction for class probabilities
+            if predict_type == 'prob':
+                result_proba = estimator.predict_proba(flat_pixels)
+
+                # on first loop determine number of probability classes
+                # and open rasterrow objects for writing
+                if rowblock == 0:
+                    if index is None:
+                        index = range(result_proba.shape[1])
+                        n_classes = len(index)
+                    else:
+                        n_classes = len(np.unique(index))
+
+                    # create and open RasterRow objects for probabilities
+                    prob_out_raster = [0] * n_classes
+                    prob = [0] * n_classes
+                    for iclass, label in enumerate(index):
+                        prob_out_raster[iclass] = output + '_classPr' + str(label)
+                        prob[iclass] = RasterRow(prob_out_raster[iclass])
+                        prob[iclass].open('w', 'FCELL', overwrite=True)
+
+                for iclass, label in enumerate(index):
+                    result_proba_class = result_proba[:, label]
+                    result_proba_class = result_proba_class.reshape((rowincr, current.cols))
+                    result_proba_class[np.nonzero(np.isnan(mask))] = np.nan
+
+                    for row in range(rowincr):
+                        newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
+                        newrow[:] = result_proba_class[row, :]
+                        prob[iclass].put_row(newrow)
+    else:
+
+        # ---------------------------------------------------------------------
+        # parallel prediction
+        # ---------------------------------------------------------------------
+
+        # create lists of row increments
+        row_mins, row_maxs = [], []
+        for row in range(0, current.rows, rowincr):
+            if row+rowincr > current.rows:
+                rowincr = current.rows - row
+            row_mins.append(row)
+            row_maxs.append(row+rowincr)
+
+        # perform predictions on lists of row increments in parallel
+        predictions = Parallel(n_jobs=n_jobs, max_nbytes=None)(
+            delayed(__predict_parallel)
+            (estimator, predictors, predict_type, current, row_min, row_max)
+            for row_min, row_max in zip(row_mins, row_maxs))
+
+        # unpack the results
+        results = []
+        ftypes = []
+        for block in predictions:
+            results.append(block[0])
+            ftypes.append(block[1])
+
+        # -------------------------------------------------------------------------
+        #  writing of predicted results for classification
+        # -------------------------------------------------------------------------
+        if predict_type == 'raw':
+            classification = RasterRow(output)
+            classification.open('w', ftypes[0], overwrite=True)
+
+            # write the classification result
+            for result_block in results:
+                for row in range(result_block.shape[0]):
+                    newrow = Buffer((result_block.shape[1],), mtype=ftypes[0])
+                    newrow[:] = result_block[row, :]
+                    classification.put_row(newrow)
+
+        # -------------------------------------------------------------------------
+        # writing of predicted results for probabilities
+        # -------------------------------------------------------------------------
+        if predict_type == 'prob':
+            # determine number of classes
+            if index is None:
+                index = range(results[0].shape[2])
+                n_classes = len(index)
+            else:
+                n_classes = len(np.unique(index))
+
+            # create and open RasterRow objects for probabilities
+            prob_out_raster = [0] * n_classes
+            prob = [0] * n_classes
             for iclass, label in enumerate(index):
-                result_proba_class = results_proba_block[:, :, label]
+                prob_out_raster[iclass] = output + '_classPr' + str(label)
+                prob[iclass] = RasterRow(prob_out_raster[iclass])
+                prob[iclass].open('w', 'FCELL', overwrite=True)
 
-                for row in range(result_proba_class.shape[0]):
-                    newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
-                    newrow[:] = result_proba_class[row, :]
-                    prob[iclass].put_row(newrow)
+            # write the class probability results
+            for results_proba_block in results:
+                for iclass, label in enumerate(index):
+                    result_proba_class = results_proba_block[:, :, label]
+
+                    for row in range(result_proba_class.shape[0]):
+                        newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
+                        newrow[:] = result_proba_class[row, :]
+                        prob[iclass].put_row(newrow)
 
     # -------------------------------------------------------------------------
     # close all maps
