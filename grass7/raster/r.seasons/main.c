@@ -50,7 +50,8 @@ static int cmp_dbl_hi(double a, double b)
 }
 
 static int get_season(double *val, char *isnull, double *ts, int i0,
-                      int n, double threshold, double minlen,
+                      int n, double threshold,
+		      double minlen, double maxgap,
 		      int *start1, int *start2,
 		      int *end1, int *end2)
 {
@@ -113,7 +114,7 @@ static int get_season(double *val, char *isnull, double *ts, int i0,
 	    else
 		blenout -= ts[i] - (ts[i + 1] - ts[i]) / 2.0;
 	    
-	    if (blenout >= minlen)
+	    if (blenout >= maxgap)
 		break;
 	}
     }
@@ -159,7 +160,7 @@ static int get_season(double *val, char *isnull, double *ts, int i0,
 	    else
 		blenout -= ts[startout] - (ts[startout + 1] - ts[startout]) / 2.0;
 	    
-	    if (blenout >= minlen)
+	    if (blenout >= maxgap)
 		break;
 	}
     }
@@ -177,7 +178,8 @@ int main(int argc, char *argv[])
 		      *ns,		/* number of seasons */
 		      *nsout,		/* output map for number of seasons */
 		      *threshold,	/* threshold to start/stop a season */
-		      *min;		/* minimum length in time to recognize a start/stop event */
+		      *min,		/* minimum length in time to recognize a season */
+		      *max;		/* maximum length in time to separate two seasons */
     } parm;
     struct
     {
@@ -195,7 +197,7 @@ int main(int argc, char *argv[])
     DCELL *values = NULL;
     int nrows, ncols;
     int row, col;
-    double minlen;
+    double minlen, maxgap;
     int ns, nsmax, nfound;
     double threshold;
     double *ts;
@@ -253,11 +255,18 @@ int main(int argc, char *argv[])
     parm.threshold->description = _("Threshold to start/stop a season");
 
     parm.min = G_define_option();
-    parm.min->key = "min";
+    parm.min->key = "min_length";
     parm.min->type = TYPE_DOUBLE;
     parm.min->required = YES;
-    parm.min->label = _("Minimum number of time steps");
+    parm.min->label = _("Minimum season length");
     parm.min->description = _("A season must be at least min long, otherwise the data are considered as noise");
+
+    parm.max = G_define_option();
+    parm.max->key = "max_gap";
+    parm.max->type = TYPE_DOUBLE;
+    parm.max->required = NO;
+    parm.max->label = _("Maximum gap length (default: min_length)");
+    parm.max->description = _("A gap must not be longer than max, otherwise the season is terminated");
 
     flag.lo = G_define_flag();
     flag.lo->key = 'l';
@@ -288,6 +297,14 @@ int main(int argc, char *argv[])
     minlen = atof(parm.min->answer);
     if (minlen <= 0)
 	G_fatal_error(_("Minimum season length must be positive"));
+
+    maxgap = minlen;
+    if (parm.max->answer) {
+	maxgap = atof(parm.max->answer);
+	if (maxgap <= 0)
+	    G_fatal_error(_("Maximum gap length must be positive"));
+    }
+
     threshold = atof(parm.threshold->answer);
 
     if (flag.lo->answer)
@@ -470,7 +487,8 @@ int main(int argc, char *argv[])
 	    nfound = 0;
 	    i0 = 0;
 	    while (get_season(values, isnull, ts, i0, num_inputs,
-		  threshold, minlen, &start1, &start2, &end1, &end2)) {
+		              threshold, minlen, maxgap,
+			      &start1, &start2, &end1, &end2)) {
 
 		i0 = end2 + 1;
 

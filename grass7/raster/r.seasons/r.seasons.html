@@ -1,20 +1,23 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.seasons</em> counts the number of seasons in a time series. A 
-season is defined as a time period of at least <em>min</em> length 
-where no value is below <em>threshold</em> (with the <em>-l</em> flag, 
-no value above <em>threshold</em>).
+season is defined as a time period of at least <em>min_length</em> 
+length where no value is below <em>threshold</em> (with the <em>-l</em> 
+flag, no value above <em>threshold</em>).
 
 <p>
 The <em>nout</em> output holds the number of detected seasons. Output 
 raster maps with the start and end dates of each season are produced 
-for at most <em>n</em> number of seasons. For each season, two start 
-dates and two end dates are determined. The start date start1 and the 
-end date end1 indicate the start and end of the core season, while the 
-start date start2 and the end date end2 indicate the start and end of 
-the full season including some gaps at the beginning and end of the 
-season. Gaps are shorter than <em>min</em>, that is, a season will not 
-include gaps equal or longer than <em>min</em>.
+for at most <em>n</em> number of seasons.
+
+<p>
+For each season, two start dates and two end dates are determined. The 
+start date start1 and the end date end1 indicate the start and end of 
+the core season, while the start date start2 and the end date end2 
+indicate the start and end of the full season including some gaps at 
+the beginning and end of the season. Gaps are shorter than 
+<em>max_gap</em>, that is, a season will not include gaps equal or 
+longer than <em>max_gap</em>.
 
 
 <h2>NOTES</h2>
@@ -95,7 +98,7 @@ the example.
 
 <div class="code"><pre>
 r.seasons input=`g.list rast pat=MOD13* sep=,` prefix=ndvi_season n=3 \
-  nout=ndvi_season threshold=3000 min=6
+  nout=ndvi_season threshold=3000 min_length=6
 
 # the outputs are: 
 g.list type=raster pattern=ndvi_season*
