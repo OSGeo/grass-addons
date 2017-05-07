@@ -79,12 +79,12 @@ static int get_season(double *val, char *isnull, double *ts, int i0,
 		blenin -= (ts[*start1 - 1] + ts[*start1]) / 2.0;
 	    else
 		blenin -= ts[*start1] - (ts[*start1 + 1] - ts[*start1]) / 2.0;
-	    
-	    if (blenin >= minlen)
-		break;
 	}
 	else {
-	    blenin = 0;
+	    if (blenin >= minlen)
+		break;
+	    else
+		blenin = 0;
 	}
     }
     if (blenin < minlen)
@@ -142,7 +142,7 @@ static int get_season(double *val, char *isnull, double *ts, int i0,
 		blenin -= ts[startin] - (ts[startin + 1] - ts[startin]) / 2.0;
 	    
 	    if (blenin >= minlen)
-		*end2 = i;
+		*end1 = i;
 	}
 	else {
 	    blenin = 0;
@@ -289,7 +289,6 @@ int main(int argc, char *argv[])
     if (minlen <= 0)
 	G_fatal_error(_("Minimum season length must be positive"));
     threshold = atof(parm.threshold->answer);
-
 
     if (flag.lo->answer)
 	cmp_dbl = cmp_dbl_lo;
@@ -468,7 +467,6 @@ int main(int argc, char *argv[])
 		values[i] = v;
 	    }
 
-
 	    nfound = 0;
 	    i0 = 0;
 	    while (get_season(values, isnull, ts, i0, num_inputs,
@@ -518,13 +516,10 @@ int main(int argc, char *argv[])
 	G_important_message(_("The number of output seasons (%d) is smaller than the maximum number of detected seasons (%d)."),
 	                    ns, nsmax);
 
-    /* close input maps */
-    for (i = 0; i < num_inputs; i++) {
-	struct input *in = &inputs[i];
-
-	if (!flag.lazy->answer)
-	    Rast_close(in->fd);
-
+    if (!flag.lazy->answer) {
+	/* close input maps */
+	for (i = 0; i < num_inputs; i++)
+	    Rast_close(inputs[i].fd);
     }
 
     /* close output maps */
