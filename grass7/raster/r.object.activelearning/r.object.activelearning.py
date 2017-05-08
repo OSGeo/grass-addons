@@ -101,16 +101,6 @@ try : # You can run the tests outside of grass where those imports are not avail
 except ImportError :
 	pass
 
-try :
-	from sklearn import svm
-	from sklearn import preprocessing
-	from sklearn.model_selection import train_test_split
-	from sklearn.model_selection import RandomizedSearchCV
-	from sklearn.model_selection import StratifiedKFold
-	from sklearn.metrics.pairwise import rbf_kernel
-except ImportError :
-	gcore.fatal("This module requires the scikit-learn python package. Please install it.")
-
 import numpy as np 
 import scipy 
 import os.path
@@ -534,6 +524,18 @@ def main() :
 	global diversity_lambda
 	global nbr_uncertainty
 	global search_iter
+
+        global svm, preprocessing, train_test_split, RandomizedSearchCV
+        global StratifiedKFold, rbf_kernel
+        try :
+                from sklearn import svm
+                from sklearn import preprocessing
+                from sklearn.model_selection import train_test_split
+                from sklearn.model_selection import RandomizedSearchCV
+                from sklearn.model_selection import StratifiedKFold
+                from sklearn.metrics.pairwise import rbf_kernel
+        except ImportError :
+                gcore.fatal("This module requires the scikit-learn python package. Please install it.")
 
 	learning_steps = int(options['learning_steps']) if options['learning_steps'] != '0' else 5
 	search_iter = int(options['search_iter']) if options['search_iter'] != '0' else 10					# Number of samples to label at each iteration
