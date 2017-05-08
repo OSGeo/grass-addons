@@ -57,7 +57,8 @@ SUBDIRS = \
 	v.surf.tps \
 	v.transects \
 	v.vol.idw \
-	v.stream.order
+	v.stream.order \
+	v.what.rast.multi
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
