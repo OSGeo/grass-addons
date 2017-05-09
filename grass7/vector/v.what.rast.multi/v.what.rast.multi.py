@@ -147,7 +147,7 @@ def main():
           raster=r,
           column=c,
           where=where,
-          flags=flags
+          flags=fl
         )
 
     return 0
