@@ -177,7 +177,8 @@ int main(int argc, char *argv[])
 		      *ts,		/* time steps*/
 		      *ns,		/* number of seasons */
 		      *nsout,		/* output map for number of seasons */
-		      *threshold,	/* threshold to start/stop a season */
+		      *tval,		/* constant threshold to start/stop a season */
+		      *tmap,		/* map with threshold values to start/stop a season */
 		      *min,		/* minimum length in time to recognize a season */
 		      *max;		/* maximum length in time to separate two seasons */
     } parm;
@@ -188,6 +189,7 @@ int main(int argc, char *argv[])
     int i;
     int num_inputs;
     struct input *inputs = NULL;
+    struct input tin;
     int num_outputs;
     struct output *outputs = NULL;
     int nsout_fd;
@@ -248,11 +250,16 @@ int main(int argc, char *argv[])
     parm.nsout->required = NO;
     parm.nsout->description = _("Name of output map with detected number of seasons");
 
-    parm.threshold = G_define_option();
-    parm.threshold->key = "threshold";
-    parm.threshold->type = TYPE_DOUBLE;
-    parm.threshold->required = YES;
-    parm.threshold->description = _("Threshold to start/stop a season");
+    parm.tval = G_define_option();
+    parm.tval->key = "tval";
+    parm.tval->type = TYPE_DOUBLE;
+    parm.tval->required = NO;
+    parm.tval->description = _("Constant threshold to start/stop a season");
+
+    parm.tmap = G_define_standard_option(G_OPT_R_INPUT);
+    parm.tmap->key = "tmap";
+    parm.tmap->required = NO;
+    parm.tmap->description = _("Constant threshold to start/stop a season");
 
     parm.min = G_define_option();
     parm.min->key = "min_length";
@@ -305,7 +312,21 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Maximum gap length must be positive"));
     }
 
-    threshold = atof(parm.threshold->answer);
+    if (parm.tmap->answer) {
+	tin.name = G_store(parm.tmap->answer);
+	tin.fd = Rast_open_old(tin.name, "");
+	tin.buf = Rast_allocate_d_buf();
+    }
+    else {
+	if (!parm.tval->answer)
+	    G_fatal_error(_("No threshold, please provide either <%s> or <%s>"),
+	                  parm.tval->key, parm.tmap->key);
+
+	threshold = atof(parm.tval->answer);
+	tin.name = NULL;
+	tin.fd = -1;
+	tin.buf = NULL;
+    }
 
     if (flag.lo->answer)
 	cmp_dbl = cmp_dbl_lo;
@@ -347,8 +368,9 @@ int main(int argc, char *argv[])
 	    p->name = G_store(name);
 	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
 	    p->buf = Rast_allocate_d_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
+	    p->fd = Rast_open_old(p->name, "");
+	    if (flag.lazy->answer)
+		Rast_close(p->fd);
 	}
 
 	if (num_inputs < 1)
@@ -372,9 +394,10 @@ int main(int argc, char *argv[])
 	    p->name = parm.input->answers[i];
 	    G_verbose_message(_("Reading raster map <%s>..."), p->name);
 	    p->buf = Rast_allocate_d_buf();
-	    if (!flag.lazy->answer)
-		p->fd = Rast_open_old(p->name, "");
-    	}
+	    p->fd = Rast_open_old(p->name, "");
+	    if (flag.lazy->answer)
+		Rast_close(p->fd);
+	}
     }
     if (num_inputs < 3)
 	G_fatal_error(_("At least 3 input maps are required"));
@@ -470,7 +493,13 @@ int main(int argc, char *argv[])
 	        Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
 	}
 
+	if (tin.buf)
+	    Rast_get_d_row(tin.fd, tin.buf, row);
+
 	for (col = 0; col < ncols; col++) {
+
+	    if (tin.buf)
+		threshold = tin.buf[col];
 
 	    n_nulls = 0;
 	    for (i = 0; i < num_inputs; i++) {
@@ -539,6 +568,8 @@ int main(int argc, char *argv[])
 	for (i = 0; i < num_inputs; i++)
 	    Rast_close(inputs[i].fd);
     }
+    if (tin.fd >= 0)
+	Rast_close(tin.fd);
 
     /* close output maps */
     for (i = 0; i < num_outputs; i++) {

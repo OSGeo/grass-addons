@@ -2,8 +2,10 @@
 
 <em>r.seasons</em> counts the number of seasons in a time series. A 
 season is defined as a time period of at least <em>min_length</em> 
-length where no value is below <em>threshold</em> (with the <em>-l</em> 
-flag, no value above <em>threshold</em>).
+length where no value is below threshold (with the <em>-l</em> 
+flag, no value above threshold). As threshold, a fixed value can be 
+specified with the <em>tval</em> option, or a raster map with per-cell 
+threshold values can be supplied with the <em>tmap</em> option.
 
 <p>
 The <em>nout</em> output holds the number of detected seasons. Output 
@@ -98,7 +100,7 @@ the example.
 
 <div class="code"><pre>
 r.seasons input=`g.list rast pat=MOD13* sep=,` prefix=ndvi_season n=3 \
-  nout=ndvi_season threshold=3000 min_length=6
+  nout=ndvi_season tval=3000 min_length=6
 
 # the outputs are: 
 g.list type=raster pattern=ndvi_season*
