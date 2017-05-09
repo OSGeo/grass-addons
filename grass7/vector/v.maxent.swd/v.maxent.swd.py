@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:       r.maxent.swd
+# MODULE:       v.maxent.swd
 # AUTHOR(S):    Paulo van Breugel
 # PURPOSE:      Produce a set of text file (SWD file) which can be used as
 #               input to MaxEnt 3.3.3. It may also provide the input data
