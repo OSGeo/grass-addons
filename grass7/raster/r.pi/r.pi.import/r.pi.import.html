@@ -22,7 +22,12 @@ export this resulting map:
 r.pi.export input=landclass96_forestclass5_area output=patch_area_out values=patch_area_values id_raster=forestclass5_ID stats=average,variance,min
 </pre></div>
 
-modify it with R or just import the file again and assign the percentage coverage to each fragment. You need the <em>patch_area_values</em> file and the previously used input file <em>forestclass96</em> raster (important: the same patch coverage is mandatory otherwise patch ID in the text file and raster are not congruent!):
+modify it with R or just import the file again and assign the
+percentage coverage to each fragment. You need the
+<em>patch_area_values</em> file and the previously used input file
+<em>forestclass96</em> raster (important: the same patch coverage is
+mandatory otherwise patch ID in the text file and raster are not
+congruent!):
 
 <div class="code"><pre>
 r.pi.import input=patch_area_values raster=landclass96 output=imported_values keyval=5 id_col=1 val_col=2
@@ -31,7 +36,7 @@ r.pi.import input=patch_area_values raster=landclass96 output=imported_values ke
 if you want to export the patch values to R and do e.g. a linear 
 regression of two patch values and import them again in GRASS, do:<br>
 
-apply r.pi.export with two indices (A and B), in R do:
+apply r.pi.export with two indices (A and B), in <tt>R</tt>, do:
 
 <div class="code"><pre>
 resid.AB <- resid(lm(A[,3]~B[,3])) #write residuals of a linear regression
@@ -58,6 +63,8 @@ Scientific concept: Dr. Martin Wegmann<br>
 Department of Remote Sensing<br>
 Remote Sensing and Biodiversity Unit<br>
 University of Wuerzburg, Germany
+<p>
+Port to GRASS GIS 7: Markus Metz
 
-<p><i>Last changed: $Date$</i>
-
+<p>
+<i>Last changed: $Date$</i>

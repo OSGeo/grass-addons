@@ -55,13 +55,10 @@ to get a better impression of problems, possibilities and caveats.
 <li><em>r.pi.searchtime.pr</em>  - Individual-based dispersal model for connectivity analysis (time-based) using iterative removal of patches
 <li><em>r.pi.searchtime.mw</em>  - Individual-based dispersal model for connectivity analysis (time-based) using moving window
 
-<p>
-<b>TODO: update below with above...</b>
 
 <h3>General and Connectivity Indices</h3>
 
- <ul>
-
+<ul>
 <li><b><a href="r.pi.index.html">r.pi.index</a></b>: Calculations of basic indices (area, SHAPE etc.) </li>
 <li><b><a href="r.pi.enn.html">r.pi.enn</a></b>:  Area, SHAPE and distance to n-th Euclidean Nearest Neighbor</li>
 <li><b><a href="r.pi.fnn.html">r.pi.fnn</a></b>:  Area, SHAPE and distance to n-th Functional Nearest Neighbor</li>
@@ -69,34 +66,34 @@ to get a better impression of problems, possibilities and caveats.
 <li><b><a href="r.pi.neigh.html">r.pi.neigh</a></b>: Extraction of values of patches in defined buffer region</li>
 <li><b><a href="r.pi.prox.html">r.pi.prox</a></b>: Calculation of Proximity and Modified Proximity Index for patches in buffer region</li>
 <li><b><a href="r.pi.graph.html">r.pi.graph</a></b>: Various connectivity indices within the Graph Theory </li>
- </ul>
+</ul>
 
 
 <h3>Individual-based dispersal models</h3>
- <ul>
+<ul>
 <li><b><a href="r.pi.searchtime.html">r.pi.searchtime</a></b>:Searchtime and Immigration rate</li>
 <li><b><a href="r.pi.energy.html">r.pi.energy</a></b>: Immigration, Migration and successfull emigration rate</li>
 <li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>:Related to <em>r.pi.searchtime</em> but using a Moving Windows approach</li>
- </ul>
+</ul>
 
 <h3>Patch-Relevance</h3>
- <ul>
+<ul>
 <li><b><a href="r.pi.enn.pr.html">r.pi.enn.pr</a></b>:Relevance of patches for maintenance of distance to first Nearest Neighbor</li>
 <li><b><a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a></b>:Relevance of patches for maintenance of searchtime</li>
 <li><b><a href="r.pi.energy.pr.html">r.pi.energy.pr</a></b>:Relevance of patches for maintenance of immigration rate</li>
 <li><b><a href="r.pi.graph.red.html">r.pi.graph.red</a></b>:Relevance of patches ....</li>
 <li><b><a href="r.pi.graph.dec.html">r.pi.graph.dec</a></b>:Relevance of patches ....</li>
- </ul>
+</ul>
 
 <h3>Neutral Landscape Model</h3>
- <ul>
+<ul>
 <li><b><a href="r.pi.nlm.html">r.pi.nlm</a></b>: Generation of a neutral landscape (fractal)</li>
 <li><b><a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a></b>:Statistical analysis of landscapes based on permutation of neutral landscapes</li>
 <li><b><a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a>c</b>:Generation of a neutral landscape (circular)</li>
- </ul>
+</ul>
 
-<h3>various modules</h3>
- <ul>
+<h3>Various modules</h3>
+<ul>
 <li><b><a href="r.pi.corearea.html">r.pi.corearea</a></b>:Calculation of core area based on costmatrix</li>
 <li><b><a href="r.pi.prob.mw.html">r.pi.prob.mw</a></b>:Probability of two random points being in the same patch</li>
 <li><b><a href="r.pi.rectangle.html">r.pi.rectangle</a></b>: Generation of rectangles based on coordinate points</li>
@@ -104,7 +101,7 @@ to get a better impression of problems, possibilities and caveats.
 <li><b><a href="r.pi.export.html">r.pi.export</a></b>:Export of values from patches</li>
 <li><b><a href="r.pi.lm.html">r.pi.lm</a></b>:Residuals of a Linear Regression between 2 rasters are provided as raster</li>
 <li><b><a href="r.pi.corr.mw.html">r.pi.corr.mw</a></b>:Moving window correlation between two raster maps</li>
- </ul>
+</ul>
 
 <h2>EXAMPLES</h2>
 
@@ -180,12 +177,12 @@ the module and might also be influenced by the resolution.
 <a href="r.li.html">r.li</a>
 </em>
 
-<h2>REFERENCES</h2>
+<h2>REFERENCE</h2>
 
 <ul>
-<li>Wegmann, M., Shirinova, E., Neteler, M., Rocchini, D., Schmidt, M.,
-Dech, S.: r.pi: Semi-automatic spatial pattern analysis of remotely
-sensed land cover data. Software review. Submitted.</li>
+<li>Wegmann, M., Leutner, B., Metz, M., Neteler, M., Dech, S., Rocchini, D.:
+r.pi: Semi-automatic spatial pattern analysis of remotely sensed land
+cover data. Submitted.</li>
 </ul>
 
 <h2>Disclaimer</h2>
@@ -200,9 +197,11 @@ functionality of <em>r.pi</em> as long as the new code comply with the GPL.
 <h2>AUTHORS</h2>
 Programming: Elshad Shirinov<br>
 Scientific concept: Martin Wegmann <br>
-<b>Department of Remote Sensing <br>
+Department of Remote Sensing <br>
 <em>Remote Sensing and Biodiversity Unit</em><br>
-University of Wuerzburg, Germany</b>
+University of Wuerzburg, Germany
+<p>
+Port to GRASS GIS 7: Markus Metz
 
 <p>
 <i>Last changed: $Date$</i>
