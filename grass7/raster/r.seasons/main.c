@@ -251,13 +251,13 @@ int main(int argc, char *argv[])
     parm.nsout->description = _("Name of output map with detected number of seasons");
 
     parm.tval = G_define_option();
-    parm.tval->key = "tval";
+    parm.tval->key = "threshold_value";
     parm.tval->type = TYPE_DOUBLE;
     parm.tval->required = NO;
     parm.tval->description = _("Constant threshold to start/stop a season");
 
     parm.tmap = G_define_standard_option(G_OPT_R_INPUT);
-    parm.tmap->key = "tmap";
+    parm.tmap->key = "threshold_map";
     parm.tmap->required = NO;
     parm.tmap->description = _("Constant threshold to start/stop a season");
 
