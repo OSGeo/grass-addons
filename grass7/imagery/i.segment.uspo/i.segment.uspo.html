@@ -28,10 +28,12 @@ autocorrelation. For the latter, the user can chose to use either <a
 href="https://en.wikipedia.org/wiki/Moran%27s_I">Moran's I</a> or <a
 href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>.
 
-<p> The user can chose between hierarchical and non-hierarchical segmentation
-using the <b>n</b> flag. The former uses each segmentation at a given threshold
-level as seed for the segmentation at the next threshold level within a given 
-minimum segment size.i
+<p>The user can chose between non-hierarchical (default) and hierarchical 
+segmentation using the <b>h</b> flag. The latter uses each segmentation at a 
+given threshold level as seed for the segmentation at the next threshold level
+within a given minimum segment size. Note that this leads to less optimal
+parallelization as for a given minsize, all segmentations have to be done
+sequentially (see below).
 
 <p>The <b>segment_map</b> parameter allows to provide a
 basename for keeping the <b>number_best</b> best segmentations for each given
@@ -40,7 +42,7 @@ will be a combination of this basename, the region, the threshold, the
 minsize and the rank of the map within the region according to its optimization
 criteria value.
 
-<p> The module uses high-level parallelisation (running different segmentations
+<p> The module uses high-level parallelization (running different segmentations
 in parallel and then running the collection of parameter values in parallel).
 The parameter <b>processes</b> allows to define how many processes should be run
 in parallel. Note that when using hierarchical segmentation the number of parallel 

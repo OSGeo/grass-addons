@@ -266,7 +266,12 @@
 #
 #%flag
 #% key: n
-#% description: Non-hierarchical segmentation
+#% description: Non-hierarchical segmentation (DEPRECATED: This is now the default setting)
+#%end
+#
+#%flag
+#% key: h
+#% description: Use hierarchical segmentation
 #%end
 #
 #%flag
@@ -647,6 +652,24 @@ def main():
     keep = False
     if flags['k']:
         keep = True
+    hierarchical_segmentation = False
+    if not flags['n'] and not flags['h']:
+        message = "There has been a change in API:\n"
+        message += "Non-hierarchical segmentation is now default.\n"
+        message += "If you want hierarchical segmentation, use the 'h' flag."
+        gscript.warning(message)
+    if flags['n']:
+        message = "The 'n' flag is deprecated.\n"
+        message += "Non-hierarchical segmentation is now the default.\n"
+        message += "For hierarchical segmentation set the '-h' flag.\n"
+        message += "The '-n' flag will soon be removed."
+        gscript.warning(message)
+    if flags['h']:
+        hierarchical_segmentation = True
+        message = "INFO: Using hierarchical segmentation.\n"
+        message += "INFO: Note that this leads to less optimal parallization."
+        gscript.info(message)
+        
 
     check_progs()
 
@@ -759,7 +782,7 @@ def main():
     	processes_list = []
     	result_queue = Queue()
         if rg:
-            if not flags['n']:
+            if hierarchical_segmentation:
                 minsize_queue = Queue()
                 for minsize in minsizes:
                     minsize_queue.put(minsize)
