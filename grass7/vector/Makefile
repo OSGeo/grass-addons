@@ -43,6 +43,7 @@ SUBDIRS = \
 	v.median \
 	v.mrmr \
 	v.neighborhoodmatrix \
+	v.net.curvedarcs \
 	v.net.salesman.opt \
 	v.out.gps \
 	v.out.ply \
