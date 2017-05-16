@@ -185,8 +185,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     """
 
     from sklearn import metrics
-    from sklearn.model_selection import (
-        RandomizedSearchCV, GridSearchCV, StratifiedKFold)
+    from sklearn.model_selection import StratifiedKFold
     from sklearn.externals.joblib import Parallel, delayed
 
     # -------------------------------------------------------------------------
@@ -317,7 +316,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
             # metrics that have no averaging for multiclass
             elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
             or m == 'hamming_loss' or m == 'jaccard_similarity' \
-            or m == 'log_loss' or m == 'zero_one_loss' or m == 'matthews_corrcoef':
+            or m == 'log_loss' or m == 'zero_one_loss' \
+            or m == 'matthews_corrcoef' or m == 'r2' \
+            or m == 'neg_mean_squared_error':
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_pred))
 
