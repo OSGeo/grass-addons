@@ -5,28 +5,17 @@ It is composed of several programs considering different limits (e.g. theoretica
 
 The module r.green.gshp consists of the following different parts:<br><br>
 
-- <a href="r.green.gshp.theoretical.html">r.green.hydro.theoretical</a><br>
-  calculates for each basin the theoretical maximum hydropower energy potential<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region<br>  
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;existing plant position<br>
-  output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
+- <a href="r.green.gshp.theoretical.html">r.green.gshp.theoretical</a><br>
+  [status: testing] calculates for each single Borehole Heat Exchanger (BHE) the maximum power/energy potential, assessed through the G.POT method.<br><br>
 
-- <a href="r.green.gshp.planning.html">r.green.hydro.recommended</a><br>
-  detects the potential plant position considering legal and ecological constraints and the user's recommendations<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region &nbsp; &nbsp; - minimum flow discharge<br>  
-  input vector maps: &nbsp;&nbsp; - existing plant position  &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-  areas excluded from calculation<br>
-  output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
+- <a href="r.green.gshp.planning.html">r.green.gshp.planning</a><br>
+  [status: not implemented yet] consider legal, ecological constraints and the user's recommendations to plan the use of the GSHP system<br><br>
 
-- <a href="r.green.gshp.technical.html">r.green.hydro.technical</a><br>
-  calculates the hydropower potential considering technical constrains (head losses, efficiency of turbine)<br>
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;intakes and restitutions of the potential plants<br>
-  output vector map: &nbsp;- structure (derivation channel and penstock) on both sides of the river for each potential plant<br><br>
+- <a href="r.green.gshp.technical.html">r.green.gshp.technical</a><br>
+  [status: testing] calculates the length of a BHE following the ASHRAE methodology.<br><br>
 
-- <a href="r.green.gshp.financial.html">r.green.hydro.financial</a><br>
-  computes the economic costs and values of the plants<br>
-  input raster maps: &nbsp; &nbsp;- landuse  &nbsp; &nbsp; - slope<br>  
-  input vector maps: &nbsp;&nbsp;- segments of the potential plants &nbsp;&nbsp;- plant structure &nbsp;&nbsp;&nbsp;&nbsp;- electric grid<br>
-  output vector map: &nbsp;&nbsp; structure of the potential plants with a re-organized table with e.g. power, gross head, total cost<br><br>
+- <a href="r.green.gshp.financial.html">r.green.gshp.financial</a><br>
+  [status: not implemented yet] computes the economic and financial feasibility of the ground source heat plants<br><br>
 
 <h2>AUTHORS</h2>
 

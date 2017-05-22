@@ -3,7 +3,7 @@ MODULE_TOPDIR = ../../../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-MODULES = gpot __init__
+MODULES = gpot ashrae __init__
 
 PGM = r.green
 LIBDIR = libgshp
