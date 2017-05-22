@@ -301,7 +301,10 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             if target != basedir:
                 shutil.move(name, target)
         if listfile:
-            fdata = data + timedelta(prod['days'])
+            days = prod['days']
+            fdata = data + timedelta(days)
+            if days == 31:
+                fdata = datetime(fdata.year, fdata.month, 1)
             listfile.write("{name}|{sd}|{fd}\n".format(name=basename,
                                                        sd=data.strftime("%Y-%m-%d"),
                                                        fd=fdata.strftime("%Y-%m-%d")))
