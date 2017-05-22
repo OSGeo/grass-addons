@@ -34,6 +34,12 @@ def cleanup(raster=None, vector=None, pattern=None, debug=False):
                               pattern=pattern)
 
 
+def rast_or_numb(rast, numb, opts):
+    """Return a float or a string with the raster name.
+    """
+    return opts[rast] if opts[rast] else float(opts[numb])
+
+
 def check_overlay_rv(raster, vector):
     """
     check the overlay between a raster and a vector

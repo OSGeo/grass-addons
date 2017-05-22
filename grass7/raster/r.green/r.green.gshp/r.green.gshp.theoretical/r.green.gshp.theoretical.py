@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:      r.green.geothermal.potential
+# MODULE:      r.green.gshp.theoretical
 # AUTHOR(S):   Pietro Zambelli
 # PURPOSE:     Calculate the Near Surface Geothermal Energy potential
 # COPYRIGHT:   (C) 2017 by the GRASS Development Team
@@ -211,22 +211,16 @@ try:
     # set python path to the shared r.green libraries
     set_path('r.green', 'libgshp', '..')
     set_path('r.green', 'libgreen', os.path.join('..', '..'))
-    from libgreen.utils import cleanup
+    from libgreen.utils import cleanup, rast_or_numb
     from libgshp import gpot
 except ImportError:
     try:
         set_path('r.green', 'libgshp', os.path.join('..', 'etc', 'r.green'))
         set_path('r.green', 'libgreen', os.path.join('..', 'etc', 'r.green'))
-        from libgreen.utils import cleanup
+        from libgreen.utils import cleanup, rast_or_numb
         from libgshp import gpot
     except ImportError:
-        gcore.warning('libgreen and libhydro not in the python path!')
-
-
-def rast_or_numb(rast, numb, opts):
-    """Return a float or a string with the raster name.
-    """
-    return opts[rast] if opts[rast] else float(opts[numb])
+        gcore.warning('libgreen and libgshp not in the python path!')
 
 
 def main(opts, flgs):
