@@ -110,6 +110,7 @@ class product:
         daily = 1
         eight = 8
         sixteen = 16
+        monthly = 31
         self.prod = value
         lst = {'lst_aqua_daily_1000': {'url': urlbase, 'folder': 'MOLA/',
                                        'prod': 'MYD11A1.006', 'days': daily,
@@ -131,16 +132,27 @@ class product:
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
                                        'suff': lst1km_suff, 'res': 1000,
                                        'color': lst_color},
-               'lst_terra_daily_6000': {'url': urlbase, 'folder': 'MOLT/',
+               'lst_terra_daily_5600': {'url': urlbase, 'folder': 'MOLT/',
                                         'prod': 'MOD11B1.006', 'days': daily,
                                         'spec': lst_spec, 'spec_qa': lst_specqa,
-                                        'suff': lst6km_suff, 'res': 6000,
+                                        'suff': lst6km_suff, 'res': 5600,
                                         'color': lst_color},
-               'lst_aqua_daily_6000': {'url': urlbase, 'folder': 'MOLA/',
+               'lst_aqua_daily_5600': {'url': urlbase, 'folder': 'MOLA/',
                                        'prod': 'MYD11B1.006', 'days': daily,
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
-                                       'suff': lst6km_suff, 'res': 6000,
-                                       'color': lst_color}
+                                       'suff': lst6km_suff, 'res': 5600,
+                                       'color': lst_color},
+               'lst_terra_monthly_5600': {'url': urlbase, 'folder': 'MOLT/',
+                                          'prod': 'MOD11B3.006', 'days': monthly,
+                                          'spec': lst_spec, 'spec_qa': lst_specqa,
+                                          'suff': lst6km_suff, 'res': 5600,
+                                          'color': lst_color},
+               'lst_aqua_monthly_5600': {'url': urlbase, 'folder': 'MOLA/',
+                                          'prod': 'MYD11B3.006', 'days': monthly,
+                                          'spec': lst_spec, 'spec_qa': lst_specqa,
+                                          'suff': lst6km_suff, 'res': 5600,
+                                          'color': lst_color
+                                        }
                }
         vi = {'ndvi_terra_sixteen_250': {'url': urlbase, 'folder': 'MOLT/',
                                          'prod': 'MOD13Q1.006',
