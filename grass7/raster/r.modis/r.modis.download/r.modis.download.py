@@ -174,10 +174,11 @@ def main():
     # set username, password and folder if settings are insert by stdin
     if options['settings'] == '-':
         if options['folder'] != '':
+            import getpass
             if check(options['folder']):
                 fold = options['folder']
             user = raw_input(_('Insert username: '))
-            passwd = raw_input(_('Insert password: '))
+            passwd = getpass.getpass(_('Insert password: '))
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing "
                           "the username and password"))
