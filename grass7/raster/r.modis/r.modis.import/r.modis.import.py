@@ -48,6 +48,10 @@
 #% key: l
 #% description: List more info about the supported MODIS products
 #%end
+#%flag
+#% key: g
+#% description: Print output message in shell script style
+#%end
 #%option
 #% key: input
 #% type: string
@@ -254,11 +258,6 @@ def modis_prefix(inp, mosaic=False):
 
 def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
     """Import TIF files"""
-    try:
-        # try to import pymodis (modis) and some classes for r.modis.download
-        from rmodislib import projection
-    except:
-        grass.fatal("r.modis library is not installed")
     # list of tif files
     pref = modis_prefix(pm.hdfname)
     tifiles = glob.glob1(basedir, "{pr}*.tif".format(pr=pref))
@@ -266,11 +265,6 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
         tifiles = glob.glob1(os.getcwd(), "{pr}*.tif".format(pr=pref))
     if not tifiles:
         grass.fatal(_('Error during the conversion'))
-    # check if user is in latlong location to set flag l
-    if projection().val == 'll':
-        f = "l"
-    else:
-        f = None
     outfile = []
     # for each file import it
     for t in tifiles:
@@ -325,6 +319,7 @@ def doy2date(modis):
     doy = modis[-3:]
     dat = datetime.strptime('{ye} {doy}'.format(ye=year,  doy=doy), '%Y %j')
     return dat.strftime('%Y-%m-%d')
+
 
 def single(options, remove, an, ow, fil):
     """Convert the HDF file to TIF and import it
@@ -524,19 +519,22 @@ def main():
         analyze = False
     else:
         analyze = True
+    # return the number of select layer from HDF files
     if options['spectral']:
         count = options['spectral'].strip('(').strip(')').split().count('1')
     else:
         count = 0
+
     outfile = None
+    # check if file for t.register has to been created
     if options['outfile']:
         outfile = open(options['outfile'], 'w')
-    elif flags['w'] and not options['outfile'] and count == 1:
+        if count > 1:
+            grass.warning("The spectral subsets are more than one so the final"
+                          " name's files will be renamed")
+    elif flags['w'] and not options['outfile']:
         outfile = tempfile.NamedTemporaryFile(delete=False)
-    elif flags['w'] and count != 1:
-        grass.warning(_("To use correctly the file in t.rast.import you have "
-                        "to select only a subset in the 'spectral' option. "
-                        "Out file will be not created"))
+
     # check if import simple file or mosaic
     if flags['m'] and options['input'] != '':
         grass.fatal(_('It is not possible to create a mosaic with a single'
@@ -546,11 +544,41 @@ def main():
         mosaic(options, remove, analyze, over, outfile)
     else:
         single(options, remove, analyze, over, outfile)
+    # if t.register file is create
     if outfile:
         outfile.close()
-        grass.message(_("You can continue with temporal framework, registering"
-                        " the maps using t.register input=your_strds "
-                        "'file={name}'".format(name=outfile.name)))
+        # one layer only 
+        if count == 1:
+            if flags['g']:
+                grass.message(_("file={name}".format(name=outfile.name)))
+            else:
+                grass.message(_("You can use temporal framework, registering"
+                                " the maps using t.register input=your_strds "
+                                "'file={name}'".format(name=outfile.name)))
+        # for more layer create several files with only a subset for each layer
+        elif count > 1:
+            tfile = open(outfile.name)
+            outfiles = {}
+            lines = tfile.readlines()
+            # get the codes from only one HDF
+            for line in lines[:count]:
+                code = line.split('|')[0].split('.')[-1]
+                outfiles[code] = tempfile.NamedTemporaryFile(delete=False)
+            # split the lines for each code
+            for line in lines:
+                code = line.split('|')[0].split('.')[-1]
+                outfiles[code].write(line)
+            if flags['g']:
+                message = ""
+            else:
+                message = "You can use temporal framework, registering the " \
+                          "maps  in different temporal datasets using " \
+                          "t.register and \n"
+            tfile.close()
+            for fil in outfiles.values():
+                message += "'file={name}'\n".format(name=fil.name)
+            grass.message(_(message))
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
