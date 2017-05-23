@@ -39,7 +39,7 @@ NEWLIBPODIR="${NEWPODIR}grass72.grasslibspot/"
 
 for fil in `ls $NEWLIBPODIR`;
 do
-  # TODO: keep uppercase for pt_BR etc - rename in SVN
+  # TODO: keep uppercase for pt_BR etc - rename in SVN as needed
   MYLANG=`echo $fil | sed 's+_translation++g'`
   # fix undefined CHARSET in files pulled from transifex (grrr...)
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWLIBPODIR}${MYLANG}_translation > ${NEWLIBPODIR}${MYLANG}_translation_new
@@ -55,13 +55,17 @@ do
     $MSGMERGE ${NEWLIBPODIR}${MYLANG}_translation_new.2 $POFILE -o $POFILE.2 &&  mv $POFILE.2 $POFILE && rm -f grasslibs_${MYLANG}.header
   else
     # update header for newly created files
-    # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
+    # TODO: missing Last-Translator
     POFILE=${NEWLIBPODIR}${MYLANG}_translation_new
     sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grasslibs_${MYLANG}.po+g" $POFILE
     sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
     sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
     sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
     cp $POFILE grasslibs_${MYLANG}.po
+    # fix some header entries in newly created files
+    sed -i "s+PACKAGE VERSION+grasslibs_${MYLANG}+g" grasslibs_${MYLANG}.po
+    TIMESTAMP=`date +"%Y-%m-%d %H:%M%z"`
+    sed -i "s/YEAR-MO-DA HO:MI+ZONE/$TIMESTAMP/g" grasslibs_${MYLANG}.po
   fi
 
   if [ -f grassmods_${MYLANG}.po ]; then
@@ -78,6 +82,10 @@ do
     sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
     sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
     cp $POFILE grassmods_${MYLANG}.po
+    # fix some header entries in newly created files
+    sed -i "s+PACKAGE VERSION+grasslibs_${MYLANG}+g" grassmods_${MYLANG}.po
+    TIMESTAMP=`date +"%Y-%m-%d %H:%M%z"`
+    sed -i "s/YEAR-MO-DA HO:MI+ZONE/$TIMESTAMP/g" grassmods_${MYLANG}.po
   fi
 
   if [ -f grasswxpy_${MYLANG}.po ]; then
@@ -94,6 +102,10 @@ do
     sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
     sed -i "s+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.+# transifex generated, 2017+g" $POFILE
     cp $POFILE grasswxpy_${MYLANG}.po
+    # fix some header entries in newly created files
+    sed -i "s+PACKAGE VERSION+grasslibs_${MYLANG}+g" grasswxpy_${MYLANG}.po
+    TIMESTAMP=`date +"%Y-%m-%d %H:%M%z"`
+    sed -i "s/YEAR-MO-DA HO:MI+ZONE/$TIMESTAMP/g" grasswxpy_${MYLANG}.po
   fi
 done
 
