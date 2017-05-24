@@ -16,41 +16,38 @@
 #
 #############################################################################
 
-# %module
-# % description: Blends two rasters of different spatial resolution
-# % keyword: raster
-# % keyword: resolution
-# %end
-# %option HIGH
-# % key: high
-# %end
-# %option LOW
-# % key: low
-# %end
-# %option OUTPUT
-# % key: output
-# %end
-# %option FAR_EDGE
-# % key: far_edge
-# % key_desc: value
-# % type: double
-# % description: Percentage of distance to high resolution raster used to
-# %              determine far edge. Number between 0 and 100; 95% by default.
-# % answer: 95
-# % multiple: no
-# % required: no
-# %end
-# %option INTER_POINTS
-# % key: inter_points
-# % key_desc: value
-# % type: integer
-# % description: Number of points to use in interpolation. A higher number
-# %              produces a smoother result but requires a lengthier
-# %              computation. 50 by default.
-# % answer: 50
-# % multiple: no
-# % required: no
-# %end
+#%module
+#% description: Blends two rasters of different spatial resolution
+#% keyword: raster
+#% keyword: resolution
+#%end
+#%option HIGH
+#% key: high
+#%end
+#%option LOW
+#% key: low
+#%end
+#%option OUTPUT
+#% key: output
+#%end
+#%option FAR_EDGE
+#% key: far_edge
+#% key_desc: value
+#% type: double
+#% description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100; 95% by default.
+#% answer: 95
+#% multiple: no
+#% required: no
+#%end
+#%option INTER_POINTS
+#% key: inter_points
+#% key_desc: value
+#% type: integer
+#% description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation. 50 by default.
+#% answer: 50
+#% multiple: no
+#% required: no
+#%end
 
 import os
 import atexit
@@ -121,7 +118,7 @@ def main():
 
     # Make cell size compatible
     low_res_inter = getTemporaryIdentifier()
-    gscript.message(_("[r.mblend] Resampling low resolution raster to higher",
+    gscript.message(_("[r.mblend] Resampling low resolution raster to higher" +
                       " resolution"))
     gscript.run_command('r.resamp.interp', input=low, output=low_res_inter,
                         method='nearest')
@@ -150,7 +147,7 @@ def main():
     diff = getTemporaryIdentifier()
     diff_points = getTemporaryIdentifier()
     gscript.mapcalc(diff + ' = ' + high + ' - ' + low_res_inter)
-    gscript.message(_("[r.mblend] Vectorising differences between input",
+    gscript.message(_("[r.mblend] Vectorising differences between input" +
                       " rasters"))
     gscript.run_command('r.to.vect', input=diff, output=diff_points,
                         type='point')
