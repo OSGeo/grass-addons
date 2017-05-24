@@ -17,7 +17,7 @@
 #############################################################################
 
 #%module
-#% description: Blends two rasters of different spatial resolution
+#% description: Blends two rasters of different spatial resolution.
 #% keyword: raster
 #% keyword: resolution
 #%end
@@ -34,7 +34,7 @@
 #% key: far_edge
 #% key_desc: value
 #% type: double
-#% description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100; 95% by default.
+#% description: Percentage of distance to high resolution raster used to determine far edge. Number between 0 and 100.
 #% answer: 95
 #% multiple: no
 #% required: no
@@ -43,7 +43,7 @@
 #% key: inter_points
 #% key_desc: value
 #% type: integer
-#% description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation. 50 by default.
+#% description: Number of points to use in interpolation. A higher number produces a smoother result but requires a lengthier computation.
 #% answer: 50
 #% multiple: no
 #% required: no
