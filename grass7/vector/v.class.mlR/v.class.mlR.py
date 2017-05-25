@@ -352,7 +352,7 @@ def main():
                             quiet=True,
                             overwrite=True)
     else:
-        feature_vars = allfeatures
+        feature_vars = allfeatures.replace("\\", "/")
 
     if trainmap:
         training_vars = gscript.tempfile()
@@ -364,7 +364,7 @@ def main():
                             quiet=True,
                             overwrite=True)
     else:
-        training_vars = training
+        training_vars = training.replace("\\", "/")
 
     r_commands = gscript.tempfile()
 
