@@ -344,6 +344,7 @@ def main():
 
     if allmap:
         feature_vars = gscript.tempfile()
+        feature_vars = feature_vars.replace("\\", "/"))
         gscript.run_command('v.db.select',
                             map_=allfeatures,
                             file_=feature_vars,
@@ -355,6 +356,7 @@ def main():
 
     if trainmap:
         training_vars = gscript.tempfile()
+        training_vars = training_vars.replace("\\", "/"))
         gscript.run_command('v.db.select',
                             map_=training,
                             file_=training_vars,
