@@ -132,8 +132,11 @@ def list_files(opt, mosaik=False):
     """
     # read the file with the list of HDF
     if opt['files'] != '':
-        listoffile = open(opt['files'], 'r')
-        basedir = os.path.split(listoffile.name)[0]
+        if os.path.exists(opt['files']):
+            listoffile = open(opt['files'], 'r')
+            basedir = os.path.split(listoffile.name)[0]
+        else:
+            grass.fatal(_("File {name} does not exist".format(name=opt['files'])))
         # if mosaic create a dictionary
         if mosaik:
             filelist = {}
@@ -368,7 +371,10 @@ def single(options, remove, an, ow, fil):
             outname = outname.replace(' ', '_')
             execmodis = convertModisGDAL(hdf, outname, spectr, res,
                                          wkt=projwkt)
-        execmodis.run()
+        try:
+            execmodis.run(quiet=True)
+        except:
+            execmodis.run()
         import_tif(basedir=basedir, rem=remove, write=ow, pm=pm,
                    listfile=fil, prod=prod)
         if options['mrtpath']:
@@ -416,7 +422,10 @@ def mosaic(options, remove, an, ow, fil):
             basedir = targetdir
             listfiles = [os.path.join(basedir, i) for i in listfiles]
             cm = createMosaicGDAL(listfiles, spectr)
-            cm.write_vrt(outname)
+            try:
+                cm.write_vrt(outname, quiet=True)
+            except:
+                cm.write_vrt(outname)
             hdfiles = glob.glob1(basedir, outname + "*.vrt")
         for i in hdfiles:
             # the full path to hdf file
@@ -442,7 +451,10 @@ def mosaic(options, remove, an, ow, fil):
                     res = None
                 execmodis = convertModisGDAL(hdf, out, spectr, res, wkt=projwkt,
                                              vrt=True)
-            execmodis.run()
+            try:
+                execmodis.run(quiet=True)
+            except:
+                execmodis.run()
             # remove hdf
             if remove:
                 # import tif files
@@ -530,8 +542,8 @@ def main():
     if options['outfile']:
         outfile = open(options['outfile'], 'w')
         if count > 1:
-            grass.warning("The spectral subsets are more than one so the final"
-                          " name's files will be renamed")
+            grass.warning("The spectral subsets are more than one so the "
+                          " output file will be renamed")
     elif flags['w'] and not options['outfile']:
         outfile = tempfile.NamedTemporaryFile(delete=False)
 
