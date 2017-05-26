@@ -99,6 +99,18 @@
 #% description: Instead of creating a new vector map update the attribute table with value(s)
 #%end
 
+#%flag
+#% key: a
+#% label: Query STRDS with dates after the 'date' or 'column_date' value
+#% description: Usually t.rast.what.aggr aggregate values before the selected dates, using a flag it will query values after the selected dates
+#%end
+
+#%flag
+#% key: c
+#% label: Create new columns, it combine STRDS and method names
+#% description: Create new columns for the selected methods, it combine STRDS and method names
+#%end
+
 from datetime import datetime
 from datetime import timedelta
 from subprocess import PIPE as PI
@@ -147,6 +159,10 @@ def main(options, flags):
     incol = options["date_column"]
     indate = options["date"]
     strds = options["strds"]
+    if strds.find('@') != -1:
+        strds_name = strds.split('@')[0]
+    else:
+        strds_name = strds
     output = options["output"]
     cols = options["columns"].split(',')
     mets = options["method"].split(',')
@@ -157,12 +173,26 @@ def main(options, flags):
     stdout = False
     if output != '-' and flags['u']:
         gscript.fatal(_("Cannot combine 'output' option and 'u' flag"))
-    elif output == '-' and flags['u']:
+    elif output != '-' and flags['c']:
+        gscript.fatal(_("Cannot combine 'output' option and 'c' flag"))
+    elif output == '-' and (flags['u'] or flags['c']):
         output = invect
         gscript.warning(_("Attribute table of vector {name} will be updated"
                           "...").format(name=invect))
     else:
         stdout = True
+    if flags['c']:
+        cols = []
+        for m in mets:
+            colname = "{st}_{me}".format(st=strds_name, me=m)
+            cols.append(colname)
+            try:
+                pymod.Module("v.db.addcolumn", map=invect, columns="{col} "
+                             "double precision".format(col=colname))
+            except CalledModuleError:
+                gscript.fatal(_("Not possible to create column "
+                                "{col}".format(col=colname)))
+                             
     if output != '-' and len(cols) != len(mets):
         gscript.fatal(_("'columns' and 'method' options must have the same "
                         "number of elements"))
@@ -228,10 +258,14 @@ def main(options, flags):
             fdata = datetime.strptime(data, dateformat)
         else:
             fdata = int(data)
-        sdata = fdata - td
-
-        mwhere="start_time >= '{inn}' and end_time < '{out}'".format(inn=sdata,
-                                                                     out=fdata)
+        if flags['a']:
+            sdata = fdata + td
+            mwhere="start_time >= '{inn}' and end_time < " \
+                   "'{out}'".format(inn=fdata, out=sdata)
+        else:
+            sdata = fdata - td
+            mwhere="start_time >= '{inn}' and end_time < " \
+                   "'{out}'".format(inn=sdata, out=fdata)
         lines = None
         try:
             r_what = pymod.Module("t.rast.what", points=invect, strds=strds,
