@@ -115,7 +115,6 @@ from datetime import datetime
 from datetime import timedelta
 from subprocess import PIPE as PI
 import numpy as np
-from scipy import stats
 import grass.script as gscript
 from grass.exceptions import CalledModuleError
 
@@ -127,8 +126,12 @@ def return_value(vals, met):
     elif met == 'median':
         return np.median(vals)
     elif met == 'mode':
-        m = stats.mode(vals)
-        return m.mode[0]
+        try:
+            from scipy import stats
+            m = stats.mode(vals)
+            return m.mode[0]
+        except ImportError:
+            gscript.fatal(_("For method 'mode' you need to install scipy"))
     elif met == 'minimum':
         return vals.min()
     elif met == 'maximum':
