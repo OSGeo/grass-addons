@@ -142,6 +142,8 @@ def main(options, flags):
     from grass.pygrass.vector import VectorTopo
 
     invect = options["input"]
+    if invect.find('@') != -1:
+        invect = invect.split('@')[0]
     incol = options["date_column"]
     indate = options["date"]
     strds = options["strds"]
@@ -211,7 +213,8 @@ def main(options, flags):
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(_("Unable to add table <%s> to vector map <%s>" % invect))
+                gscript.fatal(_("Unable to add table <%s> to vector map "
+                                "<%s>" % invect))
         if pymap.is_open():
             pymap.close()
         qfeat = pymod.Module("v.category", stdout_=PI, stderr_=PI,
@@ -229,6 +232,7 @@ def main(options, flags):
 
         mwhere="start_time >= '{inn}' and end_time < '{out}'".format(inn=sdata,
                                                                      out=fdata)
+        lines = None
         try:
             r_what = pymod.Module("t.rast.what", points=invect, strds=strds,
                                   layout='timerow', separator=separator,
@@ -236,8 +240,7 @@ def main(options, flags):
                                   stdout_=PI, stderr_=PI)
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
-            gscript.fatal(_("Problem running 't.rast.what', probably it "
-                            "returned an empty dataset"))
+            pass
         if incol:
             try:
                 qfeat = pymod.Module("db.select", flags='c', stdout_=PI,
@@ -249,6 +252,15 @@ def main(options, flags):
             except CalledModuleError:
                 gscript.fatal(_("db.select returned an error for date "
                                 "{da}".format(da=data)))
+        if not lines and stdout:
+            for feat in myfeats:
+                outtxt += "{di}{sep}{da}".format(di=feat, da=data,
+                                                   sep=separator)
+                for n in range(len(mets)):
+                    outtxt += "{sep}{val}".format(val='*', sep=separator)
+                outtxt += "\n"
+        if not lines:
+            continue
         x=0
         for line in lines:
             vals = line.split(separator)
@@ -256,14 +268,23 @@ def main(options, flags):
                 try:
                     nvals = np.array(vals[4:]).astype(np.float)
                 except ValueError:
+                    if stdout:
+                        outtxt += "{di}{sep}{da}".format(di=vals[0],
+                                                         da=data,
+                                                         sep=separator)
+                        for n in range(len(mets)):
+                            outtxt += "{sep}{val}".format(val='*',
+                                                          sep=separator)
+                        outtxt += "\n"
                     continue
+                if stdout:
+                    outtxt += "{di}{sep}{da}".format(di=vals[0], da=data,
+                                                     sep=separator)
                 for n in range(len(mets)):
                     result =  return_value(nvals, mets[n])
                     if stdout:
-                        outtxt += "{di}{sep}{da}{sep}{val}\n".format(di=vals[0],
-                                                                     da=data,
-                                                                     val=result,
-                                                                     sep=separator)
+                        outtxt += "{sep}{val}".format(val=result,
+                                                      sep=separator)
                     else:
                         try:
                             if incol:
@@ -278,6 +299,8 @@ def main(options, flags):
                                              where="cat={ca}".format(ca=vals[0]))
                         except CalledModuleError:
                             gscript.fatal(_("v.db.update return an error"))
+                if stdout:
+                    outtxt += "\n"
                 if x == len(myfeats):
                     break
                 else:
