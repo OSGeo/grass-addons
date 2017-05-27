@@ -20,6 +20,10 @@
 #%option G_OPT_V_INPUT
 #% required: yes
 #%end
+#%option G_OPT_V_FIELD
+#% required: yes
+#% answer: 1
+#%end
 #%option G_OPT_V_OUTPUT
 #% required: yes
 #%end
@@ -49,6 +53,7 @@ def num(s):
 def main():
     options, flags = gscript.parser()
     inputmap = options['input']
+    layer = options['layer']
     outputmap = options['output']
     sort_column = options['column']
     reverse = True
@@ -56,6 +61,7 @@ def main():
         reverse = False
 
     columns = gscript.vector_columns(inputmap)
+    key_column = gscript.vector_layer_db(inputmap, layer)['key']
     sort_index = columns[sort_column]['index']+2
     sorted_cols = sorted(columns.iteritems(), key=lambda (x, y): y['index'])
     column_def="x DOUBLE PRECISION, y DOUBLE PRECISION, cat INTEGER"
@@ -65,6 +71,8 @@ def main():
         type = sorted_cols[colcount][1]['type']
 	if name == sort_column and (type != 'INTEGER' and type != 'DOUBLE PRECISION'):
 	    gscript.fatal('Sort column must be numeric')
+        if name == key_column:
+            continue
         colnames.append(name)
         column_def += ", %s %s" % (name, type)
 
