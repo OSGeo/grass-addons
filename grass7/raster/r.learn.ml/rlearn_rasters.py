@@ -150,6 +150,7 @@ def extract_points(gvector, grasters, field):
         values = np.asarray(get_raster_for_points(points, rio))
         coordinates = values[:, 1:3]
         X[:, i] = values[:, 3]
+        rio.close()
 
     # set any grass integer nodata values to NaN
     X[X == -2147483648] = np.nan
@@ -190,15 +191,6 @@ def predict(estimator, predictors, output, predict_type='raw',
     # open predictors as list of rasterrow objects
     current = Region()
     n_features = len(predictors)
-    rasstack = [0] * n_features
-
-    for i in range(n_features):
-        rasstack[i] = RasterRow(predictors[i])
-        if rasstack[i].exist() is True:
-            rasstack[i].open('r')
-        else:
-            gscript.fatal("GRASS raster " + predictors[i] +
-                          " does not exist.... exiting")
 
     # -------------------------------------------------------------------------
     # turn off multiprocessing for multi-threaded classifiers
@@ -225,6 +217,16 @@ def predict(estimator, predictors, output, predict_type='raw',
         # ---------------------------------------------------------------------
         # sequential prediction
         # ---------------------------------------------------------------------
+
+        rasstack = [0] * n_features
+
+        for i in range(n_features):
+            rasstack[i] = RasterRow(predictors[i])
+            if rasstack[i].exist() is True:
+                rasstack[i].open('r')
+            else:
+                gscript.fatal("GRASS raster " + predictors[i] +
+                            " does not exist.... exiting")
 
         # Prediction using blocks of rows per iteration
         for rowblock in range(0, current.rows, rowincr):
@@ -313,6 +315,11 @@ def predict(estimator, predictors, output, predict_type='raw',
                         newrow = Buffer((result_proba_class.shape[1],), mtype='FCELL')
                         newrow[:] = result_proba_class[row, :]
                         prob[iclass].put_row(newrow)
+
+        # close maps
+        for i in range(n_features):
+            rasstack[i].close()
+
     else:
 
         # ---------------------------------------------------------------------

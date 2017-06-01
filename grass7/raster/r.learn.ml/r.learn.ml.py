@@ -448,6 +448,7 @@ def main():
         from sklearn.utils import shuffle
         from sklearn import metrics
         from sklearn.metrics import make_scorer
+        from sklearn.calibration import CalibratedClassifierCV
     except:
         gscript.fatal("Scikit learn 0.18 or newer is not installed")
 
@@ -577,7 +578,7 @@ def main():
     if mode == 'classification':
         scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',\
                    'balanced_accuracy']
-        search_scorer = make_scorer(metrics.cohen_kappa_score)
+        search_scorer = make_scorer(metrics.matthews_corrcoef)
     else:
         scoring = ['r2', 'neg_mean_squared_error']
         search_scorer = 'r2'
@@ -587,7 +588,7 @@ def main():
     # -------------------------------------------------------------------------
 
     # fetch individual raster names from group
-    maplist, map_names = maps_from_group(group)
+    maplist, _ = maps_from_group(group)
 
     if model_load == '':
 
@@ -712,7 +713,6 @@ def main():
         # ---------------------------------------------------------------------
         # define the preprocessing pipeline
         # ---------------------------------------------------------------------
-
         # standardization
         if norm_data is True and categorymaps is None:
             clf = Pipeline([('scaling', StandardScaler()),
@@ -760,12 +760,11 @@ def main():
         # ---------------------------------------------------------------------
         # classifier training
         # ---------------------------------------------------------------------
-
         gscript.message(os.linesep)
         gscript.message(('Fitting model using ' + classifier))
 
         # pass groups to fit parameter GroupKFold/GroupShuffleSplit and param_grid are present
-        if isinstance(inner, (GroupKFold, GroupShuffleSplit)) and any(param_grid) is True:
+        if isinstance(inner, (GroupKFold, GroupShuffleSplit)):
             if balance is True and classifier in (
                     'GradientBoostingClassifier', 'XGBClassifier'):
                 clf.fit(X=X, y=y, groups=group_id, sample_weight=class_weights)
@@ -792,7 +791,6 @@ def main():
         # ---------------------------------------------------------------------
         # cross-validation
         # ---------------------------------------------------------------------
-
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1 and tune_only is not True:
             if mode == 'classification' and cv > np.histogram(
@@ -884,6 +882,13 @@ def main():
 
     if model_only is not True:
         gscript.message(os.linesep)
+
+        # recalibrate probabilities if classes have been balanced
+        if balance is True:
+            if any(param_grid) is True:
+                clf = clf.best_estimator_
+            clf = CalibratedClassifierCV(clf, cv=outer)
+            clf.fit(X, y)
 
         # predict classification/regression raster
         if prob_only is False:
