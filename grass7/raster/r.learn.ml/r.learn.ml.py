@@ -885,9 +885,9 @@ def main():
 
         # recalibrate probabilities if classes have been balanced
         if balance is True:
-            if any(param_grid) is True:
+            if any(param_grid) is True and nested_cv is True:
                 clf = clf.best_estimator_
-            clf = CalibratedClassifierCV(clf, cv=outer)
+            clf = CalibratedClassifierCV(clf, cv=20)
             clf.fit(X, y)
 
         # predict classification/regression raster
