@@ -14,7 +14,7 @@
 #               are accessible from the current region.!!!
 # 
 #               This script will parse the specified lambdas-file from 
-#               MaxEnt 3.3.3e (see http://www.cs.princeton.edu/~schapire/maxent/) 
+#               MaxEnt 3.3.3e (see http://biodiversityinformatics.amnh.org/open_source/maxent/) 
 #               and translate it into an r.mapcalc-expression which is then stored
 #               in a temporary file and finally piped to r.mapcalc.
 #               If alias names had been used in MaxEnt, these alias names can 
