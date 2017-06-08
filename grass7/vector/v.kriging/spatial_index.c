@@ -75,8 +75,8 @@ struct ilist *find_NNs_within(int dim, double *search_pt, struct points *pnts,
 
         NN_sum = list->n_values;
         if (NN_sum < 2) {
-            G_warning(_("Point \"x=%f y=%f z=%f\" has less than 2 neighbours in its closest surrounding. The perimeter of the surrounding will be increased to include more neighbouring points"),
-                      *r, *(r + 1), *(r + 2));
+            /*G_fatal_error(_("Point \"x=%f y=%f z=%f\" has less than 2 neighbours in its closest surrounding. The perimeter of the surrounding will be increased to include more neighbouring points. If this warning appears regularly, please check your region settings."),
+             *r, *(r + 1), *(r + 2));*/
             max_dist += dist_step;
             max_dist_vert += dist_step_vert;
         }
@@ -112,7 +112,7 @@ struct ilist *find_n_NNs(int dim, int i, struct points *pnts, int n)
     }
 
     // check spherical (circular) surrounding
-    list = find_NNs_within(dim, search, pnts, sqrt(2.) * max_dist, -1);
+    list = find_NNs_within(dim, search, pnts, max_dist, -1);
 
     return list;
 }

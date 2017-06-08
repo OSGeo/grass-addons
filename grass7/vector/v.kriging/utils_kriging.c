@@ -45,7 +45,6 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
                 switch (var_par->function) {    // function of theoretical variogram
                 case 0:        // linear variogram
                     G_matrix_set_element(var_par->A, nr, 0, *h);
-                    //G_matrix_set_element(var_par->A, nr, 1, 1.);
                     break;
                 case 1:        // parabolic variogram
                     G_matrix_set_element(var_par->A, nr, 0, SQUARE(*h));
@@ -73,7 +72,7 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
 
     // Test of theoretical variogram estimation 
     if (var_par->T->vals == NULL) {     // NULL values of theoretical variogram
-        if (report->write2file == TRUE) {       // close report file
+        if (report->name) {     // close report file
             fprintf(report->fp,
                     "Error (see standard output). Process killed...");
             fclose(report->fp);
@@ -89,11 +88,17 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
 
     // coefficients of theoretical variogram (linear)
     if (report->name) {
-        fprintf(report->fp, "Parameters of bivariate variogram:\n");
-        fprintf(report->fp, "Function: linear\n\n");
-        fprintf(report->fp, "gamma(h, vert) = %f * h + %f * vert + %f\n",
-                var_par->T->vals[0], var_par->T->vals[1],
-                var_par->T->vals[2]);
+        if (var_par->function == 5) {
+            fprintf(report->fp, "Parameters of bivariate variogram:\n");
+            fprintf(report->fp, "gamma(h, vert) = %f * h + %f * vert + %f\n",
+                    var_par->T->vals[0], var_par->T->vals[1],
+                    var_par->T->vals[2]);
+        }
+        else {
+            fprintf(report->fp, "Parameters of univariate variogram:\n");
+            fprintf(report->fp, "gamma(h, vert) = %f * h + %f * vert + %f\n",
+                    var_par->T->vals[0], var_par->T->vals[1]);
+        }
     }                           // end if: report
 }
 
@@ -192,6 +197,7 @@ void sill_compare(struct int_par *xD, struct flgs *flg,
     else if (xD->univar == TRUE || (!flg->bivariate->answer && diff_sill <= diff_sill_05)) {    // geometric anisotropy 
         var_par->fin.type = 3;  // variogram type: anisotropic
         var_par->fin.max_dist = var_par->hz.max_dist;   // maximum distance: hz
+        var_par->fin.nLag = var_par->hz.nLag;
         var_par->fin.td = var_par->hz.td;       // azimuth: hz     
         xD->aniso_ratio = var_par->hz.h_range / var_par->vert.h_range;  // anisotropic ratio
         geometric_anisotropy(xD, pnts); // exaggerate z coords and build a new spatial index 
@@ -315,8 +321,8 @@ void cell_centre(unsigned int col, unsigned int row, unsigned int dep,
 }
 
 // set up elements of G matrix
-mat_struct *set_up_G(struct points *pnts, struct parameters *var_par,
-                     struct write *report)
+void set_up_G(struct points *pnts, struct parameters *var_par,
+              struct write *report, struct krig_pars *krig)
 {
     // Local variables
     int n = pnts->n;            // # of input points
@@ -385,12 +391,13 @@ mat_struct *set_up_G(struct points *pnts, struct parameters *var_par,
     }                           // end i loop
 
     free(dr);
-    return GM;
+
+    krig->GM = G_matrix_copy(GM);
 }
 
 // make G submatrix for rellevant points
-mat_struct *submatrix(struct ilist * index, mat_struct * GM_all,
-                      struct write * report)
+mat_struct *submatrix(struct ilist *index, mat_struct * GM_all,
+                      struct write *report)
 {
     // Local variables
     int n = index->n_values;    // # of selected points
@@ -506,7 +513,7 @@ mat_struct *set_up_g0(struct int_par * xD, struct points * pnts,
         switch (i3) {
         case FALSE:
             // Cell value diffs estimation using linear variogram
-            dr[2] = 0.0;        // !!! optimalize - not to be necessary to use this line
+            dr[2] = 0.0;        // !!! optimize - not to be necessary to use this line
             break;
         case TRUE:
             dr[2] = *(r + 2) - *(r0 + 2);       // dz
@@ -571,7 +578,6 @@ double result(struct points *pnts, struct ilist *index, mat_struct * w0)
     for (i = 0; i < n; i++) {   // for each input point:
         *vt = *vo;              // subval = selected original
         *wt = *wo;              // sub weight = selected original
-        //G_debug(0,"%f %f", *vt, *wt);
 
         // go to the next:
         if (n_ind == 0) {       // use all points:
@@ -594,9 +600,29 @@ double result(struct points *pnts, struct ilist *index, mat_struct * w0)
     return rslt_OK->vals[0];
 }
 
+// find center
+double find_center(double r, double res)
+{
+    int n;
+    double center;
+
+    n = floor(r / res);
+    center = (n + 0.5) * res;
+
+    return center;
+}
+
+// calculate a cell for validation
+void adjacent_cell(int i3, double *r, struct reg_par *reg, double *cell)
+{
+    *cell = find_center(*r, reg->ew_res);
+    *(cell + 1) = find_center(*(r + 1), reg->ns_res);
+    *(cell + 2) = i3 == TRUE ? find_center(*(r + 2), reg->bt_res) : 0.;
+}
+
 // validation
 void crossvalidation(struct int_par *xD, struct points *pnts,
-                     struct parameters *var_par)
+                     struct parameters *var_par, struct reg_par *reg)
 {
     int n = pnts->n;            // # of input points
     double *r = pnts->r;        // coordinates of points
@@ -607,7 +633,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
     double ratio = type == 3 ? xD->aniso_ratio : 1.;    // anisotropic ratio
     mat_struct *GM = var_par->GM;       // GM = theor_var(distances)
 
-    int i;
+    int i, direction;
     int n_vals;
     double max_dist =
         type == 2 ? var_par->horizontal.max_dist : var_par->max_dist;
@@ -616,13 +642,23 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
 
     double *search;             // coordinates of the search point
     struct ilist *list;
+
+    // coordinates of the adjacent cell
+    double *cell;
+
+    cell = (double *)G_malloc(3 * sizeof(double));
+
     mat_struct *GM_sub;
     mat_struct *GM_Inv, *g0, *w0;
     double rslt_OK;
 
-    struct write *crossvalid = &xD->crossvalid;
-    struct write *report = &xD->report;
+    mat_struct *g0_cell, *w0_cell;
+    double rslt_OK_cell;
+
+    struct write *crossvalid = xD->crossvalid;
+    struct write *report = xD->report;
     double *normal, *absval, *norm, *av;
+    double *normal_cell, *absval_cell, *norm_cell, *av_cell;
 
     search = (double *)G_malloc(3 * sizeof(double));
     normal = (double *)G_malloc(n * sizeof(double));
@@ -630,50 +666,74 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
     norm = &normal[0];
     av = &absval[0];
 
+    normal_cell = (double *)G_malloc(n * sizeof(double));
+    absval_cell = (double *)G_malloc(n * sizeof(double));
+    norm_cell = &normal_cell[0];
+    av_cell = &absval_cell[0];
+
     FILE *fp;
 
     fp = fopen(crossvalid->name, "w");
 
+    G_message(_("Crossvalidation..."));
     for (i = 0; i < n; i++) {   // for each input point [r0]:
         list = G_new_ilist();   // create list of overlapping rectangles
 
         search = &pnts->r[3 * i];
         if (i3 == TRUE) {
             list = find_NNs_within(3, search, pnts, max_dist, max_dist_vert);
+            direction = 0;
         }
         else {
             list = find_NNs_within(2, search, pnts, max_dist, max_dist_vert);
+            direction = 12;
         }
 
         n_vals = list->n_values;        // # of overlapping rectangles
 
         if (n_vals > 0) {       // if positive:
-            correct_indices(list, r, pnts, var_par);
+            correct_indices(direction, list, r, pnts, var_par);
 
             GM_sub = submatrix(list, GM, &xD->report);  // create submatrix using indices
             GM_Inv = G_matrix_inverse(GM_sub);  // inverse matrix
             G_matrix_free(GM_sub);
 
+            // calculate cell
+            adjacent_cell(i3, r, reg, cell);
+
             g0 = set_up_g0(xD, pnts, list, r, var_par); // Diffs inputs - unknowns (incl. cond. 1)) 
             w0 = G_matrix_product(GM_Inv, g0);  // Vector of weights, condition SUM(w) = 1 in last row
+
+            g0_cell = set_up_g0(xD, pnts, list, cell, var_par); // Diffs inputs - unknowns (incl. cond. 1)) 
+            w0_cell = G_matrix_product(GM_Inv, g0_cell);        // Vector of weights, condition SUM(w) = 1 in last row
+
 
             G_matrix_free(g0);
             G_matrix_free(GM_Inv);
 
+            G_matrix_free(g0_cell);
+
             rslt_OK = result(pnts, list, w0);   // Estimated cell/voxel value rslt_OK = w x inputs
             G_matrix_free(w0);
 
-            //Create output 
+            rslt_OK_cell = result(pnts, list, w0_cell); // Estimated cell/voxel value rslt_OK = w x inputs
+            G_matrix_free(w0_cell);
+
+            // Create output 
             *norm = rslt_OK - *vals;    // differences between input and interpolated values
             *av = fabs(*norm);  // absolute values of the differences (quantile computation)
 
+            *norm_cell = rslt_OK_cell - *vals;  // differences between input and interpolated values
+            *av_cell = fabs(*norm_cell);        // absolute values of the differences (quantile computation)
+
             if (xD->i3 == TRUE) {       // 3D interpolation:
-                fprintf(fp, "%d %.3f %.3f %.2f %f %f %f\n", i, *r, *(r + 1),
-                        *(r + 2) / ratio, pnts->invals[i], rslt_OK, *norm);
+                fprintf(fp, "%d %.3f %.3f %.2f %f %f %f %f %f\n", i, *r,
+                        *(r + 1), *(r + 2) / ratio, pnts->invals[i], rslt_OK,
+                        *norm, rslt_OK_cell, *norm_cell);
             }
             else {              // 2D interpolation:
-                fprintf(fp, "%d %.3f %.3f %f %f %f\n", i, *r, *(r + 1), *vals,
-                        rslt_OK, *norm);
+                fprintf(fp, "%d %.3f %.3f %f %f %f %f %f\n", i, *r, *(r + 1),
+                        *vals, rslt_OK, *norm, rslt_OK_cell, *norm_cell);
             }
         }                       // end if: n_vals > 0
 
@@ -687,6 +747,8 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
         vals++;
         norm++;
         av++;
+        norm_cell++;
+        av_cell++;
 
         G_free_ilist(list);     // free list memory
     }                           // end i for loop
@@ -696,15 +758,160 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
               crossvalid->name);
 
     if (report->name) {
-        double quant95;
+        double quant95, quant95_cell;
+
+        report->fp = fopen(report->name, "a");
 
         fprintf(report->fp,
                 "\n************************************************\n");
         fprintf(report->fp, "*** Cross validation results ***\n");
 
         test_normality(n, normal, report);
+        test_normality(n, normal_cell, report);
 
-        fprintf(report->fp, "Quantile of absolute values\n");
+        fprintf(report->fp, "Quantile of absolute values (points)\n");
         quant95 = quantile(0.95, n, absval, report);
+
+        fprintf(report->fp, "Quantile of absolute values (cells)\n");
+        quant95_cell = quantile(0.95, n, absval_cell, report);
     }
+}
+
+struct ilist *list_NN(struct int_par *xD, double *r0, struct points *pnts,
+                      double max_dist, double max_dist_vert)
+{
+    // local variables
+    int i3 = xD->i3;
+
+    struct ilist *list;
+
+    list = G_new_ilist();       // create list of overlapping rectangles
+
+    if (i3 == TRUE) {           // 3D kriging:
+        list = find_NNs_within(3, r0, pnts, max_dist, max_dist_vert);
+    }
+    else {                      // 2D kriging:
+        list = find_NNs_within(2, r0, pnts, max_dist, max_dist_vert);
+    }
+
+    return list;
+}
+
+int compare_NN(struct ilist *list, struct ilist *list_new, int modified)
+{
+    // local variables
+    int n = list->n_values, n_new = list_new->n_values;
+    double *list_value = list->value;
+    double *list_new_value = list_new->value;
+
+    int i, next = 0;            // the samples are different
+
+    if (n == n_new) {
+        for (i = 0; i < n; i++) {
+            if (list_value[i] != list_new_value[i] - modified) {
+                goto change;    // they are indeed
+            }
+        }
+        next = 1;               // they are identical
+    }
+
+  change:
+    return next;
+}
+
+void make_subsamples(struct int_par *xD, struct ilist *list, double *r0,
+                     int row, int col, struct points *pnts,
+                     struct parameters *var_par, struct krig_pars *krig)
+{
+    // Local variables
+    int i3 = xD->i3;
+    double *vals = pnts->invals;
+    struct write *report = &xD->report;
+
+    int direction;
+    mat_struct *GM_sub;
+
+    direction = i3 == TRUE ? 0 : 12;
+
+    if (list->n_values > 1) {   // positive # of selected points: 
+        correct_indices(direction, list, r0, pnts, var_par);
+
+        GM_sub = submatrix(list, krig->GM, report);     // make submatrix for selected points
+        krig->GM_Inv = G_matrix_inverse(GM_sub);        // invert submatrix
+        G_matrix_free(GM_sub);
+    }
+    else if (list->n_values == 1) {
+        G_matrix_set_element(krig->rslt, row, col, vals[list->value[0] - 1]);   // Estimated cell/voxel value rslt_OK = w x inputs
+    }
+    else if (list->n_values == 0) {
+        report_error(report);
+        G_fatal_error(_("This point does not have neighbours in given radius..."));
+    }                           // end else: error
+
+    //G_free_ilist(list);     // free list memory 
+}
+
+double interpolate(struct int_par *xD, struct ilist *list, double *r0,
+                   struct points *pnts, struct parameters *var_par,
+                   struct krig_pars *krig)
+{
+    double rslt;
+    mat_struct *g0, *w0;
+
+    g0 = set_up_g0(xD, pnts, list, r0, var_par);        // Diffs inputs - unknowns (incl. cond. 1))
+    w0 = G_matrix_product(krig->GM_Inv, g0);    // Vector of weights, condition SUM(w) = 1 in last row
+
+    G_matrix_free(g0);
+
+    rslt = result(pnts, list, w0);      // Estimated cell/voxel value rslt_OK = w x inputs
+    G_matrix_free(w0);
+
+    return rslt;
+}
+
+double trend(double *r0, struct output *out, int function, struct int_par *xD)
+{
+    int i3 = xD->i3;
+    double a, b, c, d, value;
+    double ratio;
+
+    ratio = i3 == FALSE || function == 5 ? 1. : xD->aniso_ratio;
+
+    a = out->trend[0];
+    b = out->trend[1];
+    c = out->trend[2];
+    d = out->trend[3];
+    value = a * *r0 + b * *(r0 + 1) + c * *(r0 + 2) / ratio + d;
+
+    return value;
+}
+
+int new_sample(struct int_par *xD, struct ilist *list, struct ilist *list_new,
+               struct points *pnts, int dep, int row, int col, double *r0,
+               double max_dist, double max_dist_vert, struct reg_par *reg,
+               struct parameters *var_par, struct krig_pars *krig,
+               int *new_matrix)
+{
+    int next;
+
+    // free memory
+    if (krig->modified == 0) {
+        G_free_ilist(list_new); // new list
+    }
+    G_matrix_free(krig->GM_Inv);        // old inverse matrix
+
+    // make new...
+    list = list_NN(xD, r0, pnts, max_dist, max_dist_vert);      //... list
+    cell_centre(col, row, dep, xD, reg, r0, var_par);
+    make_subsamples(xD, list, r0, dep * reg->nrows + row, col, pnts, var_par,
+                    krig);
+
+    // options:
+    krig->modified = 0;         // indices are not corrected
+    krig->new = TRUE;           //
+    krig->first = TRUE;         // new sample is being processed
+    *new_matrix++;              // counter of skipped matrices
+    next = 2;                   // interpolate using new subsample
+
+    return next;
 }

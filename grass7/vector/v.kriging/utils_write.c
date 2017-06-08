@@ -20,7 +20,9 @@ void variogram_type(int code, char *type)
 
 void write2file_basics(struct int_par *xD, struct opts *opt)
 {
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
+
+    report->fp = fopen(report->name, "a");
 
     fprintf(report->fp, "************************************************\n");
     fprintf(report->fp, "*** Input ***\n\n");
@@ -51,7 +53,9 @@ void write2file_basics(struct int_par *xD, struct opts *opt)
 void write2file_vector(struct int_par *xD, struct points *pnts)
 {
     struct select in_reg = pnts->in_reg;
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
+
+    report->fp = fopen(report->name, "a");
 
     fprintf(report->fp, "\n");
     fprintf(report->fp, "************************************************\n");
@@ -135,7 +139,7 @@ void write2file_variogram_E(struct int_par *xD, struct parameters *var_pars,
     double *h, *vert;
     double *c;
     double *gamma;
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     char type[12];
 
@@ -234,24 +238,24 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
     switch (type) {
     case 0:                    // horizontal variogram
         fp = fopen("variogram_hz_tmp.txt", "w");
-        if (xD->report.write2file) {    // write name of report file
-            file_length = strlen(xD->report.name);
+        if (xD->report->name) { // write name of report file
+            file_length = strlen(xD->report->name);
             if (file_length < 4) {      // 4 types of variogram
                 G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
             }
-            fprintf(fp, "%d 9 %s\n", file_length, xD->report.name);
+            fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
         fprintf(fp, "%d\n", var_pars->type);    // write # of lags
         break;
 
     case 1:                    // vertical variogram
         fp = fopen("variogram_vert_tmp.txt", "w");
-        if (xD->report.write2file == TRUE) {    // write name of report file
-            file_length = strlen(xD->report.name);
+        if (xD->report->name) { // write name of report file
+            file_length = strlen(xD->report->name);
             if (file_length < 3) {
                 G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
             }
-            fprintf(fp, "%d 9 %s\n", file_length, xD->report.name);
+            fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
         fprintf(fp, "%d\n", var_pars->type);    // write type
         break;
@@ -259,12 +263,12 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
     case 2:                    // bivariate variogram
         fp = fopen("variogram_final_tmp.txt", "w");
 
-        if (xD->report.write2file == TRUE) {    // write name of report file
-            file_length = strlen(xD->report.name);
+        if (xD->report->name) { // write name of report file
+            file_length = strlen(xD->report->name);
             if (file_length < 4) {      // 4 types of variogram
                 G_fatal_error(_("File name must contain more than 2 characters..."));   // todo: error
             }
-            fprintf(fp, "%d 9 %s\n", file_length, xD->report.name);
+            fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
 
         fprintf(fp, "%d\n", var_pars->type);    // write type
@@ -279,12 +283,12 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
 
     case 3:                    // anisotropic variogram
         fp = fopen("variogram_final_tmp.txt", "w");
-        if (xD->report.name) {  // write name of report file
-            file_length = strlen(xD->report.name);
+        if (xD->report->name) { // write name of report file
+            file_length = strlen(xD->report->name);
             if (file_length < 4) {      // 4 types of variogram
                 G_fatal_error(_("File name must contain more than 4 characters..."));   // todo: error
             }
-            fprintf(fp, "%d 9 %s\n", file_length, xD->report.name);
+            fprintf(fp, "%d 9 %s\n", file_length, xD->report->name);
         }
         fprintf(fp, "%d\n", var_pars->type);    // write type
         fprintf(fp, "%f\n", xD->aniso_ratio);   // write ratio of anisotropy 
@@ -333,4 +337,12 @@ void write_temporary2file(struct int_par *xD, struct parameters *var_pars)
     }
 
     fclose(fp);
+}
+
+void report_error(struct write *report)
+{
+    if (report->name) {         // close report file
+        fprintf(report->fp, "Error (see standard output). Process killed...");
+        fclose(report->fp);
+    }
 }

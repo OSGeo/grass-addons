@@ -16,51 +16,6 @@ int cmpVals(const void *v1, const void *v2)
         return 0;
 }
 
-void correct_indices(struct ilist *list, double *r0, struct points *pnts,
-                     struct parameters *var_pars)
-{
-    int i;
-    int n = list->n_values;
-    int *vals = list->value;
-    double dx, dy, dz;
-    int type = var_pars->type;
-
-    int n_new = 0;              // # of effective indices (not identical points, nor too far)
-    int *newvals, *save;        // effective indices
-
-    newvals = (int *)G_malloc(n * sizeof(int));
-    save = &newvals[0];
-
-    double *r, sqDist_i;
-
-    for (i = 0; i < n; i++) {
-        *vals -= 1;
-        r = &pnts->r[3 * *vals];
-
-        dx = *r - *r0;
-        dy = *(r + 1) - *(r0 + 1);
-        dz = *(r + 2) - *(r0 + 2);
-        sqDist_i = SQUARE(dx) + SQUARE(dy) + SQUARE(dz);
-
-        if (type != 2 && (n == 1 || (sqDist_i != 0.))) {
-            *save = *vals;
-            n_new++;
-            save++;
-        }
-        vals++;
-    }
-
-    if (type != 2 && n_new < n) {
-        list->n_values = n_new;
-        list->value = (int *)G_realloc(list->value, n_new * sizeof(int));
-        memcpy(list->value, newvals, n_new * sizeof(int));
-    }
-
-    G_free(newvals);
-
-    return;
-}
-
 // make coordinate triples xyz
 void triple(double x, double y, double z, double *triple)
 {
@@ -97,13 +52,32 @@ void coord_diff(int i, int j, double *r, double *dr)
 }
 
 // compute horizontal radius from coordinate differences
-double radius_hz_diff(double *dr)
+double radius_hz_diff(double dr[3])
 {
     double rds;
 
     rds = SQUARE(dr[0]) + SQUARE(dr[1]);
 
     return rds;
+}
+
+double squared_distance(int direction, double *dr)
+{
+    double d;
+
+    switch (direction) {
+    case 12:                   // horizontal
+        d = SQUARE(dr[0]) + SQUARE(dr[1]);
+        break;
+    case 3:                    // vertical
+        d = SQUARE(dr[2]);
+        break;
+    case 0:                    // all
+        d = SQUARE(dr[0]) + SQUARE(dr[1]) + SQUARE(dr[2]);
+        break;
+    }
+
+    return d;
 }
 
 // compute zenith angle
@@ -116,8 +90,66 @@ double zenith_angle(double dr[3])
     return zenith;
 }
 
+void correct_indices(int direction, struct ilist *list, double *r0,
+                     struct points *pnts, struct parameters *var_pars)
+{
+    int i;
+    int n = list->n_values;
+    int *vals = list->value;
+    double dr[3];
+    int type = var_pars->type;
+    double max_dist = var_pars->max_dist;
+
+    int skip = FALSE;           // do not skip relevant points
+    int n_new = 0;              // # of effective indices (not identical points, nor too far)
+    int *newvals, *save;        // effective indices
+
+    // values of the new list (if necesary)
+    newvals = (int *)G_malloc(n * sizeof(int));
+    save = &newvals[0];
+
+    double *r, sqDist_i;
+
+    for (i = 0; i < n; i++) {
+        *vals -= 1;             // decrease value by 1 
+        r = &pnts->r[3 * *vals];        // find point coordinates
+
+        // coordinate differences
+        *dr = *r - *r0;
+        *(dr + 1) = *(r + 1) - *(r0 + 1);
+        *(dr + 2) = *(r + 2) - *(r0 + 2);
+
+        // compute squared distance
+        sqDist_i = squared_distance(direction, dr);
+
+        // compare with maximum
+        skip = sqDist_i <= max_dist ? FALSE : TRUE;
+
+        // if:
+        // - univariate variogram with only one non-zero value or
+        // - the distance (circular) does not exceed max_dist
+        if (type != 2 && (n == 1 || (sqDist_i != 0.)) || skip == FALSE) {
+            *save = *vals;
+            n_new++;
+            save++;
+            skip = FALSE;
+        }
+        vals++;
+    }
+
+    if (type != 2 && n_new < n) {
+        list->n_values = n_new;
+        list->value = (int *)G_realloc(list->value, n_new * sizeof(int));
+        memcpy(list->value, newvals, n_new * sizeof(int));
+    }
+
+    G_free(newvals);
+
+    return;
+}
+
 // compute size of the lag
-double lag_size(int direction, struct points *pnts,
+double lag_size(int i3, int direction, struct points *pnts,
                 struct parameters *var_pars, struct write *report)
 {
     // local variables
@@ -168,7 +200,7 @@ double lag_size(int direction, struct points *pnts,
                 coord_diff(i, (*j_vals - 1), pnts->r, dr);      // compute coordinate differences
                 switch (direction) {    // and count those which equal to zero
                 case 12:       // horizontal
-                    if (dr[0] == 0. && dr[1] == 0.) {
+                    if (i3 == FALSE && (dr[0] == 0. && dr[1] == 0.)) {
                         add_ident++;
                     }
                     break;
@@ -188,16 +220,12 @@ double lag_size(int direction, struct points *pnts,
         }                       //end if: n_vals > 0
 
         else {
-            if (report->write2file == TRUE) {   // close report file
-                fprintf(report->fp,
-                        "Error (see standard output). Process killed...");
-                fclose(report->fp);
-            }
+            report_error(report);
             G_fatal_error(_("Error: There are no nearest neighbours of point %d..."),
                           i);
         }                       // end error
 
-        perc5 = (int)round(0.05 * n) + add_ident;       // set up 5% increased by number of identical points
+        perc5 = (int)ceil(0.05 * n) + add_ident;        // set up 5% increased by number of identical points
 
         coord_diff(i, perc5, pnts->r, dr);      // coordinate differences of search point and 5%th NN      
         switch (direction) {    // compute squared distance for particular direction
@@ -216,12 +244,11 @@ double lag_size(int direction, struct points *pnts,
             d_min = MIN(d_min, dist2);
         }
 
+        G_free_ilist(list);     // free list memory
         r += 3;                 // go to next search point  
     }                           // end i for loop: distance of i-th search pt and 5%-th NN 
 
     lagNN = sqrt(d_min);
-
-    G_free_ilist(list);         // free list memory
 
     return lagNN;
 }
@@ -296,7 +323,7 @@ void optimize(double *lag, int *nLag, double max)
 void variogram_restricts(struct int_par *xD, struct points *pnts,
                          struct parameters *var_pars)
 {
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     double *min, *max;          // extend
     double dr[3];               // coordinate differences
@@ -308,6 +335,7 @@ void variogram_restricts(struct int_par *xD, struct points *pnts,
 
     // Find extent
     G_message(_("Computing %s variogram properties..."), type);
+
     min = &pnts->r_min[0];      // set up pointer to minimum xyz
     max = &pnts->r_max[0];      // set up pointer to maximum xyz
 
@@ -317,16 +345,26 @@ void variogram_restricts(struct int_par *xD, struct points *pnts,
 
     switch (var_pars->type) {
     case 1:                    // vertical variogram
-        var_pars->max_dist = dr[2];     // zmax - zmin
+        if (var_pars->max_dist == -1.) {
+            var_pars->max_dist = dr[2]; // zmax - zmin
+        }
         var_pars->radius = SQUARE(var_pars->max_dist);  // anisotropic distance (todo: try also dz)
         break;
     default:
-        var_pars->radius = radius_hz_diff(dr) / 9.;     // horizontal radius (1/9)
-        var_pars->max_dist = sqrt(var_pars->radius);    // 1/3 max horizontal dist (Surfer, Golden SW)
+        if (var_pars->max_dist == -1.) {
+            var_pars->radius = radius_hz_diff(dr) / 9.; // horizontal radius (1/9)
+            var_pars->max_dist = sqrt(var_pars->radius);        // 1/3 max horizontal dist (Surfer, Golden SW)
+        }
+        else {
+            var_pars->radius = SQUARE(var_pars->max_dist);
+        }
         break;
     }
+    if (var_pars->max_dist <= 0.) {
+        G_fatal_error(_("Maximum distance must be greater than 0."));
+    }
 
-    if (report->write2file == TRUE) {   // report name available:
+    if (report->name) {         // report name available:
         write2file_varSetsIntro(var_pars->type, report);        // describe properties
     }
 
@@ -345,27 +383,42 @@ void variogram_restricts(struct int_par *xD, struct points *pnts,
 
     if (var_pars->type == 2) {  // bivariate variogram
         // horizontal direction: 
-        var_pars->lag = lag_size(12, pnts, var_pars, report);   // lag distance
-        var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);        // number of lags
-        optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
-        var_pars->max_dist = var_pars->nLag * var_pars->lag;    // maximum distance
+        if (var_pars->nLag == -1) {
+            var_pars->lag = lag_size(xD->i3, 12, pnts, var_pars, report);       // lag distance
+            var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);    // number of lags
+            optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
+            var_pars->max_dist = var_pars->nLag * var_pars->lag;        // maximum distance
+        }
+        else {
+            var_pars->lag = var_pars->max_dist / var_pars->nLag;        // lag size
+        }
 
         // vertical direction
-        var_pars->lag_vert = lag_size(3, pnts, var_pars, report);       // lag distance
-        var_pars->nLag_vert = lag_number(var_pars->lag_vert, &var_pars->max_dist_vert); // # of lags
-        optimize(&var_pars->lag_vert, &var_pars->nLag_vert,
-                 var_pars->max_dist_vert);
-        var_pars->max_dist_vert = var_pars->nLag_vert * var_pars->lag_vert;     // max distance
+        if (var_pars->nLag_vert == -1) {
+            var_pars->lag_vert = lag_size(xD->i3, 3, pnts, var_pars, report);   // lag distance
+            var_pars->nLag_vert = lag_number(var_pars->lag_vert, &var_pars->max_dist_vert);     // # of lags
+            optimize(&var_pars->lag_vert, &var_pars->nLag_vert,
+                     var_pars->max_dist_vert);
+            var_pars->max_dist_vert = var_pars->nLag_vert * var_pars->lag_vert; // max distance
+        }
+        else {
+            var_pars->lag_vert = var_pars->max_dist_vert / var_pars->nLag_vert; // lag size
+        }
     }
 
     else {                      // univariate variograms (hz / vert / aniso)
-        var_pars->lag = lag_size(dimension, pnts, var_pars, report);    // lag size
-        var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);        // # of lags
-        optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
-        var_pars->max_dist = var_pars->nLag * var_pars->lag;    // maximum distance
+        if (var_pars->nLag == -1) {
+            var_pars->lag = lag_size(xD->i3, dimension, pnts, var_pars, report);        // lag size
+            var_pars->nLag = lag_number(var_pars->lag, &var_pars->max_dist);    // # of lags
+            optimize(&var_pars->lag, &var_pars->nLag, var_pars->max_dist);
+            var_pars->max_dist = var_pars->nLag * var_pars->lag;        // maximum distance
+        }
+        else {
+            var_pars->lag = var_pars->max_dist / var_pars->nLag;        // lag size
+        }
     }
 
-    if (report->write2file == TRUE) {   // report name available:
+    if (report->name) {         // report name available:
         write2file_varSets(report, var_pars);   // describe properties
     }
 }
@@ -376,10 +429,10 @@ void geometric_anisotropy(struct int_par *xD, struct points *pnts)
     double ratio = xD->aniso_ratio;
 
     if (ratio <= 0.) {          // ratio is negative or zero:
-        if (xD->report.name) {  // close report file
-            fprintf(xD->report.fp,
+        if (xD->report->name) { // close report file
+            fprintf(xD->report->fp,
                     "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
+            fclose(xD->report->fp);
         }
         G_fatal_error(_("Anisotropy ratio must be greater than zero..."));
     }
@@ -446,11 +499,7 @@ int set_function(char *variogram, struct write *report)
         function = 5;
     }
     else {
-        if (report->write2file == TRUE) {       // close report file
-            fprintf(report->fp,
-                    "Error (see standard output). Process killed...");
-            fclose(report->fp);
-        }
+        report_error(report);
         G_fatal_error(_("Set up correct name of variogram function..."));
     }
 
@@ -508,6 +557,7 @@ void plot_experimental_variogram(struct int_par *xD,
 
     gp = fopen("dataE.dat", "w");       // open file to write experimental variogram (initial phase)
     if (access("dataE.dat", W_OK) < 0) {
+        report_error(xD->report);
         G_fatal_error(_("Something went wrong opening tmp file..."));
     }
 
@@ -620,14 +670,16 @@ void plot_experimental_variogram(struct int_par *xD,
     }
     fclose(gp);
 
-    if (xD->report.write2file == FALSE) {
+    if (!xD->report->name) {
         remove("dataE.dat");
     }
 }
 
 // plot experimental and theoretical variogram
-void plot_var(int i3, int bivar, struct parameters *var_pars)
+void plot_var(struct int_par *xD, int bivar, struct parameters *var_pars)
 {
+    int i3 = xD->i3;
+    struct write *report = xD->report;
     int function;
     double nugget, nugget_h, nugget_v;
     double sill;
@@ -666,9 +718,11 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
     if (type != 2) {            // univariate variogram
         gp = fopen("dataE.dat", "w");   // open file to write experimental variogram
         if (access("dataE.dat", W_OK) < 0) {
+            report_error(report);
             G_fatal_error(_("Something went wrong opening tmp file..."));
         }
         if (gp == NULL) {
+            report_error(report);
             G_fatal_error(_("Error writing file"));
         }
 
@@ -688,17 +742,20 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
     else {                      // bivariate variogram
         gp = fopen("dataE.dat", "r");   // open file to read experimental variogram
         if (access("dataE.dat", F_OK) < 0) {
+            report_error(report);
             G_fatal_error(_("You have probably deleted dataE.dat - process middle phase again, please."));
         }
     }
 
     if (fclose(gp) != 0) {
+        report_error(report);
         G_fatal_error(_("Error closing file..."));
     }
 
     /* Theoretical variogram */
     gp = fopen("dataT.dat", "w");       // open file to write theoretical variogram
     if (access("dataT.dat", W_OK) < 0) {
+        report_error(report);
         G_fatal_error(_("Something went wrong opening tmp file..."));
     }
 
@@ -789,6 +846,7 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
     }
 
     if (fclose(gp) == EOF) {
+        report_error(report);
         G_fatal_error(_("Error closing file..."));
     }
 
@@ -924,4 +982,17 @@ void plot_var(int i3, int bivar, struct parameters *var_pars)
 
     remove("dataE.dat");
     remove("dataT.dat");
+}
+
+void new_vertical(int *row0, int n)
+{
+    int i;
+    int *value;
+
+    value = &row0[0];
+
+    for (i = 0; i < n; i++) {
+        *value = 0;
+        value++;
+    }
 }

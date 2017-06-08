@@ -178,7 +178,7 @@ void compute_quantiles(int recode, double *quantile, struct write *report)
 
         *quantile = v;
         prev_v = v;
-        if (report != NULL && report->write2file == TRUE)
+        if (report != NULL && report->name)
             fprintf(report->fp, "%f:%f:%f\n", prev_v, v, quants[quant]);
     }
 }

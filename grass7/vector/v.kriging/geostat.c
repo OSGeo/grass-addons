@@ -7,15 +7,18 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
 {
     // Variogram properties
     struct parameters *var_pars;
+    int direction;
     double max_dist, max_dist_vert;     // max distance of interpolated points
     double radius, radius_vert; // radius of interpolation in the horizontal plane
 
     switch (type) {
     case 0:                    // horizontal variogram
         var_pars = &pars->hz;   // 0: horizontal variogram
+        direction = 12;
         break;
-    case 1:                    // vertica variogram
-        var_pars = &pars->vert; // 1: vertical variogram    
+    case 1:                    // vertical variogram
+        var_pars = &pars->vert; // 1: vertical variogram 
+        direction = 3;
         break;
     case 2:                    // bivariate variogram
         var_pars = &pars->fin;
@@ -28,6 +31,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
         var_pars = &pars->fin;  // default: final variogram
         max_dist = max_dist_vert = var_pars->max_dist;
         radius = radius_vert = SQUARE(max_dist);
+        direction = 0;
         break;
     }
 
@@ -73,7 +77,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
     int nrows = nLag;
     int ncols = type == 2 ? nLag_vert : 1;
 
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     // Variogram processing variables
     int s;                      // index of horizontal segment
@@ -133,11 +137,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
     // control initialization:
     if (dr == NULL || search == NULL || var_pars->h == NULL ||
         (type == 2 && var_pars->vert == NULL)) {
-        if (xD->report.write2file == TRUE) {    // close report file
-            fprintf(xD->report.fp,
-                    "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
-        }
+        report_error(xD->report);
         G_fatal_error(_("Memory allocation failed..."));
     }
 
@@ -146,11 +146,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
     gamma_M = G_matrix_init(nrows, ncols, nrows);       // temporal matrix (vector) of gammas
 
     if (c_M == NULL || gamma_M == NULL) {
-        if (xD->report.write2file == TRUE) {    // close report file
-            fprintf(xD->report.fp,
-                    "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
-        }
+        report_error(xD->report);
         G_fatal_error(_("Memory allocation failed..."));
     }
 
@@ -180,9 +176,9 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
 
         for (s = 0; s < nrows; s++) {   // for each horizontal lag (isotrophy!!!)...
             *h = (s + 1) * lag; // lag distance
-            r = &pnts->r[0];    // pointer to the input coordinates
 
             // for every bs cycle ...
+            r = &pnts->r[0];    // pointer to the input coordinates
             i_vals = &vals[0];  // pointer to input values to be interpolated 
             gamma_lag = 0.;     // gamma in dir direction and h distance
             cpls = 0.;          // count of couples in dir direction and h distance     
@@ -206,13 +202,13 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
 
                 n_vals = list->n_values;        // # of input values located on NN
                 if (n_vals > 0) {
-                    correct_indices(list, r, pnts, var_pars);
+                    correct_indices(direction, list, r, pnts, var_pars);
                     ii = &list->value[0];       // indices of these input values (note: increased by 1)
                     j_vals = &vals[*ii];        // pointer to input values
 
                     for (j = 1; j < n_vals; j++) {      // for each point within overlapping rectangle
                         if (*ii > i) {  // use the points just once
-                            coord_diff(i, *ii, pnts_r, dr);     // compute coordinate differences 
+                            coord_diff(i, *ii, pnts_r, dr);     // compute coordinate differences
 
                             // Variogram processing
                             if (type == 1) {    // vertical variogram:
@@ -221,15 +217,12 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                             }
                             else {      // hz / aniso / bivar variogram: 
                                 tv = atan2(*(dr + 1), *dr);     // bearing
-                                if (tv < 0.) {
-                                    tv += 2. * PI;
-                                }
                             }
 
-                            ddir1 = dir - tv;   // difference between bearing and azimuth
-                            ddir2 = (dir + PI) - tv;
+                            ddir1 = tv - dir;   // difference between bearing and azimuth
+                            ddir2 = tv + (PI - dir);    // reverse
 
-                            if (fabs(ddir1) <= td || fabs(ddir2) <= td) {       // angle test: compare the diff with critical value
+                            if (fabsf(ddir1) <= td || fabsf(ddir2) <= td) {     // angle test: compare the diff with critical value
                                 // test squared distance: vertical variogram => 0., ...
                                 rv = type == 1 ? 0. : radius_hz_diff(dr);       // ... otherwise horizontal distance
 
@@ -237,9 +230,11 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                     rv += SQUARE(*(dr + 2));    // consider also vertical direction
                                 }
 
-                                rvh = sqrt(rv) - *h;    // the difference between distance and lag
-                                if (rv <= radius && fabs(rvh) <= lag) { // distance test: compare the distance with critical value and find out if the j-point is located within i-lag
-                                    if (type == 2) {    // vertical test for bivariate variogram:
+                                rvh = *h - sqrt(rv);    // the difference between distance and lag
+                                // distance test: compare the distance with critical value: find out if the j-point is located within i-lag
+                                if (rv <= radius && 0. <= rvh && rvh <= lag) {  // 0. <= rvh && rvh <= lag
+                                    // vertical test for bivariate variogram:
+                                    if (type == 2) {
                                         rvh = *(dr + 2) - *vert;        // compare vertical
 
                                         if (fabs(rvh) <= lag_vert) {    // elevation test: vertical lag
@@ -248,7 +243,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                         else {
                                             goto end;
                                         }
-                                    }
+                                    }   // end if: type == 2
                                   delta_V:
                                     dv = *j_vals - *i_vals;     // difference of values located on pair of points i, j
                                     gamma_lag += SQUARE(dv);    // sum of squared differences
@@ -262,16 +257,12 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                     }           // end j for loop: points within overlapping rectangles
                 }               // end test: n_vals > 0
                 else {
-                    if (report->name) { // close report file
-                        fprintf(report->fp,
-                                "Error (see standard output). Process killed...");
-                        fclose(report->fp);
-                    }
+                    report_error(report);
                     G_fatal_error(_("This point does not have neighbours in given radius..."));
                 }
-
                 r += 3;         // go to the next search point
                 i_vals++;       // and to its value
+                G_free_ilist(list);     // free list memory
             }                   // end for loop i: variogram computation for each i-th search point
 
             if (isnan(gamma_lag) || cpls == 0.0) {      // empty lags:
@@ -289,6 +280,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
             h++;
             c++;
             gamma++;
+            //G_fatal_error(_("end 1st loop"));
         }                       // end for loop s
 
         if (type == 2) {        // vertical variogram:
@@ -297,11 +289,7 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
     }                           // end for loop b
 
     if (err0 == nLag) {         // todo> kedy nie je riesitelny teoreticky variogram?
-        if (report->write2file == TRUE) {       // close report file
-            fprintf(report->fp,
-                    "Error (see standard output). Process killed...");
-            fclose(report->fp);
-        }
+        report_error(report);
         G_fatal_error(_("Unable to compute experimental variogram..."));
     }                           // end error
 
@@ -315,26 +303,32 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
         sill(var_pars);         // compute sill
     }
 
-    if (report->write2file == TRUE) {   // report file available: 
+    if (report->name) {         // report file available: 
         write2file_variogram_E(xD, var_pars, c_M);      // write to file
     }
 
     write_temporary2file(xD, var_pars);
 
-    G_free_ilist(list);         // free list memory
     G_matrix_free(c_M);
     G_matrix_free(gamma_M);
 }
 
 /* theoretical variogram */
-void T_variogram(int type, int i3, struct opts opt,
-                 struct parameters *var_pars, struct write *report)
+void T_variogram(int type, struct opts opt,
+                 struct parameters *var_pars, struct int_par *xD)
 {
+    int i3 = xD->i3;
+    struct write *report;
+
+    report = xD->report;
+
     char *variogram;
 
     // report
-    if (report->write2file == TRUE) {   // report file available:
+    if (report->name) {         // report file available:
+        report->fp = fopen(report->name, "a");
         time(&report->now);     // write down time of start
+        // just for the beginning of the phase => type 0 or 2
         if (type != 1) {
             fprintf(report->fp,
                     "\nComputation of theoretical variogram started on %s\n",
@@ -347,27 +341,34 @@ void T_variogram(int type, int i3, struct opts opt,
     var_pars->const_val = 0;    // input values are not constants
 
     switch (type) {
-    case 0:                    // horizontal variogram
-        if (i3 == TRUE) {       // 3D interpolation (middle phase)
+        // horizontal variogram
+    case 0:
+        // 3D interpolation (middle phase)
+        if (i3 == TRUE) {
             variogram = opt.function_var_hz->answer;    // function type available:
             var_pars->function = set_function(variogram, report);
 
-            if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) {      // nonlinear or not parabolic
+            // nonlinear or not parabolic
+            if (strcmp(variogram, "linear") != 0) {
                 var_pars->nugget = atof(opt.nugget_hz->answer);
                 var_pars->h_range = atof(opt.range_hz->answer);
                 if (opt.sill_hz->answer) {
                     var_pars->sill = atof(opt.sill_hz->answer);
                 }
             }
-            else {              // function type not available:
+            // function type not available:
+            else {
                 LMS_variogram(var_pars, report);
             }
         }
-        else {                  // 2D interpolation (final phase)
+
+        // 2D interpolation (final phase)
+        else {
             variogram = opt.function_var_final->answer; // function type available:
             var_pars->function = set_function(variogram, report);
 
-            if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) {      // nonlinear or not parabolic      
+            // nonlinear or not parabolic 
+            if (strcmp(variogram, "linear") != 0) {
                 var_pars->nugget = atof(opt.nugget_final->answer);
                 var_pars->h_range = atof(opt.range_final->answer);
                 if (opt.sill_final->answer) {
@@ -379,7 +380,8 @@ void T_variogram(int type, int i3, struct opts opt,
             }
         }
 
-        if (report->name) {
+        if (report->name && strcmp(variogram, "linear") != 0) {
+            report->fp = fopen(report->name, "a");
             fprintf(report->fp, "Parameters of horizontal variogram:\n");
             fprintf(report->fp, "Nugget effect: %f\n", var_pars->nugget);
             fprintf(report->fp, "Sill:          %f\n", var_pars->sill);
@@ -387,23 +389,28 @@ void T_variogram(int type, int i3, struct opts opt,
         }
         break;
 
-    case 1:                    // vertical variogram
+        // vertical variogram
+    case 1:
         var_pars->nugget = atof(opt.nugget_vert->answer);
         var_pars->h_range = atof(opt.range_vert->answer);
+
         if (opt.sill_vert->answer) {
             var_pars->sill = atof(opt.sill_vert->answer);
         }
+
         variogram = opt.function_var_vert->answer;
         var_pars->function = set_function(variogram, report);
 
-        if (report->name) {
+        if (report->name && strcmp(variogram, "linear") != 0) {
             fprintf(report->fp, "Parameters of vertical variogram:\n");
             fprintf(report->fp, "Nugget effect: %f\n", var_pars->nugget);
             fprintf(report->fp, "Sill:          %f\n", var_pars->sill);
             fprintf(report->fp, "Range:         %f\n", var_pars->h_range);
         }
         break;
-    case 2:                    // bivariate variogram (just final phase)
+
+        // bivariate variogram (just final phase)
+    case 2:
         if (!(opt.function_var_final->answer && opt.function_var_final_vert->answer) || strcmp(opt.function_var_final->answer, "linear") == 0) {        // planar function:
             var_pars->function = 5;     // planar variogram (3D)
             LMS_variogram(var_pars, report);
@@ -448,21 +455,22 @@ void T_variogram(int type, int i3, struct opts opt,
             }
         }
 
-        plot_var(i3, TRUE, var_pars);   // Plot variogram using gnuplot
+        plot_var(xD, TRUE, var_pars);   // Plot variogram using gnuplot
         break;
 
     case 3:                    // univariate (just final phase)
         variogram = opt.function_var_final->answer;
         var_pars->function = set_function(variogram, report);
 
-        if (strcmp(variogram, "linear") != 0 && strcmp(variogram, "parabolic") != 0) {  // nonlinear and not parabolic variogram:
+        // nonlinear and not parabolic variogram:
+        if (strcmp(variogram, "linear") != 0) {
             var_pars->nugget = atof(opt.nugget_final->answer);
             var_pars->h_range = atof(opt.range_final->answer);
             if (opt.sill_final->answer) {
                 var_pars->sill = atof(opt.sill_final->answer);
             }
             variogram = opt.function_var_final->answer;
-            if (report->write2file == TRUE) {
+            if (report->name) {
                 if (i3 == TRUE) {       // 3D interpolation:
                     fprintf(report->fp,
                             "Parameters of anisotropic variogram:\n");
@@ -475,6 +483,7 @@ void T_variogram(int type, int i3, struct opts opt,
                 fprintf(report->fp, "Range:         %f\n", var_pars->h_range);
             }
         }
+        // linear variogram:
         else {                  // linear or parabolic variogram
             LMS_variogram(var_pars, report);
         }
@@ -482,7 +491,7 @@ void T_variogram(int type, int i3, struct opts opt,
     }
 
     if (type != 2) {
-        plot_var(i3, FALSE, var_pars);  // Plot variogram using gnuplot
+        plot_var(xD, FALSE, var_pars);  // Plot variogram using gnuplot
     }
 }
 
@@ -490,12 +499,10 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
                       struct points *pnts, struct var_par *pars,
                       struct output *out)
 {
-    G_fatal_error(_("Interpolating values is currently under maintenance (optimization). Theoretical variogram of your data has been computed."));
     // Local variables
     int i3 = xD->i3;
-    double *vals = pnts->invals;        // values to be used for interpolation
-    struct write *report = &xD->report;
-    struct write *crossvalid = &xD->crossvalid;
+    struct write *report = xD->report;
+    struct write *crossvalid = xD->crossvalid;
     struct parameters *var_par = &pars->fin;
 
     int type = var_par->type;
@@ -508,30 +515,37 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
 
     unsigned int percents = 50; // counter
     unsigned int row, col, dep; // indices of cells/voxels
-    double rslt_OK;             // interpolated value located on r0
+    int resample;
+    struct krig_pars krig;
+    int add_trend = (out->trend[0] == 0. && out->trend[1] == 0. &&
+                     out->trend[2] == 0. &&
+                     out->trend[3] == 0.) ? FALSE : TRUE;
 
     pnts->max_dist = var_par->lag;
-    struct ilist *list;
+    struct ilist *list, *list_new;
 
-    double *r0;                 // xyz coordinates of cell/voxel centre
-    mat_struct *GM;
-    mat_struct *GM_sub;         // submatrix of selected points
-    mat_struct *GM_Inv;         // inverted GM (GM_sub) matrix
-    mat_struct *g0;             // diffences between known and unknown values = theor_var(dist)
-    mat_struct *w0;             // weights of values located on the input points 
+    double *r0, rslt, trend_val;        // xyz coordinates of cell/voxel centre
 
     // Cell/voxel center coords (location of interpolated value)
     r0 = (double *)G_malloc(3 * sizeof(double));
 
-    if (report->write2file) {   // report file available:
+    int *row_init, *row0, count, next = 1, total, complete, new_matrix =
+        0, setup, mat_row;
+    row_init = (int *)G_malloc(reg->ncols * sizeof(int));
+    row0 = &row_init[0];
+
+    int i, ndeps = reg->ndeps, nrows = reg->nrows, ncols = reg->ncols;
+
+    krig.rslt = G_matrix_init(nrows * ndeps, ncols, nrows * ndeps);
+    krig.first = TRUE;
+
+    if (report->name) {         // report file available:
         time(&report->now);
         fprintf(report->fp, "Interpolating values started on %s\n\n",
                 ctime(&report->now));
         fflush(report->fp);
     }
 
-    G_message(_("Interpolating unknown values..."));
-    G_fatal_error(_("... is currently under maintenance (optimization). Theoretical variogram of your data has been computed."));
     if (percents) {
         G_percent_reset();
     }
@@ -542,111 +556,252 @@ void ordinary_kriging(struct int_par *xD, struct reg_par *reg,
         goto constant_voxel_centre;
     }
 
-    GM = set_up_G(pnts, var_par, &xD->report);  // set up matrix of dissimilarities of input points
-    var_par->GM = G_matrix_copy(GM);    // copy matrix because of cross validation
+    set_up_G(pnts, var_par, xD->report, &krig); // set up matrix of dissimilarities of input points
+    var_par->GM = G_matrix_copy(krig.GM);       // copy matrix because of cross validation
 
     // perform cross validation...
-    if (crossvalid->write2file) {       // ... if desired
-        crossvalidation(xD, pnts, var_par);
+    if (crossvalid->name) {     // ... if desired
+        crossvalidation(xD, pnts, var_par, reg);
     }
 
+    G_message(_("Interpolating unknown values..."));
   constant_voxel_centre:
-    for (dep = 0; dep < reg->ndeps; dep++) {
-        if (xD->i3 == TRUE) {
-            if (percents) {
-                G_percent(dep, reg->ndeps, 1);
+    count = 0;
+    col = row = dep = 0;
+    total = ndeps * nrows * ncols;
+
+    while (count <= total) {
+        if (percents) {
+            G_percent(count, total, 1);
+        }
+
+        if (var_par->const_val == 1) {  // constant input values
+            goto constant_voxel_val;
+        }
+
+        // coordinates of output point (center of the pixel / voxel)
+        if (next < 2) {
+            cell_centre(col, row, dep, xD, reg, r0, var_par);
+
+            // initial subsample    
+            if (col == 0 && row == 0 && dep == 0) {
+                list = list_NN(xD, r0, pnts, max_dist, max_dist_vert);
+                make_subsamples(xD, list, r0, dep * nrows + row, col, pnts,
+                                var_par, &krig);
+            }
+            // lists to compare
+            else if (krig.new == FALSE) {
+                list_new = list_NN(xD, r0, pnts, max_dist, max_dist_vert);
+                next = compare_NN(list, list_new, krig.modified);
             }
         }
-        for (row = 0; row < reg->nrows; row++) {
-            if (xD->i3 == FALSE) {
-                if (percents) {
-                    G_percent(row, reg->nrows, 1);
-                }
+
+        if (next > 0) {
+            rslt = interpolate(xD, list, r0, pnts, var_par, &krig);
+            if (add_trend == TRUE) {
+                trend_val = trend(r0, out, var_par->function, xD);
+                rslt += trend_val;
             }
-            //#pragma omp parallel for private(col, r0, GM, GM_Inv, g0, w0, rslt_OK)
-            for (col = 0; col < reg->ncols; col++) {
+            mat_row = dep * nrows + row;
 
-                if (var_par->const_val == 1) {  // constant input values
-                    goto constant_voxel_val;
-                }
+            setup = G_matrix_set_element(krig.rslt, mat_row, col, rslt);
 
-                cell_centre(col, row, dep, xD, reg, r0, var_par);       // coords of output point
+            if (G_matrix_get_element(krig.rslt, 0, 0) == 0. && (row != 0))
+                G_fatal_error(_("%d %d %d   %d %f %f"), dep, row, col,
+                              mat_row, G_matrix_get_element(krig.rslt, 0, 0),
+                              krig.rslt->vals[(dep * nrows + row) * ncols +
+                                              col]);
 
-                // add cell centre to the R-tree
-                list = G_new_ilist();   // create list of overlapping rectangles
+            if (setup < 0) {
+                report_error(report);
+                G_fatal_error(_("The value %f was not written to the cell %d %d %d"),
+                              rslt, dep, row, col);
+            }
+            count++;
+            krig.new = FALSE;
 
-                if (i3 == TRUE) {       // 3D kriging:
-                    list =
-                        find_NNs_within(3, r0, pnts, max_dist, max_dist_vert);
-                }
-                else {          // 2D kriging:
-                    list =
-                        find_NNs_within(2, r0, pnts, max_dist, max_dist_vert);
-                }
+            next = next == 2 ? 1 : next;        // mark it as coincident
 
-                if (list->n_values > 1) {       // positive # of selected points: 
-                    correct_indices(list, r0, pnts, var_par);
+            // Create output
+          constant_voxel_val:
+            if (var_par->const_val == 1) {      // constant input values:
+                rslt = (double)*pnts->invals;   // setup input as output
+            }
+        }                       // end if next > 0
 
-                    GM_sub = submatrix(list, GM, report);       // make submatrix for selected points
-                    GM_Inv = G_matrix_inverse(GM_sub);  // invert submatrix
-                    G_matrix_free(GM_sub);
+        // go to the next cell point:
+        switch (next) {
+            // the cell was not interpolated:
+        case 0:
+            // new column:
+            if (row == 0 || row == *row0) {
+                Vect_reset_list(list);  // refresh list
+                Vect_list_append_list(list, list_new);  // add new list
+                G_free_ilist(list_new); // free list memory
+                krig.modified = 1;
+                krig.new = TRUE;
+                next = 2;       // interpolate using new subsample
+                G_matrix_free(krig.GM_Inv);     // free old matrix
+                new_matrix++;   // counter of skipped matrices
+                make_subsamples(xD, list, r0, dep * nrows + row, col, pnts,
+                                var_par, &krig);
+            }
+            // the same column:
+            else {
+                *row0 = row;    // save row index to continue
 
-                    g0 = set_up_g0(xD, pnts, list, r0, var_par);        // Diffs inputs - unknowns (incl. cond. 1))
-                    w0 = G_matrix_product(GM_Inv, g0);  // Vector of weights, condition SUM(w) = 1 in last row
-
-                    G_matrix_free(GM_Inv);
-                    G_matrix_free(g0);
-
-                    rslt_OK = result(pnts, list, w0);   // Estimated cell/voxel value rslt_OK = w x inputs
-                    G_matrix_free(w0);
-                }
-                else if (list->n_values == 1) {
-                    rslt_OK = vals[list->value[0] - 1]; // Estimated cell/voxel value rslt_OK = w x inputs
-                }
-                else if (list->n_values == 0) {
-                    if (report->write2file) {   // report file available:
-                        fprintf(report->fp,
-                                "Error (see standard output). Process killed...");
-                        fclose(report->fp);
+                // general cells:
+                if (col < ncols - 1) {
+                    col++;      // go to the next row
+                    row0++;     // go to the col index in the next row
+                    while (*row0 == nrows) {
+                        if (col < ncols - 1) {
+                            col++;      // go to the next row
+                            row0++;     // go to the col index in the next row
+                        }
+                        else {
+                            krig.first = FALSE;
+                            col = 0;
+                            row0 = &row_init[0];
+                        }
                     }
-                    G_fatal_error(_("This point does not have neighbours in given radius..."));
-                }               // end else: error
-
-                G_free_ilist(list);     // free list memory  
-
-                // Create output
-              constant_voxel_val:
-                if (var_par->const_val == 1) {  // constant input values:
-                    rslt_OK = (double)*vals;    // setup input as output
                 }
+                // last column:
+                else {
+                    krig.first = FALSE;
+                    col = 0;    // start new sampling
+                    row0 = &row_init[0];        // from the beginning;
 
-                // write output to the (3D) raster layer
-                if (write2layer(xD, reg, out, col, row, dep, rslt_OK) == 0) {
-                    if (report->write2file) {   // report file available
-                        fprintf(report->fp,
-                                "Error (see standard output). Process killed...");
-                        fclose(report->fp);     // close report file
-                    }
-                    G_fatal_error(_("Error writing result into output layer..."));
-                }
-            }                   // end col
-        }                       // end row 
-    }                           // end dep
+                    // skip full cols:
+                    while (*row0 == nrows) {    // full row
+                        if (col < ncols - 1) {
+                            col++;      // go to the next row
+                            row0++;     // to test if it is completed
+                        }
+                    }           // end while: full row
+                }               // end else: last column
+            }                   // end else: the same column
 
-    if (report->write2file) {
+            row = krig.first == TRUE ? 0 : *row0;       // setup starting cell
+            break;              // count does not rise 
+
+            // the cell was interpolated -> examine the next one
+        case 1:
+            // save index to continue:
+            row++;              // continue in the row
+
+            // last row (full column):
+            if (row == nrows) {
+                *row0 = row;    // save the number to distinguish full columns
+
+                // the last column
+                if (col == ncols - 1) {
+                    // start from the beginning
+                    krig.first = FALSE;
+                    col = 0;
+                    row0 = &row_init[0];
+
+                    // skip full columns
+                    while (*row0 == nrows) {
+                        if (col < ncols - 1) {
+                            col++;
+                            row0++;
+                        }
+                        else {
+                            if (i3 == FALSE || dep == ndeps - 1) {
+                                if (dep > 1) {
+                                    G_message(_("Vertical level %d has been processed..."),
+                                              dep + 1);
+                                }
+                                goto accomplished;
+                            }
+                            else {
+                                dep++;  // next vertical level
+                                col = 0;        // the first column
+
+                                // refresh rows
+                                new_vertical(row_init, ncols);  // row0 = 0
+                                row0 = &row_init[0];
+                                row = *row0;
+
+                                next =
+                                    new_sample(xD, list, list_new, pnts, dep,
+                                               row, col, r0, max_dist,
+                                               max_dist_vert, reg, var_par,
+                                               &krig, &new_matrix);
+                                goto new_dep;
+                            }   // end else: complete level
+                        }
+                    }           // end if: *row0 == nrows
+                }               // end if: last column
+
+                else {
+                    col++;
+                    row0++;     // read starting row
+                    complete = 0;
+
+                    while (*row0 == nrows) {
+                        if (col < ncols - 1) {
+                            col++;
+                            row0++;
+                            complete++;
+                        }
+                        else {
+                            krig.first = FALSE;
+                            col = 0;
+                            row0 = &row_init[0];
+                            complete = 0;
+                        }
+                        if (complete == ncols - 1) {
+                            if (i3 == FALSE || dep == ndeps - 1) {
+                                if (dep > 1) {
+                                    G_message(_("Vertical level %d has been processed..."),
+                                              dep + 1);
+                                }
+                                goto accomplished;
+                            }
+                            else {
+                                dep++;  // next vertical level
+                                col = 0;        // the first column
+
+                                // refresh rows
+                                new_vertical(row_init, ncols);  // row0 = 0
+                                row0 = &row_init[0];
+                                row = *row0;
+
+                                next =
+                                    new_sample(xD, list, list_new, pnts, dep,
+                                               row, col, r0, max_dist,
+                                               max_dist_vert, reg, var_par,
+                                               &krig, &new_matrix);
+                                goto new_dep;
+                            }   // end else: complete level
+                        }       // if: complete == ncols - 1
+                    }           // while: *row0 == nrows
+                }               // else: general row 
+                row = krig.first == TRUE ? 0 : *row0;
+            }                   // end else: go to the new column
+
+            break;
+        }                       // end switch next
+      new_dep:
+        if (row == 0 && col == 0) {
+            G_message(_("Vertical level %d has been processed..."), dep);
+        }
+    }                           // end while
+
+  accomplished:
+    G_message(_("# of points: %d   # of matrices: %d   diff: %d"), total,
+              new_matrix, total - new_matrix);
+
+    // write output to the (3D) raster layer
+    write2layer(xD, reg, out, krig.rslt);
+
+    if (report->name) {
         fprintf(report->fp,
                 "\n************************************************\n\n");
         time(&report->now);
         fprintf(report->fp, "v.kriging completed on %s", ctime(&report->now));
         fclose(report->fp);
-    }
-
-    switch (xD->i3) {
-    case TRUE:
-        Rast3d_close(out->fd_3d);       // Close 3D raster map
-        break;
-    case FALSE:
-        Rast_close(out->fd_2d); // Close 2D raster map
-        break;
     }
 }

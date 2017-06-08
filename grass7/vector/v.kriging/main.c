@@ -41,6 +41,13 @@ int main(int argc, char *argv[])
 
     // Geostatistical parameters
     struct int_par xD;          // 2D/3D interpolation for 2D/3D vector layer
+
+    xD.report = (struct write *)G_malloc(sizeof(struct write));
+    struct write *report = xD.report;
+
+    xD.crossvalid = (struct write *)G_malloc(sizeof(struct write));
+    struct write *crossvalid = xD.crossvalid;
+
     struct var_par var_pars;    // Variogram (experimental and theoretical)
 
     // Outputs
@@ -140,7 +147,39 @@ int main(int argc, char *argv[])
     flg.detrend = G_define_flag();
     flg.detrend->key = 't';
     flg.detrend->description = _("Eliminate trend if variogram is parabolic");
-    flg.detrend->guisection = _("Initial");
+    flg.detrend->guisection = _("Final");
+
+    opt.trend_a = G_define_option();
+    opt.trend_a->key = "atrend";
+    opt.trend_a->type = TYPE_DOUBLE;
+    opt.trend_a->required = NO;
+    opt.trend_a->answer = "0.0";
+    opt.trend_a->description = _("Trend: f(x,y,z) = a*x + b*y + c*z + d");
+    opt.trend_a->guisection = _("Final");
+
+    opt.trend_b = G_define_option();
+    opt.trend_b->key = "btrend";
+    opt.trend_b->type = TYPE_DOUBLE;
+    opt.trend_b->required = NO;
+    opt.trend_b->answer = "0.0";
+    opt.trend_b->description = _("Trend: f(x,y,z) = a*x + b*y + c*z + d");
+    opt.trend_b->guisection = _("Final");
+
+    opt.trend_c = G_define_option();
+    opt.trend_c->key = "ctrend";
+    opt.trend_c->type = TYPE_DOUBLE;
+    opt.trend_c->required = NO;
+    opt.trend_c->answer = "0.0";
+    opt.trend_c->description = _("Trend: f(x,y,z) = a*x + b*y + c*z + d");
+    opt.trend_c->guisection = _("Final");
+
+    opt.trend_d = G_define_option();
+    opt.trend_d->key = "dtrend";
+    opt.trend_d->type = TYPE_DOUBLE;
+    opt.trend_d->required = NO;
+    opt.trend_d->answer = "0.0";
+    opt.trend_d->description = _("Trend: f(x,y,z) = a*x + b*y + c*z + d");
+    opt.trend_d->guisection = _("Final");
 
     opt.form_file = G_define_option();  // Variogram plot - various output formats
     opt.form_file->key = "fileformat";
@@ -179,6 +218,21 @@ int main(int argc, char *argv[])
     opt.var_dir_vert->description =
         _("Zenith angle of variogram computing (isotrophic)");
     opt.var_dir_vert->guisection = _("Initial");
+
+    opt.maxL = G_define_option();
+    opt.maxL->key = "lmax";
+    opt.maxL->type = TYPE_DOUBLE;
+    opt.maxL->required = NO;
+    opt.maxL->description = _("Maximum distance in horizontal direction");
+    opt.maxL->guisection = _("Initial");
+
+    opt.maxZ = G_define_option();
+    opt.maxZ->key = "vmax";
+    opt.maxZ->type = TYPE_DOUBLE;
+    opt.maxZ->required = NO;
+    opt.maxZ->description =
+        _("Maximum distance in horizontal direction (only for 3D variogram)");
+    opt.maxZ->guisection = _("Initial");
 
     opt.nL = G_define_option();
     opt.nL->key = "lpieces";
@@ -316,38 +370,29 @@ int main(int argc, char *argv[])
     }
 
     // Open report file if desired
-    if (opt.report->answer) {
-        xD.report.write2file = TRUE;
-        xD.report.name = opt.report->answer;
+    if (xD.phase == 0) {
+        if (opt.report->answer) {
+            report->name = opt.report->answer;
 
-        // initial phase: check if the file exists
-        if (xD.phase == 0 && access(xD.report.name, F_OK) != -1) {
-            G_fatal_error(_("Report file exists; please set up different name..."));
+            // initial phase: check if the file exists
+            if (access(report->name, F_OK) != -1) {
+                G_fatal_error(_("Report file exists; please set up different name..."));
+            }
+
+            report->fp = fopen(report->name, "a");
+            time(&report->now);
+            fprintf(report->fp, "v.kriging started on %s\n\n",
+                    ctime(&report->now));
+            G_message(_("Report is being written to %s..."), report->name);
         }
-
-        // middle / final phase: check if file does not exist
-        if (xD.phase != 0 && access(xD.report.name, F_OK) != 0) {
-            G_fatal_error(_("Report file does not exist; please check the name or repeat initial phase..."));
+        else {
+            G_warning(_("The name of report file missing..."));
         }
-
-        xD.report.fp = fopen(xD.report.name, "a");
-        time(&xD.report.now);
-        fprintf(xD.report.fp, "v.kriging started on %s\n\n",
-                ctime(&xD.report.now));
-        G_message(_("Report is being written to %s..."), xD.report.name);
-    }
-    else {
-        xD.report.write2file = FALSE;
-        G_warning(_("The name of report file missing..."));
     }
 
-    if (opt.crossvalid->answer) {
-        xD.crossvalid.write2file = TRUE;
-        xD.crossvalid.name = opt.crossvalid->answer;
-        xD.crossvalid.fp = fopen(xD.crossvalid.name, "w");
-    }
-    else {
-        xD.crossvalid.write2file = FALSE;
+    if (xD.phase == 2 && opt.crossvalid->answer) {
+        crossvalid->name = opt.crossvalid->answer;
+        crossvalid->fp = fopen(crossvalid->name, "w");
     }
 
     var_pars.hz.name = var_pars.vert.name = var_pars.fin.name = opt.input->answer;      // set name of variogram
@@ -357,11 +402,40 @@ int main(int argc, char *argv[])
 
     var_pars.hz.td = DEG2RAD(atof(opt.td_hz->answer));  // Angle of variogram processing
 
-    if (opt.nL->answer) {       // Test if nL have been set up (optional)
-        var_pars.hz.nLag = atoi(opt.nL->answer);
-        if (var_pars.hz.nLag < 1) {     // Invalid value
-            G_message(_("Number of horizontal pieces must be at least 1. Default value will be used..."));
-            var_pars.hz.nLag = 20;
+    if (xD.phase == 0) {
+        if (opt.maxL->answer) { // Test if nL have been set up (optional)
+            var_pars.hz.max_dist = atoi(opt.maxL->answer);
+            if (var_pars.hz.max_dist < 0.) {    // Invalid value
+                G_fatal_error(_("Maximum distance must be positive..."));
+            }
+        }
+        else {
+            var_pars.hz.max_dist = -1.;
+        }
+    }
+
+    if (xD.phase == 0) {
+        if (opt.maxZ->answer) { // Test if nL have been set up (optional)
+            var_pars.vert.max_dist = atoi(opt.maxZ->answer);
+            if (var_pars.vert.max_dist < 0.) {  // Invalid value
+                G_fatal_error(_("Maximum distance must be positive..."));
+            }
+        }
+        else {
+            var_pars.vert.max_dist = -1.;
+        }
+    }
+
+    if (xD.phase == 0) {
+        if (opt.nL->answer) {   // Test if nL have been set up (optional)
+            var_pars.hz.nLag = atoi(opt.nL->answer);
+            if (var_pars.hz.nLag < 1) { // Invalid value
+                G_message(_("Number of horizontal pieces must be at least 1. Default value will be used..."));
+                var_pars.hz.nLag = 20;
+            }
+        }
+        else {
+            var_pars.hz.nLag = -1.;
         }
     }
 
@@ -379,9 +453,9 @@ int main(int argc, char *argv[])
     xD.bivar = flg.bivariate->answer == TRUE ? TRUE : FALSE;
     xD.univar = flg.univariate->answer == TRUE ? TRUE : FALSE;
     if (xD.bivar == TRUE && xD.univar == TRUE) {
-        if (xD.report.write2file == TRUE) {
-            fclose(xD.report.fp);
-            remove(xD.report.name);
+        if (report->name) {
+            fclose(report->fp);
+            remove(report->name);
         }
         G_fatal_error(_("You should mark either univariate, or bivariate variogram, not both of them..."));
     }                           // error
@@ -390,9 +464,9 @@ int main(int argc, char *argv[])
     Vect_set_open_level(2);     // Open input vector map
 
     if (0 > Vect_open_old2(&map, opt.input->answer, "", opt.field->answer)) {
-        if (xD.report.write2file == TRUE) {
-            fclose(xD.report.fp);
-            remove(xD.report.name);
+        if (xD.phase == 0 && report->name) {
+            fclose(report->fp);
+            remove(report->name);
         }
         G_fatal_error(_("Unable to open vector map <%s>"), opt.input->answer);
     }                           // error
@@ -414,46 +488,51 @@ int main(int argc, char *argv[])
     if (xD.i3 == TRUE) {        // 3D interpolation:
         if (xD.v3 == FALSE) {   // 2D input:
             if (!opt.zcol->answer) {    // zcolumn not available:
-                if (xD.report.write2file == TRUE) {     // close report file
-                    fprintf(xD.report.fp,
+                if (report->name) {     // close report file
+                    fprintf(report->fp,
                             "Error (see standard output). Process killed...");
-                    fclose(xD.report.fp);
+                    fclose(report->fp);
                 }
                 G_fatal_error(_("To process 3D interpolation based on 2D input, please set attribute column containing z coordinates or switch to 2D interpolation."));
             }
         }                       // end if zcol == NULL
         // 3D or 2,5D input
-        if (opt.nZ->answer) {   // Test if nZ have been set up (optional)
-            if (var_pars.vert.nLag < 1) {       // Invalid value
-                G_message(_("Number of vertical pieces must be at least 1. Default value will be used..."));
-            }
+        if (xD.phase == 0) {
+            if (opt.nZ->answer) {       // Test if nZ have been set up (optional)
+                if (var_pars.vert.nLag < 1) {   // Invalid value
+                    G_message(_("Number of vertical pieces must be at least 1. Default value will be used..."));
+                }
+                else {
+                    var_pars.vert.nLag = atof(opt.nZ->answer);
+                }
+            }                   // end if nZ->answer
             else {
-                var_pars.vert.nLag = atof(opt.nZ->answer);
+                var_pars.vert.nLag = -1.;
             }
-        }                       // end if nZ->answer
+        }
     }                           // end if 3D interpolation
 
     else {                      // 2D interpolation:
         var_pars.vert.nLag = -1;        // abs will be used in next steps
         if (xD.v3 == TRUE) {
-            if (xD.report.write2file == TRUE) { // close report file
-                fprintf(xD.report.fp,
+            if (report->name) { // close report file
+                fprintf(report->fp,
                         "Error (see standard output). Process killed...");
-                fclose(xD.report.fp);
+                fclose(report->fp);
             }
             G_fatal_error(_("2D interpolation based on 3D input has been temporarily disabled. Please select another option..."));
         }
     }
 
     field = Vect_get_field_number(&map, opt.field->answer);
-    if (xD.report.write2file == TRUE)
+    if (xD.phase == 0 && report->name)
         write2file_basics(&xD, &opt);
     /* ---------------------------------------------------------- */
 
     /* Get... */
     get_region_pars(&xD, &reg); // ... region parameters 
-    read_points(&map, &reg, &pnts, &xD, opt.zcol->answer, field, &xD.report);   // ... coordinates of points
-    pnts.invals = get_col_values(&map, &xD, &pnts, field, opt.intpl->answer, flg.detrend->answer);      // ... values for interpolation
+    read_points(&map, &reg, &pnts, &xD, opt.zcol->answer, field, report);       // ... coordinates of points
+    pnts.invals = get_col_values(&map, &xD, &pnts, field, opt.intpl->answer);   // ... values for interpolation
 
     /* Estimate 2D/3D variogram */
     switch (xD.phase) {
@@ -474,7 +553,7 @@ int main(int argc, char *argv[])
         }
         E_variogram(0, &xD, &pnts, &var_pars);  // horizontal variogram (for both 2D and 3D interpolation)
 
-        if (xD.report.write2file == FALSE) {
+        if (!report->name) {
             G_message(_("\nExperimental variogram of your data has been computed. To continue interpolation performance, please repeat initial phase with non-empty <report> parameter..."));
         }
 
@@ -490,11 +569,13 @@ int main(int argc, char *argv[])
         goto end;
 
     case 1:
-        read_tmp_vals("variogram_hz_tmp.txt", &var_pars.hz, &xD);       // read properties of horizontal variogram from temp file
-        read_tmp_vals("variogram_vert_tmp.txt", &var_pars.vert, &xD);   // read properties of vertical variogram from temp file
+        // read properties of variogram from temporary file
+        read_tmp_vals("variogram_hz_tmp.txt", &var_pars.hz, &xD);       // horizontal
+        read_tmp_vals("variogram_vert_tmp.txt", &var_pars.vert, &xD);   // vertical
 
-        T_variogram(0, TRUE, opt, &var_pars.hz, &xD.report);    // compute theoretical variogram - hz
-        T_variogram(1, TRUE, opt, &var_pars.vert, &xD.report);  // compute theoretical variogram - vert
+        // compute theoretical variogram
+        T_variogram(0, opt, &var_pars.hz, &xD); // horizontal
+        T_variogram(1, opt, &var_pars.vert, &xD);       // vertical
 
         /* compare range of hz and vert variogram:
            - if the difference is greater than 5% -> bivariate variogram
@@ -513,13 +594,27 @@ int main(int argc, char *argv[])
     case 2:                    // final phase:
         // Module should crash if:
         if (!opt.output->answer) {      // output name not available:
-            if (xD.report.write2file == TRUE) { // report file available:
-                fprintf(xD.report.fp,
+            if (report->name) { // report file available:
+                fprintf(report->fp,
                         "Error (see standard output). Process killed...");
-                fclose(xD.report.fp);
+                fclose(report->fp);
             }
             G_fatal_error(_("Please set up name of output layer..."));
         }
+
+        if (opt.trend_a->answer) {
+            out.trend[0] = atof(opt.trend_a->answer);
+            out.trend[1] = atof(opt.trend_b->answer);
+            out.trend[2] = atof(opt.trend_c->answer);
+            out.trend[3] = atof(opt.trend_d->answer);
+        }
+
+        /*// read trend
+           out.add_trend = flg.detrend->answer;
+           if (out.add_trend == TRUE) {
+           out.trend = G_matrix_init();
+           out.trend->vals = get_col_values(&map, &xD, &pnts, field, opt.trend->answer); // trend
+           } */
 
         // read properties of final variogram from temp file
         if (xD.i3 == TRUE) {    // 3D kriging:
@@ -537,10 +632,10 @@ int main(int argc, char *argv[])
                  opt.function_var_final_vert->answer) &&
                 (opt.function_var_final->answer ||
                  opt.function_var_final_vert->answer)) {
-                if (xD.report.write2file == TRUE) {     // report file available:
-                    fprintf(xD.report.fp,
+                if (report->name) {     // report file available:
+                    fprintf(report->fp,
                             "Error (see standard output). Process killed...");
-                    fclose(xD.report.fp);
+                    fclose(report->fp);
                 }
                 G_fatal_error(_("If you wish to specify components of bivariate variogram please set up function type for both of them..."));
             }
@@ -548,76 +643,86 @@ int main(int argc, char *argv[])
             // if both of the function types are set up:
             if (opt.function_var_final->answer &&
                 opt.function_var_final_vert->answer) {
-                if (!opt.nugget_final->answer) {        // horizontal nugget effect should not be missing
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                // horizontal nugget effect should not be missing
+                if (!opt.nugget_final->answer) {
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up nugget effect of horizontal component of bivariate variogram..."));
                 }
 
-                if (!opt.nugget_final_vert->answer) {   // vertical nugget effect should not be missing
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                // vertical nugget effect should not be missing
+                if (!opt.nugget_final_vert->answer) {
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up nugget effect of vertical component of bivariate variogram..."));
                 }
 
-                if (!opt.range_final->answer) { // horizontal range should not be missing
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                // horizontal range should not be missing
+                if (!opt.range_final->answer) {
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up range of horizontal component of bivariate variogram..."));
                 }
 
-                if (!opt.range_final_vert->answer) {    // vertical range should not be missing
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                // vertical range should not be missing
+                if (!opt.range_final_vert->answer) {
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up range of vertical component of bivariate variogram..."));
                 }
             }
         }
 
-        else {                  // univariate variogram
+        // univariate variogram
+        else {
             if (xD.i3 == TRUE && (strcmp(opt.function_var_final->answer, "linear") != 0 && strcmp(opt.function_var_final->answer, "parabolic") != 0)) { // anisotropic 3D: 
                 if (opt.function_var_final_vert->answer || atof(opt.nugget_final_vert->answer) != 0. || opt.range_final_vert->answer) { // vertical settings available:
                     G_fatal_error(_("Not necessary to set up vertical components properties. Anisotropic variogram will be used..."));
                 }               // end if vert settings available     
             }                   // end if 3D
 
-            if (!opt.function_var_final->answer) {      // missing function
+            // missing function
+            if (!opt.function_var_final->answer) {
                 opt.function_var_final->answer = "linear";
                 G_message(_("Linear variogram will be computed..."));
             }
 
-            if (strcmp(opt.function_var_final->answer, "linear") != 0 && strcmp(opt.function_var_final->answer, "parabolic") != 0) {    // nonlinear and not parabolic:
+            // nonlinear and not parabolic:
+            if (strcmp(opt.function_var_final->answer, "linear") != 0 &&
+                strcmp(opt.function_var_final->answer, "parabolic") != 0) {
                 if (!opt.nugget_final->answer) {        // missing horizontal nugget effect
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up nugget effect..."));
                 }               // end if nugget missing
 
-                if (!opt.range_final->answer) { // missing horizontal range:
-                    if (xD.report.write2file == TRUE) { // report file available:
-                        fprintf(xD.report.fp,
+                // missing horizontal range:
+                if (!opt.range_final->answer) {
+                    if (report->name) { // report file available:
+                        fprintf(report->fp,
                                 "Error (see standard output). Process killed...");
-                        fclose(xD.report.fp);
+                        fclose(report->fp);
                     }
                     G_fatal_error(_("Please set up range..."));
                 }               // end if range missing
 
-                if (opt.sill_final->answer) {   // missing horizontal range:
+                // missing horizontal range:
+                if (opt.sill_final->answer) {
                     var_pars.fin.sill = atof(opt.sill_final->answer);
                 }               // end if sill has been changed by the user
             }                   // end nonlinear and not parabolic variogram
@@ -625,11 +730,13 @@ int main(int argc, char *argv[])
 
         out.name = opt.output->answer;  // Output layer name
 
-        if (var_pars.fin.type == 3) {   // if variogram is anisotropic:
+        // if variogram is anisotropic:
+        if (var_pars.fin.type == 3) {
             geometric_anisotropy(&xD, &pnts);   // exaggerate z coord and rebuild the spatial index
         }
 
-        T_variogram(var_pars.fin.type, xD.i3, opt, &var_pars.fin, &xD.report);  // compute theoretical variogram
+        // compute theoretical variogram
+        T_variogram(var_pars.fin.type, opt, &var_pars.fin, &xD);
         break;
     }
 

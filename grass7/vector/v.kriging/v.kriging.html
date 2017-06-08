@@ -45,7 +45,9 @@ v.kriging in=input_layer phase=final final_fun=exponential final_range=double \
 </pre></div>
 
 <p>
-Commands based on the <a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a> of <b>Slovakia 3D precipitation</b> (<i>Mitasova and Hofierka, 2004</i>). Another examples of 3D interpolation are available in (<i>Stopkova, 2014</i>).
+Commands based on the <a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a> of <b>Slovakia 
+3D precipitation</b> (<i>Mitasova and Hofierka, 2004</i>). For more detailed information check <a href="v.kriging.pdf" 
+target="_blank">case studies</a>. Another examples of 3D interpolation are available in (<i>Stopkova, 2014</i>).
 
 <div class="code"><pre>
 v.kriging phase=initial in=precip3d@PERMANENT ic=precip report=precip3d.txt file=png --o
@@ -71,7 +73,10 @@ v.kriging in=input_layer phase=final final_function=linear icol=name file=png \
   out=name crossval=crossval_file.txt -2
 </pre></div>
 
-<p> Commands based on 500 random points extracted from input points of Digital Elevation Model (DEM) <i>elev_lid792_randpts</i> from the <b>North Carolina <a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a></b> (<i>Neteler and Mitasova, 2004</i>).
+<p> Commands based on 500 random points extracted from input points of Digital Elevation Model (DEM) 
+<i>elev_lid792_randpts</i> from the <b>North Carolina 
+<a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a></b> (<i>Neteler and Mitasova, 2004</i>). 
+See the <a href="v.kriging.pdf" target="_blank">case studies</a>.
 
 <div class="code"><pre>
 v.kriging phase=initial in=elev_lid792_selected ic=value azimuth=45. td=45. \
@@ -84,12 +89,17 @@ file=png out=lid792_500_linear crossval=lid792_500_xval_linear.txt -2 --o
 
 <h2>TODO</h2>
 <ul>
-<li>final phase still needs <b>optimization</b></li>
 <li><b>anisotropy</b> in horizontal direction missing
 <li>current version is suitable just for <b>metric coordinate systems</b>
 <li>enable <b>mask usage</b>
 <li><b>bivariate variogram</b> needs to be rebuilt (theory) 
 <li><b>2D interpolation from 3D input layer</b> needs to be rebuilt (especially in case that there are too many points located on identical horizontal coordinates with different elevation)
+</ul>
+
+<h2>Recommendations</h2>
+<ul>
+<li> In case of too much <i>warnings</i> about input points that have "<b>less than 2 neighbours in its closest surrounding</b>. The perimeter of the surrounding will be increased...", please consider shorter variogram range.
+<li> Save just figures with theoretical variogram (using <i>file=extension</i> in the middle and final phase). Experimental variograms are included in the theoretical variogram plot and separate "experimental" plots can be just temporal.
 </ul>
 
 <h2>REFERENCES</h2>

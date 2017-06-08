@@ -7,8 +7,7 @@
 
 /* get array of values from attribute column (function based on part of v.buffer2 (Radim Blazek, Rosen Matev)) */
 double *get_col_values(struct Map_info *map, struct int_par *xD,
-                       struct points *pnts, int field, const char *column,
-                       int detrend)
+                       struct points *pnts, int field, const char *column)
 {
     struct select *in_reg = &pnts->in_reg;
 
@@ -35,10 +34,10 @@ double *get_col_values(struct Map_info *map, struct int_par *xD,
     db_CatValArray_init(&cvarr);        /* array of categories and values initialised */
     Fi = Vect_get_field(map, field);    /* info about call of DB */
     if (Fi == NULL) {
-        if (save == 1 && xD->report.write2file == TRUE) {       // close report file
-            fprintf(xD->report.fp,
+        if (save == 1 && xD->report->name) {    // close report file
+            fprintf(xD->report->fp,
                     "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
+            fclose(xD->report->fp);
         }
         G_fatal_error(_("Database connection not defined for layer %d"),
                       field);
@@ -46,10 +45,10 @@ double *get_col_values(struct Map_info *map, struct int_par *xD,
 
     Driver = db_start_driver_open_database(Fi->driver, Fi->database);   /* started connection to DB */
     if (Driver == NULL) {
-        if (save == 1 && xD->report.write2file == TRUE) {       // close report file
-            fprintf(xD->report.fp,
+        if (save == 1 && xD->report->name) {    // close report file
+            fprintf(xD->report->fp,
                     "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
+            fclose(xD->report->fp);
         }
         G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
                       Fi->database, Fi->driver);
@@ -64,20 +63,20 @@ double *get_col_values(struct Map_info *map, struct int_par *xD,
         db_select_CatValArray(Driver, Fi->table, Fi->key, column, NULL,
                               &cvarr);
     if (nrec < 0) {
-        if (save == 1 && xD->report.write2file == TRUE) {       // close report file
-            fprintf(xD->report.fp,
+        if (save == 1 && xD->report->name) {    // close report file
+            fprintf(xD->report->fp,
                     "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
+            fclose(xD->report->fp);
         }
         G_fatal_error(_("Unable to select data from table <%s>"), Fi->table);
     }
 
     ctype = cvarr.ctype;
     if (ctype != DB_C_TYPE_INT && ctype != DB_C_TYPE_DOUBLE) {
-        if (save == 1 && xD->report.write2file == TRUE) {       // close report file
-            fprintf(xD->report.fp,
+        if (save == 1 && xD->report->name) {    // close report file
+            fprintf(xD->report->fp,
                     "Error (see standard output). Process killed...");
-            fclose(xD->report.fp);
+            fclose(xD->report->fp);
         }
         G_fatal_error(_("Column must be numeric"));
     }
@@ -116,63 +115,9 @@ double *get_col_values(struct Map_info *map, struct int_par *xD,
         }
     }
 
-    if (detrend == 1) {
-        double *x, *y, *z;
-
-        x = (double *)G_malloc(n * sizeof(double));
-        y = (double *)G_malloc(n * sizeof(double));
-        z = (double *)G_malloc(n * sizeof(double));
-
-        mat_struct *A, *gR, *T, *res;
-
-        x = &pnts->r[0];
-        y = &pnts->r[1];
-        z = &pnts->r[2];
-        vals = &values[0];
-        // Number of columns of design matrix A
-        A = G_matrix_init(n, 2, n);     // initialise design matrix, normal grav: 7
-        gR = G_matrix_init(n, 1, n);    // initialise vector of observations
-
-        for (i = 0; i < n; i++) {
-            G_matrix_set_element(A, i, 0, *x);
-            G_matrix_set_element(A, i, 1, *y);
-            G_matrix_set_element(gR, i, 0, *vals);
-            x += 3;
-            y += 3;
-            z += 3;
-            vals++;
-        }
-        T = LSM(A, gR);         // Least Square Method
-        res = G_matrix_product(A, T);
-
-        FILE *fp;
-
-        x = &pnts->r[0];
-        y = &pnts->r[1];
-        z = &pnts->r[2];
-        fp = fopen("trend.txt", "w");
-
-        vals = &values[0];
-        double *resid;
-
-        resid = &res->vals[0];
-        for (i = 0; i < n; i++) {
-            *vals = *vals - *resid;
-            fprintf(fp, "%f %f %f %f\n", *x, *y, *z, *vals);
-            x += 3;
-            y += 3;
-            z += 3;
-            vals++;
-            resid++;
-        }
-        fclose(fp);
-        //G_debug(0,"a=%f b=%f c=%f d=%f", T->vals[0], T->vals[1], T->vals[2], T->vals[3]);
-        pnts->trend = T;
-    }
-
-    if (xD->report.write2file && xD->phase == 0) {
-        write2file_values(&xD->report, column);
-        test_normality(n, values, &xD->report);
+    if (xD->phase == 0 && xD->report->name) {
+        write2file_values(xD->report, column);
+        test_normality(n, values, xD->report);
     }
 
     db_CatValArray_free(&cvarr);        // free memory of the array of categories and values
@@ -227,7 +172,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
 
     // Get 3rd coordinate of 2D points from attribute column -> 3D interpolation
     if (xD->v3 == FALSE && zcol != NULL) {
-        z_attr = get_col_values(map, NULL, point, field, zcol, FALSE);
+        z_attr = get_col_values(map, NULL, point, field, zcol);
     }
 
     nskipped = 0;               // # of skipped elements (lines, areas)
@@ -236,7 +181,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
     while (TRUE) {
         type = Vect_read_next_line(map, Points, NULL);
         if (type == -1) {
-            if (report->write2file == TRUE) {   // close report file
+            if (report->name) { // close report file
                 fprintf(report->fp,
                         "Error (see standard output). Process killed...");
                 fclose(report->fp);
@@ -254,7 +199,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
         }
 
         if (isnan(Points->x[0]) || isnan(Points->y[0]) || isnan(Points->z[0])) {
-            if (report->write2file == TRUE) {   // close report file
+            if (report->name) { // close report file
                 fprintf(report->fp,
                         "Error (see standard output). Process killed...");
                 fclose(report->fp);
@@ -277,11 +222,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
                         *rz = Points->z[0];     // set up z coordinate
 
                         if (*rz != Points->z[0]) {
-                            if (report->write2file == TRUE) {   // close report file
-                                fprintf(report->fp,
-                                        "Error (see standard output). Process killed...");
-                                fclose(report->fp);
-                            }
+                            report_error(report);
                             G_fatal_error(_("Error reading input coordinates z..."));
                         }
                     }
@@ -356,7 +297,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
     Vect_destroy_line_struct(Points);
 
     if (n_in_reg == 0) {
-        if (report->write2file == TRUE) {       // close report file
+        if (report->name) {     // close report file
             fprintf(report->fp,
                     "Error (see standard output). Process killed...");
             fclose(report->fp);
@@ -368,7 +309,7 @@ void read_points(struct Map_info *map, struct reg_par *reg,
         G_message(_("Unused points: %d (out of region)"), out_reg);
     }
 
-    if (xD->report.write2file == TRUE && xD->phase == 0) {      // initial phase:
+    if (xD->phase == 0 && xD->report->name) {   // initial phase:
         write2file_vector(xD, point);   // describe properties
     }
 }
@@ -395,10 +336,10 @@ void get_region_pars(struct int_par *xD, struct reg_par *reg)
         Rast3d_get_window(&reg->reg_3d);        /* stores the current default window in region */
         if (reg->reg_3d.bottom == 0 &&
             (reg->reg_3d.tb_res == 0 || reg->reg_3d.depths == 0)) {
-            if (xD->report.write2file == TRUE) {        // close report file
-                fprintf(xD->report.fp,
+            if (xD->report->name) {     // close report file
+                fprintf(xD->report->fp,
                         "Error (see standard output). Process killed...");
-                fclose(xD->report.fp);
+                fclose(xD->report->fp);
             }
             G_fatal_error
                 ("To process 3D interpolation, please set 3D region settings.");
@@ -425,54 +366,55 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par,
 {
     FILE *fp;
 
-    int j, nLag_vert;
-    double lag_vert, max_dist_vert;
-    double *v_elm, *g_elm;
-    double sill_hz, sill_vert;
-
-
-    fp = fopen(file_name, "r");
+    fp = fopen(file_name, "r"); // open file
     if (fp == NULL) {
         G_fatal_error(_("Temporary file <%s> is missing, please repeat an initial phase..."),
                       file_name);
     }
 
-    else {                      // file exists:
-        int i, type;
-        int nLag;
-        double lag, max_dist, td_hz, sill;
-        double *h_elm, *gamma;
-        int file, file_length;
+    // file exists:
+    else {
+        int i, type;            // index, type of variogram
+        int nLag;               // # of bins
+        double lag, max_dist, td_hz, sill;      // size of the bin, maximum horizontal distance
+        double *h, *h_elm, *gamma;      // elements of horizontal bins and gamma matrices  
+        int file, file_length;  // type of file (9/8), length of the filename
 
-        for (i = 0; i < 2; i++) {
-            if (fscanf(fp, "%d", &file_length) == 0) {  // filename length
+        int j, nLag_vert;       // index and # of vertical bins
+        double lag_vert, max_dist_vert; // size of the lag and maximum vertical distance
+        double *v_elm, *g_elm;  // elements of vertical bins and gamma matrices
+        double sill_hz, sill_vert;      // horizontal and vertical sill
+
+        // check filename length (1st variable in the file)
+        if (fscanf(fp, "%d", &file_length) == 0) {
+            G_fatal_error(_("Nothing to scan..."));
+        }
+
+        // valid filename
+        if (file_length > 3) {
+            // read file code (Y/N report)
+            if (fscanf(fp, "%d", &file) == 0) {
                 G_fatal_error(_("Nothing to scan..."));
             }
-            if (file_length > 3) {
-                if (fscanf(fp, "%d", &file) == 0) {
+
+            // read report name
+            if (file == 9) {    // report
+                xD->report->name =
+                    (char *)G_malloc((file_length + 1) * sizeof(char));
+                if (fscanf(fp, "%s", xD->report->name) == 0) {  // filename
                     G_fatal_error(_("Nothing to scan..."));
                 }
-                if (file == 9) {        // filetype code (9 - report, 8 - crossval)
-                    xD->report.name =
-                        (char *)G_malloc(file_length * sizeof(char));
-                    if (fscanf(fp, "%s", xD->report.name) == 0) {       // filename
-                        G_fatal_error(_("Nothing to scan..."));
-                    }
-                    continue;
+
+                // middle / final phase: check if file does not exist
+                if (access(xD->report->name, F_OK) != 0) {
+                    G_fatal_error(_("Report file does not exist; please check the name or repeat initial phase..."));
                 }
-                else if (file == 8) {
-                    xD->crossvalid.name =
-                        (char *)G_malloc(file_length * sizeof(char));
-                    if (fscanf(fp, "%s", xD->crossvalid.name) == 0) {
-                        G_fatal_error(_("Nothing to scan..."));
-                    }
-                    continue;
-                }
+                xD->report->fp = fopen(xD->report->name, "a");
             }
-            else {
-                type = file_length;
-                goto no_file;
-            }
+        }
+        else {
+            type = file_length;
+            goto no_file;
         }                       // todo: test without report and crossval
 
         if (fscanf(fp, "%d", &type) == 0) {     // read type
@@ -480,9 +422,9 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par,
         }
 
       no_file:
-
         switch (type) {
-        case 2:                // bivariate variogram
+            // bivariate variogram
+        case 2:
             var_par->type = type;
             if (fscanf
                 (fp, "%d %lf %lf %d %lf %lf %lf", &nLag_vert, &lag_vert,
@@ -536,26 +478,42 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par,
             break;
 
         default:
-            if (type == 3) {    // anisotropic variogram:
-                if (fscanf(fp, "%lf", &xD->aniso_ratio) == 0) { // anisotropic ratio
+            // anisotropic variogram:
+            if (type == 3) {
+                // anisotropic ratio
+                if (fscanf(fp, "%lf", &xD->aniso_ratio) == 0) {
                     G_fatal_error(_("Nothing to scan..."));
                 }
             }
 
+            // distance settings
             if (fscanf(fp, "%d %lf %lf", &nLag, &lag, &max_dist) < 3) {
                 G_fatal_error(_("Nothing to scan..."));
             }
 
+            // angular settings
             if (type != 1) {
                 if (fscanf(fp, "%lf", &td_hz) == 0) {
                     G_fatal_error(_("Nothing to scan..."));
                 }
             }
 
-            var_par->h = (double *)G_malloc(nLag * sizeof(double));
-            h_elm = &var_par->h[0];
+            // empirical variogram:
+            h = (double *)G_malloc(nLag * sizeof(double));
+            // control initialization:
+            if (h == NULL) {
+                report_error(xD->report);
+                G_fatal_error(_("Memory allocation failed..."));
+            }
+            h_elm = &h[0];
 
             var_par->gamma = G_matrix_init(nLag, 1, nLag);
+            // control initialization:
+            if (var_par->gamma == NULL) {
+                report_error(xD->report);
+                G_fatal_error(_("Memory allocation failed..."));
+            }
+
             gamma = &var_par->gamma->vals[0];
 
             for (i = 0; i < nLag; i++) {
@@ -572,6 +530,10 @@ void read_tmp_vals(const char *file_name, struct parameters *var_par,
             var_par->sill = sill;
             break;
         }
+
+        var_par->h = (double *)G_malloc(nLag * sizeof(double));
+        memcpy(var_par->h, h, nLag * sizeof(double));
+        G_free(h);
 
         if (type != 2) {
             var_par->type = type;
