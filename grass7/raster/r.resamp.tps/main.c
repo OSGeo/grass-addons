@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     radius_opt->label =
 	_("Radius for moving window interpolation");
     radius_opt->description =
-	_("If radius is > 0, moving window interpolation will be used instead of nearest neighbor search");
+	_("The unit for radius is cells. If radius is > 0, moving window interpolation will be used instead of nearest neighbor search");
     radius_opt->guisection = _("Settings");
 
     ivar_opt = G_define_standard_option(G_OPT_R_INPUTS);
