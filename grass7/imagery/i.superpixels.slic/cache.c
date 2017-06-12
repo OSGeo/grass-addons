@@ -76,12 +76,8 @@ int cache_destroy(struct cache *c)
 	Segment_close(&c->s);
     }
     else {
-	int row;
-
-	for (row = 0; row < c->rows; row++) {
-	    G_free(c->r[row][0]);
-	    G_free(c->r[row]);
-	}
+	G_free(c->r[0][0]);
+	G_free(c->r[0]);
 	G_free(c->r);
     }
 
