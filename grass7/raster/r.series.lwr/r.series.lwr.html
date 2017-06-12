@@ -6,11 +6,15 @@ For each input map, an output map with the suffix <em>suffix</em>
 (default: _lwr) is created.
 
 <p>
-For each point in the time series, the (in time) neighboring points are 
-considered to estimate a polynomial function that best fits the 
-observations. The points are weighted according to their distance (in 
-time) to the current point with points farther away getting a lower 
-weight.
+For each observation in the time series, the (in time) neighboring 
+values are used to estimate a polynomial function that best fits the 
+observations. The values are weighted according to their distance (in 
+time) to the current observation. Values that are farther away in time 
+get lower weights. The main difference among weights lies in how strongly 
+the current observation is emphasized with respect to its temporal 
+neighbors. See this dedicated 
+<a href="https://en.wikipedia.org/wiki/Kernel_(statistics)#Kernel_functions_in_common_use">wiki</a> 
+for further details.
 
 <p>
 The option <b>order</b> determines the order of the polynomial function 
@@ -22,48 +26,63 @@ fluctuations.
 
 <p>
 The <em>delta</em> option is experimental. It smoothes the polynomial 
-function: with a high <em>delta</em> value, a higher order polynomial 
+function. With a high <em>delta</em> value, a higher order polynomial 
 function fitting becomes similar to a moving average.
 
 <p>
-Optionally, outliers can be removed with the <em>-l</em> and 
-<em>-h</em> flags when fitting a polynomial. In this case, a fit error 
-tolerance (option <em>fit</em>) must be provided. These flags are 
-slowing down the module and are only needed when the time series 
-contains many outliers. A few outliers are handled well with the 
-default settings.
+Optionally, low and/or high outliers can be removed when fitting a 
+polynomial by means of the <em>-l</em> and <em>-h</em> flags, 
+respectively. In this case, a fit error tolerance (option <em>fet</em>) 
+must be provided. The value of fet is relative to the value range of the 
+variable being considered. 
+The use of these flags will slow down the module and they are only 
+needed when the time series contains many outliers. A few outliers are 
+handled well with the default settings.
 
 <p>
-Gaps in the time series are by default interpolated, as long as the 
-time series contains sufficient non-NULL points. Optionally, the 
+All gaps in the time series are by default interpolated, as long as the 
+time series contains sufficient non-NULL observations. Optionally, the 
 maximum size of gaps to be interpolated can be set with the 
-<em>maxgap</em> option.
+<em>maxgap</em> option. The units of maxgap are the units of the time 
+steps.
 
 <p>
 Extrapolation can be avoided with the <em>-i</em> flag. In this case, 
-LWR is performed only from the first non-NULL point to the last 
-non-NULL point in the time series.
+LWR is performed only from the first to the last non-NULL observation 
+in the time series.
+
+<p>
+The module uses an adaptive bandwidth to fit the polynomial and 
+searches for <em>order + 1 + dod</em> valid values around the current 
+observation. The degree of over-determination (dod) is the user defined 
+number of extra temporal neighbours that should be considered for the 
+estimation of the value at each time step.  
 
 <h2>NOTES</h2>
 
-If the <em>range</em> option is given, any values which fall outside
-that range will be treated as if they were NULL.
-The <em>range</em> parameter can be set to <em>low,high</em> thresholds:
-values outside of this range are treated as NULL.
+If the <em>range</em> option is given, all the values falling outside
+the <em>low,high</em> thresholds will be treated as if they were NULL.
 
 <p>
-The <em>low,high</em> thresholds are floating point, so use 
+The <em>low,high</em> thresholds are floating point. Therefore, use 
 <em>-inf</em> or <em>inf</em> for a single threshold (e.g., 
 <em>range=0,inf</em> to ignore negative values, or 
 <em>range=-inf,-200.4</em> to ignore values above -200.4).
 
 <p>
+There is no need to give time steps if the time interval among maps is 
+constant. If the interval is not constant, the user needs to assign time 
+steps. These must always increase (i.e.: each time step must be larger 
+than the previous one) and the total number of time steps must be equal 
+to the number of input maps.
+
+<p>
 The maximum number of raster maps that can be processed is given by the 
 per-user limit of the operating system. For example, the soft limits 
 for users are typically 1024. The soft limit can be changed with e.g. 
-<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but not higher 
-than the hard limit. If it is too low, you can as superuser add an 
-entry in
+<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but it cannot be 
+higher than the hard limit. If it is too low, the user can, as superuser, 
+add an entry in
 
 <div class="code"><pre>
 /etc/security/limits.conf
@@ -71,27 +90,153 @@ entry in
 your_username  hard    nofile          4096
 </pre></div>
 
-This would raise the hard limit to 4096 files. Also have a look at the 
+This would raise the hard limit to 4096 files. Also, have a look at the 
 overall limit of the operating system
 <div class="code"><pre>
 cat /proc/sys/fs/file-max
 </pre></div>
-which is on modern Linux systems several 100,000 files.
+which on modern Linux systems is several 100,000 files.
 
-<p>Use the <em>-z</em> flag to analyze large amount of raster maps 
-without hitting open files limit and the size limit of command line 
+<p>
+Use the <em>-z</em> flag to analyze large amounts of raster maps 
+without hitting the open files limit and the size limit of command line 
 arguments. This will however increase the processing time. For every 
 single row in the output map(s) all input maps are opened and closed. 
-The amount of RAM will rise linear with the number of specified input 
-maps.
+The amount of RAM used will rise linearly with the number of specified 
+input maps.
+
 <p>
 The input and file options are mutually exclusive. Input is a 
 text file with a new line separated list of raster map names.
+
+<h2>EXAMPLES</h2>
+
+We use a time series of the Chlorophyll-a concentration product from 
+MODIS Aqua (spatial resolution 4.6 km and temporal resolution 8 days) 
+to exemplify different parameter settings in r.series.lwr. In all 
+cases, we set <em>-i</em> flag to avoid extrapolations. We will first 
+execute the module to interpolate all existant gaps (default 
+behaviour) alternatively changing the value of <em>fet</em> to remove 
+higher outliers (<em>-h</em> flag) and the value of <em>dod</em> to 
+include more time_steps when fitting the polynomial at each observation.
+In the last three executions, we will change the values of the 
+<em>maxgap</em> option, so only temporal gaps equal to or smaller than 
+maxgap will be interpolated.
+
+<div class="code"><pre>
+maplist=`g.list type=raster pattern=A201[2-3]*chlor_a* sep=,`
+
+## FILL ALL GAPS ##
+ 
+# no fit error tolerance (fet) set
+r.series.lwr -i input=$maplist suffix=_lwr1 order=2 weight=tricube range=0.0,65.0
+  
+# changing fit error tolerance (fet)
+r.series.lwr -i -h input=$maplist suffix=_lwr2 order=2 weight=tricube range=0.0,65.0 fet=1.0
+r.series.lwr -i -h input=$maplist suffix=_lwr3 order=2 weight=tricube range=0.0,65.0 fet=2.0
+r.series.lwr -i -h input=$maplist suffix=_lwr4 order=2 weight=tricube range=0.0,65.0 fet=3.0
+ 
+# changing degree of overdetermination (dod)
+r.series.lwr -i -h input=$maplist suffix=_lwr5 order=2 weight=tricube range=0.0,65.0 dod=2 fet=2.0
+r.series.lwr -i -h input=$maplist suffix=_lwr6 order=2 weight=tricube range=0.0,65.0 dod=4 fet=2.0
+r.series.lwr -i -h input=$maplist suffix=_lwr7 order=2 weight=tricube range=0.0,65.0 dod=6 fet=2.0
+ 
+## FILL ONLY UNTIL MAXGAP ##
+   
+# setting maxgap (temporal gaps longer than maxgap will not be filled)
+r.series.lwr -i input=$maplist suffix=_lwr8 order=2 weight=tricube range=0.0,65.0 maxgap=3
+r.series.lwr -i input=$maplist suffix=_lwr9 order=2 weight=tricube range=0.0,65.0 maxgap=5
+r.series.lwr -i input=$maplist suffix=_lwr10 order=2 weight=tricube range=0.0,65.0 maxgap=7
+</pre></div>
+
+We now create strds for the different executions of LWR.
+
+<div class="code"><pre>
+for i in `seq 1 10` ; do
+
+ # create time series with lwr outputs
+ t.create type=strds temporaltype=absolute output=cla_lwr${i} \
+  title="LWR output for Chl-a" \
+  description="MODIS Aqua L3 Chl-a 8-day 4km 2012-2013. Reconstruction with r.series.lwr - run ${i}"
+
+ # create list with filenames to parse
+ g.list type=raster pattern="*_lwr${i}" output=names_list_${i}
+
+ # parse filenames, convert YYYYDOY to YYYY-MM-DD and write file to use in t.register
+ for mapname in `cat names_list_${i}` ; do
+  year_start=`echo ${mapname:1:4}`
+  doy_start=`echo ${mapname:5:3}`
+  year_end=`echo ${mapname:8:4}`
+  doy_end=`echo ${mapname:12:3}`
+  # convert YYYY-DOY to YYYY-MM-DD
+  doy_start=`echo "$doy_start" | sed 's/^0*//'`
+  doy_end=`echo "$doy_end" | sed 's/^0*//'`
+  START_DATE=`date -d "${year_start}-01-01 +$(( ${doy_start} - 1 ))days" +%Y-%m-%d`
+  END_DATE=`date -d "${year_end}-01-01 +$(( ${doy_end} ))days" +%Y-%m-%d`
+  # print mapname, start and end date
+  echo "$mapname|$START_DATE|$END_DATE" >> map_list_start_and_end_time_${i}.txt
+ done
+
+ # register maps in strds
+ t.register input=cla_lwr${i} type=raster file=map_list_start_and_end_time_${i}.txt
+ 
+ # get info
+ t.info cla_lwr${i}
+ 
+done
+</pre></div>
+
+Finally, we use <a href="g.gui.tplot.htlm">g.gui.tplot</a> to inspect 
+the results of the interpolations with the different settings and 
+compare with the original series at a random pixel.
+
+<p>
+<div align="center" style="margin: 10px">
+<a href="r_series_lwr_cla_cla_lwr1.png">
+<img src="r_series_lwr_cla_cla_lwr1.png" width="400" alt="Default settings" border=0>
+<a href="r_series_lwr_cla_cla_lwr2.png">
+<img src="r_series_lwr_cla_cla_lwr2.png" width="400" alt="fet=1.0" border=0>
+</a><br>
+<a href="r_series_lwr_cla_cla_lwr3.png">
+<img src="r_series_lwr_cla_cla_lwr3.png" width="400" alt="fet=2.0" border=0>
+<a href="r_series_lwr_cla_cla_lwr4.png">
+<img src="r_series_lwr_cla_cla_lwr4.png" width="400" alt="fet=3.0" border=0>
+</a><br>
+<a href="r_series_lwr_cla_cla_lwr5.png">
+<img src="r_series_lwr_cla_cla_lwr5.png" width="400" alt="dod=2" border=0>
+<a href="r_series_lwr_cla_cla_lwr6.png">
+<img src="r_series_lwr_cla_cla_lwr6.png" width="400" alt="dod=4" border=0>
+</a><br>
+<a href="r_series_lwr_cla_cla_lwr7.png">
+<img src="r_series_lwr_cla_cla_lwr7.png" width="400" alt="dod=6" border=0>
+<a href="r_series_lwr_cla_cla_lwr8.png">
+<img src="r_series_lwr_cla_cla_lwr8.png" width="400" alt="maxgap=3" border=0>
+</a><br>
+<a href="r_series_lwr_cla_cla_lwr9.png">
+<img src="r_series_lwr_cla_cla_lwr9.png" width="400" alt="maxgap=5" border=0>
+<a href="r_series_lwr_cla_cla_lwr10.png">
+<img src="r_series_lwr_cla_cla_lwr10.png" width="400" alt="maxgap=7" border=0>
+</a><br>
+<i>Comparison of the outputs of LWR with different parameter settings.</i>
+</div>
+
+<p>
+<div align="center" style="margin: 10px">
+<a href="r_series_lwr_cla_201281.png">
+<img src="r_series_lwr_cla_201281.png" width="400" alt="Original map" border=0>
+<a href="r_series_lwr_cla_lwr7_201281.png">
+<img src="r_series_lwr_cla_lwr7_201281.png" width="400" alt="Gap-filled map" border=0>
+</a><br>
+<i>Comparison of an original Chlorophyll-a map and a reconstructed map (dod=6).</i>
+</div>
+
 
 <h2>SEE ALSO</h2>
 
 <em><a href="r.series.html">r.series</a></em>, 
 <em><a href="r.hants.html">r.hants</a></em>
+<p>
+<a href="http://grasswiki.osgeo.org/wiki/Temporal_data_processing">Temporal data processing Wiki</a>
 
 <h2>AUTHOR</h2>
 
