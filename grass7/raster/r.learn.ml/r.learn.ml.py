@@ -441,14 +441,13 @@ def main():
         from sklearn.cluster import KMeans
         from sklearn.preprocessing import StandardScaler, Imputer
         from sklearn.model_selection import (
-            GridSearchCV, RandomizedSearchCV, GroupShuffleSplit, ShuffleSplit,
+            GridSearchCV, GroupShuffleSplit, ShuffleSplit,
             StratifiedKFold, GroupKFold)
         from sklearn.preprocessing import OneHotEncoder
         from sklearn.pipeline import Pipeline
         from sklearn.utils import shuffle
         from sklearn import metrics
         from sklearn.metrics import make_scorer
-        from sklearn.calibration import CalibratedClassifierCV
     except:
         gscript.fatal("Scikit learn 0.18 or newer is not installed")
 
@@ -882,13 +881,6 @@ def main():
 
     if model_only is not True:
         gscript.message(os.linesep)
-
-        # recalibrate probabilities if classes have been balanced
-        if balance is True:
-            if any(param_grid) is True and nested_cv is True:
-                clf = clf.best_estimator_
-            clf = CalibratedClassifierCV(clf, cv=20)
-            clf.fit(X, y)
 
         # predict classification/regression raster
         if prob_only is False:
