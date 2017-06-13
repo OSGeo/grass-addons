@@ -143,7 +143,7 @@ i.group group=lsat subgroup=lsat input=`g.list type=raster pattern='lsat*' sep=c
 Perform the segmentation:
 
 <div class="code"><pre>
-i.superpixels.slic group=lsat output=segments k=2000
+i.superpixels.slic group=lsat output=segments num_pixels=2000
 </pre></div>
 
 Convert the segments to vectors for further analysis and visualization:
