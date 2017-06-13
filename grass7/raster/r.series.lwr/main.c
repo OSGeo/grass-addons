@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     parm.order->type = TYPE_INTEGER;
     parm.order->required = NO;
     parm.order->options = "0,1,2,3";
-    parm.order->answer = "2";
+    parm.order->answer = "1";
     parm.order->label = _("order number");
     parm.order->description = _("Order of the polynomial fitting function, 0 means weighted average");
 
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
     parm.dod->key = "dod";
     parm.dod->type = TYPE_INTEGER;
     parm.dod->required = NO;
-    parm.dod->answer = "1";
+    parm.dod->answer = "0";
     parm.dod->description = _("Degree of over-determination");
 
     parm.range = G_define_option();
