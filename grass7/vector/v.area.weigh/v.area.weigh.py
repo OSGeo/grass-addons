@@ -108,7 +108,7 @@ def main():
     # zonal statistics
     rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)
     try:
-        grass.run_command('r.statistics2', base=rastertmp1, cover=weight,
+        grass.run_command('r.stats.zonal', base=rastertmp1, cover=weight,
                           method='sum', output=rastertmp3, quiet=True)
     except CalledModuleError:
         grass.fatal(_("An error occurred while calculating zonal statistics"))
