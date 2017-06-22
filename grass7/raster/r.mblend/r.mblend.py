@@ -55,11 +55,13 @@
 
 import os
 import atexit
+import math
 from time import gmtime, strftime
 import grass.script as gscript
 
 index = 0
 far_edge_value = '0'
+d_max = None
 TMP_MAPS = []
 WEIGHT_MAX = 10000
 COL_VALUE = 'value'
@@ -79,10 +81,18 @@ def cleanup():
     while len(TMP_MAPS) > 0:
         gscript.run_command('g.remove', type='all', name=TMP_MAPS.pop(),
                             flags='f', quiet=True)
+        
+
+def compute_d_max(region):
+    global d_max
+    print("Region:\n" + str(region))
+    d_max = math.sqrt(math.pow(region['w'] - region['e'], 2) -
+                      math.pow(region['n'] - region['s'], 2)) / 100
 
 
 def main():
     global far_edge_value
+    global d_max
 
     options, flags = gscript.parser()
     high = options['high']
@@ -122,6 +132,8 @@ def main():
         cell_side = region['nsres']
     else:
         cell_side = region['ewres']
+        
+    compute_d_max(region)
 
     # Make cell size compatible
     low_res_inter = getTemporaryIdentifier()
@@ -151,13 +163,20 @@ def main():
                         output=interpol_area, operator='not')
 
     # Compute difference between the two rasters and vectorise to points
+    interpol_area_buff = getTemporaryIdentifier()
     diff = getTemporaryIdentifier()
-    diff_points = getTemporaryIdentifier()
+    diff_points_edge = getTemporaryIdentifier()
     gscript.mapcalc(diff + ' = ' + high + ' - ' + low_res_inter)
+    gscript.message(_("[r.mblend] Computing buffer around interpolation area"))
+    gscript.run_command('v.buffer', input=interpol_area,
+                        output=interpol_area_buff, type='area',
+                        distance=cell_side)
     gscript.message(_("[r.mblend] Vectorising differences between input" +
                       " rasters"))
-    gscript.run_command('r.to.vect', input=diff, output=diff_points,
+    gscript.run_command('r.mask', vector=interpol_area_buff)
+    gscript.run_command('r.to.vect', input=diff, output=diff_points_edge,
                         type='point')
+    gscript.run_command('r.mask', flags='r')
     
     # Compute average of the differences if flag -a was passed
     if use_average_differences:
@@ -170,23 +189,11 @@ def main():
                 far_edge_value = vector[1]
         p.wait()
 
-    # Obtain edge points of the high resolution raster
-    interpol_area_buff = getTemporaryIdentifier()
-    diff_points_edge = getTemporaryIdentifier()
-    # 1. buffer around area of interest - pixel size must be known
-    gscript.message(_("[r.mblend] Computing buffer around interpolation area"))
-    gscript.run_command('v.buffer', input=interpol_area,
-                        output=interpol_area_buff, type='area',
-                        distance=cell_side)
-    # 2. get the points along the edge
-    gscript.message(_("[r.mblend] Selecting points along the near edge"))
-    gscript.run_command('v.select', ainput=diff_points,
-                        binput=interpol_area_buff, output=diff_points_edge,
-                        operator='overlap')
-
     # Get points in low resolution farther away from high resolution raster
     dist_high = getTemporaryIdentifier()
     weights = getTemporaryIdentifier()
+    interpol_area_points = getTemporaryIdentifier()
+    pre_interpol_area_points = getTemporaryIdentifier()
     weight_points = getTemporaryIdentifier()
     interpol_area_in_buff = getTemporaryIdentifier()
     weight_points_all_edges = getTemporaryIdentifier()
@@ -199,41 +206,47 @@ def main():
     gscript.message(_("[r.mblend] Rescaling distance to [0,10000] interval"))
     gscript.run_command('r.rescale', input=dist_high, output=weights,
                         to='0,' + str(WEIGHT_MAX))
-    # 3. Vectorise distances to points
-    gscript.message(_("[r.mblend] Vectorising distances to points"))
-    gscript.run_command('r.to.vect', input=weights, output=weight_points,
-                        type='point')
-    # 4. Create inner buffer to interpolation area
-    gscript.message(_("[r.mblend] Computing inner buffer to" +
-                      " interpolation area"))
-    gscript.run_command('v.buffer', input=interpol_area,
-                        output=interpol_area_in_buff, type='area',
-                        distance='-' + str(cell_side))
-    # 5. Select points at the border
-    gscript.message(_("[r.mblend] Selecting all points around inner buffer"))
-    gscript.run_command('v.select', ainput=weight_points,
-                        binput=interpol_area_in_buff,
-                        output=weight_points_all_edges, operator='disjoint')
-    # 6. Select those with higher weights
+    # 3. Extract points from interpolation area border 
+    gscript.message(_("[r.mblend] Extract points from interpolation area " + 
+                      "boundary"))
+    gscript.run_command('v.to.points', input=interpol_area, 
+                        output=pre_interpol_area_points, type='boundary', 
+                        dmax=d_max, layer='-1')
+    gscript.message(_("[r.mblend] Copying features to layer 1"))
+    gscript.run_command('v.category', input=pre_interpol_area_points, 
+                        output=interpol_area_points, option='chlayer', 
+                        layer='2,1')
+    gscript.message(_("[r.mblend] Linking attribute table to layer 1"))
+    gscript.run_command('v.db.connect', map=interpol_area_points, 
+                        table=interpol_area_points, layer='1', flags='o')
+    # 4. Query distances to interpolation area points
+    gscript.message(_("[r.mblend] Querying distances raster"))
+    gscript.run_command('v.what.rast', map=interpol_area_points, 
+                        raster=weights, column=COL_VALUE)
+    # 5. Select those with higher weights
     cut_off = str(far_edge / 100 * WEIGHT_MAX)
     gscript.message(_("[r.mblend] Selecting far edge points (using cut-off" +
                       " percentage)"))
-    gscript.run_command('v.extract', input=weight_points_all_edges,
+    gscript.run_command('v.extract', input=interpol_area_points,
                         output=weight_points_edge,
                         where=COL_VALUE + '>' + cut_off)
 
     # Merge the two point edges and set low res edge to zero
     points_edges = getTemporaryIdentifier()
+    gscript.message(_("[r.mblend] Dropping extra column from far edge"))
+    gscript.run_command('v.db.dropcolumn', map=weight_points_edge, layer='1', 
+                        columns='along')
     gscript.message(_("[r.mblend] Setting far edge weights to zero"))
     gscript.run_command('v.db.update', map=weight_points_edge,
                         column=COL_VALUE, value=far_edge_value)
     gscript.message(_("[r.mblend] Patching the two edges"))
     gscript.run_command('v.patch',
-                        input=weight_points_edge + ',' + diff_points_edge,
+                        input=diff_points_edge + ',' + weight_points_edge,
                         output=points_edges, flags='e')
-
-    # Interpolate stitching raster
+    
+    # Interpolate smoothing raster
     smoothing = getTemporaryIdentifier()
+    interpol_area_rst = getTemporaryIdentifier()
     # Consign region to interpolation area
     gscript.run_command('g.region', vector=interpol_area_buff)
     gscript.message(_("[r.mblend] Interpolating smoothing surface. This" +
@@ -251,7 +264,7 @@ def main():
     # Add both rasters
     try:
         gscript.message(_("[r.mblend] Joining result into a single raster"))
-        gscript.run_command('r.patch', input=smooth_low_res + ',' + high,
+        gscript.run_command('r.patch', input=high + ',' + smooth_low_res,
                             output=output)
     except Exception, ex:
         gscript.error(_("[r.mblend] ERROR: Failed to create smoothed raster."))
