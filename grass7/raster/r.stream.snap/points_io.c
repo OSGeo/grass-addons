@@ -6,8 +6,7 @@ int read_points(char *in_point, SEGMENT * streams, SEGMENT * accum)
     struct Map_info Map;
     struct bound_box box;
     int num_point = 0;
-    int total_points = 0;
-    int type, i, j, cat;
+    int type, i, cat;
     struct line_pnts *sites;
     struct line_cats *cats;
     double absaccum;
@@ -28,12 +27,9 @@ int read_points(char *in_point, SEGMENT * streams, SEGMENT * accum)
     }
 
     points = (OUTLET *) G_malloc(num_point * sizeof(OUTLET));
-    total_points = Vect_get_num_lines(&Map);
+    Vect_rewind(&Map);
     i = 0;
-
-    for (j = 0; j < total_points; ++j) {
-
-	type = Vect_read_line(&Map, sites, cats, j + 1);
+    while ((type = Vect_read_next_line(&Map, sites, cats)) > -1) {
 
 	if (type != GV_POINT)
 	    continue;
