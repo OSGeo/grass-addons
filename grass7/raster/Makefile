@@ -22,6 +22,7 @@ SUBDIRS = \
 	r.bitpattern \
 	r.catchment \
 	r.category.trim \
+	r.colors.contrastbrightness \
 	r.colors.cubehelix \
 	r.colors.matplotlib \
 	r.colors.out_sld \
