@@ -16,12 +16,7 @@
  *      ISBN 0 7315 1900 0
  *
  ********************************************************************/
-             
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <math.h>
-#include <omp.h>
+
 
 #include <grass/config.h>
 #ifndef HAVE_LIBBLAS
@@ -31,6 +26,11 @@
 #error GRASS is not configured with LAPACK
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <math.h>
+#include <omp.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/imagery.h>
@@ -81,6 +81,7 @@ int main(int argc,char * argv[])
     char *group;
     float spectangle; /*numerical value of the spectral angle*/
 
+    /* initialize GIS engine */
     G_gisinit (argv[0]);
 
     module = G_define_module();
@@ -91,7 +92,6 @@ int main(int argc,char * argv[])
 
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
-    parm.group->description = "Imagery group to target for Spectral Mixture Analysis";
 
     parm.matrixfile = G_define_standard_option(G_OPT_F_INPUT);
     parm.matrixfile->description = "Matrix file containing spectral signatures";
@@ -103,7 +103,7 @@ int main(int argc,char * argv[])
     parm.output->description = "Raster map prefix to hold spectral angles";
 
     if (G_parser(argc,argv))
-	G_fatal_error("Parsing arguments error");
+	exit(EXIT_FAILURE);
 
     result_prefix = parm.output->answer;
 
