@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 	    /* write result in full percent */
 	    for (i = 0; i < A->cols; i++)	/* no. of spectra */
 		result_cell[i][col] =
-		    (CELL) (100 * G_matrix_get_element(fraction, 0, i));
+		    (CELL) (100 * G_matrix_get_element(fraction, 0, i) * 100.0/255.0);
 
 	    /* save error and iterations */
 	    error_cell[col] = (CELL) (100 * error);
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
 	/* make grey scale color table */
 	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
 	sprintf(command, "r.colors map=%s color=rules <<EOF\n"
-		"0 0 0 0 \n" "201 0 255 0\n" "end\n" "EOF", result_name);
+		"0 0 0 0 \n" "100 255 255 255\n" "end\n" "EOF", result_name);
 
 	/* G_message(command); */
 	/* G_system (command); */
