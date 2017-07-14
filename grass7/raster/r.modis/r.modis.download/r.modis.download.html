@@ -25,13 +25,28 @@ To be able to download data the user needs to obtain <em>user</em> and
 </ul>
 <p>
 In order to download the desired MODIS product(s), the username and password must be
-provided through the <em>settings</em> option. There are two ways: either pass a file
-in which the first row is the username, and the second row is the password, as showed below:
+provided through the <em>settings</em> option. There are three ways:
+<ul>
+<li>
+using the <a href="https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html" target="_blank">.netrc</a>
+file as showed below:
+<div class="code"><pre>
+machine e4ftl01.cr.usgs.gov
+login your_NASA_username
+password your_NASA_password
+</pre></div>
+</li>
+<li>
+pass a file in which the first row is the username, and the second row is the password, as showed below:
 <div class="code"><pre>
 your_NASA_username
 your_NASA_password
 </pre></div>
-or, the user can pass the values from the standard input when prompted.
+</li>
+<li>
+the user can pass the values from the standard input when prompted.
+</li>
+</ul>
 <p>
 
 <b>Warning</b>: As per NASA policy no more than ten simultaneous connections

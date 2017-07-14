@@ -40,8 +40,8 @@
 #%end
 #%option G_OPT_F_INPUT
 #% key: settings
-#% label: Full path to settings file or '-' for standard input
-#% required: yes
+#% label: Full path to settings file or '-' for standard input, empty for .netrc file
+#% required: no
 #% guisection: Define
 #%end
 #%option
@@ -172,7 +172,15 @@ def main():
         prod.print_prods()
         return 0
     # set username, password and folder if settings are insert by stdin
-    if options['settings'] == '-':
+    if not options['settings']:
+        user = None
+        passwd = None
+        if check(options['folder']):
+            fold = options['folder']
+        else:
+            grass.fatal(_("Set folder parameter when using stdin for passing "
+                          "the username and password"))
+    elif options['settings'] == '-':
         if options['folder'] != '':
             import getpass
             if check(options['folder']):
@@ -182,7 +190,6 @@ def main():
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing "
                           "the username and password"))
-            return 0
     # set username, password and folder by file
     else:
         # open the file and read the the user and password:
@@ -191,8 +198,8 @@ def main():
         if check(options['settings']):
             filesett = open(options['settings'], 'r')
             fileread = filesett.readlines()
-            user = 'anonymous'
-            passwd = fileread[0].strip()
+            user = fileread[0].strip()
+            passwd = fileread[1].strip()
             filesett.close()
         else:
             grass.fatal(_("File <%s> not found") % options['settings'])
