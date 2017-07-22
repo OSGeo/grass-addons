@@ -124,7 +124,7 @@ can be much larger than the RAM memory can hold. By default, the
 List Landsat imagery in the full NC sample dataset:
 
 <div class="code"><pre>
-g.list type=raster pattern='lsat*' sep=comma
+g.list type=raster pattern='lsat*' sep=comma mapset=PERMANENT
 </pre></div>
 
 Set the computation region to one of the rasters (all have the same
@@ -137,7 +137,7 @@ g.region raster=lsat7_2002_10
 Use the list to create an imagery group:
 
 <div class="code"><pre>
-i.group group=lsat subgroup=lsat input=`g.list type=raster pattern='lsat*' sep=comma`
+i.group group=lsat subgroup=lsat input=`g.list type=raster pattern='lsat*' sep=comma mapset=PERMANENT`
 </pre></div>
 
 Perform the segmentation:
@@ -164,8 +164,7 @@ Let's compute the NDVI using <em><a href="r.mapcalc.html">r.mapcalc</a></em>
 and assign average NDVI to each of the vector areas:
 
 <div class="code"><pre>
-r.mapcalc "ndvi = float(lsat7_2002_40 - lsat7_2002_30) / float(lsat7_2002_40 + lsat7_2002_30)"
-r.colors map=ndvi color=ndvi
+i.vi red=lsat7_2002_30 nir=lsat7_2002_40 viname=ndvi output=ndvi
 v.rast.stats map=segments raster=ndvi column_prefix=ndvi method=average
 </pre></div>
 
@@ -182,7 +181,7 @@ d.vect map=segments fill_color=none
 
 <center>
 <img src="i_superpixels_slic.png" alt="Average NDVI in superpixel">
-<p><em>Average NVDI in each superpixel area (segment)</em>
+<p><em>Average NDVI in each superpixel area (segment)</em>
 </center>
 
 <h2>REFERENCES</h2>
