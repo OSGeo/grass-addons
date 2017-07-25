@@ -32,8 +32,17 @@
 ##
 ## OPTIONAL INPUTS
 ##
+
+
+#%option G_OPT_R_INPUT
+#% key: heating_season_raster
+#% description: Raster with the Heating Season [0-365] days
+#% required: no
+#% guisection: Demand
+#%end
+
 #%option
-#% key: heating_season
+#% key: heating_season_value
 #% type: double
 #% key_desc: double
 #% description: Heating Season [0-365] days
@@ -54,7 +63,7 @@
 #%end
 
 #%option G_OPT_R_INPUT
-#% key: ground_capacity_rast
+#% key: ground_capacity_raster
 #% description: Raster with depth-averaged ground thermal capacity ρc  [MJ m-3 K-1]
 #% required: no
 #% guisection: Ground
@@ -72,7 +81,7 @@
 
 
 #%option G_OPT_R_INPUT
-#% key: ground_temp_rast
+#% key: ground_temp_raster
 #% description: Raster with the initial ground temperature T0 [°C]
 #% required: no
 #% guisection: Ground
@@ -199,13 +208,13 @@
 
 from __future__ import print_function
 
+import atexit
 import os
 import sys
-import atexit
 
-# import grass libraries
 from grass.script import core as gcore
-from grass.pygrass.utils import set_path
+from grass.script.utils import set_path
+
 
 try:
     # set python path to the shared r.green libraries
@@ -259,16 +268,17 @@ def main(opts, flgs):
     tmpbase = "tmprgreen_%i" % pid
     atexit.register(cleanup, pattern=(tmpbase + '*'), debug=DEBUG)
 
-    heating_season = float(opts['heating_season']) * 24 * 60 * 60
+    heating_season = rast_or_numb('heating_season_raster',
+                                  'heating_season_value', opts)
     lifetime = float(opts['lifetime']) * 365 * 24 * 60 * 60
 
     # ================================================
     # GROUND
     # get raster or scalar value
     ground_conductivity = opts['ground_conductivity']
-    ground_capacity = rast_or_numb('ground_capacity_rast',
+    ground_capacity = rast_or_numb('ground_capacity_raster',
                                    'ground_capacity_value', opts)
-    ground_temperature = rast_or_numb('ground_temp_rast',
+    ground_temperature = rast_or_numb('ground_temp_raster',
                                       'ground_temp_value', opts)
 
     # ================================================
@@ -300,8 +310,10 @@ def main(opts, flgs):
                      ground_conductivity, ground_capacity, execute=True,
                      overwrite=OVER)
 
+    tc = tmpbase + '_tc'
+    gpot.r_tc(tc, heating_season)
+
     gmax = tmpbase + '_gmax'
-    tc = heating_season / (365. * 24 * 60 * 60.)
     gpot.r_norm_thermal_alteration(gmax, tc, uc, us, execute=True,
                                    overwrite=OVER)
 

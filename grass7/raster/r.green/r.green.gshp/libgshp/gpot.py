@@ -40,9 +40,8 @@ simulation parameters:
       geo-exchange is evaluated.
 
 """
-from numpy import pi, log, sqrt
+from numpy import log, pi, sqrt
 
-# import grass libraries
 from grass.script import raster as grast
 
 
@@ -101,6 +100,20 @@ def r_norm_time(out, time, borehole_radius,
     rcmd = res.format(out=out, borehole_radius=borehole_radius,
                       ground_conductivity=ground_conductivity,
                       ground_capacity=ground_capacity, time=time)
+    if execute:
+        grast.mapcalc(rcmd, **kwargs)
+    return rcmd
+
+
+def r_tc(out, heating_season, execute=True, **kwargs):
+    """
+    Example
+    -------
+    >>> r_tc('tc', 180, execute=False)
+    'tc = 180 / 365.'
+    """
+    res = ("{out} = {heating_season} / 365.")
+    rcmd = res.format(out=out, heating_season=heating_season)
     if execute:
         grast.mapcalc(rcmd, **kwargs)
     return rcmd
