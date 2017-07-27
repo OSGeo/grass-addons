@@ -26,7 +26,8 @@ The format of the output file is a CSV file (but with tabs as delimiters).
 The header contains the names of the predictor maps and the first column
 contains the identifiers of the subregions. The order of columns is important,
 the second column represents intercept, the third development pressure and
-then the predictors.
+then the predictors. Therefore the development pressure column must be specified
+as the first column in option <b>columns</b>.
 
 <pre>
 ID	Intercept	devpressure_0_5	slope	road_dens_perc	forest_smooth_perc ...
@@ -41,6 +42,8 @@ ID	Intercept	devpressure_0_5	slope	road_dens_perc	forest_smooth_perc ...
 <h2>NOTES</h2>
 Note that this module is designed to automate the FUTURES workflow by brute-force
 selection of model, which has numerous caveats.
+<p>
+In case there is only one subregion, R function glm is used instead of glmer.
 
 <h2>EXAMPLES</h2>
 

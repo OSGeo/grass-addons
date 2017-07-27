@@ -92,23 +92,41 @@ opt = parse_args(OptionParser(option_list=option_list))
 input_data = read.csv(opt$input)
 # create global model with all variables
 predictors <- names(input_data)
-predictors <- predictors[predictors != opt$level]
+if (!is.na(opt$level)) {
+    predictors <- predictors[predictors != opt$level]
+}
 predictors <- predictors[predictors != opt$response]
 
-interc <- paste("(1|", opt$level, ")")
-fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
-model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
+if (is.na(opt$level)) {
+    fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors), collapse= "+")))
+    model = glm(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
+} else {
+    interc <- paste("(1|", opt$level, ")")
+    fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
+    model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
+}
 
 if(opt$usedredge) {
     #create all possible models, always include county as the level
-    select.model <- dredge(model, evaluate=TRUE, rank="AIC", fixed=~(1|opt$level), m.lim=c(opt$minimum, opt$maximum), trace=FALSE)
-
+    if (is.na(opt$level)) {
+        select.model <- dredge(model, evaluate=TRUE, rank="AIC", m.lim=c(opt$minimum, opt$maximum), trace=FALSE)
+    } else {
+        select.model <- dredge(model, evaluate=TRUE, rank="AIC", fixed=~(1|opt$level), m.lim=c(opt$minimum, opt$maximum), trace=FALSE)
+    }
     # save the best model
     model.best <- get.models(select.model, 1)
-    model = glmer(formula(model.best[[1]]), family = binomial, data=input_data, na.action = "na.fail")
+    if (is.na(opt$level)) {
+        model = glm(formula(model.best[[1]]), family = binomial, data=input_data, na.action = "na.fail")
+    } else {
+        model = glmer(formula(model.best[[1]]), family = binomial, data=input_data, na.action = "na.fail")
+    }
 }
 print(summary(model))
-coefs <- as.data.frame(coef(model)[[1]])
+if (is.na(opt$level)) {
+    coefs <- t(as.data.frame(coef(model)))
+} else {
+    coefs <- as.data.frame(coef(model)[[1]])
+}
 write.table(cbind(rownames(coefs), coefs), opt$output, row.names=FALSE, sep="\t")
 """
 
@@ -133,18 +151,25 @@ def main():
     if options['max_variables']:
         maxv = (options['max_variables'])
     else:
-        maxv = len(columns) - 2
+        maxv = len(columns)
     if dredge and minim > maxv:
         gscript.fatal(_("Minimum number of predictor variables is larger than maximum number"))
 
     global TMP_CSV, TMP_RSCRIPT, TMP_POT
     TMP_CSV = gscript.tempfile(create=False) + '.csv'
     TMP_RSCRIPT = gscript.tempfile()
+    include_level = True
+    distinct = gscript.read_command('v.db.select', flags='c', map=vinput,
+                                    columns="distinct {l}".format(l=level)).strip()
+    if len(distinct.splitlines()) <= 1:
+        include_level = False
+        single_level = distinct.splitlines()[0]
     with open(TMP_RSCRIPT, 'w') as f:
         f.write(rscript)
     TMP_POT = gscript.tempfile(create=False) + '_potential.csv'
-
-    columns += [binary, level]
+    columns += [binary]
+    if include_level:
+        columns += [level]
     where = "{c} IS NOT NULL".format(c=columns[0])
     for c in columns[1:]:
         where += " AND {c} IS NOT NULL".format(c=c)
@@ -154,8 +179,12 @@ def main():
         gscript.info(_("Running automatic model selection ..."))
     else:
         gscript.info(_("Computing model..."))
-    p = subprocess.Popen(['Rscript', TMP_RSCRIPT, '-i', TMP_CSV, '-l', level,  '-r', binary,  '-m', str(minim), '-x', str(maxv), '-o', TMP_POT, '-d', 'TRUE' if dredge else 'FALSE'],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    cmd = ['Rscript', TMP_RSCRIPT, '-i', TMP_CSV,  '-r', binary,
+               '-m', str(minim), '-x', str(maxv), '-o', TMP_POT, '-d', 'TRUE' if dredge else 'FALSE']
+    if include_level:
+        cmd += [ '-l', level]
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     print stderr
     if p.returncode != 0:
@@ -174,6 +203,8 @@ def main():
             if i == 0:
                 row[0] = "ID"
                 row[1] = "Intercept"
+            if i == 1 and not include_level:
+                row[0] = single_level
             fout.write('\t'.join(row))
             fout.write('\n')
             i += 1
@@ -183,3 +214,4 @@ if __name__ == "__main__":
     options, flags = gscript.parser()
     atexit.register(cleanup)
     sys.exit(main())
+
