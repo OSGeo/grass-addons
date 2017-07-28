@@ -39,7 +39,6 @@
 #% key: repeat
 #% description: How many times is the simulation repeated
 #% required: no
-#% answer: 10
 #% guisection: Calibration
 #%end
 #%option
@@ -147,7 +146,6 @@
 #% required: no
 #% multiple: no
 #% options: 4,8
-#% answer: 4
 #% description: The number of neighbors to be used for patch generation (4 or 8)
 #% guisection: PGA
 #%end
@@ -157,7 +155,6 @@
 #% required: no
 #% multiple: no
 #% options: 1,2
-#% answer: 2
 #% description: The way location of a seed is determined (1: uniform distribution 2: development probability)
 #% guisection: PGA
 #%end
@@ -167,7 +164,6 @@
 #% required: no
 #% multiple: no
 #% options: occurrence,gravity,kernel
-#% answer: gravity
 #% description: Approaches to derive development pressure
 #% guisection: PGA
 #%end
