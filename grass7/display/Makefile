@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	d.explanation.plot \
 	d.frame \
 	d.mon2 \
 	d.vect.thematic2
