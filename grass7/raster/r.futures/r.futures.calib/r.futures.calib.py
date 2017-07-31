@@ -471,7 +471,7 @@ def main():
     proc_list = []
     num_all = len(compactness_means) * len(compactness_ranges) * len(discount_factors)
     with open(options['calibration_results'], 'a') as f:
-        f.write(' '.join(['input_discount_factor', 'area_distance',
+        f.write(','.join(['input_discount_factor', 'area_distance',
                           'input_compactness_mean', 'input_compactness_range',
                           'compactness_distance']))
         f.write('\n')
@@ -496,7 +496,7 @@ def main():
                             data = queue_list[i].get()
                             if not data:
                                 continue
-                            f.write(' '.join([str(data['input_discount_factor']), str(data['area_distance']),
+                            f.write(','.join([str(data['input_discount_factor']), str(data['area_distance']),
                                               str(data['input_compactness_mean']), str(data['input_compactness_range']),
                                               str(data['compactness_distance'])]))
                             f.write('\n')
