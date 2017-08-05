@@ -4,9 +4,9 @@
 # MODULE:       r.hypso.py
 #
 # AUTHOR(S):    Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
-#               
 #
-# PURPOSE:      Output a hypsometric and hypsographic graph 
+#
+# PURPOSE:      Output a hypsometric and hypsographic graph
 #
 # COPYRIGHT:    (c) 2010 Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
 #
@@ -16,7 +16,7 @@
 #
 # REQUIRES:     Matplotlib
 #               http://matplotlib.sourceforge.net/
-#               
+#
 #
 ################################################################################
 #%module
@@ -120,10 +120,10 @@ def findint(kl,f):
     Xf = np.where(Xf==Xf.min())
     item = itemgetter(0)(Xf)
     Xf = item[0]  # added this further step to handle the case the function has 2 min
-    z1 = kl[float(Xf)][0] 
-    z2 = kl[float(Xf-1)][0]
-    f1 = kl[float(Xf)][1] 
-    f2 = kl[float(Xf-1)][1] 
+    z1 = kl[Xf][0]
+    z2 = kl[Xf-1][0]
+    f1 = kl[Xf][1]
+    f2 = kl[Xf-1][1] 
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z
 
@@ -136,11 +136,8 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.title(title)
     plt.grid(True)
     plt.savefig(image)
-    plt.close('all') 
-    
+    plt.close('all')
+
 if __name__ == "__main__":
 	options, flags = grass.parser()
 	sys.exit(main())
-
-
-
