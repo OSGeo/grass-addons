@@ -1,14 +1,14 @@
 <h2>DESCRIPTION</h2>
-<em>r.hypso</em> produces the hypsometric and hypsographic curve 
-related to a digital elevation model and prints the percentiles. 
+<em>r.hypso</em> produces the hypsometric and hypsographic curve
+related to a digital elevation model and prints the percentiles.
 
 <h2>NOTES</h2>
 
-The <em>hypsographic curve</em> gives the distribution of surfaces in 
-different altitude ranges. Each point on the function reports on the 
-y-axis the elevation and on the x-axis the portion of the basin 
+The <em>hypsographic curve</em> gives the distribution of surfaces in
+different altitude ranges. Each point on the function reports on the
+y-axis the elevation and on the x-axis the portion of the basin
 surface placed above such elevation value. The <em>hypsometric curve
-</em> uses adimensional axes. 
+</em> uses adimensional axes.
 
 <h2>Flags:</h2>
 <p>-a: generates hypsometric curve
@@ -17,12 +17,12 @@ surface placed above such elevation value. The <em>hypsometric curve
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.hypso.py -b map=elevation.10m image=path/to/output/prefix
+r.hypso -b map=elevation image=/temp/hypso
 </pre></div>
 generates hypsographic curve, and
 
 <div class="code"><pre>
-r.hypso.py -a map=elevation.10m image=path/to/output/prefix
+r.hypso -a map=elevation image=/temp/hypso
 </pre></div>
 generates hypsometric curve.
 
@@ -39,12 +39,12 @@ generates hypsometric curve.
 
 <h2>REFERENCES</h2>
 
-<p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins, 
+<p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins,
 Chance and Self-Organization. Cambridge Press (2001)</em>
 
-<p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. 
-&mdash; Caratterizzazione morfometrica del bacino idrografico in 
-GRASS GIS (Morphometric characterization of the catchment in GRASS 
+<p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A.
+&mdash; Caratterizzazione morfometrica del bacino idrografico in
+GRASS GIS (Morphometric characterization of the catchment in GRASS
 GIS environment), <a href="http://geomatica.como.polimi.it/workbooks/">Geomatics Workbooks</a>,
 n. 9 (2010)</em>
 
