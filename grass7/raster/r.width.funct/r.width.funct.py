@@ -120,7 +120,8 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
 
 def findint(kl,f):
     Xf = np.abs(kl-f); Xf = np.where(Xf==Xf.min())
-    z1, z2, f1, f2 = kl[(Xf[0])][0], kl[(Xf[0]-1)][0], kl[(Xf[0])][1], kl[(Xf[0]-1)][1]
+    #z1, z2, f1, f2 = kl[float(Xf[0])][0], kl[float(Xf[0]-1)][0], kl[float(Xf[0])][1], kl[float(Xf[0]-1)][1]
+    z1, z2, f1, f2 = kl[int(Xf[0])][0], kl[int(Xf[0]-1)][0], kl[int(Xf[0])][1], kl[int(Xf[0]-1)][1]
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z
 
