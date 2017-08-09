@@ -55,8 +55,19 @@ addons_index() {
         # create symlink to latest version
             cd ${SRC}/grass$1/${p}/addons
 	    rm latest
-	    last_version=`ls -w1 | sort -r | head -n2 | tail -n1`
-	    ln -sf $last_version latest
+
+	    # remove RC builds when release is available
+	    for rc in `ls -d grass-*RC[0-9]`; do
+		file=`echo $rc | sed 's/RC[0-9]//g'`
+		if [ -d $file ] ; then
+		    echo "Removing $rc..."
+		    rm -rf $rc
+		fi
+	    done
+
+	    latest_version=`ls -w1 | sort -r | head -n2 | tail -n1`
+	    echo "Latest version (grass-${1}/${p}): $latest_version"
+	    ln -sf $latest_version latest
 	fi
 	cd ../..
     done
