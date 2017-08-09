@@ -20,6 +20,31 @@ It provides the quantiles of the area - distance distribution and
 the plot of the Width Function. In x axis is reported the distance 
 and in y axis is the area.
 
+<h2>EXAMPLE</h2>
+
+North Carolina sample dataset example:
+
+<div class="code"><pre>
+g.region raster=elevation -p
+
+# Calculate flow direction
+r.stream.extract elevation=elevation threshold=1000 \
+direction=direction 
+
+# Create outlet point 
+echo "637304.924954,218617.100523" | v.in.ascii input=- sep=',' out=outlet
+
+# Convert outlet point to raster
+v.to.rast input=outlet type=point output=outlet use=cat
+
+# Calculate distance to outlet map
+r.stream.distance -o stream_rast=outlet \
+direction=direction distance=dist2out
+
+# Calculate width function
+r.width.funct map=dist2out image=/tmp/my_basin=1000
+</pre></div>
+
 <h3>Dependencies</h3>
 <ul>
 <li>Matplotlib</li>
