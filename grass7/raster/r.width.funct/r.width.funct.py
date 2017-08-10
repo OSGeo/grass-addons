@@ -52,8 +52,7 @@ def main():
     stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'Anc').split('\n')[:-1]
 
     # res = cellsize
-    res1 = grass.read_command('g.region', raster = options['map'], flags = 'm')
-    res = int(res1.strip().split('\n')[6].split('=')[1])
+    res = grass.region()['nsres']
 
     zn = np.zeros((len(stats),4),float)
     kl = np.zeros((len(stats),2),float)
