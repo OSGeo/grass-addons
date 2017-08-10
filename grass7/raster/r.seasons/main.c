@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 
     flag.lo = G_define_flag();
     flag.lo->key = 'l';
-    flag.lo->description = _("Stop a season when a value is above threshold (default: below threshold");
+    flag.lo->description = _("Stop a season when a value is above threshold (default: below threshold)");
 
     flag.lazy = G_define_flag();
     flag.lazy->key = 'z';

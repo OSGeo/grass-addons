@@ -2,31 +2,34 @@
 
 <em>r.seasons</em> counts the number of seasons in a time series. A 
 season is defined as a time period of at least <em>min_length</em> 
-length where no value is below threshold (with the <em>-l</em> 
-flag, no value above threshold). As threshold, a fixed value can be 
-specified with the <em>tval</em> option, or a raster map with per-cell 
-threshold values can be supplied with the <em>tmap</em> option.
+length in which no value is below the threshold set. If the <em>-l</em> 
+flag is used, the seasons are identified when no value is above the 
+threshold set. As threshold, either a fixed value for the whole region 
+can be specified with the <em>threshold_value</em> option, or a raster 
+map with per-cell threshold values can be supplied with the 
+<em>threshold_map</em> option.
 
 <p>
-The <em>nout</em> output holds the number of detected seasons. Output 
+The <em>nout</em> output map holds the number of detected seasons. Output 
 raster maps with the start and end dates of each season are produced 
 for at most <em>n</em> number of seasons.
 
 <p>
-A season will not include gaps equal or longer than <em>max_gap</em>. 
-For each season, two start dates and two end dates are determined. The 
-start date start1 and the end date end1 indicate the start and end of 
-the core season, while the start date start2 and the end date end2 
-indicate the start and end of the full season including some periods 
-shorter than <em>min_length</em> separated by gaps shorter than 
-<em>max_gap</em> at the beginning and end of the season. A core season 
-will not include blocks shorter than <em>min_length</em>, while a full 
-season can have blocks shorter than <em>min_length</em> at the 
-beginning or end.
+A season is a period of time that might include gaps up to <em>max_gap</em>. 
+For each season identified, two start dates and two end dates are determined. 
+The start date "start1" and the end date "end1" indicate the start and 
+end of the core season (i.e.: season without gaps), while the start date 
+"start2" and the end date "end2" indicate the start and end of the full 
+season including some periods shorter than <em>min_length</em> separated 
+by gaps shorter than <em>max_gap</em> at the beginning and end of the 
+season. A core season is at least <em>min_length</em> long and does not 
+have any gaps, while a full season can have blocks shorter than 
+<em>min_length</em> at the beginning or end as long as these blocks are 
+separated by gaps shorter than the <em>max_gap</em>.
 
 <p>
-The length of the longest core and full season can be stored in output 
-maps <em>max_length_core</em> and <em>max_length_full</em>.
+The length of the longest core and full seasons can be stored in the 
+<em>max_length_core</em> and <em>max_length_full</em> output maps.
 
 <h2>NOTES</h2>
 
@@ -62,10 +65,10 @@ text file with a new line separated list of raster map names.
 
 <h2>EXAMPLES</h2>
 
-Determine occurrence/number of seasons with their respective start and end
-dates (in the form of map indexes) in global NDVI data. Let's use the example
-from <em>r.modis.import</em> to download and import NDVI global data and,
-create a time series with it:
+Determine occurrence/number of seasons with their respective start and 
+end dates (in the form of map indexes) in global NDVI data. Let's use 
+the example from <em>r.modis.import</em> to download and import NDVI 
+global data and, create a time series with it:
 
 <div class="code"><pre>
 # download two years of data: MOD13C1, global NDVI, 16-days, 5600 m
@@ -73,19 +76,20 @@ r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
   startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
 
 # import band 1 = NDVI
-r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt \
-  spectral="( 1 )" method=bilinear -w
+r.modis.import -w files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt \
+  spectral="( 1 )" method=bilinear outfile=$HOME/list_for_tregister.csv
 
 # create empty temporal DB
 t.create type=strds temporaltype=absolute output=ndvi_16_5600m \
   title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
 
-# register datasets (tempfile name is provided by r.modis.import -w
-t.register input=ndvi_16_5600m file=$USER/tmp/grass7-user-5370/tmp_rGPcg
+# register datasets (using outfile from r.modis.import -w)
+t.register input=ndvi_16_5600m file=$HOME/list_for_tregister.csv
 </pre></div>
 
-First, visualize the NDVI time series in a location with <em>g.gui.tplot</em>:
+First, visualize the NDVI time series in a particular point with 
+<em>g.gui.tplot</em>:
 
 <div class="code"><pre>
 g.gui.tplot strds=ndvi_16_5600m coordinates=146.537059538,-29.744835966
@@ -100,13 +104,13 @@ g.gui.tplot strds=ndvi_16_5600m coordinates=146.537059538,-29.744835966
 <i>Global NDVI from MOD13C1 product (right) and an example of a time series in southeastern Australia (left).</i>
 </div>
 
-Now, identify seasons based on a fixed threshold and a minimum duration. The
-threshold and duration were visually estimated from the time series plot for
-the example.
+Now, identify seasons based on a fixed threshold and a minimum duration. 
+The threshold and duration were visually estimated from the time series 
+plot for the example.
 
 <div class="code"><pre>
 r.seasons input=`g.list rast pat=MOD13* sep=,` prefix=ndvi_season n=3 \
-  nout=ndvi_season tval=3000 min_length=6
+  nout=ndvi_season threshold_value=3000 min_length=6
 
 # the outputs are: 
 g.list type=raster pattern=ndvi_season*
@@ -141,7 +145,7 @@ r.colors map=ndvi_season2_start1,ndvi_season2_end1 color=viridis
 
 <p>
 <div align="center" style="margin: 10px">
-<a href=".ndvi_season2_start1png">
+<a href="ndvi_season2_start1.png">
 <img src="ndvi_season2_start1.png" width="500" alt="Start of season 2" border=0>
 <a href="ndvi_season2_end1.png">
 <img src="ndvi_season2_end1.png" width="500" alt="End of season 2" border=0>
