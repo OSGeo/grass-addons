@@ -177,10 +177,12 @@ int main(int argc, char *argv[])
 		      *ts,		/* time steps*/
 		      *ns,		/* number of seasons */
 		      *nsout,		/* output map for number of seasons */
+		      *maxl1,		/* output map with maximum season length (core season) */
+		      *maxl2,		/* output map with maximum season length (full season) */
 		      *tval,		/* constant threshold to start/stop a season */
 		      *tmap,		/* map with threshold values to start/stop a season */
 		      *min,		/* minimum length in time to recognize a season */
-		      *max;		/* maximum length in time to separate two seasons */
+		      *max;		/* maximum gap length within one season */
     } parm;
     struct
     {
@@ -194,6 +196,8 @@ int main(int argc, char *argv[])
     struct output *outputs = NULL;
     int nsout_fd;
     CELL *nsoutbuf;
+    int maxl1_fd, maxl2_fd;
+    DCELL *maxl1_buf, *maxl2_buf, maxl1, maxl2, l;
     char *prefix;
     struct History history;
     DCELL *values = NULL;
@@ -215,8 +219,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("series"));
     G_add_keyword(_("filtering"));
     module->description =
-	_("Approximates a periodic time series "
-	  "and creates approximated output.");
+	_("Extracts seasons from a time series.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
@@ -249,6 +252,16 @@ int main(int argc, char *argv[])
     parm.nsout->key = "nout";
     parm.nsout->required = NO;
     parm.nsout->description = _("Name of output map with detected number of seasons");
+
+    parm.maxl1 = G_define_standard_option(G_OPT_R_OUTPUT);
+    parm.maxl1->key = "max_length_core";
+    parm.maxl1->required = NO;
+    parm.maxl1->description = _("Name of output map with maximum core season length");
+
+    parm.maxl2 = G_define_standard_option(G_OPT_R_OUTPUT);
+    parm.maxl2->key = "max_length_full";
+    parm.maxl2->required = NO;
+    parm.maxl2->description = _("Name of output map with maximum full season length");
 
     parm.tval = G_define_option();
     parm.tval->key = "threshold_value";
@@ -293,9 +306,9 @@ int main(int argc, char *argv[])
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
-    if (!parm.prefix->answer && !parm.nsout->answer)
-	G_fatal_error(_("Neither <%s> nor <%s> output requested"),
-	              parm.prefix->key, parm.nsout->key);
+    if (!parm.prefix->answer && !parm.nsout->answer &&
+        !parm.maxl1->answer && !parm.maxl2->answer)
+	G_fatal_error(_("No output requested"));
 
     ns = atoi(parm.ns->answer);
     if (ns < 1)
@@ -457,12 +470,27 @@ int main(int argc, char *argv[])
 	    out->fd = Rast_open_new(out->name, DCELL_TYPE);
 	}
     }
-    
+
+    /* number of seasons */
     nsout_fd = -1;
     nsoutbuf = NULL;
     if (parm.nsout->answer) {
 	nsout_fd = Rast_open_new(parm.nsout->answer, CELL_TYPE);
 	nsoutbuf = Rast_allocate_c_buf();
+    }
+    /* maximum core season length */
+    maxl1_fd = -1;
+    maxl1_buf = NULL;
+    if (parm.maxl1->answer) {
+	maxl1_fd = Rast_open_new(parm.maxl1->answer, DCELL_TYPE);
+	maxl1_buf = Rast_allocate_d_buf();
+    }
+    /* maximum full season length */
+    maxl2_fd = -1;
+    maxl2_buf = NULL;
+    if (parm.maxl2->answer) {
+	maxl2_fd = Rast_open_new(parm.maxl2->answer, DCELL_TYPE);
+	maxl2_buf = Rast_allocate_d_buf();
     }
 
     /* initialise variables */
@@ -515,6 +543,7 @@ int main(int argc, char *argv[])
 
 	    nfound = 0;
 	    i0 = 0;
+	    maxl1 = maxl2 = 0;
 	    while (get_season(values, isnull, ts, i0, num_inputs,
 		              threshold, minlen, maxgap,
 			      &start1, &start2, &end1, &end2)) {
@@ -529,6 +558,33 @@ int main(int argc, char *argv[])
 		    outputs[i + 3].buf[col] = ts[end2];
 		}
 		nfound++;
+
+		if (maxl1_buf) {
+		    if (end1 < num_inputs - 1)
+			l = (ts[end1] + ts[end1 + 1]) / 2.0;
+		    else
+			l = ts[end1] + (ts[end1] - ts[end1 - 1]) / 2.0;
+
+		    if (start1 > 0)
+			l -= (ts[start1 - 1] + ts[start1]) / 2.0;
+		    else
+			l -= ts[start1] - (ts[start1 + 1] - ts[start1]) / 2.0;
+		    if (maxl1 < l)
+			maxl1 = l;
+		}
+		if (maxl2_buf) {
+		    if (end2 < num_inputs - 1)
+			l = (ts[end2] + ts[end2 + 1]) / 2.0;
+		    else
+			l = ts[end2] + (ts[end2] - ts[end2 - 1]) / 2.0;
+
+		    if (start2 > 0)
+			l -= (ts[start2 - 1] + ts[start2]) / 2.0;
+		    else
+			l -= ts[start2] - (ts[start2 + 1] - ts[start2]) / 2.0;
+		    if (maxl2 < l)
+			maxl2 = l;
+		}
 	    }
 	    if (nsmax < nfound)
 		nsmax = nfound;
@@ -545,6 +601,18 @@ int main(int argc, char *argv[])
 		else
 		    nsoutbuf[col] = nfound;
 	    }
+	    if (maxl1_buf) {
+		if (n_nulls == num_inputs || maxl1 == 0)
+		    Rast_set_d_null_value(&maxl1_buf[col], 1);
+		else
+		    maxl1_buf[col] = maxl1;
+	    }
+	    if (maxl2_buf) {
+		if (n_nulls == num_inputs || maxl2 == 0)
+		    Rast_set_d_null_value(&maxl2_buf[col], 1);
+		else
+		    maxl2_buf[col] = maxl2;
+	    }
 	}
 
 	if (prefix) {
@@ -554,11 +622,15 @@ int main(int argc, char *argv[])
 	}
 	if (nsoutbuf)
 	    Rast_put_c_row(nsout_fd, nsoutbuf);
+	if (maxl1_buf)
+	    Rast_put_d_row(maxl1_fd, maxl1_buf);
+	if (maxl2_buf)
+	    Rast_put_d_row(maxl2_fd, maxl2_buf);
     }
 
     G_percent(row, nrows, 2);
 
-    G_message(_("A maximum of %d seasons have been detected"), nsmax);
+    G_message(_("A maximum of %d seasons have been detected."), nsmax);
     if (nsmax > ns)
 	G_important_message(_("The number of output seasons (%d) is smaller than the maximum number of detected seasons (%d)."),
 	                    ns, nsmax);
@@ -587,6 +659,20 @@ int main(int argc, char *argv[])
 	Rast_short_history(parm.nsout->answer, "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(parm.nsout->answer, &history);
+    }
+    if (maxl1_fd >= 0) {
+	Rast_close(maxl1_fd);
+
+	Rast_short_history(parm.maxl1->answer, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(parm.maxl1->answer, &history);
+    }
+    if (maxl2_fd >= 0) {
+	Rast_close(maxl2_fd);
+
+	Rast_short_history(parm.maxl2->answer, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(parm.maxl2->answer, &history);
     }
 
     exit(EXIT_SUCCESS);
