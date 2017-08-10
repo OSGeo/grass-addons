@@ -18,6 +18,7 @@
 
 #%module
 #% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package
+#% keyword: raster
 #% keyword: classification
 #% keyword: regression
 #% keyword: machine learning
