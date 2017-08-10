@@ -13,13 +13,16 @@ raster maps with the start and end dates of each season are produced
 for at most <em>n</em> number of seasons.
 
 <p>
+A season will not include gaps equal or longer than <em>max_gap</em>. 
 For each season, two start dates and two end dates are determined. The 
 start date start1 and the end date end1 indicate the start and end of 
 the core season, while the start date start2 and the end date end2 
-indicate the start and end of the full season including some gaps at 
-the beginning and end of the season. Gaps are shorter than 
-<em>max_gap</em>, that is, a season will not include gaps equal or 
-longer than <em>max_gap</em>.
+indicate the start and end of the full season including some periods 
+shorter than <em>min_length</em> separated by gaps shorter than 
+<em>max_gap</em> at the beginning and end of the season. A core season 
+will not include blocks shorter than <em>min_length</em>, while a full 
+season can have blocks shorter than <em>min_length</em> at the 
+beginning or end.
 
 <p>
 The length of the longest core and full season can be stored in output 
