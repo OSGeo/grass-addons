@@ -59,7 +59,7 @@ def main():
     stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
 
     # res = cellsize
-    res = float(grass.read_command('g.region', raster = options['map'], flags = 'm').strip().split('\n')[4].split('=')[1])
+    res = float(grass.read_command('g.region', raster = options['map'], flags = 'm').strip().split('\n')[6].split('=')[1])
     zn = np.zeros((len(stats),6),float)
     kl = np.zeros((len(stats),2),float)
     prc = np.zeros((9,2),float)
@@ -123,7 +123,7 @@ def findint(kl,f):
     z1 = kl[Xf][0]
     z2 = kl[Xf-1][0]
     f1 = kl[Xf][1]
-    f2 = kl[Xf-1][1] 
+    f2 = kl[Xf-1][1]
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z
 
