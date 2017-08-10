@@ -373,7 +373,7 @@ def main():
 
     # Calculate the most common geomorphons
     grass.message( "Calculate the most common geomorphons ..." )
-    grass.run_command("r.geomorphon", dem = r_elevation,
+    grass.run_command("r.geomorphon", elevation = r_elevation,
                                      skip = 0,
                                      search = 3,
                                      flat = 1,
