@@ -17,6 +17,9 @@
 
 #%module
 #% description: Pit and peak density
+#% keyword: raster
+#% keyword: terrain 
+#% keyword: classification
 #%end
 
 #%option G_OPT_R_INPUT
