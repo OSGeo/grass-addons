@@ -22,6 +22,9 @@
 #%module
 #% description: Compute the stream order of stream networks stored in a vector map at specific outlet vector points
 #% keyword: vector
+#% keyword: hydrology
+#% keyword: stream network
+#% keyword: stream order
 #%end
 #%option G_OPT_V_INPUT
 #% description: Name of the stream networks vector map
