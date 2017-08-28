@@ -26,6 +26,11 @@
 #% answer: 1
 #% required: no
 #%end
+#%option G_OPT_DB_COLUMN
+#% key: idcolumn
+#% description: Name of column containing polygon ids
+#% required: no
+#%end
 #%option G_OPT_F_OUTPUT
 #% description: Name for output file (if omitted or "-" output to stdout)
 #% required: no
@@ -52,6 +57,7 @@ def main():
     input = options['input']
     player = int(options['player'])
     output = options['output']
+    idcolumn = options['idcolumn'] if options['idcolumn'] else False
     sep = separator(options['separator'])
     bidirectional = flags['b']
     global tempmapname
@@ -69,7 +75,7 @@ def main():
     temp_neighbors=[]
     for line in vtodb_results.splitlines():
         if line.split('|')[1]<>'-1' and line.split('|')[2]<>'-1':
-                temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
+            temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
 
     #temp_neighbors.sort()
 
@@ -77,21 +83,47 @@ def main():
     if bidirectional:
         neighbors_reversed=[]
         for pair in temp_neighbors:
-                neighbors_reversed.append([pair[1], pair[0]])
+            neighbors_reversed.append([pair[1], pair[0]])
         temp_neighbors += neighbors_reversed
 
     #uniqify the list of integer pairs
     neighbors = [list(x) for x in set(tuple(x) for x in temp_neighbors)]
     neighbors.sort()
 
+    currentcat=''
     if output and output != '-':
         out=open(output, 'w')
-        for pair in neighbors:
-               	out.write(str(pair[0]) + sep + str(pair[1])+'\n')
+    for pair in neighbors:
+        if idcolumn:
+            # While pair[0] stays the same we don't have to call v.db.select
+            # again and again to get the id
+            if currentcat != pair[0]:
+                currentcat = pair[0]
+                fromid=gscript.read_command('v.db.select',
+                                 map=input,
+                                 column=idcolumn,
+                                 where="cat=%d" % pair[0],
+                                 layer=player,
+                                 flags="c",
+                                 quiet=True).rstrip()
+            toid=gscript.read_command('v.db.select',
+                             map=input,
+                             column=idcolumn,
+                             where="cat=%d" % pair[1],
+                             layer=player,
+                             flags="c",
+                             quiet=True).rstrip()
+            if output and output != '-':
+                out.write(fromid + sep + toid + '\n')
+            else:
+                print(fromid + sep + toid)
+        else:
+            if output and output != '-':
+                out.write(str(pair[0]) + sep + str(pair[1])+'\n')
+            else:
+                print(str(pair[0]) + sep + str(pair[1]))
+    if output and output != '-':
         out.close()
-    else:
-        for pair in neighbors:
-               	print(str(pair[0]) + sep + str(pair[1]))
 
 
 
