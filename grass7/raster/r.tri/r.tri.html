@@ -1,19 +1,19 @@
 <h2>DESCRIPTION</h2>
 
-<i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The original calculation in Riley et al., (1999)  used only a 3x3 neighbourhood and represented the sum of the absolute deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that the calculation can be extended over any scale by taking the mean of the absolute deviations. The results scale in a similar way to other packages that allow a multi-scale calculation (i.e., SAGA-GIS).
+<i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The original calculation in Riley et al., (1999)  used only a 3x3 neighbourhood and represented the sum of the absolute deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that the calculation can be extended over any scale by taking the mean of the absolute deviations.
 
 <h2>NOTES</h2>
 <i>r.tri</i> produces fairly similar results to the average deviation of elevation values, apart from the center pixel is used in place of the mean. In practice, this produces a slightly 'less smoothed' result, which in some cases can better highlight smaller-scale terrain features.
 
-<h2>TODO</h2>
-Like in many GRASS GIS algorithms, null values are not evaluated at present and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. There is potential to calculate TRI at the image edges by using a boolean operator to test for null values.
+Like in many GRASS GIS algorithms, cell padding is not performed automatically and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. To avoid this the input DEM can be grown by the chosen radius that is to be used for the TRI calculation.
 
 <h2>EXAMPLE</h2>
-r.tri dem=srtm wsize=1 output=tri
+r.tri input=srtm size=1 output=tri
 
 <h2>REFERENCES</h2>
 Riley, S. J., S. D. DeGloria and R. Elliot (1999). A terrain ruggedness index that quantifies topographic heterogeneity, Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
 
 <h2>AUTHOR</h2>
 Steven Pawley
-<br><i>Last changed: Tuesday 15 December 2015</i>
+
+<p><em>Last changed: $Date$</em></p>
