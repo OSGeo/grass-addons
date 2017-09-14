@@ -66,7 +66,6 @@
 #% guisection: Optional
 #%end
 
-
 #%option
 #% key: classes
 #% type: integer
@@ -120,7 +119,13 @@ def cleanup():
 
     for f in TMP_RAST:
         gs.run_command(
-            "g.remove", type="raster", name=f, flags="f", quiet=True)
+            "g.remove", type="raster", name=f, flags='bf', quiet=True)
+
+    g.region(**current_reg)
+
+    if mask_test:
+        r.mask(original_mask, overwrite=True, quiet=True)
+
 
 def temp_map(name):
     tmp = name + ''.join(
@@ -128,6 +133,7 @@ def temp_map(name):
     TMP_RAST.append(tmp)
 
     return (tmp)
+
 
 def parse_tiles(tiles):
     # convert r.tileset output into list of dicts
@@ -260,6 +266,44 @@ def colors(nclasses):
     return s
 
 
+def string_to_rules(string):
+    # Converts a string to a file for input as a GRASS Rules File
+
+    tmp = gs.tempfile()
+    f = open('%s' % (tmp), 'wt')
+    f.write(string)
+    f.close()
+
+    return tmp
+
+
+def classification(level, slope, smean, texture, tmean, convexity,
+                   cmean, classif):
+    # Classification scheme according to Iwahashi and Pike (2007)
+    # Simple decision tree that classifies terrain features
+    # (slope, texture, convexity) relative to central tendency of features
+    #
+    # Args:
+    #   level: Nested classification level
+    #   slope: String, name of slope raster
+    #   smean: Float, mean of slope raster for the remaining level partition
+    #   texture: String, name of terrain texture raster
+    #   tmean: Float, mean of texture raster for remaining level partition
+    #   convexity: String, name of convexity raster
+    #   cmean: Float, mean of convexity raster for remaining level partition
+    #   classif: String, name of map to store classification
+
+    incr = (4*level)-4
+    expr = '{x} = if({s}>{smean}, if({c}>{cmean}, if({t}<{tmean}, {i}+1, {i}+2), if({t}<{tmean}, {i}+3, {i}+4)), if({c}>{cmean}, if({t}<{tmean}, {i}+5, {i}+6), if({t}<{tmean}, {i}+7, {i}+8)))'.format(
+            x=classif, i=incr,
+            s=slope, smean=smean,
+            t=texture, tmean=tmean,
+            c=convexity, cmean=cmean)
+    r.mapcalc(expression=expr)
+
+    return 0
+
+
 def main():
     elevation = options['elevation']
     slope = options['slope']
@@ -284,45 +328,39 @@ def main():
         gs.fatal('Parameter thres cannot be negative')
 
     if filter_size % 2 == 0 or counting_size % 2 == 0:
-        gs.fatal('Filter or counting windows require an odd-numbered window size')
+        gs.fatal(
+            'Filter or counting windows require an odd-numbered window size')
 
     if filter_size >= counting_size:
-        gs.fatal('Filter size needs to be smaller than the counting window size')
+        gs.fatal(
+            'Filter size needs to be smaller than the counting window size')
 
     # store current region settings
-    current_reg = parse_key_val(
-        g.region(flags='pg', stdout_=PIPE).outputs.stdout)
+    global current_reg
+    current_reg = parse_key_val(g.region(flags='pg', stdout_=PIPE).outputs.stdout)
     del current_reg['projection']
     del current_reg['zone']
     del current_reg['cells']
     
-    # check for existing mask
+    # check for existing mask and backup if found
+    global mask_test
     mask_test = gs.list_grouped(
         type='rast', pattern='MASK')[gs.gisenv()['MAPSET']]
     if mask_test:
-        # backup old mask
+        global original_mask
         original_mask = temp_map('tmp_original_mask')
         g.copy(raster=['MASK', original_mask])
-        
-        # create mask of input elevation
-        elevation_mask = temp_map('tmp_elevation_mask')
-        tmp = gs.tempfile()
-        rc = open('%s' % (tmp), 'wt')
-        rc.write('* = 0')
-        rc.close()
-        
-        r.reclass(input=elevation, output=elevation_mask, rules=tmp)
-        new_mask = temp_map('tmp_new_mask')
-        r.mapcalc(expression='{a}={b}'.format(a=new_mask, b=elevation_mask))
-        
+                
     # Terrain Surface Texture -------------------------------------------------
     # smooth the dem
     gs.message("Calculating terrain surface texture...")
-    gs.message("1. Smoothing input DEM with a {n}x{n} median filter...".format(n=filter_size))
+    gs.message(
+        "1. Smoothing input DEM with a {n}x{n} median filter...".format(
+            n=filter_size))
     filtered_dem = temp_map('tmp_filtered_dem')
     gs.run_command("r.neighbors", input = elevation, method = "median",
-                   size = filter_size, output = filtered_dem, flags='c',
-                   quiet=True)
+                    size = filter_size, output = filtered_dem, flags='c',
+                    quiet=True)
 
     # extract the pits and peaks based on the threshold
     pitpeaks = temp_map('tmp_pitpeaks')
@@ -336,26 +374,16 @@ def main():
     window_radius = (counting_size-1)/2
     y_radius = float(current_reg['ewres'])*window_radius
     x_radius = float(current_reg['nsres'])*window_radius
-
     resample = temp_map('tmp_density')
     r.resamp_filter(input=pitpeaks, output=resample, filter=['bartlett','gauss'],
                     radius=[x_radius,y_radius], quiet=True)
 
     # convert to percentage
-    if mask_test:
-        r.mask(raster=new_mask, overwrite=True, quiet=True)
-    else:
-        r.mask(raster=elevation, overwrite=True, quiet=True)
-
     gs.message("4. Converting to percentage...")
+    r.mask(raster=elevation, overwrite=True, quiet=True)
     r.mapcalc(expression='{x} = float({y} * 100)'.format(x=texture, y=resample),
                quiet=True)
-    if mask_test:
-        r.mask(raster=original_mask, overwrite=True, quiet=True)
-    else:
-        r.mask(flags='r', quiet=True)
-
-    # set colors
+    r.mask(flags='r', quiet=True)
     r.colors(map=texture, color='haxby', quiet=True)
 
     # Terrain convexity/concavity ---------------------------------------------
@@ -363,22 +391,18 @@ def main():
     gs.message("Calculating terrain convexity and concavity...")
     gs.message("1. Calculating terrain curvature using laplacian filter...")
     
-    # grow the map to remove border effects
+    # grow the map to remove border effects and run laplacian filter
     dem_grown = temp_map('tmp_elevation_grown')
+    laplacian = temp_map('tmp_laplacian')
     g.region(n=float(current_reg['n']) + (float(current_reg['nsres']) * filter_size),
              s=float(current_reg['s']) - (float(current_reg['nsres']) * filter_size),
              w=float(current_reg['w']) - (float(current_reg['ewres']) * filter_size),
              e=float(current_reg['e']) + (float(current_reg['ewres']) * filter_size))
+
     r.grow(input=elevation, output=dem_grown, radius=filter_size, quiet=True)
-    
-    # write matrix filter to tempfile
-    tmp = gs.tempfile()
-    lmatrix = open('%s' % (tmp), 'wt')
-    lmatrix.write(laplacian_matrix(filter_size))
-    lmatrix.close()
-    
-    laplacian = temp_map('tmp_laplacian')
-    r.mfilter(input=dem_grown, output=laplacian, filter=tmp, quiet=True)
+    r.mfilter(
+        input=dem_grown, output=laplacian,
+        filter=string_to_rules(laplacian_matrix(filter_size)), quiet=True)
 
     # extract convex and concave pixels
     gs.message("2. Extracting convexities and concavities...")
@@ -406,20 +430,14 @@ def main():
                     quiet=True)
 
     # convert to percentages
-    g.region(**current_reg)
-    if mask_test:
-        r.mask(raster=new_mask, overwrite=True, quiet=True)
-    else:
-        r.mask(raster=elevation, overwrite=True, quiet=True)
     gs.message("4. Converting to percentages...")
+    g.region(**current_reg)
+    r.mask(raster=elevation, overwrite=True, quiet=True)
     r.mapcalc(expression='{x} = float({y} * 100)'.format(x=convexity, y=resample_convex),
                quiet=True)
     r.mapcalc(expression='{x} = float({y} * 100)'.format(x=concavity, y=resample_concav),
                quiet=True)
-    if mask_test:
-        r.mask(raster=original_mask, overwrite=True, quiet=True)
-    else:
-        r.mask(flags='r', quiet=True)
+    r.mask(flags='r', quiet=True)
 
     # set colors
     r.colors_stddev(map=convexity, quiet=True)
@@ -428,106 +446,53 @@ def main():
     # Terrain classification Flowchart-----------------------------------------
     if features != '':
         gs.message("Performing terrain surface classification...")
-        # output result as final classification if nclasses == 8
-        # else pass temporary result to next threshold
-        if nclasses >= 8:
-            if nclasses == 8:
-                cla1_8=features
-            else:
-                cla1_8 = temp_map('tmp_classes1_8')
+        # level 1 produces classes 1 thru 8
+        # level 2 produces classes 5 thru 12
+        # level 3 produces classes 9 thru 16
+        if nclasses == 8: levels = 1
+        if nclasses == 12: levels = 2
+        if nclasses == 16: levels = 3
 
-            # gather univariate statistics for terrain maps
-            slope_mean = parse_key_val(r.univar(
+        classif = []
+        for level in range(levels):
+            # mask previous classes x:x+4
+            if level != 0:
+                min_cla = (4*(level+1))-4
+                clf_msk = temp_map('tmp_clf_mask')
+                rules = '1:{0}:1'.format(min_cla)
+                r.recode(
+                    input=classif[level-1], output=clf_msk,
+                    rules=string_to_rules(rules), overwrite=True)
+                r.mask(raster=clf_msk, flags='i', quiet=True, overwrite=True)
+
+            # image statistics
+            smean = parse_key_val(r.univar(
                 map=slope, flags='g', stdout_=PIPE).outputs.stdout)['mean']
-            convex_mean = parse_key_val(r.univar(
+            cmean = parse_key_val(r.univar(
                 map=convexity, flags='g', stdout_=PIPE).outputs.stdout)['mean']
-            texture_mean = parse_key_val(r.univar(
+            tmean = parse_key_val(r.univar(
                 map=texture, flags='g', stdout_=PIPE).outputs.stdout)['mean']
+            classif.append(temp_map('tmp_classes'))
+            
+            if level != 0:
+                r.mask(flags='r', quiet=True)
 
-            # calculate first threshold
-            r.mapcalc(
-                expression='{x} = if({s}>{smean}, if({c}>{cmean}, if({t}<{tmean}, 1, 2), if({t}<{tmean}, 3,4)), if({c}>{cmean}, if({t}<{tmean}, 5, 6), if({t}<{tmean}, 7, 8)))'\
-                .format(x=cla1_8,
-                        s=slope, smean=slope_mean,
-                        t=texture, tmean=texture_mean,
-                        c=convexity, cmean=convex_mean))
+            classification(level+1, slope, smean, texture, tmean,
+                            convexity, cmean, classif[level])
 
-        if nclasses >= 12:
-            cla9_12 = temp_map('tmp_classes9_12')
-
-            # output result as final classification if nclasses == 12
-            # else pass temporary result to next threshold
-            if nclasses == 12:
-                cla1_12 = features
+        # combine decision trees
+        merged = []
+        for level in range(0, levels):
+            if level > 0:
+                min_cla = (4*(level+1))-4
+                merged.append(temp_map('tmp_merged'))
+                r.mapcalc(
+                    expression='{x} = if({a}>{min}, {b}, {a})'.format(
+                        x=merged[level], min=min_cla, a=merged[level-1],  b=classif[level]))
             else:
-                cla1_12 = temp_map('tmp_classes1_12')
-
-            # get projection and create tiles
-            proj = g.proj(flags='jf', stdout_=PIPE).outputs.stdout.strip(os.linesep)
-            tiles = r.tileset(
-                sourceproj=proj,
-                maxcols=int(math.ceil(float(current_reg['cols'])+1 / 2)),
-                maxrows=int(math.ceil(float(current_reg['rows'])+2)),
-                flags='g', quiet=True, stdout_=PIPE).outputs.stdout.split(os.linesep)[:-1]
-            tiles_reg = parse_tiles(tiles)
-
-            # get image means in each tile
-            slope_stats, convex_stats, texture_stats = [],[],[]
-            for tile in tiles_reg:
-                g.region(**tile)
-                slope_stats.append(parse_key_val(r.univar(
-                    map=slope, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-                convex_stats.append(parse_key_val(r.univar(
-                    map=convexity, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-                texture_stats.append(parse_key_val(r.univar(
-                    map=texture, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-
-            # calculate second threshold classes
-            g.region(**current_reg)
-            r.mapcalc(
-                expression='{x} = if({s}>{smean}, if({c}>{cmean}, if({t}<{tmean}, 5, 6), if({t}<{tmean}, 7,8)), if({c}>{cmean}, if({t}<{tmean}, 9, 10), if({t}<{tmean}, 11, 12)))'\
-                .format(x=cla9_12,
-                        s=slope, smean=min(slope_stats),
-                        t=texture, tmean=min(texture_stats),
-                        c=convexity, cmean=min(convex_stats)))
-
-            r.mapcalc(
-                expression='{x} = if({a}>5, {b}, {a})'.format(x=cla1_12, a=cla1_8,  b=cla9_12))
-
-        if nclasses == 16:
-            cla9_16 = temp_map('tmp_classes9_16')
-
-            # get projection and create tiles
-            tiles = r.tileset(
-                sourceproj=proj,
-                maxcols=int(math.ceil(float(current_reg['cols'])+1 / 2)),
-                maxrows=int(math.ceil(float(current_reg['rows'])+1 / 2)),
-                flags='g', quiet=True, stdout_=PIPE).outputs.stdout.split(os.linesep)[:-1]
-            tiles_reg = parse_tiles(tiles)
-
-            # get image means in each tile
-            slope_mean, convex_mean, texture_mean = [],[],[]
-            for tile in tiles_reg:
-                g.region(**tile)
-                slope_mean.append(parse_key_val(r.univar(
-                    map=slope, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-                convex_mean.append(parse_key_val(r.univar(
-                    map=convexity, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-                texture_mean.append(parse_key_val(r.univar(
-                    map=texture, flags='g', stdout_=PIPE).outputs.stdout)['mean'])
-
-            # third threshold
-            g.region(**current_reg)
-            r.mapcalc(
-                expression='{x} = if({s}>{smean}, if({c}>{cmean}, if({t}<{tmean}, 9, 10), if({t}<{tmean}, 11, 12)), if({c}>{cmean}, if({t}<{tmean}, 13, 14), if({t}<{tmean}, 15, 16)))'\
-                .format(x=cla9_16,
-                        s=slope, smean=min(slope_mean),
-                        t=texture, tmean=min(texture_mean),
-                        c=convexity, cmean=min(convex_mean)))
-
-            r.mapcalc(
-                expression='{x} = if({a}>8, {b}, {a})'.format(x=features, a=cla1_12, b=cla9_16))
-
+                merged.append(classif[level])
+        g.rename(raster=[merged[-1], features], quiet=True)
+        del TMP_RAST[-1]
 
     # Write metadata ----------------------------------------------------------
     history = 'r.terrain.texture '
@@ -553,19 +518,13 @@ def main():
                   description='generated by r.terrain.texture',
                   history=history)
         
-        # write color and category rules to tempfiles
-        tmp_col = gs.tempfile()
-        col = open('%s' % (tmp_col), 'wt')
-        col.write(colors(nclasses))
-        col.close()
-        
-        tmp_cat = gs.tempfile()
-        cat = open('%s' % (tmp_cat), 'wt')
-        cat.write(categories(nclasses))
-        cat.close()
-        
-        r.category(map=features, rules=tmp_cat, separator='pipe')
-        r.colors(map=features, rules=tmp_col, quiet=True)
+        # write color and category rules to tempfiles                
+        r.category(
+            map=features,
+            rules=string_to_rules(categories(nclasses)),
+            separator='pipe')
+        r.colors(
+            map=features, rules=string_to_rules(colors(nclasses)), quiet=True)
 
     return 0
 
