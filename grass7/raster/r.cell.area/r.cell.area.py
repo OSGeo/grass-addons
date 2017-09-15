@@ -20,7 +20,7 @@
 
 #%module
 #% description: Calculate cell sizes within the computational region
-#% keyword: raster
+#% keyword: raster, statistics
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -78,10 +78,10 @@ def main():
     elif projinfo['units'] == 'degrees':
         if units == 'm2':
             grass.mapcalc(output+' = ( 111195. * nsres() ) * \
-                          ( ewres() * (3.14159/180.) * 6371000. * cos(y()) )')
+                          ( ewres() * '+str(np.pi/180.)+' * 6371000. * cos(y()) )')
         elif units == 'km2':
             grass.mapcalc(output+' = ( 111.195 * nsres() ) * \
-                          ( ewres() * (3.14159/180.) * 6371. * cos(y()) )')
+                          ( ewres() * '+str(np.pi/180.)+' * 6371. * cos(y()) )')
     else:
         print 'Units: ', + projinfo['units'] + ' not currently supported'
     
