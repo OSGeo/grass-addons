@@ -20,7 +20,8 @@
 
 #%module
 #% description: Calculate cell sizes within the computational region
-#% keyword: raster, statistics
+#% keyword: raster
+#% keyword: statistics
 #%end
 
 #%option G_OPT_R_OUTPUT
