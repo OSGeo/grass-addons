@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 #include <algorithm>
+#include <stdexcept>
 
 using std::string;
 using std::cerr;
