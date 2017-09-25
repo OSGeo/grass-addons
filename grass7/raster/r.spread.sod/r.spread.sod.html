@@ -1,0 +1,77 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.spread.sod</em> simulates spread of a plant pathogen, specifically
+it simulates spread of Sudden Oak Death disease in California and Oregon
+(USA).
+
+
+<h2>NOTES</h2>
+
+The directions of wind consider north (N) to be grid north, if your
+true north is different direction, you need to make an adjustment.
+
+
+<h2>EXAMPLES</h2>
+
+Example of creating file with list of input maps (unix-like command
+line):
+
+<div class="code"><pre>
+g.list type=raster pattern="moisture_*" mapset=PRISM -m > moistures.txt
+g.list type=raster pattern="temperature_*" mapset=PRISM -m > temperatures.txt
+</pre></div>
+
+Note that the above assumes that the names will be ordered by time.
+You may need to pipe the result through <em>sort</em> with <tt>-n</tt>
+(<tt>| sort -n</tt>) to achieve this if filenames contain ordinal
+numbers but are not zero-padded (<tt>temperature_001</tt> versus
+<tt>temperature_1</tt>).
+
+Example of the run of the model (unix-like command line):
+
+<div class="code"><pre>
+r.spread.sod species=lide lvtree=all infected=infected_2005 \
+    moisture_file=moistures.txt temperature_file=temperatures.txt \
+    output=spread_sod start_time=2005 end_time=2010 \
+    rtype=cauchy wind=NE rseed=4
+</pre></div>
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>
+    Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook,
+    Joao A. N. Filipe, Richard D. Hunter, David M. Rizzo,
+    and Christopher A. Gilligan 2011.
+    Epidemiological modeling of invasion in heterogeneous landscapes:
+    spread of sudden oak death in California (1990-2030).
+    <em>Ecosphere</em> 2:art17.
+    <a href="http://dx.doi.org/10.1890/ES10-00192.1">DOI: 10.1890/ES10-00192.1</a>
+<li>
+    Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
+    Vaclav Petras, Richard C. Cobb, Helena Mitasova,
+    and Ross K. Meentemeyer.
+    Tangible geospatial modeling for collaborative solutions
+    to invasive species management.
+    <em>Environmental Modelling &amp; Software</em> 92 (2017): 176-188.
+    <a href="https://doi.org/10.1016/j.envsoft.2017.02.020">DOI: 10.1016/j.envsoft.2017.02.020</a>
+</ul>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+    <a href="r.spread.html">r.spread</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+
+Francesco Tonini* (original R version)<br>
+Zexi Chen* (C++ version)<br>
+Vaclav Petras* (parallelization, GRASS interface)<br>
+Anna Petrasova* (single species simulation)<br>
+
+<br>
+* <a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>

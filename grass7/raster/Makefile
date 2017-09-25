@@ -101,6 +101,7 @@ SUBDIRS = \
 	r.skyview \
 	r.smooth.seg \
 	r.soillossbare \
+	r.spread.sod \
 	r.stream.basins \
 	r.stream.channel \
 	r.stream.distance \
