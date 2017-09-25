@@ -296,7 +296,7 @@ for FILE in $* ; do
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
-    txt | ascii | dox)
+    txt | ascii | dox | md)
 	apply_text "$FILE"
 	;;
     po)
