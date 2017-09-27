@@ -71,12 +71,12 @@ def main():
                         "' already exists. Use '--o' to overwrite.")
 
     # Then compute
-    if projinfo['units'] == 'meters':
+    if (projinfo['units'] == 'meters') or (projinfo['units'] == 'Meters'):
         if units == 'm2':
             grass.mapcalc(output+' = nsres() * ewres()')
         elif units == 'km2':
             grass.mapcalc(output+' = nsres() * ewres() / 10.^6')
-    elif projinfo['units'] == 'degrees':
+    elif (projinfo['units'] == 'degrees') or (projinfo['units'] == 'Degrees'):
         if units == 'm2':
             grass.mapcalc(output+' = ( 111195. * nsres() ) * \
                           ( ewres() * '+str(np.pi/180.)+' * 6371000. * cos(y()) )')
