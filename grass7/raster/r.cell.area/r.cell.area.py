@@ -84,7 +84,7 @@ def main():
             grass.mapcalc(output+' = ( 111.195 * nsres() ) * \
                           ( ewres() * '+str(np.pi/180.)+' * 6371. * cos(y()) )')
     else:
-        print 'Units: ', + projinfo['units'] + ' not currently supported'
+        print 'Units: ', projinfo['units'], ' not currently supported'
     
 if __name__ == "__main__":
     main()
