@@ -292,7 +292,8 @@ def main():
     cur.executemany("update "+segments+" set ISEG=? where cat=?", nseg_cats)
     cur.executemany("update "+segments+" set NSEG=? where cat=?", nseg_cats)
 
-    # outseg = tostream
+    # outseg = tostream: default is 0 if "tostream" is off-map
+    cur.execute("update "+segments+" set OUTSEG=0")
     cur.executemany("update "+segments+" set OUTSEG=? where tostream=?", nseg_cats)
 
     # Discharge and hydraulic geometry
