@@ -358,7 +358,7 @@ def sum_maps(sum_, basename, suffixes):
     Sum up multiple raster maps
     """
     maps = '+'.join([basename + suf for suf in suffixes])
-    grass.mapcalc('{sum_} = {sum_} + {new}'.format(sum_=sum_, new=maps),
+    grass.mapcalc('{sum_} = {new}'.format(sum_=sum_, new=maps),
                   overwrite=True, quiet=True)
 
 
@@ -468,7 +468,6 @@ def main():
     # Parallel processing
     proc_list = []
     proc_count = 0
-    suffixes = []
     suffixes_all = []
     days = range(start_day, end_day + 1, day_step)
     num_days = len(days)
@@ -494,7 +493,6 @@ def main():
 
         proc_list[proc_count].start()
         proc_count += 1
-        suffixes.append(suffix)
         suffixes_all.append(suffix)
 
         if proc_count == nprocs or proc_count == num_days or count == num_days:
@@ -507,18 +505,18 @@ def main():
             if exitcodes != 0:
                 core.fatal(_("Error while r.sun computation"))
 
-            if beam_rad:
-                sum_maps(beam_rad, beam_rad_basename, suffixes)
-            if diff_rad:
-                sum_maps(diff_rad, diff_rad_basename, suffixes)
-            if refl_rad:
-                sum_maps(refl_rad, refl_rad_basename, suffixes)
-            if glob_rad:
-                sum_maps(glob_rad, glob_rad_basename, suffixes)
-
             # Empty process list
             proc_list = []
-            suffixes = []
+
+    if beam_rad:
+        sum_maps(beam_rad, beam_rad_basename, suffixes_all)
+    if diff_rad:
+        sum_maps(diff_rad, diff_rad_basename, suffixes_all)
+    if refl_rad:
+        sum_maps(refl_rad, refl_rad_basename, suffixes_all)
+    if glob_rad:
+        sum_maps(glob_rad, glob_rad_basename, suffixes_all)
+
 
     # FIXME: how percent really works?
     # core.percent(1, 1, 1)
