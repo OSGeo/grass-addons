@@ -114,6 +114,55 @@
 #%  required : no
 #%end
 
+#%option
+#%  key: strthick
+#%  type: double
+#%  description: Streambed sediment thickness [m]
+#%  answer: 1
+#%  required : no
+#%end
+
+#%option
+#%  key: strhc1
+#%  type: double
+#%  description: Streambed hydraulic conductivity [m/day]
+#%  answer: 5
+#%  required : no
+#%end
+
+#%option
+#%  key: thts
+#%  type: double
+#%  description: theta_sat: Streambed saturated water content (i.e. porosity) [unitless]
+#%  answer: 0.35
+#%  required : no
+#%end
+
+#%option
+#%  key: thti
+#%  type: double
+#%  description: Streambed initial water content [unitless]
+#%  answer: 0.3
+#%  required : no
+#%end
+
+#%option
+#%  key: eps
+#%  type: double
+#%  description: Epsilon: streambed Brooks-Corey exponent [unitless]
+#%  answer: 3.5
+#%  required : no
+#%end
+
+#%option
+#%  key: uhc
+#%  type: double
+#%  description: Streambed unsaturated zone saturated hydraulic conductivity [m/day]
+#%  answer: 0.3
+#%  required : no
+#%end
+
+# Default values strthick onwards from sagehen example
 
 ##################
 # IMPORT MODULES #
@@ -146,6 +195,10 @@ def main():
     These reaches link the PRMS stream segments to the MODFLOW grid cells.
     """
 
+    ##################
+    # OPTION PARSING #
+    ##################
+
     options, flags = gscript.parser()
     segments = options['segment_input']
     grid = options['grid_input']
@@ -158,7 +211,13 @@ def main():
     x2 = options['downstream_easting_column_seg']
     y2 = options['downstream_northing_column_seg']
     tostream = options['tostream_cat_column_seg']
-    
+    # Hydraulic paramters
+    STRTHICK = options['strthick']
+    STRHC1 = options['strhc1']
+    THTS = options['thts']
+    THTI = options['thti']
+    EPS = options['eps']
+    UHC = options['uhc']
     # Build reach maps by overlaying segments on grid
     if len(gscript.find_file(segments, element='vector')['name']) > 0:
         v.extract(input=segments, output='GSFLOW_TEMP__', type='line', quiet=True, overwrite=True)
@@ -203,6 +262,11 @@ def main():
     reachesTopo.table.columns.add('STRTOP', 'double precision')
     reachesTopo.table.columns.add('SLOPE', 'double precision')
     reachesTopo.table.columns.add('STRTHICK', 'double precision')
+    reachesTopo.table.columns.add('STRHC1', 'double precision')
+    reachesTopo.table.columns.add('THTS', 'double precision')
+    reachesTopo.table.columns.add('THTI', 'double precision')
+    reachesTopo.table.columns.add('EPS', 'double precision')
+    reachesTopo.table.columns.add('UHC', 'double precision')
     reachesTopo.table.columns.add('xr1', 'double precision')
     reachesTopo.table.columns.add('xr2', 'double precision')
     reachesTopo.table.columns.add('yr1', 'double precision')
@@ -222,8 +286,15 @@ def main():
     for i in range(len(cats)):
         nseg_cats.append( (nseg[i], cats[i]) )
     cur = reachesTopo.table.conn.cursor()
-    cur.execute("update "+reaches+" set KRCH=1") # MAKE A VARIABLE LATER???
-    cur.execute("update "+reaches+" set STRTHICK=0.1") # 10 cm, prescribed -- MAKE A VARIABLE LATER!!!!!
+    # Hydrogeologic properties
+    cur.execute("update "+reaches+" set STRTHICK="+str(STRTHICK))
+    cur.execute("update "+reaches+" set STRHC1="+str(STRHC1))
+    cur.execute("update "+reaches+" set THTS="+str(THTS))
+    cur.execute("update "+reaches+" set THTI="+str(THTI))
+    cur.execute("update "+reaches+" set EPS="+str(EPS))
+    cur.execute("update "+reaches+" set UHC="+str(UHC))
+    # Grid properties
+    cur.execute("update "+reaches+" set KRCH=1") # Top layer: unchangable
     cur.executemany("update "+reaches+" set IRCH=? where row=?", nseg_cats)
     cur.executemany("update "+reaches+" set JRCH=? where col=?", nseg_cats)
     reachesTopo.table.conn.commit()
@@ -342,12 +413,13 @@ def main():
     v.db_update(map=reaches, column='SLOPE', value='(zr1 - zr2)/RCHLEN')
     v.db_update(map=reaches, column='SLOPE', value=Smin, where='SLOPE <= '+str(Smin))
 
-    ## srtm_local_filled_grid = srtm_local_filled @ 200m (i.e. current grid)
-    ##  resolution
-    ## r.to.vect in=srtm_local_filled_grid out=srtm_local_filled_grid col=z type=area --o#
-    #v.db_addcolumn(map=reaches, columns='z_topo_mean double precision')
-    #v.what_vect(map=reaches, query_map='srtm_local_filled_grid', column='z_topo_mean', query_column='z')
-    #v.db_update(map=reaches, column='STRTOP', value='z_topo_mean -'+str(h_stream))
+    # srtm_local_filled_grid = srtm_local_filled @ 200m (i.e. current grid)
+    #  resolution
+    # r.to.vect in=srtm_local_filled_grid out=srtm_local_filled_grid col=z type=area --o#
+    # NOT SURE IF IT IS BEST TO USE MEAN ELEVATION OR TOP ELEVATION!!!!!!!!!!!!!!!!!!!!!!!
+    v.db_addcolumn(map=reaches, columns='z_topo_mean double precision')
+    v.what_vect(map=reaches, query_map=elevation, column='z_topo_mean', query_column='z')
+    v.db_update(map=reaches, column='STRTOP', value='z_topo_mean -'+str(h_stream), quiet=True)
 
 
 if __name__ == "__main__":
