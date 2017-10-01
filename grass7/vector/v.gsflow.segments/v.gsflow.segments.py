@@ -44,7 +44,7 @@
 #%end
 
 #%option
-#%  key: ICALC
+#%  key: icalc
 #%  type: integer
 #%  description: Stream depth option: 0-const; 1,2-Manning; 3-aQ^b
 #%  answer: 3
@@ -52,7 +52,7 @@
 #%end
 
 #%option
-#%  key: CDPTH
+#%  key: cdpth
 #%  type: double
 #%  description: Flow depth coefficient; used if ICALC=3
 #%  answer: 0.25
@@ -60,7 +60,7 @@
 #%end
 
 #%option
-#%  key: FDPTH
+#%  key: fdpth
 #%  type: double
 #%  description: Flow depth exponent; used if ICALC=3
 #%  answer: 0.4
@@ -68,7 +68,7 @@
 #%end
 
 #%option
-#%  key: AWDTH
+#%  key: awdth
 #%  type: double
 #%  description: Flow width coefficient; used if ICALC=3
 #%  answer: 8
@@ -76,7 +76,7 @@
 #%end
 
 #%option
-#%  key: BWDTH
+#%  key: bwdth
 #%  type: double
 #%  description: Flow width exponent; used if ICALC=3
 #%  answer: 0.5
@@ -84,7 +84,7 @@
 #%end
 
 #%option
-#%  key: IUPSEG
+#%  key: iupseg
 #%  type: string
 #%  description: Category of upstream diversion segment (from_cat,to_cat,...)
 #%  answer: 0,0
@@ -92,7 +92,7 @@
 #%end
 
 #%option
-#%  key: FLOW
+#%  key: flow
 #%  type: string
 #%  description: Streamflow entering the upstream-most segments (cat,Q,cat,Q,...)
 #%  answer: 0,0
@@ -100,7 +100,7 @@
 #%end
 
 #%option
-#%  key: RUNOFF
+#%  key: runoff
 #%  type: string
 #%  description: Diffuse runoff entering each segment (cat,Q,cat,Q,...)
 #%  answer: 0,0
@@ -108,7 +108,7 @@
 #%end
 
 #%option
-#%  key: ETSW
+#%  key: etsw
 #%  type: string
 #%  description: Direct removal of in-channel water by ET (cat,Q,cat,Q)
 #%  answer: 0,0
@@ -116,23 +116,15 @@
 #%end
 
 #%option
-#%  key: PPTSW
+#%  key: pptsw
 #%  type: string
-#%  description: Direct precipitation on the stream
+#%  description: Direct precipitation on the stream (cat,Q,cat,Q)
 #%  answer: 0,0
 #%  required: no
 #%end
 
 #%option
-#%  key: PPTSW
-#%  type: string
-#%  description: Direct precipitation on the stream
-#%  answer: 0,0
-#%  required: no
-#%end
-
-#%option
-#%  key: ROUGHCH
+#%  key: roughch
 #%  type: double
 #%  description: In-channel Manning's n for ICALC=1,2
 #%  answer: 0.035
@@ -140,7 +132,7 @@
 #%end
 
 #%option
-#%  key: ROUGHBK
+#%  key: roughbk
 #%  type: double
 #%  description: Overbank Manning's n for ICALC=2
 #%  answer: 0.06
@@ -148,7 +140,7 @@
 #%end
 
 #%option
-#%  key: WIDTH1
+#%  key: width1
 #%  type: double
 #%  description: Upstream width in segment, assumed constant through watershed
 #%  answer: 5
@@ -156,7 +148,7 @@
 #%end
 
 #%option
-#%  key: WIDTH2
+#%  key: width2
 #%  type: double
 #%  description: Downstream width in segment, assumed constant through watershed
 #%  answer: 5
@@ -204,23 +196,23 @@ def main():
     segments = options['output']
     
     # Hydraulic geometry
-    ICALC = options['ICALC']
+    ICALC = options['icalc']
     
     # ICALC=0: Constant depth
-    WIDTH1 = options['WIDTH1']
-    WIDTH2 = options['WIDTH2']
+    WIDTH1 = options['width1']
+    WIDTH2 = options['width2']
     
     # ICALC=1: Manning
-    ROUGHCH = options['ROUGHCH']
+    ROUGHCH = options['roughch']
     
     # ICALC=2: Manning
-    ROUGHBK = options['ROUGHBK']
+    ROUGHBK = options['roughbk']
 
     # ICALC=3: Power-law relationships (following Leopold and others)
-    CDPTH = options['CDPTH']
-    FDPTH = options['FDPTH']
-    AWDTH = options['AWDTH']
-    BWDTH = options['BWDTH']
+    CDPTH = options['cdpth']
+    FDPTH = options['fdpth']
+    AWDTH = options['awdth']
+    BWDTH = options['bwdth']
     
     ##################################################
     # CHECKING DEPENDENCIES WITH OPTIONAL PARAMETERS #
@@ -255,11 +247,11 @@ def main():
     segment_columns.append('AWDTH double precision') # width coeff
     segment_columns.append('BWDTH double precision') # width exp
     # The below will be all 0
-    segment_columns.append('IUPSEG integer') # upstream segment ID number, for diversions
-    segment_columns.append('FLOW integer')
-    segment_columns.append('RUNOFF integer')
-    segment_columns.append('ETSW integer')
-    segment_columns.append('PPTSW integer')
+    segment_columns.append('IUPSEG varchar') # upstream segment ID number, for diversions
+    segment_columns.append('FLOW varchar')
+    segment_columns.append('RUNOFF varchar')
+    segment_columns.append('ETSW varchar')
+    segment_columns.append('PPTSW varchar')
 
     segment_columns = ",".join(segment_columns)
 
