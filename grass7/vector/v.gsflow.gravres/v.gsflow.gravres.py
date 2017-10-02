@@ -107,7 +107,7 @@ def main():
     """
 
     # Create gravity reservoirs -- overlay cells=grid and HRUs
-    v.overlay(ainput=HRUs, binput=grid, operator='and', output=gravity_reservoirs, overwrite=gscript.overwrite())
+    v.overlay(ainput=HRUs, binput=grid, atype='area', btype='area', operator='and', output=gravity_reservoirs, overwrite=gscript.overwrite())
     v.db_dropcolumn(map=gravity_reservoirs, columns='a_cat,a_label,b_cat', quiet=True)
     # Cell and HRU ID's
     v.db_renamecolumn(map=gravity_reservoirs, column=('a_id', 'gvr_hru_id'), quiet=True)
@@ -120,6 +120,8 @@ def main():
     v.db_addcolumn(map=gravity_reservoirs, columns='gvr_cell_pct double precision, gvr_hru_pct double precision', quiet=True)
     v.db_update(map=gravity_reservoirs, column='gvr_cell_pct', query_column='100*area_m2/cell_area_m2', quiet=True)
     v.db_update(map=gravity_reservoirs, column='gvr_hru_pct', query_column='100*area_m2/hru_area_m2', quiet=True)
+    v.extract(input=gravity_reservoirs, output='_tmp', where="gvr_cell_pct > 0.001", overwrite=True, quiet=True)
+    g.rename(vector='_tmp,'+gravity_reservoirs, overwrite=True, quiet=True)
 
 
 if __name__ == "__main__":

@@ -81,13 +81,25 @@ from grass.pygrass.gis import region
 from grass.pygrass import vector # Change to "v"?
 from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
+from grass.pygrass.vector.geometry import Point
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
 from grass import script as gscript
 
-###############
-# MAIN MODULE #
-###############
+################
+# MAIN MODULES #
+################
+
+def create_iterator(vect):
+    colNames = np.array(gscript.vector_db_select(vect, layer=1)['columns'])
+    colValues = np.array(gscript.vector_db_select(vect, layer=1)['values'].values())
+    cats = colValues[:,colNames == 'cat'].astype(int).squeeze()
+    _n = np.arange(1, len(cats)+1)
+    _n_cats = []
+    for i in range(len(cats)):
+        _n_cats.append( (_n[i], cats[i]) )
+    return _n_cats
+
 
 def main():
     """
@@ -125,6 +137,8 @@ def main():
     hru_columns.append('hru_aspect double precision') # Mean aspect [degrees]
     hru_columns.append('hru_elev double precision') # Mean elevation
     hru_columns.append('hru_lat double precision') # Latitude of centroid
+    hru_columns.append('hru_lon double precision') # Longitude of centroid
+                                                   # unnecessary but why not?
     hru_columns.append('hru_slope double precision') # Mean slope [percent]
     # Basic Physical Attributes (Other)
     #hru_columns.append('hru_type integer') # 0=inactive; 1=land; 2=lake; 3=swale; almost all will be 1
@@ -249,7 +263,7 @@ def main():
     v.db_update(map=HRU, column='hru_elev', query_column='tmp_average', quiet=True)
     v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
 
-    # CENTROIDS -- NEED FIXING FOR TRUE CENTERS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # CENTROIDS 
     ############
 
     # get x,y of centroid -- but have areas not in database table, that do have
@@ -260,51 +274,99 @@ def main():
     # From looking at map, lots of extra centroids on area boundaries, and removing
     # small areas (though threshold hard to guess) gets rid of these
 
-    v.db_addcolumn(map=HRU, columns='centroid_x double precision, centroid_y double precision', quiet=True)
-    v.to_db(map=HRU, type='centroid', columns='centroid_x, centroid_y', option='coor', units='meters', quiet=True)
-
-    # hru_columns.append('hru_lat double precision') # Latitude of centroid
-    colNames = np.array(gscript.vector_db_select(HRU, layer=1)['columns'])
-    colValues = np.array(gscript.vector_db_select(HRU, layer=1)['values'].values())
-    xy = colValues[:,(colNames=='centroid_x') + (colNames=='centroid_y')]
-    np.savetxt('_xy.txt', xy, delimiter='|', fmt='%s')
-    m.proj(flags='od', input='_xy.txt', output='_lonlat.txt', overwrite=True, quiet=True)
-    lonlat = np.genfromtxt('_lonlat.txt', delimiter='|',)[:,:2]
-    lonlat_cat = np.concatenate((lonlat, np.expand_dims(_cat, 2)), axis=1)
-
-    # why not just get lon too?
-    v.db_addcolumn(map=HRU, columns='hru_lon double precision')
-
     hru = VectorTopo(HRU)
     hru.open('rw')
+    hru_cats = []
+    hru_coords = []
+    for hru_i in hru:
+        if type(hru_i) is vector.geometry.Centroid:
+            hru_cats.append(hru_i.cat)
+            hru_coords.append(hru_i.coords())
+    hru_cats = np.array(hru_cats)
+    hru_coords = np.array(hru_coords)
+    hru.rewind()
+    
+    hru_area_ids = []
+    for coor in hru_coords:
+        _area = hru.find_by_point.area(Point(coor[0], coor[1]))
+        hru_area_ids.append(_area)
+    hru_area_ids = np.array(hru_area_ids)
+    hru.rewind()
+
+    hru_areas = []
+    for _area_id in hru_area_ids:
+        hru_areas.append(_area_id.area())
+    hru_areas = np.array(hru_areas)
+    hru.rewind()
+      
+    allcats = sorted(list(set(list(hru_cats))))
+    
+    # Now create weighted mean
+    hru_centroid_locations = []
+    for cat in allcats:
+        hrus_with_cat = hru_cats[hru_cats == cat]
+        if len(hrus_with_cat) == 1:
+            hru_centroid_locations.append((hru_coords[hru_cats == cat]).squeeze())
+        else:
+            _centroids = hru_coords[hru_cats == cat]
+            #print _centroids
+            _areas = hru_areas[hru_cats == cat]
+            #print _areas
+            _x = np.average(_centroids[:,0], weights=_areas)
+            _y = np.average(_centroids[:,1], weights=_areas)
+            #print _x, _y
+            hru_centroid_locations.append(np.array([_x, _y]))
+          
+    # Now upload weighted mean to database table
+    # allcats and hru_centroid_locations are co-indexed
+    index__cats = create_iterator(HRU)
     cur = hru.table.conn.cursor()
-    cur.executemany("update "+ HRU +" set hru_lon=?, hru_lat=? where cat=?", lonlat_cat)
+    for i in range(len(allcats)):
+        # meters
+        cur.execute('update '+HRU
+                    +' set hru_x='+str(hru_centroid_locations[i][0])
+                    +' where cat='+str(allcats[i]))
+        cur.execute('update '+HRU
+                    +' set hru_y='+str(hru_centroid_locations[i][1])
+                    +' where cat='+str(allcats[i]))
+        # feet
+        cur.execute('update '+HRU
+                    +' set hru_xlong='+str(hru_centroid_locations[i][0]*3.28084)
+                    +' where cat='+str(allcats[i]))
+        cur.execute('update '+HRU
+                    +' set hru_ylat='+str(hru_centroid_locations[i][1]*3.28084)
+                    +' where cat='+str(allcats[i]))
+        # (un)Project to lat/lon
+        _centroid_ll = gscript.parse_command('m.proj',
+                                             coordinates=
+                                             list(hru_centroid_locations[i]),
+                                             flags='od').keys()[0]
+        _lon, _lat, _z = _centroid_ll.split('|')
+        cur.execute('update '+HRU
+                    +' set hru_lon='+_lon
+                    +' where cat='+str(allcats[i]))
+        cur.execute('update '+HRU
+                    +' set hru_lat='+_lat
+                    +' where cat='+str(allcats[i]))
+
+    # feet -- not working.
+    # Probably an issue with index__cats -- maybe fix later, if needed
+    # But currently not a major speed issue
+    """
+    cur.executemany("update "+HRU+" set hru_xlong=?*3.28084 where hru_x=?", 
+                    index__cats)
+    cur.executemany("update "+HRU+" set hru_ylat=?*3.28084 where hru_y=?", 
+                    index__cats)
+    """                    
+
+    cur.close()
     hru.table.conn.commit()
     hru.close()
-
-    # FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # CENTROIDS ARE NOT REALLY CENTERS, AND DO NOT WORK IF THERE ARE MULTIPLE
-    # AREAS
-    # Pygrass to find area edges / cells, and get the center?
-    # https://grass.osgeo.org/grass70/manuals/libpython/pygrass.vector.html
-
-    # Easting and Northing for other columns
-    v.db_update(map=HRU, column='hru_x', query_column='centroid_x', quiet=True)
-    v.db_update(map=HRU, column='hru_xlong', query_column='centroid_x*3.28084', quiet=True) # feet
-    v.db_update(map=HRU, column='hru_y', query_column='centroid_y', quiet=True)
-    v.db_update(map=HRU, column='hru_ylat', query_column='centroid_y*3.28084', quiet=True) # feet
 
     # ID NUMBER
     ############
-
-    """
-    hru = VectorTopo(HRU)
-    hru.open('rw')
-    cur = hru.table.conn.cursor()
-    cur.executemany("update "+HRU+" set hru_segment=? where id=?", hru_segmentt)
-    hru.table.conn.commit()
-    hru.close()
-    """
+    #cur.executemany("update "+HRU+" set hru_segment=? where id=?", 
+    #                index__cats)
     # Segment number = HRU ID number
     v.db_update(map=HRU, column='hru_segment', query_column='id', quiet=True)
 

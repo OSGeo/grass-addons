@@ -43,13 +43,13 @@
 
 #%option
 #%  key: dx
-#%  label: Cell size (x / E / zonal), in map units
+#%  label: Cell size suggestion (x / E / zonal), map units: rounds to DEM
 #%  required: yes
 #%end
 
 #%option
 #%  key: dy
-#%  label: Cell size (y / N / meridional), in map units
+#%  label: Cell size suggestion (y / N / meridional), map units: rounds to DEM
 #%  required: yes
 #%end
 
@@ -104,9 +104,35 @@ def main():
     mask = options['mask_output']
     pp = options['pour_point']
         
-    # Create grid
+    # Create grid -- overlaps DEM, one cell of padding
     gscript.use_temp_region()
+    reg = gscript.region()
+    reg_grid_edges_sn = np.linspace(reg['s'], reg['n'], reg['rows'])
+    reg_grid_edges_we = np.linspace(reg['w'], reg['e'], reg['cols'])
     g.region(vector=basin, ewres=dx, nsres=dy)
+    regnew = gscript.region()
+    # Use a grid ratio -- don't match exactly the desired MODFLOW resolution
+    grid_ratio_ns = np.round(regnew['nsres']/reg['nsres'])
+    grid_ratio_ew = np.round(regnew['ewres']/reg['ewres'])
+    # Get S, W, and then move the unit number of grid cells over to get N and E
+    # and include 1 (new) cell of padding around the whole watershed
+    _s_dist = np.abs(reg_grid_edges_sn - (regnew['s'] - 2.*regnew['nsres']) )
+    _s_idx = np.where(_s_dist == np.min(_s_dist))[0][0]
+    _s = float(reg_grid_edges_sn[_s_idx])
+    _n_grid = np.arange(_s, reg['n'] + 2*grid_ratio_ns*reg['nsres'], grid_ratio_ns*reg['nsres'])
+    _n_dist = np.abs(_n_grid - (regnew['n'] + 2.*regnew['nsres']))
+    _n_idx = np.where(_n_dist == np.min(_n_dist))[0][0]
+    _n = float(_n_grid[_n_idx])
+    _w_dist = np.abs(reg_grid_edges_we - (regnew['w'] - 2.*regnew['ewres']))
+    _w_idx = np.where(_w_dist == np.min(_w_dist))[0][0]
+    _w = float(reg_grid_edges_we[_w_idx])
+    _e_grid = np.arange(_w, reg['e'] + 2*grid_ratio_ew*reg['ewres'], grid_ratio_ew*reg['ewres'])
+    _e_dist = np.abs(_e_grid - (regnew['e'] + 2.*regnew['ewres']))
+    _e_idx = np.where(_e_dist == np.min(_e_dist))[0][0]
+    _e = float(_e_grid[_e_idx])
+    # Finally make the region
+    g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
+    # And then make the grid
     v.mkgrid(map=grid, overwrite=gscript.overwrite())
 
     # Cell numbers (row, column, continuous ID)
@@ -144,6 +170,8 @@ def main():
         v.build(map=pp, quiet=True)
         v.what_vect(map=pp, query_map=grid, column='row', query_column='row', quiet=True)
         v.what_vect(map=pp, query_map=grid, column='col', query_column='col', quiet=True)
+
+    g.region(n=reg['n'], s=reg['s'], w=reg['w'], e=reg['e'], nsres=reg['nsres'], ewres=reg['ewres'])
 
 
 if __name__ == "__main__":

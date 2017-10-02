@@ -54,8 +54,8 @@
 #%option
 #%  key: cdpth
 #%  type: double
-#%  description: Flow depth coefficient; used if ICALC=3
-#%  answer: 0.25
+#%  description: Flow depth coefficient [meters]; used if ICALC=3
+#%  answer: 1
 #%  required: no
 #%end
 
@@ -63,15 +63,15 @@
 #%  key: fdpth
 #%  type: double
 #%  description: Flow depth exponent; used if ICALC=3
-#%  answer: 0.4
+#%  answer: 0.42
 #%  required: no
 #%end
 
 #%option
 #%  key: awdth
 #%  type: double
-#%  description: Flow width coefficient; used if ICALC=3
-#%  answer: 8
+#%  description: Flow width coefficient [meters]; used if ICALC=3
+#%  answer: 20
 #%  required: no
 #%end
 
@@ -79,7 +79,7 @@
 #%  key: bwdth
 #%  type: double
 #%  description: Flow width exponent; used if ICALC=3
-#%  answer: 0.5
+#%  answer: 0.23
 #%  required: no
 #%end
 
@@ -209,9 +209,10 @@ def main():
     ROUGHBK = options['roughbk']
 
     # ICALC=3: Power-law relationships (following Leopold and others)
-    CDPTH = options['cdpth']
+    # The at-a-station default exponents are from Rhodes (1977)
+    CDPTH = str(float(options['cdpth']) / 35.3146667) # cfs to m^3/s
     FDPTH = options['fdpth']
-    AWDTH = options['awdth']
+    AWDTH = str(float(options['awdth']) / 35.3146667) # cfs to m^3/s
     BWDTH = options['bwdth']
     
     ##################################################
