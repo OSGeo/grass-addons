@@ -1,18 +1,18 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.series.lwr</em> performs a local weighted regression (LWR) of 
-time series in order to estimate missing values and identify outliers. 
-For each input map, an output map with the suffix <em>suffix</em> 
-(default: _lwr) is created.
+<em>r.series.lwr</em> performs a local weighted regression (LWR, 
+Cleveland and Devlin 1988) of time series in order to estimate missing 
+values and identify outliers. For each input map, an output map with 
+the suffix <em>suffix</em> (default: _lwr) is created.
 
 <p>
 For each observation in the time series, the (in time) neighboring 
 values are used to estimate a polynomial function that best fits the 
 observations. The values are weighted according to their distance (in 
 time) to the current observation. Values that are farther away in time 
-get lower weights. The main difference among weights lies in how strongly 
-the current observation is emphasized with respect to its temporal 
-neighbors. See this dedicated 
+get lower weights. The main difference among the different 
+<b>weight</b> funtions lies in how strongly the current observation is 
+emphasized with respect to its temporal neighbors. See this dedicated 
 <a href="https://en.wikipedia.org/wiki/Kernel_(statistics)#Kernel_functions_in_common_use">wiki</a> 
 for further details.
 
@@ -112,7 +112,7 @@ text file with a new line separated list of raster map names.
 <h2>EXAMPLES</h2>
 
 We use a time series of the Chlorophyll-a concentration product from 
-MODIS Aqua (spatial resolution 4.6 km and temporal resolution 8 days) 
+MODIS Aqua (spatial resolution 5.6 km and temporal resolution 8 days) 
 to exemplify different parameter settings in r.series.lwr. In all 
 cases, we set <em>-i</em> flag to avoid extrapolations. We will first 
 execute the module to interpolate all existant gaps (default 
@@ -230,6 +230,12 @@ compare with the original series at a random pixel.
 <i>Comparison of an original Chlorophyll-a map and a reconstructed map (dod=6).</i>
 </div>
 
+<h2>REFERENCES</h2>
+
+Cleveland, William S.; Devlin, Susan J. (1988). <i>Locally-Weighted 
+Regression: An Approach to Regression Analysis by Local Fitting</i>,  
+<b>Journal of the American Statistical Association</b>, 83 (403), 596-610,  
+doi:<a href="http://dx.doi.org/10.2307/2289282">10.2307/2289282</a>
 
 <h2>SEE ALSO</h2>
 
