@@ -17,7 +17,11 @@ process () {
     minor=$2
 
     # echo "Updating manuals for GRASS ${major}.${minor}..."
-    wget -q $URL/grass${major}/modules.xml -O /var/www/grass/grass-cms/addons/grass${major}/modules.xml
+    wget -q $URL/grass${major}/modules.xml -O /var/www/grass/grass-cms/addons/grass${major}/modules.xml.new
+    if [ $? -eq 0 ] ; then
+     # don't ruin modules.xml on the Web server if build server is down or broken
+     mv -f /var/www/grass/grass-cms/addons/grass${major}/modules.xml.new /var/www/grass/grass-cms/addons/grass${major}/modules.xml
+    fi
     wget -q $URL/grass${major}/logs.tar.gz -O logs.tar.gz
     wget -q $URL/grass${major}/html.tar.gz -O html.tar.gz
 
