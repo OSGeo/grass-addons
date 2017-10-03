@@ -75,7 +75,7 @@ if [ "$1" = "c" ] || [ "$2" = "c" ] ; then
     recompile_grass
 fi
 
-cd $DIR/grass-addons/ 
+cd $DIR/grass_addons/ 
 
 # update
 svn up -q || (svn cleanup && svn up)

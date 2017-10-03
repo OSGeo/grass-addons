@@ -2,6 +2,10 @@
 
 # add jobs here and then run:
 # crontab $HOME/src/grass-addons/tools/addons/crontab.build && crontab -l
+#
+# install dependencies
+# apt install grass-dev make bc
+# apt install python-gdal python-owslib python-psycopg2 python-matplotlib python-scipy
 
 ADDONS=${HOME}/src/grass-addons/tools/addons
 
