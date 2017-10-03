@@ -10,7 +10,7 @@
 set -e
 
 URL=http://geo102.fsv.cvut.cz/grass/addons/
-ADDONS=${HOME}/src/grass-addons
+ADDONS=${HOME}/src/grass_addons
 
 process () {
     major=$1

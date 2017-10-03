@@ -93,7 +93,7 @@ generate () {
 <body bgcolor=\"#FFFFFF\">
 <h2>GRASS GIS ${major} Addons Manual pages</h2>
 
-<!-- Generated from: /home/martinl/src/grass-addons/tools/addons/ -->
+<!-- Generated from: /home/martinl/src/grass_addons/tools/addons/ -->
 <!--       See also: https://svn.osgeo.org/grass/grass-addons/tools/addons/README.txt -->
 
 <table><tr><td>
@@ -155,7 +155,7 @@ See also log files of compilation:
 
 	module=`echo $currfile | sed 's+\.html$++g'`
 	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>: " >> index.html
-        ${SRC}grass-addons/tools/addons/get_page_description.py $currfile >> index.html
+        ${SRC}/grass_addons/tools/addons/get_page_description.py $currfile >> index.html
     done
 
     year=`date +%Y`
