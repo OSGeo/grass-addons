@@ -55,7 +55,7 @@
 #%  key: cdpth
 #%  type: double
 #%  description: Flow depth coefficient [meters]; used if ICALC=3
-#%  answer: 1
+#%  answer: 0.4
 #%  required: no
 #%end
 
@@ -71,7 +71,7 @@
 #%  key: awdth
 #%  type: double
 #%  description: Flow width coefficient [meters]; used if ICALC=3
-#%  answer: 20
+#%  answer: 4
 #%  required: no
 #%end
 
