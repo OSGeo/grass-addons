@@ -162,9 +162,10 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		    continue;
 
 		for (i = 0; i < ICats->n_cats; i++) {
-		    if (ICats->field[i] == layer)
+		    if (ICats->field[i] == layer) {
 			Vect_cat_set(Cats, 1, ICats->cat[i]);
 			cat = ICats->cat[i];
+		    }
 		}
 	    }
 
@@ -425,7 +426,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	struct line_pnts *CPoints;
 	double cx, cy, dx, dy;
 	double medx, medy;
-	double *wb, tot_w;
+	double *wb;
 	int nw, nw_alloc, wi;
 	double dist, distsum, dist2all, lastdist2all;
 	int j, iter, maxiter = 1000;
