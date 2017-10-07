@@ -5,7 +5,7 @@
 <h2>NOTES</h2>
 <i>r.tri</i> produces fairly similar results to the average deviation of elevation values, apart from the center pixel is used in place of the mean. In practice, this produces a slightly 'less smoothed' result, which in some cases can better highlight smaller-scale terrain features.
 
-Like in many GRASS GIS algorithms, cell padding is not performed automatically and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. To avoid this the input DEM can be grown by the chosen radius that is to be used for the TRI calculation.
+Like in many GRASS GIS algorithms, cell padding is not performed automatically and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. To minimize this effect the flag -p can be set to grow the DEM by the chosen radius prior to the TRI calculation.
 
 <h2>EXAMPLE</h2>
 r.tri input=srtm size=1 output=tri
