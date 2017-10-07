@@ -261,8 +261,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("series"));
     G_add_keyword(_("filtering"));
     module->description =
-	_("Approximates a periodic time series "
-	  "and creates approximated output.");
+	_("Approximates a time series and creates approximated, gap-filled output.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
