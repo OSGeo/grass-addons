@@ -49,9 +49,7 @@ import sys
 import atexit
 import random
 import string
-from subprocess import PIPE
 import grass.script as gs
-from grass.script.utils import parse_key_val
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.gis.region import Region
