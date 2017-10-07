@@ -111,48 +111,45 @@ text file with a new line separated list of raster map names.
 
 <h2>EXAMPLES</h2>
 
-We use a time series of the Chlorophyll-a concentration product from 
-MODIS Aqua (spatial resolution 5.6 km and temporal resolution 8 days) 
-to exemplify different parameter settings in r.series.lwr. In all 
-cases, we set <em>-i</em> flag to avoid extrapolations. We will first 
-execute the module to interpolate all existant gaps (default 
-behaviour) alternatively changing the value of <em>fet</em> to remove 
-higher outliers (<em>-h</em> flag) and the value of <em>dod</em> to 
-include more time_steps when fitting the polynomial at each observation.
-In the last three executions, we will change the values of the 
-<em>maxgap</em> option, so only temporal gaps equal to or smaller than 
-maxgap will be interpolated.
+We use a time series of the Chlorophyll-a concentration level 3 product from 
+MODIS Aqua (spatial resolution approx. 4 km and temporal resolution 8 days) 
+to exemplify different parameter settings in r.series.lwr. We will first 
+execute the module with default options to interpolate all existent gaps 
+with a polynomial of first order (i.e. order=1). Second, we change to a 
+second order polynomial (i.e. order=2). The third case shows how to use 
+<em>-l/-h</em> flags in combination with <em>fet</em> to remove outliers. 
+In this example we will remove only high outiliers (-h flag) and we set a 
+value of fet relative to the values of Chlorophyll-a concentration. The 
+fourth example demonstrates the use of <em>dod</em> to consider 
+more time steps when fitting the polynomial at each observation (Note that 
+the resulting series is smoother, i.e. the fluctuations have been smoothed). 
+Finally, we set a value for <em>maxgap</em>, so that only temporal gaps equal 
+to or smaller than the maximum gap will be interpolated.
 
 <div class="code"><pre>
+# list of maps
 maplist=`g.list type=raster pattern=A201[2-3]*chlor_a* sep=,`
 
-## FILL ALL GAPS ##
- 
-# no fit error tolerance (fet) set
-r.series.lwr -i input=$maplist suffix=_lwr1 order=2 weight=tricube range=0.0,65.0
+# 1. default settings (order=1)
+r.series.lwr input=$maplist suffix=_lwr0 order=1 weight=tricube
+
+# 2. change to order=2
+r.series.lwr input=$maplist suffix=_lwr1 order=2 weight=tricube
   
-# changing fit error tolerance (fet)
-r.series.lwr -i -h input=$maplist suffix=_lwr2 order=2 weight=tricube range=0.0,65.0 fet=1.0
-r.series.lwr -i -h input=$maplist suffix=_lwr3 order=2 weight=tricube range=0.0,65.0 fet=2.0
-r.series.lwr -i -h input=$maplist suffix=_lwr4 order=2 weight=tricube range=0.0,65.0 fet=3.0
+# 3. set -h flag to identify and remove high outliers with fit error tolerance (fet=0.5) 
+r.series.lwr -h input=$maplist suffix=_lwr2 order=2 weight=tricube fet=0.5
  
-# changing degree of overdetermination (dod)
-r.series.lwr -i -h input=$maplist suffix=_lwr5 order=2 weight=tricube range=0.0,65.0 dod=2 fet=2.0
-r.series.lwr -i -h input=$maplist suffix=_lwr6 order=2 weight=tricube range=0.0,65.0 dod=4 fet=2.0
-r.series.lwr -i -h input=$maplist suffix=_lwr7 order=2 weight=tricube range=0.0,65.0 dod=6 fet=2.0
- 
-## FILL ONLY UNTIL MAXGAP ##
-   
-# setting maxgap (temporal gaps longer than maxgap will not be filled)
-r.series.lwr -i input=$maplist suffix=_lwr8 order=2 weight=tricube range=0.0,65.0 maxgap=3
-r.series.lwr -i input=$maplist suffix=_lwr9 order=2 weight=tricube range=0.0,65.0 maxgap=5
-r.series.lwr -i input=$maplist suffix=_lwr10 order=2 weight=tricube range=0.0,65.0 maxgap=7
+# 4. set degree of overdetermination (dod) to consider more time steps (smoothes the series)
+r.series.lwr -i input=$maplist suffix=_lwr3 order=2 weight=tricube dod=5
+
+# 5. set maxgap (temporal gaps longer than maxgap will not be filled)
+r.series.lwr -i input=$maplist suffix=_lwr4 order=2 weight=tricube maxgap=4
 </pre></div>
 
 We now create strds for the different executions of LWR.
 
 <div class="code"><pre>
-for i in `seq 1 10` ; do
+for i in `seq 0 4` ; do
 
  # create time series with lwr outputs
  t.create type=strds temporaltype=absolute output=cla_lwr${i} \
@@ -168,11 +165,13 @@ for i in `seq 1 10` ; do
   doy_start=`echo ${mapname:5:3}`
   year_end=`echo ${mapname:8:4}`
   doy_end=`echo ${mapname:12:3}`
+  
   # convert YYYY-DOY to YYYY-MM-DD
   doy_start=`echo "$doy_start" | sed 's/^0*//'`
   doy_end=`echo "$doy_end" | sed 's/^0*//'`
   START_DATE=`date -d "${year_start}-01-01 +$(( ${doy_start} - 1 ))days" +%Y-%m-%d`
   END_DATE=`date -d "${year_end}-01-01 +$(( ${doy_end} ))days" +%Y-%m-%d`
+  
   # print mapname, start and end date
   echo "$mapname|$START_DATE|$END_DATE" >> map_list_start_and_end_time_${i}.txt
  done
@@ -192,30 +191,21 @@ compare with the original series at a random pixel.
 
 <p>
 <div align="center" style="margin: 10px">
-<a href="r_series_lwr_cla_cla_lwr1.png">
-<img src="r_series_lwr_cla_cla_lwr1.png" width="400" alt="Default settings" border=0>
-<a href="r_series_lwr_cla_cla_lwr2.png">
-<img src="r_series_lwr_cla_cla_lwr2.png" width="400" alt="fet=1.0" border=0>
+<a href="r_series_lwr_cla_orig.png">
+<img src="r_series_lwr_cla_orig.png" width="450" alt="Original time series" border=0>
 </a><br>
-<a href="r_series_lwr_cla_cla_lwr3.png">
-<img src="r_series_lwr_cla_cla_lwr3.png" width="400" alt="fet=2.0" border=0>
-<a href="r_series_lwr_cla_cla_lwr4.png">
-<img src="r_series_lwr_cla_cla_lwr4.png" width="400" alt="fet=3.0" border=0>
+<a href="r_series_lwr_cla_lwr0.png">
+<img src="r_series_lwr_cla_lwr0.png" width="400" alt="Default settings" border=0>
+<a href="r_series_lwr_cla_lwr1.png">
+<img src="r_series_lwr_cla_lwr1.png" width="400" alt="order=2" border=0>
 </a><br>
-<a href="r_series_lwr_cla_cla_lwr5.png">
-<img src="r_series_lwr_cla_cla_lwr5.png" width="400" alt="dod=2" border=0>
-<a href="r_series_lwr_cla_cla_lwr6.png">
-<img src="r_series_lwr_cla_cla_lwr6.png" width="400" alt="dod=4" border=0>
+<a href="r_series_lwr_cla_lwr2.png">
+<img src="r_series_lwr_cla_lwr2.png" width="400" alt="-h and fet=0.5" border=0>
+<a href="r_series_lwr_cla_lwr3.png">
+<img src="r_series_lwr_cla_lwr3.png" width="400" alt="dod=5" border=0>
 </a><br>
-<a href="r_series_lwr_cla_cla_lwr7.png">
-<img src="r_series_lwr_cla_cla_lwr7.png" width="400" alt="dod=6" border=0>
-<a href="r_series_lwr_cla_cla_lwr8.png">
-<img src="r_series_lwr_cla_cla_lwr8.png" width="400" alt="maxgap=3" border=0>
-</a><br>
-<a href="r_series_lwr_cla_cla_lwr9.png">
-<img src="r_series_lwr_cla_cla_lwr9.png" width="400" alt="maxgap=5" border=0>
-<a href="r_series_lwr_cla_cla_lwr10.png">
-<img src="r_series_lwr_cla_cla_lwr10.png" width="400" alt="maxgap=7" border=0>
+<a href="r_series_lwr_cla_lwr4.png">
+<img src="r_series_lwr_cla_lwr4.png" width="450" alt="maxgap=4" border=0>
 </a><br>
 <i>Comparison of the outputs of LWR with different parameter settings.</i>
 </div>
@@ -227,7 +217,7 @@ compare with the original series at a random pixel.
 <a href="r_series_lwr_cla_lwr7_201281.png">
 <img src="r_series_lwr_cla_lwr7_201281.png" width="400" alt="Gap-filled map" border=0>
 </a><br>
-<i>Comparison of an original Chlorophyll-a map and a reconstructed map (dod=6).</i>
+<i>Comparison of an original Chlorophyll-a map and a reconstructed map (dod=5).</i>
 </div>
 
 <h2>REFERENCES</h2>
