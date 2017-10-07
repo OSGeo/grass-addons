@@ -38,7 +38,6 @@
 #%end
 
 import sys
-import os
 import grass.script as gs
 
 def main():
@@ -64,11 +63,11 @@ def main():
     terms = ["abs($dem - $dem[%d,%d])" % d for d in offsets]
 
     # define the calculation expression
-    expr = "$tri = (%s" % " + ".join(terms) + ") / $neighcells"
+    expr = "$tri = float(%s" % " + ".join(terms) + ") / $neighcells"
 
     # perform the r.mapcalc calculation with the moving window
     gs.mapcalc(expr, tri=tri, dem=dem, neighcells=neighcells)
-    
+
     return 0
 
 if __name__ == "__main__":
