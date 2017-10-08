@@ -3,7 +3,7 @@
 <em>r.terrain.texture</em> calculates the nested-means terrain classification of Iwahashi and Pike (2007). This classification procedure relies on three surface-form metrics consisting of: (a) terrain surface texture which is represented by the spatial frequency of peaks and pits; (b) surface-form convexity and concavity which are represented by the spatial frequency of convex/concave locations; and (c) slope-gradient which should be supplied by <em>r.slope.aspect</em> or <em>r.param.scale</em>. These metrics are combined using the mean of each variable as a dividing measure into a 8, 12 or 16 category classification of the topography.
 
 <p>
-The calculation follows the description in Iwahashi and Pike (2007). Terrain surface texture is calculated by smoothing the input <i>elevation</i> using a median filter over a neighborhood specified by the <i>filter_size</i> parameter (in pixels). Second, pits and peaks are extracted based on the difference between the smoothed DEM and the original terrain surface. By default the algorithm uses a threshold of 1 (> 1 m elevation difference) to identify pits and peaks. This threshold is set in the <i>flat_thres</i> parameter. The spatial frequency of pits and peaks is then calculated using a Gaussian resampling filter over a neighborhood size specified in the <i>counting_filter</i> parameter (default is 21 x 21 pixels, as per Iwahashi and Pike (2007).
+The calculation follows the description in Iwahashi and Pike (2007). Terrain surface texture is calculated by smoothing the input <i>elevation</i> using a median filter over a neighborhood specified by the <i>filter_size</i> parameter (in pixels). Second, pits and peaks are extracted based on the difference between the smoothed DEM and the original terrain surface. By default the algorithm uses a threshold of 1 (&gt; 1 m elevation difference) to identify pits and peaks. This threshold is set in the <i>flat_thres</i> parameter. The spatial frequency of pits and peaks is then calculated using a Gaussian resampling filter over a neighborhood size specified in the <i>counting_filter</i> parameter (default is 21 x 21 pixels, as per Iwahashi and Pike (2007).
 </p>
 
 <p>
@@ -35,7 +35,9 @@ r.slope.aspect elevation=elev_state_500m@PERMANENT slope=slope_state_500m
 <p>Then we produce the terrain classification:</p>
 
 <div class="code"><pre>
-r.terrain.texture elevation=elev_state_500m@PERMANENT slope=slope_state_500m@PERMANENT texture=texture_state_500m convexity=convexity_state_500m concavity=concavity_state_500m features=classification_state_500m
+r.terrain.texture elevation=elev_state_500m@PERMANENT slope=slope_state_500m@PERMANENT \
+  texture=texture_state_500m convexity=convexity_state_500m concavity=concavity_state_500m \
+  features=classification_state_500m
 </pre></div>
 
 <p>Terrain surface texture:</p>
