@@ -113,13 +113,13 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 """
 
 #%Module
-#%  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series.
-#%  keyword: imagery
-#%  keyword: inter-satellite
-#%  keyword: calibration
-#%  keyword: nighttime lights
-#%  keyword: time series
-#%  keyword: DMSP-OLS
+#%  description: Performs inter-satellite calibration on DMSP-OLS Nighttime Lights Time Series
+#%  keywords: imagery
+#%  keywords: inter-satellite
+#%  keywords: calibration
+#%  keywords: nighttime lights
+#%  keywords: time series
+#%  keywords: DMSP-OLS
 #%End
 
 #%flag
@@ -266,7 +266,7 @@ def normalised_difference_index(tli_one, tli_two):
 
 def main():
     """
-    Main program: get nameds for input, output suffix, options and flags
+    Main program: get names for input, output suffix, options and flags
     """
     input_list = options['image'].split(',')
     outputsuffix = options['suffix']
