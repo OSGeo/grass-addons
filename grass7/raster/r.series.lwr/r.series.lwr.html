@@ -56,7 +56,18 @@ The module uses an adaptive bandwidth to fit the polynomial and
 searches for <em>order + 1 + dod</em> valid values around the current 
 observation. The degree of over-determination (dod) is the user defined 
 number of extra temporal neighbours that should be considered for the 
-estimation of the value at each time step.  
+estimation of the value at each time step.
+
+<p>
+There is a trade-off between the goodness of fit to existing/original
+data and avoiding overshoots in gaps. This trade-off can be observed in
+the example below when <em>order=2</em> is used along with <em>dod=0</em>. 
+In this case, the reconstruction will most of the time be an exact match
+to the input data because LWR will try to copy the slopes in the data,
+including those very steep slopes, but this might create overshootings
+in gaps. The risk of overshootings can be alleviated by increasing dod
+(i.e. dod > 0), which will smooth the output. The effect of a dod=5 can
+be observed in the examples below.
 
 <h2>NOTES</h2>
 
@@ -111,45 +122,47 @@ text file with a new line separated list of raster map names.
 
 <h2>EXAMPLES</h2>
 
-We use a time series of the Chlorophyll-a concentration level 3 product from 
-MODIS Aqua (spatial resolution approx. 4 km and temporal resolution 8 days) 
-to exemplify different parameter settings in r.series.lwr. We will first 
-execute the module with default options to interpolate all existent gaps 
-with a polynomial of first order (i.e. order=1). Second, we change to a 
-second order polynomial (i.e. order=2). The third case shows how to use 
-<em>-l/-h</em> flags in combination with <em>fet</em> to remove outliers. 
-In this example we will remove only high outiliers (-h flag) and we set a 
-value of fet relative to the values of Chlorophyll-a concentration. The 
-fourth example demonstrates the use of <em>dod</em> to consider 
-more time steps when fitting the polynomial at each observation (Note that 
-the resulting series is smoother, i.e. the fluctuations have been smoothed). 
-Finally, we set a value for <em>maxgap</em>, so that only temporal gaps equal 
-to or smaller than the maximum gap will be interpolated.
+We use a time series of the Chlorophyll-a concentration level 3 product 
+from MODIS Aqua (spatial resolution approx. 4 km and temporal 
+resolution 8 days) to exemplify different parameter settings in 
+r.series.lwr. We will first execute the module with default options to 
+interpolate all existent gaps with a polynomial of first order (i.e. 
+order=1). Second, we change to a second order polynomial (i.e. 
+order=2). The third case shows how to use <em>-l/-h</em> flags in 
+combination with <em>fet</em> to remove outliers. In this example we 
+will remove only high outiliers (-h flag) and we set a value of fet 
+relative to the values of Chlorophyll-a concentration. The fourth 
+example demonstrates the use of <em>dod</em> to consider more time 
+steps when fitting the polynomial at each observation (Note that the 
+resulting series is smoother, i.e. the fluctuations have been 
+smoothed). Finally, we set a value for <em>maxgap</em>, so that only 
+temporal gaps equal to or smaller than the maximum gap will be 
+interpolated.
 
 <div class="code"><pre>
 # list of maps
 maplist=`g.list type=raster pattern=A201[2-3]*chlor_a* sep=,`
 
 # 1. default settings (order=1)
-r.series.lwr input=$maplist suffix=_lwr0 order=1 weight=tricube
+r.series.lwr input=$maplist suffix=_lwr1 order=1 weight=tricube
 
 # 2. change to order=2
-r.series.lwr input=$maplist suffix=_lwr1 order=2 weight=tricube
-  
-# 3. set -h flag to identify and remove high outliers with fit error tolerance (fet=0.5) 
-r.series.lwr -h input=$maplist suffix=_lwr2 order=2 weight=tricube fet=0.5
- 
-# 4. set degree of overdetermination (dod) to consider more time steps (smoothes the series)
+r.series.lwr input=$maplist suffix=_lwr2 order=2 weight=tricube
+
+# 3. set degree of overdetermination (dod) to consider more time steps (smoothes the series)
 r.series.lwr -i input=$maplist suffix=_lwr3 order=2 weight=tricube dod=5
 
+# 4. set dod > 1 and -h flag to identify and remove high outliers with fit error tolerance (fet=0.5) 
+r.series.lwr -i -h input=$maplist suffix=_lwr4 order=2 weight=tricube dod=5 fet=0.5
+
 # 5. set maxgap (temporal gaps longer than maxgap will not be filled)
-r.series.lwr -i input=$maplist suffix=_lwr4 order=2 weight=tricube maxgap=4
+r.series.lwr -i input=$maplist suffix=_lwr5 order=2 weight=tricube maxgap=4
 </pre></div>
 
 We now create strds for the different executions of LWR.
 
 <div class="code"><pre>
-for i in `seq 0 4` ; do
+for i in `seq 1 5` ; do
 
  # create time series with lwr outputs
  t.create type=strds temporaltype=absolute output=cla_lwr${i} \
@@ -187,27 +200,34 @@ done
 
 Finally, we use <a href="g.gui.tplot.htlm">g.gui.tplot</a> to inspect 
 the results of the interpolations with the different settings and 
-compare with the original series at a random pixel.
+compare with the original series at a random pixel 
+(e.g. -61.196485623,-45.3232161874):
+
+<div class="code"><pre>
+g.gui.tplot strds=cla_2012_2013 coordinates=-61.196485623,-45.3232161874
+g.gui.tplot strds=cla_lwr1,cla_lwr2 coordinates=-61.196485623,-45.3232161874
+g.gui.tplot strds=cla_lwr3,cla_lwr4 coordinates=-61.196485623,-45.3232161874
+g.gui.tplot strds=cla_lwr5,cla_2012_2013 coordinates=-61.196485623,-45.3232161874
+</pre></div>
 
 <p>
 <div align="center" style="margin: 10px">
 <a href="r_series_lwr_cla_orig.png">
-<img src="r_series_lwr_cla_orig.png" width="450" alt="Original time series" border=0>
+<img src="r_series_lwr_cla_orig.png" width="490" alt="Original time series" border=0>
 </a><br>
-<a href="r_series_lwr_cla_lwr0.png">
-<img src="r_series_lwr_cla_lwr0.png" width="400" alt="Default settings" border=0>
-<a href="r_series_lwr_cla_lwr1.png">
-<img src="r_series_lwr_cla_lwr1.png" width="400" alt="order=2" border=0>
+<i>Original series (cla_2012_2013)</i><br>
+<a href="r_series_lwr_cla_lwr1_lwr2.png">
+<img src="r_series_lwr_cla_lwr1_lwr2.png" width="490" alt="Comparison order=1 vs order=2" border=0>
 </a><br>
-<a href="r_series_lwr_cla_lwr2.png">
-<img src="r_series_lwr_cla_lwr2.png" width="400" alt="-h and fet=0.5" border=0>
-<a href="r_series_lwr_cla_lwr3.png">
-<img src="r_series_lwr_cla_lwr3.png" width="400" alt="dod=5" border=0>
+<i>Outputs of LWR with order=1 (cla_lwr1) and order=2 (cla_lwr2).</i><br>
+<a href="r_series_lwr_cla_lwr3_lwr4.png">
+<img src="r_series_lwr_cla_lwr3_lwr4.png" width="490" alt="Comparison dod > 1 vs dod > 1 plus -h and fet" border=0>
 </a><br>
-<a href="r_series_lwr_cla_lwr4.png">
-<img src="r_series_lwr_cla_lwr4.png" width="450" alt="maxgap=4" border=0>
+<i>Outputs of LWR with dod=5 (cla_lwr3) and dod=5 plus -h flag and fet=0.5 (cla_lwr4).</i><br>
+<a href="r_series_lwr_cla_orig_lwr5.png">
+<img src="r_series_lwr_cla_orig_lwr5.png" width="490" alt="Gap-filled series up to maxgap=4" border=0>
 </a><br>
-<i>Comparison of the outputs of LWR with different parameter settings.</i>
+<i>Original series (cla_2012_2013) and the output of LWR with maxgap=4 (cla_lwr5).</i>
 </div>
 
 <p>
