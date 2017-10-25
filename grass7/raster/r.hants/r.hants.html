@@ -47,6 +47,15 @@ valid observations that should be considered to fit the curve. This
 parameter is optional, but it is recommended to be set.
 
 <p>
+In general, HANTS discards some information trying to represent the input
+time series with a limited number of sine/cosine functions. Therefore,
+most of the times, 1) it does not provide an exact match with the input
+data and, 2) it produces a smoothed output. With more frequencies, it is
+possible to get a better match with the input data, but also potential
+overshoots. The latter can be alleviated by setting dod &gt; 0 at the
+cost of further smoothing in the output.
+
+<p>
 The <em>range</em> parameter can be set to <em>low,high</em> thresholds:
 values outside of this range are treated as NULL. The <em>low,high</em> 
 thresholds are floating point, so use <em>-inf</em> or <em>inf</em> for 
@@ -215,6 +224,7 @@ t.rast.univar -h tempmean_hants > stats_hants.txt
 <h2>SEE ALSO</h2>
 
 <em><a href="r.series.html">r.series</a></em>
+<em><a href="r.series.lwr.html">r.series.lwr</a></em>
 
 <h2>REFERENCES</h2>
 <p>
