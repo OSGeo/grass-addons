@@ -112,8 +112,8 @@
 #% description: Classifiers to use
 #% required: yes
 #% multiple: yes
-#% options: svmRadial,rf,rpart,C5.0,knn,knn1,xgbTree
-#% answer: svmRadial,rf,C5.0,xgbTree
+#% options: svmRadial,svmLinear,svmPoly,rf,rpart,C5.0,knn,knn1,xgbTree
+#% answer: svmRadial,rf
 #%end
 #%option
 #% key: folds
@@ -273,7 +273,7 @@ def main():
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
-    packages = {'svmRadial': ['kernlab'], 'rf': ['randomForest'], 'rpart': ['rpart'], 'C5.0': ['C50'], 'xgbTree': ['xgboost', 'plyr']}
+    packages = {'svmRadial': ['kernlab'], 'svmLinear': ['kernlab'], 'svmPoly': ['kernlab'], 'rf': ['randomForest'], 'rpart': ['rpart'], 'C5.0': ['C50'], 'xgbTree': ['xgboost', 'plyr']}
 
     install_package = "if(!is.element('%s', installed.packages()[,1])){\n"
     install_package += "cat('\\n\\nInstalling %s package from CRAN\n')\n"
