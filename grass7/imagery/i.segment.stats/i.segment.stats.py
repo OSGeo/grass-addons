@@ -75,12 +75,12 @@
 #% flag
 #% key: r
 #% description: Adjust region to input map
-#%END
+#%end
 #%flag
 #% key: s
 #% description: Do not calculate any shape statistics
-#% guisection: shape_statistics
-#%end
+#% guisection: Shape statistics
+#%END
 
 
 import os
