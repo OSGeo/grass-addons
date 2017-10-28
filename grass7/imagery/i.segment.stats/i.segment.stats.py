@@ -76,6 +76,11 @@
 #% key: r
 #% description: Adjust region to input map
 #%END
+#%flag
+#% key: s
+#% description: Do not calculate any shape statistics
+#% guisection: shape_statistics
+#%end
 
 
 import os
@@ -111,7 +116,7 @@ def main():
     csvfile = options['csvfile'] if options['csvfile'] else []
     vectormap = options['vectormap'] if options['vectormap'] else []
     rasters = options['rasters'].split(',') if options['rasters'] else []
-    area_measures = options['area_measures'].split(',') if options['area_measures'] else []
+    area_measures = options['area_measures'].split(',') if (options['area_measures'] and not flags['s']) else []
     if area_measures:
 	if not gscript.find_program('r.object.geometry', '--help'):
 		message = _("You need to install the addon r.object.geometry to be able")
