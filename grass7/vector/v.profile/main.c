@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     int i, dp, type, otype, id, nrows, ncats, col, more, open3d,
         layer, pro_layer, *cats, c, field_index, cat;
     size_t j, rescount;
+
     /* GCC */
     int ncols = 0;
     double xval, yval, bufsize;
@@ -212,7 +213,7 @@ int main(int argc, char *argv[])
 
     /* Get buffer size */
     bufsize = fabs(atof(buffer_opt->answer));
-    if (! (bufsize > 0))
+    if (!(bufsize > 0))
         G_fatal_error(_("Tolerance value must be greater than 0"));
 
     /* If new map name is provided, it has to be useable */
