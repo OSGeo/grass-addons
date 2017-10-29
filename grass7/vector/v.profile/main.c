@@ -212,8 +212,8 @@ int main(int argc, char *argv[])
 
     /* Get buffer size */
     bufsize = fabs(atof(buffer_opt->answer));
-    if (bufsize < 0)
-        G_fatal_error(_("Tolerance value can not be less than 0"));
+    if (! (bufsize > 0))
+        G_fatal_error(_("Tolerance value must be greater than 0"));
 
     /* If new map name is provided, it has to be useable */
     if (new_map->answer != NULL)
@@ -507,7 +507,7 @@ int main(int argc, char *argv[])
     }
 
     /* Process all lines IF no database exists or WHERE was not provided.
-       Read in single line and get it's type */
+       Read in single line and get its type */
     if (Fi == NULL || (where_opt->answer == NULL && Fi != NULL)) {
         while ((type = Vect_read_next_line(&In, Points, Cats)) > 0) {
             if (type & GV_POINT) {
