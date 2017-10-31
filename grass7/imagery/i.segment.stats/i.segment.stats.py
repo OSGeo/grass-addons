@@ -63,16 +63,23 @@
 #%option G_OPT_F_SEP
 #% guisection: Output
 #%end
-#% option G_OPT_V_OUTPUT
+#%option G_OPT_V_OUTPUT
 #% key: vectormap
 #% description: Name for optional vector output map with statistics as attributes
 #% required: no
 #% guisection: Output
 #%end
+#%option
+#% key: processes
+#% type: integer
+#% description: Number of processes to run in parallel
+#% required: no
+#% answer: 1
+#%end
 #%rules
 #% required: csvfile,vectormap
 #%end
-#% flag
+#%flag
 #% key: r
 #% description: Adjust region to input map
 #%end
@@ -163,6 +170,8 @@ def main():
 		values = line.rstrip().split('|')
 		output_dict[values[0]] = [values[x] for x in stat_indices]
 
+    if rasters:
+        stat_indices = [raster_stat_dict[x] for x in raster_statistics]
     for raster in rasters:
 	gscript.message(_("Calculating statistics for raster map <%s>..." % raster))
         if not gscript.find_file(raster, element='cell')['name']:
@@ -171,7 +180,6 @@ def main():
         rastername = raster.split('@')[0]
         rastername = rastername.replace('.', '_')
         output_header += [rastername + "_" + x for x in raster_statistics]
-        stat_indices = [raster_stat_dict[x] for x in raster_statistics]
         gscript.run_command('r.univar',
                             map_=raster,
                             zones=segment_map,
