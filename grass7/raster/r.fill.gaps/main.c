@@ -76,7 +76,8 @@ typedef struct
     double result;              /* weighted mean of values in entire neighborhood */
     double certainty;           /* certainty measure, always between 0 (lowest) and 1 (highest) */
     unsigned long *frequencies; /* frequency count for each value */
-    double *overwrite;          /* will be set to non-null to overwrite the statistical result with this value */
+    double *overwrite_value;    /* will be set to non-null to overwrite the statistical result with this value */
+    int overwrite;              /* 1 to overwrite the statistical result with the original value */
 } stats_struct;
 
 
@@ -338,6 +339,18 @@ void read_neighborhood(unsigned long row_index, unsigned long col,
     unsigned long i, j;
     void *cell;
     double cell_value;
+    stats->overwrite = 0;
+    if (preserve == TRUE) {
+        cell = CELL_INPUT_HANDLES[row_index];
+        cell += CELL_IN_SIZE * col;
+        cell += CELL_IN_SIZE * ((DATA_WIDTH - 1) / 2);
+        if (!IS_NULL(cell)) {
+            stats->overwrite = 1;
+            *stats->overwrite_value =
+                    (double)Rast_get_d_value(cell, IN_TYPE);
+            return;
+        }
+    }
 
     /* read data */
     unsigned long row_position = row_index - PADDING_HEIGHT;
@@ -351,22 +364,13 @@ void read_neighborhood(unsigned long row_index, unsigned long col,
         for (j = 0; j < DATA_WIDTH; j++) {
             /* read cell from input buffer */
             if (!IS_NULL(cell)) {
-                if (preserve == TRUE && i == (DATA_HEIGHT - 1) / 2 &&
-                    j == (DATA_WIDTH - 1) / 2) {
-                    /* center cell: copy through if needed */
-                    stats->overwrite = G_malloc(sizeof(double));
-                    *stats->overwrite =
-                        (double)Rast_get_d_value(cell, IN_TYPE);
-                }
-                else {
-                    /* only add non-null cells to stats */
-                    cell_value = (double)Rast_get_d_value(cell, IN_TYPE);
-                    /* only add if within neighborhood */
-                    if (WEIGHTS[i][j] != -1.0) {
-                        /* get data needed for chosen statistic */
-                        COLLECT_DATA(cell_value, WEIGHTS[i][j], min, max,
-                                     stats);
-                    }
+                /* only add non-null cells to stats */
+                cell_value = (double)Rast_get_d_value(cell, IN_TYPE);
+                /* only add if within neighborhood */
+                if (WEIGHTS[i][j] != -1.0) {
+                    /* get data needed for chosen statistic */
+                    COLLECT_DATA(cell_value, WEIGHTS[i][j], min, max,
+                                 stats);
                 }
             }
             /* go to next cell on current row */
@@ -391,6 +395,8 @@ void get_statistics_wmean(unsigned long row_index, unsigned long col,
     double total_weight;
 
     read_neighborhood(row_index, col, min, max, preserve, stats);
+    if (stats->overwrite)
+        return;
 
     /* compute weighted average of all valid input cells */
     total = 0;
@@ -415,6 +421,8 @@ void get_statistics_mean(unsigned long row_index, unsigned long col,
     double total;
 
     read_neighborhood(row_index, col, min, max, preserve, stats);
+    if (stats->overwrite)
+        return;
 
     /* compute total of all valid input cells */
     total = 0;
@@ -435,6 +443,8 @@ void get_statistics_median(unsigned long row_index, unsigned long col,
                            stats_struct * stats)
 {
     read_neighborhood(row_index, col, min, max, preserve, stats);
+    if (stats->overwrite)
+        return;
 
     /* sort list of values */
     qsort(&stats->values[0], stats->num_values, sizeof(double), &compare_dbl);
@@ -466,6 +476,8 @@ void get_statistics_mode(unsigned long row_index, unsigned long col,
     unsigned long freq;
 
     read_neighborhood(row_index, col, min, max, preserve, stats);
+    if (stats->overwrite)
+        return;
 
     if (stats->num_values < 1)
         return;
@@ -563,23 +575,25 @@ void interpolate_row(unsigned long row_index, unsigned long cols,
     for (j = 0; j < cols; j++) {
         /* get neighborhood statistics */
         GET_STATS(row_index, j, min, max, preserve, stats);
+        /* original value is preserved */
+        if (stats->overwrite) {
+            WRITE_DOUBLE_VAL(cell_output, *stats->overwrite_value);
+            /* write error/uncertainty output map? */
+            if (write_err) {
+                Rast_set_f_value(err_output, 0,
+                                 FCELL_TYPE);
+            }
+        }
         /* enough reachable cells in input map? */
-        if (stats->num_values < min_cells) {
+        else if (stats->num_values < min_cells) {
             SET_NULL(cell_output, 1);
             if (write_err)
                 Rast_set_f_null_value(err_output, 1);
         }
         else {
-            if (stats->overwrite != NULL) {
-                /* write original value into output map */
-                WRITE_DOUBLE_VAL(cell_output, *stats->overwrite);
-                G_free(stats->overwrite);
-                stats->overwrite = NULL;
-            }
-            else {
-                /* write interpolation result into output map */
-                WRITE_DOUBLE_VAL(cell_output, stats->result);
-            }
+            /* write interpolation result into output map */
+            WRITE_DOUBLE_VAL(cell_output, stats->result);
+
             /* write error/uncertainty output map? */
             if (write_err) {
                 Rast_set_f_value(err_output,
@@ -1148,7 +1162,8 @@ int main(int argc, char *argv[])
         G_malloc(sizeof(double) * WINDOW_WIDTH * WINDOW_HEIGHT);
     cell_stats.frequencies =
         G_malloc(sizeof(unsigned long) * WINDOW_WIDTH * WINDOW_HEIGHT);
-    cell_stats.overwrite = NULL;
+    cell_stats.overwrite_value = G_malloc(sizeof(double));
+    cell_stats.overwrite = 0;
 
     /* set statistics functions according to user option setting */
     if (!strcmp(parm.mode->answer, "wmean")) {
@@ -1330,6 +1345,7 @@ int main(int argc, char *argv[])
     G_free(cell_stats.values);
     G_free(cell_stats.weights);
     G_free(cell_stats.frequencies);
+    G_free(cell_stats.overwrite_value);
 
     /* write metadata into result and error maps */
     Rast_short_history(parm.output->answer, "raster", &hist);
