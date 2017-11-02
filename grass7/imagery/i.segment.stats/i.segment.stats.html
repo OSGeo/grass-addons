@@ -45,6 +45,12 @@ When treating files with a large number objects, creating the vector map
 can be very time-consuming. In that case, it might be easier to only work
 with the <b>csvfile</b> output.
 
+<p>
+The processing of several raster input files for which to calculate per-segment
+statistics can be parallelized by setting the <b>processes</b> parameter to the
+number of desired parallel processes, with at most one process per raster to 
+be treated.
+
 
 <h2>EXAMPLE</h2>
 
@@ -53,7 +59,8 @@ i.group group=landsat_pan input=lsat7_2002_80
 g.region rast=lsat7_2002_80 -p
 i.segment group=landsat_pan output=ls_pan_seg01 threshold=0.1 memory=4000 minsize=50
 i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
-  rasters=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70
+  rasters=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70 \
+  processes=4
 </pre></div>
 
 <h2>SEE ALSO</h2>

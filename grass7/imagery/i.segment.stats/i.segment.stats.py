@@ -72,7 +72,7 @@
 #%option
 #% key: processes
 #% type: integer
-#% description: Number of processes to run in parallel
+#% description: Number of processes to run in parallel (for multiple rasters)
 #% required: no
 #% answer: 1
 #%end
@@ -91,11 +91,13 @@
 
 
 import os
+import glob
 import atexit
 import collections
 import math
 import grass.script as gscript
-    
+from functools import partial    
+from multiprocessing import Pool
 
 def cleanup():
 
@@ -108,6 +110,26 @@ def cleanup():
 
     if stats_temp_file:
         os.remove(stats_temp_file)
+
+    if rasters:
+        for tempfile in glob.glob(stats_temp_file + ".*"):
+            os.remove(tempfile)
+
+def worker(segment_map, stat_temp_file, raster):
+
+    rastername = raster.split('@')[0]
+    rastername = rastername.replace('.', '_')
+    temp_file = stat_temp_file + '.' + rastername
+    if not gscript.find_file(raster, element='cell')['name']:
+        gscript.message(_("Cannot find raster %s" % raster))
+        return
+    gscript.run_command('r.univar',
+                        map_=raster,
+                        zones=segment_map,
+                        output=temp_file,
+                        flags='et',
+                        overwrite=True,
+                        quiet=True)
 
 
 def main():
@@ -122,6 +144,7 @@ def main():
     segment_map = options['map']
     csvfile = options['csvfile'] if options['csvfile'] else []
     vectormap = options['vectormap'] if options['vectormap'] else []
+    global rasters
     rasters = options['rasters'].split(',') if options['rasters'] else []
     area_measures = options['area_measures'].split(',') if (options['area_measures'] and not flags['s']) else []
     if area_measures:
@@ -133,6 +156,7 @@ def main():
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
     separator = gscript.separator(options['separator'])
+    processes = int(options['processes'])
 
     output_header = ['cat']
     output_dict = collections.defaultdict(list)
@@ -171,35 +195,34 @@ def main():
 		output_dict[values[0]] = [values[x] for x in stat_indices]
 
     if rasters:
+        gscript.message(_("Calculating statistics for raster maps..."))
+        if len(rasters) < processes:
+            processes = len(rasters)
+            gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
-    for raster in rasters:
-	gscript.message(_("Calculating statistics for raster map <%s>..." % raster))
-        if not gscript.find_file(raster, element='cell')['name']:
-            gscript.message(_("Cannot find raster %s" % raster))
-            continue
-        rastername = raster.split('@')[0]
-        rastername = rastername.replace('.', '_')
-        output_header += [rastername + "_" + x for x in raster_statistics]
-        gscript.run_command('r.univar',
-                            map_=raster,
-                            zones=segment_map,
-			    output=stats_temp_file,
-                            flags='et',
-			    overwrite=True,
-			    quiet=True)
+        pool = Pool(processes)
+        func = partial(worker, segment_map, stats_temp_file)
+        pool.map(func, rasters)
+        pool.close()
+        pool.join()
 
-	firstline = True
-    	with open(stats_temp_file, 'r') as fin:
-	    for line in fin:
-		if firstline:
-		    firstline = False
-		    continue
-		values = line.rstrip().split('|')
-		values = line.rstrip().split('|')
-	    	if area_measures:
-            	    output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
-	    	else:
-            	    output_dict[values[0]] = [values[x] for x in stat_indices]
+        for raster in rasters:
+            rastername = raster.split('@')[0]
+            rastername = rastername.replace('.', '_')
+            temp_file = stats_temp_file + '.' + rastername
+            output_header += [rastername + "_" + x for x in raster_statistics]
+            firstline = True
+            with open(temp_file, 'r') as fin:
+                for line in fin:
+                    if firstline:
+                        firstline = False
+                        continue
+                    values = line.rstrip().split('|')
+                    values = line.rstrip().split('|')
+                    if area_measures:
+                        output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
+                    else:
+                        output_dict[values[0]] = [values[x] for x in stat_indices]
 
     message = _("Some values could not be calculated for the objects below. ")
     message += _("These objects are thus not included in the results. ")
