@@ -32,6 +32,12 @@
 #% required: yes
 #%END
 
+#%flag
+#% key: g
+#% description: Print the threshold value in shell script style
+#%end
+
+from __future__ import print_function
 import os, sys
 import math
 import numpy as np
@@ -57,14 +63,17 @@ def main():
     
     index = np.where(distance==min(distance))
     th = area[index]
-    
+
     if th < 0:
         grass.warning("Flow accumulation contains negative values")
+        if flags['g']:
+            print("threshold=%d" % th)
     else:
-        grass.message("Suggested threshold is %d" % th )
-    
-    grass.message("Done!")
-    
+        if flags['g']:
+            print("threshold=%d" % th)
+        else:
+            grass.message("Suggested threshold is %d" % th)
+
     return 0
 
 if __name__ == "__main__":
