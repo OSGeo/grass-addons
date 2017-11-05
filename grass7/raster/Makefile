@@ -82,6 +82,7 @@ SUBDIRS = \
 	r.out.legend \
 	r.out.ntv2 \
 	r.out.tiff \
+	r.patch.smooth \
 	r.popgrowth \
 	r.quantile.ref \
 	r.random.weight \
