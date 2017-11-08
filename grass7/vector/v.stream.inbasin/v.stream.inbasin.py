@@ -46,7 +46,21 @@
 #%option
 #%  key: cat
 #%  label: Farthest downstream segment category
-#%  required: yes
+#%  required: no
+#%  guidependency: layer,column
+#%end
+
+#%option
+#%  key: x_outlet
+#%  label: Approx. pour point x/Easting: will find closest segment
+#%  required: no
+#%  guidependency: layer,column
+#%end
+
+#%option
+#%  key: y_outlet
+#%  label: Approx. pour point y/Northing: will find closest segment
+#%  required: no
 #%  guidependency: layer,column
 #%end
 
@@ -105,18 +119,51 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-
+    
     options, flags = gscript.parser()
     
     streams = options['input_streams']
     basins = options['input_basins']
-    cat = options['cat']
+    downstream_cat = options['cat']
+    x_outlet = float(options['x_outlet'])
+    y_outlet = float(options['y_outlet'])
     output_basins = options['output_basin']
     output_streams = options['output_streams']
     output_pour_point = options['output_pour_point']
     
     #print options
     #print flags
+    
+    # Check that either x,y or cat are set
+    if (downstream_cat != '') or ((x_outlet != '') and (y_outlet != '')):
+        pass
+    else:
+        gscript.fatal('You must set either "cat" or "x_outlet" and "y_outlet".')
+
+    # NEED TO ADD IF-STATEMENT HERE TO AVOID AUTOMATIC OVERWRITING!!!!!!!!!!!
+    if downstream_cat == '':
+        # Need to find outlet pour point -- start by creating a point at this 
+        # location to use with v.distance
+        try:
+            v.db_droptable(table='tmp', flags='f')
+        except:
+            pass
+        tmp = vector.Vector('tmp')
+        _cols = [(u'cat',       'INTEGER PRIMARY KEY'),
+                 (u'x',         'DOUBLE PRECISION'),
+                 (u'y',         'DOUBLE PRECISION'),
+                 (u'strcat',    'DOUBLE PRECISION')]
+        tmp.open('w', tab_name='tmp', tab_cols=_cols)
+        point0 = Point(x_outlet,y_outlet)
+        tmp.write(point0, cat=1, attrs=(str(x_outlet), str(y_outlet), 0), )
+        tmp.table.conn.commit()
+        tmp.build()
+        tmp.close()
+        # Now v.distance
+        gscript.run_command('v.distance', from_='tmp', to=streams, upload='cat', column='strcat')
+        #v.distance(_from_='tmp', to=streams, upload='cat', column='strcat')
+        downstream_cat = gscript.vector_db_select(map='tmp', columns='strcat')
+        downstream_cat = int(downstream_cat['values'].values()[0][0])
 
     # Attributes of streams
     colNames = np.array(vector_db_select(streams)['columns'])
@@ -125,8 +172,8 @@ def main():
     cats = colValues[:,colNames == 'cat'].astype(int).squeeze() # = "fromstream"
 
     # Find network
-    basincats = [cat] # start here
-    most_upstream_cats = [cat] # all of those for which new cats must be sought
+    basincats = [downstream_cat] # start here
+    most_upstream_cats = [downstream_cat] # all of those for which new cats must be sought
     while True:
         if len(most_upstream_cats) == 0:
             break
@@ -147,8 +194,10 @@ def main():
         v.extract(input=basins, output=output_basins, where=SQL_OR, overwrite=gscript.overwrite(), quiet=True)
     if len(streams) > 0:
         v.extract(input=streams, output=output_streams, cats=basincats_str, overwrite=gscript.overwrite(), quiet=True)
+
+    # If we want to output the pour point location
     if len(output_pour_point) > 0:
-        _pp = gscript.vector_db_select(map=streams, columns='x2,y2', where='cat='+str(cat))
+        _pp = gscript.vector_db_select(map=streams, columns='x2,y2', where='cat='+str(downstream_cat))
         _xy = np.squeeze(_pp['values'].values())
         _x = float(_xy[0])
         _y = float(_xy[1])
