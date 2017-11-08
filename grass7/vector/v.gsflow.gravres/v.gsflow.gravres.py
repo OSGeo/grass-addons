@@ -120,8 +120,8 @@ def main():
     v.db_addcolumn(map=gravity_reservoirs, columns='gvr_cell_pct double precision, gvr_hru_pct double precision', quiet=True)
     v.db_update(map=gravity_reservoirs, column='gvr_cell_pct', query_column='100*area_m2/cell_area_m2', quiet=True)
     v.db_update(map=gravity_reservoirs, column='gvr_hru_pct', query_column='100*area_m2/hru_area_m2', quiet=True)
-    v.extract(input=gravity_reservoirs, output='_tmp', where="gvr_cell_pct > 0.001", overwrite=True, quiet=True)
-    g.rename(vector='_tmp,'+gravity_reservoirs, overwrite=True, quiet=True)
+    v.extract(input=gravity_reservoirs, output='tmp_', where="gvr_cell_pct > 0.001", overwrite=True, quiet=True)
+    g.rename(vector=('tmp_',gravity_reservoirs), overwrite=True, quiet=True)
 
 
 if __name__ == "__main__":
