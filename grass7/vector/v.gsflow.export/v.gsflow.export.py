@@ -64,6 +64,13 @@
 #%  guidependency: layer,column
 #%end
 
+#%option G_OPT_V_INPUT
+#%  key: bc_cell_input
+#%  label: Boundary condition cell downstream of pour point
+#%  required: no
+#%  guidependency: layer,column
+#%end
+
 #%option G_OPT_V_OUTPUT
 #%  key: reaches_output
 #%  label: Reaches table, no file ext
@@ -93,8 +100,8 @@
 #%end
 
 #%option G_OPT_V_OUTPUT
-#%  key: pour_point_output
-#%  label: Pour point coordinates for GSFLOW input, no file ext
+#%  key: pour_point_boundary_output
+#%  label: Pour point and b.c. coordinates for GSFLOW input, no file ext
 #%  required: no
 #%  guidependency: layer,column
 #%end
@@ -157,13 +164,14 @@ def main():
     gravity_reservoirs = options['gravres_input']
     HRUs = options['hru_input']
     pour_point = options['pour_point_input']
+    bc_cell = options['bc_cell_input']
     
     # Output
     out_reaches = options['reaches_output']
     out_segments = options['segments_output']
     out_gravity_reservoirs = options['gravres_output']
     out_HRUs = options['hru_output']
-    out_pour_point = options['pour_point_output']
+    out_pour_point_boundary = options['pour_point_boundary_output']
     
     ##############
     # PROCESSING #
@@ -239,18 +247,28 @@ def main():
     elif (len(HRUs) > 0) or (len(out_HRUs) > 0):
         grass.fatal(_("You must inlcude both input and output HRUs"))
 
-    # Pour Point
-    #############
-    if (len(pour_point) > 0) and (len(out_pour_point) > 0):
-        _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
-                            pour_point))
-        outstr = 'discharge_pt: row_i '+_y+' col_i '+_x
-        outfile = file(out_pour_point+'.txt', 'w')
-        outfile.write(outstr)
-        outfile.close()
-    elif (len(pour_point) > 0) or (len(out_pour_point) > 0):
-        grass.fatal(_("You must inlcude both input and output pour points"))
-    
+    # Pour Point and Boundary Condition Cell (downstream from pour point)
+    ######################################################################
+    if (len(out_pour_point_boundary) > 0):
+        # Pour point
+        if (len(pour_point) > 0):
+            _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
+                                pour_point))
+            outstr = 'discharge_pt: row_i '+_y+' col_i '+_x
+            if (len(bc_cell) > 0):
+                outstr += '\n'
+            outfile = file(out_pour_point_boundary+'.txt', 'w')
+            outfile.write(outstr)
+        # Bounadry condition
+        if (len(bc_cell) > 0):
+            _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
+                                bc_cell))
+            outstr = 'boundary_condition_pt: row_i '+_y+' col_i '+_x
+            outfile = file(out_pour_point_boundary+'.txt', 'a')
+            outfile.write(outstr)
+            outfile.close()
+    if (len(pour_point) == 0) and (len(bc_cell) == 0):
+        grass.fatal(_("You must inlcude input and output pp's and/or bc's"))
 
 if __name__ == "__main__":
     main()
