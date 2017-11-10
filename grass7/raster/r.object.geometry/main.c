@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 		if (flag_m->answer) {
 		    obj_geos[cur - min].area += unit_area;
 		} else {
-		    obj_geos[cur - min].area += 1 * ew_factor;
+		    obj_geos[cur - min].area += 1;
 		}
 		if (obj_geos[cur - min].min_row > row)
 		    obj_geos[cur - min].min_row = row;
@@ -205,9 +205,9 @@ int main(int argc, char *argv[])
 		}
 		else {
 		    if (!cur_null)
-			obj_geos[cur - min].perimeter += ew_factor;
+			obj_geos[cur - min].perimeter += 1;
 		    if (!top_null)
-			obj_geos[top - min].perimeter += ew_factor;
+			obj_geos[top - min].perimeter += 1;
 		}
 	    }
 	    if (cmp_cells(cur, left, cur_null, left_null)) {
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 	}
 	else {
 	    if (!top_null)
-		obj_geos[top - min].perimeter += ew_factor;
+		obj_geos[top - min].perimeter += 1;
 	}
     }
     G_percent(1, 1, 1);
