@@ -49,12 +49,6 @@
 #%  required: yes
 #%end
 
-#%option
-#%  key: resolution
-#%  label: Target MODFLOW grid resolution
-#%  required: yes
-#%end
-
 #%option G_OPT_R_OUTPUT
 #%  key: streams_modflow
 #%  label: Stream network at MODFLOW grid resolution
@@ -111,18 +105,29 @@ def main():
     dem = options['dem']
     grid = options['grid']
     streams = options['streams']
-    resolution = float(options['resolution'])
+    #resolution = float(options['resolution'])
     streams_MODFLOW = options['streams_modflow']
     DEM_MODFLOW = options['dem_modflow']
     
     gscript.use_temp_region()
     
-    g.region(raster=dem)
-    g.region(vector=grid)
+    # Get number of rows and columns
+    colNames = np.array(gscript.vector_db_select(grid, layer=1)['columns'])
+    colValues = np.array(gscript.vector_db_select(grid, layer=1)['values'].values())
+    cats = colValues[:,colNames == 'cat'].astype(int).squeeze()
+    rows = colValues[:,colNames == 'row'].astype(int).squeeze()
+    cols = colValues[:,colNames == 'col'].astype(int).squeeze()
+    nRows = np.max(rows)
+    nCols = np.max(cols)
+    
+    # Set the region
+    g.region(vector=grid, rows=nRows, cols=nCols)
+
+    #g.region(raster=dem)
     v.to_rast(input=streams, output=streams_MODFLOW, use='val', value=1.0,
               type='line', overwrite=gscript.overwrite(), quiet=True)
     r.mapcalc(streams_MODFLOW+" = "+streams_MODFLOW+" * DEM", overwrite=True)
-    g.region(res=resolution, quiet=True)
+    #g.region(res=resolution, quiet=True)
     r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW, 
                    method='minimum', overwrite=gscript.overwrite(), quiet=True)
     r.resamp_stats(input=dem, output=DEM_MODFLOW, method='average',
