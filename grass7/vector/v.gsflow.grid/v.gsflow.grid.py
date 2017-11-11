@@ -82,9 +82,6 @@
 ##################
 # PYTHON
 import numpy as np
-from matplotlib import pyplot as plt
-import sys
-import warnings
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
