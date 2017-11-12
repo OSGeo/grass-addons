@@ -86,7 +86,7 @@ int ram_stream_topology(CELL **streams, CELL **dirs, int number_of_streams)
 		    SA[cur_stream].trib_num = trib_num;
 
 		    for (i = 1; i < 9; ++i) {
-			if (trib > 4)
+			if (trib > 5)
 			    G_fatal_error(_("Error finding nodes. "
                                             "Stream and direction maps probably do not match."));
 			if (NOT_IN_REGION(i))
@@ -302,7 +302,7 @@ int seg_stream_topology(SEGMENT *streams, SEGMENT *dirs,
 
 		    for (i = 1; i < 9; ++i) {
 
-			if (trib > 4)
+			if (trib > 5)
 			    G_fatal_error(_("Error finding nodes. "
                                             "Stream and direction maps probably do not match."));
 			if (NOT_IN_REGION(i))
