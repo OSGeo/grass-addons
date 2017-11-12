@@ -47,6 +47,7 @@ promote() {
     cd /tmp/.grass${major}/addons
     tar czf logs.tar.gz logs
     manuals $major $minor
+    cp logs/* ${DST}/addons/grass${major}
     cp logs.tar.gz ${DST}/addons/grass${major}
     cp modules.xml ${DST}/addons/grass${major}
     cp html.tar.gz ${DST}/addons/grass${major}
