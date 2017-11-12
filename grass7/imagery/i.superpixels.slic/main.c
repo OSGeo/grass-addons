@@ -47,14 +47,13 @@ int merge_small_clumps(struct cache *bands_seg, int nbands,
 int main(int argc, char *argv[])
 {
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *opt_grp;		/* imagery group input option */
+    struct Option *opt_in;		/* imagery group input option */
     struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
                   *opt_compactness, *opt_perturb, *opt_minsize, *opt_mem;
     struct Option *opt_out;	/* option for output */
     struct Flag *flag_n;
 
     struct Ref group_ref;
-    char grp_name[INAME_LEN];
     int *ifd, nbands;
     DCELL **ibuf, *min, *max, *rng;
     struct FPRange drange;
@@ -110,7 +109,8 @@ int main(int argc, char *argv[])
     module->description =
 	_("Perform image segmentation using the SLIC segmentation method.");
 
-    opt_grp = G_define_standard_option(G_OPT_I_GROUP);
+    opt_in = G_define_standard_option(G_OPT_R_INPUTS);
+    opt_in->description = _("Name of two or more input raster maps or imagery group");
 
     opt_out = G_define_standard_option(G_OPT_R_OUTPUT);
 
@@ -182,23 +182,37 @@ int main(int argc, char *argv[])
     compactness = 0;
     superpixelsize = 0;
 
-    G_strip(opt_grp->answer);
-    strcpy(grp_name, opt_grp->answer);
+    for (nbands = 0; opt_in->answers[nbands] != NULL; nbands++) ;
 
-    /* find group */
-    if (!I_find_group(grp_name))
-	G_fatal_error(_("Group <%s> not found"), grp_name);
+    I_init_group_ref(&group_ref);
+    if (nbands > 1 || !I_find_group(opt_in->answers[0])) {
+	/* create group from input is raster map(s) */
+	char name[GNAME_MAX];
+	const char *mapset;
 
-    /* get the group ref */
-    if (!I_get_group_ref(grp_name, (struct Ref *)&group_ref))
-	G_fatal_error(_("Could not read REF file for group <%s>"), grp_name);
+	for (nbands = 0; opt_in->answers[nbands] != NULL; nbands++) {
+	    /* strip @mapset, do not modify opt_in->answers */
+	    strcpy(name, opt_in->answers[nbands]);
+	    mapset = G_find_raster(name, "");
+	    if (!mapset)
+		G_fatal_error(_("Raster map <%s> not found"),
+			      opt_in->answers[nbands]);
+	    /* Add input to group. */
+	    I_add_file_to_group_ref(name, mapset, &group_ref);
+	}
+    }
+    else {
+	/* input is group. Try to read group file */
+	if (!I_get_group_ref(opt_in->answers[0], &group_ref))
+	    G_fatal_error(_("Group <%s> not found in the current mapset"),
+			  opt_in->answers[0]);
+
+	if (group_ref.nfiles <= 0)
+	    G_fatal_error(_("Group <%s> contains no raster maps"),
+			  opt_in->answers[0]);
+    }
 
     nbands = group_ref.nfiles;
-    if (nbands <= 0) {
-	G_important_message(_("Group <%s> contains no raster maps; run i.group"),
-			    opt_grp->answer);
-	exit(EXIT_SUCCESS);
-    }
 
     n_iterations = 10;
     if (opt_iteration->answer) {
