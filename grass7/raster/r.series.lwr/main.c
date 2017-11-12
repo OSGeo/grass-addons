@@ -515,9 +515,14 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < num_outputs; i++) {
 	struct output *out = &outputs[i];
+	char xname[GNAME_MAX], xmapset[GMAPSET_MAX];
+	const char *uname;
 	char output_name[GNAME_MAX];
-	
-	sprintf(output_name, "%s%s", inputs[i].name, suffix);
+
+	uname = inputs[i].name;
+	if (G_name_is_fully_qualified(inputs[i].name, xname, xmapset))
+	    uname = xname;
+	sprintf(output_name, "%s%s", uname, suffix);
 
 	out->name = G_store(output_name);
 	out->buf = Rast_allocate_d_buf();
