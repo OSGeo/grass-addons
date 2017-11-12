@@ -34,7 +34,8 @@ if test -z $2 ; then
     ### create_md5sum grass64
     create_md5sum grass70
     create_md5sum grass72
-    create_md5sum grass73
+    create_md5sum grass74
+    create_md5sum grass75
 else
     create_md5sum grass$2
 fi

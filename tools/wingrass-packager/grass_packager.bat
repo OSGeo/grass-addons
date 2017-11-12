@@ -73,9 +73,12 @@ exit /b 0
 	if not exist "grass72" mkdir grass72
 	if exist .\grass72\%~1 rmdir /S/Q .\grass72\%~1
 	xcopy C:\msys%~2\usr\src\grass72_release\mswindows\* .\grass72\%~1 /S/V/I > NUL
-	if not exist "grass73" mkdir grass73
-	if exist .\grass73\%~1 rmdir /S/Q .\grass73\%~1
-	xcopy C:\msys%~2\usr\src\grass_trunk\mswindows\*     .\grass73\%~1 /S/V/I > NUL
+	if not exist "grass74" mkdir grass74
+	if exist .\grass74\%~1 rmdir /S/Q .\grass74\%~1
+	xcopy C:\msys%~2\usr\src\grass74_release\mswindows\* .\grass74\%~1 /S/V/I > NUL
+	if not exist "grass75" mkdir grass75
+	if exist .\grass75\%~1 rmdir /S/Q .\grass75\%~1
+	xcopy C:\msys%~2\usr\src\grass_trunk\mswindows\*     .\grass75\%~1 /S/V/I > NUL
 exit /b 0
 
 :preparePkg
@@ -86,7 +89,10 @@ exit /b 0
 	cd .\grass72\%~1
 	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
 	cd ..\..
-	cd .\grass73\%~1
+	cd .\grass74\%~1
+	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
+	cd ..\..
+	cd .\grass75\%~1
 	call .\GRASS-Packager.bat %~2 > .\GRASS-Packager.log
 	cd ..\..
 exit /b 0
@@ -95,5 +101,6 @@ exit /b 0
 	echo ...(%~1)
 	C:\DevTools\makensis.exe .\grass70\%~1\GRASS-Installer.nsi > .\grass70\%~1\GRASS-Installer.log
 	C:\DevTools\makensis.exe .\grass72\%~1\GRASS-Installer.nsi > .\grass72\%~1\GRASS-Installer.log
-        C:\DevTools\makensis.exe .\grass73\%~1\GRASS-Installer.nsi > .\grass73\%~1\GRASS-Installer.log
+	C:\DevTools\makensis.exe .\grass74\%~1\GRASS-Installer.nsi > .\grass74\%~1\GRASS-Installer.log        
+        C:\DevTools\makensis.exe .\grass75\%~1\GRASS-Installer.nsi > .\grass75\%~1\GRASS-Installer.log
 exit /b 0
