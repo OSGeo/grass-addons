@@ -64,13 +64,13 @@ if test -z $2 ; then
     ### compile ${SVN_PATH}/grass6 ${GISBASE_PATH}/grass644        ${ADDON_PATH}/grass644/addons
     ### compile ${SVN_PATH}/grass6 ${GISBASE_PATH}/grass64_release ${ADDON_PATH}/grass64/addons
     # TODO: enable later
-    #compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass700        ${ADDON_PATH}/grass700/addons
-    #compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass701        ${ADDON_PATH}/grass701/addons
-    #compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass702        ${ADDON_PATH}/grass702/addons
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass703        ${ADDON_PATH}/grass703/${PLATFORM_DIR}/addons
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass704        ${ADDON_PATH}/grass704/${PLATFORM_DIR}/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass700        ${ADDON_PATH}/grass700/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass701        ${ADDON_PATH}/grass701/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass702        ${ADDON_PATH}/grass702/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass703        ${ADDON_PATH}/grass703/${PLATFORM_DIR}/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass704        ${ADDON_PATH}/grass704/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass705        ${ADDON_PATH}/grass705/${PLATFORM_DIR}/addons
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass70_release ${ADDON_PATH}/grass70/${PLATFORM_DIR}/addons
+    # compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass70_release ${ADDON_PATH}/grass70/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass720        ${ADDON_PATH}/grass720/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass721        ${ADDON_PATH}/grass721/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass722        ${ADDON_PATH}/grass722/${PLATFORM_DIR}/addons

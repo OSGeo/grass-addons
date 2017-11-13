@@ -32,7 +32,7 @@ function create_md5sum {
 if test -z $2 ; then
     # dev packages
     ### create_md5sum grass64
-    create_md5sum grass70
+    ### create_md5sum grass70
     create_md5sum grass72
     create_md5sum grass74
     create_md5sum grass75

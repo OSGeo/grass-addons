@@ -80,7 +80,7 @@ function create_log {
 if test -z $2 ; then
     # dev packages
     ### update grass64_release grass64
-    update grass70_release grass70
+    ### update grass70_release grass70
     update grass72_release grass72
     update grass74_release grass74    
     update grass_trunk     grass75
