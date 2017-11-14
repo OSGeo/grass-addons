@@ -78,16 +78,17 @@ if test -z $2 ; then
     # daily builds
     ### copy 64 6.4.5svn
     ### copy 65
-    copy        70       `ls ${HOME}/grass70/x86/grass*.bz2 | cut -d'-' -f 3`
+    # copy        70       `ls ${HOME}/grass70/x86/grass*.bz2 | cut -d'-' -f 3`
     copy        72       7.2.svn
-    copy        73       7.3.svn
+    copy        74       7.4.svn
+    copy        75       7.5.svn
     # releases (TODO: enable later)
-    #copy_addon 644      6.4.4
-    #copy_addon 700      7.0.0
-    #copy_addon 701      7.0.1
-    #copy_addon 702      7.0.2
-    copy_addon 703       7.0.3
-    copy_addon 704       7.0.4
+    # copy_addon 644      6.4.4
+    # copy_addon 700      7.0.0
+    # copy_addon 701      7.0.1
+    # copy_addon 702      7.0.2
+    # copy_addon 703       7.0.3
+    # copy_addon 704       7.0.4
     copy_addon 705       7.0.5
     copy_addon 720       7.2.0
     copy_addon 721       7.2.1

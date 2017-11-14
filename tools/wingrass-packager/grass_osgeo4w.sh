@@ -48,9 +48,10 @@ function rsync_package {
 if test -z $2 ; then
     # dev packages
     ### rsync_package 64
-    rsync_package 70
+    ### rsync_package 70
     rsync_package 72
-    rsync_package 73
+    rsync_package 74
+    rsync_package 75
 else
     rsync_package $2 $3 $4
 fi
