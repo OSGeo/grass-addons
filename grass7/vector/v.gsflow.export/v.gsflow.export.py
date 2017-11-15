@@ -259,11 +259,15 @@ def main():
             outfile.write(outstr)
         # Bounadry condition
         if (len(bc_cell) > 0):
-            _y, _x = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
-                                bc_cell))
-            outstr = 'boundary_condition_pt: row_i '+_y+' col_i '+_x
             outfile = file(out_pour_point_boundary+'.txt', 'a')
-            outfile.write(outstr)
+            _xys = np.squeeze(gscript.db_select(sql='SELECT row,col FROM '+
+                                bc_cell))
+            for _cell_coords in _xys:
+                _y, _x = _cell_coords
+                outstr = 'boundary_condition_pt: row_i '+_y+' col_i '+_x
+                if not (_xys == _cell_coords[-1]).all():
+                    outstr += '\n'
+                outfile.write(outstr)
             outfile.close()
     if (len(pour_point) == 0) and (len(bc_cell) == 0):
         grass.fatal(_("You must inlcude input and output pp's and/or bc's"))

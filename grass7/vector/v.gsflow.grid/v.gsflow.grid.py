@@ -94,6 +94,7 @@ from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
 from grass import script as gscript
+from grass.pygrass.vector.geometry import Point
 
 ###############
 # MAIN MODULE #
@@ -123,8 +124,13 @@ def main():
     if _lena0 + _lenb0 == 1:
         grass.fatal("You must set both raster input and output, or neither.")
     """
+    
+    # Fatal if bc_cell set but mask and grid are false
+    if bc_cell != '':
+        if (mask == '') or (pp == ''):
+            grass.fatal('Mask and pour point must be set to define b.c. cell')
         
-    # Create grid -- overlaps DEM, one cell of padding
+    # Create grid -- overlaps DEM, three cells of padding
     gscript.use_temp_region()
     reg = gscript.region()
     reg_grid_edges_sn = np.linspace(reg['s'], reg['n'], reg['rows'])
@@ -190,6 +196,10 @@ def main():
         g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
         r.resamp_stats(input=mask, output=mask, method='sum', overwrite=True, quiet=True)
         r.mapcalc(mask+' = '+mask+' > 0', overwrite=True, quiet=True)
+        r.null(map=mask, null=0, quiet=True)
+        # Add mask location (1 vs 0) in the MODFLOW grid
+        v.db_addcolumn(map=grid, columns='basinmask double precision', quiet=True)
+        v.what_rast(map=grid, type='centroid', raster=mask, column='basinmask')
 
     """
     # Resampled raster
@@ -205,6 +215,8 @@ def main():
         v.what_vect(map=pp, query_map=grid, column='col', query_column='col', quiet=True)
 
     # Next point downstream of the pour point
+    # Requires pp (always) and mask (sometimes)
+    # Dependency set above w/ grass.fatal
     if len(bc_cell) > 0:
         ########## NEED TO USE TRUE TEMPORARY FILE ##########
         # May not work with dx != dy!
@@ -219,13 +231,72 @@ def main():
         r.null(map='tmp', setnull=0)
         r.to_vect(input='tmp', output=bc_cell, type='point', column='z',
                   overwrite=gscript.overwrite(), quiet=True)
-        v.db_addcolumn(map=bc_cell, columns=('row integer','col integer'), quiet=True)
+        v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
         v.build(map=bc_cell, quiet=True)
         v.what_vect(map=bc_cell, query_map=grid, column='row', \
                     query_column='row', quiet=True)
         v.what_vect(map=bc_cell, query_map=grid, column='col', \
                     query_column='col', quiet=True)
+        v.to_db(map=bc_cell, option='coor', columns=('x,y')) 
         
+        # Find out if this is diagonal: finite difference works only N-S, W-E
+        colNames = np.array(gscript.vector_db_select(pp, layer=1)['columns'])
+        colValues = np.array(gscript.vector_db_select(pp, layer=1)['values'].values())
+        pp_row = int(colValues[:,colNames == 'row'].astype(int).squeeze())
+        pp_col = int(colValues[:,colNames == 'col'].astype(int).squeeze())
+        colNames = np.array(gscript.vector_db_select(bc_cell, layer=1)['columns'])
+        colValues = np.array(gscript.vector_db_select(bc_cell, layer=1)['values'].values())
+        bc_row = int(colValues[:,colNames == 'row'].astype(int).squeeze())
+        bc_col = int(colValues[:,colNames == 'col'].astype(int).squeeze())
+        # Also get x and y while we are at it: may be needed later
+        bc_x = float(colValues[:,colNames == 'x'].astype(float).squeeze())
+        bc_y = float(colValues[:,colNames == 'y'].astype(float).squeeze())
+        if (bc_row != pp_row) and (bc_col != pp_col):
+            # If not diagonal, two possible locations that are adjacent
+            # to the pour point
+            _col1, _row1 = str(bc_col), str(pp_row)
+            _col2, _row2 = str(pp_col), str(bc_row)
+            # Check if either of these is covered by the basin mask
+            _ismask_1 = gscript.vector_db_select(grid, layer=1, where='(row == '+_row1+') AND (col =='+_col1+')', columns='basinmask')
+            _ismask_1 = int(_ismask_1['values'].values()[0][0])
+            _ismask_2 = gscript.vector_db_select(grid, layer=1, where='(row == '+_row2+') AND (col =='+_col2+')', columns='basinmask')
+            _ismask_2 = int(_ismask_2['values'].values()[0][0])
+            # If both covered by mask, error
+            if _ismask_1 and _ismask_2:
+                grass.fatal('All possible b.c. cells covered by basin mask.\n\
+                             Contact the developer: awickert (at) umn(.)edu')
+            # Otherwise, those that keep those that are not covered by basin
+            # mask and set ...
+            # ... wait, do we want the point that touches as few interior
+            # cells as possible?
+            # maybe just try setting both and seeing what happens for now!
+            else:
+                # Get dx and dy
+                dx = gscript.region()['ewres']
+                dy = gscript.region()['nsres']
+                # Build tool to handle multiple b.c. cells?
+                bcvect = vector.Vector(bc_cell)
+                bcvect.open('rw')
+                _cat_i = 2
+                if not _ismask_1:
+                    # _x should always be bc_x, but writing generalized code
+                    _x = bc_x + dx * (int(_col1) - bc_col) # col 1 at w edge
+                    _y = bc_y - dy * (int(_row1) - bc_row) # row 1 at n edge
+                    point0 = Point(_x,_y)
+                    bcvect.write(point0, cat=_cat_i, attrs=(None, None, _row1, _col1, _x, _y), )
+                    bcvect.table.conn.commit()
+                    _cat_i += 1
+                if not _ismask_2:
+                    # _y should always be bc_y, but writing generalized code
+                    _x = bc_x + dx * (int(_col2) - bc_col) # col 1 at w edge
+                    _y = bc_y - dy * (int(_row2) - bc_row) # row 1 at n edge
+                    point0 = Point(_x,_y)
+                    bcvect.write(point0, cat=_cat_i, attrs=(None, None, _row2, _col2, _x, _y), )            
+                    bcvect.table.conn.commit()
+                # Build database table and vector geometry
+                bcvect.build()
+                bcvect.close()
+
     g.region(n=reg['n'], s=reg['s'], w=reg['w'], e=reg['e'], nsres=reg['nsres'], ewres=reg['ewres'])
 
 
