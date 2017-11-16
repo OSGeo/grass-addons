@@ -96,7 +96,7 @@ def main():
     grass.run_command('v.category', input = out_lines_nocat, output = out_lines,
                       op = 'add', type = 'line', quiet = True)
     grass.run_command('v.db.addtable', map = out_lines, 
-                      col = 'cat integer,length double', quiet = True)
+                      col = 'cat integer,length double precision', quiet = True)
 
     grass.message(_("Evaluating threshold..."))
     grass.run_command('v.to.db', map = out_lines, type = 'line', op = 'length',
