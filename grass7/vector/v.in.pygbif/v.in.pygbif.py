@@ -188,24 +188,26 @@ from dateutil.parser import parse
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 
-if not os.environ.has_key("GISBASE"):
+if not "GISBASE" in os.environ.keys():
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
+
 
 def set_output_encoding(encoding='utf-8'):
     import sys
     import codecs
     '''When piping to the terminal, python knows the encoding needed, and
        sets it automatically. But when piping to another program (for example,
-       | less), python can not check the output encoding. In that case, it 
-       is None. What I am doing here is to catch this situation for both 
+       | less), python can not check the output encoding. In that case, it
+       is None. What I am doing here is to catch this situation for both
        stdout and stderr and force the encoding'''
     current = sys.stdout.encoding
-    if current is None :
+    if current is None:
         sys.stdout = codecs.getwriter(encoding)(sys.stdout)
     current = sys.stderr.encoding
-    if current is None :
+    if current is None:
         sys.stderr = codecs.getwriter(encoding)(sys.stderr)
+
 
 def main():
 
@@ -248,7 +250,7 @@ def main():
     chunk_size = 300
     # lat/lon proj string
     latlon_crs = ['+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0.000,0.000,0.000',
-              '+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0,0,0,0,0,0,0']
+                  '+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0,0,0,0,0,0,0']
     # List attributes available in Darwin Core
     # not all attributes are returned in each request
     # to avoid key errors when accessing the dictionary returned by pygbif
@@ -419,7 +421,7 @@ def main():
 
         # Use map Bbox as spatial filter if map contains <> 1 area
         if m.number_of('areas') == 1:
-            region_pol = str(m.read(1)).replace('LINESTRING', 'POLYGON(') + ')'
+            region_pol = [area.to_wkt() for area in m.viter("areas")][0]
         else:
             bbox = str(m.bbox()).replace('Bbox(', '').replace(' ', '').rstrip(')').split(',')
             region_pol = 'POLYGON(({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))'.format(bbox[2],
@@ -527,7 +529,7 @@ def main():
         elif returns_n >= 200000:
             grass.warning('Your search for {1} returns {0} records.\n'
                           'Unfortunately, the GBIF search API is limited to 200,000 records per request.\n'
-                           'The download will be incomplete. Please consider to split up your search.'.format(returns_n, s))
+                          'The download will be incomplete. Please consider to split up your search.'.format(returns_n, s))
 
         # Get the number of chunks to download
         chunks = int(math.ceil(returns_n / float(chunk_size)))
@@ -544,7 +546,7 @@ def main():
         # Download the data from GBIF
         for c in range(chunks):
             # Define offset
-            offset = c * chunk_size 
+            offset = c * chunk_size
             # Adjust chunk_size to the hard limit of 200,000 records in GBIF API
             # if necessary
             if offset + chunk_size >= 200000:
