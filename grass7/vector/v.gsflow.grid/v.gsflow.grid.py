@@ -195,7 +195,8 @@ def main():
         # Coarse resolution region:
         g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
         r.resamp_stats(input=mask, output=mask, method='sum', overwrite=True, quiet=True)
-        r.mapcalc(mask+' = '+mask+' > 0', overwrite=True, quiet=True)
+        r.mapcalc('tmp'+' = '+mask+' > 0', overwrite=True, quiet=True)
+        g.rename(raster=('tmp',mask), overwrite=True, quiet=True)
         r.null(map=mask, null=0, quiet=True)
         # Add mask location (1 vs 0) in the MODFLOW grid
         v.db_addcolumn(map=grid, columns='basinmask double precision', quiet=True)
@@ -222,12 +223,14 @@ def main():
         # May not work with dx != dy!
         v.to_rast(input=pp, output='tmp', use='val', value=1, overwrite=True)
         r.buffer(input='tmp', output='tmp', distances=float(dx)*1.5, overwrite=True)
-        r.mapcalc('tmp = (tmp == 2) * '+raster_input, overwrite=True)
+        r.mapcalc('tmp2 = (tmp == 2) * '+raster_input, overwrite=True)
+        g.rename(raster=('tmp2','tmp'), overwrite=True, quiet=True)
         #r.mapcalc('tmp = if(isnull('+raster_input+',0,(tmp == 2)))', overwrite=True)
         #g.region(rast='tmp')
         #r.null(map=raster_input,
         r.drain(input=raster_input, start_points=pp, output='tmp2', overwrite=True)
-        r.mapcalc('tmp = tmp2 * tmp', overwrite=True)
+        r.mapcalc('tmp3 = tmp2 * tmp', overwrite=True, quiet=True)
+        g.rename(raster=('tmp3','tmp'), overwrite=True, quiet=True)
         r.null(map='tmp', setnull=0)
         r.to_vect(input='tmp', output=bc_cell, type='point', column='z',
                   overwrite=gscript.overwrite(), quiet=True)
