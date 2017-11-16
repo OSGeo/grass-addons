@@ -32,7 +32,7 @@ update_setup() {
 	curr=`ls -r -w1 $pattern | head -n1 | cut -d'-' -f4,5 | cut -d'.' -f1`
 	prev=`ls -r -w1 $pattern | head -n2 | tail -n1 | cut -d'-' -f4,5 | cut -d'.' -f1`
 	version=`grep curr $file | cut -d':' -f2 | cut -d'-' -f1 | tr -d ' '`
-    
+
 	sed -e "s/curr:.*/curr: ${version}-$curr/" \
 	    -e "s/prev:.*/prev: ${version}-$prev/" $file > \
 	    ${SRC}/grass$1/${p}/osgeo4w/setup.hint
@@ -57,7 +57,7 @@ addons_index() {
 	    rm latest
 
 	    # remove RC builds when release is available
-	    for rc in `ls -d grass-*RC[0-9]`; do
+	    for rc in `ls -d grass-*RC[0-9] 2>/dev/null`; do
 		file=`echo $rc | sed 's/RC[0-9]//g'`
 		if [ -d $file ] ; then
 		    echo "Removing $rc..."
@@ -100,30 +100,33 @@ download_unzip
 ### addons_index 64
 addons_index 70
 addons_index 72
-addons_index 73
+addons_index 74
+addons_index 75
 
 # remove old packages
 ### rm_7 64
-rm_7 70
+#rm_7 70
 rm_7 72
-rm_7 73
+rm_7 74
+rm_7 75
 
 # update setup.ini
 ### update_setup 64
 ### update_setup 70
-update_setup 73
+update_setup 75
+
 
 # geo101 -> upload.osgeo.org
 ### rsync_grass 64
 ### rsync_grass 70
-rsync_grass 73 -daily
+rsync_grass 75 -daily
 
 # promote changes
 ~/cronjobs/osgeo4w-promote.sh
 
 ### report 64
-report 70
 report 72
-report 73
+report 74
+report 75
 
 exit 0
