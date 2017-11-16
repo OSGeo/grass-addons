@@ -123,7 +123,8 @@ def main():
     #g.region(raster=dem)
     v.to_rast(input=streams, output=streams_MODFLOW, use='val', value=1.0,
               type='line', overwrite=gscript.overwrite(), quiet=True)
-    r.mapcalc(streams_MODFLOW+" = "+streams_MODFLOW+" * DEM", overwrite=True)
+    r.mapcalc('tmp'+" = "+streams_MODFLOW+" * DEM", overwrite=True)
+    g.rename(raster=('tmp',streams_MODFLOW), overwrite=True, quiet=True)
     #g.region(res=resolution, quiet=True)
     r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW, 
                    method='minimum', overwrite=gscript.overwrite(), quiet=True)
