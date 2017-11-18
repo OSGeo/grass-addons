@@ -1,18 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
-  <meta name="generator" content="pandoc" />
-  <title></title>
-  <style type="text/css">code{white-space: pre;}</style>
-</head>
-<body>
-<h2 id="description">DESCRIPTION</h2>
-<p><em>i.nightlights.intercalibration</em> is a GRASS-GIS module performing inter-satellite calibration on DMSP-OLS nighttime lights time series. Based on &quot;well known&quot; emprirical regression models, it calibrates average visible band Digital Number values.</p>
-<p><strong>Note</strong>, the module is still under testing. Eventually minor, but important, changes might be applied to the intercalibration process.</p>
-<h3 id="overview">Overview</h3>
-<pre><code>+----------------------------------------------------------------------+
+<h2>DESCRIPTION</h2>
+
+<em>i.nightlights.intercalibration</em> is a GRASS GIS module performing
+inter-satellite calibration on DMSP-OLS nighttime lights time series.
+Based on &quot;well known&quot; emprirical regression models, it
+calibrates average visible band Digital Number values.
+
+<p>
+<strong>Note</strong>, the module is still under testing. Eventually minor,
+but important, changes might be applied to the intercalibration process.</p>
+
+<h3>Overview</h3>
+
+<pre><code>
++----------------------------------------------------------------------+
 |                                                                      |
 |          +-----------------+                                         |
 | DNi +--&gt; |Calibration Model| +--&gt; Calibrated DN                      |
@@ -36,8 +36,10 @@
 | |                                                                  | |
 | +------------------------------------------------------------------+ |
 |                                                                      |
-+----------------------------------------------------------------------+</code></pre>
-<h3 id="details">Details</h3>
++----------------------------------------------------------------------+
+</code></pre>
+
+<h3>Details</h3>
 <p>From a review paper:</p>
 <blockquote>
 <p>&quot;Several methods were proposed to overcome the lack of inter-satellite calibration. These include the invariant region and the quadratic regression method proposed by Elvidge et al. [23], the second-order regression and optimal threshold method proposed by Liu et al. [24], and a power-law regression method proposed by Wu et al. [25]. Although studies based on these calibration methods showed performance improvement after the rectification [24,25], the assumption that the nighttime light remains stableover time in a particular area requires a careful choice of the invariant region manually.&quot; [Huang 2014]</p>
@@ -48,17 +50,17 @@
 <h2 id="examples">EXAMPLES</h2>
 <p>Given all maps are imported in GRASS' data base, which are:</p>
 <div class="code">
-<p>g.list rast pattern=F* sep=,</p>
+<p>g.list rast pattern="F*" sep=,</p>
 <p>F101992,F101993,F101994,F121994,F121995,F121996,F121997,F121998,F121999,F141997, F141998,F141999,F142000,F142001,F142002,F142003,F152000,F152001,F152002,F152003, F152004,F152005,F152006,F152007,F162004,F162005,F162006,F162007,F162008, F162009,F182010,F182011,F182012</p>
 </div>
 <p>the default inter-calibration, based on [Elvidge 2014], can be performed as:</p>
 <div class="code">
-<p>i.nightlights.intercalibration.py image=<code>g.list rast pattern=F* sep=,</code> model=wu2013 output=l --o</p>
+<p>i.nightlights.intercalibration image=<code>g.list rast pattern="F*" sep=,</code> model=wu2013 output=l</p>
 </div>
 <h2 id="remarks">Remarks</h2>
 <p>The calibration models do not include regression coefficients for all of the yearly products. In which case, the module will fail and inform with an error message like:</p>
 <div class="code">
-<p>i.nightlights.intercalibration image=<code>g.list rast pattern=F?????? sep=,</code> model=liu2012 --v</p>
+<p>i.nightlights.intercalibration image=<code>g.list rast pattern="F??????" sep=,</code> model=liu2012 --v</p>
 <p>... ValueError: The selected model does not know about this combination of Satellite + Year!</p>
 </div>
 <h3 id="example-figures">Example figures</h3>
@@ -111,5 +113,3 @@
 </ul>
 <h2 id="authors">AUTHORS</h2>
 <p>Nikos Alexandris</p>
-</body>
-</html>
