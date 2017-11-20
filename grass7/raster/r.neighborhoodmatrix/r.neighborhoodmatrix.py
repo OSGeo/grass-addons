@@ -35,101 +35,154 @@
 #%option G_OPT_F_SEP
 #%end
 #
+#%option
+#% key: processes
+#% type: integer
+#% description: Number of processes to run in parallel (for multiple rasters)
+#% required: no
+#% answer: 1
+#%end
 #%flag
 #% key: d
 #% description: Also take into account diagonal neighbors
+#%end
+#%flag
+#% key: l
+#% description: Also output length of common border (in pixels)
 #%end
 
 import grass.script as gscript
 import sys
 import os
 import atexit
+import heapq
+from functools import partial
+from multiprocessing import Pool, Process, Queue
 
 def cleanup():
-    for nmap in n_mapnames.values():
+    for mapname in mapnames:
         gscript.run_command('g.remove', flags='f', type='raster',
-                          pat=nmap, quiet=True)
-    gscript.run_command('g.remove', flags='f', type='raster',
-                      pat=temp_map, quiet=True)
+                          name=mapname, quiet=True)
 
-    if diag:
-        for nmap in n_diag_mapnames.values():
-            gscript.run_command('g.remove', flags='f', type='raster',
-                              pat=nmap, quiet=True)
+    for filename in filenames:
+        os.remove(filename)
 
-def main():
-    rinput = options['input']
-    output = options['output']
-    separator = gscript.separator(options['separator'])
+    if outfile:
+        os.remove(outfile)
 
-    neighbors = []
+    return 0
 
-    global pid, n_mapnames, diag, temp_map
-    diag = False
-    pid = os.getpid()
-    n_mapnames = {}
-    n_mapnames['nl'] = "temp_nl_map_%d" % pid
-    n_mapnames['nr'] = "temp_nr_map_%d" % pid
-    n_mapnames['nu'] = "temp_nu_map_%d" % pid
-    n_mapnames['nd'] = "temp_nd_map_%d" % pid
-    temp_map = "temp_rneighborhoodmatrix_map_%d" % pid
-
-    nbs = {'nl': '[0,-1]', 'nr': '[0,1]', 'nu': '[1,0]', 'nd': '[-1,0]'}
-    nbs_diag = {'nul': '[1,-1]', 'nur': '[1,1]', 'nll': '[-1,-1]', 'nlr': '[-1,1]'}
-    for n, modifier in nbs.items():
-        expression = "%s = (%s%s)" % (temp_map, rinput, modifier)
-        gscript.run_command('r.mapcalc',
-                            expression=expression,
-                            overwrite=True,
-                            quiet=True)
-        expression = "%s = if(%s!=%s, %s, null())" % (n_mapnames[n], temp_map,
-                rinput, temp_map)
-        gscript.run_command('r.mapcalc',
-                            expression=expression,
-                            quiet=True)
-        rstats_results  = gscript.read_command('r.stats',
-                             input_=[rinput, n_mapnames[n]],
-                             flags='n1',
-                             separator=separator,
-                             quiet=True)
-        results = rstats_results.splitlines()
-	neighbors += results
-
-
-    if flags['d']:
-        diag = True
-        global n_diag_mapnames
-        n_diag_mapnames = {}
-        n_diag_mapnames['nul'] = "temp_nul_map_%d" % pid
-        n_diag_mapnames['nur'] = "temp_nur_map_%d" % pid
-        n_diag_mapnames['nll'] = "temp_nll_map_%d" % pid
-        n_diag_mapnames['nlr'] = "temp_nlr_map_%d" % pid
-
-        for n, modifier in nbs_diag.items():
-            expression = "%s = if(%s%s!=%s, %s%s, null())" % (n_diag_mapnames[n], rinput,
-                    modifier, rinput, rinput, modifier)
+def worker(input_queue, rinput, separator, result_queue):
+        for mapname, modifier in iter(input_queue.get, 'STOP'):
+            expression = "%s = if(%s%s!=%s, %s%s, null())" % (mapname, rinput, modifier, rinput, rinput, modifier)
             gscript.run_command('r.mapcalc',
                                 expression=expression,
                                 quiet=True)
-	    rstats_results  = gscript.read_command('r.stats',
-				 input_=[rinput, n_diag_mapnames[n]],
-				 flags='n1',
-				 separator=separator,
-				 quiet=True)
-	    results = rstats_results.splitlines()
-	    neighbors += results
+            tf = gscript.tempfile()
+            rstats_results  = gscript.read_command('r.stats',
+                             input_=[rinput, mapname],
+                             flags='nc',
+                             output=tf,
+                             separator=separator,
+                             quiet=True)
+            result_queue.put(tf)
 
-    unique_neighbors = list(set(neighbors))
-    unique_neighbors_sorted = gscript.natural_sort(unique_neighbors)
+# Sort by both cat values
+def keyfunc(s):
+    return [int(x) for x in s.split(separator)[:2]]
 
+def decorated_file(f, key):
+    for line in f: 
+        yield (key(line), line)
+
+def main():
+    global mapnames
+    mapnames = []
+    global filenames
+    filenames = []
+    global outfile
+    outfile = None
+    rinput = options['input']
+    output = options['output']
+
+    global separator
+    separator = gscript.separator(options['separator'])
+    processes = int(options['processes'])
+
+    pid = os.getpid()
+    nbnames = ['nl', 'nr', 'nu', 'nd', 'nul', 'nur', 'nll', 'nlr'] 
+    modifiers = ['[0,-1]', '[0,1]', '[1,0]', '[-1,0]', '[1,-1]', '[1,1]', '[-1,-1]', '[-1,1]']
+
+    # If the diagonal flag is not set, only keep direct neighbors
+    if not flags['d']:
+        nbnames = nbnames[:4]
+        modifiers = modifiers[:4]
+
+    mapnames = ["nb_temp_%s_map_%d" % (nbname, pid) for nbname in nbnames]
+    input_data = zip(mapnames, modifiers)
+    input_queue = Queue()
+    for input_datum in input_data:
+        input_queue.put(input_datum)
+    result_queue = Queue()
+
+    # Launch processes for r.mapcalc and r.stats in as many processes as
+    # requested
+    processes_list = []
+    for p in xrange(processes):
+        proc = Process(target=worker, args=(input_queue, rinput, separator, result_queue))
+        proc.start()
+        processes_list.append(proc)
+        input_queue.put('STOP')
+    for p in processes_list:
+        p.join()
+    result_queue.put('STOP')
+
+
+    # Now merge all r.stats outputs (which are already sorted)
+    # into one file
+    for tf in iter(result_queue.get, 'STOP'):
+	filenames.append(tf)
+    files = map(open, filenames)
+    outfile = gscript.tempfile()
+
+    # This code comes from https://stackoverflow.com/a/1001625
+    with open(outfile, 'wb') as outf:
+        for line in heapq.merge(*[decorated_file(f, keyfunc) for f in files]):
+            outf.write(line[1])
+
+    # Define final output
     if output == '-':
-        for line in unique_neighbors_sorted:
-            sys.stdout.write(line+"\n")	
+        of = sys.stdout
     else:
-	of = open(output, 'w')
-        for line in unique_neighbors_sorted:
-            of.write(line+"\n")
-        of.close()
+        of = open(output, 'w')
+
+    # Read the merged output file and sum the results per neighborhood pair
+    OldAcat = None
+    OldBcat = None
+    Sum = 0
+    with open(outfile, 'r') as fin:
+        for line in fin:
+            Acat = line.split(separator)[0]
+            Bcat = line.split(separator)[1]
+            value = int(line.split(separator)[2])
+            if Acat == OldAcat and Bcat == OldBcat:
+                Sum += value
+            else:
+                if OldAcat and OldBcat:
+                    if flags['l']:
+                        woutput = separator.join([OldAcat, OldBcat, str(Sum)])
+                    else:
+                        woutput = separator.join([OldAcat, OldBcat])
+                    of.write(woutput+"\n")	
+                OldAcat = Acat
+                OldBcat = Bcat
+                Sum = value
+    if flags['l']:
+        woutput = separator.join([OldAcat, OldBcat, str(Sum)])
+    else:
+        woutput = separator.join([OldAcat, OldBcat])
+    of.write(woutput+"\n")	
+    of.close()
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
