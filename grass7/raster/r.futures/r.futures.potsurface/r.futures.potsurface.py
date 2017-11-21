@@ -47,7 +47,7 @@ def main():
 
     data = {}
     with open(csv, 'r') as f:
-        lines = f.readlines()
+        lines = f.read().splitlines()
     header = lines[0].strip().split('\t')
     maps = header[2:]
     for line in lines[1:]:
