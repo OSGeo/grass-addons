@@ -68,10 +68,10 @@ method (see below).
 <p>
 A low change in category distributions and a high change in 
 size distributions means that the frequency of categories did not 
-change much whereas that the size of patches changed.
+change much whereas the size of patches did change.
 
 <h4>Information gain</h4>
-The methods <b>gain1,gain2,gain3</b> calculate the <em>information 
+The methods <b>gain1, gain2 and gain3</b> calculate the <em>information 
 gain</em> after Quinlan (1986). The information gain is the difference 
 between the entropy of the combined distribution and the average 
 entropy of the observed distributions (conditional entropy). A larger 
@@ -84,38 +84,38 @@ distributed over a large number of categories and a large number of size
 classes, information gain tends to over-estimate changes.
 <p>
 The information gain can be zero even if all cells changed, but the 
-distributions (frequencies of occurence) remained identical. The square 
+distributions (frequencies of occurrence) remained identical. The square 
 root of the information gain is sometimes used as a distance measure 
-and is closely related to Fisher's information metric.
+and it is closely related to Fisher's information metric.
 
 <h4>Information gain ratio</h4>
-The methods <b>ratio1,ratio2,ratio3</b> calculate the <em>information 
-gain ratio</em> that changes occured, estimated with the ratio of the 
+The methods <b>ratio1, ratio2 and ratio3</b> calculate the <em>information 
+gain ratio</em> that changes occurred, estimated with the ratio of the 
 average entropy of the observed distributions to the entropy of the 
 combined distribution. In other words, the ratio is equivalent to the 
 ratio of actual change to maximum possible change (in uncertainty). The 
 gain ratio is better suited than absolute information gain when the 
 cells are distributed over a large number of categories and a large number 
-of size classes. The gain ratio here follows the same rationale like 
+of size classes. The gain ratio here follows the same rationale as 
 the gain ratio of Quinlan (1986), but is calculated differently.
 <p>
 The gain ratio is always in the range (0, 1). A larger value means 
 larger differences between input maps.
 
 <h4>CHI-square</h4>
-The methods <b>chisq1,chisq2,chisq3</b> calculate <em>CHI square</em> 
+The methods <b>chisq1, chisq2 and chisq3</b> calculate <em>CHI square</em> 
 after Quinlan (1986) to estimate the relevance of the different input 
 maps. If the input maps are identical, the relevance measured as 
-CHI-square is zero, no change occured. If the input maps differ from 
-each other substantially, major changes occured and the relevance 
+CHI-square is zero, i.e. no change occurred. If the input maps differ from 
+each other substantially, major changes occurred and the relevance 
 measured as CHI-square is large.
 
 <h4>Gini impurity</h4>
-The methods <b>gini1,gini2,gini3</b> calculate the <em>Gini 
+The methods <b>gini1, gini2 and gini3</b> calculate the <em>Gini 
 impurity</em>, which is 1 - Simpson's index, or 1 - 1 / diversity, or 1 
 - 1 / 2^entropy for alpha = 1. The Gini impurity can thus be regarded 
 as a modified measure of the diversity of a distribution. Changes 
-occured when the diversity of the combined distribution is larger than 
+occurred when the diversity of the combined distribution is larger than 
 the average diversity of the observed distributions, thus a larger 
 value means larger differences between input maps.
 <p>
@@ -124,14 +124,13 @@ G = 1 - <big>&sum;</big> p<sub>i</sub><sup>2</sup>
 
 <p>
 The methods <em>information gain</em> and <em>CHI square</em> are the 
-most sensitive measures, but also most susceptible to noise. The 
+most sensitive measures, but also the most susceptible to noise. The 
 <em>information gain ratio</em> is less sensitive, but more robust 
 against noise. The <em>Gini impurity</em> is the least sensitive and 
 detects only drastic changes.
 
-
 <h4>Distance</h4>
-The methods <b>dist1,dist2,dist3</b> calculate the statistical 
+The methods <b>dist1, dist2 and dist3</b> calculate the statistical 
 <em>distance</em> from the absolute differences between the average 
 distribution and the observed distributions. The distance is always in 
 the range (0, 1). A larger value means larger differences between input 
@@ -193,9 +192,9 @@ MCD12Q1.A2003.Land_Cover_Type_1
 ...
 </pre></div>
 
-then a change assement can be done with
+then a change assessment can be done with
 <div class="code"><pre>
-r.change.info in=`g.mlist type=rast pat=MCD12Q1.A*.Land_Cover_Type_1 sep=,` \
+r.change.info in=`g.list type=rast pat=MCD12Q1.A*.Land_Cover_Type_1 sep=,` \
 	      method=pc,gain1,gain2,ratio1,ratio2,dist1,dist2 
 	      out=MCD12Q1.pc,MCD12Q1.gain1,MCD12Q1.gain2,MCD12Q1.ratio1,MCD12Q1.ratio2,MCD12Q1.dist1,MCD12Q1.dist2 \
 	      radius=20 step=40 alpha=2
