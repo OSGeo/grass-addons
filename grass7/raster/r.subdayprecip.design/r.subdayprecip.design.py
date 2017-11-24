@@ -41,6 +41,13 @@
 #% required: yes
 #%end
 
+#%option
+#% key: area_size
+#% description: Maximum area size to be processed (in km2)
+#% type: double
+#% answer: 20
+#%end
+
 import os
 import sys
 
@@ -131,7 +138,20 @@ def main():
     vinfo = grass.vector_info_topo(opt['map'])
     if vinfo['areas'] < 1 and vinfo['points'] < 1:
         grass.fatal(_("No points or areas found in input vector map <{}>").format(opt['map']))
-    
+
+    # check area size limit
+    area_col_name = 'area_{}'.format(os.getpid())
+    Module('v.db.addcolumn', map=opt['map'],
+           columns='{} double precision'.format(area_col_name))
+    Module('v.to.db', map=opt['map'], option='area', units='kilometers',
+           columns=area_col_name, quiet=True)
+    areas = Module('v.db.select', flags='c', map=opt['map'], columns=area_col_name,
+                   where='{} > {}'.format(area_col_name, opt['area_size']),
+                   stdout_=grass.PIPE)
+    large_areas = len(areas.outputs.stdout.splitlines())
+    if large_areas > 0:
+        grass.warning('{} areas larger than size limit will be skipped from computation'.format(large_areas))
+
     # extract multi values to points
     for rast in opt['return_period'].split(','):
         # check valid rasters
@@ -184,11 +204,19 @@ def main():
         expression = '{}_average * {}'.format(name, coef)
         Module('v.db.update', map=opt['map'],
                column=field_name, query_column=expression)
-        
+
+        Module('v.db.update', map=opt['map'],
+               column=field_name, value='NULL',
+               where='{} > {}'.format(area_col_name, opt['area_size']))
+
         # remove unused column
         Module('v.db.dropcolumn', map=opt['map'],
                columns='{}_average'.format(name))
-        
+
+    # remove unused column
+    Module('v.db.dropcolumn', map=opt['map'],
+           columns=area_col_name)
+
     return 0
 
 if __name__ == "__main__":
