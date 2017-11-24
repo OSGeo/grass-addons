@@ -43,7 +43,7 @@
 
 #%option
 #% key: area_size
-#% description: Maximum area size to be processed (in km2)
+#% description: Maximum area size to be processed (in km2, -1 for no limit)
 #% type: double
 #% answer: 20
 #%end
@@ -140,17 +140,19 @@ def main():
         grass.fatal(_("No points or areas found in input vector map <{}>").format(opt['map']))
 
     # check area size limit
-    area_col_name = 'area_{}'.format(os.getpid())
-    Module('v.db.addcolumn', map=opt['map'],
-           columns='{} double precision'.format(area_col_name))
-    Module('v.to.db', map=opt['map'], option='area', units='kilometers',
-           columns=area_col_name, quiet=True)
-    areas = Module('v.db.select', flags='c', map=opt['map'], columns=area_col_name,
-                   where='{} > {}'.format(area_col_name, opt['area_size']),
-                   stdout_=grass.PIPE)
-    large_areas = len(areas.outputs.stdout.splitlines())
-    if large_areas > 0:
-        grass.warning('{} areas larger than size limit will be skipped from computation'.format(large_areas))
+    check_area_size = float(opt['area_size']) > 0
+    if check_area_size:
+        area_col_name = 'area_{}'.format(os.getpid())
+        Module('v.db.addcolumn', map=opt['map'],
+               columns='{} double precision'.format(area_col_name))
+        Module('v.to.db', map=opt['map'], option='area', units='kilometers',
+               columns=area_col_name, quiet=True)
+        areas = Module('v.db.select', flags='c', map=opt['map'], columns=area_col_name,
+                       where='{} > {}'.format(area_col_name, opt['area_size']),
+                       stdout_=grass.PIPE)
+        large_areas = len(areas.outputs.stdout.splitlines())
+        if large_areas > 0:
+            grass.warning('{} areas larger than size limit will be skipped from computation'.format(large_areas))
 
     # extract multi values to points
     for rast in opt['return_period'].split(','):
@@ -205,17 +207,19 @@ def main():
         Module('v.db.update', map=opt['map'],
                column=field_name, query_column=expression)
 
-        Module('v.db.update', map=opt['map'],
-               column=field_name, value='NULL',
-               where='{} > {}'.format(area_col_name, opt['area_size']))
+        if check_area_size:
+            Module('v.db.update', map=opt['map'],
+                   column=field_name, value='NULL',
+                   where='{} > {}'.format(area_col_name, opt['area_size']))
 
         # remove unused column
         Module('v.db.dropcolumn', map=opt['map'],
                columns='{}_average'.format(name))
 
-    # remove unused column
-    Module('v.db.dropcolumn', map=opt['map'],
-           columns=area_col_name)
+    if check_area_size:
+        # remove unused column
+        Module('v.db.dropcolumn', map=opt['map'],
+               columns=area_col_name)
 
     return 0
 
