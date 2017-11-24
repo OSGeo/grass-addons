@@ -17,6 +17,7 @@ SUBDIRS = \
 	r.agent \
 	r.area \
 	r.basin \
+	r.clip \
 	r.vect.stats \
 	r.bioclim \
 	r.bitpattern \

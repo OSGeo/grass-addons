@@ -1,0 +1,42 @@
+<h2>DESCRIPTION</h2>
+
+The module extracts portion of the input raster map according to the
+current computational region. The areas outside of the computational
+region are clipped and only the inner part is kept.
+
+<p>
+By default the cell size and the cell alignment of the original raster
+is preserved. In other words, the output map inherits its resolution and
+cell positions (grid) from the input raster rather than the
+computational region.
+
+<p>
+If resampling into the cells size and cell alignment of the
+current computational is desired, the module can perform a nearest
+neighbor resampling when the <b>-r</b> flag is used.
+If more advanced resampling is required, the user is advised to to use
+one of the dedicated resampling modules.
+
+<p>
+If mask (<em><a href="r.mask.html">r.mask</a></em>) is active, it is
+respected and the output raster map will contain NULL (no data) values
+according to the mask.
+
+<p>
+The color table of the output raster map is set according to the
+input raster map, so that the colors in both raster maps will match.
+
+<h2>SEE ALSO</h2>
+
+<a href="g.region.html">g.region</a>,
+<a href="r.mask.html">r.mask</a>,
+<a href="r.patch.html">r.patch</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.resample.html">r.resample</a>,
+<a href="r.resamp.rst.html">r.resamp.rst</a>
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a>
+
+<p><i>Last changed: $Date$</i>
