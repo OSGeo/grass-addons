@@ -218,11 +218,7 @@ def main():
                         firstline = False
                         continue
                     values = line.rstrip().split('|')
-                    values = line.rstrip().split('|')
-                    if area_measures:
-                        output_dict[values[0]] = output_dict[values[0]]+ [values[x] for x in stat_indices]
-                    else:
-                        output_dict[values[0]] = [values[x] for x in stat_indices]
+                    output_dict[values[0]] = output_dict[values[0]] + [values[x] for x in stat_indices]
 
     message = _("Some values could not be calculated for the objects below. ")
     message += _("These objects are thus not included in the results. ")
@@ -276,9 +272,9 @@ def main():
         gscript.run_command('v.db.connect', map_=vectormap, table=vectormap, quiet=True)
 
     if error_objects:
-	object_string = ', '.join(error_objects)
-	message += _("\n\nObjects with errors: %s" % object_string)
-	gscript.warning(message)
+        object_string = ', '.join(error_objects[:100])
+        message += _("\n\nObjects with errors (only first 100 are shown):\n%s" % object_string)
+        gscript.message(message)
 		
 
 if __name__ == "__main__":
