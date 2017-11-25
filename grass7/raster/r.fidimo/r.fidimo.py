@@ -202,12 +202,7 @@ import grass.script as grass
 import grass.script.setup as gsetup
 import grass.script.array as garray
 
-
-# import required numpy/scipy modules
-import numpy
-from scipy import stats
-from scipy import optimize
-
+# lazy imports: numpy and scipy
 
 
 tmp_map_rast = None
@@ -230,7 +225,12 @@ def cleanup():
 
 
 def main():
-	
+
+	# lazy import required numpy and scipy modules
+	import numpy
+	from scipy import stats
+	from scipy import optimize
+
 	############ DEFINITION CLEANUP TEMPORARY FILES ##############
 	#global variables for cleanup
 	global tmp_map_rast
