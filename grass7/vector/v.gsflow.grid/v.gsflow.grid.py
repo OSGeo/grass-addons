@@ -223,7 +223,7 @@ def main():
         # May not work with dx != dy!
         v.to_rast(input=pp, output='tmp', use='val', value=1, overwrite=True)
         r.buffer(input='tmp', output='tmp', distances=float(dx)*1.5, overwrite=True)
-        r.mapcalc('tmp2 = (tmp == 2) * '+raster_input, overwrite=True)
+        r.mapcalc('tmp2 = if(tmp==2,1,null()) * '+raster_input, overwrite=True)
         g.rename(raster=('tmp2','tmp'), overwrite=True, quiet=True)
         #r.mapcalc('tmp = if(isnull('+raster_input+',0,(tmp == 2)))', overwrite=True)
         #g.region(rast='tmp')
@@ -231,7 +231,7 @@ def main():
         r.drain(input=raster_input, start_points=pp, output='tmp2', overwrite=True)
         r.mapcalc('tmp3 = tmp2 * tmp', overwrite=True, quiet=True)
         g.rename(raster=('tmp3','tmp'), overwrite=True, quiet=True)
-        r.null(map='tmp', setnull=0)
+        #r.null(map='tmp', setnull=0) # Not necessary: center point removed above
         r.to_vect(input='tmp', output=bc_cell, type='point', column='z',
                   overwrite=gscript.overwrite(), quiet=True)
         v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
