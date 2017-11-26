@@ -142,7 +142,7 @@
 #%option
 #%  key: width1
 #%  type: double
-#%  description: Upstream width in segment, assumed constant through watershed
+#%  description: Upstream width in segment [m], uniform through watershed
 #%  answer: 5
 #%  required: no
 #%end
@@ -150,7 +150,7 @@
 #%option
 #%  key: width2
 #%  type: double
-#%  description: Downstream width in segment, assumed constant through watershed
+#%  description: Downstream width in segment [m], uniform through watershed
 #%  answer: 5
 #%  required: no
 #%end
