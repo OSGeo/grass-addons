@@ -240,8 +240,6 @@ void collect_values_unfiltered(double val1, double val2, double min,
 void collect_values_filtered(double val1, double val2, double min, double max,
                              stats_struct * stats)
 {
-    unsigned long i;
-
     if (val1 >= min && val1 <= max) {
         collect_values_unfiltered(val1, val2, min, max, stats);
     }
@@ -260,8 +258,6 @@ void collect_values_and_weights_unfiltered(double val1, double val2,
 void collect_values_and_weights_filtered(double val1, double val2, double min,
                                          double max, stats_struct * stats)
 {
-    unsigned long i;
-
     if (val1 >= min && val1 <= max) {
         collect_values_and_weights_unfiltered(val1, val2, min, max, stats);
     }
@@ -272,7 +268,6 @@ void collect_values_and_frequencies_unfiltered(double val1, double val2,
                                                stats_struct * stats)
 {
     unsigned long i;
-    int done;
 
     stats->certainty += val2;
 
@@ -305,8 +300,6 @@ void collect_values_and_frequencies_filtered(double val1, double val2,
                                              double min, double max,
                                              stats_struct * stats)
 {
-    unsigned long i;
-
     if (val1 >= min && val1 <= max) {
         collect_values_and_frequencies_unfiltered(val1, val2, min, max,
                                                   stats);
@@ -449,15 +442,15 @@ void get_statistics_median(unsigned long row_index, unsigned long col,
     /* sort list of values */
     qsort(&stats->values[0], stats->num_values, sizeof(double), &compare_dbl);
 
-    if ((double)stats->num_values / 2.0 == 0.0) {
+    if (stats->num_values % 2 == 0.0) {
         /* even number of elements: result is average of the two central values */
         stats->result =
-            (stats->values[stats->num_values / 2] +
-             stats->values[(stats->num_values / 2) + 1]) / 2.0;
+            (stats->values[stats->num_values / 2 - 1] +
+             stats->values[(stats->num_values / 2)]) / 2.0;
     }
     else {
         /* odd number of elements: result is the central element */
-        stats->result = stats->values[(stats->num_values / 2) + 1];
+        stats->result = stats->values[(stats->num_values / 2)];
     }
 }
 
@@ -491,6 +484,9 @@ void get_statistics_mode(unsigned long row_index, unsigned long col,
         }
     }
     stats->result = mode;
+    /* need to initialize, otherwise old values sometimes stay */
+    for (i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; i++)
+        stats->frequencies[i] = 0;
 }
 
 
@@ -566,7 +562,7 @@ void interpolate_row(unsigned long row_index, unsigned long cols,
                      stats_struct * stats, int write_err)
 {
     unsigned long j;
-    void *cell_input, *cell_output;
+    void *cell_output;
     FCELL *err_output;
 
     cell_output = CELL_OUTPUT;
@@ -747,7 +743,6 @@ int main(int argc, char *argv[])
     char *input;
     char *output;
     char *mapset;
-    char *error;
     double radius = 1.0;
     unsigned long min_cells = 12;
     double power = 2.0;
@@ -759,7 +754,6 @@ int main(int argc, char *argv[])
 
     /* file handlers */
     void *cell_input;
-    void *cell_output;
     int in_fd;
     int out_fd;
     int err_fd;
@@ -768,9 +762,8 @@ int main(int argc, char *argv[])
     stats_struct cell_stats;
 
     /* generic indices, loop counters, etc. */
-    unsigned long i, j, k;
+    unsigned long i, j;
     long l;
-    unsigned long count;
 
 
     start = time(NULL);
