@@ -14,7 +14,7 @@
 #############################################################################
 # July, 2017. Jaan Janno, Mait Lang. Bugfixes concerning crossvalidation failure
 # when class numeric ID-s were not continous increasing +1 each.
-# Bugfix for processing index list of nominal layers.  
+# Bugfix for processing index list of nominal layers.
 
 #%module
 #% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package
@@ -27,8 +27,8 @@
 
 #%option G_OPT_I_GROUP
 #% key: group
-#% label: Imagery group to be classified
-#% description: GRASS imagery group of raster maps to be used in the machine learning model
+#% label: Group of raster layers to be classified
+#% description: GRASS imagery group of raster maps representing feature variables to be used in the machine learning model
 #% required: yes
 #% multiple: no
 #%end
@@ -43,8 +43,8 @@
 
 #%option G_OPT_V_INPUT
 #% key: trainingpoints
-#% label: Training point vector
-#% description: Vector points map for training
+#% label: Vectorfile with training samples
+#% description: Vector points map where each point is used as training sample. Handling of missing values in training data can be choosen later.
 #% required: no
 #% guisection: Required
 #%end
@@ -52,7 +52,7 @@
 #%option G_OPT_DB_COLUMN
 #% key: field
 #% label: Response attribute column
-#% description: Name of attribute column in trainingpoints containing response value
+#% description: Name of attribute column in trainingpoints table containing response values
 #% required: no
 #% guisection: Required
 #%end
@@ -60,7 +60,7 @@
 #%option G_OPT_R_OUTPUT
 #% key: output
 #% label: Output Map
-#% description: Prediction surface result from classification or regression model
+#% description: Raster layer name to store result from classification or regression model. The name will also used as a perfix if class probabilities or intermediate of cross-validation results are ordered as maps.
 #% guisection: Required
 #% required: no
 #%end
@@ -70,7 +70,7 @@
 #% label: Classifier
 #% description: Supervised learning model to use
 #% answer: RandomForestClassifier
-#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor,XGBClassifier,XGBRegressor
+#% options: LogisticRegression,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,SVC,EarthClassifier,EarthRegressor
 #% guisection: Classifier settings
 #% required: no
 #%end
@@ -88,8 +88,8 @@
 #%option
 #% key: max_features
 #% type: integer
-#% label: Number of features avaiable during node splitting
-#% description: Number of features avaiable during node splitting (tree-based classifiers and regressors)
+#% label: Number of features available during node splitting; zero uses classifier defaults
+#% description: Number of features available during node splitting (tree-based classifiers and regressors)
 #% answer:0
 #% multiple: yes
 #% guisection: Classifier settings
@@ -99,7 +99,7 @@
 #% key: max_depth
 #% type: integer
 #% label: Maximum tree depth; zero uses classifier defaults
-#% description: Maximum tree depth for tree-based method; zero uses classifier defaults (full-growing for Decision trees and Randomforest, 3 for GBM and XGB)
+#% description: Maximum tree depth for tree-based method; zero uses classifier defaults (full-growing for Decision trees and Randomforest, 3 for GBM)
 #% answer:0
 #% multiple: yes
 #% guisection: Classifier settings
@@ -178,7 +178,7 @@
 #%option string
 #% key: weights
 #% label: weight function
-#% description: weight function for knn prediction
+#% description: Distance weight function for k-nearest neighbours model prediction
 #% answer: uniform
 #% options: uniform,distance
 #% multiple: yes
@@ -195,11 +195,12 @@
 #% guisection: Classifier settings
 #%end
 
-#%option integer
+#%option G_OPT_R_INPUT
 #% key: categorymaps
+#% required: no
 #% multiple: yes
-#% label: Indices of categorical rasters within the imagery group (0..n)
-#% description: Indices of categorical rasters within the imagery group (0..n) that will be one-hot encoded
+#% label: Names of categorical rasters within the imagery group
+#% description: Names of categorical rasters within the imagery group that will be one-hot encoded. Leave empty if none.
 #% guisection: Optional
 #%end
 
@@ -215,8 +216,8 @@
 #%option
 #% key: n_partitions
 #% type: integer
-#% label: Number of kmeans spatial partitions
-#% description: Number of kmeans spatial partitions for kmeans clustered cross-validation
+#% label: Number of k-means spatial partitions
+#% description: Number of k-means spatial partitions for k-means clustered cross-validation
 #% answer: 10
 #% guisection: Cross validation
 #%end
@@ -309,20 +310,20 @@
 #%end
 
 #%option
-#% key: lines
-#% type: integer
-#% description: Processing block size in terms of number of rows
-#% answer: 25
-#% guisection: Optional
-#%end
-
-#%option
 #% key: indexes
 #% type: integer
 #% description: Indexes of class probabilities to predict. Default -1 predicts all classes
 #% answer: -1
 #% guisection: Optional
 #% multiple: yes
+#%end
+
+#%option
+#% key: rowincr
+#% type: integer
+#% description: Maximum number of raster rows to read/write in single chunk whilst performing prediction
+#% answer: 25
+#% guisection: Optional
 #%end
 
 #%option
@@ -336,18 +337,14 @@
 #%flag
 #% key: s
 #% label: Standardization preprocessing
-#% guisection: Optional
-#%end
-
-#%flag
-#% key: i
-#% label: Impute training data preprocessing
+#% description: Standardize feature variables (convert values the get zero mean and unit variance).
 #% guisection: Optional
 #%end
 
 #%flag
 #% key: p
 #% label: Output class membership probabilities
+#% description: A raster layer is created for each class. It is recommended to give a list of particular classes in interest to avoid consumption of large amounts of disk space.
 #% guisection: Optional
 #%end
 
@@ -391,7 +388,7 @@
 
 #%option G_OPT_F_OUTPUT
 #% key: save_model
-#% label: Save model from file
+#% label: Save model to file
 #% required: no
 #% guisection: Optional
 #%end
@@ -416,14 +413,14 @@ import atexit
 import os
 from copy import deepcopy
 import numpy as np
-
 from grass.pygrass.utils import set_path
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
 
 set_path('r.learn.ml')
 from rlearn_crossval import cross_val_scores
-from rlearn_rasters import predict, extract, extract_points
+from rlearn_sampling import extract_pixels, extract_points
+from rlearn_prediction import predict
 from rlearn_utils import (
     model_classifiers, save_training_data, load_training_data, maps_from_group)
 
@@ -431,7 +428,7 @@ tmp_rast = []
 
 def cleanup():
     for rast in tmp_rast:
-        gscript.run_command(
+        gs.run_command(
             "g.remove", name=rast, type='raster', flags='f', quiet=True)
 
 def warn(*args, **kwargs):
@@ -444,7 +441,7 @@ def main():
     try:
         from sklearn.externals import joblib
         from sklearn.cluster import KMeans
-        from sklearn.preprocessing import StandardScaler, Imputer
+        from sklearn.preprocessing import StandardScaler
         from sklearn.model_selection import (
             GridSearchCV, GroupShuffleSplit, ShuffleSplit,
             StratifiedKFold, GroupKFold)
@@ -454,12 +451,12 @@ def main():
         from sklearn import metrics
         from sklearn.metrics import make_scorer
     except:
-        gscript.fatal("Scikit learn 0.18 or newer is not installed")
+        gs.fatal("Scikit learn 0.18 or newer is not installed")
 
     try:
         import pandas as pd
     except:
-        gscript.fatal("Pandas is not installed ")
+        gs.fatal("Pandas is not installed ")
 
     # required gui section
     group = options['group']
@@ -506,42 +503,35 @@ def main():
     model_only = flags['m']
     probability = flags['p']
     prob_only = flags['z']
-    rowincr = int(options['lines'])
     random_state = int(options['random_state'])
     model_save = options['save_model']
     model_load = options['load_model']
     load_training = options['load_training']
     save_training = options['save_training']
     indexes = options['indexes']
+    rowincr = int(options['rowincr'])
     n_jobs = int(options['n_jobs'])
     lowmem = flags['l']
-    impute = flags['i']
     balance = flags['b']
 
-    # convert to lists
-    """
-    if ',' in categorymaps:
-        categorymaps = [int(i) for i in categorymaps.split(',')]
-	print(categorymaps)
-    else: categorymaps = None
-    """
-    
+    # fetch individual raster names from group
+    maplist, mapnames = maps_from_group(group)
+
+    # extract indices of category maps
     if categorymaps.strip() == '':
         categorymaps = None
     else:
-        try:
-            categorymaps = [int(i.strip()) for i in categorymaps.split(',')]
-            # negatiivse ja maplist, _ = maps_from_group(group) suurima indeksi kontroll, dublikaatide kontroll (unique)
-            nCategories = len(maps_from_group(group)[0])
-            if min(categorymaps) < 0:
-                gscript.fatal('Category map index can not be negative.')
-            if max(categorymaps) > nCategories - 1:
-                gscript.fatal('Category map index input can not exceed ' + str(nCategories - 1))
-            if not len(np.unique(categorymaps)) == len(categorymaps):
-                gscript.fatal('Duplicate indices in category map index list.')            
-        except:
-            gscript.fatal('Error in category map list input.')
-    
+        if isinstance(categorymaps, str):
+            categorymaps = [categorymaps]
+        cat_indexes = []
+        for cat in categorymaps:
+            try:
+                cat_indexes.append(maplist.index(cat))
+            except:
+                gs.fatal('Category map {0} not in the imagery group'.format(cat))
+        categorymaps = cat_indexes
+
+    # convert class probability indexes to list
     if ',' in indexes:
         indexes = [int(i) for i in indexes.split(',')]
     else:
@@ -555,15 +545,25 @@ def main():
 
     # feature importances selected by no cross-validation scheme used
     if importances is True and cv == 1:
-        gscript.fatal('Feature importances require cross-validation cv > 1')
+        gs.fatal('Feature importances require cross-validation cv > 1')
 
     # output map has not been entered and model_only is not set to True
-    if output == '' and model_only is True:
-        gscript.fatal('No output map specified')
+    if output == '' and model_only is not True:
+        gs.fatal('No output map specified')
 
-    # perform prediction only for class probabilities but probability flag is not set to True
+    # perform prediction only for class probabilities but probability flag
+    # is not set to True
     if prob_only is True:
         probability = True
+
+    # check for field attribute if trainingpoints are used
+    if trainingpoints != '' and field == '':
+        gs.fatal('No attribute column specified for training points')
+
+    # check that valid combination of training data input is present
+    if trainingpoints == '' and trainingmap == '' and load_training == '' \
+    and model_load =='':
+        gs.fatal('No training vector, raster or tabular data is present')
 
     # make dicts for hyperparameters, datatypes and parameters for tuning
     hyperparams_type = dict.fromkeys(hyperparams, int)
@@ -573,8 +573,6 @@ def main():
     hyperparams_type['weights'] = str
     param_grid = deepcopy(hyperparams_type)
     param_grid = dict.fromkeys(param_grid, None)
-
-   
 
     for key, val in hyperparams.iteritems():
         # split any comma separated strings and add them to the param_grid
@@ -588,7 +586,6 @@ def main():
     if hyperparams['max_depth'] == 0: hyperparams['max_depth'] = None
     if hyperparams['max_features'] == 0: hyperparams['max_features'] = 'auto'
     param_grid = {k: v for k, v in param_grid.iteritems() if v is not None}
- 
 
     # retrieve sklearn classifier object and parameters
     clf, mode = model_classifiers(
@@ -600,33 +597,32 @@ def main():
         key: value for key, value in param_grid.iteritems()
         if key in clf_params}
 
-
     # scoring metrics
     if mode == 'classification':
         scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',\
                    'balanced_accuracy']
         search_scorer = make_scorer(metrics.matthews_corrcoef)
     else:
-        scoring = ['r2', 'neg_mean_squared_error']
+        scoring = ['r2', 'explained_variance', 'neg_mean_absolute_error',
+                   'neg_mean_squared_error', 'neg_mean_squared_log_error',
+                   'neg_median_absolute_error']
         search_scorer = 'r2'
 
     # -------------------------------------------------------------------------
     # Extract training data
     # -------------------------------------------------------------------------
 
-    # fetch individual raster names from group
-    maplist, _ = maps_from_group(group)
-    
     if model_load == '':
 
         # Sample training data and group id
         if load_training != '':
             X, y, group_id, sample_coords = load_training_data(load_training)
         else:
-            gscript.message('Extracting training data')
+            gs.message('Extracting training data')
 
             # generate spatial clump/patch partitions
-            # clump the labelled pixel raster and set the group_raster to the clumped raster
+            # clump the labelled pixel raster and set the group_raster
+            # to the clumped raster
             if trainingmap != '' and cvtype == 'clumped' and group_raster == '':
                 clumped_trainingmap = 'tmp_clumped_trainingmap'
                 tmp_rast.append(clumped_trainingmap)
@@ -634,7 +630,7 @@ def main():
                         overwrite=True, quiet=True)
                 group_raster = clumped_trainingmap
             elif trainingmap == '' and cvtype == 'clumped':
-                gscript.fatal('Cross-validation using clumped training areas ',
+                gs.fatal('Cross-validation using clumped training areas ',
                               'requires raster-based training areas')
 
             # append spatial clumps or group raster to the predictors
@@ -646,12 +642,15 @@ def main():
 
             # extract training data
             if trainingmap != '':
-                X, y, sample_coords = extract(
-                    response=trainingmap, predictors=maplist2, lowmem=lowmem)
+                X, y, sample_coords = extract_pixels(
+                    response=trainingmap, predictors=maplist2, lowmem=lowmem, na_rm=True)
             elif trainingpoints != '':
                 X, y, sample_coords = extract_points(
-                    trainingpoints, maplist2, field)
+                    trainingpoints, maplist2, field, na_rm=True)
             group_id = None
+
+            if len(y) < 1 or X.shape[0] < 1:
+                gs.fatal('There are too few training features to perform classification')
 
             # take group id from last column and remove from predictors
             if group_raster != '':
@@ -667,37 +666,29 @@ def main():
 
             # check for labelled pixels and training data
             if y.shape[0] == 0 or X.shape[0] == 0:
-                gscript.fatal('No training pixels or pixels in imagery group '
+                gs.fatal('No training pixels or pixels in imagery group '
                               '...check computational region')
-
-            # impute or remove NaNs
-            if impute is False:
-                y = y[~np.isnan(X).any(axis=1)]
-                sample_coords = sample_coords[~np.isnan(X).any(axis=1)]
-                if group_id is not None:
-                    group_id = group_id[~np.isnan(X).any(axis=1)]
-                X = X[~np.isnan(X).any(axis=1)]
-            else:
-                missing = Imputer(strategy='median')
-                X = missing.fit_transform(X)
 
             # shuffle data
             if group_id is None:
-                X, y, sample_coords = shuffle(X, y, sample_coords, random_state=random_state)
+                X, y, sample_coords = shuffle(
+                    X, y, sample_coords, random_state=random_state)
             if group_id is not None:
                 X, y, sample_coords, group_id = shuffle(
                     X, y, sample_coords, group_id, random_state=random_state)
 
             # optionally save extracted data to .csv file
             if save_training != '':
-                save_training_data(X, y, group_id, sample_coords, save_training)
+                save_training_data(
+                    X, y, group_id, sample_coords, save_training)
 
         # ---------------------------------------------------------------------
         # define the inner search resampling method
         # ---------------------------------------------------------------------
 
         if any(param_grid) is True and cv == 1 and grid_search == 'cross-validation':
-            gscript.fatal('Hyperparameter search using cross validation requires cv > 1')
+            gs.fatal(
+                'Hyperparameter search using cross validation requires cv > 1')
 
         # define inner resampling using cross-validation method
         elif any(param_grid) is True and grid_search == 'cross-validation':
@@ -709,12 +700,13 @@ def main():
         # define inner resampling using the holdout method
         elif any(param_grid) is True and grid_search == 'holdout':
             if group_id is None:
-                inner = ShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
+                inner = ShuffleSplit(
+                    n_splits=1, test_size=0.33, random_state=random_state)
             else:
-                inner = GroupShuffleSplit(n_splits=1, test_size=0.33, random_state=random_state)
+                inner = GroupShuffleSplit(
+                    n_splits=1, test_size=0.33, random_state=random_state)
         else:
             inner = None
-     
 
         # ---------------------------------------------------------------------
         # define the outer search resampling method
@@ -729,9 +721,9 @@ def main():
         # define sample weights for gradient boosting classifiers
         # ---------------------------------------------------------------------
 
-        # sample weights for GradientBoosting or XGBClassifier
+        # classifiers that take sample_weights
         if balance is True and mode == 'classification' and classifier in (
-                'GradientBoostingClassifier', 'XGBClassifier'):
+                'GradientBoostingClassifier', 'GaussianNB'):
             from sklearn.utils import compute_class_weight
             class_weights = compute_class_weight(
                 class_weight='balanced', classes=(y), y=y)
@@ -743,26 +735,21 @@ def main():
         # ---------------------------------------------------------------------
         # standardization
         if norm_data is True and categorymaps is None:
-	    gscript.message('norm_data is True and categorymaps is None:')
             clf = Pipeline([('scaling', StandardScaler()),
                             ('classifier', clf)])
 
         # onehot encoding
         if categorymaps is not None and norm_data is False:
-	    gscript.message('categorymaps is not None and norm_data is False:')		
             enc = OneHotEncoder(categorical_features=categorymaps)
-	    # print(enc.n_values)
             enc.fit(X)
             clf = Pipeline([('onehot', OneHotEncoder(
                 categorical_features=categorymaps,
                 n_values=enc.n_values_, handle_unknown='ignore',
-	        # handle_unknown='ignore',
                 sparse=False)),  # dense because not all clf can use sparse
                             ('classifier', clf)])
 
         # standardization and onehot encoding
         if norm_data is True and categorymaps is not None:
-	    gscript.message('norm_data is True and categorymaps is not None:')
             enc = OneHotEncoder(categorical_features=categorymaps)
             enc.fit(X)
             clf = Pipeline([('onehot', OneHotEncoder(
@@ -771,7 +758,7 @@ def main():
                 sparse=False)),
                             ('scaling', StandardScaler()),
                             ('classifier', clf)])
-        # print(clf)
+
         # ---------------------------------------------------------------------
         # create the hyperparameter grid search method
         # ---------------------------------------------------------------------
@@ -785,10 +772,6 @@ def main():
                     newkey = 'classifier__' + key
                     param_grid[newkey] = param_grid.pop(key)
 
-            # print(param_grid)
-            # print(inner)
-            # gscript.fatal('Põmm!')
-
             # create grid search method
             clf = GridSearchCV(
                 estimator=clf, param_grid=param_grid, scoring=search_scorer,
@@ -797,28 +780,29 @@ def main():
         # ---------------------------------------------------------------------
         # classifier training
         # ---------------------------------------------------------------------
-        gscript.message(os.linesep)
-        gscript.message(('Fitting model using ' + classifier))
 
-        # pass groups to fit parameter GroupKFold/GroupShuffleSplit and param_grid are present
-        if isinstance(inner, (GroupKFold, GroupShuffleSplit)):
-            if balance is True and classifier in (
-                    'GradientBoostingClassifier', 'XGBClassifier'):
-                clf.fit(X=X, y=y, groups=group_id, sample_weight=class_weights)
+        gs.message(os.linesep)
+        gs.message(('Fitting model using ' + classifier))
+
+        # fitting ensuring that all options are passed
+        if classifier in ('GradientBoostingClassifier', 'GausianNB') and balance is True:
+            if isinstance(clf, Pipeline):
+                fit_params = {'classifier__sample_weight': class_weights}
             else:
-                clf.fit(X=X, y=y, groups=group_id)
+                fit_params = {'sample_weight': class_weights}
         else:
-            if balance is True and classifier in (
-                    'GradientBoostingClassifier', 'XGBClassifier'):
-                clf.fit(X=X, y=y, sample_weight=class_weights)
-            else:
-                clf.fit(X, y)
+            fit_params = {}
+
+        if isinstance(inner, (GroupKFold, GroupShuffleSplit)):
+            clf.fit(X, y, groups=group_id, **fit_params)
+        else:
+            clf.fit(X, y, **fit_params)
 
         # message best hyperparameter setup and optionally save using pandas
         if any(param_grid) is True:
-            gscript.message(os.linesep)
-            gscript.message('Best parameters:')
-            gscript.message(str(clf.best_params_))
+            gs.message(os.linesep)
+            gs.message('Best parameters:')
+            gs.message(str(clf.best_params_))
             if param_file != '':
                 param_df = pd.DataFrame(clf.cv_results_)
                 param_df.to_csv(param_file)
@@ -828,24 +812,18 @@ def main():
         # ---------------------------------------------------------------------
         # cross-validation
         # ---------------------------------------------------------------------
+
         # If cv > 1 then use cross-validation to generate performance measures
         if cv > 1 and tune_only is not True:
             if mode == 'classification' and cv > np.histogram(
-		    # See oli algselt ja ajas jama, kui klassikoodides olid  +2 suuremad augud
-                    # y, bins=len(np.unique(y)))[0].min():
 		    y, bins=np.unique(y))[0].min():
-		# print(np.unique(y))
-		# print(len(np.unique(y)))
-		# print(np.histogram(y, bins=len(np.unique(y)))[0].min())
-		print(np.histogram(y, bins=len(np.unique(y))))
-		print(np.histogram(y, bins=np.unique(y)))
-                gscript.message(os.linesep)
-                gscript.message('Number of cv folds is greater than number of '
-                                'samples in some classes. Cross-validation is being'
-                                ' skipped')
+                gs.message(os.linesep)
+                gs.message('Number of cv folds is greater than number of '
+                            'samples in some classes. Cross-validation is being'
+                            ' skipped')
             else:
-                gscript.message(os.linesep)
-                gscript.message(
+                gs.message(os.linesep)
+                gs.message(
                     "Cross validation global performance measures......:")
 
                 # add auc and mcc as scorer if classification is binary
@@ -859,27 +837,38 @@ def main():
                     clf, X, y, group_id, class_weights, outer, scoring,
                     importances, n_permutations, random_state, n_jobs)
 
+                # from sklearn.model_selection import cross_validate
+                # scores = cross_validate(clf, X, y, group_id, scoring, outer, n_jobs, fit_params=fit_params)
+                # test_scoring = ['test_' + i for i in scoring]
+                # gs.message(os.linesep)
+                # gs.message(('Metric \t Mean \t Error'))
+                # for sc in test_scoring:
+                #     gs.message(sc + '\t' + str(scores[sc].mean()) + '\t' + str(scores[sc].std()))
+
                 preds = np.hstack((preds, sample_coords))
 
                 for method, val in scores.iteritems():
-                    gscript.message(
+                    gs.message(
                         method+":\t%0.3f\t+/-SD\t%0.3f" %
                         (val.mean(), val.std()))
 
                 # individual class scores
                 if mode == 'classification' and len(np.unique(y)) != 2:
-                    gscript.message(os.linesep)
-                    gscript.message('Cross validation class performance measures......:')
-                    gscript.message('Class \t' + '\t'.join(map(str, np.unique(y))))
+                    gs.message(os.linesep)
+                    gs.message(
+                        'Cross validation class performance measures......:')
+                    gs.message('Class \t' + '\t'.join(map(str, np.unique(y))))
 
                     for method, val in cscores.iteritems():
                         mat_cscores = np.matrix(val)
-                        gscript.message(
+                        gs.message(
                             method+':\t' + '\t'.join(
-                                map(str, np.round(mat_cscores.mean(axis=0), 2)[0])))
-                        gscript.message(
+                                map(str, np.round(
+                                        mat_cscores.mean(axis=0), 2)[0])))
+                        gs.message(
                             method+' std:\t' + '\t'.join(
-                                map(str, np.round(mat_cscores.std(axis=0), 2)[0])))
+                                map(str, np.round(
+                                        mat_cscores.std(axis=0), 2)[0])))
 
                 # write cross-validation results for csv file
                 if errors_file != '':
@@ -892,18 +881,19 @@ def main():
                     preds.columns = ['y_true', 'y_pred', 'fold', 'x', 'y']
                     preds.to_csv(preds_file, mode='w')
                     text_file = open(preds_file + 't', "w")
-                    text_file.write('"Integer","Real","Real","integer","Real","Real"')
+                    text_file.write(
+                        '"Integer","Real","Real","integer","Real","Real"')
                     text_file.close()
 
                 # feature importances
                 if importances is True:
-                    gscript.message(os.linesep)
-                    gscript.message("Feature importances")
-                    gscript.message("id" + "\t" + "Raster" + "\t" + "Importance")
+                    gs.message(os.linesep)
+                    gs.message("Feature importances")
+                    gs.message("id" + "\t" + "Raster" + "\t" + "Importance")
 
                     # mean of cross-validation feature importances
                     for i in range(len(fimp.mean(axis=0))):
-                        gscript.message(
+                        gs.message(
                             str(i) + "\t" + maplist[i] +
                             "\t" + str(round(fimp.mean(axis=0)[i], 4)))
 
@@ -914,48 +904,55 @@ def main():
         # load a previously fitted train object
         if model_load != '':
             # load a previously fitted model
-            clf = joblib.load(model_load)
+            X, y, sample_coords, group_id, clf = joblib.load(model_load)
+            clf.fit(X,y)
 
     # Optionally save the fitted model
     if model_save != '':
-        joblib.dump(clf, model_save)
+        joblib.dump((X, y, sample_coords, group_id, clf), model_save)
 
     # -------------------------------------------------------------------------
     # prediction on grass imagery group
     # -------------------------------------------------------------------------
 
     if model_only is not True:
-        gscript.message(os.linesep)
+        gs.message(os.linesep)
 
         # predict classification/regression raster
         if prob_only is False:
-            gscript.message('Predicting classification/regression raster...')
+            gs.message('Predicting classification/regression raster...')
             predict(estimator=clf, predictors=maplist, output=output,
-                    predict_type='raw', rowincr=rowincr, n_jobs=n_jobs)
+                    predict_type='raw', overwrite=gs.overwrite(),
+                    rowincr=rowincr, n_jobs=n_jobs)
 
             if predict_resamples is True:
                 for i in range(cv):
                     resample_name = output + '_Resample' + str(i)
                     predict(estimator=models[i], predictors=maplist,
                             output=resample_name, predict_type='raw',
+                            overwrite=gs.overwrite(),
                             rowincr=rowincr, n_jobs=n_jobs)
 
         # predict class probabilities
         if probability is True:
-            gscript.message('Predicting class probabilities...')
-            predict(estimator=clf, predictors=maplist, output=output, predict_type='prob',
-                    index=indexes, rowincr=rowincr, n_jobs=n_jobs)
+            gs.message('Predicting class probabilities...')
+            predict(estimator=clf, predictors=maplist, output=output,
+                    predict_type='prob', index=indexes,
+                    class_labels=np.unique(y), overwrite=gs.overwrite(),
+                    rowincr=rowincr, n_jobs=n_jobs)
 
             if predict_resamples is True:
                 for i in range(cv):
                     resample_name = output + '_Resample' + str(i)
                     predict(estimator=models[i], predictors=maplist,
                             output=resample_name, predict_type='prob',
-                            index=indexes, rowincr=rowincr, n_jobs=n_jobs)
+                            class_labels=np.unique(y), index=indexes,
+                            overwrite=gs.overwrite(),
+                            rowincr=rowincr, n_jobs=n_jobs)
     else:
-        gscript.message("Model built and now exiting")
+        gs.message("Model built and now exiting")
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

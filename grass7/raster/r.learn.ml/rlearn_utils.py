@@ -5,36 +5,36 @@
 The module rlearn_utils contains functinons to assist
 with passing pre-defined scikit learn classifiers
 and other utilities for loading/saving training data.
-
 """
 
 from __future__ import absolute_import
 from subprocess import PIPE
-
 import numpy as np
 import os
-from copy import deepcopy
-
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import imagery as im
+
 
 def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     """
+
     Provides the classifiers and parameters using by the module
 
     Args
     ----
-    estimator: Name of estimator
-    random_state: Seed to use in randomized components
-    n_jobs: Integer, number of processing cores to use
-    p: Dict, containing classifier setttings
-    weights: None, or 'balanced' to add class_weights
+    estimator (string): Name of scikit learn estimator
+    random_state (float): Seed to use in randomized components
+    n_jobs (integer): Number of processing cores to use;
+        -1 for all cores; -2 for all cores-1
+    p (dict): Classifier setttings (keys) and values
+    weights (string): None, or 'balanced' to add class_weights
 
     Returns
     -------
-    clf: Scikit-learn classifier object
-    mode: Flag to indicate whether classifier performs classification or
-          regression
+    clf (object): Scikit-learn classifier object
+    mode (string): Flag to indicate whether classifier performs classification
+        or regression
+
     """
 
     from sklearn.linear_model import LogisticRegression
@@ -60,37 +60,16 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
             from sklearn.pipeline import Pipeline
             from pyearth import Earth
 
-            earth_classifier = Pipeline([('Earth',
-                                          Earth(max_degree=p['max_degree'])),
-                                         ('Logistic', LogisticRegression(n_jobs=n_jobs))])
-
-            classifiers = {'EarthClassifier': earth_classifier,
-                           'EarthRegressor': Earth(max_degree=p['max_degree'])}
-        except:
-            gscript.fatal('Py-earth package not installed')
-
-    elif estimator == 'XGBClassifier' or estimator == 'XGBRegressor':
-        try:
-            from xgboost import XGBClassifier, XGBRegressor
-
-            if p['max_depth'] is None:
-                p['max_depth'] = int(3)
+            earth_classifier = Pipeline(
+                [('classifier', Earth(max_degree=p['max_degree'])),
+                 ('Logistic', LogisticRegression(n_jobs=n_jobs))])
 
             classifiers = {
-                'XGBClassifier':
-                    XGBClassifier(learning_rate=p['learning_rate'],
-                                  n_estimators=p['n_estimators'],
-                                  max_depth=p['max_depth'],
-                                  subsample=p['subsample'],
-                                  nthread=n_jobs),
-                'XGBRegressor':
-                    XGBRegressor(learning_rate=p['learning_rate'],
-                                 n_estimators=p['n_estimators'],
-                                 max_depth=p['max_depth'],
-                                 subsample=p['subsample'],
-                                 nthread=n_jobs)}
+                'EarthClassifier': earth_classifier,
+                'EarthRegressor': Earth(max_degree=p['max_degree'])
+                }
         except:
-            gscript.fatal('XGBoost package not installed')
+            gs.fatal('Py-earth package not installed')
     else:
         # core sklearn classifiers go here
         classifiers = {
@@ -101,6 +80,7 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
             'LogisticRegression':
                 LogisticRegression(C=p['C'],
                                    class_weight=weights,
+                                   solver='liblinear',
                                    random_state=random_state,
                                    n_jobs=n_jobs,
                                    fit_intercept=True),
@@ -189,7 +169,6 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
         or estimator == 'LinearDiscriminantAnalysis' \
         or estimator == 'QuadraticDiscriminantAnalysis' \
         or estimator == 'EarthClassifier' \
-        or estimator == 'XGBClassifier' \
         or estimator == 'SVC' \
         or estimator == 'KNeighborsClassifier':
         mode = 'classification'
@@ -201,15 +180,17 @@ def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
 
 def save_training_data(X, y, groups, coords, file):
     """
+
     Saves any extracted training data to a csv file
 
     Args
     ----
-    X: Numpy array containing predictor values
-    y: Numpy array containing labels
-    groups: Numpy array of group labels
-    coords: Numpy array containing xy coordinates of samples
-    file: Path to a csv file to save data to
+    X (2d numpy array): Numpy array containing predictor values
+    y (1d numpy array): Numpy array containing labels
+    groups (1d numpy array): Numpy array of group labels
+    coords (2d numpy array): Numpy array containing xy coordinates of samples
+    file (string): Path to a csv file to save data to
+
     """
 
     # if there are no group labels, create a nan filled array
@@ -223,18 +204,20 @@ def save_training_data(X, y, groups, coords, file):
 
 def load_training_data(file):
     """
+
     Loads training data and labels from a csv file
 
     Args
     ----
-    file: Path to a csv file to save data to
+    file (string): Path to a csv file to save data to
 
     Returns
     -------
-    X: Numpy array containing predictor values
-    y: Numpy array containing labels
-    groups: Numpy array of group labels, or None
-    coords: Numpy array containing x,y coordinates of samples
+    X (2d numpy array): Numpy array containing predictor values
+    y (1d numpy array): Numpy array containing labels
+    groups (1d numpy array): Numpy array of group labels, or None
+    coords (2d numpy array): Numpy array containing x,y coordinates of samples
+
     """
 
     training_data = np.loadtxt(file, delimiter=',')
@@ -258,16 +241,18 @@ def load_training_data(file):
 
 def maps_from_group(group):
     """
+
     Parse individual rasters into a list from an imagery group
 
     Args
     ----
-    group: String; GRASS imagery group
+    group (string): Name of GRASS imagery group
 
     Returns
     -------
-    maplist: List containing individual GRASS raster maps
-    map_names: List with print friendly map names
+    maplist (list): List containing individual GRASS raster maps
+    map_names (list): List with print friendly map names
+
     """
     groupmaps = im.group(group=group, flags="g",
                          quiet=True, stdout_=PIPE).outputs.stdout
@@ -280,3 +265,17 @@ def maps_from_group(group):
         map_names.append(rastername.split('@')[0])
 
     return(maplist, map_names)
+
+
+def save_model(estimator, X, y, sample_coords, groups, filename):
+    from sklearn.externals import joblib
+
+    joblib.dump((estimator, X, y, sample_coords, group_id), filename)
+
+
+def load_model(filename):
+    from sklearn.externals import joblib
+    
+    estimator, X, y, sample_coords, groups = joblib.load(filename)
+
+    return (estimator, X, y, sample_coords, groups)

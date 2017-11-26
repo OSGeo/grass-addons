@@ -9,26 +9,28 @@ model validation and permutation feature importances.
 
 from __future__ import absolute_import
 from copy import deepcopy
-
 import numpy as np
 import os
 from numpy.random import RandomState
+import grass.script as gs
 
-import grass.script as gscript
 
 def specificity_score(y_true, y_pred):
     """
+
     Calculate specificity score
 
     Args
     ----
-    y_true: 1D numpy array of truth values
-    y_pred: 1D numpy array of predicted classes
+    y_true (1d numpy array): true values of class labels
+    y_pred (1d numpy array): predicted class labels
 
     Returns
     -------
-    specificity: specificity score
+    specificity (float): specificity score
+
     """
+
     from sklearn.metrics import confusion_matrix
 
     cm = confusion_matrix(y_true, y_pred)
@@ -41,6 +43,7 @@ def specificity_score(y_true, y_pred):
 def varimp_permutation(estimator, X, y, n_permutations, scorer,
                        n_jobs, random_state):
     """
+
     Method to perform permutation-based feature importance during
     cross-validation (cross-validation is applied externally to this
     method)
@@ -55,16 +58,17 @@ def varimp_permutation(estimator, X, y, n_permutations, scorer,
 
     Args
     ----
-    estimator: estimator that has been fitted to a training partition
-    X, y: data and labels from a test partition
-    n_permutations: number of random permutations to apply
-    scorer: scikit-learn metric function to use
-    n_jobs: integer, number of processing cores
-    random_state: seed to pass to the numpy random.seed
+    estimator (object): estimator that has been fitted to a training partition
+    X, y: 2d and 1d numpy arrays of data and labels from a test partition
+    n_permutations (integer): number of random permutations to apply
+    scorer (object): scikit-learn metric function to use
+    n_jobs (integer): integer, number of processing cores
+    random_state (float): seed to pass to the numpy random.seed
 
     Returns
     -------
-    scores: scores for each predictor following permutation
+    scores (2d numpy array): scores for each predictor following permutation
+
     """
 
     from sklearn.externals.joblib import Parallel, delayed
@@ -89,19 +93,21 @@ def varimp_permutation(estimator, X, y, n_permutations, scorer,
 
 def __permute(estimator, X, y, best_score, scorer, random_state):
     """
+
     Permute each predictor and measure difference from best score
 
     Args
     ----
-    estimator: scikit learn estimator
-    X, y: data and labels from a test partition
-    best_score: best scorer obtained on unperturbed data
-    scorer: scoring method to use to measure importances
-    random_state: random seed
+    estimator (object): scikit learn estimator
+    X, y: 2d and 1d numpy arrays data and labels from a test partition
+    best_score (float): best scorer obtained on unperturbed data
+    scorer (object): scoring method to use to measure importances
+    random_state (float): random seed
 
     Returns
     -------
-    scores: 2D numpy array of scores for each predictor following permutation
+    scores (2D numpy array): scores for each predictor following permutation
+
     """
 
     rstate = RandomState(random_state)
@@ -122,71 +128,108 @@ def __permute(estimator, X, y, best_score, scorer, random_state):
     return scores
 
 
-def __parallel_fit(estimator, X, y, groups, train_indices, test_indices, sample_weight):
+def __parallel_fit(estimator, X, y, groups, train_indices, sample_weight):
     """
+
     Fit classifiers/regressors in parallel
 
     Args
     ----
-    estimator: scikit learn estimator
+    estimator (object): scikit learn estimator
     X, y: 2D and 1D numpy arrays of training data and labels
-    groups: 1D numpy array of len(y) containing group labels
-    train_indices, test_indices: 1D numpy arrays of indices to use for training/validation
-    sample_weight: 1D numpy array of len(y) containing weights to use during fitting
-                    applied only to XGBoost and Gradient Boosting classifiers
-    """
+    groups (1D numpy array): of len(y) containing group labels
+    train_indices, test_indices: 1D numpy arrays of indices to use for
+        training/validation
+    sample_weight (1D numpy array): of len(y) containing weights to use during
+        fitting
 
+    """
+    from sklearn.pipeline import Pipeline
+
+    rs_estimator = deepcopy(estimator)
+    
     # create training and test folds
-    X_train, X_test = X[train_indices], X[test_indices]
-    y_train, y_test = y[train_indices], y[test_indices]
-    if groups is not None: groups_train = groups[train_indices]
-    else: groups_train = None
+    X_train, y_train = X[train_indices], y[train_indices]
+
+    if groups is not None:
+        groups_train = groups[train_indices]
+    else:
+        groups_train = None
 
     # subset training and test fold sample_weight
-    if sample_weight is not None: weights = sample_weight[train_indices]
+    if sample_weight is not None:
+        weights = sample_weight[train_indices]
 
-    # train estimator
-    if groups is not None and type(estimator).__name__ in ['RandomizedSearchCV', 'GridSearchCV']:
-        if sample_weight is None: estimator.fit(X_train, y_train, groups=groups_train)
-        else: estimator.fit(X_train, y_train, groups=groups_train, sample_weight=weights)
+    # specify fit_params for sample_weights if required
+    if isinstance(estimator, Pipeline) and sample_weight is not None:
+        fit_params = {'classifier__sample_weight': weights}
+    elif not isinstance(estimator, Pipeline) and sample_weight is not None:
+        fit_params = {'sample_weight': weights}
     else:
-        if sample_weight is None: estimator.fit(X_train, y_train)
-        else: estimator.fit(X_train, y_train, sample_weight=weights)
+        fit_params = {}
 
-    return estimator
+    # fit estimator with/without groups
+    if groups is not None and type(estimator).__name__ in ['RandomizedSearchCV', 'GridSearchCV']:
+        rs_estimator.fit(X_train, y_train, groups=groups_train, **fit_params)
+    else:
+        rs_estimator.fit(X_train, y_train, **fit_params)
+
+    return rs_estimator
 
 
 def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                      scoring='accuracy', feature_importances=False,
                      n_permutations=25, random_state=None, n_jobs=-1):
     """
+
     Stratified Kfold and GroupFold cross-validation using multiple
     scoring metrics and permutation feature importances
 
     Args
     ----
-    estimator: Scikit learn estimator
+    estimator (object): Scikit learn estimator
     X, y: 2D and 1D numpy array of training data and labels
-    groups: 1D numpy array containing group labels
-    sample_weight: 1D numpy array[n_samples,] of sample weights
-    cv: Integer of cross-validation folds or sklearn.model_selection object
-    scoring: List of performance metrics to use
-    feature_importances: Boolean to perform permutation-based importances
-    n_permutations: Number of permutations during feature importance
-    random_state: Seed to pass to the random number generator
+    groups (1D numpy array): group labels
+    sample_weight (1D numpy array[n_samples,]): sample weights per sample
+    cv (integer or object): Number of cross-validation folds or
+        sklearn.model_selection object
+    scoring (list): List of performance metrics to use
+    feature_importances (boolean): option to perform permutation-based importances
+    n_permutations (integer): Number of permutations during feature importance
+    random_state (float): Seed to pass to the random number generator
 
     Returns
     -------
-    scores: Dict, containing lists of scores per cross-validation fold
-    byclass_scores: Dict, containing scores per class
-    fimp: 2D numpy array of permutation feature importances per feature
-    clf_resamples: List, fitted estimators
-    predictions: 2D numpy array with y_true, y_pred, fold
+    scores (dict): Containing lists of scores per cross-validation fold
+    byclass_scores (dict): Containing scores per class
+    fimp (2D numpy array): permutation feature importances per feature
+    clf_resamples (list): List of fitted estimators
+    predictions (2d numpy array): with y_true, y_pred, fold
+
     """
 
     from sklearn import metrics
     from sklearn.model_selection import StratifiedKFold
     from sklearn.externals.joblib import Parallel, delayed
+
+    # first unwrap the estimator from any potential pipelines or gridsearchCV
+    if type(estimator).__name__ == 'Pipeline':
+        clf_type = estimator.named_steps['classifier']
+    else:
+        clf_type = estimator
+
+    if type(clf_type).__name__ == 'GridSearchCV' or \
+        type(clf_type).__name__ == 'RandomizedSearchCV':
+        clf_type = clf_type.best_estimator_
+
+    # check name against already multithreaded classifiers
+    if type(clf_type).__name__ in [
+        'RandomForestClassifier',
+        'RandomForestRegressor',
+        'ExtraTreesClassifier',
+        'ExtraTreesRegressor',
+        'KNeighborsClassifier']:
+        n_jobs=1
 
     # -------------------------------------------------------------------------
     # create copies of estimator and create cross-validation iterator
@@ -224,7 +267,11 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
                        'roc_auc': metrics.roc_auc_score,
                        'zero_one_loss': metrics.zero_one_loss,
                        'r2': metrics.r2_score,
-                       'neg_mean_squared_error': metrics.mean_squared_error}
+                       'explained_variance': metrics.explained_variance_score,
+                       'neg_mean_absolute_error': metrics.mean_absolute_error,
+                       'neg_mean_squared_error': metrics.mean_squared_error,
+                       'neg_mean_squared_log_error': metrics.mean_squared_log_error,
+                       'neg_median_absolute_error': metrics.median_absolute_error}
 
     byclass_methods = {'f1': metrics.f1_score,
                        'fbeta': metrics.fbeta_score,
@@ -245,9 +292,8 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
         try:
             list(scoring_methods.keys()).index(i)
         except:
-            gscript.fatal(('Scoring ', i, ' is not a valid scoring method',
-                            os.linesep(),
-                            'Valid methods are: ', scoring_methods.keys()))
+            gs.fatal(('Scoring ', i, ' is not a valid scoring method',
+                      os.linesep, 'Valid methods are: ', scoring_methods.keys()))
 
     # set averaging type for global binary or multiclass scores
     if len(np.unique(y)) == 2 and all([0, 1] == np.unique(y)):
@@ -279,11 +325,9 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     # -------------------------------------------------------------------------
     # Perform multiprocessing fitting of clf on each fold
     # -------------------------------------------------------------------------
-
     clf_resamples = Parallel(n_jobs=n_jobs)(
-        delayed(__parallel_fit)(clf, X, y, groups, train_indices,
-                              test_indices, sample_weight)
-        for train_indices, test_indices in zip(trains, tests))
+        delayed(__parallel_fit)(clf, X, y, groups, train_indices, sample_weight)
+        for train_indices in trains)
 
     # -------------------------------------------------------------------------
     # loop through each fold and calculate performance metrics
@@ -296,8 +340,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
     for train_indices, test_indices in zip(trains, tests):
 
         # create training and test folds
-        X_train, X_test = X[train_indices], X[test_indices]
-        y_train, y_test = y[train_indices], y[test_indices]
+        X_test, y_test = X[test_indices], y[test_indices]
 
         # prediction of test fold
         y_pred = clf_resamples[fold].predict(X_test)
@@ -317,8 +360,13 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
             elif m == 'kappa' or m == 'specificity' or m == 'accuracy' \
             or m == 'hamming_loss' or m == 'jaccard_similarity' \
             or m == 'log_loss' or m == 'zero_one_loss' \
-            or m == 'matthews_corrcoef' or m == 'r2' \
-            or m == 'neg_mean_squared_error':
+            or m == 'matthews_corrcoef' \
+            or m == 'r2' \
+            or m == 'explained_variance' \
+            or m == 'neg_mean_absolute_error' \
+            or m == 'neg_mean_squared_error' \
+            or m == 'neg_mean_squared_log_error' \
+            or m == 'neg_median_absolute_error':
                 scores[m] = np.append(
                     scores[m], scoring_methods[m](y_test, y_pred))
 
