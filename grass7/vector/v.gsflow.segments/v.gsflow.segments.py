@@ -46,8 +46,8 @@
 #%option
 #%  key: icalc
 #%  type: integer
-#%  description: Stream depth option: 0-const; 1,2-Manning; 3-aQ^b
-#%  answer: 3
+#%  description: Stream depth option: 0-const; 1,2-Manning (rect/8-pt); 3-aQ^b
+#%  answer: 1
 #%  required: no
 #%end
 
