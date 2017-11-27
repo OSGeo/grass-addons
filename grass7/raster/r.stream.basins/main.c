@@ -38,6 +38,8 @@ int main(int argc, char *argv[])
 
     int b_test = 0;		/* test which option has been chosen: like chmod */
     int segmentation, zerofill, lasts, cats;
+    int number_of_segs, number_of_segs_total;
+    double seg_size;
     int i, outlets_num = 0;
     int max_number_of_streams;
     struct Range range;
@@ -139,6 +141,25 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+
+    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
+                           (ncols / SCOLS + ncols % SCOLS);
+
+    if (!segmentation) {
+	/* force use of the segment version 
+	 * if not all segments can be kept in memory */
+	if (number_of_segs_total > number_of_segs)
+	    segmentation = 1;
+    }
+
     /* ALL IN RAM VERSION */
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_basins;
@@ -199,19 +220,9 @@ int main(int argc, char *argv[])
     else {
 	SEG map_dirs, map_streams, map_basins;
 	SEGMENT *streams = NULL, *dirs, *basins;
-	int number_of_segs;
-	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
-	number_of_segs = atoi(opt_swapsize->answer);
-	if (number_of_segs < 3)
-	    number_of_segs = 3;
-
-	/* segment size in MB */
-	seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
-
-	number_of_segs = (int)(number_of_segs / seg_size);
 	if (number_of_segs < 10)
 	    number_of_segs = 10;
 

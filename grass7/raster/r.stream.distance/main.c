@@ -37,10 +37,11 @@ int main(int argc, char *argv[])
     struct Flag *flag_outs, *flag_sub, *flag_near, *flag_segmentation;
     char *method_name[] = { "UPSTREAM", "DOWNSTREAM" };
     int method;
-    int number_of_segs;
+    int number_of_segs, number_of_segs_total;
     int outlets_num;
     int number_of_streams;
     int outs, subs, near, segmentation;	/*flags */
+    double seg_size;
     int j;
 
     G_gisinit(argv[0]);
@@ -142,6 +143,30 @@ int main(int argc, char *argv[])
     fifo_max = 4 * (nrows + ncols);
     fifo_points = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    if (method == UPSTREAM && in_elev_opt->answer) {
+	seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 2.0) * SROWS * SCOLS / (1 << 20);
+    }
+    else {
+	seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 1.0) * SROWS * SCOLS / (1 << 20);
+    }
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+
+    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
+                           (ncols / SCOLS + ncols % SCOLS);
+
+    if (!segmentation) {
+	/* force use of the segment version 
+	 * if not all segments can be kept in memory */
+	if (number_of_segs_total > number_of_segs)
+	    segmentation = 1;
+    }
+
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_distance, map_elevation,
 	    map_tmp_elevation;
@@ -231,26 +256,12 @@ int main(int argc, char *argv[])
 	SEGMENT *elevation = NULL;
 	SEGMENT *tmp_elevation = NULL;
 	DCELL nullval;
-	double seg_size;
 
 	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
 		  method_name[method]);
 
 	Rast_set_d_null_value(&nullval, 1);
 
-	number_of_segs = atoi(opt_swapsize->answer);
-	if (number_of_segs < 3)
-	    number_of_segs = 3;
-
-	/* segment size in MB */
-	if (method == UPSTREAM && in_elev_opt->answer) {
-	    seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 2.0) * SROWS * SCOLS / (1 << 20);
-	}
-	else {
-	    seg_size = (sizeof(CELL) * 2.0 + sizeof(DCELL) * 1.0) * SROWS * SCOLS / (1 << 20);
-	}
-
-	number_of_segs = (int)(number_of_segs / seg_size);
 	if (number_of_segs < 10)
 	    number_of_segs = 10;
 

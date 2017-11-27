@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
     int i;
     int seg_length, seg_skip;
     int radians, segmentation;	/* flags */
+    int number_of_segs, number_of_segs_total;
+    double seg_size;
     double seg_treshold;
     int number_of_streams, ordered;
 
@@ -139,6 +141,25 @@ int main(int argc, char *argv[])
     Rast_get_window(&window);
     G_begin_distance_calculations();
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+
+    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
+                           (ncols / SCOLS + ncols % SCOLS);
+
+    if (!segmentation) {
+	/* force use of the segment version 
+	 * if not all segments can be kept in memory */
+	if (number_of_segs_total > number_of_segs)
+	    segmentation = 1;
+    }
+
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_elevation, map_unique_streams;
 	CELL **streams, **dirs, **unique_streams = NULL;
@@ -186,21 +207,11 @@ int main(int argc, char *argv[])
 	SEGMENT *streams, *dirs, *unique_streams = NULL;
 	SEGMENT *elevation;
 	DCELL nullval;
-	int number_of_segs;
-	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
 	Rast_set_d_null_value(&nullval, 1);
 
-	number_of_segs = atoi(opt_swapsize->answer);
-	if (number_of_segs < 3)
-	    number_of_segs = 3;
-
-	/* segment size in MB */
-	seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
-
-	number_of_segs = (int)(number_of_segs / seg_size);
 	if (number_of_segs < 10)
 	    number_of_segs = 10;
 

@@ -58,8 +58,9 @@ int main(int argc, char *argv[])
 
     int output_num = 0;
     int segmentation, zerofill;
+    double seg_size;
     int i;			/* iteration vars */
-    int number_of_segs;
+    int number_of_segs, number_of_segs_total;
     int number_of_streams;
     char *in_streams = NULL, *in_dirs = NULL, *in_elev = NULL, *in_accum =
 	NULL;
@@ -161,6 +162,25 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+
+    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
+                           (ncols / SCOLS + ncols % SCOLS);
+
+    if (!segmentation) {
+	/* force use of the segment version 
+	 * if not all segments can be kept in memory */
+	if (number_of_segs_total > number_of_segs)
+	    segmentation = 1;
+    }
+
     /* ALL IN RAM VERSION */
     if (!segmentation) {
 	MAP map_streams, map_dirs;
@@ -219,18 +239,9 @@ int main(int argc, char *argv[])
     else {
 	SEG map_streams, map_dirs;
 	SEGMENT *streams, *dirs;
-	double seg_size;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
-	number_of_segs = atoi(opt_swapsize->answer);
-	if (number_of_segs < 3)
-	    number_of_segs = 3;
-
-	/* segment size in MB */
-	seg_size = sizeof(CELL) * 2.0 * SROWS * SCOLS / (1 << 20); 
-
-	number_of_segs = (int)(number_of_segs / seg_size);
 	if (number_of_segs < 10)
 	    number_of_segs = 10;
 

@@ -44,9 +44,10 @@ int main(int argc, char *argv[])
 	*flag_local, *flag_cells, *flag_downstream;
 
     char *method_name[] = { "UPSTREAM", "DOWNSTREAM" };
-    int number_of_segs;
+    int number_of_segs, number_of_segs_total;
     int number_of_streams;
     int segmentation, downstream, local, cells;	/*flags */
+    double seg_size;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);
@@ -145,6 +146,25 @@ int main(int argc, char *argv[])
     G_get_window(&window);
     G_begin_distance_calculations();
 
+    number_of_segs = atoi(opt_swapsize->answer);
+    if (number_of_segs < 3)
+	number_of_segs = 3;
+
+    /* segment size in MB */
+    seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+
+    number_of_segs = (int)(number_of_segs / seg_size);
+
+    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
+                           (ncols / SCOLS + ncols % SCOLS);
+
+    if (!segmentation) {
+	/* force use of the segment version 
+	 * if not all segments can be kept in memory */
+	if (number_of_segs_total > number_of_segs)
+	    segmentation = 1;
+    }
+
     if (!segmentation) {
 	MAP map_dirs, map_streams, map_elevation, map_output, map_identifier;
 	CELL **streams, **dirs, **identifier = NULL;
@@ -235,21 +255,12 @@ int main(int argc, char *argv[])
 	SEG map_dirs, map_streams, map_elevation, map_output, map_identifier;
 	SEGMENT *streams, *dirs, *elevation, *output, *identifier;
 	DCELL nullval;
-	double seg_size;
 
 	G_message(_("Calculating segments in direction <%s> (may take some time)..."),
 		  method_name[downstream]);
 
 	Rast_set_d_null_value(&nullval, 1);
 
-	number_of_segs = atoi(opt_swapsize->answer);
-	if (number_of_segs < 3)
-	    number_of_segs = 3;
-
-	/* segment size in MB */
-	seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
-
-	number_of_segs = (int)(number_of_segs / seg_size);
 	if (number_of_segs < 10)
 	    number_of_segs = 10;
 
