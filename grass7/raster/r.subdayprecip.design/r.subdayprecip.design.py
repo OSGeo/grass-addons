@@ -209,7 +209,7 @@ def main():
 
         if check_area_size:
             Module('v.db.update', map=opt['map'],
-                   column=field_name, value='NULL',
+                   column=field_name, value='-1',
                    where='{} > {}'.format(area_col_name, opt['area_size']))
 
         # remove unused column
