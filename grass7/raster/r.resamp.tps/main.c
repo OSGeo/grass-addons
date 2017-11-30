@@ -22,6 +22,7 @@
 #include <grass/raster.h>
 #include <grass/segment.h>
 #include <grass/glocale.h>
+#include "cache.h"
 #include "tps.h"
 
 int main(int argc, char *argv[])
@@ -47,10 +48,10 @@ int main(int argc, char *argv[])
     int r, c, nrows, ncols;
     DCELL **dbuf, *dval;
     double regularization, overlap, lm_thresh, ep_thresh;
-    SEGMENT in_seg, var_seg, out_seg;
+    struct cache in_seg, var_seg, out_seg;
     int insize, varsize;
     double segsize;
-    int segs_mb, nsegs;
+    int segs_mb, nsegs, nsegs_total;
 
     /*----------------------------------------------------------------*/
     /* Options declarations */
@@ -259,12 +260,15 @@ int main(int argc, char *argv[])
 
     segsize = segsize * 64. * 64. / (1024. * 1024.);
     nsegs = segs_mb / segsize;
+    nsegs_total = ((nrows + 63) / 64) + ((ncols + 63) / 64);
+    G_message(_("Number of segments total %d, in memory %d"), nsegs_total, nsegs);
+    /* nsegs_total = nsegs + 1; */
 
     /* load input raster and corresponding covariables */
     G_message(_("Loading input..."));
 
     insize = (1 + n_vars) * sizeof(DCELL);
-    if (Segment_open(&in_seg, G_tempfile(), nrows, ncols, 32, 32, 
+    if (cache_create(&in_seg, nrows, ncols, 64, nsegs < nsegs_total, 
                      insize, nsegs) != 1) {
 	G_fatal_error("Unable to create input temporary files");
     }
@@ -301,11 +305,10 @@ int main(int argc, char *argv[])
 		Rast_set_d_null_value(&dval[1], n_vars);
 	    }
 	    
-	    if (Segment_put(&in_seg, (void *)dval, r, c) != 1)
+	    if (cache_put(&in_seg, (void *)dval, r, c) == NULL)
 		G_fatal_error(_("Unable to write to temporary file"));
 	}
     }
-    Segment_flush(&in_seg);
     G_percent(r, nrows, 5);
 
     Rast_close(in_fd);
@@ -324,7 +327,7 @@ int main(int argc, char *argv[])
     nrows = dst.rows;
     ncols = dst.cols;
 
-    if (Segment_open(&out_seg, G_tempfile(), nrows, ncols, 64, 64, 
+    if (cache_create(&out_seg, nrows, ncols, 64, nsegs < nsegs_total, 
                      sizeof(struct tps_out), nsegs) != 1) {
 	G_fatal_error("Unable to create input temporary files");
     }
@@ -334,7 +337,7 @@ int main(int argc, char *argv[])
 	/* intialize output raster and load corresponding covariables */
 	G_message(_("Loading covariables for output..."));
 	varsize = (n_vars) * sizeof(DCELL);
-	if (Segment_open(&var_seg, G_tempfile(), nrows, ncols, 64, 64, 
+	if (cache_create(&var_seg, nrows, ncols, 64, nsegs < nsegs_total, 
 			 varsize, nsegs) != 1) {
 	    G_fatal_error("Unable to create input temporary files");
 	}
@@ -360,11 +363,10 @@ int main(int argc, char *argv[])
 			break;
 		    }
 		}
-		if (Segment_put(&var_seg, (void *)dval, r, c) != 1)
+		if (cache_put(&var_seg, (void *)dval, r, c) == NULL)
 		    G_fatal_error(_("Unable to write to temporary file"));
 	    }
 	}
-	Segment_flush(&var_seg);
 	G_percent(r, nrows, 5);
 
 	for (i = 0; i < n_vars; i++)
@@ -442,10 +444,10 @@ int main(int argc, char *argv[])
 	}
     }
 
-    Segment_close(&in_seg);
+    cache_destroy(&in_seg);
     if (n_vars)
-	Segment_close(&var_seg);
-    Segment_close(&out_seg);
+	cache_destroy(&var_seg);
+    cache_destroy(&out_seg);
 
     /* write map history */
     Rast_close(out_fd);

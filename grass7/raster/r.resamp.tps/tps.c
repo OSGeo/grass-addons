@@ -6,10 +6,11 @@
 #include <grass/raster.h>
 #include <grass/segment.h>
 #include <grass/glocale.h>
+#include "cache.h"
 #include "tps.h"
 #include "flag.h"
 #include "rclist.h"
-#include "pavl.h"
+#include "pavlrc.h"
 
 static int solvemat(double **m, double a[], double B[], int n)
 {
@@ -105,7 +106,7 @@ static int cmp_pnts(const void *first, const void *second)
     return (a->r - b->r);
 }
 
-static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
+static int load_tps_pnts(struct cache *in_seg, DCELL *dval, int n_vars,
                          struct tps_pnt *pnts, int n_points,
 			 struct Cell_head *src, struct Cell_head *dst,
 			 double regularization,
@@ -138,7 +139,7 @@ static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
     distsum = 0;
     for (i = 0; i < n_points; i++) {
 
-	Segment_get(in_seg, (void *)dval, pnts[i].r, pnts[i].c);
+	cache_get(in_seg, (void *)dval, pnts[i].r, pnts[i].c);
 
 	/* global */
 	a[i + 1 + n_vars] = dval[0];
@@ -230,22 +231,6 @@ static int load_tps_pnts(SEGMENT *in_seg, DCELL *dval, int n_vars,
     return 1;
 }
 
-
-static int cmp_rc(const void *first, const void *second)
-{
-    struct rc *a = (struct rc *)first, *b = (struct rc *)second;
-
-    if (a->row == b->row)
-	return (a->col - b->col);
-
-    return (a->row - b->row);
-}
-
-static void avl_free_item(void *avl_item)
-{
-    G_free(avl_item);
-}
-
 static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
                          struct tps_pnt *cur_pnts, int max_points,
                          int row, int col,
@@ -256,19 +241,17 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
     int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
     int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    struct rc next, ngbr_rc, *pngbr_rc;
+    struct rc next;
     struct rclist rilist;
-    struct pavl_table *visited;
+    struct pavlrc ngbr_rc;
+    struct pavlrc_table *visited;
     double dx, dy, dist;
 
-    visited = pavl_create(cmp_rc, NULL);
+    visited = pavlrc_create(NULL);
 
     ngbr_rc.row = row;
     ngbr_rc.col = col;
-    pngbr_rc = G_malloc(sizeof(struct rc));
-    *pngbr_rc = ngbr_rc;
-    pavl_insert(visited, pngbr_rc);
-    pngbr_rc = NULL;
+    pavlrc_insert(visited, &ngbr_rc);
 
     nrows = src->rows;
     ncols = src->cols;
@@ -308,16 +291,9 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
 
-	    if (pngbr_rc == NULL)
-		pngbr_rc = G_malloc(sizeof(struct rc));
-
-	    *pngbr_rc = ngbr_rc;
-
-	    if (pavl_insert(visited, pngbr_rc) != NULL) {
+	    if (pavlrc_insert(visited, &ngbr_rc) != NULL) {
 		continue;
 	    }
-	    
-	    pngbr_rc = NULL;
 
 	    rclist_add(&rilist, rown, coln);
 
@@ -354,9 +330,7 @@ static int bfs_search_nn(FLAG *pnt_flag, struct Cell_head *src,
 
 
     rclist_destroy(&rilist);
-    if (pngbr_rc)
-	G_free(pngbr_rc);
-    pavl_destroy(visited, avl_free_item);
+    pavlrc_destroy(visited);
 
     return found;
 }
@@ -371,19 +345,17 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     int nextr[8] = {0, -1, 0, 1, -1, -1, 1, 1};
     int nextc[8] = {1, 0, -1, 0, 1, -1, -1, 1};
     int n, found;
-    struct rc next, ngbr_rc, *pngbr_rc;
+    struct rc next;
     struct rclist rilist;
-    struct pavl_table *visited;
+    struct pavlrc ngbr_rc;
+    struct pavlrc_table *visited;
     double dx, dy, dist;
 
-    visited = pavl_create(cmp_rc, NULL);
+    visited = pavlrc_create(NULL);
 
     ngbr_rc.row = row;
     ngbr_rc.col = col;
-    pngbr_rc = G_malloc(sizeof(struct rc));
-    *pngbr_rc = ngbr_rc;
-    pavl_insert(visited, pngbr_rc);
-    pngbr_rc = NULL;
+    pavlrc_insert(visited, &ngbr_rc);
 
     nrows = src->rows;
     ncols = src->cols;
@@ -408,16 +380,9 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
 	    ngbr_rc.row = rown;
 	    ngbr_rc.col = coln;
 
-	    if (pngbr_rc == NULL)
-		pngbr_rc = G_malloc(sizeof(struct rc));
-
-	    *pngbr_rc = ngbr_rc;
-
-	    if (pavl_insert(visited, pngbr_rc) != NULL) {
+	    if (pavlrc_insert(visited, &ngbr_rc) != NULL) {
 		continue;
 	    }
-	    
-	    pngbr_rc = NULL;
 
 	    if (!(FLAG_GET(pnt_flag, rown, coln))) {
 		rclist_add(&rilist, rown, coln);
@@ -442,9 +407,7 @@ static int bfs_search(FLAG *pnt_flag, struct Cell_head *src,
     } while (rclist_drop(&rilist, &next));   /* while there are cells to check */
 
     rclist_destroy(&rilist);
-    if (pngbr_rc == NULL)
-	G_free(pngbr_rc);
-    pavl_destroy(visited, avl_free_item);
+    pavlrc_destroy(visited);
 
     return found;
 }
@@ -507,7 +470,7 @@ static int window_pnts(FLAG *pnt_flag, struct Cell_head *src,
     return found;
 }
 
-static double interp_wa(SEGMENT *in_seg, DCELL *dval, 
+static double interp_wa(struct cache *in_seg, DCELL *dval, 
                         struct tps_pnt *cur_pnts, int pfound,
 			int row, int col,
                         struct Cell_head *src, struct Cell_head *dst,
@@ -533,7 +496,7 @@ static double interp_wa(SEGMENT *in_seg, DCELL *dval,
 	src_row = (src->north - cur_pnts[i].r) / src->ns_res;
 	src_col = (cur_pnts[i].c - src->west) / src->ew_res;
 
-	Segment_get(in_seg, (void *)dval, src_row, src_col);
+	cache_get(in_seg, (void *)dval, src_row, src_col);
 
 	dx = cur_pnts[i].c - i_e;
 	dy = cur_pnts[i].r - i_n;
@@ -557,7 +520,7 @@ static double interp_wa(SEGMENT *in_seg, DCELL *dval,
     return result;
 }
 
-static double lm_rsqr(SEGMENT *in_seg, int n_vars, struct Cell_head *src,
+static double lm_rsqr(struct cache *in_seg, int n_vars, struct Cell_head *src,
                        struct tps_pnt *cur_pnts, int pfound, double *B)
 {
     int i, j, r, c;
@@ -575,7 +538,7 @@ static double lm_rsqr(SEGMENT *in_seg, int n_vars, struct Cell_head *src,
 	r = (int)((src->north - cur_pnts[i].r) / src->ns_res);
 	c = (int)((cur_pnts[i].c - src->west) / src->ew_res);
 
-	Segment_get(in_seg, (void *)dval, r, c);
+	cache_get(in_seg, (void *)dval, r, c);
 	obs[i] = dval[0];
 	est[i] = B[0];
 	for (j = 1; j <= n_vars; j++) {
@@ -600,8 +563,8 @@ static double lm_rsqr(SEGMENT *in_seg, int n_vars, struct Cell_head *src,
 }
 
 
-int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
-           SEGMENT *out_seg, int out_fd, char *mask_name,
+int tps_nn(struct cache *in_seg, struct cache *var_seg, int n_vars,
+           struct cache *out_seg, int out_fd, char *mask_name,
            struct Cell_head *src, struct Cell_head *dst,
 	   off_t n_points, int min_points, int max_points,
 	   double regularization, double overlap, int clustered,
@@ -723,7 +686,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	G_percent(row, src->rows, 2);
 
 	for (col = 0; col < src->cols; col++) {
-	    Segment_get(in_seg, (void *)dval, row, col);
+	    cache_get(in_seg, (void *)dval, row, col);
 	    if (!Rast_is_d_null_value(dval)) {
 		FLAG_SET(pnt_flag, row, col);
 		if (rminp > row)
@@ -751,7 +714,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	G_percent(row, nrows, 2);
 
 	for (col = 0; col < ncols; col++) {
-	    if (Segment_put(out_seg, (void *)&tps_out, row, col) != 1)
+	    if (cache_put(out_seg, (void *)&tps_out, row, col) == NULL)
 		G_fatal_error(_("Unable to write to temporary file"));
 	}
     }
@@ -795,13 +758,13 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 	    if (n_vars) {
 
-		Segment_get(var_seg, (void *)varbuf, row, col);
+		cache_get(var_seg, (void *)varbuf, row, col);
 
 		if (Rast_is_d_null_value(varbuf))
 		    continue;
 	    }
 	    
-	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    cache_get(out_seg, (void *)&tps_out, row, col);
 	    if (tps_out.wmax > overlap)
 		continue;
 
@@ -1074,7 +1037,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 			               row, col, src, dst, distmax,
 				       &weight);
 
-		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
+		    cache_get(out_seg, (void *)&tps_out, irow, icol);
 
 		    /* weight according to distance to nearest point */
 		    if (tps_out.wmax < weight)
@@ -1082,7 +1045,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
-		    Segment_put(out_seg, (void *)&tps_out, row, col);
+		    cache_put(out_seg, (void *)&tps_out, row, col);
 
 		    cnt_wa++;
 		}
@@ -1177,7 +1140,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    if (n_vars_i) {
 
-			Segment_get(var_seg, (void *)varbuf, irow, icol);
+			cache_get(var_seg, (void *)varbuf, irow, icol);
 			if (Rast_is_d_null_value(varbuf)) {
 			    continue;
 			}
@@ -1200,7 +1163,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    i_e = dst->west + (icol + 0.5) * dst->ew_res;
 
-		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
+		    cache_get(out_seg, (void *)&tps_out, irow, icol);
 
 		    result = Bc[0];
 		    if (n_vars_ic) {
@@ -1238,7 +1201,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
-		    Segment_put(out_seg, (void *)&tps_out, irow, icol);
+		    cache_put(out_seg, (void *)&tps_out, irow, icol);
 		}
 	    }
 	}
@@ -1280,7 +1243,7 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		continue;
 	    }
 	    
-	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    cache_get(out_seg, (void *)&tps_out, row, col);
 	    
 	    if (tps_out.wsum == 0)
 		Rast_set_d_null_value(&outbuf[col], 1);
@@ -1297,8 +1260,8 @@ int tps_nn(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
     return 1;
 }
 
-int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
-               SEGMENT *out_seg, int out_fd, char *mask_name,
+int tps_window(struct cache *in_seg, struct cache *var_seg, int n_vars,
+               struct cache *out_seg, int out_fd, char *mask_name,
                struct Cell_head *src, struct Cell_head *dst,
 	       off_t n_points, double regularization, double overlap,
 	       int radius, double lm_thresh)
@@ -1394,7 +1357,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	G_percent(row, src->rows, 2);
 
 	for (col = 0; col < src->cols; col++) {
-	    Segment_get(in_seg, (void *)dval, row, col);
+	    cache_get(in_seg, (void *)dval, row, col);
 	    if (!Rast_is_d_null_value(dval)) {
 		FLAG_SET(pnt_flag, row, col);
 		if (rminp > row)
@@ -1422,7 +1385,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 	G_percent(row, nrows, 2);
 
 	for (col = 0; col < ncols; col++) {
-	    if (Segment_put(out_seg, (void *)&tps_out, row, col) != 1)
+	    if (cache_put(out_seg, (void *)&tps_out, row, col) == NULL)
 		G_fatal_error(_("Unable to write to temporary file"));
 	}
     }
@@ -1463,13 +1426,13 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 	    if (n_vars) {
 
-		Segment_get(var_seg, (void *)varbuf, row, col);
+		cache_get(var_seg, (void *)varbuf, row, col);
 
 		if (Rast_is_d_null_value(varbuf))
 		    continue;
 	    }
 	    
-	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    cache_get(out_seg, (void *)&tps_out, row, col);
 	    if (tps_out.wmax > overlap)
 		continue;
 
@@ -1563,7 +1526,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
-		    Segment_put(out_seg, (void *)&tps_out, row, col);
+		    cache_put(out_seg, (void *)&tps_out, row, col);
 
 		    wacnt++;
 		}
@@ -1637,7 +1600,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    if (n_vars_i) {
 
-			Segment_get(var_seg, (void *)varbuf, irow, icol);
+			cache_get(var_seg, (void *)varbuf, irow, icol);
 			if (Rast_is_d_null_value(varbuf)) {
 			    continue;
 			}
@@ -1645,7 +1608,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    i_e = dst->west + (icol + 0.5) * dst->ew_res;
 
-		    Segment_get(out_seg, (void *)&tps_out, irow, icol);
+		    cache_get(out_seg, (void *)&tps_out, irow, icol);
 
 		    j = 0;
 
@@ -1686,7 +1649,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 
 		    tps_out.val += result * weight;
 		    tps_out.wsum += weight;
-		    Segment_put(out_seg, (void *)&tps_out, irow, icol);
+		    cache_put(out_seg, (void *)&tps_out, irow, icol);
 		}
 	    }
 	}
@@ -1712,7 +1675,7 @@ int tps_window(SEGMENT *in_seg, SEGMENT *var_seg, int n_vars,
 		continue;
 	    }
 	    
-	    Segment_get(out_seg, (void *)&tps_out, row, col);
+	    cache_get(out_seg, (void *)&tps_out, row, col);
 	    
 	    if (tps_out.wsum == 0)
 		Rast_set_d_null_value(&outbuf[col], 1);
