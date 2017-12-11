@@ -811,7 +811,7 @@ def group_by(vinput, voutput, isolate=None, aggregate=None,
                         category.reset()
                         category.set(ncat, loutput)
                         # write geometry
-                        vout.write(line, set_cats=False)
+                        vout.write(line)
                 ncat += 1
             vout.table.conn.commit()
 
