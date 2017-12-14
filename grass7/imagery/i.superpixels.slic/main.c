@@ -320,9 +320,7 @@ int main(int argc, char *argv[])
 
     G_debug(1, "MB for temporary data: %g", segs_mb);
     
-    all_mb = 3 * (sizeof(char **) * ((double) nrows / (1024. * 1024.)) +
-             sizeof(char *) * ((double) nrows / 1024.) * ((double) ncols / 1024.)) +
-             (sizeof(DCELL) * nbands + sizeof(double) * 2 + sizeof(int)) * 
+    all_mb = (sizeof(DCELL) * nbands + sizeof(double) * 2 + sizeof(int)) * 
 	     ((double) nrows / 1024.) * ((double) ncols / 1024.);
 
     G_debug(1, "MB for all in RAM: %g", all_mb);
