@@ -6,12 +6,12 @@
 
 static void *cache_get_r(struct cache *c, void *p, int row, int col)
 {
-    return memcpy(p, c->r[row][col], c->n);
+    return memcpy(p, c->r + ((size_t)row * c->cols + col) * c->n, c->n);
 }
 
 static void *cache_put_r(struct cache *c, void *p, int row, int col)
 {
-    return memcpy(c->r[row][col], p, c->n);
+    return memcpy(c->r + ((size_t)row * c->cols + col) * c->n, p, c->n);
 }
 
 static void *cache_get_s(struct cache *c, void *p, int row, int col)
@@ -46,23 +46,7 @@ int cache_create(struct cache *c, int nrows, int ncols, int seg_size,
 	c->put = cache_put_s;
     }
     else {
-	int row, col;
-
-	c->r = G_malloc(sizeof(char **) * c->rows);
-	row = 0;
-	c->r[row] = G_malloc(sizeof(char *) * c->rows * c->cols);
-	c->r[row][0] = G_malloc(sizeof(char) * c->rows * c->cols * c->n);
-	for (col = 1; col < c->cols; col++) {
-	    c->r[row][col] = c->r[row][col - 1] + c->n;
-	}
-	for (row = 1; row < c->rows; row++) {
-	    c->r[row] = c->r[row - 1] + c->cols;
-	    c->r[row][0] = c->r[row - 1][0] + c->cols * c->n;
-	    for (col = 1; col < c->cols; col++) {
-		c->r[row][col] = c->r[row][col - 1] + c->n;
-	    }
-	}
-
+	c->r = G_malloc(sizeof(char) * c->rows * c->cols * c->n);
 	c->get = cache_get_r;
 	c->put = cache_put_r;
     }
@@ -76,8 +60,6 @@ int cache_destroy(struct cache *c)
 	Segment_close(&c->s);
     }
     else {
-	G_free(c->r[0][0]);
-	G_free(c->r[0]);
 	G_free(c->r);
     }
 

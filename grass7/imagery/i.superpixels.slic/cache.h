@@ -3,7 +3,7 @@
 struct cache
 {
     SEGMENT s;
-    char ***r;
+    char *r;
     int n;		/* data size per cell in bytes */
     int rows, cols;
     void *(* get)(struct cache *c, void *p, int row, int col);
