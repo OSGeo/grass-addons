@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     struct Colors colors;
     struct History hist;
     
-    int seg_size, nseg, nsegc, nseg_total, use_seg;
-    double segs_mb, k_mb, all_mb;
+    int seg_size, nseg;
+    double segs_mb, k_mb;
 
     int n_iterations, n_super_pixels, numk, numlabels, slic0;
     int nrows, ncols, row, col, b, k;
@@ -319,17 +319,6 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Not enough memory, increase %s option"), opt_mem->answer);
 
     G_debug(1, "MB for temporary data: %g", segs_mb);
-    
-    all_mb = (sizeof(DCELL) * nbands + sizeof(double) * 2 + sizeof(int)) * 
-	     ((double) nrows / 1024.) * ((double) ncols / 1024.);
-
-    G_debug(1, "MB for all in RAM: %g", all_mb);
-
-    use_seg = 0;
-    /* TODO: k_mb + all_mb is smaller than the actual memory consumption
-     * when using all-in-ram mode */
-    if (segs_mb < k_mb + all_mb)
-	use_seg = 1;
 
     segs_mb -= k_mb;
 
@@ -338,31 +327,15 @@ int main(int argc, char *argv[])
            (seg_size * seg_size * (sizeof(DCELL) * nbands +
 	    sizeof(double) * 2 + sizeof(int)));
 
-    nsegc = ncols / seg_size;
-    if (ncols % seg_size)
-	nsegc++;
-    nseg_total = nsegc * ((nrows + seg_size - 1) / seg_size);
-
-    if (!use_seg) {
-	G_message(_("Cache data in memory mode"));
-    }
-    else {
-	G_message(_("Cache data on disk mode"));
-	if (nseg > nseg_total)
-	    nseg = nseg_total;
-	G_verbose_message(_("Number of segments in memory: %d of %d"), nseg, nseg_total);
-
-    }
-
-    if (cache_create(&bands_seg, nrows, ncols, seg_size, use_seg,
+    if (cache_create(&bands_seg, nrows, ncols, seg_size, seg_size,
 		     sizeof(DCELL) * nbands, nseg) != 1)
 	G_fatal_error("Unable to create grid cache");
 
-    if (cache_create(&dist_seg, nrows, ncols, seg_size, use_seg,
+    if (cache_create(&dist_seg, nrows, ncols, seg_size, seg_size,
 		     sizeof(double) * 2, nseg) != 1)
 	G_fatal_error("Unable to create grid cache");
 
-    if (cache_create(&k_seg, nrows, ncols, seg_size, use_seg,
+    if (cache_create(&k_seg, nrows, ncols, seg_size, seg_size,
 		     sizeof(int), nseg) != 1)
 	G_fatal_error("Unable to create grid cache");
 
@@ -682,7 +655,7 @@ int main(int argc, char *argv[])
     G_free(clustersize);
 
     cache_destroy(&dist_seg);
-    cache_create(&nk_seg, nrows, ncols, seg_size, use_seg,
+    cache_create(&nk_seg, nrows, ncols, seg_size, seg_size,
 		 sizeof(int), nseg);
 
     numlabels = SLIC_EnforceLabelConnectivity(&k_seg, ncols, nrows, 
