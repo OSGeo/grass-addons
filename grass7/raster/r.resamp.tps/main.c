@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     G_message(_("Loading input..."));
 
     insize = (1 + n_vars) * sizeof(DCELL);
-    if (cache_create(&in_seg, nrows, ncols, 64, nsegs < nsegs_total, 
+    if (cache_create(&in_seg, nrows, ncols, 64, 64, 
                      insize, nsegs) != 1) {
 	G_fatal_error("Unable to create input temporary files");
     }
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
     nrows = dst.rows;
     ncols = dst.cols;
 
-    if (cache_create(&out_seg, nrows, ncols, 64, nsegs < nsegs_total, 
+    if (cache_create(&out_seg, nrows, ncols, 64, 64, 
                      sizeof(struct tps_out), nsegs) != 1) {
 	G_fatal_error("Unable to create input temporary files");
     }
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 	/* intialize output raster and load corresponding covariables */
 	G_message(_("Loading covariables for output..."));
 	varsize = (n_vars) * sizeof(DCELL);
-	if (cache_create(&var_seg, nrows, ncols, 64, nsegs < nsegs_total, 
+	if (cache_create(&var_seg, nrows, ncols, 64, 64, 
 			 varsize, nsegs) != 1) {
 	    G_fatal_error("Unable to create input temporary files");
 	}
