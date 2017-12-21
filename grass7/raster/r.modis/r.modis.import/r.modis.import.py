@@ -423,9 +423,9 @@ def mosaic(options, remove, an, ow, fil):
             listfiles = [os.path.join(basedir, i) for i in listfiles]
             cm = createMosaicGDAL(listfiles, spectr)
             try:
-                cm.write_vrt(outname, quiet=True)
+                cm.write_vrt(os.path.join(basedir,outname), quiet=True)
             except:
-                cm.write_vrt(outname)
+                cm.write_vrt(os.path.join(basedir,outname))
             hdfiles = glob.glob1(basedir, outname + "*.vrt")
         for i in hdfiles:
             # the full path to hdf file
@@ -559,7 +559,8 @@ def main():
     # if t.register file is create
     if outfile:
         outfile.close()
-        # one layer only 
+        tempdir = grass.tempdir()
+        # one layer only
         if count == 1:
             if flags['g']:
                 grass.message(_("file={name}".format(name=outfile.name)))
@@ -574,12 +575,20 @@ def main():
             lines = tfile.readlines()
             # get the codes from only one HDF
             for line in lines[:count]:
-                code = line.split('|')[0].split('.')[-1]
-                outfiles[code] = tempfile.NamedTemporaryFile(delete=False)
+                if flags['m']:
+                    code = '_'.join(line.split('|')[0].split('_')[2:])
+                else:
+                    code = line.split('|')[0].split('.')[-1]
+                outfiles[code] = open(os.path.join(tempdir, "{co}.txt".format(co=code)), 'w')
             # split the lines for each code
             for line in lines:
-                code = line.split('|')[0].split('.')[-1]
+                if flags['m']:
+                    code = '_'.join(line.split('|')[0].split('_')[2:])
+                else:
+                    code = line.split('|')[0].split('.')[-1]
                 outfiles[code].write(line)
+            for k, v in outfiles.items():
+                v.close()
             if flags['g']:
                 message = ""
             else:
