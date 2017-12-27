@@ -35,11 +35,9 @@ def main():
 
     # set region res and grid to match raster to avoid resampling
     if not flags['r']:
-        info = gs.raster_info(original)
         gs.use_temp_region()
         atexit.register(gs.del_temp_region)
-        gs.run_command('g.region', align=original,
-                       ewres=info['ewres'], nsres=info['nsres'])
+        gs.run_command('g.region', align=original)
 
     gs.mapcalc("$clipped = $original", clipped=clipped, original=original)
 
