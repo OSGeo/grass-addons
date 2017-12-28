@@ -413,11 +413,10 @@ import atexit
 import os
 from copy import deepcopy
 import numpy as np
-from grass.pygrass.utils import set_path
 import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
 
-set_path('r.learn.ml')
+gs.utils.set_path(modulename='r.learn.ml')
 from rlearn_crossval import cross_val_scores
 from rlearn_sampling import extract_pixels, extract_points
 from rlearn_prediction import predict
