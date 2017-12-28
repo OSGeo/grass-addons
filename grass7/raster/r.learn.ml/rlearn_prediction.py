@@ -82,13 +82,6 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         for row_min, row_max in zip(row_mins, row_maxs))
     prediction = np.vstack(prediction)
 
-#    # perform predictions on lists of rows in parallel
-#    prediction = Parallel(n_jobs=n_jobs, max_nbytes=None)(
-#        delayed(__predict_parallel)
-#        (estimator, predictors, predict_type, current, row)
-#        for row in range(current.rows))
-#    prediction = np.asarray(prediction)
-
     # determine raster dtype
     if prediction.dtype == 'float':
         ftype = 'FCELL'
@@ -120,87 +113,6 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
             rastername = output + '_' + str(label)
             numpy2raster(array=prediction[:, :, pred_index], mtype='FCELL',
                          rastname=rastername, overwrite=overwrite)
-
-
-def __predict_parallel(estimator, predictors, predict_type, current, row):
-    """
-
-    Performs prediction on a single row of a GRASS raster(s))
-
-    Args
-    ----
-    estimator (object): Scikit-learn estimator object
-    predictors (list): Names of GRASS rasters
-    predict_type (string): 'raw' for classification/regression;
-        'prob' for class probabilities
-    current (dict): current region settings
-    row (integer): Row number to perform prediction on
-
-    Returns
-    -------
-    result (2d oe 3d numpy array): Prediction results
-
-    """
-
-    # initialize output
-    result, mask = None, None
-
-    # open grass rasters
-    n_features = len(predictors)
-    rasstack = [0] * n_features
-
-    for i in range(n_features):
-        rasstack[i] = RasterRow(predictors[i])
-        if rasstack[i].exist() is True:
-            rasstack[i].open('r')
-        else:
-            gs.fatal("GRASS raster " + predictors[i] +
-                     " does not exist.... exiting")
-
-    # loop through each row, and each band and add to 2D img_np_row
-    img_np_row = np.zeros((current.cols, n_features))
-    for band in range(n_features):
-        img_np_row[:, band] = np.array(rasstack[band][row])
-
-    # create mask
-    img_np_row[img_np_row == -2147483648] = np.nan
-    mask = np.zeros((img_np_row.shape[0]))
-    for feature in range(n_features):
-        invalid_indexes = np.nonzero(np.isnan(img_np_row[:, feature]))
-        mask[invalid_indexes] = np.nan
-
-    # reshape each row-band matrix into a n*m array
-    nsamples = current.cols
-    flat_pixels = img_np_row.reshape((nsamples, n_features))
-
-    # remove NaNs prior to passing to scikit-learn predict
-    flat_pixels = np.nan_to_num(flat_pixels)
-
-    # perform prediction for classification/regression
-    if predict_type == 'raw':
-        result = estimator.predict(flat_pixels)
-        result = result.reshape((current.cols))
-
-        # determine nodata value and grass raster type
-        if result.dtype == 'float':
-            nodata = np.nan
-        else:
-            nodata = -2147483648
-
-        # replace NaN values so that the prediction does not have a border
-        result[np.nonzero(np.isnan(mask))] = nodata
-
-    # perform prediction for class probabilities
-    if predict_type == 'prob':
-        result = estimator.predict_proba(flat_pixels)
-        result = result.reshape((current.cols, result.shape[1]))
-        result[np.nonzero(np.isnan(mask))] = np.nan
-
-    # close maps
-    for i in range(n_features):
-        rasstack[i].close()
-
-    return result
 
 
 def __predict_parallel2(estimator, predictors, predict_type, current, row_min, row_max):

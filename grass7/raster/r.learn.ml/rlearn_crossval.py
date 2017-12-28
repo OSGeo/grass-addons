@@ -4,7 +4,6 @@
 """
 The module rlearn_crossval contains functions to perform
 model validation and permutation feature importances.
-
 """
 
 from __future__ import absolute_import
