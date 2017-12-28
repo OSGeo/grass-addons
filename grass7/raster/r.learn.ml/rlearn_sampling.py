@@ -10,10 +10,7 @@ from __future__ import absolute_import
 import numpy as np
 import tempfile
 import grass.script as gs
-from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
-from grass.pygrass.vector import VectorTopo
-from grass.pygrass.utils import get_raster_for_points, pixel2coor
 
 
 def extract_pixels(response, predictors, lowmem=False, na_rm=False):
@@ -36,6 +33,8 @@ def extract_pixels(response, predictors, lowmem=False, na_rm=False):
     is_train (2d numpy array): Row and Columns of label positions
 
     """
+    
+    from grass.pygrass.utils import pixel2coor
 
     current = Region()
 
@@ -123,7 +122,6 @@ def extract_pixels(response, predictors, lowmem=False, na_rm=False):
 
 def extract_points(gvector, grasters, field, na_rm=False):
     """
-
     Extract values from grass rasters using vector points input
 
     Args
@@ -138,8 +136,10 @@ def extract_points(gvector, grasters, field, na_rm=False):
     X (2d numpy array): Training data
     y (1d numpy array): Array with the response variable
     coordinates (2d numpy array): Sample coordinates
-
     """
+
+    from grass.pygrass.vector import VectorTopo
+    from grass.pygrass.utils import get_raster_for_points
 
     # open grass vector
     points = VectorTopo(gvector.split('@')[0])

@@ -411,16 +411,631 @@
 from __future__ import absolute_import
 import atexit
 import os
+import tempfile
 from copy import deepcopy
+from subprocess import PIPE
 import numpy as np
 import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
+from grass.pygrass.modules.shortcuts import imagery as im
+from grass.pygrass.gis.region import Region
+from grass.pygrass.raster import RasterRow
 
-gs.utils.set_path(modulename='r.learn.ml')
-from rlearn_sampling import extract_pixels, extract_points
-from rlearn_prediction import predict
-from rlearn_utils import (
-    model_classifiers, save_training_data, load_training_data, maps_from_group)
+
+def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
+    """
+    Provides the classifiers and parameters using by the module
+
+    Args
+    ----
+    estimator (string): Name of scikit learn estimator
+    random_state (float): Seed to use in randomized components
+    n_jobs (integer): Number of processing cores to use
+    p (dict): Classifier setttings (keys) and values
+    weights (string): None, or 'balanced' to add class_weights
+
+    Returns
+    -------
+    clf (object): Scikit-learn classifier object
+    mode (string): Flag to indicate whether classifier performs classification
+        or regression
+    """
+
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import (
+        RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier,
+        ExtraTreesRegressor)
+    from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+    from sklearn.svm import SVC
+    from sklearn.neighbors import KNeighborsClassifier
+
+    # convert balanced boolean to scikit learn method
+    if weights is True:
+        weights = 'balanced'
+    else: weights = None
+
+    # optional packages that add additional classifiers here
+    if estimator == 'EarthClassifier' or estimator == 'EarthRegressor':
+        try:
+            from sklearn.pipeline import Pipeline
+            from pyearth import Earth
+
+            earth_classifier = Pipeline(
+                [('classifier', Earth(max_degree=p['max_degree'])),
+                 ('Logistic', LogisticRegression(n_jobs=n_jobs))])
+
+            classifiers = {
+                'EarthClassifier': earth_classifier,
+                'EarthRegressor': Earth(max_degree=p['max_degree'])
+                }
+        except:
+            gs.fatal('Py-earth package not installed')
+    else:
+        # core sklearn classifiers go here
+        classifiers = {
+            'SVC': SVC(C=p['C'],
+                       class_weight=weights,
+                       probability=True,
+                       random_state=random_state),
+            'LogisticRegression':
+                LogisticRegression(C=p['C'],
+                                   class_weight=weights,
+                                   solver='liblinear',
+                                   random_state=random_state,
+                                   n_jobs=n_jobs,
+                                   fit_intercept=True),
+            'DecisionTreeClassifier':
+                DecisionTreeClassifier(max_depth=p['max_depth'],
+                                       max_features=p['max_features'],
+                                       min_samples_split=p['min_samples_split'],
+                                       min_samples_leaf=p['min_samples_leaf'],
+                                       class_weight=weights,
+                                       random_state=random_state),
+            'DecisionTreeRegressor':
+                DecisionTreeRegressor(max_features=p['max_features'],
+                                      min_samples_split=p['min_samples_split'],
+                                      min_samples_leaf=p['min_samples_leaf'],
+                                      random_state=random_state),
+            'RandomForestClassifier':
+                RandomForestClassifier(n_estimators=p['n_estimators'],
+                                       max_features=p['max_features'],
+                                       min_samples_split=p['min_samples_split'],
+                                       min_samples_leaf=p['min_samples_leaf'],
+                                       class_weight=weights,
+                                       random_state=random_state,
+                                       n_jobs=n_jobs,
+                                       oob_score=False),
+            'RandomForestRegressor':
+                RandomForestRegressor(n_estimators=p['n_estimators'],
+                                      max_features=p['max_features'],
+                                      min_samples_split=p['min_samples_split'],
+                                      min_samples_leaf=p['min_samples_leaf'],
+                                      random_state=random_state,
+                                      n_jobs=n_jobs,
+                                      oob_score=False),
+            'ExtraTreesClassifier':
+                ExtraTreesClassifier(n_estimators=p['n_estimators'],
+                                     max_features=p['max_features'],
+                                     min_samples_split=p['min_samples_split'],
+                                     min_samples_leaf=p['min_samples_leaf'],
+                                     class_weight=weights,
+                                     random_state=random_state,
+                                     n_jobs=n_jobs,
+                                     oob_score=False),
+            'ExtraTreesRegressor':
+                ExtraTreesRegressor(n_estimators=p['n_estimators'],
+                                    max_features=p['max_features'],
+                                    min_samples_split=p['min_samples_split'],
+                                    min_samples_leaf=p['min_samples_leaf'],
+                                    random_state=random_state,
+                                    n_jobs=n_jobs,
+                                    oob_score=False),
+            'GradientBoostingClassifier':
+                GradientBoostingClassifier(learning_rate=p['learning_rate'],
+                                           n_estimators=p['n_estimators'],
+                                           max_depth=p['max_depth'],
+                                           min_samples_split=p['min_samples_split'],
+                                           min_samples_leaf=p['min_samples_leaf'],
+                                           subsample=p['subsample'],
+                                           max_features=p['max_features'],
+                                           random_state=random_state),
+            'GradientBoostingRegressor':
+                GradientBoostingRegressor(learning_rate=p['learning_rate'],
+                                          n_estimators=p['n_estimators'],
+                                          max_depth=p['max_depth'],
+                                          min_samples_split=p['min_samples_split'],
+                                          min_samples_leaf=p['min_samples_leaf'],
+                                          subsample=p['subsample'],
+                                          max_features=p['max_features'],
+                                          random_state=random_state),
+            'GaussianNB': GaussianNB(),
+            'LinearDiscriminantAnalysis': LinearDiscriminantAnalysis(),
+            'QuadraticDiscriminantAnalysis': QuadraticDiscriminantAnalysis(),
+            'KNeighborsClassifier': KNeighborsClassifier(n_neighbors=p['n_neighbors'],
+                                                         weights=p['weights'],
+                                                         n_jobs=n_jobs)
+        }
+
+    # define classifier
+    clf = classifiers[estimator]
+
+    # classification or regression
+    if estimator == 'LogisticRegression' \
+        or estimator == 'DecisionTreeClassifier' \
+        or estimator == 'RandomForestClassifier' \
+        or estimator == 'ExtraTreesClassifier' \
+        or estimator == 'GradientBoostingClassifier' \
+        or estimator == 'GaussianNB' \
+        or estimator == 'LinearDiscriminantAnalysis' \
+        or estimator == 'QuadraticDiscriminantAnalysis' \
+        or estimator == 'EarthClassifier' \
+        or estimator == 'SVC' \
+        or estimator == 'KNeighborsClassifier':
+        mode = 'classification'
+    else:
+        mode = 'regression'
+
+    return (clf, mode)
+
+
+def save_training_data(X, y, groups, coords, file):
+    """
+    Saves any extracted training data to a csv file
+
+    Args
+    ----
+    X (2d numpy array): Numpy array containing predictor values
+    y (1d numpy array): Numpy array containing labels
+    groups (1d numpy array): Numpy array of group labels
+    coords (2d numpy array): Numpy array containing xy coordinates of samples
+    file (string): Path to a csv file to save data to
+    """
+
+    # if there are no group labels, create a nan filled array
+    if groups is None:
+        groups = np.empty((y.shape[0]))
+        groups[:] = np.nan
+
+    training_data = np.column_stack([coords, X, y, groups])
+    np.savetxt(file, training_data, delimiter=',')
+
+
+def load_training_data(file):
+    """
+    Loads training data and labels from a csv file
+
+    Args
+    ----
+    file (string): Path to a csv file to save data to
+
+    Returns
+    -------
+    X (2d numpy array): Numpy array containing predictor values
+    y (1d numpy array): Numpy array containing labels
+    groups (1d numpy array): Numpy array of group labels, or None
+    coords (2d numpy array): Numpy array containing x,y coordinates of samples
+    """
+
+    training_data = np.loadtxt(file, delimiter=',')
+    n_cols = training_data.shape[1]
+    last_Xcol = n_cols-2
+
+    # check to see if last column contains group labels or nans
+    groups = training_data[:, -1]
+
+    # if all nans then set groups to None
+    if bool(np.isnan(groups).all()) is True:
+        groups = None
+
+    # fetch X and y
+    coords = training_data[:, 0:2]
+    X = training_data[:, 2:last_Xcol]
+    y = training_data[:, -2]
+
+    return(X, y, groups, coords)
+
+
+def maps_from_group(group):
+    """
+    Parse individual rasters into a list from an imagery group
+
+    Args
+    ----
+    group (string): Name of GRASS imagery group
+
+    Returns
+    -------
+    maplist (list): List containing individual GRASS raster maps
+    map_names (list): List with print friendly map names
+    """
+    groupmaps = im.group(group=group, flags="g",
+                         quiet=True, stdout_=PIPE).outputs.stdout
+
+    maplist = groupmaps.split(os.linesep)
+    maplist = maplist[0:len(maplist)-1]
+    map_names = []
+
+    for rastername in maplist:
+        map_names.append(rastername.split('@')[0])
+
+    return(maplist, map_names)
+
+
+def save_model(estimator, X, y, sample_coords, groups, filename):
+    from sklearn.externals import joblib
+
+    joblib.dump((estimator, X, y, sample_coords, group_id), filename)
+
+
+def load_model(filename):
+    from sklearn.externals import joblib
+    
+    estimator, X, y, sample_coords, groups = joblib.load(filename)
+
+    return (estimator, X, y, sample_coords, groups)
+
+def extract_pixels(response, predictors, lowmem=False, na_rm=False):
+    """
+
+    Samples a list of GRASS rasters using a labelled raster
+    Per raster sampling
+
+    Args
+    ----
+    response (string): Name of GRASS raster with labelled pixels
+    predictors (list): List of GRASS raster names containing explanatory variables
+    lowmem (boolean): Use numpy memmap to query predictors
+    na_rm (boolean): Remove samples containing NaNs
+
+    Returns
+    -------
+    training_data (2d numpy array): Extracted raster values
+    training_labels (1d numpy array): Numpy array of labels
+    is_train (2d numpy array): Row and Columns of label positions
+
+    """
+    
+    from grass.pygrass.utils import pixel2coor
+
+    current = Region()
+
+    # open response raster as rasterrow and read as np array
+    if RasterRow(response).exist() is True:
+        roi_gr = RasterRow(response)
+        roi_gr.open('r')
+
+        if lowmem is False:
+            response_np = np.array(roi_gr)
+        else:
+            response_np = np.memmap(
+                tempfile.NamedTemporaryFile(),
+                dtype='float32', mode='w+',
+                shape=(current.rows, current.cols))
+            response_np[:] = np.array(roi_gr)[:]
+    else:
+        gs.fatal("GRASS response raster does not exist.... exiting")
+
+    # determine number of predictor rasters
+    n_features = len(predictors)
+
+    # check to see if all predictors exist
+    for i in range(n_features):
+        if RasterRow(predictors[i]).exist() is not True:
+            gs.fatal("GRASS raster " + predictors[i] +
+                          " does not exist.... exiting")
+
+    # check if any of those pixels are labelled (not equal to nodata)
+    # can use even if roi is FCELL because nodata will be nan
+    is_train = np.nonzero(response_np > -2147483648)
+    training_labels = response_np[is_train]
+    n_labels = np.array(is_train).shape[1]
+
+    # Create a zero numpy array of len training labels
+    if lowmem is False:
+        training_data = np.zeros((n_labels, n_features))
+    else:
+        training_data = np.memmap(tempfile.NamedTemporaryFile(),
+                                  dtype='float32', mode='w+',
+                                  shape=(n_labels, n_features))
+
+    # Loop through each raster and sample pixel values at training indexes
+    if lowmem is True:
+        feature_np = np.memmap(tempfile.NamedTemporaryFile(),
+                               dtype='float32', mode='w+',
+                               shape=(current.rows, current.cols))
+
+    for f in range(n_features):
+        predictor_gr = RasterRow(predictors[f])
+        predictor_gr.open('r')
+
+        if lowmem is False:
+            feature_np = np.array(predictor_gr)
+        else:
+            feature_np[:] = np.array(predictor_gr)[:]
+
+        training_data[0:n_labels, f] = feature_np[is_train]
+
+        # close each predictor map
+        predictor_gr.close()
+
+    # convert any CELL maps no datavals to NaN in the training data
+    for i in range(n_features):
+        training_data[training_data[:, i] == -2147483648] = np.nan
+
+    # convert indexes of training pixels from tuple to n*2 np array
+    is_train = np.array(is_train).T
+    for i in range(is_train.shape[0]):
+        is_train[i, :] = np.array(pixel2coor(tuple(is_train[i]), current))
+
+    # close the response map
+    roi_gr.close()
+
+    # remove samples containing NaNs
+    if na_rm is True:
+        if np.isnan(training_data).any() == True:
+            gs.message('Removing samples with NaN values in the raster feature variables...')
+        training_labels = training_labels[~np.isnan(training_data).any(axis=1)]
+        is_train = is_train[~np.isnan(training_data).any(axis=1)]
+        training_data = training_data[~np.isnan(training_data).any(axis=1)]
+
+    return(training_data, training_labels, is_train)
+
+
+def extract_points(gvector, grasters, field, na_rm=False):
+    """
+    Extract values from grass rasters using vector points input
+
+    Args
+    ----
+    gvector (string): Name of grass points vector
+    grasters (list): Names of grass raster to query
+    field (string): Name of field in table to use as response variable
+    na_rm (boolean): Remove samples containing NaNs
+
+    Returns
+    -------
+    X (2d numpy array): Training data
+    y (1d numpy array): Array with the response variable
+    coordinates (2d numpy array): Sample coordinates
+    """
+
+    from grass.pygrass.vector import VectorTopo
+    from grass.pygrass.utils import get_raster_for_points
+
+    # open grass vector
+    points = VectorTopo(gvector.split('@')[0])
+    points.open('r')
+
+    # create link to attribute table
+    points.dblinks.by_name(name=gvector)
+
+    # extract table field to numpy array
+    table = points.table
+    cur = table.execute("SELECT {field} FROM {name}".format(field=field, name=table.name))
+    y = np.array([np.isnan if c is None else c[0] for c in cur])
+    y = np.array(y, dtype='float')
+
+    # extract raster data
+    X = np.zeros((points.num_primitives()['point'], len(grasters)), dtype=float)
+    for i, raster in enumerate(grasters):
+        rio = RasterRow(raster)
+        if rio.exist() is False:
+            gs.fatal('Raster {x} does not exist....'.format(x=raster))
+        values = np.asarray(get_raster_for_points(points, rio))
+        coordinates = values[:, 1:3]
+        X[:, i] = values[:, 3]
+        rio.close()
+
+    # set any grass integer nodata values to NaN
+    X[X == -2147483648] = np.nan
+
+    # remove missing response data
+    X = X[~np.isnan(y)]
+    coordinates = coordinates[~np.isnan(y)]
+    y = y[~np.isnan(y)]
+
+    # int type if classes represented integers
+    if all(y % 1 == 0) is True:
+        y = np.asarray(y, dtype='int')
+
+    # close
+    points.close()
+
+    # remove samples containing NaNs
+    if na_rm is True:
+        if np.isnan(X).any() == True:
+            gs.message('Removing samples with NaN values in the raster feature variables...')
+
+        y = y[~np.isnan(X).any(axis=1)]
+        coordinates = coordinates[~np.isnan(X).any(axis=1)]
+        X = X[~np.isnan(X).any(axis=1)]
+
+    return(X, y, coordinates)
+
+
+def predict(estimator, predictors, output, predict_type='raw', index=None,
+            class_labels=None, overwrite=False, rowincr=25, n_jobs=-2):
+    """
+    Prediction on list of GRASS rasters using a fitted scikit learn model
+
+    Args
+    ----
+    estimator (object): scikit-learn estimator object
+    predictors (list): Names of GRASS rasters
+    output (string): Name of GRASS raster to output classification results
+    predict_type (string): 'raw' for classification/regression;
+        'prob' for class probabilities
+    index (list): Optional, list of class indices to export
+    class_labels (1d numpy array): Optional, class labels
+    overwrite (boolean): enable overwriting of existing raster
+    n_jobs (integer): Number of processing cores;
+        -1 for all cores; -2 for all cores-1
+    """
+
+    from sklearn.externals.joblib import Parallel, delayed
+    from grass.pygrass.raster import numpy2raster
+
+    # TODO
+    # better memory efficiency and use of memmap for parallel
+    # processing
+    #from sklearn.externals.joblib.pool import has_shareable_memory
+
+    # first unwrap the estimator from any potential pipelines or gridsearchCV
+    if type(estimator).__name__ == 'Pipeline':
+       clf_type = estimator.named_steps['classifier']
+    else:
+        clf_type = estimator
+
+    if type(clf_type).__name__ == 'GridSearchCV' or \
+    type(clf_type).__name__ == 'RandomizedSearchCV':
+        clf_type = clf_type.best_estimator_
+
+    # check name against already multithreaded classifiers
+    if type(clf_type).__name__ in [
+       'RandomForestClassifier',
+        'RandomForestRegressor',
+        'ExtraTreesClassifier',
+        'ExtraTreesRegressor',
+        'KNeighborsClassifier']:
+       n_jobs = 1
+
+    # convert potential single index to list
+    if isinstance(index, int): index = [index]
+
+    # open predictors as list of rasterrow objects
+    current = Region()
+
+    # create lists of row increments
+    row_mins, row_maxs = [], []
+    for row in range(0, current.rows, rowincr):
+        if row+rowincr > current.rows:
+            rowincr = current.rows - row
+        row_mins.append(row)
+        row_maxs.append(row+rowincr)
+
+    # perform predictions on lists of row increments in parallel
+    prediction = Parallel(n_jobs=n_jobs, max_nbytes=None)(
+        delayed(__predict_parallel2)
+        (estimator, predictors, predict_type, current, row_min, row_max)
+        for row_min, row_max in zip(row_mins, row_maxs))
+    prediction = np.vstack(prediction)
+
+    # determine raster dtype
+    if prediction.dtype == 'float':
+        ftype = 'FCELL'
+    else:
+        ftype = 'CELL'
+
+    #  writing of predicted results for classification
+    if predict_type == 'raw':
+        numpy2raster(array=prediction, mtype=ftype, rastname=output,
+                     overwrite=True)
+
+    # writing of predicted results for probabilities
+    if predict_type == 'prob':
+
+        # use class labels if supplied
+        # else output predictions as 0,1,2...n
+        if class_labels is None:
+            class_labels = range(prediction.shape[2])
+
+        # output all class probabilities if subset is not specified
+        if index is None:
+            index = class_labels
+
+        # select indexes of predictions 3d numpy array to be exported to rasters
+        selected_prediction_indexes = [i for i, x in enumerate(class_labels) if x in index]
+
+        # write each 3d of numpy array as a probability raster
+        for pred_index, label in zip(selected_prediction_indexes, index):
+            rastername = output + '_' + str(label)
+            numpy2raster(array=prediction[:, :, pred_index], mtype='FCELL',
+                         rastname=rastername, overwrite=overwrite)
+
+
+def __predict_parallel2(estimator, predictors, predict_type, current, row_min, row_max):
+    """
+    Performs prediction on range of rows in grass rasters
+
+    Args
+    ----
+    estimator: scikit-learn estimator object
+    predictors: list of GRASS rasters
+    predict_type: character, 'raw' for classification/regression;
+                  'prob' for class probabilities
+    current: current region settings
+    row_min, row_max: Range of rows of grass rasters to perform predictions
+
+    Returns
+    -------
+    result: 2D (classification) or 3D numpy array (class probabilities) of predictions
+    ftypes: data storage type
+    """
+
+    # initialize output
+    result, mask = None, None
+
+    # open grass rasters
+    n_features = len(predictors)
+    rasstack = [0] * n_features
+
+    for i in range(n_features):
+        rasstack[i] = RasterRow(predictors[i])
+        if rasstack[i].exist() is True:
+            rasstack[i].open('r')
+        else:
+            gs.fatal("GRASS raster " + predictors[i] +
+                     " does not exist.... exiting")
+
+    # loop through each row, and each band and add to 2D img_np_row
+    img_np_row = np.zeros((row_max-row_min, current.cols, n_features))
+    for row in range(row_min, row_max):
+        for band in range(n_features):
+            img_np_row[row-row_min, :, band] = np.array(rasstack[band][row])
+
+    # create mask
+    img_np_row[img_np_row == -2147483648] = np.nan
+    mask = np.zeros((img_np_row.shape[0], img_np_row.shape[1]))
+    for feature in range(n_features):
+        invalid_indexes = np.nonzero(np.isnan(img_np_row[:, :, feature]))
+        mask[invalid_indexes] = np.nan
+
+    # reshape each row-band matrix into a n*m array
+    nsamples = (row_max-row_min) * current.cols
+    flat_pixels = img_np_row.reshape((nsamples, n_features))
+
+    # remove NaNs prior to passing to scikit-learn predict
+    flat_pixels = np.nan_to_num(flat_pixels)
+
+    # perform prediction for classification/regression
+    if predict_type == 'raw':
+        result = estimator.predict(flat_pixels)
+        result = result.reshape((row_max-row_min, current.cols))
+
+        # determine nodata value and grass raster type
+        if result.dtype == 'float':
+            nodata = np.nan
+        else:
+            nodata = -2147483648
+
+        # replace NaN values so that the prediction does not have a border
+        result[np.nonzero(np.isnan(mask))] = nodata
+
+    # perform prediction for class probabilities
+    if predict_type == 'prob':
+        result = estimator.predict_proba(flat_pixels)
+        result = result.reshape((row_max-row_min, current.cols, result.shape[1]))
+        result[np.nonzero(np.isnan(mask))] = np.nan
+
+    # close maps
+    for i in range(n_features):
+        rasstack[i].close()
+
+    return result
 
 
 def specificity_score(y_true, y_pred):

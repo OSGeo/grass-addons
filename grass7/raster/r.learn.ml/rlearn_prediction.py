@@ -9,15 +9,12 @@ perform predictions on GRASS rasters
 from __future__ import absolute_import
 import numpy as np
 import grass.script as gs
-from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
-from grass.pygrass.raster import numpy2raster
 
 
 def predict(estimator, predictors, output, predict_type='raw', index=None,
             class_labels=None, overwrite=False, rowincr=25, n_jobs=-2):
     """
-
     Prediction on list of GRASS rasters using a fitted scikit learn model
 
     Args
@@ -32,10 +29,10 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
     overwrite (boolean): enable overwriting of existing raster
     n_jobs (integer): Number of processing cores;
         -1 for all cores; -2 for all cores-1
-
     """
 
     from sklearn.externals.joblib import Parallel, delayed
+    from grass.pygrass.raster import numpy2raster
 
     # TODO
     # better memory efficiency and use of memmap for parallel
@@ -133,6 +130,8 @@ def __predict_parallel2(estimator, predictors, predict_type, current, row_min, r
     result: 2D (classification) or 3D numpy array (class probabilities) of predictions
     ftypes: data storage type
     """
+
+    from grass.pygrass.raster import RasterRow
 
     # initialize output
     result, mask = None, None
