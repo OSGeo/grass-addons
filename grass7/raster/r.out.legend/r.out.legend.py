@@ -8,9 +8,7 @@
 # DESCRIPTION:  Export the legend of a raster as image, which can be used
 #               in e.g., the map composer in QGIS.
 #
-# COPYRIGHT: (C) 2015 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,7 +17,7 @@
 ########################################################################
 #
 #%Module
-#% description: Create and export image file with legend of a raster map
+#% description: Create an image file showing the legend of a raster map
 #% keyword: raster
 #% keyword: color
 #% keyword: color table
@@ -32,7 +30,7 @@
 
 #%option G_OPT_F_OUTPUT
 #% key:file
-#% description: Name of the output file
+#% description: Name of the output file (including file extension)
 #% key_desc: name
 #%end
 
@@ -42,6 +40,7 @@
 #% description: File type
 #% key_desc: extension
 #% options: png,ps,cairo
+#% answer: cairo
 #% required: yes
 #% multiple: no
 #%end
@@ -78,12 +77,8 @@
 #%end
 
 #%option G_OPT_CN
-#% key: bgcolor
-#% description: background colour
-#% key_desc: name
-#% required: no
-#% answer: none
 #% guisection: Image settings
+#% answer: white
 #%end
 
 #------------------------------------------------------------------------------
@@ -108,6 +103,26 @@
 #%end
 
 #%option
+#% key: label_values
+#% type: string
+#% key_desc: float
+#% description: Specific values to draw ticks
+#% required: no
+#% multiple: yes
+#% guisection: Extra options
+#%end
+
+#%option
+#% key: label_step
+#% type: string
+#% key_desc: float
+#% description: Display label every step
+#% required: no
+#% multiple: no
+#% guisection: Extra options
+#%end
+
+#%option
 #% key: digits
 #% type: integer
 #% description: Maximum number of digits for raster value display
@@ -125,6 +140,12 @@
 #%flag:
 #% key: d
 #% description: Add histogram to legend
+#% guisection: Extra options
+#%end
+
+#%flag:
+#% key: t
+#% description: Draw legend ticks for labels
 #% guisection: Extra options
 #%end
 
@@ -150,168 +171,217 @@
 #% guisection: Font settings
 #%end
 
-#=======================================================================
-## General
-#=======================================================================
+# =======================================================================
+# General
+# =======================================================================
 
 # import libraries
 import os
 import sys
 import math
 import grass.script as grass
+from grass.pygrass.modules import Module
+from grass.script.utils import parse_key_val
+import imp
+try:
+    imp.find_module('PIL')
+    found = True
+    from PIL import Image
+except ImportError:
+    found = False
 
-# Check if running in GRASS
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
-# Check if layers exist
-def CheckLayer(raster):
-    ffile = grass.find_file(raster, element = 'cell')
-    if ffile['fullname'] == '':
-        grass.fatal("The layer " + raster + " does not exist.")
 
 # main function
 def main():
 
-    # Variables / parameters
-    outputfile    = options['file']
-    filetype      = options['filetype']
-    unit          = options['unit']
-    resol         = options['resolution']
+    # parameters - file name and extension
+    outputfile = options['file']
+    ext = outputfile.split('.')
+    if len(ext) == 1:
+        grass.fatal("Please provide the file extension of the output file")
+    filetype = options['filetype']
+    if filetype == 'cairo':
+        allowed = ('.png', '.bmp', 'ppm', 'pdf', 'ps', 'svg')
+        if not outputfile.lower().endswith(allowed):
+            grass.fatal("Unknown display driver <{}>".format(ext[1]))
+    if filetype == "ps" and not ext[1] == "ps":
+        grass.fatal("The file type <{}> does not match the file extension <"
+                    "{}>".format(filetype, ext[1]))
+    if filetype == "png" and not ext[1] == "png":
+        grass.fatal("The file type <{}> does not match the file extension <"
+                    "{}>".format(filetype, ext[1]))
+
+    # parameters - image settings
+    unit = options['unit']
+    resol = options['resolution']
     if resol == '':
-        if unit=='px':
-            resol=96
+        if unit == 'px':
+            resol = 96
         else:
-            resol=300
+            resol = 300
     else:
         resol = int(resol)
-    dimensions    = options['dimensions']
+    dimensions = options['dimensions']
     width, height = dimensions.split(",")
-    bgcolor       = options['bgcolor']
-    inmap         = options['raster']
-    labelnum      = options['labelnum']
-    val_range     = options['range']
-    font          = options['font']
-    fontsize      = int(options['fontsize'])
-    digits        = int(options['digits'])
-    flag_f        = flags['f']
-    flag_d        = flags['d']
+    bgcolor = options['color']
+    inmap = options['raster']
+    labelnum = options['labelnum']
+    vr = options['range']
+    font = options['font']
+    fontsize = int(options['fontsize'])
+    digits = int(options['digits'])
+    labval = options['label_values']
+    labstep = options['label_step']
 
-    # Check if input layer exists
-    CheckLayer(inmap)
+    # flag parameters
+    flag_f = flags['f']
+    flag_d = flags['d']
+    flag_t = flags['t']
+    if flag_t:
+        tagmargin = 9
+    else:
+        tagmargin = 4
 
     # Compute output size of legend bar in pixels
-    if unit=='cm':
+    if unit == 'cm':
         bw = math.ceil(float(width)/2.54*float(resol))
         bh = math.ceil(float(height)/2.54*float(resol))
-    elif unit=='mm':
+    elif unit == 'mm':
         bw = math.ceil(float(width)/25.4*float(resol))
         bh = math.ceil(float(height)/25.4*float(resol))
-    elif unit=='inch':
+    elif unit == 'inch':
         bw = math.ceil(float(width)*float(resol))
         bh = math.ceil(float(height)*float(resol))
-    elif unit=="px":
-        bw=float(width)
-        bh=float(height)
+    elif unit == "px":
+        bw = float(width)
+        bh = float(height)
     else:
         grass.error('Unit must be inch, cm, mm or px')
 
     # Add size of legend to w or h, if flag_d is set
+    # Add size of tics
     if flag_d:
-        if float(height)>float(width):
-            w = bw * 2.75 + 4
-            h = bh + 4
-        else:
-           h  = bh * 2.75 + 4
-           w = bw + 4
+        histmargin = 2.75
     else:
-        w = bw + 4
+        histmargin = 1
+    if float(height) > float(width):
+        w = bw * histmargin + tagmargin
         h = bh + 4
+    else:
+        h = bh * histmargin + tagmargin
+        w = bw + 4
 
     # Determine image width and height
-    if fontsize==0:
-        iw = w; ih = h; fz = 1
-        mw = 2 / w * 100
-        mh = 2 / h * 100
-        at = str(mw) + "," + str(100-mw) + "," + str(mh) + "," + str(100-mh)
+    if fontsize == 0:
+        fz = 1
     else:
         fz = round(float(fontsize) * (float(resol)/72.272))
 
-        # Allow for extra space at left (low) side if number with digits
-        maprange = grass.raster_info(inmap)
-        maxval = round(maprange['max'],digits)
-        if maxval<1:
-            maxl=len(str(maxval)) -1
-        else:
-            maxl=len(str(maxval)) - 2
+    # Determine space at left and right (or top and bottom)
+    # based on fontsize (fz) and number of digits
+    maprange = grass.raster_info(inmap)
+    maxval = round(maprange['max'], digits)
+    minval = round(maprange['min'], digits)
+    if maxval < 1:
+        maxl = len(str(maxval)) - 1
+    else:
+        maxl = len(str(maxval)) - 2
+    if minval < 1:
+        minl = len(str(minval)) - 1
+    else:
+        minl = len(str(minval)) - 2
+    margin_left = 0.5 * minl * fz
+    margin_right = 0.5 * maxl * fz
 
-        # Page width and height + position bar
-        if float(height)>float(width):
-            iw = w + fz * maxl; ih = h
-            if flag_d:
-                mw = (2 + (bw * 1.75)) / iw * 100
-                mh = 2 / ih * 100
-            else:
-                mw = 2 / iw * 100
-                mh = 2 / ih * 100
-            at = str(mh) + "," + str(100-mh) + "," + str(mw) + "," + str((100*w/iw)-1)
-        else:
-            minval = round(maprange['min'],digits)
-            margin_left = 0.5 * (len(str(minval)) - 1)
-            margin_right = 0.5 * maxl
-            iw = w + fz * (margin_left + margin_right)
-            ih = h + fz * 1.5
-            if flag_d:
-                mh = (2 + (bh * 1.75)) / ih * 100
-                mw = 2 / iw * 100
-            else:
-                mw = 2 / w * 100
-                mh = 2 / h * 100
-            at = str(100 - (100*h/ih)) + "," + str(100-mh) + "," + \
-            str((100 * fz * margin_left / iw)) + "," + \
-            str(100 - (100 * fz * margin_right / iw))
+    # Page width and height (iw, ih)
+    # Position bar in percentage (*margin)
+    # Here we take into account the extra space for the numbers and ticks
 
-    # Open file connection, set font, write legend and close file
-    grass.run_command("d.mon", start=filetype, output=outputfile, width=iw, height=ih,
-                      resolution=1, bgcolor=bgcolor)
-    if flag_f and fontsize==0:
-        flag='cfsv'
+    if float(height) > float(width):
+        iw = w + fz * maxl
+        ih = h + margin_left + margin_right
+        bmargin = str(margin_left / ih * 100)
+        tmargin = str(100 - (margin_right / ih * 100))
+        rmargin = str(100 * (w - tagmargin) / iw - 1)
+        if flag_d:
+            lmargin = str((2 + (bw * 1.75)) / iw * 100)
+        else:
+            lmargin = str(2 / iw * 100)
+    else:
+        iw = w + margin_left + margin_right
+        ih = h + fz * 1.5
+        bmargin = str((2 + tagmargin + fz * 1.5) / ih * 100)
+        if flag_d:
+            tmargin = str(100 - (2 + (bh * 1.75)) / ih * 100)
+        else:
+            tmargin = str(100 - 2 / ih * 100)
+        lmargin = str(margin_left / iw * 100)
+        rmargin = str(100 - margin_right / iw * 100)
+    at = (bmargin, tmargin, lmargin, rmargin)
+
+    # Open file connection, set font
+    os.environ['GRASS_RENDER_IMMEDIATE'] = filetype
+    os.environ['GRASS_RENDER_FILE'] = outputfile
+    os.environ['GRASS_RENDER_HEIGHT'] = str(ih)
+    os.environ['GRASS_RENDER_WIDTH'] = str(iw)
+    if bgcolor == 'none':
+        os.environ['GRASS_RENDER_TRANSPARENT'] = "TRUE"
+    else:
+        os.environ['GRASS_RENDER_BACKGROUNDCOLOR'] = bgcolor
+    if flag_f and fontsize == 0:
+        flag = 'cfsv'
     elif flag_f:
-        flag='fsv'
-    elif fontsize==0:
-        flag='csv'
+        flag = 'fsv'
+    elif fontsize == 0:
+        flag = 'csv'
     else:
-        flag='sv'
+        flag = 'sv'
     if flag_d:
-        flag=flag + 'd'
-    if val_range=='':
-        grass.run_command("d.legend", flags=flag, raster=inmap, font=font,
-                      at=at, fontsize=fz, labelnum=labelnum)
-    else:
-        grass.run_command("d.legend", flags=flag, raster=inmap, font=font,
-                      at=at, fontsize=fz, labelnum=labelnum, range=val_range)
+        flag = flag + 'd'
+    if flag_t:
+        flag = flag + 't'
 
-    grass.run_command("d.mon", flags="r", stop=filetype)
-    grass.info("----------------------------\n")
-    grass.info("File saved as " + outputfile)
-    grass.info("The image dimensions are:\n")
-    grass.info(str(int(iw)) + "px wide and " + str(int(ih)) + "px heigh\n")
-    if unit=='inch':
-        wr = iw/resol
-        hr = ih/resol
-    elif unit=='cm':
-        wr = iw/resol*2.54
-        hr = ih/resol*2.54
-    elif unit=='mm':
-        wr = iw/resol*2.54*10
-        hr = ih/resol*2.54*10
+    # Write legend with various options
+    d_legend = Module("d.legend", flags=flag, raster=inmap, font=font,
+                      at=at, fontsize=fz, labelnum=labelnum, run_=False)
+    if vr:
+        val_range = map(float, vr.split(','))
+        d_legend.inputs.range = val_range
+    if labval:
+        label_values = map(float, labval.split(','))
+        d_legend.inputs.label_values = label_values
+    if labstep:
+        label_step = float(labstep)
+        d_legend.inputs.label_step = label_step
+    d_legend.run()
+
+    # Set image resolution
+    if found and outputfile.lower().endswith(('.png', '.bmp')):
+        im = Image.open(outputfile)
+        im.save(outputfile, dpi=(resol, resol))
+
+    # Provide informatie about image on standard output
+    grass.message("----------------------------\n")
+    grass.message("File saved as {}".format(outputfile))
+    grass.message("The image dimensions are:\n")
+    grass.message("{} px wide and {} px heigh\n".format(str(int(iw)),
+                  str(int(ih))))
+    if unit == 'inch':
+        wr = round(iw/resol, 3)
+        hr = round(ih/resol, 3)
+    elif unit == 'cm':
+        wr = round(iw/resol*2.54, 3)
+        hr = round(ih/resol*2.54, 3)
+    elif unit == 'mm':
+        wr = round(iw/resol*2.54*10, 3)
+        hr = round(ih/resol*2.54*10, 3)
     else:
         wr = "same"
     if wr != "same":
-        grass.info("at a resolution of " + str(resol) + " ppi this is:")
-        grass.info(str(wr) + " " + unit + " x " + str(hr) + " " + unit + "\n")
-    grass.info("----------------------------\n")
+        grass.message("at a resolution of {} ppi this is:".format(str(resol)))
+        grass.message("{0} {2} x {1} {2}\n".format(str(wr), str(hr), unit))
+    grass.message("----------------------------\n")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
