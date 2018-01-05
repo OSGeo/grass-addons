@@ -823,6 +823,10 @@ int main(int argc, char *argv[])
 			}
 			result /= wsum;
 		    }
+		    if (result < lo)
+			result = lo;
+		    if (result > hi)
+			result = hi;
 		    outputs[i].buf[col] = result;
 		}
 	    }
