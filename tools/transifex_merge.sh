@@ -41,6 +41,12 @@ for fil in `ls $NEWLIBPODIR`;
 do
   # TODO: keep uppercase for pt_BR etc - rename in SVN as needed
   MYLANG=`echo $fil | sed 's+_translation++g'`
+  
+  # LV is not translated in Tx thus skip it
+  if [[ ${MYLANG} == "lv" ]]; then
+    continue
+  fi
+  
   # fix undefined CHARSET in files pulled from transifex (grrr...)
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWLIBPODIR}${MYLANG}_translation > ${NEWLIBPODIR}${MYLANG}_translation_new
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation > ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new
