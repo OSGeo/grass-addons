@@ -122,6 +122,8 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("aggregation"));
     G_add_keyword(_("series"));
+    G_add_keyword(_("statistics"));
+    G_add_keyword(_("quantile"));
     module->description =
 	_("Determines quantile for input value from reference "
 	  "raster map layers.");
