@@ -1,5 +1,9 @@
 <h2>DESCRIPTION</h2>
-<em>r.hazard.flood</em> Implementation of a fast procedure to detect flood prone areas
+<em>r.hazard.flood</em> is an implementation of a fast procedure to detect
+flood prone areas. It is based on a simple procedure that exploits the
+correlation between flood exposure and a Modified Topographic Index (MTI),
+calculated on the basis of the DTM and strongly influenced by the resolution
+of this latter.
 
 <h3>Important:</h3>
 Before running the program, the region should be aligned perfectly with the 
@@ -8,7 +12,7 @@ region settings. If it doesn't match with the elevation map, the result is
 nonsense.
 
 <h2>NOTES</h2>
-<p>The availability of new technologies for the measurement of surface
+The availability of new technologies for the measurement of surface
 elevation has addressed the lack of high resolution elevation data, and
 this has led to an increase in the attraction of DEM-based automated
 procedures for hydrological applications including the delineation of
@@ -50,23 +54,25 @@ r.hazard.flood map=elevation flood=flood mti=mti
 
 <h3>Dependencies</h3>
 <em>
-<a href="r.area.html">r.area</a>,
+<a href="r.area.html">r.area</a>
 </em>
 
 <h2>CITE AS</h2> 
-<p><em>Di Leo M., Manfreda S., Fiorentino M., An automated procedure for 
+
+<em>Di Leo M., Manfreda S., Fiorentino M., An automated procedure for 
 the detection of flood prone areas: r.hazard.flood, Geomatics Workbooks 
 n.10, 2011. 
-(<a href="http://geomatica.como.polimi.it/workbooks/n10/GW10-FOSS4Git_2011.pdf">PDF</a>)</em>
+(<a href="http://geomatica.como.polimi.it/workbooks/n10/GW10-FOSS4Git_2011.pdf">PDF</a>)
+</em>
 
 <h2>REFERENCES</h2>
-<p><em>Manfreda S., Di Leo M., Sole A., Detection of Flood Prone Areas using 
+<em>Manfreda S., Di Leo M., Sole A., Detection of Flood Prone Areas using 
 Digital Elevation Models, Journal of Hydrologic Engineering, 
 (10.1061/(ASCE)HE.1943-5584.0000367), 2011.</em>
 
 
 <h2>AUTHOR</h2>
-<p>Margherita Di Leo (dileomargherita AT gmail DOT com)
+Margherita Di Leo (dileomargherita AT gmail DOT com)
 
 <p>
 <i>Last changed: $Date$</i>

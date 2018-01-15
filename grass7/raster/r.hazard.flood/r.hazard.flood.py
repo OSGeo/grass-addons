@@ -42,7 +42,8 @@
 #% type: string
 #% gisprompt: new,raster,raster
 #% key_desc: MTI
-#% description: Name of output MTI raster map 
+#% label: Name of output MTI raster map
+#% description: Name of the output Modified Topographic Index (MTI) raster map
 #% required: yes
 #%END
 
@@ -137,11 +138,11 @@ def main():
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', flags='f', type='raster', name='r_clump')
-    grass.run_command('g.remove', flags='f', type='raster', name='r_flood_th')
-    grass.run_command('g.remove', flags='f', type='raster', name='r_flood')
+    grass.run_command('g.remove', flags='f', type='raster', name='r_clump', quiet=True)
+    grass.run_command('g.remove', flags='f', type='raster', name='r_flood_th', quiet=True)
+    grass.run_command('g.remove', flags='f', type='raster', name='r_flood', quiet=True)
 
-    grass.message(_('Done.'))
+    grass.message(_('Raster maps <%s> and <%s> calculated') % (r_mti, r_flood_map) )
 
 if __name__ == "__main__":
     options, flags = grass.parser()
