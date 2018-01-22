@@ -470,11 +470,12 @@ def mosaic(options, remove, an, ow, fil):
                 # import tif files
                 import_tif(basedir=basedir, rem=remove, write=ow,
                            pm=pm, target=targetdir, listfile=fil, prod=prod)
-                try:
-                    shutil.move(hdf, targetdir)
-                    shutil.move(hdf + '.xml', targetdir)
-                except OSError:
-                    pass
+                if i not in os.listdir(targetdir):
+                    try:
+                        shutil.move(hdf, targetdir)
+                        shutil.move(hdf + '.xml', targetdir)
+                    except OSError:
+                        pass
             # remove the conf file
             try:
                 os.remove(confname)
