@@ -1,0 +1,70 @@
+<em>r.sentinel.import</em> module allows importing Sentinel products
+downloaded
+by <em><a href="r.sentinel.download.html">r.sentinel.download</a></em>
+module.
+
+<p>
+By default <em>r.sentinel.import</em> imports all Sentinel bands found
+in <b>input</b> directory
+by <em><a href="r.import.html">r.import</a></em>. Note that in the
+case that spatial reference system of input data differs from GRASS
+location, the input data are reprojected.
+
+<p>
+Optionally input data can be linked
+by <em><a href="r.external.html">r.external</a></em> when <b>-l</b> is
+given. Note that linking data requires that input data and GRASS
+location have the same spatial reference system.
+
+<p>
+Number of imported Sentinel bands can be optionally reduced
+by <b>pattern</b> option.
+  
+<h2>NOTES</h2>
+
+<p>
+If <b>-c</b> flag is given, than also cloud mask file is imported as
+vector map if available. Name of created vector map is determined from
+input Sentinel product.
+
+<h2>EXAMPLES</h2>
+
+Import all Sentinel bands found in <i>data</i> directory.
+
+<div class="code"><pre>
+r.sentinel.import input=data
+</pre></div>
+
+Limit import only to 4th and 8th bands.
+
+<div class="code"><pre>
+r.sentinel.import input=data pattern='B0[4|8]'
+</pre></div>
+
+Link data and import also cloud mask file.
+
+<div class="code"><pre>
+r.sentinel.import -l -c input=data
+</pre></div>
+
+<center>
+<img src="r_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
+<i>Fig: Band 4 with imported cloud mask</i>
+</center>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.sentinel.download.html">r.sentinel.download</a>,
+<a href="r.import.html">r.import</a>,
+<a href="r.extenal.html">r.external</a>,
+<a href="v.import.html">v.import</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Martin
+Landa, <a href="http://geomatics.fsv.cvut.cz/research/geoforall/">GeoForAll
+Lab</a>, CTU in Prague, Czech Republic with support
+of <a href="http://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
