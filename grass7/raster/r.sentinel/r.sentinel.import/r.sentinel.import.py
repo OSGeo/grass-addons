@@ -54,7 +54,7 @@ class SentinelImporter(object):
 
     def filter(self, pattern=None):
         if pattern:
-            filter_p = '.*' + options['pattern'] + '.jp2$'
+            filter_p = '.*' + options['pattern'] + '.*.jp2$'
         else:
             filter_p = r'.*_B.*.jp2$'
 
