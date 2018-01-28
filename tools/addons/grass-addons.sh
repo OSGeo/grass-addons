@@ -30,7 +30,7 @@ build_addons() {
 recompile_grass() {
     cd $DIR
 
-    for gdir in "grass72_release" "grass64_release" ; do
+    for gdir in "grass74_release" "grass64_release" ; do
 	cd $gdir
         echo "Recompiling $gdir..." 1>&2
 	svn up

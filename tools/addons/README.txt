@@ -18,7 +18,7 @@ running (see file crontab.build):
 
 3) grass-addons-publish.sh downloads provided tarballs (2) from
    building server and creates index.html page on publishing server at
-   https://grass.osgeo.org/grass72/manuals/addons/index.html
+   https://grass.osgeo.org/grass74/manuals/addons/index.html
 
 
 SCRIPTS OVERVIEW
@@ -35,9 +35,9 @@ SCRIPTS OVERVIEW
 
 RESULTS
 
-* manual pages at: http://grass.osgeo.org/grass72/manuals/addons/
+* manual pages at: http://grass.osgeo.org/grass74/manuals/addons/
 * XMLs file at: https://grass.osgeo.org/addons/
-* winGRASS binary files at: http://wingrass.fsv.cvut.cz/grass72/x86/addons/
+* winGRASS binary files at: http://wingrass.fsv.cvut.cz/grass74/x86/addons/
 
 SEE ALSO
 

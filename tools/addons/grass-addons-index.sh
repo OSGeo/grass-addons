@@ -120,7 +120,7 @@ Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS 
 <p>
 See also log files of compilation:
 <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"http://wingrass.fsv.cvut.cz/grass72/x86/addons/latest/logs/\">Windows log files</a>
+<a href=\"http://wingrass.fsv.cvut.cz/grass74/x86/addons/latest/logs/\">Windows log files</a>
 
 </tr></table>
 <hr>
