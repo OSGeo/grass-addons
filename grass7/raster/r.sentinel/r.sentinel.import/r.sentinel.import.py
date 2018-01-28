@@ -31,6 +31,10 @@
 #% description: File name pattern to import
 #%end
 #%flag
+#% key: o
+#% description: Reproject raster data using r.import if needed
+#%end
+#%flag
 #% key: l
 #% description: Link raster data instead of importing
 #%end
@@ -38,7 +42,9 @@
 #% key: c
 #% description: Import cloud masks as vector maps
 #%end
-
+#%rules
+#% exclusive: -l,-o
+#%end
 import os
 import sys
 import re
@@ -76,17 +82,21 @@ class SentinelImporter(object):
 
         return files
 
-    def import_products(self, link=False):
-        for f in self.files:
-            self._import_file(f, link)
-
-    def _import_file(self, filename, link=False):
-        module = 'r.external' if link else 'r.import'
-        mapname = os.path.splitext(os.path.basename(filename))[0]
+    def import_products(self, reproject=False, link=False):
         if link:
-            gs.message('Linking <{}>...'.format(mapname))
+            module = 'r.external'
         else:
-            gs.message('Importing <{}>...'.format(mapname))
+            if reproject:
+                module = 'r.import'
+            else:
+                module = 'r.in.gdal'
+
+        for f in self.files:
+            self._import_file(f, module)
+
+    def _import_file(self, filename, module):
+        mapname = os.path.splitext(os.path.basename(filename))[0]
+        gs.message('Processing <{}>...'.format(mapname))
         try:
             gs.run_command(module, input=filename, output=mapname)
         except CalledModuleError as e:
@@ -113,7 +123,7 @@ def main():
 
     importer.filter(options['pattern'])
 
-    importer.import_products(flags['l'])
+    importer.import_products(flags['o'], flags['l'])
 
     if flags['c']:
         importer.import_cloud_masks()
