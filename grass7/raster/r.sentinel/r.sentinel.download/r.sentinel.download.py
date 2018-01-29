@@ -21,6 +21,28 @@
 #% keyword: sentinel
 #% keyword: download
 #%end
+#%option
+#% key: user
+#% type: string
+#% description: Username for connecting SciHub
+#% required: yes
+#%end
+#%option
+#% key: password
+#% type: string
+#% description: Password for connecting SciHub
+#% required: yes
+#%end
+#%option G_OPT_M_DIR
+#% key: output
+#% description: Name for output directory where to store downloaded Sentinel data
+#% required: no
+#%end
+#%option G_OPT_V_OUTPUT
+#% key: footprints
+#% description: Name for output vector map with footprints
+#% required: no
+#%end
 #%option G_OPT_V_MAP
 #% label: Name of input vector map to define Area of Interest (AOI)
 #% description: If not given than current computational extent is used
@@ -50,11 +72,6 @@
 #% answer: S2MSI1C
 #%end
 #%option
-#% key: limit
-#% type: integer
-#% description: Limit number of Sentinel products
-#%end
-#%option
 #% key: start
 #% type: string
 #% description: Start date ('YYYY-MM-DD')
@@ -65,26 +82,9 @@
 #% description: End date ('YYYY-MM-DD')
 #%end
 #%option
-#% key: user
-#% type: string
-#% description: Username for connecting SciHub
-#% required: yes
-#%end
-#%option
-#% key: password
-#% type: string
-#% description: Password for connecting SciHub
-#% required: yes
-#%end
-#%option G_OPT_M_DIR
-#% key: output
-#% description: Name for output directory where to store downloaded Sentinel data
-#% required: no
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: footprints
-#% description: Name for output vector map with footprints
-#% required: no
+#% key: limit
+#% type: integer
+#% description: Limit number of Sentinel products
 #%end
 #%option
 #% key: sort
