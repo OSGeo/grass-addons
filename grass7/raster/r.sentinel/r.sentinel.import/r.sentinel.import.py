@@ -90,6 +90,7 @@ class SentinelImporter(object):
             if reproject:
                 module = 'r.import'
                 args['resample'] = 'bilinear'
+                args['resolution'] = 'value'
             else:
                 module = 'r.in.gdal'
 
@@ -115,9 +116,21 @@ class SentinelImporter(object):
 
         return True
 
+    def _raster_resolution(self, filename):
+        try:
+            from osgeo import gdal
+        except ImportError as e:
+            gs.fatal("Flag -r requires GDAL library: {}".format(e))
+        dsn = gdal.Open(filename)
+        trans = dsn.GetGeoTransform()
+
+        return int(trans[1])
+                     
     def _import_file(self, filename, module, args):
         mapname = os.path.splitext(os.path.basename(filename))[0]
         gs.message('Processing <{}>...'.format(mapname))
+        if module == 'r.import':
+            args['resolution_value'] = self._raster_resolution(filename)
         try:
             gs.run_command(module, input=filename, output=mapname, **args)
         except CalledModuleError as e:
