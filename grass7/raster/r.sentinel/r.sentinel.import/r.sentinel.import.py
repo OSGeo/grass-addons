@@ -31,7 +31,7 @@
 #% description: File name pattern to import
 #%end
 #%flag
-#% key: o
+#% key: r
 #% description: Reproject raster data using r.import if needed
 #%end
 #%flag
@@ -43,7 +43,7 @@
 #% description: Import cloud masks as vector maps
 #%end
 #%rules
-#% exclusive: -l,-o
+#% exclusive: -l,-r
 #%end
 import os
 import sys
@@ -92,7 +92,26 @@ class SentinelImporter(object):
                 module = 'r.in.gdal'
 
         for f in self.files:
+            if link or (not link and not reproject):
+                if not self._check_projection(f):
+                    gs.fatal('Projection of dataset does not appear to match current location. '
+                             'Force reprojecting dataset by -r flag.')
+
             self._import_file(f, module)
+
+    def _check_projection(self, filename):
+        try:
+            # module is not so script friedly, so we discard all
+            # warning and errors
+            nuldev = open(os.devnull, 'w+')
+            gs.run_command('r.in.gdal', flags='j',
+                           input=filename, quiet=True,
+                           stderr = nuldev)
+            nuldev.close()
+        except CalledModuleError as e:
+            return False
+
+        return True
 
     def _import_file(self, filename, module):
         mapname = os.path.splitext(os.path.basename(filename))[0]
@@ -123,7 +142,7 @@ def main():
 
     importer.filter(options['pattern'])
 
-    importer.import_products(flags['o'], flags['l'])
+    importer.import_products(flags['r'], flags['l'])
 
     if flags['c']:
         importer.import_cloud_masks()
