@@ -27,6 +27,14 @@
 #% required: no
 #%end
 #%option
+#% key: area_relation
+#% type: string
+#% description: Spatial reation of footprint to AOI
+#% options: Intersects,Contains,IsWithin
+#% answer: Intersects
+#% required: no
+#%end
+#%option
 #% key: clouds
 #% type: integer
 #% description: Maximum cloud cover percentage for Sentinel scene
@@ -143,7 +151,7 @@ class SentinelDownloader(object):
 
         self._products_df_sorted = None
         
-    def filter(self, area,
+    def filter(self, area, area_relation,
                clouds=None, producttype=None, limit=None,
                start=None, end=None, sortby=[], asc=True):
         args = {}
@@ -160,7 +168,7 @@ class SentinelDownloader(object):
         else:
             end = end.replace('-', '')
         products = self._api.query(
-            area=area,
+            area=area, area_relation=area_relation,
             platformname='Sentinel-2',
             date=(start, end),
             **args
@@ -272,6 +280,7 @@ def main():
     downloader = SentinelDownloader(options['user'], options['password'])
 
     downloader.filter(area=map_box,
+                      area_relation=options['area_relation'],
                       clouds=options['clouds'],
                       producttype=options['producttype'],
                       limit=options['limit'],

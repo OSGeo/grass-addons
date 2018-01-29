@@ -12,11 +12,20 @@ new account</a> page for signing up.
 
 <p>
 By default Sentinel products are sorted by <i>cloudcoverpercentage</i>
-and <i>ingestiondate</i> (see <b>sort</b> option). Only products which
-footprint intersects current computation region extent are
-filtered. The extent can be optionally defined also by
-vector <b>map</b>. Filtered products can be reduced by <b>limit</b>
-option.
+and <i>ingestiondate</i> (see <b>sort</b> option). By default,
+only products which footprint intersects current computation region
+extent (area of interest, AOI) are filtered. The AOI can be optionally
+defined also by vector <b>map</b>. In addition the spatial relation
+between AOI and the footprint (<b>area_relation</b>) can be set to
+<ul>
+<li></li><i>Contains</i>: to only return scenes where the AOI is contained
+inside the footprint</li>
+<li><i>IsWithin</i>: to only return scenes where the footprint is
+contained inside the AOI</li>
+<li><i>Intersects</i>: to return all scenes where the footprint
+intersects the AOI (default)</li>
+</ul>
+Filtered products can be reduced by <b>limit</b> option.
 
 <p>
 Module searches for products in last 60 days, exact date range can be
