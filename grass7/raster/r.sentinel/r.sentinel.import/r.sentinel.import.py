@@ -83,11 +83,13 @@ class SentinelImporter(object):
         return files
 
     def import_products(self, reproject=False, link=False):
+        args = {}
         if link:
             module = 'r.external'
         else:
             if reproject:
                 module = 'r.import'
+                args['resample'] = 'bilinear'
             else:
                 module = 'r.in.gdal'
 
@@ -97,7 +99,7 @@ class SentinelImporter(object):
                     gs.fatal('Projection of dataset does not appear to match current location. '
                              'Force reprojecting dataset by -r flag.')
 
-            self._import_file(f, module)
+            self._import_file(f, module, args)
 
     def _check_projection(self, filename):
         try:
@@ -113,11 +115,11 @@ class SentinelImporter(object):
 
         return True
 
-    def _import_file(self, filename, module):
+    def _import_file(self, filename, module, args):
         mapname = os.path.splitext(os.path.basename(filename))[0]
         gs.message('Processing <{}>...'.format(mapname))
         try:
-            gs.run_command(module, input=filename, output=mapname)
+            gs.run_command(module, input=filename, output=mapname, **args)
         except CalledModuleError as e:
             pass # error already printed
 
