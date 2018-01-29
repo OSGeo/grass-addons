@@ -37,16 +37,19 @@
 #% key: output
 #% description: Name for output directory where to store downloaded Sentinel data
 #% required: no
+#% guisection: Output
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: footprints
 #% description: Name for output vector map with footprints
 #% required: no
+#% guisection: Output
 #%end
 #%option G_OPT_V_MAP
 #% label: Name of input vector map to define Area of Interest (AOI)
 #% description: If not given than current computational extent is used
 #% required: no
+#% guisection: Region
 #%end
 #%option
 #% key: area_relation
@@ -55,6 +58,7 @@
 #% options: Intersects,Contains,IsWithin
 #% answer: Intersects
 #% required: no
+#% guisection: Region
 #%end
 #%option
 #% key: clouds
@@ -62,6 +66,7 @@
 #% description: Maximum cloud cover percentage for Sentinel scene
 #% answer: 30
 #% required: no
+#% guisection: Filter
 #%end
 #%option
 #% key: producttype
@@ -70,21 +75,25 @@
 #% required: no
 #% options: SLC,GRD,OCN,S2MSI1C,S2MSI2Ap
 #% answer: S2MSI1C
+#% guisection: Filter
 #%end
 #%option
 #% key: start
 #% type: string
 #% description: Start date ('YYYY-MM-DD')
+#% guisection: Filter
 #%end
 #%option
 #% key: end
 #% type: string
 #% description: End date ('YYYY-MM-DD')
+#% guisection: Filter
 #%end
 #%option
 #% key: limit
 #% type: integer
 #% description: Limit number of Sentinel products
+#% guisection: Filter
 #%end
 #%option
 #% key: sort
@@ -92,16 +101,19 @@
 #% multiple: yes
 #% options: ingestiondate,cloudcoverpercentage,footprint
 #% answer: cloudcoverpercentage,ingestiondate,footprint
+#% guisection: Sort
 #%end
 #%option
 #% key: order
 #% description: Sort order (see sort parameter)
 #% options: asc,desc
 #% answer: asc
+#% guisection: Sort
 #%end
 #%flag
 #% key: l
 #% description: List filtered products and exist
+#% guisection: Print
 #%end
 #%rules
 #% required: output,-l
