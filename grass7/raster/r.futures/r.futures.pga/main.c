@@ -1319,6 +1319,7 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
     }
     G_debug(1, "After accounting for extra cells, attempt %d cells", nToConvert);
     /* if have cells to convert this step */
+    bool forceConvertEverything = false;
     if (nToConvert > 0) {
         /* if not enough cells to convert then alter number required */
         if (nToConvert > pLandscape->num_undevSites[regionID]) {
@@ -1326,6 +1327,7 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
                       " available: %d). Converting all available.",
                        nToConvert, pLandscape->num_undevSites[regionID]);
             nToConvert = pLandscape->num_undevSites[regionID];
+            forceConvertEverything = true;
         }
         /* update in stochastic fashion */
         nDone = 0;
@@ -1364,7 +1366,7 @@ void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
                     /* Doug's "back to front" logit */
                     //  dProb = 1.0/(1.0 + exp(pLandscape->asUndev[i].logitVal));
                     dProb = pLandscape->asUndevs[regionID][i].logitVal;
-                    if (uniformRandom() < dProb) {
+                    if (forceConvertEverything || (uniformRandom() < dProb)) {
                         nDone +=
                                 convertCells(pLandscape, pParams,
                                              pLandscape->asUndevs[regionID]
@@ -1904,7 +1906,6 @@ int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
     if (p >= pLandscape->asUndevs[regionID][last].cumulProb)
         return last;
     while (first <= last) {
-        // TODO: these might not me initialized (says also valgrind)
         if (pLandscape->asUndevs[regionID][middle].cumulProb < p)
             first = middle + 1;
         else if (pLandscape->asUndevs[regionID][middle - 1].cumulProb < p &&
@@ -2007,9 +2008,8 @@ void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
     int j;
 
     for (j = 0; j < pParams->num_Regions; j++) {
-        // TODO: value of pLandscape->asUndevs[j][0].cumulProb is what?
         double sum = pLandscape->asUndevs[j][0].logitVal;
-
+        pLandscape->asUndevs[j][0].cumulProb = pLandscape->asUndevs[j][0].logitVal;
         for (i = 1; i < pLandscape->num_undevSites[j]; i++) {
             pLandscape->asUndevs[j][i].cumulProb =
                 pLandscape->asUndevs[j][i - 1].cumulProb +
