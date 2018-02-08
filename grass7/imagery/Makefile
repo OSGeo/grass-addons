@@ -19,6 +19,7 @@ SUBDIRS = \
 	i.in.probav \
 	i.lmf \
 	i.points.auto \
+	i.pysptools.unmix \
 	i.rotate \
 	i.segment.gsoc \
 	i.segment.hierarchical \
