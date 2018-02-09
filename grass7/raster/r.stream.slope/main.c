@@ -265,8 +265,14 @@ DCELL calculate_difference(int r, int c)
     int d;
 
     d = dir_rows[r][c];
+    if (Rast_is_c_null_value(&d))
+	return 0;
 
-    if (NOT_IN_REGION(d))
+    d = abs(d);
+    if (d > 8)
+	G_fatal_error("Invalid direction %d", d);
+
+    if (d == 0 || NOT_IN_REGION(d))
 	return 0.;
 
     return elev_rows[r][c] - elev_rows[NR(d)][NC(d)];
@@ -281,8 +287,14 @@ DCELL calculate_gradient(int r, int c)
     double distance;
 
     d = dir_rows[r][c];
+    if (Rast_is_c_null_value(&d))
+	return 0;
 
-    if (NOT_IN_REGION(d))
+    d = abs(d);
+    if (d > 8)
+	G_fatal_error("Invalid direction %d", d);
+
+    if (d == 0 || NOT_IN_REGION(d))
 	return 0.;
 
     northing = window.north - (r + .5) * window.ns_res;
@@ -304,8 +316,14 @@ DCELL calculate_max_curvature(int r, int c)
     double distance_up, distance_down, distance;
 
     d = dir_rows[r][c];
+    if (Rast_is_c_null_value(&d))
+	return 0;
 
-    if (NOT_IN_REGION(d))
+    d = abs(d);
+    if (d > 8)
+	G_fatal_error("Invalid direction %d", d);
+
+    if (d == 0 || NOT_IN_REGION(d))
 	return 0.;
 
     for (i = 1; i < 9; ++i) {
@@ -355,8 +373,14 @@ DCELL calculate_min_curvature(int r, int c)
     double distance_up, distance_down, distance;
 
     d = dir_rows[r][c];
+    if (Rast_is_c_null_value(&d))
+	return 0;
 
-    if (NOT_IN_REGION(d))
+    d = abs(d);
+    if (d > 8)
+	G_fatal_error("Invalid direction %d", d);
+
+    if (d == 0 || NOT_IN_REGION(d))
 	return 0.;
 
     for (i = 1; i < 9; ++i) {
