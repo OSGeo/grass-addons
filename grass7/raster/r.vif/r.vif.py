@@ -91,6 +91,7 @@ import os
 import sys
 import math
 import numpy as np
+from cStringIO import StringIO
 import uuid
 import tempfile
 import atexit
@@ -145,15 +146,10 @@ def ReadData(raster, n):
         gs.run_command("r.mask", raster=new_mask, quiet=True)
 
     # Get the raster values at sample points
-    tmpcov = tempfile.mkstemp()[1]
-    with open(tmpcov, "w") as text_file:
-        text_file.write(
-                gs.read_command("r.stats", flags="1n", input=raster,
-                                quiet=True, separator="comma"))
+    tmpcov = StringIO(gs.read_command("r.stats", flags="1n", input=raster,
+                                quiet=True, separator="comma").rstrip('\n'))
     p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
 
-    # Clean up
-    os.remove(tmpcov)
     if not n == "100%":
         gs.run_command("r.mask", flags="r", quiet=True)
         if exist_mask['fullname']:
