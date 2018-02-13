@@ -76,6 +76,7 @@ soil depths over all iterations. The default name is
 the users home directory). 
 
 <h3>Calculating Erosion and Deposition</h3>
+
 <p>Because physical laws that govern the flow of water across
 landscapes and its ability to erode, entrain, transport, and deposit
 sediments can be expressed in mathematical form, they can be
@@ -96,7 +97,7 @@ Degani, et al. 1979; Mitasova, et al. 2001; Mitasova, Mitas, et al.
 1996; Mitasova, et al. 2004; Singh and Phadke 2006; Warren, et al.
 2005; Wischmeier 1976; Wischmeier, et al. 1971; Wischmeier and Smith
 1978), to calculate net erosion and deposiiton across each landscape
-cell above the flow accumualtion breakpoint <b>cutoff3</b>. USPED was
+cell above the flow accumulation breakpoint <b>cutoff3</b>. USPED was
 developed for hillslopes, small watersheds, and small channels (i.e.,
 rills and gullies) (Warren, et al. 2005), and is less applicable to
 larger streams and rivers. Therefore we use a different process
@@ -114,7 +115,7 @@ mm), and coefficient for the ability of vegetation to prevent erosion
 (C, unitless) from RUSLE with with an estimate of topographically
 driven stream power as shown in equation (1)
 <center>
-<img src="r_landscape_evol_equation1.gif"><br>
+<img src="r_landscape_evol_equation1.gif" alt="T=R*K*C*A^m*sin(B)^n"><br>
 </center>
 <p>where <i>A</i> is the upslope contributing area (a measure of
 water flowing through a cell) and <em>B</em> is the slope of the
@@ -150,7 +151,7 @@ process law that is formulated for water flowing in stream channels
 calculating the reach average shear stress (<FONT FACE="Times New Roman, serif">τ</FONT>),
 here estimated for a cellular landscape simply as:
 <center>
-<p><img src="r_landscape_evol_equation2.gif"><br>
+<p><img src="r_landscape_evol_equation2.gif" alt="Tau=9806.65*B*D"><br>
 </center>
 <p> Where: <i>9806.65</i>
 is a constant related to the gravitational acceleration of water, <i>B</i>
@@ -160,7 +161,7 @@ is the instantaneous depth of flowing water in the cell. <i>D
 here assumed to be roughly equivalent to the depth of flow during the
 average minute of rainfall, calculated by:
 <center>
-<img src="r_landscape_evol_equation3.gif"><br>
+<img src="r_landscape_evol_equation3.gif" alt="D=((Rm-(Rm*i))*A)/(Rd*1440)"><br>
 </center>
 <p>Where: <i>R</i><sub><i>m</i></sub>
 is the total annual precipitation in meters, <i>i</i>
@@ -173,7 +174,7 @@ is the number of days on which it rained in a one year period, and
 is a constant relating to the number of minutes in a day.
 <p>Then the transport capacity is calculated by:
 <center>
-<img src="r_landscape_evol_equation4.gif"><br>
+<img src="r_landscape_evol_equation4.gif" alt="T=Kt*Tau^n"><br>
 </center>
 <p>Where: <i>K</i><sub><i>t</i></sub>
 is the transport efficiency factor related to the character of the
@@ -185,7 +186,7 @@ suspended load transport).
 entire DEM  as change in sediment flow in the x and y directions
 across a cell as follows:
 <center>
-<img src="r_landscape_evol_equation5.gif"><br>
+<img src="r_landscape_evol_equation5.gif" alt="ED=(deltaTau*cos(alpha))/deltaX + (deltaTau*sin(alpha))/deltaY"><br>
 </center>
 <p>where ED is net erosion or
 deposition rate for sediment and <em><FONT FACE="Times New Roman, serif">α</FONT></em>
@@ -229,7 +230,7 @@ change in elevation at each cell (<i>m</i><sub><i>vert</i></sub>).
 This is done via a simple algorithm that uses the density of the soil
 and the cell resolution:
 <center>
-<img src="r_landscape_evol_equation6.gif"><br>
+<img src="r_landscape_evol_equation6.gif" alt="Mvert=T/(10000*Sd*Res)"><br>
 </center>
 <p>Where: <i>10000</i> is the number of meters per hectare, <i>Sd </i>is
 the  density of the soil, and <i>Res </i>is the cell resolution
@@ -239,8 +240,8 @@ output map by &quot;(10000 x raster cell resolution x <b>sdensity</b>)&quot; to
 create a map of soil erosion/deposition rates across the landscape. 
 
 <h3>Determining Cutoff Points</h3>
-<p>
-To get started with <em>r.landscape.evol</em>, you need to determine the appropriate values for <b>cutoff1</b>, <b>cutoff2</b>, and <b>cutoff3</b>, which are transition points between different types of erosive processes. These are in units of flow accumulation scaled to actual surface flow as determined in r.watershed from the values of rainfall and flow hindrance from vegetation. To do this, you should parameterize the module as best as possible, EXCEPT for the three &quot;cutoffs&quot;. Then, run the module with the <b>-p</b> flag, which will make a random points vector file with the values of scaled flow accumulation (scaled to actual rainfall and vegetation), profile curvature, and tangential curvature in the associated table. Plotting the log of the scaled flow accumulation against each of these two curvatures will help you to determine reasonable values for the cutoffs, as each transition should show a unique relationship between curvature and flow accumulations. See the figures below for examples:
+
+<p>To get started with <em>r.landscape.evol</em>, you need to determine the appropriate values for <b>cutoff1</b>, <b>cutoff2</b>, and <b>cutoff3</b>, which are transition points between different types of erosive processes. These are in units of flow accumulation scaled to actual surface flow as determined in r.watershed from the values of rainfall and flow hindrance from vegetation. To do this, you should parameterize the module as best as possible, EXCEPT for the three &quot;cutoffs&quot;. Then, run the module with the <b>-p</b> flag, which will make a random points vector file with the values of scaled flow accumulation (scaled to actual rainfall and vegetation), profile curvature, and tangential curvature in the associated table. Plotting the log of the scaled flow accumulation against each of these two curvatures will help you to determine reasonable values for the cutoffs, as each transition should show a unique relationship between curvature and flow accumulations. See the figures below for examples:
 
 <center>
 <img src="r_landscape_evol_Flow_acc_vs_curvature.png" width="1000" height="500" alt="Log Scaled Flow Accumulation versus Topographic Curvatures"><br>
@@ -254,8 +255,8 @@ Map showing the spatial patterns of the cutoffs determined from the previous fig
 
 <p>
 <h3>Note About Climate Parameters</h3>
-<p>
-r.landscape.evol accepts an external &quot;climate file&quot;, which should be a comma separated plain text file with four columns in the order of, &quot;<b>rain</b>,<b>R</b>,<b>storms</b>,<b>stormlength</b>" (without headers). Each of these columns must exist, although there need not be values in every column (i.e., you can enter a single value for any of these parameters in the command line, and combine that with populated columns for the other values). Note that the climate file must have the same number of rows as there are iterations of the simulation (<b>years</b>).
+
+<p>r.landscape.evol accepts an external &quot;climate file&quot;, which should be a comma separated plain text file with four columns in the order of, &quot;<b>rain</b>,<b>R</b>,<b>storms</b>,<b>stormlength</b>" (without headers). Each of these columns must exist, although there need not be values in every column (i.e., you can enter a single value for any of these parameters in the command line, and combine that with populated columns for the other values). Note that the climate file must have the same number of rows as there are iterations of the simulation (<b>years</b>).
 
 <h2>SEE ALSO</h2>
 <ul>
