@@ -35,7 +35,7 @@ SUBDIRS = \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: parsubdirs
-	$(INSTALL_DATA) description.html $(GISBASE)/docs/html/r.pi.html
+default: parsubdirs htmldir
 
-clean: cleansubdirs
+install: installsubdirs
+	$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
