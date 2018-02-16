@@ -1,6 +1,6 @@
 #include "r_pi.h"
 
-inline void swap(int *a, int *b)
+static void swap(int *a, int *b)
 {
     int zw = *a;
 
