@@ -104,13 +104,8 @@ class SentinelImporter(object):
 
     def _check_projection(self, filename):
         try:
-            # module is not so script friedly, so we discard all
-            # warning and errors
-            nuldev = open(os.devnull, 'w+')
             gs.run_command('r.in.gdal', flags='j',
-                           input=filename, quiet=True,
-                           stderr = nuldev)
-            nuldev.close()
+                           input=filename, quiet=True)
         except CalledModuleError as e:
             return False
 
