@@ -30,8 +30,12 @@
 #%end
 #%option
 #% key: method
-#% description: Statistic to use for attribute column
-#% options: min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
+#% type: string
+#% required: no
+#% multiple: no
+#% options: n,min,max,range,sum,mean,stddev,variance,coeff_var,median,percentile,skewness,trimmean
+#% description: Statistic to use for raster values
+#% descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell;trimmean;Trimmed mean of point values in cell
 #% answer: mean
 #% guisection: Attributes
 #%end
@@ -47,7 +51,7 @@ def main():
     vector = options['input']
     layer = 1
     raster = options['output']
-    method = 'n'
+    method = options['method']
     z = 3
     sep = 'pipe'
     out_args = {}
@@ -56,7 +60,6 @@ def main():
         gs.fatal('Vector map <{0}> not found'.format(vector))
 
     if options['column']:
-        method = options['method']
         z = 4
         out_args['column'] = options['column']
         out_args['where'] = '{0} IS NOT NULL'.format(options['column'])
