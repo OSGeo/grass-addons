@@ -78,7 +78,8 @@ def worker(input_queue, rinput, separator, result_queue):
             gscript.run_command('r.mapcalc',
                                 expression=expression,
                                 quiet=True)
-            tf = gscript.tempfile()
+            tfdir = gscript.tempdir()
+            tf = os.path.join(tfdir, mapname)
             rstats_results  = gscript.read_command('r.stats',
                              input_=[rinput, mapname],
                              flags='nc',
@@ -104,6 +105,11 @@ def main():
     outfile = None
     rinput = options['input']
     output = options['output']
+
+    #Check that input map is CELL
+    datatype = gscript.parse_command('r.info', flags='g', map=rinput)['datatype']
+    if datatype != 'CELL':
+        gscript.fatal("Input map has to be of CELL (integer) type")
 
     global separator
     separator = gscript.separator(options['separator'])
