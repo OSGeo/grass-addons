@@ -1,9 +1,11 @@
-<h2>DESCRIPTION</h2> 
+<h2>DESCRIPTION</h2>
 
-<em>v.mapcalc</em> performs overlay and buffer functions on vector map layers. New vector map layers can be created which are 
-expressions of existing vector map layers, boolean vector operations and buffer functions. 
+<em>v.mapcalc</em> performs overlay and buffer functions on
+vector map layers. New vector map layers can be created which are 
+expressions of existing vector map layers, boolean vector operations
+and buffer functions.
 
-<h3>PROGRAM USE</h3> 
+<h3>PROGRAM USE</h3>
 The module expects its input as expression in the following form: <br>
 <br>
 <b> result = expression </b>
@@ -19,20 +21,20 @@ expression on the command line, for example: <br>
 <div class="code"><pre>v.mapcalc expression="A = B"</pre></div> 
 Where <b>A</b> is the new vector map layer that will be equal to the existing vector map layer <b>B</b> in this case. <br>
 <div class="code"><pre>v.mapcalc "A = B"</pre></div> 
-Will give the same result. 
-<br>
-<br>
+will give the same result. 
+
 <h3>OPERATORS AND FUNCTIONS</h3>
 
 The module supports the following boolean vector operations: <br>
+
 <div class="code"><pre>
- Boolean Name   Operator Meaning         Precedence   Correspondent function 
----------------------------------------------------------------------------------- 
- AND            &        Intersection          1      (v.overlay operator=and) 
- OR             |        Union                 1      (v.overlay operator=or)  
- DISJOINT OR    +        Disjoint union        1      (v.patch)              
- XOR            ^        Symmetric difference  1      (v.overlay operator=xor) 
- NOT            ~        Complement            1      (v.overlay operator=not) 
+ Boolean Name   Operator Meaning         Precedence   Correspondent function
+----------------------------------------------------------------------------------
+ AND            &        Intersection          1      (v.overlay operator=and)
+ OR             |        Union                 1      (v.overlay operator=or)
+ DISJOINT OR    +        Disjoint union        1      (v.patch)
+ XOR            ^        Symmetric difference  1      (v.overlay operator=xor)
+ NOT            ~        Complement            1      (v.overlay operator=not)
 
 </pre></div>
 
@@ -42,19 +44,18 @@ And vector functions:
  buff_l(A, size)    	  Buffer the lines of vector map layer A with size
  buff_a(A, size)    	  Buffer the areas of vector map layer A with size
 </pre></div>
-<br>
 
 <h2>NOTES</h2>
 As shown in the operator table above, the boolean vector operators do not have different precedence. 
 In default setting the expression will be left associatively evaluated. To define specific precedence use parentheses 
-around these expressions, for example: <br>
+around these expressions, for example:<br>
 
 <div class="code"><pre>
  v.mapcalc expression="D = A & B | C"
 </pre></div>
 Here the first intermediate result is the intersection of vector map layers <b>A & B</b>.  
 This intermediate vector map layer is taken to create the union with vector map <b>C</b> to get the final result <b>D</b>.
-It represents the default behaviour of left associativity. 
+It represents the default behaviour of left associativity.
 
 <div class="code"><pre>
  v.mapcalc expression="D = A & (B | C)"
@@ -68,8 +69,10 @@ It should be noticed, that the order in which the operations are performed does 
 Different order of operations can lead to a different result.
 
 <h2>EXAMPLES</h2>
+
 This example needed specific region setting. It should work in UTM and LL test locations. <br>
 First set the regions extent and create two vector maps with one random points, respectively:
+
 <div class="code"><pre>
 g.region s=0 n=30 w=0 e=50 b=0 t=50 res=10 res3=10 -p3
 
@@ -79,7 +82,9 @@ v.info point_1
 v.info point_2
 </pre></div>
 
-Then the vector algebra is used to create buffers around those points, cut out a subset and apply different boolean operation on the subsets in one statement:
+Then the vector algebra is used to create buffers around those points, cut out a subset and apply different boolean operation
+on the subsets in one statement:
+
 <div class="code"><pre>
 v.mapcalc --o expr="buff_and = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) &amp; \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
@@ -93,7 +98,17 @@ v.mapcalc --o expr="buff_not = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) ~
 
 <h2>REFERENCES</h2>
 
-<tt><a href="http://www.dabeaz.com/ply/">PLY(Python-Lex-Yacc)</a></tt>
+The use of this module requires the following software to be installed:
+<a href="http://www.dabeaz.com/ply/">PLY(Python-Lex-Yacc)</a>
+
+<p>
+<div class="code"><pre>
+# Ubuntu/Debian
+sudo apt-get install python-ply
+
+# Fedora
+sudo dnf install python-ply
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
@@ -105,7 +120,7 @@ v.mapcalc --o expr="buff_not = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) ~
 </em>
 
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
 Thomas Leppelt, Soeren Gebbert, Thuenen Institut, Germany <br>
 
