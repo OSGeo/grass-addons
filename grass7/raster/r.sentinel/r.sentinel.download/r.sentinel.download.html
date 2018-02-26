@@ -3,12 +3,33 @@ from <a href="https://scihub.copernicus.eu/">Copernicus Open Access
 Hub</a>.
 
 <p>
-To connect Copernicus Open Access Hub a <b>user</b>
-and <b>password</b> are required,
+To connect Copernicus Open Access Hub a <em>user</em>
+and <em>password</em> are required,
 see <a href="https://scihub.copernicus.eu/dhus/#/self-registration">Register
 new account</a> page for signing up.
 
+<p><em>r.sentinel.download</em> reads user credentials
+from <b>settings</b> file. The file must contain at least two lines:
+
+<div class="code"><pre>
+myusername
+mypassword
+</pre></div>
+
+Optionally on third line custom API URL can be defined. Note that
+empty lines in settings file are silently skipped.
+
 <h2>NOTES</h2>
+
+<p>User credentials can be also defined interactively
+when <b>settings=-</b> is given. Note that interactive prompt does not
+work in GUI.
+
+<div class="code"><pre>
+Insert username: myusername
+Insert password: 
+Insert API URL (leave empty for https://scihub.copernicus.eu/dhus):
+</pre></div>
 
 <p>
 By default Sentinel products are sorted by <i>cloudcoverpercentage</i>
@@ -43,7 +64,7 @@ maximum <b>clouds</b> cover percentage.
 Find S2MSI1C products in last 60 days covering current computation region extent.
 
 <div class="code"><pre>
-r.sentinel.download -l user=myusername password=mypassword
+r.sentinel.download -l settings=sentinel.txt
 
 1 Sentinel product(s) found
 ae1c33ec-aa33-4303-a525-9e6481709614 2017-12-08T10:23:59Z 18% S2MSI1C
@@ -52,7 +73,7 @@ ae1c33ec-aa33-4303-a525-9e6481709614 2017-12-08T10:23:59Z 18% S2MSI1C
 Find all S2MSI2Ap products in 2017.
 
 <div class="code"><pre>
-r.sentinel.download -l user=myusername password=mypassword producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31
+r.sentinel.download -l settings=sentinel.txt producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31
     
 7 Sentinel product(s) found
 e5df8b4f-a4c6-47bd-88f3-e16b7540cc7a 2017-05-27T10:20:31Z  2% S2MSI2Ap
@@ -67,7 +88,7 @@ fc56a594-d9d8-4e93-8dec-af3a58b24080 2017-09-04T10:20:21Z 19% S2MSI2Ap
 Sort products by <b>ingestiondate</b>, limit cloud coverage to 5% per scene.
 
 <div class="code"><pre>
-r.sentinel.download -l user=myusername password=mypassword producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 sort=ingestiondate order=desc clouds=5
+r.sentinel.download -l settings=sentinel.txt producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 sort=ingestiondate order=desc clouds=5
 
 3 Sentinel product(s) found
 9a6bc289-98e9-4489-84eb-1aac95aaa056 2017-08-15T10:20:21Z  3% S2MSI2Ap
@@ -78,7 +99,7 @@ e5df8b4f-a4c6-47bd-88f3-e16b7540cc7a 2017-05-27T10:20:31Z  2% S2MSI2Ap
 Create vector map with <b>footprints</b>.
 
 <div class="code"><pre>
-r.sentinel.download -l user=myusername password=mypassword producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 footprints=ft
+r.sentinel.download -l settings=sentinel.txt producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 footprints=ft
 </pre></div>
 
 <h3>Download Sentinel products</h3>
@@ -86,7 +107,7 @@ r.sentinel.download -l user=myusername password=mypassword producttype=S2MSI2Ap 
 Download first (<b>limit=1</b>) found S2MSI2Ap product into <i>data</i> directory.
 
 <div class="code"><pre>
-r.sentinel.download user=myusername password=mypassword producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 limit=1 output=data
+r.sentinel.download settings=sentinel.txt producttype=S2MSI2Ap start=2017-01-01 end=2017-12-31 limit=1 output=data
 </pre></div>
 
 Such downloaded data can be easily imported into GRASS
