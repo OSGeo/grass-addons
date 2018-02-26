@@ -42,8 +42,12 @@
 #% key: c
 #% description: Import cloud masks as vector maps
 #%end
+#%flag
+#% key: p
+#% description: Print raster data to be imported and exit
+#%end
 #%rules
-#% exclusive: -l,-r
+#% exclusive: -l,-r,-p
 #%end
 import os
 import sys
@@ -118,9 +122,27 @@ class SentinelImporter(object):
             gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
         dsn = gdal.Open(filename)
         trans = dsn.GetGeoTransform()
+        
+        ret = int(trans[1])
+        dsn = None
 
-        return int(trans[1])
-                     
+        return ret
+    
+    def _raster_epsg(self, filename):
+        try:
+            from osgeo import gdal, osr
+        except ImportError as e:
+            gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
+        dsn = gdal.Open(filename)
+
+        srs = osr.SpatialReference()
+        srs.ImportFromWkt(dsn.GetProjectionRef())
+    
+        ret = srs.GetAuthorityCode(None)
+        dsn = None
+
+        return ret
+        
     def _import_file(self, filename, module, args):
         mapname = os.path.splitext(os.path.basename(filename))[0]
         gs.message(_('Processing <{}>...').format(mapname))
@@ -147,11 +169,24 @@ class SentinelImporter(object):
             except CalledModuleError as e:
                 pass # error already printed
 
+    def print_products(self):
+        for f in self.files:
+            sys.stdout.write('{} {} (EPSG: {}){}'.format(
+                f,
+                '1' if self._check_projection(f) else '0',
+                self._raster_epsg(f),
+                os.linesep
+            ))
+
 def main():
     importer = SentinelImporter(options['input'])
 
     importer.filter(options['pattern'])
 
+    if flags['p']:
+        importer.print_products()
+        return 0
+    
     importer.import_products(flags['r'], flags['l'])
 
     if flags['c']:

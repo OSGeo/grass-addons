@@ -29,6 +29,18 @@ input Sentinel product.
 
 <h2>EXAMPLES</h2>
 
+At first, print list of raster files to be imported by <b>-p</b>. For
+each file also projection match with current location is printed
+including detected input data EPSG code.
+
+<div class="code"><pre>
+r.sentinel.import -p input=data
+
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B04.jp2 1 (EPSG: 32632)
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B07.jp2 1 (EPSG: 32632)
+data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B11.jp2 1 (EPSG: 32632)
+</pre></div>
+
 Import all Sentinel bands found in <i>data</i> directory.
 
 <div class="code"><pre>
