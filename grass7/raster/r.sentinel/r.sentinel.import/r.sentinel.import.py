@@ -55,7 +55,7 @@ from grass.exceptions import CalledModuleError
 class SentinelImporter(object):
     def __init__(self, input_dir):
         if not os.path.exists(input_dir):
-            gs.fatal('{} not exists'.format(input_dir))
+            gs.fatal(_('{} not exists').format(input_dir))
         self.input_dir = input_dir
 
     def filter(self, pattern=None):
@@ -97,8 +97,8 @@ class SentinelImporter(object):
         for f in self.files:
             if link or (not link and not reproject):
                 if not self._check_projection(f):
-                    gs.fatal('Projection of dataset does not appear to match current location. '
-                             'Force reprojecting dataset by -r flag.')
+                    gs.fatal(_('Projection of dataset does not appear to match current location. '
+                               'Force reprojecting dataset by -r flag.'))
 
             self._import_file(f, module, args)
 
@@ -115,7 +115,7 @@ class SentinelImporter(object):
         try:
             from osgeo import gdal
         except ImportError as e:
-            gs.fatal("Flag -r requires GDAL library: {}".format(e))
+            gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
         dsn = gdal.Open(filename)
         trans = dsn.GetGeoTransform()
 
@@ -123,7 +123,7 @@ class SentinelImporter(object):
                      
     def _import_file(self, filename, module, args):
         mapname = os.path.splitext(os.path.basename(filename))[0]
-        gs.message('Processing <{}>...'.format(mapname))
+        gs.message(_('Processing <{}>...').format(mapname))
         if module == 'r.import':
             args['resolution_value'] = self._raster_resolution(filename)
         try:
