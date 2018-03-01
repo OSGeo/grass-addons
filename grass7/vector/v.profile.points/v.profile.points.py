@@ -175,13 +175,17 @@ def main():
 
     # TODO: also limit by region
     if input_file:
+        gs.message("Importing...")
         gs.run_command('v.in.lidar', input=input_file,
                        output=profile_points, flags=lidar_flags,
                        mask=profile_area, quiet=quiet, errors='exit')
     else:
+        gs.message("Selecting...")
         gs.run_command('v.select', ainput=input_points,
+                       binput=profile_area,
                        output=profile_points, flags='c', quiet=quiet)
 
+    gs.message("Rotating...")
     gs.run_command('v.transform', flags='ya' + extra_transform_flags,
                    input=profile_points, output=output, zrotation=rotation)
 
