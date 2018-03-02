@@ -81,7 +81,8 @@ if test -z $2 ; then
     copy        75       7.5.svn
     # releases (TODO: enable later)
     # copy_addon 644      6.4.4
-    copy_addon 705       7.0.5
+    copy_addon 706       7.0.6
+    copy_addon 721       7.2.1
     copy_addon 722       7.2.2
     copy_addon 740       7.4.0
 else

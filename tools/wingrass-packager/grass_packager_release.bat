@@ -12,8 +12,8 @@ REM
 cd C:\Users\landa\grass_packager
 
 set MAJOR=7
-set MINOR=4
-set PATCH=0
+set MINOR=0
+set PATCH=6
 set REV=1
 
 set GVERSION=%MAJOR%%MINOR%%PATCH%
