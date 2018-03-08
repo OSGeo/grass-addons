@@ -50,6 +50,7 @@
 #
 #%option G_OPT_F_OUTPUT
 #% description: Name for output file (- for standard output)
+#% required : no
 #%end
 #
 #%option G_OPT_R_OUTPUT
@@ -664,7 +665,9 @@ def main():
     rg = False
     if method == 'region_growing':
         rg = True
-    output = options['output']
+    output = False
+    if options['output']:
+        output = options['output']
     indicator = options['autocorrelation_indicator']
     parms['indicator'] = indicator
     opt_function = options['optimization_function']
@@ -870,24 +873,25 @@ def main():
     else:
         header_string = "region,threshold,hr,radius,minsize,variance,spatial_autocorrelation,optimization_criteria\n"
 
-    if output == '-':
-        sys.stdout.write(header_string)	
-	for region, resultslist in regiondict.iteritems():
-	    for result in resultslist:
-                output_string = "%s," % region
-		output_string += ",".join(map(str, result))
-                output_string += "\n"
-	    	sys.stdout.write(output_string)	
-    else:
-	of = open(output, 'w')
-        of.write(header_string)
-        for region, resultslist in regiondict.iteritems():
-	    for result in resultslist:
-                output_string = "%s," % region
-		output_string += ",".join(map(str, result))
-                output_string += "\n"
-                of.write(output_string)
-        of.close()
+    if output:
+        if output == '-':
+            sys.stdout.write(header_string)	
+            for region, resultslist in regiondict.iteritems():
+                for result in resultslist:
+                    output_string = "%s," % region
+                    output_string += ",".join(map(str, result))
+                    output_string += "\n"
+                    sys.stdout.write(output_string)	
+        else:
+            of = open(output, 'w')
+            of.write(header_string)
+            for region, resultslist in regiondict.iteritems():
+                for result in resultslist:
+                    output_string = "%s," % region
+                    output_string += ",".join(map(str, result))
+                    output_string += "\n"
+                    of.write(output_string)
+            of.close()
 
     # Output of best values found
     msg = "Best values:\n"
