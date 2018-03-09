@@ -260,12 +260,12 @@ int main(int argc, char *argv[])
 
     segsize = segsize * 64. * 64. / (1024. * 1024.);
     nsegs = segs_mb / segsize;
-    nsegs_total = ((nrows + 63) / 64) + ((ncols + 63) / 64);
-    G_message(_("Number of segments total %d, in memory %d"), nsegs_total, nsegs);
-    /* nsegs_total = nsegs + 1; */
 
     /* load input raster and corresponding covariables */
     G_message(_("Loading input..."));
+
+    nsegs_total = ((nrows + 63) / 64) * ((ncols + 63) / 64);
+    G_message(_("Total number of input segments %d, in memory %d"), nsegs_total, nsegs);
 
     insize = (1 + n_vars) * sizeof(DCELL);
     if (cache_create(&in_seg, nrows, ncols, 64, 64, 
@@ -327,15 +327,19 @@ int main(int argc, char *argv[])
     nrows = dst.rows;
     ncols = dst.cols;
 
+    nsegs_total = ((nrows + 63) / 64) * ((ncols + 63) / 64);
+    G_message(_("Total number of output segments %d, in memory %d"), nsegs_total, nsegs);
+
     if (cache_create(&out_seg, nrows, ncols, 64, 64, 
                      sizeof(struct tps_out), nsegs) != 1) {
-	G_fatal_error("Unable to create input temporary files");
+	G_fatal_error("Unable to create output temporary files");
     }
 
     if (n_vars) {
 
 	/* intialize output raster and load corresponding covariables */
 	G_message(_("Loading covariables for output..."));
+
 	varsize = (n_vars) * sizeof(DCELL);
 	if (cache_create(&var_seg, nrows, ncols, 64, 64, 
 			 varsize, nsegs) != 1) {

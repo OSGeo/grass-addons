@@ -1123,10 +1123,20 @@ int tps_nn(struct cache *in_seg, struct cache *var_seg, int n_vars,
 	    if (icol2 > ncols - 1)
 		icol2 = ncols - 1;
 
+	    if (pfound == n_points) {
+		/* one global equation, one interpolation window */
+		irow1 = 0;
+		irow2 = nrows - 1;
+		icol1 = 0;
+		icol2 = ncols - 1;
+	    }
+
 	    dxi = icol2 - icol1 + 1;
 	    dyi = irow2 - irow1 + 1;
 
 	    for (irow = irow1; irow <= irow2; irow++) {
+		if (pfound == n_points)
+		    G_percent(irow - irow1, irow2 - irow1, 1);
 
 		i_n = dst->north - (irow + 0.5) * dst->ns_res;
 
