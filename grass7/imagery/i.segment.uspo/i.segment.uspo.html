@@ -1,11 +1,16 @@
 <h2>DESCRIPTION</h2>
 
 <p><em>i.segment.uspo</em> provides unsupervised segmentation parameter
-optimization for <em><a href="i.segment.html">i.segment</a></em>. It runs
-segmentation across a user defined set of thresholds and minimum segment sizes,
-as well, for the mean shift algorithm, a set of spectral and spatial bandwiths. 
-For the mean shift algorithm, you can also activate adaptive bandwidth using
-the <em>-a</em> flag.
+optimization for <em><a href="i.segment.html">i.segment</a></em> determined
+by the compromise between intra-segment variance and inter-segment spatial 
+autocorrelation.
+
+
+<p>
+The module runs segmentation across a user defined set of thresholds and minimum
+segment sizes, as well, for the mean shift algorithm, a set of spectral and 
+spatial bandwiths. For the mean shift algorithm, you can also activate adaptive 
+bandwidth using the <em>-a</em> flag.
 
 <p>The user provides an imagery <b>group</b> and the name of an <b>output</b>
 text file where parameter and optimization values for all tested segmentations
@@ -21,12 +26,18 @@ provide to the user per <b>region</b> is defined by <b>number_best</b>.
 
 <p>Two optimization functions are available via the <b>optimization_function</b>
 parameter: A simple sum of the normalized criteria values as defined by
-Espindola et al (2006), or the F-function as defined by Johnson et al (2015).
-
+Espindola et al (2006), or the F-function as defined by Johnson et al (2015). 
+When using the F-function, the user can determine the <b>f_function_alpha</b> 
+value which determines the relative weight of the intra-segment variance as
+compared to the inter-segment spatial autocorrelation. A value of 0.5 gives
+the former half weight of the latter, A value of 2 gives the former double
+weight than the latter.
+	
+<p>
 The optimization functions use intra-segment variance and inter-segment spatial
 autocorrelation. For the latter, the user can chose to use either <a
 href="https://en.wikipedia.org/wiki/Moran%27s_I">Moran's I</a> or <a
-href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>.
+href="https://en.wikipedia.org/wiki/Geary%27s_C">Geary's C</a>. 
 
 <p>The user can chose between non-hierarchical (default) and hierarchical 
 segmentation using the <b>h</b> flag. The latter uses each segmentation at a 
