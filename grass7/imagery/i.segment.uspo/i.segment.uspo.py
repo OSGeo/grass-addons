@@ -610,6 +610,12 @@ def normalize_criteria (crit_list, direction):
 
     maxval = max(crit_list)
     minval = min(crit_list)
+
+    # If maxval = minval then results are not useful so set
+    # all value to 0
+    if float(maxval) - float(minval) == 0:
+        return [0]*len(crit_list)
+
     if direction == 'low':
         normlist = [float(maxval - x) / float(maxval - minval) for x in crit_list]
     else:
@@ -625,7 +631,10 @@ def create_optimization_list(variancelist, autocorlist, opt_function, alpha, dir
     if opt_function == 'sum':
         optlist = [normvariance[x] + normautocor[x] for x in range(len(normvariance))]
     if opt_function == 'f':
-        optlist = [( 1 + alpha**2 ) * ( ( normvariance[x] * normautocor[x] ) / float( alpha**2 * normautocor[x] + normvariance[x] ) ) for x in range(len(normvariance))]
+        optlist = [( 1 + alpha**2 ) * ( ( normvariance[x] * normautocor[x] ) / 
+                    float( alpha**2 * normautocor[x] + normvariance[x] ) ) 
+                    if (normautocor[x] + normvariance[x]) > 0 else 0 
+                    for x in range(len(normvariance))]
     return optlist
 
 
