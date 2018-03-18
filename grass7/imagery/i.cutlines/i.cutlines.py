@@ -235,16 +235,18 @@ def main():
     if edge_detection_algorithm == 'zc':
         kwargs = {'input' : inputraster,
                   'output' : temp_edge_map,
-                  'width' : int(options['zc_width']),
+                  'width_' : int(options['zc_width']),
                   'threshold' : float(options['zc_threshold']),
                   'quiet' : True}
 
         if tiled:
-            message = "Currently there is a parameter name conflict between\n"
-            message += "i.zc and GridModule used for tiling.\n"
-            message += "Please use i.edge for edge detection if you want to\n"
-            message += "tile this part."
-            gscript.fatal(message)
+            if gscript.version()['version'] < '7.5':
+                message = "Currently there is a parameter name conflict between\n"
+                message += "i.zc and GridModule used for tiling.\n"
+                message += "This is solved in GRASS trunk.\n"
+                message += "Please use i.edge for edge detection or GRASS trunk\n"
+                message += "if you want to tile this part."
+                gscript.fatal(message)
             grd = GridModule('i.zc',
                              width=width,
                              height=height,
