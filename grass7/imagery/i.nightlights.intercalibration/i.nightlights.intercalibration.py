@@ -313,7 +313,7 @@ def main():
     for image in input_list:
         
         satellite = image[0:3]
-        year = image[3:8]
+        year = image[3:7]
 
         # -------------------------------------------------------------------
         # Match region to input image if... ?
