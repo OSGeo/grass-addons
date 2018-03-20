@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>g.md5sum</em> is a module that checks if two GRASS maps are identical.
+<em>g.compare.md5</em> is a module that checks if two GRASS maps are identical.
 It uses the MD5 cryptographic hash function. For vector map layers it
 does not check if the attribute table(s) are identical, too.
 
@@ -13,16 +13,16 @@ North Carolina example, with elevation map:
 g.copy raster=elevation,dem
 
 # now check and return TRUE
-g.md5sum ain=elevation bin=dem
+g.compare.md5 ainput=elevation binput=dem
 
 # now change the color table
 r.colors map=dem color=srtm
 
 # check again and it should return FALSE
-g.md5sum ain=elevation bin=dem
+g.compare.md5 ainput=elevation binput=dem
 
 # but when adding the -c flag (ignore color table), TRUE is returned
-g.md5sum -c ain=elevation bin=dem
+g.compare.md5 -c ainput=elevation binput=dem
 </pre></div>
 
 <h2>AUTHOR</h2>
