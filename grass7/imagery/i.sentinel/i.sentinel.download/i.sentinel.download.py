@@ -16,7 +16,6 @@
 
 #%module
 #% description: Downloads Sentinel data from Copernicus Open Access Hub using sentinelsat library.
-#% keyword: raster
 #% keyword: imagery
 #% keyword: sentinel
 #% keyword: download

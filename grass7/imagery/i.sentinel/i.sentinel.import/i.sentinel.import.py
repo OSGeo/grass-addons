@@ -16,7 +16,6 @@
 
 #%Module
 #% description: Imports Sentinel data downloaded from Copernicus Open Access Hub using i.sentinel.download.
-#% keyword: raster
 #% keyword: imagery
 #% keyword: sentinel
 #% keyword: import
