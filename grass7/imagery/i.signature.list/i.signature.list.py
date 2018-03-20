@@ -6,7 +6,7 @@
 # AUTHOR(S):	Luca Delucchi
 #
 # PURPOSE:	List signature file for a group/subgroup
-# COPYRIGHT:	(C) 1997-2016 by the GRASS Development Team
+# COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
