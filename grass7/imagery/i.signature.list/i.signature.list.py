@@ -27,12 +27,12 @@
 #%end
 
 #%option G_OPT_I_GROUP
-#% description: Group to use for segmentation
+#% description: Group used to print signature file
 #% required : no
 #%end
 
 #%option G_OPT_I_SUBGROUP 
-#% description: Subroup to use for segmentation
+#% description: Subroup used to print signature file
 #% required : no
 #%end
 
@@ -50,9 +50,7 @@ def main():
    
     gisenv = grass.gisenv()
     
-    path = os.path.join(
-            gisenv['GISDBASE'],
-            gisenv['LOCATION_NAME'])
+    path = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'])
     
     if group:
         try:
@@ -63,8 +61,15 @@ def main():
         if not flagg:
             print("Group: {}".format(name))
         path = os.path.join(path, mapset, 'group', name)
+        if not os.path.exists(path):
+            grass.fatal(_("No groups with name {na} in LOCATION {loc}, MAPSET"
+                          " {ma}".format(na=name, loc=gisenv['LOCATION_NAME'],
+                                         ma=mapset)))
         if sub:
             path = os.path.join(path, 'subgroup', sub)
+            if not os.path.exists(path):
+                grass.fatal(_("No subgroups with name {na} in group "
+                              "{gr}".format(na=sub, gr=name)))
             if not flagg:
                 print("    Subgroup: {}".format(sub))
             for sig in os.listdir(path):
@@ -75,14 +80,24 @@ def main():
                         print("        {}".format(sig))
         else:
             path = os.path.join(path, 'subgroup')
+            if not os.path.exists(path):
+                grass.fatal(_("No subgroups for group {gr}".format(gr=name)))
             for di in os.listdir(path):
+                print("    Subgroup: {}".format(di))
                 for sig in os.listdir(os.path.join(path, di)):
                     if sig != 'REF':
                         print("        {}".format(sig))
     else:
         path = os.path.join(path, gisenv['MAPSET'], 'group')
+        if not os.path.exists(path):
+            grass.fatal(_("No groups in LOCATION {loc}, MAPSET "
+                          "{ma}".format(loc=gisenv['LOCATION_NAME'],
+                                        ma=gisenv['MAPSET'])))
         for gr in os.listdir(path):
             print("Group: {}".format(gr))
+            if not os.path.exists(os.path.join(path, gr, 'subgroup')):
+                grass.warning(_("No subgroups for group {gr}".format(gr=name)))
+                continue
             for di in os.listdir(os.path.join(path, gr, 'subgroup')):
                 print("    Subgroup: {}".format(di))
                 for sig in os.listdir(os.path.join(path, gr, 'subgroup', di)):
