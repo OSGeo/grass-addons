@@ -1,10 +1,10 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.sentinel
+PGM = i.sentinel
 
 SUBDIRS = \
-	r.sentinel.download \
-        r.sentinel.import
+	i.sentinel.download \
+        i.sentinel.import
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
