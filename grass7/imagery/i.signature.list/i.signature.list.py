@@ -14,6 +14,12 @@
 #
 #############################################################################
 
+#%module
+#% description: List signature file for a group/subgroup
+#% keyword: imagery
+#% keyword: list
+#% keyword: group
+#%end
 
 #%flag
 #% key: g
@@ -26,7 +32,7 @@
 #%end
 
 #%option G_OPT_I_SUBGROUP 
-#% description: Group to use for segmentation
+#% description: Subroup to use for segmentation
 #% required : no
 #%end
 
