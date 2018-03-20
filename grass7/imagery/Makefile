@@ -25,6 +25,7 @@ SUBDIRS = \
 	i.segment.hierarchical \
 	i.segment.stats \
 	i.segment.uspo \
+	i.sentinel \
 	i.spec.sam \
 	i.spec.unmix \
 	i.theilsen \

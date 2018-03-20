@@ -95,7 +95,6 @@ SUBDIRS = \
 	r.sample.category \
 	r.scatterplot \
 	r.seasons \
-	r.sentinel \
 	r.series.decompose \
 	r.series.diversity \
 	r.series.lwr \
