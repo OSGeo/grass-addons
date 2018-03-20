@@ -82,13 +82,12 @@ svn up -q || (svn cleanup && svn up)
 
 # check last change
 date_last=`svn info --incremental --xml | grep date | cut -d '>' -f2 | cut -d '<' -f1`
-date_now=`date -u`
-num_last=`date --date="$date_last" +%s`
-num_now=`date --date="$date_now" +%s`
-count=$(echo "($num_now - $num_last) / 60." | bc)
+date_last_modified=`ls -d /tmp/.grass7/addons/ -l --time-style=full-iso | cut -d ' ' -f 6,7 | awk '{print $1"T"$2"Z"}'`
+unix_date_last=$(date -d "${date_last}" "+%s")
+unix_date_last_modified=$(date -d "${date_last_modified}" "+%s")
 
-if [ "$count" -lt "$CHECK_EVERY_MIN" ] || [ "$1" = "f" ] ; then
-    echo "TIME DIFF (min): $count ($date_last / $date_now)"
+if [ "$unix_date_last" -gt "$unix_date_last_modified" ] || [ "$1" = "f" ] ; then
+    echo "TIME DIFF: $date_last / $date_last_modified"
     build_addons $1
     exit 0
 fi
