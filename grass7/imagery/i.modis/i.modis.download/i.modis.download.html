@@ -1,13 +1,13 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.download</em> downloads selected MODIS products (Moderate Resolution
+<em>i.modis.download</em> downloads selected MODIS products (Moderate Resolution
 Imaging Spectroradiometer, flown on the two NASA spacecrafts Terra and Aqua). The
 module can download several tiles at once and also multiple observation dates
 for each MODIS product.
 
 <h2>NOTES</h2>
 
-The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+The <em>i.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
 library. Please install it beforehand.
 <p>
 To be able to download data the user needs to obtain <em>user</em> and
@@ -51,7 +51,7 @@ the user can pass the values from the standard input when prompted.
 
 <b>Warning</b>: As per NASA policy no more than ten simultaneous connections
 are permitted in parallel with their server. Hence, no more than ten processes
-of <em>r.modis.download</em> should run at the same time to avoid that user's
+of <em>i.modis.download</em> should run at the same time to avoid that user's
 actual IP address gets blacklisted.
 <p>
 By default, the downloaded files are stored in the path in which the settings
@@ -72,7 +72,7 @@ Note that when settings is read from standard input, the option folder
 must be specified:
 
 <div class="code"><pre>
-r.modis.download settings=- folder=/tmp
+i.modis.download settings=- folder=/tmp
 </pre></div>
 
 <p>
@@ -81,7 +81,7 @@ the "lst_terra_daily_1000" product). MODIS data will be downloaded to
 the folder where the SETTING file is:
 
 <div class="code"><pre>
-r.modis.download settings=$HOME/.grass7/r.modis/SETTING
+i.modis.download settings=$HOME/.grass7/i.modis/SETTING
 </pre></div>
 
 <p>
@@ -89,7 +89,7 @@ Download of the LST Terra product using the default options and change of
 the starting and ending dates to custom values:
 
 <div class="code"><pre>
-r.modis.download settings=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+i.modis.download settings=$HOME/.grass7/i.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <p>
@@ -97,7 +97,7 @@ Download of a different product (here: <em>Snow eight days 500 m</em>),
 default options:
 
 <div class="code"><pre>
-r.modis.download settings=$HOME/.grass7/r.modis/SETTING product=snow_terra_eight_500
+i.modis.download settings=$HOME/.grass7/i.modis/SETTING product=snow_terra_eight_500
 </pre></div>
 
 <p>
@@ -106,24 +106,24 @@ Download of a global MODIS product (here: <em>MOD13C1 - MODIS/Terra Vegetation I
 
 <div class="code"><pre>
 # note: provided in Geographic Lat/Long Grid
-r.modis.download settings=$HOME/.grass7/r.modis/SETTING product=ndvi_terra_sixteen_5600 startday=2011-05-01 endday=2011-05-31
+i.modis.download settings=$HOME/.grass7/i.modis/SETTING product=ndvi_terra_sixteen_5600 startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <p>
-To use <em>r.modis.download</em> in a script and to concatenate it with another module,
+To use <em>i.modis.download</em> in a script and to concatenate it with another module,
 the user needs to set the <em>-g</em> flag to return the name of the file that
 contains the list of downloaded HDF files:
 
 <div class="code"><pre>
-r.modis.download -g settings=$HOME/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+i.modis.download -g settings=$HOME/.grass7/i.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.modis.html">r.modis</a>,
-<a href="r.modis.import.html">r.modis.import</a>
-<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+<a href="i.modis.html">i.modis</a>,
+<a href="i.modis.import.html">i.modis.import</a>
+<!-- <a href="i.modis.process.html">i.modis.process</a>,-->
 </em>
 <p>
 <a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>

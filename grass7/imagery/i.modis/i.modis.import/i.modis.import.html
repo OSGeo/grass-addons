@@ -1,12 +1,12 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.import</em> imports Level-3 MODIS (Moderate Resolution Imaging
+<em>i.modis.import</em> imports Level-3 MODIS (Moderate Resolution Imaging
 Spectroradiometer, flown on the two NASA spacecrafts Terra and Aqua)
 products into GRASS GIS.
 
 <h2>NOTES</h2>
 
-The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+The <em>i.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
 library. Please install it beforehand.
 
 <p>
@@ -34,7 +34,7 @@ obtaining a successful result.
 
 <p>
 NOTE: In order to work with the temporal framework of GRASS GIS the flag
-<em>w</em> must be set during the import with <em>r.modis.import</em>.
+<em>w</em> must be set during the import with <em>i.modis.import</em>.
 
 <h2>EXAMPLES</h2>
 
@@ -43,7 +43,7 @@ NOTE: In order to work with the temporal framework of GRASS GIS the flag
 Import of a single file with all the subsets (QA layers included) using GDAL:
 
 <div class="code"><pre>
-r.modis.import input=/path/to/file
+i.modis.import input=/path/to/file
 </pre></div>
 
 <p>
@@ -51,21 +51,21 @@ Import of files from a list with all the subsets using MRT (if mrtpath is not
 provided, GDAL is used):
 
 <div class="code"><pre>
-r.modis.import files=/path/to/listfile mrtpath=/path/to/mrt
+i.modis.import files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
 <p>
 Import of files from a list as mosaics per date without QA layers using MRT:
 
 <div class="code"><pre>
-r.modis.import -mq files=/path/to/listfile mrtpath=/path/to/mrt
+i.modis.import -mq files=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
 <p>
 Import of a single file with user-specific subset of layers using GDAL:
 
 <div class="code"><pre>
-r.modis.import input=/path/to/file spectral="( 1 0 1 0 )"
+i.modis.import input=/path/to/file spectral="( 1 0 1 0 )"
 </pre></div>
 
 <p>
@@ -73,7 +73,7 @@ Import of files from a list with user-specific subset of layers and without QA
 layer using MRT:
 
 <div class="code"><pre>
-r.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
+i.modis.import -q files=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
 <p>
@@ -83,7 +83,7 @@ timestamps to maps in the temporal database and register them in a spacetime
 dataset. This option uses GDAL:
 
 <div class="code"><pre>
-r.modis.import -wq files=/path/to/listfile spectral="( 1 )" outfile=/path/to/list_for_tregister.csv
+i.modis.import -wq files=/path/to/listfile spectral="( 1 )" outfile=/path/to/list_for_tregister.csv
 </pre></div>
 
 <h3>Import of global MODIS NDVI data</h3>
@@ -93,16 +93,16 @@ and imported as follows in a latitude-longitude GRASS GIS location:
 
 <div class="code"><pre>
 # download the two years worth of data
-r.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
+i.modis.download settings=~/.rmodis product=ndvi_terra_sixteen_5600 \
   startday=2015-01-01 endday=2016-12-31 folder=$USER/data/ndvi_MOD13C1.006
 # import band 1 = NDVI
-r.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" \
+i.modis.import files=$USER/data/ndvi_MOD13C1.006/listfileMOD13C1.006.txt spectral="( 1 )" \
   method=bilinear outfile=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv -w
 # create empty temporal DB
 t.create type=strds temporaltype=absolute output=ndvi_16_5600m title="Global NDVI 16 days MOD13C1" \
   description="MOD13C1 Global NDVI 16 days" semantictype=mean
 # register maps within spacetime datasets (the file name is provided by
-# r.modis.import using -w flag and outfile option)
+# i.modis.import using -w flag and outfile option)
 t.register input=ndvi_16_5600m file=$USER/data/ndvi_MOD13C1.006/list_for_tregister.csv
 
 # verify and visualize timeline
@@ -115,14 +115,14 @@ g.gui.timeline ndvi_16_5600m
 Download the data: MOD11A1 from 2016-12-23 to 2016-12-31, tiles h18v04,h18v05
 
 <div class="code"><pre>
-r.modis.download settings=$HOME/SETTING product=lst_terra_eight_1000 \
+i.modis.download settings=$HOME/SETTING product=lst_terra_eight_1000 \
  tiles=h18v04,h18v05 startday=2016-12-23 endday=2016-12-31
 </pre></div>
 
 Import mosaics of LST Day and QC Day bands for all dates in the list of files:
 
 <div class="code"><pre>
-r.modis.import -m files=$HOME/listfileMOD11A1.006.txt \
+i.modis.import -m files=$HOME/listfileMOD11A1.006.txt \
  spectral="( 1 1 0 0 0 0 0 0 0 0 0 0 )"
 </pre></div>
 
@@ -163,13 +163,13 @@ g.gui.timeline LST_Day_daily
 
 <p>
 It is also possible to create a time series using the list of maps with start and
-end time written by <em>r.modis.import</em> with the <em>w</em> flag and outfile option.
+end time written by <em>i.modis.import</em> with the <em>w</em> flag and outfile option.
 
 <div class="code"><pre>
 # Import mosaics of LST Day for all dates using the list of downloaded files from 
-# r.modis.download (see above) and get a list of the imported files along with
+# i.modis.download (see above) and get a list of the imported files along with
 # dates to use with t.register in the temporal framework
-r.modis.import -mw files=$HOME/listfileMOD11A1.006.txt \
+i.modis.import -mw files=$HOME/listfileMOD11A1.006.txt \
  spectral="( 1 0 0 0 0 0 0 0 0 0 0 0 )" outfile=$HOME/list_for_tregister.csv
 
 # Create time series and register maps
@@ -182,10 +182,9 @@ t.register input=LST_Day_daily file=$HOME/list_for_tregister.csv
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.modis.html">r.modis</a>,
-<a href="r.modis.download.html">r.modis.download</a>,
+<a href="i.modis.html">i.modis</a>,
+<a href="i.modis.download.html">i.modis.download</a>,
 <a href="i.modis.qc.html">i.modis.qc</a>
-<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
 </em>
 <p>
 <a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>

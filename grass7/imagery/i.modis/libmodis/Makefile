@@ -5,7 +5,7 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = rmodislib __init__
 
-ETCDIR = $(ETC)/r.modis
+ETCDIR = $(ETC)/i.modis
 
 PYFILES := $(patsubst %,$(ETCDIR)/%.py,$(MODULES))
 PYCFILES := $(patsubst %,$(ETCDIR)/%.pyc,$(MODULES))

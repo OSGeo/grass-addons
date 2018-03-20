@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM = r.modis.import
+PGM = i.modis.import
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

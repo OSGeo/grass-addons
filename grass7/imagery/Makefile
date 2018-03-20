@@ -18,7 +18,8 @@ SUBDIRS = \
 	i.histo.match \
 	i.in.probav \
 	i.lmf \
-	i.points.auto \
+        i.modis \
+        i.points.auto \
 	i.pysptools.unmix \
 	i.rotate \
 	i.segment.gsoc \

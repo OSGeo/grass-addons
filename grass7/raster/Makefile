@@ -71,7 +71,6 @@ SUBDIRS = \
 	r.mcda.roughset \
 	r.meb \
 	r.mess \
-	r.modis \
 	r.mwprecip \
 	r.neighborhoodmatrix \
 	r.niche.similarity \

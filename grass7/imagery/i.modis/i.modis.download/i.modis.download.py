@@ -3,9 +3,9 @@
 
 ############################################################################
 #
-# MODULE:        r.in.modis.download
+# MODULE:        i.modis.download
 # AUTHOR(S):     Luca Delucchi
-# PURPOSE:       r.in.modis.download is an interface to pyModis for download
+# PURPOSE:       i.modis.download is an interface to pyModis for download
 #                several tiles of MODIS produts from NASA ftp
 #
 # COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
@@ -91,7 +91,7 @@ import grass.script as grass
 from grass.pygrass.utils import get_lib_path
 
 
-path = get_lib_path(modname='r.modis', libname='libmodis')
+path = get_lib_path(modname='i.modis', libname='libmodis')
 if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
@@ -157,7 +157,7 @@ def main():
     try:
         from rmodislib import product
     except:
-        grass.fatal("r.modis library is not installed")
+        grass.fatal("i.modis library is not installed")
     try:
         from pymodis.downmodis import downModis
     except:
@@ -259,7 +259,7 @@ def main():
                                 "previously downloaded"))
             elif filesize != 0:
                 grass.message(_("All data have been downloaded, continue "
-                                "with r.modis.import with the option "
+                                "with i.modis.import with the option "
                                 "'files=%s'" % modisOgg.filelist.name))
         else:
             grass.fatal(_("Error during connection"))

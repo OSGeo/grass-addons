@@ -3,9 +3,9 @@
 
 ############################################################################
 #
-# MODULE:        r.modis.import
+# MODULE:        i.modis.import
 # AUTHOR(S):     Luca Delucchi
-# PURPOSE:       r.modis.import is an interface to pyModis for import into
+# PURPOSE:       i.modis.import is an interface to pyModis for import into
 #                GRASS GIS level 3 MODIS produts
 #
 # COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
@@ -105,7 +105,7 @@ from datetime import datetime
 from datetime import timedelta
 from grass.pygrass.utils import get_lib_path
 import tempfile
-path = get_lib_path(modname='r.modis', libname='libmodis')
+path = get_lib_path(modname='i.modis', libname='libmodis')
 if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
@@ -183,10 +183,10 @@ def spectral(opts, prod, q, m=False):
 def confile(pm, opts, q, mosaik=False):
     """Create the configuration file for MRT software"""
     try:
-        # try to import pymodis (modis) and some classes for r.modis.download
+        # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import resampling, product, projection
     except:
-        grass.fatal("r.modis library is not installed")
+        grass.fatal("i.modis library is not installed")
     # return projection and datum
     projObj = projection()
     proj = projObj.returned()
@@ -228,7 +228,7 @@ def metadata(pars, mapp):
     """ Set metadata to the imported files """
     # metadata
     grass.run_command('r.support', quiet=True, map=mapp, source1="MODIS NASA",
-                      hist="Imported with r.modis.import")
+                      hist="Imported with i.modis.import")
     # timestamp
     rangetime = pars.retRangeTime()
     data = rangetime['RangeBeginningDate'].split('-')
@@ -328,10 +328,10 @@ def single(options, remove, an, ow, fil):
     """Convert the HDF file to TIF and import it
     """
     try:
-        # try to import pymodis (modis) and some classes for r.modis.download
+        # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
     except:
-        grass.fatal("r.modis library is not installed")
+        grass.fatal("i.modis library is not installed")
     try:
         from pymodis.convertmodis import convertModis
         from pymodis.convertmodis_gdal import convertModisGDAL
@@ -385,10 +385,10 @@ def mosaic(options, remove, an, ow, fil):
     """Create a daily mosaic of HDF files convert to TIF and import it
     """
     try:
-        # try to import pymodis (modis) and some classes for r.modis.download
+        # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
     except:
-        grass.fatal("r.modis library is not installed")
+        grass.fatal("i.modis library is not installed")
     try:
         from pymodis.convertmodis import convertModis, createMosaic
         from pymodis.convertmodis_gdal import createMosaicGDAL, convertModisGDAL
@@ -496,7 +496,7 @@ def main():
         try:
             from rmodislib import product
         except:
-            grass.fatal("r.modis library is not installed")
+            grass.fatal("i.modis library is not installed")
         prod = product()
         prod.print_prods()
         return 0

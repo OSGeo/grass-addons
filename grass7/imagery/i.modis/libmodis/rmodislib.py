@@ -3,9 +3,9 @@
 
 ############################################################################
 #
-# MODULE:	r.modis
+# MODULE:	i.modis
 # AUTHOR(S):	Luca Delucchi
-# PURPOSE:	Here there are some important class to run r.modis modules
+# PURPOSE:	Here there are some important class to run i.modis modules
 #
 #
 # COPYRIGHT:	(C) 2011-2017 by Luca Delucchi
