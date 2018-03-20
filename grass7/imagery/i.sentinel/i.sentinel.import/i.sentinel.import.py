@@ -2,10 +2,10 @@
 #
 ############################################################################
 #
-# MODULE:      r.sentinel.import
+# MODULE:      i.sentinel.import
 # AUTHOR(S):   Martin Landa
 # PURPOSE:     Imports Sentinel data downloaded from Copernicus Open Access Hub
-#              using r.sentinel.download.
+#              using i.sentinel.download.
 # COPYRIGHT:   (C) 2018 by Martin Landa, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
@@ -15,7 +15,7 @@
 #############################################################################
 
 #%Module
-#% description: Imports Sentinel data downloaded from Copernicus Open Access Hub using r.sentinel.download.
+#% description: Imports Sentinel data downloaded from Copernicus Open Access Hub using i.sentinel.download.
 #% keyword: raster
 #% keyword: imagery
 #% keyword: sentinel

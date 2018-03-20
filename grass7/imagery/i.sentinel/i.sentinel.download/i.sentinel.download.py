@@ -2,9 +2,9 @@
 #
 ############################################################################
 #
-# MODULE:      r.sentinel.download
+# MODULE:      i.sentinel.download
 # AUTHOR(S):   Martin Landa
-# PURPOSE:     Downloads Sentinel data from  Copernicus Open Access Hub
+# PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub
 #              using sentinelsat library.
 # COPYRIGHT:   (C) 2018 by Martin Landa, and the GRASS development team
 #

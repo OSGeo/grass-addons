@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.sentinel.import
+PGM = i.sentinel.import
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

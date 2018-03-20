@@ -1,10 +1,10 @@
-<em>r.sentinel.import</em> module allows importing Sentinel products
+<em>i.sentinel.import</em> module allows importing Sentinel products
 downloaded
-by <em><a href="r.sentinel.download.html">r.sentinel.download</a></em>
+by <em><a href="i.sentinel.download.html">i.sentinel.download</a></em>
 module.
 
 <p>
-By default <em>r.sentinel.import</em> imports all Sentinel bands found
+By default <em>i.sentinel.import</em> imports all Sentinel bands found
 in <b>input</b> directory
 by <em><a href="r.import.html">r.import</a></em>. Note that in the
 case that spatial reference system of input data differs from GRASS
@@ -34,7 +34,7 @@ each file also projection match with current location is printed
 including detected input data EPSG code.
 
 <div class="code"><pre>
-r.sentinel.import -p input=data
+i.sentinel.import -p input=data
 
 data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B04.jp2 1 (EPSG: 32632)
 data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B07.jp2 1 (EPSG: 32632)
@@ -44,30 +44,30 @@ data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.
 Import all Sentinel bands found in <i>data</i> directory.
 
 <div class="code"><pre>
-r.sentinel.import input=data
+i.sentinel.import input=data
 </pre></div>
 
 Limit import only to 4th and 8th bands.
 
 <div class="code"><pre>
-r.sentinel.import input=data pattern='B0[4|8]'
+i.sentinel.import input=data pattern='B0[4|8]'
 </pre></div>
 
 Link data and import also cloud mask file.
 
 <div class="code"><pre>
-r.sentinel.import -l -c input=data
+i.sentinel.import -l -c input=data
 </pre></div>
 
 <center>
-<img src="r_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
+<img src="i_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
 <i>Fig: Band 4 with imported cloud mask</i>
 </center>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.sentinel.download.html">r.sentinel.download</a>,
+<a href="i.sentinel.download.html">i.sentinel.download</a>,
 <a href="r.import.html">r.import</a>,
 <a href="r.extenal.html">r.external</a>,
 <a href="v.import.html">v.import</a>
