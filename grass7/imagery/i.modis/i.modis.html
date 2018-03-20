@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>GRASS GIS manual: r.modis</title>
+<title>GRASS GIS manual: i.modis</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
@@ -12,7 +12,7 @@
 <hr class="header">
 
 <h2>NAME</h2>
-<em><b>r.modis</b></em>  - Toolset for download and processing of MODIS products using pyModis.
+<em><b>i.modis</b></em>  - Toolset for download and processing of MODIS products using pyModis.
 
 <h2>KEYWORDS</h2>
 <a href="raster.html">raster</a>, <a href="topic_import.html">import</a>, <a href="keywords.html#MODIS">MODIS</a>
@@ -20,7 +20,7 @@
 <!-- meta page description: Toolset for download and processing of MODIS products using pyModis -->
 <h2>DESCRIPTION</h2>
 
-The <em>r.modis</em> suite is a toolset to import MODIS (Moderate
+The <em>i.modis</em> suite is a toolset to import MODIS (Moderate
 Resolution Imaging Spectroradiometer, flown on the two NASA spacecrafts
 Terra and Aqua) satellite data into GRASS GIS. It uses the
 <a href="http://www.pymodis.org">pyModis</a> library and additionally
@@ -28,23 +28,23 @@ either the <a href="http://gdal.org/">GDAL library</a> or the
 <a href="https://lpdaac.usgs.gov/tools/modis_reprojection_tool">MODIS Reprojection Tool</a> (MRT)
 software to convert, mosaic and process MODIS data.
 <p>
-The <em>r.modis</em> suite requires the pyModis library and either the GDAL or MRT
+The <em>i.modis</em> suite requires the pyModis library and either the GDAL or MRT
 software to be installed.
 <p>
-The <em>r.modis</em> suite offers two modules as interface to MODIS data. Each module
-is dedicated to a specific operation. The module <em>r.modis.download</em>
+The <em>i.modis</em> suite offers two modules as interface to MODIS data. Each module
+is dedicated to a specific operation. The module <em>i.modis.download</em>
 is used to download MODIS HDF products from NASA servers. These files can then
-be imported with <em>r.modis.import</em> which supports import of Level 3
+be imported with <em>i.modis.import</em> which supports import of Level 3
 MODIS products as a single image or as a mosaic into GRASS GIS.
 <p>
 Subsequently, the user can create a temporal dataset using <em>t.create</em> and, register
 the maps with <em>t.register</em>. NOTE: In order to work with the temporal framework of
-GRASS GIS the flag <em>w</em> must be set during the import with <em>r.modis.import</em>.
+GRASS GIS the flag <em>w</em> must be set during the import with <em>i.modis.import</em>.
 <p>
 The user can choose from several MODIS products, distributed as single or multiple tiles
 and also ranges of observation days retrieving data from the related NASA servers.
 <!--
-The suite process Level 2 data using the <em>r.modis.process</em> module.
+The suite process Level 2 data using the <em>i.modis.process</em> module.
 -->
 The suite imports Level 3 (georeferenced) products either as single images or as mosaics for
 each date.
@@ -189,15 +189,15 @@ These products are currently supported:
 
 <h2>NOTES</h2>
 
-The <em>r.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+The <em>i.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
 library. Please install it beforehand.
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.modis.import.html">r.modis.import</a>,
-<a href="r.modis.download.html">r.modis.download</a>
-<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+<a href="i.modis.import.html">i.modis.import</a>,
+<a href="i.modis.download.html">i.modis.download</a>
+<!-- <a href="i.modis.process.html">i.modis.process</a>,-->
 </em>
 <p>
 <ul>

@@ -6,8 +6,8 @@ include $(MODULE_TOPDIR)/include/Make/Script.make
 
 default: script
 
-# $(ETC)/r.modis/r.modis.download/%: % | $(ETC)/r.modis/r.modis.download
+# $(ETC)/i.modis/i.modis.download/%: % | $(ETC)/i.modis/i.modis.download
 # 	$(INSTALL) $< $@
 # 
-# $(ETC)/r.modis/r.modis.download:
+# $(ETC)/i.modis/i.modis.download:
 # 	$(MKDIR) $@
