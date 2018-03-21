@@ -93,9 +93,9 @@ def main():
         mapset = gisenv['MAPSET']
     
     ipath = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'],
-                         mapset, name, 'subgroup', isub, isign)
+                         mapset, name, 'subgroup', isub, 'sig', isign)
     if not os.path.exists(ipath):
-        grass.fatal(_("<{}> does not exist".format(ipath)))
+        grass.fatal(_("Signature file <{}> does not exist".format(ipath)))
     
     # try to split output group and mapset
     try:
@@ -105,7 +105,7 @@ def main():
         omapset = gisenv['MAPSET']
 
     opath = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'],
-                         omapset, oname, 'subgroup', osub)
+                         omapset, oname, 'subgroup', osub, 'sig')
     if not os.path.exists(opath):
         grass.fatal(_("<{pa}> does not exist, do group <{gr}> and "
                       "subgroup <{su}> exist?".format(pa=ipath, gr=ogroup,

@@ -66,7 +66,7 @@ def main():
                           " {ma}".format(na=name, loc=gisenv['LOCATION_NAME'],
                                          ma=mapset)))
         if sub:
-            path = os.path.join(path, 'subgroup', sub)
+            path = os.path.join(path, 'subgroup', sub, 'sig')
             if not os.path.exists(path):
                 grass.fatal(_("No subgroups with name {na} in group "
                               "{gr}".format(na=sub, gr=name)))
@@ -84,7 +84,7 @@ def main():
                 grass.fatal(_("No subgroups for group {gr}".format(gr=name)))
             for di in os.listdir(path):
                 print("    Subgroup: {}".format(di))
-                for sig in os.listdir(os.path.join(path, di)):
+                for sig in os.listdir(os.path.join(path, di, 'sig')):
                     if sig != 'REF':
                         print("        {}".format(sig))
     else:
@@ -100,7 +100,7 @@ def main():
                 continue
             for di in os.listdir(os.path.join(path, gr, 'subgroup')):
                 print("    Subgroup: {}".format(di))
-                for sig in os.listdir(os.path.join(path, gr, 'subgroup', di)):
+                for sig in os.listdir(os.path.join(path, gr, 'subgroup', di, 'sig')):
                     if sig != 'REF':
                         print("        {}".format(sig))
                 
