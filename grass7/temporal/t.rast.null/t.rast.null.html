@@ -1,14 +1,15 @@
 <h2>DESCRIPTION</h2>
-<em><b>t.rast.null</b></em> manages NULL-values of the input space time raster
-dataset.
+<em><b>t.rast.null</b></em> manages NULL-values of the input space time 
+raster dataset.
 <p>
-The setnull parameter is used to specify values in the ranges to be set to NULL.
-A range is either a single value (e.g., 5.3), or a pair of values (e.g., 4.76-34.56).
-Existing NULL-values are left NULL, unless the null argument is requested.
+The <b>setnull</b> parameter is used to specify values in the ranges to 
+be set to NULL. A range is either a single value (e.g., 5.3), or a pair
+of values (e.g., 4.76-34.56). Existing NULL-values are left NULL, unless
+the null argument is requested.
 <p>
-The null parameter eliminates the NULL value and replaces it with value.
-This argument is applied only to existing NULL values, and not to the NULLs created by the setnull argument.
-
+The <b>null</b> parameter eliminates the NULL value and replaces it with
+the given value. This argument is applied only to existing NULL values,
+and not to the NULLs created by the <b>setnull</b> argument.
 
 <h2>EXAMPLES</h2>
 Set specific values (0,-1 and -2) of a space time raster dataset to NULL:
@@ -18,9 +19,8 @@ Set specific values (0,-1 and -2) of a space time raster dataset to NULL:
 
 <h2>SEE ALSO</h2>
 <em>
-<a href="r.null.html">r.null</a>,
+<a href="r.null.html">r.null</a>
 </em>
-
 
 <h2>AUTHOR</h2>
 Luca Delucchi, Fondazione Edmund Mach

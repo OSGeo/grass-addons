@@ -5,7 +5,7 @@
 #
 # MODULE:       t.rast.null
 # AUTHOR(S):    Luca Delucchi
-# PURPOSE:      t.rast.null set null values in a space time raster dataset
+# PURPOSE:      Manages NULL-values of a given space time raster dataset.
 #
 # COPYRIGHT:    (C) 2018 by Luca Delucchi
 #
@@ -16,14 +16,13 @@
 ################################################
 
 #%module
-#% description: Calculate kappa parameter in a space time raster dataset
+#% description: Manages NULL-values of a given space time raster dataset.
 #% keyword: temporal
 #% keyword: raster
 #% keyword: null data
 #%end
 
 #%option G_OPT_STRDS_INPUT
-#% key: strds
 #%end
 
 #%option
@@ -48,7 +47,7 @@
 #%option
 #% key: nprocs
 #% type: integer
-#% description: Number of r.to.vect processes to run in parallel, more than 1 process works only in conjunction with flag -t
+#% description: Number of r.null processes to run in parallel
 #% required: no
 #% multiple: no
 #% answer: 1
@@ -62,7 +61,7 @@ import grass.script as gscript
 import grass.pygrass.modules as pymod
 
 def main():
-    strds = options["strds"]
+    strds = options["input"]
     where = options["where"]
     nprocs = int(options["nprocs"])
     
