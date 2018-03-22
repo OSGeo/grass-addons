@@ -17,8 +17,10 @@
 #%module
 #% description: List signature file for a group/subgroup
 #% keyword: imagery
+#% keyword: map management
 #% keyword: list
 #% keyword: group
+#% keyword: search
 #%end
 
 #%flag

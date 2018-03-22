@@ -5,7 +5,7 @@
 # MODULE:	i.signature.copy
 # AUTHOR(S):	Luca Delucchi
 #
-# PURPOSE:	List signature file for a group/subgroup
+# PURPOSE:	Copy signature file from a group/subgroup
 # COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -17,6 +17,7 @@
 #%module
 #% description: List signature file for a group/subgroup
 #% keyword: imagery
+#% keyword: map management
 #% keyword: copy
 #% keyword: group
 #%end
@@ -127,7 +128,6 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
 
-    
 
 if __name__ == "__main__":
     options, flags = grass.parser()
