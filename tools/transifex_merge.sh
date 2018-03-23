@@ -2,7 +2,8 @@
 
 # GRASS GIS transifex support script: fetches msg from transifex
 # Luca Delucchi 2017, based on gettext message merge procedure by Markus Neteler
-# - keep headers added by Markus Neteler
+# - keep headers added by Markus 
+# 2018, grass72 -> grass7
 
 # Required installation:
 # see
@@ -35,7 +36,7 @@ cd ..
 # merge updated files into existing ones
 cd po
 NEWPODIR="../transifex/.tx/"
-NEWLIBPODIR="${NEWPODIR}grass72.grasslibspot/"
+NEWLIBPODIR="${NEWPODIR}grass7.grasslibspot/"
 
 for fil in `ls $NEWLIBPODIR`;
 do
@@ -49,8 +50,8 @@ do
   
   # fix undefined CHARSET in files pulled from transifex (grrr...)
   sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWLIBPODIR}${MYLANG}_translation > ${NEWLIBPODIR}${MYLANG}_translation_new
-  sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation > ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new
-  sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation > ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new
+  sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation > ${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation_new
+  sed "s+charset=CHARSET+charset=UTF-8+g" ${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation > ${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation_new
   
   # https://www.gnu.org/software/gettext/manual/html_node/msgmerge-Invocation.html#msgmerge-Invocation
   # if po file locally present, update it, otherwise copy over new file from transifex
@@ -77,12 +78,12 @@ do
   if [ -f grassmods_${MYLANG}.po ]; then
     POFILE=grassmods_${MYLANG}.po
     grep -m1 -B555 '^$' $POFILE > grassmods_${MYLANG}.header
-    msgcat --use-first --no-wrap grassmods_${MYLANG}.header ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new > ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new.2
-    $MSGMERGE ${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new.2 grassmods_${MYLANG}.po -o grassmods_${MYLANG}.po2 &&  mv grassmods_${MYLANG}.po2 grassmods_${MYLANG}.po && rm -f grassmods_${MYLANG}.header
+    msgcat --use-first --no-wrap grassmods_${MYLANG}.header ${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation_new > ${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation_new.2
+    $MSGMERGE ${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation_new.2 grassmods_${MYLANG}.po -o grassmods_${MYLANG}.po2 &&  mv grassmods_${MYLANG}.po2 grassmods_${MYLANG}.po && rm -f grassmods_${MYLANG}.header
   else
     # update header for newly created files
     # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
-    POFILE=${NEWPODIR}grass72.grassmodspot/${MYLANG}_translation_new
+    POFILE=${NEWPODIR}grass7.grassmodspot/${MYLANG}_translation_new
     sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grassmods_${MYLANG}.po+g" $POFILE
     sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
     sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
@@ -97,12 +98,12 @@ do
   if [ -f grasswxpy_${MYLANG}.po ]; then
     POFILE=grasswxpy_${MYLANG}.po
     grep -m1 -B555 '^$' $POFILE > grasswxpy_${MYLANG}.header
-    msgcat --use-first --no-wrap grasswxpy_${MYLANG}.header ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new > ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new.2
-    $MSGMERGE ${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new.2 grasswxpy_${MYLANG}.po -o grasswxpy_${MYLANG}.po2 &&  mv grasswxpy_${MYLANG}.po2 grasswxpy_${MYLANG}.po && rm -f grasswxpy_${MYLANG}.header
+    msgcat --use-first --no-wrap grasswxpy_${MYLANG}.header ${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation_new > ${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation_new.2
+    $MSGMERGE ${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation_new.2 grasswxpy_${MYLANG}.po -o grasswxpy_${MYLANG}.po2 &&  mv grasswxpy_${MYLANG}.po2 grasswxpy_${MYLANG}.po && rm -f grasswxpy_${MYLANG}.header
   else
     # update header for newly created files
     # TODO: missing Project-Id-Version, PO-Revision-Date, Last-Translator
-    POFILE=${NEWPODIR}grass72.grasswxpypot/${MYLANG}_translation_new
+    POFILE=${NEWPODIR}grass7.grasswxpypot/${MYLANG}_translation_new
     sed -i "s+# SOME DESCRIPTIVE TITLE.+# Translation of grasswxpy_${MYLANG}.po+g" $POFILE
     sed -i "s+as the PACKAGE package+as the GRASS GIS package+g" $POFILE
     sed -i "s+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER+# Copyright (C) 2017 GRASS Development Team+g" $POFILE
@@ -116,4 +117,4 @@ do
 done
 
 # cleanup the po files fetched from transifex
-rm -rf ${NEWLIBPODIR} ${NEWPODIR}grass72.grassmodspot/ ${NEWPODIR}grass72.grasswxpypot/
+rm -rf ${NEWLIBPODIR} ${NEWPODIR}grass7.grassmodspot/ ${NEWPODIR}grass7.grasswxpypot/
