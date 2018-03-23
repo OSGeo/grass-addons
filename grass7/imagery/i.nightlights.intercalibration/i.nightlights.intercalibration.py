@@ -138,8 +138,8 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 #% end
 
 #%flag
-#%  key: k
-#%  description: Keep current computational region settings
+#%  key: x
+#%  description: Match computational region to extent of input image
 #%end
 
 #%flag
@@ -220,7 +220,7 @@ def cleanup():
     """
     grass.run_command('g.remove', flags='f', type="rast",
                       pattern='tmp.{pid}*'.format(pid=os.getpid()), quiet=True)
-                      
+
 def run(cmd, **kwargs):
     """
     Pass required arguments to grass commands (?)
@@ -283,7 +283,7 @@ def main():
 
     # flags    
     info = flags['i']
-    keep_region = flags['k']
+    extend_region = flags['x']
     timestamps = not(flags['t'])
     zero = flags['z']
     null = flags['n']  ### either zero or null, not both --- FixMe! ###    
@@ -301,7 +301,7 @@ def main():
     # Temporary Region and Files
     # -----------------------------------------------------------------------
 
-    if not keep_region:
+    if extend_region:
         grass.use_temp_region()  # to safely modify the region
     tmpfile = grass.tempfile()  # Temporary file - replace with os.getpid?
     tmp = "tmp." + grass.basename(tmpfile)  # use its basename
@@ -311,27 +311,27 @@ def main():
     # -----------------------------------------------------------------------            
 
     for image in input_list:
-        
+
         satellite = image[0:3]
         year = image[3:7]
 
         # -------------------------------------------------------------------
         # Match region to input image if... ?
         # -------------------------------------------------------------------
-    
-        if not keep_region:
+
+        if extend_region:
             run('g.region', rast=image)   # ## FixMe?
             msg = "\n|! Matching region extent to map {name}"
             msg = msg.format(name=image)
             g.message(msg)
-    
-        elif keep_region:
+
+        elif not extend_region:
             grass.warning(_('Operating on current region'))
-                
+
         # -------------------------------------------------------------------
         # Retrieve coefficients
         # -------------------------------------------------------------------
-    
+
         msg = "\n|> Calibrating average visible Digital Number values "
         g.message(msg)
 
@@ -506,7 +506,7 @@ def main():
         # Restore region
         # -------------------------------------------------------------------
 
-        if not keep_region:
+        if extend_region:
             grass.del_temp_region()  # restoring previous region settings
             g.message("|! Original Region restored")
 

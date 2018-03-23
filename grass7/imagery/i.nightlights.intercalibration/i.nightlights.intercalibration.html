@@ -15,7 +15,7 @@ but important, changes might be applied to the intercalibration process.
 +----------------------------------------------------------------------+
 |                                                                      |
 |          +-----------------+                                         |
-| DNi +--&gt; |Calibration Model| +--&gt; Calibrated DN                      |
+| DNi +--> |Calibration Model| +--> Calibrated DN                      |
 |          +---^-------------+            ^                            |
 |              |                          |                            |
 |              |             +--Evaluation+Methods-------------------+ |
@@ -28,7 +28,7 @@ but important, changes might be applied to the intercalibration process.
 | |                                                                  | |
 | | Elvidge, 2009/2014: DNc = C0 + C1xDN + C2xDNv2                   | |
 | |                                                                  | |
-| | Liu,2012: based on Elvidge&#39;s model + optimal threshold method    | |
+| | Liu,2012: based on Elvidge's model + optimal threshold method    | |
 | |                                                                  | |
 | | Wu, 2014:           DNc + 1 = ax(DN + 1)^b                       | |
 | |                                                                  | |
@@ -44,7 +44,14 @@ but important, changes might be applied to the intercalibration process.
 <p>From a review paper:
 
 <blockquote>
-<p>&quot;Several methods were proposed to overcome the lack of inter-satellite calibration. These include the invariant region and the quadratic regression method proposed by Elvidge et al. [23], the second-order regression and optimal threshold method proposed by Liu et al. [24], and a power-law regression method proposed by Wu et al. [25]. Although studies based on these calibration methods showed performance improvement after the rectification [24,25], the assumption that the nighttime light remains stableover time in a particular area requires a careful choice of the invariant region manually.&quot; [Huang 2014]
+<p>&quot;Several methods were proposed to overcome the lack of inter-satellite
+calibration. These include the invariant region and the quadratic regression
+method proposed by Elvidge et al. [23], the second-order regression and optimal
+threshold method proposed by Liu et al. [24], and a power-law regression method
+proposed by Wu et al. [25]. Although studies based on these calibration methods
+showed performance improvement after the rectification [24,25], the assumption
+that the nighttime light remains stableover time in a particular area requires
+a careful choice of the invariant region manually.&quot; [Huang 2014]
 </blockquote>
 
 <p>References above are: [23]: [Elvidge 2009] [24]: [Liu 2012], [25]: [Wu 2013]
@@ -53,24 +60,31 @@ but important, changes might be applied to the intercalibration process.
 <p>Given all maps are imported in GRASS' data base, which are:
 <div class="code"><pre>
 g.list rast pattern="F*" sep=comma
-F101992,F101993,F101994,F121994,F121995,F121996,F121997,F121998,F121999,F141997, F141998,F141999,F142000,F142001,F142002,F142003,F152000,F152001,F152002,F152003, F152004,F152005,F152006,F152007,F162004,F162005,F162006,F162007,F162008, F162009,F182010,F182011,F182012
+F101992,F101993,F101994,F121994,F121995,F121996,F121997,F121998,F121999,F141997,F141998,F141999,F142000,F142001,F142002,F142003,F152000,F152001,F152002,F152003,F152004,F152005,F152006,F152007,F162004,F162005,F162006,F162007,F162008,F162009,F182010,F182011,F182012
 </pre></div>
 
 <p>the default inter-calibration, based on [Elvidge 2014], can be performed as:
 <div class="code"><pre>
-i.nightlights.intercalibration image=`g.list rast pattern="F*" sep=comma` suffix=calib_elv
+i.nightlights.intercalibration image=$(g.list rast pattern="F*" sep=comma)
+suffix=calib_elv
 </pre></div>
 <p>
-<p>An improved inter-calibration model is based on [Wu 2013], can be performed as:
+<p>An improved inter-calibration model is based on [Wu 2013], can be performed
+as:
 <div class="code"><pre>
-i.nightlights.intercalibration image=`g.list rast pattern="F*stable_lights*" sep=comma` model=wu2013 suffix=calib_wu
+i.nightlights.intercalibration image=$(g.list rast pattern="F*stable_lights*"
+sep=comma) model=wu2013 suffix=calib_wu
 </pre></div>
 
 <h2>Remarks</h2>
-<p>The calibration models do not include regression coefficients for all of the yearly products. In which case, the module will fail and inform with an error message like:
+<p>The calibration models do not include regression coefficients for all of the
+yearly products. In which case, the module will fail and inform with an error
+message like:
 <div class="code"><pre>
-i.nightlights.intercalibration image=`g.list rast pattern="F??????" sep=comma` model=liu2012 --v
-... ValueError: The selected model does not know about this combination of Satellite + Year!
+i.nightlights.intercalibration image=`g.list rast pattern="F??????" sep=comma`
+model=liu2012 --v
+... ValueError: The selected model does not know about this combination of
+Satellite + Year!
 </pre></div>
 
 <h3>Example figures</h3>
@@ -97,32 +111,46 @@ i.nightlights.intercalibration image=`g.list rast pattern="F??????" sep=comma` m
 </ul>
 <p>another module?
 <ul>
-<li>Accuracy assessment of inter-calibrated nighttime lights time series [Wu 2013]:
-    <tt>TLI = SUMi DNi × Ci</tt> where DNi is the grey value of i-level pixels and Ci is the number of i-level pixels</li>
+<li>Accuracy assessment of inter-calibrated nighttime lights time series [Wu
+  2013]:
+    <tt>TLI = SUMi DNi * Ci</tt> where DNi is the grey value of i-level pixels
+    and Ci is the number of i-level pixels</li>
 </ul>
 
 <h2>REFERENCES</h2>
-<p>[Review paper(s)]
+<p>Review paper
 <ul>
-<li>Application of DMSP-OLS Nighttime Light Images A Meta-Analysis and a Systematic Literature Review [Huang 2014]</li>
+<li>Application of DMSP-OLS Nighttime Light Images A Meta-Analysis and a
+  Systematic Literature Review [Huang 2014]</li>
 </ul>
-<p>[Empirical second order regression model by Elvidge, 2009 | Y = C0 + C1*X + C2*X^2 ]
+<p>Empirical second order regression model by Elvidge, 2009 | Y = C0 + C1*X +
+C2*X^2</p>
 <ul>
-<li>Estimating Land Development Time Lags in China Using DMSP/OLS Nighttime Light Image [Zhang 2015]</li>
+<li>Estimating Land Development Time Lags in China Using DMSP/OLS Nighttime
+  Light Image [Zhang 2015]</li>
 <li>National Trends in Satellite-Observed Lighting 1992-2012 [Elvidge 2014]</li>
-<li>Comparative Estimation of Urban Development in China’s Cities Using socioeconomic and DMSP/OLS Night Light Data [Fan 2014]</li>
-<li>The Integrated Use of DMSP-OLS Nighttime Light and MODIS Data for Monitoring Large-Scale Impervious Surface Dynamics A Case Study in the Yangtze River Delta [Shao &amp; Liu 2014]</li>
-<li>Characterizing Spatio-Temporal Dynamics of Urbanization in China Using Time Series of DMSP/OLS Night Light Data [Xu 2014]</li>
-<li>Night on Earth Mapping decadal changes of anthropogenic night light in Asia [Small &amp; Elvidge 2013]</li>
+<li>Comparative Estimation of Urban Development in China's Cities Using
+  socioeconomic and DMSP/OLS Night Light Data [Fan 2014]</li>
+<li>The Integrated Use of DMSP-OLS Nighttime Light and MODIS Data for
+  Monitoring Large-Scale Impervious Surface Dynamics A Case Study in the
+  Yangtze River Delta [Shao &amp; Liu 2014]</li>
+<li>Characterizing Spatio-Temporal Dynamics of Urbanization in China Using Time
+  Series of DMSP/OLS Night Light Data [Xu 2014]</li>
+<li>Night on Earth Mapping decadal changes of anthropogenic night light in Asia
+  [Small &amp; Elvidge 2013]</li>
 </ul>
-<p>[Second order regression model &amp; optimal threshold method by Liu, 2012]
+<p>Second order regression model &amp; optimal threshold method by Liu, 2012
 <ul>
-<li>Modeling In-Use Steel Stock in China's Buildings and Civil Engineering Infrastructure Using Time-Series of DMSP/OLS Nighttime Lights [Liang 2014]</li>
-<li>Dynamics of Urbanization Levels in China from 1992 to 2012 Perspective from DMSP/OLS Nighttime Light Data] [?]</li>
+<li>Modeling In-Use Steel Stock in China's Buildings and Civil Engineering
+  Infrastructure Using Time-Series of DMSP/OLS Nighttime Lights [Liang
+  2014]</li>
+<li>Dynamics of Urbanization Levels in China from 1992 to 2012 Perspective from
+  DMSP/OLS Nighttime Light Data] [?]</li>
 </ul>
-<p>[Non-linear, power regression model]
+<p>Non-linear, power regression model
 <ul>
-<li>Intercalibration of DMSP-OLS night-time light data by the invariant region method [Wu 2013]</li>
+<li>Intercalibration of DMSP-OLS night-time light data by the invariant region
+  method [Wu 2013]</li>
 </ul>
 
 <h2>AUTHORS</h2>
