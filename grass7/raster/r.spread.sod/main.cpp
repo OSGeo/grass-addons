@@ -43,6 +43,8 @@ extern "C" {
 #include <sstream>
 #include <string>
 
+#include <sys/stat.h>
+
 using std::string;
 using std::cout;
 using std::cerr;
@@ -50,6 +52,18 @@ using std::endl;
 
 
 #define DIM 1
+
+// check if a file exists
+inline bool file_exists(const char* name) {
+  struct stat buffer;
+  return (stat(name, &buffer) == 0);
+}
+
+inline void file_exists_or_fatal_error(struct Option* option) {
+    if (option->answer && !file_exists(option->answer))
+        G_fatal_error(_("Option %s: File %s does not exist"),
+                      option->key, option->answer);
+}
 
 // Initialize infected trees for each species
 // needed unless empirical info is available
@@ -234,11 +248,13 @@ struct SodOptions
     struct Option *seed, *runs, *threads;
     struct Option *output, *output_series;
     struct Option *stddev, *stddev_series;
+    struct Option *output_probability;
 };
 
 struct SodFlags
 {
     struct Flag *generate_seed;
+    struct Flag *series_as_single_run;
 };
 
 
@@ -275,6 +291,7 @@ int main(int argc, char *argv[])
 
     opt.output = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.output->guisection = _("Output");
+    opt.output->required = NO;
 
     opt.output_series = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
     opt.output_series->key = "output_series";
@@ -294,6 +311,20 @@ int main(int argc, char *argv[])
             = _("Basename for output series of standard deviations");
     opt.stddev_series->required = NO;
     opt.stddev_series->guisection = _("Output");
+
+    flg.series_as_single_run = G_define_flag();
+    flg.series_as_single_run->key = 'l';
+    flg.series_as_single_run->label =
+        _("The output series as a single run only, not average");
+    flg.series_as_single_run->description =
+        _("The first run will be used for output instead of average");
+    flg.series_as_single_run->guisection = _("Output");
+
+    opt.output_probability = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt.output_probability->key = "probability";
+    opt.output_probability->description = _("Infection probability (in percent)");
+    opt.output_probability->required = NO;
+    opt.output_probability->guisection = _("Output");
 
     opt.outside_spores = G_define_standard_option(G_OPT_V_OUTPUT);
     opt.outside_spores->key = "outside_spores";
@@ -459,6 +490,9 @@ int main(int argc, char *argv[])
     opt.threads->options = "1-";
     opt.threads->guisection = _("Randomness");
 
+    G_option_required(opt.output, opt.output_series, opt.output_probability,
+                      opt.outside_spores, NULL);
+
     G_option_exclusive(opt.seed, flg.generate_seed, NULL);
     G_option_required(opt.seed, flg.generate_seed, NULL);
 
@@ -479,6 +513,11 @@ int main(int argc, char *argv[])
     unsigned threads = 1;
     if (opt.threads->answer)
         threads = std::stoul(opt.threads->answer);
+
+    // check for file existence
+    file_exists_or_fatal_error(opt.moisture_file);
+    file_exists_or_fatal_error(opt.temperature_file);
+    file_exists_or_fatal_error(opt.weather_file);
 
     // Seasonality: Do you want the spread to be limited to certain months?
     bool ss = seasonality_from_string(opt.seasonality->answer);
@@ -685,18 +724,22 @@ int main(int argc, char *argv[])
                 }
                 unresolved_weeks.clear();
             }
-            if (opt.output_series->answer || opt.stddev_series->answer) {
-                // aggregate
+            if ((opt.output_series->answer && !flg.series_as_single_run->answer)
+                     || opt.stddev_series->answer) {
+                // aggregate in the series
                 I_species_rast.zero();
                 for (unsigned i = 0; i < num_runs; i++)
                     I_species_rast += inf_species_rasts[i];
                 I_species_rast /= num_runs;
+            }
+            if (opt.output_series->answer) {
                 // write result
                 // date is always end of the year, even for seasonal spread
-                if (opt.output_series->answer) {
-                    string name = generate_name(opt.output_series->answer, dd_start);
+                string name = generate_name(opt.output_series->answer, dd_start);
+                if (flg.series_as_single_run->answer)
+                    inf_species_rasts[0].toGrassRaster(name.c_str());
+                else
                     I_species_rast.toGrassRaster(name.c_str());
-                }
             }
             if (opt.stddev_series->answer) {
                 Img stddev(I_species_rast.getWidth(), I_species_rast.getHeight(),
@@ -716,14 +759,17 @@ int main(int argc, char *argv[])
             break;
     }
 
-    // aggregate
-    I_species_rast.zero();
-    for (unsigned i = 0; i < num_runs; i++)
-        I_species_rast += inf_species_rasts[i];
-    I_species_rast /= num_runs;
-    // write final result
-    I_species_rast.toGrassRaster(opt.output->answer);
-
+    if (opt.output->answer || opt.stddev->answer) {
+        // aggregate
+        I_species_rast.zero();
+        for (unsigned i = 0; i < num_runs; i++)
+            I_species_rast += inf_species_rasts[i];
+        I_species_rast /= num_runs;
+    }
+    if (opt.output->answer) {
+        // write final result
+        I_species_rast.toGrassRaster(opt.output->answer);
+    }
     if (opt.stddev->answer) {
         Img stddev(I_species_rast.getWidth(), I_species_rast.getHeight(),
                    I_species_rast.getWEResolution(), I_species_rast.getNSResolution(), 0);
@@ -734,6 +780,18 @@ int main(int argc, char *argv[])
         stddev /= num_runs;
         stddev.for_each([](int& a){a = std::sqrt(a);});
         stddev.toGrassRaster(opt.stddev->answer);
+    }
+    if (opt.output_probability->answer) {
+        Img probability(I_species_rast.getWidth(), I_species_rast.getHeight(),
+                        I_species_rast.getWEResolution(), I_species_rast.getNSResolution(), 0);
+        for (unsigned i = 0; i < num_runs; i++) {
+            Img tmp = inf_species_rasts[i];
+            tmp.for_each([](int& a){a = bool(a);});
+            probability += tmp;
+        }
+        probability *= 100;  // prob from 0 to 100 (using ints)
+        probability /= num_runs;
+        probability.toGrassRaster(opt.output_probability->answer);
     }
     if (opt.outside_spores->answer) {
         Cell_head region;

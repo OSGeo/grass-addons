@@ -4,6 +4,16 @@ All notable changes to this project should be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2017-09-05 - March 2018 update
+
+### Changed
+
+- Changes for automatic compilation in GRASS GIS Addons (Vaclav Petras)
+ - GDAL support optional using ifdef
+ - NetCDF support optional using ifdef
+ - Explicitly include necessary standard C++ headers
+ - Add formalities: basic documentation and a proper GRASS module name
+
 ## 2017-09-05 - September 2017 update
 
 ### Added
@@ -17,11 +27,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
    can be used multiple times, i.e. temporal oversampling is possible).
  - Weather rasters are now automatically resampled on the fly to the
    raster grid based the computational region.
+- Output probability of cell being infected (Vaclav Petras)
+- Optionally output one run for series instead of an average (Vaclav Petras)
 
 ### Changed
 
 - Spread of SOD based on a single species (Anna Petrasova)
  - Spread for UMCA and oak replaced by single species, assumed tanoak.
+- Final infected trees output is now optional (Vaclav Petras)
 
 ### Fixed
 
