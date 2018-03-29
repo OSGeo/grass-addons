@@ -15,18 +15,26 @@ class Nnbathy:
 
     def region(self):
         # set the computive region
-        reg = grass.read_command("g.region", flags='p')
-        kv = grass.parse_key_val(reg, sep=':')
-        reg_N = float(kv['north'])
-        reg_W = float(kv['west'])
-        reg_S = float(kv['south'])
-        reg_E = float(kv['east'])
+        #reg = grass.read_command("g.region", flags='p')
+        #kv = grass.parse_key_val(reg, sep=':')
+        kv = grass.region()
+        #reg_N = float(kv['north'])
+        #reg_W = float(kv['west'])
+        #reg_S = float(kv['south'])
+        #reg_E = float(kv['east'])
+        #nsres = float(kv['nsres'])
+        #ewres = float(kv['ewres'])
+        reg_N = float(kv['n'])
+        reg_W = float(kv['w'])
+        reg_S = float(kv['s'])
+        reg_E = float(kv['e'])
         nsres = float(kv['nsres'])
         ewres = float(kv['ewres'])
-
+        
+        
         # set variables
         self.cols = int(kv['cols'])
-        self.rows = int(kv['rows'])
+        self.rows = int(kv['rows'])        
         self.area = (reg_N-reg_S)*(reg_E-reg_W)
         self.ALG = 'nn'
 
@@ -130,14 +138,17 @@ class Nnbathy_vector(Nnbathy):
                 _column = options['column']
             else:
                 grass.message('Name of z column required for 2D vector maps.')
-
         # convert vector to ASCII
-        grass.run_command("v.out.ascii", flags='r', overwrite=1,
+        grass.run_command("v.out.ascii", overwrite=1,
                           input=options['input'], output=self._tmpcat,
                           format="point", separator="space", precision=15,
                           where=options['where'], layer=_layer,
                           columns=_column)
-
+#        grass.run_command("v.out.ascii", flags='r', overwrite=1,
+#                          input=options['input'], output=self._tmpcat,
+#                          format="point", separator="space", precision=15,
+#                          where=options['where'], layer=_layer,
+#                          columns=_column
         # edit ASCII file, crop out one column
         if int(options['layer']) > 0:
             fin = open(self._tmpcat, 'r')
@@ -145,7 +156,17 @@ class Nnbathy_vector(Nnbathy):
             try:
                 for line in fin:
                     parts = line.split(" ")
-                    fout.write(parts[0]+' '+parts[1]+' '+parts[3])
+                    from grass.pygrass.vector import VectorTopo
+                    pnt = VectorTopo(options['input'])
+                    pnt.open(mode='r')
+                    check=pnt.read(1)
+                    if check.is2D==True:
+                        #fout.write(parts[0]+' '+parts[1]+' '+parts[3])
+                        fout.write('{} {} {}'.format(parts[0],parts[1],parts[3]))
+                    else:
+                        #fout.write(parts[0]+' '+parts[1]+' '+parts[4])
+                        fout.write('{} {} {}'.format(parts[0],parts[1],parts[4]))
+                    pnt.close()
             except StandardError, e:
                 grass.fatal_error("Invalid input: %s" % e)
             fin.close()
