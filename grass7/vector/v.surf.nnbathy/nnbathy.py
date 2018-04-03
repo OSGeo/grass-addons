@@ -140,7 +140,7 @@ class Nnbathy_vector(Nnbathy):
                 grass.message('Name of z column required for 2D vector maps.')
         # convert vector to ASCII
         grass.run_command("v.out.ascii", overwrite=1,
-                          input=options['input'], output=self._tmpcat,
+                          input=options['input'].split('@')[0], output=self._tmpcat,
                           format="point", separator="space", precision=15,
                           where=options['where'], layer=_layer,
                           columns=_column)
@@ -157,7 +157,7 @@ class Nnbathy_vector(Nnbathy):
                 for line in fin:
                     parts = line.split(" ")
                     from grass.pygrass.vector import VectorTopo
-                    pnt = VectorTopo(options['input'])
+                    pnt = VectorTopo(options['input'].split('@')[0])
                     pnt.open(mode='r')
                     check=pnt.read(1)
                     if check.is2D==True:
