@@ -3,6 +3,15 @@ r.mblend
 
 Draft implementation of the [Mblend algorithm](http://www.sciencedirect.com/science/article/pii/S0098300416300012) as an add-on for [GRASS 7](https://grass.osgeo.org/grass7/). 
 
+Manual and detailed description is available at the [GRASS manual pages](https://grass.osgeo.org/grass74/manuals/addons/r.mblend.html).
+
+Citing
+-------
+
+To cite or reference r.mblend please use the following article:
+
+L. M. de Sousa, J. P. Leitão. Improvements to DEM merging with `r.mblend`. *Proceedings of the Fourth International Conference on Geographical Information Systems Theory, Applications and Management: GISTAM*, 1, 2018.
+
 Copyright
 --------------------------------------------------------------------------------
 

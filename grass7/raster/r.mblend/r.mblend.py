@@ -23,12 +23,15 @@
 #%end
 #%option HIGH
 #% key: high
+#% description: High resolution input raster.
 #%end
 #%option LOW
 #% key: low
+#% description: Low resolution input raster.
 #%end
 #%option OUTPUT
 #% key: output
+#% description: Name of output raster.
 #%end
 #%option FAR_EDGE
 #% key: far_edge
@@ -86,7 +89,7 @@ def cleanup():
 def compute_d_max(region):
     global d_max
     print("Region:\n" + str(region))
-    d_max = math.sqrt(math.pow(region['w'] - region['e'], 2) -
+    d_max = math.sqrt(math.pow(region['w'] - region['e'], 2) +
                       math.pow(region['n'] - region['s'], 2)) / 100
 
 
