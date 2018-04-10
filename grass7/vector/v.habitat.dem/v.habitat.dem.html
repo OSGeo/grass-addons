@@ -188,28 +188,32 @@ be easily animated in the <em>g.gui.animation</em>-tool.
 
 <h2>EXAMPLE</h2>
 
-<div class="code">
- <pre>
-  # align region to DEM and habitat vector
-  g.region -a raster=DEM vect=myhabitats align=DEM
+<!-- NC example 
+g.copy vector=zipcodes_wake,myzipcodes_wake
+g.region -a raster=elevation vector=myzipcodes_wake align=elevation -p
+v.habitat.dem elevation=elevation vector=myzipcodes_wake column=cat prefix=a dir=tmp
+-->
 
-  # run <em>v.habitat.dem</em>
-  v.habitat.dem elevation=DEM vector=myhabitats column=Id prefix=a dir=C:\wd
+<div class="code"><pre>
+# align region to DEM and habitat vector
+g.region -a raster=DEM vector=myhabitats align=DEM
 
-  # do <em>r.null</em> to the <em>r.sun.hourly</em> output to get maps without direct beam
-  r.null map=a_beam_rad_08.00 setnull=1
-  [...]
-  r.null map=a_beam_rad_18.00 setnull=1
+# run <em>v.habitat.dem</em>
+v.habitat.dem elevation=DEM vector=myhabitats column=Id prefix=a dir=C:\wd
 
-  # animate the <em>r.sun.hourly</em> output by the <em>g.gui.animation</em>-tool
-  g.gui.animation strds=a_beam_rad
- </pre>
-</div>
+# do <em>r.null</em> to the <em>r.sun.hourly</em> output to get maps without direct beam
+r.null map=a_beam_rad_08.00 setnull=1
+[...]
+r.null map=a_beam_rad_18.00 setnull=1
+
+# animate the <em>r.sun.hourly</em> output by the <em>g.gui.animation</em>-tool
+g.gui.animation strds=a_beam_rad
+</pre></div>
 
 <h2>DEPENDENCIES</h2>
  
 <ul>
-<li>r.geomorphon (addon)</li>
+<li>r.geomorphon</li>
 <li>r.sun.hourly (addon)</li>
 </ul>
 
@@ -223,7 +227,7 @@ be easily animated in the <em>g.gui.animation</em>-tool.
 <a href="r.mapcalc.html">r.mapcalc</a>,
 <a href="r.slope.aspect.html">r.slope.aspect</a>,
 <a href="r.sun.html">r.sun</a>,
-<a href="r.sun.hourly.html">r.sun.hourly</a>,
+<a href="https://grass.osgeo.org/grass7/manuals/addons/r.sun.hourly.html">r.sun.hourly</a>,
 <a href="r.stats.html">r.stats</a>,
 <a href="r.watershed.html">r.watershed</a>,
 <a href="v.rast.stats.html">v.rast.stats</a>,
@@ -232,12 +236,10 @@ be easily animated in the <em>g.gui.animation</em>-tool.
 
 <h2>REFERENCES</h2>
 
-Neteler, M. & Mitasova, H. 2008. Open Source GIS. A GRASS GIS Approach. Third Edition. Springer.
+Neteler, M. and Mitasova, H. 2008. <a href="http://grassbook.org/">Open Source GIS: A GRASS GIS Approach</a>. Third Edition. Springer.
 
 <h2>AUTHOR</h2>
 
 Helmut Kudrnovsky
 
-<p>
-<i>Last changed: $Date$</i>
-</p>
+<p><i>Last changed: $Date$</i>

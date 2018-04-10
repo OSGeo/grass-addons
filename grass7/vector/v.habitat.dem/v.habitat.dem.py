@@ -183,7 +183,13 @@ def main():
     grass.run_command('g.region', save = saved_region, overwrite = True)
     grass.message( "Current region saved." )	
     grass.message( "----" )
-	
+
+    # does vector map exist in CURRENT mapset?
+    mapset = grass.gisenv()['MAPSET']
+    exists = bool(grass.find_file(v_habitat, element='vector', mapset=mapset)['file'])
+    if not exists:
+        grass.fatal(_("Vector map <%s> not found in current mapset") % v_habitat)
+
     # Align region to elevation raster and habitat vector
     grass.message( "Align region to elevation raster and habitat vector ..." )		
     grass.run_command('g.region', flags = 'a',
