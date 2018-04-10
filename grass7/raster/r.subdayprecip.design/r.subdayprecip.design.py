@@ -49,8 +49,8 @@
 #%end
 
 #%flag
-#% key: k
-#% description: Process also large areas above area_size limit by applying reduction
+#% key: r
+#% description: Process also large areas above area_size limit by applying a reduction
 #%end
 
 import os
@@ -134,6 +134,8 @@ def area_size_reduction(map_name, field_name, area_col_name):
 
     cats = [] # TODO: do it better
     for feat in vmap.viter('areas'):
+        if not feat.attrs[field_name]:
+            continue
         if feat.attrs['cat'] not in cats:
             x = math.log10(float(feat.attrs[area_col_name]) )- 0.9
             k = math.exp(-0.08515989 * pow(x, 2) - 0.001344925 * pow(x, 4))
@@ -174,7 +176,7 @@ def main():
                        where='{} > {}'.format(area_col_name, opt['area_size']),
                        stdout_=grass.PIPE)
         large_areas = len(areas.outputs.stdout.splitlines())
-        if large_areas > 0 and not flg['k']:
+        if large_areas > 0 and not flg['r']:
             grass.warning('{} areas larger than size limit will be skipped from computation'.format(large_areas))
 
     # extract multi values to points
@@ -232,7 +234,7 @@ def main():
 
         if check_area_size:
             args = {}
-            if flg['k']:
+            if flg['r']:
                 area_size_reduction(opt['map'], field_name, area_col_name)
             else:
                 Module('v.db.update', map=opt['map'],
