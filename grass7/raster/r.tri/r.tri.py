@@ -80,7 +80,7 @@ def main():
     p = flags['p']
 
     radius = (size-1)/2
-    neighcells = (size**2)-1
+    ncells = size**2
 
     # store current region settings
     current_reg = Region()
@@ -112,21 +112,21 @@ def main():
                 offsets.append((j,i))
 
     # define the calculation term
-    terms = ["abs($dem - $dem[%d,%d])" % d for d in offsets]
+    terms = ["($dem - $dem[%d,%d])^2" % d for d in offsets]
 
     # define the calculation expression
-    expr = "$tri = float(%s" % " + ".join(terms) + ") / $neighcells"
+    expr = "$tri = sqrt((%s" % " + ".join(terms) + ") / $ncells)"
 
     # perform the r.mapcalc calculation with the moving window
     if p:
         output_tmp = temp_map('tmp')
-        gs.mapcalc(expr, tri=output_tmp, dem=dem, neighcells=neighcells)
+        gs.mapcalc(expr, tri=output_tmp, dem=dem, ncells=ncells)
         r.mask(raster=options['input'], quiet=True)
         r.mapcalc('{x}={y}'.format(x=tri, y=output_tmp))
         r.mask(flags='r', quiet=True)
         Region.write(current_reg)
     else:
-        gs.mapcalc(expr, tri=tri, dem=dem, neighcells=neighcells)
+        gs.mapcalc(expr, tri=tri, dem=dem, ncells=ncells)
 
     return 0
 
