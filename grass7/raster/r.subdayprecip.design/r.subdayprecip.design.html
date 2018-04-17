@@ -14,18 +14,6 @@ is then reduced to the chosen length of design rain event.
 
 <h2>NOTES</h2>
 
-By default areas above <b>area_size</b> limit are not processed
-(calculated value is set to -1 in such case). Processing of large
-areas can be enabled by specifying <b>-r</b> flag. In this case calculated
-avarage value for large areas is reduced by coefficient below.
-
-<pre>
-  k = exp(-0.08515989 * (x^2) - 0.001344925 * (x^4))
-
-  where x = log10(area_size_km2) - 0.9
-</pre>
-
-<p>
 Subday design precipitation series are important for hydrological
 modelling and soil erosion problems in a small catchment scale when
 designing common measures for promoting water retention, landscape

@@ -8,7 +8,7 @@
 #
 # PURPOSE:      Computes subday design precipitation totals.
 #
-# COPYRIGHT:    (C) 2015-2018 Martin Landa and GRASS development team
+# COPYRIGHT:    (C) 2015 Martin Landa and GRASS development team
 #
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -24,12 +24,12 @@
 #%end
 
 #%option G_OPT_V_MAP
-#% label: Name of input vector map of location under analysis
+#% label: Vector map of location under analysis
 #%end
 
 #%option G_OPT_R_INPUTS
 #% key: return_period
-#% description: Name of input rainfall raster maps of required return period
+#% description: Rainfall raster maps of required return period
 #% options: N2,N5,N10,N20,N50,N100
 #%end
 
@@ -48,18 +48,11 @@
 #% answer: 20
 #%end
 
-#%flag
-#% key: r
-#% description: Process also large areas above area_size limit by applying a reduction
-#%end
-
 import os
 import sys
-import math
 
 import grass.script as grass 
 from grass.pygrass.modules import Module
-from grass.pygrass.vector import VectorTopo
 from grass.exceptions import CalledModuleError
 
 def coeff(name, rl):
@@ -127,24 +120,6 @@ def coeff(name, rl):
 
     return a, c
 
-
-def area_size_reduction(map_name, field_name, area_col_name):
-    vmap = VectorTopo(map_name)
-    vmap.open('rw')
-
-    cats = [] # TODO: do it better
-    for feat in vmap.viter('areas'):
-        if not feat.attrs[field_name]:
-            continue
-        if feat.attrs['cat'] not in cats:
-            x = math.log10(float(feat.attrs[area_col_name]) )- 0.9
-            k = math.exp(-0.08515989 * pow(x, 2) - 0.001344925 * pow(x, 4))
-            feat.attrs[field_name] *= k
-            cats.append(feat.attrs['cat'])
-
-    vmap.table.conn.commit()  
-    vmap.close()
-    
 def main():
     # check if the map is in the current mapset
     mapset = grass.find_file(opt['map'], element='vector')['mapset']
@@ -176,7 +151,7 @@ def main():
                        where='{} > {}'.format(area_col_name, opt['area_size']),
                        stdout_=grass.PIPE)
         large_areas = len(areas.outputs.stdout.splitlines())
-        if large_areas > 0 and not flg['r']:
+        if large_areas > 0:
             grass.warning('{} areas larger than size limit will be skipped from computation'.format(large_areas))
 
     # extract multi values to points
@@ -233,15 +208,9 @@ def main():
                column=field_name, query_column=expression)
 
         if check_area_size:
-            args = {}
-            if flg['r']:
-                area_size_reduction(opt['map'], field_name, area_col_name)
-            else:
-                Module('v.db.update', map=opt['map'],
-                       column=field_name,
-                       value='-1',
-                       where='{} > {}'.format(area_col_name, opt['area_size']),
-                       **args)
+            Module('v.db.update', map=opt['map'],
+                   column=field_name, value='-1',
+                   where='{} > {}'.format(area_col_name, opt['area_size']))
 
         # remove unused column
         Module('v.db.dropcolumn', map=opt['map'],
