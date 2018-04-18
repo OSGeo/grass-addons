@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     opt_step->type = TYPE_INTEGER;
     opt_step->required = NO;
     opt_step->label = _("Distance (number of cells) between initial super pixel centers");
-    opt_step->description = _("A step size > 0 overrides the number of super pixels");
+    opt_step->description = _("A step size > 1 overrides the number of super pixels");
     opt_step->answer = "0";
 
     opt_perturb = G_define_option();
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
     /* determine seed grid */
     superpixelsize = step * step;
-    if (step < 5) {
+    if (step < 2) {
 	superpixelsize = 0.5 + (double)nrows * ncols / n_super_pixels;
 
 	step = sqrt((double)superpixelsize) + 0.5;
