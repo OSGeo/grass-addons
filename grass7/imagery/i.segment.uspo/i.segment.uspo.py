@@ -48,6 +48,12 @@
 #% required : no
 #%end
 #
+#%option G_OPT_R_MAP
+#% key: seeds
+#% description: Seeds for segmentation
+#% required : no
+#%end
+#
 #%option G_OPT_F_OUTPUT
 #% description: Name for output file (- for standard output)
 #% required : no
@@ -364,22 +370,25 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
     try:
         for threshold, minsize in iter(parameter_queue.get, 'STOP'):
             mapname = rg_non_hierarchical_seg(parms, threshold, minsize)
-            variance_per_raster = []
-            autocor_per_raster = []
-            neighbordict = get_nb_matrix(mapname)
-            for raster in parms['rasters']:
-                # there seems to be some trouble in ms windows with qualified
-                # map names
-                raster = raster.split('@')[0]
-                var = get_variance(mapname, raster)
-                variance_per_raster.append(var)
-                autocor = get_autocorrelation(mapname, raster,
-                                              neighbordict, parms['indicator'])
-                autocor_per_raster.append(autocor)
+            numsegments = len(gscript.read_command('r.category',
+                                                   map_=mapname).splitlines())
+            if numsegments > 1:
+                variance_per_raster = []
+                autocor_per_raster = []
+                neighbordict = get_nb_matrix(mapname)
+                for raster in parms['rasters']:
+                    # there seems to be some trouble in ms windows with qualified
+                    # map names
+                    raster = raster.split('@')[0]
+                    var = get_variance(mapname, raster)
+                    variance_per_raster.append(var)
+                    autocor = get_autocorrelation(mapname, raster,
+                                                  neighbordict, parms['indicator'])
+                    autocor_per_raster.append(autocor)
 
-            mean_lv = sum(variance_per_raster) / len(variance_per_raster)
-            mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
-            result_queue.put([mapname, mean_lv, mean_autocor, threshold, minsize])
+                mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+                mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+                result_queue.put([mapname, mean_lv, mean_autocor, threshold, minsize])
             
     except:
         result_queue.put(["%s: %s_%f_%d failed" % (current_process().name, 
@@ -429,14 +438,25 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
     temp_segment_map_thresh = parms['temp_segment_map'] + "__%s" % parms['region']
     temp_segment_map_thresh += "__%.4f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
-    gscript.run_command('i.segment',
-                        group=parms['group'],
-                        threshold=threshold,
-                        minsize=minsize,
-                        output=temp_segment_map_thresh,
-                        memory=parms['memory'],
-                        quiet=True,
-                        overwrite=True) 
+    if parms['seeds']:
+        gscript.run_command('i.segment',
+                            group=parms['group'],
+                            threshold=threshold,
+                            minsize=minsize,
+                            seeds=parms['seeds'],
+                            output=temp_segment_map_thresh,
+                            memory=parms['memory'],
+                            quiet=True,
+                            overwrite=True) 
+    else:
+        gscript.run_command('i.segment',
+                            group=parms['group'],
+                            threshold=threshold,
+                            minsize=minsize,
+                            output=temp_segment_map_thresh,
+                            memory=parms['memory'],
+                            quiet=True,
+                            overwrite=True) 
 
     return temp_segment_map_thresh
 
@@ -674,6 +694,9 @@ def main():
     rg = False
     if method == 'region_growing':
         rg = True
+    parms['seeds'] = False
+    if options['seeds']:
+        parms['seeds'] = options['seeds']
     output = False
     if options['output']:
         output = options['output']
