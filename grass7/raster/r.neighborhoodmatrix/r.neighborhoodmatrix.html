@@ -2,7 +2,8 @@
 
 <p>
 <em>r.neighborhoodmatrix</em> identifies all adjacency relations between
-objects (aka segments or clumps) in a raster map and exports these as a 2xn matrix 
+objects (aka segments or clumps identified by identical integer cell values of
+adjacent pixels) in a raster map and exports these as a 2xn matrix 
 where n is the number of neighborhood relations with each relation listed 
 in both directions (i.e. if a is neighbor of b, the list will contain 
 a,b and b,a). If a path to an output file is specified, the matrix will be

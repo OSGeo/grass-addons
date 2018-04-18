@@ -109,7 +109,12 @@ def main():
     #Check that input map is CELL
     datatype = gscript.parse_command('r.info', flags='g', map=rinput)['datatype']
     if datatype != 'CELL':
-        gscript.fatal("Input map has to be of CELL (integer) type")
+        gscript.fatal(_("Input map has to be of CELL (integer) type"))
+
+    numneighbors = len(gscript.read_command('r.category',
+                                            map_=rinput).splitlines())
+    if numneighbors < 2:
+        gscript.fatal(_("Need at least two different category values to determine neighbors"))
 
     global separator
     separator = gscript.separator(options['separator'])
