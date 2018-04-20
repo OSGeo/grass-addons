@@ -381,7 +381,7 @@
 
 #%option G_OPT_F_OUTPUT
 #% key: save_model
-#% label: Save model to file
+#% label: Save model to file (for compression use e.g. '.gz' extension)
 #% required: no
 #% guisection: Optional
 #%end
