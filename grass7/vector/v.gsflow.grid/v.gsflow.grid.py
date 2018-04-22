@@ -122,13 +122,13 @@ def main():
     _lena0 = (len(raster_input) == 0)
     _lenb0 = (len(raster_output) == 0)
     if _lena0 + _lenb0 == 1:
-        grass.fatal("You must set both raster input and output, or neither.")
+        gscript.fatal("You must set both raster input and output, or neither.")
     """
     
     # Fatal if bc_cell set but mask and grid are false
     if bc_cell != '':
         if (mask == '') or (pp == ''):
-            grass.fatal('Mask and pour point must be set to define b.c. cell')
+            gscript.fatal('Mask and pour point must be set to define b.c. cell')
         
     # Create grid -- overlaps DEM, three cells of padding
     gscript.use_temp_region()
@@ -217,7 +217,7 @@ def main():
 
     # Next point downstream of the pour point
     # Requires pp (always) and mask (sometimes)
-    # Dependency set above w/ grass.fatal
+    # Dependency set above w/ gscript.fatal
     if len(bc_cell) > 0:
         ########## NEED TO USE TRUE TEMPORARY FILE ##########
         # May not work with dx != dy!
@@ -266,7 +266,7 @@ def main():
             _ismask_2 = int(_ismask_2['values'].values()[0][0])
             # If both covered by mask, error
             if _ismask_1 and _ismask_2:
-                grass.fatal('All possible b.c. cells covered by basin mask.\n\
+                gscript.fatal('All possible b.c. cells covered by basin mask.\n\
                              Contact the developer: awickert (at) umn(.)edu')
             # Otherwise, those that keep those that are not covered by basin
             # mask and set ...
