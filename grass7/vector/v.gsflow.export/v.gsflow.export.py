@@ -186,7 +186,7 @@ def main():
         outtable = np.vstack((columns_in_order, outarray))
         np.savetxt(out_reaches+'.txt', outtable, fmt='%s', delimiter=',')
     elif (len(reaches) > 0) or (len(out_reaches) > 0):
-        grass.fatal(_("You must inlcude both input and output reaches"))
+        gscript.fatal(_("You must inlcude both input and output reaches"))
 
     # Segments
     ###########
@@ -217,7 +217,7 @@ def main():
         np.savetxt(out_segments+'_4C_DOWNSTREAM.txt', outtable, fmt='%s', 
                    delimiter=',')
     elif (len(segments) > 0) or (len(out_segments) > 0):
-        grass.fatal(_("You must inlcude both input and output segments"))
+        gscript.fatal(_("You must inlcude both input and output segments"))
 
     # Gravity reservoirs
     #####################
@@ -230,7 +230,7 @@ def main():
         np.savetxt(out_gravity_reservoirs+'.txt', outtable, fmt='%s', 
                    delimiter=',')
     elif (len(gravity_reservoirs) > 0) or (len(out_gravity_reservoirs) > 0):
-        grass.fatal(_("You must inlcude both input and output \
+        gscript.fatal(_("You must inlcude both input and output \
                       gravity reservoirs"))
 
     # HRUs 
@@ -243,7 +243,7 @@ def main():
         outtable = np.vstack((columns_in_order, outarray))
         np.savetxt(HRUs+'.txt', outtable, fmt='%s', delimiter=',')
     elif (len(HRUs) > 0) or (len(out_HRUs) > 0):
-        grass.fatal(_("You must inlcude both input and output HRUs"))
+        gscript.fatal(_("You must inlcude both input and output HRUs"))
 
     # Pour Point and Boundary Condition Cell (downstream from pour point)
     ######################################################################
@@ -275,7 +275,7 @@ def main():
                 outfile.write(outstr)
             outfile.close()
     if (len(pour_point) == 0) and (len(bc_cell) == 0):
-        grass.fatal(_("You must inlcude input and output pp's and/or bc's"))
+        gscript.fatal(_("You must inlcude input and output pp's and/or bc's"))
 
 if __name__ == "__main__":
     main()
