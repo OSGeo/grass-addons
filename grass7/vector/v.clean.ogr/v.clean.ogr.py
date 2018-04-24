@@ -19,7 +19,7 @@
 ############################################################################
 
 #%module
-#% description: Imports vector data into a GRASS vector map, cleans the data, and exports them again using OGR library.
+#% description: Imports vector data into a GRASS vector map, cleans the data topologically, and exports them again using OGR library.
 #% keyword: vector
 #% keyword: cleaning
 #% keyword: OGR
