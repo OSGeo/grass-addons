@@ -54,7 +54,7 @@ if test -z $2 ; then
     # dev packages
     ### compile grass64_release 64-dev 
     ### compile grass70_release -daily
-    compile grass72_release -daily
+    ### compile grass72_release -daily
     compile grass74_release -daily    
     compile grass_trunk     -daily
 else
