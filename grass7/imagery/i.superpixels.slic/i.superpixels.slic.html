@@ -42,6 +42,12 @@ results but will increase processing time. The module will stop earlier
 if convergence is reached, but it can take 1000 or more iterations 
 until convergence is reached.
 
+<h4>Step</h4>
+Step size has to be larger than 1 to be meaningful, as otherwise each individual
+pixel would be considered as a superpixel. If no step size or a step size of 
+less than 2 given, the module estimates a step size internally on the basis of
+the number of superpixels (<b>num_pixels</b> - 200 by default).
+
 <h4>Minimum segment size</h4>
 If a minimum segment size of 2 or larger is given with the <b>minsize</b> 
 parameter, segments with a smaller pixel count will be merged with 
