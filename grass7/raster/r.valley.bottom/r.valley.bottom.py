@@ -231,11 +231,7 @@ def get_percentile(L, input, radius=3, window_square=False):
 
     PCTL = "PCTL{L}".format(L=L+1)
     TMP_RAST.append(PCTL)
-
-    # cell padding of input raster
-    input_grown = '_'.join(['tmp', input.split('@')[0], 'cell_padded']) + \
-        ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    region = cell_padding(input=input, output=input_grown, radius=radius)
+    input_grown=input
     
     # get offsets for given neighborhood radius
     offsets = focal_expr(radius=radius, window_square=window_square)
@@ -243,14 +239,19 @@ def get_percentile(L, input, radius=3, window_square=False):
     # generate grass mapcalc terms and execute
     n_pixels = float(len(offsets))
     terms = ["({input}[%d,%d] <= {input})".format(input=input_grown) % d for d in offsets]
+    
+    # create mapcalc expr
+    # if pixel in neighborhood contains nodata, attempt to use opposite neighbor
+    # if opposite neighbor is also nodata, then use center pixel
+    terms = []
+    for d in offsets:
+        valid = ','.join(map(str, d))        
+        invalid = ','.join([str(-d[0]), str(-d[1])])
+        terms.append("if(isnull({input}[{d}]), if(isnull({input}[{e}] <= {input}), {input}, {input}[{e}] <= {input}), {input}[{d}] <= {input})".format(
+            input=input_grown, d=valid, e=invalid))
+
     expr = "{x} = ({s}) / {n}".format(x=PCTL, s=" + ".join(terms), n=n_pixels)
     r.mapcalc(expr)
-
-    # remove padded map
-    g.remove(type='raster', name=input_grown, flags='f', quiet=True)
-
-    # return to original region setting
-    Region.write(region)
 
     return(PCTL)
 
