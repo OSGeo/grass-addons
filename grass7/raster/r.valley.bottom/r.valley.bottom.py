@@ -251,7 +251,7 @@ def get_percentile(L, input, radius=3, window_square=False):
             input=input_grown, d=valid, e=invalid))
 
     expr = "{x} = ({s}) / {n}".format(x=PCTL, s=" + ".join(terms), n=n_pixels)
-    r.mapcalc(expr)
+    grass.mapcalc(expr)
 
     return(PCTL)
 
