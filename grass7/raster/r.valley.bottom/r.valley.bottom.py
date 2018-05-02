@@ -247,7 +247,7 @@ def get_percentile(L, input, radius=3, window_square=False):
     for d in offsets:
         valid = ','.join(map(str, d))        
         invalid = ','.join([str(-d[0]), str(-d[1])])
-        terms.append("if(isnull({input}[{d}]), if(isnull({input}[{e}] <= {input}), {input}, {input}[{e}] <= {input}), {input}[{d}] <= {input})".format(
+        terms.append("if(isnull({input}[{d}]), if(isnull({input}[{e}]), 1, {input}[{e}]<={input}), {input}[{d}]<={input})".format(
             input=input_grown, d=valid, e=invalid))
 
     expr = "{x} = ({s}) / {n}".format(x=PCTL, s=" + ".join(terms), n=n_pixels)
