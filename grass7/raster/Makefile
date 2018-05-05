@@ -57,6 +57,7 @@ SUBDIRS = \
 	r.hypso \
 	r.in.arc \
 	r.in.srtm.region \
+	r.in.usgs \
 	r.in.wcs \
 	r.jpdf \
 	r.lake.series \
