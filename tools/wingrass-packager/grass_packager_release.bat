@@ -1,4 +1,4 @@
-GRASS plugin OGR access: Don`t try to write data to mapset@echo off
+@echo off
 
 REM Download GRASS from SVN
 REM
@@ -12,8 +12,8 @@ REM
 cd C:\Users\landa\grass_packager
 
 set MAJOR=7
-set MINOR=2
-set PATCH=3
+set MINOR=4
+set PATCH=1RC1
 set REV=1
 
 set GVERSION=%MAJOR%%MINOR%%PATCH%
