@@ -121,15 +121,15 @@ if not os.environ.has_key("GISBASE"):
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
-current_region = Region()
-TMP_RAST = []
 
 def cleanup():
     grass.message("Deleting intermediate files...")
 
-    for f in TMP_RAST:
-        grass.run_command(
-            "g.remove", type="raster", name=f, flags="f", quiet=True)
+    for k, v in TMP_RAST.iteritems():
+        for f in v:
+            if len(grass.find_file(f)['fullname']) > 0:
+                grass.run_command(
+                    "g.remove", type="raster", name=f, flags="f", quiet=True)
     
     Region.write(current_region)
 
@@ -230,7 +230,7 @@ def get_percentile(L, input, radius=3, window_square=False):
         processing step L"""
 
     PCTL = "PCTL{L}".format(L=L+1)
-    TMP_RAST.append(PCTL)
+    TMP_RAST[L].append(PCTL)
     input_grown=input
     
     # get offsets for given neighborhood radius
@@ -257,27 +257,19 @@ def get_percentile(L, input, radius=3, window_square=False):
 
 
 def get_slope(L, elevation):
-    """Calculation of r.slope.aspect using a cell-padded elevation"""
 
-    # pad input dem by 2 cells
-    elevation_padded = '_'.join(['tmp', elevation.split('@')[0], 'cell_padded']) + \
-        ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    region = cell_padding(input=elevation, output=elevation_padded, radius=2)
+    region = Region()
 
-    # calculate slope
     slope = 'tmp_slope_step{L}'.format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(slope)
-    r.slope_aspect(
-        elevation=elevation_padded, slope=slope, format='percent', quiet=True)
-    
-    # remove padded elevation
-    g.remove(type='raster', name=elevation_padded, flags='f', quiet=True)
+    TMP_RAST[L].append(slope)
 
-    # return region to original (non-padded) settings
-    Region.write(region)
+    slope_expr = "{s} = 100 * (sqrt(( (if( isnull({a}[0,-1]), {a}[0,0], {a}[0,-1] ) - if( isnull({a}[0, 1]), {a}[0,0], {a}[0, 1] )) / (2*{ewres}))^2 + ( (if( isnull({a}[-1,0]), {a}[0,0], {a}[-1,0] ) - if( isnull({a}[1, 0]), {a}[0,0], {a}[1, 0] )) / (2*{nsres}))^2))".format(
+        s=slope, a=elevation, nsres=region.nsres, ewres=region.ewres)
 
-    return(slope)
+    grass.mapcalc(slope_expr)
+
+    return (slope)
 
 
 def get_flatness(L, slope, t, p):
@@ -288,7 +280,7 @@ def get_flatness(L, slope, t, p):
 	
     F = "tmp_F{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(F)
+    TMP_RAST[L].append(F)
     grass.mapcalc("$g = 1.0 / (1.0 + pow(($x / $t), $p))", 
                    g=F, x=slope, t=t, p=p)
     
@@ -304,7 +296,7 @@ def get_prelim_flatness(L, F, PCTL, t, p):
     
     PVF = "tmp_PVF{L}" + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(PVF)
+    TMP_RAST[L].append(PVF)
 
     grass.mapcalc("$g = $a * (1.0 / (1.0 + pow(($x / $t), $p)))",
                     g=PVF, a=F, x=PCTL, t=t, p=p)
@@ -321,7 +313,7 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p):
     
     PVF = "tmp_PVF_MRRTF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(PVF)
+    TMP_RAST[L].append(PVF)
 
     grass.mapcalc("$g = $a * (1.0 / (1.0 + pow(((1-$x) / $t), $p)))",
                     g=PVF, a=F, x=PCTL, t=t, p=p)
@@ -338,7 +330,7 @@ def get_valley_flatness(L, PVF, t, p):
 
     VF = "tmp_VF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(VF)
+    TMP_RAST[L].append(VF)
     grass.mapcalc("$g = 1 - (1.0 / (1.0 + pow(($x / $t), $p)))",
                   g=VF, x=PVF, t=t, p=p)
     
@@ -355,13 +347,13 @@ def get_mrvbf(L, VF_Lminus1, VF_L, t):
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
 
     # Calculation of weight W2 (Equation 9)
-    TMP_RAST.append(W)
+    TMP_RAST[L].append(W)
     p = (math.log10(((L+1) - 0.5) / 0.1)) / math.log10(1.5)
     grass.mapcalc("$g = 1 - (1.0 / (1.0 + pow(($x / $t), $p)))",
                   g=W, x=VF_L, t=t, p=p)
     	
     # Calculation of MRVBF2	(Equation 8)
-    TMP_RAST.append(MRVBF)
+    TMP_RAST[L].append(MRVBF)
     grass.mapcalc("$MBF = ($W * ($L + $VF)) + ((1 - $W) * $VF1)",
                   MBF=MRVBF, L=L, W=W, VF=VF_L, VF1=VF_Lminus1)
                 
@@ -375,7 +367,7 @@ def get_combined_flatness(L, F1, F2):
 
     CF = "tmp_CF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(CF)
+    TMP_RAST[L].append(CF)
     grass.mapcalc("$CF = $F1 * $F2", CF=CF, F1=F1, F2=F2)
 
     return CF
@@ -386,7 +378,7 @@ def get_smoothed_dem(L, DEM):
     
     smoothed = "tmp_DEM_smoothed_step{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(smoothed)
+    TMP_RAST[L].append(smoothed)
 
     #g = 4.3565 * math.exp(-(3 / 3.0))
     r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
@@ -394,18 +386,18 @@ def get_smoothed_dem(L, DEM):
     return smoothed
 
 
-def refine(input, region, method='bilinear'):
+def refine(L, input, region, method='bilinear'):
     """change resolution back to base resolution and resample a raster"""
     
     input_padded = '_'.join(['tmp', input, '_padded']) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(input_padded)
+    TMP_RAST[L].append(input_padded)
     cell_padding(input=input, output=input_padded, radius=2)
     
     Region.write(region)
     input = '_'.join(['tmp', input, 'refined_base_resolution']) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
-    TMP_RAST.append(input)
+    TMP_RAST[L].append(input)
 
     if method == 'bilinear':
        r.resamp_interp(input=input_padded, 
@@ -434,6 +426,11 @@ def main():
     p_pctl = float(options['p_pctl'])
     moving_window_square = flags['s']
     levels = int(options['levels'])
+
+    global TMP_RAST
+    global current_region
+    TMP_RAST = {k: [] for k in range(levels)}
+    current_region = Region()
 
     ###########################################################################
     # Some checks
@@ -549,6 +546,10 @@ def main():
         Yres_step.append(Yres_step[L-1] * 3)
         radi = 6
 
+        # delete temporary maps from L-2
+        for tmap in TMP_RAST[L-2]:
+            g.remove(type='raster', name=tmap, flags='f', quiet=True)
+
         grass.message(os.linesep)
         grass.message("Step {L}".format(L=L+1))
         grass.message("------")
@@ -569,17 +570,17 @@ def main():
         # Refine slope to base resolution
         if L >= 3:
             grass.message('Resampling slope back to base resolution...')
-            slope[L] = refine(slope[L], current_region, method='bilinear')
+            slope[L] = refine(L, slope[L], current_region, method='bilinear')
 
         # Coarsen resolution to current step L and calculate PCTL
         grass.run_command('g.region', ewres=Xres_step[L], nsres=Yres_step[L])
-        DEM[L] = refine(DEM[L], Region(), method = 'average')
+        DEM[L] = refine(L, DEM[L], Region(), method = 'average')
         grass.message("Calculation of elevation percentile PCTL{L}...".format(L=L+1))
         PCTL[L] = get_percentile(L, DEM[L], radi, moving_window_square)
         
         # Refine PCTL to base resolution
         grass.message("Resampling PCTL{L} to base resolution...".format(L=L+1))
-        PCTL[L] = refine(PCTL[L], current_region, method='bilinear')
+        PCTL[L] = refine(L, PCTL[L], current_region, method='bilinear')
 
         # Calculate flatness F at the base resolution
         grass.message("Calculate F{L} at base resolution...".format(L=L+1))
