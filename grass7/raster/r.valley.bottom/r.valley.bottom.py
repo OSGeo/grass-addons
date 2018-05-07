@@ -94,10 +94,10 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 #% end
 
 #%option
-#% key: levels
-#% description: Number of generalization levels
+#% key: min_cells
+#% description: Minimum number of cells in generalized DEM
 #% required: no
-#% answer: 4
+#% answer: 1
 #% end
 
 #%flag
@@ -238,8 +238,7 @@ def get_percentile(L, input, radius=3, window_square=False):
     
     # generate grass mapcalc terms and execute
     n_pixels = float(len(offsets))
-    terms = ["({input}[%d,%d] <= {input})".format(input=input_grown) % d for d in offsets]
-    
+
     # create mapcalc expr
     # if pixel in neighborhood contains nodata, attempt to use opposite neighbor
     # if opposite neighbor is also nodata, then use center pixel
@@ -264,7 +263,10 @@ def get_slope(L, elevation):
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(slope)
 
-    slope_expr = "{s} = 100 * (sqrt(( (if( isnull({a}[0,-1]), {a}[0,0], {a}[0,-1] ) - if( isnull({a}[0, 1]), {a}[0,0], {a}[0, 1] )) / (2*{ewres}))^2 + ( (if( isnull({a}[-1,0]), {a}[0,0], {a}[-1,0] ) - if( isnull({a}[1, 0]), {a}[0,0], {a}[1, 0] )) / (2*{nsres}))^2))".format(
+    slope_expr = """{s} = 100 * (sqrt( \
+    ((if(isnull({a}[0,-1]), {a}[0,0], {a}[0,-1]) - if(isnull({a}[0, 1]), {a}[0,0], {a}[0, 1])) / (2*{ewres}))^2 + \
+     ((if(isnull({a}[-1,0]), {a}[0,0], {a}[-1,0]) - if( isnull({a}[1, 0]), {a}[0,0], {a}[1, 0])) / (2*{nsres}))^2)) \
+     """.format(
         s=slope, a=elevation, nsres=region.nsres, ewres=region.ewres)
 
     grass.mapcalc(slope_expr)
@@ -277,7 +279,7 @@ def get_flatness(L, slope, t, p):
     Flatness F1 = 1 / (1 + pow ((slope / t), p)
     
     Equation 2 (Gallant and Dowling, 2003)"""
-	
+
     F = "tmp_F{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(F)
@@ -311,7 +313,7 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p):
     
     Equation 3 (Gallant and Dowling, 2003)"""
     
-    PVF = "tmp_PVF_MRRTF{L}".format(L=L+1) + \
+    PVF = "tmp_PVF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(PVF)
 
@@ -323,9 +325,9 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p):
 
 def get_valley_flatness(L, PVF, t, p):
     """Calculation of the valley flatness step VF
-	Larger values of VF1 indicate increasing valley bottom character
-	with values less than 0.5 considered not to be in valley bottoms
-    
+    Larger values of VF1 indicate increasing valley bottom character
+    with values less than 0.5 considered not to be in valley bottoms
+
     Equation 4 (Gallant and Dowling, 2003)"""
 
     VF = "tmp_VF{L}".format(L=L+1) + \
@@ -351,7 +353,7 @@ def get_mrvbf(L, VF_Lminus1, VF_L, t):
     p = (math.log10(((L+1) - 0.5) / 0.1)) / math.log10(1.5)
     grass.mapcalc("$g = 1 - (1.0 / (1.0 + pow(($x / $t), $p)))",
                   g=W, x=VF_L, t=t, p=p)
-    	
+
     # Calculation of MRVBF2	(Equation 8)
     TMP_RAST[L].append(MRVBF)
     grass.mapcalc("$MBF = ($W * ($L + $VF)) + ((1 - $W) * $VF1)",
@@ -380,7 +382,7 @@ def get_smoothed_dem(L, DEM):
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(smoothed)
 
-    #g = 4.3565 * math.exp(-(3 / 3.0))
+    # g = 4.3565 * math.exp(-(3 / 3.0))
     r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
     
     return smoothed
@@ -425,31 +427,47 @@ def main():
     p_slope = float(options['p_slope'])
     p_pctl = float(options['p_pctl'])
     moving_window_square = flags['s']
-    levels = int(options['levels'])
+    min_cells = int(options['min_cells'])
 
-    global TMP_RAST
     global current_region
-    TMP_RAST = {k: [] for k in range(levels)}
+    global TMP_RAST
+    TMP_RAST = {}
     current_region = Region()
 
-    ###########################################################################
     # Some checks
-    if levels < 3:
-        grass.fatal('Number of generalization steps (levels) cannot be < 3')
-    if t_slope <=0 or t_pctl_v <=0 or t_pctl_r <=0 or t_vf <=0 or t_rf <=0 or \
-        p_slope <=0 or p_pctl <=0:
+    if t_slope <= 0 or t_pctl_v <= 0 or t_pctl_r <= 0 or t_vf <= 0 or t_rf <= 0 or \
+        p_slope <= 0 or p_pctl <= 0:
         grass.fatal('Parameter values cannot be <= 0')
-    if levels > 10:
-        grass.warning('A large number (>10) processing steps are selected, recommended is between 3 to 8')
-	
-	###########################################################################
+
+    if min_cells < 1:
+        grass.fatal('Minimum number of cells in generalized DEM cannot be less than 1')
+
+    if min_cells > current_region.cells:
+        grass.fatal('Minimum number of cells in the generalized DEM cannot exceed the ungeneralized number of cells')
+
+    ###########################################################################
+    # Calculate number of levels
+
+    levels = math.ceil(-math.log(float(min_cells)/current_region.cells) / math.log(3) - 2)
+    levels = int(levels)
+
+    if levels < 3:
+        grass.fatal('MRVBF algorithm requires a greater level of generalization. Reduce number of min_cells')
+
+    grass.message('Parameter Settings')
+    grass.message('------------------')
+    grass.message('min_cells = %d will result in %d generalization steps' % (min_cells, levels))
+
+    TMP_RAST = {k: [] for k in range(levels)}
+
+    ###########################################################################
     # Intermediate outputs
     Xres_step, Yres_step, DEM = [], [], []
     slope, F, PCTL, PVF, PVF_RF = [0]*levels, [0]*levels, [0]*levels, [0]*levels, [0]*levels
     VF, VF_RF, MRVBF, MRRTF = [0]*levels, [0]*levels, [0]*levels, [0]*levels
-	
-	###########################################################################
-	# Step 1 (L=0)
+
+    ###########################################################################
+    # Step 1 (L=0)
     # Base scale resolution
     L = 0
     Xres_step.append(current_region.ewres)
@@ -484,9 +502,9 @@ def main():
         grass.message("Calculation of ridge top flatness RF{L}...".format(L=L+1))
         VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
-	##################################################################################
-	# Step 2 (L=1)
-    # Base scale resolution		
+    ##################################################################################
+    # Step 2 (L=1)
+    # Base scale resolution
     L = 1
     Xres_step.append(current_region.ewres)
     Yres_step.append(current_region.nsres)
@@ -497,7 +515,7 @@ def main():
     grass.message(os.linesep)
     grass.message("Step {L}".format(L=L+1))
     grass.message("------")
-	
+
     # Calculation of flatness for step 2 (Equation 5)
     # The second step commences the same way with the original DEM at its base resolution,
     # using a slope threshold ts,2 half of ts,1:
@@ -532,8 +550,8 @@ def main():
     # Update flatness for step 2 with combined flatness from F1 and F2 (Equation 10)
     grass.message("Calculation  of combined flatness index CF{L}...".format(L=L+1))
     F[L] = get_combined_flatness(L, F[L-1], F[L])
-	
-	##################################################################################
+
+    ##################################################################################
     # Remaining steps
     # DEM_1_1 refers to scale (smoothing) and resolution (cell size)
     # so that DEM_L1_L-1 refers to smoothing of current step,
@@ -616,7 +634,7 @@ def main():
 
     if mrrtf != '':
         grass.mapcalc("$x = $y", x = mrrtf, y=MRRTF[L])
-	
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
