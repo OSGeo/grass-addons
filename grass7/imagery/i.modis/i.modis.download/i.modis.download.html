@@ -65,6 +65,7 @@ to 270 MB and the LST product ranges from 2 MB to 21 MB.
 
 <h2>EXAMPLES</h2>
 
+<h3>MODIS Land Surface Temperature</h3>
 Download of the daily MODIS LST product "lst_terra_daily_1000" from the
 Terra satellite using the default options (all available tiles from newest
 available date) and passing the user and password through standard input.
@@ -92,24 +93,26 @@ the starting and ending dates to custom values:
 i.modis.download settings=$HOME/.grass7/i.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
-<p>
+<h3>MODIS Snow</h3>
+
 Download of a different product (here: <em>Snow eight days 500 m</em>),
-default options:
+default options (for settings, see example above):
 
 <div class="code"><pre>
 i.modis.download settings=$HOME/.grass7/i.modis/SETTING product=snow_terra_eight_500
 </pre></div>
 
-<p>
-Download of a global MODIS product (here: <em>MOD13C1 - MODIS/Terra Vegetation Indices
-16-Day L3 Global 0.05Deg CMG V006</em>), of a specific month:
+<h3>MODIS NDVI Global</h3>
 
+Download of a global MODIS product (here: <em>MOD13C1 - MODIS/Terra Vegetation Indices
+16-Day L3 Global 0.05Deg CMG V006</em>), of a specific month (for settings, see example above):
 <div class="code"><pre>
 # note: provided in Geographic Lat/Long Grid
 i.modis.download settings=$HOME/.grass7/i.modis/SETTING product=ndvi_terra_sixteen_5600 startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
-<p>
+<h3>Download of MODIS data in scripts</h3>
+
 To use <em>i.modis.download</em> in a script and to concatenate it with another module,
 the user needs to set the <em>-g</em> flag to return the name of the file that
 contains the list of downloaded HDF files:
