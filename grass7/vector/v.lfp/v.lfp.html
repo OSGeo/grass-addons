@@ -15,17 +15,26 @@ one line feature, which is the final longest flow path.
 
 <h2>EXAMPLE</h2>
 
-<div class="code"><pre>
-# Creates a longest flow path raster map.
-r.watershed elevation=elev drainage=drain
-r.water.outlet input=drain output=basin coordinates=-888857.11,1117788.38
-r.lfp input=drain output=lfp coordinates=-888857.11,1117788.38
+<h3>North Carolina sample dataset example</h3>
 
-# The end point of lfp can be the headwater of the longest flow path.
+<div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate drainage directions
+r.watershed elevation=elevation drainage=drain_directions
+
+# calculate outlet point related watershed
+r.water.outlet input=drain_directions output=basin coordinates=642455,222614
+
+# calculate longest flow path
+r.lfp input=drain_directions output=lfp coordinates=642455,222614
+
+# the end point of lfp can be the headwater of the longest flow path
 v.lfp input=lfp output=lfp
 
-# Make sure the end point of lfp2 is the outlet point.
-v.lfp input=lfp output=lfp2 coordinates=-888857.11,1117788.38
+# make sure the end point of lfp2 is the outlet point
+v.lfp input=lfp output=lfp2 coordinates=642455,222614
 </pre></div>
 
 <h2>SEE ALSO</h2>
