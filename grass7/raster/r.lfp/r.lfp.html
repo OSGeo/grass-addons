@@ -1,11 +1,11 @@
 <h2>DESCRIPTION</h2>
 <em>r.lfp</em> calculates the longest flow path for a given outlet point and
-creates a new raster map with a thin line representing the longest flow path.
+creates a new vector map with the longest flow path.
 This module requires the <em>r.stream.distance</em> addon.
 
 <h2>NOTES</h2>
 
-<em>r.lfp</em> creates a longest flow path raster map using a drainage
+<em>r.lfp</em> creates a longest flow path vector map using a drainage
 direction raster map and the coordinates of an outlet point. The module
 internally runs <em>r.stream.distance</em> twice to calculate flow length
 downstream and upstream raster maps, and combines them to get the longest flow
@@ -35,7 +35,6 @@ r.lfp input=drain_directions output=lfp coordinates=642455,222614
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="v.lfp.html">v.lfp</a>,
 <a href="r.watershed.html">r.watershed</a>,
 <a href="r.stream.extract.html">r.stream.extract</a>,
 <a href="r.stream.distance.html">r.stream.distance</a>
