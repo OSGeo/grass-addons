@@ -35,7 +35,6 @@ SUBDIRS = \
 	v.isochrones \
 	v.krige \
 	v.kriging \
-	v.lfp \
 	v.lidar.mcc \
 	v.link.precip \
 	v.mapcalc \
