@@ -5,7 +5,7 @@
 # AUTHOR(S):    Huidae Cho
 # PURPOSE:      Calculates the longest flow path for a given outlet point.
 #
-# COPYRIGHT:    (C) 2014, 2017 by the GRASS Development Team
+# COPYRIGHT:    (C) 2014, 2017, 2018 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -128,7 +128,8 @@ def calculate_lfp(input, output, coords):
     heads = prefix + "heads"
     try:
         grass.run_command("r.mapcalc", overwrite=True,
-                          expression="%s=if(!isnull(%s)&&%s>=%f,1,null())" % (heads, lfp, flds, min))
+                          expression="%s=if(!isnull(%s)&&%s>=%f,1,null())" %
+                                     (heads, lfp, flds, min))
     except CalledModuleError:
         grass.fatal(_("Cannot find the headwater cells"))
 
@@ -141,7 +142,8 @@ def calculate_lfp(input, output, coords):
 
     # calculate the longest flow path in vector format
     try:
-        grass.run_command("r.path", input=input, vector_path=output, start_points=heads)
+        grass.run_command("r.path", input=input, vector_path=output,
+                          start_points=heads)
     except CalledModuleError:
         grass.fatal(_("Cannot create the longest flow path vector map"))
 
