@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     Rast_get_cellhd(inputx, mapsetx, &cellhdx);
 
     if (Rast_map_type(inputx, mapsetx) != FCELL_TYPE)
-	G_fatal_error(_("<%s> is not of type CELL"), inputx);
+	G_fatal_error(_("<%s> is not of type FCELL"), inputx);
 
     Rast_init_fp_range(&membership_range);
     Rast_read_fp_range(inputx, mapsetx, &membership_range);
@@ -152,8 +152,8 @@ int main(int argc, char *argv[])
 	infdy = Rast_open_old(inputy, mapsety);
 	Rast_get_cellhd(inputy, mapsety, &cellhdy);
 
-	if (Rast_map_type(inputy, mapsety) != FCELL_TYPE) ;
-	G_fatal_error(_("<%s> is not of type CELL"), inputy);
+	if (Rast_map_type(inputy, mapsety) != FCELL_TYPE) 
+	    G_fatal_error(_("<%s> is not of type FCELL"), inputy);
 
 	Rast_init_fp_range(&membership_range);
 	Rast_read_fp_range(inputy, mapsety, &membership_range);
