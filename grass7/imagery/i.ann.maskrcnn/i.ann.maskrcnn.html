@@ -1,0 +1,79 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+Mask R-CNN tools allow the user to train his own model and use it for
+a detection of objects, or to use a model provided by someone else. It can be
+seen as a supervised classification using convolutional neural networks.
+
+<p>
+The training is done using module <em>ann.maskrcnn.train</em>. The user feeds
+the module with training data consisting of images and masks for each instance
+of intended classes, and gets a model. For difficult tasks and when not using
+a pretrained model, the training may take even weeks; in case of a good
+pretrained model and powerful PC with GPU support, the training could get good
+results after 1 day and even less.
+
+<p>
+When the user has a model, it can be used for the detection.
+<em>ann.maskrcnn.detect</em> detects classes learned during the training and
+extracts from given images vectors corresponding to detected objects. Objects
+can be extracted either as areas or points.
+
+<h2>DEPENDENCIES</h2>
+
+<p>
+<em>ann.maskrcnn.*</em> modules contain a lot of external python dependencies.
+To run modules, it is necessary to have them installed. Modules use python3, so
+please install python3 versions.
+
+<p>
+<ul>
+  <li>NumPy</li>
+  <li>Pillow</li>
+  <li>SciPy</li>
+  <li>Cython</li>
+  <li>scikit-image</li>
+  <li>OSGeo</li>
+  <li>TensorFlow</li>
+  <li>Keras</li>
+  <li>h5py</li>
+</ul>
+
+<p>
+After dependencies are fulfilled, modules can be installed using
+<em>g.extension</em> module:  
+<div class="code"><pre>
+g.extension extension=maskrcnn url=path/to/the/maskrcnn/folder
+</pre></div>
+
+<h2>GRASS GIS PATCH</h2>
+
+<p>
+Unfortunately, python3 is not fully supported by GRASS GIS yet. To use
+environment setting flags like <em>--overwrite</em>, the user has to update
+his GRASS GIS with the following patch:
+
+<div class="code"><pre>
+===================================================================
+--- lib/python/script/core.py	(revision 72644)
++++ lib/python/script/core.py	(working copy)
+@@ -746,7 +746,7 @@
+         elif var.startswith(b'opt_'):
+             options[var[4:]] = val
+         elif var in [b'GRASS_OVERWRITE', b'GRASS_VERBOSE']:
+-            os.environ[var] = val
++            os.environ[var.decode("utf-8")] = val.decode("utf-8")
+         else:
+             raise SyntaxError("invalid output from g.parser: %s" % line)
+</pre></div>
+
+<h2>MODULES</h2>
+
+<em>
+    <a href="ann.maskrcnn.train.html">ann.maskrcnn.train</a>
+    <a href="ann.maskrcnn.detect.html">ann.maskrcnn.detect</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Ondrej Pesek
