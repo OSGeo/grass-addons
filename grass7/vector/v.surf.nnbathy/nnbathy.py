@@ -58,8 +58,8 @@ class Nnbathy:
         grass.call(['nnbathy',
                     '-W', '%d' % 0,
                     '-i', '%s' % self._tmpxyz,
-                    '-x', '%d' % self.nn_w, '%d' % self.nn_e,
-                    '-y', '%d' % self.nn_n, '%d' % self.nn_s,
+                    '-x', '%f' % self.nn_w, '%f' % self.nn_e,
+                    '-y', '%f' % self.nn_n, '%f' % self.nn_s,
                     '-P', '%s' % self.ALG,
                     '-n', '%dx%d' % (self.cols, self.rows)],
                    stdout=fsock)
