@@ -233,8 +233,8 @@ def cleanup():
         gscript.try_remove(feature_vars)
     if trainmap:
         gscript.try_remove(training_vars)
-    gscript.try_remove(model_output)
-    gscript.try_remove(model_output_desc)
+    gscript.try_remove(model_output_csv)
+    gscript.try_remove(model_output_csvt)
     gscript.try_remove(r_commands)
     if reclass_files:
         for reclass_file in reclass_files.itervalues():
@@ -251,8 +251,8 @@ def main():
     global trainmap
     global feature_vars
     global training_vars
-    global model_output
-    global model_output_desc
+    global model_output_csv
+    global model_output_csvt
     global temptable
     global r_commands
     global reclass_files
@@ -483,8 +483,9 @@ def main():
             r_file.write("\n")
 
     if allmap and not flags['f']:
-        model_output = '.gscript_tmp_model_output_%d.csv' % os.getpid()
-        write_string = "write.csv(resultsdf, '%s'," % model_output
+        model_output = gscript.tempfile()
+        model_output_csv = model_output + '.csv'
+        write_string = "write.csv(resultsdf, '%s'," % model_output_csv
         write_string += " row.names=FALSE, quote=FALSE)"
         r_file.write(write_string)
         r_file.write("\n")
@@ -575,10 +576,10 @@ def main():
 
     if allmap and not flags['f']:
 
-        model_output_desc = model_output + 't'
+        model_output_csvt = model_output + '.csvt'
         temptable = 'classif_tmp_table_%d' % os.getpid()
 
-        f = open(model_output_desc, 'w')
+        f = open(model_output_csvt, 'w')
         header_string = '"Integer"'
         if flags['i']:
             for classifier in classifiers:
@@ -595,7 +596,7 @@ def main():
 
     	gscript.message("Loading results into attribute table")
 	gscript.run_command('db.in.ogr',
-                            input_=model_output,
+                            input_=model_output_csv,
                             output=temptable,
                             overwrite=True,
                             quiet=True)
