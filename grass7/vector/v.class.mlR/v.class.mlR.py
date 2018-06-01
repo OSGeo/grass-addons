@@ -343,8 +343,7 @@ def main():
         bw_plot_file = options['bw_plot_file']
 
     if allmap:
-        feature_vars = gscript.tempfile()
-        feature_vars = feature_vars.replace("\\", "/")
+        feature_vars = gscript.tempfile().replace("\\", "/")
         gscript.run_command('v.db.select',
                             map_=allfeatures,
                             file_=feature_vars,
@@ -355,8 +354,7 @@ def main():
         feature_vars = allfeatures.replace("\\", "/")
 
     if trainmap:
-        training_vars = gscript.tempfile()
-        training_vars = training_vars.replace("\\", "/")
+        training_vars = gscript.tempfile().replace("\\", "/")
         gscript.run_command('v.db.select',
                             map_=training,
                             file_=training_vars,
@@ -366,7 +364,7 @@ def main():
     else:
         training_vars = training.replace("\\", "/")
 
-    r_commands = gscript.tempfile()
+    r_commands = gscript.tempfile().replace("\\", "/")
 
     r_file = open(r_commands, 'w')
 
@@ -483,7 +481,7 @@ def main():
             r_file.write("\n")
 
     if allmap and not flags['f']:
-        model_output = gscript.tempfile()
+        model_output = gscript.tempfile().replace("\\", "/")
         model_output_csv = model_output + '.csv'
         write_string = "write.csv(resultsdf, '%s'," % model_output_csv
         write_string += " row.names=FALSE, quote=FALSE)"
