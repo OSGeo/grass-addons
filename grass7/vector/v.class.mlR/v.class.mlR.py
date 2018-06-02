@@ -316,11 +316,11 @@ def main():
 
     classification_results = None
     if options['classification_results']:
-        classification_results = options['classification_results']
+        classification_results = options['classification_results'].replace("\\", "/")
 
     model_details = None
     if options['model_details']:
-        model_details = options['model_details']
+        model_details = options['model_details'].replace("\\", "/")
 
     raster_segments_map = None
     if options['raster_segments_map']:
@@ -336,11 +336,11 @@ def main():
 
     accuracy_file = None
     if options['accuracy_file']:
-        accuracy_file = options['accuracy_file']
+        accuracy_file = options['accuracy_file'].replace("\\", "/")
 
     bw_plot_file = None
     if options['bw_plot_file']:
-        bw_plot_file = options['bw_plot_file']
+        bw_plot_file = options['bw_plot_file'].replace("\\", "/")
 
     if allmap:
         feature_vars = gscript.tempfile().replace("\\", "/")
