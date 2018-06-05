@@ -69,6 +69,15 @@ Img::Img(const Img& other)
     std::copy(other.data, other.data + (width * height), data);
 }
 
+Img::Img(const Img& other, int value)
+{
+    width = other.width;
+    height = other.height;
+    w_e_res = other.w_e_res;
+    n_s_res = other.n_s_res;
+    data = new int[width * height]{value};
+}
+
 Img::Img(Img&& other)
 {
     width = other.width;
@@ -269,17 +278,12 @@ Img Img::operator/(const Img& image) const
     return out;
 }
 
-Img Img::operator*(double factor) const
+Img Img::operator*(double value) const
 {
-    auto re_width = this->width;
-    auto re_height = this->height;
-    auto out = Img(re_width, re_height, this->w_e_res, this->n_s_res);
+    auto out = Img(width, height, w_e_res, n_s_res);
 
-    for (int i = 0; i < re_height; i++) {
-        for (int j = 0; j < re_width; j++) {
-            out.data[i * width + j] = this->data[i * width + j] * factor;
-        }
-    }
+    std::transform(data, data + (width * height), out.data,
+                   [&value](const int& a) { return a * value; });
     return out;
 }
 
@@ -346,6 +350,11 @@ Img& Img::operator/=(const Img& image)
     for_each_zip(data, data + (width * height), image.data,
                  [](int& a, int& b) { a /= b; });
     return *this;
+}
+
+Img operator*(double factor, const Img& image)
+{
+    return image * factor;
 }
 
 Img::~Img()

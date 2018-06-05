@@ -245,6 +245,8 @@ struct SodOptions
     struct Option *start_time, *end_time, *seasonality;
     struct Option *spore_rate, *wind;
     struct Option *radial_type, *scale_1, *scale_2, *kappa, *gamma;
+    struct Option *infected_to_dead_rate, *first_year_to_die;
+    struct Option *dead_series;
     struct Option *seed, *runs, *threads;
     struct Option *output, *output_series;
     struct Option *stddev, *stddev_series;
@@ -253,6 +255,7 @@ struct SodOptions
 
 struct SodFlags
 {
+    struct Flag *mortality;
     struct Flag *generate_seed;
     struct Flag *series_as_single_run;
 };
@@ -452,6 +455,46 @@ int main(int argc, char *argv[])
     opt.gamma->options = "0-1";
     opt.gamma->guisection = _("Spores");
 
+    opt.infected_to_dead_rate = G_define_option();
+    opt.infected_to_dead_rate->type = TYPE_DOUBLE;
+    opt.infected_to_dead_rate->key = "mortality_rate";
+    opt.infected_to_dead_rate->label =
+        _("Mortality rate of infected trees");
+    opt.infected_to_dead_rate->description =
+        _("Percentage of infected trees that die in a given year"
+          " (trees are removed from the infected pool)");
+    opt.infected_to_dead_rate->options = "0-1";
+    opt.infected_to_dead_rate->guisection = _("Mortality");
+
+    opt.first_year_to_die = G_define_option();
+    opt.first_year_to_die->type = TYPE_INTEGER;
+    opt.first_year_to_die->key = "mortality_start";
+    opt.first_year_to_die->label =
+        _("Year of simulation when mortality is first applied");
+    opt.first_year_to_die->description =
+        _("How many years it takes for an infected tree to die"
+          " (value 1 for trees dying at the end of the first year)");
+    opt.first_year_to_die->guisection = _("Mortality");
+
+    opt.dead_series = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
+    opt.dead_series->key = "dead_series";
+    opt.dead_series->label =
+        _("Basename for series of number of dead trees");
+    opt.dead_series->description =
+        _("Basename for output series of number of dead trees"
+          " (requires mortality to be activated)");
+    opt.dead_series->required = NO;
+    opt.dead_series->guisection = _("Mortality");
+
+    flg.mortality = G_define_flag();
+    flg.mortality->key = 'm';
+    flg.mortality->label =
+        _("Apply mortality");
+    flg.mortality->description =
+        _("After a given amount of time, start removing dead trees"
+          " from the infected pool with a given rate");
+    flg.mortality->guisection = _("Mortality");
+
     opt.seed = G_define_option();
     opt.seed->key = "random_seed";
     opt.seed->type = TYPE_INTEGER;
@@ -502,6 +545,15 @@ int main(int argc, char *argv[])
     G_option_exclusive(opt.temperature_file, opt.nc_weather,
                        opt.weather_file, opt.weather_value, NULL);
     G_option_collective(opt.moisture_file, opt.temperature_file, NULL);
+
+    // mortality
+    // flag and rate required always
+    // for simplicity of the code outputs allowed only with output
+    // for single run (avgs from runs likely not needed)
+    G_option_requires(flg.mortality, opt.infected_to_dead_rate, NULL);
+    G_option_requires(opt.first_year_to_die, flg.mortality, NULL);
+    G_option_requires_all(opt.dead_series, flg.mortality,
+                          flg.series_as_single_run, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -554,6 +606,28 @@ int main(int argc, char *argv[])
     }
     Date dd_start(start_time, 01, 01);
     Date dd_end(end_time, 12, 31);
+    // difference in years (in dates) but including both years
+    auto num_years = dd_end.getYear() - dd_start.getYear() + 1;
+
+    // mortality
+    bool mortality = false;
+    unsigned first_year_to_die = 1;  // starts at 1 (same as the opt)
+    double infected_to_dead_rate = 0.0;
+    if (flg.mortality->answer) {
+        mortality = true;
+        if (opt.first_year_to_die->answer) {
+            first_year_to_die = std::stoi(opt.first_year_to_die->answer);
+            if (first_year_to_die > num_years) {
+                G_fatal_error(
+                    _("%s is too large (%d). It must be smaller or "
+                      " equal than number of simulation years (%d)."),
+                    opt.first_year_to_die->key,
+                    first_year_to_die, num_years);
+            }
+        }
+        if (opt.infected_to_dead_rate->answer)
+            infected_to_dead_rate = std::stod(opt.infected_to_dead_rate->answer);
+    }
 
     unsigned seed_value;
     if (opt.seed->answer) {
@@ -656,6 +730,19 @@ int main(int argc, char *argv[])
     std::vector<Sporulation> sporulations;
     std::vector<Img> sus_species_rasts(num_runs, S_species_rast);
     std::vector<Img> inf_species_rasts(num_runs, I_species_rast);
+
+    // infected cohort for each year (index is cohort age)
+    // age starts with 0 (in year 1), 0 is oldest
+    std::vector<std::vector<Img> > inf_species_cohort_rasts(
+        num_runs, std::vector<Img>(num_years, Img(S_species_rast, 0)));
+
+    // we are using only the first dead img for visualization, but for
+    // parallelization we need all allocated anyway
+    std::vector<Img> dead_in_current_year(num_runs, Img(S_species_rast, 0));
+    // dead trees accumulated over years
+    // TODO: allow only when series as single run
+    Img accumulated_dead(Img(S_species_rast, 0));
+
     sporulations.reserve(num_runs);
     for (unsigned i = 0; i < num_runs; ++i)
         sporulations.emplace_back(seed_value++, I_species_rast);
@@ -664,20 +751,22 @@ int main(int argc, char *argv[])
     std::vector<unsigned> unresolved_weeks;
     unresolved_weeks.reserve(max_weeks_in_year);
 
+    Date dd_current(dd_start);
+
     // main simulation loop (weekly steps)
-    for (int current_week = 0; ; current_week++, dd_start.increasedByWeek()) {
-        if (dd_start < dd_end)
-            if (!ss || !(dd_start.getMonth() > 9))
+    for (int current_week = 0; ; current_week++, dd_current.increasedByWeek()) {
+        if (dd_current < dd_end)
+            if (!ss || !(dd_current.getMonth() > 9))
                 unresolved_weeks.push_back(current_week);
 
         // if all the oaks are infected, then exit
         if (all_infected(S_species_rast)) {
-            cerr << "In the " << dd_start << " all suspectible oaks are infected!" << endl;
+            cerr << "In the " << dd_current << " all suspectible oaks are infected!" << endl;
             break;
         }
 
         // check whether the spore occurs in the month
-        if (dd_start.isYearEnd() || dd_start >= dd_end) {
+        if (dd_current.isYearEnd() || dd_current >= dd_end) {
             if (!unresolved_weeks.empty()) {
 
                 unsigned week_in_chunk = 0;
@@ -714,7 +803,9 @@ int main(int argc, char *argv[])
                         }
                         sporulations[run].SporeGen(inf_species_rasts[run], week_weather, weather_value, spore_rate);
 
+                        auto current_age = dd_current.getYear() - dd_start.getYear();
                         sporulations[run].SporeSpreadDisp_singleSpecies(sus_species_rasts[run], inf_species_rasts[run],
+                                                                        inf_species_cohort_rasts[run][current_age],
                                                                         lvtree_rast, outside_spores[run],
                                                                         rtype, week_weather,
                                                                         weather_value, scale1, kappa, pwdir, scale2,
@@ -723,6 +814,35 @@ int main(int argc, char *argv[])
                     }
                 }
                 unresolved_weeks.clear();
+            }
+            if (mortality && (dd_current.getYear() <= dd_end.getYear())) {
+                // to avoid problem with Jan 1 of the following year
+                // we explicitely check if we are in a valid year range
+                unsigned simulation_year = dd_current.getYear() - dd_start.getYear();
+                // only run to the current year of simulation
+                // (first year is 0):
+                //   max index == sim year
+                // reduced by first time when trees start dying
+                // (counted from 1: first year == 1)
+                // e.g. for sim year 3, year dying 4, max index is 0
+                //   max index = sim year - (dying year - 1)
+                // index is negative before we reach the year
+                // (so we can skip these years)
+                // sim year - (dying year - 1) < 0
+                // sim year < dying year - 1
+                if (simulation_year >= first_year_to_die - 1) {
+                    auto max_index = simulation_year - (first_year_to_die - 1);
+                    #pragma omp parallel for num_threads(threads)
+                    for (unsigned run = 0; run < num_runs; run++) {
+                        dead_in_current_year[run].zero();
+                        for (unsigned age = 0; age <= max_index; age++) {
+                            Img dead_in_cohort = infected_to_dead_rate * inf_species_cohort_rasts[run][age];
+                            inf_species_cohort_rasts[run][age] -= dead_in_cohort;
+                            dead_in_current_year[run] += dead_in_cohort;
+                        }
+                        inf_species_rasts[run] -= dead_in_current_year[run];
+                    }
+                }
             }
             if ((opt.output_series->answer && !flg.series_as_single_run->answer)
                      || opt.stddev_series->answer) {
@@ -735,7 +855,7 @@ int main(int argc, char *argv[])
             if (opt.output_series->answer) {
                 // write result
                 // date is always end of the year, even for seasonal spread
-                string name = generate_name(opt.output_series->answer, dd_start);
+                string name = generate_name(opt.output_series->answer, dd_current);
                 if (flg.series_as_single_run->answer)
                     inf_species_rasts[0].toGrassRaster(name.c_str());
                 else
@@ -750,12 +870,19 @@ int main(int argc, char *argv[])
                 }
                 stddev /= num_runs;
                 stddev.for_each([](int& a){a = std::sqrt(a);});
-                string name = generate_name(opt.stddev_series->answer, dd_start);
+                string name = generate_name(opt.stddev_series->answer, dd_current);
                 stddev.toGrassRaster(name.c_str());
+            }
+            if (mortality && opt.dead_series->answer) {
+                accumulated_dead += dead_in_current_year[0];
+                if (opt.dead_series->answer) {
+                    string name = generate_name(opt.dead_series->answer, dd_current);
+                    accumulated_dead.toGrassRaster(name.c_str());
+                }
             }
         }
 
-        if (dd_start >= dd_end)
+        if (dd_current >= dd_end)
             break;
     }
 

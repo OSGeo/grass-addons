@@ -44,6 +44,8 @@ public:
     Img();
     Img(Img&& other);
     Img(const Img& other);
+    // Use dimensions of an existing object, but supply a new value
+    Img(const Img& other, int value);
     //Img(int width,int height);
     Img(const char *fileName);
     Img(int width, int height, int w_e_res, int n_s_res);
@@ -101,7 +103,7 @@ public:
     Img operator-(const Img& image) const;
     Img operator*(const Img& image) const;
     Img operator/(const Img& image) const;
-    Img operator*(double factor) const;
+    Img operator*(double value) const;
     Img operator/(double value) const;
     Img& operator+=(int value);
     Img& operator-=(int value);
@@ -111,6 +113,9 @@ public:
     Img& operator-=(const Img& image);
     Img& operator*=(const Img& image);
     Img& operator/=(const Img& image);
+
+    friend Img operator*(double factor, const Img& image);
+
     ~Img();
 
     void toGrassRaster(const char *name);

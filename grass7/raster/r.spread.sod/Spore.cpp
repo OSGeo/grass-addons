@@ -121,7 +121,7 @@ void Sporulation::SporeGen(const Img& I, const double *weather,
     }
 }
 
-void Sporulation::SporeSpreadDisp_singleSpecies(Img& S, Img& I,
+void Sporulation::SporeSpreadDisp_singleSpecies(Img& S, Img& I, Img& I2,
                                                 const Img& lvtree_rast,
                                                 std::vector<std::tuple<int, int> >& outside_spores,
                                                 Rtype rtype, const double *weather,
@@ -193,6 +193,7 @@ void Sporulation::SporeSpreadDisp_singleSpecies(Img& S, Img& I,
                             prob_S *= weather_value;
                         if (U < prob_S) {
                             I(row, col) += 1;
+                            I2(row, col) += 1;
                             S(row, col) -= 1;
                         }
                     }
