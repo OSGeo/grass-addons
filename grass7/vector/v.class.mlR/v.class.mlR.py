@@ -233,9 +233,12 @@ def cleanup():
         gscript.try_remove(feature_vars)
     if trainmap:
         gscript.try_remove(training_vars)
-    gscript.try_remove(model_output_csv)
-    gscript.try_remove(model_output_csvt)
-    gscript.try_remove(r_commands)
+    if model_output_csv:
+        gscript.try_remove(model_output_csv)
+    if model_output_csvt:
+        gscript.try_remove(model_output_csvt)
+    if r_commands:
+        gscript.try_remove(r_commands)
     if reclass_files:
         for reclass_file in reclass_files.itervalues():
             gscript.try_remove(reclass_file)
@@ -258,7 +261,7 @@ def main():
     global reclass_files
 
     allmap  =  trainmap  =  feature_vars  =  training_vars = None 
-    model_output = model_output_desc  =  temptable  =  r_commands = None
+    model_output_csv = model_output_csvt  =  temptable  =  r_commands = None
     reclass_files = None
 
     voting_function = "voting <- function (x, w) {\n"
