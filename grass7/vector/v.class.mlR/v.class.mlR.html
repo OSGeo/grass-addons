@@ -5,6 +5,13 @@
 for machine learning in R to classify features using training features 
 by supervised learning.
 
+<p>The user provides a set of objects (or segments) to be classified, including
+all feature variables describing these object, and a set of objects to be used 
+as training data, including the same feature variables as those describing the 
+unknown objects, plus one additional column indicating the class each training 
+falls into. The training data can, but does not have to be, a subset of the set 
+of objects to be classified.
+
 <p>The user can provide input either as vector maps (<em>segments_map</em>
 and <em>training_map</em>, or as csv files (<em>segments_file</em> and
 <em>training file</em>, or a combination of both. Csv files have to be
@@ -142,6 +149,8 @@ v.class.mlR segments_file=segstats.csv training_file=training.csv train_class_co
 
 <em>
 <a href="i.segment.html">i.segment</a>,
+<a href="r.object.activelearning.html">r.object.activelearning</a>,
+<a href="r.learn.ml.html">r.learn.ml</a>
 </em>
 
 <h2>AUTHOR</h2>
