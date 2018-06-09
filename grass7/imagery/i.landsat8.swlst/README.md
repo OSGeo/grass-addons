@@ -1,4 +1,4 @@
-*i.landsat8.swlst* is a GRASS GIS add-on, implementating a practical Split-Window (SW)
+*i.landsat8.swlst* is a GRASS GIS add-on, implementing a practical Split-Window (SW)
 algorithm, estimating land surface temperature (LST), from the Thermal Infra-Red
 Sensor (TIRS) aboard Landsat 8 with an accuracy of better than 1.0 K.
 
@@ -32,7 +32,7 @@ processing steps: at-satellite temperatures, cloud and emissivity maps.
 
   * The `clouds` option can be any user-defined map. Essentialy, it applies
     the given map as an inverted mask.
-    
+
   * The emissivity maps, derived by the module itself, can be saved once
     via the `emissivity_out` and `delta_emissivity_out` options and used
     afterwards via the `emissivity` and `delta_emissivity` options. Expert
@@ -154,6 +154,7 @@ Implementation notes
 
 [Low]
 
+- Test for too small region?
 - Deduplicate code in `split_window_lst` class, in functions
 `_build_average_emissivity_mapcalc()` and
 `_build_delta_emissivity_mapcalc()`
@@ -210,3 +211,4 @@ References
 - Georgios Alexandris, Anthoula Alexandri
 - Special thanks to author Huazhong Ren for commenting on questions (personal
 communication)
+- Stefan Blumentrath

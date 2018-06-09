@@ -152,7 +152,7 @@ def main():
     # Define bitpattern characteristics according to
     # http://landsat.usgs.gov/qualityband.php
     """
-    Currently populated bits:
+    Populated bits:
 
     0     Designated Fill
     1     Dropped Frame
@@ -202,16 +202,16 @@ def main():
                    'Yes': '1'}
 
     """
-The double bits (4-5, 6-7, 8-9, 10-11, 12-13, and 14-15), read from left to
-right, represent levels of confidence that a condition exists:
-00 = 'Not Determined' = Algorithm did not determine the status
-                        of this condition
-01 = 'No' = Algorithm has low to no confidence that this condition exists
-            (0-33 percent confidence)
-10 = 'Maybe' = Algorithm has medium confidence that this condition exists
-               (34-66 percent confidence)
-11 = 'Yes' = Algorithm has high confidence that this condition exists
-             (67-100 percent confidence).
+    The double bits (4-5, 6-7, 8-9, 10-11, 12-13, and 14-15), read from left to
+    right, represent levels of confidence that a condition exists:
+    00 = 'Not Determined' = Algorithm did not determine the status
+                            of this condition
+    01 = 'No' = Algorithm has low to no confidence that this condition exists
+                (0-33 percent confidence)
+    10 = 'Maybe' = Algorithm has medium confidence that this condition exists
+                (34-66 percent confidence)
+    11 = 'Yes' = Algorithm has high confidence that this condition exists
+                (67-100 percent confidence).
     """
 
     # Define double bits dictionary

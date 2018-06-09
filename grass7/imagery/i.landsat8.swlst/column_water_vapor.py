@@ -99,7 +99,7 @@ class Column_Water_Vapor():
     Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., & Meng, J. (2015).
     Atmospheric water vapor retrieval from Landsat 8 thermal infrared images.
     Journal of Geophysical Research: Atmospheres, 120(5), 1723-1738.
-    
+
 
     Old reference:
 

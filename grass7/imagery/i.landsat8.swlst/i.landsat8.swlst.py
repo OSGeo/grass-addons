@@ -85,12 +85,12 @@
 
 #%Module
 #%  description: Practical split-window algorithm estimating Land Surface Temperature from Landsat 8 OLI/TIRS imagery (Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015)
-#%  keyword: imagery
-#%  keyword: split window
-#%  keyword: column water vapor
-#%  keyword: land surface temperature
-#%  keyword: lst
-#%  keyword: landsat8
+#%  keywords: imagery
+#%  keywords: split window
+#%  keywords: column water vapor
+#%  keywords: land surface temperature
+#%  keywords: lst
+#%  keywords: landsat8
 #%End
 
 #%flag
@@ -99,8 +99,8 @@
 #%end
 
 #%flag
-#%  key: k
-#%  description: Keep current computational region settings
+#%  key: e
+#%  description: Match computational region to extent of thermal bands
 #%end
 
 #%flag
@@ -350,7 +350,7 @@ def cleanup():
     """
     grass.run_command('g.remove', flags='f', type="rast",
                       pattern='tmp.{pid}*'.format(pid=os.getpid()), quiet=True)
-    
+
     if grass.find_file(name='MASK', element='cell')['file']:
         r.mask(flags='r', verbose=True)
 
@@ -1009,7 +1009,7 @@ def main():
 
     qapixel = options['qapixel']
     lst_output = options['lst']
-    
+
     # save Brightness Temperature maps?
     global brightness_temperature_prefix
     if options['prefix_bt']:
@@ -1028,7 +1028,7 @@ def main():
     # optional maps
     average_emissivity_map = options['emissivity']
     delta_emissivity_map = options['delta_emissivity']
-    
+
     # output for in-between maps?
     global emissivity_output, delta_emissivity_output
     emissivity_output = options['emissivity_out']
@@ -1041,11 +1041,10 @@ def main():
     # flags
     global info, null
     info = flags['i']
-    # keep_region = flags['k']
-    scene_extent = flags['k']
+    scene_extent = flags['e']
     timestamping = flags['t']
     null = flags['n']
-    
+
     global celsius
     celsius = flags['c']
 
@@ -1057,7 +1056,6 @@ def main():
     #
 
     # Set Region
-    # if not keep_region:
     if scene_extent:
         grass.use_temp_region()  # safely modify the region
         msg = "\n|! Matching region extent to map {name}"
@@ -1075,7 +1073,6 @@ def main():
 
         g.message(msg)
 
-    # elif keep_region:
     elif scene_extent:
         grass.warning(_('Operating on current region'))
 
@@ -1243,7 +1240,6 @@ def main():
     #run("g.rename", rast=(tmp_lst, lst_output))
 
     # restore region
-    # if not keep_region:
     if scene_extent:
         grass.del_temp_region()  # restoring previous region settings
         g.message("|! Original Region restored")
