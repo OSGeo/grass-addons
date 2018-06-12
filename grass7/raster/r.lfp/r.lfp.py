@@ -91,8 +91,7 @@ def calculate_lfp(input, output, coords, outlet):
         if p.returncode != 0:
             grass.fatal(_("Cannot read outlet points"))
 
-    n = len(coords) / 2
-    for i in range(0, n):
+    for i in range(0, len(coords) / 2):
         coor = "%s,%s" % (coords[2*i], coords[2*i+1])
         grass.message(_("Processing the outlet at %s..." % coor))
 
