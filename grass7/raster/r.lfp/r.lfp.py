@@ -26,7 +26,15 @@
 #%end
 #%option G_OPT_M_COORDS
 #% description: Coordinates of outlet point
-#% required: yes
+#% multiple: yes
+#%end
+#%option G_OPT_V_INPUT
+#% key: outlet
+#% description: Name of outlet vector map
+#% required: no
+#%end
+#%rules
+#% required: coordinates, outlet
 #%end
 
 import sys
@@ -38,8 +46,8 @@ from grass.exceptions import CalledModuleError
 # check requirements
 def check_progs():
     found_missing = False
-    prog = 'r.stream.distance'
-    if not grass.find_program(prog, '--help'):
+    prog = "r.stream.distance"
+    if not grass.find_program(prog, "--help"):
         found_missing = True
         grass.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
     if found_missing:
@@ -52,108 +60,147 @@ def main():
     input = options["input"]
     output = options["output"]
     coords = options["coordinates"]
+    outlet = options["outlet"]
 
-    calculate_lfp(input, output, coords)
+    calculate_lfp(input, output, coords, outlet)
 
-def calculate_lfp(input, output, coords):
+def calculate_lfp(input, output, coords, outlet):
     prefix = "r_lfp_%d_" % os.getpid()
 
-    # create the outlet vector map
-    outlet = prefix + "outlet"
-    p = grass.feed_command("v.in.ascii", overwrite=True,
-            input="-", output=outlet, separator=",")
-    p.stdin.write(coords)
-    p.stdin.close()
-    p.wait()
-    if p.returncode != 0:
-        grass.fatal(_("Cannot create the outlet vector map"))
-
-    # convert the outlet vector map to raster
+    # create the output vector map
     try:
-        grass.run_command("v.to.rast", overwrite=True,
-                          input=outlet, output=outlet, use="cat", type="point")
+        grass.run_command("v.edit", map=output, tool="create")
     except CalledModuleError:
-        grass.fatal(_("Cannot convert the outlet vector to raster"))
+        grass.fatal(_("Cannot create the output vector map"))
 
-    # calculate the downstream flow length
-    flds = prefix + "flds"
-    try:
-        grass.run_command("r.stream.distance", overwrite=True, flags="om",
-                          stream_rast=outlet, direction=input,
-                          method="downstream", distance=flds)
-    except CalledModuleError:
-        grass.fatal(_("Cannot calculate the downstream flow length"))
+    if coords:
+        coords = coords.split(",")
+    else:
+        coords = []
 
-    # find the longest flow length
-    p = grass.pipe_command("r.info", flags="r", map=flds)
-    max = ""
-    for line in p.stdout:
-        line = line.rstrip("\n")
-        if line.startswith("max="):
-            max = line.split("=")[1]
-            break
-    p.wait()
-    if p.returncode != 0 or max == "":
-        grass.fatal(_("Cannot find the longest flow length"))
+    # append outlet points to coordinates
+    if outlet:
+        p = grass.pipe_command("v.to.db", flags="p", map=outlet, option="coor")
+        for line in p.stdout:
+            line = line.rstrip("\n")
+            if line == "cat|x|y|z":
+                continue
+            cols = line.split("|")
+            coords.extend([cols[1], cols[2]])
+        p.wait()
+        if p.returncode != 0:
+            grass.fatal(_("Cannot read outlet points"))
 
-    threshold = float(max) - 0.0005
+    n = len(coords) / 2
+    for i in range(0, n):
+        coor = "%s,%s" % (coords[2*i], coords[2*i+1])
+        grass.message(_("Processing the outlet at %s..." % coor))
 
-    # find the headwater cells
-    heads = prefix + "heads"
-    try:
-        grass.run_command("r.mapcalc", overwrite=True,
-                          expression="%s=if(%s>=%f,1,null())" %
-                                     (heads, flds, threshold))
-    except CalledModuleError:
-        grass.fatal(_("Cannot find the headwater cells"))
+        # create the outlet vector map
+        out = prefix + "out"
+        p = grass.feed_command("v.in.ascii", overwrite=True,
+                input="-", output=out, separator=",")
+        p.stdin.write(coor)
+        p.stdin.close()
+        p.wait()
+        if p.returncode != 0:
+            grass.fatal(_("Cannot create the outlet vector map"))
 
-    # create the headwater vector map
-    try:
-        grass.run_command("r.to.vect", overwrite=True,
-                          input=heads, output=heads, type="point")
-    except CalledModuleError:
-        grass.fatal(_("Cannot create the headwater vector map"))
+        # convert the outlet vector map to raster
+        try:
+            grass.run_command("v.to.rast", overwrite=True,
+                              input=out, output=out, use="cat",
+                              type="point")
+        except CalledModuleError:
+            grass.fatal(_("Cannot convert the outlet vector to raster"))
 
-    # calculate the longest flow path in vector format
-    path = prefix + "path"
-    try:
-        grass.run_command("r.path", input=input, vector_path=path,
-                          start_points=heads)
-    except CalledModuleError:
-        grass.fatal(_("Cannot create the longest flow path vector map"))
+        # calculate the downstream flow length
+        flds = prefix + "flds"
+        try:
+            grass.run_command("r.stream.distance", overwrite=True, flags="om",
+                              stream_rast=out, direction=input,
+                              method="downstream", distance=flds)
+        except CalledModuleError:
+            grass.fatal(_("Cannot calculate the downstream flow length"))
 
-    # snap the outlet
-    try:
-        grass.run_command("r.to.vect", overwrite=True,
-                          input=outlet, output=outlet, type="point")
-    except CalledModuleError:
-        grass.fatal(_("Cannot snap the outlet"))
+        # find the longest flow length
+        p = grass.pipe_command("r.info", flags="r", map=flds)
+        max = ""
+        for line in p.stdout:
+            line = line.rstrip("\n")
+            if line.startswith("max="):
+                max = line.split("=")[1]
+                break
+        p.wait()
+        if p.returncode != 0 or max == "":
+            grass.fatal(_("Cannot find the longest flow length"))
 
-    # find the coordinates of the snapped outlet
-    p = grass.pipe_command("v.to.db", flags="p", map=outlet, option="coor")
-    coords = ""
-    for line in p.stdout:
-        line = line.rstrip("\n")
-        if line == "cat|x|y|z":
-            continue
-        cols = line.split("|")
-        coords = "%s,%s" % (cols[1], cols[2])
-    p.wait()
-    if p.returncode != 0 or coords == "":
-        grass.fatal(_("Cannot find the coordinates of the snapped outlet"))
+        threshold = float(max) - 0.0005
 
-    # split the longest flow path at the outlet
-    try:
-        grass.run_command("v.edit", map=path, tool="break", coords=coords)
-    except CalledModuleError:
-        grass.fatal(_("Cannot split the longest flow path at the outlet"))
+        # find the headwater cells
+        heads = prefix + "heads"
+        try:
+            grass.run_command("r.mapcalc", overwrite=True,
+                              expression="%s=if(%s>=%f,1,null())" %
+                                         (heads, flds, threshold))
+        except CalledModuleError:
+            grass.fatal(_("Cannot find the headwater cells"))
 
-    # select the final longest flow path
-    try:
-        grass.run_command("v.select", overwrite=True,
-                          ainput=path, binput=heads, output=output)
-    except CalledModuleError:
-        grass.fatal(_("Cannot select the final longest flow path"))
+        # create the headwater vector map
+        try:
+            grass.run_command("r.to.vect", overwrite=True,
+                              input=heads, output=heads, type="point")
+        except CalledModuleError:
+            grass.fatal(_("Cannot create the headwater vector map"))
+
+        # calculate the longest flow path in vector format
+        path = prefix + "path"
+        try:
+            grass.run_command("r.path", input=input, vector_path=path,
+                              start_points=heads)
+        except CalledModuleError:
+            grass.fatal(_("Cannot create the longest flow path vector map"))
+
+        # snap the outlet
+        try:
+            grass.run_command("r.to.vect", overwrite=True,
+                              input=out, output=out, type="point")
+        except CalledModuleError:
+            grass.fatal(_("Cannot snap the outlet"))
+
+        # find the coordinates of the snapped outlet
+        p = grass.pipe_command("v.to.db", flags="p", map=out, option="coor")
+        coor = ""
+        for line in p.stdout:
+            line = line.rstrip("\n")
+            if line == "cat|x|y|z":
+                continue
+            cols = line.split("|")
+            coor = "%s,%s" % (cols[1], cols[2])
+        p.wait()
+        if p.returncode != 0 or coor == "":
+            grass.fatal(_("Cannot find the coordinates of the snapped outlet"))
+
+        # split the longest flow path at the outlet
+        try:
+            grass.run_command("v.edit", map=path, tool="break", coords=coor)
+        except CalledModuleError:
+            grass.fatal(_("Cannot split the longest flow path at the outlet"))
+
+        # select the final longest flow path
+        lfp = prefix + "lfp"
+        try:
+            grass.run_command("v.select", overwrite=True,
+                              ainput=path, binput=heads, output=lfp)
+        except CalledModuleError:
+            grass.fatal(_("Cannot select the final longest flow path"))
+
+        # copy the final longest flow path to the output map
+        try:
+            grass.run_command("v.edit", flags="r",
+                              map=output, tool="copy", bgmap=lfp, cats=0)
+        except CalledModuleError:
+            grass.fatal(_("Cannot copy the final longest flow path"))
 
     # remove intermediate outputs
     grass.run_command("g.remove", flags="f", type="raster,vector",
