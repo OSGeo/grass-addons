@@ -84,25 +84,8 @@ def calculate_lfp(input, output, coords):
     except CalledModuleError:
         grass.fatal(_("Cannot calculate the downstream flow length"))
 
-    # calculate the upstream flow length
-    flus = prefix + "flus"
-    try:
-        grass.run_command("r.stream.distance", overwrite=True, flags="o",
-                          stream_rast=outlet, direction=input,
-                          method="upstream", distance=flus)
-    except CalledModuleError:
-        grass.fatal(_("Cannot calculate the upstream flow length"))
-
-    # calculate the sum of downstream and upstream flow lengths
-    fldsus = prefix + "fldsus"
-    try:
-        grass.run_command("r.mapcalc", overwrite=True,
-                          expression="%s=%s+%s" % (fldsus, flds, flus))
-    except CalledModuleError:
-        grass.fatal(_("Cannot calculate the sum of downstream and upstream flow lengths"))
-
     # find the longest flow length
-    p = grass.pipe_command("r.info", flags="r", map=fldsus)
+    p = grass.pipe_command("r.info", flags="r", map=flds)
     max = ""
     for line in p.stdout:
         line = line.rstrip("\n")
@@ -113,23 +96,14 @@ def calculate_lfp(input, output, coords):
     if p.returncode != 0 or max == "":
         grass.fatal(_("Cannot find the longest flow length"))
 
-    min = float(max) - 0.0005
-
-    # extract the longest flow path
-    lfp = prefix + "lfp"
-    try:
-        grass.run_command("r.mapcalc", overwrite=True,
-                          expression="%s=if(%s>=%f, 1, null())" %
-                                     (lfp, fldsus, min))
-    except CalledModuleError:
-        grass.fatal(_("Cannot create the longest flow path raster map"))
+    threshold = float(max) - 0.0005
 
     # find the headwater cells
     heads = prefix + "heads"
     try:
         grass.run_command("r.mapcalc", overwrite=True,
-                          expression="%s=if(!isnull(%s)&&%s>=%f,1,null())" %
-                                     (heads, lfp, flds, min))
+                          expression="%s=if(%s>=%f,1,null())" %
+                                     (heads, flds, threshold))
     except CalledModuleError:
         grass.fatal(_("Cannot find the headwater cells"))
 
@@ -141,11 +115,45 @@ def calculate_lfp(input, output, coords):
         grass.fatal(_("Cannot create the headwater vector map"))
 
     # calculate the longest flow path in vector format
+    path = prefix + "path"
     try:
-        grass.run_command("r.path", input=input, vector_path=output,
+        grass.run_command("r.path", input=input, vector_path=path,
                           start_points=heads)
     except CalledModuleError:
         grass.fatal(_("Cannot create the longest flow path vector map"))
+
+    # snap the outlet
+    try:
+        grass.run_command("r.to.vect", overwrite=True,
+                          input=outlet, output=outlet, type="point")
+    except CalledModuleError:
+        grass.fatal(_("Cannot snap the outlet"))
+
+    # find the coordinates of the snapped outlet
+    p = grass.pipe_command("v.to.db", flags="p", map=outlet, option="coor")
+    coords = ""
+    for line in p.stdout:
+        line = line.rstrip("\n")
+        if line == "cat|x|y|z":
+            continue
+        cols = line.split("|")
+        coords = "%s,%s" % (cols[1], cols[2])
+    p.wait()
+    if p.returncode != 0 or coords == "":
+        grass.fatal(_("Cannot find the coordinates of the snapped outlet"))
+
+    # split the longest flow path at the outlet
+    try:
+        grass.run_command("v.edit", map=path, tool="break", coords=coords)
+    except CalledModuleError:
+        grass.fatal(_("Cannot split the longest flow path at the outlet"))
+
+    # select the final longest flow path
+    try:
+        grass.run_command("v.select", overwrite=True,
+                          ainput=path, binput=heads, output=output)
+    except CalledModuleError:
+        grass.fatal(_("Cannot select the final longest flow path"))
 
     # remove intermediate outputs
     grass.run_command("g.remove", flags="f", type="raster,vector",
