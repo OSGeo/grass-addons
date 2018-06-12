@@ -30,7 +30,7 @@
 #%end
 #%option G_OPT_V_INPUT
 #% key: outlet
-#% description: Name of outlet vector map
+#% label: Name of outlet vector map
 #% required: no
 #%end
 #%rules
