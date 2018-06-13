@@ -1,0 +1,94 @@
+<h2>DESCRIPTION</h2>
+<em>i.sentinel.mask</em> allows to automatically identify clouds and their shadows in Sentinel 2 images. 
+<p>
+The implemented procedure consists essentially of values thresholds, comparisons and calculations between bands and they lead to two different 
+rough maps of clouds and shadows which require further improvements and elaborations (e.g. transformation from raster to vector, cleaning geometries,
+ removing small areas, checking topology, etc.) carried out in the different steps of the procedure. 
+
+<table cellspacing="2" cellpadding="2" width="100%" border="0">
+	<tbody>
+		<tr>
+		<td align="center" valign="bottom"><a href="i_sentinel_mask_GWF.png"><img src="i_sentinel_mask_GWF.png" width="100%"></a><br><i>Fig: Module General WorkFlow</i></td>
+		<td align="center" valign="bottom"><a href="i_sentinel_mask_CD.png"><img src="i_sentinel_mask_CD.png" width="100%"></a><br><i>Fig: Cloud detection procedure</i></td>
+		<td align="center" valign="bottom"><a href="i_sentinel_mask_SD.png"><img src="i_sentinel_mask_SD.png" width="100%"></a><br><i>Fig: Shadow detection procedure</i></td>
+		</tr>
+	</tbody>
+</table>
+
+<p>
+The algorithm has been developed starting from rules found in literature (Parmes et. al 2017) and conveniently refined.<br>
+Regarding the detection of shadows, some misclassification can occur. Often shadows and water have in fact similar reflectance 
+values which can lead to erroneous classification of water bodies as shadows. Therefore, in order to increase the accuracy of 
+the final shadow mask, a control check is implemented. Clouds and shadows are spatially intersected in order to remove misclassified areas. 
+This means that all those shadow geometries which do not intersect a cloud geometry are removed.
+
+<div align="center" style="margin: 10px">
+<a href="i_sentinel_mask_CS.png">
+<img src="i_sentinel_mask_CS.png" width="30%">
+</a><br>
+<i>Fig: Module General WorkFlow</i>
+</div>
+<!--center>
+<img src="i_sentinel_mask_CS.png" width="30%">
+<br>
+<i>Fig: Module General WorkFlow</i>
+</center-->
+
+<p>
+All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12) must be imported in GRASS and specified one by one or using a text file.
+The text file has to be written following the syntax below: <em>variable=your_map</em>
+
+<div class="code"><pre>
+blue=<em>your_blue_map</em>
+green=<em>your_green_map</em>
+red=<em>your_red_map</em>
+nir=<em>your_nir_map</em>
+nir8a=<em>your_nir8a_map</em>
+swir11=<em>your_swir11_map</em>
+swir12=<em>your_swir12_map</em>
+</pre></div>
+
+Tha variables names (blue, green, red, nir, nir8a, swir11, swir12) have to be written precisely like in the example above (e.g. not Blue, nor BLUE but blue), 
+no spaces or special characters are permitted.
+
+<p>
+The final outputs are two different vector maps, one for clouds and one for shadows.
+<p>
+The metadata file (MTD_TL.xml) is required only if both masks (cloud and shadow)
+are computed. The module retrieves from this file the sun azimuth and zenith necessary for the shadow mask cleaning phase 
+<em>(see the schema above)</em>
+<p>
+If flag <b>-s</b> is given all selected bands are rescaled using the specified scale factor [<b>scale_fac</b>=<em>integer</em>]. By default the scale factor is set to 10000, 
+the QUANTIFICATION_VALUE from the metadata of Sentinel 2 images.
+<p>
+The module takes the current region settings into accout. To ignore the current region and set it from the whole image, the flag <b>-r</b> has to be given.
+<p>
+The module allows to compute only the cloud mask or both cloud and shadow masks. If flag <b>-c</b> is given, only the cloud procedure will be performed. The computation 
+of cloud mask is mandatory for shadow mask creation. In fact cloud map is used during the cleaning phase of the shadow mask in order to remove misclassifications.
+
+<h2>EXAMPLE</h2>
+<div class="code">
+i.sentinel.mask -r -s input_file=/home/input_bands.txt cloud_mask=cloud_sen2 shadow_mask=shadow_sen2 mtd_file=/home/MTD_TL.xml scale_fac=1000
+</div>
+<p>
+-r to set the computational region to the maximum image extente and -s to rescale the input bands with the specified scale factor (in this case 1000)
+
+<h2>REFERENCE</h2>
+<ul>
+<li>Parmes et. al 2017</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.sentinel.download.html">i.sentinel.download</a>,
+<a href="i.sentinel.import.html">i.sentinel.import</a>,
+<a href="r.import.html">r.import</a>,
+<a href="r.extenal.html">r.external</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Roberta Fagandini, GSoC 2018 student<br>
+<a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br> 
+<a href="https://wiki.osgeo.org/wiki/User:Robertomarzocchi">Roberto Marzocchi</a>
