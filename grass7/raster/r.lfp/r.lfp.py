@@ -119,7 +119,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
                     elif colname == "y":
                         y_ind = i
                 if outletidcol and outletid_ind == -1:
-                    grass.fatal(_("Cannot find column <%s> in map <%s>") %
+                    grass.fatal(_("Cannot find column <%s> in vector map <%s>") %
                                 (outletidcol, outlet))
                 continue
             cols = line.split("|")
