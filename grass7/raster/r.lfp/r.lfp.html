@@ -23,8 +23,9 @@ the <b>outlet</b> map that contains unique IDs to be copied over to the
 
 <h2>EXAMPLES</h2>
 
-<h3>North Carolina sample dataset example</h3>
+These examples use the North Carolina sample dataset.
 
+<p>Create the longest flow path for one outlet:
 <div class="code"><pre>
 # set computational region
 g.region raster=elevation -p
@@ -39,10 +40,9 @@ r.water.outlet input=drain_directions output=basin coordinates=642455,222614
 r.lfp input=drain_directions output=lfp coordinates=642455,222614
 </pre></div>
 
-<img src="r_lfp_nc_example.png">
+<img src="r_lfp_nc_example_single.png">
 
-<h3>Multiple outlets</h3>
-
+<p>There are different ways to calculate multiple longest flow paths in one run:
 <div class="code"><pre>
 # calculate longest flow paths at two outlets
 r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734
@@ -62,6 +62,34 @@ r.lfp input=drain_directions output=lfp outlet=outlets \
 r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734 outlet=outlets \
     id=1,2 id_column=lfp_id outlet_id_column=outlet_id
 </pre></div>
+
+<p>Calculate the longest flow paths for sub-watersheds:
+<div class="code"><pre>
+# get nsres
+eval `r.info -g map=elevation`
+
+# delineate streams using a threshold
+r.stream.extract elevation=elevation threshold=50000 stream_vector=streams
+
+# populate stream lengths
+v.db.addcolumn map=streams columns="length double"
+v.to.db map=streams option=length columns=length
+
+# create points along the streams starting from downstream
+v.to.points -r input=streams output=stream_points dmax=$nsres
+
+# find outlets (downstream-most less nsres points)
+cats=`db.select -c sql="select stream_points_2.cat from stream_points_2 \
+    inner join stream_points_1 on stream_points_1.cat = stream_points_2.lcat \
+    where length-along &gt; 0.5*$nsres and length-along &lt; 1.5*$nsres"`
+cats=`echo $cats | tr " " ,`
+v.extract input=stream_points layer=2 cats=$cats output=stream_outlets
+
+# create the longest flow paths for all outlets
+r.lfp input=drain_directions output=lfp id_column=id outlet=stream_outlets outlet_id_column=lcat layer=2
+</pre></div>
+
+<img src="r_lfp_nc_example_multiple.png">
 
 <h2>SEE ALSO</h2>
 
