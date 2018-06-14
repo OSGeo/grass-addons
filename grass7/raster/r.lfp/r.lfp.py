@@ -89,6 +89,11 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
 
     if id:
         ids = id.split(",")
+        for i in range(0, len(ids)):
+            try:
+                ids[i] = int(ids[i])
+            except:
+                grass.fatal(_("Invalid ID '%s'") % ids[i])
     else:
         ids = []
 
@@ -120,7 +125,10 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
             cols = line.split("|")
             coords.extend([cols[x_ind], cols[y_ind]])
             if outletid_ind >= 0:
-                ids.extend([cols[outletid_ind]])
+                try:
+                    ids.extend([int(cols[outletid_ind])])
+                except:
+                    grass.fatal(_("Invalid ID '%s'") % ids[i])
         p.wait()
         if p.returncode != 0:
             grass.fatal(_("Cannot read outlet points"))
@@ -148,8 +156,13 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
             grass.fatal(_("Cannot add a table to the output vector map"))
 
     for i in range(0, len(coords) / 2):
+        cat = i + 1
         coor = "%s,%s" % (coords[2*i], coords[2*i+1])
-        grass.message(_("Processing the outlet at %s..." % coor))
+        if assign_id:
+            id = ids[i]
+            grass.message(_("Processing outlet %d at %s...") % (id, coor))
+        else:
+            grass.message(_("Processing outlet at %s...") % coor)
 
         # create the outlet vector map
         out = prefix + "out"
@@ -255,10 +268,10 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
             grass.run_command("v.category", overwrite=True,
                               input=lfp, output=lfp2, option="del", cat=-1)
             grass.run_command("v.category", overwrite=True,
-                              input=lfp2, output=lfp, option="add", cat=i+1,
+                              input=lfp2, output=lfp, option="add", cat=cat,
                               step=0)
         except CalledModuleError:
-            grass.fatal(_("Cannot add categories"))
+            grass.fatal(_("Cannot add category %d") % cat)
 
         # copy the final longest flow path to the output map
         try:
@@ -272,9 +285,9 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
                 grass.run_command("v.to.db", map=output, option="cat",
                                   columns="cat")
                 grass.run_command("v.db.update", map=output, column=idcol,
-                                  value=ids[i], where="cat=%d" % (i+1))
+                                  value=id, where="cat=%d" % cat)
             except CalledModuleError:
-                grass.fatal(_("Cannot assign ID"))
+                grass.fatal(_("Cannot assign ID %d") % id)
 
     # remove intermediate outputs
     grass.run_command("g.remove", flags="f", type="raster,vector",
