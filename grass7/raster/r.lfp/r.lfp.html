@@ -86,7 +86,7 @@ cats=`echo $cats | tr " " ,`
 v.extract input=stream_points layer=2 cats=$cats output=stream_outlets
 
 # create the longest flow paths for all outlets
-r.lfp input=drain_directions output=lfp id_column=id outlet=stream_outlets outlet_id_column=lcat layer=2
+r.lfp input=drain_directions output=lfp id_column=id outlet=stream_outlets layer=2 outlet_id_column=lcat
 </pre></div>
 
 <img src="r_lfp_nc_example_multiple.png">
