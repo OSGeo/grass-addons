@@ -43,6 +43,8 @@
 #% label: Name of outlet vector map
 #% required: no
 #%end
+#%option G_OPT_V_FIELD
+#%end
 #%option G_OPT_DB_COLUMN
 #% key: outlet_id_column
 #% description: Name of longest flow path ID column in outlet map
@@ -80,11 +82,12 @@ def main():
     id = options["id"]
     coords = options["coordinates"]
     outlet = options["outlet"]
+    layer = options["layer"]
     outletidcol = options["outlet_id_column"]
 
-    calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol)
+    calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol)
                                             
-def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
+def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
     prefix = "r_lfp_%d_" % os.getpid()
 
     if id:
@@ -104,7 +107,8 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
 
     # append outlet points to coordinates
     if outlet:
-        p = grass.pipe_command("v.report", map=outlet, option="coor")
+        p = grass.pipe_command("v.report", map=outlet, layer=layer,
+                               option="coor")
         for line in p.stdout:
             line = line.rstrip("\n")
             if line.startswith("cat|"):
@@ -224,8 +228,8 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
         # calculate the longest flow path in vector format
         path = prefix + "path"
         try:
-            grass.run_command("r.path", input=input, vector_path=path,
-                              start_points=heads)
+            grass.run_command("r.path", overwrite=True,
+                              input=input, vector_path=path, start_points=heads)
         except CalledModuleError:
             grass.fatal(_("Cannot create the longest flow path vector map"))
 
