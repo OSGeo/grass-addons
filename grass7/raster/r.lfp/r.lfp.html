@@ -1,16 +1,25 @@
 <h2>DESCRIPTION</h2>
-<em>r.lfp</em> calculates the longest flow path for a given outlet point and
-creates a new vector map with the longest flow path.
+<em>r.lfp</em> calculates the longest flow paths for given outlet points and
+creates a new vector map with those lines.
 This module requires the <em>r.stream.distance</em> addon.
 
 <h2>NOTES</h2>
 
 <em>r.lfp</em> creates a longest flow path vector map using a drainage
-direction raster map and the coordinates of an outlet point. The module
-internally runs <em>r.stream.distance</em> twice to calculate flow length
-downstream and upstream raster maps, and combines them to get the longest flow
-path. An input drainage map can be created using <em>r.watershed</em> or
-<em>r.stream.extract</em>.
+direction raster map and the coordinates of outlet points. The module
+internally runs <em>r.stream.distance</em> to calculate a flow length
+downstream raster map and <em>r.path</em> to trace the longest flow path from
+headwater cells. An input drainage map can be created using
+<em>r.watershed</em> or <em>r.stream.extract</em>.
+
+<p><em>r.lfp</em> can read outlet coordinates from the <b>coordinates</b>
+and/or <b>outlet</b> parameters. For multiple outlets, the user can assign a
+unique ID to each longest flow path per outlet point using <b>id</b>,
+<b>id_column</b>, and <b>outlet_id_column</b> parameters. The <b>id</b>
+parameter specifies unique IDs for all outlets given in the <b>coordinates</b>
+parameter in the same order. The <b>outlet_id_column</b> specifies a column in
+the <b>outlet</b> map that contains unique IDs to be copied over to the
+<b>id_column</b> column in the <b>output</b> map.
 
 <h2>EXAMPLES</h2>
 
@@ -31,6 +40,28 @@ r.lfp input=drain_directions output=lfp coordinates=642455,222614
 </pre></div>
 
 <img src="r_lfp_nc_example.png">
+
+<h3>Multiple outlets</h3>
+
+<div class="code"><pre>
+# calculate longest flow paths at two outlets
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734
+
+# calculate longest flow paths at two outlets and assign IDs
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734 \
+    id=1,2 id_column=lfp_id 
+
+# calculate longest flow paths at all points in the outlets map
+r.lfp input=drain_directions output=lfp outlet=outlets
+
+# calculate longest flow paths at all points in the outlets map and assign IDs using a column in this map
+r.lfp input=drain_directions output=lfp outlet=outlets \
+    id_column=lfp_id outlet_id_column=outlet_id
+
+# calculate longest flow paths at given coordinates and all points in the outlets map and assign IDs
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734 outlet=outlets \
+    id=1,2 id_column=lfp_id outlet_id_column=outlet_id
+</pre></div>
 
 <h2>SEE ALSO</h2>
 

@@ -3,7 +3,7 @@
 #
 # MODULE:       r.lfp
 # AUTHOR(S):    Huidae Cho
-# PURPOSE:      Calculates the longest flow path for a given outlet point.
+# PURPOSE:      Calculates the longest flow paths for given outlet points.
 #
 # COPYRIGHT:    (C) 2014, 2017, 2018 by the GRASS Development Team
 #
@@ -14,7 +14,7 @@
 #############################################################################
 
 #%module
-#% description: Calculates the longest flow path for a given outlet point using the r.stream.distance addon.
+#% description: Calculates the longest flow paths for given outlet points using the r.stream.distance addon.
 #% keyword: hydrology
 #% keyword: watershed
 #%end
@@ -23,6 +23,16 @@
 #%end
 #%option G_OPT_V_OUTPUT
 #% description: Name for output longest flow path vector map
+#%end
+#%option G_OPT_DB_COLUMN
+#% key: id_column
+#% description: Name for output longest flow path ID column
+#%end
+#%option
+#% key: id
+#% type: integer
+#% description: ID for longest flow path
+#% multiple: yes
 #%end
 #%option G_OPT_M_COORDS
 #% description: Coordinates of outlet point
@@ -33,8 +43,15 @@
 #% label: Name of outlet vector map
 #% required: no
 #%end
+#%option G_OPT_DB_COLUMN
+#% key: outlet_id_column
+#% description: Name of longest flow path ID column in outlet map
+#%end
 #%rules
 #% required: coordinates, outlet
+#% requires_all: id, id_column, coordinates
+#% requires: id_column, id, outlet_id_column
+#% requires_all: outlet_id_column, outlet, id_column
 #%end
 
 import sys
@@ -59,19 +76,21 @@ def main():
 
     input = options["input"]
     output = options["output"]
+    idcol = options["id_column"]
+    id = options["id"]
     coords = options["coordinates"]
     outlet = options["outlet"]
+    outletidcol = options["outlet_id_column"]
 
-    calculate_lfp(input, output, coords, outlet)
-
-def calculate_lfp(input, output, coords, outlet):
+    calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol)
+                                            
+def calculate_lfp(input, output, idcol, id, coords, outlet, outletidcol):
     prefix = "r_lfp_%d_" % os.getpid()
 
-    # create the output vector map
-    try:
-        grass.run_command("v.edit", map=output, tool="create")
-    except CalledModuleError:
-        grass.fatal(_("Cannot create the output vector map"))
+    if id:
+        ids = id.split(",")
+    else:
+        ids = []
 
     if coords:
         coords = coords.split(",")
@@ -80,16 +99,53 @@ def calculate_lfp(input, output, coords, outlet):
 
     # append outlet points to coordinates
     if outlet:
-        p = grass.pipe_command("v.to.db", flags="p", map=outlet, option="coor")
+        p = grass.pipe_command("v.report", map=outlet, option="coor")
         for line in p.stdout:
             line = line.rstrip("\n")
-            if line == "cat|x|y|z":
+            if line.startswith("cat|"):
+                colnames = line.split("|")
+                outletid_ind = -1
+                for i in range(0, len(colnames)):
+                    colname = colnames[i]
+                    if colname == outletidcol:
+                        outletid_ind = i
+                    elif colname == "x":
+                        x_ind = i
+                    elif colname == "y":
+                        y_ind = i
+                if outletidcol and outletid_ind == -1:
+                    grass.fatal(_("Cannot find <%s> column in <%s> map") %
+                                (outletidcol, outlet))
                 continue
             cols = line.split("|")
-            coords.extend([cols[1], cols[2]])
+            coords.extend([cols[x_ind], cols[y_ind]])
+            if outletid_ind >= 0:
+                ids.extend([cols[outletid_ind]])
         p.wait()
         if p.returncode != 0:
             grass.fatal(_("Cannot read outlet points"))
+
+    if len(ids) > 0:
+        if len(ids) > len(coords) / 2:
+            grass.fatal(_("Too many IDs"))
+        elif len(ids) < len(coords) / 2:
+            grass.fatal(_("Too few IDs"))
+        assign_id = True
+    else:
+        assign_id = False
+
+    # create the output vector map
+    try:
+        grass.run_command("v.edit", map=output, tool="create")
+    except CalledModuleError:
+        grass.fatal(_("Cannot create the output vector map"))
+
+    if assign_id:
+        try:
+            grass.run_command("v.db.addtable", map=output,
+                              columns="%s integer" % idcol)
+        except CalledModuleError:
+            grass.fatal(_("Cannot add a table to the output vector map"))
 
     for i in range(0, len(coords) / 2):
         coor = "%s,%s" % (coords[2*i], coords[2*i+1])
@@ -194,12 +250,31 @@ def calculate_lfp(input, output, coords, outlet):
         except CalledModuleError:
             grass.fatal(_("Cannot select the final longest flow path"))
 
+        lfp2 = lfp + "2"
+        try:
+            grass.run_command("v.category", overwrite=True,
+                              input=lfp, output=lfp2, option="del", cat=-1)
+            grass.run_command("v.category", overwrite=True,
+                              input=lfp2, output=lfp, option="add", cat=i+1,
+                              step=0)
+        except CalledModuleError:
+            grass.fatal(_("Cannot add categories"))
+
         # copy the final longest flow path to the output map
         try:
             grass.run_command("v.edit", flags="r",
                               map=output, tool="copy", bgmap=lfp, cats=0)
         except CalledModuleError:
             grass.fatal(_("Cannot copy the final longest flow path"))
+
+        if assign_id:
+            try:
+                grass.run_command("v.to.db", map=output, option="cat",
+                                  columns="cat")
+                grass.run_command("v.db.update", map=output, column=idcol,
+                                  value=ids[i], where="cat=%d" % (i+1))
+            except CalledModuleError:
+                grass.fatal(_("Cannot assign ID"))
 
     # remove intermediate outputs
     grass.run_command("g.remove", flags="f", type="raster,vector",
