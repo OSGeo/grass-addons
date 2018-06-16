@@ -128,6 +128,7 @@ SUBDIRS = \
 	r.vector.ruggedness \
 	r.vif \
 	r.vol.dem \
+	r.wateroutlet.lessmem \
 	r.width.funct
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
