@@ -1,14 +1,9 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.nightlights.intercalibration</em> is a GRASS GIS module performing
-inter-satellite calibration on <a href="https://ngdc.noaa.gov/eog/sensors/ols.html">DMSP-OLS</a>
-nighttime lights time series.
+inter-satellite calibration on DMSP-OLS nighttime lights time series.
 Based on &quot;well known&quot; emprirical regression models, it
 calibrates average visible band Digital Number values.
-
-<p>
-<strong>Note</strong>, the module is still under testing. Eventually minor,
-but important, changes might be applied to the intercalibration process.
 
 <h3>Overview</h3>
 
@@ -51,18 +46,54 @@ method proposed by Elvidge et al. [23], the second-order regression and optimal
 threshold method proposed by Liu et al. [24], and a power-law regression method
 proposed by Wu et al. [25]. Although studies based on these calibration methods
 showed performance improvement after the rectification [24,25], the assumption
-that the nighttime light remains stableover time in a particular area requires
+that the nighttime light remains stable over time in a particular area requires
 a careful choice of the invariant region manually.&quot; [Huang 2014]
 </blockquote>
 
-<p>References above are: [23]: [Elvidge 2009] [24]: [Liu 2012], [25]: [Wu 2013]
+<p>References above are:
+
+[23] [Elvidge 2009]
+[24] [Liu 2012]
+[25] [Wu 2013]
 
 <h2>EXAMPLES</h2>
 
 Given all maps are imported in GRASS' data base, which are:
 <div class="code"><pre>
-g.list rast pattern="F*" sep=comma
-F101992,F101993,F101994,F121994,F121995,F121996,F121997,F121998,F121999,F141997,F141998,F141999,F142000,F142001,F142002,F142003,F152000,F152001,F152002,F152003,F152004,F152005,F152006,F152007,F162004,F162005,F162006,F162007,F162008,F162009,F182010,F182011,F182012
+g.list rast pattern="F*"
+F101992
+F101993
+F101994
+F121994
+F121995
+F121996
+F121997
+F121998
+F121999
+F141997
+F141998
+F141999
+F142000
+F142001
+F142002
+F142003
+F152000
+F152001
+F152002
+F152003
+F152004
+F152005
+F152006
+F152007
+F162004
+F162005
+F162006
+F162007
+F162008
+F162009
+F182010
+F182011
+F182012
 </pre></div>
 
 <p>the default inter-calibration, based on [Elvidge 2014], can be performed as:
@@ -80,7 +111,7 @@ i.nightlights.intercalibration image=$(g.list rast pattern="F*stable_lights*" se
 <p>In case the calibration models do not include regression coefficients for all of the
 yearly products, the module will fail and inform with an error message like:
 <div class="code"><pre>
-i.nightlights.intercalibration image=`g.list rast pattern="F??????" sep=comma` model=liu2012 --v
+i.nightlights.intercalibration image=$(g.list rast pattern="F??????" sep=comma) model=liu2012 --v
 ... ValueError: The selected model does not know about this combination of
 Satellite + Year!
 </pre></div>
