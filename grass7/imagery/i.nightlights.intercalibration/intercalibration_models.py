@@ -166,7 +166,7 @@ class Elvidge(CalibrationModel):
         """
         msg = 'Calibration model proposed by Elvidge, '
         msg += str(self.version) + '\n  '
-        msg += '[DN adj. = C0 + C1*DN + C2*DN^2]\n'
+        msg += '[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n'
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
@@ -224,7 +224,7 @@ class Elvidge(CalibrationModel):
 class Liu2012(CalibrationModel):
     """
     Empirical second order calibration model (& optimal threshold method)
-    proposed by Liu, 2012.  DNc = a * DN^2 + b * DN + c, where:
+    proposed by Liu, 2012.  DNc = a × DN^2 + b × DN + c, where:
     - DNc:
     - DN:
     - a:
@@ -247,7 +247,7 @@ class Liu2012(CalibrationModel):
         Return a string representation of the calibration model
         """
         msg = 'Calibration model by Liu, 2012: '
-        msg += 'DNc = a * DN^2 + b * DN + c\n'
+        msg += 'DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n'
         return msg + '  ' + self._model + '\n'
 
     def set_coefficients(self):
@@ -304,7 +304,7 @@ class Liu2012(CalibrationModel):
 class Wu2013(CalibrationModel):
     """
     Power calibration model proposed by Wu 2013.
-    DNc + 1 = a * (DN + 1)^b
+    DNc + 1 = a × (DN + 1)^b
     Subclass, inheriting from CalibrationModel
     """
 
@@ -322,7 +322,7 @@ class Wu2013(CalibrationModel):
         """
         """
         msg = 'Calibration model by Wu, 2013: '
-        msg += 'DNc + 1 = a * (DN + 1)^b\n'
+        msg += 'DNc + 1 = a \u00D7 (DN + 1)^b\n'
         return msg + '  ' + self._model + '\n'
 
     def build_model(self):
