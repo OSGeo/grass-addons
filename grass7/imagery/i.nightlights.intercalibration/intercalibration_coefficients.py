@@ -14,13 +14,13 @@ CITATIONS = {
     'ELVIDGE2009':
     ('Elvidge, Christopher D., Daniel Ziskin, '
      'Kimberly E. Baugh, Benjamin T. Tuttle, Tilottama Ghosh, Dee W. Pack, '
-     'Edward H. Erwin, and Mikhail Zhizhin. “A Fifteen Year Record of '
-     'Global Natural Gas Flaring Derived from Satellite Data.” Energies 2, '
+     'Edward H. Erwin, and Mikhail Zhizhin. "A Fifteen Year Record of '
+     'Global Natural Gas Flaring Derived from Satellite Data." Energies 2, '
      'no. 2 (August 7, 2009): 595–622.'),
     'ELVIDGE2014':
     ('Elvidge, Christopher D., Feng-Chi Hsu, '
-     'Kimberly E. Baugh, and Tilottama Ghosh. “National Trends in '
-     'Satellite-Observed Lighting.” Global Urban Monitoring and '
+     'Kimberly E. Baugh, and Tilottama Ghosh. "National Trends in '
+     'Satellite-Observed Lighting." Global Urban Monitoring and '
      'Assessment Through Earth Observation (2014): 97.'),
     'LIU2012':
     ('Liu, Zhifeng, Chunyang He, Qiaofeng Zhang, '
