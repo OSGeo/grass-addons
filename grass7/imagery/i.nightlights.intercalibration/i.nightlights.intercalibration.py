@@ -6,35 +6,35 @@ MODULE:         i.nightlights.intercalibration
 
 AUTHOR:         Nikos Alexandris <nik@nikosalexandris.net> Trikala, March 2015
 
-PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime 
+PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
                 Lights Time Series (cleaned up average visible band) based on
                 regression models proposed by Elvidge (2009/2014), Liu (2012)
                 and Wu (2013).
-                
+
                 - Elvidge (2009)
-                
+
                   Empirical second order polynomial regression model:
-                  DN adj. = C0 + C1 × DN + C2 × DN^2
-                  
+
+
                   where:
-                  
+
                   - DN adj.:    Adjusted Digital Numbers
                   - DN          Raw Digital Number
                   - C0:         First polynomial constant
                   - C1:         Second polynomial constant
                   - C2:         Third polynomial constant
 
-                
+
                 - Elvidge (2014)
-                
+
                   Same model as in 2009, improved coefficients
 
 
                 - Liu (2012)
-                
-                  Empirical second order polynomial regression model & optimal 
-                  threshold method:  DNc = a * DN^2 + b * DN + c
-                  
+
+                  Empirical second order polynomial regression model & optimal
+                  threshold method:  DNc = a × DN^2 + b × DN + c
+
                   where:
 
                   - DNc:        Calibrated Digital Number
@@ -45,8 +45,8 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 
 
                 - Wu (2013)
-                
-                  Power calibration model:  DNc + 1 = a * (DN + 1)^b 
+
+                  Power calibration model:  DNc + 1 = a × (DN + 1)^b
 
                   where:
 
@@ -56,7 +56,7 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
                   - b:          Power
 
                Overview
-               
+
    +----------------------------------------------------------------------+
    |                                                                      |
    |          +-----------------+                                         |
@@ -83,25 +83,25 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
    |                                               http://asciiflow.com   |
    +----------------------------------------------------------------------+
 
-   
+
                Sources
-               
+
                - <http://ngdc.noaa.gov/eog/dmsp.html>
-               
+
                - <http://ngdc.noaa.gov/eog/dmsp/downloadV4composites.html>
-               
+
                - Metadata on DMSP-OLS:
                <https://catalog.data.gov/harvest/object/e84ef28f-7935-4ca2-b9c7-7a77cb156c4c/html>
 
                - From <http://ngdc.noaa.gov/eog/gcv4_readme.txt> on the data
                this module is meant to process:
-               
-                 F1?YYYY_v4b_stable_lights.avg_vis.tif: The cleaned up avg_vis 
-                 contains the lights from cities, towns, and other sites with 
-                 persistent lighting, including gas flares. Ephemeral events, 
-                 such as fires have been discarded. Then the background noise 
-                 was identified and replaced with values of zero. Data values 
-                 range from 1-63. Areas with zero cloud-free observations are 
+
+                 F1?YYYY_v4b_stable_lights.avg_vis.tif: The cleaned up avg_vis
+                 contains the lights from cities, towns, and other sites with
+                 persistent lighting, including gas flares. Ephemeral events,
+                 such as fires have been discarded. Then the background noise
+                 was identified and replaced with values of zero. Data values
+                 range from 1-63. Areas with zero cloud-free observations are
                  represented by the value 255.
 
 
@@ -121,6 +121,11 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 #%  keywords: time series
 #%  keywords: DMSP-OLS
 #%End
+
+#%flag
+#%  key: c
+#%  description: Print out citation for selected calibration model
+#%end
 
 #%flag
 #%  key: i
@@ -218,20 +223,20 @@ def cleanup():
     """
     Clean up temporary maps
     """
-    grass.run_command('g.remove', flags='f', type="rast",
-                      pattern='tmp.{pid}*'.format(pid=os.getpid()), quiet=True)
+    if len(temporary_maps) > 0:
+        for temporary_map in temporary_maps:
+            grass.message(_("Removing temporary files..."))
+            grass.run_command('g.remove',
+                               flags='f',
+                               type="rast",
+                               name=temporary_map,
+                               quiet=True)
 
 def run(cmd, **kwargs):
     """
     Pass required arguments to grass commands (?)
     """
     grass.run_command(cmd, quiet=True, **kwargs)
-
-#def model_description(model_class):
-#    """
-#    Model's generic function
-#    """
-#    return model.equation
 
 def retrieve_model_parameters(model_class, *args, **kwargs):
     """
@@ -240,11 +245,11 @@ def retrieve_model_parameters(model_class, *args, **kwargs):
     mapcalc formula of interest will be retrieved.
     """
     model = model_class(*args, **kwargs)
-    citation = model.citation
+    citation_string = model.citation
     coefficients = model.coefficients
     coefficients_r2 = model.report_r2()
     mapcalc_formula = model.mapcalc
-    return citation, coefficients, coefficients_r2, mapcalc_formula
+    return citation_string, coefficients, coefficients_r2, mapcalc_formula
 
 def total_light_index(ntl_image):
     """
@@ -271,69 +276,67 @@ def main():
     input_list = options['image'].split(',')
     outputsuffix = options['suffix']
 
-    # Select model based on author    
+    # Select model based on author
     author_year = options['model']
     if 'elvidge' in author_year:
         version = author_year[7:]
-        author_year = 'elvidge'    
+        author_year = 'elvidge'
     else:
         version = None
     Model = MODELS[author_year]
     # ----------------------------
 
-    # flags    
+    # flags
+    citation=flags['c']
     info = flags['i']
     extend_region = flags['x']
     timestamps = not(flags['t'])
     zero = flags['z']
-    null = flags['n']  ### either zero or null, not both --- FixMe! ###    
-    evaluation = flags['e']    
-    shell = flags['g']     
+    null = flags['n']  ### either zero or null, not both --- FixMe! ###
+    evaluation = flags['e']
+    shell = flags['g']
 
-    # ----------------------------------------------------------------------
-    # Get working...
-    # ----------------------------------------------------------------------
+    global temporary_maps
+    temporary_maps = []
+
+
     msg = ("|i Inter-satellite calibration of DMSP-OLS Nighttime Stable "
         "Lights")
     g.message(msg)
+    del(msg)
 
-    # -----------------------------------------------------------------------
-    # Temporary Region and Files
-    # -----------------------------------------------------------------------
+    '''Temporary Region and Files'''
 
     if extend_region:
         grass.use_temp_region()  # to safely modify the region
-    tmpfile = grass.tempfile()  # Temporary file - replace with os.getpid?
-    tmp = "tmp." + grass.basename(tmpfile)  # use its basename
 
-    # -----------------------------------------------------------------------
-    # Loop over list of input images
-    # -----------------------------------------------------------------------            
+    tmpfile = grass.basename(grass.tempfile())
+    tmp = "tmp." + tmpfile
+
+    '''Loop over list of input images'''
 
     for image in input_list:
 
         satellite = image[0:3]
         year = image[3:7]
 
-        # -------------------------------------------------------------------
-        # Match region to input image if... ?
-        # -------------------------------------------------------------------
+        '''If requested, match region to input image'''
 
         if extend_region:
             run('g.region', rast=image)   # ## FixMe?
             msg = "\n|! Matching region extent to map {name}"
             msg = msg.format(name=image)
             g.message(msg)
+            del(msg)
 
         elif not extend_region:
             grass.warning(_('Operating on current region'))
 
-        # -------------------------------------------------------------------
-        # Retrieve coefficients
-        # -------------------------------------------------------------------
+        '''Retrieve coefficients'''
 
         msg = "\n|> Calibrating average visible Digital Number values "
         g.message(msg)
+        del(msg)
 
         # if "version" == True use Elvidge, else use Liu2012 or Wu2013
         args = (satellite, year, version) if version else (satellite, year)
@@ -344,22 +347,20 @@ def main():
 #            print this
 #            print that
 
-
         # split parameters in usable variables
-        citation, coefficients, r2, mapcalc_formula = model_parameters    
-            
-        msg = "   Regression coefficients: " + str(coefficients) + ' | '
-        msg += r2
+        citation_string, coefficients, r2, mapcalc_formula = model_parameters
+        msg = '|>>> Regression coefficients: ' + str(coefficients)
+        msg += '\n' + '|>>> ' + r2
         g.message(msg)
-    
+        del(msg)
+
         # Temporary Map
         tmp_cdn = "{prefix}.Calibrated".format(prefix=tmp)
-        
-        # -------------------------------------------------------------------
-        # Formula for mapcalc
-        # -------------------------------------------------------------------
-        
-        equation = "{out} = {inputs}"        
+        temporary_maps.append(tmp_cdn)
+
+        '''Formula for mapcalc'''
+
+        equation = "{out} = {inputs}"
         calibration_formula = equation.format(out=tmp_cdn, inputs=mapcalc_formula)
 
         # alternatives
@@ -368,12 +369,14 @@ def main():
             calibration_formula = zcf.format(out=tmp_cdn, formula=mapcalc_formula)
             msg = "\n|i Excluding zero cells from the analysis"
             g.message(msg)
+            del(msg)
 
         elif null:
             ncf = "{out} = if(Input == 0, null(), {formula})"
             calibration_formula = ncf.format(out=tmp_cdn, formula=mapcalc_formula)
             msg = "\n|i Setting zero cells to NULL"
             g.message(msg)
+            del(msg)
 
         # Compress even more? -----------------------------------------------
 #        if zero or null:
@@ -385,20 +388,19 @@ def main():
         # replace the "dummy" string...
         calibration_formula = calibration_formula.replace("Input", image)
 
-        # -------------------------------------------------------------------
-        # Calibrate
-        # -------------------------------------------------------------------
+        '''Calibrate'''
+
         if info:
-            print "\n|i Mapcalc formula:  ", mapcalc_formula
+            msg = "\n|i Mapcalc formula: {formula}"
+            g.message(msg.format(formula=mapcalc_formula))
+            del(msg)
 
         grass.mapcalc(calibration_formula, overwrite=True)
-    
-        # -------------------------------------------------------------------        
-        # Transfer timestamps, if any
-        # -------------------------------------------------------------------        
+
+        '''Transfer timestamps, if any'''
 
         if timestamps:
-            
+
             try:
                 datetime = grass.read_command("r.timestamp", map=image)
                 run("r.timestamp", map=tmp_cdn, date=datetime)
@@ -419,37 +421,35 @@ def main():
         # add timestamps and register to spatio-temporal raster data set
         # -------------------------------------------------------------------------
 
-# ToDo -- borrowed from r.sun.daily
-# - change flag for "don't timestamp", see above
-# - use '-t' for temporal, makes more sense
-# - adapt following
+        # ToDo -- borrowed from r.sun.daily
+        # - change flag for "don't timestamp", see above
+        # - use '-t' for temporal, makes more sense
+        # - adapt following
 
-        # temporal = flags['t']
-        # if temporal:
-        #     core.info(_("Registering created maps into temporal dataset..."))
-        #     import grass.temporal as tgis
+                # temporal = flags['t']
+                # if temporal:
+                #     core.info(_("Registering created maps into temporal dataset..."))
+                #     import grass.temporal as tgis
 
-        #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
-        #                            title, desc):
-        #         """
-        #         Register daily output maps in spatio-temporal raster data set
-        #         """
-        #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
-        #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
-        #                            title=title, descr=desc, semantic='sum',
-        #                            dbif=None, overwrite=grass.overwrite())
+                #     def registerToTemporal(basename, suffixes, mapset, start_day, day_step,
+                #                            title, desc):
+                #         """
+                #         Register daily output maps in spatio-temporal raster data set
+                #         """
+                #         maps = ','.join([basename + suf + '@' + mapset for suf in suffixes])
+                #         tgis.open_new_stds(basename, type='strds', temporaltype='relative',
+                #                            title=title, descr=desc, semantic='sum',
+                #                            dbif=None, overwrite=grass.overwrite())
 
-        #         tgis.register_maps_in_space_time_dataset(type='rast',
-        #                                                  name=basename, maps=maps,
-        #                                                  start=start_day, end=None,
-        #                                                  unit='days',
-        #                                                  increment=day_step,
-        #                                                  dbif=None, interval=False)
+                #         tgis.register_maps_in_space_time_dataset(type='rast',
+                #                                                  name=basename, maps=maps,
+                #                                                  start=start_day, end=None,
+                #                                                  unit='days',
+                #                                                  increment=day_step,
+                #                                                  dbif=None, interval=False)
 
-        # -------------------------------------------------------------------        
-        # Normalised Difference Index (NDI), if requested
-        # -------------------------------------------------------------------        
-        
+        '''Normalised Difference Index (NDI), if requested'''
+
         ndi = float()
         if evaluation:
 
@@ -459,65 +459,66 @@ def main():
 
             # build
             ndi = normalised_difference_index(tli_image, tli_tmp_cdn)
-            
-            # verbosity
-            msg = '\n|i NDI for {dn}: {index}'.format(dn=image, index=round(ndi, 3))
-            g.message(msg)
-                
+
             # report if -g
             if shell:
-                print 'ndi={index}'.format(index=round(ndi,3))
+                msg = 'ndi={index}'.format(index=round(ndi,3))
+                g.message(msg)
+                del(msg)
 
             # else, report
             else:
-                print '\n|i Normalised Difference Index: {index}'.format(index=round(ndi,3))
+                msg = '\n|i Normalised Difference Index for {dn}: {index}'
+                msg = msg.format(dn=image, index=round(ndi,3))
+                g.message(msg)
+                del(msg)
 
-        # -------------------------------------------------------------------
-        # Strings for metadata
-        # -------------------------------------------------------------------
+        '''Strings for metadata'''
 
         history_calibration = 'Regression model: '
         history_calibration += mapcalc_formula
+        history_calibration += '\n\n'
         if ndi:
-            history_calibration += '(NDI: {ndi})'.format(ndi=ndi)
+            history_calibration += 'NDI: {ndi}'.format(ndi=round(ndi,10))
         title_calibration = 'Calibrated DMSP-OLS Stable Lights'
         description_calibration = ('Inter-satellite calibrated average '
                                    'Digital Number values')
         units_calibration = 'Digital Numbers (Calibrated)'
 
-        source1_calibration = citation
+        source1_calibration = citation_string
         source2_calibration = ''
 
         # history entry
-        run("r.support", map=tmp_cdn, title=title_calibration,
-            units=units_calibration, description=description_calibration,
-            source1=source1_calibration, source2=source2_calibration,
-            history=history_calibration)
+        run("r.support",
+             map=tmp_cdn,
+             title=title_calibration,
+             units=units_calibration,
+             description=description_calibration,
+             source1=source1_calibration,
+             source2=source2_calibration,
+             history=history_calibration)
 
-        # -------------------------------------------------------------------
-        # Add suffix to basename & rename end product
-        # -------------------------------------------------------------------
+        '''Add suffix to basename & rename end product'''
+
         name = "{prefix}.{suffix}"
         name = name.format(prefix=image.split('@')[0], suffix=outputsuffix)
         calibrated_name = name
         run("g.rename", rast=(tmp_cdn, calibrated_name))
+        temporary_maps.remove(tmp_cdn)
 
-        # -------------------------------------------------------------------
-        # Restore region
-        # -------------------------------------------------------------------
+        '''Restore previous computational region'''
 
         if extend_region:
-            grass.del_temp_region()  # restoring previous region settings
-            g.message("|! Original Region restored")
+            grass.del_temp_region()
+            g.message("\n|! Original Region restored")
 
 
-        # -------------------------------------------------------------------
-        # Things left to do... ?
-        # -------------------------------------------------------------------
+        '''Things left to do...'''
 
-        # model equations (and citation?)
-        #if info:
-            #print "\n|citation:\n  ", citation
+        if citation:
+            msg = "\n|i Citation: {string}".format(string=citation_string)
+            g.message(msg)
+            del(msg)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
