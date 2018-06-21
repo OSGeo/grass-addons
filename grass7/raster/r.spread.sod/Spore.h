@@ -19,7 +19,7 @@
 #ifndef SPORE_H
 #define SPORE_H
 
-#include "Img.h"
+#include "raster.h"
 
 #include <random>
 
@@ -27,6 +27,12 @@
 enum Rtype
 {
     CAUCHY, CAUCHY_MIX          // NO means that there is no wind
+};
+
+// NONE means that there is no wind
+enum Direction
+{
+    N = 0, NE = 45, E = 90, SE = 135, S = 180, SW = 225, W = 270, NW = 315, NONE
 };
 
 class Sporulation
@@ -42,6 +48,8 @@ private:
     std::default_random_engine generator;
 public:
     Sporulation(unsigned random_seed, const Img &size);
+    void SporeRemove(Img& I, Img &S, const DImg temperature,
+                     double critical_temperature);
     void SporeGen(const Img& I, const double *weather,
                   double weather_value, double rate);
     void SporeSpreadDisp_singleSpecies(Img& S, Img& I, Img& I2,

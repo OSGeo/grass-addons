@@ -35,22 +35,24 @@ public:
     Date(const Date &d): year(d.year), month(d.month), day(d.day){}
     Date(int y, int m, int d): year(y), month(m), day(d){}
     Date(): year(2000), month(1), day(1){}
-    void increasedByWeek();
-    Date getYearEnd();
-    Date getNextYearEnd();
-    bool isYearEnd();
+    inline void increasedByWeek();
+    inline void increasedByMonth();
+    inline Date getYearEnd();
+    inline Date getNextYearEnd();
+    inline bool isYearEnd();
+    inline bool isLastMonthOfYear();
     int getMonth() const {return month;}
     int getYear() const { return year;}
     int getDay() const {return day;}
     void setMonth(int m){month = m;}
     void setYear(int y){year = y;}
     void setDay(int d){day = d;}
-    int weeksFromDate(Date start);
-    friend std::ostream& operator<<(std::ostream& os, const Date &d);
-    friend bool operator> (const Date &d1, const Date &d2);
-    friend bool operator>= (const Date &d1, const Date &d2);
-    friend bool operator< (const Date &d1, const Date &d2);
-    friend bool operator<= (const Date &d1, const Date &d2);
+    inline int weeksFromDate(Date start);
+    inline friend std::ostream& operator<<(std::ostream& os, const Date &d);
+    inline friend bool operator> (const Date &d1, const Date &d2);
+    inline friend bool operator>= (const Date &d1, const Date &d2);
+    inline friend bool operator< (const Date &d1, const Date &d2);
+    inline friend bool operator<= (const Date &d1, const Date &d2);
 };
 
 std::ostream& operator<<(std::ostream& os, const Date &d)
@@ -65,6 +67,12 @@ Date Date::getYearEnd() {
 
 bool Date::isYearEnd(){
     if (month == 12 && (day + 7) > 31)
+        return true;
+    return false;
+}
+
+bool Date::isLastMonthOfYear(){
+    if (month == 12)
         return true;
     return false;
 }
@@ -147,6 +155,25 @@ void Date::increasedByWeek()
                 year++;
                 month = 1;
             }
+        }
+    }
+}
+
+void Date::increasedByMonth()
+{
+    month += 1;
+    if (month > 12) {
+        year++;
+        month = 1;
+    }
+    if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+        if (day > day_in_month[1][month]) {
+            day = day_in_month[1][month];
+        }
+    }
+    else {
+        if (day > day_in_month[0][month]) {
+            day = day_in_month[0][month];
         }
     }
 }

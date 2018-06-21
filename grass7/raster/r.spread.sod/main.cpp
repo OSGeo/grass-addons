@@ -21,7 +21,7 @@
 // #define SOD_NETCDF_SUPPORT
 
 #include "date.h"
-#include "Img.h"
+#include "raster.h"
 #include "Spore.h"
 
 extern "C" {
@@ -135,15 +135,11 @@ Rtype radial_type_from_string(const string& text)
                                     " value '" + text +"' provided");
 }
 
-bool seasonality_from_string(const string& text)
+typedef std::pair<int, int> Season;
+
+inline Season seasonality_from_option(const Option* opt)
 {
-    if (text == "yes")
-        return true;
-    else if (text == "no")
-        return false;
-    else
-        throw std::invalid_argument("seasonality_from_string: Invalid"
-                                    " value '" + text +"' provided");
+    return {std::atoi(opt->answers[0]), std::atoi(opt->answers[1])};
 }
 
 void read_names(std::vector<string>& names, const char* filename)
@@ -242,7 +238,10 @@ struct SodOptions
 {
     struct Option *species, *lvtree, *infected, *outside_spores;
     struct Option *nc_weather, *moisture_file, *temperature_file, *weather_value, *weather_file;
+    struct Option *lethal_temperature_value, *lethal_temperature_months;
+    struct Option *actual_temperature_file;
     struct Option *start_time, *end_time, *seasonality;
+    struct Option *step;
     struct Option *spore_rate, *wind;
     struct Option *radial_type, *scale_1, *scale_2, *kappa, *gamma;
     struct Option *infected_to_dead_rate, *first_year_to_die;
@@ -343,13 +342,11 @@ int main(int argc, char *argv[])
     opt.wind->required = YES;
     opt.wind->guisection = _("Weather");
 
-#ifdef SOD_NETCDF_SUPPORT
     opt.nc_weather = G_define_standard_option(G_OPT_F_BIN_INPUT);
     opt.nc_weather->key = "ncdf_weather";
     opt.nc_weather->description = _("Weather data");
     opt.nc_weather->required = NO;
     opt.nc_weather->guisection = _("Weather");
-#endif
 
     opt.moisture_file = G_define_standard_option(G_OPT_F_INPUT);
     opt.moisture_file->key = "moisture_file";
@@ -387,6 +384,40 @@ int main(int argc, char *argv[])
     opt.weather_value->required = NO;
     opt.weather_value->guisection = _("Weather");
 
+    opt.lethal_temperature_value = G_define_option();
+    opt.lethal_temperature_value->type = TYPE_DOUBLE;
+    opt.lethal_temperature_value->key = "lethal_temperature";
+    opt.lethal_temperature_value->label =
+        _("Temperature when the pest or patogen dies");
+    opt.lethal_temperature_value->description =
+        _("The temerature unit must be the same as for the"
+          "temerature raster map (typically degrees of Celsius)");
+    opt.lethal_temperature_value->required = NO;
+    opt.lethal_temperature_value->multiple = NO;
+    opt.lethal_temperature_value->guisection = _("Weather");
+
+    opt.lethal_temperature_months = G_define_option();
+    opt.lethal_temperature_months->type = TYPE_INTEGER;
+    opt.lethal_temperature_months->key = "lethal_month";
+    opt.lethal_temperature_months->label =
+        _("Month when the pest or patogen dies due to low temperature");
+    opt.lethal_temperature_months->description =
+        _("The temerature unit must be the same as for the"
+          "temerature raster map (typically degrees of Celsius)");
+    // TODO: implement this as multiple
+    opt.lethal_temperature_months->required = NO;
+    opt.lethal_temperature_months->guisection = _("Weather");
+
+    // TODO: rename coefs in interface and improve their descs
+    opt.actual_temperature_file = G_define_standard_option(G_OPT_F_INPUT);
+    opt.actual_temperature_file->key = "actual_temperature_file";
+    opt.actual_temperature_file->label =
+        _("Input file with one temperature raster map name per line");
+    opt.actual_temperature_file->description =
+        _("The temperature should be in actual temperature units (typically degrees of Celsius)");
+    opt.actual_temperature_file->required = NO;
+    opt.actual_temperature_file->guisection = _("Weather");
+
     opt.start_time = G_define_option();
     opt.start_time->type = TYPE_INTEGER;
     opt.start_time->key = "start_time";
@@ -406,11 +437,26 @@ int main(int argc, char *argv[])
     opt.seasonality = G_define_option();
     opt.seasonality->type = TYPE_STRING;
     opt.seasonality->key = "seasonality";
-    opt.seasonality->label = _("Seasonal spread");
-    opt.seasonality->description = _("Spread limited to certain months (season)");
-    opt.seasonality->options = "yes,no";
-    opt.seasonality->answer = "yes";
+    opt.seasonality->label = _("Seasonal spread (from,to)");
+    opt.seasonality->description =
+            _("Spread limited to certain months (season), for example"
+              " 5,9 for spread starting at the beginning of May and"
+              " ending at the end of September");
+    opt.seasonality->key_desc = "from,to";
+    //opt.seasonality->options = "1-12";
+    opt.seasonality->answer = "1,12";
+    opt.seasonality->multiple = NO;
     opt.seasonality->guisection = _("Time");
+
+    opt.step = G_define_option();
+    opt.step->type = TYPE_STRING;
+    opt.step->key = "step";
+    opt.step->label = _("Step of simulation");
+    opt.step->description = _("How often the simulation computes new step");
+    opt.step->options = "week,month";
+    opt.step->descriptions = _("week;Compute next simulation step each week;month;Compute next simulation step each month");
+    opt.step->required = YES;
+    opt.step->guisection = _("Time");
 
     opt.spore_rate = G_define_option();
     opt.spore_rate->type = TYPE_DOUBLE;
@@ -558,6 +604,13 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
+#ifndef SOD_NETCDF_SUPPORT
+    if (opt.nc_weather->answer) {
+        G_fatal_error(_("Direct NetCDF support is not available in this"
+                        " installation, import the data instead"));
+    }
+#endif
+
     unsigned num_runs = 1;
     if (opt.runs->answer)
         num_runs = std::stoul(opt.runs->answer);
@@ -572,7 +625,7 @@ int main(int argc, char *argv[])
     file_exists_or_fatal_error(opt.weather_file);
 
     // Seasonality: Do you want the spread to be limited to certain months?
-    bool ss = seasonality_from_string(opt.seasonality->answer);
+    Season season = seasonality_from_option(opt.seasonality);
 
     Direction pwdir = direction_enum_from_string(opt.wind->answer);
 
@@ -604,10 +657,13 @@ int main(int argc, char *argv[])
         cerr << "Start date must precede the end date!!!" << endl;
         exit(EXIT_FAILURE);
     }
+
     Date dd_start(start_time, 01, 01);
     Date dd_end(end_time, 12, 31);
     // difference in years (in dates) but including both years
     auto num_years = dd_end.getYear() - dd_start.getYear() + 1;
+
+    string step = opt.step->answer;
 
     // mortality
     bool mortality = false;
@@ -716,6 +772,24 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    double use_lethal_temperature = false;
+    double lethal_temperature_value;
+    int lethal_temperature_month = 0;  // invalid value for month
+    std::vector<string> actual_temperature_names;
+    std::vector<DImg> actual_temperatures;
+    if (opt.lethal_temperature_value->answer)
+        lethal_temperature_value = std::stod(opt.lethal_temperature_value->answer);
+    if (opt.lethal_temperature_months->answer)
+        lethal_temperature_month = std::stod(opt.lethal_temperature_months->answer);
+    if (opt.actual_temperature_file->answer) {
+        file_exists_or_fatal_error(opt.actual_temperature_file);
+        read_names(actual_temperature_names, opt.actual_temperature_file->answer);
+        for (string name : actual_temperature_names) {
+            actual_temperatures.push_back(DImg::fromGrassRaster(name.c_str()));
+        }
+        use_lethal_temperature = true;
+    }
+
     const unsigned max_weeks_in_year = 53;
     double *mcf = nullptr;
     double *ccf = nullptr;
@@ -754,10 +828,29 @@ int main(int argc, char *argv[])
     Date dd_current(dd_start);
 
     // main simulation loop (weekly steps)
-    for (int current_week = 0; ; current_week++, dd_current.increasedByWeek()) {
+    for (int current_week = 0; ; current_week++, step == "month" ? dd_current.increasedByMonth() : dd_current.increasedByWeek()) {
         if (dd_current < dd_end)
-            if (!ss || !(dd_current.getMonth() > 9))
+            if (season.first >= dd_current.getMonth() && dd_current.getMonth() <= season.second)
                 unresolved_weeks.push_back(current_week);
+
+        // removal is out of sync with the actual runs but it does
+        // not matter as long as removal happends out of season
+        if (use_lethal_temperature
+                && dd_current.getMonth() == lethal_temperature_month
+                && (dd_current.getYear() <= dd_end.getYear())) {
+            // to avoid problem with Jan 1 of the following year
+            // we explicitely check if we are in a valid year range
+            unsigned simulation_year = dd_current.getYear() - dd_start.getYear();
+            if (simulation_year >= actual_temperatures.size())
+                G_fatal_error(_("Not enough temperatures"));
+            #pragma omp parallel for num_threads(threads)
+            for (unsigned run = 0; run < num_runs; run++) {
+                sporulations[run].SporeRemove(inf_species_rasts[run],
+                                              sus_species_rasts[run],
+                                              actual_temperatures[simulation_year],
+                                              lethal_temperature_value);
+            }
+        }
 
         // if all the oaks are infected, then exit
         if (all_infected(S_species_rast)) {
@@ -766,7 +859,7 @@ int main(int argc, char *argv[])
         }
 
         // check whether the spore occurs in the month
-        if (dd_current.isYearEnd() || dd_current >= dd_end) {
+        if ((step == "month" ? dd_current.isLastMonthOfYear() : dd_current.isYearEnd()) || dd_current >= dd_end) {
             if (!unresolved_weeks.empty()) {
 
                 unsigned week_in_chunk = 0;
@@ -797,7 +890,10 @@ int main(int argc, char *argv[])
                     unsigned week_in_chunk = 0;
                     // actual runs of the simulation per week
                     for (auto week : unresolved_weeks) {
-                        double *week_weather = weather + week_in_chunk * width * height;
+                        double *week_weather = 0;
+                        if (weather) {
+                            week_weather = weather + week_in_chunk * width * height;
+                        }
                         if (!weather_coeff && !weather_values.empty()) {
                             weather_value = weather_values[week];
                         }

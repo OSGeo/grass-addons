@@ -95,6 +95,19 @@ Sporulation::Sporulation(unsigned random_seed, const Img& size)
     generator.seed(random_seed);
 }
 
+void Sporulation::SporeRemove(Img& I, Img& S, const DImg temperature,
+                              double critical_temperature)
+{
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (temperature(i, j) < critical_temperature) {
+                S(i, j) += I(i, j);  // move back to suseptable pool
+                I(i, j) = 0;  // remove all infection
+            }
+        }
+    }
+}
+
 void Sporulation::SporeGen(const Img& I, const double *weather,
                            double weather_value, double rate)
 {
