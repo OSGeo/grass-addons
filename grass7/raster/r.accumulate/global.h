@@ -4,6 +4,15 @@
 #define DIR_DEG 1
 #define DIR_DEG45 2
 
+#define NW 135
+#define N 90
+#define NE 45
+#define E 360
+#define SE 315
+#define S 270
+#define SW 225
+#define W 180
+
 typedef struct
 {
     RASTER_MAP_TYPE type;

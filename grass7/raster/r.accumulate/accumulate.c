@@ -29,44 +29,44 @@ accumulate(CELL ** dir_buf, RASTER_MAP weight_buf, RASTER_MAP acc_buf,
 	    case -1:
 		switch (j) {
 		case -1:
-		    if (neighbor_dir == 315)
-			loop_dir = 135;
+		    if (neighbor_dir == SE)
+			loop_dir = NW;
 		    break;
 		case 0:
-		    if (neighbor_dir == 270)
-			loop_dir = 90;
+		    if (neighbor_dir == S)
+			loop_dir = N;
 		    break;
 		case 1:
-		    if (neighbor_dir == 225)
-			loop_dir = 45;
+		    if (neighbor_dir == SW)
+			loop_dir = NE;
 		    break;
 		}
 		break;
 	    case 0:
 		switch (j) {
 		case -1:
-		    if (neighbor_dir == 360)
-			loop_dir = 180;
+		    if (neighbor_dir == E)
+			loop_dir = W;
 		    break;
 		case 1:
-		    if (neighbor_dir == 180)
-			loop_dir = 360;
+		    if (neighbor_dir == W)
+			loop_dir = E;
 		    break;
 		}
 		break;
 	    case 1:
 		switch (j) {
 		case -1:
-		    if (neighbor_dir == 45)
-			loop_dir = 225;
+		    if (neighbor_dir == NE)
+			loop_dir = SW;
 		    break;
 		case 0:
-		    if (neighbor_dir == 90)
-			loop_dir = 270;
+		    if (neighbor_dir == N)
+			loop_dir = S;
 		    break;
 		case 1:
-		    if (neighbor_dir == 135)
-			loop_dir = 315;
+		    if (neighbor_dir == NW)
+			loop_dir = SE;
 		    break;
 		}
 		break;
