@@ -14,6 +14,7 @@ OLD = \
 #	r.convert \
 
 SUBDIRS = \
+	r.accumulate \
 	r.agent \
 	r.area \
 	r.basin \

@@ -1,0 +1,76 @@
+<h2>DESCRIPTION</h2>
+<em>r.accumulate</em> calculates weighted flow accumulatin using a flow
+direction map.
+
+<h2>NOTES</h2>
+
+Unlike <em>r.watershed</em>, <em>r.accumulate</em> does not require the
+elevation data to calculate weigited flow accumulation.  Instead, this module
+only uses a flow direction map to trace and accumulate the amount of flow
+draining through each cell.
+
+<p>The module recognizes two different formats of the flow direction map:
+<div class="code"><pre>
+Direction encoding for neighbors of x
+    
+  135  90  45             3 2 1
+  180  x  360             4 x 8
+  225 270 315             5 6 7
+  
+  degrees              45 degrees
+  CCW from East        CCW from East
+                   (r.watershed drainage)
+</pre></div>
+
+<h2>EXAMPLES</h2>
+
+These examples use the North Carolina sample dataset.
+
+<p>Create the SFD flow accumulation and drainage maps using
+<em>r.watershed</em>:
+<div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate positive flow accumulation and drainage directions using r.watershed
+r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -sa
+
+# calculate flow accumulation using r.accumulate
+r.accumulate input=drain_directions output=flow_accum_new
+
+# copy color table
+r.colors map=flow_accum_new raster=flow_accum
+
+# check difference betwen flow_accum and flow_accum_new
+r.mapcalc expression="accum_diff=if(flow_accum-flow_accum_new, flow_accum-flow_accum_new, null())"
+</pre></div>
+
+<img src="r_accumulate_nc_example.png">
+
+<p>For some reaon, there are slight differences between the two output maps.
+
+<p><img src="r_accumulate_nc_r_watershed_output.png">
+
+<p>The yellow and purple cells show the difference raster map
+(<i>accum_diff</i>). The red arrows and numbers represent drainage directions
+(<i>drain_directions</i>) and flow accumulation (<i>flow_accum</i> from
+<em>r.watershed</em>), respectively. Note that some cells close to headwater
+cells are assigned 1 even if they are located downstream of other cells.
+
+<p><img src="r_accumulate_nc_comparison.png">
+
+<p>For comparison, these numbers show the new flow accumulatoin
+(<i>flow_accum_new</i> from <em>r.accumulate</em>). The same cells are properly
+accumulated from the headwater cells.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.watershed.html">r.watershed</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>
+
+<p><i>Last changed: $Date: 2018-06-15 21:55:50 -0400 (Fri, 15 Jun 2018) $</i>
