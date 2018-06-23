@@ -74,7 +74,8 @@ int main(int argc, char *argv[])
 
     opt.acc = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.acc->type = TYPE_STRING;
-    opt.acc->description = _("Name for output weighted flow accumulation map");
+    opt.acc->description =
+	_("Name for output weighted flow accumulation map");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);

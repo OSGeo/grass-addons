@@ -5,8 +5,13 @@ double
 accumulate(CELL ** dir_buf, RASTER_MAP weight_buf, RASTER_MAP acc_buf,
 	   char **done, int row, int col)
 {
+    static int dir_checks[3][3][2] = {
+	{{SE, NW}, {S, N}, {SW, NE}},
+	{{E, W}, {0, 0}, {W, E}},
+	{{NE, SW}, {N, S}, {NW, SE}}
+    };
     int rows = weight_buf.rows, cols = weight_buf.cols;
-    int i, j, neighbor_dir, loop_dir;
+    int i, j;
     double acc;
 
     if (done[row][col])
@@ -23,55 +28,8 @@ accumulate(CELL ** dir_buf, RASTER_MAP weight_buf, RASTER_MAP acc_buf,
 	for (j = -1; j <= 1; j++) {
 	    if (col + j < 0 || col + j >= cols || (i == 0 && j == 0))
 		continue;
-	    neighbor_dir = dir_buf[row + i][col + j];
-	    loop_dir = 0;
-	    switch (i) {
-	    case -1:
-		switch (j) {
-		case -1:
-		    if (neighbor_dir == SE)
-			loop_dir = NW;
-		    break;
-		case 0:
-		    if (neighbor_dir == S)
-			loop_dir = N;
-		    break;
-		case 1:
-		    if (neighbor_dir == SW)
-			loop_dir = NE;
-		    break;
-		}
-		break;
-	    case 0:
-		switch (j) {
-		case -1:
-		    if (neighbor_dir == E)
-			loop_dir = W;
-		    break;
-		case 1:
-		    if (neighbor_dir == W)
-			loop_dir = E;
-		    break;
-		}
-		break;
-	    case 1:
-		switch (j) {
-		case -1:
-		    if (neighbor_dir == NE)
-			loop_dir = SW;
-		    break;
-		case 0:
-		    if (neighbor_dir == N)
-			loop_dir = S;
-		    break;
-		case 1:
-		    if (neighbor_dir == NW)
-			loop_dir = SE;
-		    break;
-		}
-		break;
-	    }
-	    if (loop_dir && dir_buf[row][col] != loop_dir)
+	    if (dir_buf[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
+		dir_buf[row][col] != dir_checks[i + 1][j + 1][1])
 		acc +=
 		    accumulate(dir_buf, weight_buf, acc_buf, done, row + i,
 			       col + j);
