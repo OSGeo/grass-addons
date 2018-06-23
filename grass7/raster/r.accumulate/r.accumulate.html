@@ -13,11 +13,11 @@ draining through and including each cell.
 <p>With <b>-n</b> flag, the module will count the number of upstream cells plus
 one and convert it to the negative if any upstream cells are likely to receive
 flow from outside the computational region (flow direction edges). Negative
-values indentify cells with likely underestimates because not all upstream
-cells were accounted for. Since raster map <b>weight</b> may contain negative
-flow weights, <b>-n</b> flag is not compatible with <b>weight</b> option.
-Running the module twice with and without <b>-n</b> flag and <b>weight</b>
-option may be useful in this specific case.
+values identify cells with likely underestimates because not all upstream cells
+were accounted for. Since raster map <b>weight</b> may contain negative flow
+weights, <b>-n</b> flag is not compatible with <b>weight</b> option.  Running
+the module twice with and without <b>-n</b> flag and <b>weight</b> option may
+be useful in this specific case.
 
 <p>The module recognizes two different formats of the flow direction map:
 <div class="code"><pre>
