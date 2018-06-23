@@ -8,16 +8,25 @@ direction map.
 Unlike <em>r.watershed</em>, <em>r.accumulate</em> does not require the
 elevation data to calculate weigited flow accumulation.  Instead, this module
 only uses a flow direction map to trace and accumulate the amount of flow
-draining through each cell.
+draining through and including each cell.
+
+<p>With <b>-n</b> flag, the module will count the number of upstream cells plus
+one and convert it to the negative if any upstream cells are likely to receive
+flow from outside the computational region (flow direction edges). Negative
+values indentify cells with likely underestimates because not all upstream
+cells were accounted for. Since raster map <b>weight</b> may contain negative
+flow weights, <b>-n</b> flag is not compatible with <b>weight</b> option.
+Running the module twice with and without <b>-n</b> flag and <b>weight</b>
+option may be useful in this specific case.
 
 <p>The module recognizes two different formats of the flow direction map:
 <div class="code"><pre>
 Direction encoding for neighbors of x
-    
+
   135  90  45             3 2 1
   180  x  360             4 x 8
   225 270 315             5 6 7
-  
+
   degrees              45 degrees
   CCW from East        CCW from East
                    (r.watershed drainage)

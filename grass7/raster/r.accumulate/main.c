@@ -23,6 +23,10 @@
 #include <grass/glocale.h>
 #include "global.h"
 
+#define DIR_UNKNOWN 0
+#define DIR_DEG 1
+#define DIR_DEG45 2
+
 int main(int argc, char *argv[])
 {
     struct GModule *module;
@@ -30,16 +34,22 @@ int main(int argc, char *argv[])
     {
 	struct Option *dir, *format, *weight, *acc;
     } opt;
+    struct
+    {
+	struct Flag *neg;
+    } flag;
     char *desc;
     char *dir_name, *weight_name, *acc_name;
     int dir_fd, weight_fd, acc_fd;
     double dir_format;
     struct Range dir_range;
     CELL dir_min, dir_max;
+    char neg;
     char **done;
     CELL **dir_buf;
     RASTER_MAP weight_buf, acc_buf;
     int rows, cols, row, col;
+    struct History hist;
 
     G_gisinit(argv[0]);
 
@@ -47,8 +57,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     module->description =
-	_
-	("Calculates weighted flow accumulation using a flow direction map.");
+	_("Calculates weighted flow accumulation using a flow direction map.");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->description = _("Name of input direction map");
@@ -63,8 +72,7 @@ int main(int argc, char *argv[])
     G_asprintf(&desc, "auto;%s;degree;%s;45degree;%s",
 	       _("auto-detect direction format"),
 	       _("degrees CCW from East"),
-	       _
-	       ("degrees CCW from East divided by 45 (e.g. r.watershed directions)"));
+	       _("degrees CCW from East divided by 45 (e.g. r.watershed directions)"));
     opt.format->descriptions = desc;
 
     opt.weight = G_define_standard_option(G_OPT_R_INPUT);
@@ -76,6 +84,15 @@ int main(int argc, char *argv[])
     opt.acc->type = TYPE_STRING;
     opt.acc->description =
 	_("Name for output weighted flow accumulation map");
+
+    flag.neg = G_define_flag();
+    flag.neg->key = 'n';
+    flag.neg->label =
+	_("Use negative flow accumulation for likely underestimates");
+    flag.neg->description =
+	_("See manual for a detailed description of negative flow accumulation");
+
+    G_option_exclusive(opt.weight, flag.neg, NULL);
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -103,24 +120,20 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(opt.format->answer, "45degree") == 0) {
 	if (dir_max > 8)
-	    G_fatal_error(_
-			  ("Directional degrees divided by 45 can not be > 8"));
+	    G_fatal_error(_("Directional degrees divided by 45 can not be > 8"));
 	dir_format = DIR_DEG45;
     }
     else if (strcmp(opt.format->answer, "auto") == 0) {
 	if (dir_max <= 8) {
 	    dir_format = DIR_DEG45;
-	    G_important_message(_
-				("Input direction format assumed to be degrees CCW from East divided by 45"));
+	    G_important_message(_("Input direction format assumed to be degrees CCW from East divided by 45"));
 	}
 	else if (dir_max <= 360) {
 	    dir_format = DIR_DEG;
-	    G_important_message(_
-				("Input direction format assumed to be degrees CCW from East"));
+	    G_important_message(_("Input direction format assumed to be degrees CCW from East"));
 	}
 	else
-	    G_fatal_error(_
-			  ("Unable to detect format of input direction map <%s>"),
+	    G_fatal_error(_("Unable to detect format of input direction map <%s>"),
 			  dir_name);
     }
     if (dir_format == DIR_UNKNOWN)
@@ -139,6 +152,8 @@ int main(int argc, char *argv[])
 
     acc_buf.type = weight_buf.type;
     acc_fd = Rast_open_new(acc_name, acc_buf.type);
+
+    neg = flag.neg->answer;
 
     rows = Rast_window_rows();
     cols = Rast_window_cols();
@@ -177,7 +192,7 @@ int main(int argc, char *argv[])
 
     for (row = 0; row < rows; row++) {
 	for (col = 0; col < cols; col++)
-	    accumulate(dir_buf, weight_buf, acc_buf, done, row, col);
+	    accumulate(dir_buf, weight_buf, acc_buf, done, neg, row, col);
     }
 
     for (row = 0; row < rows; row++)
@@ -199,6 +214,14 @@ int main(int argc, char *argv[])
     if (weight_fd >= 0)
 	Rast_close(weight_fd);
     Rast_close(acc_fd);
+
+    Rast_put_cell_title(acc_name,
+			weight_name ? "Weighted flow accumulation" :
+			(neg ? "Flow accumulation with likely underestimates"
+			 : "Flow accumulation"));
+    Rast_short_history(acc_name, "raster", &hist);
+    Rast_command_history(&hist);
+    Rast_write_history(acc_name, &hist);
 
     exit(EXIT_SUCCESS);
 }
