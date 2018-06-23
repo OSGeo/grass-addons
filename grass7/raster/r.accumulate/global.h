@@ -6,10 +6,10 @@ typedef struct
     int rows, cols;
     union
     {
-	void **v;
-	CELL **c;
-	FCELL **f;
-	DCELL **d;
+        void **v;
+        CELL **c;
+        FCELL **f;
+        DCELL **d;
     } map;
 } RASTER_MAP;
 
