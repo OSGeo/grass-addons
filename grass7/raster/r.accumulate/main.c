@@ -89,8 +89,6 @@ int main(int argc, char *argv[])
     flag.neg->key = 'n';
     flag.neg->label =
 	_("Use negative flow accumulation for likely underestimates");
-    flag.neg->description =
-	_("See manual for a detailed description of negative flow accumulation");
 
     G_option_exclusive(opt.weight, flag.neg, NULL);
 
