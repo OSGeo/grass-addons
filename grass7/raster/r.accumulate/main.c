@@ -90,6 +90,8 @@ int main(int argc, char *argv[])
     flag.neg->label =
         _("Use negative flow accumulation for likely underestimates");
 
+    /* weighting doesn't support negative accumulation because weights
+     * themselves can be negative */
     G_option_exclusive(opt.weight, flag.neg, NULL);
 
     if (G_parser(argc, argv))
@@ -139,23 +141,12 @@ int main(int argc, char *argv[])
                       opt.format->answer);
     /* end of r.path */
 
-    if (weight_name) {
-        weight_fd = Rast_open_old(weight_name, "");
-        weight_buf.type = Rast_get_map_type(weight_fd);
-    }
-    else {
-        weight_fd = -1;
-        weight_buf.type = CELL_TYPE;
-    }
-
-    acc_buf.type = weight_buf.type;
-    acc_fd = Rast_open_new(acc_name, acc_buf.type);
-
     neg = flag.neg->answer;
 
     rows = Rast_window_rows();
     cols = Rast_window_cols();
 
+    /* initialize the done array and read the direction map */
     done = G_malloc(rows * sizeof(char *));
     dir_buf = G_malloc(rows * sizeof(CELL *));
     for (row = 0; row < rows; row++) {
@@ -168,7 +159,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (weight_fd >= 0) {
+    /* optionally, read a weight map */
+    if (weight_name) {
+        weight_fd = Rast_open_old(weight_name, "");
+        acc_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
+        weight_buf.rows = rows;
+        weight_buf.cols = cols;
         weight_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
         for (row = 0; row < rows; row++) {
             weight_buf.map.v[row] =
@@ -177,42 +173,53 @@ int main(int argc, char *argv[])
                          weight_buf.type);
         }
     }
-    else
+    else {
+        weight_fd = -1;
         weight_buf.map.v = NULL;
-    weight_buf.rows = rows;
-    weight_buf.cols = cols;
+        acc_buf.type = CELL_TYPE;
+    }
 
+    /* create output buffer */
+    acc_buf.rows = rows;
+    acc_buf.cols = cols;
     acc_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
     for (row = 0; row < rows; row++)
         acc_buf.map.v[row] = (void *)Rast_allocate_buf(acc_buf.type);
-    acc_buf.rows = rows;
-    acc_buf.cols = cols;
 
+    /* create a new output map */
+    acc_fd = Rast_open_new(acc_name, acc_buf.type);
+
+    /* accumulate flows */
     for (row = 0; row < rows; row++) {
         for (col = 0; col < cols; col++)
             accumulate(dir_buf, weight_buf, acc_buf, done, neg, row, col);
     }
 
+    /* write out output buffer to the output map */
     for (row = 0; row < rows; row++)
         Rast_put_row(acc_fd, acc_buf.map.v[row], acc_buf.type);
 
-    G_free(done);
-    for (row = 0; row < rows; row++) {
-        G_free(dir_buf[row]);
-        if (weight_fd >= 0)
-            G_free(weight_buf.map.v[row]);
-        G_free(acc_buf.map.v[row]);
-    }
-    G_free(dir_buf);
-    if (weight_fd >= 0)
-        G_free(weight_buf.map.v);
-    G_free(acc_buf.map.v);
-
+    /* close all maps */
     Rast_close(dir_fd);
+    Rast_close(acc_fd);
     if (weight_fd >= 0)
         Rast_close(weight_fd);
-    Rast_close(acc_fd);
 
+    /* free buffer memory */
+    for (row = 0; row < rows; row++) {
+        G_free(done[row]);
+        G_free(dir_buf[row]);
+        G_free(acc_buf.map.v[row]);
+        if (weight_fd >= 0)
+            G_free(weight_buf.map.v[row]);
+    }
+    G_free(done);
+    G_free(dir_buf);
+    G_free(acc_buf.map.v);
+    if (weight_fd >= 0)
+        G_free(weight_buf.map.v);
+
+    /* write history */
     Rast_put_cell_title(acc_name,
                         weight_name ? "Weighted flow accumulation" :
                         (neg ? "Flow accumulation with likely underestimates"
