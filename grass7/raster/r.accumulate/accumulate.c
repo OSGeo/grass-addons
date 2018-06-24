@@ -1,4 +1,3 @@
-#include <math.h>
 #include <grass/raster.h>
 #include "global.h"
 
