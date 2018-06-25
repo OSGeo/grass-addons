@@ -2,8 +2,8 @@ MODULE_TOPDIR = ../../../trunk
 
 PGM = r.accumulate
 
-LIBES = $(RASTERLIB) $(GISLIB)
-DEPENDENCIES = $(RASTERDEP) $(GISDEP)
+LIBES = $(GISLIB) $(RASTERLIB) $(VECTORLIB)
+DEPENDENCIES = $(GISDEP) $(RASTERDEP) $(VECTORDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
