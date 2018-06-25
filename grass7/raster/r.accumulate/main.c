@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     } flag;
     char *desc;
     char *dir_name, *weight_name, *accum_name, *stream_name;
-    int dir_fd, weight_fd, accum_fd;
+    int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
@@ -190,7 +190,8 @@ int main(int argc, char *argv[])
 
     /* optionally, read a weight map */
     if (weight_name) {
-        weight_fd = Rast_open_old(weight_name, "");
+        int weight_fd = Rast_open_old(weight_name, "");
+
         accum_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
         weight_buf.rows = rows;
         weight_buf.cols = cols;
@@ -204,7 +205,6 @@ int main(int argc, char *argv[])
         Rast_close(weight_fd);
     }
     else {
-        weight_fd = -1;
         weight_buf.map.v = NULL;
         accum_buf.type = CELL_TYPE;
     }
@@ -216,14 +216,13 @@ int main(int argc, char *argv[])
     for (row = 0; row < rows; row++)
         accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
 
-    /* create a new accumulation map if requested */
-    accum_fd = accum_name ? Rast_open_new(accum_name, accum_buf.type) : -1;
-
     /* accumulate flows */
     accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
 
-    /* write out buffer to the accumulatoin map */
-    if (accum_fd >= 0) {
+    /* write out buffer to the accumulatoin map if requested */
+    if (accum_name) {
+        int accum_fd = Rast_open_new(accum_name, accum_buf.type);
+
         for (row = 0; row < rows; row++)
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
         Rast_close(accum_fd);
@@ -242,11 +241,11 @@ int main(int argc, char *argv[])
     /* free buffer memory */
     for (row = 0; row < rows; row++) {
         G_free(done[row]);
-        if (weight_fd >= 0)
+        if (weight_name)
             G_free(weight_buf.map.v[row]);
     }
     G_free(done);
-    if (weight_fd >= 0)
+    if (weight_name)
         G_free(weight_buf.map.v);
 
     /* delineate stream networks */

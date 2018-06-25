@@ -2,14 +2,13 @@
 #include <grass/vector.h>
 #include "global.h"
 
-static void trace_down(struct cell_map *, int, int, double, double, double,
-                       double, struct point_list *);
+static void trace_down(struct cell_map *, struct Cell_head *, int, int,
+                       struct point_list *);
 
 void delineate_streams(struct Map_info *Map, double thresh,
                        struct cell_map *dir_buf, struct raster_map *accum_buf)
 {
     struct Cell_head window;
-    double w_off, n_off, ew_res, ns_res;
     int rows = accum_buf->rows, cols = accum_buf->cols;
     int row, col;
     int i, j;
@@ -20,10 +19,6 @@ void delineate_streams(struct Map_info *Map, double thresh,
     int stream_id = 0;
 
     G_get_set_window(&window);
-    ew_res = window.ew_res;
-    ns_res = window.ns_res;
-    w_off = window.west + 0.5 * ew_res;
-    n_off = window.north - 0.5 * ns_res;
 
     init_point_list(&pl);
     Points = Vect_new_line_struct();
@@ -63,8 +58,8 @@ void delineate_streams(struct Map_info *Map, double thresh,
             /* if headwater is found, trace down flow directions */
             if (!has_thresh_inflow) {
                 reset_point_list(&pl);
-                trace_down(dir_buf, row, col, w_off, n_off, ew_res, ns_res,
-                           &pl);
+                trace_down(dir_buf, &window, row, col, &pl);
+
                 /* if tracing is successful, write out the stream */
                 if (pl.n > 0) {
                     Vect_reset_line(Points);
@@ -83,9 +78,8 @@ void delineate_streams(struct Map_info *Map, double thresh,
     Vect_destroy_cats_struct(Cats);
 }
 
-static void trace_down(struct cell_map *dir_buf, int row, int col,
-                       double w_off, double n_off, double ew_res,
-                       double ns_res, struct point_list *pl)
+static void trace_down(struct cell_map *dir_buf, struct Cell_head *window,
+                       int row, int col, struct point_list *pl)
 {
     static int next_cells[8][2] = {
         {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}
@@ -98,13 +92,13 @@ static void trace_down(struct cell_map *dir_buf, int row, int col,
         return;
 
     /* add the current cell */
-    add_point(pl, w_off + col * ew_res, n_off - row * ns_res);
+    add_point(pl, Rast_col_to_easting(col + 0.5, window),
+              Rast_row_to_northing(row + 0.5, window));
 
     /* if the current cell doesn't flow out of the computational region
      * (negative direction from r.watershed flows out), keep tracing */
     dir = dir_buf->c[row][col] - 1;
     if (dir >= 0 && dir < 8)
-        trace_down(dir_buf, row + next_cells[dir][0],
-                   col + next_cells[dir][1], w_off, n_off, ew_res, ns_res,
-                   pl);
+        trace_down(dir_buf, window, row + next_cells[dir][0],
+                   col + next_cells[dir][1], pl);
 }
