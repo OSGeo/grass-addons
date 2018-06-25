@@ -220,11 +220,7 @@ int main(int argc, char *argv[])
     accum_fd = accum_name ? Rast_open_new(accum_name, accum_buf.type) : -1;
 
     /* accumulate flows */
-    for (row = 0; row < rows; row++) {
-        for (col = 0; col < cols; col++)
-            accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg, row,
-                       col);
-    }
+    accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
 
     /* write out buffer to the accumulatoin map */
     if (accum_fd >= 0) {

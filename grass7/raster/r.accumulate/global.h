@@ -65,8 +65,8 @@ void free_point_list(struct point_list *);
 void add_point(struct point_list *, double, double);
 
 /* accumulate.c */
-double accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
-                  char **, char, int, int);
+void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
+                char **, char);
 
 /* delineate_streams.c */
 void delineate_streams(struct Map_info *, double, struct cell_map *,

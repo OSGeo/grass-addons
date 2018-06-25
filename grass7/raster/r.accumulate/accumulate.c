@@ -1,8 +1,24 @@
 #include "global.h"
 
-double accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
-                  struct raster_map *accum_buf, char **done, char neg,
-                  int row, int col)
+static double trace_up(struct cell_map *, struct raster_map *,
+                       struct raster_map *, char **, char, int, int);
+
+void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
+                struct raster_map *accum_buf, char **done, char neg)
+{
+    int rows = dir_buf->rows, cols = dir_buf->cols;
+    int row, col;
+
+    for (row = 0; row < rows; row++) {
+        for (col = 0; col < cols; col++)
+            trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
+    }
+}
+
+static double trace_up(struct cell_map *dir_buf,
+                       struct raster_map *weight_buf,
+                       struct raster_map *accum_buf, char **done, char neg,
+                       int row, int col)
 {
     int rows = dir_buf->rows, cols = dir_buf->cols;
     int i, j;
@@ -53,12 +69,12 @@ double accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
              * loop), trace and recursively accumulate upstream cells */
             if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
                 dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1]) {
-                /* for negative accumulation, accumulate() always returns a
+                /* for negative accumulation, trace_up() always returns a
                  * positive value, so accum is always positive (cell count);
                  * otherwise, accum is weighted accumulation */
                 accum +=
-                    accumulate(dir_buf, weight_buf, accum_buf, done, neg,
-                               row + i, col + j);
+                    trace_up(dir_buf, weight_buf, accum_buf, done, neg,
+                             row + i, col + j);
 
                 /* if the neighbor cell is incomplete, the current cell also
                  * becomes incomplete */
