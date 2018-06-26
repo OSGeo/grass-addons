@@ -120,9 +120,6 @@ def worker(segment_map, stat_temp_file, raster):
     rastername = raster.split('@')[0]
     rastername = rastername.replace('.', '_')
     temp_file = stat_temp_file + '.' + rastername
-    if not gscript.find_file(raster, element='cell')['name']:
-        gscript.message(_("Cannot find raster %s" % raster))
-        return
     gscript.run_command('r.univar',
                         map_=raster,
                         zones=segment_map,
@@ -196,6 +193,12 @@ def main():
 
     if rasters:
         gscript.message(_("Calculating statistics for raster maps..."))
+        for raster in rasters:
+            if not gscript.find_file(raster, element='cell')['name']:
+                gscript.message(_("Cannot find raster '%s'" % raster))
+                gscript.message(_("Removing this raster from list."))
+                rasters.remove(raster)
+
         if len(rasters) < processes:
             processes = len(rasters)
             gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
