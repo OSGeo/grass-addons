@@ -42,21 +42,20 @@ int main(int argc, char *argv[])
         struct Option *accum;
         struct Option *thresh;
         struct Option *stream;
-        struct Option *lfp;
-        struct Option *idcol;
         struct Option *coords;
         struct Option *id;
         struct Option *outlet;
         struct Option *outlet_layer;
         struct Option *outlet_idcol;
+        struct Option *idcol;
+        struct Option *lfp;
     } opt;
     struct
     {
         struct Flag *neg;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *accum_name, *stream_name, *lfp_name,
-        *outlet_name;
+    char *dir_name, *weight_name, *accum_name, *stream_name, *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -69,7 +68,7 @@ int main(int argc, char *argv[])
     struct Map_info Map;
     struct point_list outlet_pl;
     int *id;
-    char *idcol, *outlet_layer, *outlet_idcol;
+    char *outlet_layer, *outlet_idcol, *idcol;
 
     G_gisinit(argv[0]);
 
@@ -118,15 +117,6 @@ int main(int argc, char *argv[])
     opt.stream->required = NO;
     opt.stream->description = _("Name for output stream vector map");
 
-    opt.lfp = G_define_standard_option(G_OPT_V_OUTPUT);
-    opt.lfp->key = "longest_flow_path";
-    opt.lfp->required = NO;
-    opt.lfp->description = _("Name for output longest flow path vector map");
-
-    opt.idcol = G_define_standard_option(G_OPT_DB_COLUMN);
-    opt.idcol->key = "id_column";
-    opt.idcol->description = _("Name for output longest flow path ID column");
-
     opt.coords = G_define_standard_option(G_OPT_M_COORDS);
     opt.coords->multiple = YES;
     opt.coords->description =
@@ -153,6 +143,15 @@ int main(int argc, char *argv[])
     opt.outlet_idcol->description =
         _("Name of longest flow path ID column in outlet vector map");
 
+    opt.idcol = G_define_standard_option(G_OPT_DB_COLUMN);
+    opt.idcol->key = "id_column";
+    opt.idcol->description = _("Name for output longest flow path ID column");
+
+    opt.lfp = G_define_standard_option(G_OPT_V_OUTPUT);
+    opt.lfp->key = "longest_flow_path";
+    opt.lfp->required = NO;
+    opt.lfp->description = _("Name for output longest flow path vector map");
+
     flag.neg = G_define_flag();
     flag.neg->key = 'n';
     flag.neg->label =
@@ -176,12 +175,12 @@ int main(int argc, char *argv[])
     weight_name = opt.weight->answer;
     accum_name = opt.accum->answer;
     stream_name = opt.stream->answer;
-    lfp_name = opt.lfp->answer;
     outlet_name = opt.outlet->answer;
+    lfp_name = opt.lfp->answer;
 
-    idcol = opt.idcol->answer;
     outlet_layer = opt.outlet_layer->answer;
     outlet_idcol = opt.outlet_idcol->answer;
+    idcol = opt.idcol->answer;
 
     if (opt.id->answers && outlet_name && !outlet_idcol)
         G_fatal_error(_("Option <%s> must be specified when <%s> and <%s> are present"),
@@ -282,7 +281,7 @@ int main(int argc, char *argv[])
                                                              &Map));
             if (db_column_Ctype(driver, Fi->table, outlet_idcol) !=
                 DB_C_TYPE_INT)
-                G_fatal_error(_("Column <%s> in vector map <%s> must be of integer"),
+                G_fatal_error(_("Column <%s> in vector map <%s> must be of integer type"),
                               outlet_idcol, outlet_name);
         }
 
@@ -307,8 +306,11 @@ int main(int argc, char *argv[])
             if (driver) {
                 dbValue val;
 
-                db_select_value(driver, Fi->table, Fi->key, cat, outlet_idcol,
-                                &val);
+                if (db_select_value
+                    (driver, Fi->table, Fi->key, cat, outlet_idcol, &val) < 0)
+                    G_fatal_error(_("Unable to read column <%s> in vector map <%s>"),
+                                  outlet_idcol, outlet_name);
+
                 id[n++] = db_get_value_int(&val);
             }
         }
