@@ -38,6 +38,18 @@ struct point_list
     double *x, *y;
 };
 
+struct line
+{
+    struct line_pnts *Points;
+    double length;
+};
+
+struct line_list
+{
+    int nalloc, n;
+    struct line **lines;
+};
+
 #ifdef _MAIN_C_
 #define GLOBAL
 #else
@@ -64,6 +76,12 @@ void reset_point_list(struct point_list *);
 void free_point_list(struct point_list *);
 void add_point(struct point_list *, double, double);
 
+/* line_list.c */
+void init_line_list(struct line_list *);
+void reset_line_list(struct line_list *);
+void free_line_list(struct line_list *);
+void add_line(struct line_list *, struct line *);
+
 /* accumulate.c */
 void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
                 char **, char);
@@ -71,5 +89,9 @@ void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
 /* delineate_streams.c */
 void delineate_streams(struct Map_info *, double, struct cell_map *,
                        struct raster_map *);
+
+/* calculate_lfp.c */
+void calculate_lfp(struct Map_info *, struct cell_map *, struct raster_map *,
+                   int *, char *, struct point_list *);
 
 #endif

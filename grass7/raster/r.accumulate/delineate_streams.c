@@ -11,30 +11,30 @@ void delineate_streams(struct Map_info *Map, double thresh,
     struct Cell_head window;
     int rows = accum_buf->rows, cols = accum_buf->cols;
     int row, col;
-    int i, j;
-    char has_thresh_inflow;
     struct point_list pl;
     struct line_pnts *Points;
     struct line_cats *Cats;
-    int stream_id = 0;
+    int stream_cat = 0;
 
     G_get_set_window(&window);
 
     init_point_list(&pl);
+
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
 
     /* loop through all cells to find headwater cells */
     for (row = 0; row < rows; row++) {
         for (col = 0; col < cols; col++) {
+            int i, j;
+            char has_thresh_inflow = 0;
+
             /* if the current cell is less than the threshold, skip */
             if (get(accum_buf, row, col) < thresh)
                 continue;
 
             /* the current cell is greater than the threshold; check if it is
              * headwater (no upstream cells greater than the threshold) */
-            has_thresh_inflow = 0;
-
             for (i = -1; i <= 1; i++) {
                 /* skip edge cells */
                 if (row + i < 0 || row + i >= rows)
@@ -66,7 +66,7 @@ void delineate_streams(struct Map_info *Map, double thresh,
                     Vect_reset_cats(Cats);
 
                     Vect_copy_xyz_to_pnts(Points, pl.x, pl.y, NULL, pl.n);
-                    Vect_cat_set(Cats, 1, ++stream_id);
+                    Vect_cat_set(Cats, 1, ++stream_cat);
                     Vect_write_line(Map, GV_LINE, Points, Cats);
                 }
             }
@@ -74,6 +74,7 @@ void delineate_streams(struct Map_info *Map, double thresh,
     }
 
     free_point_list(&pl);
+
     Vect_destroy_line_struct(Points);
     Vect_destroy_cats_struct(Cats);
 }

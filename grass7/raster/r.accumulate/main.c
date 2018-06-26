@@ -5,8 +5,8 @@
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
- * PURPOSE:      Calculates weighted flow accumulation and delineates stream
- *               networks using a flow direction map.
+ * PURPOSE:      Calculates weighted flow accumulation, stream networks, and
+ *               the longest flow path using a flow direction map.
  *
  * COPYRIGHT:    (C) 2018 by the GRASS Development Team
  *
@@ -41,13 +41,17 @@ int main(int argc, char *argv[])
         struct Option *accum;
         struct Option *thresh;
         struct Option *stream;
+        struct Option *lfp;
+        struct Option *coords;
+        struct Option *id_column;
+        struct Option *id;
     } opt;
     struct
     {
         struct Flag *neg;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *accum_name, *stream_name;
+    char *dir_name, *weight_name, *accum_name, *stream_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -57,8 +61,10 @@ int main(int argc, char *argv[])
     struct cell_map dir_buf;
     struct raster_map weight_buf, accum_buf;
     int rows, cols, row, col;
-    struct History hist;
     struct Map_info Map;
+    struct point_list outlet_pl;
+    int *id;
+    char *id_colname;
 
     G_gisinit(argv[0]);
 
@@ -66,7 +72,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     module->description =
-        _("Calculates weighted flow accumulation and delineates stream networks using a flow direction map.");
+        _("Calculates weighted flow accumulation, stream networks, and the longest flow path using a flow direction map.");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->key = "direction";
@@ -107,16 +113,43 @@ int main(int argc, char *argv[])
     opt.stream->required = NO;
     opt.stream->description = _("Name for output stream vector map");
 
+    opt.lfp = G_define_standard_option(G_OPT_V_OUTPUT);
+    opt.lfp->key = "longest_flow_path";
+    opt.lfp->required = NO;
+    opt.lfp->description = _("Name for output longest flow path vector map");
+
+    opt.coords = G_define_standard_option(G_OPT_M_COORDS);
+    opt.coords->multiple = YES;
+    opt.coords->description =
+        _("Coordinates of longest flow path outlet point");
+
+    opt.id_column = G_define_standard_option(G_OPT_DB_COLUMN);
+    opt.id_column->key = "id_column";
+    opt.id_column->description =
+        _("Name for output longest flow path ID column");
+
+    opt.id = G_define_option();
+    opt.id->key = "id";
+    opt.id->type = TYPE_INTEGER;
+    opt.id->multiple = YES;
+    opt.id->description = _("ID for longest flow path");
+
+
+
     flag.neg = G_define_flag();
     flag.neg->key = 'n';
     flag.neg->label =
         _("Use negative flow accumulation for likely underestimates");
 
     /* weighting doesn't support negative accumulation because weights
-     * themselves can be negative */
-    G_option_exclusive(opt.weight, flag.neg, NULL);
-    G_option_required(opt.accum, opt.stream, NULL);
+     * themselves can be negative; the longest flow path requires positive
+     * non-weighted accumulation */
+    G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
+    G_option_required(opt.accum, opt.stream, opt.lfp, NULL);
     G_option_collective(opt.thresh, opt.stream, NULL);
+    G_option_collective(opt.lfp, opt.coords, NULL);
+    G_option_collective(opt.id_column, opt.id, NULL);
+    G_option_requires(opt.id, opt.coords, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -125,6 +158,7 @@ int main(int argc, char *argv[])
     weight_name = opt.weight->answer;
     accum_name = opt.accum->answer;
     stream_name = opt.stream->answer;
+    lfp_name = opt.lfp->answer;
 
     dir_fd = Rast_open_old(dir_name, "");
     if (Rast_get_map_type(dir_fd) != CELL_TYPE)
@@ -165,6 +199,35 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Invalid directions format '%s'"),
                       opt.format->answer);
     /* end of r.path */
+
+    /* read id and outlet */
+    id = NULL;
+    init_point_list(&outlet_pl);
+    if (opt.coords->answers) {
+        int i = 0;
+
+        while (opt.coords->answers[i]) {
+            add_point(&outlet_pl, atof(opt.coords->answers[i]),
+                      atof(opt.coords->answers[i + 1]));
+            i += 2;
+        }
+        if (opt.id->answers) {
+            i = 0;
+            while (opt.id->answers[i])
+                i++;
+            if (i < outlet_pl.n)
+                G_fatal_error(_("Too few longest flow path IDs specified"));
+            if (i > outlet_pl.n)
+                G_fatal_error(_("Too many longest flow path IDs specified"));
+            id = (int *)G_malloc(outlet_pl.n * sizeof(int));
+            i = 0;
+            while (opt.id->answers[i]) {
+                id[i] = atoi(opt.id->answers[i]);
+                i++;
+            }
+        }
+    }
+    id_colname = opt.id_column->answer;
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg = flag.neg->answer;
@@ -222,6 +285,7 @@ int main(int argc, char *argv[])
     /* write out buffer to the accumulatoin map if requested */
     if (accum_name) {
         int accum_fd = Rast_open_new(accum_name, accum_buf.type);
+        struct History hist;
 
         for (row = 0; row < rows; row++)
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
@@ -260,6 +324,21 @@ int main(int argc, char *argv[])
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
                       stream_name);
+        Vect_close(&Map);
+    }
+
+    /* calculate the longest flow path */
+    if (lfp_name) {
+        if (Vect_open_new(&Map, lfp_name, 0) < 0)
+            G_fatal_error(_("Unable to create vector map <%s>"), lfp_name);
+        Vect_set_map_name(&Map, "Longest flow path");
+        Vect_hist_command(&Map);
+
+        calculate_lfp(&Map, &dir_buf, &accum_buf, id, id_colname, &outlet_pl);
+
+        if (!Vect_build(&Map))
+            G_warning(_("Unable to build topology for vector map <%s>"),
+                      lfp_name);
         Vect_close(&Map);
     }
 
