@@ -1,5 +1,6 @@
 #include <grass/gis.h>
 #include <grass/vector.h>
+#include <grass/dbmi.h>
 #include <grass/glocale.h>
 #include "global.h"
 
@@ -19,7 +20,7 @@ static int compare_neighbor_accum(const void *, const void *);
 static int compare_line(const void *, const void *);
 
 void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
-                   struct raster_map *accum_buf, int *id, char *id_colname,
+                   struct raster_map *accum_buf, int *id, char *idcol,
                    struct point_list *outlet_pl)
 {
     struct Cell_head window;
@@ -32,8 +33,8 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     struct field_info *Fi;
     dbString sql;
 
-    if (id_colname) {
-        add_table(Map, id_colname, &driver, &Fi);
+    if (idcol) {
+        add_table(Map, idcol, &driver, &Fi);
         db_init_string(&sql);
     }
 
@@ -83,7 +84,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
                 char *buf;
 
                 G_asprintf(&buf, "insert into %s (%s, %s) values (%d, %d)",
-                           Fi->table, Fi->key, id_colname, cat, id[i]);
+                           Fi->table, Fi->key, idcol, cat, id[i]);
                 db_set_string(&sql, buf);
 
                 if (db_execute_immediate(driver, &sql) != DB_OK)
@@ -107,8 +108,8 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     }
 }
 
-static void add_table(struct Map_info *Map, char *id_colname,
-                      dbDriver ** pdriver, struct field_info **pFi)
+static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
+                      struct field_info **pFi)
 {
     dbDriver *driver;
     struct field_info *Fi;
@@ -128,7 +129,7 @@ static void add_table(struct Map_info *Map, char *id_colname,
                       Fi->database, Fi->driver);
 
     G_asprintf(&buf, "create table %s (%s integer, %s integer)", Fi->table,
-               Fi->key, id_colname);
+               Fi->key, idcol);
     db_init_string(&sql);
     db_set_string(&sql, buf);
 

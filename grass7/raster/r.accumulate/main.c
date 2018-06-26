@@ -23,6 +23,7 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/vector.h>
+#include <grass/dbmi.h>
 #include <grass/glocale.h>
 #include "global.h"
 
@@ -42,16 +43,20 @@ int main(int argc, char *argv[])
         struct Option *thresh;
         struct Option *stream;
         struct Option *lfp;
+        struct Option *idcol;
         struct Option *coords;
-        struct Option *id_column;
         struct Option *id;
+        struct Option *outlet;
+        struct Option *outlet_layer;
+        struct Option *outlet_idcol;
     } opt;
     struct
     {
         struct Flag *neg;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *accum_name, *stream_name, *lfp_name;
+    char *dir_name, *weight_name, *accum_name, *stream_name, *lfp_name,
+        *outlet_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -64,7 +69,7 @@ int main(int argc, char *argv[])
     struct Map_info Map;
     struct point_list outlet_pl;
     int *id;
-    char *id_colname;
+    char *idcol, *outlet_layer, *outlet_idcol;
 
     G_gisinit(argv[0]);
 
@@ -118,15 +123,14 @@ int main(int argc, char *argv[])
     opt.lfp->required = NO;
     opt.lfp->description = _("Name for output longest flow path vector map");
 
+    opt.idcol = G_define_standard_option(G_OPT_DB_COLUMN);
+    opt.idcol->key = "id_column";
+    opt.idcol->description = _("Name for output longest flow path ID column");
+
     opt.coords = G_define_standard_option(G_OPT_M_COORDS);
     opt.coords->multiple = YES;
     opt.coords->description =
         _("Coordinates of longest flow path outlet point");
-
-    opt.id_column = G_define_standard_option(G_OPT_DB_COLUMN);
-    opt.id_column->key = "id_column";
-    opt.id_column->description =
-        _("Name for output longest flow path ID column");
 
     opt.id = G_define_option();
     opt.id->key = "id";
@@ -134,7 +138,20 @@ int main(int argc, char *argv[])
     opt.id->multiple = YES;
     opt.id->description = _("ID for longest flow path");
 
+    opt.outlet = G_define_standard_option(G_OPT_V_INPUT);
+    opt.outlet->key = "outlet";
+    opt.outlet->required = NO;
+    opt.outlet->label =
+        _("Name of input outlet vector map for longest flow path");
 
+    opt.outlet_layer = G_define_standard_option(G_OPT_V_FIELD);
+    opt.outlet_layer->key = "outlet_layer";
+    opt.outlet_layer->label = _("Layer number or name for outlet points");
+
+    opt.outlet_idcol = G_define_standard_option(G_OPT_DB_COLUMN);
+    opt.outlet_idcol->key = "outlet_id_column";
+    opt.outlet_idcol->description =
+        _("Name of longest flow path ID column in outlet vector map");
 
     flag.neg = G_define_flag();
     flag.neg->key = 'n';
@@ -147,9 +164,10 @@ int main(int argc, char *argv[])
     G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
     G_option_required(opt.accum, opt.stream, opt.lfp, NULL);
     G_option_collective(opt.thresh, opt.stream, NULL);
-    G_option_collective(opt.lfp, opt.coords, NULL);
-    G_option_collective(opt.id_column, opt.id, NULL);
-    G_option_requires(opt.id, opt.coords, NULL);
+    G_option_requires(opt.lfp, opt.coords, opt.outlet, NULL);
+    G_option_requires(opt.idcol, opt.id, opt.outlet_idcol, NULL);
+    G_option_requires_all(opt.id, opt.idcol, opt.coords, NULL);
+    G_option_requires_all(opt.outlet_idcol, opt.idcol, opt.outlet, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -159,6 +177,19 @@ int main(int argc, char *argv[])
     accum_name = opt.accum->answer;
     stream_name = opt.stream->answer;
     lfp_name = opt.lfp->answer;
+    outlet_name = opt.outlet->answer;
+
+    idcol = opt.idcol->answer;
+    outlet_layer = opt.outlet_layer->answer;
+    outlet_idcol = opt.outlet_idcol->answer;
+
+    if (opt.id->answers && outlet_name && !outlet_idcol)
+        G_fatal_error(_("Option <%s> must be specified when <%s> and <%s> are present"),
+                      opt.outlet_idcol->key, opt.id->key, opt.outlet->key);
+
+    if (outlet_idcol && opt.coords->answers && !opt.id->answers)
+        G_fatal_error(_("Option <%s> must be specified when <%s> and <%s> are present"),
+                      opt.id->key, opt.outlet_idcol->key, opt.coords->key);
 
     dir_fd = Rast_open_old(dir_name, "");
     if (Rast_get_map_type(dir_fd) != CELL_TYPE)
@@ -200,7 +231,7 @@ int main(int argc, char *argv[])
                       opt.format->answer);
     /* end of r.path */
 
-    /* read id and outlet */
+    /* read outlet coordinates and IDs */
     id = NULL;
     init_point_list(&outlet_pl);
     if (opt.coords->answers) {
@@ -227,7 +258,71 @@ int main(int argc, char *argv[])
             }
         }
     }
-    id_colname = opt.id_column->answer;
+
+    /* read outlet points and IDs */
+    if (outlet_name) {
+        dbDriver *driver = NULL;
+        struct field_info *Fi;
+        struct line_pnts *Points;
+        struct line_cats *Cats;
+        int field, type;
+        int nlines, line, n;
+
+        if (Vect_open_old2(&Map, outlet_name, "", outlet_layer) < 0)
+            G_fatal_error(_("Unable to open vector map <%s>"), outlet_name);
+
+        field = Vect_get_field_number(&Map, outlet_layer);
+        type = Vect_get_num_dblinks(&Map) > 1 ? GV_MTABLE : GV_1TABLE;
+
+        if (outlet_idcol) {
+            Fi = Vect_default_field_info(&Map, field, NULL, type);
+            driver =
+                db_start_driver_open_database(Fi->driver,
+                                              Vect_subst_var(Fi->database,
+                                                             &Map));
+            if (db_column_Ctype(driver, Fi->table, outlet_idcol) !=
+                DB_C_TYPE_INT)
+                G_fatal_error(_("Column <%s> in vector map <%s> must be of integer"),
+                              outlet_idcol, outlet_name);
+        }
+
+        Points = Vect_new_line_struct();
+        Cats = Vect_new_cats_struct();
+
+        nlines = Vect_get_num_lines(&Map);
+        id = (int *)G_realloc(id, (outlet_pl.n + nlines) * sizeof(int));
+        n = outlet_pl.n;
+
+        for (line = 1; line <= nlines; line++) {
+            int ltype, cat;
+
+            ltype = Vect_read_line(&Map, Points, Cats, line);
+            Vect_cat_get(Cats, field, &cat);
+
+            if (ltype != GV_POINT || cat < 0)
+                continue;
+
+            add_point(&outlet_pl, Points->x[0], Points->y[0]);
+
+            if (driver) {
+                dbValue val;
+
+                db_select_value(driver, Fi->table, Fi->key, cat, outlet_idcol,
+                                &val);
+                id[n++] = db_get_value_int(&val);
+            }
+        }
+
+        if (driver)
+            db_close_database_shutdown_driver(driver);
+
+        Vect_close(&Map);
+
+        if (n < outlet_pl.n)
+            G_fatal_error(_("Too few longest flow path IDs specified"));
+        if (n > outlet_pl.n)
+            G_fatal_error(_("Too many longest flow path IDs specified"));
+    }
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg = flag.neg->answer;
@@ -334,7 +429,7 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, "Longest flow path");
         Vect_hist_command(&Map);
 
-        calculate_lfp(&Map, &dir_buf, &accum_buf, id, id_colname, &outlet_pl);
+        calculate_lfp(&Map, &dir_buf, &accum_buf, id, idcol, &outlet_pl);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
