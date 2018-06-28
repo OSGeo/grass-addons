@@ -38,7 +38,11 @@ Direction encoding for neighbors of x
 
 With <b>stream</b> and <b>threshold</b> options, the module will delineate
 stream networks with the minimum flow accumulation for stream generation. A
-<b>weight</b> input map may be used with <b>threshold</b>.
+<b>weight</b> input map may be used with <b>threshold</b>. Delineated stream
+lines are split at confluences.
+
+<p>With <b>-c</b> flag, stream lines are delineated across confluences and may
+overlap with other stream lines that share the same downstream outlet.
 
 <h3>Longest flow path calculation</h3>
 

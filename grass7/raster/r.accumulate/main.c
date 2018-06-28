@@ -53,14 +53,16 @@ int main(int argc, char *argv[])
     struct
     {
         struct Flag *neg;
+        struct Flag *conf;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *accum_name, *stream_name, *outlet_name, *lfp_name;
+    char *dir_name, *weight_name, *accum_name, *stream_name, *outlet_name,
+        *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
-    char neg;
+    char neg, conf;
     char **done;
     struct cell_map dir_buf;
     struct raster_map weight_buf, accum_buf;
@@ -158,6 +160,10 @@ int main(int argc, char *argv[])
     flag.neg->label =
         _("Use negative flow accumulation for likely underestimates");
 
+    flag.conf = G_define_flag();
+    flag.conf->key = 'c';
+    flag.conf->label = _("Delineate streams across confluences");
+
     /* weighting doesn't support negative accumulation because weights
      * themselves can be negative; the longest flow path requires positive
      * non-weighted accumulation */
@@ -168,6 +174,7 @@ int main(int argc, char *argv[])
     G_option_requires(opt.idcol, opt.id, opt.outlet_idcol, NULL);
     G_option_requires_all(opt.id, opt.idcol, opt.coords, NULL);
     G_option_requires_all(opt.outlet_idcol, opt.idcol, opt.outlet, NULL);
+    G_option_requires(flag.conf, opt.stream, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -329,6 +336,7 @@ int main(int argc, char *argv[])
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg = flag.neg->answer;
+    conf = flag.conf->answer;
 
     rows = Rast_window_rows();
     cols = Rast_window_cols();
@@ -417,7 +425,7 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, "Stream network");
         Vect_hist_command(&Map);
 
-        delineate_streams(&Map, thresh, &dir_buf, &accum_buf);
+        delineate_streams(&Map, &dir_buf, &accum_buf, thresh, conf);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
