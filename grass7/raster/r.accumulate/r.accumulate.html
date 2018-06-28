@@ -34,6 +34,10 @@ Direction encoding for neighbors of x
                    (r.watershed drainage)
 </pre></div>
 
+<p>Since the module does not use elevation data (i.e., slope), flow
+accumulation is calculated by single flow direction (SFD) routing and may not
+be comparable to the result from multiple flow direction (MFD) routing.
+
 <h3>Stream network delineation</h3>
 
 With <b>stream</b> and <b>threshold</b> options, the module will delineate
@@ -70,6 +74,7 @@ These examples use the North Carolina sample dataset.
 g.region raster=elevation -p
 
 # calculate positive flow accumulation and drainage directions using r.watershed
+# for comparison, use -s (SFD)
 r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -s -a
 
 # calculate flow accumulation using r.accumulate
@@ -111,7 +116,7 @@ r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50
 r.accumulate direction=drain_directions threshold=50000 stream=streams_new_only
 
 # use r.stream.extract, elevation, and flow_accum_new to delineate stream networks
-r.stream.extract elevation=elevation accumulation=flow_accum_new threshold=50000 stream_vector=streams direction=drain_directions_2
+r.stream.extract elevation=elevation accumulation=flow_accum threshold=50000 stream_vector=streams_extract direction=drain_directions_extract
 </pre></div>
 
 <img src="r_accumulate_nc_stream_example.png">
