@@ -208,7 +208,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     if (!Points)
         Points = Vect_new_line_struct();
 
-    /* trace up the largest accumulation */
+    /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
         static double diag_length;
 
