@@ -109,6 +109,13 @@ accumulated from the headwater cells.
 
 <p>Calculate flow accumulation and delineate stream networks at once:
 <div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate positive flow accumulation and drainage directions using r.watershed
+# for comparison, use -s (SFD)
+r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -s -a
+
 # use r.accumulate to create flow_accum_new and streams_new at once
 r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50000 stream=streams_new
 
@@ -139,6 +146,12 @@ maps are different.
 
 <p>Create the longest flow path for one outlet:
 <div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate drainage directions using r.watershed
+r.watershed elevation=elevation drainage=drain_directions -s -a
+
 # delineate watershed
 r.water.outlet input=drain_directions output=basin coordinates=642455,222614
 
@@ -154,6 +167,12 @@ r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614
 
 <p>There are different ways to calculate multiple longest flow paths in one run:
 <div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate drainage directions using r.watershed
+r.watershed elevation=elevation drainage=drain_directions -s -a
+
 # calculate longest flow paths at two outlets
 r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614,642306,222734
 
@@ -175,6 +194,12 @@ r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614,642306
 
 <p>Calculate the longest flow paths for sub-watersheds:
 <div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate drainage directions using r.watershed
+r.watershed elevation=elevation drainage=drain_directions -s -a
+
 # get nsres
 eval `r.info -g map=elevation`
 
