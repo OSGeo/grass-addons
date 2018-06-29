@@ -1,3 +1,4 @@
+#include <math.h>
 #include <grass/gis.h>
 #include <grass/vector.h>
 #include <grass/dbmi.h>
@@ -78,6 +79,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
             Vect_reset_cats(Cats);
 
             Vect_cat_set(Cats, 1, cat);
+            Vect_line_reverse(ll.lines[n]->Points);
             Vect_write_line(Map, GV_LINE, ll.lines[n]->Points, Cats);
 
             if (driver) {
@@ -155,6 +157,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                     struct Cell_head *window, int row, int col,
                     struct point_list *pl, struct line_list *ll)
 {
+    static struct line_pnts *Points = NULL;
     int rows = dir_buf->rows, cols = dir_buf->cols;
     double x, y;
     int i, j, nup;
@@ -202,22 +205,68 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     qsort(up_accum, nup, sizeof(struct neighbor_accum),
           compare_neighbor_accum);
 
+    if (!Points)
+        Points = Vect_new_line_struct();
+
     /* trace up the largest accumulation */
-    for (i = 0; i < nup && up_accum[i].accum == up_accum[0].accum; i++) {
+    for (i = 0; i < nup; i++) {
+        static double diag_length;
+
         /* store pl->n to come back later */
         int split_pl_n = pl->n;
+
+        /* try to avoid unnecessary tracing */
+        if (ll->n) {
+            double max_length;
+
+            /* theoretically, the longest longest flow path is when all
+             * accumulated upstream cells are diagonally flowing */
+            Vect_reset_line(Points);
+            Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
+            max_length =
+                Vect_line_length(Points) + up_accum[i].accum * diag_length;
+
+            for (j = 0; j < ll->n && max_length < ll->lines[j]->length; j++) ;
+
+            /* if the theoretical longest lfp < all existing, skip tracing
+             * because it's impossible to obtain a longer lfp */
+            if (j == ll->n)
+                continue;
+        }
+        else
+            diag_length =
+                sqrt(pow(window->ew_res, 2.0) + pow(window->ns_res, 2.0));
 
         /* if tracing is successful, store the line and its length */
         if (trace_up
             (dir_buf, accum_buf, window, up_accum[i].row, up_accum[i].col, pl,
              ll) && pl->n > 0) {
-            struct line *line = (struct line *)G_malloc(sizeof(struct line));
+            static struct line *line;
+            double length;
 
-            line->Points = Vect_new_line_struct();
-            Vect_copy_xyz_to_pnts(line->Points, pl->x, pl->y, NULL, pl->n);
-            Vect_line_reverse(line->Points);
-            line->length = Vect_line_length(line->Points);
-            add_line(ll, line);
+            Vect_reset_line(Points);
+            Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
+            length = Vect_line_length(Points);
+
+            for (j = 0; j < ll->n && length < ll->lines[j]->length; j++) ;
+
+            /* if first or length >= any existing */
+            if (!ll->n || j < ll->n) {
+                if (!ll->n || length == ll->lines[j]->length) {
+                    /* first or length == existing (tie); add new */
+                    line = (struct line *)G_malloc(sizeof(struct line));
+                    line->Points = Vect_new_line_struct();
+                    add_line(ll, line);
+                }
+                else {
+                    /* length > existing; replace existing */
+                    line = ll->lines[j];
+                    Vect_reset_line(line->Points);
+                }
+                Vect_copy_xyz_to_pnts(line->Points, pl->x, pl->y, NULL,
+                                      pl->n);
+                line->length = length;
+            }
         }
 
         /* keep tracing if the next upstream cell has the same largest
