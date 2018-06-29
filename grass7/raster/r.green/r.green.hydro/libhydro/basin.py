@@ -14,20 +14,25 @@
 #############################################################################
 #
 
+import itertools
+import math
 # import system libraries
 import os
 
 import numpy as np
-import itertools
-import math
+
+from grass.pygrass.messages import get_msgr
+from grass.pygrass.vector import VectorTopo
+from grass.script import core as gcore
+from grass.script import mapcalc
+from grass.script.utils import set_path
+# finally import the module in the library
+from libgreen.utils import (dissolve_lines, get_coo, raster2compressM,
+                            raster2numpy)
+
 #import pdb
 
 
-from grass.pygrass.vector import VectorTopo
-from grass.script import core as gcore
-from grass.pygrass.messages import get_msgr
-from grass.script import mapcalc
-from grass.pygrass.utils import set_path
 
 try:
     from scipy import integrate
@@ -37,11 +42,6 @@ except ImportError:
 
 set_path('r.green', 'libhydro', '..')
 set_path('r.green', 'libgreen', os.path.join('..', '..'))
-# finally import the module in the library
-from libgreen.utils import dissolve_lines
-from libgreen.utils import raster2numpy
-from libgreen.utils import raster2compressM
-from libgreen.utils import get_coo
 
 
 def discharge_sum(list_basin, list_ID):

@@ -485,29 +485,29 @@
 ## VALUES
 #%option G_OPT_R_OUTPUT
 #%  key: upper
-#%  label: Output raster map with the value upper part of the soil 
+#%  label: Output raster map with the value upper part of the soil
 #%  required: no
 #%end
 
 #############################################################################
 from __future__ import print_function
 
+import atexit
 import os
 import sys
-import atexit
+
 import numpy as np
+
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite, warning, run_command
+from grass.pygrass.gis.region import Region
+from grass.pygrass.messages import get_msgr
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
-
-from grass.pygrass.utils import set_path
+from grass.pygrass.vector import geometry as geo
 from grass.pygrass.vector import VectorTopo, sql
 from grass.pygrass.vector.basic import Cats
-from grass.pygrass.vector import geometry as geo
-from grass.pygrass.gis.region import Region
-
-from grass.pygrass.messages import get_msgr
+from grass.script.core import overwrite, parser, run_command, warning
+from grass.script.utils import set_path
 
 #from grass.script import mapcalc
 version = 70  # 71
@@ -601,7 +601,7 @@ def vmapcalc2(vmap, vlayer, cname, ctype, expr, overwrite=False):
 
 def get_cnames(expr,
                _names_cache=ne.utils.CacheDict(256) if ne else ne,
-               _numexpr_cache=ne.utils.CacheDict(256) if ne else ne, 
+               _numexpr_cache=ne.utils.CacheDict(256) if ne else ne,
                **kwargs):
     if not isinstance(expr, (str, unicode)):
         raise ValueError("must specify expression as a string")
@@ -811,7 +811,7 @@ def group_by(vinput, voutput, isolate=None, aggregate=None,
                         category.reset()
                         category.set(ncat, loutput)
                         # write geometry
-                        vout.write(line)
+                        vout.write(line, set_cats=False)
                 ncat += 1
             vout.table.conn.commit()
 
@@ -921,9 +921,9 @@ def main(opts, flgs):
     comp = opts['compensation'] if opts['compensation'] else ('tmprgreen_%i_compensation' % pid)
     exc = opts['excavation'] if opts['excavation'] else ('tmprgreen_%i_excavation' % pid)
     vlayer = int(opts['struct_layer'])
-    
+
     plant, mset = (opts['plant'].split('@') if '@' in opts['plant'] else (opts['plant'], ''))
-                
+
     struct, mset = (opts['struct'].split('@') if '@' in opts['struct'] else (opts['struct'], ''))
 
     # read common scalar parameters
@@ -1089,18 +1089,18 @@ def main(opts, flgs):
                          eco_layer=1, seg_layer=int(opts['plant_layer']),
                          eco_pid=opts['struct_column_id'],
                          seg_pid=opts['plant_column_id'],
-                         function=max_NPV, 
-                         exclude=['intake_id', 'side', 'power', 
+                         function=max_NPV,
+                         exclude=['intake_id', 'side', 'power',
                                   'gross_head', 'discharge'])
 
-    vec = VectorTopo(opts['output_struct'])    
+    vec = VectorTopo(opts['output_struct'])
     vec.open('rw')
     vec.table.columns.add('max_NPV','VARCHAR(3)')
-                                 
-    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))                     
-    
-    for i in range(0,len(list_intakeid)):   
-        vec.rewind()                  
+
+    list_intakeid=list(set(vec.table.execute('SELECT intake_id FROM %s' %vec.table.name).fetchall()))
+
+    for i in range(0,len(list_intakeid)):
+        vec.rewind()
         list_npv=list(vec.table.execute('SELECT NPV FROM %s WHERE intake_id=%i;' % (vec.table.name, list_intakeid[i][0])).fetchall())
         npvmax=max(list_npv)[0]
         for line in vec:
@@ -1110,7 +1110,7 @@ def main(opts, flgs):
                 else:
                     line.attrs['max_NPV']='no'
 
-    vec.table.conn.commit()    
+    vec.table.conn.commit()
     vec.close()
 
 

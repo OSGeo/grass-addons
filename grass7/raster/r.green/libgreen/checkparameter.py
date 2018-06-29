@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from grass.exceptions import ParameterError
-from grass.pygrass.vector import VectorTopo
-from grass.pygrass.raster import RasterRow
 from grass.pygrass.messages import get_msgr
+from grass.pygrass.raster import RasterRow
+from grass.pygrass.vector import VectorTopo
 
 
 def check_required_columns(vname, layer, reqcols, pname):

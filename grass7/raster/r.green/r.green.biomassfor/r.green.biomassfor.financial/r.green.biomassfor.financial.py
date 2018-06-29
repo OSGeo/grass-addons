@@ -344,12 +344,12 @@
 #% guisection: Output maps
 #%end
 
-from grass.script.core import run_command, parser, warning
-from grass.pygrass.modules.shortcuts import raster as r
-from grass.pygrass.utils import set_path
-
-import os
 import atexit
+import os
+
+from grass.pygrass.modules.shortcuts import raster as r
+from grass.script.core import parser, run_command, warning
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 ############################################################################
@@ -289,13 +289,12 @@
 
 from __future__ import print_function
 
+import atexit
 import os
 import sys
-import atexit
 
-# import grass libraries
 from grass.script import core as gcore
-from grass.pygrass.utils import set_path
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries

@@ -220,18 +220,18 @@
 
 # import system libraries
 from __future__ import print_function
+
+import atexit
 import os
 import sys
-import atexit
+from math import acos, asin, log10, pi, sin, sqrt
 
-# import grass libraries
-from grass.script import core as gcore
+import numpy as np
 
-from grass.pygrass.utils import set_path
 from grass.pygrass.messages import get_msgr
+from grass.pygrass.utils import set_path
 from grass.pygrass.vector import VectorTopo
-
-from math import pi, log10, sin, acos, asin, sqrt
+from grass.script import core as gcore
 
 try:
     from scipy.optimize import fsolve
@@ -239,7 +239,6 @@ except ImportError:
     gcore.warning('You should install scipy to use this module: '
                   'pip install scipy')
 
-import numpy as np
 
 try:
     # set python path to the shared r.green libraries

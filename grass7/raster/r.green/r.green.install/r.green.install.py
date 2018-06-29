@@ -30,28 +30,24 @@
 
 # import system libraries
 from __future__ import print_function
-import os
-from os.path import join
-from urllib2 import build_opener
-import sys
-import imp
-from tempfile import gettempdir
-import time
-import subprocess
-import shutil
 
-from HTMLParser import HTMLParser
-from htmlentitydefs import name2codepoint
+import imp
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import time
 import urllib2
 import xml.etree.ElementTree as ET
-
 from collections import namedtuple
-import platform
+from htmlentitydefs import name2codepoint
+from HTMLParser import HTMLParser
+from os.path import join
+from tempfile import gettempdir
+from urllib2 import build_opener
 
-
-# import grass libraries
 from grass.script import core as gcore
-
 
 Pkg = namedtuple('Pkg', ['name', 'version', 'py', 'un', 'platform'])
 

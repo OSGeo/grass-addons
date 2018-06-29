@@ -99,13 +99,11 @@ import atexit
 import os
 import sys
 
-# import grass libraries
-from grass.script import core as gcore
 #from grass.script import mapcalc
 from grass.pygrass.messages import get_msgr
-
+from grass.script import core as gcore
 #from grass.pygrass.raster.buffer import Buffer
-from grass.pygrass.utils import set_path
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
@@ -166,7 +164,7 @@ def main(options, flags):
     c = flags['c']
     msgr = get_msgr()
     #import ipdb; ipdb.set_trace()
-    
+
     if c:
         msgr.message("\Clean rivers\n")
         TMPVECT = [("tmprgreen_%i_cleanb" % os.getpid())]

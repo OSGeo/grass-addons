@@ -94,18 +94,17 @@
 #%end
 from __future__ import print_function
 
+import atexit
 # import stadard libraries
 import os
-import atexit
 
 # import GRASS libraries
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite, warning
-from grass.pygrass.vector import VectorTopo
-from grass.pygrass.raster import RasterRow
 from grass.pygrass.modules.shortcuts import vector as v
-from grass.pygrass.utils import set_path
-
+from grass.pygrass.raster import RasterRow
+from grass.pygrass.vector import VectorTopo
+from grass.script.core import overwrite, parser, warning
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
@@ -136,7 +135,7 @@ def main(opts, flgs):
     rother = ['kind_label', 'discharge', 'id_point', 'id_plant']
     ovwr = overwrite()
 
-    try:        
+    try:
         hydro = check_required_columns(opts['hydro'], int(opts['hydro_layer']),
                                        rhydro, 'hydro')
         if opts['other']:

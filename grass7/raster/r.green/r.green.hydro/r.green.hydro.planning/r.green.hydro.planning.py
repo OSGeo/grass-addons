@@ -186,24 +186,24 @@
 #%end
 
 #%rules
-#%exclusive: mfd, discharge_natural 
-#%exclusive: mfd, percentage 
-#%requires: discharge_natural, percentage 
+#%exclusive: mfd, discharge_natural
+#%exclusive: mfd, percentage
+#%requires: discharge_natural, percentage
 #%end
 
 # import system libraries
 from __future__ import print_function
+
+import atexit
 import os
 import sys
-import atexit
 
-# import grass libraries
-from grass.script import core as gcore
-from grass.pygrass.utils import set_path
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import VectorTopo
+from grass.script import core as gcore
+# import grass libraries
 from grass.script import mapcalc
-
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries

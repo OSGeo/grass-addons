@@ -90,15 +90,14 @@
 
 from __future__ import print_function
 
+import atexit
 # import system libraries
 import os
 import sys
-import atexit
 
-# import grass libraries
-from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
-from grass.pygrass.utils import set_path
+from grass.script import core as gcore
+from grass.script.utils import set_path
 
 try:
     # set python path to the shared r.green libraries
@@ -151,7 +150,7 @@ def main(options, flags):
     lakes = options['lakes']  # vec
     E = options['output']
     threshold = options['threshold']
-    
+
     # existing plants
 #    segments = options['segments']
 #    output_segm = options['output_segm']
@@ -174,7 +173,7 @@ def main(options, flags):
 
     if rivers:
         # cp the vector in the current mapset in order to clean it
-        tmp_river = "tmprgreen_%i_river" % pid 
+        tmp_river = "tmprgreen_%i_river" % pid
         to_copy = '%s,%s' % (rivers, tmp_river)
         gcore.run_command('g.copy', vector=to_copy)
         rivers = tmp_river

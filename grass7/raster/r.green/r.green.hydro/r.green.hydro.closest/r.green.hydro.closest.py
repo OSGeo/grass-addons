@@ -44,11 +44,9 @@ from __future__ import print_function
 import os
 import sys
 
-# import grass libraries
-from grass.script import core as gcore
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.vector import VectorTopo
-
+from grass.script import core as gcore
 
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")

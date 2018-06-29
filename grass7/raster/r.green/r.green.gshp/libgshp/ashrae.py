@@ -10,12 +10,9 @@ from os import getpid
 
 from numpy import log, pi
 
-# import grass libraries
-from grass.script import raster as grast
-from grass.script import core as gcore
-
 from grass.pygrass.utils import get_mapset_raster
-
+from grass.script import core as gcore
+from grass.script import raster as grast
 
 BASENAME = 'tmprgreen{pid:05d}_'.format(pid=getpid())
 

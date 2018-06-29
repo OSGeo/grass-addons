@@ -5,17 +5,18 @@ Test GPOT implementation
 """
 from __future__ import (absolute_import, division, generators, nested_scopes,
                         print_function, unicode_literals, with_statement)
+
 import os
 
 from numpy.testing import assert_almost_equal
 
-from grass.gunittest.case import TestCase
-from grass.gunittest.main import test
-from grass.gunittest.gmodules import call_module
-
-
 import gpot as gpot
-
+from grass.gunittest.case import TestCase
+from grass.gunittest.gmodules import call_module
+from grass.gunittest.main import test
+# ==================================================================
+# Start testing the library
+from grass.pygrass.raster import RasterRow
 
 # ==================================================================
 # Define value and results to be tested as scalar and as raster
@@ -45,9 +46,6 @@ NUM_PIPES = 4
 GROUT_CONDUCTIVITY = 2.
 
 
-# ==================================================================
-# Start testing the library
-from grass.pygrass.raster import RasterRow
 
 
 def assert_raster_no_difference(reference, actual, precision):

@@ -110,9 +110,7 @@
 #% key: u
 #% description: technical bioenergy can be considered to be spread uniformly over the entire surface or to be concentrated in accessible areas.
 #%end
-from grass.script.core import run_command, parser, overwrite
-
-
+from grass.script.core import overwrite, parser, run_command
 
 #CCEXTR = 'cable_crane_extraction = if(yield>0 && slope>%f && slope<=%f && extr_dist<%f, 1)'
 #FWEXTR = 'forwarder_extraction = if(yield>0 && slope<=%f && management==1 && (roughness==0 || roughness==1 || roughness==99999) && extr_dist<%f, 1)'

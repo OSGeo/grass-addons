@@ -14,11 +14,12 @@
 #
 
 import os
+
 import numpy as np
 
+from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.raster import RasterRow
 from grass.script.core import run_command
-from grass.pygrass.modules.shortcuts import raster as r
 
 
 def combination(management, treatment):

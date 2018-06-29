@@ -100,11 +100,13 @@
 #% guisection: Energy
 #%end
 
-from grass.script.core import run_command, parser,overwrite
-from grass.pygrass.raster import RasterRow
-import numpy as np
-import string
 import pdb
+import string
+
+import numpy as np
+
+from grass.pygrass.raster import RasterRow
+from grass.script.core import overwrite, parser, run_command
 
 #check_var checks the presence/absence of the input maps
 check_var=0

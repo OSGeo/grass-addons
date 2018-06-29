@@ -160,17 +160,19 @@
 #% answer: 100000
 #%END
 
+import atexit
 # import system libraries
 import os
 import sys
-import atexit
+
+from grass.pygrass.messages import get_msgr
+from grass.script import core as gcore
+# import grass libraries
+from grass.script import mapcalc
+from grass.script.utils import set_path
+
 #import pdb
 
-# import grass libraries
-from grass.script import core as gcore
-from grass.pygrass.messages import get_msgr
-from grass.pygrass.utils import set_path
-from grass.script import mapcalc
 
 try:
     # set python path to the shared r.green libraries

@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-import random
 import os
+import random
 from collections import namedtuple
 
 import numpy as np
 
-from grass.pygrass.modules.shortcuts import raster as r
+from grass.pygrass import utils
 from grass.pygrass.gis.region import Region
+from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Line
 from grass.pygrass.vector.table import Link
-from grass.pygrass import utils
 from grass.script import core as gcore
-
 
 COLS = [(u'cat',       'INTEGER PRIMARY KEY'),
         (u'plant_id',  'VARCHAR(10)'),

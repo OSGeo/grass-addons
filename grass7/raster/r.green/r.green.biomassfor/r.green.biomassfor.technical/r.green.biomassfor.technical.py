@@ -185,11 +185,11 @@
 #%end
 
 
-import grass.script as grass
-from grass.script.core import run_command, parser, overwrite, parse_command
-from grass.pygrass.raster import RasterRow
 import numpy as np
 
+import grass.script as grass
+from grass.pygrass.raster import RasterRow
+from grass.script.core import overwrite, parse_command, parser, run_command
 
 YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
 

@@ -129,14 +129,16 @@
 #%end
 from __future__ import print_function
 
-import os
 import atexit
+import os
 
 from grass.exceptions import ParameterError
-from grass.script.core import parser, overwrite, warning
-from grass.pygrass.utils import set_path
 from grass.pygrass.raster import RasterRow
-
+from grass.script.core import overwrite, parser, warning
+from grass.script.utils import set_path
+from libgreen.checkparameter import check_required_columns, exception2error
+from libhydro.optimal import conv_segpoints
+from libhydro.plant import read_plants, write_structures
 
 try:
     # set python path to the shared r.green libraries
@@ -151,9 +153,6 @@ except ImportError:
     except ImportError:
         warning('libgreen and libhydro not in the python path!')
 
-from libhydro.optimal import conv_segpoints
-from libgreen.checkparameter import check_required_columns, exception2error
-from libhydro.plant import read_plants, write_structures
 
 
 def main(opts, flgs):

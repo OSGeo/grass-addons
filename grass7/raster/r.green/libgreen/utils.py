@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 import os
-#import pdb
 
-# import grass libraries
-from grass.script import mapcalc
-from grass.script import core as gcore
+import numpy as np
+
+from grass.pygrass.gis.region import Region
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.raster.buffer import Buffer
-from grass.pygrass.gis.region import Region
+from grass.script import core as gcore
+# import grass libraries
+from grass.script import mapcalc
+
+#import pdb
+
 
 try:
     from scipy.sparse import csr_matrix

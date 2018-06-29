@@ -6,18 +6,26 @@ Created on Mon Jan 12 14:29:46 2015
 """
 # import system libraries
 from __future__ import print_function
+
+import math
 import os
 import sys
 
 import numpy as np
-import math
+
+#from grass.pygrass.raster.buffer import Buffer
+from grass.pygrass.gis.region import Region
+from grass.pygrass.messages import get_msgr
+from grass.pygrass.raster import RasterRow
+from grass.pygrass.vector import VectorTopo
+from grass.script import core as gcore
+#from grass.pygrass.raster.buffer import Buffer
+from grass.script.utils import set_path
+from libhydro.plant import COLS, COLS_points, Intake, Plant, Restitution
 
 #from grass.script import mapcalc
 version = 70  # 71
 
-from grass.script import core as gcore
-from grass.pygrass.messages import get_msgr
-from grass.pygrass.raster import RasterRow
 
 # import scientific libraries
 try:
@@ -28,21 +36,11 @@ except ImportError:
     gcore.warning('You should install scipy to use this module: '
                   'pip install scipy')
 
-#from grass.pygrass.raster.buffer import Buffer
-from grass.pygrass.gis.region import Region
-from grass.pygrass.vector import VectorTopo
 
-#from grass.pygrass.raster.buffer import Buffer
-from grass.pygrass.utils import set_path
 
 set_path('r.green', 'libhydro', '..')
 set_path('r.green', 'libgreen', os.path.join('..', '..'))
 
-from libhydro.plant import Plant
-from libhydro.plant import Intake
-from libhydro.plant import Restitution
-from libhydro.plant import COLS
-from libhydro.plant import COLS_points
 
 
 def f(x, *params):

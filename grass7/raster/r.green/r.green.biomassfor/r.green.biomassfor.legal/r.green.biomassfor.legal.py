@@ -93,11 +93,10 @@
 #% guisection: Energy
 #%end
 
-from grass.script.core import run_command, parser, overwrite
-from grass.pygrass.raster import RasterRow
 import numpy as np
 
-
+from grass.pygrass.raster import RasterRow
+from grass.script.core import overwrite, parser, run_command
 
 
 def main(opts, flgs):

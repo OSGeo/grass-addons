@@ -375,13 +375,14 @@
 #% description: Remove all operational maps
 #%end
 
-import grass.script as grass
-from grass.script.core import run_command, parser,overwrite, read_command
-from grass.pygrass.messages import get_msgr
-import numpy as np
-from grass.pygrass.raster import RasterRow
 import pdb
 
+import numpy as np
+
+import grass.script as grass
+from grass.pygrass.messages import get_msgr
+from grass.pygrass.raster import RasterRow
+from grass.script.core import overwrite, parser, read_command, run_command
 
 ow = overwrite()
 

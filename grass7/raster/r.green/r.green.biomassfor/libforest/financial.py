@@ -13,9 +13,9 @@
 #############################################################################
 #
 import os
-from grass.script.core import find_file
-from grass.script.core import run_command
+
 from grass.pygrass.modules.shortcuts import raster as r
+from grass.script.core import find_file, run_command
 
 
 def revenues(opts, yield_surface, m1t1, m1t2, m1, m2,
