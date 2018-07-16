@@ -17,7 +17,7 @@ rough maps of clouds and shadows which require further improvements and elaborat
 
 <p>
 The algorithm has been developed starting from rules found in literature (Parmes et. al 2017) and conveniently refined.<br>
-Regarding the detection of shadows, some misclassification can occur. Often shadows and water have in fact similar reflectance 
+Regarding the detection of shadows, the algorithm has been developed to identify only the shadows of clouds on the ground but some misclassification can occur. Often shadows and water have in fact similar reflectance 
 values which can lead to erroneous classification of water bodies as shadows. Therefore, in order to increase the accuracy of 
 the final shadow mask, a control check is implemented. Clouds and shadows are spatially intersected in order to remove misclassified areas. 
 This means that all those shadow geometries which do not intersect a cloud geometry are removed.
@@ -33,6 +33,9 @@ This means that all those shadow geometries which do not intersect a cloud geome
 <br>
 <i>Fig: Module General WorkFlow</i>
 </center-->
+
+<p>
+The algorithm works on reflectance values (Bottom of Atmosphere Reflectance) therefore the atmospheric correction has to be applied to all input bands (see <a href="i.atcorr.html">i.atcorr</a>)
 
 <p>
 All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12) must be imported in GRASS and specified one by one or using a text file.

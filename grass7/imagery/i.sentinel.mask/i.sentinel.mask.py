@@ -112,6 +112,22 @@
 #% guisection: Output
 #%end
 #%option
+#% key: cloud_threshold
+#% type: integer
+#% description: threshold for cleaning small areas from cloud mask
+#% required : yes
+#% answer: 50000
+#% guisection: Output
+#%end
+#%option
+#% key: shadow_threshold
+#% type: integer
+#% description: threshold for cleaning small areas from shadow mask
+#% required : yes
+#% answer: 10000
+#% guisection: Output
+#%end
+#%option
 #% key: mtd_file
 #% type: string
 #% gisprompt: old,file,file
@@ -218,8 +234,8 @@ def main ():
     d = 'double'
     f_bands = {}
     scale_fac = options['scale_fac']
-    cloud_clean_T = 50000
-    shadow_clean_T = 10000
+    cloud_threshold = options['cloud_threshold']
+    shadow_threshold = options['shadow_threshold']
     raster_max = {}
     cloud_mask = options['cloud_mask']
     shadow_mask = options['shadow_mask']
@@ -263,8 +279,8 @@ def main ():
     else:
         gscript.warning(_('Any rescale factor has been applied'))
         for key, b in bands.items():
-            if gscript.raster_info(b)['datatype'] != "DCELL":
-                gscript.fatal("Raster maps must be double")
+            if gscript.raster_info(b)['datatype'] != "DCELL" and gscript.raster_info(b)['datatype'] != "FCELL":
+                gscript.fatal("Raster maps must be DCELL o FCELL")
             else:
                 f_bands = bands
 
@@ -309,7 +325,7 @@ def main ():
         third_rule,
         fourth_rule,
         fifth_rule)
-    expr_c = '{} = if({}, 0, null( ))'.format(
+    expr_c = '{} = if({}, 0, null())'.format(
         tmp["cloud_def"],
         cloud_rules)
     gscript.mapcalc(expr_c, overwrite=True)
@@ -324,7 +340,7 @@ def main ():
         input=tmp["cloud_v"],
         output=cloud_mask,
         tool='rmarea',
-        threshold=cloud_clean_T)
+        threshold=cloud_threshold)
     gscript.message(_('--- Finish cloud detection procedure ---'))
     ### end of Clouds detection ####
 
@@ -353,7 +369,7 @@ def main ():
         shadow_rules = '(({} == 1) && ({} < 0.007))'.format(
             sixth_rule, 
             seventh_rule)
-        expr_s = '{} = if({}, 0, null( ))'.format(
+        expr_s = '{} = if({}, 0, null())'.format(
             tmp["shadow_temp"],
             shadow_rules)
         gscript.mapcalc( expr_s, overwrite=True)
@@ -369,7 +385,7 @@ def main ():
             input=tmp["shadow_temp_v"],
             output=tmp["shadow_temp_mask"],
             tool='rmarea',
-            threshold=shadow_clean_T)
+            threshold=shadow_threshold)
         gscript.message(_('--- Finish Shadows detection procedure ---'))
         ### end of shadows detection ###
 
