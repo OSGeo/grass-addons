@@ -124,11 +124,21 @@ def get_aoi_box(vector=None):
     args = {}
     if vector:
         args['vector'] = vector
-    info = gs.parse_command('g.region', flags='uplg', **args)
 
-    return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
-        nw_lat=info['nw_lat'], nw_lon=info['nw_long'], ne_lat=info['ne_lat'], ne_lon=info['ne_long'],
-        sw_lat=info['sw_lat'], sw_lon=info['sw_long'], se_lat=info['se_lat'], se_lon=info['se_long']
+    # are we in LatLong location?
+    s = gs.read_command("g.proj", flags='j')
+    kv = gs.parse_key_val(s)
+    if kv['+proj'] != 'longlat':
+        info = gs.parse_command('g.region', flags='uplg', **args)
+        return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
+            nw_lat=info['nw_lat'], nw_lon=info['nw_long'], ne_lat=info['ne_lat'], ne_lon=info['ne_long'],
+            sw_lat=info['sw_lat'], sw_lon=info['sw_long'], se_lat=info['se_lat'], se_lon=info['se_long']
+    )
+    else:
+        info = gs.parse_command('g.region', flags='upg', **args)
+        return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
+            nw_lat=info['n'], nw_lon=info['w'], ne_lat=info['n'], ne_lon=info['e'],
+            sw_lat=info['s'], sw_lon=info['w'], se_lat=info['s'], se_lon=info['e']
     )
 
 class SentinelDownloader(object):
