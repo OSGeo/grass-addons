@@ -85,6 +85,7 @@ import sys
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 import grass.script as gs
+import re
 
 
 def main(options, flags):
@@ -120,6 +121,9 @@ def main(options, flags):
     RCOL = [x for x in RCOL if "nv" not in x and 'default' not in x]
     RCOL = filter(None, RCOL)
     CCAT = [z.split(' ')[0] for z in RCOL]
+    idx = [i for i, item in enumerate(CCAT) if not re.search('\.', item)]
+    CCAT = [CCAT[i] for i in idx]
+    RCOL = [RCOL[i] for i in idx]
     CCAT = map(int, CCAT)
 
     # Set strings / list to be used in loop
