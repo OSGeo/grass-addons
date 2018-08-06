@@ -1,9 +1,13 @@
 <h2>DESCRIPTION</h2>
-<em>i.sentinel.mask</em> allows to automatically identify clouds and their shadows in Sentinel 2 images. 
+<em>i.sentinel.mask</em> allows to automatically identify clouds and their
+shadows in Sentinel 2 images. 
 <p>
-The implemented procedure consists essentially of values thresholds, comparisons and calculations between bands and they lead to two different 
-rough maps of clouds and shadows which require further improvements and elaborations (e.g. transformation from raster to vector, cleaning geometries,
- removing small areas, checking topology, etc.) carried out in the different steps of the procedure. 
+The implemented procedure consists essentially of an algorithm based on values
+thresholds, comparisons and calculations between bands which leads to two
+different rough maps of clouds and shadows. These require further improvements
+and elaborations (e.g. transformation from raster to vector, cleaning
+geometries, removing small areas, checking topology, etc.) carried out in the
+different steps of the procedure. 
 
 <table cellspacing="2" cellpadding="2" width="100%" border="0">
 	<tbody>
@@ -16,18 +20,23 @@ rough maps of clouds and shadows which require further improvements and elaborat
 </table>
 
 <p>
-The algorithm has been developed starting from rules found in literature (Parmes et. al 2017) and conveniently refined.<br>
-Regarding the detection of shadows, the algorithm has been developed to identify only the shadows of clouds on the ground but some misclassification can occur. Often shadows and water have in fact similar reflectance 
-values which can lead to erroneous classification of water bodies as shadows. Therefore, in order to increase the accuracy of 
-the final shadow mask, a control check is implemented. Clouds and shadows are spatially intersected in order to remove misclassified areas. 
-This means that all those shadow geometries which do not intersect a cloud geometry are removed.
+The algorithm has been developed starting from rules found in literature
+(Parmes et. al 2017) and conveniently refined.<br> Regarding the detection of
+shadows, the algorithm has been developed to identify only the shadows of
+clouds on the ground. Obviously, some misclassifications can occur. Often
+shadows and water have in fact, similar reflectance values which can lead to
+erroneous classification of water bodies as shadows. Therefore, in order to
+increase the accuracy of the final shadow mask, a control check is implemented.
+Clouds and shadows are spatially intersected in order to remove misclassified
+areas. This means that all those shadow geometries which do not intersect a
+cloud geometry are removed.
 
 <div align="center" style="margin: 10px">
 <a href="i_sentinel_mask_CS.png">
 <img src="i_sentinel_mask_CS.png" width="30%">
-</a><br>
-<i>Fig: Module General WorkFlow</i>
-</div>
+</a><br><br>
+<i>Fig: "Cleaning" pprocedure of the shadow masko</i>
+</div><br><br>
 <!--center>
 <img src="i_sentinel_mask_CS.png" width="30%">
 <br>
@@ -35,11 +44,16 @@ This means that all those shadow geometries which do not intersect a cloud geome
 </center-->
 
 <p>
-The algorithm works on reflectance values (Bottom of Atmosphere Reflectance) therefore the atmospheric correction has to be applied to all input bands (see <a href="i.atcorr.html">i.atcorr</a>)
+The algorithm works on reflectance values (Bottom of Atmosphere Reflectance)
+therefore, the atmospheric correction has to be applied to all input bands (see
+<a href="i.sentinel.preproc.html">i.sentinel.preproc</a> or <a
+href="i.atcorr.html">i.atcorr</a>)
 
 <p>
-All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12) must be imported in GRASS and specified one by one or using a text file.
-The text file has to be written following the syntax below: <em>variable=your_map</em>
+All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12) must
+be imported in GRASS and specified one by one or using an input text file. The
+text file has to be written following the syntax below:
+<em>variable=your_map</em>
 
 <div class="code"><pre>
 blue=<em>your_blue_map</em>
@@ -51,39 +65,92 @@ swir11=<em>your_swir11_map</em>
 swir12=<em>your_swir12_map</em>
 </pre></div>
 
-Tha variables names (blue, green, red, nir, nir8a, swir11, swir12) have to be written precisely like in the example above (e.g. not Blue, nor BLUE but blue), 
+Tha variables names (blue, green, red, nir, nir8a, swir11, swir12) have to be
+written precisely like in the example above (e.g. not Blue, nor BLUE but blue),
 no spaces or special characters are permitted.
 
 <p>
-The final outputs are two different vector maps, one for clouds and one for shadows.
+The final outputs are two different vector maps, one for clouds and one for
+shadows.
 <p>
-The metadata file (MTD_TL.xml) is required only if both masks (cloud and shadow)
-are computed. The module retrieves from this file the sun azimuth and zenith necessary for the shadow mask cleaning phase 
+The metadata file (MTD_TL.xml or S2A_OPER_MTD_L1C_TL_MPS__*.xml) is required
+only if both masks (cloud and shadow) are computed. The module retrieves from
+this file the sun azimuth and zenith necessary for the shadow mask cleaning
+phase 
 <em>(see the schema above)</em>
 <p>
-If flag <b>-s</b> is given all selected bands are rescaled using the specified scale factor [<b>scale_fac</b>=<em>integer</em>]. By default the scale factor is set to 10000, 
-the QUANTIFICATION_VALUE from the metadata of Sentinel 2 images.
+If flag <b>-s</b> is given all selected bands are rescaled using the specified
+scale factor [<b>scale_fac</b>=<em>integer</em>]. By default the scale factor
+is set to 10000, the QUANTIFICATION_VALUE from the metadata of Sentinel 2
+images.
 <p>
-The module takes the current region settings into accout. To ignore the current region and set it from the whole image, the flag <b>-r</b> has to be given.
+The module takes the current region settings into accout. To ignore the current
+region and set it from the whole image, the flag <b>-r</b> has to be given.
 <p>
-The module allows to compute only the cloud mask or both cloud and shadow masks. If flag <b>-c</b> is given, only the cloud procedure will be performed. The computation 
-of cloud mask is mandatory for shadow mask creation. In fact cloud map is used during the cleaning phase of the shadow mask in order to remove misclassifications.
+The module allows to compute only the cloud mask or both cloud and shadow
+masks. If flag <b>-c</b> is given, only the cloud procedure will be performed.
+The computation of cloud mask is mandatory for shadow mask creation. In fact
+cloud map is used during the cleaning phase of the shadow mask in order to
+remove misclassifications.
 
 <h2>EXAMPLE</h2>
-<div class="code">
-i.sentinel.mask -r -s input_file=/home/input_bands.txt cloud_mask=cloud_sen2 shadow_mask=shadow_sen2 mtd_file=/home/MTD_TL.xml scale_fac=1000
-</div>
 <p>
--r to set the computational region to the maximum image extente and -s to rescale the input bands with the specified scale factor (in this case 1000)
+The example illustrates how to run i.sentinel.mask for a Sentinel 2A image
+(S2A_MSIL1C_20180713T155901_N0206_R097_T17SPV_20180713T211059.SAFE) in the
+North Carolina location.<br> Obviously, the image has been imported and
+atmospheric correction has been performed before running i.sentinel.mask .
+<div class="code"><pre>
+i.sentinel.mask -r input_file=path/input_cloud_mask.txt cloud_mask=cloud shadow_mask=shadow cloud_threshold=25000 shadow_threshold=5000 mtd_file=path/MTD_TL.xml
+</pre></div>
+<p>
+The input text file:
+<div class="code"><pre>
+blue=T17SPV_20180315T160021_B02_cor
+green=T17SPV_20180315T160021_B03_cor
+red=T17SPV_20180315T160021_B04_cor
+swir11=T17SPV_20180315T160021_B11_cor
+nir=T17SPV_20180315T160021_B08_cor
+swir12=T17SPV_20180315T160021_B12_cor
+nir8a=T17SPV_20180315T160021_B8A_cor
+</pre></div>
+<p>
+<b>-r</b> to set the computational region to the maximum image extente
+<br>
+<div align="center" style="margin: 10px">
+<a href="i_sentinel_mask_ES.png">
+<img src="i_sentinel_mask_ES.png" width="1422" height="565" border="0">
+</a><br><br>
+<i>Figure1 (left): Sentinel-2A Band 02 - Figure2 (right): Sentinel-2A Band 02
+with computed cloud and shadow masks</i>
+</div>
+
+<h2>IMPORTANT NOTES</h2>
+i.sentinel.mask works for Sentinel 2 images whose names follow both the New
+Compact Naming Convention (e.g.
+S2A_MSIL1C_20170527T102031_N0205_R065_T32TMQ_20170527T102301.SAFE) and the Old
+format Naming Convention (e.g.
+S2A_OPER_PRD_MSIL1C_PDMC_20160930T155112_R079_V20160930T095022_20160930T095944.SAFE).
+Therefore, both the MTD_TL.xml and S2A_OPER_MTD_L1C_TL_MPS__*.xml file can be
+provided as input for the computation of shadow mask. Both files can be found
+in the <em>GRANULE</em> folder of the downloaded *.SAFE product.<br>
+For further information about the naming convention see <a
+href="https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/naming-convention">ESA
+Sentinel User Guide</a>.
 
 <h2>REFERENCE</h2>
 <ul>
 <li>Parmes et. al 2017</li>
 </ul>
 
+<h2>FOLLOW UP</h2>
+<ul>
+<li> Implement other existing algorithm of clouds and shadows detection
+</ul>
+
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="i.sentinel.preproc.html">i.sentinel.preproc</a>,
 <a href="i.sentinel.download.html">i.sentinel.download</a>,
 <a href="i.sentinel.import.html">i.sentinel.import</a>,
 <a href="r.import.html">r.import</a>,

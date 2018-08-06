@@ -178,11 +178,7 @@ import xml.etree.ElementTree as et
 def main ():
 
 
-    #import bands atmospherically corrected using arcsi (scale factor 1000 instead of 10000)
-    #############################################
-    # INPUT
-    #############################################
-    #temporary map names
+    # Temporary map names
     global tmp, t, mapset
     tmp = {}
     mapset = gscript.gisenv()['MAPSET']
@@ -201,18 +197,20 @@ def main ():
     tmp["cl_shift"] = "cl_shift_" + processid
     tmp["overlay"] = "overlay_" + processid
     
-    #check temporary map names are not existing maps
+    # Check temporary map names are not existing maps
     for key, value in tmp.items():
         if gscript.find_file(value,
             element = 'vector',
             mapset = mapset)['file']:
-                gscript.fatal(("Temporary vector map <{}> already exists.").format(value))
+            gscript.fatal(('Temporary vector map <{}> \
+                already exists.').format(value))
         if gscript.find_file(value,
             element = 'cell',
             mapset = mapset)['file']:
-                gscript.fatal(("Temporary raster map <{}> already exists.").format(value))
+            gscript.fatal(('Temporary raster map <{}> \
+                already exists.').format(value))
 
-    #input file
+    # Input file
     mtd_file = options['mtd_file']
     bands = {} 
     if options['input_file']=='':
@@ -227,8 +225,15 @@ def main ():
         input_file = options['input_file']
         for line in file(input_file):
             a = line.split('=')
-            if len(a) != 2 or a[0] not in ['blue', 'green', 'red', 'nir', 'nir8a', 'swir11', 'swir12' ]:
-                gscript.fatal("Syntax error in the txt file. See the manual for further information about the right syntax.")
+            if len(a) != 2 or a[0] not in ['blue',
+                'green',
+                'red',
+                'nir',
+                'nir8a',
+                'swir11',
+                'swir12' ]:
+                gscript.fatal('Syntax error in the txt file. See the manual \
+                    for further information about the right syntax.')
             a[1] = a[1].strip()
             bands[a[0]] = a[1]
     d = 'double'
@@ -240,29 +245,40 @@ def main ():
     cloud_mask = options['cloud_mask']
     shadow_mask = options['shadow_mask']
 
-    if bands['blue'] == '' or bands['green'] == '' or bands['red'] == '' or bands['nir'] == '' or bands['nir8a'] == '' or bands['swir11'] == '' or bands['swir12'] == '':
-        gscript.fatal(("All input bands (blue, green, red, nir, nir8a, swir11, swir12) are required"))
+    if (bands['blue'] == '' or
+        bands['green'] == '' or
+        bands['red'] == '' or
+        bands['nir'] == '' or
+        bands['nir8a'] == ''or
+        bands['swir11'] == '' or
+        bands['swir12'] == ''):
+        gscript.fatal('All input bands (blue, green, red, nir, nir8a, swir11, \
+            swir12) are required')
 
     for key, value in bands.items():
         if not gscript.find_file(value,
             element = 'cell',
             mapset = mapset)['file']:
-                gscript.fatal(("Raster map <{}> not found.").format(value))
+            gscript.fatal(('Raster map <{}> not found.').format(value))
 
     if not flags["c"]:
         if options['mtd_file']== '':
-            gscript.fatal("Metadata file is required for shadow mask computation. Please specified it")
+            gscript.fatal('Metadata file is required for shadow mask \
+                computation. Please specified it')
         if options['shadow_mask']=='':
-            gscript.fatal("Output name is required for shadow mask. Please specified it")
+            gscript.fatal('Output name is required for shadow mask. \
+                Please specified it')
 
     if flags["r"]:
         gscript.use_temp_region()
         gscript.run_command('g.region',
             rast=bands.values(),
             flags='a')
-        gscript.message(_("--- The computational region has been temporarily set to image max extent ---"))
+        gscript.message(_('--- The computational region has been temporarily \
+            set to image max extent ---'))
     else:
-        gscript.warning(_("All subsequent operations will be limited to the current computational region"))
+        gscript.warning(_('All subsequent operations will be limited to the \
+            current computational region'))
 
     if flags["s"]:
         gscript.message(_('--- Start rescaling bands ---'))
@@ -279,8 +295,9 @@ def main ():
     else:
         gscript.warning(_('Any rescale factor has been applied'))
         for key, b in bands.items():
-            if gscript.raster_info(b)['datatype'] != "DCELL" and gscript.raster_info(b)['datatype'] != "FCELL":
-                gscript.fatal("Raster maps must be DCELL o FCELL")
+            if (gscript.raster_info(b)['datatype'] != "DCELL" and
+                gscript.raster_info(b)['datatype'] != "FCELL"):
+                gscript.fatal('Raster maps must be DCELL o FCELL')
             else:
                 f_bands = bands
 
@@ -289,10 +306,11 @@ def main ():
         gscript.message(_(fb))
         stats = gscript.parse_command('r.univar', flags='g', map=fb)
         raster_max[key] = (float(stats['max']))
-    gscript.message(_('--- Computed maximum value: {} ---'.format(raster_max.values())))
+    gscript.message(_('--- Computed maximum value: {} ---'.format(
+        raster_max.values())))
     gscript.message(_('--- Statistics have been computed! ---'))
 
-    #### start of Clouds detection  (some rules from litterature)###
+    # Start of Clouds detection  (some rules from litterature)
     gscript.message(_('--- Start clouds detection procedure ---'))
     gscript.message(_('--- Computing cloud mask... ---'))
     first_rule = '(({} > (0.08*{})) && ({} > (0.08*{})) && ({} > (0.08*{})))'.format(
@@ -342,10 +360,10 @@ def main ():
         tool='rmarea',
         threshold=cloud_threshold)
     gscript.message(_('--- Finish cloud detection procedure ---'))
-    ### end of Clouds detection ####
+    # End of Clouds detection
 
     if not flags["c"]:
-        ### start of shadows detection ###
+        # Start of shadows detection
         gscript.message(_('--- Start shadows detection procedure ---'))
         gscript.message(_('--- Computing shadow mask... ---'))
         sixth_rule = '((({} > {}) && ({} < {}) && ({} < 0.1) && ({} < 0.1)) \
@@ -387,14 +405,13 @@ def main ():
             tool='rmarea',
             threshold=shadow_threshold)
         gscript.message(_('--- Finish Shadows detection procedure ---'))
-        ### end of shadows detection ###
+        # End of shadows detection
 
-        #####################################################################
         # START shadows cleaning Procedure (remove shadows misclassification)
-        #####################################################################
-        ### start shadow mask preparation ###
+        # Start shadow mask preparation
 
-        gscript.message(_('--- Start removing misclassification from the shadow mask ---'))
+        gscript.message(_('--- Start removing misclassification from \
+            the shadow mask ---'))
         gscript.message(_('--- Data preparation... ---'))
         gscript.run_command('v.centroids',
             input=tmp["shadow_temp_mask"],
@@ -436,8 +453,8 @@ def main ():
             map=tmp["addcat"],
             columns='value')
 
-        ### end shadow mask preparation ###
-        ### start cloud mask preparation ###
+        # End shadow mask preparation
+        # Start cloud mask preparation
 
         gscript.run_command('v.db.droptable',
             map=cloud_mask,
@@ -446,10 +463,12 @@ def main ():
             map=cloud_mask,
             columns='value')
 
-        ### end cloud mask preparation ###
-        ### shift cloud mask using dE e dN ###
-        ### start reading mean sun zenith and azimuth from xml file to compute dE and dN automatically ###
-        gscript.message(_('--- Reading mean sun zenith and azimuth from MTD_TL.xml file to compute clouds shift ---'))
+        # End cloud mask preparation
+        # Shift cloud mask using dE e dN
+        # Start reading mean sun zenith and azimuth from xml file to compute 
+        #dE and dN automatically
+        gscript.message(_('--- Reading mean sun zenith and azimuth from \
+            MTD_TL.xml file to compute clouds shift ---'))
         xml_tree = et.parse(mtd_file)
         root = xml_tree.getroot()
         ZA = []
@@ -459,12 +478,17 @@ def main ():
                 ZA.append (subelem.text)
         z = float(ZA[0])
         a = float(ZA[1])
-        gscript.message(_('--- the mean sun Zenith is: {:.3f} deg ---'.format(z)))
-        gscript.message(_('--- the mean sun Azimuth is: {:.3f} deg ---'.format(a)))
+        gscript.message(_('--- the mean sun Zenith is: \
+            {:.3f} deg ---'.format(z)))
+        gscript.message(_('--- the mean sun Azimuth is: \
+            {:.3f} deg ---'.format(a)))
 
-        ### stop reading mean sun zenith and azimuth from xml file to compute dE and dN automatically ###
-        ### start computing the east and north shift for clouds and the overlapping area between clouds and shadows at steps of 100m ###
-        gscript.message(_('--- Start computing the east and north clouds shift at steps of 100m of clouds height---'))
+        # Stop reading mean sun zenith and azimuth from xml file to compute dE 
+        #and dN automatically
+        # Start computing the east and north shift for clouds and the 
+        #overlapping area between clouds and shadows at steps of 100m
+        gscript.message(_('--- Start computing the east and north clouds \
+            shift at steps of 100m of clouds height---'))
         H = 1000
         dH = 100
         HH = []
@@ -511,10 +535,11 @@ def main ():
             area2 = gscript.parse_key_val(area, sep='|')
             AA.append(float(area2['total area']))
 
-        # find the maximum overlapping area between clouds and shadows#
+        # Find the maximum overlapping area between clouds and shadows
         index_maxAA = numpy.argmax(AA)
 
-        # clouds are shifted using the clouds height corresponding to the maximum overlapping area then are intersect with shadows#
+        # Clouds are shifted using the clouds height corresponding to the
+        #maximum overlapping area then are intersect with shadows
         gscript.run_command('v.transform',
             input=cloud_mask,
             output=tmp["cl_shift"],
@@ -531,27 +556,35 @@ def main ():
             operator='intersects',
             quiet=True)
 
-        gscript.message(_('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA])))
-        gscript.message(_('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA])))
-        gscript.message(_('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA])))
+        gscript.message(_('--- the estimated clouds height is: \
+            {} m ---'.format(HH[index_maxAA])))
+        gscript.message(_('--- the estimated east shift is: \
+            {:.2f} m ---'.format(dE[index_maxAA])))
+        gscript.message(_('--- the estimated north shift is: \
+            {:.2f} m ---'.format(dN[index_maxAA])))
     else:
         gscript.warning(_('No shadow mask will be computed'))
 
 def cleanup():
     if flags["r"]:
         gscript.del_temp_region()
-    gscript.message(_('--- The computational region has been reset to the previous one---'))
+    gscript.message(_('--- The computational region has been reset to \
+        the previous one---'))
     if flags["t"]:
         gscript.message(_('--- No temporary files have been deleted ---'))
     else:
         for key, value in tmp.items():
-            if gscript.find_file(value, element = 'vector', mapset = mapset)['file']:
+            if gscript.find_file(value,
+                element = 'vector',
+                mapset = mapset)['file']:
                 gscript.run_command("g.remove",
                     flags="f",
                     type='vector',
                     name=",".join([tmp[m] for m in tmp.keys()]),
                     quiet=True)
-            if gscript.find_file(value, element = 'cell', mapset = mapset)['file']:
+            if gscript.find_file(value,
+                element = 'cell',
+                mapset = mapset)['file']:
                 gscript.run_command("g.remove",
                     flags="f",
                     type='raster',
