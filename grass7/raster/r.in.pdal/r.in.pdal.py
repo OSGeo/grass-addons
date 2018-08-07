@@ -159,18 +159,26 @@ def footprintToVectormap(infile, footprint):
     p = grass.call(command_fp, stdout=fh)
     fh.close()
     if p != 0:
-        # check to see if gdalwarp executed properly
+        # check to see if pdal info executed properly
         os.remove(tmp_fp)
         grass.fatal(_("pdal info broken..."))
 
-    str1 = u'boundary'
-    str2 = u'boundary_json'
-    str3 = u'coordinates'
     data = json.load(open(tmp_fp))
-    coord = data[str1][str2][str3][0][0]
     xy_in = ''
-    for xy in coord:
-        xy_in += str(xy[0]) + ',' + str(xy[1]) + '\n'
+    str1 = u'boundary'
+    try:
+        str2 = u'boundary_json'
+        str3 = u'coordinates'
+        coord = data[str1][str2][str3][0][0]
+        for xy in coord:
+            xy_in += str(xy[0]) + ',' + str(xy[1]) + '\n'
+    except:
+        coord_str = str(data[str1][str1])
+        coord = coord_str[coord_str.find('((')+2:coord_str.find('))')]
+        x_y = coord.split(', ')
+        for xy in x_y:
+            xy_in += xy.replace(' ', ',') + '\n'
+
     tmp_xy = os.path.join(tempfile.gettempdir(), 'xy.txt')
     f = open(tmp_xy,'w')
     f.write(xy_in[:-1])
@@ -188,9 +196,14 @@ def footprintToVectormap(infile, footprint):
     os.remove(tmp_xy)
     grass.run_command('g.remove', flags='f', type='vector', name='footprint_line', quiet=True)
     grass.run_command('g.remove', flags='f', type='vector', name='footprint_boundary', quiet=True)
-    grass.message(_("Generating output vactor map <%s>...") % footprint)
+
+    # metadata
+    grass.run_command('v.support', map=footprint, comment='in ' + os.environ['CMDLINE'])
+
+    grass.message(_("Generating output vector map <%s>...") % footprint)
 
 def main():
+
     # parameters
     infile = options['input']
     raster_reference = options['raster_reference']
@@ -219,17 +232,17 @@ def main():
         outdev = sys.stdout
 
     # scan -s or shell_script_style -g:
-    if scan: # or shell_script_style:
+    if scan:
         if not grass.find_program('pdal', 'info --summary'):
             grass.fatal(_("The pdal program is not in the path and executable. Please install first"))
-        command_scan = ['pdal','info','--summary', infile]
+        command_scan = ['pdal', 'info', '--summary', infile]
         tmp_scan = os.path.join(tempfile.gettempdir(), 'scan.txt')
         fh = open(tmp_scan, 'wb')
         p = grass.call(command_scan, stdout=fh)
         fh.close()
         summary = True
         if p != 0:
-            command_scan = ['pdal','info',infile]
+            command_scan = ['pdal', 'info', infile]
             fh = open(tmp_scan, 'wb')
             p = grass.call(command_scan, stdout=fh)
             fh.close()
@@ -245,7 +258,7 @@ def main():
             y_str = u'Y'
             x_str = u'X'
             z_str = u'Z'
-            min_str =  u'min'
+            min_str = u'min'
             max_str = u'max'
             n = str(data[str1][str2][y_str][max_str])
             s = str(data[str1][str2][y_str][min_str])
@@ -265,12 +278,11 @@ def main():
             t = str(data[str1][str2][str3][str4][u'maxz'])
             b = str(data[str1][str2][str3][str4][u'minz'])
         if not shell_script_style:
-            print('north: ' + n + '\n' + 'south: ' + s + '\n' +
-            'west:   ' + w + '\n' + 'east:   ' + e + '\n' +
-            'top:     ' + t + '\n' + 'bottom:  ' + b)
+            grass.message(_("north: %s\nsouth: %s\nwest: %s\neast: %s\ntop: %s\nbottom: %s")
+                % (n,s,w,e,t,b))
         else:
-            print('n=' + n + ' ' + 's=' + s + ' ' + 'w=' + w + ' ' +
-            'e=' + e + ' ' + 't=' + t + ' ' + 'b=' + b)
+            grass.message(_("n=%s s=%s w=%s e=%s t=%s b=%s")
+                % (n,s,w,e,t,b))
     elif footprint:
         print 'footprint'
         footprintToVectormap(infile, footprint)
@@ -294,10 +306,9 @@ def main():
         formatReader = '' # from https://pdal.io/stages/readers.html
         if infile_format.lower() == 'laz' or infile_format.lower() == 'las':
             formatReader = 'readers.las'
-        elif infile_format.lower() == 'pts': # nicht getestet
+        elif infile_format.lower() == 'pts': # not tested
             formatReader = 'readers.pts'
         else:
-            # check to see if gdalwarp executed properly
             grass.run_command('g.remove', flags='f', type='vector', name='tiles', quiet=True)
             grass.fatal(_("Format .%s is not supported.." % infile_format))
         tmp_file_json = os.path.join(tempfile.gettempdir(), 'las2txt.json')
@@ -336,14 +347,22 @@ def main():
         p2 = grass.call(command_pdal1,stdout=fh)
         fh.close()
         if p2 != 0:
-            # check to see if gdalwarp executed properly
+            # check to see if pdal pipeline executed properly
             grass.fatal(_("pdal pipeline is broken..."))
 
         p3 = grass.call(command_pdal2,stdout=outdev)
         if p3 != 0:
-            # check to see if gdalwarp executed properly
+            # check to see if r.in.xyz executed properly
             os.remove(tmp_xyz)
             grass.fatal(_("r.in.xyz is broken..."))
+
+        # metadata
+        emptyHistroy = os.path.join(tempfile.gettempdir(), 'emptyHistroy.txt')
+        f = file(emptyHistroy, 'w')
+        f.close()
+        grass.run_command('r.support', map=outfile, source1=infile, description='generated by r.in.pdal', loadhistory=emptyHistroy)
+        grass.run_command('r.support', map=outfile, history=os.environ['CMDLINE'])
+        os.remove(emptyHistroy)
 
         # Cleanup
         grass.message(_("Cleaning up..."))
