@@ -25,7 +25,6 @@
 #% keyword: LIDAR
 #% keyword: statistics
 #% keyword: conversion
-#% overwrite: yes
 #%end
 
 #%option G_OPT_F_BIN_INPUT
@@ -282,9 +281,6 @@ def main():
     # SRSs match, if faster, then get projection ahead of time
     # (which may be good even to tell user about reprojection happening)
     reprojection = True
-
-    # overwrite auf true setzen
-    os.environ['GRASS_OVERWRITE'] = '1'
 
     # to hide non-error messages from subprocesses
     if grass.verbosity() <= 2:
