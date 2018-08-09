@@ -27,7 +27,7 @@
 #% overwrite: yes
 #%end
 
-#%option G_OPT_R_INPUT
+#%option G_OPT_F_BIN_INPUT
 #% key: input
 #% description: LAS input file
 #% required: yes
@@ -47,14 +47,14 @@
 #% required: no
 #%end
 
-#%option
+#%option G_OPT_R_INPUT
 #% key: raster_reference
 #% label: Raster map to be used as pixel geometry reference
 #% description: Raster map to align to, e.g. an orthophoto of the same region
 #% required: no
 #%end
 
-#%option
+#%option G_OPT_F_BIN_INPUT
 #% key: raster_file
 #% label: External raster map to be used as pixel geometry reference
 #% description: External raster map to align to, e.g. an orthophoto of the same region
@@ -87,14 +87,9 @@
 #% required: no
 #%end
 
-#%option
-#% key: type
-#% type: string
-#% description: Type of raster map to be created / Storage type for resultant raster map
-#% options: CELL, FCELL, DCELL
+#%option G_OPT_R_TYPE
 #% answer: FCELL
 #% required: no
-#% descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
 #%end
 
 #%option
