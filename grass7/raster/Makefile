@@ -57,6 +57,7 @@ SUBDIRS = \
 	r.hydrodem \
 	r.hypso \
 	r.in.arc \
+	r.in.pdal \
 	r.in.srtm.region \
 	r.in.usgs \
 	r.in.wcs \
