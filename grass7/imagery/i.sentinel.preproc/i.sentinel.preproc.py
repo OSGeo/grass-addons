@@ -161,10 +161,10 @@ def main ():
         check_odir = 1
         filename = [i for i in os.listdir(input_dir) if i.startswith("S")]
         string = str(filename).strip("['']")
-        mtd_file = options['input_dir'] + '/' + string
+        mtd_file = os.path.join(input_dir, string)
     elif level_dir[1] == 'MSIL1C':
         check_ndir = 1
-        mtd_file = options['input_dir'] + '/MTD_MSIL1C.xml'
+        mtd_file = os.path.join(input_dir, 'MTD_MSIL1C.xml')
     else:
         gscript.fatal('The input directory does not belong to a L1C Sentinel image. Please check the input directory')
     # Check if Metadata file exists
@@ -187,11 +187,11 @@ def main ():
         try:
             if flags["r"]:
                 gscript.run_command('i.sentinel.import',
-                    input=options['input_dir'],
+                    input=input_dir,
                     flags='r')
             else:
                 gscript.run_command('i.sentinel.import',
-                    input=options['input_dir'])
+                    input=input_dir)
         except:
             gscript.fatal('Module rquire i.sentinel.import. Please install it using g.extension.')
 
