@@ -139,6 +139,12 @@
 #% description: In scan mode, print using shell script style
 #%end
 
+#%flag
+#% key: e
+#% label: Use the extent of the input for the raster extent
+#% description: Set internally computational region extents based on the point cloud
+#%end
+
 import os
 import sys
 import json
@@ -263,6 +269,7 @@ def main():
     # flags
     scan = flags['s']
     shell_script_style = flags['g']
+    input_as_extent = flags['e']
 
     # overwrite auf true setzen
     os.environ['GRASS_OVERWRITE'] = '1'
@@ -338,35 +345,36 @@ def main():
     elif footprint:
         footprint_to_vectormap(infile, footprint)
     else:
-        # get region with pdal
-        footprint_to_vectormap(infile, 'tiles')
+        if input_as_extent or raster_file or raster_reference:
+            # get region with pdal
+            footprint_to_vectormap(infile, 'tiles')
 
-        if raster_file:
-            raster_reference = 'img'
-            grass.run_command('r.external',
-                              input=raster_file,
-                              flags='o',
-                              output=raster_reference
-                              )
-            result = grass.find_file(name=raster_reference, element='raster')
-            if result[u'fullname'] == u'':
-                raster_reference = 'img.1'
-        # first pass: set region to extent of tiles while aligning pixel
-        # geometry to raster_reference
-        grass.run_command('g.region', vector='tiles', flags='p')
-        if raster_reference:
+            if raster_file:
+                raster_reference = 'img'
+                grass.run_command('r.external',
+                                  input=raster_file,
+                                  flags='o',
+                                  output=raster_reference
+                                  )
+                result = grass.find_file(name=raster_reference, element='raster')
+                if result[u'fullname'] == u'':
+                    raster_reference = 'img.1'
+            # first pass: set region to extent of tiles while aligning pixel
+            # geometry to raster_reference
+            grass.run_command('g.region', vector='tiles', flags='p')
+            if raster_reference:
+                grass.run_command('g.region',
+                                  vector='tiles',
+                                  flags='ap',
+                                  align=raster_reference
+                                  )
+            # second pass: change raster resolution to final resolution while best
+            # effort aligning to pixel geometry
             grass.run_command('g.region',
                               vector='tiles',
                               flags='ap',
-                              align=raster_reference
+                              res=resolution
                               )
-        # second pass: change raster resolution to final resolution while best
-        # effort aligning to pixel geometry
-        grass.run_command('g.region',
-                          vector='tiles',
-                          flags='ap',
-                          res=resolution
-                          )
 
         # . pdal pipline laz2json (STDOUT) | r.in.xyz
         bn = os.path.basename(infile)
