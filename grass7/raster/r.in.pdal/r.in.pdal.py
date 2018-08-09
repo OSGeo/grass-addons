@@ -271,6 +271,12 @@ def main():
     shell_script_style = flags['g']
     input_as_extent = flags['e']
 
+    # reprojecting always
+    # TODO: test if it is faster to skip it in the pipeline when
+    # SRSs match, if faster, then get projection ahead of time
+    # (which may be good even to tell user about reprojection happening)
+    reprojection = True
+
     # overwrite auf true setzen
     os.environ['GRASS_OVERWRITE'] = '1'
 
@@ -400,6 +406,15 @@ def main():
         data = {}
         data['pipeline'] = []
         data['pipeline'].append({'type': format_reader, 'filename': infile})
+        if reprojection:
+            location_srs = grass.read_command('g.proj', flags='j')
+            # making use of universal newlines
+            location_srs = " ".join(location_srs.splitlines())
+            reproj_filter = {
+                "type": "filters.reprojection",
+                "out_srs": location_srs
+                }
+            data['pipeline'].append(reproj_filter)
         data['pipeline'].append({
             'type': 'writers.text',
             'format': 'csv',
