@@ -299,8 +299,8 @@ def main():
     if scan:
         if not grass.find_program('pdal', 'info --summary'):
             grass.fatal(_(
-                "The pdal program is not in the path " +
-                "and executable. Please install first"))
+                "The pdal program is not in the path "
+                "and executable. Please install it first"))
         command_scan = ['pdal', 'info', '--summary', infile]
         tmp_scan = grass.tempfile()
         if tmp_scan is None:
@@ -319,7 +319,7 @@ def main():
             # check to see if pdal executed properly
             os.remove(tmp_scan)
             grass.fatal(_(
-                "pdal cannot determine metadata " +
+                "pdal cannot determine metadata "
                 "for unsupported format of <%s>") % infile)
         data = json.load(open(tmp_scan))
         if summary:
