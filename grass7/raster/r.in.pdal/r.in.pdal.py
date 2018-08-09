@@ -6,6 +6,7 @@
 #
 # AUTHOR(S): Anika Bettge <bettge at mundialis.de>
 #            Thanks to Markus Neteler <neteler at mundialis.de> for help
+#            Vaclav Petras <wenzeslaus at gmail com>
 #
 # PURPOSE:   Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
 #
@@ -31,6 +32,14 @@
 #% key: input
 #% description: LAS input file
 #% required: yes
+#%end
+
+#%option
+#% key: proj_in
+#% type: string
+#% label: SRS information for input as EPSG code or PROJ string
+#% description: Override input SRS using EPSG code (e.g. EPSG:3358) or PROJ string
+#% required: no
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -261,6 +270,8 @@ def main():
     pth = options['pth']
     trim = options['trim']
     footprint = options['footprint']
+    # user-supplied projection (overrides the actual one)
+    user_provided_srs = options['proj_in']
     # flags
     scan = flags['s']
     shell_script_style = flags['g']
@@ -409,6 +420,8 @@ def main():
                 "type": "filters.reprojection",
                 "out_srs": location_srs
                 }
+            if user_provided_srs:
+                reproj_filter.update({"in_srs": user_provided_srs})
             data['pipeline'].append(reproj_filter)
         data['pipeline'].append({
             'type': 'writers.text',

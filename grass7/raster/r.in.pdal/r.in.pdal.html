@@ -36,7 +36,8 @@ the extent and resolution of the resulting raster and internally
 
 <h2>EXAMPLES</h2>
 
-Import of a LAS file using PDAL. The sample LAS file is available
+Import of a LAS file using PDAL into a mapset in the sample NC SPM
+location. The sample LAS file is available
 <a href="https://www.grassbook.org/wp-content/uploads/ncexternal/lidar_raleigh_nc_spm_height_feet.las">here</a>.
 
 <div class="code"><pre>
@@ -50,8 +51,9 @@ r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las output=lidar_raleigh -s
 r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las output=lidar_raleigh -s -g
 
 # import while aligning pixel geometry to existing "elevation" 10m res. raster map
+# specifying EPSG manually because SRS information is missing in this LAS file
 r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las raster_reference=elevation \
-          resolution=10 output=lidar_raleigh method=mean
+          resolution=10 output=lidar_raleigh method=mean proj_in=EPSG:3358
 
 # optionally: footprint=lidar_raleigh_footprint
 
@@ -93,7 +95,10 @@ r.univar -e diff
 
 <h2>AUTHORS</h2>
 
-Anika Bettge, mundialis GmbH &amp; Co. KG
+Anika Bettge, mundialis GmbH &amp; Co. KG<br>
+Vaclav Petras,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+(projection, computational region)
 <p>
 Documentation: Markus Neteler, mundialis GmbH &amp; Co. KG
 <p>
