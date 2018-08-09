@@ -2,30 +2,30 @@
 
 ############################################################################
 #
-# MODULE:	    r.in.pdal
+# MODULE:    r.in.pdal
 #
-# AUTHOR(S):    Anika Bettge <bettge at mundialis.de>
-#               Thanks to Markus Neteler <neteler at mundialis.de> for help
+# AUTHOR(S): Anika Bettge <bettge at mundialis.de>
+#            Thanks to Markus Neteler <neteler at mundialis.de> for help
 #
-# PURPOSE:      Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
+# PURPOSE:   Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
 #
-# COPYRIGHT:	(C) 2018 by mundialis and the GRASS Development Team
+# COPYRIGHT: (C) 2018 by mundialis and the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#            This program is free software under the GNU General Public
+#            License (>=v2). Read the file COPYING that comes with GRASS
+#            for details.
 #
 #############################################################################
 
-#%Module
-#%description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
-#%keyword: raster
-#%keyword: import
-#%keyword: LIDAR
-#%keyword: statistics
-#%keyword: conversion
-#%overwrite: yes
-#%End
+#%module
+#% description: Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
+#% keyword: raster
+#% keyword: import
+#% keyword: LIDAR
+#% keyword: statistics
+#% keyword: conversion
+#% overwrite: yes
+#%end
 
 #%option G_OPT_R_INPUT
 #% key: input
