@@ -706,7 +706,7 @@ def extract_pixels(response, predictors, lowmem=False, na_rm=False):
                 shape=(current.rows, current.cols))
             response_np[:] = np.array(roi_gr)[:]
     else:
-        gs.fatal("GRASS response raster does not exist.... exiting")
+        gs.fatal("GRASS GIS response raster map <%s> does not exist" % response)
 
     # determine number of predictor rasters
     n_features = len(predictors)
