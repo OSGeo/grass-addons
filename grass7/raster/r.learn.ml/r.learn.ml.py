@@ -923,6 +923,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
     if predict_type == 'raw':
         numpy2raster(array=prediction, mtype=ftype, rastname=output,
                      overwrite=True)
+        gs.raster_history(output)
 
     # writing of predicted results for probabilities
     if predict_type == 'prob':
@@ -944,6 +945,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
             rastername = output + '_' + str(label)
             numpy2raster(array=prediction[:, :, pred_index], mtype='FCELL',
                          rastname=rastername, overwrite=overwrite)
+            gs.raster_history(output)
 
 
 def __predict_parallel2(estimator, predictors, predict_type, current, row_min, row_max):
