@@ -4,44 +4,12 @@
 #include "matrix.h"
 
 extern "C" {
-namespace grass {
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
 #include <grass/gmath.h>
 }
-}
-
-using grass::DCELL;
-using grass::CELL;
-using grass::G__calloc;
-using grass::Cell_head;
-using grass::Map_info;
-
-using grass::Vect_new_cats_struct;
-using grass::Vect_new_line_struct;
-
-using grass::Rast_allocate_c_input_buf;
-using grass::Rast_open_old;
-using grass::Rast_get_row;
-using grass::Rast_close;
-
-using grass::Rast_window_rows;
-using grass::Rast_window_cols;
-using grass::Rast_allocate_c_buf;
-using grass::Rast_open_fp_new;
-using grass::Rast_put_c_row;
-using grass::Rast_get_cellhd;
-
-using grass::G_gettext;
-using grass::G_fatal_error;
-using grass::G_debug;
-using grass::G_free;
-
-using grass::Colors;
-using grass::Range;
-using grass::G_mapset;
 
 /** Loads map into memory.
 
@@ -160,8 +128,8 @@ void create_vector_map(const char * name, const SegmentList& segments,
     struct Map_info Map;
     Vect_open_new(&Map, name, 0);
 
-    struct grass::line_cats *Cats;
-    struct grass::line_pnts *points;
+    struct line_cats *Cats;
+    struct line_pnts *points;
     Cats = Vect_new_cats_struct();
     points = Vect_new_line_struct();
 
