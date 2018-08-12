@@ -63,7 +63,7 @@ static NUMFUNC nf[] = {
     {"fabs", fabs, "d"},
     {"floor", floor, "d"},
     {"fmod", fmod, "dd"},
-    {"drem", drem, "dd"},
+    {"drem", remainder, "dd"},
     {"j0", j0, "d"},
     {"j1", j1, "d"},
     {"jn", jn, "dd"},
