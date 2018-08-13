@@ -245,7 +245,8 @@ The example illustrates how to run i.sentinel.preproc for a Sentinel 2A image
 North Carolina location.<br> The AERONET file has been downloaded from the
 <em>EPA-Res_Triangle_Pk</em> station.
 <div class="code"><pre>
-i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T17SPV_20180315T194425.SAFE elevation=elevation atmospheric_model=Automatic aerosol_model="Continental model" aeronet_file=path/180301_180331_EPA-Res_Triangle_Pk.dubovik suffix=cor text_file=/path/input_cloud_mask.txt
+i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T17SPV_20180315T194425.SAFE elevation=elevation atmospheric_model=Automatic<br> 
+aerosol_model="Continental model" aeronet_file=path/180301_180331_EPA-Res_Triangle_Pk.dubovik suffix=cor text_file=/path/input_cloud_mask.txt
 </pre></div>
 <p>
 Here is the control file automatically written for Band 02 of the input scene 
