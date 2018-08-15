@@ -128,6 +128,8 @@ def get_aoi_box(vector=None):
     # are we in LatLong location?
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
+    if '+proj' not in kv:
+        gs.fatal('Unable to get AOI bounding box: unprojected location not supported')
     if kv['+proj'] != 'longlat':
         info = gs.parse_command('g.region', flags='uplg', **args)
         return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
