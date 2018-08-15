@@ -88,6 +88,13 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: uuid
+#% type: string
+#% multiple: yes
+#% description: List of UUID to download
+#% guisection: Filter
+#%end
+#%option
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
@@ -109,6 +116,7 @@
 #%end
 #%rules
 #% required: output,-l
+#% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,sort,order
 #%end
 
 import os
@@ -210,14 +218,14 @@ class SentinelDownloader(object):
         if self._products_df_sorted is None:
             return
 
-        for idx in range(len(self._products_df_sorted)):
+        for idx in range(len(self._products_df_sorted['uuid'])):
             print ('{0} {1} {2:2.0f}% {3}'.format(
                 self._products_df_sorted['uuid'][idx],
                 self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
                 self._products_df_sorted['cloudcoverpercentage'][idx],
                 self._products_df_sorted['producttype'][idx],
             ))
-
+        
     def download(self, output):
         if self._products_df_sorted is None:
             return
@@ -225,7 +233,7 @@ class SentinelDownloader(object):
         if not os.path.exists(output):
             os.makedirs(output)
         gs.message(_('Downloading data into <{}>...').format(output))
-        for idx in range(len(self._products_df_sorted)):
+        for idx in range(len(self._products_df_sorted['uuid'])):
             gs.message('{} -> {}.SAFE'.format(
                 self._products_df_sorted['uuid'][idx],
                 os.path.join(output, self._products_df_sorted['identifier'][idx])
@@ -271,7 +279,7 @@ class SentinelDownloader(object):
             layer.CreateField(field)
 
         # features
-        for idx in range(len(self._products_df_sorted)):
+        for idx in range(len(self._products_df_sorted['uuid'])):
             wkt = self._products_df_sorted['footprint'][idx]
             feature = ogr.Feature(layer.GetLayerDefn())
             feature.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
@@ -290,6 +298,37 @@ class SentinelDownloader(object):
                        layer=map_name, quiet=True
         )
 
+    def set_uuid(self, uuid_list):
+        """Set products by uuid.
+
+        TODO: Find better implementation
+
+        :param uuid: uuid to download
+        """
+        self._products_df_sorted = {}
+
+        for uuid in uuid_list:
+            for k, v in self._api.get_product_odata(uuid, full=True).items():
+                if k == 'id':
+                    k = 'uuid'
+                elif k == 'Sensing start':
+                    k = 'beginposition'
+                elif k == 'Product type':
+                    k = 'producttype'
+                elif k == 'Cloud cover percentage':
+                    k = 'cloudcoverpercentage'
+                elif k == 'Identifier':
+                    k = 'identifier'
+                elif k == 'Ingestion Date':
+                    k = 'ingestiondate'
+                elif k == 'footprint':
+                    pass
+                else:
+                    continue
+                if k not in self._products_df_sorted:
+                    self._products_df_sorted[k] = []
+                self._products_df_sorted[k].append(v)
+        
 def main():
     user = password = None
     api_url='https://scihub.copernicus.eu/dhus'
@@ -323,16 +362,19 @@ def main():
     try:
         downloader = SentinelDownloader(user, password, api_url)
 
-        downloader.filter(area=map_box,
-                          area_relation=options['area_relation'],
-                          clouds=options['clouds'],
-                          producttype=options['producttype'],
-                          limit=options['limit'],
-                          start=options['start'],
-                          end=options['end'],
-                          sortby=options['sort'].split(','),
-                          asc=options['order'] == 'asc'
-        )
+        if options['uuid']:
+            downloader.set_uuid(options['uuid'].split(','))
+        else:
+            downloader.filter(area=map_box,
+                              area_relation=options['area_relation'],
+                              clouds=options['clouds'],
+                              producttype=options['producttype'],
+                              limit=options['limit'],
+                              start=options['start'],
+                              end=options['end'],
+                              sortby=options['sort'].split(','),
+                              asc=options['order'] == 'asc'
+            )
     except StandardError as e:
         gs.fatal(_('Unable to connect Copernicus Open Access Hub: {}').format(e))
 

@@ -114,6 +114,19 @@ Such downloaded data can be easily imported into GRASS
 using <em><a href="i.sentinel.import.html">i.sentinel.import</a></em>
 module.
 
+<h3>Download Sentinel products by UUID</h3>
+
+<em>i.sentinel.download</em> also allows downloading Sentinel products
+by giving a list of UUID. This operation is performed by <b>uuid</b>
+option. Note this option is mutually exclusive with all of other
+filtering options.
+
+Example of downloading one Sentinel product:
+
+<div class="code"><pre>
+i.sentinel.download settings=sentinel.txt uuid=98f00e12-3b62-4c54-8554-c4439bb1ebef output=data
+<pre></div>
+
 <h2>REQUIREMENTS</h2>
 
 <ul>
