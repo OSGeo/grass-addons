@@ -17,8 +17,33 @@ given. Note that linking data requires that input data and GRASS
 location have the same spatial reference system.
 
 <p>
-Number of imported Sentinel bands can be optionally reduced
-by <b>pattern</b> option.
+Number of imported Sentinel bands can be optionally reduced by the
+<b>pattern</b> option. Below an overview of the Sentinel-2 MSI band
+spatial resolutions:
+
+<p>
+<table border="1">
+<thead>
+<tr>
+<th>Spatial resolution [m]</th>
+<th>S2 Bands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10</td>
+<td>B2, B3, B4, B8</td>
+</tr>
+<tr>
+<td>20</td>
+<td>B5, B6, B7, B8a, B11, B12</td>
+</tr>
+<tr>
+<td>60</td>
+<td>B1, B9, B10</td>
+</tr>
+</tbody>
+</table>
   
 <h2>NOTES</h2>
 
@@ -41,19 +66,25 @@ data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.
 data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B11.jp2 1 (EPSG: 32632)
 </pre></div>
 
-Import all Sentinel bands found in <i>data</i> directory.
+Import all Sentinel bands found in <i>data</i> directory:
 
 <div class="code"><pre>
 i.sentinel.import input=data
 </pre></div>
 
-Limit import only to 4th and 8th bands.
+Limit import to only to 4th and 8th bands:
 
 <div class="code"><pre>
 i.sentinel.import input=data pattern='B0[4|8]'
 </pre></div>
 
-Link data and import also cloud mask file.
+Limit import to only to all bands with 10m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import input=data pattern='B0[2|3|4|8]_10m'
+</pre></div>
+
+Link data and import also cloud mask file:
 
 <div class="code"><pre>
 i.sentinel.import -l -c input=data
