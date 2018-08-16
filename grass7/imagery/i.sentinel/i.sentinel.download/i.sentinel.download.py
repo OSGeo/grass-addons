@@ -122,7 +122,6 @@
 import os
 import sys
 import logging
-import zipfile
 
 from collections import OrderedDict
 
@@ -240,13 +239,6 @@ class SentinelDownloader(object):
             ))
             # download
             self._api.download(self._products_df_sorted['uuid'][idx], output)
-
-            # unzip
-            if os.path.exists(os.path.join(output, self._products_df_sorted['identifier'][idx])):
-                continue
-            filename = self._products_df_sorted['identifier'][idx] + '.zip'
-            with zipfile.ZipFile(os.path.join(output, filename), 'r') as zip_ref:
-                zip_ref.extractall(output)
 
     def save_footprints(self, map_name):
         if self._products_df_sorted is None:

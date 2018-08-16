@@ -51,6 +51,9 @@
 import os
 import sys
 import re
+import glob
+import shutil
+from zipfile import ZipFile
 
 import grass.script as gs
 from grass.exceptions import CalledModuleError
@@ -61,6 +64,15 @@ class SentinelImporter(object):
             gs.fatal(_('{} not exists').format(input_dir))
         self.input_dir = input_dir
 
+        # list of directories to cleanup
+        self._dir_list = []
+
+    def __del__(self):
+        for dirname in self._dir_list:
+            dirpath = os.path.join(self.input_dir, dirname)
+            gs.debug('Removing <{}>'.format(dirpath))
+            shutil.rmtree(dirpath)
+            
     def filter(self, pattern=None):
         if pattern:
             filter_p = '.*' + options['pattern'] + '.*.jp2$'
@@ -69,7 +81,27 @@ class SentinelImporter(object):
 
         self.files = self._filter(filter_p)
 
+    @staticmethod
+    def _read_zip_file(filepath):
+        # scan zip file, return first member (root directory)
+        with ZipFile(filepath) as fd:
+            file_list = fd.namelist()
+
+        return file_list
+
+    def _unzip(self):
+        # extract all zip files from input directory
+        for filepath in glob.glob(os.path.join(self.input_dir, '*.zip')):
+            gs.verbose('Reading <{}>...'.format(filepath))
+            self._dir_list.append(self._read_zip_file(filepath)[0])
+
+            with ZipFile(filepath) as fd:
+                fd.extractall(path=self.input_dir)
+
     def _filter(self, filter_p):
+        # unzip archives before filtering
+        self._unzip()
+
         pattern = re.compile(filter_p)
         files = []
         for rec in os.walk(self.input_dir):
