@@ -66,7 +66,7 @@ class SentinelImporter(object):
         # check if input dir exists
         self.input_dir = input_dir
         if not os.path.exists(input_dir):
-            gs.fatal(_('{} not exists').format(input_dir))
+            gs.fatal(_('Input directory <{}> not exists').format(input_dir))
 
     def __del__(self):
         for dirname in self._dir_list:
