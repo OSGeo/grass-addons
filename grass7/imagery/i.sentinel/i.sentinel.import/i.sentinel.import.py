@@ -60,12 +60,13 @@ from grass.exceptions import CalledModuleError
 
 class SentinelImporter(object):
     def __init__(self, input_dir):
-        if not os.path.exists(input_dir):
-            gs.fatal(_('{} not exists').format(input_dir))
-        self.input_dir = input_dir
-
         # list of directories to cleanup
         self._dir_list = []
+
+        # check if input dir exists
+        self.input_dir = input_dir
+        if not os.path.exists(input_dir):
+            gs.fatal(_('{} not exists').format(input_dir))
 
     def __del__(self):
         for dirname in self._dir_list:
