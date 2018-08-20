@@ -24,7 +24,7 @@
 #% keyword: histogram matching
 #%end
 #%option G_OPT_R_INPUTS
-#% description: Name of raster maps to analize
+#% description: Name of raster maps to be analyzed
 #% required: yes
 #%end
 #%option
@@ -93,6 +93,7 @@ def main():
     # connect to the db
     db = sqlite3.connect(dbpath)
     curs = db.cursor()
+    grass.message(_("Calculating Cumulative Distribution Functions ..."))
     # for each image
     for i in images:
         iname = i.split('@')[0]
@@ -190,6 +191,7 @@ def main():
             curs.execute(insert)
             db.commit()
     # for each image
+    grass.message(_("Reclassifying bands based on average histogram..."))
     for i in images:
         iname = i.split('@')[0]
         grass.use_temp_region()
@@ -233,6 +235,7 @@ def main():
     db.close()
     if mosaic:
         grass.use_temp_region()
+        grass.message(_("Processing mosaic <%s>..." % mosaic)
         grass.run_command('g.region', raster=all_images)
         grass.run_command('r.patch', input=output_names, output=mosaic)
 
