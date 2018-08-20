@@ -99,6 +99,7 @@
 #% required : no
 #%end
 
+
 import os
 import sys
 import random
@@ -305,6 +306,7 @@ def classification(level, slope, smean, texture, tmean, convexity,
 
 
 def main():
+
     elevation = options['elevation']
     slope = options['slope']
     flat_thres = float(options['flat_thres'])
@@ -323,6 +325,22 @@ def main():
     concavity = concavity.split('@')[0]
     features = features.split('@')[0]
 
+    # store current region settings
+    global current_reg
+    current_reg = parse_key_val(g.region(flags='pg', stdout_=PIPE).outputs.stdout)
+    del current_reg['projection']
+    del current_reg['zone']
+    del current_reg['cells']
+
+    # check for existing mask and backup if found
+    global mask_test
+    mask_test = gs.list_grouped(
+        type='rast', pattern='MASK')[gs.gisenv()['MAPSET']]
+    if mask_test:
+        global original_mask
+        original_mask = temp_map('tmp_original_mask')
+        g.copy(raster=['MASK', original_mask])
+
     # error checking
     if flat_thres < 0:
         gs.fatal('Parameter thres cannot be negative')
@@ -334,22 +352,9 @@ def main():
     if filter_size >= counting_size:
         gs.fatal(
             'Filter size needs to be smaller than the counting window size')
-
-    # store current region settings
-    global current_reg
-    current_reg = parse_key_val(g.region(flags='pg', stdout_=PIPE).outputs.stdout)
-    del current_reg['projection']
-    del current_reg['zone']
-    del current_reg['cells']
     
-    # check for existing mask and backup if found
-    global mask_test
-    mask_test = gs.list_grouped(
-        type='rast', pattern='MASK')[gs.gisenv()['MAPSET']]
-    if mask_test:
-        global original_mask
-        original_mask = temp_map('tmp_original_mask')
-        g.copy(raster=['MASK', original_mask])
+    if features != '' and slope == '':
+        gs.fatal('Need to supply a slope raster in order to produce the terrain classification')
                 
     # Terrain Surface Texture -------------------------------------------------
     # smooth the dem
@@ -466,12 +471,17 @@ def main():
                 r.mask(raster=clf_msk, flags='i', quiet=True, overwrite=True)
 
             # image statistics
-            smean = parse_key_val(r.univar(
-                map=slope, flags='g', stdout_=PIPE).outputs.stdout)['mean']
-            cmean = parse_key_val(r.univar(
-                map=convexity, flags='g', stdout_=PIPE).outputs.stdout)['mean']
-            tmean = parse_key_val(r.univar(
-                map=texture, flags='g', stdout_=PIPE).outputs.stdout)['mean']
+            smean = r.univar(
+                map=slope, flags='g', stdout_=PIPE).outputs.stdout.split(os.linesep)
+            smean = [i for i in smean if i.startswith('mean=') is True][0].split('=')[1]
+
+            cmean = r.univar(
+                map=convexity, flags='g', stdout_=PIPE).outputs.stdout.split(os.linesep)
+            cmean = [i for i in cmean if i.startswith('mean=') is True][0].split('=')[1]
+
+            tmean = r.univar(
+                map=texture, flags='g', stdout_=PIPE).outputs.stdout.split(os.linesep)
+            tmean = [i for i in tmean if i.startswith('mean=') is True][0].split('=')[1]
             classif.append(temp_map('tmp_classes'))
             
             if level != 0:
