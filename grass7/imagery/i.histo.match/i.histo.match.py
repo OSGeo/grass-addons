@@ -235,7 +235,7 @@ def main():
     db.close()
     if mosaic:
         grass.use_temp_region()
-        grass.message(_("Processing mosaic <%s>..." % mosaic)
+        grass.message(_("Processing mosaic <%s>..." % mosaic))
         grass.run_command('g.region', raster=all_images)
         grass.run_command('r.patch', input=output_names, output=mosaic)
 
