@@ -72,7 +72,10 @@ class SentinelImporter(object):
         for dirname in self._dir_list:
             dirpath = os.path.join(self.input_dir, dirname)
             gs.debug('Removing <{}>'.format(dirpath))
-            shutil.rmtree(dirpath)
+            try:
+                shutil.rmtree(dirpath)
+            except OSError:
+                pass
             
     def filter(self, pattern=None):
         if pattern:
@@ -80,7 +83,7 @@ class SentinelImporter(object):
         else:
             filter_p = r'.*_B.*.jp2$'
 
-        gs.debug('Filter: {}'.format(filter_p), 0)
+        gs.debug('Filter: {}'.format(filter_p), 1)
         self.files = self._filter(filter_p)
 
     @staticmethod
@@ -188,12 +191,21 @@ class SentinelImporter(object):
             pass # error already printed
 
     def import_cloud_masks(self):
+        from osgeo import ogr
+
         files = self._filter("MSK_CLOUDS_B00.gml")
 
         for f in files:
             safe_dir = os.path.dirname(f).split(os.path.sep)[-4]
             items = safe_dir.split('_')
             map_name = '_'.join([items[5],items[2], 'MSK', 'CLOUDS'])
+            # check if any OGR layer
+            dsn = ogr.Open(f)
+            layer_count = dsn.GetLayerCount()
+            dsn.Destroy()
+            if layer_count < 1:
+                gs.info('No clouds layer found in <{}>. Import skipped'.format(f))
+                continue
             try:
                 gs.run_command('v.import', input=f,
                                flags='o', # same SRS as data
