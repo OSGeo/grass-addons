@@ -80,6 +80,7 @@ class SentinelImporter(object):
         else:
             filter_p = r'.*_B.*.jp2$'
 
+        gs.debug('Filter: {}'.format(filter_p), 0)
         self.files = self._filter(filter_p)
 
     @staticmethod

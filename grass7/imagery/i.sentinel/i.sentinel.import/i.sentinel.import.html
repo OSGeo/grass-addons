@@ -75,7 +75,7 @@ i.sentinel.import input=data
 Limit import to only to 4th and 8th bands:
 
 <div class="code"><pre>
-i.sentinel.import input=data pattern='B0[4|8]'
+i.sentinel.import input=data pattern='B0(4|8)'
 </pre></div>
 
 Limit import to only to all bands with 10m resolution (excluding AOT, WVP, ... bands):
