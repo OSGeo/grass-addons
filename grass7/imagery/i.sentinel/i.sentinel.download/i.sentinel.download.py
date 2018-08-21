@@ -297,10 +297,17 @@ class SentinelDownloader(object):
 
         :param uuid: uuid to download
         """
-        self._products_df_sorted = {}
-
+        from sentinelsat.sentinel import SentinelAPIError
+                    
+        self._products_df_sorted = { 'uuid': [] }
         for uuid in uuid_list:
-            for k, v in self._api.get_product_odata(uuid, full=True).items():
+            try:
+                odata = self._api.get_product_odata(uuid, full=True)
+            except SentinelAPIError as e:
+                gs.error('{0}. UUID {1} skipped'.format(e, uuid))
+                continue
+
+            for k, v in odata.items():
                 if k == 'id':
                     k = 'uuid'
                 elif k == 'Sensing start':
