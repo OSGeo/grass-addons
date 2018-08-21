@@ -31,6 +31,12 @@ class ModelConfig(object):
     # are based on a Resnet101 backbone.
     BACKBONE_STRIDES = [4, 8, 16, 32, 64]
 
+    # Size of the fully-connected layers in the classification graph
+    FPN_CLASSIF_FC_LAYERS_SIZE = 1024
+
+    # Size of the top-down layers used to build the feature pyramid
+    TOP_DOWN_PYRAMID_SIZE = 256
+
     ## RPN ##
     # Length of square anchor side in pixels
     RPN_ANCHOR_SCALES = (32, 64, 128, 256, 512)
@@ -183,17 +189,25 @@ class ModelConfig(object):
         self.BATCH_SIZE = self.IMAGES_PER_GPU * self.GPU_COUNT
 
         # Set the backbone architecture
+        # Use a pedefined one or provide a callable that should have the
+        # signature of model.resnet_graph. If you do so, you need to supply
+        # a callable to COMPUTE_BACKBONE_SHAPE as well
         self.BACKBONE = backbone
 
-        # Input image size
-        self.IMAGE_SHAPE = np.array(
-            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
+        # Only useful if you supply a callable to BACKBONE. Should compute
+        # the shape of each layer of the FPN Pyramid.
+        # See model.compute_backbone_shapes
+        COMPUTE_BACKBONE_SHAPE = None
 
         # Compute backbone size from input image size
         self.BACKBONE_SHAPES = np.array(
             [[int(math.ceil(self.IMAGE_SHAPE[0] / stride)),
               int(math.ceil(self.IMAGE_SHAPE[1] / stride))]
              for stride in self.BACKBONE_STRIDES])
+
+        # Input image size
+        self.IMAGE_SHAPE = np.array(
+            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
 
         # Train or freeze batch normalization layers
         #  None: Train BN layers in a normal mode

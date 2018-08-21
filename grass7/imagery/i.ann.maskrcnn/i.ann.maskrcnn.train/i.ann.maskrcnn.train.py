@@ -40,7 +40,7 @@
 #% label: Path to the dataset with images and masks
 #% required: yes
 #%end
-#%option
+#%option G_OPT_F_INPUT
 #% key: model
 #% type: string
 #% label: Path to the .h5 file to use as initial values
