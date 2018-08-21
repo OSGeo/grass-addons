@@ -20,6 +20,8 @@
 #%end
 #%option G_OPT_V_MAP
 #%end
+#%option G_OPT_V_FIELD
+#%end
 #%option G_OPT_DB_COLUMN
 #% key: column
 #% description: Attribute column containing azimuth
@@ -51,6 +53,7 @@ import grass.script as gscript
 
 def main():
     vector = options['map']
+    layer = options['layer']
     column = options['column']
     bins = int(options['bins'])
     plot_output = options['plot_output']
@@ -59,12 +62,14 @@ def main():
     if where:
         data=[float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
+                                                     layer=layer,
                                                      column=column,
                                                      where=where,
                                                      flags='c').splitlines()]
     else:
         data=[float(x) for x in gscript.read_command('v.db.select',
                                                      map_=vector,
+                                                     layer=layer,
                                                      column=column,
                                                      flags='c').splitlines()]
    
