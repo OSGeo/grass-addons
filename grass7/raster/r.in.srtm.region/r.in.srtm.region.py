@@ -234,9 +234,9 @@ def main():
     	if len(url) == 0:
     	    if srtmv3:
 		if one:
-		    url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL1.003/2000.02.11/'
+                    url = 'https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/'
 		else:
-		    url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/'
+		    url = 'https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/'
 	    else:
 		url = 'http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/'
 
