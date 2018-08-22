@@ -52,7 +52,7 @@
 """
 
 #%Module
-#%  description: Fusing high resolution panchromatic and low resolution Mmlti-spectral data based on the High-Pass Filter Addition technique (Gangkofner, 2008).
+#%  description: Fusing high resolution panchromatic and low resolution multi-spectral data based on the High-Pass Filter Addition technique (Gangkofner, 2008).
 #%  keyword: imagery
 #%  keyword: fusion
 #%  keyword: sharpening

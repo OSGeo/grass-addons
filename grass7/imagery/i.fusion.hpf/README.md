@@ -118,7 +118,7 @@ Implementation notes
 Others? 
 
 - Who else to thank?  Transfer from archive/
-- Improve [Documentation.lyx](https://github.com/NikosAlexandris/i.fusion.hpf/blob/master/lyx/Documentation.lyx)
+- Improve [Documentation.lyx](https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/lyx/Documentation.lyx)
 
 ## Questions
 

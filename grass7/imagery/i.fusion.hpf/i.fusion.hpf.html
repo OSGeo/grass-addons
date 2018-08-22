@@ -9,7 +9,7 @@ The process involves a convolution using a High Pass Filter (HPF) on the high
 resolution data, then combining this with the lower resolution multispectral 
 data. Optionally, a linear histogram matching technique is performed in a way that 
 matches the resulting Pan-Sharpened image to the statistical mean and standard 
-deviation of the original multi-spectral image.<br>
+deviation of the original multi-spectral image.
 
 <h3>Background</h3>
 <ol type="1">
@@ -41,7 +41,7 @@ Source: Gangkofner, 2008
 
 <h2>NOTES</h2>
 <ul>
-        <li> Grasping and testing the various parameters that define the High-Pass
+    <li> Grasping and testing the various parameters that define the High-Pass
         filter's kernel size and center value is a matter of short time.</li>
     <li> Works with any number and type of raster imagery (8-bit, 16-bit)</li>
     <li> The "black border" effect, possibly caused due to a non-perfect match of the high vs. the low 
@@ -53,26 +53,27 @@ Source: Gangkofner, 2008
 
 <h2>EXAMPLE</h2>
 The module is fairly easy to use. Arbitrary examples:
-<ul>
-    <li>for one band
-<div class="code"><pre>
- i.fusion.hpf pan=Panchromatic msx=Red
-</pre></div></li>
 
-    <li>for multiple bands
+Pansharpening of one band:
+
+<div class="code"><pre>
+i.fusion.hpf pan=Panchromatic msx=Red
+</pre></div>
+
+<p>
+Pansharpening of multiple bands:
 <div class="code"><pre>
 i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR
-</pre></div></li>
-</ul>
-    
-Various illustrated examples detailed in the document <a
-    href="https://github.com/NikosAlexandris/i.fusion.hpf/blob/master/Documentation.pdf">i.fusion.hpf, implementation of the High Pass Filter Additive (HPFA) Image Fusion Technique</a> (PDF) 
+</pre></div>
+
+<p>
+Various illustrated examples detailed in the document
+<a href="https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/Documentation.pdf">i.fusion.hpf, implementation of the High Pass Filter Additive (HPFA) Image Fusion Technique</a> (PDF)
 
 <h2>TODO</h2>
 <ul>
     <li> Go through <a
-        href="http://trac.osgeo.org/grass/wiki/Submitting/Python">Submitting
-        Python</a></li>
+        href="https://trac.osgeo.org/grass/wiki/Submitting/Python">Submitting Python</a></li>
     <li> Access input raster by row I/O</li>
     <li> Support for parallel processing</li>
     <li> Proper command history tracking.</li>
@@ -88,13 +89,13 @@ Various illustrated examples detailed in the document <a
 <ul>
     <li>Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008). Optimizing
 the high-pass filter addition technique for image fusion.
-PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107--1118.</li>
+PHOTOGRAMMETRIC ENGINEERING &amp; REMOTE SENSING, 74(9):1107--1118.</li>
 
     <li>"ERDAS IMAGINE." Accessed March 19, 2015. <a
      href="http://doc.hexagongeospatial.com/ERDAS%20IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm">ERDAS
      IMAGINE Help</a>.</li>
 
-    <li>Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
+    <li>Aniruddha Ghosh &amp; P.K. Joshi (2013) Assessment of pan-sharpened very
         high-resolution WorldView-2 images, International Journal of Remote
         Sensing, 34:23, 8336-8359</li>
 </ul>
@@ -108,4 +109,8 @@ PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107--1118.</li>
 <h2>AUTHORS</h2>
 
 Nikos Alexandris<br>
-Panagiotis Mavrogiorgos<br>
+Panagiotis Mavrogiorgos
+
+<p>
+<i>Last changed: $Date$</i>
+
