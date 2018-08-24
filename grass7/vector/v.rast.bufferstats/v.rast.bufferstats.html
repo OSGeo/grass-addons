@@ -45,6 +45,18 @@ input geometries. However, this comes at costs with regards to performance.
 For a larger number of geometries in the vector map, it can be therefore more appropriate to 
 compute neighborhood statistics with <em>r.neighbors</em> and to extract (<em>v.what.rast</em>, 
 <em>r.what</em>) or aggregate (<em>v.rast.stats</em>) from those maps with neighborhood statistics.</p>
+
+<p>
+The module is affected by the following underlying library issues:
+
+Lines are wrongly reported for points maps:
+https://trac.osgeo.org/grass/ticket/3549
+To circumvent the issue, specify the type of geometry to process in the module call using the <em>type</em> option.
+
+Currently, the module uses GRASS native buffering which should be replaced by buffering using GEOS:
+https://trac.osgeo.org/grass/ticket/3628
+</p>
+
 </div>
 
 <div id="seealso">
