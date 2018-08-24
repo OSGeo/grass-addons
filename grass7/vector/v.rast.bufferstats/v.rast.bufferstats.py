@@ -599,18 +599,16 @@ def main():
             conn.commit()
 
     # Close cursor and DB connection
-    if not output:
+    if not output and not output == "-":
         cur.close()
         conn.close()
+        # Update history
+        grass.vector.vector_history(in_vector)
     elif output != "-":
         # write results to file
         out.close()
-    elif output and output == "-":
-        # write results to STDOUT
-        pass
 
-
-    grass.vector.vector_history(in_vector)
+    # Clean up
     cleanup()
 
 # Run the module
