@@ -15,8 +15,9 @@
 #############################################################################
 
 #%Module
-#% description: Imports Sentinel data downloaded from Copernicus Open Access Hub using i.sentinel.download.
+#% description: Imports Sentinel satellite data downloaded from Copernicus Open Access Hub using i.sentinel.download.
 #% keyword: imagery
+#% keyword: satellite
 #% keyword: sentinel
 #% keyword: import
 #%end
@@ -187,6 +188,7 @@ class SentinelImporter(object):
             args['resolution_value'] = self._raster_resolution(filename)
         try:
             gs.run_command(module, input=filename, output=mapname, **args)
+            gs.raster_history(mapname)
         except CalledModuleError as e:
             pass # error already printed
 
@@ -210,8 +212,8 @@ class SentinelImporter(object):
                 gs.run_command('v.import', input=f,
                                flags='o', # same SRS as data
                                output=map_name,
-                               quiet=True
-                )
+                               quiet=True)
+                gs.vector_history(map_name)
             except CalledModuleError as e:
                 pass # error already printed
 
