@@ -1,16 +1,20 @@
 <h2>DESCRIPTION:</h2>
-<p>The module <em>v.rast.bufferstats</em> computes statistics from multiple input raster 
-maps within (multiple) buffers around selected geometries in the input vector map.<br>
-Available statistics are either</p>
+<p>The purpose of the <em>v.rast.bufferstats</em> module is "to provide 
+local environmental context to" a series of input geometries. 
+It computes statistics from multiple input raster maps within multiple 
+buffers around selected geometries in the input vector map.</p>
+<p>Available statistics are either</p>
 <ol type="a">
 <li>statistics provided by <em>r.univar</em> or</li>
 <li>if the <em>t-flag</em> is checked - area of, number of and/or the most frequent (mode) raster categories 
 within the buffers using <em>r.stats</em>.</li>
 </ol>
 
-<p>If <em>output</em> option is specified table output is produced with the following column order:<br>
+<p>If <em>output</em> option is specified, results are written to file or 
+stdout in stead of attribute table of the input map. 
+File output is produced with the following column order:<br>
 cat | prefix | buffer| statistic/measure | value<br>
-separated by the selected separator.</p>
+separated by the user defined separator (default is |).</p>
 
 <div id="note">
 <h2>NOTE</h2>
@@ -38,7 +42,7 @@ v.rast.bufferstats input= raster=altitude,slope,aspect buffers=100,250,500 colum
 </pre></div>
 </div>
 
-<div id="known issues">
+<div id="known_issues">
 <h2>KNOWN ISSUES</h2>
 <p>In order to avoid topological issues with overlapping buffers, the module loops over the 
 input geometries. However, this comes at costs with regards to performance.
