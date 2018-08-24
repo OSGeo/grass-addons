@@ -199,15 +199,15 @@ class ModelConfig(object):
         # See model.compute_backbone_shapes
         COMPUTE_BACKBONE_SHAPE = None
 
+        # Input image size
+        self.IMAGE_SHAPE = np.array(
+            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
+
         # Compute backbone size from input image size
         self.BACKBONE_SHAPES = np.array(
             [[int(math.ceil(self.IMAGE_SHAPE[0] / stride)),
               int(math.ceil(self.IMAGE_SHAPE[1] / stride))]
              for stride in self.BACKBONE_STRIDES])
-
-        # Input image size
-        self.IMAGE_SHAPE = np.array(
-            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
 
         # Train or freeze batch normalization layers
         #  None: Train BN layers in a normal mode
