@@ -40,10 +40,21 @@ def check_file(fil, example=False, screen=False):
         output[1] = True
     return output
 
+def check_tests():
+    test = glob.glob('test*')
+    if len(test) >= 1:
+	for t in test:
+	    if os.path.isdir(t):
+		return False
+	return True
+    else:
+	return True
+
 def main(args):
     """Main function"""
     examples = []
     screens = []
+    tests = []
     if not args['r']:
         files = glob.glob('*.html')
         for fil in files:
@@ -56,6 +67,9 @@ def main(args):
                 examples.append(name)
             if not res[1]:
                 screens.append(name)
+            if args['t']:
+                if check_tests():
+		    tests.append(name)
     else:
         for root, dirnames, filenames in os.walk('.'):
             for name in fnmatch.filter(filenames, '*.html'):
@@ -68,13 +82,21 @@ def main(args):
                     examples.append(name)
                 if not res[1]:
                     screens.append(name)
+	    if args['t']:
+		if not fnmatch.filter(dirnames, 'test*'):
+		    fil = os.path.split(root)[-1]
+		    right = is_module(fil)
+		    if right:
+			tests.append(fil)
     if args['e']:
         examples.sort()
         print("Modules missing examples:\n{lis}".format(lis='\n'.join(examples)))
     if args['s']:
         screens.sort()
         print("Modules missing screenshots:\n{lis}".format(lis='\n'.join(screens)))
-            
+    if args['t']:
+        tests.sort()
+        print("Modules missing tests:\n{lis}".format(lis='\n'.join(tests)))
 
 if __name__ == "__main__":
 
@@ -91,6 +113,8 @@ if __name__ == "__main__":
                         default=False, help='Check for examples')
     parser.add_argument('-s', dest='s', action='store_true',
                         default=False, help='Check for screenshots')
+    parser.add_argument('-t', dest='t', action='store_true',
+                        default=False, help='Check for tests')
     parser.add_argument('-r', dest='r', action='store_true',
                         default=False, help='Check recursively')
     
