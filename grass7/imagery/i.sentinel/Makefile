@@ -4,7 +4,9 @@ PGM = i.sentinel
 
 SUBDIRS = \
 	i.sentinel.download \
-        i.sentinel.import
+        i.sentinel.import \
+	i.sentinel.preproc \
+	i.sentinel.mask
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
