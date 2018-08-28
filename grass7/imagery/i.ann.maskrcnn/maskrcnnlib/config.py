@@ -57,7 +57,7 @@ class ModelConfig(object):
     # How many anchors per image to use for RPN training
     RPN_TRAIN_ANCHORS_PER_IMAGE = 256
 
-    # ROIs kept after non-maximum supression (training and inference)
+    # ROIs kept after non-maximum suppression (training and inference)
     POST_NMS_ROIS_TRAINING = 2000
     POST_NMS_ROIS_INFERENCE = 1000
 
@@ -100,7 +100,7 @@ class ModelConfig(object):
 
     # Learning rate and momentum
     # The Mask RCNN paper uses lr=0.02, but on TensorFlow it causes
-    # weights to explode. Likely due to differences in optimzer
+    # weights to explode. Likely due to differences in optimizer
     # implementation.
     LEARNING_RATE = 0.001  # 0.002 before change
     LEARNING_MOMENTUM = 0.9
@@ -161,7 +161,7 @@ class ModelConfig(object):
         self.VALIDATION_STEPS = validationSteps
 
         # Input image resizing
-        # Generally, use the "square" resizing mode for training and inferencing
+        # Generally, use the "square" resizing mode for training and predicting
         # and it should work well in most cases. In this mode, images are scaled
         # up such that the small side is = IMAGE_MIN_DIM, but ensuring that the
         # scaling doesn't make the long side > IMAGE_MAX_DIM. Then the image is
@@ -204,6 +204,8 @@ class ModelConfig(object):
             [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
 
         # Compute backbone size from input image size
+        # TODO Ondrej Pesek: Maybe delete it and see Matterport's (avoid math
+        #  import)
         self.BACKBONE_SHAPES = np.array(
             [[int(math.ceil(self.IMAGE_SHAPE[0] / stride)),
               int(math.ceil(self.IMAGE_SHAPE[1] / stride))]
@@ -212,7 +214,7 @@ class ModelConfig(object):
         # Train or freeze batch normalization layers
         #  None: Train BN layers in a normal mode
         #  False: Freeze BN layers (recommended for small batch size)
-        #  True: Set layer in training mode even when inferencing
+        #  True: Set layer in training mode even when predicting
         self.TRAIN_BN = trainBatchNorm
 
         # Image meta data length

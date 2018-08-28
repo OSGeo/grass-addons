@@ -10,6 +10,7 @@ Modified by Ondrej Pesek
     Different way of removing the alpha channel (contained in load_mask)
     Deleted download_train_weights
     A little refactoring made
+    # last cross-check with Matterport's implementation: 28/08/2018
 """
 
 import os
@@ -66,7 +67,7 @@ def compute_iou(box, boxes, box_area, boxes_area):
     boxes_area: array of length boxes_count.
 
     Note: the areas are passed in rather than calculated here for
-          efficency. Calculate once in the caller to avoid duplicate work.
+    efficiency. Calculate once in the caller to avoid duplicate work.
     """
     # Calculate intersection areas
     y1 = np.maximum(box[0], boxes[:, 0])
@@ -99,9 +100,9 @@ def compute_overlaps(boxes1, boxes2):
 
 
 def compute_overlaps_masks(masks1, masks2):
-    '''Computes IoU overlaps between two sets of masks.
+    """Computes IoU overlaps between two sets of masks.
     masks1, masks2: [Height, Width, instances]
-    '''
+    """
 
     # If either set of masks is empty return empty result
     if masks1.shape[0] == 0 or masks2.shape[0] == 0:
@@ -121,7 +122,7 @@ def compute_overlaps_masks(masks1, masks2):
 
 
 def non_max_suppression(boxes, scores, threshold):
-    """Performs non-maximum supression and returns indicies of kept boxes.
+    """Performs non-maximum suppression and returns indices of kept boxes.
     boxes: [N, (y1, x1, y2, x2)]. Notice that (y2, x2) lays outside the box.
     scores: 1-D array of box scores.
     threshold: Float. IoU threshold to use for filtering.
@@ -148,10 +149,10 @@ def non_max_suppression(boxes, scores, threshold):
         # Compute IoU of the picked box with the rest
         iou = compute_iou(boxes[i], boxes[ixs[1:]], area[i], area[ixs[1:]])
         # Identify boxes with IoU over the threshold. This
-        # returns indicies into ixs[1:], so add 1 to get
-        # indicies into ixs.
+        # returns indices into ixs[1:], so add 1 to get
+        # indices into ixs.
         remove_ixs = np.where(iou > threshold)[0] + 1
-        # Remove indicies of the picked and overlapped boxes.
+        # Remove indices of the picked and overlapped boxes.
         ixs = np.delete(ixs, remove_ixs)
         ixs = np.delete(ixs, 0)
     return np.array(pick, dtype=np.int32)
@@ -318,8 +319,7 @@ class Dataset(object):
                     self.source_class_ids[source].append(i)
 
     def map_source_class_id(self, source_class_id):
-        """
-        Takes a source class ID and returns the int class ID assigned to it.
+        """Takes a source class ID and returns the int class ID assigned to it.
 
         For example:
         dataset.map_source_class_id("coco.12") -> 23
@@ -327,10 +327,7 @@ class Dataset(object):
         return self.class_from_source_map[source_class_id]
 
     def get_source_class_id(self, class_id, source):
-        """
-        Map an internal class ID to the corresponding class ID in the source
-        dataset.
-        """
+        """Map an internal class ID to the corresponding class ID in the source dataset."""
         info = self.class_info[class_id]
         assert info['source'] == source
         return info['id']
@@ -352,14 +349,13 @@ class Dataset(object):
 
     def source_image_link(self, image_id):
         """Returns the path or URL to the image.
-        Override this to return a URL to the image if it's availble online for
-        easy debugging.
+        Override this to return a URL to the image if it's available online for easy
+        debugging.
         """
         return self.image_info[image_id]["path"]
 
     def load_image(self, image_id):
-        """
-        Load the specified image and return a [H,W,3] Numpy array.
+        """Load the specified image and return a [H,W,3] Numpy array.
 
         Modified by Ondrej Pesek to not care about alpha channel
         """
@@ -394,16 +390,15 @@ class Dataset(object):
                                path=image)
 
     def get_mask(self, image_id):
-        """
-        Load instance masks for the given image.
+        """Load instance masks for the given image.
 
         This function converts the different mask format to one format in the
         form of an array of binary masks of shape [height, width, instances].
 
         Returns:
-        masks: A bool array of shape [height, width, instance count] with
-            a binary mask per instance.
-        class_ids: a 1D array of class IDs of the instance masks.
+            masks: A bool array of shape [height, width, instance count] with
+                a binary mask per instance.
+            class_ids: a 1D array of class IDs of the instance masks.
 
         Written by Ondrej Pesek
         """
@@ -442,10 +437,8 @@ class Dataset(object):
 
 
 
-def resize_image(image, min_dim=None, max_dim=None, min_scale=None,
-                 mode="square"):
-    """
-    Resizes an image keeping the aspect ratio unchanged.
+def resize_image(image, min_dim=None, max_dim=None, min_scale=None, mode="square"):
+    """Resizes an image keeping the aspect ratio unchanged.
 
     min_dim: if provided, resizes the image such that it's smaller
         dimension == min_dim
@@ -627,8 +620,7 @@ def unmold_mask(mask, bbox, image_shape):
     """
     threshold = 0.5
     y1, x1, y2, x2 = bbox
-    mask = skimage.transform.resize(mask, (y2 - y1, x2 - x1), order=1,
-                                    mode="constant")
+    mask = skimage.transform.resize(mask, (y2 - y1, x2 - x1), order=1, mode="constant")
     mask = np.where(mask >= threshold, 1, 0).astype(np.bool)
 
     # Put the mask in the right location.
