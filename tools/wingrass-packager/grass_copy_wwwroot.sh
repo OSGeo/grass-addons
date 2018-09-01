@@ -78,8 +78,9 @@ if test -z $2 ; then
     # daily builds
     # copy        70       `ls ${HOME}/grass70/x86/grass*.bz2 | cut -d'-' -f 3`
     copy        74       7.4.svn
-    copy        75       7.5.svn
-    # releases (TODO: enable later)
+    copy        76       7.6.svn
+    copy        77       7.7.svn
+    # releases
     # copy_addon 644      6.4.4
     copy_addon 706       7.0.6
     copy_addon 722       7.2.2
@@ -90,6 +91,8 @@ else
     copy        $2       $3
 fi
 
-create_zip
+if [ "$PLATFORM" = "64" ] ; then
+    create_zip
+fi
 
 exit 0
