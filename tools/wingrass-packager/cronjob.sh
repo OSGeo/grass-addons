@@ -51,7 +51,7 @@ addons_index() {
 	    cd ../..
 	done
 
-	if [ "$1" = "70" ] || [ "$1" = "72" ] ; then
+	if [ "$1" = "70" ] || [ "$1" = "72" ] || [ "$1" = "74" ] ; then
         # create symlink to latest version
             cd ${SRC}/grass$1/${p}/addons
 	    rm latest
@@ -101,32 +101,35 @@ download_unzip
 addons_index 70
 addons_index 72
 addons_index 74
-addons_index 75
+addons_index 76
+addons_index 77
 
-# remove old packages
+# remove old packages (daily builds only)
 ### rm_7 64
 #rm_7 70
-rm_7 72
+#rm_7 72
 rm_7 74
-rm_7 75
+rm_7 76
+rm_7 77
 
 # update setup.ini
 ### update_setup 64
 ### update_setup 70
-update_setup 75
+update_setup 77
 
 
 # geo101 -> upload.osgeo.org
 ### rsync_grass 64
 ### rsync_grass 70
-rsync_grass 75 -daily
+rsync_grass 77 -daily
 
 # promote changes
 ~/cronjobs/osgeo4w-promote.sh
 
 ### report 64
-report 72
+# report 72
 report 74
-report 75
+report 76
+report 77
 
 exit 0
