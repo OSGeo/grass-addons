@@ -21,6 +21,7 @@ SUBDIRS = \
         i.modis \
         i.points.auto \
 	i.pysptools.unmix \
+	i.rh \
 	i.rotate \
 	i.segment.gsoc \
 	i.segment.hierarchical \
