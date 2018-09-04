@@ -111,9 +111,8 @@ def main():
     if datatype != 'CELL':
         gscript.fatal(_("Input map has to be of CELL (integer) type"))
 
-    numneighbors = len(gscript.read_command('r.category',
-                                            map_=rinput).splitlines())
-    if numneighbors < 2:
+    mapinfo = gscript.raster_info(rinput)
+    if mapinfo['max'] == mapinfo['min']:
         gscript.fatal(_("Need at least two different category values to determine neighbors"))
 
     global separator
@@ -188,11 +187,12 @@ def main():
                 OldAcat = Acat
                 OldBcat = Bcat
                 Sum = value
-    if flags['l']:
-        woutput = separator.join([OldAcat, OldBcat, str(Sum)])
-    else:
-        woutput = separator.join([OldAcat, OldBcat])
-    of.write(woutput+"\n")	
+    if OldAcat and OldBcat:
+        if flags['l']:
+            woutput = separator.join([OldAcat, OldBcat, str(Sum)])
+        else:
+            woutput = separator.join([OldAcat, OldBcat])
+        of.write(woutput+"\n")	
     of.close()
 
 if __name__ == "__main__":
