@@ -219,7 +219,7 @@ def main():
         #terminalCATS = list(options['cat'])
         #while terminalCATS:
             #
-        print "Upstream direction not yet active!"
+        print("Upstream direction not yet active!")
         return
         """
         # Add new lists for each successive upstream river

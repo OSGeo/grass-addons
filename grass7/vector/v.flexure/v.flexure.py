@@ -166,12 +166,12 @@ def main():
     try:
         import gflex
     except:
-        print ""
-        print "MODULE IMPORT ERROR."
-        print "In order to run r.flexure or g.flexure, you must download and install"
-        print "gFlex. The most recent development version is available from"
-        print "https://github.com/awickert/gFlex."
-        print "Installation instructions are available on the page."
+        print("")
+        print("MODULE IMPORT ERROR.")
+        print("In order to run r.flexure or g.flexure, you must download and install")
+        print("gFlex. The most recent development version is available from")
+        print("https://github.com/awickert/gFlex")
+        print("Installation instructions are available on the page.")
         grass.fatal("Software dependency must be installed.")
 
     ##########

@@ -118,7 +118,7 @@ def setFirstRun():
         io.write(options['type'])
         io.close
     except IOError as (errno,strerror):
-        print "I/O error({0}): {1}".format(errno, strerror)
+        print("I/O error({0}): {1}".format(errno, strerror))
 
 def firstConnect():
 
@@ -284,7 +284,7 @@ def run():
                         createVect(win)
 
         except IOError as (errno,strerror):
-            print "I/O error({0}): {1}".format(errno, strerror)
+            print("I/O error({0}): {1}".format(errno, strerror))
          
 
     if flags['p']:

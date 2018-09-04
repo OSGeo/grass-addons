@@ -65,7 +65,7 @@ def md5(fileName, excludeLine="", includeLine=""):
     try:
         fd = open(fileName,"rb")
     except IOError:
-        print "Unable to open the file in readmode:", fileName
+        print("Unable to open the file in read mode")
         return
     content = fd.readlines()
     fd.close()

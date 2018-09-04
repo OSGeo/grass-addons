@@ -326,7 +326,7 @@ from split_window_lst import *
 from landsat8_mtl import Landsat8_MTL
 
 if "GISBASE" not in os.environ:
-    print "You must be in GRASS GIS to run this program."
+    print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 # globals

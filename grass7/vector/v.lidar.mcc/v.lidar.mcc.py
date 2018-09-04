@@ -88,7 +88,7 @@ except ImportError:
     sys.exit(_("No GRASS-python library found"))
 
 if not os.environ.has_key("GISBASE"):
-    print "You must be in GRASS GIS to run this program."
+    print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "gui", "wxpython")

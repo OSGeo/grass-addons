@@ -72,7 +72,7 @@ from UserDict import *
 import re,string
 
 if "GISBASE" not in os.environ:
-    print "You must be in GRASS GIS to run this program."
+    print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 # initialize
