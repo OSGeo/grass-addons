@@ -157,6 +157,9 @@ def main ():
     # Check if the input folder has old or new name
     # Check if the input folder belongs to a L1C image
     level_dir = os.path.basename(input_dir).split('_')
+    # Check if the input directory is a .SAFE folder
+    if not input_dir.endswith('.SAFE'):
+        gscript.fatal('The input directory is not a .SAFE folder. Please check the input directory')  
     if level_dir[1] == 'OPER' and level_dir[3] == 'MSIL1C':
         check_odir = 1
         filename = [i for i in os.listdir(input_dir) if i.startswith("S")]
@@ -367,8 +370,11 @@ def main ():
                 gscript.warning(_('--- AOD will be ignored ---'))
             check_file = 1
             stats_v = gscript.parse_command('r.univar', flags='g', map=vis)
-            vis_mean = int(float(stats_v['mean']))
-            gscript.message(_('--- Computed visibility mean value: {} Km ---'.format(vis_mean)))
+            try:
+                vis_mean = int(float(stats_v['mean']))
+                gscript.message('--- Computed visibility mean value: {} Km ---'.format(vis_mean))
+            except:
+                gscript.fatal('The input visibility maps is not valid. It could be out of the computational region.')
         elif vis=='' and (options['aod_value']!='' or aeronet_file!=''):
             gscript.fatal('Check the -a flag to use AOD instead of visibility')
         else:
@@ -462,14 +468,17 @@ def main ():
         # Compute AOD at 550 nm
         alpha = math.log(aot_lower/aot_upper)/math.log(wl_upper/wl_lower)
         aot550 = math.exp(math.log(aot_lower) - math.log(550.0/wl_lower)*alpha)
-        gscript.message(_('--- Computed AOD at 550 nm: {} ---'.format(aot550)))
+        gscript.message('--- Computed AOD at 550 nm: {} ---'.format(aot550))
 
     # Compute mean target elevation in km
     stats_d = gscript.parse_command('r.univar', flags='g', map=dem)
-    mean = (float(stats_d['mean']))
-    conv_fac = -0.001
-    dem_mean = mean * conv_fac
-    gscript.message(_('--- Computed mean target elevation above sea level: {:.3f} m ---'.format(mean)))
+    try:
+        mean = (float(stats_d['mean']))
+        conv_fac = -0.001
+        dem_mean = mean * conv_fac
+        gscript.message('--- Computed mean target elevation above sea level: {:.3f} m ---'.format(mean))
+    except:
+        gscript.fatal('The input elevation maps is not valid. It could be out of the computational region.')
 
     # Start compiling the control file
     for key, bb in bands.items():
@@ -572,82 +581,82 @@ def main ():
         else:
             band_n = b[10]
         if band_n == 'B01' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('166')
         elif band_n == 'B02' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('167')
         elif band_n == 'B03' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('168')
         elif band_n == 'B04' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('169')
         elif band_n == 'B05' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('170')
         elif band_n == 'B06' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('171')
         elif band_n == 'B07' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('172')
         elif band_n == 'B08' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('173')
         elif band_n == 'B8A' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('174')
         elif band_n == 'B09' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('175')
         elif band_n == 'B10' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('176')
         elif band_n == 'B11' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('177')
         elif band_n == 'B12' and sensor.text == 'Sentinel-2A':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('178')
         elif band_n == 'B01' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('179')
         elif band_n == 'B02' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('180')
         elif band_n == 'B03' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('181')
         elif band_n == 'B04' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('182')
         elif band_n == 'B05' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('183')
         elif band_n == 'B06' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('184')
         elif band_n == 'B07' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('185')
         elif band_n == 'B08' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('186')
         elif band_n == 'B8A' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('187')
         elif band_n == 'B09' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('188')
         elif band_n == 'B10' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('189')
         elif band_n == 'B11' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('190')
         elif band_n == 'B12' and sensor.text == 'Sentinel-2B':
-            gscript.message(_(band_n))
+            gscript.message(band_n)
             text.write('191')
         else:
             gscript.fatal('Bands do not seem to belong to a Sentinel image')
@@ -691,7 +700,7 @@ def main ():
         txt.close()
 
     for key, cb in cor_bands.items():
-        gscript.message(_(cb))
+        gscript.message(cb)
         gscript.run_command('r.colors',
             map=cb,
             color='grey',
