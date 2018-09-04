@@ -245,6 +245,8 @@ def main ():
     cloud_threshold = options['cloud_threshold']
     shadow_threshold = options['shadow_threshold']
     raster_max = {}
+    check_cloud = 1 #by default the procedure finds clouds
+    check_shadow = 1 #by default the procedure finds shadows
     cloud_mask = options['cloud_mask']
     shadow_mask = options['shadow_mask']
 
@@ -267,6 +269,8 @@ def main ():
 
     # Check input and output for shadow mask
     if not flags["c"]:
+        if os.path.isdir(mtd_file):
+            gscript.fatal('The input metadata is a directory. Please select the right .xml file')
         if options['mtd_file']== '':
             gscript.fatal('Metadata file is required for shadow mask computation. Please specified it')
         if options['shadow_mask']=='':
@@ -284,14 +288,14 @@ def main ():
     if flags["s"]:
         gscript.message(_('--- Start rescaling bands ---'))
         for key, b in bands.items():
-            gscript.message(_(b))
+            gscript.message(b)
             b = gscript.find_file(b, element = 'cell')['name']
             gscript.mapcalc('{r} = 1.0 * ({b})/{scale_fac}'.format(
                 r=("{}_{}".format(b, d)),
                 b=b,
                 scale_fac=scale_fac))
             f_bands[key] = "{}_{}".format(b, d)
-        gscript.message(_(f_bands.values()))
+        gscript.message(f_bands.values())
         gscript.message(_('--- All bands have been rescaled ---'))
     else:
         gscript.warning(_('Any rescale factor has been applied'))
@@ -304,11 +308,11 @@ def main ():
 
     gscript.message(_('--- Start computing maximum values of bands ---'))
     for key, fb in f_bands.items():
-        gscript.message(_(fb))
+        gscript.message(fb)
         stats = gscript.parse_command('r.univar', flags='g', map=fb)
         raster_max[key] = (float(stats['max']))
-    gscript.message(_('--- Computed maximum value: {} ---'.format(
-        raster_max.values())))
+    gscript.message('--- Computed maximum value: {} ---'.format(
+        raster_max.values()))
     gscript.message(_('--- Statistics have been computed! ---'))
 
     # Start of Clouds detection  (some rules from litterature)
@@ -354,16 +358,23 @@ def main ():
         output=tmp["cloud_v"],
         type='area',
         flags='s')
-    gscript.message(_('--- Cleaning geometries ---'))
-    gscript.run_command('v.clean',
-        input=tmp["cloud_v"],
-        output=cloud_mask,
-        tool='rmarea',
-        threshold=cloud_threshold)
-    gscript.message(_('--- Finish cloud detection procedure ---'))
+    info_c = gscript.parse_command('v.info',
+        map=tmp["cloud_v"],
+        flags='t')
+    if info_c['areas'] == '0':
+        gscript.warning(_('No clouds have been detected'))
+        check_cloud = 0
+    else:
+        gscript.message(_('--- Cleaning geometries ---'))
+        gscript.run_command('v.clean',
+            input=tmp["cloud_v"],
+            output=cloud_mask,
+            tool='rmarea',
+            threshold=cloud_threshold)
+        gscript.message(_('--- Finish cloud detection procedure ---'))
     # End of Clouds detection
 
-    if not flags["c"]:
+    if not flags["c"] and check_cloud == 1:
         # Start of shadows detection
         gscript.message(_('--- Start shadows detection procedure ---'))
         gscript.message(_('--- Computing shadow mask... ---'))
@@ -399,162 +410,174 @@ def main ():
             type='area',
             flags='s',
             overwrite=True)
-        gscript.message(_('--- Cleaning geometries ---'))
-        gscript.run_command('v.clean',
-            input=tmp["shadow_temp_v"],
-            output=tmp["shadow_temp_mask"],
-            tool='rmarea',
-            threshold=shadow_threshold)
-        gscript.message(_('--- Finish Shadows detection procedure ---'))
-        # End of shadows detection
+        info_s = gscript.parse_command('v.info',
+            map=tmp["shadow_temp_v"],
+            flags='t')
+        if info_s['areas'] == '0':
+            gscript.warning(_('No shadows have been detected'))
+            check_shadow = 0
+        else:
+            gscript.message(_('--- Cleaning geometries ---'))
+            gscript.run_command('v.clean',
+                input=tmp["shadow_temp_v"],
+                output=tmp["shadow_temp_mask"],
+                tool='rmarea',
+                threshold=shadow_threshold)
+            gscript.message(_('--- Finish Shadows detection procedure ---'))
+            # End of shadows detection
 
-        # START shadows cleaning Procedure (remove shadows misclassification)
-        # Start shadow mask preparation
+            # START shadows cleaning Procedure (remove shadows misclassification)
+            # Start shadow mask preparation
 
-        gscript.message(_('--- Start removing misclassification from the shadow mask ---'))
-        gscript.message(_('--- Data preparation... ---'))
-        gscript.run_command('v.centroids',
-            input=tmp["shadow_temp_mask"],
-            output=tmp["centroid"],
-            quiet=True)
-        gscript.run_command('v.db.droptable',
-            map=tmp["centroid"],
-            flags='f')
-        gscript.run_command('v.db.addtable',
-            map=tmp["centroid"],
-            columns='value')
-        gscript.run_command('v.db.update',
-            map=tmp["centroid"],
-            layer=1,
-            column='value',
-            value=1)
-        gscript.run_command('v.dissolve',
-            input=tmp["centroid"],
-            column='value',
-            output=tmp["dissolve"],
-            quiet=True)
-        gscript.run_command('v.category',
-            input=tmp["dissolve"],
-            type='point,line,boundary,centroid,area,face,kernel',
-            output=tmp["delcat"],
-            option='del',
-            cat=-1,
-            quiet=True)
-        gscript.run_command('v.category',
-            input=tmp["delcat"],
-            type='centroid,area',
-            output=tmp["addcat"],
-            option='add',
-            quiet=True)
-        gscript.run_command('v.db.droptable',
-            map=tmp["addcat"],
-            flags='f')
-        gscript.run_command('v.db.addtable',
-            map=tmp["addcat"],
-            columns='value')
+            gscript.message(_('--- Start removing misclassification from the shadow mask ---'))
+            gscript.message(_('--- Data preparation... ---'))
+            gscript.run_command('v.centroids',
+                input=tmp["shadow_temp_mask"],
+                output=tmp["centroid"],
+                quiet=True)
+            gscript.run_command('v.db.droptable',
+                map=tmp["centroid"],
+                flags='f')
+            gscript.run_command('v.db.addtable',
+                map=tmp["centroid"],
+                columns='value')
+            gscript.run_command('v.db.update',
+                map=tmp["centroid"],
+                layer=1,
+                column='value',
+                value=1)
+            gscript.run_command('v.dissolve',
+                input=tmp["centroid"],
+                column='value',
+                output=tmp["dissolve"],
+                quiet=True)
+            gscript.run_command('v.category',
+                input=tmp["dissolve"],
+                type='point,line,boundary,centroid,area,face,kernel',
+                output=tmp["delcat"],
+                option='del',
+                cat=-1,
+                quiet=True)
+            gscript.run_command('v.category',
+                input=tmp["delcat"],
+                type='centroid,area',
+                output=tmp["addcat"],
+                option='add',
+                quiet=True)
+            gscript.run_command('v.db.droptable',
+                map=tmp["addcat"],
+                flags='f')
+            gscript.run_command('v.db.addtable',
+                map=tmp["addcat"],
+                columns='value')
 
-        # End shadow mask preparation
-        # Start cloud mask preparation
+            # End shadow mask preparation
+            # Start cloud mask preparation
 
-        gscript.run_command('v.db.droptable',
-            map=cloud_mask,
-            flags='f')
-        gscript.run_command('v.db.addtable',
-            map=cloud_mask,
-            columns='value')
+            gscript.run_command('v.db.droptable',
+                map=cloud_mask,
+                flags='f')
+            gscript.run_command('v.db.addtable',
+                map=cloud_mask,
+                columns='value')
 
-        # End cloud mask preparation
-        # Shift cloud mask using dE e dN
-        # Start reading mean sun zenith and azimuth from xml file to compute 
-        #dE and dN automatically
-        gscript.message(_('--- Reading mean sun zenith and azimuth from metadata file to compute clouds shift ---'))
-        xml_tree = et.parse(mtd_file)
-        root = xml_tree.getroot()
-        ZA = []
+            # End cloud mask preparation
+            # Shift cloud mask using dE e dN
+            # Start reading mean sun zenith and azimuth from xml file to compute 
+            #dE and dN automatically
+            gscript.message(_('--- Reading mean sun zenith and azimuth from metadata file to compute clouds shift ---'))
+            try:
+                xml_tree = et.parse(mtd_file)
+                root = xml_tree.getroot()
+                ZA = []
+                try:
+                    for elem in root[1]:
+                        for subelem in elem[1]:
+                            ZA.append (subelem.text)
+                    z = float(ZA[0])
+                    a = float(ZA[1])
+                    gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
+                    gscript.message('--- the mean sun Azimuth is: {:.3f} deg ---'.format(a))
+                except:
+                    gscript.fatal('The selected input metadata file is not the right one. Please check the manual page.')
+            except:
+                gscript.fatal('The selected input metadata file is not an .xml file. Please check the manual page.')
 
-        for elem in root[1]:
-            for subelem in elem[1]:
-                ZA.append (subelem.text)
-        z = float(ZA[0])
-        a = float(ZA[1])
-        gscript.message(_('--- the mean sun Zenith is: {:.3f} deg ---'.format(z)))
-        gscript.message(_('--- the mean sun Azimuth is: {:.3f} deg ---'.format(a)))
+            # Stop reading mean sun zenith and azimuth from xml file to compute dE 
+            #and dN automatically
+            # Start computing the east and north shift for clouds and the 
+            #overlapping area between clouds and shadows at steps of 100m
+            gscript.message(_('--- Start computing the east and north clouds shift at steps of 100m of clouds height---'))
+            H = 1000
+            dH = 100
+            HH = []
+            dE = []
+            dN = []
+            AA = []
+            while H <= 4000:
+                z_deg_to_rad = math.radians(z)
+                tan_Z = math.tan(z_deg_to_rad)
+                a_deg_to_rad = math.radians(a)
+                cos_A = math.cos(a_deg_to_rad)
+                sin_A = math.sin(a_deg_to_rad)
 
-        # Stop reading mean sun zenith and azimuth from xml file to compute dE 
-        #and dN automatically
-        # Start computing the east and north shift for clouds and the 
-        #overlapping area between clouds and shadows at steps of 100m
-        gscript.message(_('--- Start computing the east and north clouds shift at steps of 100m of clouds height---'))
-        H = 1000
-        dH = 100
-        HH = []
-        dE = []
-        dN = []
-        AA = []
-        while H <= 4000:
-            z_deg_to_rad = math.radians(z)
-            tan_Z = math.tan(z_deg_to_rad)
-            a_deg_to_rad = math.radians(a)
-            cos_A = math.cos(a_deg_to_rad)
-            sin_A = math.sin(a_deg_to_rad)
+                E_shift = (-H * tan_Z * sin_A)
+                N_shift = (-H * tan_Z * cos_A)
+                dE.append (E_shift)
+                dN.append (N_shift)
 
-            E_shift = (-H * tan_Z * sin_A)
-            N_shift = (-H * tan_Z * cos_A)
-            dE.append (E_shift)
-            dN.append (N_shift)
+                HH.append(H)
+                H = H + dH
 
-            HH.append(H)
-            H = H + dH
+                gscript.run_command('v.transform',
+                    input=cloud_mask,
+                    output=tmp["cl_shift"],
+                    xshift=E_shift,
+                    yshift=N_shift,
+                    overwrite=True,
+                    quiet=True)
+                gscript.run_command('v.overlay',
+                    ainput=tmp["addcat"],
+                    binput=tmp["cl_shift"],
+                    operator='and',
+                    output=tmp["overlay"],
+                    overwrite=True,
+                    quiet=True)
+                gscript.run_command('v.db.addcolumn',
+                    map=tmp["overlay"],
+                    columns='area double')
+                area = gscript.read_command('v.to.db',
+                    map=tmp["overlay"],
+                    option='area',
+                    columns='area',
+                    flags='c')
+                area2 = gscript.parse_key_val(area, sep='|')
+                AA.append(float(area2['total area']))
 
+            # Find the maximum overlapping area between clouds and shadows
+            index_maxAA = numpy.argmax(AA)
+
+            # Clouds are shifted using the clouds height corresponding to the
+            #maximum overlapping area then are intersect with shadows
             gscript.run_command('v.transform',
                 input=cloud_mask,
                 output=tmp["cl_shift"],
-                xshift=E_shift,
-                yshift=N_shift,
+                xshift=dE[index_maxAA],
+                yshift=dN[index_maxAA],
                 overwrite=True,
                 quiet=True)
-            gscript.run_command('v.overlay',
+            gscript.run_command('v.select',
                 ainput=tmp["addcat"],
+                atype='point,line,boundary,centroid,area',
                 binput=tmp["cl_shift"],
-                operator='and',
-                output=tmp["overlay"],
-                overwrite=True,
+                btype='point,line,boundary,centroid,area',
+                output=shadow_mask,
+                operator='intersects',
                 quiet=True)
-            gscript.run_command('v.db.addcolumn',
-                map=tmp["overlay"],
-                columns='area double')
-            area = gscript.read_command('v.to.db',
-                map=tmp["overlay"],
-                option='area',
-                columns='area',
-                flags='c')
-            area2 = gscript.parse_key_val(area, sep='|')
-            AA.append(float(area2['total area']))
 
-        # Find the maximum overlapping area between clouds and shadows
-        index_maxAA = numpy.argmax(AA)
-
-        # Clouds are shifted using the clouds height corresponding to the
-        #maximum overlapping area then are intersect with shadows
-        gscript.run_command('v.transform',
-            input=cloud_mask,
-            output=tmp["cl_shift"],
-            xshift=dE[index_maxAA],
-            yshift=dN[index_maxAA],
-            overwrite=True,
-            quiet=True)
-        gscript.run_command('v.select',
-            ainput=tmp["addcat"],
-            atype='point,line,boundary,centroid,area',
-            binput=tmp["cl_shift"],
-            btype='point,line,boundary,centroid,area',
-            output=shadow_mask,
-            operator='intersects',
-            quiet=True)
-
-        gscript.message(_('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA])))
-        gscript.message(_('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA])))
-        gscript.message(_('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA])))
+            gscript.message('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA]))
+            gscript.message('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA]))
+            gscript.message('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA]))
     else:
         if shadow_mask != '':
             gscript.warning(_('No shadow mask will be computed'))
@@ -562,7 +585,7 @@ def main ():
 def cleanup():
     if flags["r"]:
         gscript.del_temp_region()
-    gscript.message(_('--- The computational region has been reset to the previous one---'))
+        gscript.message(_('--- The computational region has been reset to the previous one---'))
     if flags["t"]:
         gscript.message(_('--- No temporary files have been deleted ---'))
     else:
