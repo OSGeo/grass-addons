@@ -35,3 +35,10 @@ double eact(double esat,double rh){
 	*/
 	return(0.01*esat*rh);
 }
+double eatm(double eact){
+	/*
+	eatm: atmospheric emissivity
+	eact: actual vapour pressure
+	*/
+	return(1.34-0.14*sqrt(eact));
+}

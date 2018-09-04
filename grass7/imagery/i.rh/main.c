@@ -24,6 +24,7 @@
 double rh(double PW,double Pa,double Ta,double dem);
 double esat(double tamean);
 double eact(double esat,double rh);
+double eatm(double eact);
 
 int main(int argc, char *argv[]) 
 {
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     int row, col;
     struct GModule *module;
     struct Option *input1, *input2, *input3, *input4, *output1;
-    struct Flag *flag1, *flag2;
+    struct Flag *flag1, *flag2, *flag3;
     struct History history;	/*metadata */
     char *name;			/*input raster name */
     char *result1;		/*output raster name */
@@ -83,6 +84,9 @@ int main(int argc, char *argv[])
     flag2->key = 'a';
     flag2->description = _("Output the actual water vapour (eact)");
 
+    flag3 = G_define_flag();
+    flag3->key = 'e';
+    flag3->description = _("Output the atmospheric emissivity (eatm)");
     /********************/ 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -93,6 +97,10 @@ int main(int argc, char *argv[])
     result1 = output1->answer;
     if(flag1->answer && flag2->answer)
 	G_fatal_error(_("Cannot output both esat and eact, please choose"));
+    if(flag1->answer && flag3->answer)
+	G_fatal_error(_("Cannot output both esat and eatm, please choose"));
+    if(flag2->answer && flag3->answer)
+	G_fatal_error(_("Cannot output both eact and eatm, please choose"));
     /***************************************************/ 
     data_type_pw = Rast_map_type(pw, mapset);
     if ((infd_pw = Rast_open_old(pw, mapset)) < 0)
@@ -128,7 +136,7 @@ int main(int argc, char *argv[])
     /* Process pixels */ 
     for (row = 0; row < nrows; row++)
     {
-	CELL d, d_rh, d_esat, d_eact;
+	CELL d, d_rh, d_esat, d_eact, d_eatm;
 	DCELL d_pw;
 	DCELL d_pa;
 	DCELL d_ta;
@@ -196,8 +204,10 @@ int main(int argc, char *argv[])
 		d_rh = rh(d_pw,d_pa,d_ta,d_dem);
 		d_esat = esat(d_ta);
 		d_eact = eact(d_esat,d_rh);
+		d_eatm = eatm(d_eact);
 		if(flag1->answer) d=d_esat;
 		else if(flag2->answer) d=d_eact;
+		else if(flag3->answer) d=d_eatm;
 		else d=d_rh;
 		outrast1[col] = d;
 	    }
