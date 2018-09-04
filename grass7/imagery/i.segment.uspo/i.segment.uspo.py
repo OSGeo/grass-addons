@@ -339,23 +339,25 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
         for minsize in iter(minsize_queue.get, 'STOP'):
             map_list = rg_hierarchical_seg(parms, thresholds, minsize)
             for mapname, threshold, minsize in map_list:
-                variance_per_raster = []
-                autocor_per_raster = []
-                neighbordict = get_nb_matrix(mapname)
-                for raster in parms['rasters']:
-                    # there seems to be some trouble in ms windows with qualified
-                    # map names
-                    raster = raster.split('@')[0]
-                    var = get_variance(mapname, raster)
-                    variance_per_raster.append(var)
-                    autocor = get_autocorrelation(mapname, raster,
-                                                  neighbordict, parms['indicator'])
-                    autocor_per_raster.append(autocor)
+                mapinfo = gscript.raster_info(mapname)
+                if mapinfo['max'] > mapinfo['min']:
+                    variance_per_raster = []
+                    autocor_per_raster = []
+                    neighbordict = get_nb_matrix(mapname)
+                    for raster in parms['rasters']:
+                        # there seems to be some trouble in ms windows with qualified
+                        # map names
+                        raster = raster.split('@')[0]
+                        var = get_variance(mapname, raster)
+                        variance_per_raster.append(var)
+                        autocor = get_autocorrelation(mapname, raster,
+                                                      neighbordict, parms['indicator'])
+                        autocor_per_raster.append(autocor)
 
-                mean_lv = sum(variance_per_raster) / len(variance_per_raster)
-                mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
-                result_queue.put([mapname, mean_lv, mean_autocor, 
-                                 threshold, minsize])
+                    mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+                    mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+                    result_queue.put([mapname, mean_lv, mean_autocor, 
+                                     threshold, minsize])
 
     except:
         result_queue.put(["%s: %s_%d failed" % (current_process().name,
@@ -370,9 +372,8 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
     try:
         for threshold, minsize in iter(parameter_queue.get, 'STOP'):
             mapname = rg_non_hierarchical_seg(parms, threshold, minsize)
-            numsegments = len(gscript.read_command('r.category',
-                                                   map_=mapname).splitlines())
-            if numsegments > 1:
+            mapinfo = gscript.raster_info(mapname)
+            if mapinfo['max'] > mapinfo['min']:
                 variance_per_raster = []
                 autocor_per_raster = []
                 neighbordict = get_nb_matrix(mapname)
