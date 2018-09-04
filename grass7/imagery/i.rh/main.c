@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     /* Process pixels */ 
     for (row = 0; row < nrows; row++)
     {
-	CELL d;
+	CELL d, d_rh, d_esat, d_eact;
 	DCELL d_pw;
 	DCELL d_pa;
 	DCELL d_ta;
@@ -193,8 +193,8 @@ int main(int argc, char *argv[])
 		Rast_set_c_null_value(&outrast1[col], 1);
 	    }
 	    else {
-		d_rh = rh(pw,pa,ta,dem);
-		d_esat = esat(ta);
+		d_rh = rh(d_pw,d_pa,d_ta,d_dem);
+		d_esat = esat(d_ta);
 		d_eact = eact(d_esat,d_rh);
 		if(flag1->answer) d=d_esat;
 		else if(flag2->answer) d=d_eact;
