@@ -855,23 +855,32 @@ def main():
         autocorlist = []
 
         if rg:
-            for mapname, lv, autocor, threshold, minsize in iter(result_queue.get, 'STOP'):
-                regional_maplist.append(mapname)
-                variancelist.append(lv)
-                autocorlist.append(autocor)
-                threshlist.append(threshold)
-                minsizelist.append(minsize)
+            for result in iter(result_queue.get, 'STOP'):
+                if len(result) == 5:
+                    mapname, lv, autocor, threshold, minsize = result
+                    regional_maplist.append(mapname)
+                    variancelist.append(lv)
+                    autocorlist.append(autocor)
+                    threshlist.append(threshold)
+                    minsizelist.append(minsize)
+                else:
+                    gscript.message('Error in worker function: %s' % result)
         else:
             hrlist = []
             radiuslist = []
-            for mapname, lv, autocor, threshold, hr, radius, minsize in iter(result_queue.get, 'STOP'):
-                regional_maplist.append(mapname)
-                variancelist.append(lv)
-                autocorlist.append(autocor)
-                threshlist.append(threshold)
-                hrlist.append(hr)
-                radiuslist.append(radius)
-                minsizelist.append(minsize)
+            for result in iter(result_queue.get, 'STOP'):
+                if len(result) == 7:
+                    mapname, lv, autocor, threshold, hr, radius, minsize = result
+                    regional_maplist.append(mapname)
+                    variancelist.append(lv)
+                    autocorlist.append(autocor)
+                    threshlist.append(threshold)
+                    hrlist.append(hr)
+                    radiuslist.append(radius)
+                    minsizelist.append(minsize)
+                else:
+                    gscript.message('Error in worker function: %s' % result)
+
 		
         maplist += regional_maplist
 	# Calculate optimization function values and get indices of best values
