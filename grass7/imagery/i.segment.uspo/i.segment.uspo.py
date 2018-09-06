@@ -360,9 +360,10 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
                                      threshold, minsize])
 
     except:
-        result_queue.put(["%s: %s_%d failed" % (current_process().name,
+        exc_info = sys.exc_info()
+        result_queue.put(["%s: %s_%d failed with message:\n\n%s" % (current_process().name,
                                              parms['region'],
-                                             minsize)])
+                                             minsize, exc_info)])
 
     return True
 
@@ -392,9 +393,10 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
                 result_queue.put([mapname, mean_lv, mean_autocor, threshold, minsize])
             
     except:
-        result_queue.put(["%s: %s_%f_%d failed" % (current_process().name, 
+        exc_info = sys.exc_info()
+        result_queue.put(["%s: %s_%f_%d failed with message:\n\n %s" % (current_process().name, 
                                                 parms ['region'],
-                                                threshold, minsize)])
+                                                threshold, minsize, exc_info)])
         
     return True
 
@@ -881,7 +883,6 @@ def main():
                 else:
                     gscript.message('Error in worker function: %s' % result)
 
-		
         maplist += regional_maplist
 	# Calculate optimization function values and get indices of best values
         optlist = create_optimization_list(variancelist,
