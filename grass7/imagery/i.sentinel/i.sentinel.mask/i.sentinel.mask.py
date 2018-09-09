@@ -1,13 +1,13 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 # coding=utf-8
 #
 ############################################################################
 #
-# MODULE:    i.sentinel.mask
+# MODULE:       i.sentinel.mask
 # AUTHOR(S):    Roberta Fagandini, Moritz Lennert, Roberto Marzocchi
-# PURPOSE:    Creates clouds and shadows masks for Sentinel-2 images
+# PURPOSE:      Creates clouds and shadows masks for Sentinel-2 images
 #
-# COPYRIGHT:    (C) 2018 by the GRASS Development Team
+# COPYRIGHT:    (C) 2018 by Roberta Fagandini, and the GRASS Development Team
 #
 #        This program is free software under the GNU General Public
 #        License (>=v2). Read the file COPYING that comes with GRASS
@@ -16,12 +16,13 @@
 #############################################################################
 
 #%Module
-#% description: Creates clouds and shadows masks for Sentinel-2 images
-#% keywords: imagery
-#% keywords: sentinel 
-#% keywords: cloud detection
-#% keywords: shadow
-#% keywords: reflectance
+#% description: Creates clouds and shadows masks for Sentinel-2 images.
+#% keyword: imagery
+#% keyword: satellite
+#% keyword: sentinel
+#% keyword: cloud detection
+#% keyword: shadow
+#% keyword: reflectance
 #%End
 #%option
 #% key: input_file

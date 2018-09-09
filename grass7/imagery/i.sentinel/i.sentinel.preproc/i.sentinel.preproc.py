@@ -7,22 +7,22 @@
 # AUTHOR(S):    Roberta Fagandini, Moritz Lennert, Roberto Marzocchi
 # PURPOSE:  Import and perform atmospheric correction for Sentinel-2 images
 #
-# COPYRIGHT:	(C) 2018 by the GRASS Development Team
+# COPYRIGHT:    (C) 2018 by Roberta Fagandini, and the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#        This program is free software under the GNU General Public
+#        License (>=v2). Read the file COPYING that comes with GRASS
+#        for details.
 #
 ############################################################################
 
 #%Module
-#% description: Import and perform atmospheric correction for Sentinel-2 images
-#% overwrite: yes
-#% keywords: imagery
-#% keywords: sentinel 
-#% keywords: download
-#% keywords: import
-#% keywords: atmospheric correction
+#% description: Imports and performs atmospheric correction of Sentinel-2 images.
+#% keyword: imagery
+#% keyword: satellite
+#% keyword: sentinel
+#% keyword: download
+#% keyword: import
+#% keyword: atmospheric correction
 #%End
 #%option
 #% key: input_dir
