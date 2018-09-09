@@ -19,7 +19,7 @@
 #% description: Creates clouds and shadows masks for Sentinel-2 images.
 #% keyword: imagery
 #% keyword: satellite
-#% keyword: sentinel
+#% keyword: Sentinel
 #% keyword: cloud detection
 #% keyword: shadow
 #% keyword: reflectance

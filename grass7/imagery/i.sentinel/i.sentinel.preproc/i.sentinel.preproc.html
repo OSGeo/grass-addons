@@ -1,79 +1,91 @@
-<h2>DESCRIPTION</h2> <em>i.sentinel.preproc</em> allows to import Sentinel 2
-images and perform atmospheric correction. <p> i.sentinel.preproc is a module
-for the preprocessing of Sentinel 2 images (Level-1C Single Tile product) which
-wraps the import and the atmospheric correction using respectively <a
-href="i.sentinel.import.html">i.sentinel.import</a> and <a
-href="i.atcorr.html">i.atcorr</a>.<br>
-It works both with Sentinel 2A and 2B images.<br>
+<h2>DESCRIPTION</h2>
+<em>i.sentinel.preproc</em> allows to import Sentinel-2
+images and perform atmospheric correction.
+<p> <em>i.sentinel.preproc</em> is a module
+for the preprocessing of Sentinel-2 images (Level-1C Single Tile product) which
+wraps the import and the atmospheric correction using respectively
+<a href="i.sentinel.import.html">i.sentinel.import</a> and
+<a href="i.atcorr.html">i.atcorr</a>.<br>
+It works both with Sentinel-2A and 2B images.<br>
 The aim is to provide a simplified module which allows importing images, which
-area downloaded using <a
-href="i.sentinel.download.html">i.sentinel.download</a> or any other sources,
+area downloaded using 
+<a href="i.sentinel.download.html">i.sentinel.download</a> or any other sources,
 and performing the atmospheric correction avoiding users to provide all the
 required input parameters manually. In fact, regarding the atmospheric
-correction performed with i.atcorr one of the most challenging steps,
+correction performed with <em>i.atcorr</em> one of the most challenging steps,
 especially for unexperienced users, is the compiling of the control file with
 all the required parameters to parametrize the 6S (<em>Second Simulation of
-Satellite Signal in the Solar Spectrum</em>) model on which i.atcorr is
-based.<br><br> To run i.atcorr, users have to provide the so-called control
+Satellite Signal in the Solar Spectrum</em>) model on which <em>i.atcorr</em> is
+based.
+<p>
+To run <em>i.atcorr</em>, users have to provide the so-called control
 file in which all the parameters (geometrical conditions, date, time, longitude
 and latitude of the center of the scene, atmospheric model, aerosol model,
 visibility or Aerosol Optical Depth -AOD- value, mean elevation target and
 bands number) have to be specified with precise syntax rules and codes.<br>
-i.sentinel.preproc retrieves as many parameters as possible from the metadata
+<em>i.sentinel.preproc</em> retrieves as many parameters as possible from the metadata
 file (e.g. Geometrical conditions, data and time and bands number), longitude
 and latitude are automatically computed from the computational region while
 others like the mean target elevation above sea level from the input digital
 elevation model (DEM). Only a few parameters have to be provided by users who
 can choose the proper option from a drop-down menu thus avoiding to enter the
-corresponding code. In any case, i.sentinel.preproc writes a temporary control
+corresponding code. In any case, <em>i.sentinel.preproc</em> writes a temporary control
 file, changing it according to the band number, following the syntax rules and
-codes of i.atcorr and then it runs i.atcorr for all bands.<br><br>
-<br><br>
+codes of <em>i.atcorr</em> and then it runs <em>i.atcorr</em> for all bands.
+<p>
+
 <center>
-<img src="i_sentinel_preproc_GWF.png" width="30%">
-<br><br>
+<img src="i_sentinel_preproc_GWF.png" width="30%"><br>
 <i>Fig: Module General WorkFlow</i>
 </center>
-<br><br>
-When all bands have been processed by the integrated version of i.atcorr, an
+
+<p>
+When all bands have been processed by the integrated version of <em>i.atcorr</em>, an
 histogram equalization grayscale color scheme is applied. 
-<br><br>
-If the <b>-t</b> flag is checked, a text file ready to be used as input for <a
-href="i.sentinel.mask">i.sentinel.mask</a> will be created. In this case a name
+
+<p>
+If the <b>-t</b> flag is set, a text file ready to be used as input for
+<a href="i.sentinel.mask">i.sentinel.mask</a> will be created. In this case a name
 for the output text file has to be specified.
-<br><br>
-NOTE: as for i.atcorr, current region settings are ignored. The region is
+
+<p>
+NOTE: as for <em>i.atcorr</em>, current region settings are ignored. The region is
 temporary set to maximum image extent and restored at the end of the process.
-<br><br>
-<em><b>Important</b></em>: i.sentinel.preproc requires all the bands of a
-Sentinel 2 images. If the module is used only for the atmospheric correction,
-all bands from *_B01 to *_B12 must be imported.<br>Moreover, the original bands
+
+<p>
+<em><b>Important</b></em>: <em>i.sentinel.preproc</em> requires all the bands of a
+Sentinel-2 images. If the module is used only for the atmospheric correction,
+all bands from *_B01 to *_B12 must be imported.
+<br>Moreover, the original bands
 name has to be kept unchanged (e.g if the original name is
 <em>T17SPV_20180315T160021_B02</em> the imported raster map in the GIS DATABSE
 must be named <em>T17SPV_20180315T160021_B02</em>).
-<br><br>
+
+
 <h3>Import</h3>
-<p>
-i.sentinel.preproc allows the import of all the bands of a Sentinel 2 image.
+
+<em>i.sentinel.preproc</em> allows the import of all the bands of a Sentinel-2 image.
 The required input is the <b>.SAFE folder</b> downloaded using
-i.sentinel.download or any other source (e.g. Copernicus Open Access Hub). Note
+<em>i.sentinel.download</em> or any other source (e.g. Copernicus Open Access Hub). Note
 that in the case that spatial reference system of input data differs from GRASS
-location, the input data are reprojected.<br> Number of imported bands <b>can
-not</b> be reduced, all bands are automatically imported by default.<br><br>
-
-<em><b>Important</b></em>: i.sentinel.preproc allows the import of one image at
-a time because the input .SAFE folder is also used to automatically identify
+location, the input data are reprojected.
+<br>
+The number of imported bands <b>can not</b> be reduced, all bands are automatically
+imported by default.
+<p>
+<em><b>Important</b></em>: <em>i.sentinel.preproc</em> allows the import of one image at
+a time because the input <b>.SAFE folder</b> is also used to automatically identify
 the corresponding metadata file that is used during the atmospheric
-correction.<br><br>
-
+correction.
+<p>
 The import can be skipped using the <b>-i</b> flag. Note that even if the
-import is skipped the input .SAFE folder must be specified to automatically
+import is skipped the input <b>.SAFE folder</b> must be specified to automatically
 retrieve the metadata file.
 
 <h3>Atmospheric correction</h3>
 <p>
-i.sentinel.preproc allows performing atmospheric correction of all bands of a
-Sentinel 2 scene with a single process using i.atcorr. Unlike i.atcorr, it
+<em>i.sentinel.preproc</em> allows performing atmospheric correction of all bands of a
+Sentinel-2 scene with a single process using <em>i.atcorr</em>. Unlike <em>i.atcorr</em>, it
 writes the control file changing it according to the band number. The only
 required inputs are:   
 <ul> 
@@ -89,16 +101,16 @@ required inputs are:
 The module writes the control file automatically starting from the input above.
 
 <h4>Control file</h4>
-<p>
-i.atcorr requires a control file to parametrize the 6S algorithm on which it is
+
+<em>i.atcorr</em> requires a control file to parametrize the 6S algorithm on which it is
 based. 
 
 <p>
-Below an example of the control file, taken from the i.atcorr manual page, of a
-Sentinel 2A image:
+Below an example of the control file, taken from the <em>i.atcorr</em> manual page, of a
+Sentinel-2A image:
 
 <div class="code"><pre>
-25                            - geometrical conditions = Sentinel 2A
+25                            - geometrical conditions = Sentinel-2A
 5 4 19.737 -78.727 35.748     - month day hh.ddd longitude latitude ("hh.ddd" is in decimal hours GMT)
 2                             - atmospheric model = midlatitude summer
 1                             - aerosols model = continental
@@ -109,28 +121,33 @@ Sentinel 2A image:
 167                           - sensor band = Sentinel2A Blue band B2
 </pre></div>
 
-Using i.sentinel.preproc the only parameters from the list above that users
+Using <em>i.sentinel.preproc</em> the only parameters from the list above that users
 have to provide are: atmospheric model, aerosol model, visibility or AOD value.
 The others are automatically retrieved from the metadata file, input elevation
 map and bands.
-<br><br>
+
+<p>
 <ol>
 <li><b>Geometrical conditions</b>
 <p>
 The geometrical condition of the satellite are read from the metadata file and
-converted to the corresponding i.atcorr code, 25 for Sentinel 2A mission and 26
-for Sentinel 2B. 
-<br><br>
+converted to the corresponding <em>i.atcorr</em> code, 25 for Sentinel-2A mission and 26
+for Sentinel-2B. 
+
+<p>
 <li><b> Date, time, longitude and latitude </b>
 <p>
 Date (month and day) and time are read from the metadata file. The date (with
 the format YYYY-MM-DDTHH:MM:SSZ) is converted in a standard format and only the
-month and the day are selected and added to the control file.<br><br> Time is
-already in Greenwich Mean Time (GMT), as i.atcorr requires, and it's
+month and the day are selected and added to the control file.
+<p>
+Time is
+already in Greenwich Mean Time (GMT), as <em>i.atcorr</em> requires, and it's
 automatically converted to decimal hours.<br> Longitude and latitude are
 computed from the computational region and converted to WGS84 decimal
 coordinates.
-<br><br>
+
+<p>
 <li><b> Atmospheric model</b>
 <p>
 Only some options are available:
@@ -147,7 +164,9 @@ Only some options are available:
 Users can choose the proper option from a drop-down menu. The desired model is
 automatically converted to the corresponding code and added to the control
 file.
-<br><br><em><b>Automatic</b> option</em><br>
+
+<p>
+<em><b>Automatic</b> option</em><br>
 The default option is <em>Automatic</em> which consists in the automatic
 identification of the proper atmospheric model for the input image. The
 <em>Automatic</em> option reads the latitude of the center of the computational
@@ -160,7 +179,8 @@ model is identified, it is converted to the corresponding code and added to the
 control file.<br> Note that this is a simplified and standardized method to
 identify the atmospheric model. Obviously, it is possible to choose other
 options from those available.
-<br><br>
+
+<p>
 <li><b> Aerosol model</b><br>
 <p>
 Also in this case, only some options are available and users have to select the
@@ -176,30 +196,37 @@ code and added to the control file.
     <li>stratospheric model
 </ul><br>
 No automatic procedure has been implemented in this case.
-<br><br>
+
+<p>
 <li><b> Visibility or AOD </b><br>
 <p>
-By default, i.sentinel.preproc uses the input visibility map to estimate a
+By default, <em>i.sentinel.preproc</em> uses the input visibility map to estimate a
 visibility value to be added in the control file. If no visibility map is
 available for the processed scene, it is possible to use an estimated Aerosol
 Optical Depth (AOD) value checking the <b>-a</b> flag.<br>
-If the -a flag is checked and a visibility map is provided, the visibility will
+If the <b>-a</b> flag is checked and a visibility map is provided, the visibility will
 be ignored and no mean visibility value will be computed and added to the
-control file. Whereas, if the -a flag isn't checked and an AOD value is
-provided it will be ignored and not added to the control file.<br><br> In the
-same way, if the -a flag is checked and a visibility map is provided it will be
-excluded from atmospheric correction process.<br><br>
-<b> AOD</b><br><br>
+control file. Whereas, if the <b>-a</b> flag isn't checked and an AOD value is
+provided it will be ignored and not added to the control file.
+<p>
+In the same way, if the <b>-a</b> flag is checked and a visibility map is
+provided it will be excluded from atmospheric correction process.
+
+<p>
+<b> AOD</b>
+<p>
 The AOD value can be specified by users (e.g. <tt>aod_value=0.07</tt>) or
 automatically retrieved from an AERONET file to be given as input instead of
-the AOD value.<br> i.sentinel.preproc reads the AERONET file, identify the
+the AOD value.<br> <em>i.sentinel.preproc</em> reads the AERONET file, identify the
 closest available date to the scene date and compute AOD at 550nm using the
 closest upper and lower wavelength to 550 (e.g. 500nm and 675nm) and applying
-the Angstrom coefficient. <br><br>
+the Angstrom coefficient. 
+<p>
+
 The type of AERONET file is a Combined file for All Points (Level 1.5 or
 2.0)<br> To download this kind of file:<br>
 <ol>
-<li>Go to <a href=http://aeronet.gsfc.nasa.gov/cgi-bin/webtool_opera_v2_inv>http://aeronet.gsfc.nasa.gov</a>
+<li>Go to <a href="http://aeronet.gsfc.nasa.gov/cgi-bin/webtool_opera_v2_inv">http://aeronet.gsfc.nasa.gov</a>
 <li>Choose the site you want to get data from
 <li>Choose the data you want to get data for
 <li>Tick the box near the bottom labelled as 'Combined file (all products without phase functions)'
@@ -208,29 +235,35 @@ The type of AERONET file is a Combined file for All Points (Level 1.5 or
 <li>Download the file
 <li>Unzip (the file has a .dubovik extension)
 </ol>
-<br><br>
+
+<p>
 Then, giving this file as input (e.g.
 <tt>aeronet_file=your_path/*.dubovik</tt>), the AOD at 550nm will be
-automatically computed and added to the control file.<br><br> NOTE: as i.atcorr
-manual explain, if an AOD value is provided a value 0 for the visibility has to
+automatically computed and added to the control file.
+<p>
+NOTE: as in <em>i.atcorr</em>
+manual explained, if an AOD value is provided a value 0 for the visibility has to
 be entered with the AOD value in the following line. Obviously,
-i.sentinel.preproc takes into account this syntax rule and automatically adds a
+<em>i.sentinel.preproc</em> takes into account this syntax rule and automatically adds a
 0 value for visibility (or -1 if AOD=0) if an AOD value is provided (through
 both <tt>aod_value</tt> and <tt>aeronet_file</tt>).
-<br><br>
+
+<p>
 <li><b> Mean target elevation above sea level </b><br>
 <p>
 Mean target elevation above sea level is automatically estimated from the input
 digital elevation model. According to the rules for writing the contol file of
-i.atcorr, the mean elevation value is added as a negative value and converted
+<em>i.atcorr</em>, the mean elevation value is added as a negative value and converted
 in kilometers (e.g. if mean=121 in the control file it will be written in
 [-km], i.e., -0.121).
-<br><br>
+
+<p>
 <li><b> Sensor height </b><br>
 <p>
 Since the sensor is on board a satellite, the sensor height is automatically
 set to -1000.
-<br><br>
+
+<p>
 <li><b> Sensor band </b><br>
 <p>
 The number of the band changes automatically according to the band that is
@@ -240,13 +273,15 @@ into the corresponding code.
 
 <h2>EXAMPLE</h2>
 <p>
-The example illustrates how to run i.sentinel.preproc for a Sentinel 2A image
+The example illustrates how to run <em>i.sentinel.preproc</em> for a Sentinel-2A image
 (S2A_MSIL1C_20180315T160021_N0206_R097_T17SPV_20180315T194425.SAFE) in the
 North Carolina location.<br> The AERONET file has been downloaded from the
 <em>EPA-Res_Triangle_Pk</em> station.
+
 <div class="code"><pre>
-i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T17SPV_20180315T194425.SAFE elevation=elevation atmospheric_model=Automatic<br> 
-aerosol_model="Continental model" aeronet_file=path/180301_180331_EPA-Res_Triangle_Pk.dubovik suffix=cor text_file=/path/input_cloud_mask.txt
+i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T17SPV_20180315T194425.SAFE \
+  elevation=elevation atmospheric_model=Automatic aerosol_model="Continental model" \
+  aeronet_file=path/180301_180331_EPA-Res_Triangle_Pk.dubovik suffix=cor text_file=/path/input_cloud_mask.txt
 </pre></div>
 <p>
 Here is the control file automatically written for Band 02 of the input scene 
@@ -262,7 +297,7 @@ Here is the control file automatically written for Band 02 of the input scene
 167
 </pre></div>
 <p>
-Here is the output text file ready to be used as input for i.sentinel.mask (-t
+Here is the output text file ready to be used as input for <em>i.sentinel.mask</em> (<b>-t</b>
 flag)
 <div class="code"><pre>
 blue=T17SPV_20180315T160021_B02_cor
@@ -276,38 +311,38 @@ nir8a=T17SPV_20180315T160021_B8A_cor
 <br>
 <center>
 <a href="i_sentinel_preproc_ES.png">
-<img src="i_sentinel_preproc_ES.png" width="538" height="444" alt="i.atcorr example" border="0">
-</a>
-<br><br>
+<img src="i_sentinel_preproc_ES.png" width="538" height="444" alt="<em>i.atcorr</em> example" border="0"></a>
+<br>
 <i>Figure: Sentinel-2A Band 02</i>
 </center>
-<br>
 
 <h2>REQUIREMENTS</h2>
+
 <ul>
 <li><a href="i.sentinel.import.html">i.sentinel.import</a>
 </ul>
 
 <h2>IMPORTANT NOTES</h2>
+
 <ul>
-<li>i.sentinel.preproc integrates a simplyfied version of both modules
+<li><em>i.sentinel.preproc</em> integrates a simplyfied version of both modules
 (i.sentinel.import and i.atcorr), only some options are available. For
 instance, if it's necessary a strong customization (e.g. definition of your own
-atmospheric or aerosol model), please refer to i.atcorr.<br><br>
-<li>i.sentinel.preproc works with Sentinel 2 images whose names follow both the
+atmospheric or aerosol model), please refer to i.atcorr.</li>
+<li><em>i.sentinel.preproc</em> works with Sentinel-2 images whose names follow both the
 New Compact Naming Convention (e.g.
 S2A_MSIL1C_20170527T102031_N0205_R065_T32TMQ_20170527T102301.SAFE) and the Old
 Format Naming Convention (e.g.
 S2A_OPER_PRD_MSIL1C_PDMC_20160930T155112_R079_V20160930T095022_20160930T095944.SAFE).
-For further information about the naming convention see <a
-href="https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/naming-convention">ESA
-Sentinel User Guide</a>.
+For further information about the naming convention see
+<a href="https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi/naming-convention">ESA
+Sentinel User Guide</a>.</li>
 </ul>
 
 <h2>FOLLOW UP</h2>
 <ul>
 <li>Implement download functionality avoiding dependencies
-<li>Integrate the Topographic Correction
+<li>Integrate topographic correction
 </ul>
 
 <h2>SEE ALSO</h2>
@@ -321,9 +356,11 @@ Sentinel User Guide</a>.
 <a href="r.extenal.html">r.external</a>
 </em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
 Roberta Fagandini, GSoC 2018 student<br>
 <a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br> 
-<a href="https://wiki.osgeo.org/wiki/User:Robertomarzocchi">Roberto 
-Marzocchi</a>
+<a href="https://wiki.osgeo.org/wiki/User:Robertomarzocchi">Roberto Marzocchi</a>
+
+<p>
+<i>Last changed: $Date: 2017-10-17 19:33:31 +0200 (Tue, 17 Oct 2017) $</i>

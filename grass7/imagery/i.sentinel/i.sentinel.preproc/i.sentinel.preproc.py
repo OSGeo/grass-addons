@@ -19,7 +19,7 @@
 #% description: Imports and performs atmospheric correction of Sentinel-2 images.
 #% keyword: imagery
 #% keyword: satellite
-#% keyword: sentinel
+#% keyword: Sentinel
 #% keyword: download
 #% keyword: import
 #% keyword: atmospheric correction

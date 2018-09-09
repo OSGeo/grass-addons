@@ -18,7 +18,7 @@
 #% description: Imports Sentinel satellite data downloaded from Copernicus Open Access Hub using i.sentinel.download.
 #% keyword: imagery
 #% keyword: satellite
-#% keyword: sentinel
+#% keyword: Sentinel
 #% keyword: import
 #%end
 #%option G_OPT_M_DIR
