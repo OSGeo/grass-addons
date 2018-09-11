@@ -424,6 +424,11 @@ inline void Raster<int>::toGrassRaster(const char *name)
     for (int i = 0; i < height; i++)
         Rast_put_c_row(fd, data + (i * width));
     Rast_close(fd);
+    /* write metadata */
+    struct History history;
+    Rast_short_history(name, "raster", &history);
+    Rast_command_history(&history);
+    Rast_write_history(name, &history);
 }
 
 // convenient definitions, names for backwards compatibility

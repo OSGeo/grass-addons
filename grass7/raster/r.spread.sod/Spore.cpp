@@ -95,7 +95,7 @@ Sporulation::Sporulation(unsigned random_seed, const Img& size)
     generator.seed(random_seed);
 }
 
-void Sporulation::SporeRemove(Img& I, Img& S, const DImg temperature,
+void Sporulation::SporeRemove(Img& I, Img& S, const DImg& temperature,
                               double critical_temperature)
 {
     for (int i = 0; i < height; i++) {

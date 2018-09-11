@@ -4,14 +4,33 @@ All notable changes to this project should be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2018-09-10 - Seasonality Fixes
+
+### Added
+
+- Save GRASS GIS history for all raster outputs (Vaclav Petras)
+ - The executed command with all parameters is stored in the matadata.
+
+### Changed
+
+- Seasonality parameter is checked for emptiness and empty string is
+  not allowed (Vaclav Petras)
+- Seasonality is now mostly handled in a separate class.
+
+### Fixed
+
+- Current month is now checked if it is in the season (Vaclav Petras)
+
 ## 2018-06-21 - Critical Temperature
 
 ### Added
 
-- Time-series of temperature raster maps specified as a text file.
-- Temperature rasters are used at a specified month to check against
-  a provided critical temperature and if the condition is met,
-  infected trees become susceptible again.
+- Critical temperature as the lowest temperature spores can survive
+  in a provided month (Vaclav Petras)
+ - Time-series of temperature raster maps specified as a text file.
+ - Temperature rasters are used at a specified month to check against
+   a provided critical temperature and if the condition is met,
+   infected trees become susceptible again.
 
 ### Changed
 
