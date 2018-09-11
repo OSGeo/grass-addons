@@ -708,9 +708,10 @@ int main(int argc, char *argv[])
         G_verbose_message(_("Read random seed from %s option: %ud"),
                           opt.seed->key, seed_value);
     } else {
-        // flag of option is required
-        std::random_device rd;
-        seed_value = rd();
+        // flag or option is required, so no check needed
+        // getting random seed using GRASS library
+        // std::random_device is deterministic in MinGW (#338)
+        seed_value = G_srand48_auto();
         G_verbose_message(_("Generated random seed (-%c): %ud"),
                           flg.generate_seed->key, seed_value);
     }

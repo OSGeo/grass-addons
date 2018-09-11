@@ -20,6 +20,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 - Current month is now checked if it is in the season (Vaclav Petras)
+ - Fixes #1 (Metadata - missing full command used).
+- GRASS GIS library function now used to generate random seed (Vaclav Petras)
+ - Previous implementation didn't give non-deterministic outputs with
+   the -s flag on MS Windows.
+ - Fixes #2 (Stochastic runs with -s are always the same on Windows).
 
 ## 2018-06-21 - Critical Temperature
 
