@@ -19,22 +19,15 @@ neighbors) are also taken into account.
 When the <em>-l</em> flag is set, the module additionally indicates the length
 of the common border between two neighbors in number of pixels. As this length
 is not clearly defined for diagonal neighbors, the <em>-l</em> flag cannot
-be used in combination with the <em>-d</em> flag.
+be used in combination with the <em>-d</em> flag. 
 
 <p>
-In order to speed up calculations, the user can set the parameter 
-<em>processes</em> to the number of desired processes to run in parallel. As
-the module parallelizes per direction, the maximum number of processes is 4
-without and 8 with the <em>-d</em> flag.
+The <em>-c</em> flag currently adds column headers. Please note that <b>this 
+flag's meaning will be inversed when GRASS 8 comes out</b> in order to 
+harmonize its behaviour with that in other modules.
+
 
 <h2>NOTES</h2>
-
-<p>
-The module (without the <em>-d</em> flag) should give the same result as the equivalent call to 
-<a href="v.neighborhoodmatrix.html">v.neighborhoodmatrix</a> with the <em>-b</em>
-flag. Currently it actually seems faster for some maps to transform the raster 
-to vector and then run the latter. More tests are needed, though, to confirm
-this.
 
 <p>
 As neighborhood length is measured in pixels, this length is not in proportion 
@@ -57,27 +50,25 @@ current computational region, the resulting list of neighbors will be empty.
 
 <h2>EXAMPLE</h2>
 
+<p>
+Start by making sure the input map is of type CELL:
+<div class="code"><pre>
+r.mapcalc "bc_int = int(boundary_county_500m)"
+</pre></div>
+
+<p>
 Send the neighborhood matrix of the counties in the boundary_county map of the 
 North Carolina dataset to standard output:
 
 <div class="code"><pre>
-r.neighborhoodmatrix in=boundary_county_500m sep=comma
+r.neighborhoodmatrix in=bc_int sep=comma
 </pre></div>
 
-Idem, but also calculating neighborhood length, sending the output to a file 
-and using 4 parallel processes:
+<p>
+Idem, but also calculating neighborhood length, sending the output to a file:
 
 <div class="code"><pre>
-r.neighborhoodmatrix -l n=boundary_county_500m sep=comma \
-	output=county_neighbors.csv processes=4
-</pre></div>
-
-Transforming the raster to vector (without attribute table or topology) and using
-<a href="v.neighborhoodmatrix.html">v.neighborhoodmatrix</a>:
-
-<div class="code"><pre>
-r.to.vect -tbv in=boundary_county_500m out=boundary_county_500m type=area
-v.neighborhoodmatrix in=boundary_county_500m sep=comma
+r.neighborhoodmatrix -l n=bc_int sep=comma output=county_neighbors.csv
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -87,6 +78,7 @@ v.neighborhoodmatrix in=boundary_county_500m sep=comma
 </em>
 
 <h2>AUTHOR</h2>
- Moritz Lennert
+ C-Version: Markus Metz
+ Original Python-Version: Moritz Lennert
 
 <p><i>Last changed: $Date$</i>

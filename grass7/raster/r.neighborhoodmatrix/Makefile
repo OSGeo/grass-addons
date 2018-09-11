@@ -2,6 +2,9 @@ MODULE_TOPDIR = ../..
 
 PGM = r.neighborhoodmatrix
 
-include $(MODULE_TOPDIR)/include/Make/Script.make
+LIBES = $(RASTERLIB) $(GISLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
 
-default: script
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
