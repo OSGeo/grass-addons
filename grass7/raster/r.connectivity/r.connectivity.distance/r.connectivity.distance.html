@@ -5,7 +5,7 @@ distance threshold.
 
 <p>Recently, graph-theory has been characterised as an efficient and 
 useful tool for conservation planning (e.g. Bunn et al. 2000, 
-Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010).</p>
+Calabrese &amp; Fagan 2004, Minor &amp; Urban 2008, Zetterberg et. al. 2010).</p>
 
 <p>As a part of the r.connectivity.* tool-chain, <em>r.connectivity.distance</em> is 
 intended to make graph-theory more easily available to conservation 
@@ -189,7 +189,7 @@ echo '0 = 56 #not classified (2*resolution (28m))
 15 = 56 #Southern Yellow Pine (2*resolution (28m))
 18 = 28 #Mixed Hardwoods/Conifers (1*resolution (28m))
 20 = 42 #Water Bodies (1,5*resolution (28m))
-21 = 84 #Unconsolidated Sediment (3*resolution (28m))' &#124; r.reclass \
+21 = 84 #Unconsolidated Sediment (3*resolution (28m))' | r.reclass \
 input=landuse96_28m output=costs rules=- --overwrite 
 </pre></div>
 
@@ -242,87 +242,11 @@ visualisation with straight lines, produced in exampe above.</i>
 <p>To be continued with <a href="r.connectivity.network.html">
 	r.connectivity.network</a>!</p>
 
-<h3>Analyse the network (r.connectivity.network)</h3>
-
-In the next step network analysis is performed. We define the 
-connectivity cutoff (maximum cost distance where connectivity is assumed) 
-to be 1500.0 cost distance units, which represents the maximum known 
-dispersal ability of our species. The dispersal kernel is adjusted to 
-characteristics of this species by setting the exponent to -3, which 
-gives a steeper decrease in successful dispersal with increasing cost 
-distance. Only very few dispersal units of our species are expected to 
-cross more than ca. 900 cost distance units successfully 
-(see: ./hws_connectivity/kernel.eps after running the command or run it 
-with the x-flag (-x) for only displaying the kernel). Connectivity metrics 
-reslults are stored in te attribute table of the vector maps on vertex 
-(patches, map name: "prefix" _ vertex_measures) and edge level 
-(connections, map name: "prefix" _ edge_measures). An overview over 
-connectivity metrics on the graph level (the entire network) is stored 
-in "folder" (./hws_connectivity). We requested also an R-plot of the 
-dispersal kernel and an R-plot givig an overview over network 
-characteristics to be stored in the same folder.
-<p>Users with a multi-processor computer may speed up processing by 
-setting cores > 1 in r.connectivity.network.</p>
-
-<div class="code"><pre>
-r.connectivity.network -y -i folder=./hws_connectivity \
-connectivity_cutoff=1500.0 lnbh_cutoff=2.0 cl_thres=10 exponent=-3 \
-kernel_plot=./hws_connectivity/kernel.eps \
-overview_plot=./hws_connectivity/overview.eps cores=3
-</pre></div>
-
-<h3>Calculate corridors (r.connectivity.corridors)</h3>
-
-In this example two alternative (or to some extent complementary) sets \
-of corridors are calculated:
-<p>
-<em>Corridor set 1:</em><br>
-For the first set, corridors are only computed for the minimum spanning 
-tree (in literture sometimes called the backbone of an ecological network). 
-This is specified in the "where"-parameter. Edge betweenness values are 
-used as weights, which represent the centrality of a connection (edge) 
-in a network (and is therewith a measure of importance). The output is a 
-set of corridor raster maps (named: "prefix" _corridor_ "edge_id" _ "weight") 
-and a summary over all computed corridors 
-(named: "prefix" _corridor_ "edge_id" _ "weight" _sum_ "suffix").</p>
-
-<div class="code"><pre>
-r.connectivity.corridors --verbose folder=./hws_connectivity suffix=mst \
-weights=cf_eb_ud where="cf_mst_ud > 1" cores=3
-</pre></div>
-
-<p><em>Corridor set 2:</em><br>
-For the second set, corridors are computed for all edges in the graph (network). 
-This takes a little more time. Corridors are then weighted by the modeled, 
-undirected (= in oth directions) flow of propagules ("cf_u").</p>
-
-<div class="code"><pre>
-r.connectivity.corridors --verbose folder=./hws_connectivity suffix=alle \
-weights=cf_u cores=3
-</pre></div>
-
-<p>Users with a multi-processor computer may speed up corridor processing by 
-setting cores > 1 r.connectivity.corridors.<br>
-An other means for speeding up processing would be to use integer 
-weights (e.g. by converting edge betweenness to integer afte multiplying 
-with 10 to the power of the relevant number of digits).
-Then <em>r.reclass</em> is used in the script instead of <em>r.recode</em>.</p>
-
-<p>When all analysis is finnished some cleanup may be appropriate, 
-in order to save disk space:</p>
-
-<div class="code"><pre>
-#Add the f-lag (-f) to the following two commands if you are sure you \
-want to delete all intermediate maps from r.connectivity.*.
-g.remove type=raster pattern=hws_connectivity_corridor_*
-g.remove type=raster pattern=hws_connectivity_patch_*
-</pre></div>
-
 <h2>REFERENCE</h2>
 <dl>
-<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &#38; Bakkestuen, V. 
-2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&#229;der. 
-Verneomr&#229;denes funksjon som &#248;kologisk nettverk og toleranse 
+<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V. 
+2012</b> (in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der. 
+Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse 
 for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for 
 naturforskning (NINA), Trondheim. 
 <a href="http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf">
