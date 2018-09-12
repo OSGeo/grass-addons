@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
 	}
     }
     if (k != numk)
-	G_warning(_("Initialized %d of %d seeds"), k, numk);
+	G_message(_("Initialized %d of %d seeds due to input NULL values"), k, numk);
 
     perturbseeds = 0;
     if (opt_perturb->answer) {
