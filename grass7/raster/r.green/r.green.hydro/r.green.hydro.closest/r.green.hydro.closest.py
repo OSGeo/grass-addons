@@ -17,7 +17,9 @@
 
 #%module
 #% description: Move points to the closest vector map
-#% keywords: vector
+#% keyword: vector
+#% keyword: hydropower
+#% keyword: renewable energy
 #%end
 #%option G_OPT_V_INPUT
 #% key: points

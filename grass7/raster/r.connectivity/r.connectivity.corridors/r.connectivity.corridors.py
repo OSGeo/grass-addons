@@ -57,9 +57,11 @@ REQUIREMENTS:
 
 #%Module
 #% description: Compute corridors between habitat patches of an input-layer based on (cost) distance raster maps
-#% keywords: corridor
-#% keywords: cost distance
-#% keywords: least cost paths
+#% keyword: raster
+#% keyword: vector
+#% keyword: corridor
+#% keyword: cost distance
+#% keyword: least cost paths
 #%End
 
 #%option G_OPT_V_INPUT

@@ -17,7 +17,9 @@
 
 #%module
 #% description: Calculate the Ground Source Heat Pump potential
-#% keywords: raster
+#% keyword: raster
+#% keyword: geothermal
+#% keyword: renewable energy
 #%end
 
 ##

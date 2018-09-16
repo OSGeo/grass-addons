@@ -5,7 +5,7 @@
 #
 # MODULE:      r.green.gshp.technical
 # AUTHOR(S):   Pietro Zambelli
-# PURPOSE:     Calculate the ground source heat pump technical poential using
+# PURPOSE:     Calculate the ground source heat pump technical potential using
 #              the ASHRAE method
 # COPYRIGHT:   (C) 2017 by the GRASS Development Team
 #
@@ -18,7 +18,9 @@
 
 #%module
 #% description: Calculate the Ground Source Heat Pump technical potential using the ASHRAE method.
-#% keywords: raster
+#% keyword: raster
+#% keyword: geothermal
+#% keyword: renewable energy
 #%end
 
 ##

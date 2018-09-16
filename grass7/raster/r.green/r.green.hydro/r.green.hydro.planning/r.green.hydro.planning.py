@@ -18,7 +18,9 @@
 
 #%module
 #% description: Calculate hydropower energy potential with user's recommendations
-#% keywords: raster
+#% keyword: raster
+#% keyword: hydropower
+#% keyword: renewable energy
 #%end
 
 ##

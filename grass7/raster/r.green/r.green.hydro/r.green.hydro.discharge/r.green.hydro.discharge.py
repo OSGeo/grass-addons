@@ -17,7 +17,9 @@
 
 #%module
 #% description: Calculate average natural discharge and minimum flow following regional law an
-#% keywords: raster
+#% keyword: raster
+#% keyword: hydropower
+#% keyword: renewable energy
 #% overwrite: yes
 #%end
 #%option G_OPT_R_INPUT

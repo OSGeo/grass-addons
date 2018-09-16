@@ -17,8 +17,10 @@
 #
 #
 #%module
-#% description: Hydropower potential with technical constrains
-#% keywords: raster
+#% description: Hydropower potential with technical constraints
+#% keyword: raster
+#% keyword: hydropower
+#% keyword: renewable energy
 #% overwrite: yes
 #%end
 #%option G_OPT_V_INPUT

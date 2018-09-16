@@ -17,9 +17,9 @@
 
 #%module
 #% description: Calculate the hydropower energy potential for each basin starting from discharge and elevation data. If existing plants are available it computes the potential installed power in the available part of the rivers.
-#% keywords: raster
-#% keywords: hydropower
-#% keywords: renewable energy
+#% keyword: raster
+#% keyword: hydropower
+#% keyword: renewable energy
 #%end
 #%option G_OPT_R_ELEV
 #% required: yes

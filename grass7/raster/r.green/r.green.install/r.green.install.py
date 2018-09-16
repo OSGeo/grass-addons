@@ -16,8 +16,9 @@
 #
 
 #%module
-#% description: Check if evrything is corectly installed and configured
-#% keywords: raster
+#% description: Check if everything of r.green is correctly installed and configured
+#% keyword: raster
+#% keyword: renewable energy
 #%end
 #%flag
 #% key: i

@@ -79,9 +79,11 @@ ToDo:
 
 #%Module
 #% description: Compute connectivity measures for a set of habitat patches based on graph-theory
-#% keywords: graph theory
-#% keywords: network
-#% keywords: network analysis
+#% keyword: raster
+#% keyword: vector
+#% keyword: graph theory
+#% keyword: network
+#% keyword: network analysis
 #%End
 
 #%option G_OPT_V_INPUT
