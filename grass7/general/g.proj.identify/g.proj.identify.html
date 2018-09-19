@@ -1,22 +1,30 @@
 <h2>DESCRIPTION</h2>
 
-<em>g.proj.identify</em> allows to automaticaly identify EPSG code for given WKT prj.
-User can print EPSG from current location or for given WKT file.
-Conversion from given EPSG code to WKT and proj4 is supported.
+<em>g.proj.identify</em> allows to automaticaly identify the EPSG code from
+a given Well-Know Text (WKT) projection string stored in a file. The user
+can also print the EPSG code of the current location.
+
+The conversion from a given EPSG code to WKT and proj4 is supported.
 
 <h2>EXAMPLE</h2>
 <div class="code"><pre>
-print EPSG code of current Location- without parameters
+# print EPSG code of current Location - use without parameters
 g.proj.identify
 
-print WKT and proj4 for gieven EPSG code
-g.proj.identify.py -p -w epsg=4326
+# identify EPSG code from WKT definition stored in file 'myproj.wkt'
+g.proj.identify wkt=myproj.wkt
+
+# print WKT and proj4 for given EPSG code, independent from current location
+g.proj.identify -p -w epsg=4326
 </pre></div>
 
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="g.proj.html">r.proj</a>,
+<a href="g.proj.html">g.proj</a>,
+<a href="m.proj.html">m.proj</a>,
+<a href="r.proj.html">r.proj</a>,
+<a href="v.proj.html">v.proj</a>
 </em>
 
 <h2>AUTHORS</h2>
