@@ -70,6 +70,11 @@ class SentinelImporter(object):
             gs.fatal(_('Input directory <{}> not exists').format(input_dir))
 
     def __del__(self):
+        if flags['l']:
+            # unzipped files are required when linking
+            return
+
+        # otherwise unzipped directory can be removed (?)
         for dirname in self._dir_list:
             dirpath = os.path.join(self.input_dir, dirname)
             gs.debug('Removing <{}>'.format(dirpath))
