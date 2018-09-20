@@ -105,6 +105,11 @@ def cleanup():
         if gscript.find_file(temporary_vect, element='vector')['name']:
             gscript.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
+        if gscript.db_table_exist(temporary_vect):
+            gscript.run_command('db.execute', 
+                                sql='DROP TABLE %s' % temporary_vect,
+                                quiet=True)
+
     if insert_sql:
         os.remove(insert_sql)
 
@@ -247,20 +252,25 @@ def main():
                             output=temporary_vect,
                             type_='area',
                             flags='vt',
-			    overwrite=True,
-			    quiet=True)
+                            overwrite=True,
+                            quiet=True)
 
         insert_sql = gscript.tempfile()
         fsql = open(insert_sql, 'w')
         fsql.write('BEGIN TRANSACTION;\n')
-        create_statement = 'CREATE TABLE ' + vectormap + ' (cat int, '
+        if gscript.db_table_exist(temporary_vect):
+            if gscript.overwrite():
+                fsql.write('DROP TABLE %s;' % temporary_vect)
+            else:
+                gscript.fatal(_("Table %s already exists. Use --o to overwrite" % temporary_vect))
+        create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int, '
         for header in output_header[1:-1]:
             create_statement += header +  ' double precision, '
         create_statement += output_header[-1] + ' double precision);\n'
         fsql.write(create_statement)
         for key in output_dict:
 		if len(output_dict[key]) + 1  == len(output_header):
-                    sql = "INSERT INTO " + vectormap + " VALUES (" + key+","+",".join(output_dict[key])+");\n"
+                    sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
                     sql = sql.replace('inf', 'NULL')
                     fsql.write(sql)
 		else:
@@ -270,9 +280,9 @@ def main():
         fsql.write('END TRANSACTION;')
         fsql.close()
 
-        gscript.run_command('g.copy', vector=temporary_vect+','+vectormap, quiet=True)
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
-        gscript.run_command('v.db.connect', map_=vectormap, table=vectormap, quiet=True)
+        gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)
+        gscript.run_command('g.copy', vector="%s,%s" % (temporary_vect, vectormap), quiet=True)
 
     if error_objects:
         object_string = ', '.join(error_objects[:100])
