@@ -84,6 +84,10 @@
 #% description: Adjust region to input map
 #%end
 #%flag
+#% key: n
+#% description: Calculate neighborhood statistics
+#%end
+#%flag
 #% key: s
 #% description: Do not calculate any shape statistics
 #% guisection: Shape statistics
@@ -94,10 +98,11 @@ import os
 import glob
 import atexit
 import collections
-import math
-import grass.script as gscript
+from math import sqrt
 from functools import partial    
 from multiprocessing import Pool
+from itertools import groupby
+import grass.script as gscript
 
 def cleanup():
 
@@ -119,6 +124,25 @@ def cleanup():
     if rasters:
         for tempfile in glob.glob(stats_temp_file + ".*"):
             os.remove(tempfile)
+
+# The following two functions come from
+# https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford%27s_Online_algorithm
+def update(existingAggregate, newValue):
+    (count, mean, M2) = existingAggregate
+    count = count + 1 
+    delta = newValue - mean
+    mean = mean + float(delta) / count
+    delta2 = newValue - mean
+    M2 = M2 + delta * delta2
+    return (count, mean, M2)
+
+def finalize(existingAggregate):
+    (count, mean, M2) = existingAggregate
+    (mean, stddev) = (mean, sqrt(float(M2)/count)) 
+    if count < 2:
+        return float('nan')
+    else:
+        return (mean, stddev)
 
 def worker(segment_map, stat_temp_file, raster):
 
@@ -154,6 +178,13 @@ def main():
 		message = _("You need to install the addon r.object.geometry to be able")
 		message += _(" to calculate area measures.\n")
 		message += _(" You can install the addon with 'g.extension r.object.geometry'")
+		gscript.fatal(message)
+    neighborhood = True if flags['n'] else False
+    if neighborhood:
+	if not gscript.find_program('r.neighborhoodmatrix', '--help'):
+		message = _("You need to install the addon r.neighborhoodmatrix to be able")
+		message += _(" to calculate area measures.\n")
+		message += _(" You can install the addon with 'g.extension r.neighborhoodmatrix'")
 		gscript.fatal(message)
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
@@ -207,6 +238,7 @@ def main():
         if len(rasters) < processes:
             processes = len(rasters)
             gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
+
         stat_indices = [raster_stat_dict[x] for x in raster_statistics]
         pool = Pool(processes)
         func = partial(worker, segment_map, stats_temp_file)
@@ -227,6 +259,48 @@ def main():
                         continue
                     values = line.rstrip().split('|')
                     output_dict[values[0]] = output_dict[values[0]] + [values[x] for x in stat_indices]
+
+
+    # Calculating neighborhood statistics if requested
+    if neighborhood:
+
+	gscript.message(_("Calculating neighborhood statistics..."))
+
+        # Add neighbordhood statistics to headers
+        original_nb_values = len(output_header) - 1
+        new_headers = ['neighbors_count']
+        for i in range(1,len(output_header)):
+            new_headers.append('%s_nbrmean' % output_header[i])
+            new_headers.append('%s_nbrstddev' % output_header[i])
+
+        output_header += new_headers
+
+        # Get sorted neighborhood matrix
+        nbr_matrix = sorted([x.split('|') for x in gscript.read_command('r.neighborhoodmatrix',
+                                                                 input_=segment_map,
+                                                                 flags='d',
+                                                                 quiet=True).splitlines()])
+
+        # Calculate mean and stddev of neighbor values for each variable in the
+        # output_dict
+        for key, group in groupby(nbr_matrix, lambda x: x[0]):
+            d = {}
+            for i in range(len(output_dict[key])):
+                d[i] = (0,0,0)
+            nbrlist = [str(x[1]) for x in group]
+            if len(nbrlist) > 1:
+                for nbr in nbrlist:
+                    for i in range(len(output_dict[key])):
+                        d[i] = update(d[i], float(output_dict[nbr][i]))
+                output_dict[key] = output_dict[key] + [str(len(nbrlist))]
+                output_dict[key] = output_dict[key] + [str(i) for sub in [finalize(x) for x in d.values()] for i in sub]
+            else:
+                newvalues = ['1']
+                nbr = nbrlist[0]
+                for i in range(len(output_dict[key])):
+                    newvalues.append(output_dict[nbr][i])
+                    newvalues.append('0')
+                output_dict[key] = output_dict[key] + newvalues
 
     message = _("Some values could not be calculated for the objects below. ")
     message += _("These objects are thus not included in the results. ")

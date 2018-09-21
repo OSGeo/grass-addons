@@ -14,6 +14,15 @@ on the statistics) and aggregated statistics of pixel values of other
 raster maps (see <em><a href="v.univar.html">v.univar</a></em> for details).
 
 <p>
+In addition, for each of the above statistics, the <b>-n</b> flag allows the 
+user to request the output of the mean and the standard deviation of the values
+of the neighboring objects (all direct neighbors, diagonal neighbors included),
+which allows gathering some context information for each object. For this 
+feature, the <em><a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a></em>
+addon has to be installed. Currently, the module calculates these context 
+statistics for all available shape and spectral statistics. 
+
+<p>
 The user can chose between output in the form of a vector map of the
 areas with the statistics in the attribute table (<b>vectormap</b>)
 and/or in the form of a CSV text file (<b>csvfile</b>).
