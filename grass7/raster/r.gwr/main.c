@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("statistics"));
+    G_add_keyword(_("regression"));
     module->description =
 	_("Calculates geographically weighted regression from raster maps.");
 
