@@ -6,12 +6,12 @@
 # AUTHOR(S):	Moritz Lennert
 #
 # PURPOSE:	Finds optimimal segmentation parameters in an unsupervised
-#		process
+#               process
 # COPYRIGHT:	(C) 1997-2016 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
 #
 #############################################################################
 # References:
@@ -21,7 +21,7 @@
 # spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
 # 14, pp. 3035-3040, http://dx.doi.org/10.1080%2f01431160600617194
 #
-#B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
+# B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
 # (2015),
 # Image Segmentation Parameter Optimization Considering Within- and
 # Between-Segment Heterogeneity at Multiple Scale Levels: Test Case for Mapping
@@ -422,7 +422,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
     for threshold in thresholds:
         temp_segment_map_thresh = outputs_prefix % threshold
         map_list.append([temp_segment_map_thresh, threshold, minsize])
-        if previous == None:
+        if previous is None:
             gscript.run_command('i.segment',
                                 group=parms['group'],
                                 threshold=threshold,
