@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
 	fprintf(out_fp, "acat%s", sep);
 	fprintf(out_fp, "bcat%s", sep);
 	if (flag_len->answer)
-	    fprintf(out_fp, "border_length", sep);
+	    fprintf(out_fp, "border_length");
     	fprintf(out_fp, "\n");
     }
 
