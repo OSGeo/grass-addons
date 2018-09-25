@@ -350,9 +350,9 @@ class projection:
     def __init__(self):
         self.proj = get_proj()
         self.val = self.proj['proj']
-        if self.proj['datum']:
+        try:
             self.dat = self.proj['datum']
-        else:
+        except:
             self.dat = 'none'
         self.projections = {'laea': 'LA', 'll': 'GEO', 'lcc': 'LCC',
                             'merc': 'MERCAT', 'polar': 'PS', 'utm': 'UTM',
