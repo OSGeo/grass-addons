@@ -28,10 +28,10 @@ for i in `git branch | grep tags`; do
     git branch -D $i
 done
 
-# Remove origin branches
-# for i in `git branch -r | grep origin`; do echo "git push origin --delete $i"; done
+# Remove remote branches
+for i in `git branch -r | grep origin`; do git branch -dr $i; done
 
 # Fix commit messages (#x -> https://trac.osgeo.org/...)
 git reset --hard HEAD && git checkout master
-git filter-branch --msg-filter 'python  ../rewrite.py' -- --all
+# git filter-branch --msg-filter 'python  ../rewrite.py' -- --all
 # check out /tmp/log.txt for changes overview ...
