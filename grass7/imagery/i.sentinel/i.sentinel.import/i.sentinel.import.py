@@ -29,6 +29,7 @@
 #%option
 #% key: pattern
 #% description: File name pattern to import
+#% guisection: Filter
 #%end
 #%flag
 #% key: r
@@ -41,10 +42,12 @@
 #%flag
 #% key: c
 #% description: Import cloud masks as vector maps
+#% guisection: Clouds
 #%end
 #%flag
 #% key: p
 #% description: Print raster data to be imported and exit
+#% guisection: Print
 #%end
 #%rules
 #% exclusive: -l,-r,-p
