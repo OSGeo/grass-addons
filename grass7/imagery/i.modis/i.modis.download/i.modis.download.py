@@ -24,7 +24,7 @@
 #%end
 #%flag
 #% key: d
-#% description: For debug mode, it will write more info in the log file
+#% description: Debug mode, writing more info into the log file
 #%end
 #%flag
 #% key: g
@@ -32,7 +32,7 @@
 #%end
 #%flag
 #% key: c
-#% description: Does not perform GDAL check on downloaded images
+#% description: Do not perform GDAL check on downloaded images
 #%end
 #%flag
 #% key: l
@@ -56,7 +56,7 @@
 #%option
 #% key: tiles
 #% type: string
-#% label: The name(s) of tile(s) to download (comma separated). If not set, all available tiles are downloaded.
+#% label: The name(s) of tile(s) to download (comma separated). If not set, all available tiles are downloaded
 #% description: e.g.: h18v04
 #% required: no
 #%end
@@ -212,9 +212,9 @@ def main():
             path = os.path.split(options['settings'])[0]
             temp = os.path.split(grass.tempfile())[0]
             if temp in path:
-                grass.warning(_("You are downloading data in a temporary "
-                                "directory. They will diseappear when you "
-                                "will finish this GRASS session"))
+                grass.warning(_("You are downloading data into a temporary "
+                                "directory. They will be deleted when you "
+                                "close this GRASS GIS session"))
             if check(path):
                 fold = path
     # check the version
