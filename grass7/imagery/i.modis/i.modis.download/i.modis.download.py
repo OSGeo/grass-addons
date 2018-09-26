@@ -210,6 +210,11 @@ def main():
         # set the folder from path where settings file is stored
         else:
             path = os.path.split(options['settings'])[0]
+            temp = os.path.split(grass.tempfile())[0]
+            if temp in path:
+                grass.warning(_("You are downloading data in a temporary "
+                                "directory. They will diseappear when you "
+                                "will finish this GRASS session"))
             if check(path):
                 fold = path
     # check the version
