@@ -302,6 +302,8 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             fdata = data + timedelta(days)
             if days == 31:
                 fdata = datetime(fdata.year, fdata.month, 1)
+            if days != 1 and data.year != fdata.year:
+                fdata = datetime(fdata.year, fdata.month, 1)
             listfile.write("{name}|{sd}|{fd}\n".format(name=basename,
                                                        sd=data.strftime("%Y-%m-%d"),
                                                        fd=fdata.strftime("%Y-%m-%d")))
