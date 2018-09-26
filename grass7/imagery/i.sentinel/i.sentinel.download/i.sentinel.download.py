@@ -112,7 +112,7 @@
 #%end
 #%flag
 #% key: l
-#% description: List filtered products and exist
+#% description: List filtered products and exit
 #% guisection: Print
 #%end
 #%rules
