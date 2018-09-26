@@ -34,15 +34,17 @@
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
+#% guisection: Settings
 #%end
 #%flag
 #% key: l
 #% description: Link raster data instead of importing
+#% guisection: Settings
 #%end
 #%flag
 #% key: c
 #% description: Import cloud masks as vector maps
-#% guisection: Clouds
+#% guisection: Settings
 #%end
 #%flag
 #% key: p
