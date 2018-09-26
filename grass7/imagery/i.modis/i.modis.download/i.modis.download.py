@@ -248,8 +248,8 @@ def main():
         modisOgg = downModis(url=prod['url'], user=user, password=passwd,
                              destinationFolder=fold, tiles=tiles, delta=delta,
                              path=prod['folder'], product=prod['prod'],
-                             today=firstday, enddate=finalday, debug=debug_opt,
-                             checkgdal=checkgdal)
+                             today=str(firstday), enddate=str(finalday),
+                             debug=debug_opt, checkgdal=checkgdal)
         # connect to ftp
         modisOgg.connect()
         if modisOgg.nconnection <= 20:

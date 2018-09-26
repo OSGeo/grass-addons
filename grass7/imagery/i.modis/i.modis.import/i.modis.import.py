@@ -177,7 +177,7 @@ def spectral(opts, prod, q, m=False):
             spectr = prod['spec']
         if m:
             spectr = spectr.replace(' 0', '')
-    return spectr
+    return str(spectr)
 
 
 def confile(pm, opts, q, mosaik=False):
@@ -371,8 +371,8 @@ def single(options, remove, an, ow, fil):
                                            pref.split('.')[1],
                                            pref.split('.')[2])
             outname = outname.replace(' ', '_')
-            execmodis = convertModisGDAL(hdf, outname, spectr, res,
-                                         wkt=projwkt)
+            execmodis = convertModisGDAL(str(hdf), outname, spectr, res,
+                                         wkt=str(projwkt))
         try:
             execmodis.run(quiet=True)
         except:
@@ -451,8 +451,8 @@ def mosaic(options, remove, an, ow, fil):
                     res = int(prod['res']) * int(projObj.proj['meters'])
                 else:
                     res = None
-                execmodis = convertModisGDAL(hdf, out, spectr, res, wkt=projwkt,
-                                             vrt=True)
+                execmodis = convertModisGDAL(str(hdf), out, spectr, res,
+                                             wkt=str(projwkt), vrt=True)
             try:
                 execmodis.run(quiet=True)
             except:
