@@ -160,7 +160,7 @@ def main():
     # Finally make the region
     g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
     # And then make the grid
-    v.mkgrid(map=grid, overwrite=gscript.overwrite)
+    v.mkgrid(map=grid, overwrite=gscript.overwrite())
 
     # Cell numbers (row, column, continuous ID)
     v.db_addcolumn(map=grid, columns='id int', quiet=True)
@@ -192,7 +192,7 @@ def main():
         # Fine resolution region:
         g.region(n=reg['n'], s=reg['s'], w=reg['w'], e=reg['e'], nsres=reg['nsres'], ewres=reg['ewres'])
         # Rasterize basin
-        v.to_rast(input=basin, output=mask, use='val', value=1, overwrite=gscript.overwrite, quiet=True)
+        v.to_rast(input=basin, output=mask, use='val', value=1, overwrite=gscript.overwrite(), quiet=True)
         # Coarse resolution region:
         g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
         r.resamp_stats(input=mask, output=mask, method='sum', overwrite=True, quiet=True)
@@ -206,7 +206,7 @@ def main():
     """
     # Resampled raster
     if len(raster_output) > 0:
-        r.resamp_stats(input=raster_input, output=raster_output, method='average', overwrite=gscript.overwrite, quiet=True)
+        r.resamp_stats(input=raster_input, output=raster_output, method='average', overwrite=gscript.overwrite(), quiet=True)
     """
 
     # Pour point
@@ -242,7 +242,7 @@ def main():
         g.rename(raster=('tmp3','tmp'), overwrite=True, quiet=True)
         #r.null(map='tmp', setnull=0) # Not necessary: center point removed above
         r.to_vect(input='tmp', output=bc_cell, type='point', column='z',
-                  overwrite=gscript.overwrite, quiet=True)
+                  overwrite=gscript.overwrite(), quiet=True)
         v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
         v.build(map=bc_cell, quiet=True)
         v.what_vect(map=bc_cell, query_map=grid, column='row', \
