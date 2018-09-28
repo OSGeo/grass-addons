@@ -131,6 +131,7 @@ def main():
             gscript.fatal('Mask and pour point must be set to define b.c. cell')
         
     # Create grid -- overlaps DEM, three cells of padding
+    g.region(raster=raster_input, ewres=dx, nsres=dy)
     gscript.use_temp_region()
     reg = gscript.region()
     reg_grid_edges_sn = np.linspace(reg['s'], reg['n'], reg['rows'])
@@ -159,7 +160,7 @@ def main():
     # Finally make the region
     g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
     # And then make the grid
-    v.mkgrid(map=grid, overwrite=gscript.overwrite())
+    v.mkgrid(map=grid, overwrite=gscript.overwrite)
 
     # Cell numbers (row, column, continuous ID)
     v.db_addcolumn(map=grid, columns='id int', quiet=True)
@@ -191,7 +192,7 @@ def main():
         # Fine resolution region:
         g.region(n=reg['n'], s=reg['s'], w=reg['w'], e=reg['e'], nsres=reg['nsres'], ewres=reg['ewres'])
         # Rasterize basin
-        v.to_rast(input=basin, output=mask, use='val', value=1, overwrite=gscript.overwrite(), quiet=True)
+        v.to_rast(input=basin, output=mask, use='val', value=1, overwrite=gscript.overwrite, quiet=True)
         # Coarse resolution region:
         g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
         r.resamp_stats(input=mask, output=mask, method='sum', overwrite=True, quiet=True)
@@ -205,7 +206,7 @@ def main():
     """
     # Resampled raster
     if len(raster_output) > 0:
-        r.resamp_stats(input=raster_input, output=raster_output, method='average', overwrite=gscript.overwrite(), quiet=True)
+        r.resamp_stats(input=raster_input, output=raster_output, method='average', overwrite=gscript.overwrite, quiet=True)
     """
 
     # Pour point
@@ -218,29 +219,42 @@ def main():
     # Next point downstream of the pour point
     # Requires pp (always) and mask (sometimes)
     # Dependency set above w/ gscript.fatal
+    #g.region(raster='DEM')
+    #dx = gscript.region()['ewres']
+    #dy = gscript.region()['nsres']
     if len(bc_cell) > 0:
         ########## NEED TO USE TRUE TEMPORARY FILE ##########
         # May not work with dx != dy!
         v.to_rast(input=pp, output='tmp', use='val', value=1, overwrite=True)
         r.buffer(input='tmp', output='tmp', distances=float(dx)*1.5, overwrite=True)
         r.mapcalc('tmp2 = if(tmp==2,1,null()) * '+raster_input, overwrite=True)
-        g.rename(raster=('tmp2','tmp'), overwrite=True, quiet=True)
         #r.mapcalc('tmp = if(isnull('+raster_input+',0,(tmp == 2)))', overwrite=True)
         #g.region(rast='tmp')
         #r.null(map=raster_input,
-        r.drain(input=raster_input, start_points=pp, output='tmp2', overwrite=True)
+        #g.region(raster=raster_input)
+        #r.resample(input=raster_input, output='tmp3', overwrite=True)
+        r.resamp_stats(input=raster_input, output='tmp3', method='minimum', overwrite=True)
+        r.drain(input='tmp3', start_points=pp, output='tmp', overwrite=True)
+        #g.region(w=str(_w), e=str(_e), s=str(_s), n=str(_n), nsres=str(grid_ratio_ns*reg['nsres']), ewres=str(grid_ratio_ew*reg['ewres']))
+        #r.resamp_stats(input='tmp2', output='tmp3', overwrite=True)
+        #g.rename(raster=('tmp3','tmp2'), overwrite=True, quiet=True)
         r.mapcalc('tmp3 = tmp2 * tmp', overwrite=True, quiet=True)
         g.rename(raster=('tmp3','tmp'), overwrite=True, quiet=True)
         #r.null(map='tmp', setnull=0) # Not necessary: center point removed above
         r.to_vect(input='tmp', output=bc_cell, type='point', column='z',
-                  overwrite=gscript.overwrite(), quiet=True)
+                  overwrite=gscript.overwrite, quiet=True)
         v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
         v.build(map=bc_cell, quiet=True)
         v.what_vect(map=bc_cell, query_map=grid, column='row', \
                     query_column='row', quiet=True)
         v.what_vect(map=bc_cell, query_map=grid, column='col', \
                     query_column='col', quiet=True)
-        v.to_db(map=bc_cell, option='coor', columns=('x,y')) 
+        v.to_db(map=bc_cell, option='coor', columns=('x,y'))
+        
+        # Of the candidates, the pour point is the closest one
+        #v.db_addcolumn(map=bc_cell, columns=('dist_to_pp double precision'), quiet=True)
+        #v.distance(from_=bc_cell, to=pp, upload='dist', column='dist_to_pp')
+
         
         # Find out if this is diagonal: finite difference works only N-S, W-E
         colNames = np.array(gscript.vector_db_select(pp, layer=1)['columns'])
@@ -275,8 +289,8 @@ def main():
             # maybe just try setting both and seeing what happens for now!
             else:
                 # Get dx and dy
-                dx = gscript.region()['ewres']
-                dy = gscript.region()['nsres']
+                #dx = gscript.region()['ewres']
+                #dy = gscript.region()['nsres']
                 # Build tool to handle multiple b.c. cells?
                 bcvect = vector.Vector(bc_cell)
                 bcvect.open('rw')
