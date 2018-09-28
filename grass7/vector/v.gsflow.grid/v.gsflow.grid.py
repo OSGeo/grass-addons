@@ -297,16 +297,16 @@ def main():
                 _cat_i = 2
                 if not _ismask_1:
                     # _x should always be bc_x, but writing generalized code
-                    _x = bc_x + dx * (int(_col1) - bc_col) # col 1 at w edge
-                    _y = bc_y - dy * (int(_row1) - bc_row) # row 1 at n edge
+                    _x = bc_x + float(dx) * (int(_col1) - bc_col) # col 1 at w edge
+                    _y = bc_y - float(dy) * (int(_row1) - bc_row) # row 1 at n edge
                     point0 = Point(_x,_y)
                     bcvect.write(point0, cat=_cat_i, attrs=(None, _row1, _col1, _x, _y), )
                     bcvect.table.conn.commit()
                     _cat_i += 1
                 if not _ismask_2:
                     # _y should always be bc_y, but writing generalized code
-                    _x = bc_x + dx * (int(_col2) - bc_col) # col 1 at w edge
-                    _y = bc_y - dy * (int(_row2) - bc_row) # row 1 at n edge
+                    _x = bc_x + float(dx) * (int(_col2) - bc_col) # col 1 at w edge
+                    _y = bc_y - float(dy) * (int(_row2) - bc_row) # row 1 at n edge
                     point0 = Point(_x,_y)
                     bcvect.write(point0, cat=_cat_i, attrs=(None, _row2, _col2, _x, _y), )            
                     bcvect.table.conn.commit()
