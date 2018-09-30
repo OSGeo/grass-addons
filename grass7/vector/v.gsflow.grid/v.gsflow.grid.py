@@ -295,7 +295,7 @@ def main():
                 bcvect = vector.Vector(bc_cell)
                 bcvect.open('rw')
                 _cat_i = 2
-                if not _ismask_1:
+                if _ismask_1 != 0:
                     # _x should always be bc_x, but writing generalized code
                     _x = bc_x + float(dx) * (int(_col1) - bc_col) # col 1 at w edge
                     _y = bc_y - float(dy) * (int(_row1) - bc_row) # row 1 at n edge
@@ -303,7 +303,7 @@ def main():
                     bcvect.write(point0, cat=_cat_i, attrs=(None, _row1, _col1, _x, _y), )
                     bcvect.table.conn.commit()
                     _cat_i += 1
-                if not _ismask_2:
+                if _ismask_2 != 0:
                     # _y should always be bc_y, but writing generalized code
                     _x = bc_x + float(dx) * (int(_col2) - bc_col) # col 1 at w edge
                     _y = bc_y - float(dy) * (int(_row2) - bc_row) # row 1 at n edge
