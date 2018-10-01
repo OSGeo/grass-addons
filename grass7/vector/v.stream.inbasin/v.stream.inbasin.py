@@ -187,7 +187,8 @@ def main():
     
     # Many basins out -- need to use overwrite flag in future!
     #SQL_OR = 'rnum = ' + ' OR rnum = '.join(map(str, basincats))
-    SQL_OR = 'cat = ' + ' OR cat = '.join(map(str, basincats))
+    #SQL_OR = 'cat = ' + ' OR cat = '.join(map(str, basincats))
+    SQL_LIST =  'cat IN (' + ', '.join(map(str, basincats)) + ')'
     if len(basins) > 0:
         v.extract(input=basins, output=output_basins, where=SQL_OR, overwrite=gscript.overwrite(), quiet=True)
     if len(streams) > 0:
