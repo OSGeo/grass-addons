@@ -266,8 +266,8 @@ def main():
         bc_row = colValues[:,colNames == 'row'].astype(int).squeeze()
         bc_col = colValues[:,colNames == 'col'].astype(int).squeeze()
         # Also get x and y while we are at it: may be needed later
-        bc_x = float(colValues[:,colNames == 'x'].astype(float).squeeze())
-        bc_y = float(colValues[:,colNames == 'y'].astype(float).squeeze())
+        bc_x = colValues[:,colNames == 'x'].astype(float).squeeze()
+        bc_y = colValues[:,colNames == 'y'].astype(float).squeeze()
         if (bc_row != pp_row) and (bc_col != pp_col):
             # If not diagonal, two possible locations that are adjacent
             # to the pour point
