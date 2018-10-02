@@ -268,7 +268,33 @@ def main():
         # Also get x and y while we are at it: may be needed later
         bc_x = colValues[:,colNames == 'x'].astype(float).squeeze()
         bc_y = colValues[:,colNames == 'y'].astype(float).squeeze()
-        if (bc_row != pp_row) and (bc_col != pp_col):
+        if (bc_row != pp_row).all() and (bc_col != pp_col).all():
+            if bc_row.ndim > 0:
+                if len(bc_row) > 1:
+                    for i in range(len(bc_row)):
+                        """
+                        UNTESTED!!!!
+                        And probably unimportant -- having 2 cells with river
+                        going through them is most likely going to happen with
+                        two adjacent cells -- so a side and a corner
+                        """
+                        _col1, _row1 = str(bc_col[i]), str(pp_row[i])
+                        _col2, _row2 = str(pp_col[i]), str(bc_row[i])
+                        # Check if either of these is covered by the basin mask
+                        _ismask_1 = gscript.vector_db_select(grid, layer=1, where='(row == '+_row1+') AND (col =='+_col1+')', columns='basinmask')
+                        _ismask_1 = int(_ismask_1['values'].values()[0][0])
+                        _ismask_2 = gscript.vector_db_select(grid, layer=1, where='(row == '+_row2+') AND (col =='+_col2+')', columns='basinmask')
+                        _ismask_2 = int(_ismask_2['values'].values()[0][0])
+                        # check if either of these is the other point
+                        """
+                        NOT DOING THIS YET -- HAVEN'T THOUGHT THROUGH IF
+                        ACTUALLY NECESSARY. (And this is an edge case anyway)
+                        """
+                        # If both covered by mask, error
+                        if _ismask_1 and _ismask_2:
+                            gscript.fatal('All possible b.c. cells covered by basin mask.\n\
+                                         Contact the developer: awickert (at) umn(.)edu')
+                                
             # If not diagonal, two possible locations that are adjacent
             # to the pour point
             _col1, _row1 = str(bc_col), str(pp_row)
