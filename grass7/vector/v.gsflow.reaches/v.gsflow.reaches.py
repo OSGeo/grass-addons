@@ -376,8 +376,12 @@ def main():
     # TOP AND BOTTOM ARE OUT OF ORDER: SOME SEGS ARE BACKWARDS. UGH!!!!
     # NEED TO GET THEM IN ORDER TO GET THE Z VALUES AT START AND END
 
+    # 2018.10.01: Updating this to use the computational region for the DEM
+    g.region(raster=elevation)
+    
     # Compute slope and starting elevations from the elevations at the start and 
     # end of the reaches and the length of each reach]
+    
     gscript.message('Obtaining elevation values from raster: may take time.')
     v.db_addcolumn(map=reaches, columns='zr1 double precision, zr2 double precision')
     zr1 = []
@@ -385,6 +389,7 @@ def main():
     for i in range(len(reach_cats)):
         _x = reach_x1s[i]
         _y = reach_y1s[i]
+        #print _x, _y
         _z = float(gscript.parse_command('r.what', map=elevation, coordinates=str(_x)+','+str(_y)).keys()[0].split('|')[-1])
         zr1.append(_z)
         _x = reach_x2s[i]
