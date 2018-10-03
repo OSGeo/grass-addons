@@ -45,6 +45,10 @@
 #% description: Create a text file to use with t.register
 #%end
 #%flag
+#% key: a
+#% description: Append new file to existing file to use with t.register
+#%end
+#%flag
 #% key: l
 #% description: List more info about the supported MODIS products
 #%end
@@ -543,7 +547,10 @@ def main():
     outfile = None
     # check if file for t.register has to been created
     if options['outfile']:
-        outfile = open(options['outfile'], 'w')
+        if flags['a']:
+            outfile = open(options['outfile'], 'a')
+        else:
+            outfile = open(options['outfile'], 'w')
         if count > 1:
             grass.warning("The spectral subsets are more than one so the "
                           " output file will be renamed")
