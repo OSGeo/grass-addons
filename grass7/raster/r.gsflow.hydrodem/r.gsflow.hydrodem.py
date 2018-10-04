@@ -108,26 +108,16 @@ def main():
     
     gscript.use_temp_region()
     
-    # Get number of rows and columns
-    colNames = np.array(gscript.vector_db_select(grid, layer=1)['columns'])
-    colValues = np.array(gscript.vector_db_select(grid, layer=1)['values'].values())
-    cats = colValues[:,colNames == 'cat'].astype(int).squeeze()
-    rows = colValues[:,colNames == 'row'].astype(int).squeeze()
-    cols = colValues[:,colNames == 'col'].astype(int).squeeze()
-    nRows = np.max(rows)
-    nCols = np.max(cols)
-    
-    # Set the region
-    g.region(vector=grid, rows=nRows, cols=nCols)
-
-    #g.region(raster=dem)
+    # Set the region to capture only the channel
+    g.region(raster=dem)
     v.to_rast(input=streams, output=streams_MODFLOW, use='val', value=1.0,
               type='line', overwrite=gscript.overwrite(), quiet=True)
-    r.mapcalc('tmp'+" = "+streams_MODFLOW+" * DEM", overwrite=True)
+    r.mapcalc('tmp'+" = "+streams_MODFLOW+" * " + dem, overwrite=True)
     g.rename(raster=('tmp',streams_MODFLOW), overwrite=True, quiet=True)
-    #g.region(res=resolution, quiet=True)
+    g.region(raster=DEM_MODFLOW, quiet=True)
+    print "ALTERED"
     r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW, 
-                   method='minimum', overwrite=gscript.overwrite(), quiet=True)
+                   method='average', overwrite=gscript.overwrite(), quiet=True)
     r.resamp_stats(input=dem, output=DEM_MODFLOW, method='average',
                    overwrite=gscript.overwrite(), quiet=True)
     r.patch(input=streams_MODFLOW+','+DEM_MODFLOW, output=DEM_MODFLOW,
