@@ -32,17 +32,25 @@
 #%end
 
 #%option G_OPT_V_FIELD
+#% required: yes
+#% answer: 1
 #%end
 
 #%option G_OPT_DB_COLUMN
-#%key: timestamp_column
+#% key: timestamp_column
+#% required: yes
+#% label: Column of input vector map containing time stamps for temoral sampling of STRDS
 #%end
 
 #%option G_OPT_DB_COLUMN
-#%key: column
+#% key: column
+#% required: yes
+#% label: Column of input vector map to which raster values are written
+#% description: Column will be added if it does not exists or updated otherwise
 #%end
 
 #%option G_OPT_DB_WHERE
+#% label: Where-clause for filtering points in input vector map used for sampling
 #%end
 
 #%option G_OPT_STRDS_INPUTS
@@ -51,12 +59,7 @@
 
 #%option G_OPT_T_WHERE
 #% key: t_where
-#%end
-
-#%flag
-#% key: u
-#% label: Update column of attribute table in input vector map if it already exists
-#% description: Instead of creating a new vector map update the attribute table with value(s)
+#% description: Temporal where-clause for selecting a subset of raster maps from STRDS for sampling (Default: The temporal bounding box of the input vector points)
 #%end
 
 #%flag
