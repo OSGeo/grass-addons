@@ -5,9 +5,9 @@ import requests
 msg = sys.stdin.read()
 
 # Don't touch messages that reference other databases
-# if msg.find('MITAB bug ') >= 0 or msg.find('Safe bug ') >= 0 or msg.find('bugzilla') >= 0 or msg.find('Bugzilla') >= 0:
-#     sys.stdout.write(msg)
-#     sys.exit(0)
+if msg.find('RT bug ') >= 0:
+     sys.stdout.write(msg)
+     sys.exit(0)
 
 oldpos = 0
 old_msg = msg
@@ -74,14 +74,21 @@ while True:
             continue
 
         # check if ticket really exists
-        url = 'https://trac.osgeo.org/grass/ticket/' + msg[newpos+1:]
+        num = ''
+        while True:
+            if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+                break
+            num += msg[newpos+1]
+            newpos += 1
+        
+        url = 'https://trac.osgeo.org/grass/ticket/' + num
         request = requests.get(url)
         if request.status_code != 200:
             # does not exist
             oldpos = newpos + len(msg[newpos+1:])
             continue
 
-        msg = msg[0:newpos] + url
+        msg = msg[0:newpos-len(num)] + url + msg[newpos+1:]
         oldpos = newpos
         continue
 
