@@ -3,7 +3,7 @@
 # Initialize git repo (preferably use AUTHORS.txt from SVN)
 
 mkdir grass-gis-git ; cd grass-gis-git
-git svn init --stdlayout --prefix=svn https://svn.osgeo.org/grass/grass
+git svn init --stdlayout --no-metadata https://svn.osgeo.org/grass/grass
 git svn --authors-file=../AUTHORS.txt fetch
 
 # Create local branches
@@ -33,5 +33,5 @@ for i in `git branch -r | grep origin`; do git branch -dr $i; done
 
 # Fix commit messages (#x -> https://trac.osgeo.org/...)
 git reset --hard HEAD && git checkout master
-# git filter-branch --msg-filter 'python  ../rewrite.py' -- --all
+git filter-branch --msg-filter 'python  ../rewrite.py' -- --all
 # check out /tmp/log.txt for changes overview ...
