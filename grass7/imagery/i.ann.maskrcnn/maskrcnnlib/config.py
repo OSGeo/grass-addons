@@ -57,6 +57,9 @@ class ModelConfig(object):
     # How many anchors per image to use for RPN training
     RPN_TRAIN_ANCHORS_PER_IMAGE = 256
 
+    # ROIs kept after tf.nn.top_k and before non-maximum suppression
+    PRE_NMS_LIMIT = 6000
+
     # ROIs kept after non-maximum suppression (training and inference)
     POST_NMS_ROIS_TRAINING = 2000
     POST_NMS_ROIS_INFERENCE = 1000
@@ -132,7 +135,8 @@ class ModelConfig(object):
                  trainROIsPerImage=64, stepsPerEpoch=1500,
                  miniMaskShape=None, validationSteps=100,
                  imageMaxDim=768, imageMinDim=768, backbone='resnet101',
-                 trainBatchNorm=False, resizeMode='square'):
+                 trainBatchNorm=False, resizeMode='square',
+                 image_channel_count=3):
         """Set values of attributes.
         Written by Ondrej Pesek, but using attributes from Waleed Abdulla"""
 
@@ -142,7 +146,8 @@ class ModelConfig(object):
         # Number of images to train on each GPU
         self.IMAGES_PER_GPU = imagesPerGPU
 
-        # NUMBER OF GPUs to use. For CPU training, use 1
+        # NUMBER OF GPUs to use.
+        # When using only a CPU, this needs to be set to 1.
         self.GPU_COUNT = GPUcount
 
         # Number of classes (including background)
@@ -197,11 +202,16 @@ class ModelConfig(object):
         # Only useful if you supply a callable to BACKBONE. Should compute
         # the shape of each layer of the FPN Pyramid.
         # See model.compute_backbone_shapes
-        COMPUTE_BACKBONE_SHAPE = None
+        self.COMPUTE_BACKBONE_SHAPE = None
+
+        # Number of color channels per image. RGB = 3, grayscale = 1, RGB-D = 4
+        # Changing this requires other changes in the code. See the WIKI for more
+        # details: https://github.com/matterport/Mask_RCNN/wiki
+        self.IMAGE_CHANNEL_COUNT = image_channel_count
 
         # Input image size
-        self.IMAGE_SHAPE = np.array(
-            [self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
+        self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM,
+             self.IMAGE_CHANNEL_COUNT])
 
         # Compute backbone size from input image size
         # TODO Ondrej Pesek: Maybe delete it and see Matterport's (avoid math

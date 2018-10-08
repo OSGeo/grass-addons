@@ -19,7 +19,6 @@ import logging
 from collections import OrderedDict
 import multiprocessing
 import numpy as np
-import skimage.transform
 import tensorflow as tf
 import keras
 import keras.backend as K
@@ -262,9 +261,9 @@ class ProposalLayer(KE.Layer):
     box refinement deltas to anchors.
 
     Inputs:
-        rpn_probs: [batch, anchors, (bg prob, fg prob)]
-        rpn_bbox: [batch, anchors, (dy, dx, log(dh), log(dw))]
-        anchors: [batch, (y1, x1, y2, x2)] anchors in normalized coordinates
+        rpn_probs: [batch, num_anchors, (bg prob, fg prob)]
+        rpn_bbox: [batch, num_anchors, (dy, dx, log(dh), log(dw))]
+        anchors: [batch, num_anchors, (y1, x1, y2, x2)] anchors in normalized coordinates
 
     Returns:
         Proposals in normalized coordinates [batch, rois, (y1, x1, y2, x2)]
@@ -287,7 +286,7 @@ class ProposalLayer(KE.Layer):
 
         # Improve performance by trimming to top anchors by score
         # and doing the rest on the smaller subset.
-        pre_nms_limit = tf.minimum(6000, tf.shape(anchors)[1])
+        pre_nms_limit = tf.minimum(self.config.PRE_NMS_LIMIT, tf.shape(anchors)[1])
         ix = tf.nn.top_k(scores, pre_nms_limit, sorted=True,
                          name="top_anchors").indices
         scores = utils.batch_slice([scores, ix], lambda x, y: tf.gather(x, y),
@@ -348,18 +347,18 @@ class PyramidROIAlign(KE.Layer):
     """Implements ROI Pooling on multiple levels of the feature pyramid.
 
     Params:
-    - pool_shape: [height, width] of the output pooled regions. Usually [7, 7]
+    - pool_shape: [pool_height, pool_width] of the output pooled regions. Usually [7, 7]
 
     Inputs:
     - boxes: [batch, num_boxes, (y1, x1, y2, x2)] in normalized
              coordinates. Possibly padded with zeros if not enough
              boxes to fill the array.
     - image_meta: [batch, (meta data)] Image details. See compose_image_meta()
-    - Feature maps: List of feature maps from different levels of the pyramid.
+    - feature_maps: List of feature maps from different levels of the pyramid.
                     Each is [batch, height, width, channels]
 
     Output:
-    Pooled regions in the shape: [batch, num_boxes, height, width, channels].
+    Pooled regions in the shape: [batch, num_boxes, pool_height, pool_width, channels].
     The width and height are those specific in the pool_shape in the layer
     constructor.
     """
@@ -445,7 +444,8 @@ class PyramidROIAlign(KE.Layer):
         pooled = tf.gather(pooled, ix)
 
         # Re-add the batch dimension
-        pooled = tf.expand_dims(pooled, 0)
+        shape = tf.concat([tf.shape(boxes)[:2], tf.shape(pooled)[1:]], axis=0)
+        pooled = tf.reshape(pooled, shape)
         return pooled
 
     def compute_output_shape(self, input_shape):
@@ -490,7 +490,7 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
     generates target class IDs, bounding box deltas, and masks for each.
 
     Inputs:
-    proposals: [N, (y1, x1, y2, x2)] in normalized coordinates. Might
+    proposals: [POST_NMS_ROIS_TRAINING, (y1, x1, y2, x2)] in normalized coordinates. Might
                be zero padded if there are not enough proposals.
     gt_class_ids: [MAX_GT_INSTANCES] int class IDs
     gt_boxes: [MAX_GT_INSTANCES, (y1, x1, y2, x2)] in normalized coordinates.
@@ -500,9 +500,8 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
     and masks.
     rois: [TRAIN_ROIS_PER_IMAGE, (y1, x1, y2, x2)] in normalized coordinates
     class_ids: [TRAIN_ROIS_PER_IMAGE]. Integer class IDs. Zero padded.
-    deltas: [TRAIN_ROIS_PER_IMAGE, NUM_CLASSES, (dy, dx, log(dh), log(dw))]
-            Class-specific bbox refinements.
-    masks: [TRAIN_ROIS_PER_IMAGE, height, width). Masks cropped to bbox
+    deltas: [TRAIN_ROIS_PER_IMAGE, (dy, dx, log(dh), log(dw))]
+    masks: [TRAIN_ROIS_PER_IMAGE, height, width]. Masks cropped to bbox
            boundaries and resized to neural network output size.
 
     Note: Returned arrays might be zero padded if not enough target ROIs.
@@ -537,7 +536,7 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
     # Compute overlaps matrix [proposals, gt_boxes]
     overlaps = overlaps_graph(proposals, gt_boxes)
 
-    # Compute overlaps with crowd boxes [anchors, crowds]
+    # Compute overlaps with crowd boxes [proposals, crowd_boxes]
     crowd_overlaps = overlaps_graph(proposals, crowd_boxes)
     crowd_iou_max = tf.reduce_max(crowd_overlaps, axis=1)
     no_crowd_bool = (crowd_iou_max < 0.001)
@@ -640,10 +639,8 @@ class DetectionTargetLayer(KE.Layer):
     rois: [batch, TRAIN_ROIS_PER_IMAGE, (y1, x1, y2, x2)] in normalized
           coordinates
     target_class_ids: [batch, TRAIN_ROIS_PER_IMAGE]. Integer class IDs.
-    target_deltas: [batch, TRAIN_ROIS_PER_IMAGE, NUM_CLASSES,
-                    (dy, dx, log(dh), log(dw), class_id)]
-                   Class-specific bbox refinements.
-    target_mask: [batch, TRAIN_ROIS_PER_IMAGE, height, width)
+    target_deltas: [batch, TRAIN_ROIS_PER_IMAGE, (dy, dx, log(dh), log(dw)]
+    target_mask: [batch, TRAIN_ROIS_PER_IMAGE, height, width]
                  Masks cropped to bbox boundaries and resized to neural
                  network output size.
 
@@ -673,7 +670,7 @@ class DetectionTargetLayer(KE.Layer):
     def compute_output_shape(self, input_shape):
         return [
             (None, self.config.TRAIN_ROIS_PER_IMAGE, 4),  # rois
-            (None, 1),  # class_ids
+            (None, self.config.TRAIN_ROIS_PER_IMAGE),  # class_ids
             (None, self.config.TRAIN_ROIS_PER_IMAGE, 4),  # deltas
             (None, self.config.TRAIN_ROIS_PER_IMAGE, self.config.MASK_SHAPE[0],
              self.config.MASK_SHAPE[1])  # masks
@@ -696,10 +693,10 @@ def refine_detections_graph(rois, probs, deltas, window, config):
         probs: [N, num_classes]. Class probabilities.
         deltas: [N, num_classes, (dy, dx, log(dh), log(dw))]. Class-specific
                 bounding box deltas.
-        window: (y1, x1, y2, x2) in image coordinates. The part of the image
+        window: (y1, x1, y2, x2) in normalized coordinates. The part of the image
             that contains the image excluding the padding.
 
-    Returns detections shaped: [N, (y1, x1, y2, x2, class_id, score)] where
+    Returns detections shaped: [num_detections, (y1, x1, y2, x2, class_id, score)] where
         coordinates are normalized.
     """
     # Class IDs per ROI
@@ -819,7 +816,7 @@ class DetectionLayer(KE.Layer):
             self.config.IMAGES_PER_GPU)
 
         # Reshape output
-        # [batch, num_detections, (y1, x1, y2, x2, class_score)] in
+        # [batch, num_detections, (y1, x1, y2, x2, class_id, class_score)] in
         # normalized coordinates
         return tf.reshape(
             detections_batch,
@@ -842,9 +839,9 @@ def rpn_graph(feature_map, anchors_per_location, anchor_stride):
                    every pixel in the feature map), or 2 (every other pixel).
 
     Returns:
-        rpn_logits: [batch, H, W, 2] Anchor classifier logits (before softmax)
-        rpn_probs: [batch, H, W, 2] Anchor classifier probabilities.
-        rpn_bbox: [batch, H, W, (dy, dx, log(dh), log(dw))] Deltas to be
+        rpn_class_logits: [batch, H * W * anchors_per_location, 2] Anchor classifier logits (before softmax)
+        rpn_probs: [batch, H * W * anchors_per_location, 2] Anchor classifier probabilities.
+        rpn_bbox: [batch, H * W * anchors_per_location, (dy, dx, log(dh), log(dw))] Deltas to be
                   applied to anchors.
     """
     # TODO: check if stride of 2 causes alignment issues if the feature map
@@ -866,7 +863,7 @@ def rpn_graph(feature_map, anchors_per_location, anchor_stride):
     rpn_probs = KL.Activation(
         "softmax", name="rpn_class_xxx")(rpn_class_logits)
 
-    # Bounding box refinement. [batch, H, W, anchors per location, depth]
+    # Bounding box refinement. [batch, H, W, anchors per location * depth]
     # where depth is [x, y, log(w), log(h)]
     x = KL.Conv2D(anchors_per_location * 4, (1, 1), padding="valid",
                   activation='linear', name='rpn_bbox_pred')(shared)
@@ -888,9 +885,9 @@ def build_rpn_model(anchor_stride, anchors_per_location, depth):
     depth: Depth of the backbone feature map.
 
     Returns a Keras Model object. The model outputs, when called, are:
-    rpn_logits: [batch, H, W, 2] Anchor classifier logits (before softmax)
-    rpn_probs: [batch, W, W, 2] Anchor classifier probabilities.
-    rpn_bbox: [batch, H, W, (dy, dx, log(dh), log(dw))] Deltas to be
+    rpn_class_logits: [batch, H * W * anchors_per_location, 2] Anchor classifier logits (before softmax)
+    rpn_probs: [batch, H * W * anchors_per_location, 2] Anchor classifier probabilities.
+    rpn_bbox: [batch, H * W * anchors_per_location, (dy, dx, log(dh), log(dw))] Deltas to be
                 applied to anchors.
     """
     input_feature_map = KL.Input(shape=[None, None, depth],
@@ -913,20 +910,20 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
           coordinates.
     feature_maps: List of feature maps from different layers of the pyramid,
                   [P2, P3, P4, P5]. Each has a different resolution.
-    - image_meta: [batch, (meta data)] Image details. See compose_image_meta()
+    image_meta: [batch, (meta data)] Image details. See compose_image_meta()
     pool_size: The width of the square feature map generated from ROI Pooling.
     num_classes: number of classes, which determines the depth of the results
     train_bn: Boolean. Train or freeze Batch Norm layers
     fc_layers_size: Size of the 2 FC layers
 
     Returns:
-        logits: [N, NUM_CLASSES] classifier logits (before softmax)
-        probs: [N, NUM_CLASSES] classifier probabilities
-        bbox_deltas: [N, (dy, dx, log(dh), log(dw))] Deltas to apply to
+        logits: [batch, num_rois, NUM_CLASSES] classifier logits (before softmax)
+        probs: [batch, num_rois, NUM_CLASSES] classifier probabilities
+        bbox_deltas: [batch, num_rois, NUM_CLASSES, (dy, dx, log(dh), log(dw))] Deltas to apply to
                      proposal boxes
     """
     # ROI Pooling
-    # Shape: [batch, num_boxes, pool_height, pool_width, channels]
+    # Shape: [batch, num_rois, POOL_SIZE, POOL_SIZE, channels]
     x = PyramidROIAlign([pool_size, pool_size],
                         name="roi_align_classifier")([rois, image_meta] + feature_maps)
     # Two 1024 FC layers (implemented with Conv2D for consistency)
@@ -949,10 +946,10 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
                                      name="mrcnn_class")(mrcnn_class_logits)
 
     # BBox head
-    # [batch, boxes, num_classes * (dy, dx, log(dh), log(dw))]
+    # [batch, num_rois, NUM_CLASSES * (dy, dx, log(dh), log(dw))]
     x = KL.TimeDistributed(KL.Dense(num_classes * 4, activation='linear'),
                            name='mrcnn_bbox_fc')(shared)
-    # Reshape to [batch, boxes, num_classes, (dy, dx, log(dh), log(dw))]
+    # Reshape to [batch, num_rois, NUM_CLASSES, (dy, dx, log(dh), log(dw))]
     s = K.int_shape(x)
     mrcnn_bbox = KL.Reshape((s[1], num_classes, 4), name="mrcnn_bbox")(x)
 
@@ -972,10 +969,10 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
     num_classes: number of classes, which determines the depth of the results
     train_bn: Boolean. Train or freeze Batch Norm layers
 
-    Returns: Masks [batch, roi_count, height, width, num_classes]
+    Returns: Masks [batch, num_rois, MASK_POOL_SIZE, MASK_POOL_SIZE, NUM_CLASSES]
     """
     # ROI Pooling
-    # Shape: [batch, boxes, pool_height, pool_width, channels]
+    # Shape: [batch, num_rois, MASK_POOL_SIZE, MASK_POOL_SIZE, channels]
     x = PyramidROIAlign([pool_size, pool_size],
                         name="roi_align_mask")([rois, image_meta] + feature_maps)
 
@@ -1073,11 +1070,7 @@ def rpn_bbox_loss_graph(config, target_bbox, rpn_match, rpn_bbox):
     target_bbox = batch_pack_graph(target_bbox, batch_counts,
                                    config.IMAGES_PER_GPU)
 
-    # TODO: use smooth_l1_loss() rather than reimplementing here
-    #       to reduce code duplication
-    diff = K.abs(target_bbox - rpn_bbox)
-    less_than_one = K.cast(K.less(diff, 1.0), "float32")
-    loss = (less_than_one * 0.5 * diff**2) + (1 - less_than_one) * (diff - 0.5)
+    loss = smooth_l1_loss(target_bbox, rpn_bbox)
 
     loss = K.switch(tf.size(loss) > 0, K.mean(loss), tf.constant(0.0))
     return loss
@@ -1443,15 +1436,14 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks, config):
             gt_h = gt_y2 - gt_y1
             # Resize mini mask to size of GT box
             placeholder[gt_y1:gt_y2, gt_x1:gt_x2] = \
-                np.round(skimage.transform.resize(
-                    class_mask, (gt_h, gt_w), order=1, mode="constant")).astype(bool)
+                np.round(utils.resize(class_mask, (gt_h, gt_w))).astype(bool)
             # Place the mini batch in the placeholder
             class_mask = placeholder
 
         # Pick part of the mask and resize it
         y1, x1, y2, x2 = rois[i].astype(np.int32)
         m = class_mask[y1:y2, x1:x2]
-        mask = skimage.transform.resize(m, config.MASK_SHAPE, order=1, mode="constant")
+        mask = utils.resize(m, config.MASK_SHAPE)
         masks[i, :, :, class_id] = mask
 
     return rois, roi_gt_class_ids, bboxes, masks
@@ -1877,7 +1869,7 @@ class MaskRCNN():
 
         # Inputs
         input_image = KL.Input(
-            shape=[None, None, 3], name="input_image")
+            shape=[None, None, config.IMAGE_SHAPE[2]], name="input_image")
         input_image_meta = KL.Input(shape=[config.IMAGE_META_SIZE],
                                     name="input_image_meta")
         if mode == "training":
@@ -2275,8 +2267,9 @@ class MaskRCNN():
         if model_path:
             # Continue from we left of. Get epoch and date from the file name
             # A sample model path might look like:
-            # /path/to/logs/coco20171029T2315/mask_rcnn_coco_0001.h5
-            regex = r".*/[\w-]+(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/mask\_rcnn\_[\w-]+(\d{4})\.h5"
+            # \path\to\logs\coco20171029T2315\mask_rcnn_coco_0001.h5 (Windows)
+            # /path/to/logs/coco20171029T2315/mask_rcnn_coco_0001.h5 (Linux)
+            regex = r".*[/\\][\w-]+(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})[/\\]mask\_rcnn\_[\w-]+(\d{4})\.h5"
             m = re.match(regex, model_path)
             if m:
                 now = datetime.datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)),
@@ -2289,10 +2282,6 @@ class MaskRCNN():
         # Directory for training logs
         self.log_dir = os.path.join(self.model_dir, "{}{:%Y%m%dT%H%M}".format(
             self.config.NAME.lower(), now))
-
-        # Create log_dir if not exists
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
 
         # Path to save after each epoch. Include placeholders that get filled by Keras.
         self.checkpoint_path = os.path.join(self.log_dir, "mask_rcnn_{}_*epoch*.h5".format(
@@ -2357,6 +2346,10 @@ class MaskRCNN():
                                          no_augmentation_sources=no_augmentation_sources)
         val_generator = data_generator(val_dataset, self.config, shuffle=True,
                                        batch_size=self.config.BATCH_SIZE)
+
+        # Create log_dir if it does not exist
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
 
         # Callbacks
         callbacks = [
