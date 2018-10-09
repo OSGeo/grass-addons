@@ -7,7 +7,7 @@
 #define PI 3.1415927
 double solar_day(double lat, double doy, double tsw) 
 {
-    double ws, cosun, latrad, delta, deltarad, ds, result;
+    double ws, cosun, latrad, deltarad, ds, result;
 
     
 	/*Sun-Earth Distance (ds; A.U.) */ 
