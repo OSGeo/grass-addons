@@ -41,22 +41,20 @@ int main(int argc, char *argv[])
     struct Option *input5, *input6, *input7, *input8;
     struct Option *input9, *input10, *input11;
     struct Option *output1, *output2;
-    struct Flag *flag1, *flag2, *flag3, *flag4;
+    struct Flag *flag1, *flag2, *flag3;
     struct History history;	/*metadata */
     struct Colors colors;	/*Color rules */
     CELL val1, val2;		/*Color ranges */
-    char *name;			/*input raster name */
     char *result1, *result2;	/*output raster name */
 
     /*File Descriptors */
     int infd_albedo, infd_tempk, infd_lat, infd_doy, infd_tsw;
-    int infd_slope, infd_aspect;
-    int infd_tair, infd_e0;
+    int infd_slope=0, infd_aspect=0;
+    int infd_tair=0, infd_e0=0;
     int outfd1, outfd2;
     char *albedo, *tempk, *lat, *doy, *tsw, *slope, *aspect, *tair, *e0;
     double roh_w, e_atm;
 
-    int i = 0, j = 0;
     void *inrast_albedo, *inrast_tempk, *inrast_lat;
     void *inrast_doy, *inrast_tsw;
     void *inrast_slope, *inrast_aspect;
@@ -230,7 +228,7 @@ int main(int argc, char *argv[])
 	DCELL d_lat, d_doy, d_tsw;
 	DCELL d_solar, d_rnetd;
 	DCELL d_slope, d_aspect;
-	DCELL d_tair, d_e0;
+	DCELL d_tair=0, d_e0=0;
 
 	G_percent(row, nrows, 2);
 
