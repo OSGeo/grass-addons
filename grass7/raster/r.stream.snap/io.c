@@ -325,7 +325,6 @@ int seg_create_map(SEG * seg, int srows, int scols, int number_of_segs,
      */
 
     char *filename;
-    int fd;
     int local_number_of_segs;
 
     seg->fd = -1;
@@ -359,29 +358,15 @@ int seg_create_map(SEG * seg, int srows, int scols, int number_of_segs,
     }
 
     filename = G_tempfile();
-    fd = creat(filename, 0666);
 
     if (0 >
-	Segment_format(fd, seg->nrows, seg->ncols, srows, scols,
-		       seg->data_size)) {
-	close(fd);
-	unlink(filename);
-	G_fatal_error(_("Unable to format segment"));
-    }
-
-    close(fd);
-    if (0 > (fd = open(filename, 2))) {
-	unlink(filename);
-	G_fatal_error(_("Unable to re-open file '%s'"), filename);
-    }
-
-    if (0 > (fd = Segment_init(&(seg->seg), fd, number_of_segs))) {
-	unlink(filename);
-	G_fatal_error(_("Unable to init segment file or out of memory"));
+	Segment_open(&(seg->seg), filename, seg->nrows, seg->ncols, srows, scols,
+		       seg->data_size, number_of_segs)) {
+	G_fatal_error(_("Unable to open segment structure"));
     }
 
     seg->filename = G_store(filename);
-    seg->fd = fd;
+
     return 0;
 }
 
@@ -666,9 +651,7 @@ int seg_release_map(SEG * seg)
     /* 
      * release segment close files, set pointers to null;
      */
-    Segment_release(&(seg->seg));
-    close(seg->fd);
-    unlink(seg->filename);
+    Segment_close(&(seg->seg));
 
     if (seg->map_name)
 	G_free(seg->map_name);
