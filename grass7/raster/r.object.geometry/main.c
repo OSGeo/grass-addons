@@ -52,8 +52,9 @@ int main(int argc, char *argv[])
     int len;
     struct obj_geo 
     {
-	double area, perimeter;
+	double area, perimeter, x, y;
 	int min_row, max_row, min_col, max_col; /* bounding box */
+	int num;
     } *obj_geos;
     double unit_area;
     int n_objects;
@@ -135,6 +136,9 @@ int main(int argc, char *argv[])
 	obj_geos[i].max_row = 0;
 	obj_geos[i].min_col = ncols;
 	obj_geos[i].max_col = 0;
+	obj_geos[i].x = 0;
+	obj_geos[i].y = 0;
+	obj_geos[i].num = 0;
     }
 
     unit_area = 0.0;
@@ -174,9 +178,12 @@ int main(int argc, char *argv[])
 	    if (!cur_null) {
 		if (flag_m->answer) {
 		    obj_geos[cur - min].area += unit_area;
+		    obj_geos[cur - min].num += 1;
 		} else {
 		    obj_geos[cur - min].area += 1;
 		}
+		obj_geos[cur - min].x += Rast_col_to_easting(col - 0.5, &cellhd);
+		obj_geos[cur - min].y += Rast_row_to_northing(row + 0.5, &cellhd);
 		if (obj_geos[cur - min].min_row > row)
 		    obj_geos[cur - min].min_row = row;
 		if (obj_geos[cur - min].max_row < row + 1)
@@ -294,7 +301,9 @@ int main(int argc, char *argv[])
     fprintf(out_fp, "perimeter%s", sep);
     fprintf(out_fp, "compact_square%s", sep);
     fprintf(out_fp, "compact_circle%s", sep);
-    fprintf(out_fp, "fd");
+    fprintf(out_fp, "fd%s", sep);
+    fprintf(out_fp, "mean_x%s", sep);
+    fprintf(out_fp, "mean_y");
     fprintf(out_fp, "\n");
 
     /* print table body */
@@ -310,7 +319,11 @@ int main(int argc, char *argv[])
 	fprintf(out_fp, "%f%s", 4 * sqrt(obj_geos[i].area) / obj_geos[i].perimeter, sep);
 	fprintf(out_fp, "%f%s", obj_geos[i].perimeter / (2 * sqrt(M_PI * obj_geos[i].area)), sep);
 	/* log 1 = 0, so avoid that by always adding 0.001 to the area: */
-	fprintf(out_fp, "%f", 2 * log(obj_geos[i].perimeter) / log (obj_geos[i].area + 0.001));
+	fprintf(out_fp, "%f%s", 2 * log(obj_geos[i].perimeter) / log (obj_geos[i].area + 0.001), sep);
+	if (!flag_m->answer) 
+		obj_geos[i].num = obj_geos[i].area;
+	fprintf(out_fp, "%f%s", obj_geos[i].x / obj_geos[i].num, sep);
+	fprintf(out_fp, "%f", obj_geos[i].y / obj_geos[i].num);
 	/* TODO: convert bounding box area and perimeter to (square) meters for -m flag */
 
 	

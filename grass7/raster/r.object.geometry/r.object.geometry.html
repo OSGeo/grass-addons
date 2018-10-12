@@ -15,7 +15,8 @@ has non-square pixels, using meters is recommended.
 
 <p>
 Statistics currently calculated are exactly the same as in
-<em><a href="v.to.db.html">v.to.db</a></em> (except for compact_square):
+<em><a href="v.to.db.html">v.to.db</a></em> (except for compact_square and 
+mean coordinates):
 
 <ul>
 <li>area</li>
@@ -25,6 +26,8 @@ Statistics currently calculated are exactly the same as in
 <li>compact_circle (compactness compared to a circle: 
   <tt>compact_circle = perimeter / ( 2 * sqrt(PI * area) )</tt>)</li>
 <li>fractal dimension ( <tt>fd = 2 * ( log(perimeter) / log(area + 0.001) )</tt> )</li>
+<li>mean x coordinate of object (in map units)</li>
+<li>mean y coordinate of object (in map units)</li>
 </ul>
 
 <h2>NOTES</h2>
