@@ -50,7 +50,7 @@
 #% label: Area measurements to include in the output
 #% required: no
 #% multiple: yes
-#% options: area,perimeter,compact_circle,compact_square,fd
+#% options: area,perimeter,compact_circle,compact_square,fd,xcoords,ycoords
 #% answer: area,perimeter,compact_circle,fd
 #% guisection: Shape statistics
 #%end
@@ -201,7 +201,8 @@ def main():
             'mean': 7}
 
     geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
-			'compact_square': 3, 'compact_circle': 4, 'fd' : 5}
+			'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
+                        'xcoords': 6, 'ycoords': 7}
     
     if flags['r']:
         gscript.use_temp_region()
@@ -285,19 +286,19 @@ def main():
         # output_dict
         for key, group in groupby(nbr_matrix, lambda x: x[0]):
             d = {}
-            for i in range(len(output_dict[key])):
+            for i in range(original_nb_values):
                 d[i] = (0,0,0)
             nbrlist = [str(x[1]) for x in group]
             if len(nbrlist) > 1:
                 for nbr in nbrlist:
-                    for i in range(len(output_dict[key])):
+                    for i in range(original_nb_values):
                         d[i] = update(d[i], float(output_dict[nbr][i]))
                 output_dict[key] = output_dict[key] + [str(len(nbrlist))]
                 output_dict[key] = output_dict[key] + [str(i) for sub in [finalize(x) for x in d.values()] for i in sub]
             else:
                 newvalues = ['1']
                 nbr = nbrlist[0]
-                for i in range(len(output_dict[key])):
+                for i in range(original_nb_values):
                     newvalues.append(output_dict[nbr][i])
                     newvalues.append('0')
                 output_dict[key] = output_dict[key] + newvalues
