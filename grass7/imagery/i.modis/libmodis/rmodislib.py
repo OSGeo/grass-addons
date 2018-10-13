@@ -83,7 +83,9 @@ class product:
         vi1km_suff = {'.1_km_16_days_NDVI': '.1_km_16_days_VI_Quality',
                       '.1_km_16_days_EVI': '.1_km_16_days_VI_Quality'}
         vi6km_suff = {'.5600m_16_days_NDVI': '.5600m_16_days_VI_Quality',
-                      '.5600m_16_days_EVI': '.5600m_16_days_VI_Quality'}
+                      '.5600m_16_days_EVI': '.5600m_16_days_VI_Quality'},
+        vi6km_month_suff = {'.5600m_monthly_NDVI': '.5600m_monthly_VI_Quality',
+                            '.5600m_monthly_EVI': '.5600m_monthly_VI_Quality'}
         # values of snow product:
         snow1_spec = ('( 1 )')
         snow1_specqa = ('( 1 1 )')
@@ -190,10 +192,20 @@ class product:
                                           'suff': vi6km_suff, 'res': 5600,
                                           'color': vi_color, 'days': sixteen},
               'ndvi_aqua_sixteen_5600': {'url': urlbase, 'folder': 'MOLA/',
-                                         'prod': 'MOD13C1.006',
+                                         'prod': 'MYD13C1.006',
                                          'spec': vi_spec, 'spec_qa': vi_specqa,
                                          'suff': vi6km_suff, 'res': 5600,
-                                         'color': vi_color, 'days': sixteen}
+                                         'color': vi_color, 'days': sixteen},
+              'ndvi_terra_monthly_5600': {'url': urlbase, 'folder': 'MOLT/',
+                                          'prod': 'MOD13C2.006',
+                                          'spec': vi_spec, 'spec_qa': vi_specqa,
+                                          'suff': vi6km_month_suff, 'res': 5600,
+                                          'color': vi_color, 'days': monthly},
+              'ndvi_aqua_monthly_5600': {'url': urlbase, 'folder': 'MOLA/',
+                                         'prod': 'MYD13C2.006',
+                                         'spec': vi_spec, 'spec_qa': vi_specqa,
+                                         'suff': vi6km_month_suff, 'res': 5600,
+                                         'color': vi_color, 'days': monthly}
               }
         surf_refl = {'surfreflec_terra_eight_500': {'url': urlbase,
                                                     'folder': 'MOLT/',
