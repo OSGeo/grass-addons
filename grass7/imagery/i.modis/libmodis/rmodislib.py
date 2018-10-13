@@ -75,6 +75,8 @@ class product:
         # values of vi product:
         vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 )'
         vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 1 )'
+        vi_5600m_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 0 )'
+        vi_5600m_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 0 1 )'        
         vi_color = ['ndvi', 'evi']
         vi250m_suff = {'.250m_16_days_NDVI': '.250m_16_days_VI_Quality',
                        '.250m_16_days_EVI': '.250m_16_days_VI_Quality'}
@@ -188,22 +190,22 @@ class product:
                                          'color': vi_color, 'days': sixteen},
               'ndvi_terra_sixteen_5600': {'url': urlbase, 'folder': 'MOLT/',
                                           'prod': 'MOD13C1.006',
-                                          'spec': vi_spec, 'spec_qa': vi_specqa,
+                                          'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
                                           'suff': vi6km_suff, 'res': 5600,
                                           'color': vi_color, 'days': sixteen},
               'ndvi_aqua_sixteen_5600': {'url': urlbase, 'folder': 'MOLA/',
                                          'prod': 'MYD13C1.006',
-                                         'spec': vi_spec, 'spec_qa': vi_specqa,
+                                         'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
                                          'suff': vi6km_suff, 'res': 5600,
                                          'color': vi_color, 'days': sixteen},
               'ndvi_terra_monthly_5600': {'url': urlbase, 'folder': 'MOLT/',
                                           'prod': 'MOD13C2.006',
-                                          'spec': vi_spec, 'spec_qa': vi_specqa,
+                                          'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
                                           'suff': vi6km_month_suff, 'res': 5600,
                                           'color': vi_color, 'days': monthly},
               'ndvi_aqua_monthly_5600': {'url': urlbase, 'folder': 'MOLA/',
                                          'prod': 'MYD13C2.006',
-                                         'spec': vi_spec, 'spec_qa': vi_specqa,
+                                         'spec': vi_5600m_spec, 'spec_qa': vi_5600m_specqa,
                                          'suff': vi6km_month_suff, 'res': 5600,
                                          'color': vi_color, 'days': monthly}
               }
