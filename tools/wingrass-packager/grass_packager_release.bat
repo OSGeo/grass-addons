@@ -13,7 +13,7 @@ cd C:\Users\landa\grass_packager
 
 set MAJOR=7
 set MINOR=4
-set PATCH=2RC1
+set PATCH=2RC2
 set REV=1
 
 set GVERSION=%MAJOR%%MINOR%%PATCH%
