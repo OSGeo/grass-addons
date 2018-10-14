@@ -394,7 +394,7 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    target_crs = grass.read_command('g.proj', flags='fj').rstrip(os.linesep)
+    target_crs = grass.read_command('g.proj', flags='fj').rstrip(os.linesep).encode('utf-8')
     target = osr.SpatialReference(target_crs)
     target.ImportFromProj4(target_crs)
     if target == 'XY location (unprojected)':
