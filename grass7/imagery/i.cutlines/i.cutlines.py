@@ -25,6 +25,10 @@
 #% required: yes
 #%end
 #
+#%option G_OPT_V_OUTPUT
+#% description: Name of output vector map with cutline polygons
+#%end
+#
 #%option
 #% key: number_lines
 #% type: integer
@@ -41,20 +45,26 @@
 #% required: yes
 #%end
 #
+#%option G_OPT_V_INPUTS
+#% key: existing_cutlines
+#% label: Input vector maps with existing cutlines
+#% required: no
+#%end
+#
 #%option
-#% key: edge_weight
+#% key: no_edge_friction
 #% type: integer
-#% description: Priority to give to edge pixels over other pixels
+#% description: Additional friction for non-edge pixels
 #% required: yes
 #% answer: 5
 #%end
 #
 #%option
-#% key: lane_border_resistance
+#% key: lane_border_multiplier
 #% type: integer
-#% description: Friction of borders of lanes
+#% description: Multiplier for borders of lanes compared to non-edge pixels
 #% required: yes
-#% answer: 10000
+#% answer: 10
 #%end
 #
 #%option
@@ -62,27 +72,6 @@
 #% type: integer
 #% description: Minimum size of tiles in map units
 #% required: no
-#%end
-#
-#%option G_OPT_V_OUTPUT
-#% key: vector_tiles
-#% label: Name for output vector map with tiles as polygons
-#% required: no
-#% guisection: Output
-#%end
-#
-#%option G_OPT_V_OUTPUT
-#% key: vector_lines
-#% label: Name for output vector map with tiles as lines
-#% required: no
-#% guisection: Output
-#%end
-#
-#%option G_OPT_R_OUTPUT
-#% key: raster_lines
-#% label: Name for output raster map with tiles as lines
-#% required: no
-#% guisection: Output
 #%end
 #
 #%option
@@ -170,12 +159,10 @@
 #% description: RAM memory available (in MB)
 #% answer: 300
 #% required: yes
-#% guisection: Options
 #%end
 #
 #%rules
 #% collective: tile_width, tile_height, overlap
-#% required: vector_tiles, vector_lines, raster_lines
 #%end
 
 import os
@@ -197,20 +184,15 @@ def main():
     inputraster = options['input']
     number_lines = int(options['number_lines'])
     edge_detection_algorithm = options['edge_detection']
-    edge_weight = int(options['edge_weight'])
-    lane_border_resistance = int(options['lane_border_resistance'])
+    no_edge_friction = int(options['no_edge_friction'])
+    lane_border_multiplier = int(options['lane_border_multiplier'])
     min_tile_size = None
     if options['min_tile_size']:
         min_tile_size = float(options['min_tile_size'])
-    tiles = None
-    if options['vector_tiles']:
-        tiles = options['vector_tiles'] 
-    vector_lines = None
-    if options['vector_lines']:
-        vector_lines = options['vector_lines']
-    raster_lines = None
-    if options['raster_lines']:
-        raster_lines = options['raster_lines']
+    existing_cutlines = None
+    if options['existing_cutlines']:
+        existing_cutlines = options['existing_cutlines'].split(',') 
+    tiles = options['output'] 
     memory = int(options['memory'])
     tiled = False
 
@@ -228,6 +210,26 @@ def main():
     r = 'raster'
     v = 'vector'
 
+    if existing_cutlines:
+        existingcutlinesmap = 'temp_icutlines_existingcutlinesmap_%i' % os.getpid()
+        if len(existing_cutlines) > 1:
+            gscript.run_command('v.patch',
+                                input_=existing_cutlines,
+                                output=existingcutlinesmap,
+                                quiet=True,
+                                overwrite=True)
+            existing_cutlines=existingcutlinesmap
+
+        gscript.run_command('v.to.rast',
+                            input_=existing_cutlines,
+                            output=existingcutlinesmap,
+                            use='val',
+                            type_='line,boundary',
+                            overwrite=True,
+                            quiet=True)
+
+        temp_maps.append([existingcutlinesmap, r])
+
     temp_edge_map = "temp_icutlines_edgemap_%d" % os.getpid()
     temp_maps.append([temp_edge_map, r])
 
@@ -240,13 +242,6 @@ def main():
                   'quiet' : True}
 
         if tiled:
-            if gscript.version()['version'] < '7.5':
-                message = "Currently there is a parameter name conflict between\n"
-                message += "i.zc and GridModule used for tiling.\n"
-                message += "This is solved in GRASS trunk.\n"
-                message += "Please use i.edge for edge detection or GRASS trunk\n"
-                message += "if you want to tile this part."
-                gscript.fatal(message)
             grd = GridModule('i.zc',
                              width=width,
                              height=height,
@@ -293,16 +288,24 @@ def main():
     region = gscript.region()
     gscript.message(_("Finding cutlines in both directions"))
 
+    nsrange = float(region.n - region.s - region.nsres)
+    ewrange = float(region.e - region.w - region.ewres)
+
+    if nsrange > ewrange:
+        hnumber_lines = number_lines
+        vnumber_lines = int(number_lines * (ewrange / nsrange))
+    else:
+        vnumber_lines = number_lines
+        hnumber_lines = int(number_lines * (nsrange / ewrange))
+
     # Create the lines in horizonal direction
-    nsstep = float(region.n - region.s - region.nsres) / number_lines
-    hpointsy = [((region.n - i * nsstep) - region.nsres / 2.0) for i in range(0, number_lines+1)]
+    nsstep = float(region.n - region.s - region.nsres) / hnumber_lines
+    hpointsy = [((region.n - i * nsstep) - region.nsres / 2.0) for i in range(0, hnumber_lines+1)]
     hlanepointsy = [y - nsstep / 2.0 for y in hpointsy]
     hstartpoints = zip([region.w + 0.2 * region.ewres] * len(hpointsy), hpointsy)
     hstoppoints = zip([region.e - 0.2 * region.ewres] * len(hpointsy), hpointsy)
-    hlanestartpoints = zip([region.w + 0.2 * region.ewres] * len(hlanepointsy),
-            hlanepointsy)
-    hlanestoppoints = zip([region.e - 0.2 * region.ewres] * len(hlanepointsy),
-            hlanepointsy)
+    hlanestartpoints = zip([region.w + 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
+    hlanestoppoints = zip([region.e - 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
 
     hlanemap = 'temp_icutlines_hlanemap_%i' % os.getpid()
     temp_maps.append([hlanemap, v])
@@ -326,11 +329,28 @@ def main():
 
     hbasemap = 'temp_icutlines_hbasemap_%i' % os.getpid()
     temp_maps.append([hbasemap, r])
+
+    # Building the cost maps using the following logic
+    # - Any pixel not on an edge, nor on an existing cutline gets a
+    # no_edge_friction cost, or no_edge_friction_cost x 10  if there are
+    # existing cutlines
+    # - Any pixel on an edge gets a cost of 1 if there are no existing cutlines,
+    # and a cost of no_edge_friction if there are
+    # - A lane line gets a very high cost (lane_border_multiplier x cost of no
+    # edge pixel - the latter depending on the existence of cutlines).
+
     mapcalc_expression = "%s = " % hbasemap
     mapcalc_expression += "if(isnull(%s), " % hlanemap
-    mapcalc_expression += "if(%s == 0, " % temp_edge_map 
-    mapcalc_expression += "%i, 1), " % edge_weight 
-    mapcalc_expression += "%i)" % lane_border_resistance
+    if existing_cutlines:
+        mapcalc_expression += "if(%s == 0 && isnull(%s), " % (temp_edge_map, existingcutlinesmap)
+        mapcalc_expression += "%i, " % (no_edge_friction * 10)
+        mapcalc_expression += "if(isnull(%s), %s, 1))," % (existingcutlinesmap, no_edge_friction)
+        mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction * 10)
+    else:
+        mapcalc_expression += "if(%s == 0, " % temp_edge_map
+        mapcalc_expression += "%i, " % no_edge_friction
+        mapcalc_expression += "1), "
+        mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction)
     gscript.run_command('r.mapcalc',
                         expression=mapcalc_expression,
                         quiet=True,
@@ -343,14 +363,12 @@ def main():
 
 
     # Create the lines in vertical direction
-    ewstep = float(region.e - region.w - region.ewres) / number_lines
-    vpointsx = [((region.e - i * ewstep) - region.ewres / 2.0) for i in range(0, number_lines+1)]
+    ewstep = float(region.e - region.w - region.ewres) / vnumber_lines
+    vpointsx = [((region.e - i * ewstep) - region.ewres / 2.0) for i in range(0, vnumber_lines+1)]
     vlanepointsx = [x + ewstep / 2.0 for x in vpointsx]
     vstartpoints = zip(vpointsx, [region.n - 0.2 * region.nsres] * len(vpointsx))
     vstoppoints = zip(vpointsx, [region.s + 0.2 * region.nsres] * len(vpointsx))
-    vlanestartpoints = zip(vlanepointsx, [region.n - 0.2 * region.nsres] *
-            len(vlanepointsx))
-            
+    vlanestartpoints = zip(vlanepointsx, [region.n - 0.2 * region.nsres] * len(vlanepointsx))
     vlanestoppoints = zip(vlanepointsx, [region.s + 0.2 * region.nsres] * len(vlanepointsx))
             
 
@@ -378,9 +396,16 @@ def main():
     temp_maps.append([vbasemap, r])
     mapcalc_expression = "%s = " % vbasemap
     mapcalc_expression += "if(isnull(%s), " % vlanemap
-    mapcalc_expression += "if(%s == 0, " % temp_edge_map 
-    mapcalc_expression += "%i, 1), " % edge_weight 
-    mapcalc_expression += "%i)" % lane_border_resistance
+    if existing_cutlines:
+        mapcalc_expression += "if(%s == 0 && isnull(%s), " % (temp_edge_map, existingcutlinesmap)
+        mapcalc_expression += "%i, " % (no_edge_friction  * 10)
+        mapcalc_expression += "if(isnull(%s), %s, 1))," % (existingcutlinesmap, no_edge_friction)
+        mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction * 10)
+    else:
+        mapcalc_expression += "if(%s == 0, " % temp_edge_map
+        mapcalc_expression += "%i, " % no_edge_friction
+        mapcalc_expression += "1), "
+        mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction)
     gscript.run_command('r.mapcalc',
                         expression=mapcalc_expression,
                         quiet=True,
@@ -493,134 +518,113 @@ def main():
                         quiet=True,
                         overwrite=True)
 
-    if raster_lines:
+    gscript.message(_("Creating vector polygons"))
+                        
+    # Create vector polygons
+
+    # First we need to shrink the region a bit to make sure that all vector
+    # points / lines fall within the raster
+    gscript.use_temp_region()
+    gscript.run_command('g.region',
+                        s=region.s+region.nsres,
+                        e=region.e-region.ewres,
+                        quiet=True)
+
+    region_map = 'temp_icutlines_region_map_%i' % os.getpid()
+    temp_maps.append([region_map, v])
+    temp_maps.append([region_map, r])
+    gscript.run_command('v.in.region',
+                        output=region_map,
+                        type_='line',
+                        quiet=True,
+                        overwrite=True)
+
+    gscript.del_temp_region()
+    
+    gscript.run_command('v.to.rast',
+                        input_=region_map,
+                        output=region_map,
+                        use='val',
+                        type_='line',
+                        quiet=True,
+                        overwrite=True)
+
+    temp_raster_polygons = 'temp_icutlines_raster_polygons_%i' % os.getpid()
+    temp_maps.append([temp_raster_polygons, r])
+    gscript.run_command('r.patch',
+                        input_=[temp_raster_tile_borders,region_map],
+                        output=temp_raster_polygons,
+                        quiet=True,
+                        overwrite=True)
+
+    temp_raster_polygons_thin = 'temp_icutlines_raster_polygons_thin_%i' % os.getpid()
+    temp_maps.append([temp_raster_polygons_thin, r])
+    gscript.run_command('r.thin',
+                        input_=temp_raster_polygons,
+                        output=temp_raster_polygons_thin,
+                        quiet=True,
+                        overwrite=True)
+
+    # Create a series of temporary map names as we have to go 
+    # through several steps until we reach the final map.
+    temp_vector_polygons1 = 'temp_icutlines_vector_polygons1_%i' % os.getpid()
+    temp_maps.append([temp_vector_polygons1, v])
+    temp_vector_polygons2 = 'temp_icutlines_vector_polygons2_%i' % os.getpid()
+    temp_maps.append([temp_vector_polygons2, v])
+    temp_vector_polygons3 = 'temp_icutlines_vector_polygons3_%i' % os.getpid()
+    temp_maps.append([temp_vector_polygons3, v])
+    temp_vector_polygons4 = 'temp_icutlines_vector_polygons4_%i' % os.getpid()
+    temp_maps.append([temp_vector_polygons4, v])
+
+    gscript.run_command('r.to.vect',
+                        input_=temp_raster_polygons_thin,
+                        output=temp_vector_polygons1,
+                        type_='line',
+                        flags='t',
+                        quiet=True,
+                        overwrite=True)
+
+    # Erase all category values from the lines
+    gscript.run_command('v.category',
+                        input_=temp_vector_polygons1,
+                        op='del',
+                        cat='-1',
+                        output=temp_vector_polygons2,
+                        quiet=True,
+                        overwrite=True)
+
+    # Transform lines to boundaries
+    gscript.run_command('v.type',
+                        input_=temp_vector_polygons2,
+                        from_type='line',
+                        to_type='boundary',
+                        output=temp_vector_polygons3,
+                        quiet=True,
+                        overwrite=True)
+
+    # Add centroids
+    gscript.run_command('v.centroids',
+                        input_=temp_vector_polygons3,
+                        output=temp_vector_polygons4,
+                        quiet=True,
+                        overwrite=True)
+
+    # If a threshold is given erase polygons that are too small
+    if min_tile_size:
+        gscript.run_command('v.clean',
+                            input_=temp_vector_polygons4,
+                            tool='rmarea',
+                            threshold=min_tile_size,
+                            output=tiles,
+                            quiet=True,
+                            overwrite=True)
+    else:
         gscript.run_command('g.copy',
-                            raster=[temp_raster_tile_borders,raster_lines],
+                            vect=[temp_vector_polygons4,tiles],
                             quiet=True,
                             overwrite=True)
 
-    if vector_lines:
-        temp_vector_tile_borders = 'temp_icutlines_vector_tile_borders_%i' % os.getpid()
-        temp_maps.append([temp_vector_tile_borders, v])
-        gscript.run_command('r.to.vect',
-                            input_=temp_raster_tile_borders,
-                            output=temp_vector_tile_borders,
-                            type_='line',
-                            flags='t',
-                            quiet=True,
-                            overwrite=True)
-        gscript.run_command('g.copy',
-                            vector=[temp_vector_tile_borders,vector_lines],
-                            quiet=True,
-                            overwrite=True)
-
-    if tiles:
-        gscript.message(_("Creating vector polygons"))
-                            
-        # Create vector polygons
-
-        # First we need to shrink the region a bit to make sure that all vector
-        # points / lines fall within the raster
-        gscript.use_temp_region()
-        gscript.run_command('g.region',
-                            s=region.s+region.nsres,
-                            e=region.e-region.ewres,
-                            quiet=True)
-
-        region_map = 'temp_icutlines_region_map_%i' % os.getpid()
-        temp_maps.append([region_map, v])
-        temp_maps.append([region_map, r])
-        gscript.run_command('v.in.region',
-                            output=region_map,
-                            type_='line',
-                            quiet=True,
-                            overwrite=True)
-
-        gscript.del_temp_region()
-        
-        gscript.run_command('v.to.rast',
-                            input_=region_map,
-                            output=region_map,
-                            use='val',
-                            type_='line',
-                            quiet=True,
-                            overwrite=True)
-
-        temp_raster_polygons = 'temp_icutlines_raster_polygons_%i' % os.getpid()
-        temp_maps.append([temp_raster_polygons, r])
-        gscript.run_command('r.patch',
-                            input_=[temp_raster_tile_borders,region_map],
-                            output=temp_raster_polygons,
-                            quiet=True,
-                            overwrite=True)
-
-        temp_raster_polygons_thin = 'temp_icutlines_raster_polygons_thin_%i' % os.getpid()
-        temp_maps.append([temp_raster_polygons_thin, r])
-        gscript.run_command('r.thin',
-                            input_=temp_raster_polygons,
-                            output=temp_raster_polygons_thin,
-                            quiet=True,
-                            overwrite=True)
-
-        # Create a series of temporary map names as we have to go 
-        # through several steps until we reach the final map.
-        temp_vector_polygons1 = 'temp_icutlines_vector_polygons1_%i' % os.getpid()
-        temp_maps.append([temp_vector_polygons1, v])
-        temp_vector_polygons2 = 'temp_icutlines_vector_polygons2_%i' % os.getpid()
-        temp_maps.append([temp_vector_polygons2, v])
-        temp_vector_polygons3 = 'temp_icutlines_vector_polygons3_%i' % os.getpid()
-        temp_maps.append([temp_vector_polygons3, v])
-        temp_vector_polygons4 = 'temp_icutlines_vector_polygons4_%i' % os.getpid()
-        temp_maps.append([temp_vector_polygons4, v])
-
-        gscript.run_command('r.to.vect',
-                            input_=temp_raster_polygons_thin,
-                            output=temp_vector_polygons1,
-                            type_='line',
-                            flags='t',
-                            quiet=True,
-                            overwrite=True)
-
-        # Erase all category values from the lines
-        gscript.run_command('v.category',
-                            input_=temp_vector_polygons1,
-                            op='del',
-                            cat='-1',
-                            output=temp_vector_polygons2,
-                            quiet=True,
-                            overwrite=True)
-
-        # Transform lines to boundaries
-        gscript.run_command('v.type',
-                            input_=temp_vector_polygons2,
-                            from_type='line',
-                            to_type='boundary',
-                            output=temp_vector_polygons3,
-                            quiet=True,
-                            overwrite=True)
-
-        # Add centroids
-        gscript.run_command('v.centroids',
-                            input_=temp_vector_polygons3,
-                            output=temp_vector_polygons4,
-                            quiet=True,
-                            overwrite=True)
-
-        # If a threshold is given erase polygons that are too small
-        if min_tile_size:
-            gscript.run_command('v.clean',
-                                input_=temp_vector_polygons4,
-                                tool='rmarea',
-                                threshold=min_tile_size,
-                                output=tiles,
-                                quiet=True,
-                                overwrite=True)
-        else:
-            gscript.run_command('g.copy',
-                                vect=[temp_vector_polygons4,tiles],
-                                quiet=True,
-                                overwrite=True)
-
+    gscript.vector_history(tiles)
 
 if __name__ == "__main__":
     options, flags = gscript.parser()

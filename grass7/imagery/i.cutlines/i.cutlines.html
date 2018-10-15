@@ -14,17 +14,26 @@ when there are none.
 
 <p>
 The user can determine the number of lines desired (<b>number_lines</b>) in each
-direction and the relative weight given to edges compared to other pixels 
-(<b>edge_weight</b>), weight of other pixels being 1. In order to avoid that all
-lines gather into one single lowest cost path, the module defines a lane for 
-each desired line. The parameter <b>lane_border_resistance</b> defines the cost 
-to cross that line, i.e. the lower the value, the more likely cutlines will join
-each other. Output can be in the form of raster or vector lines 
-(<b>raster_lines</b> and <b>vector_lines</b> parameters) or in the form of 
-vector polygon tiles (<b>vector_tiles</b>). For the latter, the user can decide
-a minimum size defined in map units (<b>min_tile_size</b>). Tiles smaller than
-that size will be merged with the neighboring tile they share the longest 
-border with.
+direction and the friction associated with pixels which are not on an edge
+detected in the image (<b>no_edge_friction</b>). The higher this value, the
+more the module will follow the detected edges.
+
+<p>
+In order to avoid that all lines gather into one single lowest cost path, the
+module defines a lane for each desired line. The parameter
+<b>lane_border_multiplier</b> defines the a multiplier of the
+<b>no_edge_friction</b> value, in order to define the cost to 
+cross that line, i.e. the lower the value, the more likely cutlines will join 
+each other across lanes. Output is in the form of vector polygon tiles. The user
+can decide a minimum size defined in map units (<b>min_tile_size</b>). Tiles 
+smaller than that size will be merged with the neighboring tile they share the 
+longest border with.
+
+<p>
+The user can provide a series of auxiliary vector maps which contain existing
+cutlines (roads, boundaries, etc) that the module should take into account
+(<b>existing_cutlines</b>). These can be either lines or polygons. The module
+will transform all to potential cutlines.
 
 <p>
 For edge detection the user can chose between the <a href="i.zc.html">i.zc</a> 
