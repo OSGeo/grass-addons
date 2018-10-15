@@ -66,13 +66,13 @@ default parameters and 10 horizontal and 10 vertical cutlines, creating
 vector polygon output:
 
 <div class="code"><pre> 
-g.region rast=ortho_2001_t792_1m
-i.cutlines ortho_2001_t792_1m number_lines=10 vector_tiles=ortho_tiles
+g.region rast=ortho_2001_t792_1m -p
+i.cutlines ortho_2001_t792_1m number_lines=10 output=ortho_tiles 
 </pre></div>
 
 <center>
-	        <img src="i_cutlines_default.png" width="600" height="294" border="1"><br>
-		Irregular vector tiles created for the NC demo data set orthophoto
+<img src="i_cutlines_default.png" width="600" height="294" border="1"><br>
+Irregular vector tiles created for the NC demo data set orthophoto
 </center>
 
 
