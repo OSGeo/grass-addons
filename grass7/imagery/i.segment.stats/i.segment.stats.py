@@ -338,11 +338,11 @@ def main():
                 fsql.write('DROP TABLE %s;' % temporary_vect)
             else:
                 gscript.fatal(_("Table %s already exists. Use --o to overwrite" % temporary_vect))
-        create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int, '
-        for header in output_header[1:-1]:
-            create_statement += header +  ' double precision, '
-        create_statement += output_header[-1] + ' double precision);\n'
+        create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int PRIMARY KEY);\n'
         fsql.write(create_statement)
+        for header in output_header[1:]:
+            addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, header)
+            fsql.write(addcol_statement)
         for key in output_dict:
 		if len(output_dict[key]) + 1  == len(output_header):
                     sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
