@@ -347,6 +347,7 @@ def main():
 		if len(output_dict[key]) + 1  == len(output_header):
                     sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
                     sql = sql.replace('inf', 'NULL')
+                    sql = sql.replace('nan', 'NULL')
                     fsql.write(sql)
 		else:
 		    if not csvfile:
