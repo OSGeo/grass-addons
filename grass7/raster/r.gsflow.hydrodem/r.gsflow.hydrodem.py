@@ -105,6 +105,15 @@ def main():
     #resolution = float(options['resolution'])
     streams_MODFLOW = options['streams_modflow']
     DEM_MODFLOW = options['dem_modflow']
+
+    # Get number of rows and columns
+    colNames = np.array(gscript.vector_db_select(grid, layer=1)['columns'])
+    colValues = np.array(gscript.vector_db_select(grid, layer=1)['values'].values())
+    cats = colValues[:,colNames == 'cat'].astype(int).squeeze()
+    rows = colValues[:,colNames == 'row'].astype(int).squeeze()
+    cols = colValues[:,colNames == 'col'].astype(int).squeeze()
+    nRows = np.max(rows)
+    nCols = np.max(cols)
     
     gscript.use_temp_region()
     
@@ -114,8 +123,7 @@ def main():
               type='line', overwrite=gscript.overwrite(), quiet=True)
     r.mapcalc('tmp'+" = "+streams_MODFLOW+" * " + dem, overwrite=True)
     g.rename(raster=('tmp',streams_MODFLOW), overwrite=True, quiet=True)
-    g.region(raster=DEM_MODFLOW, quiet=True)
-    print "ALTERED"
+    g.region(vector=grid, rows=nRows, cols=nCols, quiet=True)
     r.resamp_stats(input=streams_MODFLOW, output=streams_MODFLOW, 
                    method='average', overwrite=gscript.overwrite(), quiet=True)
     r.resamp_stats(input=dem, output=DEM_MODFLOW, method='average',
