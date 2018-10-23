@@ -111,9 +111,14 @@ def main(options, flags):
         imagesDir = options['images_directory']
         modelPath = options['model']
         classes = options['classes'].split(',')
-        band1 = options['band1'].split(',')
-        band2 = options['band2'].split(',')
-        band3 = options['band3'].split(',')
+        if options['band1']:
+            band1 = options['band1'].split(',')
+            band2 = options['band2'].split(',')
+            band3 = options['band3'].split(',')
+        else:
+            band1 = list()
+            band2 = list()
+            band3 = list()
         outputType = options['output_type']
         if options['images_format']:
             extension = options['images_format']
@@ -383,7 +388,7 @@ def parse_instances(image,
     """
     Create a raster from results of detection and import it into GRASS GIS or
     save to a temporal directory to wait for external georeferencing.
-    
+
     :param image: [band1, band2, band3]
     :param boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image
         coordinates
