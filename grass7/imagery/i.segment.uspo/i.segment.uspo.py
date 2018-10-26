@@ -365,6 +365,11 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
                         len(autocor_per_raster)
                     result_queue.put([mapname, mean_lv, mean_autocor,
                                       threshold, minsize])
+            else:
+                # If resulting map contains only one segment, then give high
+                # value of variance and 0 for spatial autocorrelation in order
+                # to give this map a low priority
+                result_queue.put([mapname, 999999, 0, threshold, minsize])
 
     except:
         exc_info = sys.exc_info()
@@ -401,6 +406,11 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
                     len(autocor_per_raster)
                 result_queue.put(
                     [mapname, mean_lv, mean_autocor, threshold, minsize])
+            else:
+                # If resulting map contains only one segment, then give high
+                # value of variance and 0 for spatial autocorrelation in order
+                # to give this map a low priority
+                result_queue.put([mapname, 999999, 0, threshold, minsize])
 
     except:
         exc_info = sys.exc_info()
@@ -910,31 +920,43 @@ def main():
 
         maplist += regional_maplist
         # Calculate optimization function values and get indices of best values
-        optlist = create_optimization_list(variancelist,
-                                           autocorlist,
-                                           opt_function,
-                                           alpha,
-                                           directions[indicator])
-        if rg:
-            regiondict[region] = zip(
-                threshlist, minsizelist, variancelist, autocorlist, optlist)
-        else:
-            regiondict[region] = zip(
-                threshlist, hrlist, radiuslist, minsizelist, variancelist, autocorlist, optlist)
+        if max(variancelist) > min(variancelist) and max(autocorlist) > min(autocorlist):
+            optlist = create_optimization_list(variancelist,
+                                               autocorlist,
+                                               opt_function,
+                                               alpha,
+                                               directions[indicator])
+            if rg:
+                regiondict[region] = zip(
+                    threshlist, minsizelist, variancelist, autocorlist, optlist)
+            else:
+                regiondict[region] = zip(
+                    threshlist, hrlist, radiuslist, minsizelist, variancelist, autocorlist, optlist)
 
-        optimal_indices = find_optimal_value_indices(optlist, nb_best)
-        best_values[region] = []
-        rank = 1
-        for optind in optimal_indices:
+            optimal_indices = find_optimal_value_indices(optlist, nb_best)
+            best_values[region] = []
+            rank = 1
+            for optind in optimal_indices:
+                if rg:
+                    best_values[region].append(
+                        [threshlist[optind], minsizelist[optind], optlist[optind]])
+                else:
+                    best_values[region].append([threshlist[optind], hrlist[optind],
+                                                radiuslist[optind], minsizelist[optind], optlist[optind]])
+                maps_to_keep.append([regional_maplist[optind], rank,
+                                     parms['region']])
+                rank += 1
+        else:
+            best_values[region] = []
             if rg:
                 best_values[region].append(
-                    [threshlist[optind], minsizelist[optind], optlist[optind]])
+                        [threshlist[0], minsizelist[0], -1])
             else:
-                best_values[region].append([threshlist[optind], hrlist[optind],
-                                            radiuslist[optind], minsizelist[optind], optlist[optind]])
-            maps_to_keep.append([regional_maplist[optind], rank,
-                                 parms['region']])
-            rank += 1
+                best_values[region].append([threshlist[0], hrlist[0],
+                                                radiuslist[0], minsizelist[0],
+                                                -1])
+                maps_to_keep.append([regional_maplist[0], -1,
+                                     parms['region']])
 
     # Create output
 
