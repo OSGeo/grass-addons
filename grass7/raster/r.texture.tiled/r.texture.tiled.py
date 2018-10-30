@@ -91,18 +91,30 @@ class MyGridModule(GridModule):
         """Patch the final results."""
         bboxes = split_region_tiles(width=self.width, height=self.height)
         loc = Location()
+        methods_dic = {'asm' : 'ASM',
+                       'contrast' : 'Contr',
+                       'corr' : 'Corr',
+                       'var' : 'Var',
+                       'idm' : 'IDM',
+                       'sa' : 'SA',
+                       'sv' : 'SV',
+                       'se' : 'SE',
+                       'entr' : 'Entr',
+                       'dv' : 'DV',
+                       'de' : 'DE',
+                       'moc1' : 'MOC-1',
+                       'moc2' : 'MOC-2'}
         mset = loc[self.mset.name]
         mset.visible.extend(loc.mapsets())
         method = self.module.inputs['method'].value[0]
         for otmap in self.module.outputs:
             otm = self.module.outputs[otmap]
             if otm.typedesc == 'raster' and otm.value:
-                otm.value = '%s_%s' % (otm.value, method.upper())
+                otm.value = '%s_%s' % (otm.value, methods_dic[method])
                 rpatch_map(otm.value,
                            self.mset.name, self.msetstr, bboxes,
                            self.module.flags.overwrite,
                            self.start_row, self.start_col, self.out_prefix)
-
 
 
 def main():
