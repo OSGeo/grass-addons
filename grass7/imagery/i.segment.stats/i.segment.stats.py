@@ -91,6 +91,10 @@
 #% key: s
 #% description: Do not calculate any shape statistics
 #% guisection: Shape statistics
+#%end
+#%flag
+#% key: c
+#% description: Do not check rasters for null cells
 #%END
 
 
@@ -229,37 +233,54 @@ def main():
 		output_dict[values[0]] = [values[x] for x in stat_indices]
 
     if rasters:
-        gscript.message(_("Calculating statistics for raster maps..."))
-        for raster in rasters:
-            if not gscript.find_file(raster, element='cell')['name']:
-                gscript.message(_("Cannot find raster '%s'" % raster))
-                gscript.message(_("Removing this raster from list."))
-                rasters.remove(raster)
+        if not flags['c']:
+            gscript.message(_("Checking usability of raster maps..."))
+            for raster in rasters:
+                if not gscript.find_file(raster, element='cell')['name']:
+                    gscript.message(_("Cannot find raster '%s'" % raster))
+                    gscript.message(_("Removing this raster from list."))
+                    rasters.remove(raster)
+                raster_info = gscript.parse_command('r.univar',
+                                                    flags='g',
+                                                    map_=raster,
+                                                    quiet=True)
+                if len(raster_info) == 0 or int(raster_info['null_cells']) > 0: 
+                    message = 'Raster %s contains null values.\n' % raster
+                    message += 'This can lead to errors in the calculations.\n'
+                    message += 'Check region settings and raster extent.\n'
+                    message += 'Possibly fill null values of raster.\n'
+                    message += 'Removing this raster from list.'
+                    gscript.warning(message)
+                    while raster in rasters: 
+                        rasters.remove(raster)
+                    continue
 
-        if len(rasters) < processes:
-            processes = len(rasters)
-            gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
+        if len(rasters) > 0:
+            gscript.message(_("Calculating statistics for raster maps..."))
+            if len(rasters) < processes:
+                processes = len(rasters)
+                gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
 
-        stat_indices = [raster_stat_dict[x] for x in raster_statistics]
-        pool = Pool(processes)
-        func = partial(worker, segment_map, stats_temp_file)
-        pool.map(func, rasters)
-        pool.close()
-        pool.join()
+            stat_indices = [raster_stat_dict[x] for x in raster_statistics]
+            pool = Pool(processes)
+            func = partial(worker, segment_map, stats_temp_file)
+            pool.map(func, rasters)
+            pool.close()
+            pool.join()
 
-        for raster in rasters:
-            rastername = raster.split('@')[0]
-            rastername = rastername.replace('.', '_')
-            temp_file = stats_temp_file + '.' + rastername
-            output_header += [rastername + "_" + x for x in raster_statistics]
-            firstline = True
-            with open(temp_file, 'r') as fin:
-                for line in fin:
-                    if firstline:
-                        firstline = False
-                        continue
-                    values = line.rstrip().split('|')
-                    output_dict[values[0]] = output_dict[values[0]] + [values[x] for x in stat_indices]
+            for raster in rasters:
+                rastername = raster.split('@')[0]
+                rastername = rastername.replace('.', '_')
+                temp_file = stats_temp_file + '.' + rastername
+                output_header += [rastername + "_" + x for x in raster_statistics]
+                firstline = True
+                with open(temp_file, 'r') as fin:
+                    for line in fin:
+                        if firstline:
+                            firstline = False
+                            continue
+                        values = line.rstrip().split('|')
+                        output_dict[values[0]] = output_dict[values[0]] + [values[x] for x in stat_indices]
 
 
     # Calculating neighborhood statistics if requested

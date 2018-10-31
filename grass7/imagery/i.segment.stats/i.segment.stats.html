@@ -27,6 +27,16 @@ The user can chose between output in the form of a vector map of the
 areas with the statistics in the attribute table (<b>vectormap</b>)
 and/or in the form of a CSV text file (<b>csvfile</b>).
 
+<p>
+Because of the way <em><a href="r.univar.html">r.univar</a></em> functions, it
+is difficult to handle cases where in some raster maps values are all null 
+in some of the areas. Because of this, <em>i.segment.stats</em> checks the 
+raster maps for existing null values and excludes them if it find any, emitting 
+a warning to inform the user. The user can decide to ignore this check using the
+<b>c</b> flag, for example when there are only a few null cells and no complete
+areas with only null cells (i.e. the module can calculate statistics for areas 
+with some null cells in them).
+
 <h2>NOTES</h2>
 
 <p>
@@ -35,7 +45,7 @@ to force the module to adjust the region to the input raster map before
 calculating the statistics.
 
 <p>
-This module is a simple front-end to <em><a href="v.univar.html">v.univar</a></em>
+This module is a simple front-end to <em><a href="r.univar.html">r.univar</a></em>
 and the 
 <em><a href="r.object.geometry.html">r.object.geometry</a></em>
 add-on. It is the user's responsibility to install the
@@ -76,7 +86,7 @@ i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
 
 <em>
 <a href="i.segment.html">i.segment</a>,
-<a href="v.univar.html">v.univar</a>,
+<a href="r.univar.html">r.univar</a>,
 <a href="v.rast.stats.html">v.rast.stats</a> 
 </em>
 <p>
