@@ -19,16 +19,27 @@
 <!-- meta page description: Computes the residual energy potential of different renewable energies like biomass or hydropower -->
 <h2>DESCRIPTION</h2>
 
-<em>r.green</em> computes the residual energy potential of different
-renewable energies like biomass or hydropower.<br>
-The tool is organized in the modules r.green.hydro and r.green.biomass
+The <em>r.green</em> suite computes the residual energy potential of different
+renewable energies like biomass, ground source heat pumps, or hydropower.
+<p>
+The tool is organized in the module groups:
+
+<ul>
+<li><a href="r.green.biomassfor.html">r.green.biomassfor</a> - computes 
+    the energy potential of biomass from the forestry residues</li>
+<li><a href="r.green.gshp.html">r.green.gshp</a> - computes the Ground Source 
+    Heat Pump potential</li>
+<li><a href="r.green.hydro.html">r.green.hydro</a> - computes the hydropower potential</li>
+</ul>
+
 for which are composed of several programs considering different limits
 (e.g. theoretical, recommended, legal, technical, ecological and economic constraints).<br>
 These different scenarios can be compared so that the residual energy
 potential and the suitable places for constructing a new power plant can be identified.<br>
 
 <p>
-All the modules of the tool r.green can be installed in GRASS as following:
+All the modules of the tool r.green can be installed in GRASS GIS as following
+(see also <a href="r.green.install.html">r.green.install</a>):
 
 <div class="code"><pre>
 g.extension r.green
@@ -47,12 +58,14 @@ The basis for creating the modules to calculate the energy potential is shown in
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="r.green.biomassfor.html">r.green.biomassfor</a>,
-  <a href="r.green.hydro.html">r.green.hydro</a>
+<a href="r.green.install.html">r.green.install</a>,
+<a href="r.green.biomassfor.html">r.green.biomassfor</a>,
+<a href="r.green.gshp.html">r.green.gshp</a>,
+<a href="r.green.hydro.html">r.green.hydro</a>
 </em>
 
 <h2>AUTHORS</h2>
 
-For authors, please refer to each module of r.green.
+For authors and references, please refer to the respective module of <em>r.green</em>.
 
 <p><i>Last changed: $Date$</i>
