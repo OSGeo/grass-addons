@@ -79,7 +79,7 @@
 #%end
 #%flag
 #% key: z
-#% description: create zero elevation for missing tiles
+#% description: Create zero elevation for missing tiles
 #%end
 
 
