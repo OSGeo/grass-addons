@@ -416,6 +416,7 @@ def main():
 
     grass.run_command('g.region', raster = str(srtmtiles));
     
+    grass.message(_("Patching tiles..."))
     if fillnulls == 0:
         if valid_tiles > 1:
             grass.run_command('r.patch', input = srtmtiles, output = output)
