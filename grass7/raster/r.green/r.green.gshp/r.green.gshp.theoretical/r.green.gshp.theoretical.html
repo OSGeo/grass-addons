@@ -1,36 +1,65 @@
 <h2>DESCRIPTION</h2>
-<em>r.green.gshp.theoretical</em> calculates .<br><br>
+
+<em>r.green.gshp.theoretical</em> assess the shallow geothermal potential defined as the thermal power exchanged by a Borehole Heat Exchanger of a certain depth.
+This potential depends on the thermal properties of the ground and the plant features.
+This module returns two output raster maps with the the energy potential (MWh/year) and the power potential (W).
+In this module the output is the theoretical maximum energy that can be converted in the ideal case without considering the financial and spatial constraints.
+
 
 <h2>NOTES</h2>
 
-The required inputs are the <br><br>
+The required inputs are the the thermal conductivity. If not specific values are indicated, reference values have been assumed for the ground features and the plant. <br><br>
+
+
+<h2>EXPLANATION</h2>
+<em>r.green.gshp.theoretical</em> calculates the potential of shallow geothermal energy by means of and empirical relationship proposed by Casasso et al. (2016) as: 
+<blockquote><i>
+P<SUB>gshp</SUB>=8*(T<SUB>0</SUB> - T<SUB>lim</SUB>) &lambda; L t'<SUB>c</SUB>/(-0.619 t'<SUB>c</SUB> 
+log(u'<SUB>s</SUB>)-0.455 t'<SUB>c</SUB>-1.619+4 &pi; R<SUB>b</SUB>)</i><br>
+<br>
+where<blockquote>
+T<SUB>0</SUB> is the undisturbed ground temperature (&deg;C),<br>
+T<SUB>lim</SUB> the threshold temperature of the heat carrier
+fluid setting to 2&deg;C,<br>
+&lambda; is the  the
+thermal conductivity of the ground (W/(mK)),<br>
+L the borehole length (m),<br>
+t'<SUB>c</SUB> is is
+the operating time ratio ,<br>
+u'<SUB>s</SUB> is a parameter depending on the simulaion time and the borehole radius ,<br>
+R<SUB>b</SUB> is the thermal resistance (K/W)
+</blockquote>
 
 
 <h2>EXAMPLES</h2>
+
+This example is based on the case-study of the EUSALP region, located in Europe and covering part of Italian, Slovenian, Austrian, German, Swiss and France territories. The data can be downloades at the following repositories <a href="https://gitlab.inf.unibz.it/URS/GRETA/eusalp-shallow-geothermal-energy"> EUSALP dataset </a>.
+
 <div class="code"><pre>
 r.green.gshp.theoretical \
-    ground_conductivity=g_conductivity \
-    heating_season_raster=g_hseason \
-    ground_temp_raster=g_temperature \
+    ground_conductivity=conductivity \
+    heating_season_raster=season_heating \
+    ground_temp_raster=ground_temperature \
+    ground_capacity_value=2.3 \
     power=gpot_power \
     energy=gpot_energy \
-    length=gpot_length --o
 </pre></div><br>
 
 
 <h2>SEE ALSO</h2>
 <em>
+<a href="r.green.html">r.green.hydro.technical</a><br>
 <a href="r.green.gshp.technical.html">r.green.hydro.technical</a><br>
 </em>
 
 <h2>AUTHORS</h2>
-Pietro Zambelli (Eurac Research, Bolzano, Italy)<br>
+Pietro Zambelli (Eurac Research, Bolzano, Italy), Tested by and manual written by Giulia Garegnani<br>
 
 <h2>REFERENCES</h2>
 Alessandro Casasso, Rajandrea Sethi, 2016,<br>
 "G.POT: A quantitative method for the assessment and mapping of the
 shallow geothermal potential"<br>
 Energy 106, p 765 -- <br>
-http://dx.doi.org/10.1016/j.energy.2016.03.091<br>
+<a href=http://dx.doi.org/10.1016/j.energy.2016.03.091>http://dx.doi.org/10.1016/j.energy.2016.03.091</a><br>
 
 <p><i>Last changed: $Date$</i>
