@@ -137,7 +137,7 @@ Set the computation region to one of the rasters (all have the same
 extent and resolution):
 
 <div class="code"><pre>
-g.region raster=lsat7_2002_10
+g.region raster=lsat7_2002_10 -p
 </pre></div>
 
 Use the list to create an imagery group:
@@ -149,7 +149,7 @@ i.group group=lsat subgroup=lsat input=`g.list type=raster pattern='lsat*' sep=c
 Perform the segmentation:
 
 <div class="code"><pre>
-i.superpixels.slic group=lsat output=segments num_pixels=2000
+i.superpixels.slic input=lsat output=segments num_pixels=2000
 </pre></div>
 
 Convert the segments to vectors for further analysis and visualization:
