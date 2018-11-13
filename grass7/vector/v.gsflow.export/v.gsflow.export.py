@@ -237,7 +237,8 @@ def main():
     #######
     if (len(HRUs) > 0) and (len(out_HRUs) > 0):
         columns_in_order = ['hru_area', 'hru_aspect', 'hru_elev', 'hru_lat', 
-                            'hru_slope', 'hru_segment', 'hru_strmseg_down_id']
+                            'hru_slope', 'hru_segment', 'hru_strmseg_down_id',
+                            'cov_type', 'soil_type']
         outcols = get_columns_in_order(HRUs, columns_in_order)
         outarray = np.array(outcols).transpose()
         outtable = np.vstack((columns_in_order, outarray))
