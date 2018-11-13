@@ -37,6 +37,20 @@
 #%  guidependency: layer,column
 #%end
 
+#%option G_OPT_R_INPUT
+#%  key: cov_type
+#%  label: land cover: 0=bare soil; 1=grasses; 2=shrubs; 3=trees; 4=coniferous
+#%  required: no
+#%  guidependency: layer,column
+#%end
+
+#%option G_OPT_R_INPUT
+#%  key: soil_type
+#%  label: soil: 1=sand; 2=loam; 3=clay
+#%  required: no
+#%  guidependency: layer,column
+#%end
+
 #%option G_OPT_V_INPUT
 #%  key: input
 #%  label: Sub-basins to become HRUs
@@ -114,6 +128,8 @@ def main():
     slope = options['slope']
     aspect = options['aspect']
     elevation = options['elevation']
+    land_cover = options['cov_type']
+    soil = options['soil_type']
 
     ################################
     # CREATE HRUs FROM SUB-BASINS  #
@@ -167,6 +183,8 @@ def main():
                                               # from HRU to stream segment)
     hru_columns.append('obsin_segment integer') # Index of measured streamflow station that replaces
                                                 # inflow to a segment
+    hru_columns.append('cov_type integer') # 0=bare soil;1=grasses; 2=shrubs; 3=trees; 4=coniferous
+    hru_columns.append('soil_type integer') # 1=sand; 2=loam; 3=clay
 
     # Create strings
     hru_columns = ",".join(hru_columns)
@@ -367,6 +385,26 @@ def main():
     #                index__cats)
     # Segment number = HRU ID number
     v.db_update(map=HRU, column='hru_segment', query_column='id', quiet=True)
+
+    # LAND USE/COVER
+    ############
+    if land_cover != '':
+        # NEED TO FIX THIS!!!!
+        #v.rast_stats(map=HRU, raster=land_cover, method='average', column_prefix='tmp', flags='c', quiet=True)
+        #v.db_update(map=HRU, column='cov_type', query_column='tmp_average', quiet=True)
+        #v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
+        v.db_update(map=HRU, column='cov_type', value=1, quiet=True)
+        v.what_rast(map=HRU, type='centroid', raster=land_cover, column='cov_type', quiet=True)
+
+    # SOIL
+    ############
+    if soil != '':
+        # NEED TO FIX THIS!!!!
+        #v.rast_stats(map=HRU, raster=soil, method='average', column_prefix='tmp', flags='c', quiet=True)
+        #v.db_update(map=HRU, column='soil_type', query_column='tmp_average', quiet=True)
+        #v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
+        v.db_update(map=HRU, column='soil_type', value=1, quiet=True)
+        v.what_rast(map=HRU, type='centroid', raster=soil, column='soil_type', quiet=True)
 
 
 if __name__ == "__main__":
