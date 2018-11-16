@@ -208,6 +208,12 @@
 #% description: Debug with intermediate maps
 #%end
 
+#%rules
+#% excludes: heating_season_raster, heating_season_value
+#% excludes: ground_capacity_raster, ground_capacity_value
+#% excludes: ground_temp_raster, ground_temp_value
+#%end
+
 from __future__ import print_function
 
 import atexit
