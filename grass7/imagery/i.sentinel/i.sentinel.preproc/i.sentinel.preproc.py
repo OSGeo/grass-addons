@@ -28,11 +28,9 @@
 #% key: input_dir
 #% description: Name of the directory where the image and metadata file are stored (*.SAFE)
 #% required : yes
-#% guisection: Input
 #%end
 #%option G_OPT_R_ELEV
 #% required : yes
-#% guisection: Input
 #%end
 #%option G_OPT_R_INPUT
 #% key: visibility
@@ -78,7 +76,6 @@
 #% type: string
 #% description: Suffix for output raster maps
 #% required : yes
-#% guisection: Output
 #%end
 #%option
 #% key: rescale
