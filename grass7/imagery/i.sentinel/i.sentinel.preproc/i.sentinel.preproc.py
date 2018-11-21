@@ -24,31 +24,20 @@
 #% keyword: import
 #% keyword: atmospheric correction
 #%End
-#%option
+#%option G_OPT_M_DIR
 #% key: input_dir
-#% type: string
-#% gisprompt: old,dir,dir
 #% description: Name of the directory where the image and metadata file are stored (*.SAFE)
 #% required : yes
-#% multiple: no
 #% guisection: Input
 #%end
-#%option
-#% key: elevation
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input elevation raster map (in m)
+#%option G_OPT_R_ELEV
 #% required : yes
-#% multiple: no
 #% guisection: Input
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: visibility
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input visibility raster map (in Km)
+#% description: Name of input visibility raster map (in m)
 #% required : no
-#% multiple: no
 #% guisection: Input
 #%end
 #%option
@@ -78,19 +67,16 @@
 #% required : no
 #% guisection: 6S Parameters
 #%end
-#%option
+#%option G_OPT_F_INPUT
 #% key: aeronet_file
-#% type: string
-#% gisprompt: old,file,file
 #% description: Name of the AERONET file for computing AOD at 550nm
 #% required : no
-#% multiple: no
 #% guisection: 6S Parameters
 #%end
 #%option
 #% key: suffix
 #% type: string
-#% description: Suffix for output maps
+#% description: Suffix for output raster maps
 #% required : yes
 #% guisection: Output
 #%end
@@ -103,11 +89,9 @@
 #% required : no
 #% guisection: Output
 #%end
-#%option
+#%option G_OPT_F_OUTPUT
 #% key: text_file
-#% type: string
-#% gisprompt: new,file,file
-#% description: Name of of output text file to be used as input in i.sentinel.mask
+#% description: Name for output text file to be used as input in i.sentinel.mask
 #% required : no
 #% guisection: Output
 #%end
@@ -190,13 +174,13 @@ def main ():
         try:
             if flags["r"]:
                 gscript.run_command('i.sentinel.import',
-                    input=input_dir,
-                    flags='r')
+                                    input=input_dir,
+                                    flags='r')
             else:
                 gscript.run_command('i.sentinel.import',
-                    input=input_dir)
+                                    input=input_dir)
         except:
-            gscript.fatal('Module rquire i.sentinel.import. Please install it using g.extension.')
+            gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
 
     # Create xml "tree" for reading parameters from metadata
     tree = et.parse(mtd_file)
