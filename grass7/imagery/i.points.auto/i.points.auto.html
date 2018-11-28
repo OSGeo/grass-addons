@@ -2,8 +2,12 @@
 
 <em>i.points.auto</em> tries to automatically generate a given number
 of new ground control points (GCPs) by matching the input map to a target
-map through FFT correlation. The goal of this computation is thus to
-enable automatic geocoding of imagery to a master image.
+map through FFT correlation, based on a few existing ground control points,
+previously defined by the user, for example through the 
+<a href="wxGUI.gcp.html">Ground Control Points Manager</a>. 
+The goal of the module is thus to automaticallty increase the number of control
+points to enable higher quality geocoding of imagery to a master image 
+(co-registration).
 
 
 <h2>NOTES</h2>
