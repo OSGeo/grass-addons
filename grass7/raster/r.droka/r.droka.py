@@ -83,7 +83,7 @@ try:
 except:
     try:
         from grass.script import core as grass
-	#from grass.script import core as gcore
+        #from grass.script import core as gcore
     except:
         sys.exit("grass.script can't be imported.")
 
@@ -177,6 +177,7 @@ def main():
     what = grass.read_command('r.what' , 
         map=r_elevation , 
         points='start_points_' ,
+        null_value="-9999", # TODO: a better test for points outside the current region is needed
         quiet = True )
     quota = what.split('\n')
 
