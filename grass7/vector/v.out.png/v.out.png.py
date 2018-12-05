@@ -50,6 +50,10 @@
 #% label: Height of PNG file
 #% answer: 480
 #%end
+#%flag
+#%key: w
+#%description: Output world file
+#%end
 
 import os
 import sys
@@ -81,6 +85,19 @@ def main():
     if monitor_old:
         g.gisenv(set='MONITOR=%s' % monitor_old)
 
+    # get computational region info
+    win = grass.region()
+
+    if flags['w']:
+        wldfile = options['output'].split('.')[0] + '.wld'
+        file_ = open(wldfile, "w")
+        file_.write("%36.15f \n" % win['ewres'])
+        file_.write("%36.15f \n" % 0.0)
+        file_.write("%36.15f \n" % 0.0)
+        file_.write("%36.15f \n" % (-1 * win['nsres']))
+        file_.write("%36.15f \n" % (win['w'] + win['ewres'] / 2.0))
+        file_.write("%36.15f \n" % (win['n'] - win['nsres'] / 2.0))
+        file_.close()
 
 if __name__ == "__main__":
     options, flags = grass.parser()
