@@ -489,7 +489,7 @@ def main ():
                     text.write('3' + "\n")
                 else: # Midlatitude summer
                     text.write('2' + "\n")
-            elif lat > -15.00 and lat <= -45.00: 
+            elif lat < -15.00 and lat >= -45.00: 
                 if time_py.month in winter: # Midlatitude summer
                     text.write('2' + "\n")
                 else: # Midlatitude winter
@@ -499,7 +499,7 @@ def main ():
                     text.write('5' + "\n")
                 else: # Subartic summer
                     text.write('4' + "\n")
-            elif lat > -45.00 and lat <= -60.00:
+            elif lat < -45.00 and lat >= -60.00:
                 if time_py.month in winter: # Subarctic summer
                     text.write('4' + "\n")
                 else: # Subartic winter
