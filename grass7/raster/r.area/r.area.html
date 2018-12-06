@@ -1,17 +1,13 @@
-<h2>OPTIONS</h2>
-<dl>
-<dt><b>input</b></dt>
-<dd>Name of input created with r.clump or another cell category map.</dd>
-<dt><b>treshold</b></dt>
-<dd>Remove areas smaller than treshold, set null for removing areas</dd>
-<dt><b>binary</b></dt>
-<dd>Output map has only 0 and 1 values. If treshold is applied small areas are emoved and replaced by 0</dd>
-<dt><b>output</b></dt>
-<dd>Original categories replaced with number of cells for each category. If areas belonging to category are not continuous every area belonging to the same category has the same area value.</dd>
-</dl>
 <h2>DESCRIPTION</h2>
-<p>module can be used to remove, areas smaller than treshold, reclass according areas (similar to r.reclass area, but work in cells, not hectares and allow create more classes)</p>
+<p>Module r.area reclassifies raster areas (created typically with <a href="r.clump.html">r.clump</a>)
+to values representing their size (in cells).
+Additionally, it can be used to remove areas smaller or greater than a treshold.
+</p>
 
+<h2>NOTE</h2>
+<p>If areas belonging to a certain category are not continuous
+every area belonging to the same category has the same area value.
+	
 <h2>SEE ALSO</h2>
 <em>
 <a href="r.clump.html">r.clump</a>,

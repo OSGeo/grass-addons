@@ -50,25 +50,25 @@ int main(int argc, char *argv[])
     G_add_keyword(_("statistics"));
     G_add_keyword(_("area"));
     module->description =
-        _("Calculates area of clumped areas and remove areas smaller than given threshold.");
+        _("Calculates area of clumped areas and remove areas smaller or greater than given threshold.");
 
     input = G_define_standard_option(G_OPT_R_INPUT);
     input->description = _("Name of cell category map, e.g., maps created with r.clump");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-    output->description = _("Map with area size (in cells)");
+    output->description = _("Name of output raster with categories representing area size (in cells)");
 
     lesser = G_define_option();        /* input stream mask file - optional */
     lesser->key = "lesser";
     lesser->type = TYPE_INTEGER;
     lesser->answer = "0";
-    lesser->description = _("Remove areas lower than (0 for none):");
+    lesser->description = _("Remove areas with number of cells lower than given value (0 for none):");
 
     greater = G_define_option();        /* input stream mask file - optional */
     greater->key = "greater";
     greater->type = TYPE_INTEGER;
     greater->answer = "-1";
-    greater->description = _("Remove areas greater than (-1 for none):");
+    greater->description = _("Remove areas with number of cells greater than given value (-1 for none):");
 
     flag_binary = G_define_flag();
     flag_binary->key = 'b';
