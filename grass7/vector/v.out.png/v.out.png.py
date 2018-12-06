@@ -71,6 +71,11 @@ def main():
     os.environ['GRASS_RENDER_WIDTH'] = options['width']
     os.environ['GRASS_RENDER_HEIGHT'] = options['height']
 
+    if flags['w']:
+        # get display region info
+        s = grass.read_command('d.info', flags='g')
+        win = grassutils.parse_key_val(s, val_type=float)
+
     monitor_old = None
     genv = gisenv()
     if 'MONITOR' in genv:
@@ -86,11 +91,8 @@ def main():
     if monitor_old:
         g.gisenv(set='MONITOR=%s' % monitor_old)
 
-    # get display region info
-    s = grass.read_command('d.info', flags='g')
-    win = grassutils.parse_key_val(s, val_type=float)
-    
     if flags['w']:
+
         wldfile = options['output'].split('.')[0] + '.wld'
         file_ = open(wldfile, "w")
         file_.write("%36.15f \n" % win['ewres'])
