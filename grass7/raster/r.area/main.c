@@ -121,14 +121,14 @@ int main(int argc, char *argv[])
         }
     }                                /* end for row */
 
-    if (les) {
-        for (i = 1; i < c_max; ++i)
+    if (les != 0 || grt != -1) {
+        for (i = 1; i < c_max + 1; ++i)
             if (ncells[i] < les || ncells[i] > gt)
                 ncells[i] = -1;
     }
 
     if (binary) {
-        for (i = 1; i < c_max; ++i)
+        for (i = 1; i < c_max + 1; ++i)
             ncells[i] = ncells[i] < les ? -1 : 1;
     }
 
