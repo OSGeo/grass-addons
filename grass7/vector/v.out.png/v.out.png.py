@@ -58,6 +58,7 @@
 import os
 import sys
 from grass.script import core as grass
+from grass.script import utils as grassutils
 from grass.script import gisenv
 from grass.pygrass.modules.shortcuts import display as d
 from grass.pygrass.modules.shortcuts import general as g
@@ -85,9 +86,10 @@ def main():
     if monitor_old:
         g.gisenv(set='MONITOR=%s' % monitor_old)
 
-    # get computational region info
-    win = grass.region()
-
+    # get display region info
+    s = grass.read_command('d.info', flags='g')
+    win = grassutils.parse_key_val(s, val_type=float)
+    
     if flags['w']:
         wldfile = options['output'].split('.')[0] + '.wld'
         file_ = open(wldfile, "w")
