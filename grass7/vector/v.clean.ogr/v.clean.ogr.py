@@ -193,16 +193,16 @@ def main():
 
     # list input layers
     if flags['l']:
-	try:
-	    grass.run_command('v.in.ogr', input=indsn, flags = 'l')
-	except CalledModuleError:
-	    grass.fatal(_("Unable to list layers in OGR datasource <%s>") % indsn)
-	return 0
+        try:
+            grass.run_command('v.in.ogr', input=indsn, flags = 'l')
+        except CalledModuleError:
+            grass.fatal(_("Unable to list layers in OGR datasource <%s>") % indsn)
+        return 0
 
     # list output formats
     if flags['f']:
-	grass.run_command('v.out.ogr', flags = 'l')
-	return 0
+        grass.run_command('v.out.ogr', flags = 'l')
+        return 0
 
     # import options
     vopts = {}
@@ -247,7 +247,7 @@ def main():
     outvect = 'vector_clean'
     outvect_tmp = 'vector_clean'
     if float(min_area) > 0:
-	outvect_tmp = 'vector_clean_import'
+        outvect_tmp = 'vector_clean_import'
 
     # import into temp location
     grass.message(_("Importing <%s>, layer <%s> ...") % (indsn, inlayer))
@@ -259,25 +259,25 @@ def main():
     
     # remove small areas
     if float(min_area) > 0:
-	grass.message(_("Removing small areas in data source <%s>, layer <%s> ...") % (indsn, inlayer))
-	try:
-	    grass.run_command('v.clean', input=outvect_tmp, output=outvect,
-			      type='area', tool='rmarea', threshold=min_area, overwrite=overwrite)
-	except CalledModuleError:
-	    grass.fatal(_("Removing small areas in data source <%s>, layer <%s> failed") % (indsn, inlayer))
+        grass.message(_("Removing small areas in data source <%s>, layer <%s> ...") % (indsn, inlayer))
+        try:
+            grass.run_command('v.clean', input=outvect_tmp, output=outvect,
+                      type='area', tool='rmarea', threshold=min_area, overwrite=overwrite)
+        except CalledModuleError:
+            grass.fatal(_("Removing small areas in data source <%s>, layer <%s> failed") % (indsn, inlayer))
     
     # export
     oflags = 'sm'
     if flags['u']:
-	oflags = 'smu'
-	overwrite = True
+        oflags = 'smu'
+        overwrite = True
 
     outlayer = '%s_clean' % inlayer
     grass.message=(_("Exporting cleaned layer as <%s>") % outlayer)
     try:
-	grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn, 
-	                  output_layer=outlayer, format=outformat, flags=oflags,
-			  overwrite=overwrite)
+        grass.run_command('v.out.ogr', input=outvect, layer='1', output=outdsn, 
+                        output_layer=outlayer, format=outformat, flags=oflags,
+                        overwrite=overwrite)
     except CalledModuleError:
         grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
 
@@ -289,15 +289,15 @@ def main():
     #    nlayers += 1
 
     if nlayers == 2:
-	outlayer = '%s_overlaps' % inlayer
-	oflags = 'smu'
-	grass.message=(_("Exporting overlaps as <%s>") % outlayer)
-	try:
-	    grass.run_command('v.out.ogr', input=outvect, layer='2', output=outdsn, 
-			      output_layer=outlayer, format=outformat, flags=oflags,
-			      overwrite=True)
-	except CalledModuleError:
-	    grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
+        outlayer = '%s_overlaps' % inlayer
+        oflags = 'smu'
+        grass.message=(_("Exporting overlaps as <%s>") % outlayer)
+        try:
+            grass.run_command('v.out.ogr', input=outvect, layer='2', output=outdsn,
+                      output_layer=outlayer, format=outformat, flags=oflags,
+                      overwrite=True)
+        except CalledModuleError:
+            grass.fatal(_("Unable to export to OGR datasource <%s>") % outdsn)
     
     # switch to target location
     os.environ['GISRC'] = str(tgtgisrc)
