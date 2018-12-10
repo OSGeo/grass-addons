@@ -87,7 +87,7 @@ except:
     except:
         sys.exit("grass.script can't be imported.")
 
-if not os.environ.has_key("GISBASE"):
+if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
@@ -306,6 +306,7 @@ def main():
             'somma') ,
         quiet = True )
     grass.message("Done!")
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())

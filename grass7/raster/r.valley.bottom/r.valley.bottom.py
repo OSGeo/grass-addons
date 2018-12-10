@@ -117,8 +117,8 @@ import atexit
 import random
 import string
 
-if not "GISBASE" in os.environ.keys():
-    grass.message("You must be in GRASS GIS to run this program.")
+if "GISBASE" not in os.environ:
+    print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 
