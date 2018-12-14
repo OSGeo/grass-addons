@@ -265,7 +265,8 @@ class SentinelDownloader(object):
             ("uuid", ogr.OFTString),
             ("ingestiondate", ogr.OFTString),
             ("cloudcoverpercentage", ogr.OFTInteger),
-            ("producttype", ogr.OFTString)
+            ("producttype", ogr.OFTString),
+            ("identifier", ogr.OFTString)
         ])
         for key in attrs.keys():
             field = ogr.FieldDefn(key, attrs[key])
