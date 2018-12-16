@@ -35,5 +35,5 @@ for i in `git branch -r | grep origin`; do git branch -dr $i; done
 git reset --hard HEAD && git checkout master
 SCRIPT=`realpath $0` # realpath is a separate package and doesn't need to be installed
 SCRIPTPATH=`dirname $SCRIPT`
-git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
+### git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
 # check out /tmp/log.txt for changes overview ...
