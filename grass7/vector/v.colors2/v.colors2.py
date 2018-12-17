@@ -180,7 +180,7 @@ def main():
     maxval = max(vals)
 
     grass.verbose(_("Range: [%s, %s]") % (minval, maxval))
-    if not minval or not maxval:
+    if minval is None or maxval is None:
 	grass.fatal(_("Scanning data range"))
 
     # setup internal region
