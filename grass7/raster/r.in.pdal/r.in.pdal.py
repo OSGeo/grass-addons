@@ -2,43 +2,35 @@
 
 ############################################################################
 #
-# MODULE:    r.in.pdal
+# MODULE:	    r.in.pdal
 #
 # AUTHOR(S): Anika Bettge <bettge at mundialis.de>
 #            Thanks to Markus Neteler <neteler at mundialis.de> for help
-#            Vaclav Petras <wenzeslaus at gmail com>
 #
 # PURPOSE:   Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
 #
 # COPYRIGHT: (C) 2018 by mundialis and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
 #
 #############################################################################
 
-#%module
-#% description: Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
-#% keyword: raster
-#% keyword: import
-#% keyword: LIDAR
-#% keyword: statistics
-#% keyword: conversion
-#%end
+#%Module
+#%description:  Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
+#%keyword: raster
+#%keyword: import
+#%keyword: LIDAR
+#%keyword: statistics
+#%keyword: conversion
+#%overwrite: yes
+#%End
 
-#%option G_OPT_F_BIN_INPUT
+#%option G_OPT_R_INPUT
 #% key: input
 #% description: LAS input file
 #% required: yes
-#%end
-
-#%option
-#% key: proj_in
-#% type: string
-#% label: SRS information for input as EPSG code or PROJ string
-#% description: Override input SRS using EPSG code (e.g. EPSG:3358) or PROJ string
-#% required: no
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -55,14 +47,14 @@
 #% required: no
 #%end
 
-#%option G_OPT_R_INPUT
+#%option
 #% key: raster_reference
 #% label: Raster map to be used as pixel geometry reference
 #% description: Raster map to align to, e.g. an orthophoto of the same region
 #% required: no
 #%end
 
-#%option G_OPT_F_BIN_INPUT
+#%option
 #% key: raster_file
 #% label: External raster map to be used as pixel geometry reference
 #% description: External raster map to align to, e.g. an orthophoto of the same region
@@ -95,9 +87,14 @@
 #% required: no
 #%end
 
-#%option G_OPT_R_TYPE
+#%option
+#% key: type
+#% type: string
+#% description: Type of raster map to be created / Storage type for resultant raster map
+#% options: CELL, FCELL, DCELL
 #% answer: FCELL
 #% required: no
+#% descriptions: CELL;Integer;FCELL;Single precision floating point;DCELL;Double precision floating point
 #%end
 
 #%option
@@ -142,21 +139,14 @@
 #% description: In scan mode, print using shell script style
 #%end
 
-#%flag
-#% key: e
-#% label: Use the extent of the input for the raster extent
-#% description: Set internally computational region extents based on the point cloud
-#%end
-
 import os
 import sys
-import json
-import gettext
 
 import grass.script as grass
-
+import json
 
 # i18N
+import gettext
 gettext.install('grassmods', os.path.join(os.getenv("GISBASE"), 'locale'))
 
 
@@ -170,7 +160,7 @@ def footprint_to_vectormap(infile, footprint):
     """
     if not grass.find_program('pdal', 'info --boundary'):
         grass.fatal(_(
-            "pdal info --boundary is not in the path and executable"))
+             "pdal info --boundary is not in the path and executable"))
     command_fp = ['pdal', 'info', '--boundary', infile]
     tmp_fp = grass.tempfile()
     if tmp_fp is None:
@@ -205,51 +195,58 @@ def footprint_to_vectormap(infile, footprint):
     f = open(tmp_xy, 'w')
     f.write(xy_in[:-1])
     f.close()
-    grass.run_command('v.in.lines',
-                      input=tmp_xy,
-                      output='footprint_line',
-                      separator='comma'
+    grass.run_command(
+                        'v.in.lines',
+                        input=tmp_xy,
+                        output='footprint_line',
+                        separator='comma'
                       )
     grass.run_command('g.region', vector='footprint_line')
-    grass.run_command('v.type',
-                      input='footprint_line',
-                      out='footprint_boundary',
-                      from_type='line',
-                      to_type='boundary'
-                      )
+    grass.run_command(
+                        'v.type',
+                        input='footprint_line',
+                        out='footprint_boundary',
+                        from_type='line',
+                        to_type='boundary'
+                    )
     grass.run_command('v.centroids', input='footprint_boundary', out=footprint)
-    grass.run_command('v.db.addtable',
-                      map=footprint,
-                      columns='name varchar(50)'
-                      )
-    grass.run_command('v.db.update',
-                      map=footprint,
-                      column='name',
-                      value=infile
-                      )
+    grass.run_command(
+                        'v.db.addtable',
+                        map=footprint,
+                        columns='name varchar(50)'
+                    )
+    grass.run_command(
+                        'v.db.update',
+                        map=footprint,
+                        column='name',
+                        value=infile
+                    )
 
     # Cleaning up
     grass.message(_("Cleaning up..."))
     os.remove(tmp_fp)
     os.remove(tmp_xy)
-    grass.run_command('g.remove',
-                      flags='f',
-                      type='vector',
-                      name='footprint_line',
-                      quiet=True
-                      )
-    grass.run_command('g.remove',
-                      flags='f',
-                      type='vector',
-                      name='footprint_boundary',
-                      quiet=True
-                      )
+    grass.run_command(
+                        'g.remove',
+                        flags='f',
+                        type='vector',
+                        name='footprint_line',
+                        quiet=True
+                    )
+    grass.run_command(
+                        'g.remove',
+                        flags='f',
+                        type='vector',
+                        name='footprint_boundary',
+                        quiet=True
+                    )
 
     # metadata
-    grass.run_command('v.support',
-                      map=footprint,
-                      comment='in ' + os.environ['CMDLINE']
-                      )
+    grass.run_command(
+                        'v.support',
+                        map=footprint,
+                        comment='in ' + os.environ['CMDLINE']
+                    )
 
     grass.message(_("Generating output vector map <%s>...") % footprint)
 
@@ -269,18 +266,12 @@ def main():
     pth = options['pth']
     trim = options['trim']
     footprint = options['footprint']
-    # user-supplied projection (overrides the actual one)
-    user_provided_srs = options['proj_in']
     # flags
     scan = flags['s']
     shell_script_style = flags['g']
-    input_as_extent = flags['e']
 
-    # reprojecting always
-    # TODO: test if it is faster to skip it in the pipeline when
-    # SRSs match, if faster, then get projection ahead of time
-    # (which may be good even to tell user about reprojection happening)
-    reprojection = True
+    # overwrite auf true setzen
+    os.environ['GRASS_OVERWRITE'] = '1'
 
     # to hide non-error messages from subprocesses
     if grass.verbosity() <= 2:
@@ -295,8 +286,8 @@ def main():
     if scan:
         if not grass.find_program('pdal', 'info --summary'):
             grass.fatal(_(
-                "The pdal program is not in the path "
-                "and executable. Please install it first"))
+                "The pdal program is not in the path " +
+                "and executable. Please install first"))
         command_scan = ['pdal', 'info', '--summary', infile]
         tmp_scan = grass.tempfile()
         if tmp_scan is None:
@@ -315,8 +306,9 @@ def main():
             # check to see if pdal executed properly
             os.remove(tmp_scan)
             grass.fatal(_(
-                "pdal cannot determine metadata "
-                "for unsupported format of <%s>") % infile)
+                "pdal cannot determine metadata " +
+                "for unsupported format of <%s>")
+                % infile)
         data = json.load(open(tmp_scan))
         if summary:
             str1 = u'summary'
@@ -326,12 +318,26 @@ def main():
             z_str = u'Z'
             min_str = u'min'
             max_str = u'max'
-            n = str(data[str1][str2][y_str][max_str])
-            s = str(data[str1][str2][y_str][min_str])
-            w = str(data[str1][str2][x_str][min_str])
-            e = str(data[str1][str2][x_str][max_str])
-            t = str(data[str1][str2][z_str][max_str])
-            b = str(data[str1][str2][z_str][min_str])
+            try:
+                n = str(data[str1][str2][y_str][max_str])
+                s = str(data[str1][str2][y_str][min_str])
+                w = str(data[str1][str2][x_str][min_str])
+                e = str(data[str1][str2][x_str][max_str])
+                t = str(data[str1][str2][z_str][max_str])
+                b = str(data[str1][str2][z_str][min_str])
+            except:
+                ymin_str = u'miny'
+                xmin_str = u'minx'
+                zmin_str = u'minz'
+                ymax_str = u'maxy'
+                xmax_str = u'maxx'
+                zmax_str = u'maxz'
+                n = str(data[str1][str2][ymax_str])
+                s = str(data[str1][str2][ymin_str])
+                w = str(data[str1][str2][xmin_str])
+                e = str(data[str1][str2][xmax_str])
+                t = str(data[str1][str2][zmax_str])
+                b = str(data[str1][str2][zmin_str])
         else:
             str1 = u'stats'
             str2 = u'bbox'
@@ -346,43 +352,47 @@ def main():
         if not shell_script_style:
             grass.message(_(
                 "north: %s\nsouth: %s\nwest: %s\neast: %s\ntop: %s\nbottom: %s"
-                ) % (n, s, w, e, t, b))
+            )
+                % (n, s, w, e, t, b))
         else:
-            grass.message(_("n=%s s=%s w=%s e=%s t=%s b=%s")
-                          % (n, s, w, e, t, b))
+            grass.message(_(
+                "n=%s s=%s w=%s e=%s t=%s b=%s")
+                % (n, s, w, e, t, b))
     elif footprint:
         footprint_to_vectormap(infile, footprint)
     else:
-        if input_as_extent or raster_file or raster_reference:
-            # get region with pdal
-            footprint_to_vectormap(infile, 'tiles')
+        # get region with pdal
+        footprint_to_vectormap(infile, 'tiles')
 
-            if raster_file:
-                raster_reference = 'img'
-                grass.run_command('r.external',
-                                  input=raster_file,
-                                  flags='o',
-                                  output=raster_reference
-                                  )
-                result = grass.find_file(name=raster_reference, element='raster')
-                if result[u'fullname'] == u'':
-                    raster_reference = 'img.1'
-            # first pass: set region to extent of tiles while aligning pixel
-            # geometry to raster_reference
-            grass.run_command('g.region', vector='tiles', flags='p')
-            if raster_reference:
-                grass.run_command('g.region',
-                                  vector='tiles',
-                                  flags='ap',
-                                  align=raster_reference
-                                  )
-            # second pass: change raster resolution to final resolution while best
-            # effort aligning to pixel geometry
-            grass.run_command('g.region',
-                              vector='tiles',
-                              flags='ap',
-                              res=resolution
-                              )
+        if raster_file:
+            raster_reference = 'img'
+            grass.run_command(
+                                'r.external',
+                                input=raster_file,
+                                flags='o',
+                                output=raster_reference
+                            )
+            result = grass.find_file(name=raster_reference, element='raster')
+            if result[u'fullname'] == u'':
+                raster_reference = 'img.1'
+        # first pass: set region to extent of tiles while aligning pixel
+        # geometry to raster_reference
+        grass.run_command('g.region', vector='tiles', flags='p')
+        if raster_reference:
+            grass.run_command(
+                                'g.region',
+                                vector='tiles',
+                                flags='ap',
+                                align=raster_reference
+                            )
+        # second pass: change raster resolution to final resolution while best
+        # effort aligning to pixel geometry
+        grass.run_command(
+                            'g.region',
+                            vector='tiles',
+                            flags='ap',
+                            res=resolution
+                        )
 
         # . pdal pipline laz2json (STDOUT) | r.in.xyz
         bn = os.path.basename(infile)
@@ -395,12 +405,13 @@ def main():
         elif infile_format.lower() == 'pts':
             format_reader = 'readers.pts'
         else:
-            grass.run_command('g.remove',
-                              flags='f',
-                              type='vector',
-                              name='tiles',
-                              quiet=True
-                              )
+            grass.run_command(
+                                'g.remove',
+                                flags='f',
+                                type='vector',
+                                name='tiles',
+                                quiet=True
+                            )
             grass.fatal(_("Format .%s is not supported.." % infile_format))
         tmp_file_json = grass.tempfile()
         if tmp_file_json is None:
@@ -408,17 +419,6 @@ def main():
         data = {}
         data['pipeline'] = []
         data['pipeline'].append({'type': format_reader, 'filename': infile})
-        if reprojection:
-            location_srs = grass.read_command('g.proj', flags='j')
-            # making use of universal newlines
-            location_srs = " ".join(location_srs.splitlines())
-            reproj_filter = {
-                "type": "filters.reprojection",
-                "out_srs": location_srs
-                }
-            if user_provided_srs:
-                reproj_filter.update({"in_srs": user_provided_srs})
-            data['pipeline'].append(reproj_filter)
         data['pipeline'].append({
             'type': 'writers.text',
             'format': 'csv',
@@ -469,26 +469,29 @@ def main():
             grass.fatal("Unable to create temporary files")
         f = file(empty_histroy, 'w')
         f.close()
-        grass.run_command('r.support',
-                          map=outfile,
-                          source1=infile,
-                          description='generated by r.in.pdal',
-                          loadhistory=empty_histroy
-                          )
-        grass.run_command('r.support',
-                          map=outfile,
-                          history=os.environ['CMDLINE']
-                          )
+        grass.run_command(
+                            'r.support',
+                            map=outfile,
+                            source1=infile,
+                            description='generated by r.in.pdal',
+                            loadhistory=empty_histroy
+                        )
+        grass.run_command(
+                            'r.support',
+                            map=outfile,
+                            history=os.environ['CMDLINE']
+                        )
         os.remove(empty_histroy)
 
         # Cleanup
         grass.message(_("Cleaning up..."))
-        grass.run_command('g.remove',
-                          flags='f',
-                          type='vector',
-                          name='tiles',
-                          quiet=True
-                          )
+        grass.run_command(
+                            'g.remove',
+                            flags='f',
+                            type='vector',
+                            name='tiles',
+                            quiet=True
+                        )
         os.remove(tmp_file_json)
         os.remove(tmp_xyz)
         grass.message(_("Generating output raster map <%s>...") % outfile)
