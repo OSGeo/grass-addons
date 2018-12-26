@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     /* do 3D triangulation */
     G_message(_("Creating TEN..."));
     if (!flag.plain->answer)
-        T = new DelaunayTriangulation(points.begin(), points.end());
+        T = reinterpret_cast<Triangulation *>(new DelaunayTriangulation(points.begin(), points.end()));
     else
         T = new Triangulation(points.begin(), points.end());
     
