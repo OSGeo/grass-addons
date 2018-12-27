@@ -372,9 +372,9 @@ def main():
     r_file = open(r_commands, 'w')
 
     if processes > 1:
-	install = install_package % ('doParallel', 'doParallel', 'doParallel')
-	r_file.write(install)
-	r_file.write("\n")
+        install = install_package % ('doParallel', 'doParallel', 'doParallel')
+        r_file.write(install)
+        r_file.write("\n")
 
     # automatic installation of missing R packages
     install = install_package % ('caret', 'caret', 'caret')
@@ -385,8 +385,8 @@ def main():
     r_file.write("\n")
     for classifier in classifiers:
         # knn is included in caret
-	if classifier == "knn" or classifier == "knn1":
-	    continue	
+        if classifier == "knn" or classifier == "knn1":
+            continue        
         for package in packages[classifier]:
             install = install_package % (package, package, package)
             r_file.write(install)
@@ -595,8 +595,8 @@ def main():
         f.write(header_string)
         f.close()
 
-    	gscript.message("Loading results into attribute table")
-	gscript.run_command('db.in.ogr',
+        gscript.message("Loading results into attribute table")
+        gscript.run_command('db.in.ogr',
                             input_=model_output_csv,
                             output=temptable,
                             overwrite=True,
@@ -609,12 +609,12 @@ def main():
         columns = gscript.read_command('db.columns',
                                        table=temptable).splitlines()[1:]
         orig_cat = gscript.vector_db(allfeatures)[int(segments_layer)]['key']
-	gscript.run_command('v.db.join',
+        gscript.run_command('v.db.join',
                             map_=allfeatures,
                             column=orig_cat,
-			    otable=temptable,
+                            otable=temptable,
                             ocolumn='id', 
-			    subset_columns=columns,
+                            subset_columns=columns,
                             quiet=True)
 
     if classified_map:
