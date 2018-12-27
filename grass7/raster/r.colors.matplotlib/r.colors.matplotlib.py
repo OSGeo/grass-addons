@@ -192,7 +192,7 @@ def main(options, flags):
             f.write(rules)
             f.write('\n')
     elif not options['map']:
-        print rules
+        print(rules)
 
 
 if __name__ == '__main__':
