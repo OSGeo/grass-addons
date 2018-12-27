@@ -102,104 +102,104 @@ import grass.script as grass
 def import_local_tile(tile, local, pid, srtmv3, one):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
-    if one:
-        local_tile = str(tile) + '.SRTMGL1.hgt.zip'
-    else:
-        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+	if one:
+	    local_tile = str(tile) + '.SRTMGL1.hgt.zip'
+	else:
+	    local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
     
     path = os.path.join(local, local_tile)
     if os.path.exists(path):
-    path = os.path.join(local, local_tile)
-    if one:
-        grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
-    else:
-        grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
-    return 1
+	path = os.path.join(local, local_tile)
+	if one:
+	    grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
+	else:
+	    grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
+	return 1
 
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
-    path = os.path.join(local, srtmdir, local_tile)
+	path = os.path.join(local, srtmdir, local_tile)
 
-    if os.path.exists(path):
-        path = os.path.join(local, srtmdir, local_tile)
-        if one:
-        grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
-        else:
-        grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
-        return 1
+	if os.path.exists(path):
+	    path = os.path.join(local, srtmdir, local_tile)
+	    if one:
+		grass.run_command('r.in.srtm', input = path, output = output, flags = '1', quiet = True)
+	    else:
+		grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
+	    return 1
 
     return 0
 
 def download_tile(tile, url, pid, srtmv3, one, username, password):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
-    if one:
-        local_tile = str(tile) + '.SRTMGL1.hgt.zip'
-    else:
-        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+	if one:
+	    local_tile = str(tile) + '.SRTMGL1.hgt.zip'
+	else:
+	    local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
 
     urllib.urlcleanup()
 
     if srtmv3:
-    remote_tile = str(url) + local_tile
-    goturl = 1
+	remote_tile = str(url) + local_tile
+	goturl = 1
 
-    try:
-        password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        password_manager.add_password(None, "https://urs.earthdata.nasa.gov", username, password)
+	try:
+	    password_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
+	    password_manager.add_password(None, "https://urs.earthdata.nasa.gov", username, password)
 
-        cookie_jar = CookieJar()
+	    cookie_jar = CookieJar()
 
-        opener = urllib2.build_opener(
-            urllib2.HTTPBasicAuthHandler(password_manager),
-            #urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
-            #urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
-            urllib2.HTTPCookieProcessor(cookie_jar))
-        urllib2.install_opener(opener)
+	    opener = urllib2.build_opener(
+			urllib2.HTTPBasicAuthHandler(password_manager),
+			#urllib2.HTTPHandler(debuglevel=1),    # Uncomment these two lines to see
+			#urllib2.HTTPSHandler(debuglevel=1),   # details of the requests/responses
+			urllib2.HTTPCookieProcessor(cookie_jar))
+	    urllib2.install_opener(opener)
 
-        request = urllib2.Request(remote_tile)
-        response = urllib2.urlopen(request)
+	    request = urllib2.Request(remote_tile)
+	    response = urllib2.urlopen(request)
 
-        fo = open(local_tile, 'w+b')
-        fo.write(response.read())
-        fo.close
-        time.sleep(0.5)
-    except:
-        goturl = 0
-        pass
-    
-    return goturl
-    
+	    fo = open(local_tile, 'w+b')
+	    fo.write(response.read())
+	    fo.close
+	    time.sleep(0.5)
+	except:
+	    goturl = 0
+	    pass
+	
+	return goturl
+	
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
-    remote_tile = str(url) + str(srtmdir) + '/' + local_tile
-    goturl = 1
+	remote_tile = str(url) + str(srtmdir) + '/' + local_tile
+	goturl = 1
     
-    try:
-        response = urllib2.urlopen(request)
-        fo = open(local_tile, 'w+b')
-        fo.write(response.read())
-        fo.close
-        time.sleep(0.5)
-        # does not work:
-        #urllib.urlretrieve(remote_tile, local_tile, data = None)
-    except:
-        goturl = 0
-        pass
-    
-    if goturl == 1:
-        return 1
+	try:
+	    response = urllib2.urlopen(request)
+	    fo = open(local_tile, 'w+b')
+	    fo.write(response.read())
+	    fo.close
+	    time.sleep(0.5)
+	    # does not work:
+	    #urllib.urlretrieve(remote_tile, local_tile, data = None)
+	except:
+	    goturl = 0
+	    pass
+	
+	if goturl == 1:
+	    return 1
 
     return 0
     
     
 def cleanup():
     if not in_temp:
-    return
+	return
     os.chdir(currdir)
     grass.run_command('g.region', region = tmpregionname)
     grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
@@ -226,33 +226,33 @@ def main():
     res = '00:00:03'
     if srtmv3:
         fillnulls = 0
-    if one:
-        res = '00:00:01'
+	if one:
+	    res = '00:00:01'
     else:
-    one = None
+	one = None
         
     if len(local) == 0:
-        if len(url) == 0:
-            if srtmv3:
-        if one:
+    	if len(url) == 0:
+    	    if srtmv3:
+		if one:
                     url = 'https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/'
-        else:
-            url = 'https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/'
-        else:
-        url = 'http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/'
+		else:
+		    url = 'https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/'
+	    else:
+		url = 'http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/'
 
     if len(local) == 0:
-    local = None
+	local = None
 
     # are we in LatLong location?
     s = grass.read_command("g.proj", flags='j')
     kv = grass.parse_key_val(s)
     if kv['+proj'] != 'longlat':
-    grass.fatal(_("This module only operates in LatLong locations"))
+	grass.fatal(_("This module only operates in LatLong locations"))
 
     if fillnulls == 1 and memory <= 0:
-    grass.warning(_("Amount of memory to use for interpolation must be positive, setting to 300 MB"))
-    memory = '300'
+	grass.warning(_("Amount of memory to use for interpolation must be positive, setting to 300 MB"))
+	memory = '300'
 
     # make a temporary directory
     tmpdir = grass.tempfile()
@@ -265,53 +265,53 @@ def main():
     os.chdir(tmpdir)
     in_temp = True
     if local is None:
-    local = tmpdir
+	local = tmpdir
 
     # get extents
     reg = grass.region()
     tmpregionname = 'r_in_srtm_tmp_region'
     grass.run_command('g.region', save = tmpregionname, overwrite=overwrite)
     if options['region'] is None or options['region'] == '':
-    north = reg['n']
-    south = reg['s']
-    east = reg['e']
-    west = reg['w']
+	north = reg['n']
+	south = reg['s']
+	east = reg['e']
+	west = reg['w']
     else:
-    west, south, east, north = options['region'].split(',')
-    west = float(west)
-    south = float(south)
-    east = float(east)
-    north = float(north)
+	west, south, east, north = options['region'].split(',')
+	west = float(west)
+	south = float(south)
+	east = float(east)
+	north = float(north)
 
     # adjust extents to cover SRTM tiles: 1 degree bounds
     tmpint = int(north)
     if tmpint < north:
-    north = tmpint + 1
+	north = tmpint + 1
     else:
-    north = tmpint
-    
+	north = tmpint
+	
     tmpint = int(south)
     if tmpint > south:
-    south = tmpint - 1
+	south = tmpint - 1
     else:
-    south = tmpint
+	south = tmpint
 
     tmpint = int(east)
     if tmpint < east:
-    east = tmpint + 1
+	east = tmpint + 1
     else:
-    east = tmpint
+	east = tmpint
 
     tmpint = int(west)
     if tmpint > west:
-    west = tmpint - 1
+	west = tmpint - 1
     else:
-    west = tmpint
-    
+	west = tmpint
+	
     if north == south:
-    north += 1
+	north += 1
     if east == west:
-    east += 1
+	east += 1
 
     rows = abs(north - south)
     cols = abs(east - west)
@@ -322,97 +322,97 @@ def main():
     srtmtiles = ''
     valid_tiles = 0
     for ndeg in range(south, north):
-    for edeg in range(west, east):
-        grass.percent(counter, ntiles, 1)
-        counter += 1
-        if ndeg < 0:
-        tile = 'S'
-        else:
-        tile = 'N'
-        tile = tile + '%02d' % abs(ndeg)
-        if edeg < 0:
-        tile = tile + 'W'
-        else:
-        tile = tile + 'E'
-        tile = tile + '%03d' % abs(edeg)
-        grass.debug("Tile: %s" % tile, debug = 1)
-        
-        if local != tmpdir:
-        gotit = import_local_tile(tile, local, pid, srtmv3, one)
-        else:
-        gotit = download_tile(tile, url, pid, srtmv3, one, username, password)
-        if gotit == 1:
-            gotit = import_local_tile(tile, tmpdir, pid, srtmv3, one)
-        if gotit == 1:
-        grass.verbose(_("Tile %s successfully imported") % tile)
-        valid_tiles += 1
-        elif dozerotile:
-        # create tile with zeros
-        if one:
-            # north
-            if ndeg < -1:
-            tmpn = '%02d:59:59.5S' % (abs(ndeg) - 2)
-            else:
-            tmpn = '%02d:00:00.5N' % (ndeg + 1)
-            # south
-            if ndeg < 1:
-            tmps = '%02d:00:00.5S' % abs(ndeg)
-            else:
-            tmps = '%02d:59:59.5N' % (ndeg - 1)
-            # east
-            if edeg < -1:
-            tmpe = '%03d:59:59.5W' % (abs(edeg) - 2)
-            else:
-            tmpe = '%03d:00:00.5E' % (edeg + 1)
-            # west
-            if edeg < 1:
-            tmpw = '%03d:00:00.5W' % abs(edeg)
-            else:
-            tmpw = '%03d:59:59.5E' % (edeg - 1)
-        else:
-            # north
-            if ndeg < -1:
-            tmpn = '%02d:59:58.5S' % (abs(ndeg) - 2)
-            else:
-            tmpn = '%02d:00:01.5N' % (ndeg + 1)
-            # south
-            if ndeg < 1:
-            tmps = '%02d:00:01.5S' % abs(ndeg)
-            else:
-            tmps = '%02d:59:58.5N' % (ndeg - 1)
-            # east
-            if edeg < -1:
-            tmpe = '%03d:59:58.5W' % (abs(edeg) - 2)
-            else:
-            tmpe = '%03d:00:01.5E' % (edeg + 1)
-            # west
-            if edeg < 1:
-            tmpw = '%03d:00:01.5W' % abs(edeg)
-            else:
-            tmpw = '%03d:59:58.5E' % (edeg - 1)
+	for edeg in range(west, east):
+	    grass.percent(counter, ntiles, 1)
+	    counter += 1
+	    if ndeg < 0:
+		tile = 'S'
+	    else:
+		tile = 'N'
+	    tile = tile + '%02d' % abs(ndeg)
+	    if edeg < 0:
+		tile = tile + 'W'
+	    else:
+		tile = tile + 'E'
+	    tile = tile + '%03d' % abs(edeg)
+	    grass.debug("Tile: %s" % tile, debug = 1)
+	    
+	    if local != tmpdir:
+		gotit = import_local_tile(tile, local, pid, srtmv3, one)
+	    else:
+		gotit = download_tile(tile, url, pid, srtmv3, one, username, password)
+		if gotit == 1:
+		    gotit = import_local_tile(tile, tmpdir, pid, srtmv3, one)
+	    if gotit == 1:
+		grass.verbose(_("Tile %s successfully imported") % tile)
+		valid_tiles += 1
+	    elif dozerotile:
+		# create tile with zeros
+		if one:
+		    # north
+		    if ndeg < -1:
+			tmpn = '%02d:59:59.5S' % (abs(ndeg) - 2)
+		    else:
+			tmpn = '%02d:00:00.5N' % (ndeg + 1)
+		    # south
+		    if ndeg < 1:
+			tmps = '%02d:00:00.5S' % abs(ndeg)
+		    else:
+			tmps = '%02d:59:59.5N' % (ndeg - 1)
+		    # east
+		    if edeg < -1:
+			tmpe = '%03d:59:59.5W' % (abs(edeg) - 2)
+		    else:
+			tmpe = '%03d:00:00.5E' % (edeg + 1)
+		    # west
+		    if edeg < 1:
+			tmpw = '%03d:00:00.5W' % abs(edeg)
+		    else:
+			tmpw = '%03d:59:59.5E' % (edeg - 1)
+		else:
+		    # north
+		    if ndeg < -1:
+			tmpn = '%02d:59:58.5S' % (abs(ndeg) - 2)
+		    else:
+			tmpn = '%02d:00:01.5N' % (ndeg + 1)
+		    # south
+		    if ndeg < 1:
+			tmps = '%02d:00:01.5S' % abs(ndeg)
+		    else:
+			tmps = '%02d:59:58.5N' % (ndeg - 1)
+		    # east
+		    if edeg < -1:
+			tmpe = '%03d:59:58.5W' % (abs(edeg) - 2)
+		    else:
+			tmpe = '%03d:00:01.5E' % (edeg + 1)
+		    # west
+		    if edeg < 1:
+			tmpw = '%03d:00:01.5W' % abs(edeg)
+		    else:
+			tmpw = '%03d:59:58.5E' % (edeg - 1)
 
-        grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = res)
-        grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
-        grass.run_command('g.region', region = tmpregionname)
+		grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = res)
+		grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
+		grass.run_command('g.region', region = tmpregionname)
 
 
     # g.list with sep = comma does not work ???
     pattern = '*.r.in.srtm.tmp.%d' % pid
     srtmtiles = grass.read_command('g.list', type = 'raster',
-                   pattern = pattern,
-                   sep = 'newline',
-                   quiet = True)
+				   pattern = pattern,
+				   sep = 'newline',
+				   quiet = True)
 
     srtmtiles = srtmtiles.splitlines()
     srtmtiles = ','.join(srtmtiles)
 
     if valid_tiles == 0:
-    grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
-    grass.warning(_("No tiles imported"))
-    if local != tmpdir:
-        grass.fatal(_("Please check if local folder <%s> is correct.") % local)
-    else:
-        grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
+	grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
+	grass.warning(_("No tiles imported"))
+	if local != tmpdir:
+	    grass.fatal(_("Please check if local folder <%s> is correct.") % local)
+	else:
+	    grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
     grass.run_command('g.region', raster = str(srtmtiles));
     
@@ -424,30 +424,30 @@ def main():
             grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
     else:
         ncells = grass.region()['cells'] 
-    if long(ncells) > 1000000000:
-        grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
-    grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
-    mapstats = grass.parse_command('r.univar', map = output + '.holes', flags = 'g', quiet = True)
-    if mapstats['null_cells'] == '0':
-        grass.run_command('g.rename', raster = '%s,%s' % (output + '.holes', output), quiet = True)
-    else:
-        grass.run_command('r.resamp.bspline',
-                  input = output + '.holes',
-                  output = output + '.interp',
-                  se = '0.0025', sn = '0.0025',
-                  method = 'linear',
-                  memory = memory,
-                  flags = 'n')
-        grass.run_command('r.patch',
-                          input = '%s,%s' % (output + '.holes',
-                  output + '.interp'),
-                  output = output + '.float',
-                  flags = 'z')
-        grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
-        grass.run_command('g.remove', type = 'raster',
-                  name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
+	if long(ncells) > 1000000000:
+	    grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
+	grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
+	mapstats = grass.parse_command('r.univar', map = output + '.holes', flags = 'g', quiet = True)
+	if mapstats['null_cells'] == '0':
+	    grass.run_command('g.rename', raster = '%s,%s' % (output + '.holes', output), quiet = True)
+	else:
+	    grass.run_command('r.resamp.bspline',
+			      input = output + '.holes',
+			      output = output + '.interp',
+			      se = '0.0025', sn = '0.0025',
+			      method = 'linear',
+			      memory = memory,
+			      flags = 'n')
+	    grass.run_command('r.patch',
+	                      input = '%s,%s' % (output + '.holes',
+			      output + '.interp'),
+			      output = output + '.float',
+			      flags = 'z')
+	    grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
+	    grass.run_command('g.remove', type = 'raster',
+			      name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
                   flags = 'f',
-                  quiet = True)
+			      quiet = True)
 
     grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
@@ -464,10 +464,10 @@ def main():
     else:
         source1 = 'SRTM V2.1'
     grass.run_command('r.support', map = output,
-              loadhistory = tmphist,
-              description = 'generated by r.in.srtm.region',
-              source1 = source1,
-              source2 = (local if local != tmpdir else url))
+		      loadhistory = tmphist,
+		      description = 'generated by r.in.srtm.region',
+		      source1 = source1,
+		      source2 = (local if local != tmpdir else url))
     grass.try_remove(tmphist)
 
     grass.message(_("Done: generated map <%s>") % output)
