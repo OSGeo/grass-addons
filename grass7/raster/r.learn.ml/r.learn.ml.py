@@ -1424,7 +1424,7 @@ def main():
         from sklearn.preprocessing import StandardScaler
         from sklearn.model_selection import (
             GridSearchCV, GroupShuffleSplit, ShuffleSplit,
-            StratifiedKFold, GroupKFold)
+            StratifiedKFold, GroupKFold, KFold)
         from sklearn.preprocessing import OneHotEncoder
         from sklearn.pipeline import Pipeline
         from sklearn.utils import shuffle
@@ -1671,8 +1671,10 @@ def main():
 
         # define inner resampling using cross-validation method
         elif any(param_grid) is True and grid_search == 'cross-validation':
-            if group_id is None:
+            if group_id is None and mode == 'classification':
                 inner = StratifiedKFold(n_splits=cv, random_state=random_state)
+            elif group_id is None and mode == 'regression':
+                inner = KFold(n_splits=cv, random_state=random_state)
             else:
                 inner = GroupKFold(n_splits=cv)
 
@@ -1691,8 +1693,10 @@ def main():
         # define the outer search resampling method
         # ---------------------------------------------------------------------
         if cv > 1:
-            if group_id is None:
+            if group_id is None and mode == 'classification':
                 outer = StratifiedKFold(n_splits=cv, random_state=random_state)
+            elif group_id is None and mode == 'regression':
+                outer = KFold(n_splits=cv, random_state=random_state)
             else:
                 outer = GroupKFold(n_splits=cv)
 
