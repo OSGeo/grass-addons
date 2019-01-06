@@ -1,25 +1,25 @@
 <h2>DESCRIPTION</h2>
 
-The <em>i.sentinel.import</em> module allows importing Sentinel products
-downloaded
-by the <em><a href="i.sentinel.download.html">i.sentinel.download</a></em>
+The <em>i.sentinel.import</em> module allows importing Copernicus Sentinel products
+downloaded by the <em><a href="i.sentinel.download.html">i.sentinel.download</a></em>
 module.
 
 <p>
-By default <em>i.sentinel.import</em> imports all Sentinel bands found
-in <b>input</b> directory
-by <em><a href="r.import.html">r.import</a></em>. Note that in the
-case that spatial reference system of input data differs from GRASS
-location, the input data are reprojected.
+By default <em>i.sentinel.import</em> imports all Sentinel scene files found
+in the <b>input</b> directory by <em><a href="r.import.html">r.import</a></em>.
+Note that in the case that spatial reference system of input data differs
+from GRASS GIS location, the input data are reprojected. To speed up this
+process, a higher than default value can be specified for the <b>memory</b>
+option.
 
 <p>
 Optionally input data can be linked
 by <em><a href="r.external.html">r.external</a></em> when <b>-l</b> is
-given. Note that linking data requires that input data and GRASS
-location have the same spatial reference system.
+given. Note that linking data requires that Sentinel input data and GRASS
+location have the same spatial reference system (e.g., the same UTM zone).
 
 <p>
-Number of imported Sentinel bands can be optionally reduced by the
+The number of imported Sentinel bands can be optionally reduced by the
 <b>pattern</b> option. Below an overview of the Sentinel-2 MSI band
 spatial resolutions:
 
@@ -51,14 +51,16 @@ spatial resolutions:
 
 <p>
 If <b>-c</b> flag is given, than also cloud mask file is imported as
-vector map if available. Name of created vector map is determined from
+vector map if available. The name of created vector map is determined from
 input Sentinel product.
 
 <h2>EXAMPLES</h2>
 
+<h3>List Sentinel bands</h3>
+
 At first, print list of raster files to be imported by <b>-p</b>. For
 each file also projection match with current location is printed
-including detected input data EPSG code.
+including detected input data EPSG code:
 
 <div class="code"><pre>
 i.sentinel.import -p input=data
@@ -68,24 +70,29 @@ data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.
 data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B11.jp2 1 (EPSG: 32632)
 </pre></div>
 
+<h3>Import Sentinel bands</h3>
+
 Import all Sentinel bands found in <i>data</i> directory:
 
 <div class="code"><pre>
 i.sentinel.import input=data
 </pre></div>
 
+<p>
 Limit import to only to 4th and 8th bands:
 
 <div class="code"><pre>
 i.sentinel.import input=data pattern='B0(4|8)'
 </pre></div>
 
+<p>
 Limit import to only to all bands with 10m resolution (excluding AOT, WVP, ... bands):
 
 <div class="code"><pre>
 i.sentinel.import input=data pattern='B0(2|3|4|8)_10m'
 </pre></div>
 
+<p>
 Link data and import also cloud mask file:
 
 <div class="code"><pre>
