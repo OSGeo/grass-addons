@@ -56,11 +56,6 @@
 #%end
 
 #%flag
-#%  key: d
-#%  description: Draw maps in terminology (developper's version)
-#%end
-
-#%flag
 #%  key: s
 #%  description: Save temporary maps for debugging
 #%end
