@@ -281,7 +281,7 @@ for FILE in $* ; do
     gxm)
 	apply_xml "$FILE"
 	;;
-    pdf)
+    pdf | PDF)
 	apply_pdf "$FILE"
 	;;
     png | jpg | jpeg | gif | bmp | xpm | xcf | ico)
