@@ -96,7 +96,7 @@ for details.
 #% description: If omitted, will be <input name>_kriging.var
 #% required : no
 #%end
-from __future__ import print_function
+
 import os
 import sys
 
@@ -392,10 +392,10 @@ def main(argv=None):
         #@TODO: let GRASS remount its commandstring. Until then, keep that 4 lines below.
         command = ""
         notnulloptions = {}
-        for k, v in options.items():
+        for k, v in list(options.items()):
             if v is not '':
                 notnulloptions[k] = v
-        command = command.join("%s=%s " % (k, v) for k, v in notnulloptions.items())
+        command = command.join("%s=%s " % (k, v) for k, v in list(notnulloptions.items()))
 
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("psill", "nugget", "range", "kappa"):

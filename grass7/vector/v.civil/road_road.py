@@ -83,7 +83,7 @@ class Road(object):
         """
         tabla = self.rtab.tables['_Plan']
         tabla2 = list(tabla)
-        print tabla2
+        print(tabla2)
 
         if table_to_plant:
             self.plant = Plant.Plant(self.rtab.polyline, tabla,

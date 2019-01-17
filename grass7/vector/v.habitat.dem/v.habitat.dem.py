@@ -116,10 +116,6 @@ from numpy import array
 from numpy import zeros
 import csv
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
-
 def main():
     r_elevation = options['elevation'].split('@')[0] 
     v_habitat = options['vector'].split('@')[0] 

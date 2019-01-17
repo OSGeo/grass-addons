@@ -21,7 +21,7 @@ import os
 import sys
 # from tempfile import gettempdir
 import time
-import thread
+import _thread
 from core.utils import _
 
 # dependencies to be checked once, as they are quite
@@ -721,14 +721,14 @@ class RBookgstatPanel(RBookPanel):
                 self.KappaCtrl.SetValue(self.kappa)
 
         # use R plot function, in a separate window.
-        thread.start_new_thread(self.plot, ())
+        _thread.start_new_thread(self.plot, ())
 
     def plot(self):
         # robjects.r.X11()
         # robjects.r.png("variogram.png")
         textplot = robjects.r.plot(self.controller.Variogram['datavariogram'],
                                    self.controller.Variogram['variogrammodel'])
-        print textplot
+        print(textplot)
         self.refresh()
         # robjects.r['dev.off']()
 

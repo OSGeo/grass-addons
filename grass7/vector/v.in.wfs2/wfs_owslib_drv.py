@@ -28,7 +28,7 @@ class WFSOwsLibDrv(WFSBase):
                                        maxfeatures = self.o_maximum_features,
                                        bbox = query_bbox)   
         #TODO do it better                                         
-        except ServiceException, e:
+        except ServiceException as e:
             grass.fatal(_("Server returned exception"))
 
         grass.debug(url)

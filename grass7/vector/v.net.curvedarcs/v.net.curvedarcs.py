@@ -110,7 +110,7 @@ def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
             if offset < minoffset:
                 offset = minoffset
             y = [math.sin(a)*offset for a in t]
-            P = zip(x,y)
+            P = list(zip(x,y))
             cat = linecat*10000
             for px, py in P:
                 cat += 1
@@ -145,7 +145,7 @@ def process_infile(flow_file, separator, header, sameok, outputfile):
                         header = False
                         continue
                     data = line.rstrip().split(separator)
-                    print data
+                    print(data)
                     if sameok or not (data[0] == data[1]):
                         fout.write("%s %s %s\n" % (cat, data[0], data[1]))
                         sqlout.write("UPDATE %s SET from_node = %s, to_node = %s, volume = %s WHERE cat = %d;\n" % (outputfile, data[0], data[1], data[2], cat))

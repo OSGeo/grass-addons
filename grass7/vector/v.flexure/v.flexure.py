@@ -206,7 +206,7 @@ def main():
     col_names = np.array(vect_db['columns'])
     q_col = (col_names == options['column'])
     if np.sum(q_col):
-        col_values = np.array(vect_db['values'].values()).astype(float)
+        col_values = np.array(list(vect_db['values'].values())).astype(float)
         flex.q = col_values[:, q_col].squeeze() # Make it 1D for consistency w/ x, y
     else:
         grass.fatal("provided column name, "+options['column']+" does not match\nany column in "+options['q0']+".")
@@ -240,9 +240,9 @@ def main():
         flex.latlon = True
         flex.PlanetaryRadius = float(grass.parse_command('g.proj', flags='j')['+a'])
         if flex.Verbose:
-            print "Latitude/longitude grid."
-            print "Based on r_Earth = 6371 km"
-            print "Computing distances between load points using great circle paths"
+            print("Latitude/longitude grid.")
+            print("Based on r_Earth = 6371 km")
+            print("Computing distances between load points using great circle paths")
 
     ##########
     # SOLVE! #
@@ -263,7 +263,7 @@ def main():
     col = int((np.array(wtable.columns.names()) == 'w').nonzero()[0]) # update this column
     for i in range(1, len(w)+1):
         # ignoring 1st column: assuming it will be category (always true here)
-        wnewvalues = w[i].attrs.values()[1:col] + tuple([flex.w[i-1]]) + w[i].attrs.values()[col+1:]
+        wnewvalues = list(w[i].attrs.values())[1:col] + tuple([flex.w[i-1]]) + list(w[i].attrs.values())[col+1:]
         wtable.update(key=i, values=wnewvalues)
     wtable.conn.commit() # Save this
     w.close(build=False) # don't build here b/c it is always verbose
@@ -280,7 +280,7 @@ def main():
         grass.run_command('r.colors', map=options['raster_output'], color='differences', quiet=True)
 
 def install_dependencies():
-    print "PLACEHOLDER"
+    print("PLACEHOLDER")
 
 if __name__ == "__main__":
     import sys

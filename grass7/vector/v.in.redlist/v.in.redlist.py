@@ -65,13 +65,9 @@ import os
 import grass.script as grass
 from osgeo import ogr
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
 
 def main():
 
-                
     redlist_shapefile_long = options['input']
     imported_species = options['species_name']
     species_to_import = options['output']

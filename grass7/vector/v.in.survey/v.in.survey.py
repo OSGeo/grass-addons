@@ -713,11 +713,11 @@ class layer(glob, Flag, vect_rules, layer_init):
         for num, line in enumerate(fileinput.FileInput(self.filename,  # etc
                                                        inplace=2)):
             if num == 0:
-                print "VERTI:"
-                print layer.vector + ' ' + str(layer.n_pts)
-                print line.strip('\n')
+                print("VERTI:")
+                print(layer.vector + ' ' + str(layer.n_pts))
+                print(line.strip('\n'))
             else:
-                print line.strip('\n')
+                print(line.strip('\n'))
         # ***
         return 0
 

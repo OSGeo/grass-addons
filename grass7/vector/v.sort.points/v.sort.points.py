@@ -63,7 +63,7 @@ def main():
     columns = gscript.vector_columns(inputmap)
     key_column = gscript.vector_layer_db(inputmap, layer)['key']
     sort_index = columns[sort_column]['index']+2
-    sorted_cols = sorted(columns.iteritems(), key=lambda (x, y): y['index'])
+    sorted_cols = sorted(iter(columns.items()), key=lambda x_y: x_y[1]['index'])
     column_def="x DOUBLE PRECISION, y DOUBLE PRECISION, cat INTEGER"
     colnames = []
     for colcount in range(1,len(sorted_cols)):

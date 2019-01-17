@@ -87,19 +87,15 @@ try:
 except ImportError:
     sys.exit(_("No GRASS-python library found"))
 
-if not os.environ.has_key("GISBASE"):
-    print("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "gui", "wxpython")
 sys.path.append(GUIModulesPath)
 
 GUIPath = os.path.join(os.getenv("GISBASE"), "etc", "gui", "wxpython", "scripts")
 sys.path.append(GUIPath)
 
-### i18N
+# i18N
 import gettext
-gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
+gettext.install('grassmods', os.path.join(os.getenv("GISBASE"), 'locale'))
 
 def cleanup():
     nuldev = file(os.devnull, 'w')

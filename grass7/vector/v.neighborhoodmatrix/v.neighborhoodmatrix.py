@@ -74,7 +74,7 @@ def main():
     #put result into a list of integer pairs
     temp_neighbors=[]
     for line in vtodb_results.splitlines():
-        if line.split('|')[1]<>'-1' and line.split('|')[2]<>'-1':
+        if line.split('|')[1]!='-1' and line.split('|')[2]!='-1':
             temp_neighbors.append([int(line.split('|')[1]), int(line.split('|')[2])])
 
     #temp_neighbors.sort()
@@ -116,12 +116,12 @@ def main():
             if output and output != '-':
                 out.write(fromid + sep + toid + '\n')
             else:
-                print(fromid + sep + toid)
+                print((fromid + sep + toid))
         else:
             if output and output != '-':
                 out.write(str(pair[0]) + sep + str(pair[1])+'\n')
             else:
-                print(str(pair[0]) + sep + str(pair[1]))
+                print((str(pair[0]) + sep + str(pair[1])))
     if output and output != '-':
         out.close()
 

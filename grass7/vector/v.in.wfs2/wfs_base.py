@@ -116,8 +116,8 @@ class WFSBase:
         
         cap_lines = cap.readlines()
         for line in cap_lines: 
-            print line 
-        
+            print(line)
+
     def _computeBbox(self):
         """!Get region extent for WFS query (bbox)
         """
