@@ -285,16 +285,16 @@ def main():
     for i in range(quartals):
         tavgq = "%s.tavgq.%02d.%d" % (outpre, i, pid)
 
-	m1 = i * qstep
-	m2 = m1 + 1
-	if m2 > 11:
-	    m2 = m2 - 12
-	m3 = m1 + 2
-	if m3 > 11:
-	    m3 = m3 - 12
+    m1 = i * qstep
+    m2 = m1 + 1
+    if m2 > 11:
+        m2 = m2 - 12
+    m3 = m1 + 2
+    if m3 > 11:
+        m3 = m3 - 12
         grass.run_command('r.series', 
-                           input = "%s,%s,%s" % (tavgl[m1], tavgl[m2], tavgl[m3]),
-                           output = tavgq, method = 'average')
+                            input = "%s,%s,%s" % (tavgl[m1], tavgl[m2], tavgl[m3]),
+                            output = tavgq, method = 'average')
 
     # BIO10 = Mean Temperature of Warmest Quarter
     # BIO11 = Mean Temperature of Coldest Quarter
@@ -347,12 +347,12 @@ def main():
         precq = "%s.precq.%02d.%d" % (outpre, i + 1, pid)
 
         m1 = i * qstep
-	m2 = m1 + 1
-	if m2 > 11:
-	    m2 = m2 - 12
-	m3 = m1 + 2
-	if m3 > 11:
-	    m3 = m3 - 12
+    m2 = m1 + 1
+    if m2 > 11:
+        m2 = m2 - 12
+    m3 = m1 + 2
+    if m3 > 11:
+        m3 = m3 - 12
         grass.run_command('r.series', 
                            input = "%s,%s,%s" % (precl[m1], precl[m2], precl[m3]),
                            output = precq, method = 'sum')
@@ -387,7 +387,7 @@ def main():
     grass.message(_("BIO8 = Mean Temperature of Wettest Quarter ..."))
 
     if quartals == 4:
-	grass.mapcalc("$bio = round(if($wettestq == 0, $tavgq0, \
+        grass.mapcalc("$bio = round(if($wettestq == 0, $tavgq0, \
 				    if($wettestq == 1, $tavgq1, \
 				    if($wettestq == 2, $tavgq2, \
 				    if($wettestq == 3, $tavgq3, null())))) \
@@ -398,8 +398,8 @@ def main():
 		      tavgq2 = tavgql[2], tavgq3 = tavgql[3],
 		      oscale = toutscale, iscale = tinscale)
     else:
-	# quartals == 12
-	grass.mapcalc("$bio = round(if($wettestq ==  0, $tavgq0, \
+        # quartals == 12
+        grass.mapcalc("$bio = round(if($wettestq ==  0, $tavgq0, \
 				    if($wettestq ==  1, $tavgq1, \
 				    if($wettestq ==  2, $tavgq2, \
 				    if($wettestq ==  3, $tavgq3, \
@@ -430,7 +430,7 @@ def main():
     grass.message(_("BIO9 = Mean Temperature of Driest Quarter ..."))
 
     if quartals == 4:
-	grass.mapcalc("$bio = round(if($driestq == 0, $tavgq0, \
+        grass.mapcalc("$bio = round(if($driestq == 0, $tavgq0, \
 				    if($driestq == 1, $tavgq1, \
 				    if($driestq == 2, $tavgq2, \
 				    if($driestq == 3, $tavgq3, null())))) \
@@ -441,8 +441,8 @@ def main():
 		      tavgq2 = tavgql[2], tavgq3 = tavgql[3],
 		      oscale = toutscale, iscale = tinscale)
     else:
-	# quartals == 12
-	grass.mapcalc("$bio = round(if($driestq ==  0, $tavgq0, \
+        # quartals == 12
+        grass.mapcalc("$bio = round(if($driestq ==  0, $tavgq0, \
 				    if($driestq ==  1, $tavgq1, \
 				    if($driestq ==  2, $tavgq2, \
 				    if($driestq ==  3, $tavgq3, \
@@ -533,7 +533,7 @@ def main():
     grass.message(_("BIO18 = Precipitation of Warmest Quarter ..."))
 
     if quartals == 4:
-	grass.mapcalc("$bio = round(if($warmestq == 0, $precq0, \
+        grass.mapcalc("$bio = round(if($warmestq == 0, $precq0, \
 				    if($warmestq == 1, $precq1, \
 				    if($warmestq == 2, $precq2, \
 				    if($warmestq == 3, $precq3, null())))))",
@@ -542,8 +542,8 @@ def main():
 		      precq0 = precql[0], precq1 = precql[1],
 		      precq2 = precql[2], precq3 = precql[3])
     else:
-	# quartals == 12
-	grass.mapcalc("$bio = round(if($warmestq ==  0, $precq0, \
+        # quartals == 12
+        grass.mapcalc("$bio = round(if($warmestq ==  0, $precq0, \
 				    if($warmestq ==  1, $precq1, \
 				    if($warmestq ==  2, $precq2, \
 				    if($warmestq ==  3, $precq3, \
@@ -572,7 +572,7 @@ def main():
     grass.message(_("BIO19 = Precipitation of Coldest Quarter ..."))
 
     if quartals == 4:
-	grass.mapcalc("$bio = round(if($coldestq == 0, $precq0, \
+        grass.mapcalc("$bio = round(if($coldestq == 0, $precq0, \
 				    if($coldestq == 1, $precq1, \
 				    if($coldestq == 2, $precq2, \
 				    if($coldestq == 3, $precq3, null())))))",
@@ -581,8 +581,8 @@ def main():
 		      precq0 = precql[0], precq1 = precql[1],
 		      precq2 = precql[2], precq3 = precql[3])
     else:
-	# quartals == 12
-	grass.mapcalc("$bio = round(if($coldestq ==  0, $precq0, \
+        # quartals == 12
+        grass.mapcalc("$bio = round(if($coldestq ==  0, $precq0, \
 				    if($coldestq ==  1, $precq1, \
 				    if($coldestq ==  2, $precq2, \
 				    if($coldestq ==  3, $precq3, \
