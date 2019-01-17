@@ -2,28 +2,28 @@
 #
 ############################################################################
 #
-# MODULE:	v.in.gps
+# MODULE:        v.in.gps
 #
-# PURPOSE:	Import GPS data from a GPS receiver or file into a GRASS
-#	       vector map using gpsbabel
+# PURPOSE:        Import GPS data from a GPS receiver or file into a GRASS
+#               vector map using gpsbabel
 #
-# COPYRIGHT:	(c) 2011 Hamish Bowman, and the GRASS Development Team
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# COPYRIGHT:        (c) 2011 Hamish Bowman, and the GRASS Development Team
+#                This program is free software under the GNU General Public
+#                License (>=v2). Read the file COPYING that comes with GRASS
+#                for details.
 #
-# AUTHOR:	Hamish Bowman, Dunedin, New Zealand
-#		Python version based on v.out.gps.py by Glynn Clements
-#		Work-alike of the v.in.gpsbabel shell script from GRASS 6
+# AUTHOR:        Hamish Bowman, Dunedin, New Zealand
+#                Python version based on v.out.gps.py by Glynn Clements
+#                Work-alike of the v.in.gpsbabel shell script from GRASS 6
 #
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  GPSBabel from 	http://gpsbabel.sourceforge.net
-#      -  cs2cs from PROJ.4 (for m.proj)	http://proj.osgeo.org
+#      -  GPSBabel from         http://gpsbabel.sourceforge.net
+#      -  cs2cs from PROJ.4 (for m.proj)        http://proj.osgeo.org
 #
 #      - report supported GPSBabel formats:
-#	 gpsbabel -^2 | tr '\t' ';' | sort -t';' -k3
+#         gpsbabel -^2 | tr '\t' ';' | sort -t';' -k3
 #
 #############################################################################
 #
@@ -104,67 +104,67 @@ def main():
 
     nflags = len(filter(None, [wpt, rte, trk]))
     if nflags > 1:
-	grass.fatal(_("One feature at a time please."))
+        grass.fatal(_("One feature at a time please."))
     if nflags < 1:
-	grass.fatal(_("No features requested for import."))
+        grass.fatal(_("No features requested for import."))
 
 
     #### check for gpsbabel
     ### FIXME: may need --help or similar?
     if not grass.find_program("gpsbabel"):
-	grass.fatal(_("The gpsbabel program was not found, please install it first.\n") +
-		    "http://gpsbabel.sourceforge.net")
+        grass.fatal(_("The gpsbabel program was not found, please install it first.\n") +
+                    "http://gpsbabel.sourceforge.net")
 
     #### check for cs2cs
     if not grass.find_program("cs2cs"):
-	grass.fatal(_("The cs2cs program was not found, please install it first.\n") +
-		    "http://proj.osgeo.org")
+        grass.fatal(_("The cs2cs program was not found, please install it first.\n") +
+                    "http://proj.osgeo.org")
 
 #todo
 #    # check if we will overwrite data
 #    if grass.findfile(output) and not grass.overwrite():
-#	grass.fatal(_("Output file already exists."))
+#        grass.fatal(_("Output file already exists."))
 
     #### set temporary files
     tmp = grass.tempfile()
 
     # import as GPX using v.in.ogr
 #     if trk:
-# 	linetype = "FORCE_GPX_TRACK=YES"
+#         linetype = "FORCE_GPX_TRACK=YES"
 #     elif rte:
-# 	linetype = "FORCE_GPX_TRACK=YES"
+#         linetype = "FORCE_GPX_TRACK=YES"
 #     else:
-# 	linetype = None
+#         linetype = None
 
     if format == 'gpx':
-	# short circuit, we have what we came for.
+        # short circuit, we have what we came for.
 #todo
-#	grass.try_remove(output)
-#	os.rename(tmp_gpx, output)
-	grass.verbose("Fast exit.")
-	sys.exit()
+#        grass.try_remove(output)
+#        os.rename(tmp_gpx, output)
+        grass.verbose("Fast exit.")
+        sys.exit()
 
     # run gpsbabel
     if wpt:
-	gtype = '-w'
+        gtype = '-w'
     elif trk:
-	gtype = '-t'
+        gtype = '-t'
     elif rte:
-	gtype = '-r'
+        gtype = '-r'
     else:
-	gtype = ''
+        gtype = ''
 
     grass.verbose("Running GPSBabel ...")
 
     ret = grass.call(['gpsbabel',
-		      gtype,
-		      '-i', format,
-		      '-f', output,
-		      '-o', 'gpx',
-		      '-F', tmp + '.gpx'])
+                      gtype,
+                      '-i', format,
+                      '-f', output,
+                      '-o', 'gpx',
+                      '-F', tmp + '.gpx'])
 
     if ret != 0:
-	grass.fatal(_("Error running GPSBabel"))
+        grass.fatal(_("Error running GPSBabel"))
 
 
     grass.verbose("Importing data ...")
@@ -203,36 +203,36 @@ def main():
 # 
 #     lineno = 0
 #     for line in p1.stdout:
-# 	lineno += 1
-# 	if lineno < 11:
-# 	    continue
-# 	line = re1.sub(r'#\1', line)
-# 	line = re2.sub(r'# 1  ', line)
-# 	p2.stdin.write(line)
+#         lineno += 1
+#         if lineno < 11:
+#             continue
+#         line = re1.sub(r'#\1', line)
+#         line = re2.sub(r'# 1  ', line)
+#         p2.stdin.write(line)
 # 
 #     p2.stdin.close()
 #     p1.wait()
 #     p2.wait()
 # 
 #     if p1.returncode != 0 or p2.returncode != 0:
-# 	grass.fatal(_("Error reprojecting data"))
+#         grass.fatal(_("Error reprojecting data"))
 # 
 #     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
 #     p3 = grass.feed_command('v.in.ascii', out = tmp_vogb, format = 'standard', flags = 'n', quiet = True)
 #     tf = open(tmp_proj, 'r')
 # 
 #     for line in tf:
-# 	line = re3.sub(r' \1', line)
-# 	line = re4.sub(r' \1', line)
-# 	line = re5.sub('', line)
-# 	p3.stdin.write(line)
+#         line = re3.sub(r' \1', line)
+#         line = re4.sub(r' \1', line)
+#         line = re5.sub('', line)
+#         p3.stdin.write(line)
 # 
 #     p3.stdin.close()
 #     tf.close()
 #     p3.wait()
 # 
 #     if p3.returncode != 0:
-# 	grass.fatal(_("Error reprojecting data"))
+#         grass.fatal(_("Error reprojecting data"))
 
 
 

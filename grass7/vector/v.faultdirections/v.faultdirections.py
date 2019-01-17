@@ -64,7 +64,7 @@ def main():
                                      map_=vector,
                                      column=column,
                                      flags='c').splitlines():
-	azimuth.append(float(line))
+        azimuth.append(float(line))
    
     bins = 360/step
     az_bins = np.histogram(azimuth, bins=bins, range=(0,360))
@@ -96,7 +96,7 @@ def main():
 
     # Use custom colors and opacity
     for r, bar in zip(radii, bars):
-	bar.set_alpha(0.5)
+        bar.set_alpha(0.5)
 
     plt.show()
 

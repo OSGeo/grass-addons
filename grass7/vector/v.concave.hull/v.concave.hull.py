@@ -2,14 +2,14 @@
 
 ############################################################################
 #
-# MODULE:	v.concave.hull
-# AUTHOR(S):	Markus Metz
-# PURPOSE:	Creates a concave hull around points
-# COPYRIGHT:	(C) 2013-2014 by the GRASS Development Team
+# MODULE:        v.concave.hull
+# AUTHOR(S):        Markus Metz
+# PURPOSE:        Creates a concave hull around points
+# COPYRIGHT:        (C) 2013-2014 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#                This program is free software under the GNU General Public
+#                License (>=v2). Read the file COPYING that comes with GRASS
+#                for details.
 #
 #############################################################################
 
@@ -87,7 +87,7 @@ def main():
 
     grass.message(_("Geometry conversion..."))
     grass.run_command('v.extract', input = delaunay, output = out_lines_tmp,
-		      type = 'boundary', layer = '-1', quiet = True)
+                      type = 'boundary', layer = '-1', quiet = True)
     grass.run_command('v.type', input = out_lines_tmp, output = out_lines_nocat, 
                       from_type = 'boundary', to_type = 'line', quiet = True)
     grass.run_command('v.type', input = delaunay, output = out_points, 
@@ -122,7 +122,7 @@ def main():
     N = 0
     tmpf = file(tmp)
     for line in tmpf:
-	N += 1
+        N += 1
     tmpf.close()
 
     max_length = 0.0
@@ -144,10 +144,10 @@ def main():
     inf = file(tmp + ".sort")
     l = 0
     for line in inf:
-	if l == ppos:
-	    max_length = float(line.rstrip('\r\n'))
-	    break
-	l += 1
+        if l == ppos:
+            max_length = float(line.rstrip('\r\n'))
+            break
+        l += 1
     inf.close()
 
     grass.message(_("Feature selection..."))
@@ -157,13 +157,13 @@ def main():
                       type = 'line', where = 'length < %f' % max_length, quiet = True)
 
     grass.run_command('v.category', input = lines_concave, 
-		      output = lines_concave_nocat, type = 'line', 
-		      op = 'del',  cat = '-1', quiet = True)
+                      output = lines_concave_nocat, type = 'line', 
+                      op = 'del',  cat = '-1', quiet = True)
 
     borders_concave = prefix + '_delaunay_borders_select'
     grass.run_command('v.type', input = lines_concave_nocat,
                       output = borders_concave, from_type = 'line',
-		      to_type = 'boundary', quiet = True)
+                      to_type = 'boundary', quiet = True)
 
     areas_concave = prefix + '_delaunay_areas_select'
     grass.run_command('v.centroids', input = borders_concave,
@@ -179,7 +179,7 @@ def main():
 
     grass.run_command('v.extract', input = areas_concave, 
                       output = areas_concave_extr, type = 'area',
-		      where='count = 1', quiet = True)
+                      where='count = 1', quiet = True)
 
     grass.message(_("The following warnings can be ignored"), flag = 'i')
     grass.run_command('v.dissolve', input = areas_concave_extr, 

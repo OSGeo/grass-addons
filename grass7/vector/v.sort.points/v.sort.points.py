@@ -45,10 +45,10 @@ def num(s):
     try:
         return int(s)
     except ValueError:
-	try:
-	    return float(s)
-	except:
-	    return s
+        try:
+            return float(s)
+        except:
+            return s
 
 def main():
     options, flags = gscript.parser()
@@ -69,8 +69,8 @@ def main():
     for colcount in range(1,len(sorted_cols)):
         name = sorted_cols[colcount][0]
         type = sorted_cols[colcount][1]['type']
-	if name == sort_column and (type != 'INTEGER' and type != 'DOUBLE PRECISION'):
-	    gscript.fatal('Sort column must be numeric')
+        if name == sort_column and (type != 'INTEGER' and type != 'DOUBLE PRECISION'):
+            gscript.fatal('Sort column must be numeric')
         if name == key_column:
             continue
         colnames.append(name)

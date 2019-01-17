@@ -3,15 +3,15 @@
 #
 ############################################################################
 #
-# MODULE:	    v.class.ml
+# MODULE:            v.class.ml
 #
 # AUTHOR(S):   Pietro Zambelli (University of Trento)
 #
-# COPYRIGHT:	(C) 2013 by the GRASS Development Team
+# COPYRIGHT:        (C) 2013 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#                This program is free software under the GNU General Public
+#                License (>=v2). Read the file COPYING that comes with GRASS
+#                for details.
 #
 #############################################################################
 
@@ -705,7 +705,7 @@ def main(opt, flg):
 
         import pickle
         with open('classification_results.pkl', 'w') as res:
-	      pickle.dump(classifiers, res)
+              pickle.dump(classifiers, res)
         #classifiers = pickle.load(res)
         msgr.message("Export the results to layer: <%s>" % str(rlayer))
         export_results(vect, classifiers, cats, rlayer, vtraining, tcols,

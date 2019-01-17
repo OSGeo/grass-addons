@@ -185,14 +185,6 @@ from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 from dateutil.parser import parse
 
-#reload(sys)
-#sys.setdefaultencoding('utf-8')
-
-if not "GISBASE" in list(os.environ.keys()):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
-
 def set_output_encoding(encoding='utf-8'):
     import sys
     import codecs
