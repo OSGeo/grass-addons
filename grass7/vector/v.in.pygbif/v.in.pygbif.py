@@ -188,7 +188,7 @@ from dateutil.parser import parse
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
 
-if not "GISBASE" in os.environ.keys():
+if not "GISBASE" in list(os.environ.keys()):
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
@@ -277,82 +277,82 @@ def main():
                 'lastCrawled', 'specificEpithet', 'facts', 'issues',
                 'extensions', 'language']
     # Deinfe columns for attribute table
-    cols = [(u'cat',       'INTEGER PRIMARY KEY'),
-            (u'g_search',       'varchar(100)'),
-            (u'g_key',       'integer'),
-            (u'g_taxonrank',       'varchar(50)'),
-            (u'g_taxonkey',       'integer'),
-            (u'g_taxonid',       'varchar(50)'),
-            (u'g_scientificname',       'varchar(255)'),
-            (u'g_species',       'varchar(255)'),
-            (u'g_specieskey',       'integer'),
-            (u'g_genericname',       'varchar(255)'),
-            (u'g_genus',       'varchar(50)'),
-            (u'g_genuskey',       'integer'),
-            (u'g_family',       'varchar(50)'),
-            (u'g_familykey',       'integer'),
-            (u'g_order',       'varchar(50)'),
-            (u'g_orderkey',       'integer'),
-            (u'g_class',       'varchar(50)'),
-            (u'g_classkey',       'integer'),
-            (u'g_phylum',       'varchar(50)'),
-            (u'g_phylumkey',       'integer'),
-            (u'g_kingdom',       'varchar(50)'),
-            (u'g_kingdomkey',       'integer'),
-            (u'g_eventdate',       'text'),
-            (u'g_verbatimeventdate',       'varchar(50)'),
-            (u'g_startDayOfYear',       'integer'),
-            (u'g_endDayOfYear',       'integer'),
-            (u'g_year',       'integer'),
-            (u'g_month',       'integer'),
-            (u'g_day',       'integer'),
-            (u'g_occurrenceid',       'varchar(255)'),
-            (u'g_occurrenceStatus',       'varchar(50)'),
-            (u'g_occurrenceRemarks',       'varchar(50)'),
-            (u'g_Habitat',       'varchar(50)'),
-            (u'g_basisofrecord',       'varchar(50)'),
-            (u'g_preparations',       'varchar(50)'),
-            (u'g_sex',       'varchar(50)'),
-            (u'g_type',       'varchar(50)'),
-            (u'g_locality',       'varchar(255)'),
-            (u'g_verbatimlocality',       'varchar(255)'),
-            (u'g_decimallongitude',       'double precision'),
-            (u'g_decimallatitude',       'double precision'),
-            (u'g_geodeticdatum',       'varchar(50)'),
-            (u'g_higerGeography',       'varchar(255)'),
-            (u'g_continent',       'varchar(50)'),
-            (u'g_country',       'varchar(50)'),
-            (u'g_countryCode',       'varchar(50)'),
-            (u'g_stateProvince',       'varchar(50)'),
-            (u'g_gbifid',       'varchar(255)'),
-            (u'g_protocol',       'varchar(255)'),
-            (u'g_identifier',       'varchar(50)'),
-            (u'g_recordedby',       'varchar(255)'),
-            (u'g_identificationid',       'varchar(255)'),
-            (u'g_identifiers',       'text'),
-            (u'g_dateidentified',       'text'),
-            (u'g_modified',       'text'),
-            (u'g_institutioncode',       'varchar(50)'),
-            (u'g_lastinterpreted',       'text'),
-            (u'g_lastparsed',       'text'),
-            (u'g_references',       'varchar(255)'),
-            (u'g_relations',       'text'),
-            (u'g_catalognumber',       'varchar(50)'),
-            (u'g_occurrencedetails',       'text'),
-            (u'g_datasetkey',       'varchar(50)'),
-            (u'g_datasetname',       'varchar(255)'),
-            (u'g_collectioncode',       'varchar(50)'),
-            (u'g_rights',       'varchar(255)'),
-            (u'g_rightsholder',       'varchar(255)'),
-            (u'g_license',       'varchar(50)'),
-            (u'g_publishingorgkey',       'varchar(50)'),
-            (u'g_publishingcountry',       'varchar(50)'),
-            (u'g_lastcrawled',       'text'),
-            (u'g_specificepithet',       'varchar(50)'),
-            (u'g_facts',       'text'),
-            (u'g_issues',       'text'),
-            (u'g_extensions',       'text'),
-            (u'g_language',       'varchar(50)')]
+    cols = [('cat',       'INTEGER PRIMARY KEY'),
+            ('g_search',       'varchar(100)'),
+            ('g_key',       'integer'),
+            ('g_taxonrank',       'varchar(50)'),
+            ('g_taxonkey',       'integer'),
+            ('g_taxonid',       'varchar(50)'),
+            ('g_scientificname',       'varchar(255)'),
+            ('g_species',       'varchar(255)'),
+            ('g_specieskey',       'integer'),
+            ('g_genericname',       'varchar(255)'),
+            ('g_genus',       'varchar(50)'),
+            ('g_genuskey',       'integer'),
+            ('g_family',       'varchar(50)'),
+            ('g_familykey',       'integer'),
+            ('g_order',       'varchar(50)'),
+            ('g_orderkey',       'integer'),
+            ('g_class',       'varchar(50)'),
+            ('g_classkey',       'integer'),
+            ('g_phylum',       'varchar(50)'),
+            ('g_phylumkey',       'integer'),
+            ('g_kingdom',       'varchar(50)'),
+            ('g_kingdomkey',       'integer'),
+            ('g_eventdate',       'text'),
+            ('g_verbatimeventdate',       'varchar(50)'),
+            ('g_startDayOfYear',       'integer'),
+            ('g_endDayOfYear',       'integer'),
+            ('g_year',       'integer'),
+            ('g_month',       'integer'),
+            ('g_day',       'integer'),
+            ('g_occurrenceid',       'varchar(255)'),
+            ('g_occurrenceStatus',       'varchar(50)'),
+            ('g_occurrenceRemarks',       'varchar(50)'),
+            ('g_Habitat',       'varchar(50)'),
+            ('g_basisofrecord',       'varchar(50)'),
+            ('g_preparations',       'varchar(50)'),
+            ('g_sex',       'varchar(50)'),
+            ('g_type',       'varchar(50)'),
+            ('g_locality',       'varchar(255)'),
+            ('g_verbatimlocality',       'varchar(255)'),
+            ('g_decimallongitude',       'double precision'),
+            ('g_decimallatitude',       'double precision'),
+            ('g_geodeticdatum',       'varchar(50)'),
+            ('g_higerGeography',       'varchar(255)'),
+            ('g_continent',       'varchar(50)'),
+            ('g_country',       'varchar(50)'),
+            ('g_countryCode',       'varchar(50)'),
+            ('g_stateProvince',       'varchar(50)'),
+            ('g_gbifid',       'varchar(255)'),
+            ('g_protocol',       'varchar(255)'),
+            ('g_identifier',       'varchar(50)'),
+            ('g_recordedby',       'varchar(255)'),
+            ('g_identificationid',       'varchar(255)'),
+            ('g_identifiers',       'text'),
+            ('g_dateidentified',       'text'),
+            ('g_modified',       'text'),
+            ('g_institutioncode',       'varchar(50)'),
+            ('g_lastinterpreted',       'text'),
+            ('g_lastparsed',       'text'),
+            ('g_references',       'varchar(255)'),
+            ('g_relations',       'text'),
+            ('g_catalognumber',       'varchar(50)'),
+            ('g_occurrencedetails',       'text'),
+            ('g_datasetkey',       'varchar(50)'),
+            ('g_datasetname',       'varchar(255)'),
+            ('g_collectioncode',       'varchar(50)'),
+            ('g_rights',       'varchar(255)'),
+            ('g_rightsholder',       'varchar(255)'),
+            ('g_license',       'varchar(50)'),
+            ('g_publishingorgkey',       'varchar(50)'),
+            ('g_publishingcountry',       'varchar(50)'),
+            ('g_lastcrawled',       'text'),
+            ('g_specificepithet',       'varchar(50)'),
+            ('g_facts',       'text'),
+            ('g_issues',       'text'),
+            ('g_extensions',       'text'),
+            ('g_language',       'varchar(50)')]
 
     set_output_encoding()
     # Set temporal filter if requested by user
@@ -394,7 +394,7 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    target_crs = grass.read_command('g.proj', flags='fj').rstrip(os.linesep).encode('utf-8')
+    target_crs = grass.read_command('g.proj', flags='fj').rstrip(os.linesep)
     target = osr.SpatialReference(target_crs)
     target.ImportFromProj4(target_crs)
     if target == 'XY location (unprojected)':
@@ -474,33 +474,33 @@ def main():
 
         # Return matching taxon and alternatives and exit
         if print_species:
-            print u'Matching taxon for {} is:'.format(s)
-            print u'{} {}'.format(species_match['scientificName'], species_match['status'])
-            if 'alternatives' in species_match.keys():
-                print 'Alternative matches might be:'.format(s)
+            print('Matching taxon for {} is:'.format(s))
+            print('{} {}'.format(species_match['scientificName'], species_match['status']))
+            if 'alternatives' in list(species_match.keys()):
+                print('Alternative matches might be:'.format(s))
                 for m in species_match['alternatives']:
-                    print u'{} {}'.format(m['scientificName'], m['status'])
+                    print('{} {}'.format(m['scientificName'], m['status']))
             else:
-                print 'No alternatives found for the given taxon'
+                print('No alternatives found for the given taxon')
             continue
         if print_species_shell:
-            print u'match={}'.format(species_match['scientificName'])
-            if 'alternatives' in species_match.keys():
+            print('match={}'.format(species_match['scientificName']))
+            if 'alternatives' in list(species_match.keys()):
                 alternatives = []
                 for m in species_match['alternatives']:
                     alternatives.append(m['scientificName'])
-                print u'alternatives={}'.format(u','.join(alternatives))
+                print('alternatives={}'.format(','.join(alternatives)))
             continue
         if print_species_table:
-            if 'alternatives' in species_match.keys():
+            if 'alternatives' in list(species_match.keys()):
                 if len(species_match['alternatives']) == 0:
-                    print u'{0}|{1}|{2}|'.format(s, key, species_match['scientificName'])
+                    print('{0}|{1}|{2}|'.format(s, key, species_match['scientificName']))
                 else:
                     alternatives = []
                     for m in species_match['alternatives']:
                         alternatives.append(m['scientificName'])
-                    print u'{0}|{1}|{2}|{3}'.format(s, key, species_match['scientificName'],
-                                                    u','.join(alternatives))
+                    print('{0}|{1}|{2}|{3}'.format(s, key, species_match['scientificName'],
+                                                    ','.join(alternatives)))
             continue
         try:
             returns_n = occurrences.search(taxonKey=key,
@@ -579,12 +579,12 @@ def main():
                 point = Point(x, y)
 
                 for k in dwc_keys:
-                    if k not in res.keys():
+                    if k not in list(res.keys()):
                         res.update({k: None})
 
                 cat = cat + 1
                 new.write(point, cat=cat, attrs=(
-                          u'{}'.format(s.decode('utf-8')),
+                          '{}'.format(s),
                           res['key'],
                           res['taxonRank'],
                           res['taxonKey'],
@@ -605,8 +605,8 @@ def main():
                           res['phylumKey'],
                           res['kingdom'],
                           res['kingdomKey'],
-                          u'{}'.format(res['eventDate']) if res['eventDate'] else None,
-                          u'{}'.format(res['verbatimEventDate']) if res['verbatimEventDate'] else None,
+                          '{}'.format(res['eventDate']) if res['eventDate'] else None,
+                          '{}'.format(res['verbatimEventDate']) if res['verbatimEventDate'] else None,
                           res['startDayOfYear'],
                           res['endDayOfYear'],
                           res['year'],
@@ -635,16 +635,16 @@ def main():
                           res['identifier'],
                           res['recordedBy'],
                           res['identificationID'],
-                          u','.join(res['identifiers']),
-                          u'{}'.format(res['dateIdentified']) if res['dateIdentified'] else None,
-                          u'{}'.format(res['modified']) if res['modified'] else None,
+                          ','.join(res['identifiers']),
+                          '{}'.format(res['dateIdentified']) if res['dateIdentified'] else None,
+                          '{}'.format(res['modified']) if res['modified'] else None,
                           res['institutionCode'],
-                          u'{}'.format(res['lastInterpreted']) if res['lastInterpreted'] else None,
-                          u'{}'.format(res['lastParsed']) if res['lastParsed'] else None,
+                          '{}'.format(res['lastInterpreted']) if res['lastInterpreted'] else None,
+                          '{}'.format(res['lastParsed']) if res['lastParsed'] else None,
                           res['references'],
-                          u','.join(res['relations']),
+                          ','.join(res['relations']),
                           res['catalogNumber'],
-                          u'{}'.format(res['occurrenceDetails']) if res['occurrenceDetails'] else None,
+                          '{}'.format(res['occurrenceDetails']) if res['occurrenceDetails'] else None,
                           res['datasetKey'],
                           res['datasetName'],
                           res['collectionCode'],
@@ -653,11 +653,11 @@ def main():
                           res['license'],
                           res['publishingOrgKey'],
                           res['publishingCountry'],
-                          u'{}'.format(res['lastCrawled']) if res['lastCrawled'] else None,
+                          '{}'.format(res['lastCrawled']) if res['lastCrawled'] else None,
                           res['specificEpithet'],
-                          u','.join(res['facts']),
-                          u','.join(res['issues']),
-                          u','.join(res['extensions']),
+                          ','.join(res['facts']),
+                          ','.join(res['issues']),
+                          ','.join(res['extensions']),
                           res['language'],))
 
                 cat = cat + 1
