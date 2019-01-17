@@ -2,15 +2,15 @@
 #
 ############################################################################
 #
-# MODULE:	r.object.spatialautocor
-# AUTHOR(S):	Moritz Lennert
+# MODULE:       r.object.spatialautocor
+# AUTHOR(S):    Moritz Lennert
 #
-# PURPOSE:	Calculates global spatial autocorrelation on raster objects
-# COPYRIGHT:	(C) 1997-2017 by the GRASS Development Team
+# PURPOSE:      Calculates global spatial autocorrelation on raster objects
+# COPYRIGHT:    (C) 1997-2017 by the GRASS Development Team
 #
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+#       This program is free software under the GNU General Public
+#       License (>=v2). Read the file COPYING that comes with GRASS
+#       for details.
 #
 #############################################################################
 # References:
@@ -62,7 +62,6 @@ def check_progs():
    found_missing = False
    for prog in ['r.neighborhoodmatrix']:
        if not gscript.find_program(prog, '--help'):
-
            found_missing = True
            gscript.warning(_("'%s' required. Please install '%s' first using 'g.extension %s'") % (prog, prog, prog))
    if found_missing:
@@ -143,7 +142,7 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
         for neighbor in neighbors:
             neighbor_value = means[neighbor] - global_mean
             sum_products += region_value * neighbor_value
-                sum_squared_differences = ( means[region] - means[neighbor] ) ** 2
+            sum_squared_differences = ( means[region] - means[neighbor] ) ** 2
 
     if method == 'moran':
         autocor = ( ( float(N) / total_nb_neighbors ) * (float(sum_products)  /  sum_sq_mean_diffs ) )
@@ -168,4 +167,4 @@ def main():
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
-    main()
+    sys.exit(main())

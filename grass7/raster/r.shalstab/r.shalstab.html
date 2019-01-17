@@ -1,19 +1,30 @@
-<h1>DESCRIPTION</h1>
-<div>R.shalstab</div>
-<div>This command allows to apply the algorithm developed by Montgomery and Dietrich (1994) in GRASS GIS. According to these authors, the models associate the theories of infinite slope, where the strength of soil share at the discretion of rupture of Mohr Coulomb, with the hydrological model O'Loughlin (1986), resulting in equation.
-Requested input and output.
+<h2>DESCRIPTION</h2>
+
+<b>r.shalstab</b> allows to apply the algorithm developed by Montgomery
+and Dietrich (1994) in GRASS GIS. According to these authors, the
+models associate the theories of infinite slope, where the strength of
+soil share at the discretion of rupture of Mohr Coulomb, with the
+hydrological model O'Loughlin (1986), resulting in equation. Requested
+input and output.
+
+<p>
 The command requires some input:
-<ul><li>DEM a digital terrain model of the study area;</li>
+
+<ul>
+<li>DEM a digital terrain model of the study area;</li>
 <li>Raster map or single value for soil cohesion (N/m^2);</li>
-<li>Raster map or single value for soil friction angle (°);</li>
+<li>Raster map or single value for soil friction angle (&deg;);</li>
 <li>Raster map or single value for soil density (kg/m^3);</li>
 <li>Raster map or single value for vertical thickness of soil (m);</li>
 <li>Raster map or single value for hydraulic conductivity k (m/h);</li>
 <li>Raster map or single value for root cohesion (N/m^2); (default = 0)</li>
 <li>Raster map or single value for wet soil density (kg/m^3). (default = 2100)</li>
 </ul>
-The output are:
-<ul>A landslide susceptibility map (value range from 1 to 7):</ul>
+
+The outputs are:
+
+A landslide susceptibility map (value range from 1 to 7):
+
 <ul>
 <li>1 Unconditionally Unstable</li>
 <li>2 0-30 mm/day</li>
@@ -23,14 +34,17 @@ The output are:
 <li>6 201-999 mm/day</li>
 <li>7 Stable</li>
 </ul>
-<ul>A map for of critical rainfall map (mm/day)
-</ul>
-</div>
-<h1>AUTHORS</h1>
-<div>
-Andrea Filipello, University of Turin, Italy mail</div>
-<div>Daniele Strigaro, University of Milan, Italy mail
-</div>
-<h1>REFERENCES</h1>
-<div>Montgomery, D. R. and Dietrich, W. E.: A physically based model for the topographic control of shallow landsliding,Water Resour. Res., 30, 1153–1171, 1994.</div>
 
+A map for of critical rainfall map (mm/day).
+
+<h2>AUTHORS</h2>
+
+<p>Andrea Filipello, University of Turin, Italy mail</p>
+<p>Daniele Strigaro, University of Milan, Italy mail</p>
+
+<h2>REFERENCES</h2>
+
+<p>Montgomery, D. R. and Dietrich, W. E.: A physically based model for the
+topographic control of shallow landsliding,Water Resour. Res., 30, 1153-1171, 1994.</p>
+
+<p><i>Last changed: $Date$</i>

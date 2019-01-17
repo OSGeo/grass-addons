@@ -43,7 +43,7 @@ class pgwrapper:
                         self.cursor.copy_from(afile,table,sep=sep)
                         self.connection.commit()
 
-                 except Exception,err:
+                 except Exception as err:
                         self.connection.rollback()
                         self.print_message( " Catched error (as expected):\n")
                         self.print_message(err)
@@ -63,9 +63,9 @@ class pgwrapper:
                 #self.print_message (sql)
                 try:
                         self.cursor.execute(sql)
-                except Exception, e:
+                except Exception as e:
                         self.connection.rollback()
-                        print e.pgerror
+                        print(e.pgerror)
                         pass
                 
                 if commit:        
@@ -103,13 +103,13 @@ class pgwrapper:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse
                 else:
                         sql_update_col = 'UPDATE "' + table + '" SET ' + parse + ' WHERE ' + where
-                print "upcol %s"%sql_update_col      
+                print("upcol %s"%sql_update_col)      
                 # Excute the SQL statement.
                 self.cursor.execute(sql_update_col)
                 
         def print_message(self,msg):
-                print '-' * 80
-                print msg
-                print '-' * 80
-                print 
+                print('-' * 80)
+                print(msg)
+                print('-' * 80)
+                print() 
                 sys.stdout.flush()

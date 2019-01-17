@@ -125,7 +125,7 @@ def main():
 
     # open new 3D vector map
     Vect_open_new(map_info, outmap, True)
-    print 'ddd'
+    print('ddd')
     Vect_hist_command(map_info)
 
     # Create and initialize structs to store points/lines and category numbers
@@ -139,7 +139,7 @@ def main():
     zL = LineArrayType()
 
     #### iterate through map rows
-    for row in xrange(rows):
+    for row in range(rows):
         if row % skip != 0:
             continue
 
@@ -157,11 +157,11 @@ def main():
 
         # reset
         n = 0
-        for col in xrange(cols):
+        for col in range(cols):
             xL[col] = yL[col] = zL[col] = 0
 
         # TODO check for NULL
-        for col in xrange(cols):
+        for col in range(cols):
 #            if not G_is_null_value(byref(in_rast[col]), data_type):
             if in_rast[col] > -2e9:
                 xL[n] = Rast_col_to_easting((col + 0.5), byref(region))

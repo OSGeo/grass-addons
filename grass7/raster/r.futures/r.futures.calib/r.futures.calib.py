@@ -296,7 +296,7 @@ def run_one_combination(repeat, development_start, compactness_mean, compactness
             run_simulation(development_start=development_start, development_end=simulation_dev_end,
                            compactness_mean=compactness_mean, compactness_range=compactness_range,
                            discount_factor=discount_factor, patches_file=patches_file, fut_options=fut_options)
-        except CalledModuleError, e:
+        except CalledModuleError as e:
             queue.put(None)
             cleanup(tmp=TMP_PROCESS)
             gcore.error(_("Running r.futures.pga failed. Details: {e}").format(e=e))

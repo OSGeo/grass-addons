@@ -162,8 +162,8 @@ def write_result_file(ID, X_unlabeled, predictions, header, filename) :
         :filename: Name of the csv file
     """
     data = np.copy(X_unlabeled)
-    data = np.insert(data, 0, map(str, ID), axis=1)
-    data = np.insert(data, 1, map(str, predictions), axis=1)
+    data = np.insert(data, 0, list(map(str, ID)), axis=1)
+    data = np.insert(data, 1, list(map(str, predictions)), axis=1)
 
     if header.size != 0 :
         header = np.insert(header, 1, ['Class'])
@@ -519,7 +519,7 @@ def SVM_parameters(c, gamma, X_train, y_train, n_iter) :
         gamma = clf.best_params_['gamma']
     return float(c), float(gamma)
 
-def main() :
+def main():
     global learning_steps
     global diversity_lambda
     global nbr_uncertainty
@@ -572,7 +572,7 @@ def main() :
     gcore.message('Score : {}'.format(score))
 
     for ID in samples_to_label_IDs :
-        print(int(ID))
+        print((int(ID)))
 
 
 if __name__ == '__main__' :

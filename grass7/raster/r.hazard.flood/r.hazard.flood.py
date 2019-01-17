@@ -57,10 +57,6 @@ except:
     except:
         sys.exit("grass.script can't be imported.")
 
-if not os.environ.has_key("GISBASE"):
-    print("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
 def main():
 
     #### check if we have the r.area addon

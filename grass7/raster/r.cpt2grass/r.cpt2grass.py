@@ -132,7 +132,7 @@ def main(options, flags):
         try:
             from urllib.request import urlopen
         except ImportError:
-            from urllib import urlopen
+            from urllib.request import urlopen
 
         txt = urlopen(input_url).readlines()
     else:
@@ -185,7 +185,7 @@ def main(options, flags):
             f.write('\n'.join(rules))
             f.write('\n')
     elif not options['map']:
-        print '\n'.join(rules) + '\n'
+        print('\n'.join(rules) + '\n')
 
 
 if __name__ == '__main__':

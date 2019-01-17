@@ -48,10 +48,6 @@ import shutil
 import tempfile
 import grass.script as grass
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
-
 def main():
 
     iraster = options['input']		

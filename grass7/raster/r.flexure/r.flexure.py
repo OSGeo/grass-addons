@@ -197,12 +197,12 @@ def main():
     try:
         import gflex
     except:
-        print ""
-        print "MODULE IMPORT ERROR."
-        print "In order to run r.flexure or g.flexure, you must download and install"
-        print "gFlex. The most recent development version is available from"
-        print "https://github.com/awickert/gFlex."
-        print "Installation instructions are available on the page."
+        print("")
+        print("MODULE IMPORT ERROR.")
+        print("In order to run r.flexure or g.flexure, you must download and install")
+        print("gFlex. The most recent development version is available from")
+        print("https://github.com/awickert/gFlex.")
+        print("Installation instructions are available on the page.")
         grass.fatal("Software dependency must be installed.")
 
     # This code is for 2D flexural isostasy
@@ -272,14 +272,14 @@ def main():
     if grass.region_env()[6] == '3':
         if latlon_override:
             if flex.Verbose:
-                print "Latitude/longitude grid."
-                print "Based on r_Earth = 6371 km"
-                print "Setting y-resolution [m] to 111,195 * [degrees]"
+                print("Latitude/longitude grid.")
+                print("Based on r_Earth = 6371 km")
+                print("Setting y-resolution [m] to 111,195 * [degrees]")
             flex.dy = grass.region()['nsres']*111195.
             NSmid = (grass.region()['n'] + grass.region()['s'])/2.
             dx_at_mid_latitude = (3.14159/180.) * 6371000. * np.cos(np.deg2rad(NSmid))
             if flex.Verbose:
-                print "Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]"
+                print("Setting x-resolution [m] to "+"%.2f" %dx_at_mid_latitude+" * [degrees]")
             flex.dx = grass.region()['ewres']*dx_at_mid_latitude
         else:
             grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
@@ -308,7 +308,7 @@ def main():
     #grass.run_command('r.colors', map=output + '_interp', color='rainbow', quiet=True)#, flags='e')
 
 def install_dependencies():
-    print "PLACEHOLDER"
+    print("PLACEHOLDER")
 
 if __name__ == "__main__":
     import sys

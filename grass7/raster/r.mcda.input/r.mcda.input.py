@@ -114,7 +114,7 @@ def patch_georules(maps,outputMap):
 	labels=["_".join(m.split('_')[1:]) for m in maps] 
 	labels=list(set(labels))
 	for l in labels:
-		print "mapping %s rule" % str(l)
+		print("mapping %s rule" % str(l))
 		map_synth=[]
 		for m in maps:
 			if l == "_".join(m.split('_')[1:]):
@@ -160,7 +160,7 @@ def main():
 		maps.append(mappa)
 		
 	maplist=",".join(maps)	
-	print maplist
+	print(maplist)
 	patch_georules(maps,outputMap)
 			
 	if not flags['l']:

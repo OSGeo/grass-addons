@@ -75,9 +75,9 @@ import math
 from numpy import zeros
 import csv
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
+# i18N
+import gettext
+gettext.install('grassmods', os.path.join(os.getenv("GISBASE"), 'locale'))
 
 # check requirements
 def check_progs():
@@ -575,9 +575,9 @@ def main():
                                                         elevation = 'r_elevation_crop' )
 
 
-        print " ------------------------------ "
-        print "Output of r.stream.stats: "
-        print  stream_stats
+        print(" ------------------------------ ")
+        print("Output of r.stream.stats: ")
+        print(stream_stats)
 
         stream_stats_summary = stream_stats.split('\n')[4].split('|')
         stream_stats_mom = stream_stats.split('\n')[8].split('|')

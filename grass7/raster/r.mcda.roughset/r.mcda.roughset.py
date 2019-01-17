@@ -73,6 +73,7 @@ import numpy as np
 from time import time, ctime  
 import grass.script as grass
 import grass.script.array as garray
+from functools import reduce
 
 
 def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
@@ -100,7 +101,7 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
 	
 	if flags['n']:
 		for i in range(len(attributes)):
-			print "%s - convert null to 0" % str(attributes[i])
+			print("%s - convert null to 0" % str(attributes[i]))
 			grass.run_command("r.null", map=attributes[i], null=0)
 			
 	outf.write("\n**EXAMPLES\n")
@@ -119,7 +120,7 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
 	example=tmp.split()
 	examples.append(example)
 
-	MATRIX=map(list,zip(*examples))
+	MATRIX=list(map(list,list(zip(*examples))))
 	MATRIX=[r for r in MATRIX if not '?' in r] #remove all rows with almost one "?"
 	MATRIX=[list(i) for i in set(tuple(j) for j in MATRIX)] #remove duplicate example 
 	
@@ -164,7 +165,7 @@ def collect_examples (data):
 	start=(data.index(['**EXAMPLES'])+1)
 	end=data.index(['**END'])
 	for i in range(start, end):
-		data[i]=(map(float, data[i]))
+		data[i]=(list(map(float, data[i])))
 		matrix.append(data[i])
 	i=1
 	for r in matrix:
@@ -187,7 +188,7 @@ def FileToInfoSystem(isf):
 		infile.close()	   
 		infosystem={'attributes':collect_attributes(data),'examples':collect_examples(data)}
 	except TypeError:
-		print "\n\n Computing error or input file %s is not readeable. Exiting gracefully" % isf
+		print("\n\n Computing error or input file %s is not readeable. Exiting gracefully" % isf)
 		sys.exit(0)
 		
 	return infosystem
@@ -351,7 +352,7 @@ def FindObjectCovered (rules, selected):
 		examples.append(rule['objectsCovered']) 
 
 	if len(examples)>0:
-		examples = reduce(set.intersection,map(set,examples))  #functional approach: intersect all lists if example is not empty
+		examples = reduce(set.intersection,list(map(set,examples)))  #functional approach: intersect all lists if example is not empty
 		examples = list(set(examples) & set([r[0] for r in selected]))
 	return examples #all examples covered from a single rule
 	
@@ -436,7 +437,7 @@ def Find_rules (B, infosystem, type_rule):
 
 			for r in rules:
 				obj_cov_by_rules.append(r['objectsCovered'])
-			obj_cov_by_rules=list((reduce(set.intersection,map(set,obj_cov_by_rules)))) #reduce():Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
+			obj_cov_by_rules=list((reduce(set.intersection,list(map(set,obj_cov_by_rules))))) #reduce():Apply function of two arguments cumulatively to the items of iterable, from left to right, so as to reduce the iterable to a single value.
 
 			S=list(set(S) & set(best['objectsCovered'] ))
 			control+=1
@@ -536,7 +537,7 @@ def Parser_mapcalc(RULES, outputMap):
 	labels=["_".join(m.split('_')[1:]) for m in maps] 
 	labels=list(set(labels))
 	for l in labels:
-		print "mapping %s rule" % str(l)
+		print("mapping %s rule" % str(l))
 		map_synth=[]
 		for m in maps:
 			if l == "_".join(m.split('_')[1:]):
@@ -545,7 +546,7 @@ def Parser_mapcalc(RULES, outputMap):
 			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
 		else:
 			grass.run_command("g.copy", raster=(str(map_synth),l))
-		print "__",str(map_synth),l
+		print("__",str(map_synth),l)
 		grass.run_command("r.to.vect", overwrite='True', flags='s', input=l, output=l, feature='area')
 		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
 		grass.run_command("v.db.update", map=l, column='rule', value=l)
@@ -582,22 +583,22 @@ def main():
 	Dominating=DominatingSet(infosystem)
 	Dominated=DominatedSet(infosystem)
 ##	upward union class
-	print "elaborate upward union"
+	print("elaborate upward union")
 	Lu=LowerApproximation(UpwardUnionClass, Dominating) #lower approximation of upward union for type 1 rules
 	Uu=UpperApproximation(UpwardUnionClass,Dominated ) #upper approximation of upward union
 	UpwardBoundary=Boundaries(Uu, Lu)
 ##	downward union class
-	print "elaborate downward union"
+	print("elaborate downward union")
 	Ld=LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
 	Ud=UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union 
 	DownwardBoundary=Boundaries(Ud, Ld)
 	QualityOfQpproximation(DownwardBoundary,  infosystem)
-	print "RULES extraction (*)" 
+	print("RULES extraction (*)") 
 	RULES=Domlem(Lu,Ld, infosystem)
 	Parser_mapcalc(RULES, outputMap)		   
 	Print_rules(RULES, outputTxt)
 	end=time()
-	print "Time computing-> %.4f s" % (end-start)
+	print("Time computing-> %.4f s" % (end-start))
 	return 0
 	#except:
 		#print "ERROR! Rules does not generated!"

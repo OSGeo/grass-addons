@@ -34,10 +34,6 @@ import os
 import grass.script as grass
 import math
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
-
 def main():
     r_elevation = options['elevation'].split('@')[0] 
     r_aspect = r_elevation+'_aspect'

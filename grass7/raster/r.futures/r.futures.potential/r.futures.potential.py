@@ -186,14 +186,14 @@ def main():
         cmd += [ '-l', level]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    print stderr
+    print(stderr)
     if p.returncode != 0:
-        print stderr
+        print(stderr)
         gscript.fatal(_("Running R script failed, check messages above"))
 
     gscript.info(_("Best model summary:"))
     gscript.info("-------------------------")
-    print stdout
+    print(stdout)
 
     with open(TMP_POT, 'r') as fin, open(options['output'], 'w') as fout:
         i = 0

@@ -61,20 +61,20 @@ def main():
 
     for i in range(len(stats)):
         if i == 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0],  zn[i,1] = list(map(float, stats[i].split(' ')))
             zn[i,1] = zn[i,1]
             zn[i,2] = zn[i,1] * res
         if i != 0:
-            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
+            zn[i,0],  zn[i,1] = list(map(float, stats[i].split(' ')))
             zn[i,2] = zn[i,1] + zn[i-1,2]
             zn[i,3] = zn[i,1] * (res**2)
 
     totcell = sum(zn[:,1])
-    print "Tot. cells", totcell
+    print("Tot. cells", totcell)
     totarea = totcell * (res**2)
-    print "Tot. area", totarea
+    print("Tot. area", totarea)
     maxdist = max(zn[:,0])
-    print "Max distance", maxdist
+    print("Max distance", maxdist)
 
     for i in range(len(stats)):
         kl[i,0] = zn[i,0]
@@ -94,20 +94,20 @@ def main():
     # plot
     plotImage(zn[:,0], zn[:,3], options['image']+'_width_function.png','-','x','W(x)','Width Function')
 
-    print "==========================="
-    print "Width Function | quantiles"
-    print "==========================="
-    print '%.0f' %findint(kl,0.05) , "|", 0.05
-    print '%.0f' %findint(kl,0.15) , "|", 0.15
-    print '%.0f' %findint(kl,0.3) , "|", 0.3
-    print '%.0f' %findint(kl,0.4) , "|", 0.4
-    print '%.0f' %findint(kl,0.5) , "|", 0.5
-    print '%.0f' %findint(kl,0.6) , "|", 0.6
-    print '%.0f' %findint(kl,0.7) , "|", 0.7
-    print '%.0f' %findint(kl,0.85) , "|", 0.85
-    print '%.0f' %findint(kl,0.95) , "|", 0.95
-    print '\n'
-    print 'Done!'
+    print("===========================")
+    print("Width Function | quantiles")
+    print("===========================")
+    print('%.0f' %findint(kl,0.05) , "|", 0.05)
+    print('%.0f' %findint(kl,0.15) , "|", 0.15)
+    print('%.0f' %findint(kl,0.3) , "|", 0.3)
+    print('%.0f' %findint(kl,0.4) , "|", 0.4)
+    print('%.0f' %findint(kl,0.5) , "|", 0.5)
+    print('%.0f' %findint(kl,0.6) , "|", 0.6)
+    print('%.0f' %findint(kl,0.7) , "|", 0.7)
+    print('%.0f' %findint(kl,0.85) , "|", 0.85)
+    print('%.0f' %findint(kl,0.95) , "|", 0.95)
+    print('\n')
+    print('Done!')
 
 def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.plot(x, y, type)

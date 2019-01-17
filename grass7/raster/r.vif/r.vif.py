@@ -91,7 +91,7 @@ import os
 import sys
 import math
 import numpy as np
-from cStringIO import StringIO
+from io import StringIO
 import uuid
 import tempfile
 import atexit
@@ -123,7 +123,7 @@ def tmpname(prefix):
 
 def CheckLayer(envlay):
     """Check if the input layers exist. If not, exit with warning"""
-    for chl in xrange(len(envlay)):
+    for chl in range(len(envlay)):
         ffile = gs.find_file(envlay[chl], element='cell')
         if ffile['fullname'] == '':
             gs.fatal("The layer " + envlay[chl] + " does not exist.")
@@ -198,7 +198,7 @@ def main(options, flags):
     IPR = options['retain'].split(',')
     if IPR != ['']:
         CheckLayer(IPR)
-        for k in xrange(len(IPR)):
+        for k in range(len(IPR)):
             if IPR[k] not in IPF:
                 IPF.extend([IPR[k]])
     IPFn = [i.split('@')[0] for i in IPF]
@@ -229,8 +229,8 @@ def main(options, flags):
     # VIF is computed once only
     if MXVIF == '':
         # Print header of table to std output
-        print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
-                ['variable', 'vif', 'sqrtvif'], nlength))
+        print(('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
+                ['variable', 'vif', 'sqrtvif'], nlength)))
 
         # Compute the VIF
         for i, e in enumerate(IPFn):
@@ -249,11 +249,11 @@ def main(options, flags):
             out_vif.append(vifstat[0])
             out_sqrt.append(vifstat[1])
             out_variable.append(e)
-            print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format([IPFn[i],
-                  vifstat[0], vifstat[1]], nlength))
-        print
+            print(('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format([IPFn[i],
+                  vifstat[0], vifstat[1]], nlength)))
+        print()
         if len(OPF) > 0:
-            print("Statistics are written to {}\n".format(OPF))
+            print(("Statistics are written to {}\n".format(OPF)))
 
     # The VIF stepwise variable selection procedure
     else:
@@ -277,10 +277,10 @@ def main(options, flags):
             # print the header of the output table to the console
             if not flag_s:
                 print("\n")
-                print("VIF round " + str(m))
+                print(("VIF round " + str(m)))
                 print("--------------------------------------")
-                print('{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}'.format(
-                    ['variable', 'vif', 'sqrtvif'], nlength))
+                print(('{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}'.format(
+                    ['variable', 'vif', 'sqrtvif'], nlength)))
 
             # Compute the VIF and sqrt(vif) for all variables in this round
             for k, e in enumerate(IPFn):
@@ -305,8 +305,8 @@ def main(options, flags):
 
                 # print result to console
                 if not flag_s:
-                    print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.
-                          format([IPFn[k], vifstat[0], vifstat[1]], nlength))
+                    print(('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.
+                          format([IPFn[k], vifstat[0], vifstat[1]], nlength)))
 
                 # If variable is set to be retained by the user, the VIF
                 # is set to -9999 to ensure it will not have highest VIF
@@ -331,21 +331,21 @@ def main(options, flags):
             print("/n")
             print("selected variables are: ")
             print("--------------------------------------")
-            print(', '.join(IPFn))
+            print((', '.join(IPFn)))
         else:
-            print(','.join(IPFn))
+            print((','.join(IPFn)))
 
     if len(OPF) > 0:
         try:
             text_file = open(OPF, "w")
             if MXVIF == '':
                 text_file.write("variable,vif,sqrtvif\n")
-                for i in xrange(len(out_vif)):
+                for i in range(len(out_vif)):
                     text_file.write('{0:s},{1:.6f},{2:.6f}\n'.format(
                         out_variable[i], out_vif[i], out_sqrt[i]))
             else:
                 text_file.write("round,removed,variable,vif,sqrtvif\n")
-                for i in xrange(len(out_vif)):
+                for i in range(len(out_vif)):
                     text_file.write('{0:d},{1:s},{2:s},{3:.6f},{4:.6f}\n'.
                                     format(out_round[i], out_removed[i],
                                            out_variable[i], out_vif[i],

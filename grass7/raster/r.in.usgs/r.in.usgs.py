@@ -463,7 +463,7 @@ def main():
                                                 count=file_download_count,
                                                 srs=product_srs,
                                                 tile=TNM_file_titles_info)
-    print data_info
+    print(data_info)
 
     if gui_i_flag:
         gscript.info(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))

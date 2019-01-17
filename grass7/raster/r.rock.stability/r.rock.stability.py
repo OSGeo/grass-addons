@@ -99,10 +99,6 @@ except:
     except:
         sys.exit("grass.script can't be imported.")
 
-if not os.environ.has_key("GISBASE"):
-    print("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
-
 def main():
 ############################################### leggo variabili###################################
     r_elevation = options['dem'].split('@')[0]

@@ -61,10 +61,6 @@ import os
 import sys
 import grass.script as grass
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
-
 def set_output_encoding(encoding='utf-8'):
     import codecs
     current = sys.stdout.encoding
@@ -109,7 +105,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
+    sld = """<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0" 
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
     xmlns="http://www.opengis.net/sld" 
@@ -118,7 +114,7 @@ def main():
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
     <Name>{}</Name>""".format(style_name)
-    sld+=u"""    <UserStyle>
+    sld+="""    <UserStyle>
       <Title>{}</Title>\n
       <FeatureTypeStyle>
         <Rule>
@@ -126,19 +122,19 @@ def main():
 
     # Define type of ColorMap depending on data type of input map
     if use_categories:
-        sld+=u'            <ColorMap type={}>\n'.format('"values"')
-        ColorMapEntry = u'              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" label="{4}" opacity="{5}" />\n'
+        sld+='            <ColorMap type={}>\n'.format('"values"')
+        ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" label="{4}" opacity="{5}" />\n'
     else:
-        sld+=u'            <ColorMap>\n'
+        sld+='            <ColorMap>\n'
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
-        ColorMapEntry = u'              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
+        ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
     # 
     for c in color_rules:
         if len(c.split(' ')) == 2 and not c.split(' ')[0] == 'default':
             q = c.split(' ')[0]
             if q == 'nv':
-                q = u'NaN'
+                q = 'NaN'
                 r = 255
                 g = 255
                 b = 255
@@ -149,10 +145,10 @@ def main():
                 b = int(c.split(' ')[1].split(':')[2])
                 o = 1
             if use_categories:
-                if str(q) in categories.keys():
+                if str(q) in list(categories.keys()):
                     l = categories[str(q)]
-                elif q == u'NaN':
-                    l = u'NoData'
+                elif q == 'NaN':
+                    l = 'NoData'
                 else:
                     continue
                 sld+=ColorMapEntry.format(r,g,b,q,l,o)
@@ -160,7 +156,7 @@ def main():
                 sld+=ColorMapEntry.format(r,g,b,q,o)
 
     # write file footer
-    sld+=u"""            </ColorMap>
+    sld+="""            </ColorMap>
           </RasterSymbolizer>
         </Rule>
       </FeatureTypeStyle>
@@ -170,7 +166,7 @@ def main():
 
     if output == '-':
         # Write SLD to stdout if no output is requested
-        print sld
+        print(sld)
     else:
         # Write SLD to file if requested
         with open(output, 'w+') as o:

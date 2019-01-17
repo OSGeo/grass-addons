@@ -151,17 +151,17 @@ def main():
 
     find_elev = grass.find_file(elevmap, element = 'cell')
     if find_elev['name'] == "":
-        print "Map %s not found! Aborting." % elevmap
+        print("Map %s not found! Aborting." % elevmap)
         sys.exit()
 
     find_slope = grass.find_file(slope, element = 'cell')
     if find_slope['name'] == "":
-        print "Map %s not found! Aborting." % slope
+        print("Map %s not found! Aborting." % slope)
         sys.exit()
 
     find_aspect = grass.find_file(aspect, element = 'cell')
     if find_aspect['name'] == "":
-        print "Map %s not found! Aborting." % aspect
+        print("Map %s not found! Aborting." % aspect)
         sys.exit()
 
 #########################################################################################################

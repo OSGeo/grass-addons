@@ -69,7 +69,7 @@ def main():
     ncols = gregion['cols']
     ewres=int(gregion['ewres'])
     nsres=int(gregion['nsres'])
-    print nrows, ncols, ewres,nsres
+    print(nrows, ncols, ewres,nsres)
 
     outf = file(output,"w")
     outf.write("**ATTRIBUTES\n")
@@ -108,12 +108,12 @@ def main():
     example=tmp.split()
 
     examples.append(example)
-    MATRIX=map(list,zip(*examples))
+    MATRIX=list(map(list,list(zip(*examples))))
 
     MATRIX=[r for r in MATRIX if not '?' in r] #remove all rows with almost one "?"
     MATRIX=[list(i) for i in set(tuple(j) for j in MATRIX)] #remove duplicate example 
                 
-    print "rows:%d - col:%d" %(len(MATRIX),len(MATRIX[0]))
+    print("rows:%d - col:%d" %(len(MATRIX),len(MATRIX[0])))
     for r in range(len(MATRIX)):
         for c in range(len(MATRIX[0])):
             outf.write("%s " %  str(MATRIX[r][c]))

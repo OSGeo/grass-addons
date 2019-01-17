@@ -64,14 +64,14 @@ def main():
 
     for i in range(len(stats)):
         if i == 0:
-            zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i, 1] = list(map(float, stats[i].split(' ')))
             zn[i,2] = zn[i,1]
         else:
-            zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
+            zn[i,0], zn[i, 1] = list(map(float, stats[i].split(' ')))
             zn[i,2] = zn[i,1] + zn[i-1,2]
 
     totcell = sum(zn[:,1])
-    print "Tot. cells", totcell
+    print("Tot. cells", totcell)
 
     for i in range(len(stats)):
         zn[i,3] = 1 - (zn[i,2] / sum(zn[:,1]))
@@ -97,19 +97,19 @@ def main():
     if flags['b']:
         plotImage(zn[:,4], zn[:,0],options['image']+'_Hypsographic.png','-','A [km^2]','Z [m.slm]','Hypsographic Curve')
 
-    print "==========================="
-    print "Hypsometric | quantiles"
-    print "==========================="
-    print '%.0f' %findint(kl,0.025) , "|", 0.025
-    print '%.0f' %findint(kl,0.05) , "|", 0.05
-    print '%.0f' %findint(kl,0.1) , "|", 0.1
-    print '%.0f' %findint(kl,0.25) , "|", 0.25
-    print '%.0f' %findint(kl,0.5) , "|", 0.5
-    print '%.0f' %findint(kl,0.75) , "|", 0.75
-    print '%.0f' %findint(kl,0.9) , "|", 0.9
-    print '%.0f' %findint(kl,0.975) , "|", 0.975
-    print '\n'
-    print 'Done!'
+    print("===========================")
+    print("Hypsometric | quantiles")
+    print("===========================")
+    print('%.0f' %findint(kl,0.025) , "|", 0.025)
+    print('%.0f' %findint(kl,0.05) , "|", 0.05)
+    print('%.0f' %findint(kl,0.1) , "|", 0.1)
+    print('%.0f' %findint(kl,0.25) , "|", 0.25)
+    print('%.0f' %findint(kl,0.5) , "|", 0.5)
+    print('%.0f' %findint(kl,0.75) , "|", 0.75)
+    print('%.0f' %findint(kl,0.9) , "|", 0.9)
+    print('%.0f' %findint(kl,0.975) , "|", 0.975)
+    print('\n')
+    print('Done!')
     #print prc
 
 
