@@ -117,31 +117,31 @@ def main():
 
     rtvflags=""
     for key in 'sbtvz':
-	if flags[key]:
-	    rtvflags += key
+        if flags[key]:
+            rtvflags += key
 
     # check options
     if xtiles <= 0:
-	grass.fatal(_("Number of tiles in x direction must be > 0"))
+        grass.fatal(_("Number of tiles in x direction must be > 0"))
     if ytiles < 0:
-	grass.fatal(_("Number of tiles in y direction must be > 0"))
+        grass.fatal(_("Number of tiles in y direction must be > 0"))
     if grass.find_file(name = input)['name'] == '':
-	grass.fatal(_("Input raster %s not found") % input)
+        grass.fatal(_("Input raster %s not found") % input)
 
     grass.use_temp_region()
     curr = grass.region()
     width = int(curr['cols'] / xtiles)
     if width <= 1:
-	grass.fatal("The requested number of tiles in x direction is too large")
+        grass.fatal("The requested number of tiles in x direction is too large")
     height = int(curr['rows'] / ytiles)
     if height <= 1:
-	grass.fatal("The requested number of tiles in y direction is too large")
+        grass.fatal("The requested number of tiles in y direction is too large")
 
     do_clip = False
     overlap = 0
     if flags['s'] and ftype == 'area':
-	do_clip = True
-	overlap = 2
+        do_clip = True
+        overlap = 2
 
     ewres = curr['ewres']
     nsres = curr['nsres']
@@ -153,97 +153,97 @@ def main():
     e = curr['e']
     w = curr['w'] + xoverlap
     if w >= e:
-	grass.fatal(_("Overlap is too large"))
+        grass.fatal(_("Overlap is too large"))
     n = curr['n'] - yoverlap
     s = curr['s']
     if s >= n:
-	grass.fatal(_("Overlap is too large"))
+        grass.fatal(_("Overlap is too large"))
 
     datatype = grass.raster_info(input)['datatype']
     vtiles = None
 
     # north to south
     for ytile in range(ytiles):
-	n = curr['n'] - ytile * height * nsres
-	s = n - height * nsres - yoverlap
-	if ytile == ytiles - 1:
-	    s = curr['s']
-	# west to east
-	for xtile in range(xtiles):
-	    w = curr['w'] + xtile * width * ewres
-	    e = w + width * ewres + xoverlap
+        n = curr['n'] - ytile * height * nsres
+        s = n - height * nsres - yoverlap
+        if ytile == ytiles - 1:
+            s = curr['s']
+        # west to east
+        for xtile in range(xtiles):
+            w = curr['w'] + xtile * width * ewres
+            e = w + width * ewres + xoverlap
 
-	    if xtile == xtiles - 1:
-	        e = curr['e']
+            if xtile == xtiles - 1:
+                e = curr['e']
 
-	    grass.run_command('g.region', n = n, s = s, e = e, w = w, nsres = nsres, ewres = ewres)
-	    
-	    if do_clip:
-		tilename = output + '_stile_' + str(ytile) + str(xtile)
-	    else:
-		tilename = output + '_tile_' + str(ytile) + str(xtile)
+            grass.run_command('g.region', n = n, s = s, e = e, w = w, nsres = nsres, ewres = ewres)
 
-	    outname = output + '_tile_' + str(ytile) + str(xtile)
+            if do_clip:
+                tilename = output + '_stile_' + str(ytile) + str(xtile)
+            else:
+                tilename = output + '_tile_' + str(ytile) + str(xtile)
 
-	    grass.run_command('r.to.vect', input = input, output = tilename,
-	                      type = ftype, column = column, flags = rtvflags)
+            outname = output + '_tile_' + str(ytile) + str(xtile)
 
-	    if do_clip:
-		n2 = curr['n'] - ytile * height * nsres - yoverlap2
-		s2 = n2 - height * nsres
-		if ytile == 0:
-		    n2 = curr['n']
-		    s2 = n2 - height * nsres - yoverlap2
-		if ytile == ytiles - 1:
-		    s2 = curr['s']
+            grass.run_command('r.to.vect', input = input, output = tilename,
+                              type = ftype, column = column, flags = rtvflags)
 
-		w2 = curr['w'] + xtile * width * ewres + xoverlap2
-		e2 = w2 + width * ewres
-		if xtile == 0:
-		    w2 = curr['w']
-		    e2 = w2 + width * ewres + xoverlap2
-		if xtile == xtiles - 1:
-		    e2 = curr['e']
+            if do_clip:
+                n2 = curr['n'] - ytile * height * nsres - yoverlap2
+                s2 = n2 - height * nsres
+                if ytile == 0:
+                    n2 = curr['n']
+                    s2 = n2 - height * nsres - yoverlap2
+                if ytile == ytiles - 1:
+                    s2 = curr['s']
 
-		tilename = output + '_stile_' + str(ytile) + str(xtile)
-		if grass.vector_info_topo(tilename)['areas'] > 0:
-		    grass.run_command('g.region', n = n2, s = s2, e = e2, w = w2,
-				      nsres = nsres, ewres = ewres)
-		    
-		    extname = 'extent_tile_' + str(ytile) + str(xtile)
-		    grass.run_command('v.in.region', output = extname, flags = 'd')
-		    outname = output + '_tile_' + str(ytile) + str(xtile)
-		    grass.run_command('v.overlay', ainput = tilename, binput = extname, 
-				      output = outname, operator = 'and', olayer = '0,1,0')
-		    grass.run_command('g.remove', flags='f', type='vector', name= extname, quiet = True)
+                w2 = curr['w'] + xtile * width * ewres + xoverlap2
+                e2 = w2 + width * ewres
+                if xtile == 0:
+                    w2 = curr['w']
+                    e2 = w2 + width * ewres + xoverlap2
+                if xtile == xtiles - 1:
+                    e2 = curr['e']
 
-		    if vtiles is None:
-			vtiles = outname
-		    else:
-			vtiles = vtiles + ',' + outname
+                tilename = output + '_stile_' + str(ytile) + str(xtile)
+                if grass.vector_info_topo(tilename)['areas'] > 0:
+                    grass.run_command('g.region', n = n2, s = s2, e = e2, w = w2,
+                                      nsres = nsres, ewres = ewres)
 
-		grass.run_command('g.remove', flags='f', type='vector', name= tilename, quiet = True)
+                    extname = 'extent_tile_' + str(ytile) + str(xtile)
+                    grass.run_command('v.in.region', output = extname, flags = 'd')
+                    outname = output + '_tile_' + str(ytile) + str(xtile)
+                    grass.run_command('v.overlay', ainput = tilename, binput = extname,
+                                      output = outname, operator = 'and', olayer = '0,1,0')
+                    grass.run_command('g.remove', flags='f', type='vector', name= extname, quiet = True)
 
-	    else:
-		# write cmd history:
-		grass.vector_history(outname)
-		if vtiles is None:
-		    vtiles = outname
-		else:
-		    vtiles = vtiles + ',' + outname
+                    if vtiles is None:
+                        vtiles = outname
+                    else:
+                        vtiles = vtiles + ',' + outname
+
+                grass.run_command('g.remove', flags='f', type='vector', name= tilename, quiet = True)
+
+            else:
+                # write cmd history:
+                grass.vector_history(outname)
+                if vtiles is None:
+                    vtiles = outname
+                else:
+                    vtiles = vtiles + ',' + outname
 
     if flags['p']:
-	grass.run_command('v.patch', input = vtiles, output = output,
-			  flags = 'e')
+        grass.run_command('v.patch', input = vtiles, output = output,
+                          flags = 'e')
 
         grass.run_command('g.remove', flags='f', type='vector', name= vtiles, quiet = True)
-	
-	if grass.vector_info_topo(output)['boundaries'] > 0:
-	    outpatch = output + '_patch'
-	    grass.run_command('g.rename', vector = (output,outpatch))
-	    grass.run_command('v.clean', input = outpatch, output = output,
-			      tool = 'break', flags = 'c')
-	    grass.run_command('g.remove', flags='f', type='vector', name= outpatch)
+
+        if grass.vector_info_topo(output)['boundaries'] > 0:
+            outpatch = output + '_patch'
+            grass.run_command('g.rename', vector = (output,outpatch))
+            grass.run_command('v.clean', input = outpatch, output = output,
+                              tool = 'break', flags = 'c')
+            grass.run_command('g.remove', flags='f', type='vector', name= outpatch)
 
 
     grass.message(_("%s complete") % 'r.to.vect.tiled')

@@ -102,48 +102,48 @@ def get_autocorrelation (mapname, raster, neighbordict, method):
     """ Calculate either Moran's I or Geary's C for values of the given raster """
 
     raster_vars = gscript.parse_command('r.univar',
-			  		map_=raster,
-			  		flags='g',
-			  		quiet=True)
+                    map_=raster,
+                    flags='g',
+                    quiet=True)
     global_mean = float(raster_vars['mean'])
 
     univar_res = gscript.read_command('r.univar',
-			 	      flags='t',
-			 	      map_=raster,
-			 	      zones=mapname,
-			 	      out='-',
-			 	      sep='comma',
-                                      quiet=True)
+                    flags='t',
+                    map_=raster,
+                    zones=mapname,
+                    out='-',
+                    sep='comma',
+                    quiet=True)
 
     means = {}
     mean_diffs = {}
     firstline = True
     for line in univar_res.splitlines():
-	l = line.split(',')
-	if firstline:
-	    i = l.index('mean')
-	    firstline = False
-	else:
-	    means[l[0]] = float(l[i])
-	    mean_diffs[l[0]] = float(l[i]) - global_mean
+        l = line.split(',')
+        if firstline:
+            i = l.index('mean')
+            firstline = False
+        else:
+            means[l[0]] = float(l[i])
+            mean_diffs[l[0]] = float(l[i]) - global_mean
     
     sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
-	total_nb_neighbors += len(neighbordict[region])
+        total_nb_neighbors += len(neighbordict[region])
     
     N = len(means)
     sum_products = 0
     sum_squared_differences = 0
     for region in neighbordict:
-	region_value = means[region] - global_mean
-	neighbors = neighbordict[region]
-	nb_neighbors = len(neighbors)
-	for neighbor in neighbors:
-	    neighbor_value = means[neighbor] - global_mean
-	    sum_products += region_value * neighbor_value
-            sum_squared_differences = ( means[region] - means[neighbor] ) ** 2
+        region_value = means[region] - global_mean
+        neighbors = neighbordict[region]
+        nb_neighbors = len(neighbors)
+        for neighbor in neighbors:
+            neighbor_value = means[neighbor] - global_mean
+            sum_products += region_value * neighbor_value
+                sum_squared_differences = ( means[region] - means[neighbor] ) ** 2
 
     if method == 'moran':
         autocor = ( ( float(N) / total_nb_neighbors ) * (float(sum_products)  /  sum_sq_mean_diffs ) )
