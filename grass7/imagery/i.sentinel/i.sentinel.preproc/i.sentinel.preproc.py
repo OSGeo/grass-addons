@@ -295,11 +295,11 @@ def main ():
                         images.text.replace('_B09','')))
 
     # Check if input exist
-	for key, value in bands.items():
-		if not gscript.find_file(value,
-			element = 'cell',
-			mapset = mapset)['file']:
-			gscript.fatal(('Raster map <{}> not found.').format(value))
+    for key, value in bands.items():
+        if not gscript.find_file(value,
+            element = 'cell',
+            mapset = mapset)['file']:
+            gscript.fatal(('Raster map <{}> not found.').format(value))
 
     # Check if output already exist
     for key, value in bands.items():
@@ -641,7 +641,7 @@ def main ():
             text.write('191')
         else:
             gscript.fatal('Bands do not seem to belong to a Sentinel image')
-    	text.close()
+        text.close()
         
         if flags["a"]:
             gscript.run_command('i.atcorr',
