@@ -230,7 +230,7 @@ def confile(pm, opts, q, mosaik=False):
         conf = pm.confResample(spectr, res, pref, dat, resampl,
                                proj, zone, projpar)
         return conf
-    except IOError, e:
+    except IOError as e:
         grass.fatal(e)
 
 

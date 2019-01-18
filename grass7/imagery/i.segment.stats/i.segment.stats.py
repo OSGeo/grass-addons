@@ -178,18 +178,18 @@ def main():
     rasters = options['rasters'].split(',') if options['rasters'] else []
     area_measures = options['area_measures'].split(',') if (options['area_measures'] and not flags['s']) else []
     if area_measures:
-	if not gscript.find_program('r.object.geometry', '--help'):
-		message = _("You need to install the addon r.object.geometry to be able")
-		message += _(" to calculate area measures.\n")
-		message += _(" You can install the addon with 'g.extension r.object.geometry'")
-		gscript.fatal(message)
+        if not gscript.find_program('r.object.geometry', '--help'):
+                message = _("You need to install the addon r.object.geometry to be able")
+                message += _(" to calculate area measures.\n")
+                message += _(" You can install the addon with 'g.extension r.object.geometry'")
+                gscript.fatal(message)
     neighborhood = True if flags['n'] else False
     if neighborhood:
-	if not gscript.find_program('r.neighborhoodmatrix', '--help'):
-		message = _("You need to install the addon r.neighborhoodmatrix to be able")
-		message += _(" to calculate area measures.\n")
-		message += _(" You can install the addon with 'g.extension r.neighborhoodmatrix'")
-		gscript.fatal(message)
+        if not gscript.find_program('r.neighborhoodmatrix', '--help'):
+                message = _("You need to install the addon r.neighborhoodmatrix to be able")
+                message += _(" to calculate area measures.\n")
+                message += _(" You can install the addon with 'g.extension r.neighborhoodmatrix'")
+                gscript.fatal(message)
 
     raster_statistics = options['raster_statistics'].split(',') if options['raster_statistics'] else []
     separator = gscript.separator(options['separator'])
@@ -205,7 +205,7 @@ def main():
             'mean': 7}
 
     geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
-			'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
+                        'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
                         'xcoords': 6, 'ycoords': 7}
     
     if flags['r']:
@@ -214,23 +214,23 @@ def main():
 
     stats_temp_file = gscript.tempfile()
     if area_measures:
-	gscript.message(_("Calculating geometry statistics..."))
-	output_header += area_measures
-	stat_indices = [geometry_stat_dict[x] for x in area_measures]
+        gscript.message(_("Calculating geometry statistics..."))
+        output_header += area_measures
+        stat_indices = [geometry_stat_dict[x] for x in area_measures]
         gscript.run_command('r.object.geometry',
-     		      	    input_=segment_map,
-		      	    output=stats_temp_file,
-		      	    overwrite=True,
-		      	    quiet=True)
+                                  input_=segment_map,
+                                  output=stats_temp_file,
+                                  overwrite=True,
+                                  quiet=True)
     
-	firstline = True
-    	with open(stats_temp_file, 'r') as fin:
-	    for line in fin:
-		if firstline:
-		    firstline = False
-		    continue
-		values = line.rstrip().split('|')
-		output_dict[values[0]] = [values[x] for x in stat_indices]
+        firstline = True
+        with open(stats_temp_file, 'r') as fin:
+            for line in fin:
+                if firstline:
+                    firstline = False
+                    continue
+                values = line.rstrip().split('|')
+                output_dict[values[0]] = [values[x] for x in stat_indices]
 
     if rasters:
         if not flags['c']:
@@ -286,7 +286,7 @@ def main():
     # Calculating neighborhood statistics if requested
     if neighborhood:
 
-	gscript.message(_("Calculating neighborhood statistics..."))
+        gscript.message(_("Calculating neighborhood statistics..."))
 
         # Add neighbordhood statistics to headers
         original_nb_values = len(output_header) - 1
@@ -334,14 +334,14 @@ def main():
         with open(csvfile, 'wb') as f:
             f.write(separator.join(output_header)+"\n")
             for key in output_dict:
-		if len(output_dict[key]) + 1 == len(output_header):
+                if len(output_dict[key]) + 1 == len(output_header):
                     f.write(key+separator+separator.join(output_dict[key])+"\n")
-		else:
-		    error_objects.append(key)
+                else:
+                    error_objects.append(key)
         f.close()
 
     if vectormap:
-	gscript.message(_("Creating output vector map..."))
+        gscript.message(_("Creating output vector map..."))
         temporary_vect = 'segmstat_tmp_vect_%d' % os.getpid()
         gscript.run_command('r.to.vect',
                             input_=segment_map,
@@ -365,15 +365,15 @@ def main():
             addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, header)
             fsql.write(addcol_statement)
         for key in output_dict:
-		if len(output_dict[key]) + 1  == len(output_header):
+                if len(output_dict[key]) + 1  == len(output_header):
                     sql = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join(output_dict[key]))
                     sql = sql.replace('inf', 'NULL')
                     sql = sql.replace('nan', 'NULL')
                     fsql.write(sql)
-		else:
-		    if not csvfile:
-		    	error_objects.append(key)
-		
+                else:
+                    if not csvfile:
+                            error_objects.append(key)
+                
         fsql.write('END TRANSACTION;')
         fsql.close()
 
@@ -385,7 +385,7 @@ def main():
         object_string = ', '.join(error_objects[:100])
         message += _("\n\nObjects with errors (only first 100 are shown):\n%s" % object_string)
         gscript.message(message)
-		
+
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
