@@ -406,7 +406,6 @@ import atexit
 import os
 import tempfile
 from copy import deepcopy
-from subprocess import PIPE
 import numpy as np
 import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
@@ -630,32 +629,6 @@ def load_training_data(file):
     y = training_data[:, -2]
 
     return(X, y, groups, coords)
-
-
-def maps_from_group(group):
-    """
-    Parse individual rasters into a list from an imagery group
-
-    Args
-    ----
-    group (string): Name of GRASS imagery group
-
-    Returns
-    -------
-    maplist (list): List containing individual GRASS raster maps
-    map_names (list): List with print friendly map names
-    """
-    groupmaps = im.group(group=group, flags="g",
-                         quiet=True, stdout_=PIPE).outputs.stdout
-
-    maplist = groupmaps.split(os.linesep)
-    maplist = maplist[0:len(maplist)-1]
-    map_names = []
-
-    for rastername in maplist:
-        map_names.append(rastername.split('@')[0])
-
-    return(maplist, map_names)
 
 
 def save_model(estimator, X, y, sample_coords, groups, filename):
@@ -1494,7 +1467,8 @@ def main():
     balance = flags['b']
 
     # fetch individual raster names from group
-    maplist, _ = maps_from_group(group)
+    maplist = gs.read_command("i.group", group=group, flags="g").split(os.linesep)[:-1]
+    # map_names = [i.split('@')[0] for i in maplist]
 
     # extract indices of category maps
     if categorymaps.strip() == '':
