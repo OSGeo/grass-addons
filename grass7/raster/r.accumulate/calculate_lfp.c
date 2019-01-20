@@ -48,10 +48,13 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
 
     /* loop through all outlets and find the longest flow path for each */
     cat = 1;
+    G_message(_("Calculating longest flow path..."));
     for (i = 0; i < outlet_pl->n; i++) {
         int row = (int)Rast_northing_to_row(outlet_pl->y[i], &window);
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);
         int n;
+
+	G_percent(i, outlet_pl->n, 1);
 
         /* if the outlet is outside the computational region, skip */
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
@@ -98,6 +101,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
             cat++;
         }
     }
+    G_percent(1, 1, 1);
 
     free_point_list(&pl);
     free_line_list(&ll);

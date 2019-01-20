@@ -1,5 +1,6 @@
 #include <grass/gis.h>
 #include <grass/vector.h>
+#include <grass/glocale.h>
 #include "global.h"
 
 static void trace_down(struct cell_map *, struct raster_map *accum_buf,
@@ -25,7 +26,9 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
     Cats = Vect_new_cats_struct();
 
     /* loop through all cells to find headwater cells */
+    G_message(_("Delineating streams..."));
     for (row = 0; row < rows; row++) {
+	G_percent(row, rows, 1);
         for (col = 0; col < cols; col++) {
             int i, j;
             int nup = 0;
@@ -75,6 +78,7 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
             }
         }
     }
+    G_percent(1, 1, 1);
 
     free_point_list(&pl);
 

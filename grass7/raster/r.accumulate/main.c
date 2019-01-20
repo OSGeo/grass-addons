@@ -348,7 +348,9 @@ int main(int argc, char *argv[])
     dir_buf.rows = rows;
     dir_buf.cols = cols;
     dir_buf.c = G_malloc(rows * sizeof(CELL *));
+    G_message(_("Reading direction map..."));
     for (row = 0; row < rows; row++) {
+	G_percent(row, rows, 1);
         done[row] = G_calloc(cols, 1);
         dir_buf.c[row] = Rast_allocate_c_buf();
         Rast_get_c_row(dir_fd, dir_buf.c[row], row);
@@ -357,6 +359,7 @@ int main(int argc, char *argv[])
                 dir_buf.c[row][col] /= 45.0;
         }
     }
+    G_percent(1, 1, 1);
     Rast_close(dir_fd);
 
     /* optionally, read a weight map */
@@ -367,12 +370,15 @@ int main(int argc, char *argv[])
         weight_buf.rows = rows;
         weight_buf.cols = cols;
         weight_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
+	G_message(_("Reading weight map..."));
         for (row = 0; row < rows; row++) {
+	    G_percent(row, rows, 1);
             weight_buf.map.v[row] =
                 (void *)Rast_allocate_buf(weight_buf.type);
             Rast_get_row(weight_fd, weight_buf.map.v[row], row,
                          weight_buf.type);
         }
+	G_percent(1, 1, 1);
         Rast_close(weight_fd);
     }
     else {

@@ -1,3 +1,4 @@
+#include <grass/glocale.h>
 #include "global.h"
 
 static double trace_up(struct cell_map *, struct raster_map *,
@@ -9,10 +10,13 @@ void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
     int rows = dir_buf->rows, cols = dir_buf->cols;
     int row, col;
 
+    G_message(_("Accumulating flow..."));
     for (row = 0; row < rows; row++) {
+	G_percent(row, rows, 1);
         for (col = 0; col < cols; col++)
             trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
     }
+    G_percent(1, 1, 1);
 }
 
 static double trace_up(struct cell_map *dir_buf,
