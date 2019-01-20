@@ -328,10 +328,12 @@ int main(int argc, char *argv[])
 
         Vect_close(&Map);
 
-        if (n < outlet_pl.n)
-            G_fatal_error(_("Too few longest flow path IDs specified"));
-        if (n > outlet_pl.n)
-            G_fatal_error(_("Too many longest flow path IDs specified"));
+	if (driver) {
+	    if (n < outlet_pl.n)
+		G_fatal_error(_("Too few longest flow path IDs specified"));
+	    if (n > outlet_pl.n)
+		G_fatal_error(_("Too many longest flow path IDs specified"));
+	}
     }
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
