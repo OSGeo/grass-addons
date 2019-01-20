@@ -5,7 +5,7 @@
 # MODULE:	i.signature.list
 # AUTHOR(S):	Luca Delucchi
 #
-# PURPOSE:	List signature file for a group/subgroup
+# PURPOSE:	Lists signature file for a group/subgroup
 # COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -15,10 +15,11 @@
 #############################################################################
 
 #%module
-#% description: List signature file for a group/subgroup
+#% description: Lists signature file of a group/subgroup.
 #% keyword: imagery
 #% keyword: map management
 #% keyword: list
+#% keyword: signature
 #% keyword: group
 #% keyword: search
 #%end

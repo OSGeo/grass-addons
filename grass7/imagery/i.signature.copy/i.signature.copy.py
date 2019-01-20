@@ -5,7 +5,7 @@
 # MODULE:	i.signature.copy
 # AUTHOR(S):	Luca Delucchi
 #
-# PURPOSE:	Copy signature file from a group/subgroup
+# PURPOSE:	Copies signature file from a group/subgroup
 # COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -15,10 +15,11 @@
 #############################################################################
 
 #%module
-#% description: List signature file for a group/subgroup
+#% description: Copies signature file from a group/subgroup to another group/subgroup.
 #% keyword: imagery
 #% keyword: map management
 #% keyword: copy
+#% keyword: signature
 #% keyword: group
 #%end
 

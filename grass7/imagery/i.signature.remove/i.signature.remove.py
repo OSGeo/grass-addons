@@ -5,7 +5,7 @@
 # MODULE:	i.signature.remove
 # AUTHOR(S):	Luca Delucchi
 #
-# PURPOSE:	Remove signature file from a group/subgroup
+# PURPOSE:	Removes signature file from a group/subgroup
 # COPYRIGHT:	(C) 2018 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -15,10 +15,11 @@
 #############################################################################
 
 #%module
-#% description: List signature file for a group/subgroup
+#% description: Removes signature file in a group/subgroup.
 #% keyword: imagery
 #% keyword: map management
 #% keyword: remove
+#% keyword: signature
 #% keyword: group
 #%end
 

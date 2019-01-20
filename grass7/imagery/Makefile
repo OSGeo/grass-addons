@@ -28,6 +28,9 @@ SUBDIRS = \
 	i.segment.stats \
 	i.segment.uspo \
 	i.sentinel \
+	i.signature.copy \
+	i.signature.list \
+	i.signature.remove \
 	i.spec.sam \
 	i.spec.unmix \
 	i.theilsen \
