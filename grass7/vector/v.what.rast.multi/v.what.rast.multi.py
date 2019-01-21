@@ -21,10 +21,14 @@
 ############################################################################
 
 #%module
-#% description: Uploads values of multiple rasters at positions of vector
-# points to the table.
-#% keyword: vector, sampling, raster, position, querying, attribute table,
-# surface information
+#% description: Uploads values of multiple rasters at positions of vector points to the table.
+#% keyword: vector
+#% keyword: sampling
+#% keyword: raster
+#% keyword: position
+#% keyword: querying
+#% keyword: attribute table
+#% keyword: surface information
 #%end
 
 #%flag
