@@ -77,7 +77,7 @@ eval `r.info -g map=elevation`
 r.stream.extract elevation=elevation threshold=50000 stream_vector=streams
 
 # populate stream lengths
-v.db.addcolumn map=streams columns="length double"
+v.db.addcolumn map=streams columns="length real"
 v.to.db map=streams option=length columns=length
 
 # create points along the streams starting from downstream
