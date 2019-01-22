@@ -97,7 +97,7 @@
 #% label: Suffix for output image(s)
 #% description: Names of Pan-Sharpened image(s) will end with this suffix
 #% required: yes
-#% answer: hpf
+#% answer: .hpf
 #%end
 
 #%option
@@ -555,7 +555,7 @@ def main():
         run("r.support", map=tmp_msx_hpf, history="\n".join(cmd_history))
 
         # add suffix to basename & rename end product
-        msx_name = "{base}.{suffix}"
+        msx_name = "{base}{suffix}"
         msx_name = msx_name.format(base=msx.split('@')[0], suffix=outputsuffix)
         run("g.rename", raster=(tmp_msx_hpf, msx_name))
 
