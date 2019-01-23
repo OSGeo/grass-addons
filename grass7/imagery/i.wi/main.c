@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
                 || !(opt.green->answer)) )
         G_fatal_error(_("ndwi_mf requires green, nir maps"));
 
-    if (!strcasecmp(wiflag, "ndwi_x") && (!(opt.nir->answer)
+    if (!strcasecmp(wiflag, "ndwi_x") && (!(opt.chan5->answer)
                 || !(opt.green->answer)) )
         G_fatal_error(_("ndwi_x requires green, chan5 maps"));
 
