@@ -10,7 +10,7 @@ void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
     int rows = dir_buf->rows, cols = dir_buf->cols;
     int row, col;
 
-    G_message(_("Accumulating flow..."));
+    G_message(_("Accumulating flows..."));
     for (row = 0; row < rows; row++) {
 	G_percent(row, rows, 1);
         for (col = 0; col < cols; col++)

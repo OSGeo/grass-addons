@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.accumulate</em> calculates weighted flow accumulatin, stream networks,
+<em>r.accumulate</em> calculates weighted flow accumulation, stream networks,
 and the longest flow path using a flow direction map.
 
 <h2>NOTES</h2>
@@ -8,7 +8,7 @@ and the longest flow path using a flow direction map.
 <h3>Flow accumulation</h3>
 
 Unlike <em>r.watershed</em>, <em>r.accumulate</em> does not require the
-elevation data to calculate weigited flow accumulation.  Instead, this module
+elevation data to calculate weighted flow accumulation.  Instead, this module
 only uses a flow direction map to trace and accumulate the amount of flow
 draining through and including each cell.
 
@@ -37,6 +37,8 @@ Direction encoding for neighbors of x
 <p>Since the module does not use elevation data (i.e., slope), flow
 accumulation is calculated by single flow direction (SFD) routing and may not
 be comparable to the result from multiple flow direction (MFD) routing.
+
+<p>The module requires flow accumulation for any output, so it will internally accumulate flows every time it runs unless <b>input_accumulation</b> option is provided to save computational time by not repeating this process.  In this case, it is important to use flow accumulation consistent with the flow direction map (e.g., <b>accumulation</b> output from this module).
 
 <h3>Stream network delineation</h3>
 
@@ -101,7 +103,7 @@ cells are assigned 1 even if they are located downstream of other cells.
 
 <p><img src="r_accumulate_nc_comparison.png">
 
-<p>For comparison, these numbers show the new flow accumulatoin
+<p>For comparison, these numbers show the new flow accumulation
 (<i>flow_accum_new</i> from <em>r.accumulate</em>). The same cells are properly
 accumulated from the headwater cells.
 

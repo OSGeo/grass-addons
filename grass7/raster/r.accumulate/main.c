@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
         struct Option *dir;
         struct Option *format;
         struct Option *weight;
+        struct Option *input_accum;
         struct Option *accum;
         struct Option *thresh;
         struct Option *stream;
@@ -56,8 +57,8 @@ int main(int argc, char *argv[])
         struct Flag *conf;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *accum_name, *stream_name, *outlet_name,
-        *lfp_name;
+    char *dir_name, *weight_name, *input_accum_name, *accum_name, *stream_name,
+	 *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -102,6 +103,13 @@ int main(int argc, char *argv[])
     opt.weight->key = "weight";
     opt.weight->required = NO;
     opt.weight->description = _("Name of input flow weight map");
+
+    opt.input_accum = G_define_standard_option(G_OPT_R_INPUT);
+    opt.input_accum->key = "input_accumulation";
+    opt.input_accum->required = NO;
+    opt.input_accum->type = TYPE_STRING;
+    opt.input_accum->description =
+        _("Name of input weighted flow accumulation map");
 
     opt.accum = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.accum->key = "accumulation";
@@ -168,6 +176,8 @@ int main(int argc, char *argv[])
      * themselves can be negative; the longest flow path requires positive
      * non-weighted accumulation */
     G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
+    G_option_exclusive(opt.input_accum, opt.accum, NULL);
+    G_option_exclusive(opt.weight, opt.input_accum, NULL);
     G_option_required(opt.accum, opt.stream, opt.lfp, NULL);
     G_option_collective(opt.thresh, opt.stream, NULL);
     G_option_requires(opt.lfp, opt.coords, opt.outlet, NULL);
@@ -181,6 +191,7 @@ int main(int argc, char *argv[])
 
     dir_name = opt.dir->answer;
     weight_name = opt.weight->answer;
+    input_accum_name = opt.input_accum->answer;
     accum_name = opt.accum->answer;
     stream_name = opt.stream->answer;
     outlet_name = opt.outlet->answer;
@@ -362,7 +373,13 @@ int main(int argc, char *argv[])
     G_percent(1, 1, 1);
     Rast_close(dir_fd);
 
+    /* prepare to create accumulation buffer */
+    accum_buf.rows = rows;
+    accum_buf.cols = cols;
+    accum_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
+
     /* optionally, read a weight map */
+    weight_buf.map.v = NULL;
     if (weight_name) {
         int weight_fd = Rast_open_old(weight_name, "");
 
@@ -381,26 +398,37 @@ int main(int argc, char *argv[])
 	G_percent(1, 1, 1);
         Rast_close(weight_fd);
     }
-    else {
-        weight_buf.map.v = NULL;
+    /* create non-weighted accumulation if input accumulation is not given */
+    else if (!input_accum_name)
         accum_buf.type = CELL_TYPE;
+
+    /* optionally, read an accumulation map */
+    if (input_accum_name) {
+        int accum_fd = Rast_open_old(input_accum_name, "");
+
+        accum_buf.type = Rast_get_map_type(accum_fd);
+	G_message(_("Reading accumulation map..."));
+        for (row = 0; row < rows; row++) {
+	    G_percent(row, rows, 1);
+            accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
+            Rast_get_row(accum_fd, accum_buf.map.v[row], row, accum_buf.type);
+        }
+	G_percent(1, 1, 1);
+        Rast_close(accum_fd);
     }
-
-    /* create accumulation buffer */
-    accum_buf.rows = rows;
-    accum_buf.cols = cols;
-    accum_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
-    for (row = 0; row < rows; row++)
-        accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
-
-    /* accumulate flows */
-    accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
+    /* accumulate flows if input accumulation is not given */
+    else {
+	for (row = 0; row < rows; row++)
+	    accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
+	accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
+    }
 
     /* write out buffer to the accumulatoin map if requested */
     if (accum_name) {
         int accum_fd = Rast_open_new(accum_name, accum_buf.type);
         struct History hist;
 
+	G_message(_("Writing accumulation map..."));
         for (row = 0; row < rows; row++)
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
         Rast_close(accum_fd);
