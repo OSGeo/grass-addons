@@ -31,7 +31,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     struct line_cats *Cats;
     int i, cat;
     dbDriver *driver = NULL;
-    struct field_info *Fi;
+    struct field_info *Fi = NULL;
     dbString sql;
 
     if (idcol) {
