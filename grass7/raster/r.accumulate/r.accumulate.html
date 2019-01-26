@@ -38,7 +38,11 @@ Direction encoding for neighbors of x
 accumulation is calculated by single flow direction (SFD) routing and may not
 be comparable to the result from multiple flow direction (MFD) routing.
 
-<p>The module requires flow accumulation for any output, so it will internally accumulate flows every time it runs unless <b>input_accumulation</b> option is provided to save computational time by not repeating this process.  In this case, it is important to use flow accumulation consistent with the flow direction map (e.g., <b>accumulation</b> output from this module).
+<p>The module requires flow accumulation for any output, so it will internally
+accumulate flows every time it runs unless <b>input_accumulation</b> option is
+provided to save computational time by not repeating this process.  In this
+case, it is important to use flow accumulation consistent with the flow
+direction map (e.g., <b>accumulation</b> output from this module).
 
 <h3>Stream network delineation</h3>
 

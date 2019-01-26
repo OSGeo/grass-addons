@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
         struct Flag *conf;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *input_accum_name, *accum_name, *stream_name,
-	 *outlet_name, *lfp_name;
+    char *dir_name, *weight_name, *input_accum_name, *accum_name,
+        *stream_name, *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -339,12 +339,12 @@ int main(int argc, char *argv[])
 
         Vect_close(&Map);
 
-	if (driver) {
-	    if (n < outlet_pl.n)
-		G_fatal_error(_("Too few longest flow path IDs specified"));
-	    if (n > outlet_pl.n)
-		G_fatal_error(_("Too many longest flow path IDs specified"));
-	}
+        if (driver) {
+            if (n < outlet_pl.n)
+                G_fatal_error(_("Too few longest flow path IDs specified"));
+            if (n > outlet_pl.n)
+                G_fatal_error(_("Too many longest flow path IDs specified"));
+        }
     }
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
     dir_buf.c = G_malloc(rows * sizeof(CELL *));
     G_message(_("Reading direction map..."));
     for (row = 0; row < rows; row++) {
-	G_percent(row, rows, 1);
+        G_percent(row, rows, 1);
         done[row] = G_calloc(cols, 1);
         dir_buf.c[row] = Rast_allocate_c_buf();
         Rast_get_c_row(dir_fd, dir_buf.c[row], row);
@@ -387,15 +387,15 @@ int main(int argc, char *argv[])
         weight_buf.rows = rows;
         weight_buf.cols = cols;
         weight_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
-	G_message(_("Reading weight map..."));
+        G_message(_("Reading weight map..."));
         for (row = 0; row < rows; row++) {
-	    G_percent(row, rows, 1);
+            G_percent(row, rows, 1);
             weight_buf.map.v[row] =
                 (void *)Rast_allocate_buf(weight_buf.type);
             Rast_get_row(weight_fd, weight_buf.map.v[row], row,
                          weight_buf.type);
         }
-	G_percent(1, 1, 1);
+        G_percent(1, 1, 1);
         Rast_close(weight_fd);
     }
     /* create non-weighted accumulation if input accumulation is not given */
@@ -407,20 +407,20 @@ int main(int argc, char *argv[])
         int accum_fd = Rast_open_old(input_accum_name, "");
 
         accum_buf.type = Rast_get_map_type(accum_fd);
-	G_message(_("Reading accumulation map..."));
+        G_message(_("Reading accumulation map..."));
         for (row = 0; row < rows; row++) {
-	    G_percent(row, rows, 1);
+            G_percent(row, rows, 1);
             accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
             Rast_get_row(accum_fd, accum_buf.map.v[row], row, accum_buf.type);
         }
-	G_percent(1, 1, 1);
+        G_percent(1, 1, 1);
         Rast_close(accum_fd);
     }
     /* accumulate flows if input accumulation is not given */
     else {
-	for (row = 0; row < rows; row++)
-	    accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
-	accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
+        for (row = 0; row < rows; row++)
+            accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
+        accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
     }
 
     /* write out buffer to the accumulatoin map if requested */
@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
         int accum_fd = Rast_open_new(accum_name, accum_buf.type);
         struct History hist;
 
-	G_message(_("Writing accumulation map..."));
+        G_message(_("Writing accumulation map..."));
         for (row = 0; row < rows; row++)
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
         Rast_close(accum_fd);

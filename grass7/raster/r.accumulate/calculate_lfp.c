@@ -54,7 +54,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);
         int n;
 
-	G_percent(i, outlet_pl->n, 1);
+        G_percent(i, outlet_pl->n, 1);
 
         /* if the outlet is outside the computational region, skip */
         if (row < 0 || row >= rows || col < 0 || col >= cols) {

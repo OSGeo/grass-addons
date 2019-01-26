@@ -28,7 +28,7 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
     /* loop through all cells to find headwater cells */
     G_message(_("Delineating streams..."));
     for (row = 0; row < rows; row++) {
-	G_percent(row, rows, 1);
+        G_percent(row, rows, 1);
         for (col = 0; col < cols; col++) {
             int i, j;
             int nup = 0;
