@@ -115,6 +115,7 @@ osfraid = Francesco Geri <fgeri@icloud.com>
 paul = Paul Kelly <paul-grass@stjohnspoint.co.uk>
 paulo = Paulo Marcondes <pmarc.debian@gmail.com>
 pcav = Paolo Cavallini <cavallini@faunalia.it>
+pesekon2 = Ondřej Pešek <pesej.ondrek@gmail.com>
 pierreroudier = Pierre Roudier <pierre.roudier@gmail.com>
 pitanga = Rodrigo Rodrigues Da Silva <pitanga@members.fsf.org>
 pkelly = Paul Kelly <paul-grass@stjohnspoint.co.uk>
