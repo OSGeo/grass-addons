@@ -85,7 +85,7 @@
 
 #%flag
 #% key: k
-#% description:  Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'", where 'name' is the value in "name_column" for each input point. If no value specified in "name_column", cat value will be used instead)
+#% description:  Keep all interim viewshed maps produced by the routine (maps will be named "vshed_'name'_uniquenumber", where 'name' is the value in "name_column" for each input point. If no value specified in "name_column", cat value will be used instead)
 #%end
 
 #%flag
@@ -153,20 +153,25 @@ def main():
     # now, loop through the master list and run r.viewshed for each of the sites,
     # and append the viewsheds to a list (so we can work with them later)
     vshed_list = []
+    counter = 0
     for site in masterlist:
         if flags['k'] and options["name_column"] is not '':
             ptname = site[3]
         else:
             ptname = site[2]
         grass.verbose(_('Calculating viewshed for location %s,%s (point name = %s)') % (site[0], site[1], ptname))
-        tempry = "vshed_%s" % ptname
+        # need additional number for cases when points have the same category (e.g. from v.to.points)
+        tempry = "vshed_{ptname}_{c}".format(ptname=ptname, c=counter)
+        counter += 1
         vshed_list.append(tempry)
         grass.run_command("r.viewshed", quiet=True, overwrite=grass.overwrite(), flags=flagstring,
                           input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
     # now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
     grass.message(_("Calculating \"Cumulative Viewshed\" map"))
+    # when binary viewshed, r.series has to use sum instead of count
+    rseries_method = 'sum' if 'b' in flagstring else 'count'
     grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(),
-                      input=(",").join(vshed_list), output=out, method="count")
+                      input=(",").join(vshed_list), output=out, method=rseries_method)
     # Clean up temporary maps, if requested
     if flags['k']:
         grass.message(_("Temporary viewshed maps will not removed"))
