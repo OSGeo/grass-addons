@@ -162,6 +162,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                     struct point_list *pl, struct line_list *ll)
 {
     static struct line_pnts *Points = NULL;
+    static double diag_length;
     int rows = dir_buf->rows, cols = dir_buf->cols;
     double x, y;
     int i, j, nup;
@@ -209,37 +210,42 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     qsort(up_accum, nup, sizeof(struct neighbor_accum),
           compare_neighbor_accum);
 
-    if (!Points)
+    if (!Points) {
         Points = Vect_new_line_struct();
+        diag_length =
+            sqrt(pow(window->ew_res, 2.0) + pow(window->ns_res, 2.0));
+    }
 
     /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
-        static double diag_length;
-
         /* store pl->n to come back later */
         int split_pl_n = pl->n;
 
-        /* try to avoid unnecessary tracing */
-        if (ll->n) {
-            double max_length;
+        /* theoretically, the longest longest flow path is when all accumulated
+         * upstream cells are diagonally flowing */
+        double max_length = up_accum[i].accum * diag_length;
 
-            /* theoretically, the longest longest flow path is when all
-             * accumulated upstream cells are diagonally flowing */
+        /* skip the current cell if its theoretical longest upstream length is
+         * shorter than the first cell's theoretical shortest upstream length
+         */
+        if (i > 0 && max_length < up_accum[0].accum)
+            continue;
+
+        /* if the current cell's theoretical longest lfp < all existing, skip
+         * tracing because it's impossible to obtain a longer lfp */
+        if (ll->n) {
             Vect_reset_line(Points);
             Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
-            max_length =
-                Vect_line_length(Points) + up_accum[i].accum * diag_length;
+
+            /* the current cell's downstream length + theoretical longest
+             * upstream length */
+            max_length += Vect_line_length(Points);
 
             for (j = 0; j < ll->n && max_length < ll->lines[j]->length; j++) ;
 
-            /* if the theoretical longest lfp < all existing, skip tracing
-             * because it's impossible to obtain a longer lfp */
             if (j == ll->n)
                 continue;
         }
-        else
-            diag_length =
-                sqrt(pow(window->ew_res, 2.0) + pow(window->ns_res, 2.0));
 
         /* if tracing is successful, store the line and its length */
         if (trace_up
