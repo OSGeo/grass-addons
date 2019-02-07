@@ -1,12 +1,25 @@
 # Taken from https://lists.osgeo.org/pipermail/gdal-dev/2018-March/048246.html
 
+import os
 import sys
 import requests
+import re
 msg = sys.stdin.read()
 
+def untouched(msg):
+     with open('/tmp/log_untouched.txt', 'a') as f:
+          f.write('Message is:\n' + msg + '\n')
+
 # Don't touch messages that reference other databases
-if msg.find('RT bug ') >= 0:
+if msg.find('RT bug ') >= 0 or msg.find('RT #') >= 0 or msg.find('RT#') >= 0:
      sys.stdout.write(msg)
+     untouched(msg)
+     sys.exit(0)
+# trac migration date set 2007-12-09 (25479)
+rev = 25479
+m = re.compile(r".*git-svn-id.*@([0-9]{1,5}).*", re.DOTALL)
+if int(m.match(msg).groups()[0]) <= rev:
+     untouched(msg)
      sys.exit(0)
 
 oldpos = 0
@@ -95,7 +108,9 @@ while True:
     break
 
 if msg != old_msg:
-    with open('/tmp/log.txt', 'a') as f:
+    with open('/tmp/log_touched.txt', 'a') as f:
         f.write('Old message was:\n' + old_msg + 'New message is:\n' + msg + '\n')
+else:
+     untouched(msg)
 
 sys.stdout.write(msg)

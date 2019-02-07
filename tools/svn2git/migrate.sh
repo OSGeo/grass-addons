@@ -2,10 +2,10 @@
 
 # Initialize git repo (preferably use AUTHORS.txt from SVN)
 
-mkdir grass-gis-git
+#mkdir grass-gis-git
 cd grass-gis-git
-git svn init --stdlayout https://svn.osgeo.org/grass/grass # --no-metadata 
-git svn --authors-file=../AUTHORS.txt fetch
+# git svn init --stdlayout https://svn.osgeo.org/grass/grass # --no-metadata 
+# git svn --authors-file=../AUTHORS.txt fetch
 
 # Create local branches
 git branch develbranch_6 origin/develbranch_6
@@ -39,8 +39,8 @@ done
 for i in `git branch -r | grep origin`; do git branch -dr $i; done
 
 # Fix commit messages (#x -> https://trac.osgeo.org/...)
-### git reset --hard HEAD && git checkout master
-### SCRIPT=`realpath $0` # realpath is a separate package and doesn't need to be installed
-### SCRIPTPATH=`dirname $SCRIPT`
-### git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
-# check out /tmp/log.txt for changes overview ...
+git reset --hard HEAD && git checkout master
+SCRIPT=`realpath $0` # realpath is a separate package and doesn't need to be installed
+SCRIPTPATH=`dirname $SCRIPT`
+git filter-branch --msg-filter "python  $SCRIPTPATH/../rewrite.py" -- --all
+# check out /tmp/log_touched.txt and /tmp/log_untoched.txt for changes overview ...
