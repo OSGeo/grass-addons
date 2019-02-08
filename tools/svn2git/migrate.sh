@@ -2,17 +2,17 @@
 
 # Initialize git repo (preferably use AUTHORS.txt from SVN)
 
-#mkdir grass-gis-git
+mkdir grass-gis-git
 cd grass-gis-git
-# git svn init --stdlayout https://svn.osgeo.org/grass/grass # --no-metadata 
-# git svn --authors-file=../AUTHORS.txt fetch
+git svn init --stdlayout https://svn.osgeo.org/grass/grass # --no-metadata 
+git svn --authors-file=../AUTHORS.txt fetch
 
 # Create local branches
-git branch develbranch_6 origin/develbranch_6
+# git branch develbranch_6 origin/develbranch_6
 for branch in `git branch -r | grep releasebranch | sed 's#  origin/##g'`; do
     git branch $branch origin/$branch
 done
-git checkout develbranch_6
+# git checkout develbranch_6
 git branch -D master
 git branch master origin/trunk
 git checkout master
