@@ -15,5 +15,5 @@ git svn --authors-file=../AUTHORS.txt fetch
 # promo
 DIR=grass-promo-fetch
 mkdir $DIR ; cd $DIR
-git svn init https://svn.osgeo.org/grass/grass-addons
+git svn init https://svn.osgeo.org/grass/grass-promo
 git svn --authors-file=../AUTHORS.txt fetch
