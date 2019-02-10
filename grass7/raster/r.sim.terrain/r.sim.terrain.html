@@ -1,0 +1,96 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<i>r.sim.terrain</i> is a short-term landscape evolution model
+that simulates topographic change
+for both steady state and dynamic flow regimes
+across a range of spatial scales.
+It uses empirical models (RUSLE3D & USPED)
+for soil erosion at watershed to regional scales
+and a physics-based model (SIMWE)
+for shallow overland water flow and soil erosion
+at subwatershed scales
+to compute short-term topographic change.
+This either steady state or dynamic model simulates
+how overland sediment mass flows reshape topography
+for a range of hydrologic soil erosion regimes
+based on topographic, land cover, soil, and rainfall parameters.
+</p>
+
+<h2>EXAMPLES</h2>
+
+Clone or download the
+<a href="https://github.com/baharmon/landscape_evolution_dataset">sample dataset</a>
+with a time series of lidar-based digital elevation models and orthoimagery
+for a highly eroded subwatershed of Patterson Branch Creek,
+Fort Bragg, NC, USA.
+
+Run <i>r.sim.terrain</i> with the simwe model
+for a 120 min event with a rainfall intensity of 50 mm/hr.
+Use a transport value lower than the detachment value
+to trigger a transport limited erosion regime.
+Use the -f flag to fill depressions
+in order to reduce the effect of positive feedback loops.
+
+<div class="code"><pre>
+g.mapset -c mapset=transport location=nc_spm_evolution
+g.region region=region res=0.3
+r.mask vector=watershed
+r.sim.terrain -f runs=event mode=simwe_mode rain_intensity=50.0 rain_interval=120 rain_duration=10 \
+walkers=1000000 detachment_value=0.01 transport_value=0.0001 manning=mannings runoff=runoff
+</pre></div>
+
+<div align="center" style="margin: 10px">
+
+<a href="r_sim_terrain.png">
+<img src="r_sim_terrain.png" width="600" height="600" alt="r.sim.terrain example" border="0">
+</a><br>
+<i>Figure: Net difference (m)
+for a steady state, transport limited SIMWE simulation
+of a 120 min event with a rainfall intensity of 50 mm/hr.</i>
+</div>
+
+For more examples see this in-depth
+<a href="https://github.com/baharmon/landscape_evolution/blob/master/tutorial.md">tutorial</a>.
+
+<h2>ERROR MESSAGES</h2>
+
+If the module fails with
+
+<div class="code"><pre>
+ERROR: nwalk (7000001) &gt; maxw (7000000)!
+</pre></div>
+
+then a lower <b>nwalkers</b> parameter value has to be selected.
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>
+Harmon, B., Mitasova, H., Petrasova, A., Petras, V., 2019.
+<a href="https://github.com/baharmon/landscape_evolution/raw/master/tex/landscape_evolution.pdf">r.sim.terrain: a dynamic landscape evolution model</a>.
+</li>
+<li>
+Mitasova H., Barton M., Ullah I., Hofierka J., Harmon R.S., 2013.
+<a href="http://www.sciencedirect.com/science/article/pii/B978012374739600052X">3.9 GIS-Based Soil Erosion Modeling</a>.
+In J. F. Shroder, ed. Treatise on Geomorphology. San Diego: Academic Press, pp. 228-258.
+DOI: <a href="http://dx.doi.org/10.1016/B978-0-12-374739-6.00052-X">http://dx.doi.org/10.1016/B978-0-12-374739-6.00052-X</a>.
+</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.sim.water.html">r.sim.water</a>,
+<a href="r.sim.sediment.html">r.sim.sediment</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>
+Brendan A. Harmon<br>
+Louisiana State University<br>
+<i><a href="mailto:brendan.harmon@gmail.com">brendan.harmon@gmail.com</a></i>
+</p>
+
+<p><i>Last changed: $Date$</i>
