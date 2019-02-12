@@ -1,12 +1,12 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.sentinel.preproc</em> allows to import Sentinel-2
-images and perform atmospheric correction.
+images and perform atmospheric and topographic correction.
 <p> <em>i.sentinel.preproc</em> is a module
 for the preprocessing of Sentinel-2 images (Level-1C Single Tile product) which
-wraps the import and the atmospheric correction using respectively
-<a href="i.sentinel.import.html">i.sentinel.import</a> and
-<a href="i.atcorr.html">i.atcorr</a>.<br>
+wraps the import, the atmospheric and the topographic correction using respectively
+<a href="i.sentinel.import.html">i.sentinel.import</a>,
+<a href="i.atcorr.html">i.atcorr</a> and <a href="i.topo.corr.html">i.topo.corr</a>.<br>
 It works both with Sentinel-2A and 2B images.<br>
 The aim is to provide a simplified module which allows importing images, which
 area downloaded using 
@@ -33,6 +33,10 @@ can choose the proper option from a drop-down menu thus avoiding to enter the
 corresponding code. In any case, <em>i.sentinel.preproc</em> writes a temporary control
 file, changing it according to the band number, following the syntax rules and
 codes of <em>i.atcorr</em> and then it runs <em>i.atcorr</em> for all bands.
+Using the <em>c</em> flag <em>i.sentinel.preproc</em> is able to perform also 
+the topographic correction using <a href="i.topo.corr.html">i.topo.corr</a>
+creating the needed information as the illumination model based on the elevation
+model provided by the user.
 <p>
 
 <center>
@@ -271,6 +275,13 @@ The number of the band changes automatically according to the band that is
 processed at that moment. The module reads the name of the band and converts it
 into the corresponding code. 
 </ol>
+
+<h3>Topographic correction</h3>
+<em>i.sentinel.preproc</em> allows performing the topographic correction of all bands
+of a Sentinel-2 scene with a single process using <a href="i.topo.corr.html">i.topo.corr</a>.
+<em>i.sentinel.preproc</em> calculate the zenit and azimuth angles using
+<a href="r.sunmask.html">r.sunmask</a>, after that it create the illumination model based on
+the elevation model and apply it to all the bands of a Sentinel-2 scene
 
 <h2>EXAMPLE</h2>
 <p>

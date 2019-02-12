@@ -92,6 +92,20 @@
 #% required : no
 #% guisection: Output
 #%end
+#%option
+#% key: topo_method
+#% description: Topographic correction method
+#% options: cosine, minnaert, c-factor, percent
+#% required : no
+#% guisection: Input
+#%end
+#%option
+#% key: topo_prefix
+#% description: Prefix for topographic corrected images
+#% required : no
+#% answer: tcor
+#% guisection: Output
+#%end
 #%flag
 #% key: a
 #% description: Use AOD instead visibility
@@ -112,6 +126,11 @@
 #% description: Skip import of Sentinel bands
 #% guisection: Input
 #%end
+#%flag
+#% key: c
+#% description: Computes topographic correction of reflectance
+#% guisection: Input
+#%end
 
 import grass.script as gscript
 import xml.etree.ElementTree as et
@@ -130,7 +149,7 @@ def main ():
 
     bands = {}
     cor_bands = {}
-    dem = options['elevation']	
+    dem = options['elevation']
     vis = options['visibility']
     input_dir = options['input_dir']
     check_ndir = 0
@@ -140,7 +159,7 @@ def main ():
     level_dir = os.path.basename(input_dir).split('_')
     # Check if the input directory is a .SAFE folder
     if not input_dir.endswith('.SAFE'):
-        gscript.fatal('The input directory is not a .SAFE folder. Please check the input directory')  
+        gscript.fatal('The input directory is not a .SAFE folder. Please check the input directory')
     if level_dir[1] == 'OPER' and level_dir[3] == 'MSIL1C':
         check_odir = 1
         filename = [i for i in os.listdir(input_dir) if i.startswith("S")]
@@ -165,6 +184,14 @@ def main ():
     processid = os.getpid()
     txt_file = options['text_file']
     tmp_file = gscript.tempfile()
+    topo_method = options['topo_method']
+
+    if topo_method and not flags['c']:
+        gscript.warning(_("To computes topographic correction of reflectance "
+                          "please select also 'c' flag"))
+    elif flags['c'] and not topo_method:
+        gscript.warning(_("Topographic correction of reflectance will use "
+                          "default method 'c-factor'"))
 
     # Import bands
     if not flags["i"]:
@@ -182,7 +209,7 @@ def main ():
     # Create xml "tree" for reading parameters from metadata
     tree = et.parse(mtd_file)
     root = tree.getroot()
-    
+
     # Start reading the xml file
     if check_ndir == 1:
         for elem in root[0].findall('Product_Info'):
@@ -470,7 +497,7 @@ def main ():
             text.write(str(25) + "\n")
         elif sensor.text == 'Sentinel-2B':
             text.write(str(26) + "\n")
-        else: 
+        else:
             gscript.fatal('The input image does not seem to be a Sentinel image')
         text.write('{} {} {:.2f} {:.3f} {:.3f}'.format(
             time_py.month,
@@ -489,7 +516,7 @@ def main ():
                     text.write('3' + "\n")
                 else: # Midlatitude summer
                     text.write('2' + "\n")
-            elif lat < -15.00 and lat >= -45.00: 
+            elif lat < -15.00 and lat >= -45.00:
                 if time_py.month in winter: # Midlatitude summer
                     text.write('2' + "\n")
                 else: # Midlatitude winter
@@ -642,7 +669,7 @@ def main ():
         else:
             gscript.fatal('Bands do not seem to belong to a Sentinel image')
         text.close()
-        
+
         if flags["a"]:
             gscript.run_command('i.atcorr',
                 input=bb,
@@ -685,7 +712,42 @@ def main ():
         gscript.run_command('r.colors',
             map=cb,
             color='grey',
-            flags='e')
+            flags='e', quiet=True)
+
+    if flags['c']:
+        gscript.message(_('--- Computes topographic correction of reflectance ---'))
+        dat = bb.split('_')[1]
+        # TODO understand better the timezone
+        sunmask = gscript.parse_command('r.sunmask', flags='sg', elevation=dem,
+                                        year=dat[0:4], month=int(dat[4:6]),
+                                        day=int(dat[6:8]), hour=int(dat[9:11]),
+                                        minute=int(dat[11:13]),
+                                        second=int(dat[13:15]), timezone=0)
+        z = 90. - float(sunmask['sunangleabovehorizon'])
+        if not topo_method:
+            topo_method = 'c-factor'
+        illu = "{}_{}_{}".format(bb, 'illu', processid)
+        gscript.run_command('i.topo.corr', flags='i', basemap=dem, zenit=z,
+                            azimuth=sunmask['sunazimuth'], output=illu)
+        tcor = []
+        for ma in cor_bands.values():
+            out = "{}_double_{}".format(ma, processid)
+            tcor.append(out)
+            gscript.raster.mapcalc('{}=double({})'.format(out, ma))
+
+        gscript.run_command('i.topo.corr', basemap=illu, zenith=z,
+                            input=','.join(tcor),
+                            method=topo_method, output=options['topo_prefix'])
+        for ma in tcor:
+            inp = "{}.{}".format(options['topo_prefix'], ma)
+            gscript.run_command('g.rename', quiet=True,
+                                raster="{},{}".format(inp,
+                                        inp.replace("_double_{}".format(processid),
+                                                   "")))
+        gscript.run_command('g.remove', flags='f', type='raster', name=illu,
+                            quiet=True)
+        gscript.run_command('g.remove', flags='f', type='raster',
+                            name=','.join(tcor), quiet=True)
 
     gscript.del_temp_region()
     gscript.message(_('--- The computational region has been reset to the previous one ---'))
