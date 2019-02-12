@@ -10,6 +10,7 @@ annakrat = Anna Petrášová <kratochanna@gmail.com>
 annalisapg = Annalisa Minelli <annalisa.minelli@gmail.com>
 avitti = Alfonso Vitti <alfonso.vitti@ing.unitn.it>
 awickert = Andy Wickert <andrewwickert@gmail.com>
+baharmon = Brendan Harmon <brendan.harmon gmail.com>
 barton = Michael Barton <michael.barton@asu.edu>
 bdouglas = Brad Douglas <rez@touchofmadness.com>
 benducke = Benjamin Ducke <benducke@fastmail.fm>
