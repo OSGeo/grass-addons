@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 migrate_git() {
     DIR=$1
