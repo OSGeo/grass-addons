@@ -14,10 +14,11 @@ rewrite_msg() {
         echo $b
         git checkout $b
         git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
-        check out /tmp/log_touched.txt and /tmp/log_untoched.txt for changes overview ...
-        mv /tmp/log_touched.txt log_${repo}_${b}_touched.txt
-        mv /tmp/log_untouched.txt log_${repo}_${b}_untouched.txt
+        mv /tmp/log_touched.txt ../log_${repo}_${b}_touched.txt
+        mv /tmp/log_untouched.txt ../log_${repo}_${b}_untouched.txt
     done
+
+    cd ..
 }
 
 rewrite_msg "grass"
