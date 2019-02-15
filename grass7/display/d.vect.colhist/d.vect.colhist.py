@@ -75,9 +75,9 @@ def main():
    
     plt.hist(data, bins=bins)
     if plot_output == '-':
-	plt.show()
+       plt.show()
     else:
-	plt.savefig(plot_output)
+       plt.savefig(plot_output)
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
