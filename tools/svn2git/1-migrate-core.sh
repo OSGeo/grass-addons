@@ -15,7 +15,9 @@ migrate_git() {
     fi
     for branch in `git branch -r | grep $branch_filter | sed 's#  origin/##g'`; do
         git branch $branch origin/$branch
+        git checkout $branch
     done
+    git branch -D master
     if [ $DIR = "grass" ] ; then
         git branch master origin/trunk
         git checkout master
