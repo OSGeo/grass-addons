@@ -10,13 +10,9 @@ rewrite_msg() {
     
     # Fix commit messages (#x -> https://trac.osgeo.org/...)
     git reset --hard HEAD
-    for b in `git branch | cut -c 3-`; do
-        echo $b
-        git checkout $b
-        git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
-        mv /tmp/log_touched.txt ../log_${repo}_${b}_touched.txt
-        mv /tmp/log_untouched.txt ../log_${repo}_${b}_untouched.txt
-    done
+    git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
+    mv /tmp/log_touched.txt ../log_${repo}__touched.txt
+    mv /tmp/log_untouched.txt ../log_${repo}_untouched.txt
 
     cd ..
 }
