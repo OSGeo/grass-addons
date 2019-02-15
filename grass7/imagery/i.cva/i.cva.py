@@ -1,8 +1,31 @@
 #!/usr/bin/env python
+#
+############################################################################
+#
+# MODULE:	i.cva
+# AUTHOR(S):	Anna Zanchetta
+#
+# PURPOSE:	Performs Change Vector Analysis (CVA) in two dimensions
+#
+# COPYRIGHT:	(C) 2016 by Anna Zanchetta and the GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+# References:
+# Malila W A, Lafayette W. Change Vector Analysis: An Approach for Detecting
+#             Forest Changes with Landsat. LARS Symp. 1980;326-335.
+#
+#############################################################################
 
-#%module
+#%Module
 #% description: Performs Change Vector Analysis (CVA) in two dimensions.
 #% keyword: imagery
+#% keyword: transformation
+#% keyword: CVA
+#% keyword: change vector analysis
 #%end
 #%option G_OPT_R_INPUT
 #% key: xaraster
