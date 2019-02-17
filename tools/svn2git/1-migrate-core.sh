@@ -4,7 +4,7 @@ migrate_git() {
     DIR=$1
     
     rm -rf $DIR
-    cp -r grass-fetch $DIR
+    cp -ra ${DIR}-fetch $DIR
     cd $DIR
 
     # Create local branches

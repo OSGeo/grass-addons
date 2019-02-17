@@ -3,6 +3,9 @@
 SCRIPT=`realpath $0` # realpath is a separate package and doesn't need to be installed
 SCRIPTPATH=`dirname $SCRIPT`
 
+# Note: range can be applied by
+# ... -- 244063d26e4d541039e4af7ab7191801591ebce8..HEAD
+
 rewrite_msg() {
     repo=$1
 
