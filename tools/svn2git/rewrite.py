@@ -22,10 +22,10 @@ if int(m.match(msg).groups()[0]) <= rev:
      untouched(msg)
      sys.exit(0)
 
+# Fix '#1234'
 oldpos = 0
 old_msg = msg
 while True:
-
     # # We already have reference to github pull requests written like
     # # 'github #1234', so skip them
     # newpos = msg.find('github #', oldpos)
@@ -105,6 +105,31 @@ while True:
         oldpos = newpos
         continue
 
+    break
+
+# Fix 'r1234'
+oldpos = 0
+old_msg = msg
+while True:
+    newpos = msg.find('r', oldpos)
+    if newpos >= 0:
+        if newpos == len(msg) - 1:
+            break
+        if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+            oldpos = newpos + 1
+            continue
+
+        num = ''
+        while True:
+            if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+                break
+            num += msg[newpos+1]
+            newpos += 1
+
+        url = 'https://trac.osgeo.org/grass/changeset/' + num            
+        msg = msg[0:newpos-len(num)] + url + msg[newpos+1:]
+        oldpos = newpos
+        continue
     break
 
 if msg != old_msg:
