@@ -467,7 +467,7 @@ def main():
         empty_histroy = grass.tempfile()
         if empty_histroy is None:
             grass.fatal("Unable to create temporary files")
-        f = file(empty_histroy, 'w')
+        f = open(empty_histroy, 'w')
         f.close()
         grass.run_command(
                             'r.support',
