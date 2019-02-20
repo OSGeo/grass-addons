@@ -180,6 +180,14 @@ def cleanup():
                               name=temp_map, quiet=True)
 
 
+def listzip(input1, input2):
+    # python3 compatible
+    out = zip(input1, input2)
+    if not isinstance(out, list):
+        out = list(zip(input1, input2))
+    return out
+
+
 def main():
     inputraster = options['input']
     number_lines = int(options['number_lines'])
@@ -191,8 +199,8 @@ def main():
         min_tile_size = float(options['min_tile_size'])
     existing_cutlines = None
     if options['existing_cutlines']:
-        existing_cutlines = options['existing_cutlines'].split(',') 
-    tiles = options['output'] 
+        existing_cutlines = options['existing_cutlines'].split(',')
+    tiles = options['output']
     memory = int(options['memory'])
     tiled = False
 
@@ -251,7 +259,7 @@ def main():
                              **kwargs)
             grd.run()
         else:
-            gscript.run_command('i.zc', 
+            gscript.run_command('i.zc',
                                 **kwargs)
 
     elif edge_detection_algorithm == 'canny':
@@ -279,7 +287,7 @@ def main():
                              **kwargs)
             grd.run()
         else:
-            gscript.run_command('i.edge', 
+            gscript.run_command('i.edge',
                                 **kwargs)
 
     else:
@@ -302,10 +310,10 @@ def main():
     nsstep = float(region.n - region.s - region.nsres) / hnumber_lines
     hpointsy = [((region.n - i * nsstep) - region.nsres / 2.0) for i in range(0, hnumber_lines+1)]
     hlanepointsy = [y - nsstep / 2.0 for y in hpointsy]
-    hstartpoints = zip([region.w + 0.2 * region.ewres] * len(hpointsy), hpointsy)
-    hstoppoints = zip([region.e - 0.2 * region.ewres] * len(hpointsy), hpointsy)
-    hlanestartpoints = zip([region.w + 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
-    hlanestoppoints = zip([region.e - 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
+    hstartpoints = listzip([region.w + 0.2 * region.ewres] * len(hpointsy), hpointsy)
+    hstoppoints = listzip([region.e - 0.2 * region.ewres] * len(hpointsy), hpointsy)
+    hlanestartpoints = listzip([region.w + 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
+    hlanestoppoints = listzip([region.e - 0.2 * region.ewres] * len(hlanepointsy), hlanepointsy)
 
     hlanemap = 'temp_icutlines_hlanemap_%i' % os.getpid()
     temp_maps.append([hlanemap, v])
@@ -314,11 +322,11 @@ def main():
     os.environ['GRASS_VERBOSE'] = '0'
     new = VectorTopo(hlanemap)
     new.open('w')
-    for line in zip(hlanestartpoints,hlanestoppoints):
+    for line in listzip(hlanestartpoints,hlanestoppoints):
         new.write(geom.Line(line), cat=1)
     new.close()
     del os.environ['GRASS_VERBOSE']
-		
+
     gscript.run_command('v.to.rast',
                         input_=hlanemap,
                         output=hlanemap,
@@ -366,11 +374,11 @@ def main():
     ewstep = float(region.e - region.w - region.ewres) / vnumber_lines
     vpointsx = [((region.e - i * ewstep) - region.ewres / 2.0) for i in range(0, vnumber_lines+1)]
     vlanepointsx = [x + ewstep / 2.0 for x in vpointsx]
-    vstartpoints = zip(vpointsx, [region.n - 0.2 * region.nsres] * len(vpointsx))
-    vstoppoints = zip(vpointsx, [region.s + 0.2 * region.nsres] * len(vpointsx))
-    vlanestartpoints = zip(vlanepointsx, [region.n - 0.2 * region.nsres] * len(vlanepointsx))
-    vlanestoppoints = zip(vlanepointsx, [region.s + 0.2 * region.nsres] * len(vlanepointsx))
-            
+    vstartpoints = listzip(vpointsx, [region.n - 0.2 * region.nsres] * len(vpointsx))
+    vstoppoints = listzip(vpointsx, [region.s + 0.2 * region.nsres] * len(vpointsx))
+    vlanestartpoints = listzip(vlanepointsx, [region.n - 0.2 * region.nsres] * len(vlanepointsx))
+    vlanestoppoints = listzip(vlanepointsx, [region.s + 0.2 * region.nsres] * len(vlanepointsx))
+
 
     vlanemap = 'temp_icutlines_vlanemap_%i' % os.getpid()
     temp_maps.append([vlanemap, v])
@@ -379,11 +387,11 @@ def main():
     os.environ['GRASS_VERBOSE'] = '0'
     new = VectorTopo(vlanemap)
     new.open('w')
-    for line in zip(vlanestartpoints,vlanestoppoints):
+    for line in listzip(vlanestartpoints,vlanestoppoints):
         new.write(geom.Line(line), cat=1)
     new.close()
     del os.environ['GRASS_VERBOSE']
-		
+
     gscript.run_command('v.to.rast',
                         input_=vlanemap,
                         output=vlanemap,
@@ -519,7 +527,7 @@ def main():
                         overwrite=True)
 
     gscript.message(_("Creating vector polygons"))
-                        
+
     # Create vector polygons
 
     # First we need to shrink the region a bit to make sure that all vector
@@ -540,7 +548,7 @@ def main():
                         overwrite=True)
 
     gscript.del_temp_region()
-    
+
     gscript.run_command('v.to.rast',
                         input_=region_map,
                         output=region_map,
@@ -565,7 +573,7 @@ def main():
                         quiet=True,
                         overwrite=True)
 
-    # Create a series of temporary map names as we have to go 
+    # Create a series of temporary map names as we have to go
     # through several steps until we reach the final map.
     temp_vector_polygons1 = 'temp_icutlines_vector_polygons1_%i' % os.getpid()
     temp_maps.append([temp_vector_polygons1, v])
