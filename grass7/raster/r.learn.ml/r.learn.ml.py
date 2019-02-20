@@ -414,6 +414,12 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.raster import RasterRow
 
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
 def model_classifiers(estimator, random_state, n_jobs, p, weights=None):
     """
     Provides the classifiers and parameters using by the module
@@ -1127,7 +1133,7 @@ def __parallel_fit(estimator, X, y, groups, train_indices, sample_weight):
     from sklearn.pipeline import Pipeline
 
     rs_estimator = deepcopy(estimator)
-    
+
     # create training and test folds
     X_train, y_train = X[train_indices], y[train_indices]
 
@@ -1479,7 +1485,7 @@ def main():
             categorymaps = [categorymaps]
         else:
             categorymaps = categorymaps.split(',')
-        
+
         cat_indexes = []
 
         # check that each category map is also in the imagery group
