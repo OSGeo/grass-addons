@@ -167,11 +167,13 @@ def main():
         grass.run_command("r.viewshed", quiet=True, overwrite=grass.overwrite(), flags=flagstring,
                           input=elev, output=tempry, coordinates=site[0] + "," + site[1], **viewshed_options)
     # now make a mapcalc statement to add all the viewsheds together to make the outout cumulative viewsheds map
-    grass.message(_("Calculating \"Cumulative Viewshed\" map"))
+    grass.message(_("Calculating cumulative viewshed map <%s>") % out)
     # when binary viewshed, r.series has to use sum instead of count
     rseries_method = 'sum' if 'b' in flagstring else 'count'
     grass.run_command("r.series", quiet=True, overwrite=grass.overwrite(),
                       input=(",").join(vshed_list), output=out, method=rseries_method)
+    if flags['e']:
+        grass.run_command("r.null", quiet=True, map=out, setnull='0')
     # Clean up temporary maps, if requested
     if flags['k']:
         grass.message(_("Temporary viewshed maps will not removed"))

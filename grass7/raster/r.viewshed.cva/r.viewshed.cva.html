@@ -33,7 +33,6 @@ help page for more information on these).
 
 <h2>NOTES</h2>
 
-<!-- todo: mention r.geomorphon addon for summit extraction -->
 The input vector points map can be manually digitized (with <em>
 v.digit</em>) over topographic or cultural features, or can be 
 created as a series of random points (with <em>r.random</em> or <em>
@@ -42,26 +41,30 @@ interim viewshed maps created during the analysis, and these resultant
 viewshed maps will be named according to the cat number of the original
 input points. This is also useful for simple creating a large number
 of individual viewsheds from points in a vector file.
+<p>
+An automated summit extraction can be done with <b>r.geomorphon</b>.
 
 <h2>EXAMPLES</h2>
+
 Undertake a cumulative viewshed analysis from a digitized vector points
-map of prominent peaks in a region:<br>
+map of prominent peaks in a region (North Carolina sample dataset):<br>
 
 <div class="code"><pre>
-g.region raster=elevation_10m_dem -p
+g.region raster=elevation -p
 # use v.digit to digitize points or e.g. the r.geomorphon addon for summits
-r.viewshed.cva input=elevation10m_dem output=peaks_CVA_map \
+r.viewshed.cva input=elevation output=peaks_CVA_map \
   vector=prominent_peaks_points name_column=cat \
   observer_elevation=1.75 target_elevation=0
 </pre></div>
 
 
-<br>Undertake a cumulative viewshed analysis from a 10% sample of landscape locations in a region:<br>
+<br>Undertake a cumulative viewshed analysis from a 10% sample of
+landscape locations in a region:<br>
 
 <div class="code"><pre>
-g.region raster=elevation_10m_dem
-r.random input=elevation10m_dem n=10% vector_output=rand_points_10p
-r.viewshed.cva input=elevation10m_dem output=peaks_CVA_map \
+g.region raster=elevation -p
+r.random input=elevation n=10% vector=rand_points_10p
+r.viewshed.cva input=elevation output=peaks_CVA_map \
   vector=rand_points_10p name_column=cat \
   observer_elevation=1.75 target_elevation=0
 </pre></div>
@@ -70,6 +73,7 @@ r.viewshed.cva input=elevation10m_dem output=peaks_CVA_map \
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="r.geomorphon.html">r.geomorphon</a>,
 <a href="r.viewshed.html">r.viewshed</a>
 </em>
 
