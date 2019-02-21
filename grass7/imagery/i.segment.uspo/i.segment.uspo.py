@@ -303,6 +303,18 @@ from multiprocessing import Process, Queue, current_process
 
 # check requirements
 
+# for python 3 compatibility
+try:
+    range
+except NameError:
+    xrange = range
+
+def iteritems(dict):
+    try:
+        dictitems = dict.iteritems()
+    except:
+        dictitems = dict.items()
+    return dictitems
 
 def check_progs():
     found_missing = False
@@ -969,7 +981,7 @@ def main():
     if output:
         if output == '-':
             sys.stdout.write(header_string)
-            for region, resultslist in regiondict.iteritems():
+            for region, resultslist in iteritems(regiondict):
                 for result in resultslist:
                     output_string = "%s," % region
                     output_string += ",".join(map(str, result))
@@ -978,7 +990,7 @@ def main():
         else:
             of = open(output, 'w')
             of.write(header_string)
-            for region, resultslist in regiondict.iteritems():
+            for region, resultslist in iteritems(regiondict):
                 for result in resultslist:
                     output_string = "%s," % region
                     output_string += ",".join(map(str, result))
@@ -992,7 +1004,7 @@ def main():
         msg += "Region\tThresh\tMinsize\tOptimization\n"
     else:
         msg += "Region\tThresh\tHr\tRadius\tMinsize\tOptimization\n"
-    for region, resultlist in best_values.iteritems():
+    for region, resultlist in iteritems(best_values):
         for result in resultlist:
             msg += "%s\t" % region
             msg += "\t".join(map(str, result))
