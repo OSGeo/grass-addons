@@ -11,7 +11,9 @@ fetch() {
     rm -rf $DIR
     mkdir $DIR
     cd $DIR
-    git svn init $OPT https://svn.osgeo.org/grass/grass
+    repo=`echo $1 | sed 's/-fetch//g' | sed 's/-legacy//g'`
+    # git svn init $OPT https://svn.osgeo.org/grass/$repo
+    git svn init $OPT file:///opt/osgeo/svn/repos/grass/$repo
     git svn $RANGE --authors-file=${SCRIPTPATH}/AUTHORS.txt fetch
     cd ..
 }
