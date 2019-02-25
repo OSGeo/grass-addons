@@ -18,7 +18,9 @@ fetch() {
     cd ..
 }
 
+# r31142 GRASS 7.0.0 development started
 fetch "grass-fetch" "--stdlayout" "-r31142:75000"
-fetch "grass-legacy-fetch" "--stdlayout"
+# r72631 last commit to releasebranch_6_4
+fetch "grass-legacy-fetch" "--stdlayout" "-r1:72361"
 fetch "grass-addons-fetch"
 fetch "grass-promo-fetch"
