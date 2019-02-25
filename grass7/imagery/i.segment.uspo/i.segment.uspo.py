@@ -305,7 +305,7 @@ from multiprocessing import Process, Queue, current_process
 
 # for python 3 compatibility
 try:
-    range
+    xrange
 except NameError:
     xrange = range
 
