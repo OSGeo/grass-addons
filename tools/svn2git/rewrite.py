@@ -11,7 +11,11 @@ def untouched(msg):
           f.write('Message is:\n' + msg + '\n')
 
 # Don't touch messages that reference other databases
-if msg.find('RT bug ') >= 0 or msg.find('RT #') >= 0 or msg.find('RT#') >= 0:
+if msg.find('RT bug ') >= 0 or \
+   msg.find('RT #') >= 0 or \
+   msg.find('RT#') >= 0 or \
+   msg.find('r3 bug') >= 0 or \
+   msg.find('r2 calc') >= 0:     
      sys.stdout.write(msg)
      untouched(msg)
      sys.exit(0)
@@ -76,7 +80,7 @@ while True:
     if newpos >= 0:
         if newpos == len(msg) - 1:
             break
-        if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+        if not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
             oldpos = newpos + 1
             continue
 
@@ -89,7 +93,7 @@ while True:
         # check if ticket really exists
         num = ''
         while True:
-            if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+            if not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
                 break
             num += msg[newpos+1]
             newpos += 1
@@ -115,17 +119,22 @@ while True:
     if newpos >= 0:
         if newpos == len(msg) - 1:
             break
-        if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+        if (newpos > 0 and msg[newpos-1] != ' ') or \
+           not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
             oldpos = newpos + 1
             continue
 
         num = ''
         while True:
-            if not(msg[newpos+1] >= '1' and msg[newpos+1] <= '9'):
+            if not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
                 break
             num += msg[newpos+1]
             newpos += 1
 
+        if newpos+1 <= len(msg)-1 and msg[newpos+1] not in (' ', '\n'):
+             oldpos = newpos + 1
+             continue
+        
         url = 'https://trac.osgeo.org/grass/changeset/' + num            
         msg = msg[0:newpos-len(num)] + url + msg[newpos+1:]
         oldpos = newpos
