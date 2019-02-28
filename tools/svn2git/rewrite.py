@@ -90,14 +90,14 @@ while True:
             oldpos = newpos + 1
             continue
 
+        num = ''
+        while True:
+            if not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
+                break
+            num += msg[newpos+1]
+            newpos += 1
+
         # check if ticket really exists
-        # num = ''
-        # while True:
-        #     if not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
-        #         break
-        #     num += msg[newpos+1]
-        #     newpos += 1
-        
         # url = 'https://trac.osgeo.org/grass/ticket/' + num
         # request = requests.get(url)
         # if request.status_code != 200:
