@@ -219,10 +219,15 @@ class SentinelDownloader(object):
             return
 
         for idx in range(len(self._products_df_sorted['uuid'])):
-            print ('{0} {1} {2:2.0f}% {3}'.format(
+            if 'cloudcoverpercentage' in self._products_df_sorted:
+                ccp = '{2:2.0f}%'.format(self._products_df_sorted['cloudcoverpercentage'][idx])
+            else:
+                ccp = 'unknown'
+
+            print ('{0} {1} {2} {3}'.format(
                 self._products_df_sorted['uuid'][idx],
                 self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
-                self._products_df_sorted['cloudcoverpercentage'][idx],
+                ccp,
                 self._products_df_sorted['producttype'][idx],
             ))
         
