@@ -371,10 +371,10 @@ used or produced in the examples.
 <p>
 <div>
 <center>
-  <img src="images/r_estimap_recreation_area_of_interest.png" alt="Example of a land suitability input map">
-  <img src="images/r_estimap_recreation_land_suitability.png" alt="Example of a land suitability input map">
-  <img src="images/r_estimap_recreation_water_resources.png" alt="Example of a water resources input map">
-  <img src="images/r_estimap_recreation_protected_areas.png" alt="Example of a protected areas input map">
+  <img src="images/area_of_interest.png" alt="Example of a land suitability input map">
+  <img src="images/land_suitability.png" alt="Example of a land suitability input map">
+  <img src="images/water_resources.png" alt="Example of a water resources input map">
+  <img src="images/protected_areas.png" alt="Example of a protected areas input map">
 </center>
 </div>
 
@@ -420,7 +420,7 @@ r.estimap.recreation  land=land_suitability  potential=potential
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential.png" alt="Example of a recreation potential output map">
+<img src="images/potential.png" alt="Example of a recreation potential output map">
 </center>
 
 <p>
@@ -443,7 +443,7 @@ r.estimap.recreation  land=land_suitability  mask=area_of_interest  potential=po
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential_1.png" alt="Example of a recreation potential output map while using a MASK">
+<img src="images/potential_1.png" alt="Example of a recreation potential output map while using a MASK">
 </center>
 
 The use of a mask
@@ -493,7 +493,7 @@ r.estimap.recreation  land=land_suitability  water=water_resources  potential=po
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential_2.png" alt="Example of a recreation potential output map while using a MASK, a land suitability map and a water resources map">
+<img src="images/potential_2.png" alt="Example of a recreation potential output map while using a MASK, a land suitability map and a water resources map">
 </center>
 
 At this point it becomes clear that all <code>NULL</code> cells present in the
@@ -512,7 +512,7 @@ r.estimap.recreation  land=land_suitability  water=water_resources  natural=prot
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential_3.png" alt="Example of a recreation potential output map
+<img src="images/potential_3.png" alt="Example of a recreation potential output map
 while using a MASK, a land suitability map, a water resources map and a natural
 resources map">
 </center>
@@ -540,7 +540,7 @@ may be added to options that accept multiple inputs.
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential_4.png" alt="Example of a recreation potential output map
+<img src="images/potential_4.png" alt="Example of a recreation potential output map
 while using a MASK, a land suitability map, two water resources maps and a natural
 resources map">
 </center>
@@ -597,7 +597,7 @@ is defined as an input:
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_distance_to_infrastructure.png" alt="Example of an input map showing distances to infrastructure">
+<img src="images/distance_to_infrastructure.png" alt="Example of an input map showing distances to infrastructure">
 </center>
 
 Naturally,
@@ -620,7 +620,7 @@ r.estimap.recreation  land=land_suitability  water=water_resources,bathing_water
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_spectrum.png" alt="Example of a recreation spectrum output map
+<img src="images/spectrum.png" alt="Example of a recreation spectrum output map
 while using a MASK, a land suitability map, a water resources map and a natural
 resources map">
 </center>
@@ -673,7 +673,7 @@ r.estimap.recreation  mask=area_of_interest  land=land_suitability  water=water_
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_opportunity.png" alt="Example of a recreation spectrum output map
+<img src="images/opportunity.png" alt="Example of a recreation spectrum output map
 while using a MASK, a land suitability map, a water resources map and a natural
 resources map">
 </center>
@@ -706,7 +706,7 @@ input map.
 <p>
 Population
 <center>
-<img src="images/r_estimap_recreation_population_2015.png" alt="Fragment of a population map (GHSL, 2015)">
+<img src="images/population_2015.png" alt="Fragment of a population map (GHSL, 2015)">
 </center>
 In this example, the population map named <code>population_2015</code> is of
 1000m^2.
@@ -715,7 +715,7 @@ In this example, the population map named <code>population_2015</code> is of
 <p>
 Local administrative units
 <center>
-<img src="images/r_estimap_recreation_local_administrative_units.png" alt="Fragment of a local administrative units input map">
+<img src="images/local_administrative_units.png" alt="Fragment of a local administrative units input map">
 </center>
 The map named
 <code>local_administrative_units</code>
@@ -743,7 +743,7 @@ r.estimap.recreation --o  mask=area_of_interest  land=land_suitability  water=wa
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_demand.png" alt="Example of a demand distribution output map while using
+<img src="images/demand.png" alt="Example of a demand distribution output map while using
 a MASK
 and inputs for
 land suitability,
@@ -776,7 +776,7 @@ r.estimap.recreation --o  mask=area_of_interest  land=land_suitability  water=wa
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_unmet_demand.png" alt="Example of an 'unmet demand' output map while using
+<img src="images/unmet_demand.png" alt="Example of an 'unmet demand' output map while using
 a MASK
 and inputs for
 land suitability,
@@ -871,7 +871,7 @@ r.estimap.recreation --o  mask=area_of_interest  land=land_suitability  water=wa
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_mobility.png" alt="Example of a mobility output map while using
+<img src="images/mobility.png" alt="Example of a mobility output map while using
 a MASK
 and inputs for
 land suitability,
@@ -1110,8 +1110,8 @@ translate the land cover types into recreation potential.
 <p>
 <div>
   <center>
-  <img src="images/r_estimap_recreation_corine_land_cover_2006.png" alt="Fragment from the CORINE land data base ">
-  <img src="images/r_estimap_recreation_corine_land_cover_legend.png" alt="Legend for the CORINE land data base">
+  <img src="images/corine_land_cover_2006.png" alt="Fragment from the CORINE land data base ">
+  <img src="images/corine_land_cover_legend.png" alt="Legend for the CORINE land data base">
   </center>
 </div>
 
@@ -1161,7 +1161,7 @@ r.estimap.recreation  landuse=corine_land_cover_2006 suitability_scores=corine_s
 
 <p>
 <center>
-<img src="images/r_estimap_recreation_potential_corine.png" alt="Example of a recreation spectrum output map
+<img src="images/potential_corine.png" alt="Example of a recreation spectrum output map
 while using a MASK, based on a fragment from the CORINE land data base">
 </center>
 
@@ -1235,4 +1235,4 @@ language governing permissions and limitations under the Licence.
 
 Consult the LICENCE file for details.
 
-<p><i>Last changed: $Date$</i>
+<p><i>Last changed: $Date: 2017-11-03 18:21:39 +0100 (Fri, 03 Nov 2017) $</i>

@@ -1,7 +1,7 @@
 Description
 -----------
 
-*r.estimap* is an implementation of the ESTIMAP recreation algorithm to
+*r.estimap.recreation* is an implementation of the ESTIMAP recreation algorithm to
 support mapping and modelling of ecosystem services (Zulian, 2014).
 
 Examples
@@ -19,10 +19,10 @@ following "component" maps
 
 <div>
 
-![Example of a land suitability input map](area_of_interest.png)
-![Example of a land suitability input map](land_suitability.png)
-![Example of a water resources input map](water_resources.png) ![Example
-of a protected areas input map](protected_areas.png)
+![Example of a land suitability input map](images/r_estimap_recreation_area_of_interest.png)
+![Example of a land suitability input map](images/r_estimap_recreation_land_suitability.png)
+![Example of a water resources input map](images/r_estimap_recreation_water_resources.png) ![Example
+of a protected areas input map](images/r_estimap_recreation_protected_areas.png)
 
 </div>
 
@@ -51,11 +51,11 @@ recreation (here the map named
 
 <div class="code">
 
-    r.estimap  land=land_suitability  potential=potential
+    r.estimap.recreation  land=land_suitability  potential=potential
 
 </div>
 
-![Example of a recreation potential output map](potential.png)
+![Example of a recreation potential output map](images/r_estimap_recreation_potential.png)
 
 Note, this will process the input map `land_suitability` over the extent
 defined previously via `g.region`, which is the standard behaviour in
@@ -66,12 +66,12 @@ as a mask and feed it to the input map option `mask`:
 
 <div class="code">
 
-    r.estimap  land=land_suitability  mask=area_of_interest  potential=potential_1
+    r.estimap.recreation  land=land_suitability  mask=area_of_interest  potential=potential_1
 
 </div>
 
 ![Example of a recreation potential output map while using a
-MASK](potential_1.png)
+MASK](images/r_estimap_recreation_potential_1.png)
 
 The use of a mask (in GRASS GIS' terminology known as **MASK**) will
 ignore areas of **No Data** (pixels in the `area_of_interest` map
@@ -93,12 +93,12 @@ the output map name to `potential_2` and execute again, without a mask:
 
 <div class="code">
 
-    r.estimap  land=land_suitability  water=water_resources  potential=potential_2
+    r.estimap.recreation  land=land_suitability  water=water_resources  potential=potential_2
 
 </div>
 
 ![Example of a recreation potential output map while using a MASK, a
-land suitability map and a water resources map](potential_2.png)
+land suitability map and a water resources map](images/r_estimap_recreation_potential_2.png)
 
 At this point it becomes clear that all `NULL` cells present in the
 "water" map, are proagated in the output map `potential_2`.
@@ -109,13 +109,13 @@ execution:
 
 <div class="code">
 
-    r.estimap  land=land_suitability  water=water_resources  natural=protected_areas  potential=potential_3
+    r.estimap.recreation  land=land_suitability  water=water_resources  natural=protected_areas  potential=potential_3
 
 </div>
 
 ![Example of a recreation potential output map while using a MASK, a
 land suitability map, a water resources map and a natural resources
-map](potential_3.png)
+map](images/r_estimap_recreation_potential_3.png)
 
 While the `land` option accepts only one map as an input, both the
 `water` and the `natural` options accept multiple maps as inputs. In
@@ -124,7 +124,7 @@ component and modify the output map name to `potential_4`:
 
 <div class="code">
 
-    r.estimap  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  potential=potential_4
+    r.estimap.recreation  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  potential=potential_4
 
 </div>
 
@@ -133,7 +133,7 @@ to options that accept multiple inputs.
 
 ![Example of a recreation potential output map while using a MASK, a
 land suitability map, two water resources maps and a natural resources
-map](potential_4.png)
+map](images/r_estimap_recreation_potential_4.png)
 
 This example, features also a title and a legend, so as to make sense of
 the map.
@@ -164,13 +164,13 @@ scores distance to infrastructure (such as the road network) named
 `distance_to_infrastructure` is defined as an input:
 
 ![Example of an input map showing distances to
-infrastructure](distance_to_infrastructure.png)
+infrastructure](images/r_estimap_recreation_distance_to_infrastructure.png)
 
 Naturally, we need to define the output map option `spectrum` too:
 
 <div class="code">
 
-    r.estimap  \
+    r.estimap.recreation  \
       land=land_suitability \
       water=water_resources,bathing_water_quality \
       natural=protected_areas \
@@ -183,13 +183,13 @@ or, the same command in a copy-paste friendly way:
 
 <div class="code">
 
-    r.estimap  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  infrastructure=distance_to_infrastructure  spectrum=spectrum
+    r.estimap.recreation  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  infrastructure=distance_to_infrastructure  spectrum=spectrum
 
 </div>
 
 ![Example of a recreation spectrum output map while using a MASK, a land
 suitability map, a water resources map and a natural resources
-map](spectrum.png)
+map](images/r_estimap_recreation_spectrum.png)
 
 Missing to define the `infrastructure` map, the command will abort and
 inform about.
@@ -215,7 +215,7 @@ upon the previous command, we add the `opportunity` output option:
 
 <div class="code">
 
-    r.estimap  \
+    r.estimap.recreation  \
       mask=area_of_interest \
       land=land_suitability \
       water=water_resources,bathing_water_quality \
@@ -230,13 +230,13 @@ or, the same command in a copy-paste friendly way:
 
 <div class="code">
 
-    r.estimap  mask=area_of_interest  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  spectrum=spectrum  infrastructure=distance_to_infrastructure  opportunity=opportunity
+    r.estimap.recreation  mask=area_of_interest  land=land_suitability  water=water_resources,bathing_water_quality  natural=protected_areas  spectrum=spectrum  infrastructure=distance_to_infrastructure  opportunity=opportunity
 
 </div>
 
 ![Example of a recreation spectrum output map while using a MASK, a land
 suitability map, a water resources map and a natural resources
-map](opportunity.png)
+map](images/r_estimap_recreation_opportunity.png)
 
 #### More input maps
 
@@ -252,7 +252,7 @@ sets internally the spatial resolution of all related output maps
 
 Population
 
-![Fragment of a population map (GHSL, 2015)](population_2015.png)
+![Fragment of a population map (GHSL, 2015)](images/r_estimap_recreation_population_2015.png)
 
 In this example, the population map named `population_2015` is of
 1000m\^2.
@@ -260,7 +260,7 @@ In this example, the population map named `population_2015` is of
 Local administrative units
 
 ![Fragment of a local administrative units input
-map](local_administrative_units.png)
+map](images/r_estimap_recreation_local_administrative_units.png)
 
 The map named `local_administrative_units` serves in the following
 example as the base map for the zonal statistics to obtain the demand
@@ -270,7 +270,7 @@ map.
 
 <div class="code">
 
-    r.estimap --o \
+    r.estimap.recreation --o \
       mask=area_of_interest \
       land=land_suitability \
       water=water_resources,bathing_water_quality \
@@ -284,13 +284,13 @@ map.
 
 ![Example of a demand distribution output map while using a MASK and
 inputs for land suitability, water resources, natural resources,
-infrastructure, population and base](demand.png)
+infrastructure, population and base](images/r_estimap_recreation_demand.png)
 
 #### Unmet Demand
 
 <div class="code">
 
-    r.estimap --o \
+    r.estimap.recreation --o \
       mask=area_of_interest \
       land=land_suitability \
       water=water_resources,bathing_water_quality \
@@ -305,7 +305,7 @@ infrastructure, population and base](demand.png)
 
 ![Example of an 'unmet demand' output map while using a MASK and inputs
 for land suitability, water resources, natural resources,
-infrastructure, population and base](unmet_demand.png)
+infrastructure, population and base](images/r_estimap_recreation_unmet_demand.png)
 
 #### Mobility
 
@@ -336,7 +336,7 @@ geometric boundaries
 
 <div class="code">
 
-    r.estimap --o \
+    r.estimap.recreation --o \
       mask=area_of_interest \
       land=land_suitability \
       water=water_resources,bathing_water_quality \
@@ -350,7 +350,7 @@ geometric boundaries
 
 ![Example of a mobility output map while using a MASK and inputs for
 land suitability, water resources, natural resources, infrastructure,
-population and base](mobility.png)
+population and base](images/r_estimap_recreation_mobility.png)
 
 #### All in one call
 
@@ -358,7 +358,7 @@ Of course it is possible to derive all output maps with one call:
 
 <div class="code">
 
-    r.estimap --o  \
+    r.estimap.recreation --o  \
       mask=area_of_interest  \
       land=land_suitability  \
       water=water_resources,bathing_water_quality  \
@@ -441,8 +441,8 @@ potential.
 
 <div>
 
-![Fragment from the CORINE land data base ](corine_land_cover_2006.png)
-![Legend for the CORINE land data base](corine_land_cover_legend.png)
+![Fragment from the CORINE land data base ](images/r_estimap_recreation_corine_land_cover_2006.png)
+![Legend for the CORINE land data base](images/r_estimap_recreation_corine_land_cover_legend.png)
 
 </div>
 
@@ -487,18 +487,18 @@ This file is provided in the `suitability_scores` option:
 
 <div class="code">
 
-    r.estimap  landuse=corine_land_cover_2006 suitability_scores=corine_suitability.scores  potential=potential_corine --o
+    r.estimap.recreation  landuse=corine_land_cover_2006 suitability_scores=corine_suitability.scores  potential=potential_corine --o
 
 </div>
 
 ![Example of a recreation spectrum output map while using a MASK, based
-on a fragment from the CORINE land data base](potential_corine.png)
+on a fragment from the CORINE land data base](images/r_estimap_recreation_potential_corine.png)
 
 The same can be achieved with a long one-line string too:
 
 <div class="code">
 
-    r.estimap \
+    r.estimap.recreation \
       landuse=corine_land_cover_2006 \
       suitability_scores="1:1:0:0,2:2:0.1:0.1,3:9:0:0,10:10:1:1,11:11:0.1:0.1,12:13:0.3:0.3,14:14:0.4:0.4,15:17:0.5:0.5,18:18:0.6:0.6,19:20:0.3:0.3,21:22:0.6:0.6,23:23:1:1,24:24:0.8:0.8,25:25:1:1,26:29:0.8:0.8,30:30:1:1,31:31:0.8:0.8,32:32:0.7:0.7,33:33:0:0,34:34:0.8:0.8,35:35:1:1,36:36:0.8:0.8,37:37:1:1,38:38:0.8:0.8,39:39:1:1,40:42:1:1,43:43:0.8:0.8,44:44:1:1,45:45:0.3:0.3"  potential=potential_1 --o
 
@@ -510,7 +510,7 @@ discarding the `suitability_scores` option:
 
 <div class="code">
 
-    r.estimap  landuse=corine_land_cover_2006  suitability_scores=corine_suitability.scores  potential=potential_1 --o
+    r.estimap.recreation  landuse=corine_land_cover_2006  suitability_scores=corine_suitability.scores  potential=potential_1 --o
 
 </div>
 
