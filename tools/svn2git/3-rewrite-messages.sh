@@ -7,15 +7,19 @@ SCRIPTPATH=`dirname $SCRIPT`
 # ... -- 244063d26e4d541039e4af7ab7191801591ebce8..HEAD
 
 rewrite_msg() {
-    repo=$1
+    src=$1
+    repo=${src}-rewrite
 
+    # create clean copy
+    rm -rf $repo
+    git clone $src $repo
     cd $repo
     
     # Fix commit messages (#x -> https://trac.osgeo.org/...)
     git reset --hard HEAD
     git filter-branch --msg-filter "python  $SCRIPTPATH/rewrite.py" -- --all
-    mv /tmp/log_touched.txt ../log_${repo}_touched.txt
-    mv /tmp/log_untouched.txt ../log_${repo}_untouched.txt
+    mv /tmp/log_touched.txt ../log_${src}_touched.txt
+    mv /tmp/log_untouched.txt ../log_${src}_untouched.txt
 
     cd ..
 }

@@ -5,6 +5,7 @@ import sys
 import requests
 import re
 msg = sys.stdin.read()
+msg = msg.replace('file:///opt/osgeo/svn/repos', 'https://svn.osgeo.org')
 
 def untouched(msg):
      with open('/tmp/log_untouched.txt', 'a') as f:
@@ -15,7 +16,8 @@ if msg.find('RT bug ') >= 0 or \
    msg.find('RT #') >= 0 or \
    msg.find('RT#') >= 0 or \
    msg.find('r3 bug') >= 0 or \
-   msg.find('r2 calc') >= 0:     
+   msg.find('r2 calc') >= 0 or \
+   msg.find('Debian bug') >= 0:
      sys.stdout.write(msg)
      untouched(msg)
      sys.exit(0)
@@ -97,8 +99,8 @@ while True:
             num += msg[newpos+1]
             newpos += 1
 
+        url = 'https://trac.osgeo.org/grass/ticket/' + num
         # check if ticket really exists
-        # url = 'https://trac.osgeo.org/grass/ticket/' + num
         # request = requests.get(url)
         # if request.status_code != 200:
         #     # does not exist
@@ -131,7 +133,7 @@ while True:
             num += msg[newpos+1]
             newpos += 1
 
-        if newpos+1 <= len(msg)-1 and msg[newpos+1] not in (' ', '\n'):
+        if newpos+1 <= len(msg)-1 and msg[newpos+1] not in (' ', '\n', ')'):
              oldpos = newpos + 1
              continue
         
