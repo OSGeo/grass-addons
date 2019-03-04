@@ -403,12 +403,11 @@ def main(m, o, p, q, r, s):
         numpts = int(math.log(int(flaccstats['n']))*100)
         grass.message('5) Creating random points and sampling values of flow accumulation, curvatures, and slope.')
         vout = '%s%s_randomly_sampled_points' % (p, numpts)
-        grass.run_command('r.random', quiet = "True", input = flowacc, cover = pc, n = numpts, vector_output = vout)
-        grass.run_command('v.db.renamecol', quiet = "True", map = vout, column = 'value,Flow_acc')
-        grass.run_command('v.db.renamecol', quiet = "True", map = vout, column = 'covervalue,Princ_curv')
-        grass.run_command('v.db.addcol', quiet = "True", map = vout, columns = 'Tang_curv double precision, Slope double precision')
-        grass.run_command('v.what.rast', quiet = "True", vector = vout, raster = tc, column = "Tang_curv")
-        grass.run_command('v.what.rast', quiet = "True", vector = vout, raster = slope, column = "Slope")
+        grass.run_command('r.random', quiet = "True", input = flowacc, cover = pc, npoints = numpts, vector = vout)
+        grass.run_command('v.db.renamecolumn', quiet = "True", map = vout, column = 'value,Flow_acc')
+        grass.run_command('v.db.renamecolumn', quiet = "True", map = vout, column = 'covervalue,Princ_curv')
+        grass.run_command('v.db.addcolumn', quiet = "True", map = vout, columns = 'Tang_curv double precision, Slope double precision')
+        grass.run_command('v.what.rast', quiet = "True", map = vout, raster = tc, column = "Tang_curv")
         if ( flags["k"] is True ):
             grass.message('--Keeping the created maps (Flow Accumulation, Slope, Principle Curvature, Tangential Curvature)')
         else:
@@ -683,7 +682,3 @@ if __name__ == "__main__":
     f.close()
     grass.message('\nIterations complete!\n\nDone with everything')
     sys.exit(0)
-
-
-
-
