@@ -75,8 +75,8 @@ Filtered products can be reduced by <b>limit</b> option.
 an exact date range can be defined by <b>start</b> and <b>end</b> options.
 
 <p>
-Sentinel products can be also filtered by <b>producttype</b> or
-maximum <b>clouds</b> cover percentage.
+Sentinel products can be also filtered by <b>producttype</b> or, in case of
+Sentinel-2 data, maximum <b>clouds</b> cover percentage.
 
 <p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
@@ -135,7 +135,7 @@ Writing footprints into &lt;s2_scenes_footprints&gt;...
 </pre></div>
 
 <p>
-Find Sentinel-2 L1C products (S2MSI1C) of last 60 days (default) covering current computation region extent:
+Find Sentinel-2 L1C products (S2MSI1C) of <b>last 60 days</b> (default) covering current computation region extent:
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
@@ -149,6 +149,16 @@ a83ad139-c420-4433-bd21-f7ed35536e69 2018-11-10T10:12:39Z 14% S2MSI1C
 5f3d19a2-eddb-42eb-ab6d-67f0fdd18c58 2018-11-15T10:12:51Z  5% S2MSI1C
 ...
 </pre></div>
+
+
+<p>
+Find Sentinel-1 product by one or several specified <b>UUID</b>s:
+
+<div class="code"><pre>
+i.sentinel.download -l settings=sentinel.txt uuid=a45d5bbe-6919-49fc-84fd-72a7634d2035
+a45d5bbe-6919-49fc-84fd-72a7634d2035 2018-06-04T05:26:01Z cloudcover_NA SLC
+</pre></div>
+
 
 <h3>Download Sentinel products</h3>
 
