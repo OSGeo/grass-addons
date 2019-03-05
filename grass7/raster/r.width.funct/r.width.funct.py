@@ -47,10 +47,13 @@ matplotlib.use('wx') #required by windows
 import matplotlib.pyplot as plt
 import grass.script as grass
 import numpy as np
-from operator import itemgetter
 
 def main():
-    stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'Anc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input = options['map'], \
+                                          sep = 'space', \
+                                          nv = '*', \
+                                          nsteps = '255', \
+                                          flags = 'Anc').split('\n')[:-1]
 
     # res = cellsize
     res = grass.region()['nsres']
@@ -61,20 +64,20 @@ def main():
 
     for i in range(len(stats)):
         if i == 0:
-            zn[i,0],  zn[i,1] = list(map(float, stats[i].split(' ')))
+            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
             zn[i,1] = zn[i,1]
             zn[i,2] = zn[i,1] * res
         if i != 0:
-            zn[i,0],  zn[i,1] = list(map(float, stats[i].split(' ')))
+            zn[i,0],  zn[i,1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1] + zn[i-1,2]
             zn[i,3] = zn[i,1] * (res**2)
 
     totcell = sum(zn[:,1])
-    print("Tot. cells", totcell)
+    print("Tot. cells %s" %(totcell))
     totarea = totcell * (res**2)
-    print("Tot. area", totarea)
+    print("Tot. area %s" %(totarea))
     maxdist = max(zn[:,0])
-    print("Max distance", maxdist)
+    print("Max distance %s" %(maxdist))
 
     for i in range(len(stats)):
         kl[i,0] = zn[i,0]
@@ -97,15 +100,15 @@ def main():
     print("===========================")
     print("Width Function | quantiles")
     print("===========================")
-    print('%.0f' %findint(kl,0.05) , "|", 0.05)
-    print('%.0f' %findint(kl,0.15) , "|", 0.15)
-    print('%.0f' %findint(kl,0.3) , "|", 0.3)
-    print('%.0f' %findint(kl,0.4) , "|", 0.4)
-    print('%.0f' %findint(kl,0.5) , "|", 0.5)
-    print('%.0f' %findint(kl,0.6) , "|", 0.6)
-    print('%.0f' %findint(kl,0.7) , "|", 0.7)
-    print('%.0f' %findint(kl,0.85) , "|", 0.85)
-    print('%.0f' %findint(kl,0.95) , "|", 0.95)
+    print('%.0f | %s') %(findint(kl,0.05), 0.05)
+    print('%.0f | %s') %(findint(kl,0.15), 0.15)
+    print('%.0f | %s') %(findint(kl,0.3), 0.3)
+    print('%.0f | %s') %(findint(kl,0.4), 0.4)
+    print('%.0f | %s') %(findint(kl,0.5), 0.5)
+    print('%.0f | %s') %(findint(kl,0.6), 0.6)
+    print('%.0f | %s') %(findint(kl,0.7), 0.7)
+    print('%.0f | %s') %(findint(kl,0.85), 0.85)
+    print('%.0f | %s') %(findint(kl,0.95), 0.95)
     print('\n')
     print('Done!')
 
@@ -121,10 +124,7 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
     plt.close('all')
 
 def findint(kl,f):
-    Xf = np.abs(kl-f); 
-    Xf = np.where(Xf==Xf.min())
-    item = itemgetter(0)(Xf)
-    Xf = item[0]
+    Xf = np.abs(kl-f); Xf = np.where(Xf==Xf.min())
     z1, z2, f1, f2 = kl[int(Xf[0])][0], kl[int(Xf[0]-1)][0], kl[int(Xf[0])][1], kl[int(Xf[0]-1)][1]
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z
