@@ -115,13 +115,12 @@ while True:
 
 # Fix 'r1234'
 oldpos = 0
-old_msg = msg
 while True:
     newpos = msg.find('r', oldpos)
     if newpos >= 0:
         if newpos == len(msg) - 1:
             break
-        if (newpos > 0 and msg[newpos-1] != ' ') or \
+        if (newpos > 0 and msg[newpos-1] not in (' ', '(')) or \
            not(msg[newpos+1] >= '0' and msg[newpos+1] <= '9'):
             oldpos = newpos + 1
             continue
@@ -133,7 +132,7 @@ while True:
             num += msg[newpos+1]
             newpos += 1
 
-        if newpos+1 <= len(msg)-1 and msg[newpos+1] not in (' ', '\n', ')'):
+        if newpos+1 <= len(msg)-1 and msg[newpos+1] not in (' ', '\n', ')', ','):
              oldpos = newpos + 1
              continue
         
