@@ -220,7 +220,7 @@ class SentinelDownloader(object):
 
         for idx in range(len(self._products_df_sorted['uuid'])):
             if 'cloudcoverpercentage' in self._products_df_sorted:
-                ccp = '{2:2.0f}%'.format(self._products_df_sorted['cloudcoverpercentage'][idx])
+                ccp = '{0:2.0f}%'.format(self._products_df_sorted['cloudcoverpercentage'][idx])
             else:
                 ccp = 'cloudcover_NA'
 
