@@ -19,6 +19,8 @@
 #% description: Undertakes a "cumulative viewshed analysis" using a vector points map as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
 #% keyword: raster
 #% keyword: viewshed
+#% keyword: line of sight
+#% keyword: LOS
 #%end
 
 #%option G_OPT_R_INPUT
@@ -135,6 +137,12 @@ def main():
         flagstring += 'b'
     if flags['e']:
         flagstring += 'e'
+
+    # check if vector map exists
+    gfile = grass.find_file(vect, element='vector')
+    if not gfile['name']:
+        grass.fatal(_("Vector map <%s> not found") % vect)
+
     # get the coords from the vector map, and check if we want to name them
     if flags['k'] and options["name_column"] is not '':
         # note that the "r" flag will constrain to points in the current geographic region.
