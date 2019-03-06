@@ -4,6 +4,21 @@ All notable changes to this project should be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2018-09-18 - Update to the next generation of PoPS library
+
+### Changed
+
+- The direct support for reading NetCDF removed from the code (Vaclav Petras)
+- Weather coefficient value input removed (Vaclav Petras)
+ - Not considered useful enough to keep around, can be replaced by
+   constant rasters and series of one raster.
+- Using new names in PoPS API (Vaclav Petras)
+- Weather coefficient represented as Raster with doubles (Vaclav Petras)
+ - This or one of the changes above or in the library changed result of
+   one stochastic run slightly (reason unknown, similar change as when
+   multiplying coefficient by 1.000001). The new result is considered to
+   be "more" correct.
+
 ## 2018-09-10 - Seasonality Fixes
 
 ### Added

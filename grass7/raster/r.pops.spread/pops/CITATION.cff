@@ -1,0 +1,21 @@
+cff-version: 1.0.3
+message: If you use this software, please cite it as below.
+authors:
+  - family-names: Petras
+    given-names: Vaclav
+    orcid: https://orcid.org/0000-0001-5566-9236
+  - family-names: Petrasova
+    given-names: Anna
+    website: https://petrasovaa.github.io/
+  - family-names: Chen
+    given-names: Zexi
+    website: https://www.linkedin.com/in/zexi-chen/
+  - family-names: Tonini
+    given-names: Francesco
+    website: http://www.francescotonini.com/
+title: r.spread.sod - SOD spread model implemented as GRASS GIS module
+version: 29074a1
+date-released: 2018-06-21
+url: https://grass.osgeo.org/grass74/manuals/addons/r.spread.sod.html
+repository-code: https://github.com/ncsu-landscape-dynamics/SOD-modeling-cpp
+license: GPL-2.0-or-later

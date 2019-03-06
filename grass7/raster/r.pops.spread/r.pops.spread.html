@@ -1,0 +1,175 @@
+<h2>DESCRIPTION</h2>
+
+
+Module <em>r.pops.spread</em> 
+is a dynamic species distribution model for pest or pathogen spread in forest
+or agricultural ecosystems. The model is process based
+meaning that it uses understanding of the effect of weather on reproduction
+and survival of the pest/pathogen in order to simulate
+spread of the pest/pathogen into the future.
+
+
+<div align="center" style="margin: 10px">
+<a href="r_pops_spread.png">
+<img src="r_pops_spread.png" width="600"  alt="r.pops.spread example" border="0">
+</a><br>
+</div>
+
+<p>
+Module <em>r.pops.spread</em> is using <a href="https://github.com/ncsu-landscape-dynamics/PoPS">
+    Pest or Pathogen Spread library</a>.
+<div align="center" style="margin: 10px">
+    <a href="pops_logo.png">
+    <img src="pops_logo.png" width="100"  alt="PoPS logo" border="0">
+    </a><br>
+    <i>Figure: Logo of Pest or Pathogen Spread simulation</i>
+</div>
+
+
+<h2>NOTES</h2>
+
+<ul>
+
+<li>
+The directions of wind consider north (N) to be grid north, if your
+true north is different direction, you need to make an adjustment.
+
+<li>
+The module currently does not handle NULL (no data) as input, so you
+need to change the NULLs to (most likely) zeros, for example:
+<code>r.null map=infection null=0</code>.
+
+</ul>
+
+
+<h2>EXAMPLES</h2>
+
+<h3>Obtaining list of rasters</h3>
+Use <a href="https://github.com/ncsu-landscape-dynamics/weather-coefficient">
+    R script</a> to create weather coefficients based on a defined polynomial.
+<p>
+Example of creating file with list of input maps (unix-like command
+line):
+
+<div class="code"><pre>
+g.list type=raster pattern="moisture_*" mapset=climate -m > moistures.txt
+g.list type=raster pattern="temperature_*" mapset=climate -m > temperatures.txt
+</pre></div>
+
+Note that the above assumes that the names will be ordered by time.
+This will happen automatically if they are, e.g. numbered as 001, 002,
+etc. (e.g. <tt>temperature_001</tt> and not <tt>temperature_1</tt>).
+If they are numbered without the zero-padding, i.e. 1, 2, ..., 10,
+11, ..., then in a unix-like command line, you can do pipe the result
+through <em>sort</em> with <tt>-n</tt> (<tt>| sort -n</tt>).
+For example, for map names like <tt>temperature_1</tt>, the following
+unix-like command will do the sorting:
+
+<div class="code"><pre>
+g.list type=raster pattern="temperature_*" mapset=climate | sort -k2 -t_ -n > temperatures.txt
+</pre></div>
+
+Note the underscore which tells sort where to split the name for sorting
+and the number 2 which indicates which part of the name to use for
+sorting after splitting.
+
+If you have the weather-related timeseries in a separate mapset, you
+can add this mapset to the search path of your current mapset so that
+you can have the rasters in the list without specifying the mapset.
+To add to the search path, use for example:
+
+<div class="code"><pre>
+g.mapsets mapset=climate
+</pre></div>
+
+
+<h3>Generating a constant coefficient</h3>
+
+In case the moisture coefficient is not used, we can generate a constant
+raster map to be used as the coefficient:
+
+<div class="code"><pre>
+r.mapcalc "const_1 = 1"
+</pre></div>
+
+Then using unix-like command line, we can create a list of these rasters
+in a file based on the number of lines in a temperature list files we
+created earlier:
+
+<div class="code"><pre>
+NUM_LINES=`cat temperatures.txt | wc -l`
+echo const_1 > moistures.txt
+for LINE in `seq 2 $NUM_LINES`; do echo const_1 >> moistures.txt; done;
+</pre></div>
+
+<h3>Creating treatments</h3>
+To account for (vector) treatments partially covering host cells:
+
+<div class="code"><pre>
+# set resolution for treatments and convert to raster
+g.region res=10 -ap
+v.to.rast input=treatment output=treatment use=val
+
+# resample to lower resolution (match host map resolution)
+g.region align=host_map -p
+r.resamp.stats -w input=treatment output=treatment_resampled method=count
+# get maximum value, which is dependent on resolution
+# e.g. when resampling from 10m to 100m, max will be 100 (100 small cells in 1 big cell)
+r.info -r treatment_resampled
+# result will be 0 to 1
+r.mapcalc "treatment_float = test_treatment_resampled / 100"
+# adjust host layer
+r.mapcalc "treated_host = host - host * treatment_float"
+</pre></div>
+
+<h3>Running the model</h3>
+
+Example of the run of the model (unix-like command line):
+
+<div class="code"><pre>
+r.spread.pest host=host total_plants=all infected=infected_2005 \
+    moisture_coefficient_file=moistures.txt temperature_coefficient_file=temperatures.txt \
+    output=spread step=week start_time=2005 end_time=2010 \
+    reproductive_rate=4 dispersal_kernel=cauchy wind=NE random_seed=4
+</pre></div>
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>
+    Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook,
+    Joao A. N. Filipe, Richard D. Hunter, David M. Rizzo,
+    and Christopher A. Gilligan 2011.
+    Epidemiological modeling of invasion in heterogeneous landscapes:
+    spread of sudden oak death in California (1990-2030).
+    <em>Ecosphere</em> 2:art17.
+    <a href="http://dx.doi.org/10.1890/ES10-00192.1">DOI: 10.1890/ES10-00192.1</a>
+<li>
+    Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
+    Vaclav Petras, Richard C. Cobb, Helena Mitasova,
+    and Ross K. Meentemeyer.
+    Tangible geospatial modeling for collaborative solutions
+    to invasive species management.
+    <em>Environmental Modelling &amp; Software</em> 92 (2017): 176-188.
+    <a href="https://doi.org/10.1016/j.envsoft.2017.02.020">DOI: 10.1016/j.envsoft.2017.02.020</a>
+</ul>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+    <a href="https://github.com/ncsu-landscape-dynamics/r.pops.spread">r.pops.spread on GitHub</a><br>
+    <a href="r.spread.html">r.spread</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+
+Francesco Tonini* (original R version)<br>
+Zexi Chen* (C++ version)<br>
+Vaclav Petras* (parallelization, GRASS interface)<br>
+Anna Petrasova* (single species simulation)<br>
+
+<br>
+* <a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>

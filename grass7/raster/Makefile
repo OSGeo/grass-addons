@@ -87,6 +87,7 @@ SUBDIRS = \
 	r.out.tiff \
 	r.patch.smooth \
 	r.popgrowth \
+	r.pops.spread \
 	r.quantile.ref \
 	r.random.weight \
 	r.recode.attr \
@@ -106,7 +107,6 @@ SUBDIRS = \
 	r.skyview \
 	r.smooth.seg \
 	r.soillossbare \
-	r.spread.sod \
 	r.stream.basins \
 	r.stream.channel \
 	r.stream.distance \
