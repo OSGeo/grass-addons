@@ -21,6 +21,12 @@ rewrite_msg() {
     mv /tmp/log_touched.txt ../log_${src}_touched.txt
     mv /tmp/log_untouched.txt ../log_${src}_untouched.txt
 
+    # checkout branches for easy pushing
+    for branch in `git branch -r | grep '^  origin/release' | sed 's#  origin/##g'`; do
+        git branch $branch origin/$branch
+        git checkout $branch
+    done
+
     cd ..
 }
 
