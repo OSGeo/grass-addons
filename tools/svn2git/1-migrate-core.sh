@@ -18,10 +18,8 @@ migrate_git() {
         git checkout $branch
     done
     git branch -D master
-    if [ $DIR = "grass" ] ; then
-        git branch master origin/trunk
-        git checkout master
-    fi
+    git branch master origin/trunk
+    git checkout master
 
     # Rename tags
     if [ $DIR = "grass" ] ; then
@@ -42,9 +40,7 @@ migrate_git() {
         GIT_COMMITTER_DATE="$d" git tag -a $j -m "Tagging release $j" $h
     done
 
-    if [ $DIR = "grass" ] ; then
-        git checkout master
-    fi
+    git checkout master
     for i in `git branch | grep tags`; do
         git branch -D $i
     done
