@@ -77,14 +77,12 @@ echo "... ($PLATFORM_DIR)"
 if test -z $2 ; then
     # daily builds
     # copy        70       `ls ${HOME}/grass70/x86/grass*.bz2 | cut -d'-' -f 3`
-    copy        74       7.4.svn
+    # copy        74       7.4.svn
     copy        76       7.6.svn
     copy        77       7.7.svn
     # releases
-    # copy_addon 644      6.4.4
     copy_addon 706       7.0.6
     copy_addon 723       7.2.3    
-    copy_addon 743       7.4.3
     copy_addon 744       7.4.4    
     copy_addon 760       7.6.0
     copy_addon 761RC1    7.6.1RC1    
