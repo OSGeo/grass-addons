@@ -64,9 +64,6 @@ if test -z $2 ; then
     ### compile ${SVN_PATH}/grass6 ${GISBASE_PATH}/grass644        ${ADDON_PATH}/grass644/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass706        ${ADDON_PATH}/grass706/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass723        ${ADDON_PATH}/grass723/${PLATFORM_DIR}/addons    
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass740        ${ADDON_PATH}/grass740/${PLATFORM_DIR}/addons
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass741        ${ADDON_PATH}/grass741/${PLATFORM_DIR}/addons
-    compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass742        ${ADDON_PATH}/grass742/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass743        ${ADDON_PATH}/grass743/${PLATFORM_DIR}/addons
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass744        ${ADDON_PATH}/grass744/${PLATFORM_DIR}/addons    
     compile ${SVN_PATH}/grass7 ${GISBASE_PATH}/grass760        ${ADDON_PATH}/grass760/${PLATFORM_DIR}/addons

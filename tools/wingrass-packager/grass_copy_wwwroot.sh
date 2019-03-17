@@ -84,9 +84,6 @@ if test -z $2 ; then
     # copy_addon 644      6.4.4
     copy_addon 706       7.0.6
     copy_addon 723       7.2.3    
-    copy_addon 740       7.4.0
-    copy_addon 741       7.4.1
-    copy_addon 742       7.4.2
     copy_addon 743       7.4.3
     copy_addon 744       7.4.4    
     copy_addon 760       7.6.0
