@@ -349,15 +349,9 @@ def main(m, o, p, q, r, s):
         tmperosion = '%sTEMPORARY_erosion%04d' % (pid, o)
         tmpdep = '%sTEMPORARY_deposition%04d' % (pid, o)
     # Make color rules for netchange maps
-    nccolors = grass.tempfile()
-    colors = open(nccolors, 'w')
-    colors.write('100% 0 0 100\n1 blue\n0.5 indigo\n0.01 green\n0 white\n-0.01 yellow\n-0.5 orange\n-1 red\n0% 150 0 50\n')
-    colors.close()
+    nccolors = '100% 0 0 100\n1 blue\n0.5 indigo\n0.01 green\n0 white\n-0.01 yellow\n-0.5 orange\n-1 red\n0% 150 0 50'
     # Make color rules for soil depth maps
-    sdcolors = grass.tempfile()
-    colors = open(sdcolors, 'w')
-    colors.write('100% 0:249:47\n20% 78:151:211\n6% 194:84:171\n0% 227:174:217\n')
-    colors.close()
+    sdcolors = '100% 0:249:47\n20% 78:151:211\n6% 194:84:171\n0% 227:174:217'
     # If first iteration, use input maps. Otherwise, use maps generated from previous iterations
     if ( o == 1 ):
         old_dem = '%s' % options["elev"]
@@ -508,7 +502,7 @@ def main(m, o, p, q, r, s):
         grass.message('There was a problem reading the median-smoothing variable, so maps will not be median-smoothed.')
         grass.run_command('g.rename',  quiet = "True", rast = tempnetchange2 + ',' + netchange)
     #Set the netchange map colors to the rules we've provided above
-    grass.run_command('r.colors', quiet = "True", map = netchange, rules = nccolors)
+    grass.write_command('r.colors', quiet=True, map=netchange, rules='-', stdin=nccolors)
     #Grab the stats from these new smoothed netchange maps and save them to dictionaries (Note that the temporary erosion and deposition maps made in this step are overwriting the two temporary maps made for gathering the stats for the soft-knee limiting filter)
     grass.mapcalc('${tmperosion}=if(${netchange} < -0, ${netchange}, null())', quiet = "True", overwrite = "True", tmperosion = tmperosion, netchange = netchange)
     grass.mapcalc('${tmpdep}=if(${netchange} > 0, ${netchange}, null())', quiet = "True", overwrite = "True", tmpdep = tmpdep, netchange = netchange)
@@ -521,7 +515,7 @@ def main(m, o, p, q, r, s):
     #Set colors for elevation map to match other dems
     grass.run_command('r.colors',  quiet = "True", map = new_dem, rast = options["elev"])
     grass.mapcalc('${new_soil}=if ((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))', quiet = "True", new_soil = new_soil, new_dem = new_dem, initbdrk = initbdrk)
-    grass.run_command('r.colors', quiet = "True", map = new_soil, rules = sdcolors)
+    grass.write_command('r.colors', quiet=True, map=new_soil, rules='-', stdin=sdcolors)
     grass.message('\n*************************\n Iteration %s -- ' % o + 'step 6: writing stats to output file\n *************************\n\n')
     #Finish gathering stats (just need the soil depth stats now)
     soilstats = grass.parse_command('r.univar', flags = 'ge', map = new_soil, percentile = '99')
@@ -572,8 +566,7 @@ def main(m, o, p, q, r, s):
             pass
         else:
             grass.run_command('g.remove', quiet = "True", flags = 'f', type = "rast", name = ','.join(mapstoremove))
-    #sdcolors.close()
-    #nccolors.close()
+
     grass.message('\n*************************\nDone with Iteration %s ' % o + '\n*************************\n')
     return(0)
 
