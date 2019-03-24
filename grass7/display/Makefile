@@ -4,6 +4,7 @@ SUBDIRS = \
 	d.explanation.plot \
 	d.frame \
 	d.mon2 \
+	d.vect.colbp \
 	d.vect.colhist \
 	d.vect.thematic2
 
