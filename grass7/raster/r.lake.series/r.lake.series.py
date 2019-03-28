@@ -185,7 +185,6 @@ def main():
         check_maps_exist(outputs, mapset)
 
     kwargs = {}
-    flags = ''
     if seed_raster:
         kwargs['seed'] = seed_raster
     elif coordinates:
