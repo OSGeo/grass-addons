@@ -51,7 +51,7 @@ addons_index() {
 	    cd ../..
 	done
 
-	if [ "$1" = "70" ] || [ "$1" = "72" ] || [ "$1" = "74" ] ; then
+	if [ "$1" = "70" ] || [ "$1" = "72" ] || [ "$1" = "74" ] || [ "$1" = "76" ] ; then
         # create symlink to latest version
             cd ${SRC}/grass$1/${p}/addons
 	    rm latest
