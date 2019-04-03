@@ -226,6 +226,7 @@ from io import StringIO
 import numpy as np
 import grass.script as grass
 from grass.pygrass.vector import VectorTopo
+from grass.pygrass.vector.basic import Bbox
 from grass.pygrass.raster.history import History
 from grass.pygrass.vector.geometry import Centroid
 from grass.pygrass.vector.geometry import Point
@@ -356,12 +357,12 @@ def main():
 
     ##############################################
     # Use pygrass region instead of grass.parse_command !?!
-    reg = grass.parse_command('g.region', flags='ugp')
+    start_reg = grass.parse_command('g.region', flags='ugp')
 
-    max_n = reg['n']
-    min_s = reg['s']
-    max_e = reg['e']
-    min_w = reg['w']
+    max_n = start_reg['n']
+    min_s = start_reg['s']
+    max_e = start_reg['e']
+    min_w = start_reg['w']
     # cost_nsres = reg['nsres']
     # cost_ewres = reg['ewres']
 
@@ -382,6 +383,7 @@ def main():
             pfile = grass.parse_command('g.findfile', element='vector',
                                         file=patches,
                                         mapset=patches_mapset)['file']
+            pfile = os.path.join(pfile, 'head')
 
         else:
             # Without GDAL-GRASS-plugin
@@ -399,12 +401,12 @@ def main():
         # Rasterize vector map with all-touched option
         os.system('gdal_rasterize -l {} -at -tr {} {} \
                   -te {} {} {} {} -ot Uint32 -a cat \
-                  {} {} -q'.format(patches, reg['ewres'],
-                                   reg['nsres'],
-                                   reg['w'],
-                                   reg['s'],
-                                   reg['e'],
-                                   reg['n'],
+                  {} {} -q'.format(patches, start_reg['ewres'],
+                                   start_reg['nsres'],
+                                   start_reg['w'],
+                                   start_reg['s'],
+                                   start_reg['e'],
+                                   start_reg['n'],
                                    pfile,
                                    prast))
 
@@ -415,15 +417,19 @@ def main():
         # Import rasterized patches
         grass.run_command('r.external', flags='o',
                           quiet=True,
-                          input=os.path.join(folder,
-                                             'patches_rast.tif'),
+                          input=prast,
                           output='{}_patches_pol'.format(TMP_PREFIX))
 
     else:
         # Simple rasterisation (only area)
+        # in G 7.6 also with support for 'centroid'
+        if float(grass.version()['version'][:3]) >= 7.6:
+            conv_types = ['area', 'centroid']
+        else:
+            conv_types = ['area']
         grass.run_command('v.to.rast', quiet=True,
                           input=patches, use='cat',
-                          type=['area'], # in G 7.6 also 'centroid'
+                          type=conv_types,
                           output='{}_patches_pol'.format(TMP_PREFIX))
 
     # Extract boundaries from patch raster map
@@ -439,6 +445,11 @@ def main():
     (isnull({p}_patches_pol[0,-1])||| \
     {p}_patches_pol[0,-1]!={p}_patches_pol)), \
     {p}_patches_pol,null()), null())'.format(p=TMP_PREFIX), quiet=True)
+
+    rasterized_cats = grass.read_command('r.category', separator='newline',
+                                         map='{p}_patches_boundary'.format(p=TMP_PREFIX)
+                                         ).replace('\t','').strip('\n')
+    rasterized_cats = list(map(int, set([x for x in rasterized_cats.split('\n')  if x != ''])))
 
     #Init output vector maps if they are requested by user
     network = VectorTopo(edge_map)
@@ -472,22 +483,32 @@ def main():
                                    dist double precision,\
                                    dist_max double precision")
 
+    start_region_bbox = Bbox(north=float(max_n), south=float(min_s),
+                             east=float(max_e), west=float(min_w))
     vpatches = VectorTopo(patches, mapset=patches_mapset)
-    vpatches.open('r')
+    vpatches.open('r', layer=int(layer))
 
     ###Loop through patches
-    vpatch_ids = np.array(vpatches.features_to_wkb_list(feature_type="centroid"),
+    vpatch_ids = np.array(vpatches.features_to_wkb_list(feature_type="centroid",
+                                                        bbox=start_region_bbox),
                           dtype=[('vid', 'uint32'),
                                  ('cat', 'uint32'),
                                  ('geom', '|S10')])
     cats = set(vpatch_ids['cat'])
     n_cats = len(cats)
     if n_cats < len(vpatch_ids['cat']):
-        grass.verbose('At least on MultiPolygon found in patch map.\n \
+        grass.verbose('At least one MultiPolygon found in patch map.\n \
                       Using average coordinates of the centroids for \
                       visual representation of the patch.')
 
     for cat in cats:
+        if cat not in rasterized_cats:
+            grass.warning('Patch {} has not been rasterized and will \
+                          therefore not be treated as part of the \
+                          network. Consider using t-flag or change \
+                          resolution.'.format(cat))
+
+            continue
         grass.verbose("Calculating connectivity-distances for patch \
                       number {}".format(cat))
 
@@ -508,16 +529,16 @@ def main():
             xcoords = []
             ycoords = []
             for f_p in from_vpatch['vid']:
-                centroid = Centroid(v_id=int(f_p),
-                                    c_mapinfo=vpatches.c_mapinfo)
-                xcoords.append(centroid.x)
-                ycoords.append(centroid.y)
+                from_centroid = Centroid(v_id=int(f_p),
+                                         c_mapinfo=vpatches.c_mapinfo)
+                xcoords.append(from_centroid.x)
+                ycoords.append(from_centroid.y)
 
                 # Get centroid
                 if not from_centroid:
                     continue
             from_x = np.average(xcoords)
-            from_y = np.average(xcoords)
+            from_y = np.average(ycoords)
 
         # Get BoundingBox
         from_bbox = grass.parse_command('v.db.select', map=patch_map,
@@ -540,8 +561,10 @@ def main():
         recl.wait()
 
         # Check if patch was rasterised (patches smaller raster resolution and close to larger patches may not be rasterised)
-        grass.parse_command('r.info', flags='r', map=start_patch)
-        if min == 'NULL':
+        #start_check = grass.parse_command('r.info', flags='r', map=start_patch)
+        #start_check = grass.parse_command('r.univar', flags='g', map=start_patch)
+        #print(start_check)
+        """if start_check['min'] != '1':
             grass.warning('Patch {} has not been rasterized and will \
                           therefore not be treated as part of the \
                           network. Consider using t-flag or change \
@@ -549,7 +572,8 @@ def main():
 
             grass.run_command('g.remove', flags='f', vector=start_patch,
                               raster=start_patch, quiet=True)
-            continue
+            grass.del_temp_region()
+            continue"""
 
         # Prepare stop patches
         ############################################
@@ -563,8 +587,8 @@ def main():
 
         north = reg['n'] if max_n > reg['n'] else max_n
         south = reg['s'] if min_s < reg['s'] else min_s
-        east = reg['e'] if max_e > reg['e'] else max_e
-        west = reg['w'] if min_w < reg['w'] else min_w
+        east = reg['e'] if max_e < reg['e'] else max_e
+        west = reg['w'] if min_w > reg['w'] else min_w
 
         # Set region to patch search radius
         grass.use_temp_region()
@@ -630,10 +654,11 @@ def main():
             grass.run_command('g.remove', quiet=True, flags='f',
                               type=['raster', 'vector'],
                               pattern="{}*{}*".format(TMP_PREFIX, cat))
+            grass.del_temp_region()
             continue
 
-        #Find closest points on neigbours patches to temporary file
-        to_cats = set(con_array['cat'])
+        #Find closest points on neigbour patches
+        to_cats = set(np.atleast_1d(con_array['cat']))
         to_coords = []
         for to_cat in to_cats:
             connection = con_array[con_array['cat'] == to_cat]
@@ -645,9 +670,28 @@ def main():
             closest_points_min_dist = connection['dist'][0]
             closest_points_dist = connection['dist'][pixel]
             closest_points_max_dist = connection['dist'][-1]
-            vpatch_id = int(vpatch_ids[vpatch_ids['cat'] == int(to_cat)]['vid'])
-            to_centroid = Centroid(v_id=vpatch_id,
-                                   c_mapinfo=vpatches.c_mapinfo)
+            to_patch_ids = vpatch_ids[vpatch_ids['cat'] == int(to_cat)]['vid']
+
+            if len(to_patch_ids) == 1:
+                to_centroid = Centroid(v_id=to_patch_ids,
+                                       c_mapinfo=vpatches.c_mapinfo)
+                to_x = to_centroid.x
+                to_y = to_centroid.y
+            elif len(to_patch_ids) >= 1:
+                xcoords = []
+                ycoords = []
+                for t_p in to_patch_ids:
+                    to_centroid = Centroid(v_id=int(t_p),
+                                             c_mapinfo=vpatches.c_mapinfo)
+                    xcoords.append(to_centroid.x)
+                    ycoords.append(to_centroid.y)
+
+                    # Get centroid
+                    if not to_centroid:
+                        continue
+                to_x = np.average(xcoords)
+                to_y = np.average(ycoords)
+
             to_coords.append('{},{},{},{},{},{}'.format(connection['x'][0],
                                                   connection['y'][0],
                                                   to_cat,
@@ -662,7 +706,7 @@ def main():
 
             # Write data to network
             network.write(Line([(from_x, from_y),
-                                (to_centroid.x, to_centroid.y)]),
+                                (to_x, to_y)]),
                           cat=lin_cat,
                           attrs=(cat,
                                  int(closest_points_to_cat),
@@ -797,7 +841,7 @@ def main():
                       person=os.environ['USER'],
                       cmdhist=os.environ['CMDLINE'])
 
-    if shortest_paths:
+    if p_flag:
         grass.run_command('v.support', flags='h', map=shortest_paths,
                           person=os.environ['USER'],
                           cmdhist=os.environ['CMDLINE'])
