@@ -180,9 +180,11 @@ class SentinelDownloader(object):
                start=None, end=None, sortby=[], asc=True):
         args = {}
         if clouds:
-            args['cloudcoverpercentage'] = (0, clouds)
+            args['cloudcoverpercentage'] = (0, int(clouds))
         if producttype:
             args['producttype'] = producttype
+            if producttype != 'GRD':
+                args['platformname'] = 'Sentinel-2'
         if not start:
             start = 'NOW-60DAYS'
         else:
@@ -193,7 +195,7 @@ class SentinelDownloader(object):
             end = end.replace('-', '')
         products = self._api.query(
             area=area, area_relation=area_relation,
-            platformname='Sentinel-2',
+            
             date=(start, end),
             **args
         )
@@ -208,6 +210,8 @@ class SentinelDownloader(object):
                 sortby,
                 ascending=[asc] * len(sortby)
             )
+        else:
+            self._products_df_sorted = products_df
 
         if limit:
             self._products_df_sorted = self._products_df_sorted.head(int(limit))
@@ -365,6 +369,17 @@ def main():
 
     map_box = get_aoi_box(options['map'])
 
+    sortby = options['sort'].split(',')
+    if options['producttype'] == 'GRD':
+        gs.info("Option <{}> ignored: cloud cover percentage "
+                "is not defined for product type GRD".format(
+                    "clouds"
+        ))
+        options['clouds'] = None
+        try:
+            sortby.remove('cloudcoverpercentage')
+        except ValueError:
+            pass
     try:
         downloader = SentinelDownloader(user, password, api_url)
 
@@ -378,7 +393,7 @@ def main():
                               limit=options['limit'],
                               start=options['start'],
                               end=options['end'],
-                              sortby=options['sort'].split(','),
+                              sortby=sortby,
                               asc=options['order'] == 'asc'
             )
     except StandardError as e:
