@@ -147,7 +147,7 @@ class SentinelImporter(object):
         if link:
             module = 'r.external'
         else:
-            memory = options['memory']
+            args['memory'] = options['memory']
             if reproject:
                 module = 'r.import'
                 args['resample'] = 'bilinear'
@@ -161,7 +161,7 @@ class SentinelImporter(object):
                     gs.fatal(_('Projection of dataset does not appear to match current location. '
                                'Force reprojecting dataset by -r flag.'))
 
-            self._import_file(f, module, memory, args)
+            self._import_file(f, module, args)
 
     def _check_projection(self, filename):
         try:
@@ -201,13 +201,13 @@ class SentinelImporter(object):
 
         return ret
         
-    def _import_file(self, filename, module, memory, args):
+    def _import_file(self, filename, module, args):
         mapname = os.path.splitext(os.path.basename(filename))[0]
         gs.message(_('Processing <{}>...').format(mapname))
         if module == 'r.import':
             args['resolution_value'] = self._raster_resolution(filename)
         try:
-            gs.run_command(module, input=filename, output=mapname, memory=memory, **args)
+            gs.run_command(module, input=filename, output=mapname, **args)
             gs.raster_history(mapname)
         except CalledModuleError as e:
             pass # error already printed
