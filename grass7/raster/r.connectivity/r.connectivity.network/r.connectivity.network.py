@@ -587,10 +587,10 @@ edge_output <- '{edge_output}'
 #vertex_output <- paste(prefix, "vertex_measures", sep="_")
 #network_output <- paste(prefix, "network_measures", sep="_")
 
-if (decay_kernel_ps != "") {
-if (verbose) {
+if (decay_kernel_ps != "") {{
+if (verbose) {{
 cat("Exporting a plot of the negative exponential decay kernel...\n")
-}
+}}
 
 ########################################################################
 #Plot the negative exponential decay kernel
@@ -598,13 +598,13 @@ ps.options(encoding="CP1257.enc", family="Helvetica", horizontal=FALSE, fonts="H
 postscript(decay_kernel_ps)
 matplot((0:cd_cutoff/(10^(nchar(as.integer(cd_cutoff))-2))), (euler^((basis*(10^exponent))*(0:cd_cutoff))), type="l", xlab=paste(c("Cost distance (in ", as.character(10^(nchar(as.integer(cd_cutoff))-2)), ")"), sep="", collapse=""), ylab="Potential flow between patches")
 off <- dev.off(dev.cur())
-}
+}}
 
 ########################################################################
 ###Construct graph
-if (verbose) {
+if (verbose) {{
 cat("Reading and preparing input data...\n")
-}
+}}
 
 goutput <- execGRASS('v.db.select', map=in_vertices, columns=paste('cat', pop_proxy, sep=','), separator=',', intern=TRUE)
 con <- textConnection(goutput)
@@ -619,7 +619,7 @@ e_df <- read.csv(con, header=TRUE)
 #e_df <- data.frame(from_p=e_pre[,1], to_p=e_pre[,2], dist=e_pre[,3])
 #e_groups <- groupedData(dist ~ from_p | from_p/to_p, data=as.data.frame(e_df), FUN=mean)
 #e_grouped <- gsummary(e_groups, mean)
-con_id_u_pre <- unlist(mclapply(1:length(e_df$from_p), function(x) paste(sort(c(e_df$from_p[x], e_df$to_p[x]))[1], sort(c(e_df$from_p[x], e_df$to_p[x]))[2], sep="_")))
+con_id_u_pre <- unlist(mclapply(mc.cores={0}, 1:length(e_df$from_p), function(x) paste(sort(c(e_df$from_p[x], e_df$to_p[x]))[1], sort(c(e_df$from_p[x], e_df$to_p[x]))[2], sep="_")))
 con_id_u_pre_df <- data.frame(con_id_u_pre=unique(con_id_u_pre), con_id_u=1:length(unique(con_id_u_pre)))
 e_grouped_df_pre <- merge(data.frame(con_id_u_pre=con_id_u_pre, con_id=1:length(e_df$from_p), from_p=e_df$from_p, to_p=e_df$to_p, dist=e_df$dist), con_id_u_pre_df, all.x=TRUE)
 e_groups_ud <- groupedData(dist ~ 1 | con_id_u, data=e_grouped_df_pre, FUN=mean)
@@ -628,12 +628,12 @@ e_grouped_ud_df <- data.frame(con_id_u=as.vector(e_grouped_ud$con_id_u), dist_ud
 e_grouped_df <- merge(data.frame(con_id=as.integer(e_grouped_df_pre$con_id), con_id_u=as.integer(e_grouped_df_pre$con_id_u), from_p=as.integer(e_grouped_df_pre$from_p), to_p=as.integer(e_grouped_df_pre$to_p), dist=as.double(e_grouped_df_pre$dist)), e_grouped_ud_df, all.x=TRUE)
 
 ##Remove connections longer than cost distance threshold if requested
-#if(remove_longer_cutoff == 1) {
+#if(remove_longer_cutoff == 1) {{
 #con_id_true <-  e_grouped_df$con_id[grep(TRUE, e_grouped_df$dist_ud<cd_cutoff)]
 #e_grouped_df_pre <- merge(data.frame(con_id=con_id_true), e_grouped_df)
 #con_id_u_df <- data.frame(con_id_u_old=unique(e_grouped_df_pre$con_id_u), con_id_u=1:length(unique(e_grouped_df_pre$con_id_u)))
 #e_grouped_df <- merge(data.frame(con_id_old=e_grouped_df_pre$con_id, con_id_u_old=e_grouped_df_pre$con_id_u, con_id=1:length(e_grouped_df_pre$con_id), from_p=e_grouped_df_pre$from_p, to_p=e_grouped_df_pre$to_p, dist=e_grouped_df_pre$dist, dist_ud=e_grouped_df_pre$dist_ud), con_id_u_df, all.x=TRUE)
-#}
+#}}
 
 #Merge vertex and grouped edge data
 from_pop <- merge(data.frame(con_id=e_grouped_df$con_id, from_p=e_grouped_df$from_p), data.frame(from_p=as.integer(v$patch_id), from_pop=as.double(v$pop_proxy)), all.x=TRUE, sort=FALSE)
@@ -685,9 +685,9 @@ e_ud <- merge(first_con_id, e)
 
 #Merge vertices and edges to graph-object
 #Build directed graph
-if (verbose) {
+if (verbose) {{
 cat("Building the graph...\n")
-}
+}}
 
 g <- graph.empty()
 g <- add.vertices(g, nrow(v), patch_id=as.character(v$patch_id), pop_proxy=as.numeric(v$pop_proxy))
@@ -719,14 +719,14 @@ g_ud <- add.edges(g_ud, t(edges), con_id=e_ud$con_id, con_id_u=e_ud$con_id_u, fr
 #Set edge attributes
 #E(g)$con_id_u <- con_id_u
 
-#E(g)$cd_u <- unlist(mclapply(0:(length(E(g))-1), function(x) (E(g)[x]$cost_distance+E(g, path=c(ends(g, x)[2], ends(g, x)[1]))$cost_distance)/2))
+#E(g)$cd_u <- unlist(mclapply(mc.cores={0}, 0:(length(E(g))-1), function(x) (E(g)[x]$cost_distance+E(g, path=c(ends(g, x)[2], ends(g, x)[1]))$cost_distance)/2))
 
 ####################################
 ###Can the following be vectorised????
 
-E(g_ud)$isshort_cd <- as.integer(unlist(mclapply(1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$cd_u)$vpath[[1]])))==2)
-E(g_ud)$isshort_mf <- as.integer(unlist(mclapply(1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$mf_inv_u)$vpath[[1]])))==2)
-E(g_ud)$isshort_cf <- as.integer(unlist(mclapply(1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$cf_inv_u)$vpath[[1]])))==2)
+E(g_ud)$isshort_cd <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$cd_u)$vpath[[1]])))==2)
+E(g_ud)$isshort_mf <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$mf_inv_u)$vpath[[1]])))==2)
+E(g_ud)$isshort_cf <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) length(get.shortest.paths(g_ud, from=ends(g_ud, x)[1], to=ends(g_ud, x)[2], weights=E(g_ud)$cf_inv_u)$vpath[[1]])))==2)
 E(g_ud)$isshort <- ifelse((E(g_ud)$isshort_cd==0 & E(g_ud)$isshort_mf==0 & E(g_ud)$isshort_cf==0), 0, 1)
 ####################################
 
@@ -735,24 +735,24 @@ E(g_ud)$isshort <- ifelse((E(g_ud)$isshort_cd==0 & E(g_ud)$isshort_mf==0 & E(g_u
 #E(g)$isshort[grep(TRUE, E(g)$con_id_u %in% E(g_ud)$con_id_u[grep(FALSE, E(g_ud)$isshort)])] <- FALSE
 
 #Remove indirect connections if requested
-#if(remove_indirect == 1) {
+#if(remove_indirect == 1) {{
 g_ud_d <- delete.edges(g_ud, E(g_ud)[E(g_ud)$isshort==FALSE])
 #g_ud <- delete.edges(g_ud, E(g_ud)[E(g_ud)$isshort==FALSE])
-#}
+#}}
 
 #Remove connections above connectivity threshold if requested
-if(connectivity_cutoff >= 0.0) {
+if(connectivity_cutoff >= 0.0) {{
 g_ud_cd <- delete.edges(g_ud, E(g_ud)[grep(TRUE, E(g_ud)$cd_u>=connectivity_cutoff)])
 g_ud_d_cd <- delete.edges(g_ud_d, E(g_ud_d)[grep(TRUE, E(g_ud_d)$cd_u>=connectivity_cutoff)])
-}
+}}
 
 ########################################################################
 ###Analysis on graph level
 ########################################################################
 
-if (verbose) {
+if (verbose) {{
 cat("Starting analysis on graph level...\n")
-}
+}}
 
 ###graph measures
 vertices_n <- length(V(g_ud_d))
@@ -786,12 +786,12 @@ density_u <- graph.density(g_ud, loops=FALSE)
 density_ud <- graph.density(g_ud_d, loops=FALSE)
 density_udc <- graph.density(g_ud_d_cd, loops=FALSE)
 
-if (network_overview_ps != "") {
+if (network_overview_ps != "") {{
 ######Edge removal operations
 idx <- sort(E(g_ud)$cd_u, decreasing=TRUE, na.last=NA, index.return=TRUE)$ix
-cl_del_count <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no,NA)))
-cl_del_max_size <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),max(as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$membership, pop_size=V(g_ud)$pop_proxy), order.groups=TRUE, FUN=sum), sum)$pop_size)),NA)))
-cl_del_diam <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),diameter(delete.edges(g_ud, E(g_ud)[idx[1:x]]), directed=FALSE, unconnected=TRUE, weights=E(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$cd_u),NA)))
+cl_del_count <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no,NA)))
+cl_del_max_size <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),max(as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$membership, pop_size=V(g_ud)$pop_proxy), order.groups=TRUE, FUN=sum), sum)$pop_size)),NA)))
+cl_del_diam <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold||E(g_ud)$cd_u[idx[x]]<=(connectivity_cutoff+(connectivity_cutoff*0.25)),diameter(delete.edges(g_ud, E(g_ud)[idx[1:x]]), directed=FALSE, unconnected=TRUE, weights=E(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$cd_u),NA)))
 extract <- sort(grep(FALSE, is.na(cl_del_count)), decreasing=TRUE)
 df_edgeremoval <- data.frame(distance=E(g_ud)$cd_u[((idx[extract]))], cl_del_count=cl_del_count[extract], cl_del_max_size=cl_del_max_size[extract], cl_del_diam=cl_del_diam[extract])
 dist_inv_ix <- sort(df_edgeremoval$distance, decreasing=FALSE, na.last=NA, index.return=TRUE)$ix
@@ -803,7 +803,8 @@ postscript(network_overview_ps)
 matplot(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_count*100/vertices_n, type="l", ylab="", xlab=c("Connectivity threshold", paste("(Cost distance between patches in ", as.character(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), ")", sep="")), lty=1, yaxt="n", yaxs="r", ylim=c(0, 100), yaxs="i", xaxs="i")
 if (connectivity_cutoff>0) abline(v=connectivity_cutoff/10^(nchar(as.integer(max(df_edgeremoval$distance)))-2), col="red", lty=3)
 ifelse(connectivity_cutoff>0, legend("topleft",
-                                     inset=c(0,-0.15), bty = "n", xpd=TRUE,
+                                     #inset=c(0,-0.15), bty = "n",
+                                     xpd=TRUE,
                                      c("Clusters (in % of maximum possible clusters)", "Size of the largest cluster (in % of total population size)", "Number of edges (in % of maximum possible number of edges)", "Diameter (in % of diameter of the entire graph)", "Connectivity threshold used in analysis"), lty=c(1, 2, 3, 4, 3), col=c("black", "black", "black", "black", "red"), inset=0.005, bty="o", box.lty=0, bg="White"), legend("topleft", c("Clusters (in % of maximum possible clusters)", "Size of the largest cluster (in % of total population size)", "Number of edges (in % of maximum possible number of edges)", "Diameter (in % of diameter of the entire graph)"), lty=c(1, 2, 3, 4), col=c("black", "black", "black", "black"), inset=0.005, bty="o", box.lty=0, bg="White"))
 axis(2, seq.int(0, 100, 25), labels=c("0 %", "25 %", "50 %", "75 %", "100 %"), yaxs="r")
 matplot(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)))-2)), df_edgeremoval$cl_del_max_size*100/sum(V(g)$pop_proxy), type="l", lty=2, yaxt="n", yaxs="i", add=TRUE)
@@ -814,9 +815,9 @@ lines(df_edgeremoval$distance/(10^(nchar(as.integer(max(df_edgeremoval$distance)
 off <- dev.off(dev.cur())
 
 #idx <- sort(E(g_ud)$cd_u, decreasing=TRUE, na.last=NA, index.return=TRUE)$ix
-#cl_del_count <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no,NA)))
-#cl_del_max_size <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,max(as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$membership, pop_size=V(g_ud)$pop_proxy), order.groups=TRUE, FUN=sum), sum)$pop_size)),NA)))
-#cl_del_diam <- unlist(mclapply(1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,diameter(delete.edges(g_ud, E(g_ud)[idx[1:x]]), directed=FALSE, unconnected=TRUE, weights=E(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$cd_u),NA)))
+#cl_del_count <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no,NA)))
+#cl_del_max_size <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,max(as.vector(gsummary(groupedData(pop_size ~ 1 | cl, data.frame(cl=clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$membership, pop_size=V(g_ud)$pop_proxy), order.groups=TRUE, FUN=sum), sum)$pop_size)),NA)))
+#cl_del_diam <- unlist(mclapply(mc.cores={0}, 1:length(idx), function(x) ifelse((clusters(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$no/vertices_n)>=convergence_threshold,diameter(delete.edges(g_ud, E(g_ud)[idx[1:x]]), directed=FALSE, unconnected=TRUE, weights=E(delete.edges(g_ud, E(g_ud)[idx[1:x]]))$cd_u),NA)))
 #extract <- sort(grep(FALSE, is.na(cl_del_count)), decreasing=TRUE)
 #df_edgeremoval <- data.frame(distance=E(g_ud)$cd_u[((idx[extract]))], cl_del_count=cl_del_count[extract], cl_del_max_size=cl_del_max_size[extract], cl_del_diam=cl_del_diam[extract])
 #dist_inv_ix <- sort(df_edgeremoval$distance, decreasing=FALSE, na.last=NA, index.return=TRUE)$ix
@@ -835,15 +836,15 @@ off <- dev.off(dev.cur())
 ##Lable axis 4!!!
 ##axis(4, seq.int(0, maks_forbindelser_ud*maks_nodes/maks_forbindelser_ud, 100*maks_nodes/maks_forbindelser_ud), yaxs="i", labels=seq.int(0, maks_forbindelser_ud, 100), ylab="Antall forbindelser")
 #off <- dev.off(dev.cur())
-}
+}}
 
 ########################################################################
 ###Analysis on edge level
 ########################################################################
 
-if (verbose) {
+if (verbose) {{
 cat("Starting analysis on edge level...\n")
-}
+}}
 
 ########################################################################
 ######Calculate minimum spanning trees (MST) on the undirected graph with only direct edges
@@ -875,13 +876,13 @@ E(g_ud_d_cd)[grep(TRUE, E(g_ud_d_cd)$con_id %in% E(minimum.spanning.tree(g_ud_d_
 
 ########################################################################
 ###Identify bridges for the undirected graph
-E(g_ud)$is_br_u <- as.integer(unlist(mclapply(1:(length(E(g_ud))), function(x) clusters(delete.edges(g_ud, E(g_ud)[as.integer(x)]))$no-cl_no_d)))
+E(g_ud)$is_br_u <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud))), function(x) clusters(delete.edges(g_ud, E(g_ud)[as.integer(x)]))$no-cl_no_d)))
 
 #Identify bridges for the undirected graph with only direct edges
-E(g_ud_d)$is_br_ud <- as.integer(unlist(mclapply(1:(length(E(g_ud_d))), function(x) clusters(delete.edges(g_ud_d, E(g_ud_d)[as.integer(x)]))$no-cl_no_d)))
+E(g_ud_d)$is_br_ud <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d))), function(x) clusters(delete.edges(g_ud_d, E(g_ud_d)[as.integer(x)]))$no-cl_no_d)))
 
 ###Identify bridges for the undirected graph with only direct edges shorter cost distance threshold
-E(g_ud_d_cd)$is_br_udc <- as.integer(unlist(mclapply(1:(length(E(g_ud_d_cd))), function(x) clusters(delete.edges(g_ud_d_cd, E(g_ud_d_cd)[as.integer(x)]))$no-cl_no_d_cd)))
+E(g_ud_d_cd)$is_br_udc <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(E(g_ud_d_cd))), function(x) clusters(delete.edges(g_ud_d_cd, E(g_ud_d_cd)[as.integer(x)]))$no-cl_no_d_cd)))
 
 ########################################################################
 
@@ -889,38 +890,38 @@ biconnected_components_d <- biconnected.components(g_ud)
 
 #Identify component edges (biconnected components) for the undirected graph with only direct edges
 E(g_ud)$bc_e_u <- as.integer(0)
-for (c in 1:biconnected_components_d$no) {
+for (c in 1:biconnected_components_d$no) {{
 E(g_ud)$bc_e_u[unlist(biconnected_components_d$component_edges[c])] <- c
-}
+}}
 #Identify tree edges (biconnected components) for the undirected graph with only direct edges
 E(g_ud)$bc_te_u <- as.integer(0)
-for (c in 1:biconnected_components_d$no) {
+for (c in 1:biconnected_components_d$no) {{
 E(g_ud)$bc_te_u[unlist(biconnected_components_d$tree_edges[c])] <- c
-}
+}}
 
 biconnected_components_d <- biconnected.components(g_ud_d)
 #Identify component edges (biconnected components) for the undirected graph with only direct edges
 E(g_ud_d)$bc_e_ud <- as.integer(0)
-for (c in 1:biconnected_components_d$no) {
+for (c in 1:biconnected_components_d$no) {{
 E(g_ud_d)$bc_e_ud[unlist(biconnected_components_d$component_edges[c])] <- c
-}
+}}
 #Identify tree edges (biconnected components) for the undirected graph with only direct edges
 E(g_ud_d)$bc_te_ud <- as.integer(0)
-for (c in 1:biconnected_components_d$no) {
+for (c in 1:biconnected_components_d$no) {{
 E(g_ud_d)$bc_te_ud[unlist(biconnected_components_d$tree_edges[c])] <- c
-}
+}}
 
 biconnected_components_d_cd <- biconnected.components(g_ud_d_cd)
 #Identify component edges (biconnected components) for the undirected graph with only direct edges shorter cost distance threshold
 E(g_ud_d_cd)$bc_e_udc <- as.integer(0)
-for (c in 1:biconnected_components_d_cd$no) {
+for (c in 1:biconnected_components_d_cd$no) {{
 E(g_ud_d_cd)$bc_e_udc[unlist(biconnected_components_d_cd$component_edges[c])] <- c
-}
+}}
 #Identify tree edges (biconnected components) for the undirected graph with only direct edges shorter cost distance threshold
 E(g_ud_d_cd)$bc_te_udc <- as.integer(0)
-for (c in 1:biconnected_components_d_cd$no) {
+for (c in 1:biconnected_components_d_cd$no) {{
 E(g_ud_d_cd)$bc_te_udc[unlist(biconnected_components_d_cd$tree_edges[c])] <- c
-}
+}}
 
 ########################################################################
 ###Calculate edge betweenness
@@ -935,16 +936,16 @@ path_lengths <- shortest.paths(g_ud_d, v=V(g_ud_d), to=V(g_ud_d), weights=E(g_ud
 
 #weighted by cost distance
 E(g_ud_d)$cd_eb_ud <- edge.betweenness(g_ud_d, e=E(g_ud_d), directed=FALSE, weights=E(g_ud_d)$cd_u)
-E(g_ud_d)$cd_leb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
+E(g_ud_d)$cd_leb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
 #E(g_ud_d)$cd_leb_ud <- edge.betweenness.estimate(g_ud_d, e=E(g_ud_d), directed=FALSE, lnbh_cutoff*connectivity_cutoff, weights=E(g_ud_d)$cd_u)
 
 #weighted by maximum potential flow
 E(g_ud_d)$mf_eb_ud <- edge.betweenness(g_ud_d, e=E(g_ud_d), directed=FALSE, weights=E(g_ud_d)$mf_inv_u)
-E(g_ud_d)$mf_leb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
+E(g_ud_d)$mf_leb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
 
 ##weighted by competing potential flow
 E(g_ud_d)$cf_eb_ud <- edge.betweenness(g_ud_d, e=E(g_ud_d), directed=FALSE, weights=E(g_ud_d)$cf_inv_u)
-E(g_ud_d)$cf_leb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
+E(g_ud_d)$cf_leb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d))), plot=FALSE)$counts/2
 
 ########################################################################
 ###Calculate edge betweenness on the entire undirected graph with only direct edges shorter cost distance threshold
@@ -953,16 +954,16 @@ path_lengths_cd <- shortest.paths(g_ud_d_cd, v=V(g_ud_d_cd), to=V(g_ud_d_cd), we
 
 #weighted by cost distance
 E(g_ud_d_cd)$cd_eb_udc <- edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=FALSE, weights=E(g_ud_d_cd)$cd_u)
-E(g_ud_d_cd)$cd_leb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
+E(g_ud_d_cd)$cd_leb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cd_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
 
 
 #weighted by maximum potential flow
 E(g_ud_d_cd)$mf_eb_udc <- edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=FALSE, weights=E(g_ud_d_cd)$mf_inv_u)
-E(g_ud_d_cd)$mf_leb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
+E(g_ud_d_cd)$mf_leb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$mf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
 
 ##weighted by competing potential flow
 E(g_ud_d_cd)$cf_eb_udc <- edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=FALSE, weights=E(g_ud_d_cd)$cf_inv_u)
-E(g_ud_d_cd)$cf_leb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
+E(g_ud_d_cd)$cf_leb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
 
 #########################################################################
 #######Calculate edge betweenness community on the undirected graph
@@ -972,16 +973,16 @@ ebc <- edge.betweenness.community(g_ud, weights=E(g_ud)$cf_inv_u, directed=FALSE
 E(g_ud)$cf_iebc_v <- ebc$edge.betweenness
 #cf_iebc_m <- ebc$merges
 E(g_ud)$cf_iebc_r <- ebc$removed.edges
-E(g_ud)$cf_iebc_b <- unlist(mclapply(1:length(E(g_ud)), function(x) ifelse(x %in% ebc$bridges, 1, 0)))
+E(g_ud)$cf_iebc_b <- unlist(mclapply(mc.cores={0}, 1:length(E(g_ud)), function(x) ifelse(x %in% ebc$bridges, 1, 0)))
 E(g_ud)$cf_iebc_c <- crossing(ebc, g_ud)
 
 #V(g)$cf_iebc_mo <- ebc$modularity
 V(g)$cf_iebc_me <- ebc$membership
 
 com_struct <- as.character(cutat(ebc, cl_no_d))
-for (i in (cl_no_d+1):(cl_no_d+cl_thres)) {
+for (i in (cl_no_d+1):(cl_no_d+cl_thres)) {{
 com_struct <- paste(com_struct, cutat(ebc, i), sep=';')
-}
+}}
 V(g)$cf_iebc_cs <- as.character(com_struct)
 V(g)$cf_iebc_cl <- cutat(ebc, (cl_no_d+cl_thres))
 
@@ -1002,7 +1003,7 @@ ebc_clust <- as.integer(0)
 V(g_ud)$cf_ebc_cs <- as.character(clusters(g_ud)$membership)
 del_eb_g <- g_ud
 
-for (edge in 1:length(E(del_eb_g))) {
+for (edge in 1:length(E(del_eb_g))) {{
 ##Recalculate edge betweenness for the remaining edges
 E(del_eb_g)$cf_eb_ud <- edge.betweenness(del_eb_g, e=E(del_eb_g), directed=FALSE, weights=E(del_eb_g)$cf_inv_u)
 ##Identify edge with highest edge betweenness value
@@ -1011,14 +1012,14 @@ idx <- sort.int(E(del_eb_g)$cf_eb_ud, decreasing=TRUE, na.last=NA, index.return=
 ebc_con_id_u[n] <- E(del_eb_g)$con_id_u[idx]
 ebc_rank[n] <- n
 ebc_clust[n] <- clusters(del_eb_g)$no
-if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thres)) {if(n>1) {if(ebc_clust[n]>ebc_clust[n-1]) V(g_ud)$cf_ebc_cs <- paste(V(g_ud)$cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}
+if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thres)) {{if(n>1) {{if(ebc_clust[n]>ebc_clust[n-1]) V(g_ud)$cf_ebc_cs <- paste(V(g_ud)$cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}}}
 ebc_value[n] <- E(del_eb_g)$cf_eb_ud[idx]
 ##Delete edge with highest edge betweenness value
 del_eb_g <- delete.edges(del_eb_g, E(del_eb_g)[idx])
 n <- n+1
-}
+}}
 
-V(g_ud)$cf_ebc_cl <- unlist(mclapply(1:length(V(g_ud)), function(x) strsplit(V(g_ud)$cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thres)]))
+V(g_ud)$cf_ebc_cl <- unlist(mclapply(mc.cores={0}, 1:length(V(g_ud)), function(x) strsplit(V(g_ud)$cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thres)]))
 
 #ebc_df <- merge(data.frame(con_id=E(g)$con_id, con_id_u=E(g)$con_id_u), data.frame(con_id_u=ebc_con_id_u, ebc_rank=ebc_rank, ebc_clust=ebc_clust, ebc_value=ebc_value), all.x=TRUE)
 idx <- sort.int(ebc_con_id_u, index.return=TRUE)$ix
@@ -1044,9 +1045,9 @@ com_membership <- data.frame(patch_id=V(g_ud_d_cd)$patch_id, com=V(g_ud)$cf_ebc_
 com_pc_pre <- merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")$id) ,]
 E(g)$cf_ebc_cc <- ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
 
-if (verbose) {
+if (verbose) {{
 cat("Starting analysis on vertex level...\n")
-}
+}}
 
 ########################################################################
 ###Analysis on vertex level
@@ -1084,14 +1085,14 @@ V(g_ud_d_cd)$cf_cl_udc <- closeness(g_ud_d_cd, vids=V(g_ud_d_cd), weights = E(g_
 
 ##On the undirected graph with only direct edges
 #Number of new clusters when a vertex is deleted
-V(g_ud_d)$art_ud <- as.integer(unlist(mclapply(1:(length(V(g_ud_d))), function(x) ifelse((clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)<0,0,clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d))))
+V(g_ud_d)$art_ud <- as.integer(unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d))), function(x) ifelse((clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d)<0,0,clusters(delete.vertices(g_ud_d, V(g_ud_d)[x]))$no-cl_no_d))))
 #Vertex is articulation point
 V(g_ud_d)$art_p_ud <- as.integer(0)
 V(g_ud_d)$art_p_ud[biconnected_components_d$articulation_points] <- as.integer(1)
 
 ##On the undirected graph with only direct edges shorter cost distance threshold
 #Number of new clusters when a vertex is deleted
-V(g_ud_d_cd)$art_udc <- unlist(mclapply(1:(length(V(g_ud_d_cd))), function(x) ifelse((clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)<0,0,clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)))
+V(g_ud_d_cd)$art_udc <- unlist(mclapply(mc.cores={0}, 1:(length(V(g_ud_d_cd))), function(x) ifelse((clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)<0,0,clusters(delete.vertices(g_ud_d_cd, V(g_ud_d_cd)[x]))$no-cl_no_d_cd)))
 #Vertex is articulation point
 V(g_ud_d_cd)$art_p_udc <- as.integer(0)
 V(g_ud_d_cd)$art_p_udc[biconnected_components_d_cd$articulation_points] <- as.integer(1)
@@ -1128,12 +1129,12 @@ df_mf_o_evc_udc <- data.frame(patch_id=mf_o_evc_udc$to_p, mf_evc=mf_o_evc_udc$mf
 df_evc_cd <- merge(df_cf_evc_udc, df_mf_o_evc_udc)
 
 ###Add eigenvector centrality as a vertex attribute
-for (p in 1:length(V(g))) {
+for (p in 1:length(V(g))) {{
     V(g)$mf_evc_d[p] <- ifelse(length(grep(TRUE, as.integer(as.character(df_evc_d$patch_id))==as.integer(V(g)$patch_id[p])))<1,0,df_evc_d$mf_evc[grep(TRUE, as.integer(as.character(df_evc_d$patch_id))==as.integer(V(g)$patch_id[p]))])
     V(g)$cf_evc_d[p] <- ifelse(length(grep(TRUE, as.integer(as.character(df_evc_d$patch_id))==as.integer(V(g)$patch_id[p])))<1,0,df_evc_d$cf_evc[grep(TRUE, as.integer(as.character(df_evc_d$patch_id))==as.integer(V(g)$patch_id[p]))])
     V(g)$mf_evc_cd[p] <- ifelse(length(grep(TRUE, as.integer(as.character(df_evc_cd$patch_id))==as.integer(V(g)$patch_id[p])))<1,0,df_evc_cd$mf_evc[grep(TRUE, as.integer(as.character(df_evc_cd$patch_id))==as.integer(V(g)$patch_id[p]))])
     V(g)$cf_evc_cd[p] <- ifelse(length(grep(TRUE, as.integer(as.character(df_evc_cd$patch_id))==as.integer(V(g)$patch_id[p])))<1,0,df_evc_cd$cf_evc[grep(TRUE, as.integer(as.character(df_evc_cd$patch_id))==as.integer(V(g)$patch_id[p]))])
-}
+}}
 
 
 ########################################################################
@@ -1146,32 +1147,32 @@ for (p in 1:length(V(g))) {
 ###Calculate vertex betweenness on the undirected graph with only direct edges
 V(g_ud_d)$cd_vb_ud <- betweenness(g_ud_d, v=V(g_ud_d), directed = FALSE, weights = E(g_ud_d)$cd_u)
 vsp_cd_ud <- function(x) unlist(get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cd_u, output=c("vpath"))$vpath)
-V(g_ud_d)$cd_lvb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) vsp_cd_ud(x)[grep(FALSE, 1:length(vsp_cd_ud(x)) %in% append(c(1, length(vsp_cd_ud(x))), append(grep(TRUE, vsp_cd_ud(x)[1:length(vsp_cd_ud(x))]==x), grep(TRUE, vsp_cd_ud(x)[1:length(vsp_cd_ud(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
+V(g_ud_d)$cd_lvb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) vsp_cd_ud(x)[grep(FALSE, 1:length(vsp_cd_ud(x)) %in% append(c(1, length(vsp_cd_ud(x))), append(grep(TRUE, vsp_cd_ud(x)[1:length(vsp_cd_ud(x))]==x), grep(TRUE, vsp_cd_ud(x)[1:length(vsp_cd_ud(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
 
 ##weighted by maximum potential flow
 V(g_ud_d)$mf_vb_ud <- betweenness(g_ud_d, v=V(g_ud_d), directed = TRUE, weights = E(g_ud_d)$mf_inv_u)
 vsp_mf_u <- function(x) unlist(get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$mf_inv_u, output=c("vpath"))$vpath)
-V(g_ud_d)$mf_lvb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) vsp_mf_u(x)[grep(FALSE, 1:length(vsp_mf_u(x)) %in% append(c(1, length(vsp_mf_u(x))), append(grep(TRUE, vsp_mf_u(x)[1:length(vsp_mf_u(x))]==x), grep(TRUE, vsp_mf_u(x)[1:length(vsp_mf_u(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
+V(g_ud_d)$mf_lvb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) vsp_mf_u(x)[grep(FALSE, 1:length(vsp_mf_u(x)) %in% append(c(1, length(vsp_mf_u(x))), append(grep(TRUE, vsp_mf_u(x)[1:length(vsp_mf_u(x))]==x), grep(TRUE, vsp_mf_u(x)[1:length(vsp_mf_u(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
 
 ##weighted by competing potential flow
 V(g_ud_d)$cf_vb_ud <- betweenness(g_ud_d, v=V(g_ud_d), directed = TRUE, weights = E(g_ud_d)$cf_inv_u)
 vsp_cf_u <- function(x) unlist(get.shortest.paths(g_ud_d, x,  V(g_ud_d)[grep(TRUE, path_lengths[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d)$cf_inv_u, output=c("vpath"))$vpath)
-V(g_ud_d)$cf_lvb_ud <- hist(unlist(mclapply(1:length(V(g_ud_d)), function(x) vsp_cf_u(x)[grep(FALSE, 1:length(vsp_cf_u(x)) %in% append(c(1, length(vsp_cf_u(x))), append(grep(TRUE, vsp_cf_u(x)[1:length(vsp_cf_u(x))]==x), grep(TRUE, vsp_cf_u(x)[1:length(vsp_cf_u(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
+V(g_ud_d)$cf_lvb_ud <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d)), function(x) vsp_cf_u(x)[grep(FALSE, 1:length(vsp_cf_u(x)) %in% append(c(1, length(vsp_cf_u(x))), append(grep(TRUE, vsp_cf_u(x)[1:length(vsp_cf_u(x))]==x), grep(TRUE, vsp_cf_u(x)[1:length(vsp_cf_u(x))]==x)-1)))])), breaks=0:length(V(g_ud_d)), plot=FALSE)$counts/2
 
 ###Calculate vertex betweenness on the undirected graph with only direct edges shorter connectivity cutoff
 V(g_ud_d_cd)$cd_vb_udc <- betweenness(g_ud_d_cd, v=V(g_ud_d_cd), directed = FALSE, weights = E(g_ud_d_cd)$cd_u)
 vsp_cd_udc <- function(x) unlist(get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cd_u, output=c("vpath"))$vpath)
-V(g_ud_d_cd)$cd_lvb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) vsp_cd_udc(x)[grep(FALSE, 1:length(vsp_cd_udc(x)) %in% append(c(1, length(vsp_cd_udc(x))), append(grep(TRUE, vsp_cd_udc(x)[1:length(vsp_cd_udc(x))]==x), grep(TRUE, vsp_cd_udc(x)[1:length(vsp_cd_udc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
+V(g_ud_d_cd)$cd_lvb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) vsp_cd_udc(x)[grep(FALSE, 1:length(vsp_cd_udc(x)) %in% append(c(1, length(vsp_cd_udc(x))), append(grep(TRUE, vsp_cd_udc(x)[1:length(vsp_cd_udc(x))]==x), grep(TRUE, vsp_cd_udc(x)[1:length(vsp_cd_udc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
 
 ##weighted by maximum potential flow
 V(g_ud_d_cd)$mf_vb_udc <- betweenness(g_ud_d_cd, v=V(g_ud_d_cd), directed = TRUE, weights = E(g_ud_d_cd)$mf_i_inv_ud)
 vsp_mf_uc <- function(x) unlist(get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$mf_inv_u, output=c("vpath"))$vpath)
-V(g_ud_d_cd)$mf_lvb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) vsp_mf_uc(x)[grep(FALSE, 1:length(vsp_mf_uc(x)) %in% append(c(1, length(vsp_mf_uc(x))), append(grep(TRUE, vsp_mf_uc(x)[1:length(vsp_mf_uc(x))]==x), grep(TRUE, vsp_mf_uc(x)[1:length(vsp_mf_uc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
+V(g_ud_d_cd)$mf_lvb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) vsp_mf_uc(x)[grep(FALSE, 1:length(vsp_mf_uc(x)) %in% append(c(1, length(vsp_mf_uc(x))), append(grep(TRUE, vsp_mf_uc(x)[1:length(vsp_mf_uc(x))]==x), grep(TRUE, vsp_mf_uc(x)[1:length(vsp_mf_uc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
 
 ##weighted by competing potential flow
 V(g_ud_d_cd)$cf_vb_udc <- betweenness(g_ud_d_cd, v=V(g_ud_d_cd), directed = TRUE, weights = E(g_ud_d_cd)$cf_inv_u)
 vsp_cf_uc <- function(x) unlist(get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("vpath"))$vpath)
-V(g_ud_d_cd)$cf_lvb_udc <- hist(unlist(mclapply(1:length(V(g_ud_d_cd)), function(x) vsp_cf_uc(x)[grep(FALSE, 1:length(vsp_cf_uc(x)) %in% append(c(1, length(vsp_cf_uc(x))), append(grep(TRUE, vsp_cf_uc(x)[1:length(vsp_cf_uc(x))]==x), grep(TRUE, vsp_cf_uc(x)[1:length(vsp_cf_uc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
+V(g_ud_d_cd)$cf_lvb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) vsp_cf_uc(x)[grep(FALSE, 1:length(vsp_cf_uc(x)) %in% append(c(1, length(vsp_cf_uc(x))), append(grep(TRUE, vsp_cf_uc(x)[1:length(vsp_cf_uc(x))]==x), grep(TRUE, vsp_cf_uc(x)[1:length(vsp_cf_uc(x))]==x)-1)))])), breaks=0:length(V(g_ud_d_cd)), plot=FALSE)$counts/2
 
 ########################################################################
 ###Calculate neighborhood size
@@ -1179,15 +1180,44 @@ V(g_ud_cd)$nbh_s_uc <- as.integer(neighborhood.size(g_ud_cd, 1, nodes=V(g_ud_cd)
 ###Calculate local neighborhood size
 V(g_ud_cd)$nbh_sl_uc <- as.integer(neighborhood.size(g_ud_cd, lnbh_cutoff, nodes=V(g_ud_cd), mode=c("all")))
 
-if (db_driver == "sqlite") {
+if (db_driver == "sqlite") {{
 con <- dbConnect(RSQLite::SQLite(), dbname = db)
-} else {
+}} else {{
 con <- dbConnect(PostgreSQL::PostgreSQL(), dbname = db)
-}
+}}
 
 ##############################################
 #Export network overview measures
-network_overview_measures <- data.frame(measure=c("Command", "Number of vertices", "Number of edges (undirected)", "Number of direct edges (undirected)", "Number of edges shorter than cost distance threshold (undirected)", "Number of direct edges shorter than cost distance threshold (undirected)", "Number of clusters of the entire graph", "Number of clusters of the graph with only edges shorter cost distance threshold", "Size of the largest cluster of the entire graph", "Size of the largest cluster of the graph with only edges shorter cost distance threshold", "Average size of the clusters of the entire graph", "Average size of the clusters of the graph with only edges shorter cost distance threshold", "Diameter of the entire graph (undirected)", "Diameter of the graph with only direct edges (undirected)", "Diameter of the graph with only edges shorter cost distance threshold", "Density of the entire graph (directed)", "Density of the entire graph (undirected)", "Density of the graph with only direct edges (undirected)", "Density of the graph with only edges shorter cost distance threshold", "Modularity (from iebc) of the entire graph (undirected) weighted by cf", "Number of communities (at maximum modularity score (from iebc)) of the entire (undirected) graph weighted by cf", com_sizes_u_names), Value=c(command, vertices_n, edges_n, edges_n_d, edges_n_cd, edges_n_d_cd, cl_no_d, cl_no_d_cd, cl_max_size_d, cl_max_size_d_cd, cl_mean_size_d, cl_mean_size_d_cd, diam, diam_d, diam_d_cd, density, density_u, density_ud, density_udc, cf_iebc_u_mod, com_no_u, com_sizes_u))
+grml <- rbind(c("Command", command),
+c("Number of vertices", vertices_n),
+c("Number of edges (undirected)", edges_n),
+c("Number of direct edges (undirected)", edges_n_d),
+c("Number of edges shorter than cost distance threshold (undirected)", edges_n_cd),
+c("Number of direct edges shorter than cost distance threshold (undirected)", edges_n_d_cd),
+c("Number of clusters of the entire graph", cl_no_d),
+c("Number of clusters of the graph with only edges shorter cost distance threshold", cl_no_d_cd),
+c("Size of the largest cluster of the entire graph", cl_max_size_d),
+c("Size of the largest cluster of the graph with only edges shorter cost distance threshold", cl_max_size_d_cd),
+c("Average size of the clusters of the entire graph", cl_mean_size_d),
+c("Average size of the clusters of the graph with only edges shorter cost distance threshold", cl_mean_size_d_cd),
+c("Diameter of the entire graph (undirected)", diam),
+c("Diameter of the graph with only direct edges (undirected)", diam_d),
+c("Diameter of the graph with only edges shorter cost distance threshold", diam_d_cd),
+c("Density of the entire graph (directed)", density),
+c("Density of the entire graph (undirected)", density_u),
+c("Density of the graph with only direct edges (undirected)", density_ud),
+c("Density of the graph with only edges shorter cost distance threshold",  density_udc),
+c("Modularity (from iebc) of the entire graph (undirected) weighted by cf", cf_iebc_u_mod),
+c("Number of communities (at maximum modularity score (from iebc)) of the entire (undirected) graph weighted by cf", com_no_u),
+c("com_sizes_u", toString(com_sizes_u, sep=',')),
+c("com_sizes_u_names", toString(com_sizes_u_names, sep=','))
+)
+
+network_overview_measures <- data.frame(
+    measure=grml[,1],
+    value=grml[,2])
+
+# Write dataframe
 dbWriteTable(con, network_output, network_overview_measures, overwrite=overwrite, row.names=FALSE)
 
 ###############################################################
@@ -1202,14 +1232,14 @@ vertex_export_df_ud <- as.data.frame(1:length(V(g_ud)))
 g_ud <- remove.vertex.attribute(g_ud, "pop_proxy")
 
 vertex_attribute_list <- list.vertex.attributes(g_ud)
-if(length(vertex_attribute_list)>0) {
-    for (vl in vertex_attribute_list) {
+if(length(vertex_attribute_list)>0) {{
+    for (vl in vertex_attribute_list) {{
         vertex_export_df_ud <- as.data.frame(cbind(vertex_export_df_ud, get.vertex.attribute(g_ud, vl)))
-    }
+    }}
 
     vertex_export_df_ud <- vertex_export_df_ud[2:length(vertex_export_df_ud)]
     names(vertex_export_df_ud) <- vertex_attribute_list
-}
+}}
 
 ###Create initial export data frame
 
@@ -1220,13 +1250,13 @@ vertex_export_df_ud_d <- as.data.frame(1:length(V(g_ud_d)))
 g_ud_d <- remove.vertex.attribute(g_ud_d, "pop_proxy")
 
 vertex_attribute_list <- list.vertex.attributes(g_ud_d)
-if(length(vertex_attribute_list)>0) {
-    for (vl in vertex_attribute_list) {
+if(length(vertex_attribute_list)>0) {{
+    for (vl in vertex_attribute_list) {{
         vertex_export_df_ud_d <- as.data.frame(cbind(vertex_export_df_ud_d, get.vertex.attribute(g_ud_d, vl)))
-    }
+    }}
     vertex_export_df_ud_d <- vertex_export_df_ud_d[2:length(vertex_export_df_ud_d)]
     names(vertex_export_df_ud_d) <- vertex_attribute_list
-}
+}}
 
 ###Create initial export data frame
 
@@ -1238,26 +1268,26 @@ g_ud_d_cd <- remove.vertex.attribute(g_ud_d_cd, "pop_proxy")
 
 vertex_attribute_list <- list.vertex.attributes(g_ud_d_cd)
 
-if(length(vertex_attribute_list)>0) {
-    for (vl in vertex_attribute_list) {
+if(length(vertex_attribute_list)>0) {{
+    for (vl in vertex_attribute_list) {{
         vertex_export_df_ud_d_cd <- as.data.frame(cbind(vertex_export_df_ud_d_cd, get.vertex.attribute(g_ud_d_cd, vl)))
-    }
+    }}
     vertex_export_df_ud_d_cd <- vertex_export_df_ud_d_cd[2:length(vertex_export_df_ud_d_cd)]
     names(vertex_export_df_ud_d_cd) <- vertex_attribute_list
-}
+}}
 ###Create initial export data frame
 
 vertex_export_df_d <- as.data.frame(1:length(V(g)))
 
 vertex_attribute_list <- list.vertex.attributes(g)
-if(length(vertex_attribute_list)>0) {
+if(length(vertex_attribute_list)>0) {{
 
-    for (vl in vertex_attribute_list) {
+    for (vl in vertex_attribute_list) {{
         vertex_export_df_d <- as.data.frame(cbind(vertex_export_df_d, get.vertex.attribute(g, vl)))
-    }
+    }}
     vertex_export_df_d <- vertex_export_df_d[2:length(vertex_export_df_d)]
     names(vertex_export_df_d) <- vertex_attribute_list
-}
+}}
 
 vertex_export_df <- merge(merge(merge(vertex_export_df_d, vertex_export_df_ud, by="patch_id"), vertex_export_df_ud_d, by="patch_id"), vertex_export_df_ud_d_cd, by="patch_id")
 
@@ -1294,12 +1324,12 @@ g_ud <- remove.edge.attribute(g_ud, "cf_inv_u")
 
 edge_attribute_list <- list.edge.attributes(g_ud)
 
-if(length(edge_attribute_list )>0) {
-    for (el in edge_attribute_list) {
+if(length(edge_attribute_list )>0) {{
+    for (el in edge_attribute_list) {{
         edge_export_df_ud <- as.data.frame(cbind(edge_export_df_ud, get.edge.attribute(g_ud, el)))
-    }
+    }}
     names(edge_export_df_ud) <- append("con_id_u", edge_attribute_list)
-}
+}}
 
 ###Create initial export data frame for the undirected graph with only direct edges
 
@@ -1333,12 +1363,12 @@ g_ud_d <- remove.edge.attribute(g_ud_d, "isshort_cf")
 
 edge_attribute_list <- list.edge.attributes(g_ud_d)
 
-if(length(edge_attribute_list )>0) {
-    for (el in edge_attribute_list) {
+if(length(edge_attribute_list )>0) {{
+    for (el in edge_attribute_list) {{
         edge_export_df_ud_d <- as.data.frame(cbind(edge_export_df_ud_d, get.edge.attribute(g_ud_d, el)))
-    }
+    }}
     names(edge_export_df_ud_d) <- append("con_id_u", edge_attribute_list)
-}
+}}
 ###Create initial export data frame for the undirected graph with only direct edges
 
 edge_export_df_ud_d_cd <- as.data.frame(E(g_ud_d_cd)$con_id_u)
@@ -1372,12 +1402,12 @@ g_ud_d_cd <- remove.edge.attribute(g_ud_d_cd, "isshort_cf")
 
 edge_attribute_list <- list.edge.attributes(g_ud_d_cd)
 
-if(length(edge_attribute_list )>0) {
-    for (el in edge_attribute_list) {
+if(length(edge_attribute_list )>0) {{
+    for (el in edge_attribute_list) {{
         edge_export_df_ud_d_cd <- as.data.frame(cbind(edge_export_df_ud_d_cd, get.edge.attribute(g_ud_d_cd, el)))
-    }
+    }}
     names(edge_export_df_ud_d_cd) <- append("con_id_u", edge_attribute_list)
-}
+}}
 
 
 ###Create initial export data frame for the directed graph
@@ -1394,26 +1424,26 @@ g <- remove.edge.attribute(g, "cost_distance")
 
 edge_attribute_list <- list.edge.attributes(g)
 
-if(length(edge_attribute_list )>0) {
-    for (el in edge_attribute_list) {
+if(length(edge_attribute_list )>0) {{
+    for (el in edge_attribute_list) {{
         edge_export_df <- as.data.frame(cbind(edge_export_df, get.edge.attribute(g, el)))
-    }
+    }}
     names(edge_export_df) <- append("id", edge_attribute_list)
-}
+}}
 
 export_df_list <-c("edge_export_df_ud", "edge_export_df_ud_d", "edge_export_df_ud_d_cd")
-for (df in export_df_list) {
-    if(length(names(get(df)))) {
+for (df in export_df_list) {{
+    if(length(names(get(df)))) {{
         edge_export_df_final <- merge(edge_export_df, get(df), all.x=TRUE, by="con_id_u", suffixes=c("_x", "_y"))
         edge_export_df <- edge_export_df_final
-    }
-}
+    }}
+}}
 
 dbWriteTable(con, edge_output, edge_export_df, overwrite=overwrite, row.names=FALSE)
 
 dbDisconnect(con)
 
-if(qml_directory != '') {
+if(qml_directory != '') {{
 #########################
 #CREATE .qml-files for edge measures visualistion in QGIS
 
@@ -1424,10 +1454,10 @@ colortable <- c('          <prop k="color" v="215,25,28,255"/>',
                 '          <prop k="color" v="166,217,106,255"/>',
                 '          <prop k="color" v="26,150,65,255"/>')
 colortable_bin <- c('          <prop k="color" v="0,0,0,255"/>')
-for (attribute in names(edge_export_df_final)) {
+for (attribute in names(edge_export_df_final)) {{
 
 #Skip id and geom columns
-if(attribute %in% c("id", "con_id", "con_id_u", "from_p", "to_p", "WKT", "cf_ebc_vi")) { next }
+if(attribute %in% c("id", "con_id", "con_id_u", "from_p", "to_p", "WKT", "cf_ebc_vi")) {{ next }}
 
 st_mod <- storage.mode(unlist(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))]))
 att_val <- unlist(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))])
@@ -1437,7 +1467,7 @@ qml <- c("<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>")
 qml <- append(qml, '<qgis version="1.8" minimumScale="0" maximumScale="1e+08" hasScaleBasedVisibilityFlag="0">')
 qml <- append(qml, '  <transparencyLevelInt>255</transparencyLevelInt>')
 
-if((max(att_val, na.rm=TRUE)-min(att_val, na.rm=TRUE)==1)) {
+if((max(att_val, na.rm=TRUE)-min(att_val, na.rm=TRUE)==1)) {{
 
 #More header
 qml <- append(qml, paste('  <renderer-v2 attr="', attribute, '" symbollevels="0" type="categorizedSymbol">', sep=''))
@@ -1461,8 +1491,8 @@ qml <- append(qml, '          <prop k=\"use_custom_dash\" v=\"0\"/>')
 qml <- append(qml, '          <prop k=\"width\" v=\"0.26\"/>')
 qml <- append(qml, '        </layer>')
 qml <- append(qml, '      </symbol>')
-}
-else {
+}}
+else {{
 
 attribute_quantile <- quantile(edge_export_df_final[grep(1, match(names(edge_export_df_final), attribute))], probs=seq(0, 1, 1/5), na.rm=TRUE, type=8)
 
@@ -1472,21 +1502,21 @@ qml <- append(qml, paste('  <renderer-v2 attr="', attribute, '" symbollevels="1"
 #Write ranges
 ranges <- character()
 qml <- append(qml, '    <ranges>')
-for (quant in 1:no_quantile) {
+for (quant in 1:no_quantile) {{
 ranges <- append(ranges, paste('      <range symbol="', (quant-1),
                                '" lower="', attribute_quantile[quant],
                                '" upper="', attribute_quantile[(quant+1)],
                                '" label="', round(attribute_quantile[quant], 4),
                                ' - ', round(attribute_quantile[(quant+1)], 4),
                                '">', sep=''))
-}
+}}
 qml <- append(qml, ranges)
 qml <- append(qml, '    </ranges>')
 
 #Write symbols
 qml <- append(qml, '    <symbols>')
 
-for (quant in 1:no_quantile) {
+for (quant in 1:no_quantile) {{
 qml <- append(qml, paste('      <symbol outputUnit="MM" alpha="1" type="line" name="',
                          (quant-1), '">',
                          sep=''))
@@ -1504,8 +1534,8 @@ qml <- append(qml, '          <prop k=\"use_custom_dash\" v=\"0\"/>')
 qml <- append(qml, '          <prop k=\"width\" v=\"0.26\"/>')
 qml <- append(qml, '        </layer>')
 qml <- append(qml, '      </symbol>')
-}
-}
+}}
+}}
 #Write Footer
 qml <- append(qml, '    </symbols>')
 
@@ -1538,17 +1568,20 @@ qml_output <- paste(qml_directory, paste(paste("edge_measures_", attribute, sep=
 con_qml <- file(qml_output, open="wt")
 write.table(qml, con_qml, append = FALSE, quote = FALSE, sep = " ", eol = "\n", na = "NA", dec = ".", row.names = FALSE, col.names = FALSE)
 close(con_qml)
-}
-}
+}}
+}}
 
 ########################################################################
 #Close R
 ########################################################################
 #q()
-"""
+""".format(cores)
 
     if cores <= 1 or os_type == 'Windows':
-        rscript.replace('mclapply', 'lapply')
+        rscript.replace('mclapply(mc.cores={}, '.format(cores), 'lapply(')
+
+    with open(os.path.join(qml_style_dir,'net_r_script.r'), 'w') as rs_file:
+        rs_file.write(rscript)
 
     robjects.r(rscript)
 
