@@ -183,8 +183,10 @@ class SentinelDownloader(object):
             args['cloudcoverpercentage'] = (0, int(clouds))
         if producttype:
             args['producttype'] = producttype
-            if producttype != 'GRD':
+            if producttype.startswith('S2'):
                 args['platformname'] = 'Sentinel-2'
+            else:
+                args['platformname'] = 'Sentinel-1'
         if not start:
             start = 'NOW-60DAYS'
         else:
@@ -370,10 +372,10 @@ def main():
     map_box = get_aoi_box(options['map'])
 
     sortby = options['sort'].split(',')
-    if options['producttype'] == 'GRD':
+    if options['producttype'] in ('SLC', 'GRD', 'OCN'):
         gs.info("Option <{}> ignored: cloud cover percentage "
-                "is not defined for product type GRD".format(
-                    "clouds"
+                "is not defined for product type {}".format(
+                    "clouds", options['producttype']
         ))
         options['clouds'] = None
         try:
