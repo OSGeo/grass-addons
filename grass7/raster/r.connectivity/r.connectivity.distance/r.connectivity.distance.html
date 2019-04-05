@@ -150,10 +150,10 @@ option=area units=hectares columns=area_ha
 v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 </pre></div>
 
-<div align="center" style="margin: 10px">
+<div style="margin: 10px">
 <a href="r_connectivity_distance_patches.png">
 <img src="r_connectivity_distance_patches.png" width="600" height="600" 
-alt="Patch vector map example" border="0">
+alt="Patch vector map example">
 </a><br>
 <i>Figure: Patch vector map as input to r.connectivity.distance, produced 
 in exampe above.</i>
@@ -193,10 +193,10 @@ echo '0 = 56 #not classified (2*resolution (28m))
 input=landuse96_28m output=costs rules=- --overwrite 
 </pre></div>
 
-<div align="center" style="margin: 10px">
+<div style="margin: 10px">
 <a href="r_connectivity_distance_costs.png">
 <img src="r_connectivity_distance_costs.png" width="600" height="600" 
-alt="Cost raster map example" border="0">
+alt="Cost raster map example">
 </a><br>
 <i>Figure: Cost raster as input to r.connectivity.distance, produced in 
 exampe above.</i>
@@ -221,19 +221,19 @@ costs=costs prefix=hws_connectivity cutoff=4500 border_dist=18 \
 conefor_dir=./conefor
 </pre></div>
 
-<div align="center" style="margin: 10px">
+<div style="margin: 10px">
 <a href="r_connectivity_distance_shortest_paths.png">
 <img src="r_connectivity_distance_shortest_paths.png" width="600" 
-height="600" alt="Output network represented by shortest paths" border="0">
+height="600" alt="Output network represented by shortest paths">
 </a><br>
 <i>Figure: Network produced with r.connectivity.distance, visually 
 represented by shortest paths and patch areas, produced in exampe above.</i>
 </div>
 
-<div align="center" style="margin: 10px">
+<div style="margin: 10px">
 <a href="r_connectivity_distance_network.png">
 <img src="r_connectivity_distance_network.png" width="600" height="600" 
-alt="Output network visualised as a simplified (straight) network" border="0">
+alt="Output network visualised as a simplified (straight) network">
 </a><br>
 <i>Figure: Network produced with r.connectivity.distance, simplified 
 visualisation with straight lines, produced in exampe above.</i>
