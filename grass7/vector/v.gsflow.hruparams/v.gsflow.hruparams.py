@@ -39,14 +39,16 @@
 
 #%option G_OPT_R_INPUT
 #%  key: cov_type
-#%  label: land cover: 0=bare soil; 1=grasses; 2=shrubs; 3=trees; 4=coniferous
+#%  label: land cover: rast or int: 0=bare soil; 1=grass; 2=shrub; 3=tree; 4=conif
+#%  answer: 0
 #%  required: no
 #%  guidependency: layer,column
 #%end
 
 #%option G_OPT_R_INPUT
 #%  key: soil_type
-#%  label: soil: 1=sand; 2=loam; 3=clay
+#%  label: soil: rast or int: 1=sand; 2=loam; 3=clay
+#%  answer: 2
 #%  required: no
 #%  guidependency: layer,column
 #%end
@@ -388,23 +390,45 @@ def main():
 
     # LAND USE/COVER
     ############
-    if land_cover != '':
-        # NEED TO FIX THIS!!!!
+    try:
+        land_cover = int(land_cover)
+    except:
+        pass
+    if type(land_cover) is int:
+        if land_cover <= 3:
+            v.db_update(map=HRU, column='cov_type', value=land_cover, quiet=True)
+        else:
+            sys.exit("WARNING: INVALID LAND COVER TYPE. CHECK INTEGER VALUES.\n"
+                     "EXITING TO ALLOW USER TO CHANGE BEFORE RUNNING GSFLOW")
+    else:
+        # NEED TO UPDATE THIS TO MODAL VALUE!!!!
+        print "Warning: values taken from HRU centroids. Code should be updated to"
+        print "acquire modal values"
+        v.what_rast(map=HRU, type='centroid', raster=land_cover, column='cov_type', quiet=True)
         #v.rast_stats(map=HRU, raster=land_cover, method='average', column_prefix='tmp', flags='c', quiet=True)
         #v.db_update(map=HRU, column='cov_type', query_column='tmp_average', quiet=True)
         #v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
-        v.db_update(map=HRU, column='cov_type', value=1, quiet=True)
-        v.what_rast(map=HRU, type='centroid', raster=land_cover, column='cov_type', quiet=True)
 
     # SOIL
     ############
-    if soil != '':
-        # NEED TO FIX THIS!!!!
+    try:
+        soil = int(soil)
+    except:
+        pass
+    if type(soil) is int:
+        if (soil > 0) and (soil <= 3):
+            v.db_update(map=HRU, column='soil_type', value=soil, quiet=True)
+        else:
+            sys.exit("WARNING: INVALID SOIL TYPE. CHECK INTEGER VALUES.\n"
+                     "EXITING TO ALLOW USER TO CHANGE BEFORE RUNNING GSFLOW")
+    else:
+        # NEED TO UPDATE THIS TO MODAL VALUE!!!!
+        print "Warning: values taken from HRU centroids. Code should be updated to"
+        print "acquire modal values"
+        v.what_rast(map=HRU, type='centroid', raster=soil, column='soil_type', quiet=True)
         #v.rast_stats(map=HRU, raster=soil, method='average', column_prefix='tmp', flags='c', quiet=True)
         #v.db_update(map=HRU, column='soil_type', query_column='tmp_average', quiet=True)
         #v.db_dropcolumn(map=HRU, columns='tmp_average', quiet=True)
-        v.db_update(map=HRU, column='soil_type', value=1, quiet=True)
-        v.what_rast(map=HRU, type='centroid', raster=soil, column='soil_type', quiet=True)
 
 
 if __name__ == "__main__":
