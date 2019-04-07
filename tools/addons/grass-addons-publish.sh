@@ -41,7 +41,7 @@ process () {
 cd $ADDONS
 nup=`(svn up || (svn cleanup && svn up)) | wc -l`
 if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
-    process 7 4
+    process 7 6
     process 6 4 
 
     ${ADDONS}/tools/addons/grass-addons-index.sh

@@ -165,7 +165,7 @@ See also log files of compilation:
     echo "</body></html>" >> index.html
 }
 
-generate 7 4
+generate 7 6
 generate 6 4
 
 exit 0
