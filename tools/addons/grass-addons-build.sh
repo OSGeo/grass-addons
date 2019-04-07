@@ -30,7 +30,7 @@ manuals() {
     for dir in `find . -maxdepth 1 -type d`; do
         if [ -d $dir/docs/html ] ; then
             for f in `pwd`/$dir/docs/html/*.html ; do 
-                ${SRC}/grass_addons/tools/addons/update_manual.py $f http://grass.osgeo.org/grass${1}${2}/manuals `pwd`
+                ${SRC}/grass_addons/tools/addons/update_manual.py $f https://grass.osgeo.org/grass${1}${2}/manuals `pwd`
             done
             cp -r $dir/docs/html/* $HTMLDIR/ 2>/dev/null
         fi
@@ -54,6 +54,6 @@ promote() {
 }
 
 promote 6 4
-promote 7 4
+promote 7 6
 
 exit 0
