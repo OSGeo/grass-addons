@@ -6,7 +6,7 @@
 # AUTHOR(S):   Martin Landa
 # PURPOSE:     Downloads Sentinel data from Copernicus Open Access Hub
 #              using sentinelsat library.
-# COPYRIGHT:   (C) 2018 by Martin Landa, and the GRASS development team
+# COPYRIGHT:   (C) 2018-2019 by Martin Landa, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
@@ -57,7 +57,6 @@
 #% key: clouds
 #% type: integer
 #% description: Maximum cloud cover percentage for Sentinel scene
-#% answer: 30
 #% required: no
 #% guisection: Filter
 #%end
@@ -388,11 +387,12 @@ def main():
 
     sortby = options['sort'].split(',')
     if options['producttype'] in ('SLC', 'GRD', 'OCN'):
-        gs.info("Option <{}> ignored: cloud cover percentage "
-                "is not defined for product type {}".format(
-                    "clouds", options['producttype']
-        ))
-        options['clouds'] = None
+        if options['clouds']:
+            gs.info("Option <{}> ignored: cloud cover percentage "
+                    "is not defined for product type {}".format(
+                        "clouds", options['producttype']
+                    ))
+            options['clouds'] = None
         try:
             sortby.remove('cloudcoverpercentage')
         except ValueError:
