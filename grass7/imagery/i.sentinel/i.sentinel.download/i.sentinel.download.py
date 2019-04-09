@@ -89,6 +89,12 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: query
+#% type: string
+#% description: Extra search keywords to use in the query
+#% guisection: Filter
+#%end
+#%option
 #% key: uuid
 #% type: string
 #% multiple: yes
@@ -117,7 +123,7 @@
 #%end
 #%rules
 #% required: output,-l
-#% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,sort,order
+#% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 #%end
 
 import os
@@ -176,7 +182,7 @@ class SentinelDownloader(object):
         self._products_df_sorted = None
         
     def filter(self, area, area_relation,
-               clouds=None, producttype=None, limit=None,
+               clouds=None, producttype=None, limit=None, query={},
                start=None, end=None, sortby=[], asc=True):
         args = {}
         if clouds:
@@ -195,9 +201,18 @@ class SentinelDownloader(object):
             end = 'NOW'
         else:
             end = end.replace('-', '')
+        if query:
+            redefined = [value for value in args.keys() if value in query.keys()]
+            if redefined:
+                gs.warning("Query overwrites defined options ({})".format(
+                    ','.join(redefined)
+                ))
+            args.update(query)
+        gs.debug("Query: area={} area_relation={} date=({}, {}) args={}".format(
+            area, area_relation, start, end, args
+        ), debug=1)
         products = self._api.query(
             area=area, area_relation=area_relation,
-            
             date=(start, end),
             **args
         )
@@ -388,11 +403,17 @@ def main():
         if options['uuid']:
             downloader.set_uuid(options['uuid'].split(','))
         else:
+            query = {}
+            if options['query']:
+                for item in options['query'].split(','):
+                    k, v = item.split('=')
+                    query[k] = v
             downloader.filter(area=map_box,
                               area_relation=options['area_relation'],
                               clouds=options['clouds'],
                               producttype=options['producttype'],
                               limit=options['limit'],
+                              query=query,
                               start=options['start'],
                               end=options['end'],
                               sortby=sortby,

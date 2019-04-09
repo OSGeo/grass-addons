@@ -79,6 +79,13 @@ Sentinel products can be also filtered by <b>producttype</b> or, in case of
 Sentinel-2 data, maximum <b>clouds</b> cover percentage.
 
 <p>
+Extra search keywords can be specified with <b>query</b>. Multiple keywords
+can be listed separated with comma (e.g. 'polarisationmode=HH,orbitdirection=Ascending').
+Note that ESA maintains a
+<a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">list of valid search keywords</a>
+that can be used with <b>query</b>.
+
+<p>
 In case a Sentinel data download was interrupted, <em>i.sentinel.download</em>
 will continue to download once the command is restarted and the partially
 downloaded file (with <tt>.incomplete</tt> file extention) still present.
