@@ -370,7 +370,7 @@ def main():
     else:
         try:
             with open(options['settings'], 'r') as fd:
-                lines = filter(None, (line.rstrip() for line in fd)) # non-blank lines only
+                lines = list(filter(None, (line.rstrip() for line in fd))) # non-blank lines only
                 if len(lines) < 2:
                     gs.fatal(_("Invalid settings file"))
                 user = lines[0].strip()
