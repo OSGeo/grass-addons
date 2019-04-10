@@ -203,7 +203,7 @@ class SentinelDownloader(object):
         if query:
             redefined = [value for value in args.keys() if value in query.keys()]
             if redefined:
-                gs.warning("Query overwrites defined options ({})".format(
+                gs.warning("Query overrides already defined options ({})".format(
                     ','.join(redefined)
                 ))
             args.update(query)
