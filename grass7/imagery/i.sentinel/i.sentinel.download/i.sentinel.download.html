@@ -80,7 +80,7 @@ Sentinel-2 data, maximum <b>clouds</b> cover percentage.
 
 <p>
 Extra search keywords can be specified with <b>query</b>. Multiple keywords
-can be listed separated with comma (e.g. 'polarisationmode=HH,orbitdirection=Ascending').
+can be listed separated with comma (e.g. 'polarisationmode=VV,orbitdirection=Ascending').
 Note that ESA maintains a
 <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">list of valid search keywords</a>
 that can be used with <b>query</b>.
@@ -99,7 +99,7 @@ Find all atmospherically corrected Sentinel-2 L2A products (S2MSI2) in 2018 (are
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
 
-i.sentinel.download -l settings=.sentinel.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31
+i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31
 
 357 Sentinel product(s) found
 379e2896-408d-4642-bc6f-ee941e395c32 2018-04-19T10:10:31Z  0% S2MSI2A
@@ -114,7 +114,7 @@ Sort products by <b>ingestiondate</b>, limit cloud coverage to 3% per scene:
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
-i.sentinel.download -l settings=.sentinel.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 sort=ingestiondate order=desc clouds=3
+i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 sort=ingestiondate order=desc clouds=3
 
 191 Sentinel product(s) found
 1b0ee27e-c51a-49d9-b2a4-78db128a49f9 2018-12-27T10:04:19Z  0% S2MSI2A
@@ -131,7 +131,7 @@ some footprint overlap):
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
-i.sentinel.download -l settings=sentinel.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 clouds=1 footprints=s2_scenes_footprints
+i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 clouds=1 footprints=s2_scenes_footprints
 
 131 Sentinel product(s) found
 Writing footprints into &lt;s2_scenes_footprints&gt;...
@@ -146,7 +146,7 @@ Find Sentinel-2 L1C products (S2MSI1C) of <b>last 60 days</b> (default) covering
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
-i.sentinel.download -l settings=sentinel.txt producttype=S2MSI1C sort=ingestiondate
+i.sentinel.download -l settings=credentials.txt producttype=S2MSI1C sort=ingestiondate
 
 57 Sentinel product(s) found
 c5f6e871-3cd9-471f-a022-712f5e10a43a 2018-11-10T10:12:39Z 15% S2MSI1C
@@ -159,11 +159,24 @@ a83ad139-c420-4433-bd21-f7ed35536e69 2018-11-10T10:12:39Z 14% S2MSI1C
 
 
 <p>
-Find Sentinel-1 product by one or several specified <b>UUID</b>s:
+Find Sentinel-1 products by one or several specified <b>UUID</b>s:
 
 <div class="code"><pre>
-i.sentinel.download -l settings=sentinel.txt uuid=a45d5bbe-6919-49fc-84fd-72a7634d2035
+i.sentinel.download -l settings=credentials.txt uuid=a45d5bbe-6919-49fc-84fd-72a7634d2035
 a45d5bbe-6919-49fc-84fd-72a7634d2035 2018-06-04T05:26:01Z cloudcover_NA SLC
+</pre></div>
+
+<p>
+Find Sentinel-1 products with date range filter and <b>query</b> filter limit to
+a specific polarisationmode:
+
+<div class="code"><pre>
+i.sentinel.download -l settings=credentials.txt producttype=SLC start=2018-01-01 end=2018-12-31 query='polarisationmode=VV'
+34 Sentinel product(s) found
+047db83e-db60-45f3-a6d2-3a32588dac01 2018-01-10T23:14:05Z cloudcover_NA SLC
+fc6107a5-9daf-45cc-a40a-0e5502c464b6 2018-01-22T23:14:05Z cloudcover_NA SLC
+4ad9b650-2954-4ff5-977b-90aedbed6514 2018-02-03T23:14:05Z cloudcover_NA SLC
+[...]
 </pre></div>
 
 
@@ -173,7 +186,7 @@ Download first (<b>limit=1</b>) S2MSI2A product found into the <i>data</i> direc
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
-i.sentinel.download settings=sentinel.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018
+i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018
 </pre></div>
 
 The downloaded Sentinel data can subsequently be easily imported into GRASS GIS
@@ -191,7 +204,7 @@ filtering options.
 Example of downloading a single Sentinel product:
 
 <div class="code"><pre>
-i.sentinel.download settings=sentinel.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data
+i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data
 <pre></div>
 
 <h2>REQUIREMENTS</h2>
