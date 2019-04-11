@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	g.citation \
 	g.cloud \
 	g.compare.md5 \
 	g.copyall \

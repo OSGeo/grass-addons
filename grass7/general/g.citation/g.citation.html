@@ -1,0 +1,78 @@
+<h2>DESCRIPTION</h2>
+
+<em>g.citation</em> - creates citation or metadata based on
+documentation of a given module.
+
+<h3>Formats</h3>
+
+<h4>Citation File Format</h4>
+
+<a href="https://citation-file-format.github.io/">Citation File Format</a>
+(CFF) is a YAML based format for citations, specifically CITATION files
+to be included with software or code as <tt>CITATION.cff</tt>.
+
+<h4>JSON</h4>
+
+Currently, the keys and the overall structure are subject to change,
+but the plan is to stabilize it or to provide existing metadata format
+in JSON. Pretty-printed version is good, e.g., for saving into files,
+while the other, compact version is good for further processing.
+
+<h4>Pretty printed Python dictionary</h4>
+
+This format is essentially a dump of the internal data structure holding
+the citation entry. It should not be used in scripts, i.e. further
+parsed, for that there are other formats such as JSON. When this is
+advantageous is exploring what information the module was able to
+acquire for the citation.
+
+<h2>NOTES</h2>
+
+<ul>
+    <li>Don't use the <tt>format=dict</tt> for further processing.
+        It is meant for exploration of what information the module
+        acquired.</li>
+    <li>The structure of the JSON output is yet not guaranteed.</li>
+</ul>
+
+
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+g.citation module=v.select format=plain
+</pre></div>
+
+<div class="code"><pre>
+g.citation f=pretty-json -a -s | grep '"name": ' | sort | uniq
+</pre></div>
+
+
+<div class="code"><pre>
+g.citation -s format=citeproc vsep="< p>" -a > all.html
+</pre></div>
+
+
+<h2>KNOWN ISSUES</h2>
+
+<ul>
+    <li>More output formats or styles are needed.
+        The following formats were suggested so far:
+        <tt>csl,datacite,dublincore,json-ld,narcxml</tt></li>
+    <li>The structure of the JSON output is not guaranteed. It reflects
+        the internal structure (only the empty entries are removed).</li>
+    <li>Version and date in CFF output are incomplete.</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="g.search.module.html">g.search.module</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a> (ORCID: 0000-0001-5566-9236)<br>
+Peter Loewe, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a> (ORCID: 0000-0003-2257-0517)<br>
+Markus Neteler, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU GeoForAll Lab</a> (ORCID: 0000-0003-1916-1966)
+
+<p><i>Last changed: $Date$</i>
