@@ -160,7 +160,8 @@ def footprint_to_vectormap(infile, footprint):
     """
     if not grass.find_program('pdal', 'info --boundary'):
         grass.fatal(_(
-             "pdal info --boundary is not in the path and executable"))
+             "The pdal executable is not available."
+             " Install PDAL or put the pdal executable on path."))
     command_fp = ['pdal', 'info', '--boundary', infile]
     tmp_fp = grass.tempfile()
     if tmp_fp is None:
