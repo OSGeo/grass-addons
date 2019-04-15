@@ -34,7 +34,7 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% type: string
 #% required: yes
 #% multiple: no
-#% answer: series
+#% answer: event
 #% options: event,series
 #% description: Run for a single rainfall event or a series of events
 #% descriptions: event;single rainfall event;series;series of rainfall events
@@ -143,7 +143,6 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% description: Number of walkers (max = 7000000)
 #% answer: 1000000
 #% multiple: no
-#% required: yes
 #% guisection: Input
 #%end
 
@@ -317,7 +316,7 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% key: start
 #% type: string
 #% description: Start time in year-month-day hour:minute:second format
-#% answer: 2000-01-01 00:00:00
+#% answer: 2016-01-01 00:00:00
 #% multiple: no
 #% required: yes
 #% guisection: Temporal

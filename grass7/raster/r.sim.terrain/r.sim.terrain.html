@@ -19,38 +19,75 @@ based on topographic, land cover, soil, and rainfall parameters.
 
 <h2>EXAMPLES</h2>
 
+<p><b>Basic instructions</b></p>
+A basic example for the
+<a href="https://grass.osgeo.org/download/sample-data/">North Carolina sample dataset</a>.
+Install the add-on module <i>r.sim.terrain</i>.
+Copy the raster elevation map <i>elev_lid792_1m</i> from the PERMANENT mapset
+to the current mapset.
+Set the region to this elevation map at 1 meter resolution.
+Run <i>r.sim.terrain</i> with the RUSLE model
+for a 120 min event with a rainfall intensity of 50 mm/hr
+at a 3 minute interval.
+Set the empirical coefficients m and n to 0.4 and 1.3 respectively.
+Use the `-f` flag to fill depressions
+in order to reduce the effect of positive feedback loops.
+
+
+<div class="code"><pre>
+g.extension  extension=r.sim.terrain
+g.copy raster=elev_lid792_1m@PERMANENT,elevation
+g.region raster=elev_lid792_1m res=1
+r.sim.terrain -f elevation=elevation runs=event mode=rusle_mode rain_intensity=50.0 rain_duration=120 rain_interval=3 m=0.4 n=1.3
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_sim_terrain_rusle.png">
+<img src="r_sim_terrain_rusle.png" width="600" height="600" alt="r.sim.terrain basic example" border="0">
+</a><br>
+<i>Figure: Net difference (m) for a dynamic RUSLE simulation
+of a 120 min event with a rainfall intensity of 50 mm/hr with a 3 minute interval.</i>
+</div>
+
+<p><b>Spatially variable soil and landcover</b></p>
+
+<p>
 Clone or download the
-<a href="https://github.com/baharmon/landscape_evolution_dataset">sample dataset</a>
+<a href="https://github.com/baharmon/landscape_evolution_dataset">landscape evolution sample dataset</a>
 with a time series of lidar-based digital elevation models and orthoimagery
 for a highly eroded subwatershed of Patterson Branch Creek,
 Fort Bragg, NC, USA.
+</p>
 
+<p>
 Run <i>r.sim.terrain</i> with the simwe model
 for a 120 min event with a rainfall intensity of 50 mm/hr.
 Use a transport value lower than the detachment value
 to trigger a transport limited erosion regime.
 Use the -f flag to fill depressions
 in order to reduce the effect of positive feedback loops.
+</p>
 
 <div class="code"><pre>
 g.mapset -c mapset=transport location=nc_spm_evolution
-g.region region=region res=0.3
+g.region region=region res=1
 r.mask vector=watershed
-r.sim.terrain -f runs=event mode=simwe_mode rain_intensity=50.0 rain_interval=120 rain_duration=10 \
-walkers=1000000 detachment_value=0.01 transport_value=0.0001 manning=mannings runoff=runoff
+g.copy raster=elevation_2016@PERMANENT,elevation_2016
+r.sim.terrain -f elevation=elevation_2016 runs=event mode=simwe_mode \
+rain_intensity=50.0 rain_interval=120 rain_duration=10 walkers=1000000 \
+detachment_value=0.01 transport_value=0.0001 manning=mannings runoff=runoff
 </pre></div>
 
 <div align="center" style="margin: 10px">
-
 <a href="r_sim_terrain.png">
-<img src="r_sim_terrain.png" width="600" height="600" alt="r.sim.terrain example" border="0">
+<img src="r_sim_terrain.png" width="600" height="600" alt="r.sim.terrain advanced example" border="0">
 </a><br>
 <i>Figure: Net difference (m)
 for a steady state, transport limited SIMWE simulation
 of a 120 min event with a rainfall intensity of 50 mm/hr.</i>
 </div>
 
-For more examples see this in-depth
+For more detailed instructions and examples see this in-depth
 <a href="https://github.com/baharmon/landscape_evolution/blob/master/tutorial.md">tutorial</a>.
 
 <h2>ERROR MESSAGES</h2>
