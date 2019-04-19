@@ -78,6 +78,13 @@
 #% answer: 1
 #% required: yes
 #%end
+#
+#%option
+#% key: mapset_prefix
+#% type: string
+#% description: Mapset prefix
+#% required: no
+#%end
 
 
 import math
@@ -128,6 +135,10 @@ def main():
     height = int(options['tile_height'])
     overlap = math.ceil(windowsize/2.0)
     processes = int(options['processes'])
+    mapset_prefix = None
+    if options['mapset_prefix']:
+        mapset_prefix = options['mapset_prefix']
+
 
     kwargs = {'input' : inputraster,
               'output' : outputprefix,
@@ -143,6 +154,7 @@ def main():
                        overlap=overlap,
                        processes=processes,
                        split=False,
+                       mapset_prefix=mapset_prefix,
                        **kwargs)
     grd.run()
 

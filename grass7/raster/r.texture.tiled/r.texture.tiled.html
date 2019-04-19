@@ -13,6 +13,12 @@ Tiles can be defined with the <b>tile_width</b>, <b>tile_height</b> and
 <b>overlap</b> parameters. If <b>processes</b> is higher than one, these tiles 
 will be processed in parallel.
 
+<p>
+The <b>mapset_prefix</b> parameter allows to make sure that the temporary
+mapsets created during the tiled processing have unique names. This is useful
+if the user runs <em>r.texture.tiled</em> several times in parallel (e.g. in
+an HPC environment).
+
 <h2>NOTES</h2>
 
 The parameters for texture calculation are identical to those of 
