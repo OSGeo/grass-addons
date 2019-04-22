@@ -255,7 +255,7 @@ def main():
     reachesTopo.table.columns.add('IRCH', 'integer')
     reachesTopo.table.columns.add('JRCH', 'integer')
     reachesTopo.table.columns.add('IREACH', 'integer')
-    reachesTopo.table.columns.add('RCHLEN', 'integer')
+    reachesTopo.table.columns.add('RCHLEN', 'double precision')
     reachesTopo.table.columns.add('STRTOP', 'double precision')
     reachesTopo.table.columns.add('SLOPE', 'double precision')
     reachesTopo.table.columns.add('STRTHICK', 'double precision')
