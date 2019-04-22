@@ -113,7 +113,7 @@ def main():
     # Percent areas
     v.db_renamecolumn(map=gravity_reservoirs, column=('a_hru_area_m2', 'hru_area_m2'), quiet=True)
     v.db_renamecolumn(map=gravity_reservoirs, column=('b_area_m2', 'cell_area_m2'), quiet=True)
-    v.db_addcolumn(map=gravity_reservoirs, columns='area_m2', quiet=True)
+    v.db_addcolumn(map=gravity_reservoirs, columns='area_m2 double precision', quiet=True)
     v.to_db(map=gravity_reservoirs, option='area', units='meters', columns='area_m2', quiet=True)
     v.db_addcolumn(map=gravity_reservoirs, columns='gvr_cell_pct double precision, gvr_hru_pct double precision', quiet=True)
     v.db_update(map=gravity_reservoirs, column='gvr_cell_pct', query_column='100*area_m2/cell_area_m2', quiet=True)
