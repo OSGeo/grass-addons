@@ -134,7 +134,7 @@ ToDo:
 #%end
 
 #%option
-#% key: cl_thres
+#% key: cl_thresh
 #% type: integer
 #% description: Number of community levels to be traced in edge betweenness community
 #% guisection: Settings
@@ -292,7 +292,7 @@ def main():
     else:
         grass.fatal('Option "connectivity_cutoff" is not given as a number.')
     lnbh_cutoff = options['lnbh_cutoff']
-    cl_thresh = options['cl_thres']
+    cl_thresh = options['cl_thresh']
 
     cd_cutoff = connectivity_cutoff
 
@@ -535,7 +535,7 @@ remove_indirect <- {r_flag}
 cd_cutoff <- {cd_cutoff}
 connectivity_cutoff <- {connectivity_cutoff}
 lnbh_cutoff <- {lnbh_cutoff}
-cl_thres <- {cl_thresh}
+cl_thresh <- {cl_thresh}
 db <- "{database}"
 db_driver <- "{driver}"
 db_schema <- "{schema}"
@@ -965,6 +965,7 @@ E(g_ud_d_cd)$mf_leb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_
 E(g_ud_d_cd)$cf_eb_udc <- edge.betweenness(g_ud_d_cd, e=E(g_ud_d_cd), directed=FALSE, weights=E(g_ud_d_cd)$cf_inv_u)
 E(g_ud_d_cd)$cf_leb_udc <- hist(unlist(mclapply(mc.cores={0}, 1:length(V(g_ud_d_cd)), function(x) get.shortest.paths(g_ud_d_cd, x,  V(g_ud_d_cd)[grep(TRUE, path_lengths_cd[x,]<(lnbh_cutoff*connectivity_cutoff))], weights=E(g_ud_d_cd)$cf_inv_u, output=c("epath"))$epath)), breaks=0:(length(E(g_ud_d_cd))), plot=FALSE)$counts/2
 
+if (cl_thresh > 0) {{
 #########################################################################
 #######Calculate edge betweenness community on the undirected graph
 ##weighted by competing potential flow
@@ -980,11 +981,11 @@ E(g_ud)$cf_iebc_c <- crossing(ebc, g_ud)
 V(g)$cf_iebc_me <- ebc$membership
 
 com_struct <- as.character(cutat(ebc, cl_no_d))
-for (i in (cl_no_d+1):(cl_no_d+cl_thres)) {{
+for (i in (cl_no_d+1):(cl_no_d+cl_thresh)) {{
 com_struct <- paste(com_struct, cutat(ebc, i), sep=';')
 }}
 V(g)$cf_iebc_cs <- as.character(com_struct)
-V(g)$cf_iebc_cl <- cutat(ebc, (cl_no_d+cl_thres))
+V(g)$cf_iebc_cl <- cutat(ebc, (cl_no_d+cl_thresh))
 
 cf_iebc_u_mod <- modularity(ebc)
 com_no_u <- length(ebc)
@@ -1012,14 +1013,14 @@ idx <- sort.int(E(del_eb_g)$cf_eb_ud, decreasing=TRUE, na.last=NA, index.return=
 ebc_con_id_u[n] <- E(del_eb_g)$con_id_u[idx]
 ebc_rank[n] <- n
 ebc_clust[n] <- clusters(del_eb_g)$no
-if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thres)) {{if(n>1) {{if(ebc_clust[n]>ebc_clust[n-1]) V(g_ud)$cf_ebc_cs <- paste(V(g_ud)$cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}}}
+if((ebc_clust[n]-cl_no_d)<(cl_no_d+cl_thresh)) {{if(n>1) {{if(ebc_clust[n]>ebc_clust[n-1]) V(g_ud)$cf_ebc_cs <- paste(V(g_ud)$cf_ebc_cs, clusters(del_eb_g)$membership, sep=";")}}}}
 ebc_value[n] <- E(del_eb_g)$cf_eb_ud[idx]
 ##Delete edge with highest edge betweenness value
 del_eb_g <- delete.edges(del_eb_g, E(del_eb_g)[idx])
 n <- n+1
 }}
 
-V(g_ud)$cf_ebc_cl <- unlist(mclapply(mc.cores={0}, 1:length(V(g_ud)), function(x) strsplit(V(g_ud)$cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thres)]))
+V(g_ud)$cf_ebc_cl <- unlist(mclapply(mc.cores={0}, 1:length(V(g_ud)), function(x) strsplit(V(g_ud)$cf_ebc_cs, ";")[[x]][(cl_no_d+cl_thresh)]))
 
 #ebc_df <- merge(data.frame(con_id=E(g)$con_id, con_id_u=E(g)$con_id_u), data.frame(con_id_u=ebc_con_id_u, ebc_rank=ebc_rank, ebc_clust=ebc_clust, ebc_value=ebc_value), all.x=TRUE)
 idx <- sort.int(ebc_con_id_u, index.return=TRUE)$ix
@@ -1028,6 +1029,19 @@ E(g_ud)$cf_ebc_r <- ebc_rank[idx]
 E(g_ud)$cf_ebc_c <- ebc_clust[idx]
 
 E(g_ud)$cf_ebc_vi <- strftime(Sys.time()+E(g_ud)$cf_ebc_r)
+
+#########################################################################
+###Calculate community connectors (based on community structure from ebc)
+com_membership <- data.frame(patch_id=V(g_ud_d_cd)$patch_id, com=V(g_ud)$cf_ebc_cl)
+com_pc_pre <- merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")$id) ,]
+E(g)$cf_ebc_cc <- ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
+
+
+}} else {{
+if (verbose) {{
+cat("Skipping comunity algorithms...\n")
+}}
+}}
 ########################################################################
 ######Calculate cluster membership
 V(g_ud_d)$cl_ud <- clusters(g_ud_d)$membership
@@ -1038,12 +1052,6 @@ V(g_ud_d_cd)$cl_udc <- clusters(g_ud_d_cd)$membership
 cl_membership <- data.frame(patch_id=V(g_ud_d_cd)$patch_id, cl=V(g_ud_d_cd)$cl_udc)
 cl_pc_pre <- merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), cl_membership, by.x="from_p", by.y="patch_id"),  cl_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), cl_membership, by.x="from_p", by.y="patch_id"),  cl_membership, by.x="to_p", by.y="patch_id")$id) ,]
 E(g)$cl_pc <- ifelse(cl_pc_pre$cl.x==cl_pc_pre$cl.y,0,1)
-
-#########################################################################
-###Calculate community connectors (based on community structure from ebc)
-com_membership <- data.frame(patch_id=V(g_ud_d_cd)$patch_id, com=V(g_ud)$cf_ebc_cl)
-com_pc_pre <- merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")[order(merge(merge(data.frame(id=1:length(E(g)), from_p=E(g)$from_p, to_p=E(g)$to_p), com_membership, by.x="from_p", by.y="patch_id"),  com_membership, by.x="to_p", by.y="patch_id")$id) ,]
-E(g)$cf_ebc_cc <- ifelse(com_pc_pre$com.x==com_pc_pre$com.y,0,1)
 
 if (verbose) {{
 cat("Starting analysis on vertex level...\n")
@@ -1205,13 +1213,17 @@ c("Diameter of the graph with only direct edges (undirected)", diam_d),
 c("Diameter of the graph with only edges shorter cost distance threshold", diam_d_cd),
 c("Density of the entire graph (directed)", density),
 c("Density of the entire graph (undirected)", density_u),
-c("Density of the graph with only direct edges (undirected)", density_ud),
+c("Density of the graph with only direct edges (undirected)", density_ud))
+
+if (cl_thresh > 0) {{
+grml <- rbind(grml,
 c("Density of the graph with only edges shorter cost distance threshold",  density_udc),
 c("Modularity (from iebc) of the entire graph (undirected) weighted by cf", cf_iebc_u_mod),
 c("Number of communities (at maximum modularity score (from iebc)) of the entire (undirected) graph weighted by cf", com_no_u),
 c("com_sizes_u", toString(com_sizes_u, sep=',')),
 c("com_sizes_u_names", toString(com_sizes_u_names, sep=','))
 )
+}}
 
 network_overview_measures <- data.frame(
     measure=grml[,1],
