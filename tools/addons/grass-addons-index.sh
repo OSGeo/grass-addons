@@ -1,13 +1,12 @@
 #!/bin/sh
 
 # PURPOSE: Generates index.html of GRASS GIS Addons
-#          http://grass.osgeo.org/grass70/manuals/addons/
+#          http://grass.osgeo.org/grass7/manuals/addons/
 #
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
 # updated for new CMS path MN 8/2015
 # display module prefix by ML 8/2015
-
 
 # Important: keep log links in sync at https://grass.osgeo.org/download/addons/
 
