@@ -40,7 +40,7 @@ recompile_grass() {
 	else
 	    num=7
 	fi
-	$DIR/configures.sh grass$num >/dev/null 2>&1
+	$DIR/configures.sh grass$num >/dev/null
 	make >/dev/null 2>&1
         cat error.log 1>&2
         if [ "$?" != 0 ]; then
