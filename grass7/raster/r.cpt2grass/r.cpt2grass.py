@@ -130,9 +130,9 @@ def main(options, flags):
     input_url = options['url']
     if input_url:
         try:
-            from urllib.request import urlopen
+            from six.moves.urllib.request import urlopen
         except ImportError:
-            from urllib.request import urlopen
+            from urllib2 import urlopen
 
         txt = urlopen(input_url).readlines()
     else:
