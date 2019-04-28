@@ -190,12 +190,19 @@ def main():
     elif coordinates:
         kwargs['coordinates'] = coordinates
 
+    if flags['n']:
+        pass_flags='n'
+    else:
+        pass_flags=None
+
     for i, water_level in enumerate(water_levels):
         try:
-            gcore.run_command('r.lake', elevation=elevation,
-                              lake=outputs[i],
-                              water_level=water_level,
-                              overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+            gcore.run_command('r.lake',
+                    flags=pass_flags,
+                    elevation=elevation,
+                    lake=outputs[i],
+                    water_level=water_level,
+                    overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
                               **kwargs)
         except CalledModuleError:
             # remove maps created so far, try to remove also i-th map
