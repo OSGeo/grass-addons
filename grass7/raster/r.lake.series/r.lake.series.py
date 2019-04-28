@@ -189,8 +189,6 @@ def main():
         kwargs['seed'] = seed_raster
     elif coordinates:
         kwargs['coordinates'] = coordinates
-    if 'n' in flags:
-        flags += 'n'
 
     for i, water_level in enumerate(water_levels):
         try:
