@@ -34,8 +34,14 @@ def get_proj(flag='p'):
     gproj = grass.read_command('g.proj', flags=flag)
     if flag == 'p':
         listproj = gproj.split('\n')
-        listproj.remove('-PROJ_INFO-------------------------------------------------')
-        listproj.remove('-PROJ_UNITS------------------------------------------------')
+        try:
+            listproj.remove('-PROJ_INFO-------------------------------------------------')
+        except Exception:
+            pass
+        try:
+            listproj.remove('-PROJ_UNITS------------------------------------------------')
+        except Exception:
+            pass
         try:
             listproj.remove('-PROJ_EPSG-------------------------------------------------')
         except Exception:
@@ -76,7 +82,7 @@ class product:
         vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 )'
         vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 1 )'
         vi_5600m_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 0 )'
-        vi_5600m_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 0 1 )'        
+        vi_5600m_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 0 1 )'
         vi_color = ['ndvi', 'evi']
         vi250m_suff = {'.250m_16_days_NDVI': '.250m_16_days_VI_Quality',
                        '.250m_16_days_EVI': '.250m_16_days_VI_Quality'}
