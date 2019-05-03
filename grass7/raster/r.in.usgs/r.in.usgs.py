@@ -562,7 +562,6 @@ def main():
         # create variables for use in GRASS GIS import process
         LT_file_name = os.path.basename(t)
         LT_layer_name = os.path.splitext(LT_file_name)[0]
-        patch_names.append(LT_layer_name)
         in_info = ("Importing and reprojecting {0}...").format(LT_file_name)
         gscript.info(in_info)
         # import to GRASS GIS
@@ -570,12 +569,14 @@ def main():
             gscript.run_command('r.import', input=t, output=LT_layer_name,
                                 resolution='value', resolution_value=product_resolution,
                                 extent="region", resample=product_interpolation)
-            # do not remove by default with NAIP, there are no zip files
-            if gui_product != 'naip' or not gui_k_flag:
-                cleanup_list.append(t)
         except CalledModuleError:
             in_error = ("Unable to import '{0}'").format(LT_file_name)
-            gscript.fatal(in_error)
+            gscript.warning(in_error)
+        else:
+            patch_names.append(LT_layer_name)
+        # do not remove by default with NAIP, there are no zip files
+        if gui_product != 'naip' or not gui_k_flag:
+            cleanup_list.append(t)
 
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch
@@ -583,7 +584,7 @@ def main():
     # Check that downloaded files match expected count
     completed_tiles_count = len(local_tile_path_list)
     if completed_tiles_count == tiles_needed_count:
-        if completed_tiles_count > 1:
+        if len(patch_names) > 1:
             try:
                 gscript.use_temp_region()
                 # set the resolution
@@ -612,7 +613,7 @@ def main():
                                             name=patch_names, flags='f')
             except CalledModuleError:
                 gscript.fatal("Unable to patch tiles.")
-        elif completed_tiles_count == 1:
+        elif len(patch_names) == 1:
             if gui_product == 'naip':
                 for i in ('1', '2', '3', '4'):
                     gscript.run_command('g.rename', raster=(patch_names[0] + '.' + i, gui_output_layer + '.' + i))
