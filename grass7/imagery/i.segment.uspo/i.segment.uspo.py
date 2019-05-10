@@ -515,8 +515,14 @@ def ms_worker(parms, parameter_queue, result_queue):
                                               neighbordict, parms['indicator'])
                 autocor_per_raster.append(autocor)
 
-            mean_lv = sum(variance_per_raster) / len(variance_per_raster)
-            mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+            if len(variance_per_raster) > 0:
+                mean_lv = sum(variance_per_raster) / len(variance_per_raster)
+            else:
+                mean_lv = 999999
+            if len(autocor_per_raster) > 0:
+                mean_autocor = sum(autocor_per_raster) / len(autocor_per_raster)
+            else:
+                mean_autocor = 0
             result_queue.put([mapname, mean_lv, mean_autocor, threshold, hr,
                               radius, minsize])
 
