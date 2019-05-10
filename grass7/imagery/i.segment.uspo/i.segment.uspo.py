@@ -377,11 +377,11 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
                         len(autocor_per_raster)
                     result_queue.put([mapname, mean_lv, mean_autocor,
                                       threshold, minsize])
-            else:
-                # If resulting map contains only one segment, then give high
-                # value of variance and 0 for spatial autocorrelation in order
-                # to give this map a low priority
-                result_queue.put([mapname, 999999, 0, threshold, minsize])
+                else:
+                    # If resulting map contains only one segment, then give high
+                    # value of variance and 0 for spatial autocorrelation in order
+                    # to give this map a low priority
+                    result_queue.put([mapname, 999999, 0, threshold, minsize])
 
     except:
         exc_info = sys.exc_info()
