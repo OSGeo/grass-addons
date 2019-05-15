@@ -195,7 +195,7 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% type: double
 #% description: Detachment coefficient
 #% label: Detachment coefficient
-#% answer: 0.001
+#% answer: 0.01
 #% multiple: no
 #% guisection: Input
 #%end
@@ -213,7 +213,7 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% type: double
 #% description: Transport coefficient
 #% label: Transport coefficient
-#% answer: 0.001
+#% answer: 0.01
 #% multiple: no
 #% guisection: Input
 #%end
@@ -297,16 +297,6 @@ COPYRIGHT: (C) 2016 Brendan Harmon and the GRASS Development Team
 #% type: double
 #% description: Maximum values for erosion-deposition in kg/m^2s
 #% label: Maximum values for erosion-deposition
-#% answer: 0.5
-#% multiple: no
-#% guisection: Input
-#%end
-
-#%option
-#% key: fluxmax
-#% type: double
-#% description: Maximum values for sediment flux in kg/ms
-#% label: Maximum values for sediment flux
 #% answer: 0.5
 #% multiple: no
 #% guisection: Input
@@ -474,7 +464,6 @@ def main():
     grav_diffusion = options['grav_diffusion']
     erdepmin = options['erdepmin']
     erdepmax = options['erdepmax']
-    fluxmax = options['fluxmax']
     k_factor = options['k_factor']
     c_factor = options['c_factor']
     k_factor_value = options['k_factor_value']
@@ -590,7 +579,6 @@ def main():
         grav_diffusion=grav_diffusion,
         erdepmin=erdepmin,
         erdepmax=erdepmax,
-        fluxmax=fluxmax,
         k_factor=k_factor,
         c_factor=c_factor,
         m=m,
@@ -610,14 +598,15 @@ def main():
 
 class Evolution:
     def __init__(self, elevation, precipitation, start, rain_intensity,
-        rain_interval, walkers, runoff, mannings, detachment, transport,
+        rain_interval, rain_duration, walkers, runoff, mannings, detachment, transport,
         shearstress, density, mass, grav_diffusion, erdepmin, erdepmax,
-        fluxmax, k_factor, c_factor, m, n, threads, fill_depressions):
+        k_factor, c_factor, m, n, threads, fill_depressions):
         self.elevation = elevation
         self.precipitation = precipitation
         self.start = start
         self.rain_intensity = float(rain_intensity)
         self.rain_interval = int(rain_interval)
+        self.rain_duration = int(rain_duration)
         self.walkers = walkers
         self.runoff = runoff
         self.mannings = mannings
@@ -629,7 +618,6 @@ class Evolution:
         self.grav_diffusion = grav_diffusion
         self.erdepmin = erdepmin
         self.erdepmax = erdepmax
-        self.fluxmax = fluxmax
         self.k_factor = k_factor
         self.c_factor = c_factor
         self.m = m
@@ -834,13 +822,19 @@ class Evolution:
                 rain_intensity=self.rain_intensity),
             overwrite=True)
 
-        # multiply by rainfall interval in seconds (MJ mm ha^-1 hr^-1 s^-1)
+        # derive R factor (MJ mm ha^-1 hr^-1 yr^1)
+        """
+        R factor (MJ mm ha^-1 hr^-1 yr^1)
+        = EI (MJ mm ha^-1 hr^-1)
+        / (rainfall interval (min)
+        * (1 yr / 525600 min))
+        """
         gscript.run_command(
             'r.mapcalc',
             expression="{r_factor}"
             "={erosivity}"
             "/({rain_interval}"
-            "*60.)".format(
+            "/525600.)".format(
                 r_factor=r_factor,
                 erosivity=erosivity,
                 rain_interval=self.rain_interval),
@@ -1112,193 +1106,6 @@ class Evolution:
 
         return (evolved_elevation, time, depth, erosion_deposition, difference)
 
-    def transport_limited(self):
-        """a process-based landscape evolution model
-        using simulated transport limited erosion and deposition
-        to evolve a digital elevation model"""
-
-        # assign variables
-        erdep = 'erdep' # kg/m^2s
-        sedflux = 'flux' # kg/ms
-
-        # parse, advance, and stamp time
-        (evolved_elevation, time, depth, sediment_flux, erosion_deposition,
-        difference) = self.parse_time()
-
-        # compute slope and partial derivatives
-        (slope, dx, dy) = self.compute_slope()
-
-        # hydrologic simulation
-        depth = self.simwe(dx, dy, depth)
-
-        # erosion-deposition simulation
-        gscript.run_command(
-            'r.sim.sediment',
-            elevation=self.elevation,
-            water_depth=depth,
-            dx=dx,
-            dy=dy,
-            detachment_coeff=self.detachment,
-            transport_coeff=self.transport,
-            shear_stress=self.shearstress,
-            man=self.mannings,
-            tlimit_erosion_deposition=erdep,
-            niterations=self.rain_interval,
-            nwalkers=self.walkers,
-            nprocs=self.threads,
-            overwrite=True)
-
-        # filter outliers
-        gscript.run_command(
-            'r.mapcalc',
-            expression="{erosion_deposition}"
-            "=if({erdep}<{erdepmin},"
-            "{erdepmin},"
-            "if({erdep}>{erdepmax},{erdepmax},{erdep}))".format(
-                erosion_deposition=erosion_deposition,
-                erdep=erdep,
-                erdepmin=self.erdepmin,
-                erdepmax=self.erdepmax),
-            overwrite=True)
-        gscript.run_command(
-            'r.colors',
-            map=erosion_deposition,
-            raster=erdep)
-
-        # evolve landscape
-        """
-        change in elevation (m)
-        = change in time (s)
-        * net erosion-deposition (kg/m^2s)
-        / sediment mass density (kg/m^3)
-        """
-        gscript.run_command(
-            'r.mapcalc',
-            expression="{evolved_elevation}"
-            "={elevation}"
-            "+({rain_interval}*60"
-            "*{erosion_deposition}"
-            "/{density})".format(
-                evolved_elevation=evolved_elevation,
-                elevation=self.elevation,
-                rain_interval=self.rain_interval,
-                erosion_deposition=erosion_deposition,
-                density=self.density),
-            overwrite=True)
-
-        # fill sinks
-        if self.fill_depressions:
-            evolved_elevation = self.fill_sinks(evolved_elevation)
-
-        # gravitational diffusion
-        evolved_elevation = self.gravitational_diffusion(evolved_elevation)
-
-        # compute elevation change
-        difference = self.compute_difference(evolved_elevation, difference)
-
-        # remove temporary maps
-        gscript.run_command(
-            'g.remove',
-            type='raster',
-            name=['erdep',
-                'dx',
-                'dy'],
-            flags='f')
-
-        return (evolved_elevation, time, depth, erosion_deposition, difference)
-
-    def flux(self):
-        """a detachment limited gully evolution model
-        using simulated sediment flux to evolve
-        a digital elevation model"""
-
-        # assign variables
-        erdep = 'erdep' # kg/m^2s
-        sedflux = 'flux' # kg/ms
-
-        # parse, advance, and stamp time
-        (evolved_elevation, time, depth, sediment_flux, erosion_deposition,
-        difference) = self.parse_time()
-
-        # compute slope, and partial derivatives
-        (slope, dx, dy) = self.compute_slope()
-
-        # hydrologic simulation
-        depth = self.simwe(dx, dy, depth)
-
-        # sediment flux simulation
-        gscript.run_command(
-            'r.sim.sediment',
-            elevation=self.elevation,
-            water_depth=depth,
-            dx=dx,
-            dy=dy,
-            detachment_coeff=self.detachment,
-            transport_coeff=self.transport,
-            shear_stress=self.shearstress,
-            man=self.mannings,
-            sediment_flux=sedflux,
-            niterations=self.rain_interval,
-            nwalkers=self.walkers,
-            nprocs=self.threads,
-            overwrite=True)
-
-        # filter outliers
-        gscript.run_command(
-            'r.mapcalc',
-            expression="{sediment_flux}"
-            "=if({sedflux}>{fluxmax},{fluxmax},{sedflux})".format(
-                sediment_flux=sediment_flux,
-                sedflux=sedflux,
-                fluxmax=self.fluxmax),
-            overwrite=True)
-        gscript.run_command(
-            'r.colors',
-            map=sediment_flux,
-            raster=sedflux)
-
-        # evolve landscape
-        """
-        change in elevation (m)
-        = change in time (s)
-        * sediment flux (kg/ms)
-        / mass of sediment per unit area (kg/m^2)
-        """
-        gscript.run_command(
-            'r.mapcalc',
-            expression="{evolved_elevation}"
-            "={elevation}"
-            "-({rain_interval}*60"
-            "*{sediment_flux}"
-            "/{mass})".format(
-                evolved_elevation=evolved_elevation,
-                elevation=self.elevation,
-                rain_interval=self.rain_interval,
-                sediment_flux=sediment_flux,
-                mass=self.mass),
-            overwrite=True)
-
-        # fill sinks
-        if self.fill_depressions:
-            evolved_elevation = self.fill_sinks(evolved_elevation)
-
-        # gravitational diffusion
-        evolved_elevation = self.gravitational_diffusion(evolved_elevation)
-
-        # compute elevation change
-        difference = self.compute_difference(evolved_elevation, difference)
-
-        # remove temporary maps
-        gscript.run_command(
-            'g.remove',
-            type='raster',
-            name=['flux',
-                'dx',
-                'dy'],
-            flags='f')
-
-        return (evolved_elevation, time, depth, sediment_flux, difference)
-
     def usped(self):
         """a transport limited landscape evolution model
         using the USPED (Unit Stream Power Based Model) model to evolve
@@ -1324,7 +1131,7 @@ class Evolution:
         (evolved_elevation, time, depth, sediment_flux, erosion_deposition,
         difference) = self.parse_time()
 
-        # compute event-based erosivity (R) factor (MJ mm ha^-1 hr^-1)
+        # compute event-based erosivity (R) factor (MJ mm ha^-1 hr^-1 yr^-1)
         r_factor = self.event_based_r_factor()
 
         # compute slope and aspect
@@ -1419,17 +1226,19 @@ class Evolution:
                 sedflow=sedflow),
             overwrite=True)
 
-        # convert sediment flow from tons/ha to kg/ms
+        # convert sediment flow from tons/ha/yr to kg/m^2s
         gscript.run_command(
             'r.mapcalc',
             expression="{converted_sedflow}"
             "={sedflow}"
             "*{ton_to_kg}"
-            "/{ha_to_m2}".format(
+            "/{ha_to_m2}"
+            "/{yr_to_s}".format(
                 converted_sedflow=sediment_flux,
                 sedflow=sedflow,
                 ton_to_kg=1000.,
-                ha_to_m2=10000.),
+                ha_to_m2=10000.,
+                yr_to_s=31557600.),
             overwrite=True)
 
         # compute sediment flow rate in x direction (m^2/s)
@@ -1586,7 +1395,7 @@ class Evolution:
         (evolved_elevation, time, depth, sediment_flux, erosion_deposition,
         difference) = self.parse_time()
 
-        # compute event-based erosivity (R) factor (MJ mm ha^-1 hr^-1)
+        # compute event-based erosivity (R) factor (MJ mm ha^-1 hr^-1 yr^-1)
         r_factor = self.event_based_r_factor()
 
         # compute slope
@@ -1666,25 +1475,29 @@ class Evolution:
                 c_factor=self.c_factor),
             overwrite=True)
 
-        # convert sediment flow from tons/ha to kg/ms
+        # convert sediment flow from tons/ha/yr to kg/m^2s
         gscript.run_command(
             'r.mapcalc',
             expression="{converted_sedflow}"
-            "={sedflow}*{ton_to_kg}/{ha_to_m2}".format(
+            "={sedflow}"
+            "*{ton_to_kg}"
+            "/{ha_to_m2}"
+            "/{yr_to_s}".format(
                 converted_sedflow=sedflux,
                 sedflow=sedflow,
                 ton_to_kg=1000.,
-                ha_to_m2=10000.),
+                ha_to_m2=10000.,
+                yr_to_s=31557600.),
             overwrite=True)
 
         # filter outliers
         gscript.run_command(
             'r.mapcalc',
             expression="{sediment_flux}"
-            "=if({sedflux}>{fluxmax},{fluxmax},{sedflux})".format(
+            "=if({sedflux}>{erdepmax},{erdepmax},{sedflux})".format(
                 sediment_flux=sediment_flux,
                 sedflux=sedflux,
-                fluxmax=self.fluxmax),
+                erdepmax=self.erdepmax),
             overwrite=True)
         gscript.run_command(
             'r.colors',
@@ -1736,53 +1549,6 @@ class Evolution:
 
         return (evolved_elevation, time, depth, sediment_flux, difference)
 
-    def erosion_regime(self, rain_intensity):
-        """determine whether transport limited or detachment limited regime"""
-
-        # assign local variables
-        # first order reaction term
-        # dependent on soil and cover properties (m^−1)
-        sigma = 'sigma'
-
-        # derive sigma
-        """
-        detachment capacity coefficient
-        = sigma
-        * transport capacity coefficient
-        """
-        gscript.run_command(
-            'r.mapcalc',
-            expression="{sigma} = {detachment}/{transport}".format(
-                sigma=sigma,
-                detachment=self.detachment,
-                transport=self.transport),
-            overwrite=True)
-        stats = gscript.parse_command(
-            'r.univar',
-            map=sigma,
-            flags='g')
-        mean_sigma = float(stats['mean'])
-
-        # determine regime
-        if rain_intensity >= 60. or mean_sigma <= 0.01:
-            regime = 'detachment limited'
-        elif rain_intensity < 60. and 0.01 < mean_sigma < 100.:
-            regime = 'erosion deposition'
-        elif rain_intensity < 60. and mean_sigma >= 100.:
-            regime = 'transport limited'
-        else:
-            raise RuntimeError('regime could not be determined')
-
-        # remove temporary maps
-        gscript.run_command(
-            'g.remove',
-            type='raster',
-            name=['sigma'],
-            flags='f')
-
-        return regime
-
-
 class DynamicEvolution:
     def __init__(self, elevation, mode, precipitation, rain_intensity,
         rain_duration, rain_interval, temporaltype, elevation_timeseries,
@@ -1791,7 +1557,7 @@ class DynamicEvolution:
         flux_timeseries, flux_title, flux_description, difference_timeseries,
         difference_title, difference_description, start, walkers, runoff,
         mannings, detachment, transport, shearstress, density, mass,
-        grav_diffusion, erdepmin, erdepmax, fluxmax, k_factor, c_factor,
+        grav_diffusion, erdepmin, erdepmax, k_factor, c_factor,
         m, n, threads, fill_depressions):
         self.elevation = elevation
         self.mode = mode
@@ -1827,7 +1593,6 @@ class DynamicEvolution:
         self.grav_diffusion = grav_diffusion
         self.erdepmin = erdepmin
         self.erdepmax = erdepmax
-        self.fluxmax = fluxmax
         self.k_factor = k_factor
         self.c_factor = c_factor
         self.m = m
@@ -1907,6 +1672,7 @@ class DynamicEvolution:
             start=self.start,
             rain_intensity=self.rain_intensity,
             rain_interval=self.rain_interval,
+            rain_duration=self.rain_duration,
             walkers=self.walkers,
             runoff=self.runoff,
             mannings=self.mannings,
@@ -1918,7 +1684,6 @@ class DynamicEvolution:
             grav_diffusion=self.grav_diffusion,
             erdepmin=self.erdepmin,
             erdepmax=self.erdepmax,
-            fluxmax=self.fluxmax,
             k_factor=self.k_factor,
             c_factor=self.c_factor,
             m=self.m,
@@ -1928,50 +1693,17 @@ class DynamicEvolution:
 
         # determine mode and run model
         if self.mode == 'simwe_mode':
-            regime = evol.erosion_regime(evol.rain_intensity)
-
-            if regime == 'detachment limited':
-                (evolved_elevation, time, depth, sediment_flux,
-                difference) = evol.flux()
-                # remove relative timestamps from r.sim.water and r.sim.sediment
-                gscript.run_command(
-                    'r.timestamp',
-                    map=depth,
-                    date='none')
-                gscript.run_command(
-                    'r.timestamp',
-                    map=sediment_flux,
-                    date='none')
-
-            elif regime == 'transport limited':
-                (evolved_elevation, time, depth, erosion_deposition,
-                difference) = evol.transport_limited()
-                # remove relative timestamps from r.sim.water and r.sim.sediment
-                gscript.run_command(
-                    'r.timestamp',
-                    map=depth,
-                    date='none')
-                gscript.run_command(
-                    'r.timestamp',
-                    map=erosion_deposition,
-                    date='none')
-
-            elif regime == 'erosion deposition':
-                (evolved_elevation, time, depth, erosion_deposition,
-                difference) = evol.erosion_deposition()
-                # remove relative timestamps from r.sim.water and r.sim.sediment
-                gscript.run_command(
-                    'r.timestamp',
-                    map=depth,
-                    date='none')
-                gscript.run_command(
-                    'r.timestamp',
-                    map=erosion_deposition,
-                    date='none')
-
-            else:
-                raise RuntimeError(
-                    '{regime} regime does not exist').format(regime=regime)
+            (evolved_elevation, time, depth, erosion_deposition,
+            difference) = evol.erosion_deposition()
+            # remove relative timestamps from r.sim.water and r.sim.sediment
+            gscript.run_command(
+                'r.timestamp',
+                map=depth,
+                date='none')
+            gscript.run_command(
+                'r.timestamp',
+                map=erosion_deposition,
+                date='none')
 
         elif self.mode == "usped_mode":
             (evolved_elevation, time, depth, erosion_deposition,
@@ -2040,7 +1772,7 @@ class DynamicEvolution:
         # run the landscape evolution model
         # as a series of rainfall intervals in a rainfall event
         i = 1
-        while i <= iterations:
+        while i < iterations:
 
             # update the elevation
             evol.elevation = evolved_elevation
@@ -2078,53 +1810,18 @@ class DynamicEvolution:
 
             # determine mode and run model
             if self.mode == "simwe_mode":
-                regime = evol.erosion_regime(evol.rain_intensity)
-
-                if regime == "detachment limited":
-                    (evolved_elevation, time, depth, sediment_flux,
-                    difference) = evol.flux()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=sediment_flux,
-                        date='none')
-
-                elif regime == "transport limited":
-                    (evolved_elevation, time, depth, erosion_deposition,
-                    difference) = evol.transport_limited()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=erosion_deposition,
-                        date='none')
-
-                elif regime == "erosion deposition":
-                    (evolved_elevation, time, depth, erosion_deposition,
-                    difference) = evol.erosion_deposition()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=erosion_deposition,
-                        date='none')
-
-                else:
-                    raise RuntimeError(
-                        '{regime} regime does not exist').format(regime=regime)
+                (evolved_elevation, time, depth, erosion_deposition,
+                difference) = evol.erosion_deposition()
+                # remove relative timestamps
+                # from r.sim.water and r.sim.sediment
+                gscript.run_command(
+                    'r.timestamp',
+                    map=depth,
+                    date='none')
+                gscript.run_command(
+                    'r.timestamp',
+                    map=erosion_deposition,
+                    date='none')
 
             elif self.mode == "usped_mode":
                 (evolved_elevation, time, depth, erosion_deposition,
@@ -2299,7 +1996,6 @@ class DynamicEvolution:
             grav_diffusion=self.grav_diffusion,
             erdepmin=self.erdepmin,
             erdepmax=self.erdepmax,
-            fluxmax=self.fluxmax,
             k_factor=self.k_factor,
             c_factor=self.c_factor,
             m=self.m,
@@ -2342,53 +2038,18 @@ class DynamicEvolution:
 
             # determine mode and run model
             if self.mode == "simwe_mode":
-                regime = evol.erosion_regime(evol.rain_intensity)
-
-                if regime == "detachment limited":
-                    (evolved_elevation, time, depth, sediment_flux,
-                    difference) = evol.flux()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=sediment_flux,
-                        date='none')
-
-                elif regime == "transport limited":
-                    (evolved_elevation, time, depth, erosion_deposition,
-                    difference) = evol.transport_limited()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=erosion_deposition,
-                        date='none')
-
-                elif regime == "erosion deposition":
-                    (evolved_elevation, time, depth, erosion_deposition,
-                    difference) = evol.erosion_deposition()
-                    # remove relative timestamps
-                    # from r.sim.water and r.sim.sediment
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=depth,
-                        date='none')
-                    gscript.run_command(
-                        'r.timestamp',
-                        map=erosion_deposition,
-                        date='none')
-
-                else:
-                    raise RuntimeError(
-                        '{regime} regime does not exist').format(regime=regime)
+                (evolved_elevation, time, depth, erosion_deposition,
+                difference) = evol.erosion_deposition()
+                # remove relative timestamps
+                # from r.sim.water and r.sim.sediment
+                gscript.run_command(
+                    'r.timestamp',
+                    map=depth,
+                    date='none')
+                gscript.run_command(
+                    'r.timestamp',
+                    map=erosion_deposition,
+                    date='none')
 
             elif self.mode == "usped_mode":
                 (evolved_elevation, time, depth, erosion_deposition,
@@ -2504,53 +2165,18 @@ class DynamicEvolution:
 
                 # determine mode and run model
                 if self.mode == "simwe_mode":
-                    regime = evol.erosion_regime(evol.rain_intensity)
-
-                    if regime == "detachment limited":
-                        (evolved_elevation, time, depth, sediment_flux,
-                        difference) = evol.flux()
-                        # remove relative timestamps
-                        # from r.sim.water and r.sim.sediment
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=depth,
-                            date='none')
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=sediment_flux,
-                            date='none')
-
-                    elif regime == "transport limited":
-                        (evolved_elevation, time, depth, erosion_deposition,
-                        difference) = evol.transport_limited()
-                        # remove relative timestamps
-                        # from r.sim.water and r.sim.sediment
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=depth,
-                            date='none')
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=erosion_deposition,
-                            date='none')
-
-                    elif regime == "erosion deposition":
-                        (evolved_elevation, time, depth, erosion_deposition,
-                        difference) = evol.erosion_deposition()
-                        # remove relative timestamps
-                        # from r.sim.water and r.sim.sediment
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=depth,
-                            date='none')
-                        gscript.run_command(
-                            'r.timestamp',
-                            map=erosion_deposition,
-                            date='none')
-
-                    else:
-                        raise RuntimeError(
-                            '{regime} regime does not exist').format(regime=regime)
+                    (evolved_elevation, time, depth, erosion_deposition,
+                    difference) = evol.erosion_deposition()
+                    # remove relative timestamps
+                    # from r.sim.water and r.sim.sediment
+                    gscript.run_command(
+                        'r.timestamp',
+                        map=depth,
+                        date='none')
+                    gscript.run_command(
+                        'r.timestamp',
+                        map=erosion_deposition,
+                        date='none')
 
                 elif self.mode == "usped_mode":
                     (evolved_elevation, time, depth, erosion_deposition,
