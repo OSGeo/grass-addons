@@ -222,6 +222,7 @@ import sys
 
 from grass.script import core as gcore
 from grass.script.utils import set_path
+from grass.script import mapcalc
 
 
 try:
@@ -329,6 +330,8 @@ def main(opts, flgs):
     gpot.r_power(power, tc, ground_conductivity, ground_temperature,
                  fluid_limit_temperature, borehole_length, borehole_resistence,
                  gmax, execute=True, overwrite=OVER)
+    command = "{new} = if({old}<0, null(), {old})".format(old=power, new=power)
+    mapcalc(command, overwrite=True)
 
     energy = opts['energy']
     gpot.r_energy(energy, power, execute=True, overwrite=OVER)
