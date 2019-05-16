@@ -13,12 +13,12 @@ migrate_git() {
     else
         branch_filter="releasebranch_[0-6]"
     fi
-    for branch in `git branch -r | grep $branch_filter | sed 's#  origin/##g'`; do
-        git branch $branch origin/$branch
+    for branch in `git branch -r | grep $branch_filter`; do
+        git branch $branch $branch
         git checkout $branch
     done
     git branch -D master
-    git branch master origin/trunk
+    git branch master trunk
     git checkout master
 
     # Rename tags
@@ -28,11 +28,11 @@ migrate_git() {
         tag_filter="grass_[0-6]"
     fi
     for i in `git branch -r | grep tags | grep $tag_filter`; do
-        b=`echo $i | sed 's#origin/##'`
+        b=`echo $i`
         if [ `echo $i | grep -c release` -gt 0 ] ; then
-            j=`echo $i | sed 's#origin/tags/release_[0-9]\+_##g'`
+            j=`echo $i | sed 's#tags/release_[0-9]\+_##g'`
         else
-            j=`echo $i | sed 's#origin/tags/##g'`
+            j=`echo $i | sed 's#tags/##g'`
         fi
         git branch $b $i
         d=`git log -1 --format=%cd --date=iso $b`
@@ -54,4 +54,4 @@ migrate_git() {
 }
 
 migrate_git "grass"
-migrate_git "grass-legacy"
+# migrate_git "grass-legacy"

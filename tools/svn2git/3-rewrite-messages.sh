@@ -31,6 +31,6 @@ rewrite_msg() {
 }
 
 rewrite_msg "grass"
-rewrite_msg "grass-legacy"
+# rewrite_msg "grass-legacy"
 rewrite_msg "grass-addons"
 rewrite_msg "grass-promo"
