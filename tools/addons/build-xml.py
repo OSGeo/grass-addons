@@ -7,7 +7,7 @@ import sys
 import glob
 from   datetime import datetime
 
-ADDON_PATH = os.path.join(os.getenv('HOME'), 'src', 'grass_addons')
+ADDON_PATH = os.path.join(os.getenv('HOME'), 'src', 'grass-addons')
 DIST = 'dist.x86_64-pc-linux-gnu'
 
 def get_list(addons):
@@ -28,11 +28,11 @@ def get_gui_list(g7 = True):
                       
 def start_grass(g7 = True):
     if g7:
-        ver = 'grass74_release'
+        ver = '76'
     else:
-        ver = 'grass64_release'
+        ver = '64'
     gisbase = os.environ['GISBASE'] = os.path.join(os.getenv('HOME'),
-                                                   "src/%s/%s" % (ver, DIST))
+                                                   "src/grass-p2/r%s/%s" % (ver, DIST))
     
     gisdbase = os.path.join(gisbase)
     location = "demolocation"
@@ -112,7 +112,9 @@ def header(fd):
     import grass.script.core as grass
     fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     fd.write('<!DOCTYPE task SYSTEM "grass-addons.dtd">\n') # TODO
-    vInfo = grass.version()
+    # doesn't work in GRASS 6
+    # vInfo = grass.version()
+    vInfo = grass.parse_command('g.version', flags='g')
     fd.write('<addons version="%s" revision="%s" date="%s">\n' % \
                  (vInfo['version'].split('.')[0],
                   vInfo['revision'],

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # updated for new CMS path MN 8/2015
 
@@ -28,26 +28,29 @@ build_addons() {
 }
 
 recompile_grass() {
-    cd $DIR
+    source $DIR/grass-p2/venv/bin/activate
+    gdir=$DIR/grass-p2/r${1}
 
-    for gdir in "grass76_release" "grass64_release" ; do
-	cd $gdir
-        echo "Recompiling $gdir..." 1>&2
-	svn up
-	make distclean >/dev/null 2>&1
-	if [ $gdir = "grass64_release" ] ; then 
-	    num=6
-	else
-	    num=7
-	fi
-	$DIR/configures.sh grass$num >/dev/null
-	make >/dev/null 2>&1
-        cat error.log 1>&2
-        if [ "$?" != 0 ]; then
-            exit 1
-        fi
-	cd ..
-    done
+    cd $gdir
+    echo "Recompiling $gdir..." 1>&2
+    git pull
+    make distclean     >/dev/null 2>&1
+    OPTS="--enable-largefile --with-blas --with-bzlib --with-cairo --with-cxx \
+          --with-freetype --with-freetype-includes=/usr/include/freetype2 --with-gdal --with-geos --with-lapack \
+          --with-liblas=/usr/bin/liblas-config --with-motif -with-netcdf --with-nls --with-odbc --with-openmp \
+          --with-postgres --with-postgres-includes=/usr/include/postgresql --with-proj-share=/usr/share/proj \
+          --with-python --with-readline --with-sqlite --with-x"
+    if [ "$1" = "64" ]; then
+        OPTS+="--with-tcltk --with-tcltk-includes=/usr/include/tcl8.5/"
+    else
+        OPTS+="--with-wxwidgets=/usr/bin/wx-config --with-zstd"
+    fi
+    ./configure $OPTS >/dev/null 2>&1
+    make              >/dev/null 2>&1
+    cat error.log 1>&2
+    if [ "$?" != 0 ]; then
+        exit 1
+    fi
 }
 
 update_manual() {
@@ -72,16 +75,17 @@ update_manual() {
 export GRASS_SKIP_MAPSET_OWNER_CHECK="1"
 
 if [ "$1" = "c" ] || [ "$2" = "c" ] ; then
-    recompile_grass
+    recompile_grass 64
+    recompile_grass 76
 fi
 
-cd $DIR/grass_addons/ 
+cd $DIR/grass-addons
 
 # update
-svn up -q || (svn cleanup && svn up)
+git pull
 
 # check last change
-date_last=`svn info --incremental --xml | grep date | cut -d '>' -f2 | cut -d '<' -f1`
+date_last=`git log -1 --format=%ci | awk '{print $1"T"$2"Z"}'`
 date_last_modified=`ls -d /tmp/.grass7/addons/ -l --time-style=full-iso | cut -d ' ' -f 6,7 | awk '{print $1"T"$2"Z"}'`
 unix_date_last=$(date -d "${date_last}" "+%s")
 unix_date_last_modified=$(date -d "${date_last_modified}" "+%s")
