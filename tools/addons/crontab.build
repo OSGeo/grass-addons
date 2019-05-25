@@ -7,8 +7,8 @@
 # apt install grass-dev make bc
 # apt install python-gdal python-owslib python-psycopg2 python-matplotlib python-scipy
 
-ADDONS=${HOME}/src/grass_addons/tools/addons
+ADDONS=${HOME}/src/grass-addons/tools/addons
 
-0      2    *     *     *   nice ${ADDONS}/grass-addons.sh c
+0      2    *     *     *   nice ${ADDONS}/compile-grass.sh
 */15   *    *     *     *   nice ${ADDONS}/grass-addons-build.sh
 

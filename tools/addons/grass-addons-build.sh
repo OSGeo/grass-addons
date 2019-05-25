@@ -12,13 +12,13 @@ DST=/var/www/grass
 DIST=dist.x86_64-pc-linux-gnu
 SRC=${HOME}/src/
 
-run=`ps aux | grep "grass-addons.sh c" | wc -l`
+run=`ps aux | grep "compile-addons.sh c" | wc -l`
 if [ "$run" == "2" ]; then
     echo "stopped"
     exit 0
 fi
 
-${SRC}/grass_addons/tools/addons/grass-addons.sh "$1"
+${SRC}/grass-addons/tools/addons/compile-addons.sh "$1"
 
 if [ $? != 0 ] ; then
     exit 0
@@ -30,13 +30,13 @@ manuals() {
     for dir in `find . -maxdepth 1 -type d`; do
         if [ -d $dir/docs/html ] ; then
             for f in `pwd`/$dir/docs/html/*.html ; do 
-                ${SRC}/grass_addons/tools/addons/update_manual.py $f https://grass.osgeo.org/grass${1}${2}/manuals `pwd`
+                ${SRC}/grass-addons/tools/addons/update_manual.py $f https://grass.osgeo.org/grass${1}${2}/manuals `pwd`
             done
             cp -r $dir/docs/html/* $HTMLDIR/ 2>/dev/null
         fi
     done
-    cp ${SRC}/grass${1}${2}_release/${DIST}/docs/html/grassdocs.css $HTMLDIR/
-    cp ${SRC}/grass${1}${2}_release/${DIST}/docs/html/grass_logo.png $HTMLDIR/
+    cp ${SRC}/grass-p2/r${1}${2}/${DIST}/docs/html/grassdocs.css $HTMLDIR/
+    cp ${SRC}/grass-p2/r${1}${2}/${DIST}/docs/html/grass_logo.png $HTMLDIR/
     tar czf html.tar.gz $HTMLDIR
     rm -rf $HTMLDIR
 }

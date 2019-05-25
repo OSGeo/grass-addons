@@ -7,7 +7,7 @@ WORKFLOW
 On building server (currently geo102.fsv.cvut.cz) two scripts are
 running (see file crontab.build):
 
-1) grass-addons.sh to recompile GRASS Addons on it;
+1) compile-grass.sh to recompile GRASS on it (daily or so);
 
 2) grass-addons-build.sh to create addons packages, the script
    provides tarballs with created addons manual pages and logs for
@@ -29,7 +29,8 @@ SCRIPTS OVERVIEW
 * grass-addons-index.sh - creates ovewview index page, called by grass-addons-publish.sh
 * grass-addons-build.sh - called on Building server (2)
 * grass-addons-publish.sh - called on Publishing server (1)
-* grass-addons.sh - compiles GRASS and Addons, called by grass-addons-build.sh
+* compile-addons.sh - compiles GRASS Addons, called by grass-addons-build.sh
+* compile-grass.sh - compiles GRASS
 * update_manual.py - support Python script which modifies addons
   manual pages for Publishing server (called by grass-addons-build.sh)
 
