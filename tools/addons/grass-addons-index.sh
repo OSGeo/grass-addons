@@ -93,7 +93,7 @@ generate () {
 <h2>GRASS GIS ${major} Addons Manual pages</h2>
 
 <!-- Generated from: /home/martinl/src/grass_addons/tools/addons/ -->
-<!--       See also: https://svn.osgeo.org/grass/grass-addons/tools/addons/README.txt -->
+<!--       See also: https://github.com/OSGeo/grass-addons/blob/master/tools/addons/README.md -->
 
 <table><tr><td>
 <script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
@@ -111,15 +111,15 @@ href=\"../g.extension.html\">g.extension</a> command.  <p> <i>These
 manual pages are updated daily.</i>
 <p> How to contribute?
 <p> You may upload your add-on to the <strong>GRASS Add-ons repository</strong>.
-Further details about gaining write access to our SVN repository can be found in
-<a href=\"http://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASS-Addons-SVNrepository\">this document</a>.
+Further details about gaining write access to our Git repository can be found in
+<a href=\"https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository\">this document</a>.
 Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS GIS programming best practice</a>.
 <p> How to get the source code:
-<p> <tt>svn checkout https://svn.osgeo.org/grass/grass-addons/grass7 grass7_addons</tt>
+<p> <tt>git clone https://github.com/OSGeo/grass-addons.git</tt>
 <p>
 See also log files of compilation:
 <a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"http://wingrass.fsv.cvut.cz/grass74/x86/addons/latest/logs/\">Windows log files</a>
+<a href=\"http://wingrass.fsv.cvut.cz/grass76/x86_64/addons/latest/logs/\">Windows log files</a>
 
 </tr></table>
 <hr>
@@ -154,7 +154,7 @@ See also log files of compilation:
 
 	module=`echo $currfile | sed 's+\.html$++g'`
 	echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>: " >> index.html
-        ${SRC}/grass_addons/tools/addons/get_page_description.py $currfile >> index.html
+        ${SRC}/grass-addons/tools/addons/get_page_description.py $currfile >> index.html
     done
 
     year=`date +%Y`

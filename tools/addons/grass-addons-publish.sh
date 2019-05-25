@@ -10,7 +10,7 @@
 set -e
 
 URL=http://geo102.fsv.cvut.cz/grass/addons/
-ADDONS=${HOME}/src/grass_addons
+ADDONS=${HOME}/src/grass-addons
 
 process () {
     major=$1
@@ -39,7 +39,7 @@ process () {
 }
 
 cd $ADDONS
-nup=`(svn up || (svn cleanup && svn up)) | wc -l`
+nup=`git pull | wc -l`
 if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     process 7 6
     process 6 4 
