@@ -3,19 +3,20 @@
 ## How to get write access here?
 
 Read access is granted to the public, write access
-must be requested, see here for details:
+must be requested, see here for details: \
    https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository
 
 
 ## How to get the AddOn code?
 
 Clone of the entire Addons git repository:
-git clone https://github.com/OSGeo/grass-addons.git grass_addons
+
+    git clone https://github.com/OSGeo/grass-addons.git grass_addons
 
 ## How to install or remove AddOns in your GRASS installation
 
-The simplest way to install GRASS GIS AddOns is to use the ''g.extension'' 
-module:
+The simplest way to install GRASS GIS AddOns is to use the `g.extension` 
+module: \
 https://grass.osgeo.org/grass76/manuals/g.extension.html
 
 ##  How to compile AddOn code
@@ -27,8 +28,9 @@ https://grass.osgeo.org/grass76/manuals/g.extension.html
     again. If adding to a binary install the versions must match exactly.
     For a git clone this means that the main GRASS binary and source
     code versions (GRASS GIS 6 or 7) must match.)
-    1. ./configure [opionally flags]
-    2. make libs
+    
+    ./configure # [opionally flags]
+    make libs
 
   The easiest way to compile GRASS AddOns modules into your GRASS code 
   is by setting MODULE_TOPDIR on the fly to tell 'make' where to
