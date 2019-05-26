@@ -6,10 +6,14 @@ Read access is granted to the public, write access
 must be requested, see here for details: \
    https://trac.osgeo.org/grass/wiki/HowToContribute#WriteaccesstotheGRASSaddonsrepository
 
+However, it is also possible to fork this repository, insert your AddOn or fix an existing one 
+in a new branch and finally open a [pull request](https://help.github.com/en/articles/about-pull-requests).
+
+In either case, please read the submitting rules at the bottom of this page.
 
 ## How to get the AddOn code?
 
-Clone of the entire Addons git repository:
+Clone of the entire AddOns git repository:
 
     git clone https://github.com/OSGeo/grass-addons.git grass_addons
 
@@ -55,7 +59,7 @@ https://grass.osgeo.org/grass76/manuals/g.extension.html
 
     make MODULE_TOPDIR=/usr/lib/grass76/
 
-## Submitting
+## How to submitt contributions?
 
 To submit your GRASS GIS module here, please check
 
