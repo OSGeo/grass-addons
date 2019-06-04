@@ -17,7 +17,7 @@
 #%Module
 #% description: Replaces the values of pixels of a given category with values of the surrounding pixels.
 #% keyword: raster
-#% keyword: replace
+#% keyword: algebra
 #% keyword: category
 #%end
 #%flag
