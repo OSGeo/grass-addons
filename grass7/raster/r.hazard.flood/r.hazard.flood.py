@@ -65,6 +65,12 @@ def main():
                     "\n" +
                     "g.extension r.area")
 
+    # are we in LatLong location?
+    s = grass.read_command("g.proj", flags='j')
+    kv = grass.parse_key_val(s)
+    if kv['+proj'] == 'longlat':
+        grass.fatal(_("This module does not operate in LatLong locations"))
+
     r_elevation = options['map'].split('@')[0] 
     mapname = options['map'].replace("@"," ")
     mapname = mapname.split()
