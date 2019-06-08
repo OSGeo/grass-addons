@@ -345,10 +345,10 @@ def main():
     d_legend = Module("d.legend", flags=flag, raster=inmap, font=font,
                       at=at, fontsize=fz, labelnum=labelnum, run_=False)
     if vr:
-        val_range = list(map(float, vr.split(',')))
+        val_range = map(float, vr.split(','))
         d_legend.inputs.range = val_range
     if labval:
-        label_values = list(map(float, labval.split(',')))
+        label_values = map(float, labval.split(','))
         d_legend.inputs.label_values = label_values
     if labstep:
         label_step = float(labstep)
