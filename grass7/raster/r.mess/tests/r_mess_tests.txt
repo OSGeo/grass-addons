@@ -1,0 +1,115 @@
+#-----------------------------------------------------------------------
+# Test 1 - same area, without mask
+#-----------------------------------------------------------------------
+g.remove type=raster pattern=Ex_* -f
+g.region raster=bio1
+r.mess2 env=bio1,bio12,bio15 \
+        output=Ex_01
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
+        ref_rast=ppa \
+        output=Ex_02
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15 \
+        output=Ex_03
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        ref_vect=sample_locations@mess \
+        output=Ex_04
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
+        env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15 \
+        ref_vect=sample_locations@mess \
+        output=Ex_05
+
+#-----------------------------------------------------------------------
+# Test 2 - same area, with mask
+#-----------------------------------------------------------------------
+g.remove type=raster pattern=Ex_* -f
+g.region raster=bio1
+r.mask raster=pnvmap
+r.mess2 env=bio1,bio12,bio15 \
+        output=Ex_06
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
+        ref_rast=ppa \
+        output=Ex_07
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15 \
+        output=Ex_08
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        ref_vect=sample_locations@mess \
+        output=Ex_09
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
+        env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15 \
+        ref_vect=sample_locations@mess \
+        output=Ex_10
+
+#-----------------------------------------------------------------------
+# Test 3 - different reference and projection area, without mask
+#-----------------------------------------------------------------------
+g.remove type=raster pattern=Ex_* -f
+r.mask -r
+g.region raster=bio1
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        output=Ex_11
+g.region raster=bio1
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        ref_rast=ppa \
+        output=Ex_12
+g.region raster=bio1
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        ref_vect=sample_locations@mess \
+        output=Ex_13
+
+# Test 3 - different reference and projection area, with mask
+#-----------------------------------------------------------------------
+g.remove type=raster pattern=Ex_* -f
+g.region raster=bio1
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        output=Ex_14
+g.region raster=bio1
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        ref_rast=ppa \
+        output=Ex_15
+g.region raster=bio1
+r.mask raster=pnvmap
+r.mess2 -c -k -m -n \
+        env=bio1,bio12,bio15 \
+        env_proj=bio1_Eth,bio12_Eth,bio15_Eth \
+        ref_vect=sample_locations@mess \
+        output=Ex_16
+
+# Test 4 - Compare tests that should give the same results
+#-----------------------------------------------------------------------
+g.region raster=bio1
+r.mask -r
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 \
+        ref_rast=ppa \
+        output=Ex_02
+
+r.mask raster=ppa
+r.mess2 -c -k -m -n env=bio1,bio12,bio15 output=Ex_17
+
+
+
+
+
+
+
