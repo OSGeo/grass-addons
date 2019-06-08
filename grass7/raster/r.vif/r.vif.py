@@ -4,7 +4,7 @@
 ########################################################################
 #
 # MODULE:       r.vif
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo ecodiv earth>
 # PURPOSE:      Calculate the variance inflation factor of set of
 #               variables. The computation is done using an user defined number
 #               (or percentage) of random cells (default 10.000) as input.
@@ -91,9 +91,8 @@ import os
 import sys
 import math
 import numpy as np
-from io import StringIO
+from cStringIO import StringIO
 import uuid
-import tempfile
 import atexit
 import string
 import grass.script as gs
@@ -229,8 +228,8 @@ def main(options, flags):
     # VIF is computed once only
     if MXVIF == '':
         # Print header of table to std output
-        print(('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
-                ['variable', 'vif', 'sqrtvif'], nlength)))
+        print('{0[0]:{1}s} {0[1]:8s} {0[2]:8s}'.format(
+                ['variable', 'vif', 'sqrtvif'], nlength))
 
         # Compute the VIF
         for i, e in enumerate(IPFn):
@@ -249,11 +248,11 @@ def main(options, flags):
             out_vif.append(vifstat[0])
             out_sqrt.append(vifstat[1])
             out_variable.append(e)
-            print(('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format([IPFn[i],
-                  vifstat[0], vifstat[1]], nlength)))
-        print()
+            print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.format([IPFn[i],
+                  vifstat[0], vifstat[1]], nlength))
+        print
         if len(OPF) > 0:
-            print(("Statistics are written to {}\n".format(OPF)))
+            print("Statistics are written to {}\n".format(OPF))
 
     # The VIF stepwise variable selection procedure
     else:
@@ -277,10 +276,10 @@ def main(options, flags):
             # print the header of the output table to the console
             if not flag_s:
                 print("\n")
-                print(("VIF round " + str(m)))
+                print("VIF round " + str(m))
                 print("--------------------------------------")
-                print(('{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}'.format(
-                    ['variable', 'vif', 'sqrtvif'], nlength)))
+                print('{0[0]:{1}s} {0[1]:>8s} {0[2]:>8s}'.format(
+                    ['variable', 'vif', 'sqrtvif'], nlength))
 
             # Compute the VIF and sqrt(vif) for all variables in this round
             for k, e in enumerate(IPFn):
@@ -305,8 +304,8 @@ def main(options, flags):
 
                 # print result to console
                 if not flag_s:
-                    print(('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.
-                          format([IPFn[k], vifstat[0], vifstat[1]], nlength)))
+                    print('{0[0]:{1}s} {0[1]:8.2f} {0[2]:8.2f}'.
+                          format([IPFn[k], vifstat[0], vifstat[1]], nlength))
 
                 # If variable is set to be retained by the user, the VIF
                 # is set to -9999 to ensure it will not have highest VIF
@@ -331,9 +330,9 @@ def main(options, flags):
             print("/n")
             print("selected variables are: ")
             print("--------------------------------------")
-            print((', '.join(IPFn)))
+            print(', '.join(IPFn))
         else:
-            print((','.join(IPFn)))
+            print(','.join(IPFn))
 
     if len(OPF) > 0:
         try:
