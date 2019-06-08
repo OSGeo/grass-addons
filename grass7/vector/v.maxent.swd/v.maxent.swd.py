@@ -25,10 +25,9 @@
 #               can be replaced by short names. Likewise, it is possible to
 #               define aliases for the names of the species distribution layer
 #
-# COPYRIGHT:   (C) 2015 Paulo van Breugel
-#              http://ecodiv.org
-#              http://pvanb.wordpress.com/
-
+# COPYRIGHT:   (C) 2015-2019 Paulo van Breugel and the GRASS Development Team
+#              http://ecodiv.earth
+#
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
 #              for details.
@@ -175,6 +174,10 @@ import tempfile
 # Standard
 #----------------------------------------------------------------------------
 
+if not os.environ.has_key("GISBASE"):
+    grass.message("You must be in GRASS GIS to run this program.")
+    sys.exit(1)
+
 # create set to store names of temporary maps to be deleted upon exit
 clean_rast = set()
 
@@ -257,7 +260,7 @@ def main():
     evpc = options['evp_cat']
     if evpc != '':
         evpc = evpc.split(',')
-        for k in np.arange(0,len(evpc)):
+        for k in range(len(evpc)):
             laytype = grass.raster_info(evpc[k])['datatype']
             if laytype != 'CELL':
                 grass.fatal("Categorical variables need to be of type CELL (integer)")
@@ -288,7 +291,7 @@ def main():
     grass.run_command("v.db.addcolumn", map=bgpname, columns=evp_cols, quiet=True)
 
     # Upload environmental values for point locations to attribute table
-    for j in np.arange(0,len(evpn)):
+    for j in range(len(evpn)):
         grass.run_command("v.what.rast", map=bgpname, raster=evp[j], column=evpn[j], quiet=True)
         sqlst = "update " + bgpname + " SET " + evpn[j] + " = " + \
         str(nodata) + " WHERE " + evpn[j] + " ISNULL"
@@ -313,14 +316,14 @@ def main():
     # Presence points
     #--------------------------------------------------------------------------
     bgrdir = tempfile.mkdtemp()
-    for i in np.arange(0,len(specs)):
+    for i in range(len(specs)):
         specname = tmpname("sp")
         bgrtmp = bgrdir + '/prespoints' + str(i)
         grass.run_command("g.copy", vector=[specs[i],specname], quiet=True)
         grass.run_command("v.db.addcolumn", map=specname, columns=evp_cols, quiet=True)
 
         # Upload environmental values for point locations to attribute table
-        for j in np.arange(0,len(evpn)):
+        for j in range(len(evpn)):
             grass.run_command("v.what.rast", map=specname, raster=evp[j], column=evpn[j], quiet=True)
             sqlst = "update " + specname + " SET " + evpn[j] + " = " + \
             str(nodata) + " WHERE " + evpn[j] + " ISNULL"
@@ -351,7 +354,7 @@ def main():
 
     # Combine csv files
     filenames = bgrdir + '/prespoints'
-    filenames = [filenames + str(i) for i in np.arange(0,len(specs))]
+    filenames = [filenames + str(i) for i in range(len(specs))]
     with open(specout, 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
