@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.replace</em> replaces the values of pixels of a given category with values 
+<em>r.fill.category</em> replaces the values of pixels of a given category with values 
 of the surrounding pixels and stores the output in
 a new raster map layer. The module can be used to eliminate one category from a raster map
 without leaving areas with NULL values, like for example when using <em>r.reclass.area</em>.
@@ -9,11 +9,11 @@ Areas with the given category are eroded and their pixels
 value is replaced with the values given by the mode of the surrounding pixels.
 </p>
 <p>
-<em>r.replace</em> iteratively applies <em>r.neighbors</em> and <em>r.mapcalc</em> until no pixel of the category
+<em>r.fill.category</em> iteratively applies <em>r.neighbors</em> and <em>r.mapcalc</em> until no pixel of the category
 to replace is left or the maximum number of iterations is reached.
 </p>
 <p>
-Optionally, <em>r.replace</em> can create an MPEG file animating the replacement process. 
+Optionally, <em>r.fill.category</em> can create an MPEG file animating the replacement process. 
 </p>
 
 <h2>PARAMETERS</h2>
@@ -52,7 +52,7 @@ of the surrounding pixels:
 g.region rast=landuse@PERMANENT
 # replace pixels of category 6 (water) with values of the surrounding pixels
 # create a drought.mpg animation file in the current directory
-r.replace input=landuse@PERMANENT output=landuse_dry category=6 animationfile=./drought.mpg
+r.fill.category input=landuse@PERMANENT output=landuse_dry category=6 animationfile=./drought.mpg
 </pre></div>
 
 It removes all water pixels in 38 iterations. A <i>drought.mpg</i> MPEG file containing the animation of the replacement sequence is created in the current directory.
@@ -72,4 +72,4 @@ r.fill.gaps add-on
 Paolo Zatelli and Stefano Gobbi,
 DICAM, University of Trento, Italy.
 
-<p><i>Last changed: $Date: 2019-04-19 18:13:37 +0100 (Fri, 19 Apr 2019) $</i>
+<p><i>Last changed: $Date: 2019-06-12 18:10:36 +0100 (Wed, 12 Jun 2019) $</i>

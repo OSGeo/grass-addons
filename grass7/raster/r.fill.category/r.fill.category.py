@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:    r.replace
+# MODULE:    r.fill.category
 # AUTHOR(S): Stefano Gobbi and Paolo Zatelli
 # PURPOSE:   Replaces the values of pixels of a given category with values
 #            of the surrounding pixels
