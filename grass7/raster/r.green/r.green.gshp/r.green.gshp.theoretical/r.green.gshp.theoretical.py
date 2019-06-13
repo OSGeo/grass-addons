@@ -249,7 +249,7 @@ def main(opts, flgs):
         Number of heating days, default: 180 days
     ground_conductivity: float [W m-1 K-1]
         Depth averaged thermal conductivity
-    ground_capacity: float []
+    ground_capacity: float [M J m-3 K-1]
         Depth averaged thermal capacity
     lifetime: int [years]
         Simulated lifetime of the plant, default: 50 years
@@ -311,7 +311,10 @@ def main(opts, flgs):
 
     # START COMPUTATIONS
     uc = tmpbase + '_uc'
-    gpot.r_norm_time(uc, heating_season, borehole_radius,
+    season_temp = tmpbase + '_season_sec'
+    mapcalc('{}={}*24*3600'.format(season_temp, heating_season),
+            overwrite=True)
+    gpot.r_norm_time(uc, season_temp, borehole_radius,
                      ground_conductivity, ground_capacity, execute=True,
                      overwrite=OVER)
     us = tmpbase + '_us'
@@ -332,6 +335,7 @@ def main(opts, flgs):
                  gmax, execute=True, overwrite=OVER)
     command = "{new} = if({old}<0, null(), {old})".format(old=power, new=power)
     mapcalc(command, overwrite=True)
+    # TODO: add warning
 
     energy = opts['energy']
     gpot.r_energy(energy, power, execute=True, overwrite=OVER)

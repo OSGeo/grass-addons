@@ -4,7 +4,7 @@
 ########################################################################
 #
 # MODULE:       r.mess
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo ecodiv earth>
 # PURPOSE:      Calculate the multivariate environmental similarity
 #               surface (MESS) as proposed by Elith et al., 2010,
 #               Methods in Ecology & Evolution, 1(330–342).
@@ -201,8 +201,8 @@ def main(options, flags):
            reftype['max'] != 1):
             gs.fatal(_("The ref_rast map must be a binary raster,"
                        " i.e. it should contain only values 0 and 1 or 1 only"
-                       " (now the minimum is %d and maximum is %d)")
-                     % (reftype['min'], reftype['max']))
+                       " (now the minimum is {} and maximum is {})".
+                       format(reftype['min'], reftype['max'])))
 
     # old environmental layers & variable names
     REF = options['env']
@@ -222,8 +222,8 @@ def main(options, flags):
         raster_exists(PROJ)
         if len(PROJ) != len(REF) and len(PROJ) != 0:
             gs.fatal(_("The number of reference and predictor variables"
-                       " should be the same. You provided %d reference and %d"
-                       " projection variables") % (len(REF), len(PROJ)))
+                       " should be the same. You provided {} reference and {}"
+                       " projection variables".format(len(REF), len(PROJ))))
 
     # output layers
     opl = options['output']
@@ -368,7 +368,7 @@ def main(options, flags):
             gs.run_command("r.mask", quiet=True, flags="r")
 
         # Upload raster values and get value in python as frequency table
-        sql1 = "SELECT cat FROM %s" % tmpf0
+        sql1 = "SELECT cat FROM {}".format(str(tmpf0))
         cn = len(np.hstack(db.db_select(sql=sql1)))
         for m in xrange(len(REF)):
 
@@ -382,12 +382,12 @@ def main(options, flags):
             mid = str(m)
             laytype = gs.raster_info(REF[m])['datatype']
             if laytype == 'CELL':
-                columns = "envvar_%s integer" % mid
+                columns = "envvar_{} integer".format(str(mid))
             else:
                 columns = "envvar_%s double precision" % mid
             gs.run_command("v.db.addcolumn", map=tmpf0, columns=columns,
                            quiet=True)
-            sql2 = "UPDATE %s SET envvar_%s = NULL" % (tmpf0, mid)
+            sql2 = "UPDATE {} SET envvar_{} = NULL".format(str(tmpf0), str(mid))
             gs.run_command("db.execute", sql=sql2, quiet=True)
             coln = "envvar_%s" % mid
             gs.run_command("v.what.rast", quiet=True, map=tmpf0,
@@ -402,9 +402,9 @@ def main(options, flags):
 
             # Check for point without values
             if b < cn:
-                gs.info(_("Please note that there were %d points without "
+                gs.info(_("Please note that there were {} points without "
                           "value. This is probably because they are outside "
-                          "the computational region or mask") % (cn - b))
+                          "the computational region or mask".format((cn - b))))
 
             # Set region to env_proj layers (if different from env) and remove
             # mask (if set above)

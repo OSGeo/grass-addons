@@ -4,12 +4,11 @@
 ########################################################################
 #
 # MODULE:       r.series.diversity
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo ecodiv earth>
 # PURPOSE:      Compute biodiversity indices over input layers
 #
-# COPYRIGHT: (C) 2014 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (C) 2014-2019 Paulo van Breugel and the GRASS DEVELOPMENT TEAM
+#            http://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -18,7 +17,7 @@
 ########################################################################
 #
 #%Module
-#% description: Compute diversity indices over input layers
+#% description: Compute diversity indici over input layers
 #% keyword: raster
 #% keyword: diversity index
 #% keyword: renyi entrophy
@@ -127,6 +126,9 @@ import uuid
 import atexit
 import string
 import grass.script as grass
+if not os.environ.has_key("GISBASE"):
+    grass.message( "You must be in GRASS GIS to run this program." )
+    sys.exit(1)
 
 #----------------------------------------------------------------------------
 # Functions
@@ -140,7 +142,7 @@ def cleanup():
         type="rast", name = rast, quiet = True)
 
 def CheckLayer(envlay):
-    for chl in xrange(len(envlay)):
+    for chl in range(len(envlay)):
         ffile = grass.find_file(envlay[chl], element = 'cell')
         if ffile['fullname'] == '':
             grass.fatal("The layer " + envlay[chl] + " does not exist.")
@@ -152,13 +154,31 @@ def tmpname(name):
     clean_rast.add(tmpf)
     return tmpf
 
+# Create mask for all areas with sum=0, incorporate existing mask
+def replacemask(inmap):
+    msk = grass.find_file(name='MASK', element = 'cell',
+                          mapset=grass.gisenv()['MAPSET'])
+    minval = float(grass.parse_command("r.info", flags="gr",
+                                       map=inmap, quiet=True)['min'])
+    if msk['fullname'] != '':
+        if minval > 0:
+            return 'samemask'
+        else:
+            rname = tmpname('MASK')
+            grass.mapcalc('$rname = MASK', rname=rname, quiet=True)
+            grass.run_command("r.mask", flags="r", quiet=True)
+            grass.mapcalc("MASK = if($tmp_1==0, null(),$msk)",
+                          tmp_1=inmap, msk=rname, quiet=True)
+            return rname
+    else:
+        grass.mapcalc("MASK = if($inmap==0, null(),1)",inmap=inmap, quiet=True)
+        return 'nomask'
+
 #----------------------------------------------------------------------------
 # main function
 #----------------------------------------------------------------------------
 
 def main():
-    #options = {"input":"spec1,spec2,spec3,spec4,spec5", "output":"AAA9", "alpha":"4"}
-    #flags = {"r":"False", "s":True, "h":True, "e":True, "p":True, "n":True, "g":True}
 
     #--------------------------------------------------------------------------
     # Variables
@@ -213,7 +233,11 @@ def main():
     clean_rast.add(tmp_1)
     grass.info("Computing the sum across all input layers (this may take a while)")
     grass.run_command("r.series", quiet=True, output=tmp_1, input=IN, method="sum")
-    for n in xrange(len(Q)):
+
+    # Create mask for all areas with sum=0, incorporate existing mask
+    replmask = replacemask(inmap=tmp_1)
+
+    for n in range(len(Q)):
         grass.info(_("Computing alpha = {n}").format(n=Q[n]))
         Qn = str(Q[n])
         Qn = Qn.replace('.', '_')
@@ -222,16 +246,15 @@ def main():
             # If alpha = 1
             # TODO See email 14-01-16 about avoiding loop below
             grass.mapcalc("$renyi = 0", renyi=renyi, quiet=True)
-            for i in xrange(len(IN)):
+            for i in range(len(IN)):
                 grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
                 tmp_2 = tmpname("sht")
                 clean_rast.add(tmp_2)
-                grass.mapcalc("$tmp_2 = if($inl==0, $renyi, $renyi - \
-                (($inl/$tmp_1) * log(($inl/$tmp_1))))",
+                grass.mapcalc("$tmp_2 = $renyi - (($inl/$tmp_1) * log(($inl/$tmp_1)))",
                               renyi=renyi, tmp_2=tmp_2,
                               inl=IN[i], tmp_1=tmp_1, quiet=True)
-                grass.run_command("g.rename", raster='%s,%s' % (tmp_2,renyi),
-                                  overwrite=True, quiet=True)
+                grass.run_command("g.rename", raster="{0},{1}".format(
+                        tmp_2,renyi), overwrite=True, quiet=True)
         else:
             # If alpha != 1
             tmp_3 = tmpname("sht")
@@ -239,15 +262,14 @@ def main():
             tmp_4 = tmpname("sht")
             clean_rast.add(tmp_4)
             grass.mapcalc("$tmp_3 = 0", tmp_3=tmp_3, quiet=True)
-            for i in xrange(len(IN)):
+            for i in range(len(IN)):
                 grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
-                grass.mapcalc("$tmp_4 = if($inl==0,$tmp_3+0, $tmp_3 + \
-                pow($inl/$tmp_1,$alpha))",
+                grass.mapcalc("$tmp_4 = $tmp_3 + (pow($inl/$tmp_1,$alpha))",
                             tmp_3=tmp_3, tmp_4=tmp_4,
                             tmp_1=tmp_1, inl=IN[i],
                             alpha=Q[n],  quiet=True)
-                grass.run_command("g.rename", raster='%s,%s' % (tmp_4,tmp_3),
-                            overwrite=True, quiet=True)
+                grass.run_command("g.rename", raster="{0},{1}".format(
+                        tmp_4,tmp_3), overwrite=True, quiet=True)
             grass.mapcalc("$outl = (1/(1-$alpha)) * log($tmp_3)",
                             outl=renyi, tmp_3=tmp_3,
                             alpha=Q[n], quiet=True)
@@ -255,19 +277,29 @@ def main():
                               name=tmp_3, flags="f", quiet=True)
 
     #--------------------------------------------------------------------------
-    # Species richness
+    # Species richness, add 0 for areas with no observations
     #--------------------------------------------------------------------------
+
+    # Remove mask  (or restore if there was one)
+    if replmask == 'nomask':
+        grass.run_command("r.mask", flags="r", quiet=True)
+    elif replmask is not 'samemask':
+        grass.run_command("g.rename", raster=(replmask,'MASK1'), quiet=True)
     if flag_s:
         grass.info("Computing species richness map")
         out_div = OUT + "_richness"
         in_div = OUT + "_Renyi_0_0"
-        grass.mapcalc("$out_div = exp($in_div)",
+        grass.mapcalc("$out_div = if($tmp_1==0,0,exp($in_div))",
                       out_div=out_div,
                       in_div=in_div,
+                      tmp_1=tmp_1,
                       quiet=True)
         if 0.0 not in Qoriginal and not flag_e:
             grass.run_command("g.remove", flags="f", type="raster",
                               name=in_div, quiet=True)
+
+    # Create mask for all areas with sum=0, incorporate existing mask
+    replmask = replacemask(inmap=tmp_1)
 
     #--------------------------------------------------------------------------
     # Shannon index
@@ -346,13 +378,22 @@ def main():
                               name=in_div, quiet=True)
 
     #--------------------------------------------------------------------------
+    # Remove mask  (or restore if there was one)
+    #--------------------------------------------------------------------------
+    if replmask == 'nomask':
+        grass.run_command("r.mask", flags="r", quiet=True)
+    elif replmask is not 'samemask':
+        grass.run_command("g.rename", raster=(replmask,'MASK1'), quiet=True)
+
+    #--------------------------------------------------------------------------
     # Total count (base unit, like individuals)
     #--------------------------------------------------------------------------
     if flag_t:
         rast = OUT + "_count"
         grass.run_command("g.rename", raster=(tmp_1,rast), quiet=True)
     else:
-        grass.run_command("g.remove", type="raster", name=tmp_1, flags="f", quiet=True)
+        grass.run_command("g.remove", type="raster", name=tmp_1, flags="f",
+                          quiet=True)
 
 
 if __name__ == "__main__":

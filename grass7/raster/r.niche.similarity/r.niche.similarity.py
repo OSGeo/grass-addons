@@ -4,15 +4,14 @@
 ########################################################################
 #
 # MODULE:       r.niche.similarity
-# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# AUTHOR(S):    Paulo van Breugel <paulo ecodiv earth>
 # PURPOSE:      Compute  degree of niche overlap using the statistics D
 #               and I (as proposed by Warren et al., 2008) based on
 #               Schoeners D (Schoener, 1968) and Hellinger Distances
 #               (van der Vaart, 1998)
 #
-# COPYRIGHT: (C) 2015 Paulo van Breugel
-#            http://ecodiv.org
-#            http://pvanb.wordpress.com/
+# COPYRIGHT: (c) 2015-2019 Paulo van Breugel and GRASS Development Team
+#            http://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS

@@ -19,7 +19,7 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 2014-2016 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2019 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -129,9 +129,9 @@ COLORS_MES = """\
 100% 50:136:189
 """
 
-#----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Functions
-#----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 # create set to store names of temporary maps to be deleted upon exit
 CLEAN_RAST = []
@@ -258,9 +258,9 @@ def main(options, flags):
     text_file.write(hist)
     text_file.close()
 
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     # Compute MES
-    #-------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
 
     # Create temporary copy of ref layer
     tmpref0 = tmpname("reb1")
@@ -321,9 +321,9 @@ def main(options, flags):
         os.remove(tmprule)
         ipi.append(tmpf3)
 
-    #-----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # Calculate EB statistics
-    #-----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     # EB MES
     if flag_m:
@@ -376,7 +376,7 @@ def main(options, flags):
         if not out:
             CLEAN_RAST.append(nmn)
         else:
-        # Write layer metadata
+            # Write layer metadata
             gs.run_command("r.support", map=nmn,
                            title="Multivariate environmental similarity (MES)",
                            units="0-100 (relative score",
