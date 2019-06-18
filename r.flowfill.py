@@ -150,7 +150,7 @@ def main():
     _water = 'tmpout_water'
     """
     
-    # Check for overwrite
+    # Check for overwrite -- should be unnecessary thanks to GRASS parser
     _rasters = np.array(gscript.parse_command('g.list', type='raster').keys())
     if (_rasters == _output).any() or (_water == _output).any():
         if gscript.overwrite() is False:
