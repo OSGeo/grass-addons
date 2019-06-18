@@ -153,6 +153,15 @@ def main():
         if gscript.overwrite() is False:
             g.message(flags='e', message="output would overwrite "+_output)
 
+    # Check for proper number of processors
+    try:
+        _np = int(_np)
+    except:
+        g.message(flags='e', message="Number of processors must be an integer.")
+    
+    if _np < 3:
+        g.message(flags='e', message="FlowFill requires 3 or more processors.")
+
     # Check for proper option set
     if _h_runoff is not '': # ????? possible ?????
         if _h_runoff_raster is not '':
