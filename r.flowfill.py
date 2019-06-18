@@ -178,6 +178,7 @@ def main():
     if _h_runoff_raster is not '':
         _runoff_bool = 'Y'
     else:
+        _h_runoff = float(_h_runoff)
         _runoff_bool = 'N'
 
     # Get computational region
@@ -203,7 +204,7 @@ def main():
     if _h_runoff_raster is not '':
         temp_FlowFill_runoff_file = gscript.tempfile(create=False)
         rr = garray.array()
-        rr.read(_input, null=0.0)
+        rr.read(_h_runoff_raster, null=0.0)
         rr_array = np.array(rr[:]).astype(np.float32)
         del rr
         newnc = Dataset(temp_FlowFill_runoff_file, "w", format="NETCDF4")
@@ -217,8 +218,9 @@ def main():
     
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
+    print _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
     mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' '+\
-              str(float(_h_runoff))+' '+temp_FlowFill_input_file+' '+\
+              str(_h_runoff)+' '+temp_FlowFill_input_file+' '+\
               str(n_columns)+' '+str(n_rows)+' '+\
               str(_threshold)+' '+temp_FlowFill_output_file+' '+\
               _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
