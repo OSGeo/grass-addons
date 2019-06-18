@@ -139,8 +139,10 @@ def main():
     _input = 'DEM_MODFLOW'
     _np = 4
     _threshold = 0.001
-    _h_runoff = 1.
-    _h_runoff_raster = ''
+    #_h_runoff = 1.
+    _h_runoff = ''
+    #_h_runoff_raster = ''
+    _h_runoff_raster = 'DEM_MODFLOW'
     _ties = 'PREF'
     _ffpath = 'flowfill'
     _output = 'tmpout'
@@ -176,9 +178,11 @@ def main():
 
     # Set up runoff options
     if _h_runoff_raster is not '':
+        _h_runoff = '0.0' # A dummy filler value for the parser
         _runoff_bool = 'Y'
     else:
         _h_runoff = float(_h_runoff)
+        _h_runoff_raster = 'NoRaster' # A dummy value for the parser
         _runoff_bool = 'N'
 
     # Get computational region
@@ -197,6 +201,7 @@ def main():
     newnc.createVariable('value', 'f4', ('y', 'x')) # z
     newnc.variables['value'][:] = dem_array
     newnc.close()
+    del newnc
     #r.out_gdal(input=_input, output=temp_DEM_input_file, format='netCDF',
     #           overwrite=True)
     
@@ -218,7 +223,6 @@ def main():
     
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
-    print _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
     mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' '+\
               str(_h_runoff)+' '+temp_FlowFill_input_file+' '+\
               str(n_columns)+' '+str(n_rows)+' '+\
