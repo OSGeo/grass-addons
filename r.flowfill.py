@@ -68,6 +68,7 @@
 #% type: string
 #% label: Tie-handling: counterclockwise from Northwest (PREF) or random (RAND)
 #% answer: PREF
+#% options: PREF,RAND
 #% required: no
 #%end
 
