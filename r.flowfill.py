@@ -46,7 +46,7 @@
 #% type: double
 #% label: Threshold water-surface elevation change to conclude calculation
 #% answer: 0.001
-#% required: yes
+#% required: no
 #%end
 
 #%option
@@ -68,7 +68,15 @@
 #% type: string
 #% label: Tie-handling: counterclockwise from Northwest (PREF) or random (RAND)
 #% answer: PREF
-#% required: yes
+#% required: no
+#%end
+
+#%option
+#% key: ffpath
+#% type: string
+#% label: Path to the FlowFill executable
+#% answer: flowfill
+#% required: no
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -113,6 +121,7 @@ def main():
     _h_runoff = options['h_runoff']
     _h_runoff_raster = options['h_runoff_raster']
     _ties = options['ties']
+    _ffpath = options['ffpath']
     _output = options['output']
     _water = options['water']
     
@@ -124,6 +133,7 @@ def main():
     from grass import script as gscript
     from grass.script import array as garray
     from grass.pygrass.modules.shortcuts import raster as r
+    from grass.pygrass.modules.shortcuts import general as g
 
     # FOR TESTING:
     _input = 'DEM_MODFLOW'
@@ -132,6 +142,7 @@ def main():
     _h_runoff = 1.
     _h_runoff_raster = ''
     _ties = 'PREF'
+    _ffpath = 'flowfill'
     _output = 'tmpout'
     _water = 'tmpout_water'
     """
@@ -179,19 +190,68 @@ def main():
     #r.out_gdal(input=_input, output=temp_DEM_input_file, format='netCDF',
     #           overwrite=True)
     
+    # Output runoff raster as temporary file for FORTRAN
+    if _h_runoff_raster is not '':
+        temp_FlowFill_runoff_file = gscript.tempfile(create=False)
+        rr = garray.array()
+        rr.read(_input, null=0.0)
+        rr_array = np.array(rr[:]).astype(np.float32)
+        del rr
+        newnc = Dataset(temp_FlowFill_runoff_file, "w", format="NETCDF4")
+        newnc.createDimension('x', n_columns)
+        newnc.createDimension('y', n_rows)
+        newnc.createVariable('value', 'f4', ('y', 'x')) # z
+        newnc.variables['value'][:] = rr_array
+        newnc.close()
+    else:
+        temp_FlowFill_runoff_file = ''
+    
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
-    PATH_TO_FLOWFILL_EXECUTABLE = 'flowfill' # using "compile_global_linux.sh"
-    mpirunstr = 'mpirun -np '+str(_np)+' '+PATH_TO_FLOWFILL_EXECUTABLE+' '+\
+    mpirunstr = 'mpirun -np '+str(_np)+' '+_ffpath+' '+\
               str(float(_h_runoff))+' '+temp_FlowFill_input_file+' '+\
               str(n_columns)+' '+str(n_rows)+' '+\
               str(_threshold)+' '+temp_FlowFill_output_file+' '+\
-              _runoff_bool+' '+_h_runoff_raster+' '+_ties
+              _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
     print ''
     print 'Sending command to FlowFill:'
     print mpirunstr
+    print ''
+    
+    _mpirun_error_flag = False
+    
+    popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE, 
+                             shell=True, universal_newlines=True)
+    for stdout_line in iter(popen.stdout.readline, ""):
+        print stdout_line,
+        if 'mpirun was unable to find the specified executable file' in \
+                                      stdout_line:
+            _mpirun_error_flag = True
+    popen.stdout.close()
+    if _mpirun_error_flag:
+        print ''
+        g.message(flags='e', message='FlowFill executable not found.\n'+
+              'If you have not installed FlowFill, please download it '+
+              'from https://github.com/KCallaghan/FlowFill, '+
+              'and follow the directions in the README to compile and '+
+              'install it on your system.\n'+
+              'This should then work with the default "ffpath". '+
+              'Otherwise, you may have simply have typed in an incorrect '+
+              '"ffpath".')
+
+    
+    #_stdout = subprocess.Popen(mpirunstr, shell=True, stdout=subprocess.PIPE)
+    #
+    #if 'mpirun was unable to find the specified executable file' in \
+    #                              ''.join(_stdout.stdout.readlines()):
+    #else:
+    #    g.message('FlowFill Executable Found.')
+    #    print ''
+
+    
     #subprocess.Popen(mpirunstr, shell=True).wait()
-    os.system(mpirunstr)
+    #os.system(mpirunstr)
+    #subprocess.Popen(mpirunstr, shell=True)
     
     # Import the output -- padded by two cells (remove these)
     outrast = np.fromfile(temp_FlowFill_output_file+'.dat', dtype=np.float32)
