@@ -58,15 +58,15 @@
 
 #%option G_OPT_R_INPUT
 #% key: h_runoff_raster
-#% type: str
+#% type: string
 #% label: Initial depth of non-uniform runoff [thickness in map units]
 #% required: no
 #%end
 
 #%option
 #% key: ties
-#% type: str
-#% label: Tie-handling: clockwise from North (PREF) or random (RAND)
+#% type: string
+#% label: Tie-handling: counterclockwise from Northwest (PREF) or random (RAND)
 #% answer: PREF
 #% required: yes
 #%end
@@ -74,7 +74,13 @@
 #%option G_OPT_R_OUTPUT
 #%  key: output
 #%  label: Output DEM + pooled/remaining runoff
-#%  required: yes
+#%  required: no
+#%end
+
+#%option G_OPT_R_OUTPUT
+#%  key: water
+#%  label: Output water depth at the end of the run
+#%  required: no
 #%end
 
 ##################
@@ -84,10 +90,12 @@
 import os
 import numpy as np
 from netCDF4 import Dataset
+import subprocess
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import raster as r
+from grass.pygrass.modules.shortcuts import general as g
         
 ###############
 # MAIN MODULE #
@@ -100,16 +108,15 @@ def main():
     
     options, flags = gscript.parser()
     _input = options['input']
-    _np = options['_np']
-    _threshold = options['_threshold']
-    _h_runoff = options['_h_runoff']
-    _h_runoff_raster = options['_h_runoff_raster']
-    _ties = options['_ties']
+    _np = options['np']
+    _threshold = options['threshold']
+    _h_runoff = options['h_runoff']
+    _h_runoff_raster = options['h_runoff_raster']
+    _ties = options['ties']
     _output = options['output']
+    _water = options['water']
     
-    
-    
-    
+    """
     import os
     import numpy as np
     from netCDF4 import Dataset
@@ -119,18 +126,21 @@ def main():
     from grass.pygrass.modules.shortcuts import raster as r
 
     # FOR TESTING:
-    _input = 'DEM'
+    _input = 'DEM_MODFLOW'
     _np = 4
     _threshold = 0.001
     _h_runoff = 1.
     _h_runoff_raster = ''
     _ties = 'PREF'
-    _output = 'tmpout.nc'
+    _output = 'tmpout'
+    _water = 'tmpout_water'
+    """
     
     # Check for overwrite
     _rasters = np.array(gscript.parse_command('g.list', type='raster').keys())
-    if (_rasters == _output).any():
-        g.message(flags='e', message="output would overwrite "+_output)
+    if (_rasters == _output).any() or (_water == _output).any():
+        if gscript.overwrite() is False:
+            g.message(flags='e', message="output would overwrite "+_output)
 
     # Check for proper option set
     if _h_runoff is not '': # ????? possible ?????
@@ -140,6 +150,9 @@ def main():
     elif _h_runoff_raster is '':             
             g.message(flags='e', message='Either "h_runoff" or '+
                                          '"h_runoff_raster" must be set')
+
+    if _output is '' and _water is '':
+            g.message(flags='w', message='No output is set.')
 
     # Set up runoff options
     if _h_runoff_raster is not '':
@@ -154,8 +167,9 @@ def main():
     # Output DEM as temporary file for FORTRAN
     temp_FlowFill_input_file = gscript.tempfile(create=False)
     dem = garray.array()
-    dem.read(_input, null=0)#np.nan) # Can it handle nan?
+    dem.read(_input, null=-999999)
     dem_array = np.array(dem[:]).astype(np.float32)
+    del dem
     newnc = Dataset(temp_FlowFill_input_file, "w", format="NETCDF4")
     newnc.createDimension('x', n_columns)
     newnc.createDimension('y', n_rows)
@@ -167,22 +181,39 @@ def main():
     
     # Run FlowFill
     temp_FlowFill_output_file = gscript.tempfile(create=False)
-    PATH_TO_FLOWFILL_EXECUTABLE = './test'
-    os.system('mpirun -np '+str(_np)+' '+PATH_TO_FLOWFILL_EXECUTABLE+' '+
-              str(_h_runoff)+' '+temp_FlowFill_input_file+' '+str(n_rows)+' '+
-              str(n_columns)+' '+str(_threshold)+' '+
-              temp_FlowFill_output_file+' '+
-              _runoff_bool+' '+_h_runoff_raster+' '+_ties)
-
-
-
-print 'mpirun -np '+str(_np)+' '+PATH_TO_FLOWFILL_EXECUTABLE+' '+\
-              str(_h_runoff)+' '+temp_FlowFill_input_file+' '+str(n_rows)+' '+str(n_columns)+' '+\
+    PATH_TO_FLOWFILL_EXECUTABLE = 'flowfill' # using "compile_global_linux.sh"
+    mpirunstr = 'mpirun -np '+str(_np)+' '+PATH_TO_FLOWFILL_EXECUTABLE+' '+\
+              str(float(_h_runoff))+' '+temp_FlowFill_input_file+' '+\
+              str(n_columns)+' '+str(n_rows)+' '+\
               str(_threshold)+' '+temp_FlowFill_output_file+' '+\
               _runoff_bool+' '+_h_runoff_raster+' '+_ties
+    print ''
+    print 'Sending command to FlowFill:'
+    print mpirunstr
+    #subprocess.Popen(mpirunstr, shell=True).wait()
+    os.system(mpirunstr)
+    
+    # Import the output -- padded by two cells (remove these)
+    outrast = np.fromfile(temp_FlowFill_output_file+'.dat', dtype=np.float32)
+    outrast_water = np.fromfile(temp_FlowFill_output_file+'_water.dat',
+                                dtype=np.float32)
+    outrast = outrast.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
+    outrast_water = outrast_water.reshape(n_rows+2, n_columns+2)[:-2, 1:-1]
+    
+    # Mask to return NAN to NAN in GRASS -- FIX SHIFT ISSUE WITH KERRY
+    dem_array_mask = dem_array.copy()
+    dem_array_mask[dem_array_mask == -999999] = np.nan
+    dem_array_mask = dem_array_mask * 0 + 1
+    outrast *= dem_array_mask
+    outrast_water *= dem_array_mask
 
-    # Bring in output
-    # r.in.gdal?
+    # Save the output to GRASS GIS
+    dem = garray.array()
+    dem[:] = outrast
+    dem.write(_output, overwrite=gscript.overwrite())
+    dem[:] = outrast_water
+    dem.write(_water, overwrite=gscript.overwrite())
+    del dem
 
 if __name__ == "__main__":
     main()
