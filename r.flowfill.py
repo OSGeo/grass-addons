@@ -178,11 +178,9 @@ def main():
 
     # Set up runoff options
     if _h_runoff_raster is not '':
-        _h_runoff = '0.0' # A dummy filler value for the parser
         _runoff_bool = 'Y'
     else:
         _h_runoff = float(_h_runoff)
-        _h_runoff_raster = 'NoRaster' # A dummy value for the parser
         _runoff_bool = 'N'
 
     # Get computational region
@@ -218,7 +216,10 @@ def main():
         newnc.createVariable('value', 'f4', ('y', 'x')) # z
         newnc.variables['value'][:] = rr_array
         newnc.close()
+        # Get the mean value for the floating-point depressions correction
+        _h_runoff = np.mean(rr_array[dem_array != -999999])
     else:
+        _h_runoff_raster = 'NoRaster' # A dummy value for the parser
         temp_FlowFill_runoff_file = ''
     
     # Run FlowFill
