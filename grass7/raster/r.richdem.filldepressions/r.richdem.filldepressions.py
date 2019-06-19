@@ -21,7 +21,7 @@
 # Started June 2019
 
 #%module
-#% description: Directs flow from flat areas on depression-filled DEMs
+#% description: Floods depressions using RichDEM
 #% keyword: raster
 #% keyword: hydrology
 #%end
@@ -83,7 +83,7 @@ except:
 
 def main():
     """
-    RichDEM flat resolution: give a gentle slope
+    RichDEM depression filling
     """
     
     options, flags = gscript.parser()
