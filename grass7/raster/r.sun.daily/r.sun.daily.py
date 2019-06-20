@@ -7,7 +7,7 @@
 #            Nikos Alexandris (updates for linke, albedo, latitude, horizon)
 #
 # PURPOSE:
-# COPYRIGHT: (C) 2013 - 2015 by the GRASS Development Team
+# COPYRIGHT: (C) 2013 - 2019 by the GRASS Development Team
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -237,6 +237,15 @@
 #% label: Register created series of output maps into temporal dataset
 #%end
 
+#%flag
+#% key: p
+#% description: Do not incorporate the shadowing effect of terrain
+#%end
+
+#%flag
+#% key: m
+#% description: Use the low-memory version of the program
+#%end
 
 import os
 import atexit
@@ -277,7 +286,7 @@ def create_tmp_map_name(name):
 def run_r_sun(elevation, aspect, slope, latitude, longitude,
               linke, linke_value, albedo, albedo_value,
               horizon_basename, horizon_step,
-              day, step, beam_rad, diff_rad, refl_rad, glob_rad, suffix):
+              day, step, beam_rad, diff_rad, refl_rad, glob_rad, suffix, flags):
     '''
     Execute r.sun using the provided input options. Except for the required
     parameters, the function updates the list of optional/selected parameters
@@ -310,6 +319,8 @@ def run_r_sun(elevation, aspect, slope, latitude, longitude,
     if horizon_basename and horizon_step:
         params.update({'horizon_basename': horizon_basename})
         params.update({'horizon_step': horizon_step})
+    if flags:
+        params.update({'flags': flags})
 
     grass.run_command('r.sun', elevation=elevation, aspect=aspect,
                       slope=slope, day=day, step=step,
@@ -463,6 +474,12 @@ def main():
     if glob_rad:
         grass.mapcalc('{glob} = 0'.format(glob=glob_rad), quiet=True)
 
+    rsun_flags = ''
+    if flags['m']:
+        rsun_flags += 'm'
+    if flags['p']:
+        rsun_flags += 'p'
+
     grass.info(_("Running r.sun in a loop..."))
     count = 0
     # Parallel processing
@@ -489,7 +506,7 @@ def main():
                                        diff_rad_basename,
                                        refl_rad_basename,
                                        glob_rad_basename,
-                                       suffix)))
+                                       suffix, rsun_flags)))
 
         proc_list[proc_count].start()
         proc_count += 1

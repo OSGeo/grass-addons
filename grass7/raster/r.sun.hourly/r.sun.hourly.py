@@ -5,7 +5,7 @@
 # MODULE:    r.sun.hourly for GRASS 6 and 7
 # AUTHOR(S): Vaclav Petras, Anna Petrasova
 # PURPOSE:
-# COPYRIGHT: (C) 2013 by the GRASS Development Team
+# COPYRIGHT: (C) 2013 - 2019 by the GRASS Development Team
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -162,6 +162,14 @@
 #% key: b
 #% description: Create binary rasters instead of irradiation rasters
 #%end
+#%flag
+#% key: p
+#% description: Do not incorporate the shadowing effect of terrain
+#%end
+#%flag
+#% key: m
+#% description: Use the low-memory version of the program
+#%end
 
 
 import os
@@ -199,7 +207,7 @@ def create_tmp_map_name(name):
 def run_r_sun(elevation, aspect, slope, day, time,
               linke, linke_value, albedo, albedo_value,
               beam_rad, diff_rad, refl_rad, glob_rad,
-              incidout, suffix, binary, binaryTmpName):
+              incidout, suffix, binary, binaryTmpName, flags):
     params = {}
     if linke:
         params.update({'linke': linke})
@@ -219,6 +227,8 @@ def run_r_sun(elevation, aspect, slope, day, time,
         params.update({'glob_rad': glob_rad + suffix})
     if incidout:
         params.update({'incidout': incidout + suffix})
+    if flags:
+        params.update({'flags': flags})
 
     if is_grass_7():
         grass.run_command('r.sun', elevation=elevation, aspect=aspect,
@@ -330,6 +340,11 @@ def main():
     binary = flags['b']
     binaryTmpName = 'binary'
     year = int(options['year'])
+    rsun_flags = ''
+    if flags['m']:
+        rsun_flags += 'm'
+    if flags['p']:
+        rsun_flags += 'p'
 
     if not is_grass_7() and temporal:
         grass.warning(_("Flag t has effect only in GRASS 7"))
@@ -397,7 +412,8 @@ def main():
                                        glob_rad_basename,
                                        incidout_basename,
                                        suffix,
-                                       binary, binaryTmpName)))
+                                       binary, binaryTmpName,
+                                       rsun_flags)))
 
         proc_list[proc_count].start()
         proc_count += 1
