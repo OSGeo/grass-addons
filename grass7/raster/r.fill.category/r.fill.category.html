@@ -1,0 +1,75 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.fill.category</em> replaces the values of pixels of a given category with values 
+of the surrounding pixels and stores the output in
+a new raster map layer. The module can be used to eliminate one category from a raster map
+without leaving areas with NULL values, like for example when using <em>r.reclass.area</em>.
+<p>
+Areas with the given category are eroded and their pixels 
+value is replaced with the values given by the mode of the surrounding pixels.
+</p>
+<p>
+<em>r.fill.category</em> iteratively applies <em>r.neighbors</em> and <em>r.mapcalc</em> until no pixel of the category
+to replace is left or the maximum number of iterations is reached.
+</p>
+<p>
+Optionally, <em>r.fill.category</em> can create an MPEG file animating the replacement process. 
+</p>
+
+<h2>PARAMETERS</h2>
+The user controls the process by setting the <i>neighborhood size</i> in pixel and the <i>maximum number of iterations</i>.
+<p>
+The <i>neighborhood size</i> controls the size of the moving window where the mode of the values is used to assign a value to the pixels of the category to be replaced. Large values of the <i>neighborhood size</i> can speed the process considerably but can also lead to unwanted effects where pixels with the category to remove are mixed with pixels with different categories. Small values of <i>neighborhood size</i> require a large number of iterations, therefore longer processing times, but provide better results when categories are mixed.
+</p>
+<p>
+The <i>maximum number of iterations</i> is limited to <i>999</i> because the name of the temporary map at each step uses three digit to identify the iteration.
+</p>
+
+<h2>INTERMEDIATE MAPS</h2>
+To save space, maps generated at each iteration are removed as soon as they are used. It is possible to keep these maps using the <i>k</i> flag.
+
+<h2>ANIMATION</h2>
+If the user provides the name of an MPEG output file, an animation is created by combining the raster maps of each step.
+<p>
+The <i>quality</i> (1-5) parameter controls the quality of the MPEG, lower values will yield higher quality images, but with less compression (i.e. larger MPEG file size). Switching from <i>quality=1</i> to <i>quality=5</i> reduces the MPEG file size of about 40%, although the actual compression ratio depends on the number of frames.
+</p>
+<p>
+The module <em>r.out.mpeg</em> is used to generate the MPEG file, therefore the program mpeg_encode (aka ppmtompeg) must be available. 
+See <em>r.out.mpeg</em> manual for more information.
+</p>
+<p>
+If a name for an MPEG output file is provided but the <i>k</i> flag is not set, intermediate maps are kept during the process and deleted after the MPEG file has been created.
+</p>
+
+<h2>EXAMPLE</h2>
+
+In this example, the lakes in the <i>landuse</i> map in the
+North Carolina sample dataset location are replaced by categories
+of the surrounding pixels:
+
+<div class="code"><pre>
+# set the region on the landuse map
+g.region rast=landuse@PERMANENT
+# replace pixels of category 6 (water) with values of the surrounding pixels
+# create a drought.mpg animation file in the current directory
+r.fill.category input=landuse@PERMANENT output=landuse_dry category=6 animationfile=./drought.mpg
+</pre></div>
+
+It removes all water pixels in 38 iterations. A <i>drought.mpg</i> MPEG file containing the animation of the replacement sequence is created in the current directory.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.neighbors.html">r.neighbors</a>,
+<a href="r.reclass.area">r.reclass.area</a>,
+<a href="r.out.mpeg.html">r.out.mpeg</a>
+r.fill.gaps add-on
+</em>
+
+
+<h2>AUTHORS</h2>
+
+Paolo Zatelli and Stefano Gobbi,
+DICAM, University of Trento, Italy.
+
+<p><i>Last changed: $Date: 2019-06-12 18:10:36 +0100 (Wed, 12 Jun 2019) $</i>
