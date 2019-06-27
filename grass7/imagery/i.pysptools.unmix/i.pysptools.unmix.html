@@ -2,7 +2,8 @@
 
 <em>i.pysptools.unmix</em> extracts endmembers from imagery group and performs 
 spectral unmixing using 
-<a href="https://pysptools.sourceforge.io/">pysptools</a>.
+<a href="https://pysptools.sourceforge.io/">pysptools</a>. The module creates
+an endmember text file and endmember raster maps.
 
 <p>
 The module is a wrapper around the <b>pysptools</b> Python library, that integrates 
@@ -13,7 +14,7 @@ Unmixing</a> into GRASS GIS.
 </p>
 <p>
 It requires that the Python libraries <b>pysptools</b> and <b>scikit-learn</b> 
-are installed.
+are installed (see below).
 </p>
 <p>
 Supported algorithms for 
@@ -62,6 +63,9 @@ echo "$bands"
 # Create imagery group
 i.group group=lsat_2002 input="$bands"
 
+# set computation region
+g.region raster=lsat7_2002_10 -p
+
 # Extract Endmembers and perform spectral unmixing using pysptools
 # resulting in an endmember text file and raster maps (here: 5 endmember)
 i.pysptools.unmix input=lsat_2002 endmembers=endmembers endmember_n=5 \
@@ -78,6 +82,7 @@ i.spec.unmix group=lsat7_2002 matrix=sample/spectrum.dat result=lsat7_2002_unmix
 <ul>
   <li>python-matplotlib (install from system software management tool)</li>
   <li>python-scikit-learn (install from system software management tool)</li>
+  <li>python-scipy (install from system software management tool)</li>
   <li><a href="https://pypi.python.org/pypi/pysptools">pysptools library</a></li>
   <li><a href="https://pypi.python.org/pypi/scikit-learn">scikit-learn library</a></li>
 </ul>
