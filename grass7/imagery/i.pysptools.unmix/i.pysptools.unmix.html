@@ -50,47 +50,56 @@ than the number of bands in the imagery group. Only the <i>PPI</i> method can
 extract more endmembers than there are bands in the imagery group.
 </p>
 
-<h2>EXAMPLES</h2>
+<h2>EXAMPLE</h2>
+
+Example for the North Carolina sample dataset:
 
 <div class="code"><pre>
-# List bands
-bands=`g.list type=raster pattern=lsat7_2002* separator=','`
+# Create list of bands excluding thermal bands
+bands=`g.list type=raster pattern="lsat7_2002*" exclude="lsat7_2002_6?" separator=','`
+echo "$bands"
 
 # Create imagery group
 i.group group=lsat_2002 input="$bands"
 
 # Extract Endmembers and perform spectral unmixing using pysptools
+# resulting in an endmember text file and raster maps (here: 5 endmember)
 i.pysptools.unmix input=lsat_2002 endmembers=endmembers endmember_n=5 \
-output=spectrum.txt prefix=lsat_spectra --v
+  output=spectrum.txt prefix=lsat_spectra --v
 
-# Compare to result from i.spec.unmix
+# Compare to result from i.spec.unmix addon
 i.spec.unmix group=lsat7_2002 matrix=sample/spectrum.dat result=lsat7_2002_unmix \
-error=lsat7_2002_unmix_err iter=lsat7_2002_unmix_iterations
+  error=lsat7_2002_unmix_err iter=lsat7_2002_unmix_iterations
 </pre></div>
 
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
+  <li>python-matplotlib (install from system software management tool)</li>
+  <li>python-scikit-learn (install from system software management tool)</li>
   <li><a href="https://pypi.python.org/pypi/pysptools">pysptools library</a></li>
   <li><a href="https://pypi.python.org/pypi/scikit-learn">scikit-learn library</a></li>
 </ul>
 
 <h2>REFERENCES</h2>
-<p>
+
+<ul>
+<li>
 Chang, C.-I. 2006: A fast iterative algorithm for implementation of pixel 
 purity index. Geoscience and Remote Sensing Letters, IEEE, 3(1): 63-67.
-</p>
-<p>
-Plaza, A. & Chang, C.-I. 2006: Impact of Initialization on Design of 
+</li>
+<li>
+Plaza, A. &amp; Chang, C.-I. 2006: Impact of Initialization on Design of
 Endmember Extraction Algorithms. Geoscience and Remote Sensing, 
 IEEE Transactions. 44(11): 3397-3407.
-</p>
-<p>
+</li>
+<li>
 Winter, M. E. 1999: N-FINDR: an algorithm for fast autonomous spectral 
 end-member determination in hyperspectral data. Presented at the 
 Imaging Spectrometry V, Denver, CO, USA, (3753): 266-275.
-</p>
+</li>
+</ul>
 
 <h2>SEE ALSO</h2>
 
