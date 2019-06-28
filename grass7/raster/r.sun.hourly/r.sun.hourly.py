@@ -119,25 +119,25 @@
 #%option
 #% key: beam_rad_basename
 #% type: string
-#% label: Base name for output beam irradiance raster maps [Wh.m-2]
+#% label: Base name for output beam irradiance raster maps [W.m-2]
 #% description: Underscore and day number are added to the base name for each map
 #%end
 #%option
 #% key: diff_rad_basename
 #% type: string
-#% label: Base name for output diffuse irradiance raster maps [Wh.m-2]
+#% label: Base name for output diffuse irradiance raster maps [W.m-2]
 #% description: Underscore and day number are added to the base name for each map
 #%end
 #%option
 #% key: refl_rad_basename
 #% type: string
-#% label: Base name for output ground reflected irradiance raster maps [Wh.m-2]
+#% label: Base name for output ground reflected irradiance raster maps [W.m-2]
 #% description: Underscore and day number are added to the base name for each map
 #%end
 #%option
 #% key: glob_rad_basename
 #% type: string
-#% label: Base name for output global (total) irradiance raster maps [Wh.m-2]
+#% label: Base name for output global (total) irradiance raster maps [W.m-2]
 #% description: Underscore and day number are added to the base name for each map
 #%end
 #%option
@@ -466,19 +466,19 @@ def main():
         if beam_rad_basename:
             registerToTemporal(beam_rad_basename, suffixes_all, mapset, start,
                                step, title="Beam irradiance",
-                               desc="Output beam irradiance raster maps [Wh.m-2]")
+                               desc="Output beam irradiance raster maps [W.m-2]")
         if diff_rad_basename:
             registerToTemporal(diff_rad_basename, suffixes_all, mapset, start,
                                step, title="Diffuse irradiance",
-                               desc="Output diffuse irradiance raster maps [Wh.m-2]")
+                               desc="Output diffuse irradiance raster maps [W.m-2]")
         if refl_rad_basename:
             registerToTemporal(refl_rad_basename, suffixes_all, mapset, start,
                                step, title="Reflected irradiance",
-                               desc="Output reflected irradiance raster maps [Wh.m-2]")
+                               desc="Output reflected irradiance raster maps [W.m-2]")
         if glob_rad_basename:
             registerToTemporal(glob_rad_basename, suffixes_all, mapset, start,
                                step, title="Total irradiance",
-                               desc="Output total irradiance raster maps [Wh.m-2]")
+                               desc="Output total irradiance raster maps [W.m-2]")
         if incidout_basename:
             registerToTemporal(incidout_basename, suffixes_all, mapset, start,
                                step, title="Incidence angle",
