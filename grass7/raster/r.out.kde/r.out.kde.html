@@ -1,0 +1,48 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.out.kde</em> creates an image file (e.g., PNG, JPG, or GIF)
+ where the <b>input</b> raster is rendered on top of <b>background</b> raster
+ with varying transparency based on the values of the <b>input</b> raster.
+ This can be used for example for visualization of kernel density estimate (KDE).
+
+<p>
+With logistic  <b>method</b>, values are scaled so that lower values are more transparent
+and higher values are more opaque than with linear scaling.
+
+<p>This module requires <a href="https://pillow.readthedocs.io/en/stable/">Python Imaging Library</a>
+(already required for GRASS GIS).
+
+<h2>EXAMPLE</h2>
+
+In this example, we visualize KDE of schools
+on top of shaded relief map.
+
+<div class="code"><pre>
+g.region raster=elevation
+# create background map
+r.relief input=elevation output=relief
+# compute kernel density estimate
+v.kernel input=schools_wake output=schools_density radius=4000 multiplier=1000000
+r.colors map=schools_density color=bcyr
+r.out.kde input=schools_density background=relief method=logistic output=output.png
+</pre></div>
+
+<center>
+        <img src="r_out_kde.png" border="0"><br>
+</center>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="d.rast.html">d.rast</a>,
+<a href="v.kernel">v.kernel</a>
+</em>
+<br>
+<br>
+
+<a href="https://en.wikipedia.org/wiki/Logistic_function">Logistic function</a>
+
+<h2>AUTHORS</h2>
+Anna Petrasova, <a href="http://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll lab</a>
+
+<p><i>Last changed: $Date: 2019-06-12 18:10:36 +0100 (Wed, 12 Jun 2019) $</i>
