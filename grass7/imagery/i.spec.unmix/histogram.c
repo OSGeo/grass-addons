@@ -12,13 +12,13 @@ int do_histogram(char *name, char *mapset)
 
     Rast_get_cellhd(name, mapset, &cellhd);
     /*    if (Rast_get_cellhd (name, mapset, &cellhd) < 0)
-          return 0;
-    */      
+       return 0;
+     */
 
     G_set_window(&cellhd);
     fd = Rast_open_old(name, mapset);
     if (fd < 0)
-	return 0;
+        return 0;
 
 
 
@@ -28,22 +28,22 @@ int do_histogram(char *name, char *mapset)
     ncols = region.cols;
 
     /*    nrows = G_window_rows ();
-      ncols = G_window_cols ();
-    */
+       ncols = G_window_cols ();
+     */
     cell = Rast_allocate_c_buf();
 
     Rast_init_cell_stats(&statf);
     for (row = 0; row < nrows; row++) {
-	Rast_get_c_row_nomask(fd, cell, row);
-	/* break; */
+        Rast_get_c_row_nomask(fd, cell, row);
+        /* break; */
 
-	Rast_update_cell_stats(cell, ncols, &statf);
+        Rast_update_cell_stats(cell, ncols, &statf);
     }
     Rast_close(fd);
     G_free(cell);
 
     if (row == nrows)
-	Rast_write_histogram_cs(name, &statf);
+        Rast_write_histogram_cs(name, &statf);
 
     Rast_free_cell_stats(&statf);
 
