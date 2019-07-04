@@ -148,21 +148,21 @@ mat_struct *open_files(char *matrixfile,
 
 int G_matrix_read2(FILE * fp, mat_struct * out)
 {
-    char buff[100];
+    char buff[4096];
     int rows, cols;
     int i, j, row;
     double val;
 
     /* skip comments */
     for (;;) {
-        if (!G_getl(buff, sizeof(buff), fp))
+        if (!G_getl2(buff, sizeof(buff), fp))
             return -1;
         if (buff[0] != '#')
             break;
     }
 
     if (sscanf(buff, "Matrix: %d by %d", &rows, &cols) != 2) {
-        G_warning(_("Input format error1"));
+        G_warning(_("Input Matrix format error: $s"), buff);
         return -1;
     }
 
@@ -172,13 +172,13 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
 
     for (i = 0; i < rows; i++) {
         if (fscanf(fp, "row%d:", &row) != 1) {
-            G_warning(_("Input format error"));
+            G_warning(_("Input row format error: %d"), row);
             return -1;
         }
 
         for (j = 0; j < cols; j++) {
             if (fscanf(fp, "%lf:", &val) != 1) {
-                G_warning(_("Input format error"));
+                G_warning(_("Input column format error: %f"), val);
                 return -1;
             }
 
