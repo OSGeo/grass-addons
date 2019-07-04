@@ -4,7 +4,7 @@
  * MODULE:       i.superpixels.slic
  * AUTHOR(S):    Rashad Kanavath <rashadkm gmail>
  *               Markus Metz
- *               based on the C++ SLIC implmenetation from:  
+ *               based on the C++ SLIC implementation from:  
  *               http://ivrl.epfl.ch/research/superpixels
  * PURPOSE:      Perform superpixel segmentation
  *
@@ -12,7 +12,7 @@
  * "SLIC Superpixels", Radhakrishna Achanta, Appu Shaji, 
  * Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk.
  * EPFL Technical Report no. 149300, June 2010. 
- * Below code is ported to grass from original C++ SLIC implmenetation 
+ * Below code is ported to GRASS GIS from original C++ SLIC implementation 
  * available at:  http://ivrl.epfl.ch/research/superpixels
  *
  *****************************************************************************/
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
     /* of compactness.										    */
     invwt = 0.1 * compactness / (offset * offset);
 
-    G_message(_("Performing k mean segmentation..."));
+    G_message(_("Performing K-means segmentation..."));
     schange = 0;
     for (itr = 0; itr < n_iterations; itr++) {
 	G_percent(itr, n_iterations, 2);
@@ -623,7 +623,7 @@ int main(int argc, char *argv[])
 	    if (kchange)
 		schange++;
 	}
-	/* SLIC (k mean) converges */
+	/* SLIC (K-means) converges */
 	G_debug(1, "Number of changed seeds: %d", schange);
 	if (schange == 0)
 	    break;
