@@ -47,9 +47,9 @@
 #include "global.h"
 
 
-#define GAMMA 10                /* last row value in Matrix and last b vector element
-                                 * for constraint Sum xi = 1 (GAMMA=weight) 
-                                 */
+#define GAMMA 10		/* last row value in Matrix and last b vector element
+				 * for constraint Sum xi = 1 (GAMMA=weight) 
+				 */
 
 static double find_max(double x, double y)
 {
@@ -59,7 +59,7 @@ static double find_max(double x, double y)
 
 int main(int argc, char *argv[])
 {
-    char result_name[80];
+    char result_name[GNAME_MAX];
     int nrows, ncols;
     int row;
     int i, j, k;
@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
     vec_struct *startvector, *A_times_startvector, *errorvector, *temp;
     mat_struct *A, *A_tilde, *A_tilde_trans_mu, *A_tilde_trans;
     mat_struct B, B_tilde, B_tilde_trans_mu;
+    struct Colors colors;
+    struct History hist;
 
     struct GModule *module;
 
@@ -108,10 +110,12 @@ int main(int argc, char *argv[])
 
     parm.error = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.error->key = "error";
+    parm.error->required = NO;
     parm.error->description = _("Name of raster map to hold unmixing error");
 
     parm.iter = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.iter->key = "iter";
+    parm.iter->required = NO;
     parm.iter->description = _("Raster map to hold number of iterations");
 
     if (G_parser(argc, argv))
@@ -158,7 +162,7 @@ int main(int argc, char *argv[])
         /* get the max. element of this vector */
         max1 = G_vector_norm_maxval(Avector1, 1);
 
-        double temp = max1;
+        double dtemp = max1;
 
         for (j = 0; j < A->cols; j++) {
             if (j != i) {
@@ -169,19 +173,20 @@ int main(int argc, char *argv[])
                 max2 = G_vector_norm_maxval(Avector2, 1);
 
                 if (max2 > max1)
-                    temp = max2;
-                if (temp > max_total)
-                    max_total = temp;
+                    dtemp = max2;
+                if (dtemp > max_total)
+                    max_total = dtemp;
                 /* find max of matrix A  */
                 /* max_total = (find_max (max1, max2), max_total); */
 
                 /* save angle in degree */
                 anglefield[i][j] = spectral_angle(Avector1, Avector2);
+
+		G_vector_free(Avector2);
             }
         }
 
         G_vector_free(Avector1);
-        G_vector_free(Avector2);
 
     }
 
@@ -321,7 +326,6 @@ int main(int argc, char *argv[])
             if (b_gamma == NULL)
                 G_fatal_error(_("Unable to allocate memory for matrix"));
 
-
             for (band = 0; band < Ref.nfiles; band++)
                 G_matrix_set_element(b_gamma, 0, band, cell[band][col]);
 
@@ -385,10 +389,13 @@ int main(int argc, char *argv[])
                             100.0 / 255.0);
 
             /* save error and iterations */
-            error_cell[col] = (CELL) (100 * error);
-            iter_cell[col] = iterations;
+	    if (error_fd >= 0)
+                error_cell[col] = (CELL) (100 * error);
+	    if (iter_fd >= 0)
+                iter_cell[col] = iterations;
 
             G_vector_free(fraction);
+            G_vector_free(b_gamma);
         }                       /* end cols loop */
 
 
@@ -396,10 +403,10 @@ int main(int argc, char *argv[])
         for (i = 0; i < A->cols; i++)   /* no. of spectra  */
             Rast_put_c_row(resultfd[i], result_cell[i]);
 
-        if (error_fd > 0)
+        if (error_fd >= 0)
             Rast_put_c_row(error_fd, error_cell);
 
-        if (iter_fd > 0)
+        if (iter_fd >= 0)
             Rast_put_c_row(iter_fd, iter_cell);
 
     }                           /* rows loop  */
@@ -410,43 +417,81 @@ int main(int argc, char *argv[])
     for (i = 0; i < Ref.nfiles; i++)    /* no. of bands  */
         Rast_unopen(cellfd[i]);
 
+    /* make grey scale color table for output maps */
+    Rast_init_colors(&colors);
+    Rast_set_c_color(0, 0, 0, 0, &colors);
+    Rast_set_c_color(100, 255, 255, 255, &colors);
+
     for (i = 0; i < A->cols; i++) {     /* no. of spectra  */
-        char command[1080];
+	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
 
-        Rast_close(resultfd[i]);
+	/* close output map */
+	Rast_close(resultfd[i]);
 
-        /* TODO: avoid system calls, use modern approach for setting colors */
-        /* make grey scale color table */
-        sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
-        sprintf(command, "r.colors map=%s color=rules <<EOF\n"
-                "0 0 0 0 \n" "100 255 255 255\n" "end\n" "EOF", result_name);
+	/* set colors */
+	Rast_write_colors(result_name, G_mapset(), &colors);
 
-        /* G_message(command); */
-        /* G_system (command); */
+	/* write map history (meta data) */
+	Rast_short_history(result_name, "raster", &hist);
+	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
+	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
+	Rast_format_history(&hist, HIST_KEYWRD, "Spectrum %d:", i + 1);
+	Rast_command_history(&hist);
+	Rast_write_history(result_name, &hist);
 
         /* create histogram */
-        do_histogram(result_name, Ref.file[i].mapset);
+        do_histogram(result_name, G_mapset());
     }
 
-    if (error_fd > 0) {
-        char command[80];
+    if (error_fd >= 0) {
+	CELL min, max;
+	struct Range range;
 
         Rast_close(error_fd);
-        /* sprintf (command, "r.colors map=%s color=gyr >/dev/null", parm.error->answer); */
-        /* G_system (command); */
+
+        sprintf(result_name, "%s", parm.error->answer);
+
+        /* set colors to gyr */
+	Rast_read_range(result_name, G_mapset(), &range);
+	Rast_get_range_min_max(&range, &min, &max);
+	Rast_make_colors(&colors, "gyr", min, max);
+	Rast_write_colors(result_name, G_mapset(), &colors);
+
+	/* write map history (meta data) */
+	Rast_short_history(result_name, "raster", &hist);
+	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
+	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
+	Rast_set_history(&hist, HIST_KEYWRD, "unmixing error");
+	Rast_command_history(&hist);
+	Rast_write_history(result_name, &hist);
     }
 
-    if (iter_fd > 0)
+    if (iter_fd >= 0) {
         Rast_close(iter_fd);
+
+	sprintf(result_name, "%s", parm.iter->answer);
+
+	/* write map history (meta data) */
+	Rast_short_history(result_name, "raster", &hist);
+	Rast_format_history(&hist, HIST_DATSRC_1, "Group: %s", parm.group->answer);
+	Rast_format_history(&hist, HIST_DATSRC_2, "Matrix file: %s", parm.matrixfile->answer);
+	Rast_set_history(&hist, HIST_KEYWRD, "number of iterations");
+	Rast_command_history(&hist);
+	Rast_write_history(result_name, &hist);
+    }
 
     G_matrix_free(A);
     G_vector_free(errorvector);
     G_vector_free(temp);
-    G_vector_free(b_gamma);
     G_vector_free(startvector);
     G_vector_free(A_times_startvector);
 
+    /* disabled, done separately for the different types of output */
+    /*
     make_history(result_name, parm.group->answer, parm.matrixfile->answer);
+    */
+
+    G_done_msg(" ");
 
     exit(EXIT_SUCCESS);
 }

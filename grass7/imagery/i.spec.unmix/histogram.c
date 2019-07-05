@@ -1,7 +1,7 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 
-int do_histogram(char *name, char *mapset)
+int do_histogram(const char *name, const char *mapset)
 {
     CELL *cell;
     struct Cell_head cellhd;

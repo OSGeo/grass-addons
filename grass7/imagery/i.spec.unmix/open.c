@@ -18,8 +18,7 @@
 
 int G_matrix_read2(FILE * fp, mat_struct * out);        /* Modified version of G_matrix_read(..). */
 
-mat_struct *open_files(char *matrixfile,
-                       char *img_grp,
+mat_struct *open_files(char *matrixfile, char *img_grp,
                        char *result_prefix, char *iter_name, char *error_name)
 {
     char result_name[80];
@@ -106,21 +105,20 @@ mat_struct *open_files(char *matrixfile,
 
 
     /* open files for results */
-    result_cell = (CELL **) G_malloc(Ref.nfiles * sizeof(CELL *));
-    resultfd = (int *)G_malloc(Ref.nfiles * sizeof(int));
+    result_cell = (CELL **) G_malloc(A->cols * sizeof(CELL *));
+    resultfd = (int *)G_malloc(A->cols * sizeof(int));
 
     for (i = 0; i < A->cols; i++) {     /* no. of spectra */
-        if (result_prefix) {
-            sprintf(result_name, "%s.%d", result_prefix, (i + 1));
-            G_message(_("Opening output file [%s]"), result_name);
+        sprintf(result_name, "%s.%d", result_prefix, (i + 1));
+        G_message(_("Opening output file [%s]"), result_name);
 
-            result_cell[i] = Rast_allocate_c_buf();
-            if ((resultfd[i] = Rast_open_c_new(result_name)) < 0)
-                G_fatal_error(_("GRASS-DB internal error: Unable to proceed."));
-        }
+        result_cell[i] = Rast_allocate_c_buf();
+        if ((resultfd[i] = Rast_open_c_new(result_name)) < 0)
+            G_fatal_error(_("GRASS-DB internal error: Unable to proceed."));
     }
     /* open file containing SMA error */
-    error_cell = (CELL *) G_malloc(sizeof(CELL *));
+    error_cell = NULL;
+    error_fd = -1;
     if (error_name) {
         G_message(_("Opening error file [%s]"), error_name);
 
@@ -131,7 +129,8 @@ mat_struct *open_files(char *matrixfile,
     }
 
     /* open file containing number of iterations */
-    iter_cell = (CELL *) G_malloc(sizeof(CELL *));
+    iter_cell = NULL;
+    iter_fd = -1;
     if (iter_name) {
         G_message(_("Opening iteration file [%s]"), iter_name);
 
@@ -162,7 +161,7 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
     }
 
     if (sscanf(buff, "Matrix: %d by %d", &rows, &cols) != 2) {
-        G_warning(_("Input Matrix format error: $s"), buff);
+        G_warning(_("Input Matrix format error: %s"), buff);
         return -1;
     }
 
