@@ -973,8 +973,7 @@ def main():
                 best_values[region].append([threshlist[0], hrlist[0],
                                                 radiuslist[0], minsizelist[0],
                                                 -1])
-                maps_to_keep.append([regional_maplist[0], -1,
-                                     parms['region']])
+            maps_to_keep.append([regional_maplist[0], -1, parms['region']])
 
     # Create output
 
