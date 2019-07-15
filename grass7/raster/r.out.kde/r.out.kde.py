@@ -33,7 +33,6 @@
 #%end
 
 #%option G_OPT_F_OUTPUT
-#% gisprompt: old,bin,file
 #% description: Rendered output file
 #%end
 
