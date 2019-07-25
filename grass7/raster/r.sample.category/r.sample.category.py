@@ -44,6 +44,13 @@
 #% multiple: yes
 #% type: integer
 #%end
+#%option
+#% key: random_seed
+#% type: integer
+#% required: no
+#% multiple: no
+#% description: Seed for random number generator
+#%end
 #%flag
 #% key: s
 #% description: If number of cells in category < npoints, skip category
@@ -105,6 +112,9 @@ def main():
     else:
         sampled_rasters = []
     npoints = [int(num) for num in options['npoints'].split(',')]
+    seed = None
+    if options['random_seed']:
+        seed = int(options['random_seed'])
     flag_s = flags['s']
 
     if gscript.find_file(name='MASK', element='cell', mapset=gscript.gisenv()['MAPSET'])['name']:
@@ -151,7 +161,11 @@ def main():
         # Create the points
         vector = temp_name + str(cat)
         vectors.append(vector)
-        gscript.run_command('r.random', input=input_raster, npoints=npoints[i], vector=vector, quiet=True)
+        if seed is None:
+            gscript.run_command('r.random', input=input_raster, npoints=npoints[i], vector=vector, quiet=True)
+        else:
+            gscript.run_command('r.random', input=input_raster, npoints=npoints[i],
+                                vector=vector, seed=seed, quiet=True)
         TMP.append(vector)
         gscript.run_command('r.mask', flags='r', quiet=True)
 
