@@ -129,6 +129,14 @@
 #% required: no
 #%end
 
+#%option
+#% key: pdal_cmd
+#% type: string
+#% description: Command for PDAL (e.g. if PDAL runs only in a docker)
+#% required: no
+#% answer: pdal
+#%end
+
 #%flag
 #% key: s
 #% description: Scan data file for extent then exit
@@ -158,22 +166,26 @@ def footprint_to_vectormap(infile, footprint):
         infile(string): Name of LAS input file
         footprint(string): Footprint of the data as vector map
     """
-    if not grass.find_program('pdal', 'info --boundary'):
+    if not grass.find_program(
+        options['pdal_cmd'].split(' ')[0], ' '.join(options['pdal_cmd'].split(' ')[1:])
+        + ' info --boundary'
+    ):
         grass.fatal(_(
-             "The pdal executable is not available."
-             " Install PDAL or put the pdal executable on path."))
-    command_fp = ['pdal', 'info', '--boundary', infile]
+            "The pdal executable is not available."
+            " Install PDAL or put the pdal executable on path."))
+    command_fp = options['pdal_cmd'].split(' ')
+    command_fp.extend(['info', '--boundary', infile])
     tmp_fp = grass.tempfile()
     if tmp_fp is None:
         grass.fatal("Unable to create temporary files")
     fh = open(tmp_fp, 'wb')
-    p = grass.call(command_fp, stdout=fh)
-    fh.close()
-    if p != 0:
+    if grass.call(command_fp, stdout=fh) != 0:
+        fh.close()
         # check to see if pdal info executed properly
         os.remove(tmp_fp)
         grass.fatal(_("pdal info broken..."))
-
+    else:
+        fh.close()
     data = json.load(open(tmp_fp))
     xy_in = ''
     str1 = u'boundary'
@@ -186,10 +198,9 @@ def footprint_to_vectormap(infile, footprint):
     except Exception:
         coord_str = str(data[str1][str1])
         coord = coord_str[coord_str.find('((') + 2:coord_str.find('))')]
-        x_y = coord.split(', ')
+        x_y = coord.split(',')
         for xy in x_y:
-            xy_in += xy.replace(' ', ',') + '\n'
-
+            xy_in += xy.rstrip().replace(' ', ',') + '\n'
     tmp_xy = grass.tempfile()
     if tmp_xy is None:
         grass.fatal("Unable to create temporary files")
@@ -285,31 +296,39 @@ def main():
 
     # scan -s or shell_script_style -g:
     if scan:
-        if not grass.find_program('pdal', 'info --summary'):
+        if not grass.find_program(
+		    options['pdal_cmd'].split(' ')[0], ' '.join(options['pdal_cmd'].split(' ')[1:])
+		    + ' info --summary'
+		):
             grass.fatal(_(
                 "The pdal program is not in the path " +
                 "and executable. Please install first"))
-        command_scan = ['pdal', 'info', '--summary', infile]
+        command_scan = options['pdal_cmd'].split(' ')
+        command_scan.extend(['info', '--summary', infile])
+
         tmp_scan = grass.tempfile()
         if tmp_scan is None:
             grass.fatal("Unable to create temporary files")
         fh = open(tmp_scan, 'wb')
-        p = grass.call(command_scan, stdout=fh)
-        fh.close()
         summary = True
-        if p != 0:
-            command_scan = ['pdal', 'info', infile]
-            fh = open(tmp_scan, 'wb')
-            p = grass.call(command_scan, stdout=fh)
+        if grass.call(command_scan, stdout=fh) != 0:
             fh.close()
+            command_scan = options['pdal_cmd'].split(' ')
+            command_scan.extend(['info', infile])
+            fh2 = open(tmp_scan, 'wb')
+            if grass.call(command_scan, stdout=fh2) != 0:
+                os.remove(tmp_scan)
+                grass.fatal(_(
+                    "pdal cannot determine metadata " +
+                    "for unsupported format of <%s>")
+                    % infile)
+                fh2.close()
+            else:
+                fh2.close()
             summary = False
-        if p != 0:
-            # check to see if pdal executed properly
-            os.remove(tmp_scan)
-            grass.fatal(_(
-                "pdal cannot determine metadata " +
-                "for unsupported format of <%s>")
-                % infile)
+        else:
+            fh.close()
+
         data = json.load(open(tmp_scan))
         if summary:
             str1 = u'summary'
@@ -414,9 +433,8 @@ def main():
                                 quiet=True
                             )
             grass.fatal(_("Format .%s is not supported.." % infile_format))
-        tmp_file_json = grass.tempfile()
-        if tmp_file_json is None:
-            grass.fatal("Unable to create temporary files")
+        tmp_file_json = 'tmp_file_json_' + str(os.getpid())
+
         data = {}
         data['pipeline'] = []
         data['pipeline'].append({'type': format_reader, 'filename': infile})
@@ -433,7 +451,17 @@ def main():
         tmp_xyz = grass.tempfile()
         if tmp_xyz is None:
             grass.fatal("Unable to create temporary files")
-        command_pdal1 = ['pdal', 'pipeline', '--input', tmp_file_json]
+        command_pdal1 = options['pdal_cmd'].split(' ')
+        if options['pdal_cmd'] != 'pdal':
+            v_index = None
+            cmd_entries = options['pdal_cmd'].split(' ')
+            for cmd_entry, num in zip(cmd_entries, range(len(cmd_entries))):
+                if cmd_entry == '-v':
+                    v_index = num
+                    break
+            mnt_vol = cmd_entries[v_index+1].split(':')[1]
+            tmp_file_json2 = os.path.join(mnt_vol, tmp_file_json)
+        command_pdal1.extend(['pipeline', '--input', tmp_file_json2])
         command_pdal2 = ['r.in.xyz',
                          'input=' + tmp_xyz, 'output=' + outfile,
                          'skip=1', 'separator=comma', 'method=' + method]
@@ -452,14 +480,14 @@ def main():
             command_pdal2.append('trim=' + trim)
 
         fh = open(tmp_xyz, 'wb')
-        p2 = grass.call(command_pdal1, stdout=fh)
-        fh.close()
-        if p2 != 0:
+        if grass.call(command_pdal1, stdout=fh) != 0:
+            fh.close()
             # check to see if pdal pipeline executed properly
             grass.fatal(_("pdal pipeline is broken..."))
+        else:
+            fh.close()
 
-        p3 = grass.call(command_pdal2, stdout=outdev)
-        if p3 != 0:
+        if grass.call(command_pdal2, stdout=outdev) != 0:
             # check to see if r.in.xyz executed properly
             os.remove(tmp_xyz)
             grass.fatal(_("r.in.xyz is broken..."))
