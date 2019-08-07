@@ -264,7 +264,7 @@ int sift_up(GW_LARGE_INT start, struct heap_point child_p)
  * add item to heap
  * returns heap_size
  */
-GW_LARGE_INT heap_add(int r, int c, CELL ele)
+GW_LARGE_INT heap_add(int r, int c, CELL elev)
 {
     struct heap_point heap_p;
 
@@ -277,7 +277,7 @@ GW_LARGE_INT heap_add(int r, int c, CELL ele)
 
     heap_p.r = r;
     heap_p.c = c;
-    heap_p.ele = ele;
+    heap_p.ele = elev;
     heap_p.added = nxt_avail_pt;
 
     nxt_avail_pt++;
@@ -344,10 +344,10 @@ struct heap_point heap_drop(void)
     return root_p;
 }
 
-double get_slope(CELL ele, CELL up_ele, double dist)
+double get_slope(CELL elev, CELL up_ele, double dist)
 {
-    if (ele >= up_ele)
+    if (elev >= up_ele)
 	return 0.0;
     else
-	return (double)(up_ele - ele) / dist;
+	return (double)(up_ele - elev) / dist;
 }

@@ -68,7 +68,7 @@ int dseg_write_raster(DSEG *, char *);
 /* seg.c */
 int seg_close(SSEG *);
 int seg_get(SSEG *, char *, GW_LARGE_INT, GW_LARGE_INT);
-int seg_open(SSEG *, GW_LARGE_INT, GW_LARGE_INT, int, int, int, int, int);
+int seg_open(SSEG *, GW_LARGE_INT, GW_LARGE_INT, int, int, int, int);
 int seg_put(SSEG *, char *, GW_LARGE_INT, GW_LARGE_INT);
 int seg_put_row(SSEG *, char *, GW_LARGE_INT);
 int seg_get_row(SSEG *, char *, GW_LARGE_INT);

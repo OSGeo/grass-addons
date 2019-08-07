@@ -36,6 +36,8 @@ the extent and resolution of the resulting raster and internally
 
 <h2>EXAMPLES</h2>
 
+<h2>Import LAS file using PDAL</h2>
+
 Import of a LAS file using PDAL into a mapset in the sample NC SPM
 location. The sample LAS file is available
 <a href="https://www.grassbook.org/wp-content/uploads/ncexternal/lidar_raleigh_nc_spm_height_feet.las">here</a>.
@@ -49,6 +51,10 @@ r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las output=lidar_raleigh -s
 
 # scan extent (g.region style) and exit
 r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las output=lidar_raleigh -s -g
+# n=228500 s=215000.01 w=633370.82 e=645000 t=558.87 b=88.5
+
+# set computation region to this extent
+g.region n=228500 s=215000.01 w=633370.82 e=645000 -p
 
 # import while aligning pixel geometry to existing "elevation" 10m res. raster map
 # specifying EPSG manually because SRS information is missing in this LAS file
@@ -82,6 +88,35 @@ r.univar -e diff
 </a><br>
 <i>Figure: LiDAR cloud footprint</i>
 </div>
+
+<h2>Import LAZ file using PDAL docker</h2>
+Import of a LAZ file using PDAL docker into a mapset in the sample NC SPM
+location. The sample LAZ file is available
+<a href="https://github.com/PDAL/PDAL/raw/master/test/data/laz/simple.laz">here</a>.
+
+<div class="code"><pre>
+# pulling official PDAL docker image
+docker pull pdal/pdal
+
+# using PDAL docker as command with mounted data volume
+# (caution: the LAZ file has to be stored in the mounted folder! (here: $(pwd)))
+export pdal_docker="docker run --rm -v $(pwd):/data -t pdal/pdal pdal"
+
+# scan extent and exit
+r.in.pdal input=/data/simple.laz output=lidar -s pdal_cmd="$pdal_docker"
+
+# scan extent (g.region style) and exit
+r.in.pdal input=/data/simple.laz output=lidar -s -g pdal_cmd="$pdal_docker"
+# n=853535.43 s=848899.7 w=635619.85 e=638982.55 t=586.38 b=406.59
+
+# set computation region to this extent
+g.region n=853535.43 s=848899.7 w=635619.85 e=638982.55 -p
+
+# import data
+r.in.pdal input=/data/simple.laz output=lidar_perc95 method=percentile pth=95 pdal_cmd="$pdal_docker"
+
+r.univar lidar_perc95
+</pre></div>
 
 
 <h2>SEE ALSO</h2>

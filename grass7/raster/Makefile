@@ -82,6 +82,7 @@ SUBDIRS = \
 	r.object.geometry \
 	r.object.spatialautocor \
 	r.out.arc \
+	r.out.kde \
 	r.out.legend \
 	r.out.ntv2 \
 	r.out.tiff \

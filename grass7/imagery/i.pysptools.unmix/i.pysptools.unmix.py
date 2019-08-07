@@ -142,13 +142,25 @@ def main():
                       " or ensure that it is on path"
                       " (use PYTHONPATH variable)."))
 
+    try:
+        from cvxopt import solvers, matrix
+    except ImportError:
+        gs.fatal(_("Cannot import cvxopt \
+                      (https://pypi.python.org/pypi/cvxopt) library."
+                      " Please install it (pip install cvxopt)"
+                      " or ensure that it is on path"
+                      " (use PYTHONPATH variable)."))
+
     # Parse input options
     input = options['input']
     output = options['output']
     prefix = options['prefix']
     endmember_n = int(options['endmember_n'])
     endmembers = options['endmembers']
-    maxit = int(options['maxit'])
+    if options['maxit']:
+        maxit = options['maxit']
+    else:
+        maxit = 0
     extraction_method = options['extraction_method']
     unmixing_method = options['unmixing_method']
     atgp_init = True if not flags['n'] else False
@@ -161,7 +173,7 @@ def main():
         pass
 
     # Validate input
-    # q and maxit can be None according to manual, but does not work in curtrent pysptools version
+    # q and maxit can be None according to manual, but does not work in current pysptools version
     if endmember_n <= 0:
         gs.fatal('Number of endmembers has to be > 0')
         """if (extraction_method == 'PPI' or

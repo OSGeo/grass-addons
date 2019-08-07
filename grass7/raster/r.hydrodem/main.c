@@ -236,18 +236,23 @@ int main(int argc, char *argv[])
                  sizeof(struct heap_point));
     disk_space *= (num_seg_total * seg2kb / 1024.);  /* KB -> MB */
     
-    G_verbose_message(_("%.2f of data are kept in memory"),
+    G_verbose_message(_("%.2f%% of data are kept in memory"),
                       100. * num_open_segs / num_seg_total);
     G_verbose_message(_("Will need up to %.2f MB of disk space"), disk_space);
 
     /* open segment files */
     G_verbose_message(_("Create temporary files..."));
-    cseg_open(&ele, seg_rows, seg_cols, num_open_segs * 2);
+    
+    if (cseg_open(&ele, seg_rows, seg_cols, num_open_segs * 2) != 0) {
+	G_fatal_error(_("Could not create cache for elevation"));
+    }
     if (num_open_segs * 2 > num_seg_total)
 	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb * sizeof(CELL) / 1024.;
 
-    seg_open(&dirflag, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
-              sizeof(struct dir_flag), 1);
+    if (seg_open(&dirflag, nrows, ncols, seg_rows, seg_cols,
+                 num_open_segs * 2, sizeof(struct dir_flag)) != 0) {
+	G_fatal_error(_("Could not create cache for directions"));
+    }
 
     if (num_open_segs * 4 > num_seg_total)
 	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
@@ -289,8 +294,10 @@ int main(int argc, char *argv[])
     G_debug(1, "segment size for heap points: %d", seg_cols);
     /* the search heap will not hold more than 5% of all points at any given time ? */
     /* chances are good that the heap will fit into one large segment */
-    seg_open(&search_heap, 1, n_points + 1, 1, seg_cols,
-	     num_open_array_segs, sizeof(struct heap_point), 1);
+    if (seg_open(&search_heap, 1, n_points + 1, 1, seg_cols,
+	         num_open_array_segs, sizeof(struct heap_point)) != 0) {
+	G_fatal_error(_("Could not create cache for the A* search heap"));
+    }
 
     /********************/
     /*    processing    */

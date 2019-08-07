@@ -621,8 +621,8 @@ def main():
     if min_tile_size:
         gscript.run_command('v.clean',
                             input_=temp_vector_polygons4,
-                            tool='rmarea',
-                            threshold=min_tile_size,
+                            tool=['rmdangle', 'rmarea'],
+                            threshold=[-1, min_tile_size],
                             output=tiles,
                             quiet=True,
                             overwrite=True)
