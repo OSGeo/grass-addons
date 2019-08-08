@@ -135,7 +135,7 @@ def main():
     if len(npoints) == 1:
         npoints = npoints * len(categories)
     else:
-        if len(categories) != len(npoints):
+        if len(catlab) != len(npoints):
             gscript.fatal(_("Number of categories in raster does not match the number of provided sampling points numbers."))
 
     # Create sample points per category
