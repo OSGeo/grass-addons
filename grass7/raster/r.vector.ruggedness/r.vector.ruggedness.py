@@ -69,15 +69,15 @@ def main():
     notparallel = flags['p']
 
     # Internal raster map names
-    SlopeRaster = 'tmpSlope_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    AspectRaster = 'tmpAspect_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    xyRaster = 'tmpxyRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    zRaster = 'tmpzRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    xRaster = 'tmpxRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    yRaster = 'tmpyRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    xSumRaster = 'tmpxSumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    ySumRaster = 'tmpySumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
-    zSumRaster = 'tmpzSumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in xrange(8)])
+    SlopeRaster = 'tmpSlope_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    AspectRaster = 'tmpAspect_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    xyRaster = 'tmpxyRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    zRaster = 'tmpzRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    xRaster = 'tmpxRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    yRaster = 'tmpyRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    xSumRaster = 'tmpxSumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    ySumRaster = 'tmpySumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
+    zSumRaster = 'tmpzSumRaster_' + ''.join([random.choice(string.ascii_letters + string.digits) for n in range(8)])
 
     tmp_rast.append(SlopeRaster)
     tmp_rast.append(AspectRaster)
