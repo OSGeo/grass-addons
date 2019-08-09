@@ -157,7 +157,7 @@ def laplacian_matrix(w):
     
     x = np.zeros((w,w))
     x[:] = -1
-    x[w/2, w/2] = (np.square(w))-1
+    x[np.floor(w/2).astype('int'), np.floor(w/2).astype('int')] = (np.square(w))-1
     x_str=str(x)    
     x_str = x_str.replace(' [', '')
     x_str = x_str.replace('[', '')
@@ -506,7 +506,7 @@ def main():
 
     # Write metadata ----------------------------------------------------------
     history = 'r.terrain.texture '
-    for key,val in options.iteritems():
+    for key,val in options.items():
         history += key + '=' + str(val) + ' '
 
     r.support(map=texture,
