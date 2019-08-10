@@ -133,9 +133,9 @@ def main():
     categories = map(int, [z.split('|')[0] for z in catlab])
     catlab = dict([z.split('|') for z in catlab])
     if len(npoints) == 1:
-        npoints = npoints * len(categories)
+        npoints = npoints * len(list(categories))
     else:
-        if len(categories) != len(npoints):
+        if len(list(categories)) != len(npoints):
             gscript.fatal(_("Number of categories in raster does not match the number of provided sampling points numbers."))
 
     # Create sample points per category
