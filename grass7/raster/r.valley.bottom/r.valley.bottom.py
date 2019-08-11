@@ -125,7 +125,7 @@ if "GISBASE" not in os.environ:
 def cleanup():
     grass.message("Deleting intermediate files...")
 
-    for k, v in TMP_RAST.iteritems():
+    for k, v in TMP_RAST.items():
         for f in v:
             if len(grass.find_file(f)['fullname']) > 0:
                 grass.run_command(
