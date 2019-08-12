@@ -113,7 +113,7 @@
 #% options: mode1,mode2
 #% answer: mode1
 #% descriptions: mode1;r.sun mode 1 computes irradiance [W.m-2];mode2;r.sun mode 2 computes irradiation [Wh.m-2]
-#% description: Name of input raster map containing longitudes [decimal degrees]
+#% description: Select r.sun mode to choose between irradiance (mode 1) and irradiation (mode 2)
 #%end
 #%option
 #% key: start_time
