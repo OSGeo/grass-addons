@@ -161,6 +161,13 @@
 #% description: Civil time zone value, if none, the time will be local solar time
 #%end
 #%option
+#% key: distance_step
+#% type: double
+#% required: no
+#% description: Sampling distance step coefficient (0.5-1.5)
+#% answer: 1.0
+#%end
+#%option
 #% key: beam_rad_basename
 #% type: string
 #% label: Base name for output beam irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2] (mode 2)
@@ -277,11 +284,11 @@ def create_tmp_map_name(name):
 
 
 # add latitude map
-def run_r_sun(elevation, aspect, slope, day, time,
+def run_r_sun(elevation, aspect, slope, day, time, civil_time,
               linke, linke_value, albedo, albedo_value,
               coeff_bh, coeff_dh, lat, long_,
               beam_rad, diff_rad, refl_rad, glob_rad,
-              incidout, suffix, binary, tmpName, time_step, flags):
+              incidout, suffix, binary, tmpName, time_step, distance_step, flags):
     params = {}
     if linke:
         params.update({'linke': linke})
@@ -311,6 +318,10 @@ def run_r_sun(elevation, aspect, slope, day, time,
         params.update({'incidout': incidout + suffix})
     if flags:
         params.update({'flags': flags})
+    if civil_time is not None:
+        params.update({'civil_time': civil_time})
+    if distance_step is not None:
+        params.update({'distance_step': distance_step})
 
     if is_grass_7():
         grass.run_command('r.sun', elevation=elevation, aspect=aspect,
@@ -477,6 +488,8 @@ def main():
     time_step = float(options['time_step'])
     nprocs = int(options['nprocs'])
     day = int(options['day'])
+    civil_time = float(options['civil_time']) if options['civil_time'] else None
+    distance_step = float(options['distance_step']) if options['distance_step'] else None
     temporal = flags['t']
     binary = flags['b']
     mode1 = True if options['mode'] == 'mode1' else False
@@ -578,7 +591,7 @@ def main():
         suffix = '_' + format_time(time)
         proc_list.append(Process(target=run_r_sun,
                                  args=(elevation_input, aspect_input,
-                                       slope_input, day, time,
+                                       slope_input, day, time, civil_time,
                                        linke, linke_value,
                                        albedo, albedo_value,
                                        coeff_bh_raster, coeff_dh_raster,
@@ -591,6 +604,7 @@ def main():
                                        suffix,
                                        binary, tmpName,
                                        None if mode1 else time_step,
+                                       distance_step,
                                        rsun_flags)))
 
         proc_list[proc_count].start()
