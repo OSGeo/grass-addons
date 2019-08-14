@@ -40,6 +40,7 @@ SUBDIRS = \
 	r.exdet \
 	r.fidimo \
 	r.fill.gaps \
+	r.fill.category \
 	r.findtheriver \
 	r.flexure \
 	r.flip \
@@ -81,6 +82,7 @@ SUBDIRS = \
 	r.object.activelearning \
 	r.object.geometry \
 	r.object.spatialautocor \
+	r.object.thickness \
 	r.out.arc \
 	r.out.kde \
 	r.out.legend \
