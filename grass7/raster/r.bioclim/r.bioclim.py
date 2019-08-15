@@ -348,13 +348,13 @@ def main():
     for i in range(quartals):
         precq = "%s.precq.%02d.%d" % (outpre, i + 1, pid)
 
-        m1 = i * qstep
-    m2 = m1 + 1
-    if m2 > 11:
-        m2 = m2 - 12
-    m3 = m1 + 2
-    if m3 > 11:
-        m3 = m3 - 12
+        m1 = int(i * qstep)
+        m2 = m1 + 1
+        if m2 > 11:
+            m2 = m2 - 12
+        m3 = m1 + 2
+        if m3 > 11:
+            m3 = m3 - 12
         grass.run_command('r.series',
                           input="%s,%s,%s" % (precl[m1], precl[m2], precl[m3]),
                           output=precq, method='sum')
