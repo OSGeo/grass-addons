@@ -374,7 +374,10 @@ int main(int argc, char *argv[])
 		    Rast_set_d_null_value(pdata, nbands);
 		    break;
 		}
-		pdata[b] = (ibuf[b][col] - min[b]) / rng[b];
+		if (rng[b] != 0)
+		    pdata[b] = (ibuf[b][col] - min[b]) / rng[b];
+		else
+		    pdata[b] = 0;
 	    }
 	    cache_put(&bands_seg, pdata, row, col);
 	    cache_put(&k_seg, &k, row, col);
@@ -702,9 +705,11 @@ int main(int argc, char *argv[])
     Rast_write_history(outname, &hist);
 
     /* random colors */
-    Rast_init_colors(&colors);
-    Rast_make_random_colors(&colors, 1, numlabels);
-    Rast_write_colors(outname, G_mapset(), &colors);
+    if (numlabels > 1) {
+	Rast_init_colors(&colors);
+	Rast_make_random_colors(&colors, 1, numlabels);
+	Rast_write_colors(outname, G_mapset(), &colors);
+    }
 
     G_done_msg(" ");
 
