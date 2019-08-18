@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     struct Option *opt_iteration, *opt_super_pixels, *opt_step, 
                   *opt_compactness, *opt_perturb, *opt_minsize, *opt_mem;
     struct Option *opt_out;	/* option for output */
-    struct Flag *flag_n;
+    struct Flag *flag_n, *flag_h;
 
     struct Ref group_ref;
     int *ifd, nbands;
@@ -172,15 +172,20 @@ int main(int argc, char *argv[])
     flag_n->label = _("Normalize spectral distances");
     flag_n->description = _("Equvivalent to SLIC zero (SLIC0)");
 
+    flag_h = G_define_flag();
+    flag_h->key = 'h';
+    flag_h->label = _("Hexagonal spacing of super pixel centers");
+    flag_h->description = _("Default: rectangular spacing");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     perturbseeds = 0;
-    hexgrid = 0;
     compactness = 0;
     superpixelsize = 0;
+
+    hexgrid = flag_h->answer;
 
     for (nbands = 0; opt_in->answers[nbands] != NULL; nbands++) ;
 
@@ -282,6 +287,8 @@ int main(int argc, char *argv[])
 
     xstrips = (0.5 + (double)ncols / step);
     ystrips = (0.5 + (double)nrows / step);
+    if (hexgrid > 0)
+	ystrips = (0.5 + (double)nrows / (step * 1.5 / sqrt(3)));
 
     xerr = ncols - step * xstrips;
     if (xerr < 0) {
@@ -295,6 +302,9 @@ int main(int argc, char *argv[])
 	yerr = nrows - step * ystrips;
     }
 
+    /* purpose: cover the whole region 
+     * if xerrperstrip != yerrperstrip 
+     * the result are no longer exact squares */
     xerrperstrip = (double)xerr / xstrips;
     yerrperstrip = (double)yerr / ystrips;
 
@@ -433,12 +443,13 @@ int main(int argc, char *argv[])
 	for (x = 0; x < xstrips; x++) {
 	    xe = x * xerrperstrip;
 	    seedx = (x * step + xoff + xe);
+	    seedy = (y * step + yoff + ye);
 	    if (hexgrid > 0) {
 		seedx = x * step + (xoff << (y & 0x1)) + xe;
 		seedx = MIN(ncols - 1, seedx);
+		seedy = (y * step * 1.5 / sqrt(3) + yoff + ye);
 	    }			/* for hex grid sampling */
 
-	    seedy = (y * step + yoff + ye);
 
 	    cache_get(&bands_seg, pdata, seedy, seedx);
 	    if (!Rast_is_d_null_value(pdata)) {
