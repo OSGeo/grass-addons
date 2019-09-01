@@ -179,4 +179,4 @@ COEFFICIENTS = {
 if __name__ == "__main__":
     print ('Citations and coefficients for inter-satellite DMSP-OLS NightTime '
            'Lights Time Series calibration models')
-    print CITATIONS
+    print(CITATIONS)
