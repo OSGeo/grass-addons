@@ -152,8 +152,8 @@ def main():
             npoints[i] = nrc
 
         gscript.info(_("Selecting {n} sampling locations at category {cat}...").format(n=npoints[i], cat=cat))
-        # change mask to sample zeroes and then change again to sample ones
-        # overwrite mask for an easy loop
+
+        # Create reclass map with only pixels of current category
         rc_rule='{0} = {0}\n* = NULL'.format(cat)
         gscript.write_command('r.reclass', input=input_raster, output=temp_name, 
                               rules='-', stdin=rc_rule, overwrite=True, quiet=True)
@@ -165,9 +165,9 @@ def main():
         vector = temp_name + str(cat)
         vectors.append(vector)
         if seed is None:
-            gscript.run_command('r.random', input=input_raster, npoints=npoints[i], vector=vector, quiet=True)
+            gscript.run_command('r.random', input=temp_name, npoints=npoints[i], vector=vector, quiet=True)
         else:
-            gscript.run_command('r.random', input=input_raster, npoints=npoints[i],
+            gscript.run_command('r.random', input=temp_name, npoints=npoints[i],
                                 vector=vector, seed=seed, quiet=True)
         TMP.append(vector)
 
