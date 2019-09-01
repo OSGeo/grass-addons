@@ -72,7 +72,7 @@ def export_to_ascii(dictionary, filename, separator):
 
         # structure informative message
         msg = '> Exporting python dictionary as is...'
-        print msg
+        print(msg)
 
         # open, write and close file
         asciif = open(filename, 'w')
@@ -80,7 +80,7 @@ def export_to_ascii(dictionary, filename, separator):
         asciif.close()
 
     else:
-        print '{f} already exists!'.format(f=filename)
+        print('{f} already exists!'.format(f=filename))
 
 
 def main():
