@@ -4,11 +4,11 @@ distance along a user given number of steps following a direction map.
 
 <p>Difference in altitude to the neighboring cell in the given direction is measured
 and devided by the distance (determined by north south and east west resolution
-of the computational region). With the <b>neighborhoods</b> paramter the user
+of the computational region). With the <b>steps</b> paramter the user
 can define how many steps along the direction map the algorithm should perform.
 For each step a temporary raster map is created. Thus, processing time is - in
 addition to the computational region - mainly determined by the maximum
-<b>neighborhoods</b> value. Multiple neighboorhoods can be given in order to
+<b>steps</b> value. Multiple neighboorhoods can be given in order to
 produce slope measures at different spatial scales.</p>
 
 The <b>method</b> defines the algorithm to be used for measuring slope
@@ -36,7 +36,7 @@ g.region -p raster=elevation
 r.watershed elevation=elevation accumulation=faccum drainage=fdir
 
 r.slope.direction --o --v elevation=elevation direction=fdir \
-neighborhoods=1,5,13 output=fdir_slope_1,fdir_slope_5,fdir_slope_13 \
+steps=1,5,13 output=fdir_slope_1,fdir_slope_5,fdir_slope_13 \
 method=total_gradient format=percent scale=3 type=CELL
 
 </pre></div>
@@ -75,7 +75,7 @@ g.region -p raster=elevation
 # Convert street network to raster and assign pixels direction value
 v.to.rast input=streets_wake type=line output=streets_wake use=dir
 
-# Directions output from v.to.rast needs to be adjusted so that: 
+# Directions output from v.to.rast needs to be adjusted so that:
 # - direction information is coded a steps to neighboring cells
 # - direction information always points to next pixel on the line
 #   (only end pixels of a line should point to NULL cells)
@@ -134,7 +134,7 @@ if(isnull(${in_dir}[1,1]),1,7),3),8),2),1) \
 ,null()))))))))"
 
 # Compute slope of the streets for three
-# different step-size (neighborhood)
+# different step-sizes (step)
 r.slope.direction -a elevation=elevation \
 direction=streets_wake_dir45 steps=1,5,13 \
 outputs=streets_wake_slope_1,streets_wake_slope_5,streets_wake_slope_13
