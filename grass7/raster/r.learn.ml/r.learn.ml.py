@@ -1410,7 +1410,7 @@ def main():
         from sklearn import metrics
         from sklearn.metrics import make_scorer
     except:
-        gs.fatal("Scikit learn 0.18 or newer is not installed")
+        gs.fatal("Package python3-scikit-learn 0.18 or newer is not installed")
 
     try:
         import pandas as pd
