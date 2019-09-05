@@ -12,7 +12,7 @@ COPYRIGHT:    (C) 2019 by the GRASS Development Team
 """
 
 #%module
-#% description: Calculates slope following a dirction raster.
+#% description: Calculates slope following a direction raster.
 #% keyword: raster
 #% keyword: slope
 #% keyword: direction
