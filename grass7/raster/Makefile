@@ -106,7 +106,7 @@ SUBDIRS = \
 	r.series.lwr \
 	r.shaded.pca \
 	r.shalstab \
-    r.sim.terrain \
+	r.sim.terrain \
 	r.slope.direction \
 	r.skyview \
 	r.smooth.seg \
