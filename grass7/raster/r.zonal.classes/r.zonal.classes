@@ -142,9 +142,9 @@ def main():
     mode = False if 'mode' not in options['statistics'].split(',') else True
     
     # Check if input layer is CELL
-    if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] <> 'CELL':
+    if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
         gscript.fatal("The type of the input map 'raster' is not CELL. Please use raster with integer values.")
-    if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] <> 'CELL':
+    if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
         gscript.fatal("The type of the input map 'zone_map' is not CELL. Please use raster with integer values.")
      
     # Check if 'decimals' is + and with credible value
@@ -152,7 +152,7 @@ def main():
         gscript.fatal("The number of decimals should be positive.")
     if decimals > 100:
         gscript.fatal("The number of decimals should not be more than 100.")
-		
+        
     # Adjust region to input map is flag active
     if flags['r']:
         gscript.use_temp_region()
@@ -162,9 +162,11 @@ def main():
     tmpfile = gscript.tempfile()
     try:
         if flags['n']:
-            gscript.run_command('r.stats', overwrite=True, flags='c', input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
+            gscript.run_command('r.stats', overwrite=True, flags='c', 
+                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Consider null values in R.STATS
         else:
-            gscript.run_command('r.stats', overwrite=True, flags='cn', input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
+            gscript.run_command('r.stats', overwrite=True, flags='cn', 
+                                input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
         gscript.message("r.stats command finished...")
     except:
         gscript.fatal("The execution of r.stats failed.")
@@ -180,24 +182,25 @@ def main():
             totals_dict[row[0]] = {} # Declare a new embedded dictionnary for the current zone ID
         totals_dict[row[0]][row[1]] = int(row[2])
     # Delete key '*' in 'totals_dict' that could append if there are null values on the zone raster
-    if "*" in totals_dict:
-        del totals_dict["*"]
+    if '*' in totals_dict:
+        del totals_dict['*']
     # Close file
     rstatsfile.close()
     # Mode
     if mode:
         modalclass_dict = {}
         for ID in totals_dict:
-            mode = max(totals_dict[ID].iteritems(), key=operator.itemgetter(1))[0] # The trick was found here : https://stackoverflow.com/a/268285/8013239
-            if mode =="*":   # If the mode is NULL values
-                modalclass_dict[ID] = "NULL"
+            # The trick was found here : https://stackoverflow.com/a/268285/8013239
+            mode = max(totals_dict[ID].iteritems(), key=operator.itemgetter(1))[0] 
+            if mode == '*':   # If the mode is NULL values
+                modalclass_dict[ID] = 'NULL'
             else:
                 modalclass_dict[ID] = mode
     # Classes proportions
     if prop:
         # Get list of categories to output
         if classes_list:   #If list of classes provided by user
-            class_dict = {str(a):"" for a in classes_list}  #To be sure it's string format
+            class_dict = {str(a):'' for a in classes_list}  #To be sure it's string format
         else:
             class_dict = {}
         # Proportion of each category per zone
@@ -209,18 +212,18 @@ def main():
                     proportion_dict[ID][cl] = round(float(totals_dict[ID][cl]) / sum(totals_dict[ID].values())*100,decimals)
                 else:
                     proportion_dict[ID][cl] = round(float(totals_dict[ID][cl]) / sum(totals_dict[ID].values()),decimals)
-                if cl=="*":
-                    class_dict["NULL"] = ""
+                if cl== '*':
+                    class_dict['NULL'] = ''
                 else:
-                    class_dict[cl] = ""
+                    class_dict[cl] = ''
         # Fill class not met in the raster with zero
         for ID in proportion_dict:
             for cl in class_dict:
                 if cl not in proportion_dict[ID].keys():
-                    proportion_dict[ID][cl] = "{:.{}f}".format(0,decimals)
+                    proportion_dict[ID][cl] = '{:.{}f}'.format(0,decimals)
         # Get list of class sorted by value (arithmetic)
         if 'NULL' in class_dict.keys():
-            class_list = [int(k) for k in class_dict.keys() if k <> 'NULL']
+            class_list = [int(k) for k in class_dict.keys() if k != 'NULL']
             class_list.sort()
             class_list.append('NULL')
         else:
@@ -288,13 +291,13 @@ def main():
                 addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
             fsql.write(addcol_statement)
         for key in value_dict:
-                insert_statement = "INSERT INTO %s VALUES (%s, %s);\n" % (temporary_vect, key, ",".join([str(x) for x in value_dict[key]]))
+                insert_statement = 'INSERT INTO %s VALUES (%s, %s);\n' % (temporary_vect, key, ','.join([str(x) for x in value_dict[key]]))
                 fsql.write(insert_statement)
         fsql.write('END TRANSACTION;')
         fsql.close()
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
         gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)
-        gscript.run_command('g.copy', vector="%s,%s" % (temporary_vect, vectormap), quiet=True)
+        gscript.run_command('g.copy', vector='%s,%s' % (temporary_vect, vectormap), quiet=True)
 
 
 if __name__ == "__main__":
