@@ -135,7 +135,8 @@ SUBDIRS = \
 	r.vif \
 	r.vol.dem \
 	r.wateroutlet.lessmem \
-	r.width.funct
+	r.width.funct \
+	r.zonal.classes 
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
