@@ -73,6 +73,7 @@ import sys
 import re
 import glob
 import shutil
+import io
 from zipfile import ZipFile
 
 import grass.script as gs
@@ -264,7 +265,7 @@ class SentinelImporter(object):
             gs.fatal(_("Unable to parse metadata file. {}").format(e))
 
         timestamp = None
-        with open(mtd_file, encoding='utf-8') as fd:
+        with io.open(mtd_file, encoding='utf-8') as fd:
             root = ElementTree.fromstring(fd.read())
             nsPrefix = root.tag[:root.tag.index('}')+1]
             nsDict = {'n1':nsPrefix[1:-1]}
