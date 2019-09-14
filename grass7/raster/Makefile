@@ -106,7 +106,8 @@ SUBDIRS = \
 	r.series.lwr \
 	r.shaded.pca \
 	r.shalstab \
-        r.sim.terrain \
+	r.sim.terrain \
+	r.slope.direction \
 	r.skyview \
 	r.smooth.seg \
 	r.soillossbare \
@@ -140,4 +141,3 @@ SUBDIRS = \
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default: subdirs
-
