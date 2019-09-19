@@ -38,7 +38,7 @@ spatial resolutions:
 </tr>
 <tr>
 <td>20</td>
-<td>B5, B6, B7, B8a, B11, B12</td>
+<td>B5, B6, B7, B8A, B11, B12</td>
 </tr>
 <tr>
 <td>60</td>
@@ -46,13 +46,21 @@ spatial resolutions:
 </tr>
 </tbody>
 </table>
-  
+
 <h2>NOTES</h2>
 
 <p>
 If <b>-c</b> flag is given, than also cloud mask file is imported as
 vector map if available. The name of created vector map is determined from
 input Sentinel product.
+
+<p>
+By <b>register_file</b> option <em>i.sentinel.import</em> allows
+creating a file which can be used to register imported imagery data
+into space-time raster dateset (STRDS)
+by <em><a href="t.register.html">t.register</a></em>. Note that
+currently a register file can be created only for Sentinel-2 data. See
+example below.
 
 <h2>EXAMPLES</h2>
 
@@ -70,7 +78,7 @@ data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.
 data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.../T32UPB_20180216T102059_B11.jp2 1 (EPSG: 32632)
 </pre></div>
 
-<h3>Import Sentinel bands</h3>
+<h3>Import Sentinel data</h3>
 
 Import all Sentinel bands found in <i>data</i> directory:
 
@@ -103,6 +111,34 @@ i.sentinel.import -l -c input=data
 <img src="i_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
 <i>Fig: Band 4 with imported cloud mask</i>
 </center>
+
+<h3>Register imported Sentinel data into STRDS</h3>
+
+<div class="code"><pre>
+i.sentinel.import input=data register_output=t_register.txt
+
+# register imported data into existing STRDS
+t.register input=sentinel_ds file=t_register.txt
+</pre></div>
+
+A register file typically contains two columns: imported raster map
+name and timestamp separated by <tt>|</tt>. In the case of current
+development version of GRASS which supports band references concept
+(see <em><a href="g.bands.html">g.bands</a></em> module for details) a
+register file is extended by a third column containg band reference
+information, see the examples below.
+
+<div class="code"><pre>
+# register file produced by stable GRASS GIS 7.8 version
+T33UVR_20181205T101401_B05|2018-12-05 10:16:43.275000
+T33UVR_20181205T101401_B03|2018-12-05 10:16:43.275000
+T33UVR_20181205T101401_B06|2018-12-05 10:16:43.275000
+...
+# register file produced by development GRASS GIS 7.9 version
+T33UVR_20181205T101401_B05|2018-12-05 10:16:43.275000|S2_5
+T33UVR_20181205T101401_B03|2018-12-05 10:16:43.275000|S2_3
+T33UVR_20181205T101401_B06|2018-12-05 10:16:43.275000|S2_6
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
