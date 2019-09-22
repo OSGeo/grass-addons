@@ -162,10 +162,9 @@ from grass.pygrass.modules import Module, ParallelModuleQueue
 #    r.connectivity.network (base, exponent, plotting, map generation,
 #    plus where clause for edge selection))
 
-# Check if script is started from within GRASS
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
+# check if GRASS is running or not
+if "GISBASE" not in os.environ:
+    sys.exit("You must be in GRASS GIS to run this program")
 
 # Define additional variables
 # global TMP_PREFIX
