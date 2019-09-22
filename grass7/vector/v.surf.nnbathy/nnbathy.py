@@ -167,7 +167,7 @@ class Nnbathy_vector(Nnbathy):
                         #fout.write(parts[0]+' '+parts[1]+' '+parts[4])
                         fout.write('{} {} {}'.format(parts[0],parts[1],parts[4]))
                     pnt.close()
-            except StandardError, e:
+            except (StandardError,OSError) as e:
                 grass.fatal_error("Invalid input: %s" % e)
             fin.close()
             fout.close()
