@@ -281,7 +281,7 @@ def main():
             if gscript.overwrite():
                 fsql.write('DROP TABLE %s;' % temporary_vect)
             else:
-                gscript.fatal(_("Table %s already exists. Use --o to overwrite" % temporary_vect))
+                gscript.fatal(_("Table %s already exists. Use --o to overwrite") % temporary_vect)
         create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int PRIMARY KEY);\n'
         fsql.write(create_statement)
         for col in header[1:]:
