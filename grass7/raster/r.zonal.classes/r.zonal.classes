@@ -149,7 +149,7 @@ def main():
      
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:
-        gscript.fatal("The number of decimals should be positive.")
+        gscript.fatal(_("The number of decimals should be positive"))
     if decimals > 100:
         gscript.fatal("The number of decimals should not be more than 100.")
         
