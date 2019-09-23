@@ -167,7 +167,7 @@ def main():
         else:
             gscript.run_command('r.stats', overwrite=True, flags='cn', 
                                 input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
-        gscript.message("r.stats command finished...")
+        gscript.message(_("r.stats command finished..."))
     except:
         gscript.fatal("The execution of r.stats failed.")
 
