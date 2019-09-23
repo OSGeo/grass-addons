@@ -145,7 +145,7 @@ def main():
     if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
         gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
     if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
-        gscript.fatal("The type of the input map 'zone_map' is not CELL. Please use raster with integer values.")
+        gscript.fatal(_("The type of the input map 'zone_map' is not CELL. Please use raster with integer values"))
      
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:
