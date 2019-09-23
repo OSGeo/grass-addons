@@ -40,7 +40,7 @@ On North Carolina Dataset:
 # Define region
 g.region raster=zipcodes
 # Get majority class and classes proportion of 'landuse96_28m' for each zone/object in 'zipcode' layer
-r.zonal.classes zone_map=zipcodes raster=landuse96_28m csvfile=/home/tais/output.csv vectormap=vect_output prefix=landuse96
+r.zonal.classes zone_map=zipcodes raster=landuse96_28m csvfile=$HOME/output.csv vectormap=vect_output prefix=landuse96
 # Display attributes table
 v.db.select map=vect_output
 </pre></div>
