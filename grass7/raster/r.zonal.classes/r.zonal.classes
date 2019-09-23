@@ -169,7 +169,7 @@ def main():
                                 input='%s,%s'%(zone_map,raster), output=tmpfile, separator=separator) # Do not consider null values in R.STATS
         gscript.message(_("r.stats command finished..."))
     except:
-        gscript.fatal("The execution of r.stats failed.")
+        gscript.fatal(_("The execution of r.stats failed"))
 
     # COMPUTE STATISTICS
     # Open csv file and create a csv reader
