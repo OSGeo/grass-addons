@@ -69,54 +69,20 @@ g.region raster=zipcodes
 # Get majority class and classes proportion of 'landuse96_28m'
 # for each zone/object in 'zipcode' layer 
 r.zonal.classes zone_map=zipcodes raster=landuse96_28m csvfile=output.csv \
-  vectormap=vect_output prefix=landuse96
+  vectormap=vect_output prefix=lu
 
 # Display attributes table
 v.db.select map=vect_output
-</pre></div>
 
-<table style="width:50%;border: 1px solid black;">
-<caption>Attribute table of the vector layer</caption>
-<tr><th>cat</th> <th>landuse96_mode</th> 
-<th>landuse96_prop_0</th> <th>landuse96_prop_2</th> 
-<th>landuse96_prop_3</th> <th>landuse96_prop_4</th> 
-<th>landuse96_prop_6</th> <th>landuse96_prop_7</th> 
-<th>landuse96_prop_8</th> <th>landuse96_prop_9</th> 
-<th>landuse96_prop_10</th> <th>landuse96_prop_11</th> 
-<th>landuse96_prop_15</th> <th>landuse96_prop_18</th> 
-<th>landuse96_prop_20</th> <th>landuse96_prop_21</th> </tr> <tr> 
-<td>27518</td><td>15</td><td>0</td><td>0.0156</td> 
-<td>0.00596</td><td>0.06725</td><td>0</td> 
-<td>0.14275</td><td>0</td><td>0</td><td>0.0496</td> 
-<td>0.15476</td><td>0.29469</td><td>0.23154</td> 
-<td>0.03785</td><td>0</td></tr> <tr> 
-<td>27607</td><td>15</td><td>0</td><td>0.23124</td> 
-<td>0</td><td>0.18572</td><td>0</td><td>0.07119</td> 
-<td>0.00039</td><td>0</td><td>0.05828</td> 
-<td>0.05583</td><td>0.29022</td><td>0.10002</td> 
-<td>0.00403</td><td>0.00307</td></tr> <tr> 
-<td>27529</td><td>15</td><td>0</td><td>0.26308</td> 
-<td>0.00685</td><td>0.034</td><td>0</td><td>0.01209</td> 
-<td>9e-05</td><td>0</td><td>0.01571</td><td>0.08357</td> 
-<td>0.49074</td><td>0.08991</td><td>0.00394</td> <td>0</td></tr> <tr> 
-<td>27511</td><td>18</td><td>0.0001</td><td>0.08367</td> 
-<td>0</td><td>0.02604</td><td>0</td><td>0.06188</td> 
-<td>0</td><td>0</td><td>0.06618</td><td>0.02635</td> 
-<td>0.33796</td><td>0.39618</td><td>0.00164</td> <td>0</td></tr> <tr> 
-<td>27539</td><td>11</td><td>0</td><td>0.00996</td> 
-<td>0.11627</td><td>0.01635</td><td>0</td> 
-<td>0.07514</td><td>0</td><td>0</td><td>0</td> 
-<td>0.43393</td><td>0.18606</td><td>0.15877</td> 
-<td>0.00352</td><td>0</td></tr> <tr> 
-<td>27608</td><td>2</td><td>0</td><td>0.65863</td> 
-<td>0</td><td>0.00444</td><td>0</td><td>0</td> 
-<td>0</td><td>0</td><td>0</td><td>0</td> 
-<td>0.33693</td><td>0</td><td>0</td><td>0</td></tr> <tr> 
-<td>27513</td><td>15</td><td>0</td><td>0.10406</td> 
-<td>0</td><td>0.03076</td><td>0</td><td>0.26989</td> 
-<td>0</td><td>0</td><td>0.02303</td><td>0</td> 
-<td>0.30589</td><td>0.26637</td><td>0</td><td>0</td></tr>
-</table> 
+cat	lu_mode		lu_prop_0	lu_prop_2	...	lu_prop_21
+27518	15		0		0.0156		...	0
+27607	15		0		0.23124		...	0.00307
+27529	15		0		0.26308		...	0
+27511	18		0.0001		0.08367		...	0
+27539	11		0		0.00996		...	0
+27608	2		0		0.65863		...	0
+27513	15		0		0.10406		...	0
+</pre></div>
 
 <h3>Acknowledgement</h3>
 
