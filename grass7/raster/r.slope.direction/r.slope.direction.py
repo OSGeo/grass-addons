@@ -30,14 +30,13 @@ COPYRIGHT:    (C) 2019 by the GRASS Development Team
 #%end
 #%option G_OPT_R_INPUT
 #% key: direction
-#% label: Direction raster map
-#% description: Input direction raster map
+#% label: Input Direction raster map
 #% required: YES
 #%end
 #%option
 #% key: dir_type
 #% label: Direction type
-#% description: Type of diretion encoding in diections input raster map
+#% description: Type of diretion encoding in diections input raster map (default: auto)
 #% options: 45degree,degree,bitmask,bitmask_k,auto
 #% type: string
 #% required: YES
@@ -54,7 +53,7 @@ COPYRIGHT:    (C) 2019 by the GRASS Development Team
 #%option
 #% key: slope_measure
 #% label: Slope measure
-#% description: Type of diretion encoding in diections input raster map
+#% description: Format for reporting the slope (default: degree)
 #% options: difference,percent,percent_int,degree,degree_int
 #% type: string
 #% required: YES
