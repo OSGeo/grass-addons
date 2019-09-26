@@ -374,7 +374,7 @@ class SplitWindowLST():
         if self.cwv_coefficients:
             return self.cwv_coefficients
         else:
-            print "* CWV coefficients have not been set!"
+            print("* CWV coefficients have not been set!")
 
     def _retrieve_rmse(self, subrange):
         """
