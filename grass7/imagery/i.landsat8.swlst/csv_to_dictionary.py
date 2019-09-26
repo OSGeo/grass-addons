@@ -40,6 +40,7 @@ import sys
 import csv
 from collections import namedtuple
 import random
+from functools import reduce
 
 
 # helper functions
@@ -263,7 +264,7 @@ def main():
 
     if set_csvfile():
         CSVFILE = set_csvfile()
-        print " * Reading comma separated values from:", CSVFILE
+        print(" * Reading comma separated values from:", CSVFILE)
 
     else:
         raise IOError('Please define a file to read comma-separated-values from!')
@@ -278,7 +279,7 @@ def main():
     if set_csvfile():
         msg = '   > Dictionary with coefficients '
         msg += str('(note, it contains named tuples):\n\n')
-        print msg, coefficients_dictionary
+        print(msg, coefficients_dictionary)
 
     # return the dictionary with coefficients
     return coefficients_dictionary
@@ -291,37 +292,37 @@ def test_csvfile(infile):
     '''
     global CSVFILE
     CSVFILE = infile
-    print "CSVFILE (global variable) = ", CSVFILE
+    print("CSVFILE (global variable) = ", CSVFILE)
 
-    print 'Test helper and main functions using as input a csv file.'
-    print
+    print('Test helper and main functions using as input a csv file.')
+    print()
 
     number = random.randint(1., 10.)
-    print " * Testing helper function 'is_number':", is_number(number)
+    print(" * Testing helper function 'is_number':", is_number(number))
 
     if not infile:
         csvfile = "average_emissivity.csv"
     else:
         csvfile = infile
 
-    print " * Testing 'csv_reader' on", csvfile, ":\n\n", csv_reader(csvfile)
-    print
+    print(" * Testing 'csv_reader' on", csvfile, ":\n\n", csv_reader(csvfile))
+    print()
 
     csvstring = csv_reader(csvfile)
-    print " * Testing 'csv_to_dictionary':\n\n", csv_to_dictionary(csvstring)
-    print
+    print(" * Testing 'csv_to_dictionary':\n\n", csv_to_dictionary(csvstring))
+    print()
 
     d = csv_to_dictionary(csvstring)
-    somekey = random.choice(d.keys())
-    print "* Some random key:", somekey
+    somekey = random.choice(list(d.keys()))
+    print("* Some random key:", somekey)
 
     fields = d[somekey]._fields
-    print "* Fields of namedtuple:", fields
+    print("* Fields of namedtuple:", fields)
 
     random_field = random.choice(fields)
-    print "* Some random field:", random_field
+    print("* Some random field:", random_field)
     # print "* Return values (namedtuple):", d[somekey].TIRS10, d[somekey].TIRS11
-    print "* Return values (namedtuple):", ('subrange', d[somekey].subrange,
+    print("* Return values (namedtuple):", ('subrange', d[somekey].subrange,
                                             'b0', d[somekey].b0,
                                             'b1', d[somekey].b1,
                                             'b2', d[somekey].b2,
@@ -330,7 +331,7 @@ def test_csvfile(infile):
                                             'b5', d[somekey].b5,
                                             'b6', d[somekey].b6,
                                             'b7', d[somekey].b7,
-                                            'rmse', d[somekey].rmse)
+                                            'rmse', d[somekey].rmse))
 
 #test_using_file(CSVFILE)  # Ucomment to run test function!
 #CSVFILE = "cwv_coefficients.csv"
@@ -343,27 +344,27 @@ def test(testdata):
     Test helper and main functions using as input a multi-line string.
     '''
     number = random.randint(1., 10.)
-    print " * Testing 'is_number':", is_number(number)
-    print
+    print(" * Testing 'is_number':", is_number(number))
+    print()
 
     '''
     Testing the process...
     '''
     d = csv_to_dictionary(testdata)
-    print "Dictionary is:\n", d
-    print
+    print("Dictionary is:\n", d)
+    print()
 
-    somekey = random.choice(d.keys())
-    print "Some random key:", somekey
-    print
+    somekey = random.choice(list(d.keys()))
+    print("Some random key:", somekey)
+    print()
 
     fields = d[somekey]._fields
-    print "Fields of namedtuple:", fields
-    print
+    print("Fields of namedtuple:", fields)
+    print()
 
     random_field = random.choice(fields)
-    print "Some random field:", random_field
-    print "Return values (namedtuple):", d[somekey].TIRS10, d[somekey].TIRS11
+    print("Some random field:", random_field)
+    print("Return values (namedtuple):", d[somekey].TIRS10, d[somekey].TIRS11)
 
 testdata = '''LandCoverClass|TIRS10|TIRS11
 Cropland|0.971|0.968

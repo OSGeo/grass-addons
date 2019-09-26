@@ -296,7 +296,7 @@ class Liu2012(CalibrationModel):
         Return equation for GRASS GIS' mapcalc
         """
         formula = EQUATIONS[self.author].formula
-        print "FORMULA: ", formula
+        print("FORMULA: ", formula)
         self.mapcalc = formula.format(c0=self.c0, c1=self.c1,
                                       dummy=DUMMY_MAPCALC_STRING, c2=self.c2)
 

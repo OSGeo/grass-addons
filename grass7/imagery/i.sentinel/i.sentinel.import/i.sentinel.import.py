@@ -6,7 +6,7 @@
 # AUTHOR(S):   Martin Landa
 # PURPOSE:     Imports Sentinel data downloaded from Copernicus Open Access Hub
 #              using i.sentinel.download.
-# COPYRIGHT:   (C) 2018 by Martin Landa, and the GRASS development team
+# COPYRIGHT:   (C) 2018-2019 by Martin Landa, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
@@ -23,7 +23,7 @@
 #%end
 #%option G_OPT_M_DIR
 #% key: input
-#% description: Name for input directory where downloaded Sentinel data lives
+#% description: Name of input directory with downloaded Sentinel data
 #% required: yes
 #%end
 #%option
@@ -39,6 +39,11 @@
 #% label: Maximum memory to be used (in MB)
 #% description: Cache size for raster rows
 #% answer: 300
+#%end
+#%option G_OPT_F_OUTPUT
+#% key: register_output
+#% description: Name for output file to use with t.register
+#% required: no
 #%end
 #%flag
 #% key: r
@@ -68,6 +73,7 @@ import sys
 import re
 import glob
 import shutil
+import io
 from zipfile import ZipFile
 
 import grass.script as gs
@@ -200,9 +206,13 @@ class SentinelImporter(object):
         dsn = None
 
         return ret
-        
+
+    @staticmethod
+    def _map_name(filename):
+        return os.path.splitext(os.path.basename(filename))[0]
+
     def _import_file(self, filename, module, args):
-        mapname = os.path.splitext(os.path.basename(filename))[0]
+        mapname = self._map_name(filename)
         gs.message(_('Processing <{}>...').format(mapname))
         if module == 'r.import':
             args['resolution_value'] = self._raster_resolution(filename)
@@ -246,19 +256,100 @@ class SentinelImporter(object):
                 os.linesep
             ))
 
+    @staticmethod
+    def _read_timestamp_from_mtd_file(mtd_file):
+        try:
+            from xml.etree import ElementTree
+            from datetime import datetime
+        except ImportError as e:
+            gs.fatal(_("Unable to parse metadata file. {}").format(e))
+
+        timestamp = None
+        with io.open(mtd_file, encoding='utf-8') as fd:
+            root = ElementTree.fromstring(fd.read())
+            nsPrefix = root.tag[:root.tag.index('}')+1]
+            nsDict = {'n1':nsPrefix[1:-1]}
+            node = root.find('n1:General_Info', nsDict)
+            if node is not None:
+                try:
+                    # check S2
+                    is_s2 = node.find('TILE_ID', nsDict).text.startswith('S2')
+                    if not is_s2:
+                        gs.fatal(_("Register file can be created only for Sentinel-2 data."))
+
+                    # get timestamp
+                    ts_str = node.find('SENSING_TIME', nsDict).text
+                    timestamp = datetime.strptime(
+                        ts_str, "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
+                except AttributeError:
+                    # error is reported below
+                    pass
+
+        if not timestamp:
+            gs.error(_("Unable to determine timestamp from <{}>").format(mtd_file))
+
+        return timestamp
+
+    @staticmethod
+    def _ip_from_path(path):
+        return os.path.basename(path[:path.find('.SAFE')])
+
+    def create_register_file(self, filename):
+        ip_timestamp = {}
+        for mtd_file in self._filter("MTD_TL.xml"):
+            ip = self._ip_from_path(mtd_file)
+            ip_timestamp[ip] = self._read_timestamp_from_mtd_file(mtd_file)
+
+        if not ip_timestamp:
+            gs.warning(_("Unable to determine timestamps. No metadata file found"))
+        has_band_ref = gs.version()['version'] == '7.9.dev'
+        sep = '|'
+        with open(filename, 'w') as fd:
+            for img_file in self.files:
+                map_name = self._map_name(img_file)
+                ip = self._ip_from_path(img_file)
+                timestamp = ip_timestamp[ip]
+                if timestamp:
+                    timestamp_str = timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
+                else:
+                    timestamp_str = ''
+                fd.write('{img}{sep}{ts}'.format(
+                    img=map_name,
+                    sep=sep,
+                    ts=timestamp_str
+                ))
+                if has_band_ref:
+                    fd.write('{sep}{br}'.format(
+                        sep=sep,
+                        br='S2_{}'.format(
+                            map_name[-2:].lstrip('0')
+                        )
+                    ))
+                fd.write(os.linesep)
 def main():
     importer = SentinelImporter(options['input'])
 
     importer.filter(options['pattern'])
 
     if flags['p']:
+        if options['register_output']:
+            gs.warning(_("Register output file name is not created "
+                         "when -{} flag given").format('p'))
         importer.print_products()
         return 0
     
     importer.import_products(flags['r'], flags['l'])
 
     if flags['c']:
+        # import cloud mask if requested
         importer.import_cloud_masks()
+
+    if options['register_output']:
+        # create t.register file if requested
+        importer.create_register_file(
+            options['register_output']
+        )
 
     return 0
 
