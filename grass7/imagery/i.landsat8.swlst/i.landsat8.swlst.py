@@ -312,6 +312,7 @@
 # required librairies
 import os
 import sys
+from functools import reduce
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]),
                                 'etc', 'i.landsat8.swlst'))
 
@@ -862,7 +863,7 @@ def estimate_cwv_big_expression(outname, t10, t11, cwv_expression):
                               in_ti=t10, out_ti='T10',
                               in_tj=t11, out_tj='T11')
         msg += '\n'
-        print msg
+        print(msg)
 
     cwv_equation = equation.format(result=outname, expression=cwv_expression)
     grass.mapcalc(cwv_equation, overwrite=True)
@@ -914,7 +915,7 @@ def estimate_lst(outname, t10, t11, avg_lse_map, delta_lse_map, cwv_map, lst_exp
     if info:
         msg = lst_expression
         msg += '\n'
-        print msg
+        print(msg)
 
     # replace the "dummy" string...
     if landcover_map:
@@ -1246,7 +1247,7 @@ def main():
 
     # print citation
     if info:
-        print '\nSource: ' + citation_lst
+        print('\nSource: ' + citation_lst)
 
 
 if __name__ == "__main__":
