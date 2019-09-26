@@ -1,10 +1,6 @@
 MODULE_TOPDIR = ..
 
-# commands replaced with more modern commands in trunk/relbranch
-OLD = \
-	r.in.arc \
-	r.out.arc \
-	r.out.tiff \
+# Further possibly deprecated modules
 #	r.le.patch \
 #	r.le.pixel \
 #	r.le.setup \
