@@ -294,6 +294,7 @@ int main(int argc, char *argv[])
     parm.weight->required = NO;
     parm.weight->options = "uniform,triangular,epanechnikov,quartic,tricube,cosine";
     parm.weight->answer = "tricube";
+    parm.weight->description = _("Weighing kernel function");
 
     parm.fet = G_define_option();
     parm.fet->key = "fet";
