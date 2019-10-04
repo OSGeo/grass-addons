@@ -862,8 +862,8 @@ def avoided_CO2_emission(opts, flgs):
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
    
-    print ("Total emission (Tons): %.2f" % np.nansum(T))
-    print ("Total avoided emission (Tons): %.2f" % np.nansum(A))
+    print(("Total emission (Tons): %.2f" % np.nansum(T)))
+    print(("Total avoided emission (Tons): %.2f" % np.nansum(A)))
 
 
 def fire_risk_reduction(opts, flgs):
@@ -906,7 +906,7 @@ def tev(opts,flgs):
 
     if (len(vol_matching)<1) or (len(vol_matching2<1)) :
         #get_msgr().fatal("Field in vector TEV map not found")
-        print "Errors in fields of TEV map"
+        print("Errors in fields of TEV map")
         return
 
     run_command("v.to.rast", overwrite=ow, input=TEV,
@@ -935,8 +935,8 @@ def tev(opts,flgs):
     print("_________")
     print("IMPACT")
     print("_________")
-    print("Total value at the beginning %.2f" % np.nansum(T))
-    print("Total value after the exploitation %.2f" % np.nansum(R))
+    print(("Total value at the beginning %.2f" % np.nansum(T)))
+    print(("Total value after the exploitation %.2f" % np.nansum(R)))
 
 
 def main(opts, flgs):

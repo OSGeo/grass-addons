@@ -685,7 +685,7 @@ def turb_char(net_head, discharge, list_turb, folder_turb, ndigits=6):
                                      q_max=round(spec['q_max'], 3),
                                      q_min=round(spec['q_min'], 3),
                                      alpha_c=round(spec['alpha_c'], ndigits))
-    return turbines.keys()
+    return list(turbines.keys())
 
 
 def main(options, flags):

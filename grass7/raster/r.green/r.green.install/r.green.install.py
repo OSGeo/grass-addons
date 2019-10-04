@@ -39,14 +39,25 @@ import shutil
 import subprocess
 import sys
 import time
-import urllib2
 import xml.etree.ElementTree as ET
 from collections import namedtuple
-from htmlentitydefs import name2codepoint
-from HTMLParser import HTMLParser
 from os.path import join
 from tempfile import gettempdir
-from urllib2 import build_opener
+
+try:
+    # Python2 imports
+    import urllib2
+    from htmlentitydefs import name2codepoint
+    from HTMLParser import HTMLParser
+    from urllib2 import build_opener
+except ImportError:
+    # Python3 imports
+    import urllib.request, urllib.error, urllib.parse
+    from html.entities import name2codepoint
+    from html.parser import HTMLParser
+    from urllib.request import build_opener
+    unichr = chr
+
 
 from grass.script import core as gcore
 

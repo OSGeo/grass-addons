@@ -231,5 +231,5 @@ def yield_pix_process(opts, vector_forest, yield_, yield_surface,
     #FIXME: use something more efficient
     with RasterRow(technical_bioenergy) as pT:
         T = np.array(pT)
-    print ("Tech bioenergy stimated (ton): %.2f" % np.nansum(T))
+    print(("Tech bioenergy stimated (ton): %.2f" % np.nansum(T)))
     return technical_bioenergy, tech_bioC, tech_bioHF
