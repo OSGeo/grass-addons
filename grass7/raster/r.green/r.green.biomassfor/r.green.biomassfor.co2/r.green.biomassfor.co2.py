@@ -560,8 +560,8 @@ def avoided_CO2_emission(opts, flgs):
     with RasterRow(mapaco2) as pT1:
         A = np.array(pT1)
    
-    print ("Total emission (Tons): %.2f" % np.nansum(T))
-    print ("Total avoided emission (Tons): %.2f" % np.nansum(A))
+    print(("Total emission (Tons): %.2f" % np.nansum(T)))
+    print(("Total avoided emission (Tons): %.2f" % np.nansum(A)))
 
 
 def main(opts, flgs):
