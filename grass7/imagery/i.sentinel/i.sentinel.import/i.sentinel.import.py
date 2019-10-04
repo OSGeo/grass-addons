@@ -273,8 +273,8 @@ class SentinelImporter(object):
             if node is not None:
                 try:
                     # check S2
-                    is_s2 = node.find('TILE_ID', nsDict).text.startswith('S2')
-                    if not is_s2:
+                    tile_id = [subnode.text for subnode in node.getchildren() if subnode.tag.startswith('TILE_ID')][0]
+                    if not tile_id.startswith('S2'):
                         gs.fatal(_("Register file can be created only for Sentinel-2 data."))
 
                     # get timestamp
@@ -282,7 +282,7 @@ class SentinelImporter(object):
                     timestamp = datetime.strptime(
                         ts_str, "%Y-%m-%dT%H:%M:%S.%fZ"
                     )
-                except AttributeError:
+                except (AttributeError, IndexError):
                     # error is reported below
                     pass
 
@@ -296,6 +296,7 @@ class SentinelImporter(object):
         return os.path.basename(path[:path.find('.SAFE')])
 
     def create_register_file(self, filename):
+        gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
         for mtd_file in self._filter("MTD_TL.xml"):
             ip = self._ip_from_path(mtd_file)
@@ -320,11 +321,18 @@ class SentinelImporter(object):
                     ts=timestamp_str
                 ))
                 if has_band_ref:
+                    try:
+                        band_ref = re.match(
+                            r'.*_B([0-18][0-9A]).*', map_name
+                        ).groups()[0].lstrip('0')
+                    except AttributeError:
+                        gs.warning(
+                            _("Unable to determine band reference for <{}>").format(
+                                map_name))
+                        continue
                     fd.write('{sep}{br}'.format(
                         sep=sep,
-                        br='S2_{}'.format(
-                            map_name[-2:].lstrip('0')
-                        )
+                        br='S2_{}'.format(band_ref)
                     ))
                 fd.write(os.linesep)
 def main():
