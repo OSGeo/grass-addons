@@ -296,6 +296,7 @@ class SentinelImporter(object):
         return os.path.basename(path[:path.find('.SAFE')])
 
     def create_register_file(self, filename):
+        gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
         for mtd_file in self._filter("MTD_TL.xml"):
             ip = self._ip_from_path(mtd_file)
@@ -320,9 +321,15 @@ class SentinelImporter(object):
                     ts=timestamp_str
                 ))
                 if has_band_ref:
-                    band_ref = re.match(
-                        r'.*_B([0-1][0-9]).*', map_name
-                    ).groups()[0].lstrip('0')
+                    try:
+                        band_ref = re.match(
+                            r'.*_B([0-18][0-9A]).*', map_name
+                        ).groups()[0].lstrip('0')
+                    except AttributeError:
+                        gs.warning(
+                            _("Unable to determine band reference for <{}>").format(
+                                map_name))
+                        continue
                     fd.write('{sep}{br}'.format(
                         sep=sep,
                         br='S2_{}'.format(band_ref)
