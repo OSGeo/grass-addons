@@ -109,7 +109,7 @@ def main():
     # this would be done easily with StringIO
     # but it doesn't work with subprocess
     if not grass.debug_level():
-        nuldev = opennn(os.devnull, 'w')
+        nuldev = open(os.devnull, 'w')
     else:
         nuldev = sys.stderr
 
