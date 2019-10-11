@@ -240,7 +240,7 @@ def cleanup():
     if r_commands:
         gscript.try_remove(r_commands)
     if reclass_files:
-        for reclass_file in reclass_files.itervalues():
+        for reclass_file in reclass_files.values():
             gscript.try_remove(reclass_file)
     if temptable:
         gscript.run_command('db.droptable',
@@ -618,7 +618,7 @@ def main():
                             quiet=True)
 
     if classified_map:
-        for classification, reclass_file in reclass_files.iteritems():
+        for classification, reclass_file in reclass_files.items():
             output_map = classified_map + '_' + classification
             gscript.run_command('r.reclass',
                                 input=raster_segments_map,
