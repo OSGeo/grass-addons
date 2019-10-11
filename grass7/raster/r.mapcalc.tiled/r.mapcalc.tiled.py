@@ -15,7 +15,7 @@
 #############################################################################
 
 #%Module
-#% description: Runs r.mapcalc in parallel over tiles
+#% description: Runs r.mapcalc in parallel over tiles.
 #% keyword: raster
 #% keyword: algebra
 #% keyword: tiling
