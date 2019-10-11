@@ -35,7 +35,7 @@
 #%end
 #
 #%option
-#% key: tile_width
+#% key: width
 #% type: integer
 #% description: Width of tiles
 #% answer: 1000
