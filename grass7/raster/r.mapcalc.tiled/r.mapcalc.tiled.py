@@ -37,7 +37,7 @@
 #%option
 #% key: width
 #% type: integer
-#% description: Width of tiles
+#% description: Width of tiles (columns)
 #% answer: 1000
 #% required: yes
 #%end
