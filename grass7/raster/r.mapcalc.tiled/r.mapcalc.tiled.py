@@ -53,7 +53,7 @@
 #%option
 #% key: overlap
 #% type: integer
-#% description: Overlap between tiles
+#% description: Overlap of tiles
 #% answer: 0
 #% required: yes
 #%end
