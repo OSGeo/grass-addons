@@ -61,7 +61,7 @@
 #%option
 #% key: processes
 #% type: integer
-#% description: Number of parallel processes
+#% description: Number of r.mapcalc processes to run in parallel
 #% answer: 1
 #% required: yes
 #%end
