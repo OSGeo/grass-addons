@@ -1,0 +1,44 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.mapcalc.tiled</em> cuts a raster input map into tiles and runs 
+<a href="r.mapcalc.html">r.mapcalc</a> over these tiles before patching the
+result together into a single output raster map.
+
+<p>
+The user provides the map calculation <b>expression</b>. The output mapname
+is automatically extracted from that expression by extracting the string before 
+the '='. If the <b>expression</b> is more comple, the user can also provide the
+the output map name with the parameter <b>output</b>
+
+<p>
+Tiles can be defined with the <b>tile_width</b>, <b>tile_height</b> and 
+<b>overlap</b> parameters. If <b>processes</b> is higher than one, these tiles 
+will be processed in parallel.
+
+<p>
+The <b>mapset_prefix</b> parameter allows to make sure that the temporary
+mapsets created during the tiled processing have unique names. This is useful
+if the user runs <em>r.mapcalc.tiled</em> several times in parallel (e.g. in
+an HPC environment).
+
+<h2>NOTES</h2>
+
+<h2>EXAMPLE</h2>
+
+Run r.mapcalc over tiles with size 1000x1000 using 4 parallel processes:
+
+<div class="code"><pre> 
+g.region rast=ortho_2001_t792_1m
+r.mapcalc.tiled expression = "bright_pixels = if(ortho_2001_t792_1m > 200, 1, 0)" \
+   tile_width=1000 tile_height=1000 processes=4
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<a href="r.mapcalc.html">r.mapcalc</a> 
+
+<h2>AUTHOR</h2> 
+
+Moritz Lennert
+
+<p><i>Last changed: $Date: 2019-04-19 08:30:49 +0200 (ven 19 avr 2019) $</i>
