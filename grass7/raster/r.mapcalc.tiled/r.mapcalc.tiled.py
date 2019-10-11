@@ -45,7 +45,7 @@
 #%option
 #% key: height
 #% type: integer
-#% description: Height of tiles
+#% description: Height of tiles (rows)
 #% answer: 1000
 #% required: yes
 #%end
