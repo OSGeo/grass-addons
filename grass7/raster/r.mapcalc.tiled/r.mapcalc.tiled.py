@@ -99,7 +99,7 @@ def main():
 
     expression = options['expression']
     width = int(options['width'])
-    height = int(options['tile_height'])
+    height = int(options['height'])
     overlap = int(options['overlap'])
     processes = int(options['processes'])
     output = None
