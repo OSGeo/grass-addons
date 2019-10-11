@@ -98,7 +98,7 @@ class MyGridModule(GridModule):
 def main():
 
     expression = options['expression']
-    width = int(options['tile_width'])
+    width = int(options['width'])
     height = int(options['tile_height'])
     overlap = int(options['overlap'])
     processes = int(options['processes'])
