@@ -68,6 +68,19 @@
 #% required: no
 #% guisection: Text input
 #%end
+#%option
+#% key: training_sample_size
+#% label: Size of subsample per class to be used for training
+#% required: no
+#% guisection: Model tuning
+#%end
+#%option 
+#% key: tuning_sample_size
+#% type: integer
+#% label: Size of sample per class to be used for hyperparameter tuning
+#% required: no
+#% guisection: Model tuning
+#%end
 #%option G_OPT_F_SEP
 #% description: Field separator in input text files
 #% guisection: Text input
@@ -90,7 +103,7 @@
 #% key: train_class_column
 #% type: string
 #% description: Name of attribute column containing training classification
-#% required: yes
+#% required: no
 #%end
 #%option
 #% key: output_class_column
@@ -107,12 +120,19 @@
 #% answer: prob
 #%end
 #%option
+#% key: max_features
+#% type: integer
+#% description: Perform feature selection to a maximum of max_features
+#% required: no
+#% guisection: Model tuning
+#%end
+#%option
 #% key: classifiers
 #% type: string
 #% description: Classifiers to use
 #% required: yes
 #% multiple: yes
-#% options: svmRadial,svmLinear,svmPoly,rf,rpart,C5.0,knn,knn1,xgbTree
+#% options: svmRadial,svmLinear,svmPoly,rf,ranger,rpart,C5.0,knn,xgbTree
 #% answer: svmRadial,rf
 #%end
 #%option
@@ -121,7 +141,7 @@
 #% description: Number of folds to use for cross-validation
 #% required: yes
 #% answer: 5
-#% guisection: Cross-validation and voting
+#% guisection: Model tuning
 #%end
 #%option
 #% key: partitions
@@ -129,7 +149,7 @@
 #% description: Number of different partitions to use for cross-validation
 #% required: yes
 #% answer: 10
-#% guisection: Cross-validation and voting
+#% guisection: Model tuning
 #%end
 #%option
 #% key: tunelength
@@ -137,14 +157,14 @@
 #% description: Number of levels to test for each tuning parameter
 #% required: yes
 #% answer: 10
-#% guisection: Cross-validation and voting
+#% guisection: Model tuning
 #%end
 #%option
 #% key: tunegrids
 #% type: string
 #% description: Python dictionary of customized tunegrids
 #% required: no
-#% guisection: Cross-validation and voting
+#% guisection: Model tuning
 #%end
 #%option
 #% key: weighting_modes
@@ -154,7 +174,7 @@
 #% multiple: yes
 #% options: smv,swv,bwwv,qbwwv
 #% answer: smv
-#% guisection: Cross-validation and voting
+#% guisection: Voting
 #%end
 #%option
 #% key: weighting_metric
@@ -163,11 +183,29 @@
 #% required: yes
 #% options: accuracy,kappa
 #% answer: accuracy
-#% guisection: Cross-validation and voting
+#% guisection: Voting
+#%end
+#%option G_OPT_F_OUTPUT
+#% key: output_model_file
+#% description: File where to save model(s)
+#% required: no
+#% guisection: Save/Load models
+#%end
+#%option G_OPT_F_INPUT
+#% key: input_model_file
+#% description: Name of file containing an existing model
+#% required: no
+#% guisection: Save/Load models
 #%end
 #%option G_OPT_F_OUTPUT
 #% key: classification_results
 #% description: File for saving results of all classifiers
+#% required: no
+#% guisection: Optional output
+#%end
+#%option G_OPT_F_OUTPUT
+#% key: variable_importance_file
+#% description: File for saving relative importance of used variables
 #% required: no
 #% guisection: Optional output
 #%end
@@ -211,14 +249,35 @@
 #% description: Include individual classifier results in output
 #% guisection: Optional output
 #%end
+#%flag
+#% key: n
+#% description: Normalize (center and scale) data before analysis
+#% guisection: Model tuning
+#%end
+#%flag
+#% key: t
+#% description: Only tune and train model, do not predict
+#% guisection: Optional output
+#%end
+#%flag
+#% key: p
+#% description: Include class probabilities in classification results
+#% guisection: Optional output
+#%end
 #
 #%rules
-#% required: segments_map,segments_file
-#% exclusive: segments_map,segments_file
-#% required: training_map,training_file
-#% exclusive: training_map,training_file
+#% required: segments_map,segments_file,-t
+#% exclusive: segments_map,segments_file,-t
+#% required: training_map,training_file,input_model_file
+#% required: train_class_column,input_model_file
+#% exclusive: training_map,training_file,input_model_file
 #% requires: classified_map,raster_segments_map
 #% requires: -f,classification_results
+#% exclusive: -t,classification_results
+#% exclusive: -t,-f
+#% exclusive: input_model_file,accuracy_file
+#% exclusive: input_model_file,model_details
+#% exclusive: input_model_file,bw_plot_file
 #%end
 
 import atexit
@@ -276,10 +335,17 @@ def main():
     weighting_functions['bwwv'] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
     weighting_functions['qbwwv'] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
 
-    packages = {'svmRadial': ['kernlab'], 'svmLinear': ['kernlab'], 'svmPoly': ['kernlab'], 'rf': ['randomForest'], 'rpart': ['rpart'], 'C5.0': ['C50'], 'xgbTree': ['xgboost', 'plyr']}
+    packages = {'svmRadial': ['kernlab'], 
+                'svmLinear': ['kernlab'],
+                'svmPoly': ['kernlab'],
+                'rf': ['randomForest'],
+                'ranger': ['ranger', 'dplyr'],
+                'rpart': ['rpart'],
+                'C5.0': ['C50'],
+                'xgbTree': ['xgboost', 'plyr']}
 
     install_package = "if(!is.element('%s', installed.packages()[,1])){\n"
-    install_package += "cat('\\n\\nInstalling %s package from CRAN\n')\n"
+    install_package += "cat('\\n\\nInstalling %s package from CRAN')\n"
     install_package += "if(!file.exists(Sys.getenv('R_LIBS_USER'))){\n"
     install_package += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
     install_package += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
@@ -302,7 +368,9 @@ def main():
         training = options['training_file']
         trainmap = False
     
-    classcol = options['train_class_column']
+    classcol = None
+    if options['train_class_column']:
+        classcol = options['train_class_column']
     output_classcol = options['output_class_column']
     output_probcol = None
     if options['output_prob_column']:
@@ -310,6 +378,9 @@ def main():
     classifiers = options['classifiers'].split(',')
     weighting_modes = options['weighting_modes'].split(',')
     weighting_metric = options['weighting_metric']
+    if len(classifiers) == 1:
+        gscript.message('Only one classifier, so no voting applied')
+
     processes = int(options['processes'])
     folds = options['folds']
     partitions = options['partitions']
@@ -317,9 +388,31 @@ def main():
     separator = gscript.separator(options['separator'])
     tunegrids = literal_eval(options['tunegrids']) if options['tunegrids'] else {}
 
+    max_features = None
+    if options['max_features']:
+        max_features = int(options['max_features'])
+
+    training_sample_size = None
+    if options['training_sample_size']:
+        training_sample_size = options['training_sample_size']
+
+    tuning_sample_size = None
+    if options['tuning_sample_size']:
+        tuning_sample_size = options['tuning_sample_size']
+
+    output_model_file = None
+    if options['output_model_file']:
+        output_model_file = options['output_model_file'].replace("\\", "/")
+
+    input_model_file = None
+    if options['input_model_file']:
+        input_model_file = options['input_model_file'].replace("\\", "/")
+
     classification_results = None
     if options['classification_results']:
         classification_results = options['classification_results'].replace("\\", "/")
+
+    probabilities = flags['p']
 
     model_details = None
     if options['model_details']:
@@ -336,6 +429,10 @@ def main():
     r_script_file = None
     if options['r_script_file']:
         r_script_file = options['r_script_file']
+
+    variable_importance_file = None
+    if options['variable_importance_file']:
+        variable_importance_file = options['variable_importance_file'].replace("\\", "/")
 
     accuracy_file = None
     if options['accuracy_file']:
@@ -372,9 +469,9 @@ def main():
     r_file = open(r_commands, 'w')
 
     if processes > 1:
-        install = install_package % ('doParallel', 'doParallel', 'doParallel')
-        r_file.write(install)
-        r_file.write("\n")
+	install = install_package % ('doParallel', 'doParallel', 'doParallel')
+	r_file.write(install)
+	r_file.write("\n")
 
     # automatic installation of missing R packages
     install = install_package % ('caret', 'caret', 'caret')
@@ -383,173 +480,305 @@ def main():
     install = install_package % ('e1071', 'e1071', 'e1071')
     r_file.write(install)
     r_file.write("\n")
+    install = install_package % ('data.table', 'data.table', 'data.table')
+    r_file.write(install)
+    r_file.write("\n")
     for classifier in classifiers:
-        # knn is included in caret
-        if classifier == "knn" or classifier == "knn1":
-            continue        
-        for package in packages[classifier]:
-            install = install_package % (package, package, package)
-            r_file.write(install)
-            r_file.write("\n")
+        if classifier in packages:
+            for package in packages[classifier]:
+                install = install_package % (package, package, package)
+                r_file.write(install)
+                r_file.write("\n")
     r_file.write("\n")
-    r_file.write('require(caret)')
+    r_file.write('library(caret)')
     r_file.write("\n")
-    r_file.write('features <- read.csv("%s", sep="%s", header=TRUE, row.names=1)' % (feature_vars, separator))
+    r_file.write('library(data.table)')
     r_file.write("\n")
-    r_file.write('training <- read.csv("%s", sep="%s", header=TRUE, row.names=1)' % (training_vars, separator))
-    r_file.write("\n")
-    r_file.write("training$%s <- as.factor(training$%s)" % (classcol, classcol))
-    r_file.write("\n")
+
     if processes > 1:
         r_file.write("library(doParallel)")
         r_file.write("\n")
         r_file.write("registerDoParallel(cores = %d)" % processes)
         r_file.write("\n")
-    r_file.write("MyFolds.cv <- createMultiFolds(training$%s, k=%s, times=%s)" %
-            (classcol, folds, partitions))
-    r_file.write("\n")
-    r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv)")
-    r_file.write("\n")
-    r_file.write("fmla <- %s ~ ." % classcol)
-    r_file.write("\n")
-    r_file.write("models.cv <- list()")
-    r_file.write("\n")
-    for classifier in classifiers:
-        if classifier == 'knn1':
-            r_file.write("Grid <- expand.grid(k=1)")
+
+    if not flags['t']:
+        r_file.write("features <- data.frame(fread('%s', sep='%s', header=TRUE, blank.lines.skip=TRUE, showProgress=FALSE), row.names=1)" % (feature_vars, separator))
+        r_file.write("\n")
+        if classcol:
+            r_file.write("if('%s' %%in%% names(features)) {features <- subset(features, select=-%s)}" % (classcol, classcol))
             r_file.write("\n")
-            r_file.write("knn1Model.cv <- train(fmla, training, method='knn', trControl=MyControl.cv, tuneGrid=Grid)")
+
+    if input_model_file:
+        r_file.write("finalModels <- readRDS('%s')" % input_model_file)
+        r_file.write("\n")
+        for classifier in classifiers:
+            for package in packages[classifier]:
+                r_file.write("library(%s)" % package)
+                r_file.write("\n")
+    else:
+        r_file.write("training <- data.frame(fread('%s', sep='%s', header=TRUE, blank.lines.skip=TRUE, showProgress=FALSE))" % (training_vars, separator))
+        r_file.write("\n")
+        # We have to make sure that class variable values start with a letter as
+        # they will be used as variables in the probabilities calculation
+        r_file.write("origclassnames <- training$%s" % classcol)
+        r_file.write("\n")
+        r_file.write("training$%s <- as.factor(paste('class', training$%s, sep='_'))" % (classcol, classcol))
+        r_file.write("\n")
+        if tuning_sample_size:
+            r_file.write("rndid <- with(training, ave(training[,1], %s, FUN=function(x) {sample.int(length(x))}))" % classcol)
             r_file.write("\n")
-            r_file.write("models.cv$knn1 <- knn1Model.cv")
+            r_file.write("tuning_data <- training[rndid<=%s,]" % tuning_sample_size)
             r_file.write("\n")
         else:
+            r_file.write("tuning_data <- training")
+        # If a max_features value is set, then proceed to feature selection.
+        # Currently, feature selection uses random forest. TODO: specific feature selection for each classifier.
+        if max_features:
+            r_file.write("RfeControl <- rfeControl(functions=rfFuncs, method='cv', number=10, returnResamp = 'all')")
+            r_file.write("\n")
+            r_file.write("RfeResults <- rfe(subset(tuning_data, select=-%s), tuning_data$%s, sizes=c(1:%i), rfeControl=RfeControl)" % (classcol, classcol, max_features))
+            r_file.write("\n")
+            r_file.write("if(length(predictors(RfeResults))>%s)" % max_features)
+            r_file.write("\n")
+            r_file.write("{if((RfeResults$results$Accuracy[%s+1] - RfeResults$results$Accuracy[%s])/RfeResults$results$Accuracy[%s] < 0.03)" % (max_features, max_features, max_features))
+            r_file.write("\n")
+            r_file.write("{RfeUpdate <- update(RfeResults, subset(tuning_data, select=-%s), tuning_data$%s, size=%s)" % (classcol, classcol, max_features))
+            r_file.write("\n")
+            r_file.write("bestPredictors <- RfeUpdate$bestVar}}")
+            r_file.write(" else {")
+            r_file.write("\n")
+            r_file.write("bestPredictors <- predictors(RfeResults)}")
+            r_file.write("\n")
+            r_file.write("tuning_data <- tuning_data[,c('%s', bestPredictors)]" % classcol)
+            r_file.write("\n")
+            r_file.write("training <- training[,c('%s', bestPredictors)]" % classcol)
+            r_file.write("\n")
+            if not flags['t']:
+                r_file.write("features <- features[,bestPredictors]")
+                r_file.write("\n")
+        r_file.write("MyFolds.cv <- createMultiFolds(tuning_data$%s, k=%s, times=%s)" % (classcol, folds, partitions))
+        r_file.write("\n")
+        if probabilities:
+            r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv, classProbs=TRUE, sampling='down')")
+        else:
+            r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv, sampling='down')")
+        r_file.write("\n")
+        r_file.write("fmla <- %s ~ ." % classcol)
+        r_file.write("\n")
+        r_file.write("models.cv <- list()")
+        r_file.write("\n")
+        r_file.write("finalModels <- list()")
+        r_file.write("\n")
+        r_file.write("variableImportance <- list()")
+        r_file.write("\n")
+        if training_sample_size:
+            r_file.write("rndid <- with(training, ave(training[,2], %s, FUN=function(x) {sample.int(length(x))}))" % classcol)
+            r_file.write("\n")
+            r_file.write("training_data <- training[rndid<=%s,]" % training_sample_size)
+            r_file.write("\n")
+        else:
+            r_file.write("training_data <- training")
+            r_file.write("\n")
+        for classifier in classifiers:
             if classifier in tunegrids:
                 r_file.write("Grid <- expand.grid(%s)" % tunegrids[classifier])
                 r_file.write("\n")
-                r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv, tuneGrid=Grid)" % (classifier,
+                r_file.write("%sModel.cv <- train(fmla, tuning_data, method='%s', trControl=MyControl.cv, tuneGrid=Grid" % (classifier,
                             classifier))
             else:
-                r_file.write("%sModel.cv <- train(fmla,training,method='%s', trControl=MyControl.cv, tuneLength=%s)" % (classifier,
+                r_file.write("%sModel.cv <- train(fmla, tuning_data, method='%s', trControl=MyControl.cv, tuneLength=%s" % (classifier,
                             classifier, tunelength))
+            if flags['n']:
+                r_file.write(", preprocess=c('center', 'scale')")
+            r_file.write(")")
             r_file.write("\n")
             r_file.write("models.cv$%s <- %sModel.cv" % (classifier, classifier))
             r_file.write("\n")
+            r_file.write("finalControl <- trainControl(method = 'none', classProbs = TRUE)")
+            r_file.write("\n")
 
-    r_file.write("if (length(models.cv)>1) {")
-    r_file.write("\n")
-    r_file.write("resamps.cv <- resamples(models.cv)")
-    r_file.write("\n")
-    r_file.write("accuracy_means <- as.vector(apply(resamps.cv$values[seq(2,length(resamps.cv$values), by=2)], 2, mean))")
-    r_file.write("\n")
-    r_file.write("kappa_means <- as.vector(apply(resamps.cv$values[seq(3,length(resamps.cv$values), by=2)], 2, mean))")
-    r_file.write("\n")
-    r_file.write("} else {")
-    r_file.write("\n")
-    r_file.write("resamps.cv <- models.cv[[1]]$resample")
-    r_file.write("\n")
-    r_file.write("accuracy_means <- mean(resamps.cv$Accuracy)")
-    r_file.write("\n")
-    r_file.write("kappa_means <- mean(resamps.cv$Kappa)")
-    r_file.write("\n")
-    r_file.write("}")
-    r_file.write("\n")
-    r_file.write("predicted <- data.frame(predict(models.cv, features))")
-    r_file.write("\n")
-    if flags['i']:
-        r_file.write("resultsdf <- data.frame(id=rownames(features), predicted)")
-    else:
-        r_file.write("resultsdf <- data.frame(id=rownames(features))")
-    r_file.write("\n")
-    r_file.write(voting_function)
-    r_file.write("\n")
-
-    if weighting_metric == 'kappa':
-        r_file.write("weighting_base <- kappa_means")
-    else:
-        r_file.write("weighting_base <- accuracy_means")
-    r_file.write("\n")
-    for weighting_mode in weighting_modes:
-        r_file.write(weighting_functions[weighting_mode])
-        r_file.write("\n")
-        r_file.write("weights <- weights / sum(weights)")
-        r_file.write("\n")
-        r_file.write("vote <- apply(predicted, 1, voting, w=weights)")
-        r_file.write("\n")
-        r_file.write("vote <- as.data.frame(matrix(unlist(vote), ncol=2, byrow=TRUE))")
-        r_file.write("\n")
-        r_file.write("resultsdf$%s_%s <- vote$V1" % (output_classcol, weighting_mode))
-        r_file.write("\n")
+            r_file.write("finalModel <- train(fmla, training_data, method='%s', trControl=finalControl, tuneGrid=%sModel.cv$bestTune" % (classifier, classifier))
+            if flags['n']:
+                r_file.write(", preprocess=c('center', 'scale')")
+            r_file.write(")")
+            r_file.write("\n")
+            r_file.write("finalModels$%s <- finalModel" % classifier)
+            r_file.write("\n")
+            r_file.write("variableImportance$%s <- varImp(finalModel)" % classifier)
+            r_file.write("\n")
         if len(classifiers) > 1:
-            r_file.write("resultsdf$%s_%s <- vote$V2" % (output_probcol, weighting_mode))
+            r_file.write("resamps.cv <- resamples(models.cv)")
+            r_file.write("\n")
+            r_file.write("accuracy_means <- as.vector(apply(resamps.cv$values[seq(2,length(resamps.cv$values), by=2)], 2, mean))")
+            r_file.write("\n")
+            r_file.write("kappa_means <- as.vector(apply(resamps.cv$values[seq(3,length(resamps.cv$values), by=2)], 2, mean))")
+            r_file.write("\n")
+        else:
+            r_file.write("resamps.cv <- models.cv[[1]]$resample")
+            r_file.write("\n")
+            r_file.write("accuracy_means <- mean(resamps.cv$Accuracy)")
+            r_file.write("\n")
+            r_file.write("kappa_means <- mean(resamps.cv$Kappa)")
             r_file.write("\n")
 
-    if allmap and not flags['f']:
-        model_output = gscript.tempfile().replace("\\", "/")
-        model_output_csv = model_output + '.csv'
-        write_string = "write.csv(resultsdf, '%s'," % model_output_csv
-        write_string += " row.names=FALSE, quote=FALSE)"
-        r_file.write(write_string)
+        if output_model_file:
+            r_file.write("saveRDS(finalModels, '%s')" % (output_model_file))
+            r_file.write("\n")
+
+    if not flags['t']:
+        r_file.write("predicted <- data.frame(predict(finalModels, features))")
         r_file.write("\n")
-    if classified_map:
-        reclass_files = {}
-        if flags['i']:
-            for classifier in classifiers:
+        # Now erase the 'class_' prefix again in order to get original class values
+        r_file.write("predicted <- data.frame(sapply(predicted, function (x) {gsub('class_', '', x)}))")
+        r_file.write("\n")
+        if probabilities:
+            r_file.write("probabilities <- data.frame(predict(finalModels, features, type='prob'))")
+            r_file.write("\n")
+            r_file.write("colnames(probabilities) <- gsub('.c', '_prob_c', colnames(probabilities))")
+            r_file.write("\n")
+        r_file.write("ids <- rownames(features)")
+        r_file.write("\n")
+        # We try to liberate memory space as soon as possible, so erasing non necessary data
+        r_file.write("rm(features)")
+        r_file.write("\n")
+        if flags['i'] or len(classifiers) == 1:
+            r_file.write("resultsdf <- data.frame(id=ids, predicted)")
+        else:
+            r_file.write("resultsdf <- data.frame(id=ids)")
+        r_file.write("\n")
+
+        if len(classifiers) > 1:
+            r_file.write(voting_function)
+            r_file.write("\n")
+
+            if weighting_metric == 'kappa':
+                r_file.write("weighting_base <- kappa_means")
+            else:
+                r_file.write("weighting_base <- accuracy_means")
+            r_file.write("\n")
+            for weighting_mode in weighting_modes:
+                r_file.write(weighting_functions[weighting_mode])
+                r_file.write("\n")
+                r_file.write("weights <- weights / sum(weights)")
+                r_file.write("\n")
+                r_file.write("vote <- apply(predicted, 1, voting, w=weights)")
+                r_file.write("\n")
+                r_file.write("vote <- as.data.frame(matrix(unlist(vote), ncol=2, byrow=TRUE))")
+                r_file.write("\n")
+                r_file.write("resultsdf$%s_%s <- vote$V1" % (output_classcol, weighting_mode))
+                r_file.write("\n")
+                r_file.write("resultsdf$%s_%s <- vote$V2" % (output_probcol, weighting_mode))
+                r_file.write("\n")
+
+        r_file.write("rm(predicted)")
+        r_file.write("\n")
+
+        if allmap and not flags['f']:
+            model_output = gscript.tempfile().replace("\\", "/")
+            model_output_csv = model_output + '.csv'
+            write_string = "write.csv(resultsdf, '%s'," % model_output_csv
+            write_string += " row.names=FALSE, quote=FALSE)"
+            r_file.write(write_string)
+            r_file.write("\n")
+
+        if classified_map:
+            reclass_files = {}
+            if len(classifiers) > 1:
+                if flags['i']:
+                    for classifier in classifiers:
+                        tmpfilename = gscript.tempfile()
+                        reclass_files[classifier] = tmpfilename.replace("\\", "/")
+                        r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s)" % (classifier))
+                        r_file.write("\n")
+                        r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
+                        r_file.write("\n")
+                        r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[classifier])
+                        r_file.write("\n")
+                for weighting_mode in weighting_modes:
+                    tmpfilename = gscript.tempfile()
+                    reclass_files[weighting_mode] = tmpfilename.replace("\\", "/")
+                    r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s_%s)" % (output_classcol, weighting_mode))
+                    r_file.write("\n")
+                    r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
+                    r_file.write("\n")
+                    r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[weighting_mode])
+                    r_file.write("\n")
+            else:
                 tmpfilename = gscript.tempfile()
-                reclass_files[classifier] = tmpfilename.replace("\\", "/")
-                r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s)" % (classifier))
+                reclass_files[classifiers[0]] = tmpfilename.replace("\\", "/")
+                r_file.write("reclass <- data.frame(out=apply(resultsdf, 1, function(x) paste(x[1],'=', x[2])))")
                 r_file.write("\n")
-                r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
+                r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[classifiers[0]])
                 r_file.write("\n")
-                r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[classifier])
-                r_file.write("\n")
-        for weighting_mode in weighting_modes:
-            tmpfilename = gscript.tempfile()
-            reclass_files[weighting_mode] = tmpfilename.replace("\\", "/")
-            r_file.write("tempdf <- data.frame(resultsdf$id, resultsdf$%s_%s)" % (output_classcol, weighting_mode))
-            r_file.write("\n")
-            r_file.write("reclass <- data.frame(out=apply(tempdf, 1, function(x) paste(x[1],'=', x[2])))")
-            r_file.write("\n")
-            r_file.write("write.table(reclass$out, '%s', col.names=FALSE, row.names=FALSE, quote=FALSE)" % reclass_files[weighting_mode])
-            r_file.write("\n")
 
-    if classification_results:
-        r_file.write("write.csv(resultsdf, '%s', row.names=FALSE, quote=FALSE)" % classification_results)
+        if classification_results:
+            if probabilities:
+                r_file.write("resultsdf <- cbind(resultsdf, probabilities)")
+                r_file.write("\n")
+                r_file.write("rm(probabilities)")
+                r_file.write("\n")
+            r_file.write("write.csv(resultsdf, '%s', row.names=FALSE, quote=FALSE)" % classification_results)
+            r_file.write("\n")
+            r_file.write("rm(resultsdf)")
+            r_file.write("\n")
         r_file.write("\n")
+
     if accuracy_file:
         r_file.write("df_means <- data.frame(method=names(models.cv),accuracy=accuracy_means, kappa=kappa_means)")
         r_file.write("\n")
         r_file.write("write.csv(df_means, '%s', row.names=FALSE, quote=FALSE)" % accuracy_file)
         r_file.write("\n")
+    if variable_importance_file:
+        r_file.write("sink('%s')" % variable_importance_file)
+        r_file.write("\n")
+        for classifier in classifiers:
+            r_file.write("cat('Classifier: %s')" % classifier)
+            r_file.write("\n")
+            r_file.write("cat('******************************')")
+            r_file.write("\n")
+            r_file.write("variableImportance$rf$importance[order(variableImportance$rf$importance$Overall, decreasing=TRUE),, drop=FALSE]")
+            r_file.write("\n")
+        r_file.write("sink()")
+        r_file.write("\n")
     if model_details:
         r_file.write("sink('%s')" % model_details)
         r_file.write("\n")
-        r_file.write("cat('BEST TUNING VALUES\n')")
+        r_file.write("cat('BEST TUNING VALUES')")
         r_file.write("\n")
-        r_file.write("cat('******************************\n\n')")
+        r_file.write("cat('******************************')")
+        r_file.write("\n")
         r_file.write("\n")
         r_file.write("lapply(models.cv, function(x) x$best)")
         r_file.write("\n")
-        r_file.write("cat('\n')")
+        r_file.write("cat('\n\n')")
         r_file.write("\n")
-        r_file.write("cat('\nSUMMARY OF RESAMPLING RESULTS\n')")
+        r_file.write("cat('SUMMARY OF RESAMPLING RESULTS')")
         r_file.write("\n")
-        r_file.write("cat('******************************\n\n')")
+        r_file.write("cat('******************************')")
+        r_file.write("\n")
+        r_file.write("cat('\n\n')")
         r_file.write("\n")
         r_file.write("summary(resamps.cv)")
         r_file.write("\n")
         r_file.write("cat('\n')")
         r_file.write("\n")
-        r_file.write("cat('\nRESAMPLED CONFUSION MATRICES\n')")
+        r_file.write("cat('\nRESAMPLED CONFUSION MATRICES')")
         r_file.write("\n")
-        r_file.write("cat('******************************\n\n')")
+        r_file.write("cat('******************************')")
+        r_file.write("\n")
+        r_file.write("cat('\n\n')")
         r_file.write("\n")
         r_file.write("conf.mat.cv <- lapply(models.cv, function(x) confusionMatrix(x))")
         r_file.write("\n")
         r_file.write("print(conf.mat.cv)")
         r_file.write("\n")
-        r_file.write("cat('\nDETAILED CV RESULTS\n')")
+        r_file.write("cat('DETAILED CV RESULTS')")
         r_file.write("\n")
-        r_file.write("cat('******************************\n\n')")
+        r_file.write("cat('\n\n')")
+        r_file.write("\n")
+        r_file.write("cat('******************************')")
+        r_file.write("\n")
+        r_file.write("cat('\n\n')")
         r_file.write("\n")
         r_file.write("lapply(models.cv, function(x) x$results)")
         r_file.write("\n")
@@ -562,6 +791,8 @@ def main():
         r_file.write("print(bwplot(resamps.cv))")
         r_file.write("\n")
         r_file.write("dev.off()")
+        r_file.write("\n")
+
     r_file.close()
 
     if r_script_file:
@@ -595,8 +826,8 @@ def main():
         f.write(header_string)
         f.close()
 
-        gscript.message("Loading results into attribute table")
-        gscript.run_command('db.in.ogr',
+    	gscript.message("Loading results into attribute table")
+	gscript.run_command('db.in.ogr',
                             input_=model_output_csv,
                             output=temptable,
                             overwrite=True,
@@ -609,12 +840,12 @@ def main():
         columns = gscript.read_command('db.columns',
                                        table=temptable).splitlines()[1:]
         orig_cat = gscript.vector_db(allfeatures)[int(segments_layer)]['key']
-        gscript.run_command('v.db.join',
+	gscript.run_command('v.db.join',
                             map_=allfeatures,
                             column=orig_cat,
-                            otable=temptable,
+			    otable=temptable,
                             ocolumn='id', 
-                            subset_columns=columns,
+			    subset_columns=columns,
                             quiet=True)
 
     if classified_map:

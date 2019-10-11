@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <p>
-<em>v.class.mlR</em> is a wrapper script that uses the R caret package 
+<em>v.class.mlR</em> is a wrapper module that uses the R caret package 
 for machine learning in R to classify features using training features 
 by supervised learning.
 
@@ -22,6 +22,9 @@ Output can consist of either additional columns in the vector input map
 of features, a text file (<em>classification_results</em>) or reclassed 
 raster maps (<em>classified_map</em>).
 
+<p>When using text file input, the training data should not contain an id 
+column. The object data should have the ids in the first column.
+
 <p>The user has to provide the name of the column in the training data
 that contains the class values (<em>train_class_column</em>), the prefix
 of the columns that will contain the final class after classification
@@ -30,11 +33,12 @@ will contain the probability values linked to these classifications
 (<em>output_prob_column</em> - see below).
 
 <p>Different classifiers are proposed <em>classifiers</em>: 
-k-nearest neighbor (knn and knn1 for k=1), support vector machine 
-with a radial kernel (svmRadial), random forest (rf) and recursive 
-partitioning (rpart). Each of these classifiers is tuned automatically 
-throught repeated cross-validation. caret will automatically determine 
-a reasonable set of values for tuning. See the 
+k-nearest neighbor (knn), support vector machine with a radial kernel 
+(svmRadial), support vector machine with a linear kernel (svmLinear), random 
+forest (rf), C5.0 (C5.0) and XGBoost (xgbTree) decision trees and recursive 
+partitioning (rpart). Each of these classifiers is tuned automatically through
+repeated cross-validation. Caret will automatically determine a reasonable set 
+of values for tuning. See the 
 <a href="http://topepo.github.io/caret/modelList.html">caret webpage</a> 
 for more information about the tuning parameters for each classifier, and
 more generally for the information about how caret works. By default, the
@@ -55,6 +59,33 @@ RandomForest, the user can define the paramter as:<br>
 <div class="code"><pre>
 tunegrids="{'svmRadial': 'sigma=c(0.01,0.05,0.1), C=c(1,16,128)', 'rf': 'mtry=c(3,10,20)'}"
 </pre></div>
+
+<p>Tuning is potentially very time consuming. Using only a subset of the training
+data for tuning can thus speed up the process significantly, without losing 
+much quality in the tuning results. For training, depending on the number of 
+features used, some R functions can reach their capacity limit.
+The user can, therefore, define a maximum size of samples per class both for 
+tuning (<em>tuning_sample_size</em>) and for training 
+(<em>training_sample_size</em>).
+
+<p>Classifying using too many features (i.e. variables describing the objects 
+to be classified) as input can have negative effects on classification accuracy
+(Georganos et al, 2018). The module therefore provides the possibility to run a
+feature selection algorithm on the training data in order to identify those 
+features that are the most efficient for classification. Using less features
+also speeds up the tuning, training and classification processes. To activate 
+feature selection, the user has to set the <em>max_features</em> parameter to 
+the maximum number of features that the model should select. Often, less than 
+this maximum will be selected. The method used for feature selection is recursive 
+feature elimination based on a random forest model. Note thus that feature 
+selection might sub-optimal for other classifiers, notably non tree-based.
+
+<p>The module can be run only for tuning and training a model, but without 
+any classification (<em>-t flag</em>). Any trained model can be saved to a
+file (<em>output_model_file</em>) which can then later be read into the module
+for a specific classification run (<em>input_model_file</em>). This can be 
+particularly useful for cluster computing approaches where a trained model
+can be applied to different datasets in parallel.
 
 <p>The module can run the model tuning using parallel processing. In order
 for this to work, the R-package <em>doParallel</em> has to be installed. The
@@ -83,13 +114,19 @@ individually by each classifier.
 <p>Optional output of the module include detailed information about the 
 different classifier models and their cross-validation results 
 <em>model_details</em> (for details of these results see the train, 
-resamples and confusionMatrix.train functions in the caret package)  a 
+resamples and confusionMatrix.train functions in the caret package),  a 
 box-and-whisker plot indicating the resampling variance based on the 
-cross-validation for each classifier (<em>bw_plot_file</em>) and a csv 
+cross-validation for each classifier (<em>bw_plot_file</em>), a csv 
 file containing accuracy measures (overall accuracy and kappa) for each 
-classifier (<em>accuracy_file</em>). The user can also chose to write the 
-R script constructed and used internally to a text file for study or further 
-modification.
+classifier (<em>accuracy_file</em>), and a file containing variable importance
+as determined by the classifier (for those classifiers that allow such 
+calculation). When the <em>-p</em> flag is given, 
+the module also provides probabilities per class for each classifier (at least
+for those where caret can calculate such probabilities). This allows to evaluate
+the confidence of classification of each object. 
+The user can also chose to 
+write the R script constructed and used internally to a text file for study or
+further modification.
 
 <h2>NOTES</h2>
 
@@ -143,7 +180,12 @@ v.class.mlR segments_file=segstats.csv training_file=training.csv train_class_co
 
 <h2>REFERENCES</h2>
 
-<p>Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion Methods for Classification in Pattern Recognition Tasks. In D.-Y. Yeung et al., eds. Structural, Syntactic, and Statistical Pattern Recognition. Lecture Notes in Computer Science. Springer Berlin Heidelberg, pp. 705–713, <a href="http://dx.doi.org/10.1007/11815921_77">http://dx.doi.org/10.1007/11815921_77</a>. 
+<p>
+<ul>
+	<li>Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion Methods for Classification in Pattern Recognition Tasks. In D.-Y. Yeung et al., eds. Structural, Syntactic, and Statistical Pattern Recognition. Lecture Notes in Computer Science. Springer Berlin Heidelberg, pp. 705–713, <a href="http://dx.doi.org/10.1007/11815921_77">http://dx.doi.org/10.1007/11815921_77</a>.</li>
+	<li> Georganos, S. et al (2018), Less is more: optimizing classification performance through feature selection in a very-high-resolution remote sensing object-based urban application, GIScience and Remote Sensing, 55:2, 221-242, DOI: 10.1080/15481603.2017.1408892</li>
+</ul>
+
 
 <h2>SEE ALSO</h2>
 
@@ -158,4 +200,4 @@ Moritz Lennert, Université Libre de Bruxelles (ULB)
 based on an initial R-script by Ruben Van De Kerchove, also ULB at the time
 
 
-<p><i>Last changed: $Date$</i>
+<p><i>Last changed: $Date: 2018-06-07 16:15:10 +0200 (jeu 07 jun 2018) $</i>
