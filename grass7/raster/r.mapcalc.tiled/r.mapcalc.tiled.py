@@ -7,7 +7,7 @@
 #
 # PURPOSE:	Run r.mapcalc over tiles of the input map
 #               to allow parallel processing
-# COPYRIGHT:	(C) 1997-2018 by the GRASS Development Team
+# COPYRIGHT:	(C) 2019 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
