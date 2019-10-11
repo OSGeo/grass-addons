@@ -43,7 +43,7 @@
 #%end
 #
 #%option
-#% key: tile_height
+#% key: height
 #% type: integer
 #% description: Height of tiles
 #% answer: 1000
