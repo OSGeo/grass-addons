@@ -93,11 +93,7 @@ proj = ''.join([
 
 import os
 import atexit
-try:
-    from urllib2 import urlopen, URLError, HTTPError
-except ImportError:
-    import urllib.request as urllib
-    from urllib.error import URLError, HTTPError
+from six.moves.urllib import request as urllib2
 try:
     from http.cookiejar import CookieJar
 except ImportError:
@@ -148,7 +144,7 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
     else:
         local_tile = str(tile) + '.hgt.zip'
 
-    urllib.urlcleanup()
+    urllib2.urlcleanup()
 
     if srtmv3:
         remote_tile = str(url) + local_tile
