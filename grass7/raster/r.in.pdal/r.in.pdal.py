@@ -9,7 +9,7 @@
 #
 # PURPOSE:   Creates a raster map from LAS LiDAR points using univariate statistics and r.in.xyz.
 #
-# COPYRIGHT: (C) 2018 by mundialis and the GRASS Development Team
+# COPYRIGHT: (C) 2018-2019 by mundialis and the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
@@ -145,6 +145,11 @@
 #%flag
 #% key: g
 #% description: In scan mode, print using shell script style
+#%end
+
+#%rules
+#% exclusive: raster_file, raster_reference
+#% exclusive: resolution, raster_file, raster_reference
 #%end
 
 import os
@@ -385,7 +390,7 @@ def main():
         footprint_to_vectormap(infile, 'tiles')
 
         if raster_file:
-            raster_reference = 'img'
+            raster_reference = 'img' + str(os.getpid())
             grass.run_command(
                                 'r.external',
                                 input=raster_file,
@@ -394,26 +399,26 @@ def main():
                             )
             result = grass.find_file(name=raster_reference, element='raster')
             if result[u'fullname'] == u'':
-                raster_reference = 'img.1'
-        # first pass: set region to extent of tiles while aligning pixel
-        # geometry to raster_reference
-        grass.run_command('g.region', vector='tiles', flags='p')
+                raster_reference = raster_reference + '.1'
+        # option 1: set region to extent of tiles while precisely aligning pixel
+        # geometry to raster_reference (including both raster_reference and raster_file)
         if raster_reference:
             grass.run_command(
                                 'g.region',
                                 vector='tiles',
-                                flags='ap',
+                                flags='g',
                                 align=raster_reference
                             )
-        # second pass: change raster resolution to final resolution while best
-        # effort aligning to pixel geometry
-        grass.run_command(
+        else:
+            # option 2: change raster resolution to final resolution while best
+            # effort aligning to pixel geometry
+            grass.run_command(
                             'g.region',
                             vector='tiles',
                             flags='ap',
                             res=resolution
                         )
-
+        # generate PDAL pipeline
         # . pdal pipline laz2json (STDOUT) | r.in.xyz
         bn = os.path.basename(infile)
         infile_format = bn.split('.')[-1]
@@ -521,6 +526,14 @@ def main():
                             flags='f',
                             type='vector',
                             name='tiles',
+                            quiet=True
+                        )
+        if raster_file:
+            grass.run_command(
+                            'g.remove',
+                            flags='f',
+                            type='raster',
+                            pattern=raster_reference[:-1] + '*' ,
                             quiet=True
                         )
         os.remove(tmp_file_json)
