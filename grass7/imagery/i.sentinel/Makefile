@@ -2,15 +2,13 @@ MODULE_TOPDIR = ../..
 
 PGM = i.sentinel
 
-SUBDIRS = \
-	i.sentinel.download \
-        i.sentinel.import \
-	i.sentinel.preproc \
-	i.sentinel.mask
+ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
+DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
+SUBDIRS := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: parsubdirs htmldir
+default: subdirs htmldir
 
-install: installsubdirs
+install:
 	$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
