@@ -461,6 +461,8 @@ def main():
                     break
             mnt_vol = cmd_entries[v_index+1].split(':')[1]
             tmp_file_json2 = os.path.join(mnt_vol, tmp_file_json)
+	else:
+	    tmp_file_json2 = tmp_file_json
         command_pdal1.extend(['pipeline', '--input', tmp_file_json2])
         command_pdal2 = ['r.in.xyz',
                          'input=' + tmp_xyz, 'output=' + outfile,
