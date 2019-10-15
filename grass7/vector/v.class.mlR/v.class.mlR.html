@@ -81,7 +81,8 @@ feature elimination based on a random forest model. Note thus that feature
 selection might sub-optimal for other classifiers, notably non tree-based.
 
 <p>The module can be run only for tuning and training a model, but without 
-any classification (<em>-t flag</em>). Any trained model can be saved to a
+<p>Optionally, the module can be run for tuning and training only, 
+i.e., no prediction (<em>-t flag</em>). Any trained model can be saved to a
 file (<em>output_model_file</em>) which can then later be read into the module
 for a specific classification run (<em>input_model_file</em>). This can be 
 particularly useful for cluster computing approaches where a trained model
