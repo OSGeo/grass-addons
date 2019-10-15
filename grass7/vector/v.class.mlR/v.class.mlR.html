@@ -2,7 +2,7 @@
 
 <p>
 <em>v.class.mlR</em> is a wrapper module that uses the R caret package 
-for machine learning in R to classify features using training features 
+for machine learning in R to classify objects using training features 
 by supervised learning.
 
 <p>The user provides a set of objects (or segments) to be classified, including
@@ -23,7 +23,8 @@ of features, a text file (<em>classification_results</em>) or reclassed
 raster maps (<em>classified_map</em>).
 
 <p>When using text file input, the training data should not contain an id 
-column. The object data should have the ids in the first column.
+column. The object data  (i.e., full set of data to be classified) should have
+the ids in the first column.
 
 <p>The user has to provide the name of the column in the training data
 that contains the class values (<em>train_class_column</em>), the prefix
@@ -78,13 +79,13 @@ feature selection, the user has to set the <em>max_features</em> parameter to
 the maximum number of features that the model should select. Often, less than 
 this maximum will be selected. The method used for feature selection is recursive 
 feature elimination based on a random forest model. Note thus that feature 
-selection might sub-optimal for other classifiers, notably non tree-based.
+selection might be sub-optimal for other classifiers, notably non tree-based.
 
 <p>The module can be run only for tuning and training a model, but without 
 <p>Optionally, the module can be run for tuning and training only, 
 i.e., no prediction (<em>-t flag</em>). Any trained model can be saved to a
 file (<em>output_model_file</em>) which can then be read into the module
-for a specific classification run (<em>input_model_file</em>). This can be 
+at a later stage for the prediction step (<em>input_model_file</em>). This can be 
 particularly useful for cluster computing approaches where a trained model
 can be applied to different datasets in parallel.
 
@@ -201,4 +202,4 @@ Moritz Lennert, Université Libre de Bruxelles (ULB)
 based on an initial R-script by Ruben Van De Kerchove, also ULB at the time
 
 
-<p><i>Last changed: $Date: 2018-06-07 16:15:10 +0200 (jeu 07 jun 2018) $</i>
+<p><i>Last changed: $Date$</i>
