@@ -2,13 +2,16 @@ MODULE_TOPDIR = ../..
 
 PGM = i.sentinel
 
+# note: to deactivate a module, just place a file "DEPRECATED" into the subdir
 ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
 DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
-SUBDIRS := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
+RM_SUBDIRS := bin/ docs/ etc/ scripts/
+SUBDIRS_1 := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
+SUBDIRS := $(filter-out $(RM_SUBDIRS), $(SUBDIRS_1))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: subdirs htmldir
+default: parsubdirs htmldir
 
-install:
+install: installsubdirs
 	$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
