@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -14,7 +11,13 @@ from .distance import build_distance_function
 
 
 def mobility_function(
-    distance, constant, coefficients, population, score, suitability=None
+    distance,
+    constant,
+    coefficients,
+    population,
+    score,
+    suitability=None,
+    real_numbers=False,
 ):
     """
     The following 'mobility' function, is identical to the one used in
@@ -81,6 +84,9 @@ def mobility_function(
         If 'suitability' is given, it is used as a multiplication
         factor to the base equation.
 
+    real_numbers :
+        If real_numbers is False (which is the default), the mapcalc expression
+        used to build the mobility function, will derive integer values.
 
     Returns
     -------
@@ -132,6 +138,8 @@ def mobility_function(
         " \ \n if( distance_3, mobility_3,"
         " \ \n null() )))))"
     )
+    if not real_numbers:
+        expression = 'round(' + expression + ')'
     grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
 
     # replace keywords appropriately
@@ -158,7 +166,13 @@ def mobility_function(
 
 
 def compute_unmet_demand(
-    distance, constant, coefficients, population, score, suitability=None
+    distance,
+    constant,
+    coefficients,
+    population,
+    score,
+    suitability=None,
+    real_numbers=False,
 ):
     """
     Parameters
@@ -201,6 +215,10 @@ def compute_unmet_demand(
         If 'suitability' is given, it is used as a multiplication
         factor to the base equation.
 
+    real_numbers :
+        If real_numbers is False (which is the default), the mapcalc expression
+        used to build the mobility function, will derive integer values.
+
     Returns
     -------
 
@@ -233,6 +251,8 @@ def compute_unmet_demand(
         " \ \n if( distance, unmet_demand,"
         " \ \n null() ))"
     )
+    if not real_numbers:
+        expression = 'round(' + expression + ')'
     grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
 
     # replace keywords appropriately

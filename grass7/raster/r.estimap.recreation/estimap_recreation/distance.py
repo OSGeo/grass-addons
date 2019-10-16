@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -14,6 +11,10 @@ from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
+from .constants import (
+    EQUATION,
+    EUCLIDEAN,
+)
 
 
 def build_distance_function(
@@ -75,7 +76,7 @@ def build_distance_function(
     if score:
         function += " * {score}"  # need for float()?
         function = function.format(score=score)
-    grass.debug(_("Function after adding 'score': {f}".format(f=function)))
+    grass.debug(_("*** Function after adding 'score': {f}".format(f=function)))
 
     # -------------------------------------------------------------------------
     # if suitability:
@@ -182,14 +183,14 @@ def compute_attractiveness(
     distance_function = EQUATION.format(
         result=tmp_distance_map, expression=distance_function
     )
-    msg = "Distance function: {f}".format(f=distance_function)
+    msg = "* Distance function: {f}".format(f=distance_function)
     grass.verbose(_(msg))
     grass.mapcalc(distance_function, overwrite=True)
 
     r.null(map=tmp_distance_map, null=0)  # Set NULLs to 0
 
     compress_status = grass.read_command("r.compress", flags="g", map=tmp_distance_map)
-    grass.verbose(_("Compress status: {s}".format(s=compress_status)))  # REMOVEME
+    grass.verbose(_("* Compress status: {s}".format(s=compress_status)))  # REMOVEME
 
     return tmp_distance_map
 
@@ -222,7 +223,7 @@ def neighborhood_function(raster, method, size, distance_map):
     r.null(map=raster, null=0)  # Set NULLs to 0
 
     neighborhood_output = distance_map + "_" + method
-    msg = "Neighborhood operator '{method}' and size '{size}' for map '{name}'"
+    msg = "* Neighborhood operator '{method}' and size '{size}' for map '{name}'"
     msg = msg.format(method=method, size=size, name=neighborhood_output)
     grass.verbose(_(msg))
 
@@ -246,7 +247,7 @@ def neighborhood_function(raster, method, size, distance_map):
         result=filtered_output, expression=scoring_function
     )
     # ---------------------------------------------------------------
-    grass.debug(_("Expression: {e}".format(e=neighborhood_function)))
+    grass.debug(_("*** Expression: {e}".format(e=neighborhood_function)))
     # ---------------------------------------------------------------
     grass.mapcalc(neighborhood_function, overwrite=True)
 
@@ -298,13 +299,13 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
     # temporary maps will be removed
     if output_name:
         tmp_output = temporary_filename(filename=output_name)
-        grass.debug(_("Pre-defined output map name {name}".format(name=tmp_output)))
+        grass.debug(_("*** Pre-defined output map name {name}".format(name=tmp_output)))
 
     else:
         tmp_output = temporary_filename(filename="artificial_proximity")
-        grass.debug(_("Hardcoded temporary map name {name}".format(name=tmp_output)))
+        grass.debug(_("*** Hardcoded temporary map name {name}".format(name=tmp_output)))
 
-    msg = "Computing proximity to '{mapname}'"
+    msg = "* Computing proximity to '{mapname}'"
     msg = msg.format(mapname=raster)
     grass.verbose(_(msg))
     grass.run_command(
@@ -317,7 +318,7 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
 
     output = grass.find_file(name=tmp_output, element="cell")
     if not output["file"]:
-        grass.fatal("Proximity map {name} not created!".format(name=raster))
+        grass.fatal("\n***Proximity map {name} not created!".format(name=raster))
     #     else:
     #         g.message(_("Output map {name}:".format(name=tmp_output)))
 

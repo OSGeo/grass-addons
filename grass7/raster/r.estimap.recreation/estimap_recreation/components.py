@@ -1,12 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+@author Nikos Alexandris
+"""
 
-"""
-@author Nikos Alexandris |
-"""
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 
 import grass.script as grass
 from grass.pygrass.modules.shortcuts import raster as r
+from .grassy_utilities import smooth_map
 
 
 def append_map_to_component(raster, component_name, component_list):
@@ -45,6 +47,8 @@ def smooth_component(component, method, size):
     size:
     """
     try:
+        msg = "Smoothing component '{c}'"
+        grass.verbose(_(msg.format(c=component)))
         if len(component) > 1:
             for item in component:
                 smooth_map(item, method=method, size=size)

@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -17,9 +14,13 @@ from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
+from grass.pygrass.modules.shortcuts import database as db
 
 from .colors import SCORE_COLORS
-from .constants import CITATION_RECREATION_POTENTIAL
+from .constants import (
+    CITATION_RECREATION_POTENTIAL,
+    EQUATION,
+)
 
 
 def run(cmd, **kwargs):
@@ -30,16 +31,25 @@ def run(cmd, **kwargs):
 def remove_map(map_name):
     """ Remove the provided map """
     grass.verbose("Removing %s" % map_name)
-    g.remove(flags="f", type=("raster", "vector"), name=map_name, quiet=True)
+    g.remove(
+        flags="fb",
+        type=("raster", "vector"),
+        name=map_name,
+        quiet=True,
+    )
 
 
 def remove_map_at_exit(map_name):
     """ Remove the provided map when the program exits """
+    msg = "*** Add '{map}' to list of maps to remove when program exits"
+    grass.debug(_(msg.format(map=map_name)))
     atexit.register(lambda: remove_map(map_name))
 
 
 def remove_files_at_exit(filename):
     """ Remove the specified file when the program exits """
+    msg = "*** Add '{file}' to list of files to remove when program exits"
+    grass.debug(_(msg.format(file=filename)))
     atexit.register(lambda: os.unlink(filename))
 
 
@@ -67,6 +77,12 @@ def temporary_filename(filename=None):
     if filename:
         temporary_filename = temporary_filename + "." + str(filename)
     return temporary_filename
+
+
+def detemporary_filename(filename=None):
+    """
+    """
+    pass
 
 
 def remove_temporary_maps():
@@ -165,10 +181,11 @@ def get_univariate_statistics(raster):
     """
     univariate = grass.parse_command("r.univar", flags="g", map=raster)
     minimum = univariate["min"]
-    mean = univariate["mean"]
+    mean = round(float(univariate["mean"]), 3)
     maximum = univariate["max"]
-    variance = univariate["variance"]
-    msg = "min {mn} | mean {avg} | max {mx} | variance {v}"
+    variance = round(float(univariate["variance"]), 3)
+    msg = " * Univariate statistics for '{raster}'".format(raster=raster)
+    msg += "\n  min {mn} | mean {avg} | max {mx} | variance {v}"
     msg = msg.format(mn=minimum, avg=mean, mx=maximum, v=variance)
     grass.verbose(_(msg))
     return univariate
@@ -201,23 +218,21 @@ def recode_map(raster, rules, colors, output):
     --------
     ...
     """
-    msg = "Setting NULL cells in {name} map to 0"
+    msg = "*** Setting NULL cells in {name} map to 0"
     msg = msg.format(name=raster)
     grass.debug(_(msg))
 
     # ------------------------------------------
     r.null(map=raster, null=0)  # Set NULLs to 0
-    msg = "To Do: confirm if setting the '{raster}' map's NULL cells to 0 is right"
+    msg = "*** To Do: confirm if setting the '{raster}' map's NULL cells to 0 is right"
     msg = msg.format(raster=raster)
     grass.debug(_(msg))
     # Is this right?
     # ------------------------------------------
 
+    grass.verbose(_("* Scoring map {name}:".format(name=raster)))
     r.recode(input=raster, rules=rules, output=output)
-
     r.colors(map=output, rules="-", stdin=SCORE_COLORS, quiet=True)
-
-    grass.verbose(_("Scored map {name}:".format(name=raster)))
 
 
 def float_to_integer(double):
@@ -321,11 +336,11 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
     """
     finding = grass.find_file(name=input_name, element="cell")
     if not finding["file"]:
-        grass.fatal("Raster map {name} not found".format(name=input_name))
+        grass.fatal("Raster map {name} not found".format(name=input_name))  # Maybe use 'finding'?
 
     # inform
-    msg = "\nOutputting '{raster}' map\n"
-    msg = msg.format(raster=input_name)
+    msg = "* Outputting '{raster}' map\n"
+    msg = msg.format(raster=output_name)
     grass.verbose(_(msg))
 
     # get categories and labels
@@ -343,6 +358,7 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
     # update meta and colors
     update_meta(input_name, title, timestamp)
     r.colors(map=input_name, rules="-", stdin=colors, quiet=True)
+
     # rename to requested output name
     g.rename(raster=(input_name, output_name), quiet=True)
 
@@ -440,6 +456,9 @@ def smooth_map(raster, method, size):
     Examples
     --------
     """
+    # Build MASK for current category & high quality recreation areas
+    msg = "Smoothing map '{m}'"
+    grass.verbose(_(msg.format(m=raster)))
     r.neighbors(
         input=raster,
         output=raster,
@@ -449,8 +468,6 @@ def smooth_map(raster, method, size):
         quiet=True,
     )
 
-
-# This function is not used.  Review and Fix or Remove!
 def update_vector(vector, raster, methods, column_prefix):
     """
 
@@ -487,20 +504,24 @@ def update_vector(vector, raster, methods, column_prefix):
         column_prefix=column_prefix,
         overwrite=True,
     )
-    # grass.verbose(_("Updating vector map '{v}'".format(v=vector)))
+    grass.verbose(_("* Updating vector map '{v}'".format(v=vector)))
 
-
-def raster_to_vector(raster, vector, type):
+def raster_to_vector(
+        raster_category_flow,
+        vector_category_flow,
+        flow_column_name,
+        category,
+        type):
     """Converts a raster to a vector map
 
     Parameters
     ----------
 
-    raster :
-        Name of the input raster map
+    raster_category_flow :
+        Name of the input raster map 'flow in category'
 
-    vector :
-        Name for the output vector map
+    vector_category_flow :
+        Name for the output vector map 'flow in category'
 
     type :
         Type for the output vector map
@@ -512,21 +533,64 @@ def raster_to_vector(raster, vector, type):
     --------
     ..
     """
-    r.to_vect(input=flow_in_category, output=flow_in_category, type="area", quiet=True)
+    msg = " * Vectorising raster map '{r}'"
+    grass.verbose(_(msg.format(
+        c=category,
+        r=raster_category_flow,
+        v=vector_category_flow,
+    )))
+    r.to_vect(
+        input=raster_category_flow,
+        output=vector_category_flow,
+        type="area",
+        quiet=True,
+    )
+
+    msg = " * Updating the attribute table"
+    grass.verbose(_(msg))
 
     # Value is the ecosystem type
-    v.db_renamecolumn(map=flow_in_category, column=("value", "ecosystem"))
+    v.db_renamecolumn(
+        map=vector_category_flow,
+        column=("value", "ecosystem"),
+        quiet=True,
+    )
 
     # New column for flow values
     addcolumn_string = flow_column_name + " double"
-    v.db_addcolumn(map=flow_in_category, columns=addcolumn_string)
+    v.db_addcolumn(
+        map=vector_category_flow,
+        columns=addcolumn_string,
+        quiet=True,
+    )
 
     # The raster category 'label' is the 'flow'
-    v.db_update(map=flow_in_category, column="flow", query_column="label")
-    v.db_dropcolumn(map=flow_in_category, columns="label")
+    v.db_update(
+        map=vector_category_flow,
+        column="flow",
+        query_column="label",
+        quiet=True,
+    )
+    v.db_dropcolumn(
+        map=vector_category_flow,
+        columns="label",
+        quiet=True,
+    )
 
     # Update the aggregation raster categories
-    v.db_addcolumn(map=flow_in_category, columns="aggregation_id int")
-    v.db_update(map=flow_in_category, column="aggregation_id", value=category)
-
-    v.colors(map=flow_in_category, raster=flow_in_category, quiet=True)
+    v.db_addcolumn(
+        map=vector_category_flow,
+        columns="aggregation_id int",
+        quiet=True,
+    )
+    v.db_update(
+        map=vector_category_flow,
+        column="aggregation_id",
+        value=category,
+        quiet=True,
+    )
+    v.colors(
+        map=vector_category_flow,
+        raster=raster_category_flow,
+        quiet=True,
+    )

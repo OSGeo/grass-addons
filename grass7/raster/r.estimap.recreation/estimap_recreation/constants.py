@@ -1,9 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+@author Nikos Alexandris
+"""
 
-"""
-@author Nikos Alexandris |
-"""
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 
 CITATION_RECREATION_POTENTIAL = "Zulian (2014)"
 SPACY_PLUS = " + "
@@ -11,6 +12,12 @@ EQUATION = "{result} = {expression}"  # basic equation for mapcalc
 
 THRESHHOLD_ZERO = 0
 THRESHHOLD_0001 = 0.0001
+
+COLUMN_PREFIX_SPECTRUM = 'spectrum'
+COLUMN_PREFIX_UNMET = 'unmet'
+COLUMN_PREFIX_DEMAND = 'demand'
+COLUMN_PREFIX_UNMET = 'unmet'
+COLUMN_PREFIX_FLOW = 'flow'
 
 CSV_EXTENSION = ".csv"
 COMMA = "comma"

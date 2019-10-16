@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -56,7 +53,7 @@ def recreation_spectrum_expression(potential, opportunity):
     ...
     """
     expression = (
-        "if( {potential} == 1 && {opportunity} == 1, 1,"
+        " \ \n if( {potential} == 1 && {opportunity} == 1, 1,"
         " \ \n if( {potential} == 1 && {opportunity} == 2, 2,"
         " \ \n if( {potential} == 1 && {opportunity} == 3, 3,"
         " \ \n if( {potential} == 2 && {opportunity} == 1, 4,"
@@ -69,7 +66,7 @@ def recreation_spectrum_expression(potential, opportunity):
 
     expression = expression.format(potential=potential, opportunity=opportunity)
 
-    msg = "Recreation Spectrum expression: \n"
+    msg = "*** Recreation Spectrum expression: \n"
     msg += expression
     grass.debug(msg)
 
@@ -104,7 +101,8 @@ def compute_recreation_spectrum(potential, opportunity, spectrum):
 
     spectrum_equation = EQUATION.format(result=spectrum, expression=spectrum_expression)
 
-    msg = "Recreation Spectrum equation: \n"
+    msg = '\n'
+    msg += ">>> Recreation Spectrum equation: \n"
     msg += spectrum_equation
     grass.verbose(msg)
 
