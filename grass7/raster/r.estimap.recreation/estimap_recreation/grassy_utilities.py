@@ -79,12 +79,6 @@ def temporary_filename(filename=None):
     return temporary_filename
 
 
-def detemporary_filename(filename=None):
-    """
-    """
-    pass
-
-
 def remove_temporary_maps():
     """Clean up temporary maps"""
 
