@@ -528,9 +528,10 @@ def main():
             r_file.write("rndid <- with(training, ave(training[,1], %s, FUN=function(x) {sample.int(length(x))}))" % classcol)
             r_file.write("\n")
             r_file.write("tuning_data <- training[rndid<=%s,]" % tuning_sample_size)
-            r_file.write("\n")
+            r_file.write("\n")        
         else:
             r_file.write("tuning_data <- training")
+            r_file.write("\n")
         # If a max_features value is set, then proceed to feature selection.
         # Currently, feature selection uses random forest. TODO: specific feature selection for each classifier.
         if max_features:
