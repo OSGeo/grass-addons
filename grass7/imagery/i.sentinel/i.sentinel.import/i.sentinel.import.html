@@ -94,10 +94,17 @@ i.sentinel.import input=data pattern='B0(4|8)'
 </pre></div>
 
 <p>
-Limit import to only to all bands with 10m resolution (excluding AOT, WVP, ... bands):
+Limit import to all bands with 10m resolution (excluding AOT, WVP, ... bands):
 
 <div class="code"><pre>
 i.sentinel.import input=data pattern='B0(2|3|4|8)_10m'
+</pre></div>
+
+<p>
+Limit import to only selected bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import input=data pattern='B(02_1|03_1|04_1|08_1|11_2)0m'
 </pre></div>
 
 <p>
