@@ -29,7 +29,7 @@ RATIO_RANGES = (
 
 KERNEL_SIZES = (5, 7, 9, 11, 13, 15)
 
-MATRIX_PROPERTIES = zip(RATIO_RANGES, KERNEL_SIZES)
+MATRIX_PROPERTIES = list(zip(RATIO_RANGES, KERNEL_SIZES))
 
 
 # Replicating ERDAS' Imagine parameters -------------------------------------
