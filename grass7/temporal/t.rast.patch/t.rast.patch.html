@@ -13,10 +13,13 @@ in r.patch.
 <b>r.patch</b>.
 
 <h2>EXAMPLE</h2>
-
-Patching the average temperature:
+The example uses the extra time series of MODIS Land Surface Temperature /https://grass.osgeo.org/download/sample-data/).
+(The mapset has to be unzip in NC location.)
+<p>
+Patching the MODIS Land Surface Temperature for 2016:
 <div class="code"><pre>
-t.rast.patch input=tempmean_monthly output=tempmean_patched
+t.rast.patch input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016 where="start_time >= '2018-01' and start_time <= '2016-12'"
+r.info LST_Day_patched_2016
 </pre></div>
 
 <h2>SEE ALSO</h2>
