@@ -1,0 +1,37 @@
+<h2>DESCRIPTION</h2>
+
+The input of this module is a single space time raster dataset, the
+output is a single raster map layer. A subset of the input space time
+raster dataset can be selected using the <b>where</b> option. The
+sorting of the raster map layer can be set using the <b>sort</b>
+option. Be aware that the sorting of the maps significantly influences
+the result of the patch. By default the maps are
+sorted by <b>desc</b> by the start_time so the newest raster is the first
+in r.patch.
+<p>
+<em>t.rast.patch</em> is a simple wrapper for the raster module
+<b>r.patch</b>.
+
+<h2>EXAMPLE</h2>
+
+Patching the average temperature:
+<div class="code"><pre>
+t.rast.patch input=tempmean_monthly output=tempmean_patched
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.patch.html">r.patch</a>,
+<a href="t.rast.series.html">t.rast.series</a>,
+<a href="t.create.html">t.create</a>,
+<a href="t.info.html">t.info</a>
+</em>
+<p>
+<a href="http://grasswiki.osgeo.org/wiki/Temporal_data_processing">Temporal data processing Wiki</a>
+
+<h2>AUTHOR</h2>
+
+Anika Bettge, mundialis GmbH & Co. KG
+
+<p><i>Last changed: $Date$</i>
