@@ -23,7 +23,7 @@
 #%module
 #% description: Patches the space time rasters to one raster using r.patch.
 #% keyword: temporal
-#% keyword: patch
+#% keyword: aggregation
 #% keyword: series
 #% keyword: raster
 #% keyword: merge
