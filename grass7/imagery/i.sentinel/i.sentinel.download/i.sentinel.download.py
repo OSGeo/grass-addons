@@ -40,7 +40,7 @@
 #%end
 #%option G_OPT_V_MAP
 #% label: Name of input vector map to define Area of Interest (AOI)
-#% description: If not given than current computational extent is used
+#% description: If not given then current computational extent is used
 #% required: no
 #% guisection: Region
 #%end
