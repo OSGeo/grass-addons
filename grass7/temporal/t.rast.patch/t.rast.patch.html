@@ -6,8 +6,8 @@ raster dataset can be selected using the <b>where</b> option. The
 sorting of the raster map layer can be set using the <b>sort</b>
 option. Be aware that the sorting of the maps significantly influences
 the result of the patch. By default the maps are
-sorted by <b>desc</b> by the start_time so the newest raster is the first
-in r.patch.
+sorted by <b>desc</b> by the <i>start_time</i> so that the newest raster map
+is the first input map in <b>r.patch</b>.
 <p>
 <em>t.rast.patch</em> is a simple wrapper for the raster module
 <b>r.patch</b>.
@@ -16,7 +16,7 @@ in r.patch.
 The example uses the extra time series of MODIS Land Surface Temperature /https://grass.osgeo.org/download/sample-data/).
 (The mapset has to be unzip in NC location.)
 <p>
-Patching the MODIS Land Surface Temperature for 2016:
+Patching the MODIS Land Surface Temperature for 2016 (filling missing pixels by subsequent maps in the time series):
 <div class="code"><pre>
 t.rast.patch input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016 where="start_time >= '2018-01' and start_time <= '2016-12'"
 r.info LST_Day_patched_2016
