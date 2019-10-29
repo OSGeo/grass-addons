@@ -19,7 +19,8 @@ maps (<a href="https://grass.osgeo.org/download/sample-data/">download</a>).
 <p>
 Patching the MODIS Land Surface Temperature for 2016 (filling missing pixels by subsequent maps in the time series):
 <div class="code"><pre>
-t.rast.patch input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016 where="start_time >= '2018-01' and start_time <= '2016-12'"
+t.rast.patch input=LST_Day_monthly@modis_lst output=LST_Day_patched_2016 \
+  where="start_time >= '2016-01' and start_time <= '2016-12'"
 r.info LST_Day_patched_2016
 </pre></div>
 
