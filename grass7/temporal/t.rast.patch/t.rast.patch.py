@@ -26,6 +26,8 @@
 #% keyword: patch
 #% keyword: series
 #% keyword: raster
+#% keyword: merge
+#% keyword: patching
 #% keyword: time
 #%end
 
