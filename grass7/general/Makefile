@@ -1,14 +1,8 @@
 MODULE_TOPDIR = ..
 
-SUBDIRS = \
-	g.citation \
-	g.cloud \
-	g.compare.md5 \
-	g.copyall \
-	g.download.location \
-	g.isis3mt \
-	g.proj.all \
-	g.rename.many
+ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
+DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
+SUBDIRS := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

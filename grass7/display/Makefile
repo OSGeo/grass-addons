@@ -1,12 +1,8 @@
 MODULE_TOPDIR = ..
 
-SUBDIRS = \
-	d.explanation.plot \
-	d.frame \
-	d.mon2 \
-	d.vect.colbp \
-	d.vect.colhist \
-	d.vect.thematic2
+ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
+DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
+SUBDIRS := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

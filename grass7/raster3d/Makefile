@@ -1,12 +1,8 @@
 MODULE_TOPDIR = ..
 
-SUBDIRS = \
-	r3.count.categories \
-	r3.forestfrag \
-	r3.profile \
-	r3.scatterplot \
-	r3.to.group \
-	r3.what
+ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
+DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
+SUBDIRS := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

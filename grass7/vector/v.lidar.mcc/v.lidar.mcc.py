@@ -98,7 +98,7 @@ import gettext
 gettext.install('grassmods', os.path.join(os.getenv("GISBASE"), 'locale'))
 
 def cleanup():
-    nuldev = file(os.devnull, 'w')
+    nuldev = open(os.devnull, 'w')
     grass.run_command('g.remove', flags='f', type='vector', name= '%s,%s,%s' % (temp_ng, temp_ncin, temp_ncout), quiet = True, stderr = nuldev)
 
 def main():
@@ -109,7 +109,7 @@ def main():
     # this would be done easily with StringIO
     # but it doesn't work with subprocess
     if not grass.debug_level():
-        nuldev = file(os.devnull, 'w')
+        nuldev = open(os.devnull, 'w')
     else:
         nuldev = sys.stderr
 

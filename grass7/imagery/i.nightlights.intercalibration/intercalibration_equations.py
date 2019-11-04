@@ -8,7 +8,7 @@ Convert (and export -- needs uncommenting!) intercalibration equations
 """
 
 import os
-import StringIO
+from io import StringIO
 import csv
 import collections
 
@@ -19,7 +19,7 @@ LIU2012|DNadj. = {c0} + {c1} * DN + {c2} * DN^2|({c0}) + ({c1})*{dummy} +({c2})*
 WU2013|DNc + 1 = {a} * (DNm + 1)^{b}|({a}) * ({dummy} + 1)^({b})"""
 
 # fake it...
-csvfile = StringIO.StringIO(csvstring)
+csvfile = StringIO(csvstring)
 
 
 def csv_to_dictionary(csvfile):
@@ -72,7 +72,7 @@ def export_to_ascii(dictionary, filename, separator):
 
         # structure informative message
         msg = '> Exporting python dictionary as is...'
-        print msg
+        print(msg)
 
         # open, write and close file
         asciif = open(filename, 'w')
@@ -80,7 +80,7 @@ def export_to_ascii(dictionary, filename, separator):
         asciif.close()
 
     else:
-        print '{f} already exists!'.format(f=filename)
+        print('{f} already exists!'.format(f=filename))
 
 
 def main():

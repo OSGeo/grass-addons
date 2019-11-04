@@ -50,6 +50,11 @@ from __future__ import print_function
 #%End
 
 #%flag
+#%  key: r
+#%  description: Let the mobility function derive real numbers for the flow
+#%end
+
+#%flag
 #%  key: e
 #%  description: Match computational region to extent of land use map
 #%end
@@ -439,6 +444,7 @@ collective: all or nothing; if any option is given, all must be given
 
 #%rules
 #%  requires: potential, land, natural, water, landuse, protected, lakes, coastline
+#%  requires_all: -e, landuse
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -567,7 +573,7 @@ collective: all or nothing; if any option is given, all must be given
 #% key_desc: prefix
 #% type: string
 #% label: Output prefix for the file name of the supply table CSV
-#% description: Supply table CSV output file names will get this prefix
+#% description: Use table CSV output file names will get this prefix
 #% multiple: no
 #% required: no
 #% guisection: Output
@@ -625,40 +631,20 @@ collective: all or nothing; if any option is given, all must be given
 
 # required librairies
 
-import datetime
 import os
-import subprocess
 import sys
-import time
-from pprint import pprint as pp
 
 if "GISBASE" not in os.environ:
     sys.exit("Exiting: You must be in GRASS GIS to run this program.")
 
 import grass.script as grass
-
 from grass.script.utils import set_path
-try:
-    # set python path to the shared libraries
-    set_path('r.estimap.recreation', 'estimap_recreation', '..')
-    # constants
-    from estimap_recreation.colors import *
-    from estimap_recreation.constants import *
-    from estimap_recreation.labels import *
-    # main
-    from estimap_recreation.main import main as main_estimap
-except ImportError:
-    try:
-        set_path('r.estimap.recreation', 'estimap_recreation', os.path.join('..', 'etc', 'r.estimap.recreation'))
-        # constants
-        from estimap_recreation.colors import *
-        from estimap_recreation.constants import *
-        from estimap_recreation.labels import *
-        # main
-        from estimap_recreation.main import main as main_estimap
-    except ImportError:
-        gcore.warning('estimap_recreation not in the python path!')
 
+addon_path = os.path.join(os.path.dirname(__file__), "..", 'etc', 'r.estimap.recreation')
+sys.path.insert(1, os.path.abspath(addon_path))
+# import pprint
+# pprint.pprint(sys.path)
+from estimap_recreation.main import main as main_estimap
 
 def main(options, flags):
     sys.exit(main_estimap())

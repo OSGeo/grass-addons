@@ -62,7 +62,7 @@ def get_new_points(points, lines, output, maxdist=50):
     points, pmset = points.split('@') if '@' in points else (points, '')
     lines, lmset = lines.split('@') if '@' in lines else (lines, '')
     with VectorTopo(points, mapset=pmset, mode='r') as pts:
-        cols = pts.table.columns.items() if pts.table else None
+        cols = list(pts.table.columns.items()) if pts.table else None
         with VectorTopo(lines, mapset=lmset, mode='r') as lns:
             with VectorTopo(output, mode='w', tab_cols=cols,
                             overwrite=ovwr) as out:
@@ -79,7 +79,7 @@ def get_new_points(points, lines, output, maxdist=50):
                     newpnt, dist, _, _ = line.distance(pnt)
                     # get the attributes
                     attrs = (None if pnt.attrs is None
-                             else pnt.attrs.values()[1:])
+                             else list(pnt.attrs.values())[1:])
                     # write the new point in the new vector map
                     out.write(newpnt, attrs)
                 # save the changes on the output table

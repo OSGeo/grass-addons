@@ -373,25 +373,25 @@ def write_results2newvec(stream, E, basins_tot, inputs):
             db = db + [0, 0.0, 0, 0.0, 0, 0.0,
                        basins_tot[ID].E_own]
         elif len(basins_tot[ID].E_up) == 1:
-            db = (db + [basins_tot[ID].E_up.keys()[0],
-                  basins_tot[ID].E_up.values()[0],
+            db = (db + [list(basins_tot[ID].E_up.keys())[0],
+                  list(basins_tot[ID].E_up.values())[0],
                   0, 0.0, 0, 0.0, basins_tot[ID].E_own
                   + sum(basins_tot[ID].E_up.values())])
         elif len(basins_tot[ID].E_up) == 2:
-            db = (db + [basins_tot[ID].E_up.keys()[0],
-                  basins_tot[ID].E_up.values()[0],
-                  basins_tot[ID].E_up.keys()[1],
-                  basins_tot[ID].E_up.values()[1],
+            db = (db + [list(basins_tot[ID].E_up.keys())[0],
+                  list(basins_tot[ID].E_up.values())[0],
+                  list(basins_tot[ID].E_up.keys())[1],
+                  list(basins_tot[ID].E_up.values())[1],
                   0, 0.0, basins_tot[ID].E_own
                   + sum(basins_tot[ID].E_up.values())])
         elif len(basins_tot[ID].E_up) == 3:
             #pdb.set_trace()
-            db = (db + [basins_tot[ID].E_up.keys()[0],
-                  basins_tot[ID].E_up.values()[0],
-                  basins_tot[ID].E_up.keys()[1],
-                  basins_tot[ID].E_up.values()[1],
-                  basins_tot[ID].E_up.keys()[2],
-                  basins_tot[ID].E_up.values()[2],
+            db = (db + [list(basins_tot[ID].E_up.keys())[0],
+                  list(basins_tot[ID].E_up.values())[0],
+                  list(basins_tot[ID].E_up.keys())[1],
+                  list(basins_tot[ID].E_up.values())[1],
+                  list(basins_tot[ID].E_up.keys())[2],
+                  list(basins_tot[ID].E_up.values())[2],
                   basins_tot[ID].E_own + sum(basins_tot[ID].E_up.values())])
         else:
             db = db + [0, 0.0, 0, 0.0, 0, 0.0, basins_tot[ID].E_own]
@@ -435,7 +435,7 @@ def init_basins(basins):
     """
     # I use r.stats because of the case with MASK
     info = gcore.parse_command('r.stats', flags='n', input=basins)
-    inputs = map(int, info.keys())
+    inputs = list(map(int, info.keys()))
     basins_tot = {}
 
     for count in inputs:
@@ -536,8 +536,8 @@ def build_network(stream, dtm, basins_tot):
     clos = raster2numpy(tmp_closure)
     ID_down = raster2numpy(tmp_down)
     #pdb.set_trace()
-    for i, j, v in itertools.izip(river_comp.row,
-                                  river_comp.col, river_comp.data):
+    for i, j, v in zip(river_comp.row,
+                       river_comp.col, river_comp.data):
         up = clos[i][j]
         if up < 0:
             ID = river[i, j]
@@ -683,7 +683,7 @@ def compute_river_discharge(drain, stream, string, **kwargs):
     bas_area = raster2numpy(stream)
     river_comp = raster2compressM(stream).tocoo()
     count = 0
-    for i, j in itertools.izip(river_comp.row, river_comp.col):
+    for i, j in zip(river_comp.row, river_comp.col):
         count = count+1
         msgr.message("\n %i \n" % count)
         p_x, p_y = get_coo(stream, i, j)

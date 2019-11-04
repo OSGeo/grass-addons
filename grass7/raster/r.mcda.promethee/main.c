@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    G_add_keyword(_("raster,MCDA"));
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("MCDA"));
     module->description = _("Multicirtieria decision analysis based on PROMETHEE method");
 
     /* Define the different options as defined in gis.h */

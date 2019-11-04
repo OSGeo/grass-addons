@@ -9,7 +9,7 @@
 #
 # PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or 1 arcsec SRTM v3 tiles
 #
-# COPYRIGHT:    (C) 2011-2016 GRASS development team
+# COPYRIGHT:    (C) 2011-2019 GRASS development team
 #
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -93,10 +93,12 @@ proj = ''.join([
 
 import os
 import atexit
-import urllib
-import urllib2
+from six.moves.urllib import request as urllib2
+try:
+    from http.cookiejar import CookieJar
+except ImportError:
+    from cookielib import CookieJar
 import time
-from cookielib import CookieJar
 import grass.script as grass
 
 def import_local_tile(tile, local, pid, srtmv3, one):
@@ -142,7 +144,7 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
     else:
         local_tile = str(tile) + '.hgt.zip'
 
-    urllib.urlcleanup()
+    urllib2.urlcleanup()
 
     if srtmv3:
         remote_tile = str(url) + local_tile

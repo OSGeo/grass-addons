@@ -1,9 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+@author Nikos Alexandris
+"""
 
-"""
-@author Nikos Alexandris |
-"""
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 
 MOBILITY_COLORS = "wave"
 LANDCOVER_FRACTIONS_COLOR = "wave"

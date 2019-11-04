@@ -75,8 +75,6 @@ TMP = []
 
 
 def cleanup():
-    if gscript.find_file(name='MASK', element='cell', mapset=gscript.gisenv()['MAPSET'])['name']:
-        gscript.run_command('r.mask', flags='r', quiet=True)
     if TMP:
         gscript.run_command('g.remove', flags='f', type=['raster', 'vector'], name=TMP, quiet=True)
 
@@ -112,13 +110,11 @@ def main():
     else:
         sampled_rasters = []
     npoints = [int(num) for num in options['npoints'].split(',')]
+
     seed = None
     if options['random_seed']:
         seed = int(options['random_seed'])
     flag_s = flags['s']
-
-    if gscript.find_file(name='MASK', element='cell', mapset=gscript.gisenv()['MAPSET'])['name']:
-        gscript.fatal(_("MASK is active. Please remove it before proceeding."))
 
     # we clean up mask too, so register after we know that mask is not present
     atexit.register(cleanup)
@@ -128,14 +124,15 @@ def main():
     TMP.append(points_nocats)
 
     # input must be CELL
-    rdescribe = gscript.read_command('r.stats', flags='ln', input=input_raster, separator='pipe')
+    rdescribe = gscript.read_command('r.stats', flags='lnc', input=input_raster, separator='pipe')
     catlab = rdescribe.splitlines()
-    categories = map(int, [z.split('|')[0] for z in catlab])
-    catlab = dict([z.split('|') for z in catlab])
+    categories = list(map(int, [z.split('|')[0] for z in catlab]))
+    pixlab = dict([z.split('|')[::2] for z in catlab])
+    catlab = dict([z.split('|')[:2] for z in catlab])
     if len(npoints) == 1:
-        npoints = npoints * len(list(categories))
+        npoints = npoints * len(categories)
     else:
-        if len(list(categories)) != len(npoints):
+        if len(categories) != len(npoints):
             gscript.fatal(_("Number of categories in raster does not match the number of provided sampling points numbers."))
 
     # Create sample points per category
@@ -144,13 +141,9 @@ def main():
         # skip generating points if none are required
         if npoints[i] == 0:
             continue
-        gscript.info(_("Selecting {n} sampling locations at category {cat}...").format(n=npoints[i], cat=cat))
-        # change mask to sample zeroes and then change again to sample ones
-        # overwrite mask for an easy loop
-        gscript.run_command('r.mask', raster=input_raster, maskcats=cat, overwrite=True, quiet=True)
 
         # Check number of cells in category
-        nrc = int(gscript.parse_command('r.univar', map=input_raster, flags='g')['n'])
+        nrc = int(pixlab[str(cat)])
         if nrc < npoints[i]:
             if flag_s:
                 gscript.info(_("Not enough points in category {cat}. Skipping").format(cat=categories[i]))
@@ -158,16 +151,25 @@ def main():
             gscript.warning(_("Number of raster cells in category {cat} < {np}. Sampling {n} points").format(cat=categories[i], np=npoints[i], n=nrc))
             npoints[i] = nrc
 
+        gscript.info(_("Selecting {n} sampling locations at category {cat}...").format(n=npoints[i], cat=cat))
+
+        # Create reclass map with only pixels of current category
+        rc_rule='{0} = {0}\n* = NULL'.format(cat)
+        gscript.write_command('r.reclass', input=input_raster, output=temp_name, 
+                              rules='-', stdin=rc_rule, overwrite=True, quiet=True)
+
+        if not temp_name in TMP:
+            TMP.append(temp_name)
+
         # Create the points
         vector = temp_name + str(cat)
         vectors.append(vector)
         if seed is None:
-            gscript.run_command('r.random', input=input_raster, npoints=npoints[i], vector=vector, quiet=True)
+            gscript.run_command('r.random', input=temp_name, npoints=npoints[i], vector=vector, quiet=True)
         else:
-            gscript.run_command('r.random', input=input_raster, npoints=npoints[i],
+            gscript.run_command('r.random', input=temp_name, npoints=npoints[i],
                                 vector=vector, seed=seed, quiet=True)
         TMP.append(vector)
-        gscript.run_command('r.mask', flags='r', quiet=True)
 
     gscript.run_command('v.patch', input=vectors, output=points, quiet=True)
     # remove and add gain cats so that they are unique

@@ -357,8 +357,8 @@ def main(opts, flgs):
     with RasterRow(tech_bioenergy) as pT:
         T = np.array(pT)
 
-    print "Resulted maps: "+output+"_tech_bioenergyHF, "+output+"_tech_bioenergyC, "+output+"_tech_bioenergy"
-    print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
+    print("Resulted maps: "+output+"_tech_bioenergyHF, "+output+"_tech_bioenergyC, "+output+"_tech_bioenergy")
+    print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
     if flgs['r'] == True:

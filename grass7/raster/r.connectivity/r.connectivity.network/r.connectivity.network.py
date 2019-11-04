@@ -221,10 +221,9 @@ import grass.script.task as task
 import grass.script.db as grass_db
 
 
-# Check if script is started from within GRASS
-if not os.environ.has_key("GISBASE"):
-    grass.message("You must be in GRASS GIS to run this program.")
-    sys.exit(1)
+# check if GRASS is running or not
+if "GISBASE" not in os.environ:
+    sys.exit("You must be in GRASS GIS to run this program")
 
 def cleanup():
     """tmp_maps = grass.read_command("g.list",

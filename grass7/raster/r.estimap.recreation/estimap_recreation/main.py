@@ -1,39 +1,108 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
+
 import atexit
+import os
 
-# constants
+from .constants import (
+    CITATION_RECREATION_POTENTIAL,
+    COLUMN_PREFIX_SPECTRUM,
+    COLUMN_PREFIX_DEMAND,
+    COLUMN_PREFIX_UNMET,
+    COLUMN_PREFIX_FLOW,
+    EQUATION,
+    EUCLIDEAN,
+    HIGHEST_RECREATION_CATEGORY,
+    METHODS,
+    MOBILITY_COEFFICIENTS,
+    MOBILITY_CONSTANT,
+    MOBILITY_SCORE,
+    NEIGHBORHOOD_METHOD,
+    NEIGHBORHOOD_SIZE,
+    RECREATION_OPPORTUNITY_CATEGORIES,
+    RECREATION_POTENTIAL_CATEGORIES,
+    SUITABILITY_SCORES,
+    THRESHHOLD_0001,
+    THRESHHOLD_ZERO,
+    URBAN_ATLAS_TO_MAES_NOMENCLATURE,
+    WATER_PROXIMITY_ALPHA,
+    WATER_PROXIMITY_CONSTANT,
+    WATER_PROXIMITY_KAPPA,
+    WATER_PROXIMITY_SCORE,
+)
+from .messages import (
+    MESSAGE_PROCESSING,
+    MATCHING_COMPUTATIONAL_RESOLUTION,
+    MESSAGE_NORMALIZING,
+    POPULATION_STATISTICS,
+)
+from .names import (
+    LAND_COMPONENT,
+    WATER_COMPONENT,
+    NATURAL_COMPONENT,
+    SCORED_PROTECTED_AREAS_MAP_NAME,
+    RECREATION_POTENTIAL_COMPONENT,
+    RECREATION_POTENTIAL_TITLE,
+    RECREATION_OPPORTUNITY_COMPONENT,
+    RECREATION_OPPORTUNITY_TITLE,
+    RECREATION_SPECTRUM_TITLE,
+    MAES_ECOSYSTEM_TYPES_MAP_TITLE,
+)
+from .labels import (
+    POTENTIAL_CATEGORY_LABELS,
+    OPPORTUNITY_CATEGORY_LABELS,
+    SPECTRUM_CATEGORY_LABELS,
+    SPECTRUM_DISTANCE_CATEGORY_LABELS,
+)
+from .colors import (
+    SCORE_COLORS,
+    POTENTIAL_COLORS,
+    OPPORTUNITY_COLORS,
+    SPECTRUM_COLORS,
+)
+from .grassy_utilities import (
+    grass,
+    g,
+    r,
+    remove_map_at_exit,
+    remove_files_at_exit,
+    temporary_filename,
+    remove_temporary_maps,
+    string_to_file,
+    get_univariate_statistics,
+    recode_map,
+    update_meta,
+    export_map,
+    update_vector,
+)
+from .utilities import get_coefficients
+from .distance import (
+    compute_attractiveness,
+    neighborhood_function,
+    compute_artificial_proximity,
+)
+from .normalisation import zerofy_and_normalise_component
+from .accessibility import compute_artificial_accessibility
+from .spectrum import compute_recreation_spectrum
+from .components import (
+    append_map_to_component,
+    smooth_component,
+    classify_recreation_component,
+)
+from .land_component import build_land_component
+from .water_component import build_water_component
+from .natural_component import build_natural_component
+from .mobility import (
+    mobility_function,
+    compute_unmet_demand,
+)
+from .supply_and_use import compute_supply
 
-from estimap_recreation.labels import POTENTIAL_CATEGORY_LABELS
-from estimap_recreation.labels import OPPORTUNITY_CATEGORY_LABELS
-from estimap_recreation.labels import SPECTRUM_CATEGORY_LABELS
-from estimap_recreation.labels import SPECTRUM_DISTANCE_CATEGORY_LABELS
-from estimap_recreation.colors import POTENTIAL_COLORS
-from estimap_recreation.colors import OPPORTUNITY_COLORS
-from estimap_recreation.colors import SPECTRUM_COLORS
-
-# utilities
-
-from estimap_recreation.grassy_utilities import *
-from estimap_recreation.utilities import *
-
-# algorithms
-
-from estimap_recreation.distance import *
-from estimap_recreation.normalisation import *
-from estimap_recreation.accessibility import *
-from estimap_recreation.spectrum import *
-from estimap_recreation.components import *
-from estimap_recreation.mobility import *
-from estimap_recreation.supply_and_use import *
 
 def main():
     """
@@ -49,6 +118,7 @@ def main():
     save_temporary_maps = flags["s"]
 
     # Flags that are being used
+    real_numbers = flags["r"]
     average_filter = flags["f"]
     landuse_extent = flags["e"]
     print_only = flags["p"]
@@ -68,132 +138,43 @@ def main():
     following some hard-coded names -- review and remove!
     """
 
-    land = options["land"]
+    land = options["land"].split('@')[0]
     land_component_map_name = temporary_filename(filename="land_component")
 
-    water = options["water"]
+    water = options["water"].split('@')[0]
     water_component_map_name = temporary_filename(filename="water_component")
 
-    natural = options["natural"]
+    natural = options["natural"].split('@')[0]
     natural_component_map_name = temporary_filename(filename="natural_component")
 
-    urban = options["urban"]
+    urban = options["urban"].split('@')[0]
     urban_component_map = "urban_component"
 
-    infrastructure = options["infrastructure"]
+    infrastructure = options["infrastructure"].split('@')[0]
     infrastructure_component_map_name = temporary_filename(filename="infrastructure_component")
 
-    recreation = options["recreation"]
+    recreation = options["recreation"].split('@')[0]
     recreation_component_map_name = temporary_filename(filename="recreation_component")
+
+    """Processing"""
+
+    grass.verbose(_(MESSAGE_PROCESSING))
 
     """Land components"""
 
     landuse = options["landuse"]
-    if landuse:
-        # Check datatype: a land use map should be categorical, i.e. of type CELL
-        landuse_datatype = grass.raster.raster_info(landuse)["datatype"]
-        if landuse_datatype != "CELL":
-            msg = (
-                "The '{landuse}' input map "
-                "should be a categorical one "
-                "and of type 'CELL'. "
-                "Perhaps you meant to use the 'land' input option instead?"
-            )
-            grass.fatal(_(msg.format(landuse=landuse)))
-
-    suitability_map_name = temporary_filename(filename="suitability")
     suitability_scores = options["suitability_scores"]
-
-    if landuse and suitability_scores and ":" not in suitability_scores:
-        msg = "Suitability scores from file: {scores}."
-        msg = msg.format(scores=suitability_scores)
-        grass.verbose(_(msg))
-
-    if landuse and not suitability_scores:
-        msg = "Using internal rules to score land use classes in '{map}'"
-        msg = msg.format(map=landuse)
-        grass.warning(_(msg))
-
-        temporary_suitability_map_name = temporary_filename(filename=suitability_map_name)
-        suitability_scores = string_to_file(
-            SUITABILITY_SCORES, filename=temporary_suitability_map_name
-        )
-        remove_files_at_exit(suitability_scores)
-
-    if landuse and suitability_scores and ":" in suitability_scores:
-        msg = "Using provided string of rules to score land use classes in {map}"
-        msg = msg.format(map=landuse)
-        grass.verbose(_(msg))
-        temporary_suitability_map_name = temporary_filename(filename=suitability_map_name)
-        suitability_scores = string_to_file(
-            suitability_scores, filename=temporary_suitability_map_name
-        )
-        remove_files_at_exit(suitability_scores)
-
-    # FIXME -----------------------------------------------------------------
-
-    # Use one landcover input if supply is requested
-    # Use one set of land cover reclassification rules
-
     landcover = options["landcover"]
-
-    if not landcover:
-        landcover = landuse
-        msg = "Land cover map 'landcover' not given. "
-        msg += "Attempt to use the '{landuse}' map to derive areal statistics"
-        msg = msg.format(landuse=landuse)
-        grass.verbose(_(msg))
-
-    maes_ecosystem_types = "maes_ecosystem_types"
-    maes_ecosystem_types_scores = "maes_ecosystem_types_scores"
     landcover_reclassification_rules = options["land_classes"]
 
-    # if 'land_classes' is a file
+    # if the given 'rules' file(name) does not exist
     if (
-        landcover
-        and landcover_reclassification_rules
-        and ":" not in landcover_reclassification_rules
+        landcover_reclassification_rules
+        and not os.path.exists(landcover_reclassification_rules)
     ):
-        msg = "Land cover reclassification rules from file: {rules}."
-        msg = msg.format(rules=landcover_reclassification_rules)
-        grass.verbose(_(msg))
-
-    # if 'land_classes' not given
-    if landcover and not landcover_reclassification_rules:
-
-        # if 'landcover' is not the MAES land cover,
-        # then use internal reclassification rules
-        # how to test:
-        # 1. landcover is not a "MAES" land cover
-        # 2. landcover is an Urban Atlas one?
-
-        msg = "Using internal rules to reclassify the '{map}' map"
-        msg = msg.format(map=landcover)
-        grass.verbose(_(msg))
-
-        temporary_maes_ecosystem_types = temporary_filename(filename=maes_ecosystem_types)
-        landcover_reclassification_rules = string_to_file(
-            URBAN_ATLAS_TO_MAES_NOMENCLATURE, filename=maes_ecosystem_types
-        )
-        remove_files_at_exit(landcover_reclassification_rules)
-
-        # if landcover is a "MAES" land cover, no need to reclassify!
-
-    if (
-        landuse
-        and landcover_reclassification_rules
-        and ":" in landcover_reclassification_rules
-    ):
-        msg = "Using provided string of rules to reclassify the '{map}' map"
-        msg = msg.format(map=landcover)
-        grass.verbose(_(msg))
-        temporary_maes_land_classes = temporary_filename(filename=maes_land_classes)
-        landcover_reclassification_rules = string_to_file(
-            landcover_reclassification_rules, filename=maes_land_classes
-        )
-        remove_files_at_exit(landcover_reclassification_rules)
-
-    # FIXME -----------------------------------------------------------------
+        error_message = ">>> File '{f}' not found! "
+        missing_absolute_filename = os.path.abspath(landcover_reclassification_rules)
+        raise ValueError(error_message.format(f=missing_absolute_filename))
 
     """Water components"""
 
@@ -246,15 +227,15 @@ def main():
 
     """Outputs"""
 
-    potential_title = "Recreation potential"
+    potential_title = RECREATION_POTENTIAL_TITLE
     recreation_potential = options["potential"]  # intermediate / output
     recreation_potential_map_name = temporary_filename(filename="recreation_potential")
 
-    opportunity_title = "Recreation opportunity"
+    opportunity_title = RECREATION_OPPORTUNITY_TITLE
     recreation_opportunity = options["opportunity"]
-    recreation_opportunity_map_name = "recreation_opportunity"
+    recreation_opportunity_map_name = temporary_filename(filename="recreation_opportunity")
 
-    spectrum_title = "Recreation spectrum"
+    spectrum_title = RECREATION_SPECTRUM_TITLE
     # if options['spectrum']:
     recreation_spectrum = options["spectrum"]  # output
     # else:
@@ -278,7 +259,12 @@ def main():
     unmet_demand = options["unmet"]
 
     flow = options["flow"]
-    flow_map_name = "flow"
+    # flow_map_name :
+    #     A name for the 'flow' map. This is required when the 'flow' input
+    #     option is not defined by the user, yet some of the requested outputs
+    #     required first the production of the 'flow' map. An example is the
+    #     request for a supply table without requesting the 'flow' map itself.
+    flow_map_name = temporary_filename(filename="flow")
 
     supply = options["supply"]  # use as CSV filename prefix
     use = options["use"]  # use as CSV filename prefix
@@ -286,178 +272,48 @@ def main():
     """ First, care about the computational region"""
 
     if mask:
-        msg = "Masking NULL cells based on '{mask}'".format(mask=mask)
+        msg = " * Masking NULL cells based on '{mask}'".format(mask=mask)
         grass.verbose(_(msg))
         r.mask(raster=mask, overwrite=True, quiet=True)
 
     if landuse_extent:
-        grass.use_temp_region()  # to safely modify the region
-        g.region(flags="p", raster=landuse)  # Set region to 'mask'
-        msg = "|! Computational resolution matched to {raster}"
-        msg = msg.format(raster=landuse)
-        g.message(_(msg))
+        g.message(_(MATCHING_COMPUTATIONAL_RESOLUTION.format(raster=landuse)))
+        grass.use_temp_region()  # modify the region safely
+        g.region(flags="p", raster=landuse)  # set region to 'landuse'
 
     """Land Component
             or Suitability of Land to Support Recreation Activities (SLSRA)"""
 
-    land_component = []  # a list, use .extend() wherever required
+    maes_ecosystem_types = "maes_ecosystem_types"
 
-    if land:
-
-        land_component = land.split(",")
-
-    if landuse and suitability_scores:
-
-        msg = "Deriving land suitability from '{landuse}' "
-        msg += "based on rules described in file '{rules}'"
-        grass.verbose(msg.format(landuse=landuse, rules=suitability_scores))
-
-        # suitability is the 'suitability_map_name'
-        recode_map(
-            raster=landuse,
-            rules=suitability_scores,
-            colors=SCORE_COLORS,
-            output=suitability_map_name,
-        )
-
-        append_map_to_component(
-            raster=suitability_map_name,
-            component_name="land",
-            component_list=land_component,
-        )
+    land_component = build_land_component(
+            landuse=landuse,
+            suitability_scores=suitability_scores,
+            landcover=landcover,
+            landcover_reclassification_rules=landcover_reclassification_rules,
+            maes_ecosystem_types=maes_ecosystem_types,
+            land=land,
+    )
 
     """Water Component"""
 
-    water_component = []
-    water_components = []
-
-    if water:
-
-        water_component = water.split(",")
-        msg = "Water component includes currently: {component}"
-        msg = msg.format(component=water_component)
-        grass.debug(_(msg))
-        # grass.verbose(_(msg))
-
-    if lakes:
-
-        if lakes_coefficients:
-            metric, constant, kappa, alpha, score = get_coefficients(lakes_coefficients)
-
-        lakes_proximity = compute_attractiveness(
-            raster=lakes,
-            metric=EUCLIDEAN,
-            constant=constant,
-            kappa=kappa,
-            alpha=alpha,
-            score=score,
-            mask=lakes,
-        )
-
-        append_map_to_component(
-            raster=lakes_proximity,
-            component_name="water",
-            component_list=water_components,
-        )
-
-    if coastline:
-
-        coast_proximity = compute_attractiveness(
-            raster=coastline,
-            metric=EUCLIDEAN,
-            constant=WATER_PROXIMITY_CONSTANT,
-            alpha=WATER_PROXIMITY_ALPHA,
-            kappa=WATER_PROXIMITY_KAPPA,
-            score=WATER_PROXIMITY_SCORE,
-        )
-
-        append_map_to_component(
-            raster=coast_proximity,
-            component_name="water",
-            component_list=water_components,
-        )
-
-    if coast_geomorphology:
-
-        try:
-
-            if not coastline:
-                msg = "The coastline map is required in order to "
-                msg += "compute attractiveness based on the "
-                msg += "coast geomorphology raster map"
-                msg = msg.format(c=water_component)
-                grass.fatal(_(msg))
-
-        except NameError:
-            grass.fatal(_("No coast proximity"))
-
-        coast_attractiveness = neighborhood_function(
-            raster=coast_geomorphology,
-            method=NEIGHBORHOOD_METHOD,
-            size=NEIGHBORHOOD_SIZE,
-            distance_map=coast_proximity,
-        )
-
-        append_map_to_component(
-            raster=coast_attractiveness,
-            component_name="water",
-            component_list=water_components,
-        )
-
-    if bathing_water:
-
-        if bathing_water_coefficients:
-            metric, constant, kappa, alpha = get_coefficients(
-                bathing_water_coefficients
-            )
-
-        bathing_water_proximity = compute_attractiveness(
-            raster=bathing_water,
-            metric=EUCLIDEAN,
-            constant=constant,
-            kappa=kappa,
-            alpha=alpha,
-        )
-
-        append_map_to_component(
-            raster=bathing_water_proximity,
-            component_name="water",
-            component_list=water_components,
-        )
-
-    # merge water component related maps in one list
-    water_component += water_components
+    water_component = build_water_component(
+            water=water,
+            lakes=lakes,
+            lakes_coefficients=lakes_coefficients,
+            coastline=coastline,
+            coast_geomorphology=coast_geomorphology,
+            bathing_water=bathing_water,
+            bathing_water_coefficients=bathing_water_coefficients,
+    )
 
     """Natural Component"""
-
-    natural_component = []
-    natural_components = []
-
-    if natural:
-
-        natural_component = natural.split(",")
-
-    if protected:
-        msg = "Scoring protected areas '{protected}' based on '{rules}'"
-        grass.verbose(_(msg.format(protected=protected, rules=protected_scores)))
-
-        protected_areas = protected_areas_map_name
-
-        recode_map(
-            raster=protected,
-            rules=protected_scores,
-            colors=SCORE_COLORS,
-            output=protected_areas,
-        )
-
-        append_map_to_component(
-            raster=protected_areas,
-            component_name="natural",
-            component_list=natural_components,
-        )
-
-    # merge natural resources component related maps in one list
-    natural_component += natural_components
+    natural_component = build_natural_component(
+            natural=natural,
+            protected=protected,
+            protected_scores=protected_scores,
+            output_scored_protected_areas=SCORED_PROTECTED_AREAS_MAP_NAME,
+            )
 
     """ Normalize land, water, natural inputs
     and add them to the recreation potential component"""
@@ -481,19 +337,19 @@ def main():
             subset_land = EQUATION.format(result=suitability_map, expression=land_map)
             r.mapcalc(subset_land)
 
-            grass.debug(_("Setting NULL cells to 0"))  # REMOVEME ?
+            grass.debug(_("*** Setting NULL cells to 0"))  # REMOVEME ?
             r.null(map=suitability_map, null=0)  # Set NULLs to 0
 
-            msg = "\nAdding land suitability map '{suitability}' "
-            msg += "to 'Recreation Potential' component\n"
-            msg = msg.format(suitability=suitability_map)
+            msg = "* Adding land suitability map '{suitability}' "
+            msg += "to {component} component\n"
+            msg = msg.format(suitability=suitability_map, component=RECREATION_POTENTIAL_COMPONENT)
             grass.verbose(_(msg))
 
             # add 'suitability_map' to 'land_component'
             land_component.append(suitability_map)
 
     if len(land_component) > 1:
-        grass.verbose(_("\nNormalize 'Land' component\n"))
+        grass.verbose(_(MESSAGE_NORMALIZING.format(component=LAND_COMPONENT)))
         zerofy_and_normalise_component(
             land_component, THRESHHOLD_ZERO, land_component_map_name
         )
@@ -507,7 +363,7 @@ def main():
     remove_map_at_exit(land_component)
 
     if len(water_component) > 1:
-        grass.verbose(_("\nNormalize 'Water' component\n"))
+        grass.verbose(_(MESSAGE_NORMALIZING.format(component=WATER_COMPONENT)))
         zerofy_and_normalise_component(
             water_component, THRESHHOLD_ZERO, water_component_map_name
         )
@@ -518,7 +374,7 @@ def main():
     remove_map_at_exit(water_component_map_name)
 
     if len(natural_component) > 1:
-        grass.verbose(_("\nNormalize 'Natural' component\n"))
+        grass.verbose(_(MESSAGE_NORMALIZING.format(component=NATURAL_COMPONENT)))
         zerofy_and_normalise_component(
             components=natural_component,
             threshhold=THRESHHOLD_ZERO,
@@ -537,9 +393,9 @@ def main():
 
     tmp_recreation_potential = temporary_filename(filename=recreation_potential_map_name)
 
-    msg = "Computing intermediate 'Recreation Potential' map: '{potential}'"
+    msg = "\n>>> Computing intermediate potential map"
     grass.verbose(_(msg.format(potential=tmp_recreation_potential)))
-    grass.debug(_("Maps: {maps}".format(maps=recreation_potential_component)))
+    grass.debug(_("*** Maps: {maps}".format(maps=recreation_potential_component)))
 
     zerofy_and_normalise_component(
         components=recreation_potential_component,
@@ -550,7 +406,7 @@ def main():
     # recode recreation_potential
     tmp_recreation_potential_categories = temporary_filename(filename=recreation_potential)
 
-    msg = "\nClassifying '{potential}' map"
+    msg = "\n>>> Classifying '{potential}' map"
     msg = msg.format(potential=tmp_recreation_potential)
     grass.verbose(_(msg))
 
@@ -597,7 +453,7 @@ def main():
 
         if artificial and roads:
 
-            msg = "Roads distance categories: {c}"
+            msg = "*** Roads distance categories: {c}"
             msg = msg.format(c=roads_distance_categories)
             grass.debug(_(msg))
             roads_proximity = compute_artificial_proximity(
@@ -606,7 +462,7 @@ def main():
                 output_name=roads_proximity_map_name,
             )
 
-            msg = "Artificial distance categories: {c}"
+            msg = "*** Artificial distance categories: {c}"
             msg = msg.format(c=artificial_distance_categories)
             grass.debug(_(msg))
             artificial_proximity = compute_artificial_proximity(
@@ -662,11 +518,11 @@ def main():
 
         # REVIEW --------------------------------------------------------------
         tmp_recreation_opportunity = temporary_filename(filename=recreation_opportunity_map_name)
-        msg = "Computing intermediate opportunity map '{opportunity}'"
+        msg = "*** Computing intermediate opportunity map '{opportunity}'"
         grass.debug(_(msg.format(opportunity=tmp_recreation_opportunity)))
 
-        grass.verbose(_("\nNormalize 'Recreation Opportunity' component\n"))
-        grass.debug(_("Maps: {maps}".format(maps=recreation_opportunity_component)))
+        grass.verbose(_(MESSAGE_NORMALIZING.format(component=RECREATION_OPPORTUNITY_COMPONENT)))
+        grass.debug(_("*** Maps: {maps}".format(maps=recreation_opportunity_component)))
 
         zerofy_and_normalise_component(
             components=recreation_opportunity_component,
@@ -677,8 +533,9 @@ def main():
         # Why threshhold 0.0003? How and why it differs from 0.0001?
         # -------------------------------------------------------------- REVIEW
 
-        msg = "Classifying '{opportunity}' map"
-        grass.verbose(msg.format(opportunity=tmp_recreation_opportunity))
+        msg = "* Classifying '{opportunity}' map"
+        # grass.verbose(msg.format(opportunity=tmp_recreation_opportunity))
+        grass.verbose(msg.format(opportunity=recreation_opportunity_map_name))
 
         # recode opportunity_component
         tmp_recreation_opportunity_categories = temporary_filename(filename=recreation_opportunity)
@@ -715,37 +572,42 @@ def main():
             spectrum=recreation_spectrum,
         )
 
-        msg = "Writing '{spectrum}' map"
+        msg = "* Writing '{spectrum}' map"
         msg = msg.format(spectrum=recreation_spectrum)
         grass.verbose(_(msg))
         get_univariate_statistics(recreation_spectrum)
 
         # get category labels
-        temporary_spectrum_categories = temporary_filename(filename="categories_of_" + recreation_spectrum)
-        spectrum_category_labels = string_to_file(
-            SPECTRUM_CATEGORY_LABELS, filename=temporary_spectrum_categories
+        temporary_spectrum_categories = temporary_filename(
+            filename="categories_of_" + recreation_spectrum
         )
-
-        # add to list for removal
+        spectrum_category_labels = string_to_file(
+            SPECTRUM_CATEGORY_LABELS,
+            filename=temporary_spectrum_categories,
+        )
         remove_files_at_exit(spectrum_category_labels)
 
         # update category labels, meta and colors
-        spectrum_categories = "categories_of_"
-
         r.category(
-            map=recreation_spectrum, rules=spectrum_category_labels, separator=":"
+            map=recreation_spectrum,
+            rules=spectrum_category_labels,
+            separator=":",
+        )
+        update_meta(recreation_spectrum, spectrum_title)
+        r.colors(
+            map=recreation_spectrum,
+            rules="-",
+            stdin=SPECTRUM_COLORS,
+            quiet=True,
         )
 
-        update_meta(recreation_spectrum, spectrum_title)
-
-        r.colors(map=recreation_spectrum, rules="-", stdin=SPECTRUM_COLORS, quiet=True)
-
         if base_vector:
+
             update_vector(
                 vector=base_vector,
                 raster=recreation_spectrum,
                 methods=METHODS,
-                column_prefix="spectrum",
+                column_prefix=COLUMN_PREFIX_SPECTRUM,
             )
 
     """Valuation Tables"""
@@ -765,6 +627,7 @@ def main():
             result=highest_spectrum, expression=highest_spectrum_expression
         )
         r.mapcalc(highest_spectrum_equation, overwrite=True)
+        remove_map_at_exit(highest_spectrum)  # FIXME
 
         """Distance map"""
 
@@ -813,17 +676,18 @@ def main():
             quiet=True,
         )
 
+        msg = MATCHING_COMPUTATIONAL_RESOLUTION.format(raster=population)
+        grass.verbose(_(msg))
         grass.use_temp_region()  # to safely modify the region
         g.region(
-            nsres=population_ns_resolution, ewres=population_ew_resolution, flags="a"
-        )  # Resolution should match 'population' FIXME
-        msg = "|! Computational extent & resolution matched to {raster}"
-        msg = msg.format(raster=landuse)
-        grass.verbose(_(msg))
+            nsres=population_ns_resolution,
+            ewres=population_ew_resolution,
+            flags="a",
+        )  # Resolution should match 'population'
 
         population_statistics = get_univariate_statistics(population)
         population_total = population_statistics['sum']
-        msg = "|i Population statistics: {s}".format(s=population_total)
+        msg = POPULATION_STATISTICS.format(s=population_total)
         grass.verbose(_(msg))
 
         """Demand Distribution"""
@@ -849,25 +713,23 @@ def main():
         copy_equation = EQUATION.format(result=demand_copy, expression=copy_expression)
         r.mapcalc(copy_equation, overwrite=True)
 
-        # remove the reclassed map 'demand'
+        # remove reclassed map 'demand'
+        # and rename 'copy' back to 'demand'
         g.remove(flags="f", type="raster", name=demand, quiet=True)
-
-        # rename back to 'demand'
         g.rename(raster=(demand_copy, demand), quiet=True)
 
         if demand and base_vector:
+
             update_vector(
                 vector=base_vector,
                 raster=demand,
                 methods=METHODS,
-                column_prefix="demand",
+                column_prefix=COLUMN_PREFIX_DEMAND,
             )
 
         """Unmet Demand"""
 
         if unmet_demand:
-
-            # compute unmet demand
 
             unmet_demand_expression = compute_unmet_demand(
                 distance=distance_categories_to_highest_spectrum,
@@ -875,14 +737,14 @@ def main():
                 coefficients=MOBILITY_COEFFICIENTS[4],
                 population=demand,
                 score=MOBILITY_SCORE,
+                real_numbers=real_numbers,
             )
             # suitability=suitability)  # Not used.
             # Maybe it can, though, after successfully testing its
             # integration to build_distance_function().
 
-            grass.debug(
-                _("Unmet demand function: {f}".format(f=unmet_demand_expression))
-            )
+            msg = "*** Unmet demand function: {f}"
+            grass.debug(_(msg.format(f=unmet_demand_expression)))
 
             unmet_demand_equation = EQUATION.format(
                 result=unmet_demand, expression=unmet_demand_expression
@@ -890,11 +752,12 @@ def main():
             r.mapcalc(unmet_demand_equation, overwrite=True)
 
             if base_vector:
+
                 update_vector(
                     vector=base_vector,
                     raster=unmet_demand,
                     methods=METHODS,
-                    column_prefix="unmet",
+                    column_prefix=COLUMN_PREFIX_UNMET,
                 )
 
         """Mobility function"""
@@ -912,12 +775,13 @@ def main():
                 coefficients=MOBILITY_COEFFICIENTS,
                 population=demand,
                 score=MOBILITY_SCORE,
+                real_numbers=real_numbers,
             )
             # suitability=suitability)  # Not used.
             # Maybe it can, though, after successfully testing its
             # integration to build_distance_function().
 
-            msg = "Mobility function: {f}"
+            msg = "*** Mobility function: {f}"
             grass.debug(_(msg.format(f=mobility_expression)))
 
             """Flow map"""
@@ -928,11 +792,12 @@ def main():
             r.mapcalc(mobility_equation, overwrite=True)
 
             if base_vector:
+
                 update_vector(
                     vector=base_vector,
-                    raster=flow_map_name,
+                    raster=flow,
                     methods=METHODS,
-                    column_prefix="flow",
+                    column_prefix=COLUMN_PREFIX_FLOW,
                 )
 
     """Supply Table"""
@@ -956,9 +821,8 @@ def main():
             highest_spectrum=highest_spectrum,
             base_reclassification_rules=landcover_reclassification_rules,
             reclassified_base=maes_ecosystem_types,
-            reclassified_base_title="MAES ecosystem types",
+            reclassified_base_title=MAES_ECOSYSTEM_TYPES_MAP_TITLE,
             flow=flow,
-            flow_map_name=flow_map_name,
             aggregation=aggregation,
             ns_resolution=population_ns_resolution,
             ew_resolution=population_ew_resolution,
