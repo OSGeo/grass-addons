@@ -37,7 +37,7 @@
 #%option G_OPT_T_WHERE
 #%end
 
-#%option G_OPT_R_OUTPUTS
+#%option G_OPT_R_OUTPUT
 #%end
 
 #%flag
@@ -135,25 +135,23 @@ def main():
                 extent = tgis.RelativeTemporalExtent(start_time=start_a, end_time=end_b,
                                                      unit=first_map.get_relative_time_unit())
 
-            for out_map in output.split(','):
+            # Create the time range for the output map
+            if output.find("@") >= 0:
+                id = output
+            else:
+                mapset = grass.gisenv()["MAPSET"]
+                id = output + "@" + mapset
 
-                # Create the time range for the output map
-                if out_map.find("@") >= 0:
-                    id = out_map
-                else:
-                    mapset = grass.gisenv()["MAPSET"]
-                    id = out_map + "@" + mapset
+            map = sp.get_new_map_instance(id)
+            map.load()
 
-                map = sp.get_new_map_instance(id)
-                map.load()
+            map.set_temporal_extent(extent=extent)
 
-                map.set_temporal_extent(extent=extent)
-
-                # Register the map in the temporal database
-                if map.is_in_db():
-                    map.update_all()
-                else:
-                    map.insert()
+            # Register the map in the temporal database
+            if map.is_in_db():
+                map.update_all()
+            else:
+                map.insert()
 
 
 if __name__ == "__main__":
