@@ -28,6 +28,11 @@
 #%end
 #%option
 #% key: pattern
+#% description: Band name pattern to import
+#% guisection: Filter
+#%end
+#%option
+#% key: pattern_file
 #% description: File name pattern to import
 #% guisection: Filter
 #%end
@@ -56,6 +61,11 @@
 #% guisection: Settings
 #%end
 #%flag
+#% key: o
+#% description: Override projection check
+#% guisection: Settings
+#%end
+#%flag
 #% key: c
 #% description: Import cloud masks as vector maps
 #% guisection: Settings
@@ -67,6 +77,7 @@
 #%end
 #%rules
 #% exclusive: -l,-r,-p
+#% exclusive: -o,-r
 #%end
 import os
 import sys
@@ -103,11 +114,12 @@ class SentinelImporter(object):
             except OSError:
                 pass
             
-    def filter(self, pattern=None):
-        if pattern:
-            filter_p = '.*' + options['pattern'] + '.*.jp2$'
+    def filter(self, pattern_file=None, pattern=None):
+        if pattern_file or pattern:
+            filter_p = '.*{0}{1}.jp2$'.format(pattern_file + '.*' if pattern_file else '',
+                                       pattern + '.*' if pattern else '')
         else:
-            filter_p = r'.*_B.*.jp2$'
+            filter_p = r'.*_B.*.jp2$|.*_SCL*.jp2$'
 
         gs.debug('Filter: {}'.format(filter_p), 1)
         self.files = self._filter(filter_p)
@@ -122,12 +134,19 @@ class SentinelImporter(object):
 
     def _unzip(self):
         # extract all zip files from input directory
-        for filepath in glob.glob(os.path.join(self.input_dir, '*.zip')):
-            gs.verbose('Reading <{}>...'.format(filepath))
-            self._dir_list.append(self._read_zip_file(filepath)[0])
+        if options['pattern_file']:
+            filter_f = '*' + options['pattern_file'] + '*'
+        else:
+            filter_f = '*'
 
-            with ZipFile(filepath) as fd:
-                fd.extractall(path=self.input_dir)
+        input_files = glob.glob(os.path.join(self.input_dir, filter_f))
+        for filepath in input_files:
+            if filepath.endswith('zip') and filepath.replace('.zip', '.SAFE') not in input_files:
+                gs.verbose('Reading <{}>...'.format(filepath))
+                self._dir_list.append(self._read_zip_file(filepath)[0])
+
+                with ZipFile(filepath) as fd:
+                    fd.extractall(path=self.input_dir)
 
     def _filter(self, filter_p):
         # unzip archives before filtering
@@ -148,7 +167,7 @@ class SentinelImporter(object):
 
         return files
 
-    def import_products(self, reproject=False, link=False):
+    def import_products(self, reproject=False, link=False, override=False):
         args = {}
         if link:
             module = 'r.external'
@@ -158,11 +177,12 @@ class SentinelImporter(object):
                 module = 'r.import'
                 args['resample'] = 'bilinear'
                 args['resolution'] = 'value'
+                args['flags'] = 'o' if override else None
             else:
                 module = 'r.in.gdal'
 
         for f in self.files:
-            if link or (not link and not reproject):
+            if not override and (link or (not link and not reproject)):
                 if not self._check_projection(f):
                     gs.fatal(_('Projection of dataset does not appear to match current location. '
                                'Force reprojecting dataset by -r flag.'))
@@ -222,7 +242,7 @@ class SentinelImporter(object):
         except CalledModuleError as e:
             pass # error already printed
 
-    def import_cloud_masks(self):
+    def import_cloud_masks(self, override):
         from osgeo import ogr
 
         files = self._filter("MSK_CLOUDS_B00.gml")
@@ -240,7 +260,7 @@ class SentinelImporter(object):
                 continue
             try:
                 gs.run_command('v.import', input=f,
-                               flags='o', # same SRS as data
+                               flags='o' if override else None, # same SRS as data
                                output=map_name,
                                quiet=True)
                 gs.vector_history(map_name)
@@ -304,7 +324,7 @@ class SentinelImporter(object):
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
-        has_band_ref = gs.version()['version'] == '7.9.dev'
+        has_band_ref = float(gs.version()['version'].rstrip('.dev')) >= 7.9
         sep = '|'
         with open(filename, 'w') as fd:
             for img_file in self.files:
@@ -323,8 +343,10 @@ class SentinelImporter(object):
                 if has_band_ref:
                     try:
                         band_ref = re.match(
-                            r'.*_B([0-18][0-9A]).*', map_name
-                        ).groups()[0].lstrip('0')
+                            r'.*_B([0-18][0-9A]).*|.*_([S][C][L])_.*', map_name
+                        ).groups()
+                        band_ref = band_ref[0] if band_ref[0] else band_ref[1]
+                        band_ref = band_ref.lstrip('0')
                     except AttributeError:
                         gs.warning(
                             _("Unable to determine band reference for <{}>").format(
@@ -338,7 +360,7 @@ class SentinelImporter(object):
 def main():
     importer = SentinelImporter(options['input'])
 
-    importer.filter(options['pattern'])
+    importer.filter(options['pattern_file'], options['pattern'])
 
     if flags['p']:
         if options['register_output']:
@@ -347,11 +369,11 @@ def main():
         importer.print_products()
         return 0
     
-    importer.import_products(flags['r'], flags['l'])
+    importer.import_products(flags['r'], flags['l'], flags['o'])
 
     if flags['c']:
         # import cloud mask if requested
-        importer.import_cloud_masks()
+        importer.import_cloud_masks(flags['o'])
 
     if options['register_output']:
         # create t.register file if requested

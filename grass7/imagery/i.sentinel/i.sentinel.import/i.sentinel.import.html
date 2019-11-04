@@ -6,11 +6,18 @@ module.
 
 <p>
 By default <em>i.sentinel.import</em> imports all Sentinel scene files found
-in the <b>input</b> directory by <em><a href="r.import.html">r.import</a></em>.
+in the <b>input</b> directory. The number of scene files can be optionally 
+reduced by the <b>pattern_file</b> option. In this option, a regular expression 
+for filtering the file names should be given, e.g. "MSIL2A.*T32VNR_2019" for 
+importing only level 2A products for tile T32VNR from 2019.
+
+<p>
 Note that in the case that spatial reference system of input data differs
-from GRASS GIS location, the input data are reprojected. To speed up this
+from GRASS GIS location, the input data need to be reprojected with 
+<em><a href="r.import.html">r.import</a></em>. To speed up this
 process, a higher than default value can be specified for the <b>memory</b>
-option.
+option. In order to ignore insignificant mismatch of the spatial reference 
+systems, reprojection can be supressed with the <b>-o</b> flag.
 
 <p>
 Optionally input data can be linked
@@ -46,6 +53,11 @@ spatial resolutions:
 </tr>
 </tbody>
 </table>
+
+<p>
+Level 2A products for Sentinel-2 come with a Scene classification (SCL layer)
+with 20m and 60m resolution, that e.g. can be used for masking clouds and snow
+and is also imported by default.
 
 <h2>NOTES</h2>
 
@@ -112,6 +124,20 @@ Link data and import also cloud mask file:
 
 <div class="code"><pre>
 i.sentinel.import -l -c input=data
+</pre></div>
+
+<p>
+Link data from specific UTM zone while ignoring projection check
+
+<div class="code"><pre>
+i.sentinel.import -l -o input=data pattern_file="_T32"
+</pre></div>
+
+<p>
+Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019
+
+<div class="code"><pre>
+i.sentinel.import input=data pattern_file="MSIL2A.*T32VNR_2019" pattern='B(|03|04)'
 </pre></div>
 
 <center>
