@@ -120,6 +120,10 @@
 #% description: List filtered products and exit
 #% guisection: Print
 #%end
+#%flag
+#% key: b
+#% description: Use the borders of the AOI polygon and not the region of the AOI
+#%end
 #%rules
 #% required: output,-l
 #% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
@@ -411,7 +415,10 @@ def main():
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
 
-    map_box = get_aoi(options['map'])
+    if flags['b']:
+        map_box = get_aoi(options['map'])
+    else:
+        map_box = get_aoi_box(options['map'])
 
     sortby = options['sort'].split(',')
     if options['producttype'] in ('SLC', 'GRD', 'OCN'):
