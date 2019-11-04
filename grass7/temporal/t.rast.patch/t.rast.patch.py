@@ -5,7 +5,7 @@
 # MODULE:    t.rast.patch
 # AUTHOR(S):    Anika Bettge
 #
-# PURPOSE:    Patches the space time rasters to one raster using r.patch
+# PURPOSE:    Patches rasters that have gaps with subsequent maps in time within a space time raster dataset using r.patch
 # COPYRIGHT:    (C) 2019 by by mundialis and the GRASS Development Team
 #
 #  This program is free software; you can redistribute it and/or modify
