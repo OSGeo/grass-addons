@@ -114,10 +114,9 @@ class SentinelImporter(object):
             except OSError:
                 pass
             
-    def filter(self, pattern_file=None, pattern=None):
-        if pattern_file or pattern:
-            filter_p = '.*{0}{1}.jp2$'.format(pattern_file + '.*' if pattern_file else '',
-                                       pattern + '.*' if pattern else '')
+    def filter(self, pattern=None):
+        if pattern:
+            filter_p = r'.*{}.*.jp2$'.format(pattern)
         else:
             filter_p = r'.*_B.*.jp2$|.*_SCL*.jp2$'
 
@@ -152,18 +151,25 @@ class SentinelImporter(object):
         # unzip archives before filtering
         self._unzip()
 
+        if options['pattern_file']:
+            filter_f = '*' + options['pattern_file'] + '*.SAFE'
+        else:
+            filter_f = '*.SAFE'
+
         pattern = re.compile(filter_p)
         files = []
-        for rec in os.walk(self.input_dir):
-            if not rec[-1]:
-                continue
+        safes = glob.glob(os.path.join(self.input_dir, filter_f))
+        for safe in safes:
+            for rec in os.walk(safe):
+                if not rec[-1]:
+                    continue
 
-            match = filter(pattern.match, rec[-1])
-            if match is None:
-                continue
+                match = filter(pattern.match, rec[-1])
+                if match is None:
+                    continue
 
-            for f in match:
-                files.append(os.path.join(rec[0], f))
+                for f in match:
+                    files.append(os.path.join(rec[0], f))
 
         return files
 
@@ -360,7 +366,7 @@ class SentinelImporter(object):
 def main():
     importer = SentinelImporter(options['input'])
 
-    importer.filter(options['pattern_file'], options['pattern'])
+    importer.filter(options['pattern'])
 
     if flags['p']:
         if options['register_output']:
