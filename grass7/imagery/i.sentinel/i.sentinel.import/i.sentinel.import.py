@@ -399,15 +399,13 @@ class SentinelImporter(object):
                 for band in bands:
                     gs.run_command('r.support', map=map_name, description=descr)
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
-            #except:
-            #    gs.warning(_('No geometric info found for <{}>'.format(map_name)))
 
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
         for mtd_file in self._filter("MTD_TL.xml"):
             ip = self._ip_from_path(mtd_file)
-            ip_timestamp[ip] = self._parse_file(mtd_file)['timestamp']
+            ip_timestamp[ip] = self._parse_mtd_file(mtd_file)['timestamp']
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
