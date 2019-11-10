@@ -283,14 +283,17 @@ class SentinelImporter(object):
             ))
 
     @staticmethod
-    def _read_timestamp_from_mtd_file(mtd_file):
+    def _parse_mtd_file(mtd_file):
+        # Lazy import
+        import numpy as np
         try:
             from xml.etree import ElementTree
             from datetime import datetime
         except ImportError as e:
             gs.fatal(_("Unable to parse metadata file. {}").format(e))
 
-        timestamp = None
+        meta = {}
+        meta['timestamp'] = None
         with io.open(mtd_file, encoding='utf-8') as fd:
             root = ElementTree.fromstring(fd.read())
             nsPrefix = root.tag[:root.tag.index('}')+1]
@@ -303,30 +306,108 @@ class SentinelImporter(object):
                     if not tile_id.startswith('S2'):
                         gs.fatal(_("Register file can be created only for Sentinel-2 data."))
 
+                    meta['SATELLITE'] = tile_id.split('_')[0]
+
                     # get timestamp
                     ts_str = node.find('SENSING_TIME', nsDict).text
-                    timestamp = datetime.strptime(
+                    meta['timestamp'] = datetime.strptime(
                         ts_str, "%Y-%m-%dT%H:%M:%S.%fZ"
                     )
                 except (AttributeError, IndexError):
                     # error is reported below
                     pass
 
-        if not timestamp:
+            # Get Quality metadata
+            node = root.find('n1:Quality_Indicators_Info', nsDict)
+            for subnode in node.getchildren():
+                if subnode.tag == 'Image_Content_QI':
+                    for sn in subnode.getchildren():
+                        meta[sn.tag] = sn.text
+
+            # Get Geometric metadata
+            node = root.find('n1:Geometric_Info', nsDict)
+            for subnode in node.getchildren():
+                if 'Tile_Angles' == subnode.tag:
+                    # In L1C products it can be necessary to compute angles from grid
+                    for sn in subnode.getchildren():
+                        if sn.tag == 'Mean_Viewing_Incidence_Angle_List':
+                            for it in sn.getchildren():
+                                band = it.attrib['bandId']
+                                for i in it.getchildren():
+                                    if 'ZENITH_ANGLE' in i.tag or 'AZIMUTH_ANGLE' in i.tag:
+                                        meta[i.tag + '_' + band] = i.text
+                        if sn.tag == 'Sun_Angles_Grid':
+                            for ssn in sn.getchildren():
+                                if ssn.tag == 'Zenith':
+                                    for sssn in ssn.getchildren():
+                                        if sssn.tag == 'Values_List':
+                                            mean_zenith = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in sssn.getchildren()], dtype=np.float))
+                                            meta['MEAN_SUN_ZENITH_GRID_ANGLE'] = mean_zenith
+                                elif ssn.tag == 'Azimuth':
+                                    for sssn in ssn.getchildren():
+                                        if sssn.tag == 'Values_List':
+                                            mean_azimuth = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in sssn.getchildren()], dtype=np.float))
+                                            meta['MEAN_SUN_AZIMUTH_GRID_ANGLE'] = mean_azimuth
+                        if sn.tag == 'Mean_Sun_Angle':
+                            for it in sn.getchildren():
+                                if it.tag == 'ZENITH_ANGLE' or it.tag == 'AZIMUTH_ANGLE':
+                                    meta['MEAN_SUN_' + it.tag] = it.text
+
+        if not meta['timestamp']:
             gs.error(_("Unable to determine timestamp from <{}>").format(mtd_file))
 
-        return timestamp
+        return meta
 
     @staticmethod
     def _ip_from_path(path):
         return os.path.basename(path[:path.find('.SAFE')])
+
+    def write_metadata(self):
+        gs.message(_("Writing metadata to maps..."))
+        ip_meta = {}
+        for mtd_file in self._filter("MTD_TL.xml"):
+            ip = self._ip_from_path(mtd_file)
+            ip_meta[ip] = self._parse_mtd_file(mtd_file)
+
+        if not ip_meta:
+            gs.warning(_("Unable to determine timestamps. No metadata file found"))
+
+        for img_file in self.files:
+            map_name = self._map_name(img_file)
+            ip = self._ip_from_path(img_file)
+            meta = ip_meta[ip]
+            if meta:
+                bn = map_name.split('_')[2].lstrip('B').rstrip('A')
+                if bn.isnumeric():
+                    bn = int(bn)
+                else:
+                    continue
+
+                timestamp = meta['timestamp']
+                timestamp_str = timestamp.strftime("%-d %b %Y %H:%M:%S.%f")
+                descr_list = []
+                for dkey in meta.keys():
+                    if dkey != 'timestamp':
+                        if 'TH_ANGLE_' in dkey:
+                            if dkey.endswith('TH_ANGLE_{}'.format(bn)):
+                                descr_list.append('{}={}'.format(dkey, meta[dkey]))
+                        else:
+                            descr_list.append('{}={}'.format(dkey, meta[dkey]))
+                descr = '\n'.join(descr_list)
+                bands = gs.read_command('g.list', type='raster', mapset='.',
+                                        pattern='{}*'.format(map_name)).rstrip('\n').split('\n')
+                for band in bands:
+                    gs.run_command('r.support', map=map_name, description=descr)
+                    gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
+            #except:
+            #    gs.warning(_('No geometric info found for <{}>'.format(map_name)))
 
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
         ip_timestamp = {}
         for mtd_file in self._filter("MTD_TL.xml"):
             ip = self._ip_from_path(mtd_file)
-            ip_timestamp[ip] = self._read_timestamp_from_mtd_file(mtd_file)
+            ip_timestamp[ip] = self._parse_file(mtd_file)['timestamp']
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
@@ -376,6 +457,7 @@ def main():
         return 0
     
     importer.import_products(flags['r'], flags['l'], flags['o'])
+    importer.write_metadata()
 
     if flags['c']:
         # import cloud mask if requested
