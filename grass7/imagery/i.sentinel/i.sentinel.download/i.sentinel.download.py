@@ -120,6 +120,10 @@
 #% description: List filtered products and exit
 #% guisection: Print
 #%end
+#%flag
+#% key: b
+#% description: Use the borders of the AOI polygon and not the region of the AOI
+#%end
 #%rules
 #% required: output,-l
 #% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
@@ -148,13 +152,41 @@ def get_aoi_box(vector=None):
         return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
             nw_lat=info['nw_lat'], nw_lon=info['nw_long'], ne_lat=info['ne_lat'], ne_lon=info['ne_long'],
             sw_lat=info['sw_lat'], sw_lon=info['sw_long'], se_lat=info['se_lat'], se_lon=info['se_long']
-    )
+            )
     else:
         info = gs.parse_command('g.region', flags='upg', **args)
         return 'POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))'.format(
             nw_lat=info['n'], nw_lon=info['w'], ne_lat=info['n'], ne_lon=info['e'],
             sw_lat=info['s'], sw_lon=info['w'], se_lat=info['s'], se_lon=info['e']
-    )
+            )
+
+
+def get_aoi(vector=None):
+    args = {}
+    if vector:
+        args['input'] = vector
+
+    # are we in LatLong location?
+    s = gs.read_command("g.proj", flags='j')
+    kv = gs.parse_key_val(s)
+    if '+proj' not in kv:
+        gs.fatal('Unable to get AOI: unprojected location not supported')
+    geom_dict = gs.parse_command('v.out.ascii', format='wkt', **args)
+    geom = geom = [key for key in geom_dict][0]
+    if kv['+proj'] != 'longlat':
+        coords = geom.replace('POLYGON((', '').replace('))', '').split(', ')
+        poly = 'POLYGON(('
+        poly_coords = []
+        for coord in coords:
+            coord_latlon = gs.parse_command(
+                'm.proj', coordinates=coord.replace(' ', ','), flags='od')
+            for key in coord_latlon:
+                poly_coords.append((' ').join(key.split('|')[0:2]))
+        poly += (', ').join(poly_coords) + '))'
+        return poly
+    else:
+        return geom
+
 
 class SentinelDownloader(object):
     def __init__(self, user, password, api_url='https://scihub.copernicus.eu/dhus'):
@@ -179,7 +211,7 @@ class SentinelDownloader(object):
         )
 
         self._products_df_sorted = None
-        
+
     def filter(self, area, area_relation,
                clouds=None, producttype=None, limit=None, query={},
                start=None, end=None, sortby=[], asc=True):
@@ -250,7 +282,7 @@ class SentinelDownloader(object):
                 ccp,
                 self._products_df_sorted['producttype'][idx],
             ))
-        
+
     def download(self, output):
         if self._products_df_sorted is None:
             return
@@ -325,7 +357,7 @@ class SentinelDownloader(object):
         :param uuid: uuid to download
         """
         from sentinelsat.sentinel import SentinelAPIError
-                    
+
         self._products_df_sorted = { 'uuid': [] }
         for uuid in uuid_list:
             try:
@@ -354,7 +386,7 @@ class SentinelDownloader(object):
                 if k not in self._products_df_sorted:
                     self._products_df_sorted[k] = []
                 self._products_df_sorted[k].append(v)
-        
+
 def main():
     user = password = None
     api_url='https://scihub.copernicus.eu/dhus'
@@ -383,7 +415,10 @@ def main():
     if user is None or password is None:
         gs.fatal(_("No user or password given"))
 
-    map_box = get_aoi_box(options['map'])
+    if flags['b']:
+        map_box = get_aoi(options['map'])
+    else:
+        map_box = get_aoi_box(options['map'])
 
     sortby = options['sort'].split(',')
     if options['producttype'] in ('SLC', 'GRD', 'OCN'):
