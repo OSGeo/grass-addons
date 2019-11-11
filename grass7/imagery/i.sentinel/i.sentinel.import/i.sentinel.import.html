@@ -20,7 +20,7 @@ option.
 
 <p>
 In order to ignore insignificant mismatch of the spatial reference 
-systems, reprojection can be supressed with the <b>-o</b> flag.
+systems, the projection check can be suppressed with the <b>-o</b> flag.
 
 <p>
 Optionally input data can be linked
@@ -58,8 +58,8 @@ spatial resolutions:
 </table>
 
 <p>
-Level 2A products for Sentinel-2 come with a Scene classification (SCL layer)
-with 20m and 60m resolution, that e.g. can be used for masking clouds and snow
+Level 2A products for Sentinel-2 come with a scene classification (SCL layer)
+at 20m and 60m resolution, that e.g. can be used for masking clouds and snow
 and is also imported by default.
 
 <p>
@@ -68,7 +68,7 @@ conditions as well as quality indicators are written into the map history
 (<em><a href="r.support.html">r.support</a></em>). In addition, the scene
 name is stored as <em>source1</em> and the imported or linked file name as
 <em>source2</em>. Also, sensing time is written into the timestamp of the
-map. After import, the metadata below can be retrieved with
+map. After import, the metadata can be retrieved with <em>r.info -e</em>
 as shown below.
 
 <p>

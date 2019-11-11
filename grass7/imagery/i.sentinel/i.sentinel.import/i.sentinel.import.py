@@ -67,7 +67,7 @@
 #%end
 #%flag
 #% key: o
-#% description: Override projection check
+#% description: Override projection check (use current location's projection)
 #% guisection: Settings
 #%end
 #%flag
