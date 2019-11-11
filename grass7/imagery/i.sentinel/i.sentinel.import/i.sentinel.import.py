@@ -26,6 +26,11 @@
 #% description: Name of input directory with downloaded Sentinel data
 #% required: yes
 #%end
+#%option G_OPT_M_DIR
+#% key: unzip_dir
+#% description: Name of directory into which zip-files are extracted (Default=input)
+#% required: no
+#%end
 #%option
 #% key: pattern
 #% description: Band name pattern to import
@@ -91,14 +96,22 @@ import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 class SentinelImporter(object):
-    def __init__(self, input_dir):
+    def __init__(self, input_dir, unzip_dir):
         # list of directories to cleanup
         self._dir_list = []
 
         # check if input dir exists
         self.input_dir = input_dir
         if not os.path.exists(input_dir):
-            gs.fatal(_('Input directory <{}> not exists').format(input_dir))
+            gs.fatal(_('Input directory <{}> does not exist').format(input_dir))
+
+        # check if unzip dir exists
+        if unzip_dir is None or unzip_dir == '':
+            unzip_dir = input_dir
+
+        self.unzip_dir = unzip_dir
+        if not os.path.exists(unzip_dir):
+            gs.fatal(_('Directory <{}> does not exist').format(unzip_dir))
 
     def __del__(self):
         if flags['l']:
@@ -107,7 +120,7 @@ class SentinelImporter(object):
 
         # otherwise unzipped directory can be removed (?)
         for dirname in self._dir_list:
-            dirpath = os.path.join(self.input_dir, dirname)
+            dirpath = os.path.join(self.unzip_dir, dirname)
             gs.debug('Removing <{}>'.format(dirpath))
             try:
                 shutil.rmtree(dirpath)
@@ -123,6 +136,8 @@ class SentinelImporter(object):
         gs.debug('Filter: {}'.format(filter_p), 1)
         self.files = self._filter(filter_p)
 
+    """
+    No longer used
     @staticmethod
     def _read_zip_file(filepath):
         # scan zip file, return first member (root directory)
@@ -130,22 +145,30 @@ class SentinelImporter(object):
             file_list = fd.namelist()
 
         return file_list
+    """
 
     def _unzip(self):
         # extract all zip files from input directory
         if options['pattern_file']:
-            filter_f = '*' + options['pattern_file'] + '*'
+            filter_f = '*' + options['pattern_file'] + '*.zip'
         else:
-            filter_f = '*'
+            filter_f = '*.zip'
 
         input_files = glob.glob(os.path.join(self.input_dir, filter_f))
+        filter_s = filter_f.replace('.zip', '.SAFE')
+        unziped_files = glob.glob(os.path.join(self.unzip_dir, filter_s), recursive=False)
+        if len(unziped_files) > 0:
+            unziped_files = [os.path.basename(safe) for safe in unziped_files]
         for filepath in input_files:
-            if filepath.endswith('zip') and filepath.replace('.zip', '.SAFE') not in input_files:
+            safe = os.path.basename(filepath.replace('.zip', '.SAFE'))
+            if safe not in unziped_files:
                 gs.verbose('Reading <{}>...'.format(filepath))
-                self._dir_list.append(self._read_zip_file(filepath)[0])
 
                 with ZipFile(filepath) as fd:
-                    fd.extractall(path=self.input_dir)
+                    fd.extractall(path=self.unzip_dir)
+
+                self._dir_list.append(os.path.join(self.unzip_dir, safe))
+
 
     def _filter(self, filter_p):
         # unzip archives before filtering
@@ -158,7 +181,7 @@ class SentinelImporter(object):
 
         pattern = re.compile(filter_p)
         files = []
-        safes = glob.glob(os.path.join(self.input_dir, filter_f))
+        safes = glob.glob(os.path.join(self.unzip_dir, filter_f))
         for safe in safes:
             for rec in os.walk(safe):
                 if not rec[-1]:
@@ -397,7 +420,8 @@ class SentinelImporter(object):
                 bands = gs.read_command('g.list', type='raster', mapset='.',
                                         pattern='{}*'.format(map_name)).rstrip('\n').split('\n')
                 for band in bands:
-                    gs.run_command('r.support', map=map_name, description=descr)
+                    gs.run_command('r.support', map=map_name, source1=ip,
+                                   source2=img_file, history=descr)
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
 
     def create_register_file(self, filename):
@@ -443,7 +467,7 @@ class SentinelImporter(object):
                     ))
                 fd.write(os.linesep)
 def main():
-    importer = SentinelImporter(options['input'])
+    importer = SentinelImporter(options['input'], options['unzip_dir'])
 
     importer.filter(options['pattern'])
 
