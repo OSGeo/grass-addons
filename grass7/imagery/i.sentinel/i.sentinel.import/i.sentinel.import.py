@@ -28,7 +28,7 @@
 #%end
 #%option G_OPT_M_DIR
 #% key: unzip_dir
-#% description: Name of directory into which zip-files are extracted (Default=input)
+#% description: Name of directory into which Sentinel zip-files are extracted (default=input)
 #% required: no
 #%end
 #%option
