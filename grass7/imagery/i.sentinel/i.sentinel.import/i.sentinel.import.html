@@ -196,7 +196,7 @@ Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 201
 unzip to directory "safefiles"
 
 <div class="code"><pre>
-i.sentinel.import input=data unnzip_dir=safefiles pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+i.sentinel.import input=data unzip_dir=safefiles_dir pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
 </pre></div>
 
 <h3>Register imported Sentinel data into STRDS</h3>
