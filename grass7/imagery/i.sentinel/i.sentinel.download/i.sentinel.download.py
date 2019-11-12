@@ -173,8 +173,12 @@ def get_aoi(vector=None):
     if '+proj' not in kv:
         gs.fatal('Unable to get AOI: unprojected location not supported')
     geom_dict = gs.parse_command('v.out.ascii', format='wkt', **args)
-    geom = geom = [key for key in geom_dict][0]
+    num_vertices = len(str(geom_dict.keys()).split(','))
+    geom = [key for key in geom_dict][0]
     if kv['+proj'] != 'longlat':
+        gs.message(_("Generating WKT from AOI map ({} vertices)...").format(num_vertices))
+        if num_vertices > 500:
+            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). Use 'v.generalize' to simplify the boundaries"))
         coords = geom.replace('POLYGON((', '').replace('))', '').split(', ')
         poly = 'POLYGON(('
         poly_coords = []
@@ -184,6 +188,11 @@ def get_aoi(vector=None):
             for key in coord_latlon:
                 poly_coords.append((' ').join(key.split('|')[0:2]))
         poly += (', ').join(poly_coords) + '))'
+        # Note: poly must be < 2000 chars incl. sentinelsat request (see RFC 2616 HTTP/1.1)
+        if len(poly) > 1850:
+            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). Use 'v.generalize' to simplify the boundaries"))
+        else:
+            gs.message(_("Sending WKT from AOI map to ESA..."))
         return poly
     else:
         return geom
