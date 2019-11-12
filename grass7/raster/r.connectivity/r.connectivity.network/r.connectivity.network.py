@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 """
@@ -254,17 +254,17 @@ def main():
     """Do the main work"""
 
     try:
-		import rpy2
-		import rpy2.rinterface
-		rpy2.rinterface.set_initoptions((b'rpy2', b'--no-save',
-										 b'--no-restore', b'--quiet'))
-		import rpy2.robjects as robjects
-		# rpy2 throws lots of warnings (that cannot be suppressed)
-		# when packages are loaded
-		warnings.filterwarnings("ignore")
-		import rpy2.robjects.packages as rpackages
-		from rpy2.robjects.vectors import StrVector
-		import rpy2.robjects.numpy2ri
+        import rpy2
+        import rpy2.rinterface
+        rpy2.rinterface.set_initoptions((b'rpy2', b'--no-save',
+                                         b'--no-restore', b'--quiet'))
+        import rpy2.robjects as robjects
+        # rpy2 throws lots of warnings (that cannot be suppressed)
+        # when packages are loaded
+        warnings.filterwarnings("ignore")
+        import rpy2.robjects.packages as rpackages
+        from rpy2.robjects.vectors import StrVector
+        import rpy2.robjects.numpy2ri
     except ImportError:
         grass.fatal(_("Cannot import rpy2 (https://rpy2.bitbucket.io)"
                       " library."

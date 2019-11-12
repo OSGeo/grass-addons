@@ -2304,8 +2304,7 @@ void meter(int n, int i, int div)
 	d = div;
 
     if (k > 2000) {
-	if (G_fseek(stdout, 0L, 0))
-	    G_fatal_error("Can't reset the \"stdout\", exit.\n");
+	G_fseek(stdout, 0L, 0);
 	k = 0;
     }
 

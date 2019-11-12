@@ -12,8 +12,8 @@
 #include <grass/gis.h>
 #include "func.h"
 
-void mqc(double **M, double *m, int n, double **H, double *h, int **mH,
-	 double **K, double *k, int **mK, double eps, double *x,
+void mqc(double **M, double *m, int n, double **H, double *h, int mH,
+	 double **K, double *k, int mK, double eps, double *x,
 	 double *minvalue)
 {
     int i, j, l;

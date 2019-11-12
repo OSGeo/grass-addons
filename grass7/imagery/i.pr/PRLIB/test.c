@@ -18,9 +18,9 @@
 
 #define EPS1 0.001
 #define EPS2 1.0e-8
-#define MAX(a,b) (maxarg1=(a),maxarg2=(b),(maxarg1)>(maxarg2)?(maxarg1):(maxarg2))
-
-double maxarg1, maxarg2;
+#ifndef MAX
+#define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
 
 double probks();
 double probks2();
@@ -218,7 +218,8 @@ double betacf(double a, double b, double x)
 	if (fabs(az - aold) < (EPS * fabs(az)))
 	    return az;
     }
-    G_warning("a or b tto big, or ITMAX too small in BETACF\n");
+    G_warning("a or b too big, or ITMAX too small in BETACF\n");
+    return az;
 }
 
 #undef ITMAX

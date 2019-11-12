@@ -1,6 +1,9 @@
 MODULE_TOPDIR = ..
 
-# i.fusion.brovey deprecated
+# Deprecated
+#	i.fusion.brovey
+#	i.pr_statistics (relies on D_* and R_* functions)
+#	i.pr_training (relies on the site library)
 
 ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
 DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
