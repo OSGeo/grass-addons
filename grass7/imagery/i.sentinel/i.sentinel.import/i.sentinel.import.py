@@ -182,6 +182,9 @@ class SentinelImporter(object):
         pattern = re.compile(filter_p)
         files = []
         safes = glob.glob(os.path.join(self.unzip_dir, filter_f))
+        if len(safes) < 1:
+            gs.fatal(_('Nothing found to import. Please check input and pattern_file options.'))
+
         for safe in safes:
             for rec in os.walk(safe):
                 if not rec[-1]:
@@ -193,6 +196,9 @@ class SentinelImporter(object):
 
                 for f in match:
                     files.append(os.path.join(rec[0], f))
+
+        if len(files) < 1:
+            gs.fatal(_('Nothing found to import. Please check input and pattern options.'))
 
         return files
 
