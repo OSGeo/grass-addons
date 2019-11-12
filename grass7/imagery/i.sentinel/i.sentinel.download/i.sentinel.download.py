@@ -125,6 +125,7 @@
 #% description: Use the borders of the AOI polygon and not the region of the AOI
 #%end
 #%rules
+#% requires: -b,map
 #% required: output,-l
 #% excludes: uuid,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
 #%end
