@@ -167,6 +167,13 @@ def get_aoi(vector=None):
     if vector:
         args['input'] = vector
 
+    topology = gs.parse_command('v.info', map=vector, flags='t')
+    if int(topology['areas']) < 1:
+        gs.fatal(_("No areas found in AOI map <{}>...").format(vector))
+    elif  int(topology['areas']) > 1:
+        gs.warning(_("More than one areas found in AOI map <{}>. \
+                      Using only the first area...").format(vector))
+
     # are we in LatLong location?
     s = gs.read_command("g.proj", flags='j')
     kv = gs.parse_key_val(s)
