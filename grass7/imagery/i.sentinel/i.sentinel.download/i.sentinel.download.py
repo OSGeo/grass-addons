@@ -167,11 +167,10 @@ def get_aoi(vector=None):
     if vector:
         args['input'] = vector
 
-    topology = gs.parse_command('v.info', map=vector, flags='t')
-    if int(topology['areas']) < 1:
+    if gs.vector_info_topo(vector)['areas'] <= 0:
         gs.fatal(_("No areas found in AOI map <{}>...").format(vector))
-    elif  int(topology['areas']) > 1:
-        gs.warning(_("More than one areas found in AOI map <{}>. \
+    else:
+        gs.warning(_("More than one area found in AOI map <{}>. \
                       Using only the first area...").format(vector))
 
     # are we in LatLong location?
@@ -185,7 +184,8 @@ def get_aoi(vector=None):
     if kv['+proj'] != 'longlat':
         gs.message(_("Generating WKT from AOI map ({} vertices)...").format(num_vertices))
         if num_vertices > 500:
-            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). Use 'v.generalize' to simplify the boundaries"))
+            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). \
+                        Use 'v.generalize' to simplify the boundaries"))
         coords = geom.replace('POLYGON((', '').replace('))', '').split(', ')
         poly = 'POLYGON(('
         poly_coords = []
@@ -197,7 +197,8 @@ def get_aoi(vector=None):
         poly += (', ').join(poly_coords) + '))'
         # Note: poly must be < 2000 chars incl. sentinelsat request (see RFC 2616 HTTP/1.1)
         if len(poly) > 1850:
-            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). Use 'v.generalize' to simplify the boundaries"))
+            gs.fatal(_("AOI map has too many vertices to be sent via HTTP GET (sentinelsat). \
+                        Use 'v.generalize' to simplify the boundaries"))
         else:
             gs.message(_("Sending WKT from AOI map to ESA..."))
         return poly
@@ -293,7 +294,7 @@ class SentinelDownloader(object):
             else:
                 ccp = 'cloudcover_NA'
 
-            print ('{0} {1} {2} {3}'.format(
+            print('{0} {1} {2} {3}'.format(
                 self._products_df_sorted['uuid'][idx],
                 self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
                 ccp,
@@ -406,7 +407,7 @@ class SentinelDownloader(object):
 
 def main():
     user = password = None
-    api_url='https://scihub.copernicus.eu/dhus'
+    api_url = 'https://scihub.copernicus.eu/dhus'
 
     if options['settings'] == '-':
         # stdin
