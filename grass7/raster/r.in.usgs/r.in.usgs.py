@@ -3,7 +3,9 @@
 
 #MODULE:     r.in.usgs
 #
-#AUTHOR:     Zechariah Krautwurst, Anna Petrasova
+#AUTHORS:    Zechariah Krautwurst
+#            Anna Petrasova
+#            Vaclav Petras
 #
 #MENTORS:    Anna Petrasova
 #            Vaclav Petras
@@ -115,6 +117,42 @@ import atexit
 from grass.exceptions import CalledModuleError
 
 cleanup_list = []
+
+
+def get_current_mapset():
+    """Get curret mapset name as a string"""
+    return gscript.read_command('g.mapset', flags='p').strip()
+
+
+def map_exists(element, name, mapset):
+    """Check is map is present in the mapset given in the environment
+
+    :param name: name of the map
+    :param element: data type ('raster', 'raster_3d', and 'vector')
+    """
+    # change type to element used by find file
+    if element == 'raster':
+        element = 'cell'
+    elif element == 'raster_3d':
+        element = 'grid3'
+    # g.findfile returns non-zero when file was not found
+    # se we ignore return code and just focus on stdout
+    process = gscript.start_command(
+        'g.findfile',
+        flags='n',
+        element=element,
+        file=name,
+        mapset=mapset,
+        stdout=gscript.PIPE,
+        stderr=gscript.PIPE)
+    output, errors = process.communicate()
+    info = gscript.parse_key_val(output, sep='=')
+    # file is the key questioned in grass.script.core find_file()
+    # return code should be equivalent to checking the output
+    if info['file']:
+        return True
+    else:
+        return False
 
 
 def main():
@@ -237,6 +275,11 @@ def main():
     gui_i_flag = flags['i']
     gui_k_flag = flags['k']
     work_dir = options['output_directory']
+
+    preserve_extracted_files = gui_k_flag
+    use_existing_extracted_files = True
+    preserve_imported_tiles = gui_k_flag
+    use_existing_imported_tiles = True
 
     # Returns current units
     try:
@@ -415,9 +458,11 @@ def main():
     if exist_zip_list:
         exist_msg = _("\n{0} of {1} files/archive(s) exist locally and will be used by module.").format(len(exist_zip_list), tiles_needed_count)
         gscript.message(exist_msg)
+    # TODO: fix this way of reporting and merge it with the one in use
     if exist_tile_list:
         exist_msg = _("\n{0} of {1} files/archive(s) exist locally and will be used by module.").format(len(exist_tile_list), tiles_needed_count)
         gscript.message(exist_msg)
+    # TODO: simply continue with whatever is needed to be done in this case
     if cleanup_list:
         cleanup_msg = _("\n{0} existing incomplete file(s) detected and removed. Run module again.").format(len(cleanup_list))
         gscript.fatal(cleanup_msg)
@@ -526,6 +571,11 @@ def main():
                 gscript.fatal(file_failed)
 
     # sets already downloaded zip files or tiles to be extracted or imported
+    # our pre-stats for extraction are broken, collecting stats during
+    used_existing_extracted_tiles_num = 0
+    removed_extracted_tiles_num = 0
+    old_extracted_tiles_num = 0
+    extracted_tiles_num = 0
     if exist_zip_list:
         for z in exist_zip_list:
             local_zip_path_list.append(z)
@@ -545,23 +595,70 @@ def main():
                     for f in read_zip.namelist():
                         if f.endswith(product_extension):
                             extracted_tile = os.path.join(work_dir, str(f))
+                            remove_and_extract = True
                             if os.path.exists(extracted_tile):
-                                os.remove(extracted_tile)
-                                read_zip.extract(f, work_dir)
-                            else:
+                                if use_existing_extracted_files:
+                                    # if the downloaded file is newer
+                                    # than the extracted on, we extract
+                                    if os.path.getmtime(extracted_tile) < os.path.getmtime(z):
+                                        remove_and_extract = True
+                                        old_extracted_tiles_num += 1
+                                    else:
+                                        remove_and_extract = False
+                                        used_existing_extracted_tiles_num += 1
+                                else:
+                                    remove_and_extract = True
+                                if remove_and_extract:
+                                    removed_extracted_tiles_num += 1
+                                    os.remove(extracted_tile)
+                            if remove_and_extract:
+                                extracted_tiles_num += 1
                                 read_zip.extract(f, work_dir)
                 if os.path.exists(extracted_tile):
                     local_tile_path_list.append(extracted_tile)
-                    cleanup_list.append(extracted_tile)
-            except:
+                    if not preserve_extracted_files:
+                        cleanup_list.append(extracted_tile)
+            except IOError as error:
                 cleanup_list.append(extracted_tile)
-                gscript.fatal(_("Unable to locate or extract IMG file from ZIP archive."))
+                gscript.fatal(_(
+                    "Unable to locate or extract IMG file '{filename}'"
+                    " from ZIP archive '{zipname}': {error}").format(
+                        filename=extracted_tile, zipname=z, error=error))
+        # TODO: do this before the extraction begins
+        gscript.verbose(_("Extracted {extracted} new tiles and"
+                          " used {used} existing tiles").format(
+                            used=used_existing_extracted_tiles_num,
+                            extracted=extracted_tiles_num
+                            ))
+        if old_extracted_tiles_num:
+            gscript.verbose(_("Found {removed} existing tiles older"
+                              " than the corresponding downloaded archive").format(
+                            removed=old_extracted_tiles_num
+                            ))
+        if removed_extracted_tiles_num:
+            gscript.verbose(_("Removed {removed} existing tiles").format(
+                            removed=removed_extracted_tiles_num
+                            ))
 
     # operations for extracted or complete files available locally
+    # We are looking only for the existing maps in the current mapset,
+    # but theoretically we could be getting them from other mapsets
+    # on search path or from the whole location. User may also want to
+    # store the individual tiles in a separate mapset.
+    # The big assumption here is naming of the maps (it is a smaller
+    # for the files in a dedicated download directory).
+    used_existing_imported_tiles_num = 0
+    imported_tiles_num = 0
+    mapset = get_current_mapset()
     for t in local_tile_path_list:
         # create variables for use in GRASS GIS import process
         LT_file_name = os.path.basename(t)
         LT_layer_name = os.path.splitext(LT_file_name)[0]
+        # TODO: unlike the files, we don't compare date with input
+        if use_existing_imported_tiles and map_exists("raster", LT_layer_name, mapset):
+            patch_names.append(LT_layer_name)
+            used_existing_imported_tiles_num += 1
+            continue
         in_info = ("Importing and reprojecting {0}...").format(LT_file_name)
         gscript.info(in_info)
         # import to GRASS GIS
@@ -574,9 +671,15 @@ def main():
             gscript.warning(in_error)
         else:
             patch_names.append(LT_layer_name)
+            imported_tiles_num += 1
         # do not remove by default with NAIP, there are no zip files
-        if gui_product != 'naip' or not gui_k_flag:
+        if gui_product != 'naip' and not preserve_extracted_files:
             cleanup_list.append(t)
+    gscript.verbose(_("Imported {imported} new tiles and"
+                      " used {used} existing tiles").format(
+                        used=used_existing_imported_tiles_num,
+                        imported=imported_tiles_num
+                        ))
 
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch
@@ -593,16 +696,19 @@ def main():
                 if gui_product == 'naip':
                     for i in ('1', '2', '3', '4'):
                         patch_names_i = [name + '.' + i for name in patch_names]
+                        output = gui_output_layer + '.' + i
                         gscript.run_command('r.patch', input=patch_names_i,
-                                            output=gui_output_layer + '.' + i)
+                                            output=output)
+                        gscript.raster_history(output)
                 else:
                     gscript.run_command('r.patch', input=patch_names,
                                         output=gui_output_layer)
+                    gscript.raster_history(gui_output_layer)
                 gscript.del_temp_region()
                 out_info = ("Patched composite layer '{0}' added").format(gui_output_layer)
                 gscript.verbose(out_info)
-                # Remove files if 'k' flag
-                if not gui_k_flag:
+                # Remove files if not -k flag
+                if not preserve_imported_tiles:
                     if gui_product == 'naip':
                         for i in ('1', '2', '3', '4'):
                             patch_names_i = [name + '.' + i for name in patch_names]
@@ -613,17 +719,23 @@ def main():
                                             name=patch_names, flags='f')
             except CalledModuleError:
                 gscript.fatal("Unable to patch tiles.")
+            temp_down_count = _(
+                "{0} of {1} tiles successfully imported and patched").format(
+                    completed_tiles_count, tiles_needed_count)
+            gscript.info(temp_down_count)
         elif len(patch_names) == 1:
             if gui_product == 'naip':
                 for i in ('1', '2', '3', '4'):
                     gscript.run_command('g.rename', raster=(patch_names[0] + '.' + i, gui_output_layer + '.' + i))
             else:
                 gscript.run_command('g.rename', raster=(patch_names[0], gui_output_layer))
-        temp_down_count = "\n{0} of {1} tile/s succesfully imported and patched.".format(completed_tiles_count,
-                                                                                         tiles_needed_count)
-        gscript.info(temp_down_count)
+            temp_down_count = _("Tile successfully imported")
+            gscript.info(temp_down_count)
+        else:
+            gscript.fatal(_("No tiles imported successfully. Nothing to patch."))
     else:
-        gscript.fatal("Error downloading files. Please retry.")
+        gscript.fatal(_(
+            "Error in getting or importing the data (see above). Please retry."))
 
     # Keep source files if 'k' flag active
     if gui_k_flag:
@@ -641,6 +753,7 @@ def main():
         gscript.run_command('r.composite', red=gui_output_layer + '.1',
                             green=gui_output_layer + '.2', blue=gui_output_layer + '.3',
                             output=gui_output_layer)
+        gscript.raster_history(gui_output_layer)
         gscript.del_temp_region()
 
 
