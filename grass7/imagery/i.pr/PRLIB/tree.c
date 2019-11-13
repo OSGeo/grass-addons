@@ -15,7 +15,7 @@
 static void split_node();
 
 void compute_tree(Tree * tree, int nsamples, int nvar, double **data,
-		  int *data_class, int *classes, int *classes, int stamps,
+		  int *data_class, int nclasses, int *classes, int stamps,
 		  int minsize, double *costs)
 
      /*
@@ -107,7 +107,7 @@ void compute_tree(Tree * tree, int nsamples, int nvar, double **data,
 
 
 static void split_node(Node * node, Node * nodeL, Node * nodeR, int *classes,
-		       int *classes, double *costs)
+		       int nclasses, double *costs)
 {
     int **indx;
     double *tmpvar;
@@ -409,7 +409,7 @@ void write_tree(char *file, Tree * tree, Features * features)
 
 void compute_tree_boosting(BTree * btree, int boosting, double w,
 			   int nsamples, int nvar, double **data,
-			   int *data_class, int *classes, int *classes,
+			   int *data_class, int nclasses, int *classes,
 			   int stamps, int minsize, int weights_boosting,
 			   double *costs)
 
@@ -589,7 +589,7 @@ void compute_tree_boosting(BTree * btree, int boosting, double w,
 /*        The following routines are written and tested by Mauro Martinelli      */
 void compute_tree_boosting_reg(BTree * btree, int boosting, double w,
 			       int nsamples, int nvar, double **data,
-			       int *data_class, int *classes, int *classes,
+			       int *data_class, int nclasses, int *classes,
 			       int stamps, int minsize, int weights_boosting,
 			       double *costs, double *misratio)
 
@@ -1102,7 +1102,7 @@ void test_btree_reg(BTree * btree, Features * features, char *file,
 }
 
 void shaving_and_compute(int boosting, double w, int nsamples, int nvar,
-			 double **data, int *data_class, int *classes,
+			 double **data, int *data_class, int nclasses,
 			 int *classes, int stamps, int minsize,
 			 int weights_boosting, double *costs,
 			 double *misratio, int reg_verbose,
@@ -1114,7 +1114,7 @@ void shaving_and_compute(int boosting, double w, int nsamples, int nvar,
         compute btree model on the shaved trainng set, test and write into the output file the tree model
       */
 {
-    BTree *btree;
+    BTree btree;
     int j, k, n, t;
     double **xdata_training;
     int *xclasses_training;
@@ -1209,7 +1209,7 @@ void shaving_and_compute(int boosting, double w, int nsamples, int nvar,
 
 
 void compute_tree_bagging(BTree * btree, int bagging, int nsamples, int nvar,
-			  double **data, int *data_class, int *classes,
+			  double **data, int *data_class, int nclasses,
 			  int *classes, int stamps, int minsize,
 			  double *costs)
 
@@ -1517,7 +1517,7 @@ double predict_btree_2class(BTree * btree, double *x)
     return predict;
 }
 
-int predict_btree_multiclass(BTree * btree, double *x, int *classes,
+int predict_btree_multiclass(BTree * btree, double *x, int nclasses,
 			     int *classes)
 
      /* 
@@ -1787,7 +1787,7 @@ double predict_btree_2class_progressive(BTree * btree, double *x, int bmax)
 }
 
 int predict_btree_multiclass_progressive(BTree * btree, double *x,
-					 int *classes, int *classes, int bmax)
+					 int nclasses, int *classes, int bmax)
 
      /* 
         for multiclasses problems: given a btree model, return the predicted

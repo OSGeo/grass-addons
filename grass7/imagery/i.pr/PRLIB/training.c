@@ -36,8 +36,7 @@ void inizialize_training(Training * training)
 	(double **)G_calloc(TRAINING_MAX_EXAMPLES, sizeof(double *));
 }
 
-void read_training(file, training)
-     void read_training(char *file, Training * training)
+void read_training(char *file, Training * training)
 
      /*
         read training structure from a file. Supported formats
@@ -131,15 +130,15 @@ void read_training(file, training)
 	    sscanf(line, "%d", &(training->class[training->nexamples]));
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%lf", &(training->east[training->nexamples]));
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%lf", &(training->north[training->nexamples]));
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    if (training->nexamples == 0) {
 		sscanf(line, "%d", &(training->rows));
 	    }
@@ -148,7 +147,7 @@ void read_training(file, training)
 	    }
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    if (training->nexamples == 0) {
 		sscanf(line, "%d", &(training->cols));
 	    }
@@ -157,7 +156,7 @@ void read_training(file, training)
 	    }
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    if (training->nexamples == 0) {
 		sscanf(line, "%lf", &(training->ew_res));
 	    }
@@ -166,7 +165,7 @@ void read_training(file, training)
 	    }
 
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    if (training->nexamples == 0) {
 		sscanf(line, "%lf", &(training->ns_res));
 	    }
@@ -234,7 +233,7 @@ void read_training(file, training)
 		sscanf(line, "%lf",
 		       &(training->data[training->nexamples][i]));
 		line = (char *)strchr(line, '\t');
-		*line++;
+		line++;
 	    }
 	    sscanf(line, "%d", &(training->class[training->nexamples]));
 	    training->nexamples += 1;
