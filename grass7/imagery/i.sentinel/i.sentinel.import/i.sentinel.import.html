@@ -6,11 +6,21 @@ module.
 
 <p>
 By default <em>i.sentinel.import</em> imports all Sentinel scene files found
-in the <b>input</b> directory by <em><a href="r.import.html">r.import</a></em>.
+in the <b>input</b> directory. The number of scene files can be optionally 
+reduced by the <b>pattern_file</b> option. In this option, a regular expression 
+for filtering the file names should be given, e.g. "MSIL2A.*T32VNR_2019" for 
+importing only level 2A products for tile T32VNR from 2019.
+
+<p>
 Note that in the case that spatial reference system of input data differs
-from GRASS GIS location, the input data are reprojected. To speed up this
+from GRASS GIS location, the input data need to be reprojected with 
+<em><a href="r.import.html">r.import</a></em>. To speed up this
 process, a higher than default value can be specified for the <b>memory</b>
 option.
+
+<p>
+In order to ignore insignificant mismatch of the spatial reference 
+systems, the projection check can be suppressed with the <b>-o</b> flag.
 
 <p>
 Optionally input data can be linked
@@ -43,6 +53,54 @@ spatial resolutions:
 <tr>
 <td>60</td>
 <td>B1, B9, B10</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Level 2A products for Sentinel-2 come with a scene classification (SCL layer)
+at 20m and 60m resolution, that e.g. can be used for masking clouds and snow
+and is also imported by default.
+
+<p>
+For each imported band both scene and band specific metadata on geometric
+conditions as well as quality indicators are written into the map history
+(<em><a href="r.support.html">r.support</a></em>). In addition, the scene
+name is stored as <em>source1</em> and the imported or linked file name as
+<em>source2</em>. Also, sensing time is written into the timestamp of the
+map. After import, the metadata can be retrieved with <em>r.info -e</em>
+as shown below.
+
+<p>
+<table border="1">
+<tbody>
+<tr>
+<td>
+SATELLITE=S2B<br>
+CLOUDY_PIXEL_PERCENTAGE=1.250696<br>
+DEGRADED_MSI_DATA_PERCENTAGE=0<br>
+NODATA_PIXEL_PERCENTAGE=58.089572<br>
+SATURATED_DEFECTIVE_PIXEL_PERCENTAGE=0.000000<br>
+DARK_FEATURES_PERCENTAGE=4.668012<br>
+CLOUD_SHADOW_PERCENTAGE=0.572569<br>
+VEGETATION_PERCENTAGE=45.350337<br>
+NOT_VEGETATED_PERCENTAGE=1.179313<br>
+WATER_PERCENTAGE=44.793952<br>
+UNCLASSIFIED_PERCENTAGE=2.184867<br>
+MEDIUM_PROBA_CLOUDS_PERCENTAGE=0.620685<br>
+HIGH_PROBA_CLOUDS_PERCENTAGE=0.570162<br>
+THIN_CIRRUS_PERCENTAGE=0.059849<br>
+SNOW_ICE_PERCENTAGE=0.000253<br>
+RADIATIVE_TRANSFER_ACCURACY=0.0<br>
+WATER_VAPOUR_RETRIEVAL_ACCURACY=0.0<br>
+AOT_RETRIEVAL_ACCURACY=0.0<br>
+MEAN_SUN_ZENITH_GRID_ANGLE=63.9790718336484<br>
+MEAN_SUN_AZIMUTH_GRID_ANGLE=180.4378695652174<br>
+MEAN_SUN_ZENITH_ANGLE=63.9790721741866<br>
+MEAN_SUN_AZIMUTH_ANGLE=180.437882291128<br>
+ZENITH_ANGLE_5=9.9540335513936<br>
+AZIMUTH_ANGLE_5=295.354861828927<br>
+</td>
 </tr>
 </tbody>
 </table>
@@ -118,6 +176,28 @@ i.sentinel.import -l -c input=data
 <img src="i_sentinel_import_band_4_clouds.png" width="600" height="356"><br>
 <i>Fig: Band 4 with imported cloud mask</i>
 </center>
+
+<p>
+Link data from specific UTM zone while ignoring projection check
+
+<div class="code"><pre>
+i.sentinel.import -l -o input=data pattern_file="_T32"
+</pre></div>
+
+<p>
+Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019
+
+<div class="code"><pre>
+i.sentinel.import input=data pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+</pre></div>
+
+<p>
+Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019,
+unzip to directory "safefiles_dir":
+
+<div class="code"><pre>
+i.sentinel.import input=data unzip_dir=safefiles_dir pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+</pre></div>
 
 <h3>Register imported Sentinel data into STRDS</h3>
 
