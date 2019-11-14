@@ -93,6 +93,7 @@ proj = ''.join([
 
 import os
 import atexit
+import numpy as np
 from six.moves.urllib import request as urllib2
 try:
     from http.cookiejar import CookieJar
@@ -110,7 +111,7 @@ def import_local_tile(tile, local, pid, srtmv3, one):
             local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
-    
+
     path = os.path.join(local, local_tile)
     if os.path.exists(path):
         path = os.path.join(local, local_tile)
@@ -173,14 +174,14 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
         except:
             goturl = 0
             pass
-        
+
         return goturl
-        
+
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
         remote_tile = str(url) + str(srtmdir) + '/' + local_tile
         goturl = 1
-    
+
         try:
             response = urllib2.urlopen(request)
             fo = open(local_tile, 'w+b')
@@ -192,13 +193,13 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
         except:
             goturl = 0
             pass
-        
+
         if goturl == 1:
             return 1
 
     return 0
-    
-    
+
+
 def cleanup():
     if not in_temp:
         return
@@ -206,6 +207,7 @@ def cleanup():
     grass.run_command('g.region', region = tmpregionname)
     grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
     grass.try_rmdir(tmpdir)
+
 
 def main():
     global tile, tmpdir, in_temp, currdir, tmpregionname
@@ -232,7 +234,7 @@ def main():
             res = '00:00:01'
     else:
         one = None
-        
+
     if len(local) == 0:
         if len(url) == 0:
             if srtmv3:
@@ -249,8 +251,6 @@ def main():
     # are we in LatLong location?
     s = grass.read_command("g.proj", flags='j')
     kv = grass.parse_key_val(s)
-    if kv['+proj'] != 'longlat':
-        grass.fatal(_("This module only operates in LatLong locations"))
 
     if fillnulls == 1 and memory <= 0:
         grass.warning(_("Amount of memory to use for interpolation must be positive, setting to 300 MB"))
@@ -270,7 +270,28 @@ def main():
         local = tmpdir
 
     # get extents
-    reg = grass.region()
+    if kv['+proj'] == 'longlat':
+        reg = grass.region()
+    else:
+        reg2 = grass.parse_command('g.region', flags='uplg')
+        north = [float(reg2['ne_lat']), float(reg2['nw_lat'])]
+        south = [float(reg2['se_lat']), float(reg2['sw_lat'])]
+        east = [float(reg2['ne_long']), float(reg2['se_long'])]
+        west = [float(reg2['nw_long']), float(reg2['sw_long'])]
+        reg = {}
+        if np.mean(north) > np.mean(south):
+            reg['n'] = max(north)
+            reg['s'] = min(south)
+        else:
+            reg['n'] = min(north)
+            reg['s'] = max(south)
+        if np.mean(west) > np.mean(east):
+            reg['w'] = max(west)
+            reg['e'] = min(east)
+        else:
+            reg['w'] = min(west)
+            reg['e'] = max(east)
+
     tmpregionname = 'r_in_srtm_tmp_region'
     grass.run_command('g.region', save = tmpregionname, overwrite=overwrite)
     if options['region'] is None or options['region'] == '':
@@ -291,7 +312,7 @@ def main():
         north = tmpint + 1
     else:
         north = tmpint
-        
+
     tmpint = int(south)
     if tmpint > south:
         south = tmpint - 1
@@ -309,7 +330,7 @@ def main():
         west = tmpint - 1
     else:
         west = tmpint
-        
+
     if north == south:
         north += 1
     if east == west:
@@ -338,7 +359,7 @@ def main():
                 tile = tile + 'E'
             tile = tile + '%03d' % abs(edeg)
             grass.debug("Tile: %s" % tile, debug = 1)
-            
+
             if local != tmpdir:
                 gotit = import_local_tile(tile, local, pid, srtmv3, one)
             else:
@@ -417,7 +438,7 @@ def main():
             grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
     grass.run_command('g.region', raster = str(srtmtiles));
-    
+
     grass.message(_("Patching tiles..."))
     if fillnulls == 0:
         if valid_tiles > 1:
@@ -425,7 +446,7 @@ def main():
         else:
             grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
     else:
-        ncells = grass.region()['cells'] 
+        ncells = grass.region()['cells']
         if long(ncells) > 1000000000:
             grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
         grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
