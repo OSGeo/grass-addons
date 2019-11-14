@@ -15,7 +15,7 @@
 #############################################################################
 
 #%module
-#% description: Manages NULL values of raster maps in a mapset or their subset
+#% description: Manages NULL values of raster maps in a mapset or their subset.
 #% keyword: raster
 #% keyword: map management
 #% keyword: null data
