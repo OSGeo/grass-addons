@@ -1,22 +1,23 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-#MODULE:     r.in.usgs
+############################################################################
 #
-#AUTHORS:    Zechariah Krautwurst
+# MODULE:    r.in.usgs
+#
+# AUTHORS:   Zechariah Krautwurst
 #            Anna Petrasova
 #            Vaclav Petras
 #
-#MENTORS:    Anna Petrasova
-#            Vaclav Petras
+# PURPOSE:   Download user-requested products through the USGS TNM API.
 #
-#PURPOSE:    Download user-requested products through the USGS TNM API.
-#
-#COPYRIGHT:  (C) 2017 Zechariah Krautwurst and the GRASS Development Team
+# COPYRIGHT: (C) 2017-2019 Zechariah Krautwurst and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
 #            for details.
+#
+############################################################################
 
 #%module
 #% description: Download user-requested products through the USGS TNM API
@@ -96,9 +97,31 @@
 #% answer: default
 #%end
 
+#%option
+#% key: memory
+#% type: integer
+#% required: no
+#% multiple: no
+#% label: Maximum memory to be used (in MB)
+#% description: Cache size for raster rows during import and reprojection
+#% answer: 300
+#% guisection: Speed
+#%end
+
+#%option
+#% key: nprocs
+#% type: integer
+#% required: no
+#% multiple: no
+#% description: Number of processes which will be used for parallel import and reprojection
+#% answer: 1
+#% guisection: Speed
+#%end
+
 #%flag
 #% key: k
 #% description: Keep extracted files after GRASS import and patch
+#% guisection: Speed
 #%end
 
 #%rules
@@ -110,8 +133,9 @@ import os
 import zipfile
 import grass.script as gscript
 from six.moves.urllib.request import urlopen
-from six.moves.urllib.error import URLError
+from six.moves.urllib.error import URLError, HTTPError
 from six.moves.urllib.parse import quote_plus
+from multiprocessing import Process, Manager
 import json
 import atexit
 
@@ -276,6 +300,8 @@ def main():
     gui_i_flag = flags['i']
     gui_k_flag = flags['k']
     work_dir = options['output_directory']
+    memory = options['memory']
+    nprocs = options['nprocs']
 
     preserve_extracted_files = gui_k_flag
     use_existing_extracted_files = True
@@ -330,12 +356,20 @@ def main():
     gscript.verbose("TNM API Query URL:\t{0}".format(TNM_API_URL))
 
     # Query TNM API
+    try_again_messge = _("Possibly, the query has timed out. Check network configuration and try again.")
     try:
         TNM_API_GET = urlopen(TNM_API_URL, timeout=12)
-    except URLError:
-        gscript.fatal(_("USGS TNM API query has timed out. Check network configuration. Please try again."))
-    except:
-        gscript.fatal(_("USGS TNM API query has timed out. Check network configuration. Please try again."))
+    except HTTPError as error:
+        gscript.fatal(_(
+            "HTTP(S) error from USGS TNM API:"
+            " {code}: {reason} ({instructions})").format(
+                reason=error.reason, code=error.code, instructions=try_again_messge))
+    except (URLError, OSError, IOError) as error:
+        # Catching also SSLError and potentially others which are
+        # subclasses of IOError in Python 2 and of OSError in Python 3.
+        gscript.fatal(_(
+            "Error accessing USGS TNM API: {error} ({instructions})").format(
+                error=error, instructions=try_again_messge))
 
     # Parse return JSON object from API query
     try:
@@ -552,6 +586,7 @@ def main():
                     if not chunk:
                         break
                     local_file.write(chunk)
+                gscript.percent(1, 1, 1)
             local_file.close()
             download_count += 1
             # determine if file is a zip archive or another format
@@ -589,7 +624,10 @@ def main():
         else:
             gscript.message("Extracting data...")
         # for each zip archive, extract needed file
-        for z in local_zip_path_list:
+        files_to_process = len(local_zip_path_list)
+        for i, z in enumerate(local_zip_path_list):
+            # TODO: measure only for the files being unzipped
+            gscript.percent(i, files_to_process, 10)
             # Extract tiles from ZIP archives
             try:
                 with zipfile.ZipFile(z, "r") as read_zip:
@@ -625,6 +663,7 @@ def main():
                     "Unable to locate or extract IMG file '{filename}'"
                     " from ZIP archive '{zipname}': {error}").format(
                         filename=extracted_tile, zipname=z, error=error))
+        gscript.percent(1, 1, 1)
         # TODO: do this before the extraction begins
         gscript.verbose(_("Extracted {extracted} new tiles and"
                           " used {used} existing tiles").format(
@@ -651,31 +690,88 @@ def main():
     used_existing_imported_tiles_num = 0
     imported_tiles_num = 0
     mapset = get_current_mapset()
-    for t in local_tile_path_list:
-        # create variables for use in GRASS GIS import process
-        LT_file_name = os.path.basename(t)
-        LT_layer_name = os.path.splitext(LT_file_name)[0]
-        # TODO: unlike the files, we don't compare date with input
-        if use_existing_imported_tiles and map_exists("raster", LT_layer_name, mapset):
-            patch_names.append(LT_layer_name)
-            used_existing_imported_tiles_num += 1
-            continue
-        in_info = ("Importing and reprojecting {0}...").format(LT_file_name)
-        gscript.info(in_info)
-        # import to GRASS GIS
+    files_to_import = len(local_tile_path_list)
+
+    def run_file_import(identifier, results,
+                        input, output, resolution,
+                        resolution_value, extent, resample, memory):
+        result = {}
         try:
-            gscript.run_command('r.import', input=t, output=LT_layer_name,
-                                resolution='value', resolution_value=product_resolution,
-                                extent="region", resample=product_interpolation)
+            gscript.run_command('r.import', input=input, output=output,
+                                resolution=resolution,
+                                resolution_value=resolution_value,
+                                extent=extent, resample=resample,
+                                memory=memory)
         except CalledModuleError:
-            in_error = ("Unable to import '{0}'").format(LT_file_name)
-            gscript.warning(in_error)
+            error = ("Unable to import <{0}>").format(output)
+            result["errors"] = error
         else:
-            patch_names.append(LT_layer_name)
-            imported_tiles_num += 1
-        # do not remove by default with NAIP, there are no zip files
-        if gui_product != 'naip' and not preserve_extracted_files:
-            cleanup_list.append(t)
+            result["output"] = output
+        results[identifier] = result
+
+    process_list = []
+    process_id_list = []
+    process_count = 0
+    num_tiles = len(local_tile_path_list)
+
+    with Manager() as manager:
+        results = manager.dict()
+        for i, t in enumerate(local_tile_path_list):
+            # create variables for use in GRASS GIS import process
+            LT_file_name = os.path.basename(t)
+            LT_layer_name = os.path.splitext(LT_file_name)[0]
+            # we are removing the files if requested even if we don't use them
+            # do not remove by default with NAIP, there are no zip files
+            if gui_product != 'naip' and not preserve_extracted_files:
+                cleanup_list.append(t)
+            # TODO: unlike the files, we don't compare date with input
+            if use_existing_imported_tiles and map_exists("raster", LT_layer_name, mapset):
+                patch_names.append(LT_layer_name)
+                used_existing_imported_tiles_num += 1
+                continue
+            in_info = _("Importing and reprojecting {name}"
+                        " ({count} out of {total})...").format(
+                            name=LT_file_name, count=i + 1, total=files_to_import)
+            gscript.info(in_info)
+
+            process_count += 1
+            process = Process(
+                name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
+                target=run_file_import, kwargs=dict(
+                identifier=i, results=results,
+                input=t, output=LT_layer_name,
+                resolution='value', resolution_value=product_resolution,
+                extent="region", resample=product_interpolation,
+                memory=memory
+            ))
+            process.start()
+            process_list.append(process)
+            process_id_list.append(i)
+
+            # Wait for processes to finish when we reached the max number
+            # of processes.
+            if process_count == nprocs or i == num_tiles - 1:
+                exitcodes = 0
+                for process in process_list:
+                    process.join()
+                    exitcodes += process.exitcode
+                if exitcodes != 0:
+                    if nprocs > 1:
+                        gscript.fatal(_("Parallel import and reprojection failed."
+                                        " Try running with nprocs=1."))
+                    else:
+                        gscript.fatal(_("Import and reprojection step failed."))
+                for identifier in process_id_list:
+                    if "errors" in results[identifier]:
+                        gscript.warning(results[identifier]["errors"])
+                    else:
+                        patch_names.append(results[identifier]["output"])
+                        imported_tiles_num += 1
+                # Empty the process list
+                process_list = []
+                process_id_list = []
+                process_count = 0
+
     gscript.verbose(_("Imported {imported} new tiles and"
                       " used {used} existing tiles").format(
                         used=used_existing_imported_tiles_num,
