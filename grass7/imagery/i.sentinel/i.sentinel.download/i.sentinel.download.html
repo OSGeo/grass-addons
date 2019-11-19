@@ -71,8 +71,9 @@ intersects the AOI (default)</li>
 Filtered products can be reduced by <b>limit</b> option.
 
 <p>
-<em>i.sentinel.download</em> searches for products of the last 60 days,
-an exact date range can be defined by <b>start</b> and <b>end</b> options.
+<em>i.sentinel.download</em> limits the default search for products to the last 60 days;
+an exact date range can be defined by <b>start</b> and <b>end</b> parameters to search
+beyond that.
 
 <p>
 Sentinel products can be also filtered by <b>producttype</b> or, in case of
@@ -92,6 +93,9 @@ downloaded file (with <tt>.incomplete</tt> file extention) still present.
 
 <p>
 The <b>output</b> directory is created if not yet available.
+  
+<p>
+The query string sent to ESA can be shown with <b>--verbose</b>.
 
 <h2>EXAMPLES</h2>
 
@@ -171,7 +175,8 @@ a45d5bbe-6919-49fc-84fd-72a7634d2035 2018-06-04T05:26:01Z cloudcover_NA SLC
 
 <p>
 Find Sentinel-1 products with date range filter and <b>query</b> filter limit to
-a specific polarisationmode:
+a specific polarisation mode (see
+<a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">here</a> for query details):
 
 <div class="code"><pre>
 i.sentinel.download -l settings=credentials.txt producttype=SLC start=2018-01-01 end=2018-12-31 query='polarisationmode=VV'
@@ -189,7 +194,7 @@ Download first (<b>limit=1</b>) S2MSI2A product found into the <i>data</i> direc
 
 <div class="code"><pre>
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
-i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018
+i.sentinel.download settings=credentials.txt producttype=S2MSI2A start=2018-05-01 end=2018-05-31 limit=1 output=s2_L2A_may2018/
 </pre></div>
 
 The downloaded Sentinel data can subsequently be easily imported into GRASS GIS
@@ -200,14 +205,33 @@ module.
 
 <em>i.sentinel.download</em> also allows downloading of Sentinel products
 by specifying a (list of) UUID. This operation is performed by the <b>uuid</b>
-option. Note that this option is mutually exclusive with all of other
+option. Note that this option is mutually exclusive with all other
 filtering options.
 
 <p>
-Example of downloading a single Sentinel product:
+Example of downloading a single Sentinel product by UUID:
 
 <div class="code"><pre>
-i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data
+i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e82297ac output=s2_data/
+<pre></div>
+
+<h3>Download Sentinel products by scene name</h3>
+
+<em>i.sentinel.download</em> also allows downloading of Sentinel products
+by specifying a (list of) scene names (name of the SAFE.zip file). This operation is
+performed by the <b>query</b> option. Note that this option is mutually exclusive with
+all other filtering options.
+
+<p>
+Example of downloading a single Sentinel product by scene names (name of the SAFE.zip file).
+Importantly, the <b>producttype</b>, <b>start</b> and <b>end</b> date need to be specified to
+override the default settings (otherwise no product will be found):
+
+<div class="code"><pre>
+# North Carolina sample dataset example
+i.sentinel.download settings=credentials.txt \
+  query='filename=S2A_MSIL1C_20180822T155901_N0206_R097_T17SPV_20180822T212023.SAFE' \
+  producttype=S2MSI1C start=2018-01-01 end=2018-12-31 output=s2_data/
 <pre></div>
 
 <h2>REQUIREMENTS</h2>
@@ -231,6 +255,9 @@ i.sentinel.download settings=credentials.txt uuid=6a10da0f-7777-4818-bc2c-4680e8
 <a href="r.external.html">r.external</a>,
 <a href="v.import.html">v.import</a>
 </em>
+
+<p>
+Copernicus Scihub reference: <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">Simple search query</a>
 
 <p>
 See also <a href="http://training.gismentors.eu/grass-gis-workshop-jena-2018/units/20.html">GRASS
