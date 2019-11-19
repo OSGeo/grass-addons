@@ -68,7 +68,7 @@ def main():
     expr += ')' * len(data.keys())
     expr += ')'  # for eval
     expr += '\n {new} = 1.0 / (1.0 + exp(-tmp))'.format(new=output)
-    gscript.debug(1, expr)
+    gscript.debug(expr, 1)
     gscript.mapcalc(expr)
 
 
