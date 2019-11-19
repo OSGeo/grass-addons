@@ -109,7 +109,6 @@ import sys
 import os
 import zipfile
 import grass.script as gscript
-import urllib
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError
 from six.moves.urllib.parse import quote_plus
