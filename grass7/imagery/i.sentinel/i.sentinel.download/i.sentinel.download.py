@@ -240,9 +240,9 @@ class SentinelDownloader(object):
                     ','.join(redefined)
                 ))
             args.update(query)
-        gs.debug("Query: area={} area_relation={} date=({}, {}) args={}".format(
+        gs.verbose("Query: area={} area_relation={} date=({}, {}) args={}".format(
             area, area_relation, start, end, args
-        ), debug=1)
+        ))
         products = self._api.query(
             area=area, area_relation=area_relation,
             date=(start, end),
