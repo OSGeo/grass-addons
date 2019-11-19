@@ -109,8 +109,9 @@ import sys
 import os
 import zipfile
 import grass.script as gscript
-import urllib
-import urllib2
+from six.moves.urllib.request import urlopen
+from six.moves.urllib.error import URLError
+from six.moves.urllib.parse import quote_plus
 import json
 import atexit
 
@@ -314,9 +315,9 @@ def main():
 
     # Format variables for TNM API call
     gui_prod_str = str(product_tag)
-    datasets = urllib.quote_plus(gui_prod_str)
-    prod_format = urllib.quote_plus(product_format)
-    prod_extent = urllib.quote_plus(product_extent[0])
+    datasets = quote_plus(gui_prod_str)
+    prod_format = quote_plus(product_format)
+    prod_extent = quote_plus(product_extent[0])
 
     # Create TNM API URL
     base_TNM = "https://viewer.nationalmap.gov/tnmaccess/api/products?"
@@ -330,8 +331,8 @@ def main():
 
     # Query TNM API
     try:
-        TNM_API_GET = urllib2.urlopen(TNM_API_URL, timeout=12)
-    except urllib2.URLError:
+        TNM_API_GET = urlopen(TNM_API_URL, timeout=12)
+    except URLError:
         gscript.fatal(_("USGS TNM API query has timed out. Check network configuration. Please try again."))
     except:
         gscript.fatal(_("USGS TNM API query has timed out. Check network configuration. Please try again."))
@@ -538,7 +539,7 @@ def main():
             local_file_path = os.path.join(work_dir, file_name)
         try:
             # download files in chunks rather than write complete files to memory
-            dwnld_req = urllib2.urlopen(url, timeout=12)
+            dwnld_req = urlopen(url, timeout=12)
             download_bytes = int(dwnld_req.info()['Content-Length'])
             CHUNK = 16 * 1024
             with open(local_file_path, "wb+") as local_file:
@@ -561,7 +562,7 @@ def main():
             file_complete = "Download {0} of {1}: COMPLETE".format(
                     download_count, TNM_count)
             gscript.info(file_complete)
-        except urllib2.URLError:
+        except URLError:
             gscript.fatal(_("USGS download request has timed out. Network or formatting error."))
         except StandardError:
             cleanup_list.append(local_file_path)
