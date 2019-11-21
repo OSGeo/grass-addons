@@ -21,7 +21,7 @@
 #############################################################################
 
 #%module
-#% description: Patches the space time rasters to one raster using r.patch.
+#% description: Patches multiple space time raster maps into a single raster map using r.patch.
 #% keyword: temporal
 #% keyword: aggregation
 #% keyword: series
