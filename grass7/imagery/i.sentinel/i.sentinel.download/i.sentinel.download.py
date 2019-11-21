@@ -169,7 +169,7 @@ def get_aoi(vector=None):
 
     if gs.vector_info_topo(vector)['areas'] <= 0:
         gs.fatal(_("No areas found in AOI map <{}>...").format(vector))
-    else:
+    elif gs.vector_info_topo(vector)['areas'] > 1:
         gs.warning(_("More than one area found in AOI map <{}>. \
                       Using only the first area...").format(vector))
 
