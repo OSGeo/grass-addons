@@ -438,7 +438,7 @@ class SentinelImporter(object):
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
-        has_band_ref = float(gs.version()['version'].rstrip('.dev')) >= 7.9
+        has_band_ref = float(gs.version()['version'][0:3]) >= 7.9
         sep = '|'
         with open(filename, 'w') as fd:
             for img_file in self.files:
