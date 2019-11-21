@@ -310,7 +310,7 @@ def main():
     subregions = options['subregions']
     tosplit = flags['d']
     # filter unused optional params
-    for key in options.keys():
+    for key in list(options.keys()):
         if options[key] == '':
             options.pop(key)
     if tosplit and options['output_series']:
