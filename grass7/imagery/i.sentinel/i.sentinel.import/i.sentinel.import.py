@@ -76,6 +76,11 @@
 #% guisection: Settings
 #%end
 #%flag
+#% key: n
+#% description: Do not unzip SAFE-files if they are already extracted
+#% guisection: Settings
+#%end
+#%flag
 #% key: p
 #% description: Print raster data to be imported and exit
 #% guisection: Print
@@ -161,7 +166,7 @@ class SentinelImporter(object):
             unziped_files = [os.path.basename(safe) for safe in unziped_files]
         for filepath in input_files:
             safe = os.path.basename(filepath.replace('.zip', '.SAFE'))
-            if safe not in unziped_files:
+            if safe not in unziped_files or not flags['n']:
                 gs.verbose('Reading <{}>...'.format(filepath))
 
                 with ZipFile(filepath) as fd:
