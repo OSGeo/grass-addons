@@ -106,6 +106,15 @@
 #% answer: tcor
 #% guisection: Output
 #%end
+#%option
+#% key: memory
+#% type: integer
+#% required: no
+#% multiple: no
+#% label: Maximum memory to be used (in MB)
+#% description: Cache size for raster rows
+#% answer: 300
+#%end
 #%flag
 #% key: a
 #% description: Use AOD instead visibility
@@ -131,6 +140,27 @@
 #% description: Computes topographic correction of reflectance
 #% guisection: Input
 #%end
+#%flag
+#% key: l
+#% description: Link raster data instead of importing
+#% guisection: Settings
+#%end
+#%flag
+#% key: o
+#% description: Override projection check (use current location's projection)
+#% guisection: Settings
+#%end
+#%rules
+#% requires: -t,text_file
+#% requires: text_file,-t
+#% required: aod_value,aeronet_file,visibility
+#% requires: aod_value,-a
+#% requires: aeronet_file,-a
+#% requires: -a,aod_value,aeronet_file
+#% exclusive: -a,visibility
+#% exclusive: -l,-r
+#% exclusive: -o,-r
+#%end
 
 import grass.script as gscript
 import xml.etree.ElementTree as et
@@ -152,6 +182,7 @@ def main ():
     dem = options['elevation']
     vis = options['visibility']
     input_dir = options['input_dir']
+    memory = options['memory']
     check_ndir = 0
     check_odir = 0
     # Check if the input folder has old or new name
@@ -193,18 +224,24 @@ def main ():
         gscript.warning(_("Topographic correction of reflectance will use "
                           "default method 'c-factor'"))
 
+    if not shutil.which('i.sentinel.import'):
+        gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
     # Import bands
     if not flags["i"]:
-        try:
-            if flags["r"]:
-                gscript.run_command('i.sentinel.import',
-                                    input=input_dir,
-                                    flags='r')
-            else:
-                gscript.run_command('i.sentinel.import',
-                                    input=input_dir)
-        except:
-            gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
+        imp_flags = 'o' if flags['o'] else ''
+        imp_flags += 'l' if flags['l'] else ''
+        imp_flags += 'r' if flags['r'] else ''
+        imp_flags = None if imp_flags == '' else imp_flags
+        print(imp_flags)
+        i_s_imp_dir = os.path.dirname(input_dir)
+        pattern_file = os.path.basename(input_dir).split('.')[0]
+
+        # import
+        gscript.run_command('i.sentinel.import',
+                            input=i_s_imp_dir,
+                            pattern_file=pattern_file,
+                            flags=imp_flags,
+                            memory=memory)
 
     # Create xml "tree" for reading parameters from metadata
     tree = et.parse(mtd_file)
