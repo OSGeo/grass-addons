@@ -76,6 +76,11 @@
 #% guisection: Settings
 #%end
 #%flag
+#% key: n
+#% description: Do not unzip SAFE-files if they are already extracted
+#% guisection: Settings
+#%end
+#%flag
 #% key: p
 #% description: Print raster data to be imported and exit
 #% guisection: Print
@@ -161,7 +166,7 @@ class SentinelImporter(object):
             unziped_files = [os.path.basename(safe) for safe in unziped_files]
         for filepath in input_files:
             safe = os.path.basename(filepath.replace('.zip', '.SAFE'))
-            if safe not in unziped_files:
+            if safe not in unziped_files or not flags['n']:
                 gs.verbose('Reading <{}>...'.format(filepath))
 
                 with ZipFile(filepath) as fd:
@@ -206,15 +211,16 @@ class SentinelImporter(object):
         args = {}
         if link:
             module = 'r.external'
+            args['flags'] = 'o' if override else None
         else:
             args['memory'] = options['memory']
             if reproject:
                 module = 'r.import'
                 args['resample'] = 'bilinear'
                 args['resolution'] = 'value'
-                args['flags'] = 'o' if override else None
             else:
                 module = 'r.in.gdal'
+                args['flags'] = 'o' if override else None
 
         for f in self.files:
             if not override and (link or (not link and not reproject)):
@@ -329,59 +335,57 @@ class SentinelImporter(object):
             nsDict = {'n1':nsPrefix[1:-1]}
             node = root.find('n1:General_Info', nsDict)
             if node is not None:
-                try:
-                    # check S2
-                    tile_id = [subnode.text for subnode in node.getchildren() if subnode.tag.startswith('TILE_ID')][0]
-                    if not tile_id.startswith('S2'):
-                        gs.fatal(_("Register file can be created only for Sentinel-2 data."))
+                tile_id = node.find('TILE_ID').text if node.find('TILE_ID') is not None else ''
+                if not tile_id.startswith('S2'):
+                    gs.fatal(_("Register file can be created only for Sentinel-2 data."))
 
-                    meta['SATELLITE'] = tile_id.split('_')[0]
+                meta['SATELLITE'] = tile_id.split('_')[0]
 
-                    # get timestamp
-                    ts_str = node.find('SENSING_TIME', nsDict).text
-                    meta['timestamp'] = datetime.strptime(
-                        ts_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-                    )
-                except (AttributeError, IndexError):
-                    # error is reported below
-                    pass
+                # get timestamp
+                ts_str = node.find('SENSING_TIME', nsDict).text
+                meta['timestamp'] = datetime.strptime(
+                    ts_str, "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
 
             # Get Quality metadata
             node = root.find('n1:Quality_Indicators_Info', nsDict)
-            for subnode in node.getchildren():
-                if subnode.tag == 'Image_Content_QI':
-                    for sn in subnode.getchildren():
-                        meta[sn.tag] = sn.text
+            image_qi = node.find('Image_Content_QI')
+            if image_qi:
+                for qi in list(image_qi):
+                    meta[qi.tag] = qi.text
 
             # Get Geometric metadata
             node = root.find('n1:Geometric_Info', nsDict)
-            for subnode in node.getchildren():
-                if 'Tile_Angles' == subnode.tag:
-                    # In L1C products it can be necessary to compute angles from grid
-                    for sn in subnode.getchildren():
-                        if sn.tag == 'Mean_Viewing_Incidence_Angle_List':
-                            for it in sn.getchildren():
-                                band = it.attrib['bandId']
-                                for i in it.getchildren():
-                                    if 'ZENITH_ANGLE' in i.tag or 'AZIMUTH_ANGLE' in i.tag:
-                                        meta[i.tag + '_' + band] = i.text
-                        if sn.tag == 'Sun_Angles_Grid':
-                            for ssn in sn.getchildren():
-                                if ssn.tag == 'Zenith':
-                                    for sssn in ssn.getchildren():
-                                        if sssn.tag == 'Values_List':
-                                            mean_zenith = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in sssn.getchildren()], dtype=np.float))
-                                            meta['MEAN_SUN_ZENITH_GRID_ANGLE'] = mean_zenith
-                                elif ssn.tag == 'Azimuth':
-                                    for sssn in ssn.getchildren():
-                                        if sssn.tag == 'Values_List':
-                                            mean_azimuth = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in sssn.getchildren()], dtype=np.float))
-                                            meta['MEAN_SUN_AZIMUTH_GRID_ANGLE'] = mean_azimuth
-                        if sn.tag == 'Mean_Sun_Angle':
-                            for it in sn.getchildren():
-                                if it.tag == 'ZENITH_ANGLE' or it.tag == 'AZIMUTH_ANGLE':
-                                    meta['MEAN_SUN_' + it.tag] = it.text
-
+            tile_angles = node.find('Tile_Angles')
+            if tile_angles is not None:
+                # In L1C products it can be necessary to compute angles from grid
+                va_list = tile_angles.find('Mean_Viewing_Incidence_Angle_List')
+                if va_list is not None:
+                    for it in list(va_list):
+                        band = it.attrib['bandId']
+                        for i in list(it):
+                            if 'ZENITH_ANGLE' in i.tag or 'AZIMUTH_ANGLE' in i.tag:
+                                meta[i.tag + '_' + band] = i.text
+                    sa_grid = tile_angles.find('Sun_Angles_Grid')
+                    if sa_grid is not None:
+                        for ssn in list(sa_grid):
+                            if ssn.tag == 'Zenith':
+                                for sssn in list(ssn):
+                                    if sssn.tag == 'Values_List':
+                                        mean_zenith = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in list(sssn)], dtype=np.float))
+                                        meta['MEAN_SUN_ZENITH_GRID_ANGLE'] = mean_zenith
+                            elif ssn.tag == 'Azimuth':
+                                for sssn in list(ssn):
+                                    if sssn.tag == 'Values_List':
+                                        mean_azimuth = np.mean(np.array([np.array(ssssn.text.split(' '), dtype=np.float) for ssssn in list(sssn)], dtype=np.float))
+                                        meta['MEAN_SUN_AZIMUTH_GRID_ANGLE'] = mean_azimuth
+                    sa_mean = tile_angles.find('Mean_Sun_Angle')
+                    if sa_mean is not None:
+                        for it in list(sa_mean):
+                            if it.tag == 'ZENITH_ANGLE' or it.tag == 'AZIMUTH_ANGLE':
+                                meta['MEAN_SUN_' + it.tag] = it.text
+            else:
+                gs.warning('Unable to extract tile angles from <{}>'.format(mtd_file))
         if not meta['timestamp']:
             gs.error(_("Unable to determine timestamp from <{}>").format(mtd_file))
 
@@ -439,7 +443,7 @@ class SentinelImporter(object):
 
         if not ip_timestamp:
             gs.warning(_("Unable to determine timestamps. No metadata file found"))
-        has_band_ref = float(gs.version()['version'].rstrip('.dev')) >= 7.9
+        has_band_ref = float(gs.version()['version'][0:3]) >= 7.9
         sep = '|'
         with open(filename, 'w') as fd:
             for img_file in self.files:
