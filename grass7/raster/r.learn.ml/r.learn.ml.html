@@ -42,6 +42,10 @@
 g.region raster=landclass96 -p
 r.random input=landclass96 npoints=1000 raster=landclass96_roi
 </pre></div>
+<p>Next, we create the imagery group with all Landsat 7 (2000) bands:</p>
+<div class="code"><pre>
+i.group group=lsat7_2000 input=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_61,lsat7_2002_62,lsat7_2002_70,lsat7_2002_80
+</pre></div>
 <p>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:</p>
 <div class="code"><pre>
 r.learn.ml group=lsat7_2000 trainingmap=landclass96_roi output=rf_classification \
