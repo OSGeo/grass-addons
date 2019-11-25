@@ -294,8 +294,9 @@ class SentinelDownloader(object):
             else:
                 ccp = 'cloudcover_NA'
 
-            print('{0} {1} {2} {3}'.format(
+            print('{0} {1} {2} {3} {4}'.format(
                 self._products_df_sorted['uuid'][idx],
+                self._products_df_sorted['identifier'][idx],
                 self._products_df_sorted['beginposition'][idx].strftime("%Y-%m-%dT%H:%M:%SZ"),
                 ccp,
                 self._products_df_sorted['producttype'][idx],
