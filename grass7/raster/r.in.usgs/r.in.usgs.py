@@ -308,6 +308,10 @@ def main():
     preserve_imported_tiles = gui_k_flag
     use_existing_imported_tiles = True
 
+    if not os.path.isdir(work_dir):
+        gscript.fatal(_("Directory <{}> does not exist."
+                        " Please create it.").format(work_dir))
+
     # Returns current units
     try:
         proj = gscript.parse_command('g.proj', flags='g')
@@ -717,6 +721,30 @@ def main():
     with Manager() as manager:
         results = manager.dict()
         for i, t in enumerate(local_tile_path_list):
+            # Wait for processes to finish when we reached the max number
+            # of processes.
+            if process_count == nprocs or i == num_tiles - 1:
+                exitcodes = 0
+                for process in process_list:
+                    process.join()
+                    exitcodes += process.exitcode
+                if exitcodes != 0:
+                    if nprocs > 1:
+                        gscript.fatal(_("Parallel import and reprojection failed."
+                                        " Try running with nprocs=1."))
+                    else:
+                        gscript.fatal(_("Import and reprojection step failed."))
+                for identifier in process_id_list:
+                    if "errors" in results[identifier]:
+                        gscript.warning(results[identifier]["errors"])
+                    else:
+                        patch_names.append(results[identifier]["output"])
+                        imported_tiles_num += 1
+                # Empty the process list
+                process_list = []
+                process_id_list = []
+                process_count = 0
+
             # create variables for use in GRASS GIS import process
             LT_file_name = os.path.basename(t)
             LT_layer_name = os.path.splitext(LT_file_name)[0]
@@ -747,30 +775,10 @@ def main():
             process.start()
             process_list.append(process)
             process_id_list.append(i)
-
-            # Wait for processes to finish when we reached the max number
-            # of processes.
-            if process_count == nprocs or i == num_tiles - 1:
-                exitcodes = 0
-                for process in process_list:
-                    process.join()
-                    exitcodes += process.exitcode
-                if exitcodes != 0:
-                    if nprocs > 1:
-                        gscript.fatal(_("Parallel import and reprojection failed."
-                                        " Try running with nprocs=1."))
-                    else:
-                        gscript.fatal(_("Import and reprojection step failed."))
-                for identifier in process_id_list:
-                    if "errors" in results[identifier]:
-                        gscript.warning(results[identifier]["errors"])
-                    else:
-                        patch_names.append(results[identifier]["output"])
-                        imported_tiles_num += 1
-                # Empty the process list
-                process_list = []
-                process_id_list = []
-                process_count = 0
+        # no process should be left now
+        assert not process_list
+        assert not process_id_list
+        assert not process_count
 
     gscript.verbose(_("Imported {imported} new tiles and"
                       " used {used} existing tiles").format(
