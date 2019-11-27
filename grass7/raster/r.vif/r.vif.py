@@ -91,7 +91,10 @@ import os
 import sys
 import math
 import numpy as np
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
 import uuid
 import atexit
 import string
