@@ -94,7 +94,7 @@ import numpy as np
 try:
     from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from cStringIO import StringIO
 import uuid
 import atexit
 import string
