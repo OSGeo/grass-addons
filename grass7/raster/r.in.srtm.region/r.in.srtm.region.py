@@ -73,7 +73,7 @@
 #% description: Zu benutzende Interpolationsmethode.
 #% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
 #% answer: bilinear_f
-#% guisection: Ziel
+#% guisection: Output
 #%end
 #%flag
 #%  key: n
