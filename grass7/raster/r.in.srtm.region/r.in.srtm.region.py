@@ -70,10 +70,17 @@
 #% required: no
 #% multiple: no
 #% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
-#% description: Resampling method to use for reprojection
+#% description: Resampling method to use for reprojection (required if location projection not longlat)
 #% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
-#% answer: bilinear_f
 #% guisection: Output
+#%end
+#%option
+#% key: resolution
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Resolution of output raster map (used if location projection not longlat)
+#% guisection: Ziel
 #%end
 #%flag
 #%  key: n
@@ -277,6 +284,7 @@ def main():
     srtmv3 = (flags['2'] == 0)
     one = flags['1']
     dozerotile = flags['z']
+    reproj_res = options['resolution']
 
     overwrite = grass.overwrite()
 
@@ -546,7 +554,9 @@ def main():
         os.environ['GISRC'] = str(TGTGISRC)
         # r.proj
         grass.message(_("Reprojecting <%s>...") % output)
-        res = 30 if srtmv3 else 90
+        if not reproj_res:
+            reproj_res = 30 if srtmv3 else 90
+            grass.warning(_("Resolution set to %d") % reproj_res)
         method = options['method']
         nflag = '' # n ?
         try:
