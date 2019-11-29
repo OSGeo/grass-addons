@@ -80,7 +80,7 @@
 #% required: no
 #% multiple: no
 #% description: Resolution of output raster map (used if location projection not longlat)
-#% guisection: Ziel
+#% guisection: Output
 #%end
 #%flag
 #%  key: n
