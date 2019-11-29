@@ -202,9 +202,6 @@ class SentinelImporter(object):
                 for f in match:
                     files.append(os.path.join(rec[0], f))
 
-        if len(files) < 1:
-            gs.fatal(_('Nothing found to import. Please check input and pattern options.'))
-
         return files
 
     def import_products(self, reproject=False, link=False, override=False):
@@ -480,6 +477,8 @@ def main():
     importer = SentinelImporter(options['input'], options['unzip_dir'])
 
     importer.filter(options['pattern'])
+    if len(importer.files) < 1:
+        gs.fatal(_('Nothing found to import. Please check input and pattern options.'))
 
     if flags['p']:
         if options['register_output']:
