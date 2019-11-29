@@ -80,7 +80,7 @@
 #% required: no
 #% multiple: no
 #% description: Resolution of output raster map (used if location projection not longlat)
-#% guisection: Ziel
+#% guisection: Output
 #%end
 #%flag
 #%  key: n
@@ -93,7 +93,7 @@
 #%end
 #%flag
 #% key: 1
-#% description: Import 1-arcsec tiles (default: 3-arcsec)
+#% description: Input is a 1-arcsec tile (default: 3-arcsec)
 #%end
 #%flag
 #% key: z
@@ -165,6 +165,7 @@ def import_local_tile(tile, local, pid, srtmv3, one):
 
 def download_tile(tile, url, pid, srtmv3, one, username, password):
 
+    grass.debug("Download tile: %s" % tile, debug = 1)
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
         if one:
@@ -497,6 +498,7 @@ def main():
 
     srtmtiles = srtmtiles.splitlines()
     srtmtiles = ','.join(srtmtiles)
+    grass.debug("'List of Tiles: %s" % srtmtiles, debug = 1)
 
     if valid_tiles == 0:
         grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
@@ -547,7 +549,6 @@ def main():
                               flags = 'f',
                               quiet = True)
 
-    grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
     # switch to target location
     if kv['+proj'] != 'longlat':
@@ -557,16 +558,22 @@ def main():
         if not reproj_res:
             reproj_res = 30 if srtmv3 else 90
             grass.warning(_("Resolution set to %d") % reproj_res)
-        method = options['method']
-        nflag = '' # n ?
+        kwargs = {
+            'location': TMPLOC,
+            'mapset': 'PERMANENT',
+            'input': output,
+            'memory': memory,
+            'resolution': reproj_res
+        }
+        if options['method']:
+            kwargs['method'] = options['method']
         try:
-            # import pdb; pdb.set_trace()
-            grass.run_command('r.proj', location=TMPLOC,
-                              mapset='PERMANENT', input=output,
-                              method=method, resolution=res,
-                              memory=memory, flags=nflag, quiet=True)
+            grass.run_command('r.proj', **kwargs)
         except CalledModuleError:
             grass.fatal(_("Unable to to reproject raster <%s>") % output)
+    else:
+        if fillnulls != 0:
+            grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
     # nice color table
     grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)
