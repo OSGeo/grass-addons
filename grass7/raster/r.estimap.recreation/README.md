@@ -19,7 +19,18 @@ to derive a recreation *potential* map:
 - `input_water_resources`
 - `input_protected_areas`
 
-The maps are available to download at: https://gitlab.com/natcapes/r.estimap.recreation.data.
+<div>
+<p float="center">
+    <img alt="Area of interest" src="images/r_estimap_recreation_area_of_interest.png" width="190" />
+    <img alt="Land suitability" src="images/r_estimap_recreation_land_suitability.png" width="190" />
+    <img alt="Water resources"  src="images/r_estimap_recreation_water_resources.png"  width="190" />
+    <img alt="Protected areas"  src="images/r_estimap_recreation_protected_areas.png"  width="190" />
+</p>
+</div>
+
+The maps shown above are available to download,
+among other sample maps, at:
+https://gitlab.com/natcapes/r.estimap.recreation.data.
 
 Note, the prefix
 `input_`
@@ -31,14 +42,6 @@ all output maps and files
 will be prefixed with the string
 `output_`.
 
-<div>
-
-![Example of a land suitability input map](images/r_estimap_recreation_area_of_interest.png)
-![Example of a land suitability input map](images/r_estimap_recreation_land_suitability.png)
-![Example of a water resources input map](images/r_estimap_recreation_water_resources.png)
-![Example of a protected areas input map](images/r_estimap_recreation_protected_areas.png)
-
-</div>
 
 Before anything,
 we need to define the extent of interest
@@ -72,16 +75,14 @@ which returns
 
 ### Using pre-processed maps
 
-The first six input options of the module,
+The first four input options of the module,
 are designed to receive pre-processed input maps
 that classify as either
 `land`,
 `natural`,
 `water`,
-`urban`
-`recreation`
 and `infrastructure` resources
-that add somewhat to the recreational value of the area.
+that add to the recreational value of the area.
 _Pro-processing_ means here
 to derive a map
 that scores the given resources,
@@ -778,9 +779,8 @@ with one call:
 
     r.estimap.recreation --o \
       land=input_land_suitability \
-      natural=input_protected_areas \
+      natural=input_protected_areas,input_urban_green  \
       water=input_water_resources,input_bathing_water_quality \
-      urban=input_urban_green  \
       infrastructure=input_distance_to_infrastructure \
       landcover=input_corine_land_cover_2006 \
       land_classes=corine_to_maes_land_classes.rules \
