@@ -79,27 +79,22 @@ def temporary_filename(filename=None):
     return temporary_filename
 
 
-def remove_temporary_maps():
+def remove_temporary_maps(save_temporary_maps=False):
     """Clean up temporary maps"""
-
-    # get list of temporary maps
-    # temporary_raster_maps = grass.list_strings(
-    #     type="raster", pattern="tmp.{pid}*".format(pid=os.getpid())
-    # )
-
-    # # remove temporary maps
-    # if temporary_raster_maps:
-    g.message("Removing temporary maps")
-    g.remove(
-        flags="f",
-        type="raster",
-        pattern="tmp.{pid}*".format(pid=os.getpid()),
-        quiet=True,
-    )
-
-    # # remove MASK ? FIXME
-    # if grass.find_file(name='MASK', element='cell')['file']:
-    #     r.mask(flags='r', verbose=True)
+    # options, flags = grass.parser()
+    # if not flags['s']:  # 's' for save temporary maps
+    if not save_temporary_maps:
+        g.message("Removing temporary maps")
+        g.remove(
+            flags="f",
+            type="raster",
+            pattern="tmp.{pid}*".format(pid=os.getpid()),
+            quiet=True,
+        )
+    else:
+        msg = "I will not remove temporary maps in order to support your debugging!"
+        msg += "Take care to remove them, i.e. via `g.remove raster pattern=tmp.*`"
+        grass.warning(_(msg))
 
 
 def string_to_file(string, filename=None):
