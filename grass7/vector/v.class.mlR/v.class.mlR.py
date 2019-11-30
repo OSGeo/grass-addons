@@ -469,9 +469,9 @@ def main():
     r_file = open(r_commands, 'w')
 
     if processes > 1:
-	install = install_package % ('doParallel', 'doParallel', 'doParallel')
-	r_file.write(install)
-	r_file.write("\n")
+        install = install_package % ('doParallel', 'doParallel', 'doParallel')
+        r_file.write(install)
+        r_file.write("\n")
 
     # automatic installation of missing R packages
     install = install_package % ('caret', 'caret', 'caret')
@@ -528,9 +528,10 @@ def main():
             r_file.write("rndid <- with(training, ave(training[,1], %s, FUN=function(x) {sample.int(length(x))}))" % classcol)
             r_file.write("\n")
             r_file.write("tuning_data <- training[rndid<=%s,]" % tuning_sample_size)
-            r_file.write("\n")
+            r_file.write("\n")        
         else:
             r_file.write("tuning_data <- training")
+            r_file.write("\n")
         # If a max_features value is set, then proceed to feature selection.
         # Currently, feature selection uses random forest. TODO: specific feature selection for each classifier.
         if max_features:
@@ -556,12 +557,10 @@ def main():
             if not flags['t']:
                 r_file.write("features <- features[,bestPredictors]")
                 r_file.write("\n")
-        r_file.write("MyFolds.cv <- createMultiFolds(tuning_data$%s, k=%s, times=%s)" % (classcol, folds, partitions))
-        r_file.write("\n")
         if probabilities:
-            r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv, classProbs=TRUE, sampling='down')")
+            r_file.write("MyControl.cv <- trainControl(method='repeatedcv', number=%s, repeats=%s, classProbs=TRUE, sampling='down')" % (folds, partitions))
         else:
-            r_file.write("MyControl.cv <- trainControl(method='repeatedCV', index=MyFolds.cv, sampling='down')")
+            r_file.write("MyControl.cv <- trainControl(method='repeatedcv', number=%s, repeats=%s, sampling='down')" % (folds, partitions))
         r_file.write("\n")
         r_file.write("fmla <- %s ~ ." % classcol)
         r_file.write("\n")
@@ -826,8 +825,8 @@ def main():
         f.write(header_string)
         f.close()
 
-    	gscript.message("Loading results into attribute table")
-	gscript.run_command('db.in.ogr',
+        gscript.message("Loading results into attribute table")
+        gscript.run_command('db.in.ogr',
                             input_=model_output_csv,
                             output=temptable,
                             overwrite=True,
@@ -840,12 +839,12 @@ def main():
         columns = gscript.read_command('db.columns',
                                        table=temptable).splitlines()[1:]
         orig_cat = gscript.vector_db(allfeatures)[int(segments_layer)]['key']
-	gscript.run_command('v.db.join',
+        gscript.run_command('v.db.join',
                             map_=allfeatures,
                             column=orig_cat,
-			    otable=temptable,
+                            otable=temptable,
                             ocolumn='id', 
-			    subset_columns=columns,
+                            subset_columns=columns,
                             quiet=True)
 
     if classified_map:

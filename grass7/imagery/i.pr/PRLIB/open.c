@@ -7,6 +7,7 @@
  */
 
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <stdlib.h>
 
 int open_new_CELL(name)

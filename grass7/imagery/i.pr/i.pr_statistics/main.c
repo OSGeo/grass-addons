@@ -74,7 +74,9 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to calculate feature statistics. "
 	  "i.pr: Pattern Recognition environment for image processing. Includes kNN, "

@@ -73,7 +73,7 @@ void read_pca(FILE * fp, Pca * pca)
     for (i = 0; i < pca->n; i++) {
 	sscanf(line, "%lf", &(pca->eigval[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
     line = GetLine(fp);
     for (j = 0; j < pca->n; j++) {
@@ -81,7 +81,7 @@ void read_pca(FILE * fp, Pca * pca)
 	for (i = 0; i < pca->n; i++) {
 	    sscanf(line, "%lf", &(pca->eigmat[j][i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
     }
 }

@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
-#
-## FIXME -- No hardcodings please.
-#
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 
 POTENTIAL_CATEGORY_LABELS = """
 1:Low

@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include "global.h"
 
@@ -84,7 +85,9 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to search for blobs. "
 	  "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
@@ -100,7 +103,7 @@ int main(int argc, char *argv[])
     sscanf(opt5->answer, "%lf", &maxv);
 
 
-    if ((mapset = G_find_cell2(opt1->answer, "")) == NULL) {
+    if ((mapset = (char *)G_find_raster2(opt1->answer, "")) == NULL) {
 	sprintf(tempbuf, "can't open raster map <%s> for reading",
 		opt1->answer);
 	G_fatal_error(tempbuf);

@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include "global.h"
 
@@ -44,7 +45,9 @@ int main(int argc, char **argv)
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to add new features to existing feature in i.pr.* modules. "
 	  "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
@@ -246,8 +249,8 @@ void generate_features(Features * features, Features * features_out)
 	for (i = 0; i < features_out->nexamples; i++) {
 	    switch (features_out->training.data_type) {
 	    case GRASS_data:
-		if ((mapset =
-		     G_find_cell(features_out->training.mapnames[i][j],
+		if ((mapset = (char *)
+		     G_find_raster(features_out->training.mapnames[i][j],
 				 "")) == NULL) {
 		    sprintf(tempbuf,
 			    "generate_features-> Can't find raster map <%s>",

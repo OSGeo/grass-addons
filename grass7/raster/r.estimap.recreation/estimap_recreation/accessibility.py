@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -13,7 +10,7 @@ from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
-
+from .constants import EQUATION
 
 def artificial_accessibility_expression(artificial_proximity, roads_proximity):
     """
@@ -122,11 +119,11 @@ def compute_artificial_accessibility(
         result=tmp_output, expression=accessibility_expression
     )
 
-    msg = "Equation for proximity to artificial areas: \n"
+    msg = "* Equation for proximity to artificial areas: \n"
     msg += accessibility_equation
     grass.verbose(msg)
 
-    grass.verbose(_("Computing accessibility to artificial surfaces"))
+    grass.verbose(_("* Computing accessibility to artificial surfaces"))
     grass.mapcalc(accessibility_equation, overwrite=True)
 
     return tmp_output

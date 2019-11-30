@@ -134,7 +134,7 @@ static void read_bsvm(FILE * fp, BSupportVectorMachine ** bsvm)
     for (i = 0; i < (*bsvm)->nsvm; i++) {
 	sscanf(line, "%lf", &((*bsvm)->weights[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
     for (i = 0; i < (*bsvm)->nsvm; i++) {
@@ -165,7 +165,7 @@ static void read_btree(FILE * fp, BTree ** btree)
     for (i = 0; i < (*btree)->ntrees; i++) {
 	sscanf(line, "%lf", &((*btree)->weights[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
     for (i = 0; i < (*btree)->ntrees; i++) {
@@ -208,33 +208,33 @@ static void read_tree(FILE * fp, Tree ** tree)
 	(*tree)->node[i].nvar = nvar;
 	sscanf(line, "%d", &((*tree)->node[i].terminal));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
 	sscanf(line, "%d", &((*tree)->node[i].npoints));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
 	for (j = 0; j < nclasses; j++) {
 	    sscanf(line, "%d", &((*tree)->node[i].npoints_for_class[j]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	for (j = 0; j < nclasses; j++) {
 	    sscanf(line, "%lf", &((*tree)->node[i].priors[j]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	sscanf(line, "%d", &(*tree)->node[i].class);
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
 	if (!(*tree)->node[i].terminal) {
 	    sscanf(line, "%d", &((*tree)->node[i].left));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%d", &((*tree)->node[i].right));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%d", &((*tree)->node[i].var));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%lf", &((*tree)->node[i].value));
 	}
     }
@@ -273,7 +273,7 @@ static void read_svm(FILE * fp, SupportVectorMachine ** svm)
     line = GetLine(fp);
     line = GetLine(fp);
     line = GetLine(fp);
-    sscanf(line, "%lf%lf%%d", &((*svm)->tolerance), &((*svm)->eps),
+    sscanf(line, "%lf%lf%d", &((*svm)->tolerance), &((*svm)->eps),
 	   &((*svm)->maxloops));
     line = GetLine(fp);
     line = GetLine(fp);
@@ -302,11 +302,11 @@ static void read_svm(FILE * fp, SupportVectorMachine ** svm)
 	    for (j = 0; j < (*svm)->d; j++) {
 		sscanf(line, "%lf", &((*svm)->dense_points[i][j]));
 		line = (char *)strchr(line, '\t');
-		*line++;
+		line++;
 	    }
 	    sscanf(line, "%d", &((*svm)->target[i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	    sscanf(line, "%lf", &((*svm)->alph[i]));
 	}
     }
@@ -316,7 +316,7 @@ static void read_svm(FILE * fp, SupportVectorMachine ** svm)
 	for (j = 0; j < (*svm)->d; j++) {
 	    sscanf(line, "%lf", &((*svm)->w[j]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
     }
 
@@ -358,7 +358,7 @@ static void read_gm(FILE * fp, GaussianMixture ** gm)
     for (i = 0; i < (*gm)->nclasses; i++) {
 	sscanf(line, "%d", &((*gm)->classes[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
     line = GetLine(fp);
@@ -366,7 +366,7 @@ static void read_gm(FILE * fp, GaussianMixture ** gm)
     for (i = 0; i < (*gm)->nclasses; i++) {
 	sscanf(line, "%lf", &((*gm)->priors[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
 
@@ -377,7 +377,7 @@ static void read_gm(FILE * fp, GaussianMixture ** gm)
 	for (j = 0; j < (*gm)->nvars; j++) {
 	    sscanf(line, "%lf", &((*gm)->mean[i][j]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	line = GetLine(fp);
 	for (k = 0; k < (*gm)->nvars; k++) {
@@ -385,7 +385,7 @@ static void read_gm(FILE * fp, GaussianMixture ** gm)
 	    for (j = 0; j < (*gm)->nvars; j++) {
 		sscanf(line, "%lf", &((*gm)->covar[i][k][j]));
 		line = (char *)strchr(line, '\t');
-		*line++;
+		line++;
 	    }
 	}
     }
@@ -419,7 +419,7 @@ static void read_nn(FILE * fp, NearestNeighbor ** nn)
 	for (j = 0; j < (*nn)->nvars; j++) {
 	    sscanf(line, "%lf", &((*nn)->data[i][j]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	sscanf(line, "%d", &((*nn)->class[i]));
     }
