@@ -16,37 +16,26 @@ from .constants import (
     COLUMN_PREFIX_UNMET,
     COLUMN_PREFIX_FLOW,
     EQUATION,
-    EUCLIDEAN,
     HIGHEST_RECREATION_CATEGORY,
     METHODS,
     MOBILITY_COEFFICIENTS,
     MOBILITY_CONSTANT,
     MOBILITY_SCORE,
-    NEIGHBORHOOD_METHOD,
-    NEIGHBORHOOD_SIZE,
     RECREATION_OPPORTUNITY_CATEGORIES,
     RECREATION_POTENTIAL_CATEGORIES,
-    SUITABILITY_SCORES,
     THRESHHOLD_0001,
     THRESHHOLD_ZERO,
-    URBAN_ATLAS_TO_MAES_NOMENCLATURE,
-    WATER_PROXIMITY_ALPHA,
-    WATER_PROXIMITY_CONSTANT,
-    WATER_PROXIMITY_KAPPA,
-    WATER_PROXIMITY_SCORE,
 )
 from .messages import (
     MESSAGE_PROCESSING,
     MATCHING_COMPUTATIONAL_RESOLUTION,
-    MESSAGE_NORMALIZING,
+    MESSAGE_NORMALISING,
     POPULATION_STATISTICS,
 )
 from .names import (
-    LAND_COMPONENT,
     WATER_COMPONENT,
     NATURAL_COMPONENT,
     SCORED_PROTECTED_AREAS_MAP_NAME,
-    RECREATION_POTENTIAL_COMPONENT,
     RECREATION_POTENTIAL_TITLE,
     RECREATION_OPPORTUNITY_COMPONENT,
     RECREATION_OPPORTUNITY_TITLE,
@@ -80,17 +69,14 @@ from .grassy_utilities import (
     export_map,
     update_vector,
 )
-from .utilities import get_coefficients
 from .distance import (
-    compute_attractiveness,
-    neighborhood_function,
     compute_artificial_proximity,
 )
 from .normalisation import zerofy_and_normalise_component
+from .normalise_land import normalise_land_component
 from .accessibility import compute_artificial_accessibility
 from .spectrum import compute_recreation_spectrum
 from .components import (
-    append_map_to_component,
     smooth_component,
     classify_recreation_component,
 )
@@ -108,16 +94,16 @@ def main():
     """
     Main program
     """
-    atexit.register(remove_temporary_maps)
 
     """Flags and Options"""
     options, flags = grass.parser()
 
-    # Flags that are not being used
-    info = flags["i"]
-    save_temporary_maps = flags["s"]
+    atexit.register(lambda: remove_temporary_maps(save_temporary_maps=flags["s"]))
 
-    # Flags that are being used
+    # Flags not being used
+    info = flags["i"]
+
+    # Flags being used
     real_numbers = flags["r"]
     average_filter = flags["f"]
     landuse_extent = flags["e"]
@@ -139,7 +125,6 @@ def main():
     """
 
     land = options["land"].split('@')[0]
-    land_component_map_name = temporary_filename(filename="land_component")
 
     water = options["water"].split('@')[0]
     water_component_map_name = temporary_filename(filename="water_component")
@@ -147,14 +132,8 @@ def main():
     natural = options["natural"].split('@')[0]
     natural_component_map_name = temporary_filename(filename="natural_component")
 
-    urban = options["urban"].split('@')[0]
-    urban_component_map = "urban_component"
-
     infrastructure = options["infrastructure"].split('@')[0]
     infrastructure_component_map_name = temporary_filename(filename="infrastructure_component")
-
-    recreation = options["recreation"].split('@')[0]
-    recreation_component_map_name = temporary_filename(filename="recreation_component")
 
     """Processing"""
 
@@ -169,8 +148,8 @@ def main():
 
     # if the given 'rules' file(name) does not exist
     if (
-        landcover_reclassification_rules
-        and not os.path.exists(landcover_reclassification_rules)
+            landcover_reclassification_rules
+            and not os.path.exists(landcover_reclassification_rules)
     ):
         error_message = ">>> File '{f}' not found! "
         missing_absolute_filename = os.path.abspath(landcover_reclassification_rules)
@@ -180,12 +159,8 @@ def main():
 
     lakes = options["lakes"]
     lakes_coefficients = options["lakes_coefficients"]
-    lakes_proximity_map_name = "lakes_proximity"
     coastline = options["coastline"]
-    coast_proximity_map_name = "coast_proximity"
     coast_geomorphology = options["coast_geomorphology"]
-    # coast_geomorphology_coefficients = options['geomorphology_coefficients']
-    coast_geomorphology_map_name = "coast_geomorphology"
     bathing_water = options["bathing_water"]
     bathing_water_coefficients = options["bathing_coefficients"]
     bathing_water_proximity_map_name = "bathing_water_proximity"
@@ -194,7 +169,6 @@ def main():
 
     protected = options["protected"]
     protected_scores = options["protected_scores"]
-    protected_areas_map_name = "protected_areas"
 
     """Artificial areas"""
 
@@ -207,10 +181,6 @@ def main():
     roads_distance_categories = options["roads_distances"]
 
     artificial_accessibility_map_name = "artificial_accessibility"
-
-    """Devaluation"""
-
-    devaluation = options["devaluation"]
 
     """Aggregational boundaries"""
 
@@ -287,85 +257,55 @@ def main():
     maes_ecosystem_types = "maes_ecosystem_types"
 
     land_component = build_land_component(
-            landuse=landuse,
-            suitability_scores=suitability_scores,
-            landcover=landcover,
-            landcover_reclassification_rules=landcover_reclassification_rules,
-            maes_ecosystem_types=maes_ecosystem_types,
-            land=land,
+        landuse=landuse,
+        suitability_scores=suitability_scores,
+        landcover=landcover,
+        landcover_reclassification_rules=landcover_reclassification_rules,
+        maes_ecosystem_types=maes_ecosystem_types,
+        land=land,
     )
 
     """Water Component"""
 
     water_component = build_water_component(
-            water=water,
-            lakes=lakes,
-            lakes_coefficients=lakes_coefficients,
-            coastline=coastline,
-            coast_geomorphology=coast_geomorphology,
-            bathing_water=bathing_water,
-            bathing_water_coefficients=bathing_water_coefficients,
+        water=water,
+        lakes=lakes,
+        lakes_coefficients=lakes_coefficients,
+        coastline=coastline,
+        coast_geomorphology=coast_geomorphology,
+        bathing_water=bathing_water,
+        bathing_water_coefficients=bathing_water_coefficients,
     )
 
     """Natural Component"""
     natural_component = build_natural_component(
-            natural=natural,
-            protected=protected,
-            protected_scores=protected_scores,
-            output_scored_protected_areas=SCORED_PROTECTED_AREAS_MAP_NAME,
-            )
+        natural=natural,
+        protected=protected,
+        protected_scores=protected_scores,
+        output_scored_protected_areas=SCORED_PROTECTED_AREAS_MAP_NAME,
+    )
 
     """ Normalize land, water, natural inputs
     and add them to the recreation potential component"""
 
     recreation_potential_component = []
 
-    if land_component:
-
-        for dummy_index in land_component:
-
-            # remove 'land_map' from 'land_component'
-            # process and add it back afterwards
-            land_map = land_component.pop(0)
-
-            """
-            This section sets NULL cells to 0.
-            Because `r.null` operates on the complete input raster map,
-            manually subsetting the input map is required.
-            """
-            suitability_map = temporary_filename(filename=land_map)
-            subset_land = EQUATION.format(result=suitability_map, expression=land_map)
-            r.mapcalc(subset_land)
-
-            grass.debug(_("*** Setting NULL cells to 0"))  # REMOVEME ?
-            r.null(map=suitability_map, null=0)  # Set NULLs to 0
-
-            msg = "* Adding land suitability map '{suitability}' "
-            msg += "to {component} component\n"
-            msg = msg.format(suitability=suitability_map, component=RECREATION_POTENTIAL_COMPONENT)
-            grass.verbose(_(msg))
-
-            # add 'suitability_map' to 'land_component'
-            land_component.append(suitability_map)
-
-    if len(land_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=LAND_COMPONENT)))
-        zerofy_and_normalise_component(
-            land_component, THRESHHOLD_ZERO, land_component_map_name
+    normalised_land_component = normalise_land_component(land_component=land_component)
+    if normalise_land_component and average_filter:
+        smooth_component(
+            normalise_land_component,
+            method='average',
+            size=7,
         )
-        recreation_potential_component.extend(land_component)
-    else:
-        recreation_potential_component.extend(land_component)
+    recreation_potential_component.extend(normalised_land_component)
 
-    if land_component and average_filter:
-        smooth_component(land_component, method="average", size=7)
-
-    remove_map_at_exit(land_component)
-
+    '''Water'''
     if len(water_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=WATER_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING.format(component=WATER_COMPONENT)))
         zerofy_and_normalise_component(
-            water_component, THRESHHOLD_ZERO, water_component_map_name
+            water_component,
+            THRESHHOLD_ZERO,
+            water_component_map_name,
         )
         recreation_potential_component.append(water_component_map_name)
     else:
@@ -373,8 +313,9 @@ def main():
 
     remove_map_at_exit(water_component_map_name)
 
+    '''Natural'''
     if len(natural_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=NATURAL_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING.format(component=NATURAL_COMPONENT)))
         zerofy_and_normalise_component(
             components=natural_component,
             threshhold=THRESHHOLD_ZERO,
@@ -433,7 +374,7 @@ def main():
     # Required for recreation opportunity and successively recreation spectrum
 
     if infrastructure and not any(
-        [recreation_opportunity, recreation_spectrum, demand, flow, supply]
+            [recreation_opportunity, recreation_spectrum, demand, flow, supply]
     ):
         msg = (
             "Infrastructure is not required "
@@ -521,7 +462,7 @@ def main():
         msg = "*** Computing intermediate opportunity map '{opportunity}'"
         grass.debug(_(msg.format(opportunity=tmp_recreation_opportunity)))
 
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=RECREATION_OPPORTUNITY_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING.format(component=RECREATION_OPPORTUNITY_COMPONENT)))
         grass.debug(_("*** Maps: {maps}".format(maps=recreation_opportunity_component)))
 
         zerofy_and_normalise_component(
@@ -685,10 +626,11 @@ def main():
             flags="a",
         )  # Resolution should match 'population'
 
-        population_statistics = get_univariate_statistics(population)
-        population_total = population_statistics['sum']
-        msg = POPULATION_STATISTICS.format(s=population_total)
-        grass.verbose(_(msg))
+        if info:
+            population_statistics = get_univariate_statistics(population)
+            population_total = population_statistics['sum']
+            msg = POPULATION_STATISTICS.format(s=population_total)
+            grass.verbose(_(msg))
 
         """Demand Distribution"""
 

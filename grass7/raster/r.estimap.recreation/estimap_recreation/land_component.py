@@ -114,7 +114,7 @@ def build_land_component(
 
         landcover = landuse
         msg = ATTEMPT_TO_USE_LAND_USE_FOR_AREAL_STATISTICS.format(landuse=landuse)
-        grass.verbose(_(msg))
+        grass.warning(_(msg))
 
     # if 'land_classes' is a file
     if (

@@ -45,7 +45,9 @@ FATAL_MESSAGE_MISSING_COASTLINE = (
     "coast geomorphology raster map"
 )
 FATAL_MESSAGE_MISSING_COAST_PROXIMITY = "No coast proximity"
-MESSAGE_NORMALIZING = "\n>>> Normalizing '{component}' component\n"
+MESSAGE_NORMALISING = "\n>>> Normalising '{component}' component\n"
+ZEROFY_NULL_CELLS = "*** Setting NULL cells to 0"
+ADDING_MAP_TO_COMPONENT = "* Adding '{raster}' map to '{component}' component\n"
 WATER_COMPONENT_INCLUDES = '*** Water component includes currently: {component}'
 SCORING_PROTECTED_AREAS = "Scoring protected areas '{protected}' based on '{rules}'"
 POPULATION_STATISTICS = "iii Population statistics: {s}"

@@ -197,7 +197,7 @@ def compute_supply(
         output=reclassified_base,
         quiet=True,
     )
-    # add to "remove_at_exit" after the reclassified maps!
+    # add 'reclassified_base' to "remove_at_exit" after the reclassified maps!
 
     # Discard areas out of MASK
     copy_equation = EQUATION.format(
@@ -572,7 +572,7 @@ def compute_supply(
             output=flow_in_reclassified_base,
             quiet=True,
         )
-        # remove_map_at_exit(flow_in_reclassified_base)
+        remove_map_at_exit(flow_in_reclassified_base)
 
         if vector:
             # Patch all flow vector maps in one
