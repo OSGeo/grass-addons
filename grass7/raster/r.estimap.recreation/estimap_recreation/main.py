@@ -320,52 +320,22 @@ def main():
 
     recreation_potential_component = []
 
-    if land_component:
-
-        for dummy_index in land_component:
-
-            # remove 'land_map' from 'land_component'
-            # process and add it back afterwards
-            land_map = land_component.pop(0)
-
-            """
-            This section sets NULL cells to 0.
-            Because `r.null` operates on the complete input raster map,
-            manually subsetting the input map is required.
-            """
-            suitability_map = temporary_filename(filename=land_map)
-            subset_land = EQUATION.format(result=suitability_map, expression=land_map)
-            r.mapcalc(subset_land)
-
-            grass.debug(_("*** Setting NULL cells to 0"))  # REMOVEME ?
-            r.null(map=suitability_map, null=0)  # Set NULLs to 0
-
-            msg = "* Adding land suitability map '{suitability}' "
-            msg += "to {component} component\n"
-            msg = msg.format(suitability=suitability_map, component=RECREATION_POTENTIAL_COMPONENT)
-            grass.verbose(_(msg))
-
-            # add 'suitability_map' to 'land_component'
-            land_component.append(suitability_map)
-
-    if len(land_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=LAND_COMPONENT)))
-        zerofy_and_normalise_component(
-            land_component, THRESHHOLD_ZERO, land_component_map_name
+    normalised_land_component = normalise_land_component(land_component=land_component)
+    if normalise_land_component and average_filter:
+        smooth_component(
+            normalise_land_component,
+            method='average',
+            size=7,
         )
-        recreation_potential_component.extend(land_component)
-    else:
-        recreation_potential_component.extend(land_component)
+    recreation_potential_component.extend(normalised_land_component)
 
-    if land_component and average_filter:
-        smooth_component(land_component, method="average", size=7)
-
-    remove_map_at_exit(land_component)
-
+    '''Water'''
     if len(water_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALIZING.format(component=WATER_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING.format(component=WATER_COMPONENT)))
         zerofy_and_normalise_component(
-            water_component, THRESHHOLD_ZERO, water_component_map_name
+            water_component,
+            THRESHHOLD_ZERO,
+            water_component_map_name,
         )
         recreation_potential_component.append(water_component_map_name)
     else:
