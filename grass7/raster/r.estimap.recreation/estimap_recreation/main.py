@@ -147,14 +147,9 @@ def main():
     natural = options["natural"].split('@')[0]
     natural_component_map_name = temporary_filename(filename="natural_component")
 
-    urban = options["urban"].split('@')[0]
-    urban_component_map = "urban_component"
-
     infrastructure = options["infrastructure"].split('@')[0]
     infrastructure_component_map_name = temporary_filename(filename="infrastructure_component")
 
-    recreation = options["recreation"].split('@')[0]
-    recreation_component_map_name = temporary_filename(filename="recreation_component")
 
     """Processing"""
 
@@ -207,10 +202,6 @@ def main():
     roads_distance_categories = options["roads_distances"]
 
     artificial_accessibility_map_name = "artificial_accessibility"
-
-    """Devaluation"""
-
-    devaluation = options["devaluation"]
 
     """Aggregational boundaries"""
 

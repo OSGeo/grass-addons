@@ -119,29 +119,11 @@ collective: all or nothing; if any option is given, all must be given
 #%end
 
 #%option G_OPT_R_INPUTS
-#% key: urban
-#% key_desc: name
-#% description: Input maps scoring recreational value of urban surfaces
-#% required: no
-#% guisection: Components
-#%end
-
-#%option G_OPT_R_INPUTS
 #% key: infrastructure
 #% type: string
 #% key_desc: name
 #% label: Input maps scoring infrastructure to reach locations of recreation activities
 #% description: Infrastructure to reach locations of recreation activities [required to derive recreation spectrum map]
-#% required: no
-#% guisection: Components
-#%end
-
-#%option G_OPT_R_INPUTS
-#% key: recreation
-#% type: string
-#% key_desc: name
-#% label: Input maps scoring recreational facilities, amenities and services
-#% description: Recreational opportunities facilities, amenities and services [required to derive recreation spectrum map]
 #% required: no
 #% guisection: Components
 #%end
@@ -410,17 +392,6 @@ collective: all or nothing; if any option is given, all must be given
 ##%rules
 ##%  excludes: infrastructure, roads
 ##%end
-
-# --- Devaluation ---
-
-#%option G_OPT_R_INPUTS
-#% key: devaluation
-#% key_desc: name
-#% label: Input map of devaluing elements
-#% description: Maps hindering accessibility to and degrading quality of various resources or infrastructure relating to recreation
-#% required: no
-#% guisection: Devaluation
-#%end
 
 # --- MASK ---
 
