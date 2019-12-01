@@ -733,17 +733,18 @@ def main ():
     gscript.message(_('--- All bands have been processed ---'))
 
     if flags["t"]:
-        txt = open(txt_file, "w")
-        for key, value in cor_bands.items():
-            if str(key) in ['blue',
-                'green',
-                'red',
-                'nir',
-                'nir8a',
-                'swir11',
-                'swir12']:
-                txt.write(str(key) + '=' + str(value) + "\n")
-        txt.close()
+        prefix = options['topo_prefix'] + '.' if options['topo_prefix'] else ''
+        with open(txt_file, "w") as txt:
+            for key, value in cor_bands.items():
+                if str(key) in ['blue',
+                    'green',
+                    'red',
+                    'nir',
+                    'nir8a',
+                    'swir11',
+                    'swir12']:
+                    txt.write(str(key) + '=' + prefix + str(value) + "\n")
+            txt.write('MTD_TL.xml=' + mtd_file + "\n")
 
     for key, cb in cor_bands.items():
         gscript.message(cb)
