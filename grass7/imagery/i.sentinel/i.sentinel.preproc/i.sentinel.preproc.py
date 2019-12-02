@@ -233,7 +233,6 @@ def main ():
         imp_flags += 'l' if flags['l'] else ''
         imp_flags += 'r' if flags['r'] else ''
         imp_flags = None if imp_flags == '' else imp_flags
-        print(imp_flags)
         i_s_imp_dir = os.path.dirname(input_dir)
         pattern_file = os.path.basename(input_dir).split('.')[0]
 
@@ -270,7 +269,7 @@ def main ():
             img_name = images.text.split('/')
             # Check if input exist and if the mtd file corresponds with the input image
             for img in root.iter('IMAGE_FILE'):
-                a = img.text.split('/')
+                a = img.text.split('.jp2')[0].split('/')
                 b = a[3].split('_')
                 if gscript.find_file(a[3],
                     element = 'cell',
@@ -544,6 +543,8 @@ def main ():
             lon,
             lat) + "\n")
         # Atmospheric model
+        # See also: https:/harrisgeospatial.com/docs/FLAASH.html
+        # for a more fine tuned way of selecting the atmospheric model
         winter = [1, 2, 3, 4, 10, 11, 12]
         summer = [5, 6, 7, 8, 9]
         if atmo_mod == 'Automatic':
@@ -559,12 +560,12 @@ def main ():
                     text.write('2' + "\n")
                 else: # Midlatitude winter
                     text.write('3' + "\n")
-            elif lat > 45.00 and lat <= 60.00:
+            elif lat > 45.00: # and lat <= 60.00:
                 if time_py.month in winter: # Subarctic winter
                     text.write('5' + "\n")
                 else: # Subartic summer
                     text.write('4' + "\n")
-            elif lat < -45.00 and lat >= -60.00:
+            elif lat < -45.00: # and lat >= -60.00:
                 if time_py.month in winter: # Subarctic summer
                     text.write('4' + "\n")
                 else: # Subartic winter
@@ -794,4 +795,3 @@ def main ():
 if __name__ == "__main__":
     options, flags = gscript.parser()
     main()
-
