@@ -40,31 +40,10 @@ use Python3, so please install Python3 versions.
 </ul>
 
 <p>
-After dependencies are fulfilled, modules can be installed using
-<em>g.extension</em> module:  
+After dependencies are fulfilled, modules can be installed in
+GRASS GIS >= 7.8 using the <em>g.extension</em> module:
 <div class="code"><pre>
 g.extension extension=maskrcnn url=path/to/the/maskrcnn/folder
-</pre></div>
-
-<h2>GRASS GIS PATCH</h2>
-
-<p>
-Unfortunately, python3 is not fully supported by GRASS GIS yet. To use
-environment setting flags like <em>--overwrite</em>, the user has to update
-his GRASS GIS with the following patch:
-
-<div class="code"><pre>
-===================================================================
---- lib/python/script/core.py	(revision 72644)
-+++ lib/python/script/core.py	(working copy)
-@@ -746,7 +746,7 @@
-         elif var.startswith(b'opt_'):
-             options[var[4:]] = val
-         elif var in [b'GRASS_OVERWRITE', b'GRASS_VERBOSE']:
--            os.environ[var] = val
-+            os.environ[var.decode("utf-8")] = val.decode("utf-8")
-         else:
-             raise SyntaxError("invalid output from g.parser: %s" % line)
 </pre></div>
 
 <h2>MODULES</h2>
