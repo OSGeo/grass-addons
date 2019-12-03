@@ -259,7 +259,7 @@ def createTMPlocation(epsg=4326):
 
     # create temp location from input without import
     grass.verbose(_("Creating temporary location with EPSG:%d...") % epsg)
-    grass.run_command('g.proj', flags='c', epsg=epsg, location=TMPLOC)
+    grass.run_command('g.proj', flags='c', epsg=epsg, location=TMPLOC, quiet=True)
 
     # switch to temp location
     os.environ['GISRC'] = str(SRCGISRC)
