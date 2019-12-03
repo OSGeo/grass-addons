@@ -6,7 +6,7 @@ a detection of objects, or to use a model provided by someone else. It can be
 seen as a supervised classification using convolutional neural networks.
 
 <p>
-The training is done using module <em>ann.maskrcnn.train</em>. The user feeds
+The training is done using module <em>i.ann.maskrcnn.train</em>. The user feeds
 the module with training data consisting of images and masks for each instance
 of intended classes, and gets a model. For difficult tasks and when not using
 a pretrained model, the training may take even weeks; in case of a good
@@ -15,16 +15,16 @@ results after 1 day and even less.
 
 <p>
 When the user has a model, it can be used for the detection.
-<em>ann.maskrcnn.detect</em> detects classes learned during the training and
+<em>i.ann.maskrcnn.detect</em> detects classes learned during the training and
 extracts from given images vectors corresponding to detected objects. Objects
 can be extracted either as areas or points.
 
 <h2>DEPENDENCIES</h2>
 
 <p>
-<em>ann.maskrcnn.*</em> modules contain a lot of external python dependencies.
-To run modules, it is necessary to have them installed. Modules use python3, so
-please install python3 versions.
+<em>i.ann.maskrcnn.*</em> modules contain a lot of external Python
+dependencies. To run modules, it is necessary to have them installed. Modules
+use Python3, so please install Python3 versions.
 
 <p>
 <ul>
