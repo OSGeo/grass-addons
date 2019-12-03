@@ -248,11 +248,17 @@ def main ():
         cloud_raster = tmp["cloud_def"]
     if options['cloud_mask']:
         cloud_mask = options['cloud_mask']
+        if '.' in options['cloud_mask']:
+            gscript.fatal('Name for cloud_mask output \
+                           is not SQL compliant'.format(options['cloud_mask']))
     else:
         tmp["cloud_mask"] = "cloud_mask"+ processid
         cloud_mask = tmp["cloud_mask"]
     if options['shadow_mask']:
         shadow_mask = options['shadow_mask']
+        if '.' in options['shadow_mask']:
+            gscript.fatal('Name for shadow_mask output \
+                           is not SQL compliant'.format(options['shadow_mask']))
     else:
         tmp["shadow_mask"] = "shadow_mask"+ processid
         shadow_mask = tmp["shadow_mask"]
