@@ -238,7 +238,6 @@ def main ():
     check_cloud = 1 #by default the procedure finds clouds
     check_shadow = 1 #by default the procedure finds shadows
 
-    print(options['cloud_raster'])
     if options['cloud_raster']:
         cloud_raster = options['cloud_raster']
     else:
@@ -249,11 +248,11 @@ def main ():
     else:
         tmp["cloud_mask"] = "cloud_mask"+ processid
         cloud_mask = tmp["cloud_mask"]
-    if options['cloud_mask']:
+    if options['shadow_mask']:
         shadow_mask = options['shadow_mask']
     else:
-        tmp["cloud_mask"] = "cloud_mask"+ processid
-        shadow_mask = tmp["cloud_mask"]
+        tmp["shadow_mask"] = "shadow_mask"+ processid
+        shadow_mask = tmp["shadow_mask"]
     shadow_raster = options['shadow_raster']
 
     # Check if all required input bands are specified in the text file
@@ -497,7 +496,12 @@ def main ():
                 try:
                     for elem in root[1]:
                         for subelem in elem[1]:
-                            ZA.append (subelem.text)
+                            ZA.append(subelem.text)
+                    if ZA == ['0', '0']:
+                        zenith_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Zenith').find('Values_List')
+                        ZA[0] = np.mean([np.array(elem.text.split(' '), dtype=np.float) for elem in zenith_val])
+                        azimuth_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Azimuth').find('Values_List')
+                        ZA[1] = np.mean([np.array(elem.text.split(' '), dtype=np.float) for elem in azimuth_val])
                     z = float(ZA[0])
                     a = float(ZA[1])
                     gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
@@ -578,6 +582,15 @@ def main ():
                 output=shadow_mask,
                 operator='intersects',
                 quiet=True)
+            info_cm = gscript.parse_command('v.info', map=shadow_mask,
+                                            flags='t')
+            if options['shadow_raster']:
+                if info_cm['areas'] > '0':
+                    gscript.run_command('v.to.rast', input=shadow_mask,
+                                        output=shadow_raster, use='val')
+                else:
+                     gscript.warning(_('No cloud shadows detected'))
+
 
             gscript.message('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA]))
             gscript.message('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA]))
