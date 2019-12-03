@@ -147,21 +147,24 @@
 #%rules
 #% collective: blue,green,red,nir,nir8a,swir11,swir12,mtd_file
 #% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
+#% excludes: -c,shadow_mask,shadow_raster
 #% required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
 #% excludes: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
 #%end
 
-import grass.script as gscript
 import math
 import os
 import sys
 import shutil
+import subprocess
 import re
 import glob
-import numpy
 import time
 import atexit
 import xml.etree.ElementTree as et
+
+import numpy
+import grass.script as gscript
 
 
 def main ():
@@ -436,19 +439,18 @@ def main ():
             gscript.message(_('--- Data preparation... ---'))
             gscript.run_command('v.centroids',
                 input=tmp["shadow_temp_mask"],
-                output=tmp["centroid"],
-                quiet=True)
+                output=tmp["centroid"], quiet=True)
             gscript.run_command('v.db.droptable',
                 map=tmp["centroid"],
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=tmp["centroid"],
-                columns='value')
+                columns='value', quiet=True)
             gscript.run_command('v.db.update',
                 map=tmp["centroid"],
                 layer=1,
                 column='value',
-                value=1)
+                value=1, quiet=True)
             gscript.run_command('v.dissolve',
                 input=tmp["centroid"],
                 column='value',
@@ -469,20 +471,20 @@ def main ():
                 quiet=True)
             gscript.run_command('v.db.droptable',
                 map=tmp["addcat"],
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=tmp["addcat"],
-                columns='value')
+                columns='value', quiet=True)
 
             # End shadow mask preparation
             # Start cloud mask preparation
 
             gscript.run_command('v.db.droptable',
                 map=cloud_mask,
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=cloud_mask,
-                columns='value')
+                columns='value', quiet=True)
 
             # End cloud mask preparation
             # Shift cloud mask using dE e dN
@@ -499,9 +501,9 @@ def main ():
                             ZA.append(subelem.text)
                     if ZA == ['0', '0']:
                         zenith_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Zenith').find('Values_List')
-                        ZA[0] = np.mean([np.array(elem.text.split(' '), dtype=np.float) for elem in zenith_val])
+                        ZA[0] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in zenith_val])
                         azimuth_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Azimuth').find('Values_List')
-                        ZA[1] = np.mean([np.array(elem.text.split(' '), dtype=np.float) for elem in azimuth_val])
+                        ZA[1] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in azimuth_val])
                     z = float(ZA[0])
                     a = float(ZA[1])
                     gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
@@ -543,14 +545,14 @@ def main ():
                     xshift=E_shift,
                     yshift=N_shift,
                     overwrite=True,
-                    quiet=True)
+                    quiet=True, stderr=subprocess.DEVNULL)
                 gscript.run_command('v.overlay',
                     ainput=tmp["addcat"],
                     binput=tmp["cl_shift"],
                     operator='and',
                     output=tmp["overlay"],
                     overwrite=True,
-                    quiet=True)
+                    quiet=True, stderr=subprocess.DEVNULL)
                 gscript.run_command('v.db.addcolumn',
                     map=tmp["overlay"],
                     columns='area double')
