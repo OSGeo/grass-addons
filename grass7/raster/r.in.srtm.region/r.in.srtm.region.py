@@ -234,8 +234,9 @@ def cleanup():
     if not in_temp:
         return
     os.chdir(currdir)
-    grass.run_command('g.region', region = tmpregionname)
-    grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
+    if tmpregionname:
+        grass.run_command('g.region', region = tmpregionname)
+        grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
     grass.try_rmdir(tmpdir)
     if TGTGISRC:
         os.environ['GISRC'] = str(TGTGISRC)
@@ -331,6 +332,10 @@ def main():
     if local is None:
         local = tmpdir
 
+    # save region
+    tmpregionname = 'r_in_srtm_tmp_region'
+    grass.run_command('g.region', save=tmpregionname, overwrite=overwrite)
+
     # get extents
     if kv['+proj'] == 'longlat':
         reg = grass.region()
@@ -362,8 +367,6 @@ def main():
         GISDBASE = grassenv['GISDBASE']
         TGTGISRC = os.environ['GISRC']
 
-    tmpregionname = 'r_in_srtm_tmp_region'
-    grass.run_command('g.region', save=tmpregionname, overwrite=overwrite)
     if kv['+proj'] != 'longlat':
         SRCGISRC, TMPLOC = createTMPlocation()
     if options['region'] is None or options['region'] == '':
