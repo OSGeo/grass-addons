@@ -79,7 +79,7 @@
 #% type: double
 #% required: no
 #% multiple: no
-#% description: Resolution of output raster map (used if location projection not longlat)
+#% description: Resolution of output raster map (required if location projection not longlat)
 #% guisection: Output
 #%end
 #%flag
@@ -335,6 +335,8 @@ def main():
     if kv['+proj'] == 'longlat':
         reg = grass.region()
     else:
+        if not options['resolution']:
+            grass.fatal(_("The <resolution> must be set if the projection is not 'longlat'."))
         reg2 = grass.parse_command('g.region', flags='uplg')
         north = [float(reg2['ne_lat']), float(reg2['nw_lat'])]
         south = [float(reg2['se_lat']), float(reg2['sw_lat'])]
@@ -555,9 +557,6 @@ def main():
         os.environ['GISRC'] = str(TGTGISRC)
         # r.proj
         grass.message(_("Reprojecting <%s>...") % output)
-        if not reproj_res:
-            reproj_res = 30 if srtmv3 else 90
-            grass.warning(_("Resolution set to %d") % reproj_res)
         kwargs = {
             'location': TMPLOC,
             'mapset': 'PERMANENT',
