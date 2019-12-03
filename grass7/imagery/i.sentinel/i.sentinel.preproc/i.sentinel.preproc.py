@@ -273,7 +273,8 @@ def main ():
                 b = a[3].split('_')
                 if gscript.find_file(a[3],
                     element = 'cell',
-                    mapset = mapset)['file'] or b[2] == 'TCI':
+                    mapset = mapset)['file'] or gscript.find_file(a[3],
+                    element = 'cell')['file'] or b[2] == 'TCI':
                     if b[2] == 'B01':
                         bands['costal'] = a[3]
                     elif b[2] == 'B02':
@@ -362,7 +363,8 @@ def main ():
     for key, value in bands.items():
         if not gscript.find_file(value,
             element = 'cell',
-            mapset = mapset)['file']:
+            mapset = mapset)['file'] and not gscript.find_file(value,
+            element = 'cell')['file']:
             gscript.fatal(('Raster map <{}> not found.').format(value))
 
     # Check if output already exist
@@ -378,6 +380,8 @@ def main ():
     if flags["t"]:
         if options['text_file'] == '':
             gscript.fatal('Output name is required for the text file. Please specified it')
+        if not os.access(os.path.dirname(options['text_file']), os.W_OK):
+            gscript.fatal('Output directory for the text file is not writable')
 
     # Set temp region to image max extent
     gscript.use_temp_region()
@@ -745,7 +749,8 @@ def main ():
                     'swir11',
                     'swir12']:
                     txt.write(str(key) + '=' + prefix + str(value) + "\n")
-            txt.write('MTD_TL.xml=' + mtd_file + "\n")
+            mtd_tl_xml = glob.glob(os.path.join(input_dir, 'GRANULE/*/MTD_TL.xml'))[0]
+            txt.write('MTD_TL.xml=' + mtd_tl_xml + "\n")
 
     for key, cb in cor_bands.items():
         gscript.message(cb)
