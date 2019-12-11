@@ -64,6 +64,24 @@
 #% answer: 300
 #% required: no
 #%end
+#%option
+#% key: method
+#% type: string
+#% required: no
+#% multiple: no
+#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+#% description: Resampling method to use for reprojection (required if location projection not longlat)
+#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+#% guisection: Output
+#%end
+#%option
+#% key: resolution
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Resolution of output raster map (required if location projection not longlat)
+#% guisection: Output
+#%end
 #%flag
 #%  key: n
 #%  description: Fill null cells
@@ -75,7 +93,7 @@
 #%end
 #%flag
 #% key: 1
-#% description: Import 1-arcsec tiles (default: 3-arcsec)
+#% description: Input is a 1-arcsec tile (default: 3-arcsec)
 #%end
 #%flag
 #% key: z
@@ -83,6 +101,11 @@
 #%end
 
 
+# initialize global vars
+TMPLOC = None
+SRCGISRC = None
+TGTGISRC = None
+GISDBASE = None
 proj = ''.join([
     'GEOGCS[',
     '"wgs84",',
@@ -91,8 +114,11 @@ proj = ''.join([
     'UNIT["degree",0.0174532925199433]',
     ']'])
 
+
 import os
 import atexit
+import numpy as np
+import subprocess
 from six.moves.urllib import request as urllib2
 try:
     from http.cookiejar import CookieJar
@@ -100,6 +126,8 @@ except ImportError:
     from cookielib import CookieJar
 import time
 import grass.script as grass
+from grass.exceptions import CalledModuleError
+
 
 def import_local_tile(tile, local, pid, srtmv3, one):
     output = tile + '.r.in.srtm.tmp.' + str(pid)
@@ -110,7 +138,7 @@ def import_local_tile(tile, local, pid, srtmv3, one):
             local_tile = str(tile) + '.SRTMGL3.hgt.zip'
     else:
         local_tile = str(tile) + '.hgt.zip'
-    
+
     path = os.path.join(local, local_tile)
     if os.path.exists(path):
         path = os.path.join(local, local_tile)
@@ -134,7 +162,10 @@ def import_local_tile(tile, local, pid, srtmv3, one):
 
     return 0
 
+
 def download_tile(tile, url, pid, srtmv3, one, username, password):
+
+    grass.debug("Download tile: %s" % tile, debug = 1)
     output = tile + '.r.in.srtm.tmp.' + str(pid)
     if srtmv3:
         if one:
@@ -173,14 +204,14 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
         except:
             goturl = 0
             pass
-        
+
         return goturl
-        
+
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
         remote_tile = str(url) + str(srtmdir) + '/' + local_tile
         goturl = 1
-    
+
         try:
             response = urllib2.urlopen(request)
             fo = open(local_tile, 'w+b')
@@ -192,22 +223,55 @@ def download_tile(tile, url, pid, srtmv3, one, username, password):
         except:
             goturl = 0
             pass
-        
+
         if goturl == 1:
             return 1
 
     return 0
-    
-    
+
+
 def cleanup():
     if not in_temp:
         return
     os.chdir(currdir)
-    grass.run_command('g.region', region = tmpregionname)
-    grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
+    if tmpregionname:
+        grass.run_command('g.region', region = tmpregionname)
+        grass.run_command('g.remove', type = 'region', name = tmpregionname, flags = 'f', quiet = True)
     grass.try_rmdir(tmpdir)
+    if TGTGISRC:
+        os.environ['GISRC'] = str(TGTGISRC)
+    # remove temp location
+    if TMPLOC:
+        grass.try_rmdir(os.path.join(GISDBASE, TMPLOC))
+    if SRCGISRC:
+        grass.try_remove(SRCGISRC)
+
+
+def createTMPlocation(epsg=4326):
+    SRCGISRC = grass.tempfile()
+    TMPLOC = 'temp_import_location_' + str(os.getpid())
+    f = open(SRCGISRC, 'w')
+    f.write('MAPSET: PERMANENT\n')
+    f.write('GISDBASE: %s\n' % GISDBASE)
+    f.write('LOCATION_NAME: %s\n' % TMPLOC)
+    f.write('GUI: text\n')
+    f.close()
+
+    # create temp location from input without import
+    grass.verbose(_("Creating temporary location with EPSG:%d...") % epsg)
+    grass.run_command('g.proj', flags='c', epsg=epsg, location=TMPLOC, quiet=True)
+
+    # switch to temp location
+    os.environ['GISRC'] = str(SRCGISRC)
+    if grass.parse_command('g.proj', flags='g')['epsg'] != str(epsg):
+        grass.fatal("Creation of temporary location failed!")
+
+    return SRCGISRC, TMPLOC
+
 
 def main():
+
+    global TMPLOC, SRCGISRC, TGTGISRC, GISDBASE
     global tile, tmpdir, in_temp, currdir, tmpregionname
 
     in_temp = False
@@ -222,6 +286,7 @@ def main():
     srtmv3 = (flags['2'] == 0)
     one = flags['1']
     dozerotile = flags['z']
+    reproj_res = options['resolution']
 
     overwrite = grass.overwrite()
 
@@ -232,7 +297,7 @@ def main():
             res = '00:00:01'
     else:
         one = None
-        
+
     if len(local) == 0:
         if len(url) == 0:
             if srtmv3:
@@ -249,8 +314,6 @@ def main():
     # are we in LatLong location?
     s = grass.read_command("g.proj", flags='j')
     kv = grass.parse_key_val(s)
-    if kv['+proj'] != 'longlat':
-        grass.fatal(_("This module only operates in LatLong locations"))
 
     if fillnulls == 1 and memory <= 0:
         grass.warning(_("Amount of memory to use for interpolation must be positive, setting to 300 MB"))
@@ -269,10 +332,43 @@ def main():
     if local is None:
         local = tmpdir
 
-    # get extents
-    reg = grass.region()
+    # save region
     tmpregionname = 'r_in_srtm_tmp_region'
-    grass.run_command('g.region', save = tmpregionname, overwrite=overwrite)
+    grass.run_command('g.region', save=tmpregionname, overwrite=overwrite)
+
+    # get extents
+    if kv['+proj'] == 'longlat':
+        reg = grass.region()
+    else:
+        if not options['resolution']:
+            grass.fatal(_("The <resolution> must be set if the projection is not 'longlat'."))
+        reg2 = grass.parse_command('g.region', flags='uplg')
+        north = [float(reg2['ne_lat']), float(reg2['nw_lat'])]
+        south = [float(reg2['se_lat']), float(reg2['sw_lat'])]
+        east = [float(reg2['ne_long']), float(reg2['se_long'])]
+        west = [float(reg2['nw_long']), float(reg2['sw_long'])]
+        reg = {}
+        if np.mean(north) > np.mean(south):
+            reg['n'] = max(north)
+            reg['s'] = min(south)
+        else:
+            reg['n'] = min(north)
+            reg['s'] = max(south)
+        if np.mean(west) > np.mean(east):
+            reg['w'] = max(west)
+            reg['e'] = min(east)
+        else:
+            reg['w'] = min(west)
+            reg['e'] = max(east)
+        # get actual location, mapset, ...
+        grassenv = grass.gisenv()
+        tgtloc = grassenv['LOCATION_NAME']
+        tgtmapset = grassenv['MAPSET']
+        GISDBASE = grassenv['GISDBASE']
+        TGTGISRC = os.environ['GISRC']
+
+    if kv['+proj'] != 'longlat':
+        SRCGISRC, TMPLOC = createTMPlocation()
     if options['region'] is None or options['region'] == '':
         north = reg['n']
         south = reg['s']
@@ -291,7 +387,7 @@ def main():
         north = tmpint + 1
     else:
         north = tmpint
-        
+
     tmpint = int(south)
     if tmpint > south:
         south = tmpint - 1
@@ -309,7 +405,7 @@ def main():
         west = tmpint - 1
     else:
         west = tmpint
-        
+
     if north == south:
         north += 1
     if east == west:
@@ -338,7 +434,7 @@ def main():
                 tile = tile + 'E'
             tile = tile + '%03d' % abs(edeg)
             grass.debug("Tile: %s" % tile, debug = 1)
-            
+
             if local != tmpdir:
                 gotit = import_local_tile(tile, local, pid, srtmv3, one)
             else:
@@ -407,6 +503,7 @@ def main():
 
     srtmtiles = srtmtiles.splitlines()
     srtmtiles = ','.join(srtmtiles)
+    grass.debug("'List of Tiles: %s" % srtmtiles, debug = 1)
 
     if valid_tiles == 0:
         grass.run_command('g.remove', type = 'raster', name = str(srtmtiles), flags = 'f', quiet = True)
@@ -417,18 +514,24 @@ def main():
             grass.fatal(_("Please check internet connection, credentials, and if url <%s> is correct.") % url)
 
     grass.run_command('g.region', raster = str(srtmtiles));
-    
+
     grass.message(_("Patching tiles..."))
     if fillnulls == 0:
         if valid_tiles > 1:
-            grass.run_command('r.patch', input = srtmtiles, output = output)
+            if kv['+proj'] != 'longlat':
+                grass.run_command('r.buildvrt', input = srtmtiles, output = output)
+            else:
+                grass.run_command('r.patch', input = srtmtiles, output = output)
         else:
             grass.run_command('g.rename', raster = '%s,%s' % (srtmtiles, output ), quiet = True)
     else:
-        ncells = grass.region()['cells'] 
+        ncells = grass.region()['cells']
         if long(ncells) > 1000000000:
             grass.message(_("%s cells to interpolate, this will take some time") % str(ncells), flag = 'i')
-        grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
+        if kv['+proj'] != 'longlat':
+            grass.run_command('r.buildvrt', input = srtmtiles, output = output + '.holes')
+        else:
+            grass.run_command('r.patch', input = srtmtiles, output = output + '.holes')
         mapstats = grass.parse_command('r.univar', map = output + '.holes', flags = 'g', quiet = True)
         if mapstats['null_cells'] == '0':
             grass.run_command('g.rename', raster = '%s,%s' % (output + '.holes', output), quiet = True)
@@ -448,10 +551,31 @@ def main():
             grass.run_command('r.mapcalc', expression = '%s = round(%s)' % (output, output + '.float'))
             grass.run_command('g.remove', type = 'raster',
                               name = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
-                  flags = 'f',
+                              flags = 'f',
                               quiet = True)
 
-    grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
+
+    # switch to target location
+    if kv['+proj'] != 'longlat':
+        os.environ['GISRC'] = str(TGTGISRC)
+        # r.proj
+        grass.message(_("Reprojecting <%s>...") % output)
+        kwargs = {
+            'location': TMPLOC,
+            'mapset': 'PERMANENT',
+            'input': output,
+            'memory': memory,
+            'resolution': reproj_res
+        }
+        if options['method']:
+            kwargs['method'] = options['method']
+        try:
+            grass.run_command('r.proj', **kwargs)
+        except CalledModuleError:
+            grass.fatal(_("Unable to to reproject raster <%s>") % output)
+    else:
+        if fillnulls != 0:
+            grass.run_command('g.remove', type = 'raster', pattern = pattern, flags = 'f', quiet = True)
 
     # nice color table
     grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)
