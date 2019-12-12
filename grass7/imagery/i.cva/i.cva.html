@@ -112,7 +112,8 @@ Results:
 </center>
 <p>
 
-Optionally, labels can be added to the four quadrants of the change map:
+Optionally, labels can be added to the four quadrants of the change
+map (after Zanchetta et al., 2016):
 
 <div class="code"><pre>
 # assign legend
@@ -131,15 +132,19 @@ cat i_cva_color_rules.csv
 3 75:173:255
 4 139:105:20
 
-r.colors CVA_87_02_change rules=i_cva_color_rules.csv
+r.colors map=CVA_87_02_change rules=i_cva_color_rules.csv
 </pre></div>
 
 <h2>REFERENCES</h2>
 
 <ul>
 <li>Malila W A, Lafayette W. Change Vector Analysis (1980): An Approach
-for Detecting Forest Changes with Landsat. LARS Symp., pp. 326-335
-(<a href="https://docs.lib.purdue.edu/lars_symp/385/">PDF</a>)
+  for Detecting Forest Changes with Landsat. LARS Symp., pp. 326-335
+  (<a href="https://docs.lib.purdue.edu/lars_symp/385/">PDF</a>)</li>
+<li>Zanchetta, A., Bitelli, G. & Karnieli, A. (2016): Monitoring desertification
+  by remote sensing using the Tasselled Cap transform for long-term
+  change detection. Nat Hazards, 83(Suppl 1):223-237.
+  (<a href="https://doi.org/10.1007/s11069-016-2342-9">DOI</a>)</li>
 </ul>
 
 <h2>SEE ALSO</h2>
