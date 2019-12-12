@@ -115,6 +115,7 @@ Results:
 Optionally, labels can be added to the four quadrants of the change map:
 
 <div class="code"><pre>
+# assign legend
 cat i_cva_legend_rules.csv
 1:moisture reduction
 2:chlorophyll increase
@@ -130,7 +131,7 @@ cat i_cva_color_rules.csv
 3 75:173:255
 4 139:105:20
 
-r.colors mexico_CVA_2017_2018_change rules=i_cva_color_rules.csv
+r.colors CVA_87_02_change rules=i_cva_color_rules.csv
 </pre></div>
 
 <h2>REFERENCES</h2>
