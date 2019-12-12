@@ -47,7 +47,7 @@ deviation to sum to the mean (threshold = mean + N * standard deviation).
 <br>
 One could consider of running the module at first without assigning a
 threshold, in order to have an idea of the range of the magnitude and to
-choose an appropriate custom threshold (for univariate statystical parameters
+choose an appropriate custom threshold (for univariate statistical parameters
 run <a href="r.univar.html">r.univar</a>). In this case <em>i.cva</em> gives
 in output only three maps: the angle, angle classified and magnitude maps.
 <h2>EXAMPLE</h2>
@@ -110,8 +110,28 @@ Results:
   </tr>
   </table>
 </center>
-<br>
+<p>
 
+Optionally, labels can be added to the four quadrants of the change map:
+
+<div class="code"><pre>
+cat i_cva_legend_rules.csv
+1:moisture reduction
+2:chlorophyll increase
+3:moisture increase
+4:bare soil increase
+
+r.category map=CVA_87_02_change separator=":" rules=i_cva_legend_rules.csv
+
+# assign colors
+cat i_cva_color_rules.csv
+1 217:255:0
+2 10:214:10
+3 75:173:255
+4 139:105:20
+
+r.colors mexico_CVA_2017_2018_change rules=i_cva_color_rules.csv
+</pre></div>
 
 <h2>REFERENCES</h2>
 
