@@ -163,7 +163,7 @@ def ReadData(raster, n):
 def ComputeVif(mapx, mapy):
     """Compute rsqr of linear regression between layers mapx and mapy."""
     Xi = np.hstack((mapx, np.ones((mapx.shape[0], 1))))
-    mod, resid = np.linalg.lstsq(Xi, mapy)[:2]
+    mod, resid = np.linalg.lstsq(Xi, mapy, rcond=None)[:2]
     if resid.size == 0:
         resid = 0
     r2 = float(1 - resid / (mapy.size * mapy.var()))
