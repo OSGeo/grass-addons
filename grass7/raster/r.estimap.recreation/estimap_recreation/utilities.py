@@ -35,21 +35,21 @@ def dictionary_to_csv(filename, dictionary):
     Examples
     --------
     """
-    f = open(filename, "wb")
-    w = csv.writer(f)
 
     # write a header
-    w.writerow(["category", "label", "value"])
+    rows = [",".join(["category", "label", "value"])]
 
     # terminology: from 'base' and 'cover' maps
     for base_key, value in dictionary.items():
+        if not value:
+            continue
         base_category = base_key[0]
         base_label = base_key[1]  # .decode('utf-8')
-        if value is None or value == "":
-            continue
-        w.writerow([base_category, base_label, value])
+        row = ",".join([base_category, base_label, str(value)])
+        rows.append(row)
 
-    f.close()
+    with open(filename, "w") as fh:
+        fh.write("\n".join(rows))
 
 
 def nested_dictionary_to_csv(filename, dictionary):
@@ -63,13 +63,9 @@ def nested_dictionary_to_csv(filename, dictionary):
     dictionary :
         Name of the input Python dictionary
     """
-    f = open(filename, "wb")
-    w = csv.writer(f)
 
     # write a header
-    w.writerow(
-        ["base", "base_label", "cover", "cover_label", "area", "count", "percents"]
-    )
+    rows = [",".join(["base", "base_label", "cover", "cover_label", "area", "count", "percents"])]
 
     # terminology: from 'base' and 'cover' maps
     for base_key, inner_dictionary in dictionary.items():
@@ -77,25 +73,25 @@ def nested_dictionary_to_csv(filename, dictionary):
         base_label = base_key[1]  # .decode('utf-8')
 
         for cover_category, inner_value in inner_dictionary.items():
-            if inner_value is None or inner_value == "":
+            if not inner_value:
                 continue
             cover_label = inner_value[0]
             area = inner_value[1]
             pixel_count = inner_value[2]
             pixel_percentage = inner_value[3]
-            w.writerow(
-                [
-                    base_category,
-                    base_label,
-                    cover_category,
-                    cover_label,
-                    area,
-                    pixel_count,
-                    pixel_percentage,
-                ]
-            )
+            row = ",".join([
+                base_category,
+                base_label,
+                cover_category,
+                cover_label,
+                area,
+                pixel_count,
+                pixel_percentage,
+            ])
+            rows.append(row)
 
-    f.close()
+        with open(filename, "w") as fh:
+            fh.write("\n".join(rows))
 
 
 # This function should be better off this module  # FIXME

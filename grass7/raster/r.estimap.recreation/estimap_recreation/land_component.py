@@ -63,7 +63,7 @@ def build_land_component(
         MAES ecosystem types (classes)
 
     land :
-        The used-fed 'land' input map(s) option
+        The user-fed 'land' input map(s) option
 
     Returns
     -------
@@ -80,13 +80,21 @@ def build_land_component(
         if landuse_datatype != "CELL":
             grass.fatal(_(FATAL_MESSAGE_LAND_USE_DATATYPE.format(landuse=landuse)))
 
-    if landuse and suitability_scores and ":" not in suitability_scores:
+    if (
+        landuse
+        and suitability_scores
+        and ":" not in suitability_scores
+    ):
+
         msg = USING_SUITABILITY_SCORES_FROM_FILE.format(scores=suitability_scores)
         grass.verbose(_(msg))
 
     suitability_map_name = temporary_filename(filename="suitability")
 
-    if landuse and not suitability_scores:
+    if (
+        landuse
+        and not suitability_scores
+    ):
         msg = USING_SUITABILITY_SCORES_FROM_INTERNAL_RULES.format(map=landuse)
         grass.warning(_(msg))
 
@@ -96,7 +104,11 @@ def build_land_component(
         )
         remove_files_at_exit(suitability_scores)
 
-    if landuse and suitability_scores and ":" in suitability_scores:
+    if (
+        landuse
+        and suitability_scores
+        and ":" in suitability_scores
+    ):
         msg = USING_SUITABILITY_SCORES_FROM_STRING.format(map=landuse)
         grass.verbose(_(msg))
         temporary_suitability_map_name = temporary_filename(filename=suitability_map_name)
@@ -110,7 +122,7 @@ def build_land_component(
     # Use one landcover input if supply is requested
     # Use one set of land cover reclassification rules
 
-    if not landcover:
+    if not landcover and landuse:
 
         landcover = landuse
         msg = ATTEMPT_TO_USE_LAND_USE_FOR_AREAL_STATISTICS.format(landuse=landuse)

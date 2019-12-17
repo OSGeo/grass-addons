@@ -200,10 +200,16 @@ def compute_supply(
     # add 'reclassified_base' to "remove_at_exit" after the reclassified maps!
 
     # Discard areas out of MASK
+    temporary_reclassified_base = reclassified_base + "_temporary"
     copy_equation = EQUATION.format(
-        result=reclassified_base, expression=reclassified_base
+        result=temporary_reclassified_base, expression=reclassified_base
     )
     r.mapcalc(copy_equation, overwrite=True)
+    g.rename(
+            raster=(temporary_reclassified_base, reclassified_base),
+            overwrite=True,
+            quiet=True,
+    )
 
     # Count flow within each land cover category
     r.stats_zonal(
@@ -312,11 +318,21 @@ def compute_supply(
         )
 
         # Discard areas out of MASK
-        copy_equation = EQUATION.format(result=cells, expression=cells)
+        temporary_cells = cells + "_temporary"
+        copy_equation = EQUATION.format(result=temporary_cells, expression=cells)
         r.mapcalc(copy_equation, overwrite=True)
+        g.rename(
+                raster=(temporary_cells, cells),
+                overwrite=True,
+                quiet=True,
+        )
 
         # Reassign cell category labels
-        r.category(map=cells, rules="-", stdin=cells_rules, separator=":")
+        r.category(map=cells,
+                rules="-",
+                stdin=cells_rules,
+                separator=":",
+        )
 
         # Compute extent of each land category
         extent_expression = "@{cells} * area()"
@@ -325,15 +341,21 @@ def compute_supply(
         r.mapcalc(extent_equation, overwrite=True)
 
         # Write extent figures as labels
+        extent_figures_as_labels = extent + "_labeled"
         r.stats_zonal(
             flags="r",
             base=base,
             cover=extent,
             method="average",
-            output=extent,
+            output=extent_figures_as_labels,
             overwrite=True,
             verbose=False,
             quiet=True,
+        )
+        g.rename(
+                raster=(extent_figures_as_labels, extent),
+                overwrite=True,
+                quiet=True,
         )
 
         # Write land suitability scores as an ASCII file
@@ -365,16 +387,22 @@ def compute_supply(
         r.mapcalc(weighted_equation, overwrite=True)
 
         # Write weighted extent figures as labels
+        weighted_figures_as_labels = weighted + "_figures_as_labels"
         r.stats_zonal(
             flags="r",
             base=base,
             cover=weighted,
             method="average",
-            output=weighted,
+            output=weighted_figures_as_labels,
             overwrite=True,
             verbose=False,
             quiet=True,
         )
+        g.rename(
+                raster=(weighted_figures_as_labels, weighted),
+                overwrite=True,
+                quiet=True)
+
 
         # Get weighted extents in a dictionary
         weighted_extents = grass.parse_command(
@@ -474,10 +502,16 @@ def compute_supply(
         # Check here again!
         # Output patch of all flow maps?
 
+        temporary_flow_in_category = flow_in_category + "_temporary"
         copy_equation = EQUATION.format(
-            result=flow_in_category, expression=flow_in_category
+            result=temporary_flow_in_category, expression=flow_in_category
         )
         r.mapcalc(copy_equation, overwrite=True)
+        g.rename(
+                raster=(temporary_flow_in_category, flow_in_category),
+                overwrite=True,
+                quiet=True,
+        )
 
         # Reassign cell category labels
         r.category(
@@ -586,11 +620,9 @@ def compute_supply(
 
         # export to csv
         if supply_filename:
-            supply_filename += CSV_EXTENSION
             nested_dictionary_to_csv(supply_filename, statistics_dictionary)
 
         if use_filename:
-            use_filename += CSV_EXTENSION
             uses = compile_use_table(statistics_dictionary)
             dictionary_to_csv(use_filename, uses)
 

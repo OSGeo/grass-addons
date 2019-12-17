@@ -91,6 +91,14 @@ collective: all or nothing; if any option is given, all must be given
 # --- Components section ---
 
 #%option G_OPT_R_INPUT
+#% key: region
+#% type: string
+#% key_desc: name
+#% label: Input map to set computational extent and region
+#% required: no
+#%end
+
+#%option G_OPT_R_INPUT
 #% key: land
 #% type: string
 #% key_desc: name
@@ -530,10 +538,10 @@ collective: all or nothing; if any option is given, all must be given
 
 #%option G_OPT_F_OUTPUT
 #% key: supply
-#% key_desc: prefix
+#% key_desc: filename
 #% type: string
-#% label: Output prefix for the file name of the supply table CSV
-#% description: Supply table CSV output file names will get this prefix
+#% label: Output absolute file name for the supply table
+#% description: Supply table CSV output file name
 #% multiple: no
 #% required: no
 #% guisection: Output
@@ -541,10 +549,10 @@ collective: all or nothing; if any option is given, all must be given
 
 #%option G_OPT_F_OUTPUT
 #% key: use
-#% key_desc: prefix
+#% key_desc: filename
 #% type: string
-#% label: Output prefix for the file name of the supply table CSV
-#% description: Use table CSV output file names will get this prefix
+#% label: Output absolute file name for the use table
+#% description: Use table CSV output file name
 #% multiple: no
 #% required: no
 #% guisection: Output
@@ -557,11 +565,11 @@ collective: all or nothing; if any option is given, all must be given
 
 #%rules
 #%  requires: supply, land, natural, water, landuse, protected, lakes, coastline
-#%  requires_all: supply, population
+#%  requires_all: supply, population, aggregation
 #%  requires_all: supply, landcover, land_classes
-#%  requires: supply, base, base_vector, aggregation
+#%  requires: supply, base, base_vector
 #%  requires: supply, landcover, landuse
-#%  requires_all: use, population
+#%  requires_all: use, population, aggregation
 #%  requires: use, base, base_vector, aggregation
 #%  requires: use, landcover, landuse
 #%end
@@ -618,7 +626,7 @@ sys.path.insert(1, os.path.abspath(addon_path))
 from estimap_recreation.main import main as main_estimap
 
 def main(options, flags):
-    sys.exit(main_estimap())
+    sys.exit(main_estimap(options, flags))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
