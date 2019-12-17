@@ -27,9 +27,17 @@ from .constants import (
     THRESHHOLD_ZERO,
 )
 from .messages import (
+    CLASSIFYING_POTENTIAL_MAP,
+    CLASSIFYING_OPPORTUNITY_MAP,
+    COMPUTING_INTERMEDIATE_POTENTIAL_MAP,
+    COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP,
+    WRITING_SPECTRUM_MAP,
+    FILE_NOT_FOUND,
+    INFRASTRUCTURE_NOT_REQUIRED,
     MESSAGE_PROCESSING,
     MATCHING_COMPUTATIONAL_RESOLUTION,
     MESSAGE_NORMALISING,
+    MOBILITY_FUNCTION,
     POPULATION_STATISTICS,
 )
 from .names import (
@@ -83,27 +91,24 @@ from .components import (
 from .land_component import build_land_component
 from .water_component import build_water_component
 from .natural_component import build_natural_component
-from .mobility import (
-    mobility_function,
+from .infrastructure_component import build_infrastructure_component
+from .mobility import mobility_function
+from .demand import (
+    compute_demand,
     compute_unmet_demand,
 )
 from .supply_and_use import compute_supply
 
 
-def main():
+def main(options, flags):
     """
     Main program
     """
 
-    """Flags and Options"""
-    options, flags = grass.parser()
-
+    # remove temporary maps unless -s is passed
     atexit.register(lambda: remove_temporary_maps(save_temporary_maps=flags["s"]))
 
-    # Flags not being used
     info = flags["i"]
-
-    # Flags being used
     real_numbers = flags["r"]
     average_filter = flags["f"]
     landuse_extent = flags["e"]
@@ -117,6 +122,16 @@ def main():
         units = units.split(",")
 
     """names for input, output, output suffix, options"""
+
+    if options["region"]:
+        # QGIS sets the maximum bounding box covering all input raster maps,
+        # and the coarsest resolution of all maps, as the computational region
+        # in the Location/Mapset where processing takes place.
+        #
+        # We fix this by requiring the user (in the QGIS Plugin *only*) to set the
+        # computational region from a raster map of his choice. 
+        # GRASS GIS users don't need to use this option.
+        g.region(raster=options["region"], quiet=False)
 
     mask = options["mask"]
 
@@ -151,9 +166,8 @@ def main():
             landcover_reclassification_rules
             and not os.path.exists(landcover_reclassification_rules)
     ):
-        error_message = ">>> File '{f}' not found! "
         missing_absolute_filename = os.path.abspath(landcover_reclassification_rules)
-        raise ValueError(error_message.format(f=missing_absolute_filename))
+        raise ValueError(FILE_NOT_FOUND.format(f=missing_absolute_filename))
 
     """Water components"""
 
@@ -173,14 +187,10 @@ def main():
     """Artificial areas"""
 
     artificial = options["artificial"]
-    artificial_proximity_map_name = "artificial_proximity"
     artificial_distance_categories = options["artificial_distances"]
-
     roads = options["roads"]
-    roads_proximity_map_name = "roads_proximity"
     roads_distance_categories = options["roads_distances"]
 
-    artificial_accessibility_map_name = "artificial_accessibility"
 
     """Aggregational boundaries"""
 
@@ -229,12 +239,12 @@ def main():
     unmet_demand = options["unmet"]
 
     flow = options["flow"]
-    # flow_map_name :
-    #     A name for the 'flow' map. This is required when the 'flow' input
-    #     option is not defined by the user, yet some of the requested outputs
-    #     required first the production of the 'flow' map. An example is the
-    #     request for a supply table without requesting the 'flow' map itself.
+    # Name for the 'flow' map
     flow_map_name = temporary_filename(filename="flow")
+    #     Required when the 'flow' input option is not defined by the user, yet
+    #     some of the requested outputs require first the production of the
+    #     'flow' map. An example is the request for a supply table without
+    #     requesting the 'flow' map itself.
 
     supply = options["supply"]  # use as CSV filename prefix
     use = options["use"]  # use as CSV filename prefix
@@ -253,9 +263,7 @@ def main():
 
     """Land Component
             or Suitability of Land to Support Recreation Activities (SLSRA)"""
-
     maes_ecosystem_types = "maes_ecosystem_types"
-
     land_component = build_land_component(
         landuse=landuse,
         suitability_scores=suitability_scores,
@@ -266,7 +274,6 @@ def main():
     )
 
     """Water Component"""
-
     water_component = build_water_component(
         water=water,
         lakes=lakes,
@@ -331,10 +338,9 @@ def main():
     remove_map_at_exit(natural_component_map_name)
 
     """ Recreation Potential [Output] """
-
     tmp_recreation_potential = temporary_filename(filename=recreation_potential_map_name)
 
-    msg = "\n>>> Computing intermediate potential map"
+    msg = COMPUTING_INTERMEDIATE_POTENTIAL_MAP
     grass.verbose(_(msg.format(potential=tmp_recreation_potential)))
     grass.debug(_("*** Maps: {maps}".format(maps=recreation_potential_component)))
 
@@ -347,8 +353,7 @@ def main():
     # recode recreation_potential
     tmp_recreation_potential_categories = temporary_filename(filename=recreation_potential)
 
-    msg = "\n>>> Classifying '{potential}' map"
-    msg = msg.format(potential=tmp_recreation_potential)
+    msg = CLASSIFYING_POTENTIAL_MAP.format(potential=tmp_recreation_potential)
     grass.verbose(_(msg))
 
     classify_recreation_component(
@@ -376,52 +381,21 @@ def main():
     if infrastructure and not any(
             [recreation_opportunity, recreation_spectrum, demand, flow, supply]
     ):
-        msg = (
-            "Infrastructure is not required "
-            "to derive the 'potential' recreation map."
-        )
-        grass.warning(_(msg))
+        grass.warning(_(INFRASTRUCTURE_NOT_REQUIRED))
 
     if any([recreation_opportunity, recreation_spectrum, demand, flow, supply]):
 
-        infrastructure_component = []
-        infrastructure_components = []
+        infrastructure_component = build_infrastructure_component(
+                infrastructure=infrastructure,
+                artificial=artificial,
+                roads=roads,
+                roads_distance_categories=roads_distance_categories,
+                roads_proximity_map_name="roads_proximity",
+                artificial_distance_categories=artificial_distance_categories,
+                artificial_proximity_map_name="artificial_proximity",
+                artificial_accessibility_map_name="artificial_accessibility",
+        )
 
-        if infrastructure:
-            infrastructure_component.append(infrastructure)
-
-        """Artificial surfaces (includung Roads)"""
-
-        if artificial and roads:
-
-            msg = "*** Roads distance categories: {c}"
-            msg = msg.format(c=roads_distance_categories)
-            grass.debug(_(msg))
-            roads_proximity = compute_artificial_proximity(
-                raster=roads,
-                distance_categories=roads_distance_categories,
-                output_name=roads_proximity_map_name,
-            )
-
-            msg = "*** Artificial distance categories: {c}"
-            msg = msg.format(c=artificial_distance_categories)
-            grass.debug(_(msg))
-            artificial_proximity = compute_artificial_proximity(
-                raster=artificial,
-                distance_categories=artificial_distance_categories,
-                output_name=artificial_proximity_map_name,
-            )
-
-            artificial_accessibility = compute_artificial_accessibility(
-                artificial_proximity,
-                roads_proximity,
-                output_name=artificial_accessibility_map_name,
-            )
-
-            infrastructure_components.append(artificial_accessibility)
-
-        # merge infrastructure component related maps in one list
-        infrastructure_component += infrastructure_components
 
     # # Recreational facilities, amenities, services
 
@@ -459,7 +433,7 @@ def main():
 
         # REVIEW --------------------------------------------------------------
         tmp_recreation_opportunity = temporary_filename(filename=recreation_opportunity_map_name)
-        msg = "*** Computing intermediate opportunity map '{opportunity}'"
+        msg = COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP
         grass.debug(_(msg.format(opportunity=tmp_recreation_opportunity)))
 
         grass.verbose(_(MESSAGE_NORMALISING.format(component=RECREATION_OPPORTUNITY_COMPONENT)))
@@ -474,8 +448,7 @@ def main():
         # Why threshhold 0.0003? How and why it differs from 0.0001?
         # -------------------------------------------------------------- REVIEW
 
-        msg = "* Classifying '{opportunity}' map"
-        # grass.verbose(msg.format(opportunity=tmp_recreation_opportunity))
+        msg = CLASSIFYING_OPPORTUNITY_MAP
         grass.verbose(msg.format(opportunity=recreation_opportunity_map_name))
 
         # recode opportunity_component
@@ -503,7 +476,10 @@ def main():
 
         # Recreation Spectrum: Potential + Opportunity [Output]
 
-        if not recreation_spectrum and any([demand, flow, supply]):
+        if (
+            not recreation_spectrum
+            and any([demand, flow, supply])
+        ):
             recreation_spectrum = temporary_filename(filename="recreation_spectrum")
             remove_map_at_exit(recreation_spectrum)
 
@@ -513,8 +489,7 @@ def main():
             spectrum=recreation_spectrum,
         )
 
-        msg = "* Writing '{spectrum}' map"
-        msg = msg.format(spectrum=recreation_spectrum)
+        msg = WRITING_SPECTRUM_MAP.format(spectrum=recreation_spectrum)
         grass.verbose(_(msg))
         get_univariate_statistics(recreation_spectrum)
 
@@ -634,73 +609,39 @@ def main():
 
         """Demand Distribution"""
 
-        if any([flow, supply, aggregation]) and not demand:
+        if (
+            any([flow, supply, aggregation])
+            and not demand
+        ):
             demand = temporary_filename(filename="demand")
 
-        r.stats_zonal(
-            base=tmp_crossmap,
-            flags="r",
-            cover=population,
-            method="sum",
-            output=demand,
-            overwrite=True,
-            quiet=True,
+        compute_demand(
+                base=tmp_crossmap,
+                population=population,
+                method="sum",
+                output_demand=demand,
+                vector_base_map=base_vector,
+                vector_methods=METHODS,
+                vector_column_prefix=COLUMN_PREFIX_DEMAND,
         )
 
-        # copy 'reclassed' as 'normal' map (r.mapcalc)
-        # so as to enable removal of it and its 'base' map
-        demand_copy = demand + "_copy"
-        copy_expression = "{input_raster}"
-        copy_expression = copy_expression.format(input_raster=demand)
-        copy_equation = EQUATION.format(result=demand_copy, expression=copy_expression)
-        r.mapcalc(copy_equation, overwrite=True)
-
-        # remove reclassed map 'demand'
-        # and rename 'copy' back to 'demand'
-        g.remove(flags="f", type="raster", name=demand, quiet=True)
-        g.rename(raster=(demand_copy, demand), quiet=True)
-
-        if demand and base_vector:
-
-            update_vector(
-                vector=base_vector,
-                raster=demand,
-                methods=METHODS,
-                column_prefix=COLUMN_PREFIX_DEMAND,
-            )
 
         """Unmet Demand"""
 
         if unmet_demand:
-
-            unmet_demand_expression = compute_unmet_demand(
-                distance=distance_categories_to_highest_spectrum,
+            compute_unmet_demand(
+                distance_categories_to_highest_spectrum=distance_categories_to_highest_spectrum,
                 constant=MOBILITY_CONSTANT,
                 coefficients=MOBILITY_COEFFICIENTS[4],
                 population=demand,
                 score=MOBILITY_SCORE,
                 real_numbers=real_numbers,
+                output_unmet_demand=unmet_demand,
+                vector_base_map=base_vector,
+                vector_methods=METHODS,
+                vector_column_prefix=COLUMN_PREFIX_UNMET,
             )
-            # suitability=suitability)  # Not used.
-            # Maybe it can, though, after successfully testing its
-            # integration to build_distance_function().
 
-            msg = "*** Unmet demand function: {f}"
-            grass.debug(_(msg.format(f=unmet_demand_expression)))
-
-            unmet_demand_equation = EQUATION.format(
-                result=unmet_demand, expression=unmet_demand_expression
-            )
-            r.mapcalc(unmet_demand_equation, overwrite=True)
-
-            if base_vector:
-
-                update_vector(
-                    vector=base_vector,
-                    raster=unmet_demand,
-                    methods=METHODS,
-                    column_prefix=COLUMN_PREFIX_UNMET,
-                )
 
         """Mobility function"""
 
@@ -723,8 +664,7 @@ def main():
             # Maybe it can, though, after successfully testing its
             # integration to build_distance_function().
 
-            msg = "*** Mobility function: {f}"
-            grass.debug(_(msg.format(f=mobility_expression)))
+            grass.debug(_(MOBILITY_FUNCTION.format(f=mobility_expression)))
 
             """Flow map"""
 

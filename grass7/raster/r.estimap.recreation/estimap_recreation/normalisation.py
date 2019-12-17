@@ -87,9 +87,13 @@ def normalize_map(raster, output_name):
     grass.debug(_("Maximum: {m}".format(m=maximum)))
 
     if minimum is None or maximum is None:
-        msg = "Minimum and maximum values of the <{raster}> map are 'None'. "
-        msg += "The {raster} map may be empty "
-        msg += "OR the MASK opacifies all non-NULL cells."
+        msg = "Minimum and maximum values of the <{raster}> map are 'None'.\n"
+        msg += "=========================================== \n"
+        msg += "Possible sources for this erroneous case are: "
+        msg += "\n  - the <{raster}> map is empty "
+        msg += "\n  - the MASK opacifies all non-NULL cells "
+        msg += "\n  - the region is not correctly set\n"
+        msg += "=========================================== "
         grass.fatal(_(msg.format(raster=raster)))
 
     normalisation = "float(({raster} - {minimum}) / ({maximum} - {minimum}))"
