@@ -42,6 +42,17 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: extent
+#% type: string
+#% required: no
+#% multiple: no
+#% options: input,region
+#% answer: input
+#% description: Output raster map extent
+#% descriptions: region;extent of current region;input;extent of input map
+#% guisection: Filter
+#%end
+#%option
 #% key: memory
 #% type: integer
 #% required: no
@@ -88,6 +99,7 @@
 #%rules
 #% exclusive: -l,-r,-p
 #% exclusive: -o,-r
+#% exclusive: extent,-l
 #%end
 import os
 import sys
@@ -215,9 +227,15 @@ class SentinelImporter(object):
                 module = 'r.import'
                 args['resample'] = 'bilinear'
                 args['resolution'] = 'value'
+                args['extent'] = options['extent']
             else:
                 module = 'r.in.gdal'
                 args['flags'] = 'o' if override else None
+                if options['extent'] == 'region':
+                    if args['flags']:
+                        args['flags'] += 'r'
+                    else:
+                        args['flags'] = 'r'
 
         for f in self.files:
             if not override and (link or (not link and not reproject)):
