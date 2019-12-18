@@ -10,6 +10,10 @@ in the <b>input</b> directory. The number of scene files can be optionally
 reduced by the <b>pattern_file</b> option. In this option, a regular expression 
 for filtering the file names should be given, e.g. "MSIL2A.*T32VNR_2019" for 
 importing only level 2A products for tile T32VNR from 2019.
+<p>
+By default <em>i.sentinel.import</em> imports the full scene. Optionally, the
+import can be reduced to the computational region extent with
+<b>extent=region</b>.
 
 <p>
 Note that in the case that spatial reference system of input data differs
