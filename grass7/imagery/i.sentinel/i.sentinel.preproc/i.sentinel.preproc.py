@@ -106,6 +106,15 @@
 #% answer: tcor
 #% guisection: Output
 #%end
+#%option
+#% key: memory
+#% type: integer
+#% required: no
+#% multiple: no
+#% label: Maximum memory to be used (in MB)
+#% description: Cache size for raster rows
+#% answer: 300
+#%end
 #%flag
 #% key: a
 #% description: Use AOD instead visibility
@@ -131,6 +140,27 @@
 #% description: Computes topographic correction of reflectance
 #% guisection: Input
 #%end
+#%flag
+#% key: l
+#% description: Link raster data instead of importing
+#% guisection: Settings
+#%end
+#%flag
+#% key: o
+#% description: Override projection check (use current location's projection)
+#% guisection: Settings
+#%end
+#%rules
+#% requires: -t,text_file
+#% requires: text_file,-t
+#% required: aod_value,aeronet_file,visibility
+#% requires: aod_value,-a
+#% requires: aeronet_file,-a
+#% requires: -a,aod_value,aeronet_file
+#% exclusive: -a,visibility
+#% exclusive: -l,-r
+#% exclusive: -o,-r
+#%end
 
 import grass.script as gscript
 import xml.etree.ElementTree as et
@@ -152,6 +182,7 @@ def main ():
     dem = options['elevation']
     vis = options['visibility']
     input_dir = options['input_dir']
+    memory = options['memory']
     check_ndir = 0
     check_odir = 0
     # Check if the input folder has old or new name
@@ -193,18 +224,24 @@ def main ():
         gscript.warning(_("Topographic correction of reflectance will use "
                           "default method 'c-factor'"))
 
+    if not gscript.find_program('i.sentinel.import', '--help') :
+        gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
+
     # Import bands
     if not flags["i"]:
-        try:
-            if flags["r"]:
-                gscript.run_command('i.sentinel.import',
-                                    input=input_dir,
-                                    flags='r')
-            else:
-                gscript.run_command('i.sentinel.import',
-                                    input=input_dir)
-        except:
-            gscript.fatal('Module requires i.sentinel.import. Please install it using g.extension.')
+        imp_flags = 'o' if flags['o'] else ''
+        imp_flags += 'l' if flags['l'] else ''
+        imp_flags += 'r' if flags['r'] else ''
+        imp_flags = None if imp_flags == '' else imp_flags
+        i_s_imp_dir = os.path.dirname(input_dir)
+        pattern_file = os.path.basename(input_dir).split('.')[0]
+
+        # import
+        gscript.run_command('i.sentinel.import',
+                            input=i_s_imp_dir,
+                            pattern_file=pattern_file,
+                            flags=imp_flags,
+                            memory=memory)
 
     # Create xml "tree" for reading parameters from metadata
     tree = et.parse(mtd_file)
@@ -232,11 +269,12 @@ def main ():
             img_name = images.text.split('/')
             # Check if input exist and if the mtd file corresponds with the input image
             for img in root.iter('IMAGE_FILE'):
-                a = img.text.split('/')
+                a = img.text.split('.jp2')[0].split('/')
                 b = a[3].split('_')
                 if gscript.find_file(a[3],
                     element = 'cell',
-                    mapset = mapset)['file'] or b[2] == 'TCI':
+                    mapset = mapset)['file'] or gscript.find_file(a[3],
+                    element = 'cell')['file'] or b[2] == 'TCI':
                     if b[2] == 'B01':
                         bands['costal'] = a[3]
                     elif b[2] == 'B02':
@@ -325,7 +363,8 @@ def main ():
     for key, value in bands.items():
         if not gscript.find_file(value,
             element = 'cell',
-            mapset = mapset)['file']:
+            mapset = mapset)['file'] and not gscript.find_file(value,
+            element = 'cell')['file']:
             gscript.fatal(('Raster map <{}> not found.').format(value))
 
     # Check if output already exist
@@ -341,6 +380,8 @@ def main ():
     if flags["t"]:
         if options['text_file'] == '':
             gscript.fatal('Output name is required for the text file. Please specified it')
+        if not os.access(os.path.dirname(options['text_file']), os.W_OK):
+            gscript.fatal('Output directory for the text file is not writable')
 
     # Set temp region to image max extent
     gscript.use_temp_region()
@@ -506,6 +547,8 @@ def main ():
             lon,
             lat) + "\n")
         # Atmospheric model
+        # See also: https:/harrisgeospatial.com/docs/FLAASH.html
+        # for a more fine tuned way of selecting the atmospheric model
         winter = [1, 2, 3, 4, 10, 11, 12]
         summer = [5, 6, 7, 8, 9]
         if atmo_mod == 'Automatic':
@@ -521,12 +564,12 @@ def main ():
                     text.write('2' + "\n")
                 else: # Midlatitude winter
                     text.write('3' + "\n")
-            elif lat > 45.00 and lat <= 60.00:
+            elif lat > 45.00: # and lat <= 60.00:
                 if time_py.month in winter: # Subarctic winter
                     text.write('5' + "\n")
                 else: # Subartic summer
                     text.write('4' + "\n")
-            elif lat < -45.00 and lat >= -60.00:
+            elif lat < -45.00: # and lat >= -60.00:
                 if time_py.month in winter: # Subarctic summer
                     text.write('4' + "\n")
                 else: # Subartic winter
@@ -695,17 +738,19 @@ def main ():
     gscript.message(_('--- All bands have been processed ---'))
 
     if flags["t"]:
-        txt = open(txt_file, "w")
-        for key, value in cor_bands.items():
-            if str(key) in ['blue',
-                'green',
-                'red',
-                'nir',
-                'nir8a',
-                'swir11',
-                'swir12']:
-                txt.write(str(key) + '=' + str(value) + "\n")
-        txt.close()
+        prefix = options['topo_prefix'] + '.' if options['topo_prefix'] else ''
+        with open(txt_file, "w") as txt:
+            for key, value in cor_bands.items():
+                if str(key) in ['blue',
+                    'green',
+                    'red',
+                    'nir',
+                    'nir8a',
+                    'swir11',
+                    'swir12']:
+                    txt.write(str(key) + '=' + prefix + str(value) + "\n")
+            mtd_tl_xml = glob.glob(os.path.join(input_dir, 'GRANULE/*/MTD_TL.xml'))[0]
+            txt.write('MTD_TL.xml=' + mtd_tl_xml + "\n")
 
     for key, cb in cor_bands.items():
         gscript.message(cb)
@@ -755,4 +800,3 @@ def main ():
 if __name__ == "__main__":
     options, flags = gscript.parser()
     main()
-

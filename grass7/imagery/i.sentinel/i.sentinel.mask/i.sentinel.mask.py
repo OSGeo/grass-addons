@@ -24,90 +24,74 @@
 #% keyword: shadow
 #% keyword: reflectance
 #%End
-#%option
+#%option G_OPT_F_INPUT
 #% key: input_file
-#% type: string
-#% gisprompt: old,file,file
 #% description: name of the .txt file with listed input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: blue
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: green
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: red
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: nir
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: nir8a
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: swir11
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option
+#%option G_OPT_R_INPUT
 #% key: swir12
-#% type: string
-#% gisprompt: old,cell,raster
 #% description: input bands
 #% required : no
-#% multiple: no
 #% guisection: Required
 #%end
-#%option 
+#%option G_OPT_V_OUTPUT
 #% key: cloud_mask
-#% type: string
-#% gisprompt: new,vector,vector
 #% description: name of output vector cloud mask
-#% required : yes
+#% required : no
 #% guisection: Output
 #%end
-#%option 
+#%option G_OPT_R_OUTPUT
+#% key: cloud_raster
+#% description: Name of output raster cloud mask
+#% required : no
+#% guisection: Output
+#%end
+#%option G_OPT_V_OUTPUT
 #% key: shadow_mask
-#% type: string
-#% gisprompt: new,vector,vector
+#% description: name of output vector shadow mask
+#% required : no
+#% guisection: Output
+#%end
+#%option G_OPT_R_OUTPUT
+#% key: shadow_raster
 #% description: name of output vector shadow mask
 #% required : no
 #% guisection: Output
@@ -128,13 +112,10 @@
 #% answer: 10000
 #% guisection: Output
 #%end
-#%option
+#%option G_OPT_F_INPUT
 #% key: mtd_file
-#% type: string
-#% gisprompt: old,file,file
 #% description: name of the image metadata file (MTD_TL.xml)
 #% required : no
-#% multiple: no
 #% guisection: Metadata
 #%end
 #%option
@@ -163,17 +144,27 @@
 #% description: Compute only the cloud mask
 #%end
 
-import grass.script as gscript
+#%rules
+#% collective: blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+#% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
+#% excludes: -c,shadow_mask,shadow_raster
+#% required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+#% excludes: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+#%end
+
 import math
 import os
 import sys
 import shutil
+import subprocess
 import re
 import glob
-import numpy
 import time
 import atexit
 import xml.etree.ElementTree as et
+
+import numpy
+import grass.script as gscript
 
 
 def main ():
@@ -186,7 +177,6 @@ def main ():
     mapset2 = '@{}'.format(mapset)
     processid = os.getpid()
     processid = str(processid)
-    tmp["cloud_def"] = "cloud_def"+ processid
     tmp["shadow_temp"] = "shadow_temp"+ processid
     tmp["cloud_v"] = "cloud_v_" + processid
     tmp["shadow_temp_v"] = "shadow_temp_v_" + processid
@@ -211,7 +201,8 @@ def main ():
 
     # Input file
     mtd_file = options['mtd_file']
-    bands = {} 
+    bands = {}
+    error_msg = 'Syntax error in the txt file. See the manual for further information about the right syntax.'
     if options['input_file'] == '':
         bands['blue'] = options['blue']
         bands['green'] = options['green']
@@ -222,23 +213,24 @@ def main ():
         bands['swir12'] = options['swir12']
     else:
         txt_bands = []
-        input_file = options['input_file']
-        for line in file(input_file):
-            a = line.split('=')
-            if len(a) != 2 or a[0] not in ['blue',
-                'green',
-                'red',
-                'nir',
-                'nir8a',
-                'swir11',
-                'swir12' ]:
-                gscript.fatal('Syntax error in the txt file. See the manual for further information about the right syntax.')
-            else:
-                txt_bands.append(a[0])
-            a[1] = a[1].strip()
-            bands[a[0]] = a[1]
-        if len(txt_bands) < 7:
-            gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
+        with open(options['input_file'], 'r') as input_file:
+            for line in input_file:
+                a = line.split('=')
+                if len(a) != 2:
+                    gscript.fatal(error_msg)
+                elif a[0] == 'MTD_TL.xml' and not mtd_file:
+                    mtd_file = a[1].strip()
+                elif a[0] in ['blue',
+                    'green',
+                    'red',
+                    'nir',
+                    'nir8a',
+                    'swir11',
+                    'swir12']:
+                    txt_bands.append(a[0])
+                    bands[a[0]] = a[1].strip()
+            if len(txt_bands) < 7:
+                gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
 
     d = 'double'
     f_bands = {}
@@ -248,8 +240,29 @@ def main ():
     raster_max = {}
     check_cloud = 1 #by default the procedure finds clouds
     check_shadow = 1 #by default the procedure finds shadows
-    cloud_mask = options['cloud_mask']
-    shadow_mask = options['shadow_mask']
+
+    if options['cloud_raster']:
+        cloud_raster = options['cloud_raster']
+    else:
+        tmp["cloud_def"] = "cloud_def"+ processid
+        cloud_raster = tmp["cloud_def"]
+    if options['cloud_mask']:
+        cloud_mask = options['cloud_mask']
+        if '.' in options['cloud_mask']:
+            gscript.fatal('Name for cloud_mask output \
+                           is not SQL compliant'.format(options['cloud_mask']))
+    else:
+        tmp["cloud_mask"] = "cloud_mask"+ processid
+        cloud_mask = tmp["cloud_mask"]
+    if options['shadow_mask']:
+        shadow_mask = options['shadow_mask']
+        if '.' in options['shadow_mask']:
+            gscript.fatal('Name for shadow_mask output \
+                           is not SQL compliant'.format(options['shadow_mask']))
+    else:
+        tmp["shadow_mask"] = "shadow_mask"+ processid
+        shadow_mask = tmp["shadow_mask"]
+    shadow_raster = options['shadow_raster']
 
     # Check if all required input bands are specified in the text file
     if (bands['blue'] == '' or
@@ -270,12 +283,10 @@ def main ():
 
     # Check input and output for shadow mask
     if not flags["c"]:
-        if os.path.isdir(mtd_file):
-            gscript.fatal('The input metadata is a directory. Please select the right .xml file')
-        if options['mtd_file']== '':
+        if mtd_file == '':
             gscript.fatal('Metadata file is required for shadow mask computation. Please specified it')
-        if options['shadow_mask']=='':
-            gscript.fatal('Output name is required for shadow mask. Please specified it')
+        if not os.path.exists(mtd_file):
+            gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
 
     if flags["r"]:
         gscript.use_temp_region()
@@ -350,12 +361,12 @@ def main ():
         fourth_rule,
         fifth_rule)
     expr_c = '{} = if({}, 0, null())'.format(
-        tmp["cloud_def"],
+        cloud_raster,
         cloud_rules)
     gscript.mapcalc(expr_c, overwrite=True)
     gscript.message(_('--- Converting raster cloud mask into vector map ---'))
     gscript.run_command('r.to.vect',
-        input=tmp["cloud_def"],
+        input=cloud_raster,
         output=tmp["cloud_v"],
         type='area',
         flags='s')
@@ -375,7 +386,7 @@ def main ():
         gscript.message(_('--- Finish cloud detection procedure ---'))
     # End of Clouds detection
 
-    if not flags["c"] and check_cloud == 1:
+    if options['shadow_mask'] or options['shadow_raster']:
         # Start of shadows detection
         gscript.message(_('--- Start shadows detection procedure ---'))
         gscript.message(_('--- Computing shadow mask... ---'))
@@ -434,19 +445,18 @@ def main ():
             gscript.message(_('--- Data preparation... ---'))
             gscript.run_command('v.centroids',
                 input=tmp["shadow_temp_mask"],
-                output=tmp["centroid"],
-                quiet=True)
+                output=tmp["centroid"], quiet=True)
             gscript.run_command('v.db.droptable',
                 map=tmp["centroid"],
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=tmp["centroid"],
-                columns='value')
+                columns='value', quiet=True)
             gscript.run_command('v.db.update',
                 map=tmp["centroid"],
                 layer=1,
                 column='value',
-                value=1)
+                value=1, quiet=True)
             gscript.run_command('v.dissolve',
                 input=tmp["centroid"],
                 column='value',
@@ -467,20 +477,20 @@ def main ():
                 quiet=True)
             gscript.run_command('v.db.droptable',
                 map=tmp["addcat"],
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=tmp["addcat"],
-                columns='value')
+                columns='value', quiet=True)
 
             # End shadow mask preparation
             # Start cloud mask preparation
 
             gscript.run_command('v.db.droptable',
                 map=cloud_mask,
-                flags='f')
+                flags='f', quiet=True)
             gscript.run_command('v.db.addtable',
                 map=cloud_mask,
-                columns='value')
+                columns='value', quiet=True)
 
             # End cloud mask preparation
             # Shift cloud mask using dE e dN
@@ -494,7 +504,12 @@ def main ():
                 try:
                     for elem in root[1]:
                         for subelem in elem[1]:
-                            ZA.append (subelem.text)
+                            ZA.append(subelem.text)
+                    if ZA == ['0', '0']:
+                        zenith_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Zenith').find('Values_List')
+                        ZA[0] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in zenith_val])
+                        azimuth_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Azimuth').find('Values_List')
+                        ZA[1] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in azimuth_val])
                     z = float(ZA[0])
                     a = float(ZA[1])
                     gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
@@ -536,14 +551,14 @@ def main ():
                     xshift=E_shift,
                     yshift=N_shift,
                     overwrite=True,
-                    quiet=True)
+                    quiet=True, stderr=subprocess.DEVNULL)
                 gscript.run_command('v.overlay',
                     ainput=tmp["addcat"],
                     binput=tmp["cl_shift"],
                     operator='and',
                     output=tmp["overlay"],
                     overwrite=True,
-                    quiet=True)
+                    quiet=True, stderr=subprocess.DEVNULL)
                 gscript.run_command('v.db.addcolumn',
                     map=tmp["overlay"],
                     columns='area double')
@@ -575,6 +590,15 @@ def main ():
                 output=shadow_mask,
                 operator='intersects',
                 quiet=True)
+            info_cm = gscript.parse_command('v.info', map=shadow_mask,
+                                            flags='t')
+            if options['shadow_raster']:
+                if info_cm['areas'] > '0':
+                    gscript.run_command('v.to.rast', input=shadow_mask,
+                                        output=shadow_raster, use='val')
+                else:
+                     gscript.warning(_('No cloud shadows detected'))
+
 
             gscript.message('--- the estimated clouds height is: {} m ---'.format(HH[index_maxAA]))
             gscript.message('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA]))
