@@ -99,6 +99,7 @@
 #%rules
 #% exclusive: -l,-r,-p
 #% exclusive: -o,-r
+#% exclusive: extent,-l
 #%end
 import os
 import sys
