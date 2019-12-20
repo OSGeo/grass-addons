@@ -235,28 +235,49 @@ def main():
     if rasters:
         if not flags['c']:
             gscript.message(_("Checking usability of raster maps..."))
+            rasters_to_remove = []
             for raster in rasters:
+                null_values_found = False
                 if not gscript.find_file(raster, element='cell')['name']:
                     gscript.message(_("Cannot find raster '%s'" % raster))
                     gscript.message(_("Removing this raster from list."))
-                    rasters.remove(raster)
-                raster_info = gscript.parse_command('r.univar',
-                                                    flags='g',
-                                                    map_=raster,
-                                                    quiet=True)
-                if len(raster_info) == 0 or int(raster_info['null_cells']) > 0: 
-                    message = 'Raster %s contains null values.\n' % raster
+                    rasters_to_remove.append(raster)
+                    continue
+                current_mapset = gscript.gisenv()['MAPSET']
+                if gscript.find_file('MASK',
+                                         element='cell',
+                                         mapset=current_mapset)['name']:
+
+                    null_test = gscript.read_command('r.stats',
+                                                     flags='N',
+                                                     input_=['MASK',raster],
+                                                     quiet=True).splitlines()
+                    if '1 *' in null_test:
+                        null_values_found = True
+
+                else:
+                    raster_info = gscript.parse_command('r.univar',
+                                                        flags='g',
+                                                        map_=raster,
+                                                        quiet=True)
+                    if len(raster_info) == 0 or int(raster_info['null_cells']) > 0: 
+                        null_values_found = True
+
+                if null_values_found:
+                    message = 'Raster <%s> contains null values.\n' % raster
                     message += 'This can lead to errors in the calculations.\n'
                     message += 'Check region settings and raster extent.\n'
                     message += 'Possibly fill null values of raster.\n'
                     message += 'Removing this raster from list.'
                     gscript.warning(message)
-                    while raster in rasters: 
-                        rasters.remove(raster)
-                    continue
+                    rasters_to_remove.append(raster)
+
+        for raster in rasters_to_remove:
+            rasters.remove(raster)
 
         if len(rasters) > 0:
-            gscript.message(_("Calculating statistics for raster maps..."))
+            gscript.message(_("Calculating statistics for the following raster maps:"))
+            gscript.message(','.join(rasters))
             if len(rasters) < processes:
                 processes = len(rasters)
                 gscript.message(_("Only one process per raster. Reduced number of processes to %i." % processes))
