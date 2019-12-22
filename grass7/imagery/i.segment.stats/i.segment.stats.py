@@ -352,7 +352,7 @@ def main():
     error_objects = []
 
     if csvfile:
-        with open(csvfile, 'wb') as f:
+        with open(csvfile, 'w') as f:
             f.write(separator.join(output_header)+"\n")
             for key in output_dict:
                 if len(output_dict[key]) + 1 == len(output_header):
