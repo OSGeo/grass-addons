@@ -50,16 +50,33 @@ threshold, in order to have an idea of the range of the magnitude and to
 choose an appropriate custom threshold (for univariate statistical parameters
 run <a href="r.univar.html">r.univar</a>). In this case <em>i.cva</em> gives
 in output only three maps: the angle, angle classified and magnitude maps.
+
 <h2>EXAMPLE</h2>
 
-Calculation of CVA maps from North Carolina Landsat 7 ETM scene, between
-lsat5_1987 and lsat7_2002.
+Calculation of CVA maps from North Carolina Landsat 5 TM and 7 ETM scenes,
+using lsat5_1987 and lsat7_2002.
 <br>
 The Tasselled cap maps are calculated for TOAR data.
+
+<!-- TODO: add TOAR part -->
+
 <div class="code"><pre>
+# compute tasscap of 1987 scene
+g.region raster=lsat5_1987_10 -p
+i.tasscap sensor=landsat5_tm \
+          input=lsat5_1987_10,lsat5_1987_20,lsat5_1987_30,lsat5_1987_40,lsat5_1987_50,lsat5_1987_70 \
+          output=lsat5_1987_tasscap
+
+# compute tasscap of 2002 scene
+g.region raster=lsat7_2002_10 -p
+i.tasscap sensor=landsat7_etm \
+          input=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70 \
+          output=lsat7_2002_tasscap
+
+# compute CVA
 i.cva xaraster=lsat5_1987_tasscap.1 xbraster=lsat7_2002_tasscap.1 \
-yaraster=lsat5_1987_tasscap.2 ybraster=lsat7_2002_tasscap.2 \
-output=CVA_87_02 stat_threshold=1
+      yaraster=lsat5_1987_tasscap.2 ybraster=lsat7_2002_tasscap.2 \
+      output=CVA_87_02 stat_threshold=1
 
 Calculating DeltaX and DeltaY
 Writing angle map CVA_87_02_angle
