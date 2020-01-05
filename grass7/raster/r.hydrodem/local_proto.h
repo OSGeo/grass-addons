@@ -61,7 +61,7 @@ extern GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
 extern GW_LARGE_INT heap_size;
 extern int n_sinks;
 extern int n_mod_max, size_max;
-extern int do_all, keep_nat, nat_thresh;
+extern int do_all, force_filling, force_carving, keep_nat, nat_thresh;
 extern GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 extern struct point *outlets;
 extern struct sink_list *sinks, *first_sink;
