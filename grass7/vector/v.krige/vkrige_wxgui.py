@@ -1,5 +1,5 @@
 """
-MODULE:    vkrige
+MODULE:    vkrige_wxgui
 
 AUTHOR(S): Anne Ghisla <a.ghisla AT gmail.com>
 

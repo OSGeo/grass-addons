@@ -338,7 +338,7 @@ def main(argv=None):
         if not os.getenv("GRASS_WXBUNDLED"):
             from core import globalvar
             globalvar.CheckForWx()
-        import vkrige as GUI
+        import vkrige_wxgui as GUI
 
         import wx
 
