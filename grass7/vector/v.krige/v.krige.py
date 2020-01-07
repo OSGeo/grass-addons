@@ -159,6 +159,7 @@ class Controller:
         Checks for NULL values in the provided column and exits if they are present."""
 
         #@NOTE: new way with R - as it doesn't alter original data
+        robjects.r.use_sp()
         Rpointmap = robjects.r.readVECT(map, type='point')
         # checks if x,y columns are present in dataframe. If they do are present, but with different names,
         # they'll be duplicated.
@@ -446,7 +447,7 @@ def importR():
     
     # R packages check. Will create one error message after check of all packages.
     missingPackagesList = []
-    for each in ["rgeos", "gstat", "rgrass7", "maptools", "rgdal"]:
+    for each in ["rgeos", "gstat", "rgrass7", "maptools", "rgdal", "sf"]:
         if not robjects.r.require(each, quietly=True)[0]:
             missingPackagesList.append(each)
     if missingPackagesList:
