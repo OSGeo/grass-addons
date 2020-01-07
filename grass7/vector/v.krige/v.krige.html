@@ -3,7 +3,6 @@
 <em>v.krige</em> allows performing Kriging operations in GRASS GIS
 environment, using R software functions in background.
 
-
 <h2>NOTES</h2>
 
 <em>v.krige</em> is just a front-end to R. The options and parameters
@@ -35,7 +34,13 @@ Sill value can be tetermined by summing partial sill with nugget.
 <dd>automap is optional (provides automatic variogram fit).</dd>
 </dl>
 
-Install the packages via R command line (or your preferred GUI):
+Install Rpy2 via pip(3):
+
+<div class="code"><pre>
+sudo pip3 install Rpy2
+</pre></div>
+
+Install the following packages via R command line (or your preferred GUI):
 <div class="code"><pre>
   install.packages("rgeos", dep=T)
   install.packages("rgdal", dep=T)
@@ -47,7 +52,7 @@ Install the packages via R command line (or your preferred GUI):
 <h4>Notes for Debian GNU/Linux</h4>
 
 Install the dependiencies. <b>Attention! python-rpy IS NOT
-SUITABLE.</b>:
+SUITABLE.</b> (compare also installation via pip above):
 
 <div class="code"><pre>
   aptitude install R python-rpy2
@@ -86,7 +91,8 @@ the kriging calculation.
 
 <h2>EXAMPLES</h2>
 
-Kriging example based on elevation map (Spearfish data set).
+Kriging example based on elevation map
+(<a href="https://grass.osgeo.org/download/sample-data/">North Carolina sample data set</a>).
 
 <p><b>Part 1: random sampling</b> of 2000 vector points from known
 elevation map. Each point will receive the elevation value from the
