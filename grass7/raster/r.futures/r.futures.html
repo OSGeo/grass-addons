@@ -8,10 +8,6 @@ submodels that integrate nonstationary drivers of land change: per
 capita demand (DEMAND submodel), site suitability (POTENTIAL submodel),
 and the spatial structure of conversion events (PGA submodel).
 
-<p>
-This is FUTURES version <a href="https://github.com/ncsu-landscape-dynamics/GRASS_FUTURES/releases/tag/v1.0.0">1.0.0</a>,
-see <a href="https://github.com/ncsu-landscape-dynamics/GRASS_FUTURES">GitHub repository</a>
-for installation instructions, citation, and reporting issues.
 
 <h3>Submodels</h3>
 <dl>
@@ -106,6 +102,70 @@ We need to collect the following data:
 Figure: FUTURES simulation result
 </center>
 
+<h2>EXAMPLE</h2>
+Simple example using nc_spm_08_grass7 dataset.
+Please see <a href="https://grasswiki.osgeo.org/wiki/FUTURES_land-change_modeling_for_evaluating_innovative_conservation_scenarios">tutorials on GRASS wiki</a>
+ for more realistic examples.
+<p>
+Create rasters representing urbanization using NDVI, exclude lakes:
+<div class="code"><pre>
+g.region raster=lsat7_2002_30@PERMANENT
+i.vi red=lsat7_2002_30@PERMANENT output=ndvi_2002 nir=lsat7_2002_40@PERMANENT
+i.vi red=lsat5_1987_30@landsat output=ndvi_1987 nir=lsat5_1987_40@landsat
+r.mapcalc expression="urban_1987 = if(ndvi_1987 <= 0.1 &amp;&amp; isnull(lakes), 1, if(isnull(lakes), 0, null()))"
+r.mapcalc expression="urban_2002 = if(ndvi_2002 <= 0.1 &amp;&amp; isnull(lakes), 1, if(isnull(lakes), 0, null()))"
+</pre></div>
+
+Create predictors - slope, distance from lakes in km, distance from roads in km, development pressure:
+<div class="code"><pre>
+r.slope.aspect elevation=elevation slope=slope
+
+r.grow.distance input=lakes distance=lakes_dist
+r.mapcalc "lakes_dist_km = lakes_dist/1000."
+
+v.to.rast input=streets_wake output=streets use=val
+r.grow.distance input=streets distance=streets_dist
+r.mapcalc "streets_dist_km = streets_dist/1000."
+
+r.futures.devpressure input=urban_2002 output=devpressure method=gravity size=15 -n
+</pre></div>
+
+Sample predictors and developed areas:
+<div class="code"><pre>
+r.sample.category input=urban_2002 output=sampling sampled=slope,lakes_dist_km,streets_dist_km,devpressure,zipcodes npoints=300,100
+</pre></div>
+
+Compute POTENTIAL regression coefficients, using zipcodes as subregion:
+<div class="code"><pre>
+r.futures.potential input=sampling output=potential.csv columns=devpressure,slope,lakes_dist_km,streets_dist_km developed_column=urban_2002 subregions_column=zipcodes
+</pre></div>
+
+Compute how many cells should be converted in each subregion:
+<div class="code"><pre>
+r.futures.demand development=urban_1987,urban_2002 subregions=zipcodes observed_population=observed_population.csv projected_population=projected_population.csv \
+  simulation_times=2003,2004,2005,2006,2007,2008,2009,2010 method=linear,logarithmic,exponential demand=demand.csv
+</pre></div>
+
+Create a list of patch sizes (here we skip calibration of patch sizes for simplicity):
+<div class="code"><pre>
+r.futures.calib -l development_start=urban_1987 development_end=urban_2002 patch_threshold=0 patch_sizes=patches.txt subregions=zipcodes --o
+</pre></div>
+
+Run patch growing to get final results:
+<div class="code"><pre>
+r.futures.pga developed=urban_2002 subregions=zipcodes output=futures output_series=futures predictors=slope,lakes_dist_km,streets_dist_km devpot_params=potential.csv \
+  development_pressure=devpressure n_dev_neighbourhood=15 development_pressure_approach=gravity gamma=1.5 scaling_factor=1 demand=demand.csv discount_factor=0.1 \
+  compactness_mean=0.4 compactness_range=0.05 num_neighbors=4 seed_search=probability patch_sizes=patches.txt random_seed=1
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_futures_ncsmp.png">
+<img src="r_futures_ncsmp.png" width="600" alt="r.futures example" border="0">
+</a><br>
+<i>Figure: One stochastic realization of FUTURES simulation, orange to yellow gradient represents new development
+where yellow is the latest.</i>
+</div>
+
 <h2>REFERENCES</h2>
 
 <ul>
@@ -169,7 +229,5 @@ Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</
 
 Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
 
-<!--
 <p>
-<i>Last changed: $Date$</i>
--->
+<i>Last changed: $Date: 2018-09-14 21:49:22 -0400 (Fri, 14 Sep 2018) $</i>

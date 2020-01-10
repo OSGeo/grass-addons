@@ -73,6 +73,17 @@
 #% guisection: Basic input
 #%end
 #%option
+#% key: subregions_potential
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% label: Raster map of subregions used with potential file
+#% description: If not specified, the raster specified in subregions parameter is used
+#% gisprompt: old,cell,raster
+#% guisection: Potential
+#%end
+#%option
 #% key: output
 #% type: string
 #% required: yes
@@ -213,12 +224,12 @@
 #%end
 #%option
 #% key: seed_search
-#% type: integer
+#% type: string
 #% required: yes
 #% multiple: no
-#% options: 1,2
+#% options: random,probability
 #% description: The way location of a seed is determined (1: uniform distribution 2: development probability)
-#% answer: 2
+#% answer: probability
 #% guisection: PGA
 #%end
 #%option
@@ -240,28 +251,6 @@
 #% label: Exponent to transform probability values p to p^x to simulate infill vs. sprawl
 #% description: Values > 1 encourage infill, < 1 urban sprawl
 #% answer: 1
-#% guisection: Scenarios
-#%end
-#%option
-#% key: constrain_weight
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% label: Raster map representing development potential constraint weight for scenarios.
-#% description: Values must be between 0 and 1, 1 means no constraint.
-#% gisprompt: old,cell,raster
-#% guisection: Scenarios
-#%end
-#%option
-#% key: stimulus
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% label: Raster map representing an increase in development potential for scenarios.
-#% description: Values must be between 0 and 1, 0 means no increase.
-#% gisprompt: old,cell,raster
 #% guisection: Scenarios
 #%end
 
@@ -313,7 +302,7 @@ def main():
     for key in list(options.keys()):
         if options[key] == '':
             options.pop(key)
-    if tosplit and options['output_series']:
+    if tosplit and 'output_series' in options:
         gscript.fatal(_("Parallelization on subregion level is not supported together with <output_series> option"))
 
     if not gscript.overwrite() and gscript.list_grouped('raster', pattern=options['output'] + '_run1')[gscript.gisenv()['MAPSET']]:
