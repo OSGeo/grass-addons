@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.futures.pga
@@ -36,12 +35,12 @@
 
 /**
     \file main.c
-
+    
     The main file containing both the model code and the data handing part.
-
+    
     The language of the code is subject to change. The goal is to use either
     C or C++, not both mixed as it is now. Update: only C is used now.
-
+    
     Major refactoring of the code is expected.
 */
 
@@ -55,1382 +54,70 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
+#include <grass/segment.h>
 
 #include "keyvalue.h"
-
-//#include "distance.h"
-
-/** used to flag cells that are off the lattice */
-#define _CELL_OUT_OF_RANGE -2
-
-/** used to flag cells that are not in this county */
-#define _CELL_OUT_OF_COUNTY -1
-
-/** used to flag cells that are valid */
-#define _CELL_VALID 1
-
-/** need to dynamically allocate this as putting all on stack will crash most compilers */
-#define _N_MAX_DYNAMIC_BUFF_LEN (1024*1024)
-#define _N_MAX_FILENAME_LEN 1024
-
-/** Max length of input line */
-#define N_MAXREADINLEN 8192
-
-/** Value used to represent NULL (NoData) in some parts of the model */
-#define _GIS_NO_DATA_INT -9999
-
-/** use this for tDeveloped if cell still undeveloped */
-#define _N_NOT_YET_DEVELOPED -1
-
-#define _MAX_RAND_FIND_SEED_FACTOR 25
-#define maxNumAddVariables 20
-
-/** maximal number of counties allowed */
-#define MAXNUM_COUNTY 200
-#define MAX_YEARS 100
-/// maximum array size for undev cells (maximum: 1840198 for a county within 16 counties)
-#define MAX_UNDEV_SIZE 2000000
+#include "inputs.h"
+#include "output.h"
+#include "patch.h"
+#include "devpressure.h"
+#include "simulation.h"
 
 
-typedef struct
+struct Undeveloped *initialize_undeveloped(int num_subregions)
 {
-
-    /** see #define's starting _CELL_ above */
-    int nCellType;
-
-    /** x position on the lattice; static */
-    int thisX;
-
-    /** y position on the lattice; static */
-    int thisY;
-
-    /** whether this site is still undeveloped; varies.  Note if bUndeveloped = 0 the values of employAttraction etc. are not to be trusted */
-    bool bUndeveloped;
-    // TODO: is the following int or double (defined as double but usually casting to int in assignment, was as int in some print)
-
-    /** development pressure; varies */
-    float devPressure;
-
-    /** stores whether this site has been considered for development, to handle "protection" */
-    bool bUntouched;
-
-    /** timestep on which developed (0 for developed at start, _N_NOT_YET_DEVELOPED for not developed yet ) */
-    int tDeveloped;
-
-    /** additional variables, see t_Landscape.predictors */
-    float *additionVariable;
-    int index_region;
-} t_Cell;
-
-typedef struct
-{
-
-    /** id of this cell */
-    int cellID;
-
-    /** value of the logit */
-    float logitVal;
-
-    /** whether or not cell previously considered...need to use this in the sort */
-    bool bUntouched;
-
-    /** to support random pick based on their logitVal */
-    float cumulProb;
-} t_Undev;
-
-typedef struct
-{
-
-    /** array of cells (see posFromXY for how they are indexed) */
-    t_Cell *asCells;
-
-    /** number of columns in the grid */
-    int maxX;
-
-    /** number of rows in the grid */
-    int maxY;
-
-    /** total number of cells */
-    int totalCells;
-
-    /** array of information on undeveloped cells */
-    t_Undev *asUndev;
-
-    /** number of cells which have not yet converted */
-    int undevSites;
-
-    /** posterior sample from parcel size distribution */
-    int *aParcelSizes;
-
-    /** number in that sample */
-    int parcelSizes;
-    //  std::vector < std::vector < t_Undev > >asUndevs;  //WT
-    t_Undev **asUndevs;
-    size_t asUndevs_m;
-    size_t *asUndevs_ns;
-    int num_undevSites[MAXNUM_COUNTY];  //WT
-
-    /** array of predictor variables ordered as p1,p2,p3,p1,p2,p3 */
-    float *predictors;
-    /** multiplicative factor on the probabilities */
-    float *consWeight;
-    float *stimulus;
-} t_Landscape;
-
-
-typedef struct
-{
-
-    /** size of the grids */
-    int xSize;
-
-    /** size of the grids */
-    int ySize;
-
-    /** files containing the information to read in */
-    char *developedFile;
-    char *devPressureFile;
-    char *consWeightFile;
-    char *stimulus;
-    char *probLookupFile;
-    int nProbLookup;
-    double *adProbLookup;
-
-    int nDevNeighbourhood;  /** 8 (i.e. 8 in each direction, leading to 17 x 17 = 289 in total) */
-
-    /** used in writing rasters */
-    char *dumpFile;
-    char *outputSeries;
-
-    /** file containing parcel size information */
-    char *parcelSizeFile;
-    double discountFactor;      ///< for calibrate patch size
-
-    /** these parameters only relevant for new stochastic algorithm */
-    double patchMean;
-    double patchRange;
-    /// 4 or 8 neighbors only
-    int numNeighbors;
-    /// 1: uniform distribution 2: based on dev. proba.
-    int seedSearch;
-    int numAddVariables;
-
-    /** parameters for additional variables */
-    double addParameters[maxNumAddVariables][MAXNUM_COUNTY];
-    char *addVariableFile[maxNumAddVariables];
-    /// 1: #occurrence; 2: gravity (need to define alpha and scaling factor); 3: kernel, need to define alpha and scaling factor
-    ///
-    /// for 2: formula-> scalingFactor/power(dist,alpha)
-    /// for 3: formula-> scalingFactor*exp(-2*dist/alpha)
-    int devPressureApproach;
-    /// scale distance-based force
-    double scalingFactor;
-    ///< constraint on distance
-    double alpha;
-
-    /** parameters that go into regression formula */
-    double dIntercepts[MAXNUM_COUNTY];
-    double dV4[MAXNUM_COUNTY];
-    int num_Regions;
-
-    /** index file to run multiple regions */
-    char *indexFile;
-
-    /// control files for all regions
-    /// development demand for multiple regions
-    char *controlFileAll;
-    int devDemand[MAX_YEARS];
-    int devDemands[MAXNUM_COUNTY][MAX_YEARS];
-    /// This keeps the number of cells in demand which we satisfied
-    /// in one step but it was more than we should have satisfied.
-    /// To corrent for this, we keep it to the next step and we use
-    /// it to lower the current demand.
-    int overflowDevDemands[MAXNUM_COUNTY];
-    /// number of simulation steps
-    int nSteps;
-    struct KeyValueIntInt *region_map;
-} t_Params;
-
-
-//From WT: move here to be global variables
-t_Params sParams;
-t_Landscape sLandscape;
-
-double getDistance1(double x1, double y1, double x2, double y2);
-void readDevPotParams(t_Params * pParams, char *fn);
-void readIndexData(t_Landscape * pLandscape, t_Params * pParams);
-void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
-                         int step);
-void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
-                int regionID);
-int getUnDevIndex1(t_Landscape * pLandscape, int regionID);
-
-
-void readDevPotParams(t_Params * pParams, char *fn)
-{
-    FILE *fp;
-    if ((fp = fopen(fn, "r")) == NULL)
-        G_fatal_error(_("Cannot open development potential parameters file <%s>"),
-                      fn);
-
-    const char *fs = "\t";
-    const char *td = "\"";
-
-    size_t buflen = 4000;
-    char buf[buflen];
-    if (G_getl2(buf, buflen, fp) == 0)
-        G_fatal_error(_("Development potential parameters file <%s>"
-                        " contains less than one line"), fn);
-
-    char **tokens;
-
-    while (G_getl2(buf, buflen, fp)) {
-        if (!buf || buf[0] == '\0')
-            continue;
-        tokens = G_tokenize2(buf, fs, td);
-        int ntokens = G_number_of_tokens(tokens);
-        if (ntokens == 0)
-            continue;
-        // id + intercept + devpressure + predictores
-        if (ntokens != pParams->numAddVariables + 3)
-            G_fatal_error(_("Wrong number of columns in line: %s"), buf);
-
-        int idx;
-        int id;
-        double di, d4;
-        double val;
-        int j;
-
-        G_chop(tokens[0]);
-        id = atoi(tokens[0]);
-        if (KeyValueIntInt_find(pParams->region_map, id, &idx)) {
-            G_chop(tokens[1]);
-            di = atof(tokens[1]);
-            G_chop(tokens[2]);
-            d4 = atof(tokens[2]);
-            pParams->dIntercepts[idx] = di;
-            pParams->dV4[idx] = d4;
-            for (j = 0; j < pParams->numAddVariables; j++) {
-                G_chop(tokens[j + 3]);
-                val = atof(tokens[j + 3]);
-                pParams->addParameters[j][idx] = val;
-            }
-        }
-        // else ignoring the line with region which is not used
-
-        G_free_tokens(tokens);
+    struct Undeveloped *undev = (struct Undeveloped *) G_malloc(sizeof(struct Undeveloped));
+    undev->max_subregions = num_subregions;
+    undev->max = (size_t *) G_malloc(undev->max_subregions * sizeof(size_t));
+    undev->num = (size_t *) G_calloc(undev->max_subregions, sizeof(size_t));
+    undev->cells = (struct UndevelopedCell **) G_malloc(undev->max_subregions * sizeof(struct UndevelopedCell *));
+    for (int i = 0; i < undev->max_subregions; i++){
+        undev->max[i] = (Rast_window_rows() * Rast_window_cols()) / num_subregions;
+        undev->cells[i] = (struct UndevelopedCell *) G_malloc(undev->max[i] * sizeof(struct UndevelopedCell));
     }
-
-    fclose(fp);
-}
-
-/**
-    Generate uniform number on [0,1).
-
-    Encapsulated to allow easy replacement if necessary.
-*/
-double uniformRandom()
-{
-    int nRet;
-
-    nRet = RAND_MAX;
-    while (nRet == RAND_MAX) {  /* make sure never get 1.0 */
-        nRet = rand();
-    }
-    return ((double)nRet / (double)(RAND_MAX));
+    return undev;
 }
 
 
-/**
-    Work out index into asCells array from location.
-*/
-int posFromXY(int nX, int nY, t_Landscape * pLandscape)
+static int manage_memory(struct SegmentMemory *memory, float input_memory,
+                         int n_predictors, bool has_weights)
 {
-    int nPos;
-
-    /*
-       0   1         2              .... nX-1
-       nX  nX+1 nX+2   .... 2*nX-1
-       .                                            .
-       .                                            .
-       .                                            .
-       (nY-1)*nX            ...  nX*nY-1
-     */
-    nPos = _CELL_OUT_OF_RANGE;
-    if (nX >= 0 && nX < pLandscape->maxX && nY >= 0 && nY < pLandscape->maxY) {
-        nPos = nX * pLandscape->maxY + nY;
-    }
-    return nPos;
-}
-
-/**
-    Allocate memory to store information on cells.
-*/
-int buildLandscape(t_Landscape * pLandscape, t_Params * pParams)
-{
-    int bRet;
-
-    /* blank everything out */
-    G_verbose_message("Initialization and memory allocation...");
-    bRet = 0;
-
-    pLandscape->asCells = NULL;
-    pLandscape->asUndev = NULL;
-    pLandscape->undevSites = 0;
-    pLandscape->aParcelSizes = NULL;
-    pLandscape->parcelSizes = 0;
-
-    /* set initial values across the landscape */
-
-    pLandscape->maxX = pParams->xSize;
-    pLandscape->maxY = pParams->ySize;
-    pLandscape->totalCells = pLandscape->maxX * pLandscape->maxY;
-
-    pLandscape->asCells =
-        (t_Cell *) G_malloc(sizeof(t_Cell) * pLandscape->totalCells);
-    if (pLandscape->asCells) {
-        /* just allocate enough space for every cell to be undev */
-        pLandscape->asUndev = (t_Undev *) G_malloc(sizeof(t_Undev) * pLandscape->totalCells);
-        if (pLandscape->asUndev) {
-            bRet = 1;
-        }
-        else
-            bRet = 1;
-    }
-    return bRet;
-}
-
-void readData4AdditionalVariables(t_Landscape * pLandscape,
-                                  t_Params * pParams)
-{
-    int i;
-    int ii;
-    double val;
-
-    pLandscape->predictors = (float *)G_malloc(pParams->numAddVariables * pLandscape->totalCells * sizeof(float));
-    for (i = 0; i < pParams->numAddVariables; i++) {
-        G_verbose_message("Reading predictor variables %s...", pParams->addVariableFile[i]);
-
-        /* open raster map */
-        int fd = Rast_open_old(pParams->addVariableFile[i], "");
-        RASTER_MAP_TYPE data_type = Rast_get_map_type(fd);
-        void *buffer = Rast_allocate_buf(data_type);
-
-        ii = 0;
-        int row, col;
-        for (row = 0; row < pParams->xSize; row++) {
-            Rast_get_row(fd, buffer, row, data_type);
-            void *ptr = buffer;
-
-            for (col = 0; col < pParams->ySize; col++,
-                 ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
-                if (data_type == DCELL_TYPE)
-                    val = *(DCELL *) ptr;
-                else if (data_type == FCELL_TYPE)
-                    val = *(FCELL *) ptr;
-                else {
-                    val = *(CELL *) ptr;
-                }
-                if (Rast_is_null_value(ptr, data_type)) {
-                    pLandscape->asCells[ii].nCellType =
-                        _CELL_OUT_OF_COUNTY;
-                }
-                if (i == 0)
-                    pLandscape->asCells[ii].additionVariable = &pLandscape->predictors[pParams->numAddVariables * ii];
-                if (pLandscape->asCells[ii].nCellType == _CELL_VALID)
-                    pLandscape->asCells[ii].additionVariable[i] = val;
-                else
-                    pLandscape->asCells[ii].additionVariable[i] = 0.0;
-                ii++;
-            }
-        }
-        G_free(buffer);
-        Rast_close(fd);
-        G_verbose_message("Done");
-    }
-}
-
-void readIndexData(t_Landscape * pLandscape, t_Params * pParams)
-{
-    int ii;
-    int val;
-
-    ii = 0;
-    int fd = Rast_open_old(pParams->indexFile, "");
-
-    /* TODO: data type should always be CELL */
-    RASTER_MAP_TYPE data_type = Rast_get_map_type(fd);
-    void *buffer = Rast_allocate_buf(data_type);
-
-    G_verbose_message("Reading subregions %s", pParams->indexFile);
-    int count_regions = 0;
-    int index = 0;
-    int row, col;
-    for (row = 0; row < pParams->xSize; row++) {
-        Rast_get_row(fd, buffer, row, data_type);
-        void *ptr = buffer;
-
-        for (col = 0; col < pParams->ySize; col++,
-             ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
-            if (Rast_is_null_value(ptr, data_type))
-                index = _GIS_NO_DATA_INT; // assign FUTURES representation of NULL value
-            else {
-                val = *(CELL *) ptr;
-                if (KeyValueIntInt_find(pParams->region_map, val, &index))
-                    ; // pass
-                else {
-                    KeyValueIntInt_set(pParams->region_map, val, count_regions);
-                    index = count_regions;
-                    count_regions++;
-                }
-            }
-
-            pLandscape->asCells[ii].index_region = index;
-            ii++;
-        }
-    }
-    G_free(buffer);
-    Rast_close(fd);
-    pParams->num_Regions = count_regions;
-    G_verbose_message("Done");
-}
-
-/**
-    Read data from GIS rasters and put in correct places in memory.
-*/
-int readData(t_Landscape * pLandscape, t_Params * pParams)
-{
-    // TODO: this function should be rewritten to be nicer (unless storing in memorey will change completely)
-    // TODO: fix null handling somewhere
-    char *szBuff;
-    char szFName[_N_MAX_FILENAME_LEN];
-    int bRet, x, y, i, j;
-    double dVal;
-
-    G_verbose_message("Reading input rasters...");
-    bRet = 0;
-    szBuff = (char *) G_malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
-    if (szBuff) {
-        for (j = 0; j < 4; j++) {
-            /* workaround to skip loading constraint map so that it can be omitted in input */
-            if (j == 2) {
-                pLandscape->consWeight = NULL;
-                if (pParams->consWeightFile)
-                    pLandscape->consWeight = (float *)G_malloc(pLandscape->totalCells * sizeof(float));
-                else
-                    continue;
-            }
-            if (j == 3) {
-                pLandscape->stimulus = NULL;
-                if (pParams->stimulus)
-                    pLandscape->stimulus = (float *)G_malloc(pLandscape->totalCells * sizeof(float));
-                else
-                    continue;
-            }
-            switch (j) {        /* get correct filename */
-            case 0:
-                strcpy(szFName, pParams->developedFile);
-                break;
-            case 1:
-                strcpy(szFName, pParams->devPressureFile);
-                break;
-            case 2:
-                strcpy(szFName, pParams->consWeightFile);
-                break;
-            case 3:
-                strcpy(szFName, pParams->stimulus);
-                break;
-            default:
-                G_fatal_error("readData(): shouldn't get here");
-                break;
-            }
-            G_verbose_message("%s...", szFName);
-            /* open raster map */
-            int fd = Rast_open_old(szFName, "");
-
-            i = 0;
-
-            x = 0;
-            bRet = 1;  /* can only get worse from here on in */
-            RASTER_MAP_TYPE data_type = Rast_get_map_type(fd);
-            void *buffer = Rast_allocate_buf(data_type);
-            int row, col;
-            for (row = 0; row < pParams->xSize; row++) {
-                y = 0;
-                Rast_get_row(fd, buffer, row, data_type);
-                void *ptr = buffer;
-
-                for (col = 0; col < pParams->ySize; col++,
-                     ptr = G_incr_void_ptr(ptr, Rast_cell_size(data_type))) {
-                    CELL iVal;
-
-                    if (data_type == DCELL_TYPE)
-                        dVal = *(DCELL *) ptr;
-                    else if (data_type == FCELL_TYPE)
-                        dVal = *(FCELL *) ptr;
-                    else {
-                        iVal = *(CELL *) ptr;  // integer value for some rasters
-                        dVal = iVal;
-                    }
-                    if (j == 0) {
-                        /* check for NO_DATA */
-                        if (Rast_is_null_value(ptr, data_type)) {
-                            pLandscape->asCells[i].nCellType =
-                                _CELL_OUT_OF_COUNTY;
-                        }
-                        else {
-                            pLandscape->asCells[i].nCellType = _CELL_VALID;
-                        }
-                        /* and put in the correct place */
-                        pLandscape->asCells[i].thisX = x;
-                        pLandscape->asCells[i].thisY = y;
-                        /* and set the time of development */
-                        pLandscape->asCells[i].tDeveloped = _GIS_NO_DATA_INT;
-                    }
-                    else {
-                        /* clean up missing data */
-                        if (Rast_is_null_value(ptr, data_type)) {
-                            dVal = 0.0;
-                        }
-                    }
-                    // TODO: how do we know that this is set?
-                    if (pLandscape->asCells[i].nCellType == _CELL_VALID) {
-                        /* put data into a correct place */
-                        switch (j) {
-                        case 0:
-                            pLandscape->asCells[i].bUndeveloped = (iVal == 0) ? 1 : 0;
-                            pLandscape->asCells[i].bUntouched = 1;
-                            if (pLandscape->asCells[i].bUndeveloped == 1) {
-                                pLandscape->asCells[i].tDeveloped =
-                                    _N_NOT_YET_DEVELOPED;
-                            }
-                            else {
-                                /* already developed at the start */
-                                pLandscape->asCells[i].tDeveloped = 0;
-                            }
-                            break;
-                        case 1:
-                            pLandscape->asCells[i].devPressure = dVal;
-                            break;
-                        case 2:
-                            if (pLandscape->consWeight) {
-                                pLandscape->consWeight[i] = dVal;
-                            }
-                            break;
-                        case 3:
-                            if (pLandscape->stimulus) {
-                                pLandscape->stimulus[i] = dVal;
-                            }
-                            break;
-                        default:
-                            G_fatal_error("readData(): shouldn't get here");
-                            break;
-                        }
-                    }
-                    y++;
-                    i++;
-                }
-
-                x++;
-            }
-            if (x == pLandscape->maxX) {
-
-            }
-            else {
-                if (bRet) {
-                    G_warning("readData(): x too small");
-                    bRet = 0;
-                }
-            }
-
-            if (y != pLandscape->maxY) {
-                if (bRet) {
-                    G_message(_("x=%d y=%d"), x, y);
-                    G_message(_(" xSize=%d ySize=%d"), pParams->xSize,
-                              pParams->ySize);
-                    G_message(_(" maxX=%d minX=%d"), pLandscape->maxX,
-                              pLandscape->maxY);
-                    G_warning("readData(): y too small");
-                    bRet = 0;
-                }
-            }
-            else {
-                if (bRet && i == pLandscape->totalCells) {
-                    G_verbose_message("Done");
-                }
-                else {
-
-                    if (bRet) {
-                        G_message(_("x=%d y=%d"), x, y);
-                        G_message(_(" xSize=%d ySize=%d"), pParams->xSize,
-                                  pParams->ySize);
-                        G_message(_(" maxX=%d minX=%d"), pLandscape->maxX,
-                                  pLandscape->maxY);
-                        G_warning("readData(): not read in enough points");
-                        bRet = 0;
-                    }
-
-                }
-            }
-            G_free(buffer);
-            Rast_close(fd);
-
-        }
-        free(szBuff);
-    }
-
-    return bRet;
-}
-
-
-/**
-    Write current state of developed areas.
-
-    Called at end and dumps tDeveloped for all valid cells (NULL for all others)
-
-    \param undevelopedAsNull Represent undeveloped areas as NULLs instead of -1
-    \param developmentAsOne Represent all developed areas as 1 instead of number
-        representing the step when are was developed
- */
-// TODO: add timestamp to maps
-void outputDevRasterStep(t_Landscape * pLandscape, t_Params * pParams,
-                         const char *rasterNameBase, bool undevelopedAsNull,
-                         bool developmentAsOne)
-{
-    int out_fd = Rast_open_new(rasterNameBase, CELL_TYPE);
-    CELL *out_row = Rast_allocate_c_buf();
-    int x, y;
-    for (x = 0; x < pLandscape->maxX; x++) {
-        Rast_set_c_null_value(out_row, pLandscape->maxY);
-        for (y = 0; y < pLandscape->maxY; y++) {
-            // we don't check return values since we use landscape directly
-            int cellId = posFromXY(x, y, pLandscape);
-
-            // this handles NULLs on input
-            if (pLandscape->asCells[cellId].nCellType == _CELL_VALID) {
-                CELL value = pLandscape->asCells[cellId].tDeveloped;
-
-                // this handles undeveloped cells
-                if (undevelopedAsNull && value == -1)
-                    continue;
-                // this handles developed cells
-                if (developmentAsOne)
-                    value = 1;
-                out_row[y] = value;
-            }
-        }
-        Rast_put_c_row(out_fd, out_row);
-    }
-    G_free(out_row);
-    Rast_close(out_fd);
-
-    struct Colors colors;
-
-    Rast_init_colors(&colors);
-    CELL val1 = 0;
-    // TODO: the map max is 36 for 36 steps, it is correct?
-    CELL val2 = pParams->nSteps;
-
-    if (developmentAsOne) {
-        val1 = 1;
-        val2 = 1;
-        Rast_add_c_color_rule(&val1, 255, 100, 50, &val2, 255, 100, 50,
-                              &colors);
-    }
-    else {
-        Rast_add_c_color_rule(&val1, 255, 100, 50, &val2, 255, 255, 0,
-                              &colors);
-    }
-    if (!undevelopedAsNull) {
-        val1 = -1;
-        val2 = -1;
-        Rast_add_c_color_rule(&val1, 100, 255, 100, &val2, 100, 255, 100,
-                              &colors);
-    }
-
-    const char *mapset = G_find_file2("cell", rasterNameBase, "");
-
-    if (mapset == NULL)
-        G_fatal_error(_("Raster map <%s> not found"), rasterNameBase);
-
-    Rast_write_colors(rasterNameBase, mapset, &colors);
-    Rast_free_colors(&colors);
-
-    struct History hist;
-
-    Rast_short_history(rasterNameBase, "raster", &hist);
-    Rast_command_history(&hist);
-    // TODO: store also random seed value (need to get it here, global? in Params?)
-    Rast_write_history(rasterNameBase, &hist);
-
-    G_message(_("Raster map <%s> created"), rasterNameBase);
-}
-
-char *mapNameForStep(const char *basename, const int step, const int maxSteps)
-{
-    int digits = log10(maxSteps) + 1;
-
-    return G_generate_basename(basename, step, digits, 0);
-}
-
-
-/**
-    Calculate probability of development.
-*/
-
-double getDevProbability(t_Cell * pThis, t_Params * pParams)
-{
-    double probAdd;
-    int i;
-    int id = pThis->index_region;
-
-    if (id == -9999)
-        return 0;
-    probAdd = pParams->dIntercepts[id];
-    //cout<<"intercept\t"<<probAdd<<endl;
-    probAdd += pParams->dV4[id] * pThis->devPressure;
-    //cout<<"devPressure: "<<pParams->dV4[id]<<endl;
-    //cout<<"devPressure: "<<pThis->devPressure<<endl;
-    //cout<<"devPressure: "<<pParams->dV4[id] * pThis->devPressure<<endl;
-    for (i = 0; i < pParams->numAddVariables; i++) {
-        probAdd += pParams->addParameters[i][id] * pThis->additionVariable[i];
-        //cout<<"additionVariable: "<<i<<"\t"<<pParams->addParameters[i][id]<<endl;
-        //cout<<"additionVariable: "<<i<<"\t"<<pThis->additionVariable[i]<<endl;
-        //cout<<"additionVariable: "<<i<<"\t"<<pParams->addParameters[i][id] * pThis->additionVariable[i]<<endl;
-    }
-    probAdd = 1.0 / (1.0 + exp(-probAdd));
-    //cout<<"The probability:";
-    //cout<<probAdd<<endl;
-    return probAdd;
-}
-
-
-/**
-   Helper structur for neighbour grabbing algorithm
- */
-typedef struct
-{
-    double probAdd;
-    int cellID;
-    int newInList;
-    // Wenwu Tang
-    /// distance to the center
-    double distance;
-} t_candidateNeighbour;
-
-/**
-    Helper structur for neighbour grabbing algorithm
-*/
-typedef struct
-{
-    double maxProb;
-    int nCandidates;
-    int nSpace;
-    t_candidateNeighbour *aCandidates;
-} t_neighbourList;
-
-#define _N_NEIGHBOUR_LIST_BLOCK_SIZE 20
-
-int addNeighbourIfPoss(int x, int y, t_Landscape * pLandscape,
-                       t_neighbourList * pNeighbours, t_Params * pParams)
-{
-    int i, thisPos, mustAdd, listChanged, lookupPos;
-    double probAdd;
-    t_Cell *pThis;
-
-    listChanged = 0;
-    thisPos = posFromXY(x, y, pLandscape);
-    if (thisPos != _CELL_OUT_OF_RANGE) {
-        pThis = &(pLandscape->asCells[thisPos]);
-        if (pThis->nCellType == _CELL_VALID) {
-            pThis->bUntouched = 0;
-            if (pThis->bUndeveloped) {
-                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[thisPos] : 1;
-                double stimulus = pLandscape->stimulus ? pLandscape->stimulus[thisPos] : 0;
-                if (consWeight > 0.0) {
-                    /* need to add this cell... */
-
-                    /* ...either refresh its element in list if already there */
-                    mustAdd = 1;
-                    for (i = 0; mustAdd && i < pNeighbours->nCandidates; i++) {
-                        if (pNeighbours->aCandidates[i].cellID == thisPos) {
-                            pNeighbours->aCandidates[i].newInList = 1;
-                            mustAdd = 0;
-                            listChanged = 1;
-                        }
-                    }
-                    /* or add it on the end, allocating space if necessary */
-                    if (mustAdd) {
-                        if (pNeighbours->nCandidates == pNeighbours->nSpace) {
-                            pNeighbours->nSpace +=
-                                _N_NEIGHBOUR_LIST_BLOCK_SIZE;
-                            pNeighbours->aCandidates =
-                                (t_candidateNeighbour *)
-                                G_realloc(pNeighbours->aCandidates,
-                                          pNeighbours->nSpace *
-                                          sizeof(t_candidateNeighbour));
-                            if (!pNeighbours->aCandidates) {
-                                G_fatal_error("Memory error in addNeighbourIfPoss()");
-                            }
-                        }
-                        pNeighbours->aCandidates[pNeighbours->nCandidates].
-                            cellID = thisPos;
-                        pNeighbours->aCandidates[pNeighbours->nCandidates].
-                            newInList = 1;
-
-                        /* note duplication of effort in here recalculating the probabilities, but didn't store them in an accessible way */
-                        /*
-                           probAdd = pParams->dIntercept;
-                           probAdd += pParams->dDevPressure * pThis->devPressure;
-                           probAdd += pParams->dEmployAttraction * pThis->employAttraction;
-                           probAdd += pParams->dInterchangeDistance * pThis->interchangeDistance;
-                           probAdd += pParams->dRoadDensity * pThis->roadDensity;
-                           probAdd = 1.0/(1.0 + exp(probAdd));
-                         */
-                        probAdd = getDevProbability(pThis, pParams);
-                        /* replace with value from lookup table */
-                        if (pParams->adProbLookup) {
-                            lookupPos =
-                                    (int)(probAdd * (pParams->nProbLookup - 1));
-                            probAdd = pParams->adProbLookup[lookupPos];
-                        }
-                        probAdd *= consWeight;
-                        // encourage development
-                        if (stimulus > 0)
-                            probAdd = probAdd + stimulus - probAdd * stimulus;
-                        pNeighbours->aCandidates[pNeighbours->nCandidates].
-                            probAdd = probAdd;
-                        /* only actually add it if will ever transition */
-                        if (probAdd > 0.0) {
-                            pNeighbours->nCandidates++;
-                            if (probAdd > pNeighbours->maxProb) {
-                                pNeighbours->maxProb = probAdd;
-                            }
-                            listChanged = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return listChanged;
-}
-
-// From Wenwu
-
-/**
-    Sort according to the new flag and conversion probability.
-*/
-static int sortNeighbours(const void *pOne, const void *pTwo)
-{
-    t_candidateNeighbour *pNOne = (t_candidateNeighbour *) pOne;
-    t_candidateNeighbour *pNTwo = (t_candidateNeighbour *) pTwo;
-
-    float p = rand() / (float)RAND_MAX;
-
-    float alpha = (sParams.patchMean) - (sParams.patchRange) * 0.5;
-    alpha += p * sParams.patchRange;
-
-    float p1, p2;
-
-    p1 = pNOne->probAdd / pow(pNOne->distance, alpha);
-    p2 = pNTwo->probAdd / pow(pNTwo->distance, alpha);
-
-    //p1=alpha*pNOne->probAdd+(1-alpha)*pow(pNOne->distance,-2);
-    //p2=alpha*pNTwo->probAdd+(1-alpha)*pow(pNTwo->distance,-2);
-
-    if (p1 > p2) {
-        return -1;
-    }
-    if (p2 > p1) {
-        return 1;
-    }
-    return 0;
-}
-
-void findNeighbours(int nThisID, t_Landscape * pLandscape,
-                    t_neighbourList * pNeighbours, t_Params * pParams)
-{
-    t_Cell *pThis;
-    int listChanged = 0;
-
-    // int     idmat[4]; idmat[0]=0;idmat[1]=1;idmat[2]=2;idmat[3]=3;
-    /* try to add the neighbours of this one */
-    pThis = &(pLandscape->asCells[nThisID]);
-    //note: if sorted, then shuffle is no need
-    /*
-       Shuffle4(&idmat[0]);
-       for(i=0;i<4;i++){
-       if(idmat[i]==0)
-       listChanged+=addNeighbourIfPoss(pThis->thisX-1,pThis->thisY,pLandscape,pNeighbours,pParams);
-       else if(idmat[i]==1)
-       listChanged+=addNeighbourIfPoss(pThis->thisX+1,pThis->thisY,pLandscape,pNeighbours,pParams);
-       else if(idmat[i]==2)
-       listChanged+=addNeighbourIfPoss(pThis->thisX,pThis->thisY-1,pLandscape,pNeighbours,pParams);
-       else if (idmat[i]==3)
-       listChanged+=addNeighbourIfPoss(pThis->thisX,pThis->thisY+1,pLandscape,pNeighbours,pParams);
-       }
-     */
-
-    listChanged += addNeighbourIfPoss(pThis->thisX - 1, pThis->thisY, pLandscape, pNeighbours, pParams);  // left
-    listChanged += addNeighbourIfPoss(pThis->thisX + 1, pThis->thisY, pLandscape, pNeighbours, pParams);  // right
-    listChanged += addNeighbourIfPoss(pThis->thisX, pThis->thisY - 1, pLandscape, pNeighbours, pParams);  // down
-    listChanged += addNeighbourIfPoss(pThis->thisX, pThis->thisY + 1, pLandscape, pNeighbours, pParams);  // up 
-    if (sParams.numNeighbors == 8) {
-        listChanged +=
-            addNeighbourIfPoss(pThis->thisX - 1, pThis->thisY - 1, pLandscape,
-                               pNeighbours, pParams);
-        listChanged +=
-            addNeighbourIfPoss(pThis->thisX - 1, pThis->thisY + 1, pLandscape,
-                               pNeighbours, pParams);
-        listChanged +=
-            addNeighbourIfPoss(pThis->thisX + 1, pThis->thisY - 1, pLandscape,
-                               pNeighbours, pParams);
-        listChanged +=
-            addNeighbourIfPoss(pThis->thisX + 1, pThis->thisY + 1, pLandscape,
-                               pNeighbours, pParams);
-    }
-    /* if anything has been altered then resort */
-
-    if (listChanged) {
-        //qsort(pNeighbours->aCandidates,pNeighbours->nCandidates,sizeof(t_candidateNeighbour),sortNeighbours);
-    }
-}
-
-double getDistance(int id1, int id2, t_Landscape * pLandscape)
-{
-    double x1, x2, y1, y2, result = 0;
-
-    x1 = pLandscape->asCells[id1].thisX;
-    x2 = pLandscape->asCells[id2].thisX;
-    y1 = pLandscape->asCells[id1].thisY;
-    y2 = pLandscape->asCells[id2].thisY;
-    result = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-    return result;
-}
-
-double getDistance1(double x1, double y1, double x2, double y2)
-{
-    double result = 0;
-
-    result = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-    return result;
-}
-
-int newPatchFinder(int nThisID, t_Landscape * pLandscape, t_Params * pParams,
-                   int *anToConvert, int nWantToConvert)
-{
-    int bTrying, i, nFound, j;
-    t_neighbourList sNeighbours;
-
-    G_debug(3, "Finding patch of size %d", nWantToConvert);
-    memset(&sNeighbours, 0, sizeof(t_neighbourList));
-    anToConvert[0] = nThisID;
-    pLandscape->asCells[nThisID].bUntouched = 0;
-    pLandscape->asCells[nThisID].bUndeveloped = 0;
-    nFound = 1;
-    findNeighbours(nThisID, pLandscape, &sNeighbours, pParams);
-    for (i = 0; i < sNeighbours.nCandidates; i++) {
-        sNeighbours.aCandidates[i].distance =
-            getDistance(nThisID, sNeighbours.aCandidates[i].cellID,
-                        pLandscape);
-    }
-
-    while (nFound < nWantToConvert && sNeighbours.nCandidates > 0) {
-        i = 0;
-        bTrying = 1;
-        while (bTrying) {
-            if (uniformRandom() < sNeighbours.aCandidates[i].probAdd) {
-                anToConvert[nFound] = sNeighbours.aCandidates[i].cellID;
-                /* flag that it is about to develop */
-                pLandscape->asCells[anToConvert[nFound]].bUndeveloped = 0;
-                /* remove this one from the list by copying down everything above it */
-                for (j = i + 1; j < sNeighbours.nCandidates; j++) {
-                    sNeighbours.aCandidates[j - 1].cellID =
-                        sNeighbours.aCandidates[j].cellID;
-                    sNeighbours.aCandidates[j - 1].newInList =
-                        sNeighbours.aCandidates[j].newInList;
-                    sNeighbours.aCandidates[j - 1].probAdd =
-                        sNeighbours.aCandidates[j].probAdd;
-                }
-                /* reduce the size of the list */
-                sNeighbours.nCandidates--;
-                sNeighbours.maxProb = 0.0;
-                for (j = 0; j < sNeighbours.nCandidates; j++) {
-                    if (sNeighbours.aCandidates[j].probAdd >
-                        sNeighbours.maxProb) {
-                        sNeighbours.maxProb =
-                            sNeighbours.aCandidates[j].probAdd;
-                    }
-                }
-                /* add its neighbours */
-                findNeighbours(anToConvert[nFound], pLandscape, &sNeighbours,
-                               pParams);
-                nFound++;
-                bTrying = 0;
-            }
-            else {
-                sNeighbours.aCandidates[i].newInList = 0;
-            }
-            if (bTrying) {
-                i++;
-                if (i == sNeighbours.nCandidates) {
-                    i = 0;
-                }
-            }
-            else {
-                /* always resort the list if have just added, to let new elements bubble to the top */
-                if (sNeighbours.nCandidates > 0) {
-                    //                                      int z;
-                    for (i = 0; i < sNeighbours.nCandidates; i++) {
-                        sNeighbours.aCandidates[i].distance =
-                            getDistance(nThisID,
-                                        sNeighbours.aCandidates[i].cellID,
-                                        pLandscape);
-                    }
-
-                    qsort(sNeighbours.aCandidates, sNeighbours.nCandidates,
-                          sizeof(t_candidateNeighbour), sortNeighbours);
-                }
-            }
-        }
-    }
-    if (sNeighbours.nSpace) {   /* free any allocated memory */
-        free(sNeighbours.aCandidates);
-    }
-    //      fprintf(stdout, "looking for %d found %d\n", nWantToConvert,nFound);
-    return nFound;
-}
-
-int convertCells(t_Landscape * pLandscape, t_Params * pParams, int nThisID,
-                 int nStep, int bAllowTouched, int bDeterministic)
-{
-    int i, x, y, nCell, nDone, nToConvert, nWantToConvert;
-    int *anToConvert;
-    t_Cell *pThis, *pThat;
-
-    nDone = 0;
-    /* in here need to build list of near neigbours to loop over */
-    nWantToConvert = pLandscape->aParcelSizes[(int)
-                                              (uniformRandom() *
-                                               pLandscape->parcelSizes)];
-    anToConvert = (int *) G_malloc(sizeof(int) * nWantToConvert);
-    if (anToConvert) {
-        /* in here goes code to fill up list of neighbours */
-        nToConvert =
-            newPatchFinder(nThisID, pLandscape, pParams, anToConvert,
-                           nWantToConvert);
-        /* will actually always be the case */
-        if (nToConvert > 0) {
-            for (i = 0; i < nToConvert; i++) {
-                /* convert, updating dev press on neighbours */
-                pThis = &(pLandscape->asCells[anToConvert[i]]);
-                pThis->bUndeveloped = 0;
-                pThis->bUntouched = 0;
-                pThis->tDeveloped = nStep + 1;
-                nDone++;
-
-                float dist = 0;
-                float force = 0;
-
-                for (x = pThis->thisX - pParams->nDevNeighbourhood;
-                     x <= pThis->thisX + pParams->nDevNeighbourhood; x++) {
-                    for (y = pThis->thisY - pParams->nDevNeighbourhood;
-                         y <= pThis->thisY + pParams->nDevNeighbourhood;
-                         y++) {
-                        nCell = posFromXY(x, y, pLandscape);
-                        if (nCell != _CELL_OUT_OF_RANGE) {
-                            pThat = &(pLandscape->asCells[nCell]);
-                            dist =
-                                getDistance1(pThis->thisX, pThis->thisY, x,
-                                             y);
-                            if (dist > pParams->nDevNeighbourhood)
-                                continue;
-                            force = 0;
-                            if (pParams->devPressureApproach == 1)
-                                force = 1;      // development pressure increases by 1
-                            else if (pParams->devPressureApproach == 2) {
-                                if (dist > 0)
-                                    force =
-                                        pParams->scalingFactor / pow(dist,
-                                                                     pParams->
-                                                                     alpha);
-                            }
-                            else {
-                                force =
-                                    pParams->scalingFactor * exp(-2 * dist /
-                                                                 pParams->
-                                                                 alpha);
-                            }
-                            pThat->devPressure = pThat->devPressure + force;
-                        }
-                    }
-                }
-            }
-        }
-        free(anToConvert);
-    }
-    return nDone;
-}
-
-
-void readDevDemand(t_Params * pParams)
-{
-    FILE *fp;
-    if ((fp = fopen(pParams->controlFileAll, "r")) == NULL)
-        G_fatal_error(_("Cannot open population demand file <%s>"),
-                      pParams->controlFileAll);
-
-    size_t buflen = 4000;
-    char buf[buflen];
-    if (G_getl2(buf, buflen, fp) == 0)
-        G_fatal_error(_("Population demand file <%s>"
-                        " contains less than one line"), pParams->controlFileAll);
-
-    char **tokens;
-    int ntokens;
-
-    const char *fs = "\t";
-    const char *td = "\"";
-
-    tokens = G_tokenize2(buf, fs, td);
-    ntokens = G_number_of_tokens(tokens);
-    if (ntokens == 0)
-        G_fatal_error("No columns in the header row");
-
-    struct ilist *ids = G_new_ilist();
-    int count;
-    // skip first column which does not contain id of the region
-    int i;
-    for (i = 1; i < ntokens; i++) {
-            G_chop(tokens[i]);
-            G_ilist_add(ids, atoi(tokens[i]));
-    }
-
-    int years = 0;
-    while(G_getl2(buf, buflen, fp)) {
-        if (!buf || buf[0] == '\0')
-            continue;
-        tokens = G_tokenize2(buf, fs, td);
-        int ntokens2 = G_number_of_tokens(tokens);
-        if (ntokens2 == 0)
-            continue;
-        if (ntokens2 != ntokens)
-            G_fatal_error(_("Wrong number of columns in line: %s"), buf);
-
-        count = 0;
-        int i;
-        for (i = 1; i < ntokens; i++) {
-            // skip first column which is the year which we ignore
-            int idx;
-            if (KeyValueIntInt_find(pParams->region_map, ids->value[count], &idx)) {
-                G_chop(tokens[i]);
-                pParams->devDemands[idx][years] = atoi(tokens[i]);
-            }
-            count++;
-        }
-        // each line is a year
-        years++;
-    }
-    G_verbose_message("Number of steps in demand file: %d", years);
-    if (!sParams.nSteps)
-        sParams.nSteps = years;
-    G_free_ilist(ids);
-    G_free_tokens(tokens);
-}
-
-void initializeUnDev(t_Landscape * pLandscape, t_Params * pParams)
-{
-    int i;
-
-    pLandscape->asUndevs = (t_Undev **) G_malloc(pParams->num_Regions * sizeof(t_Undev *));
-    pLandscape->asUndevs_m = pParams->num_Regions;
-    pLandscape->asUndevs_ns = (size_t *) G_malloc(pParams->num_Regions * sizeof(t_Undev *));
-
-    for (i = 0; i < pParams->num_Regions; i++) {
-        pLandscape->asUndevs[i] = (t_Undev *) G_malloc(MAX_UNDEV_SIZE * sizeof(t_Undev));
-        pLandscape->asUndevs_ns[i] = MAX_UNDEV_SIZE;
-        pLandscape->num_undevSites[i] = 0;
-    }
-}
-
-void finalizeUnDev(t_Landscape * pLandscape, t_Params * pParams)
-{
-    int i;
-
-    for (i = 0; i < pParams->num_Regions; i++) {
-        G_free(pLandscape->asUndevs[i]);
-    }
-    G_free(pLandscape->asUndevs);
-    G_free(pLandscape->asUndevs_ns);
-}
-
-/*
-   main routine to run models on multiple regions // WTang
- */
-void updateMapAll(t_Landscape * pLandscape, t_Params * pParams)
-{
-    //readDevDemand(pParams);
-    int i, j;
-
-    //initialize undev arrays
-    initializeUnDev(pLandscape, pParams);
-
-    //iterate each step (year)
-    for (i = 0; i < pParams->nSteps; i++) {
-        G_verbose_message("Processing step %d from %d", i + 1, pParams->nSteps);
-        // for each sub-region, find and update conversion probability (conservation weight applied)
-        findAndSortProbsAll(pLandscape, pParams, i);
-        for (j = 0; j < pParams->num_Regions; j++)
-            //j=1;
-            updateMap1(pLandscape, pParams, i, j);
-        if (pParams->outputSeries)
-            outputDevRasterStep(pLandscape, pParams,
-                                mapNameForStep(pParams->outputSeries, i,
-                                               pParams->nSteps), true, true);
-    }
-    outputDevRasterStep(pLandscape, pParams, pParams->dumpFile, false, false);
-    finalizeUnDev(pLandscape, pParams);
-}
-
-void updateMap1(t_Landscape * pLandscape, t_Params * pParams, int step,
-                int regionID)
-{
-    int i, nToConvert, nStep, nDone, bAllowTouched, nRandTries, nExtra;
-    double dProb;
-    t_Cell *pThis;
-
-    // get number of demanded cells already satisfied in the previous step
-    nExtra = pParams->overflowDevDemands[regionID];
-
-    nStep = step;
-
-    nToConvert = pParams->devDemands[regionID][step];
-
-    if (nExtra > 0) {
-        if (nToConvert - nExtra > 0) {
-            nToConvert -= nExtra;
-            nExtra = 0;
-        }
-        else {
-            nExtra -= nToConvert;
-            nToConvert = 0;
-        }
-    }
-    G_debug(1, "After accounting for extra cells, attempt %d cells", nToConvert);
-    /* if have cells to convert this step */
-    bool forceConvertEverything = false;
-    if (nToConvert > 0) {
-        /* if not enough cells to convert then alter number required */
-        if (nToConvert > pLandscape->num_undevSites[regionID]) {
-            G_warning("Not enough undeveloped sites (requested: %d,"
-                      " available: %d). Converting all available.",
-                       nToConvert, pLandscape->num_undevSites[regionID]);
-            nToConvert = pLandscape->num_undevSites[regionID];
-            forceConvertEverything = true;
-        }
-        /* update in stochastic fashion */
-        nDone = 0;
-        i = 0;
-        nRandTries = 0;
-        bAllowTouched = 0;
-        /* loop until done enough cells...might need multiple passes */
-        while (nDone < nToConvert) {
-            if (i == pLandscape->num_undevSites[regionID]) {
-                /* if at the end of the grid, just loop around again until done */
-                i = 0;
-                /* allow previously considered cells if you have to */
-                bAllowTouched = 1;
-            }
-            /* if tried too many randomly in this step, give up on idea of only letting untouched cells convert */
-            if (nRandTries > _MAX_RAND_FIND_SEED_FACTOR * nToConvert) {
-                bAllowTouched = 1;
-            }
-            /* give a random undeveloped cell a go */
-            if (sParams.seedSearch == 1)
-                i = (int)(uniformRandom() *
-                          pLandscape->num_undevSites[regionID]);
-            //pick one according to their probability
-            else {
-                G_debug(3, "Step %d, nDone=%d, toConvert=%d", nStep, nDone,
-                        nToConvert);
-                i = getUnDevIndex1(pLandscape, regionID);
-            }
-            pThis =
-                    &(pLandscape->asCells
-                      [pLandscape->asUndevs[regionID][i].cellID]);
-
-            /* need to check is still undeveloped */
-            if (pThis->bUndeveloped) {
-                if (bAllowTouched || pThis->bUntouched) {
-                    /* Doug's "back to front" logit */
-                    //  dProb = 1.0/(1.0 + exp(pLandscape->asUndev[i].logitVal));
-                    dProb = pLandscape->asUndevs[regionID][i].logitVal;
-                    if (forceConvertEverything || (uniformRandom() < dProb)) {
-                        nDone +=
-                                convertCells(pLandscape, pParams,
-                                             pLandscape->asUndevs[regionID]
-                                             [i].cellID, nStep, bAllowTouched,
-                                             0);
-                    }
-                }
-                else {
-                    nRandTries++;
-                }
-                pThis->bUntouched = 0;
-            }
-            else {
-                nRandTries++;
-            }
-        }
-
-        G_debug(1, "Step %d: converted %d sites", nStep, nDone);
-        nExtra += (nDone - nToConvert);
-        // save overflow for the next time
-        pParams->overflowDevDemands[regionID] = nExtra;
-        G_debug(1, "%d extra sites knocked off next timestep", nExtra);
-    }
-}
-
-
-int readParcelSizes(t_Landscape * pLandscape, t_Params * pParams)
-{
-    FILE *fIn;
-    char *szBuff;
-    int nMaxParcels;
-
-
-    pLandscape->parcelSizes = 0;
-
-    G_verbose_message("Reading patch sizes...");
-    fIn = fopen(pParams->parcelSizeFile, "rb");
-    if (fIn) {
-        szBuff = (char *) G_malloc(_N_MAX_DYNAMIC_BUFF_LEN * sizeof(char));
-        if (szBuff) {
-            /* just scan the file twice */
-            nMaxParcels = 0;
-            while (fgets(szBuff, _N_MAX_DYNAMIC_BUFF_LEN, fIn)) {
-                nMaxParcels++;
-            }
-            rewind(fIn);
-            if (nMaxParcels) {
-                pLandscape->aParcelSizes =
-                    (int *) G_malloc(sizeof(int) * nMaxParcels);
-                if (pLandscape->aParcelSizes) {
-                    while (fgets(szBuff, _N_MAX_DYNAMIC_BUFF_LEN, fIn)) {
-                        pLandscape->aParcelSizes[pLandscape->parcelSizes] =
-                            atoi(szBuff) * pParams->discountFactor;
-                        if (pLandscape->aParcelSizes[pLandscape->parcelSizes]) {
-                            pLandscape->parcelSizes++;
-                        }
-                    }
-                }
-            }
-            free(szBuff);
-        }
-        fclose(fIn);
-    }
-    return pLandscape->parcelSizes;
+    int nseg, nseg_total;
+    int cols, rows;
+    int undev_size;
+    size_t size;
+    size_t estimate;
+
+    memory->rows = 64;
+    memory->cols = 64;
+    rows = Rast_window_rows();
+    cols = Rast_window_cols();
+
+    undev_size = (sizeof(size_t) + sizeof(float) * 2 + sizeof(bool)) * rows * cols;
+    estimate = undev_size;
+
+    if (input_memory > 0 && undev_size > 1e9 * input_memory)
+        G_warning(_("Not sufficient memory, will attempt to use more "
+                    "than specified. Will need at least %d MB"), (int) (undev_size / 1.0e6));
+
+    size = sizeof(FCELL) * (n_predictors + (has_weights ? 3 : 2));
+    size += sizeof(CELL) * 2;
+    estimate = estimate + (size * rows * cols);
+    size *= memory->rows * memory->cols;
+
+    nseg = (1e9 * input_memory - undev_size) / size;
+    if (nseg <= 0)
+        nseg = 1;
+    nseg_total = (rows / memory->rows + (rows % memory->rows > 0)) *
+                 (cols / memory->cols + (cols % memory->cols > 0));
+
+    if (nseg > nseg_total || input_memory < 0)
+	nseg = nseg_total;
+    G_verbose_message(_("Number of segments in memory: %d of %d total"),
+                      nseg, nseg_total);
+    G_verbose_message(_("Estimated minimum memory footprint without using disk cache: %d MB"),
+                      (int) (estimate / 1.0e6));
+    return nseg;
 }
 
 int main(int argc, char **argv)
@@ -1439,14 +126,12 @@ int main(int argc, char **argv)
     struct
     {
         struct Option
-            *developedFile, *devPressureFile,
-            *consWeightFile, *addVariableFiles, *nDevNeighbourhood,
-            *devpotParamsFile, *dumpFile, *outputSeries,
-            *parcelSizeFile, *discountFactor,
-            /* *probLookupFile,*/ *incentivePower, *stimulus,
-            *patchMean, *patchRange, *numNeighbors, *seedSearch,
-            *devPressureApproach, *alpha, *scalingFactor, *num_Regions,
-            *numSteps, *indexFile, *controlFileAll, *seed;
+                *developed, *subregions, *potentialSubregions, *predictors,
+                *devpressure, *nDevNeighbourhood, *devpressureApproach, *scalingFactor, *gamma,
+                *potentialFile, *numNeighbors, *discountFactor, *seedSearch,
+                *patchMean, *patchRange,
+                *incentivePower, *potentialWeight,
+                *demandFile, *patchFile, *numSteps, *output, *outputSeries, *seed, *memory;
 
     } opt;
 
@@ -1455,6 +140,30 @@ int main(int argc, char **argv)
         struct Flag *generateSeed;
     } flg;
 
+    int i;
+    int num_predictors;
+    int num_steps;
+    int nseg;
+    int region;
+    int step;
+    float memory;
+    double discount_factor;
+    float exponent;
+    enum seed_search search_alg;
+    struct RasterInputs raster_inputs;
+    struct KeyValueIntInt *region_map;
+    struct KeyValueIntInt *potential_region_map;
+    struct Undeveloped *undev_cells;
+    struct Demand demand_info;
+    struct Potential potential_info;
+    struct SegmentMemory segment_info;
+    struct PatchSizes patch_sizes;
+    struct PatchInfo patch_info;
+    struct DevPressure devpressure_info;
+    struct Segments segments;
+    int *patch_overflow;
+    char *name_step;
+    bool overgrow;
 
     G_gisinit(argv[0]);
 
@@ -1466,72 +175,45 @@ int main(int argc, char **argv)
     G_add_keyword(_("landscape"));
     G_add_keyword(_("modeling"));
     module->label =
-        _("Simulates landuse change using FUTure Urban-Regional Environment Simulation (FUTURES).");
+            _("Simulates landuse change using FUTure Urban-Regional Environment Simulation (FUTURES).");
     module->description =
-        _("Module uses Patch-Growing Algorithm (PGA) to"
-          " simulate urban-rural landscape structure development.");
+            _("Module uses Patch-Growing Algorithm (PGA) to"
+              " simulate urban-rural landscape structure development.");
 
-    opt.developedFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.developedFile->key = "developed";
-    opt.developedFile->required = YES;
-    opt.developedFile->description =
-        _("Raster map of developed areas (=1), undeveloped (=0) and excluded (no data)");
-    opt.developedFile->guisection = _("Basic input");
+    opt.developed = G_define_standard_option(G_OPT_R_INPUT);
+    opt.developed->key = "developed";
+    opt.developed->required = YES;
+    opt.developed->description =
+            _("Raster map of developed areas (=1), undeveloped (=0) and excluded (no data)");
+    opt.developed->guisection = _("Basic input");
 
-    opt.indexFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.indexFile->key = "subregions";
-    opt.indexFile->required = YES;
-    opt.indexFile->description = _("Raster map of subregions");
-    opt.indexFile->guisection = _("Basic input");
+    opt.subregions = G_define_standard_option(G_OPT_R_INPUT);
+    opt.subregions->key = "subregions";
+    opt.subregions->required = YES;
+    opt.subregions->description = _("Raster map of subregions");
+    opt.subregions->guisection = _("Basic input");
 
-    opt.dumpFile = G_define_standard_option(G_OPT_R_OUTPUT);
-    opt.dumpFile->key = "output";
-    opt.dumpFile->required = YES;
-    opt.dumpFile->description =
-        _("State of the development at the end of simulation");
-    opt.dumpFile->guisection = _("Output");
+    opt.potentialSubregions = G_define_standard_option(G_OPT_R_INPUT);
+    opt.potentialSubregions->key = "subregions_potential";
+    opt.potentialSubregions->required = NO;
+    opt.potentialSubregions->label = _("Raster map of subregions used with potential file");
+    opt.potentialSubregions->description = _("If not specified, the raster specified in subregions parameter is used");
+    opt.potentialSubregions->guisection = _("Potential");
 
-    opt.outputSeries = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
-    opt.outputSeries->key = "output_series";
-    opt.outputSeries->required = NO;
-    opt.outputSeries->label =
-        _("Basename for raster maps of development generated after each step");
-    opt.outputSeries->guisection = _("Output");
+    opt.predictors = G_define_standard_option(G_OPT_R_INPUTS);
+    opt.predictors->key = "predictors";
+    opt.predictors->required = YES;
+    opt.predictors->multiple = YES;
+    opt.predictors->label = _("Names of predictor variable raster maps");
+    opt.predictors->description = _("Listed in the same order as in the development potential table");
+    opt.predictors->guisection = _("Potential");
 
-    opt.numSteps = G_define_option();
-    opt.numSteps->key = "num_steps";
-    opt.numSteps->type = TYPE_INTEGER;
-    opt.numSteps->required = NO;
-    opt.numSteps->description =
-        _("Number of steps to be simulated");
-    opt.numSteps->guisection = _("Basic input");
-
-    opt.addVariableFiles = G_define_standard_option(G_OPT_R_INPUTS);
-    opt.addVariableFiles->key = "predictors";
-    opt.addVariableFiles->required = YES;
-    opt.addVariableFiles->multiple = YES;
-    opt.addVariableFiles->label = _("Names of predictor variable raster maps");
-    opt.addVariableFiles->description = _("Listed in the same order as in the development potential table");
-    opt.addVariableFiles->guisection = _("Potential");
-
-    opt.devpotParamsFile = G_define_standard_option(G_OPT_F_INPUT);
-    opt.devpotParamsFile->key = "devpot_params";
-    opt.devpotParamsFile->required = YES;
-    opt.devpotParamsFile->label =
-        _("Development potential parameters for each region");
-    opt.devpotParamsFile->description =
-        _("Each line should contain region ID followed"
-          " by parameters (intercepts, development pressure, other predictors)."
-          " Values are separated by tabs."
-          " First line is ignored, so it can be used for header");
-    opt.devpotParamsFile->guisection = _("Potential");
-
-    opt.devPressureFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.devPressureFile->key = "development_pressure";
-    opt.devPressureFile->required = YES;
-    opt.devPressureFile->description =
-        _("Raster map of development pressure");
-    opt.devPressureFile->guisection = _("Development pressure");
+    opt.devpressure = G_define_standard_option(G_OPT_R_INPUT);
+    opt.devpressure->key = "development_pressure";
+    opt.devpressure->required = YES;
+    opt.devpressure->description =
+            _("Raster map of development pressure");
+    opt.devpressure->guisection = _("Development pressure");
 
     opt.nDevNeighbourhood = G_define_option();
     opt.nDevNeighbourhood->key = "n_dev_neighbourhood";
@@ -1541,23 +223,23 @@ int main(int argc, char **argv)
         _("Size of square used to recalculate development pressure");
     opt.nDevNeighbourhood->guisection = _("Development pressure");
 
-    opt.devPressureApproach = G_define_option();
-    opt.devPressureApproach->key = "development_pressure_approach";
-    opt.devPressureApproach->type = TYPE_STRING;
-    opt.devPressureApproach->required = YES;
-    opt.devPressureApproach->options = "occurrence,gravity,kernel";
-    opt.devPressureApproach->description =
+    opt.devpressureApproach = G_define_option();
+    opt.devpressureApproach->key = "development_pressure_approach";
+    opt.devpressureApproach->type = TYPE_STRING;
+    opt.devpressureApproach->required = YES;
+    opt.devpressureApproach->options = "occurrence,gravity,kernel";
+    opt.devpressureApproach->description =
         _("Approaches to derive development pressure");
-    opt.devPressureApproach->answer = "gravity";
-    opt.devPressureApproach->guisection = _("Development pressure");
+    opt.devpressureApproach->answer = "gravity";
+    opt.devpressureApproach->guisection = _("Development pressure");
 
-    opt.alpha = G_define_option();
-    opt.alpha->key = "gamma";
-    opt.alpha->type = TYPE_DOUBLE;
-    opt.alpha->required = YES;
-    opt.alpha->description =
+    opt.gamma = G_define_option();
+    opt.gamma->key = "gamma";
+    opt.gamma->type = TYPE_DOUBLE;
+    opt.gamma->required = YES;
+    opt.gamma->description =
         _("Influence of distance between neighboring cells");
-    opt.alpha->guisection = _("Development pressure");
+    opt.gamma->guisection = _("Development pressure");
 
     opt.scalingFactor = G_define_option();
     opt.scalingFactor->key = "scaling_factor";
@@ -1567,12 +249,55 @@ int main(int argc, char **argv)
         _("Scaling factor of development pressure");
     opt.scalingFactor->guisection = _("Development pressure");
 
-    opt.controlFileAll = G_define_standard_option(G_OPT_F_INPUT);
-    opt.controlFileAll->key = "demand";
-    opt.controlFileAll->required = YES;
-    opt.controlFileAll->description =
-        _("Control file with number of cells to convert");
-    opt.controlFileAll->guisection = _("Demand");
+    opt.output = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt.output->key = "output";
+    opt.output->required = YES;
+    opt.output->description =
+            _("State of the development at the end of simulation");
+    opt.output->guisection = _("Output");
+
+    opt.outputSeries = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
+    opt.outputSeries->key = "output_series";
+    opt.outputSeries->required = NO;
+    opt.outputSeries->label =
+        _("Basename for raster maps of development generated after each step");
+    opt.outputSeries->guisection = _("Output");
+
+    opt.potentialFile = G_define_standard_option(G_OPT_F_INPUT);
+    opt.potentialFile->key = "devpot_params";
+    opt.potentialFile->required = YES;
+    opt.potentialFile->label =
+        _("Development potential parameters for each region");
+    opt.potentialFile->description =
+        _("Each line should contain region ID followed"
+          " by parameters (intercepts, development pressure, other predictors)."
+          " Values are separated by tabs."
+          " First line is ignored, so it can be used for header");
+    opt.potentialFile->guisection = _("Potential");
+
+    opt.demandFile = G_define_standard_option(G_OPT_F_INPUT);
+    opt.demandFile->key = "demand";
+    opt.demandFile->required = YES;
+    opt.demandFile->description =
+            _("Control file with number of cells to convert");
+    opt.demandFile->guisection = _("Demand");
+
+    opt.patchFile = G_define_standard_option(G_OPT_F_INPUT);
+    opt.patchFile->key = "patch_sizes";
+    opt.patchFile->required = YES;
+    opt.patchFile->description =
+        _("File containing list of patch sizes to use");
+    opt.patchFile->guisection = _("PGA");
+
+    opt.numNeighbors = G_define_option();
+    opt.numNeighbors->key = "num_neighbors";
+    opt.numNeighbors->type = TYPE_INTEGER;
+    opt.numNeighbors->required = YES;
+    opt.numNeighbors->options = "4,8";
+    opt.numNeighbors->answer = "4";
+    opt.numNeighbors->description =
+        _("The number of neighbors to be used for patch generation (4 or 8)");
+    opt.numNeighbors->guisection = _("PGA");
 
     opt.discountFactor = G_define_option();
     opt.discountFactor->key = "discount_factor";
@@ -1581,6 +306,16 @@ int main(int argc, char **argv)
     opt.discountFactor->description = _("Discount factor of patch size");
     opt.discountFactor->guisection = _("PGA");
 
+    opt.seedSearch = G_define_option();
+    opt.seedSearch->key = "seed_search";
+    opt.seedSearch->type = TYPE_STRING;
+    opt.seedSearch->required = YES;
+    opt.seedSearch->options = "random,probability";
+    opt.seedSearch->answer = "probability";
+    opt.seedSearch->description =
+        _("The way location of a seed is determined (1: uniform distribution 2: development probability)");
+    opt.seedSearch->guisection = _("PGA");
+    
     opt.patchMean = G_define_option();
     opt.patchMean->key = "compactness_mean";
     opt.patchMean->type = TYPE_DOUBLE;
@@ -1597,45 +332,24 @@ int main(int argc, char **argv)
         _("Range of patch compactness to control patch shapes");
     opt.patchRange->guisection = _("PGA");
 
-    opt.numNeighbors = G_define_option();
-    opt.numNeighbors->key = "num_neighbors";
-    opt.numNeighbors->type = TYPE_INTEGER;
-    opt.numNeighbors->required = YES;
-    opt.numNeighbors->options = "4,8";
-    opt.numNeighbors->answer = "4";
-    opt.numNeighbors->description =
-        _("The number of neighbors to be used for patch generation (4 or 8)");
-    opt.numNeighbors->guisection = _("PGA");
+    opt.numSteps = G_define_option();
+    opt.numSteps->key = "num_steps";
+    opt.numSteps->type = TYPE_INTEGER;
+    opt.numSteps->required = NO;
+    opt.numSteps->description =
+        _("Number of steps to be simulated");
+    opt.numSteps->guisection = _("Basic input");
 
-    opt.seedSearch = G_define_option();
-    opt.seedSearch->key = "seed_search";
-    opt.seedSearch->type = TYPE_INTEGER;
-    opt.seedSearch->required = YES;
-    opt.seedSearch->options = "1,2";
-    opt.seedSearch->answer="2";
-    opt.seedSearch->description =
-        _("The way location of a seed is determined (1: uniform distribution 2: development probability)");
-    opt.seedSearch->guisection = _("PGA");
-
-    opt.parcelSizeFile = G_define_standard_option(G_OPT_F_INPUT);
-    opt.parcelSizeFile->key = "patch_sizes";
-    opt.parcelSizeFile->required = YES;
-    opt.parcelSizeFile->description =
-        _("File containing list of patch sizes to use");
-    opt.parcelSizeFile->guisection = _("PGA");
-
-
-    /*  replaced by incentive power
-    opt.probLookupFile = G_define_standard_option(G_OPT_F_INPUT);
-    opt.probLookupFile->key = "incentive_table";
-    opt.probLookupFile->required = NO;
-    opt.probLookupFile->label =
-        _("File containing incentive lookup table (infill vs. sprawl)");
-    opt.probLookupFile->description =
-        _("Format is tightly constrained. See documentation.");
-    opt.probLookupFile->guisection = _("Scenarios");
-    */
-
+    opt.potentialWeight = G_define_standard_option(G_OPT_R_INPUT);
+    opt.potentialWeight->key = "potential_weight";
+    opt.potentialWeight->required = NO;
+    opt.potentialWeight->label =
+            _("Raster map of weights altering development potential");
+    opt.potentialWeight->description =
+            _("Values need to be between -1 and 1, where negative locally reduces"
+              "probability and positive increases probability.");
+    opt.potentialWeight->guisection = _("Scenarios");
+    
     opt.incentivePower = G_define_option();
     opt.incentivePower->key = "incentive_power";
     opt.incentivePower->required = NO;
@@ -1648,51 +362,37 @@ int main(int argc, char **argv)
     opt.incentivePower->guisection = _("Scenarios");
     opt.incentivePower->options = "0-10";
 
-    opt.consWeightFile = G_define_standard_option(G_OPT_R_INPUT);
-    opt.consWeightFile->key = "constrain_weight";
-    opt.consWeightFile->required = NO;
-    opt.consWeightFile->label =
-        _("Raster map representing development potential constraint weight for scenarios.");
-    opt.consWeightFile->description =
-        _("Values must be between 0 and 1, 1 means no constraint.");
-    opt.consWeightFile->guisection = _("Scenarios");
-
-    opt.stimulus = G_define_standard_option(G_OPT_R_INPUT);
-    opt.stimulus->key = "stimulus";
-    opt.stimulus->required = NO;
-    opt.stimulus->label =
-        _("Raster map representing an increase in development potential for scenarios.");
-    opt.stimulus->description =
-        _("Values must be between 0 and 1, 0 means no increase.");
-    opt.stimulus->guisection = _("Scenarios");
-
     opt.seed = G_define_option();
     opt.seed->key = "random_seed";
     opt.seed->type = TYPE_INTEGER;
     opt.seed->required = NO;
     opt.seed->label = _("Seed for random number generator");
     opt.seed->description =
-        _("The same seed can be used to obtain same results"
-          " or random seed can be generated by other means.");
+            _("The same seed can be used to obtain same results"
+              " or random seed can be generated by other means.");
     opt.seed->guisection = _("Random numbers");
 
     flg.generateSeed = G_define_flag();
     flg.generateSeed->key = 's';
     flg.generateSeed->label =
-        _("Generate random seed (result is non-deterministic)");
+            _("Generate random seed (result is non-deterministic)");
     flg.generateSeed->description =
-        _("Automatically generates random seed for random number"
-          " generator (use when you don't want to provide the seed option)");
+            _("Automatically generates random seed for random number"
+              " generator (use when you don't want to provide the seed option)");
     flg.generateSeed->guisection = _("Random numbers");
+
+    opt.memory = G_define_option();
+    opt.memory->key = "memory";
+    opt.memory->type = TYPE_DOUBLE;
+    opt.memory->required = NO;
+    opt.memory->description = _("Memory in GB");
 
     // TODO: add mutually exclusive?
     // TODO: add flags or options to control values in series and final rasters
 
-
     // provided XOR generated
     G_option_exclusive(opt.seed, flg.generateSeed, NULL);
     G_option_required(opt.seed, flg.generateSeed, NULL);
-
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
@@ -1709,316 +409,171 @@ int main(int argc, char **argv)
         G_message("Read random seed from %s option: %ld",
                   opt.seed->key, seed_value);
     }
-    // although GRASS random function is initialized
-    // the general one must be done separately
-    // TODO: replace all by GRASS random number generator?
-    srand(seed_value);
 
-    // TODO: move this back to local variables
-    //t_Params      sParams;
-    //t_Landscape   sLandscape;
-
-    /* blank everything out */
-    memset(&sParams, 0, sizeof(t_Params));
-    sParams.region_map = KeyValueIntInt_create();
-
-    /* parameters dependednt on region */
-    sParams.xSize = Rast_window_rows();
-    sParams.ySize = Rast_window_cols();
-    G_message(_("Running on %d rows and %d columns (%d cells)"),
-              sParams.xSize, sParams.ySize, sParams.xSize * sParams.ySize);
-
-    /* set up parameters */
-    sParams.developedFile = opt.developedFile->answer;
-    sParams.devPressureFile = opt.devPressureFile->answer;
-    sParams.consWeightFile = opt.consWeightFile->answer;
-    sParams.stimulus = opt.stimulus->answer;
-    sParams.numAddVariables = 0;
-    if (opt.numSteps->answer)
-        sParams.nSteps = atoi(opt.numSteps->answer);
-
-    size_t num_answers = 0;
-    while (opt.addVariableFiles->answers[num_answers]) {
-        sParams.addVariableFile[num_answers] = opt.addVariableFiles->answers[num_answers];
-        num_answers++;
-    }
-    sParams.numAddVariables = num_answers;
-    // TODO: dyn allocate file list
-    sParams.nDevNeighbourhood = atoi(opt.nDevNeighbourhood->answer);
-
-    sParams.dumpFile = opt.dumpFile->answer;
-    sParams.outputSeries = opt.outputSeries->answer;
-
-    sParams.parcelSizeFile = opt.parcelSizeFile->answer;
-
-    sParams.discountFactor = atof(opt.discountFactor->answer);
-
-
-    if (opt.incentivePower->answer) {
-        float exponent = atof(opt.incentivePower->answer);
-        sParams.nProbLookup = 1001;
-        sParams.adProbLookup = (double *) G_malloc(sizeof(double) *
-                                                   sParams.nProbLookup);
-        int i = 0;
-        double step = 1. / (sParams.nProbLookup - 1);
-        while (i < sParams.nProbLookup) {
-            sParams.adProbLookup[i] = pow(i * step, exponent);
-            i++;
-        }
-    }
-    /*  replaced by incentive power
-    int parsedOK, i;
-    FILE *fp;
-    char inBuff[N_MAXREADINLEN];
-    char *pPtr;
-    if (opt.probLookupFile->answer) {
-        G_verbose_message("Reading probability lookup ...");
-        sParams.probLookupFile = opt.probLookupFile->answer;
-
-        fp = fopen(sParams.probLookupFile, "r");
-        if (fp) {
-            parsedOK = 0;
-            if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-                if (inBuff[0] == ',') {
-                    sParams.nProbLookup = atoi(inBuff + 1);
-                    if (sParams.nProbLookup > 0) {
-                        sParams.adProbLookup =
-                                (double *) G_malloc(sizeof(double) *
-                                                    sParams.nProbLookup);
-                        if (sParams.adProbLookup) {
-                            parsedOK = 1;
-                            i = 0;
-                            while (parsedOK && i < sParams.nProbLookup) {
-                                parsedOK = 0;
-                                if (fgets(inBuff, N_MAXREADINLEN, fp)) {
-                                    if (pPtr = strchr(inBuff, ',')) {
-                                        parsedOK = 1;
-                                        sParams.adProbLookup[i] =
-                                                atof(pPtr + 1);
-                                        G_debug(3,
-                                                "probability lookup table: i=%d, i/(n-1)=%f, result=%f",
-                                                i,
-                                                i * 1.0 /
-                                                (sParams.nProbLookup - 1),
-                                                sParams.adProbLookup[i]);
-                                    }
-                                }
-                                i++;
-                            }
-                        }
-                    }
-                }
-            }
-            if (!parsedOK) {
-                G_fatal_error("Error parsing probability lookup file '%s'",
-                              sParams.probLookupFile);
-            }
-            fclose(fp);
-        }
-        else {
-            G_fatal_error("Error opening probability lookup file '%s'",
-                          sParams.probLookupFile);
-        }
-    }
-    */
-    else {
-        sParams.nProbLookup = 0;
-        sParams.adProbLookup = NULL;
-    }
-    sParams.patchMean = atof(opt.patchMean->answer);
-    sParams.patchRange = atof(opt.patchRange->answer);
-    sParams.numNeighbors = atoi(opt.numNeighbors->answer);
-    // TODO: convert to options or flag: 1: uniform distribution 2: based on dev. proba.
-    sParams.seedSearch = atoi(opt.seedSearch->answer);
-    sParams.devPressureApproach = atoi(opt.devPressureApproach->answer);
-    if (strcmp(opt.devPressureApproach->answer, "occurrence") == 0)
-        sParams.devPressureApproach = 1;
-    else if (strcmp(opt.devPressureApproach->answer, "gravity") == 0)
-        sParams.devPressureApproach = 2;
-    else if (strcmp(opt.devPressureApproach->answer, "kernel") == 0)
-        sParams.devPressureApproach = 3;
+    devpressure_info.scaling_factor = atof(opt.scalingFactor->answer);
+    devpressure_info.gamma = atof(opt.gamma->answer);
+    devpressure_info.neighborhood = atoi(opt.nDevNeighbourhood->answer);
+    discount_factor = atof(opt.discountFactor->answer);
+    if (strcmp(opt.devpressureApproach->answer, "occurrence") == 0)
+        devpressure_info.alg = OCCURRENCE;
+    else if (strcmp(opt.devpressureApproach->answer, "gravity") == 0)
+        devpressure_info.alg = GRAVITY;
+    else if (strcmp(opt.devpressureApproach->answer, "kernel") == 0)
+        devpressure_info.alg = KERNEL;
     else
         G_fatal_error(_("Approach doesn't exist"));
-    if (sParams.devPressureApproach != 1) {
-        sParams.alpha = atof(opt.alpha->answer);
-        sParams.scalingFactor = atof(opt.scalingFactor->answer);
+    initialize_devpressure_matrix(&devpressure_info);
+
+    if (strcmp(opt.seedSearch->answer, "random") == 0)
+        search_alg = RANDOM;
+    else if (strcmp(opt.seedSearch->answer, "probability") == 0)
+        search_alg = PROBABILITY;
+    else
+        G_fatal_error(_("Approach doesn't exist"));
+    patch_info.compactness_mean = atof(opt.patchMean->answer);
+    patch_info.compactness_range = atof(opt.patchRange->answer);
+    patch_info.num_neighbors = atoi(opt.numNeighbors->answer);
+    patch_info.strategy = SKIP;
+    
+    num_steps = 0;
+    if (opt.numSteps->answer)
+        num_steps = atoi(opt.numSteps->answer);
+    
+    num_predictors = 0;
+    for (i = 0; opt.predictors->answers[i]; i++)
+        num_predictors++;
+    
+    segments.use_weight = false;
+    if (opt.potentialWeight->answer) {
+        segments.use_weight = true;
+    }
+    segments.use_potential_subregions = false;
+    if (opt.potentialSubregions->answer) {
+        segments.use_potential_subregions = true;
+    }
+    memory = -1;
+    if (opt.memory->answer)
+        memory = atof(opt.memory->answer);
+    nseg = manage_memory(&segment_info, memory,
+                         num_predictors, segments.use_weight);
+    segment_info.in_memory = nseg;
+
+    potential_info.incentive_transform_size = 0;
+    potential_info.incentive_transform = NULL;
+    if (opt.incentivePower->answer) {
+        exponent = atof(opt.incentivePower->answer);
+        if (exponent !=  1)  /* 1 is no-op */
+            initialize_incentive(&potential_info, exponent);
     }
 
-    sParams.indexFile = opt.indexFile->answer;
-    sParams.controlFileAll = opt.controlFileAll->answer;
+    raster_inputs.developed = opt.developed->answer;
+    raster_inputs.regions = opt.subregions->answer;
+    raster_inputs.devpressure = opt.devpressure->answer;
+    raster_inputs.predictors = opt.predictors->answers;
+    if (opt.potentialWeight->answer)
+        raster_inputs.weights = opt.potentialWeight->answer;
+    if (opt.potentialSubregions->answer)
+        raster_inputs.potential_regions = opt.potentialSubregions->answer;
 
-    /* allocate memory */
-    if (buildLandscape(&sLandscape, &sParams)) {
-        /* read data */
-        if (readData(&sLandscape, &sParams)) {
-            readData4AdditionalVariables(&sLandscape, &sParams);
-            readIndexData(&sLandscape, &sParams);
-            // initialize the overflow demands to zero
-            int i;
-            for (i = 0; i < sParams.num_Regions; i++) {
-                sParams.overflowDevDemands[i] = 0;
-            }
-            readDevDemand(&sParams);
-            readDevPotParams(&sParams, opt.devpotParamsFile->answer);
-            if (readParcelSizes(&sLandscape, &sParams)) {
-                //testDevPressure(&sLandscape, &sParams);
-                /* do calculation and dump result */
-                //one region, enable the following
-                //updateMap(&sLandscape, &sParams);
+    //    read Subregions layer
+    region_map = KeyValueIntInt_create();
+    potential_region_map = KeyValueIntInt_create();
+    G_verbose_message("Reading input rasters...");
+    read_input_rasters(raster_inputs, &segments, segment_info, region_map, potential_region_map, num_predictors);
 
-                //multiple regions
-                updateMapAll(&sLandscape, &sParams);
-            }
-            else {
-                G_fatal_error("Reading patch sizes failed");
-            }
+    /* create probability segment*/
+    if (Segment_open(&segments.probability, G_tempfile(), Rast_window_rows(),
+                     Rast_window_cols(), segment_info.rows, segment_info.cols,
+                     Rast_cell_size(FCELL_TYPE), segment_info.in_memory) != 1)
+        G_fatal_error(_("Cannot create temporary file with segments of a raster map"));
+
+    /* read Potential file */
+    G_verbose_message("Reading potential file...");
+    potential_info.filename = opt.potentialFile->answer;
+    read_potential_file(&potential_info, opt.potentialSubregions->answer ? potential_region_map : region_map, num_predictors);
+
+    /* read Demand file */
+    G_verbose_message("Reading demand file...");
+    demand_info.filename = opt.demandFile->answer;
+    read_demand_file(&demand_info, region_map);
+    if (num_steps == 0)
+        num_steps = demand_info.max_steps;
+
+    /* read Patch sizes file */
+    G_verbose_message("Reading patch size file...");
+    patch_sizes.filename = opt.patchFile->answer;
+    read_patch_sizes(&patch_sizes, discount_factor);
+
+    undev_cells = initialize_undeveloped(region_map->nitems);
+    patch_overflow = G_calloc(region_map->nitems, sizeof(int));
+    /* here do the modeling */
+    overgrow = true;
+    G_verbose_message("Starting simulation...");
+    for (step = 0; step < num_steps; step++) {
+        recompute_probabilities(undev_cells, &segments, &potential_info);
+        if (step == num_steps - 1)
+            overgrow = false;
+        for (region = 0; region < region_map->nitems; region++) {
+            compute_step(undev_cells, &demand_info, search_alg, &segments,
+                         &patch_sizes, &patch_info, &devpressure_info, patch_overflow,
+                         step, region, overgrow);
         }
-        else {
-            G_fatal_error("Reading input maps failed");
+        /* export developed for that step */
+        if (opt.outputSeries->answer) {
+            name_step = name_for_step(opt.outputSeries->answer, step, num_steps);
+            output_developed_step(&segments.developed, name_step,
+                                  demand_info.years[step], -1, num_steps, true, true);
         }
-        /* could put in routines to free memory, but OS will garbage collect anyway */
     }
-    else {
-        G_fatal_error("Initialization failed");
+
+    /* write */
+    output_developed_step(&segments.developed, opt.output->answer,
+                          demand_info.years[0], demand_info.years[step-1],
+                          num_steps, false, false);
+
+    /* close segments and free memory */
+    Segment_close(&segments.developed);
+    Segment_close(&segments.subregions);
+    Segment_close(&segments.devpressure);
+    Segment_close(&segments.probability);
+    Segment_close(&segments.predictors);
+    if (opt.potentialWeight->answer) {
+        Segment_close(&segments.weight);
     }
-    KeyValueIntInt_free(sParams.region_map);
-    G_free(sLandscape.predictors);
-    if (sLandscape.consWeight)
-        G_free(sLandscape.consWeight);
-    if (sLandscape.stimulus)
-        G_free(sLandscape.stimulus);
+    if (opt.potentialSubregions->answer)
+        Segment_close(&segments.potential_subregions);
+
+    KeyValueIntInt_free(region_map);
+    if (demand_info.table) {
+        for (int i = 0; i < demand_info.max_subregions; i++)
+            G_free(demand_info.table[i]);
+        G_free(demand_info.table);
+        G_free(demand_info.years);
+    }
+    if (potential_info.predictors) {
+        for (int i = 0; i < potential_info.max_predictors; i++)
+            G_free(potential_info.predictors[i]);
+        G_free(potential_info.predictors);
+        G_free(potential_info.devpressure);
+        G_free(potential_info.intercept);
+    }
+    for (int i = 0; i < devpressure_info.neighborhood * 2 + 1; i++)
+        G_free(devpressure_info.matrix[i]);
+    G_free(devpressure_info.matrix);
+    if (potential_info.incentive_transform_size > 0)
+        G_free(potential_info.incentive_transform);
+    if (undev_cells) {
+        G_free(undev_cells->num);
+        G_free(undev_cells->max);
+        for (int i = 0; i < undev_cells->max_subregions; i++)
+            G_free(undev_cells->cells[i]);
+        G_free(undev_cells->cells);
+        G_free(undev_cells);
+    }
+
+    G_free(patch_sizes.patch_sizes);
+    G_free(patch_overflow);
 
     return EXIT_SUCCESS;
 }
 
-int getUnDevIndex1(t_Landscape * pLandscape, int regionID)
-{
-    float p = rand() / (double)RAND_MAX;
-
-    G_debug(4, _("getUnDevIndex1: regionID=%d, num_undevSites=%d, p=%f"),
-                      regionID, pLandscape->num_undevSites[regionID], p);
-    // bisect
-    int first = 0;
-    int last = pLandscape->num_undevSites[regionID] - 1;
-    int middle = (first + last) / 2;
-    if (p <= pLandscape->asUndevs[regionID][first].cumulProb)
-        return 0;
-    if (p >= pLandscape->asUndevs[regionID][last].cumulProb)
-        return last;
-    while (first <= last) {
-        if (pLandscape->asUndevs[regionID][middle].cumulProb < p)
-            first = middle + 1;
-        else if (pLandscape->asUndevs[regionID][middle - 1].cumulProb < p &&
-                 pLandscape->asUndevs[regionID][middle].cumulProb >= p) {
-            G_debug(5, _("getUnDevIndex1: cumulProb=%f"),
-                    pLandscape->asUndevs[regionID][middle].cumulProb);
-            return middle;
-        }
-        else
-            last = middle - 1;
-        middle = (first + last)/2;
-    }
-    // TODO: returning at least something but should be something more meaningful
-    return 0;
-}
-
-/**
-    Recalculate probabilities for each unconverted cell.
-
-    Called each timestep.
-*/
-void findAndSortProbsAll(t_Landscape * pLandscape, t_Params * pParams,
-                         int step)
-{
-    int i, lookupPos;
-    t_Cell *pThis;
-    int id;
-
-    /* update calcs */
-    G_verbose_message("Recalculating probabilities");
-    for (i = 0; i < pParams->num_Regions; i++) {
-        pLandscape->num_undevSites[i] = 0;
-    }
-    float val = 0.0;
-
-    for (i = 0; i < pLandscape->totalCells; i++) {
-        pThis = &(pLandscape->asCells[i]);
-        if (pThis->nCellType == _CELL_VALID) {
-            if (pThis->bUndeveloped) {
-                double consWeight = pLandscape->consWeight ? pLandscape->consWeight[i] : 1;
-                double stimulus = pLandscape->stimulus ? pLandscape->stimulus[i] : 0;
-                if (consWeight > 0.0) {
-                    id = pThis->index_region;
-                    if (pThis->index_region == -9999)
-                        continue;
-                    /* note that are no longer just storing the logit value,
-                       but instead the probability
-                       (allows consWeight to affect sort order) */
-
-                    if (id < 0 || id >= pParams->num_Regions)
-                        G_fatal_error(_("Index of region %d is out of range [0, %d] (region is %d)"),
-                                      id, pParams->num_Regions - 1,
-                                      pThis->index_region);
-
-                    if (pLandscape->num_undevSites[id] >= pLandscape->asUndevs_ns[id]) {
-                        size_t new_size = 2 * pLandscape->asUndevs_ns[id];
-                        pLandscape->asUndevs[id] =
-                            (t_Undev *) G_realloc(pLandscape->asUndevs[id],
-                                                  new_size * sizeof(t_Undev));
-                        pLandscape->asUndevs_ns[id] = new_size;
-                    }
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
-                        cellID = i;
-                    val = getDevProbability(pThis, pParams);
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
-                        logitVal = val;
-                    G_debug(5, "logit value %f", val);
-                    /* lookup table of probabilities is applied before consWeight */
-                    /* replace with value from lookup table */
-                    if (pParams->adProbLookup) {
-                        lookupPos = (int)(pLandscape->asUndevs[id]
-                                          [pLandscape->num_undevSites[id]].
-                                logitVal * (pParams->nProbLookup - 1));
-                        if (lookupPos >= pParams->nProbLookup || lookupPos < 0)
-                            G_fatal_error("lookup position (%d) out of range [0, %d]",
-                                          lookupPos, pParams->nProbLookup - 1);
-                        pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].
-                                logitVal = pParams->adProbLookup[lookupPos];
-                    }
-                    // discount by a conservation factor
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal *= consWeight;
-                    // encourage development
-                    if (stimulus > 0) {
-                        float logit = pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal;
-                        pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].logitVal = logit + stimulus - logit * stimulus;
-                    }
-                    /* need to store this to put correct elements near top of list */
-                    pLandscape->asUndevs[id][pLandscape->num_undevSites[id]].bUntouched = pThis->bUntouched;
-                    if (pLandscape->asUndevs[id]
-                        [pLandscape->num_undevSites[id]].logitVal > 0.0) {
-                        /* only add one more to the list if have a positive probability */
-                        pLandscape->num_undevSites[id]++;
-                    }
-                }
-            }
-        }
-    }
-
-    //calculate cumulative probability // From Wenwu Tang
-    int j;
-
-    for (j = 0; j < pParams->num_Regions; j++) {
-        double sum = pLandscape->asUndevs[j][0].logitVal;
-        pLandscape->asUndevs[j][0].cumulProb = pLandscape->asUndevs[j][0].logitVal;
-        for (i = 1; i < pLandscape->num_undevSites[j]; i++) {
-            pLandscape->asUndevs[j][i].cumulProb =
-                pLandscape->asUndevs[j][i - 1].cumulProb +
-                pLandscape->asUndevs[j][i].logitVal;
-            sum = sum + pLandscape->asUndevs[j][i].logitVal;
-        }
-        for (i = 0; i < pLandscape->num_undevSites[j]; i++) {
-            pLandscape->asUndevs[j][i].cumulProb =
-                pLandscape->asUndevs[j][i].cumulProb / sum;
-        }
-    }
-}
