@@ -22,7 +22,6 @@ import sys
 # from tempfile import gettempdir
 import time
 import _thread
-from core.utils import _
 
 # dependencies to be checked once, as they are quite
 # time-consuming. cfr. grass.parser.
