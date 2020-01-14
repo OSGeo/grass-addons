@@ -20,7 +20,7 @@
 #% keyword: statistics
 #%end
 #%option G_OPT_R_MAP
-#% label: Name for input raster map with areas 
+#% label: Name for input raster map with areas
 #% description: Raster map with areas (all pixels of an area have same id), such as the output of i.segment
 #% required: yes
 #%end
@@ -103,7 +103,7 @@ import glob
 import atexit
 import collections
 from math import sqrt
-from functools import partial    
+from functools import partial
 from multiprocessing import Pool
 from itertools import groupby
 import grass.script as gscript
@@ -115,7 +115,7 @@ def cleanup():
             gscript.run_command('g.remove', flags='f', type_='vector',
                     name=temporary_vect, quiet=True)
         if gscript.db_table_exist(temporary_vect):
-            gscript.run_command('db.execute', 
+            gscript.run_command('db.execute',
                                 sql='DROP TABLE %s' % temporary_vect,
                                 quiet=True)
 
@@ -133,7 +133,7 @@ def cleanup():
 # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford%27s_Online_algorithm
 def update(existingAggregate, newValue):
     (count, mean, M2) = existingAggregate
-    count = count + 1 
+    count = count + 1
     delta = newValue - mean
     mean = mean + float(delta) / count
     delta2 = newValue - mean
@@ -142,7 +142,7 @@ def update(existingAggregate, newValue):
 
 def finalize(existingAggregate):
     (count, mean, M2) = existingAggregate
-    (mean, stddev) = (mean, sqrt(float(M2)/count)) 
+    (mean, stddev) = (mean, sqrt(float(M2)/count))
     if count < 2:
         return float('nan')
     else:
@@ -207,7 +207,7 @@ def main():
     geometry_stat_dict = {'cat': 0, 'area': 1, 'perimeter': 2,
                         'compact_square': 3, 'compact_circle': 4, 'fd' : 5,
                         'xcoords': 6, 'ycoords': 7}
-    
+
     if flags['r']:
         gscript.use_temp_region()
         gscript.run_command('g.region', raster=segment_map)
@@ -222,7 +222,7 @@ def main():
                                   output=stats_temp_file,
                                   overwrite=True,
                                   quiet=True)
-    
+
         firstline = True
         with open(stats_temp_file, 'r') as fin:
             for line in fin:
@@ -260,7 +260,7 @@ def main():
                                                         flags='g',
                                                         map_=raster,
                                                         quiet=True)
-                    if len(raster_info) == 0 or int(raster_info['null_cells']) > 0: 
+                    if len(raster_info) == 0 or int(raster_info['null_cells']) > 0:
                         null_values_found = True
 
                 if null_values_found:
@@ -272,8 +272,8 @@ def main():
                     gscript.warning(message)
                     rasters_to_remove.append(raster)
 
-        for raster in rasters_to_remove:
-            rasters.remove(raster)
+            for raster in rasters_to_remove:
+                rasters.remove(raster)
 
         if len(rasters) > 0:
             gscript.message(_("Calculating statistics for the following raster maps:"))
@@ -394,7 +394,7 @@ def main():
                 else:
                     if not csvfile:
                             error_objects.append(key)
-                
+
         fsql.write('END TRANSACTION;')
         fsql.close()
 
