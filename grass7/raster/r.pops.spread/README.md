@@ -1,11 +1,34 @@
 # r.pops.spread
 
-A former name of the r.pops.spread is r.spread.pest and  r.spread.sod.
+This is a GRASS GIS module *r.pops.spread* for simulating spread of
+pests and pathogens.
 
-recoding the model to create a c++ version of the SOD-model base on https://github.com/f-tonini/SOD-modeling.
-This repository contains the c++ version scripts used to develop a stochastic landscape spread model of forest pathogen *P. ramorum*.
+This is a GRASS GIS interface to PoPS (Pest or Pathogen Spread) model
+which is a C++ library maintained in this repository:
 
-The reference paper: Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe, Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan 2011. Epidemiological modeling of invasion in heterogeneous landscapes: spread of sudden oak death in California (1990–2030). *Ecosphere* 2:art17. [http://dx.doi.org/10.1890/ES10-00192.1] (http://www.esajournals.org/doi/abs/10.1890/ES10-00192.1) 
+https://github.com/ncsu-landscape-dynamics/PoPS
+
+Note: Former names of the r.pops.spread are r.spread.pest and r.spread.sod.
+
+## References
+
+Please, in addition to citing or acknowledging this software, cite the
+following papers:
+
+Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
+Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan 2011.
+Epidemiological modeling of invasion in heterogeneous landscapes:
+spread of sudden oak death in California (1990–2030).
+*Ecosphere* 2:art17.
+[DOI: 10.1890/ES10-00192.1](https://doi.org/10.1890/ES10-00192.1)
+
+Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
+Vaclav Petras, Richard C. Cobb, Helena Mitasova,
+and Ross K. Meentemeyer.
+Tangible geospatial modeling for collaborative solutions
+to invasive species management.
+*Environmental Modelling & Software* 92 (2017): 176-188.
+[DOI: 10.1016/j.envsoft.2017.02.020](https://doi.org/10.1016/j.envsoft.2017.02.020)
 
 ## Obtaining the latest code
 
@@ -13,7 +36,7 @@ The PoPS library is in a submodule, so use `--recursive` when cloning,
 for example:
 
 ```
-git clone --recursive git@github.com:ncsu-landscape-dynamics/r.spread.pest.git
+git clone --recursive git@github.com:ncsu-landscape-dynamics/r.pops.spread.git
 ```
 
 If you have already cloned, you can obtain the submodules using:
