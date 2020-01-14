@@ -191,7 +191,7 @@ def main():
         modalclass_dict = {}
         for ID in totals_dict:
             # The trick was found here : https://stackoverflow.com/a/268285/8013239
-            mode = max(totals_dict[ID].iteritems(), key=operator.itemgetter(1))[0] 
+            mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0] 
             if mode == '*':   # If the mode is NULL values
                 modalclass_dict[ID] = 'NULL'
             else:
