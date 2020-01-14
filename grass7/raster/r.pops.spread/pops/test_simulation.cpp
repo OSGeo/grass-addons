@@ -3,7 +3,7 @@
 /*
  * Simple compilation test for the PoPS Simulation class.
  *
- * Copyright (C) 2018 by the authors.
+ * Copyright (C) 2018-2019 by the authors.
  *
  * Authors: Vaclav Petras <wenzeslaus gmail com>
  *
@@ -24,6 +24,7 @@
  */
 
 #include "raster.hpp"
+#include "radial_kernel.hpp"
 #include "simulation.hpp"
 
 #include <map>
@@ -50,20 +51,22 @@ int main()
     Raster<double> temperature = {{5, 0}, {0, 0}};
     Raster<double> weather_coefficient = {{0.6, 0.8}, {0.2, 0.8}};
     std::vector<std::tuple<int, int>> outside_dispersers;
-    DispersalKernel dispersal_kernel = CAUCHY;
+    DispersalKernelType dispersal_kernel = DispersalKernelType::Cauchy;
     bool weather = true;
     double lethal_temperature = -4.5;
     double reproductive_rate = 4.5;
     double short_distance_scale = 0.0;
     int ew_res = 30;
     int ns_res = 30;
-    Simulation<Raster<int>, Raster<double>> simulation(42, infected, ew_res, ns_res);
+    Simulation<Raster<int>, Raster<double>> simulation(42, infected);
     simulation.remove(infected, susceptible, temperature, lethal_temperature);
     simulation.generate(infected, weather, weather_coefficient, reproductive_rate);
+    RadialDispersalKernel kernel(ew_res, ns_res, dispersal_kernel,
+                                 short_distance_scale);
     simulation.disperse(susceptible, infected,
                         mortality_tracker, total_plants,
                         outside_dispersers, weather, weather_coefficient,
-                        dispersal_kernel, short_distance_scale);
+                        kernel);
     cout << outside_dispersers.size() << endl;
     return 0;
 }

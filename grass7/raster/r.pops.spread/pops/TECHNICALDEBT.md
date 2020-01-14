@@ -17,6 +17,55 @@ issue which needs to be fixed (Fix).
 Entries should be removed when resolved. Issue from tracker can be
 optionally linked in an entry.
 
+## 2019-10-29 - More raster generalizations
+
+### Add
+
+- We use the same type for index and size in Raster. We need to
+  add size type parameter to allow for use of size_t and ssize_t
+  together which is needed to fully map other types to Raster.
+- Add container functions such `begin()` and `end()`.
+
+### Change
+
+- Use member initialization for all variables in all Raster constructors.
+- Binary operators of raster should be functions.
+  * Both scalar * raster and raster * scaler should be functions.
+
+### Fix
+
+- Add return code to raster class template test.
+- Resolve the `-Wsign-compare` warnings.
+
+## 2019-08-11 - Dispersal kernel rewrite
+
+### Add
+
+- Tests for kernel classes
+- Documentation on how to use the kernel classes
+- Support more spelling options for the types and wind directions.
+- Better documentation for the short-long kernel.
+- Better documentation or code related to reset() function of
+  distributions.
+- Add script for automatic code indentation.
+
+### Change
+
+- Indices and sizes should be template parameters as some matrix or
+  raster libraries may use different types, e.g., Rcpp uses int as
+  indices while Armadillo uses typedef for an unsigned integer.
+
+## 2019-07-09
+
+### Add
+
+- Tests need to be written for weekly, daily, and multi-day timesteps for Date functionality.
+
+## 2019-06-14
+
+### Add
+
+- Documentation to previously implemented treatments is missing
 
 ## 2018-09-14 - SEID and multiple host handling
 
