@@ -105,6 +105,11 @@ To Dos:
 #%end
 
 #%flag
+#% key: p
+#% description: Used with -t flag will return percentage of area for categories
+#%end
+
+#%flag
 #% key: u
 #% description: Update columns if they already exist
 #%end
@@ -261,6 +266,7 @@ def main():
     sep = options['separator']
     update = flags['u']
     tabulate = flags['t']
+    percent = flags['p']
 
     mymapset = Mapset().name
     # Do checks using pygrass
@@ -370,8 +376,12 @@ def main():
         stats = Module('r.stats', run_=False, stdout_=PIPE)
         stats.inputs.sort = 'desc'
         stats.inputs.null_value = 'null'
-        stats.flags.a = True
         stats.flags.quiet = True
+        if percent:
+            stats.flags.p = True
+            stats.flags.n = True
+        else:
+            stats.flags.a = True
     else:
         # Collector for univariat statistics
         univar = Module('r.univar', run_=False, stdout_=PIPE)
@@ -508,7 +518,6 @@ def main():
                     stats.inputs.input = rmap
                     stats.run()
                     t_stats = stats.outputs['stdout'].value.rstrip(os.linesep).replace(' ', '_b{} = '.format(b_str)).split(os.linesep)
-
                     if t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1] != 'null':
                         mode = t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1]
                     elif len(t_stats) == 1:
@@ -522,11 +531,11 @@ def main():
 
                         area_tot = 0
                         for l in t_stats:
-                            updates.append('\t{}_{}'.format(prefix, l))
+                            updates.append('\t{}_{}'.format(prefix, l.rstrip('%')))
                             if l.split('_b{} ='.format(b_str))[0].split('_')[-1] != 'null':
-                                area_tot = area_tot + float(l.split('= ')[1])
-
-                        updates.append('\t{}_{}_b{} = {}'.format(prefix, 'area_tot', b_str, area_tot))
+                                area_tot = area_tot + float(l.rstrip('%').split('= ')[1])
+                        if not percent:
+                            updates.append('\t{}_{}_b{} = {}'.format(prefix, 'area_tot', b_str, area_tot))
 
                     else:
                         out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'ncats', len(t_stats), os.linesep)
