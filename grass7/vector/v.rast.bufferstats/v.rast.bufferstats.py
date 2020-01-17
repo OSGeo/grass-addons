@@ -429,8 +429,8 @@ def main():
 
 
     # Get computational region
-    #grass.use_temp_region()
-    r = Region()
+    grass.use_temp_region()
+    #r = Region()
     #r.read()
 
     # Adjust region extent to buffer around geometry
@@ -493,11 +493,12 @@ def main():
             #reg = Region()
             #reg.read()
             #r.from_vect(tmp_map)
-            r = align_current(r, buffer_geom[0].bbox())
-            r.set_current()
+            #r = align_current(r, buffer_geom[0].bbox())
+            #r.set_current()
 
             # Check if the following is needed
-            #grass.run_command('g.region', vector=tmp_map)
+            # needed specially with r.stats -p
+            grass.run_command('g.region', vector=tmp_map)
 
             # Create a MASK from buffered geometry
             grass.run_command('v.to.rast', input=tmp_map,
@@ -608,6 +609,7 @@ def main():
         if not output:
             conn.commit()
 
+    grass.use_temp_region()
     # Close cursor and DB connection
     if not output and not output == "-":
         cur.close()
