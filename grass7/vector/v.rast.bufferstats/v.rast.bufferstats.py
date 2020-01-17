@@ -22,9 +22,9 @@ To Dos:
 - silence r.category
 - add where clause
 
-#%option G_OPT_DB_WHERE
-#% required: no
-#%end
+/#%option G_OPT_DB_WHERE
+/#% required: no
+/#%end
 
     where = options['where']
 
@@ -263,14 +263,12 @@ def main():
     tabulate = flags['t']
 
     mymapset = Mapset().name
-    print(mymapset)
     # Do checks using pygrass
     for rmap in raster_maps:
         r_map = RasterAbstractBase(rmap)
         if not r_map.exist():
             grass.fatal('Could not find raster map {}.'.format(rmap))
     m_map = RasterAbstractBase('MASK@{}'.format(mymapset))
-    print(m_map)
     if m_map.exist():
         grass.fatal("Please remove MASK first")
 
