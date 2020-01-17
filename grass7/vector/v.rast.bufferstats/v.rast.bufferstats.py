@@ -21,6 +21,7 @@ To Dos:
 - add neighborhood stats ???
 - silence r.category
 - add where clause
+
 #%option G_OPT_DB_WHERE
 #% required: no
 #%end
@@ -261,13 +262,15 @@ def main():
     update = flags['u']
     tabulate = flags['t']
 
+    mymapset = Mapset().name
+    print(mymapset)
     # Do checks using pygrass
     for rmap in raster_maps:
         r_map = RasterAbstractBase(rmap)
         if not r_map.exist():
             grass.fatal('Could not find raster map {}.'.format(rmap))
-
-    m_map = RasterAbstractBase('MASK')
+    m_map = RasterAbstractBase('MASK@{}'.format(mymapset))
+    print(m_map)
     if m_map.exist():
         grass.fatal("Please remove MASK first")
 
@@ -329,7 +332,7 @@ def main():
     for p in column_prefix:
         rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)])
         for b in buffers:
-            b_str = unicode(b).replace('.', '_')
+            b_str = str(b).replace('.', '_')
             if tabulate:
                 if rmaptype == 'double precision':
                     grass.fatal('{} has floating point precision. Can only tabulate integer maps'.format(raster_maps[column_prefix.index(p)]))
@@ -447,7 +450,7 @@ def main():
 
         # Loop over ser provided buffer distances
         for buf in buffers:
-            b_str = unicode(buf).replace('.', '_')
+            b_str = str(buf).replace('.', '_')
             # Buffer geometry
             if buf <= 0:
                 buffer_geom = geom
@@ -528,16 +531,16 @@ def main():
                         updates.append('\t{}_{}_b{} = {}'.format(prefix, 'area_tot', b_str, area_tot))
 
                     else:
-                        out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'ncats', len(t_stats), os.linesep)
-                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'mode', mode, os.linesep)
+                        out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'ncats', len(t_stats), os.linesep)
+                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'mode', mode, os.linesep)
                         area_tot = 0
                         for l in t_stats:
                             rcat = l.split('_b{} ='.format(b_str))[0].split('_')[-1]
                             area = l.split('= ')[1]
-                            out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'area {}'.format(rcat), area, os.linesep)
+                            out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area {}'.format(rcat), area, os.linesep)
                             if rcat != 'null':
                                 area_tot = area_tot + float(l.split('= ')[1])
-                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'area_tot', area_tot, os.linesep)
+                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area_tot', area_tot, os.linesep)
 
                         if output == '-':
                             print(out_str.rstrip(os.linesep))
@@ -576,7 +579,7 @@ def main():
                                                                                   int(perc) if (perc).is_integer() else perc,
                                                                                   b_str, u_stats[15+perc_count].split('= ')[1]))
                             else:
-                                out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}'.format(sep, cat, prefix, buffer, 'percentile_{}'.format(int(perc) if (perc).is_integer() else perc), u_stats[15+perc_count].split('= ')[1])
+                                out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}'.format(sep, cat, prefix, buf, 'percentile_{}'.format(int(perc) if (perc).is_integer() else perc), u_stats[15+perc_count].split('= ')[1])
                                 if output == '-':
                                     print(out_str)
                                 else:
