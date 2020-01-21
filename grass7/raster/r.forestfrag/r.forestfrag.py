@@ -152,7 +152,7 @@ def tmpname(prefix):
     Use only for raster maps.
     """
     tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf = tmpf.replace('-', '_')
     CLEAN_RAST.append(tmpf)
     return tmpf
 
