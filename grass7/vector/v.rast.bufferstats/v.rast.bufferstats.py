@@ -121,6 +121,10 @@ To Dos:
 #% description: Update columns if they already exist
 #%end
 
+#%flag
+#% key: r
+#% description: Remove columns without data
+#%end
 
 #%option G_OPT_F_OUTPUT
 #% description: Name for output file (if "-" output to stdout)
@@ -275,6 +279,7 @@ def main():
     update = flags['u']
     tabulate = flags['t']
     percent = flags['p']
+    remove = flags['r']
 
     mymapset = Mapset().name
     # Do checks using pygrass
@@ -628,6 +633,18 @@ def main():
     elif output != "-":
         # write results to file
         out.close()
+
+    if remove:
+        print("in remove")
+        dropcols = []
+        selectnum = 'select count({}) from {}'
+        for i in col_names:
+            thisrow = grass.read_command('db.select', flags='c',
+                                         sql=selectnum.format(i, in_vector))
+            if int(thisrow) == 0:
+                dropcols.append(i)
+        print(dropcols)
+        grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
 
     # Clean up
     cleanup()
