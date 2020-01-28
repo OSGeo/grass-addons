@@ -3,7 +3,7 @@
 ############################################################################
 #
 # MODULE:       t.upgrade
-# AUTHOR(S):    Martin Landa
+# AUTHOR(S):    Martin Landa, Markus Neteler
 # PURPOSE:      Upgrade of TGRASS DB
 # COPYRIGHT:    (C) 2019 by Martin Landa, and the GRASS Development Team
 #
