@@ -180,16 +180,19 @@ def main():
     for row in reader:
         if row[0] not in totals_dict: # Will pass the condition only if the current zone ID does not exists in the dictionary
             totals_dict[row[0]] = {} # Declare a new embedded dictionnary for the current zone ID
-        totals_dict[row[0]][row[1]] = int(row[2])
+        if classes_list and row[1] in classes_list:  # Will pass only if 'classes_list' is provided and if the class is in the 'classes_list'
+            totals_dict[row[0]][row[1]] = int(row[2])
     # Delete key '*' in 'totals_dict' that could append if there are null values on the zone raster
     if '*' in totals_dict:
         del totals_dict['*']
     # Close file
     rstatsfile.close()
+    # Get list of ID
+    id_list = [ID for ID in totals_dict]
     # Mode
     if mode:
         modalclass_dict = {}
-        for ID in totals_dict:
+        for ID in id_list:
             # The trick was found here : https://stackoverflow.com/a/268285/8013239
             mode = max(iter(totals_dict[ID].items()), key=operator.itemgetter(1))[0] 
             if mode == '*':   # If the mode is NULL values
@@ -205,7 +208,7 @@ def main():
             class_dict = {}
         # Proportion of each category per zone
         proportion_dict = {}
-        for ID in totals_dict:
+        for ID in id_list:
             proportion_dict[ID] = {}
             for cl in totals_dict[ID]:
                 if flags['p']:
@@ -230,7 +233,8 @@ def main():
             class_list = [int(k) for k in class_dict.keys()]    
             class_list.sort()
     gscript.verbose(_("Statistics computed..."))
-    
+    # Set 'totals_dict' to None to release RAM
+    totals_dict = None
     # OUTPUT CONTENT
     # Header
     header = ['cat',]
@@ -246,23 +250,20 @@ def main():
             [header.append('prop_%s'%cl) for cl in class_list]
     # Values
     value_dict = {}
-    for ID in totals_dict:
+    for ID in id_list:
         value_dict[ID] = []
         if mode:
                 value_dict[ID].append(modalclass_dict[ID])
         if prop:
             for cl in class_list:
                 value_dict[ID].append(proportion_dict[ID]['%s'%cl])
-    
     # WRITE OUTPUT
     if csvfile:
         outfile = open(csvfile, 'w')
         writer = csv.writer(outfile, delimiter=separator)
         writer.writerow(header)
-        csvcontent_dict = copy.deepcopy(value_dict)
-        [csvcontent_dict[ID].insert(0,ID) for ID in csvcontent_dict]
-        [csvcontent_dict[ID] for ID in csvcontent_dict]
-        writer.writerows(csvcontent_dict.values())
+        [value_dict[ID].insert(0,ID) for ID in value_dict]
+        writer.writerows(value_dict.values())
         outfile.close()
     if vectormap:
         gscript.message(_("Creating output vector map..."))
@@ -298,7 +299,6 @@ def main():
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
         gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)
         gscript.run_command('g.copy', vector='%s,%s' % (temporary_vect, vectormap), quiet=True)
-
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
