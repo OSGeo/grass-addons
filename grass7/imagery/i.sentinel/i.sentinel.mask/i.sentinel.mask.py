@@ -99,7 +99,7 @@
 #%option
 #% key: cloud_threshold
 #% type: integer
-#% description: threshold for cleaning small areas from cloud mask
+#% description: threshold (sm) for cleaning small areas from cloud mask
 #% required : yes
 #% answer: 50000
 #% guisection: Output
@@ -107,7 +107,7 @@
 #%option
 #% key: shadow_threshold
 #% type: integer
-#% description: threshold for cleaning small areas from shadow mask
+#% description: threshold (sm) for cleaning small areas from shadow mask
 #% required : yes
 #% answer: 10000
 #% guisection: Output
@@ -394,7 +394,7 @@ def main ():
     gscript.message(_('--- Finish cloud detection procedure ---'))
     # End of Clouds detection
 
-    if (options['shadow_mask'] or options['shadow_raster']) and check_cloud == 1:
+    if options['shadow_mask'] or options['shadow_raster']:
         # Start of shadows detection
         gscript.message(_('--- Start shadows detection procedure ---'))
         gscript.message(_('--- Computing shadow mask... ---'))
@@ -456,7 +456,7 @@ def main ():
 
             # START shadows cleaning Procedure (remove shadows misclassification)
             # Start shadow mask preparation
-            if check_shadow == 1:
+            if check_shadow == 1 and check_cloud == 1:
                 gscript.message(_('--- Start removing misclassification from the shadow mask ---'))
                 gscript.message(_('--- Data preparation... ---'))
                 gscript.run_command('v.centroids',
@@ -620,7 +620,13 @@ def main ():
                 gscript.message('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA]))
                 gscript.message('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA]))
             else:
-                gscript.message('--- The removing misclassification procedure from shadow mask was not performed ---')   
+                if options['shadow_mask']:
+                    gscript.run_command("g.rename", 
+                        vector=(tmp["shadow_temp_mask"],shadow_mask))
+                if options['shadow_raster']:
+                    gscript.run_command('v.to.rast', input=shadow_mask,
+                        output=shadow_raster, use='val')
+                gscript.warning(_('The removing misclassification procedure from shadow mask was not performed since no cloud have been detected'))   
     else:
         if shadow_mask != '':
             gscript.warning(_('No shadow mask will be computed'))
