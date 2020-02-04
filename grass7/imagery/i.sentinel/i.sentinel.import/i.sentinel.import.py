@@ -151,7 +151,7 @@ class SentinelImporter(object):
             filter_p = r'.*_B.*.jp2$|.*_SCL*.jp2$'
 
         gs.debug('Filter: {}'.format(filter_p), 1)
-        self.files = self._filter(filter_p)
+        self.files = self._filter(filter_p, force_unzip=not flags['n'])
 
     """
     No longer used
@@ -164,7 +164,7 @@ class SentinelImporter(object):
         return file_list
     """
 
-    def _unzip(self):
+    def _unzip(self, force=False):
         # extract all zip files from input directory
         if options['pattern_file']:
             filter_f = '*' + options['pattern_file'] + '*.zip'
@@ -178,7 +178,7 @@ class SentinelImporter(object):
             unziped_files = [os.path.basename(safe) for safe in unziped_files]
         for filepath in input_files:
             safe = os.path.basename(filepath.replace('.zip', '.SAFE'))
-            if safe not in unziped_files or not flags['n']:
+            if safe not in unziped_files or force:
                 gs.message('Reading <{}>...'.format(filepath))
 
                 with ZipFile(filepath) as fd:
@@ -187,9 +187,9 @@ class SentinelImporter(object):
                 self._dir_list.append(os.path.join(self.unzip_dir, safe))
 
 
-    def _filter(self, filter_p):
+    def _filter(self, filter_p, force_unzip=False):
         # unzip archives before filtering
-        self._unzip()
+        self._unzip(force=force_unzip)
 
         if options['pattern_file']:
             filter_f = '*' + options['pattern_file'] + '*.SAFE'
