@@ -179,7 +179,7 @@ class SentinelImporter(object):
         for filepath in input_files:
             safe = os.path.basename(filepath.replace('.zip', '.SAFE'))
             if safe not in unziped_files or not flags['n']:
-                gs.verbose('Reading <{}>...'.format(filepath))
+                gs.message('Reading <{}>...'.format(filepath))
 
                 with ZipFile(filepath) as fd:
                     fd.extractall(path=self.unzip_dir)
