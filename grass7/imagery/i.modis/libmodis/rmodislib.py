@@ -309,12 +309,11 @@ class product:
                           "for future support"))
 
     def fromcode(self, code):
-        import string
-        for k, v in self.products.iteritems():
-            if string.find(v['prod'], code) != -1:
+        for k, v in self.products.items():
+            if v['prod'].find(code) != -1:
                 return self.products[k]
-        for k, v in self.products_swath.iteritems():
-            if string.find(v['prod'], code) != -1:
+        for k, v in self.products_swath.items():
+            if v['prod'].find(code) != -1:
                 return self.products_swath[k]
         grass.fatal(_("The MODIS product inserted is not supported yet. "
                       "Consider to ask on the grass-dev mailing list "

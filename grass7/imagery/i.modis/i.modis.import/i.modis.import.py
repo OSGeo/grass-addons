@@ -107,7 +107,6 @@
 
 import os
 import sys
-import string
 import glob
 import shutil
 import grass.script as grass
@@ -155,10 +154,10 @@ def list_files(opt, mosaik=False):
             filelist = []
         # append hdf files
         for line in listoffile:
-            if string.find(line, 'xml') == -1 and mosaik is False:
+            if line.find('xml') == -1 and mosaik is False:
                 filelist.append(line.strip())
             # for mosaic create a list of hdf files for each day
-            elif string.find(line, 'xml') == -1 and mosaik is True:
+            elif line.find('xml') == -1 and mosaik is True:
                 day = line.split('/')[-1].split('.')[1]
                 if day in filelist:
                     filelist[day].append(line.strip())
@@ -410,7 +409,7 @@ def mosaic(options, remove, an, ow, fil):
     dictfile, targetdir = list_files(options, True)
     pid = str(os.getpid())
     # for each day
-    for dat, listfiles in dictfile.iteritems():
+    for dat, listfiles in dictfile.items():
         pref = listfiles[0].split('/')[-1]
         prod = product().fromcode(pref.split('.')[0])
         spectr = spectral(options, prod, an)
