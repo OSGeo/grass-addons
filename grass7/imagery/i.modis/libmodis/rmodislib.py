@@ -299,9 +299,9 @@ class product:
                                }
 
     def returned(self):
-        if self.products.keys().count(self.prod) == 1:
+        if list(self.products.keys()).count(self.prod) == 1:
             return self.products[self.prod]
-        elif self.products_swath.keys().count(self.prod) == 1:
+        elif list(self.products_swath.keys()).count(self.prod) == 1:
             return self.products_swath[self.prod]
         else:
             grass.fatal(_("The MODIS product inserted is not supported yet. "
@@ -343,9 +343,9 @@ class product:
     def __str__(self):
         prod = self.returned()
         string = "product: " + prod['prod'] + ", url: " + prod['url']
-        if prod.keys().count('spec') == 1:
+        if list(prod.keys()).count('spec') == 1:
             string += ", spectral_subset: " + prod['spec']
-        if prod.keys().count('spec_qa') == 1:
+        if list(prod.keys()).count('spec_qa') == 1:
             if prod['spec_qa'] != None:
                 string += ", spectral_subset_qa:" + prod['spec_qa']
         return string
