@@ -8,6 +8,11 @@ from grass.pygrass.modules.grid.patch import get_start_end_index
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.messages import get_msgr
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
 
 def rpatch_row(rast, rasts, bboxes, max_rasts):
     """Patch a row of bound boxes."""

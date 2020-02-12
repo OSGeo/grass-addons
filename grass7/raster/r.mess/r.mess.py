@@ -119,6 +119,12 @@ import string
 import grass.script as gs
 from grass.script import db as db
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 COLORS_MES = """\
 0% 244:109:67
 0 255:255:210

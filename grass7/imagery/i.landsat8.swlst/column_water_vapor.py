@@ -13,6 +13,11 @@ DUMMY_Ti_MEAN = 'Mean_Ti'
 DUMMY_Tj_MEAN = 'Mean_Tj'
 DUMMY_Rji = 'Ratio_ji'
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
 
 # helper functions
 def random_adjacent_pixel_values(pixel_modifiers):

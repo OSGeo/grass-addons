@@ -87,6 +87,12 @@ except:
     except:
         sys.exit("grass.script can't be imported.")
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 if "GISBASE" not in os.environ:
     print("You must be in GRASS GIS to run this program.")
     sys.exit(1)
