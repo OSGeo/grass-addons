@@ -8,7 +8,7 @@
 #               
 # PURPOSE:      Check if two GRASS maps are the same
 #
-# COPYRIGHT:    (c) 2012 by Luca Delucchi and the GRASS Development Team
+# COPYRIGHT:    (c) 2012-2020 by Luca Delucchi and the GRASS Development Team
 #               
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -73,7 +73,7 @@ def md5(fileName, excludeLine="", includeLine=""):
         if excludeLine and eachLine.startswith(excludeLine):
             continue
         m.update(eachLine)
-    m.update(includeLine)
+    m.update(includeLine.encode('utf-8'))
     return m.hexdigest()
 
 def checkfile(name, formatt,shell):
@@ -138,8 +138,8 @@ def main():
         good = 1
     else:
         shell = False
-        err = _('The two files are different')
-        good = _('The two files are identical')    
+        err = _('The two maps are different')
+        good = _('The two maps are identical')    
     # options
     typ = options['type']
     ainp = checkfile(options['ainput'],typ,shell)
