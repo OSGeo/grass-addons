@@ -51,8 +51,8 @@
 #%end
 #%option G_OPT_M_DATATYPE
 #% key: type
-#% options: rast,vector
-#% answer: rast
+#% options: raster,vector
+#% answer: raster
 #%end
 
 import os, sys
@@ -78,7 +78,7 @@ def md5(fileName, excludeLine="", includeLine=""):
 
 def checkfile(name, formatt,shell):
     """Check if the input file exists"""
-    if formatt == "rast":
+    if formatt == "raster":
         typ = "Raster"
         inp = grass.find_file(name)
     elif formatt == "vector":
@@ -159,7 +159,7 @@ def main():
     # variable for color table
     md5color = 1
     # start analysis for raster
-    if typ == "rast":
+    if typ == "raster":
         # for each folder
         for fold in raster_folder:
             # create the path to folder
