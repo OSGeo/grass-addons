@@ -78,6 +78,12 @@ from grass.script import core as grass
 from grass.pygrass.vector import VectorTopo
 import math
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 ORDER_STRAHLER = 1
 ORDER_SHREVE = 2
 ORDER_SCHEIDEGGER = 3

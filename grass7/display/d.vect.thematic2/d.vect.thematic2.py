@@ -203,6 +203,12 @@ import shutil
 import atexit
 import grass.script as grass
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 tmp_graph = None
 tmp_group = None
 tmp_psmap = None
