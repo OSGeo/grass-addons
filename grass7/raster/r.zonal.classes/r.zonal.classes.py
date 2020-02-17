@@ -95,6 +95,11 @@
 #% key: p
 #% description: Proportions as percentages instead of zone's area ratio
 #% guisection: Statistics
+#%end
+#%flag
+#% key: c
+#% description: Force check of input's layer type
+#% guisection: Statistics
 #%END
 
 import os
@@ -141,11 +146,12 @@ def main():
     prop = False if 'proportion' not in options['statistics'].split(',') else True
     mode = False if 'mode' not in options['statistics'].split(',') else True
     
-    # Check if input layer is CELL
-    if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
-        gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
-    if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
-        gscript.fatal(_("The type of the input map 'zone_map' is not CELL. Please use raster with integer values"))
+    if flags['c']:  # Check only if flag activated - Can be bottleneck in case of very large raster. 
+        # Check if input layer is CELL
+        if gscript.parse_command('r.info', flags='g', map=raster)['datatype'] != 'CELL':
+            gscript.fatal(_("The type of the input map 'raster' is not CELL. Please use raster with integer values"))
+        if gscript.parse_command('r.info', flags='g', map=zone_map)['datatype'] != 'CELL':
+            gscript.fatal(_("The type of the input map 'zone_map' is not CELL. Please use raster with integer values"))
      
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:

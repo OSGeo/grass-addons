@@ -52,11 +52,15 @@ different computational region with the aim to merge statistic tables
 at the end, because some classes could be present under some 
 computational regions and absent on others. For this reason, the 
 <em>classes_list</em> parameter allows to force the output to provide 
-statistics also for classes no present under the current computation 
-region. In this case, the proportion values added for this class are 
-set to zero. This is particularly useful when the function is used in 
+statistics only for classes provided via this parameter. If a class 
+is not met in the current computational region, the proportion is set
+to zero. This is particularly useful when the function is used in 
 multiple processing - sequentially or in parallel - to ensure all the 
-output will have the same number (and order) of columns. 
+output will have the same number (and order) of columns.
+<p>
+The type of raster to be used as input is intended to be CELL. By 
+default, there is no check for the type of input's raster. This behaviour
+can be reversed using the <b>-c</b> flag.  
 
 <h2>EXAMPLE</h2>
 
