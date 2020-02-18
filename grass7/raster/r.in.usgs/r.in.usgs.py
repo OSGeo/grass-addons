@@ -276,7 +276,7 @@ def main():
                 'subset': {},
                 'extent': [''],
                 'format': 'LAS,LAZ',
-                'extension': 'las',
+                'extension': 'las,laz',
                 'zip': True,
                 'srs': '',
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
@@ -292,7 +292,7 @@ def main():
     nav_string = usgs_product_dict[gui_product]
     product = nav_string['product']
     product_format = nav_string['format']
-    product_extension = nav_string['extension']
+    product_extensions = tuple(nav_string['extension'].split(','))
     product_is_zip = nav_string['zip']
     product_srs = nav_string['srs']
     product_proj4 = nav_string['srs_proj4']
@@ -343,7 +343,7 @@ def main():
         product_tag = nav_string['product']
         if not has_pdal:
             gscript.warning(_("Module v.in.pdal is missing,"
-                              "any downloaded data will not be processed."))
+                              " any downloaded data will not be processed."))
     # Assigning further parameters from GUI
     gui_output_layer = options['output_name']
     gui_resampling_method = options['resampling_method']
@@ -692,7 +692,7 @@ def main():
             try:
                 with zipfile.ZipFile(z, "r") as read_zip:
                     for f in read_zip.namelist():
-                        if f.endswith(product_extension):
+                        if f.lower().endswith(product_extensions):
                             extracted_tile = os.path.join(work_dir, str(f))
                             remove_and_extract = True
                             if os.path.exists(extracted_tile):
@@ -742,7 +742,7 @@ def main():
 
     if gui_product == 'lidar' and not has_pdal:
         gscript.fatal(_("Module v.in.pdal is missing,"
-                        "cannot process downloaded data."))
+                        " cannot process downloaded data."))
 
     # operations for extracted or complete files available locally
     # We are looking only for the existing maps in the current mapset,
@@ -774,7 +774,7 @@ def main():
         results[identifier] = result
 
     def run_lidar_import(identifier, results,
-                        input, output, input_srs=None):
+                         input, output, input_srs=None):
         result = {}
         params = {}
         if input_srs:
@@ -875,6 +875,9 @@ def main():
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch
 
+    # v.surf.rst lidar params
+    rst_params = dict(tension=25, smooth=0.1, npmin=100)
+
     # Check that downloaded files match expected count
     completed_tiles_count = len(local_tile_path_list)
     if completed_tiles_count == tiles_needed_count:
@@ -896,7 +899,7 @@ def main():
                                         output=gui_output_layer)
                     gscript.run_command('v.surf.rst', input=gui_output_layer,
                                         elevation=gui_output_layer, nprocs=nprocs,
-                                        tension=25, smooth=0.1, npmin=100)
+                                        **rst_params)
                 else:
                     gscript.run_command('r.patch', input=patch_names,
                                         output=gui_output_layer)
@@ -930,7 +933,7 @@ def main():
             elif gui_product == 'lidar':
                 gscript.run_command('v.surf.rst', input=patch_names[0],
                                     elevation=gui_output_layer, nprocs=nprocs,
-                                    tension=25, smooth=0.1, npmin=100)
+                                    **rst_params)
                 if not preserve_imported_tiles:
                     gscript.run_command('g.remove', type='vector',
                                         name=patch_names[0], flags='f')
