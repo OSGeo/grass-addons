@@ -37,7 +37,7 @@
 #%option
 #% key: product
 #% required: yes
-#% options: ned,nlcd,naip
+#% options: ned,nlcd,naip,lidar
 #% label: USGS data product
 #% description: Available USGS data products to query
 #%end
@@ -84,6 +84,35 @@
 #% description: Available NLCD subsets to query
 #% descriptions: impervious;Percent Developed Imperviousness;canopy;Percent Tree Canopy;landcover;Land Cover
 #% guisection: NLCD
+#%end
+
+#%option
+#% key: input_srs
+#% type: string
+#% required: no
+#% multiple: no
+#% label: Input lidar dataset projection (WKT or EPSG, e.g. EPSG:4326)
+#% description: Override input lidar dataset coordinate system using EPSG code or WKT definition
+#% guisection: Lidar
+#%end
+
+#%option
+#% key: resolution
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Resolution of lidar-based DSM
+#% guisection: Lidar
+#%end
+
+#%option
+#% key: title_filter
+#% type: string
+#% required: no
+#% multiple: no
+#% label: Filter available lidar tiles by their title (e.g. use "Phase4")
+#% description: To avoid combining lidar from multiple years, use first -i flag and filter by tile title.
+#% guisection: Lidar
 #%end
 
 #%option
@@ -239,6 +268,20 @@ def main():
                 'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
                 'interpolation': 'nearest',
                 'url_split': '/'
+                },
+        "lidar": {
+                'product': 'Lidar Point Cloud (LPC)',
+                'dataset': {
+                        'Lidar Point Cloud (LPC)': (1. / 3600 / 9, 3, 10)},
+                'subset': {},
+                'extent': [''],
+                'format': 'LAS,LAZ',
+                'extension': 'las,laz',
+                'zip': True,
+                'srs': '',
+                'srs_proj4': "+proj=longlat +ellps=GRS80 +datum=NAD83 +nodefs",
+                'interpolation': 'nearest',
+                'url_split': '/'
                 }
             }
 
@@ -249,7 +292,7 @@ def main():
     nav_string = usgs_product_dict[gui_product]
     product = nav_string['product']
     product_format = nav_string['format']
-    product_extension = nav_string['extension']
+    product_extensions = tuple(nav_string['extension'].split(','))
     product_is_zip = nav_string['zip']
     product_srs = nav_string['srs']
     product_proj4 = nav_string['srs_proj4']
@@ -294,6 +337,13 @@ def main():
         gui_dataset = 'Imagery - 1 meter (NAIP)'
         product_tag = nav_string['product']
 
+    has_pdal = gscript.find_program(pgm='v.in.pdal')
+    if gui_product == 'lidar':
+        gui_dataset = 'Lidar Point Cloud (LPC)'
+        product_tag = nav_string['product']
+        if not has_pdal:
+            gscript.warning(_("Module v.in.pdal is missing,"
+                              " any downloaded data will not be processed."))
     # Assigning further parameters from GUI
     gui_output_layer = options['output_name']
     gui_resampling_method = options['resampling_method']
@@ -324,6 +374,8 @@ def main():
             product_resolution = nav_string['dataset'][gui_dataset][2]
     except TypeError:
         product_resolution = False
+    if gui_product == 'lidar' and options['resolution']:
+        product_resolution = float(options['resolution'])
 
     if gui_resampling_method == 'default':
         gui_resampling_method = nav_string['interpolation']
@@ -332,11 +384,12 @@ def main():
 
     # Get coordinates for current GRASS computational region and convert to USGS SRS
     gregion = gscript.region()
+    wgs84 = '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs'
     min_coords = gscript.read_command('m.proj', coordinates=(gregion['w'], gregion['s']),
-                                      proj_out=product_proj4, separator='comma',
+                                      proj_out=wgs84, separator='comma',
                                       flags='d')
     max_coords = gscript.read_command('m.proj', coordinates=(gregion['e'], gregion['n']),
-                                      proj_out=product_proj4, separator='comma',
+                                      proj_out=wgs84, separator='comma',
                                       flags='d')
     min_list = min_coords.split(',')[:2]
     max_list = max_coords.split(',')[:2]
@@ -382,6 +435,9 @@ def main():
             TNM_API_error = return_JSON['errors']
             api_error_msg = "TNM API Error - {0}".format(str(TNM_API_error))
             gscript.fatal(api_error_msg)
+        if gui_product == 'lidar' and options['title_filter']:
+            return_JSON['items'] = [item for item in return_JSON['items'] if options['title_filter'] in item['title']]
+            return_JSON['total'] = len(return_JSON['items'])
 
     except:
         gscript.fatal(_("Unable to load USGS JSON object."))
@@ -636,7 +692,7 @@ def main():
             try:
                 with zipfile.ZipFile(z, "r") as read_zip:
                     for f in read_zip.namelist():
-                        if f.endswith(product_extension):
+                        if f.lower().endswith(product_extensions):
                             extracted_tile = os.path.join(work_dir, str(f))
                             remove_and_extract = True
                             if os.path.exists(extracted_tile):
@@ -684,6 +740,10 @@ def main():
                             removed=removed_extracted_tiles_num
                             ))
 
+    if gui_product == 'lidar' and not has_pdal:
+        gscript.fatal(_("Module v.in.pdal is missing,"
+                        " cannot process downloaded data."))
+
     # operations for extracted or complete files available locally
     # We are looking only for the existing maps in the current mapset,
     # but theoretically we could be getting them from other mapsets
@@ -713,6 +773,22 @@ def main():
             result["output"] = output
         results[identifier] = result
 
+    def run_lidar_import(identifier, results,
+                         input, output, input_srs=None):
+        result = {}
+        params = {}
+        if input_srs:
+            params['input_srs'] = input_srs
+        try:
+            gscript.run_command('v.in.pdal', input=input, output=output,
+                                flags='wr', **params)
+        except CalledModuleError:
+            error = ("Unable to import <{0}>").format(output)
+            result["errors"] = error
+        else:
+            result["output"] = output
+        results[identifier] = result
+
     process_list = []
     process_id_list = []
     process_count = 0
@@ -721,6 +797,47 @@ def main():
     with Manager() as manager:
         results = manager.dict()
         for i, t in enumerate(local_tile_path_list):
+            # create variables for use in GRASS GIS import process
+            LT_file_name = os.path.basename(t)
+            LT_layer_name = os.path.splitext(LT_file_name)[0]
+            # we are removing the files if requested even if we don't use them
+            # do not remove by default with NAIP, there are no zip files
+            if gui_product != 'naip' and not preserve_extracted_files:
+                cleanup_list.append(t)
+            # TODO: unlike the files, we don't compare date with input
+            if use_existing_imported_tiles and map_exists("raster", LT_layer_name, mapset):
+                patch_names.append(LT_layer_name)
+                used_existing_imported_tiles_num += 1
+            else:
+                in_info = _("Importing and reprojecting {name}"
+                            " ({count} out of {total})...").format(
+                                name=LT_file_name, count=i + 1, total=files_to_import)
+                gscript.info(in_info)
+
+                process_count += 1
+                if gui_product != 'lidar':
+                    process = Process(
+                        name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
+                        target=run_file_import, kwargs=dict(
+                        identifier=i, results=results,
+                        input=t, output=LT_layer_name,
+                        resolution='value', resolution_value=product_resolution,
+                        extent="region", resample=product_interpolation,
+                        memory=memory
+                    ))
+                else:
+                    srs = options['input_srs']
+                    process = Process(
+                        name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
+                        target=run_lidar_import, kwargs=dict(
+                        identifier=i, results=results,
+                        input=t, output=LT_layer_name,
+                        input_srs=srs if srs else None
+                    ))
+                process.start()
+                process_list.append(process)
+                process_id_list.append(i)
+
             # Wait for processes to finish when we reached the max number
             # of processes.
             if process_count == nprocs or i == num_tiles - 1:
@@ -744,37 +861,6 @@ def main():
                 process_list = []
                 process_id_list = []
                 process_count = 0
-
-            # create variables for use in GRASS GIS import process
-            LT_file_name = os.path.basename(t)
-            LT_layer_name = os.path.splitext(LT_file_name)[0]
-            # we are removing the files if requested even if we don't use them
-            # do not remove by default with NAIP, there are no zip files
-            if gui_product != 'naip' and not preserve_extracted_files:
-                cleanup_list.append(t)
-            # TODO: unlike the files, we don't compare date with input
-            if use_existing_imported_tiles and map_exists("raster", LT_layer_name, mapset):
-                patch_names.append(LT_layer_name)
-                used_existing_imported_tiles_num += 1
-                continue
-            in_info = _("Importing and reprojecting {name}"
-                        " ({count} out of {total})...").format(
-                            name=LT_file_name, count=i + 1, total=files_to_import)
-            gscript.info(in_info)
-
-            process_count += 1
-            process = Process(
-                name="Import-{}-{}-{}".format(process_count, i, LT_layer_name),
-                target=run_file_import, kwargs=dict(
-                identifier=i, results=results,
-                input=t, output=LT_layer_name,
-                resolution='value', resolution_value=product_resolution,
-                extent="region", resample=product_interpolation,
-                memory=memory
-            ))
-            process.start()
-            process_list.append(process)
-            process_id_list.append(i)
         # no process should be left now
         assert not process_list
         assert not process_id_list
@@ -788,6 +874,9 @@ def main():
 
     # if control variables match and multiple files need to be patched,
     # check product resolution, run r.patch
+
+    # v.surf.rst lidar params
+    rst_params = dict(tension=25, smooth=0.1, npmin=100)
 
     # Check that downloaded files match expected count
     completed_tiles_count = len(local_tile_path_list)
@@ -805,6 +894,12 @@ def main():
                         gscript.run_command('r.patch', input=patch_names_i,
                                             output=output)
                         gscript.raster_history(output)
+                elif gui_product == 'lidar':
+                    gscript.run_command('v.patch', flags='nzb', input=patch_names,
+                                        output=gui_output_layer)
+                    gscript.run_command('v.surf.rst', input=gui_output_layer,
+                                        elevation=gui_output_layer, nprocs=nprocs,
+                                        **rst_params)
                 else:
                     gscript.run_command('r.patch', input=patch_names,
                                         output=gui_output_layer)
@@ -819,6 +914,9 @@ def main():
                             patch_names_i = [name + '.' + i for name in patch_names]
                             gscript.run_command('g.remove', type='raster',
                                                 name=patch_names_i, flags='f')
+                    elif gui_product == 'lidar':
+                        gscript.run_command('g.remove', type='vector',
+                                            name=patch_names + [gui_output_layer], flags='f')
                     else:
                         gscript.run_command('g.remove', type='raster',
                                             name=patch_names, flags='f')
@@ -832,6 +930,13 @@ def main():
             if gui_product == 'naip':
                 for i in ('1', '2', '3', '4'):
                     gscript.run_command('g.rename', raster=(patch_names[0] + '.' + i, gui_output_layer + '.' + i))
+            elif gui_product == 'lidar':
+                gscript.run_command('v.surf.rst', input=patch_names[0],
+                                    elevation=gui_output_layer, nprocs=nprocs,
+                                    **rst_params)
+                if not preserve_imported_tiles:
+                    gscript.run_command('g.remove', type='vector',
+                                        name=patch_names[0], flags='f')
             else:
                 gscript.run_command('g.rename', raster=(patch_names[0], gui_output_layer))
             temp_down_count = _("Tile successfully imported")

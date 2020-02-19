@@ -1,5 +1,5 @@
 <h2>DESCRIPTION</h2>	
-<em>r.in.usgs</em> downloads and patches selected USGS datasets (NED, NLCD, NAIP) to
+<em>r.in.usgs</em> downloads and patches selected USGS datasets (NED, NLCD, NAIP, lidar) to
 the current GRASS computational region and coordinate reference system. 
 Associated parameters are automatically passed to 
 <a href="https://viewer.nationalmap.gov/tnmaccess/api/index">
@@ -11,6 +11,7 @@ local directory, then imported and patched.
 <li><b>ned</b>: National Elevation Dataset</li>
 <li><b>nlcd</b>: National Land Cover Dataset</li>
 <li><b>naip</b>: NAIP orthoimagery</li>
+<li><b>lidar</b>: Lidar Point Clouds (LPC)</li>
 </ul>
 
 <h2>NOTES</h2>
@@ -24,6 +25,16 @@ at 30m resolution and include Land Cover, Percent Developed Imperviousness,
 and Percent Tree Canopy (see <b>nlcd_subset</b> option).
 <p>
 NAIP is available at 1 m resolution.
+
+<p>
+Lidar data is available only for part of the US but there can be multiple
+spatially overlapping datasets from different years. All point clouds
+will be imported as points using <a href="v.in.pdal.html">v.in.pdal</a>
+and then patched and interpolated with <a href="v.surf.rst.html">v.surf.rst</a>.
+In some cases, lidar point clouds do not have SRS information, use <b>input_srs</b>
+to specify it (e.g. "EPSG:2264"). If multiple tiles from different years
+are available, use <b>title_filter</b> to filter by their titles (e.g. "Phase1").
+Use <b>i</b> flag to list the tiles first.
 
 <p>
 If the <b>i</b> flag is set, only information about data meeting the input parameters
@@ -111,7 +122,8 @@ r.in.usgs product=nlcd nlcd_dataset=nlcd2011 nlcd_subset=landcover output_direct
 <a href="r.import.html">r.import</a>,
 <a href="r.patch.html">r.patch</a>,
 <a href="r.colors.html">r.colors</a>,
-<a href="r.in.srtm.html">r.in.srtm</a>
+<a href="r.in.srtm.html">r.in.srtm</a>,
+<a href="v.in.pdal.html">v.in.pdal</a>
 </em>
 
 <h2>AUTHORS</h2>
