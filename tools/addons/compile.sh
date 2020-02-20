@@ -96,7 +96,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
 	make MODULE_TOPDIR="$TOPDIR" \
 	    BIN="$path/bin" \
 	    HTMLDIR="$path/docs/html" \
-	    MANBASEDIR="$path/docs/man/man1" \
+	    MANBASEDIR="$path/docs/man" \
 	    SCRIPTDIR="$path/scripts" \
 	    ETC="$path/etc" \
             SOURCE_URL="https://github.com/OSGeo/grass-addons/tree/master/grass${GRASS_VERSION}/" > \
