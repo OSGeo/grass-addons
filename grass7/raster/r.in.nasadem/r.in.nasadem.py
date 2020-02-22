@@ -453,7 +453,7 @@ def main():
             "g.remove", type="raster", name=str(demtiles), flags="f", quiet=True
         )
         grass.warning(_("No tiles imported"))
-        if local != tmpdir:
+        if local is not None:
             grass.fatal(_("Please check if local folder <%s> is correct.") % local)
         else:
             grass.fatal(
