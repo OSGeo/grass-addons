@@ -236,7 +236,7 @@ def download_tile(tile, url, pid, version, username, password):
 
     urllib2.urlcleanup()
 
-    remote_tile = str(url) + "/" + version + "/" + local_tile
+    remote_tile = str(url) + "/" + version + "/2000.02.11/" + local_tile
     goturl = 1
 
     try:
