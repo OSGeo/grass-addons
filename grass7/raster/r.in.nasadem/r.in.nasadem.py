@@ -480,7 +480,14 @@ def main():
     # write metadata:
     tmphist = grass.tempfile()
     f = open(tmphist, "w+")
-    f.write(os.environ["CMDLINE"])
+    # hide username and password
+    cmdline = os.environ["CMDLINE"]
+    if username is not None and len(username) > 0:
+        cmdline = cmdline.replace("=" + username, "=xxx")
+    if password is not None and len(password) > 0:
+        cmdline = cmdline.replace("=" + password, "=xxx")
+         
+    f.write(cmdline)
     f.close()
     source1 = nasadem_version
     grass.run_command(
