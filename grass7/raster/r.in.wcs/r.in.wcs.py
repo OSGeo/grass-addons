@@ -101,7 +101,11 @@ import sys
 import io
 import grass.script as grass
 import base64
-import urllib2
+try:
+    from urllib2 import urlopen, URLError, HTTPError
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
 from httplib import HTTPException
 import subprocess
 
@@ -254,7 +258,7 @@ class WCSBase:
             cap = self._fetchDataFromServer(cap_url, options['username'], options['password'])
             print(dir(cap))
         except (IOError, HTTPException) as e:
-            if urllib2.HTTPError == type(e) and e.code == 401:
+            if HTTPError == type(e) and e.code == 401:
                 grass.fatal(_("Authorization failed to <%s> when fetching capabilities") % options['url'])
             else:
                 msg = _("Unable to fetch capabilities from <%s>: %s") % (options['url'], e)
@@ -272,13 +276,13 @@ class WCSBase:
         """
         self._debug("_fetchDataFromServer", "started")
 
-        request = urllib2.Request(url)
+        request = Request(url)
         if username and password:
                     base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
                     request.add_header("Authorization", "Basic %s" % base64string)
 
         try:
-            return urllib2.urlopen(request)
+            return urlopen(request)
         except ValueError as error:
             grass.fatal("%s" % error)
 

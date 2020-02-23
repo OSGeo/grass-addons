@@ -70,7 +70,10 @@ import sys
 import os
 import atexit
 import subprocess
-from itertools import izip
+try:
+    from itertools import izip as zip
+except ImportError: # included in py 3.x series
+    pass
 import grass.script as grass
 
 # pyproj lazy imported at the end of the file
@@ -187,7 +190,7 @@ def main():
     f_merged = open(tmp_xyz_merge, 'w') # new, merged
     #read input coordinates file
     with open(tmp_out_dnoise) as f_dnoise, open(tmp_xyz_orig) as f_orig: 
-        for line_dnoise, line_orig in izip(f_dnoise, f_orig):
+        for line_dnoise, line_orig in zip(f_dnoise, f_orig):
             xyz_dnoise = line_dnoise.split()  # denoised
             xyz_orig = line_orig.split()  # original
             f_merged.write('%s %s %s\n' % (xyz_orig[0], xyz_orig[1], xyz_dnoise[2]))

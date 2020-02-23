@@ -64,21 +64,13 @@ import os
 import glob
 import atexit
 
-
-try:
-    import grass.script as grass
-except:
-    try:
-        from grass.script import core as grass
-    except:
-        if not os.environ.has_key("GISBASE"):
-            print("You must be in GRASS GIS to run this program.")
-            sys.exit(1)
+import grass.script as grass
+from grass.script import core as grass
 
 try:
     from osgeo import ogr
 except:
-    print "Please install GDAL-Python bindings or add them to PYTHONPATH"
+    print("Please install GDAL-Python bindings or add them to PYTHONPATH")
     sys.exit(1)
     
             
@@ -134,7 +126,7 @@ def main():
     f2.close()
 
     with open(tmp2, 'r') as f:
-        print f.read()
+        print(f.read())
 
     ## open CSV with OGR and get layer name
     f = ogr.Open(tmp2, 0)

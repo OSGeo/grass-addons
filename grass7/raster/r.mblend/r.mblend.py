@@ -269,7 +269,7 @@ def main():
         gscript.message(_("[r.mblend] Joining result into a single raster"))
         gscript.run_command('r.patch', input=high + ',' + smooth_low_res,
                             output=output)
-    except Exception, ex:
+    except Exception as ex:
         gscript.error(_("[r.mblend] ERROR: Failed to create smoothed raster."))
         exit()
 

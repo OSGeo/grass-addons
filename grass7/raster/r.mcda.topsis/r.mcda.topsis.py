@@ -77,7 +77,7 @@ def idealPoints(criteria,preference): #step3
 			ip=float(stats['min'])
 		else:
 			ip=-9999
-			print "warning! %s doesn't compliant" % p
+			print("warning! %s doesn't compliant" % p)
 		idelaPointsList.append(ip)
 	return idelaPointsList
 
@@ -91,7 +91,7 @@ def worstPoints(criteria,preference):
 			wp=float(stats['max'])
 		else:
 			wp=-9999
-			print "warning! %s doesn't compliant" % p
+			print("warning! %s doesn't compliant" % p)
 		worstPointsList.append(wp)
 	return worstPointsList
 	  
@@ -147,7 +147,7 @@ def main():
 	gscript.run_command("g.remove", flags='f', type='raster', name=",".join(criteria))
 	gscript.run_command("g.remove", flags='f', type='raster', name="IdealPointDistance,WorstPointDistance,critPow")
 	end=time()
-	print "Time computing-> %.4f s" % (end-start)
+	print("Time computing-> %.4f s" % (end-start))
 	
 	
 if __name__ == "__main__":

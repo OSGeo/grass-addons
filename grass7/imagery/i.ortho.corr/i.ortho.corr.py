@@ -112,7 +112,7 @@ def main():
         camera = '.camera_angle'
     # check if the ortho and camera angle suffix
     if ortho == camera:
-        print "Ortho and camera suffix can't be the same."
+        print("Ortho and camera suffix can't be the same.")
     sys.exit(1)
 
     ex_pattern = options['exclude']
@@ -120,7 +120,7 @@ def main():
     points = controlPoints(map_in)
     # the tiles near input map
     nearMaps = mapTile(points, map_in, map_tiles, field)
-    print nearMaps
+    print(nearMaps)
     # calculate output map
     calcMap(map_in, map_out, nearMaps, ortho, camera, ex_pattern)
 
@@ -172,10 +172,10 @@ def mapTile(points, inputmap, tilemap, field):
     # list of the map's names
     nameFiles = []
     # for each point
-    for k, v in points.iteritems():
+    for k, v in points.items():
         # query the tiles vector map
         what = vector_what(tilemap, v)
-        for l, m in what.iteritems():
+        for l, m in what.items():
             if l != 'general':
                 # create the name for path
                 nameFile = os2emxpath.basename(m[field])

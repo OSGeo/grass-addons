@@ -48,11 +48,15 @@ This program is free software under the GNU General Public License
 #% description: Save as default EPSG in the current location
 #%end
 
+import os
 from grass.script import core as grass
 from grass.pygrass.modules import Module
 from subprocess import PIPE
 from osgeo import osr
-import os
+try:
+    from osgeo import osr
+except:
+    grass.fatal(_("Unable to load GDAL Python bindings (requires package 'python-gdal' being installed)"))
 
 
 def writeEPSGtoPEMANENT(epsg):

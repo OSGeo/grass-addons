@@ -1,4 +1,5 @@
 <h2>DESCRIPTION:</h2>
+
 <em>r.slope.direction</em> computes slope as elevation difference devided by
 distance along a user given number of steps following a direction map.
 
@@ -28,6 +29,7 @@ direction map</li>
 The following examples are based on the North Carolina dataset!
 
 <h3>Slope following a flow direction raster at different scales</h3>
+
 <div class="code"><pre>
 # Set the computational region
 g.region -p raster=elevation
@@ -38,7 +40,6 @@ r.watershed elevation=elevation accumulation=faccum drainage=fdir
 r.slope.direction --o --v elevation=elevation direction=fdir \
 steps=1,5,13 output=fdir_slope_1,fdir_slope_5,fdir_slope_13 \
 method=total_gradient format=percent scale=3 type=CELL
-
 </pre></div>
 
 <table>
@@ -169,14 +170,15 @@ alt="Slope following street direction for 13 pixels" border="0">
 </table>
 
 <h2>SEE ALSO</h2>
-<a href="r.mapcalc.html">r.mapcalc</a>
-<a href="r.path.html">r.path</a>
-<a href="r.slope.aspect.html">r.slope.aspect</a>
+
+<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.path.html">r.path</a>,
+<a href="r.slope.aspect.html">r.slope.aspect</a>,
 <a href="r.stream.slope.html">r.stream.slope</a>
 
 <h2>AUTHOR</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
-Written for the INVAFISH project (RCN MILJØFORSK grant 243910)
+Written for the INVAFISH project (RCN MILJ&Oslash;FORSK grant 243910)
 
 <!--
 <p>
