@@ -283,17 +283,16 @@ int main(int argc, char *argv[])
         struct field_info *Fi;
         struct line_pnts *Points;
         struct line_cats *Cats;
-        int field, type;
+        int field;
         int nlines, line, n;
 
         if (Vect_open_old2(&Map, outlet_name, "", outlet_layer) < 0)
             G_fatal_error(_("Unable to open vector map <%s>"), outlet_name);
 
         field = Vect_get_field_number(&Map, outlet_layer);
-        type = Vect_get_num_dblinks(&Map) > 1 ? GV_MTABLE : GV_1TABLE;
 
         if (outlet_idcol) {
-            Fi = Vect_default_field_info(&Map, field, NULL, type);
+            Fi = Vect_get_field(&Map, field);
             driver =
                 db_start_driver_open_database(Fi->driver,
                                               Vect_subst_var(Fi->database,
