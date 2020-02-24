@@ -217,8 +217,8 @@ tmp_gisleg = None
 
 def cleanup():
     for file in [tmp_graph, tmp_group, tmp_psmap, tmp_psleg, tmp_gisleg]:
-	if file:
-	    grass.try_remove(file)
+        if file:
+            grass.try_remove(file)
 
 # hard-coded parameter: the maximum number of legend items before
 # we strip them using a middle ellipsis
@@ -288,11 +288,11 @@ def main():
     # check column type
     inf = grass.vector_columns(map, layer)
     if column not in inf:
-	grass.fatal(_("No such column <%s>") % column)
+        grass.fatal(_("No such column <%s>") % column)
     coltype = inf[column]['type'].lower()
 
     if coltype not in ["integer", "double precision"]:
-	grass.fatal(_("Column <%s> is of type <%s> which is not numeric.") % (column, coltype))
+        grass.fatal(_("Column <%s> is of type <%s> which is not numeric.") % (column, coltype))
 
     # create temporary file to hold d.graph commands for legend
     tmp_graph = grass.tempfile()
