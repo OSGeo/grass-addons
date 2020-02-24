@@ -8,7 +8,7 @@
  * PURPOSE:      Calculates weighted flow accumulation, stream networks, and
  *               the longest flow path using a flow direction map.
  *
- * COPYRIGHT:    (C) 2018 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
