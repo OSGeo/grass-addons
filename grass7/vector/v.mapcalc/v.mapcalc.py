@@ -52,7 +52,7 @@ class CmdMapList(object):
     # Print command list.
 
     def get_cmd_list(self):
-        print(self.exec_list)
+        print((self.exec_list))
     # Add new command to list.
 
     def add_cmd(self, newcmd):
@@ -133,7 +133,7 @@ class VectorAlgebraLexer(object):
     def t_SYMBOL(self, t):
         r'[a-zA-Z_][a-zA-Z_0-9]*'
         # Check for reserved words
-        if t.value in VectorAlgebraLexer.vector_buff_functions.keys():
+        if t.value in list(VectorAlgebraLexer.vector_buff_functions.keys()):
             t.type = VectorAlgebraLexer.vector_buff_functions.get(t.value)
         else:
             t.type = 'NAME'
@@ -157,7 +157,7 @@ class VectorAlgebraLexer(object):
             tok = self.lexer.token()
             if not tok:
                 break
-            print tok
+            print(tok)
 
 
 class VectorAlgebraParser(object):
@@ -219,7 +219,7 @@ class VectorAlgebraParser(object):
 
         # We rename the resulting vector map
         if self.debug:
-            print "g.rename vector=%s,%s" % (t[3], t[1])
+            print("g.rename vector=%s,%s" % (t[3], t[1]))
 
         if self.run:
             m = mod.Module('g.rename', vector=(t[3], t[1]),
@@ -230,7 +230,7 @@ class VectorAlgebraParser(object):
     def remove_intermediate_vector_maps(self):
         if self.debug:
             for name in self.names:
-                print "g.remove type=vector name=%s -f" % (name)
+                print("g.remove type=vector name=%s -f" % (name))
         if self.run:
             for name in self.names:
                 m = mod.Module('g.remove', type='vector', name=name,
@@ -272,8 +272,8 @@ class VectorAlgebraParser(object):
         # Define operation commands.
         if t[operatorid] == "&":
             if self.debug:
-                print "v.overlay operator=and ainput=%s binput=%s output=%s"\
-                      % (t[firstid], t[secondid], name)
+                print("v.overlay operator=and ainput=%s binput=%s output=%s"\
+                      % (t[firstid], t[secondid], name))
 
             if self.run:
                 m = mod.Module("v.overlay", operator="and", ainput=t[firstid],
@@ -283,8 +283,8 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "|":
             if self.debug:
-                print "v.overlay operator=or ainput=%s binput=%s output=%s"\
-                    % (t[firstid], t[secondid], name)
+                print("v.overlay operator=or ainput=%s binput=%s output=%s"\
+                    % (t[firstid], t[secondid], name))
 
             if self.run:
                 m = mod.Module("v.overlay", operator="or", ainput=t[firstid],
@@ -294,8 +294,8 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "^":
             if self.debug:
-                print "v.overlay operator=xor ainput=%s binput=%s output=%s"\
-                      % (t[firstid], t[secondid], name)
+                print("v.overlay operator=xor ainput=%s binput=%s output=%s"\
+                      % (t[firstid], t[secondid], name))
 
             if self.run:
                 m = mod.Module("v.overlay", operator="xor", ainput=t[firstid],
@@ -305,8 +305,8 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "~":
             if self.debug:
-                print "v.overlay operator=not ainput=%s binput=%s output=%s"\
-                      % (t[firstid], t[secondid], name)
+                print("v.overlay operator=not ainput=%s binput=%s output=%s"\
+                      % (t[firstid], t[secondid], name))
 
             if self.run:
                 m = mod.Module("v.overlay", operator="not", ainput=t[firstid],
@@ -317,8 +317,8 @@ class VectorAlgebraParser(object):
         elif t[operatorid] == "+":
             patchinput = t[firstid] + ',' + t[secondid]
             if self.debug:
-                print "v.patch input=%s output=%s"\
-                      % (patchinput, name)
+                print("v.patch input=%s output=%s"\
+                      % (patchinput, name))
 
             if self.run:
                 m = mod.Module(
@@ -340,8 +340,8 @@ class VectorAlgebraParser(object):
 
         if t[1] == "buff_p":
             if self.debug:
-                print "v.buffer input=%s type=point distance=%g output=%s"\
-                      % (t[mapid], t[operatorid], name)
+                print("v.buffer input=%s type=point distance=%g output=%s"\
+                      % (t[mapid], t[operatorid], name))
 
             if self.run:
                 m = mod.Module("v.buffer", type="point", input=t[mapid],
@@ -351,8 +351,8 @@ class VectorAlgebraParser(object):
             t[0] = name
         elif t[1] == "buff_l":
             if self.debug:
-                print "v.buffer input=%s type=line distance=%g output=%s"\
-                    % (t[mapid], t[operatorid], name)
+                print("v.buffer input=%s type=line distance=%g output=%s"\
+                    % (t[mapid], t[operatorid], name))
 
             if self.run:
                 m = mod.Module("v.buffer", type="line", input=t[mapid],
@@ -362,8 +362,8 @@ class VectorAlgebraParser(object):
             t[0] = name
         elif t[1] == "buff_a":
             if self.debug:
-                print "v.buffer input=%s type=area distance=%g output=%s"\
-                      % (t[mapid], t[operatorid], name)
+                print("v.buffer input=%s type=area distance=%g output=%s"\
+                      % (t[mapid], t[operatorid], name))
 
             if self.run:
                 m = mod.Module("v.buffer", type="area", input=t[mapid],

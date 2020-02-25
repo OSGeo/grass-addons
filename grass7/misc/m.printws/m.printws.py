@@ -181,7 +181,6 @@ try:
 except ImportError:
     hasPwd = False
 
-
 import atexit
 import re
 import tempfile
@@ -228,8 +227,6 @@ DGRIDDIC['size'] = 0.0  # force not touching grid line distance
 DGRIDDIC['fontsize'] = 1.0  # 1 by 1 correction if any
 UPSD['d.grid'] = DGRIDDIC
 
-
-
 # PAGE dictionary
 
 PAGEDIC = {}
@@ -241,14 +238,12 @@ PAGEDIC['LETTERportrait'] = (215.9, 297.4, '', 'Letter')
 PAGEDIC['LETTERlandscape'] = (297.4, 215.9, '', 'Letter')
 PAGEDIC['Flexi'] = (300, 300, '', 'Flexi')
 
-
 # HTML DECODE
 HTMLDIC = {}
 HTMLDIC['&gt;'] = '>'
 HTMLDIC['&lt;'] = '<'
 HTMLDIC['&amp;'] = '&'
 HTMLDIC['&quot;'] = '"'
-
 
 
 def cleanthisandthat(intext):
@@ -260,11 +255,11 @@ def cleanthisandthat(intext):
     # Once workspace files are always good this function could be NOOP
     outtext = ''
     for line in intext.splitlines():
-        m = re.search('http\://',line)
+        m = re.search('http\://', line)
         if m:
-            line2 = re.sub('\&amp\;','SAVED___amp\;',line)
-            line3 = re.sub('\&','&amp;',line2)
-            line4 = re.sub('SAVED___amp\;','&amp;',line3)
+            line2 = re.sub('\&amp\;', 'SAVED___amp\;', line)
+            line3 = re.sub('\&', '&amp;', line2)
+            line4 = re.sub('SAVED___amp\;', '&amp;', line3)
             outtext = outtext + line4 + "\n"
         else:
             outtext = outtext + line + "\n"
@@ -272,24 +267,24 @@ def cleanthisandthat(intext):
 
 
 def cleanup():
-
     # No cleanup is done here
     # see end of main()
     # kept for later
     grass.verbose(_("Module cleanup"))
+
 
 # test
 # m.printws.py --overwrite input=/home/kuszi/grassdata/workspaces_7/EURASEAA.gxw dpi=100 output=/home/kuszi/grassdata/mapdefs/euraseeaa.bmp page=A4portrait maintitle=$DISPLAY pagemargin=0
 
 def upsizeifnecessary(task, lastparam, value, upsize):
     val = UPSD.get('*').get(lastparam, 0.0)
-    #print task + " " + lastparam + " " + str(value) + " " + str(upsize)
+    # print task + " " + lastparam + " " + str(value) + " " + str(upsize)
     if val > 0:
-        #print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        # print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
         return str(float(value) * val * UPSIZE)
     val = UPSD.get(task, {}).get(lastparam, 0.0)
     if val > 0:
-        #print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
+        # print "## " + task + " " + lastparam + " " + str(value) + " " + str(upsize) + " > " + str(float(value) * val * upsize)
         return str(float(value) * val * UPSIZE)
     return value
 
@@ -302,39 +297,42 @@ def htmldecode(str):
     return answer
 
 
-
-def processlayer(dom,flagdic,paramdic):
+def processlayer(dom, flagdic, paramdic):
     task = dom.getElementsByTagName("task")[0]
     command = task.getAttribute('name')
     params = task.getElementsByTagName("parameter")
     paramdic['task'] = command
     for p in params:
-        elements = p.getElementsByTagName("value") #sometimes there are empty <value> tags in workspace files
+        elements = p.getElementsByTagName("value")  # sometimes there are empty <value> tags in workspace files
         if len(elements) > 0:
             nodes = elements[0].childNodes
             if len(nodes) > 0:
-                paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),nodes[0].data,UPSIZE)
-    
+                paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'], p.getAttribute('name'),
+                                                                     nodes[0].data, UPSIZE)
+
     flags = task.getElementsByTagName("flag")
     for f in flags:
-        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite') and (f.getAttribute('name') <> 'quiet'):
-            flagdic [f.getAttribute('name')] = f.getAttribute('name')
+        if (f.getAttribute('name') != 'verbose') and (f.getAttribute('name') != 'overwrite') and (
+                f.getAttribute('name') != 'quiet'):
+            flagdic[f.getAttribute('name')] = f.getAttribute('name')
 
 
-def processoverlay(dom,flagdic,paramdic):
+def processoverlay(dom, flagdic, paramdic):
     params = dom.getElementsByTagName("parameter")
     for p in params:
-        elements=p.getElementsByTagName("value") #sometimes there are empty <value> tags in workspace files
+        elements = p.getElementsByTagName("value")  # sometimes there are empty <value> tags in workspace files
         if len(elements) > 0:
-            paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'],p.getAttribute('name'),elements[0].childNodes[0].data,UPSIZE)
-    
+            paramdic[p.getAttribute('name')] = upsizeifnecessary(paramdic['task'], p.getAttribute('name'),
+                                                                 elements[0].childNodes[0].data, UPSIZE)
+
     flags = dom.getElementsByTagName("flag")
     for f in flags:
-        if (f.getAttribute('name') <> 'verbose') and (f.getAttribute('name') <> 'overwrite') and (f.getAttribute('name') <> 'quiet'):
-            flagdic [f.getAttribute('name')] = f.getAttribute('name')
+        if (f.getAttribute('name') != 'verbose') and (f.getAttribute('name') != 'overwrite') and (
+                f.getAttribute('name') != 'quiet'):
+            flagdic[f.getAttribute('name')] = f.getAttribute('name')
 
 
-def processlayers(dom,l):
+def processlayers(dom, l):
     # processing layers of a display. Layers are returned in the l array
     for lay in dom:
         if lay.getAttribute('checked') == '1':
@@ -343,11 +341,12 @@ def processlayers(dom,l):
             opacity = lay.getAttribute('opacity')
             if opacity.startswith('1'):
                 opacity = '1'
-            processlayer(lay,flagdic,paramdic)
+            processlayer(lay, flagdic, paramdic)
             l.insert(
-                0, (opacity, paramdic['task'] , paramdic, flagdic))
+                0, (opacity, paramdic['task'], paramdic, flagdic))
 
-def processoverlays(dom,l):
+
+def processoverlays(dom, l):
     # processing layers of a display. Layers are returned in the l array
     for lay in dom:
         paramdic = {}
@@ -355,13 +354,13 @@ def processoverlays(dom,l):
         task = lay.getAttribute('name')
         paramdic['task'] = task
         opacity = '1'
-        processoverlay(lay,flagdic,paramdic)
-        l.append((opacity, paramdic['task'] , paramdic, flagdic))
+        processoverlay(lay, flagdic, paramdic)
+        l.append((opacity, paramdic['task'], paramdic, flagdic))
 
 
 def readworkspace(wspname):
     # READS WORKSPACE FILE
-    displaydic = {}    # adding support for more displays
+    displaydic = {}  # adding support for more displays
     grass.verbose(_("Layers: "))
     f = open(wspname, 'r')
     textraw = f.read()
@@ -379,15 +378,16 @@ def readworkspace(wspname):
         dims = dimall.split(",")
         extents.extend(dims)
         layersmodel = display.getElementsByTagName('layer')
-        processlayers(layersmodel,layers)
+        processlayers(layersmodel, layers)
         overlaysmodel = display.getElementsByTagName('overlay')
-        processoverlays(overlaysmodel,layers)
+        processoverlays(overlaysmodel, layers)
         layers.insert(0, extents)
-        displaydic[displayname]=layers
+        displaydic[displayname] = layers
     return displaydic
 
+
 def converttommfrom(value, fromunit):
-    #converting some basic units to mm
+    # converting some basic units to mm
     d = {'mm': 1, 'cm': 10, 'inch': 25.4}
     return (value * d[fromunit])
 
@@ -449,7 +449,7 @@ def dictomm(dic, dpi):
 
 
 def getmaxframeindots(marginsindots, pagesizesindots):
-    #returns available area on page in print dots (=pixels)
+    # returns available area on page in print dots (=pixels)
     l = marginsindots['l']
     r = pagesizesindots['w'] - marginsindots['r']
     t = marginsindots['t']
@@ -573,7 +573,7 @@ def getfontbypattern(kindpattern):
                 m = re.search('[A-Z].+[_].+', l, re.IGNORECASE)
                 if m:
                     safe = l
-                    return safe     # returns first suitable font, won't run through all of them
+                    return safe  # returns first suitable font, won't run through all of them
     return safe
     # print "printws: Selected font: " + safe
 
@@ -585,27 +585,27 @@ def decodetextmacros(text, dic):
         result = re.sub(key, dic[key], result)
     return result
 
+
 def decdeg2dms(dd):
-    mnt,sec = divmod(dd*3600,60)
-    deg,mnt = divmod(mnt,60)
+    mnt, sec = divmod(dd * 3600, 60)
+    deg, mnt = divmod(mnt, 60)
     return str(int(deg)) + ':' + str(int(mnt)) + ':' + str(sec)
 
 
-#-----------------------------------------------------
-#-----------------------------------------------------
-#-----------------------------------------------------
-#------------------- MAIN ---------------------------
-#-----------------------------------------------------
-#-----------------------------------------------------
-#-----------------------------------------------------
-#-----------------------------------------------------
+# -----------------------------------------------------
+# -----------------------------------------------------
+# -----------------------------------------------------
+# ------------------- MAIN ---------------------------
+# -----------------------------------------------------
+# -----------------------------------------------------
+# -----------------------------------------------------
+# -----------------------------------------------------
 
 
 def main():
-
     # Following declarations MAY will used in future for sure.
     global GISDBASE, LAYERCOUNT, LASTFILE
-    
+
     # Check if ImageMagick is available since it is essential
     if os.name == 'nt':
         if grass.find_program('magick', '-version'):
@@ -617,9 +617,9 @@ def main():
             grass.verbose(_('printws: ImageMagick is available: OK!'))
         else:
             grass.fatal('ImageMagick is not accessible. See documentation of m.printws module for details.')
-    
+
     textmacros = {}
-    # %nam% macros are kept for backward compatibility
+    #%nam% macros are kept for backward compatibility
     textmacros['%TIME24%'] = time.strftime("%H:%M:%S")
     textmacros['%DATEYMD%'] = time.strftime("%Y.%m.%d")
     textmacros['%DATEMDY%'] = time.strftime("%m/%d/%Y")
@@ -634,8 +634,7 @@ def main():
     textmacros['\$DATEMDY'] = textmacros['%DATEMDY%']
     textmacros['\$USERNAME'] = textmacros['%USERNAME%']
 
-    textmacros['\$SPC'] = u'\u00A0' #?? d.text won't display this at string end hmmm
-
+    textmacros['\$SPC'] = '\\u00A0'  # ?? d.text won't display this at string end hmmm
 
     # saves region for restoring at end
     # doing with official method:
@@ -688,16 +687,16 @@ def main():
             regionmode = 'region'
         else:
             grass.run_command("g.region", "", w=extents[0], s=extents[
-                              1], e=extents[2], n=extents[3])
+                1], e=extents[2], n=extents[3])
             regionmode = 'window'
 
         # setting GRASS rendering environment
-        
+
         # dummy file name is defined since the following lines
         # when switching on the cairo driver would create
         # an empty map.png in the current directory
         os.environ['GRASS_RENDER_FILE'] = os.path.join(TMPDIR, str(os.getpid(
-                    )) + '_DIS_' + str(00) + '_GEN_' + str(00) + '.png')
+        )) + '_DIS_' + str(00) + '_GEN_' + str(00) + '.png')
         os.environ['GRASS_RENDER_IMMEDIATE'] = 'cairo'
         os.environ['GRASS_RENDER_FILE_READ'] = 'TRUE'
         os.environ['GRASS_RENDER_TRANSPARENT'] = 'TRUE'
@@ -705,12 +704,12 @@ def main():
         os.environ['GRASS_RENDER_FILE_MAPPED'] = 'TRUE'
 
         # reading further options and setting defaults
-        
+
         if len(options['page']) > 0:
             pageoption = options['page']
         else:
             pageoption = 'A4landscape'
-        
+
         # parsing titles, etc.
         if len(options['font']) > 0:
             isAsterisk = options['font'].find('*')
@@ -740,7 +739,6 @@ def main():
         else:
             subtitlesize = 7.0
 
-
         if len(options['pssize']) > 0:
             pssize = converttommfrom(
                 float(options['pssize']), options['layunits'])
@@ -764,7 +762,8 @@ def main():
             subtitletop = upperspace + 0.4 * subtitlesize
             upperspace = subtitletop + subtitlesize + 1
         lowerspace = 0
-        if (len(options['psundercentral']) > 0) or (len(options['psunderright']) > 0) or (len(options['psunderleft']) > 0):
+        if (len(options['psundercentral']) > 0) or (len(options['psunderright']) > 0) or (
+                len(options['psunderleft']) > 0):
             lowerspace = lowerspace + pssize + 2
 
         os.environ['GRASS_RENDER_WIDTH'] = str(pagesizesindots['w'])
@@ -777,19 +776,19 @@ def main():
         # Getting max drawing area in dots
         mxfd = getmaxframeindots(pagemarginsindots, pagesizesindots)
         maxframe = str(mxfd['t']) + ',' + str(mxfd['b']) + \
-            ',' + str(mxfd['l']) + ',' + str(mxfd['r'])
+                   ',' + str(mxfd['l']) + ',' + str(mxfd['r'])
 
         # convert font size in mm to percentage for d.text
         mxfmm = dictomm(mxfd, dpioption)
         maintitlesize = float(maintitlesize) / (mxfmm['b'] - mxfmm['t']) * 100.0
         subtitlesize = float(subtitlesize) / (mxfmm['b'] - mxfmm['t']) * 100.0
-        
+
         pssize = float(pssize) / (mxfmm['r'] - mxfmm['l']) * 100.0
         # subtitle location is another issue
         subtitletoppercent = 100.0 - subtitletop / \
-            (mxfmm['b'] - mxfmm['t']) * 100.0
+                             (mxfmm['b'] - mxfmm['t']) * 100.0
         titletoppercent = 100.0 - titletop / \
-            (mxfmm['b'] - mxfmm['t']) * 100.0
+                          (mxfmm['b'] - mxfmm['t']) * 100.0
 
         mapul = getmapUL(options['mapupperleft'], options['layunits'])
         mapulindots = dictodots(mapul, dpioption)
@@ -800,7 +799,7 @@ def main():
         # Correcting map area ratio to ratio of region edges
         # OR screen window edges depeding on "regionmode"
         # for later:     grass.use_temp_region()
-        ISLATLONG=False
+        ISLATLONG = False
         s = grass.read_command("g.region", flags='p')
         kv = grass.parse_key_val(s, sep=':')
         regioncols = float(kv['cols'].strip())
@@ -808,7 +807,7 @@ def main():
         ewrestemp = kv['ewres'].strip()
         nsrestemp = kv['nsres'].strip()
         if ewrestemp.find(':') > 0:
-            ISLATLONG=True
+            ISLATLONG = True
             ewrestemp = ewrestemp.split(':')
             ewres = float(ewrestemp[0]) + float(ewrestemp[1]) / 60.0 + float(ewrestemp[2]) / 3600.0
             nsrestemp = nsrestemp.split(':')
@@ -816,20 +815,20 @@ def main():
         else:
             ewres = float(ewrestemp)
             nsres = float(nsrestemp)
-        
+
         sizex = regioncols * ewres
         sizey = regionrows * nsres
-        
+
         grass.verbose(_("printws: sizex " + str(sizex)))
         grass.verbose(_("printws: sizey " + str(sizey)))
-        
+
         if regionmode == 'region':
             hregionratio = float(sizex) / float(sizey)
             grass.verbose(_("printws: REGION MODE -> region "))
         else:  # surprisingly doing the SAME
             # using screen window ratio for map area
             # next line was a test for this but didn't help on gadgets positioning
-            #hregionratio = float(extents[8]) / float(extents[9])
+            # hregionratio = float(extents[8]) / float(extents[9])
             hregionratio = float(sizex) / float(sizey)
             grass.verbose(_("printws: REGION MODE -> window"))
         hmapratio = mapsizes['w'] / mapsizes['h']
@@ -863,15 +862,15 @@ def main():
         newewres = ewres / colsregiontomap
         # if rowsregiontomap < 1:
         newnsres = nsres / rowsregiontomap
-        
+
         # WOW - no necessary to convert back to DMS for nsres / ewres
-        #if ISLATLONG:
+        # if ISLATLONG:
         #    newewresstr=decdeg2dms(newewres)
         #    newnsresstr=decdeg2dms(newnsres)
-        #else:
-        newewresstr=str(newewres)
-        newnsresstr=str(newnsres)
-        
+        # else:
+        newewresstr = str(newewres)
+        newnsresstr = str(newnsres)
+
         grass.run_command("g.region", ewres=newewresstr, nsres=newnsresstr)
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -885,13 +884,12 @@ def main():
         kv2['w'] = kv['west']
         kv2['ewres'] = newewresstr
         kv2['nsres'] = newnsresstr
-        #kv2['rows']    #- autocalculated to resolution - no need to set explicitly
-        #kv2['cols']    #- autocalculated to resolution - no need to set explicitly
-        #grass.message(str(kv2))
-        #grass.message(grass.region_env(**kv2))
-        #grass.message(s)
+        # kv2['rows']    #- autocalculated to resolution - no need to set explicitly
+        # kv2['cols']    #- autocalculated to resolution - no need to set explicitly
+        # grass.message(str(kv2))
+        # grass.message(grass.region_env(**kv2))
+        # grass.message(s)
         os.environ['GRASS_REGION'] = grass.region_env(**kv2)
-
 
         # Getting mapping area in dots
         # Correcting mxfd to leave space for title and subscript
@@ -915,7 +913,7 @@ def main():
             os.environ['GRASS_RENDER_HEIGHT'] = str(mpfd['b'])
             grass.verbose(_("printws: post Flexi mapframe: " + str(mpfd)))
         mapframe = str(mpfd['t']) + ',' + str(mpfd['b']) + \
-            ',' + str(mpfd['l']) + ',' + str(mpfd['r'])
+                   ',' + str(mpfd['l']) + ',' + str(mpfd['r'])
 
         grass.verbose(_("printws: DOT VALUES ARE:"))
         grass.verbose(_("printws: maxframe: " + str(mxfd)))
@@ -933,12 +931,10 @@ def main():
 
         # ------------------- INMAP -------------------
 
-
-
         # Do not limit -map. It was: -limit map 720000000 before...
         # So we can grow on disk as long as it lasts
         imcommand = 'convert  -limit memory 720000000 -units PixelsPerInch -density ' + \
-            str(int(dpioption)) + ' '
+                    str(int(dpioption)) + ' '
 
         if os.name == 'nt':
             imcommand = 'magick ' + imcommand
@@ -951,10 +947,10 @@ def main():
         for lay in layers:
             grass.verbose(_(lay[1] + ' at: ' + lay[0] + ' opacity'))
             if lay[0] == '1':
-                if lastopacity <> '1':
+                if lastopacity != '1':
                     LASTFILE = os.path.join(TMPDIR, str(os.getpid()) + \
-                        '_DIS_' + str(displaycounter) + '_GEN_' + \
-                        str(LAYERCOUNT) + '.' + TMPFORMAT)
+                                            '_DIS_' + str(displaycounter) + '_GEN_' + \
+                                            str(LAYERCOUNT) + '.' + TMPFORMAT)
                     os.environ['GRASS_RENDER_FILE'] = LASTFILE
                     LAYERCOUNT = LAYERCOUNT + 2
                     imcommand = imcommand + ' ' + LASTFILE
@@ -969,8 +965,8 @@ def main():
                 grass.verbose("LAY: " + str(lay))
                 render(lay[1], lay[2], lay[3])
                 imcommand = imcommand + \
-                    ' \( ' + LASTFILE + ' -channel a -evaluate multiply ' + \
-                    lay[0] + ' +channel \)'
+                            ' \( ' + LASTFILE + ' -channel a -evaluate multiply ' + \
+                            lay[0] + ' +channel \)'
 
         # setting resolution back to pre-script state since map rendering is
         # finished
@@ -979,9 +975,8 @@ def main():
 
         os.environ.pop('GRASS_REGION')
 
-
         # ------------------- OUTSIDE MAP texts, etc -------------------
-        if pageoption =='Flexi':
+        if pageoption == 'Flexi':
             grass.verbose(_('m.printws: WARNING! Felxi mode, will not create titles, etc...'))
         else:
             os.environ['GRASS_RENDER_FRAME'] = maxframe
@@ -1047,13 +1042,13 @@ def main():
             displaypart = '_DISPLAY_' + str(displaycounter) + '_' + key
 
         pagedata = getpagedata(pageoption)
-        #params= ' -extent '+str(pagesizesindots['w'])+'x'+str(pagesizesindots['h'])+' -gravity center -compress jpeg -page '+pagedata['page']+' '+pagedata['parameters']+' -units PixelsPerInch -density '+str(dpioption)+'x'+str(dpioption)+' '
+        # params= ' -extent '+str(pagesizesindots['w'])+'x'+str(pagesizesindots['h'])+' -gravity center -compress jpeg -page '+pagedata['page']+' '+pagedata['parameters']+' -units PixelsPerInch -density '+str(dpioption)+'x'+str(dpioption)+' '
         params = ' -compress jpeg -quality 92 ' + \
-            pagedata['parameters'] + ' -units PixelsPerInch -density ' + \
-            str(int(dpioption)) + ' '
+                 pagedata['parameters'] + ' -units PixelsPerInch -density ' + \
+                 str(int(dpioption)) + ' '
 
         imcommand = imcommand + ' -layers flatten ' + params + \
-            '"' + output + displaypart + '.' + extension + '"'
+                    '"' + output + displaypart + '.' + extension + '"'
 
         grass.verbose(
             _('printws: And the imagemagick command is... ' + imcommand))
@@ -1073,6 +1068,7 @@ def main():
     # - not necessary as we are using grass.use_temp_region() in the future
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

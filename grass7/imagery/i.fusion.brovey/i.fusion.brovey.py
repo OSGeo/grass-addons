@@ -75,6 +75,7 @@ import sys
 import os
 import grass.script as grass
 
+
 def main():
     global tmp
 
@@ -91,10 +92,10 @@ def main():
     tmp = str(os.getpid())
 
     if not landsat and not quickbird and not spot:
-	grass.fatal(_("Please select a flag to specify the satellite sensor"))
+        grass.fatal(_("Please select a flag to specify the satellite sensor"))
 
-    #get PAN resolution:
-    kv = grass.raster_info(map = pan)
+    # get PAN resolution:
+    kv = grass.raster_info(map=pan)
     nsres = kv['nsres']
     ewres = kv['ewres']
     panres = (nsres + ewres) / 2
@@ -103,7 +104,7 @@ def main():
     grass.use_temp_region()
 
     grass.verbose("Using resolution from PAN: %f" % panres)
-    grass.run_command('g.region', flags = 'a', res = panres)
+    grass.run_command('g.region', flags='a', res=panres)
 
     grass.verbose("Performing Brovey transformation...")
 
@@ -122,42 +123,42 @@ def main():
 
     grass.message(_("Calculating %s.{red,green,blue}: ...") % out)
     e = '''eval(k = float("$pan") / ("$ms1" + "$ms2" + "$ms3"))
-	   "$out.red"   = "$ms3" * k
-	   "$out.green" = "$ms2" * k
-	   "$out.blue"  = "$ms1" * k'''
-    grass.mapcalc(e, out = out, pan = pan, ms1 = ms1, ms2 = ms2, ms3 = ms3)
+        "$out.red"   = "$ms3" * k
+        "$out.green" = "$ms2" * k
+        "$out.blue"  = "$ms1" * k'''
+    grass.mapcalc(e, out=out, pan=pan, ms1=ms1, ms2=ms2, ms3=ms3)
 
     # Maybe?
-    #r.colors   $GIS_OPT_OUTPUTPREFIX.red col=grey
-    #r.colors   $GIS_OPT_OUTPUTPREFIX.green col=grey
-    #r.colors   $GIS_OPT_OUTPUTPREFIX.blue col=grey
-    #to blue-ish, therefore we modify
-    #r.colors $GIS_OPT_OUTPUTPREFIX.blue col=rules << EOF
-    #5 0 0 0
-    #20 200 200 200
-    #40 230 230 230
-    #67 255 255 255
-    #EOF
+    # r.colors   $GIS_OPT_OUTPUTPREFIX.red col=grey
+    # r.colors   $GIS_OPT_OUTPUTPREFIX.green col=grey
+    # r.colors   $GIS_OPT_OUTPUTPREFIX.blue col=grey
+    # to blue-ish, therefore we modify
+    # r.colors $GIS_OPT_OUTPUTPREFIX.blue col=rules << EOF
+    # 5 0 0 0
+    # 20 200 200 200
+    # 40 230 230 230
+    # 67 255 255 255
+    # EOF
 
     if spot:
-        #apect table is nice for SPOT:
-	grass.message(_("Assigning color tables for SPOT..."))
-	for ch in ['red', 'green', 'blue']:
-	    grass.run_command('r.colors', map = "%s.%s" % (out, ch), col = 'aspect')
-	grass.message(_("Fixing output names..."))
-	for s, d in [('green','tmp'),('red','green'),('tmp','red')]:
-	    src = "%s.%s" % (out, s)
-	    dst = "%s.%s" % (out, d)
-	    grass.run_command('g.rename', raster = (src, dst), quiet = True)
+        # aspect table is nice for SPOT:
+        grass.message(_("Assigning color tables for SPOT..."))
+        for ch in ['red', 'green', 'blue']:
+            grass.run_command('r.colors', map="%s.%s" % (out, ch), col='aspect')
+        grass.message(_("Fixing output names..."))
+        for s, d in [('green', 'tmp'), ('red', 'green'), ('tmp', 'red')]:
+            src = "%s.%s" % (out, s)
+            dst = "%s.%s" % (out, d)
+            grass.run_command('g.rename', raster=(src, dst), quiet=True)
     else:
-	#aspect table is nice for LANDSAT and QuickBird:
-	grass.message(_("Assigning color tables for LANDSAT or QuickBird..."))
-	for ch in ['red', 'green', 'blue']:
-	    grass.run_command('r.colors', map = "%s.%s" % (out, ch), col = 'aspect')
+        # aspect table is nice for LANDSAT and QuickBird:
+        grass.message(_("Assigning color tables for LANDSAT or QuickBird..."))
+        for ch in ['red', 'green', 'blue']:
+            grass.run_command('r.colors', map="%s.%s" % (out, ch), col='aspect')
 
     grass.message(_("Following pan-sharpened output maps have been generated:"))
     for ch in ['red', 'green', 'blue']:
-	grass.message(_("%s.%s") % (out, ch))
+        grass.message(_("%s.%s") % (out, ch))
 
     grass.verbose("To visualize output, run:")
     grass.verbose("g.region -p raster=%s.red" % out)
@@ -166,7 +167,8 @@ def main():
 
     # write cmd history:
     for ch in ['red', 'green', 'blue']:
-	grass.raster_history("%s.%s" % (out, ch))
+        grass.raster_history("%s.%s" % (out, ch))
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
