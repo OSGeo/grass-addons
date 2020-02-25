@@ -170,7 +170,7 @@ def main():
     else:
         # Write SLD to file if requested
         with open(output, 'w+') as o:
-            o.write(sld.encode('utf8'))
+            o.write(sld if sys.version_info[0] >= 3 else sld.encode('utf8'))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
