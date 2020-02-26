@@ -99,13 +99,6 @@ To Dos:
 #% required : no
 #%end
 
-#%option
-#% key: resolution
-#% type: integer
-#% description: The region resolution to get better result in the analysis
-#% required : no
-#%end
-
 #%flag
 #% key: t
 #% description: Tabulate area within buffers for categories in raster map(s)
@@ -275,7 +268,6 @@ def main():
     types = options['type'].split(',')
     layer = options['layer']
     sep = options['separator']
-    res = options['resolution']
     update = flags['u']
     tabulate = flags['t']
     percent = flags['p']
@@ -445,8 +437,6 @@ def main():
     grass.use_temp_region()
     #r = Region()
     #r.read()
-    if res:
-        grass.run_command('g.region', res=res, flags='a')
     # Adjust region extent to buffer around geometry
     #reg = deepcopy(r)
 
