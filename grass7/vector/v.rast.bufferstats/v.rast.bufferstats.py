@@ -625,7 +625,6 @@ def main():
         out.close()
 
     if remove:
-        print("in remove")
         dropcols = []
         selectnum = 'select count({}) from {}'
         for i in col_names:
@@ -633,7 +632,8 @@ def main():
                                          sql=selectnum.format(i, in_vector))
             if int(thisrow) == 0:
                 dropcols.append(i)
-        print(dropcols)
+        grass.debug("Columns to delete: {}".format(', '.join(dropcols)),
+                    debug=2)
         grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
 
     # Clean up
