@@ -5,7 +5,8 @@
 # AUTHOR(S):    Huidae Cho
 # PURPOSE:      Calculates the longest flow paths for given outlet points.
 #
-# COPYRIGHT:    (C) 2014, 2017, 2018 by the GRASS Development Team
+# COPYRIGHT:    (C) 2014, 2017-2018, 2020 by Huidae Cho and the GRASS
+#               Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -110,7 +111,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
         p = grass.pipe_command("v.report", map=outlet, layer=layer,
                                option="coor")
         for line in p.stdout:
-            line = line.rstrip("\n")
+            line = line.decode().rstrip("\n")
             if line.startswith("cat|"):
                 colnames = line.split("|")
                 outletid_ind = -1
@@ -159,7 +160,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
         except CalledModuleError:
             grass.fatal(_("Cannot add a table to the output vector map"))
 
-    for i in range(0, len(coords) / 2):
+    for i in range(0, int(len(coords) / 2)):
         cat = i + 1
         coor = "%s,%s" % (coords[2*i], coords[2*i+1])
         if assign_id:
@@ -172,7 +173,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
         out = prefix + "out"
         p = grass.feed_command("v.in.ascii", overwrite=True,
                 input="-", output=out, separator=",")
-        p.stdin.write(coor)
+        p.stdin.write(coor.encode())
         p.stdin.close()
         p.wait()
         if p.returncode != 0:
@@ -199,7 +200,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
         p = grass.pipe_command("r.info", flags="r", map=flds)
         max = ""
         for line in p.stdout:
-            line = line.rstrip("\n")
+            line = line.decode().rstrip("\n")
             if line.startswith("max="):
                 max = line.split("=")[1]
                 break
@@ -244,7 +245,7 @@ def calculate_lfp(input, output, idcol, id, coords, outlet, layer, outletidcol):
         p = grass.pipe_command("v.to.db", flags="p", map=out, option="coor")
         coor = ""
         for line in p.stdout:
-            line = line.rstrip("\n")
+            line = line.decode().rstrip("\n")
             if line == "cat|x|y|z":
                 continue
             cols = line.split("|")
