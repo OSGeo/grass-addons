@@ -1,10 +1,10 @@
 <h2>DESCRIPTION:</h2>
 
-<em>r.slope.direction</em> computes slope as elevation difference devided by
+<em>r.slope.direction</em> computes slope as elevation difference divided by
 distance along a user given number of steps following a direction map.
 
 <p>Difference in altitude to the neighboring cell in the given direction is measured
-and devided by the distance (determined by north south and east west resolution
+and divided by the distance (determined by north south and east west resolution
 of the computational region). With the <b>steps</b> paramter the user
 can define how many steps along the direction map the algorithm should perform.
 For each step a temporary raster map is created. Thus, processing time is - in
@@ -17,7 +17,7 @@ The <b>method</b> defines the algorithm to be used for measuring slope
 <li><b>mean</b> measures slope as the average elevation difference over the user
 given number of steps along the direction map</li>
 <li><b>absolute_mean</b> measure like in the mean option but builds the average
-only only over the absolute values of elevation difference in each step</li>
+only over the absolute values of elevation difference in each step</li>
 <li><b>total_gradient</b> measures slope as the total elevation difference
 devided by the total distance over the user given number of steps along the
 direction map</li>
