@@ -86,11 +86,11 @@ def print_descriptions():
 
     # http://web.pdx.edu/~nauna/resources/9-accuracyassessment.pdf
     oa = ("Overall accuracy\nNumber of correct plots / total number of plots")
-    ua = ("User’s Accuracy\n"
+    ua = ("User Accuracy\n"
         + "* From the perspective of the user of the classified map, how accurate is the map?\n"
         + "* For a given class, how many of the pixels on the map are actually what they say they are?\n"
         + "* Calculated as: Number correctly identified in a given map class / Number claimed to be in that map class\n")
-    pa = ("Producer’s Accuracy\n"
+    pa = ("Producer Accuracy\n"
         + "* From the perspective of the maker of the classified map, how accurate is the map?\n"
         + "* For a given class in reference plots, how many of the pixels on the map are labeled correctly?\n"
         + "* Calculated as: Number correctly identified in ref. plots of a given class / Number actually in that reference class\n")
@@ -100,13 +100,13 @@ def print_descriptions():
         + "Errors of omission refer to reference sites that were left out "
         + "(or omitted) from the correct class in the classified map. The real"
         + " land cover type was left out or omitted from the classified map.\n"
-        + "Omission Error = 100 % - Producer's Accuracy")
+        + "Omission Error = 100 % - Producer Accuracy")
     com = ("Errors of Omission\n"
         + "These refer sites that are classified as to reference sites that were "
         + "left out (or omitted) from the correct class in the classified map. "
         + "Commission errors are calculated by reviewing the classified sites "
         + "for incorrect classifications.\n"
-        + "Commission Error = 100 % - User's Accuracy")
+        + "Commission Error = 100 % - User Accuracy")
 
     # http://www.iww.forst.uni-goettingen.de/doc/ckleinn/lehre/waldmess/Material/rs_06_accuracy%20assessment.pdf
     kap = ("Kappa coefficient\n"
@@ -148,7 +148,7 @@ def set_reference():
         }
         if options['label_column']:
             kwargs['label_column'] = options['label_column']
-        grass.run_command('v.to.rast', **kwargs, quiet=True)
+        grass.run_command('v.to.rast', quiet=True, **kwargs)
         refname = options['vector_reference'] + ' with column ' + options['column']
         # reset region
         grass.run_command('g.region', region=savedregion, quiet=True)
@@ -200,8 +200,8 @@ def get_r_kappa(classification, reference):
 
 def convert_output(classified_classes, ref_classes, confusionmatrix, overall_accuracy, user_accuracy, producer_accuracy, commission, omission, kappa, classification, refname):
     line1 = ["", ""]
-    ref_header = ref_classes.copy()
-    ref_header.extend(["User's Accuracy", "Commission Error"])
+    ref_header = list(ref_classes)
+    ref_header.extend(["User Accuracy", "Commission Error"])
     line1.extend(ref_header)
 
     line2 = ['Classified Map', classified_classes[0]]
@@ -220,7 +220,7 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
         lines.append(linei)
     producer_accuracy_list = [producer_accuracy[rc] for rc in ref_classes]
     commission_list = [commission[rc] for rc in classified_classes]
-    lineend1 = ["", "Producer's Accuracy"]
+    lineend1 = ["", "Producer Accuracy"]
     lineend1.extend(producer_accuracy_list)
     lineend1.extend(['Overall Accuracy', overall_accuracy])
     lineend2 = ["", "Commission Error"]
@@ -262,7 +262,7 @@ def main():
     if not flags['m']:
         grass.message("\nOverall accuracy: %f" % overall_accuracy)
 
-    # User’s Accuracy and Commission
+    # User Accuracy and Commission
     user_accuracy = {}
     commission = {}
     for i in range(errormatrix.shape[0] - 1):
@@ -272,9 +272,9 @@ def main():
         user_accuracy[classname] = dg / r * 100
         commission[classname] = 100 - user_accuracy[classname]
 
-    # print  User's Accuracy and Commission
+    # print  User Accuracy and Commission
     if not flags['m']:
-        grass.message("\nUser’s Accuracy: ")
+        grass.message("\nUser Accuracy: ")
     for key,item in user_accuracy.items():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
@@ -284,7 +284,7 @@ def main():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
 
-    # Producer’s Accuracy and Omission
+    # Producer Accuracy and Omission
     producer_accuracy = {}
     omission = {}
     # diag / unten
@@ -295,9 +295,9 @@ def main():
         producer_accuracy[classname] = dg / u * 100
         omission[classname] = 100 - producer_accuracy[classname]
 
-    # print Producer's Accuracy and Omission
+    # print Producer Accuracy and Omission
     if not flags['m']:
-        grass.message("\nProducer’s Accuracy: ")
+        grass.message("\nProducer Accuracy: ")
     for key,item in producer_accuracy.items():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
@@ -324,7 +324,7 @@ def main():
 
     # write csv file
     if csv_filename:
-        with open(csv_filename, 'w', newline='') as file:
+        with open(csv_filename, 'w') as file:
             writer = csv.writer(file)
             for line in lines:
                 writer.writerow(line)
