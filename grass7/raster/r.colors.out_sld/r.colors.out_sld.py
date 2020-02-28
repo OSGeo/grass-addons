@@ -26,7 +26,6 @@ http://docs.geoserver.org/stable/en/user/styling/sld/reference/rastersymbolizer.
 
 """
 To Dos:
-- add category support
 - add transparency support
 - support for intervalls ColorMap?
 """
@@ -105,7 +104,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = """<?xml version="1.0" encoding="UTF-8"?>
+    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0" 
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
     xmlns="http://www.opengis.net/sld" 
@@ -169,7 +168,7 @@ def main():
         print(sld)
     else:
         # Write SLD to file if requested
-        with open(output, 'w+') as o:
+        with open(output, 'wb+') as o:
             o.write(sld.encode('utf8'))
 
 if __name__ == "__main__":
