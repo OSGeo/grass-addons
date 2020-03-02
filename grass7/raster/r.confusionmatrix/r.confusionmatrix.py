@@ -101,8 +101,8 @@ def print_descriptions():
         + "(or omitted) from the correct class in the classified map. The real"
         + " land cover type was left out or omitted from the classified map.\n"
         + "Omission Error = 100 % - Producer Accuracy")
-    com = ("Errors of Omission\n"
-        + "These refer sites that are classified as to reference sites that were "
+    com = ("Commission Error\n"
+        + "Commission error refers to sites that are classified as to reference sites that were "
         + "left out (or omitted) from the correct class in the classified map. "
         + "Commission errors are calculated by reviewing the classified sites "
         + "for incorrect classifications.\n"
