@@ -246,7 +246,7 @@ def main():
         if not (classification and reference):
             return
     elif not (classification and reference):
-        grass.fatal(_("If not <-d> is set <classification> and <raster_reference> or <vector_reference> with <column> have to been set."))
+        grass.fatal(_("If <-d> is not set, <classification> and <raster_reference> or <vector_reference> with <column> must be set."))
 
     # r.kappa to get the errormatrix
     errormatrix, classified_classes, ref_classes = get_r_kappa(classification, reference)
