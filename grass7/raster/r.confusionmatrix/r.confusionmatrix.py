@@ -110,7 +110,7 @@ def print_descriptions():
 
     # http://www.iww.forst.uni-goettingen.de/doc/ckleinn/lehre/waldmess/Material/rs_06_accuracy%20assessment.pdf
     kap = ("Kappa coefficient\n"
-        + "Characterizing the degree of matching between reference data set and classication.\n"
+        + "It characterizes the degree of matching between reference data set and classification.\n"
         # + "In fact, it is a statistic that compares two matrices: here, it describes the difference between the agreement found in the actual matrix and the chance agreement given the same marginal frequencies:"
         + "Kappa = 0: indicates that obtained agreement equals chance agreement.\n"
         + "Kappa > 0: indicates that obtained agreement is greater than chance agreement.\n"
