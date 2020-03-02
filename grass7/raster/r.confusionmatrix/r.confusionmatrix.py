@@ -301,7 +301,7 @@ def main():
     for key,item in producer_accuracy.items():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
-    grass.message("\nOmission: ")
+    grass.message("\nOmission error: ")
     for key,item in omission.items():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
