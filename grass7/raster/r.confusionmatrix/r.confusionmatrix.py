@@ -279,7 +279,7 @@ def main():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
     if not flags['m']:
-        grass.message("\nCommission: ")
+        grass.message("\nCommission error: ")
     for key,item in commission.items():
         if not flags['m']:
             grass.message("%s: %f" % (key, item))
