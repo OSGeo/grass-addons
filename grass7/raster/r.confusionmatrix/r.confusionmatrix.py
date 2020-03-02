@@ -85,7 +85,7 @@ def print_descriptions():
     #http://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
 
     # http://web.pdx.edu/~nauna/resources/9-accuracyassessment.pdf
-    oa = ("Overall accuracy\nNumber of correct plots / total number of plots")
+    oa = ("Overall accuracy\nNumber of correct pixels / total number of pixels")
     ua = ("User Accuracy\n"
         + "* From the perspective of the user of the classified map, how accurate is the map?\n"
         + "* For a given class, how many of the pixels on the map are actually what they say they are?\n"
