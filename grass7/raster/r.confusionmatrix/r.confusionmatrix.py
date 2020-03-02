@@ -96,8 +96,8 @@ def print_descriptions():
         + "* Calculated as: Number correctly identified in ref. plots of a given class / Number actually in that reference class\n")
 
     # http://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
-    om = ("Errors of Omission\n"
-        + "Errors of omission refer to reference sites that were left out "
+    om = ("Omission Error\n"
+        + "Omission error refers to reference sites that were left out "
         + "(or omitted) from the correct class in the classified map. The real"
         + " land cover type was left out or omitted from the classified map.\n"
         + "Omission Error = 100 % - Producer Accuracy")
