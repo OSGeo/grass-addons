@@ -80,7 +80,7 @@ from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.script.utils import separator
 try:
-    from collections import OrderedDic
+    from collections import OrderedDict
 except:
     from types import DictType as OrderedDic
 import numpy as np
