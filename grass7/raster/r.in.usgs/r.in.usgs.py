@@ -25,7 +25,6 @@
 #% keyword: raster
 #% keyword: USGS
 #% keyword: NED
-#% keyword: NLCD
 #% keyword: NAIP
 #%end
 
@@ -37,7 +36,7 @@
 #%option
 #% key: product
 #% required: yes
-#% options: ned,nlcd,naip,lidar
+#% options: ned,naip,lidar
 #% label: USGS data product
 #% description: Available USGS data products to query
 #%end
@@ -62,28 +61,6 @@
 #% description: Available NED datasets to query
 #% descriptions: ned1sec;NED 1 arc-second;ned13sec;NED 1/3 arc-second;ned19sec;NED 1/9 arc-second
 #% guisection: NED
-#%end
-
-#%option
-#% key: nlcd_dataset
-#% required: no
-#% options: nlcd2001, nlcd2006, nlcd2011
-#% answer: nlcd2011
-#% label: NLCD dataset
-#% description: Available NLCD datasets to query
-#% descriptions: nlcd2001;National Land Cover Dataset - 2001;nlcd2006;National Land Cover Dataset - 2006;nlcd2011;National Land Cover Dataset - 2011
-#% guisection: NLCD
-#%end
-
-#%option
-#% key: nlcd_subset
-#% required: no
-#% options: landcover, impervious, canopy
-#% answer: landcover
-#% label: NLCD subset
-#% description: Available NLCD subsets to query
-#% descriptions: impervious;Percent Developed Imperviousness;canopy;Percent Tree Canopy;landcover;Land Cover
-#% guisection: NLCD
 #%end
 
 #%option
@@ -931,6 +908,8 @@ def main():
                 for i in ('1', '2', '3', '4'):
                     gscript.run_command('g.rename', raster=(patch_names[0] + '.' + i, gui_output_layer + '.' + i))
             elif gui_product == 'lidar':
+                if product_resolution:
+                    gscript.run_command('g.region', res=product_resolution, flags='a')
                 gscript.run_command('v.surf.rst', input=patch_names[0],
                                     elevation=gui_output_layer, nprocs=nprocs,
                                     **rst_params)
