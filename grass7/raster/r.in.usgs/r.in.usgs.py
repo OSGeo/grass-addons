@@ -931,6 +931,8 @@ def main():
                 for i in ('1', '2', '3', '4'):
                     gscript.run_command('g.rename', raster=(patch_names[0] + '.' + i, gui_output_layer + '.' + i))
             elif gui_product == 'lidar':
+                if product_resolution:
+                    gscript.run_command('g.region', res=product_resolution, flags='a')
                 gscript.run_command('v.surf.rst', input=patch_names[0],
                                     elevation=gui_output_layer, nprocs=nprocs,
                                     **rst_params)
