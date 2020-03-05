@@ -108,8 +108,9 @@ def main():
     categories = grass.pipe_command('v.category', input=input, option='print',
             quiet=True)
     for category in categories.stdout:
-        segment_input += 'P ' + category.strip()
-        segment_input += ' ' + category.strip() + ' 50%\n'
+        segment_input += 'P {}'.format(category.strip())
+        segment_input += ' {} {}'.format(category.strip(),' 50%')
+        segment_input += os.linesep
 
     grass.write_command('v.segment', input=input, output=tmp_centerpoints_map,
             rules='-', stdin=segment_input, quiet=True)
@@ -301,11 +302,11 @@ def main():
 
     # Create new line and write to file
     if median and nb_lines > 2:
-        line = geo.Line(zip(xmedian, ymedian))
+        line = geo.Line(list(zip(xmedian, ymedian)))
     else:
         if median and nb_lines <= 2:
             grass.message(_("More than 2 lines necesary for median, using mean."))
-        line = geo.Line(zip(xmean, ymean))
+        line = geo.Line(list(zip(xmean, ymean)))
 
     new = VectorTopo(output)
     new.open('w')
