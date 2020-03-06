@@ -209,7 +209,7 @@ def main():
                 modalclass_dict[ID] = 'NULL'
             else:
                 modalclass_dict[ID] = mode
-    # Classes proportions
+    # Class proportions
     if prop:
         # Get list of categories to output
         if classes_list:   # If list of classes provided by user
@@ -224,10 +224,11 @@ def main():
                 if flags['l'] and cl not in classes_list: # with flag -l, output will contain only classes from 'classes_list'
                     continue
                 if flags['p']:
-                    proportion_dict[ID][cl] = round(float(totals_dict[ID][cl]) / sum(totals_dict[ID].values())*100,decimals)
+                    prop_value = float(totals_dict[ID][cl]) / sum(totals_dict[ID].values())*100
                 else:
-                    proportion_dict[ID][cl] = round(float(totals_dict[ID][cl]) / sum(totals_dict[ID].values()),decimals)
-                if cl== '*':
+                    prop_value = float(totals_dict[ID][cl]) / sum(totals_dict[ID].values())
+                proportion_dict[ID][cl] = '{:.{}f}'.format(prop_value,decimals)
+                if cl == '*':
                     class_dict['NULL'] = ''
                 else:
                     class_dict[cl] = ''
@@ -245,7 +246,7 @@ def main():
             class_list = [int(k) for k in class_dict.keys()]    
             class_list.sort()
     gscript.verbose(_("Statistics computed..."))
-    # Set 'totals_dict' to None to release RAM
+    # Set 'totals_dict' to None to try RAM release
     totals_dict = None
     # OUTPUT CONTENT
     # Header
@@ -264,6 +265,7 @@ def main():
     value_dict = {}
     for ID in id_list:
         value_dict[ID] = []
+        value_dict[ID].append(ID)
         if mode:
                 value_dict[ID].append(modalclass_dict[ID])
         if prop:
@@ -274,7 +276,6 @@ def main():
         with open(csvfile, 'w', newline='') as outfile:
             writer = csv.writer(outfile, delimiter=separator)
             writer.writerow(header)
-            [value_dict[ID].insert(0,ID) for ID in value_dict]
             writer.writerows(value_dict.values())
     if vectormap:
         gscript.message(_("Creating output vector map..."))
@@ -294,7 +295,7 @@ def main():
                     fsql.write('DROP TABLE %s;' % temporary_vect)
                 else:
                     gscript.fatal(_("Table %s already exists. Use --o to overwrite") % temporary_vect)
-            create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int PRIMARY KEY);\n'
+            create_statement = 'CREATE TABLE %s (cat int PRIMARY KEY);\n' % temporary_vect
             fsql.write(create_statement)
             for col in header[1:]:
                 if col.split('_')[-1] == 'mode':  # Mode column should be integer
@@ -303,7 +304,7 @@ def main():
                     addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
                 fsql.write(addcol_statement)
             for key in value_dict:
-                    insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join([str(x) for x in value_dict[key]]))
+                    insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join(value_dict[key]))
                     fsql.write(insert_statement)
             fsql.write('END TRANSACTION;')
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
