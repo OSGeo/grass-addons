@@ -39,9 +39,6 @@
 #% answer: proportion,mode
 #% guisection: Statistics
 #%end
-#%rules
-#% required: raster,statistics
-#%end
 #%option
 #% key: prefix
 #% type: string
@@ -60,7 +57,7 @@
 #%option
 #% key: classes_list
 #% type: string
-#% label: List of classes to be considered in the calculation
+#% label: List of classes to be considered in the calculation, e.g. '21,34,35,56'
 #% required: no
 #% guisection: Statistics
 #%end
@@ -79,12 +76,13 @@
 #% required: no
 #% guisection: Output
 #%end
-#%rules
-#% required: csvfile,vectormap
-#%end
 #%flag
 #% key: r
 #% description: Adjust region to input map
+#%end
+#%flag
+#% key: c
+#% description: Force check of input's layer type
 #%end
 #%flag
 #% key: n
@@ -97,9 +95,14 @@
 #% guisection: Statistics
 #%end
 #%flag
-#% key: c
-#% description: Force check of input's layer type
+#% key: l
+#% description: Compute statistics only for the classes provided in 'classes_list' parameter
 #% guisection: Statistics
+#%end
+#%rules
+#% required: csvfile,vectormap
+#% required: raster,statistics
+#% requires: -l, classes_list
 #%END
 
 import os
@@ -142,7 +145,6 @@ def main():
     prefix = options['prefix'] if options['prefix'] else []
     classes_list = options['classes_list'].split(',') if options['classes_list'] else []
     vectormap = options['vectormap'] if options['vectormap'] else []
-
     prop = False if 'proportion' not in options['statistics'].split(',') else True
     mode = False if 'mode' not in options['statistics'].split(',') else True
     
@@ -184,9 +186,11 @@ def main():
     # Total pixels per category per zone
     totals_dict = {}
     for row in reader:
-        if row[0] not in totals_dict: # Will pass the condition only if the current zone ID does not exists in the dictionary
+        if row[0] not in totals_dict: # Will pass the condition only if the current zone ID does not exists yet in the dictionary
             totals_dict[row[0]] = {} # Declare a new embedded dictionnary for the current zone ID
-        if classes_list and row[1] in classes_list:  # Will pass only if 'classes_list' is provided and if the class is in the 'classes_list'
+        if flags['l'] and row[1] in classes_list:  # Will pass only if flag -l is active and if the current class is in the 'classes_list'
+            totals_dict[row[0]][row[1]] = int(row[2])
+        else:
             totals_dict[row[0]][row[1]] = int(row[2])
     # Delete key '*' in 'totals_dict' that could append if there are null values on the zone raster
     if '*' in totals_dict:
@@ -208,8 +212,8 @@ def main():
     # Classes proportions
     if prop:
         # Get list of categories to output
-        if classes_list:   #If list of classes provided by user
-            class_dict = {str(a):'' for a in classes_list}  #To be sure it's string format
+        if classes_list:   # If list of classes provided by user
+            class_dict = {str(int(a)):'' for a in classes_list}  #To be sure it's string format
         else:
             class_dict = {}
         # Proportion of each category per zone
@@ -217,6 +221,8 @@ def main():
         for ID in id_list:
             proportion_dict[ID] = {}
             for cl in totals_dict[ID]:
+                if flags['l'] and cl not in classes_list: # with flag -l, output will contain only classes from 'classes_list'
+                    continue
                 if flags['p']:
                     proportion_dict[ID][cl] = round(float(totals_dict[ID][cl]) / sum(totals_dict[ID].values())*100,decimals)
                 else:
@@ -230,7 +236,7 @@ def main():
             for cl in class_dict:
                 if cl not in proportion_dict[ID].keys():
                     proportion_dict[ID][cl] = '{:.{}f}'.format(0,decimals)
-        # Get list of class sorted by value (arithmetic)
+        # Get list of class sorted by value (arithmetic ordering)
         if 'NULL' in class_dict.keys():
             class_list = [int(k) for k in class_dict.keys() if k != 'NULL']
             class_list.sort()
@@ -265,12 +271,11 @@ def main():
                 value_dict[ID].append(proportion_dict[ID]['%s'%cl])
     # WRITE OUTPUT
     if csvfile:
-        outfile = open(csvfile, 'w')
-        writer = csv.writer(outfile, delimiter=separator)
-        writer.writerow(header)
-        [value_dict[ID].insert(0,ID) for ID in value_dict]
-        writer.writerows(value_dict.values())
-        outfile.close()
+        with open(csvfile, 'w', newline='') as outfile:
+            writer = csv.writer(outfile, delimiter=separator)
+            writer.writerow(header)
+            [value_dict[ID].insert(0,ID) for ID in value_dict]
+            writer.writerows(value_dict.values())
     if vectormap:
         gscript.message(_("Creating output vector map..."))
         temporary_vect = 'rzonalclasses_tmp_vect_%d' % os.getpid()
@@ -282,26 +287,25 @@ def main():
                             overwrite=True,
                             quiet=True)
         insert_sql = gscript.tempfile()
-        fsql = open(insert_sql, 'w')
-        fsql.write('BEGIN TRANSACTION;\n')
-        if gscript.db_table_exist(temporary_vect):
-            if gscript.overwrite():
-                fsql.write('DROP TABLE %s;' % temporary_vect)
-            else:
-                gscript.fatal(_("Table %s already exists. Use --o to overwrite") % temporary_vect)
-        create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int PRIMARY KEY);\n'
-        fsql.write(create_statement)
-        for col in header[1:]:
-            if col.split('_')[-1] == 'mode':  # Mode column should be integer
-                addcol_statement = 'ALTER TABLE %s ADD COLUMN %s integer;\n' % (temporary_vect, col)
-            else: # Proportions column should be double precision
-                addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
-            fsql.write(addcol_statement)
-        for key in value_dict:
-                insert_statement = 'INSERT INTO %s VALUES (%s, %s);\n' % (temporary_vect, key, ','.join([str(x) for x in value_dict[key]]))
-                fsql.write(insert_statement)
-        fsql.write('END TRANSACTION;')
-        fsql.close()
+        with open(insert_sql, 'w', newline='') as fsql:
+            fsql.write('BEGIN TRANSACTION;\n')
+            if gscript.db_table_exist(temporary_vect):
+                if gscript.overwrite():
+                    fsql.write('DROP TABLE %s;' % temporary_vect)
+                else:
+                    gscript.fatal(_("Table %s already exists. Use --o to overwrite") % temporary_vect)
+            create_statement = 'CREATE TABLE ' + temporary_vect + ' (cat int PRIMARY KEY);\n'
+            fsql.write(create_statement)
+            for col in header[1:]:
+                if col.split('_')[-1] == 'mode':  # Mode column should be integer
+                    addcol_statement = 'ALTER TABLE %s ADD COLUMN %s integer;\n' % (temporary_vect, col)
+                else: # Proportions column should be double precision
+                    addcol_statement = 'ALTER TABLE %s ADD COLUMN %s double precision;\n' % (temporary_vect, col)
+                fsql.write(addcol_statement)
+            for key in value_dict:
+                    insert_statement = 'INSERT INTO %s VALUES (%s);\n' % (temporary_vect, ','.join([str(x) for x in value_dict[key]]))
+                    fsql.write(insert_statement)
+            fsql.write('END TRANSACTION;')
         gscript.run_command('db.execute', input=insert_sql, quiet=True)
         gscript.run_command('v.db.connect', map_=temporary_vect, table=temporary_vect, quiet=True)
         gscript.run_command('g.copy', vector='%s,%s' % (temporary_vect, vectormap), quiet=True)
