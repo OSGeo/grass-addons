@@ -422,7 +422,17 @@ int main(int argc, char *argv[])
         accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
     }
 
-    /* write out buffer to the accumulatoin map if requested */
+    /* free buffer memory */
+    for (row = 0; row < rows; row++) {
+        G_free(done[row]);
+        if (weight_name)
+            G_free(weight_buf.map.v[row]);
+    }
+    G_free(done);
+    if (weight_name)
+        G_free(weight_buf.map.v);
+
+    /* write out buffer to the accumulation map if requested */
     if (accum_name) {
         int accum_fd = Rast_open_new(accum_name, accum_buf.type);
         struct History hist;
@@ -442,16 +452,6 @@ int main(int argc, char *argv[])
         Rast_command_history(&hist);
         Rast_write_history(accum_name, &hist);
     }
-
-    /* free buffer memory */
-    for (row = 0; row < rows; row++) {
-        G_free(done[row]);
-        if (weight_name)
-            G_free(weight_buf.map.v[row]);
-    }
-    G_free(done);
-    if (weight_name)
-        G_free(weight_buf.map.v);
 
     /* delineate stream networks */
     if (stream_name) {
