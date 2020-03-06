@@ -16,7 +16,7 @@
 #############################################################################
 #
 # REQUIREMENTS: richdem
- 
+
 # More information
 # Started June 2019
 
@@ -57,14 +57,7 @@ import numpy as np
 from grass import script as gscript
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
-# RICHDEM
-try:
-    import richdem as rd
-except:
-    g.message(flags='e', message=('RichDEM not detected. Install pip3 and '+
-                                  'then type at the command prompt: '+
-                                  '"pip3 install richdem".'))
-        
+
 ###############
 # MAIN MODULE #
 ###############
@@ -73,22 +66,28 @@ def main():
     """
     RichDEM depression breaching
     """
-    
+    # lazy import RICHDEM
+    try:
+        import richdem as rd
+    except:
+        g.message(flags='e', message=('RichDEM not detected. Install pip3 and '+
+                                      'then type at the command prompt: '+
+                                      '"pip3 install richdem".'))
+
     options, flags = gscript.parser()
     _input = options['input']
     _output = options['output']
     _topology = options['topology']
-    
+
     dem = garray.array()
     dem.read(_input, null=np.nan)
-    
+
     rd_inout = rd.rdarray(dem, no_data=np.nan)
     rd.BreachDepressions(dem=rd_inout, in_place=True,
                        topology=_topology)
-    
+
     dem[:] = rd_inout[:]
     dem.write(_output, overwrite=gscript.overwrite())
 
 if __name__ == "__main__":
     main()
-    
