@@ -358,7 +358,9 @@ def main():
                 reach_x_end = float(reach_x2s[reach_cats == _cat])
                 reach_y_end = float(reach_y2s[reach_cats == _cat])
                 reach_order_cats.append(_cat)
-        print len(reach_order_cats), len(reach_cats[rsel])
+        _message = str(len(reach_order_cats)) + ' ' + \
+                   str(len(reach_cats[rsel]))
+        gscript.message( _message )
           
         # Reach order to database table
         reach_number__reach_order_cats = []

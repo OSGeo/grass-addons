@@ -267,7 +267,7 @@ def main():
             # expand dimensions so code below works
             if _xys.ndim < 2:
                 _xys = np.expand_dims(_xys, axis=0)
-            print _xys
+            gscript.message(_xys)
             for _cell_coords in _xys:
                 _y, _x = _cell_coords
                 outstr = 'boundary_condition_pt: row_i '+_y+' col_i '+_x
