@@ -1,9 +1,10 @@
 <h2>DESCRIPTION:</h2>
-<em>r.slope.direction</em> computes slope as elevation difference devided by
+
+<em>r.slope.direction</em> computes slope as elevation difference divided by
 distance along a user given number of steps following a direction map.
 
 <p>Difference in altitude to the neighboring cell in the given direction is measured
-and devided by the distance (determined by north south and east west resolution
+and divided by the distance (determined by north south and east west resolution
 of the computational region). With the <b>steps</b> paramter the user
 can define how many steps along the direction map the algorithm should perform.
 For each step a temporary raster map is created. Thus, processing time is - in
@@ -16,7 +17,7 @@ The <b>method</b> defines the algorithm to be used for measuring slope
 <li><b>mean</b> measures slope as the average elevation difference over the user
 given number of steps along the direction map</li>
 <li><b>absolute_mean</b> measure like in the mean option but builds the average
-only only over the absolute values of elevation difference in each step</li>
+only over the absolute values of elevation difference in each step</li>
 <li><b>total_gradient</b> measures slope as the total elevation difference
 devided by the total distance over the user given number of steps along the
 direction map</li>
@@ -28,6 +29,7 @@ direction map</li>
 The following examples are based on the North Carolina dataset!
 
 <h3>Slope following a flow direction raster at different scales</h3>
+
 <div class="code"><pre>
 # Set the computational region
 g.region -p raster=elevation
@@ -38,7 +40,6 @@ r.watershed elevation=elevation accumulation=faccum drainage=fdir
 r.slope.direction --o --v elevation=elevation direction=fdir \
 steps=1,5,13 output=fdir_slope_1,fdir_slope_5,fdir_slope_13 \
 method=total_gradient format=percent scale=3 type=CELL
-
 </pre></div>
 
 <table>
@@ -169,13 +170,17 @@ alt="Slope following street direction for 13 pixels" border="0">
 </table>
 
 <h2>SEE ALSO</h2>
-<a href="r.mapcalc.html">r.mapcalc</a>
-<a href="r.path.html">r.path</a>
-<a href="r.slope.aspect.html">r.slope.aspect</a>
+
+<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.path.html">r.path</a>,
+<a href="r.slope.aspect.html">r.slope.aspect</a>,
 <a href="r.stream.slope.html">r.stream.slope</a>
 
 <h2>AUTHOR</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
-Written for the INVAFISH project (RCN MILJØFORSK grant 243910)
+Written for the INVAFISH project (RCN MILJ&Oslash;FORSK grant 243910)
 
-<p><i>Last changed: $Date: 2018-09-12 14:50:50 +0200 (Wed, 12 Sep 2018) $</i>
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->

@@ -26,7 +26,7 @@ GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
 GW_LARGE_INT heap_size;
 int n_sinks;
 int n_mod_max, size_max;
-int do_all, keep_nat, nat_thresh;
+int do_all, force_filling, force_carving, keep_nat, nat_thresh;
 GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 struct point *outlets;
 struct sink_list *sinks, *first_sink;
@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
 	struct Option *mod_max;
 	struct Option *size_max;
 	struct Flag *do_all;
+	struct Flag *force_filling;
+	struct Flag *force_carving;
     } output;
     struct GModule *module;
     int ele_fd, ele_map_type, depr_fd;
@@ -131,6 +133,20 @@ int main(int argc, char *argv[])
 	  "the result will not be 100% hydrologically correct."
 	  "Use this flag to override default."));
 
+    output.force_filling = G_define_flag();
+    output.force_filling->key = 'f';
+    output.force_filling->label = (_("Fill sinks."));
+    output.force_filling->description =
+	(_("By default a least impact approach is used to modify the DEM."
+	  "Use this flag to force filling of sinks."));
+
+    output.force_carving = G_define_flag();
+    output.force_carving->key = 'c';
+    output.force_carving->label = (_("Carve out of sinks."));
+    output.force_carving->description =
+	(_("By default a least impact approach is used to modify the DEM."
+	  "Use this flag to force carving out of sinks."));
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -172,6 +188,18 @@ int main(int argc, char *argv[])
 			  n_mod_max);
 	G_verbose_message(_("All sinks not larger than %d cells will be removed."),
 			  size_max);
+    }
+
+    force_filling = output.force_filling->answer;
+
+    if (force_filling) {
+	G_verbose_message(_("Least impact approach is disabled, sinks will be filled."));
+    }
+
+    force_carving = output.force_carving->answer;
+
+    if (force_carving) {
+	G_verbose_message(_("Least impact approach is disabled, sinks will be removed by carving."));
     }
 
     /*********************/

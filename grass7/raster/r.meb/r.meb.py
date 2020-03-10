@@ -122,6 +122,12 @@ import tempfile
 import string
 import grass.script as gs
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 # Rules
 COLORS_MES = """\
 0% 244:109:67

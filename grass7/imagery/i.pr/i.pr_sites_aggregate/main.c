@@ -24,7 +24,7 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include "global.h"
-#include <grass/Vect.h>
+#include <grass/vector.h>
 
 
 #define MAXPNTS 1000
@@ -82,7 +82,9 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to aggregate sites. "
 	  "i.pr: Pattern Recognition environment for image processing. Includes kNN, "

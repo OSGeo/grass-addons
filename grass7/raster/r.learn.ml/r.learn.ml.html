@@ -42,6 +42,10 @@
 g.region raster=landclass96 -p
 r.random input=landclass96 npoints=1000 raster=landclass96_roi
 </pre></div>
+<p>Next, we create the imagery group with all Landsat 7 (2000) bands:</p>
+<div class="code"><pre>
+i.group group=lsat7_2000 input=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_61,lsat7_2002_62,lsat7_2002_70,lsat7_2002_80
+</pre></div>
 <p>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:</p>
 <div class="code"><pre>
 r.learn.ml group=lsat7_2000 trainingmap=landclass96_roi output=rf_classification \
@@ -56,11 +60,18 @@ r.category rf_classification
 <center>
 <img src="rfclassification.png" alt="Random forest classification result">
 </center>
+
 <h2>ACKNOWLEDGEMENTS</h2>
 <p>Thanks for Paulo van Breugel and Vaclav Petras for testing.</p>
+
 <h2>REFERENCES</h2>
 <p>Brenning, A. 2012. Spatial cross-validation and bootstrap for the assessment of prediction rules in remote sensing: the R package 'sperrorest'. 2012 IEEE International Geoscience and Remote Sensing Symposium (IGARSS), 23-27 July 2012, p. 5372-5375.</p>
 <p>Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.</p>
+
 <h2>AUTHOR</h2>
 Steven Pawley
-<p><em>Last changed: $Date$</em></p>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->

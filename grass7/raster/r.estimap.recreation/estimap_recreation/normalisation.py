@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-@author Nikos Alexandris |
+@author Nikos Alexandris
 """
 
 from __future__ import division
@@ -15,8 +12,8 @@ from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 
-from estimap_recreation.constants import *
-from estimap_recreation.grassy_utilities import *
+from .constants import *
+from .grassy_utilities import *
 
 
 def zerofy_small_values(raster, threshhold, output_name):
@@ -90,9 +87,13 @@ def normalize_map(raster, output_name):
     grass.debug(_("Maximum: {m}".format(m=maximum)))
 
     if minimum is None or maximum is None:
-        msg = "Minimum and maximum values of the <{raster}> map are 'None'. "
-        msg += "The {raster} map may be empty "
-        msg += "OR the MASK opacifies all non-NULL cells."
+        msg = "Minimum and maximum values of the <{raster}> map are 'None'.\n"
+        msg += "=========================================== \n"
+        msg += "Possible sources for this erroneous case are: "
+        msg += "\n  - the <{raster}> map is empty "
+        msg += "\n  - the MASK opacifies all non-NULL cells "
+        msg += "\n  - the region is not correctly set\n"
+        msg += "=========================================== "
         grass.fatal(_(msg.format(raster=raster)))
 
     normalisation = "float(({raster} - {minimum}) / ({maximum} - {minimum}))"
@@ -109,7 +110,6 @@ def normalize_map(raster, output_name):
         result=output_name, expression=normalisation
     )
     grass.mapcalc(normalisation_equation, overwrite=True)
-
     get_univariate_statistics(output_name)
 
 
@@ -143,7 +143,7 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
     --------
     ...
     """
-    msg = "Normalising sum of: "
+    msg = " * Normalising sum of: "
     msg += ",".join(components)
     grass.debug(_(msg))
     grass.verbose(_(msg))
@@ -174,7 +174,7 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
         tmp_output = temporary_filename(filename=tmp_intermediate)
 
     if threshhold > THRESHHOLD_ZERO:
-        msg = "Setting values < {threshhold} in '{raster}' to zero"
+        msg = " * Setting values < {threshhold} in '{raster}' to zero"
         grass.verbose(msg.format(threshhold=threshhold, raster=tmp_intermediate))
         zerofy_small_values(tmp_intermediate, threshhold, tmp_output)
 

@@ -117,12 +117,14 @@ int main(int argc, char *argv[])
     iter_opt->type = TYPE_INTEGER;
     iter_opt->answer = "100";
     iter_opt->required = NO;
+    iter_opt->description = _("Maximum number of iterations");
 
     threshold_opt = G_define_option();
     threshold_opt->key = "threshold";
     threshold_opt->type = TYPE_DOUBLE;
     threshold_opt->answer = "1e-8";
     threshold_opt->required = NO;
+    threshold_opt->description = _("Threshold for iterations");
 
     memory_opt = G_define_option();
     memory_opt->key = "memory";

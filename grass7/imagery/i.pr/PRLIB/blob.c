@@ -10,12 +10,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include "global.h"
 
 static void add_points_to_blob();
 static int in_blob();
 
-void extract_sites_from_blob(Blob * blobs, int npoints, Blob * blobs,
+void extract_sites_from_blob(Blob * blobs, int npoints, int nblobs,
 			     struct Cell_head *cellhd, BlobSites * sites,
 			     double **matrix)
 
@@ -99,7 +100,7 @@ void find_blob(double **matrix, int r, int c, Blob ** blobs, int *npoints,
     }
 }
 
-static void add_points_to_blob(Blob *** blobs, int *npoints, Blob *** blobs,
+static void add_points_to_blob(Blob *** blobs, int *npoints, int nblobs,
 			       double **matrix, int r, int c, int i, int j,
 			       double tm, double tM)
 {

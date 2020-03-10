@@ -8,7 +8,7 @@
  * PURPOSE:      Calculates weighted flow accumulation, stream networks, and
  *               the longest flow path using a flow direction map.
  *
- * COPYRIGHT:    (C) 2018 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -283,17 +283,16 @@ int main(int argc, char *argv[])
         struct field_info *Fi;
         struct line_pnts *Points;
         struct line_cats *Cats;
-        int field, type;
+        int field;
         int nlines, line, n;
 
         if (Vect_open_old2(&Map, outlet_name, "", outlet_layer) < 0)
             G_fatal_error(_("Unable to open vector map <%s>"), outlet_name);
 
         field = Vect_get_field_number(&Map, outlet_layer);
-        type = Vect_get_num_dblinks(&Map) > 1 ? GV_MTABLE : GV_1TABLE;
 
         if (outlet_idcol) {
-            Fi = Vect_default_field_info(&Map, field, NULL, type);
+            Fi = Vect_get_field(&Map, field);
             driver =
                 db_start_driver_open_database(Fi->driver,
                                               Vect_subst_var(Fi->database,
@@ -423,7 +422,17 @@ int main(int argc, char *argv[])
         accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
     }
 
-    /* write out buffer to the accumulatoin map if requested */
+    /* free buffer memory */
+    for (row = 0; row < rows; row++) {
+        G_free(done[row]);
+        if (weight_name)
+            G_free(weight_buf.map.v[row]);
+    }
+    G_free(done);
+    if (weight_name)
+        G_free(weight_buf.map.v);
+
+    /* write out buffer to the accumulation map if requested */
     if (accum_name) {
         int accum_fd = Rast_open_new(accum_name, accum_buf.type);
         struct History hist;
@@ -443,16 +452,6 @@ int main(int argc, char *argv[])
         Rast_command_history(&hist);
         Rast_write_history(accum_name, &hist);
     }
-
-    /* free buffer memory */
-    for (row = 0; row < rows; row++) {
-        G_free(done[row]);
-        if (weight_name)
-            G_free(weight_buf.map.v[row]);
-    }
-    G_free(done);
-    if (weight_name)
-        G_free(weight_buf.map.v);
 
     /* delineate stream networks */
     if (stream_name) {

@@ -542,8 +542,8 @@ static int takeStep(int i1, int i2, SupportVectorMachine * SVM)
 }
 
 static int distance_from_span_sv(double **M, double *m, int n, double Const,
-				 double **H, double *h, double **H,
-				 double **K, double *k, double **K,
+				 double **H, double *h, int mH,
+				 double **K, double *k, int mK,
 				 double eps, double threshold)
 {
     int i, j, l;
@@ -1389,7 +1389,7 @@ void write_bagging_boosting_svm(char *file, BSupportVectorMachine * bsvm,
 
 void compute_svm_boosting(BSupportVectorMachine * bsvm, int boosting,
 			  double w, int nsamples, int nvar, double **data,
-			  int *data_class, int *classes, int *classes,
+			  int *data_class, int nclasses, int *classes,
 			  int svm_kernel, double kp, double C, double tol,
 			  double svm_eps, int maxloops, int svm_verbose,
 			  double *svm_W, int weights_boosting)

@@ -164,6 +164,7 @@ def main():
     extraction_method = options['extraction_method']
     unmixing_method = options['unmixing_method']
     atgp_init = True if not flags['n'] else False
+    overwrite = gs.overwrite()
 
     # List maps in imagery group
     try:
@@ -350,7 +351,7 @@ def main():
         # Write results
         for l in range(endmember_n):
             rastname = '{0}_{1}'.format(prefix, l + 1)
-            r.numpy2raster(result[:,:,l], 'FCELL', rastname)
+            r.numpy2raster(result[:,:,l], 'FCELL', rastname, overwrite=overwrite)
 
 # Run the module
 if __name__ == "__main__":

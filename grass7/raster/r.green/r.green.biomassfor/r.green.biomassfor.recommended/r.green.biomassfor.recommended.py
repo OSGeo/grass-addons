@@ -140,7 +140,7 @@ def main(opts, flgs):
 
     #check if the raster of rivers is present with a buffer inserted
     if (buffer_hydro>0 and rivers==""):
-        print "if the river buffer is greater than zero, the raster map of rivers is required"
+        print("if the river buffer is greater than zero, the raster map of rivers is required")
         return
 
     #recovery of the series of raster constraint maps
@@ -192,7 +192,7 @@ def main(opts, flgs):
 
 
     if check_var==0:
-        print "Error: At least one constraint map must be inserted"
+        print("Error: At least one constraint map must be inserted")
         return
     else:
         #if at least one contraint is inserted process the potential map
@@ -233,8 +233,8 @@ def main(opts, flgs):
     with RasterRow(rec_bioenergy) as pT:
         T = np.array(pT)
 
-    print "Resulted maps: "+output+"_rec_bioenergyHF, "+output+"_rec_bioenergyC, "+output+"_rec_bioenergy"
-    print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
+    print("Resulted maps: "+output+"_rec_bioenergyHF, "+output+"_rec_bioenergyC, "+output+"_rec_bioenergy")
+    print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
     #print "Resulted maps: "+output+"_rec_bioenergyHF, "+output+"_rec_bioenergyC, "+output+"_rec_bioenergy"
 

@@ -470,6 +470,9 @@ int hydro_con(void)
 	    down_uphill + down_downhill <= n_to_fill)
 	    force_carve = 0;
 
+	if (force_carving)
+	    force_carve = 1;
+
 	/************************************/
 	/* apply selected correction method */
 	/************************************/
@@ -480,6 +483,12 @@ int hydro_con(void)
 	    carve(first_sink->r, first_sink->c, bottom_ele,
 	          peak_r, peak_c);
 	    n_carved++;
+	}
+	else if (force_filling) {
+	    G_debug(1, "force filling sinks");
+	    /* find spill point and its elevation */
+	    fill_sink(peak_r, peak_c, peak_ele);
+	    n_filled++;
 	}
 	/* impact reduction algorithm */
 	else if (!skipme) {

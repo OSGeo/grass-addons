@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include "global.h"
 
@@ -95,7 +96,9 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to classify raster map based on model defined in i.pr.* modules. "
 	 "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
@@ -199,7 +202,7 @@ int main(int argc, char *argv[])
     /*open the input maps */
     n_input_map = 0;
     for (l = 0; opt1->answers[l]; l++) {
-	if ((mapset = G_find_cell2(opt1->answers[l], "")) == NULL) {
+	if ((mapset = (char *)G_find_raster2(opt1->answers[l], "")) == NULL) {
 	    sprintf(tmpbuf, "raster map [%s] not available",
 		    opt1->answers[l]);
 	    G_fatal_error(tmpbuf);
@@ -241,11 +244,7 @@ int main(int argc, char *argv[])
 			       sizeof(DCELL));
 	tf = rowbuf;
 	for (l = 0; l < features.training.nlayers; l++) {
-	    if (Rast_get_d_row(fd[l], tf, r) < 0) {
-		sprintf(tmpbuf, "Error reading raster map <%s>\n",
-			opt1->answers[l]);
-		G_fatal_error(tmpbuf);
-	    }
+	    Rast_get_d_row(fd[l], tf, r);
 	    for (c = 0; c < cellhd.cols; c++) {
 		if (Rast_is_d_null_value(tf))
 		    *tf = 0.0;
@@ -412,11 +411,7 @@ int main(int argc, char *argv[])
 		rowbuf = (DCELL *) G_calloc(cellhd.cols, sizeof(DCELL));
 		tf = rowbuf;
 
-		if (Rast_get_d_row(fd[l], tf, r) < 0) {
-		    sprintf(tmpbuf, "Error reading raster map <%s>\n",
-			    opt1->answers[l]);
-		    G_fatal_error(tmpbuf);
-		}
+		Rast_get_d_row(fd[l], tf, r);
 		for (c = 0; c < cellhd.cols; c++) {
 		    if (Rast_is_d_null_value(tf))
 			*tf = 0.0;

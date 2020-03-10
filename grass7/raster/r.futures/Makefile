@@ -2,14 +2,12 @@ MODULE_TOPDIR =../..
 
 PGM = r.futures
 
-SUBDIRS = \
-		r.futures.calib \
-		r.futures.devpressure \
-		r.futures.demand \
-		r.futures.potential \
-		r.futures.potsurface \
-		r.futures.parallelpga \
-		r.futures.pga
+# note: to deactivate a module, just place a file "DEPRECATED" into the subdir
+ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
+DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
+RM_SUBDIRS := bin/ docs/ etc/ scripts/
+SUBDIRS_1 := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
+SUBDIRS := $(filter-out $(RM_SUBDIRS), $(SUBDIRS_1))
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

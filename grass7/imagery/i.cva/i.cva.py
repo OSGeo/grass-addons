@@ -2,10 +2,10 @@
 #
 ############################################################################
 #
-# MODULE:	i.cva
+# MODULE:	    i.cva
 # AUTHOR(S):	Anna Zanchetta
 #
-# PURPOSE:	Performs Change Vector Analysis (CVA) in two dimensions
+# PURPOSE:	    Performs Change Vector Analysis (CVA) in two dimensions
 #
 # COPYRIGHT:	(C) 2016 by Anna Zanchetta and the GRASS Development Team
 #
@@ -185,6 +185,20 @@ def main():
     else:
         grass.message(_("No threshold given, only angle and magnitude maps have been created"))
 
+    # anglemap_class: set colors
+    iva_colors = '1 217 255 0\n2 10 214 10\n3 75 173 255\n4 139 105 20\nnv 255 255 255\ndefault 255 255 255'
+    p = grass.feed_command('r.colors', map=anglemap_class, rules='-')
+    p.stdin.write(iva_colors.encode())
+    p.stdin.close()
+
+    # anglemap_class: set categories
+    rules = ['1:moisture reduction',
+            '2:chlorophyll increase',
+            '3:moisture increase',
+            '4:bare soil increase']
+    p = grass.feed_command('r.category', map=anglemap_class, rules='-', separator=':')
+    p.stdin.write(('\n'.join(rules)).encode())
+    p.stdin.close()
 
     return 0
 

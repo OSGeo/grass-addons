@@ -62,6 +62,12 @@ import numpy as np
 import tempfile
 import grass.script as grass
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 # main function
 def main():
 

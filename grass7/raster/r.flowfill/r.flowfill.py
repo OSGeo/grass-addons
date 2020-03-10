@@ -98,13 +98,20 @@
 # PYTHON
 import os
 import numpy as np
-from netCDF4 import Dataset
 import subprocess
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import general as g
+
+# netCDF4
+try:
+    from netCDF4 import Dataset
+except:
+    g.message(flags='e', message=('netCDF4 not detected. Install pip3 and '+
+                                  'then type at the command prompt: '+
+                                  '"pip3 install netCDF4".'))
         
 ###############
 # MAIN MODULE #
@@ -230,23 +237,23 @@ def main():
               str(n_columns)+' '+str(n_rows)+' '+\
               str(_threshold)+' '+temp_FlowFill_output_file+' '+\
               _runoff_bool+' '+temp_FlowFill_runoff_file+' '+_ties
-    print ''
-    print 'Sending command to FlowFill:'
-    print mpirunstr
-    print ''
+    print('')
+    print('Sending command to FlowFill:')
+    print(mpirunstr)
+    print('')
     
     _mpirun_error_flag = False
     
     popen = subprocess.Popen(mpirunstr, stdout=subprocess.PIPE, 
                              shell=True, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
-        print stdout_line,
+        print(stdout_line),
         if 'mpirun was unable to find the specified executable file' in \
                                       stdout_line:
             _mpirun_error_flag = True
     popen.stdout.close()
     if _mpirun_error_flag:
-        print ''
+        print('')
         g.message(flags='e', message='FlowFill executable not found.\n'+
               'If you have not installed FlowFill, please download it '+
               'from https://github.com/KCallaghan/FlowFill, '+
@@ -263,7 +270,7 @@ def main():
     #                              ''.join(_stdout.stdout.readlines()):
     #else:
     #    g.message('FlowFill Executable Found.')
-    #    print ''
+    #    print('')
 
     
     #subprocess.Popen(mpirunstr, shell=True).wait()
@@ -294,4 +301,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+

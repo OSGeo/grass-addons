@@ -1,1 +1,3 @@
-pytest >= 4.0
+pytest
+pytest-xdist
+ruamel.yaml

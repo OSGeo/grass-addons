@@ -6,6 +6,7 @@
    structure Feature management
  */
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include "global.h"
 #include <stdlib.h>
 #include <string.h>
@@ -182,8 +183,8 @@ void compute_features(Features * features)
 	    switch (features->training.data_type) {
 	    case GRASS_data:
 		fprintf(stdout, "%s\n", features->training.mapnames[i][j]);
-		if ((mapset =
-		     G_find_cell(features->training.mapnames[i][j],
+		if ((mapset = (char *)
+		     G_find_raster(features->training.mapnames[i][j],
 				 "")) == NULL) {
 		    sprintf(tempbuf,
 			    "compute_features-> Can't find raster map <%s>",
@@ -889,7 +890,7 @@ void read_features(char *file, Features * features, int npc)
     for (i = 0; i < features->nclasses; i++) {
 	sscanf(line, "%d", &(features->p_classes[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
     if (!features->f_standardize[0]) {
@@ -907,13 +908,13 @@ void read_features(char *file, Features * features, int npc)
 	for (i = 0; i < features->f_standardize[1]; i++) {
 	    sscanf(line, "%lf", &(features->mean[i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	line = GetLine(fp);
 	for (i = 0; i < features->f_standardize[1]; i++) {
 	    sscanf(line, "%lf", &(features->sd[i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
     }
 
@@ -949,7 +950,7 @@ void read_features(char *file, Features * features, int npc)
 	    for (j = 0; j < features->examples_dim; j++) {
 		sscanf(line, "%lf", &(features->value[i][j]));
 		line = (char *)strchr(line, '\t');
-		*line++;
+		line++;
 	    }
 	    sscanf(line, "%d", &(features->class[i]));
 	}
@@ -1012,7 +1013,7 @@ void read_features(char *file, Features * features, int npc)
 		    sscanf(line, "%lf", &(features->value[i][index++]));
 		}
 		line = (char *)strchr(line, '\t');
-		*line++;
+		line++;
 	    }
 	    sscanf(line, "%d", &(features->class[i]));
 	}
@@ -1166,7 +1167,7 @@ void read_header_features(FILE * fp, Features * features)
     for (i = 0; i < features->nclasses; i++) {
 	sscanf(line, "%d", &(features->p_classes[i]));
 	line = (char *)strchr(line, '\t');
-	*line++;
+	line++;
     }
 
     if (!features->f_standardize[0]) {
@@ -1184,13 +1185,13 @@ void read_header_features(FILE * fp, Features * features)
 	for (i = 0; i < features->f_standardize[1]; i++) {
 	    sscanf(line, "%lf", &(features->mean[i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
 	line = GetLine(fp);
 	for (i = 0; i < features->f_standardize[1]; i++) {
 	    sscanf(line, "%lf", &(features->sd[i]));
 	    line = (char *)strchr(line, '\t');
-	    *line++;
+	    line++;
 	}
     }
 

@@ -16,7 +16,7 @@
 #############################################################################
 #
 # REQUIREMENTS: richdem
- 
+
 # More information
 # Started June 2019
 
@@ -70,14 +70,7 @@ import numpy as np
 from grass import script as gscript
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
-# RICHDEM
-try:
-    import richdem as rd
-except:
-    g.message(flags='e', message=('RichDEM not detected. Install pip3 and '+
-                                  'then type at the command prompt: '+
-                                  '"pip3 install richdem".'))
-        
+
 ###############
 # MAIN MODULE #
 ###############
@@ -86,14 +79,21 @@ def main():
     """
     RichDEM flat resolution: give a gentle slope
     """
-    
+    # lazy import RICHDEM
+    try:
+        import richdem as rd
+    except:
+        g.message(flags='e', message=('RichDEM not detected. Install pip3 and '+
+                                      'then type at the command prompt: '+
+                                      '"pip3 install richdem".'))
+
     options, flags = gscript.parser()
     _input = options['input']
     _output = options['output']
     _method = options['method']
     _exponent = options['exponent']
     _weights = options['weights']
-    
+
     if (_method == 'Holmgren') or (_method == 'Freeman'):
         if _exponent == '':
             g.message(flags='w', message=('Exponent must be defined for '+
@@ -103,32 +103,31 @@ def main():
         else:
             _exponent = float(_exponent)
     else:
-        _exponent = None 
-    
+        _exponent = None
+
     if _weights == '':
-        rd_weights = None 
+        rd_weights = None
     else:
         g_weights = garray.array()
         g_weights.read(_weights, null=np.nan)
         rd_weights = rd.rdarray(g_weights, no_data=np.nan)
-        
-    
+
+
     dem = garray.array()
     dem.read(_input, null=np.nan)
-    
+
     mask = dem*0 + 1
-    
+
     rd_input = rd.rdarray(dem, no_data=np.nan)
     del dem
     rd_output = rd.FlowAccumulation(dem=rd_input, method=_method,
                         exponent=_exponent, weights=rd_weights, in_place=False)
-    
+
     rd_output *= mask
-    
+
     accum = garray.array()
     accum[:] = rd_output[:]
     accum.write(_output, overwrite=gscript.overwrite())
 
 if __name__ == "__main__":
     main()
-    

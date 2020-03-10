@@ -106,25 +106,25 @@ def main(options, flags):
 
     # Check if raster is integer
     iscell = gs.raster.raster_info(IP)["datatype"]
-    if iscell != u'CELL':
+    if iscell != 'CELL':
         gs.error(_('Input should be an integer raster layer'))
 
     # Get map category values and their labels
     CATV = Module('r.category', map=IP, stdout_=PIPE).outputs.stdout
     RCAT = CATV.split('\n')
-    RCAT = filter(None, RCAT)
+    RCAT = [_f for _f in RCAT if _f]
     RID = [z.split('\t')[0] for z in RCAT]
-    RIDI = map(int, RID)
+    RIDI = list(map(int, RID))
 
     # Get full color table
     RCOL = gs.read_command("r.colors.out", map=IP).split('\n')
     RCOL = [x for x in RCOL if "nv" not in x and 'default' not in x]
-    RCOL = filter(None, RCOL)
+    RCOL = [_f for _f in RCOL if _f]
     CCAT = [z.split(' ')[0] for z in RCOL]
     idx = [i for i, item in enumerate(CCAT) if not re.search('\.', item)]
     CCAT = [CCAT[i] for i in idx]
     RCOL = [RCOL[i] for i in idx]
-    CCAT = map(int, CCAT)
+    CCAT = list(map(int, CCAT))
 
     # Set strings / list to be used in loop
     CR = ""
@@ -134,11 +134,11 @@ def main(options, flags):
 
     # recode to consecutive category values
     if flags_n:
-        RIDN = range(1, len(RID) + 1)
+        RIDN = list(range(1, len(RID) + 1))
         RLAB = [z.split('\t')[1] for z in RCAT]
-        for j in xrange(len(RID)):
+        for j in range(len(RID)):
             RECO = '{0}{1}:{1}:{2}\n'.format(RECO, RID[j], RIDN[j])
-            A = map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]])
+            A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
             CV.append(RCOL[A[0]].split(' ')[1])
             CR = '{}{} {}\n'.format(CR, RIDN[j], CV[j])
             CL = '{}{}|{}\n'.format(CL, RIDN[j], RLAB[j])
@@ -161,8 +161,8 @@ def main(options, flags):
         Module('r.category', map=OP, rules="-", stdin_=CATV, quiet=True)
 
         # Write color rules and assign colors
-        for j in xrange(len(RIDI)):
-            A = map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]])
+        for j in range(len(RIDI)):
+            A = list(map(int, [i for i, x in enumerate(CCAT) if x == RIDI[j]]))
             CV.append(RCOL[A[0]].split(' ')[1])
             CR = CR + str(RIDI[j]) + " " + CV[j] + "\n"
         CR = '{}nv 255:255:255\ndefault 255:255:255\n'.format(CR)
@@ -171,28 +171,28 @@ def main(options, flags):
     # If attribute table (csv format) should be written
     if len(CSV) > 0:
         if flags_n:
-            RCAT1 = [w.replace('|', ',') for w in filter(None, CL.split('\n'))]
+            RCAT1 = [w.replace('|', ',') for w in [_f for _f in CL.split('\n') if _f]]
         else:
             RCAT1 = [w.replace('\t', ',') for w in RCAT]
         RCAT1.insert(0, "CATEGORY,CATEGORY LABEL")
         CV1 = list(CV)
         CV1.insert(0, "RGB")
         with open(CSV, "w") as text_file:
-            for k in xrange(len(RCAT1)):
+            for k in range(len(RCAT1)):
                 text_file.write('{},{}\n'.format(RCAT1[k], CV1[k]))
 
     # If QGIS Color Map text files should be written
     if len(QGIS) > 0:
         RGB = [w.replace(':', ',') for w in CV]
         if flags_n:
-            RCAT = filter(None, CL.split('\n'))
+            RCAT = [_f for _f in CL.split('\n') if _f]
             RCAT = [w.replace('|', ',') for w in RCAT]
         else:
             RCAT = [w.replace('\t', ',') for w in RCAT]
         with open(QGIS, "w") as text_file:
             text_file.write('# QGIS color map for {}\n'.format(OP))
             text_file.write("INTERPOLATION:EXACT\n")
-            for k in xrange(len(RCAT)):
+            for k in range(len(RCAT)):
                 RC2 = RCAT[k].split(',')
                 text_file.write('{},{},255,{}\n'.format(RC2[0], RGB[k],
                                 RC2[1]))

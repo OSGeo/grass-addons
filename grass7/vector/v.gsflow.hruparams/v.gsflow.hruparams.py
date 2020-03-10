@@ -402,8 +402,8 @@ def main():
                      "EXITING TO ALLOW USER TO CHANGE BEFORE RUNNING GSFLOW")
     else:
         # NEED TO UPDATE THIS TO MODAL VALUE!!!!
-        print "Warning: values taken from HRU centroids. Code should be updated to"
-        print "acquire modal values"
+        gscript.message("Warning: values taken from HRU centroids. Code should be updated to")
+        gscript.message("acquire modal values")
         v.what_rast(map=HRU, type='centroid', raster=land_cover, column='cov_type', quiet=True)
         #v.rast_stats(map=HRU, raster=land_cover, method='average', column_prefix='tmp', flags='c', quiet=True)
         #v.db_update(map=HRU, column='cov_type', query_column='tmp_average', quiet=True)
@@ -423,8 +423,8 @@ def main():
                      "EXITING TO ALLOW USER TO CHANGE BEFORE RUNNING GSFLOW")
     else:
         # NEED TO UPDATE THIS TO MODAL VALUE!!!!
-        print "Warning: values taken from HRU centroids. Code should be updated to"
-        print "acquire modal values"
+        gscript.message("Warning: values taken from HRU centroids. Code should be updated to")
+        gscript.message("acquire modal values")
         v.what_rast(map=HRU, type='centroid', raster=soil, column='soil_type', quiet=True)
         #v.rast_stats(map=HRU, raster=soil, method='average', column_prefix='tmp', flags='c', quiet=True)
         #v.db_update(map=HRU, column='soil_type', query_column='tmp_average', quiet=True)

@@ -4,6 +4,18 @@ All notable changes to this project should be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2018-09-18 - July 2019 improvements
+
+### Changed
+
+- The Raster class now allows access to internal structures which is
+  now used for initialization and saving of raster maps. (Vaclav Petras)
+ * The ability to change the raster types with one line is preserved.
+ * FCELL (float) rasters are now (properly) supported.
+- Output rasters and vector now have metadata with the command used,
+  simulation timestamp, and title. (Vaclav Petras)
+- The remaining susceptible hosts check is now faster. (Vaclav Petras)
+
 ## 2018-09-18 - Update to the next generation of PoPS library
 
 ### Changed

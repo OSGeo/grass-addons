@@ -1,5 +1,5 @@
 <h2>DESCRIPTION</h2>	
-<em>r.in.usgs</em> downloads and patches selected USGS datasets (NED, NLCD, NAIP) to
+<em>r.in.usgs</em> downloads and patches selected USGS datasets (NED, NAIP, lidar) to
 the current GRASS computational region and coordinate reference system. 
 Associated parameters are automatically passed to 
 <a href="https://viewer.nationalmap.gov/tnmaccess/api/index">
@@ -9,9 +9,11 @@ local directory, then imported and patched.
 <em>r.in.usgs</em> supports the following datasets:
 <ul>
 <li><b>ned</b>: National Elevation Dataset</li>
-<li><b>nlcd</b>: National Land Cover Dataset</li>
 <li><b>naip</b>: NAIP orthoimagery</li>
+<li><b>lidar</b>: Lidar Point Clouds (LPC)</li>
 </ul>
+
+National Land Cover Dataset (NLCD) is no longer available through the API.
 
 <h2>NOTES</h2>
 <p>
@@ -19,11 +21,17 @@ NED data are available at resolutions of 1 arc-second (about 30 meters),
 1/3 arc-second (about 10 meters), and in limited areas at 1/9 arc-second (about 3 meters).
 
 <p>
-NLCD data are available for years 2001, 2006, and 2011 (see <b>nlcd_dataset</b> option)
-at 30m resolution and include Land Cover, Percent Developed Imperviousness,
-and Percent Tree Canopy (see <b>nlcd_subset</b> option).
-<p>
 NAIP is available at 1 m resolution.
+
+<p>
+Lidar data is available only for part of the US but there can be multiple
+spatially overlapping datasets from different years. All point clouds
+will be imported as points using <a href="v.in.pdal.html">v.in.pdal</a>
+and then patched and interpolated with <a href="v.surf.rst.html">v.surf.rst</a>.
+In some cases, lidar point clouds do not have SRS information, use <b>input_srs</b>
+to specify it (e.g. "EPSG:2264"). If multiple tiles from different years
+are available, use <b>title_filter</b> to filter by their titles (e.g. "Phase1").
+Use <b>i</b> flag to list the tiles first.
 
 <p>
 If the <b>i</b> flag is set, only information about data meeting the input parameters
@@ -38,7 +46,7 @@ download directory after the import.
 
 <p>
 By default, resampling method is chosen based on the nature of the dataset,
-bilinear for NED and nearest for NLCD and NAIP. This can be changed with option
+bilinear for NED and nearest for NAIP. This can be changed with option
 <b>resampling_method</b>.
 
 <h2>EXAMPLE</h2>
@@ -83,17 +91,12 @@ g.region n=224649 s=222000 w=636000 e=639000
 r.in.usgs product=naip output_directory=/tmp output_name=ortho
 </pre></div>
 
-For a different extent we download NLCD land cover:
-<div class="code"><pre>
-g.region n=224649 s=222000 w=639000 e=642000
-r.in.usgs product=nlcd nlcd_dataset=nlcd2011 nlcd_subset=landcover output_directory=/tmp output_name=nlcd
-</pre></div>
-
 <div align="center" style="margin: 10px">
 <a href="r_in_usgs.png">
 <img src="r_in_usgs.png" width="600" height="600" alt="NED and ortho" border="0">
 </a><br>
-<i>Figure: Downloaded NED (large and small extent), NAIP orthoimagery, and NLCD land cover</i>
+<i>Figure: Downloaded NED (large and small extent), NAIP orthoimagery,
+and NLCD land cover (NLCD is not available since 2020 through the API)</i>
 </div>
 
 
@@ -110,10 +113,16 @@ r.in.usgs product=nlcd nlcd_dataset=nlcd2011 nlcd_subset=landcover output_direct
 <a href="g.region.html">g.region</a>,
 <a href="r.import.html">r.import</a>,
 <a href="r.patch.html">r.patch</a>,
-<a href="r.colors.html">r.colors</a>
+<a href="r.colors.html">r.colors</a>,
+<a href="r.in.srtm.html">r.in.srtm</a>,
+<a href="v.in.pdal.html">v.in.pdal</a>
 </em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
+
 Zechariah Krautwurst, 2017 MGIST Candidate, North Carolina State University<br>
+(initial version, Google Summer of Code 2017, mentors: Anna Petrasova, Vaclav Petras)
+
+<p>
 Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a><br>
-(Google Summer of Code 2017, mentors: Anna Petrasova, Vaclav Petras)<br>
+Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a><br>

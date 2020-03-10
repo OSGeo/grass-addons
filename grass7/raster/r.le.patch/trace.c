@@ -20,6 +20,7 @@
  ************************************************************/
 
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/config.h>
 #include "patch.h"
 
@@ -104,7 +105,7 @@ void cell_clip_drv(int col0, int row0, int ncols, int nrows, double **value,
     total_patches = 0;
 
     name = choice->fn;
-    mapset = G_mapset();
+    mapset = (char *)G_mapset();
     data_type = Rast_map_type(name, mapset);
 
     /* dynamically allocate storage for the
@@ -216,9 +217,7 @@ void cell_clip_drv(int col0, int row0, int ncols, int nrows, double **value,
 		for (j = 1; j < ncols + 1; j++)
 		    *(cor_cell_buf + j - 1) = (int)(*(*(cor + i) + j));
 
-		if (Rast_put_row(fe, cor_cell_buf, CELL_TYPE) < 0)
-		    exit(EXIT_FAILURE);
-
+		Rast_put_row(fe, cor_cell_buf, CELL_TYPE);
 		Rast_update_cell_stats(cor_cell_buf, ncols + 1, &stats);
 	    }
 	    break;
@@ -231,8 +230,7 @@ void cell_clip_drv(int col0, int row0, int ncols, int nrows, double **value,
 		    *(cor_fcell_buf + j - 1) = (float)(*(*(cor + i) + j));
 		}
 
-		if (Rast_put_row(fe, cor_fcell_buf, FCELL_TYPE) < 0)
-		    exit(EXIT_FAILURE);
+		Rast_put_row(fe, cor_fcell_buf, FCELL_TYPE);
 	    }
 	    break;
 	case DCELL_TYPE:
@@ -243,8 +241,7 @@ void cell_clip_drv(int col0, int row0, int ncols, int nrows, double **value,
 		for (j = 1; j < ncols + 1; j++)
 		    *(cor_dcell_buf + j - 1) = (double)(*(*(cor + i) + j));
 
-		if (Rast_put_row(fe, cor_dcell_buf, DCELL_TYPE) < 0)
-		    exit(EXIT_FAILURE);
+		Rast_put_row(fe, cor_dcell_buf, DCELL_TYPE);
 	    }
 	    break;
 	}
@@ -262,8 +259,7 @@ void cell_clip_drv(int col0, int row0, int ncols, int nrows, double **value,
 	    for (j = 1; j < ncols + 1; j++)
 		*(pat_buf + j - 1) = *(*(pat + i) + j);
 
-	    if (Rast_put_row(fd, pat_buf, CELL_TYPE) < 0)
-		exit(EXIT_FAILURE);
+	    Rast_put_row(fd, pat_buf, CELL_TYPE);
 	}
     }
 

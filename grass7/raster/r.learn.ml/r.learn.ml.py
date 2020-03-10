@@ -43,7 +43,7 @@
 
 #%option G_OPT_V_INPUT
 #% key: trainingpoints
-#% label: Vectorfile with training samples
+#% label: Vector map with training samples
 #% description: Vector points map where each point is used as training sample. Handling of missing values in training data can be choosen later.
 #% required: no
 #% guisection: Required
@@ -399,6 +399,7 @@
 #% exclusive: trainingmap,load_training
 #% exclusive: trainingpoints,trainingmap
 #% exclusive: trainingpoints,load_training
+#% requires: fimp_file,-f
 #%end
 
 from __future__ import absolute_import
@@ -1508,9 +1509,30 @@ def main():
     if '@' in output:
         output = output.split('@')[0]
 
-    # feature importances selected by no cross-validation scheme used
+    # feature importances selected but no cross-validation scheme used
     if importances is True and cv == 1:
         gs.fatal('Feature importances require cross-validation cv > 1')
+
+    # error file selected but no cross-validation scheme used
+    if errors_file:
+        if cv <= 1:
+            gs.fatal('Output of cross-validation global accuracy requires cross-validation cv > 1')
+        if not os.path_exists(os.path.dirname(errors_file)):
+            gs.fatal('Directory for output file {} does not exist'.format(errors_file))
+
+    # feature importance file selected but no cross-validation scheme used
+    if fimp_file:
+        if cv <= 1:
+            gs.fatal('Output of feature importance requires cross-validation cv > 1')
+        if not os.path_exists(os.path.dirname(fimp_file)):
+            gs.fatal('Directory for output file {} does not exist'.format(fimp_file))
+
+    # predictions file selected but no cross-validation scheme used
+    if preds_file:
+        if cv <= 1:
+            gs.fatal('Output of cross-validation predictions requires cross-validation cv > 1')
+        if not os.path_exists(os.path.dirname(preds_file)):
+            gs.fatal('Directory for output file {} does not exist'.format(preds_file))
 
     # output map has not been entered and model_only is not set to True
     if output == '' and model_only is not True:

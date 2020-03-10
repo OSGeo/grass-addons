@@ -172,8 +172,8 @@ def main(opts, flgs):
         T = np.array(pT)
 
 
-    print "Resulted maps: "+output+"_l_bioenergyHF, "+output+"_l_bioenergyC, "+output+"_l_bioenergy"
-    print ("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
+    print("Resulted maps: "+output+"_l_bioenergyHF, "+output+"_l_bioenergyC, "+output+"_l_bioenergy")
+    print("Total bioenergy stimated (Mwh): %.2f" % np.nansum(T))
 
 
 

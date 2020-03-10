@@ -48,7 +48,9 @@ int main(int argc, char **argv)
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("imagery, image processing, pattern recognition");
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("image processing"));
+    G_add_keyword(_("pattern recognition"));
     module->description =
 	_("Module to generate the training samples for use in i.pr.* modules. "
 	 "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
@@ -115,7 +117,7 @@ int main(int argc, char **argv)
     /* informations from command line */
     nmaps = 0;
     for (i = 0; name[nmaps] = opt1->answers[i]; i++) {
-	mapset[i] = G_find_cell2(name[i], "");
+	mapset[i] = (char *)G_find_raster2(name[i], "");
 	if (mapset[i] == NULL) {
 	    sprintf(buf, "Can't find raster map <%s>", name[i]);
 	    G_fatal_error(buf);
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
 
     if (opt7->answer) {
 	vis_map = opt7->answer;
-	vis_mapset = G_find_cell2(vis_map, "");
+	vis_mapset = (char *)G_find_raster2(vis_map, "");
 	if (vis_mapset == NULL) {
 	    sprintf(buf, "Can't find raster map <%s>", vis_map);
 	    G_fatal_error(buf);

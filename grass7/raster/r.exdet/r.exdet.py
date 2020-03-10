@@ -104,6 +104,12 @@ import string
 from grass.pygrass.modules import Module
 from subprocess import PIPE
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 COLORS_EXDET = """\
 0% 255:0:0
 0 255:240:240

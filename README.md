@@ -21,13 +21,13 @@ Clone of the entire AddOns git repository:
 
 The simplest way to install GRASS GIS AddOns is to use the `g.extension` 
 module: \
-https://grass.osgeo.org/grass76/manuals/g.extension.html
+https://grass.osgeo.org/grass78/manuals/g.extension.html
 
 ##  How to compile AddOn code
 
 ### C code/Scripts, with GRASS source code on your computer:
 
-  Preparations (assuming source code in $HOME/grass76/):
+  Preparations (assuming source code in $HOME/grass78/):
     (if you have already build GRASS from source you don't need to do this
     again. If adding to a binary install the versions must match exactly.
     For a git clone this means that the main GRASS binary and source
@@ -40,15 +40,15 @@ https://grass.osgeo.org/grass76/manuals/g.extension.html
   is by setting MODULE_TOPDIR on the fly to tell 'make' where to
   find the prepared GRASS source code:
 
-    make MODULE_TOPDIR=$HOME/grass76/
+    make MODULE_TOPDIR=$HOME/grass78/
 
-  (adapt to your /path/to/grass76/). Each module/script in the GRASS
+  (adapt to your /path/to/grass78/). Each module/script in the GRASS
   AddOns git repository should have a Makefile to support easy
   installation.
 
   Install then into your existing GRASS installation with
 
-    make MODULE_TOPDIR=$HOME/grass76/ install
+    make MODULE_TOPDIR=$HOME/grass78/ install
 
   For system-wide installation this usually requires "root" priviledges 
   (so, also 'sudo' may help).
@@ -57,7 +57,7 @@ https://grass.osgeo.org/grass76/manuals/g.extension.html
   compile GRASS AddOns modules into your GRASS code by setting 
   MODULE_TOPDIR to where to the GRASS binaries are located:
 
-    make MODULE_TOPDIR=/usr/lib/grass76/
+    make MODULE_TOPDIR=/usr/lib/grass78/
 
 ## How to submitt contributions?
 

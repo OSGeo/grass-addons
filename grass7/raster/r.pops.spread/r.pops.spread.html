@@ -127,7 +127,7 @@ r.mapcalc "treated_host = host - host * treatment_float"
 Example of the run of the model (unix-like command line):
 
 <div class="code"><pre>
-r.spread.pest host=host total_plants=all infected=infected_2005 \
+r.pops.spread host=host total_plants=all infected=infected_2005 \
     moisture_coefficient_file=moistures.txt temperature_coefficient_file=temperatures.txt \
     output=spread step=week start_time=2005 end_time=2010 \
     reproductive_rate=4 dispersal_kernel=cauchy wind=NE random_seed=4
@@ -159,7 +159,6 @@ r.spread.pest host=host total_plants=all infected=infected_2005 \
 <h2>SEE ALSO</h2>
 
 <em>
-    <a href="https://github.com/ncsu-landscape-dynamics/r.pops.spread">r.pops.spread on GitHub</a><br>
     <a href="r.spread.html">r.spread</a>
 </em>
 

@@ -14,6 +14,12 @@ import agent
 import error
 #from grass.script import core as grass
 
+# for Python 3 compatibility
+try:
+    xrange
+except NameError:
+    xrange = range
+
 class Ant(agent.Agent):
     """
     Implementation of an Ant like Agent for an Anthill, a kind of World

@@ -21,9 +21,10 @@ To Dos:
 - add neighborhood stats ???
 - silence r.category
 - add where clause
-#%option G_OPT_DB_WHERE
-#% required: no
-#%end
+
+/#%option G_OPT_DB_WHERE
+/#% required: no
+/#%end
 
     where = options['where']
 
@@ -104,10 +105,19 @@ To Dos:
 #%end
 
 #%flag
+#% key: p
+#% description: Used with -t flag will return percentage of area for categories
+#%end
+
+#%flag
 #% key: u
 #% description: Update columns if they already exist
 #%end
 
+#%flag
+#% key: r
+#% description: Remove columns without data
+#%end
 
 #%option G_OPT_F_OUTPUT
 #% description: Name for output file (if "-" output to stdout)
@@ -260,14 +270,16 @@ def main():
     sep = options['separator']
     update = flags['u']
     tabulate = flags['t']
+    percent = flags['p']
+    remove = flags['r']
 
+    mymapset = Mapset().name
     # Do checks using pygrass
     for rmap in raster_maps:
         r_map = RasterAbstractBase(rmap)
         if not r_map.exist():
             grass.fatal('Could not find raster map {}.'.format(rmap))
-
-    m_map = RasterAbstractBase('MASK')
+    m_map = RasterAbstractBase('MASK@{}'.format(mymapset))
     if m_map.exist():
         grass.fatal("Please remove MASK first")
 
@@ -329,7 +341,7 @@ def main():
     for p in column_prefix:
         rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)])
         for b in buffers:
-            b_str = unicode(b).replace('.', '_')
+            b_str = str(b).replace('.', '_')
             if tabulate:
                 if rmaptype == 'double precision':
                     grass.fatal('{} has floating point precision. Can only tabulate integer maps'.format(raster_maps[column_prefix.index(p)]))
@@ -369,8 +381,12 @@ def main():
         stats = Module('r.stats', run_=False, stdout_=PIPE)
         stats.inputs.sort = 'desc'
         stats.inputs.null_value = 'null'
-        stats.flags.a = True
         stats.flags.quiet = True
+        if percent:
+            stats.flags.p = True
+            stats.flags.n = True
+        else:
+            stats.flags.a = True
     else:
         # Collector for univariat statistics
         univar = Module('r.univar', run_=False, stdout_=PIPE)
@@ -418,10 +434,9 @@ def main():
 
 
     # Get computational region
-    #grass.use_temp_region()
-    r = Region()
+    grass.use_temp_region()
+    #r = Region()
     #r.read()
-
     # Adjust region extent to buffer around geometry
     #reg = deepcopy(r)
 
@@ -447,7 +462,7 @@ def main():
 
         # Loop over ser provided buffer distances
         for buf in buffers:
-            b_str = unicode(buf).replace('.', '_')
+            b_str = str(buf).replace('.', '_')
             # Buffer geometry
             if buf <= 0:
                 buffer_geom = geom
@@ -482,11 +497,12 @@ def main():
             #reg = Region()
             #reg.read()
             #r.from_vect(tmp_map)
-            r = align_current(r, buffer_geom[0].bbox())
-            r.set_current()
+            #r = align_current(r, buffer_geom[0].bbox())
+            #r.set_current()
 
             # Check if the following is needed
-            #grass.run_command('g.region', vector=tmp_map)
+            # needed specially with r.stats -p
+            grass.run_command('g.region', vector=tmp_map, flags='a')
 
             # Create a MASK from buffered geometry
             grass.run_command('v.to.rast', input=tmp_map,
@@ -507,7 +523,6 @@ def main():
                     stats.inputs.input = rmap
                     stats.run()
                     t_stats = stats.outputs['stdout'].value.rstrip(os.linesep).replace(' ', '_b{} = '.format(b_str)).split(os.linesep)
-
                     if t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1] != 'null':
                         mode = t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1]
                     elif len(t_stats) == 1:
@@ -521,23 +536,23 @@ def main():
 
                         area_tot = 0
                         for l in t_stats:
-                            updates.append('\t{}_{}'.format(prefix, l))
+                            updates.append('\t{}_{}'.format(prefix, l.rstrip('%')))
                             if l.split('_b{} ='.format(b_str))[0].split('_')[-1] != 'null':
-                                area_tot = area_tot + float(l.split('= ')[1])
-
-                        updates.append('\t{}_{}_b{} = {}'.format(prefix, 'area_tot', b_str, area_tot))
+                                area_tot = area_tot + float(l.rstrip('%').split('= ')[1])
+                        if not percent:
+                            updates.append('\t{}_{}_b{} = {}'.format(prefix, 'area_tot', b_str, area_tot))
 
                     else:
-                        out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'ncats', len(t_stats), os.linesep)
-                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'mode', mode, os.linesep)
+                        out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'ncats', len(t_stats), os.linesep)
+                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'mode', mode, os.linesep)
                         area_tot = 0
                         for l in t_stats:
                             rcat = l.split('_b{} ='.format(b_str))[0].split('_')[-1]
                             area = l.split('= ')[1]
-                            out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'area {}'.format(rcat), area, os.linesep)
+                            out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area {}'.format(rcat), area, os.linesep)
                             if rcat != 'null':
                                 area_tot = area_tot + float(l.split('= ')[1])
-                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buffer, 'area_tot', area_tot, os.linesep)
+                        out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area_tot', area_tot, os.linesep)
 
                         if output == '-':
                             print(out_str.rstrip(os.linesep))
@@ -576,7 +591,7 @@ def main():
                                                                                   int(perc) if (perc).is_integer() else perc,
                                                                                   b_str, u_stats[15+perc_count].split('= ')[1]))
                             else:
-                                out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}'.format(sep, cat, prefix, buffer, 'percentile_{}'.format(int(perc) if (perc).is_integer() else perc), u_stats[15+perc_count].split('= ')[1])
+                                out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}'.format(sep, cat, prefix, buf, 'percentile_{}'.format(int(perc) if (perc).is_integer() else perc), u_stats[15+perc_count].split('= ')[1])
                                 if output == '-':
                                     print(out_str)
                                 else:
@@ -598,6 +613,7 @@ def main():
         if not output:
             conn.commit()
 
+    grass.use_temp_region()
     # Close cursor and DB connection
     if not output and not output == "-":
         cur.close()
@@ -607,6 +623,18 @@ def main():
     elif output != "-":
         # write results to file
         out.close()
+
+    if remove:
+        dropcols = []
+        selectnum = 'select count({}) from {}'
+        for i in col_names:
+            thisrow = grass.read_command('db.select', flags='c',
+                                         sql=selectnum.format(i, in_vector))
+            if int(thisrow) == 0:
+                dropcols.append(i)
+        grass.debug("Columns to delete: {}".format(', '.join(dropcols)),
+                    debug=2)
+        grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
 
     # Clean up
     cleanup()

@@ -50,6 +50,11 @@ from __future__ import print_function
 #%End
 
 #%flag
+#%  key: r
+#%  description: Let the mobility function derive real numbers for the flow
+#%end
+
+#%flag
 #%  key: e
 #%  description: Match computational region to extent of land use map
 #%end
@@ -86,6 +91,14 @@ collective: all or nothing; if any option is given, all must be given
 # --- Components section ---
 
 #%option G_OPT_R_INPUT
+#% key: region
+#% type: string
+#% key_desc: name
+#% label: Input map to set computational extent and region
+#% required: no
+#%end
+
+#%option G_OPT_R_INPUT
 #% key: land
 #% type: string
 #% key_desc: name
@@ -114,29 +127,11 @@ collective: all or nothing; if any option is given, all must be given
 #%end
 
 #%option G_OPT_R_INPUTS
-#% key: urban
-#% key_desc: name
-#% description: Input maps scoring recreational value of urban surfaces
-#% required: no
-#% guisection: Components
-#%end
-
-#%option G_OPT_R_INPUTS
 #% key: infrastructure
 #% type: string
 #% key_desc: name
 #% label: Input maps scoring infrastructure to reach locations of recreation activities
 #% description: Infrastructure to reach locations of recreation activities [required to derive recreation spectrum map]
-#% required: no
-#% guisection: Components
-#%end
-
-#%option G_OPT_R_INPUTS
-#% key: recreation
-#% type: string
-#% key_desc: name
-#% label: Input maps scoring recreational facilities, amenities and services
-#% description: Recreational opportunities facilities, amenities and services [required to derive recreation spectrum map]
 #% required: no
 #% guisection: Components
 #%end
@@ -406,17 +401,6 @@ collective: all or nothing; if any option is given, all must be given
 ##%  excludes: infrastructure, roads
 ##%end
 
-# --- Devaluation ---
-
-#%option G_OPT_R_INPUTS
-#% key: devaluation
-#% key_desc: name
-#% label: Input map of devaluing elements
-#% description: Maps hindering accessibility to and degrading quality of various resources or infrastructure relating to recreation
-#% required: no
-#% guisection: Devaluation
-#%end
-
 # --- MASK ---
 
 #%option G_OPT_R_INPUT
@@ -439,6 +423,7 @@ collective: all or nothing; if any option is given, all must be given
 
 #%rules
 #%  requires: potential, land, natural, water, landuse, protected, lakes, coastline
+#%  requires_all: -e, landuse
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -553,10 +538,10 @@ collective: all or nothing; if any option is given, all must be given
 
 #%option G_OPT_F_OUTPUT
 #% key: supply
-#% key_desc: prefix
+#% key_desc: filename
 #% type: string
-#% label: Output prefix for the file name of the supply table CSV
-#% description: Supply table CSV output file names will get this prefix
+#% label: Output absolute file name for the supply table
+#% description: Supply table CSV output file name
 #% multiple: no
 #% required: no
 #% guisection: Output
@@ -564,10 +549,10 @@ collective: all or nothing; if any option is given, all must be given
 
 #%option G_OPT_F_OUTPUT
 #% key: use
-#% key_desc: prefix
+#% key_desc: filename
 #% type: string
-#% label: Output prefix for the file name of the supply table CSV
-#% description: Supply table CSV output file names will get this prefix
+#% label: Output absolute file name for the use table
+#% description: Use table CSV output file name
 #% multiple: no
 #% required: no
 #% guisection: Output
@@ -580,11 +565,11 @@ collective: all or nothing; if any option is given, all must be given
 
 #%rules
 #%  requires: supply, land, natural, water, landuse, protected, lakes, coastline
-#%  requires_all: supply, population
+#%  requires_all: supply, population, aggregation
 #%  requires_all: supply, landcover, land_classes
-#%  requires: supply, base, base_vector, aggregation
+#%  requires: supply, base, base_vector
 #%  requires: supply, landcover, landuse
-#%  requires_all: use, population
+#%  requires_all: use, population, aggregation
 #%  requires: use, base, base_vector, aggregation
 #%  requires: use, landcover, landuse
 #%end
@@ -625,43 +610,23 @@ collective: all or nothing; if any option is given, all must be given
 
 # required librairies
 
-import datetime
 import os
-import subprocess
 import sys
-import time
-from pprint import pprint as pp
 
 if "GISBASE" not in os.environ:
     sys.exit("Exiting: You must be in GRASS GIS to run this program.")
 
 import grass.script as grass
-
 from grass.script.utils import set_path
-try:
-    # set python path to the shared libraries
-    set_path('r.estimap.recreation', 'estimap_recreation', '..')
-    # constants
-    from estimap_recreation.colors import *
-    from estimap_recreation.constants import *
-    from estimap_recreation.labels import *
-    # main
-    from estimap_recreation.main import main as main_estimap
-except ImportError:
-    try:
-        set_path('r.estimap.recreation', 'estimap_recreation', os.path.join('..', 'etc', 'r.estimap.recreation'))
-        # constants
-        from estimap_recreation.colors import *
-        from estimap_recreation.constants import *
-        from estimap_recreation.labels import *
-        # main
-        from estimap_recreation.main import main as main_estimap
-    except ImportError:
-        gcore.warning('estimap_recreation not in the python path!')
 
+addon_path = os.path.join(os.path.dirname(__file__), "..", 'etc', 'r.estimap.recreation')
+sys.path.insert(1, os.path.abspath(addon_path))
+# import pprint
+# pprint.pprint(sys.path)
+from estimap_recreation.main import main as main_estimap
 
 def main(options, flags):
-    sys.exit(main_estimap())
+    sys.exit(main_estimap(options, flags))
 
 if __name__ == "__main__":
     options, flags = grass.parser()

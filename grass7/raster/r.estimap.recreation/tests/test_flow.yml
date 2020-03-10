@@ -1,0 +1,28 @@
+---
+
+- mapset: "flow"
+  flags: []
+  inputs:
+    mask:
+      - "input_area_of_interest"
+    land:
+      - "input_land_suitability"
+    natural:
+      - "input_protected_areas,input_urban_green"
+    water:
+      - "input_water_resources"
+      - "input_bathing_water_quality"
+    infrastructure:
+      - "input_distance_to_infrastructure"
+    base:
+      - "input_local_administrative_units"
+    population:
+      - "input_population_2015"
+  outputs:
+    csvs: {}
+    maps:
+      flow:
+        name: "output_flow"
+        hash: "0d987f55f4cbebec3640fb69a2a239ea"
+
+
