@@ -3,7 +3,7 @@ MODULE_TOPDIR = ..
 
 # display gui misc
 SUBDIRS = \
-	db \
+	database \
 	display \
 	general \
 	imagery \
