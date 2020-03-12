@@ -35,8 +35,8 @@ manuals() {
             cp -r $dir/docs/html/* $HTMLDIR/ 2>/dev/null
         fi
     done
-    cp ${SRC}/grass-p2/r${1}${2}/${DIST}/docs/html/grassdocs.css $HTMLDIR/
-    cp ${SRC}/grass-p2/r${1}${2}/${DIST}/docs/html/grass_logo.png $HTMLDIR/
+    cp ${SRC}/grass${1}${2}/${DIST}/docs/html/grassdocs.css $HTMLDIR/
+    cp ${SRC}/grass${1}${2}/${DIST}/docs/html/grass_logo.png $HTMLDIR/
     tar czf html.tar.gz $HTMLDIR
     rm -rf $HTMLDIR
 }
@@ -54,6 +54,6 @@ promote() {
 }
 
 promote 6 4
-promote 7 6
+promote 7 8
 
 exit 0

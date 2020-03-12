@@ -28,11 +28,11 @@ def get_gui_list(g7 = True):
                       
 def start_grass(g7 = True):
     if g7:
-        ver = '76'
+        ver = '78'
     else:
         ver = '64'
     gisbase = os.environ['GISBASE'] = os.path.join(os.getenv('HOME'),
-                                                   "src/grass-p2/r%s/%s" % (ver, DIST))
+                                                   "src/grass%s/%s" % (ver, DIST))
     
     gisdbase = os.path.join(gisbase)
     location = "demolocation"
