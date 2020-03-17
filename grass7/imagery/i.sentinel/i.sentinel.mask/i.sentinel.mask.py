@@ -99,7 +99,7 @@
 #%option
 #% key: cloud_threshold
 #% type: integer
-#% description: threshold (sm) for cleaning small areas from cloud mask
+#% description: threshold for cleaning small areas from cloud mask (in square meters)
 #% required : yes
 #% answer: 50000
 #% guisection: Output
@@ -107,7 +107,7 @@
 #%option
 #% key: shadow_threshold
 #% type: integer
-#% description: threshold (sm) for cleaning small areas from shadow mask
+#% description: threshold for cleaning small areas from shadow mask (in square meters)
 #% required : yes
 #% answer: 10000
 #% guisection: Output
@@ -660,4 +660,3 @@ if __name__ == "__main__":
     options, flags = gscript.parser()
     atexit.register(cleanup)
     main()
-
