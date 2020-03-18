@@ -8,7 +8,7 @@
 
 <p>It is fairly common to use background rather than (pseudo-)absence points in species distribution modeling. To evaluate models that are build using presence and background points, there is the option to add the presence points to the absence points (flag b). If selected, the combined presence-absence points will be used instead of the absence points.
 
-<p>A problem with the AUC is that it varies with the spatial extent used to select background points (Lobo et al. 2008, Jiménez-Valverde 2012). Generally, the larger that extent, the higher the AUC value. Therefore, AUC values are generally biased and cannot be directly compared. One possible way to address this problem is to use a pairwise distance sampling for presence and absence testing points to remove this bias (Hijmans 2012). An perhaps simpler way to evaluate this problem of changing AUC values with changing extents is to only sample absence/background points within certain distances of the presence points. 
+<p>A problem with the AUC is that it varies with the spatial extent used to select background points (Lobo et al. 2008, JimÃ©nez-Valverde 2012). Generally, the larger that extent, the higher the AUC value. Therefore, AUC values are generally biased and cannot be directly compared. One possible way to address this problem is to use a pairwise distance sampling for presence and absence testing points to remove this bias (Hijmans 2012). An perhaps simpler way to evaluate this problem of changing AUC values with changing extents is to only sample absence/background points within certain distances of the presence points. 
 
 <p>The addon offers the option to limit the area over which the evaluation statistics are calculated. The user can define a buffer (in kilometers) around the absence and presence raster cells (the options buffer_abs and buffer_pres respectively). The inside buffer is obviously only useful when your presence data consists of areas (polygons) rather then point data. Note that currently the script does not check if there are sufficient number of absence or background points within the given distance of the presence points. The default value is 0, which means no buffer is used
 
@@ -24,8 +24,8 @@
 
 
 <h2>REFERENCES</h2>
-<p>Jiménez-Valverde, A. 2012. Insights into the area under the receiver operating characteristic curve (AUC) as a discrimination measure in species distribution modelling. Global Ecology and Biogeography 21: 498-507
-<p>Lobo, J. M., Jiménez-Valverde, A., & Real, R. 2008. AUC: a misleading measure of the performance of predictive distribution models. Global Ecology and Biogeography 17: 145-151.
+<p>JimÃ©nez-Valverde, A. 2012. Insights into the area under the receiver operating characteristic curve (AUC) as a discrimination measure in species distribution modelling. Global Ecology and Biogeography 21: 498-507
+<p>Lobo, J. M., JimÃ©nez-Valverde, A., & Real, R. 2008. AUC: a misleading measure of the performance of predictive distribution models. Global Ecology and Biogeography 17: 145-151.
 <p>Hijmans, R. J. 2012. Cross-validation of species distribution models: removing spatial sorting bias and calibration with a null model. Ecology 93: 679-688.
 <P>Allouche, O., Tsoar, A., & Kadmon, R. 2006. Assessing the accuracy of species distribution models: prevalence, kappa and the true skill statistic (TSS). Journal of Applied Ecology 43: 1223-1232.
 <p>McPHERSON, J. M., Jetz, W., & Rogers, D. J. 2004. The effects of species' range sizes on the accuracy of distribution models: ecological phenomenon or statistical artefact? Journal of Applied Ecology 41: 811-823.
