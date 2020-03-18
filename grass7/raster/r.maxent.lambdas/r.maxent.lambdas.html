@@ -1,98 +1,68 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.maxent.lambdas</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.maxent.lambdas</b></em>  - Computes raw and/or logistic prediction maps from MaxEnt lambdas files
-<h2>KEYWORDS</h2>
-raster, MaxEnt, species distribution modelling
-<h2>SYNOPSIS</h2>
-<b>r.maxent.lambdas</b><br>
-<b>r.maxent.lambdas help</b><br>
-<b>r.maxent.lambdas</b> [-<b>rl</b>] <b>lambdas_file</b>=<em>string</em> <b>output_prefix</b>=<em>string</em>  [<b>alias_file</b>=<em>string</em>]   [<b>integer_output</b>=<em>integer</em>]   [<b>output_mapcalc</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-r</b></dt>
-<dd>Produce only raw output (both are computed by default).</dd>
-
-<dt><b>-l</b></dt>
-<dd>Produce only logistic output (both are computed by default).</dd>
-
-<dt><b>--overwrite</b></dt>
-<dd>Allow output files to overwrite existing files</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>lambdas_file</b>=<em>string</em></dt>
-<dd>MaxEnt lambdas-file to compute distribution-model from</dd>
-
-<dt><b>output_prefix</b>=<em>string</em></dt>
-<dd>Prefix for output raster maps</dd>
-
-<dt><b>alias_file</b>=<em>string</em></dt>
-<dd>CSV-file to replace alias names from MaxEnt by GRASS map names</dd>
-
-<dt><b>integer_output</b>=<em>integer</em></dt>
-<dd>Produce logistic integer output with this number of digits preserved</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>output_mapcalc</b>=<em>string</em></dt>
-<dd>Save r.mapcalc expression to file</dd>
-</dl>
 <h2>DESCRIPTION</h2>
-The script is intended to compute raw and/or logistic prediction maps from a lambdas file produced with MaxEnt 3.3.3e.<br>
-It will parse the specified lambdas-file from MaxEnt 3.3.3e and translate it into an r.mapcalc-expression 
-which is then stored in a temporary file and finally piped to r.mapcalc. If alias names had been used in MaxEnt, these 
-alias names can automatically be replaced according to a CSV-like file provided by the user. 
-This file should contain alias names in the first column and map names in the second column, seperated by comma, 
-without header. It should look e.g. like this:<br>
+
+The script is intended to compute raw and/or logistic prediction maps
+from a lambdas file produced with MaxEnt 3.3.3e.<br>
+
+It will parse the specified lambdas-file from MaxEnt 3.3.3e and
+translate it into an r.mapcalc-expression which is then stored in a
+temporary file and finally piped to r.mapcalc. If alias names had been
+used in MaxEnt, these alias names can automatically be replaced
+according to a CSV-like file provided by the user. This file should
+contain alias names in the first column and map names in the second
+column, seperated by comma, without header. It should look e.g. like
+this:
 <br>
-<em>
-alias_1,map_1<br>
-alias_2,map_2<br>
-...,...<br>
-</em>
-<br>
-If such a CSV-file with alias names used in MaxEnt is provided, the alias names from MaxEnt are replaced by map names.<br>
-<br>
-A raw output map is always computed from the MaxEnt model as a first step. If logistic output is requested, the raw output 
-map can be deleted by the script ( using the l-flag). The logistic map can be produced as an integer map. To do so the user 
-has to specify the number of decimal places, that should be preserved in integer output.<br>
-Optionally the map calculator expressions can be saved in a text file as especially the one for the raw output is likely to exceed 
-the space in the map history.
+
+<div class="code"><pre>
+alias_1,map_1
+alias_2,map_2
+...,...
+</pre></div>
+
+<p>
+If such a CSV-file with alias names used in MaxEnt is provided, the alias
+names from MaxEnt are replaced by map names.
+<p>
+A raw output map is always computed from the MaxEnt model as a first
+step. If logistic output is requested, the raw output map can be
+deleted by the script ( using the l-flag). The logistic map can be
+produced as an integer map. To do so the user has to specify the number
+of decimal places, that should be preserved in integer output.
+<p>
+Optionally the map calculator expressions can be saved in a text file
+as especially the one for the raw output is likely to exceed the space
+in the map history.
 
 <h2>NOTES</h2>
-This script works only if the maps containing the input data to MaxEnt are accessible from the current region.<br>
-Due to conversion from double to floating-point in exp()-function, a loss of precision from the 7th decimal place onwards may occur 
-in the logistic output.
+
+This script works only if the maps containing the input data to MaxEnt are
+accessible from the current region.
+<p>
+Due to conversion from double to floating-point in exp()-function, a loss of
+precision from the 7th decimal place onwards may occur in the logistic output.
 
 <h2>SEE ALSO</h2>
+
 r.out.maxent_swd, r.in.xyz<br>
+
 MaxEnt 3.3.3e <a href="http://biodiversityinformatics.amnh.org/open_source/maxent/">http://biodiversityinformatics.amnh.org/open_source/maxent/</a><br>
-Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt 
+Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav DudÃ­k, Yung En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt 
 for ecologists. Diversity and Distributions, (17):43-57, 2011.<br>
-Wilson, Peter D. 2009: Guidelines for computing MaxEnt model output values from a lambdas file. (Avaliable at <a href="http://groups.google.com/group/MaxEnt">
-http://groups.google.com/group/MaxEnt</a>)
+
+Wilson, Peter D. 2009: Guidelines for computing MaxEnt model output values from a lambdas file. (Available at <a href="https://groups.google.com/group/MaxEnt">
+https://groups.google.com/group/MaxEnt</a>)
+
 Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum entropy modeling of species geographic distributions. 
 Ecological Modelling, (190):231-259, 2006.<br>
-Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A maximum entropy approach to species distribution modeling. In: Proceedings 
+
+Steven J. Phillips, Miroslav DudÃ­k, Robert E. Schapire. 2004: A maximum entropy approach to species distribution modeling. In: Proceedings 
 of the Twenty-First International Conference on Machine Learning, p. 655-662, 2004.
 
 <h2>AUTHOR</h2>
+
 Stefan Blumentrath, Norwegian Institute for Nature Research (NINA), <a href="http://www.nina.no">http://www.nina.no</a>
 
-</body>
-</html>
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
