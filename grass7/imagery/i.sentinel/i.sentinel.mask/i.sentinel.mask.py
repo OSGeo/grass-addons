@@ -145,7 +145,9 @@
 #%end
 
 #%rules
-#% collective: blue,green,red,nir,nir8a,swir11,swir12,mtd_file
+#% collective: blue,green,red,nir,nir8a,swir11,swir12
+#% requires: shadow_mask,mtd_file
+#% requires: shadow_raster,mtd_file
 #% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
 #% excludes: -c,shadow_mask,shadow_raster
 #% required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
@@ -187,7 +189,7 @@ def main ():
     tmp["addcat"] = "addcat_" + processid
     tmp["cl_shift"] = "cl_shift_" + processid
     tmp["overlay"] = "overlay_" + processid
-    
+
     # Check temporary map names are not existing maps
     for key, value in tmp.items():
         if gscript.find_file(value,
@@ -417,7 +419,7 @@ def main ():
             f_bands['green'],
             f_bands['blue'])
         shadow_rules = '(({} == 1) && ({} < 0.007))'.format(
-            sixth_rule, 
+            sixth_rule,
             seventh_rule)
         expr_s = '{} = if({}, 0, null())'.format(
             tmp["shadow_temp"],
@@ -510,7 +512,7 @@ def main ():
 
                 # End cloud mask preparation
                 # Shift cloud mask using dE e dN
-                # Start reading mean sun zenith and azimuth from xml file to compute 
+                # Start reading mean sun zenith and azimuth from xml file to compute
                 #dE and dN automatically
                 gscript.message(_('--- Reading mean sun zenith and azimuth from metadata file to compute clouds shift ---'))
                 try:
@@ -535,9 +537,9 @@ def main ():
                 except:
                     gscript.fatal('The selected input metadata file is not an .xml file. Please check the manual page.')
 
-                # Stop reading mean sun zenith and azimuth from xml file to compute dE 
+                # Stop reading mean sun zenith and azimuth from xml file to compute dE
                 #and dN automatically
-                # Start computing the east and north shift for clouds and the 
+                # Start computing the east and north shift for clouds and the
                 #overlapping area between clouds and shadows at steps of 100m
                 gscript.message(_('--- Start computing the east and north clouds shift at steps of 100m of clouds height---'))
                 H = 1000
@@ -621,12 +623,12 @@ def main ():
                 gscript.message('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA]))
             else:
                 if options['shadow_mask']:
-                    gscript.run_command("g.rename", 
+                    gscript.run_command("g.rename",
                         vector=(tmp["shadow_temp_mask"],shadow_mask))
                 if options['shadow_raster']:
                     gscript.run_command('v.to.rast', input=shadow_mask,
                         output=shadow_raster, use='val')
-                gscript.warning(_('The removing misclassification procedure from shadow mask was not performed since no cloud have been detected'))   
+                gscript.warning(_('The removing misclassification procedure from shadow mask was not performed since no cloud have been detected'))
     else:
         if shadow_mask != '':
             gscript.warning(_('No shadow mask will be computed'))
@@ -655,7 +657,7 @@ def cleanup():
                     type='raster',
                     name=",".join([tmp[m] for m in tmp.keys()]),
                     quiet=True)
-            
+
 if __name__ == "__main__":
     options, flags = gscript.parser()
     atexit.register(cleanup)
