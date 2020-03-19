@@ -23,7 +23,7 @@ build_addons() {
     	cd $XMLDIR/grass${version}/logs
     done
 
-    update_manual 7 6
+    update_manual 7 8
     update_manual 6 4
 }
 
