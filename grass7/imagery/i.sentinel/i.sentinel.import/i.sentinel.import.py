@@ -52,6 +52,11 @@
 #% descriptions: region;extent of current region;input;extent of input map
 #% guisection: Filter
 #%end
+#%option G_OPT_V_INPUT
+#% key: footprints
+#% description: Name of vector input map with Sentinel-2 footprints to limit import extent to not-null data.
+#% required: no
+#%end
 #%option
 #% key: memory
 #% type: integer
@@ -112,6 +117,8 @@ from zipfile import ZipFile
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
+imported_map_list = []
+
 class SentinelImporter(object):
     def __init__(self, input_dir, unzip_dir):
         # list of directories to cleanup
@@ -143,7 +150,7 @@ class SentinelImporter(object):
                 shutil.rmtree(dirpath)
             except OSError:
                 pass
-            
+
     def filter(self, pattern=None):
         if pattern:
             filter_p = r'.*{}.*.jp2$'.format(pattern)
@@ -262,12 +269,12 @@ class SentinelImporter(object):
             gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
         dsn = gdal.Open(filename)
         trans = dsn.GetGeoTransform()
-        
+
         ret = int(trans[1])
         dsn = None
 
         return ret
-    
+
     def _raster_epsg(self, filename):
         try:
             from osgeo import gdal, osr
@@ -277,7 +284,7 @@ class SentinelImporter(object):
 
         srs = osr.SpatialReference()
         srs.ImportFromWkt(dsn.GetProjectionRef())
-    
+
         ret = srs.GetAuthorityCode(None)
         dsn = None
 
@@ -289,6 +296,7 @@ class SentinelImporter(object):
 
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
+        imported_map_list.append(mapname)
         gs.message(_('Processing <{}>...').format(mapname))
         if module == 'r.import':
             args['resolution_value'] = self._raster_resolution(filename)
@@ -492,6 +500,8 @@ class SentinelImporter(object):
                     ))
                 fd.write(os.linesep)
 def main():
+    global imported_map_list
+
     importer = SentinelImporter(options['input'], options['unzip_dir'])
 
     importer.filter(options['pattern'])
@@ -504,8 +514,31 @@ def main():
                          "when -{} flag given").format('p'))
         importer.print_products()
         return 0
-    
+
     importer.import_products(flags['r'], flags['l'], flags['o'])
+    if options['footprints']:
+        fp = options['footprints']
+        reg_name = "tmpregion_%s"%(str(os.getpid()))
+        gs.run_command('g.region',save=reg_name)
+        fp_dict={}
+        idlist = [x for x in gs.parse_command('v.db.select',map=fp)]
+        cat_idx = idlist[0].split('|').index('cat')
+        ident_idx = idlist[0].split('|').index('identifier')
+
+        for item in idlist[1:]:
+            tmp_key = item.split('|')[ident_idx]
+            key = "%s_%s"%(tmp_key.split('_')[5],tmp_key.split('_')[2])
+            fp_dict[key] = item.split('|')[cat_idx]
+        fp_rast_name = "fp_rast_%s"%(str(os.getpid()))
+        for map in imported_map_list:
+            gs.run_command('g.region',raster=map)
+            gs.run_command('v.to.rast',input=fp,cats=fp_dict['%s_%s'%(map.split('_')[0],map.split('_')[1])],use="val",value=1,memory=options['memory'], output=fp_rast_name)
+            gs.run_command('r.mapcalc',expression='tmp_%s = if(isnull(%s),null(),%s)'%(map,fp_rast_name,map))
+            gs.run_command('g.rename',raster='tmp_%s,%s'%(map,map))
+            gs.run_command('g.remove',type="raster",name=fp_rast_name,flags='f')
+        gs.run_command('g.region',region=reg_name)
+        gs.run_command('g.remove',type="region",name=reg_name,flags='f')
+
     importer.write_metadata()
 
     if flags['c']:
