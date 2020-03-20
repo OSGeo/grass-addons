@@ -2,7 +2,13 @@ MODULE_TOPDIR = ../..
 
 PGM = r.learn.ml
 
-include $(MODULE_TOPDIR)/include/Make/Script.make
-include $(MODULE_TOPDIR)/include/Make/Python.make
+SUBDIRS = rlearnlib \
+	  	  r.learn.train \
+	  	  r.learn.predict \
+	  
+include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: script
+default: parsubdirs htmldir
+
+install: installsubdirs
+	$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
