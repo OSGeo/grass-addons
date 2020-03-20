@@ -15,14 +15,14 @@
 <h2>NOTES</h2>
 
 <p><em>r.learn.ml</em> uses the "scikit-learn" machine learning python package (version &ge; 0.20) along with the
-	"pandas" package. These packages need to be installed within your GRASS GIS Python environment. For Linux users,
+	"pandas" package (version &ge; 1.0). These packages need to be installed within your GRASS GIS Python environment. For Linux users,
 	these packages should be available through the linux package manager. For MS-Windows users using a 64 bit GRASS, the
 	easiest way of installing the packages is by using the precompiled binaries from <a
 		href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph Gohlke</a> and by using the <a
 		href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a> installation method of GRASS, where the
 	python setuptools can also be installed. You can then use 'easy_install pip' to install the pip package manager.
 	Then, you can download the NumPy+MKL and scikit-learn .whl files and install them using 'pip install
-	packagename.whl'. For MS-Windows with a 32 bit GRASS, scikit-learn is available in the OSGeo4W installer.</p>
+	packagename.whl'.</p>
 
 <h2>EXAMPLE</h2>
 
@@ -40,24 +40,26 @@
 <p>First, we are going to generate some training pixels from an older (1996) land cover classification:</p>
 <div class="code">
 	<pre>
-g.region raster=landclass96 -p
-r.random input=landclass96 npoints=1000 raster=landclass96_roi
+		g.region raster=landclass96 -p
+		r.random input=landclass96 npoints=1000 raster=training_pixels
 </pre>
 </div>
 
 <p>Then we can use these training pixels to perform a classification on the more recently obtained landsat 7 image:</p>
 <div class="code">
 	<pre>
-r.learn.train group=lsat7_2000 training_map=landclass96_roi \
-	model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
+		# train a random forest classification model using r.learn.train 
+		r.learn.train group=lsat7_2000 training_map=training_pixels \
+			model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
 
-r.learn.predict group=lsat7_2000 load_model=rf_model.gz output=rf_classification
+		# perform prediction using r.learn.predict
+		r.learn.predict group=lsat7_2000 load_model=rf_model.gz output=rf_classification
 
-# copy category labels from landclass training map to result
-r.category rf_classification raster=landclass96_roi
-# copy color scheme from landclass training map to result
-r.colors rf_classification raster=landclass96_roi
-r.category rf_classification
+		# check raster categories - they are automatically applied to the classification output
+		r.category rf_classification
+
+		# copy color scheme from landclass training map to result
+		r.colors rf_classification raster=training_pixels
 </pre>
 </div>
 
@@ -65,10 +67,6 @@ r.category rf_classification
 <center>
 	<img src="rfclassification.png" alt="Random forest classification result">
 </center>
-
-<h2>ACKNOWLEDGEMENTS</h2>
-
-<p>Thanks for Paulo van Breugel and Vaclav Petras for testing.</p>
 
 <h2>REFERENCES</h2>
 
@@ -81,5 +79,3 @@ r.category rf_classification
 <h2>AUTHOR</h2>
 
 Steven Pawley
-
-<p><em>Last changed: $Date: 2019-02-08 15:41:00 -0600 (Fri, 08 Feb 2019) $</em></p>
