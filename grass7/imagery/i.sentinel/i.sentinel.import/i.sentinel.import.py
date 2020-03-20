@@ -499,25 +499,8 @@ class SentinelImporter(object):
                         br='S2_{}'.format(band_ref)
                     ))
                 fd.write(os.linesep)
-def main():
-    global imported_map_list
 
-    importer = SentinelImporter(options['input'], options['unzip_dir'])
-
-    importer.filter(options['pattern'])
-    if len(importer.files) < 1:
-        gs.fatal(_('Nothing found to import. Please check input and pattern options.'))
-
-    if flags['p']:
-        if options['register_output']:
-            gs.warning(_("Register output file name is not created "
-                         "when -{} flag given").format('p'))
-        importer.print_products()
-        return 0
-
-    importer.import_products(flags['r'], flags['l'], flags['o'])
-    if options['footprints']:
-        fp = options['footprints']
+    def set_footprint(self,fp):
         reg_name = "tmpregion_%s"%(str(os.getpid()))
         gs.run_command('g.region',save=reg_name)
         fp_dict={}
@@ -538,6 +521,27 @@ def main():
             gs.run_command('g.remove',type="raster",name=fp_rast_name,flags='f')
         gs.run_command('g.region',region=reg_name)
         gs.run_command('g.remove',type="region",name=reg_name,flags='f')
+
+def main():
+    global imported_map_list
+
+    importer = SentinelImporter(options['input'], options['unzip_dir'])
+
+    importer.filter(options['pattern'])
+    if len(importer.files) < 1:
+        gs.fatal(_('Nothing found to import. Please check input and pattern options.'))
+
+    if flags['p']:
+        if options['register_output']:
+            gs.warning(_("Register output file name is not created "
+                         "when -{} flag given").format('p'))
+        importer.print_products()
+        return 0
+
+    importer.import_products(flags['r'], flags['l'], flags['o'])
+
+    if options['footprints']:
+        importer.set_footprint(options['footprints'])
 
     importer.write_metadata()
 
