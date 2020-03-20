@@ -1,7 +1,21 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.sentinel.mask</em> allows to automatically identify clouds and their
-shadows in Sentinel-2 images. 
+shadows in Sentinel-2 images.
+<p>
+The following figures show the difference between the standard cloud mask as
+provided in Sentinel-2 SAFE products and the cloud detection results obtained
+with <em>i.sentinel.mask</em> (shadow detection not activated in this example):
+<p>
+<table cellspacing="2" cellpadding="2" width="100%" border="0">
+	<tbody>
+		<tr>
+		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_esa_sen2cor.png"><img src="i_sentinel_mask_indonesia_esa_sen2cor.png" width="70%"></a><br><i>Fig: Standard cloud mask as provided in Sentinel-2 SAFE products<br>(example: Indonesia)</i></td>
+		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" width="70%"></a><br><i>Fig: Cloud detection with <em>i.sentinel.mask</em><br>(example: Indonesia)</td>
+		</tr>
+	</tbody>
+</table>
+
 <p>
 The implemented procedure consists essentially of an algorithm based on values
 thresholds, comparisons and calculations between bands which leads to two
