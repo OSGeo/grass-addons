@@ -797,23 +797,6 @@ class RasterStack(StatisticsMixin):
 
         return X, y, cat
 
-    @staticmethod
-    def _grass_sql_dtype_to_numpy(dtype):
-
-        dtype = re.sub(r"\([^)]*\)", "", dtype)
-        dtype = dtype.lower()
-
-        grass_vector_dtypes = {
-            "integer": np.int64,
-            "double precision": np.float64,
-            "real": np.float32,
-            "text": pd.StringDtype(),
-            "varchar": pd.StringDtype(),
-            "date": pd.DatetimeIndex,
-        }
-
-        return grass_vector_dtypes[dtype]
-
     def extract_points(self, vect_name, fields, na_rm=True, as_df=False):
         """Samples a list of GRASS rasters using a point dataset
 
@@ -864,73 +847,47 @@ class RasterStack(StatisticsMixin):
             # retrieve key column
             key_col = points.table.key
 
-            # read table for all points (irrespective of comp region)
-            df = pd.DataFrame(points.table_to_dict()).transpose()
-            df_cols = points.table.columns
-            df_colnames = [name for (name, dtype) in df_cols.items()]
+            # read attribute table (ignores region)
+            df = pd.read_sql_query(
+                sql="select * from {name}".format(name=points.table.name), con=points.table.conn
+            )
 
             for i in fields:
-                if i not in df_colnames:
+                if i not in df.columns.tolist():
                     gs.fatal(i + " not present in the attribute table")
 
-            df = df.rename(
-                columns={old: new for old, new in zip(df.columns, df_colnames)}
-            )
             df = df.loc[:, fields + [points.table.key]]
-
-            # set dtypes
-            df.loc[:, key_col] = df.loc[:, key_col].astype(pd.Int64Dtype())
-
-            for field in fields:
-                df[field] = df[field].astype(
-                    self._grass_sql_dtype_to_numpy(df_cols[field])
-                )
 
             # extract raster data
             Xs = []
 
-            for name, src in self.loc.items():
-
-                # query raster data in comp region
+            for name, layer in self.loc.items():
                 rast_data = v.what_rast(
                     map=vect_name,
-                    raster=src.fullname(),
+                    raster=layer.fullname(),
                     flags="p",
                     quiet=True,
                     stdout_=PIPE,
-                ).outputs.stdout
+                ).outputs.stdout.strip().split(os.linesep)
 
-                rast_data = rast_data.strip().split(os.linesep)
+                with RasterRow(layer.fullname()) as src:
+                    if src.mtype == "CELL":
+                        nodata = self._cell_nodata
+                        dtype = pd.Int64Dtype()
+                    else:
+                        nodata = np.nan
+                        dtype = np.float32
 
-                src.open("r")
+                    X = [k.split("|")[1] if k.split("|")[1] != "*" else nodata for k in rast_data]
+                    X = np.asarray(X)
+                    cat = np.asarray([int(k.split("|")[0]) for k in rast_data])
 
-                if src.mtype == "CELL":
-                    nodata = self._cell_nodata
-                    dtype = pd.Int64Dtype()
-                else:
-                    nodata = np.nan
-                    dtype = np.float32
+                    if src.mtype == "CELL":
+                        X = [int(i) for i in X]
+                    else:
+                        X = [float(i) for i in X]
 
-                X = np.asarray(
-                    [
-                        k.split("|")[1] if k.split("|")[1] != "*" else nodata
-                        for k in rast_data
-                    ]
-                )
-
-                cat = np.asarray([int(k.split("|")[0]) for k in rast_data])
-
-                if src.mtype == "CELL":
-                    X = [int(i) for i in X]
-                else:
-                    X = [float(i) for i in X]
-
-                src.close()
-
-                X = pd.DataFrame(
-                    data=np.column_stack((X, cat)), columns=[name, key_col]
-                )
-                X[key_col] = X[key_col].astype(pd.Int64Dtype())
+                X = pd.DataFrame(data=np.column_stack((X, cat)), columns=[name, key_col])
                 X[name] = X[name].astype(dtype)
                 Xs.append(X)
 
@@ -945,10 +902,7 @@ class RasterStack(StatisticsMixin):
 
         # remove samples containing NaNs
         if na_rm is True:
-            gs.message(
-                "Removing samples with NaN values in the "
-                + "raster feature variables..."
-            )
+            gs.message("Removing samples with NaN values in the raster feature variables...")
             df = df.dropna()
 
         if as_df is False:
