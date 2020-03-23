@@ -54,7 +54,7 @@
 #%end
 #%option G_OPT_V_INPUT
 #% key: footprints
-#% description: Name of vector input map with Sentinel-2 footprints to limit import extent to not-null data.
+#% description: Name of vector input map with Sentinel-2 footprints to limit import extent to non NULL data
 #% required: no
 #%end
 #%option
