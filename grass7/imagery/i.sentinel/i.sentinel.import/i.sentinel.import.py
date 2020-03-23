@@ -500,27 +500,28 @@ class SentinelImporter(object):
                     ))
                 fd.write(os.linesep)
 
-    def set_footprint(self,fp):
-        reg_name = "tmpregion_%s"%(str(os.getpid()))
-        gs.run_command('g.region',save=reg_name)
-        fp_dict={}
-        idlist = [x for x in gs.parse_command('v.db.select',map=fp)]
+    def set_footprint(self, fp):
+        reg_name = "tmpregion_%s" % (str(os.getpid()))
+        gs.run_command('g.region', save=reg_name)
+        fp_dict = {}
+        idlist = [x for x in gs.parse_command('v.db.select', map=fp)]
         cat_idx = idlist[0].split('|').index('cat')
         ident_idx = idlist[0].split('|').index('identifier')
 
         for item in idlist[1:]:
             tmp_key = item.split('|')[ident_idx]
-            key = "%s_%s"%(tmp_key.split('_')[5],tmp_key.split('_')[2])
+            key = "%s_%s" % (tmp_key.split('_')[5], tmp_key.split('_')[2])
             fp_dict[key] = item.split('|')[cat_idx]
-        fp_rast_name = "fp_rast_%s"%(str(os.getpid()))
+        fp_rast_name = "fp_rast_%s" % (str(os.getpid()))
         for map in imported_map_list:
-            gs.run_command('g.region',raster=map)
-            gs.run_command('v.to.rast',input=fp,cats=fp_dict['%s_%s'%(map.split('_')[0],map.split('_')[1])],use="val",value=1,memory=options['memory'], output=fp_rast_name)
-            gs.run_command('r.mapcalc',expression='tmp_%s = if(isnull(%s),null(),%s)'%(map,fp_rast_name,map))
-            gs.run_command('g.rename',raster='tmp_%s,%s'%(map,map))
-            gs.run_command('g.remove',type="raster",name=fp_rast_name,flags='f')
-        gs.run_command('g.region',region=reg_name)
-        gs.run_command('g.remove',type="region",name=reg_name,flags='f')
+            gs.run_command('g.region', raster=map)
+            gs.run_command('v.to.rast', input=fp, cats=fp_dict['%s_%s' % (map.split('_')[0], map.split('_')[1])], use="val",
+                           value=1, memory=options['memory'], output=fp_rast_name)
+            gs.run_command('r.mapcalc', expression='tmp_%s = if(isnull(%s),null(),%s)' % (map, fp_rast_name, map))
+            gs.run_command('g.rename', raster='tmp_%s,%s' % (map, map))
+            gs.run_command('g.remove', type="raster", name=fp_rast_name, flags='f')
+        gs.run_command('g.region', region=reg_name)
+        gs.run_command('g.remove', type="region", name=reg_name, flags='f')
 
 def main():
     global imported_map_list
