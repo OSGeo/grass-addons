@@ -24,6 +24,7 @@
 #include "pops/treatments.hpp"
 #include "pops/spread_rate.hpp"
 #include "pops/statistics.hpp"
+#include "pops/scheduling.hpp"
 
 extern "C" {
 #include <grass/gis.h>
@@ -57,6 +58,17 @@ using namespace pops;
 typedef Simulation<Img, DImg> Sporulation;
 
 #define DIM 1
+
+void fatal_option_required_for_value(
+        struct Option* required,
+        struct Option* given
+        )
+{
+    G_fatal_error(_("The option %s is required for %s=%s"),
+                  required->key,
+                  given->key,
+                  given->answer);
+}
 
 // check if a file exists
 inline bool file_exists(const char* name) {
@@ -111,13 +123,49 @@ inline TreatmentApplication treatment_app_enum_from_string(const string& text)
     }
 }
 
+inline StepUnit step_unit_enum_from_string(const string& text)
+{
+    std::map<string, StepUnit> mapping{
+        {"day", StepUnit::Day},
+        {"week", StepUnit::Week},
+        {"month", StepUnit::Month}
+    };
+    try {
+        return mapping.at(text);
+    }
+    catch (const std::out_of_range&) {
+        throw std::invalid_argument("step_unit_enum_from_string:"
+                                    " Invalid value '" + text +"' provided");
+    }
+}
+
+inline std::vector<bool> output_frequency_from_string(const Scheduler &scheduler,
+                                                      const Option* frequency, const Option* frequency_n)
+{
+    if (frequency->answer) {
+        if (G_strcasecmp(frequency->answer, "yearly") == 0)
+            return scheduler.schedule_action_end_of_year();
+        if (G_strcasecmp(frequency->answer, "monthly") == 0)
+            return scheduler.schedule_action_monthly();
+        if (G_strcasecmp(frequency->answer, "every_n_steps") == 0) {
+           int n = std::stoi(frequency_n->answer);
+           return scheduler.schedule_action_nsteps(n);
+        }
+        throw std::invalid_argument("output_frequency_from_string:"
+                                        " Invalid value '" + std::string(frequency->answer) +"' provided");
+    }
+    else {
+        std::vector<bool> v(scheduler.get_num_steps(), false);
+        return v;
+    }
+}
+
 inline Date treatment_date_from_string(const string& text)
 {
     Date d = Date(text);
     if (!(d.month() >= 1 && d.month() <= 12 && d.day() >=1 && d.day() <= 31))
         G_fatal_error(_("Date <%s> is invalid"), text.c_str());
     return d;
-    
 }
 
 inline Season seasonality_from_option(const Option* opt)
@@ -196,8 +244,8 @@ struct PoPSOptions
     struct Option *weather_coefficient_file;
     struct Option *lethal_temperature, *lethal_temperature_months;
     struct Option *temperature_file;
-    struct Option *start_time, *end_time, *seasonality;
-    struct Option *step;
+    struct Option *start_date, *end_date, *seasonality;
+    struct Option *step_unit, *step_num_units;
     struct Option *treatments;
     struct Option *treatment_date, *treatment_length;
     struct Option *treatment_app;
@@ -215,6 +263,7 @@ struct PoPSOptions
     struct Option *stddev, *stddev_series;
     struct Option *probability, *probability_series;
     struct Option *spread_rate_output;
+    struct Option *output_frequency, *output_frequency_n;
 };
 
 struct PoPSFlags
@@ -413,21 +462,19 @@ int main(int argc, char *argv[])
     opt.temperature_file->required = NO;
     opt.temperature_file->guisection = _("Weather");
 
-    opt.start_time = G_define_option();
-    opt.start_time->type = TYPE_INTEGER;
-    opt.start_time->key = "start_time";
-    opt.start_time->label = _("Start year of the simulation");
-    opt.start_time->description = _("The first day of the year will be used");
-    opt.start_time->required = YES;
-    opt.start_time->guisection = _("Time");
+    opt.start_date = G_define_option();
+    opt.start_date->type = TYPE_STRING;
+    opt.start_date->key = "start_date";
+    opt.start_date->description = _("Start date of the simulation in YYYY-MM-DD format");
+    opt.start_date->required = YES;
+    opt.start_date->guisection = _("Time");
 
-    opt.end_time = G_define_option();
-    opt.end_time->type = TYPE_INTEGER;
-    opt.end_time->key = "end_time";
-    opt.end_time->label = _("End year of the simulation");
-    opt.end_time->description = _("The last day of the year will be used");
-    opt.end_time->required = YES;
-    opt.end_time->guisection = _("Time");
+    opt.end_date = G_define_option();
+    opt.end_date->type = TYPE_STRING;
+    opt.end_date->key = "end_date";
+    opt.end_date->description = _("End date of the simulation in YYYY-MM-DD format");
+    opt.end_date->required = YES;
+    opt.end_date->guisection = _("Time");
 
     opt.seasonality = G_define_option();
     opt.seasonality->type = TYPE_STRING;
@@ -444,15 +491,43 @@ int main(int argc, char *argv[])
     opt.seasonality->multiple = NO;
     opt.seasonality->guisection = _("Time");
 
-    opt.step = G_define_option();
-    opt.step->type = TYPE_STRING;
-    opt.step->key = "step";
-    opt.step->label = _("Simulation step");
-    opt.step->description = _("How often the simulation computes new step");
-    opt.step->options = "week,month";
-    opt.step->descriptions = _("week;Compute next simulation step each week;month;Compute next simulation step each month");
-    opt.step->required = YES;
-    opt.step->guisection = _("Time");
+    opt.step_unit = G_define_option();
+    opt.step_unit->type = TYPE_STRING;
+    opt.step_unit->key = "step_unit";
+    opt.step_unit->label = _("Unit of simulation steps");
+    opt.step_unit->options = "day,week,month";
+    opt.step_unit->answer = const_cast<char*>("month");
+    opt.step_unit->descriptions = _("day;Compute next simulation step every N days;week;Compute next simulation step every N weeks;month;Compute next simulation step every N months");
+    opt.step_unit->required = YES;
+    opt.step_unit->guisection = _("Time");
+
+    opt.step_num_units = G_define_option();
+    opt.step_num_units->type = TYPE_INTEGER;
+    opt.step_num_units->key = "step_num_units";
+    opt.step_num_units->answer = const_cast<char*>("1");
+    opt.step_num_units->label = _("Number of days/weeks/months in each step");
+    opt.step_num_units->description = _("Step is given by number and unit, e.g. step_num_units=5 and step_unit=day means step is 5 days");
+    opt.step_num_units->options = "1-100";
+    opt.step_num_units->required = YES;
+    opt.step_num_units->guisection = _("Time");
+
+    opt.output_frequency = G_define_option();
+    opt.output_frequency->type = TYPE_STRING;
+    opt.output_frequency->key = "output_frequency";
+    opt.output_frequency->label = "Frequency of simulation output";
+    opt.output_frequency->options = "yearly,monthly,every_n_steps";
+    opt.output_frequency->required = NO;
+    opt.output_frequency->answer = const_cast<char*>("yearly");
+    opt.output_frequency->guisection = _("Time");
+
+    opt.output_frequency_n = G_define_option();
+    opt.output_frequency_n->type = TYPE_INTEGER;
+    opt.output_frequency_n->key = "output_frequency_n";
+    opt.output_frequency_n->description = "Output frequency every N steps";
+    opt.output_frequency_n->options = "1-100";
+    opt.output_frequency_n->answer = const_cast<char*>("1");
+    opt.output_frequency_n->required = NO;
+    opt.output_frequency_n->guisection = _("Time");
 
     opt.reproductive_rate = G_define_option();
     opt.reproductive_rate->type = TYPE_DOUBLE;
@@ -468,6 +543,7 @@ int main(int argc, char *argv[])
     opt.natural_kernel->label = _("Natural dispersal kernel type");
     opt.natural_kernel->answer = const_cast<char*>("cauchy");
     opt.natural_kernel->options = "cauchy,exponential";
+    opt.natural_kernel->required = YES;
     opt.natural_kernel->guisection = _("Dispersal");
 
     opt.natural_scale = G_define_option();
@@ -475,6 +551,7 @@ int main(int argc, char *argv[])
     opt.natural_scale->key = "natural_distance";
     opt.natural_scale->label =
             _("Distance parameter for natural dispersal kernel");
+    opt.natural_scale->required = YES;
     opt.natural_scale->guisection = _("Dispersal");
 
     opt.natural_direction = G_define_option();
@@ -524,7 +601,7 @@ int main(int argc, char *argv[])
     opt.anthro_direction->description =
             _("Value none means that there is no directionality");
     opt.anthro_direction->options = "N,NE,E,SE,S,SW,W,NW,NONE,none";
-    opt.anthro_direction->required = YES;
+    opt.anthro_direction->required = NO;
     opt.anthro_direction->answer = const_cast<char*>("none");
     opt.anthro_direction->guisection = _("Dispersal");
 
@@ -629,8 +706,11 @@ int main(int argc, char *argv[])
     opt.threads->guisection = _("Randomness");
 
     G_option_required(opt.average, opt.average_series, opt.single_series, opt.probability, opt.probability_series,
-                      opt.outside_spores, NULL);
-
+                      opt.outside_spores, opt.stddev, opt.stddev_series, NULL);
+    G_option_requires_all(opt.average_series, opt.output_frequency, NULL);
+    G_option_requires_all(opt.single_series, opt.output_frequency, NULL);
+    G_option_requires_all(opt.probability_series, opt.output_frequency, NULL);
+    G_option_requires_all(opt.stddev_series, opt.output_frequency, NULL);
     G_option_exclusive(opt.seed, flg.generate_seed, NULL);
     G_option_required(opt.seed, flg.generate_seed, NULL);
 
@@ -692,7 +772,11 @@ int main(int argc, char *argv[])
             kernel_type_from_string(opt.natural_kernel->answer);
     double natural_scale = std::stod(opt.natural_scale->answer);
     Direction natural_direction = direction_from_string(opt.natural_direction->answer);
-    double natural_kappa = std::stod(opt.natural_kappa->answer);
+    double natural_kappa = 0;
+    if (natural_direction != Direction::None && !opt.natural_kappa->answer)
+        fatal_option_required_for_value(opt.natural_kappa, opt.natural_direction);
+    else if (opt.natural_kappa->answer)
+        natural_kappa = std::stod(opt.natural_kappa->answer);
 
     DispersalKernelType anthro_kernel_type =
             kernel_type_from_string(opt.anthro_kernel->answer);
@@ -702,9 +786,7 @@ int main(int argc, char *argv[])
 
     double anthro_scale = 0;
     if (use_long_kernel && !opt.anthro_scale->answer)
-        G_fatal_error(_("The option %s is required for %s=%s"),
-                      opt.anthro_scale->key, opt.anthro_kernel->key,
-                      opt.anthro_kernel->answer);
+        fatal_option_required_for_value(opt.anthro_scale, opt.anthro_kernel);
     else if (opt.anthro_scale->answer)
         anthro_scale = std::stod(opt.anthro_scale->answer);
 
@@ -713,18 +795,14 @@ int main(int argc, char *argv[])
 
     double anthro_kappa = 0;
     if (use_long_kernel && !opt.anthro_kappa->answer)
-        G_fatal_error(_("The option %s is required for %s=%s"),
-                      opt.anthro_kappa->key, opt.anthro_kernel->key,
-                      opt.anthro_kernel->answer);
+        fatal_option_required_for_value(opt.anthro_kappa, opt.anthro_kernel);
     else if (opt.anthro_kappa->answer)
-        anthro_kappa= std::stod(opt.anthro_kappa->answer);
+        anthro_kappa = std::stod(opt.anthro_kappa->answer);
 
     double gamma = 0.0;
     if (use_long_kernel &&
             !opt.percent_natural_dispersal->answer)
-        G_fatal_error(_("The option %s is required for %s=%s"),
-                      opt.percent_natural_dispersal->key, opt.natural_kernel->key,
-                      opt.natural_kernel->answer);
+        fatal_option_required_for_value(opt.percent_natural_dispersal, opt.anthro_kernel);
     else if (opt.percent_natural_dispersal->answer)
         gamma = std::stod(opt.percent_natural_dispersal->answer);
 
@@ -761,35 +839,39 @@ int main(int argc, char *argv[])
                              gamma);
     }
 
-    // initialize the start Date and end Date object
-    // options for times are required ints
-    int start_time = std::stoi(opt.start_time->answer);
-    int end_time = std::stoi(opt.end_time->answer);
-    if (start_time > end_time) {
+    Date dd_start(opt.start_date->answer);
+    Date dd_end(opt.end_date->answer);
+    if (dd_start > dd_end) {
         G_fatal_error(_("Start date must precede the end date"));
     }
 
-    Date dd_start(start_time, 01, 01);
-    Date dd_end(end_time, 12, 31);
-    // difference in years (in dates) but including both years
-    unsigned num_years = dd_end.year() - dd_start.year() + 1;
+    StepUnit step_unit = step_unit_enum_from_string(opt.step_unit->answer);
+    int step_num_units = std::stoi(opt.step_num_units->answer);
 
-    string step_type = opt.step->answer;
+    // Scheduler
+    Scheduler scheduler(dd_start, dd_end, step_unit, step_num_units);
+    std::vector<bool> spread_schedule = scheduler.schedule_spread(season);
+    std::vector<bool> output_schedule = output_frequency_from_string(scheduler,
+                                                                     opt.output_frequency,
+                                                                     opt.output_frequency_n);
 
     // mortality
     bool use_mortality = false;
     unsigned first_mortality_year = 1;  // starts at 1 (same as the opt)
     double mortality_rate = 0.0;
+    unsigned mortality_simulation_year;
+    std::vector<bool> mortality_schedule = scheduler.schedule_action_end_of_year();
+    unsigned num_mortality_years = get_number_of_scheduled_actions(mortality_schedule);
     if (flg.mortality->answer) {
         use_mortality = true;
         if (opt.first_year_to_die->answer) {
             first_mortality_year = std::stoi(opt.first_year_to_die->answer);
-            if (first_mortality_year > num_years) {
+            if (first_mortality_year > num_mortality_years) {
                 G_fatal_error(
                     _("%s is too large (%d). It must be smaller or "
                       " equal than number of simulation years (%d)."),
                     opt.first_year_to_die->key,
-                    first_mortality_year, num_years);
+                    first_mortality_year, num_mortality_years);
             }
         }
         if (opt.infected_to_dead_rate->answer)
@@ -822,10 +904,6 @@ int main(int argc, char *argv[])
     // create the initial suspectible oaks image
     Img S_species_rast = species_rast - I_species_rast;
 
-    // SOD-immune trees image
-    //Img SOD_rast = umca_rast + oaks_rast;
-    //Img IMM_rast = lvtree_rast - SOD_rast;
-
     std::vector<string> moisture_names;
     std::vector<string> temperature_names;
     std::vector<string> weather_names;
@@ -844,28 +922,31 @@ int main(int argc, char *argv[])
 
     double use_lethal_temperature = false;
     double lethal_temperature_value;
-    int lethal_temperature_month = 0;  // invalid value for month
+    unsigned count_lethal = 0;
     std::vector<string> actual_temperature_names;
     std::vector<DImg> actual_temperatures;
+    std::vector<bool> lethal_schedule;
     if (opt.lethal_temperature->answer)
         lethal_temperature_value = std::stod(opt.lethal_temperature->answer);
-    if (opt.lethal_temperature_months->answer)
-        lethal_temperature_month = std::stod(opt.lethal_temperature_months->answer);
+    if (opt.lethal_temperature_months->answer) {
+        int lethal_temperature_month = std::stod(opt.lethal_temperature_months->answer);
+        lethal_schedule = scheduler.schedule_action_yearly(lethal_temperature_month, 1);
+        count_lethal = get_number_of_scheduled_actions(lethal_schedule);
+    }
     if (opt.temperature_file->answer) {
         file_exists_or_fatal_error(opt.temperature_file);
         read_names(actual_temperature_names, opt.temperature_file->answer);
         for (string name : actual_temperature_names) {
             actual_temperatures.push_back(raster_from_grass_float(name));
         }
+        if (actual_temperatures.size() < count_lethal)
+            G_fatal_error(_("Not enough temperatures"));
         use_lethal_temperature = true;
     }
 
-    // TODO: limit this by the actual max steps
-    // weeks are currently the worst case
-    const unsigned max_weeks_in_year = 53;
     std::vector<DImg> weather_coefficients;
     if (weather || moisture_temperature)
-        weather_coefficients.resize(max_weeks_in_year);
+        weather_coefficients.resize(scheduler.get_num_steps());
 
     // treatments
     if (get_num_answers(opt.treatments) != get_num_answers(opt.treatment_date) &&
@@ -876,20 +957,20 @@ int main(int argc, char *argv[])
     TreatmentApplication treatment_app = TreatmentApplication::Ratio;
     if (opt.treatment_app->answer)
         treatment_app = treatment_app_enum_from_string(opt.treatment_app->answer);
-    Treatments<Img, DImg> treatments;
+    Treatments<Img, DImg> treatments(scheduler);
     bool use_treatments = false;
     if (opt.treatments->answers) {
-        auto increase_by_step = step_type == "month" ? &Date::increased_by_month : &Date::increased_by_week;
         for (int i_t = 0; opt.treatment_date->answers[i_t]; i_t++) {
             DImg tr = raster_from_grass_float(opt.treatments->answers[i_t]);
             treatments.add_treatment(tr, treatment_date_from_string(opt.treatment_date->answers[i_t]),
-                                     std::stoul(opt.treatment_length->answers[i_t]), treatment_app, increase_by_step);
+                                     std::stoul(opt.treatment_length->answers[i_t]), treatment_app);
             use_treatments = true;
         }
     }
 
     // build the Sporulation object
     std::vector<Sporulation> sporulations;
+    std::vector<Img> dispersers;
     std::vector<Img> sus_species_rasts(num_runs, S_species_rast);
     std::vector<Img> inf_species_rasts(num_runs, I_species_rast);
     std::vector<Img> resistant_rasts(num_runs, Img(S_species_rast, 0));
@@ -897,7 +978,7 @@ int main(int argc, char *argv[])
     // infected cohort for each year (index is cohort age)
     // age starts with 0 (in year 1), 0 is oldest
     std::vector<std::vector<Img> > mortality_tracker_vector(
-        num_runs, std::vector<Img>(num_years, Img(S_species_rast, 0)));
+        num_runs, std::vector<Img>(num_mortality_years, Img(S_species_rast, 0)));
 
     // we are using only the first dead img for visualization, but for
     // parallelization we need all allocated anyway
@@ -907,199 +988,191 @@ int main(int argc, char *argv[])
     Img accumulated_dead(Img(S_species_rast, 0));
 
     sporulations.reserve(num_runs);
-    for (unsigned i = 0; i < num_runs; ++i)
-        sporulations.emplace_back(seed_value++, I_species_rast);
+    dispersers.reserve(num_runs);
+    for (unsigned i = 0; i < num_runs; ++i) {
+        sporulations.emplace_back(seed_value++, I_species_rast.rows(), I_species_rast.cols());
+        dispersers.emplace_back(I_species_rast.rows(), I_species_rast.cols());
+    }
     std::vector<std::vector<std::tuple<int, int> > > outside_spores(num_runs);
 
     // spread rate initialization
+    std::vector<bool> spread_rate_schedule = scheduler.schedule_action_end_of_year();
+    unsigned rate_num_years = get_number_of_scheduled_actions(spread_rate_schedule);
     std::vector<SpreadRate<Img>> spread_rates(num_runs,
-                                              SpreadRate<Img>(I_species_rast, window.ew_res, window.ns_res, num_years));
+                                              SpreadRate<Img>(I_species_rast, window.ew_res, window.ns_res, rate_num_years));
 
     std::vector<unsigned> unresolved_steps;
-    std::vector<Date> unresolved_dates;
-    unresolved_steps.reserve(max_weeks_in_year);
-    unresolved_dates.reserve(max_weeks_in_year);
+    unresolved_steps.reserve(scheduler.get_num_steps());
 
-    Date dd_current(dd_start);
-    Date dd_current_last_day = step_type == "month" ? dd_current.get_last_day_of_month() : dd_current.get_last_day_of_week();
+    // main simulation loop
+    unsigned current_index = 0;
+    for (; current_index < scheduler.get_num_steps(); ++current_index) {
+        unresolved_steps.push_back(current_index);
 
-    // main simulation loop (weekly or monthly steps)
-    for (int current_step = 0; dd_current < dd_end; current_step++, step_type == "month" ? dd_current.increased_by_month() : dd_current.increased_by_week()) {
-        unresolved_steps.push_back(current_step);
-        unresolved_dates.push_back(dd_current);
-        dd_current_last_day = step_type == "month" ? dd_current.get_last_day_of_month() : dd_current.get_last_day_of_week();
-
-        // if all the oaks are infected, then exit
+        // if all the hosts are infected, then exit
         if (all_infected(S_species_rast)) {
-            cerr << "In the " << dd_current << " all suspectible oaks are infected!" << endl;
+            G_warning("In step %d all suspectible hosts are infected, ending simulation.", current_index);
             break;
         }
 
         // check whether the spore occurs in the month
         // At the end of the year, run simulation for all unresolved
         // steps in one chunk.
-        if ((step_type == "month" ? dd_current.is_last_month_of_year() : dd_current.is_last_week_of_year())) {
-            unsigned simulation_year = dd_current.year() - dd_start.year();
-            if (!unresolved_steps.empty()) {
+        if (output_schedule[current_index] || current_index == scheduler.get_num_steps() - 1) {
+            unsigned step_in_chunk = 0;
+            // get weather for all the steps in chunk
+            for (auto step : unresolved_steps) {
+                if (moisture_temperature) {
+                    DImg moisture(raster_from_grass_float(moisture_names[step]));
+                    DImg temperature(raster_from_grass_float(temperature_names[step]));
+                    weather_coefficients[step_in_chunk] = moisture * temperature;
+                } else if (weather)
+                    weather_coefficients[step_in_chunk] = raster_from_grass_float(weather_names[step]);
+                ++step_in_chunk;
+            }
 
-                // to avoid problem with Jan 1 of the following year
-                // we explicitely check if we are in a valid year range
-                // TODO: will this ever happen here?
-                if (use_lethal_temperature
-                        && simulation_year >= actual_temperatures.size())
-                    G_fatal_error(_("Not enough temperatures"));
-
-                unsigned step_in_chunk = 0;
-                // get weather for all the steps in chunk
+            // stochastic simulation runs
+            #pragma omp parallel for num_threads(threads)
+            for (unsigned run = 0; run < num_runs; run++) {
+                // actual runs of the simulation for each step
+                int weather_step = 0;
                 for (auto step : unresolved_steps) {
-                    if (moisture_temperature) {
-                        DImg moisture(raster_from_grass_float(moisture_names[step]));
-                        DImg temperature(raster_from_grass_float(temperature_names[step]));
-                        weather_coefficients[step_in_chunk] = moisture * temperature;
-                    } else if (weather)
-                        weather_coefficients[step_in_chunk] = raster_from_grass_float(weather_names[step]);
-                    ++step_in_chunk;
-                }
-
-                // stochastic simulation runs
-                #pragma omp parallel for num_threads(threads)
-                for (unsigned run = 0; run < num_runs; run++) {
-                    bool lethality_done_this_year = false;
-                    // actual runs of the simulation for each step
-                    for (unsigned step = 0; step < unresolved_steps.size(); ++step) {
-                        Date date = unresolved_dates[step];
-                        // removal of dispersers
-                        if (use_lethal_temperature && !lethality_done_this_year
-                                && date.month() == lethal_temperature_month) {
-                            sporulations[run].remove(inf_species_rasts[run],
-                                                     sus_species_rasts[run],
-                                                     actual_temperatures[simulation_year],
-                                                     lethal_temperature_value);
-                            lethality_done_this_year = true;
-                        }
-                        if (use_treatments) {
-                            bool managed = treatments.manage(date, inf_species_rasts[run],
-                                                             sus_species_rasts[run], resistant_rasts[run]);
-                            if (managed && use_mortality) {
-                                // same conditions as the mortality code below
-                                // TODO: make the mortality timing available as a separate function in the library
-                                // or simply go over all valid cohorts
-                                if (simulation_year >= first_mortality_year - 1) {
-                                    auto max_index = simulation_year - (first_mortality_year - 1);
-                                    for (unsigned age = 0; age <= max_index; age++) {
-                                        treatments.manage_mortality(date, 
-                                                                    mortality_tracker_vector[run][age]);
-                                    }
-                                }
-                            }
-                        }
-                        if (!season.month_in_season(date.month()))
-                            continue;
-                        sporulations[run].generate(inf_species_rasts[run],
-                                                   weather || moisture_temperature,
-                                                   weather_coefficients[step],
-                                                   spore_rate);
-
-                        sporulations[run].disperse(sus_species_rasts[run],
+                    mortality_simulation_year = simulation_step_to_action_step(mortality_schedule, step);
+                    // removal of dispersers due to lethal tempearture
+                    if (use_lethal_temperature && lethal_schedule[step]) {
+                        int lethal_step = simulation_step_to_action_step(lethal_schedule, step);
+                        sporulations[run].remove(inf_species_rasts[run],
+                                                 sus_species_rasts[run],
+                                                 actual_temperatures[lethal_step],
+                                                 lethal_temperature_value);
+                    }
+                    // actual spread
+                    if (spread_schedule[step]) {
+                        sporulations[run].generate(dispersers[run],
                                                    inf_species_rasts[run],
-                                                   mortality_tracker_vector[run][simulation_year],
+                                                   weather || moisture_temperature,
+                                                   weather_coefficients[weather_step],
+                                                   spore_rate);
+                        sporulations[run].disperse(dispersers[run],
+                                                   sus_species_rasts[run],
+                                                   inf_species_rasts[run],
+                                                   mortality_tracker_vector[run][mortality_simulation_year],
                                                    lvtree_rast,
                                                    outside_spores[run],
                                                    weather || moisture_temperature,
-                                                   weather_coefficients[step],
+                                                   weather_coefficients[weather_step],
                                                    kernels[run]);
                     }
-                }
-                unresolved_steps.clear();
-                unresolved_dates.clear();
-            }
-            if (use_mortality) {
-                // only run to the current year of simulation
-                // (first year is 0):
-                //   max index == sim year
-                // reduced by first time when trees start dying
-                // (counted from 1: first year == 1)
-                // e.g. for sim year 3, year dying 4, max index is 0
-                //   max index = sim year - (dying year - 1)
-                // index is negative before we reach the year
-                // (so we can skip these years)
-                // sim year - (dying year - 1) < 0
-                // sim year < dying year - 1
-                #pragma omp parallel for num_threads(threads)
-                for (unsigned run = 0; run < num_runs; run++) {
-                    dead_in_current_year[run].zero();
-                    sporulations[run].mortality(inf_species_rasts[run], mortality_rate, simulation_year,
-                                                first_mortality_year - 1, dead_in_current_year[run],
-                                                mortality_tracker_vector[run]);
-                }
-            }
-            // compute spread rate
-            #pragma omp parallel for num_threads(threads)
-            for (unsigned i = 0; i < num_runs; i++) {
-                spread_rates[i].compute_yearly_spread_rate(inf_species_rasts[i], simulation_year);
-            }
-            if (opt.single_series->answer) {
-                string name = generate_name(opt.single_series->answer, dd_current_last_day);
-                raster_to_grass(inf_species_rasts[0], name,
-                        "Occurrence from a single stochastic run",
-                        dd_current_last_day);
-            }
-            if ((opt.average_series->answer) || opt.stddev_series->answer) {
-                // aggregate in the series
-                DImg average_raster(I_species_rast.rows(), I_species_rast.cols(), 0);
-                average_raster.zero();
-                for (unsigned i = 0; i < num_runs; i++)
-                    average_raster += inf_species_rasts[i];
-                average_raster /= num_runs;
-                if (opt.average_series->answer) {
-                    // write result
-                    // date is always end of the year, even for seasonal spread
-                    string name = generate_name(opt.average_series->answer, dd_current_last_day);
-                    raster_to_grass(average_raster, name,
-                                    "Average occurrence from a all stochastic runs",
-                                    dd_current_last_day);
-                    write_average_area(inf_species_rasts, name.c_str(),
-                                       window.ew_res, window.ns_res);
-                }
-                if (opt.stddev_series->answer) {
-                    DImg stddev(I_species_rast.rows(), I_species_rast.cols(), 0);
-                    for (unsigned i = 0; i < num_runs; i++) {
-                        auto tmp = inf_species_rasts[i] - average_raster;
-                        stddev += tmp * tmp;
+                    // treatments
+                    if (use_treatments) {
+                        bool managed = treatments.manage(step, inf_species_rasts[run],
+                                                         sus_species_rasts[run], resistant_rasts[run]);
+                        if (managed && use_mortality) {
+                            // same conditions as the mortality code below
+                            // TODO: make the mortality timing available as a separate function in the library
+                            // or simply go over all valid cohorts
+                            if (mortality_simulation_year >= first_mortality_year - 1) {
+                                auto max_index = mortality_simulation_year - (first_mortality_year - 1);
+                                for (unsigned age = 0; age <= max_index; age++) {
+                                    treatments.manage_mortality(step,
+                                                                mortality_tracker_vector[run][age]);
+                                }
+                            }
+                        }
                     }
-                    stddev /= num_runs;
-                    stddev.for_each([](Float& a){a = std::sqrt(a);});
-                    string name = generate_name(opt.stddev_series->answer, dd_current_last_day);
-                    string title = "Standard deviation of average"
-                                   " occurrence from a all stochastic runs";
-                    raster_to_grass(stddev, name, title, dd_current_last_day);
+                    if (use_mortality && mortality_schedule[step]) {
+                        // only run to the current year of simulation
+                        // (first year is 0):
+                        //   max index == sim year
+                        // reduced by first time when trees start dying
+                        // (counted from 1: first year == 1)
+                        // e.g. for sim year 3, year dying 4, max index is 0
+                        //   max index = sim year - (dying year - 1)
+                        // index is negative before we reach the year
+                        // (so we can skip these years)
+                        // sim year - (dying year - 1) < 0
+                        // sim year < dying year - 1
+                        dead_in_current_year[run].zero();
+                        sporulations[run].mortality(inf_species_rasts[run], mortality_rate, mortality_simulation_year,
+                                                    first_mortality_year - 1, dead_in_current_year[run],
+                                                    mortality_tracker_vector[run]);
+                    }
+                    // compute spread rate
+                    if (spread_rate_schedule[step]) {
+                        unsigned simulation_year = simulation_step_to_action_step(spread_rate_schedule, step);
+                        spread_rates[run].compute_yearly_spread_rate(inf_species_rasts[run], simulation_year);
+                    }
+                    ++weather_step;
                 }
             }
-            if (opt.probability_series->answer) {
-                DImg probability(I_species_rast.rows(), I_species_rast.cols(), 0);
-                for (unsigned i = 0; i < num_runs; i++) {
-                    Img tmp = inf_species_rasts[i];
-                    tmp.for_each([](Integer& a){a = bool(a);});
-                    probability += tmp;
+
+            unresolved_steps.clear();
+            if (output_schedule[current_index]) {
+                // output
+                Step interval = scheduler.get_step(current_index);
+                if (opt.single_series->answer) {
+                    string name = generate_name(opt.single_series->answer, interval.end_date());
+                    raster_to_grass(inf_species_rasts[0], name,
+                            "Occurrence from a single stochastic run",
+                            interval.end_date());
                 }
-                probability *= 100;  // prob from 0 to 100
-                probability /= num_runs;
-                string name = generate_name(opt.probability_series->answer, dd_current_last_day);
-                string title = "Probability of occurrence";
-                raster_to_grass(probability, name, title, dd_current_last_day);
-            }
-            if (use_mortality && opt.dead_series->answer) {
-                accumulated_dead += dead_in_current_year[0];
-                if (opt.dead_series->answer) {
-                    string name = generate_name(opt.dead_series->answer, dd_current_last_day);
-                    raster_to_grass(accumulated_dead, name,
-                                    "Number of dead hosts to date",
-                                    dd_current_last_day);
+                if ((opt.average_series->answer) || opt.stddev_series->answer) {
+                    // aggregate in the series
+                    DImg average_raster(I_species_rast.rows(), I_species_rast.cols(), 0);
+                    average_raster.zero();
+                    for (unsigned i = 0; i < num_runs; i++)
+                        average_raster += inf_species_rasts[i];
+                    average_raster /= num_runs;
+                    if (opt.average_series->answer) {
+                        // write result
+                        // date is always end of the year, even for seasonal spread
+                        string name = generate_name(opt.average_series->answer, interval.end_date());
+                        raster_to_grass(average_raster, name,
+                                        "Average occurrence from all stochastic runs",
+                                        interval.end_date());
+                        write_average_area(inf_species_rasts, name.c_str(),
+                                           window.ew_res, window.ns_res);
+                    }
+                    if (opt.stddev_series->answer) {
+                        DImg stddev(I_species_rast.rows(), I_species_rast.cols(), 0);
+                        for (unsigned i = 0; i < num_runs; i++) {
+                            auto tmp = inf_species_rasts[i] - average_raster;
+                            stddev += tmp * tmp;
+                        }
+                        stddev /= num_runs;
+                        stddev.for_each([](Float& a){a = std::sqrt(a);});
+                        string name = generate_name(opt.stddev_series->answer, interval.end_date());
+                        string title = "Standard deviation of average"
+                                       " occurrence from all stochastic runs";
+                        raster_to_grass(stddev, name, title, interval.end_date());
+                    }
+                }
+                if (opt.probability_series->answer) {
+                    DImg probability(I_species_rast.rows(), I_species_rast.cols(), 0);
+                    for (unsigned i = 0; i < num_runs; i++) {
+                        Img tmp = inf_species_rasts[i];
+                        tmp.for_each([](Integer& a){a = bool(a);});
+                        probability += tmp;
+                    }
+                    probability *= 100;  // prob from 0 to 100
+                    probability /= num_runs;
+                    string name = generate_name(opt.probability_series->answer, interval.end_date());
+                    string title = "Probability of occurrence";
+                    raster_to_grass(probability, name, title, interval.end_date());
+                }
+                if (use_mortality && opt.dead_series->answer) {
+                    accumulated_dead += dead_in_current_year[0];
+                    if (opt.dead_series->answer) {
+                        string name = generate_name(opt.dead_series->answer, interval.end_date());
+                        raster_to_grass(accumulated_dead, name,
+                                        "Number of dead hosts to date",
+                                        interval.end_date());
+                    }
                 }
             }
         }
     }
-
+    Step interval = scheduler.get_step(--current_index);
     if (opt.average->answer || opt.stddev->answer) {
         // aggregate
         DImg average_raster(I_species_rast.rows(), I_species_rast.cols(), 0);
@@ -1110,7 +1183,7 @@ int main(int argc, char *argv[])
             // write final result
             raster_to_grass(average_raster, opt.average->answer,
                             "Average occurrence from all stochastic runs",
-                            dd_current_last_day);
+                            interval.end_date());
             write_average_area(inf_species_rasts, opt.average->answer,
                                window.ew_res, window.ns_res);
         }
@@ -1123,7 +1196,7 @@ int main(int argc, char *argv[])
             stddev /= num_runs;
             stddev.for_each([](Float& a){a = std::sqrt(a);});
             raster_to_grass(stddev, opt.stddev->answer,
-                            opt.stddev->description, dd_current_last_day);
+                            opt.stddev->description, interval.end_date());
         }
     }
     if (opt.probability->answer) {
@@ -1136,7 +1209,7 @@ int main(int argc, char *argv[])
         probability *= 100;  // prob from 0 to 100
         probability /= num_runs;
         raster_to_grass(probability, opt.probability->answer,
-                        "Probability of occurrence", dd_current_last_day);
+                        "Probability of occurrence", interval.end_date());
     }
     if (opt.outside_spores->answer) {
         Cell_head region;
@@ -1171,7 +1244,7 @@ int main(int argc, char *argv[])
         Vect_build(&Map);
         Vect_close(&Map);
         struct TimeStamp timestamp;
-        date_to_grass(dd_current_last_day, &timestamp);
+        date_to_grass(interval.end_date(), &timestamp);
         G_write_vector_timestamp(opt.outside_spores->answer,
                                  NULL, &timestamp);
         Vect_destroy_line_struct(Points);
@@ -1180,12 +1253,16 @@ int main(int argc, char *argv[])
     if (opt.spread_rate_output->answer) {
         FILE *fp = G_open_option_file(opt.spread_rate_output);
         fprintf(fp, "year,N,S,E,W\n");
-        for (unsigned i = 0; i < num_years; i++) {
+        for (unsigned step = 0; step < scheduler.get_num_steps(); step++) {
             double n, s, e, w;
-            std::tie(n, s, e, w) = average_spread_rate(spread_rates, i);
-            fprintf(fp, "%d,%.0f,%.0f,%.0f,%.0f\n", start_time + i,
-                    isnan(n) ? n : round(n), isnan(s) ? s : round(s),
-                    isnan(e) ? e : round(e), isnan(w) ? w : round(w));
+            if (spread_rate_schedule[step]) {
+                unsigned i = simulation_step_to_action_step(spread_rate_schedule, step);
+                std::tie(n, s, e, w) = average_spread_rate(spread_rates, i);
+                int year = scheduler.get_step(step).end_date().year();
+                fprintf(fp, "%d,%.0f,%.0f,%.0f,%.0f\n", year,
+                        isnan(n) ? n : round(n), isnan(s) ? s : round(s),
+                        isnan(e) ? e : round(e), isnan(w) ? w : round(w));
+            }
         }
         G_close_option_file(fp);
     }

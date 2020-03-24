@@ -27,6 +27,7 @@
 #include "raster.hpp"
 #include "treatments.hpp"
 #include "date.hpp"
+#include "scheduling.hpp"
 
 
 using namespace pops;
@@ -35,14 +36,15 @@ using namespace pops;
 int test_application_ratio()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Month, 1);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 1, 1), 0, TreatmentApplication::Ratio, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
+
+    treatments.add_treatment(tr1, Date(2020, 1, 1), 0, TreatmentApplication::Ratio);
+    treatments.manage(0, infected, susceptible, resistant);
 
     Raster<int> treated = {{0, 3}, {5, 42}};
     Raster<int> inf_treated = {{0, 2}, {4, 40}};
@@ -57,14 +59,14 @@ int test_application_ratio()
 int test_application_all_inf()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Month, 1);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 1, 1), 0, TreatmentApplication::AllInfectedInCell, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 1, 1), 0, TreatmentApplication::AllInfectedInCell);
+    treatments.manage(0, infected, susceptible, resistant);
 
     Raster<int> treated = {{0, 3}, {5, 42}};
     Raster<int> inf_treated = {{0, 0}, {0, 40}};
@@ -79,14 +81,15 @@ int test_application_all_inf()
 int test_application_ratio_pesticide()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 7, TreatmentApplication::Ratio, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 7, TreatmentApplication::Ratio);
+    treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{10, 6}, {20, 42}};
     Raster<int> inf_treated = {{1, 4}, {16, 40}};
@@ -96,7 +99,8 @@ int test_application_ratio_pesticide()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 3}, {5, 42}};
     inf_treated = {{0, 2}, {4, 40}};
@@ -106,7 +110,8 @@ int test_application_ratio_pesticide()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 5, 8), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 8));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{11, 8}, {32, 42}};
     resist = {{0, 0}, {0, 0}};
@@ -122,14 +127,15 @@ int test_application_ratio_pesticide()
 int test_application_all_inf_pesticide()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 7, TreatmentApplication::AllInfectedInCell, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 7, TreatmentApplication::AllInfectedInCell);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{10, 6}, {20, 42}};
     Raster<int> inf_treated = {{1, 4}, {16, 40}};
@@ -139,7 +145,8 @@ int test_application_all_inf_pesticide()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 3}, {5, 42}};
     inf_treated = {{0, 0}, {0, 40}};
@@ -149,7 +156,8 @@ int test_application_all_inf_pesticide()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 5, 8), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 8));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{11, 10}, {36, 42}};
     resist = {{0, 0}, {0, 0}};
@@ -165,17 +173,18 @@ int test_application_all_inf_pesticide()
 int test_combination()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<double> tr2 = {{1, 1}, {1, 1}};
 
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio, increase_by_step);
-    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio);
+    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{10, 6}, {20, 42}};
     Raster<int> inf_treated = {{1, 4}, {16, 40}};
@@ -185,7 +194,8 @@ int test_combination()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 3}, {5, 42}};
     inf_treated = {{0, 2}, {4, 40}};
@@ -195,7 +205,8 @@ int test_combination()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 6, 3), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 2));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 0}, {0, 0}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -205,7 +216,8 @@ int test_combination()
         std::cout << susceptible << infected << resistant;
         num_errors++;
     }
-    treatments.manage(Date(2020, 6, 8), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 8));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 5}, {9, 82}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -223,18 +235,19 @@ int test_combination()
 int test_pesticide_temporal_overlap()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 1}, {0, 0}};
     Raster<double> tr2 = {{0, 0}, {1, 1}};
 
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 30, TreatmentApplication::Ratio, increase_by_step);
-    treatments.add_treatment(tr2, Date(2020, 5, 20), 30, TreatmentApplication::Ratio, increase_by_step);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 30, TreatmentApplication::Ratio);
+    treatments.add_treatment(tr2, Date(2020, 5, 20), 30, TreatmentApplication::Ratio);
 
-    treatments.manage(Date(2020, 5, 1), infected, susceptible, resistant);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 5, 1));
+    treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{0, 0}, {20, 42}};
     Raster<int> inf_treated = {{0, 0}, {16, 40}};
@@ -245,7 +258,8 @@ int test_pesticide_temporal_overlap()
         num_errors++;
     }
 
-    treatments.manage(Date(2020, 5, 20), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 20));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 0}, {0, 0}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -256,7 +270,8 @@ int test_pesticide_temporal_overlap()
         num_errors++;
     }
 
-    treatments.manage(Date(2020, 6, 1), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 1));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{11, 10}, {0, 0}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -267,7 +282,8 @@ int test_pesticide_temporal_overlap()
         num_errors++;
     }
 
-    treatments.manage(Date(2020, 6, 21), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 21));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{11, 10}, {36, 82}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -284,22 +300,28 @@ int test_pesticide_temporal_overlap()
 int test_steering()
 {
     int num_errors = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<double> tr2 = {{1, 1}, {1, 1}};
 
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio, increase_by_step);
-    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio, increase_by_step);
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 5, 12), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 1), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 8), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 15), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio);
+    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 12));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 1));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 8));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 15));
+    treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{0, 5}, {9, 82}};
     Raster<int> inf_treated = {{0, 0}, {0, 0}};
@@ -313,12 +335,18 @@ int test_steering()
     susceptible = {{10, 6}, {20, 42}};
     resistant = {{0, 0}, {0, 0}};
     infected = {{1, 4}, {16, 40}};
-    treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 5, 12), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 1), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 8), infected, susceptible, resistant);
-    treatments.manage(Date(2020, 6, 15), infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 12));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 1));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 8));
+    treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 15));
+    treatments.manage(n, infected, susceptible, resistant);
 
     treated = {{0, 5}, {9, 82}};
     inf_treated = {{0, 0}, {0, 0}};
@@ -336,7 +364,8 @@ int test_clear()
 {
     int num_errors = 0;
     int num_actions = 0;
-    Treatments<Raster<int>, Raster<double>> treatments;
+    Scheduler scheduler(Date(2020, 1, 1), Date(2020, 12, 31), StepUnit::Day, 7);
+    Treatments<Raster<int>, Raster<double>> treatments(scheduler);
     Raster<double> tr1 = {{1, 0.5}, {0.75, 0}};
     Raster<double> tr2 = {{1, 1}, {1, 1}};
     Raster<double> tr3 = {{1, 0}, {1, 0}};
@@ -344,17 +373,23 @@ int test_clear()
     Raster<int> susceptible = {{10, 6}, {20, 42}};
     Raster<int> resistant = {{0, 0}, {0, 0}};
     Raster<int> infected = {{1, 4}, {16, 40}};
-    std::function<void (Date&)> increase_by_step = &Date::increased_by_week;
-    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio, increase_by_step);
-    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio, increase_by_step);
-    treatments.add_treatment(tr3, Date(2020, 6, 8), 7, TreatmentApplication::Ratio, increase_by_step);
-    treatments.clear_after_date(Date(2020, 6, 1));
-    num_actions += treatments.manage(Date(2020, 1, 1), infected, susceptible, resistant);
-    num_actions += treatments.manage(Date(2020, 5, 3), infected, susceptible, resistant);
-    num_actions += treatments.manage(Date(2020, 5, 12), infected, susceptible, resistant);
-    num_actions += treatments.manage(Date(2020, 6, 1), infected, susceptible, resistant);
-    num_actions += treatments.manage(Date(2020, 6, 8), infected, susceptible, resistant);
-    num_actions += treatments.manage(Date(2020, 6, 15), infected, susceptible, resistant);
+    treatments.add_treatment(tr1, Date(2020, 5, 1), 0, TreatmentApplication::Ratio);
+    treatments.add_treatment(tr2, Date(2020, 6, 1), 7, TreatmentApplication::Ratio);
+    treatments.add_treatment(tr3, Date(2020, 6, 8), 7, TreatmentApplication::Ratio);
+    unsigned n = scheduler.schedule_action_date(Date(2020, 6, 1));
+    treatments.clear_after_step(n);
+    n = scheduler.schedule_action_date(Date(2020, 1, 1));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 3));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 5, 12));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 1));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 8));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
+    n = scheduler.schedule_action_date(Date(2020, 6, 15));
+    num_actions += treatments.manage(n, infected, susceptible, resistant);
 
     Raster<int> treated = {{0, 5}, {9, 82}};
     Raster<int> inf_treated = {{0, 0}, {0, 0}};
