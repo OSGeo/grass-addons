@@ -1,7 +1,7 @@
 /*
  * PoPS model - disperal kernel types
  *
- * Copyright (C) 2015-2019 by the authors.
+ * Copyright (C) 2015-2020 by the authors.
  *
  * Authors: Vaclav Petras (wenzeslaus gmail com)
  *          Chris Jones (cjones1688 gmail com)

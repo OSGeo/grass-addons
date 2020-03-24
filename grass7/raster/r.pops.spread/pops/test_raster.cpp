@@ -33,6 +33,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using std::string;
 using std::cout;
@@ -427,6 +428,70 @@ int test_non_owner()
     return errors;
 }
 
+template<typename T, typename I>
+std::vector<Raster<T>> return_vector_of_rasters(int num_rasters)
+{
+    std::vector<Raster<T>> rasters;
+    for (int i = 0; i < num_rasters; ++i) {
+        rasters.push_back(Raster<T>(100, 200, 42));
+    }
+    return rasters;
+}
+
+template<typename T, typename I>
+std::vector<Raster<T>> return_vector_of_rasters(T** data, int num_rasters, I rows, I cols)
+{
+    std::vector<Raster<T>> rasters;
+    for (int i = 0; i < num_rasters; ++i) {
+        rasters.push_back(Raster<T>(data[i], rows, cols));
+    }
+    return rasters;
+}
+
+template<typename T, typename I>
+int test_return_from_function(int num_rasters)
+{
+    int errors = 0;
+    auto rasters = return_vector_of_rasters<T, I>(num_rasters);
+    for (const auto& raster : rasters)
+    if (raster(0, 0) != 42) {
+        ++errors;
+        break;
+    }
+    if (!errors)
+        std::cout << "Returning owning raster from function works (value: " << typeid(T).name() << ", index: " << typeid(I).name() << ")" << std::endl;
+    return errors;
+}
+
+template<typename T, typename I>
+int test_return_from_function_non_owner()
+{
+    int errors = 0;
+    const I rows = 3;
+    const I cols = 4;
+    const int num_rasters = 3;
+    T x[rows * cols] = {11, 12, 13, 14,
+                        21, 22, 23, 24,
+                        31, 32, 33, 34};
+    T y[rows * cols] = {11, 12, 13, 14,
+                        21, 22, 23, 24,
+                        31, 32, 33, 34};
+    T z[rows * cols] = {11, 12, 13, 14,
+                        21, 22, 23, 24,
+                        31, 32, 33, 34};
+    T* data[num_rasters] = {x, y, z};
+    auto rasters = return_vector_of_rasters<T>(data, num_rasters, rows, cols);
+    for (const auto& raster : rasters) {
+        if (raster(0, 0) != 11) {
+            ++errors;
+            break;
+        }
+    }
+    if (!errors)
+        std::cout << "Returning non-owning raster from function works (value: " << typeid(T).name() << ", index: " << typeid(I).name() << ")" << std::endl;
+    return errors;
+}
+
 int main()
 {
     test_constructor_by_type();
@@ -486,6 +551,15 @@ int main()
     test_index<int, size_t>();
 
     test_non_owner<int, size_t>();
+
+    test_return_from_function<int, long>(10);
+    test_return_from_function<long, int>(10);
+    test_return_from_function<float, long>(10);
+    test_return_from_function<double, int>(10);
+    test_return_from_function_non_owner<int, long>();
+    test_return_from_function_non_owner<long, int>();
+    test_return_from_function_non_owner<float, long>();
+    test_return_from_function_non_owner<double, int>();
 
     return 0;
 }
