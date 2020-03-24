@@ -149,7 +149,7 @@ def main():
     minim = int(options['min_variables'])
     dredge = flags['d']
     if options['max_variables']:
-        maxv = (options['max_variables'])
+        maxv = int(options['max_variables'])
     else:
         maxv = len(columns)
     if dredge and minim > maxv:
