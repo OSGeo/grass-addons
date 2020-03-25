@@ -294,6 +294,13 @@ class SentinelImporter(object):
             args['resolution_value'] = self._raster_resolution(filename)
         try:
             gs.run_command(module, input=filename, output=mapname, **args)
+            if gs.raster_info(mapname)['datatype'] in ('FCELL', 'DCELL'):
+                gs.message('Rounding to integer after reprojection')
+                gs.use_temp_region()
+                gs.run_command('g.region', raster=mapname)
+                gs.run_command('r.mapcalc', quiet=True, expression='tmp_%s = round(%s)' % (mapname, mapname))
+                gs.run_command('g.rename', quiet=True, overwrite=True, raster='tmp_%s,%s' % (mapname, mapname))
+                gs.del_temp_region()
             gs.raster_history(mapname)
         except CalledModuleError as e:
             pass # error already printed
