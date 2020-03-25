@@ -108,10 +108,7 @@
 import os
 import csv
 import operator
-import copy
 import atexit
-from functools import partial    
-from multiprocessing import Pool
 import grass.script as gscript
 
 def cleanup():
