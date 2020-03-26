@@ -77,7 +77,7 @@ from grass.script.utils import get_lib_path
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import raster as r
 
-path = get_lib_path(modname="r.learn.ml")
+path = get_lib_path(modname="r.learn.ml2")
 if path is None:
     gs.fatal("Not able to find the r.learn library directory")
 sys.path.append(path)
@@ -156,7 +156,7 @@ def main():
         )
 
     # assign categories for classification map
-    if class_labels is not None:
+    if class_labels is not None and prob_only is False:
         rules = []
 
         for val, lab in class_labels.items():

@@ -345,7 +345,7 @@ from grass.pygrass.raster import RasterRow
 import numpy as np
 from grass.script.utils import get_lib_path
 
-path = get_lib_path(modname="r.learn.ml")
+path = get_lib_path(modname="r.learn.ml2")
 
 if path is None:
     gs.fatal("Not able to find the r.learn.ml library directory")
