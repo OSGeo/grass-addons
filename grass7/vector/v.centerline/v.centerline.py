@@ -108,8 +108,8 @@ def main():
     categories = grass.pipe_command('v.category', input=input, option='print',
             quiet=True)
     for category in categories.stdout:
-        segment_input += 'P {}'.format(category.strip())
-        segment_input += ' {} {}'.format(category.strip(),' 50%')
+        segment_input += 'P {}'.format(category.strip().encode('utf8'))
+        segment_input += ' {} {}'.format(category.strip().encode('utf8'),' 50%')
         segment_input += os.linesep
 
     grass.write_command('v.segment', input=input, output=tmp_centerpoints_map,
