@@ -120,7 +120,7 @@
 #%end
 #%option G_OPT_F_INPUT
 #% key: metadata
-#% description: name of Sentinel metadata json dump
+#% description: Name of Sentinel metadata json dump
 #% required : no
 #% guisection: Metadata
 #%end
