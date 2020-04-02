@@ -66,6 +66,11 @@
 #% description: Name for output file to use with t.register
 #% required: no
 #%end
+#%option G_OPT_M_DIR
+#% key: metadata
+#% description: Name of directory into which Sentinel metadata json dumps are saved
+#% required: no
+#%end
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
@@ -107,6 +112,7 @@ import re
 import glob
 import shutil
 import io
+import json
 from zipfile import ZipFile
 
 import grass.script as gs
@@ -143,7 +149,7 @@ class SentinelImporter(object):
                 shutil.rmtree(dirpath)
             except OSError:
                 pass
-            
+
     def filter(self, pattern=None):
         if pattern:
             filter_p = r'.*{}.*.jp2$'.format(pattern)
@@ -262,12 +268,12 @@ class SentinelImporter(object):
             gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
         dsn = gdal.Open(filename)
         trans = dsn.GetGeoTransform()
-        
+
         ret = int(trans[1])
         dsn = None
 
         return ret
-    
+
     def _raster_epsg(self, filename):
         try:
             from osgeo import gdal, osr
@@ -277,7 +283,7 @@ class SentinelImporter(object):
 
         srs = osr.SpatialReference()
         srs.ImportFromWkt(dsn.GetProjectionRef())
-    
+
         ret = srs.GetAuthorityCode(None)
         dsn = None
 
@@ -455,6 +461,11 @@ class SentinelImporter(object):
                     gs.run_command('r.support', map=map_name, source1=ip,
                                    source2=img_file, history=descr)
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
+                if options['metadata']:
+                    descr_dict = {dl.split('=')[0]: dl.split('=')[1] for dl in descr_list}
+                    metadatafile = os.path.join(options['metadata'], "%s.txt" % '_'.join(map_name.split('_')[:-2]))
+                    with open(metadatafile, 'w') as outfile:
+                        json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
@@ -511,7 +522,7 @@ def main():
                          "when -{} flag given").format('p'))
         importer.print_products()
         return 0
-    
+
     importer.import_products(flags['r'], flags['l'], flags['o'])
     importer.write_metadata()
 
