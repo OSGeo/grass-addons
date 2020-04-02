@@ -552,7 +552,6 @@ def main ():
                             gscript.fatal('The selected input metadata file is not the right one. Please check the manual page.')
                     except:
                         gscript.fatal('The selected input metadata file is not an .xml file. Please check the manual page.')
-                    import pdb; pdb.set_trace()
                 elif metadata_file != '':
                     with open(metadata_file) as json_file:
                         data = json.load(json_file)
