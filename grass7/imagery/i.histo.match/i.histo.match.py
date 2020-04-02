@@ -5,7 +5,7 @@
 # MODULE:       i.histo.match
 # AUTHOR(S):    Luca Delucchi, Fondazione E. Mach (Italy)
 #               original PERL code was developed by:
-#               Laura Zampa (2004) student of Dipartimento di Informatica e 
+#               Laura Zampa (2004) student of Dipartimento di Informatica e
 #               Telecomunicazioni, Facoltà di Ingegneria,
 #                University of Trento  and ITC-irst, Trento (Italy)
 #
@@ -110,7 +110,7 @@ def main():
         # calculate statistics
         stats_out = grass.pipe_command('r.stats', flags='cin', input=i,
                                        separator=':')
-        stats = stats_out.communicate()[0].split('\n')[:-1]
+        stats = stats_out.communicate()[0].decode('utf-8').split('\n')[:-1]
         stats_dict = dict(s.split(':', 1) for s in stats)
         cdf = 0
         # for each number in the range
@@ -181,7 +181,7 @@ def main():
             val = result.fetchone()[0]
             tot += val
         # calculate new value of pixel_frequency
-        average = (tot / n_images)  
+        average = (tot / n_images)
         cHist = cHist + int(average)
         # insert new values into average table
         if cHist != 0 and pixelTot != 0:
@@ -219,12 +219,12 @@ def main():
         result = grass.core.find_file(outname, element='cell')
         if result['fullname'] and grass.overwrite():
             grass.run_command('g.remove', flags='f', type='raster', name=outname)
-            grass.run_command('r.reclass', input=i, out=outname, 
+            grass.run_command('r.reclass', input=i, out=outname,
                               rules=outfile.name)
         elif result['fullname'] and not grass.overwrite():
             grass.warning(_("Raster map %s already exists and will not be overwritten" % i))
         else:
-            grass.run_command('r.reclass', input=i, out=outname, 
+            grass.run_command('r.reclass', input=i, out=outname,
                               rules=outfile.name)
         output_names.append(outname)
         # remove the rules file
