@@ -297,7 +297,7 @@ def main ():
     # Check input and output for shadow mask
     if not flags["c"]:
         if mtd_file == '' and metadata_file == '':
-            gscript.fatal('Metadata (file) is required for shadow mask computation. Please specified it')
+            gscript.fatal('Metadata (file) is required for shadow mask computation. Please specifiy it')
         if mtd_file != '':
             if not os.path.exists(mtd_file):
                  gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
