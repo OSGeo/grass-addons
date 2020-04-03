@@ -20,8 +20,8 @@ build_xml() {
 (cd ..; git pull)
 
 # compile AddOns for GRASS 7 and GRASS 6.5
-compile ../../grass7 ~/src/grass-p2/r76/dist.x86_64-pc-linux-gnu /tmp/.grass7/addons
-compile ../../grass6 ~/src/grass-p2/r64/dist.x86_64-pc-linux-gnu /tmp/.grass6/addons
+compile ../../grass7 ~/src/grass78/dist.x86_64-pc-linux-gnu /tmp/.grass7/addons
+compile ../../grass6 ~/src/grass64/dist.x86_64-pc-linux-gnu /tmp/.grass6/addons
 
 # create XML file for AddOns
 build_xml /tmp/.grass7/addons 7

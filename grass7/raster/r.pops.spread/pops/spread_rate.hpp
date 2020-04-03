@@ -1,7 +1,7 @@
 /*
  * PoPS model - Spread rate computation
  *
- * Copyright (C) 2015-2019 by the authors.
+ * Copyright (C) 2015-2020 by the authors.
  *
  * Authors: Anna Petrasova <akratoc gmail com>
  *

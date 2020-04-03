@@ -3,8 +3,7 @@
 DIR=$HOME/src
 
 recompile_grass() {
-    source $DIR/grass-p2/venv/bin/activate
-    gdir=$DIR/grass-p2/r${1}
+    gdir=$DIR/grass${1}
 
     cd $gdir
     echo "Recompiling $gdir..." 1>&2
@@ -29,4 +28,4 @@ recompile_grass() {
 }
 
 recompile_grass 64
-recompile_grass 76
+recompile_grass 78

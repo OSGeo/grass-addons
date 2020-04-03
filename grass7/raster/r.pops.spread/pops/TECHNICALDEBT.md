@@ -17,6 +17,13 @@ issue which needs to be fixed (Fix).
 Entries should be removed when resolved. Issue from tracker can be
 optionally linked in an entry.
 
+## 2020-01-04 - Movement module improvements
+
+- Currently pass mortality tracker into the movement module but don't
+  use it as it creates complexity. Will need to return to add this in
+  the future.
+
+
 ## 2019-10-29 - More raster generalizations
 
 ### Add

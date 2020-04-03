@@ -32,20 +32,25 @@ use `is` prefix like in `is_empty()` or `is_open()` especially
 when it would not be clear if it refers to an action or property,
 e.g. `empty()` versus `is_empty()`.
 
+For functions with a lot of parameters, long parameter names, or long
+type names, write one parameter per line.
+
 #### Member variables
 
 Use trailing underscore, i.e. `name_`, or nothing, i.e. `name` for
 member variables. No special marking is nice
 when used internally but not exposed to the outside
 world. However, if you need to distinguish a private member variable
-from a getter method, use trailing underscore for the private variable.
+from a getter method or a function parameter name, use trailing
+underscore for the private variable.
 The underscore, as opposed to using nothing, makes it easier to
 distinguish member variables from other variables when reading code
 of a method (and `this->` is not used).
 
 Do not use leading underscore, i.e. `_name`, like in Python because that might
-be reserved or used by standard library. Do not use leading letter m with out
-without underscore, i.e. `m_name` or `mname`, because it is harder to read.
+be reserved or used by standard library. Do not use leading letter `m`
+with or without underscore, i.e. `m_name` or `mname`, because it is
+harder to read.
 The trailing underscore is the closest thing to Python's marking of
 private members.
 
@@ -57,7 +62,7 @@ not `Type &value`.
 
 ### Documentation
 
-Don't document obvious things like in "this like assigns a variable"
+Don't document obvious things like in "this line assigns a variable"
 but keep in mind that people unfamiliar with C++ will read or even use
 or change the code, so point out some things which might be obvious to
 a C++ developer, but are unexpected coming from a different programming

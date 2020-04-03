@@ -1,7 +1,7 @@
 /*
- * SOD model - date manipulation
+ * PoPS model - date manipulation
  *
- * Copyright (C) 2015-2017 by the authors.
+ * Copyright (C) 2015-2020 by the authors.
  *
  * Authors: Zexi Chen (zchen22 ncsu edu)
  *          Anna Petrasova
@@ -58,6 +58,9 @@ public:
     inline Date get_last_day_of_month();
     inline bool is_last_week_of_year();
     inline bool is_last_month_of_year();
+    inline bool is_last_day_of_year();
+    inline bool is_last_day_of_month();
+    inline bool is_last_week_of_month();
     inline bool is_leap_year();
     int month() const { return month_; }
     int year() const { return year_; }
@@ -147,6 +150,39 @@ bool Date::is_last_month_of_year()
     if (month_ == 12)
         return true;
     return false;
+}
+
+bool Date::is_last_day_of_year()
+{
+    if (month_ == 12 && day_ == 31)
+        return true;
+    return false;
+}
+
+bool Date::is_last_week_of_month()
+{
+  if (this->is_leap_year()){
+    if ((day_ + 7) >= day_in_month[1][month_])
+      return true;
+    return false;
+  } else {
+    if ((day_ + 7) >= day_in_month[0][month_])
+      return true;
+    return false;
+  }
+}
+
+bool Date::is_last_day_of_month()
+{
+  if (this->is_leap_year()){
+    if (day_ == day_in_month[1][month_])
+      return true;
+    return false;
+  } else {
+    if (day_ == day_in_month[0][month_])
+      return true;
+    return false;
+  }
 }
 
 Date Date::get_next_year_end()
@@ -410,7 +446,7 @@ public:
      * \param month A month in year (1-12)
      * \return true if in season, false otherwise
      */
-    inline bool month_in_season(int month)
+    inline bool month_in_season(int month) const
     {
         return month >= start_month_ && month <= end_month_;
     }

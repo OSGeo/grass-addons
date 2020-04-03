@@ -1,7 +1,7 @@
 /*
  * PoPS model - main disperal kernel
  *
- * Copyright (C) 2019 by the authors.
+ * Copyright (C) 2019-2020 by the authors.
  *
  * Authors: Vaclav Petras (wenzeslaus gmail com)
  *
