@@ -476,13 +476,12 @@ class SentinelImporter(object):
                     if flags['j']:
                         metadatajson = os.path.join(
                             json_standard_folder, "%s.json" % map_name)
+                    elif options['metadata']:
+                        metadatajson = os.path.join(
+                            options['metadata'], "%s.json" % map_name)
+                    if flags['j'] or options['metadata']:
                         with open(metadatajson, 'w') as outfile:
                             json.dump(descr_dict, outfile)
-                if options['metadata']:
-                    metadatajson = options['metadata']
-                    metadatajson = os.path.join(options['metadata'], "%s.json" % '_'.join(map_name.split('_')[:-2]))
-                    with open(metadatajson, 'w') as outfile:
-                        json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
