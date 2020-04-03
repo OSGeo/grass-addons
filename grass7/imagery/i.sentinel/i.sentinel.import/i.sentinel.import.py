@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 ############################################################################
 #
@@ -101,10 +101,16 @@
 #% description: Print raster data to be imported and exit
 #% guisection: Print
 #%end
+#%flag
+#% key: j
+#% description: Write meta data json for each band to LOCATION/MAPSET/json folder
+#% guisection: Print
+#%end
 #%rules
 #% exclusive: -l,-r,-p
 #% exclusive: -o,-r
 #% exclusive: extent,-l
+#% exclusive: metadata,-j
 #%end
 import os
 import sys
@@ -457,14 +463,25 @@ class SentinelImporter(object):
                 descr = '\n'.join(descr_list)
                 bands = gs.read_command('g.list', type='raster', mapset='.',
                                         pattern='{}*'.format(map_name)).rstrip('\n').split('\n')
+
+                descr_dict = {dl.split('=')[0]: dl.split('=')[1] for dl in descr_list}
+                env = gs.gisenv()
+                json_standard_folder = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'], 'json')
+                if flags['j'] and not os.path.isdir(json_standard_folder):
+                    os.makedirs(json_standard_folder)
                 for band in bands:
                     gs.run_command('r.support', map=map_name, source1=ip,
                                    source2=img_file, history=descr)
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
+                    if flags['j']:
+                        metadatajson = os.path.join(
+                            json_standard_folder, "%s.json" % map_name)
+                        with open(metadatajson, 'w') as outfile:
+                            json.dump(descr_dict, outfile)
                 if options['metadata']:
-                    descr_dict = {dl.split('=')[0]: dl.split('=')[1] for dl in descr_list}
-                    metadatafile = os.path.join(options['metadata'], "%s.txt" % '_'.join(map_name.split('_')[:-2]))
-                    with open(metadatafile, 'w') as outfile:
+                    metadatajson = options['metadata']
+                    metadatajson = os.path.join(options['metadata'], "%s.json" % '_'.join(map_name.split('_')[:-2]))
+                    with open(metadatajson, 'w') as outfile:
                         json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):

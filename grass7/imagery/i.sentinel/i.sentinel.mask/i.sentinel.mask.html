@@ -23,7 +23,7 @@ thresholds, comparisons and calculations between bands which leads to two
 different rough maps of clouds and shadows. These require further improvements
 and elaborations (e.g. transformation from raster to vector, cleaning
 geometries, removing small areas, checking topology, etc.) carried out in the
-different steps of the procedure. 
+different steps of the procedure.
 
 <table cellspacing="2" cellpadding="2" width="100%" border="0">
 	<tbody>
@@ -95,7 +95,7 @@ shadows.
 The metadata file (MTD_TL.xml or S2A_OPER_MTD_L1C_TL_MPS__*.xml) is required
 only if both masks (cloud and shadow) are computed. The module retrieves from
 this file the sun azimuth and zenith necessary for the shadow mask cleaning
-phase 
+phase
 <em>(see the scheme above)</em>
 <p>
 If flag <b>-s</b> is given all selected bands are rescaled using the specified
@@ -111,6 +111,9 @@ masks. If flag <b>-c</b> is given, only the cloud procedure will be performed.
 The computation of cloud mask is mandatory for shadow mask creation. In fact
 cloud map is used during the cleaning phase of the shadow mask in order to
 remove misclassifications.
+<p>
+If the <b>input_file</b> is given, the <b>mtd_file</b> or <b>metadata</b> can
+also be specified in the this file.
 
 <h2>EXAMPLE</h2>
 <p>
@@ -161,8 +164,8 @@ Sentinel User Guide</a>.
 <h2>REFERENCE</h2>
 
 Parmes, E.; Rauste, Y.; Molinier, M.; Andersson, K.; Seitsonen, L. 2017:
-Automatic Cloud and Shadow Detection in Optical Satellite Imagery 
-Without Using Thermal Bands - Application to Suomi NPP VIIRS Images over 
+Automatic Cloud and Shadow Detection in Optical Satellite Imagery
+Without Using Thermal Bands - Application to Suomi NPP VIIRS Images over
 Fennoscandia. Remote Sens., 9, 806. (<a href="https://www.mdpi.com/2072-4292/9/8/806">DOI</a>)
 
 <h2>FOLLOW UP</h2>
@@ -187,7 +190,7 @@ Fennoscandia. Remote Sens., 9, 806. (<a href="https://www.mdpi.com/2072-4292/9/8
 <h2>AUTHORS</h2>
 
 Roberta Fagandini, GSoC 2018 student<br>
-<a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br> 
+<a href="https://wiki.osgeo.org/wiki/User:Mlennert">Moritz Lennert</a><br>
 <a href="https://wiki.osgeo.org/wiki/User:Robertomarzocchi">Roberto Marzocchi</a>
 
 <!--
