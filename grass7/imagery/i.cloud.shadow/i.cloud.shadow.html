@@ -1,0 +1,26 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.cloud.shadow</em> detects cloud shadows among dark pixels in imagery data.
+It shifts cloud pixels based on sun zenith and azimuth for a range of possible altitudes of the clouds. For the best match of clouds and shadows (dark pixels) a classified output map is produced where value 1 represents clouds, 2 cloud shadows and 3 other dark pixels.
+
+<h2>EXAMPLE</h2>
+<div class="code"><pre>
+i.cloud.shadow dark_pixels=shadows clouds=clouds --o --v
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="i.sentinel.mask.html">i.sentinel.mask</a>
+<a href="i.landsat.acca.html">i.sentinel.mask</a>
+</em>
+
+
+<h2>AUTHORS</h2>
+
+Stefan Blumentrath, Norwegian Institute for Nature Research (NINA), Oslo<br>
+Roberta Fagandini
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
