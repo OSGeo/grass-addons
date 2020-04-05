@@ -222,7 +222,14 @@
 #% label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
 #% description: Underscore and day number are added to the base name for daily maps
 #%end
-
+#%option
+#% key: solar_constant
+#% type: double
+#% required: no
+#% multiple: no
+#% label: Solar constant [W/m^2]
+#% description: If not specified, r.sun default will be used.
+#%end
 #%option
 #% key: nprocs
 #% type: integer
@@ -274,6 +281,12 @@ def cleanup():
                           flags='f', quiet=True)
 
 
+def module_has_parameter(module, parameter):
+    from grass.script import task as gtask
+    task = gtask.command_info(module)
+    return parameter in [each['name'] for each in task['params']]
+
+
 def create_tmp_map_name(name):
     """
     Create temporary map names
@@ -285,7 +298,7 @@ def create_tmp_map_name(name):
 
 def run_r_sun(elevation, aspect, slope, latitude, longitude,
               linke, linke_value, albedo, albedo_value,
-              horizon_basename, horizon_step,
+              horizon_basename, horizon_step, solar_constant,
               day, step, beam_rad, diff_rad, refl_rad, glob_rad, suffix, flags):
     '''
     Execute r.sun using the provided input options. Except for the required
@@ -319,6 +332,9 @@ def run_r_sun(elevation, aspect, slope, latitude, longitude,
     if horizon_basename and horizon_step:
         params.update({'horizon_basename': horizon_basename})
         params.update({'horizon_step': horizon_step})
+    if solar_constant is not None:
+        params.update({'solar_constant': solar_constant})
+
     if flags:
         params.update({'flags': flags})
 
@@ -425,6 +441,15 @@ def main():
 
     nprocs = int(options['nprocs'])
 
+    solar_constant = float(options['solar_constant']) if options['solar_constant'] else None
+    if solar_constant:
+        # check it's newer version of r.sun
+        if not module_has_parameter('r.sun', 'solar_constant'):
+            grass.warning(_("This version of r.sun lacks solar_constant option, "
+                            "it will be ignored. Use newer version of r.sun."))
+            solar_constant = None
+
+
     if beam_rad and not beam_rad_basename:
         beam_rad_basename = create_tmp_map_name('beam_rad')
         MREMOVE.append(beam_rad_basename)
@@ -501,6 +526,7 @@ def main():
                                        linke_input, linke_value,
                                        albedo_input, albedo_value,
                                        horizon_basename, horizon_step,
+                                       solar_constant,
                                        day, step,
                                        beam_rad_basename,
                                        diff_rad_basename,
