@@ -218,6 +218,14 @@
 #% description: Output global (total) irradiation raster map [Wh.m-2] (mode 2) integrated over specified time period
 #%end
 #%option
+#% key: solar_constant
+#% type: double
+#% required: no
+#% multiple: no
+#% label: Solar constant [W/m^2]
+#% description: If not specified, r.sun default will be used.
+#%end
+#%option
 #% key: nprocs
 #% type: integer
 #% description: Number of r.sun processes to run in parallel
@@ -277,6 +285,12 @@ def is_grass_7():
     return False
 
 
+def module_has_parameter(module, parameter):
+    from grass.script import task as gtask
+    task = gtask.command_info(module)
+    return parameter in [each['name'] for each in task['params']]
+
+
 def create_tmp_map_name(name):
     return '{mod}{pid}_{map_}_tmp'.format(mod='r_sun_crop',
                                           pid=os.getpid(),
@@ -288,7 +302,8 @@ def run_r_sun(elevation, aspect, slope, day, time, civil_time,
               linke, linke_value, albedo, albedo_value,
               coeff_bh, coeff_dh, lat, long_,
               beam_rad, diff_rad, refl_rad, glob_rad,
-              incidout, suffix, binary, tmpName, time_step, distance_step, flags):
+              incidout, suffix, binary, tmpName, time_step, distance_step,
+              solar_constant, flags):
     params = {}
     if linke:
         params.update({'linke': linke})
@@ -322,6 +337,8 @@ def run_r_sun(elevation, aspect, slope, day, time, civil_time,
         params.update({'civil_time': civil_time})
     if distance_step is not None:
         params.update({'distance_step': distance_step})
+    if solar_constant is not None:
+        params.update({'solar_constant': solar_constant})
 
     if is_grass_7():
         grass.run_command('r.sun', elevation=elevation, aspect=aspect,
@@ -490,6 +507,13 @@ def main():
     day = int(options['day'])
     civil_time = float(options['civil_time']) if options['civil_time'] else None
     distance_step = float(options['distance_step']) if options['distance_step'] else None
+    solar_constant = float(options['solar_constant']) if options['solar_constant'] else None
+    if solar_constant:
+        # check it's newer version of r.sun
+        if not module_has_parameter('r.sun', 'solar_constant'):
+            grass.warning(_("This version of r.sun lacks solar_constant option, "
+                            "it will be ignored. Use newer version of r.sun."))
+            solar_constant = None
     temporal = flags['t']
     binary = flags['b']
     mode1 = True if options['mode'] == 'mode1' else False
@@ -605,6 +629,7 @@ def main():
                                        binary, tmpName,
                                        None if mode1 else time_step,
                                        distance_step,
+                                       solar_constant,
                                        rsun_flags)))
 
         proc_list[proc_count].start()
