@@ -245,7 +245,7 @@ def main ():
             if len(txt_bands) < 7:
                 gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
             if mtd_file and metadata_file:
-                gscript.fatal(('metadata file and mtd_file are given in the input text file.\n Only one of these should be set.'))
+                gscript.fatal(('Metadata json file and mtd_file are both given as input text files.\n Only one of these should be specified.'))
 
     d = 'double'
     f_bands = {}
