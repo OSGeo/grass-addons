@@ -466,7 +466,7 @@ class SentinelImporter(object):
 
                 descr_dict = {dl.split('=')[0]: dl.split('=')[1] for dl in descr_list}
                 env = gs.gisenv()
-                json_standard_folder = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'], 'json')
+                json_standard_folder = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'], 'cell_misc')
                 if flags['j'] and not os.path.isdir(json_standard_folder):
                     os.makedirs(json_standard_folder)
                 for band in bands:
@@ -475,11 +475,13 @@ class SentinelImporter(object):
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
                     if flags['j']:
                         metadatajson = os.path.join(
-                            json_standard_folder, "%s.json" % map_name)
+                            json_standard_folder, map_name, "description.json")
                     elif options['metadata']:
                         metadatajson = os.path.join(
-                            options['metadata'], "%s.json" % map_name)
+                            options['metadata'], map_name, "description.json")
                     if flags['j'] or options['metadata']:
+                        if not os.path.isdir(os.path.dirname(metadatajson)):
+                            os.makedirs(os.path.dirname(metadatajson))
                         with open(metadatajson, 'w') as outfile:
                             json.dump(descr_dict, outfile)
 
