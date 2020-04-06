@@ -640,7 +640,7 @@ def main ():
 
                 if options['shadow_raster'] and info_cm:
                     if info_cm['areas'] > '0':
-                        gscript.run_command('v.to.rast', input=shadow_mask,
+                        gscript.run_command('v.to.rast', input=tmp["shadow_temp_mask"],
                                             output=shadow_raster, use='val')
                     else:
                          gscript.warning(_('No cloud shadows detected'))
