@@ -118,6 +118,12 @@
 #% required : no
 #% guisection: Metadata
 #%end
+#%option G_OPT_F_INPUT
+#% key: metadata
+#% description: Name of Sentinel metadata json dump
+#% required : no
+#% guisection: Metadata
+#%end
 #%option
 #% key: scale_fac
 #% type: integer
@@ -146,8 +152,9 @@
 
 #%rules
 #% collective: blue,green,red,nir,nir8a,swir11,swir12
-#% requires: shadow_mask,mtd_file
-#% requires: shadow_raster,mtd_file
+#% requires: shadow_mask,mtd_file,metadata
+#% requires: shadow_raster,mtd_file,metadata
+#% excludes: mtd_file,metadata
 #% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
 #% excludes: -c,shadow_mask,shadow_raster
 #% required: input_file,blue,green,red,nir,nir8a,swir11,swir12,mtd_file
@@ -163,6 +170,7 @@ import re
 import glob
 import time
 import atexit
+import json
 import xml.etree.ElementTree as et
 
 import numpy
@@ -203,6 +211,7 @@ def main ():
 
     # Input file
     mtd_file = options['mtd_file']
+    metadata_file = options['metadata']
     bands = {}
     error_msg = 'Syntax error in the txt file. See the manual for further information about the right syntax.'
     if options['input_file'] == '':
@@ -222,6 +231,8 @@ def main ():
                     gscript.fatal(error_msg)
                 elif a[0] == 'MTD_TL.xml' and not mtd_file:
                     mtd_file = a[1].strip()
+                elif a[0] == 'metadata' and not metadata_file:
+                    metadata_file = a[1].strip()
                 elif a[0] in ['blue',
                     'green',
                     'red',
@@ -233,6 +244,8 @@ def main ():
                     bands[a[0]] = a[1].strip()
             if len(txt_bands) < 7:
                 gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
+            if mtd_file and metadata_file:
+                gscript.fatal(('Metadata json file and mtd_file are both given as input text files.\n Only one of these should be specified.'))
 
     d = 'double'
     f_bands = {}
@@ -285,10 +298,14 @@ def main ():
 
     # Check input and output for shadow mask
     if not flags["c"]:
-        if mtd_file == '':
-            gscript.fatal('Metadata file is required for shadow mask computation. Please specified it')
-        if not os.path.exists(mtd_file):
-            gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
+        if mtd_file == '' and metadata_file == '':
+            gscript.fatal('Metadata (file) is required for shadow mask computation. Please specifiy it')
+        if mtd_file != '':
+            if not os.path.exists(mtd_file):
+                 gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
+        elif metadata_file != '':
+            if not os.path.exists(metadata_file):
+                 gscript.fatal('Metadata file <{}> not found. Please select the right file'.format(metadata_file))
 
     if flags["r"]:
         gscript.use_temp_region()
@@ -515,27 +532,33 @@ def main ():
                 # Start reading mean sun zenith and azimuth from xml file to compute
                 #dE and dN automatically
                 gscript.message(_('--- Reading mean sun zenith and azimuth from metadata file to compute clouds shift ---'))
-                try:
-                    xml_tree = et.parse(mtd_file)
-                    root = xml_tree.getroot()
-                    ZA = []
+                if mtd_file != '':
                     try:
-                        for elem in root[1]:
-                            for subelem in elem[1]:
-                                ZA.append(subelem.text)
-                        if ZA == ['0', '0']:
-                            zenith_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Zenith').find('Values_List')
-                            ZA[0] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in zenith_val])
-                            azimuth_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Azimuth').find('Values_List')
-                            ZA[1] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in azimuth_val])
-                        z = float(ZA[0])
-                        a = float(ZA[1])
-                        gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
-                        gscript.message('--- the mean sun Azimuth is: {:.3f} deg ---'.format(a))
+                        xml_tree = et.parse(mtd_file)
+                        root = xml_tree.getroot()
+                        ZA = []
+                        try:
+                            for elem in root[1]:
+                                for subelem in elem[1]:
+                                    ZA.append(subelem.text)
+                            if ZA == ['0', '0']:
+                                zenith_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Zenith').find('Values_List')
+                                ZA[0] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in zenith_val])
+                                azimuth_val = root[1].find('Tile_Angles').find('Sun_Angles_Grid').find('Azimuth').find('Values_List')
+                                ZA[1] = numpy.mean([numpy.array(elem.text.split(' '), dtype=numpy.float) for elem in azimuth_val])
+                            z = float(ZA[0])
+                            a = float(ZA[1])
+                            gscript.message('--- the mean sun Zenith is: {:.3f} deg ---'.format(z))
+                            gscript.message('--- the mean sun Azimuth is: {:.3f} deg ---'.format(a))
+                        except:
+                            gscript.fatal('The selected input metadata file is not the right one. Please check the manual page.')
                     except:
-                        gscript.fatal('The selected input metadata file is not the right one. Please check the manual page.')
-                except:
-                    gscript.fatal('The selected input metadata file is not an .xml file. Please check the manual page.')
+                        gscript.fatal('The selected input metadata file is not an .xml file. Please check the manual page.')
+                elif metadata_file != '':
+                    with open(metadata_file) as json_file:
+                        data = json.load(json_file)
+                    z = float(data['MEAN_SUN_ZENITH_ANGLE'])
+                    a = float(data['MEAN_SUN_AZIMUTH_ANGLE'])
 
                 # Stop reading mean sun zenith and azimuth from xml file to compute dE
                 #and dN automatically
@@ -608,11 +631,16 @@ def main ():
                     output=shadow_mask,
                     operator='intersects',
                     quiet=True)
-                info_cm = gscript.parse_command('v.info', map=shadow_mask,
-                                                flags='t')
-                if options['shadow_raster']:
+                if gscript.find_file(name=shadow_mask, element='vector')['file']:
+                    info_cm = gscript.parse_command('v.info', map=shadow_mask,
+                                                    flags='t')
+                else:
+                    info_cm = None
+                    gscript.warning(_('No cloud shadows detected'))
+
+                if options['shadow_raster'] and info_cm:
                     if info_cm['areas'] > '0':
-                        gscript.run_command('v.to.rast', input=shadow_mask,
+                        gscript.run_command('v.to.rast', input=tmp["shadow_temp_mask"],
                                             output=shadow_raster, use='val')
                     else:
                          gscript.warning(_('No cloud shadows detected'))

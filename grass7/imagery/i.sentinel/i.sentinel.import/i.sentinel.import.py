@@ -66,6 +66,11 @@
 #% description: Name for output file to use with t.register
 #% required: no
 #%end
+#%option G_OPT_M_DIR
+#% key: metadata
+#% description: Name of directory into which Sentinel metadata json dumps are saved
+#% required: no
+#%end
 #%flag
 #% key: r
 #% description: Reproject raster data using r.import if needed
@@ -96,10 +101,16 @@
 #% description: Print raster data to be imported and exit
 #% guisection: Print
 #%end
+#%flag
+#% key: j
+#% description: Write meta data json for each band to LOCATION/MAPSET/json folder
+#% guisection: Print
+#%end
 #%rules
 #% exclusive: -l,-r,-p
 #% exclusive: -o,-r
 #% exclusive: extent,-l
+#% exclusive: metadata,-j
 #%end
 import os
 import sys
@@ -107,6 +118,7 @@ import re
 import glob
 import shutil
 import io
+import json
 from zipfile import ZipFile
 
 import grass.script as gs
@@ -143,7 +155,7 @@ class SentinelImporter(object):
                 shutil.rmtree(dirpath)
             except OSError:
                 pass
-            
+
     def filter(self, pattern=None):
         if pattern:
             filter_p = r'.*{}.*.jp2$'.format(pattern)
@@ -262,12 +274,12 @@ class SentinelImporter(object):
             gs.fatal(_("Flag -r requires GDAL library: {}").format(e))
         dsn = gdal.Open(filename)
         trans = dsn.GetGeoTransform()
-        
+
         ret = int(trans[1])
         dsn = None
 
         return ret
-    
+
     def _raster_epsg(self, filename):
         try:
             from osgeo import gdal, osr
@@ -277,7 +289,7 @@ class SentinelImporter(object):
 
         srs = osr.SpatialReference()
         srs.ImportFromWkt(dsn.GetProjectionRef())
-    
+
         ret = srs.GetAuthorityCode(None)
         dsn = None
 
@@ -451,10 +463,27 @@ class SentinelImporter(object):
                 descr = '\n'.join(descr_list)
                 bands = gs.read_command('g.list', type='raster', mapset='.',
                                         pattern='{}*'.format(map_name)).rstrip('\n').split('\n')
+
+                descr_dict = {dl.split('=')[0]: dl.split('=')[1] for dl in descr_list}
+                env = gs.gisenv()
+                json_standard_folder = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'], 'cell_misc')
+                if flags['j'] and not os.path.isdir(json_standard_folder):
+                    os.makedirs(json_standard_folder)
                 for band in bands:
                     gs.run_command('r.support', map=map_name, source1=ip,
                                    source2=img_file, history=descr)
                     gs.run_command('r.timestamp', map=map_name, date=timestamp_str)
+                    if flags['j']:
+                        metadatajson = os.path.join(
+                            json_standard_folder, map_name, "description.json")
+                    elif options['metadata']:
+                        metadatajson = os.path.join(
+                            options['metadata'], map_name, "description.json")
+                    if flags['j'] or options['metadata']:
+                        if not os.path.isdir(os.path.dirname(metadatajson)):
+                            os.makedirs(os.path.dirname(metadatajson))
+                        with open(metadatajson, 'w') as outfile:
+                            json.dump(descr_dict, outfile)
 
     def create_register_file(self, filename):
         gs.message(_("Creating register file <{}>...").format(filename))
@@ -511,7 +540,7 @@ def main():
                          "when -{} flag given").format('p'))
         importer.print_products()
         return 0
-    
+
     importer.import_products(flags['r'], flags['l'], flags['o'])
     importer.write_metadata()
 
