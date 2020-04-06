@@ -631,9 +631,14 @@ def main ():
                     output=shadow_mask,
                     operator='intersects',
                     quiet=True)
-                info_cm = gscript.parse_command('v.info', map=shadow_mask,
-                                                flags='t')
-                if options['shadow_raster']:
+                if gscript.find_file(name=shadow_mask, element='vector')['file']:
+                    info_cm = gscript.parse_command('v.info', map=shadow_mask,
+                                                    flags='t')
+                else:
+                    info_cm = None
+                    gscript.warning(_('No cloud shadows detected'))
+
+                if options['shadow_raster'] and info_cm:
                     if info_cm['areas'] > '0':
                         gscript.run_command('v.to.rast', input=shadow_mask,
                                             output=shadow_raster, use='val')
