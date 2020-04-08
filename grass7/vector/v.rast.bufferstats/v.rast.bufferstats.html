@@ -45,13 +45,8 @@ compute neighborhood statistics with <em>r.neighbors</em> and to extract (<em>v.
 <em>r.what</em>) or aggregate (<em>v.rast.stats</em>) from those maps with neighborhood statistics.
 
 <p>
-The module is affected by the following underlying library issues:
-
-Lines are wrongly reported for points maps:
-https://trac.osgeo.org/grass/ticket/3549
-To circumvent the issue, specify the type of geometry to process in the module call using the <em>type</em> option.
-
-Currently, the module uses GRASS native buffering which should be replaced by buffering using GEOS:
+The module is affected by the following underlying library issue:
+Currently, the module uses GRASS native buffering through pygrass which should be replaced by buffering using GEOS:
 https://trac.osgeo.org/grass/ticket/3628
 </p>
 

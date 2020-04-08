@@ -138,6 +138,7 @@ from subprocess import PIPE
 import grass.script as grass
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.raster.abstract import RasterAbstractBase
+from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis import Mapset
 from grass.pygrass.vector.geometry import Boundary
 from grass.pygrass.vector.geometry import Centroid
@@ -156,6 +157,7 @@ def cleanup():
     """Remove temporary data
     """
     #remove temporary region file
+    grass.del_temp_region()
     try:
         grass.run_command('g.remove', flags='f', name=TMP_MAPS,
                           quiet=True, type=['vector', 'raster'],
@@ -163,12 +165,26 @@ def cleanup():
     except:
         pass
 
-    try:
-        grass.run_command('g.remove', flags='f', name='MASK',
-                          quiet=True, type='raster',
-                          stderr=os.devnull, stdout_=os.devnull)
-    except:
-        pass
+    if RasterRow("MASK", Mapset().name).exist():
+        grass.run_command("r.mask", flags="r", quiet=True)
+    reset_mask()
+
+
+def unset_mask():
+    """Deactivate user mask"""
+    if RasterRow("MASK", Mapset().name).exist():
+        grass.run_command(
+            "g.rename", quiet=True, raster="MASK,{}_MASK".format(tmp_map)
+        )
+
+
+def reset_mask():
+    """Re-activate user mask"""
+    if RasterRow("{}_MASK".format(tmp_map)).exist():
+        grass.run_command(
+            "g.rename", quiet=True, raster="{}_MASK,MASK".format(tmp_map)
+        )
+
 
 def align_current(region, bbox):
     """Align current region to bounding box
@@ -203,6 +219,7 @@ def align_current(region, bbox):
 
     return region
 
+
 def random_name(length):
     """Generate a random name of length "length" starting with a letter
 
@@ -226,32 +243,51 @@ def random_name(length):
 
     return randomname
 
-def raster_type(raster):
+
+def raster_type(raster, tabulate, use_lable):
     """Check raster map type (int or double) and return categories for int maps
 
     :param raster: name of the raster map to check
-    :returns: string with raster map type and list of categories with lables
     :type raster: string
-    :rtype: string
-    :rtype: list
-
+    :param tabulate: check categories for tabulation
+    :type tabulate: bool
+    :param use_lable: use label strings instead of category numbers
+    :type use_lable: bool
+    :returns: string with raster map type and list of categories with lables
+    :rmap_type: string
+    :rcats: list of category tuples
     :Example:
 
     >>> raster_type('elevation')
     'double precision', []
     """
-    rcats = []
-    try:
-        rcats = grass.read_command('r.category', map=raster,
-                                   quiet=True).rstrip('\n').split('\n')
-        rmap_type = 'int'
-    except:
-        pass
-
-    if len(rcats) == 0:
+    r_map = RasterRow(raster)
+    r_map.open()
+    if not r_map.has_cats() and r_map.mtype != "CELL":
         rmap_type = 'double precision'
+        rcats = []
+    else:
+        rmap_type = 'int'
+        rcats = []
+        if tabulate:
+            rcats = r_map.cats
+            r_map.close()
+            if not rcats:
+                rcats = []
+            if len(rcats) == 0:
+                rcats = grass.read_command("r.category", map=raster).rstrip('\n').split('\n')
+                rcats = [tuple((rcat.split('\t')[1], rcat.split('\t')[1], None)) for rcat in rcats]
+            cat_list = [rcat[0] for rcat in rcats]
+            lable_list = [rcat[1] for rcat in rcats]
+            if use_lable:
+                racts = lable_list if len(set(cat_list)) == len(set(lable_list)) else cat_list
+            else:
+                racts = cat_list
+        else:
+            r_map.close()
 
     return rmap_type, rcats
+
 
 def main():
     in_vector = options['input'].split('@')[0]
@@ -272,16 +308,22 @@ def main():
     tabulate = flags['t']
     percent = flags['p']
     remove = flags['r']
+    use_lable = False
 
-    mymapset = Mapset().name
+    empty_buffer_warning = 'No data in raster map {} within buffer {} around geometry {}'
+
     # Do checks using pygrass
     for rmap in raster_maps:
         r_map = RasterAbstractBase(rmap)
         if not r_map.exist():
             grass.fatal('Could not find raster map {}.'.format(rmap))
-    m_map = RasterAbstractBase('MASK@{}'.format(mymapset))
+
+    user_mask = False
+    m_map = RasterAbstractBase('MASK', Mapset().name)
     if m_map.exist():
-        grass.fatal("Please remove MASK first")
+        grass.warning("Current MASK is temporarily renamed.")
+        user_mask = True
+        unset_mask()
 
     invect = VectorTopo(in_vector)
     if not invect.exist():
@@ -339,7 +381,7 @@ def main():
     col_names = []
     col_types = []
     for p in column_prefix:
-        rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)])
+        rmaptype, rcats = raster_type(raster_maps[column_prefix.index(p)], tabulate, use_lable)
         for b in buffers:
             b_str = str(b).replace('.', '_')
             if tabulate:
@@ -354,7 +396,11 @@ def main():
                 col_names.append('{}_{}_b{}'.format(p, 'area_tot', b_str))
                 col_types.append('double precision')
                 for rcat in rcats:
-                    col_names.append('{}_{}_b{}'.format(p, rcat.split('\t')[0], b_str))
+                    if use_lable:
+                        rcat = rcat[1].replace(" ", "_")
+                    else:
+                        rcat = rcat[0]
+                    col_names.append('{}_{}_b{}'.format(p, rcat, b_str))
                     col_types.append('double precision')
             else:
                 for m in methods:
@@ -372,7 +418,6 @@ def main():
     in_vect.open(mode='r')
 
     # Get name for temporary map
-    tmp_map = random_name(21)
     TMP_MAPS.append(tmp_map)
 
     # Setup stats collectors
@@ -432,11 +477,17 @@ def main():
 
         sql_str_start = 'UPDATE {} SET '.format(tab_name)
 
+    elif output == '-':
+        print('cat{0}raster_map{0}buffer{0}statistic{0}value'.format(sep))
+    else:
+        out.write('cat{0}raster_map{0}buffer{0}statistic{0}value{1}'.format(sep, os.linesep))
+
 
     # Get computational region
     grass.use_temp_region()
-    #r = Region()
-    #r.read()
+    r = Region()
+    r.read()
+
     # Adjust region extent to buffer around geometry
     #reg = deepcopy(r)
 
@@ -453,9 +504,6 @@ def main():
     for geom in geoms:
         # Get cat
         cat = geom.cat
-        # Give progress information
-        grass.percent(n_geom, geoms_n, 1)
-        n_geom = n_geom + 1
 
         # Add where clause to UPDATE statement
         sql_str_end = ' WHERE cat = {};'.format(cat)
@@ -497,18 +545,24 @@ def main():
             #reg = Region()
             #reg.read()
             #r.from_vect(tmp_map)
-            #r = align_current(r, buffer_geom[0].bbox())
-            #r.set_current()
+            r = align_current(r, buffer_geom[0].bbox())
+            r.write()
 
             # Check if the following is needed
             # needed specially with r.stats -p
-            grass.run_command('g.region', vector=tmp_map, flags='a')
+            #grass.run_command('g.region', vector=tmp_map, flags='a')
 
             # Create a MASK from buffered geometry
-            grass.run_command('v.to.rast', input=tmp_map,
-                              output='MASK', use='val',
-                              value=int(cat), quiet=True)
-
+            if user_mask:
+                grass.run_command('v.to.rast', input=tmp_map,
+                                  output=tmp_map, use='val',
+                                  value=int(cat), quiet=True)
+                mc_expression = "MASK=if(!isnull({0}) && !isnull({0}_MASK), {1}, null())".format(tmp_map, cat)
+                grass.run_command('r.mapcalc', expression=mc_expression, quiet=True)
+            else:
+                grass.run_command('v.to.rast', input=tmp_map,
+                                  output='MASK', use='val',
+                                  value=int(cat), quiet=True)
 
             #reg.write()
 
@@ -523,6 +577,7 @@ def main():
                     stats.inputs.input = rmap
                     stats.run()
                     t_stats = stats.outputs['stdout'].value.rstrip(os.linesep).replace(' ', '_b{} = '.format(b_str)).split(os.linesep)
+
                     if t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1] != 'null':
                         mode = t_stats[0].split('_b{} = '.format(b_str))[0].split('_')[-1]
                     elif len(t_stats) == 1:
@@ -546,12 +601,15 @@ def main():
                         out_str = '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'ncats', len(t_stats), os.linesep)
                         out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'mode', mode, os.linesep)
                         area_tot = 0
+                        if not t_stats[0]:
+                            grass.warning(empty_buffer_warning.format(rmap, buf, cat))
+                            continue
                         for l in t_stats:
                             rcat = l.split('_b{} ='.format(b_str))[0].split('_')[-1]
                             area = l.split('= ')[1]
                             out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area {}'.format(rcat), area, os.linesep)
                             if rcat != 'null':
-                                area_tot = area_tot + float(l.split('= ')[1])
+                                area_tot = area_tot + float(l.rstrip('%').split('= ')[1])
                         out_str += '{1}{0}{2}{0}{3}{0}{4}{0}{5}{6}'.format(sep, cat, prefix, buf, 'area_tot', area_tot, os.linesep)
 
                         if output == '-':
@@ -565,9 +623,10 @@ def main():
                     univar.run()
                     u_stats = univar.outputs['stdout'].value.rstrip(os.linesep).replace('=', '_b{} = '.format(b_str)).split(os.linesep)
 
-                    # Test i u_stats is empty and give warning
-                    if (percentile and len(u_stats) <= 14) or (univar.flags.e and len(u_stats) <= 13) or len(u_stats) <= 12:
-                        grass.warning('No data within buffer {} around geometry {}'.format(buf, cat))
+                    # Test if u_stats is empty and give warning
+                    # Needs to be adjusted to number of requested stats?
+                    if (percentile and len(u_stats) < 14) or (univar.flags.e and len(u_stats) < 13) or len(u_stats) < 12:
+                        grass.warning(empty_buffer_warning.format(rmap, buf, cat))
                         break
 
                     # Extract statistics for selected methods
@@ -581,7 +640,7 @@ def main():
                             if output == '-':
                                 print(out_str)
                             else:
-                                out.write(out_str)
+                                out.write("{}{}".format(out_str, os.linesep))
 
                     if percentile:
                         perc_count = 0
@@ -610,10 +669,13 @@ def main():
             grass.run_command('g.remove', flags='f', type='vector',
                               name=tmp_map, quiet=True)
 
+        # Give progress information
+        grass.percent(n_geom, geoms_n, 1)
+        n_geom = n_geom + 1
+
         if not output:
             conn.commit()
 
-    grass.use_temp_region()
     # Close cursor and DB connection
     if not output and not output == "-":
         cur.close()
@@ -636,11 +698,11 @@ def main():
                     debug=2)
         grass.run_command('v.db.dropcolumn', map=in_vector, columns=dropcols)
 
-    # Clean up
-    cleanup()
 
 # Run the module
 if __name__ == "__main__":
     options, flags = grass.parser()
+    # Get name for temporary map
+    tmp_map = random_name(21)
     atexit.register(cleanup)
     sys.exit(main())
