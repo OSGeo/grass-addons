@@ -1063,7 +1063,7 @@
      id="image2749"
      height="800.00006"
      width="1280"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/wxgrass_digit-03.png"
+     sodipodi:absref="other/wxgrass_digit-03.png"
      xlink:href="vdigit/wxgrass_digit-03.png" />
   <flowRoot
      xml:space="preserve"
@@ -1082,7 +1082,7 @@
      id="image2770"
      height="1120"
      width="1702.6262"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/grass4-login.png"
+     sodipodi:absref="other/grass4-login.png"
      xlink:href="gui/grass4-login.png" />
   <image
      y="4593.1753"
@@ -1090,7 +1090,7 @@
      id="image2783"
      height="839.0434"
      width="1039.9995"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/tcltkgrass.png"
+     sodipodi:absref="other/tcltkgrass.png"
      xlink:href="gui/tcltkgrass.png" />
   <image
      y="4632.2188"
@@ -1098,7 +1098,7 @@
      id="image2796"
      height="622.86621"
      width="1025.9923"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/dm.png"
+     sodipodi:absref="other/dm.png"
      xlink:href="gui/dm.png" />
   <image
      y="4552.2188"
@@ -1106,7 +1106,7 @@
      id="image2809"
      height="780.81592"
      width="875.3678"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/gism.png"
+     sodipodi:absref="other/gism.png"
      xlink:href="gui/gism.png" />
   <image
      y="4552.2188"
@@ -1114,7 +1114,7 @@
      id="image2822"
      height="800"
      width="1280"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/Wxgui-atm0-gnulinux.png"
+     sodipodi:absref="other/Wxgui-atm0-gnulinux.png"
      xlink:href="gui/Wxgui-atm0-gnulinux.png" />
   <image
      y="5592.2188"
@@ -1122,7 +1122,7 @@
      id="image2835"
      height="880"
      width="1100"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/qgis08_grass6_toolbox.png"
+     sodipodi:absref="other/qgis08_grass6_toolbox.png"
      xlink:href="gui/qgis08_grass6_toolbox.png" />
   <image
      y="6552.2188"
@@ -1130,7 +1130,7 @@
      id="image2848"
      height="797.22449"
      width="1520"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/vdigit6.png"
+     sodipodi:absref="other/vdigit6.png"
      xlink:href="vdigit/vdigit6.png"
      inkscape:transform-center-x="7120.122"
      inkscape:transform-center-y="1845.9816" />
@@ -1183,7 +1183,7 @@
      id="image2881"
      height="960"
      width="1706.8624"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/vdigit-text.png"
+     sodipodi:absref="other/vdigit-text.png"
      xlink:href="vdigit/vdigit-text.png" />
   <text
      xml:space="preserve"
@@ -1815,16 +1815,16 @@
      id="image3568"
      height="757.06104"
      width="1125.656"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/iln_05_1997.png"
-     xlink:href="homepage/iln_05_1997.png" />
+     sodipodi:absref="grass_web_evolution/iln_05_1997.png"
+     xlink:href="grass_web_evolution/iln_05_1997.png" />
   <image
      y="9502.5977"
      x="4492.3682"
      id="image3635"
      height="697.81567"
      width="823.1377"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/cerl_05_1998.png"
-     xlink:href="homepage/cerl_05_1998.png" />
+     sodipodi:absref="grass_web_evolution/cerl_05_1998.png"
+     xlink:href="grass_web_evolution/cerl_05_1998.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -1850,8 +1850,8 @@
      id="image3693"
      height="755.73975"
      width="1293.9485"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/baylor_09_1999.png"
-     xlink:href="homepage/baylor_09_1999.png" />
+     sodipodi:absref="grass_web_evolution/baylor_09_1999.png"
+     xlink:href="grass_web_evolution/baylor_09_1999.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -1904,8 +1904,8 @@
      id="image3776"
      height="726.87256"
      width="791.60474"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/phygeo_08_1999.png"
-     xlink:href="homepage/phygeo_08_1999.png" />
+     sodipodi:absref="grass_web_evolution/phygeo_08_1999.png"
+     xlink:href="grass_web_evolution/phygeo_08_1999.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -1939,8 +1939,8 @@
      id="image3851"
      height="747.93866"
      width="1120"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/phygeo_08_2000a.png"
-     xlink:href="homepage/phygeo_08_2000a.png" />
+     sodipodi:absref="grass_web_evolution/phygeo_08_2000a.png"
+     xlink:href="grass_web_evolution/phygeo_08_2000a.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -1974,8 +1974,8 @@
      id="image3926"
      height="721.73315"
      width="870.12695"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/phygeo_08_2001b.png"
-     xlink:href="homepage/phygeo_08_2001b.png" />
+     sodipodi:absref="grass_web_evolution/phygeo_08_2001b.png"
+     xlink:href="grass_web_evolution/phygeo_08_2001b.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -2001,8 +2001,8 @@
      id="image4035"
      height="640"
      width="1095.5459"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/itc_05_2002b.png"
-     xlink:href="homepage/itc_05_2002b.png" />
+     sodipodi:absref="grass_web_evolution/itc_05_2002b.png"
+     xlink:href="grass_web_evolution/itc_05_2002b.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -2028,8 +2028,8 @@
      id="image4158"
      height="717.48828"
      width="1145.6799"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/osgeo_01_2009.png"
-     xlink:href="homepage/osgeo_01_2009.png" />
+     sodipodi:absref="grass_web_evolution/osgeo_01_2009.png"
+     xlink:href="grass_web_evolution/osgeo_01_2009.png" />
   <text
      xml:space="preserve"
      style="font-size:72px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -2048,7 +2048,7 @@
      id="image6330"
      height="1280"
      width="4560"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/other/codehistory.png"
+     sodipodi:absref="other/other/codehistory.png"
      xlink:href="other/codehistory.png" />
   <image
      y="9473.1748"
@@ -2056,8 +2056,8 @@
      id="image6601"
      height="590"
      width="1034.7015"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/phygeo_08_2001a.png"
-     xlink:href="homepage/phygeo_08_2001a.png" />
+     sodipodi:absref="grass_web_evolution/phygeo_08_2001a.png"
+     xlink:href="grass_web_evolution/phygeo_08_2001a.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -2091,8 +2091,8 @@
      id="image6747"
      height="671.5719"
      width="1262"
-     sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/itc_01_2002a.png"
-     xlink:href="homepage/itc_01_2002a.png" />
+     sodipodi:absref="grass_web_evolution/itc_01_2002a.png"
+     xlink:href="grass_web_evolution/itc_01_2002a.png" />
   <text
      xml:space="preserve"
      style="font-size:72px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
