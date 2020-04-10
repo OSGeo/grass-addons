@@ -486,7 +486,7 @@ def main():
     diff_rad_basename = diff_rad_basename_user = options['diff_rad_basename']
     refl_rad_basename = refl_rad_basename_user = options['refl_rad_basename']
     glob_rad_basename = glob_rad_basename_user = options['glob_rad_basename']
-    incidout_basename = options['glob_rad_basename']
+    incidout_basename = options['incidout_basename']
 
     beam_rad = options['beam_rad']
     diff_rad = options['diff_rad']
