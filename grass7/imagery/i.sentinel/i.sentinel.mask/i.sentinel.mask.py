@@ -92,7 +92,7 @@
 #%end
 #%option G_OPT_R_OUTPUT
 #% key: shadow_raster
-#% description: name of output vector shadow mask
+#% description: name of output raster shadow mask
 #% required : no
 #% guisection: Output
 #%end
@@ -318,14 +318,18 @@ def main ():
 
     if flags["s"]:
         gscript.message(_('--- Start rescaling bands ---'))
+        check_b = 0
         for key, b in bands.items():
             gscript.message(b)
             b = gscript.find_file(b, element = 'cell')['name']
+            tmp["band_double{}".format(check_b)] = "{}_{}".format(b, d)
+            band_double = tmp["band_double{}".format(check_b)]
             gscript.mapcalc('{r} = 1.0 * ({b})/{scale_fac}'.format(
-                r=("{}_{}".format(b, d)),
+                r=(band_double),
                 b=b,
                 scale_fac=scale_fac))
-            f_bands[key] = "{}_{}".format(b, d)
+            f_bands[key] = band_double
+            check_b += 1
         gscript.message(f_bands.values())
         gscript.message(_('--- All bands have been rescaled ---'))
     else:
