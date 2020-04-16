@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 
+############################################################################
+#
+# MODULE:	    Visualize test results
+# AUTHOR(S):	Anika Bettge, mundialis
+#
+# PURPOSE:	    Visualize test results of test.py
+# COPYRIGHT:	(C) 2020 by the GRASS Development Team
+#
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
+#############################################################################
+
 # python3 visualization.py rmapcalctiled_test.csv images
 
 import grass.script as grass

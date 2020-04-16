@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 
+############################################################################
+#
+# MODULE:	    Test for performance of r.mapcalc.tiled
+# AUTHOR(S):	Anika Bettge, mundialis
+#
+# PURPOSE:	    Run r.mapcalc vs r.mapcalc.tiled with different parameters
+# COPYRIGHT:	(C) 2020 by the GRASS Development Team
+#
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
+#############################################################################
+
 # python3 test.py config.ini
 
 import configparser
