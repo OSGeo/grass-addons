@@ -214,8 +214,8 @@ def main():
                 x.sort()
                 y.sort()
 
-                xmedian.append((x[(len(x)-1)/2]+x[(len(x))/2])/2)
-                ymedian.append((y[(len(y)-1)/2]+y[(len(y))/2])/2)
+                xmedian.append((x[(len(x)-1)//2]+x[(len(x))//2])/2)
+                ymedian.append((y[(len(y)-1)//2]+y[(len(y))//2])/2)
 
         del os.environ['GRASS_VERBOSE']
 
