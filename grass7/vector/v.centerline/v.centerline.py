@@ -105,9 +105,9 @@ def main():
 
     # Find best reference line and max distance between centerpoints of lines
     segment_input = ''
-    categories = grass.pipe_command('v.category', input=input, option='print',
-            quiet=True)
-    for category in categories.stdout:
+    categories = grass.read_command('v.category', input=input, option='print',
+            quiet=True).splitlines()
+    for category in categories:
         segment_input += 'P {}'.format(category.strip())
         segment_input += ' {} {}'.format(category.strip(),' 50%')
         segment_input += os.linesep
@@ -115,15 +115,15 @@ def main():
     grass.write_command('v.segment', input=input, output=tmp_centerpoints_map,
             rules='-', stdin=segment_input, quiet=True)
 
-    center_distances = grass.pipe_command('v.distance',
+    center_distances = grass.read_command('v.distance',
             from_=tmp_centerpoints_map, to=tmp_centerpoints_map, upload='dist',
-            flags='pa', quiet=True)
+            flags='pa', quiet=True).splitlines()
 
     cats = []
     mean_dists = []
     count = 0
     distmax = 0
-    for center in center_distances.stdout:
+    for center in center_distances:
         if count < 2:
             count += 1
             continue
@@ -196,13 +196,13 @@ def main():
                     op='add', overwrite=True)
 
             # Get coordinates of points
-            coords = grass.pipe_command('v.to.db', map=tmp_map,
-                    op='coor', flags='p')
+            coords = grass.read_command('v.to.db', map=tmp_map,
+                    op='coor', flags='p').splitlines()
 
             count = 0
             x = []
             y = []
-            for coord in coords.stdout:
+            for coord in coords:
                 x.append(float(coord.strip().split('|')[1]))
                 y.append(float(coord.strip().split('|')[2]))
 
@@ -227,11 +227,11 @@ def main():
                 cats=refline_cat, quiet=True)
 
         os.environ['GRASS_VERBOSE'] = '0'
-        lpipe = grass.pipe_command('v.to.db', map=tmp_line_map, op='length',
-                flags='p')
+        lpipe = grass.read_command('v.to.db', map=tmp_line_map, op='length',
+                flags='p').splitlines()
         del os.environ['GRASS_VERBOSE']
 
-        for l in lpipe.stdout:
+        for l in lpipe:
             linelength = float(l.strip().split('|')[1])
 
         step = linelength / nb_vertices
@@ -248,16 +248,16 @@ def main():
 
         # Get coordinates of closest points on all input lines
         if search_range:
-            points = grass.pipe_command('v.distance', from_=tmp_points_map,
+            points = grass.read_command('v.distance', from_=tmp_points_map,
                         from_layer=2, to=input, upload='to_x,to_y',
-                        dmax=search_range, flags='pa', quiet=True)
+                        dmax=search_range, flags='pa', quiet=True).splitlines()
         else:
-            points = grass.pipe_command('v.distance', from_=tmp_points_map,
+            points = grass.read_command('v.distance', from_=tmp_points_map,
                         from_layer=2, to=input, upload='to_x,to_y',
-                        flags='pa', quiet=True)
+                        flags='pa', quiet=True).splitlines()
 
         firstline = True
-        for point in points.stdout:
+        for point in points:
             if firstline:
                 firstline = False
                 continue
