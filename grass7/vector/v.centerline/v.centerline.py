@@ -297,8 +297,8 @@ def main():
                     ytemp.append(y[i])
             xtemp.sort()
             ytemp.sort()
-            xmedian[c] = (xtemp[(len(xtemp)-1)/2]+xtemp[(len(xtemp))/2])/2
-            ymedian[c] = (ytemp[(len(ytemp)-1)/2]+ytemp[(len(ytemp))/2])/2
+            xmedian[c] = (xtemp[(len(xtemp)-1)//2]+xtemp[(len(xtemp))//2])/2
+            ymedian[c] = (ytemp[(len(ytemp)-1)//2]+ytemp[(len(ytemp))//2])/2
 
     # Create new line and write to file
     if median and nb_lines > 2:
