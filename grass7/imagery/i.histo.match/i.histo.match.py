@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ############################################################################
 #
@@ -104,6 +104,8 @@ def main():
         query_create = "CREATE TABLE \"t%s\" (grey_value integer,pixel_frequency " % iname
         query_create += "integer, cumulative_histogram integer, cdf real)"
         curs.execute(query_create)
+        index_create = "CREATE UNIQUE INDEX \"t%s_grey_value\" ON \"t%s\" (grey_value) " % (iname, iname)
+        curs.execute(index_create)
         # set the region on the raster
         grass.use_temp_region()
         grass.run_command('g.region', raster=i)
@@ -113,6 +115,7 @@ def main():
         stats = stats_out.communicate()[0].decode('utf-8').split('\n')[:-1]
         stats_dict = dict(s.split(':', 1) for s in stats)
         cdf = 0
+        curs.execute("BEGIN")
         # for each number in the range
         for n in range(0, max_value):
             # try to insert the values otherwise insert 0
@@ -127,6 +130,7 @@ def main():
                 insert = "INSERT INTO \"t%s\" VALUES (%i, 0, %i, 0.000000)" % (
                                                             iname, n, cdf)
                 curs.execute(insert)
+        curs.execute("COMMIT")
         db.commit()
         # number of pixel is the cdf value
         numPixel = cdf
@@ -167,6 +171,8 @@ def main():
     query_create = "CREATE TABLE %s (grey_value integer,average " % table_ave
     query_create += "integer, cumulative_histogram integer, cdf real)"
     curs.execute(query_create)
+    index_create = "CREATE UNIQUE INDEX \"%s_grey_value\" ON \"%s\" (grey_value) " % (table_ave, table_ave)
+    curs.execute(index_create)
     cHist = 0
     # for each number in the range
     for n in range(0, max_value):
