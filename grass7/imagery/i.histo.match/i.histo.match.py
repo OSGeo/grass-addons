@@ -94,6 +94,18 @@ def main():
     db = sqlite3.connect(dbpath)
     curs = db.cursor()
     grass.message(_("Calculating Cumulative Distribution Functions ..."))
+
+    # number of pixels per value, summarized for all images
+    numPixelValue = list(range(0, max_value))
+    for n in range(0, max_value):
+        numPixelValue[n] = 0
+
+    # cumulative histogram for each value and each image
+    cumulHistoValue = list(range(0, max_value))
+
+    # set up temp region only once
+    grass.use_temp_region()
+
     # for each image
     for i in images:
         iname = i.split('@')[0]
@@ -107,7 +119,6 @@ def main():
         index_create = "CREATE UNIQUE INDEX \"t%s_grey_value\" ON \"t%s\" (grey_value) " % (iname, iname)
         curs.execute(index_create)
         # set the region on the raster
-        grass.use_temp_region()
         grass.run_command('g.region', raster=i)
         # calculate statistics
         stats_out = grass.pipe_command('r.stats', flags='cin', input=i,
@@ -119,39 +130,52 @@ def main():
         # for each number in the range
         for n in range(0, max_value):
             # try to insert the values otherwise insert 0
+            
             try:
                 val = int(stats_dict[str(n)])
                 cdf += val
+                numPixelValue[n] += val
                 insert = "INSERT INTO \"t%s\" VALUES (%i, %i, %i, 0.000000)" % (
                                                             iname, n, val, cdf)
                 curs.execute(insert)
             except:
-                cdf += 0
                 insert = "INSERT INTO \"t%s\" VALUES (%i, 0, %i, 0.000000)" % (
                                                             iname, n, cdf)
                 curs.execute(insert)
+            # save cumulative_histogram for the second loop
+            cumulHistoValue[n] = cdf
         curs.execute("COMMIT")
         db.commit()
         # number of pixel is the cdf value
         numPixel = cdf
         # for each number in the range
+        # cdf is updated using the number of non-null pixels for the current image
+        curs.execute("BEGIN")
         for n in range(0, max_value):
             # select value for cumulative_histogram for the range number
+            """
             select_ch = "SELECT cumulative_histogram FROM \"t%s\" WHERE " % iname
             select_ch += "(grey_value=%i)" % n
             result = curs.execute(select_ch)
             val = result.fetchone()[0]
+            """
+            val = cumulHistoValue[n]
             # update cdf with new value
             if val != 0 and numPixel != 0:
                 update_cdf = round(float(val) / float(numPixel), 6)
                 update_cdf = "UPDATE \"t%s\" SET cdf=%s WHERE (grey_value=%i)" % (
                                                         iname, update_cdf, n)
                 curs.execute(update_cdf)
-                db.commit()
+
+        curs.execute("COMMIT")
+        db.commit()
     db.commit()
     pixelTot = 0
+
+    # get total number of pixels divided by number of images
     # for each number in the range
     for n in range(0, max_value):
+        """
         numPixel = 0
         # for each image
         for i in images:
@@ -161,9 +185,11 @@ def main():
             result = curs.execute(pixel_freq)
             val = result.fetchone()[0]
             numPixel += val
+        """
         # calculate number of pixel divide by number of images
-        div = (int(numPixel / n_images))
+        div = (int(numPixelValue[n] / n_images))
         pixelTot += div
+
     # drop average table
     query_drop = "DROP TABLE if exists %s" % table_ave
     curs.execute(query_drop)
@@ -175,8 +201,10 @@ def main():
     curs.execute(index_create)
     cHist = 0
     # for each number in the range
+    curs.execute("BEGIN")
     for n in range(0, max_value):
         tot = 0
+        """
         # for each image
         for i in images:
             iname = i.split('@')[0]
@@ -186,6 +214,8 @@ def main():
             result = curs.execute(pixel_freq)
             val = result.fetchone()[0]
             tot += val
+        """
+        tot = numPixelValue[n]
         # calculate new value of pixel_frequency
         average = (tot / n_images)
         cHist = cHist + int(average)
@@ -195,12 +225,13 @@ def main():
             insert = "INSERT INTO %s VALUES (%i, %i, %i, %s)" % (table_ave, n,
                                                     int(average), cHist, cdf)
             curs.execute(insert)
-            db.commit()
+    curs.execute("COMMIT")
+    db.commit()
+
     # for each image
     grass.message(_("Reclassifying bands based on average histogram..."))
     for i in images:
         iname = i.split('@')[0]
-        grass.use_temp_region()
         grass.run_command('g.region', raster=i)
         # write average rules file
         outfile = open(grass.tempfile(), 'w')
@@ -240,7 +271,6 @@ def main():
     db.commit()
     db.close()
     if mosaic:
-        grass.use_temp_region()
         grass.message(_("Processing mosaic <%s>..." % mosaic))
         grass.run_command('g.region', raster=all_images)
         grass.run_command('r.patch', input=output_names, output=mosaic)
