@@ -511,12 +511,11 @@ class SentinelImporter(object):
             key = "%s_%s" % (tmp_key.split('_')[5], tmp_key.split('_')[2])
             fp_dict[key] = item.split('|')[cat_idx]
         fp_rast_name = "fp_rast_%s" % (str(os.getpid()))
+        gs.use_temp_region()
         for map in imported_map_list:
             wherestring = "cat = "+ fp_dict['%s_%s'%(map.split('_')[0],map.split('_')[1])]
             reg = gs.parse_command("v.db.select", flags="r", map=fp, where=wherestring)
-            gs.use_temp_region()
             gs.run_command('g.region', align=map, n=reg["n"], s=reg["s"], e=reg["e"], w=reg["w"])
-
             gs.run_command('v.to.rast', input=fp, cats=fp_dict['%s_%s' % (map.split('_')[0], map.split('_')[1])], use="val",
                            value=1, memory=options['memory'], output=fp_rast_name)
             gs.run_command('r.mapcalc', expression='tmp_%s = round(if(isnull(%s),null(),%s))' % (map, fp_rast_name, map))
