@@ -517,8 +517,8 @@ class SentinelImporter(object):
             gs.run_command('g.region', raster=map)
             gs.run_command('v.to.rast', input=fp, cats=fp_dict['%s_%s' % (map.split('_')[0], map.split('_')[1])], use="val",
                            value=1, memory=options['memory'], output=fp_rast_name)
-            gs.run_command('r.mapcalc', expression='tmp_%s = if(isnull(%s),null(),%s)' % (map, fp_rast_name, map))
-            gs.run_command('g.rename', raster='tmp_%s,%s' % (map, map))
+            gs.run_command('r.mapcalc', expression='tmp_%s = round(if(isnull(%s),null(),%s))' % (map, fp_rast_name, map))
+            gs.run_command('g.rename', raster='tmp_%s,%s' % (map, map), overwrite=True)
             gs.run_command('g.remove', type="raster", name=fp_rast_name, flags='f')
         gs.run_command('g.region', region=reg_name)
         gs.run_command('g.remove', type="region", name=reg_name, flags='f')
