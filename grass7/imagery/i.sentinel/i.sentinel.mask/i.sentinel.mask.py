@@ -654,12 +654,12 @@ def main ():
                 gscript.message('--- the estimated east shift is: {:.2f} m ---'.format(dE[index_maxAA]))
                 gscript.message('--- the estimated north shift is: {:.2f} m ---'.format(dN[index_maxAA]))
             else:
+                if options['shadow_raster']:
+                    gscript.run_command('v.to.rast', input=tmp["shadow_temp_mask"],
+                        output=shadow_raster, use='val')
                 if options['shadow_mask']:
                     gscript.run_command("g.rename",
                         vector=(tmp["shadow_temp_mask"],shadow_mask))
-                if options['shadow_raster']:
-                    gscript.run_command('v.to.rast', input=shadow_mask,
-                        output=shadow_raster, use='val')
                 gscript.warning(_('The removing misclassification procedure from shadow mask was not performed since no cloud have been detected'))
     else:
         if shadow_mask != '':
