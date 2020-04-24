@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # PURPOSE: Generates index.html of GRASS GIS Addons
-#          http://grass.osgeo.org/grass7/manuals/addons/
+#          https://grass.osgeo.org/grass7/manuals/addons/
 #
 # Markus Neteler 9/2002
 # updated for GRASS GIS Addons by Markus Neteler and Martin Landa, 2013
@@ -98,9 +98,9 @@ generate () {
 <table><tr><td>
 <script type=\"text/javascript\" src=\"https://www.openhub.net/p/grass_gis_addons/widgets/project_factoids_stats?format=js\"></script>
 </td><td>
-<a href=\"http://grass.osgeo.org\">GRASS GIS</a> is free software,
+<a href=\"https://grass.osgeo.org\">GRASS GIS</a> is free software,
 anyone may develop his/her own extensions.  The <a
-href=\"http://grasswiki.osgeo.org/wiki/AddOns/GRASS_${major}\">GRASS GIS
+href=\"https://grasswiki.osgeo.org/wiki/AddOns/GRASS_${major}\">GRASS GIS
 Add-ons Wiki page</a> contains a growing list of links to GRASS GIS
 extensions, which are currently not part of the standard
 distribution.<br>
@@ -118,8 +118,8 @@ Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS 
 <p> <tt>git clone https://github.com/OSGeo/grass-addons.git</tt>
 <p>
 See also log files of compilation:
-<a href=\"http://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"http://wingrass.fsv.cvut.cz/grass76/x86_64/addons/latest/logs/\">Windows log files</a>
+<a href=\"https://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
+<a href=\"https://wingrass.fsv.cvut.cz/grass76/x86_64/addons/latest/logs/\">Windows log files</a>
 
 </tr></table>
 <hr>
@@ -159,7 +159,7 @@ See also log files of compilation:
 
     year=`date +%Y`
     echo "</ul><hr>
-&copy; 2013-${year} <a href=\"http://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
+&copy; 2013-${year} <a href=\"https://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
 }
