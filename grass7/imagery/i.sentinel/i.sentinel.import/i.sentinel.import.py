@@ -243,14 +243,34 @@ class SentinelImporter(object):
                         args['flags'] += 'r'
                     else:
                         args['flags'] = 'r'
-
         for f in self.files:
             if not override and (link or (not link and not reproject)):
                 if not self._check_projection(f):
                     gs.fatal(_('Projection of dataset does not appear to match current location. '
                                'Force reprojecting dataset by -r flag.'))
 
+            map_name = self._map_name(f)
+            if options['footprints']:
+                fp = options['footprints']
+                whereclause = "identifier LIKE '%{}%' AND identifier LIKE '%{}%'".format(map_name.split('_')[0],map_name.split('_')[1])
+                reg = gs.parse_command("v.db.select", flags="r", map=fp, where=whereclause)
+                if not options['extent'] == 'region':
+                    gs.use_temp_region()
+                    gs.run_command('g.region', n=reg["n"], s=reg["s"], e=reg["e"], w=reg["w"])
+
             self._import_file(f, module, args)
+            gs.del_temp_region()
+
+            if options['footprints']:
+                if map_name in imported_map_list:
+                    fp_rast_name = "fp_rast_%s" % (str(os.getpid()))
+                    gs.use_temp_region()
+                    gs.run_command('g.region', align=map_name, n=reg["n"], s=reg["s"], e=reg["e"], w=reg["w"])
+                    gs.run_command('v.to.rast', input=fp, where=whereclause, use="val", value=1, memory=options['memory'], output=fp_rast_name)
+                    gs.run_command('r.mapcalc', expression='tmp_%s = round(if(isnull(%s),null(),%s))' % (map_name, fp_rast_name, map_name))
+                    gs.run_command('g.rename', raster='tmp_%s,%s' % (map_name, map_name), overwrite=True)
+                    gs.run_command('g.remove', type="raster", name=fp_rast_name, flags='f')
+                    gs.del_temp_region()
 
     def _check_projection(self, filename):
         try:
@@ -296,13 +316,13 @@ class SentinelImporter(object):
 
     def _import_file(self, filename, module, args):
         mapname = self._map_name(filename)
-        imported_map_list.append(mapname)
         gs.message(_('Processing <{}>...').format(mapname))
         if module == 'r.import':
             args['resolution_value'] = self._raster_resolution(filename)
         try:
             gs.run_command(module, input=filename, output=mapname, **args)
             gs.raster_history(mapname)
+            imported_map_list.append(mapname)
         except CalledModuleError as e:
             pass # error already printed
 
@@ -500,30 +520,6 @@ class SentinelImporter(object):
                     ))
                 fd.write(os.linesep)
 
-    def set_footprint(self, fp):
-        fp_dict = {}
-        idlist = [x for x in gs.parse_command('v.db.select', map=fp)]
-        cat_idx = idlist[0].split('|').index('cat')
-        ident_idx = idlist[0].split('|').index('identifier')
-
-        for item in idlist[1:]:
-            tmp_key = item.split('|')[ident_idx]
-            key = "%s_%s" % (tmp_key.split('_')[5], tmp_key.split('_')[2])
-            fp_dict[key] = item.split('|')[cat_idx]
-        fp_rast_name = "fp_rast_%s" % (str(os.getpid()))
-        gs.use_temp_region()
-        for map in imported_map_list:
-            wherestring = "cat = "+ fp_dict['%s_%s'%(map.split('_')[0],map.split('_')[1])]
-            reg = gs.parse_command("v.db.select", flags="r", map=fp, where=wherestring)
-            gs.run_command('g.region', align=map, n=reg["n"], s=reg["s"], e=reg["e"], w=reg["w"])
-            gs.run_command('v.to.rast', input=fp, cats=fp_dict['%s_%s' % (map.split('_')[0], map.split('_')[1])], use="val",
-                           value=1, memory=options['memory'], output=fp_rast_name)
-            gs.run_command('r.mapcalc', expression='tmp_%s = round(if(isnull(%s),null(),%s))' % (map, fp_rast_name, map))
-            gs.run_command('g.rename', raster='tmp_%s,%s' % (map, map), overwrite=True)
-            gs.run_command('g.remove', type="raster", name=fp_rast_name, flags='f')
-
-        gs.del_temp_region()
-
 def main():
     global imported_map_list
 
@@ -541,9 +537,6 @@ def main():
         return 0
 
     importer.import_products(flags['r'], flags['l'], flags['o'])
-
-    if options['footprints']:
-        importer.set_footprint(options['footprints'])
 
     importer.write_metadata()
 
