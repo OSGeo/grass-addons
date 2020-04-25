@@ -119,7 +119,7 @@ Please also read <a href=\"https://trac.osgeo.org/grass/wiki/Submitting\">GRASS 
 <p>
 See also log files of compilation:
 <a href=\"https://grass.osgeo.org/addons/grass${major}/logs\">Linux log files</a> |
-<a href=\"https://wingrass.fsv.cvut.cz/grass76/x86_64/addons/latest/logs/\">Windows log files</a>
+<a href=\"https://wingrass.fsv.cvut.cz/grass78/x86_64/addons/latest/logs/\">Windows log files</a>
 
 </tr></table>
 <hr>
@@ -164,7 +164,7 @@ See also log files of compilation:
     echo "</body></html>" >> index.html
 }
 
-generate 7 6
+generate 7 8
 generate 6 4
 
 exit 0
