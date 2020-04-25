@@ -6,14 +6,14 @@
 # PURPOSE:       Supervised classification and regression of GRASS rasters
 #                using the python scikit-learn package
 #
-# COPYRIGHT: (c) 2017 Steven Pawley, and the GRASS Development Team
+# COPYRIGHT: (c) 2017-2020 Steven Pawley, and the GRASS Development Team
 #                This program is free software under the GNU General Public
 #                for details.
 #
 #############################################################################
 
 #%module
-#% description: Apply a fitted scikit-learn estimator to rasters in a GRASS GIS imagery group
+#% description: Apply a fitted scikit-learn estimator to rasters in a GRASS GIS imagery group.
 #% keyword: raster
 #% keyword: classification
 #% keyword: regression
@@ -79,7 +79,7 @@ from grass.pygrass.modules.shortcuts import raster as r
 
 path = get_lib_path(modname="r.learn.ml2")
 if path is None:
-    gs.fatal("Not able to find the r.learn library directory")
+    gs.fatal("Not able to find the r.learn.ml2 library directory")
 sys.path.append(path)
 
 from raster import RasterStack
@@ -100,10 +100,10 @@ def main():
         import joblib
 
         if sklearn.__version__ < "0.20":
-            gs.fatal("Scikit learn 0.20 or newer is required")
+            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
 
     except ImportError:
-        gs.fatal("Scikit learn 0.20 or newer is not installed")
+        gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
 
     # parser options
     group = options["group"]

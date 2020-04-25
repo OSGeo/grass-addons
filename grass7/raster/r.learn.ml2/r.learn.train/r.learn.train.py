@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 ############################################################################
-# MODULE:        r.learn.ml
+# MODULE:        r.learn.train
 # AUTHOR:        Steven Pawley
 # PURPOSE:       Supervised classification and regression of GRASS rasters
 #                using the python scikit-learn package
 #
-# COPYRIGHT: (c) 2017 Steven Pawley, and the GRASS Development Team
+# COPYRIGHT: (c) 2017-2020 Steven Pawley, and the GRASS Development Team
 #                This program is free software under the GNU General Public
 #                for details.
 #
@@ -16,12 +16,13 @@
 # Bugfix for processing index list of nominal layers.
 
 #%module
-#% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package
+#% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package.
 #% keyword: raster
 #% keyword: classification
 #% keyword: regression
 #% keyword: machine learning
 #% keyword: scikit-learn
+#% keyword: training
 #%end
 
 #%option G_OPT_I_GROUP
@@ -346,9 +347,8 @@ import numpy as np
 from grass.script.utils import get_lib_path
 
 path = get_lib_path(modname="r.learn.ml2")
-
 if path is None:
-    gs.fatal("Not able to find the r.learn.ml library directory")
+    gs.fatal("Not able to find the r.learn.ml2 library directory")
 sys.path.append(path)
 
 from utils import (

@@ -6,13 +6,13 @@
 	the optional <em>raster</em> parameter.</p>
 
 <p>The training component of the machine learning workflow is performed using the 
-	<em>r.learn.train</em> module. This module uses training data consisting of labelled pixels
-	in a GRASS GIS raster map, or a GRASS GIS vector containing points, and develops a machine
+	<em><a href="r.learn.train.html">r.learn.train</a></em> module. This module uses training data consisting
+    of labelled pixels in a GRASS GIS raster map, or a GRASS GIS vector containing points, and develops a machine
 	learning model on the rasters within a GRASS imagery group. This model needs to be saved to a
 	file and can be automatically compressed if the .gz file extension is used.</p>
 
-<p>After a model is training, the <em>i.learn.predict</em> module needs to be called, which will
-	retrieve the saved and pre-fitted model and apply it to a GRASS GIS imagery group.</p>
+<p>After a model is training, the <em><a href="r.learn.predict.html">r.learn.predict</a></em> module needs to
+    be called, which will retrieve the saved and pre-fitted model and apply it to a GRASS GIS imagery group.</p>
 
 <h2>NOTES</h2>
 
@@ -75,6 +75,11 @@ r.colors rf_classification raster=training_pixels
 <center>
 	<img src="rfclassification.png" alt="Random forest classification result">
 </center>
+
+<h2>SEE ALSO</h2>
+
+<a href="r.learn.train.html">r.learn.train</a>,
+<a href="r.learn.predict.html">r.learn.predict</a>
 
 <h2>REFERENCES</h2>
 
