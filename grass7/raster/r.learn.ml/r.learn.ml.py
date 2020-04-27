@@ -1517,21 +1517,21 @@ def main():
     if errors_file:
         if cv <= 1:
             gs.fatal('Output of cross-validation global accuracy requires cross-validation cv > 1')
-        if not os.path_exists(os.path.dirname(errors_file)):
+        if not os.path.exists(os.path.dirname(errors_file)):
             gs.fatal('Directory for output file {} does not exist'.format(errors_file))
 
     # feature importance file selected but no cross-validation scheme used
     if fimp_file:
         if cv <= 1:
             gs.fatal('Output of feature importance requires cross-validation cv > 1')
-        if not os.path_exists(os.path.dirname(fimp_file)):
+        if not os.path.exists(os.path.dirname(fimp_file)):
             gs.fatal('Directory for output file {} does not exist'.format(fimp_file))
 
     # predictions file selected but no cross-validation scheme used
     if preds_file:
         if cv <= 1:
             gs.fatal('Output of cross-validation predictions requires cross-validation cv > 1')
-        if not os.path_exists(os.path.dirname(preds_file)):
+        if not os.path.exists(os.path.dirname(preds_file)):
             gs.fatal('Directory for output file {} does not exist'.format(preds_file))
 
     # output map has not been entered and model_only is not set to True
