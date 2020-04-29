@@ -67,17 +67,20 @@ with open(conf["csvfile"], "w", newline="") as f:
         cells = str(grass.region()['cells'])
         # compute r.mapcalc
         print("compute r.mapcalc for resolution: %s" % str(res))
+        name = "test_%s_%s_rmapcalc" % (conf["expression"].split('=')[0].strip(), cells)
+        expression = "%s = %s" % (name, '='.join(conf["expression"].split('=')[1:]))
         start = time.time()
         grass.run_command('r.mapcalc', expression=conf["expression"], overwrite=True)
         end = time.time()
         time_rmapcalc = str(end - start)
         print("r.mapcalc time %s" % str(time_rmapcalc))
+        grass.run_command('g.remove', flags='f', type='raster', name=name)
         for wh in conf["wh"]:
             # compute r.mapcalc.tiled
             print("compute r.mapcalc.tiled for resolution: %s and weidth-heigth: %s" % (res, wh))
-            start = time.time()
             name = "test_%s_%s_%s" % (conf["expression"].split('=')[0].strip(), cells, str(wh))
             expression = "%s = %s" % (name, '='.join(conf["expression"].split('=')[1:]))
+            start = time.time()
             grass.run_command('r.mapcalc.tiled', expression=expression, width=wh, height=wh, processes=conf["nprocs"], overwrite=True)
             end = time.time()
             time_rmapcalctiled = str(end - start)
