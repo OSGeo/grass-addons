@@ -76,10 +76,13 @@ with open(conf["csvfile"], "w", newline="") as f:
             # compute r.mapcalc.tiled
             print("compute r.mapcalc.tiled for resolution: %s and weidth-heigth: %s" % (res, wh))
             start = time.time()
-            grass.run_command('r.mapcalc.tiled', expression=conf["expression"], width=wh, height=wh, processes=conf["nprocs"], overwrite=True)
+            name = "test_%s_%s_%s" % (conf["expression"].split('=')[0].strip(), cells, str(wh))
+            expression = "%s = %s" % (name, '='.join(conf["expression"].split('=')[1:]))
+            grass.run_command('r.mapcalc.tiled', expression=expression, width=wh, height=wh, processes=conf["nprocs"], overwrite=True)
             end = time.time()
             time_rmapcalctiled = str(end - start)
             print("r.mapcalc.tiled time %s" % str(time_rmapcalctiled))
+            grass.run_command('g.remove', flags='f', type='raster', name=name)
             # write csv
             with open(conf["csvfile"], "a", newline="") as f:
                 writer.writerow({
@@ -91,4 +94,4 @@ with open(conf["csvfile"], "w", newline="") as f:
                     'time_rmapcalctiled': time_rmapcalctiled
                     })
 
-print("%s created" % conf["csvfile"])
+print("<%s> created" % conf["csvfile"])
