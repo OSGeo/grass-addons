@@ -74,6 +74,10 @@ with open(conf["csvfile"], "w", newline="") as f:
         end = time.time()
         time_rmapcalc = str(end - start)
         print("r.mapcalc time %s" % str(time_rmapcalc))
+        # Sync. all buffers to disk i.e force write everything to disk using os.sync() method
+        if not sys.platform == 'win32':
+            os.sync()
+            print("Force write everythig committed successfully")
         grass.run_command('g.remove', flags='f', type='raster', name=name)
         for wh in conf["wh"]:
             # compute r.mapcalc.tiled
@@ -85,6 +89,10 @@ with open(conf["csvfile"], "w", newline="") as f:
             end = time.time()
             time_rmapcalctiled = str(end - start)
             print("r.mapcalc.tiled time %s" % str(time_rmapcalctiled))
+            # Sync. all buffers to disk i.e force write everything to disk using os.sync() method
+            if not sys.platform == 'win32':
+                os.sync()
+                print("Force write everythig committed successfully")
             grass.run_command('g.remove', flags='f', type='raster', name=name)
             # write csv
             with open(conf["csvfile"], "a", newline="") as f:
