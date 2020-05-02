@@ -4,7 +4,7 @@
 #include "global.h"
 
 static void trace_down(struct cell_map *, struct raster_map *, double, char,
-		       struct Cell_head *, int, int, struct point_list *);
+                       struct Cell_head *, int, int, struct point_list *);
 
 void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
                        struct raster_map *accum_buf, double thresh, char conf)
@@ -107,7 +107,7 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
      * conf = 0 for split streams at a confluence */
     if (!conf) {
         int nup = 0;
-	int i, j;
+        int i, j;
 
         for (i = -1; i <= 1; i++) {
             /* skip edge cells */
