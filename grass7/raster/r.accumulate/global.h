@@ -6,7 +6,7 @@
 #include <grass/vector.h>
 
 #ifndef DBL_MAX
-#define DBL_MAX 1.797693E308  /* DBL_MAX approximation */
+#define DBL_MAX 1.797693E308    /* DBL_MAX approximation */
 #endif
 #define OUTLET -DBL_MAX
 
@@ -98,7 +98,7 @@ void delineate_streams(struct Map_info *, struct cell_map *,
 
 /* subaccumulate.c */
 void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
-		   struct point_list *);
+                   struct point_list *);
 
 /* calculate_lfp.c */
 void calculate_lfp(struct Map_info *, struct cell_map *, struct raster_map *,

@@ -55,12 +55,12 @@ int main(int argc, char *argv[])
     struct
     {
         struct Flag *neg;
-	struct Flag *accum;
+        struct Flag *accum;
         struct Flag *conf;
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *accum_name,
-	 *subaccum_name, *stream_name, *outlet_name, *lfp_name;
+        *subaccum_name, *stream_name, *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -179,8 +179,7 @@ int main(int argc, char *argv[])
 
     flag.accum = G_define_flag();
     flag.accum->key = 'a';
-    flag.accum->label =
-        _("Calculate accumulated longest flow paths");
+    flag.accum->label = _("Calculate accumulated longest flow paths");
 
     flag.conf = G_define_flag();
     flag.conf->key = 'c';
@@ -457,8 +456,8 @@ int main(int argc, char *argv[])
         for (row = 0; row < rows; row++) {
             G_percent(row, rows, 1);
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
-	}
-	G_percent(1, 1, 1);
+        }
+        G_percent(1, 1, 1);
         Rast_close(accum_fd);
 
         /* write history */
@@ -489,31 +488,32 @@ int main(int argc, char *argv[])
 
     /* calculate subaccumulation if needed */
     if (subaccum_name || (lfp_name && !accum)) {
-	subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
+        subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
 
-	/* write out buffer to the subaccumulation map if requested */
-	if (subaccum_name) {
-	    int subaccum_fd = Rast_open_new(subaccum_name, accum_buf.type);
-	    struct History hist;
+        /* write out buffer to the subaccumulation map if requested */
+        if (subaccum_name) {
+            int subaccum_fd = Rast_open_new(subaccum_name, accum_buf.type);
+            struct History hist;
 
-	    G_message(_("Writing subaccumulation map..."));
-	    for (row = 0; row < rows; row++) {
-		G_percent(row, rows, 1);
-		Rast_put_row(subaccum_fd, accum_buf.map.v[row], accum_buf.type);
-	    }
-	    G_percent(1, 1, 1);
-	    Rast_close(subaccum_fd);
+            G_message(_("Writing subaccumulation map..."));
+            for (row = 0; row < rows; row++) {
+                G_percent(row, rows, 1);
+                Rast_put_row(subaccum_fd, accum_buf.map.v[row],
+                             accum_buf.type);
+            }
+            G_percent(1, 1, 1);
+            Rast_close(subaccum_fd);
 
-	    /* write history */
-	    Rast_put_cell_title(subaccum_name,
-				weight_name ? "Weighted flow subaccumulation" :
-				(neg ?
-				 "Flow subaccumulation with likely underestimates" :
-				 "Flow subaccumulation"));
-	    Rast_short_history(subaccum_name, "raster", &hist);
-	    Rast_command_history(&hist);
-	    Rast_write_history(subaccum_name, &hist);
-	}
+            /* write history */
+            Rast_put_cell_title(subaccum_name,
+                                weight_name ? "Weighted flow subaccumulation"
+                                : (neg ?
+                                   "Flow subaccumulation with likely underestimates"
+                                   : "Flow subaccumulation"));
+            Rast_short_history(subaccum_name, "raster", &hist);
+            Rast_command_history(&hist);
+            Rast_write_history(subaccum_name, &hist);
+        }
     }
 
     /* calculate the longest flow path */

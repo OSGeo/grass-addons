@@ -5,7 +5,7 @@ static void trace_down(struct cell_map *, struct raster_map *, double,
                        struct Cell_head *, int, int);
 
 void subaccumulate(struct Map_info *Map, struct cell_map *dir_buf,
-		   struct raster_map *accum_buf, struct point_list *outlet_pl)
+                   struct raster_map *accum_buf, struct point_list *outlet_pl)
 {
     struct Cell_head window;
     int rows = accum_buf->rows, cols = accum_buf->cols;
@@ -35,8 +35,8 @@ void subaccumulate(struct Map_info *Map, struct cell_map *dir_buf,
 }
 
 static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
-		       double up_accum, struct Cell_head *window,
-		       int row, int col)
+                       double up_accum, struct Cell_head *window,
+                       int row, int col)
 {
     static int next_cells[8][2] = {
         {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}
@@ -49,12 +49,12 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
         return;
 
     if (up_accum == OUTLET)
-	/* accumulation at the outlet will need to be subtracted from all
-	 * downstream accumulation cells */
-	up_accum = get(accum_buf, row, col);
+        /* accumulation at the outlet will need to be subtracted from all
+         * downstream accumulation cells */
+        up_accum = get(accum_buf, row, col);
     else
-	/* calculate subaccumulation */
-	set(accum_buf, row, col, get(accum_buf, row, col) - up_accum);
+        /* calculate subaccumulation */
+        set(accum_buf, row, col, get(accum_buf, row, col) - up_accum);
 
     /* if the current cell doesn't flow out of the computational region
      * (negative direction from r.watershed flows out), keep tracing */
