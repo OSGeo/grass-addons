@@ -69,12 +69,12 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
 
         trace_up(dir_buf, accum_buf, &window, row, col, &pl, &ll);
 
-        /* sort lines by length in descending order */
-        qsort(ll.lines, ll.n, sizeof(struct line *), compare_line);
-
         if (!ll.n)
             G_fatal_error(_("Failed to calculate the longest flow path for outlet (%f, %f)"),
                           outlet_pl->x[i], outlet_pl->y[i]);
+
+        /* sort lines by length in descending order */
+        qsort(ll.lines, ll.n, sizeof(struct line *), compare_line);
 
         /* write out the longest flow path */
         for (j = 0; j < ll.n && ll.lines[j]->length == ll.lines[0]->length;
