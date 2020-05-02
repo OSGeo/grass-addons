@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
         struct Option *weight;
         struct Option *input_accum;
         struct Option *accum;
+        struct Option *subaccum;
         struct Option *thresh;
         struct Option *stream;
         struct Option *coords;
@@ -54,16 +55,17 @@ int main(int argc, char *argv[])
     struct
     {
         struct Flag *neg;
+	struct Flag *accum;
         struct Flag *conf;
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *accum_name,
-        *stream_name, *outlet_name, *lfp_name;
+	 *subaccum_name, *stream_name, *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
-    char neg, conf;
+    char neg, accum, conf;
     char **done;
     struct cell_map dir_buf;
     struct raster_map weight_buf, accum_buf;
@@ -118,6 +120,13 @@ int main(int argc, char *argv[])
     opt.accum->description =
         _("Name for output weighted flow accumulation map");
 
+    opt.subaccum = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt.subaccum->key = "subaccumulation";
+    opt.subaccum->required = NO;
+    opt.subaccum->type = TYPE_STRING;
+    opt.subaccum->description =
+        _("Name for output weighted flow subaccumulation map");
+
     opt.thresh = G_define_option();
     opt.thresh->key = "threshold";
     opt.thresh->type = TYPE_DOUBLE;
@@ -168,6 +177,11 @@ int main(int argc, char *argv[])
     flag.neg->label =
         _("Use negative flow accumulation for likely underestimates");
 
+    flag.accum = G_define_flag();
+    flag.accum->key = 'a';
+    flag.accum->label =
+        _("Calculate accumulated longest flow paths");
+
     flag.conf = G_define_flag();
     flag.conf->key = 'c';
     flag.conf->label = _("Delineate streams across confluences");
@@ -193,6 +207,7 @@ int main(int argc, char *argv[])
     weight_name = opt.weight->answer;
     input_accum_name = opt.input_accum->answer;
     accum_name = opt.accum->answer;
+    subaccum_name = opt.subaccum->answer;
     stream_name = opt.stream->answer;
     outlet_name = opt.outlet->answer;
     lfp_name = opt.lfp->answer;
@@ -348,6 +363,7 @@ int main(int argc, char *argv[])
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg = flag.neg->answer;
+    accum = flag.accum->answer;
     conf = flag.conf->answer;
 
     rows = Rast_window_rows();
@@ -438,8 +454,11 @@ int main(int argc, char *argv[])
         struct History hist;
 
         G_message(_("Writing accumulation map..."));
-        for (row = 0; row < rows; row++)
+        for (row = 0; row < rows; row++) {
+            G_percent(row, rows, 1);
             Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
+	}
+	G_percent(1, 1, 1);
         Rast_close(accum_fd);
 
         /* write history */
@@ -466,6 +485,35 @@ int main(int argc, char *argv[])
             G_warning(_("Unable to build topology for vector map <%s>"),
                       stream_name);
         Vect_close(&Map);
+    }
+
+    /* calculate subaccumulation if needed */
+    if (subaccum_name || (lfp_name && !accum)) {
+	subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
+
+	/* write out buffer to the subaccumulation map if requested */
+	if (subaccum_name) {
+	    int subaccum_fd = Rast_open_new(subaccum_name, accum_buf.type);
+	    struct History hist;
+
+	    G_message(_("Writing subaccumulation map..."));
+	    for (row = 0; row < rows; row++) {
+		G_percent(row, rows, 1);
+		Rast_put_row(subaccum_fd, accum_buf.map.v[row], accum_buf.type);
+	    }
+	    G_percent(1, 1, 1);
+	    Rast_close(subaccum_fd);
+
+	    /* write history */
+	    Rast_put_cell_title(subaccum_name,
+				weight_name ? "Weighted flow subaccumulation" :
+				(neg ?
+				 "Flow subaccumulation with likely underestimates" :
+				 "Flow subaccumulation"));
+	    Rast_short_history(subaccum_name, "raster", &hist);
+	    Rast_command_history(&hist);
+	    Rast_write_history(subaccum_name, &hist);
+	}
     }
 
     /* calculate the longest flow path */
