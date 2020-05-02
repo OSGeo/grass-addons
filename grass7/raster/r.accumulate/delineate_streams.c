@@ -106,8 +106,8 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
     /* conf = 1 for continuous streams across a confluence;
      * conf = 0 for split streams at a confluence */
     if (!conf) {
-        int nup = 0;
         int i, j;
+        int nup = 0;
 
         for (i = -1; i <= 1; i++) {
             /* skip edge cells */
