@@ -52,7 +52,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     for (i = 0; i < outlet_pl->n; i++) {
         int row = (int)Rast_northing_to_row(outlet_pl->y[i], &window);
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);
-        int n;
+        int j;
 
         G_percent(i, outlet_pl->n, 1);
 
@@ -77,13 +77,13 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
                           outlet_pl->x[i], outlet_pl->y[i]);
 
         /* write out the longest flow path */
-        for (n = 0; n < ll.n && ll.lines[n]->length == ll.lines[0]->length;
-             n++) {
+        for (j = 0; j < ll.n && ll.lines[j]->length == ll.lines[0]->length;
+             j++) {
             Vect_reset_cats(Cats);
 
             Vect_cat_set(Cats, 1, cat);
-            Vect_line_reverse(ll.lines[n]->Points);
-            Vect_write_line(Map, GV_LINE, ll.lines[n]->Points, Cats);
+            Vect_line_reverse(ll.lines[j]->Points);
+            Vect_write_line(Map, GV_LINE, ll.lines[j]->Points, Cats);
 
             if (driver) {
                 char *buf;
