@@ -164,7 +164,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     static struct line_pnts *Points = NULL;
     static double diag_length;
     int rows = dir_buf->rows, cols = dir_buf->cols;
-    double x, y;
+    double x, y, cur_acc;
     int i, j, nup;
     struct neighbor_accum up_accum[8];
 
@@ -178,7 +178,8 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     add_point(pl, x, y);
 
     /* if the current accumulation is 1 (headwater), stop tracing */
-    if (get(accum_buf, row, col) == 1)
+    cur_acc = get(accum_buf, row, col);
+    if (cur_acc == 1)
         return 1;
 
     nup = 0;
@@ -195,16 +196,23 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
             /* if a neighbor cell flows into the current cell, store its
              * accumulation in the accum array */
             if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0]) {
-                up_accum[nup].row = row + i;
-                up_accum[nup].col = col + j;
-                up_accum[nup++].accum = get(accum_buf, row + i, col + j);
+                double up_acc = get(accum_buf, row + i, col + j);
+
+                /* upstream accumulation must always be less than the current
+                 * accumulation; upstream accumulation can be greater than the
+                 * current accumulation in a subaccumulation raster */
+                if (up_acc < cur_acc) {
+                    up_accum[nup].row = row + i;
+                    up_accum[nup].col = col + j;
+                    up_accum[nup++].accum = get(accum_buf, row + i, col + j);
+                }
             }
         }
     }
 
+    /* if a headwater cell is found, stop tracing */
     if (!nup)
-        G_fatal_error(_("No upstream cells found for a non-headwater cell at (%f, %f)"),
-                      x, y);
+        return 1;
 
     /* sort upstream cells by accumulation in descending order */
     qsort(up_accum, nup, sizeof(struct neighbor_accum),
