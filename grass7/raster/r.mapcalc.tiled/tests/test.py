@@ -92,7 +92,7 @@ with open(conf["csvfile"], "w", newline="") as f:
             # Sync. all buffers to disk i.e force write everything to disk using os.sync() method
             if not sys.platform == 'win32':
                 os.sync()
-                print("Force write everythig committed successfully")
+                print("Force of writing everything to disk to minimize caching affecting the benchmarks")
             grass.run_command('g.remove', flags='f', type='raster', name=name)
             # write csv
             with open(conf["csvfile"], "a", newline="") as f:
