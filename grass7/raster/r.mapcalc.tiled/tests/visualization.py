@@ -27,7 +27,7 @@ if len(sys.argv) == 1:
 else:
     csvfile = sys.argv[1]
     if not os.path.isfile(csvfile):
-        grass.fatal("%s is no file and can not be used as csv file" % csvfile)
+        grass.fatal("%s is no file and cannot be used as csv file" % csvfile)
 
 if len(sys.argv) < 3:
     grass.fatal("No output folder given")
