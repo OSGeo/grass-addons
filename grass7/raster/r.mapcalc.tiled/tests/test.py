@@ -27,7 +27,7 @@ if len(sys.argv) == 1:
 else:
     configfile = sys.argv[1]
     if not os.path.isfile(configfile):
-        grass.fatal("%s is no file and can not be used as config file" % configfile)
+        grass.fatal("%s is no file and cannot be used as config file" % configfile)
 
 # get config
 config = configparser.ConfigParser()
