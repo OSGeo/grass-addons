@@ -62,7 +62,7 @@ with open(conf["csvfile"], "w", newline="") as f:
     writer.writeheader()
     for res in conf["resolution"]:
         # set region (resolution)
-        print("set resoltuion to %s" % (res))
+        print("set resolution to %s" % (res))
         grass.run_command('g.region', raster=conf["regionmap"], res=res)
         cells = str(grass.region()['cells'])
         # compute r.mapcalc
