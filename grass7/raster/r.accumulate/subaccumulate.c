@@ -52,9 +52,16 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
         /* accumulation at the outlet will need to be subtracted from all
          * downstream accumulation cells */
         up_acc = get(accum_buf, row, col);
-    else
+    else {
         /* calculate subaccumulation */
-        set(accum_buf, row, col, get(accum_buf, row, col) - up_acc);
+        double acc = get(accum_buf, row, col);
+
+        if (acc <= up_acc)
+            /* downstream is already processed */
+            return;
+
+        set(accum_buf, row, col, acc - up_acc);
+    }
 
     /* if the current cell doesn't flow out of the computational region
      * (negative direction from r.watershed flows out), keep tracing */

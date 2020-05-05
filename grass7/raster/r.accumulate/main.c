@@ -191,8 +191,9 @@ int main(int argc, char *argv[])
     G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
     G_option_exclusive(opt.input_accum, opt.accum, NULL);
     G_option_exclusive(opt.weight, opt.input_accum, NULL);
-    G_option_required(opt.accum, opt.stream, opt.lfp, NULL);
+    G_option_required(opt.accum, opt.subaccum, opt.stream, opt.lfp, NULL);
     G_option_collective(opt.thresh, opt.stream, NULL);
+    G_option_requires(opt.subaccum, opt.coords, opt.outlet, NULL);
     G_option_requires(opt.lfp, opt.coords, opt.outlet, NULL);
     G_option_requires(opt.idcol, opt.id, opt.outlet_idcol, NULL);
     G_option_requires_all(opt.id, opt.idcol, opt.coords, NULL);

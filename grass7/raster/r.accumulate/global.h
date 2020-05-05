@@ -75,6 +75,8 @@ GLOBAL int dir_checks[3][3][2]
 /* raster.c */
 void set(struct raster_map *, int, int, double);
 double get(struct raster_map *, int, int);
+int is_null(struct raster_map *, int, int);
+void set_null(struct raster_map *, int, int);
 
 /* point_list.c */
 void init_point_list(struct point_list *);
