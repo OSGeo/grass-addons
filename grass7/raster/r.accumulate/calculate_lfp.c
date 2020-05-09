@@ -12,11 +12,15 @@ struct neighbor_accum
     int accum;
 };
 
+static struct Cell_head window;
+static int rows, cols;
+static double sqrt2, diag_length;
+static struct line_pnts *Points;
+
 static void add_table(struct Map_info *, char *, dbDriver **,
                       struct field_info **);
-static int trace_up(struct cell_map *, struct raster_map *,
-                    struct Cell_head *, int, int, struct point_list *,
-                    struct line_list *);
+static int trace_up(struct cell_map *, struct raster_map *, int, int,
+                    struct point_list *, struct line_list *);
 static int compare_neighbor_accum(const void *, const void *);
 static int compare_line(const void *, const void *);
 
@@ -24,8 +28,6 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
                    struct raster_map *accum_buf, int *id, char *idcol,
                    struct point_list *outlet_pl)
 {
-    struct Cell_head window;
-    int rows = accum_buf->rows, cols = accum_buf->cols;
     struct point_list pl;
     struct line_list ll;
     struct line_cats *Cats;
@@ -40,6 +42,12 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     }
 
     G_get_set_window(&window);
+
+    rows = accum_buf->rows;
+    cols = accum_buf->cols;
+    sqrt2 = sqrt(2.0);
+    diag_length = sqrt(pow(window.ew_res, 2.0) + pow(window.ns_res, 2.0));
+    Points = Vect_new_line_struct();
 
     init_point_list(&pl);
     init_line_list(&ll);
@@ -67,7 +75,7 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
         reset_point_list(&pl);
         reset_line_list(&ll);
 
-        trace_up(dir_buf, accum_buf, &window, row, col, &pl, &ll);
+        trace_up(dir_buf, accum_buf, row, col, &pl, &ll);
 
         if (!ll.n)
             G_fatal_error(_("Failed to calculate the longest flow path for outlet (%f, %f)"),
@@ -158,23 +166,21 @@ static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
 }
 
 static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
-                    struct Cell_head *window, int row, int col,
-                    struct point_list *pl, struct line_list *ll)
+                    int row, int col, struct point_list *pl,
+                    struct line_list *ll)
 {
-    static struct line_pnts *Points = NULL;
-    static double diag_length;
-    int rows = dir_buf->rows, cols = dir_buf->cols;
     double x, y, cur_acc;
     int i, j, nup;
     struct neighbor_accum up_accum[8];
+    double min_length_sqrt2;
 
     /* if the current cell is outside the computational region, stop tracing */
     if (row < 0 || row >= rows || col < 0 || col >= cols)
         return 1;
 
     /* add the current cell */
-    x = Rast_col_to_easting(col + 0.5, window);
-    y = Rast_row_to_northing(row + 0.5, window);
+    x = Rast_col_to_easting(col + 0.5, &window);
+    y = Rast_row_to_northing(row + 0.5, &window);
     add_point(pl, x, y);
 
     /* if the current accumulation is 1 (headwater), stop tracing */
@@ -218,30 +224,29 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     qsort(up_accum, nup, sizeof(struct neighbor_accum),
           compare_neighbor_accum);
 
-    if (!Points) {
-        Points = Vect_new_line_struct();
-        diag_length =
-            sqrt(pow(window->ew_res, 2.0) + pow(window->ns_res, 2.0));
-    }
+    /* theoretically, the shortest longest flow path is when all accumulated
+     * upstream cells for a square; divided it by the square root of 2 here to
+     * avoid multiplications inside the loop */
+    min_length_sqrt2 = sqrt(up_accum[0].accum) / sqrt2;
 
     /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
         /* store pl->n to come back later */
         int split_pl_n = pl->n;
 
-        /* theoretically, the longest longest flow path is when all accumulated
-         * upstream cells are diagonally flowing */
-        double max_length = up_accum[i].accum * diag_length;
-
         /* skip the current cell if its theoretical longest upstream length is
          * shorter than the first cell's theoretical shortest upstream length
          */
-        if (i > 0 && max_length < up_accum[0].accum)
+        if (i > 0 && up_accum[i].accum < min_length_sqrt2)
             continue;
 
         /* if the current cell's theoretical longest lfp < all existing, skip
          * tracing because it's impossible to obtain a longer lfp */
         if (ll->n) {
+            /* theoretically, the longest longest flow path is when all
+             * accumulated upstream cells are diagonally flowing */
+            double max_length = diag_length * up_accum[i].accum;
+
             Vect_reset_line(Points);
             Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
 
@@ -257,9 +262,9 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
         /* if tracing is successful, store the line and its length */
         if (trace_up
-            (dir_buf, accum_buf, window, up_accum[i].row, up_accum[i].col, pl,
-             ll) && pl->n > 0) {
-            static struct line *line;
+            (dir_buf, accum_buf, up_accum[i].row, up_accum[i].col, pl, ll) &&
+            pl->n > 0) {
+            struct line *line;
             double length;
 
             Vect_reset_line(Points);
