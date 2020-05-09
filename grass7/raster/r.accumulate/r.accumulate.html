@@ -58,14 +58,20 @@ overlap with other stream lines that share the same downstream outlet.
 
 With <b>longest_flow_path</b> option, the module will create a longest flow
 path vector map for outlet points specified by <b>coordinates</b> and/or
-<b>outlet</b> with <b>outlet_layer</b> option. You can assign unique IDs to
-longest flow paths using <b>id</b> (with <b>coordinates</b>) and/or
-<b>outlet_id_column</b> (with <b>outlet</b>). Assigning IDs also requires
-<b>id_column</b> option to specify the output column name for the IDs in the
-<b>longest_flow_path</b> vector map. The <b>outlet_id_column</b> specifies a
-column in the <b>outlet</b> vector map that contains unique IDs to be copied
-over to the <b>id_column</b> column in the output map. This column must be of
-integer type.
+<b>outlet</b> with <b>outlet_layer</b> option. By default, longest flow paths
+will be created as if there were subwatersheds at the outlets by calculating
+the subaccumulation map. Downstream longest flow paths will never traverse
+through upstream outlets. With <b>-a</b> flag, longest flow paths will be
+created in an accumulated manner resulting in an overlap between downstream and
+upstream longest flow paths.
+
+<p>You can assign unique IDs to longest flow paths using <b>id</b> (with
+<b>coordinates</b>) and/or <b>outlet_id_column</b> (with <b>outlet</b>).
+Assigning IDs also requires <b>id_column</b> option to specify the output
+column name for the IDs in the <b>longest_flow_path</b> vector map. The
+<b>outlet_id_column</b> specifies a column in the <b>outlet</b> vector map that
+contains unique IDs to be copied over to the <b>id_column</b> column in the
+output map. This column must be of integer type.
 
 <h2>EXAMPLES</h2>
 
