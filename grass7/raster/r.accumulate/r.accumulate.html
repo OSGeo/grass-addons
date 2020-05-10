@@ -135,7 +135,8 @@ r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50
 r.accumulate direction=drain_directions threshold=50000 stream=streams_new_only
 
 # use r.stream.extract, elevation, and flow_accum_new to delineate stream networks
-r.stream.extract elevation=elevation accumulation=flow_accum threshold=50000 stream_vector=streams_extract direction=drain_directions_extract
+r.stream.extract elevation=elevation accumulation=flow_accum threshold=50000 stream_vector=streams_extract \
+    direction=drain_directions_extract
 </pre></div>
 
 <img src="r_accumulate_nc_stream_example.png">
@@ -186,10 +187,10 @@ g.region raster=elevation -p
 r.watershed elevation=elevation drainage=drain_directions -s -a
 
 # calculate longest flow paths at two outlets
-r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614,642306,222734
+r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614,642314,222734
 
 # calculate longest flow paths at two outlets and assign IDs
-r.accumulate direction=drain_directions lfp=lfp_w_id coordinates=642455,222614,642306,222734 \
+r.accumulate direction=drain_directions lfp=lfp_w_id coordinates=642455,222614,642314,222734 \
     id=1,2 id_column=lfp_id
 
 # calculate longest flow paths at all points in the outlets map
@@ -200,11 +201,13 @@ r.accumulate direction=drain_directions lfp=lfp_at_outlets_w_id outlet=outlets \
     id_column=lfp_id outlet_id_column=outlet_id
 
 # calculate longest flow paths at given coordinates and all points in the outlets map and assign IDs
-r.accumulate direction=drain_directions lfp=lfp_multi_w_id coordinates=642455,222614,642306,222734 outlet=outlets \
-    id=1,2 id_column=lfp_id outlet_id_column=outlet_id
+r.accumulate direction=drain_directions lfp=lfp_multi_w_id coordinates=642455,222614,642314,222734 \
+    outlet=outlets id=1,2 id_column=lfp_id outlet_id_column=outlet_id
 </pre></div>
 
-<p>Calculate the longest flow paths for sub-watersheds:
+<p><img src="r_accumulate_nc_lfp_example_multiple.png">
+
+<p>Calculate the longest flow paths for subwatersheds:
 <div class="code"><pre>
 # set computational region
 g.region raster=elevation -p
@@ -219,7 +222,7 @@ eval `r.info -g map=elevation`
 r.accumulate direction=drain_directions threshold=50000 stream=streams
 
 # populate stream lengths
-v.db.addtable map=streams columns="length double"
+v.db.addtable map=streams
 v.to.db map=streams option=length columns=length
 
 # create points along the streams starting from downstream
@@ -233,10 +236,29 @@ cats=`echo $cats | tr " " ,`
 v.extract input=stream_points layer=2 cats=$cats output=stream_outlets
 
 # create the longest flow paths for all outlets
-r.accumulate direction=drain_directions lfp=lfp id_column=id outlet=stream_outlets outlet_layer=2 outlet_id_column=lcat
+r.accumulate direction=drain_directions lfp=lfp id_column=id \
+    outlet=stream_outlets outlet_layer=2 outlet_id_column=lcat
+
+# delineate subwatersheds
+i=1
+for coor in `v.report -c map=stream_outlets layer=2 option=coor | awk -F'|' '{printf "%s,%s\n", $4, $5}'`; do
+    r.water.outlet --o input=drain_directions output=tmp coordinates=$coor
+    r.mapcalc expression="subwatershed_$i=if(isnull(tmp),0,1&lt;&lt;($i-1))"
+    i=`expr $i + 1`
+done
+
+# patch subwatersheds
+subwatersheds=`g.list type=rast pattern=subwatershed_* sep=+`
+r.mapcalc express="subwatersheds=if($subwatersheds,$subwatersheds,null())"
+
+# convert subwatersheds to vector
+r.to.vect input=subwatersheds type=area output=subwatersheds
+
+# delete subwatershed rasters
+g.remove -f type=rast pattern=subwatershed*
 </pre></div>
 
-<img src="r_accumulate_nc_lfp_example_multiple.png">
+<img src="r_accumulate_nc_lfp_example_subwatersheds.png">
 
 <h2>SEE ALSO</h2>
 

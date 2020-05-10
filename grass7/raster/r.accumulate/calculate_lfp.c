@@ -210,7 +210,7 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                 if (up_acc < cur_acc) {
                     up_accum[nup].row = row + i;
                     up_accum[nup].col = col + j;
-                    up_accum[nup++].accum = get(accum_buf, row + i, col + j);
+                    up_accum[nup++].accum = up_acc;
                 }
             }
         }
