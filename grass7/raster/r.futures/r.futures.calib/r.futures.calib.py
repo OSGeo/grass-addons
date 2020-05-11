@@ -152,7 +152,7 @@
 #%option
 #% key: seed_search
 #% type: string
-#% required: yes
+#% required: no
 #% multiple: no
 #% options: random,probability
 #% description: The way location of a seed is determined (1: uniform distribution 2: development probability)
