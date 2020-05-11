@@ -113,8 +113,6 @@
 
 import sys
 import os
-grass_install_tree = os.getenv('GISBASE')
-sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
 import grass.script as grass
 
 
@@ -194,4 +192,4 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()
-    exit(0)
+

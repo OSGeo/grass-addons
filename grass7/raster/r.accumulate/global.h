@@ -1,8 +1,14 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 
+#include <float.h>
 #include <grass/raster.h>
 #include <grass/vector.h>
+
+#ifndef DBL_MAX
+#define DBL_MAX 1.797693E308    /* DBL_MAX approximation */
+#endif
+#define OUTLET -DBL_MAX
 
 #define NE 1
 #define N 2
@@ -69,6 +75,8 @@ GLOBAL int dir_checks[3][3][2]
 /* raster.c */
 void set(struct raster_map *, int, int, double);
 double get(struct raster_map *, int, int);
+int is_null(struct raster_map *, int, int);
+void set_null(struct raster_map *, int, int);
 
 /* point_list.c */
 void init_point_list(struct point_list *);
@@ -89,6 +97,10 @@ void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
 /* delineate_streams.c */
 void delineate_streams(struct Map_info *, struct cell_map *,
                        struct raster_map *, double, char);
+
+/* subaccumulate.c */
+void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
+                   struct point_list *);
 
 /* calculate_lfp.c */
 void calculate_lfp(struct Map_info *, struct cell_map *, struct raster_map *,

@@ -1,4 +1,4 @@
-MODULE_TOPDIR = ../../../trunk
+MODULE_TOPDIR = ../..
 
 PGM = r.accumulate
 

@@ -41,7 +41,7 @@ process () {
 cd $ADDONS
 nup=`git pull | wc -l`
 if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
-    process 7 6
+    process 7 8
     process 6 4 
 
     ${ADDONS}/tools/addons/grass-addons-index.sh

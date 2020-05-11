@@ -89,29 +89,6 @@ def compute_supply(
         use_filename=None,
     ):
     """
-     Algorithmic description of the "Contribution of Ecosysten Types"
-
-     # FIXME
-     '''
-     1   B ← {0, .., m-1}     :  Set of aggregational boundaries
-     2   T ← {0, .., n-1}     :  Set of land cover types
-     3   WE ← 0               :  Set of weighted extents
-     4   R ← 0                :  Set of fractions
-     5   F ← 0
-     6   MASK ← HQR           : High Quality Recreation
-     7   foreach {b} ⊆ B do   : for each aggregational boundary 'b'
-     8      RB ← 0
-     9      foreach {t} ⊆ T do  : for each Land Type
-     10         WEt ← Et * Wt   : Weighted Extent = Extent(t) * Weight(t)
-     11         WE ← WE⋃{WEt}   : Add to set of Weighted Extents
-     12     S ← ∑t∈WEt
-     13     foreach t ← T do
-     14        Rt ← WEt / ∑WE
-     15        R ← R⋃{Rt}
-     16     RB ← RB⋃{R}
-     '''
-     # FIXME
-
     Parameters
     ----------
     recreation_spectrum:

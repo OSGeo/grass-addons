@@ -14,7 +14,10 @@ void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
     for (row = 0; row < rows; row++) {
         G_percent(row, rows, 1);
         for (col = 0; col < cols; col++)
-            trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
+            if (Rast_is_c_null_value(&dir_buf->c[row][col]))
+                set_null(accum_buf, row, col);
+            else
+                trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
     }
     G_percent(1, 1, 1);
 }

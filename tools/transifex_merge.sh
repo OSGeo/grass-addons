@@ -10,13 +10,13 @@
 # https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files 
 
 # Usage:
-# this script has to be launched in the `locale` directory.
-# upon proper installation, the `locale` directory contains a folder called `transifex`
+# this script has to be launched in the `locale/` directory.
+# upon proper installation, the `locale/` directory contains a folder called `transifex`
 
 MSGMERGE="msgmerge -N --no-wrap"
 
 if [ "`basename $PWD`" != "locale" ]; then
-  echo "ERROR: run $0 command in locale folder of GRASS GIS source code"
+  echo "ERROR: run $0 command in locale/ folder of GRASS GIS source code"
   exit 1;
 fi
 

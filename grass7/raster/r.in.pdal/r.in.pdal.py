@@ -33,7 +33,7 @@
 #% required: yes
 #%end
 
-#%option G_OPT_R_OUTPUT
+#%option G_OPT_R_OUTPUTS
 #% key: output
 #% description: Name for output raster map
 #% required: yes
@@ -68,6 +68,7 @@
 #% options: n, min, max, range, sum, mean, stddev, variance, coeff_var, median, percentile, skewness, trimmean
 #% answer: mean
 #% descriptions: n;Number of points in cell;min;Minimum value of point values in cell;max;Maximum value of point values in cell;range;Range of point values in cell;sum;Sum of point values in cell;mean;Mean (average) value of point values in cell;stddev;Standard deviation of point values in cell;variance;Variance of point values in cell;coeff_var;Coefficient of variance of point values in cell;median;Median value of point values in cell;percentile;Pth (nth) percentile of point values in cell;skewness;Skewness of point values in cell
+#% multiple: yes
 #% required: no
 #%end
 
@@ -157,6 +158,7 @@ import sys
 
 import grass.script as grass
 import json
+import time
 
 # i18N
 import gettext
@@ -267,15 +269,91 @@ def footprint_to_vectormap(infile, footprint):
 
     grass.message(_("Generating output vector map <%s>...") % footprint)
 
+def scan_extent(infile):
+    if not grass.find_program(
+        options['pdal_cmd'].split(' ')[0], ' '.join(options['pdal_cmd'].split(' ')[1:])
+        + ' info --summary'
+    ):
+        grass.fatal(_(
+            "The pdal program is not in the path " +
+            "and executable. Please install first"))
+    command_scan = options['pdal_cmd'].split(' ')
+    command_scan.extend(['info', '--summary', infile])
+
+    tmp_scan = grass.tempfile()
+    if tmp_scan is None:
+        grass.fatal("Unable to create temporary files")
+    fh = open(tmp_scan, 'wb')
+    summary = True
+    if grass.call(command_scan, stdout=fh) != 0:
+        fh.close()
+        command_scan = options['pdal_cmd'].split(' ')
+        command_scan.extend(['info', infile])
+        fh2 = open(tmp_scan, 'wb')
+        if grass.call(command_scan, stdout=fh2) != 0:
+            os.remove(tmp_scan)
+            grass.fatal(_(
+                "pdal cannot determine metadata " +
+                "for unsupported format of <%s>")
+                % infile)
+            fh2.close()
+        else:
+            fh2.close()
+        summary = False
+    else:
+        fh.close()
+
+    data = json.load(open(tmp_scan))
+    if summary:
+        str1 = u'summary'
+        str2 = u'bounds'
+        y_str = u'Y'
+        x_str = u'X'
+        z_str = u'Z'
+        min_str = u'min'
+        max_str = u'max'
+        try:
+            n = str(data[str1][str2][y_str][max_str])
+            s = str(data[str1][str2][y_str][min_str])
+            w = str(data[str1][str2][x_str][min_str])
+            e = str(data[str1][str2][x_str][max_str])
+            t = str(data[str1][str2][z_str][max_str])
+            b = str(data[str1][str2][z_str][min_str])
+        except:
+            ymin_str = u'miny'
+            xmin_str = u'minx'
+            zmin_str = u'minz'
+            ymax_str = u'maxy'
+            xmax_str = u'maxx'
+            zmax_str = u'maxz'
+            n = str(data[str1][str2][ymax_str])
+            s = str(data[str1][str2][ymin_str])
+            w = str(data[str1][str2][xmin_str])
+            e = str(data[str1][str2][xmax_str])
+            t = str(data[str1][str2][zmax_str])
+            b = str(data[str1][str2][zmin_str])
+    else:
+        str1 = u'stats'
+        str2 = u'bbox'
+        str3 = u'native'
+        str4 = u'bbox'
+        n = str(data[str1][str2][str3][str4][u'maxy'])
+        s = str(data[str1][str2][str3][str4][u'miny'])
+        w = str(data[str1][str2][str3][str4][u'minx'])
+        e = str(data[str1][str2][str3][str4][u'maxx'])
+        t = str(data[str1][str2][str3][str4][u'maxz'])
+        b = str(data[str1][str2][str3][str4][u'minz'])
+        
+    return n, s, w, e, t, b
 
 def main():
     # parameters
     infile = options['input']
     raster_reference = options['raster_reference']
     raster_file = options['raster_file']
-    outfile = options['output']
+    outfiles = options['output']
     resolution = options['resolution']
-    method = options['method']
+    methods = options['method']
     zrange = options['zrange']
     zscale = options['zscale']
     output_type = options['type']
@@ -286,6 +364,9 @@ def main():
     # flags
     scan = flags['s']
     shell_script_style = flags['g']
+
+    if len(outfiles.split(",")) != len(methods.split(",")):
+        grass.fatal(_("Number of outputs <%s> does not match number of methods <%s>" % (outfiles, methods)))
 
     # overwrite auf true setzen
     os.environ['GRASS_OVERWRITE'] = '1'
@@ -299,95 +380,23 @@ def main():
     # use temporary region
     grass.use_temp_region()
 
+    n, s, w, e, t, b = scan_extent(infile)
+
     # scan -s or shell_script_style -g:
     if scan:
-        if not grass.find_program(
-		    options['pdal_cmd'].split(' ')[0], ' '.join(options['pdal_cmd'].split(' ')[1:])
-		    + ' info --summary'
-		):
-            grass.fatal(_(
-                "The pdal program is not in the path " +
-                "and executable. Please install first"))
-        command_scan = options['pdal_cmd'].split(' ')
-        command_scan.extend(['info', '--summary', infile])
-
-        tmp_scan = grass.tempfile()
-        if tmp_scan is None:
-            grass.fatal("Unable to create temporary files")
-        fh = open(tmp_scan, 'wb')
-        summary = True
-        if grass.call(command_scan, stdout=fh) != 0:
-            fh.close()
-            command_scan = options['pdal_cmd'].split(' ')
-            command_scan.extend(['info', infile])
-            fh2 = open(tmp_scan, 'wb')
-            if grass.call(command_scan, stdout=fh2) != 0:
-                os.remove(tmp_scan)
-                grass.fatal(_(
-                    "pdal cannot determine metadata " +
-                    "for unsupported format of <%s>")
-                    % infile)
-                fh2.close()
-            else:
-                fh2.close()
-            summary = False
-        else:
-            fh.close()
-
-        data = json.load(open(tmp_scan))
-        if summary:
-            str1 = u'summary'
-            str2 = u'bounds'
-            y_str = u'Y'
-            x_str = u'X'
-            z_str = u'Z'
-            min_str = u'min'
-            max_str = u'max'
-            try:
-                n = str(data[str1][str2][y_str][max_str])
-                s = str(data[str1][str2][y_str][min_str])
-                w = str(data[str1][str2][x_str][min_str])
-                e = str(data[str1][str2][x_str][max_str])
-                t = str(data[str1][str2][z_str][max_str])
-                b = str(data[str1][str2][z_str][min_str])
-            except:
-                ymin_str = u'miny'
-                xmin_str = u'minx'
-                zmin_str = u'minz'
-                ymax_str = u'maxy'
-                xmax_str = u'maxx'
-                zmax_str = u'maxz'
-                n = str(data[str1][str2][ymax_str])
-                s = str(data[str1][str2][ymin_str])
-                w = str(data[str1][str2][xmin_str])
-                e = str(data[str1][str2][xmax_str])
-                t = str(data[str1][str2][zmax_str])
-                b = str(data[str1][str2][zmin_str])
-        else:
-            str1 = u'stats'
-            str2 = u'bbox'
-            str3 = u'native'
-            str4 = u'bbox'
-            n = str(data[str1][str2][str3][str4][u'maxy'])
-            s = str(data[str1][str2][str3][str4][u'miny'])
-            w = str(data[str1][str2][str3][str4][u'minx'])
-            e = str(data[str1][str2][str3][str4][u'maxx'])
-            t = str(data[str1][str2][str3][str4][u'maxz'])
-            b = str(data[str1][str2][str3][str4][u'minz'])
         if not shell_script_style:
             grass.message(_(
                 "north: %s\nsouth: %s\nwest: %s\neast: %s\ntop: %s\nbottom: %s"
             )
                 % (n, s, w, e, t, b))
         else:
-            grass.message(_(
-                "n=%s s=%s w=%s e=%s t=%s b=%s")
-                % (n, s, w, e, t, b))
+            # shell script style: print to stdout
+            print("n=%s s=%s w=%s e=%s t=%s b=%s" % (n, s, w, e, t, b))
     elif footprint:
         footprint_to_vectormap(infile, footprint)
     else:
         # get region with pdal
-        footprint_to_vectormap(infile, 'tiles')
+        #footprint_to_vectormap(infile, 'tiles')
 
         if raster_file:
             raster_reference = 'img' + str(os.getpid())
@@ -405,7 +414,7 @@ def main():
         if raster_reference:
             grass.run_command(
                                 'g.region',
-                                vector='tiles',
+                                n=n, s=s, e=e, w=w,
                                 flags='g',
                                 align=raster_reference
                             )
@@ -414,7 +423,7 @@ def main():
             # effort aligning to pixel geometry
             grass.run_command(
                             'g.region',
-                            vector='tiles',
+                            n=n, s=s, e=e, w=w,
                             flags='ap',
                             res=resolution
                         )
@@ -438,6 +447,9 @@ def main():
                                 quiet=True
                             )
             grass.fatal(_("Format .%s is not supported.." % infile_format))
+
+
+        grass.message(_("Converting input file <%s>...") % infile)
         tmp_file_json = 'tmp_file_json_' + str(os.getpid())
 
         data = {}
@@ -469,55 +481,64 @@ def main():
         else:
             tmp_file_json2 = tmp_file_json
         command_pdal1.extend(['pipeline', '--input', tmp_file_json2])
-        command_pdal2 = ['r.in.xyz',
-                         'input=' + tmp_xyz, 'output=' + outfile,
-                         'skip=1', 'separator=comma', 'method=' + method]
-
-        if zrange:
-            command_pdal2.append('zrange=' + zrange)
-        if zscale:
-            command_pdal2.append('zscale=' + zscale)
-        if output_type:
-            command_pdal2.append('type=' + output_type)
-        if percent:
-            command_pdal2.append('percent=' + percent)
-        if pth:
-            command_pdal2.append('pth=' + pth)
-        if trim:
-            command_pdal2.append('trim=' + trim)
 
         fh = open(tmp_xyz, 'wb')
         if grass.call(command_pdal1, stdout=fh) != 0:
             fh.close()
             # check to see if pdal pipeline executed properly
+            print(command_pdal1)
             grass.fatal(_("pdal pipeline is broken..."))
         else:
             fh.close()
 
-        if grass.call(command_pdal2, stdout=outdev) != 0:
-            # check to see if r.in.xyz executed properly
-            os.remove(tmp_xyz)
-            grass.fatal(_("r.in.xyz is broken..."))
+        for i in range(len(methods.split(","))):
+            method = methods.split(",")[i]
+            outfile = outfiles.split(",")[i]
 
-        # metadata
-        empty_history = grass.tempfile()
-        if empty_history is None:
-            grass.fatal("Unable to create temporary files")
-        f = open(empty_history, 'w')
-        f.close()
-        grass.run_command(
-                            'r.support',
-                            map=outfile,
-                            source1=infile,
-                            description='generated by r.in.pdal',
-                            loadhistory=empty_history
-                        )
-        grass.run_command(
-                            'r.support',
-                            map=outfile,
-                            history=os.environ['CMDLINE']
-                        )
-        os.remove(empty_history)
+            grass.message(_("Generating output raster map <%s>...") % outfile)
+
+            command_pdal2 = ['r.in.xyz',
+                             'input=' + tmp_xyz, 'output=' + outfile,
+                             'skip=1', 'separator=comma', 'method=' + method]
+
+            if zrange:
+                command_pdal2.append('zrange=' + zrange)
+            if zscale:
+                command_pdal2.append('zscale=' + zscale)
+            if output_type:
+                command_pdal2.append('type=' + output_type)
+            if percent:
+                command_pdal2.append('percent=' + percent)
+            if pth:
+                command_pdal2.append('pth=' + pth)
+            if trim:
+                command_pdal2.append('trim=' + trim)
+
+
+            if grass.call(command_pdal2, stdout=outdev) != 0:
+                # check to see if r.in.xyz executed properly
+                os.remove(tmp_xyz)
+                grass.fatal(_("r.in.xyz is broken..."))
+
+            # metadata
+            empty_history = grass.tempfile()
+            if empty_history is None:
+                grass.fatal("Unable to create temporary files")
+            f = open(empty_history, 'w')
+            f.close()
+            grass.run_command(
+                                'r.support',
+                                map=outfile,
+                                source1=infile,
+                                description='generated by r.in.pdal',
+                                loadhistory=empty_history
+                            )
+            grass.run_command(
+                                'r.support',
+                                map=outfile,
+                                history=os.environ['CMDLINE']
+                            )
+            os.remove(empty_history)
 
         # Cleanup
         grass.message(_("Cleaning up..."))
@@ -538,7 +559,6 @@ def main():
                         )
         os.remove(tmp_file_json)
         os.remove(tmp_xyz)
-        grass.message(_("Generating output raster map <%s>...") % outfile)
         grass.del_temp_region()
 
 

@@ -3,9 +3,8 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-static void trace_down(struct cell_map *, struct raster_map *accum_buf,
-                       double, char, struct Cell_head *, int, int,
-                       struct point_list *);
+static void trace_down(struct cell_map *, struct raster_map *, double, char,
+                       struct Cell_head *, int, int, struct point_list *);
 
 void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
                        struct raster_map *accum_buf, double thresh, char conf)
@@ -30,8 +29,7 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
     for (row = 0; row < rows; row++) {
         G_percent(row, rows, 1);
         for (col = 0; col < cols; col++) {
-            int i, j;
-            int nup = 0;
+            int i, j, nup = 0;
 
             /* if the current cell is less than the threshold, skip */
             if (get(accum_buf, row, col) < thresh)
@@ -94,7 +92,6 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
         {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}
     };
     int rows = dir_buf->rows, cols = dir_buf->cols;
-    int i, j;
     int dir;
 
     /* if the current cell is outside the computational region, stop tracing */
@@ -108,7 +105,7 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
     /* conf = 1 for continuous streams across a confluence;
      * conf = 0 for split streams at a confluence */
     if (!conf) {
-        int nup = 0;
+        int i, j, nup = 0;
 
         for (i = -1; i <= 1; i++) {
             /* skip edge cells */

@@ -46,8 +46,8 @@ def cleanup():
     grass.run_command('g.remove', flags = 'f', type = 'vector', pattern = prefix + '_*', quiet = True)
 
 def sortfile(infile, outfile):
-    inf = file(infile, 'r')
-    outf = file(outfile, 'w')
+    inf = open(infile, 'r')
+    outf = open(outfile, 'w')
 
     if grass.find_program('sort', '-n'):
         grass.run_command('sort', flags = 'n', stdin = inf, stdout = outf)
@@ -107,20 +107,20 @@ def main():
     database = db_info['database']
     driver = db_info['driver']
     sql = "SELECT length FROM %s" % (table)
-    tmpf = file(tmp, 'w')
+    tmpf = open(tmp, 'w')
     grass.run_command('db.select', flags = 'c', table = table,
         database = database, driver = driver, sql = sql,
         stdout = tmpf)
     tmpf.close()
 
     # check if result is empty
-    tmpf = file(tmp)
+    tmpf = open(tmp, 'r')
     if tmpf.read(1) == '':
         grass.fatal(_("Table <%s> contains no data.") % table)
     tmpf.close()
 
     N = 0
-    tmpf = file(tmp)
+    tmpf = open(tmp)
     for line in tmpf:
         N += 1
     tmpf.close()
@@ -141,7 +141,7 @@ def main():
         thresh = int(perc) - 90
         grass.warning(_('Threshold reduced to %d to calculate hull' % thresh ))
 
-    inf = file(tmp + ".sort")
+    inf = open(tmp + ".sort", 'r')
     l = 0
     for line in inf:
         if l == ppos:
