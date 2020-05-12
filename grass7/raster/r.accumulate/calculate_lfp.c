@@ -5,31 +5,44 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-struct neighbor_accum
+struct neighbor
 {
     int row;
     int col;
-    int accum;
+    double accum;
+    double length;
+    double max_length;
+};
+
+struct headwater_list
+{
+    struct neighbor *head;
+    int n;
+    int nalloc;
 };
 
 static struct Cell_head window;
 static int rows, cols;
 static double sqrt2, diag_length;
-static struct line_pnts *Points;
 
 static void add_table(struct Map_info *, char *, dbDriver **,
                       struct field_info **);
-static int trace_up(struct cell_map *, struct raster_map *, int, int,
-                    struct point_list *, struct line_list *);
-static int compare_neighbor_accum(const void *, const void *);
-static int compare_line(const void *, const void *);
+static int trace_up(struct cell_map *, struct raster_map *, int, int, double,
+                    struct headwater_list *);
+static void copy_neighbor(struct neighbor *, const struct neighbor *);
+static void init_headwater_list(struct headwater_list *);
+static void reset_headwater_list(struct headwater_list *);
+static void free_headwater_list(struct headwater_list *);
+static void add_headwater(struct headwater_list *, struct neighbor *);
+static int compare_neighbor_max_length(const void *, const void *);
 
 void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
                    struct raster_map *accum_buf, int *id, char *idcol,
                    struct point_list *outlet_pl)
 {
+    struct headwater_list hl;
     struct point_list pl;
-    struct line_list ll;
+    struct line_pnts *Points;
     struct line_cats *Cats;
     int i, cat;
     dbDriver *driver = NULL;
@@ -47,11 +60,11 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     cols = accum_buf->cols;
     sqrt2 = sqrt(2.0);
     diag_length = sqrt(pow(window.ew_res, 2.0) + pow(window.ns_res, 2.0));
-    Points = Vect_new_line_struct();
 
+    init_headwater_list(&hl);
     init_point_list(&pl);
-    init_line_list(&ll);
 
+    Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
 
     /* loop through all outlets and find the longest flow path for each */
@@ -72,28 +85,56 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
         }
 
         /* trace up flow accumulation */
-        reset_point_list(&pl);
-        reset_line_list(&ll);
+        reset_headwater_list(&hl);
 
-        trace_up(dir_buf, accum_buf, row, col, &pl, &ll);
+        trace_up(dir_buf, accum_buf, row, col, 0, &hl);
 
-        if (!ll.n)
-            G_fatal_error(_("Failed to calculate the longest flow path for outlet (%f, %f)"),
-                          outlet_pl->x[i], outlet_pl->y[i]);
+        if (!hl.n) {
+            if (idcol)
+                G_fatal_error(_("Failed to calculate the longest flow path for outlet %s=%d"),
+                              idcol, id[i]);
+            else
+                G_fatal_error(_("Failed to calculate the longest flow path for outlet at (%f, %f)"),
+                              outlet_pl->x[i], outlet_pl->y[i]);
+        }
 
-        /* sort lines by length in descending order */
-        qsort(ll.lines, ll.n, sizeof(struct line *), compare_line);
+        /* write out longest flow paths */
+        for (j = 0; j < hl.n; j++) {
+            int r = hl.head[j].row;
+            int c = hl.head[j].col;
+            double x, y;
 
-        /* write out the longest flow path */
-        for (j = 0; j < ll.n && ll.lines[j]->length == ll.lines[0]->length;
-             j++) {
+            reset_point_list(&pl);
+
+            do {
+                int dir = dir_buf->c[r][c];
+
+                x = Rast_col_to_easting(c + 0.5, &window);
+                y = Rast_row_to_northing(r + 0.5, &window);
+                add_point(&pl, x, y);
+
+                if (dir == NW || dir == N || dir == NE)
+                    r--;
+                else if (dir == SW || dir == S || dir == SE)
+                    r++;
+                if (dir == NW || dir == W || dir == SW)
+                    c--;
+                else if (dir == NE || dir == E || dir == SE)
+                    c++;
+            } while (row != r || col != c);
+
+            x = Rast_col_to_easting(c + 0.5, &window);
+            y = Rast_row_to_northing(r + 0.5, &window);
+            add_point(&pl, x, y);
+
+            Vect_reset_line(Points);
+            Vect_copy_xyz_to_pnts(Points, pl.x, pl.y, NULL, pl.n);
+
             Vect_reset_cats(Cats);
-
             Vect_cat_set(Cats, 1, cat);
-            Vect_line_reverse(ll.lines[j]->Points);
-            Vect_write_line(Map, GV_LINE, ll.lines[j]->Points, Cats);
+            Vect_write_line(Map, GV_LINE, Points, Cats);
 
-            if (driver) {
+            if (idcol) {
                 char *buf;
 
                 G_asprintf(&buf, "insert into %s (%s, %s) values (%d, %d)",
@@ -111,9 +152,10 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
     }
     G_percent(1, 1, 1);
 
+    free_headwater_list(&hl);
     free_point_list(&pl);
-    free_line_list(&ll);
 
+    Vect_destroy_line_struct(Points);
     Vect_destroy_cats_struct(Cats);
 
     if (driver) {
@@ -166,22 +208,17 @@ static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
 }
 
 static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
-                    int row, int col, struct point_list *pl,
-                    struct line_list *ll)
+                    int row, int col, double down_length,
+                    struct headwater_list *hl)
 {
-    double x, y, cur_acc;
+    double cur_acc;
     int i, j, nup;
-    struct neighbor_accum up_accum[8];
+    struct neighbor up_accum[8];
     double min_length_sqrt2;
 
     /* if the current cell is outside the computational region, stop tracing */
     if (row < 0 || row >= rows || col < 0 || col >= cols)
         return 1;
-
-    /* add the current cell */
-    x = Rast_col_to_easting(col + 0.5, &window);
-    y = Rast_row_to_northing(row + 0.5, &window);
-    add_point(pl, x, y);
 
     /* if the current accumulation is 1 (headwater), stop tracing */
     cur_acc = get(accum_buf, row, col);
@@ -208,9 +245,27 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                  * accumulation; upstream accumulation can be greater than the
                  * current accumulation in a subaccumulation raster */
                 if (up_acc < cur_acc) {
+                    /* diagonal if i * j == -1 or 1
+                     * horizontal if i == 0
+                     * vertical if j == 0
+                     */
+                    double length =
+                        down_length +
+                        (i *
+                         j ? diag_length : (i ? window.
+                                            ns_res : window.ew_res));
+
                     up_accum[nup].row = row + i;
                     up_accum[nup].col = col + j;
-                    up_accum[nup++].accum = up_acc;
+                    up_accum[nup].accum = up_acc;
+                    /* current length */
+                    up_accum[nup].length = length;
+                    /* the current upstream cell's downstream length +
+                     * theoretical longest upstream length; theoretically, the
+                     * longest longest flow path is when all accumulated
+                     * upstream cells are diagonally flowing */
+                    up_accum[nup++].max_length =
+                        length + diag_length * up_acc;
                 }
             }
         }
@@ -220,9 +275,9 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     if (!nup)
         return 1;
 
-    /* sort upstream cells by accumulation in descending order */
-    qsort(up_accum, nup, sizeof(struct neighbor_accum),
-          compare_neighbor_accum);
+    /* sort upstream cells by max_length in descending order */
+    qsort(up_accum, nup, sizeof(struct neighbor),
+          compare_neighbor_max_length);
 
     /* theoretically, the shortest longest flow path is when all accumulated
      * upstream cells for a square; divided it by the square root of 2 here to
@@ -231,93 +286,90 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
-        /* store pl->n to come back later */
-        int split_pl_n = pl->n;
-
         /* skip the current cell if its theoretical longest upstream length is
          * shorter than the first cell's theoretical shortest upstream length
          */
         if (i > 0 && up_accum[i].accum < min_length_sqrt2)
-            continue;
+            break;
 
         /* if the current cell's theoretical longest lfp < all existing, skip
          * tracing because it's impossible to obtain a longer lfp */
-        if (ll->n) {
-            /* theoretically, the longest longest flow path is when all
-             * accumulated upstream cells are diagonally flowing */
-            double max_length = diag_length * up_accum[i].accum;
+        if (hl->n) {
+            for (j = 0;
+                 j < hl->n && up_accum[i].max_length < hl->head[j].length;
+                 j++) ;
 
-            Vect_reset_line(Points);
-            Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
-
-            /* the current cell's downstream length + theoretical longest
-             * upstream length */
-            max_length += Vect_line_length(Points);
-
-            for (j = 0; j < ll->n && max_length < ll->lines[j]->length; j++) ;
-
-            if (j == ll->n)
-                continue;
+            if (j == hl->n)
+                break;
         }
 
         /* if tracing is successful, store the line and its length */
         if (trace_up
-            (dir_buf, accum_buf, up_accum[i].row, up_accum[i].col, pl, ll) &&
-            pl->n > 0) {
-            struct line *line;
-            double length;
-
-            Vect_reset_line(Points);
-            Vect_copy_xyz_to_pnts(Points, pl->x, pl->y, NULL, pl->n);
-            length = Vect_line_length(Points);
-
-            for (j = 0; j < ll->n && length < ll->lines[j]->length; j++) ;
-
+            (dir_buf, accum_buf, up_accum[i].row, up_accum[i].col,
+             up_accum[i].length, hl) && up_accum[i].length > 0) {
             /* if first or length >= any existing */
-            if (!ll->n || j < ll->n) {
-                if (!ll->n || length == ll->lines[j]->length) {
-                    /* first or length == existing (tie); add new */
-                    line = (struct line *)G_malloc(sizeof(struct line));
-                    line->Points = Vect_new_line_struct();
-                    add_line(ll, line);
-                }
-                else {
-                    /* length > existing; replace existing */
-                    line = ll->lines[j];
-                    Vect_reset_line(line->Points);
-                }
-                Vect_copy_xyz_to_pnts(line->Points, pl->x, pl->y, NULL,
-                                      pl->n);
-                line->length = length;
+            if (!hl->n || up_accum[i].length == hl->head[0].length)
+                /* if first or tie, add it */
+                add_headwater(hl, &up_accum[i]);
+            else if (up_accum[i].length > hl->head[0].length) {
+                /* if longer than existing, replace */
+                hl->n = 1;
+                copy_neighbor(&hl->head[0], &up_accum[0]);
             }
         }
-
-        /* keep tracing if the next upstream cell has the same largest
-         * accumulation */
-        pl->n = split_pl_n;
     }
 
     return 0;
 }
 
-static int compare_neighbor_accum(const void *a, const void *b)
+static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
 {
-    const struct neighbor_accum *ap = (const struct neighbor_accum *)a;
-    const struct neighbor_accum *bp = (const struct neighbor_accum *)b;
-
-    /* descending by accum */
-    return bp->accum - ap->accum;
+    dest->row = src->row;
+    dest->col = src->col;
+    dest->accum = src->accum;
+    dest->length = src->length;
+    dest->max_length = src->max_length;
 }
 
-static int compare_line(const void *a, const void *b)
+static void init_headwater_list(struct headwater_list *hl)
 {
-    const struct line **ap = (const struct line **)a;
-    const struct line **bp = (const struct line **)b;
+    hl->nalloc = hl->n = 0;
+    hl->head = NULL;
+}
 
-    /* descending by length */
-    if ((*ap)->length < (*bp)->length)
-        return 1;
-    if ((*ap)->length > (*bp)->length)
-        return -1;
-    return 0;
+static void reset_headwater_list(struct headwater_list *hl)
+{
+    hl->n = 0;
+}
+
+static void free_headwater_list(struct headwater_list *hl)
+{
+    if (hl->head)
+        G_free(hl->head);
+    init_headwater_list(hl);
+}
+
+static void add_headwater(struct headwater_list *hl, struct neighbor *h)
+{
+    if (hl->n == hl->nalloc) {
+        hl->nalloc += REALLOC_INCREMENT;
+        hl->head =
+            (struct neighbor *)G_realloc(hl->head,
+                                         hl->nalloc *
+                                         sizeof(struct neighbor));
+        if (!hl->head)
+            G_fatal_error(_("Unable to increase headwater list"));
+    }
+    copy_neighbor(&hl->head[hl->n], h);
+    hl->n++;
+}
+
+static int compare_neighbor_max_length(const void *a, const void *b)
+{
+    const struct neighbor *ap = (const struct neighbor *)a;
+    const struct neighbor *bp = (const struct neighbor *)b;
+    const double diff = bp->max_length - ap->max_length;
+
+    /* descending by max_length */
+    return diff < 0 ? -1 : diff > 0;
 }

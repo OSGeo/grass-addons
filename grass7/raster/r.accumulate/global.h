@@ -5,6 +5,8 @@
 #include <grass/raster.h>
 #include <grass/vector.h>
 
+#define REALLOC_INCREMENT 1024
+
 #ifndef DBL_MAX
 #define DBL_MAX 1.797693E308    /* DBL_MAX approximation */
 #endif

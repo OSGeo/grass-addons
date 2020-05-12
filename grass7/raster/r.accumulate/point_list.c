@@ -2,8 +2,6 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-#define POINTS_INCREMENT 1024
-
 void init_point_list(struct point_list *pl)
 {
     pl->nalloc = pl->n = 0;
@@ -28,7 +26,7 @@ void free_point_list(struct point_list *pl)
 void add_point(struct point_list *pl, double x, double y)
 {
     if (pl->n == pl->nalloc) {
-        pl->nalloc += POINTS_INCREMENT;
+        pl->nalloc += REALLOC_INCREMENT;
         pl->x = (double *)G_realloc(pl->x, pl->nalloc * sizeof(double));
         pl->y = (double *)G_realloc(pl->y, pl->nalloc * sizeof(double));
         if (!pl->x || !pl->y)
