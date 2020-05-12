@@ -334,7 +334,8 @@ class SentinelDownloader(object):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(4326)
 
-        layer = data_source.CreateLayer(str(map_name), srs, ogr.wkbPolygon)
+        # features can be polygons or multi-polygons
+        layer = data_source.CreateLayer(str(map_name), srs, ogr.wkbMultiPolygon)
 
         # attributes
         attrs = OrderedDict([
@@ -352,7 +353,15 @@ class SentinelDownloader(object):
         for idx in range(len(self._products_df_sorted['uuid'])):
             wkt = self._products_df_sorted['footprint'][idx]
             feature = ogr.Feature(layer.GetLayerDefn())
-            feature.SetGeometry(ogr.CreateGeometryFromWkt(wkt))
+            newgeom = ogr.CreateGeometryFromWkt(wkt)
+            # convert polygons to multi-polygons
+            newgeomtype = ogr.GT_Flatten(newgeom.GetGeometryType())
+            if newgeomtype == ogr.wkbPolygon:
+                multigeom = ogr.Geometry(ogr.wkbMultiPolygon)
+                multigeom.AddGeometryDirectly(newgeom)
+                feature.SetGeometry(multigeom)
+            else:
+                feature.SetGeometry(newgeom)
             for key in attrs.keys():
                 if key == 'ingestiondate':
                     value = self._products_df_sorted[key][idx].strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -364,8 +373,10 @@ class SentinelDownloader(object):
 
         data_source = None
 
+        # coordinates of footprints are in WKT -> fp precision issues
+        # -> snap
         gs.run_command('v.import', input=tmp_name, output=map_name,
-                       layer=map_name, quiet=True
+                       layer=map_name, snap=1e-10, quiet=True
         )
 
     def set_uuid(self, uuid_list):
