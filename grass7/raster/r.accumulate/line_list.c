@@ -2,8 +2,6 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-#define LINES_INCREMENT 1024
-
 void init_line_list(struct line_list *ll)
 {
     ll->nalloc = ll->n = 0;
@@ -31,7 +29,7 @@ void free_line_list(struct line_list *ll)
 void add_line(struct line_list *ll, struct line *l)
 {
     if (ll->n == ll->nalloc) {
-        ll->nalloc += LINES_INCREMENT;
+        ll->nalloc += REALLOC_INCREMENT;
         ll->lines =
             (struct line **)G_realloc(ll->lines,
                                       ll->nalloc * sizeof(struct line *));
