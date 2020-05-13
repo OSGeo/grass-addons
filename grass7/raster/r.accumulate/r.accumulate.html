@@ -22,17 +22,9 @@ the module twice with and without <b>-n</b> flag and <b>weight</b> option may
 be useful in this specific case.
 
 <p>The module recognizes two different formats of the flow direction map:
-<div class="code"><pre>
-Direction encoding for neighbors of x
-
-  135  90  45             3 2 1
-  180  x  360             4 x 8
-  225 270 315             5 6 7
-
-  degrees              45 degrees
-  CCW from East        CCW from East
-                   (r.watershed drainage)
-</pre></div>
+<div align="center">
+<img src="r_accumulate_formats.png" alt="degree">
+</div>
 
 <p>Since the module does not use elevation data (i.e., slope), flow
 accumulation is calculated by single flow direction (SFD) routing and may not
@@ -129,14 +121,15 @@ g.region raster=elevation -p
 r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -s -a
 
 # use r.accumulate to create flow_accum_new and streams_new at once
-r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50000 stream=streams_new
+r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50000 \
+    stream=streams_new
 
 # or delineate stream networks only without creating an accumulation map
 r.accumulate direction=drain_directions threshold=50000 stream=streams_new_only
 
-# use r.stream.extract, elevation, and flow_accum_new to delineate stream networks
-r.stream.extract elevation=elevation accumulation=flow_accum threshold=50000 stream_vector=streams_extract \
-    direction=drain_directions_extract
+# use r.stream.extract, elevation, and flow_accum to delineate stream networks
+r.stream.extract elevation=elevation accumulation=flow_accum threshold=50000 \
+    stream_vector=streams_extract direction=drain_directions_extract
 </pre></div>
 
 <img src="r_accumulate_nc_stream_example.png">
@@ -174,7 +167,9 @@ r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614
 
 <img src="r_accumulate_nc_lfp_example_single.png">
 
-<p>Note that there can be more than one longest flow path when multiple paths have the same flow length. In fact, the above example produces two lines with the same length.
+<p>Note that there can be more than one longest flow path when multiple paths
+have the same flow length. In fact, the above example produces two lines with
+the same length.
 
 <p><img src="r_accumulate_nc_lfp_example_single_warning.png">
 
@@ -196,12 +191,15 @@ r.accumulate direction=drain_directions lfp=lfp_w_id coordinates=642455,222614,6
 # calculate longest flow paths at all points in the outlets map
 r.accumulate direction=drain_directions lfp=lfp_at_outlets outlet=outlets
 
-# calculate longest flow paths at all points in the outlets map and assign IDs using a column in this map
+# calculate longest flow paths at all points in the outlets map and assign IDs using a column \
+# in this map
 r.accumulate direction=drain_directions lfp=lfp_at_outlets_w_id outlet=outlets \
     id_column=lfp_id outlet_id_column=outlet_id
 
-# calculate longest flow paths at given coordinates and all points in the outlets map and assign IDs
-r.accumulate direction=drain_directions lfp=lfp_multi_w_id coordinates=642455,222614,642314,222734 \
+# calculate longest flow paths at given coordinates and all points in the outlets map and \
+# assign IDs
+r.accumulate direction=drain_directions lfp=lfp_multi_w_id \
+    coordinates=642455,222614,642314,222734 \
     outlet=outlets id=1,2 id_column=lfp_id outlet_id_column=outlet_id
 </pre></div>
 
@@ -241,7 +239,8 @@ r.accumulate direction=drain_directions lfp=lfp id_column=id \
 
 # delineate subwatersheds
 i=1
-for coor in `v.report -c map=stream_outlets layer=2 option=coor | awk -F'|' '{printf "%s,%s\n", $4, $5}'`; do
+coors=`v.report -c map=stream_outlets layer=2 option=coor | awk -F'|' '{printf "%s,%s\n", $4, $5}'`
+for coor in $coors; do
     r.water.outlet --o input=drain_directions output=tmp coordinates=$coor
     r.mapcalc expression="subwatershed_$i=if(isnull(tmp),0,1&lt;&lt;($i-1))"
     i=`expr $i + 1`
