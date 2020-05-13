@@ -558,7 +558,7 @@ def main():
                 "{} {}".format(species_match["scientificName"], species_match["status"])
             )
             if "alternatives" in list(species_match.keys()):
-                print("Alternative matches might be:".format(s))
+                print("Alternative matches might be: {}".format(s))
                 for m in species_match["alternatives"]:
                     print("{} {}".format(m["scientificName"], m["status"]))
             else:
