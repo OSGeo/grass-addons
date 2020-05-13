@@ -258,6 +258,7 @@ def main():
                 'occurrenceStatus', 'occurrenceRemarks', 'Habitat',
                 'basisOfRecord', 'preparations', 'sex', 'type', 'locality',
                 'verbatimLocality', 'decimalLongitude', 'decimalLatitude',
+                'coordinateUncertaintyInMeters',
                 'geodeticDatum', 'higerGeography', 'continent', 'country',
                 'countryCode', 'stateProvince', 'gbifID', 'protocol',
                 'identifier', 'recordedBy', 'identificationID', 'identifiers',
@@ -310,6 +311,7 @@ def main():
             ('g_verbatimlocality',       'varchar(255)'),
             ('g_decimallongitude',       'double precision'),
             ('g_decimallatitude',       'double precision'),
+            ('g_coordinateUncertaintyInMeters', 'double precision'),
             ('g_geodeticdatum',       'varchar(50)'),
             ('g_higerGeography',       'varchar(255)'),
             ('g_continent',       'varchar(50)'),
@@ -616,6 +618,7 @@ def main():
                           res['verbatimLocality'],
                           res['decimalLongitude'],
                           res['decimalLatitude'],
+                          res['coordinateUncertaintyInMeters'],
                           res['geodeticDatum'],
                           res['higerGeography'],
                           res['continent'],
@@ -661,12 +664,18 @@ def main():
             if not no_topo:
                 grass.run_command('v.build', map=mapname, option='build')
 
+            # Write history to map
+            grass.vector_history(mapname)
+
     # Close the output map if not a map for each species is requested
     if not species_maps and not print_species and not print_species_shell and not print_occ_number and not print_species_table:
         new.table.conn.commit()
         new.close()
         if not no_topo:
             grass.run_command('v.build', map=mapname, option='build')
+
+        # Write history to map
+        grass.vector_history(mapname)
 
 # Run the module
 # ToDo: Add an atexit procedure which closes and removes the current map
