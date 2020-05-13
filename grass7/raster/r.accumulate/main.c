@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
         struct Option *format;
         struct Option *weight;
         struct Option *input_accum;
+        struct Option *input_subaccum;
         struct Option *accum;
         struct Option *subaccum;
         struct Option *thresh;
@@ -59,8 +60,8 @@ int main(int argc, char *argv[])
         struct Flag *conf;
     } flag;
     char *desc;
-    char *dir_name, *weight_name, *input_accum_name, *accum_name,
-        *subaccum_name, *stream_name, *outlet_name, *lfp_name;
+    char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
+        *accum_name, *subaccum_name, *stream_name, *outlet_name, *lfp_name;
     int dir_fd;
     double dir_format, thresh;
     struct Range dir_range;
@@ -112,6 +113,13 @@ int main(int argc, char *argv[])
     opt.input_accum->type = TYPE_STRING;
     opt.input_accum->description =
         _("Name of input weighted flow accumulation map");
+
+    opt.input_subaccum = G_define_standard_option(G_OPT_R_INPUT);
+    opt.input_subaccum->key = "input_subaccumulation";
+    opt.input_subaccum->required = NO;
+    opt.input_subaccum->type = TYPE_STRING;
+    opt.input_subaccum->description =
+        _("Name of input flow subaccumulation map");
 
     opt.accum = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.accum->key = "accumulation";
@@ -189,15 +197,40 @@ int main(int argc, char *argv[])
      * themselves can be negative; the longest flow path requires positive
      * non-weighted accumulation */
     G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
+    /* straight input to output is not useful */
     G_option_exclusive(opt.input_accum, opt.accum, NULL);
-    G_option_exclusive(opt.weight, opt.input_accum, NULL);
+    G_option_exclusive(opt.input_subaccum, opt.subaccum, NULL);
+    /* currently, back-calculating accumulation from subaccumulation is not
+     * supported; also, accumulated longest flow paths cannot be calculated
+     * from subaccumulation */
+    G_option_exclusive(opt.input_subaccum, opt.accum, flag.accum, NULL);
+    /* these three inputs are mutually exclusive because one is an output of
+     * another */
+    G_option_exclusive(opt.weight, opt.input_accum, opt.input_subaccum, NULL);
+    /* one of these outputs is always required; otherwise, why run this module?
+     */
     G_option_required(opt.accum, opt.subaccum, opt.stream, opt.lfp, NULL);
+    /* threshold and stream output always go together */
     G_option_collective(opt.thresh, opt.stream, NULL);
+    /* calculating subaccumulatoin requires coordinates or outlets because
+     * accumulation at those points need to be subtracted in the downstream
+     * direction */
     G_option_requires(opt.subaccum, opt.coords, opt.outlet, NULL);
+    /* longest flow path requires coordinates or outlets; otherwise, there is
+     * no way to know where to start */
     G_option_requires(opt.lfp, opt.coords, opt.outlet, NULL);
+    /* if given an output id column name, either an id value or outlet id column
+     * is required to populate idcol */
     G_option_requires(opt.idcol, opt.id, opt.outlet_idcol, NULL);
+    /* if given an id value, idcol and the same number of coordinates are
+     * required */
     G_option_requires_all(opt.id, opt.idcol, opt.coords, NULL);
-    G_option_requires_all(opt.outlet_idcol, opt.idcol, opt.outlet, NULL);
+    /* if given an outlet id column, the outlets layer that contains this
+     * column and an output id column are required to populate the id column
+     * with outlet ids
+     */
+    G_option_requires_all(opt.outlet_idcol, opt.outlet, opt.idcol, NULL);
+    /* confluence delineation requires output streams */
     G_option_requires(flag.conf, opt.stream, NULL);
 
     if (G_parser(argc, argv))
@@ -206,6 +239,7 @@ int main(int argc, char *argv[])
     dir_name = opt.dir->answer;
     weight_name = opt.weight->answer;
     input_accum_name = opt.input_accum->answer;
+    input_subaccum_name = opt.input_subaccum->answer;
     accum_name = opt.accum->answer;
     subaccum_name = opt.subaccum->answer;
     stream_name = opt.stream->answer;
@@ -414,15 +448,18 @@ int main(int argc, char *argv[])
         Rast_close(weight_fd);
     }
     /* create non-weighted accumulation if input accumulation is not given */
-    else if (!input_accum_name)
+    else if (!input_accum_name && !input_subaccum_name)
         accum_buf.type = CELL_TYPE;
 
-    /* optionally, read an accumulation map */
-    if (input_accum_name) {
-        int accum_fd = Rast_open_old(input_accum_name, "");
+    /* optionally, read an accumulation or subaccumulation map */
+    if (input_accum_name || input_subaccum_name) {
+        int accum_fd =
+            Rast_open_old(input_accum_name ? input_accum_name :
+                          input_subaccum_name, "");
 
         accum_buf.type = Rast_get_map_type(accum_fd);
-        G_message(_("Reading accumulation map..."));
+        G_message(input_accum_name ? _("Reading accumulation map...") :
+                  _("Reading subaccumulation map..."));
         for (row = 0; row < rows; row++) {
             G_percent(row, rows, 1);
             accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
@@ -488,7 +525,7 @@ int main(int argc, char *argv[])
     }
 
     /* calculate subaccumulation if needed */
-    if (subaccum_name || (lfp_name && !accum)) {
+    if (subaccum_name || (lfp_name && !input_subaccum_name && !accum)) {
         subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
 
         /* write out buffer to the subaccumulation map if requested */

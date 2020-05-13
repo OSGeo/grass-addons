@@ -32,7 +32,8 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
             int i, j, nup = 0;
 
             /* if the current cell is less than the threshold, skip */
-            if (get(accum_buf, row, col) < thresh)
+            if (is_null(accum_buf, row, col) ||
+                get(accum_buf, row, col) < thresh)
                 continue;
 
             /* the current cell is greater than the threshold; check if it is
@@ -94,8 +95,10 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
     int rows = dir_buf->rows, cols = dir_buf->cols;
     int dir;
 
-    /* if the current cell is outside the computational region, stop tracing */
-    if (row < 0 || row >= rows || col < 0 || col >= cols)
+    /* if the current cell is outside the computational region or its
+     * acccumulation is less than the threshold, stop tracing */
+    if (row < 0 || row >= rows || col < 0 || col >= cols ||
+        get(accum_buf, row, col) < thresh)
         return;
 
     /* add the current cell */
