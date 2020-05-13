@@ -46,6 +46,13 @@ lines are split at confluences.
 <p>With <b>-c</b> flag, stream lines are delineated across confluences and may
 overlap with other stream lines that share the same downstream outlet.
 
+<p>With <b>input_subaccumulation</b> option, streams will be delineated as if
+there are no incoming flows from upstream subwatersheds defined by
+subaccumulation. This option is useful when you want to delineate streams
+completely contained inside a subwatershed without considering the main channel
+coming from outside the subwatershed (e.g., surface runoff within
+subwatersheds).
+
 <h3>Longest flow path calculation</h3>
 
 With <b>longest_flow_path</b> option, the module will create a longest flow
