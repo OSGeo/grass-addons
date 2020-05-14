@@ -659,9 +659,9 @@ if __name__ == "__main__":
     else:
         statsout = options["statsout"]
     if os.path.isfile(statsout):
-        f = file(statsout, 'a')
+        f = open(statsout, 'a')
     else:
-        f = file(statsout, 'wt')
+        f = open(statsout, 'wt')
         f.write('These statistics are in units of vertical meters (depth) per cell\n,,Mean Values,,,,Standard Deviations,,,,Totals,,,Additional Stats\nIteration,,Mean Erosion,Mean Deposition,Mean Soil Depth,,Standard Deviation Erosion,Standard Deviation Deposition,Standard Deviation Soil Depth,,Total Sediment Eroded,Total Sediment Deposited,,Minimum Erosion,First Quartile Erosion,Median Erosion,Third Quartile Erosion,Maximum Erosion,Original Un-smoothed Maximum Erosion,,Minimum Deposition,First Quartile Deposition,Median Deposition,Third Quartile Deposition,Maximum Deposition,Original Un-smoothed Maximum Deposition,,Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth')
     if  flags["p"] is True :
         grass.message('Making sample points map for determining cutoffs.')
