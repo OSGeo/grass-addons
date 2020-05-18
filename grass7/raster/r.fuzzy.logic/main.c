@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("fuzzy logic"));
     module->description =
 	_("Performs logical operations on membership images created with "
-	  "r.fuzzy or different method. Use families for fuzzy logic.");
+	  "r.fuzzy.set or different method. Use families for fuzzy logic.");
 
     par_inputx = G_define_standard_option(G_OPT_R_INPUT);
     par_inputx->description = _("x operand (membership map)");
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     par_operation->options = "AND,OR,NOT,IMP";
     par_operation->answer = "AND";
     par_operation->multiple = NO;
-    par_operation->required = YES;
+    par_operation->required = NO;
     par_operation->description = _("Fuzzy logic operation");
 
     par_family = G_define_option();
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     par_family->options = "Zadeh,product,drastic,Lukasiewicz,Fodor,Hamacher";
     par_family->answer = "Zadeh";
     par_family->multiple = NO;
-    par_family->required = YES;
+    par_family->required = NO;
     par_family->description = _("Fuzzy logic family");
 
     if (G_parser(argc, argv))
