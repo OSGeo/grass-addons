@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Anika Bettge <bettge at mundialis.de>
 #
-# PURPOSE:      Checks the area coverage of the by filters selected sentinel
+# PURPOSE:      Checks the area coverage of the by filters selected Sentinel
 #               scenes
 #
 # COPYRIGHT:	(C) 2020 by mundialis and the GRASS Development Team
@@ -18,7 +18,7 @@
 #############################################################################
 
 #%Module
-#% description: checks the area coverage of the by filters selected sentinel scenes.
+#% description: checks the area coverage of the by filters selected Sentinel scenes.
 #% keyword: imagery
 #% keyword: Sentinel
 #% keyword: geometry
