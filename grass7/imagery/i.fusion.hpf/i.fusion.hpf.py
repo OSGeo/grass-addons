@@ -552,7 +552,7 @@ def main():
         # End of Algorithm
 
         # history entry
-        run("r.support", map=tmp_msx_hpf, history="\n".join(cmd_history))
+        grass.raster_history(tmp_msx_hpf)
 
         # add suffix to basename & rename end product
         msx_name = "{base}{suffix}"
