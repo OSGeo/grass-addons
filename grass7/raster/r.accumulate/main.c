@@ -227,8 +227,7 @@ int main(int argc, char *argv[])
     G_option_requires_all(opt.id, opt.idcol, opt.coords, NULL);
     /* if given an outlet id column, the outlets layer that contains this
      * column and an output id column are required to populate the id column
-     * with outlet ids
-     */
+     * with outlet ids */
     G_option_requires_all(opt.outlet_idcol, opt.outlet, opt.idcol, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf, opt.stream, NULL);
