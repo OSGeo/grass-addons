@@ -10,7 +10,8 @@ struct neighbor
     int row;
     int col;
     double accum;
-    double length;
+    double down_length;
+    double min_length;
     double max_length;
 };
 
@@ -23,7 +24,8 @@ struct headwater_list
 
 static struct Cell_head window;
 static int rows, cols;
-static double sqrt2, diag_length;
+static double diag_length;
+static double cell_area;
 
 static void add_table(struct Map_info *, char *, dbDriver **,
                       struct field_info **);
@@ -58,8 +60,8 @@ void calculate_lfp(struct Map_info *Map, struct cell_map *dir_buf,
 
     rows = accum_buf->rows;
     cols = accum_buf->cols;
-    sqrt2 = sqrt(2.0);
     diag_length = sqrt(pow(window.ew_res, 2.0) + pow(window.ns_res, 2.0));
+    cell_area = window.ew_res * window.ns_res;
 
     init_headwater_list(&hl);
     init_point_list(&pl);
@@ -214,7 +216,6 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     double cur_acc;
     int i, j, nup;
     struct neighbor up_accum[8];
-    double min_length_sqrt2;
 
     /* if the current cell is outside the computational region, stop tracing */
     if (row < 0 || row >= rows || col < 0 || col >= cols)
@@ -247,19 +248,22 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                 if (up_acc < cur_acc) {
                     /* diagonal if i * j == -1 or 1
                      * horizontal if i == 0
-                     * vertical if j == 0
-                     */
+                     * vertical if j == 0 */
                     double length =
                         down_length +
                         (i *
-                         j ? diag_length : (i ? window.
-                                            ns_res : window.ew_res));
+                         j ? diag_length : (i ? window.ns_res : window.
+                                            ew_res));
 
                     up_accum[nup].row = row + i;
                     up_accum[nup].col = col + j;
                     up_accum[nup].accum = up_acc;
                     /* current length */
-                    up_accum[nup].length = length;
+                    up_accum[nup].down_length = length;
+                    /* theoretically, the shortest longest flow path is when
+                     * all accumulated upstream cells form a square */
+                    up_accum[nup].min_length =
+                        length + sqrt(cell_area * up_acc);
                     /* the current upstream cell's downstream length +
                      * theoretical longest upstream length; theoretically, the
                      * longest longest flow path is when all accumulated
@@ -279,39 +283,33 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     qsort(up_accum, nup, sizeof(struct neighbor),
           compare_neighbor_max_length);
 
-    /* theoretically, the shortest longest flow path is when all accumulated
-     * upstream cells for a square; divided it by the square root of 2 here to
-     * avoid multiplications inside the loop */
-    min_length_sqrt2 = sqrt(up_accum[0].accum) / sqrt2;
-
     /* trace up upstream cells */
     for (i = 0; i < nup; i++) {
         /* skip the current cell if its theoretical longest upstream length is
-         * shorter than the first cell's theoretical shortest upstream length
-         */
-        if (i > 0 && up_accum[i].accum < min_length_sqrt2)
+         * shorter than the first cell's theoretical shortest upstream length */
+        if (i > 0 && up_accum[i].max_length < up_accum[0].min_length)
             break;
 
         /* if the current cell's theoretical longest lfp < all existing, skip
          * tracing because it's impossible to obtain a longer lfp */
         if (hl->n) {
             for (j = 0;
-                 j < hl->n && up_accum[i].max_length < hl->head[j].length;
-                 j++) ;
+                 j < hl->n &&
+                 up_accum[i].max_length < hl->head[j].down_length; j++) ;
 
             if (j == hl->n)
                 break;
         }
 
-        /* if tracing is successful, store the line and its length */
+        /* if tracing is successful, store the headwater cell */
         if (trace_up
             (dir_buf, accum_buf, up_accum[i].row, up_accum[i].col,
-             up_accum[i].length, hl) && up_accum[i].length > 0) {
+             up_accum[i].down_length, hl)) {
             /* if first or length >= any existing */
-            if (!hl->n || up_accum[i].length == hl->head[0].length)
+            if (!hl->n || up_accum[i].down_length == hl->head[0].down_length)
                 /* if first or tie, add it */
                 add_headwater(hl, &up_accum[i]);
-            else if (up_accum[i].length > hl->head[0].length) {
+            else if (up_accum[i].down_length > hl->head[0].down_length) {
                 /* if longer than existing, replace */
                 hl->n = 1;
                 copy_neighbor(&hl->head[0], &up_accum[0]);
@@ -327,7 +325,8 @@ static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
     dest->row = src->row;
     dest->col = src->col;
     dest->accum = src->accum;
-    dest->length = src->length;
+    dest->down_length = src->down_length;
+    dest->min_length = src->min_length;
     dest->max_length = src->max_length;
 }
 
