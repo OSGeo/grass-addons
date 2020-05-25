@@ -2,7 +2,7 @@
  *
  * MODULE:       r.fuzzy.system
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
- * PURPOSE:      Full fuzzy logic standalone classification system with few fuzzy logic families 
+ * PURPOSE:      Fuzzy logic classification system with several fuzzy logic families 
  *                                                       implication and defuzzification and methods.
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     G_add_keyword(_("raster"));
     G_add_keyword(_("fuzzy logic"));
     module->description =
-	_("Full fuzzy logic standalone classification system with few fuzzy "
+	_("Fuzzy logic classification system with multiple fuzzy "
 	  "logic families implication and defuzzification and methods.");
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
     par_family->type = TYPE_STRING;
     par_family->options = "Zadeh,product,drastic,Lukasiewicz,Fodor,Hamacher";
     par_family->answer = "Zadeh";
-    par_family->required = YES;
+    par_family->required = NO;
     par_family->description = _("Fuzzy logic family");
     par_family->guisection = _("Advanced options");
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     par_defuzzify->options =
 	"centroid,bisector,min_of_highest,max_of_highest,mean_of_highest";
     par_defuzzify->answer = "bisector";
-    par_defuzzify->required = YES;
+    par_defuzzify->required = NO;
     par_defuzzify->description = _("Defuzzification method");
     par_defuzzify->guisection = _("Advanced options");
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     par_implication->type = TYPE_STRING;
     par_implication->options = "minimum,product";
     par_implication->answer = "minimum";
-    par_implication->required = YES;
+    par_implication->required = NO;
     par_implication->description = _("Implication method");
     par_implication->guisection = _("Advanced options");
 
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     par_resolution->key = "res";
     par_resolution->type = TYPE_INTEGER;
     par_resolution->answer = "100";
-    par_resolution->required = YES;
+    par_resolution->required = NO;
     par_resolution->description = _("Universe resolution");
     par_resolution->guisection = _("Advanced options");
 
