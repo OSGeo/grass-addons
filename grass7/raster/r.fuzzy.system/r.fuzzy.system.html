@@ -3,17 +3,15 @@
 <dl>
 <dt><b>maps</b></dt>
 <dd>A text file containing maps name and fuzzy sets connected with map
-definition. The input maps (indicated with % in text file) must be found
-in the search path.
-The output map name is the output name parameter. In map file
-output map is marked by special name <b>_OUTPUT_</b>  If maps are in different
-mapsets the name require @. Map names in database cannot contain following
+definition. The input maps must be found in the search path.
+The output map name must be <b>_OUTPUT_</b>  If maps are in different
+mapsets the name requires @. Map names in database cannot contain the following
 symbols: <b> %,$ and #</b>. Every map name must start with map name
-identifier:<b> %</b>. Every set definition connected with certain map must
-follow the map name and must start with set identifier :<b> $</b>. The set
+identifier: <b>%</b>. Every set definition connected with certain map must
+follow the map name and must start with set identifier: <b>$</b>. The set
 definition must be in braces { } and requires parameters separated by semicolon.
 Any whitespaces like spaces, tabs, empty lines are allowed and may used to
-visual format of rule file.
+visual format of rule file. Lines beginning with <b>#</b> are comments.
 
 <div class="code"><pre>$ set_name {side; points; boundary_shape; hedge; height }</pre></div>
 <ul>
@@ -41,14 +39,17 @@ membership is equal to height.
 <p>An example of fuzzy sets definition:
 <div class="code"><pre>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</pre></div>
 
+<!-- This isn't a special note. Just a second example. -->
+<!--
 <b>Special notes about sets definition for output map:</b><br>
 These sets shall be created as triangular (both sides) sets with linear
 boundaries, without hedge and height modifiers:
 <div class="code"><pre>$ moderate {both; 0,20,20,40; linear; 0; 1}</pre></div>
 </dd>
+-->
 
 <dt><b>rules</b></dt>
-<dd>A text file containing rules for classification.Th typical fuzzy rule
+<dd>A text file containing rules for classification. A typical fuzzy rule
 consists of one or more antecedents and one consequent:
 
 <div class="code"><pre>IF elev IS high AND distance IS low THEN probability IS small
@@ -58,18 +59,19 @@ antecedents: elev IS high; distance IS low
 consequent: probability IS small
 </pre></div>
 
-The rule file has his own syntax. Because module creates only one result map,
+The rule file has his own syntax. Because this module creates only one result map,
 the map name is omitted. Every rule starts with $ and consist of consequent name
-and antecedents in braces { }. All maps and sets used in antecedents must be
-included in the maps file. At the beginning of the calculation program checks if
-all names and sets are included in maps file. Names of the rules must be same as
-sets names of the output map. The rules file use following symbols:
+and antecedents in braces { }. Lines beginning with <b>#</b> are comments.
+All maps and sets used in antecedents must be
+included in the maps file. At the beginning of the calculation the program checks if
+all names and sets are included in maps file. Names of the rules must be same as the
+set names of the output map. The rules file uses the following symbols:
 <ul>
 <li>IS is symbolised by <b>=</b>
 <li>IS NOT is symbolised by <b>~</b>
 <li>AND is symbolised by <b>&</b>
 <li>OR is symbolised by <b>|</b>
-<li>To  specify the order of operators must use parentheses <b>()</b>.
+<li>To specify the order of operators use parentheses <b>()</b>.
 </ul>
 
 
@@ -84,11 +86,11 @@ $ small {distance = high & elev = high}
 In most cases default options should not be changed.
 <dl>
 <dt><b>family</b></dt>
-<dd>AND and OR operations in fuzzy logic are made with T-norms, T-conorms.
-T-norms, T-conorms are a generalization of the two-valued logical conjunction
-and  disjunction  used by boolean logic, for fuzzy logics. Because there is more
-than one possible generalisation of logical operations, r.fuzzy.system provides 6
-most popular families for fuzzy operations:
+<dd>AND and OR operations in fuzzy logic are made with T-norms and T-conorms.
+These are a generalization of the two-valued logical conjunction
+and  disjunction  used by boolean logic, for fuzzy logic. Because there is more
+than one possible generalisation of logical operations, r.fuzzy.system provides six
+common families for fuzzy operations:
 <ul>
 <li><b>Zadeh</b> with minimum (Godel) t-norm and maximum T-conorm;
 <li><b>product</b> with product T-norm and probabilistic sum as T-conorm;
@@ -123,7 +125,7 @@ definition. It usually creates trapezoidal consequent set definition.
 definition. It usually creates triangular consequent set definition.
 </ul>
 </dd>
-<dt><b>defuzz: defuzzification method</b></dt>
+<dt><b>defuz: defuzzification method</b></dt>
 <dd>Before defuzzification all consequents are aggregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
 crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
@@ -153,8 +155,8 @@ aggregate set. It is useful for visual presentation or detail analysis of fuzzy
 rules behaviour. In that cases calculations are performed n=only for selected
 point.</dd>
 <dt><b>membership only flag</b></dt>
-<dd>Prints for all maps sat of values in map range (map universe) and values of
-fuzzy sets (linguistic values). Number of values is taken from resolution
+<dd>Prints for all maps the set of values in the map range (map universe) and values of
+fuzzy sets (linguistic values). The number of values is taken from the resolution
 (default 100). This option is useful for visual control fuzzy set definitions
 for every map.</dd>
 </dl>
@@ -170,15 +172,15 @@ maps in maps definition file.
 <dd>This flag is used to create fuzzified maps for every rule. The name of the
 map consist of output map name, '_' and rule name (for example: output=probs and
 rule name high, the map name: probs_high). Values of maps ranges from 0  to 1.
-If map with such name exists will be overwritten without warning.
+If map with name exists it will be overwritten without warning.
 </dd>
 </dl>
 <h2>NOTES</h2>
 <h4>Calculation of boundary shape</h4>
-Depending on type of the boundary different equation are used to determine its
+Depending on the type of the boundary, different equations are used to determine the
 shape:
 <p>
-<b>Linear:</b> the membership is calculated according following equation:<br>
+<b>Linear:</b> the membership is calculated according to the following equation:<br>
 
 <div class="code"><pre>
 value  <=  A -> x = 0
@@ -187,7 +189,7 @@ B <= value >= C -> x = 1
 C< value > D -> x = (D-value)/(D-C)
 value  >=  D -> x = 0
 </pre></div>
-<b>S-shaped, G-shaped and J shaped:</b>  use following equation to sommoth
+<b>S-shaped, G-shaped and J shaped:</b> the following equation is used to smooth the
 boundary:
 <div class="code"><pre>
 sin(x * Pi/2)^2 (for S-shaped)
@@ -202,14 +204,16 @@ A,B,C,D inflection point,
 <h2>EXAMPLE</h2>
 <p>
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
-introduced Fuzzy sets as an extension of the classical notion of set. Classical 
+introduced Fuzzy sets as an extension of the classical notion of sets. Classical 
 membership of elements in a set are binary terms: an element either belongs or
-does not belong to the set. Fuzzy set theory use the gradual membership of
-elements in a set. A membership function use values in the real unit interval
-[0, 1]. Classical sets, are special cases of the membership functions of fuzzy
-sets and only take values 0 or 1. Classical sets are in fuzzy set theory usually
-called crisp sets. The fuzzy set theory can be used in a wide range of domains
-in which information is  imprecise, such as most of the GIS operations.
+does not belong to the set. Fuzzy set theory use the gradual assessment of the
+membership of elements in a set. A membership function valued in the real unit
+interval [0, 1]. Classical sets, are special cases of the membership functions
+of fuzzy sets, if the latter only take values 0 or 1. Classical sets are in
+fuzzy set theory usually called crisp sets. Fuzzy set theory can be used in
+a wide range of domains in which information is imprecise, including many
+GIS operations.
+
 <p>
 Suppose we want to determine the flood risk on some area (Spearfish dataset)
 using two maps: distance to streams and elevation above streams. We can write
@@ -221,51 +225,52 @@ IF elevation IS high AND distance IS far THEN risk IS unprobable
 </pre></div>
 In classical boolean sense, we would taken some limits of ideas "near" "far" etc,
 but what about values near the limit? The fuzzy set uses partial memberships
-which abolish these restrictions. In that sense to set "near" belongs all areas
+which abolish these restrictions. For example, the set "near" belongs all areas
 with distance no more than 100 m with full membership and from 100 to 200 m with
 partial membership greater than 0. Over 200 m we can assume that is not near.
-This allow to formulate fuzzy rules for distance map:
+This allow the formulation of fuzzy rules for a distance map:
 <div class="code"><pre>
 near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
 </pre></div>
 
-To receive final map program calculate partial fuzzy set for all rules and next
-aggregate it into one fuzzy set. These fuzzy sets are created on value sequence
-called universe. Every set has the number of elements equal to universe
-resolution. Such set cannot be stored as map so finally is defuzzified with
+To estimate the final map, the program calculates the partial fuzzy
+set for all rules and then aggregates it into one fuzzy set. These
+fuzzy sets are created on a value sequence called the "universe".
+Every set has the number of elements equal to the universe resolution.
+Such a set cannot be stored as a map so the set is defuzzified with a
 method chosen by user.
 <p>
 First we need two maps created with r.stream package:
 
 <div class="code"><pre>
-r.stream.extract elevation=elevation.10m threshold=2000 \
-         stream_rast=streams direction=dirs
-r.stream.order stream=streams dir=dirs horton=horton
+r.stream.extract elevation=elevation.10m threshold=2000 stream_rast=streams direction=dirs
+r.stream.order stream_rast=streams dir=dirs horton=horton
 r.mapcalc "horton3 = if(horton>2,horton,null())"
-r.stream.distance stream=streams dir=dirs dem=elevation.10m method=downstream
-distance=distance elevation=elevation 
+r.stream.distance stream=streams dir=dirs method=downstream distance=distance elevation=elevation.10m
 </pre></div>
 
-Next, to perform analysis we need two files: one with definition of map used in
-analysis and definition of fuzzy sets for every map, and second with fuzzy
-rules. For this example:
+Next, to perform the analysis we need two files: one with the
+definition of maps used in analysis and the definition of fuzzy sets for
+every map, and a second with fuzzy rules. For this example:
 
-<p>MAPS
+<p>MAPS:</p>
 
 Note: the raster map names are specified with a "%" character (here 
-"%elevation" and "%distance" are the input maps and "%flood" the
-output map:
+"% elevation" and "% distance" are the input maps). The single output map
+must be named "%_OUTPUT_", in the map file, but the actual raster will
+be assigned the name from the "output" option to "r.fuzzy.system"
+(in the example below this is "flood").
 
 <div class="code"><pre>
-#flood.map
-	%elevation
+# flood.map
+% elevation
 $ low {right; 2,6; sshaped; 0; 1}
 $ high {left; 2,6; sshaped; 0; 1}
-	%distance
+% distance
 $ near {right; 40,80; sshaped; 0; 1}
 $ far {left; 40,80; sshaped; 0; 1}
 #output map
-	%flood
+% _OUTPUT_
 $ unprob {both; 0,20,20,40; linear; 0;1}
 $ prob {both; 20,40,40,60; linear; 0;1}
 $ veryprob {both; 40,60,60,80; linear; 0;1}
@@ -273,7 +278,7 @@ $ veryprob {both; 40,60,60,80; linear; 0;1}
 
 <p>RULES:
 <div class="code"><pre>
-#flood.rul
+# flood.rul
 $ unprob {elevation = high & distance = far}
 $ prob {distance = near | elevation = low}
 $ veryprob {distance = near & elevation = low}
@@ -281,42 +286,46 @@ $ veryprob {distance = near & elevation = low}
 
 finally we need run r.fuzzy.system:
 <div class="code"><pre>
-r.fuzzy.system maps=flood.map rules=flod.rul output=flood 
+r.fuzzy.system maps=flood.map rules=flood.rul output=flood 
 </pre></div>
 
-Resulting map should look like this below. Yellow colour means no risk, red high
+The resulting map should look like the image below. Yellow colour means no risk, red high
 risk, green, blue end so on moderate risk.
 <CENTER><img src="f_result.png" border="1"></CENTER><br>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.fuzzy.html">r.fuzzy</a>,
-<a href="r.fuzzy.logic.html">r.fuzzy.logic</a>,
-<a href="r.fuzzy.set.html">r.fuzzy.set</a>,
+<a href="r.fuzzy.logic.html">r.fuzzy.logic</a> addon,
+<a href="r.fuzzy.set.html">r.fuzzy.set</a> addon,
 <a href="r.mapcalc.html">r.mapcalc</a>,
 </em>
 
 <h2>REFERENCES</h2>
 
-Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
-doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<p>
+<ul>
+<li>Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for massive data analysis.
+Computers & Geosciences (37) 1525-1531. DOI <a href="https://doi.org/10.1016/j.cageo.2010.09.008">https://doi.org/10.1016/j.cageo.2010.09.008</a>
 
-Nov&aacute;k, Vil&eacute;m (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
-ISBN 0-85274-583-4.<p>
+<li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
+<a href="https://doi.org/10.1016/S0019-9958(65)90241-X"><a href="https://doi.org/10.1016/S0019-9958(65)90241-X"</a>. ISSN 0019-9958.
 
-Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
-applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<p>
+<li>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
+ISBN 0-85274-583-4.
 
-Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
+<li>Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
+applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.
+
+<li>Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
 foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
-0133410587.<p>
+0133410587.
 
-Meyer D, Hornik K (2009a). \Generalized and Customizable Sets in R." Journal of
-Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<p>
+<li>Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R. Journal of
+Statistical Software, 31(2), 1-27. DOI <a href="http://dx.doi.org/10.18637/jss.v031.i02">http://dx.doi.org/10.18637/jss.v031.i02</a>
 
-Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<p>
+<li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
+R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
+</ul>
 
 <h2>AUTHOR</h2>
 Jarek Jasiewicz

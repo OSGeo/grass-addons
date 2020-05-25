@@ -5,9 +5,9 @@
 require null values. 
 </dd>
 <dt><b>points</b></dt>
-<dd>A list containing 4 (A,B,C,D) or 2 A,B) points defining set boundaries.
-Points must not to be in map range, but it may lead to only 0 o 1 membership for
-the whole map. For "both" side parameters range between A and D defines base,
+<dd>A list containing 4 (A,B,C,D) or 2 (A,B) points defining set boundaries.
+Points do not have to be in map range, but this may lead to only 0 o 1 membership for
+the whole map. For side parameter "both", range between A and D defines base,
 but range between B and C core of the fuzzy set. Between A and B and C and D are
 set's boundaries. If side is "both" it require 4 points, else 2 points.
 <center>
@@ -16,7 +16,7 @@ set's boundaries. If side is "both" it require 4 points, else 2 points.
 </center>
 </dd>
 <dt><b>side</b></dt>
-<dd>Option indicate if set is fuzzified of both sides (both), left or right
+<dd>Option indicates if set is fuzzified of both sides (both), left or right
 side. See description for details.
 <center>
 <h3>Boundary definition:</h3>
@@ -42,7 +42,7 @@ available. The same boundaries are applied to the both sides.</dd>
 <dt><b>shape</b></dt>
 <dd>Optional shape modifier. Range from -1 to 1. The default value is 0 and
 should  not be changed in most of the time. The negative values indicate more
-dilatant set, the positive values more concentrate set. See description for
+dilatant set, the positive values more concentrate set. See NOTES for
 details.
 <center>
 <h3>Impact of shape parameter on shape boundary:</h3>
@@ -51,7 +51,7 @@ details.
 </dd>
 <dt><b>height</b></dt>
 <dd>Optional height modifier. Range from 0 to 1. The default value is 1 and
-indicate full membership between points B and C. If height is lesser than one the
+indicates full membership. If height is less than one the 
 maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 </dl>
 
@@ -59,14 +59,14 @@ maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 
 <h4>Definition of fuzzy set</h4>
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
-introduced Fuzzy sets as an extension of the classical notion of set. Classical 
+introduced Fuzzy sets as an extension of the classical notion of sets. Classical 
 membership of elements in a set are binary terms: an element either belongs or
 does not belong to the set. Fuzzy set theory use the gradual assessment of the
 membership of elements in a set. A membership function valued in the real unit
 interval [0, 1]. Classical sets, are special cases of the membership functions
 of fuzzy sets, if the latter only take values 0 or 1. Classical sets are in
-fuzzy set theory usually called crisp sets. The fuzzy set theory can be used in
-a wide range of domains in which information is  imprecise, such as most of the
+fuzzy set theory usually called crisp sets. Fuzzy set theory can be used in
+a wide range of domains in which information is imprecise, including many
 GIS operations.
 
 
@@ -78,10 +78,10 @@ shape:
 <b>Linear:</b> the membership is calculated according following equation:<br>
 <pre><code>
 value  <=  A -> x = 0
-A< value > B -> x = (value-A)/(B-A)
+A < value > B -> x = (value-A)/(B-A)
 B <= value >= C -> x = 1
-C< value > D -> x = (D-value)/(D-C)
-value  >=  D -> x = 0
+C < value > D -> x = (D-value)/(D-C)
+value >= D -> x = 0
 
 where x: membership
 </code></pre>
@@ -117,31 +117,37 @@ where m: shape parameter.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.fuzzy.logic.html">r.fuzzy.logic</a>,
+<a href="r.fuzzy.logic.html">r.fuzzy.logic</a> addon,
+<a href="r.fuzzy.system.html">r.fuzzy.system</a> addon,
 <a href="r.mapcalc.html">r.mapcalc</a>,
 </em>
 
 
 <h2>REFERENCES</h2>
 
-<p>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
-doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.</P>
+<ul>
+<li>Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for massive data analysis.
+Computers & Geosciences (37) 1525-1531. DOI <a href=https://doi.org/10.1016/j.cageo.2010.09.008">https://doi.org/10.1016/j.cageo.2010.09.008</a>
 
-<p>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
-ISBN 0-85274-583-4.</P>
+<li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
+<a href="https://doi.org/10.1016/S0019-9958(65)90241-X"><a href="https://doi.org/10.1016/S0019-9958(65)90241-X"</a>.
 
-<p>Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
-applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.</P>
+<li>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
+ISBN 0-85274-583-4.
 
-<p>Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
+<li>Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
+applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.
+
+<li>Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
 foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
-0133410587.</P>
+0133410587.
 
-<p>Meyer D, Hornik K (2009a). \Generalized and Customizable Sets in R." Journal
-of Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.</P>
+<li>Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R. Journal of
+Statistical Software, 31(2), 1-27. DOI <a href="https://doi.org/10.18637/jss.v031.i02">https://doi.org/10.18637/jss.v031.i02</a>
 
-Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<p>
+<li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
+R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
+</ul>
 
 <h2>AUTHOR</h2>
 Jarek Jasiewicz

@@ -5,7 +5,7 @@
 range 0 :1 and may require null values. Otherwise program will print error
 message and stops.
 </dd>
-<dt><b>xmap</b></dt>
+<dt><b>ymap</b></dt>
 <dd>Name of input y membership operand. This map must be of type FCELL with
 range 0 :1 and may require null values. Otherwise program will print error
 message and stops. This map is optional bit is required for all operation except
@@ -47,8 +47,8 @@ K (2009)</a>; <a href="http://en.wikipedia.org/wiki/T-norm">T-norms</a>;
 <h2>OUTPUTS</h2>
 <dl>
 <dt><b>output</b></dt>
-<dd>Map containing result of two-values operations. Multivalued operations will
-be available in the future. Map is always of type FCELLS and contains values
+<dd>Map containing result of two-values operations.
+Map is always of type FCELL and contains values
 from 0 (no membership) to 1 (full membership). Values between 0 and 1 indicate
 partial membership</dd>
 </dl>
@@ -56,31 +56,37 @@ partial membership</dd>
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.fuzzy.html">r.fuzzy</a>,
+<a href="r.fuzzy.set.html">r.fuzzy.set</a> addon,
+<a href="r.fuzzy.system.html">r.fuzzy.system</a> addon,
 <a href="r.mapcalc.html">r.mapcalc</a>
 </em>
 
 
 <h2>REFERENCES</h2>
 
-Zadeh, L.A. (1965). Fuzzy sets. Information and Control 8 (3): 338–353.
-doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<p>
+<ul>
+<li>Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for massive data analysis.
+Computers & Geosciences (37) 1525-1531. DOI <a href="https://doi.org/10.1016/j.cageo.2010.09.008">https://doi.org/10.1016/j.cageo.2010.09.008</a>
 
-Nov&aacute;k, Vil&eacute;m (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
-ISBN 0-85274-583-4.<p>
+<li>Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338-353.
+<a href="https://doi.org/10.1016/S0019-9958(65)90241-X"><a href="https://doi.org/10.1016/S0019-9958(65)90241-X"</a>. ISSN 0019-9958.
 
-Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
-applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<p>
+<li>Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
+ISBN 0-85274-583-4.
 
-Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
+<li>Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
+applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.
+
+<li>Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
 foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
-0133410587.<p>
+0133410587.
 
-Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R. Journal of
-Statistical Software, 31(2), 1-27. URL https://www.jstatsoft.org/v31/i02/.<p>
+<li>Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R. Journal of
+Statistical Software, 31(2), 1-27. DOI <a href="https://doi.org/10.18637/jss.v031.i02">https://doi.org/10.18637/jss.v031.i02</a>
 
-Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R package version, URL https://CRAN.R-project.org/package=sets.<p>
+<li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
+R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
+</ul>
 
 <h2>AUTHOR</h2>
 Jarek  Jasiewicz
