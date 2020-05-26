@@ -77,14 +77,12 @@
 
 #%option G_OPT_R_INPUT
 #% key: pan
-#% key_desc: filename
 #% description: High resolution Panchromatic image
 #% required : yes
 #%end
 
 #%option G_OPT_R_INPUTS
 #% key: msx
-#% key_desc: filename(s)
 #% description: Low resolution Multi-Spectral image(s)
 #% required: yes
 #% multiple: yes
@@ -92,7 +90,6 @@
 
 #%option G_OPT_R_BASENAME_OUTPUT
 #% key: suffix
-#% key_desc: suffix string
 #% type: string
 #% label: Suffix for output image(s)
 #% description: Names of Pan-Sharpened image(s) will end with this suffix
@@ -102,7 +99,6 @@
 
 #%option
 #% key: ratio
-#% key_desc: rational number
 #% type: double
 #% label: Custom ratio
 #% description: Custom ratio overriding standard calculation
@@ -113,7 +109,6 @@
 
 #%option
 #% key: center
-#% key_desc: string
 #% type: string
 #% label: Center cell value
 #% description: Center cell value of the High-Pass-Filter
@@ -127,7 +122,6 @@
 
 #%option
 #% key: center2
-#% key_desc: string
 #% type: string
 #% label: 2nd Pass center cell value
 #% description: Center cell value for the second High-Pass-Filter (use -2 flag)
@@ -141,7 +135,6 @@
 
 #%option
 #% key: modulation
-#% key_desc: string
 #% type: string
 #% label: Modulation level
 #% description: Modulation level weighting the HPF image determining crispness
@@ -155,7 +148,6 @@
 
 #%option
 #% key: modulation2
-#% key_desc: string
 #% type: string
 #% label: 2nd Pass modulation level (use -2 flag)
 #% description: Modulation level weighting the second HPF image determining crispness (use -2 flag)
@@ -169,7 +161,6 @@
 
 #%option
 #% key: trim
-#% key_desc: rational number
 #% type: double
 #% label: Trimming factor
 #% description: Trim output border pixels by a factor of the pixel size of the low resolution image. A factor of 1.0 may suffice.
