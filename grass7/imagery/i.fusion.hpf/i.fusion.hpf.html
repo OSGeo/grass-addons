@@ -54,19 +54,52 @@ Source: Gangkofner, 2008
 <h2>EXAMPLE</h2>
 The module is fairly easy to use. Arbitrary examples:
 
-Pansharpening of one band:
+<h3>Pansharpening of one band</h3>
 
 <div class="code"><pre>
 i.fusion.hpf pan=Panchromatic msx=Red
 </pre></div>
 
-<p>
-Pansharpening of multiple bands:
+<h3>Pansharpening of multiple bands</h3>
 <div class="code"><pre>
 i.fusion.hpf pan=Panchromatic msx=Red,Green,Blue,NIR
 </pre></div>
 
-<p>
+
+<h3>North Carolina: pansharpening of multiple bands</h3>
+
+Example using the North Carolina sample dataset, <tt>landsat</tt> mapset:
+
+<div class="code"><pre>
+# pansharpening of R, G, B, NIR
+g.region raster=lsat7_2002_80 -p
+i.fusion.hpf pan=lsat7_2000_80 msx=lsat7_2000_10,lsat7_2000_20,lsat7_2000_30,lsat7_2000_40 suffix=_hpf
+
+# visual comparison
+d.mon wx0
+d.rgb b=lsat7_2000_10 g=lsat7_2000_20 r=lsat7_2000_30
+
+# color balance pansharpened scene
+i.colors.enhance b=lsat7_2000_10_hpf g=lsat7_2000_20_hpf r=lsat7_2000_30_hpf
+d.rgb b=lsat7_2000_10_hpf g=lsat7_2000_20_hpf r=lsat7_2000_30_hpf
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="i_fusion_hpf_lsat7_orig_rgb.png">
+<img src="i_fusion_hpf_lsat7_orig_rgb.png" width="600" height="379" alt="i.fusion.hpf example 1" border="0">
+</a><br>
+<i>Figure: Original Landsat 7 RGB color composite at 28.5m resolution (North Carolina, Raleigh subset)</i>
+</div>
+
+<div align="center" style="margin: 10px">
+<a href="i_fusion_hpf_lsat7_hpf_rgb.png">
+<img src="i_fusion_hpf_lsat7_hpf_rgb.png" width="600" height="379" alt="i.fusion.hpf example 2" border="0">
+</a><br>
+<i>Figure: Pansharpened Landsat 7 RGB color composite at 14.25m resolution(North Carolina, Raleigh subset)</i>
+</div>
+
+<h3>Further examples</h3>
+
 Various illustrated examples detailed in the document
 <a href="https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/Documentation.pdf">i.fusion.hpf, implementation of the High Pass Filter Additive (HPFA) Image Fusion Technique</a> (PDF)
 
