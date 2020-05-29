@@ -576,9 +576,12 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-                class_labels = {v: k for (k, v, m) in src.cats}
-
-                if "" in class_labels.values():
+                
+                if mode == "classification":
+                    src_cats = {v: k for (k, v, m) in src.cats}
+                    class_labels = {k:k for k in np.unique(y)}
+                    class_labels.update(src_cats)
+                else:
                     class_labels = None
 
         elif training_points != "":
