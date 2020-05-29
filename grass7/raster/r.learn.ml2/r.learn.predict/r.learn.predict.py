@@ -156,11 +156,11 @@ def main():
         )
 
     # assign categories for classification map
-    if class_labels is not None and prob_only is False:
+    if class_labels and prob_only is False:
         rules = []
 
         for val, lab in class_labels.items():
-            rules.append(",".join([str(val), lab]))
+            rules.append(",".join([str(val), str(lab)]))
 
         rules = "\n".join(rules)
         rules_file = string_to_rules(rules)
