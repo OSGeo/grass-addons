@@ -116,8 +116,8 @@ class product:
         water_specqa = ('( 1 1 )')
         water_suff = {'.water_mask': '.water_mask_QA'}
         # value for aerosol product
-        aerosol_spec = '(0100000000000)'
-        aerosol_specqa = '(0100010000000)'
+        aerosol_spec = '( 0 1 0 0 0 0 0 0 0 0 0 0 0 )'
+        aerosol_specqa = '( 0 1 0 0 0 1 0 0 0 0 0 0 0 )'
         aerosol1km_suff = {'.Optical_Depth_055': '.AOD_QA'}
         aerosol_color = 'bcyr'
 
