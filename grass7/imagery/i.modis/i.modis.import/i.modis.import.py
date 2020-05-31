@@ -384,7 +384,7 @@ def single(options, remove, an, ow, fil):
         else:
             projwkt = get_proj('w')
             projObj = projection()
-            pref = i.split('/')[-1]
+            pref = i.split(os.path.sep)[-1]
             prod = product().fromcode(pref.split('.')[0])
             spectr = spectral(options, prod, an)
             if projObj.returned() != 'GEO':
@@ -425,7 +425,7 @@ def mosaic(options, remove, an, ow, fil):
     pid = str(os.getpid())
     # for each day
     for dat, listfiles in dictfile.items():
-        pref = listfiles[0].split('/')[-1]
+        pref = listfiles[0].split(os.path.sep)[-1]
         prod = product().fromcode(pref.split('.')[0])
         spectr = spectral(options, prod, an)
         spectr = spectr.lstrip('( ').rstrip(' )')
