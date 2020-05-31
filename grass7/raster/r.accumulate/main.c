@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
     G_message(_("Reading direction map..."));
     for (row = 0; row < rows; row++) {
         G_percent(row, rows, 1);
-        done[row] = G_calloc(cols, 1);
+        done[row] = (char *)G_calloc(cols, 1);
         dir_buf.c[row] = Rast_allocate_c_buf();
         Rast_get_c_row(dir_fd, dir_buf.c[row], row);
         if (dir_format == DIR_DEG) {
