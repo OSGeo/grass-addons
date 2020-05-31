@@ -403,10 +403,10 @@ int main(int argc, char *argv[])
     cols = Rast_window_cols();
 
     /* initialize the done array and read the direction map */
-    done = G_malloc(rows * sizeof(char *));
+    done = (char **)G_malloc(rows * sizeof(char *));
     dir_buf.rows = rows;
     dir_buf.cols = cols;
-    dir_buf.c = G_malloc(rows * sizeof(CELL *));
+    dir_buf.c = (CELL **)G_malloc(rows * sizeof(CELL *));
     G_message(_("Reading direction map..."));
     for (row = 0; row < rows; row++) {
         G_percent(row, rows, 1);
