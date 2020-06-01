@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     /* currently, back-calculating accumulation from subaccumulation is not
      * supported; also, accumulated longest flow paths cannot be calculated
      * from subaccumulation */
-    G_option_exclusive(opt.input_subaccum, opt.accum, flag.accum, NULL);
+    G_option_excludes(opt.input_subaccum, opt.accum, flag.accum, NULL);
     /* subwatersheds cannot be accumulated */
     G_option_exclusive(opt.subwshed, flag.accum, NULL);
     /* these three inputs are mutually exclusive because one is an output of
