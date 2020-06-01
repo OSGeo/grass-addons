@@ -1,0 +1,116 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.lfp</em> calculates the longest flow paths for given outlet points and
+creates a new vector map with those lines. This module requires the
+<em>r.stream.distance</em> addon.
+
+<h2>NOTES</h2>
+
+<em>r.lfp</em> creates a longest flow path vector map using a drainage
+direction raster map and the coordinates of outlet points. The module
+internally runs <em>r.stream.distance</em> to calculate a flow length
+downstream raster map and <em>r.path</em> to trace the longest flow path from
+headwater cells. An input drainage map can be created using
+<em>r.watershed</em> or <em>r.stream.extract</em>.
+
+<p><em>r.lfp</em> can read outlet coordinates from the <b>coordinates</b>
+and/or <b>outlet</b> parameters. For multiple outlets, the user can assign a
+unique ID to each longest flow path per outlet point using <b>id</b>,
+<b>id_column</b>, and <b>outlet_id_column</b> parameters. The <b>id</b>
+parameter specifies unique IDs for all outlets given in the <b>coordinates</b>
+parameter in the same order. The <b>outlet_id_column</b> specifies a column in
+the <b>outlet</b> map that contains unique IDs to be copied over to the
+<b>id_column</b> column in the <b>output</b> map.
+
+<h2>EXAMPLES</h2>
+
+These examples use the North Carolina sample dataset.
+
+<p>Create the longest flow path for one outlet:
+<div class="code"><pre>
+# set computational region
+g.region raster=elevation -p
+
+# calculate drainage directions
+r.watershed elevation=elevation drainage=drain_directions
+
+# calculate outlet point related watershed
+r.water.outlet input=drain_directions output=basin coordinates=642455,222614
+
+# calculate longest flow path
+r.lfp input=drain_directions output=lfp coordinates=642455,222614
+</pre></div>
+
+<img src="r_lfp_nc_example_single.png">
+
+<p>Note that there can be more than one longest flow path when multiple paths have the same flow length. In fact, the above example produces two lines with the same length.
+
+<p><img src="r_lfp_nc_example_single_warning.png">
+
+<p>There are different ways to calculate multiple longest flow paths in one run:
+<div class="code"><pre>
+# calculate longest flow paths at two outlets
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734
+
+# calculate longest flow paths at two outlets and assign IDs
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734 \
+    id=1,2 id_column=lfp_id 
+
+# calculate longest flow paths at all points in the outlets map
+r.lfp input=drain_directions output=lfp outlet=outlets
+
+# calculate longest flow paths at all points in the outlets map and assign IDs using a column in this map
+r.lfp input=drain_directions output=lfp outlet=outlets \
+    id_column=lfp_id outlet_id_column=outlet_id
+
+# calculate longest flow paths at given coordinates and all points in the outlets map and assign IDs
+r.lfp input=drain_directions output=lfp coordinates=642455,222614,642306,222734 outlet=outlets \
+    id=1,2 id_column=lfp_id outlet_id_column=outlet_id
+</pre></div>
+
+<p>Calculate the longest flow paths for sub-watersheds:
+<div class="code"><pre>
+# get nsres
+eval `r.info -g map=elevation`
+
+# delineate streams using a threshold
+r.stream.extract elevation=elevation threshold=50000 stream_vector=streams
+
+# populate stream lengths
+v.db.addcolumn map=streams columns="length real"
+v.to.db map=streams option=length columns=length
+
+# create points along the streams starting from downstream
+v.to.points -r input=streams output=stream_points dmax=$nsres
+
+# find outlets (downstream-most less nsres points)
+cats=`db.select -c sql="select stream_points_2.cat from stream_points_2 \
+    inner join stream_points_1 on stream_points_1.cat = stream_points_2.lcat \
+    where length-along &gt; 0.5*$nsres and length-along &lt; 1.5*$nsres"`
+cats=`echo $cats | tr " " ,`
+v.extract input=stream_points layer=2 cats=$cats output=stream_outlets
+
+# create the longest flow paths for all outlets
+r.lfp input=drain_directions output=lfp id_column=id outlet=stream_outlets layer=2 outlet_id_column=lcat
+</pre></div>
+
+<img src="r_lfp_nc_example_multiple.png">
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.watershed.html">r.watershed</a>,
+<a href="r.stream.extract.html">r.stream.extract</a>,
+<a href="r.stream.distance.html">r.stream.distance</a>
+</em>
+<br>
+<a href="http://idea.isnew.info/how-to-calculate-the-longest-flow-path-in-grass-gis.html">How to calculate the longest flow path in GRASS GIS</a>
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
