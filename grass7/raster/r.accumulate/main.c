@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     char neg, accum, conf;
     char **done;
     struct cell_map dir_buf;
-    struct raster_map weight_buf, accum_buf;
+    struct raster_map accum_buf;
     int rows, cols, row, col;
     struct Map_info Map;
     struct point_list outlet_pl;
@@ -440,92 +440,102 @@ int main(int argc, char *argv[])
     G_percent(1, 1, 1);
     Rast_close(dir_fd);
 
-    /* prepare to create accumulation buffer */
-    accum_buf.rows = rows;
-    accum_buf.cols = cols;
-    accum_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
+    /* prepare to create accumulation buffer only when needed */
+    if (accum_name || subaccum_name || stream_name || lfp_name) {
+        struct raster_map weight_buf;
 
-    /* optionally, read a weight map */
-    weight_buf.map.v = NULL;
-    if (weight_name) {
-        int weight_fd = Rast_open_old(weight_name, "");
+        accum_buf.rows = rows;
+        accum_buf.cols = cols;
+        accum_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
 
-        accum_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
-        weight_buf.rows = rows;
-        weight_buf.cols = cols;
-        weight_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
-        G_message(_("Reading weight map..."));
-        for (row = 0; row < rows; row++) {
-            G_percent(row, rows, 1);
-            weight_buf.map.v[row] =
-                (void *)Rast_allocate_buf(weight_buf.type);
-            Rast_get_row(weight_fd, weight_buf.map.v[row], row,
-                         weight_buf.type);
+        /* optionally, read a weight map */
+        weight_buf.map.v = NULL;
+        if (weight_name) {
+            int weight_fd = Rast_open_old(weight_name, "");
+
+            accum_buf.type = weight_buf.type = Rast_get_map_type(weight_fd);
+            weight_buf.rows = rows;
+            weight_buf.cols = cols;
+            weight_buf.map.v = (void **)G_malloc(rows * sizeof(void *));
+            G_message(_("Reading weight map..."));
+            for (row = 0; row < rows; row++) {
+                G_percent(row, rows, 1);
+                weight_buf.map.v[row] =
+                    (void *)Rast_allocate_buf(weight_buf.type);
+                Rast_get_row(weight_fd, weight_buf.map.v[row], row,
+                             weight_buf.type);
+            }
+            G_percent(1, 1, 1);
+            Rast_close(weight_fd);
         }
-        G_percent(1, 1, 1);
-        Rast_close(weight_fd);
-    }
-    /* create non-weighted accumulation if input accumulation is not given */
-    else if (!input_accum_name && !input_subaccum_name)
-        accum_buf.type = CELL_TYPE;
+	/* create non-weighted accumulation if input accumulation is not given
+	 */
+        else if (!input_accum_name && !input_subaccum_name)
+            accum_buf.type = CELL_TYPE;
 
-    /* optionally, read an accumulation or subaccumulation map */
-    if (input_accum_name || input_subaccum_name) {
-        int accum_fd =
-            Rast_open_old(input_accum_name ? input_accum_name :
-                          input_subaccum_name, "");
+        /* optionally, read an accumulation or subaccumulation map */
+        if (input_accum_name || input_subaccum_name) {
+            int accum_fd =
+                Rast_open_old(input_accum_name ? input_accum_name :
+                              input_subaccum_name, "");
 
-        accum_buf.type = Rast_get_map_type(accum_fd);
-        G_message(input_accum_name ? _("Reading accumulation map...") :
-                  _("Reading subaccumulation map..."));
-        for (row = 0; row < rows; row++) {
-            G_percent(row, rows, 1);
-            accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
-            Rast_get_row(accum_fd, accum_buf.map.v[row], row, accum_buf.type);
+            accum_buf.type = Rast_get_map_type(accum_fd);
+            G_message(input_accum_name ? _("Reading accumulation map...") :
+                      _("Reading subaccumulation map..."));
+            for (row = 0; row < rows; row++) {
+                G_percent(row, rows, 1);
+                accum_buf.map.v[row] =
+                    (void *)Rast_allocate_buf(accum_buf.type);
+                Rast_get_row(accum_fd, accum_buf.map.v[row], row,
+                             accum_buf.type);
+            }
+            G_percent(1, 1, 1);
+            Rast_close(accum_fd);
         }
-        G_percent(1, 1, 1);
-        Rast_close(accum_fd);
-    }
-    /* accumulate flows if input accumulation is not given */
-    else {
-        for (row = 0; row < rows; row++)
-            accum_buf.map.v[row] = (void *)Rast_allocate_buf(accum_buf.type);
-        accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
-    }
+        /* accumulate flows if input accumulation is not given */
+        else {
+            for (row = 0; row < rows; row++)
+                accum_buf.map.v[row] =
+                    (void *)Rast_allocate_buf(accum_buf.type);
+            accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
+        }
 
-    /* free buffer memory */
-    for (row = 0; row < rows; row++) {
-        G_free(done[row]);
+        /* free buffer memory */
+        for (row = 0; row < rows; row++) {
+            G_free(done[row]);
+            if (weight_name)
+                G_free(weight_buf.map.v[row]);
+        }
+        G_free(done);
         if (weight_name)
-            G_free(weight_buf.map.v[row]);
-    }
-    G_free(done);
-    if (weight_name)
-        G_free(weight_buf.map.v);
+            G_free(weight_buf.map.v);
 
-    /* write out buffer to the accumulation map if requested */
-    if (accum_name) {
-        int accum_fd = Rast_open_new(accum_name, accum_buf.type);
-        struct History hist;
+        /* write out buffer to the accumulation map if requested */
+        if (accum_name) {
+            int accum_fd = Rast_open_new(accum_name, accum_buf.type);
+            struct History hist;
 
-        G_message(_("Writing accumulation map..."));
-        for (row = 0; row < rows; row++) {
-            G_percent(row, rows, 1);
-            Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
+            G_message(_("Writing accumulation map..."));
+            for (row = 0; row < rows; row++) {
+                G_percent(row, rows, 1);
+                Rast_put_row(accum_fd, accum_buf.map.v[row], accum_buf.type);
+            }
+            G_percent(1, 1, 1);
+            Rast_close(accum_fd);
+
+            /* write history */
+            Rast_put_cell_title(accum_name,
+                                weight_name ? _("Weighted flow accumulation")
+                                : (neg ?
+                                   _("Flow accumulation with likely underestimates")
+                                   : _("Flow accumulation")));
+            Rast_short_history(accum_name, "raster", &hist);
+            Rast_command_history(&hist);
+            Rast_write_history(accum_name, &hist);
         }
-        G_percent(1, 1, 1);
-        Rast_close(accum_fd);
-
-        /* write history */
-        Rast_put_cell_title(accum_name,
-                            weight_name ? _("Weighted flow accumulation")
-                            : (neg ?
-                               _("Flow accumulation with likely underestimates")
-                               : _("Flow accumulation")));
-        Rast_short_history(accum_name, "raster", &hist);
-        Rast_command_history(&hist);
-        Rast_write_history(accum_name, &hist);
     }
+    else
+        accum_buf.map.v = NULL;
 
     /* delineate stream networks */
     if (stream_name) {
@@ -544,8 +554,7 @@ int main(int argc, char *argv[])
 
     /* calculate subaccumulation if needed; this process overwrite accum_buf to
      * save memory */
-    if (subaccum_name ||
-        (!input_subaccum_name && (subwshed_name || (lfp_name && !accum)))) {
+    if (subaccum_name || (lfp_name && !input_subaccum_name && !accum)) {
         subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
 
         /* write out buffer to the subaccumulation map if requested */
@@ -590,6 +599,13 @@ int main(int argc, char *argv[])
         Vect_close(&Map);
     }
 
+    /* free buffer memory */
+    if (accum_buf.map.v) {
+        for (row = 0; row < rows; row++)
+            G_free(accum_buf.map.v[row]);
+        G_free(accum_buf.map.v);
+    }
+
     /* delineate subwatersheds; this process overwrites dir_buf to save memory
      */
     if (subwshed_name) {
@@ -600,8 +616,7 @@ int main(int argc, char *argv[])
         for (row = 0; row < rows; row++)
             done[row] = (char *)G_calloc(cols, 1);
 
-        delineate_subwatersheds(&Map, &dir_buf, &accum_buf, done, id,
-                                &outlet_pl);
+        delineate_subwatersheds(&dir_buf, done, id, &outlet_pl);
 
         subwshed_fd = Rast_open_c_new(subwshed_name);
         G_message(_("Writing subwatershed map..."));
@@ -624,12 +639,9 @@ int main(int argc, char *argv[])
     }
 
     /* free buffer memory */
-    for (row = 0; row < rows; row++) {
+    for (row = 0; row < rows; row++)
         G_free(dir_buf.c[row]);
-        G_free(accum_buf.map.v[row]);
-    }
     G_free(dir_buf.c);
-    G_free(accum_buf.map.v);
 
     exit(EXIT_SUCCESS);
 }

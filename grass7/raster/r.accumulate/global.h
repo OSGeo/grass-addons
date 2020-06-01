@@ -101,8 +101,7 @@ void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
                    struct point_list *);
 
 /* delineate_subwatersheds.c */
-void delineate_subwatersheds(struct Map_info *, struct cell_map *,
-                             struct raster_map *, char **, int *,
+void delineate_subwatersheds(struct cell_map *, char **, int *,
                              struct point_list *);
 
 /* delineate_streams.c */
