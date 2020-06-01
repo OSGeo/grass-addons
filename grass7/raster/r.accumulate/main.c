@@ -84,7 +84,11 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
+    G_add_keyword(_("accumulation"));
     G_add_keyword(_("watershed"));
+    G_add_keyword(_("subwatershed"));
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("longest flow path"));
     module->description =
         _("Calculates weighted flow accumulation, subwatersheds, stream networks, and longest flow paths using a flow direction map.");
 
