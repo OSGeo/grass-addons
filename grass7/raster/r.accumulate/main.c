@@ -408,6 +408,11 @@ int main(int argc, char *argv[])
             G_fatal_error(_("Too many longest flow path IDs specified"));
     }
 
+    if (outlet_pl.n)
+        G_message(n_
+                  ("%d outlet specified", "%d outlets specified",
+                   outlet_pl.n), outlet_pl.n);
+
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
     neg = flag.neg->answer;
     accum = flag.accum->answer;
