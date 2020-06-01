@@ -468,7 +468,8 @@ int main(int argc, char *argv[])
             G_percent(1, 1, 1);
             Rast_close(weight_fd);
         }
-        /* create non-weighted accumulation if input accumulation is not given */
+	/* create non-weighted accumulation if input accumulation is not given
+	 */
         else if (!input_accum_name && !input_subaccum_name)
             accum_buf.type = CELL_TYPE;
 
