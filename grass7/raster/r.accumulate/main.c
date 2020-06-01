@@ -6,7 +6,7 @@
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
  * PURPOSE:      Calculates weighted flow accumulation, subwatersheds, stream
- *		 networks, and the longest flow path using a flow direction map.
+ *		 networks, and longest flow paths using a flow direction map.
  *
  * COPYRIGHT:    (C) 2018, 2020 by Huidae Cho and the GRASS Development Team
  *
@@ -84,9 +84,13 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
+    G_add_keyword(_("accumulation"));
     G_add_keyword(_("watershed"));
+    G_add_keyword(_("subwatershed"));
+    G_add_keyword(_("stream network"));
+    G_add_keyword(_("longest flow path"));
     module->description =
-        _("Calculates weighted flow accumulation, stream networks, and the longest flow path using a flow direction map.");
+        _("Calculates weighted flow accumulation, subwatersheds, stream networks, and longest flow paths using a flow direction map.");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->key = "direction";
