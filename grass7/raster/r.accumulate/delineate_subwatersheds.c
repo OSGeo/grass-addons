@@ -5,20 +5,18 @@
 static struct Cell_head window;
 static int rows, cols;
 
-static void trace_up(struct cell_map *, struct raster_map *, char **, int,
-                     int, int);
+static void trace_up(struct cell_map *, char **, int, int, int);
 
-void delineate_subwatersheds(struct Map_info *Map, struct cell_map *dir_buf,
-                             struct raster_map *accum_buf, char **done,
-                             int *id, struct point_list *outlet_pl)
+void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
+                             struct point_list *outlet_pl)
 {
     int i, j;
     int subwshed_id;
 
     G_get_set_window(&window);
 
-    rows = accum_buf->rows;
-    cols = accum_buf->cols;
+    rows = dir_buf->rows;
+    cols = dir_buf->cols;
 
     G_message(_("Flagging outlets..."));
     for (i = 0; i < outlet_pl->n; i++) {
@@ -60,7 +58,7 @@ void delineate_subwatersheds(struct Map_info *Map, struct cell_map *dir_buf,
         done[row][col] = 0;
 
         /* trace up flow directions */
-        trace_up(dir_buf, accum_buf, done, row, col, subwshed_id);
+        trace_up(dir_buf, done, row, col, subwshed_id);
 
         /* flag the current outlet again */
         done[row][col] = 1;
@@ -77,10 +75,9 @@ void delineate_subwatersheds(struct Map_info *Map, struct cell_map *dir_buf,
     G_percent(1, 1, 1);
 }
 
-static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
-                     char **done, int row, int col, int id)
+static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
+                     int id)
 {
-    double cur_acc;
     int i, j;
 
     /* if the current cell is outside the computational region or already
@@ -88,13 +85,8 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     if (row < 0 || row >= rows || col < 0 || col >= cols || done[row][col])
         return;
 
-    /* if the current accumulation is 1 (headwater), stop tracing */
-    cur_acc = get(accum_buf, row, col);
-    if (cur_acc == 1) {
-        dir_buf->c[row][col] = id;
-        done[row][col] = 1;
-        return;
-    }
+    dir_buf->c[row][col] = id;
+    done[row][col] = 1;
 
     for (i = -1; i <= 1; i++) {
         /* skip edge cells */
@@ -106,16 +98,12 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
             if ((i == 0 && j == 0) || col + j < 0 || col + j >= cols)
                 continue;
 
-            /* if a neighbor cell flows into the current cell, store its
-             * accumulation in the accum array; upstream accumulation must
-             * always be less than the current accumulation; upstream
-             * accumulation can be greater than the current accumulation in a
-             * subaccumulation raster */
-            if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
-                get(accum_buf, row + i, col + j) < cur_acc) {
+            /* if a neighbor cell flows into the current cell, add it to the
+             * map and trace up further */
+            if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0]) {
                 dir_buf->c[row][col] = id;
                 done[row][col] = 1;
-                trace_up(dir_buf, accum_buf, done, row + i, col + j, id);
+                trace_up(dir_buf, done, row + i, col + j, id);
             }
         }
     }
