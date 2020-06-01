@@ -43,7 +43,7 @@
 import sys
 import os
 import matplotlib #required by windows
-matplotlib.use('wx') #required by windows
+matplotlib.use('WXAgg') #required by windows
 import matplotlib.pyplot as plt
 import grass.script as grass
 import numpy as np
@@ -100,15 +100,15 @@ def main():
     print("===========================")
     print("Width Function | quantiles")
     print("===========================")
-    print('%.0f | %s') %(findint(kl,0.05), 0.05)
-    print('%.0f | %s') %(findint(kl,0.15), 0.15)
-    print('%.0f | %s') %(findint(kl,0.3), 0.3)
-    print('%.0f | %s') %(findint(kl,0.4), 0.4)
-    print('%.0f | %s') %(findint(kl,0.5), 0.5)
-    print('%.0f | %s') %(findint(kl,0.6), 0.6)
-    print('%.0f | %s') %(findint(kl,0.7), 0.7)
-    print('%.0f | %s') %(findint(kl,0.85), 0.85)
-    print('%.0f | %s') %(findint(kl,0.95), 0.95)
+    print('%.0f | %s' %(findint(kl,0.05), 0.05))
+    print('%.0f | %s' %(findint(kl,0.15), 0.15))
+    print('%.0f | %s' %(findint(kl,0.3), 0.3))
+    print('%.0f | %s' %(findint(kl,0.4), 0.4))
+    print('%.0f | %s' %(findint(kl,0.5), 0.5))
+    print('%.0f | %s' %(findint(kl,0.6), 0.6))
+    print('%.0f | %s' %(findint(kl,0.7), 0.7))
+    print('%.0f | %s' %(findint(kl,0.85), 0.85))
+    print('%.0f | %s' %(findint(kl,0.95), 0.95))
     print('\n')
     print('Done!')
 
