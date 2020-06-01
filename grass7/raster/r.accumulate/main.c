@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
         struct Flag *neg;
         struct Flag *accum;
         struct Flag *conf;
+        struct Flag *recur;
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
-    char neg, accum, conf;
+    char neg, accum, conf, recur;
     char **done;
     struct cell_map dir_buf;
     struct raster_map accum_buf;
@@ -201,6 +202,10 @@ int main(int argc, char *argv[])
     flag.conf->key = 'c';
     flag.conf->label = _("Delineate streams across confluences");
 
+    flag.recur = G_define_flag();
+    flag.recur->key = 'r';
+    flag.recur->label = _("Use recursive algorithm for longest flow paths");
+
     /* weighting doesn't support negative accumulation because weights
      * themselves can be negative; the longest flow path requires positive
      * non-weighted accumulation */
@@ -244,6 +249,8 @@ int main(int argc, char *argv[])
     G_option_requires_all(opt.outlet_idcol, opt.outlet, opt.idcol, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf, opt.stream, NULL);
+    /* recursive algorithm requires longest flow paths */
+    G_option_requires(flag.recur, opt.lfp, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -417,6 +424,7 @@ int main(int argc, char *argv[])
     neg = flag.neg->answer;
     accum = flag.accum->answer;
     conf = flag.conf->answer;
+    recur = flag.recur->answer;
 
     rows = Rast_window_rows();
     cols = Rast_window_cols();
@@ -468,8 +476,8 @@ int main(int argc, char *argv[])
             G_percent(1, 1, 1);
             Rast_close(weight_fd);
         }
-	/* create non-weighted accumulation if input accumulation is not given
-	 */
+        /* create non-weighted accumulation if input accumulation is not given
+         */
         else if (!input_accum_name && !input_subaccum_name)
             accum_buf.type = CELL_TYPE;
 
@@ -503,11 +511,11 @@ int main(int argc, char *argv[])
         /* free buffer memory */
         for (row = 0; row < rows; row++) {
             G_free(done[row]);
-            if (weight_name)
+            if (weight_buf.map.v)
                 G_free(weight_buf.map.v[row]);
         }
         G_free(done);
-        if (weight_name)
+        if (weight_buf.map.v)
             G_free(weight_buf.map.v);
 
         /* write out buffer to the accumulation map if requested */
@@ -591,7 +599,8 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, _("Longest flow paths"));
         Vect_hist_command(&Map);
 
-        calculate_lfp(&Map, &dir_buf, &accum_buf, id, idcol, &outlet_pl);
+        calculate_lfp(&Map, &dir_buf, &accum_buf, id, idcol, &outlet_pl,
+                      recur);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
