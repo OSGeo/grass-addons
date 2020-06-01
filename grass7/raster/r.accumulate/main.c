@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     /* currently, back-calculating accumulation from subaccumulation is not
      * supported; also, accumulated longest flow paths cannot be calculated
      * from subaccumulation */
-    G_option_exclusive(opt.input_subaccum, opt.accum, flag.accum, NULL);
+    G_option_excludes(opt.input_subaccum, opt.accum, flag.accum, NULL);
     /* subwatersheds cannot be accumulated */
     G_option_exclusive(opt.subwshed, flag.accum, NULL);
     /* these three inputs are mutually exclusive because one is an output of
@@ -251,10 +251,19 @@ int main(int argc, char *argv[])
      * column and an output id column are required to populate the id column
      * with outlet ids */
     G_option_requires_all(opt.outlet_idcol, opt.outlet, opt.idcol, NULL);
-    /* confluence delineation requires output streams */
-    G_option_requires(flag.conf, opt.stream, NULL);
+    /* negative (or positive) accumulation is needed only to calculate one of
+     * these outputs */
+    G_option_requires(flag.neg, opt.accum, opt.subaccum, opt.stream, opt.lfp,
+                      NULL);
+    /* negative accumulation cannot be done when either accumulation or
+     * subaccumulation is given as input */
+    G_option_excludes(flag.neg, opt.input_accum, opt.input_subaccum, NULL);
+    /* accumulated lfp requires longest flow paths */
+    G_option_requires(flag.accum, opt.lfp, NULL);
     /* recursive algorithm requires longest flow paths */
     G_option_requires(flag.recur, opt.lfp, NULL);
+    /* confluence delineation requires output streams */
+    G_option_requires(flag.conf, opt.stream, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
