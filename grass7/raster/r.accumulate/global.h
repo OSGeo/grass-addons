@@ -96,13 +96,18 @@ void add_line(struct line_list *, struct line *);
 void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
                 char **, char);
 
-/* delineate_streams.c */
-void delineate_streams(struct Map_info *, struct cell_map *,
-                       struct raster_map *, double, char);
-
 /* subaccumulate.c */
 void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
                    struct point_list *);
+
+/* delineate_subwatersheds.c */
+void delineate_subwatersheds(struct Map_info *, struct cell_map *,
+                             struct raster_map *, char **, int *,
+                             struct point_list *);
+
+/* delineate_streams.c */
+void delineate_streams(struct Map_info *, struct cell_map *,
+                       struct raster_map *, double, char);
 
 /* calculate_lfp.c */
 void calculate_lfp(struct Map_info *, struct cell_map *, struct raster_map *,
