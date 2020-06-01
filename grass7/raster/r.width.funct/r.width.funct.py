@@ -43,7 +43,7 @@
 import sys
 import os
 import matplotlib #required by windows
-matplotlib.use('wxagg') #required by windows
+matplotlib.use('WXAgg') #required by windows
 import matplotlib.pyplot as plt
 import grass.script as grass
 import numpy as np
