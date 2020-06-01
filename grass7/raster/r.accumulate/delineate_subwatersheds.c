@@ -34,7 +34,7 @@ void delineate_subwatersheds(struct Map_info *Map, struct cell_map *dir_buf,
             continue;
         }
 
-	done[row][col] = 1;
+        done[row][col] = 1;
     }
     G_percent(1, 1, 1);
 
@@ -56,14 +56,14 @@ void delineate_subwatersheds(struct Map_info *Map, struct cell_map *dir_buf,
 
         subwshed_id = id ? id[i] : subwshed_id + 1;
 
-	/* unflag the current outlet for now */
-	done[row][col] = 0;
+        /* unflag the current outlet for now */
+        done[row][col] = 0;
 
         /* trace up flow directions */
         trace_up(dir_buf, accum_buf, done, row, col, subwshed_id);
 
-	/* flag the current outlet again */
-	done[row][col] = 1;
+        /* flag the current outlet again */
+        done[row][col] = 1;
     }
     G_percent(1, 1, 1);
 
