@@ -64,28 +64,28 @@
 
 #%option G_OPT_R_MAP
 #% key: k
-#% description: Soil erodability index (K) factor. Map or constant. (values <= 0.09 [t.ha.h /ha.MJ.mm])
+#% description: Soil erodability index (K factor) map or constant (values <= 0.09 [t.ha.h /ha.MJ.mm])
 #% answer: 0.05
 #% required : no
 #% guisection: Landscape Evolution
 #%end
 #%option G_OPT_R_MAP
 #% key: c
-#% description: Landcover index (C) factor. Map or constant. (values <=1.0 [unitless])
+#% description: Landcover index (C factor) map or constant (values <=1.0 [unitless])
 #% answer: 0.005
 #% required : no
 #% guisection: Landscape Evolution
 #%end
 #%option G_OPT_R_MAP
 #% key: p
-#% description: Landuse practices (P) factor. Map or constant. (values <=1.0 [unitless])
+#% description: Landuse practices factor (P factor) map or constant (values <=1.0 [unitless])
 #% answer: 1.0
 #% required : no
 #% guisection: Landscape Evolution
 #%end
 #%option G_OPT_R_MAP
 #% key: sdensity
-#% description: Soil density for conversion from mass to volume. Map or constant. (values typically >=1000 [kg/m3])
+#% description: Soil density map or constant for conversion from mass to volume (values typically >=1000 [kg/m3])
 #% answer: 1218.4
 #% required : no
 #% guisection: Landscape Evolution
@@ -122,31 +122,31 @@
 
 #%option G_OPT_R_MAP
 #% key: r
-#% description: Rainfall (R) factor. Map or constant, USPED only. (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
+#% description: Rainfall (R factor) map or constant (Employed only in the USPED equation) (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
 #% answer: 720
 #% guisection: Climate
 #%end
 #%option G_OPT_R_MAP
 #% key: rain
-#% description: Precip total for the average erosion-causing storm. Map or constant, stream power and shear stress only. (values typically >=30.0 [mm])
+#% description: Precip total for the average erosion-causing storm map (Employed in stream power and shear stress equations) (values typically >=30.0 [mm])
 #% answer: 30
 #% guisection: Climate
 #%end
 #%option G_OPT_R_MAP
 #% key: storms
-#% description: Number of erosion-causing storms per year. Map or constant, stream power and shear stress only. (values >=0 [integer])
+#% description: Number of erosion-causing storms per year map or constant (Employed in stream power and shear stress equations) (values >=0 [integer])
 #% answer: 2
 #% guisection: Climate
 #%end
 #%option G_OPT_R_MAP
 #% key: stormlength
-#% description: Average length of the storm. Map or constant, stream power and shear stress only. (values >=0.0 [h])
+#% description: Average length of the storm map or constant (Employed in stream power and shear stress equations) (values >=0.0 [h])
 #% answer: 24.0
 #% guisection: Climate
 #%end
 #%option G_OPT_R_MAP
 #% key: stormi
-#% description: Proportion of the length of the storm where the storm is at peak intensity. Map or constant, stream power and shear stress only. (values typically ~0.05 [unitless proportion])
+#% description: Proportion of the length of the storm where the storm is at peak intensity map or constant (Employed in stream power and shear stress equations) (values typically ~0.05 [unitless proportion])
 #% answer: 0.05
 #% guisection: Climate
 #%end
@@ -158,14 +158,14 @@
 #%end
 #%option G_OPT_R_MAP
 #% key: manningn
-#% description: Manning's "N" value for channelized flow. Map or constant, stream power and shear stress only. (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
+#% description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
 #% answer: 0.03
 #% required : no
 #% guisection: Hydrology
 #%end
 #%option G_OPT_R_MAP
 #% key: flowcontrib
-#% description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution. (values between 0 and 100 [unitless percentage])
+#% description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution (values between 0 and 100 [unitless percentage])
 #% answer: 100
 #% required : no
 #% guisection: Hydrology
@@ -267,9 +267,9 @@ def main():
     else:
         statsout = options["statsout"]
     if os.path.isfile(statsout):
-        f = open(statsout, 'a')
+        f = file(statsout, 'a')
     else:
-        f = open(statsout, 'wt')
+        f = file(statsout, 'wt')
         f.write('These statistics are in units of vertical meters (depth) per cell\n,,Mean Values,,,,Standard Deviations,,,,Totals,,,Additional Stats\nIteration,,Mean Erosion,Mean Deposition,Mean Soil Depth,,Standard Deviation Erosion,Standard Deviation Deposition,Standard Deviation Soil Depth,,Total Sediment Eroded,Total Sediment Deposited,,Minimum Erosion,First Quartile Erosion,Median Erosion,Third Quartile Erosion,Maximum Erosion,Original Un-smoothed Maximum Erosion,,Minimum Deposition,First Quartile Deposition,Median Deposition,Third Quartile Deposition,Maximum Deposition,Original Un-smoothed Maximum Deposition,,Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth')
     if  flags["p"] is True:
         grass.message('Making sample points map for determining cutoffs.')
@@ -388,11 +388,10 @@ def landscapeEvol(m, o, p, q, res, s, f):
         grass.run_command('g.copy', raster = elev + "," + old_dem, quiet = True)
 
     # Grab the number of cells in the starting DEM
-    numcells = grass.read_command('r.stats',
-                                  flags = 'cAn',
-                                  input = old_dem,
-                                  separator = 'comma',
-                                  nsteps = 1).strip('\n').split(',')[1]
+    numcells = grass.parse_command('r.univar',
+                                  flags = 'g',
+                                  map = old_dem,
+                                  )['n']
 
     # Calculate soil as difference between surface and bedrock
     grass.mapcalc('${old_soil}=${old_dem}-${initbdrk}',
@@ -599,7 +598,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # For shear stress and stream power, also multiply by the number
     # of seconds at peak flow depth (stormi) and then by the number of erosive
     # storms per year to get m/year elevation change.
-    if transp_eq == 'USPED':
+    if transp_eq is 'USPED':
         ed = '''${netchange}=((${qsxdx}+${qsydy})/${sdensity})'''
         grass.mapcalc(ed, quiet = True,
                   netchange = tmpnetchange,
