@@ -2,12 +2,12 @@
 
 # GRASS GIS transifex support script: fetches msg from transifex
 # Luca Delucchi 2017, based on gettext message merge procedure by Markus Neteler
-# - keep headers added by Markus 
+# - keep headers added by Markus
 # 2018, grass72 -> grass7
 
 # Required installation:
-# see
-# https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files 
+#  sudo pip3 install transifex-client
+# see also: https://grasswiki.osgeo.org/wiki/GRASS_messages_translation#Get_the_translated_po_files 
 
 # Usage:
 # this script has to be launched in the `locale/` directory.
