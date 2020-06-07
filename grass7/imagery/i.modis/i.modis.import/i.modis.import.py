@@ -142,6 +142,11 @@ def list_files(opt, mosaik=False):
     # read the file with the list of HDF
     if opt['files'] != '':
         if os.path.exists(opt['files']):
+            if os.path.splitext(opt['files'])[-1].lower() == '.hdf':
+                grass.fatal(_("Option <{}> assumes file with list of HDF files. "
+                              "Use option <{}> to import a single HDF file").format(
+                                  'files', 'input'
+                ))
             listoffile = open(opt['files'], 'r')
             basedir = os.path.split(listoffile.name)[0]
         else:
@@ -163,6 +168,7 @@ def list_files(opt, mosaik=False):
                     filelist[day].append(line.strip())
                 else:
                     filelist[day] = [line.strip()]
+        listoffile.close()
     # create a list for each file
     elif options['input'] != '':
         filelist = [options['input']]
@@ -350,7 +356,13 @@ def single(options, remove, an, ow, fil):
     except:
         grass.fatal("pymodis library is not installed")
     listfile, basedir = list_files(options)
+    if not listfile:
+        grass.warning(_("No HDF files found"))
+        return
+
     # for each file
+    count = len(listfile)
+    idx = 1
     for i in listfile:
         if os.path.exists(i):
             hdf = i
@@ -360,7 +372,19 @@ def single(options, remove, an, ow, fil):
             if not os.path.exists(hdf):
                 grass.warning(_("%s not found" % i))
                 continue
-        pm = parseModis(hdf)
+
+        grass.message(_("Proccessing <{f}> ({i}/{c})...").format(
+            f=os.path.basename(hdf), i=idx, c=count))
+        grass.percent(idx, count, 5)
+        idx += 1
+
+        try:
+            pm = parseModis(hdf)
+        except OSError:
+            grass.fatal(_("<{}> is not a HDF file").format(
+                hdf
+            ))
+            continue
         if options['mrtpath']:
             # create conf file fro mrt tools
             confname = confile(pm, options, an)
@@ -409,7 +433,15 @@ def mosaic(options, remove, an, ow, fil):
     dictfile, targetdir = list_files(options, True)
     pid = str(os.getpid())
     # for each day
+    count = len(dictfile.keys())
+    idx = 1
     for dat, listfiles in dictfile.items():
+        grass.message(_("Processing <{d}> ({i}/{c})...").format(
+            d=dat, i=idx, c=count
+        ))
+        grass.percent(idx, count, 5)
+        idx += 1
+
         pref = listfiles[0].split(os.path.sep)[-1]
         prod = product().fromcode(pref.split('.')[0])
         spectr = spectral(options, prod, an)
