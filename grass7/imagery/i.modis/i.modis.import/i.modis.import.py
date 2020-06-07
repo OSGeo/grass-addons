@@ -362,7 +362,7 @@ def single(options, remove, an, ow, fil):
 
     # for each file
     count = len(listfile)
-    idx = 0
+    idx = 1
     for i in listfile:
         if os.path.exists(i):
             hdf = i
@@ -374,14 +374,14 @@ def single(options, remove, an, ow, fil):
                 continue
 
         grass.message(_("Proccessing <{f}> ({i}/{c})...").format(
-            f=os.path.basename(hdf), i=idx+1, c=count))
+            f=os.path.basename(hdf), i=idx, c=count))
         grass.percent(idx, count, 5)
         idx += 1
 
         try:
             pm = parseModis(hdf)
         except OSError:
-            grass.warning(_("<{}> is not a HDF file. Skipping").format(
+            grass.fatal(_("<{}> is not a HDF file").format(
                 hdf
             ))
             continue
@@ -434,10 +434,10 @@ def mosaic(options, remove, an, ow, fil):
     pid = str(os.getpid())
     # for each day
     count = len(dictfile.keys())
-    idx = 0
+    idx = 1
     for dat, listfiles in dictfile.items():
         grass.message(_("Processing <{d}> ({i}/{c})...").format(
-            d=dat, i=idx+1, c=count
+            d=dat, i=idx, c=count
         ))
         grass.percent(idx, count, 5)
         idx += 1
