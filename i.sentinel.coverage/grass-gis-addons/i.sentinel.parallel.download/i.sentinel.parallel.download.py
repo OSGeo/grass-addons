@@ -3,8 +3,9 @@
 #
 # MODULE:       i.sentinel.parallel.download
 # AUTHOR(S):    Guido Riembauer
-# PURPOSE:      Downloads Sentinel-2 images parallely using i.sentinel.download.
-# COPYRIGHT: (C) 2020 by mundialis and the GRASS Development Team
+#
+# PURPOSE:      Downloads Sentinel-2 images in parallel using i.sentinel.download.
+# COPYRIGHT:    (C) 2020 by mundialis and the GRASS Development Team
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,7 +20,7 @@
 ############################################################################
 
 #%module
-#% description: Downloads Sentinel-2 images parallely using i.sentinel.download.
+#% description: Downloads Sentinel-2 images in parallel using i.sentinel.download.
 #% keyword: imagery
 #% keyword: satellite
 #% keyword: Sentinel
