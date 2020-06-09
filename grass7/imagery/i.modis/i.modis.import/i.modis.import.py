@@ -406,6 +406,9 @@ def single(options, remove, an, ow, fil):
             outname = outname.replace(' ', '_')
             execmodis = convertModisGDAL(str(hdf), outname, spectr, res,
                                          wkt=str(projwkt))
+
+        # produce temporary files in input folder
+        os.chdir(basedir)
         try:
             execmodis.run(quiet=True)
         except:
@@ -494,6 +497,9 @@ def mosaic(options, remove, an, ow, fil):
                     res = None
                 execmodis = convertModisGDAL(str(hdf), out, spectr, res,
                                              wkt=str(projwkt), vrt=True)
+
+            # produce temporary files in input folder
+            os.chdir(basedir)
             try:
                 execmodis.run(quiet=True)
             except:
