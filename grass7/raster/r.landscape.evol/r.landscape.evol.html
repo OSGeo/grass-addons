@@ -11,10 +11,10 @@ Stress equation, or the USPED equation.</p>
 <h3>Transport capacity equations.</h3>
 
 <p>Users may select to use the Stream Power equation, the Shear Stress
-equation, or the USPED equations with variable <b>transp_eq</b>. All
-three equations estimate transport capacity as <code>[kg/m.s]</code>, and
-thus eventually erosion/deposition rate as <code>[kg/m2.s]</code>, which
-is transformed to <code>[vertical meters/cell]</code> using the variable
+equation, or the USPED equations with variable <b>transp_eq</b>. All three
+equations estimate transport capacity as <code>[kg/m.s]</code>, and thus
+eventually erosion/deposition rate as <code>[kg/m2.s]</code>, which is
+transformed to <code>[vertical meters/cell]</code> using the variable
 <b>sdensity</b> (see below for details of these conversions). </p>
 
 <p>It is important to note that in this new version of
@@ -165,12 +165,12 @@ and gullying, or channelized flow (see references below, but in particular
 Peckham 2003, Mathier et al 1989, and Kwang and Parker 2017). Following a
 suggestion in Peckham 2003, this new version of <em>r.landscape.evol</em>
 simulates change in process across the landscape by scaling <code>m</code>
-and <code>n</code> to changes in topography and flow accumulation. As
-this is largely an experimental process, the specifics of this scaling
-are exposed to the user via the <b>m</b> and <b>n</b>
-variables. The user can define the scalar relationship of <code>m</code>
-to surface flow accumulation, and <code>n</code> to local slope. Sensible
-default values are included to help the user know where to start.</p>
+and <code>n</code> to changes in topography and flow accumulation. As this is
+largely an experimental process, the specifics of this scaling are exposed
+to the user via the <b>m</b> and <b>n</b> variables. The user can define
+the scalar relationship of <code>m</code> to surface flow accumulation,
+and <code>n</code> to local slope. Sensible default values are included to
+help the user know where to start.</p>
 
 <p>Exponent <code>m</code> relates to the influence of upslope area
 (and thus flow depth, discharge) on transport capacity in the Stream
@@ -179,14 +179,13 @@ of <code>m</code> are generally thought to be between 2 and 1, and
 experimentation suggests that they should scale <em>inversely</em> with
 increasing depth of flow. Exponent <code>m</code> will scale linearly with
 the value of flow accumulation between the two cutoff thresholds specified:
-<code>&quot;thresh1,m1,thresh2,m2&quot;</code>. So, for example, if you
-would like the value of exponent <code>m</code> to scale from 1.2 to 1
-between a flow accumulation value of 5 and 50, enter the following into
-the variable <b>m</b>: <code>&quot;5,1.2,50,1&quot;</code>. The
-exponent <code>m</code> will remain 1.2 for all cells where flow accumulation
-is below 5, and will remain 1 for all cells with flow accumulation above
-50. It will scale linearly between 1.2 and 1 for all cells with values of
-flow accumulation between 5 and 50. </p>
+<code>&quot;thresh1,m1,thresh2,m2&quot;</code>. So, for example, if you would
+like the value of exponent <code>m</code> to scale from 1.2 to 1 between a flow
+accumulation value of 5 and 50, enter the following into the variable <b>m</b>:
+<code>&quot;5,1.2,50,1&quot;</code>. The exponent <code>m</code> will remain
+1.2 for all cells where flow accumulation is below 5, and will remain 1 for
+all cells with flow accumulation above 50. It will scale linearly between
+1.2 and 1 for all cells with values of flow accumulation between 5 and 50. </p>
 
 <p>A literature search indicates that maximum values of <code>m</code>
 should be less than or equal to 2, and that scaling between 1.2 and 1 is
@@ -201,10 +200,10 @@ will scale linearly with slope between the two slope cutoff thresholds
 specified: <code>&quot;thresh1,n1,thresh2,n2&quot;</code>. So, for example,
 if you would like the value of exponent <code>n</code> to scale from 1.3 to
 1 between a slope value of 10 and 30, enter the following into the variable
-<b>n</b>: <code>&quot;10,1.3,30,1&quot;</code>. The exponent
-<code>n</code> will remain 1.3 for all cells where slope is below 5, and
-will remain 1 for all cells with slope above 30. It will scale linearly
-between 1.3 and 1 for all cells with values of slope between 5 and 30. </p>
+<b>n</b>: <code>&quot;10,1.3,30,1&quot;</code>. The exponent <code>n</code>
+will remain 1.3 for all cells where slope is below 5, and will remain 1 for
+all cells with slope above 30. It will scale linearly between 1.3 and 1 for
+all cells with values of slope between 5 and 30. </p>
 
 <p>A literature search indicates that maximum values values of <code>n</code>
 should be less than or equal to 2, and that scaling between 1.3 and 1 is
@@ -213,16 +212,15 @@ probably a good range to start with.</p>
 <h3>Scaling other input values.</h3>
 
 <p>To ensure proper behavior for landscape evolution simulation over long
-periods, it is important that most of the important variables be allowed
-to vary spatially as they would on a real landscape. The three most
-important sets of variables are a) Soil, vegetation cover, and land use
-factors <b>k</b>, <b>c</b>, <b>p</b>, which
-together approximate erodibility factor <code>Kt</code>, b) Manning&#39;s N
-<b>manningn</b> which is used to estimate stream power/shear stress
-of flowing water in different types of channels and surface conditions,
-and c) <b>flowcontrib</b>, the rainfall excess rate (percentage
-of direct precipitation that will flow off of a cell), which is used to
-estimate the flow depth (see below). </p>
+periods, it is important that most of the important variables be allowed to
+vary spatially as they would on a real landscape. The three most important
+sets of variables are a) Soil, vegetation cover, and land use factors
+<b>k</b>, <b>c</b>, <b>p</b>, which together approximate erodibility factor
+<code>Kt</code>, b) Manning&#39;s N <b>manningn</b> which is used to estimate
+stream power/shear stress of flowing water in different types of channels
+and surface conditions, and c) <b>flowcontrib</b>, the rainfall excess rate
+(percentage of direct precipitation that will flow off of a cell), which is
+used to estimate the flow depth (see below). </p>
 
 <p>Because upslope accumulated area <code>A</code> is a major influencing
 factor in each of the three equations, transport capacity (and thus
@@ -235,18 +233,18 @@ as values of flow accumulation approach very large numbers (e.g., &gt;&gt;
 <p><code>Kt</code> is composed of the <code>K</code>, <code>C</code>,
 and <code>P</code> factors. If empirical patterns of <code>K</code>,
 <code>C</code>, and <code>P</code> are known (e.g., digitized or classified
-from remotely senses data products), these should be entered as maps in input
-variables <b>k</b>, <b>c</b>, and <b>p</b>. </p>
+from remotely senses data products), these should be entered as maps in
+input variables <b>k</b>, <b>c</b>, and <b>p</b>. </p>
 
-<p>If empirically determined maps of these variables are not available,
-it is possible to use constants in their place, but it will be much better
-to create maps using some theoretical concepts. The simplest way is to
-scale <code>C</code> to a wetness index using the principle that the more
-water accumulation, the denser the vegetation. From a DEM, it is possible
-to calculate the TCI topographic wetness index using <em>r.watershed</em>
-with output parameter <b>tci</b>. Here is an example set of
-<em>r.recode</em> rules to create a <code>C</code> map from TCI to enter in
-input variable <b>c</b>:</p>
+<p>If empirically determined maps of these variables are not available, it
+is possible to use constants in their place, but it will be much better to
+create maps using some theoretical concepts. The simplest way is to scale
+<code>C</code> to a wetness index using the principle that the more water
+accumulation, the denser the vegetation. From a DEM, it is possible to
+calculate the TCI topographic wetness index using <em>r.watershed</em> with
+output parameter <b>tci</b>. Here is an example set of <em>r.recode</em>
+rules to create a <code>C</code> map from TCI to enter in input variable
+<b>c</b>:</p>
 
 <pre><code>0:3:0.1:0.01 3:7:0.01:0.005 7:10:0.005:0.004 10:*:0.004
 </code></pre>
@@ -287,7 +285,7 @@ same DEM that will be used as the initial DEM for the simulation. Further,
 the -a flag in <em>r.watershed</em> should be checked so that the output
 flow accumulation will contain only positive numbers</p>
 
-<h3>Creating a hydrologically appropriate base DEM.</h3>
+<h3>Creating a hydrologically-appropriate base DEM.</h3>
 
 <p>It is vitally important the the input starting DEM be hydrologically valid
 and at an appropriate raster resolution. Resolution should be scaled to the
@@ -309,47 +307,73 @@ that can adversely affect simulation of water flow on the interpolated DEM.</p>
 <p>The DEM should be clipped to a contiguous watershed boundary (e.g.,
 extracted with <em>r.watershed</em> or <em>r.water.outlet</em>). Rectilinear
 input maps will produce erroneous results outside of internally contiguous
-watersheds leading to faulty statistics, so it is more useful to clip
-to the watershed of interest (e.g., using <em>r.mapcalc</em>). Finally,
-in order to assure that water will flow naturally across the DEM, it is
-important to ensure that the DEM is depressionless. This <em>could</em>
+watersheds leading to faulty statistics, so it is more useful to clip to
+the watershed of interest (e.g., using <em>r.mapcalc</em>). </p>
+
+<p>Finally, in order to assure that water will flow naturally across the DEM,
+it is important to ensure that the DEM is depressionless. This <em>could</em>
 be achieved with <em>r.fill.dir</em> to fill any interior basins to an
-elevation level with their spill point, but doing so creates many flat areas
-where otherwise channelized flow will diverge (and thus deposit). This can
-be partially addressed by adjusting <b>convergence</b> to a low
-value, which forces the flow accumulation routine in <em>r.watershed</em>
-to send a higher proportion of the flow to the most downstream cell. Perhaps
-a better approach is to create a depressionless DEM by <em>carving</em>
-the main streams through any blockages using <em>r.carve</em>. To do so,
-extract streams using <em>r.watershed</em> or <em>r.streams.extract</em>
-and an appropriate interior basin threshold parameter to isolate main trunk
-streams from smaller branches. This streams vector is used as input into
-<em>r.carve</em>, along with a small value for additional carving (e.g. &gt;
-0.5m) to provide a &ldquo;pre-carved&rdquo; stream channel for the flow to
-converge in. Used in this way <em>r.carve</em> will cut through any locally
-high blockages between depressions in the channel, and will optionally carve an
-additional depth at all cells crossed by the input stream vector.  This can be
-especially useful if flow will tend to diverge in low lying areas. Further, you
-can specify the width of the stream, which will carve adjacent cells to create
-a wider stream path. Optionally, the addon module <em>r.stream.order</em>
-can be used to separate streams by their network order (e.g., Strahler order),
-which can be use to iteratively carve narrower and shallower portions of the
-stream network, starting with the highest order streams, and proceeding to
-the lowest order, creating interim carved DEM&#39;s along the way. </p>
+elevation level with their spill point, but doing so creates many flat
+areas where otherwise channelized flow will diverge (and thus deposit). This
+can be partially addressed by adjusting <b>convergence</b> to a low value,
+which forces the flow accumulation routine in <em>r.watershed</em> to send
+a higher proportion of the flow to the most downstream cell. </p>
+
+<p>However, a much better, if more complicated approach is to create
+a depressionless DEM by <em>carving</em> the main streams through any
+blockages. The module <em>r.carve</em> can do this relatively simply,
+but you are only able to use a uniform stream width and depth. Ideally,
+the width and depth of the carved channels should decrease in width and
+depth from the basin outlet to the stream sources. To do this requires
+several steps. First extract an appropriately-scaled stream network using
+<em>r.watershed</em> and/or <em>r.stream.extract</em> and an appropriate
+interior basin threshold parameter to isolate main trunk streams with
+some smaller tributary branches. Use this output raster streams map as the
+input to the addon module <em>r.stream.order</em> with the output option
+for the Shreve stream order. This will create a raster streams map where
+trunk streams are coded with a large number, and tributaries with smaller
+numbers. Use <em>r.univar</em> to determine the maximum Shreve value, and
+then use <em>r.mapcalc</em> to standardize the values between 0 and 1 by
+dividing the Shreve-scaled streams map by the maximum Shreve order value
+(ensure that you use a decimal point behind the maximum value number so that
+a floating point map will be made). The standardized Shreve order streams
+raster map is then converted to a line vector map with <em>r.to.vect</em>
+with option <b>column</b> set in order to write the scaled Shreve order into
+the table. This vector map is then input into <em>v.buffer</em> with option
+<b>column</b> set to the column where the scaled Shreve order values were saved
+and flag <b>t</b> is selected so that the attribute table will transfer to the
+new file. Also set option <b>scale</b> to the maximum channel width (in meters)
+of the largest trunk stream in the streams map, which will create a vector
+areas map with streams scaled to the appropriate widths. This vector areas
+map should then be converted back to a raster map with <em>v.to.rast</em>,
+making sure that the option <b>use</b> is set to &ldquo;attr&rdquo; and
+the option <b>attribute_column</b> is set so that the scaled Shreve order
+values will be saved as the raster values. Finally, use <em>r.mapcalc</em>
+to scale the Sherve order values into the depth of the carved streams by
+multiplying the converted buffer raster map by the maximum desired depth of
+the largest trunk stream. This final output raster map will now be scaled to
+both width and depth throughout the stream network. Use <em>r.mapcalc</em>
+to &ldquo;carve&rdquo; into the DEM by subtracting this scaled width/depth map
+from the DEM. As a final measure to ensure that there is no stream blockage,
+you can use the module *<em>r.carve</em> with the streams vector map and the
+&ldquo;precarved&rdquo; DEM, which will ensure that no high areas exist in
+the channel bottoms. Finally, you may wish to re-interpolate the carved DEM
+so that harsh angles on the edges of the carved banks are removed. Using a
+bicubic interpolation in <em>v.surf.bspline</em> with relatively long spline
+step and high smoothing should accomplish this.</p>
 
 <h3>Estimating soil depth.</h3>
 
 <p>Soil depth is important in the routine, as it provides a depth-based
 limitation on the amount of erosion that can occur at any particular
 cell (see below). The depth of soil available to erode is the difference
-between the current surface elevations (DEM) and the bedrock elevation
-map <b>initbdrk</b>. The simplest way to estimate the bedrock
-elevation map is to subtract a constant from the starting DEM map used
-for <b>elev</b> using <em>r.mapcalc</em>. A more complex bedrock
-topography can be estimated using the addon module <em>r.soildepth</em>. In
-either case, it is important to use the same DEM to derive the bedrock
-elevations as you will use for the initial starting topography in the
-simulation.</p>
+between the current surface elevations (DEM) and the bedrock elevation map
+<b>initbdrk</b>. The simplest way to estimate the bedrock elevation map is
+to subtract a constant from the starting DEM map used for <b>elev</b> using
+<em>r.mapcalc</em>. A more complex bedrock topography can be estimated using
+the addon module <em>r.soildepth</em>. In either case, it is important to
+use the same DEM to derive the bedrock elevations as you will use for the
+initial starting topography in the simulation.</p>
 
 <h3>Climate data file.</h3>
 
@@ -357,8 +381,8 @@ simulation.</p>
 climate file with columns of comma separated values arranged in order of:
 <code>&quot;R,rain,storms,stormlength,stormsi&quot;</code> A new line should
 be used for each year of the simulation. The file can have a one-line header
-or no header. Do not included a column containing dates, but ensure that the
-number of rows matches the value you input for <b>number</b>. </p>
+or no header. Do not included a column containing dates, but ensure that
+the number of rows matches the value you input for <b>number</b>. </p>
 
 <p>Note that only the USPED equation needs a value for R factor, and USPED
 does not need the remaining climate variables. In the case of using USPED,
@@ -371,20 +395,18 @@ must create a CSV file with 5 columns, but the first column (for R Factor)
 can be filled with zeros or NaN&#39;s.</p>
 
 <p>When using a climate file, you enter the path to the text file as variable
-<b>climfile</b>. This will override values or maps entered into
-variables <b>r</b>, <b>rain</b>, <b>storms</b>,
-<b>stormlength</b>, or <b>stormsi</b>. A fatal error
-message will be raised if the number of rows in the input climate file does
-not match the value entered for the variable <b>number</b>.</p>
+<b>climfile</b>. This will override values or maps entered into variables
+<b>r</b>, <b>rain</b>, <b>storms</b>, <b>stormlength</b>, or <b>stormsi</b>. A
+fatal error message will be raised if the number of rows in the input climate
+file does not match the value entered for the variable <b>number</b>.</p>
 
 <h3>Rainfall excess and flow accumulation.</h3>
 
 <p>This module will take rainfall totals into account when calculating the
-value of flow accumulation. It does so using <em>r.watershed</em> and the
-value of <b>flowcontrib</b> to calculate flow accumulation scaled
-by the percentage of rain that will flow off the cell (i.e., rainfall -
-infiltration). See above for a method to scale <b>flowcontrib</b>
-to C factor.</p>
+value of flow accumulation. It does so using <em>r.watershed</em> and the value
+of <b>flowcontrib</b> to calculate flow accumulation scaled by the percentage
+of rain that will flow off the cell (i.e., rainfall - infiltration). See
+above for a method to scale <b>flowcontrib</b> to C factor.</p>
 
 <h3>Temporal Interval</h3>
 
@@ -395,11 +417,11 @@ time step of your R input data before simulation with the USPED equation.</p>
 
 <p>The Stream Power and Shear Stress equations, on the other hand, accept
 storm-level data. This can be aggregated at any time step (per-storm, daily,
-weekly, monthly, yearly, decadal, etc.). The time step does not need to be an
-even interval; this means you can model on a per-storm basis where the interval
-between storms is not the same. To do so, you would use the option to enter
-a climate file where each line would detail the timing and intensity of each
-storm. You would then run the simulation with variable <b>number</b>
+weekly, monthly, yearly, decadal, etc.). The time step does not need to be
+an even interval; this means you can model on a per-storm basis where the
+interval between storms is not the same. To do so, you would use the option
+to enter a climate file where each line would detail the timing and intensity
+of each storm. You would then run the simulation with variable <b>number</b>
 equal to the total number of storms in your study interval.</p>
 
 <h3>Approximation of depth of flow for Stream Power and Shear Stress
@@ -417,25 +439,23 @@ the graph equals A (upslope accumulated area), and the horizontal width of
 the base of the hydrograph is equal to the length of the storm in seconds
 (<b>stormlength</b>).</p>
 
-<p>One of the benefits of this approach is that it is not tied to any
-specific time scale; any amount of time equal to or greater than 1 second
-can be modeled. For example, hourly rainfall totals can be entered as
-<b>rain</b> in sequence, with <b>stormtime</b> set to
-3600 seconds, <b>storms</b> set to 1, and <b>stormi</b>
-set to 1. Hourly data could be aggregated to the level of the individual
-storm with the total for each storm entered as <b>rain</b>,
-<b>stormtime</b> equal to the total number of seconds each storm
-lasted, <b>storms</b> set to 1, and <b>stormi</b>
-set to some proportion of the storm where flow was at or near peak depths
-(e.g. 0.05). Daily rainfall totals can be entered as <b>rain</b>
-in sequence, with <b>stormtime</b> set to 84600 seconds,
-<b>storms</b> set to 1, and <b>stormi</b> set to some
-proportion where flow is at peak (e.g., 0.05). Monthly totals can be broken
-up into proportions per rain day, entered as <b>rain</b> with
-<b>stormtime</b> set to 84600 seconds, <b>storms</b> set to
-the number of storms that occurred that month, and <b>stormi</b> set
-to some proportion where flow is at or near peak depth (e.g., 0.05). Weekly,
-yearly, decadal, etc., totals can be entered in the same manner.</p>
+<p>One of the benefits of this approach is that it is not tied to any specific
+time scale; any amount of time equal to or greater than 1 second can be
+modeled. For example, hourly rainfall totals can be entered as <b>rain</b> in
+sequence, with <b>stormtime</b> set to 3600 seconds, <b>storms</b> set to 1,
+and <b>stormi</b> set to 1. Hourly data could be aggregated to the level of
+the individual storm with the total for each storm entered as <b>rain</b>,
+<b>stormtime</b> equal to the total number of seconds each storm lasted,
+<b>storms</b> set to 1, and <b>stormi</b> set to some proportion of the storm
+where flow was at or near peak depths (e.g. 0.05). Daily rainfall totals can
+be entered as <b>rain</b> in sequence, with <b>stormtime</b> set to 84600
+seconds, <b>storms</b> set to 1, and <b>stormi</b> set to some proportion
+where flow is at peak (e.g., 0.05). Monthly totals can be broken up into
+proportions per rain day, entered as <b>rain</b> with <b>stormtime</b> set
+to 84600 seconds, <b>storms</b> set to the number of storms that occurred
+that month, and <b>stormi</b> set to some proportion where flow is at or
+near peak depth (e.g., 0.05). Weekly, yearly, decadal, etc., totals can be
+entered in the same manner.</p>
 
 <p>This approach is more flexible than using R factor to encapsulate rainfall
 intensivity, as with USPED, as often R factor can only be estimated from
@@ -453,10 +473,10 @@ kg/m2.s of sediment gained or lost. This is converted to meters of elevation
 gained or lostby dividing by soil density [kg/m3]. For USPED, which is tied
 to the temporal interval of R factor, this typically provides [m/year] as
 the output units. For the shear stress and stream power equations, however,
-this first comes out in units of [m/s]. It is then necessary to multiply
-by the number of seconds at peak flow depth (<b>stormi</b>
-* <b>stormtime</b>) and then by the number of erosive storms
-(<b>storms</b>) per year to get [m/year] elevation change.</p>
+this first comes out in units of [m/s]. It is then necessary to multiply by
+the number of seconds at peak flow depth (<b>stormi</b> * <b>stormtime</b>)
+and then by the number of erosive storms (<b>storms</b>) per year to get
+[m/year] elevation change.</p>
 
 <h3>Computing elevation changes from one year to next.</h3>
 
@@ -520,78 +540,78 @@ Academic Press.</p>
 
 <p>Aiello, A., Adamo, M., Canora, F., 2015. Remote sensing and
 GIS to assess soil erosion with RUSLE3D and USPED at river
-basin scale in southern Italy. CATENA 131, 174&mdash;185. <a
+basin scale in southern Italy. CATENA 131, 174–185. <a
 href="https://doi.org/10.1016/j.catena.2015.04.003">https://doi.org/10.1016/j.catena.2015.04.003</a></p>
 
 <p>Aksoy, H., Kavvas, M.L., 2005. A review of hillslope and watershed
-scale erosion and sediment transport models. CATENA 64, 247&mdash;271. <a
+scale erosion and sediment transport models. CATENA 64, 247–271. <a
 href="https://doi.org/10.1016/j.catena.2005.08.008">https://doi.org/10.1016/j.catena.2005.08.008</a></p>
 
 <p>Ayala, G., French, C., 2005. Erosion modeling of past land-use practices in
 the Fiume di Sotto di Troina river valley, north-central Sicily. Geoarchaeology
-20, 149&mdash;167.</p>
+20, 149–167.</p>
 
 <p>Benavidez, R., Jackson, B., Maxwell, D., Norton, K., 2018. A
 review of the (Revised) Universal Soil Loss Equation (R/USLE): with
 a view to increasing its global applicability and improving soil loss
-estimates. Hydrology and Earth System Sciences Discussions 1&mdash;34. <a
+estimates. Hydrology and Earth System Sciences Discussions 1–34. <a
 href="https://doi.org/10.5194/hess-2018-68">https://doi.org/10.5194/hess-2018-68</a></p>
 
 <p>Bosco, C., de Rigo, D., Dewitte, O., Poesen, J., Panagos, P.,
 2015. Modelling soil erosion at European scale: towards harmonization and
-reproducibility. Natural Hazards and Earth System Science 15, 225&mdash;245. <a
+reproducibility. Natural Hazards and Earth System Science 15, 225–245. <a
 href="https://doi.org/10.5194/nhess-15-225-2015">https://doi.org/10.5194/nhess-15-225-2015</a></p>
 
 <p>Davy, P., Crave, A., 2000. Upscaling local-scale transport
 processes in large-scale relief dynamics. Physics and Chemistry
-of the Earth, Part A: Solid Earth and Geodesy 25, 533&mdash;541. <a
+of the Earth, Part A: Solid Earth and Geodesy 25, 533–541. <a
 href="https://doi.org/10.1016/S1464-1895(00)00082-X">https://doi.org/10.1016/S1464-1895(00)00082-X</a></p>
 
 <p>Dietrich, W.E., Bellugi, D.G., Sklar, L.S., Stock, J.D., Heimsath, A.M.,
 Roering, J.J., 2003. Geomorphic Transport Laws for Predicting Landscape
 form and Dynamics, in: Wilcock, P.R., Iverson, R.M. (Eds.), Prediction
 in Geomorphology, Geophysical Monograph. American Geophysical Union,
-pp. 103&mdash;132.</p>
+pp. 103–132.</p>
 
 <p>Diodato, N., 2006. Predicting RUSLE (Revised Universal Soil Loss
 Equation) Monthly Erosivity Index from Readily Available Rainfall
-Data in Mediterranean Area. The Environmentalist 26, 63&mdash;70. <a
+Data in Mediterranean Area. The Environmentalist 26, 63–70. <a
 href="https://doi.org/10.1007/s10669-006-5359-x">https://doi.org/10.1007/s10669-006-5359-x</a></p>
 
 <p>Hammad, A.A., Lundekvam, H., Børresen, T., 2004. Adaptation of RUSLE in
 the Eastern Part of the Mediterranean Region. Environmental Management 34,
-829&mdash;841.</p>
+829–841.</p>
 
 <p>Hancock, G.R., 2004. Modelling soil erosion on the catchment and landscape
-scale using landscape evolution models &mdash; a probabilistic approach using
+scale using landscape evolution models – a probabilistic approach using
 digital elevation model error, in: Super Soil 2004:3rd Australian New Zealand
 Soils Conference. University of Sydney, Australia.</p>
 
 <p>Kelley, A.D., Malin, M.C., Nielson, G.M., 1988. Terrain simulation using
-a model of stream erosion. ACM SIGGRAPH Computer Graphics 22, 263&mdash;268.</p>
+a model of stream erosion. ACM SIGGRAPH Computer Graphics 22, 263–268.</p>
 
 <p>Koko, Š., 2011. Simulation of gully erosion using the SIMWE model and
-GIS. Landform Analysis 17, 81&mdash;86.</p>
+GIS. Landform Analysis 17, 81–86.</p>
 
 <p>Kwang, J.S., Parker, G., 2017. Landscape evolution models using the stream
 power incision model show unrealistic behavior when &lt;i&gt;m&lt;/i&gt;
-∕ &lt;i&gt;n&lt;/i&gt; equals 0.5. Earth Surface Dynamics 5, 807&mdash;820. <a
+∕ &lt;i&gt;n&lt;/i&gt; equals 0.5. Earth Surface Dynamics 5, 807–820. <a
 href="https://doi.org/10.5194/esurf-5-807-2017">https://doi.org/10.5194/esurf-5-807-2017</a></p>
 
 <p>Martínez-Casasnovas, J.A., Sánchez-Bosch, I., 2000. Impact assessment
 of changes in land use/conservation practices on soil erosion in the
 Penedès-Anoia vineyard region (NE Spain). Soil and Tillage Research 57,
-101&mdash;106.</p>
+101–106.</p>
 
 <p>Mathier, L., Roy, A.G., Paré, J.P., 1989. The effect of
 slope gradient and length on the parameters of a sediment
-transport equation for sheetwash. CATENA 16, 545&mdash;558. <a
+transport equation for sheetwash. CATENA 16, 545–558. <a
 href="https://doi.org/10.1016/0341-8162(89)90041-6">https://doi.org/10.1016/0341-8162(89)90041-6</a></p>
 
 <p>Mitasova, H., Barton, C.M., Ullah, I.I., Hofierka, J., Harmon,
 R.S., 2013. GIS-based soil erosion modeling, in: Shroder, J., Bishop,
 M.P. (Eds.), Remote Sensing and GIScience in Geomorphology, Treatise in
-Geomorphology. Academic Press, San Diego, pp. 228&mdash;258.</p>
+Geomorphology. Academic Press, San Diego, pp. 228–258.</p>
 
 <p>Mitasova, H., Brown, W.M., Johnston, D., 2002. Terrain Modeling and Soil
 Erosion Simulation Final Report. Geographic Modeling Systems Lab, University
@@ -599,7 +619,7 @@ of Illinois at Urbana-Champaign.</p>
 
 <p>Mitasova, H., Hofierka, J., Zlocha, M., Iverson, L.R., 1996a. Modelling
 topographic potential for erosion and deposition using GIS. International
-journal of geographical information systems 10, 629&mdash;641. <a
+journal of geographical information systems 10, 629–641. <a
 href="https://doi.org/10.1080/02693799608902101">https://doi.org/10.1080/02693799608902101</a></p>
 
 <p>Mitasova, H., Mitas, L., Brown, W.M., 2001. Multiscale Simulation
@@ -607,7 +627,7 @@ of Land Use Impact on Soil Erosion and Deposition Patterns, in: Stott,
 D.E., Mohtar, R.H., Steinhardt, G.C. (Eds.), Sustaining the Global Farm:
 10th International Soil Conservation Organization Meeting Held May 24-29,
 1999. Purdue University and the USDA-ARS National Soil Erosion Research
-Laboratory, pp. 1163&mdash;1169.</p>
+Laboratory, pp. 1163–1169.</p>
 
 <p>Mitasova, H., Mitas, L., Brown, W.M., Johnston, D., 1996b. Multidimensional
 Soil Erosion/Deposition Modeling Part III: Process based erosion
@@ -622,73 +642,73 @@ at Urbana-Champaign.</p>
 <p>Onori, F., De Bonis, P., Grauso, S., 2006. Soil erosion prediction at
 the basin scale using the revised universal soil loss equation (RUSLE)
 in a catchment of Sicily (southern Italy). Environmental Geology 50,
-1129&mdash;1140.</p>
+1129–1140.</p>
 
 <p>Panagos, P., Ballabio, C., Borrelli, P., Meusburger, K., Klik,
 A., Rousseva, S., Tadić, M.P., Michaelides, S., Hrabalíková,
 M., Olsen, P., Aalto, J., Lakatos, M., Rymszewicz, A., Dumitrescu,
 A., Beguería, S., Alewell, C., 2015a. Rainfall erosivity in
-Europe. Science of The Total Environment 511, 801&mdash;814. <a
+Europe. Science of The Total Environment 511, 801–814. <a
 href="https://doi.org/10.1016/j.scitotenv.2015.01.008">https://doi.org/10.1016/j.scitotenv.2015.01.008</a></p>
 
 <p>Panagos, P., Borrelli, P., Meusburger, K., Alewell, C., Lugato, E.,
 Montanarella, L., 2015b. Estimating the soil erosion cover-management
-factor at the European scale. Land Use Policy 48, 38&mdash;50. <a
+factor at the European scale. Land Use Policy 48, 38–50. <a
 href="https://doi.org/10.1016/j.landusepol.2015.05.021">https://doi.org/10.1016/j.landusepol.2015.05.021</a></p>
 
 <p>Panagos, P., Borrelli, P., Meusburger, K., van der Zanden, E.H.,
 Poesen, J., Alewell, C., 2015c. Modelling the effect of support
 practices (P-factor) on the reduction of soil erosion by water at
-European scale. Environmental Science &amp; Policy 51, 23&mdash;34. <a
+European scale. Environmental Science &amp; Policy 51, 23–34. <a
 href="https://doi.org/10.1016/j.envsci.2015.03.012">https://doi.org/10.1016/j.envsci.2015.03.012</a></p>
 
 <p>Panagos, P., Meusburger, K., Ballabio, C., Borrelli, P., Alewell,
 C., 2014. Soil erodibility in Europe: A high-resolution dataset based
-on LUCAS. Science of The Total Environment 479&mdash;480, 189&mdash;200. <a
+on LUCAS. Science of The Total Environment 479–480, 189–200. <a
 href="https://doi.org/10.1016/j.scitotenv.2014.02.010">https://doi.org/10.1016/j.scitotenv.2014.02.010</a></p>
 
 <p>Peckham, S.D., 2003. Fluvial landscape models and catchment-scale
-sediment transport. Global and Planetary Change 39, 31&mdash;51. <a
+sediment transport. Global and Planetary Change 39, 31–51. <a
 href="https://doi.org/10.1016/S0921-8181(03)00014-6">https://doi.org/10.1016/S0921-8181(03)00014-6</a></p>
 
 <p>Peeters, I., Rommens, T., Verstraeten, G., Govers, G., Van Rompaey, A.,
 Poesen, J., Van Oost, K., 2006. Reconstructing ancient topography through
-erosion modelling. Geomorphology 78, 250&mdash;264.  Pistocchi, A., Cassani, G.,
+erosion modelling. Geomorphology 78, 250–264.  Pistocchi, A., Cassani, G.,
 Zani, O., n.d. Use of the USPED model for mapping soil erosion and managing
 best land conservation practices 7.</p>
 
 <p>Renard, K.G., Foster, G.R., Weesies, G.A., McCool, D.K., Yoder, D.C.,
 1997. Predicting soil erosion by water: a guide to conservation planning
 with the Revised Universal Soil Loss Equation (RUSLE), in: Agriculture
-Handbook. US Department of Agriculture, Washington, DC, pp. 1&mdash;251.</p>
+Handbook. US Department of Agriculture, Washington, DC, pp. 1–251.</p>
 
 <p>Renard, K.G., Foster, G.R., Weesies, G.A., Porter, J.P., 1991. RUSLE:
 Revised Universal Soil Loss Equation. Journal of Soil and Water Conservation
-46, 30&mdash;33.</p>
+46, 30–33.</p>
 
 <p>Renard, K.G., Freimund, J.R., 1994. Using monthly precipitation data
 to estimate the R-factor in the revised USLE. Journal of Hydrology 157,
-287&mdash;306.</p>
+287–306.</p>
 
 <p>Sklar, L.S., Riebe, C.S., Marshall, J.A., Genetti, J., Leclere, S., Lukens,
 C.L., Merces, V., 2017. The problem of predicting the size distribution of
-sediment supplied by hillslopes to rivers. Geomorphology 277, 31&mdash;49. <a
+sediment supplied by hillslopes to rivers. Geomorphology 277, 31–49. <a
 href="https://doi.org/10.1016/j.geomorph.2016.05.005">https://doi.org/10.1016/j.geomorph.2016.05.005</a></p>
 
 <p>Terranova, O., Antronico, L., Coscarelli, R., Iaquinta,
 P., 2009. Soil erosion risk scenarios in the Mediterranean
 environment using RUSLE and GIS: An application model for
-Calabria (southern Italy). Geomorphology 112, 228&mdash;245. <a
+Calabria (southern Italy). Geomorphology 112, 228–245. <a
 href="https://doi.org/10.1016/j.geomorph.2009.06.009">https://doi.org/10.1016/j.geomorph.2009.06.009</a></p>
 
 <p>Tucker, G.E., Whipple, K.X., 2002. Topographic outcomes predicted by stream
 erosion models: Sensitivity analysis and intermodel comparison. J. Geophys. Res
-107, 1&mdash;1.</p>
+107, 1–1.</p>
 
 <p>Warren, S.D., Mitasova, H., Hohmann, M.G., Landsberger, S., Skander, F.Y.,
 Ruzycki, T.S., Senseman, G.M., 2005. Validation of a 3-D enhancement of the
 Universal Soil Loss Equation for preediction of soil erosion and sediment
-deposition. Catena 64, 281&mdash;296.</p>
+deposition. Catena 64, 281–296.</p>
 
 <p>Whipple, K.X., Tucker, G.E., 2002. Implications of sediment-flux-dependent
 river incision models for landscape evolution. Journal of Geophysical
@@ -700,8 +720,8 @@ response timescales, and research needs. Journal of Geophysical Research
 104, 17,661-17,674.</p>
 
 <p>Willgoose, G., 2005. Mathematical Modeling of Whole Landscape
-Evolution. Annual Review of Earth and Planetary Sciences 33, 443&mdash;459.</p>
+Evolution. Annual Review of Earth and Planetary Sciences 33, 443–459.</p>
 
 <h2>AUTHORS</h2>
 
-<p>Isaac I. Ullah, C. Michael Barton, and Helena Mitasova</p> </body></html>
+<p>Isaac I. Ullah, C. Michael Barton, and Helena Mitasova</p>
