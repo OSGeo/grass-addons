@@ -13,8 +13,6 @@ libpng-dev
 libproj-dev
 libreadline-dev
 libzstd-dev
-python3-six
-python3-numpy
 sqlite3
 subversion
 zlib1g-dev
