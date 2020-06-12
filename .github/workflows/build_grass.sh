@@ -18,8 +18,6 @@ export INSTALL_PREFIX=$1
 
 # GRASS GIS
 
-cd grass
-
 ./configure \
     --prefix="$INSTALL_PREFIX/" \
     --enable-largefile \
