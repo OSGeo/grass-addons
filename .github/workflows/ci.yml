@@ -38,7 +38,7 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y wget git gawk findutils
-        xargs -a <(awk '! /^ *(#|$)/' ".github/workflows/apt.txt") -r -- \
+        xargs -a <(awk '! /^ *(#|$)/' "grass-addons/.github/workflows/apt.txt") -r -- \
             sudo apt-get install -y --no-install-recommends --no-install-suggests
 
     - name: Set up Python 3 as default Python
@@ -61,7 +61,7 @@ jobs:
     - name: Build GRASS GIS core
       run: |
         cd grass
-        .github/workflows/build_grass.sh $HOME/install
+        ../grass-addons/.github/workflows/build_grass.sh $HOME/install
 
     - name: Add the bin directory to PATH
       run: |
@@ -79,4 +79,4 @@ jobs:
     - name: Run tests
       run: |
         cd grass-addons/grass7
-        .github/workflows/test.sh
+        ../.github/workflows/test.sh
