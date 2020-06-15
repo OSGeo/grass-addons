@@ -484,7 +484,7 @@ def main():
                               sortby=sortby,
                               asc=options['order'] == 'asc'
             )
-    except StandardError as e:
+    except Exception as e:
         gs.fatal(_('Unable to connect Copernicus Open Access Hub: {}').format(e))
 
     if options['footprints']:
