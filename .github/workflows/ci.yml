@@ -79,7 +79,7 @@ jobs:
     - name: Build addons
       run: |
         cd grass-addons/grass7
-        GRASS_INSTALL=$INSTALL_PREFIX/grass*
+        GRASS_INSTALL=$HOME/install/grass*
         make MODULE_TOPDIR=$GRASS_INSTALL
 
     - name: Run tests
