@@ -9,25 +9,16 @@ in water bodies. These patches are removed and filled with neighboring
 cells.
 
 
-S2B_MSIL2A_20190627T104029_N0212_R008_T32ULC_20190627T135004
-uuid: bb9423ca-e076-41aa-830d-6afa8661df89
-
-i.sentinel.download settings=~/.sentinel_esa uuid=bb9423ca-e076-41aa-830d-6afa8661df89 output=test_s2_scene
-
 <h2>EXAMPLE</h2>
 
-The Sentinel-2 scene <tt>S2B_MSIL2A_20190627T104029_N0212_R008_T32ULC_20190627T135004,
-uuid: TODO</tt> shows unexpected no-data pixels
+The Sentinel-2 scene <tt>S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550,
+uuid: 0a7cb5ee-80d4-4d15-be19-0b3fdf40791f</tt> shows unexpected no-data pixels
 in lakes.
 
 <div class="code"><pre>
 # download S2 scene affected by no.data pixels within the scene
 i.sentinel.download settings=credentials.txt \
-  uuid=TODO output=test_s2_scene
-
-#i.sentinel.download settings=credentials.txt \
-#  query='filename=S2B_MSIL2A_20190627T104029_N0212_R008_T32ULC_20190627T135004.SAFE' \
-#  output=test_s2_scene
+  uuid=0a7cb5ee-80d4-4d15-be19-0b3fdf40791f output=test_s2_scene
 
 # show lst of granules in scene
 i.sentinel.import -p input=test_s2_scene
@@ -35,23 +26,23 @@ i.sentinel.import -p input=test_s2_scene
 # import selected bands of scene
 i.sentinel.import input=test_s2_scene pattern='B0(2|3|4|8)_10m'
 g.list raster
-g.region raster=T32ULC_20190627T104029_B04_10m -p
+g.region raster=T32ULA_20190724T103029_B04_10m -p
 
 # RGB
-i.colors.enhance b=T32ULC_20190627T104029_B02_10m green=T32ULC_20190627T104029_B03_10m red=T32ULC_20190627T104029_B04_10m
-d.rgb b=T32ULC_20190627T104029_B02_10m green=T32ULC_20190627T104029_B03_10m red=T32ULC_20190627T104029_B04_10m
+i.colors.enhance b=T32ULA_20190724T103029_B02_10m green=T32ULA_20190724T103029_B03_10m red=T32ULA_20190724T103029_B04_10m
+d.rgb b=T32ULA_20190724T103029_B02_10m green=T32ULA_20190724T103029_B03_10m red=T32ULA_20190724T103029_B04_10m
 
 # NDVI
-i.vi red=T32ULC_20190627T104029_B03_10m nir=T32ULC_20190627T104029_B04_10m vi=ndvi output=s2_ndvi
+i.vi red=T32ULA_20190724T103029_B03_10m nir=T32ULA_20190724T103029_B04_10m vi=ndvi output=s2_ndvi
 d.rast s2_ndvi
 
 # zoom to scene subset
 g.region n=5738180 s=5730360 w=318530 e=332140 res=10 -p
-r.univar -g T32ULC_20190627T104029_B03_10m
+r.univar -g T32ULA_20190724T103029_B03_10m
 
 # fix no-data pixels
-i.zero2null map=T32ULC_20190627T104029_B02_10m,T32ULC_20190627T104029_B03_10m,T32ULC_20190627T104029_B04_10m,T32ULC_20190627T104029_B08_10m
-r.univar -g T32ULC_20190627T104029_B03_10m_nozero
+i.zero2null map=T32ULA_20190724T103029_B02_10m,T32ULA_20190724T103029_B03_10m,T32ULA_20190724T103029_B04_10m,T32ULA_20190724T103029_B08_10m
+r.univar -g T32ULA_20190724T103029_B03_10m_nozero
 </pre></div>
 
 
