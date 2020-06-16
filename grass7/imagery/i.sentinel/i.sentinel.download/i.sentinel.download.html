@@ -258,6 +258,10 @@ i.sentinel.download settings=credentials.txt \
 
 <p>
 Copernicus Scihub reference: <a href="https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch">Simple search query</a>
+<p>
+Finding UUID by Sentinel scene name (example: 'S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550'; requires Scihub registration):<br>
+<a href="https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=substringof('S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550',Name)&$top=5&$format=json&$orderby=IngestionDate%20desc">https://scihub.copernicus.eu/dhus/odata/v1/Products?$filter=substringof('S2B_MSIL2A_20190724T103029_N0213_R108_T32ULA_20190724T130550',Name)&$top=5&$format=json&$orderby=IngestionDate%20desc</a><br>
+The UUID is shown in the server answer under 'Id'.
 
 <p>
 See also <a href="https://training.gismentors.eu/grass-gis-workshop-jena/units/20.html">GRASS
