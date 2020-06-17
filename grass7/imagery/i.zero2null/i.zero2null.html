@@ -36,13 +36,17 @@ d.rgb b=T32ULA_20190724T103029_B02_10m green=T32ULA_20190724T103029_B03_10m red=
 i.vi red=T32ULA_20190724T103029_B03_10m nir=T32ULA_20190724T103029_B04_10m vi=ndvi output=s2_ndvi
 d.rast s2_ndvi
 
-# zoom to scene subset
-g.region n=5738180 s=5730360 w=318530 e=332140 res=10 -p
-r.univar -g T32ULA_20190724T103029_B03_10m
+# zoom to scene subset with undesired 0-value pixels
+g.region n=5516940 s=5516840 w=334410 e=334550 res=10
+# visualize pixel values, e.g. in red band
+d.rast T32ULA_20190724T103029_B04_10m
+d.rast.num T32ULA_20190724T103029_B04_10m text_color=blue
 
-# fix no-data pixels
+# fix 0-value pixels
 i.zero2null map=T32ULA_20190724T103029_B02_10m,T32ULA_20190724T103029_B03_10m,T32ULA_20190724T103029_B04_10m,T32ULA_20190724T103029_B08_10m
-r.univar -g T32ULA_20190724T103029_B03_10m_nozero
+# visualize updated pixel values (0 values now replaced), e.g. in red band
+d.rast T32ULA_20190724T103029_B04_10m
+d.rast.num T32ULA_20190724T103029_B04_10m text_color=blue
 </pre></div>
 
 
