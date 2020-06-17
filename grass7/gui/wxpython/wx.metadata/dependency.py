@@ -3,7 +3,7 @@ try:
     import owslib
     owslib=True
 except:
-    print'owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >'
+    print('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 if owslib:
     import owslib
@@ -13,14 +13,14 @@ if owslib:
 
         MD_Metadata()
     except:
-        print ('Installed version of owslib library is < %s >.'%owsvs)
+        print('Installed version of owslib library is < %s >.'%owsvs)
         print('owslib >=0.9 is required. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
 try:
     import jinja2
 except:
-    print'jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >'
+    print('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 pycsw=False
 
 try:
@@ -40,7 +40,7 @@ if pycsw:
     try:
         from pycsw.core import admin
     except:
-        print ('Installed version of pycsw library is < %s >.'%cswvs)
+        print('Installed version of pycsw library is < %s >.'%cswvs)
         print('pycsw >=2.0 is required. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 

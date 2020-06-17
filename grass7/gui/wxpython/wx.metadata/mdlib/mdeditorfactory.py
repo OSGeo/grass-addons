@@ -35,7 +35,7 @@ try:
     from owslib.iso import *
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-from mdjinjaparser import JinjaTemplateParser
+from .mdjinjaparser import JinjaTemplateParser
 try:
     from jinja2 import Environment, FileSystemLoader
 except:
@@ -46,7 +46,7 @@ from core.gcmd import RunCommand, GError, GMessage
 from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
     TimeISOValidator, EmailValidator  # ,EmptyValidator
 
-import mdutil
+from . import mdutil
 from core.gcmd import RunCommand
 from subprocess import PIPE
 from grass.pygrass.modules import Module
@@ -89,7 +89,7 @@ class MdFileWork():
 
                 return self.md
 
-            except Exception, e:
+            except Exception as e:
                 GError('Error loading xml:\n' + str(e))
 
     def saveToXML(self, md, owsTagList, jinjaPath, outPath=None, xmlOutName=None, msg=True, rmTeplate=False):
@@ -129,8 +129,8 @@ class MdFileWork():
             io = open(jinjaPath, 'w')
             io.write(str1)
             io.close()
-        except Exception,err:
-            print "WARNING: Cannot check and remove non ascii characters from template err:< %s >"%err
+        except Exception as err:
+            print("WARNING: Cannot check and remove non ascii characters from template err:< %s >"%err)
 
         # generating xml using jinja templates
         head, tail = os.path.split(jinjaPath)
@@ -156,7 +156,7 @@ class MdFileWork():
 
             return outPath
 
-        except Exception, e:
+        except Exception as e:
             GError('Error writing xml:\n' + str(e))
 
 #=========================================================================
@@ -889,7 +889,7 @@ class MdKeywords(wx.BoxSizer):
             return
         self.titles[titleTmp]=self.keysDict
 
-        for key in self.titles.keys():
+        for key in list(self.titles.keys()):
             self.comboKeys.Append(key)
 
     def onSetVocabulary(self,evt):
@@ -952,7 +952,7 @@ class MdMainEditor(wx.Panel):
         for easy understanding to product of self.generateGUI()- print stri
         '''
         #print stri
-        exec stri
+        exec(stri)
 
     def plusC(self, num=None):
         '''iterator for handling jinja teplate items in self.generateGUI and self.createNewMD
@@ -1209,7 +1209,7 @@ class MdMainEditor(wx.Panel):
         '''
         try:
             template = open(self.profilePath, 'r')
-        except Exception, e:
+        except Exception as e:
             GError('Error loading template:\n' + str(e))
 
         owsTagList = list()
@@ -1308,7 +1308,7 @@ class MdMainEditor(wx.Panel):
         for easier understanding to product of self.createNewMD()- print stri
         '''
         #print stri
-        exec stri
+        exec(stri)
 
     def getKeywordsFromRepositoryWidget(self,md):
         if  self.keywords is not None:

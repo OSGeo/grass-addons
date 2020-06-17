@@ -18,8 +18,8 @@ except:
     sys.exit(
         'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile
-from cswutil import *
-from mdutil import yesNo, StaticContext
+from .cswutil import *
+from .mdutil import yesNo, StaticContext
 import json
 import wx
 from wx import SplitterWindow
@@ -300,15 +300,15 @@ class CSWBrowserPanel(wx.Panel):
                                 maxrecords=1,
                                 startposition=startfr,
                                 outputschema='http://www.isotc211.org/2005/gmd')
-            except ExceptionReport, err:
+            except ExceptionReport as err:
                 GWarning('Error getting response: %s' % err)
                 return
-            except KeyError, err:
+            except KeyError as err:
                 GWarning('Record parsing error, unable to locate record identifier')
                 return
 
             if self.catalog:
-                md = cat.records.values()[0]
+                md = list(cat.records.values())[0]
                 path = 'record_metadata_gmd.html'
                 metadata = render_template('en', self.context, md, path)
 
@@ -319,10 +319,10 @@ class CSWBrowserPanel(wx.Panel):
             cat = CatalogueServiceWeb(self.catalog_url, timeout=self.timeout)
             try:
                 cat.getrecordbyid([self.catalog.records[identifier].identifier])
-            except ExceptionReport, err:
+            except ExceptionReport as err:
                 GWarning('Error getting response: %s' % err)
                 return
-            except KeyError, err:
+            except KeyError as err:
                 GWarning('Record parsing error, unable to locate record identifier')
                 return
 
@@ -337,7 +337,7 @@ class CSWBrowserPanel(wx.Panel):
 
             try:
                 record = self.catalog.records[identifier]
-            except KeyError, err:
+            except KeyError as err:
                 GWarning('@!Record parsing error, unable to locate record identifier')
                 return
 
@@ -385,9 +385,9 @@ class CSWBrowserPanel(wx.Panel):
             if link_type is not None:
                 link_type = link_type.upper()
 
-            wmswmst_link_types = map(str.upper, WMSWMST_LINK_TYPES)
-            wfs_link_types = map(str.upper, WFS_LINK_TYPES)
-            wcs_link_types = map(str.upper, WCS_LINK_TYPES)
+            wmswmst_link_types = list(map(str.upper, WMSWMST_LINK_TYPES))
+            wfs_link_types = list(map(str.upper, WFS_LINK_TYPES))
+            wcs_link_types = list(map(str.upper, WCS_LINK_TYPES))
 
             # if the link type exists, and it is one of the acceptable
             # interactive link types, then set
@@ -470,10 +470,10 @@ class CSWBrowserPanel(wx.Panel):
                 self.catalog.getrecords2(constraints=self.constraints,
                                          maxrecords=self.maxrecords,
                                          startposition=self.startfrom, esn='full')
-        except ExceptionReport, err:
+        except ExceptionReport as err:
             GWarning('Search error: %s' % err)
             return
-        except Exception, err:
+        except Exception as err:
             GWarning('Connection error: %s' % err)
             return
 
@@ -519,11 +519,11 @@ class CSWBrowserPanel(wx.Panel):
             self.catalog = CatalogueServiceWeb(self.catalog_url,
                                                timeout=self.timeout)
             return True
-        except ExceptionReport, err:
+        except ExceptionReport as err:
             msg = 'Error connecting to service: %s' % err
-        except ValueError, err:
+        except ValueError as err:
             msg = 'Value Error: %s' % err
-        except Exception, err:
+        except Exception as err:
             msg = 'Unknown Error: %s' % err
             GMessage('CSW Connection error: %s' % msg)
         return False
@@ -664,10 +664,10 @@ class CSWBrowserPanel(wx.Panel):
             self.catalog.getrecords2(constraints=self.constraints,
                                      maxrecords=self.maxrecords, esn='full')
             self.outpoutschema = 'dc'
-        except ExceptionReport, err:
+        except ExceptionReport as err:
             GError('Search error: %s' % err)
             return
-        except Exception, err:
+        except Exception as err:
             GError('Connection error: %s' % err)
             return
 
@@ -683,10 +683,10 @@ class CSWBrowserPanel(wx.Panel):
                         "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly.")
                     self.warns = False
 
-            except ExceptionReport, err:
+            except ExceptionReport as err:
                 GError('Search error: %s' % err)
                 return
-            except Exception, err:
+            except Exception as err:
                 GError('Connection error: %s' % err)
                 return
         ###work around for GMD records- END
@@ -1070,7 +1070,7 @@ class CSWConnectionPanel(wx.Panel):
 
         try:
             self.catalog.transaction(ttype='insert', typename='gmd:MD_Metadata', record=open(path).read())
-        except Exception, e:
+        except Exception as e:
             GWarning('Transaction error: <%s>' % e)
 
     def onHtmlLinkClicked(self, event):
@@ -1119,11 +1119,11 @@ class CSWConnectionPanel(wx.Panel):
             self.catalog = CatalogueServiceWeb(self.catalog_url,
                                                timeout=self.timeoutSpin.GetValue())
             return True
-        except ExceptionReport, err:
+        except ExceptionReport as err:
             msg = 'Error connecting to service: %s' % err
-        except ValueError, err:
+        except ValueError as err:
             msg = 'Value Error: %s' % err
-        except Exception, err:
+        except Exception as err:
             msg = 'Unknown Error: %s' % err
 
             GMessage('CSW Connection error: %s' % msg)

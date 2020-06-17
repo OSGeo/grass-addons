@@ -116,7 +116,7 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 
 import sys
 import os
-import ConfigParser
+import configparser
 import getopt
 
 from grass.script import core as grass
@@ -241,7 +241,7 @@ class CswAdmin():
         if len(argv) == 0:
             grass.error('Nothing to do. Set args')
             return
-        print argv
+        print(argv)
         try:
             OPTS, ARGS = getopt.getopt(argv, 'c:f:ho:p:ru:x:s:t:y')
         except getopt.GetoptError as err:
@@ -269,10 +269,10 @@ class CswAdmin():
                 self.FORCE_CONFIRM = True
 
         if self.CFG is None and self.COMMAND not in ['post_xml']:
-            print 'ERROR: -f <cfg> is a required argument'
+            print('ERROR: -f <cfg> is a required argument')
 
         if self.COMMAND not in ['post_xml']:
-            SCP = ConfigParser.SafeConfigParser()
+            SCP = configparser.SafeConfigParser()
             SCP.readfp(open(self.CFG))
 
             self.DATABASE = SCP.get('repository', 'database')
@@ -281,16 +281,16 @@ class CswAdmin():
             self.METADATA = dict(SCP.items('metadata:main'))
             try:
                 self.TABLE = SCP.get('repository', 'table')
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 self.TABLE = 'records'
 
         if self.COMMAND == 'setup_db':
             try:
                 admin.setup_db(self.DATABASE, self.TABLE, self.HOME)
             except Exception as err:
-                print err
-                print 'ERROR: DB creation error.  Database tables already exist'
-                print 'Delete tables or database to reinitialize'
+                print(err)
+                print('ERROR: DB creation error.  Database tables already exist')
+                print('Delete tables or database to reinitialize')
 
         elif self.COMMAND == 'load_records':
             admin.load_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH, self.RECURSIVE,
