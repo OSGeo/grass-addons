@@ -40,8 +40,7 @@ import sys
 import csv
 from collections import namedtuple
 import random
-from functools import reduce
-
+import functools
 
 # helper functions
 def set_csvfile():
@@ -67,18 +66,20 @@ def is_number(value):
             return False
     return float(value)
 
+
 def to_tuple(string):
     """
     Convert string to tuple.
     """
     return tuple(map(float, string[1:-1].split(',')))
 
+
 def replace_dot_comma_space(string):
     """
     Source: <http://stackoverflow.com/a/9479972/1172302>
     """
     replacements = ('.', ''), (', ', '_'), (',', '_'), (' ', '_'), ('(', ''), (')', ''), ('/', '_')
-    return reduce(lambda alpha, omega: alpha.replace(*omega),
+    return functools.reduce(lambda alpha, omega: alpha.replace(*omega),
                   replacements, string)
 
 
@@ -115,7 +116,7 @@ def csv_reader(csv_file):
     Barren Land|0.969|0.978
     Snow and ice|0.992|0.998"""
     '''
-    with open(csv_file, 'rb') as csvfile:
+    with open(csv_file, 'r') as csvfile:
         csvreader = csv.reader(csvfile, delimiter="|")  # delimiter?
         string = str()
         for row in csvreader:
@@ -131,6 +132,15 @@ def csv_to_dictionary(csv):
 
     Also, fix the re-definition of the function transform(). See
     <http://stackoverflow.com/q/30204197/1172302>
+
+    Parameters
+    ----------
+    csv
+
+    Returns
+    -------
+    A dictionary with named tuples
+
     '''
     # split input in rows
     rows = csv.split('\n')
@@ -204,7 +214,7 @@ def csv_to_dictionary(csv):
             cwv.rmse = is_number(elements[10])
             dictionary[key] = dictionary.get(key, cwv)  # feed dictionary
 
-    map(transform, rows)
+    list(map(transform, rows))
     return dictionary
 
 
@@ -333,10 +343,10 @@ def test_csvfile(infile):
                                             'b7', d[somekey].b7,
                                             'rmse', d[somekey].rmse))
 
-#test_using_file(CSVFILE)  # Ucomment to run test function!
-#CSVFILE = "cwv_coefficients.csv"
-#test_csvfile("cwv_coefficients.csv")
-#CSVFILE = ''
+# test_using_file(CSVFILE)  # Ucomment to run test function!
+# CSVFILE = "cwv_coefficients.csv"
+# test_csvfile("cwv_coefficients.csv")
+# CSVFILE = ''
 
 
 def test(testdata):
@@ -378,7 +388,7 @@ Impervious|0.973|0.981
 Barren_Land|0.969|0.978
 Snow_and_Ice|0.992|0.998'''
 
-#test(testdata)  # Ucomment to run the test function!
+# test(testdata)  # Ucomment to run the test function!
 
 ''' Output ------------------------------
 {'Wetlands': <class '__main__.Wetlands'>,

@@ -103,7 +103,8 @@ class Landsat8_MTL():
             field_name = line_split[0].strip()
             field_names.append(field_name)
             field_value = line_split[1].strip()
-            field_value = field_value.translate(string.maketrans("", "",), '"')
+            translation_table = str.maketrans('', '', '"')
+            field_value = field_value.translate(translation_table)
             field_values.append(field_value)
 
         # named tuple
@@ -164,11 +165,11 @@ class Landsat8_MTL():
         """
         multiplicative_factor = getattr(self.mtl, ('RADIANCE_MULT_BAND_' +
                                         str(bandnumber)))
-        # print("ML:", multiplicative_factor)
+        # print "ML:", multiplicative_factor
 
         additive_factor = getattr(self.mtl, 'RADIANCE_ADD_BAND_' +
                                   str(bandnumber))
-        # print("AL:", additive_factor)
+        # print "AL:", additive_factor
 
         formula = '{ML}*{DUMMY_DN} + {AL}'
         mapcalc = formula.format(ML=multiplicative_factor,
