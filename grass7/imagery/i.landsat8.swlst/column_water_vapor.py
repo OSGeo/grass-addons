@@ -1,31 +1,22 @@
-#!/usr/bin/python\<nl>\
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
 Determining atmospheric column water vapor based on
 Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng, Jing Li
 
-@author nik | 2015-04-18 03:48:20
+@author nik | Created on 2015-04-18 03:48:20 | Updated on June 2020
 """
 
-# globals
-DUMMY_Ti_MEAN = 'Mean_Ti'
-DUMMY_Tj_MEAN = 'Mean_Tj'
-DUMMY_Rji = 'Ratio_ji'
-
-# for Python 3 compatibility
-try:
-    xrange
-except NameError:
-    xrange = range
-
-# helper functions
-def random_adjacent_pixel_values(pixel_modifiers):
-    """
-    """
-    import random
-    return [random.randint(250, 350) for dummy_idx in
-            range(len(pixel_modifiers))]
+from constants import DUMMY_Ti_MEAN
+from constants import DUMMY_Tj_MEAN
+from constants import DUMMY_Rji
+from constants import EQUATION
+from randomness import random_adjacent_pixel_values
+from grass.pygrass.modules.shortcuts import general as g
+from dummy_mapcalc_strings import replace_dummies
+import grass.script as grass
+from helpers import run
 
 
 class Column_Water_Vapor():
@@ -145,7 +136,7 @@ class Column_Water_Vapor():
         # mapcalc modifiers to access neighborhood pixels
         self.modifiers_ti = self._derive_modifiers(self.ti)
         self.modifiers_tj = self._derive_modifiers(self.tj)
-        self.modifiers = zip(self.modifiers_ti, self.modifiers_tj)
+        self.modifiers = list(zip(self.modifiers_ti, self.modifiers_tj))
 
         # mapcalc expression for means
         self.mean_ti_expression = self._mean_tirs_expression(self.modifiers_ti)
@@ -169,8 +160,7 @@ class Column_Water_Vapor():
         The object's self string
         """
         msg = '- Window size: ' + str(self.window_size) + " by " + str(self.window_size)
-        msg += '\n'
-        msg += '  - Expression for r.mapcalc to determine column water vapor: '
+        msg += '\n      - Expression for r.mapcalc to determine column water vapor: '
         return msg + str(self.column_water_vapor_expression)
 
     def compute_column_water_vapor(self, tik, tjk):
@@ -189,7 +179,6 @@ class Column_Water_Vapor():
         numerator_ji_terms = []
         for ti, tj in zip(tik, tjk):
             numerator_ji_terms.append((ti - ti_mean) * (tj - tj_mean))
-
         numerator_ji = sum(numerator_ji_terms) * 1.0
 
         # denominator:  sum of all (Tik - Tj_mean)^2
@@ -221,13 +210,13 @@ class Column_Water_Vapor():
         [ 1, -1] [ 1, 0] [ 1, 1]
         """
         # center row indexing
-        half_height = (self.window_height - 1) / 2
+        half_height = (self.window_height - 1) // 2
 
         # center col indexing
-        half_width = (self.window_width - 1) / 2
+        half_width = (self.window_width - 1) // 2
 
-        return [[col, row] for col in xrange(-half_width + 1, half_width)
-                for row in xrange(-half_height + 1, half_height)]
+        return [[col, row] for col in range(-half_width + 1, half_width)
+                for row in range(-half_height + 1, half_height)]
 
     def _derive_modifiers(self, tx):
         """
@@ -243,7 +232,6 @@ class Column_Water_Vapor():
         tx_mean_expression = '{sum_of_tx} / {length_of_tx}'
         tx_sum = '(' + ' + '.join(modifiers) + ')'
         tx_length = len(modifiers)
-
         return tx_mean_expression.format(sum_of_tx=tx_sum,
                                          length_of_tx=tx_length)
 
@@ -257,7 +245,6 @@ class Column_Water_Vapor():
         """
         tx_median_expression = 'median({pixel_modifiers})'
         # print tx_median_expression.format(pixel_modifiers=modifiers)
-
         return tx_median_expression
 
     def _numerator_for_ratio(self, mean_ti, mean_tj):
@@ -299,7 +286,6 @@ class Column_Water_Vapor():
                                          Tj=mod_tj,
                                          Tjm=mean_tj)
                            for mod_ti, mod_tj in self.modifiers])
-
         return terms
 
     def _denominator_for_ratio(self, mean_ti):
@@ -403,7 +389,7 @@ class Column_Water_Vapor():
                                     c0=self.c0, c1=self.c1, c2=self.c2)
 
         return cwv_expression
-    
+
     def _big_cwv_expression_median():
         """
         Build and return a valid mapcalc expression for deriving a Column
@@ -444,6 +430,64 @@ class Column_Water_Vapor():
                                     c0=self.c0, c1=self.c1, c2=self.c2)
 
         return cwv_expression
+
+
+def estimate_cwv_big_expression(
+        outname,
+        cwv_output,
+        t10,
+        t11,
+        cwv_expression,
+        quiet=True,
+    ):
+    """
+    Derive a column water vapor map using a single mapcalc expression based on
+    eval.
+
+            *** To Do: evaluate -- does it work correctly? *** !
+    """
+    msg = "\n|i Estimating atmospheric column water vapor "
+    if quiet:
+        msg += '| Expression:\n'
+    g.message(msg)
+
+    if quiet:
+        msg = replace_dummies(cwv_expression,
+                              in_ti=t10, out_ti='T10',
+                              in_tj=t11, out_tj='T11')
+        msg += '\n'
+        g.message(msg)
+
+    cwv_equation = EQUATION.format(result=outname, expression=cwv_expression)
+    grass.mapcalc(cwv_equation, overwrite=True)
+
+    if quiet:
+        run('r.info', map=outname, flags='r')
+
+    # save Column Water Vapor map?
+    if cwv_output:
+
+        # strings for metadata
+        history_cwv = 'FixMe -- Column Water Vapor model: '
+        history_cwv += 'FixMe -- Add equation?'
+        title_cwv = 'Column Water Vapor'
+        description_cwv = 'Column Water Vapor'
+        units_cwv = 'g/cm^2'
+        source1_cwv = 'FixMe'
+        source2_cwv = 'FixMe'
+
+        # history entry
+        run("r.support",
+            map=outname,
+            title=title_cwv,
+            units=units_cwv,
+            description=description_cwv,
+            source1=source1_cwv,
+            source2=source2_cwv,
+            history=history_cwv,
+           )
+        run('g.rename', raster=(outname, cwv_output))
+
 
 # reusable & stand-alone
 if __name__ == "__main__":

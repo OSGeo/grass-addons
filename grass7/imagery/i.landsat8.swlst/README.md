@@ -49,6 +49,10 @@ For details and more examples, read the manual.
 Description
 ===========
 
+The algorithm removes the atmospheric effect through differential
+atmospheric absorption in the two adjacent thermal infrared channels
+centered at about 11 and 12 μm.
+
 The components of the algorithm estimating LST values are at-satellite
 brightness temperature (BT); land surface emissivities (LSEs); and the
 coefficients of the main Split-Window equation (SWCs).
@@ -71,8 +75,19 @@ it is stated:
 > contrast, the size cannot be too large because the variations in the surface
 > and atmospheric conditions become larger as the size increases.
 
-At-satellite brightness temperatures are derived from the TIRS channels 10 and
-11. Prior to any processing, the raw digital numbers are filtered for clouds.
+The combination of the brightness temperatures to estimate the LST bases upon
+the equation:
+
+LST = b0 +
+    + ( b1 + b2 * ( 1 - ae ) / ae + b3 * de / ae^2 ) * ( t10 + t11 ) / 2 +
+    + ( b4 + b5 * ( 1 - ae ) / ae + b6 * de / ae^2 ) * ( t10 - t11 ) / 2 +
+    + b7 * ( t10 - t11 )^2
+
+Note, however, **the last quadratic term** of the Split-Window equation **is
+applied only over barren land**. [Reference Required!]
+
+**BTs** are derived from Landsat 8's TIRS channels 10 and 11. Prior to any
+processing, the raw digital numbers are filtered for clouds.
 
 To produce an LST map, the algorithm requires at minimum:
 
@@ -154,7 +169,8 @@ Implementation notes
 
 [Low]
 
-- Test for too small region?
+- ~~Test for too small region?~~ Works for a region of 267 rows x 267 cols
+  (71289 cells)
 - Deduplicate code in `split_window_lst` class, in functions
 `_build_average_emissivity_mapcalc()` and
 `_build_delta_emissivity_mapcalc()`
@@ -163,7 +179,7 @@ Implementation notes
 - Implement a complete cloud masking function using the BQA image. Support for
   user requested confidence or types of clouds (?). Eg: options=
   clouds,cirrus,high,low ?
-- Multi-Threading? Note, r.mapcalc is already.
+- ~~Multi-Threading? Note, r.mapcalc is already.~~
 
 [\*] Details: the authors followed the CBEM method. Based on the FROM-GLC map,
 they derived the following look-up table (LUT):
