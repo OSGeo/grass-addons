@@ -1,80 +1,26 @@
 # -*- coding: utf-8 -*-
+
 """
 A class for the Split Window Algorithm for Land Surface Temperature estimation
-@author: nik | Created on Wed Mar 18 11:28:45 2015
+@author: nik | Created on Wed Mar 18 11:28:45 2015 | Updated on June 2020
 """
 
-# import average emissivities
-import random
+from constants import BARREN_LAND_CLASS_STRING
+from constants import DUMMY_MAPCALC_STRING_T10
+from constants import DUMMY_MAPCALC_STRING_T11
+from constants import DUMMY_MAPCALC_STRING_AVG_LSE
+from constants import DUMMY_MAPCALC_STRING_DELTA_LSE
+from constants import DUMMY_MAPCALC_STRING_FROM_GLC
+from constants import DUMMY_MAPCALC_STRING_CWV
+from constants import FROM_GLC_CODES
+from constants import FROM_GLC_LEGEND
+from constants import LST_FORMULA
+from data_validation import check_t1x_range
+from data_validation import check_cwv
 import csv_to_dictionary as coefficients
-from column_water_vapor import Column_Water_Vapor
-
-# globals
 EMISSIVITIES = coefficients.get_average_emissivities()
 COLUMN_WATER_VAPOR = coefficients.get_column_water_vapor()
-DUMMY_MAPCALC_STRING_T10 = 'Input_T10'
-DUMMY_MAPCALC_STRING_T11 = 'Input_T11'
-DUMMY_MAPCALC_STRING_AVG_LSE = 'Input_AVG_LSE'
-DUMMY_MAPCALC_STRING_DELTA_LSE = 'Input_DELTA_LSE'
-DUMMY_MAPCALC_STRING_FROM_GLC = 'Input_FROMGLC'
-DUMMY_MAPCALC_STRING_CWV = 'Input_CWV'
-
-# Remove from here, improve and use named tuples!
-FROM_GLC_CODES = [10, 11, 12, 13,
-                  20, 21, 22, 23, 24,
-                  30, 31, 32,
-                  51, 72,
-                  40, 71,
-                  60, 61, 62, 63,
-                  80, 81, 82,
-                  90, 52, 91, 92, 93, 94, 95, 96,
-                  100, 101, 102]
-
-FROM_GLC_LEGEND = {'Cropland': (10, 11, 12, 13),
-                   'Forest': (20, 21, 22, 23, 24),
-                   'Grasslands': (30, 31, 32, 51, 72),
-                   'Shrublands': (40, 71),
-                   'Waterbodies': (60, 61, 62, 63),
-                   'Tundra': (70,),
-                   'Impervious': (80, 81, 82),
-                   'Barren_Land': (90, 52, 91, 92, 93, 94, 95, 96),
-                   'Snow_and_ice': (100, 101, 102),
-                   'Cloud': (120,)}
-
-
-# helper functions
-def check_t1x_range(number):
-    """
-    Check if Brigthness Temperature (Kelvin degrees) values for T10, T11, lie
-    inside a reasonable range, eg [200, 330].
-
-    Note, the Digital Number values in bands B10 and B11, are 16-bit. The
-    actual data quantisation though is 12-bit.
-    """
-    if number < 200 or number > 330:
-        raise ValueError('The input value {t1x} for T1x is out of a '
-                         'reasonable range [200, 330]'.format(t1x=number))
-    else:
-        return True
-
-
-def check_cwv(cwv):
-    """
-    Check whether a column water value lies within a "valid" range. Which is?
-
-    - Questions to answer:
-
-        - What should happen when the value is out of range?
-        - Use subrange-6?
-        - If yes, how much tolerance for outliers < 0.0 and > 6.3 ?  Testing
-          for +-.5
-
-    """
-    if cwv < 0.0 - .5 or cwv > 6.3 + .5:
-        raise ValueError('The column water vapor estimation is out of the '
-                         'expected range [0.0, 6.3]')
-    else:
-        return True
+import random
 
 
 class SplitWindowLST():
@@ -111,8 +57,18 @@ class SplitWindowLST():
 
     LST = b0 +
         + ( b1 + b2 * ( 1 - ae ) / ae + b3 * de / ae^2 ) * ( t10 + t11 ) / 2 +
+        + ( b4 + b5 * ( 1 - ae ) / ae + b6 * de / ae^2 ) * ( t10 - t11 ) / 2
+
+    or for barren land, add another quadratic term:
+
+    LST = b0 +
+        + ( b1 + b2 * ( 1 - ae ) / ae + b3 * de / ae^2 ) * ( t10 + t11 ) / 2 +
         + ( b4 + b5 * ( 1 - ae ) / ae + b6 * de / ae^2 ) * ( t10 - t11 ) / 2 +
         + b7 * ( t10 - t11 )^2
+
+
+    Note, the last quadratic term is meant to be applied only on bare soil
+    surfaces!
 
     To reduce the influence of the CWV error on the LST, for a CWV within the
     overlap of two adjacent CWV sub-ranges, the coefficients for the two
@@ -166,13 +122,13 @@ class SplitWindowLST():
         if landcover in EMISSIVITIES.keys() or landcover == 'Random':
 
             # a fixed land cover class requested
+            assert self._landcover_string_validity(landcover_class), \
+                "Unknown land cover class name!"
             self.landcover_class = landcover
 
-            # retrieve average emissivities for this class
+            # retrieve & set avg emissivities for channels t10, t11
             emissivity_b10, emissivity_b11 = \
                 self._retrieve_average_emissivities(landcover)
-
-            # split avg emissivities of/for channels t10, t11
             self.emissivity_t10 = float(emissivity_b10)
             self.emissivity_t11 = float(emissivity_b11)
 
@@ -191,8 +147,8 @@ class SplitWindowLST():
             # if no fixed land cover class requested
             self.landcover_class = False
 
-            # use mapcalc expressions instead, containing DUMMY strings for map
-            # names
+            # use mapcalc expressions instead,
+            # containing DUMMY strings for map names
             self.average_lse_mapcalc = self._build_average_emissivity_mapcalc()
             self.delta_lse_mapcalc = self._build_delta_emissivity_mapcalc()
 
@@ -204,13 +160,6 @@ class SplitWindowLST():
         Return a string representation of the basic Split Window LST equation
         """
         equation = ' > The algorithm\'s basic equation: ' + self._equation
-
-        #if self.model:
-        #    model = ' > The model: ' + self.model
-
-        #else:
-        #    model = ' > The models:\n ' + '  a: ' + self._model_a + '\n ' + '  b: ' + self._model_b + '\n'
-
         return equation #+ '\n' + model
 
     def _landcover_string_validity(self, string):
@@ -218,6 +167,15 @@ class SplitWindowLST():
         Check whether the given string belongs to the list (keys) of known land
         cover class names (to the FROM-GLC classification scheme) or is
         identical to 'Random' and return, accordingly, True or False.
+
+        Parameters
+        ----------
+        string
+            A string among the set of FROM-GLC land cover class strings
+
+        Returns
+        -------
+        A boolean whether the given string exists or not
         """
         if string in FROM_GLC_LEGEND.keys():
             return True
@@ -226,44 +184,32 @@ class SplitWindowLST():
         else:
             return False
 
-    def _retrieve_average_emissivities(self, emissivity_class):
+    def _retrieve_average_emissivities(self, landcover_class):
         """
-        Get land surface average emissivities from an emissivity look-up table.
+        Get land surface average emissivities for the requested landcover class
+        from a look-up table.
+
+        Parameters
+        ----------
+        landcover_class
+            Input is one of the standard FROM-GLC land cover classes
+            (see CSV file: average_emissivity.csv)
+
+            For testing purposes, the string "Random" is accepted to select a
+            random land surface emissivity class.
+
+        Returns
+        -------
         This helper function returns a tuple.
-
-        Input is either one of the standard FROM-GLC land cover classes (...),
-        or one of its corresponding land cover class codes (...).
-
-        For testing purposes, the string "Random" is accepted to select a
-        random land surface emissivity class.
         """
+        # Random?
+        if landcover_class == 'Random':
+            landcover_class = random.choice(list(EMISSIVITIES.keys()))
+            self.landcover_class = landcover_class  # use the 'random' class
 
-        # land cover class code (integer)
-        if self.landcover_class and type(emissivity_class) == int:
-
-            assert self._landcover_string_validity(self.landcover_class), \
-                "Unknown land cover class name!"
-
-            if int(emissivity_class) in FROM_GLC_CODES:
-                landcover_code = int(emissivity_class)
-
-                # retrieving emissivity based on land cover class code
-                emissivity_class = [key for key in FROM_GLC_LEGEND
-                                    if landcover_code
-                                    in FROM_GLC_LEGEND[key]][0]
-
-            elif not int(emissivity_class) in FROM_GLC_LEGEND:
-                print ('The given land cover class code is not present in '
-                       'FROM-GLC map\'s legend!')
-
-        # random?
-        if type(emissivity_class) == str and emissivity_class == 'Random':
-            emissivity_class = random.choice(EMISSIVITIES.keys())
-            self.landcover_class = emissivity_class
-
-        # fields = EMISSIVITIES[emissivity_class]._fields
-        emissivity_b10 = EMISSIVITIES[emissivity_class].TIRS10
-        emissivity_b11 = EMISSIVITIES[emissivity_class].TIRS11
+        # fields = EMISSIVITIES[landcover_class]._fields
+        emissivity_b10 = EMISSIVITIES[landcover_class].TIRS10
+        emissivity_b11 = EMISSIVITIES[landcover_class].TIRS11
 
         return (emissivity_b10, emissivity_b11)
 
@@ -348,8 +294,10 @@ class SplitWindowLST():
         b4 = COLUMN_WATER_VAPOR[subrange].b4
         b5 = COLUMN_WATER_VAPOR[subrange].b5
         b6 = COLUMN_WATER_VAPOR[subrange].b6
-        b7 = COLUMN_WATER_VAPOR[subrange].b7
-
+        if self.landcover_class == 'Barren_Land':
+            b7 = COLUMN_WATER_VAPOR[subrange].b7
+        else:
+            b7 = 0
         cwv_coefficients = (b0,
                             b1,
                             b2,
@@ -358,7 +306,6 @@ class SplitWindowLST():
                             b5,
                             b6,
                             b7)
-
         return cwv_coefficients
 
     def _set_cwv_coefficients(self, subrange):
@@ -399,11 +346,17 @@ class SplitWindowLST():
     def compute_lst(self, t10, t11, coefficients):
         """
         Compute Land Surface Temperature based on the Split-Window algorithm.
-        Inputs are brightness temperatures measured in channels  i(~11.0 μm)
+        Inputs are brightness temperatures measured in channels i (~11.0 μm)
         and j (~12.0 μm).
 
         *Note*, this is a single value computation function and does not read
         or return a map.
+
+        LST = b0 +
+            + (b1 + b2 * ((1-ae)/ae) + b3 * (de/ae^2)) * ((t10 + t11)/2) +
+            + (b4 + b5 * ((1-ae)/ae) + b6 * (de/ae^2)) * ((t10 - t11)/2) +
+
+        or over 'Barren land':
 
         LST = b0 +
             + (b1 + b2 * ((1-ae)/ae) + b3 * (de/ae^2)) * ((t10 + t11)/2) +
@@ -433,8 +386,6 @@ class SplitWindowLST():
         c2 = (t10 - t11) / 2
         c = c1 * c2
         d = b7 * (t10 - t11)**2
-
-        # land surface temperature
         lst = a + b + c + d
         return lst
 
@@ -493,19 +444,30 @@ class SplitWindowLST():
         e90_t10, e90_t11 = self._retrieve_average_emissivities('Barren_Land')
         avg_e90 = self._compute_average_emissivity(e90_t10, e90_t11)
 
-        e100_t10, e100_t11 = self._retrieve_average_emissivities('Cropland')
+        e100_t10, e100_t11 = self._retrieve_average_emissivities('Snow_and_ice')
         avg_e100 = self._compute_average_emissivity(e100_t10, e100_t11)
 
-        expression = ('eval( class_10 = {landcover} >= 10 && {landcover} < 20,'
+        expression = (# Cropland: (10, 11, 12, 13)
+                      'eval( class_10 = {landcover} >= 10 && {landcover} < 20,'
+                      # Forest: (20, 21, 22, 23, 24)
                       '\ \n class_20 = {landcover} >= 20 && {landcover} < 30,'
-                      '\ \n class_30 = {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,'
-                      '\ \n class_40 = {landcover} >= 40 && {landcover} < 50,'
+                      # Grasslands: (30, 31, 32, 51, 72)
+                      '\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,'
+                      # Shrublands: (40, 71)
+                      '\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,'
+                      # Wetlands: 50  --  Assigned below the 'average_60'
                       '\ \n class_50 = {landcover} >= 50 && {landcover} < 52,'
+                      # Waterbodies: (50, 60, 61, 62, 63)
                       '\ \n class_60 = {landcover} >= 60 && {landcover} < 70,'
+                      # Tundra: 70  --  Assigned belot the 'average_40'
                       '\ \n class_70 = {landcover} >= 70 && {landcover} < 72,'
+                      # Impervious: (80, 81, 82)
                       '\ \n class_80 = {landcover} >= 80 && {landcover} < 90,'
+                      # Barren Land: (90, 52, 91, 92, 93, 94, 95, 96)
                       '\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,'
+                      # Snow and ice: (100, 101, 102)
                       '\ \n class_100 = {landcover} >= 100 && {landcover} < 120,'
+                      # Cloud: (120) -- Should be masked, thus not included
                       '\ \n if( class_10, {average_10},'
                       '\ \n if( class_20, {average_20},'
                       '\ \n if( class_30, {average_30},'
@@ -556,19 +518,30 @@ class SplitWindowLST():
         e90_t10, e90_t11 = self._retrieve_average_emissivities('Barren_Land')
         delta_e90 = self._compute_delta_emissivity(e90_t10, e90_t11)
 
-        e100_t10, e100_t11 = self._retrieve_average_emissivities('Cropland')
+        e100_t10, e100_t11 = self._retrieve_average_emissivities('Snow_and_ice')
         delta_e100 = self._compute_delta_emissivity(e100_t10, e100_t11)
 
-        expression = ('eval( class_10 = {landcover} >= 10 && {landcover} < 20,'
+        expression = (# Cropland: (10, 11, 12, 13)
+                      'eval( class_10 = {landcover} >= 10 && {landcover} < 20,'
+                      # Forest: (20, 21, 22, 23, 24)
                       '\ \n class_20 = {landcover} >= 20 && {landcover} < 30,'
-                      '\ \n class_30 = {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,'
-                      '\ \n class_40 = {landcover} >= 40 && {landcover} < 50,'
+                      # Grasslands: (30, 31, 32, 51, 72)
+                      '\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,'
+                      # Shrublands: (40, 71)
+                      '\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,'
+                      # Wetlands: 50  -- Assigned below the 'delta_60'
                       '\ \n class_50 = {landcover} >= 50 && {landcover} < 52,'
+                      # Waterbodies: (50, 60, 61, 62, 63)
                       '\ \n class_60 = {landcover} >= 60 && {landcover} < 70,'
+                      # Tundra: 70  --  Assigned belot the 'delta_40'
                       '\ \n class_70 = {landcover} >= 70 && {landcover} < 72,'
+                      # Impervious: (80, 81, 82)
                       '\ \n class_80 = {landcover} >= 80 && {landcover} < 90,'
+                      # Barren Land: (90, 52, 91, 92, 93, 94, 95, 96)
                       '\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,'
+                      # Snow and ice: (100, 101, 102)
                       '\ \n class_100 = {landcover} >= 100 && {landcover} < 120,'
+                      # Cloud: (120) -- Should be masked, thus not included
                       '\ \n if( class_10, {delta_10},'
                       '\ \n if( class_20, {delta_20},'
                       '\ \n if( class_30, {delta_30},'
@@ -619,55 +592,42 @@ class SplitWindowLST():
         ToDo: Review and Improve the mechanism which selects emissivities from
         either a fixed land cover class  OR  a land cover map.
         """
-        # formula = '{c0} + {c1}*{dummy} + {c2}*{dummy}^2'
-        formula = ('{b0} + '
-                   '({b1} + '
-                   '({b2}) * ((1 - {ae}) / {ae}^2) + '
-                   '({b3}) * ({de}/{ae}^2)) * (({DUMMY_T10}+{DUMMY_T11})/2) + '
-                   '({b4} + '
-                   '({b5}) * ((1 - {ae}) / {ae}) + '
-                   '({b6}) * ({de}/{ae}^2)) * (({DUMMY_T10}-{DUMMY_T11})/2) + '
-                   '({b7}) * ({DUMMY_T10} - {DUMMY_T11})^2')
-
-        # Implement mechanism to either select
-
         try:
-            if self.landcover_class:
-                # print "Fixed land cover class"
+            if self.landcover_class:  # Fixed land cover class
                 emissivity_t10 = float(self.emissivity_t10)
                 emissivity_t11 = float(self.emissivity_t11)
-                avg_lse = self._compute_delta_emissivity(emissivity_t10,
-                                                         emissivity_t11)
-                delta_lse = \
-                    self._compute_delta_emissivity(emissivity_t10,
-                                                   emissivity_t11)
+                avg_lse = self._compute_average_emissivity(
+                        emissivity_t10,
+                        emissivity_t11,
+                        )
+                delta_lse = self._compute_delta_emissivity(
+                        emissivity_t10,
+                        emissivity_t11,
+                        )
         except:
             pass
 
         if not self.landcover_class:
-
             # This is required for when a fixed emissivity_class is used,
             # instead of a FROM-GLC (landcover) map.
-
-            # print "Using the FROM-GLC map"
             avg_lse = DUMMY_MAPCALC_STRING_AVG_LSE
             delta_lse = DUMMY_MAPCALC_STRING_DELTA_LSE
 
-        coefficients = self._retrieve_cwv_coefficients(subrange)
-        b0, b1, b2, b3, b4, b5, b6, b7 = coefficients
-
-        mapcalc = formula.format(b0=b0,
-                                 b1=b1,
-                                 b2=b2,
-                                 ae=avg_lse,
-                                 de=delta_lse,
-                                 b3=b3,
-                                 b4=b4,
-                                 b5=b5,
-                                 b6=b6,
-                                 b7=b7,
-                                 DUMMY_T10=DUMMY_MAPCALC_STRING_T10,
-                                 DUMMY_T11=DUMMY_MAPCALC_STRING_T11)
+        b0, b1, b2, b3, b4, b5, b6, b7 = self._retrieve_cwv_coefficients(subrange)
+        mapcalc = LST_FORMULA.format(
+                    b0=b0,
+                    b1=b1,
+                    b2=b2,
+                    ae=avg_lse,
+                    de=delta_lse,
+                    b3=b3,
+                    b4=b4,
+                    b5=b5,
+                    b6=b6,
+                    b7=b7,
+                    DUMMY_T10=DUMMY_MAPCALC_STRING_T10,
+                    DUMMY_T11=DUMMY_MAPCALC_STRING_T11,
+                )
 
         return mapcalc
 
