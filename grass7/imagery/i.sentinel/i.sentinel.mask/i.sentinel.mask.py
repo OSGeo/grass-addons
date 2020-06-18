@@ -7,7 +7,7 @@
 # AUTHOR(S):    Roberta Fagandini, Moritz Lennert, Roberto Marzocchi
 # PURPOSE:      Creates clouds and shadows masks for Sentinel-2 images
 #
-# COPYRIGHT:    (C) 2018 by Roberta Fagandini, and the GRASS Development Team
+# COPYRIGHT:    (C) 2018-2020 by Roberta Fagandini, and the GRASS Development Team
 #
 #        This program is free software under the GNU General Public
 #        License (>=v2). Read the file COPYING that comes with GRASS
@@ -301,10 +301,10 @@ def main ():
         if mtd_file == '' and metadata_file == '':
             gscript.fatal('Metadata (file) is required for shadow mask computation. Please specifiy it')
         if mtd_file != '':
-            if not os.path.exists(mtd_file):
+            if not os.path.isfile(mtd_file):
                  gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
         elif metadata_file != '':
-            if not os.path.exists(metadata_file):
+            if not os.path.isfile(metadata_file):
                  gscript.fatal('Metadata file <{}> not found. Please select the right file'.format(metadata_file))
 
     if flags["r"]:
@@ -333,7 +333,7 @@ def main ():
         gscript.message(f_bands.values())
         gscript.message(_('--- All bands have been rescaled ---'))
     else:
-        gscript.warning(_('Any rescale factor has been applied'))
+        gscript.warning(_('No rescale factor has been applied'))
         for key, b in bands.items():
             if (gscript.raster_info(b)['datatype'] != "DCELL" and
                 gscript.raster_info(b)['datatype'] != "FCELL"):
