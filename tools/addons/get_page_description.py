@@ -140,7 +140,7 @@ def main(filename):
             desc = "(incomplete manual page, please fix)"
         # the original script attempted to add also </li> but it as not working
         # now we leave up to the caller as well as whitespace around
-        print desc
+        print(desc)
 
 
 if __name__ == "__main__":
