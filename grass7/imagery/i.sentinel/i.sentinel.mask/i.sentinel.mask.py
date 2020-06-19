@@ -26,55 +26,55 @@
 #%End
 #%option G_OPT_F_INPUT
 #% key: input_file
-#% description: name of the .txt file with listed input bands
+#% description: Name of the .txt file with listed input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: blue
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: green
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: red
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: nir
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: nir8a
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: swir11
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_R_INPUT
 #% key: swir12
-#% description: input bands
+#% description: Input bands
 #% required : no
 #% guisection: Required
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: cloud_mask
-#% description: name of output vector cloud mask
+#% description: Name of output vector cloud mask
 #% required : no
 #% guisection: Output
 #%end
@@ -86,20 +86,20 @@
 #%end
 #%option G_OPT_V_OUTPUT
 #% key: shadow_mask
-#% description: name of output vector shadow mask
+#% description: Name of output vector shadow mask
 #% required : no
 #% guisection: Output
 #%end
 #%option G_OPT_R_OUTPUT
 #% key: shadow_raster
-#% description: name of output raster shadow mask
+#% description: Name of output raster shadow mask
 #% required : no
 #% guisection: Output
 #%end
 #%option
 #% key: cloud_threshold
 #% type: integer
-#% description: threshold for cleaning small areas from cloud mask (in square meters)
+#% description: Threshold for cleaning small areas from cloud mask (in square meters)
 #% required : yes
 #% answer: 50000
 #% guisection: Output
@@ -107,27 +107,29 @@
 #%option
 #% key: shadow_threshold
 #% type: integer
-#% description: threshold for cleaning small areas from shadow mask (in square meters)
+#% description: Threshold for cleaning small areas from shadow mask (in square meters)
 #% required : yes
 #% answer: 10000
 #% guisection: Output
 #%end
 #%option G_OPT_F_INPUT
 #% key: mtd_file
-#% description: name of the image metadata file (MTD_TL.xml)
+#% description: Name of the image metadata file (MTD_TL.xml)
 #% required : no
 #% guisection: Metadata
 #%end
 #%option G_OPT_F_INPUT
 #% key: metadata
-#% description: Name of Sentinel metadata json dump
+#% label: Name of Sentinel metadata json file
+#% description: Default is LOCATION/MAPSET/cell_misc/BAND/description.json
+#% answer: default
 #% required : no
 #% guisection: Metadata
 #%end
 #%option
 #% key: scale_fac
 #% type: integer
-#% description: rescale factor
+#% description: Rescale factor
 #% required : no
 #% answer: 10000
 #% guisection: Rescale
@@ -152,8 +154,6 @@
 
 #%rules
 #% collective: blue,green,red,nir,nir8a,swir11,swir12
-#% requires: shadow_mask,mtd_file,metadata
-#% requires: shadow_raster,mtd_file,metadata
 #% excludes: mtd_file,metadata
 #% required: cloud_mask,cloud_raster,shadow_mask,shadow_raster
 #% excludes: -c,shadow_mask,shadow_raster
@@ -209,7 +209,7 @@ def main ():
             mapset = mapset)['file']:
             gscript.fatal(('Temporary raster map <{}> already exists.').format(value))
 
-    # Input file
+    # Input files
     mtd_file = options['mtd_file']
     metadata_file = options['metadata']
     bands = {}
@@ -244,8 +244,32 @@ def main ():
                     bands[a[0]] = a[1].strip()
             if len(txt_bands) < 7:
                 gscript.fatal(('One or more bands are missing in the input text file.\n Only these bands have been found: {}').format(txt_bands))
-            if mtd_file and metadata_file:
+            if mtd_file and metadata_file != 'default' :
                 gscript.fatal(('Metadata json file and mtd_file are both given as input text files.\n Only one of these should be specified.'))
+
+    # we want cloud and shadows: check input and output for shadow mask
+    if not flags["c"]:
+        if mtd_file != '':
+            if not os.path.isfile(mtd_file):
+                 gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
+        elif metadata_file == 'default':
+            # use default json
+            env = gscript.gisenv()
+            json_standard_folder = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'], 'cell_misc')
+            for key, value in bands.items():
+                metadata_file = os.path.join(json_standard_folder, value, "description.json")
+                if os.path.isfile(metadata_file):
+                    break
+                else:
+                    metadata_file = None
+            if not metadata_file:
+                gscript.fatal('No default metadata files found. Did you use -j in i.sentinel.import?')
+        elif metadata_file:
+            if not os.path.isfile(metadata_file):
+                gscript.fatal('Metadata file <{}> not found. Please select the right file'.format(metadata_file))
+        else:
+            gscript.fatal('Metadata (file) is required for shadow mask computation. Please specify it')
+
 
     d = 'double'
     f_bands = {}
@@ -295,17 +319,6 @@ def main ():
             element = 'cell',
             mapset = mapset)['file']:
             gscript.fatal(('Raster map <{}> not found.').format(value))
-
-    # Check input and output for shadow mask
-    if not flags["c"]:
-        if mtd_file == '' and metadata_file == '':
-            gscript.fatal('Metadata (file) is required for shadow mask computation. Please specifiy it')
-        if mtd_file != '':
-            if not os.path.isfile(mtd_file):
-                 gscript.fatal('Metadata file <{}> not found. Please select the right .xml file'.format(mtd_file))
-        elif metadata_file != '':
-            if not os.path.isfile(metadata_file):
-                 gscript.fatal('Metadata file <{}> not found. Please select the right file'.format(metadata_file))
 
     if flags["r"]:
         gscript.use_temp_region()
@@ -606,12 +619,14 @@ def main ():
                         quiet=True, stderr=subprocess.DEVNULL)
                     gscript.run_command('v.db.addcolumn',
                         map=tmp["overlay"],
-                        columns='area double')
+                        columns='area double',
+                        quiet=True)
                     area = gscript.read_command('v.to.db',
                         map=tmp["overlay"],
                         option='area',
                         columns='area',
-                        flags='c')
+                        flags='c',
+                        quiet=True)
                     area2 = gscript.parse_key_val(area, sep='|')
                     AA.append(float(area2['total area']))
 
