@@ -165,7 +165,7 @@ class JinjaTemplateParser():
                             values += ",selfInfoString='''{{" + values2 + "#}'''"
 
                         exe_str = "self.mdDescription.append(MdDescription(%s))" % values
-                        exe_str = exe_str.decode("utf-8", 'ignore')
+                        exe_str = exe_str.encode("utf-8", 'ignore')
                         eval(exe_str)
         except:
             GError('Cannot open jinja template')
