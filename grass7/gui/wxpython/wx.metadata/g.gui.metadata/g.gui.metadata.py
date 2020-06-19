@@ -131,7 +131,7 @@ class LocationMapTree(wx.TreeCtrl):
                 self.AppendItem(vartype, mlayer)
 
         self.RestoreBackup()
-        Debug.msg(1, "Tree filled")    
+        Debug.msg(1, "Tree filled")
 
     def InitTreeItems(self):
         """Create popup menu for layers"""
@@ -196,7 +196,7 @@ class LocationMapTree(wx.TreeCtrl):
             if self.GetItemText(item) == match:
                 return True
             item, cookie = self.GetNextChild(root, cookie)
-        return False       
+        return False
 
     def UpdateTree(self):
         """Update whole tree."""
@@ -215,7 +215,7 @@ class LocationMapTree(wx.TreeCtrl):
         if(self.selected_layer):
             self._popupMenuLayer()
         elif(self.selected_mapset and self.selected_type==None):
-            self._popupMenuMapset() 
+            self._popupMenuMapset()
 
     def OnDoubleClick(self, event):
         """Double click"""
@@ -468,7 +468,7 @@ class MdMainFrame(wx.Frame):
                             defaultDir=self.mdDestination,
                             defaultFile=XMLtail.split('.')[0] + '.pdf',
                             wildcard="*.pdf",
-                            style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             outPath = dlg.GetDirectory()
@@ -552,7 +552,7 @@ class MdMainFrame(wx.Frame):
                             self.mdDestination,
                             "",
                             "*.xml",
-                            wx.OPEN)
+                            wx.FD_OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.xmlPath = dlg.GetPath()
@@ -567,7 +567,7 @@ class MdMainFrame(wx.Frame):
                             self.mdDestination,
                             "",
                             "*.xml",
-                            wx.SAVE)
+                            wx.FD_SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.onExportTemplate(outPath=dlg.GetDirectory(),
@@ -579,7 +579,7 @@ class MdMainFrame(wx.Frame):
                             self.mdDestination,
                             "",
                             "*.xml",
-                            wx.OPEN)
+                            wx.FD_OPEN)
 
         if dlg.ShowModal() == wx.ID_OK:
             self.jinjaPath = dlg.GetPath()
@@ -596,7 +596,7 @@ class MdMainFrame(wx.Frame):
                                 defaultDir=self.mdDestination,
                                 defaultFile=self.XMLtail,
                                 wildcard="*.xml",
-                                style=wx.SAVE | wx.FD_OVERWRITE_PROMPT)
+                                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
             if dlg.ShowModal() == wx.ID_OK:
                 self.exportXML(outPath=dlg.GetDirectory(), outFileName=dlg.GetFilename())
@@ -855,7 +855,8 @@ class MdMainFrame(wx.Frame):
         if self.profileChoice == 'Load custom' and self.numOfMap != 0:
             # load profile. IF - just one map, ELSE - multiple editing
             if multipleEditing is False:
-                dlg = wx.FileDialog(self, "Select profile", os.getcwd(), "", "*.xml", wx.OPEN)
+                dlg = wx.FileDialog(self, "Select profile", os.getcwd(),
+                                    "", "*.xml", wx.FD_OPEN)
                 if dlg.ShowModal() == wx.ID_OK:
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
                                                      list(self.ListOfMapTypeDict[-1].keys())[0])
