@@ -1,4 +1,4 @@
-self.md.identification = mdutil.MD_DataIdentification_MOD()
+self.md.identification = mdutil.MD_DataIdentification()
 self.md.dataquality = DQ_DataQuality()
 self.md.distribution = MD_Distribution()
 self.md.identification.extent = EX_Extent()

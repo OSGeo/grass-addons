@@ -73,7 +73,7 @@ def isTableExists(name):
 def removeNonAscii(s):
     '''Removed non ASCII chars
     '''
-    s = filter(lambda x: x in string.printable, s)
+    s = [x for x in s if x in string.printable]
     return s
 
 

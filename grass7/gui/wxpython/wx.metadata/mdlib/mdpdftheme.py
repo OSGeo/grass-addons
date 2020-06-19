@@ -3,8 +3,8 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.rl_config import canvas_basefontname as _baseFontName
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
-import cStringIO
-import urllib
+import io
+import urllib.request, urllib.parse, urllib.error
 from reportlab.platypus.doctemplate import SimpleDocTemplate
 from reportlab.platypus.flowables import Image
 from reportlab.platypus import Paragraph, Spacer, KeepTogether
@@ -250,7 +250,7 @@ class DefaultTheme(object):
 
     @classmethod
     def doc_template_args(cls):
-        return dict([(k, v) for k, v in cls.doc.items() if v is not None])
+        return dict([(k, v) for k, v in list(cls.doc.items()) if v is not None])
 
     @classmethod
     def header_for_level(cls, level):
@@ -324,7 +324,7 @@ class Pdf(object):
         self.add(img)
 
     def render(self):
-        buffer = cStringIO.StringIO()
+        buffer = io.StringIO()
         doc_template_args = self.theme.doc_template_args()
         doc = SimpleDocTemplate(buffer, title=self.title, author=self.author,
                                 **doc_template_args)

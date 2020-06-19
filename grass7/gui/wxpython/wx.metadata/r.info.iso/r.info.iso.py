@@ -61,7 +61,7 @@ def main():
 
         if xml_file is not False:
             md.readXML(xml_file)
-            print md.validate_inspire()
+            print(md.validate_inspire())
 
     else:
         md.createGrassBasicISO()
@@ -71,7 +71,7 @@ def main():
 
         if xml_file is not False:
             md.readXML(xml_file)
-            print md.validate_basic()
+            print(md.validate_basic())
 
 
 if __name__ == "__main__":

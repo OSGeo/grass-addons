@@ -31,6 +31,7 @@ from grass.pydispatch.signal import Signal
 import grass.temporal as tgis
 
 from grass.script.setup import set_gui_path
+from functools import reduce
 set_gui_path()
 
 from core.gcmd import RunCommand, GError, GMessage
@@ -820,8 +821,8 @@ class MdMainFrame(wx.Frame):
         if self.numOfMap == 1 and multipleEditing is False and self.profileChoice != 'Load custom':
             if self.profileChoice == 'INSPIRE':
                 if self.chckProfileSelection('spatial'):
-                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
-                                                     self.ListOfMapTypeDict[-1].keys()[0])
+                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
+                                                     list(self.ListOfMapTypeDict[-1].keys())[0])
                     self.mdCreator.createGrassInspireISO()
                     self.jinjaPath = self.mdCreator.profilePathAbs
                 else:
@@ -830,8 +831,8 @@ class MdMainFrame(wx.Frame):
 
             elif self.profileChoice == 'GRASS BASIC':
                 if self.chckProfileSelection('spatial'):
-                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
-                                                     self.ListOfMapTypeDict[-1].keys()[0])
+                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
+                                                     list(self.ListOfMapTypeDict[-1].keys())[0])
                     self.mdCreator.createGrassBasicISO()
                     self.jinjaPath = self.mdCreator.profilePathAbs
                 else:
@@ -840,8 +841,8 @@ class MdMainFrame(wx.Frame):
 
             elif self.profileChoice == 'TEMPORAL':
                 if self.chckProfileSelection('temporal'):
-                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
-                                                     self.ListOfMapTypeDict[-1].keys()[0])
+                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
+                                                     list(self.ListOfMapTypeDict[-1].keys())[0])
                     self.mdCreator.createTemporalISO()
                     self.jinjaPath = self.mdCreator.profilePathAbs
                 else:
@@ -856,8 +857,8 @@ class MdMainFrame(wx.Frame):
             if multipleEditing is False:
                 dlg = wx.FileDialog(self, "Select profile", os.getcwd(), "", "*.xml", wx.OPEN)
                 if dlg.ShowModal() == wx.ID_OK:
-                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
-                                                     self.ListOfMapTypeDict[-1].keys()[0])
+                    self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
+                                                     list(self.ListOfMapTypeDict[-1].keys())[0])
 
                     if self.chckProfileSelection('temporal'): #if map is temporal, use temporal md pareser
                         self.mdCreator.createTemporalISO()
@@ -880,8 +881,8 @@ class MdMainFrame(wx.Frame):
                 else:  # do nothing
                     return False
             else:
-                self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][self.ListOfMapTypeDict[-1].keys()[0]],
-                                                 self.ListOfMapTypeDict[-1].keys()[0])
+                self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
+                                                 list(self.ListOfMapTypeDict[-1].keys())[0])
                 self.mdCreator.createGrassInspireISO()
                 self.xmlPath = self.mdCreator.saveXML(self.mdDestination, self.nameTMPteplate, self)
                 self.initMultipleEditor()
@@ -1130,8 +1131,8 @@ class MdDataCatalog(LocationMapTree):
         tDict = tgis.tlist_grouped('stds', group_type=True, dbif=self.dbif)
         # nested list with '(map, mapset, etype)' items
         allDatasets = [[[(map, mapset, etype) for map in maps]
-                        for etype, maps in etypesDict.iteritems()]
-                       for mapset, etypesDict in tDict.iteritems()]
+                        for etype, maps in list(etypesDict.items())]
+                       for mapset, etypesDict in list(tDict.items())]
         if allDatasets:
             allDatasets = reduce(lambda x, y: x + y, reduce(lambda x, y: x + y,
                                                             allDatasets))
@@ -1164,7 +1165,7 @@ class MdDataCatalog(LocationMapTree):
                     if vartype is not None:
                         self.AppendItem(vartype, ml[0])
 
-        except Exception, e:
+        except Exception as e:
             GError('Initialize of temporal tree catalogue error: < %s >'%e)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
