@@ -786,7 +786,7 @@ class MdMainFrame(wx.Frame):
             self.MdDataCatalogPanelLeft.UnselectAll()
 
     def chckProfileSelection(self, type):
-        parent = self.MdDataCatalogPanelLeft.GetSelection()
+        parent = self.MdDataCatalogPanelLeft.GetSelections()[0]
         while True:
             text = self.MdDataCatalogPanelLeft.GetItemText(parent)
             if text == 'Temporal maps':
