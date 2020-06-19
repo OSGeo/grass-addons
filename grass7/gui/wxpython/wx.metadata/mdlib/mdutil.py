@@ -74,7 +74,7 @@ def removeNonAscii(s):
     '''Removed non ASCII chars
     '''
     s = [x for x in s if x in string.printable]
-    return s
+    return ''.join(s)
 
 
 def yesNo(parent, question, caption='Yes or no?'):
