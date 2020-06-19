@@ -106,11 +106,11 @@ def _get_csw(catalog_url, timeout=10):
     try:
         catalog = CatalogueServiceWeb(catalog_url, timeout=timeout)
         return catalog
-    except ExceptionReport, err:
+    except ExceptionReport as err:
         msg = 'Error connecting to service: %s' % err
-    except ValueError, err:
+    except ValueError as err:
         msg = 'Value Error: %s' % err
-    except Exception, err:
+    except Exception as err:
         msg = 'Unknown Error: %s' % err
     grass.error('CSW Connection error: %s' % msg)
 

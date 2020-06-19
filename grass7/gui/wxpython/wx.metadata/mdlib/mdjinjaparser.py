@@ -16,7 +16,7 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
 from core.gcmd import GError
-from mdutil import findBetween
+from .mdutil import findBetween
 
 
 class MdDescription():

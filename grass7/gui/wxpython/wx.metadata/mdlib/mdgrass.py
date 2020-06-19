@@ -31,9 +31,9 @@ from grass.pygrass.utils import set_path
 set_path(modulename='wx.metadata', dirname='mdlib')
 
 from lxml import etree
-import StringIO
+import io
 import uuid
-import mdutil  # metadata lib
+from . import mdutil  # metadata lib
 
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
@@ -103,7 +103,7 @@ class GrassMD():
                             type=self.type,
                             stdout_=PIPE)
         md_h_grass = tinfoHist.outputs.stdout
-        buf = StringIO.StringIO(md_h_grass)
+        buf = io.StringIO(md_h_grass)
         line = buf.readline().splitlines()
 
         while line:
@@ -136,7 +136,7 @@ class GrassMD():
               stdout_=PIPE)
 
         md_h_grass = rinfo_h.outputs.stdout
-        buf = StringIO.StringIO(md_h_grass)
+        buf = io.StringIO(md_h_grass)
         line = buf.readline().splitlines()
         while str(line) != '[]':
             if str(line[0]).strip() != "":
@@ -217,7 +217,7 @@ class GrassMD():
     def wkt2standards(self,prj_txt):
         try:
             from osgeo import osr
-        except Exception , e:
+        except Exception as e:
             grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled'%e)
             return None
 
@@ -503,7 +503,7 @@ class GrassMD():
         if not path:
             path = os.path.join(mdutil.pathToMapset(), 'metadata')
             if not os.path.exists(path):
-                print os.makedirs(path)
+                print(os.makedirs(path))
         path = os.path.join(path, xml_out_name)
 
         # generate xml using jinja profiles
@@ -523,7 +523,7 @@ class GrassMD():
                         Module('g.message', message='metadata exported: \n\
                                                      %s' % (str(path)))
                     except IOError as e:
-                        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                        print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal('ERROR: cannot write xml to file')
                 return path
             else:
@@ -534,7 +534,7 @@ class GrassMD():
                     Module('g.message', message='metadata exported: \n\
                                                      %s' % (str(path)))
                 except IOError as e:
-                    print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                    print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal('ERROR: cannot write xml to file')
                     # sys.exit()
                 return path
@@ -549,7 +549,7 @@ class GrassMD():
                         Module('g.message', message='Metadata file has been overwritten')
                         return path
                     except IOError as e:
-                        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                        print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal('error: cannot write xml to file')
                 else:
                     Module('g.message', message='For overwriting use flag -overwrite')
@@ -563,7 +563,7 @@ class GrassMD():
                     return path
                     
                 except IOError as e:
-                    print "I/O error({0}): {1}".format(e.errno, e.strerror)
+                    print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal('error: cannot write xml to file')                
 
     def validate_inspire(self):

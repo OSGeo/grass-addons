@@ -75,7 +75,7 @@
 #% answer: 8000
 #%end
 
-from StringIO import StringIO
+from io import StringIO
 import os
 import sys
 import contextlib
@@ -147,7 +147,7 @@ def application(env, start_response):
     headers['Content-Length'] = str(len(contents))
     headers['Content-Type'] = csw.contenttype
 
-    start_response(status, headers.items())
+    start_response(status, list(headers.items()))
 
     return [contents]
 
@@ -165,7 +165,7 @@ def main():
     try:
         httpd = make_server('', port, application)
         grass.message("Serving on port %d..." % port)
-    except Exception, e:
+    except Exception as e:
         grass.error(str(e))
         sys.stdout.flush()
         sys.exit()

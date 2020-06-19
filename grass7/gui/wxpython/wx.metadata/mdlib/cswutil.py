@@ -30,10 +30,10 @@ def get_connections_from_file( filename):
         if doc.tag != 'qgsCSWConnections':
             error = 1
             msg = 'Invalid CSW connections XML.'
-    except etree.ParseError, err:
+    except etree.ParseError as err:
         error = 1
         msg = ('Cannot parse XML file: %s' % err)
-    except IOError, err:
+    except IOError as err:
         error = 1
         msg = ('Cannot open file: %s' % err)
 

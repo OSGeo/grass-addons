@@ -12,7 +12,7 @@ set_path(modulename='wx.metadata', dirname='mdlib')
 import math
 from reportlab.platypus import Paragraph, Image, Table
 from reportlab.platypus import PageBreak
-from mdpdftheme import *
+from .mdpdftheme import *
 
 
 class MyTheme(DefaultTheme):
@@ -468,7 +468,7 @@ class MapBBFactory():
         self.pixel_range = []
         self.pixels = 256
         self.size = size
-        zoom_levels = range(0, 18)
+        zoom_levels = list(range(0, 18))
         for z in zoom_levels:
             origin = self.pixels / 2
             self.pixels_per_lon_degree.append(self.pixels / 360)
@@ -602,7 +602,7 @@ class MapBBFactory():
         zmin = 0
         bottom_left = bounds[0]
         top_right = bounds[1]
-        backwards_range = range(zmin, zmax)
+        backwards_range = list(range(zmin, zmax))
         backwards_range.reverse()
         for z in backwards_range:
             bottom_left_pixel = self.FromLatLngToPixel(bottom_left, z)
@@ -634,8 +634,8 @@ class MapBBFactory():
         """
         lats = [float(x) for x in lats]
         lngs = [float(x) for x in lngs]
-        flats = map(float, lats)
-        flngs = map(float, lngs)
+        flats = list(map(float, lats))
+        flngs = list(map(float, lngs))
         west = min(flngs)
         east = max(flngs)
         north = max(flats)
