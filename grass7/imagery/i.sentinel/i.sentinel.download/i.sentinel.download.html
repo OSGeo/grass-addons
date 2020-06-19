@@ -1,12 +1,12 @@
 <h2>DESCRIPTION</h2>
 
-The <em>i.sentinel.download</em> allows downloading Sentinel products
-from <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>.
+The <em>i.sentinel.download</em> allows downloading Sentinel satellite products
+from the <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a>.
 
 <p>
 The following product types (parameter <b>producttype</b>) are currently supported:
 <ul>
-  <li>Sentinel-1
+  <li>Sentinel-1 (SAR)
   (SAR) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products">products</a>:
     <ul>
       <li>SLC: Single Look Complex (Level-1)</li>
@@ -14,7 +14,7 @@ The following product types (parameter <b>producttype</b>) are currently support
       <li>OCN: Ocean products for wind, wave and currents applications (Level-2)</li>
     </ul>
   </li>
-  <li>Sentinel-2
+  <li>Sentinel-2 (optical and infrared)
   (optical) <a href="https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products">products</a>:
   <ul>
     <li>S2MSI2A: operational Bottom-Of-Atmosphere reflectances in cartographic geometry Level-2A)</li>
@@ -30,8 +30,8 @@ and <em>password</em> are required;
 see <a href="https://scihub.copernicus.eu/dhus/#/self-registration">Register
 new account</a> page for signing up.
 
-<p><em>i.sentinel.download</em> reads user credentials
-from <b>settings</b> file. The file must contain at least two lines:
+<p><em>i.sentinel.download</em> reads the user credentials
+from the <b>settings</b> file. The file must contain at least two lines:
 
 <div class="code"><pre>
 myusername
@@ -45,7 +45,7 @@ empty lines in settings file are silently skipped.
 
 User credentials can be also defined interactively
 when <b>settings=-</b> is given. Note that interactive prompt does not
-work in GUI.
+work in the graphical user interface.
 
 <div class="code"><pre>
 Insert username: myusername
@@ -96,6 +96,7 @@ The <b>output</b> directory is created if not yet available.
   
 <p>
 The query string sent to ESA can be shown with <b>--verbose</b>.
+
 
 <h2>EXAMPLES</h2>
 

@@ -11,8 +11,8 @@ see below for an example with cloud and shadow masks):
 <table cellspacing="2" cellpadding="2" width="100%" border="0">
 	<tbody>
 		<tr>
-		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_esa_sen2cor.png"><img src="i_sentinel_mask_indonesia_esa_sen2cor.png" width="70%"></a><br><i>Fig: Standard cloud mask as provided in Sentinel-2 SAFE products<br>(example: Indonesia)</i></td>
-		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" width="70%"></a><br><i>Fig: Cloud detection with <em>i.sentinel.mask</em><br>(example: Indonesia)</td>
+		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_esa_sen2cor.png"><img src="i_sentinel_mask_indonesia_esa_sen2cor.png" width="70%"></a><br><i>Fig: Official cloud mask  (yellow borders) as provided in Sentinel-2 SAFE products<br>(example: Indonesia)</i></td>
+		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" width="70%"></a><br><i>Fig: Cloud (yellow borders) and shadow (green borders) detection with <em>i.sentinel.mask</em><br>(example: Indonesia)</td>
 		</tr>
 	</tbody>
 </table>
@@ -115,15 +115,17 @@ remove misclassifications.
 If the <b>input_file</b> is given, the <b>mtd_file</b> or <b>metadata</b> can
 also be specified in the this file.
 
-<h2>EXAMPLE</h2>
-<p>
-The example illustrates how to run <em>i.sentinel.mask</em> for a Sentinel-2A image
+<h2>EXAMPLES</h2>
+
+<h3>North Carolina example</h3>
+This example illustrates how to run <em>i.sentinel.mask</em> for a Sentinel-2A image
 (S2A_MSIL1C_20180713T155901_N0206_R097_T17SPV_20180713T211059.SAFE) in the
 North Carolina location.<br> Obviously, the image has been imported and
 atmospheric correction has been performed before running <em>i.sentinel.mask</em> .
 
 <div class="code"><pre>
-i.sentinel.mask -r input_file=path/input_cloud_mask.txt cloud_mask=cloud shadow_mask=shadow cloud_threshold=25000 shadow_threshold=5000 mtd_file=path/MTD_TL.xml
+i.sentinel.mask -r input_file=path/input_cloud_mask.txt cloud_mask=cloud \
+  shadow_mask=shadow cloud_threshold=25000 shadow_threshold=5000 mtd_file=path/MTD_TL.xml
 </pre></div>
 <p>
 The input text file:
@@ -146,6 +148,41 @@ Use <b>-r</b> to set the computational region to the maximum image extend.
 <i>Figure1 (left): Sentinel-2A Band 02 - Figure2 (right): Sentinel-2A Band 02
 with computed cloud and shadow masks</i>
 </center>
+
+<h3>Indonesia example</h3>
+
+<div class="code"><pre>
+# EPSG 32749 (UTM 49S)
+# Scene: S2A_MSIL2A_20200104T024111_N0213_R089_T49MGU_2020010
+i.sentinel.download settings=credentials output=data uuid=f4d51134-c502-488b-8384-9eb0009c7545
+
+# Mangkawuk area
+g.region n=9870790 s=9855540 w=763950 e=786410 res=10 -p
+
+# limit import to all bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
+i.sentinel.import input=data -j pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
+
+# prepare input file list
+g.list raster pattern="T49*"
+g.list raster pattern="T49*" output=input_cloud_shadow_mask.csv
+
+# edit input_cloud_shadow_mask.csv, to achieve
+blue=T49MGU_20200104T024111_B02_10m
+green=T49MGU_20200104T024111_B03_10m
+red=T49MGU_20200104T024111_B04_10m
+nir=T49MGU_20200104T024111_B08_10m
+swir11=T49MGU_20200104T024111_B11_20m
+swir12=T49MGU_20200104T024111_B12_20m
+nir8a=T49MGU_20200104T024111_B8A_20m
+
+eval $(g.gisenv -s)
+i.sentinel.mask -s input=input_cloud_shadow_mask.csv cloud_mask=cloud_mask \
+  cloud_raster=cloud_raster shadow_mask=shadow_mask \
+  metadata=$GISDBASE/$LOCATION_NAME/$MAPSET/cell_misc/T49MGU_20200104T024111_B04_10m/description.json \
+  cloud_threshold=50000 shadow_threshold=40000
+</pre></div>
+
+The result is seen in the screenshot above.
 
 <h2>IMPORTANT NOTES</h2>
 
