@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.sentinel.mask</em> allows to automatically identify clouds and their
-shadows in Sentinel-2 images.
+shadows in Sentinel-2 images (level 1C and 2A).
 <p>
 The following figures show the difference between the standard cloud mask as
 provided in Sentinel-2 SAFE products and the cloud detection results obtained
@@ -12,7 +12,7 @@ see below for an example with cloud and shadow masks):
 	<tbody>
 		<tr>
 		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_esa_sen2cor.png"><img src="i_sentinel_mask_indonesia_esa_sen2cor.png" width="70%"></a><br><i>Fig: Official cloud mask  (yellow borders) as provided in Sentinel-2 SAFE products<br>(example: Indonesia)</i></td>
-		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" width="70%"></a><br><i>Fig: Cloud (yellow borders) and shadow (green borders) detection with <em>i.sentinel.mask</em><br>(example: Indonesia)</td>
+		<td align="center" valign="top"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" width="70%"></a><br><i>Fig: Cloud (yellow borders) and shadow (green borders) detection with <em>i.sentinel.mask</em><br>(example: Indonesia)</i></td>
 		</tr>
 	</tbody>
 </table>
@@ -166,7 +166,7 @@ i.sentinel.import input=data -j pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
 g.list raster pattern="T49*"
 g.list raster pattern="T49*" output=input_cloud_shadow_mask.csv
 
-# edit input_cloud_shadow_mask.csv, to achieve
+# edit input_cloud_shadow_mask.csv, content:
 blue=T49MGU_20200104T024111_B02_10m
 green=T49MGU_20200104T024111_B03_10m
 red=T49MGU_20200104T024111_B04_10m
@@ -175,14 +175,14 @@ swir11=T49MGU_20200104T024111_B11_20m
 swir12=T49MGU_20200104T024111_B12_20m
 nir8a=T49MGU_20200104T024111_B8A_20m
 
-eval $(g.gisenv -s)
+# the default metadata json will be used
 i.sentinel.mask -s input=input_cloud_shadow_mask.csv cloud_mask=cloud_mask \
   cloud_raster=cloud_raster shadow_mask=shadow_mask \
-  metadata=$GISDBASE/$LOCATION_NAME/$MAPSET/cell_misc/T49MGU_20200104T024111_B04_10m/description.json \
   cloud_threshold=50000 shadow_threshold=40000
 </pre></div>
 
 The result is seen in the screenshot above.
+
 
 <h2>IMPORTANT NOTES</h2>
 
