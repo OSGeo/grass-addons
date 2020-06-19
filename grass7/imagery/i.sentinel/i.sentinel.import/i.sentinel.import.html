@@ -48,21 +48,21 @@ spatial resolutions:
 <tbody>
 <tr>
 <td>10</td>
-<td>B2, B3, B4, B8</td>
+<td>B02, B03, B04, B08</td>
 </tr>
 <tr>
 <td>20</td>
-<td>B5, B6, B7, B8A, B11, B12</td>
+<td>B05, B06, B07, B8A, B11, B12</td>
 </tr>
 <tr>
 <td>60</td>
-<td>B1, B9, B10</td>
+<td>B01, B09, B10</td>
 </tr>
 </tbody>
 </table>
 
 <p>
-Level 2A products for Sentinel-2 come with a scene classification (SCL layer)
+Level 2A (L2A) products for Sentinel-2 come with a scene classification (SCL layer)
 at 20m and 60m resolution, that e.g. can be used for masking clouds and snow
 and is also imported by default.
 
@@ -124,6 +124,13 @@ by <em><a href="t.register.html">t.register</a></em>. Note that
 currently a register file can be created only for Sentinel-2 data. See
 example below.
 
+<b>Metadata import</b>
+
+By using the <b>-j</b> flag the band metadata are additionally stored
+in JSON format (in the current mapset under <tt>cell_misc</tt>). These
+metadata JSON files are supported by <em>i.sentinel.mask</em>.
+
+
 <h2>EXAMPLES</h2>
 
 <h3>List Sentinel bands</h3>
@@ -142,38 +149,47 @@ data/S2B_MSIL1C_20180216T102059_N0206_R065_T32UPB_20180216T140508.SAFE/GRANULE/.
 
 <h3>Import Sentinel data</h3>
 
-Import all Sentinel bands found in <i>data</i> directory:
+Import all Sentinel bands found in <i>data</i> directory and store metadata
+as JSON files within the GRASS GIS database directory:
+
 
 <div class="code"><pre>
-i.sentinel.import input=data
+i.sentinel.import -j input=data
 </pre></div>
 
 <p>
 Limit import to only to 4th and 8th bands:
 
 <div class="code"><pre>
-i.sentinel.import input=data pattern='B0(4|8)'
+i.sentinel.import -j input=data pattern='B0(4|8)'
 </pre></div>
 
 <p>
 Limit import to all bands with 10m resolution (excluding AOT, WVP, ... bands):
 
 <div class="code"><pre>
-i.sentinel.import input=data pattern='B0(2|3|4|8)_10m'
+i.sentinel.import -j input=data pattern='B0(2|3|4|8)_10m'
 </pre></div>
 
 <p>
 Limit import to only selected bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
 
 <div class="code"><pre>
-i.sentinel.import input=data pattern='B(02_1|03_1|04_1|08_1|11_2)0m'
+i.sentinel.import -j input=data pattern='B(02_1|03_1|04_1|08_1|11_2)0m'
+</pre></div>
+
+<p>
+Limit import to all bands with 10m and 20m resolution (excluding AOT, WVP, ... bands):
+
+<div class="code"><pre>
+i.sentinel.import -j input=data pattern='_B((0[2348]_1)|(0[567]|8A|11|12)_2)0m'
 </pre></div>
 
 <p>
 Link data and import also cloud mask file:
 
 <div class="code"><pre>
-i.sentinel.import -l -c input=data
+i.sentinel.import -l -c -j input=data
 </pre></div>
 
 <center>
@@ -185,14 +201,14 @@ i.sentinel.import -l -c input=data
 Link data from specific UTM zone while ignoring projection check
 
 <div class="code"><pre>
-i.sentinel.import -l -o input=data pattern_file="_T32"
+i.sentinel.import -l -o -j input=data pattern_file="_T32"
 </pre></div>
 
 <p>
 Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 2019
 
 <div class="code"><pre>
-i.sentinel.import input=data pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+i.sentinel.import -j input=data pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
 </pre></div>
 
 <p>
@@ -200,13 +216,13 @@ Limit import to only bands 3 and 4 from level 2A products for tile T32VNR in 201
 unzip to directory "safefiles_dir":
 
 <div class="code"><pre>
-i.sentinel.import input=data unzip_dir=safefiles_dir pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
+i.sentinel.import -j input=data unzip_dir=safefiles_dir pattern_file="MSIL2A.*T32VNR_2019" pattern='B(03|04)'
 </pre></div>
 
 <h3>Register imported Sentinel data into STRDS</h3>
 
 <div class="code"><pre>
-i.sentinel.import input=data register_output=t_register.txt
+i.sentinel.import -j input=data register_output=t_register.txt
 
 # register imported data into existing STRDS
 t.register input=sentinel_ds file=t_register.txt
