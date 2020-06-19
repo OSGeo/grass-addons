@@ -74,7 +74,7 @@ class LocationMapTree(wx.TreeCtrl):
         self._initVariables()
         self.MakeBackup()
 
-        wx.EVT_TREE_ITEM_RIGHT_CLICK(self, wx.ID_ANY, self.OnRightClick)
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnRightClick)
 
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
