@@ -1,0 +1,88 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+  schedule:
+  # 01:00 Pacific Time (in UTC), every day (late night PT)
+  - cron:  '0 8 * * *'
+
+jobs:
+  build:
+    name: ${{ matrix.grass_version }}
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        grass_version:
+        - master
+        - releasebranch_7_8
+      fail-fast: false
+
+    steps:
+
+    - name: Checkout addons
+      uses: actions/checkout@v2
+      with:
+        repository: OSGeo/grass
+        ref: ${{ matrix.grass_version }}
+        path: grass
+
+    - name: Checkout core
+      uses: actions/checkout@v2
+      with:
+        path: grass-addons
+
+    - name: Get dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y wget git gawk findutils
+        xargs -a <(awk '! /^ *(#|$)/' "grass-addons/.github/workflows/apt.txt") -r -- \
+            sudo apt-get install -y --no-install-recommends --no-install-suggests
+
+    - name: Set up Python 3 as default Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+
+    - name: Get Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r grass-addons/.github/workflows/requirements.txt
+
+    - name: Create installation directory
+      run: |
+        mkdir $HOME/install
+
+    - name: Set number of cores for compilation
+      run: |
+        echo "::set-env name=MAKEFLAGS::-j$(nproc)"
+
+    - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
+      run: |
+        echo "::set-env name=LD_LIBRARY_PATH::$HOME/install/lib"
+
+    - name: Build GRASS GIS core
+      run: |
+        cd grass
+        ../grass-addons/.github/workflows/build_grass.sh $HOME/install
+
+    - name: Add the bin directory to PATH
+      run: |
+        echo "::add-path::$HOME/install/bin"
+
+    - name: Make simple grass command available
+      run: |
+        ln -s $HOME/install/bin/grass* $HOME/install/bin/grass
+
+    - name: Build addons
+      run: |
+        cd grass-addons/grass7
+        GRASS_INSTALL=$HOME/install/grass*
+        make MODULE_TOPDIR=$GRASS_INSTALL
+
+    - name: Run tests
+      run: |
+        cd grass-addons/grass7
+        ../.github/workflows/test.sh
