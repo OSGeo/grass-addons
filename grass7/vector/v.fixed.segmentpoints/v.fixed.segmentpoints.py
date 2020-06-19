@@ -60,10 +60,6 @@ import os
 import math
 import grass.script as grass
 
-if not os.environ.has_key("GISBASE"):
-    grass.message( "You must be in GRASS GIS to run this program." )
-    sys.exit(1)
-
 def main():
     vlines = options['vector'].split('@')[0] 
     vcat = options['cat']
