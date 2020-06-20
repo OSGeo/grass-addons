@@ -927,7 +927,6 @@ class CSWBrowserPanel(wx.Panel):
         leftPanelSizer.Add(findPanelSizer, 0, wx.EXPAND)
         leftPanelSizer.Add(self.findResNumLbl, 0)
         leftPanelSizer.Add(self.resultList, 1, wx.EXPAND)
-        leftPanelSizer.Add(10, 10, 1, wx.EXPAND)
 
         listerSizer = wx.BoxSizer(wx.HORIZONTAL)
 
