@@ -614,7 +614,6 @@ class CSWBrowserPanel(wx.Panel):
         if not idx:
             return
         cmd = []
-        item_data = "item_data=" + self.get_item_data(idx, 'link')
         # Strip { }
         data = self.get_item_data(idx, 'link')[1:-1]
         item_data = dict(
