@@ -1024,7 +1024,7 @@ class MdMainFrame(wx.Frame):
         self.mainSizer.Add(self.toolbar, flag=wx.EXPAND)
 
         self.mainSizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL, size=(10000, 5)))
-        self.mainSizer.AddSpacer(5, 5, 1, wx.EXPAND)
+        self.mainSizer.Add(5, 5, 1, wx.EXPAND)
 
         self.configPanelLeftSizer = wx.BoxSizer(wx.VERTICAL)
         self.configPanelLeft.SetSizer(self.configPanelLeftSizer)
@@ -1036,7 +1036,7 @@ class MdMainFrame(wx.Frame):
         self.leftPanelSizer = wx.BoxSizer(wx.VERTICAL)
         self.leftPanel.SetSizer(self.leftPanelSizer)
         self.leftPanelSizer.Add(self.configPanelLeft, proportion=0, flag=wx.EXPAND)
-        self.leftPanelSizer.AddSpacer(5, 5, 1, wx.EXPAND)
+        self.leftPanelSizer.Add(5, 5, 1, wx.EXPAND)
         self.leftPanelSizer.Add(self.MdDataCatalogPanelLeft, proportion=1, flag=wx.EXPAND)
 
         self.Hsizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1481,7 +1481,7 @@ class CswPublisher(CSWConnectionPanel):
     def __init__(self, parent, main):
         super(CswPublisher, self).__init__(parent, main, cswBrowser=False)
         self.publishBtt = wx.Button(self.panelLeft, label='Publish')
-        self.configureSizer.AddSpacer(40, 10, 1, wx.EXPAND)
+        self.configureSizer.Add(40, 10, 1, wx.EXPAND)
         self.configureSizer.Add(self.publishBtt, 0, wx.EXPAND)
         self.publishBtt.SetBackgroundColour((255, 127, 80))
 
