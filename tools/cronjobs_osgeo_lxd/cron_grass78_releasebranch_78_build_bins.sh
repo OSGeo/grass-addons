@@ -247,12 +247,14 @@ echo "Written to: $TARGETDIR"
 # compile addons
 cd $GRASSBUILDDIR
 sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu/ ~/.grass7/addons
-mkdir $TARGETHTMLDIR/addons/
+mkdir -p $TARGETHTMLDIR/addons/
 cp ~/.grass7/addons/docs/html/* $TARGETHTMLDIR/addons/
 sh ~/cronjobs/grass-addons-index.sh $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# TODO: cp logs from ~/.grass7/addons/logs/
+# cp logs from ~/.grass7/addons/logs/
+mkdir -p $TARGETMAIN/addons/grass7/logs/
+cp -p ~/.grass7/addons/logs/* $TARGETMAIN/addons/grass7/logs/
 
 ############################################
 # cleanup
