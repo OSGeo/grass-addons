@@ -43,12 +43,12 @@ def check_file(fil, example=False, screen=False):
 def check_tests():
     test = glob.glob('test*')
     if len(test) >= 1:
-	for t in test:
-	    if os.path.isdir(t):
-		return False
-	return True
+        for t in test:
+            if os.path.isdir(t):
+                return False
+        return True
     else:
-	return True
+        return True
 
 def main(args):
     """Main function"""
@@ -69,7 +69,7 @@ def main(args):
                 screens.append(name)
             if args['t']:
                 if check_tests():
-		    tests.append(name)
+                    tests.append(name)
     else:
         for root, dirnames, filenames in os.walk('.'):
             for name in fnmatch.filter(filenames, '*.html'):
@@ -82,12 +82,12 @@ def main(args):
                     examples.append(name)
                 if not res[1]:
                     screens.append(name)
-	    if args['t']:
-		if not fnmatch.filter(dirnames, 'test*'):
-		    fil = os.path.split(root)[-1]
-		    right = is_module(fil)
-		    if right:
-			tests.append(fil)
+        if args['t']:
+            if not fnmatch.filter(dirnames, 'test*'):
+                fil = os.path.split(root)[-1]
+                right = is_module(fil)
+                if right:
+                    tests.append(fil)
     if args['e']:
         examples.sort()
         print("Modules missing examples:\n{lis}".format(lis='\n'.join(examples)))
