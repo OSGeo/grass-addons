@@ -226,18 +226,43 @@ class CSWBrowserPanel(wx.Panel):
         self.advanceChck.SetValue(False)
         self.geDialog.Destroy()
 
+    def check_char_pair(self, s, start_char='[', end_char=']',
+                        same_char=False):
+        """Check char pair count in the string
+
+        param s: string
+        param start_char: start char
+        param end_char: end char
+        param same_char: bool
+
+        :return: bool (count of start char is equal or not equal to
+        the count of end char)
+        """
+        a = 0
+        for i in range(len(s)):
+            if s[i] == start_char:
+                a += 1
+            elif s[i] == end_char:
+                a -= 1
+        if not same_char:
+            return a == 0
+        else:
+            return True if a % 2 == 0 else False
+
     def OnSetAdvancedConstraints(self, evt):
+        error_message = 'Constraints syntax error'
         self.constString = self.constrPnl.constrCtrl.GetValue()
-        if self.constString == '':
+        if (self.constString == '' or not
+            (self.constString.startswith('[')
+             and self.constString.endswith(']'))):
+            GMessage(error_message)
             return
-        constString = 'self.constraints=' + self.constString
-        try:
-            exec (constString)
-            if type(self.constraints != type(list())):
-                GMessage('Constraints syntax error')
-                return
-        except:
-            GMessage('Constraints syntax error')
+        if not self.check_char_pair(self.constString):
+            GMessage(error_message)
+            return
+        if not self.check_char_pair(self.constString, start_char='\'',
+                                    end_char='\'', same_char=True):
+            GMessage(error_message)
             return
         self.constraintsAdvanced = True
         self.geDialog.Destroy()
