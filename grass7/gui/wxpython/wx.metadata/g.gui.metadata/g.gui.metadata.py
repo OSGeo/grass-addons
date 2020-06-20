@@ -764,7 +764,6 @@ class MdMainFrame(wx.Frame):
         '''In editing mode config panel is hidden
         '''
         self.bttNew.Enable()
-        self.Hsizer.Remove(self.leftPanel)
         self.Hsizer.Layout()
         self.leftPanel.SetSize((1, 1))
 
@@ -985,7 +984,6 @@ class MdMainFrame(wx.Frame):
             self.bttNew.Disable()
             self.bttSave.Disable()
 
-            self.Hsizer.Insert(0, self.leftPanel, proportion=1, flag=wx.EXPAND)
             self.resizeFrame()
 
         elif self.secondAfterChoice:
