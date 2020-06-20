@@ -1025,7 +1025,7 @@ class MdMainFrame(wx.Frame):
         self.mainSizer.Add(self.toolbar, flag=wx.EXPAND)
 
         self.mainSizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL, size=(10000, 5)))
-        self.mainSizer.Add(5, 5, 1, wx.EXPAND)
+        self.mainSizer.AddSpacer(5)
 
         self.configPanelLeftSizer = wx.BoxSizer(wx.VERTICAL)
         self.configPanelLeft.SetSizer(self.configPanelLeftSizer)
@@ -1037,7 +1037,7 @@ class MdMainFrame(wx.Frame):
         self.leftPanelSizer = wx.BoxSizer(wx.VERTICAL)
         self.leftPanel.SetSizer(self.leftPanelSizer)
         self.leftPanelSizer.Add(self.configPanelLeft, proportion=0, flag=wx.EXPAND)
-        self.leftPanelSizer.Add(5, 5, 1, wx.EXPAND)
+        self.leftPanelSizer.AddSpacer(5)
         self.leftPanelSizer.Add(self.MdDataCatalogPanelLeft, proportion=1, flag=wx.EXPAND)
 
         self.Hsizer = wx.BoxSizer(wx.HORIZONTAL)
