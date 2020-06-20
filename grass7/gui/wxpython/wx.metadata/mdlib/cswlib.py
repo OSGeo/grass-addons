@@ -71,13 +71,13 @@ Examples\n\
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
         panelSizer.Add(self.label)
-        panelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        panelSizer.Add(10, 10, 1, wx.EXPAND)
         panelSizer.Add(self.constrCtrl, 1, wx.EXPAND)
 
         horSizer = wx.BoxSizer(wx.HORIZONTAL)
         horSizer.Add(self.applyBtt)
         horSizer.Add(self.cancelBtt)
-        panelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        panelSizer.Add(10, 10, 1, wx.EXPAND)
         panelSizer.Add(horSizer)
         self.SetSizerAndFit(panelSizer)
 
@@ -825,7 +825,7 @@ class CSWBrowserPanel(wx.Panel):
 
         self.leftSearchSizer.Add(self.keywordLbl, 0)
 
-        self.rightSearchSizer.AddSpacer(4, 0, 1, wx.EXPAND)
+        self.rightSearchSizer.Add(4, 0, 1, wx.EXPAND)
         self.rightSearchSizer.Add(self.advanceChck, 0)
 
         self.leftSearchSizer.Add(self.keywordCtr, 0, wx.EXPAND)
@@ -842,18 +842,18 @@ class CSWBrowserPanel(wx.Panel):
         bb3sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.stBox2Sizer = wx.StaticBoxSizer(self.stbBB, wx.VERTICAL)
         bb1sizer.Add(self.bbWestLb)
-        bb1sizer.AddSpacer(14, 10, 1, wx.EXPAND)
+        bb1sizer.Add(14, 10, 1, wx.EXPAND)
         bb1sizer.Add(self.bbWest, 1, wx.EXPAND)
-        bb1sizer.AddSpacer(20, 10, 1, wx.EXPAND)
+        bb1sizer.Add(20, 10, 1, wx.EXPAND)
         bb1sizer.Add(self.bbSouthLb)
-        bb1sizer.AddSpacer(14, 10, 1, wx.EXPAND)
+        bb1sizer.Add(14, 10, 1, wx.EXPAND)
         bb1sizer.Add(self.bbSouth, 1, wx.EXPAND)
         bb2sizer.Add(self.bbEastLb)
-        bb2sizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        bb2sizer.Add(10, 10, 1, wx.EXPAND)
         bb2sizer.Add(self.bbEast, 1, wx.EXPAND)
-        bb2sizer.AddSpacer(20, 10, 1, wx.EXPAND)
+        bb2sizer.Add(20, 10, 1, wx.EXPAND)
         bb2sizer.Add(self.bbNorthLb)
-        bb2sizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        bb2sizer.Add(10, 10, 1, wx.EXPAND)
         bb2sizer.Add(self.bbNorth, 1, wx.EXPAND)
         bb3sizer.Add(self.bbSetGlobalBtt1, wx.EXPAND)
         bb3sizer.Add(self.bbSetMapExtendBtt1, wx.EXPAND)
@@ -863,13 +863,13 @@ class CSWBrowserPanel(wx.Panel):
         # bounding box sizer---------------end
         stbBox0Sizer.Add(self.catalogLbl, 0)
         stbBox0Sizer.Add(self.catalogCmb, 1, wx.EXPAND)
-        stbBox0Sizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        stbBox0Sizer.Add(10, 10, 1, wx.EXPAND)
 
         stbBox0Sizer.Add(self.stBox1Sizer, 0, wx.EXPAND)
-        stbBox0Sizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        stbBox0Sizer.Add(10, 10, 1, wx.EXPAND)
         stbBox0Sizer.Add(self.stBox2Sizer, 0, wx.EXPAND)
         leftPanelSizer.Add(stbBox0Sizer, 0, wx.EXPAND)
-        leftPanelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        leftPanelSizer.Add(10, 10, 1, wx.EXPAND)
 
         findPanelSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -880,7 +880,7 @@ class CSWBrowserPanel(wx.Panel):
         leftPanelSizer.Add(findPanelSizer, 0, wx.EXPAND)
         leftPanelSizer.Add(self.findResNumLbl, 0)
         leftPanelSizer.Add(self.resultList, 1, wx.EXPAND)
-        leftPanelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        leftPanelSizer.Add(10, 10, 1, wx.EXPAND)
 
         listerSizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -1219,14 +1219,14 @@ class CSWConnectionPanel(wx.Panel):
         self.configureSizer = wx.BoxSizer(wx.VERTICAL)
         self.stBoxConnectionsSizer = wx.StaticBoxSizer(self.stBoxConnections, wx.VERTICAL)
         self.stBoxConnectionsSizer.Add(self.connectionLBox, 1, wx.EXPAND)
-        self.stBoxConnectionsSizer.AddSpacer(20, 10, 1, wx.EXPAND)
+        self.stBoxConnectionsSizer.Add(20, 10, 1, wx.EXPAND)
         self.stBoxConnectionsSizer.Add(wx.StaticText(self.panelLeft, label='Timeout'), 0)
         self.stBoxConnectionsSizer.Add(self.timeoutSpin, 0)
 
         self.stBoxConnectionsSizer.Add(self.serviceInfoBtt, 0, wx.EXPAND)
         self.configureSizer.Add(self.stBoxConnectionsSizer, 1, wx.EXPAND)
 
-        self.configureSizer.AddSpacer(20, 10, 1, wx.EXPAND)
+        self.configureSizer.Add(20, 10, 1, wx.EXPAND)
         self.stBoxConnections1Sizer = wx.StaticBoxSizer(self.stBoxConnections1, wx.VERTICAL)
         self.stBoxConnections1Sizer.Add(self.newBtt, 0, wx.EXPAND)
         self.stBoxConnections1Sizer.Add(self.removeBtt, 0, wx.EXPAND)
