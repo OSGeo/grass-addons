@@ -498,10 +498,10 @@ class CSWBrowserPanel(wx.Panel):
 
     def setTooltip(self, evt):
         index = evt.GetIndex()
-        text = self.resultList.GetItem(index, 1)
-        text = text.GetText()
-
-        self.resultList.SetToolTip(wx.ToolTip(text))
+        if index > -1:
+            text = self.resultList.GetItem(index, 1)
+            text = text.GetText()
+            self.resultList.SetToolTip(wx.ToolTip(text))
 
     def setBBoxGRASS(self, evt=None):
         vdb = Module('g.region', flags='bg', stdout_=PIPE)
