@@ -12,5 +12,5 @@
 # 7. links src code dirs into deployed web pages dir
 # 8. restore link timestamps from their original source time stamps
 
-cd /home/neteler/grass-website/ && git pull origin master && rm -rf /home/neteler/grass-website/public/* && /usr/local/bin/hugo && rm -fr /var/www/html/* && \cp -rp /home/neteler/grass-website/public/* /var/www/html/ && cp -p /home/neteler/cronjobs/googleebda3c3d501e9945.html /var/www/html/ && ln -s /var/www/code_and_data/* /var/www/html/ && (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .)
+cd /home/neteler/grass-website/ && git pull origin master && rm -rf /home/neteler/grass-website/public/* && /usr/local/bin/hugo && rm -fr /var/www/html/* && \cp -rp /home/neteler/grass-website/public/* /var/www/html/ && ln -s /var/www/code_and_data/* /var/www/html/ && (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .)
 
