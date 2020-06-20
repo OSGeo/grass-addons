@@ -285,6 +285,7 @@ class MdMainFrame(wx.Frame):
         wx.Frame.__init__(self, None, title="Metadata Editor", size=(650, 500))
         self.initDefaultPathStorageMetadata()
 
+        self.config = wx.Config("g.gui.metadata")
         self.jinjaPath = jinjaPath
         self.xmlPath = xmlPath
         self.first = True
