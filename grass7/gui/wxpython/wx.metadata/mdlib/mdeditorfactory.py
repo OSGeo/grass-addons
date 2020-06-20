@@ -53,6 +53,7 @@ from grass.pygrass.modules import Module
 #=========================================================================
 # MD filework
 #=========================================================================
+ADD_RM_BUTTON_SIZE = (35, 35)
 
 class MdFileWork():
 
@@ -212,12 +213,14 @@ class MdBox(wx.Panel):
             self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
 
         if multi:
-            self.addBoxButt = wx.Button(self, id=ID_ANY, size=(30, 30), label='+')
+            self.addBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
+                                        label='+')
             self.boxButtonSizer.Add(self.addBoxButt, 0)
             self.addBoxButt.Bind(EVT_BUTTON, self.duplicateBox)
 
         if rmMulti:
-            self.rmBoxButt = wx.Button(self, id=ID_ANY, size=(30, 30), label='-')
+            self.rmBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
+                                       label='-')
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
 
@@ -424,11 +427,13 @@ class MdItem(wx.BoxSizer):
         self.valueCtrl.SetExtraStyle(wx.WS_EX_VALIDATE_RECURSIVELY)
 
         if self.multiple:
-            self.addItemButt = wx.Button(parent, -1, size=(30, 30), label='+')
+            self.addItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
+                                         label='+')
             self.addItemButt.Bind(EVT_BUTTON, self.duplicateItem)
 
         if rmMulti:
-            self.rmItemButt = wx.Button(parent, -1, size=(30, 30), label='-')
+            self.rmItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
+                                        label='-')
             self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
 
         if self.chckBox:
@@ -674,7 +679,8 @@ class MdItemKeyword(wx.BoxSizer):
         self.keywordObj=keywordObj
         self.text = wx.StaticText(parent=parent, id=ID_ANY, label=text)
         self.parent=parent
-        self.rmItemButt = wx.Button(parent, -1, size=(30, 30), label='-')
+        self.rmItemButt = wx.Button(parent, -1, size=ADD_RM_BUTTON_SIZE,
+                                    label='-')
         self.rmItemButt.Bind(EVT_BUTTON, self.removeItem)
         self.keyword=keyword
         self.title=title
