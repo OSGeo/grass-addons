@@ -39,6 +39,8 @@ from subprocess import PIPE
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 
+from .mdeditorfactory import ADD_RM_BUTTON_SIZE
+
 
 class ConstraintsBuilder(wx.Panel):
     def __init__(self, parent, settings=''):
@@ -118,7 +120,8 @@ class CSWBrowserPanel(wx.Panel):
         self.numResultsSpin = wx.SpinCtrl(self.pnlLeft, min=1, max=100, initial=20, size=(sizeConst, self.h),
                                           style=wx.ALIGN_RIGHT | wx.SP_ARROW_KEYS)
 
-        self.addKeywordCtr = wx.Button(self.pnlLeft, -1, '+', size=(self.h, self.h))
+        self.addKeywordCtr = wx.Button(self.pnlLeft, -1, '+',
+                                       size=ADD_RM_BUTTON_SIZE)
         self.addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
         self.findBtt = wx.Button(self.pnlLeft, size=(sizeConst, self.h), label='Search')
         self.findBtt.SetBackgroundColour((255, 127, 80))
@@ -235,7 +238,8 @@ class CSWBrowserPanel(wx.Panel):
         name = evt.GetEventObject().GetLabel()
         if name == '+':
             kw = wx.TextCtrl(self.pnlLeft)
-            addKeywordCtr = wx.Button(self.pnlLeft, -1, '-', size=(self.h, self.h))
+            addKeywordCtr = wx.Button(self.pnlLeft, -1, '-',
+                                      size=ADD_RM_BUTTON_SIZE)
             addKeywordCtr.Bind(wx.EVT_BUTTON, self.addKeyWidget)
 
             self.constraintsWidgets.append(kw)
