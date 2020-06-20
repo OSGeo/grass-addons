@@ -616,7 +616,7 @@ class CSWBrowserPanel(wx.Panel):
         cmd = []
         item_data = "item_data=" + self.get_item_data(idx, 'link')
         # Strip { }
-        data = self.get_item_data(idx, 'link')[1:-2]
+        data = self.get_item_data(idx, 'link')[1:-1]
         item_data = dict(
             (strip_str(k), strip_str(v))
             for k, v in (item.split(':', 1)
