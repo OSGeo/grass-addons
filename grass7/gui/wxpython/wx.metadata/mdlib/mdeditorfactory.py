@@ -201,7 +201,7 @@ class MdBox(wx.Panel):
 
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.panelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        self.panelSizer.Add(10, 10, 1, wx.EXPAND)
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
 
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
@@ -210,7 +210,7 @@ class MdBox(wx.Panel):
         for item in items:
             self.mdItems.append(item)
             self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-            self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
+            self.stBoxSizer.Add(5, 5, 1, wx.EXPAND)
 
         if multi:
             self.addBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
@@ -226,7 +226,7 @@ class MdBox(wx.Panel):
 
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-        self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
+        self.stBoxSizer.Add(5, 5, 1, wx.EXPAND)
         self.GetParent().Layout()
 
     def getCtrlID(self):
@@ -269,7 +269,7 @@ class MdBoxKeywords(MdBox):
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.parent2=parent2
 
-        self.panelSizer.AddSpacer(10, 10, 1, wx.EXPAND)
+        self.panelSizer.Add(10, 10, 1, wx.EXPAND)
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
         self.parent=parent
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
@@ -913,7 +913,7 @@ class MdKeywords(wx.BoxSizer):
         self.Add(self.box,flag=wx.EXPAND)
         self.Add(self.comboKeysLabel,flag=wx.EXPAND)
         self.Add(self.comboKeys,flag=wx.EXPAND)
-        self.AddSpacer(10, 10, 1, wx.EXPAND)
+        self.Add(10, 10, 1, wx.EXPAND)
 
         self.Add(self.keysList,proportion=1,flag=wx.EXPAND)
 
