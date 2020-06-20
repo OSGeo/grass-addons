@@ -23,14 +23,14 @@
 
 struct cell_map
 {
-    int rows, cols;
+    int nrows, ncols;
     CELL **c;
 };
 
 struct raster_map
 {
     RASTER_MAP_TYPE type;
-    int rows, cols;
+    int nrows, ncols;
     union
     {
         void **v;

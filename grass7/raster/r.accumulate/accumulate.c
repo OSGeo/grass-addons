@@ -1,19 +1,23 @@
 #include <grass/glocale.h>
 #include "global.h"
 
+static int nrows, ncols;
+
 static double trace_up(struct cell_map *, struct raster_map *,
                        struct raster_map *, char **, char, int, int);
 
 void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
                 struct raster_map *accum_buf, char **done, char neg)
 {
-    int rows = dir_buf->rows, cols = dir_buf->cols;
     int row, col;
 
+    nrows = dir_buf->nrows;
+    ncols = dir_buf->ncols;
+
     G_message(_("Accumulating flows..."));
-    for (row = 0; row < rows; row++) {
-        G_percent(row, rows, 1);
-        for (col = 0; col < cols; col++)
+    for (row = 0; row < nrows; row++) {
+        G_percent(row, nrows, 1);
+        for (col = 0; col < ncols; col++)
             if (Rast_is_c_null_value(&dir_buf->c[row][col]))
                 set_null(accum_buf, row, col);
             else
@@ -27,7 +31,6 @@ static double trace_up(struct cell_map *dir_buf,
                        struct raster_map *accum_buf, char **done, char neg,
                        int row, int col)
 {
-    int rows = dir_buf->rows, cols = dir_buf->cols;
     int i, j;
     char incomplete = 0;
     double accum;
@@ -54,7 +57,7 @@ static double trace_up(struct cell_map *dir_buf,
     for (i = -1; i <= 1; i++) {
         /* if a neighbor cell is outside the computational region, its
          * downstream accumulation is incomplete */
-        if (row + i < 0 || row + i >= rows) {
+        if (row + i < 0 || row + i >= nrows) {
             incomplete = 1;
             continue;
         }
@@ -66,7 +69,7 @@ static double trace_up(struct cell_map *dir_buf,
 
             /* if a neighbor cell is outside the computational region, its
              * downstream accumulation is incomplete */
-            if (col + j < 0 || col + j >= cols) {
+            if (col + j < 0 || col + j >= ncols) {
                 incomplete = 1;
                 continue;
             }
