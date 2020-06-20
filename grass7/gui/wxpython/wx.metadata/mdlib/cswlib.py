@@ -575,6 +575,9 @@ class CSWBrowserPanel(wx.Panel):
             GMessage(_("No access to layer tree. Run g.gui.cswbroswer from g.gui"))
 
     def OnService(self, evt):
+        def strip_str(s):
+            return s.strip().replace('"', '').replace('\'', '')
+
         name = evt.GetEventObject().GetLabel()
         idx = self.resultList.GetNextItem(0, wx.LIST_NEXT_ALL,
                                           wx.LIST_STATE_SELECTED)
@@ -582,7 +585,14 @@ class CSWBrowserPanel(wx.Panel):
             return
         cmd = []
         item_data = "item_data=" + self.get_item_data(idx, 'link')
-        exec (item_data)
+        # Strip { }
+        data = self.get_item_data(idx, 'link')[1:-2]
+        item_data = dict(
+            (strip_str(k), strip_str(v))
+            for k, v in (item.split(':', 1)
+                         for item in
+                         data.split(', ')))
+
         if name == "Add WMS":
             data_url = item_data['wms']
             service = ['r.in.wms', 'Add web service layer']
