@@ -73,15 +73,21 @@ Examples\n\
 
     def _layout(self):
         panelSizer = wx.BoxSizer(wx.VERTICAL)
-        panelSizer.Add(self.label)
-        panelSizer.Add(10, 10, 1, wx.EXPAND)
-        panelSizer.Add(self.constrCtrl, 1, wx.EXPAND)
+        sb = wx.StaticBox(self, label='Constraints')
+        sbs = wx.StaticBoxSizer(sb, orient=wx.VERTICAL)
+        sbs.Add(self.label, flag=wx.TOP | wx.LEFT | wx.RIGHT, border=10)
+        sbs.Add(10, 10, 1, wx.EXPAND)
+        sbs.Add(self.constrCtrl, 1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT |
+                wx.BOTTOM, border=10)
+        panelSizer.Add(sbs, flag=wx.ALL, border=10)
 
         horSizer = wx.BoxSizer(wx.HORIZONTAL)
         horSizer.Add(self.applyBtt)
-        horSizer.Add(self.cancelBtt)
+        horSizer.Add(self.cancelBtt, flag=wx.LEFT, border=5)
         panelSizer.Add(10, 10, 1, wx.EXPAND)
-        panelSizer.Add(horSizer)
+        panelSizer.Add(horSizer, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
+                       border=10)
+
         self.SetSizerAndFit(panelSizer)
 
 
@@ -213,8 +219,7 @@ class CSWBrowserPanel(wx.Panel):
             self.constrPnl.cancelBtt.Bind(wx.EVT_BUTTON, self._destroyDialog)
             dbSizer = wx.BoxSizer(wx.VERTICAL)
             dbSizer.Add(self.constrPnl, flag=wx.EXPAND)
-            self.geDialog.SetSizer(dbSizer)
-            self.geDialog.SetBestFittingSize()
+            self.geDialog.SetSizerAndFit(dbSizer)
             self.geDialog.ShowModal()
 
     def _destroyDialog(self, evt):
