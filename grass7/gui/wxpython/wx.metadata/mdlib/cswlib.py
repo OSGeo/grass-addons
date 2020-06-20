@@ -256,6 +256,7 @@ class CSWBrowserPanel(wx.Panel):
 
             self.leftSearchSizer.Remove(sizeLeft)
             self.rightSearchSizer.Remove(sizeRight)
+
         self.Fit()
 
     def OnShowReguest(self, evt):
@@ -779,11 +780,13 @@ class CSWBrowserPanel(wx.Panel):
         for rec in self.catalog.records:
             if self.catalog.records[rec].type:
                 item = wx.ListItem()
-                self.resultList.InsertStringItem(index, normalize_text(self.catalog.records[rec].type))
+                self.resultList.InsertItem(
+                    index, normalize_text(self.catalog.records[rec].type))
             else:
                 self.resultList.SetStringItem(index, 0, 'unknown')
             if self.catalog.records[rec].title:
-                self.resultList.SetStringItem(index, 1, normalize_text(self.catalog.records[rec].title))
+                self.resultList.SetItem(
+                    index, 1, normalize_text(self.catalog.records[rec].title))
 
             if self.catalog.records[rec].identifier:
                 self.set_item_data(index, 'identifier',
