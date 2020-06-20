@@ -220,7 +220,7 @@ class MdBox(wx.Panel):
             self.rmBoxButt = wx.Button(self, id=ID_ANY, size=(30, 30), label='-')
             self.boxButtonSizer.Add(self.rmBoxButt, 0)
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
-        
+
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
         self.stBoxSizer.AddSpacer(5, 5, 1, wx.EXPAND)
@@ -662,8 +662,8 @@ class MdItem(wx.BoxSizer):
         if self.chckBox:
             self.textFieldSizer.Add(self.chckBoxEdit, 0)
 
-        self.Add(item=self.tagText, proportion=0)
-        self.Add(item=self.textFieldSizer, proportion=0, flag=wx.EXPAND)
+        self.Add(self.tagText, proportion=0)
+        self.Add(self.textFieldSizer, proportion=0, flag=wx.EXPAND)
 
 
 class MdItemKeyword(wx.BoxSizer):
