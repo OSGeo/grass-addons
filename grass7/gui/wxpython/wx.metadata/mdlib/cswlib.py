@@ -10,6 +10,8 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
+
+import os
 import sys
 
 try:
@@ -37,6 +39,7 @@ from gui_core.forms import GUI
 from core.gcmd import GError, GMessage, GWarning
 from subprocess import PIPE
 from grass.pygrass.modules import Module
+import grass.script as grass
 from grass.script import parse_key_val
 
 from .mdeditorfactory import ADD_RM_BUTTON_SIZE
@@ -262,26 +265,28 @@ class CSWBrowserPanel(wx.Panel):
     def OnShowReguest(self, evt):
         # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
         path = os.path.join(tempfile.gettempdir(), 'htmlRequest.xml')
+        request = grass.decode(self.catalog.request)
         if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
-        f.writelines(self.catalog.request)
+        f.writelines(request)
         f.close()
         if yesNo(self, 'Do you want to open <request> in default browser', 'Open file'):
             open_url(path)
         else:
-            self.htmlView.SetPage((renderXML(self.context, self.catalog.request)))
+            self.htmlView.SetPage((renderXML(self.context, request)))
 
     def OnShowResponse(self, evt):
         # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
         path = os.path.join(tempfile.gettempdir(), 'htmlResponse.xml')
+        response = grass.decode(self.catalog.response)
         if os.path.exists(path): os.remove(path)
         f = open(path, 'w')
-        f.write(self.catalog.response)
+        f.write(response)
         f.close()
         if yesNo(self, 'Do you want to open <response> in default browser', 'Open file'):
             open_url(path)
         else:
-            self.htmlView.SetPage((renderXML(self.context, self.catalog.response)))
+            self.htmlView.SetPage((renderXML(self.context, response)))
 
     def getTmpConnection(self, name):
         key = '/connections/%s/url' % name
