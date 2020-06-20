@@ -241,6 +241,10 @@ echo "Written to: $TARGETDIR"
 
 ############################################
 # compile addons
+
+# update addon repo
+(cd ~/src/grass-addons/grass7/ ; git pull origin master)
+# compile addons
 cd $GRASSBUILDDIR
 sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu/ ~/.grass7/addons
 mkdir $TARGETHTMLDIR/addons/
