@@ -201,7 +201,7 @@ class MdBox(wx.Panel):
 
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.panelSizer.Add(10, 10, 1, wx.EXPAND)
+        self.panelSizer.AddSpacer(5)
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
 
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
@@ -210,7 +210,7 @@ class MdBox(wx.Panel):
         for item in items:
             self.mdItems.append(item)
             self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-            self.stBoxSizer.Add(5, 5, 1, wx.EXPAND)
+            self.stBoxSizer.AddSpacer(5)
 
         if multi:
             self.addBoxButt = wx.Button(self, id=ID_ANY, size=ADD_RM_BUTTON_SIZE,
@@ -226,7 +226,7 @@ class MdBox(wx.Panel):
 
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-        self.stBoxSizer.Add(5, 5, 1, wx.EXPAND)
+        self.stBoxSizer.AddSpacer(5)
         self.GetParent().Layout()
 
     def getCtrlID(self):
