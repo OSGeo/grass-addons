@@ -7,7 +7,6 @@ import string, random
 import math
 import timeit
 import time
-import psycopg2
 import atexit
 import shutil
 import csv
@@ -599,6 +598,8 @@ def dbConnGrass(database, user, password):
 
 
 def dbConnPy():
+    import psycopg2
+
     # print_message("Connecting to database by Psycopg driver...")
     db_name = options['database']
     db_user = options['user']

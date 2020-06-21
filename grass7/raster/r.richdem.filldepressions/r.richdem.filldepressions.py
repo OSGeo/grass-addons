@@ -86,7 +86,6 @@ def main():
                                       'then type at the command prompt: '+
                                       '"pip3 install richdem".'))
 
-    options, flags = gscript.parser()
     _input = options['input']
     _output = options['output']
     _epsilon = options['epsilon']
@@ -108,4 +107,5 @@ def main():
     dem.write(_output, overwrite=gscript.overwrite())
 
 if __name__ == "__main__":
+    options, flags = gscript.parser()
     main()
