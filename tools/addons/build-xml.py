@@ -147,10 +147,10 @@ def main(build_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("build",
+    parser.add_argument("--build",
                         help="Path to GRASS Addons build",
                         required=True)
-    parser.add_argument("gisbase",
+    parser.add_argument("--gisbase",
                         help="Path to GRASS installation",
                         required=True)
     args = parser.parse_args()
