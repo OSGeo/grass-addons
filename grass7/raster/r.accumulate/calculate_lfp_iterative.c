@@ -15,7 +15,7 @@ struct neighbor
     double max_length;
 };
 
-struct accum_stack
+struct neighbor_stack
 {
     struct neighbor *accum;
     int n;
@@ -30,7 +30,7 @@ struct headwater_list
 };
 
 static struct Cell_head window;
-static int rows, cols;
+static int nrows, ncols;
 static double diag_length;
 static double cell_area;
 
@@ -42,10 +42,10 @@ static void find_up(struct cell_map *, struct raster_map *, int, int, double,
                     double, struct neighbor *, int *,
                     struct headwater_list *);
 static void copy_neighbor(struct neighbor *, const struct neighbor *);
-static void init_up_stack(struct accum_stack *);
-static void free_up_stack(struct accum_stack *);
-static void push_up(struct accum_stack *, struct neighbor *);
-static struct neighbor *pop_up(struct accum_stack *);
+static void init_up_stack(struct neighbor_stack *);
+static void free_up_stack(struct neighbor_stack *);
+static void push_up(struct neighbor_stack *, struct neighbor *);
+static struct neighbor *pop_up(struct neighbor_stack *);
 static void init_headwater_list(struct headwater_list *);
 static void free_headwater_list(struct headwater_list *);
 static void add_headwater(struct headwater_list *, struct neighbor *);
@@ -69,8 +69,8 @@ void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
 
     G_get_set_window(&window);
 
-    rows = accum_buf->rows;
-    cols = accum_buf->cols;
+    nrows = dir_buf->nrows;
+    ncols = dir_buf->ncols;
     diag_length = sqrt(pow(window.ew_res, 2.0) + pow(window.ns_res, 2.0));
     cell_area = window.ew_res * window.ns_res;
 
@@ -89,7 +89,7 @@ void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
         G_percent(i, outlet_pl->n, 1);
 
         /* if the outlet is outside the computational region, skip */
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+        if (row < 0 || row >= nrows || col < 0 || col >= ncols) {
             G_warning(_("Skip outlet (%f, %f) outside the current region"),
                       outlet_pl->x[i], outlet_pl->y[i]);
             continue;
@@ -192,13 +192,13 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 {
     double cur_acc;
     int i, nup;
-    struct neighbor up_accum[8];
-    struct accum_stack up_stack;
+    struct neighbor up[8];
+    struct neighbor_stack up_stack;
     struct headwater_list hl;
     struct point_list pl;
 
     /* if the current cell is outside the computational region, stop tracing */
-    if (row < 0 || row >= rows || col < 0 || col >= cols)
+    if (row < 0 || row >= nrows || col < 0 || col >= ncols)
         return;
 
     /* if the current accumulation is 1 (headwater), stop tracing */
@@ -208,7 +208,7 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     init_headwater_list(&hl);
 
-    find_up(dir_buf, accum_buf, row, col, cur_acc, 0, up_accum, &nup, &hl);
+    find_up(dir_buf, accum_buf, row, col, cur_acc, 0, up, &nup, &hl);
 
     /* if a headwater cell is found, stop tracing */
     if (!nup)
@@ -218,29 +218,29 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     /* push upstream cells */
     for (i = nup - 1; i >= 0; i--)
-        push_up(&up_stack, &up_accum[i]);
+        push_up(&up_stack, &up[i]);
 
     do {
         /* pop one upstream cell */
-        struct neighbor *up = pop_up(&up_stack);
+        struct neighbor *cur_up = pop_up(&up_stack);
 
         /* find its upstream cells */
-        find_up(dir_buf, accum_buf, up->row, up->col, up->accum,
-                up->down_length, up_accum, &nup, &hl);
+        find_up(dir_buf, accum_buf, cur_up->row, cur_up->col, cur_up->accum,
+                cur_up->down_length, up, &nup, &hl);
         if (nup) {
             /* push its upstream cells */
             for (i = nup - 1; i >= 0; i--)
-                push_up(&up_stack, &up_accum[i]);
+                push_up(&up_stack, &up[i]);
         }
         else {
             /* headwater cell */
-            if (!hl.n || up->down_length == hl.head[0].down_length)
+            if (!hl.n || cur_up->down_length == hl.head[0].down_length)
                 /* if first or tie, add it */
-                add_headwater(&hl, up);
-            else if (up->down_length > hl.head[0].down_length) {
+                add_headwater(&hl, cur_up);
+            else if (cur_up->down_length > hl.head[0].down_length) {
                 /* if longer than existing, replace */
                 hl.n = 1;
-                copy_neighbor(&hl.head[0], up);
+                copy_neighbor(&hl.head[0], cur_up);
             }
         }
     } while (up_stack.n);
@@ -291,20 +291,19 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
 static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                     int row, int col, double cur_acc, double down_length,
-                    struct neighbor *up_accum, int *nup,
-                    struct headwater_list *hl)
+                    struct neighbor *up, int *nup, struct headwater_list *hl)
 {
     int i, j;
 
     *nup = 0;
     for (i = -1; i <= 1; i++) {
         /* skip edge cells */
-        if (row + i < 0 || row + i >= rows)
+        if (row + i < 0 || row + i >= nrows)
             continue;
 
         for (j = -1; j <= 1; j++) {
             /* skip the current and edge cells */
-            if ((i == 0 && j == 0) || col + j < 0 || col + j >= cols)
+            if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                 continue;
 
             /* if a neighbor cell flows into the current cell, store its
@@ -325,20 +324,19 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                          j ? diag_length : (i ? window.ns_res : window.
                                             ew_res));
 
-                    up_accum[*nup].row = row + i;
-                    up_accum[*nup].col = col + j;
-                    up_accum[*nup].accum = up_acc;
+                    up[*nup].row = row + i;
+                    up[*nup].col = col + j;
+                    up[*nup].accum = up_acc;
                     /* current length */
-                    up_accum[*nup].down_length = length;
+                    up[*nup].down_length = length;
                     /* theoretically, the shortest longest flow path is when
                      * all accumulated upstream cells form a square */
-                    up_accum[*nup].min_length =
-                        length + sqrt(cell_area * up_acc);
+                    up[*nup].min_length = length + sqrt(cell_area * up_acc);
                     /* the current upstream cell's downstream length +
                      * theoretical longest upstream length; theoretically, the
                      * longest longest flow path is when all accumulated
                      * upstream cells are diagonally flowing */
-                    up_accum[*nup].max_length = length + diag_length * up_acc;
+                    up[*nup].max_length = length + diag_length * up_acc;
                     (*nup)++;
                 }
             }
@@ -347,16 +345,13 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     if (*nup > 1) {
         /* sort upstream cells by max_length in descending order */
-        qsort(up_accum, *nup, sizeof(struct neighbor),
-              compare_neighbor_max_length);
+        qsort(up, *nup, sizeof(struct neighbor), compare_neighbor_max_length);
 
         /* theoretically, the longest longest flow path is when all accumulated
          * upstream cells are diagonally flowing; only keep cells whose
          * theoretical longest upstream length is greater than or equal to the
          * first cell's theoretical shortest upstream length */
-        for (i = 1;
-             i < *nup && up_accum[i].max_length >= up_accum[0].min_length;
-             i++) ;
+        for (i = 1; i < *nup && up[i].max_length >= up[0].min_length; i++) ;
         *nup = i;
     }
 
@@ -365,8 +360,8 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
             /* if the current cell's theoretical longest lfp < all existing,
              * skip tracing because it's impossible to obtain a longer lfp */
             for (j = 0;
-                 j < hl->n &&
-                 up_accum[i].max_length < hl->head[j].down_length; j++) ;
+                 j < hl->n && up[i].max_length < hl->head[j].down_length;
+                 j++) ;
 
             if (j == hl->n)
                 break;
@@ -385,20 +380,20 @@ static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
     dest->max_length = src->max_length;
 }
 
-static void init_up_stack(struct accum_stack *up_stack)
+static void init_up_stack(struct neighbor_stack *up_stack)
 {
     up_stack->nalloc = up_stack->n = 0;
     up_stack->accum = NULL;
 }
 
-static void free_up_stack(struct accum_stack *up_stack)
+static void free_up_stack(struct neighbor_stack *up_stack)
 {
     if (up_stack->accum)
         G_free(up_stack->accum);
     init_up_stack(up_stack);
 }
 
-static void push_up(struct accum_stack *up_stack, struct neighbor *up)
+static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
 {
     if (up_stack->n == up_stack->nalloc) {
         up_stack->nalloc += REALLOC_INCREMENT;
@@ -411,7 +406,7 @@ static void push_up(struct accum_stack *up_stack, struct neighbor *up)
     up_stack->n++;
 }
 
-static struct neighbor *pop_up(struct accum_stack *up_stack)
+static struct neighbor *pop_up(struct neighbor_stack *up_stack)
 {
     struct neighbor *up = NULL;
 

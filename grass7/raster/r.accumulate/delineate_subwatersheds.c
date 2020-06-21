@@ -2,21 +2,21 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-static struct Cell_head window;
-static int rows, cols;
+static int nrows, ncols;
 
 static void trace_up(struct cell_map *, char **, int, int, int);
 
 void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
                              struct point_list *outlet_pl)
 {
+    struct Cell_head window;
     int i, j;
     int subwshed_id;
 
     G_get_set_window(&window);
 
-    rows = dir_buf->rows;
-    cols = dir_buf->cols;
+    nrows = dir_buf->nrows;
+    ncols = dir_buf->ncols;
 
     G_message(_("Flagging outlets..."));
     for (i = 0; i < outlet_pl->n; i++) {
@@ -26,7 +26,7 @@ void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
         G_percent(i, outlet_pl->n, 1);
 
         /* if the outlet is outside the computational region, skip */
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+        if (row < 0 || row >= nrows || col < 0 || col >= ncols) {
             G_warning(_("Skip outlet (%f, %f) outside the current region"),
                       outlet_pl->x[i], outlet_pl->y[i]);
             continue;
@@ -46,7 +46,7 @@ void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
         G_percent(i, outlet_pl->n, 1);
 
         /* if the outlet is outside the computational region, skip */
-        if (row < 0 || row >= rows || col < 0 || col >= cols) {
+        if (row < 0 || row >= nrows || col < 0 || col >= ncols) {
             G_warning(_("Skip outlet (%f, %f) outside the current region"),
                       outlet_pl->x[i], outlet_pl->y[i]);
             continue;
@@ -66,9 +66,9 @@ void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
     G_percent(1, 1, 1);
 
     G_message(_("Nullifying cells outside subwatersheds..."));
-    for (i = 0; i < rows; i++) {
-        G_percent(i, rows, 1);
-        for (j = 0; j < cols; j++)
+    for (i = 0; i < nrows; i++) {
+        G_percent(i, nrows, 1);
+        for (j = 0; j < ncols; j++)
             if (!done[i][j])
                 Rast_set_c_null_value(&dir_buf->c[i][j], 1);
     }
@@ -82,7 +82,7 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
 
     /* if the current cell is outside the computational region or already
      * processed, stop tracing */
-    if (row < 0 || row >= rows || col < 0 || col >= cols || done[row][col])
+    if (row < 0 || row >= nrows || col < 0 || col >= ncols || done[row][col])
         return;
 
     dir_buf->c[row][col] = id;
@@ -90,12 +90,12 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
 
     for (i = -1; i <= 1; i++) {
         /* skip edge cells */
-        if (row + i < 0 || row + i >= rows)
+        if (row + i < 0 || row + i >= nrows)
             continue;
 
         for (j = -1; j <= 1; j++) {
             /* skip the current and edge cells */
-            if ((i == 0 && j == 0) || col + j < 0 || col + j >= cols)
+            if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                 continue;
 
             /* if a neighbor cell flows into the current cell, add it to the
