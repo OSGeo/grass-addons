@@ -6,8 +6,8 @@ static int nrows, ncols;
 
 static void trace_up(struct cell_map *, char **, int, int, int);
 
-void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
-                             struct point_list *outlet_pl)
+void delineate_subwatersheds_recursive(struct cell_map *dir_buf, char **done,
+                                       int *id, struct point_list *outlet_pl)
 {
     struct Cell_head window;
     int i, j;
@@ -38,7 +38,7 @@ void delineate_subwatersheds(struct cell_map *dir_buf, char **done, int *id,
 
     /* loop through all outlets and delineate the subwatershed for each */
     subwshed_id = 0;
-    G_message(_("Delineating subwatersheds..."));
+    G_message(_("Delineating subwatersheds recursively..."));
     for (i = 0; i < outlet_pl->n; i++) {
         int row = (int)Rast_northing_to_row(outlet_pl->y[i], &window);
         int col = (int)Rast_easting_to_col(outlet_pl->x[i], &window);

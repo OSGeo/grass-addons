@@ -259,8 +259,8 @@ int main(int argc, char *argv[])
     G_option_excludes(flag.neg, opt.input_accum, opt.input_subaccum, NULL);
     /* accumulated lfp requires longest flow paths */
     G_option_requires(flag.accum, opt.lfp, NULL);
-    /* recursive algorithm requires longest flow paths */
-    G_option_requires(flag.recur, opt.lfp, NULL);
+    /* recursive algorithm requires subwatersheds or longest flow paths */
+    G_option_requires(flag.recur, opt.subwshed, opt.lfp, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf, opt.stream, NULL);
 
@@ -615,8 +615,12 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, _("Longest flow paths"));
         Vect_hist_command(&Map);
 
-        calculate_lfp(&Map, &dir_buf, &accum_buf, id, idcol, &outlet_pl,
-                      recur);
+        if (recur)
+            calculate_lfp_recursive(&Map, &dir_buf, &accum_buf, id, idcol,
+                                    &outlet_pl);
+        else
+            calculate_lfp_iterative(&Map, &dir_buf, &accum_buf, id, idcol,
+                                    &outlet_pl);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
@@ -641,7 +645,10 @@ int main(int argc, char *argv[])
         for (row = 0; row < nrows; row++)
             done[row] = (char *)G_calloc(ncols, 1);
 
-        delineate_subwatersheds(&dir_buf, done, id, &outlet_pl);
+        if (recur)
+            delineate_subwatersheds_recursive(&dir_buf, done, id, &outlet_pl);
+        else
+            delineate_subwatersheds_iterative(&dir_buf, done, id, &outlet_pl);
 
         for (row = 0; row < nrows; row++)
             G_free(done[row]);
