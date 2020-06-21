@@ -259,8 +259,8 @@ int main(int argc, char *argv[])
     G_option_excludes(flag.neg, opt.input_accum, opt.input_subaccum, NULL);
     /* accumulated lfp requires longest flow paths */
     G_option_requires(flag.accum, opt.lfp, NULL);
-    /* recursive algorithm requires longest flow paths */
-    G_option_requires(flag.recur, opt.lfp, NULL);
+    /* recursive algorithm requires subwatersheds or longest flow paths */
+    G_option_requires(flag.recur, opt.subwshed, opt.lfp, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf, opt.stream, NULL);
 
@@ -615,8 +615,12 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, _("Longest flow paths"));
         Vect_hist_command(&Map);
 
-        calculate_lfp(&Map, &dir_buf, &accum_buf, id, idcol, &outlet_pl,
-                      recur);
+        if (recur)
+            calculate_lfp_recursive(&Map, &dir_buf, &accum_buf, id, idcol,
+                                    &outlet_pl);
+        else
+            calculate_lfp_iterative(&Map, &dir_buf, &accum_buf, id, idcol,
+                                    &outlet_pl);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
@@ -634,14 +638,21 @@ int main(int argc, char *argv[])
     /* delineate subwatersheds; this process overwrites dir_buf to save memory
      */
     if (subwshed_name) {
-        int subwshed_fd;
-        struct History hist;
         char **done = (char **)G_malloc(nrows * sizeof(char *));
+        int subwshed_fd;
+        const char *mapset = G_mapset();
+        struct Range range;
+        CELL min, max;
+        struct Colors colors;
+        struct History hist;
 
         for (row = 0; row < nrows; row++)
             done[row] = (char *)G_calloc(ncols, 1);
 
-        delineate_subwatersheds(&dir_buf, done, id, &outlet_pl);
+        if (recur)
+            delineate_subwatersheds_recursive(&dir_buf, done, id, &outlet_pl);
+        else
+            delineate_subwatersheds_iterative(&dir_buf, done, id, &outlet_pl);
 
         for (row = 0; row < nrows; row++)
             G_free(done[row]);
@@ -655,6 +666,12 @@ int main(int argc, char *argv[])
         }
         G_percent(1, 1, 1);
         Rast_close(subwshed_fd);
+
+        /* assign random colors */
+        Rast_read_range(subwshed_name, mapset, &range);
+        Rast_get_range_min_max(&range, &min, &max);
+        Rast_make_random_colors(&colors, min, max);
+        Rast_write_colors(subwshed_name, mapset, &colors);
 
         /* write history */
         Rast_put_cell_title(subwshed_name, _("Subwatersheds"));
