@@ -256,6 +256,9 @@ chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 mkdir -p $TARGETMAIN/addons/grass7/logs/
 cp -p ~/.grass7/addons/logs/* $TARGETMAIN/addons/grass7/logs/
 
+# cp XML from winGRASS server
+sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
+
 ############################################
 # cleanup
 cd $GRASSBUILDDIR
