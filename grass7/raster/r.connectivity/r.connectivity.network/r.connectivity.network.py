@@ -212,10 +212,6 @@ import sys
 import platform
 import warnings
 import numpy as np
-import matplotlib
-# Required for Windows
-matplotlib.use('wx')
-import matplotlib.pyplot as plt
 import grass.script as grass
 import grass.script.task as task
 import grass.script.db as grass_db
@@ -271,6 +267,11 @@ def main():
                       " Please install it (pip install rpy2)"
                       " or ensure that it is on path"
                       " (use PYTHONPATH variable)."))
+
+    import matplotlib
+    matplotlib.use('wxAGG') #required by windows
+    import matplotlib.pyplot as plt
+
     #Input variables
     network_map = options['input']
     # network_mapset = network_map.split('@')[0]
