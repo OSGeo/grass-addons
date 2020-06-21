@@ -42,9 +42,6 @@
 
 import sys
 import os
-import matplotlib #required by windows
-matplotlib.use('WXAgg') #required by windows
-import matplotlib.pyplot as plt
 import grass.script as grass
 import numpy as np
 
@@ -113,6 +110,10 @@ def main():
     print('Done!')
 
 def plotImage(x,y,image,type,xlabel,ylabel,title):
+    import matplotlib #required by windows
+    matplotlib.use('wxAGG') #required by windows
+    import matplotlib.pyplot as plt
+
     plt.plot(x, y, type)
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)

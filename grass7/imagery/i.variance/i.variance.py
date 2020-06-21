@@ -75,7 +75,6 @@ import sys
 import os
 import atexit
 from math import sqrt
-import matplotlib.pyplot as plt
 import grass.script as gscript
 
 def cleanup():
@@ -108,6 +107,8 @@ def FindMaxima(numbers):
   return maxima, differences
 
 def main():
+    import matplotlib.pyplot as plt
+
     input = options['input']
     output = None
     if options['csv_output']:

@@ -106,10 +106,6 @@ import scipy
 import os.path
 import sys
 
-import matplotlib.pyplot as plt
-
-
-
 def load_data(file_path, labeled=False, skip_header=1, scale=True) :
 
     """

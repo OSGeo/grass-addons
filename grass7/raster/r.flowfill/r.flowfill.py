@@ -99,20 +99,13 @@
 import os
 import numpy as np
 import subprocess
+
 # GRASS
 from grass import script as gscript
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import general as g
 
-# netCDF4
-try:
-    from netCDF4 import Dataset
-except:
-    g.message(flags='e', message=('netCDF4 not detected. Install pip3 and '+
-                                  'then type at the command prompt: '+
-                                  '"pip3 install netCDF4".'))
-        
 ###############
 # MAIN MODULE #
 ###############
@@ -121,7 +114,14 @@ def main():
     """
     FlowFill
     """
-    
+    # netCDF4
+    try:
+        from netCDF4 import Dataset
+    except:
+        g.message(flags='e', message=('netCDF4 not detected. Install pip3 and '+
+                                      'then type at the command prompt: '+
+                                      '"pip3 install netCDF4".'))
+
     options, flags = gscript.parser()
     _input = options['input']
     _np = options['np']
