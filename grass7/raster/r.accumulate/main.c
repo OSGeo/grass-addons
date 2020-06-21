@@ -638,9 +638,13 @@ int main(int argc, char *argv[])
     /* delineate subwatersheds; this process overwrites dir_buf to save memory
      */
     if (subwshed_name) {
-        int subwshed_fd;
-        struct History hist;
         char **done = (char **)G_malloc(nrows * sizeof(char *));
+        int subwshed_fd;
+        const char *mapset = G_mapset();
+        struct Range range;
+        CELL min, max;
+        struct Colors colors;
+        struct History hist;
 
         for (row = 0; row < nrows; row++)
             done[row] = (char *)G_calloc(ncols, 1);
@@ -662,6 +666,12 @@ int main(int argc, char *argv[])
         }
         G_percent(1, 1, 1);
         Rast_close(subwshed_fd);
+
+        /* assign random colors */
+        Rast_read_range(subwshed_name, mapset, &range);
+        Rast_get_range_min_max(&range, &min, &max);
+        Rast_make_random_colors(&colors, min, max);
+        Rast_write_colors(subwshed_name, mapset, &colors);
 
         /* write history */
         Rast_put_cell_title(subwshed_name, _("Subwatersheds"));
