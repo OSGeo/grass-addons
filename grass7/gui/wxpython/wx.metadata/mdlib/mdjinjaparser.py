@@ -91,7 +91,7 @@ class MdDescription():
         try:
             for k, oldListItem in enumerate(self.mdItem):
                 for i in oldListItem:
-                    if i == item:
+                    if oldListItem == item:
                         self.mdItem[k].remove(item)
         except:
             self.mdItem.remove(item)
