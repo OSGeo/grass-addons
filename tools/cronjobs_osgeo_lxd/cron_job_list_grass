@@ -1,4 +1,7 @@
-# add jobs here and then run:
+# crontab entries
+# see: https://github.com/OSGeo/grass-addons/tree/master/tools/cronjobs_osgeo_lxd
+
+# add GRASS GIS build jobs here and then run on `grasslxd`server:
 # crontab $HOME/cronjobs/cron_job_list_grass && crontab -l
 
 #MAILTO=neteler@osgeo.org
