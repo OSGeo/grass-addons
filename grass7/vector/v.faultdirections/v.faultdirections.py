@@ -52,7 +52,7 @@ import grass.script as gscript
 
 def main():
     import matplotlib #required by windows
-    matplotlib.use('wx') #required by windows
+    matplotlib.use('wxAGG') #required by windows
     import matplotlib.pyplot as plt
 
     vector = options['map']
@@ -104,4 +104,3 @@ def main():
 if __name__ == "__main__":
     options, flags = gscript.parser()
     sys.exit(main())
-
