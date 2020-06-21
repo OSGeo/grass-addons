@@ -725,7 +725,6 @@ class MdNotebookPage(scrolled.ScrolledPanel):
     def __init__(self, parent):
         scrolled.ScrolledPanel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.items = []
-        self.SetupScrolling()
         self._addNotebookPageLay()
         self.sizerIndexDict = {}
         self.sizerIndex = 0
@@ -768,8 +767,10 @@ class MdNotebookPage(scrolled.ScrolledPanel):
         self.items.append(item)
         posIndex = self.sizerIndexDict[mId]
         self.mainSizer.Insert(posIndex, item, proportion=0, flag=wx.EXPAND)
-        self.SetSizerAndFit(self.mainSizer)
         self.GetParent().Refresh()
+        self.Layout()
+        self.SetupScrolling()
+
 
     def removeBox(self, box):
         box.Destroy()
