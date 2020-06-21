@@ -100,17 +100,17 @@ void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
 void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
                    struct point_list *);
 
-/* delineate_subwatersheds.c */
-void delineate_subwatersheds(struct cell_map *, char **, int *,
-                             struct point_list *);
+/* delineate_subwatersheds_iterative.c */
+void delineate_subwatersheds_iterative(struct cell_map *, char **, int *,
+                                       struct point_list *);
+
+/* delineate_subwatersheds_recursive.c */
+void delineate_subwatersheds_recursive(struct cell_map *, char **, int *,
+                                       struct point_list *);
 
 /* delineate_streams.c */
 void delineate_streams(struct Map_info *, struct cell_map *,
                        struct raster_map *, double, char);
-
-/* calculate_lfp.c */
-void calculate_lfp(struct Map_info *, struct cell_map *, struct raster_map *,
-                   int *, char *, struct point_list *, char);
 
 /* calculate_lfp_iterative.c */
 void calculate_lfp_iterative(struct Map_info *, struct cell_map *,
