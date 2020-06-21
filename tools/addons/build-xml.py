@@ -34,23 +34,23 @@ def start_grass():
     import grass.script as grass
     import grass.script.setup as gsetup
     
-    gsetup.init(gisbase,
+    gsetup.init(os.environ['GISBASE'],
                 gisdbase, location, mapset)
     grass.create_location(gisdbase,
                           location, overwrite=True)
 
 class BuildXML:
     def __init__(self, build_path):
-        self.build_path
+        self.build_path = build_path
 
     def run(self):
         with open(os.path.join(self.build_path, 'modules.xml'), 'w') as fd:
             self._header(fd)
-            self._parse_modules(fd, get_list(build_path))
+            self._parse_modules(fd, get_list(self.build_path))
             # self._parse_gui_modules(fd, get_gui_list(g7))
-            self.footer(fd)
+            self._footer(fd)
 
-    def _parse_modules(fd, mlist):
+    def _parse_modules(self, fd, mlist):
         indent = 4
         blacklist = ['v.feature.algebra', 'm.eigensystem']
         for m in mlist:
@@ -95,7 +95,7 @@ class BuildXML:
 
     def _get_module_files(self, name):
         os.chdir(os.path.join(self.build_path, name))
-        return scandirs('*')
+        return self._scandirs('*')
 
     def _get_module_metadata(self, name):
         import grass.script.task as gtask
@@ -132,16 +132,10 @@ class BuildXML:
         fd.write('</addons>\n')
 
 def main(build_path):
-    print("-----------------------------------------------------")
-    print("Creating XML file '{}'...".format(path))
-    print("-----------------------------------------------------")
     start_grass()
 
-    with open(os.path.join(build_path, 'modules.xml'), 'w') as fd:
-        header(fd)
-        parse_modules(fd, get_list(build_path))
-        # parse_gui_modules(fd, get_gui_list(g7))
-        footer(fd)
+    builder = BuildXML(build_path)
+    builder.run()
 
     return 0
 
