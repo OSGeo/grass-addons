@@ -183,7 +183,6 @@ import grass.script as grass
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
-from dateutil.parser import parse
 
 
 def set_output_encoding(encoding="utf-8"):
@@ -204,6 +203,7 @@ def set_output_encoding(encoding="utf-8"):
 
 
 def main():
+    from dateutil.parser import parse
 
     try:
         from pygbif import occurrences

@@ -85,7 +85,6 @@
 import os
 import sys
 import grass.script as gscript
-import matplotlib.cm as cm
 
 
 def values_to_rule(value, red, green, blue, percent):
@@ -134,6 +133,8 @@ def mpl_cmap_to_rules(cmap, n_colors=None, discrete=False, comments=None):
 
 
 def main(options, flags):
+    import matplotlib.cm as cm
+
     name = options['color']
     n_colors = int(options['ncolors'])
     discrete = flags['d']

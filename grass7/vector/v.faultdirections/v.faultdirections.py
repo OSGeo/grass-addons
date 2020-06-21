@@ -47,13 +47,14 @@
 
 import sys
 import numpy as np
-import matplotlib #required by windows
-matplotlib.use('wx') #required by windows
-import matplotlib.pyplot as plt
 import grass.script as gscript
 
 
 def main():
+    import matplotlib #required by windows
+    matplotlib.use('wx') #required by windows
+    import matplotlib.pyplot as plt
+
     vector = options['map']
     column = options['column']
     step = int(options['step'])

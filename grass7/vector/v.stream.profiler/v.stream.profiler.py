@@ -111,7 +111,6 @@
 ##################
 # PYTHON
 import numpy as np
-from matplotlib import pyplot as plt
 import sys
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
@@ -157,6 +156,7 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
+    from matplotlib import pyplot as plt
 
     options, flags = gscript.parser()
     
