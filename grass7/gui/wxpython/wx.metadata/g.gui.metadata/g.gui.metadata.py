@@ -451,7 +451,6 @@ class MdMainFrame(wx.Frame):
         dbSizer = wx.BoxSizer(wx.VERTICAL)
         dbSizer.Add(self.cswPanel, flag=wx.EXPAND, proportion=1)
         self.cswDialog.SetSizer(dbSizer)
-        self.cswDialog.SetBestFittingSize()
         self.cswDialog.ShowModal()
         self.cswDialog.Destroy()
 
