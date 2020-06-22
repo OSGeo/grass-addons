@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     struct Option *in, *out, *n;
     struct History history;     /*metadata */
     int infd, outfd;
-    void *inrast, *outrast;
+    DCELL *inrast, *outrast;
     char outName[GNAME_MAX];
     struct Key_Value *proj_info, *unit_info;
     struct pj_info proj;
