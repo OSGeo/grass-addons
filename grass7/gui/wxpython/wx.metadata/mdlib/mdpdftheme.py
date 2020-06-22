@@ -324,7 +324,7 @@ class Pdf(object):
         self.add(img)
 
     def render(self):
-        buffer = io.StringIO()
+        buffer = io.BytesIO()
         doc_template_args = self.theme.doc_template_args()
         doc = SimpleDocTemplate(buffer, title=self.title, author=self.author,
                                 **doc_template_args)
