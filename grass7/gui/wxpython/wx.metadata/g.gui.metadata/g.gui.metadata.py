@@ -1396,7 +1396,7 @@ class TreeBrowser(wx.TreeCtrl):
                     text = e.text
                 if text:
                     val = tree.AppendItem(item, text)
-                    tree.SetPyData(val, e)
+                    tree.SetItemData(val, e)
 
                 add(item, e)
 
