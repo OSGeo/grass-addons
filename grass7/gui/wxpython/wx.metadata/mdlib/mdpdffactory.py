@@ -19,6 +19,7 @@ import tempfile
 
 from core.gcmd import GWarning
 
+from grass.pygrass.modules.interface.env import G_debug
 from grass.pygrass.utils import set_path
 from grass.script import core as grass
 from grass.script.utils import get_lib_path
@@ -571,7 +572,7 @@ class MapBBFactory():
     def buildLink(self, center, zoom, corners):
         size = str(self.size[0]) + 'x' + str(self.size[1])
 
-        pic = ("{service_url}?"
+        pic0 = ("{service_url}?"
                "geojson={geojson}&"
                "center={lat},{lng}&"
                "zoom={zoom}&"
@@ -582,7 +583,8 @@ class MapBBFactory():
                    lng=center['lng'],
                    zoom=zoom,
                    size=size))
-        pic = pic.replace(' ', '')
+        pic0 = pic0.replace(' ', '')
+        G_debug(3, 'Static map img url: {}'.format(pic0))
 
         pic1 = ("{service_url}?"
                 "geojson={geojson}&"
@@ -596,8 +598,9 @@ class MapBBFactory():
                     zoom=zoom - 4,
                     size=size))
         pic1 = pic1.replace(' ', '')
+        G_debug(3, 'Static map (reduced zoom) img url: {}'.format(pic1))
 
-        return pic, pic1
+        return pic0, pic1
 
     def CalcCenterFromBounds(self, bounds, output_coord=None):
         """Calculates the center point given southwest/northeast lat/lng
