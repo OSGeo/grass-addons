@@ -2,7 +2,7 @@ try:
     from owslib.iso import *
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-import tempfile, sys, os
+import tempfile, sys, subprocess, os
 from grass.pygrass.utils import set_path
 from grass.script import core as grass
 from grass.script.utils import get_lib_path
@@ -465,6 +465,7 @@ class MapBBFactory():
     '''
 
     def __init__(self, coords, size=[200, 200]):
+        # Static map img generator https://github.com/jperelli/osm-static-maps
         self.static_map_service_url = "https://osm-static-maps.herokuapp.com/"
         self.pixels_per_lon_degree = []
         self.pixels_per_lon_radian = []
@@ -482,72 +483,139 @@ class MapBBFactory():
             self.pixels = self.pixels * 2
 
         bounds = self.CalcBoundsFromPoints(coords[0], coords[1])
-        corners = self.calcCornersFromBounds(bounds)
-        center = self.CalcCenterFromBounds(bounds, output_coor='wgs84')
+        corners = self.calcCornersFromBounds(bounds, geojson=True,
+                                             output_coord='wgs84')
+        center = self.CalcCenterFromBounds(bounds, output_coord='wgs84')
         zoom = self.CalculateBoundsZoomLevel(bounds, size)
         self.link1, self.link2 = self.buildLink(center, zoom, corners)
 
-    def calcCornersFromBounds(self, bounds):
+    def calcCornersFromBounds(self, bounds, geojson=False,
+                              output_coord=None):
         """
-        :param bounds: An int that is either the value passed in or the min or the max.
-        :return: polygon defined by 5 points represented by string (format for generating
-        """
-        YmaxXmin = str(bounds[0][0]) + ',' + str(bounds[0][1])
-        YminXmin = str(bounds[0][0]) + ',' + str(bounds[1][1])
-        YminXmax = str(bounds[1][0]) + ',' + str(bounds[1][1])
-        YmaxXmax = str(bounds[1][0]) + ',' + str(bounds[0][1])
+        :param bounds: An int that is either the value passed in or
+        the min or the max.
+        :param bool geojson: if True than return geojson format (for
+        the static map img service generator)
+        :param str output_coord: transform default coord to wgs84
 
-        corners = YmaxXmin + "|" + YminXmin + "|" + YminXmax + "|" + YmaxXmax + "|" + YmaxXmin
+        :return str/geojson: str or geojson polygon representation,
+        defined by 5 points
+        """
+        YmaxXmin = str(bounds[0][1]) + ',' + str(bounds[0][0])
+        YminXmin = str(bounds[1][1]) + ',' + str(bounds[0][0])
+        YminXmax = str(bounds[1][1]) + ',' + str(bounds[1][0])
+        YmaxXmax = str(bounds[0][1]) + ',' + str(bounds[1][0])
+
+        corners = (YmaxXmin + "|" + YminXmin + "|" + YminXmax + "|" +
+                   YmaxXmax + "|" + YmaxXmin)
+        if geojson:
+            if output_coord == 'wgs84':
+                coords = ('{top_left_start}\n{bottom_left}\n'
+                          '{bottom_right}\n{top_right}\n'
+                          '{top_left_end}\n'.format(
+                              top_left_start='{} {}'.format(bounds[0][1],
+                                                            bounds[0][0]),
+                              bottom_left='{} {}'.format(bounds[1][1],
+                                                         bounds[0][0]),
+                              bottom_right='{} {}'.format(bounds[1][1],
+                                                          bounds[1][0]),
+                              top_right='{} {}'.format(bounds[0][1],
+                                                       bounds[1][0]),
+                              top_left_end='{} {}'.format(bounds[0][1],
+                                                          bounds[0][0])))
+
+                proc = grass.start_command('m.proj', flags='do',
+                                           input='-',
+                                           stdin=subprocess.PIPE,
+                                           stdout=subprocess.PIPE)
+                result, error = proc.communicate(input=grass.encode(coords))
+
+                polygon_coords = []
+                for row in grass.decode(result).split('\n'):
+                    if row:
+                        x, y, z = row.split('|')
+                        polygon_coords.append([float(x), float(y)])
+
+                return [{"type": "Feature",
+                         "geometry": {
+                             "type": "Polygon",
+                             "coordinates": [polygon_coords]}}]
+
+            return [{"type": "Feature",
+                     "geometry": {
+                         "type": "Polygon",
+                         "coordinates":
+                         [[[bounds[0][1], bounds[0][0]],
+                           [bounds[1][1], bounds[0][0]],
+                           [bounds[1][1], bounds[1][0]],
+                           [bounds[0][1], bounds[1][0]],
+                           [bounds[0][1], bounds[0][0]]]]
+                     }}]
         return corners
 
     def buildLink(self, center, zoom, corners):
         size = str(self.size[0]) + 'x' + str(self.size[1])
 
-        pic = ("{service_url}?center={lat},{lng}&"
-               "zoom={zoom}&size={size}".format(
+        pic = ("{service_url}?"
+               "geojson={geojson}&"
+               "center={lat},{lng}&"
+               "zoom={zoom}&"
+               "size={size}".format(
+                   geojson=corners,
                    service_url=self.static_map_service_url,
                    lat=center['lat'],
                    lng=center['lng'],
                    zoom=zoom,
                    size=size))
+        pic = pic.replace(' ', '')
 
-        pic1 = ("{service_url}?center={lat},{lng}&"
-                "zoom={zoom}&size={size}".format(
+        pic1 = ("{service_url}?"
+                "geojson={geojson}&"
+                "center={lat},{lng}&"
+                "zoom={zoom}&"
+                "size={size}".format(
+                    geojson=corners,
                     service_url=self.static_map_service_url,
                     lat=center['lat'],
                     lng=center['lng'],
                     zoom=zoom - 4,
                     size=size))
+        pic1 = pic1.replace(' ', '')
+
         return pic, pic1
 
-    def CalcCenterFromBounds(self, bounds, output_coor=None):
-        """Calculates the center point given southwest/northeast lat/lng pairs.
+    def CalcCenterFromBounds(self, bounds, output_coord=None):
+        """Calculates the center point given southwest/northeast lat/lng
+        pairs.
 
-        Given southwest and northeast bounds, this method will return the center
-        point.  We use this method when we have done a search for points on the map,
-        and we get multiple results.  In the results we don't get anything to
-        calculate the center point of the map so this method calculates it for us.
+        Given southwest and northeast bounds, this method will return
+        the center point.  We use this method when we have done a search
+        for points on the map, and we get multiple results.  In the
+        results we don't get anything to calculate the center point of
+        the map so this method calculates it for us.
 
-        Args:
-          bounds: A list of length 2, each holding a list of length 2. It holds
-            the southwest and northeast lat/lng bounds of a map.  It should look
-            like this: [[southwestLat, southwestLat], [northeastLat, northeastLng]]
+        :param list bounds: A list of length 2, each holding a list of
+        length 2. It holds the southwest and northeast lat/lng bounds
+        of a map.  It should look like this: [[southwestLat, southwestLat],
+        [northeastLat, northeastLng]]
+        :param str output_coord: transform default coord to wgs84
 
-        Returns:
-          An dict containing keys lat and lng for the center point.
+       :return dict: An dict containing keys lat and lng for the center
+        point.
         """
         north = bounds[1][0]
         south = bounds[0][0]
         east = bounds[1][1]
         west = bounds[0][1]
         center = {}
-        center['lat'] = north - float((north - south) / 2)
-        center['lng'] = east - float((east - west) / 2)
+        center['lng'] = north - float((north - south) / 2)
+        center['lat'] = east - float((east - west) / 2)
 
-        if output_coor == 'wgs84':
+        if output_coord == 'wgs84':
             coords = grass.read_command('m.proj', flags='do',
                                         coordinate='{lat},{lng}'.format(
-                                            lat=center['lat'], lng=center['lng']))
+                                            lat=center['lat'],
+                                            lng=center['lng']))
             center['lat'], center['lng'], z = coords.split('|')
         return center
 
