@@ -3,8 +3,9 @@ try:
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile, sys, os
-from grass.pygrass.utils import set_path,get_lib_path
+from grass.pygrass.utils import set_path
 from grass.script import core as grass
+from grass.script.utils import get_lib_path
 from core.gcmd import GError, GMessage, GWarning
 
 set_path(modulename='wx.metadata', dirname='mdlib')
@@ -136,8 +137,10 @@ class PdfCreator(object):
 
         self.doc.set_theme(MyTheme)
 
-        logo_path = get_lib_path("wx.metadata",'config')
-        logo_path = os.path.join(logo_path,'logo_variant_bg.png')
+        lib_name = 'config'
+        logo_path = get_lib_path("wx.metadata", lib_name)
+
+        logo_path = os.path.join(logo_path, lib_name, 'logo_variant_bg.png')
         self.doc.add_image(logo_path, 57, 73, LEFT)
 
         if self.map is None:
@@ -641,4 +644,3 @@ class MapBBFactory():
         north = max(flats)
         south = min(flats)
         return [[south, west], [north, east]]
-
