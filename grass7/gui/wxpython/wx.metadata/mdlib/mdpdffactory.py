@@ -422,8 +422,8 @@ class PdfCreator(object):
     def savePDF(self, doc, pathToPdf=None):
         if pathToPdf is None:
             pathToPdf = self.pdf_file
-        out = open(pathToPdf, 'w+')
-        out.writelines(doc)
+        out = open(pathToPdf, 'wb+')
+        out.write(doc)
         out.close()
         return pathToPdf
 
