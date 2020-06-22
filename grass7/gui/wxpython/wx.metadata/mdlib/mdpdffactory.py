@@ -1,19 +1,34 @@
-try:
-    from owslib.iso import *
-except:
-    sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-import tempfile, sys, subprocess, os
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@module  mdpdffactory
+@brief   Pdf creator
+
+Classes:
+ - mdpdffactory::MapBBFactory
+ - mdpdffactory::MyTheme
+ - mdpdffactory::MD_ITEM
+ - mdpdffactory::PdfCreator
+ - mdpdffactory::Point
+"""
+
+import math
+import os
+import subprocess
+import tempfile
+
+from core.gcmd import GWarning
+
 from grass.pygrass.utils import set_path
 from grass.script import core as grass
 from grass.script.utils import get_lib_path
-from core.gcmd import GError, GMessage, GWarning
+
+from reportlab.platypus import Image, Paragraph, Table
+from reportlab.platypus import PageBreak
 
 set_path(modulename='wx.metadata', dirname='mdlib')
-
-import math
-from reportlab.platypus import Paragraph, Image, Table
-from reportlab.platypus import PageBreak
-from .mdpdftheme import *
+from .mdpdftheme import CENTER, DefaultTheme, H1, H4, LEFT, Pdf, T1, \
+    T2, T3
 
 
 class MyTheme(DefaultTheme):
