@@ -461,17 +461,18 @@ class Point():
 
 
 class MapBBFactory():
-    '''Class for compute bounding box for static map with using google maps API
+    '''Class for compute bounding box for static map with using osm API
     '''
 
     def __init__(self, coords, size=[200, 200]):
+        self.static_map_service_url = "https://osm-static-maps.herokuapp.com/"
         self.pixels_per_lon_degree = []
         self.pixels_per_lon_radian = []
         self.pixel_origo = []
         self.pixel_range = []
         self.pixels = 256
         self.size = size
-        zoom_levels = list(range(0, 18))
+        zoom_levels = list(range(0, 20))
         for z in zoom_levels:
             origin = self.pixels / 2
             self.pixels_per_lon_degree.append(self.pixels / 360)
@@ -482,7 +483,7 @@ class MapBBFactory():
 
         bounds = self.CalcBoundsFromPoints(coords[0], coords[1])
         corners = self.calcCornersFromBounds(bounds)
-        center = self.CalcCenterFromBounds(bounds)
+        center = self.CalcCenterFromBounds(bounds, output_coor='wgs84')
         zoom = self.CalculateBoundsZoomLevel(bounds, size)
         self.link1, self.link2 = self.buildLink(center, zoom, corners)
 
@@ -502,15 +503,24 @@ class MapBBFactory():
     def buildLink(self, center, zoom, corners):
         size = str(self.size[0]) + 'x' + str(self.size[1])
 
-        pic = ("http://maps.googleapis.com/maps/api/staticmap?center=" +
-               str(center['lat']) + ',' + str(center['lng']) + "&zoom=" + str(zoom) +
-               "&size=" + size + "&sensor=false&path=color:red|weight:3|" + corners)
-        pic1 = ("http://maps.googleapis.com/maps/api/staticmap?center=" +
-                str(center['lat']) + ',' + str(center['lng']) + "&zoom=" + str(zoom - 4) +
-                "&size=" + size + "&sensor=false&path=color:red|weight:3|" + corners)
+        pic = ("{service_url}?center={lat},{lng}&"
+               "zoom={zoom}&size={size}".format(
+                   service_url=self.static_map_service_url,
+                   lat=center['lat'],
+                   lng=center['lng'],
+                   zoom=zoom,
+                   size=size))
+
+        pic1 = ("{service_url}?center={lat},{lng}&"
+                "zoom={zoom}&size={size}".format(
+                    service_url=self.static_map_service_url,
+                    lat=center['lat'],
+                    lng=center['lng'],
+                    zoom=zoom - 4,
+                    size=size))
         return pic, pic1
 
-    def CalcCenterFromBounds(self, bounds):
+    def CalcCenterFromBounds(self, bounds, output_coor=None):
         """Calculates the center point given southwest/northeast lat/lng pairs.
 
         Given southwest and northeast bounds, this method will return the center
@@ -533,6 +543,12 @@ class MapBBFactory():
         center = {}
         center['lat'] = north - float((north - south) / 2)
         center['lng'] = east - float((east - west) / 2)
+
+        if output_coor == 'wgs84':
+            coords = grass.read_command('m.proj', flags='do',
+                                        coordinate='{lat},{lng}'.format(
+                                            lat=center['lat'], lng=center['lng']))
+            center['lat'], center['lng'], z = coords.split('|')
         return center
 
     def Bound(self, value, opt_min, opt_max):
@@ -601,7 +617,7 @@ class MapBBFactory():
         Returns:
           An int zoom level.
         """
-        zmax = 18
+        zmax = 20
         zmin = 0
         bottom_left = bounds[0]
         top_right = bounds[1]
