@@ -9,8 +9,13 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import numpy, error, random
+import random
 from math import sqrt
+
+from libagent import error
+
+import numpy
+
 
 class Playground(object):
     """
@@ -275,4 +280,3 @@ class Playground(object):
                             self.layers[layername][i][j] = v
                         else:
                             self.layers[layername][i][j] = minimum
-
