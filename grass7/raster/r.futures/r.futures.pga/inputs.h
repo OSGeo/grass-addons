@@ -14,6 +14,7 @@ struct Demand
     int *years;
     int max_subregions;
     int max_steps;
+    const char *separator;
 };
 
 struct Potential
@@ -26,15 +27,21 @@ struct Potential
     int max_subregions;
     float *incentive_transform;
     int incentive_transform_size;
+    const char *separator;
 };
 
 struct PatchSizes
 {
     const char *filename;
-    int max_patches;
-    int *patch_sizes;
+    // array of patches
+    int **patch_sizes;
+    // array of number of patches per area
+    int *patch_count;
+    // maximum patch size
     int max_patch_size;
-    
+    // use single column for all regions
+    bool single_column;
+
 };
 
 struct SegmentMemory
@@ -88,11 +95,13 @@ struct Undeveloped
 
 void initialize_incentive(struct Potential *potential_info, float exponent);
 void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
-                        struct SegmentMemory segment_info, struct KeyValueIntInt *region_map, 
+                        struct SegmentMemory segment_info, struct KeyValueIntInt *region_map,
+                        struct KeyValueIntInt *reverse_region_map,
                         struct KeyValueIntInt *potential_region_map, int num_predictors);
 void read_demand_file(struct Demand *demandInfo, struct KeyValueIntInt *region_map);
 void read_potential_file(struct Potential *potentialInfo, struct KeyValueIntInt *region_map,
                          int num_predictors);
-void read_patch_sizes(struct PatchSizes *patch_info, double discount_factor);
+void read_patch_sizes(struct PatchSizes *patch_sizes, struct KeyValueIntInt *region_map,
+                      double discount_factor);
 
 #endif // FUTURES_INPUTS_H

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 #
 ##############################################################################
 #
@@ -9,7 +8,7 @@
 #
 # PURPOSE:      create demand table for FUTURES
 #
-# COPYRIGHT:    (C) 2015 by the GRASS Development Team
+# COPYRIGHT:    (C) 2015-2020 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (version 2). Read the file COPYING that comes with GRASS
@@ -74,8 +73,8 @@
 #% guisection: Output
 #%end
 #%option G_OPT_F_SEP
-#% label: Separator used in input CSV files
-#% guisection: Input population
+#% label: Separator used in CSV files
+#% guisection: Optional
 #% answer: comma
 #%end
 
@@ -219,7 +218,12 @@ def main():
                 else:
                     y = table_developed[subregionId]
                 A = np.vstack((reg_pop, np.ones(len(reg_pop)))).T
-                m, c = np.linalg.lstsq(A, y, rcond=None)[0]  # y = mx + c
+                npversion = [int(x) for x in np.__version__.split('.')]
+                if npversion >= [1, 14, 0]:
+                    rcond = None
+                else:
+                    rcond = -1
+                m, c = np.linalg.lstsq(A, y, rcond=rcond)[0]  # y = mx + c
                 coeff[method] = m, c
 
                 if method == 'logarithmic':
@@ -293,12 +297,12 @@ def main():
     # write demand
     with open(options['demand'], 'w') as f:
         header = observed_popul.dtype.names  # the order is kept here
-        f.write('\t'.join(header))
+        f.write(sep.join(header))
         f.write('\n')
         i = 0
         for time in simulation_times[1:]:
             f.write(str(int(time)))
-            f.write('\t')
+            f.write(sep)
             # put 0 where there are more counties but are not in region
             for sub in header[1:]:  # to keep order of subregions
                 if sub not in subregionIds:
@@ -306,7 +310,7 @@ def main():
                 else:
                     f.write(str(int(demand[sub][i])))
                 if sub != header[-1]:
-                    f.write('\t')
+                    f.write(sep)
             f.write('\n')
             i += 1
 

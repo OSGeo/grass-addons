@@ -1,0 +1,3 @@
+discount_factor,compactness_mean,compactness_range,area_error,compactness_error,combined_error
+0.10,0.10,0.10,0.97,1.00,0.99
+0.10,0.80,0.10,1.00,0.98,0.99

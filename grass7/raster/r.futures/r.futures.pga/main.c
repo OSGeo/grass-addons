@@ -131,7 +131,7 @@ int main(int argc, char **argv)
                 *potentialFile, *numNeighbors, *discountFactor, *seedSearch,
                 *patchMean, *patchRange,
                 *incentivePower, *potentialWeight,
-                *demandFile, *patchFile, *numSteps, *output, *outputSeries, *seed, *memory;
+                *demandFile, *separator, *patchFile, *numSteps, *output, *outputSeries, *seed, *memory;
 
     } opt;
 
@@ -152,6 +152,7 @@ int main(int argc, char **argv)
     enum seed_search search_alg;
     struct RasterInputs raster_inputs;
     struct KeyValueIntInt *region_map;
+    struct KeyValueIntInt *reverse_region_map;
     struct KeyValueIntInt *potential_region_map;
     struct Undeveloped *undev_cells;
     struct Demand demand_info;
@@ -267,11 +268,10 @@ int main(int argc, char **argv)
     opt.potentialFile->key = "devpot_params";
     opt.potentialFile->required = YES;
     opt.potentialFile->label =
-        _("Development potential parameters for each region");
+        _("CSV file with development potential parameters for each region");
     opt.potentialFile->description =
         _("Each line should contain region ID followed"
           " by parameters (intercepts, development pressure, other predictors)."
-          " Values are separated by tabs."
           " First line is ignored, so it can be used for header");
     opt.potentialFile->guisection = _("Potential");
 
@@ -279,8 +279,13 @@ int main(int argc, char **argv)
     opt.demandFile->key = "demand";
     opt.demandFile->required = YES;
     opt.demandFile->description =
-            _("Control file with number of cells to convert");
+            _("CSV file with number of cells to convert for each step and subregion");
     opt.demandFile->guisection = _("Demand");
+
+    opt.separator = G_define_standard_option(G_OPT_F_SEP);
+    opt.separator->answer = "comma";
+    opt.separator->description =
+            _("Separator used in input CSV files");
 
     opt.patchFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.patchFile->key = "patch_sizes";
@@ -477,9 +482,11 @@ int main(int argc, char **argv)
 
     //    read Subregions layer
     region_map = KeyValueIntInt_create();
+    reverse_region_map = KeyValueIntInt_create();
     potential_region_map = KeyValueIntInt_create();
     G_verbose_message("Reading input rasters...");
-    read_input_rasters(raster_inputs, &segments, segment_info, region_map, potential_region_map, num_predictors);
+    read_input_rasters(raster_inputs, &segments, segment_info, region_map,
+                       reverse_region_map, potential_region_map, num_predictors);
 
     /* create probability segment*/
     if (Segment_open(&segments.probability, G_tempfile(), Rast_window_rows(),
@@ -490,11 +497,13 @@ int main(int argc, char **argv)
     /* read Potential file */
     G_verbose_message("Reading potential file...");
     potential_info.filename = opt.potentialFile->answer;
+    potential_info.separator = G_option_to_separator(opt.separator);
     read_potential_file(&potential_info, opt.potentialSubregions->answer ? potential_region_map : region_map, num_predictors);
 
     /* read Demand file */
     G_verbose_message("Reading demand file...");
     demand_info.filename = opt.demandFile->answer;
+    demand_info.separator = G_option_to_separator(opt.separator);
     read_demand_file(&demand_info, region_map);
     if (num_steps == 0)
         num_steps = demand_info.max_steps;
@@ -502,7 +511,7 @@ int main(int argc, char **argv)
     /* read Patch sizes file */
     G_verbose_message("Reading patch size file...");
     patch_sizes.filename = opt.patchFile->answer;
-    read_patch_sizes(&patch_sizes, discount_factor);
+    read_patch_sizes(&patch_sizes, region_map, discount_factor);
 
     undev_cells = initialize_undeveloped(region_map->nitems);
     patch_overflow = G_calloc(region_map->nitems, sizeof(int));
@@ -516,7 +525,7 @@ int main(int argc, char **argv)
         for (region = 0; region < region_map->nitems; region++) {
             compute_step(undev_cells, &demand_info, search_alg, &segments,
                          &patch_sizes, &patch_info, &devpressure_info, patch_overflow,
-                         step, region, overgrow);
+                         step, region, reverse_region_map, overgrow);
         }
         /* export developed for that step */
         if (opt.outputSeries->answer) {
@@ -544,6 +553,7 @@ int main(int argc, char **argv)
         Segment_close(&segments.potential_subregions);
 
     KeyValueIntInt_free(region_map);
+    KeyValueIntInt_free(reverse_region_map);
     if (demand_info.table) {
         for (int i = 0; i < demand_info.max_subregions; i++)
             G_free(demand_info.table[i]);

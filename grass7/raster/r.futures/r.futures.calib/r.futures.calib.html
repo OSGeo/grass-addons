@@ -10,12 +10,19 @@ comparing the distribution of simulated patch sizes to those observed
 for the reference period, and choosing the values that provide the closest match.
 For the details about calibration see below.
 
+<p>
+This module depends on addon
+<a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a>.
 
 <h3>Patch size</h3>
 As part of the calibration process, module <em>r.futures.calibration</em>
 produces patch size distribution file specified in <b>patch_sizes</b> parameter,
 which contains sizes (in cells) of all new patches observed
 in the reference period. The format of this file is one patch size per line.
+If flag <b>-s</b> is used, patch sizes will be analyzed per each subregion,
+and written as a CSV file with columns representing patch library for each
+subregion and header containing
+the categories of subregions.
 FUTURES uses this file to determine the size of the simulated patches.
 Often the length of the reference time period does not match
 the time period which we are trying to simulate.
@@ -58,21 +65,21 @@ runs (specified in <b>repeat</b>) are recommended, the error is then averaged.
 Calibration results are saved in a CSV file specified in <b>calibration_results</b>:
 
 <pre>
-input_discount_factor,area_distance,input_compactness_mean,input_compactness_range,compactness_distance
-0.1,1.01541178435,0.1,0.02,3.00000005937
-0.2,1.26578803108,0.1,0.02,4.12442780529
-0.3,1.17631210026,0.1,0.02,3.86904462396
-0.4,2.31700278644,0.1,0.02,15.0569602795
-0.5,1.08655152036,0.1,0.02,3.72484862687
-0.6,2.97628078734,0.1,0.02,21.6358616001
-0.7,3.61632549044,0.1,0.02,25.4492265706
-0.8,2.72789958233,0.1,0.02,18.1083820007
-0.9,2.45915297845,0.1,0.02,18.4500322711
-0.1,1.05473877995,0.1,0.04,3.09321560218
-...
+discount_factor,compactness_mean,compactness_range,area_error,compactness_error,combined_error
+0.10,0.60,0.10,0.92,0.70,0.81
+0.10,0.80,0.10,0.92,0.76,0.84
+0.10,0.20,0.10,0.93,0.78,0.85
+0.10,0.50,0.10,0.89,0.82,0.86
+0.10,1.00,0.10,0.94,0.84,0.89
+0.10,0.90,0.10,0.92,0.86,0.89
+0.10,0.70,0.10,0.96,0.83,0.90
+0.10,0.10,0.10,1.00,1.00,1.00
+
 </pre>
 
-Optimal values can be found by visual examination of the second and fifth columns.
+The first three columns represent the combination of calibrated parameters.
+The last column is the average of the normalized area and compactness errors
+for each combination. The first line shows the combination with lowest error.
 <p>
 Providing too many values in <b>compactness_mean</b>,
 <b>compactness_range</b> and <b>discount_factor</b> results in very long computation.
@@ -85,6 +92,15 @@ that patch sizes and shapes are close to being consistent across the entire stud
 For all other parameters not mentioned above, please refer to
 <em>r.futures.pga</em> documentation.
 
+<h2>NOTES</h2>
+This module depends on addon
+<a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a>.
+Please install it with g.extension:
+
+<div class="code"><pre>
+g.extension r.object.geometry
+</pre></div>
+
 <h2>EXAMPLES</h2>
 
 <h2>SEE ALSO</h2>
@@ -94,7 +110,8 @@ For all other parameters not mentioned above, please refer to
 <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
 <em><a href="r.futures.demand.html">r.futures.demand</a></em>,
 <em><a href="r.futures.potential.html">r.futures.potential</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>
+<em><a href="r.sample.category.html">r.sample.category</a></em>,
+<em><a href="https://grass.osgeo.org/grass7/manuals/addons/r.object.geometry.html">r.object.geometry</a></em>.
 
 <h2>REFERENCES</h2>
 <ul>
