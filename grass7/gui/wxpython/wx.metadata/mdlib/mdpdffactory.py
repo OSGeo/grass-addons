@@ -499,75 +499,35 @@ class MapBBFactory():
             self.pixels = self.pixels * 2
 
         bounds = self.CalcBoundsFromPoints(coords[0], coords[1])
-        corners = self.calcCornersFromBounds(bounds, geojson=True,
-                                             output_coord='wgs84')
-        center = self.CalcCenterFromBounds(bounds, output_coord='wgs84')
+        corners = self.calcCornersFromBounds(bounds)
+        center = self.CalcCenterFromBounds(bounds)
         zoom = self.CalculateBoundsZoomLevel(bounds, size)
         self.link1, self.link2 = self.buildLink(center, zoom, corners)
 
-    def calcCornersFromBounds(self, bounds, geojson=False,
-                              output_coord=None):
+    def calcCornersFromBounds(self, bounds):
         """
         :param bounds: An int that is either the value passed in or
         the min or the max.
-        :param bool geojson: if True than return geojson format (for
-        the static map img service generator)
-        :param str output_coord: transform default coord to wgs84
 
-        :return str/geojson: str or geojson polygon representation,
-        defined by 5 points
+        :return geojson: polygon representation, defined by 5 points
         """
-        YmaxXmin = str(bounds[0][1]) + ',' + str(bounds[0][0])
-        YminXmin = str(bounds[1][1]) + ',' + str(bounds[0][0])
-        YminXmax = str(bounds[1][1]) + ',' + str(bounds[1][0])
-        YmaxXmax = str(bounds[0][1]) + ',' + str(bounds[1][0])
+        corners = []
+        # [lat, lng]
+        XminYmax = [bounds[0][0], bounds[1][1]]
+        XminYmin = [bounds[0][0], bounds[0][1]]
+        XmaxYmin = [bounds[1][0], bounds[0][1]]
+        XmaxYmax = [bounds[1][0], bounds[1][1]]
+        corners.append(XminYmax)
+        corners.append(XminYmin)
+        corners.append(XmaxYmin)
+        corners.append(XmaxYmax)
+        corners.append(XminYmax)
 
-        corners = (YmaxXmin + "|" + YminXmin + "|" + YminXmax + "|" +
-                   YmaxXmax + "|" + YmaxXmin)
-        if geojson:
-            if output_coord == 'wgs84':
-                coords = ('{top_left_start}\n{bottom_left}\n'
-                          '{bottom_right}\n{top_right}\n'
-                          '{top_left_end}\n'.format(
-                              top_left_start='{} {}'.format(bounds[0][1],
-                                                            bounds[0][0]),
-                              bottom_left='{} {}'.format(bounds[1][1],
-                                                         bounds[0][0]),
-                              bottom_right='{} {}'.format(bounds[1][1],
-                                                          bounds[1][0]),
-                              top_right='{} {}'.format(bounds[0][1],
-                                                       bounds[1][0]),
-                              top_left_end='{} {}'.format(bounds[0][1],
-                                                          bounds[0][0])))
-
-                proc = grass.start_command('m.proj', flags='do',
-                                           input='-',
-                                           stdin=subprocess.PIPE,
-                                           stdout=subprocess.PIPE)
-                result, error = proc.communicate(input=grass.encode(coords))
-
-                polygon_coords = []
-                for row in grass.decode(result).split('\n'):
-                    if row:
-                        x, y, z = row.split('|')
-                        polygon_coords.append([float(x), float(y)])
-
-                return [{"type": "Feature",
-                         "geometry": {
-                             "type": "Polygon",
-                             "coordinates": [polygon_coords]}}]
-
-            return [{"type": "Feature",
-                     "geometry": {
-                         "type": "Polygon",
-                         "coordinates":
-                         [[[bounds[0][1], bounds[0][0]],
-                           [bounds[1][1], bounds[0][0]],
-                           [bounds[1][1], bounds[1][0]],
-                           [bounds[0][1], bounds[1][0]],
-                           [bounds[0][1], bounds[0][0]]]]
-                     }}]
-        return corners
+        return [{"type": "Feature",
+                 "geometry": {
+                     "type": "Polygon",
+                     "coordinates": [corners],
+                 }}]
 
     def buildLink(self, center, zoom, corners):
         size = str(self.size[0]) + 'x' + str(self.size[1])
@@ -602,7 +562,7 @@ class MapBBFactory():
 
         return pic0, pic1
 
-    def CalcCenterFromBounds(self, bounds, output_coord=None):
+    def CalcCenterFromBounds(self, bounds):
         """Calculates the center point given southwest/northeast lat/lng
         pairs.
 
@@ -614,27 +574,20 @@ class MapBBFactory():
 
         :param list bounds: A list of length 2, each holding a list of
         length 2. It holds the southwest and northeast lat/lng bounds
-        of a map.  It should look like this: [[southwestLat, southwestLat],
+        of a map.  It should look like this: [[southwestLat, southwestLng],
         [northeastLat, northeastLng]]
-        :param str output_coord: transform default coord to wgs84
 
        :return dict: An dict containing keys lat and lng for the center
         point.
         """
-        north = bounds[1][0]
-        south = bounds[0][0]
-        east = bounds[1][1]
-        west = bounds[0][1]
+        north = bounds[1][1]
+        south = bounds[0][1]
+        east = bounds[1][0]
+        west = bounds[0][0]
         center = {}
         center['lng'] = north - float((north - south) / 2)
         center['lat'] = east - float((east - west) / 2)
 
-        if output_coord == 'wgs84':
-            coords = grass.read_command('m.proj', flags='do',
-                                        coordinate='{lat},{lng}'.format(
-                                            lat=center['lat'],
-                                            lng=center['lng']))
-            center['lat'], center['lng'], z = coords.split('|')
         return center
 
     def Bound(self, value, opt_min, opt_max):
@@ -723,19 +676,19 @@ class MapBBFactory():
     def CalcBoundsFromPoints(self, lats, lngs):
         """Calculates the max/min lat/lng in the lists.
 
-        This method takes in a list of lats and a list of lngs, and outputs the
-        southwest and northeast bounds for these points.  We use this method when we
-        have done a search for points on the map, and we get multiple results.  In
-        the results we don't get a bounding box so this method calculates it for us.
+        This method takes in a list of lats and a list of lngs, and
+        outputs the southwest and northeast bounds for these points.
+        We use this method when we have done a search for points on the
+        map, and we get multiple results. In the results we don't get a
+        bounding box so this method calculates it for us.
 
-        Args:
-          lats: List of latitudes
-          lngs: List of longitudes
+        param: list lats: list of latitudes
+        param: lsit lngs: list of longitudes
 
-        Returns:
-          A list of length 2, each holding a list of length 2.  It holds
-          the southwest and northeast lat/lng bounds of a map.  It should look
-          like this: [[southwestLat, southwestLat], [northeastLat, northeastLng]]
+        returns list: a list of length 2, each holding a list of
+        length 2. It holds the southwest and northeast lat/lng
+        bounds of a map.  It should look like this:
+        [[southwestLat, southwestLng], [northeastLat, northeastLng]]
         """
         lats = [float(x) for x in lats]
         lngs = [float(x) for x in lngs]
@@ -745,4 +698,22 @@ class MapBBFactory():
         east = max(flngs)
         north = max(flats)
         south = min(flats)
-        return [[south, west], [north, east]]
+
+        coords = ('{bottom_left}\n{top_right}'.format(
+            bottom_left='{} {}'.format(west, south),
+            top_right='{} {}'.format(east, north)))
+
+        proc = grass.start_command('m.proj',
+                                   flags='do',
+                                   input='-',
+                                   stdin=subprocess.PIPE,
+                                   stdout=subprocess.PIPE)
+        result, error = proc.communicate(input=grass.encode(coords))
+
+        bounds = []
+        for row in grass.decode(result).split('\n'):
+            if row:
+                x, y, z = row.split('|')
+                bounds.append([float(x), float(y)])
+
+        return bounds
