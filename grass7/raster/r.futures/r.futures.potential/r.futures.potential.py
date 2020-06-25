@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 #
 ##############################################################################
 #
@@ -9,7 +8,7 @@
 #
 # PURPOSE:      FUTURES Potential submodel
 #
-# COPYRIGHT:    (C) 2016 by the GRASS Development Team
+# COPYRIGHT:    (C) 2016-2020 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -26,6 +25,10 @@
 #%end
 #%option G_OPT_F_OUTPUT
 #% description: Output Potential file
+#%end
+#%option G_OPT_F_SEP
+#% label: Separator used in output file
+#% answer: comma
 #%end
 #%option G_OPT_DB_COLUMNS
 #% description: Names of attribute columns representing sampled predictors
@@ -65,6 +68,7 @@ import sys
 import atexit
 import subprocess
 import grass.script as gscript
+import grass.script.utils as gutils
 
 
 rscript = """
@@ -146,6 +150,7 @@ def main():
     columns = options['columns'].split(',')
     binary = options['developed_column']
     level = options['subregions_column']
+    sep = gutils.separator(options['separator'])
     minim = int(options['min_variables'])
     dredge = flags['d']
     if options['max_variables']:
@@ -160,7 +165,7 @@ def main():
     TMP_RSCRIPT = gscript.tempfile()
     include_level = True
     distinct = gscript.read_command('v.db.select', flags='c', map=vinput,
-                                    columns="distinct {l}".format(l=level)).strip()
+                                    columns="distinct {level}".format(level=level)).strip()
     if len(distinct.splitlines()) <= 1:
         include_level = False
         single_level = distinct.splitlines()[0]
@@ -180,20 +185,20 @@ def main():
     else:
         gscript.info(_("Computing model..."))
 
-    cmd = ['Rscript', TMP_RSCRIPT, '-i', TMP_CSV,  '-r', binary,
-               '-m', str(minim), '-x', str(maxv), '-o', TMP_POT, '-d', 'TRUE' if dredge else 'FALSE']
+    cmd = ['Rscript', TMP_RSCRIPT, '-i', TMP_CSV, '-r', binary,
+           '-m', str(minim), '-x', str(maxv), '-o', TMP_POT, '-d', 'TRUE' if dredge else 'FALSE']
     if include_level:
-        cmd += [ '-l', level]
+        cmd += ['-l', level]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    print(gscript.decode(stderr))
+    gscript.warning(gscript.decode(stderr))
     if p.returncode != 0:
-        print(gscript.decode(stderr))
+        gscript.warning(gscript.decode(stderr))
         gscript.fatal(_("Running R script failed, check messages above"))
 
     gscript.info(_("Best model summary:"))
     gscript.info("-------------------------")
-    print(gscript.decode(stdout))
+    gscript.message(gscript.decode(stdout))
 
     with open(TMP_POT, 'r') as fin, open(options['output'], 'w') as fout:
         i = 0
@@ -205,7 +210,7 @@ def main():
                 row[1] = "Intercept"
             if i == 1 and not include_level:
                 row[0] = single_level
-            fout.write('\t'.join(row))
+            fout.write(sep.join(row))
             fout.write('\n')
             i += 1
 
@@ -214,4 +219,3 @@ if __name__ == "__main__":
     options, flags = gscript.parser()
     atexit.register(cleanup)
     sys.exit(main())
-

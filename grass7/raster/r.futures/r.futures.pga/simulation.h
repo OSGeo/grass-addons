@@ -23,6 +23,7 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
                   struct Segments *segments,
                   struct PatchSizes *patch_sizes, struct PatchInfo *patch_info,
                   struct DevPressure *devpressure_info, int *patch_overflow,
-                  int step, int region, bool overgrow);
+                  int step, int region, struct KeyValueIntInt *reverse_region_map,
+                  bool overgrow);
 
 #endif // FUTURES_SIMULATION_H
