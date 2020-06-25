@@ -82,7 +82,7 @@ int get_seed(struct Undeveloped *undev_cells, int region_idx, enum seed_search m
 {
     int i, id;
     if (method == RANDOM)
-        i = (int)(G_drand48() * undev_cells->max[region_idx]);
+        i = (int)(G_drand48() * undev_cells->num[region_idx]);
     else
         i = find_probable_seed(undev_cells, region_idx);
     id = undev_cells->cells[region_idx][i].id;
@@ -249,9 +249,11 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
                   struct Segments *segments,
                   struct PatchSizes *patch_sizes, struct PatchInfo *patch_info,
                   struct DevPressure *devpressure_info, int *patch_overflow,
-                  int step, int region, bool overgrow)
+                  int step, int region, struct KeyValueIntInt *reverse_region_map,
+                  bool overgrow)
 {
     int i, idx;
+    int region_id;
     int n_to_convert;
     int n_done;
     int found;
@@ -287,10 +289,11 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
     }
 
     if (n_to_convert > undev_cells->num[region]) {
+        KeyValueIntInt_find(reverse_region_map, region, &region_id);
         G_warning("Not enough undeveloped cells in region %d (requested: %d,"
-                  " available: %d). Converting all available.",
-                   region, n_to_convert, undev_cells->num[region]);
-        n_to_convert =  undev_cells->num[region];
+                  " available: %ld). Converting all available.",
+                  region_id, n_to_convert, undev_cells->num[region]);
+        n_to_convert = undev_cells->num[region];
         force_convert_all = true;
     }
     
@@ -319,7 +322,7 @@ void compute_step(struct Undeveloped *undev_cells, struct Demand *demand,
         /* challenge probability unless we need to convert all */
         if(force_convert_all || G_drand48() < prob) {
             /* ger random patch size */
-            patch_size = get_patch_size(patch_sizes);
+            patch_size = get_patch_size(patch_sizes, region);
             /* last year: we shouldn't grow bigger patches than we have space for */
             if (!overgrow && patch_size + n_done > n_to_convert)
                 patch_size = n_to_convert - n_done;

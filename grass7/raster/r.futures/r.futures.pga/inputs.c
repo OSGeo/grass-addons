@@ -12,6 +12,8 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include <grass/gis.h>
@@ -52,6 +54,7 @@ void initialize_incentive(struct Potential *potential_info, float exponent)
  */
 void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
                         struct SegmentMemory segment_info, struct KeyValueIntInt *region_map,
+                        struct KeyValueIntInt *reverse_region_map,
                         struct KeyValueIntInt *potential_region_map, int num_predictors)
 {
     int i;
@@ -162,6 +165,7 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
                 c = ((CELL *) subregions_row)[col];
                 if (!KeyValueIntInt_find(region_map, c, &region_index)) {
                     KeyValueIntInt_set(region_map, c, count_regions);
+                    KeyValueIntInt_set(reverse_region_map, count_regions, c);
                     region_index = count_regions;
                     count_regions++;
                 }
@@ -286,10 +290,9 @@ void read_demand_file(struct Demand *demandInfo, struct KeyValueIntInt *region_m
     char **tokens;
     int ntokens;
 
-    const char *fs = "\t";
     const char *td = "\"";
 
-    tokens = G_tokenize2(buf, fs, td);
+    tokens = G_tokenize2(buf, demandInfo->separator, td);
     ntokens = G_number_of_tokens(tokens);
     if (ntokens == 0)
         G_fatal_error("No columns in the header row");
@@ -310,9 +313,9 @@ void read_demand_file(struct Demand *demandInfo, struct KeyValueIntInt *region_m
     }
     demandInfo->years = (int *) G_malloc(countlines * sizeof(int));
     while(G_getl2(buf, buflen, fp)) {
-        if (!buf || buf[0] == '\0')
+        if (buf[0] == '\0')
             continue;
-        tokens = G_tokenize2(buf, fs, td);
+        tokens = G_tokenize2(buf, demandInfo->separator, td);
         int ntokens2 = G_number_of_tokens(tokens);
         if (ntokens2 == 0)
             continue;
@@ -351,7 +354,6 @@ void read_potential_file(struct Potential *potentialInfo, struct KeyValueIntInt 
         G_fatal_error(_("Cannot open development potential parameters file <%s>"),
                       potentialInfo->filename);
 
-    const char *fs = "\t";
     const char *td = "\"";
 
     size_t buflen = 4000;
@@ -370,9 +372,9 @@ void read_potential_file(struct Potential *potentialInfo, struct KeyValueIntInt 
     char **tokens;
 
     while (G_getl2(buf, buflen, fp)) {
-        if (!buf || buf[0] == '\0')
+        if (buf[0] == '\0')
             continue;
-        tokens = G_tokenize2(buf, fs, td);
+        tokens = G_tokenize2(buf, potentialInfo->separator, td);
         int ntokens = G_number_of_tokens(tokens);
         if (ntokens == 0)
             continue;
@@ -409,45 +411,112 @@ void read_potential_file(struct Potential *potentialInfo, struct KeyValueIntInt 
     fclose(fp);
 }
 
-void read_patch_sizes(struct PatchSizes *patch_info, double discount_factor)
+void read_patch_sizes(struct PatchSizes *patch_sizes,
+                      struct KeyValueIntInt *region_map,
+                      double discount_factor)
 {
-    FILE *fin;
-    char *size_buffer;
-    int n_max_patches;
+    FILE *fp;
+    size_t buflen = 4000;
+    char buf[buflen];
     int patch;
+    char** tokens;
+    char** header_tokens;
+    int ntokens;
+    int i, j;
+    int region_id;
+    const char *td = "\"";
+    int num_regions;
+    bool found;
+    bool use_header;
+    int n_max_patches;
 
+    n_max_patches = 0;
+    patch_sizes->max_patch_size = 0;
+    fp = fopen(patch_sizes->filename, "rb");
+    if (fp) {
+        /* just scan the file twice */
+        // scan in the header line
+        if (G_getl2(buf, buflen, fp) == 0)
+            G_fatal_error(_("Patch library file <%s>"
+                            " contains less than one line"), patch_sizes->filename);
 
-    patch_info->max_patches = 0;
-    patch_info->max_patch_size = 0;
-
-    fin = fopen(patch_info->filename, "rb");
-    if (fin) {
-        size_buffer = (char *) G_malloc(100 * sizeof(char));
-        if (size_buffer) {
-            /* just scan the file twice */
-            n_max_patches = 0;
-            while (fgets(size_buffer, 100, fin)) {
-                n_max_patches++;
+        header_tokens = G_tokenize2(buf, ",", td);
+        num_regions = G_number_of_tokens(header_tokens);
+        use_header = true;
+        patch_sizes->single_column = false;
+        if (num_regions == 1) {
+            use_header = false;
+            patch_sizes->single_column = true;
+            G_verbose_message(_("Only single column detected in patch library file <%s>."
+                                " It will be used for all subregions."), patch_sizes->filename);
+        }
+        /* Check there are enough columns for subregions in map */
+        if (num_regions != 1 && num_regions < region_map->nitems)
+            G_fatal_error(_("Patch library file <%s>"
+                            " has only %d columns but there are %d subregions"), patch_sizes->filename,
+                          num_regions, region_map->nitems);
+        /* Check all subregions in map have column in the file. */
+        if (use_header) {
+            for (i = 0; i < region_map->nitems; i++) {
+                found = false;
+                for (j = 0; j < num_regions; j++)
+                    if (region_map->key[i] == atoi(header_tokens[j]))
+                        found = true;
+                if (!found)
+                    G_fatal_error(_("Subregion id <%d> not found in header of patch file <%s>"),
+                                  region_map->key[i], patch_sizes->filename);
             }
-            rewind(fin);
-            if (n_max_patches) {
-                patch_info->patch_sizes =
-                    (int *) G_malloc(sizeof(int) * n_max_patches);
-                if (patch_info->patch_sizes) {
-                    while (fgets(size_buffer, 100, fin)) {
-                        patch = atoi(size_buffer) * discount_factor;
-                        if (patch > 0) {
-                            if (patch_info->max_patch_size < patch)
-                                patch_info->max_patch_size = patch;
-                            patch_info->patch_sizes[patch_info->max_patches] = patch;
-                            patch_info->max_patches++;
-                        }
+        }
+        // initialize patch_info->patch_count to all zero
+        patch_sizes->patch_count = (int*) G_calloc(num_regions, sizeof(int));
+        /* add one for the header reading above */
+        if (!use_header)
+            n_max_patches++;
+        // take one line
+        while (G_getl2(buf, buflen, fp)) {
+            // process each column in row
+            tokens = G_tokenize2(buf, ",", td);
+            ntokens = G_number_of_tokens(tokens);
+            if (ntokens != num_regions)
+                G_fatal_error(_("Patch library file <%s>"
+                                " has inconsistent number of columns"), patch_sizes->filename);
+            n_max_patches++;
+        }
+        // in a 2D array
+        patch_sizes->patch_sizes = (int **) G_malloc(sizeof(int * ) * num_regions);
+        // malloc appropriate size for each area
+        for(i = 0; i < num_regions; i++) {
+            patch_sizes->patch_sizes[i] =
+                    (int *) G_malloc(n_max_patches * sizeof(int));
+        }
+        /* read first line to skip header */
+        rewind(fp);
+        if (use_header)
+            G_getl2(buf, buflen, fp);
+
+        while (G_getl2(buf, buflen, fp)) {
+            tokens = G_tokenize2(buf, ",", td);
+            ntokens = G_number_of_tokens(tokens);
+            for (i = 0; i < ntokens; i++) {
+                if (strcmp(tokens[i], "") != 0 ) {
+                    patch = atoi(tokens[i]) * discount_factor;
+                    if (patch > 0) {
+                        if (patch_sizes->max_patch_size < patch)
+                            patch_sizes->max_patch_size = patch;
+                        if (use_header)
+                            KeyValueIntInt_find(region_map, atoi(header_tokens[i]), &region_id);
+                        else
+                            region_id = 0;
+                        patch_sizes->patch_sizes[region_id][patch_sizes->patch_count[region_id]] = patch;
+                        patch_sizes->patch_count[region_id]++;
                     }
                 }
             }
-            free(size_buffer);
         }
-        fclose(fin);
+        G_free_tokens(header_tokens);
+        G_free_tokens(tokens);
+        fclose(fp);
     }
 }
+
 

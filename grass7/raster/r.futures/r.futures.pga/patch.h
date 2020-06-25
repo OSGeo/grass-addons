@@ -36,7 +36,7 @@ struct PatchInfo
     
 };
 
-int get_patch_size(struct PatchSizes *patch_sizes);
+int get_patch_size(struct PatchSizes *patch_sizes, int region);
 void add_neighbour(int row, int col, int seed_row, int seed_col,
                    struct CandidateNeighborsList *candidate_list,
                    struct Segments *segments, struct PatchInfo *patch_info);

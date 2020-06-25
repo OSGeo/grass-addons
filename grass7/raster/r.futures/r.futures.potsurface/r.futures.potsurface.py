@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 #
 ##############################################################################
 #
@@ -9,7 +8,7 @@
 #
 # PURPOSE:      FUTURES Potential surface for visualization
 #
-# COPYRIGHT:    (C) 2016 by the GRASS Development Team
+# COPYRIGHT:    (C) 2016-2020 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -34,6 +33,11 @@
 #%option G_OPT_R_OUTPUT
 #% description: Output probability raster
 #%end
+#%option G_OPT_F_SEP
+#% required: no
+#% label: Separator used in input CSV file
+#% answer: comma
+#%end
 
 
 import sys
@@ -44,17 +48,17 @@ def main():
     csv = options['input']
     output = options['output']
     subregions = options['subregions']
+    sep = gscript.separator(options['separator'])
 
     data = {}
     with open(csv, 'r') as f:
         lines = f.read().splitlines()
-    header = lines[0].strip().split('\t')
+    header = lines[0].strip().split(sep)
     maps = header[2:]
     for line in lines[1:]:
-#        line  = line.strip()
         if not line:
             continue
-        items = line.strip().split()
+        items = line.strip().split(sep)
         data[items[0]] = items[1:]
 
     expr = 'eval(tmp = '

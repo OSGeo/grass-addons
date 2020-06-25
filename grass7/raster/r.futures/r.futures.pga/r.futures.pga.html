@@ -14,7 +14,7 @@ to the POTENTIAL submodel, influencing site suitability for the next step.
 <h3>Patch growing</h3>
 Patches are constructed in
 three steps. First, a potential seed is randomly selected from available cells.
-In case <b>seed_search</b> is 2, the probability value (based on POTENTIAL)
+In case <b>seed_search</b> is <em>probability</em>, the probability value (based on POTENTIAL)
 of the seed is tested using Monte Carlo approach, and if it doesn't survive,
 new potential seed is selected and tested.
 Second, using a 4- or 8-neighbor (see <b>num_neighbors</b>) search rule PGA grows the patch.
@@ -95,7 +95,7 @@ Figure: Detail of output map
 <div class="code"><pre>
 r.futures.pga -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope \
   demand=demand.txt devpot_params=devpotParams.csv discount_factor=0.6 \
-  compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=2 \
+  compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=probability \
   patch_sizes=patch_sizes.txt development_pressure=gdp n_dev_neighbourhood=10 \
   development_pressure_approach=gravity gamma=2 scaling_factor=1 \
   subregions=subregions incentive_power=2 \
