@@ -35,6 +35,8 @@ from wx.html import EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_AUTO
 from owslib.csw import CatalogueServiceWeb
 from owslib.fes import BBox, PropertyIsLike
 from owslib.ows import ExceptionReport
+from grass.script.setup import set_gui_path
+set_gui_path()
 from gui_core.forms import GUI
 from core.gcmd import GError, GMessage, GWarning
 from subprocess import PIPE
