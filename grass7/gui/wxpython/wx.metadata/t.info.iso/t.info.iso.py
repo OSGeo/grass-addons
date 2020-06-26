@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
 """
 @module  r.info.iso
 @brief   Module for creating metadata based on ISO for raster maps
@@ -10,6 +10,7 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
+
 #%module
 #% description: Lists information about space time datasets and maps.
 #% keyword: temporal
@@ -42,7 +43,7 @@ grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
 
 def main():
-    # load metadata library
+    # Load metadata library
     from mdlib.mdgrass import GrassMD
 
     if not options['output']:
@@ -54,7 +55,6 @@ def main():
     name = options["input"]
     type_ = options["type"]
 
-
     # Make sure the temporal database exists
     tgis.init()
 
@@ -63,18 +63,22 @@ def main():
     if name.find("@") >= 0:
         id_ = name
     else:
-        id_ = name + "@" + grass.gisenv()["MAPSET"]
+        id_ = "{}@{}".format(name, grass.gisenv()["MAPSET"])
 
     dataset = tgis.dataset_factory(type_, id_)
 
-    if dataset.is_in_db(dbif) == False:
-        grass.fatal(_("Dataset <%s> not found in temporal database") % (id_))
+    if not dataset.is_in_db(dbif):
+        grass.fatal(
+            _("Dataset <%s> not found in temporal database") % (id_),
+        )
 
     md = GrassMD(id_, type=type_)
     md.createTemporalISO()
-    md.saveXML(path=destination,
-               xml_out_name=name,
-               overwrite=os.getenv('GRASS_OVERWRITE', False))
+    md.saveXML(
+        path=destination,
+        xml_out_name=name,
+        overwrite=os.getenv('GRASS_OVERWRITE', False),
+    )
 
 
 if __name__ == "__main__":

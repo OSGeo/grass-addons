@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
 """
 @module  v.info.iso
 @brief   Module for creating metadata based on ISO for vector maps
@@ -41,8 +41,9 @@ from grass.script.utils import set_path
 
 set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
+
 def main():
-    # load metadata library
+    # Load metadata library
     from mdlib.mdgrass import GrassMD
 
     if not options['output']:
@@ -54,9 +55,11 @@ def main():
     md = GrassMD(options['map'], 'vector')
     if options['profile'] == 'inspire':
         md.createGrassInspireISO()
-        xml_file = md.saveXML(path=destination,
-                              xml_out_name=name,
-                              overwrite=os.getenv('GRASS_OVERWRITE', False))
+        xml_file = md.saveXML(
+            path=destination,
+            xml_out_name=name,
+            overwrite=os.getenv('GRASS_OVERWRITE', False),
+        )
 
         if xml_file is not False:
             md.readXML(xml_file)
@@ -64,9 +67,11 @@ def main():
 
     else:
         md.createGrassBasicISO()
-        xml_file = md.saveXML(path=destination,
-                              xml_out_name=name,
-                              overwrite=os.getenv('GRASS_OVERWRITE', False))
+        xml_file = md.saveXML(
+            path=destination,
+            xml_out_name=name,
+            overwrite=os.getenv('GRASS_OVERWRITE', False),
+        )
 
         if xml_file is not False:
             md.readXML(xml_file)
