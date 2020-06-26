@@ -489,7 +489,8 @@ class MapBBFactory():
         self.pixel_range = []
         self.pixels = 256
         self.size = size
-        zoom_levels = list(range(0, 20))
+        self.zoom_max = 17
+        zoom_levels = list(range(0, self.zoom_max))
         for z in zoom_levels:
             origin = self.pixels / 2
             self.pixels_per_lon_degree.append(self.pixels / 360)
@@ -656,7 +657,7 @@ class MapBBFactory():
         Returns:
           An int zoom level.
         """
-        zmax = 20
+        zmax = self.zoom_max
         zmin = 0
         bottom_left = bounds[0]
         top_right = bounds[1]
