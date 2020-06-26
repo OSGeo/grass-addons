@@ -837,7 +837,7 @@ class CSWBrowserPanel(wx.Panel):
                 self.resultList.InsertItem(
                     index, normalize_text(self.catalog.records[rec].type))
             else:
-                self.resultList.SetItem(index, 0, 'unknown')
+                self.resultList.InsertItem(index, 'unknown')
             if self.catalog.records[rec].title:
                 self.resultList.SetItem(
                     index, 1, normalize_text(self.catalog.records[rec].title))
