@@ -21,6 +21,13 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014) (GSoC 2015)
 """
 
+#%module
+#% description: Graphical ISO/INSPIRE metadata editor.
+#% keyword: general
+#% keyword: GUI
+#% keyword: metadata
+#%end
+
 import os
 import sys
 import tempfile
