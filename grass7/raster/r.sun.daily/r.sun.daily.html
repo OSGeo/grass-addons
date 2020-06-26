@@ -22,6 +22,7 @@ For GRASS 6, only timestamp is assigned.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
+g.region raster=elevation -p
 r.sun.daily elevation=elevation start_day=30 end_day=40 \
             beam_rad_basename=beam beam_rad=beam_sum nprocs=4 -t
 # show information about newly created space time dataset
@@ -35,12 +36,12 @@ r.info beam
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.sun.html">r.sun</a>
+<a href="r.sun.html">r.sun</a><br>
 <a href="r.sun.hourly.html">r.sun.hourly</a> in Addons
 </em>
 
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
 Vaclav Petras, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>,<br>
 Anna Petrasova, <a href="http://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>
