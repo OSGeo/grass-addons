@@ -1,51 +1,103 @@
-owslib=False
-try:
-    import owslib
-    owslib=True
-except:
-    print('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-if owslib:
-    import owslib
-    owsvs= owslib.__version__
+"""
+@module  dependency.py
+@brief   Check wx.metadata py lib dependencies
+
+(C) 2020 by the GRASS Development Team
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+"""
+
+import importlib
+
+URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
+MODULES = {
+    'owslib': {
+        'check_version': True,
+        'package': 'owslib.iso',
+        'method': 'MD_Metadata',
+        'version': '>=0.9',
+    },
+    'pycsw': {
+        'check_version': True,
+        'package': 'pycsw.core',
+        'submodule': 'admin',
+        'version': '>=2.0',
+    },
+    'sqlalchemy': {
+        'check_version': False,
+    },
+    'jinja2': {
+        'check_version': False,
+    },
+    'reportlab': {
+        'check_version': False,
+    },
+}
+
+installed_vesion_message = 'Installed version of {} library is <{}>.'
+req_vesion_message = '{name} {version} is required. Check requirements' \
+    'on the manual page <{url}>'
+
+
+def check_dependencies(module_name, check_version=False):
+    module_cfg = MODULES[module_name]
     try:
-        from owslib.iso import *
+        module = importlib.import_module(module_name)
+        if module_cfg['check_version']:
+            package = importlib.import_module(module_cfg['package'])
 
-        MD_Metadata()
-    except:
-        print('Installed version of owslib library is < %s >.'%owsvs)
-        print('owslib >=0.9 is required. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+            if module_cfg.get('method'):
+                if not hasattr(package, module_cfg.get('method')):
+                    print(
+                        installed_vesion_message.format(
+                            module_name,
+                            module.__version__,
+                        ),
+                    )
+                    print(
+                        req_vesion_message.format(
+                            name=module_name,
+                            version=module_cfg['version'],
+                            url=URL,
+                        ),
+                    )
+            elif module_cfg.get('module'):
+                try:
+                    importlib.import_module(module_cfg['submodule'])
+                except ModuleNotFoundError:
+                    print(
+                        installed_vesion_message.format(
+                            module_name,
+                            module.__version__,
+                        ),
+                    )
+                    print(
+                        req_vesion_message.format(
+                            name=module_name,
+                            version=module_cfg['version'],
+                            url=URL,
+                        ),
+                    )
+
+        return True
+    except ModuleNotFoundError:
+        print(
+            '{name} library is missing. Check requirements on the'
+            ' manual page <{url}>'.format(
+                name=module_name,
+                url=URL,
+            ),
+        )
 
 
-try:
-    import jinja2
-except:
-    print('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-pycsw=False
-
-try:
-    import pycsw
-    pycsw=True
-except:
-    print('pycsw library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-
-try:
-    import reportlab
-except:
-    print('python-import reportlab library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
-
-if pycsw:
-    import pycsw
-    cswvs= pycsw.__version__
-    try:
-        from pycsw.core import admin
-    except:
-        print('Installed version of pycsw library is < %s >.'%cswvs)
-        print('pycsw >=2.0 is required. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
+def main():
+    for module in MODULES:
+        if check_dependencies(module):
+            print('{name} is installed.'.format(name=module))
 
 
-from owslib.iso import *
-import jinja2
-from pycsw.core import admin
-import reportlab
-
+if __name__ == "__main__":
+    main()
