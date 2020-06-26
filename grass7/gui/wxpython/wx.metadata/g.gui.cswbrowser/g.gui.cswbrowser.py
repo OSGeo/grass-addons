@@ -9,17 +9,18 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
-import grass.script as grass
 
-from grass.pygrass.utils import set_path
-set_path(modulename='wx.metadata', dirname='mdlib')
+import grass.script as grass
+from grass.script.setup import set_gui_path
+
+grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+
+from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
 
 import wx
 
-from grass.script.setup import set_gui_path
 set_gui_path()
 
-from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
 
 class CswBrowserMainDialog(wx.Frame):
     def __init__(self,giface=None):

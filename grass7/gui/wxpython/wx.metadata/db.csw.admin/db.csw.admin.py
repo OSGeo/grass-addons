@@ -120,9 +120,9 @@ import configparser
 import getopt
 
 from grass.script import core as grass
-from grass.pygrass.utils import set_path
+from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib')
+set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
 from mdlib.cswutil import *
 
