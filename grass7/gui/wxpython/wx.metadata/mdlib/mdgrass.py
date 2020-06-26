@@ -482,7 +482,7 @@ class GrassMD():
 
     def readXML(self, xml_file):
         '''create instance of metadata(owslib) from xml file'''
-        self.md = util.MD_MetadataMOD(etree.parse(xml_file))
+        self.md = mdutil.MD_MetadataMOD(etree.parse(xml_file))
 
 
     def getMapInfo(self):
@@ -554,17 +554,17 @@ class GrassMD():
                 else:
                     Module('g.message', message='For overwriting use flag -overwrite')
                     return False
-            else: 
+            else:
                 try:
                     xml_file = open(path, "w")
                     xml_file.write(iso_xml)
                     xml_file.close()
                     Module('g.message', message='Metadata file has been exported')
                     return path
-                    
+
                 except IOError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
-                    grass.fatal('error: cannot write xml to file')                
+                    grass.fatal('error: cannot write xml to file')
 
     def validate_inspire(self):
         return mdutil.isnpireValidator(self.md)
