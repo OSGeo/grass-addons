@@ -36,10 +36,10 @@ This program is free software under the GNU General Public License
 import os
 import sys
 
-from grass.script import parser, fatal
-from grass.pygrass.utils import set_path
+from grass.script import parser
+from grass.script.utils import set_path
 
-set_path(modulename='wx.metadata', dirname='mdlib')
+set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
 def main():
     # load metadata library
@@ -75,4 +75,4 @@ def main():
 
 if __name__ == "__main__":
     options, flags = parser()
-    main()
+    sys.exit(main())

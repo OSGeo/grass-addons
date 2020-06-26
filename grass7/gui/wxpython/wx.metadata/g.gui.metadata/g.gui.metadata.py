@@ -21,41 +21,40 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014) (GSoC 2015)
 """
 
-import sys
 import os
+import sys
+import tempfile
+import webbrowser
+from functools import reduce
 
-from grass.pygrass.utils import set_path
+from lxml import etree
+
 import grass.script as grass
+import grass.temporal as tgis
 from grass.pydispatch import dispatcher
 from grass.pydispatch.signal import Signal
-import grass.temporal as tgis
-
 from grass.script.setup import set_gui_path
-from functools import reduce
+
 set_gui_path()
-
-from core.gcmd import RunCommand, GError, GMessage
-#from datacatalog.tree import LocationMapTree
-from core.utils import GetListOfLocations, ListOfMapsets
 from core.debug import Debug
+from core.gcmd import GError, GMessage, RunCommand
+# from datacatalog.tree import LocationMapTree
+from core.utils import GetListOfLocations, ListOfMapsets
 
-set_path(modulename='wx.metadata', dirname='mdlib')
+grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
 from mdlib import mdgrass
 from mdlib import mdutil
-from mdlib.mdpdffactory import PdfCreator
 from mdlib.cswlib import CSWConnectionPanel
 from mdlib.mdeditorfactory import MdMainEditor
+from mdlib.mdpdffactory import PdfCreator
 
-from lxml import etree
 import wx
-from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
 from wx import SplitterWindow
+from wx.lib.buttons import ThemedGenBitmapTextButton as BitmapBtnTxt
 
-#from pydispatch import dispatcher
+# from pydispatch import dispatcher
 
-import webbrowser
-import tempfile
 #===============================================================================
 # MAIN FRAME
 #===============================================================================

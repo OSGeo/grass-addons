@@ -31,16 +31,15 @@ This program is free software under the GNU General Public License
 #% required: no
 #%end
 
-
 import os
 import sys
 
-import grass.temporal as tgis
 import grass.script as grass
-from grass.script import parser, fatal
-from grass.pygrass.utils import set_path
+import grass.temporal as tgis
+from grass.script import parser
 
-set_path(modulename='wx.metadata', dirname='mdlib')
+grass.utils.set_path(modulename='wx.metadata', dirname='mdlib', path='..')
+
 
 def main():
     # load metadata library
@@ -80,4 +79,4 @@ def main():
 
 if __name__ == "__main__":
     options, flags = parser()
-    main()
+    sys.exit(main())
