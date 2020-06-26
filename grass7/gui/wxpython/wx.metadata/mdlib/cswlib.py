@@ -675,6 +675,7 @@ class CSWBrowserPanel(wx.Panel):
     def OnSearch(self, evt):
         """execute search"""
 
+        wx.BeginBusyCursor()
         self.refreshResultList()
         self.catalog = None
         self.loadConstraints()
@@ -685,6 +686,7 @@ class CSWBrowserPanel(wx.Panel):
         current_text = self.catalogCmb.GetValue()
         if current_text == '':
             GMessage('Please set catalog')
+            wx.EndBusyCursor()
             return
 
         self.catalog_url = self.getTmpConnection(current_text)
@@ -707,6 +709,7 @@ class CSWBrowserPanel(wx.Panel):
             self.constraints.append(BBox(bbox))
 
         if not self._get_csw():
+            wx.EndBusyCursor()
             return
 
         # TODO: allow users to select resources types
@@ -717,9 +720,11 @@ class CSWBrowserPanel(wx.Panel):
             self.outpoutschema = 'dc'
         except ExceptionReport as err:
             GError('Search error: %s' % err)
+            wx.EndBusyCursor()
             return
         except Exception as err:
             GError('Connection error: %s' % err)
+            wx.EndBusyCursor()
             return
 
         ###work around for GMD records
@@ -736,9 +741,11 @@ class CSWBrowserPanel(wx.Panel):
 
             except ExceptionReport as err:
                 GError('Search error: %s' % err)
+                wx.EndBusyCursor()
                 return
             except Exception as err:
                 GError('Connection error: %s' % err)
+                wx.EndBusyCursor()
                 return
         ###work around for GMD records- END
 
@@ -754,6 +761,7 @@ class CSWBrowserPanel(wx.Panel):
             return
 
         self.displyResults()
+        wx.EndBusyCursor()
 
     def get_item_data(self, index, field):
         if field == 'identifier':
