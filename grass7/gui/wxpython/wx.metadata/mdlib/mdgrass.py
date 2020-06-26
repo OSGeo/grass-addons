@@ -88,7 +88,8 @@ class GrassMD():
     def parseTemporal(self):
         env = grass.gisenv()
         mapset = env['MAPSET']
-        self.map="%s@%s"%(self.map,mapset)
+        if self.map.find("@") < 0:
+            self.map = "{}@{}".format(self.map, mapset)
         tinfo = Module('t.info',
                         self.map,
                         flags='g',
