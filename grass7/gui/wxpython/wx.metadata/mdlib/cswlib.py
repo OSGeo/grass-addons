@@ -807,9 +807,9 @@ class CSWBrowserPanel(wx.Panel):
                 self.resultList.InsertStringItem(index,
                                                  normalize_text(self.catalog.records[rec].identification.identtype))
             else:
-                self.resultList.SetStringItem(index, 0, 'unknown')
+                self.resultList.SetItem(index, 0, 'unknown')
             if self.catalog.records[rec].identification.title:
-                self.resultList.SetStringItem(index, 1, normalize_text(self.catalog.records[rec].identification.title))
+                self.resultList.SetItem(index, 1, normalize_text(self.catalog.records[rec].identification.title))
 
             if self.catalog.records[rec].identification.title:
                 self.set_item_data(index, 'identifier',
@@ -837,7 +837,7 @@ class CSWBrowserPanel(wx.Panel):
                 self.resultList.InsertItem(
                     index, normalize_text(self.catalog.records[rec].type))
             else:
-                self.resultList.SetStringItem(index, 0, 'unknown')
+                self.resultList.SetItem(index, 0, 'unknown')
             if self.catalog.records[rec].title:
                 self.resultList.SetItem(
                     index, 1, normalize_text(self.catalog.records[rec].title))
