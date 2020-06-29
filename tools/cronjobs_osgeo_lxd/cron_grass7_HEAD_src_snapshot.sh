@@ -23,7 +23,7 @@ GSHORTGVERSION=$GMAJOR$GMINOR
 SOURCE=$MAINDIR/src/
 BRANCH=master  # releasebranch_7_8
 # where to put the resulting .tar.gz file:
-TARGETMAIN=~/var/www/grass/grass-cms
+TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
 PACKAGENAME=grass-${GVERSION}_
 

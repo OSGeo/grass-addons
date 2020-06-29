@@ -59,7 +59,7 @@ MAINDIR=/home/neteler
 SOURCE=$MAINDIR/src/
 BRANCH=releasebranch_7_$GMINOR # master
 GRASSBUILDDIR=$SOURCE/$BRANCH
-TARGETMAIN=~/var/www/grass/grass-cms
+TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 # programmer's manual only from master
