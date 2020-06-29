@@ -62,6 +62,7 @@ GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=~/var/www/grass/grass-cms
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
+# programmer's manual only from master
 
 MYBIN=$MAINDIR/binaries
 
@@ -165,9 +166,10 @@ $MYMAKE sphinxdoclib
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
 # don't destroy the addons
-mv $TARGETHTMLDIR/addons /tmp
-rm -rf $TARGETHTMLDIR/*
-mv /tmp/addons $TARGETHTMLDIR
+\mv $TARGETHTMLDIR/addons /tmp
+rm -f $TARGETHTMLDIR/*.*
+(cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
+\mv /tmp/addons $TARGETHTMLDIR
 
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
