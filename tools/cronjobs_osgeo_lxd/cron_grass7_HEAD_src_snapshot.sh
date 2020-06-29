@@ -18,13 +18,13 @@ GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
 
-####################
+###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
 BRANCH=master  # releasebranch_7_8
 # where to put the resulting .tar.gz file:
 TARGETMAIN=~/var/www/grass/grass-cms
-TARGET=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
+TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
 PACKAGENAME=grass-${GVERSION}_
 
 ############################## nothing to change below:
@@ -44,7 +44,7 @@ halt_on_error()
 # create a source code snapshot:
 CWD=`pwd`
 
-mkdir -p $TARGET
+mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
@@ -78,28 +78,29 @@ date
 #package it (we rename the directory to have the date inside the package):
 DATE=`date '+_%Y_%m_%d'`
 mv $BRANCH $PACKAGENAME\src_snapshot$DATE
-# exclude version control system directories
-$TAR cfz $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot$DATE --exclude-vcs
+# exclude version control system directories (the flag order matters!)
+$TAR cfz $PACKAGENAME\src_snapshot$DATE.tar.gz --exclude-vcs $PACKAGENAME\src_snapshot$DATE
 mv $PACKAGENAME\src_snapshot$DATE $BRANCH
 
 #remove old snapshot:
-rm -f $TARGET/$PACKAGENAME\src_snapshot*
-rm -f $TARGET/ChangeLog.gz
+rm -f $TARGETDIR/$PACKAGENAME\src_snapshot*
+rm -f $TARGETDIR/ChangeLog.gz
 
 #publish the new one:
 cd $BRANCH/
-cp -p ChangeLog AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGET
+cp -p ChangeLog AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR
 
 cd ..
-gzip $TARGET/ChangeLog
-cp $PACKAGENAME\src_snapshot$DATE.tar.gz $TARGET
+gzip $TARGETDIR/ChangeLog
+cp $PACKAGENAME\src_snapshot$DATE.tar.gz $TARGETDIR
 rm -f $PACKAGENAME\src_snapshot$DATE.tar.gz
-chmod a+r,g+w $TARGET/* 2> /dev/null
-chgrp grass $TARGET/*   2> /dev/null
+chmod a+r,g+w $TARGETDIR/* 2> /dev/null
+chgrp grass $TARGETDIR/*   2> /dev/null
 
 # link for convenience:
-(cd $TARGET ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
+(cd $TARGETDIR ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
 
-echo "Written: https://grass.osgeo.org/grass${GSHORTGVERSION}/source/snapshot/"
+echo "Written to: $TARGETDIR
+https://grass.osgeo.org/grass${GSHORTGVERSION}/source/snapshot/"
 
 exit 0
