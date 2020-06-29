@@ -154,9 +154,10 @@ $MYMAKE sphinxdoclib
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
 # don't destroy the addons
-mv $TARGETHTMLDIR/addons /tmp
-rm -rf $TARGETHTMLDIR/*
-mv /tmp/addons $TARGETHTMLDIR
+\mv $TARGETHTMLDIR/addons /tmp
+rm -f $TARGETHTMLDIR/*.*
+(cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
+\mv /tmp/addons $TARGETHTMLDIR
 
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
 echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
@@ -169,7 +170,7 @@ cp -p AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDI
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
 ############
-# generate doxygen manual
+# generate doxygen programmers's manual
 cd $GRASSBUILDDIR/
 #$MYMAKE htmldocs-single > /dev/null || (echo "$0 htmldocs-single: an error occured" ; exit 1)
 $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occured" ; exit 1)
