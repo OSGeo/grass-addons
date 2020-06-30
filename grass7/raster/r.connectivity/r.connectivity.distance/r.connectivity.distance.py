@@ -222,7 +222,7 @@ import sys
 import string
 import random
 import subprocess
-from io import StringIO
+from io import BytesIO
 import numpy as np
 import grass.script as grass
 from grass.pygrass.vector import VectorTopo
@@ -550,7 +550,7 @@ def main():
 
         # Prepare start patch
         start_patch = '{}_patch_{}'.format(TMP_PREFIX, cat)
-        reclass_rule = u'{} = 1\n* = NULL'.format(cat)
+        reclass_rule = grass.encode('{} = 1\n* = NULL'.format(cat))
         recl = grass.feed_command('r.reclass', quiet=True,
                                   input='{}_patches_boundary'.format(TMP_PREFIX),
                                   output=start_patch,
@@ -631,16 +631,16 @@ def main():
         maps = '{0}_patch_{1}_neighbours_contur,{2}_patch_{1}_cost_dist'
         maps = maps.format(TMP_PREFIX, cat, prefix),
 
-        connections = StringIO(unicode(grass.read_command('r.stats',
+        connections = grass.encode(grass.read_command('r.stats',
                                                           flags='1ng',
                                                           quiet=True,
                                                           input=maps,
-                                                          separator=';').rstrip('\n')))
-        try:
-            con_array = np.genfromtxt(connections, delimiter=';',
+                                                          separator=';').rstrip('\n'))
+        if connections:
+            con_array = np.genfromtxt(BytesIO(connections), delimiter=';',
                                       dtype=None,
                                       names=['x', 'y', 'cat', 'dist'])
-        except:
+        else:
             grass.warning('No connections for patch {}'.format(cat))
 
             # Write centroid to vertex map
@@ -745,7 +745,7 @@ def main():
                                            dist_min double precision,\
                                            dist double precision,\
                                            dist_max double precision")
-                sp.stdin.write("\n".join(to_coords))
+                sp.stdin.write(grass.encode("\n".join(to_coords)))
                 sp.stdin.close()
                 sp.wait()
 
