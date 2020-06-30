@@ -48,9 +48,9 @@ def main():
 
     if not options['output']:
         destination = None
-        name = None
+        output_name = None
     else:
-        destination, name = os.path.split(options['output'])
+        destination, output_name = os.path.split(options['output'])
 
     name = options["input"]
     type_ = options["type"]
@@ -76,7 +76,7 @@ def main():
     md.createTemporalISO()
     md.saveXML(
         path=destination,
-        xml_out_name=name,
+        xml_out_name=output_name,
         overwrite=os.getenv('GRASS_OVERWRITE', False),
     )
 
