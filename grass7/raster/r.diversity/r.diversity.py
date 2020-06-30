@@ -235,7 +235,7 @@ def createConfFile(res, inpumap, home):
     outputLine.append('SAMPLEAREA -1|-1|' + str(rV) + '|' + str(cV) + '\n')
     outputLine.append('MOVINGWINDOW\n')
     # open configuration file
-    fileConf = open(confilename, 'wb')
+    fileConf = open(confilename, 'w')
     # write file
     fileConf.writelines(outputLine)
     # close file
@@ -281,4 +281,3 @@ def removeConfFile(res, home):
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-
