@@ -4,7 +4,7 @@ Module <em>db.csw.admin</em> allows to handle csw server.
 
 <h2>NOTES</h2>
 For dependencies and installation instructions see
-<a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+<a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 <h2>USAGE</h2>
 
@@ -28,7 +28,7 @@ In configure file must be setup few parameters for proper work of pycsw library.
 
 
 <div class="code"><pre>
-v.harvest.iso source=http://www.rndt.gov.it/RNDT/CSW destionantion=http://localhost:8000/
+db.csw.harvest source=http://geodati.gov.it/RNDT/csw destination=http://localhost:8000/
 </pre>
 </div>
 
@@ -37,17 +37,17 @@ v.harvest.iso source=http://www.rndt.gov.it/RNDT/CSW destionantion=http://localh
 <em>
     <a href="r.info.html">r.info</a>,
     <a href="v.info.iso.html">v.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>
-    <a href="g.gui.cswbrowser.html">g.gui.cswbrowser</a>
-    <a href="db.csw.harvest">db.csw.harvest</a>
+    <a href="g.gui.metadata.html">g.gui.metadata</a>,
+    <a href="g.gui.cswbrowser.html">g.gui.cswbrowser</a>,
+    <a href="db.csw.harvest">db.csw.harvest</a>,
     <a href="db.csw.run">db.csw.run</a>
 </em>
 
 <p>
-    See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 <h2>AUTHOR</h2>
 Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
 at the Czech Technical University in Prague, developed
-during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
+during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
     Summer of Code 2015</a> (mentors: Martin Landa)
