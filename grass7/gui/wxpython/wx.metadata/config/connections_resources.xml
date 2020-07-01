@@ -1,13 +1,11 @@
 <qgsCSWConnections version="1.0">
-    <csw name="Danmark: National CSW" url="http://www.geodata-info.dk/registrant/srv/en/csw?" />
+    <csw name="Denmark: National CSW" url="http://www.geodata-info.dk/registrant/srv/en/csw?" />
     <csw name="Finland: National CSW (Paikkatietohakemisto)" url="http://www.paikkatietohakemisto.fi/geonetwork/srv/fi/csw?" />
-    <csw name="Geoportale Nazionale - Servizio di ricerca Italiano" url="http://www.pcn.minambiente.it/geoportal/csw" />
     <csw name="Iceland: National CSW (Iceland Service)" url="http://gatt.lmi.is/geoportal122/csw?" />
     <csw name="Italy: National CSW (Geoportale Nazionale - Servizio di ricerca Italiano)" url="http://www.pcn.minambiente.it/geoportal/csw" />
     <csw name="Italy: RNDT - Repertorio Nazionale dei Dati Territoriali - Servizio di ricerca" url="http://geodati.gov.it/RNDT/csw" />
-    <csw name="LINZ Data Service" url="http://data.linz.govt.nz/feeds/csw" />
-    <csw name="Nationaal Georegister (Nederland)" url="http://www.nationaalgeoregister.nl/geonetwork/srv/eng/csw" />
+    <csw name="Nederland: Nationaal Georegister" url="http://www.nationaalgeoregister.nl/geonetwork/srv/eng/csw" />
     <csw name="New Zealand: LINZ Data Service" url="http://data.linz.govt.nz/feeds/csw" />
-    <csw name="RNDT - Repertorio Nazionale dei Dati Territoriali - Servizio di ricerca" url="http://www.rndt.gov.it/RNDT/CSW" />
+    <csw name="Norway: Geonorge - National CSW service for Norway" url="http://www.geonorge.no/geonetwork/srv/eng/csw"/>
     <csw name="USA: Data.gov CSW" url="http://catalog.data.gov/csw-all" />
 </qgsCSWConnections>
