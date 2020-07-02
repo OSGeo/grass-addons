@@ -30,7 +30,7 @@
 #05 07 * * * nice sh /home/neteler/cronjobs/cron_grass76_releasebranch_76_build_bins.sh  > /home/neteler/var/www/grass/grass-cms/grass76/binary/linux/snapshot/build.log 2>&1
 #05 08 * * * nice sh /home/neteler/cronjobs/cron_grass74_releasebranch_74_build_bins.sh  > /home/neteler/var/www/grass/grass-cms/grass74/binary/linux/snapshot/build.log 2>&1
 # package for old osgeo6 server (remove this once CMS is retired and hugo server becomes main server)
-05 09 * * * (cd /home/neteler/var/www/grass/grass-cms/ ; rm -f grass_all_snapshots.zip ; nice zip -r grass_all_snapshots.zip *)
+05 09 * * * (cd /var/www/code_and_data/ ; rm -f /home/neteler/tmp/grass_all_snapshots.zip ; mkdir -p /home/neteler/tmp/; nice zip -r /home/neteler/tmp/grass_all_snapshots.zip addons grass78 grass79 programming7 uploads)
 
 # generate osgeo_mailman_stats/ + email
 # ... run as root on osgeo6 machine
