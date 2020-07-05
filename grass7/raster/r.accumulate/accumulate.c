@@ -7,7 +7,8 @@ static double trace_up(struct cell_map *, struct raster_map *,
                        struct raster_map *, char **, char, int, int);
 
 void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
-                struct raster_map *accum_buf, char **done, char neg)
+                struct raster_map *accum_buf, char **done, char neg,
+                char null)
 {
     int row, col;
 
@@ -18,10 +19,10 @@ void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         for (col = 0; col < ncols; col++)
-            if (Rast_is_c_null_value(&dir_buf->c[row][col]))
-                set_null(accum_buf, row, col);
-            else
+            if (!Rast_is_c_null_value(&dir_buf->c[row][col]))
                 trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
+            else if (null)
+                set_null(accum_buf, row, col);
     }
     G_percent(1, 1, 1);
 }
