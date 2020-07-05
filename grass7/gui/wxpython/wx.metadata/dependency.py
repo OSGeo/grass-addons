@@ -32,6 +32,9 @@ MODULES = {
         'submodule': 'admin',
         'version': '>=2.0',
     },
+    'pyexcel-ods3': {
+        'check_version': False,
+    },
     'pygments': {
         'check_version': False,
     },
@@ -39,6 +42,9 @@ MODULES = {
         'check_version': False,
     },
     'sqlalchemy': {
+        'check_version': False,
+    },
+    'validators': {
         'check_version': False,
     },
 }
