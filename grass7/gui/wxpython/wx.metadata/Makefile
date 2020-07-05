@@ -18,7 +18,8 @@ SUBDIRS = \
     db.csw.run \
     db.csw.harvest \
     g.gui.cswbrowser \
-    g.gui.metadata
+    g.gui.metadata \
+    m.csw.update
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
