@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
         struct Option *accum;
         struct Option *subaccum;
         struct Option *subwshed;
-        struct Option *thresh;
         struct Option *stream;
+        struct Option *thresh;
         struct Option *coords;
         struct Option *id;
         struct Option *outlet;
@@ -56,9 +56,10 @@ int main(int argc, char *argv[])
     } opt;
     struct
     {
-        struct Flag *neg;
-        struct Flag *accum;
-        struct Flag *conf;
+        struct Flag *neg_accum;
+        struct Flag *null_accum;
+        struct Flag *accum_lfp;
+        struct Flag *conf_stream;
         struct Flag *recur;
     } flag;
     char *desc;
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
     double dir_format, thresh;
     struct Range dir_range;
     CELL dir_min, dir_max;
-    char neg, accum, conf, recur;
+    char neg_accum, null_accum, accum_lfp, conf_stream, recur;
     struct cell_map dir_buf;
     struct raster_map accum_buf;
     int nrows, ncols, row, col;
@@ -147,15 +148,15 @@ int main(int argc, char *argv[])
     opt.subwshed->type = TYPE_STRING;
     opt.subwshed->description = _("Name for output subwatershed map");
 
-    opt.thresh = G_define_option();
-    opt.thresh->key = "threshold";
-    opt.thresh->type = TYPE_DOUBLE;
-    opt.thresh->label = _("Minimum flow accumulation for streams");
-
     opt.stream = G_define_standard_option(G_OPT_V_OUTPUT);
     opt.stream->key = "stream";
     opt.stream->required = NO;
     opt.stream->description = _("Name for output stream vector map");
+
+    opt.thresh = G_define_option();
+    opt.thresh->key = "threshold";
+    opt.thresh->type = TYPE_DOUBLE;
+    opt.thresh->label = _("Minimum flow accumulation for streams");
 
     opt.coords = G_define_standard_option(G_OPT_M_COORDS);
     opt.coords->multiple = YES;
@@ -192,36 +193,41 @@ int main(int argc, char *argv[])
     opt.lfp->required = NO;
     opt.lfp->description = _("Name for output longest flow path vector map");
 
-    flag.neg = G_define_flag();
-    flag.neg->key = 'n';
-    flag.neg->label =
+    flag.neg_accum = G_define_flag();
+    flag.neg_accum->key = 'n';
+    flag.neg_accum->label =
         _("Use negative flow accumulation for likely underestimates");
 
-    flag.accum = G_define_flag();
-    flag.accum->key = 'a';
-    flag.accum->label = _("Calculate accumulated longest flow paths");
+    flag.null_accum = G_define_flag();
+    flag.null_accum->key = 'N';
+    flag.null_accum->label =
+        _("Use nulls instead of 0s for no flow accumulation (looks good, but slow)");
 
-    flag.conf = G_define_flag();
-    flag.conf->key = 'c';
-    flag.conf->label = _("Delineate streams across confluences");
+    flag.accum_lfp = G_define_flag();
+    flag.accum_lfp->key = 'a';
+    flag.accum_lfp->label = _("Calculate accumulated longest flow paths");
+
+    flag.conf_stream = G_define_flag();
+    flag.conf_stream->key = 'c';
+    flag.conf_stream->label = _("Delineate streams across confluences");
 
     flag.recur = G_define_flag();
     flag.recur->key = 'r';
-    flag.recur->label = _("Use recursive algorithm for longest flow paths");
+    flag.recur->label = _("Use recursive algorithms");
 
     /* weighting doesn't support negative accumulation because weights
      * themselves can be negative; the longest flow path requires positive
      * non-weighted accumulation */
-    G_option_exclusive(opt.weight, opt.lfp, flag.neg, NULL);
+    G_option_exclusive(opt.weight, opt.lfp, flag.neg_accum, NULL);
     /* straight input to output is not useful */
     G_option_exclusive(opt.input_accum, opt.accum, NULL);
     G_option_exclusive(opt.input_subaccum, opt.subaccum, NULL);
     /* currently, back-calculating accumulation from subaccumulation is not
      * supported; also, accumulated longest flow paths cannot be calculated
      * from subaccumulation */
-    G_option_excludes(opt.input_subaccum, opt.accum, flag.accum, NULL);
+    G_option_excludes(opt.input_subaccum, opt.accum, flag.accum_lfp, NULL);
     /* subwatersheds cannot be accumulated */
-    G_option_exclusive(opt.subwshed, flag.accum, NULL);
+    G_option_exclusive(opt.subwshed, flag.accum_lfp, NULL);
     /* these three inputs are mutually exclusive because one is an output of
      * another */
     G_option_exclusive(opt.weight, opt.input_accum, opt.input_subaccum, NULL);
@@ -229,8 +235,8 @@ int main(int argc, char *argv[])
      */
     G_option_required(opt.accum, opt.subaccum, opt.subwshed, opt.stream,
                       opt.lfp, NULL);
-    /* threshold and stream output always go together */
-    G_option_collective(opt.thresh, opt.stream, NULL);
+    /* stream output and threshold always go together */
+    G_option_collective(opt.stream, opt.thresh, NULL);
     /* calculating subaccumulatoin requires coordinates or outlets because
      * accumulation at those points need to be subtracted in the downstream
      * direction */
@@ -252,17 +258,25 @@ int main(int argc, char *argv[])
     G_option_requires_all(opt.outlet_idcol, opt.outlet, opt.idcol, NULL);
     /* negative (or positive) accumulation is needed only to calculate one of
      * these outputs */
-    G_option_requires(flag.neg, opt.accum, opt.subaccum, opt.stream, opt.lfp,
-                      NULL);
+    G_option_requires(flag.neg_accum, opt.accum, opt.subaccum, opt.stream,
+                      opt.lfp, NULL);
+    /* null accumulation is needed only to calculate one of these outputs */
+    G_option_requires(flag.null_accum, opt.accum, opt.subaccum, opt.stream,
+                      opt.lfp, NULL);
     /* negative accumulation cannot be done when either accumulation or
      * subaccumulation is given as input */
-    G_option_excludes(flag.neg, opt.input_accum, opt.input_subaccum, NULL);
+    G_option_excludes(flag.neg_accum, opt.input_accum, opt.input_subaccum,
+                      NULL);
+    /* null accumulation cannot be done when either accumulation or
+     * subaccumulation is given as input */
+    G_option_excludes(flag.null_accum, opt.input_accum, opt.input_subaccum,
+                      NULL);
     /* accumulated lfp requires longest flow paths */
-    G_option_requires(flag.accum, opt.lfp, NULL);
+    G_option_requires(flag.accum_lfp, opt.lfp, NULL);
     /* recursive algorithm requires subwatersheds or longest flow paths */
     G_option_requires(flag.recur, opt.subwshed, opt.lfp, NULL);
     /* confluence delineation requires output streams */
-    G_option_requires(flag.conf, opt.stream, NULL);
+    G_option_requires(flag.conf_stream, opt.stream, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -433,9 +447,10 @@ int main(int argc, char *argv[])
                    outlet_pl.n), outlet_pl.n);
 
     thresh = opt.thresh->answer ? atof(opt.thresh->answer) : 0.0;
-    neg = flag.neg->answer;
-    accum = flag.accum->answer;
-    conf = flag.conf->answer;
+    neg_accum = flag.neg_accum->answer;
+    null_accum = flag.null_accum->answer;
+    accum_lfp = flag.accum_lfp->answer;
+    conf_stream = flag.conf_stream->answer;
     recur = flag.recur->answer;
 
     nrows = Rast_window_rows();
@@ -514,13 +529,17 @@ int main(int argc, char *argv[])
         else {
             char **done = (char **)G_malloc(nrows * sizeof(char *));
 
+            G_message(_("Allocating buffers..."));
             for (row = 0; row < nrows; row++) {
+                G_percent(row, nrows, 1);
                 done[row] = (char *)G_calloc(ncols, 1);
                 accum_buf.map.v[row] =
                     (void *)Rast_allocate_buf(accum_buf.type);
             }
+            G_percent(1, 1, 1);
 
-            accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg);
+            accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg_accum,
+                       null_accum);
 
             for (row = 0; row < nrows; row++)
                 G_free(done[row]);
@@ -550,7 +569,7 @@ int main(int argc, char *argv[])
             /* write history */
             Rast_put_cell_title(accum_name,
                                 weight_name ? _("Weighted flow accumulation")
-                                : (neg ?
+                                : (neg_accum ?
                                    _("Flow accumulation with likely underestimates")
                                    : _("Flow accumulation")));
             Rast_short_history(accum_name, "raster", &hist);
@@ -568,7 +587,7 @@ int main(int argc, char *argv[])
         Vect_set_map_name(&Map, _("Stream network"));
         Vect_hist_command(&Map);
 
-        delineate_streams(&Map, &dir_buf, &accum_buf, thresh, conf);
+        delineate_streams(&Map, &dir_buf, &accum_buf, thresh, conf_stream);
 
         if (!Vect_build(&Map))
             G_warning(_("Unable to build topology for vector map <%s>"),
@@ -578,7 +597,7 @@ int main(int argc, char *argv[])
 
     /* calculate subaccumulation if needed; this process overwrite accum_buf to
      * save memory */
-    if (subaccum_name || (lfp_name && !input_subaccum_name && !accum)) {
+    if (subaccum_name || (lfp_name && !input_subaccum_name && !accum_lfp)) {
         subaccumulate(&Map, &dir_buf, &accum_buf, &outlet_pl);
 
         /* write out buffer to the subaccumulation map if requested */
@@ -599,7 +618,7 @@ int main(int argc, char *argv[])
             Rast_put_cell_title(subaccum_name,
                                 weight_name ?
                                 _("Weighted flow subaccumulation")
-                                : (neg ?
+                                : (neg_accum ?
                                    _("Flow subaccumulation with likely underestimates")
                                    : _("Flow subaccumulation")));
             Rast_short_history(subaccum_name, "raster", &hist);

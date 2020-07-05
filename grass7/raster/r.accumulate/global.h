@@ -94,7 +94,7 @@ void add_line(struct line_list *, struct line *);
 
 /* accumulate.c */
 void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
-                char **, char);
+                char **, char, char);
 
 /* subaccumulate.c */
 void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
