@@ -10,9 +10,10 @@ TXTFILES := $(patsubst %,$(DSTDIR)/%,$(wildcard *.txt))
 HTMLFILES := $(patsubst %,$(DSTDIR)/%,$(wildcard *.html))
 PNGFILES := $(patsubst %,$(DSTDIR)/%,$(wildcard *.png))
 CFGFILES := $(patsubst %,$(DSTDIR)/%,$(wildcard *.cfg))
+ODSFILES := $(patsubst %,$(DSTDIR)/%,$(wildcard *.ods))
 
 default: $(XMLFILES) $(TXTFILES) $(HTMLFILES) $(PNGFILES) $(CFGFILES) \
-	$(XSDFILES)
+	$(XSDFILES) $(ODSFILES)
 
 install:
 	$(MKDIR) $(INST_DIR)/etc/wx.metadata/config
