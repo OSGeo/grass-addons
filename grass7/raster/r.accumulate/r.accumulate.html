@@ -87,11 +87,11 @@ These examples use the North Carolina sample dataset.
 <em>r.accumulate</em>:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate positive flow accumulation and drainage directions using r.watershed
 # for comparison, use -s (SFD)
-r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -s -a
+r.watershed -sa elevation=elevation accumulation=flow_accum drainage=drain_directions
 
 # calculate flow accumulation using r.accumulate
 r.accumulate direction=drain_directions accumulation=flow_accum_new
@@ -107,7 +107,7 @@ r.mapcalc expression="accum_diff=if(flow_accum-flow_accum_new, flow_accum-flow_a
 
 <p>For some reason, there are slight differences between the two output maps.
 
-<p><img src="r_watershed_nc_example.png">
+<p><img src="r_accumulate_r_watershed_nc_example.png">
 
 <p>The yellow and purple cells show the difference raster map
 (<i>accum_diff</i>). The red arrows and numbers represent drainage directions
@@ -126,11 +126,11 @@ accumulated from the headwater cells.
 <p>Calculate flow accumulation and delineate stream networks at once:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate positive flow accumulation and drainage directions using r.watershed
 # for comparison, use -s (SFD)
-r.watershed elevation=elevation accumulation=flow_accum drainage=drain_directions -s -a
+r.watershed -sa elevation=elevation accumulation=flow_accum drainage=drain_directions
 
 # use r.accumulate to create flow_accum_new and streams_new at once
 r.accumulate direction=drain_directions accumulation=flow_accum_new threshold=50000 \
@@ -165,10 +165,10 @@ maps are different.
 <p>Delineate the watershed for one outlet:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed elevation=elevation drainage=drain_directions -s -a
+r.watershed -s elevation=elevation drainage=drain_directions
 
 # delineate the watershed for one outlet
 r.accumulate direction=drain_directions subwatershed=watershed lfp=lfp coordinates=642455,222614
@@ -179,10 +179,10 @@ r.accumulate direction=drain_directions subwatershed=watershed lfp=lfp coordinat
 <p>Delineate multiple subwatersheds:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed elevation=elevation drainage=drain_directions -s -a
+r.watershed -s elevation=elevation drainage=drain_directions
 
 # delineate two subwatersheds
 r.accumulate direction=drain_directions subwatershed=subwatersheds \
@@ -196,10 +196,10 @@ r.accumulate direction=drain_directions subwatershed=subwatersheds \
 <p>Calculate the longest flow path for one outlet:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed elevation=elevation drainage=drain_directions -s -a
+r.watershed -s elevation=elevation drainage=drain_directions
 
 # calculate the longest flow path and delineate the watershed for an outlet
 r.accumulate direction=drain_directions subwatershed=watershed lfp=lfp coordinates=642455,222614
@@ -216,10 +216,10 @@ the same length.
 <p>There are different ways to calculate multiple longest flow paths in one run:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed elevation=elevation drainage=drain_directions -s -a
+r.watershed -s elevation=elevation drainage=drain_directions
 
 # calculate longest flow paths at two outlets
 r.accumulate direction=drain_directions lfp=lfp coordinates=642455,222614,642314,222734
@@ -250,10 +250,10 @@ r.accumulate direction=drain_directions lfp=lfp_multi_w_id \
 <p>Calculate longest flow paths and delineate subwatersheds in one rune:
 <div class="code"><pre>
 # set computational region
-g.region raster=elevation -p
+g.region -p raster=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed elevation=elevation drainage=drain_directions -s -a
+r.watershed -s elevation=elevation drainage=drain_directions
 
 # get nsres
 eval `r.info -g map=elevation`
@@ -296,6 +296,10 @@ r.to.vect input=subwatersheds type=area output=subwatersheds
 
 <br><a href="https://idea.isnew.info/how-to-delineate-stream-networks-in-grass-gis.html">How to delineate stream networks in GRASS GIS</a>
 <br><a href="https://idea.isnew.info/how-to-calculate-the-longest-flow-path-in-grass-gis.html">How to calculate the longest flow path in GRASS GIS</a>
+
+<h2>REFERENCES</h2>
+
+Huidae Cho, July 2020 in Press. <em>A Recursive Algorithm for Calculating the Longest Flow Path and Its Iterative Implementation.</em> Environmental Modelling &amp; Software. <a href="https://doi.org/10.1016/j.envsoft.2020.104774">doi:10.1016/j.envsoft.2020.104774</a>.
 
 <h2>AUTHOR</h2>
 
