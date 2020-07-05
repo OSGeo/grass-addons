@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-@module  dependency.py
-@brief   Check wx.metadata py lib dependencies
-
-(C) 2020 by the GRASS Development Team
-This program is free software under the GNU General Public License
-(>=v2). Read the file COPYING that comes with GRASS for details.
-"""
+############################################################################
+#
+# MODULE:       dependency
+#
+# AUTHOR(S):    Matej Krejci <matejkrejci gmail.com> (GSoC 2014),
+#               Tomas Zigo <tomas.zigo slovanet.sk>
+#
+# PURPOSE:      Check wx.metadata py lib dependencies
+#
+# COPYRIGHT:    (C) 2020 by Matej Krejci, Tomas Zigo, and the
+#               GRASS Development Team
+#
+#               This program is free software under the GNU General
+#               Public License (>=v2). Read the file COPYING that
+#               comes with GRASS for details.
+#
+#############################################################################
 
 import importlib
 
