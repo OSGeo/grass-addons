@@ -300,15 +300,16 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             grass.warning(_('Probably some error occur during the conversion'
                             'for file <%s>. Escape import' % name))
             continue
-        # check number of bands
         try:
             basename = basename.replace('"', '').replace(' ', '_')
             nbands = int(grass.read_command('r.in.gdal', input=name, flags='p'))
             grass.run_command('r.in.gdal', input=name, output=basename,
                               overwrite=write, quiet=True)
             outfile.append(basename)
+
+            # check number of bands
+            nbands = int(grass.read_command('r.in.gdal', input=name, flags='p'))
         except CalledModuleError as e:
-            # grass.warning(_('Error during import of {}: {}'.format(basename, e)))
             grass.warning(_('Error during import of {}'.format(basename)))
             continue
 
