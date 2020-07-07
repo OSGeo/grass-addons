@@ -165,7 +165,7 @@ def main():
     grass.run_command("v.to.db", map = voutpoint,
                                      option = 'coor',
                                      layer = 1, 
-                                     columns = 'xcoor,ycoor')
+                                     columns = 'xcoor,ycoor', overwrite = True)
 
     grass.message( "Coordinates added." )										 
     grass.message( "----" )
