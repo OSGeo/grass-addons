@@ -296,7 +296,7 @@ def get_prelim_flatness(L, F, PCTL, t, p):
     
     Equation 3 (Gallant and Dowling, 2003)"""
     
-    PVF = "tmp_PVF{L}" + \
+    PVF = "tmp_PVF{L}".format(L=L+1) + \
         ''.join([random.choice(string.ascii_letters + string.digits) for n in range(4)])
     TMP_RAST[L].append(PVF)
 
