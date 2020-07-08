@@ -804,6 +804,7 @@ class MdKeywords(wx.BoxSizer):
         self.keysList.Bind(wx.EVT_TREE_ITEM_ACTIVATED,self.addItemsToBox)
         self.layout()
         Module('db.connect',flags='d')
+        self._table_name = 'metadata_themes'
         self.fillDb()
         self.fillKeywordsList()
 
@@ -844,10 +845,12 @@ class MdKeywords(wx.BoxSizer):
         return self.itemHolder# dict is in var keywordObj
 
     def fillDb(self):
-        if not mdutil.isTableExists('metadata_themes'):
-            sql = ('create table if not exists metadata_themes '
-                   '(title TEXT, keyword TEXT, date_iso TEXT, '
-                   'date_type TEXT)')
+        if not mdutil.isTableExists(self._table_name):
+            sql =  "create table if not exists {table} " \
+                "(title TEXT, keyword TEXT, date_iso TEXT, " \
+                "date_type TEXT)".format(
+                    table=self._table_name,
+                )
             self.dbExecute(sql)
 
             titles = [
@@ -873,15 +876,18 @@ class MdKeywords(wx.BoxSizer):
                             date_type='publication',
                         )
 
-                sql =  "INSERT INTO 'metadata_themes' " \
+                sql =  "INSERT INTO '{table}' " \
                     "('title', 'keyword', 'date_iso', " \
-                    "'date_type') VALUES {};".format(
-                        values[:-2],
+                    "'date_type') VALUES {values};".format(
+                        table=self._table_name,
+                        values=values[:-2],
                     )
                 self.dbExecute(sql)
 
     def fillKeywordsList(self):
-        sql='SELECT title,keyword,date_iso,date_type FROM metadata_themes'
+        sql = "SELECT title ,keyword, date_iso, date_type FROM {}".format(
+                self._table_name,
+        )
 
         #TODO check if database exist
         self.keysDict=None
