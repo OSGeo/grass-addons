@@ -845,26 +845,39 @@ class MdKeywords(wx.BoxSizer):
 
     def fillDb(self):
         if not mdutil.isTableExists('metadata_themes'):
-            sql='create table if not exists metadata_themes (title TEXT, keyword TEXT, date_iso TEXT ,date_type TEXT)'
+            sql = ('create table if not exists metadata_themes '
+                   '(title TEXT, keyword TEXT, date_iso TEXT, '
+                   'date_type TEXT)')
             self.dbExecute(sql)
 
-            titles = [['keywordConcepts.txt','GEMET - Concepts, version 2.4'],
-                     ['keywordThemes.txt','GEMET - Themes, version 2.4'],
-                     ['keywordGroups.txt','GEMET - Groups, version 2.4']]
+            titles = [
+                ['keywordConcepts.xml', 'GEMET - Concepts, version 2.4'],
+                ['keywordThemes.xml', 'GEMET - Themes, version 2.4'],
+                ['keywordGroups.xml', 'GEMET - Groups, version 2.4'],
+            ]
 
-            context=mdutil.StaticContext()
-            libPath = os.path.join(context.lib_path,'config')
+            context = mdutil.StaticContext()
+            libPath = os.path.join(context.lib_path, 'config')
 
             for title in titles:
-                path =  os.path.join(libPath,title[0])
-                str=''
-                with open(path, "r") as inp :
-                    exec(inp.read())
-                    for item in keywords:#!!! keywords from exec, no mistake!
-                            str+="('%s','%s','%s','%s'),"%(title[1],item['preferredLabel']['string'],'2010-01-13','publication')
-                    str=str[:-1]
-                    sql="INSERT INTO 'metadata_themes' ('title', 'keyword', 'date_iso' ,'date_type' ) VALUES"+str
-                inp.close()
+                path = os.path.join(libPath, title[0])
+                root = etree.parse(path).getroot()
+
+                values = ''
+                for item in root:
+                    values += "('{title}', '{keyword}', '{date_iso}', " \
+                        "'{date_type}'), ".format(
+                            title=title[1],
+                            keyword=item[0][0].text,
+                            date_iso='2010-01-13',
+                            date_type='publication',
+                        )
+
+                sql =  "INSERT INTO 'metadata_themes' " \
+                    "('title', 'keyword', 'date_iso', " \
+                    "'date_type') VALUES {};".format(
+                        values[:-2],
+                    )
                 self.dbExecute(sql)
 
     def fillKeywordsList(self):
