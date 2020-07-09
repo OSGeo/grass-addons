@@ -225,8 +225,9 @@ class MdBox(wx.Panel):
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
 
     def addDuplicatedItem(self, item):
-        self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-        self.stBoxSizer.AddSpacer(5)
+        self.stBoxSizer.Add(
+            item, proportion=1,  flag=wx.EXPAND | wx.BOTTOM, border=5,
+        )
         self.GetParent().Layout()
 
     def getCtrlID(self):
@@ -248,7 +249,6 @@ class MdBox(wx.Panel):
                 item.Destroy()
             except:
                 pass
-        self.stBoxSizer.RemovePos(-1)  # remove wxSpacer
         self.stBoxSizer.Remove(mdItem)
         self.GetParent().Layout()
 
@@ -595,7 +595,7 @@ class MdItem(wx.BoxSizer):
 
         clonedMdItem = duplicator.mdItem
         # call parent "add" function
-        self.valueCtrl.GetParent().addDuplicatedItem(clonedMdItem, self.valueCtrl.GetId())
+        self.valueCtrl.GetParent().addDuplicatedItem(clonedMdItem)
 
     def setValue(self, value):
         '''Set value & color of widgets
