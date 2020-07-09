@@ -269,7 +269,6 @@ class MdBoxKeywords(MdBox):
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.parent2=parent2
 
-        self.panelSizer.Add(10, 10, 1, wx.EXPAND)
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
         self.parent=parent
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
@@ -278,7 +277,9 @@ class MdBoxKeywords(MdBox):
         self.textTMP=None
 
     def addKeywordItem(self,item):
-        self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
+        self.stBoxSizer.Add(
+            item, proportion=1, border=5, flag=wx.EXPAND | wx.BOTTOM,
+        )
 
     def removeKeywordItem(self,item):
         self.parent2.removeKeyfromBox(item,self.textTMP)
@@ -709,8 +710,11 @@ class MdItemKeyword(wx.BoxSizer):
         self.textFieldSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.textFieldSizer.Add(self.rmItemButt, 0,flag=wx.LEFT)
-        self.textFieldSizer.Add(self.text, 0,flag=wx.RIGHT)
-        self.Add(item=self.textFieldSizer, proportion=0, flag=wx.EXPAND)
+        self.textFieldSizer.Add(
+            self.text, 0,
+            flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.Add(self.textFieldSizer, proportion=0, flag=wx.EXPAND)
 #=========================================================================
 #=========================================================================
 # ADD NOTEBOOK PAGE
@@ -933,9 +937,10 @@ class MdKeywords(wx.BoxSizer):
         self.Add(self.box,flag=wx.EXPAND)
         self.Add(self.comboKeysLabel,flag=wx.EXPAND)
         self.Add(self.comboKeys,flag=wx.EXPAND)
-        self.Add(10, 10, 1, wx.EXPAND)
-
-        self.Add(self.keysList,proportion=1,flag=wx.EXPAND)
+        self.Add(
+            self.keysList, proportion=1, border=10, flag=wx.EXPAND |
+            wx.TOP | wx.BOTTOM,
+        )
 
 
 #=========================================================================
