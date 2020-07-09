@@ -673,7 +673,7 @@ class MdItem(wx.BoxSizer):
 
 
 class MdItemKeyword(wx.BoxSizer):
-    def __init__(self, parent, text,keyword,title, keywordObj):
+    def __init__(self, parent, text, keyword,title, keywordObj):
         wx.BoxSizer.__init__(self, wx.VERTICAL)
         self.isValid = False
         self.isChecked = False
@@ -709,7 +709,9 @@ class MdItemKeyword(wx.BoxSizer):
     def layout(self):
         self.textFieldSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.textFieldSizer.Add(self.rmItemButt, 0,flag=wx.LEFT)
+        self.textFieldSizer.Add(
+            self.rmItemButt, 0, flag=wx.RIGHT, border=5,
+        )
         self.textFieldSizer.Add(
             self.text, 0,
             flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
