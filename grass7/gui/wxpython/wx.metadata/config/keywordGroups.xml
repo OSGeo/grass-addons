@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<keywordGroups>
+  <row>
+    <preferredLabel>
+      <string>ADMINISTRATION, MANAGEMENT, POLICY, POLITICS, INSTITUTIONS, PLANNING</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/96</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>AGRICULTURE, FORESTRY; ANIMAL HUSBANDRY; FISHERY</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/234</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ANTHROPOSPHERE (built environment, human settlements, land setup)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/1062</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ATMOSPHERE (air, climate)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/618</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>BIOSPHERE (organisms, ecosystems)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/893</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>CHEMISTRY, SUBSTANCES, PROCESSES</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/1349</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ECONOMICS, FINANCE</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/2504</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>EFFECTS, IMPACTS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/10114</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ENERGY</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/2711</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ENVIRONMENT (natural environment, anthropic environment)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/10111</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>ENVIRONMENTAL POLICY</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/13109</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>FUNCTIONAL TERMS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/14980</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>GENERAL TERMS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/10117</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>HEALTH, NUTRITION</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/3875</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>HYDROSPHERE (freshwater, marine water, waters)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/4125</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>INDUSTRY, CRAFTS; TECHNOLOGY; EQUIPMENTS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/4281</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>INFORMATION, EDUCATION, CULTURE, ENVIRONMENTAL AWARENESS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/1922</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>LAND (landscape, geography)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/4630</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>LEGISLATION, NORMS, CONVENTIONS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/4750</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>LITHOSPHERE (soil, geological processes)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/4856</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>PHYSICAL ASPECTS, NOISE, VIBRATIONS, RADIATIONS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/6237</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>PRODUCTS, MATERIALS</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/10112</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>RECREATION, TOURISM</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/7007</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>RESEARCH, SCIENCES</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/7136</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>RESOURCES (utilisation of resources)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/10118</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>RISKS, SAFETY</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/7243</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>SOCIETY</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/7779</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>SPACE</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/7956</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>TIME (chronology)</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/14979</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>TRADE, SERVICES</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/8575</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>TRAFFIC, TRANSPORTATION</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/8603</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>WASTES, POLLUTANTS, POLLUTION</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/group/9117</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/group/</thesaurus>
+  </row>
+</keywordGroups>
