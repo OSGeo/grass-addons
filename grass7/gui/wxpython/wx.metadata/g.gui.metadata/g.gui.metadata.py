@@ -1038,10 +1038,17 @@ class MdMainFrame(wx.Frame):
 
         self.configPanelLeftSizer = wx.BoxSizer(wx.VERTICAL)
         self.configPanelLeft.SetSizer(self.configPanelLeftSizer)
-        self.configPanelLeftSizer.Add(self.rbGrass)
-        self.configPanelLeftSizer.Add(self.rbExternal)
-        self.configPanelLeftSizer.Add(self.comboBoxProfile)
-        self.configPanelLeft.SetSizer(self.configPanelLeftSizer)
+        self.configPanelLeftSizer.Add(
+            self.rbGrass, proportion=0, flag=wx.LEFT, border=10,
+        )
+        self.configPanelLeftSizer.Add(
+            self.rbExternal, proportion=0, flag=wx.LEFT, border=10,
+        )
+        self.configPanelLeftSizer.Add(
+            self.comboBoxProfile, proportion=0, flag=wx.LEFT | wx.TOP |
+            wx.BOTTOM, border=10,
+        )
+        self.configPanelLeft.SetSizerAndFit(self.configPanelLeftSizer)
 
         self.leftPanelSizer = wx.BoxSizer(wx.VERTICAL)
         self.leftPanel.SetSizer(self.leftPanelSizer)
