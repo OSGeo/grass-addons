@@ -933,6 +933,7 @@ class MdMainFrame(wx.Frame):
             self.ntbRight = NotebookRight(self.splitter, self.xmlPath)
             self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
             self.splitter.SetSashGravity(0.65)
+            self.leftPanel.Hide()
             self.resizeFrame()
             self.Show()
 
@@ -978,6 +979,7 @@ class MdMainFrame(wx.Frame):
 
             self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
             self.splitter.SetSashGravity(0.65)
+            self.leftPanel.Hide()
             self.Hsizer.Add(self.splitter, proportion=1, flag=wx.EXPAND)
             self.splitter.UpdateSize()
             self.resizeFrame()
@@ -987,6 +989,7 @@ class MdMainFrame(wx.Frame):
             self.second = False
             self.secondAfterChoice = True
             self.splitter.Hide()
+            self.leftPanel.Show()
             self.bttNew.Disable()
             self.bttSave.Disable()
 
@@ -995,6 +998,7 @@ class MdMainFrame(wx.Frame):
         elif self.secondAfterChoice:
             self.secondAfterChoice = False
             self.second = True
+            self.leftPanel.Hide()
             self.splitter.Show()
             self.bttNew.Enable()
             self.bttSave.Enable()
