@@ -37,8 +37,8 @@ MODULES = {
     },
 }
 
-installed_vesion_message = "Installed version of {} library is <{}>."
-req_vesion_message = "{name} {version} is required. Check requirements" \
+INSTALLED_VESION_MESSAGE = "Installed version of {} library is <{}>."
+REQ_VESION_MESSAGE = "{name} {version} is required. Check requirements" \
     "on the manual page <{url}>"
 
 
@@ -52,13 +52,13 @@ def check_dependencies(module_name, check_version=False):
             if module_cfg.get('method'):
                 if not hasattr(package, module_cfg.get('method')):
                     print(
-                        installed_vesion_message.format(
+                        INSTALLED_VESION_MESSAGE.format(
                             module_name,
                             module.__version__,
                         ),
                     )
                     print(
-                        req_vesion_message.format(
+                        REQ_VESION_MESSAGE.format(
                             name=module_name,
                             version=module_cfg['version'],
                             url=URL,
@@ -69,13 +69,13 @@ def check_dependencies(module_name, check_version=False):
                     importlib.import_module(module_cfg['submodule'])
                 except ModuleNotFoundError:
                     print(
-                        installed_vesion_message.format(
+                        INSTALLED_VESION_MESSAGE.format(
                             module_name,
                             module.__version__,
                         ),
                     )
                     print(
-                        req_vesion_message.format(
+                        REQ_VESION_MESSAGE.format(
                             name=module_name,
                             version=module_cfg['version'],
                             url=URL,
