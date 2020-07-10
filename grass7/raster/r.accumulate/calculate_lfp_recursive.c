@@ -237,9 +237,10 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
             if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                 continue;
 
-            /* if a neighbor cell flows into the current cell, store its
-             * accumulation in the accum array */
-            if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0]) {
+            /* if a neighbor cell flows into the current cell with no flow
+             * loop, store its accumulation in the accum array */
+            if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
+                dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1]) {
                 double up_acc = get(accum_buf, row + i, col + j);
 
                 /* upstream accumulation must always be less than the current
