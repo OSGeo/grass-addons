@@ -1209,8 +1209,8 @@ class MdDataCatalog(LocationMapTree):
         if evt is not None:
             item = evt.Item
         else:
-            item = self.GetSelection()
-        name=self.GetItemText(item)
+            item = self.GetSelections()[0]
+        name = self.GetItemText(item)
         parentItem = self.GetItemParent(item)
         mapType = self.GetItemText(parentItem)
         if self.GetChildrenCount(item) == 0 and self.isMapExist(name,mapType):  # is selected map
