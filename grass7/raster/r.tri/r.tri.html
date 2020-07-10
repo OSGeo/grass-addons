@@ -1,17 +1,55 @@
 <h2>DESCRIPTION</h2>
 
-<i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The original calculation in Riley et al., (1999)  used only a 3x3 neighbourhood and represented the sum of the absolute deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that the calculation can be extended over any scale by taking the mean of the absolute deviations.
+<p><i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean
+    change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The
+    original calculation in Riley et al., (1999)  used only a 3x3 neighbourhood and represented the sum of the absolute
+    deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that
+    the calculation can be extended over any scale by taking the mean of the absolute deviations.</p>
 
 <h2>NOTES</h2>
-<i>r.tri</i> produces fairly similar results to the average deviation of elevation values, apart from the center pixel is used in place of the mean. In practice, this produces a slightly 'less smoothed' result, which in some cases can better highlight smaller-scale terrain features.
 
-Like in many GRASS GIS algorithms, cell padding is not performed automatically and there will be an edge effect. The resulting TRI will not be calculated at the image edges so there will be missing pixels along the margins relative to the size of the input raster. To minimize this effect the flag -p can be set to grow the DEM by the chosen radius prior to the TRI calculation.
+<p><i>r.tri</i> produces fairly similar results to the average deviation of elevation values, apart from the center
+    pixel is used in place of the mean. In practice, this produces a slightly less smoothed result that can potentially
+    better highlight finer-scale terrain features.
+</p>
+
+<p>
+    Similar to many other GRASS GIS algorithms, cell padding is not performed automatically which will leave null values
+    at the boundaries of the output raster relative to the size of the input raster. To minimize this effect the DEM
+    needs to be buffered/grown prior to using r.tri.
+</p>
+
+<p>
+    To reduce computational times for large raster datasets, setting <em>n_jobs</em> &gt 1 will use a parallelized and
+    tiled calculations that is spread across multiple processing cores. This option requires the
+    GRASS addon <a href="r.mapcalc.tiled.html">r.mapcalc.tiled</a> to be installed.
+</p>
 
 <h2>EXAMPLE</h2>
-r.tri input=srtm size=1 output=tri
+
+<div class="code">
+ <pre>
+     d.rast map=elev_lid792_1m@PERMANENT
+     g.region raster=elev_lid792_1m@PERMANENT -a
+     r.tri input=elev_lid792_1m@PERMANENT size=9 output=tri
+ </pre>
+</div>
+
+<center>
+    <img src="tri.png" alt="Terrain Ruggedness Index">
+</center>
 
 <h2>REFERENCES</h2>
-Riley, S. J., S. D. DeGloria and R. Elliot (1999). A terrain ruggedness index that quantifies topographic heterogeneity, Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
+
+Riley, S. J., S. D. DeGloria and R. Elliot (1999). A terrain ruggedness index that quantifies topographic heterogeneity,
+Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.mapcalc.html">r.mapcalc</a>
+<a href="r.mapcalc.tiled.html">r.mapcalc.tiled</a>
+</em>
 
 <h2>AUTHOR</h2>
 Steven Pawley
