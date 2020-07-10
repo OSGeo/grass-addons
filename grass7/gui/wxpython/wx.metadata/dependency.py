@@ -37,9 +37,9 @@ MODULES = {
     },
 }
 
-installed_vesion_message = 'Installed version of {} library is <{}>.'
-req_vesion_message = '{name} {version} is required. Check requirements' \
-    'on the manual page <{url}>'
+installed_vesion_message = "Installed version of {} library is <{}>."
+req_vesion_message = "{name} {version} is required. Check requirements" \
+    "on the manual page <{url}>"
 
 
 def check_dependencies(module_name, check_version=False):
@@ -85,8 +85,8 @@ def check_dependencies(module_name, check_version=False):
         return True
     except ModuleNotFoundError:
         print(
-            '{name} library is missing. Check requirements on the'
-            ' manual page <{url}>'.format(
+            "{name} library is missing. Check requirements on the "
+            "manual page <{url}>".format(
                 name=module_name,
                 url=URL,
             ),
@@ -96,8 +96,8 @@ def check_dependencies(module_name, check_version=False):
 def main():
     for module in MODULES:
         if check_dependencies(module):
-            print('{name} is installed.'.format(name=module))
+            print("{name} is installed.".format(name=module))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
