@@ -101,7 +101,7 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
             /* if a neighbor cell flows into the current cell with no flow
              * loop, add it to the map and trace up further */
             if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
-                dir_bif->c[row][col] != dir_checks[i + 1][j + 1][1]) {
+                dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1]) {
                 dir_buf->c[row][col] = id;
                 done[row][col] = 1;
                 trace_up(dir_buf, done, row + i, col + j, id);
