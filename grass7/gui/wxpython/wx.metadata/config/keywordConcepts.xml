@@ -1,0 +1,1301 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<keywordConcepts>
+  <row>
+    <preferredLabel>
+      <string>accident</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>An unexpected occurrence, failure or loss with the potential for harming human life, property or the environment.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/25</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>administration</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The management or direction of the affairs of a public or private office, business or organization.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/95</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>agriculture</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The production of plants and animals useful to man, involving soil cultivation and the breeding and management of crops and livestock.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/232</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>analysis</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Examination or determination.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/397</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>animal husbandry</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A branch of agriculture concerned with the breeding and feeding of domestic animals.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/429</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>atmosphere</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The gaseous envelope surrounding the Earth in a several kilometers-thick layer.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/617</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>biochemical process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Chemical processes occurring in living organisms.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/812</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>biosphere</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>That part of the Earth and atmosphere capable of supporting living organisms.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/892</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>border</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The dividing line or frontier between political or geographic regions.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/963</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>built environment</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>That part of the physical surroundings which are people-made or people-organized, such as buildings and other major structures, roads, bridges and the like, down to lesser objects such as traffic lights, telephone and pillar boxes.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1063</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>business</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The activity, position or site associated with commerce or the earning of a livelihood.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1084</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>chemical</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Any substance used in or resulting from a reaction involving changes to atoms or molecules.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1327</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>chemical element</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A substance made up of atoms with the same atomic number; common examples are hydrogen, gold, and iron.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2643</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>chemical process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The particular method of manufacturing or making a chemical usually involving a number of steps or operations.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1320</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>chemical property</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Properties of a substance depending on the arrangement of the atoms in the molecule, e.g. bio-availability, degradability, persistence, etc.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1322</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>climate</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The average weather condition in a region of the world. Many aspects of the Earth&#x27;s geography affect the climate. Equatorial, or low, latitudes are hotter than the polar latitudes because of the angle at which the rays of sunlight arrive at the Earth&#x27;s surface. The difference in temperature at the equator and at the poles has an influence on the global circulation of huge masses of air. Cool air at the poles sinks and spreads along the surface of the Earth towards the equator. Cool air forces its way under the lower density warmer air in the lower regions, pushing the lighter air up and toward the poles, where it will cool and descend.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1462</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>craft</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>An occupation or trade requiring manual dexterity or skilled artistry.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1850</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>culture (society)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The body of customary beliefs, social forms, and material traits constituting a distinct complex of tradition of a racial or social group.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/1921</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>demography</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The statistical study of human vital statistics and population dynamics.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2060</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>disaster</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The result of a vast ecological breakdown in the relations between man and his environment, a serious and sudden event (or slow, as in drought) on such a scale that the stricken community needs extraordinary efforts to cope with it, often with outside help or international aid.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2215</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>disease</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A definite pathological process having a characteristic set of signs and symptoms which are detrimental to the well-being of the individual.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2232</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>economy</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The system of activities and administration through which a society uses its resources to produce wealth.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2516</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>education</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The act or process of imparting or acquiring knowledge or skills.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2547</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>effect</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Effects include: a) direct effects, which are caused by the action and occur at the same time and place, b) indirect effects, which are caused by the action and are later in time or farther removed in distance, that are still reasonably foreseeable.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2562</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>energy</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The capacity to do work; involving thermal energy (heat), radiant energy (light), kinetic energy (motion) or chemical energy; measured in joules.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2712</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environment</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A concept which includes all aspects of the surroundings of humanity, affecting individuals and social groupings. The European Union has defined the environment as &quot;the combination of elements whose complex interrelationships make up the settings, the surroundings and the conditions of life of the individual and of society, as they are or as they are felt&quot;. The environment thus includes the built environment, the natural environment and all natural resources, including air, land and water. It also includes the surroundings of the workplace.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2944</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental assessment</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The evaluation or appraisal of ecological or natural resources.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2774</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental awareness</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The growth and development of awareness, understanding and consciousness toward the biophysical environment and its problems, including human interactions and effects. Thinking &quot;ecologically&quot; or in terms of an ecological consciousness.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2778</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental control</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Protection of the environment through policies concerning the control of wastes, the improvement of the human-made environment, the protection of heritage values, the institution of national parks and reserves, the protection of fauna and flora, the conservation of forests and landscapes, etc.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2795</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental data</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Information concerning the state or condition of the environment.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2803</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental economy issue</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A matter of public importance involving both a community&#x27;s or a country&#x27;s management of financial resources and its protection of natural resources.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2810</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental impact</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Any alteration of environmental conditions or creation of a new set of environmental conditions, adverse or beneficial, caused or induced by the action or set of actions under consideration.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2829</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental management</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Measures and controls which are directed at environmental conservation, the rational and sustainable allocation and utilization of natural resources, the optimization of interrelations between society and the environment, and the improvement of human welfare for present and future generations.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2877</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental planning</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The identification of desirable objectives for the physical environment, including social and economic objectives, and the creation of administrative procedures and programmes to meet those objectives.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2889</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental policy</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Official statements of principles, intentions, values, and objective which are based on legislation and the governing authority of a state and which serve as a guide for the operations of governmental and private activities in environmental affairs.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2892</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental problem solving</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The activity of finding solutions for troublesome or perplexing situations involving ecological or natural resources.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/13187</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>environmental protection</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Measures and controls to prevent damage and degradation of the environment, including the sustainability of its living resources.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2900</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>equipment</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Any collection of materials, supplies or apparatuses stored, furnished or provided for an undertaking or activity.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/2956</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>evaluation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>No definition needed.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3011</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>experiment</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A test under controlled conditions that is made to demonstrate a known truth, examine the validity of a hypothesis, or determine the efficacy of something previously untried.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3050</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>finances</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The monetary resources or revenue of a government, company, organization or individual.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3194</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>firm</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A commercial partnership of two or more persons, especially when incorporated.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3232</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>fishery</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The industry of catching, processing and selling fish.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3237</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>forestry</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The management of forest lands for wood, forages, water, wildlife, and recreation.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3439</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>geological process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Dynamic actions or events that occur at the Earth&#x27;s surface due to application of natural forces resulting from gravity, temperature changes, freezing and thawing, chemical reactions, seismic shaking, and the agencies of wind and moving water, ice and snow. Where and when a force exceeds the strength of the earth material, the material is changed by deformation, translocation, or chemical reactions.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3648</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>hazard</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A physical or chemical agent capable of causing harm to persons, property, animals, plants or other natural resources.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3852</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>health</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A state of dynamic equilibrium between an organism and its environment in which all functions of mind and body are normal.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3865</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>health-environment relationship</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Relationship between the quality of the environment and the health conditions of individuals.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/3869</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>hydrosphere</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The waters of the Earth, as distinguished from the rocks (lithosphere), living things (biosphere), and the air (atmosphere). Includes the waters of the ocean; rivers, lakes, and other bodies of surface water in liquid form on the continents; snow, ice, and glaciers; and liquid water, ice, and water vapour in both the unsaturated and saturated zones below the land surface. Included by some, but excluded by others, is water in the atmosphere , which includes water vapour, clouds, and all forms of precipitation while still in the atmosphere.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4124</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>impact source</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Elements of an action which cause damage to the surrounding environment.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4163</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>industrial process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>No definition needed.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4257</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>industry</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>An industry is a group of establishments engaged in the same or similar kinds of economic activities. Industries produce commodities that are sold with the expectation of recovering the total cost of production. A single industry can produce many different commodities.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4279</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>information</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>All facts, ideas or imaginative works of the mind which have been communicated, published or distributed formally or informally in any format, or the knowledge that is  communicated or received.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4303</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>institutional structure</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>An organization&#x27;s complex system of mutually connected and dependent elements or parts, which make up a definite manner of arrangement.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/13292</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>international relations</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The political or diplomatic interaction or dealings between independent nations.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4438</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>justice</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The correct application of law as opposed to arbitrariness.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/11583</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>labour</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>One of the factors of production. It includes all the exertions - manual, physical or mental - by individuals, directed towards the production of wealth.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4577</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>land</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A specified geographical tract of the Earth&#x27;s surface including all its attributes, comprising its geology, superficial deposits, topography, hydrology, soils, flora and fauna, together with the results of past and present human activity, to the extent that these attributes exert a significant influence on the present and future land utilization.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4599</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>land setup</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The formulation of regional objectives, plans and programmes and the harmonization of the regional effects of sectorial planning.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4666</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>law (corpus of rules)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A body of rules of action or conduct prescribed by controlling authority, and having binding legal force.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/11499</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>law (individual)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>One of the rules making up the body of law.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4707</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>legal form of organisations</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The type, structure or purpose of an institution as arranged, required and defined by local or national laws to determine the appropriate governmental regulations, privileges and tax status applicable to that institution.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/13161</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>legislation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The act or process of making laws.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4749</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>lithosphere</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The solid portion of the Earth, as compared with the atmosphere and the hydrosphere.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4855</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>management</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Government, control, superintendence, physical or manual handling or guidance; act of managing by direction or regulation, or administration, as management of family, or of household, etc.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/4985</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>material</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The substance of which a product is made or composed.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5086</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>medicine (practice)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The science and art of treating and healing.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5144</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>methodology</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The system of methods and principles used in a particular discipline.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5203</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>military activities</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Actions and movements pertaining to or conducted by the armed forces.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5243</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>military aspects</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5241</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>monitoring</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>To check regularly in order to perceive change in some quality or quantity.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5346</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>nutrition</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A process in animals and plants involving the intake of nutrient materials and their subsequent assimilation into the tissues.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5765</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>organisation of the legal system</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The specific manner, form and institutions by which a government&#x27;s ability to make, enforce and interpret laws are brought together into a coordinated whole.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/13146</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>overburden</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The material such as soil and rock lying above a mineral deposit that must be removed in order to work the deposit.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5956</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>parameter</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>1) A quantity in an equation which must be specified beside the independent variables to obtain the solution for the dependent variables.
+2) A quantity which is constant under a given set of conditions, but may be different under other conditions.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6033</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>pedosphere</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>That shell or layer of the Earth in which soil-forming processes occur.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6094</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>physical process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A continuous action or series of changes which alters the material form of matter.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6228</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>physical property</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Property of a compound that can change without involving a change in chemical composition.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6229</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>physicochemical process</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Processes involving changes in the physical properties and chemical structure of substances.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6233</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>planning</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The act of making a detailed scheme for attaining an objective.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6287</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>policy</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6370</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>politics</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The theory and practice of acquiring and exercising the power to govern in a society in order to arbitrate values, allocate resources and establish and enforce rules.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6371</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>pollutant</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Any substance, usually a residue of human activity, which has an undesirable effect upon the environment.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6395</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>pollution</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The indirect or direct alteration of the biological, thermal, physical, or radioactive properties of any medium in such a way as to create a hazard or potential hazard to human health or to the health, safety or welfare of any living species.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6445</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>product</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Something produced by human or mechanical effort or by a natural process.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6660</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>radiation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Emission of any rays from either natural or man-made origins, such as radio waves, the sun&#x27;s rays, medical X-rays and the fall-out and nuclear wastes produced by nuclear weapons and nuclear energy production. Radiation is usually divided between non-ionizing radiation, such as thermal radiation (heat) and light, and nuclear radiation. Non-ionizing radiation includes ultraviolet radiation from the sun which, although it can damage cells and tissues, does not involve the ionization events of nuclear radiation.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/6884</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>recreation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Activities that promote refreshment of health or spirits by relaxation and enjoyment.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7001</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>research</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Scientific investigation aimed at discovering and applying new facts, techniques and natural laws.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7127</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>resource</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Any component of the environment that can be utilized by an organism.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7168</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>resource utilisation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>No definition needed.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8879</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>risk</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The expected number of lives lost, persons injured, damage to property and disruption of economic activity due to a particular natural phenomenon, and consequently the product of the probability of occurrence and the expected magnitude of damage.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7233</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>safety</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The state of being secure from harm, injury, danger or risk, often as a result of planned measures or preparations.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7362</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>science</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The study of the physical universe and its contents by means of reproducible observations, measurements, and experiments to establish, verify, or modify general laws to explain its nature and behaviour.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7472</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>services</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The carrying out of work for which there is a constant public demand by the provision of labor and the utilization of tools.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7621</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>society</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Human group of people, more or less large and complex, associated for some common interest and characterized by distinctive hierarchical relationships.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7823</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>space (interplanetary)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Space extending between the sun and the planets of the solar system. Interplanetary space is not empty, but contains dust, particles with an electric charge, and the magnetic field of the sun (also called the IMF, or Interplanetary Magnetic Field).</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/7962</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>state of matter</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>One of the three fundamental conditions of matter: the solid, the liquid, and gaseous states.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8072</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>statistics</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A branch of mathematics dealing with the collection, analysis, interpretation, and presentation of masses of numerical data.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8076</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>subject</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>No definition needed.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/14848</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>technical regulation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A government or management prescribed rule that provides detailed or stringent requirements, either directly or by referring to or incorporating the content of a standard, technical specification or code of practice.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/11433</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>technology</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Systematic knowledge of and its application to industrial processes; closely related to engineering and science.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8339</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>tourism</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The temporary movement of people to destinations outside their normal places or work and residence, the activities undertaken during their stay in those destinations and the facilities created to cater for their needs.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8522</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>trade (services)</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The act or process of buying, selling or exchanging goods and services at either wholesale or retail, within a country or between countries.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8563</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>trade activity</string>
+      <language>en</language>
+    </preferredLabel>
+    <uri>http://www.eionet.europa.eu/gemet/concept/11089</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>traffic</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>1) The movement of vehicles, ships, aircraft, persons, etc., in an area or over a route.
+2) The vehicles, persons, etc., moving in an area or over a route.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8582</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>transportation</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>The act or means of moving tangible objects (persons or goods) from place to place. Often involves the use of some type of vehicle.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8641</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>transportation mean</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Vehicles used for transferring people or goods from one place to another.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/5116</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>vibration</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>A periodic motion of small amplitude and high frequency, characteristic of elastic bodies.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/8959</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+  <row>
+    <preferredLabel>
+      <string>waste</string>
+      <language>en</language>
+    </preferredLabel>
+    <definition>
+      <string>Material, often unusable, left over from any manufacturing, industrial, agricultural or other human process; Material damaged or altered during a manufacturing process and subsequently left useless.</string>
+      <language>en</language>
+    </definition>
+    <uri>http://www.eionet.europa.eu/gemet/concept/9041</uri>
+    <thesaurus>http://www.eionet.europa.eu/gemet/concept/</thesaurus>
+  </row>
+</keywordConcepts>

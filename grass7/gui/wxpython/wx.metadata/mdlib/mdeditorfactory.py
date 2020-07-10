@@ -225,8 +225,9 @@ class MdBox(wx.Panel):
             self.rmBoxButt.Bind(EVT_BUTTON, self.removeBox)
 
     def addDuplicatedItem(self, item):
-        self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
-        self.stBoxSizer.AddSpacer(5)
+        self.stBoxSizer.Add(
+            item, proportion=1,  flag=wx.EXPAND | wx.BOTTOM, border=5,
+        )
         self.GetParent().Layout()
 
     def getCtrlID(self):
@@ -248,7 +249,6 @@ class MdBox(wx.Panel):
                 item.Destroy()
             except:
                 pass
-        self.stBoxSizer.RemovePos(-1)  # remove wxSpacer
         self.stBoxSizer.Remove(mdItem)
         self.GetParent().Layout()
 
@@ -269,7 +269,6 @@ class MdBoxKeywords(MdBox):
         self.boxButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.parent2=parent2
 
-        self.panelSizer.Add(10, 10, 1, wx.EXPAND)
         self.panelSizer.Add(self.boxButtonSizer, flag=wx.EXPAND, proportion=1)
         self.parent=parent
         self.stBoxSizer = wx.StaticBoxSizer(self.stbox, orient=wx.VERTICAL)
@@ -278,7 +277,9 @@ class MdBoxKeywords(MdBox):
         self.textTMP=None
 
     def addKeywordItem(self,item):
-        self.stBoxSizer.Add(item, flag=wx.EXPAND, proportion=1)
+        self.stBoxSizer.Add(
+            item, proportion=1, border=5, flag=wx.EXPAND | wx.BOTTOM,
+        )
 
     def removeKeywordItem(self,item):
         self.parent2.removeKeyfromBox(item,self.textTMP)
@@ -594,7 +595,7 @@ class MdItem(wx.BoxSizer):
 
         clonedMdItem = duplicator.mdItem
         # call parent "add" function
-        self.valueCtrl.GetParent().addDuplicatedItem(clonedMdItem, self.valueCtrl.GetId())
+        self.valueCtrl.GetParent().addDuplicatedItem(clonedMdItem)
 
     def setValue(self, value):
         '''Set value & color of widgets
@@ -672,7 +673,7 @@ class MdItem(wx.BoxSizer):
 
 
 class MdItemKeyword(wx.BoxSizer):
-    def __init__(self, parent, text,keyword,title, keywordObj):
+    def __init__(self, parent, text, keyword,title, keywordObj):
         wx.BoxSizer.__init__(self, wx.VERTICAL)
         self.isValid = False
         self.isChecked = False
@@ -708,9 +709,14 @@ class MdItemKeyword(wx.BoxSizer):
     def layout(self):
         self.textFieldSizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.textFieldSizer.Add(self.rmItemButt, 0,flag=wx.LEFT)
-        self.textFieldSizer.Add(self.text, 0,flag=wx.RIGHT)
-        self.Add(item=self.textFieldSizer, proportion=0, flag=wx.EXPAND)
+        self.textFieldSizer.Add(
+            self.rmItemButt, 0, flag=wx.RIGHT, border=5,
+        )
+        self.textFieldSizer.Add(
+            self.text, 0,
+            flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.Add(self.textFieldSizer, proportion=0, flag=wx.EXPAND)
 #=========================================================================
 #=========================================================================
 # ADD NOTEBOOK PAGE
@@ -804,6 +810,7 @@ class MdKeywords(wx.BoxSizer):
         self.keysList.Bind(wx.EVT_TREE_ITEM_ACTIVATED,self.addItemsToBox)
         self.layout()
         Module('db.connect',flags='d')
+        self._table_name = 'metadata_themes'
         self.fillDb()
         self.fillKeywordsList()
 
@@ -844,31 +851,49 @@ class MdKeywords(wx.BoxSizer):
         return self.itemHolder# dict is in var keywordObj
 
     def fillDb(self):
-        if not mdutil.isTableExists('metadata_themes'):
-            sql='create table if not exists metadata_themes (title TEXT, keyword TEXT, date_iso TEXT ,date_type TEXT)'
+        if not mdutil.isTableExists(self._table_name):
+            sql =  "create table if not exists {table} " \
+                "(title TEXT, keyword TEXT, date_iso TEXT, " \
+                "date_type TEXT)".format(
+                    table=self._table_name,
+                )
             self.dbExecute(sql)
 
-            titles = [['keywordConcepts.txt','GEMET - Concepts, version 2.4'],
-                     ['keywordThemes.txt','GEMET - Themes, version 2.4'],
-                     ['keywordGroups.txt','GEMET - Groups, version 2.4']]
+            titles = [
+                ['keywordConcepts.xml', 'GEMET - Concepts, version 2.4'],
+                ['keywordThemes.xml', 'GEMET - Themes, version 2.4'],
+                ['keywordGroups.xml', 'GEMET - Groups, version 2.4'],
+            ]
 
-            context=mdutil.StaticContext()
-            libPath = os.path.join(context.lib_path,'config')
+            context = mdutil.StaticContext()
+            libPath = os.path.join(context.lib_path, 'config')
 
             for title in titles:
-                path =  os.path.join(libPath,title[0])
-                str=''
-                with open(path, "r") as inp :
-                    exec(inp.read())
-                    for item in keywords:#!!! keywords from exec, no mistake!
-                            str+="('%s','%s','%s','%s'),"%(title[1],item['preferredLabel']['string'],'2010-01-13','publication')
-                    str=str[:-1]
-                    sql="INSERT INTO 'metadata_themes' ('title', 'keyword', 'date_iso' ,'date_type' ) VALUES"+str
-                inp.close()
+                path = os.path.join(libPath, title[0])
+                root = etree.parse(path).getroot()
+
+                values = ''
+                for item in root:
+                    values += "('{title}', '{keyword}', '{date_iso}', " \
+                        "'{date_type}'), ".format(
+                            title=title[1],
+                            keyword=item[0][0].text,
+                            date_iso='2010-01-13',
+                            date_type='publication',
+                        )
+
+                sql =  "INSERT INTO '{table}' " \
+                    "('title', 'keyword', 'date_iso', " \
+                    "'date_type') VALUES {values};".format(
+                        table=self._table_name,
+                        values=values[:-2],
+                    )
                 self.dbExecute(sql)
 
     def fillKeywordsList(self):
-        sql='SELECT title,keyword,date_iso,date_type FROM metadata_themes'
+        sql = "SELECT title ,keyword, date_iso, date_type FROM {}".format(
+                self._table_name,
+        )
 
         #TODO check if database exist
         self.keysDict=None
@@ -914,9 +939,10 @@ class MdKeywords(wx.BoxSizer):
         self.Add(self.box,flag=wx.EXPAND)
         self.Add(self.comboKeysLabel,flag=wx.EXPAND)
         self.Add(self.comboKeys,flag=wx.EXPAND)
-        self.Add(10, 10, 1, wx.EXPAND)
-
-        self.Add(self.keysList,proportion=1,flag=wx.EXPAND)
+        self.Add(
+            self.keysList, proportion=1, border=10, flag=wx.EXPAND |
+            wx.TOP | wx.BOTTOM,
+        )
 
 
 #=========================================================================
