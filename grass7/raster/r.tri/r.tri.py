@@ -37,14 +37,6 @@
 #% guisection: Required
 #%end
 
-#%option
-#% key: n_jobs
-#% type: integer
-#% description: Number of processes cores for computation
-#% required: no
-#% answer: 1
-#% end
-
 #%flag
 #% key: c
 #% description: Use circular neighborhood
@@ -54,12 +46,7 @@ import sys
 import atexit
 import random
 import string
-import multiprocessing as mp
-import math
 import grass.script as gs
-import grass.script.core as gcore
-from grass.pygrass.modules.shortcuts import raster as grast
-from grass.pygrass.gis.region import Region
 
 TMP_RAST = []
 
@@ -130,25 +117,8 @@ def main():
     dem = options["input"]
     tri = options["output"]
     size = int(options["size"])
-    n_jobs = int(options["n_jobs"])
     circular = flags["c"]
-
     radius = int((size - 1) / 2)
-
-    if n_jobs != 1:
-        if not gcore.find_program("r.mapcalc.tiled", "--help"):
-            msg = "Parallelized computation requires the extension 'r.mapcalc.tiled' to be installed."
-            msg = " ".join([msg, "Install it using 'g.extension r.mapcalc.tiled'"])
-            gs.fatal(msg)
-
-        if n_jobs == 0:
-            gs.fatal(
-                "Number of processing cores for parallel computation must not equal 0"
-            )
-
-        if n_jobs < 0:
-            system_cores = mp.cpu_count()
-            n_jobs = system_cores + n_jobs + 1
 
     # calculate TRI based on map calc statements
     gs.message("Calculating the Topographic Ruggedness Index...")
@@ -158,32 +128,18 @@ def main():
     offsets = focal_expr(radius=radius, window_square=not circular)
     terms = []
     for d in offsets:
-        valid = ",".join(map(str, d))
-        invalid = ",".join([str(-d[0]), str(-d[1])])
-        terms.append(
-            "if(isnull({dem}[{d}]), if(isnull({dem}[{e}]), (median({dem})-{dem})^2, ({dem}[{e}]-{dem}^2)), ({dem}[{d}]-{dem})^2)".format(
-                dem=dem, d=valid, e=invalid
-            )
-        )
+        d_str = ",".join(map(str, d))
+        terms.append("({dem}[{d}]-{dem})^2".format(dem=dem, d=d_str))
 
     # define the calculation expression
     ncells = len(offsets) + 1
     terms = " + ".join(terms)
 
-    # expr = "$tri = sqrt((%s" % " + ".join(terms) + ") / $ncells)"
-
-    expr = "{tri} = sqrt(({terms}) / {ncells})".format(
+    # perform the r.mapcalc calculation with the moving window
+    expr = "{tri} = float(sqrt(({terms}) / {ncells}))".format(
         tri=tri, ncells=ncells, terms=terms
     )
-
-    # perform the r.mapcalc calculation with the moving window
-    if n_jobs == 1:
-        gs.mapcalc(expr, tri=tri, dem=dem, ncells=ncells)
-    else:
-        reg = Region()
-        width = math.ceil(reg.cols / n_jobs)
-        height = math.ceil(reg.rows / n_jobs)
-        grast.mapcalc_tiled(expr, width=width, height=height, processes=n_jobs, overlap=radius)
+    gs.mapcalc(expr)
 
     return 0
 
