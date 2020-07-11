@@ -52,11 +52,12 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
                     if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                         continue;
 
-                    /* if a neighbor cell flows into the current cell and has a
-                     * flow higher than the threshold, the current cell is not
-                     * a headwater */
+                    /* if a neighbor cell flows into the current cell with no
+                     * flow loop and has a flow higher than the threshold, the
+                     * current cell is not a headwater */
                     if (dir_buf->c[row + i][col + j] ==
                         dir_checks[i + 1][j + 1][0] &&
+                        dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1] &&
                         get(accum_buf, row + i, col + j) >= thresh)
                         nup++;
                 }
@@ -122,12 +123,14 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
                 if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                     continue;
 
-                /* if multiple neighbor cells flow into the current cell and
-                 * have a flow higher than the threshold, the current cell is a
-                 * confluence; stop tracing in this case only if this cell is
-                 * not starting a new stream at this confluence */
+                /* if multiple neighbor cells flow into the current cell with
+                 * no flow loop and have a flow higher than the threshold, the
+                 * current cell is a confluence; stop tracing in this case only
+                 * if this cell is not starting a new stream at this confluence
+                 */
                 if (dir_buf->c[row + i][col + j] ==
                     dir_checks[i + 1][j + 1][0] &&
+                    dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1] &&
                     get(accum_buf, row + i, col + j) >= thresh && pl->n > 1 &&
                     ++nup > 1)
                     return;
