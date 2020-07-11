@@ -147,8 +147,9 @@ static void find_up(struct cell_map *dir_buf, char **done, int id, int row,
             if ((i == 0 && j == 0) || col + j < 0 || col + j >= ncols)
                 continue;
 
-            /* if a neighbor cell flows into the current cell, store its
-             * row and col in the up array */
+            /* if a neighbor cell flows into the current cell, store its row
+             * and col in the up array; no check for flow loop is needed
+             * because dir_buf is being overwritten */
             if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
                 !done[row + i][col + j]) {
                 up[*nup].row = row + i;
