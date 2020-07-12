@@ -9,12 +9,12 @@
 # PURPOSE:      Simple script to calculate the Terrain Ruggedness Index (TRI)
 #               of Riley et al. (1999)
 #
-# COPYRIGHT:    (C) 2015 Steven Pawley and by the GRASS Development Team
+# COPYRIGHT:    (C) 2015-2020 Steven Pawley and by the GRASS Development Team
 #
 ###############################################################################
 
 #%module
-#% description: Terrain Ruggedness Index
+#% description: Computes the Terrain Ruggedness Index.
 #%end
 
 #%option G_OPT_R_INPUT
@@ -34,7 +34,7 @@
 #% type: integer
 #% description: Size of neighbourhood in cells
 #% answer: 3
-#% guisection: Required
+#% guisection: required
 #%end
 
 #%flag
