@@ -2,7 +2,7 @@
 
 <p><i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean
     change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The
-    original calculation in Riley et al., (1999)  used only a 3x3 neighbourhood and represented the sum of the absolute
+    original calculation in Riley et al. (1999) used only a 3x3 neighbourhood and represented the sum of the absolute
     deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that
     the calculation can be extended over any scale by taking the mean of the absolute deviations.</p>
 
@@ -27,16 +27,14 @@
 
 <h2>EXAMPLE</h2>
 
-<div class="code">
- <pre>
-     d.rast map=elev_lid792_1m@PERMANENT
-     g.region raster=elev_lid792_1m@PERMANENT -a
-     r.tri input=elev_lid792_1m@PERMANENT size=9 output=tri
- </pre>
-</div>
+<div class="code"><pre>
+d.rast map=elev_lid792_1m@PERMANENT
+g.region raster=elev_lid792_1m@PERMANENT -a
+r.tri input=elev_lid792_1m@PERMANENT size=9 output=tri
+</pre></div>
 
 <center>
-    <img src="tri.png" alt="Terrain Ruggedness Index">
+    <img src="r_tri.png" alt="Terrain Ruggedness Index">
 </center>
 
 <h2>REFERENCES</h2>
@@ -47,11 +45,12 @@ Intermountain Journal of Sciences, vol. 5, No. 1-4, 1999.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.mapcalc.html">r.mapcalc</a>
+<a href="r.mapcalc.html">r.mapcalc</a>,
 <a href="r.mapcalc.tiled.html">r.mapcalc.tiled</a>
 </em>
 
 <h2>AUTHOR</h2>
+
 Steven Pawley
 
 <!--
