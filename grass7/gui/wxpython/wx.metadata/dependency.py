@@ -14,6 +14,9 @@ import importlib
 
 URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
 MODULES = {
+    'jinja2': {
+        'check_version': False,
+    },
     'lxml': {
         'check_version': False,
     },
@@ -32,13 +35,10 @@ MODULES = {
     'pygments': {
         'check_version': False,
     },
-    'sqlalchemy': {
-        'check_version': False,
-    },
-    'jinja2': {
-        'check_version': False,
-    },
     'reportlab': {
+        'check_version': False,
+    },
+    'sqlalchemy': {
         'check_version': False,
     },
 }
