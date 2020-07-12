@@ -14,6 +14,9 @@ import importlib
 
 URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
 MODULES = {
+    'lxml': {
+        'check_version': False,
+    },
     'owslib': {
         'check_version': True,
         'package': 'owslib.iso',
@@ -25,6 +28,9 @@ MODULES = {
         'package': 'pycsw.core',
         'submodule': 'admin',
         'version': '>=2.0',
+    },
+    'pygments': {
+        'check_version': False,
     },
     'sqlalchemy': {
         'check_version': False,
