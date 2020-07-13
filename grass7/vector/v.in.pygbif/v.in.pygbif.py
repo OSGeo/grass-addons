@@ -634,7 +634,7 @@ def main():
         # Exit if search does not give a return
         # Print only number of returns for the given search and exit
         if print_occ_number:
-            grass.message("Found {0} occurrences for taxon {1}...".format(returns_n, s))
+            print("Found {0} occurrences for taxon {1}...".format(returns_n, s))
             continue
         elif returns_n <= 0:
             grass.warning(
