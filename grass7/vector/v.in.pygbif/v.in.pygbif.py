@@ -16,14 +16,12 @@ COPYRIGHT: (C) 2016 by the GRASS Development Team
            for details.
 """
 
-"""
-To Dos:
-- use proper cleanup routine, esp if using csv + vrt (copy from other modules)
-- handle layers in mask input
-- add progress bar
-- make date_from and date_to dependent on each other or use today as date_to if not specified
-
-"""
+# To Dos:
+# - use proper cleanup routine, esp if using csv + vrt (copy from other modules)
+#   Add an atexit procedure which closes and removes the current map
+# - handle layers in mask input
+# - add progress bar
+# - make date_from and date_to dependent on each other or use today as date_to if not specified
 
 #%module
 #% description: Search and import GBIF species distribution data
@@ -174,11 +172,18 @@ To Dos:
 #% guisection: Spatial filter
 #%end
 
+
+#%rules
+#% excludes: -r,-p,-g,-t
+#%end
+
+
 import sys
-import os
+
+# import os
 import math
-from osgeo import ogr
-from osgeo import osr
+from osgeo import ogr, osr
+from osgeo import __version__ as gdal_version
 import grass.script as grass
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
@@ -250,6 +255,7 @@ def main():
     latlon_crs = [
         "+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0.000,0.000,0.000",
         "+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0,0,0,0,0,0,0",
+        "+proj=longlat +no_defs +a=6378137 +rf=298.257223563 +towgs84=0.000,0.000,0.000 +type=crs",
     ]
     # List attributes available in Darwin Core
     # not all attributes are returned in each request
@@ -415,6 +421,7 @@ def main():
         ("g_language", "varchar(50)"),
     ]
 
+    # maybe no longer required in Python3
     set_output_encoding()
     # Set temporal filter if requested by user
     # Initialize eventDate filter
@@ -455,15 +462,30 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    target_crs = grass.read_command("g.proj", flags="fj").rstrip(os.linesep)
-    target = osr.SpatialReference(target_crs)
-    target.ImportFromProj4(target_crs)
-    if target == "XY location (unprojected)":
+    proj_info = grass.parse_command("g.proj", flags="g")
+    target_crs = grass.read_command("g.proj", flags="fj").rstrip()
+    target = osr.SpatialReference()
+
+    # Prefer EPSG CRS definitions
+    if proj_info["epsg"]:
+        target.ImportFromEPSG(int(proj_info["epsg"]))
+    else:
+        target.ImportFromProj4(target_crs)
+
+    # GDAL >= 3 swaps x and y axis, see: github.com/gdal/issues/1546
+    if int(gdal_version[0]) >= 3:
+        target.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
+    if target_crs == "XY location (unprojected)":
         grass.fatal("Sorry, XY locations are not supported!")
 
     # Set source projection from GBIF
     source = osr.SpatialReference()
     source.ImportFromEPSG(4326)
+    # GDAL >= 3 swaps x and y axis, see: github.com/gdal/issues/1546
+    if int(gdal_version[0]) >= 3:
+        source.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
+
     if target_crs not in latlon_crs:
         transform = osr.CoordinateTransformation(source, target)
         reverse_transform = osr.CoordinateTransformation(target, source)
@@ -491,7 +513,7 @@ def main():
                 .rstrip(")")
                 .split(",")
             )
-            region_pol = "POLYGON(({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))".format(
+            region_pol = "POLYGON (({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))".format(
                 bbox[2], bbox[0], bbox[3], bbox[1]
             )
         m.close()
@@ -509,7 +531,7 @@ def main():
             # if LOCATION is !NOT! able to take global data
             # to avoid pprojection ERRORS
             region = grass.parse_command("g.region", flags="g")
-            region_pol = "POLYGON(({0} {1}, {0} {3}, {2} {3}, {2} {1}, {0} {1}))".format(
+            region_pol = "POLYGON (({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
                 region["e"], region["n"], region["w"], region["s"]
             )
 
@@ -612,7 +634,7 @@ def main():
         # Exit if search does not give a return
         # Print only number of returns for the given search and exit
         if print_occ_number:
-            grass.message("Found {0} occurrences for taxon {1}...".format(returns_n, s))
+            print("Found {0} occurrences for taxon {1}...".format(returns_n, s))
             continue
         elif returns_n <= 0:
             grass.warning(
@@ -809,7 +831,6 @@ def main():
 
 
 # Run the module
-# ToDo: Add an atexit procedure which closes and removes the current map
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
