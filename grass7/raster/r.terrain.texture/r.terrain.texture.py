@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+
 ##############################################################################
 #
 # MODULE:       Unsupervised nested-means algorithm for terrain classification
