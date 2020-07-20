@@ -20,21 +20,21 @@
 #%option G_OPT_R_INPUT
 #% description: Input elevation raster
 #% key: input
-#% required : yes
+#% required: yes
 #%end
 
 #%option G_OPT_R_OUTPUT
 #% description: Output Terrain Ruggedness Index (TRI)
 #% key: output
-#% required : yes
+#% required: yes
 #%end
 
 #%option
 #% key: size
 #% type: integer
 #% description: Size of neighbourhood in cells
+#% required: yes
 #% answer: 3
-#% guisection: required
 #%end
 
 #%flag
