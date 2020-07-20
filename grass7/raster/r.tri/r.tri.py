@@ -119,6 +119,9 @@ def main():
     size = int(options["size"])
     circular = flags["c"]
     radius = int((size - 1) / 2)
+    
+    if "@" in tri:
+    	tri = tri.split("@")[0]
 
     # calculate TRI based on map calc statements
     gs.message("Calculating the Topographic Ruggedness Index...")
