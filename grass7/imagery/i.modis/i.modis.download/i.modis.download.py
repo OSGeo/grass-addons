@@ -96,6 +96,8 @@ if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
+if sys.version_info[0] >= 3:
+    raw_input = input
 
 def check(home):
     """ Check if a folder it is writable by the user that launch the process
@@ -248,7 +250,7 @@ def main():
         modisOgg = downModis(url=prod['url'], user=user, password=passwd,
                              destinationFolder=fold, tiles=tiles, delta=delta,
                              path=prod['folder'], product=prod['prod'],
-                             today=str(firstday), enddate=str(finalday),
+                             today=firstday, enddate=finalday,
                              debug=debug_opt, checkgdal=checkgdal)
         # connect to ftp
         modisOgg.connect()
