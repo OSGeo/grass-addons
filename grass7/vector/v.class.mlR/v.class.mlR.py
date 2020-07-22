@@ -516,7 +516,7 @@ def main():
                 r_file.write("library(%s)" % package)
                 r_file.write("\n")
     else:
-        r_file.write("training <- data.frame(fread('%s', sep='%s', header=TRUE, blank.lines.skip=TRUE, showProgress=FALSE))" % (training_vars, separator))
+        r_file.write("training <- data.frame(fread('%s', sep='%s', header=TRUE, blank.lines.skip=TRUE, showProgress=FALSE), row.names=1)" % (training_vars, separator))
         r_file.write("\n")
         # We have to make sure that class variable values start with a letter as
         # they will be used as variables in the probabilities calculation
