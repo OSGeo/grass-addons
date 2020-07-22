@@ -131,7 +131,6 @@ import string
 import multiprocessing as mp
 
 import grass.script as gs
-import grass.script.core as gcore
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -155,8 +154,13 @@ def cleanup():
 
 
 def get_tiles(region, n_jobs):
-    width = math.ceil(region.cols * 2 / n_jobs)
-    height = math.ceil(region.rows * 2 / n_jobs)
+    n = math.sqrt(n_jobs)
+    width = math.ceil(region.cols / n)
+    height = math.ceil(region.rows / n)
+
+    if width < 250 or height < 250:
+        width = region.cols
+        height = region.rows
 
     return width, height
 
@@ -282,54 +286,41 @@ def get_percentile(L, input, radius=3, window_square=False, n_jobs=1):
             )
         )
 
-    expr = "{x} = ({s}) / {n}".format(x=PCTL, s=" + ".join(terms), n=n_pixels)
+    expr = "{x} = ({terms}) / {n}".format(x=PCTL, terms=" + ".join(terms), n=n_pixels)
 
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(
-            expr,
-            processes=n_jobs,
+    region = Region()
+    width, height = get_tiles(region, n_jobs)
+
+    if width < region.cols and height < region.rows and n_jobs > 1:
+        grd = GridModule(
+            cmd="r.mapcalc.simple",
             width=width,
             height=height,
+            processes=n_jobs,
             overlap=radius,
-            mapset_prefix="PCTL"
+            mapset_prefix="PCTL",
+            expression=expr,
+            output=PCTL
         )
+        grd.run()
     else:
         gs.mapcalc(expr)
 
     return PCTL
 
 
-def get_slope(L, elevation, n_jobs):
-    region = Region()
-
+def get_slope(L, elevation):
     slope = "tmp_slope_step{L}".format(L=L + 1) + "".join(
         [random.choice(string.ascii_letters + string.digits) for n in range(4)]
     )
     TMP_RAST[L].append(slope)
 
-    if n_jobs > 1:
-        width, height = get_tiles(region, n_jobs)
-
-        grd = GridModule(
-            "r.slope.aspect",
-            width=width,
-            height=height,
-            overlap=3,
-            processes=n_jobs,
-            elevation=elevation,
-            slope=slope,
-            flags="e"
-        )
-        grd.run()
-    else:
-        r.slope_aspect(elevation=elevation, slope=slope, flags="e")
+    r.slope_aspect(elevation=elevation, slope=slope, flags="e")
 
     return slope
 
 
-def get_flatness(L, slope, t, p, n_jobs):
+def get_flatness(L, slope, t, p):
     """Calculates the flatness index
     Flatness F1 = 1 / (1 + pow ((slope / t), p)
 
@@ -341,18 +332,12 @@ def get_flatness(L, slope, t, p, n_jobs):
     TMP_RAST[L].append(F)
 
     expr = "{g} = 1.0 / (1.0 + pow(({x} / {t}), {p}))".format(g=F, x=slope, t=t, p=p)
-
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=F)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return F
 
 
-def get_prelim_flatness(L, F, PCTL, t, p, n_jobs):
+def get_prelim_flatness(L, F, PCTL, t, p):
     """Transform elevation percentile to a local lowness value using
     equation (1) and combined with flatness F to produce the preliminary
     valley flatness index (PVF) for the first step.
@@ -368,17 +353,12 @@ def get_prelim_flatness(L, F, PCTL, t, p, n_jobs):
         g=PVF, a=F, x=PCTL, t=t, p=p
     )
 
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=PVF)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return PVF
 
 
-def get_prelim_flatness_rf(L, F, PCTL, t, p, n_jobs):
+def get_prelim_flatness_rf(L, F, PCTL, t, p):
     """Transform elevation percentile to a local upness value using
     equation (1) and combined with flatness to produce the preliminary
     valley flatness index (PVF) for the first step
@@ -393,18 +373,12 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p, n_jobs):
     expr = "{g} = {a} * (1.0 / (1.0 + pow(((1-{x}) / {t}), {p})))".format(
         g=PVF, a=F, x=PCTL, t=t, p=p
     )
-
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=PVF)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return PVF
 
 
-def get_valley_flatness(L, PVF, t, p, n_jobs):
+def get_valley_flatness(L, PVF, t, p):
     """Calculation of the valley flatness step VF
     Larger values of VF1 indicate increasing valley bottom character
     with values less than 0.5 considered not to be in valley bottoms
@@ -415,21 +389,16 @@ def get_valley_flatness(L, PVF, t, p, n_jobs):
         [random.choice(string.ascii_letters + string.digits) for n in range(4)]
     )
     TMP_RAST[L].append(VF)
+
     expr = "{g} = 1 - (1.0 / (1.0 + pow(({x} / {t}), {p})))".format(
         g=VF, x=PVF, t=t, p=p
     )
-
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=VF)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return VF
 
 
-def get_mrvbf(L, VF_Lminus1, VF_L, t, n_jobs):
+def get_mrvbf(L, VF_Lminus1, VF_L, t):
     """Calculation of the MRVBF index
     Requires that L>1"""
 
@@ -447,30 +416,20 @@ def get_mrvbf(L, VF_Lminus1, VF_L, t, n_jobs):
     expr = "{g} = 1 - (1.0 / (1.0 + pow(({x} / {t}), {p})))".format(
         g=W, x=VF_L, t=t, p=p
     )
-
-    region = Region()
-    width, height = get_tiles(region, n_jobs)
-
-    if n_jobs > 1:
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=W)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     # Calculation of MRVBF2	(Equation 8)
     TMP_RAST[L].append(MRVBF)
+
     expr = "{MBF} = ({W} * ({L} + {VF})) + ((1 - {W}) * {VF1})".format(
         MBF=MRVBF, L=L, W=W, VF=VF_L, VF1=VF_Lminus1
     )
-
-    if n_jobs > 1:
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=MRVBF)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return MRVBF
 
 
-def get_combined_flatness(L, F1, F2, n_jobs):
+def get_combined_flatness(L, F1, F2):
     """Calculates the combined flatness index
 
     Equation 13 (Gallant and Dowling, 2003)"""
@@ -481,13 +440,7 @@ def get_combined_flatness(L, F1, F2, n_jobs):
     TMP_RAST[L].append(CF)
 
     expr = "{CF} = {F1} * {F2}".format(CF=CF, F1=F1, F2=F2)
-
-    if n_jobs > 1:
-        region = Region()
-        width, height = get_tiles(region, n_jobs)
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix=CF)
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     return CF
 
@@ -551,20 +504,14 @@ def main():
     current_region = Region()
 
     # Some checks
-    if n_jobs != 1:
-        if not gcore.find_program("r.mapcalc.tiled", "--help"):
-            msg = "Parallelized computation requires the extension 'r.mapcalc.tiled' to be installed."
-            msg = " ".join([msg, "Install it using 'g.extension r.mapcalc.tiled'"])
-            gs.fatal(msg)
+    if n_jobs == 0:
+        gs.fatal(
+            "Number of processing cores for parallel computation must not equal 0"
+        )
 
-        if n_jobs == 0:
-            gs.fatal(
-                "Number of processing cores for parallel computation must not equal 0"
-            )
-
-        if n_jobs < 0:
-            system_cores = mp.cpu_count()
-            n_jobs = system_cores + n_jobs + 1
+    if n_jobs < 0:
+        system_cores = mp.cpu_count()
+        n_jobs = system_cores + n_jobs + 1
 
     if (
         t_slope <= 0
@@ -635,8 +582,8 @@ def main():
     gs.message(
         "Calculation of slope and transformation to flatness F{L}...".format(L=L + 1)
     )
-    slope[L] = get_slope(L, DEM[L], n_jobs)
-    F[L] = get_flatness(L, slope[L], t_slope, p_slope, n_jobs)
+    slope[L] = get_slope(L, DEM[L])
+    F[L] = get_flatness(L, slope[L], t_slope, p_slope)
 
     # Calculation of elevation percentile PCTL for step 1
     gs.message("Calculation of elevation percentile PCTL{L}...".format(L=L + 1))
@@ -646,21 +593,21 @@ def main():
     gs.message(
         "Calculation of preliminary valley flatness index PVF{L}...".format(L=L + 1)
     )
-    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl, n_jobs)
+    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
     if mrrtf != "":
         gs.message(
             "Calculation of preliminary ridge top flatness index PRF{L}...".format(
                 L=L + 1
             )
         )
-        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl, n_jobs)
+        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
 
     # Calculation of the valley flatness step 1 VF1 (Equation 4)
     gs.message("Calculation of valley flatness VF{L}...".format(L=L + 1))
-    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope, n_jobs)
+    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
     if mrrtf != "":
         gs.message("Calculation of ridge top flatness RF{L}...".format(L=L + 1))
-        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope, n_jobs)
+        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
     ##################################################################################
     # Step 2 (L=1)
@@ -680,7 +627,7 @@ def main():
     # The second step commences the same way with the original DEM at its base resolution,
     # using a slope threshold ts,2 half of ts,1:
     gs.message("Calculation of flatness F{L}...".format(L=L + 1))
-    F[L] = get_flatness(L, slope[L - 1], t_slope, p_slope, n_jobs)
+    F[L] = get_flatness(L, slope[L - 1], t_slope, p_slope)
 
     # Calculation of elevation percentile PCTL for step 2 (radius of 6 cells)
     gs.message("Calculation of elevation percentile PCTL{L}...".format(L=L + 1))
@@ -690,34 +637,34 @@ def main():
     gs.message(
         "Calculation of preliminary valley flatness index PVF{L}...".format(L=L + 1)
     )
-    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl, n_jobs)
+    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
     if mrrtf != "":
         gs.message(
             "Calculation of preliminary ridge top flatness index PRF{L}...".format(
                 L=L + 1
             )
         )
-        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl, n_jobs)
+        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
 
     # Calculation of the valley flatness VF for step 2 (Equation 7)
     gs.message("Calculation of valley flatness VF{L}...".format(L=L + 1))
-    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope, n_jobs)
+    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
     if mrrtf != "":
         gs.message("Calculation of ridge top flatness RF{L}...".format(L=L + 1))
-        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope, n_jobs)
+        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
     # Calculation of MRVBF for step 2
     gs.message("Calculation of MRVBF{L}...".format(L=L + 1))
-    MRVBF[L] = get_mrvbf(L, VF_Lminus1=VF[L - 1], VF_L=VF[L], t=t_pctl_v, n_jobs=n_jobs)
+    MRVBF[L] = get_mrvbf(L, VF_Lminus1=VF[L - 1], VF_L=VF[L], t=t_pctl_v)
     if mrrtf != "":
         gs.message("Calculation of MRRTF{L}...".format(L=L + 1))
         MRRTF[L] = get_mrvbf(
-            L, VF_Lminus1=VF_RF[L - 1], VF_L=VF_RF[L], t=t_pctl_r, n_jobs=n_jobs
+            L, VF_Lminus1=VF_RF[L - 1], VF_L=VF_RF[L], t=t_pctl_r
         )
 
     # Update flatness for step 2 with combined flatness from F1 and F2 (Equation 10)
     gs.message("Calculation  of combined flatness index CF{L}...".format(L=L + 1))
-    F[L] = get_combined_flatness(L, F[L - 1], F[L], n_jobs)
+    F[L] = get_combined_flatness(L, F[L - 1], F[L])
 
     ##################################################################################
     # Remaining steps
@@ -756,7 +703,7 @@ def main():
 
         # Calculate slope
         gs.message("Calculation of slope...")
-        slope[L] = get_slope(L, DEM[L], n_jobs)
+        slope[L] = get_slope(L, DEM[L])
 
         # Refine slope to base resolution
         if L >= 3:
@@ -775,13 +722,13 @@ def main():
 
         # Calculate flatness F at the base resolution
         gs.message("Calculate F{L} at base resolution...".format(L=L + 1))
-        F[L] = get_flatness(L, slope[L], t_slope, p_slope, n_jobs)
+        F[L] = get_flatness(L, slope[L], t_slope, p_slope)
 
         # Update flatness with combined flatness CF from the previous step
         gs.message(
             "Calculate combined flatness CF{L} at base resolution...".format(L=L + 1)
         )
-        F[L] = get_combined_flatness(L, F1=F[L - 1], F2=F[L], n_jobs=n_jobs)
+        F[L] = get_combined_flatness(L, F1=F[L - 1], F2=F[L])
 
         # Calculate preliminary valley flatness index PVF at the base resolution
         gs.message(
@@ -789,7 +736,7 @@ def main():
                 L=L + 1
             )
         )
-        PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl, n_jobs)
+        PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
         if mrrtf != "":
             gs.message(
                 "Calculate preliminary ridge top flatness index PRF{L} at base resolution...".format(
@@ -797,7 +744,7 @@ def main():
                 )
             )
             PVF_RF[L] = get_prelim_flatness_rf(
-                L, F[L], PCTL[L], t_pctl_r, p_pctl, n_jobs
+                L, F[L], PCTL[L], t_pctl_r, p_pctl
             )
 
         # Calculate valley flatness index VF
@@ -806,43 +753,33 @@ def main():
                 L=L + 1
             )
         )
-        VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope, n_jobs)
+        VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
         if mrrtf != "":
             gs.message(
                 "Calculate ridge top flatness index RF{L} at base resolution...".format(
                     L=L + 1
                 )
             )
-            VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope, n_jobs)
+            VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
         # Calculation of MRVBF
         gs.message("Calculation of MRVBF{L}...".format(L=L + 1))
         MRVBF[L] = get_mrvbf(
-            L, VF_Lminus1=MRVBF[L - 1], VF_L=VF[L], t=t_pctl_v, n_jobs=n_jobs
+            L, VF_Lminus1=MRVBF[L - 1], VF_L=VF[L], t=t_pctl_v
         )
         if mrrtf != "":
             gs.message("Calculation of MRRTF{L}...".format(L=L + 1))
             MRRTF[L] = get_mrvbf(
-                L, VF_Lminus1=MRRTF[L - 1], VF_L=VF_RF[L], t=t_pctl_r, n_jobs=n_jobs
+                L, VF_Lminus1=MRRTF[L - 1], VF_L=VF_RF[L], t=t_pctl_r
             )
 
     # Output final MRVBF
-    region = Region()
-    width, height = get_tiles(region, n_jobs)
-
     expr = "{x} = {y}".format(x=mrvbf, y=MRVBF[L])
-    if n_jobs > 1:
-        r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix="final_mrvbf")
-    else:
-        gs.mapcalc(expr)
+    gs.mapcalc(expr)
 
     if mrrtf != "":
         expr = "{x} = {y}".format(x=mrrtf, y=MRRTF[L])
-
-        if n_jobs > 1:
-            r.mapcalc_tiled(expr, processes=n_jobs, width=width, height=height, mapset_prefix="final_mrrtf")
-        else:
-            gs.mapcalc(expr)
+        gs.mapcalc(expr)
 
 
 if __name__ == "__main__":
