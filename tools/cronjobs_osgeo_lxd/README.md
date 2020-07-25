@@ -16,10 +16,10 @@ This directory contains the relevant files to
 - GRASS GIS addons manual pages:
     - within `cron_grass78_releasebranch_78_build_bins.sh`
 - GRASS GIS addons overview page at https://grass.osgeo.org/grass7/manuals/addons/:
-    - `compile_addons_git.sh`
-    - `get_page_description.py`
-    - `grass-addons-fetch-xml.sh`
-    - `grass-addons-index.sh`
+    - `compile_addons_git.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
+    - `grass-addons-fetch-xml.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
+    - `grass-addons-index.sh` - called from `cron_grass78_releasebranch_78_build_bins.sh`
+    - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS programmer's manual:
     - within `cron_grass7_HEAD_build_bins.sh`
 
