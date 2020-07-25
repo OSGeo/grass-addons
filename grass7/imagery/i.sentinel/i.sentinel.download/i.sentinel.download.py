@@ -101,6 +101,13 @@
 #% guisection: Filter
 #%end
 #%option
+#% key: relativeorbitnumber
+#% type: integer
+#% multiple: no
+#% description: Relative orbit number to download
+#% guisection: Filter
+#%end
+#%option
 #% key: sort
 #% description: Sort by values in given order
 #% multiple: yes
@@ -232,7 +239,7 @@ class SentinelDownloader(object):
 
     def filter(self, area, area_relation,
                clouds=None, producttype=None, limit=None, query={},
-               start=None, end=None, sortby=[], asc=True):
+               start=None, end=None, sortby=[], asc=True, relativeorbitnumber=None):
         args = {}
         if clouds:
             args['cloudcoverpercentage'] = (0, int(clouds))
@@ -482,7 +489,8 @@ def main():
                               start=options['start'],
                               end=options['end'],
                               sortby=sortby,
-                              asc=options['order'] == 'asc'
+                              asc=options['order'] == 'asc',
+                              relativeorbitnumber=options['relativeorbitnumber']
             )
     except Exception as e:
         gs.fatal(_('Unable to connect Copernicus Open Access Hub: {}').format(e))
