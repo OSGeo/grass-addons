@@ -4,6 +4,8 @@ This directory contains the relevant files to
 
 - cronjob schedule:
     - `cron_job_list_grass`
+    - IMPORTANT: to activate any cronjob change, run the following on `grasslxd` container (as user `neteler`):
+        - `crontab $HOME/cronjobs/cron_job_list_grass && crontab -l`
 - generate and deploy the GRASS GIS Web pages (hugo based, https://staging.grass.osgeo.org/):
     - `hugo_clean_axnd_update_job.sh`
 - GRASS GIS source code weekly snapshots:
