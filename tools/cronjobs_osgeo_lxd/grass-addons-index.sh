@@ -16,10 +16,22 @@
 # Requirements: ./get_page_description.py
 
 CRONJOBDIR=~/cronjobs/
+MAJOR=7
+MINOR=8
 
 ##################
 # generated Addon HTML manual pages are expected to be in the directory
 # /home/neteler/var/www/grass/grass-cms/grass${major}${minor}/manuals/addons/
+
+if [ $# -ne 1 ] ; then
+  echo "ERROR: addon manpath required.
+
+Usage:
+
+$0 manpath"
+  exit 1
+fi
+
 
 module_prefix () {
     case "$1" in
@@ -72,14 +84,13 @@ module_prefix () {
 }
 
 generate () {
-    # 6 4 | 7 8
+    # 7 8
     major=$1
     minor=$2
     manpath=$3
 
     # DEBUG
     # mkdir -p /tmp/grass${major}${minor}/manuals/addons ; cd /tmp/grass${major}${minor}/manuals/addons
-    # grass.osgeo.org SERVER
     cd $manpath
 
     if test -f index.html ; then
@@ -172,11 +183,12 @@ See also log files of compilation:
 &copy; 2013-${year} <a href=\"https://grass.osgeo.org\">GRASS Development Team</a>, GRASS GIS ${major} Addons Reference Manual<br>" >> index.html
     echo "<i><small>`date -u`</small></i>" >> index.html
     echo "</body></html>" >> index.html
+    rm -f index.html.bak
 }
 
 ## main
 # $1 is path to addons manual directory:
-generate 7 8 $1
+generate $MAJOR $MINOR $1
 # unused: #generate 6 4
 
 exit 0
