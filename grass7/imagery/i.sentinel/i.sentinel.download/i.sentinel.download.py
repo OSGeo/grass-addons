@@ -104,7 +104,7 @@
 #% key: relativeorbitnumber
 #% type: integer
 #% multiple: no
-#% description: Relative orbit number to download
+#% description: Relative orbit number to download (from 1 to 175)
 #% guisection: Filter
 #%end
 #%option
