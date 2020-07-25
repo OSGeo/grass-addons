@@ -9,11 +9,10 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import error
-import playground
-import agent
-
 from math import sqrt
+
+from libagent import agent, error, playground
+
 
 class World(object):
     """
@@ -138,4 +137,3 @@ class World(object):
         @param agent to be terminated
         """
         self.agents.remove(agent)
-

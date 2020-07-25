@@ -9,13 +9,11 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import error, world, ant
-
-#from grass.script import core as grass
-from sys import maxsize
-from math import sqrt
-from math import exp
 from random import randint
+from sys import maxsize
+
+from libagent import ant, world
+
 
 class Anthill(world.World):
     """
@@ -176,4 +174,3 @@ class Anthill(world.World):
         @return the value of interest
         """
         return self.playground.getcellvalue(Anthill.SITE, position)
-
