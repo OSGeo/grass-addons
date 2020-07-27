@@ -29,8 +29,9 @@
 05 06 * * * nice sh /home/neteler/cronjobs/cron_grass78_releasebranch_78_build_bins.sh  > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log 2>&1
 #05 07 * * * nice sh /home/neteler/cronjobs/cron_grass76_releasebranch_76_build_bins.sh  > /var/www/code_and_data/grass76/binary/linux/snapshot/build.log 2>&1
 #05 08 * * * nice sh /home/neteler/cronjobs/cron_grass74_releasebranch_74_build_bins.sh  > /var/www/code_and_data/grass74/binary/linux/snapshot/build.log 2>&1
-# package stuff for old osgeo6 server (remove this once CMSMS is retired and hugo server becomes main server)
-05 09 * * * (cd /var/www/code_and_data/ ; rm -f /home/neteler/tmp/grass_all_snapshots.zip ; mkdir -p /home/neteler/tmp/; nice zip -r /home/neteler/tmp/grass_all_snapshots.zip addons grass78 grass79 programming7 uploads)
+## no longer needed 7/2020 after DNS switch
+## package stuff for old osgeo6 server (remove this once CMSMS is retired and hugo server becomes main server)
+#05 09 * * * (cd /var/www/code_and_data/ ; rm -f /home/neteler/tmp/grass_all_snapshots.zip ; mkdir -p /home/neteler/tmp/; nice zip -r /home/neteler/tmp/grass_all_snapshots.zip addons grass78 grass79 programming7 uploads)
 
 # generate osgeo_mailman_stats/ + email
 # ... runs as root cronjob on osgeo6 machine
