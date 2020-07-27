@@ -4,7 +4,7 @@
 
 MODULE:       r.colors.out_sld
 AUTHOR(S):    Hamish Bowman
-              Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python, 
+              Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python,
               lable and opacity support
 PURPOSE:      Export GRASS raster color table to OGC SLD template v1.0.0
 COPYRIGHT:    (C) 2011 by Hamish Bowman, and the GRASS Development Team
@@ -56,6 +56,11 @@ To Dos:
 #% answer: -
 #%End
 
+#%flag
+#% key: n
+#% description: Propagate NULLs
+#%end
+
 import os
 import sys
 import grass.script as grass
@@ -105,11 +110,11 @@ def main():
 
     # Initialize SLD with header
     sld = u"""<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0" 
-    xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
-    xmlns="http://www.opengis.net/sld" 
-    xmlns:ogc="http://www.opengis.net/ogc" 
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
+<StyledLayerDescriptor version="1.0.0"
+    xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
+    xmlns="http://www.opengis.net/sld"
+    xmlns:ogc="http://www.opengis.net/ogc"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
     <Name>{}</Name>""".format(style_name)
@@ -128,7 +133,7 @@ def main():
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
-    # 
+    #
     for c in color_rules:
         if len(c.split(' ')) == 2 and not c.split(' ')[0] == 'default':
             q = c.split(' ')[0]
@@ -150,9 +155,11 @@ def main():
                     l = 'NoData'
                 else:
                     continue
-                sld+=ColorMapEntry.format(r,g,b,q,l,o)
+                if not q == 'NaN' or flags['n']:
+                    sld+=ColorMapEntry.format(r,g,b,q,l,o)
             else:
-                sld+=ColorMapEntry.format(r,g,b,q,o)
+                if not q == 'NaN' or flags['n']:
+                    sld+=ColorMapEntry.format(r,g,b,q,o)
 
     # write file footer
     sld+="""            </ColorMap>
