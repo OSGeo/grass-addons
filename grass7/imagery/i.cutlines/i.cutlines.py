@@ -301,10 +301,10 @@ def main():
 
     if nsrange > ewrange:
         hnumber_lines = number_lines
-        vnumber_lines = int(number_lines * (ewrange / nsrange))
+        vnumber_lines = max(int(number_lines * (ewrange / nsrange)), 1)
     else:
         vnumber_lines = number_lines
-        hnumber_lines = int(number_lines * (nsrange / ewrange))
+        hnumber_lines = max(int(number_lines * (nsrange / ewrange)), 1)
 
     # Create the lines in horizonal direction
     nsstep = float(region.n - region.s - region.nsres) / hnumber_lines
