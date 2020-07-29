@@ -92,16 +92,6 @@ cat,landclass96,elevation,geology_30m
 </pre></div>
 
 
-<h2>KNOWN ISSUES</h2>
-
-The module does not respect mask. More precisely it does not allow mask
-to be active when it is started because it sets the mask by itself
-for its own purposes. The mask is removed at the end of execution
-but all other modules executed in parallel with this module (such
-as rendering maps in GUI) will be influenced by the mask set
-by this module.
-
-
 <h2>SEE ALSO</h2>
 
 <em>
