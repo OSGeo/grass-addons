@@ -253,8 +253,8 @@ static int trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                     double length =
                         down_length +
                         (i *
-                         j ? diag_length : (i ? window.
-                                            ns_res : window.ew_res));
+                         j ? diag_length : (i ? window.ns_res : window.
+                                            ew_res));
 
                     up[nup].row = row + i;
                     up[nup].col = col + j;
