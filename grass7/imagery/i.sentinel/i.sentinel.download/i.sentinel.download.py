@@ -243,6 +243,8 @@ class SentinelDownloader(object):
         args = {}
         if clouds:
             args['cloudcoverpercentage'] = (0, int(clouds))
+        if relativeorbitnumber:
+            args['relativeorbitnumber'] = relativeorbitnumber
         if producttype:
             args['producttype'] = producttype
             if producttype.startswith('S2'):
