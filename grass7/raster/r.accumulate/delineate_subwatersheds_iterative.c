@@ -96,8 +96,7 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
     struct neighbor up[8];
     struct neighbor_stack up_stack;
 
-    /* if the current cell is outside the computational region or already
-     * processed, stop tracing */
+    /* if the current cell is outside the computational region, stop tracing */
     if (row < 0 || row >= nrows || col < 0 || col >= ncols)
         return;
 
