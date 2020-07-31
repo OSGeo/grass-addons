@@ -6,20 +6,21 @@ static int nrows, ncols;
 static double trace_up(struct cell_map *, struct raster_map *,
                        struct raster_map *, char **, char, int, int);
 
-void accumulate(struct cell_map *dir_buf, struct raster_map *weight_buf,
-                struct raster_map *accum_buf, char **done, char neg,
-                char null)
+void accumulate_recursive(struct cell_map *dir_buf,
+                          struct raster_map *weight_buf,
+                          struct raster_map *accum_buf, char **done, char neg,
+                          char null)
 {
     int row, col;
 
     nrows = dir_buf->nrows;
     ncols = dir_buf->ncols;
 
-    G_message(_("Accumulating flows..."));
+    G_message(_("Accumulating flows recursively..."));
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
         for (col = 0; col < ncols; col++)
-            if (!Rast_is_c_null_value(&dir_buf->c[row][col]))
+            if (dir_buf->c[row][col])
                 trace_up(dir_buf, weight_buf, accum_buf, done, neg, row, col);
             else if (null)
                 set_null(accum_buf, row, col);
@@ -48,10 +49,7 @@ static double trace_up(struct cell_map *dir_buf,
 
     /* if a weight map is specified (no negative accumulation is implied), use
      * the weight value at the current cell; otherwise use 1 */
-    if (weight_buf->map.v)
-        accum = get(weight_buf, row, col);
-    else
-        accum = 1.0;
+    accum = weight_buf->map.v ? get(weight_buf, row, col) : 1.0;
 
     /* loop through all neighbor cells and see if any of them drains into the
      * current cell (are there upstream cells?) */
@@ -59,7 +57,7 @@ static double trace_up(struct cell_map *dir_buf,
         /* if a neighbor cell is outside the computational region, its
          * downstream accumulation is incomplete */
         if (row + i < 0 || row + i >= nrows) {
-            incomplete = 1;
+            incomplete = neg;
             continue;
         }
 
@@ -68,10 +66,11 @@ static double trace_up(struct cell_map *dir_buf,
             if (i == 0 && j == 0)
                 continue;
 
-            /* if a neighbor cell is outside the computational region, its
-             * downstream accumulation is incomplete */
-            if (col + j < 0 || col + j >= ncols) {
-                incomplete = 1;
+            /* if a neighbor cell is outside the computational region or null,
+             * its downstream accumulation is incomplete */
+            if (col + j < 0 || col + j >= ncols ||
+                !dir_buf->c[row + i][col + j]) {
+                incomplete = neg;
                 continue;
             }
 
@@ -90,7 +89,7 @@ static double trace_up(struct cell_map *dir_buf,
                 /* if the neighbor cell is incomplete, the current cell also
                  * becomes incomplete */
                 if (done[row + i][col + j] == 2)
-                    incomplete = 1;
+                    incomplete = neg;
             }
         }
     }
@@ -98,10 +97,10 @@ static double trace_up(struct cell_map *dir_buf,
     /* if negative accumulation is desired and the current cell is incomplete,
      * use a negative cell count without weighting; otherwise use accumulation
      * as is (cell count or weighted accumulation, which can be negative) */
-    set(accum_buf, row, col, neg && incomplete ? -accum : accum);
+    set(accum_buf, row, col, incomplete ? -accum : accum);
 
     /* the current cell is done; 1 for no likely underestimates and 2 for
-     * likely underestimates */
+     * likely underestimates (only when requested) */
     done[row][col] = 1 + incomplete;
 
     /* for negative accumulation, accum is already positive */

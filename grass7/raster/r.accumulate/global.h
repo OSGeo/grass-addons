@@ -92,9 +92,13 @@ void reset_line_list(struct line_list *);
 void free_line_list(struct line_list *);
 void add_line(struct line_list *, struct line *);
 
-/* accumulate.c */
-void accumulate(struct cell_map *, struct raster_map *, struct raster_map *,
-                char **, char, char);
+/* accumulate_iterative.c */
+void accumulate_iterative(struct cell_map *, struct raster_map *,
+                          struct raster_map *, char **, char, char);
+
+/* accumulate_recursive.c */
+void accumulate_recursive(struct cell_map *, struct raster_map *,
+                          struct raster_map *, char **, char, char);
 
 /* subaccumulate.c */
 void subaccumulate(struct Map_info *, struct cell_map *, struct raster_map *,
