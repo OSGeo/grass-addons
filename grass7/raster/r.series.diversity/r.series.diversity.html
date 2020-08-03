@@ -70,28 +70,29 @@ is a ratio of a relatively stable index, H', and one that is
 strongly dependent on sample size, S. The name of the output layer 
 is composed of the basename + pielou.
 
-<h4>Inverse Simpson index (Simpson's Reciprocal Index)</h4>
+<h4>Simpson's index of diversity</h4>
 
 The Simpson's index is defined as <i>D = sum p_i^2</i>. This is 
-equivalent to <i>-1 * 1 / exp(R2)</i>, with <i>R2</i> the renyi 
-index for <i>alpha=2</i>. With this index, 0 represents infinite 
-diversity and 1, no diversity. This is counterintuitive behavior for 
-a diversity index. An alternative is the inverse Simpson index, 
+equivalent to <i>-1 * 1 / exp(R2)</i>, with <i>R2</i> the renyi index 
+for <i>alpha=2</i>. With this index, 0 represents infinite diversity 
+and 1, no diversity. As this is counterintuitive behavior for a 
+diversity index, we use <i>1 - D</i> (Gini, 1912; Simpson, 1949). This 
+is also called the probability of interspecific encounter (PIE) or the 
+Gini–Simpson index. The index represents the probability that two 
+individuals randomly selected from a sample will belong to different 
+species. The value ranges between 0 and 1, with greater values 
+representing greater sample diversity. The name of the output layer 
+is composed of the basename + ginisimpson.
+
+<h4>Inverse Simpson index (Simpson's Reciprocal Index)</h4>
+
+An alternative way to overcome the problem of the counter-intuitive 
+nature of Simpson's Index is to use  the inverse Simpson index, 
 which is defined as <i>ID = 1 / D)</i>. The lowest value of this 
 index is 1 and represent a community containing only one species. 
 The higher the value, the greater the diversity. The maximum value 
 is the number of species in the sample. The name of the output layer 
 is composed of the basename + invsimpson.
-
-<h4>Gini-Simpson index (Simpson's index of diversity)</h4>
-
-An alternative way to overcome the problem of the counter-intuitive 
-nature of Simpson's Index is to use <i>1 - D)</i> (Gini, 1912; 
-Simpson, 1949). The index represents the probability that two 
-individuals randomly selected from a sample will belong to different 
-species. The value ranges between 0 and 1, with greater values 
-representing greater sample diversity. The name of the output layer 
-is composed of the basename + ginisimpson.
 
 <h2>NOTES</h2>
 
@@ -193,7 +194,7 @@ max=0.5658
 
 
 <h2>AUTHOR</h2>
-Paulo van Breugel, paulo at ecodiv.org
+Paulo van Breugel, paulo at ecodiv dot earth
 
 <!--
 <p>

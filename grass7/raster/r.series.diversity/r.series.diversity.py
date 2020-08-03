@@ -146,8 +146,8 @@ def CheckLayer(envlay):
 
 # Create temporary name
 def tmpname(name):
-    tmpf = name + "_" + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, '-', '_')
+    tmpf1 = name + "_" + str(uuid.uuid4())
+    tmpf = tmpf1.replace('-', '_')
     clean_rast.add(tmpf)
     return tmpf
 
@@ -175,6 +175,11 @@ def replacemask(inmap):
 # main function
 #----------------------------------------------------------------------------
 
+# testset
+#MAPS = ','.join(grass.list_strings(type='raster', pattern='s*', mapset='trees'))
+#flags = {'r':False, 's':True, 'h':True, 'e':True, 'p':True,'g':True,'n':True, 't':False}
+#options={'output':'Test01', 'input':MAPS, 'alpha':''}
+
 def main():
 
     #--------------------------------------------------------------------------
@@ -198,10 +203,11 @@ def main():
     flag_n = flags['n']
     flag_t = flags['t']
     if options['alpha']:
-        Q = map(float, options['alpha'].split(','))
+        Qtmp = map(float, options['alpha'].split(','))
     else:
-        Q = map(float, [])
-    Qoriginal = list(Q)
+        Qtmp = map(float, [])
+    Q = list(Qtmp)
+    Qoriginal = Q
 
     #--------------------------------------------------------------------------
     # Create list of what need to be computed
@@ -247,7 +253,7 @@ def main():
                 grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
                 tmp_2 = tmpname("sht")
                 clean_rast.add(tmp_2)
-                grass.mapcalc("$tmp_2 = $renyi - (($inl/$tmp_1) * log(($inl/$tmp_1)))",
+                grass.mapcalc("$tmp_2 = if($inl == 0, $renyi, $renyi - (($inl/$tmp_1) * log(($inl/$tmp_1))))",
                               renyi=renyi, tmp_2=tmp_2,
                               inl=IN[i], tmp_1=tmp_1, quiet=True)
                 grass.run_command("g.rename", raster="{0},{1}".format(
@@ -261,7 +267,7 @@ def main():
             grass.mapcalc("$tmp_3 = 0", tmp_3=tmp_3, quiet=True)
             for i in range(len(IN)):
                 grass.info(_("Computing map {j} from {n} maps").format(j=i+1, n=len(IN)))
-                grass.mapcalc("$tmp_4 = $tmp_3 + (pow($inl/$tmp_1,$alpha))",
+                grass.mapcalc("$tmp_4 = if($inl == 0, $tmp_3, $tmp_3 + (pow($inl/$tmp_1,$alpha)))",
                             tmp_3=tmp_3, tmp_4=tmp_4,
                             tmp_1=tmp_1, inl=IN[i],
                             alpha=Q[n],  quiet=True)
