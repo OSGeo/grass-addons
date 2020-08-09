@@ -3,15 +3,15 @@
 <p>
 <em>i.segment.stats</em> calculates statistics for areas in a raster
 map. Areas are defined by adjacent pixels with the same value. Such
-areas can be the output of <em><a href="i.segment.html">i.segment</a></em> or
-<em><a href="r.clump.html">r.clump</a></em>.
+areas can be the output of <em><a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a></em> or
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em>.
 
 <p>
 Available statistics are those related to the shape, size and position of the
 areas (see the <em><a href="r.object.geometry.html">r.object.geometry</a></em>
 addon man page for more information on the statistics) and aggregated statistics
 of pixel values of other raster maps (see 
-<em><a href="r.univar.html">r.univar</a></em> for details).
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> for details).
 
 <p>
 In addition, for each of the above statistics, the <b>-n</b> flag allows the 
@@ -28,7 +28,7 @@ areas with the statistics in the attribute table (<b>vectormap</b>)
 and/or in the form of a CSV text file (<b>csvfile</b>).
 
 <p>
-Because of the way <em><a href="r.univar.html">r.univar</a></em> functions, it
+Because of the way <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> functions, it
 is difficult to handle cases where in some raster maps values are all null 
 in some of the areas. Because of this, <em>i.segment.stats</em> checks the 
 raster maps for existing null values and excludes them if it find any, emitting 
@@ -45,18 +45,18 @@ to force the module to adjust the region to the input raster map before
 calculating the statistics.
 
 <p>
-This module is a simple front-end to <em><a href="r.univar.html">r.univar</a></em>
+This module is a simple front-end to <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em>
 and the 
 <em><a href="r.object.geometry.html">r.object.geometry</a></em>
 add-on. It is the user's responsibility to install the
-latter using <em><a href="g.extension.html">g.extension</a></em>. If other statistics 
+latter using <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.extension.html">g.extension</a></em>. If other statistics 
 are desired, these should probably be implemented in those (or other) modules
 which can then be called from this module.
 
 <p>
 Problems can arise in the calculation of some form statistics for certain
 segment forms. If errors arise, the user might want to try to run 
-<em><a href="r.clump.html">r.clump</a></em> on the input raster file before running
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em> on the input raster file before running
 <em>i.segment.stats</em>.
 
 <p>
@@ -85,9 +85,9 @@ i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="i.segment.html">i.segment</a>,
-<a href="r.univar.html">r.univar</a>,
-<a href="v.rast.stats.html">v.rast.stats</a> 
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a> 
 </em>
 <p>
 <em>

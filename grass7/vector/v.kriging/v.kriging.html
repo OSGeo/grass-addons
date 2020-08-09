@@ -45,9 +45,9 @@ v.kriging in=input_layer phase=final final_fun=exponential final_range=double \
 </pre></div>
 
 <p>
-Commands based on the <a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a> of <b>Slovakia 
-3D precipitation</b> (<i>Mitasova and Hofierka, 2004</i>). For more detailed information check <a href="v.kriging.pdf" 
-target="_blank">case studies</a>. Another examples of 3D interpolation are available in (<i>Stopkova, 2014</i>).
+Commands based on the <a href="https://grass.osgeo.org/download/data/">dataset</a> of
+<b>Slovakia 3D precipitation</b> (<i>Mitasova and Hofierka, 2004</i>). For more detailed information check 
+<a href="v.kriging.pdf">case studies</a>. Another examples of 3D interpolation are available in (<i>Stopkova, 2014</i>).
 
 <div class="code"><pre>
 v.kriging phase=initial in=precip3d@PERMANENT ic=precip report=precip3d.txt file=png --o
@@ -75,8 +75,8 @@ v.kriging in=input_layer phase=final final_function=linear icol=name file=png \
 
 <p> Commands based on 500 random points extracted from input points of Digital Elevation Model (DEM) 
 <i>elev_lid792_randpts</i> from the <b>North Carolina 
-<a href="http://grass.osgeo.org/download/sample-data/" target="_blank">dataset</a></b> (<i>Neteler and Mitasova, 2004</i>). 
-See the <a href="v.kriging.pdf" target="_blank">case studies</a>.
+<a href="https://grass.osgeo.org/download/data/">dataset</a></b> (<i>Neteler and Mitasova, 2004</i>).
+See the <a href="v.kriging.pdf">case studies</a>.
 
 <div class="code"><pre>
 v.kriging phase=initial in=elev_lid792_selected ic=value azimuth=45. td=45. \
@@ -107,7 +107,7 @@ file=png out=lid792_500_linear crossval=lid792_500_xval_linear.txt -2 --o
 <table>
  	<tr>
  		<td>
- 			Mitasova, H. and Hofierka, J. (2004). <i>Slovakia Precipitation data</i>. Available at <a href="https://grass.osgeo.org/download/sample-data/">https://grass.osgeo.org/download/sample-data/</a>.
+ 			Mitasova, H. and Hofierka, J. (2004). <i>Slovakia Precipitation data</i>. Available at <a href="https://grass.osgeo.org/download/data/">https://grass.osgeo.org/download/data/</a>.
  		</td>
  	</tr>
  	<tr>
@@ -129,7 +129,7 @@ file=png out=lid792_500_linear crossval=lid792_500_xval_linear.txt -2 --o
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="v.vol.rst.html">v.vol.rst</a><br>
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html">v.vol.rst</a><br>
 <a href="v.krige.html">v.krige</a>
 </em>
 
