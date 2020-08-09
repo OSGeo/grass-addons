@@ -8,7 +8,8 @@ parallel processing while avoiding border effects.
 The approach used in <em>i.cutlines</em> is inspired by Soares et al (2016).
 The module first uses an edge detection algorithm (which the user can chose 
 with the <b>edge_detection</b> parameter) to identify edges in the image. It
-then uses <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a> and <a href="https://grass.osgeo.org/grass-stable/manuals/r.drain">r.drain</a> to
+then uses <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>
+and <a href="https://grass.osgeo.org/grass-stable/manuals/r.drain">r.drain</a> to
 draw lines through the image, following edges when possible and going straight
 when there are none.
 
@@ -55,8 +56,9 @@ The <b>memory</b> parameter determines the memory used both for the
 
 <h2>NOTES</h2>
 
-Until GRASS GIS version 7.4 included, there was a parameter name conflict between <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc
-</a> and the GridModule class in pygrass. For older GRASS GIS versions tiled edge 
+Until GRASS GIS version 7.4 included, there was a parameter name conflict between
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a> and the
+GridModule class in pygrass. For older GRASS GIS versions tiled edge 
 detection is thus only possible with <a href="i.edge.html">i.edge</a>.
 
 <h2>EXAMPLE</h2>
