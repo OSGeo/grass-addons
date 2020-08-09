@@ -26,7 +26,7 @@ of that module is then used to assign isochrone values to all pixels based on th
 road segment that is within a given distance (<b>max_distance</b>). The <b>-i</b> flag allows
 to calculate a separate isochrone map for each starting point.
 For this approach, the input road map currently has to be prepared by adding all nodes (using 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net">v.net</a></em> with 'operation=nodes' and the '-c' flag. 
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> with 'operation=nodes' and the '-c' flag. 
 For each starting point, the algorithm then finds the closest node on the network 
 and calculates the isochrones from there. This allows to use the same network for 
 many analyses without having to go through the time of adding the starting points 
