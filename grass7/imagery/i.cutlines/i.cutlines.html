@@ -8,7 +8,8 @@ parallel processing while avoiding border effects.
 The approach used in <em>i.cutlines</em> is inspired by Soares et al (2016).
 The module first uses an edge detection algorithm (which the user can chose 
 with the <b>edge_detection</b> parameter) to identify edges in the image. It
-then uses <a href="r.cost.html">r.cost</a> and <a href="r.drain">r.drain</a> to
+then uses <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>
+and <a href="https://grass.osgeo.org/grass-stable/manuals/r.drain">r.drain</a> to
 draw lines through the image, following edges when possible and going straight
 when there are none.
 
@@ -36,7 +37,7 @@ cutlines (roads, boundaries, etc) that the module should take into account
 will transform all to potential cutlines.
 
 <p>
-For edge detection the user can chose between the <a href="i.zc.html">i.zc</a> 
+For edge detection the user can chose between the <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>
 module or the <a href="i.edge.html">i.edge</a> addon. For the former, the user
 can determine the <b>zc_threshold</b> and the <b>zc_width</b> parameters. For
 the latter, the <b>canny_low_threshold</b>, <b>canny_high_threshold</b> and
@@ -47,21 +48,22 @@ specific image. As these modules read the entire image into RAM,
 tiles and to process each tile separately. Tiles can be defined with the 
 <b>tile_width</b>, <b>tile_height</b> and <b>overlap</b> parameters. If 
 <b>processes</b> is higher than one, these tiles will be processed in parallel
-as will the <a href="r.cost.html">r.cost</a> calls for the two directions.
+as will the <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a> calls for the two directions.
 
 <p>
 The <b>memory</b> parameter determines the memory used both for the 
-<a href="r.cost.html">r.cost</a> runs.
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a> runs.
 
 <h2>NOTES</h2>
 
-Until GRASS GIS version 7.4 included, there was a parameter name conflict between <a href="i.zc.html">i.zc
-</a> and the GridModule class in pygrass. For older GRASS GIS versions tiled edge 
+Until GRASS GIS version 7.4 included, there was a parameter name conflict between
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a> and the
+GridModule class in pygrass. For older GRASS GIS versions tiled edge 
 detection is thus only possible with <a href="i.edge.html">i.edge</a>.
 
 <h2>EXAMPLE</h2>
 
-Using default <a href="i.zc.html">i.zc</a> edge detection without tiling, 
+Using default <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a> edge detection without tiling, 
 default parameters and 10 horizontal and 10 vertical cutlines, creating
 vector polygon output:
 
@@ -82,11 +84,11 @@ Soares, Anderson Reis, Thales Sehn K&ouml;rting, and Leila Maria Garcia Fonseca.
 
 <h2>SEE ALSO</h2>
 
-<a href="i.zc.html">i.zc</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>, 
 <a href="i.edge.html">i.edge</a>, 
-<a href="r.tile.html">r.tile</a>, 
-<a href="v.mkgrid.html">v.mkgrid</a>, 
-<a href="i.segment.html">i.segment</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.tile.html">r.tile</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a>, 
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>
 
 <h2>AUTHOR</h2> 
 

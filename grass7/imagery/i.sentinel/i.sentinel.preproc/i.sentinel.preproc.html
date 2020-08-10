@@ -6,7 +6,7 @@ images and perform atmospheric and topographic correction.
 for the preprocessing of Sentinel-2 images (Level-1C Single Tile product) which
 wraps the import, the atmospheric and the topographic correction using respectively
 <a href="i.sentinel.import.html">i.sentinel.import</a>,
-<a href="i.atcorr.html">i.atcorr</a> and <a href="i.topo.corr.html">i.topo.corr</a>.<br>
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a> and <a href="https://grass.osgeo.org/grass-stable/manuals/i.topo.corr.html">i.topo.corr</a>.<br>
 It works both with Sentinel-2A and 2B images.<br>
 The aim is to provide a simplified module which allows importing images, which
 area downloaded using 
@@ -34,7 +34,7 @@ corresponding code. In any case, <em>i.sentinel.preproc</em> writes a temporary 
 file, changing it according to the band number, following the syntax rules and
 codes of <em>i.atcorr</em> and then it runs <em>i.atcorr</em> for all bands.
 Using the <em>c</em> flag <em>i.sentinel.preproc</em> is able to perform also 
-the topographic correction using <a href="i.topo.corr.html">i.topo.corr</a>
+the topographic correction using <a href="https://grass.osgeo.org/grass-stable/manuals/i.topo.corr.html">i.topo.corr</a>
 creating the needed information as the illumination model based on the elevation
 model provided by the user.
 <p>
@@ -278,9 +278,9 @@ into the corresponding code.
 
 <h3>Topographic correction</h3>
 <em>i.sentinel.preproc</em> allows performing the topographic correction of all bands
-of a Sentinel-2 scene with a single process using <a href="i.topo.corr.html">i.topo.corr</a>.
+of a Sentinel-2 scene with a single process using <a href="https://grass.osgeo.org/grass-stable/manuals/i.topo.corr.html">i.topo.corr</a>.
 <em>i.sentinel.preproc</em> calculate the zenit and azimuth angles using
-<a href="r.sunmask.html">r.sunmask</a>, after that it create the illumination model based on
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sunmask.html">r.sunmask</a>, after that it create the illumination model based on
 the elevation model and apply it to all the bands of a Sentinel-2 scene
 
 <h2>EXAMPLE</h2>
@@ -367,9 +367,9 @@ Sentinel User Guide</a>.</li>
 <a href="i.sentinel.download.html">i.sentinel.download</a>,
 <a href="i.sentinel.import.html">i.sentinel.import</a>,
 <a href="i.sentinel.mask.html">i.sentinel.mask</a>,
-<a href="i.atcorr.html">i.atcorr</a>,
-<a href="r.import.html">r.import</a>,
-<a href="r.external.html">r.external</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a>
 </em>
 
 <h2>AUTHORS</h2>

@@ -13,8 +13,8 @@
     <li>Subtract the purged DEM from the original DEM to get the local relief model.</li>
 </ol>
 <p>
-The interpolation step is performed by the <em><a href="r.fillnulls.html">r.fillnulls</a></em> module by default (using cubic interpolation).
-If this is not working on your data, you can use <em>-v</em> flag to use <em><a href="v.surf.bspline.html">v.surf.bspline</a></em> cubic interpolation instead (this might be slower on some types of data).
+The interpolation step is performed by the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a></em> module by default (using cubic interpolation).
+If this is not working on your data, you can use <em>-v</em> flag to use <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a></em> cubic interpolation instead (this might be slower on some types of data).
 </p>
 
 <h2>OUTPUT</h2>
@@ -23,14 +23,14 @@ The final local relief model is named according to the <em>output</em> parameter
 When the <em>-i</em> flag is specified, <em>r.local.relief</em> creates additional
 output files representing the intermediate steps in the LRM generation process.
 The names and number of the intermediate files vary depending
-on whether <em><a href="r.fillnulls.html">r.fillnulls</a></em> (default)
-or <em><a href="v.surf.bspline.html">v.surf.bspline</a></em>
+on whether <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a></em> (default)
+or <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a></em>
 (specified by using the <em>-v</em> flag) is used for interpolation.
 The intermediate maps are composed of the user-specified <em>output</em>
 parameter and suffixes describing the intermediate map.</p>
 
 <p>Without using the <em>-v</em> flag
-(<em><a href="r.fillnulls.html">r.fillnulls</a></em> interpolation),
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a></em> interpolation),
 intermediate maps have the following suffixes:</p>
 <ul>
     <li><tt>_smooth_elevation</tt>: The result of running the low pass filter on the DEM.</li>
@@ -40,7 +40,7 @@ intermediate maps have the following suffixes:</p>
 </ul>
 
 <p>With using the <em>-v</em> flag
-(<em><a href="v.surf.bspline.html">v.surf.bspline</a></em> interpolation),
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a></em> interpolation),
 intermediate maps have the following suffixes:</p>
 <ul>
     <li><tt>_smooth_elevation</tt>: The result of running the low pass filter on the DEM.</li>
@@ -117,7 +117,7 @@ and custom red (negative values) and blue (positive values) color table
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.relief.html">r.relief</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a>,
 <a href="r.shaded.pca.html">r.shaded.pca</a>,
 <a href="r.skyview.html">r.skyview</a>
 </em>
@@ -132,7 +132,7 @@ and custom red (negative values) and blue (positive values) color table
     <em>Archaeological Remote Sensing: Visualization and Analysis of grass-dominated environments using laser scanning and digital spectra data.</em> Unpublished PhD Thesis. Electronic Document,
     <a href="http://eprints.bournemouth.ac.uk/20459/1/Bennett%2C_Rebecca_PhD_Thesis_2011.pdf">http://eprints.bournemouth.ac.uk/20459/1/Bennett%2C_Rebecca_PhD_Thesis_2011.pdf</a>,
     Accessed 25 February 2013.
-    (provided bash script with <em><a href="v.surf.bspline.html">v.surf.bspline</a></em>-based implementation)</li>
+    (provided bash script with <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a></em>-based implementation)</li>
 </ul>
 
 <h2>AUTHORS</h2>

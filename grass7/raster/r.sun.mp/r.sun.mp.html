@@ -9,7 +9,7 @@ incidence angle and/or irradiance raster maps. The shadowing effect of the
 topography is incorporated by default. This can be done either internally by
 calculatoion of the shadowing effect directly from the digital elevation model
 or by specifying raster maps of the horizon height which is much faster. These
-horizon raster maps can be calculated using <a href="r.horizon.html">r.horizon</a>.
+horizon raster maps can be calculated using <a href="https://grass.osgeo.org/grass-stable/manuals/r.horizon.html">r.horizon</a>.
 <p>For latitude-longitude coordinates it requires that the elevation map is in meters.
 The rules are:
 <ul>
@@ -23,7 +23,7 @@ well as an interaction of the solar radiation with atmosphere were originally
 based on the formulas suggested by Kitler and Mikler (1986). This component 
 was considerably updated by the results and suggestions of the working group
 co-ordinated by Scharmer and Greif (2000) (this algorithm might be replaced
-by SOLPOS algorithm-library included in GRASS within <a href="r.sunmask.html">
+by SOLPOS algorithm-library included in GRASS within <a href="https://grass.osgeo.org/grass-stable/manuals/r.sunmask.html">
 r.sunmask</a>
  command). The model computes all three components of global radiation (beam, 
 diffuse and reflected) for the clear sky conditions, i.e. not taking into 
@@ -42,14 +42,14 @@ within a set day. By a scripting the two modes can be used separately or
 in a combination to provide estimates for any desired time interval. The
 model accounts for sky obstruction by local relief features. Several solar
 parameters are saved in the resultant maps' history files, which may be viewed
-with the <a href="r.info.html">r.info</a> command.
+with the <a href="https://grass.osgeo.org/grass-stable/manuals/r.info.html">r.info</a> command.
 
 <p>
 The solar incidence angle raster map <i>incidout</i> is computed specifying 
 elevation raster map <i>elevation</i>, aspect raster map <i>aspect</i>, slope 
 steepness raster map <i>slope,</i> given the day <i>day</i> and local time
 <i>time</i>. There is no need to define latitude for locations with known
-and defined projection/coordinate system (check it with the <a href="g.proj.html">
+and defined projection/coordinate system (check it with the <a href="https://grass.osgeo.org/grass-stable/manuals/g.proj.html">
 g.proj</a>
  command). If you have undefined projection, (x,y) system, etc. then the latitude
 can be defined explicitly for large areas by input raster map <i>lat_in</i>
@@ -57,7 +57,7 @@ can be defined explicitly for large areas by input raster map <i>lat_in</i>
 be floating point (FCELL) raster maps. Null data in maps are excluded from
 the computation (and also speeding-up the computation), so each output raster
 map will contain null data in cells according to all input raster maps. The
-user can use <a href="r.null.html">r.null</a>
+user can use <a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html">r.null</a>
  command to create/reset null file for your input raster maps. <br>
 The specified day <i>day</i> is the number of the day of the general year
 where January 1 is day no.1 and December 31 is 365. Time <i>time</i> must
@@ -302,13 +302,13 @@ We can compute the day of year from a specific date in Python:
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.horizon.html">r.horizon</a>,
-<a href="r.slope.aspect.html">r.slope.aspect</a>,
-<a href="r.sunhours.html">r.sunhours</a>,
-<a href="r.sunmask.html">r.sunmask</a>,
-<a href="g.proj.html">g.proj</a>,
-<a href="r.null.html">r.null</a>,
-<a href="v.surf.rst.html">v.surf.rst</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.horizon.html">r.horizon</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sunhours.html">r.sunhours</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sunmask.html">r.sunmask</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.proj.html">g.proj</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html">r.null</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>
 </em>
 
 <h2>REFERENCES</h2>

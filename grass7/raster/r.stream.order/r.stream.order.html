@@ -12,33 +12,33 @@ map and the computational region have the same settings.
 It is also required that the <b>stream_rast</b> map and the 
 <b>direction</b> map come from the same source. This means if <b>stream_rast</b> 
 map comes from
-<em><a href="r.stream.extract.html">r.stream.extract</a></em> also the
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> also the
 <b>direction</b> map
-from <em><a href="r.stream.extract.html">r.stream.extract</a></em>
+from <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>
 must be used. If stream network was generated with MFD method also MFD
 direction map must be used. Nowadays if direction map comes from
-<em><a href="r.stream.extract.html">r.stream.extract</a></em> must be
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> must be
 patched by direction map
-from <em><a href="r.watershed.html">r.watershed</a></em> (with 
-<em><a href="r.patch.html">r.patch</a></em>).
+from <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> (with 
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a></em>).
 
 <p>
 Input stream network map (<b>stream_rast</b>) may be produced using
 either
-<em><a href="r.watershed.html">r.watershed</a></em>
-or <em><a href="r.stream.extract.html">r.stream.extract</a></em>. Since
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+or <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. Since
 stream network maps produced
-by <em><a href="r.watershed.html">r.watershed</a></em>
-and <em><a href="r.stream.extract.html">r.stream.extract</a></em> may
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+and <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> may
 slightly differ in detail, it is required to use both stream and
 direction maps produced by the same module. Non-stream cell values
 must be set to NULL.
 
 <p>
 Input <b>direction</b> raster map with flow direction may be produced
-using either <em><a href="r.watershed.html">r.watershed</a></em>
-or <em><a href="r.stream.extract.html">r.stream.extract</a></em>.
-If <em><a href="r.stream.extract.html">r.stream.extract</a></em>
+using either <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+or <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>.
+If <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>
 output map is used, it is non-NULL only where streams occur and NULL
 elsewhere. NULL (nodata) cells are ignored, zero and negative values
 are valid direction data only if they vary from -8 to 8 (CCW from East
@@ -47,16 +47,16 @@ in steps of 45 degrees). Flow direction map shall be of integer type
 
 <p>
 Optional input flow <b>accumulation</b> map may be produced
-by <em><a href="r.watershed.html">r.watershed</a></em>
-or <em><a href="r.stream.extract.html">r.stream.extract</a></em>. This
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+or <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. This
 map is an option only if Horton's or Hack's ordering is
 performed. Normally both Horton and Hack ordering are calculated on
 cumulative stream length which is calculated internally. Flow
 accumulation can be used if the user wants to calculate the main channel
 as the stream with the highest value of accumulation.  Flow
 accumulation map shall be of DCELL type, as is by default produced by
-<em><a href="r.watershed.html">r.watershed</a></em> or converted to
-DCELL with <em><a href="r.mapcalc.html">r.mapcalc</a></em>.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> or converted to
+DCELL with <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em>.
 
 <p>
 If <b>-z</b> is specified than <em>r.stream.order</em> creates
@@ -83,10 +83,10 @@ table.
 Output <b>stream_vect</b> vector map stores stream network. It has a
 table associated, where stream network topology can be stored. Because
 <em>r.stream.order</em> is prepared to work either
-with <em><a href="r.watershed.html">r.watershed</a></em> or
-<em><a href="r.stream.extract.html">r.stream.extract</a></em>, it may
+with <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> or
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>, it may
 be used to create corrected stream vector from 
-<em><a href="r.watershed.html">r.watershed</a></em> results.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> results.
 
 <p>
 <em>r.stream.order</em> may produce various output raster
@@ -335,15 +335,15 @@ Harvard Papers in Theoretical Geography, 1: 95-189.
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.mapcalc.html">r.mapcalc</a>,
-<a href="r.stream.channel.html">r.stream.channel</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.channel.html">r.stream.channel</a>,
 <a href="r.stream.distance.html">r.stream.distance</a>,
-<a href="r.stream.extract.html">r.stream.extract</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
 <a href="r.stream.segment.html">r.stream.segment</a>,
 <a href="r.stream.slope.html">r.stream.slope</a>,
 <a href="r.stream.snap.html">r.stream.snap</a>,
 <a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="r.watershed.html">r.watershed</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
 </em>
 
 <p>
