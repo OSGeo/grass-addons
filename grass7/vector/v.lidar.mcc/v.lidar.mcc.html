@@ -10,11 +10,11 @@ produced with any kind of LiDAR instrument (e.g. also instruments without intens
 <p>
 The basic principle of the algorithm is to classify those points as non-ground points which deviate more than a user-defined 
 threshold (<b>t</b>) from a surface which was interpolated from the full point cloud as a thin plate (here implemented with a bilinear spline 
-interpolation with Tykhonov regularization through <em><a href="v.outlier.html">v.outlier</a></em>). Tension (<b>f</b>) and spline steps (<b>s</b>) parameter 
-are passed to the relevant parameters in <em><a href="v.outlier.html">v.outlier</a></em>.
+interpolation with Tykhonov regularization through <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em>). Tension (<b>f</b>) and spline steps (<b>s</b>) parameter 
+are passed to the relevant parameters in <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em>.
 </p>
 <p>
-On each scale domain <em>v.lidar.mcc</em> calls <em><a href="v.outlier.html">v.outlier</a></em> repeatedly until the algorithm converges, i.e. 
+On each scale domain <em>v.lidar.mcc</em> calls <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a></em> repeatedly until the algorithm converges, i.e. 
 less than the amount of points (percentage of input points to the iteration) defined in the convergence threshold (<b>j</b>) are classified as non-ground points. 
 Scale domains are defined in relation to the current region. With a number of scale domains <b>(nl)</b> greater than 1 scale domains are distributed evenly "around" 
 the current region. With the default number of three scale domains, the first scale domaine uses half the resolution of the current region, scale domain 
@@ -85,9 +85,9 @@ optipng -o5 v_lidar_mcc.png
 <h2>SEE ALSO</h2>
 
 <em>
-  <a href="v.surf.bspline.html">v.surf.bspline</a>, 
-  <a href="v.outlier.html">v.outlier</a>, 
-  <a href="v.lidar.edgedetection.html">v.lidar.edgedetection</a>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>, 
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.outlier.html">v.outlier</a>, 
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.lidar.edgedetection.html">v.lidar.edgedetection</a>
 </em>
 
 <h2>AUTHOR</h2>

@@ -158,8 +158,8 @@ cover each other and above certain density of points, it is not possible
 to compare relative density in the scatter plot. Furthermore, if colors
 are associated with the points, the colors of points rendered last are
 those which are visible, not actually showing the prevailing color
-(value). The modules <em><a href="v.mkgrid.html">v.mkgrid</a></em> and
-<em><a href="v.vect.stats.html">v.vect.stats</a></em> can be used to
+(value). The modules <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a></em> and
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em> can be used to
 overcome this issue.
 
 <h2>EXAMPLES</h2>
@@ -249,10 +249,10 @@ cells. 5 is a good size for data from 0 to 255.
 g.region vector=scatterplot res=5 -p
 </pre></div>
 
-The grid can be created using <em><a href="v.mkgrid.html">v.mkgrid</a></em>
+The grid can be created using <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a></em>
 module, the binning done using
-<em><a href="v.vect.stats.html">v.vect.stats</a></em>, and finally the
-color is set using <em><a href="v.colors">v.colors</a></em>.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em>, and finally the
+color is set using <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.colors.html">v.colors</a></em>.
 
 <div class="code"><pre>
 v.mkgrid map=scatterplot_grid
@@ -260,7 +260,7 @@ v.vect.stats points=scatterplot areas=scatterplot_grid count_column=count
 v.colors map=scatterplot_grid use=attr column=count color=viridis
 </pre></div>
 
-The <em><a href="d.vect">d.vect</a></em> module picks up the color table
+The <em><a href="https://grass.osgeo.org/grass-stable/manuals/d.vect.html">d.vect</a></em> module picks up the color table
 automatically, but it is advantageous to also specify that only
 the grid cells with non-zero count of points should be displayed
 using <tt>where="count > 0"</tt>:
@@ -281,7 +281,7 @@ is the same as the distance between the points, like for example
 using cells size 1 with integer rasters, the grid needs to be shifted
 so that the points fall into the middle of the cells rather than
 on the edges or corners. For these purposes the
-<em><a href="g.region.html">g.region</a></em> accepts modifications of
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> accepts modifications of
 the current extent values:
 
 <div class="code"><pre>
@@ -302,12 +302,12 @@ g.region vector=scatterplot res=1 w=w-0.5 e=e+0.5 s=s-0.5 n=n+0.5
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.stats.html">r.stats</a>,
-<a href="d.correlate.html">d.correlate</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/d.correlate.html">d.correlate</a>,
 <a href="r3.scatterplot.html">r3.scatterplot</a>,
-<a href="v.mkgrid.html">v.mkgrid</a>,
-<a href="v.vect.stats.html">v.vect.stats</a>,
-<a href="g.region.html">g.region</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.mkgrid.html">v.mkgrid</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>
 </em>
 
 <h2>AUTHOR</h2>
