@@ -1050,16 +1050,11 @@ class CSWConnectionPanel(wx.Panel):
             if cancel:
                 self.newBtt.SetLabel('New')
                 self.newBtt.Enable()
-                self.stBoxConnections1Sizer.Remove(self.connNameNewLabel)
-                self.stBoxConnections1Sizer.Remove(self.connNameNew)
-                self.stBoxConnections1Sizer.Remove(self.connUrlNewLabel)
-                self.stBoxConnections1Sizer.Remove(self.connUrlNew)
                 self.connNameNew.Destroy()
                 self.connNameNewLabel.Destroy()
                 self.connUrlNewLabel.Destroy()
                 self.connUrlNew.Destroy()
                 self.stBoxConnections1Sizer.Show(1)
-                self.stBoxConnections1Sizer.Remove(self.cancelBtt)
                 self.cancelBtt.Destroy()
                 self.Fit()
                 return
@@ -1067,18 +1062,14 @@ class CSWConnectionPanel(wx.Panel):
                 name = self.connNameNew.GetValue()
                 if not self.addConection(name, url):
                     return
+                self.updateConnectionList()
                 self.newBtt.SetLabel('New')
                 self.newBtt.Enable()
-                self.stBoxConnections1Sizer.Remove(self.connNameNewLabel)
-                self.stBoxConnections1Sizer.Remove(self.connNameNew)
-                self.stBoxConnections1Sizer.Remove(self.connUrlNewLabel)
-                self.stBoxConnections1Sizer.Remove(self.connUrlNew)
                 self.connNameNew.Destroy()
                 self.connNameNewLabel.Destroy()
                 self.connUrlNewLabel.Destroy()
                 self.connUrlNew.Destroy()
                 self.stBoxConnections1Sizer.Show(1)
-                self.stBoxConnections1Sizer.Remove(self.cancelBtt)
                 self.cancelBtt.Destroy()
             else:
                 GMessage('Url is not valid')

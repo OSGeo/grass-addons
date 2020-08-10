@@ -18,7 +18,7 @@ import can be reduced to the computational region extent with
 <p>
 Note that in the case that spatial reference system of input data differs
 from GRASS GIS location, the input data need to be reprojected with 
-<em><a href="r.import.html">r.import</a></em>. To speed up this
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a></em>. To speed up this
 process, a higher than default value can be specified for the <b>memory</b>
 option.
 
@@ -28,7 +28,7 @@ systems, the projection check can be suppressed with the <b>-o</b> flag.
 
 <p>
 Optionally input data can be linked
-by <em><a href="r.external.html">r.external</a></em> when <b>-l</b> is
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a></em> when <b>-l</b> is
 given. Note that linking data requires that Sentinel input data and GRASS
 location have the same spatial reference system (e.g., the same UTM zone).
 
@@ -69,7 +69,7 @@ and is also imported by default.
 <p>
 For each imported band both scene and band specific metadata on geometric
 conditions as well as quality indicators are written into the map history
-(<em><a href="r.support.html">r.support</a></em>). In addition, the scene
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>). In addition, the scene
 name is stored as <em>source1</em> and the imported or linked file name as
 <em>source2</em>. Also, sensing time is written into the timestamp of the
 map. After import, the metadata can be retrieved with <em>r.info -e</em>
@@ -120,7 +120,7 @@ input Sentinel product.
 By <b>register_file</b> option <em>i.sentinel.import</em> allows
 creating a file which can be used to register imported imagery data
 into space-time raster dateset (STRDS)
-by <em><a href="t.register.html">t.register</a></em>. Note that
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>. Note that
 currently a register file can be created only for Sentinel-2 data. See
 example below.
 
@@ -231,7 +231,7 @@ t.register input=sentinel_ds file=t_register.txt
 A register file typically contains two columns: imported raster map
 name and timestamp separated by <tt>|</tt>. In the case of current
 development version of GRASS which supports band references concept
-(see <em><a href="g.bands.html">g.bands</a></em> module for details) a
+(see <em><a href="https://grass.osgeo.org/grass-devel/manuals/g.bands.html">g.bands</a></em> module for details) a
 register file is extended by a third column containg band reference
 information, see the examples below.
 
@@ -257,9 +257,9 @@ T33UVR_20181205T101401_B06|2018-12-05 10:16:43.275000|S2_6
 <a href="i.sentinel.download.html">i.sentinel.download</a>,
 <a href="i.sentinel.preproc.html">i.sentinel.preproc</a>,
 <a href="i.sentinel.mask.html">i.sentinel.mask</a>,
-<a href="r.import.html">r.import</a>,
-<a href="r.external.html">r.external</a>,
-<a href="v.import.html">v.import</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>
 </em>
 
 <p>

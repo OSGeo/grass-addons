@@ -8,7 +8,7 @@
 # PURPOSE:       i.modis.import is an interface to pyModis for import into
 #                GRASS GIS level 3 MODIS produts
 #
-# COPYRIGHT:        (C) 2011-2017 by Luca Delucchi
+# COPYRIGHT:     (C) 2011-2020 by Luca Delucchi
 #
 #                This program is free software under the GNU General Public
 #                License (>=v2). Read the file COPYING that comes with GRASS
@@ -300,6 +300,7 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
                             'for file <%s>. Escape import' % name))
             continue
         try:
+            basename = basename.replace('"', '').replace(' ', '_')
             grass.run_command('r.in.gdal', input=name, output=basename,
                               overwrite=write, quiet=True)
             outfile.append(basename)

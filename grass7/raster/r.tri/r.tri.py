@@ -9,32 +9,32 @@
 # PURPOSE:      Simple script to calculate the Terrain Ruggedness Index (TRI)
 #               of Riley et al. (1999)
 #
-# COPYRIGHT:    (C) 2015 Steven Pawley and by the GRASS Development Team
+# COPYRIGHT:    (C) 2015-2020 Steven Pawley and by the GRASS Development Team
 #
 ###############################################################################
 
 #%module
-#% description: Terrain Ruggedness Index
+#% description: Computes the Terrain Ruggedness Index.
 #%end
 
 #%option G_OPT_R_INPUT
 #% description: Input elevation raster
 #% key: input
-#% required : yes
+#% required: yes
 #%end
 
 #%option G_OPT_R_OUTPUT
 #% description: Output Terrain Ruggedness Index (TRI)
 #% key: output
-#% required : yes
+#% required: yes
 #%end
 
 #%option
 #% key: size
 #% type: integer
 #% description: Size of neighbourhood in cells
+#% required: yes
 #% answer: 3
-#% guisection: Required
 #%end
 
 #%flag
@@ -119,6 +119,9 @@ def main():
     size = int(options["size"])
     circular = flags["c"]
     radius = int((size - 1) / 2)
+    
+    if "@" in tri:
+    	tri = tri.split("@")[0]
 
     # calculate TRI based on map calc statements
     gs.message("Calculating the Topographic Ruggedness Index...")

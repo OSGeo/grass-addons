@@ -3,22 +3,22 @@
 <em>r.shaded.pca</em> is a tool for the generation
 of RGB composite of the three main components
 of PCA created from different hill shades
-(created by <em><a href="r.relief.html">r.relief</a></em>).
+(created by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a></em>).
 
 <h3>Input parameters explanation</h3>
 
 Input parameters are the same as for
-<em><a href="r.relief.html">r.relief</a></em> module except for
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a></em> module except for
 an <i>azimuth</i> parameter which is replaced by <i>nazimuths</i> parameter
 (we need to specify number of different azimuths rather than one)
 and for an <i>nprocs</i> parameter which adds the possibility to run the
-shades creation (<em><a href="r.relief.html">r.relief</a></em>)
-in parallel. However, the speed of <em><a href="i.pca.html">i.pca</a></em>
+shades creation (<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a></em>)
+in parallel. However, the speed of <em><a href="https://grass.osgeo.org/grass-stable/manuals/i.pca.html">i.pca</a></em>
 limits the overall speed of this module.
 
 In order to provide simple interface, it is not possible to customize
 principal component analyses which uses the default settings of the
-<em><a href="i.pca.html">i.pca</a></em> module.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/i.pca.html">i.pca</a></em> module.
 
 <h3>Output parameters explanation</h3>
 
@@ -29,12 +29,12 @@ in this order.
 If you want to create your own RGB composition, HIS composition or do another
 analyses you can specify the <i>pca_shades_basename</i> parameter. If this
 parameter is specified, the module outputs the PCA maps as created during
-the process by <em><a href="i.pca.html">i.pca</a></em>.
+the process by <em><a href="https://grass.osgeo.org/grass-stable/manuals/i.pca.html">i.pca</a></em>.
 
 Moreover, if you would like to add one of the shades to your composition,
 you can specify the <i>shades_basename</i> parameter then the module will
 output also the hill shade maps as created during
-the process by <em><a href="r.relief.html">r.relief</a></em>.
+the process by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a></em>.
 One of the shades can be used to subtract the intensity channel in HIS
 composition or just as an overlay in your visualization tool.
 
@@ -66,8 +66,8 @@ Figure: The RGB composition of first 3 PCA components
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.relief.html">r.relief</a>,
-<a href="i.pca.html">i.pca</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.relief.html">r.relief</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.pca.html">i.pca</a>,
 <a href="r.local.relief.html">r.local.relief</a>,
 <a href="r.skyview.html">r.skyview</a>
 </em>

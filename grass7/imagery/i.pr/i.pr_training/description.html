@@ -40,7 +40,7 @@
 
 <em>i.pr.training</em> This module is the first to be run when using i.pr.* modules. It is necessary to list all maps that will be used as explanatory variables and whose values will be assigned to the training samples. Two options for extracting data for the training samples are available. The first can be done interactively using the graphical interface. In this instance, the first GRASS raster map specified in the list is visualised in the GRASS monitor, however, this can be altered by specifying the 'vis_map' option. In this case, the user must digitise locations training samples in the GRASS monitor. A Class parameter will be assigned to each training sample, the class labels must be positive integers and must progressively increase. 
 <pr>
-The second option for generating the training sample file can be done non-interactively. This is done by specifying a GRASS sites file. This file should represent the locations of training samples and ought to have been previously generated either by digitising (<em><a href="v.digit">v.digit</a></em>) or else by <em><a href="v.in.ascii">v.in.ascii</a></em>. Features will be extracted for these locations in a similar fashion as previously described. The class will be assigned to the examples based on the information stored in the sites file. 
+The second option for generating the training sample file can be done non-interactively. This is done by specifying a GRASS sites file. This file should represent the locations of training samples and ought to have been previously generated either by digitising (<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.digit.html">v.digit</a></em>) or else by <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a></em>. Features will be extracted for these locations in a similar fashion as previously described. The class will be assigned to the examples based on the information stored in the sites file. 
 <p>
 The output of this module will be an ascii file of type xy.z. The number of columns will relate to the number of rasters specified on the command line. If the output file already exists, the new data values will be appended to it. 
 
@@ -78,7 +78,7 @@ The output of this module will be an ascii file of type xy.z. The number of colu
 
 <h2>SEE ALSO</h2>
 
-<em><a href="i.features.html">i.cca</a></em><br>
+<em><a href="i.pr_features.html">i.pr_features</a></em><br>
 
 <h2>AUTHORS</h2>
 
