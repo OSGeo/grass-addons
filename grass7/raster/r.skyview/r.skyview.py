@@ -18,7 +18,7 @@
 ##############################################################################
 
 #%module
-#% description: Computes skyview factor visualization technique
+#% description: Computes skyview factor visualization technique.
 #% keyword: raster
 #% keyword: visualization
 #%end
