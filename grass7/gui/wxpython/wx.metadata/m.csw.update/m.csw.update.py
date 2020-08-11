@@ -18,7 +18,7 @@
 #############################################################################
 
 #%module
-#% description: Update catalogue service for the web connections resources candicates
+#% description: Update catalogue service for the web connections resources candidates
 #% keyword: connections resources
 #% keyword: csw
 #% keyword: metadata
@@ -26,7 +26,7 @@
 
 #%option G_OPT_F_INPUT
 #% key: spreadsheets
-#% description: Path to spreadsheets file (*.ods format)
+#% description: Path to spreadsheet file (*.ods format)
 #% gisprompt: old,bin,file
 #% answer: API-cases.ods
 #% required: no
@@ -36,7 +36,7 @@
 #% key: url
 #% key_desc: string
 #% type: string
-#% description: Spreadsheets file url
+#% description: Spreadsheet file url
 #% multiple: no
 #% required: no
 #%end
@@ -116,7 +116,7 @@
 
 #%flag
 #% key: p
-#% description: Print all new csw connections (valid/not valid, active/not active) resources with following format '{Country}, {Govermental level}, {Api provider}: {Url}'
+#% description: Print all new csw connections (valid/not valid, active/not active) resources with following format '{Country}, {Governmental level}, {Api provider}: {Url}'
 #%end
 
 #%flag
@@ -126,7 +126,7 @@
 
 #%flag
 #% key: l
-#% description: Print default spreadsheets file url
+#% description: Print default spreadsheet file url
 #%end
 
 #%flag
