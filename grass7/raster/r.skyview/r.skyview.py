@@ -176,7 +176,7 @@ def main():
                 expr += '+ sin({name}) '.format(name=horizon)
             expr += ") / {n}.".format(n=len(new_maps))
         else:
-            msgr.message(_("Computing sky view factor ..."))
+            msgr.message(_("Computing skyview factor ..."))
             expr = '{out} = 1 - (sin( if({first} < 0, 0, {first}) ) '.format(first=new_maps[0], out=output)
             for horizon in new_maps[1:]:
                 expr += '+ sin( if({name} < 0, 0, {name}) ) '.format(name=horizon)
