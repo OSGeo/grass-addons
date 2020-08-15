@@ -245,6 +245,10 @@ class SentinelDownloader(object):
             args['cloudcoverpercentage'] = (0, int(clouds))
         if relativeorbitnumber:
             args['relativeorbitnumber'] = relativeorbitnumber
+            if producttype.startswith('S2') and int(relativeorbitnumber) > 143:
+                gs.warning("This relative orbit number is out of range")
+            elif int(relativeorbitnumber) > 175:
+                gs.warning("This relative orbit number is out of range")
         if producttype:
             args['producttype'] = producttype
             if producttype.startswith('S2'):
