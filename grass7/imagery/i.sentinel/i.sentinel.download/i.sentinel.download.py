@@ -104,7 +104,7 @@
 #% key: relativeorbitnumber
 #% type: integer
 #% multiple: no
-#% description: Relative orbit number to download (Sen-1: from 1 to 175; Sen-2: from 1 to 143)
+#% description: Relative orbit number to download (Sentinel-1: from 1 to 175; Sentinel-2: from 1 to 143)
 #% guisection: Filter
 #%end
 #%option
