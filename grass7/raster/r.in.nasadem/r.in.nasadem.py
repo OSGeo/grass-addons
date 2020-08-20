@@ -92,10 +92,20 @@
 #% description: Resolution of output raster map (required if location projection not longlat)
 #% guisection: Output
 #%end
+#%option
+#% key: memory
+#% type: integer
+#% required: no
+#% multiple: no
+#% label: Maximum memory to be used (in MB)
+#% description: Cache size for raster rows
+#% answer: 300
+#%end
 #%flag
 #% key: z
 #% description: Create zero elevation for missing tiles
 #%end
+
 
 import os
 import atexit
@@ -367,8 +377,6 @@ def main():
     # are we in LatLong location?
     s = grass.read_command("g.proj", flags="j")
     kv = grass.parse_key_val(s)
-    # if kv["+proj"] != "longlat":
-    #     grass.fatal(_("NASADEM requires that the projection is 'longlat'."))
 
     # make a temporary directory
     tmpdir = grass.tempfile()
@@ -401,7 +409,6 @@ def main():
             north = float(north)
 
     else:
-        # TODO
         if not options['resolution']:
             grass.fatal(_("The <resolution> must be set if the projection is not 'longlat'."))
         if options["region"] is None or options["region"] == "":
@@ -579,8 +586,8 @@ def main():
             'input': output,
             'resolution': reproj_res
         }
-        # if options['memory']: # TODO
-        kwargs['memory'] = 5000 #options['memory']
+        if options['memory']:
+            kwargs['memory'] = options['memory']
         if options['method']:
             kwargs['method'] = options['method']
         try:
