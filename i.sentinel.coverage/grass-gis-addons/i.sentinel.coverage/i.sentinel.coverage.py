@@ -206,7 +206,7 @@ def main():
     else:
         producttype = 'S2MSI2A'
 
-    grass.message(_("Importing Sentinel footprints ..."))
+    grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
     fps = 'tmp_fps_%s' % str(os.getpid())
     rm_vectors.append(fps)
     if not options['names']:
