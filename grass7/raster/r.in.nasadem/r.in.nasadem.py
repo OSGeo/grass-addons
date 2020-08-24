@@ -74,13 +74,43 @@
 #% multiple: no
 #% required: no
 #%end
+#%option
+#% key: method
+#% type: string
+#% required: no
+#% multiple: no
+#% options: nearest,bilinear,bicubic,lanczos,bilinear_f,bicubic_f,lanczos_f
+#% description: Resampling method to use for reprojection (required if location projection not longlat)
+#% descriptions: nearest;nearest neighbor;bilinear;bilinear interpolation;bicubic;bicubic interpolation;lanczos;lanczos filter;bilinear_f;bilinear interpolation with fallback;bicubic_f;bicubic interpolation with fallback;lanczos_f;lanczos filter with fallback
+#% guisection: Output
+#% answer: bilinear_f
+#%end
+#%option
+#% key: resolution
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Resolution of output raster map (required if location projection not longlat)
+#% guisection: Output
+#%end
+#%option
+#% key: memory
+#% type: integer
+#% required: no
+#% multiple: no
+#% label: Maximum memory to be used (in MB)
+#% description: Cache size for raster rows
+#% answer: 300
+#%end
 #%flag
 #% key: z
 #% description: Create zero elevation for missing tiles
 #%end
 
+
 import os
 import atexit
+import numpy as np
 import shutil
 import time
 import zipfile as zfile
@@ -94,6 +124,11 @@ except ImportError:
 import grass.script as grass
 from grass.exceptions import CalledModuleError
 
+# initialize global vars
+TMPLOC = None
+SRCGISRC = None
+TGTGISRC = None
+GISDBASE = None
 
 nd16bit1sec = """BYTEORDER M
 LAYOUT BIL
@@ -279,10 +314,40 @@ def cleanup():
             "g.remove", type="region", name=tmpregionname, flags="f", quiet=True
         )
     grass.try_rmdir(tmpdir)
+    if TGTGISRC:
+        os.environ['GISRC'] = str(TGTGISRC)
+    # remove temp location
+    if TMPLOC:
+        grass.try_rmdir(os.path.join(GISDBASE, TMPLOC))
+    if SRCGISRC:
+        grass.try_remove(SRCGISRC)
+
+
+def createTMPlocation(epsg=4326):
+    SRCGISRC = grass.tempfile()
+    TMPLOC = 'temp_import_location_' + str(os.getpid())
+    f = open(SRCGISRC, 'w')
+    f.write('MAPSET: PERMANENT\n')
+    f.write('GISDBASE: %s\n' % GISDBASE)
+    f.write('LOCATION_NAME: %s\n' % TMPLOC)
+    f.write('GUI: text\n')
+    f.close()
+
+    # create temp location from input without import
+    grass.verbose(_("Creating temporary location with EPSG:%d...") % epsg)
+    grass.run_command('g.proj', flags='c', epsg=epsg, location=TMPLOC, quiet=True)
+
+    # switch to temp location
+    os.environ['GISRC'] = str(SRCGISRC)
+    if grass.parse_command('g.proj', flags='g')['epsg'] != str(epsg):
+        grass.fatal("Creation of temporary location failed!")
+
+    return SRCGISRC, TMPLOC
 
 
 def main():
 
+    global TMPLOC, SRCGISRC, TGTGISRC, GISDBASE
     global tile, tmpdir, in_temp, currdir, tmpregionname
 
     in_temp = False
@@ -295,9 +360,10 @@ def main():
     local = options["local"]
     output = options["output"]
     dozerotile = flags["z"]
+    reproj_res = options['resolution']
 
     overwrite = grass.overwrite()
-    
+
     tile = None
     tmpdir = None
     in_temp = None
@@ -312,8 +378,6 @@ def main():
     # are we in LatLong location?
     s = grass.read_command("g.proj", flags="j")
     kv = grass.parse_key_val(s)
-    if kv["+proj"] != "longlat":
-        grass.fatal(_("NASADEM requires that the projection is 'longlat'."))
 
     # make a temporary directory
     tmpdir = grass.tempfile()
@@ -331,19 +395,50 @@ def main():
     grass.run_command("g.region", save=tmpregionname, overwrite=overwrite)
 
     # get extents
-    reg = grass.region()
+    if kv['+proj'] == 'longlat':
+        reg = grass.region()
+        if options["region"] is None or options["region"] == "":
+            north = reg["n"]
+            south = reg["s"]
+            east = reg["e"]
+            west = reg["w"]
+        else:
+            west, south, east, north = options["region"].split(",")
+            west = float(west)
+            south = float(south)
+            east = float(east)
+            north = float(north)
 
-    if options["region"] is None or options["region"] == "":
-        north = reg["n"]
-        south = reg["s"]
-        east = reg["e"]
-        west = reg["w"]
     else:
-        west, south, east, north = options["region"].split(",")
-        west = float(west)
-        south = float(south)
-        east = float(east)
-        north = float(north)
+        if not options['resolution']:
+            grass.fatal(_("The <resolution> must be set if the projection is not 'longlat'."))
+        if options["region"] is None or options["region"] == "":
+            reg2 = grass.parse_command('g.region', flags='uplg')
+            north_vals = [float(reg2['ne_lat']), float(reg2['nw_lat'])]
+            south_vals = [float(reg2['se_lat']), float(reg2['sw_lat'])]
+            east_vals = [float(reg2['ne_long']), float(reg2['se_long'])]
+            west_vals = [float(reg2['nw_long']), float(reg2['sw_long'])]
+            reg = {}
+            if np.mean(north_vals) > np.mean(south_vals):
+                north = max(north_vals)
+                south = min(south_vals)
+            else:
+                north = min(north_vals)
+                south = max(south_vals)
+            if np.mean(west_vals) > np.mean(east_vals):
+                west = max(west_vals)
+                east = min(east_vals)
+            else:
+                west = min(west_vals)
+                east = max(east_vals)
+            # get actual location, mapset, ...
+            grassenv = grass.gisenv()
+            tgtloc = grassenv['LOCATION_NAME']
+            tgtmapset = grassenv['MAPSET']
+            GISDBASE = grassenv['GISDBASE']
+            TGTGISRC = os.environ['GISRC']
+        else:
+            grass.fatal(_("The option <resolution> is only supported in the projection 'longlat'"))
 
     # adjust extents to cover SRTM tiles: 1 degree bounds
     tmpint = int(north)
@@ -374,6 +469,10 @@ def main():
         north += 1
     if east == west:
         east += 1
+
+    # switch to longlat location
+    if kv['+proj'] != 'longlat':
+        SRCGISRC, TMPLOC = createTMPlocation()
 
     rows = abs(north - south)
     cols = abs(east - west)
@@ -467,12 +566,35 @@ def main():
 
     if valid_tiles > 1:
         grass.message(_("Patching tiles..."))
-        grass.run_command("r.patch", input=demtiles, output=output)
-        grass.run_command(
-            "g.remove", type="raster", name=str(demtiles), flags="f", quiet=True
-        )
+        if kv['+proj'] != 'longlat':
+            grass.run_command('r.buildvrt', input=demtiles, output=output)
+        else:
+            grass.run_command("r.patch", input=demtiles, output=output)
+            grass.run_command(
+                "g.remove", type="raster", name=str(demtiles), flags="f", quiet=True
+            )
     else:
         grass.run_command("g.rename", raster="%s,%s" % (demtiles, output), quiet=True)
+
+    # switch to target location and repoject nasadem
+    if kv['+proj'] != 'longlat':
+        os.environ['GISRC'] = str(TGTGISRC)
+        # r.proj
+        grass.message(_("Reprojecting <%s>...") % output)
+        kwargs = {
+            'location': TMPLOC,
+            'mapset': 'PERMANENT',
+            'input': output,
+            'resolution': reproj_res
+        }
+        if options['memory']:
+            kwargs['memory'] = options['memory']
+        if options['method']:
+            kwargs['method'] = options['method']
+        try:
+            grass.run_command('r.proj', **kwargs)
+        except CalledModuleError:
+            grass.fatal(_("Unable to to reproject raster <%s>") % output)
 
     # nice color table
     grass.run_command("r.colors", map=output, color="srtm", quiet=True)
@@ -486,7 +608,7 @@ def main():
         cmdline = cmdline.replace("=" + username, "=xxx")
     if password is not None and len(password) > 0:
         cmdline = cmdline.replace("=" + password, "=xxx")
-         
+
     f.write(cmdline)
     f.close()
     source1 = nasadem_version
