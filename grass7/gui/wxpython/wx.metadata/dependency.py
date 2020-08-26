@@ -20,8 +20,12 @@
 #############################################################################
 
 import importlib
+import sys
+
+sys.tracebacklimit = 1
 
 URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
+
 MODULES = {
     'jinja2': {
         'check_version': False,
@@ -31,17 +35,17 @@ MODULES = {
     },
     'owslib': {
         'check_version': True,
-        'package': 'owslib.iso',
-        'method': 'MD_Metadata',
+        'package': ['owslib.iso'],
+        'method': [['MD_Metadata']],
         'version': '>=0.9',
     },
     'pycsw': {
         'check_version': True,
-        'package': 'pycsw.core',
-        'submodule': 'admin',
+        'package': ['pycsw.core'],
+        'submodule': [['admin']],
         'version': '>=2.0',
     },
-    'pyexcel-ods3': {
+    'pyexcel_ods3': {
         'check_version': False,
     },
     'pygments': {
@@ -58,65 +62,70 @@ MODULES = {
     },
 }
 
-INSTALLED_VESION_MESSAGE = "Installed version of {} library is <{}>."
-REQ_VESION_MESSAGE = "{name} {version} is required. Check requirements" \
-    "on the manual page <{url}>"
+INSTALLED_VERSION_MESSAGE = "!!! INSTALLED VERSION OF {} LIBRARY IS " \
+    "<{}>. !!!"
+REQ_VERSION_MESSAGE = "!!! {name} {version} IS REQUIRED. " \
+    "CHECK REQUIREMENTS ON THE MANUAL PAGE <{url}> !!!"
 
 
 def check_dependencies(module_name, check_version=False):
+    """Check if py module is installed
+
+    :param str module_name: py module name
+    :param bool check_version: check py module version
+
+    :return
+
+    bool True: if py module is installed
+
+    None: if py module is missing
+    """
+
     module_cfg = MODULES[module_name]
     try:
         module = importlib.import_module(module_name)
         if module_cfg['check_version']:
-            package = importlib.import_module(module_cfg['package'])
+            message = "{inst_ver} {req_ver}".format(
+                inst_ver=INSTALLED_VERSION_MESSAGE.format(
+                    module_name,
+                    module.__version__,
+                ),
+                req_ver=REQ_VERSION_MESSAGE.format(
+                    name=module_name,
+                    version=module_cfg['version'],
+                    url=URL,
+                ),
+            )
 
-            if module_cfg.get('method'):
-                if not hasattr(package, module_cfg.get('method')):
-                    print(
-                        INSTALLED_VESION_MESSAGE.format(
-                            module_name,
-                            module.__version__,
-                        ),
-                    )
-                    print(
-                        REQ_VESION_MESSAGE.format(
-                            name=module_name,
-                            version=module_cfg['version'],
-                            url=URL,
-                        ),
-                    )
-            elif module_cfg.get('module'):
-                try:
-                    importlib.import_module(module_cfg['submodule'])
-                except ModuleNotFoundError:
-                    print(
-                        INSTALLED_VESION_MESSAGE.format(
-                            module_name,
-                            module.__version__,
-                        ),
-                    )
-                    print(
-                        REQ_VESION_MESSAGE.format(
-                            name=module_name,
-                            version=module_cfg['version'],
-                            url=URL,
-                        ),
-                    )
+            for index, package in enumerate(module_cfg['package']):
+                _package = importlib.import_module(package)
+
+                if module_cfg.get('method'):
+                    for method in module_cfg.get('method')[index]:
+                        if not hasattr(_package, method):
+                            sys.stderr.write(message)
+
+                elif module_cfg.get('module'):
+                    for module in module_cfg.get('module')[index]:
+                        try:
+                            importlib.import_module(module)
+                        except ModuleNotFoundError:
+                            sys.stderr.write(message)
 
         return True
     except ModuleNotFoundError:
-        print(
-            "{name} library is missing. Check requirements on the "
-            "manual page <{url}>".format(
-                name=module_name,
-                url=URL,
-            ),
+        message = "!!! <{name}> {text} <{url}> !!!\n".format(
+            name=module_name,
+            text='library is missing. Check requirements on the '
+            'manual page'.upper(),
+            url=URL,
         )
+        sys.stderr.write(message)
 
 
 def main():
     for module in MODULES:
-        if check_dependencies(module):
+        if check_dependencies(module_name=module):
             print("{name} is installed.".format(name=module))
 
 
