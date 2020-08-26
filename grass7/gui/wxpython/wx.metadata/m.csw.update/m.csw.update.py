@@ -71,7 +71,7 @@
 #% type: string
 #% key_desc: separator
 #% description: Separator inside connections resources item string '{Name}{Separator}{Url}' (print only), use "separator"
-#% answer: ": "
+#% answer: ': '
 #% required: no
 #%end
 
@@ -144,6 +144,7 @@
 #% description: Remove and print not valid csw connections resources from xml file
 #%end
 
+
 import http
 import io
 import os
@@ -156,20 +157,31 @@ from urllib.request import (
 
 import grass.script as gscript
 from grass.script.core import percent
+from grass.script.utils import set_path
 
-import lxml.etree
-
-from owslib.csw import CatalogueServiceWeb
-from owslib.ows import ExceptionReport
-
-from pyexcel_ods3 import get_data
-
-import validators
-
+set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
 HEADERS = {}
 
 HTTP_STATUS_CODES = list(http.HTTPStatus)
+
+MODULES = {
+    'lxml': {
+        'check_version': False,
+    },
+    'owslib': {
+        'check_version': True,
+        'package': ['owslib.csw', 'owslib.ows'],
+        'method': [['CatalogueServiceWeb'], ['ExceptionReport']],
+        'version': '>=0.9',
+    },
+    'pyexcel_ods3': {
+        'check_version': False,
+    },
+    'validators': {
+        'check_version': False,
+    },
+}
 
 
 class UrlValidationFailure(Exception):
@@ -1369,4 +1381,21 @@ def main():
 
 
 if __name__ == "__main__":
+    from mdlib.dependency import check_dependencies
+    module_not_found = []
+    for module in MODULES:
+        if not check_dependencies(module):
+            module_not_found.append(True)
+    if module_not_found:
+        sys.exit(1)
+
+    import lxml.etree
+
+    from owslib.csw import CatalogueServiceWeb
+    from owslib.ows import ExceptionReport
+
+    from pyexcel_ods3 import get_data
+
+    import validators
+
     sys.exit(main())
