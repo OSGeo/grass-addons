@@ -22,7 +22,6 @@
 import importlib
 import sys
 
-sys.tracebacklimit = 1
 
 URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
 
@@ -130,4 +129,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
