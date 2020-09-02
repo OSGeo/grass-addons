@@ -293,7 +293,7 @@ class UpdateConnectionsResources:
         self._print_summary_result = ''
         self._file_data_key = 'API_Cases'
         self._not_valid_csw_urls = []
-        self._not_active_csw_url = []
+        self._not_active_csw_urls = []
         self._xml_parser = lxml.etree.XMLParser(remove_blank_text=True)
         self._progress_message = 'Percent complete...'
 
@@ -751,7 +751,7 @@ class UpdateConnectionsResources:
         except Exception as err:
             msg = 'Unknown Error: {}, {}'.format(err, url)
         if add_url:
-            self._not_active_csw_url.append(url)
+            self._not_active_csw_urls.append(url)
         return False
 
     def _check_active_xml_csw_url(self):
@@ -956,7 +956,7 @@ class UpdateConnectionsResources:
         if not self._csw_conn_exist(self._xml_root, name=name, url=url):
             # Check if url is active nd valid
             if url not in self._not_valid_csw_urls and \
-               url not in self._not_active_csw_url:
+               url not in self._not_active_csw_urls:
                 append_csw()
                 self._new_connections += 1
 
@@ -1003,7 +1003,7 @@ class UpdateConnectionsResources:
             # Valid and active
             if self._active_csw_url:
                 if url not in self._not_valid_csw_urls and \
-                   url not in self._not_active_csw_url:
+                   url not in self._not_active_csw_urls:
 
                     self._print_result = join_char.join(
                         [
@@ -1036,7 +1036,7 @@ class UpdateConnectionsResources:
             if self._active_csw_url:
                 # Active always valid
                 if url not in self._not_valid_csw_urls and \
-                   url not in self._not_active_csw_url:
+                   url not in self._not_active_csw_urls:
                     self._print_result = join_char.join(
                         [
                             self._print_result,
@@ -1046,7 +1046,7 @@ class UpdateConnectionsResources:
 
             elif self._not_active_csw_url:
                 # Not active always valid
-                if url in self._not_active_csw_url and \
+                if url in self._not_active_csw_urls and \
                    url not in self._not_valid_csw_urls:
 
                     self._print_result = join_char.join(
@@ -1117,7 +1117,7 @@ class UpdateConnectionsResources:
                         "{value:.>25}{eof}".format(
                             value=self._new_connections -
                             len(self._not_valid_csw_urls) -
-                            len(self._not_active_csw_url),
+                            len(self._not_active_csw_urls),
                             eof=eof,
                         )
                     ),
@@ -1132,7 +1132,7 @@ class UpdateConnectionsResources:
                         "{value:.>19}{eof}".format(
                             value=self._new_connections -
                             len(self._not_valid_csw_urls) -
-                            len(self._not_active_csw_url),
+                            len(self._not_active_csw_urls),
                             eof=eof,
                         )
                     ),
@@ -1157,7 +1157,7 @@ class UpdateConnectionsResources:
                 (
                     "Number of not active new connnections resources urls"
                     "{value:.>10}{eof}".format(
-                        value=len(self._not_active_csw_url),
+                        value=len(self._not_active_csw_urls),
                         eof=eof,
                     )
                 ),
