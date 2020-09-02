@@ -61,10 +61,10 @@ MODULES = {
     },
 }
 
-INSTALLED_VERSION_MESSAGE = "!!! INSTALLED VERSION OF {} LIBRARY IS " \
-    "<{}>. !!!"
-REQ_VERSION_MESSAGE = "!!! {name} {version} IS REQUIRED. " \
-    "CHECK REQUIREMENTS ON THE MANUAL PAGE <{url}> !!!"
+INSTALLED_VERSION_MESSAGE = "Installed version of {} library is " \
+    "<{}>."
+REQ_VERSION_MESSAGE = "{name} {version} is required. " \
+    "check requirements on the manual page <{url}>."
 
 
 def check_dependencies(module_name, check_version=False):
