@@ -7,7 +7,7 @@
 #
 # AUTHOR(S):    Tomas Zigo <tomas.zigo slovanet.sk>
 #
-# PURPOSE:      Update csw connections resources candicates
+# PURPOSE:      Update csw connections resources candidates
 #
 # COPYRIGHT:    (C) 2020 by Tomas Zigo, and the GRASS Development Team
 #
@@ -18,15 +18,15 @@
 #############################################################################
 
 #%module
-#% description: Update catalogue service for the web connections resources candidates
+#% description: Update catalogue service for the web connections resources candidates.
 #% keyword: connections resources
 #% keyword: csw
 #% keyword: metadata
 #%end
 
 #%option G_OPT_F_INPUT
-#% key: spreadsheets
-#% description: Path to spreadsheet file (*.ods format)
+#% key: spreadsheet
+#% description: Path to spreadsheet file (ODS format)
 #% gisprompt: old,bin,file
 #% answer: API-cases.ods
 #% required: no
@@ -36,14 +36,14 @@
 #% key: url
 #% key_desc: string
 #% type: string
-#% description: Spreadsheet file url
+#% description: Spreadsheet file URL
 #% multiple: no
 #% required: no
 #%end
 
 #%option G_OPT_F_INPUT
 #% key: xml
-#% description: Path to csw connections resources xml file
+#% description: Path to CSW connections resources XML file
 #% gisprompt: old,bin,file
 #% answer: connections_resources.xml
 #% required: yes
@@ -51,7 +51,7 @@
 
 #%option G_OPT_F_INPUT
 #% key: xsd
-#% description: Path to csw connections resources validation schema xsd file
+#% description: Path to CSW connections resources validation schema XSD file
 #% gisprompt: old,bin,file
 #% answer: connections_resources.xsd
 #% required: yes
@@ -61,7 +61,7 @@
 #% key: timeout
 #% type: integer
 #% key_desc: timeout
-#% description: Timeout for checking if csw connections resources url is active
+#% description: Timeout for checking if CSW connections resources URL is active
 #% answer: 10
 #% required: yes
 #%end
@@ -70,7 +70,7 @@
 #% key: separator
 #% type: string
 #% key_desc: separator
-#% description: Separator inside connections resources item string '{Name}{Separator}{Url}' (print only), use "separator"
+#% description: Separator inside connections resources item string '{Name}{Separator}{URL}' (print only), use "separator"
 #% answer: ': '
 #% required: no
 #%end
@@ -96,52 +96,52 @@
 
 #%flag
 #% key: a
-#% description: Print all active (valid and active) csw connections resources only
+#% description: Print all active (valid and active) CSW connections resources only
 #%end
 
 #%flag
 #% key: i
-#% description: Print not active csw connections resources only
+#% description: Print not active CSW connections resources only
 #%end
 
 #%flag
 #% key: v
-#% description: Print valid csw connections resources urls
+#% description: Print valid CSW connections resources URLs
 #%end
 
 #%flag
 #% key: n
-#% description: Print not valid csw connections resources urls
+#% description: Print not valid CSW connections resources URLs
 #%end
 
 #%flag
 #% key: p
-#% description: Print all new csw connections (valid/not valid, active/not active) resources with following format '{Country}, {Governmental level}, {Api provider}: {Url}'
+#% description: Print all new CSW connections (valid/not valid, active/not active) resources with following format '{Country}, {Governmental level}, {API provider}: {URL}'
 #%end
 
 #%flag
 #% key: s
-#% description: Print new csw connections resources summary info
+#% description: Print new CSW connections resources summary info
 #%end
 
 #%flag
 #% key: l
-#% description: Print default spreadsheet file url
+#% description: Print default spreadsheet file URL
 #%end
 
 #%flag
 #% key: x
-#% description: Validate csw connections resources xml file against xsd schema
+#% description: Validate CSW connections resources XML file against XSD schema
 #%end
 
 #%flag
 #% key: c
-#% description: Remove and print not active csw connection resources from xml file
+#% description: Remove and print not active CSW connection resources from XML file
 #%end
 
 #%flag
 #% key: k
-#% description: Remove and print not valid csw connections resources from xml file
+#% description: Remove and print not valid CSW connections resources from XML file
 #%end
 
 
@@ -204,7 +204,7 @@ class UpdateConnectionsResources:
     :param str conns_resrs_xml: connections resources xml file path
     :param str conns_resrs_xsd: connections resources validation schema
     xsd file path
-    :param str spreadsheets_file_url: spreadsheets file web url address
+    :param str spreadsheet_file_url: spreadsheet file web url address
     or file path url
     :param str data_theme: data theme (ogc csw -> 'Geospatial')
     :param int csw_timeout: timeout for checking csw url activity
@@ -259,15 +259,15 @@ class UpdateConnectionsResources:
 
     def __init__(
             self, conns_resrs_xml, conns_resrs_xsd,
-            spreadsheets_file_url, data_theme='Geospatial',
+            spreadsheet_file_url, data_theme='Geospatial',
             csw_timeout=10, separator=': ', print_info=False,
             print_summary_info=False, active_csw_url=False,
             not_active_csw_url=False,  valid_csw_url=False,
             not_valid_csw_url=False, valid_xml=False,
             active_xml_csw_url=False, not_valid_xml_csw_url=False,
     ):
-        self._spreadsheets_file_url_type = None
-        self._spreadsheets_file_url = spreadsheets_file_url
+        self._spreadsheet_file_url_type = None
+        self._spreadsheet_file_url = spreadsheet_file_url
 
         self._conns_resrs_xsd = conns_resrs_xsd
         self._conns_resrs_xml = conns_resrs_xml
@@ -313,24 +313,24 @@ class UpdateConnectionsResources:
             self._check_not_valid_xml_csw_url()
             return
 
-        # Print or write new csw resources connections candicates
-        if self._spreadsheets_file_url_type == UrlType.WEB:
+        # Print or write new csw resources connections candidates
+        if self._spreadsheet_file_url_type == UrlType.WEB:
             self._download_file()
             self._read_file(file=self._downloaded_file)
         else:
-            self._read_file(file=self._spreadsheets_file_url)
+            self._read_file(file=self._spreadsheet_file_url)
         self.get_data()
 
     @property
-    def _spreadsheets_file_url(self):
-        return self.__spreadsheets_file_url
+    def _spreadsheet_file_url(self):
+        return self.__spreadsheet_file_url
 
-    @_spreadsheets_file_url.setter
-    def _spreadsheets_file_url(self, path):
+    @_spreadsheet_file_url.setter
+    def _spreadsheet_file_url(self, path):
         if ('http' or 'https') in path:
             self._validate_url(url=path)
-            self.__spreadsheets_file_url = path
-            self._spreadsheets_file_url_type = UrlType.WEB
+            self.__spreadsheet_file_url = path
+            self._spreadsheet_file_url_type = UrlType.WEB
         else:
             if not os.path.exists(path):
                 gscript.fatal(
@@ -350,8 +350,8 @@ class UpdateConnectionsResources:
                     ),
                 )
 
-            self.__spreadsheets_file_url = path
-            self._spreadsheets_file_url_type = UrlType.FILE
+            self.__spreadsheet_file_url = path
+            self._spreadsheet_file_url_type = UrlType.FILE
 
     @property
     def _conns_resrs_xsd(self):
@@ -549,7 +549,7 @@ class UpdateConnectionsResources:
         if not self._downloaded_file:
             try:
                 response = urlopen_(
-                    url=self._spreadsheets_file_url,
+                    url=self._spreadsheet_file_url,
                     headers=HEADERS,
                 )
                 if not response.code == 200:
@@ -560,7 +560,7 @@ class UpdateConnectionsResources:
                             "Download file from <{url}>, "
                             "return status code {code}, "
                             "{desc}".format(
-                                url=self._spreadsheets_file_url,
+                                url=self._spreadsheet_file_url,
                                 code=response.code,
                                 desc=desc,
                             ),
@@ -574,7 +574,7 @@ class UpdateConnectionsResources:
                             "Check url <{}>. Allowed file format is "
                             "OpenDocument Format (ODF) with .ods extension "
                             "- a spreadsheet file".format(
-                                self._spreadsheets_file_url,
+                                self._spreadsheet_file_url,
                             ),
                         ),
                     )
@@ -587,7 +587,7 @@ class UpdateConnectionsResources:
                     _(
                         "Download file from <{url}>, "
                         "return status code {code}, ".format(
-                            url=self._spreadsheets_file_url,
+                            url=self._spreadsheet_file_url,
                             code=err,
                         ),
                     ),
@@ -597,7 +597,7 @@ class UpdateConnectionsResources:
                     _(
                         "Download file from <{url}>, "
                         "failed. Check internet connection.".format(
-                            url=self._spreadsheets_file_url,
+                            url=self._spreadsheet_file_url,
                         ),
                     ),
                 )
@@ -988,7 +988,7 @@ class UpdateConnectionsResources:
         return name, url
 
     def _print_csw_conn_element(self, row):
-        """Print service candicates list
+        """Print service candidates list
 
         param: list row: csw resource connection item for printing
         '{Name}{Separator}{Url}'
@@ -1180,7 +1180,7 @@ class UpdateConnectionsResources:
 
     def get_data(self):
         """
-        Get csw list of candicates
+        Get csw list of candidates
         """
         if not self._print_info:
             self._parse_xml()
@@ -1312,11 +1312,11 @@ def main():
         xsd = options['xsd']
     else:
         xsd = os.path.join(*config_dir + [options['xsd']])
-    if options['spreadsheets'] != default_ods:
-        spreadsheets = options['spreadsheets']
+    if options['spreadsheet'] != default_ods:
+        spreadsheet = options['spreadsheet']
     else:
-        spreadsheets = os.path.join(
-            *config_dir + [options['spreadsheets']],
+        spreadsheet = os.path.join(
+            *config_dir + [options['spreadsheet']],
         )
 
     options['separator'] = strip_string(options['separator'])
@@ -1328,16 +1328,16 @@ def main():
         options['header'] = strip_string(options['header'])
         manage_headers(headers=options['header'])
 
-    if not options['url'] and not options['spreadsheets']:
+    if not options['url'] and not options['spreadsheet']:
         gscript.fatal(
-            _('Set \'url=\' or \'spreadsheets=\' parameter argument'),
+            _('Set \'url=\' or \'spreadsheet=\' parameter argument'),
         )
-    if options['url'] and options['spreadsheets']:
-        spreadsheets = options['url']
+    if options['url'] and options['spreadsheet']:
+        spreadsheet = options['url']
         gscript.warning(
             _(
                 'Use spreadsheet file url \'{}\' for getting new csw '
-                'resources connections candicates'.format(
+                'resources connections candidates'.format(
                     url,
                 ),
             ),
@@ -1363,7 +1363,7 @@ def main():
         return
 
     UpdateConnectionsResources(
-        spreadsheets_file_url=spreadsheets,
+        spreadsheet_file_url=spreadsheet,
         conns_resrs_xml=xml,
         conns_resrs_xsd=xsd,
         separator=options['separator'],
