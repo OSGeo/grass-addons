@@ -1156,7 +1156,7 @@ class UpdateConnectionsResources:
                 self._print_summary_result,
                 (
                     "Number of not active new connnections resources urls"
-                    "{value:.>10}{eof}".format(
+                    "{value:.>8}{eof}".format(
                         value=len(self._not_active_csw_urls),
                         eof=eof,
                     )
@@ -1168,7 +1168,7 @@ class UpdateConnectionsResources:
                 self._print_summary_result,
                 (
                     "Sum"
-                    "{value:.>56}{eof}".format(
+                    "{value:.>57}{eof}".format(
                         value=self._new_connections,
                         eof=eof,
                     )
