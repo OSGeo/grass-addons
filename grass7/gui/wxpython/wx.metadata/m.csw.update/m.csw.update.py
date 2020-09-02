@@ -125,8 +125,13 @@
 #%end
 
 #%flag
-#% key: l
+#% key: w
 #% description: Print default spreadsheet file URL
+#%end
+
+#%flag
+#% key: l
+#% description: Print default local spreadsheet file URL
 #%end
 
 #%flag
@@ -1358,8 +1363,16 @@ def main():
        flags['p']:
         gscript.fatal(_('Add \'p\' flag please'))
 
-    if flags['l']:
+    if flags['w']:
         sys.stdout.write("{}\n".format(url))
+        return
+
+    if flags['l']:
+        sys.stdout.write(
+            "{}\n".format(
+                os.path.join(*config_dir + [options['spreadsheet']]),
+            ),
+        )
         return
 
     UpdateConnectionsResources(
