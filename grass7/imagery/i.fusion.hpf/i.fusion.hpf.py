@@ -584,7 +584,7 @@ def main():
             hpf_med = float(allq[1].split(':')[2])
             hpf_phi = float(allq[2].split(':')[2])
 
-	    # scale factors
+            # scale factors
             sfplo = (msx_med - msx_plo) / (hpf_med - hpf_plo)
             sfphi = (msx_phi - msx_med) / (hpf_phi - hpf_med)
 
