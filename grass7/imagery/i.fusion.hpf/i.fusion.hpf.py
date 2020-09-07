@@ -309,7 +309,10 @@ def main():
     for img in imglst:  # Retrieving Image Info
         # images[img] = Info(img, mapset)
         # images[img].read()
-        images[img] = grass.raster_info(img)
+        try:
+            images[img] = grass.raster_info(img)
+        except:
+            grass.fatal(_("msx input not found"))
 
     panres = images[pan]['nsres']  # Panchromatic resolution
 
