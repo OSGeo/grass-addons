@@ -1,30 +1,81 @@
 <h2>DESCRIPTION</h2>
 
-
 Module <em>r.pops.spread</em> 
 is a dynamic species distribution model for pest or pathogen spread in forest
 or agricultural ecosystems. The model is process based
 meaning that it uses understanding of the effect of weather on reproduction
-and survival of the pest/pathogen in order to simulate
-spread of the pest/pathogen into the future.
-
+and survival of the pest or pathogen in order to simulate
+spread of the pest or pathogen into the future using simulation.
 
 <div align="center" style="margin: 10px">
-<a href="r_pops_spread.png">
-<img src="r_pops_spread.png" width="600"  alt="r.pops.spread example" border="0">
-</a><br>
+    <a href="r_pops_spread.png">
+    <img src="r_pops_spread.png" width="600"  alt="r.pops.spread example" border="0">
+    </a><br>
+    <i>Figure: Infected hosts in a landscape, a typical model result</i>
 </div>
 
+<h3>About the model</h3>
+
 <p>
-Module <em>r.pops.spread</em> is using <a href="https://github.com/ncsu-landscape-dynamics/PoPS">
-    Pest or Pathogen Spread library</a>.
+The module is using the PoPS Core library which is implementing
+the PoPS model and it is a central part of the
+<a href="https://popsmodel.org/">Pest or Pathogen Spread (PoPS)</a> project.
+
 <div align="center" style="margin: 10px">
     <a href="pops_logo.png">
     <img src="pops_logo.png" width="100"  alt="PoPS logo" border="0">
     </a><br>
-    <i>Figure: Logo of Pest or Pathogen Spread simulation</i>
+    <i>Figure: Logo of the Pest or Pathogen Spread framework the PoPS is part of</i>
 </div>
 
+<p>
+The PoPS model is a stochastic spread model of pests
+and pathogens in forest and agricultural landscapes.
+It is used for various pest, pathogens, and hosts including animals,
+not just plants, as hosts.
+It was originally developed for <em>Phytophthora ramorum</em> and the original
+version of the model was written in R, later with Rcpp (Tonini, 2017),
+and was based on Meentemeyer (2011) paper.
+
+<p>
+The current implementation of the GRASS GIS module is using PoPS Core
+header-only C++ library which implements the PoPS model.
+The primary development of
+<a href="https://github.com/ncsu-landscape-dynamics/pops-core">PoPS Core</a>
+and of
+<a href="https://github.com/ncsu-landscape-dynamics/r.pops.spread">this module</a>
+happens in a
+separate repositories and GRASS GIS Addons repository contains the latest
+release of the model.
+An alternative
+<a href="https://github.com/ncsu-landscape-dynamics/r.pops.spread/tree/steering">steering version</a>
+of this module exists which includes a set of
+features supporting geospatial simulation steering (Petrasova, 2020)
+which is useful for exploring adaptive management scenarios.
+
+<h3>Model parameters</h3>
+
+Two basic epidemiological model types (<b>model_type</b>) are available for a transition
+of hosts between susceptible and infected classes:
+1) susceptible-infected (SI) for an immediate transition when
+a disperser establishes on the host and
+2) susceptible-exposed-infected (SEI) for an intermediate state when
+the host first becomes exposed and only after a latency period
+(<b>latency_period</b>) is over.
+
+This page lists above the numerous inputs and parameters, although many
+of them have default values, some need careful consideration and
+calibration. The best way how to identify options relevant to
+a given use case is to go through one of the available tutorials.
+
+<h3>Calibration</h3>
+
+Typically, the model needs to be calibrated.
+You can obtain the calibration from a published work,
+colleague, calibrate the model manually (in GRASS GIS),
+or use the R interface to PoPS called
+<a href="https://github.com/ncsu-landscape-dynamics/rpops">rpops</a>
+which has dedicated functions for calibration.
 
 <h2>NOTES</h2>
 
@@ -136,15 +187,18 @@ r.pops.spread host=host total_plants=all infected=infected_2005 \
 
 <h2>REFERENCES</h2>
 
+To cite this module, please refer to
+<a href="https://github.com/ncsu-landscape-dynamics/r.pops.spread#how-to-cite">How to cite</a>
+section in the readme file.
+
 <ul>
 <li>
-    Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook,
-    Joao A. N. Filipe, Richard D. Hunter, David M. Rizzo,
-    and Christopher A. Gilligan 2011.
+    Meentemeyer, Ross K., Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
+    Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan, 2011.
     Epidemiological modeling of invasion in heterogeneous landscapes:
     spread of sudden oak death in California (1990-2030).
     <em>Ecosphere</em> 2:art17.
-    <a href="http://dx.doi.org/10.1890/ES10-00192.1">DOI: 10.1890/ES10-00192.1</a>
+    <a href="https://doi.org/10.1890/ES10-00192.1">DOI: 10.1890/ES10-00192.1</a>
 <li>
     Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
     Vaclav Petras, Richard C. Cobb, Helena Mitasova,
@@ -153,22 +207,53 @@ r.pops.spread host=host total_plants=all infected=infected_2005 \
     to invasive species management.
     <em>Environmental Modelling &amp; Software</em> 92 (2017): 176-188.
     <a href="https://doi.org/10.1016/j.envsoft.2017.02.020">DOI: 10.1016/j.envsoft.2017.02.020</a>
+<li>
+    Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H. and
+    Meentemeyer, R.K., 2020.
+    Geospatial simulation steering for adaptive management.
+    <em>Environmental Modelling &amp; Software</em> 133: 104801.
+    <a href="https://doi.org/10.1016/j.envsoft.2020.104801">DOI: 10.1016/j.envsoft.2020.104801</a>
 </ul>
 
 
 <h2>SEE ALSO</h2>
 
 <em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/r.spread.html">r.spread</a>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.spread.html">r.spread</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.grow.html">r.grow</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a>,
+    <a href="r.futures.html">r.futures</a>
 </em>
 
+<p>
+Tutorials and other resources:
+
+<ul>
+<li>
+    <a href="https://github.com/ncsu-landscape-dynamics/pops-intro-grass-notebook/blob/master/pops-intro-grass-notebook.ipynb">PoPS Model Introduction in GRASS Using Jupyter Notebook</a>
+    <a href="https://mybinder.org/v2/gh/ncsu-landscape-dynamics/pops-intro-grass-notebook/master?urlpath=lab/tree/pops-intro-grass-notebook.ipynb" title="Go to an interactive notebook in Binder">
+        <img alt="Launch Binder" src="https://mybinder.org/badge_logo.svg"></a>
+<li>
+    <a href="https://grasswiki.osgeo.org/wiki/SOD_Spread_tutorial">SOD Spread tutorial</a> (at GRASS wiki)
+</ul>
 
 <h2>AUTHORS</h2>
 
-Francesco Tonini* (original R version)<br>
-Zexi Chen* (C++ version)<br>
-Vaclav Petras* (parallelization, GRASS interface)<br>
-Anna Petrasova* (single species simulation)<br>
+<em>(in alphabetical order)</em>
+
+<p>
+Chris Jones* <br>
+Margaret Lawrimore* <br>
+Vaclav Petras* <br>
+Anna Petrasova* <br>
+
+<p>
+Previous contributors:
+
+<p>
+Zexi Chen* <br>
+Devon Gaydos* <br>
+Francesco Tonini* <br>
 
 <br>
-* <a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+* <a href="http://geospatial.ncsu.edu/">Center for Geospatial Analytics, NC State University</a>

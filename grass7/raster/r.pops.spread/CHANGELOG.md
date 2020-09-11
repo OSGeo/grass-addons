@@ -4,6 +4,16 @@ All notable changes to this project should be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## 2020-04-16 - SEI model
+
+### Added
+
+- Add SEI modeling using model_type and latency_period parameters. (Vaclav Petras)
+
+### Changed
+
+- Reduced scope of mortality_simulation_year variable. (Vaclav Petras)
+
 ## 2018-09-18 - July 2019 improvements
 
 ### Changed
