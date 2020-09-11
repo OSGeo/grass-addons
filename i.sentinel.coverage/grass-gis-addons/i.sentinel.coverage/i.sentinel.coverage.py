@@ -278,7 +278,7 @@ def main():
 
     if options['minpercent']:
         if percent < int(options['minpercent']):
-            grass.fatal("The percentage of coverage is to low")
+            grass.fatal("The percentage of coverage is too low (expected: %s)" % options['minpercent'])
 
     # save list of Sentinel names
     if output:
