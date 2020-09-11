@@ -12,17 +12,6 @@ colleague or published work or you can calibrate the model manually (in
 GRASS GIS) or use the R interface to PoPS called
 [rpops](https://github.com/ncsu-landscape-dynamics/rpops) to do that.
 
-The *r.pops.spread* module is available in GRASS GIS Addons repository
-and can be installed directly in GRASS GIS through graphical user
-interface or using the following command:
-
-```
-g.extension r.pops.spread
-```
-
-Alternatively, you can obtain latest source code here and install it
-from this repository (see below).
-
 Note: Earlier versions of this module were called *r.spread.pest* and
 *r.spread.sod*.
 
@@ -62,9 +51,25 @@ you are using for example:
 * *We have used rpops R package version 1.0.0 from
   <https://github.com/ncsu-landscape-dynamics/rpops>*.
 
-## Obtaining the latest code
+## Download
 
-The PoPS library is in a submodule, so use `--recursive` when cloning,
+### Download and install
+
+The latest release of the *r.pops.spread* module is available in GRASS GIS Addons repository
+and can be installed directly in GRASS GIS through graphical user
+interface or using the following command:
+
+```
+g.extension r.pops.spread
+```
+
+Alternatively, you can obtain latest source code here and install it
+from this repository (see below).
+
+### Source code download
+
+Just use Git, but note that the
+PoPS Core library is in a submodule, so use `--recursive` when cloning,
 for example:
 
 ```
@@ -77,7 +82,16 @@ If you have already cloned, you can obtain the submodules using:
 git submodule update --init
 ```
 
-## Updating submodule to latest version
+Note that downloading as ZIP won't include the source code for the submodule,
+so downloading as ZIP is not useful for this repo.
+
+## Contributing
+
+Please see the [pops-core](https://github.com/ncsu-landscape-dynamics/pops-core#readme) repository
+for contributing best practices and release policies.
+Other than that, just open pull requests against this repo.
+
+### Updating submodule to latest version
 
 To update the submodule, i.e. update submodule's commit used in this
 repository, use:
@@ -93,7 +107,7 @@ particular commit in the submodule repository (rather than the latest
 version). Git works this way to avoid breaking things unexpectedly due
 to changes in the submodule repository.
 
-## Updating the code of the submodule
+### Updating the code of the submodule
 
 ```
 cd pops
@@ -111,7 +125,8 @@ git push
 
 ## The files
 
-The main.cpp contains the main program to run.
+The `main.cpp` file contains the main program to run.
+The model is in `pops-core/include/pops-core` directory.
 
 ## To run the model
 
@@ -119,9 +134,9 @@ You can use Linux to run the model in the following way.
 
 Open an terminal and install dependencies:
 
-    sudo apt-get install grass-dev
+    sudo apt-get install grass grass-dev
 
-Download the model code as ZIP or using Git:
+Download this repo using Git (see above):
 
     git clone ...
 
@@ -133,7 +148,7 @@ Compile:
 
     grass --tmp-location XY --exec g.extension module=r.pops.spread url=.
 
-Run:
+Run (assuming you checked how to create a GRASS GIS mapset with our data):
 
     grass .../modeling/scenario1 --exec r.pops.spread ...
 
