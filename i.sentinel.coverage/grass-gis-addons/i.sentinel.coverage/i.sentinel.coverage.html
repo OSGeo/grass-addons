@@ -1,18 +1,21 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.sentinel.coverage</em> is a GRASS GIS addon python script to
-check the area coverage of the by filters selected sentinel scenes.
-
-The coverage check considers only the check of the coverage by footprints and
-does not include the cloud coverage.
+check the area coverage by Sentinel scenes selected by a filter.
+<p>
+The coverage test considers only the geometric coverage by Sentinel
+scene footprints and does not include the cloud covered pixels.
 
 <h2>EXAMPLE</h2>
+
 <h3>Check Sentinel-2 scenes by region, cloud coverage, start and end time</h3>
+
 <div class="code"><pre>
 i.sentinel.coverage output=s2names.txt settings=/mnt/pgpass/.sentinel.txt start=2020-01-01 end=2020-01-31 clouds=70 area=mangkawuk@mangkawuk type=s2 minpercent=95
 </pre></div>
 
 <h3>Check Sentinel-2 scenes by names</h3>
+
 <div class="code"><pre>
 i.sentinel.coverage settings=/mnt/pgpass/.sentinel.txt output=s2names2.txt names=S2A_MSIL2A_20200104T024111_N0213_R089_T49MGU_20200104T061337,S2B_MSIL2A_20200129T023939_N0213_R089_T49MGU_20200201T153252 type=s2 minpercent=95 area=mangkawuk@mangkawuk
 </pre></div>
@@ -28,7 +31,7 @@ i.sentinel.coverage settings=/mnt/pgpass/.sentinel.txt output=s2names2.txt names
 
 <h2>AUTHORS</h2>
 
-Anika bettge, mundialis, bettge at mundialis.de
+Anika Bettge, mundialis, bettge at mundialis.de
 
 
 <!--

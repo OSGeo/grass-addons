@@ -251,10 +251,10 @@ def main():
         grass.run_command(
             'v.patch', input=','.join(fp_list), output=fps, quiet=True)
 
-    grass.message(_("Getting size of %s ...") % area)
+    grass.message(_("Getting size of <%s> area ...") % area)
     areasize = get_size(area)
 
-    grass.message(_("Getting size of footprints in %s ...") % area)
+    grass.message(_("Getting size of footprints in area <%s> ...") % area)
     fps_in_area = 'tmp_fps_in_area_%s' % str(os.getpid())
     rm_vectors.append(fps_in_area)
     grass.run_command(
@@ -274,7 +274,7 @@ def main():
     fpsize = get_size(fps_in_area_dis)
 
     percent = fpsize / areasize * 100.0
-    grass.message(_("%.2f percent of the %s is covered") % (percent, area))
+    grass.message(_("%.2f percent of the area <%s> is covered") % (percent, area))
 
     if options['minpercent']:
         if percent < int(options['minpercent']):
@@ -285,7 +285,7 @@ def main():
         with open(output, 'w') as f:
             f.write(','.join(name_list))
         grass.message(_(
-            "Name of Sentinel scenes are written to <%s>") % (output))
+            "Name of Sentinel scenes are written to file <%s>") % (output))
 
     # TODO Sentinel-1 select only "one" scene (no overlap)
 
