@@ -554,7 +554,7 @@ int main(int argc, char *argv[])
             _("The kappa parameter of von Mises distribution"
               " (concentration);"
               " typically the strength of the wind direction");
-    opt.natural_kappa->required = YES;
+    opt.natural_kappa->required = NO;
     opt.natural_kappa->guisection = _("Dispersal");
 
     opt.anthro_kernel = G_define_option();
@@ -774,8 +774,9 @@ int main(int argc, char *argv[])
     else if (opt.natural_kappa->answer)
         config.natural_kappa = std::stod(opt.natural_kappa->answer);
 
-    config.anthro_kernel_type = opt.anthro_kernel->answer;
     config.use_anthropogenic_kernel = false;
+    if (opt.anthro_kernel->answer)
+        config.anthro_kernel_type = opt.anthro_kernel->answer;
     if (kernel_type_from_string(config.anthro_kernel_type) != DispersalKernelType::None)
         config.use_anthropogenic_kernel = true;
 
