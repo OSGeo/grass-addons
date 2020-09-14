@@ -259,7 +259,7 @@ def main():
     rm_vectors.append(fps_in_area)
     grass.run_command(
         'v.overlay', ainput=fps, atype='area', binput=area, operator='and',
-         output=fps_in_area, quiet=True)
+        output=fps_in_area, quiet=True)
     grass.run_command(
         'v.db.addcolumn', map=fps_in_area, columns="tmp INTEGER", quiet=True)
     grass.run_command(
