@@ -330,7 +330,8 @@ def main():
                 writer.writerow(line)
     if flags['m']:
         for line in lines:
-            grass.message(line)
+            # for stdout using print
+            print(line)
 
     # cleanup
     if options['vector_reference']:
