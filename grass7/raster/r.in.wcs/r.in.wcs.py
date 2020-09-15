@@ -106,7 +106,11 @@ try:
 except ImportError:
     from urllib.request import urlopen
     from urllib.error import URLError, HTTPError
-from httplib import HTTPException
+try:
+    from httplib import HTTPException
+except ImportError:
+    # python3
+    from http.client import HTTPException
 import subprocess
 
 try:
