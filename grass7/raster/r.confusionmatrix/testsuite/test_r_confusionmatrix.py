@@ -1,6 +1,6 @@
 """
-Name:       v.divide.training_validation test
-Purpose:    Tests v.divide.training_validation input parsing.
+Name:       r.confusionmatrix test
+Purpose:    Tests r.confusionmatrix input parsing.
             Uses NC Basic data set.
 Author:     Anika Bettge
 Copyright:  (C) 2020 Anika Bettge, mundialis, and the GRASS Development Team
@@ -29,8 +29,6 @@ class Testconfusionmatrix(TestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove the temporary region and generated data"""
-#        cls.runModule('g.remove', flags='f', type='vector',
-#                      name=(cls.outtrain, cls.outvalid))
         cls.del_temp_region()
 
     def tearDown(self):
