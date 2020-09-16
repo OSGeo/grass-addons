@@ -74,11 +74,21 @@
 #% description: Print output as a matrix
 #%end
 
-import os
-import sys
+import atexit
 import csv
 import numpy as np
+import os
+import sys
 import grass.script as grass
+
+# initialize global vars
+rm_files = []
+
+def cleanup():
+    grass.message(_("Cleaning up..."))
+    for rm_f in rm_files:
+        if os.path.isfile(rm_f):
+            os.remove(rm_f)
 
 
 def print_descriptions():
@@ -162,6 +172,9 @@ def set_reference(descriptionflag = None):
 
 def get_r_kappa(classification, reference):
     tmp_csv = grass.tempfile()
+    os.remove(tmp_csv)
+    rm_files.append(tmp_csv)
+
     grass.run_command(
         'r.kappa', flags='wmh', classification=classification,
         reference=reference, output=tmp_csv, quiet=True)
@@ -193,7 +206,6 @@ def get_r_kappa(classification, reference):
     classified_classes = classified_classes[:-1]
 
     errormatrix = np.matrix(errorlist)
-    os.remove(tmp_csv)
 
     return errormatrix, classified_classes, ref_classes
 
@@ -233,6 +245,9 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
 
 
 def main():
+
+    global rm_files
+
     # parameters
     classification = options['classification']
     csv_filename = options['csvfile']
@@ -341,4 +356,5 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+    atexit.register(cleanup)
     main()
