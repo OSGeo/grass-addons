@@ -76,11 +76,11 @@
 
 import atexit
 import csv
+from math import nan
 import numpy as np
 import os
 import sys
 import grass.script as grass
-
 # initialize global vars
 rm_files = []
 
@@ -284,8 +284,12 @@ def main():
     for i in range(errormatrix.shape[0] - 1):
         classname = classified_classes[i]
         dg = diag[i]
-        r = errormatrix[i,-1]
-        user_accuracy[classname] = dg / r * 100
+        if dg == 0:
+            user_accuracy[classname] = 0.0
+        elif errormatrix[i,-1] == 0:
+            user_accuracy[classname] = nan
+        else:
+            user_accuracy[classname] = dg / errormatrix[i,-1] * 100
         commission[classname] = 100 - user_accuracy[classname]
 
     # print  User Accuracy and Commission
@@ -308,18 +312,22 @@ def main():
         classname = ref_classes[i]
         dg = diag[i]
         u = errormatrix[-1,i]
-        producer_accuracy[classname] = dg / u * 100
+        if dg == 0:
+            producer_accuracy[classname] = 0.0
+        elif errormatrix[-1,i] == 0:
+            producer_accuracy[classname] = nan
+        else:
+            producer_accuracy[classname] = dg / errormatrix[-1,i] * 100
         omission[classname] = 100 - producer_accuracy[classname]
 
     # print Producer Accuracy and Omission
     if not flags['m']:
         grass.message("\nProducer Accuracy: ")
-    for key,item in producer_accuracy.items():
-        if not flags['m']:
+        for key,item in producer_accuracy.items():
             grass.message("%s: %f" % (key, item))
-    grass.message("\nOmission error: ")
-    for key,item in omission.items():
-        if not flags['m']:
+    if not flags['m']:
+        grass.message("\nOmission error: ")
+        for key,item in omission.items():
             grass.message("%s: %f" % (key, item))
 
     # Kappa coefficient
