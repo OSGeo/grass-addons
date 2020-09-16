@@ -25,6 +25,10 @@ for details.
 from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
 import os.path
 
+# PY2/PY3 compat
+if sys.version_info.major >= 3:
+    unicode = str
+
 class ServerData():
     pass
 

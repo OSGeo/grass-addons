@@ -144,6 +144,9 @@ import grass.script.task as task
 from grass.script import vector as vect
 from grass.pygrass.raster.history import History
 from grass.pygrass.modules import Module, ParallelModuleQueue
+# PY2/PY3 compat
+if sys.version_info.major >= 3:
+    unicode = str
 
 ### To do:
 # Distinguish and remove temporary raster maps (single corridors)
