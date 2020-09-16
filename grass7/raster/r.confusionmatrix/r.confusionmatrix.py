@@ -223,8 +223,9 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
     lineend1 = ["", "Producer Accuracy"]
     lineend1.extend(producer_accuracy_list)
     lineend1.extend(['Overall Accuracy', overall_accuracy])
-    lineend2 = ["", "Commission Error"]
-    lineend2.extend(commission_list)
+    lineend2 = ["", "Omission Error"]
+    omission_list = [omission[rc] for rc in ref_classes]
+    lineend2.extend(omission_list)
     lineend2.extend(['Kappa coefficient', kappa])
     lines.append(lineend1)
     lines.append(lineend2)
