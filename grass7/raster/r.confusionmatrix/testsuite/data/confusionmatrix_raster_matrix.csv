@@ -4,7 +4,7 @@ Classified Map,High Intensity Developed,34931,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100.0,
 landuse96_28m,Low Intensity Developed,38146,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Cultivated,0,2137,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Managed Herbaceous Cover,0,0,25488,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
-,Upland Herbaceous,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,nan,nan
+,Upland Herbaceous,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Riverine/Estuarine Herbaceous,0,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Evergreen Shrubland,0,0,0,16464,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Deciduous Shrubland,0,0,0,320,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
@@ -15,5 +15,5 @@ landuse96_28m,Low Intensity Developed,38146,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.
 ,Mixed Hardwoods/Conifers,0,0,0,0,33865,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Water Bodies,0,0,0,0,0,5303,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Unconsolidated Sediment,0,0,0,0,0,0,194,0,0,0,0,0,0,0,0,0.0,100.0
-,Producer Accuracy,47.800265473404764,0.0,0.0,0.0,0.0,0.0,0.0,nan,nan,nan,nan,nan,nan,nan,nan,Overall Accuracy,14.010340000721955
-,Omission Error,52.199734526595236,100.0,100.0,100.0,100.0,100.0,100.0,nan,nan,nan,nan,nan,nan,nan,nan,Kappa coefficient,0.09464798548745997
+,Producer Accuracy,47.800265473404764,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Overall Accuracy,14.010340000721955
+,Omission Error,52.199734526595236,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,Kappa coefficient,0.09464798548745997
