@@ -74,11 +74,21 @@
 #% description: Print output as a matrix
 #%end
 
+import atexit
+import csv
+from math import nan
+import numpy as np
 import os
 import sys
-import csv
-import numpy as np
 import grass.script as grass
+# initialize global vars
+rm_files = []
+
+def cleanup():
+    grass.message(_("Cleaning up..."))
+    for rm_f in rm_files:
+        if os.path.isfile(rm_f):
+            os.remove(rm_f)
 
 
 def print_descriptions():
@@ -162,6 +172,9 @@ def set_reference(descriptionflag = None):
 
 def get_r_kappa(classification, reference):
     tmp_csv = grass.tempfile()
+    os.remove(tmp_csv)
+    rm_files.append(tmp_csv)
+
     grass.run_command(
         'r.kappa', flags='wmh', classification=classification,
         reference=reference, output=tmp_csv, quiet=True)
@@ -193,7 +206,6 @@ def get_r_kappa(classification, reference):
     classified_classes = classified_classes[:-1]
 
     errormatrix = np.matrix(errorlist)
-    os.remove(tmp_csv)
 
     return errormatrix, classified_classes, ref_classes
 
@@ -223,8 +235,9 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
     lineend1 = ["", "Producer Accuracy"]
     lineend1.extend(producer_accuracy_list)
     lineend1.extend(['Overall Accuracy', overall_accuracy])
-    lineend2 = ["", "Commission Error"]
-    lineend2.extend(commission_list)
+    lineend2 = ["", "Omission Error"]
+    omission_list = [omission[rc] for rc in ref_classes]
+    lineend2.extend(omission_list)
     lineend2.extend(['Kappa coefficient', kappa])
     lines.append(lineend1)
     lines.append(lineend2)
@@ -232,6 +245,9 @@ def convert_output(classified_classes, ref_classes, confusionmatrix, overall_acc
 
 
 def main():
+
+    global rm_files
+
     # parameters
     classification = options['classification']
     csv_filename = options['csvfile']
@@ -268,8 +284,12 @@ def main():
     for i in range(errormatrix.shape[0] - 1):
         classname = classified_classes[i]
         dg = diag[i]
-        r = errormatrix[i,-1]
-        user_accuracy[classname] = dg / r * 100
+        if dg == 0:
+            user_accuracy[classname] = 0.0
+        elif errormatrix[i,-1] == 0:
+            user_accuracy[classname] = nan
+        else:
+            user_accuracy[classname] = dg / errormatrix[i,-1] * 100
         commission[classname] = 100 - user_accuracy[classname]
 
     # print  User Accuracy and Commission
@@ -292,18 +312,22 @@ def main():
         classname = ref_classes[i]
         dg = diag[i]
         u = errormatrix[-1,i]
-        producer_accuracy[classname] = dg / u * 100
+        if dg == 0:
+            producer_accuracy[classname] = 0.0
+        elif errormatrix[-1,i] == 0:
+            producer_accuracy[classname] = nan
+        else:
+            producer_accuracy[classname] = dg / errormatrix[-1,i] * 100
         omission[classname] = 100 - producer_accuracy[classname]
 
     # print Producer Accuracy and Omission
     if not flags['m']:
         grass.message("\nProducer Accuracy: ")
-    for key,item in producer_accuracy.items():
-        if not flags['m']:
+        for key,item in producer_accuracy.items():
             grass.message("%s: %f" % (key, item))
-    grass.message("\nOmission error: ")
-    for key,item in omission.items():
-        if not flags['m']:
+    if not flags['m']:
+        grass.message("\nOmission error: ")
+        for key,item in omission.items():
             grass.message("%s: %f" % (key, item))
 
     # Kappa coefficient
@@ -340,4 +364,5 @@ def main():
 
 if __name__ == "__main__":
     options, flags = grass.parser()
+    atexit.register(cleanup)
     main()
