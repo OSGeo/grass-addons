@@ -24,7 +24,7 @@ class Testconfusionmatrix(TestCase):
         """Ensures expected computational region and generated data"""
         cls.use_temp_region()
         # set region to classification
-        cls.runModule('g.region', raster=self.classification)
+        cls.runModule('g.region', raster=cls.classification)
 
     @classmethod
     def tearDownClass(cls):
