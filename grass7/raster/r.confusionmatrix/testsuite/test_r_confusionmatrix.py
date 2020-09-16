@@ -1,7 +1,7 @@
 """
 Name:       r.confusionmatrix test
 Purpose:    Tests r.confusionmatrix input parsing.
-            Uses NC Basic data set.
+            Uses NC full sample data set.
 Author:     Anika Bettge
 Copyright:  (C) 2020 Anika Bettge, mundialis, and the GRASS Development Team
 Licence:    This program is free software under the GNU General Public
