@@ -100,7 +100,7 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
     if (row < 0 || row >= nrows || col < 0 || col >= ncols)
         return;
 
-    find_up(dir_buf, done, id, row, col, up, &nup);
+    find_up(dir_buf, done, row, col, id, up, &nup);
 
     /* if no upstream neighbors are found, stop tracing */
     if (!nup)
@@ -117,7 +117,7 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
         struct neighbor *cur_up = pop_up(&up_stack);
 
         /* find its upstream cells */
-        find_up(dir_buf, done, id, cur_up->row, cur_up->col, up, &nup);
+        find_up(dir_buf, done, cur_up->row, cur_up->col, id, up, &nup);
 
         /* push its upstream cells */
         for (i = nup - 1; i >= 0; i--)
@@ -127,8 +127,8 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
     free_up_stack(&up_stack);
 }
 
-static void find_up(struct cell_map *dir_buf, char **done, int id, int row,
-                    int col, struct neighbor *up, int *nup)
+static void find_up(struct cell_map *dir_buf, char **done, int row, int col,
+                    int id, struct neighbor *up, int *nup)
 {
     int i, j;
 
