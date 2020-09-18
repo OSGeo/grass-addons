@@ -588,8 +588,16 @@ def main():
             hpf_phi = float(allq[2].split(':')[2])
 
             # scale factors
-            sfplo = (msx_med - msx_plo) / (hpf_med - hpf_plo)
-            sfphi = (msx_phi - msx_med) / (hpf_phi - hpf_med)
+            if msx_med != msx_plo and hpf_med != hpf_plo:
+                sfplo = (msx_med - msx_plo) / (hpf_med - hpf_plo)
+            else:
+                # avoid zero and division by zero
+                sfplo = 1
+            if msx_phi != msx_med and hpf_phi != hpf_med:
+                sfphi = (msx_phi - msx_med) / (hpf_phi - hpf_med)
+            else:
+                # avoid zero and division by zero
+                sfphi =  1
 
             scale = "{out} = {outfn}(double({hpf} - {hpf_med}) * " \
                             "if({hpf} < {hpf_med}, {sfplo}, " \
