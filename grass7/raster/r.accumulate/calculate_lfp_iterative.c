@@ -41,11 +41,10 @@ static void trace_up(struct cell_map *, struct raster_map *, int, int,
 static void find_up(struct cell_map *, struct raster_map *, int, int, double,
                     double, struct neighbor *, int *,
                     struct headwater_list *);
-static void copy_neighbor(struct neighbor *, const struct neighbor *);
 static void init_up_stack(struct neighbor_stack *);
 static void free_up_stack(struct neighbor_stack *);
 static void push_up(struct neighbor_stack *, struct neighbor *);
-static struct neighbor *pop_up(struct neighbor_stack *);
+static struct neighbor pop_up(struct neighbor_stack *);
 static void init_headwater_list(struct headwater_list *);
 static void free_headwater_list(struct headwater_list *);
 static void add_headwater(struct headwater_list *, struct neighbor *);
@@ -222,11 +221,11 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
 
     do {
         /* pop one upstream cell */
-        struct neighbor *cur_up = pop_up(&up_stack);
+        struct neighbor cur_up = pop_up(&up_stack);
 
         /* find its upstream cells */
-        find_up(dir_buf, accum_buf, cur_up->row, cur_up->col, cur_up->accum,
-                cur_up->down_length, up, &nup, &hl);
+        find_up(dir_buf, accum_buf, cur_up.row, cur_up.col, cur_up.accum,
+                cur_up.down_length, up, &nup, &hl);
         if (nup) {
             /* push its upstream cells */
             for (i = nup - 1; i >= 0; i--)
@@ -234,13 +233,13 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
         }
         else {
             /* headwater cell */
-            if (!hl.n || cur_up->down_length == hl.head[0].down_length)
+            if (!hl.n || cur_up.down_length == hl.head[0].down_length)
                 /* if first or tie, add it */
-                add_headwater(&hl, cur_up);
-            else if (cur_up->down_length > hl.head[0].down_length) {
+                add_headwater(&hl, &cur_up);
+            else if (cur_up.down_length > hl.head[0].down_length) {
                 /* if longer than existing, replace */
                 hl.n = 1;
-                copy_neighbor(&hl.head[0], cur_up);
+                hl.head[0] = cur_up;
             }
         }
     } while (up_stack.n);
@@ -371,16 +370,6 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
     }
 }
 
-static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
-{
-    dest->row = src->row;
-    dest->col = src->col;
-    dest->accum = src->accum;
-    dest->down_length = src->down_length;
-    dest->min_length = src->min_length;
-    dest->max_length = src->max_length;
-}
-
 static void init_up_stack(struct neighbor_stack *up_stack)
 {
     up_stack->nalloc = up_stack->n = 0;
@@ -403,16 +392,15 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
                                          up_stack->nalloc *
                                          sizeof(struct neighbor));
     }
-    copy_neighbor(&up_stack->accum[up_stack->n], up);
-    up_stack->n++;
+    up_stack->accum[up_stack->n++] = *up;
 }
 
-static struct neighbor *pop_up(struct neighbor_stack *up_stack)
+static struct neighbor pop_up(struct neighbor_stack *up_stack)
 {
-    struct neighbor *up = NULL;
+    struct neighbor up;
 
     if (up_stack->n > 0) {
-        up = &up_stack->accum[--up_stack->n];
+        up = up_stack->accum[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
             up_stack->accum =
@@ -449,8 +437,7 @@ static void add_headwater(struct headwater_list *hl, struct neighbor *h)
         if (!hl->head)
             G_fatal_error(_("Unable to increase headwater list"));
     }
-    copy_neighbor(&hl->head[hl->n], h);
-    hl->n++;
+    hl->head[hl->n++] = *h;
 }
 
 static int compare_neighbor_max_length(const void *a, const void *b)

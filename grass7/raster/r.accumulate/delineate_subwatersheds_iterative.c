@@ -20,11 +20,10 @@ static int nrows, ncols;
 static void trace_up(struct cell_map *, char **, int, int, int);
 static void find_up(struct cell_map *, char **, int, int, int,
                     struct neighbor *, int *);
-static void copy_neighbor(struct neighbor *, const struct neighbor *);
 static void init_up_stack(struct neighbor_stack *);
 static void free_up_stack(struct neighbor_stack *);
 static void push_up(struct neighbor_stack *, struct neighbor *);
-static struct neighbor *pop_up(struct neighbor_stack *);
+static struct neighbor pop_up(struct neighbor_stack *);
 
 void delineate_subwatersheds_iterative(struct cell_map *dir_buf, char **done,
                                        int *id, struct point_list *outlet_pl)
@@ -114,10 +113,10 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
 
     do {
         /* pop one upstream cell */
-        struct neighbor *cur_up = pop_up(&up_stack);
+        struct neighbor cur_up = pop_up(&up_stack);
 
         /* find its upstream cells */
-        find_up(dir_buf, done, cur_up->row, cur_up->col, id, up, &nup);
+        find_up(dir_buf, done, cur_up.row, cur_up.col, id, up, &nup);
 
         /* push its upstream cells */
         for (i = nup - 1; i >= 0; i--)
@@ -159,12 +158,6 @@ static void find_up(struct cell_map *dir_buf, char **done, int row, int col,
     }
 }
 
-static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
-{
-    dest->row = src->row;
-    dest->col = src->col;
-}
-
 static void init_up_stack(struct neighbor_stack *up_stack)
 {
     up_stack->nalloc = up_stack->n = 0;
@@ -187,16 +180,15 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
                                          up_stack->nalloc *
                                          sizeof(struct neighbor));
     }
-    copy_neighbor(&up_stack->up[up_stack->n], up);
-    up_stack->n++;
+    up_stack->up[up_stack->n++] = *up;
 }
 
-static struct neighbor *pop_up(struct neighbor_stack *up_stack)
+static struct neighbor pop_up(struct neighbor_stack *up_stack)
 {
-    struct neighbor *up = NULL;
+    struct neighbor up;
 
     if (up_stack->n > 0) {
-        up = &up_stack->up[--up_stack->n];
+        up = up_stack->up[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
             up_stack->up =
