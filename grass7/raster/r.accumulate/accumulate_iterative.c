@@ -24,11 +24,10 @@ static void find_up(struct cell_map *, struct raster_map *,
                     struct raster_map *, char **, char, int, int,
                     struct neighbor *, int *);
 static char is_incomplete(struct cell_map *, int, int);
-static void copy_neighbor(struct neighbor *, const struct neighbor *);
 static void init_up_stack(struct neighbor_stack *);
 static void free_up_stack(struct neighbor_stack *);
 static void push_up(struct neighbor_stack *, struct neighbor *);
-static struct neighbor *pop_up(struct neighbor_stack *);
+static struct neighbor pop_up(struct neighbor_stack *);
 static struct neighbor *get_up(struct neighbor_stack *, int);
 
 void accumulate_iterative(struct cell_map *dir_buf,
@@ -255,14 +254,6 @@ static char is_incomplete(struct cell_map *dir_buf, int row, int col)
     return incomplete;
 }
 
-static void copy_neighbor(struct neighbor *dest, const struct neighbor *src)
-{
-    dest->row = src->row;
-    dest->col = src->col;
-    dest->done = src->done;
-    dest->parent = src->parent;
-}
-
 static void init_up_stack(struct neighbor_stack *up_stack)
 {
     up_stack->nalloc = up_stack->n = 0;
@@ -285,16 +276,15 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
                                          up_stack->nalloc *
                                          sizeof(struct neighbor));
     }
-    copy_neighbor(&up_stack->up[up_stack->n], up);
-    up_stack->n++;
+    up_stack->up[up_stack->n++] = *up;
 }
 
-static struct neighbor *pop_up(struct neighbor_stack *up_stack)
+static struct neighbor pop_up(struct neighbor_stack *up_stack)
 {
-    struct neighbor *up = NULL;
+    struct neighbor up;
 
     if (up_stack->n > 0) {
-        up = &up_stack->up[--up_stack->n];
+        up = up_stack->up[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
             up_stack->up =
