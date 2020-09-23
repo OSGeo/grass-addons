@@ -1,7 +1,12 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.sentinel.mask</em> allows to automatically identify clouds and their
-shadows in Sentinel-2 images (level 1C and 2A).
+shadows in Sentinel-2 images. 
+The algorithm works on reflectance values (Bottom of Atmosphere Reflectance - BOA).
+Therefore, the atmospheric correction has to be applied to all input bands (see
+<a href="i.sentinel.preproc.html">i.sentinel.preproc</a> or <a
+href="i.atcorr.html">i.atcorr</a>) (level 1C and 2A).
+
 <p>
 The following figures show the difference between the standard cloud mask as
 provided in Sentinel-2 SAFE products and the cloud detection results obtained
@@ -61,12 +66,6 @@ cloud geometry are removed.
 <i>Fig: Module General WorkFlow</i>
 </center>
 -->
-
-<p>
-The algorithm works on reflectance values (Bottom of Atmosphere Reflectance)
-therefore, the atmospheric correction has to be applied to all input bands (see
-<a href="i.sentinel.preproc.html">i.sentinel.preproc</a> or <a
-href="i.atcorr.html">i.atcorr</a>)
 
 <p>
 All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12) must

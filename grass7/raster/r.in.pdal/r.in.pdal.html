@@ -59,7 +59,7 @@ g.region n=228500 s=215000.01 w=633370.82 e=645000 -p
 # import while aligning pixel geometry to existing "elevation" 10m res. raster map
 # specifying EPSG manually because SRS information is missing in this LAS file
 r.in.pdal input=lidar_raleigh_nc_spm_height_feet.las raster_reference=elevation \
-          resolution=10 output=lidar_raleigh method=mean proj_in=EPSG:3358
+          resolution=10 output=lidar_raleigh method=mean
 
 # optionally: footprint=lidar_raleigh_footprint
 
