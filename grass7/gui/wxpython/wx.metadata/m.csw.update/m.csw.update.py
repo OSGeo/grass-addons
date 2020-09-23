@@ -625,7 +625,7 @@ class UpdateConnectionsResources:
 
         :return str: stripped url
         """
-        return url.strip().replace('\n', '')
+        return url.strip().split()[0].replace('\n', '')
 
     def _handle_multiple_url(self, url):
         """Parse multiple url from one string and valide them and check
