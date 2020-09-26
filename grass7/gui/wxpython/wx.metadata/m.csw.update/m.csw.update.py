@@ -149,6 +149,13 @@
 #% description: Remove and print not valid CSW connections resources from XML file
 #%end
 
+#%rules
+#% exclusive: -a, -i
+#% exclusive: -v, -n
+#% exclusive: -a, -n
+#% exclusive: -i, -n
+#%end
+
 
 import http
 import io
@@ -1347,21 +1354,10 @@ def main():
                 ),
             ),
         )
-    if flags['a'] and flags['i']:
-        gscript.fatal(_('Flags \'a\' and \'i\' are mutually exclusive'))
-
-    if flags['v'] and flags['n']:
-        gscript.fatal(_('Flags \'v\' and \'n\' are mutually exclusive'))
-
-    if flags['a'] and flags['n']:
-        gscript.fatal(_('Flags \'a\' and \'n\' are mutually exclusive'))
-
-    if flags['i'] and flags['n']:
-        gscript.fatal(_('Flags \'i\' and \'n\' are mutually exclusive'))
 
     if (flags['a'] or flags['i'] or flags['v'] or flags['n']) and not \
        flags['p']:
-        gscript.fatal(_('Add \'p\' flag please'))
+        flags['p'] = True
 
     if flags['w']:
         sys.stdout.write("{}\n".format(url))
