@@ -113,10 +113,10 @@ def check_dependencies(module_name, check_version=False):
 
         return True
     except ModuleNotFoundError:
-        message = "!!! <{name}> {text} <{url}> !!!\n".format(
+        message = "{name} {text} <{url}>.\n".format(
             name=module_name,
             text='library is missing. Check requirements on the '
-            'manual page'.upper(),
+            'manual page',
             url=URL,
         )
         sys.stderr.write(message)
