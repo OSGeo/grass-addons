@@ -1,11 +1,41 @@
 <qgsCSWConnections version="1.0">
-    <csw name="Denmark: National CSW" url="http://www.geodata-info.dk/registrant/srv/en/csw?" />
-    <csw name="Finland: National CSW (Paikkatietohakemisto)" url="http://www.paikkatietohakemisto.fi/geonetwork/srv/fi/csw?" />
-    <csw name="Iceland: National CSW (Iceland Service)" url="http://gatt.lmi.is/geoportal122/csw?" />
-    <csw name="Italy: National CSW (Geoportale Nazionale - Servizio di ricerca Italiano)" url="http://www.pcn.minambiente.it/geoportal/csw" />
-    <csw name="Italy: RNDT - Repertorio Nazionale dei Dati Territoriali - Servizio di ricerca" url="http://geodati.gov.it/RNDT/csw" />
-    <csw name="Nederland: Nationaal Georegister" url="http://www.nationaalgeoregister.nl/geonetwork/srv/eng/csw" />
-    <csw name="New Zealand: LINZ Data Service" url="http://data.linz.govt.nz/feeds/csw" />
-    <csw name="Norway: Geonorge - National CSW service for Norway" url="http://www.geonorge.no/geonetwork/srv/eng/csw"/>
-    <csw name="USA: Data.gov CSW" url="http://catalog.data.gov/csw-all" />
+  <csw name="Denmark: National CSW" url="http://www.geodata-info.dk/registrant/srv/en/csw?"/>
+  <csw name="Finland: National CSW (Paikkatietohakemisto)" url="http://www.paikkatietohakemisto.fi/geonetwork/srv/fi/csw?"/>
+  <csw name="Iceland: National CSW (Iceland Service)" url="http://gatt.lmi.is/geoportal122/csw?"/>
+  <csw name="Italy: National CSW (Geoportale Nazionale - Servizio di ricerca Italiano)" url="http://www.pcn.minambiente.it/geoportal/csw"/>
+  <csw name="Italy: RNDT - Repertorio Nazionale dei Dati Territoriali - Servizio di ricerca" url="http://geodati.gov.it/RNDT/csw"/>
+  <csw name="Nederland: Nationaal Georegister" url="http://www.nationaalgeoregister.nl/geonetwork/srv/eng/csw"/>
+  <csw name="New Zealand: LINZ Data Service" url="http://data.linz.govt.nz/feeds/csw"/>
+  <csw name="Norway: Geonorge - National CSW service for Norway" url="http://www.geonorge.no/geonetwork/srv/eng/csw"/>
+  <csw name="USA: Data.gov CSW" url="http://catalog.data.gov/csw-all"/>
+  <csw name="Austria, Geospatial, Government of Austria, Federal Ministry for Sustainability and Tourism" url="https://geometadaten.lfrz.at/at.lfrz.discoveryservices/srv/de/csw202?SERVICE=CSW&amp;REQUEST=GetCapabilities"/>
+  <csw name="Belgium, Geospatial, Government of Belgium, Federal Service issue (NGI)" url="http://inspire.reporting.geo.be/eng/csw"/>
+  <csw name="Belgium, Geospatial, Region Flanders" url="http://geonetwork.geopunt.be/zoekdienst/srv/eng/csw"/>
+  <csw name="Switzerland, Geospatial, Government of Switzerland" url="https://www.geocat.ch/geonetwork/srv/eng/csw-geobasisdaten"/>
+  <csw name="Cyprus, Geospatial, Government of Cyprus" url="https://eservices.dls.moi.gov.cy/geoportal_inspire/csw"/>
+  <csw name="Germany, Geospatial, Government of Germany" url="https://gdk.gdi-de.org:443/gdi-de/srv/eng/csw"/>
+  <csw name="Denmark, Geospatial, Government of Denmark" url="https://geodata-info.dk/srv/dan/csw"/>
+  <csw name="Estonia, Geospatial, Government of Estonia" url="http://inspire.maaamet.ee/geoportal/csw"/>
+  <csw name="Greece, Geospatial, Government of Greece" url="http://geoportal.ypen.gr/geonetwork/srv/eng/csw"/>
+  <csw name="Spain, Geospatial, Government of Spain" url="http://www.idee.es/csw-codsi-idee/srv/spa/csw"/>
+  <csw name="European Union, Geospatial, European Commission" url="http://inspire-geoportal.ec.europa.eu/GeoportalProxyWebServices/resources/OGCCSW202?service=CSW&amp;request=GetCapabilities&amp;version=2.0.2"/>
+  <csw name="Finland, Geospatial, Government of Finland" url="http://www.paikkatietohakemisto.fi/geonetwork/srv/eng/csw"/>
+  <csw name="France, Geospatial, Government of France" url="http://www.geocatalogue.fr/api-public/inspire/servicesRest?"/>
+  <csw name="Croatia, Geospatial, Government of Croatia" url="http://geoportal.nipp.hr/geonetwork/srv/hrv/csw-inspire"/>
+  <csw name="Hungary, Geospatial, Government of Hungary" url="http://inspire.gov.hu/geonetwork/srv/eng/csw"/>
+  <csw name="Ireland, Geospatial, Government of Ireland" url="https://inspire.geohive.ie/geoportal/csw"/>
+  <csw name="Iceland, Geospatial, Government of Iceland" url="https://gatt.lmi.is/geonetwork/srv/eng/csw"/>
+  <csw name="Italy, Geospatial, Government of Italy" url="http://geodati.gov.it/RNDT/csw"/>
+  <csw name="Italy, Geospatial, Government of Italy" url="https://geodati.gov.it/RNDT/csw"/>
+  <csw name="Liechenstein, Geospatial, Government of Liechenstein" url="https://www.geocat.ch/geonetwork/srv/ger/csw-liechtenstein-inspire"/>
+  <csw name="Lithuania, Geospatial, Government of Lithania" url="https://www.geoportal.lt/geonetwork/srv/eng/csw"/>
+  <csw name="Luxembourg, Geospatial, Government of Luxembourg" url="https://catalog.inspire.geoportail.lu/geonetwork/srv/eng/csw"/>
+  <csw name="Latvia, Geospatial, Government of Latvia" url="https://geometadati.viss.gov.lv/geoportal/csw"/>
+  <csw name="Malta, Geospatial, Government of Malta" url="https://msdi.data.gov.mt/geonetwork/srv/eng/csw"/>
+  <csw name="Netherlands, Geospatial, Government of Netherlands" url="https://www.nationaalgeoregister.nl:443/geonetwork/srv/dut/csw-inspire"/>
+  <csw name="Norway, Geospatial, Government of Norway" url="http://www.geonorge.no/geonetwork/srv/nor/csw-inspire"/>
+  <csw name="Poland, Geospatial, Government of Poland" url="http://mapy.geoportal.gov.pl:80/wss/service/CSWINSP/guest/CSWStartup?"/>
+  <csw name="Romania, Geospatial, Government of Romania" url="http://geoportal.gov.ro/Geoportal_INIS/csw"/>
+  <csw name="Sweden, Geospatial, Government of Sweden" url="https://www.geodata.se:443/geodataportalen/srv/swe/csw-inspire"/>
+  <csw name="Slovakia, Geospatial, Government of Slovakia" url="https://rpi.gov.sk/rpi_csw/service.svc/get"/>
 </qgsCSWConnections>
