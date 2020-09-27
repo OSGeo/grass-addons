@@ -3,11 +3,11 @@
 ############################################################################
 #
 # MODULE:       r.viewshed.cva.py
-# AUTHOR(S):	Isaac Ullah, additions by Anna Petrasova
-# PURPOSE:	 Undertakes a "cumulative viewshed analysis" using a vector points map
-#                as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
-# COPYRIGHT:	(C) 2015 by Isaac Ullah
-# REFERENCES:    r.viewshed
+# AUTHOR(S):    Isaac Ullah, additions by Anna Petrasova
+# PURPOSE:      Undertakes a "cumulative viewshed analysis" using a vector points map
+#               as input "viewing" locations, using r.viewshed to calculate the individual viewsheds.
+# COPYRIGHT:    (C) 2015 by Isaac Ullah
+# REFERENCES:   r.viewshed
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
 #		for details.
@@ -142,7 +142,7 @@ def main():
         grass.fatal(_("Vector map <%s> not found") % vect)
 
     # get the coords from the vector map, and check if we want to name them
-    if flags['k'] and options["name_column"] is not '':
+    if flags['k'] and options["name_column"] != '':
         # note that the "r" flag will constrain to points in the current geographic region.
         output_points = grass.read_command("v.out.ascii", flags='r', input=vect, type="point",
                                            format="point", separator=",", columns=options["name_column"]).strip()
@@ -161,7 +161,7 @@ def main():
     vshed_list = []
     counter = 0
     for site in masterlist:
-        if flags['k'] and options["name_column"] is not '':
+        if flags['k'] and options["name_column"] != '':
             ptname = site[3]
         else:
             ptname = site[2]

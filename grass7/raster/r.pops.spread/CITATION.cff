@@ -1,5 +1,5 @@
 cff-version: 1.0.3
-message: If you use this software, please cite it as below.
+message: If you use this software, please cite it using the references in the readme (this file is outdated).
 authors:
   - family-names: Petras
     given-names: Vaclav

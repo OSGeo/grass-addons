@@ -273,8 +273,8 @@ int main(int argc, char *argv[])
                       NULL);
     /* accumulated lfp requires longest flow paths */
     G_option_requires(flag.accum_lfp, opt.lfp, NULL);
-    /* recursive algorithm requires subwatersheds or longest flow paths */
-    G_option_requires(flag.recur, opt.subwshed, opt.lfp, NULL);
+    /* recursive algorithm requires accumulation, subwatersheds, or longest flow paths */
+    G_option_requires(flag.recur, opt.accum, opt.subwshed, opt.lfp, NULL);
     /* confluence delineation requires output streams */
     G_option_requires(flag.conf_stream, opt.stream, NULL);
 
@@ -466,8 +466,18 @@ int main(int argc, char *argv[])
         dir_buf.c[row] = Rast_allocate_c_buf();
         Rast_get_c_row(dir_fd, dir_buf.c[row], row);
         if (dir_format == DIR_DEG) {
-            for (col = 0; col < ncols; col++)
-                dir_buf.c[row][col] /= 45.0;
+            for (col = 0; col < ncols; col++) {
+                CELL dir = abs(dir_buf.c[row][col] / 45.0);
+
+                dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
+            }
+        }
+        else {
+            for (col = 0; col < ncols; col++) {
+                CELL dir = abs(dir_buf.c[row][col]);
+
+                dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
+            }
         }
     }
     G_percent(1, 1, 1);
@@ -538,8 +548,12 @@ int main(int argc, char *argv[])
             }
             G_percent(1, 1, 1);
 
-            accumulate(&dir_buf, &weight_buf, &accum_buf, done, neg_accum,
-                       null_accum);
+            if (recur)
+                accumulate_recursive(&dir_buf, &weight_buf, &accum_buf, done,
+                                     neg_accum, null_accum);
+            else
+                accumulate_iterative(&dir_buf, &weight_buf, &accum_buf, done,
+                                     neg_accum, null_accum);
 
             for (row = 0; row < nrows; row++)
                 G_free(done[row]);

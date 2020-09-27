@@ -9,16 +9,16 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-from random import uniform #, choice, randint
-import agent
-import error
-#from grass.script import core as grass
+from random import uniform
+
+from libagent import agent
 
 # for Python 3 compatibility
 try:
     xrange
 except NameError:
     xrange = range
+
 
 class Ant(agent.Agent):
     """
@@ -229,4 +229,3 @@ class Ant(agent.Agent):
             return True
         else:
             self.walk()
-

@@ -34,7 +34,9 @@ from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, in
 from parse import parsexml, isServiceException, populateLayerTree, isValidResponse
 from LoadConfig import loadConfigFile
 
-
+# PY2/PY3 compat
+if sys.version_info.major >= 3:
+    unicode = str
 
 
 class ServerData():

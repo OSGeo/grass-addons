@@ -20,7 +20,7 @@ If more advanced resampling is required, the user is advised to to use
 one of the dedicated resampling modules.
 
 <p>
-If mask (<em><a href="r.mask.html">r.mask</a></em>) is active, it is
+If mask (<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a></em>) is active, it is
 respected and the output raster map will contain NULL (no data) values
 according to the mask.
 Otherwise, values in the <b>input</b> raster map are simply transfered
@@ -42,16 +42,16 @@ modules respect the current computational region and clipping
 <li>
 If the user needs to clip raster map according to another raster map or
 according to a vector map,
-the <em><a href="g.region.html">g.region</a></em> should be used first
+the <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> should be used first
 before running the <em>r.clip</em> module.
 
 <li>
 The extent of the resulting map might be slightly different based on how
 the cells of the input raster align with the cells of the computational
 region. The mechanism for aligning in the background is the one used in
-<em><a href="g.region.html">g.region</a></em>. If exact match is
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>. If exact match is
 desired, user is advised to resolve the cell alignment ahead using
-<em><a href="g.region.html">g.region</a></em> and then use
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> and then use
 <em>r.clip</em> with the <b>-r</b> flag.
 
 </ul>
@@ -180,15 +180,15 @@ cells=2025000
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="g.region.html">g.region</a>,
-<a href="g.copy.html">g.copy</a>,
-<a href="r.mask.html">r.mask</a>,
-<a href="r.patch.html">r.patch</a>,
-<a href="r.proj.html">r.proj</a>,
-<a href="r.mapcalc.html">r.mapcalc</a>,
-<a href="r.resample.html">r.resample</a>,
-<a href="r.resamp.rst.html">r.resamp.rst</a>,
-<a href="v.clip.html">v.clip</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.copy.html">g.copy</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.proj.html">r.proj</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.resample.html">r.resample</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.resamp.rst.html">r.resamp.rst</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.clip.html">v.clip</a>
 </em>
 
 <h2>AUTHOR</h2>

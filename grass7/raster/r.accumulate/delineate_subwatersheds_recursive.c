@@ -102,11 +102,8 @@ static void trace_up(struct cell_map *dir_buf, char **done, int row, int col,
              * map and trace up further; no check for flow loop is needed
              * because dir_buf is being overwritten */
             if (dir_buf->c[row + i][col + j] == dir_checks[i + 1][j + 1][0] &&
-                !done[row + i][col + j]) {
-                dir_buf->c[row][col] = id;
-                done[row][col] = 1;
+                !done[row + i][col + j])
                 trace_up(dir_buf, done, row + i, col + j, id);
-            }
         }
     }
 }

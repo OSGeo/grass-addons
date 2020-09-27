@@ -12,13 +12,13 @@ If the <b>-i</b> flag is used, then the value to be uploaded to the database is 
 <h2>NOTES</h2>
 
 <p>
-Points and centroid with shared category number cannot be processed. To solved this, unique categories may be added with <em><a href="v.category.html">v.category</a></em> in a separate layer.
+Points and centroid with shared category number cannot be processed. To solved this, unique categories may be added with <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.category.html">v.category</a></em> in a separate layer.
 <p>
 If multiple points have the same category, the attribute value is set to NULL. If the raster value is NULL, then attribute value is set to NULL.
 <p>
-<em>v.what.rast.multi</em> operates on the attribute table. To modify the vector geometry instead, use <em><a href="v.drape.html">v.drape</a></em>.
+<em>v.what.rast.multi</em> operates on the attribute table. To modify the vector geometry instead, use <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.drape.html">v.drape</a></em>.
 <p>
-Categories and values are output unsorted with the print flag. To sort them pipe the output of this module into the UNIX <tt>sort</tt> tool (<tt>sort&nbsp;-n</tt>). If you need coordinates, after sorting use <em><a href="v.out.ascii.html">v.out.ascii</a></em> and the UNIX <tt>paste</tt> tool (<tt>paste&nbsp;-d'|'</tt>). In the case of a NULL result, a "<tt>*</tt>" will be printed in lieu of the value.
+Categories and values are output unsorted with the print flag. To sort them pipe the output of this module into the UNIX <tt>sort</tt> tool (<tt>sort&nbsp;-n</tt>). If you need coordinates, after sorting use <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a></em> and the UNIX <tt>paste</tt> tool (<tt>paste&nbsp;-d'|'</tt>). In the case of a NULL result, a "<tt>*</tt>" will be printed in lieu of the value.
 <p>
 The interpolation flag is only useful for continuous value raster maps, if a categorical raster is given as input the results will be nonsense. Since the search window is limited to four raster cells there may still be raster cell-edge artifacts visible in the results, this compromise has been made for processing speed. If one or more of the nearest four raster cells is NULL, then only the raster cells containing values will be used in the weighted average.
 
@@ -49,7 +49,7 @@ v.db.select map=mygeodetic_pts columns=elevatin,slope,aspect separator=comma whe
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="v.what.rast.html">v.what.rast</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>,
 </em>
 
 

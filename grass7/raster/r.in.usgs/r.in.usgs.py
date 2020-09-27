@@ -186,6 +186,41 @@ def map_exists(element, name, mapset):
         return False
 
 
+def run_file_import(identifier, results,
+                    input, output, resolution,
+                    resolution_value, extent, resample, memory):
+    result = {}
+    try:
+        gscript.run_command('r.import', input=input, output=output,
+                            resolution=resolution,
+                            resolution_value=resolution_value,
+                            extent=extent, resample=resample,
+                            memory=memory)
+    except CalledModuleError:
+        error = ("Unable to import <{0}>").format(output)
+        result["errors"] = error
+    else:
+        result["output"] = output
+    results[identifier] = result
+
+
+def run_lidar_import(identifier, results,
+                     input, output, input_srs=None):
+    result = {}
+    params = {}
+    if input_srs:
+        params['input_srs'] = input_srs
+    try:
+        gscript.run_command('v.in.pdal', input=input, output=output,
+                            flags='wr', **params)
+    except CalledModuleError:
+        error = ("Unable to import <{0}>").format(output)
+        result["errors"] = error
+    else:
+        result["output"] = output
+    results[identifier] = result
+
+
 def main():
     # Hard-coded parameters needed for USGS datasets
     usgs_product_dict = {
@@ -732,39 +767,6 @@ def main():
     imported_tiles_num = 0
     mapset = get_current_mapset()
     files_to_import = len(local_tile_path_list)
-
-    def run_file_import(identifier, results,
-                        input, output, resolution,
-                        resolution_value, extent, resample, memory):
-        result = {}
-        try:
-            gscript.run_command('r.import', input=input, output=output,
-                                resolution=resolution,
-                                resolution_value=resolution_value,
-                                extent=extent, resample=resample,
-                                memory=memory)
-        except CalledModuleError:
-            error = ("Unable to import <{0}>").format(output)
-            result["errors"] = error
-        else:
-            result["output"] = output
-        results[identifier] = result
-
-    def run_lidar_import(identifier, results,
-                         input, output, input_srs=None):
-        result = {}
-        params = {}
-        if input_srs:
-            params['input_srs'] = input_srs
-        try:
-            gscript.run_command('v.in.pdal', input=input, output=output,
-                                flags='wr', **params)
-        except CalledModuleError:
-            error = ("Unable to import <{0}>").format(output)
-            result["errors"] = error
-        else:
-            result["output"] = output
-        results[identifier] = result
 
     process_list = []
     process_id_list = []

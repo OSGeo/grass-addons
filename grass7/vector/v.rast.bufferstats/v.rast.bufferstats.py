@@ -147,6 +147,10 @@ from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.interface.module import Module
 from itertools import chain
 
+# PY2/PY3 compat
+if sys.version_info.major >= 3:
+    unicode = str
+
 if not "GISBASE" in os.environ.keys():
     grass.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)

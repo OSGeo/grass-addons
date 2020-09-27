@@ -9,9 +9,11 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import error, playground
 import grass.script as grass
 from grass.script import array as garray
+
+from libagent import error, playground
+
 
 class Grassland(playground.Playground):
     """
@@ -146,4 +148,3 @@ class Grassland(playground.Playground):
             mask = garray.numpy.ones_like(self.layers[layername]) - 1 + minimum
             self.layers[layername] = \
                     garray.numpy.maximum(self.layers[layername], mask)
-

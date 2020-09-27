@@ -9,7 +9,7 @@
 #
 # PURPOSE:      Implementation of Sky-View Factor visualization technique
 #
-# COPYRIGHT:    (C) 2013-2014 by the GRASS Development Team
+# COPYRIGHT:    (C) 2013-2020 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (version 2). Read the file COPYING that comes with GRASS
@@ -18,7 +18,7 @@
 ##############################################################################
 
 #%module
-#% description: Computes Sky-View Factor visualization technique
+#% description: Computes skyview factor visualization technique.
 #% keyword: raster
 #% keyword: visualization
 #%end
@@ -79,6 +79,11 @@
 #%  type: string
 #%  multiple: no
 #%  description: Set the basename for the intermediate maps
+#%end
+#%flag
+#% key: o
+#% label: Compute openness instead of skyview factor
+#% description: Openness considers zenith angles > 90 degrees
 #%end
 #%flag
 #% key: n
@@ -163,12 +168,19 @@ def main():
         gcore.run_command('r.horizon', elevation=elev, step=horizon_step,
                           output=TMP_NAME, flags='d', **params)
 
-        msgr.message(_("Computing sky view factor ..."))
         new_maps = _get_horizon_maps()
-        expr = '"{out}" = 1 - (sin("{first}") '.format(first=new_maps[0], out=output)
-        for horizon in new_maps[1:]:
-            expr += '+ sin("{name}") '.format(name=horizon)
-        expr += ") / {n}.".format(n=len(new_maps))
+        if flags['o']:
+            msgr.message(_("Computing openness ..."))
+            expr = '{out} = 1 - (sin({first}) '.format(first=new_maps[0], out=output)
+            for horizon in new_maps[1:]:
+                expr += '+ sin({name}) '.format(name=horizon)
+            expr += ") / {n}.".format(n=len(new_maps))
+        else:
+            msgr.message(_("Computing skyview factor ..."))
+            expr = '{out} = 1 - (sin( if({first} < 0, 0, {first}) ) '.format(first=new_maps[0], out=output)
+            for horizon in new_maps[1:]:
+                expr += '+ sin( if({name} < 0, 0, {name}) ) '.format(name=horizon)
+            expr += ") / {n}.".format(n=len(new_maps))
 
         grast.mapcalc(exp=expr)
         gcore.run_command('r.colors', map=output, color='grey')
