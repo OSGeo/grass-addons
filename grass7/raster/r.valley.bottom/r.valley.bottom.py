@@ -143,6 +143,8 @@ if "GISBASE" not in os.environ:
 
 
 def cleanup():
+    """Clean-up procedure upon module exit
+    """
     gs.message("Deleting intermediate files...")
 
     for k, v in TMP_RAST.items():
@@ -153,7 +155,30 @@ def cleanup():
     Region.write(current_region)
 
 
-def get_tiles(region, n_jobs):
+def rand_id(prefix):
+    unique = [random.choice(string.ascii_letters + string.digits) for n in range(4)]
+    unique = "".join(unique)
+    id = "_".join([prefix, unique])
+
+    return id
+
+
+def tile_shape(region, n_jobs):
+    """Calculates the number of tiles required for one tile per cpu
+
+    Parameters
+    ----------
+    region : pygrass.gis.region.Region
+        The computational region object.
+    
+    n_jobs : int
+        The number of processing cores.
+    
+    Returns
+    -------
+    width, height : tuple
+        The width and height of each tile.
+    """
     n = math.sqrt(n_jobs)
     width = math.ceil(region.cols / n)
     height = math.ceil(region.rows / n)
@@ -165,45 +190,17 @@ def get_tiles(region, n_jobs):
     return width, height
 
 
-def cell_padding(input, output, radius=3):
-    """Mitigates edge effect by growing an input raster map by radius cells
-
-    Args
-    ----
-    input, output : str
-        Names of GRASS raster map for input, and padded output
-    radius : int
-        Radius in which to expand region and grow raster
-
-    Returns
-    -------
-    input_grown : str
-        GRASS raster map which has been expanded by radius cells"""
-
-    region = Region()
-
-    g.region(
-        n=region.north + (region.nsres * radius),
-        s=region.south - (region.nsres * radius),
-        w=region.west - (region.ewres * radius),
-        e=region.east + (region.ewres * radius),
-    )
-
-    r.grow(input=input, output=output, radius=radius + 1, quiet=True)
-
-    return region
-
-
 def focal_expr(radius, window_square=False):
     """Returns array offsets relative to centre pixel (0,0) for a matrix of
     size radius
 
-    Args
-    ----
+    Parameters
+    ----------
     radius : int
-        Radius of the focal function
-    window_square : bool. Optional (default is False)
-        Boolean to use a circular or square window
+        The radius of the focal function.
+
+    window_square : bool (opt). Default is False
+        Whether to use a circular or square focal window.
 
     Returns
     -------
@@ -211,21 +208,20 @@ def focal_expr(radius, window_square=False):
         List of pixel positions (row, col) relative to the center pixel
         ( 1, -1)  ( 1, 0)  ( 1, 1)
         ( 0, -1)  ( 0, 0)  ( 0, 1)
-        (-1, -1)  (-1, 0)  (-1, 1)"""
+        (-1, -1)  (-1, 0)  (-1, 1)
+    """
 
     offsets = []
 
     # generate a list of spatial neighbourhood offsets for the chosen radius
     # ignoring the centre cell
     if window_square:
-
         for i in range(-radius, radius + 1):
             for j in range(-radius, radius + 1):
                 if (i, j) != (0, 0):
                     offsets.append((i, j))
 
     else:
-
         for i in range(-radius, radius + 1):
             for j in range(-radius, radius + 1):
                 row = i + radius
@@ -240,30 +236,39 @@ def focal_expr(radius, window_square=False):
     return offsets
 
 
-def get_percentile(L, input, radius=3, window_square=False, n_jobs=1):
-    """Calculates the percentile which is the ratio of the number of points of
-    lower elevation to the total number of points in the surrounding region
+def elevation_percentile(L, input, radius=3, window_square=False, n_jobs=1):
+    """Calculates the percentile which is the ratio of the number of points of lower
+    elevation to the total number of points in the surrounding region
 
-    Args
-    ----
+    Notes
+    -----
+    Note this function is currently a bottle-neck is the module because r.mapcalc
+    becomes slow with large statements. Ideally, a C module that calculates
+    elevation percentile is required.
+
+    Parameters
+    ----------
     L : int
-        Processing step (level)
+        The processing step (level).
+
     input : str
-        GRASS raster map (elevation) to perform calculation on
+        The GRASS raster map (elevation) to perform calculation on.
+
     radius : int
-        Neighborhood radius (in pixels)
-    window_square : bool. Optional (default is False)
-        Boolean to use square or circular neighborhood
+        The neighborhood radius (in pixels).
+
+    window_square : bool (opt). Ddefault is False
+        Whether to use a square or circular neighborhood.
+
     n_jobs : int
-        Number of processing cores for parallel computation
+        The number of processing cores for parallel computation.
 
     Returns
     -------
     PCTL : str
-        Name of GRASS cell-padded raster map with elevation percentile for
-        processing step L"""
-
-    PCTL = "PCTL{L}".format(L=L + 1)
+        Name of the raster map with elevation percentile for processing step L
+    """
+    PCTL = rand_id(prefix="PCTL{L}".format(L=L + 1))
     TMP_RAST[L].append(PCTL)
     input_grown = input
 
@@ -289,7 +294,7 @@ def get_percentile(L, input, radius=3, window_square=False, n_jobs=1):
     expr = "{x} = ({terms}) / {n}".format(x=PCTL, terms=" + ".join(terms), n=n_pixels)
 
     region = Region()
-    width, height = get_tiles(region, n_jobs)
+    width, height = tile_shape(region, n_jobs)
 
     if width < region.cols and height < region.rows and n_jobs > 1:
         grd = GridModule(
@@ -300,7 +305,7 @@ def get_percentile(L, input, radius=3, window_square=False, n_jobs=1):
             overlap=radius,
             mapset_prefix="PCTL",
             expression=expr,
-            output=PCTL
+            output=PCTL,
         )
         grd.run()
     else:
@@ -309,26 +314,60 @@ def get_percentile(L, input, radius=3, window_square=False, n_jobs=1):
     return PCTL
 
 
-def get_slope(L, elevation):
-    slope = "tmp_slope_step{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
-    TMP_RAST[L].append(slope)
+def calc_slope(L, elevation):
+    """Calculate terrain slope
 
-    r.slope_aspect(elevation=elevation, slope=slope, flags="e")
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+
+    elevation : str
+        The GRASS raster map (elevation) to perform calculation on.
+
+    Returns
+    -------
+    slope : str
+        The name of the slope map.
+    """
+    slope = rand_id("slope_step{L}".format(L=L + 1))
+    TMP_RAST[L].append(slope)
+    r.slope_aspect(elevation=elevation, slope=slope, flags="e", quiet=True)
 
     return slope
 
 
-def get_flatness(L, slope, t, p):
+def flatness(L, slope, t, p):
     """Calculates the flatness index
+
     Flatness F1 = 1 / (1 + pow ((slope / t), p)
+    Equation 2 (Gallant and Dowling, 2003)
 
-    Equation 2 (Gallant and Dowling, 2003)"""
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
 
-    F = "tmp_F{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    slope : str
+        The name of the slope map upon which to apply a logistic transform to calculate
+        flatness.
+
+    t : float
+        The threshold parameters for the flatness transformation. This defines the mid-point
+        value of the logistic function, which represents the threshold for when a pixel is
+        considered flat.
+
+    p : float
+        The shape parameter for the flatness transformation. This is the smoothness of 
+        the logistic function, i.e. large values cause a rapid transition from 0 -> 1
+        resulting in a rapid transition from non-flat to flat terrain.
+
+    Returns
+    -------
+    F : str
+        The name of the flatness raster.
+    """
+    F = rand_id("F{L}".format(L=L + 1))
     TMP_RAST[L].append(F)
 
     expr = "{g} = 1.0 / (1.0 + pow(({x} / {t}), {p}))".format(g=F, x=slope, t=t, p=p)
@@ -337,16 +376,42 @@ def get_flatness(L, slope, t, p):
     return F
 
 
-def get_prelim_flatness(L, F, PCTL, t, p):
-    """Transform elevation percentile to a local lowness value using
-    equation (1) and combined with flatness F to produce the preliminary
-    valley flatness index (PVF) for the first step.
+def prelim_flatness_valleys(L, F, PCTL, t, p):
+    """Transform elevation percentile to a local lowness value using equation (1) and
+    combined with flatness F to produce the preliminary valley flatness index (PVF) for
+    the first step.
 
-    Equation 3 (Gallant and Dowling, 2003)"""
+    Equation 3 (Gallant and Dowling, 2003)
 
-    PVF = "tmp_PVF{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+
+    F : str
+        The name of the relative flatness raster map.
+    
+    PCTL : str
+        The name of the relative lowness raster map.
+    
+    t : float
+        The threshold parameter for the logistic transform. This defines the mid-point
+        of the logistic function, which represents the threshold for when a pixel is
+        considered 'low'. The flatness is then multiplied by the lowness value so that 
+        pixels that are either flat (F ≥ 0.5) or low (PCTL ≥ 0.5) will have values of 
+        PVF ≥ 0.25.
+    
+    p : float
+        The smoothness parameter for the logistic transform, i.e. how rapid the 
+        transition from high to low terrain os.
+    
+    Returns
+    -------
+    PVF : str
+        The name of the preliminary valley flatness index.
+    """
+
+    PVF = rand_id("PVF{L}".format(L=L + 1))
     TMP_RAST[L].append(PVF)
 
     expr = "{g} = {a} * (1.0 / (1.0 + pow(({x} / {t}), {p})))".format(
@@ -358,16 +423,37 @@ def get_prelim_flatness(L, F, PCTL, t, p):
     return PVF
 
 
-def get_prelim_flatness_rf(L, F, PCTL, t, p):
-    """Transform elevation percentile to a local upness value using
-    equation (1) and combined with flatness to produce the preliminary
-    valley flatness index (PVF) for the first step
+def prelim_flatness_ridges(L, F, PCTL, t, p):
+    """Transform elevation percentile to a local upness value using equation (1) and
+    combined with flatness to produce the preliminary ridge top flatness index (PVF) for
+    the first step
 
-    Equation 3 (Gallant and Dowling, 2003)"""
+    Equation 3 (Gallant and Dowling, 2003)
 
-    PVF = "tmp_PVF{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+
+    F : str
+        The name of the flatness raster map.
+    
+    PCTL : str
+        The name of the elevation percentile raster map.
+    
+    t : float
+        The threshold parameter.
+    
+    p : float
+        The shape parameter.
+    
+    Returns
+    -------
+    PVF : str
+        The name of the preliminary ridge top index raster.
+    """
+
+    PVF = rand_id("PVF_RF{L}".format(L=L + 1))
     TMP_RAST[L].append(PVF)
 
     expr = "{g} = {a} * (1.0 / (1.0 + pow(((1-{x}) / {t}), {p})))".format(
@@ -378,16 +464,35 @@ def get_prelim_flatness_rf(L, F, PCTL, t, p):
     return PVF
 
 
-def get_valley_flatness(L, PVF, t, p):
+def valley_flatness(L, PVF, t, p):
     """Calculation of the valley flatness step VF
-    Larger values of VF1 indicate increasing valley bottom character
-    with values less than 0.5 considered not to be in valley bottoms
+    
+    Larger values of VF1 indicate increasing valley bottom character with values less
+    than 0.5 considered not to be in valley bottoms
 
-    Equation 4 (Gallant and Dowling, 2003)"""
+    Equation 4 (Gallant and Dowling, 2003)
+    
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
 
-    VF = "tmp_VF{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    PVF : str
+        The name of the preliminary flatness index raster map.
+    
+    t : float
+        The threshold value.
+    
+    p : float
+        The shape value.
+    
+    Returns
+    -------
+    VF : str
+        The name of the valley flatness raster.
+    """
+
+    VF = rand_id("VF{L}".format(L=L + 1))
     TMP_RAST[L].append(VF)
 
     expr = "{g} = 1 - (1.0 / (1.0 + pow(({x} / {t}), {p})))".format(
@@ -398,19 +503,30 @@ def get_valley_flatness(L, PVF, t, p):
     return VF
 
 
-def get_mrvbf(L, VF_Lminus1, VF_L, t):
-    """Calculation of the MRVBF index
-    Requires that L>1"""
+def calc_mrvbf(L, VF_Lminus1, VF_L, t):
+    """Calculation of the MRVBF index (requires that L>1)
 
-    W = "tmp_W{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
-    MRVBF = "MRVBF{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+
+    VF_Lminus1 : str
+        The name of the valley flatness index from the previous step.
+    
+    t : float
+        The threshold value.
+    
+    Returns
+    -------
+    mrvbf : str
+        The name of the Mrvbf raster map.
+    """
 
     # Calculation of weight W2 (Equation 9)
+    W = rand_id("W{L}".format(L=L + 1))
     TMP_RAST[L].append(W)
+
     p = (math.log10(((L + 1) - 0.5) / 0.1)) / math.log10(1.5)
 
     expr = "{g} = 1 - (1.0 / (1.0 + pow(({x} / {t}), {p})))".format(
@@ -419,24 +535,40 @@ def get_mrvbf(L, VF_Lminus1, VF_L, t):
     gs.mapcalc(expr)
 
     # Calculation of MRVBF2	(Equation 8)
-    TMP_RAST[L].append(MRVBF)
+    mrvbf = rand_id("MRVBF{L}".format(L=L + 1))
+    TMP_RAST[L].append(mrvbf)
 
     expr = "{MBF} = ({W} * ({L} + {VF})) + ((1 - {W}) * {VF1})".format(
-        MBF=MRVBF, L=L, W=W, VF=VF_L, VF1=VF_Lminus1
+        MBF=mrvbf, L=L, W=W, VF=VF_L, VF1=VF_Lminus1
     )
     gs.mapcalc(expr)
 
-    return MRVBF
+    return mrvbf
 
 
-def get_combined_flatness(L, F1, F2):
+def combined_flatness(L, F1, F2):
     """Calculates the combined flatness index
 
-    Equation 13 (Gallant and Dowling, 2003)"""
+    Equation 13 (Gallant and Dowling, 2003)
+    
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
 
-    CF = "tmp_CF{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    F1 : str
+        The name of the flatness index 1 raster.
+    
+    F2 : str
+        The name of the flatness index 2 raster.
+    
+    Returns
+    -------
+    CF : str
+        The name of the combined flatness index raster.
+    """
+
+    CF = rand_id("CF{L}".format(L=L + 1))
     TMP_RAST[L].append(CF)
 
     expr = "{CF} = {F1} * {F2}".format(CF=CF, F1=F1, F2=F2)
@@ -445,42 +577,99 @@ def get_combined_flatness(L, F1, F2):
     return CF
 
 
-def get_smoothed_dem(L, DEM):
-    """Smooth the DEM using an 11 cell averaging filter with gauss weighting of 3 radius"""
+def smooth_dem(L, dem):
+    """Smooth the DEM using an 11 cell averaging filter with gauss weighting of 3 radius
 
-    smoothed = "tmp_DEM_smoothed_step{L}".format(L=L + 1) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+    
+    dem : str
+        The name of the elevation raster map.
+    
+    Returns
+    -------
+    smoothed : str
+        The name of the smoothed elevation map.
+    """
+
+    smoothed = rand_id("DEM_smoothed_step{L}".format(L=L + 1))
     TMP_RAST[L].append(smoothed)
 
     # g = 4.3565 * math.exp(-(3 / 3.0))
-    r.neighbors(input=DEM, output=smoothed, size=11, gauss=3)
+    r.neighbors(input=dem, output=smoothed, size=11, gauss=3)
 
     return smoothed
 
 
-def refine(L, input, region, method="bilinear"):
-    """change resolution back to base resolution and resample a raster"""
+def upsample(L, input, region):
+    """Change resolution back to base resolution and upsample (resample to finer
+    resolution) a raster
 
-    input_padded = "_".join(["tmp", input, "_padded"]) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
-    )
-    TMP_RAST[L].append(input_padded)
-    cell_padding(input=input, output=input_padded, radius=2)
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+
+    input : str
+        The name of the raster map to upsample
+    
+    region : grass.pygrass.gis.region.Region object
+        The target computation region settings for upsampling.
+    
+    Returns
+    -------
+    refined_map : str
+        The name of the refined/upsampled raster.
+    """
+
+    refined_map = rand_id("{x}_refined_to_base_resolution".format(x=input))
+    TMP_RAST[L].append(refined_map)
+
+    x_radius = (Region().ewres * 3) / 2
+    y_radius = (Region().nsres * 3) / 2
 
     Region.write(region)
-    input = "_".join(["tmp", input, "refined_base_resolution"]) + "".join(
-        [random.choice(string.ascii_letters + string.digits) for n in range(4)]
+
+    r.resamp_filter(
+        input=input,
+        output=refined_map,
+        filter=["bartlett", "lanczos1"],
+        x_radius=[x_radius, x_radius],
+        y_radius=[y_radius, y_radius],
     )
-    TMP_RAST[L].append(input)
 
-    if method == "bilinear":
-        r.resamp_interp(input=input_padded, output=input, method="bilinear")
+    return refined_map
 
-    if method == "average":
-        r.resamp_stats(input=input_padded, output=input, method="average", flags="w")
 
-    return input
+def downsample(L, input, region):
+    """Resample a raster to a coarser resolution
+
+    Parameters
+    ----------
+    L : int
+        The processing step (level).
+    
+    input : str
+        The name of the raster map to upsample
+    
+    region : grass.pygrass.gis.region.Region object
+        The target computation region settings for downsampling.
+
+    Returns
+    -------
+    refined_map : str
+        The name of the refined/upsampled raster.
+    """
+    refined_map = rand_id("{x}_coarsened_to_step_L{L}".format(x=input, L=L))
+    TMP_RAST[L].append(refined_map)
+
+    Region.write(region)
+
+    r.resamp_stats(input=input, output=refined_map, method="average", flags="w")
+
+    return refined_map
 
 
 def main():
@@ -503,11 +692,9 @@ def main():
     TMP_RAST = {}
     current_region = Region()
 
-    # Some checks
+    # Some checks ---------------------------------------------------------------------
     if n_jobs == 0:
-        gs.fatal(
-            "Number of processing cores for parallel computation must not equal 0"
-        )
+        gs.fatal("Number of processing cores for parallel computation must not equal 0")
 
     if n_jobs < 0:
         system_cores = mp.cpu_count()
@@ -532,9 +719,7 @@ def main():
             "Minimum number of cells in the generalized DEM cannot exceed the ungeneralized number of cells"
         )
 
-    ###########################################################################
-    # Calculate number of levels
-
+    # Calculate number of levels ------------------------------------------------------
     levels = math.ceil(
         -math.log(float(min_cells) / current_region.cells) / math.log(3) - 2
     )
@@ -551,22 +736,24 @@ def main():
         "min_cells = %d will result in %d generalization steps" % (min_cells, levels)
     )
 
+    # Dict to store temporary maps per level
     TMP_RAST = {k: [] for k in range(levels)}
 
-    ###########################################################################
     # Intermediate outputs
-    Xres_step, Yres_step, DEM = [], [], []
-    slope, F, PCTL, PVF, PVF_RF = (
-        [0] * levels,
-        [0] * levels,
-        [0] * levels,
-        [0] * levels,
-        [0] * levels,
-    )
-    VF, VF_RF, MRVBF, MRRTF = [0] * levels, [0] * levels, [0] * levels, [0] * levels
+    Xres_step = list()
+    Yres_step = list()
+    DEM = list()
+    slope = [0] * levels
+    F = [0] * levels
+    PCTL = [0] * levels
+    PVF = [0] * levels
+    PVF_RF = [0] * levels
+    VF = [0] * levels
+    VF_RF = [0] * levels
+    MRVBF = [0] * levels
+    MRRTF = [0] * levels
 
-    ###########################################################################
-    # Step 1 (L=0)
+    # Step 1 (L=0) --------------------------------------------------------------------
     # Base scale resolution
     L = 0
     Xres_step.append(current_region.ewres)
@@ -582,35 +769,34 @@ def main():
     gs.message(
         "Calculation of slope and transformation to flatness F{L}...".format(L=L + 1)
     )
-    slope[L] = get_slope(L, DEM[L])
-    F[L] = get_flatness(L, slope[L], t_slope, p_slope)
+    slope[L] = calc_slope(L, DEM[L])
+    F[L] = flatness(L, slope[L], t_slope, p_slope)
 
     # Calculation of elevation percentile PCTL for step 1
     gs.message("Calculation of elevation percentile PCTL{L}...".format(L=L + 1))
-    PCTL[L] = get_percentile(L, DEM[L], radi, moving_window_square, n_jobs)
+    PCTL[L] = elevation_percentile(L, DEM[L], radi, moving_window_square, n_jobs)
 
     # Transform elevation percentile to local lowness for step 1 (Equation 3)
     gs.message(
         "Calculation of preliminary valley flatness index PVF{L}...".format(L=L + 1)
     )
-    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
+    PVF[L] = prelim_flatness_valleys(L, F[L], PCTL[L], t_pctl_v, p_pctl)
     if mrrtf != "":
         gs.message(
             "Calculation of preliminary ridge top flatness index PRF{L}...".format(
                 L=L + 1
             )
         )
-        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
+        PVF_RF[L] = prelim_flatness_ridges(L, F[L], PCTL[L], t_pctl_r, p_pctl)
 
     # Calculation of the valley flatness step 1 VF1 (Equation 4)
     gs.message("Calculation of valley flatness VF{L}...".format(L=L + 1))
-    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
+    VF[L] = valley_flatness(L, PVF[L], t_vf, p_slope)
     if mrrtf != "":
         gs.message("Calculation of ridge top flatness RF{L}...".format(L=L + 1))
-        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
+        VF_RF[L] = valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
-    ##################################################################################
-    # Step 2 (L=1)
+    # Step 2 (L=1) --------------------------------------------------------------------
     # Base scale resolution
     L = 1
     Xres_step.append(current_region.ewres)
@@ -627,51 +813,50 @@ def main():
     # The second step commences the same way with the original DEM at its base resolution,
     # using a slope threshold ts,2 half of ts,1:
     gs.message("Calculation of flatness F{L}...".format(L=L + 1))
-    F[L] = get_flatness(L, slope[L - 1], t_slope, p_slope)
+    F[L] = flatness(L, slope[L - 1], t_slope, p_slope)
 
     # Calculation of elevation percentile PCTL for step 2 (radius of 6 cells)
     gs.message("Calculation of elevation percentile PCTL{L}...".format(L=L + 1))
-    PCTL[L] = get_percentile(L, r_elevation, radi, moving_window_square, n_jobs)
+    PCTL[L] = elevation_percentile(L, r_elevation, radi, moving_window_square, n_jobs)
 
     # PVF for step 2 (Equation 6)
     gs.message(
         "Calculation of preliminary valley flatness index PVF{L}...".format(L=L + 1)
     )
-    PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
+    PVF[L] = prelim_flatness_valleys(L, F[L], PCTL[L], t_pctl_v, p_pctl)
     if mrrtf != "":
         gs.message(
             "Calculation of preliminary ridge top flatness index PRF{L}...".format(
                 L=L + 1
             )
         )
-        PVF_RF[L] = get_prelim_flatness_rf(L, F[L], PCTL[L], t_pctl_r, p_pctl)
+        PVF_RF[L] = prelim_flatness_ridges(L, F[L], PCTL[L], t_pctl_r, p_pctl)
+
+    g.remove(type="raster", name=PCTL[L], flags="f", quiet=True)
+    TMP_RAST[L].remove(PCTL[L])
 
     # Calculation of the valley flatness VF for step 2 (Equation 7)
     gs.message("Calculation of valley flatness VF{L}...".format(L=L + 1))
-    VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
+    VF[L] = valley_flatness(L, PVF[L], t_vf, p_slope)
     if mrrtf != "":
         gs.message("Calculation of ridge top flatness RF{L}...".format(L=L + 1))
-        VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
+        VF_RF[L] = valley_flatness(L, PVF_RF[L], t_rf, p_slope)
 
     # Calculation of MRVBF for step 2
     gs.message("Calculation of MRVBF{L}...".format(L=L + 1))
-    MRVBF[L] = get_mrvbf(L, VF_Lminus1=VF[L - 1], VF_L=VF[L], t=t_pctl_v)
+    MRVBF[L] = calc_mrvbf(L, VF_Lminus1=VF[L - 1], VF_L=VF[L], t=t_pctl_v)
     if mrrtf != "":
         gs.message("Calculation of MRRTF{L}...".format(L=L + 1))
-        MRRTF[L] = get_mrvbf(
-            L, VF_Lminus1=VF_RF[L - 1], VF_L=VF_RF[L], t=t_pctl_r
-        )
+        MRRTF[L] = calc_mrvbf(L, VF_Lminus1=VF_RF[L - 1], VF_L=VF_RF[L], t=t_pctl_r)
 
     # Update flatness for step 2 with combined flatness from F1 and F2 (Equation 10)
     gs.message("Calculation  of combined flatness index CF{L}...".format(L=L + 1))
-    F[L] = get_combined_flatness(L, F[L - 1], F[L])
+    F[L] = combined_flatness(L, F[L - 1], F[L])
 
-    ##################################################################################
-    # Remaining steps
+    # Remaining steps -----------------------------------------------------------------
     # DEM_1_1 refers to scale (smoothing) and resolution (cell size)
     # so that DEM_L1_L-1 refers to smoothing of current step,
     # but resolution of previous step
-
     for L in range(2, levels):
 
         t_slope /= 2.0
@@ -687,7 +872,7 @@ def main():
         gs.message("Step {L}".format(L=L + 1))
         gs.message("------")
 
-        # Coarsen resolution to resolution of prevous step (step L-1) and smooth DEM
+        # Coarsen resolution to resolution of previous step (step L-1) and smooth DEM
         if L >= 3:
             gs.run_command("g.region", ewres=Xres_step[L - 1], nsres=Yres_step[L - 1])
             gs.message(
@@ -699,36 +884,43 @@ def main():
         gs.message(
             "DEM smoothing 11 x 11 windows with Gaussian smoothing kernel (sigma) 3..."
         )
-        DEM.append(get_smoothed_dem(L, DEM[L - 1]))
+        smoothed_dem = smooth_dem(L=L, dem=DEM[L - 1])
+        DEM.append(smoothed_dem)
+
+        if L > 2:
+            g.remove(type="raster", name=DEM[L - 1], flags="f", quiet=True)
+            TMP_RAST[L - 1].remove(DEM[L - 1])
 
         # Calculate slope
         gs.message("Calculation of slope...")
-        slope[L] = get_slope(L, DEM[L])
+        slope[L] = calc_slope(L, DEM[L])
 
         # Refine slope to base resolution
         if L >= 3:
             gs.message("Resampling slope back to base resolution...")
-            slope[L] = refine(L, slope[L], current_region, method="bilinear")
+            slope[L] = upsample(L, slope[L], current_region)
 
         # Coarsen resolution to current step L and calculate PCTL
         gs.run_command("g.region", ewres=Xres_step[L], nsres=Yres_step[L])
-        DEM[L] = refine(L, DEM[L], Region(), method="average")
+        DEM[L] = downsample(L, DEM[L], Region())
         gs.message("Calculation of elevation percentile PCTL{L}...".format(L=L + 1))
-        PCTL[L] = get_percentile(L, DEM[L], radi, moving_window_square, n_jobs)
-
+        PCTL[L] = elevation_percentile(L, DEM[L], radi, moving_window_square, n_jobs)
+        
         # Refine PCTL to base resolution
         gs.message("Resampling PCTL{L} to base resolution...".format(L=L + 1))
-        PCTL[L] = refine(L, PCTL[L], current_region, method="bilinear")
+        PCTL[L] = upsample(L, PCTL[L], current_region)
 
         # Calculate flatness F at the base resolution
         gs.message("Calculate F{L} at base resolution...".format(L=L + 1))
-        F[L] = get_flatness(L, slope[L], t_slope, p_slope)
+        F[L] = flatness(L, slope[L], t_slope, p_slope)
+        g.remove(type="raster", name=slope[L], flags="f", quiet=True)
+        TMP_RAST[L].remove(slope[L])
 
         # Update flatness with combined flatness CF from the previous step
         gs.message(
             "Calculate combined flatness CF{L} at base resolution...".format(L=L + 1)
         )
-        F[L] = get_combined_flatness(L, F1=F[L - 1], F2=F[L])
+        F[L] = combined_flatness(L, F1=F[L - 1], F2=F[L])
 
         # Calculate preliminary valley flatness index PVF at the base resolution
         gs.message(
@@ -736,16 +928,17 @@ def main():
                 L=L + 1
             )
         )
-        PVF[L] = get_prelim_flatness(L, F[L], PCTL[L], t_pctl_v, p_pctl)
+        PVF[L] = prelim_flatness_valleys(L, F[L], PCTL[L], t_pctl_v, p_pctl)
         if mrrtf != "":
             gs.message(
                 "Calculate preliminary ridge top flatness index PRF{L} at base resolution...".format(
                     L=L + 1
                 )
             )
-            PVF_RF[L] = get_prelim_flatness_rf(
-                L, F[L], PCTL[L], t_pctl_r, p_pctl
-            )
+            PVF_RF[L] = prelim_flatness_ridges(L, F[L], PCTL[L], t_pctl_r, p_pctl)
+        
+        g.remove(type="raster", name=PCTL[L], flags="f", quiet=True)
+        TMP_RAST[L].remove(PCTL[L])
 
         # Calculate valley flatness index VF
         gs.message(
@@ -753,27 +946,29 @@ def main():
                 L=L + 1
             )
         )
-        VF[L] = get_valley_flatness(L, PVF[L], t_vf, p_slope)
+        VF[L] = valley_flatness(L, PVF[L], t_vf, p_slope)
+        g.remove(type="raster", name=PVF[L], flags="f", quiet=True)
+        TMP_RAST[L].remove(PVF[L])
+
         if mrrtf != "":
             gs.message(
                 "Calculate ridge top flatness index RF{L} at base resolution...".format(
                     L=L + 1
                 )
             )
-            VF_RF[L] = get_valley_flatness(L, PVF_RF[L], t_rf, p_slope)
+            VF_RF[L] = valley_flatness(L, PVF_RF[L], t_rf, p_slope)
+            g.remove(type="raster", name=PVF_RF[L], flags="f", quiet=True)
+            TMP_RAST[L].remove(PVF_RF[L])
 
         # Calculation of MRVBF
         gs.message("Calculation of MRVBF{L}...".format(L=L + 1))
-        MRVBF[L] = get_mrvbf(
-            L, VF_Lminus1=MRVBF[L - 1], VF_L=VF[L], t=t_pctl_v
-        )
+        MRVBF[L] = calc_mrvbf(L, VF_Lminus1=MRVBF[L - 1], VF_L=VF[L], t=t_pctl_v)
+
         if mrrtf != "":
             gs.message("Calculation of MRRTF{L}...".format(L=L + 1))
-            MRRTF[L] = get_mrvbf(
-                L, VF_Lminus1=MRRTF[L - 1], VF_L=VF_RF[L], t=t_pctl_r
-            )
+            MRRTF[L] = calc_mrvbf(L, VF_Lminus1=MRRTF[L - 1], VF_L=VF_RF[L], t=t_pctl_r)
 
-    # Output final MRVBF
+    # Output final MRVBF --------------------------------------------------------------
     expr = "{x} = {y}".format(x=mrvbf, y=MRVBF[L])
     gs.mapcalc(expr)
 
