@@ -7,6 +7,9 @@ the Styled Layer Description (SLD) format according to OGC standard.
 requires that the input map is read and may thus take a bit longer than the
 export of contious color rules (ramp).
 
+<p> Only if the flag <b>n<\b> is given, the NaN values are written into the
+generated SLD file which leads e.g. in GeoServer to an error when using such SLD.
+
 <p>Currently only SLD v1.0.0 is implemented.
 
 <h2>EXAMPLES:</h2>
@@ -18,7 +21,7 @@ r.out.colors_sld map=Testmap style_name=Celsius</pre>
 
 <h2>SEE ALSO:</h2>
 
-<a href="r.colors.out.html">r.colors.out</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html">r.colors.out</a>
 
 <h2>REFERENCES:</h2>
 

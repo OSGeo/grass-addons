@@ -6,7 +6,7 @@ to create maps of instantaneous solar irradiance.
 Alternatively, it allows to integrate solar irradiance maps over specified time period
 to compute solar irradiation (mode 2).
 
-See r.sun <a href="r.sun.html">manual page</a> for more information.
+See r.sun <a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">manual page</a> for more information.
 
 <h3>Output parameters explanation</h3>
 <p>
@@ -44,12 +44,12 @@ irradiation rasters are summed over the specified period (mode 2 only).
 
 
 <h3>Real-sky radiation parameters</h3>
-Real-sky radiation parameters (see <a href="r.sun.html">r.sun</a>)
+Real-sky radiation parameters (see <a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a>)
 can be input as raster map (<b>coeff_bh</b> and <b>coeff_dh</b>),
 or space-time raster dataset (<b>coeff_bh_strds</b> and <b>coeff_dh_strds</b>)
 to account for time-varying conditions. The space-time raster
 dataset (strds) needs to be interval-based (i.e. have start and end time,
-see <a href="t.register.html">t.register</a>, for more details).
+see <a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a>, for more details).
 
 <h2>EXAMPLES</h2>
 
@@ -87,13 +87,13 @@ g.gui.tplot strds=beam_m2_step_short,beam_m2_step_long,beam_m2_step_short_cum,be
 <h2>NOTE</h2>
 Beam irradiance binary raster maps can be displayed as
 semitransparent over other map layers or module
-<a href="r.null.html"><em>r.null</em></a> can be used to
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html"><em>r.null</em></a> can be used to
 set one of the values (either shade or sunlight) as NULL.
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.sun.html">r.sun</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a>,
 <a href="r.sun.daily.html">r.sun.daily</a> in Addons
 </em>
 

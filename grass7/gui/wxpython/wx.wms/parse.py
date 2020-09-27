@@ -27,6 +27,9 @@ import re
 from xml.dom.minidom import parse, parseString
 from urllib2 import Request, urlopen, URLError, HTTPError
 
+# PY2/PY3 compat
+if sys.version_info.major >= 3:
+    unicode = str
 
 key = 0
 

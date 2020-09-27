@@ -9,10 +9,10 @@ file.
 
 <p>NTv2 format supports only single-precission floating point data. GRASS GIS
 double-precision DCELL data need to be reduced to FCELL before export, eg.
-using <a href="r.mapcalc.html">r.mapcalc</a> <code>float()</code> function.
+using <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a> <code>float()</code> function.
 
 <p>The user should adjust the region and resolution to match the input raster
-maps before export, using <a href="g.region.html">g.region</a>.
+maps before export, using <a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>.
 
 <p>PROJ.4 and the software that depend on it, including GDAL, GRASS, QGIS, assume
 the NTv2 grid's destination coordinate system to be WGS84. The metadata values in

@@ -11,6 +11,10 @@ import os
 from io import StringIO
 import csv
 import collections
+# PY2/PY3 compat
+import sys
+if sys.version_info.major >= 3:
+    unicode = str
 
 csvstring = """csvauthor|model|formula
 ELVIDGE2009|DNadj. = ({c0}) + ({c1}) * DN + ({c2}) * DN^2|({c0}) + ({c1})*{dummy} + ({c2})*{dummy}^2
@@ -19,7 +23,7 @@ LIU2012|DNadj. = {c0} + {c1} * DN + {c2} * DN^2|({c0}) + ({c1})*{dummy} +({c2})*
 WU2013|DNc + 1 = {a} * (DNm + 1)^{b}|({a}) * ({dummy} + 1)^({b})"""
 
 # fake it...
-csvfile = StringIO(csvstring)
+csvfile = StringIO(unicode(csvstring))
 
 
 def csv_to_dictionary(csvfile):

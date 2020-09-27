@@ -16,25 +16,25 @@ external software (see example bellow).</dd>
 consumption during analysis.</dd>
 <dt><b>stream_rast</b></dt>
 <dd>Stream network: name of input stream raster map produced
-by <em><a href="r.watershed.html">r.watershed</a></em> or
-  <em><a href="r.stream.extract.html">r.stream.extract</a></em>, on
+by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> or
+  <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>, on
 which ordering will be performed. Because stream network produced by
-<em><a href="r.watershed.html">r.watershed</a></em>
-and <em><a href="r.stream.extract.html">r.stream.extract</a></em> may
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+and <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> may
 slighty differ in detail, it is required to use
 both <b>stream_rast</b> and direction map produced by the same
 module. The <b>stream_rast</b> background shall have NULL value or
 zero value. Background values of NULL are by default produced by
-<em><a href="r.watershed.html">r.watershed</a></em>
-and <em><a href="r.stream.extract.html">r.stream.extract</a></em>. If
-not 0 or NULL use <em><a href="r.mapcalc.html">r.mapcalc</a></em> to
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>
+and <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. If
+not 0 or NULL use <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em> to
 set background values to NULL.
 </dd>
 <dt><b>direction</b></dt>
 <dd>Flow direction: name of input direction raster map produced by
-<em><a href="r.watershed.html">r.watershed</a></em> or
-  <em><a href="r.stream.extract.html">r.stream.extract</a></em>. If
-<em><a href="r.stream.extract.html">r.stream.extract</a></em> output
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> or
+  <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. If
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> output
 raster map is used, it only has non-NULL values in places where
 streams occur. NULL (nodata) cells are ignored, zero and negative
 values are valid direction data if they vary from -8 to 8 (CCW from
@@ -135,7 +135,7 @@ The module calculates statistics for all streams in
 input <b>stream_rast</b> map. It is strongly recommended to extract
 only network of one basin, but it is not necessary for
 computation. Streams for the desired basin can be extracted by the
-following <em><a href="r.mapcalc.html">r.mapcalc</a></em> formula:
+following <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em> formula:
 
 <div class="code"><pre>
 # xxx denotes the category of desired basin
@@ -154,9 +154,9 @@ map, <b>stream_rast</b> map and region have the same settings. It is
 also required that <b>stream_rast</b> map and direction map come from the
 same source. For lots of reason this limitation probably cannot be
 omitted. This means that if <b>stream_rast</b> map comes from
-<em><a href="r.stream.extract.html">r.stream.extract</a></em> also
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> also
 direction map
-from <em><a href="r.stream.extract.html">r.stream.extract</a></em>
+from <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>
 must be used. If the stream network was generated with MFD method also
 MFD direction map must be used.
 
@@ -195,15 +195,15 @@ Society of America Bulletin 56 (3): 275-370
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
 <a href="r.stream.channel.html">r.stream.channel</a>,
 <a href="r.stream.distance.html">r.stream.distance</a>,
-<a href="r.stream.extract.html">r.stream.extract</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
 <a href="r.stream.order.html">r.stream.order</a>,
 <a href="r.stream.segment.html">r.stream.segment</a>,
 <a href="r.stream.slope.html">r.stream.slope</a>,
 <a href="r.stream.snap.html">r.stream.snap</a>,
-<a href="r.watershed.html">r.watershed</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
 </em>
 
 <p>

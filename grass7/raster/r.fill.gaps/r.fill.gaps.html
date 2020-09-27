@@ -35,10 +35,10 @@ Available gap filling modes:
 
 The spatially weighted mean is equivalent to an Inverse Distance
 Weighting (IDW;
-see also <em><a href="r.surf.idw.html">r.surf.idw</a></em>)
+see also <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw.html">r.surf.idw</a></em>)
 interpolation. The simple mean is equivalent to a simple low-pass filter.
 Median and mode replacements can also be achieved using
-<em><a href="r.neighbors.html">r.neighbors</a></em>.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a></em>.
 
 <p>
 
@@ -58,8 +58,8 @@ extent.
 This module is not well suited for interpolating sparse input data and
 closing large gaps. For such purposes more appropriate
 methods are available, such as
-<em><a href="v.surf.idw.html">v.surf.idw</a></em> or
-<em><a href="v.surf.rst.html">v.surf.rst</a></em>.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a></em> or
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a></em>.
 
 <p>
 
@@ -209,7 +209,7 @@ noisy derivative maps.
 
 The effect can be seen in the illustration above:
 Slope, aspect, and profile curvature are computed using the
-<em><a href="r.slope.aspect.html">r.slope.aspect</a></em> module, which
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a></em> module, which
 uses a window (kernel) for computations that considers only the
 immediate neighborhood of each cell. When performed on noisy data,
 such local operations result in equally noisy derivatives if the
@@ -220,7 +220,7 @@ is performed.
 
 (Note that the effects of noisy data can also be avoided by using modules
 that are not restricted to minimal kernel sizes. For example, aspect and other morphometric parameters can be computed
-using the <em><a href="r.param.scale.html">r.param.scale</a></em> module
+using the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.param.scale.html">r.param.scale</a></em> module
 which operates with variable-size cell neighborhoods.)
 
 <!--
@@ -334,7 +334,7 @@ especially when interpolating over large geographical areas.
 If the distance is set to a relatively large value, processing time
 will quickly approach and eventually exceed that of point-based
 interpolation modules such as
-<em><a href="v.surf.rst.html">v.surf.rst</a></em>.
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a></em>.
 
 <p>
 
@@ -396,7 +396,7 @@ http://fatra.cnr.ncsu.edu/uav-lidar-analytics-course/midpines_2015_spm.las
 -->
 
 Inspect the point density and determine the extent of the point cloud
-using the <em><a href="r.in.lidar.html">r.in.lidar</a></em> module:
+using the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.in.lidar.html">r.in.lidar</a></em> module:
 
 <div class="code"><pre>
 r.in.lidar -e input=points.las output=density method=n resolution=5 class_filter=2
@@ -467,11 +467,11 @@ d.mon stop=cairo
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.fillnulls.html">r.fillnulls</a>,
-<a href="r.neighbors.html">r.neighbors</a>,
-<a href="r.surf.idw2.html">r.surf.idw</a>,
-<a href="v.surf.idw.html">v.surf.idw</a>,
-<a href="v.surf.rst.html">v.surf.rst</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw2.html">r.surf.idw</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>
 </em>
 
 <p>
