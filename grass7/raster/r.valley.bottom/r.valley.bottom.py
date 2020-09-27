@@ -332,7 +332,13 @@ def calc_slope(L, elevation):
     """
     slope = rand_id("slope_step{L}".format(L=L + 1))
     TMP_RAST[L].append(slope)
-    r.slope_aspect(elevation=elevation, slope=slope, flags="e", quiet=True)
+    r.slope_aspect(
+        elevation=elevation, 
+        slope=slope, 
+        flags="e", 
+        format="percent", 
+        quiet=True
+    )
 
     return slope
 
@@ -629,13 +635,12 @@ def upsample(L, input, region):
 
     x_radius = (Region().ewres * 3) / 2
     y_radius = (Region().nsres * 3) / 2
-
+    
     Region.write(region)
-
     r.resamp_filter(
         input=input,
         output=refined_map,
-        filter=["bartlett", "lanczos1"],
+        filter=["box", "lanczos1"],
         x_radius=[x_radius, x_radius],
         y_radius=[y_radius, y_radius],
     )
