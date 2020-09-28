@@ -134,7 +134,6 @@ import grass.script as gs
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
-from grass.pygrass.modules.grid import GridModule
 
 
 if "GISBASE" not in os.environ:
@@ -295,19 +294,18 @@ def elevation_percentile(L, input, radius=3, window_square=False, n_jobs=1):
 
     region = Region()
     width, height = tile_shape(region, n_jobs)
+    gs.message((width, height))
 
     if width < region.cols and height < region.rows and n_jobs > 1:
-        grd = GridModule(
-            cmd="r.mapcalc.simple",
-            width=width,
-            height=height,
-            processes=n_jobs,
-            overlap=radius,
-            mapset_prefix="PCTL",
-            expression=expr,
-            output=PCTL,
+        r.mapcalc_tiled(
+            expression=expr, 
+            width=width, 
+            height=height, 
+            processes=n_jobs, 
+            overlap=radius, 
+            output=PCTL, 
+            mapset_prefix="PCTL"
         )
-        grd.run()
     else:
         gs.mapcalc(expr)
 
@@ -630,24 +628,37 @@ def upsample(L, input, region):
         The name of the refined/upsampled raster.
     """
     # pad input dem by 1 cell to avoid edge shrinkage
-    radius = 1.01
-    input_padded = rand_id("padded")
+    # radius = 1.01
+    # input_padded = rand_id("padded")
 
-    g.region(grow=1)
-    r.grow(
-        input=input,
-        output=input_padded,
-        radius=radius+1,
-        quiet=True
-    )
+    # g.region(grow=1)
+    # r.grow(
+    #     input=input,
+    #     output=input_padded,
+    #     radius=radius+1,
+    #     quiet=True
+    # )
 
-    # upsample
+    # # upsample
     refined_map = rand_id("{x}_upsampled".format(x=input))
     TMP_RAST[L].append(refined_map)
 
+    # Region.write(region)
+    # r.resamp_interp(input=input_padded, output=refined_map, method="bilinear")
+    # g.remove(type="raster", name=input_padded, flags="f", quiet=True)
+
+    x_radius = (Region().ewres * 3) / 2
+    y_radius = (Region().nsres * 3) / 2
+
     Region.write(region)
-    r.resamp_interp(input=input_padded, output=refined_map, method="bilinear")
-    g.remove(type="raster", name=input_padded, flags="f", quiet=True)
+    
+    r.resamp_filter(
+        input=input,
+        output=refined_map,
+        filter=["box", "lanczos1"],
+        x_radius=[x_radius, x_radius],
+        y_radius=[y_radius, y_radius],
+    )
 
     return refined_map
 
@@ -708,6 +719,10 @@ def main():
     if n_jobs < 0:
         system_cores = mp.cpu_count()
         n_jobs = system_cores + n_jobs + 1
+    
+    if n_jobs > 1:
+        if gs.find_program("r.mapcalc.tiled") is False:
+            gs.fatal("The GRASS addon r.mapcalc.tiled must also be installed if n_jobs != 1. Run 'g.extension r.mapcalc.tiled'")
 
     if (
         t_slope <= 0
