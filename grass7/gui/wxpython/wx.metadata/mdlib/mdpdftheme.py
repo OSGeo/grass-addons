@@ -4,7 +4,9 @@ from reportlab.lib import colors
 from reportlab.rl_config import canvas_basefontname as _baseFontName
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 import io
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 from reportlab.platypus.doctemplate import SimpleDocTemplate
 from reportlab.platypus.flowables import Image
 from reportlab.platypus import Paragraph, Spacer, KeepTogether

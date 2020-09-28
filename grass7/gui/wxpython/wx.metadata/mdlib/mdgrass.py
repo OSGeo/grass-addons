@@ -15,7 +15,8 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import sys,os
+import sys
+import os
 try:
     from owslib.iso import *
 except:
