@@ -53,7 +53,7 @@ class GrassMD():
         self.map = map
         self.type = type
 
-          # function to check if map exist
+        # function to check if map exist
         self.md_grass = {}
         self.md_abstract = ''
         self.md_vinfo_h = ''  # v.info flag=h" - parse
