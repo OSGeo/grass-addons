@@ -149,16 +149,21 @@
 #% description: Remove and print not valid CSW connections resources from XML file
 #%end
 
+#%rules
+#% exclusive: -a, -i
+#% exclusive: -v, -n
+#% exclusive: -a, -n
+#% exclusive: -i, -n
+#%end
+
 
 import http
 import io
 import os
 import sys
 import urllib
+import urllib.request as urlrequest
 from enum import Enum
-from urllib.request import (
-    ProxyHandler, Request, build_opener, install_opener, urlopen,
-)
 
 import grass.script as gscript
 from grass.script.core import percent
@@ -553,7 +558,7 @@ class UpdateConnectionsResources:
         """Download file"""
         if not self._downloaded_file:
             try:
-                response = urlopen_(
+                response = urlopen(
                     url=self._spreadsheet_file_url,
                     headers=HEADERS,
                 )
@@ -1251,15 +1256,15 @@ def url_path(url):
     return url
 
 
-def urlopen_(url, headers, *args, **kwargs):
+def urlopen(url, headers, *args, **kwargs):
     """Wrapper around urlopen. Same function as 'urlopen', but with the
     ability to define headers.
 
     :param str url: url address
     :param dict headers: https(s) headers
     """
-    request = Request(url, headers=headers)
-    return urlopen(request, *args, **kwargs)
+    request = urlrequest.Request(url, headers=headers)
+    return urlrequest.urlopen(request, *args, **kwargs)
 
 
 def manage_proxies(proxies):
@@ -1270,9 +1275,9 @@ def manage_proxies(proxies):
     _proxies = {}
     for ptype, purl in (p.split('=') for p in proxies.split(',')):
         _proxies[ptype] = purl
-        proxy = ProxyHandler(_proxies)
-        opener = build_opener(proxy)
-        install_opener(opener)
+        proxy = urlrequest.ProxyHandler(_proxies)
+        opener = urlrequest.build_opener(proxy)
+        urlrequest.install_opener(opener)
 
 
 def manage_headers(headers):
@@ -1347,21 +1352,10 @@ def main():
                 ),
             ),
         )
-    if flags['a'] and flags['i']:
-        gscript.fatal(_('Flags \'a\' and \'i\' are mutually exclusive'))
-
-    if flags['v'] and flags['n']:
-        gscript.fatal(_('Flags \'v\' and \'n\' are mutually exclusive'))
-
-    if flags['a'] and flags['n']:
-        gscript.fatal(_('Flags \'a\' and \'n\' are mutually exclusive'))
-
-    if flags['i'] and flags['n']:
-        gscript.fatal(_('Flags \'i\' and \'n\' are mutually exclusive'))
 
     if (flags['a'] or flags['i'] or flags['v'] or flags['n']) and not \
        flags['p']:
-        gscript.fatal(_('Add \'p\' flag please'))
+        flags['p'] = True
 
     if flags['w']:
         sys.stdout.write("{}\n".format(url))
