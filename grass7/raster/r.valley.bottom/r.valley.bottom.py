@@ -294,7 +294,6 @@ def elevation_percentile(L, input, radius=3, window_square=False, n_jobs=1):
 
     region = Region()
     width, height = tile_shape(region, n_jobs)
-    gs.message((width, height))
 
     if width < region.cols and height < region.rows and n_jobs > 1:
         r.mapcalc_tiled(
