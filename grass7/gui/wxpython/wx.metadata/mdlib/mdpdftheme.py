@@ -88,7 +88,7 @@ class MySheet:
                                       fontName=_baseFontName,
                                       fontSize=10,
                                       leading=12)
-        )
+                       )
         stylesheet.add(ParagraphStyle(name='Title',
                                       parent=stylesheet['Normal'],
                                       fontName=_baseFontNameB,
@@ -128,11 +128,11 @@ class MySheet:
         stylesheet.add(ParagraphStyle(name='BodyText',
                                       parent=stylesheet['Normal'],
                                       spaceBefore=6)
-        )
+                       )
         stylesheet.add(ParagraphStyle(name='Italic',
                                       parent=stylesheet['BodyText'],
                                       fontName=_baseFontNameI)
-        )
+                       )
 
         stylesheet.add(ParagraphStyle(name='Heading1',
                                       parent=stylesheet['Normal'],
