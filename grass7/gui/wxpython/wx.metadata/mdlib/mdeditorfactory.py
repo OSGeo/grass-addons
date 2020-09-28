@@ -892,7 +892,7 @@ class MdKeywords(wx.BoxSizer):
 
     def fillKeywordsList(self):
         sql = "SELECT title ,keyword, date_iso, date_type FROM {}".format(
-                self._table_name,
+            self._table_name,
         )
 
         #TODO check if database exist
