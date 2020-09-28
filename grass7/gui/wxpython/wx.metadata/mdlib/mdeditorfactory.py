@@ -488,6 +488,7 @@ class MdItem(wx.BoxSizer):
             self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
+
     def validators(self, validationStyle):
 
         if validationStyle == 'email':
