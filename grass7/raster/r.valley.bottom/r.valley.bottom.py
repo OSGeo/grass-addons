@@ -242,7 +242,7 @@ def elevation_percentile(L, input, radius=3, window_square=False, n_jobs=1):
 
     Notes
     -----
-    Note this function is currently a bottle-neck is the module because r.mapcalc
+    Note this function is currently a bottle-neck of the module because r.mapcalc
     becomes slow with large statements. Ideally, a C module that calculates
     elevation percentile is required.
 
@@ -257,7 +257,7 @@ def elevation_percentile(L, input, radius=3, window_square=False, n_jobs=1):
     radius : int
         The neighborhood radius (in pixels).
 
-    window_square : bool (opt). Ddefault is False
+    window_square : bool (opt). Default is False
         Whether to use a square or circular neighborhood.
 
     n_jobs : int
@@ -632,14 +632,8 @@ def upsample(L, input, region):
     # pad input dem by 1 cell to avoid edge shrinkage
     radius = 1.01
     input_padded = rand_id("padded")
-    current_reg = Region()
 
-    g.region(
-        n=current_reg.north + (current_reg.nsres * radius),
-        s=current_reg.south - (current_reg.nsres * radius),
-        w=current_reg.west - (current_reg.ewres * radius),
-        e=current_reg.east + (current_reg.ewres * radius)
-    )
+    g.region(grow=1)
     r.grow(
         input=input,
         output=input_padded,
@@ -648,11 +642,11 @@ def upsample(L, input, region):
     )
 
     # upsample
-    refined_map = rand_id("{x}_refined_to_base_resolution".format(x=input))
+    refined_map = rand_id("{x}_upsampled".format(x=input))
     TMP_RAST[L].append(refined_map)
 
     Region.write(region)
-    r.resamp_interp(input=input_padded, output=input, method="bilinear")
+    r.resamp_interp(input=input_padded, output=refined_map, method="bilinear")
     g.remove(type="raster", name=input_padded, flags="f", quiet=True)
 
     return refined_map
