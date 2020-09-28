@@ -1264,7 +1264,7 @@ class MdMainEditor(wx.Panel):
                 str1 = item.selfInfoString
                 if str1 in line:  # owslib definition in line
                     try:
-                        if item.mdItem[0].isChecked == False:
+                        if not item.mdItem[0].isChecked:
                             chcked = False
                     except:
                         try:
