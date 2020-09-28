@@ -226,7 +226,7 @@ class MdBox(wx.Panel):
 
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(
-            item, proportion=1,  flag=wx.EXPAND | wx.BOTTOM, border=5,
+            item, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=5,
         )
         self.GetParent().Layout()
 

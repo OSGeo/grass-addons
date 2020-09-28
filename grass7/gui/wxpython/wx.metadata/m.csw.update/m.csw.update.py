@@ -272,7 +272,7 @@ class UpdateConnectionsResources:
             spreadsheet_file_url, data_theme='Geospatial',
             csw_timeout=10, separator=': ', print_info=False,
             print_summary_info=False, active_csw_url=False,
-            not_active_csw_url=False,  valid_csw_url=False,
+            not_active_csw_url=False, valid_csw_url=False,
             not_valid_csw_url=False, valid_xml=False,
             active_xml_csw_url=False, not_valid_xml_csw_url=False,
     ):
