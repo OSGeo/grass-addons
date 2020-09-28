@@ -225,7 +225,7 @@ class GrassMD():
         srs = osr.SpatialReference()
         srs.ImportFromESRI([prj_txt])
         srs.AutoIdentifyEPSG()
-        try :
+        try:
             int(srs.GetAuthorityCode(None))
             return srs.GetAuthorityCode(None)
         except:
