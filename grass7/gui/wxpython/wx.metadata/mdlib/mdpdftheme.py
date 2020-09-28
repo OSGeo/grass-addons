@@ -45,7 +45,8 @@ class MySheet:
         try:
             return self[key]
         except KeyError:
-            if default != _stylesheet1_undefined: return default
+            if default != _stylesheet1_undefined:
+                return default
             raise
 
     def __contains__(self, key):
