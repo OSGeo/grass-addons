@@ -905,8 +905,8 @@ class MdKeywords(wx.BoxSizer):
         #lines.pop()
         for line in lines:
             line=line.split('|')
-            if theme != line[0]: #if new theme found
-                if titleTmp is not None:#first loop
+            if theme != line[0]:  # if new theme found
+                if titleTmp is not None:  # first loop
                     self.titles[titleTmp]=self.keysDict
                 theme=line[0]
                 self.keysDict={}

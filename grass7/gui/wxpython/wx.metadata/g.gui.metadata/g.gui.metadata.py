@@ -687,11 +687,11 @@ class MdMainFrame(wx.Frame):
         self.initNewMD()
         pdfFile = os.path.join(outPath, outFileName)
 
-        if self.mdCreator is None and self.extendEdit:  #if editing map from grass database
+        if self.mdCreator is None and self.extendEdit:  # if editing map from grass database
             profileName = os.path.basename(self.jinjaPath)
             xmlFile = os.path.basename(self.xmlPath)
             doc = PdfCreator(self.md, pdfFile, map=None, type=None, filename=xmlFile, profile=profileName)
-        else:  #if editing map from external editor
+        else:  # if editing map from external editor
             filename, type, map, profile = self.mdCreator.getMapInfo()
             doc = PdfCreator(self.md, pdfFile, map, type, filename, profile)
         try:
@@ -866,7 +866,7 @@ class MdMainFrame(wx.Frame):
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
                                                      list(self.ListOfMapTypeDict[-1].keys())[0])
 
-                    if self.chckProfileSelection('temporal'): #if map is temporal, use temporal md pareser
+                    if self.chckProfileSelection('temporal'):  # if map is temporal, use temporal md pareser
                         self.mdCreator.createTemporalISO()
                     else:
                         self.mdCreator.createGrassInspireISO()
@@ -1167,7 +1167,7 @@ class MdDataCatalog(LocationMapTree):
         try:
             for ml in allDatasets:
                 # add mapset
-                if ml[1] == mapset:#chck current mapset
+                if ml[1] == mapset:  # chck current mapset
                     it = self.itemExists(ml[1], varloc)
                     if it is False:
                         varmapset = it
