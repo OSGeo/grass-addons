@@ -21,7 +21,7 @@ from pygments import highlight
 from pygments.lexers import XmlLexer
 from pygments.formatters import HtmlFormatter
 
-def get_connections_from_file( filename):
+def get_connections_from_file(filename):
     """load connections from connection file"""
 
     error = 0
