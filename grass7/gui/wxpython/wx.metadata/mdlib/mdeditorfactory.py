@@ -131,7 +131,7 @@ class MdFileWork():
             io.write(str1)
             io.close()
         except Exception as err:
-            print("WARNING: Cannot check and remove non ascii characters from template err:< %s >"%err)
+            print("WARNING: Cannot check and remove non ascii characters from template err:< %s >" %err)
 
         # generating xml using jinja templates
         head, tail = os.path.split(jinjaPath)

@@ -219,7 +219,7 @@ class GrassMD():
         try:
             from osgeo import osr
         except Exception as e:
-            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled'%e)
+            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled' %e)
             return None
 
         srs = osr.SpatialReference()
@@ -361,7 +361,7 @@ class GrassMD():
         epsg=self.getEPSG()
         if epsg is not None:
             self.md.referencesystem=MD_ReferenceSystem(None)
-            self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s'%epsg
+            self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s' %epsg
 
         #print self.md.referencesystem.code
         # Conformity/Date:
