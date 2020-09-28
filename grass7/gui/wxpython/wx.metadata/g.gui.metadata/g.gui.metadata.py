@@ -125,13 +125,13 @@ class LocationMapTree(wx.TreeCtrl):
                 ltype = parts1[0]
 
                 # add mapset
-                if self.itemExists(mapset, varloc) == False:
+                if self.itemExists(mapset, varloc) is False:
                     varmapset = self.AppendItem(varloc, mapset)
                 else:
                     varmapset = self.getItemByName(mapset, varloc)
 
                 # add type node if not exists
-                if self.itemExists(ltype, varmapset) == False:
+                if self.itemExists(ltype, varmapset) is False:
                     vartype = self.AppendItem(varmapset, ltype)
 
                 self.AppendItem(vartype, mlayer)

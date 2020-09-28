@@ -980,7 +980,7 @@ class MdMainEditor(wx.Panel):
         self.generateGUI()
         self._layout()
 
- #----------------------------------------------------------- GUI GENERATOR START
+    #----------------------------------------------------------- GUI GENERATOR START
     def executeStr(self, stri, mdDescrObj):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
@@ -1268,15 +1268,15 @@ class MdMainEditor(wx.Panel):
                             chcked = False
                     except:
                         try:
-                            if self.mdDescription[r + 1].mdItem[0].isChecked == False:
+                            if self.mdDescription[r + 1].mdItem[0].isChecked is False:
                                 chcked = False
                         except:
                             try:
-                                if self.mdDescription[r + 2].mdItem[0].isChecked == False:
+                                if self.mdDescription[r + 2].mdItem[0].isChecked is False:
                                     chcked = False
                             except:
                                 try:
-                                    if self.mdDescription[r + 3].mdItem[0].isChecked == False:
+                                    if self.mdDescription[r + 3].mdItem[0].isChecked is False:
                                         chcked = False
                                 except:
                                     pass
