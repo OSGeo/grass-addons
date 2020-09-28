@@ -239,7 +239,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath =  'temporalProfile.xml'
+            self.profilePath = 'temporalProfile.xml'
         else:
             self.profilePath = profile
         self.schema_type = '_temporal.xml'
@@ -318,7 +318,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath =  'basicProfile.xml'
+            self.profilePath = 'basicProfile.xml'
         else:
             self.profilePath = profile
 

@@ -158,7 +158,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.selected_mapset = None
         self.selected_location = None
 
-        self.gisdbase =  grass.gisenv()['GISDBASE']
+        self.gisdbase = grass.gisenv()['GISDBASE']
         self.ctrldown = False
 
     def GetControl(self):

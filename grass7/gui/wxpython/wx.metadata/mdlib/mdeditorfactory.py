@@ -852,7 +852,7 @@ class MdKeywords(wx.BoxSizer):
 
     def fillDb(self):
         if not mdutil.isTableExists(self._table_name):
-            sql =  "create table if not exists {table} " \
+            sql = "create table if not exists {table} " \
                 "(title TEXT, keyword TEXT, date_iso TEXT, " \
                 "date_type TEXT)".format(
                     table=self._table_name,
@@ -882,7 +882,7 @@ class MdKeywords(wx.BoxSizer):
                             date_type='publication',
                         )
 
-                sql =  "INSERT INTO '{table}' " \
+                sql = "INSERT INTO '{table}' " \
                     "('title', 'keyword', 'date_iso', " \
                     "'date_type') VALUES {values};".format(
                         table=self._table_name,
@@ -1101,10 +1101,10 @@ class MdMainEditor(wx.Panel):
                     str1 += '\t' + 'self.mdDescription[' + str(self.c) + "].addStatements('" + loop + "')\n"
 
                     if box:
-                        str1 +=     '\t' + \
+                        str1 += '\t' + \
                             'it=MdItem(parent=box,item=mdDescrObj[' + str(self.c) + '],isFirstNum=numOfSameBox,chckBox=self.templateEditor)\n'
                     else:
-                        str1 +=     '\t' + \
+                        str1 += '\t' + \
                             'it=MdItem(parent=self.nbPage,item=mdDescrObj[' + str(self.c) + '],isFirstNum=numOfSameBox,chckBox=self.templateEditor)\n'
 
                     if self.isValidS:  # if metadata are loaded to owslib
