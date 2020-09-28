@@ -103,7 +103,7 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 #%option
 #% key: min_cells
 #% type: integer
-#% description: Minimum number of cells in generalized DEM
+#% description: Number of cells in the DEM at the coarsest generalization level
 #% required: no
 #% answer: 1
 #% end
@@ -629,21 +629,31 @@ def upsample(L, input, region):
     refined_map : str
         The name of the refined/upsampled raster.
     """
+    # pad input dem by 1 cell to avoid edge shrinkage
+    radius = 1.01
+    input_padded = rand_id("padded")
+    current_reg = Region()
 
+    g.region(
+        n=current_reg.north + (current_reg.nsres * radius),
+        s=current_reg.south - (current_reg.nsres * radius),
+        w=current_reg.west - (current_reg.ewres * radius),
+        e=current_reg.east + (current_reg.ewres * radius)
+    )
+    r.grow(
+        input=input,
+        output=input_padded,
+        radius=radius+1,
+        quiet=True
+    )
+
+    # upsample
     refined_map = rand_id("{x}_refined_to_base_resolution".format(x=input))
     TMP_RAST[L].append(refined_map)
 
-    x_radius = (Region().ewres * 3) / 2
-    y_radius = (Region().nsres * 3) / 2
-    
     Region.write(region)
-    r.resamp_filter(
-        input=input,
-        output=refined_map,
-        filter=["box", "lanczos1"],
-        x_radius=[x_radius, x_radius],
-        y_radius=[y_radius, y_radius],
-    )
+    r.resamp_interp(input=input_padded, output=input, method="bilinear")
+    g.remove(type="raster", name=input_padded, flags="f", quiet=True)
 
     return refined_map
 
