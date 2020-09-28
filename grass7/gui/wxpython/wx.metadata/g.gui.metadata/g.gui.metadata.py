@@ -220,7 +220,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.DefineItems(event.GetItem())
         if(self.selected_layer):
             self._popupMenuLayer()
-        elif(self.selected_mapset and self.selected_type==None):
+        elif(self.selected_mapset and self.selected_type is None):
             self._popupMenuMapset()
 
     def OnDoubleClick(self, event):
@@ -746,7 +746,7 @@ class MdMainFrame(wx.Frame):
         '''Setup name of temporal template
         '''
         self.templateEditor = value
-        if template == None:
+        if template is None:
             self.nameTMPteplate = 'TMPtemplate'
         if template == False:
             self.nameTMPteplate = None

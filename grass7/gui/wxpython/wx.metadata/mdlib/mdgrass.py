@@ -515,7 +515,7 @@ class GrassMD():
         iso_xml = profile.render(md=self.md)
 
         # write xml to flat file
-        if wxparent != None:
+        if wxparent is not None:
             if os.path.isfile(path):
                 if mdutil.yesNo(wxparent, 'Metadata file exists. Do you want to overwrite metadata file: %s?' % path, 'Overwrite dialog'):
                     try:
