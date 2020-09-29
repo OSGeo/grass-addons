@@ -220,7 +220,7 @@ class GrassMD():
         try:
             from osgeo import osr
         except Exception as e:
-            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled' %e)
+            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled' % e)
             return None
 
         srs = osr.SpatialReference()
