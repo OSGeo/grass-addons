@@ -1182,7 +1182,7 @@ class MdDataCatalog(LocationMapTree):
                         self.AppendItem(vartype, ml[0])
 
         except Exception as e:
-            GError('Initialize of temporal tree catalogue error: < %s >' %e)
+            GError('Initialize of temporal tree catalogue error: < %s >' % e)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onChanged)
