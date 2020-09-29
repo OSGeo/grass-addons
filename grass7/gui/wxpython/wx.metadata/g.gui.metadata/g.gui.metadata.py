@@ -748,7 +748,7 @@ class MdMainFrame(wx.Frame):
         self.templateEditor = value
         if template is None:
             self.nameTMPteplate = 'TMPtemplate'
-        if not template:
+        elif template is False:
             self.nameTMPteplate = None
 
     def initNewMD(self):
