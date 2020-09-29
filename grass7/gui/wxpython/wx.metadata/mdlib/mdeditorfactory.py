@@ -804,7 +804,7 @@ class MdKeywords(wx.BoxSizer):
         self.comboKeysLabel=wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
         self.comboKeys=wx.ComboBox(parent=self.parent, id=ID_ANY)
 
-        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY,size=(0, 120),style=wx.TR_FULL_ROW_HIGHLIGHT |wx.TR_DEFAULT_STYLE)
+        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
         self.box=MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
         self.memKeys=set()
         self.comboKeys.Bind(wx.EVT_COMBOBOX,self.onSetVocabulary)
