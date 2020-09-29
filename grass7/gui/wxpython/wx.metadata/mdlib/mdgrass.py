@@ -362,7 +362,7 @@ class GrassMD():
         epsg=self.getEPSG()
         if epsg is not None:
             self.md.referencesystem=MD_ReferenceSystem(None)
-            self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s' %epsg
+            self.md.referencesystem.code = 'http://www.opengis.net/def/crs/EPSG/0/%s' % epsg
 
         #print self.md.referencesystem.code
         # Conformity/Date:
