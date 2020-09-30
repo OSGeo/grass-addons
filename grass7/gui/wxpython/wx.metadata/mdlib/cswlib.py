@@ -16,6 +16,8 @@ import sys
 
 try:
     from owslib.csw import CatalogueServiceWeb
+    from owslib.fes import BBox, PropertyIsLike
+    from owslib.ows import ExceptionReport
 except:
     sys.exit(
         'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
@@ -35,9 +37,6 @@ from threading import Thread
 import xml.etree.ElementTree as ET
 from wx.html import EVT_HTML_LINK_CLICKED, HW_DEFAULT_STYLE, HW_SCROLLBAR_AUTO
 # import wx.html2 not supported in 2.8.12.1 (need for CSS support)
-from owslib.csw import CatalogueServiceWeb
-from owslib.fes import BBox, PropertyIsLike
-from owslib.ows import ExceptionReport
 from grass.script.setup import set_gui_path
 set_gui_path()
 from gui_core.forms import GUI
