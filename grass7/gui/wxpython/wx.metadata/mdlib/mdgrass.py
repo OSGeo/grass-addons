@@ -317,6 +317,7 @@ class GrassMD():
         '''
         try:
             self.md_grass['comments'] = self.md_grass['comments'].replace('\n', '; ')
+            self.md_grass['comments'] = self.md_grass['comments'].replace('\\', '')
         except:
             pass
 
