@@ -272,7 +272,7 @@ class UpdateConnectionsResources:
             spreadsheet_file_url, data_theme='Geospatial',
             csw_timeout=10, separator=': ', print_info=False,
             print_summary_info=False, active_csw_url=False,
-            not_active_csw_url=False,  valid_csw_url=False,
+            not_active_csw_url=False, valid_csw_url=False,
             not_valid_csw_url=False, valid_xml=False,
             active_xml_csw_url=False, not_valid_xml_csw_url=False,
     ):
@@ -418,7 +418,7 @@ class UpdateConnectionsResources:
                     "Param \'data_theme\' args is not allowed value, "
                     "allowed values are: {}".format(
                         ', '.join(self.data_theme_opts),
-                        ),
+                    ),
                 ),
             )
         self.__data_theme = value
@@ -799,7 +799,7 @@ class UpdateConnectionsResources:
         not_active_csw.append(
             "Number of non active csw{count:.>35}\n".format(
                 count=len(not_active_csw),
-                ),
+            ),
         )
         sys.stdout.write(''.join(not_active_csw))
 
@@ -840,7 +840,7 @@ class UpdateConnectionsResources:
         not_valid_csw_urls.append(
             "Number of non valid csw urls{count:.>32}\n".format(
                 count=len(not_valid_csw_urls),
-                ),
+            ),
         )
         sys.stdout.write(''.join(not_valid_csw_urls))
 

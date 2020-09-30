@@ -92,7 +92,7 @@ def harvest(source, dst):
         for i in list(src.records):
             source = '%s?service=CSW&version=2.0.2&request=GetRecordById&id=%s' % \
                      (sys.argv[1], i)
-            dest.harvest(source=source, \
+            dest.harvest(source=source,
                          resourcetype='http://www.isotc211.org/2005/gmd')
             #print dest.request
             #print dest.response

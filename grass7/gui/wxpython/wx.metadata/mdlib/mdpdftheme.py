@@ -4,7 +4,9 @@ from reportlab.lib import colors
 from reportlab.rl_config import canvas_basefontname as _baseFontName
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 import io
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 from reportlab.platypus.doctemplate import SimpleDocTemplate
 from reportlab.platypus.flowables import Image
 from reportlab.platypus import Paragraph, Spacer, KeepTogether
@@ -43,7 +45,8 @@ class MySheet:
         try:
             return self[key]
         except KeyError:
-            if default != _stylesheet1_undefined: return default
+            if default != _stylesheet1_undefined:
+                return default
             raise
 
     def __contains__(self, key):
@@ -88,7 +91,7 @@ class MySheet:
                                       fontName=_baseFontName,
                                       fontSize=10,
                                       leading=12)
-        )
+                       )
         stylesheet.add(ParagraphStyle(name='Title',
                                       parent=stylesheet['Normal'],
                                       fontName=_baseFontNameB,
@@ -128,11 +131,11 @@ class MySheet:
         stylesheet.add(ParagraphStyle(name='BodyText',
                                       parent=stylesheet['Normal'],
                                       spaceBefore=6)
-        )
+                       )
         stylesheet.add(ParagraphStyle(name='Italic',
                                       parent=stylesheet['BodyText'],
                                       fontName=_baseFontNameI)
-        )
+                       )
 
         stylesheet.add(ParagraphStyle(name='Heading1',
                                       parent=stylesheet['Normal'],

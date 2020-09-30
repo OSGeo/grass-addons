@@ -131,7 +131,7 @@ class MdFileWork():
             io.write(str1)
             io.close()
         except Exception as err:
-            print("WARNING: Cannot check and remove non ascii characters from template err:< %s >"%err)
+            print("WARNING: Cannot check and remove non ascii characters from template err:< %s >" % err)
 
         # generating xml using jinja templates
         head, tail = os.path.split(jinjaPath)
@@ -226,7 +226,7 @@ class MdBox(wx.Panel):
 
     def addDuplicatedItem(self, item):
         self.stBoxSizer.Add(
-            item, proportion=1,  flag=wx.EXPAND | wx.BOTTOM, border=5,
+            item, proportion=1, flag=wx.EXPAND | wx.BOTTOM, border=5,
         )
         self.GetParent().Layout()
 
@@ -488,6 +488,7 @@ class MdItem(wx.BoxSizer):
             self.valueCtrl=wx.ComboBox(self.parent, id=wx.ID_ANY,)
             for lng in lang:
                 self.valueCtrl.Append(lng)
+
     def validators(self, validationStyle):
 
         if validationStyle == 'email':
@@ -803,7 +804,7 @@ class MdKeywords(wx.BoxSizer):
         self.comboKeysLabel=wx.StaticText(parent=self.parent,id=ID_ANY,label='Keywords from repositories')
         self.comboKeys=wx.ComboBox(parent=self.parent, id=ID_ANY)
 
-        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY,size=(0, 120),style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_DEFAULT_STYLE)
+        self.keysList=wx.TreeCtrl(parent=self.parent, id=ID_ANY, size=(0, 120), style=wx.TR_FULL_ROW_HIGHLIGHT | wx.TR_DEFAULT_STYLE)
         self.box=MdBoxKeywords(parent=parent,parent2=self,label='Keywords')
         self.memKeys=set()
         self.comboKeys.Bind(wx.EVT_COMBOBOX,self.onSetVocabulary)
@@ -852,7 +853,7 @@ class MdKeywords(wx.BoxSizer):
 
     def fillDb(self):
         if not mdutil.isTableExists(self._table_name):
-            sql =  "create table if not exists {table} " \
+            sql = "create table if not exists {table} " \
                 "(title TEXT, keyword TEXT, date_iso TEXT, " \
                 "date_type TEXT)".format(
                     table=self._table_name,
@@ -882,7 +883,7 @@ class MdKeywords(wx.BoxSizer):
                             date_type='publication',
                         )
 
-                sql =  "INSERT INTO '{table}' " \
+                sql = "INSERT INTO '{table}' " \
                     "('title', 'keyword', 'date_iso', " \
                     "'date_type') VALUES {values};".format(
                         table=self._table_name,
@@ -892,7 +893,7 @@ class MdKeywords(wx.BoxSizer):
 
     def fillKeywordsList(self):
         sql = "SELECT title ,keyword, date_iso, date_type FROM {}".format(
-                self._table_name,
+            self._table_name,
         )
 
         #TODO check if database exist
@@ -905,8 +906,8 @@ class MdKeywords(wx.BoxSizer):
         #lines.pop()
         for line in lines:
             line=line.split('|')
-            if theme != line[0]: #if new theme found
-                if titleTmp is not None:#first loop
+            if theme != line[0]:  # if new theme found
+                if titleTmp is not None:  # first loop
                     self.titles[titleTmp]=self.keysDict
                 theme=line[0]
                 self.keysDict={}
@@ -979,7 +980,7 @@ class MdMainEditor(wx.Panel):
         self.generateGUI()
         self._layout()
 
- #----------------------------------------------------------- GUI GENERATOR START
+    #----------------------------------------------------------- GUI GENERATOR START
     def executeStr(self, stri, mdDescrObj):
         '''note- exec cannot be in sub function
         for easy understanding to product of self.generateGUI()- print stri
@@ -1101,10 +1102,10 @@ class MdMainEditor(wx.Panel):
                     str1 += '\t' + 'self.mdDescription[' + str(self.c) + "].addStatements('" + loop + "')\n"
 
                     if box:
-                        str1 +=     '\t' + \
+                        str1 += '\t' + \
                             'it=MdItem(parent=box,item=mdDescrObj[' + str(self.c) + '],isFirstNum=numOfSameBox,chckBox=self.templateEditor)\n'
                     else:
-                        str1 +=     '\t' + \
+                        str1 += '\t' + \
                             'it=MdItem(parent=self.nbPage,item=mdDescrObj[' + str(self.c) + '],isFirstNum=numOfSameBox,chckBox=self.templateEditor)\n'
 
                     if self.isValidS:  # if metadata are loaded to owslib
@@ -1263,19 +1264,19 @@ class MdMainEditor(wx.Panel):
                 str1 = item.selfInfoString
                 if str1 in line:  # owslib definition in line
                     try:
-                        if item.mdItem[0].isChecked == False:
+                        if not item.mdItem[0].isChecked:
                             chcked = False
                     except:
                         try:
-                            if self.mdDescription[r + 1].mdItem[0].isChecked == False:
+                            if self.mdDescription[r + 1].mdItem[0].isChecked is False:
                                 chcked = False
                         except:
                             try:
-                                if self.mdDescription[r + 2].mdItem[0].isChecked == False:
+                                if self.mdDescription[r + 2].mdItem[0].isChecked is False:
                                     chcked = False
                             except:
                                 try:
-                                    if self.mdDescription[r + 3].mdItem[0].isChecked == False:
+                                    if self.mdDescription[r + 3].mdItem[0].isChecked is False:
                                         chcked = False
                                 except:
                                     pass

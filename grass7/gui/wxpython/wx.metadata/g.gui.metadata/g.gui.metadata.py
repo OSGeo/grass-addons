@@ -125,13 +125,13 @@ class LocationMapTree(wx.TreeCtrl):
                 ltype = parts1[0]
 
                 # add mapset
-                if self.itemExists(mapset, varloc) == False:
+                if self.itemExists(mapset, varloc) is False:
                     varmapset = self.AppendItem(varloc, mapset)
                 else:
                     varmapset = self.getItemByName(mapset, varloc)
 
                 # add type node if not exists
-                if self.itemExists(ltype, varmapset) == False:
+                if self.itemExists(ltype, varmapset) is False:
                     vartype = self.AppendItem(varmapset, ltype)
 
                 self.AppendItem(vartype, mlayer)
@@ -158,7 +158,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.selected_mapset = None
         self.selected_location = None
 
-        self.gisdbase =  grass.gisenv()['GISDBASE']
+        self.gisdbase = grass.gisenv()['GISDBASE']
         self.ctrldown = False
 
     def GetControl(self):
@@ -220,7 +220,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.DefineItems(event.GetItem())
         if(self.selected_layer):
             self._popupMenuLayer()
-        elif(self.selected_mapset and self.selected_type==None):
+        elif(self.selected_mapset and self.selected_type is None):
             self._popupMenuMapset()
 
     def OnDoubleClick(self, event):
@@ -687,11 +687,11 @@ class MdMainFrame(wx.Frame):
         self.initNewMD()
         pdfFile = os.path.join(outPath, outFileName)
 
-        if self.mdCreator is None and self.extendEdit:  #if editing map from grass database
+        if self.mdCreator is None and self.extendEdit:  # if editing map from grass database
             profileName = os.path.basename(self.jinjaPath)
             xmlFile = os.path.basename(self.xmlPath)
             doc = PdfCreator(self.md, pdfFile, map=None, type=None, filename=xmlFile, profile=profileName)
-        else:  #if editing map from external editor
+        else:  # if editing map from external editor
             filename, type, map, profile = self.mdCreator.getMapInfo()
             doc = PdfCreator(self.md, pdfFile, map, type, filename, profile)
         try:
@@ -746,9 +746,9 @@ class MdMainFrame(wx.Frame):
         '''Setup name of temporal template
         '''
         self.templateEditor = value
-        if template == None:
+        if template is None:
             self.nameTMPteplate = 'TMPtemplate'
-        if template == False:
+        elif template is False:
             self.nameTMPteplate = None
 
     def initNewMD(self):
@@ -866,7 +866,7 @@ class MdMainFrame(wx.Frame):
                     self.mdCreator = mdgrass.GrassMD(self.ListOfMapTypeDict[-1][list(self.ListOfMapTypeDict[-1].keys())[0]],
                                                      list(self.ListOfMapTypeDict[-1].keys())[0])
 
-                    if self.chckProfileSelection('temporal'): #if map is temporal, use temporal md pareser
+                    if self.chckProfileSelection('temporal'):  # if map is temporal, use temporal md pareser
                         self.mdCreator.createTemporalISO()
                     else:
                         self.mdCreator.createGrassInspireISO()
@@ -1167,7 +1167,7 @@ class MdDataCatalog(LocationMapTree):
         try:
             for ml in allDatasets:
                 # add mapset
-                if ml[1] == mapset:#chck current mapset
+                if ml[1] == mapset:  # chck current mapset
                     it = self.itemExists(ml[1], varloc)
                     if it is False:
                         varmapset = it
@@ -1182,7 +1182,7 @@ class MdDataCatalog(LocationMapTree):
                         self.AppendItem(vartype, ml[0])
 
         except Exception as e:
-            GError('Initialize of temporal tree catalogue error: < %s >'%e)
+            GError('Initialize of temporal tree catalogue error: < %s >' % e)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChanged)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.onChanged)
