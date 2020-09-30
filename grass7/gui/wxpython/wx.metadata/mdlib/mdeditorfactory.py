@@ -610,7 +610,7 @@ class MdItem(wx.BoxSizer):
                     the GUI generating mechanism will create GUI according to template
                     and all missing tags(xml)-gui(TextCtrls) will be marked by red
         '''
-        if value is None or value is '':
+        if value is None or value == '':
             if self.chckBox:
                 self.chckBoxEdit.SetValue(True)
                 self.isChecked = True
