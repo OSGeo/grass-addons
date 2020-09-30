@@ -46,12 +46,11 @@ except:
     sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
-from core.gcmd import RunCommand, GError, GMessage
+from core.gcmd import GError, GMessage, RunCommand
 from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
     TimeISOValidator, EmailValidator  # ,EmptyValidator
 
 from . import mdutil
-from core.gcmd import RunCommand
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 #=========================================================================
