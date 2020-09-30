@@ -123,8 +123,6 @@ from grass.script.utils import set_path
 
 set_path(modulename='wx.metadata', dirname='mdlib', path='..')
 
-from mdlib.cswutil import *
-
 MODULE_URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
 
 
@@ -154,7 +152,6 @@ class CswAdmin():
         self.HOME = None
         self.TABLE = None
         self.CONTEXT = self.pycsw_config.StaticContext()
-
 
     def argParser(self, defaultConf, load_records,
                   loadRecurs, setupDB,

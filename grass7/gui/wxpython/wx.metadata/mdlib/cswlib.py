@@ -20,7 +20,10 @@ except:
     sys.exit(
         'owslib python library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 import tempfile
-from .cswutil import *
+from .cswutil import (
+    get_connections_from_file, normalize_text, open_url, renderXML,
+    render_template,
+)
 from .mdutil import yesNo, StaticContext
 import json
 import wx
