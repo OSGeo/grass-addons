@@ -32,7 +32,11 @@ from wx import EVT_BUTTON
 import wx.lib.scrolledpanel as scrolled
 
 try:
-    from owslib.iso import *
+    from owslib.iso import (
+        CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality,
+        EX_Extent, EX_GeographicBoundingBox, MD_Distribution,
+        MD_ReferenceSystem,
+    )
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 from .mdjinjaparser import JinjaTemplateParser
