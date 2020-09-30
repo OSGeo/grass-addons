@@ -113,11 +113,10 @@ https://github.com/geopython/pycsw/blob/master/bin/pycsw-admin.py)
 #% required: NO
 #%end
 
-
-import sys
-import os
 import configparser
 import getopt
+import importlib
+import sys
 
 from grass.script import core as grass
 from grass.script.utils import set_path
@@ -131,7 +130,9 @@ MODULE_URL = 'https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support'
 
 class CswAdmin():
     try:
-        pycsw = __import__('pycsw', ['admin', 'config'])
+        pycsw = 'pycsw'
+        pycsw_config = importlib.import_module('.core.config', pycsw)
+        pycsw_admin = importlib.import_module('.core.admin', pycsw)
     except ImportError:
         sys.exit('pycsw library is missing. Check requirements on the'
                  ' manual page < {url} >'.format(url=MODULE_URL))
@@ -152,7 +153,7 @@ class CswAdmin():
         self.URL = None
         self.HOME = None
         self.TABLE = None
-        self.CONTEXT = self.pycsw.core.config.StaticContext()
+        self.CONTEXT = self.pycsw_config.StaticContext()
 
 
     def argParser(self, defaultConf, load_records,
@@ -236,18 +237,15 @@ class CswAdmin():
 
         return False
 
-
     def run(self, argv):
 
         if len(argv) == 0:
             grass.error('Nothing to do. Set args')
             return
-        print(argv)
         try:
             OPTS, ARGS = getopt.getopt(argv, 'c:f:ho:p:ru:x:s:t:y')
         except getopt.GetoptError as err:
             grass.error('\nERROR: %s' % err)
-            #print usage()
 
         for o, a in OPTS:
             if o == '-c':
@@ -287,30 +285,30 @@ class CswAdmin():
 
         if self.COMMAND == 'setup_db':
             try:
-                self.pycsw.core.admin.setup_db(self.DATABASE, self.TABLE, self.HOME)
+                self.pycsw_admin.setup_db(self.DATABASE, self.TABLE, self.HOME)
             except Exception as err:
                 print(err)
                 print('ERROR: DB creation error.  Database tables already exist')
                 print('Delete tables or database to reinitialize')
 
         elif self.COMMAND == 'load_records':
-            self.pycsw.core.admin.load_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH, self.RECURSIVE,
+            self.pycsw_admin.load_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH, self.RECURSIVE,
                                self.FORCE_CONFIRM)
         elif self.COMMAND == 'export_records':
-            self.pycsw.core.admin.export_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH)
+            self.pycsw_admin.export_records(self.CONTEXT, self.DATABASE, self.TABLE, self.XML_DIRPATH)
         elif self.COMMAND == 'rebuild_db_indexes':
-            self.pycsw.core.admin.rebuild_db_indexes(self.DATABASE, self.TABLE)
+            self.pycsw_admin.rebuild_db_indexes(self.DATABASE, self.TABLE)
         elif self.COMMAND == 'optimize_db':
-            self.pycsw.core.admin.optimize_db(self.CONTEXT, self.DATABASE, self.TABLE)
+            self.pycsw_admin.optimize_db(self.CONTEXT, self.DATABASE, self.TABLE)
         elif self.COMMAND == 'refresh_harvested_records':
-            self.pycsw.core.admin.refresh_harvested_records(self.CONTEXT, self.DATABASE, self.TABLE, self.URL)
+            self.pycsw_admin.refresh_harvested_records(self.CONTEXT, self.DATABASE, self.TABLE, self.URL)
         elif self.COMMAND == 'gen_sitemap':
-            self.pycsw.core.admin.gen_sitemap(self.CONTEXT, self.DATABASE, self.TABLE, self.URL, self.OUTPUT_FILE)
+            self.pycsw_admin.gen_sitemap(self.CONTEXT, self.DATABASE, self.TABLE, self.URL, self.OUTPUT_FILE)
         elif self.COMMAND == 'post_xml':
             grass.message(self.pycsw.core.admin.post_xml(self.CSW_URL, self.XML, self.TIMEOUT))
 
         elif self.COMMAND == 'delete_records':
-            self.pycsw.core.admin.delete_records(self.CONTEXT, self.DATABASE, self.TABLE)
+            self.pycsw_admin.delete_records(self.CONTEXT, self.DATABASE, self.TABLE)
 
 
 '''#TODO
