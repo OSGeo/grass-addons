@@ -15,7 +15,8 @@ This program is free software under the GNU General Public License
 
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014)
 """
-import sys,os
+import sys
+import os
 try:
     from owslib.iso import *
 except:
@@ -53,7 +54,7 @@ class GrassMD():
         self.map = map
         self.type = type
 
-          # function to check if map exist
+        # function to check if map exist
         self.md_grass = {}
         self.md_abstract = ''
         self.md_vinfo_h = ''  # v.info flag=h" - parse
@@ -219,13 +220,13 @@ class GrassMD():
         try:
             from osgeo import osr
         except Exception as e:
-            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled'%e)
+            grass.message('GDAL python library is not installed: %s \n identifying of EPSG is disabled' % e)
             return None
 
         srs = osr.SpatialReference()
         srs.ImportFromESRI([prj_txt])
         srs.AutoIdentifyEPSG()
-        try :
+        try:
             int(srs.GetAuthorityCode(None))
             return srs.GetAuthorityCode(None)
         except:
@@ -239,7 +240,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath =  'temporalProfile.xml'
+            self.profilePath = 'temporalProfile.xml'
         else:
             self.profilePath = profile
         self.schema_type = '_temporal.xml'
@@ -318,7 +319,7 @@ class GrassMD():
         n = '$NULL'
         # jinja templates
         if profile is None:
-            self.profilePath =  'basicProfile.xml'
+            self.profilePath = 'basicProfile.xml'
         else:
             self.profilePath = profile
 
@@ -361,7 +362,7 @@ class GrassMD():
         epsg=self.getEPSG()
         if epsg is not None:
             self.md.referencesystem=MD_ReferenceSystem(None)
-            self.md.referencesystem.code='http://www.opengis.net/def/crs/EPSG/0/%s'%epsg
+            self.md.referencesystem.code = 'http://www.opengis.net/def/crs/EPSG/0/%s' % epsg
 
         #print self.md.referencesystem.code
         # Conformity/Date:
@@ -514,7 +515,7 @@ class GrassMD():
         iso_xml = profile.render(md=self.md)
 
         # write xml to flat file
-        if wxparent != None:
+        if wxparent is not None:
             if os.path.isfile(path):
                 if mdutil.yesNo(wxparent, 'Metadata file exists. Do you want to overwrite metadata file: %s?' % path, 'Overwrite dialog'):
                     try:

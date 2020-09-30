@@ -109,6 +109,7 @@ class JinjaTemplateParser():
 
     '''Parser of OWSLib tag and init. values of jinjainfo::MdDescription from jinja template.
     '''
+
     def __init__(self, template):
         '''
         @var mdDescription: list of jinjainfo::mdDescription

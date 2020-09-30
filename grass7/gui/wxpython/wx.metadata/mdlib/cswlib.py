@@ -298,7 +298,8 @@ class CSWBrowserPanel(wx.Panel):
         # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
         path = os.path.join(tempfile.gettempdir(), 'htmlRequest.xml')
         request = grass.decode(self.catalog.request)
-        if os.path.exists(path): os.remove(path)
+        if os.path.exists(path):
+            os.remove(path)
         f = open(path, 'w')
         f.writelines(request)
         f.close()
@@ -311,7 +312,8 @@ class CSWBrowserPanel(wx.Panel):
         # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
         path = os.path.join(tempfile.gettempdir(), 'htmlResponse.xml')
         response = grass.decode(self.catalog.response)
-        if os.path.exists(path): os.remove(path)
+        if os.path.exists(path):
+            os.remove(path)
         f = open(path, 'w')
         f.write(response)
         f.close()
