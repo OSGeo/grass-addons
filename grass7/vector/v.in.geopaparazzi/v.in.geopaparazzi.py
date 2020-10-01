@@ -49,15 +49,14 @@
 #% required : yes
 #%end
 
-import sys
+import json
 import os
 import shutil
-from grass.script.utils import basename
-from grass.script import core as grass
-from grass.script import db as grassdb
+import sys
+
 from grass.exceptions import CalledModuleError
-from types import DictType, ListType
-import json
+from grass.script import core as grass
+from grass.script.utils import basename
 
 
 def returnClear(c, query):
@@ -86,16 +85,16 @@ def checkForm(jsonn):
     """Function to check the forms"""
     try:
         form = jsonn['form']
-    except:
+    except KeyError:
         try:
             form = jsonn['forms']
-        except:
+        except KeyError:
             grass.fatal(_("Error importing notes"))
-    if type(form) == DictType:
+    if isinstance(form, dict):
         values = form['formitems']
-    elif type(form) == ListType and len(form) == 1:
+    elif isinstance(form, list) and len(form) == 1:
         values = form[0]['formitems']
-    elif type(form) == ListType and len(form) > 1:
+    elif isinstance(form, list) and len(form) > 1:
         grass.warning(_("Form contains more fields and it is no yet supported"))
     return values
 
@@ -276,7 +275,7 @@ def main():
                         grass.write_command('db.execute', input='-', stdin=sql)
                         idcat += 1
                     # at the end connect table to vector
-                    grass.run_command('v.db.connect', map=catname, 
+                    grass.run_command('v.db.connect', map=catname,
                                       table=catname, quiet=True)
                 # create table with form
                 else:
