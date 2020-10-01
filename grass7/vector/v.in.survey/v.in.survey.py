@@ -1210,7 +1210,7 @@ class dxf_layer_merged(Merge):
         Merge.wait4 = False
 
 
-class dxf_layer(layer, Merge, dxf):  # *** make separate dxf layers *** #
+class dxf_layer(Merge, dxf):  # *** make separate dxf layers *** #
     color = 1    # layer color (1-255). 0 not recognized by AutoCAD Civil 2015.
     n = 0        # number of the layers
     name = []    # list of layers for drawing entities
