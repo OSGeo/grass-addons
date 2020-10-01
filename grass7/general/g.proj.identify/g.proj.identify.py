@@ -49,14 +49,20 @@ This program is free software under the GNU General Public License
 #%end
 
 import os
+from subprocess import PIPE
+
 from grass.script import core as grass
 from grass.pygrass.modules import Module
-from subprocess import PIPE
-from osgeo import osr
+
 try:
     from osgeo import osr
-except:
-    grass.fatal(_("Unable to load GDAL Python bindings (requires package 'python-gdal' being installed)"))
+except ImportError:
+    grass.fatal(
+        _(
+            "Unable to load GDAL Python bindings (requires package "
+            "'python-gdal' being installed)"
+        ),
+    )
 
 
 def writeEPSGtoPEMANENT(epsg):
