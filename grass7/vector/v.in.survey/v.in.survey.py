@@ -1282,8 +1282,8 @@ class dxf_layer(Merge, dxf):  # *** make separate dxf layers *** #
 
 
 class finalize_dxf(
-        inputs, layer, Merge_init, Merge, dxf,
-        dxf_layer_merged, dxf_layer):
+        inputs, dxf, dxf_layer_merged,
+):
 
     def __init__(self):
         dxfs.end_tables()    # close the section of the tables
