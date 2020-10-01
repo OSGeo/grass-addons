@@ -272,8 +272,8 @@ def intrpolatePoints(db):
 
     try:  # open file for interpol. points.
         io = open(os.path.join(path, "linkpointsname"), "wr")
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
     io.write(nametable)
     io.close
 
@@ -290,8 +290,8 @@ def intrpolatePoints(db):
 
     try:
         io = open(os.path.join(path, "linknode"), "wr")
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     temp = []
     for record in resu:
@@ -620,7 +620,7 @@ def dbConnPy():
 
         db = pg(**conninfo)
 
-    except psycopg2.OperationalError, e:
+    except psycopg2.OperationalError as e:
         grass.fatal("Unable to connect to the database <%s>. %s" % (db_name, e))
 
     return db
@@ -662,8 +662,8 @@ def readRaingauge(db, path_file):
             lat = f.next()
             lon = f.next()
         f.close()
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     ##make new file and remove metadata
     # no_extension=('.').join(path.split('.')[:-1])
@@ -683,16 +683,16 @@ def readRaingauge(db, path_file):
                 tmp.append(stri)
             f.close()
 
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     ## write list of string to database
     try:
         with open(os.path.join(path, "gauge_tmp"), 'wr') as x:
             x.writelines(tmp)
             x.close()
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     if not isTableExist(db, schema_name, "rgauge"):
         ##create table for raingauge id
@@ -794,8 +794,8 @@ def getBaselDict(db):
             io1 = open(os.path.join(path, "compute_precip_info"), "wr")
             io1.write('fromfile|' + options['aw'])
             io1.close
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
     elif options['baseltime']:
         print_message('Computing baselines "time interval" "%s"...' % options['statfce'])
@@ -828,15 +828,15 @@ def computeBaselinFromMode(db, linktb, recordtb):
         io0 = open(os.path.join(path, "baseline"), "wr")
         io0.writelines(tmp)
         io0.close()
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     try:
         io1 = open(os.path.join(path, "compute_precip_info"), "wr")
         io1.write('mode|' + options['aw'])
         io1.close
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
 
 def computeBaselineFromTime(db):
@@ -874,7 +874,7 @@ def computeBaselineFromTime(db):
                     fromt = f.next()
                     st += fromt.replace("\n", "")
                     tot = f.next()
-                    ##validate input data    
+                    ##validate input data
                     if not isTimeValid(fromt) or not isTimeValid(tot):
                         grass.fatal("Input data is not valid. Parameter 'baselitime'")
                     st += tot.replace("\n", "")
@@ -898,8 +898,8 @@ def computeBaselineFromTime(db):
                     tmp.append(resu)
 
                     continue
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
         mydict = {}
         mydict1 = {}
@@ -973,8 +973,8 @@ def computeBaselineFromTime(db):
                     resu += resu
 
                     continue
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
         tmp.append(resu)
         table_mode_tmp = "mode_tmp"
@@ -991,8 +991,8 @@ def computeBaselineFromTime(db):
                     io.write(a)
                     c += 1
             io.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
         ##update table
         try:
@@ -1000,8 +1000,8 @@ def computeBaselineFromTime(db):
             db.copyfrom(io1, "%s.%s" % (schema_name, table_mode_tmp))
             io1.close()
             os.remove(os.path.join(path, "mode_tmp"))
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
         recname = schema_name + '.' + table_mode_tmp
 
@@ -1020,8 +1020,8 @@ def computeBaselineFromTime(db):
         st = st + '|' + options['aw']
         io1.write(st)
         io1.close
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
 
 def computeBaselineFromQuentile(db, linktb, recordtb):
@@ -1050,15 +1050,15 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
         io0 = open(os.path.join(path, "baseline"), "wr")
         io0.writelines(tmp)
         io0.close()
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     try:
         io1 = open(os.path.join(path, "compute_precip_info"), "wr")
         io1.write('quantile' + quantile + '|' + options['aw'])
         io1.close
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
 
 def readBaselineFromText(pathh):
@@ -1083,8 +1083,8 @@ def grassWork():
         io = open(os.path.join(path, "linkpointsname"), "r")
         points = io.read()
         io.close
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     points_schema = schema_name + '.' + points
     points_ogr = points + "_ogr"
@@ -1170,8 +1170,8 @@ def grassWork():
                                   flags='d',
                                   quiet=True)
 
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
 
 def precipInterpolationCustom(points_nat, win):
@@ -1250,8 +1250,8 @@ def computePrecip(db):
 
     try:
         io = open(os.path.join(path, "precip"), "wr")
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     ##choose baseline source (quantile, user values, ) get dict linkid, baseline
     links_dict = getBaselDict(db)
@@ -1298,8 +1298,8 @@ def computePrecip(db):
     try:
         io.writelines(temp)
         io.close()
-    except IOError as (errno, strerror):
-        print("I/O error({0}): {1}".format(errno, strerror))
+    except IOError as e:
+        print("I/O error({}): {}".format(e.errno, e))
 
     print_message("Writing precipitation to database...")
     io1 = open(os.path.join(path, "precip"), "r")
@@ -1343,8 +1343,8 @@ def makeTimeWin(db, typeid, table):
                     sql = "DELETE from %s.%s where %s=%s " % (schema_name, view_db, typeid, link)
                     db.executeSql(sql, False, True)
 
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
     ##num of rows
     record_num = db.count("%s.%s" % (schema_name, view_db))
@@ -1375,8 +1375,8 @@ def makeTimeWin(db, typeid, table):
     if typeid == 'linkid':
         try:
             io1 = open(os.path.join(path, "time_window_info"), "wr")
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
         io1.write(sum_precip + '|' + str(timestamp_min) + '|' + str(timestamp_max) + stamp + stamp1)
         io1.close
 
@@ -1435,15 +1435,15 @@ def makeTimeWin(db, typeid, table):
             io2 = open(os.path.join(path, "l_timewindow"), "wr")
             io2.writelines(temp)
             io2.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
     else:
         try:
             io2 = open(os.path.join(path, "g_timewindow"), "wr")
             io2.writelines(temp)
             io2.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
     # make textfile for t.register input
     if typeid == 'linkid':
@@ -1453,8 +1453,8 @@ def makeTimeWin(db, typeid, table):
             io3 = open(os.path.join(path, filename), "wr")
             io3.writelines(tgrass_interpol)
             io3.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
         filename = "timewin_%s" % prefix + "vec_" + str(timestamp_min).replace(' ', '_') + "|" + str(
             timestamp_max).replace(' ', '_')
@@ -1462,8 +1462,8 @@ def makeTimeWin(db, typeid, table):
             io3 = open(os.path.join(path, filename), "wr")
             io3.writelines(tgrass_vector)
             io3.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
 
     else:
@@ -1473,8 +1473,8 @@ def makeTimeWin(db, typeid, table):
             io4 = open(os.path.join(path, filename), "wr")
             io4.writelines(tgrass_vector)
             io4.close()
-        except IOError as (errno, strerror):
-            print("I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            print("I/O error({}): {}".format(e.errno, e))
 
     ##drop temp table
 
@@ -1486,7 +1486,7 @@ def computeAlphaK(freq, polarization):
     Specific attenuation model for rain for use in prediction methods
     γR = kR^α
     return kv and αv (vertical polarization)
-    return kh and αh (horizontal polarization)   
+    return kh and αh (horizontal polarization)
     """
     freq /= 1000000
     if freq < 10 or freq > 100:
