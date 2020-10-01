@@ -692,7 +692,7 @@ class layer(glob, Flag, vect_rules, layer_init):
 
     def check_number_pts(self):
         if layer.vector == 'L' and layer.n_pts < 2:
-            can_be_broken = done_lyrs.readlines()[-1]
+            # can_be_broken = done_lyrs.readlines()[-1]
             msgr.fatal(_("Not enough points to make line layer <"
                          + layer.name + ">."))
         if layer.vector == 'B' and layer.n_pts < 3:
