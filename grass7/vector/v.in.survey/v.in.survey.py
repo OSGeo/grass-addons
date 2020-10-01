@@ -802,7 +802,7 @@ class layer(glob, Flag, vect_rules, layer_init):
 # ****** #
 
 
-class Merge_init(glob, layer):  # Functionality for merging layers
+class Merge_init(layer):  # Functionality for merging layers
     item = ''
     n_items = 0
     len_item = []  # array of length of layers' names
