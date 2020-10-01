@@ -1597,6 +1597,7 @@ def main():
     global dxfs
     global text_ratio    # size of text compared to screen = 1
     global centered
+    global done_lyrs
     text_ratio = .003
     centered = 4
 
