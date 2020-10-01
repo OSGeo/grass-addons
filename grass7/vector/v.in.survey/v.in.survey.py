@@ -993,7 +993,7 @@ class Merge(Merge_init, layer):
 # ****** #
 
 
-class dxf(glob, files):
+class dxf(files):
     # based on v.out.dxf by Chuck Ehlschlaeger, Radim Blazek and Martin Landa
     export2 = False
     File = ''    # dxf file
