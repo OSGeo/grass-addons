@@ -478,7 +478,7 @@ class files(glob):
 # ****** #
 
 
-class skip(glob, test, files):
+class skip(test, files):
     layers = 0
     existing = False
     lyr_names = ''    # names of the layers to be analyzed for merging
