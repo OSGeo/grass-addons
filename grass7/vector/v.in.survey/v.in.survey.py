@@ -667,6 +667,14 @@ class layer(glob, Flag, vect_rules, layer_init):
             # remove temporary line layer
             grass.run_command('g.remove', type='vector',
                               name=layer_name, flags='f')
+        elif self.vector == 'L':
+            # add categories to line layer
+            grass.run_command('v.category', input=layer_name,
+                              option='add', type='line', output=layer.name,
+                              overwrite=overwrite_all)
+            # remove the layer without cats
+            grass.run_command('g.remove',
+                              type='vector', name=layer_name, flags='f')
 
         if self.vformat == 'standard':
             self.set_attribute_table()
@@ -758,16 +766,6 @@ class layer(glob, Flag, vect_rules, layer_init):
 
     # add atrribute table with the name of the layer
     def set_attribute_table(self):
-        if self.vector == 'L':
-            line_layer = layer.name + '_tmp'  # suffix '_tmp' to the line
-            self.test_existence(line_layer, False)  # test layer existence
-            # add categories to line layer
-            grass.run_command('v.category', input=line_layer,
-                              option='add', type='line', output=layer.name)
-            # remove the layer without cats
-            grass.run_command('g.remove',
-                              type='vector', name=line_layer, flags='f')
-
         # add table with the name column
         grass.run_command('v.db.addtable',
                           map=layer.name, columns='lyr_name varchar(15)')
