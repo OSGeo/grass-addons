@@ -625,8 +625,8 @@ class layer(glob, Flag, vect_rules, layer_init):
         skip = False
         mapset = grass.gisenv()['MAPSET']
 
-    # make fatal error if there are any existing layers during data import
-        if (overwrite_all is False and self.final is False
+        # make fatal error if there are any existing layers during data import
+        if (overwrite_all is False and final is False
                 and grass.find_file(layer_name, element='vector',  # etc
                                     mapset=mapset)['file']):
             msgr.fatal(_("Vector layer <" + layer_name + "> exists. Please"
