@@ -662,7 +662,8 @@ class layer(glob, Flag, vect_rules, layer_init):
             self.test_existence(layer.name, False)    # test layer existence
             # add centroids and create polygon layer
             grass.run_command('v.centroids',
-                              input=layer_name, output=layer.name)
+                              input=layer_name, output=layer.name,
+                              overwrite=overwrite_all)
             # remove temporary line layer
             grass.run_command('g.remove', type='vector',
                               name=layer_name, flags='f')
