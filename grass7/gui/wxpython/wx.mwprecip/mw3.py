@@ -1194,8 +1194,8 @@ class GrassLayerMgr():
                            layer=lay)
 
             timeMes.timeMsg('Creating RGB column in database-done')
-        except Exception, e:
-            grass.warning("v.color error < %s>"%e)
+        except Exception as e:
+            grass.warning("v.color error < %s>" % e)
 
 
     def getNumLayer(self, map):
@@ -1494,7 +1494,7 @@ class Database():
                 conninfo['port'] = self.port
             self.connection = pg(**conninfo)
 
-        except psycopg2.OperationalError, e:
+        except psycopg2.OperationalError as e:
             grass.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):
