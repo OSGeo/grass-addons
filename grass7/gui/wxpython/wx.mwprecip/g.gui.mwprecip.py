@@ -947,7 +947,7 @@ class MWMainFrame(wx.Frame):
                 for r in res:
                     lines += str(r)[1:][:-1] + '\n'
 
-                print conn.pathworkSchemaDir
+                print(conn.pathworkSchemaDir)
                 io0 = open(path, "w+")
                 io0.writelines(lines)
                 io0.close()
@@ -963,7 +963,7 @@ class MWMainFrame(wx.Frame):
         if not os.path.exists(profilePath):
             os.mkdir(profilePath)
         self.initFileLogger(os.path.join(profilePath,"%s.log"% self.settings['workSchema']))
-        print "file logger initialized"
+        print("file logger initialized")
 
         self.thread=gThread()
         self.thread.Run(callable=self.runComp,
@@ -1193,7 +1193,7 @@ class Gui2Model():
         GrassTemporalMgr(self.dbConn, self.twin)
 
     def errMsg(self, label):
-        print label
+        print(label)
         GError(label)
 
 class MyApp(wx.App):
@@ -1213,4 +1213,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

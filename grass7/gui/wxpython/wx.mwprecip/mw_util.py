@@ -327,10 +327,10 @@ class TextInput(wx.Panel):
             print("I/O error({}): {}".format(e.errno, e.strerror))
             return -1
         except ValueError:
-            print "Could not decode text"
+            print("Could not decode text")
             return -1
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error: {}".format(sys.exc_info()[0]))
             raise
             return -1
 

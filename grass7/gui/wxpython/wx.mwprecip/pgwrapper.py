@@ -135,8 +135,7 @@ class pgwrapper:
         self.cursor.execute(sql_update_col)
 
     def print_message(self, msg):
-        print '-' * 80
-        print msg
-        print '-' * 80
-        print
+        print('-' * 80)
+        print(msg)
+        print('-' * 80)
         sys.stdout.flush()
