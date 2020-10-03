@@ -523,7 +523,9 @@ def readDict(fn):
 
 
 def randomWord(length):
-    return ''.join(random.choice(string.lowercase) for i in range(length))
+    return ''.join(
+        random.choice(string.ascii_lowercase) for i in range(length)
+    )
 
 
 def isTimeValid(time):
