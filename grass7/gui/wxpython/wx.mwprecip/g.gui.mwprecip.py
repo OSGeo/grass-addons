@@ -32,7 +32,6 @@ from gui_core.widgets import ColorTablesComboBox,PictureComboBox
 from core           import globalvar
 from core.utils     import  GetColorTables
 import wx.lib.scrolledpanel as scrolled
-import tempfile
 import logging
 
 
