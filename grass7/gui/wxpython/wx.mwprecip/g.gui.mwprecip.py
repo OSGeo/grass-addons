@@ -53,7 +53,7 @@ class DBconn(wx.ScrolledWindow):
         panelSizer.Add(self.schema, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
         panelSizer.Add(self.port, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
 
-        panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        panelSizer.Add(0, 10, 0, wx.EXPAND)
         # panelSizer.Add(self.saveLoad, flag=wx.EXPAND)
         panelSizer.Add(self.okBtt, flag=wx.EXPAND | wx.ALL, border=5)
 
@@ -262,9 +262,9 @@ class BaselinePanel(wx.ScrolledWindow):
         sizer.Add(self.quantile, flag=wx.EXPAND)
         sizer.Add(self.aw, flag=wx.EXPAND)
         sizer.Add(self.dryInterval, flag=wx.EXPAND)
-        sizer.AddSpacer(10, 0, wx.EXPAND)
+        sizer.Add(width=0, height=10, proportion=0, flag=wx.EXPAND)
         sizer.Add(self.fromFileVal, flag=wx.EXPAND)
-        sizer.AddSpacer(10, 0, wx.EXPAND)
+        sizer.Add(width=0, height=10, proportion=0, flag=wx.EXPAND)
         # sizer.Add(self.SLpanel, flag=wx.EXPAND)
         #sizer.Add(self.okBtt, flag=wx.EXPAND)
         self.SetSizer(sizer)
@@ -409,14 +409,16 @@ class DataMgrMW(wx.ScrolledWindow):
         stBoxSizerTWIN.Add(self.links, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.mapLabel, flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.map, flag=wx.EXPAND,proportion=1)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.start, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.getStartBtt)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.end, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.getEndBtt)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(wx.StaticText(self, id=wx.ID_ANY, label='Time increment'))
         stBoxSizerTWIN.Add(self.sumStep, flag=wx.EXPAND)
 
@@ -1006,10 +1008,12 @@ class MWMainFrame(wx.Frame):
         self.panelSizer.Add(self.schema, flag=wx.EXPAND)
         self.panelSizer.Add(self.newScheme, flag=wx.EXPAND)
 
-        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(width=0, height=10, proportion=0,
+                            flag=wx.EXPAND)
         self.panelSizer.Add(self.ntb, flag=wx.EXPAND)
 
-        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(width=0, height=10, proportion=0,
+                            flag=wx.EXPAND)
         self.panelSizer.Add(self.computeBtt, flag=wx.EXPAND)
         self.panelSizer.Add(self.exportDataBtt, flag=wx.EXPAND)
 
