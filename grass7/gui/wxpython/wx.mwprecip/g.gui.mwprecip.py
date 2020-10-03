@@ -645,7 +645,12 @@ class MWMainFrame(wx.Frame):
 
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
-        GMessage( "wx.metadata\n\nVersion: %s \nDirectory: %s"%(VERSION,dir),self)
+        GMessage(
+            "wx.mwprecip\n\nVersion: {} \nDirectory: {}".format(
+                VERSION, dir,
+            ),
+            self,
+        )
 
     def getMinTime(self, evt=None):
         if not self.OnSaveSettings(toFile=False):
