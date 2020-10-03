@@ -324,13 +324,13 @@ class TextInput(wx.Panel):
             self.directInp.SetValue(str)
             return 1
         except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+            print("I/O error({}): {}".format(e.errno, e.strerror))
             return -1
         except ValueError:
-            print "Could not decode text"
+            print("Could not decode text")
             return -1
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error: {}".format(sys.exc_info()[0]))
             raise
             return -1
 
@@ -517,13 +517,15 @@ def readDict(fn):
         f.close()
         return (dict_rap)
     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        print("I/O error({}): {}".format(e.errno, e.strerror))
 
 
 
 
 def randomWord(length):
-    return ''.join(random.choice(string.lowercase) for i in range(length))
+    return ''.join(
+        random.choice(string.ascii_lowercase) for i in range(length)
+    )
 
 
 def isTimeValid(time):

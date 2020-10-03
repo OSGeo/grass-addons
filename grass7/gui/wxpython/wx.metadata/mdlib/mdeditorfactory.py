@@ -32,7 +32,11 @@ from wx import EVT_BUTTON
 import wx.lib.scrolledpanel as scrolled
 
 try:
-    from owslib.iso import *
+    from owslib.iso import (
+        CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality,
+        EX_Extent, EX_GeographicBoundingBox, MD_Distribution,
+        MD_ReferenceSystem,
+    )
 except:
     sys.exit('owslib library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 from .mdjinjaparser import JinjaTemplateParser
@@ -42,12 +46,11 @@ except:
     sys.exit('jinja2 library is missing. Check requirements on the manual page < https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support >')
 
 
-from core.gcmd import RunCommand, GError, GMessage
+from core.gcmd import GError, GMessage, RunCommand
 from gui_core.widgets import IntegerValidator, NTCValidator, SimpleValidator,\
     TimeISOValidator, EmailValidator  # ,EmptyValidator
 
 from . import mdutil
-from core.gcmd import RunCommand
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 #=========================================================================
@@ -607,7 +610,7 @@ class MdItem(wx.BoxSizer):
                     the GUI generating mechanism will create GUI according to template
                     and all missing tags(xml)-gui(TextCtrls) will be marked by red
         '''
-        if value is None or value is '':
+        if value is None or value == '':
             if self.chckBox:
                 self.chckBoxEdit.SetValue(True)
                 self.isChecked = True
