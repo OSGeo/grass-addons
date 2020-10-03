@@ -253,8 +253,8 @@ class RainGauge():
                 self.lat = float(f.next())
                 self.lon = float(f.next())
             f.close()
-        except IOError as (errno, strerror):
-            grass.error( "I/O error({0}): {1}".format(errno, strerror))
+        except IOError as e:
+            grass.error("I/O error({}): {}".format(e.errno, e))
 
         gaugeTMPfile = "gauge_tmp"
         removeLines(old_file=path,
@@ -270,7 +270,7 @@ class RainGauge():
                     stri = str(self.gaugeid) + ',' + line
                     tmp.append(stri)
                 f.close()
-        except IOError as (errno, strerror):
+        except IOError as e:
             grass.error( "I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
@@ -278,7 +278,7 @@ class RainGauge():
             with open(os.path.join(self.schemaPath, gaugeTMPfile), 'w+') as io:
                 io.writelines(tmp)
                 io.close()
-        except IOError as (errno, strerror):
+        except IOError as e:
             grass.error( "I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
@@ -427,7 +427,7 @@ class TimeWindows():
                 for link in f.read().splitlines():
                     sql = "DELETE FROM %s.%s WHERE %s=%s " % (self.schema, self.viewDB, self.typeID, link)
                     self.database.connection.executeSql(sql, False, True)
-        except IOError as (errno, strerror):
+        except IOError as e:
             grass.fatal('Cannot open file with ingored files')
         '''
         for link in self.links.split(','):
@@ -510,7 +510,7 @@ class TimeWindows():
             io2 = open(os.path.join(self.path, TMPname), 'w+')
             io2.writelines(nameList)
             io2.close()
-        except IOError as (errno, strerror):
+        except IOError as e:
             grass.warning('Cannot write temporal registration file  %s' % os.path.join(self.path, TMPname))
 
         timeMes.timeMsg('creating time windows-done')
@@ -637,7 +637,7 @@ class Computor():
                     try:
                         #print baseline.pathToFile
                         f = open(baseline.pathToFile, 'r')
-                    except IOError as (errno, strerror):
+                    except IOError as e:
                         #print baseline.pathToFile
                         grass.warning('Path to file with dry-window definiton not exist; %s' % baseline.pathTofile)
                     for line in f:
@@ -734,7 +734,7 @@ class Computor():
                     try:
                         #print baseline.pathToFile
                         f = open(baseline.pathToFile, 'r')
-                    except IOError as (errno, strerror):
+                    except IOError as e:
                         grass.warning('Path to file with dry-window definiton not exist')
                         return False
                     for line in f:
@@ -801,7 +801,7 @@ class Computor():
                     database.connection.copyfrom(io1, "%s.%s" % (database.schema, table_tmp))
                     io1.close()
                     os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
-                except IOError as (errno, strerror):
+                except IOError as e:
                     grass.warning('Cannot open <%s> file'% table_tmp)
                     return False
 
@@ -1194,8 +1194,8 @@ class GrassLayerMgr():
                            layer=lay)
 
             timeMes.timeMsg('Creating RGB column in database-done')
-        except Exception, e:
-            grass.warning("v.color error < %s>"%e)
+        except Exception as e:
+            grass.warning("v.color error < %s>" % e)
 
 
     def getNumLayer(self, map):
@@ -1494,7 +1494,7 @@ class Database():
                 conninfo['port'] = self.port
             self.connection = pg(**conninfo)
 
-        except psycopg2.OperationalError, e:
+        except psycopg2.OperationalError as e:
             grass.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):
