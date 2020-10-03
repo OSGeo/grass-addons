@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#%module
+#% description: The module for processing row data of microwave links to precipitation.
+#% keyword: general
+#% keyword: GUI
+#% keyword: precipitation
+#% keyword: microwave
+#% keyword: link
+#%end
+
 VERSION = 1.3
 import sys
 import os
@@ -8,7 +19,7 @@ import time
 import grass.script as grass
 
 from grass.pygrass.utils import set_path
-set_path(modulename='g.gui.mwprecip')
+set_path(modulename='g.gui.mwprecip', dirname='etc')
 from grass.script.setup import set_gui_path
 set_gui_path()
 
@@ -21,7 +32,6 @@ from gui_core.widgets import ColorTablesComboBox,PictureComboBox
 from core           import globalvar
 from core.utils     import  GetColorTables
 import wx.lib.scrolledpanel as scrolled
-import tempfile
 import logging
 
 
@@ -53,7 +63,7 @@ class DBconn(wx.ScrolledWindow):
         panelSizer.Add(self.schema, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
         panelSizer.Add(self.port, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=5)
 
-        panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        panelSizer.Add(0, 10, 0, wx.EXPAND)
         # panelSizer.Add(self.saveLoad, flag=wx.EXPAND)
         panelSizer.Add(self.okBtt, flag=wx.EXPAND | wx.ALL, border=5)
 
@@ -262,9 +272,9 @@ class BaselinePanel(wx.ScrolledWindow):
         sizer.Add(self.quantile, flag=wx.EXPAND)
         sizer.Add(self.aw, flag=wx.EXPAND)
         sizer.Add(self.dryInterval, flag=wx.EXPAND)
-        sizer.AddSpacer(10, 0, wx.EXPAND)
+        sizer.Add(width=0, height=10, proportion=0, flag=wx.EXPAND)
         sizer.Add(self.fromFileVal, flag=wx.EXPAND)
-        sizer.AddSpacer(10, 0, wx.EXPAND)
+        sizer.Add(width=0, height=10, proportion=0, flag=wx.EXPAND)
         # sizer.Add(self.SLpanel, flag=wx.EXPAND)
         #sizer.Add(self.okBtt, flag=wx.EXPAND)
         self.SetSizer(sizer)
@@ -409,14 +419,16 @@ class DataMgrMW(wx.ScrolledWindow):
         stBoxSizerTWIN.Add(self.links, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.mapLabel, flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.map, flag=wx.EXPAND,proportion=1)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.start, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.getStartBtt)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(self.end, flag=wx.EXPAND, proportion=1)
         stBoxSizerTWIN.Add(self.getEndBtt)
-        stBoxSizerTWIN.AddSpacer(5, 5, 1, wx.EXPAND)
+        stBoxSizerTWIN.Add(width=5, height=5, proportion=1,
+                           flag=wx.EXPAND)
         stBoxSizerTWIN.Add(wx.StaticText(self, id=wx.ID_ANY, label='Time increment'))
         stBoxSizerTWIN.Add(self.sumStep, flag=wx.EXPAND)
 
@@ -643,7 +655,12 @@ class MWMainFrame(wx.Frame):
 
     def onAbout(self,evt):
         dir=os.path.dirname(os.path.realpath(__file__))
-        GMessage( "wx.metadata\n\nVersion: %s \nDirectory: %s"%(VERSION,dir),self)
+        GMessage(
+            "wx.mwprecip\n\nVersion: {} \nDirectory: {}".format(
+                VERSION, dir,
+            ),
+            self,
+        )
 
     def getMinTime(self, evt=None):
         if not self.OnSaveSettings(toFile=False):
@@ -774,7 +791,7 @@ class MWMainFrame(wx.Frame):
         dbSizer = wx.BoxSizer(wx.VERTICAL)
         dbSizer.Add(self.geometryPnl, flag=wx.EXPAND)
         self.geDialog.SetSizer(dbSizer)
-        self.geDialog.SetBestFittingSize()
+        self.geDialog.DoLayoutAdaptation()
         self.geDialog.SetSize((300, -1))
         self.geDialog.ShowModal()
         self.geDialog.Destroy()
@@ -832,7 +849,7 @@ class MWMainFrame(wx.Frame):
         dbSizer = wx.BoxSizer(wx.VERTICAL)
         dbSizer.Add(self.databasePnl, flag=wx.EXPAND)
         self.dbDialog.SetSizer(dbSizer)
-        self.dbDialog.SetBestFittingSize()
+        self.dbDialog.DoLayoutAdaptation()
         self.dbDialog.SetMinSize((300, -1))
         self.dbDialog.ShowModal()
         self.dbDialog.Destroy()
@@ -947,7 +964,7 @@ class MWMainFrame(wx.Frame):
                 for r in res:
                     lines += str(r)[1:][:-1] + '\n'
 
-                print conn.pathworkSchemaDir
+                print(conn.pathworkSchemaDir)
                 io0 = open(path, "w+")
                 io0.writelines(lines)
                 io0.close()
@@ -963,7 +980,7 @@ class MWMainFrame(wx.Frame):
         if not os.path.exists(profilePath):
             os.mkdir(profilePath)
         self.initFileLogger(os.path.join(profilePath,"%s.log"% self.settings['workSchema']))
-        print "file logger initialized"
+        print("file logger initialized")
 
         self.thread=gThread()
         self.thread.Run(callable=self.runComp,
@@ -1006,10 +1023,12 @@ class MWMainFrame(wx.Frame):
         self.panelSizer.Add(self.schema, flag=wx.EXPAND)
         self.panelSizer.Add(self.newScheme, flag=wx.EXPAND)
 
-        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(width=0, height=10, proportion=0,
+                            flag=wx.EXPAND)
         self.panelSizer.Add(self.ntb, flag=wx.EXPAND)
 
-        self.panelSizer.AddSpacer(10, 0, wx.EXPAND)
+        self.panelSizer.Add(width=0, height=10, proportion=0,
+                            flag=wx.EXPAND)
         self.panelSizer.Add(self.computeBtt, flag=wx.EXPAND)
         self.panelSizer.Add(self.exportDataBtt, flag=wx.EXPAND)
 
@@ -1193,7 +1212,7 @@ class Gui2Model():
         GrassTemporalMgr(self.dbConn, self.twin)
 
     def errMsg(self, label):
-        print label
+        print(label)
         GError(label)
 
 class MyApp(wx.App):
@@ -1213,4 +1232,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
