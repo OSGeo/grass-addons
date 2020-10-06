@@ -96,7 +96,7 @@ def sample_relative(input, layer, timestamp_column, column, t_raster,
     start = t_raster["start_time"]
     end = t_raster["end_time"]
     raster_map = '{}@{}'.format(t_raster["name"], t_raster["mapset"])
-    where += """(julianday({0}) > date('{1}') AND \
+    where += """(julianday({0}) >= date('{1}') AND \
                 julianday({0}) < date('{2}'))""".format(timestamp_column, start, end)
 
 def sample_absolute(input, layer, timestamp_column, column, t_raster,
@@ -106,7 +106,7 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster,
     start = t_raster["start_time"]
     end = t_raster["end_time"]
     raster_map = '{}@{}'.format(t_raster["name"], t_raster["mapset"])
-    where += """({0} > date('{1}') AND \
+    where += """({0} >= date('{1}') AND \
                 {0} < date('{2}'))""".format(timestamp_column, start, end)
 
     grass.verbose(_('Sampling points between {} and {}'.format(start, end)))
