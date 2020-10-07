@@ -248,7 +248,10 @@ echo "Written to: $TARGETDIR"
 (cd ~/src/grass-addons/grass7/ ; git pull origin master)
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu/ ~/.grass7/addons
+sh ~/cronjobs/compile_addons_git.sh ~/src/grass-addons/grass7/ \
+   ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu/ \
+   ~/.grass7/addons \
+   ~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass$VERSION
 mkdir -p $TARGETHTMLDIR/addons/
 cp ~/.grass7/addons/docs/html/* $TARGETHTMLDIR/addons/
 sh ~/cronjobs/grass-addons-index.sh $TARGETHTMLDIR/addons/
@@ -271,4 +274,3 @@ echo "Written to: $TARGETDIR"
 echo "Copied HTML manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
 echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 exit 0
-
