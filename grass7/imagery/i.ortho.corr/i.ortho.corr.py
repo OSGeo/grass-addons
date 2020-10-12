@@ -80,7 +80,6 @@
 # import library
 import os
 import sys
-import os2emxpath
 import re
 import grass.script as grass
 
@@ -178,7 +177,7 @@ def mapTile(points, inputmap, tilemap, field):
         for l, m in what.items():
             if l != 'general':
                 # create the name for path
-                nameFile = os2emxpath.basename(m[field])
+                nameFile = os.path.basename(m[field])
                 if nameFiles.count(nameFile) == 0:
                     # add the file name to list
                     nameFiles.append(nameFile)
