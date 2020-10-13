@@ -290,7 +290,7 @@
 #% key: svc_kernel
 #% type: string
 #% multiple: no
-#% description: definitive kernel value. Available kernel are: ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’
+#% description: definitive kernel value. Available kernel are: 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'
 #% required: no
 #% answer: rbf
 #%end
