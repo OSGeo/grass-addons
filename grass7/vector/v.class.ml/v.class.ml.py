@@ -362,7 +362,7 @@
 #-----------------------------------------------------
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-import imp
+from importlib.machinery import SourceFileLoader
 import sys
 import os
 from pprint import pprint
@@ -539,7 +539,7 @@ def main(opt, flg):
     # define the classifiers to use/test
     if opt['pyclassifiers'] and opt['pyvar']:
         # import classifiers to use
-        mycls = imp.load_source("mycls", opt['pyclassifiers'])
+        mycls = SourceFileLoader("mycls", opt['pyclassifiers']).load_module()
         classifiers = getattr(mycls, opt['pyvar'])
     else:
         from ml_classifiers import CLASSIFIERS
