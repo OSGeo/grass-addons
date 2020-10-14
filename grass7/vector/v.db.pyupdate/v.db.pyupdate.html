@@ -1,0 +1,217 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.db.pyupdate</em> assigns a new value to a column in the
+attribute table connected to a given map. The new value is a result of a Python
+expression. In other words, this module allows updating attribute values using Python.
+Existing column values and, if specified, any installed Python packages can be used
+to compute the new value.
+The module works similarly to UPDATE statement from SQL, but
+it allows to use Python syntax and functions for the cost
+of longer processing time.
+
+<p>
+The Python expression is specified by the <b>expression</b> option.
+Existing attribute values can be accessed in this expression using the column names.
+For example, an expression <code>place_name.split(",")[0]</code> would
+uses Python string function <code>split</code> on a value from column
+<code>place_name</code> assuming that column place_name is of SQL type
+TEXT.
+
+<h3>Attributes</h3>
+
+<p>
+Attributes are accessible as variables using the column names as specified in the
+attribute table. By default, all attributes will be also accessible using
+the column name in all lower case. If this is not desired, <b>-k</b> flag can
+be used to keep only the original name
+and not provide the additional lower-cased version.
+
+<p>
+The types of variables in Python are <code>int</code> and <code>float</code>
+according if the attribute value can be represented by <code>int</code> and
+<code>float</code> respectively. The <code>str</code> type is used for all other values.
+If other types (objects) are desired, they need to be constructed in explicitly.
+The result of the expression needs to be something which can be converted
+into string by the Python format function such as <code>int</code>, <code>float</code>,
+or <code>str</code>.
+
+<h3>Packages</h3>
+
+<p>
+The Python <code>math</code> package is loaded by default for convenience,
+so expressions such as <code>math.cos(column_name)</code> are possible without
+further settings. Additional packages can be loaded using the option <b>packages</b>.
+Multiple packages can be specified as a comma separated list, for example,
+<code>os,cmath,json</code>.
+
+<p>
+If the <b>-s</b> flag is specified, the imports of the packages specified by
+option <b>packages</b> are additionally imported using a star import, i.e.,
+<code>import *</code>. This is considered a bad practice for general Python code,
+but doing this might be helpful for constructing concise expressions.
+The star import makes all functions (and other objects) from the package available
+without the need to specify a package name. For example, <b>packages</b> set to
+<code>math</code> with <b>-s</b> allows us to write <code>cos(column_name)</code>
+bringing the syntax closer to, e.g., raster algebra with <em>r.mapcalc</em>.
+
+<p>
+An arbitrary form of import statements, such as <code>from math import cos</code>,
+can be used with the Python file provided using the <b>function</b> option (see below).
+
+<h3>Selecting rows to update</h3>
+
+A subset of rows from the attribute table to update can be selected (filtered) using
+the SQL-based <b>where</b> option and the Python-based <b>condition</b> option.
+The <b>where</b> option uses SQL syntax and will lower the number of rows processed
+by this module in Python thus making the processing faster.
+On the other hand, the <b>condition</b> option uses Python syntax and all the rows
+still need to be processed by this module in Python.
+
+In other words, although both options selected a subset of rows to update,
+the <b>where</b> option lowers also the number of rows to process in Python.
+Using <b>condition</b> for expressions which could be expressed using SQL
+will be always slower than using the <b>where</b> option with SQL.
+The <b>where</b> option is a great fit for conditions such as
+<code>name is null</code>.
+
+The <b>condition</b> option is advantageous for more complex computations
+where SQL does not provide enough functionality or in case consistency
+with the Python syntax in the <b>expression</b> option is more desired than speed.
+The code in the <b>condition</b> option has access to the same
+variables, functions, and packages as the expression for computing the new value.
+
+Syntactically, the <b>where</b> option is the SQL WHERE clause without the WHERE keyword,
+while the <b>condition</b> option is Python <code>if</code> statement
+without the <code>if</code> keyword and the trailing colon (<code>:</code>).
+Similarly to the SQL WHERE clause which selects the rows to be processed,
+the <b>condition</b> option, when evaluated as <code>True</code> for a given row,
+selects that row to be processed.
+If the condition evaluates as <code>False</code>, the row is skipped (filtered out).
+
+Both options can be used together. When none is specified, all rows (records) are updated.
+
+<h2>NOTES</h2>
+
+<em>v.db.pyupdate</em> is loading the attribute table into memory,
+computing the new values in Python, and then executing SQL transaction
+to update the attribute table. Thus, it is only suitable when memory consumption
+or time are not an issue, for example for small datasets.
+
+<p>
+For simple expressions, SQL-based <em>v.db.update</em> is much more advantageous.
+
+<p>
+The module uses only GRASS GIS interfaces to access the database, so it works for all
+database backends used for attribute tables in GRASS GIS.
+A future or alternative version may use, e.g., a more direct
+<code>create_function</code> function from Connection from the sqlite3 Python package.
+
+<p>
+If you are calling this module from Python, it is worth noting that you cannot pass
+directly functions defined or imported in your current Python file (Python module)
+nor access any of the variables.
+However, you can use string substitution to pass the variable values and a separate file
+with function definitions which you can also import into your code.
+
+<h2>EXAMPLES</h2>
+
+The examples are using the full North Carolina sample data set unless noted otherwise.
+
+<h3>Using a mathematical function</h3>
+
+First, we create a copy of the vector map in the current mapset, so we can modify it.
+Then, we add a new column <code>log_july</code> for a logarithm of values for July.
+
+<div class="code"><pre>
+g.copy vector=precip_30ynormals,my_precip_30ynormals
+v.db.addcolumn map=my_precip_30ynormals columns="log_july double precision"
+</pre></div>
+
+Now, we compute the values for the new column using the Python <code>log</code> function
+from the <code>math</code> Python package (which is imported by default):
+
+<div class="code"><pre>
+v.db.pyupdate map=my_precip_30ynormals column="log_july" expression="math.log(jul)"
+</pre></div>
+
+We can examine the result, e.g., with <em>v.db.select</em>:
+
+<div class="code"><pre>
+v.db.select map=my_precip_30ynormals columns=jul,log_july
+</pre></div>
+
+<div class="code"><pre>
+jul|logjuly
+132.842|4.88916045210132
+127|4.84418708645859
+124.206|4.82194147751127
+104.648|4.65060233738593
+98.298|4.58800368106618
+...
+</pre></div>
+
+<h3>Shortening expressions</h3>
+
+In case we want to make the expression more succinct, the above example can be modified
+using the <b>-s</b> flag in combination with <b>packages</b> to enable star imports:
+
+<div class="code"><pre>
+v.db.pyupdate map=my_precip_30ynormals column="log_july" expression="log(jul)" packages=math -s
+</pre></div>
+
+The expression can be now shorter, but the <code>math</code> package needs to be explicitly requested.
+
+<h3>Replacing of NULL values</h3>
+
+In this example, we assume we have a vector map of buildings.
+These buildings have attribute name, but some are missing value for the name attribute,
+but have a building number.
+We use SQL WHERE clause to identify those and Python expression with an f-string
+to generate a name from the building number in format <em>Building num. N</em>:
+
+<div class="code"><pre>
+v.db.pyupdate map=buildings column="name" expression="f'Building num. {building_number}'" where="name is null"
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<ul>
+  <li>
+    <em><a href="v.db.addcolumn.html">v.db.addcolumn</a></em>
+    to add a new column (to be filled with values later),
+  </li>
+  <li>
+    <em><a href="v.db.update.html">v.db.update</a></em>
+    for attribute updates using SQL,
+  </li>
+  <li>
+    <em><a href="db.execute.html">db.execute</a></em>
+    to execute general SQL statements,
+  </li>
+  <li>
+    <em><a href="v.db.addtable.html">v.db.addtable</a></em>
+    to add a new table to an existing vector map,
+  </li>
+  <li>
+    <em><a href="v.db.connect.html">v.db.connect</a></em>
+    to find details about attribute storage,
+  </li>
+  <li>
+    <em><a href="v.db.join.html">v.db.join</a></em>
+    to add columns from one table to another,
+  </li>
+  <li>
+    <em><a href="v.db.select.html">v.db.select</a></em>
+    to obtain values from an attribute and test WHERE clauses.
+  </li>
+</ul>
+
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/">NCSU Center for Geospatial Analytics</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
