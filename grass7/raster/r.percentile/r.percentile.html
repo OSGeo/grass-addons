@@ -1,0 +1,45 @@
+<h2>DESCRIPTION</h2>
+
+<p><i>r.tpi</i>calculates the Topographic Position Index (TPI) of Guisan et al. (1999).
+  The index is simply calculated by averaging a DEM over a user-specified moving window
+  size, and subtracting the original DEM from the averaged version to get the residual.
+  This extracts smaller scale landform information from regional scale relief. 
+  Positive TPI values represent ridges or hills, and negative TPI values represent valleys
+  or pits.
+</p>
+
+<p>The TPI can be used by standardizing the results and then classifying these values
+  into generic landform components based on both topographic position and slope.
+</p>
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+d.rast map=elev_lid792_1m@PERMANENT
+g.region raster=elev_lid792_1m@PERMANENT -a
+r.tpi input=elev_lid792_1m@PERMANENT size=9 output=tpi
+</pre></div>
+
+<center>
+    <img src="r_tri.png" alt="Terrain Ruggedness Index">
+</center>
+
+<h2>REFERENCES</h2>
+
+Guisan, A., S. B. Weiss, A. D. Weiss 1999. GLM versus CCA spatial modeling of plant species distribution. Plant Ecology
+143: 107-122
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
+</em>
+
+<h2>AUTHOR</h2>
+
+Steven Pawley
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->

@@ -1,0 +1,1 @@
+@"%GRASS_PYTHON%" "%GRASS_ADDON_BASE%/scripts/r.percentile.py" %*
