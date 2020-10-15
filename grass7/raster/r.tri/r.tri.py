@@ -37,16 +37,29 @@
 #% answer: 3
 #%end
 
+#%option
+#% key: n_jobs
+#% type: integer
+#% label: Number of processing cores for tiled calculation
+#% description: Number of processing cores for tiled calculation (negative numbers are all cpus -1, -2 etc.)
+#% required: no
+#% answer: 1
+#%end
+
 #%flag
 #% key: c
 #% description: Use circular neighborhood
 #%end
 
-import sys
 import atexit
+import math
 import random
 import string
+import sys
+
 import grass.script as gs
+from grass.pygrass.gis.region import Region
+from grass.pygrass.modules.shortcuts import raster as gr
 
 TMP_RAST = []
 
@@ -113,20 +126,60 @@ def focal_expr(radius, window_square=False):
     return offsets
 
 
+def tile_shape(region, n_jobs):
+    """Calculates the number of tiles required for one tile per cpu
+
+    Parameters
+    ----------
+    region : pygrass.gis.region.Region
+        The computational region object.
+    
+    n_jobs : int
+        The number of processing cores.
+    
+    Returns
+    -------
+    width, height : tuple
+        The width and height of each tile.
+    """
+    n = math.sqrt(n_jobs)
+    width = int(math.ceil(region.cols / n))
+    height = int(math.ceil(region.rows / n))
+
+    return width, height
+
+
 def main():
     dem = options["input"]
     tri = options["output"]
     size = int(options["size"])
+    n_jobs = int(options["n_jobs"])
     circular = flags["c"]
     radius = int((size - 1) / 2)
-    
-    if "@" in tri:
-    	tri = tri.split("@")[0]
 
-    # calculate TRI based on map calc statements
+    region = Region()
+
+    # Some checks
+    if "@" in tri:
+        tri = tri.split("@")[0]
+
+    if n_jobs == 0:
+        gs.fatal("Number of processing cores for parallel computation must not equal 0")
+
+    if n_jobs < 0:
+        system_cores = mp.cpu_count()
+        n_jobs = system_cores + n_jobs + 1
+
+    if n_jobs > 1:
+        if gs.find_program("r.mapcalc.tiled") is False:
+            gs.fatal(
+                "The GRASS addon r.mapcalc.tiled must also be installed if n_jobs != 1. Run 'g.extension r.mapcalc.tiled'"
+            )
+
+    # Calculate TRI based on map calc statements
     gs.message("Calculating the Topographic Ruggedness Index...")
 
-    # generate a list of spatial neighbourhood offsets for the chosen radius
+    # Generate a list of spatial neighbourhood offsets for the chosen radius
     # ignoring the center cell
     offsets = focal_expr(radius=radius, window_square=not circular)
     terms = []
@@ -134,15 +187,28 @@ def main():
         d_str = ",".join(map(str, d))
         terms.append("({dem}[{d}]-{dem})^2".format(dem=dem, d=d_str))
 
-    # define the calculation expression
+    # Define the calculation expression
     ncells = len(offsets) + 1
     terms = " + ".join(terms)
 
-    # perform the r.mapcalc calculation with the moving window
+    # Perform the r.mapcalc calculation with the moving window
     expr = "{tri} = float(sqrt(({terms}) / {ncells}))".format(
         tri=tri, ncells=ncells, terms=terms
     )
-    gs.mapcalc(expr)
+
+    width, height = tile_shape(region, n_jobs)
+
+    if width < region.cols and height < region.rows and n_jobs > 1:
+        gr.mapcalc_tiled(
+            expression=expr,
+            width=width,
+            height=height,
+            processes=n_jobs,
+            overlap=int((size + 1) / 2),
+            output=tri,
+        )
+    else:
+        gs.mapcalc(expr)
 
     return 0
 
