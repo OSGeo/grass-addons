@@ -42,6 +42,7 @@
 import os
 import shutil
 import tempfile
+import atexit
 
 try:
     from urllib2 import HTTPError, URLError
@@ -73,7 +74,11 @@ def move_extracted_files(extract_dir, target_dir, files):
     """
     gs.debug("move_extracted_files({0})".format(locals()))
     if len(files) == 1:
-        shutil.copytree(os.path.join(extract_dir, files[0]), target_dir)
+        actual_path = os.path.join(extract_dir, files[0])
+        if os.path.isdir(actual_path):
+            shutil.copytree(actual_path, target_dir)
+        else:
+            shutil.copy(actual_path, target_dir)
     else:
         if not os.path.exists(target_dir):
             os.mkdir(target_dir)
@@ -129,8 +134,10 @@ def extract_tar(name, directory, tmpdir):
                              target_dir=directory, files=files)
     except tarfile.TarError as error:
         raise DownloadError(_("Archive file is unreadable: {0}").format(error))
+    except EOFError as error:
+        raise DownloadError(_("Archive file is incomplete: {0}").format(error))
 
-extract_tar.supported_formats = ['tar.gz', 'gz', 'bz2', 'tar', 'gzip', 'targz']
+extract_tar.supported_formats = ['tar.gz', 'gz', 'bz2', 'tar', 'gzip', 'targz', 'xz']
 
 
 def download_end_extract(source):
@@ -144,8 +151,8 @@ def download_end_extract(source):
             raise DownloadError(_("Download of <%s> failed "
                                   "or file is not a ZIP file") % source)
         extract_zip(name=archive_name, directory=directory, tmpdir=tmpdir)
-    elif (source.endswith(".tar.gz") or
-          source.rsplit('.', 1)[1] in extract_tar.supported_formats):
+    elif ("." in source and (source.endswith(".tar.gz") or
+          source.rsplit('.', 1)[1] in extract_tar.supported_formats)):
         if source.endswith(".tar.gz"):
             ext = "tar.gz"
         else:
@@ -158,7 +165,10 @@ def download_end_extract(source):
         # probably programmer error
         # TODO: use GUI way
         raise DownloadError(_("Unknown format '{0}'.").format(source))
-    assert os.path.isdir(directory)
+    if not os.path.isdir(directory):
+        # If there is only one file ZIP and TAR extractions just
+        # extract that file under the provided directory name.
+        raise DownloadError(_("Archive contains only one file and no mapset directories"))
     return directory
 
 
@@ -175,6 +185,35 @@ def is_location_valid(location):
     # TODO: perhaps we can relax this and require only permanent
     return os.access(os.path.join(location,
                                   "PERMANENT", "DEFAULT_WIND"), os.F_OK)
+
+
+def find_location_in_directory(path, recurse=0):
+    """Return path to location in one of the subdirectories or None
+
+    The first location found is returned. The expected usage is looking for one
+    location somewhere nested in subdirectories.
+
+    By default only the immediate subdirectories of the provided directory are
+    tested, but with ``recurse >= 1`` additional levels of subdirectories
+    are tested for being locations.
+
+    Directory names are sorted to provide a stable result.
+
+    :param path: Path to the directory to search
+    :param recurse: How many additional levels of subdirectories to explore
+    """
+    assert recurse >= 0
+    full_paths = [os.path.join(path, i) for i in os.listdir(path)]
+    candidates = sorted([i for i in full_paths if os.path.isdir(i)])
+    for candidate in candidates:
+        if is_location_valid(candidate):
+            return candidate
+    if recurse:
+        for candidate in candidates:
+            result = find_location_in_directory(candidate, recurse - 1)
+            if result:
+                return result
+    return None
 
 
 def location_name_from_url(url):
@@ -200,13 +239,38 @@ def main(options, flags):
         return
 
     gs.message(_("Downloading and extracting..."))
-    directory = download_end_extract(url)
+    try:
+        directory = download_end_extract(url)
+        atexit.register(lambda: try_rmdir(directory))
+    except DownloadError as error:
+        gs.fatal(_("Unable to get the location: {error}").format(error=error))
     if not is_location_valid(directory):
-        try_rmdir(directory)
-    gs.message(_("Finalizing..."))
+        gs.verbose(_("Searching for valid location..."))
+        # This in fact deal with location being on the third level of directories
+        # thanks to how the extraction functions work (leaving out one level).
+        result = find_location_in_directory(directory, recurse=1)
+        if result:
+            # We just want to show relative path in the message.
+            # The relative path misses the root directory (name), because we
+            # loose it on the way. (We should use parent directory to get the
+            # full relative path, but the directory name is diffrent now.
+            # This is the consequence of how the extract functions work.)
+            relative = os.path.relpath(result, start=directory)
+            gs.verbose(_(
+                "Location found in a nested directory '{directory}'").format(
+                    directory=relative))
+            directory = result
+        else:
+            # The list is similarly misleading as the relative path above
+            # as it misses the root directory, but it still should be useful.
+            files_and_dirs = os.listdir(directory)
+            gs.fatal(_("The dowloaded file is not a valid GRASS Location."
+                       " The extracted file contains these files and directories:"
+                       "\n{files_and_dirs}").format(
+                           files_and_dirs=" ".join(files_and_dirs)))
+    gs.verbose(_("Copying to final destination..."))
     shutil.copytree(src=directory, dst=destination)
-    try_rmdir(directory)
-    gs.message(_("Location is now in %s") % destination)
+    gs.message(_("Path to the location now <{path}>").format(path=destination))
 
 
 if __name__ == '__main__':
