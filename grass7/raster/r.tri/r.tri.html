@@ -1,28 +1,41 @@
 <h2>DESCRIPTION</h2>
 
-<p><i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al. (1999). The index represents the mean
-    change in elevation between a grid cell and its neighbours, over a user-specified moving window size. The
-    original calculation in Riley et al. (1999) used only a 3x3 neighbourhood and represented the sum of the absolute
-    deviations between the center pixel and its immediate 8 neighbours. In r.tri, this calculation is modified so that
-    the calculation can be extended over any scale by taking the mean of the absolute deviations.</p>
+<p><i>r.tri </i>calculates the Terrain Ruggedness Index (TRI) of Riley et al.
+    (1999). The index represents the mean change in elevation between a grid
+    cell and its neighbours, over a user-specified moving window size. The
+    original calculation in Riley et al. (1999) used only a 3x3 neighbourhood
+    and represented the sum of the absolute deviations between the center pixel
+    and its immediate 8 neighbours. In r.tri, this calculation is modified so
+    that the calculation can be extended over any scale by taking the mean of
+    the absolute deviations.</p>
 
 <h2>NOTES</h2>
 
-<p><i>r.tri</i> produces fairly similar results to the average deviation of elevation values, apart from the center
-    pixel is used in place of the mean. In practice, this produces a slightly less smoothed result that can potentially
-    better highlight finer-scale terrain features.
+<p>
+    <i>r.tri</i> produces fairly similar results to the average deviation of
+    elevation values, apart from the center pixel is used in place of the mean.
+    In practice, this produces a slightly less smoothed result that can
+    potentially highlight finer-scale terrain features. However, because the
+    terrain ruggedness index does not consider the distance of each cell from
+    the centre cell in it's calculation, the TRI results can become noisy with
+    large window sizes. To avoid this, weighting each cell by the inverse of
+    its distance can be used by setting the <i>exponent</i> parameter to &gt 0.
 </p>
 
 <p>
-    Similar to many other GRASS GIS algorithms, cell padding is not performed automatically which will leave null values
-    at the boundaries of the output raster relative to the size of the input raster. To minimize this effect the DEM
-    needs to be buffered/grown prior to using r.tri.
+    Similar to many other GRASS GIS algorithms, cell padding is not performed
+    automatically which will leave null values at the boundaries of the output
+    raster relative to the size of the input raster. To minimize this effect
+    the DEM needs to be buffered/grown prior to using r.tri.
 </p>
 
 <p>
-    To reduce computational times for large raster datasets, setting <em>n_jobs</em> &gt 1 will use a parallelized and
-    tiled calculations that is spread across multiple processing cores. This option requires the
-    GRASS addon <a href="r.mapcalc.tiled.html">r.mapcalc.tiled</a> to be installed.
+    Currently, <i>r.tri</i> is implemented using a <i>r.mapcalc</i> focal
+    function. This becomes slow for large window sizes. To reduce computational
+    times for large raster datasets, setting <em>processes</em> parameter to 
+    &gt 1 will use a parallelized and tiled calculations that is spread across
+    multiple processing cores. This option requires the GRASS addon
+    <a href="r.mapcalc.tiled.html">r.mapcalc.tiled</a> to be installed.
 </p>
 
 <h2>EXAMPLE</h2>
