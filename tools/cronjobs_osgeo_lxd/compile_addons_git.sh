@@ -6,7 +6,7 @@
 # This script compiles GRASS Addons, it's called by cron_grass78_releasebranch_78_build_bins.sh | cron_grass7_HEAD_build_bins.sh
 
 if [ -z "$3" ]; then
-    echo "usage: $0 git_path topdir addons_path grass_startup_program [separate]"
+    echo "Usage: $0 git_path topdir addons_path grass_startup_program [separate]"
     echo "eg. $0 ~/src/grass_addons/grass7/ \
 ~/src/releasebranch_7_8/dist.x86_64-pc-linux-gnu \
 ~/.grass7/addons \
@@ -29,7 +29,7 @@ if [ ! -d "$3" ] ; then
 fi
 
 if [ -z "$4" ] ; then
-    echo "Set GRASS startup program arg parameter path"
+    echo "ERROR: Set GRASS GIS startup program with full path (e.g., ~/src/releasebranch_7_8/bin.x86_64-pc-linux-gnu/grass78)"
     exit 1
 fi
 
