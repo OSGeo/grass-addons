@@ -24,14 +24,6 @@
 #% description: Vector Ruggedness Measure
 #%end
 
-import grass.script as grass
-import random
-import string
-import atexit
-import copy
-import multiprocessing as mp
-from grass.pygrass.modules import Module, ParallelModuleQueue
-
 #%option G_OPT_R_INPUTS
 #% key: elevation
 #% label: DEM Raster Input
@@ -70,6 +62,14 @@ from grass.pygrass.modules import Module, ParallelModuleQueue
 #%end
 
 #%option
+#% key: exponent
+#% type: double
+#% description: Exponent for distance weighting (zero is equal weights)
+#% answer: 0
+#% guisection: Optional
+#%end
+
+#%option
 #% key: nprocs
 #% type: integer
 #% label: The maximum number of cores to use for multiprocessing
@@ -78,13 +78,71 @@ from grass.pygrass.modules import Module, ParallelModuleQueue
 #% guisection: Optional
 #%end
 
+import atexit
+import copy
+import math
+import multiprocessing as mp
+import random
+import string
+import numpy as np
+import tempfile
+
+import grass.script as gs
+from grass.pygrass.modules import Module, ParallelModuleQueue
+from grass.pygrass.modules.shortcuts import general as gg
+from grass.pygrass.modules.shortcuts import raster as gr
 
 tmp_rast = []
 
 
+def distance_from_centre(radius):
+    """Create a square matrix filled with the euclidean distance from the 
+    centre cell
+
+    Parameters
+    ----------
+    radius : int
+        Radius of the square matrix in cells.
+    
+    Returns
+    -------
+    dist_from_centre : 2d ndarray
+        Square matrix with each cell filled with the distance from the centre
+        cell.
+    
+    """
+    size = radius * 2 + 1
+    centre = int(size / 2)
+
+    Y, X = np.ogrid[:size, :size]
+    dist_from_centre = np.sqrt((X - centre) ** 2 + (Y - centre) ** 2)
+
+    return dist_from_centre
+
+
+def idw_weights(size, p):
+    # create the distance matrix
+    W = distance_from_centre(math.floor(size/2))
+    W = np.floor(W)
+    W = size-(W+1)
+    W = W**p
+
+    # turn W into character for GRASS r.neighbors
+    W_text = str(W)
+    W_text = W_text.replace("[", "")
+    W_text = W_text.replace("]", "")
+
+    tfile = tempfile.NamedTemporaryFile().name
+
+    with open(tfile, "a") as output:
+        output.write(W_text)
+
+    return tfile
+
+
 def cleanup():
     for rast in tmp_rast:
-        grass.run_command("g.remove", name=rast, type="raster", flags="fb", quiet=True)
+        gg.remove(name=rast, type="raster", flags="fb", quiet=True)
 
 
 def create_tempname(prefix):
@@ -104,16 +162,17 @@ def main():
     neighborhood_size = options["size"]
     output = options["output"]
     nprocs = int(options["nprocs"])
+    exponent = float(options["exponent"])
 
     # check for valid neighborhood sizes
     neighborhood_size = neighborhood_size.split(",")
     neighborhood_size = [int(i) for i in neighborhood_size]
 
     if any([True for i in neighborhood_size if i % 2 == 0]):
-        grass.fatal("Invalid size - neighborhood sizes have to consist of odd numbers")
+        gs.fatal("Invalid size - neighborhood sizes have to consist of odd numbers")
 
     if min(neighborhood_size) == 1:
-        grass.fatal("Neighborhood sizes have to be > 1")
+        gs.fatal("Neighborhood sizes have to be > 1")
 
     # determine nprocs
     if nprocs < 0:
@@ -137,9 +196,8 @@ def main():
 
     # create slope and aspect rasters
     if slope == "" or aspect == "":
-        grass.message("Calculating slope and aspect...")
-        grass.run_command(
-            "r.slope.aspect",
+        gs.message("Calculating slope and aspect...")
+        gr.slope_aspect(
             elevation=dem,
             slope=slope_raster,
             aspect=aspect_raster,
@@ -162,13 +220,10 @@ def main():
         y=y_raster, a=aspect_raster, b=slope_raster
     )
 
-    z_expr = "{z} = float( cos({a}) )".format(
-        z=z_raster,
-        a=slope_raster
-    )
+    z_expr = "{z} = float( cos({a}) )".format(z=z_raster, a=slope_raster)
 
     # calculate x, y, z components (parallel)
-    grass.message("Calculating x, y, and z rasters...")
+    gs.message("Calculating x, y, and z rasters...")
 
     mapcalc = Module("r.mapcalc", run_=False)
     queue = ParallelModuleQueue(nprocs=nprocs)
@@ -188,9 +243,7 @@ def main():
     queue.wait()
 
     # calculate x, y, z neighborhood sums (parallel)
-    grass.message(
-        "Calculating sums of x, y, and z rasters in selected neighborhoods..."
-    )
+    gs.message("Calculating sums of x, y, and z rasters in selected neighborhoods...")
 
     x_sum_list = []
     y_sum_list = []
@@ -210,30 +263,47 @@ def main():
         z_sum_raster = create_tempname("tmpzSumRaster_")
         z_sum_list.append(z_sum_raster)
 
+        # create weights
+        mat = idw_weights(size, exponent)
+
         # queue jobs for x, y, z neighborhood sums
         neighbors_xsum = copy.deepcopy(neighbors)
         n = neighbors_xsum(
-            input=x_raster, output=x_sum_raster, method="average", size=size
+            input=x_raster,
+            output=x_sum_raster,
+            method="average",
+            size=size,
+            weight=mat,
+            stdin=mat,
         )
         queue.put(n)
 
         neighbors_ysum = copy.deepcopy(neighbors)
         n = neighbors_ysum(
-            input=y_raster, output=y_sum_raster, method="average", size=size
+            input=y_raster,
+            output=y_sum_raster,
+            method="average",
+            size=size,
+            weight=mat,
         )
         queue.put(n)
 
         neighbors_zsum = copy.deepcopy(neighbors)
         n = neighbors_zsum(
-            input=z_raster, output=z_sum_raster, method="average", size=size
+            input=z_raster,
+            output=z_sum_raster,
+            method="average",
+            size=size,
+            weight=mat,
         )
         queue.put(n)
 
     queue.wait()
 
     # calculate the resultant vector and final ruggedness raster
-    # modified from the original script to multiple each SumRaster by the n neighborhood cells to get the sum
-    grass.message("Calculating the final ruggedness rasters...")
+    # modified from the original script to multiple each SumRaster by the n neighborhood
+    # cells to get the sum
+    gs.message("Calculating the final ruggedness rasters...")
 
     mapcalc = Module("r.mapcalc", run_=False)
     queue = ParallelModuleQueue(nprocs=nprocs)
@@ -264,17 +334,17 @@ def main():
     queue.wait()
 
     # set colors
-    grass.run_command("r.colors", flags="e", map=vrm_list, color="ryb")
+    gr.colors(flags="e", map=vrm_list, color="ryb")
 
     # set metadata
     for vrm, size in zip(vrm_list, neighborhood_size):
         title = "Vector Ruggedness Measure (size={size})".format(size=size)
-        grass.run_command("r.support", map=vrm, title=title)
+        gr.support(map=vrm, title=title)
 
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()
