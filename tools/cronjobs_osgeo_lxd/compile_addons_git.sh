@@ -113,7 +113,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     export GRASS_ADDON_BASE=$path
     # Try download Add-Ons json file paths
     if [ ! -f  "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ]; then
-        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -p > /dev/null 2>&1
+        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j > /dev/null 2>&1
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
     make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
