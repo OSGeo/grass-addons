@@ -4,6 +4,7 @@
 #
 # MODULE: i.image.bathymetry
 # AUTHOR(S): Vinayaraj Poliyapram <vinay223333@gmail.com> and Luca Delulucchi
+#            Scripting fixes 10/19/2020, Doug Newcomb
 #
 # PURPOSE:   Script for estimating bathymetry from optical satellite images
 # COPYRIGHT: (C) Vinayaraj Poliyapram and by the GRASS Development Team
@@ -155,7 +156,7 @@ def main():
         tmp_ = RasterRow(str(i))
         if tmp_.exist() is False:
             continue
-        g.message("Ditermining minimum value for %s" % i)
+        g.message("Determining minimum value for %s" % i)
         g.run_command('g.region', vector=Calibration_points)
         # To ignore zero values
         g.mapcalc(exp="{tmp_b}=if({x}>1, {x},null())".format(tmp_b='tmp_b',
@@ -172,7 +173,7 @@ def main():
             g.run_command('r.mask', raster='tmp_deep', overwrite=True)
             tmp_coe = g.parse_command('r.regression.line', mapx=SWIR,
                                       mapy=str(i), flags='g')
-            g.message("Deep water ditermination for %s" % i)
+            g.message("Deep water determination for %s" % i)
             if Area_of_interest:
                 g.run_command('r.mask', vector=Area_of_interest, overwrite=True)
                 g.run_command('g.region', vector=Area_of_interest)
@@ -233,7 +234,10 @@ def main():
             # For GWmodel in R
             r = g.tempfile()
             r_file = open(r, 'w')
-            libs = ['GWmodel', 'data.table', 'rgrass7', 'rgdal', 'raster']
+            # add missing libraries to run.  Make sure sp and rgeos are included.
+            #throw in stars for good measure. sp is necessary to run raster, polygon warning if
+            #rgeos is missing.
+            libs = ['GWmodel', 'data.table', 'rgrass7', 'rgdal', 'sp','raster','rgeos','stars']
             for i in libs:
                 install = 'if(!is.element("%s", installed.packages()[,1])){\n' % i
                 install += "cat('\\n\\nInstalling %s package from CRAN\n')\n" % i
@@ -246,6 +250,8 @@ def main():
                 libraries = 'library(%s)\n' % i
                 r_file.write(libraries)
             Green_new, sep, tail = Green.partition('@')
+            #use_sp() must precede raster() calls per change in R?
+            r_file.write('use_sp()\n')
             r_file.write('grass_file = readRAST("tmp_crctd%s")\n' % Green_new)
             r_file.write('raster_file = raster(grass_file)\n')
             frame_file = 'pred = as.data.frame(raster_file,na.rm = TRUE,xy = TRUE)\n'
@@ -290,7 +296,10 @@ def main():
                     '(Rapid_ref.sdf))\n'
             r_file.write(ref_file)
             l = []
-            predict = g.read_command("g.tempfile", pid=os.getpid()).strip() + '.txt'
+            #predict = g.read_command("g.tempfile", pid=os.getpid()).strip() + '.txt'
+            #replace dynamic variable of predict with a static filename until g.tempfile formatting
+            #is cross platform
+            predict="bathytemp.txt"
             # Join the corrected bands in to a string
             le = len(crctd_lst)
             for i in crctd_lst:
