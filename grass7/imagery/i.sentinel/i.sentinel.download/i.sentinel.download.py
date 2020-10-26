@@ -358,6 +358,13 @@ class SentinelDownloader(object):
             ("producttype", ogr.OFTString),
             ("identifier", ogr.OFTString)
         ])
+
+        # Sentinel-1 data does not have cloudcoverpercentage
+        prod_types = [type for type in self._products_df_sorted["producttype"]]
+        s1_types = ["SLC", "GRD"]
+        if any(type in prod_types for type in s1_types):
+            del attrs["cloudcoverpercentage"]
+
         for key in attrs.keys():
             field = ogr.FieldDefn(key, attrs[key])
             layer.CreateField(field)
