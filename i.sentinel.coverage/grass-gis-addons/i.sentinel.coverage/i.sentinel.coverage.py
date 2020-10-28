@@ -201,6 +201,9 @@ def main():
     settings = options['settings']
     output = options['output']
     area = options['area']
+    if not grass.find_file(area, element='vector')['file']:
+        grass.fatal(_("Vector map <%s> not found") % area)
+
     if options['type'] == 's1':
         producttype = 'GRD'
     else:
