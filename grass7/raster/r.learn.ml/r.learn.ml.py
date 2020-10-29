@@ -639,7 +639,7 @@ def load_training_data(file):
 
 
 def save_model(estimator, X, y, sample_coords, groups, filename):
-    from sklearn.externals import joblib
+    import joblib
     joblib.dump((estimator, X, y, sample_coords, group_id), filename)
 
 
