@@ -644,7 +644,7 @@ def save_model(estimator, X, y, sample_coords, groups, filename):
 
 
 def load_model(filename):
-    from sklearn.externals import joblib
+    import joblib
     estimator, X, y, sample_coords, groups = joblib.load(filename)
 
     return (estimator, X, y, sample_coords, groups)
@@ -1399,7 +1399,7 @@ warnings.warn = warn
 
 def main():
     try:
-        from sklearn.externals import joblib
+        import joblib
         from sklearn.cluster import KMeans
         from sklearn.preprocessing import StandardScaler
         from sklearn.model_selection import (
