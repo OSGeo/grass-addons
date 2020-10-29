@@ -845,7 +845,7 @@ def predict(estimator, predictors, output, predict_type='raw', index=None,
         -1 for all cores; -2 for all cores-1
     """
 
-    from sklearn.externals.joblib import Parallel, delayed
+    from joblib import Parallel, delayed
     from grass.pygrass.raster import numpy2raster
 
     # TODO
@@ -1061,7 +1061,7 @@ def varimp_permutation(estimator, X, y, n_permutations, scorer,
     scores (2d numpy array): scores for each predictor following permutation
     """
 
-    from sklearn.externals.joblib import Parallel, delayed
+    from joblib import Parallel, delayed
 
     # calculate score on original variables without permutation
     # determine best metric type for binary/multiclass/regression scenarios
@@ -1195,7 +1195,7 @@ def cross_val_scores(estimator, X, y, groups=None, sample_weight=None, cv=3,
 
     from sklearn import metrics
     from sklearn.model_selection import StratifiedKFold
-    from sklearn.externals.joblib import Parallel, delayed
+    from joblib import Parallel, delayed
 
     # first unwrap the estimator from any potential pipelines or gridsearchCV
     if type(estimator).__name__ == 'Pipeline':
