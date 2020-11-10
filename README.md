@@ -59,13 +59,13 @@ https://grass.osgeo.org/grass78/manuals/g.extension.html
 
     make MODULE_TOPDIR=/usr/lib/grass78/
 
-## How to submitt contributions?
+## How to submit contributions?
 
 To submit your GRASS GIS module here, please check
 
    https://grass.osgeo.org/development/
 
-The submmission must be compliant with the GRASS
+The submission must be compliant with the GRASS
 submission rules as found in the GRASS source code
 and RFC2 (Legal aspects of submission):
 
