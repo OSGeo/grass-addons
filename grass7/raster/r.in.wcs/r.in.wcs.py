@@ -3,15 +3,15 @@
 '''
 MODULE:     r.in.wcs.py
 
-AUTHOR(S):  Martin Zbinden <martin.zbinden@immerda.ch>, inspired by 
+AUTHOR(S):  Martin Zbinden <martin.zbinden@immerda.ch>, inspired by
             module r.in.wms (GRASS7) by Stepan Turek <stepan.turek AT seznam.cz>
-            
+
 PURPOSE:    Downloads and imports data from WCS server (only version 1.0.0).
             According to http://grasswiki.osgeo.org/wiki/WCS
-            
-VERSION:  	0.1
 
-DATE:     	Mon Jun 16 21:00:00 CET 2014
+VERSION:        0.1
+
+DATE:           Mon Jun 16 21:00:00 CET 2014
 
 COPYRIGHT:  (C) 2014 Martin Zbinden and by the GRASS Development Team
 
@@ -145,9 +145,9 @@ class WCSBase:
 
     def _initializeParameters(self, options, flags):
         '''
-        Initialize all given and needed parameters. Get region information and 
+        Initialize all given and needed parameters. Get region information and
         calculate boundingbox according to it
-        
+
         '''
         self._debug("_initializeParameters", "started")
 
@@ -156,7 +156,7 @@ class WCSBase:
 
         if not self.params['output']:
             self.params['output'] = self.params['coverage']
-            if not grass.overwrite(): 
+            if not grass.overwrite():
                 result = grass.find_file(name = self.params['output'], element = 'cell')
                 if  result['file']:
                     grass.fatal("Raster map <%s> does already exist. Choose other output name or toggle flag --o." % self.params['output'])
@@ -188,7 +188,7 @@ class WCSBase:
             if len(reg_spl) > 1:
                 reg_mapset = reg_spl[1]
 
-            if not grass.find_file(name = reg_spl[0], element = 'windows', 
+            if not grass.find_file(name = reg_spl[0], element = 'windows',
                                    mapset = reg_mapset)['name']:
                  grass.fatal(_("Region <%s> not found") % opt_region)
 
@@ -240,7 +240,7 @@ class WCSBase:
 
     def _fetchCapabilities(self, options, flags):
         """!Download capabilities from WCS server
-        
+
         @return cap (instance of method _fetchDataFromServer)
         """
         self._debug("_fetchCapabilities", "started")
@@ -269,14 +269,14 @@ class WCSBase:
 
                 if hasattr(e, 'reason'):
                     msg += _("\nReason: ") + str(e.reason)
-                    
+
                 grass.fatal(msg)
         self._debug("_fetchCapabilities", "finished")
         return cap
 
     def _fetchDataFromServer(self, url, username = None, password = None):
         """!Fetch data from server
-        
+
         """
         self._debug("_fetchDataFromServer", "started")
 
@@ -295,7 +295,7 @@ class WCSBase:
 
     def GetCapabilities(self, options,flags):
         """!Get capabilities from WCS server and print to stdout
-        
+
         """
         self._debug("GetCapabilities", "started")
 
@@ -362,12 +362,12 @@ class WCSGdalDrv(WCSBase):
     def _createVRT(self):
         '''! create VRT with help of gdalbuildvrt program
         VRT is a virtual GDAL dataset format
-        
+
         @return path to VRT file
         '''
         self._debug("_createVRT", "started")
-        vrt_file = self._tempfile()       
-        command = ["gdalbuildvrt", '-te'] 
+        vrt_file = self._tempfile()
+        command = ["gdalbuildvrt", '-te']
         command += self.params['boundingbox']
         command += [vrt_file, self.xml_file]
         command = [str(i) for i in command]
@@ -378,6 +378,7 @@ class WCSGdalDrv(WCSBase):
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE)
         self.out, self.err = self.process.communicate()
+        self.out, self.err = grass.decode(self.out), grass.decode(self.err)
         grass.verbose(self.out)
 
         if self.err:
@@ -400,7 +401,7 @@ class WCSGdalDrv(WCSBase):
         self.vrt_file = self._createVRT()
 
         grass.message('Starting module r.in.gdal ...')
-        
+
         env = os.environ.copy()
         env['GRASS_MESSAGE_FORMAT'] = 'gui'
 
@@ -412,10 +413,10 @@ class WCSGdalDrv(WCSBase):
                              stderr = grass.PIPE,
                              env = env
             )
-                  
+
 
         else:
-            	p = grass.start_command('r.in.gdal',
+                p = grass.start_command('r.in.gdal',
                          input=self.vrt_file,
                          output=self.params['output'],
                          location = self.params['location'],
@@ -423,7 +424,7 @@ class WCSGdalDrv(WCSBase):
                          stderr=grass.PIPE,
                          env = env
                 )
-        
+
         while p.poll() is None:
             line = p.stderr.readline()
             linepercent = line.replace('GRASS_INFO_PERCENT:','').strip()
@@ -432,9 +433,9 @@ class WCSGdalDrv(WCSBase):
                 grass.percent(int(linepercent),100,1)
             else:
                 grass.verbose(line)
-            
+
         grass.percent(100,100,5)
-            
+
         ret = p.wait()
         if ret != 0:
             grass.fatal('r.in.gdal for %s failed.' % self.vrt_file )
