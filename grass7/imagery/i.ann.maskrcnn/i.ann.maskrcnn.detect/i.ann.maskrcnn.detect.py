@@ -84,15 +84,12 @@ import sys
 from io import BytesIO
 
 import numpy as np
-from skimage.measure import find_contours
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
 import grass.script as gscript
 from grass.script.utils import get_lib_path
 import grass.script.array as garray
-import skimage.io
-from PIL import Image
 
 from osgeo import gdal, osr
 
@@ -103,6 +100,11 @@ sys.path.append(path)
 
 
 def main(options, flags):
+
+    # Lazy imports
+    from skimage.measure import find_contours
+    import skimage.io
+    from PIL import Image
 
     import model as modellib
     from config import ModelConfig
