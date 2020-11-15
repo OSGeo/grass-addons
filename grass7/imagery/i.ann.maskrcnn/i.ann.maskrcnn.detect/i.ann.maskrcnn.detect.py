@@ -101,11 +101,6 @@ sys.path.append(path)
 
 def main(options, flags):
 
-    # Lazy imports
-    from skimage.measure import find_contours
-    import skimage.io
-    from PIL import Image
-
     import model as modellib
     from config import ModelConfig
 
@@ -600,4 +595,21 @@ def parse_instances(image,
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
+
+    # import only after the parser finished and the code actually runs
+
+    # Lazy imports
+
+    try:
+        from skimage.measure import find_contours
+        import skimage.io
+    except ImportError:
+        grass.fatal("Cannot import skimage."
+                    " Please install the Python scikit-image package.")
+    try:
+        from PIL import Image
+    except ImportError:
+        grass.fatal("Cannot import PIL."
+                    " Please install the Python pillow package.")
+
     main(options, flags)
