@@ -84,15 +84,12 @@ import sys
 from io import BytesIO
 
 import numpy as np
-from skimage.measure import find_contours
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
 import grass.script as gscript
 from grass.script.utils import get_lib_path
 import grass.script.array as garray
-import skimage.io
-from PIL import Image
 
 from osgeo import gdal, osr
 
@@ -598,4 +595,21 @@ def parse_instances(image,
 
 if __name__ == "__main__":
     options, flags = gscript.parser()
+
+    # import only after the parser finished and the code actually runs
+
+    # Lazy imports
+
+    try:
+        from skimage.measure import find_contours
+        import skimage.io
+    except ImportError:
+        grass.fatal("Cannot import skimage."
+                    " Please install the Python scikit-image package.")
+    try:
+        from PIL import Image
+    except ImportError:
+        grass.fatal("Cannot import PIL."
+                    " Please install the Python pillow package.")
+
     main(options, flags)
