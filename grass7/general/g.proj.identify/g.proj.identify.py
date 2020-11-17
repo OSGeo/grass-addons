@@ -54,17 +54,6 @@ from subprocess import PIPE
 from grass.script import core as grass
 from grass.pygrass.modules import Module
 
-try:
-    from osgeo import osr
-except ImportError:
-    grass.fatal(
-        _(
-            "Unable to load GDAL Python bindings (requires package "
-            "'python-gdal' being installed)"
-        ),
-    )
-
-
 def writeEPSGtoPEMANENT(epsg):
     env = grass.gisenv()
     gisdbase = env['GISDBASE']
@@ -153,6 +142,12 @@ def epsg2standards(epsg):
         print('proj4=%s' % srs.ExportToProj4())
 
 def main():
+    try:
+        from osgeo import osr
+    except ImportError:
+        grass.fatal(_("Unable to load GDAL Python bindings (requires package "
+                      "'python-gdal' being installed)"),)
+
     epsg=options['epsg']
     pathwkt=options['wkt']
     if epsg and pathwkt:
