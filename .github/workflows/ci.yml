@@ -11,13 +11,16 @@ jobs:
   build:
     name: ${{ matrix.grass_version }}
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
         grass_version:
         - master
         - releasebranch_7_8
+        python-version:
+        - 3.6
+        - 3.8
       fail-fast: false
 
     steps:
@@ -41,10 +44,10 @@ jobs:
         xargs -a <(awk '! /^ *(#|$)/' "grass-addons/.github/workflows/apt.txt") -r -- \
             sudo apt-get install -y --no-install-recommends --no-install-suggests
 
-    - name: Set up Python 3 as default Python
+    - name: Set up Python ${{ matrix.python-version }} as default Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6
+        python-version: ${{ matrix.python-version }}
 
     - name: Get Python dependencies
       run: |
@@ -57,11 +60,11 @@ jobs:
 
     - name: Set number of cores for compilation
       run: |
-        echo "::set-env name=MAKEFLAGS::-j$(nproc)"
+        echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
 
     - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
       run: |
-        echo "::set-env name=LD_LIBRARY_PATH::$HOME/install/lib"
+        echo "LD_LIBRARY_PATH=$HOME/install/lib" >> $GITHUB_ENV
 
     - name: Build GRASS GIS core
       run: |
@@ -70,7 +73,7 @@ jobs:
 
     - name: Add the bin directory to PATH
       run: |
-        echo "::add-path::$HOME/install/bin"
+        echo "$HOME/install/bin" >> $GITHUB_PATH
 
     - name: Make simple grass command available
       run: |
