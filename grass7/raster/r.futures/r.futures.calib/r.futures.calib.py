@@ -393,7 +393,7 @@ def new_development(development_end, development_diff):
 
 def patch_analysis_per_subregion(development_diff, subregions, threshold, tmp_clump, tmp_clump_cat):
     gcore.run_command('r.clump', input=development_diff, output=tmp_clump, overwrite=True, quiet=True)
-    cats = gcore.read_command("r.describe", flags="1", map=subregions, quiet=True).strip().splitlines()
+    cats = gcore.read_command("r.describe", flags="1n", map=subregions, quiet=True).strip().splitlines()
     subregions_data = {}
     env = os.environ.copy()
     for cat in cats:
@@ -401,18 +401,31 @@ def patch_analysis_per_subregion(development_diff, subregions, threshold, tmp_cl
                                                                             cat=cat, clump=tmp_clump),
                       overwrite=True)
         env['GRASS_REGION'] = gcore.region_env(zoom=tmp_clump_cat)
-        data = gcore.read_command('r.object.geometry', input=tmp_clump_cat,
-                                  flags='m', separator='comma', env=env, quiet=True).strip()
-        data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
-        subregions_data[cat] = data[data[:, 0] > threshold]
+        try:
+            data = gcore.read_command('r.object.geometry', input=tmp_clump_cat,
+                                    flags='m', separator='comma', env=env, quiet=True).strip()
+            data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
+            # in case there is just one record
+            data = data.reshape((-1, 2))
+            subregions_data[cat] = data[data[:, 0] > threshold]
+        except CalledModuleError:
+            gcore.warning("Subregion {cat} has no changes in development, no patches found.".format(cat=cat))
+            subregions_data[cat] = np.empty([0, 2])
     return subregions_data
 
 
 def patch_analysis(development_diff, threshold, tmp_clump):
     gcore.run_command('r.clump', input=development_diff, output=tmp_clump, overwrite=True, quiet=True)
-    data = gcore.read_command('r.object.geometry', input=tmp_clump, flags='m', separator='comma', quiet=True).strip()
-    data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
-    return data[data[:, 0] > threshold]
+    try:
+        data = gcore.read_command('r.object.geometry', input=tmp_clump, flags='m', separator='comma', quiet=True).strip()
+        data = np.loadtxt(StringIO(data), delimiter=',', usecols=(1, 2), skiprows=1)
+        # in case there is just one record
+        data = data.reshape((-1, 2))
+        data = data[data[:, 0] > threshold]
+    except CalledModuleError:
+        gcore.warning("No changes in development, no patches found.")
+        data = np.empty([0, 2])
+    return data
 
 
 def create_histograms(data, hist_bins_area_orig, hist_range_area_orig, hist_bins_compactness_orig, hist_range_compactness_orig, cell_size):
