@@ -55,36 +55,27 @@ void initialize_incentive(struct Potential *potential_info, float exponent)
 void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
                         struct SegmentMemory segment_info, struct KeyValueIntInt *region_map,
                         struct KeyValueIntInt *reverse_region_map,
-                        struct KeyValueIntInt *potential_region_map, int num_predictors)
+                        struct KeyValueIntInt *potential_region_map)
 {
-    int i;
     int row, col;
     int rows, cols;
     int fd_developed, fd_reg, fd_devpressure, fd_weights, fd_pot_reg;
-    int *fds_predictors;
     int count_regions, pot_count_regions;
     int region_index, pot_region_index;
     CELL c;
     FCELL fc;
     bool isnull;
-
-    size_t predictor_segment_cell_size;
-
     CELL *developed_row;
     CELL *subregions_row;
     CELL *pot_subregions_row;
     FCELL *devpressure_row;
-    FCELL *predictor_row;
     FCELL *weights_row;
-    FCELL *predictor_seg_row;
 
 
     rows = Rast_window_rows();
     cols = Rast_window_cols();
     count_regions = region_index = 0;
     pot_count_regions = pot_region_index = 0;
-
-    fds_predictors = G_malloc(num_predictors * sizeof(int));
 
     /* open existing raster maps for reading */
     fd_developed = Rast_open_old(inputs.developed, "");
@@ -94,11 +85,7 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
     fd_devpressure = Rast_open_old(inputs.devpressure, "");
     if (segments->use_weight)
         fd_weights = Rast_open_old(inputs.weights, "");
-    for (i = 0; i < num_predictors; i++) {
-        fds_predictors[i] = Rast_open_old(inputs.predictors[i], "");
-    }
 
-    predictor_segment_cell_size = sizeof(FCELL) * num_predictors;
     /* Segment open developed */
     if (Segment_open(&segments->developed, G_tempfile(), rows,
                      cols, segment_info.rows, segment_info.cols,
@@ -114,11 +101,6 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
                      cols, segment_info.rows, segment_info.cols,
                      Rast_cell_size(FCELL_TYPE), segment_info.in_memory) != 1)
         G_fatal_error(_("Cannot create temporary file with segments of a raster map of development pressure"));
-    /* Segment open predictors */
-    if (Segment_open(&segments->predictors, G_tempfile(), rows,
-                     cols, segment_info.rows, segment_info.cols,
-                     predictor_segment_cell_size, segment_info.in_memory) != 1)
-        G_fatal_error(_("Cannot create temporary file with segments of predictor raster maps"));
     /* Segment open weights */
     if (segments->use_weight)
         if (Segment_open(&segments->weight, G_tempfile(), rows,
@@ -134,14 +116,14 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
     developed_row = Rast_allocate_buf(CELL_TYPE);
     subregions_row = Rast_allocate_buf(CELL_TYPE);
     devpressure_row = Rast_allocate_buf(FCELL_TYPE);
-    predictor_row = Rast_allocate_buf(FCELL_TYPE);
-    predictor_seg_row = G_malloc(cols * num_predictors * sizeof(FCELL));
+
     if (segments->use_weight)
         weights_row = Rast_allocate_buf(FCELL_TYPE);
     if (segments->use_potential_subregions)
         pot_subregions_row = Rast_allocate_buf(CELL_TYPE);
 
     for (row = 0; row < rows; row++) {
+        G_percent(row, rows, 5);
         /* read developed row */
         Rast_get_row(fd_developed, developed_row, row, CELL_TYPE);
         Rast_get_row(fd_devpressure, devpressure_row, row, FCELL_TYPE);
@@ -213,32 +195,21 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
             if (isnull)
                 Rast_set_c_null_value(&((CELL *) developed_row)[col], 1);
         }
-        /* handle predictors separately */
-        for (i = 0; i < num_predictors; i++) {
-            Rast_get_row(fds_predictors[i], predictor_row, row, FCELL_TYPE);
-            for (col = 0; col < cols; col++) {
-                isnull = false;
-                predictor_seg_row[col * num_predictors + i] = predictor_row[col];
-                /* collect all nulls in predictors and set it in output raster */
-                if (Rast_is_null_value(&((FCELL *) predictor_row)[col], FCELL_TYPE))
-                    Rast_set_c_null_value(&((CELL *) developed_row)[col], 1);
-            }
-        }
+
         Segment_put_row(&segments->developed, developed_row, row);
         Segment_put_row(&segments->devpressure, devpressure_row, row);
         Segment_put_row(&segments->subregions, subregions_row, row);
-        Segment_put_row(&segments->predictors, predictor_seg_row, row);
         if (segments->use_weight)
             Segment_put_row(&segments->weight, weights_row, row);
         if (segments->use_potential_subregions)
             Segment_put_row(&segments->potential_subregions, pot_subregions_row, row);
     }
+    G_percent(row, rows, 5);
 
     /* flush all segments */
     Segment_flush(&segments->developed);
     Segment_flush(&segments->subregions);
     Segment_flush(&segments->devpressure);
-    Segment_flush(&segments->predictors);
     if (segments->use_weight)
         Segment_flush(&segments->weight);
     if (segments->use_potential_subregions)
@@ -252,20 +223,97 @@ void read_input_rasters(struct RasterInputs inputs, struct Segments *segments,
         Rast_close(fd_weights);
     if (segments->use_potential_subregions)
         Rast_close(fd_pot_reg);
-    for (i = 0; i < num_predictors; i++)
-        Rast_close(fds_predictors[i]);
 
-    G_free(fds_predictors);
     G_free(developed_row);
     G_free(subregions_row);
     G_free(devpressure_row);
-    G_free(predictor_row);
-    G_free(predictor_seg_row);
+
     if (segments->use_weight)
         G_free(weights_row);
     if (segments->use_potential_subregions)
         G_free(pot_subregions_row);
 }
+
+/*!
+ * \brief Reads predictors and aggregates them with Potential table:
+ * x_1 * a + x2 * b + ...
+ * Saves memory comparing to having them separately.
+ *
+ * \param inputs Raster inputs
+ * \param segments Segments
+ * \param potential Potential table
+ * \param segment_info Segment memory info
+ */
+void read_predictors(struct RasterInputs inputs, struct Segments *segments,
+                     const struct Potential *potential,
+                     const struct SegmentMemory segment_info)
+{
+    int i;
+    int row, col;
+    int rows, cols;
+    int *fds_predictors;
+    FCELL value;
+    CELL pot_index, dev_value;
+    FCELL **predictor_rows;
+    FCELL *aggregated_row;
+
+    rows = Rast_window_rows();
+    cols = Rast_window_cols();
+    fds_predictors = G_malloc(potential->max_predictors * sizeof(int));
+    for (i = 0; i < potential->max_predictors; i++) {
+        fds_predictors[i] = Rast_open_old(inputs.predictors[i], "");
+    }
+    predictor_rows = G_malloc(potential->max_predictors * sizeof(FCELL *));
+    for (i = 0; i < potential->max_predictors; i++) {
+        predictor_rows[i] = Rast_allocate_buf(FCELL_TYPE);
+    }
+    aggregated_row = Rast_allocate_buf(FCELL_TYPE);
+
+    /* Segment open predictors */
+    if (Segment_open(&segments->aggregated_predictor, G_tempfile(), rows,
+                     cols, segment_info.rows, segment_info.cols,
+                     Rast_cell_size(FCELL_TYPE), segment_info.in_memory) != 1)
+        G_fatal_error(_("Cannot create temporary file with segments of predictor raster maps"));
+
+    /* read in */
+    for (row = 0; row < rows; row++) {
+        for (i = 0; i < potential->max_predictors; i++) {
+            Rast_get_row(fds_predictors[i], predictor_rows[i], row, FCELL_TYPE);
+        }
+        for (col = 0; col < cols; col++) {
+            ((FCELL *) aggregated_row)[col] = 0;
+            Segment_get(&segments->developed, (void *)&dev_value, row, col);
+            if (Rast_is_null_value(&dev_value, CELL_TYPE)) {
+                continue;
+            }
+            for (i = 0; i < potential->max_predictors; i++) {
+                /* collect all nulls in predictors and set it in output raster */
+                if (Rast_is_null_value(&((FCELL *) predictor_rows[i])[col], FCELL_TYPE)) {
+                    Rast_set_c_null_value(&dev_value, 1);
+                    Segment_put(&segments->developed, (void *)&dev_value, row, col);
+                    break;
+                }
+                if (segments->use_potential_subregions)
+                    Segment_get(&segments->potential_subregions, (void *)&pot_index, row, col);
+                else
+                    Segment_get(&segments->subregions, (void *)&pot_index, row, col);
+                value = potential->predictors[i][pot_index] * ((FCELL *) predictor_rows[i])[col];
+                ((FCELL *) aggregated_row)[col] += value;
+            }
+        }
+        Segment_put_row(&segments->aggregated_predictor, aggregated_row, row);
+    }
+    Segment_flush(&segments->aggregated_predictor);
+    Segment_flush(&segments->developed);
+    for (i = 0; i < potential->max_predictors; i++) {
+        Rast_close(fds_predictors[i]);
+        G_free(predictor_rows[i]);
+    }
+    G_free(fds_predictors);
+    G_free(predictor_rows);
+    G_free(aggregated_row);
+}
+
 
 void read_demand_file(struct Demand *demandInfo, struct KeyValueIntInt *region_map)
 {
