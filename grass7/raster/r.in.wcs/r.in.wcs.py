@@ -104,7 +104,7 @@ import base64
 try:
     from urllib2 import urlopen, URLError, HTTPError
 except ImportError:
-    from urllib.request import urlopen
+    from urllib.request import urlopen, Request
     from urllib.error import URLError, HTTPError
 try:
     from httplib import HTTPException
@@ -279,8 +279,7 @@ class WCSBase:
 
         """
         self._debug("_fetchDataFromServer", "started")
-
-        request = Request(url)
+        request = Request(url=url)
         if username and password:
                     base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
                     request.add_header("Authorization", "Basic %s" % base64string)
