@@ -127,7 +127,7 @@ def cleanup():
                 'g.remove', type='raster', name=rmrast, **kwargs)
 
 
-def scenename_split(scenename):
+def scenename_split(scenename, sensor='s2'):
     '''
     When using the query option in i.sentinel.filename and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
@@ -149,12 +149,18 @@ def scenename_split(scenename):
     try:
         ### get producttype
         name_split = scenename.split('_')
-        type_string = name_split[1]
-        level_string = type_string.split('L')[1]
-        producttype = 'S2MSI' + level_string
-        ### get dates
-        date_string = name_split[2].split('T')[0]
-        dt_obj = datetime.strptime(date_string,"%Y%m%d")
+
+        if sensor == 's2':
+            type_string = name_split[1]
+            level_string = type_string.split('L')[1]
+            producttype = 'S2MSI' + level_string
+            date_string = name_split[2].split('T')[0]
+        elif sensor == 's1':
+            producttype = name_split[2][:3]
+            date_string = name_split[4].split('T')[0]
+        else:
+            grass.fatal(_("Unknown sensor %s" % sensor))
+        dt_obj = datetime.strptime(date_string, "%Y%m%d")
         start_day_dt = dt_obj - timedelta(days=1)
         end_day_dt = dt_obj + timedelta(days=1)
         start_day = start_day_dt.strftime('%Y-%m-%d')
@@ -203,8 +209,8 @@ def main():
     area = options['area']
     if not grass.find_file(area, element='vector')['file']:
         grass.fatal(_("Vector map <%s> not found") % area)
-
-    if options['type'] == 's1':
+    type = options['type']
+    if type == 's1':
         producttype = 'GRD'
     else:
         producttype = 'S2MSI2A'
@@ -231,7 +237,7 @@ def main():
         name_list = []
         fp_list = []
         for name in options['names'].split(','):
-            real_producttype, start_day, end_day = scenename_split(name)
+            real_producttype, start_day, end_day = scenename_split(name, type)
             if real_producttype != producttype:
                 grass.fatal("Producttype of ")
             fpi = 'tmp_fps_%s_%s' % (name, str(os.getpid()))
