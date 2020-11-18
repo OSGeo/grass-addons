@@ -196,6 +196,14 @@
 #%end
 
 #%option
+#% key: insol_time
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: Output insolation time raster map cumulated for the whole period of time [h]
+#% required: no
+#%end
+
+#%option
 #% key: beam_rad_basename
 #% type: string
 #% label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
@@ -222,6 +230,14 @@
 #% label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
 #% description: Underscore and day number are added to the base name for daily maps
 #%end
+
+#%option
+#% key: insol_time_basename
+#% type: string
+#% label: Base name for output insolation time raster map cumulated for the whole period of time [h]
+#% description: Underscore and day number are added to the base name for daily maps
+#%end
+
 #%option
 #% key: solar_constant
 #% type: double
@@ -230,6 +246,7 @@
 #% label: Solar constant [W/m^2]
 #% description: If not specified, r.sun default will be used.
 #%end
+
 #%option
 #% key: nprocs
 #% type: integer
@@ -299,7 +316,7 @@ def create_tmp_map_name(name):
 def run_r_sun(elevation, aspect, slope, latitude, longitude,
               linke, linke_value, albedo, albedo_value,
               horizon_basename, horizon_step, solar_constant,
-              day, step, beam_rad, diff_rad, refl_rad, glob_rad, suffix, flags):
+              day, step, beam_rad, diff_rad, refl_rad, glob_rad, insol_time, suffix, flags):
     '''
     Execute r.sun using the provided input options. Except for the required
     parameters, the function updates the list of optional/selected parameters
@@ -321,6 +338,8 @@ def run_r_sun(elevation, aspect, slope, latitude, longitude,
         params.update({'refl_rad': refl_rad + suffix})
     if glob_rad:
         params.update({'glob_rad': glob_rad + suffix})
+    if insol_time:
+        params.update({'insol_time': insol_time + suffix})
     if linke:
         params.update({'linke': linke})
     if linke_value:
@@ -412,22 +431,24 @@ def main():
     diff_rad = options['diff_rad']
     refl_rad = options['refl_rad']
     glob_rad = options['glob_rad']
+    insol_time = options['insol_time']
     beam_rad_basename = beam_rad_basename_user = options['beam_rad_basename']
     diff_rad_basename = diff_rad_basename_user = options['diff_rad_basename']
     refl_rad_basename = refl_rad_basename_user = options['refl_rad_basename']
     glob_rad_basename = glob_rad_basename_user = options['glob_rad_basename']
+    insol_time_basename = insol_time_basename_user = options['insol_time_basename']
 
     # missing output?
-    if not any([beam_rad, diff_rad, refl_rad, glob_rad,
-                beam_rad_basename, diff_rad_basename,
-                refl_rad_basename, glob_rad_basename]):
+    if not any([beam_rad, diff_rad, refl_rad, glob_rad, insol_time,
+                beam_rad_basename, diff_rad_basename, refl_rad_basename,
+                glob_rad_basename, insol_time_basename]):
         grass.fatal(_("No output specified."))
 
     start_day = int(options['start_day'])
     end_day = int(options['end_day'])
     day_step = int(options['day_step'])
 
-    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad):
+    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
         grass.fatal(_("Day step higher then 1 would produce"
                       " meaningless cumulative maps."))
 
@@ -462,6 +483,9 @@ def main():
     if glob_rad and not glob_rad_basename:
         glob_rad_basename = create_tmp_map_name('glob_rad')
         MREMOVE.append(glob_rad_basename)
+    if insol_time and not insol_time_basename:
+        insol_time_basename = create_tmp_map_name('insol_time')
+        MREMOVE.append(insol_time_basename)
 
     # check for existing identical map names
     if not grass.overwrite():
@@ -472,6 +496,8 @@ def main():
         check_daily_map_names(refl_rad_basename, grass.gisenv()['MAPSET'],
                               start_day, end_day, day_step)
         check_daily_map_names(glob_rad_basename, grass.gisenv()['MAPSET'],
+                              start_day, end_day, day_step)
+        check_daily_map_names(insol_time_basename, grass.gisenv()['MAPSET'],
                               start_day, end_day, day_step)
 
     # check for slope/aspect
@@ -498,6 +524,8 @@ def main():
         grass.mapcalc('{refl} = 0'.format(refl=refl_rad), quiet=True)
     if glob_rad:
         grass.mapcalc('{glob} = 0'.format(glob=glob_rad), quiet=True)
+    if insol_time:
+        grass.mapcalc('{insol} = 0'.format(insol=insol_time), quiet=True)
 
     rsun_flags = ''
     if flags['m']:
@@ -532,6 +560,7 @@ def main():
                                        diff_rad_basename,
                                        refl_rad_basename,
                                        glob_rad_basename,
+                                       insol_time_basename,
                                        suffix, rsun_flags)))
 
         proc_list[proc_count].start()
@@ -559,6 +588,8 @@ def main():
         sum_maps(refl_rad, refl_rad_basename, suffixes_all)
     if glob_rad:
         sum_maps(glob_rad, glob_rad_basename, suffixes_all)
+    if insol_time:
+        sum_maps(insol_time, insol_time_basename, suffixes_all)
 
 
     # FIXME: how percent really works?
@@ -573,9 +604,11 @@ def main():
         set_color_table([refl_rad])
     if glob_rad:
         set_color_table([glob_rad])
+    if insol_time:
+        set_color_table([insol_time])
 
     if not any([beam_rad_basename_user, diff_rad_basename_user,
-                refl_rad_basename_user, glob_rad_basename_user]):
+                refl_rad_basename_user, glob_rad_basename_user, insol_time_basename_user]):
         return 0
 
     # add timestamps and register to spatio-temporal raster data set
@@ -623,6 +656,10 @@ def main():
             registerToTemporal(glob_rad_basename, suffixes_all, mapset,
                                start_day, day_step, title="Total irradiation",
                                desc="Output total irradiation raster maps [Wh.m-2.day-1]")
+        if insol_time_basename_user:
+            registerToTemporal(insol_time_basename, suffixes_all, mapset,
+                               start_day, day_step, title="Total insolation",
+                               desc="Output total insolation raster maps [h]")
 
     # just add timestamps, don't register
     else:
@@ -635,6 +672,8 @@ def main():
                 set_time_stamp(refl_rad_basename + suffixes_all[i], day=day)
             if glob_rad_basename_user:
                 set_time_stamp(glob_rad_basename + suffixes_all[i], day=day)
+            if insol_time_basename_user:
+                set_time_stamp(insol_time_basename + suffixes_all[i], day=day)
 
     # set color table for daily maps
     if beam_rad_basename_user:
@@ -648,6 +687,9 @@ def main():
         set_color_table(maps)
     if glob_rad_basename_user:
         maps = [glob_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
+    if insol_time_basename_user:
+        maps = [insol_time_basename + suf for suf in suffixes_all]
         set_color_table(maps)
 
 
