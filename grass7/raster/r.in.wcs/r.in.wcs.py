@@ -368,6 +368,8 @@ class WCSGdalDrv(WCSBase):
         vrt_file = self._tempfile()
         command = ["gdalbuildvrt", '-te']
         command += self.params['boundingbox']
+        command += ['-resolution', 'user', '-tr']
+        command += [self.params['region']['ewres'], self.params['region']['nsres']]
         command += [vrt_file, self.xml_file]
         command = [str(i) for i in command]
 
