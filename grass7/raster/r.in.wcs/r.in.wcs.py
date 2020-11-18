@@ -428,7 +428,7 @@ class WCSGdalDrv(WCSBase):
 
         while p.poll() is None:
             line = p.stderr.readline()
-            linepercent = line.replace('GRASS_INFO_PERCENT:','').strip()
+            linepercent = line.replace(b'GRASS_INFO_PERCENT:',b'').strip()
             if linepercent.isdigit():
                 #print linepercent
                 grass.percent(int(linepercent),100,1)
