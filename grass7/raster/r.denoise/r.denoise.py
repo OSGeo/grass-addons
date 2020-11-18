@@ -66,10 +66,8 @@
 #% required : no
 #%end
 
-import sys
 import os
 import atexit
-import subprocess
 try:
     from itertools import izip as zip
 except ImportError: # included in py 3.x series
@@ -157,7 +155,6 @@ def main():
     tmp_xyz = "{}.xyz".format(grass.tempfile())
     tmp_xyz_proj = "{}.xyz".format(grass.tempfile())
     tmp_out_dnoise = "{}.xyz".format(grass.tempfile())
-    # tmp_out_dnoise_proj = 'tmp_xyz_dnoise_proj_%s.xyz' % unique
     tmp_xyz_merge = "{}.xyz".format(grass.tempfile())
     # list for cleanup
     tmp_rmaps = [tmp_xyz, tmp_xyz_proj, tmp_out_dnoise, tmp_xyz_merge]
