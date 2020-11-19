@@ -37,7 +37,7 @@ def main():
                         action='store_true')
     args = parser.parse_args()
     output = os.path.join(args.dir, args.sitemap)
-    if os.path.exists and not args.overwrite:
+    if os.path.exists(output) and not args.overwrite:
         print("{} already exists. If you want overwrite please use '-o' "
               "parameter".format(output))
         return False
