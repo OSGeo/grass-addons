@@ -115,6 +115,11 @@ class product:
         water_spec = ('( 1 )')
         water_specqa = ('( 1 1 )')
         water_suff = {'.water_mask': '.water_mask_QA'}
+        # value for aerosol product
+        aerosol_spec = '( 0 1 0 0 0 0 0 0 0 0 0 0 0 )'
+        aerosol_specqa = '( 0 1 0 0 0 1 0 0 0 0 0 0 0 )'
+        aerosol1km_suff = {'.Optical_Depth_055': '.AOD_QA'}
+        aerosol_color = 'bcyr'
 
         # granularity
         daily = 1
@@ -282,12 +287,19 @@ class product:
                                      'suff': water_suff, 'days': daily,
                                      'color': snow_color}
                 }
+        aerosol = {'aerosol_terra_aqua_daily_1000': {'url': urlbase, 'folder': 'MOTA/',
+                                                     'prod': 'MCD19A2.006', 'days': daily,
+                                                     'spec': aerosol_spec, 'spec_qa': aerosol_specqa,
+                                                     'suff': aerosol1km_suff, 'res': 1000,
+                                                     'color': aerosol_color}
+                }
         self.products = {}
         self.products.update(lst)
         self.products.update(vi)
         self.products.update(snow)
         self.products.update(surf_refl)
         self.products.update(water)
+        self.products.update(aerosol)
         self.products_swath = {'lst_terra_daily': {'url': urlbase,
                                                    'folder': 'MOLT/',
                                                    'prod': 'MOD11_L2.006',

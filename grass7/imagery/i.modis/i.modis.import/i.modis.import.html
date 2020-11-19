@@ -36,6 +36,32 @@ obtaining a successful result.
 NOTE: In order to work with the temporal framework of GRASS GIS the flag
 <em>w</em> must be set during the import with <em>i.modis.import</em>.
 
+<h3>Default subset of layers to import</h3>
+
+User-defined subset of layers can be specified by <b>spectral</b>
+option. If not given, default values are applied.
+
+<h4> MODIS AOD - Aerosol Optical Depth</h4>
+
+<table>
+  <tr>
+    <td>SDS layer</td><td>Spectral</td><td>Spectral QA</td>
+  </tr>
+  <tr><td>Aerosol Optical Depth at 047 micron</td><td>0</td><td>0</td></tr>
+  <tr><td>Aerosol Optical Depth at 055 micron</td><td>1</td><td>1</td></tr>
+  <tr><td>AOD Uncertainty at 047 micron</td><td>0</td><td>0</td></tr>
+  <tr><td>Fine-Mode Fraction for Ocean</td><td>0</td><td>0</td></tr>
+  <tr><td>Column Water Vapor in cm liquid water</td><td>0</td><td>0</td></tr>
+  <tr><td>AOD QA</td><td>0</td><td>1</td></tr>
+  <tr><td>AOD Model (Regional background model used)</td><td>0</td><td>0</td></tr>
+  <tr><td>Injection Height (Smoke injection height over local surface height) Grid 5km</td><td>0</td><td>0</td></tr>
+  <tr><td>Cosine of Solar Zenith Angle</td><td>0</td><td>0</td></tr>
+  <tr><td>Cosine of View Zenith Angle</td><td>0</td><td>0</td></tr>
+  <tr><td>Relative Azimuth Angle</td><td>0</td><td>0</td></tr>
+  <tr><td>Scattering Angle</td><td>0</td><td>0</td></tr>
+  <tr><td>Glint Angle</td><td>0</td><td>0</td></tr>
+</table>
+
 <h2>EXAMPLES</h2>
 
 <h3>General examples</h3>
