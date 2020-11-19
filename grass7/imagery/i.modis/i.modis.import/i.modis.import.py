@@ -109,11 +109,12 @@ import os
 import sys
 import glob
 import shutil
-import grass.script as grass
-from datetime import datetime
-from datetime import timedelta
-from grass.pygrass.utils import get_lib_path
 import tempfile
+from datetime import datetime, timedelta
+
+import grass.script as grass
+from grass.pygrass.utils import get_lib_path
+from grass.exceptions import CalledModuleError
 path = get_lib_path(modname='i.modis', libname='libmodis')
 if path is None:
     grass.fatal("Not able to find the modis library directory.")
@@ -304,25 +305,39 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             grass.run_command('r.in.gdal', input=name, output=basename,
                               overwrite=write, quiet=True)
             outfile.append(basename)
-        except:
-            grass.warning(_('Error during import of %s' % basename))
+
+            # check number of bands
+            nbands = int(grass.read_command('r.in.gdal', input=name, flags='p'))
+        except CalledModuleError as e:
+            grass.warning(_('Error during import of {}'.format(basename)))
             continue
-        data = metadata(pm, basename)
+
+        # process bands
+        for b in range(nbands):
+            if nbands > 1:
+                mapname = '{}.{}'.format(basename, b+1)
+            else:
+                mapname = basename
+            data = metadata(pm, mapname)
+
+            if listfile:
+                days = prod['days']
+                fdata = data + timedelta(days)
+                if days == 31:
+                    fdata = datetime(fdata.year, fdata.month, 1)
+                if days != 1 and data.year != fdata.year:
+                    fdata = datetime(fdata.year, fdata.month, 1)
+                listfile.write("{name}|{sd}|{fd}\n".format(name=mapname,
+                                                           sd=data.strftime("%Y-%m-%d"),
+                                                           fd=fdata.strftime("%Y-%m-%d")))
+
+        # handle temporary data
         if rem:
             os.remove(name)
         if target:
             if target != basedir:
                 shutil.move(name, target)
-        if listfile:
-            days = prod['days']
-            fdata = data + timedelta(days)
-            if days == 31:
-                fdata = datetime(fdata.year, fdata.month, 1)
-            if days != 1 and data.year != fdata.year:
-                fdata = datetime(fdata.year, fdata.month, 1)
-            listfile.write("{name}|{sd}|{fd}\n".format(name=basename,
-                                                       sd=data.strftime("%Y-%m-%d"),
-                                                       fd=fdata.strftime("%Y-%m-%d")))
+
     return outfile
 
 
