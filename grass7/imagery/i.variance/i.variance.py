@@ -107,6 +107,8 @@ def FindMaxima(numbers):
   return maxima, differences
 
 def main():
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     import matplotlib.pyplot as plt
 
     input = options['input']
