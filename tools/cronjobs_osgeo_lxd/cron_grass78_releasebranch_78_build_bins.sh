@@ -13,6 +13,7 @@
 # Sun 27 Oct 2019 09:00:14 PM CET
 # Thu 16 Jan 2020 08:17:43 AM UTC
 # Fri 19 Jun 2020 07:56:20 PM UTC
+# Fri 20 Nov 2020 12:55:19 AM CET
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -267,9 +268,9 @@ sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
 ############################################
 # create sitemaps to expand the hugo sitemap
 
-python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/ --url=https://grass.osgeo.org/grass78/manuals/
-python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/addons/ --url=https://grass.osgeo.org/grass78/manuals/addons/
-python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass79/manuals/ --url=https://grass.osgeo.org/grass79/manuals/
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/ --url=https://grass.osgeo.org/grass78/manuals/ -o
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/addons/ --url=https://grass.osgeo.org/grass78/manuals/addons/ -o
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass79/manuals/ --url=https://grass.osgeo.org/grass79/manuals/ -o
  
 ############################################
 # cleanup
