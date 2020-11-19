@@ -265,6 +265,13 @@ cp -p ~/.grass7/addons/logs/* $TARGETMAIN/addons/grass7/logs/
 sh ~/cronjobs/grass-addons-fetch-xml.sh $TARGETMAIN/addons/
 
 ############################################
+# create sitemaps to expand the hugo sitemap
+
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/ --url=https://grass.osgeo.org/grass78/manuals/
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass78/manuals/addons/ --url=https://grass.osgeo.org/grass78/manuals/addons/
+python3 $HOME/src/grass-addons/tools/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass79/manuals/ --url=https://grass.osgeo.org/grass79/manuals/
+ 
+############################################
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occured" ; exit 1)
