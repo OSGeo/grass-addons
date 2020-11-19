@@ -12,19 +12,6 @@ import xml.etree.cElementTree as ET
 from xml.dom import minidom
 from datetime import datetime
 
-def check_folder(folder, root, url):
-    """Create sitemap elements for a folder"""
-    htmls=glob.glob1(folder, '*.html')
-    for html in sorted(htmls):
-        htmlstat = os.stat(os.path.join(folder, html))
-        htmldate = str(datetime.fromtimestamp(htmlstat.st_mtime).date())
-        doc = ET.SubElement(root, "url")
-        ET.SubElement(doc, "loc").text = "{ur}/{ht}".format(ur=url, ht=html)
-        ET.SubElement(doc, "lastmod").text = htmldate
-        ET.SubElement(doc, "changefreq").text = "monthly"
-        ET.SubElement(doc, "priority").text = "1.0"
-    return
-
 def main():
     parser = argparse.ArgumentParser(description='Create XML sitemap for GRASS GIS manual')
     parser.add_argument('--dir', type=str, required=True,
@@ -47,10 +34,15 @@ def main():
     root.attrib['xsi:schemaLocation']="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
     root.attrib['xmlns']="http://www.sitemaps.org/schemas/sitemap/0.9"
 
-    check_folder(args.dir, root, url)
-    addons_path = os.path.join(args.dir, 'addons')
-    if os.path.exists(addons_path):
-        check_folder(addons_path, root, url)
+    htmls=glob.glob1(args.dir, '*.html')
+    for html in sorted(htmls):
+        htmlstat = os.stat(os.path.join(args.dir, html))
+        htmldate = str(datetime.fromtimestamp(htmlstat.st_mtime).date())
+        doc = ET.SubElement(root, "url")
+        ET.SubElement(doc, "loc").text = "{ur}/{ht}".format(ur=url, ht=html)
+        ET.SubElement(doc, "lastmod").text = htmldate
+        ET.SubElement(doc, "changefreq").text = "monthly"
+        ET.SubElement(doc, "priority").text = "1.0"
 
     xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
 
