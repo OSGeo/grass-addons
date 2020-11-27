@@ -84,8 +84,6 @@ import sys
 from io import BytesIO
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 
 import grass.script as gscript
 from grass.script.utils import get_lib_path
@@ -409,6 +407,9 @@ def parse_instances(image,
 
     May be extended in the future (commented parameters)
     """
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
+    import matplotlib.pyplot as plt
 
     dpi = 80
     height, width = image.shape[:2]
@@ -425,6 +426,8 @@ def parse_instances(image,
     height, width = image.shape[:2]
 
     if which == 'area':
+        from matplotlib.patches import Polygon
+
         for classId in set(class_ids):
             fig = plt.figure(figsize=figsize)
             ax = fig.add_axes([0, 0, 1, 1])

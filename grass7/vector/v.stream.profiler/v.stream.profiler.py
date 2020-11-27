@@ -156,6 +156,8 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
+    import matplotlib  # required by windows
+    matplotlib.use('wxAGG')  # required by windows
     from matplotlib import pyplot as plt
 
     options, flags = gscript.parser()

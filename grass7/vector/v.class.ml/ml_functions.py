@@ -12,6 +12,8 @@ import sys
 import pickle as pk
 
 import numpy as np
+import matplotlib  # required by windows
+matplotlib.use('wxAGG')  # required by windows
 import matplotlib.pyplot as plt
 
 
