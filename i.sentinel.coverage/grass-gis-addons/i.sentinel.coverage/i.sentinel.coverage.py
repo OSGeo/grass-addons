@@ -4,7 +4,7 @@
 #
 # MODULE:       i.sentinel.coverage
 #
-# AUTHOR(S):    Anika Bettge <bettge at mundialis.de>
+# AUTHOR(S):    Anika Weinmann <weinmann at mundialis.de>
 #
 # PURPOSE:      Checks the area coverage of the by filters selected Sentinel
 #               scenes
@@ -18,8 +18,9 @@
 #############################################################################
 
 #%Module
-#% description: checks the area coverage of the by filters selected Sentinel scenes.
+#% description: Checks the area coverage of Sentinel scenes selected by filters.
 #% keyword: imagery
+#% keyword: satellite
 #% keyword: Sentinel
 #% keyword: geometry
 #% keyword: spatial query
@@ -53,12 +54,12 @@
 #%option
 #% key: type
 #% type: string
-#% description: Sentinel-1 or -2
-#% guisection: Filter
+#% description: Sentinel-1 or Sentinel-2
 #% required: no
 #% multiple: no
 #% options: s1,s2
 #% answer: s2
+#% guisection: Filter
 #%end
 
 #%option
@@ -75,14 +76,14 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: Minimal percentage of coverage; otherwise an error is thrown
+#% description: Minimal percentage of coverage for Sentinel scene; error otherwise
 #% guisection: Filter
 #%end
 
 #%option
 #% key: names
 #% type: string
-#% description: Sentinel-1 or -2 names
+#% description: Sentinel-1 or Sentinel-2 names
 #% guisection: Filter
 #% required: no
 #% multiple: yes
@@ -90,7 +91,7 @@
 
 #%option G_OPT_F_OUTPUT
 #% key: output
-#% label: Output file with a list of Sentinel scene names
+#% label: Output file with a list of Sentinel-1 or Sentinel-2 scene names
 #% required: no
 #%end
 
@@ -129,9 +130,9 @@ def cleanup():
 
 def scenename_split(scenename, sensor='s2'):
     '''
-    When using the query option in i.sentinel.filename and defining
+    When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
-    have to be definied as well.This function extracts these parameters from a
+    have to be definied as well. This function extracts these parameters from a
     Sentinel-2 filename and returns the proper string to be passed to the query
     option.
     Args:
@@ -193,7 +194,7 @@ def main():
 
     global rm_regions, rm_rasters, rm_vectors
 
-    ### check if we have the i.sentinel.download + i.sentinel.import addons
+    ### check if the i.sentinel.download + i.sentinel.import addons are installed
     if not grass.find_program('i.sentinel.download', '--help'):
         grass.fatal(_("The 'i.sentinel.download' module was not found, install it first:") +
                     "\n" +

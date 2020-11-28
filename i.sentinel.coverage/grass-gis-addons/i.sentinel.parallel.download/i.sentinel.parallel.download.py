@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 ############################################################################
 #
 # MODULE:       i.sentinel.parallel.download
@@ -7,15 +8,9 @@
 # PURPOSE:      Downloads Sentinel-2 images in parallel using i.sentinel.download.
 # COPYRIGHT:    (C) 2020 by mundialis and the GRASS Development Team
 #
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
 #
 ############################################################################
 
@@ -92,7 +87,7 @@
 
 #%flag
 #% key: s
-#% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field).
+#% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
 #%end
 
 #%flag
@@ -109,9 +104,9 @@ from datetime import datetime,timedelta
 
 def scenename_split(scenename):
     '''
-    When using the query option in i.sentinel.filename and defining
+    When using the query option in i.sentinel.coverage and defining
     specific filenames, the parameters Producttype, Start-Date, and End-Date
-    have to be definied as well.This function extracts these parameters from a
+    have to be definied as well. This function extracts these parameters from a
     Sentinel-2 filename and returns the proper string to be passed to the query
     option.
     Args:
