@@ -6,8 +6,8 @@
 #
 # AUTHOR(S):    Anika Weinmann <weinmann at mundialis.de>
 #
-# PURPOSE:      Checks the area coverage of the by filters selected Sentinel
-#               scenes
+# PURPOSE:      Checks the area coverage of the by filters selected
+#               Sentinel-1 or Sentinel-2 scenes
 #
 # COPYRIGHT:	(C) 2020 by mundialis and the GRASS Development Team
 #
@@ -18,7 +18,7 @@
 #############################################################################
 
 #%Module
-#% description: Checks the area coverage of Sentinel scenes selected by filters.
+#% description: Checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected by filters.
 #% keyword: imagery
 #% keyword: satellite
 #% keyword: Sentinel
