@@ -1,0 +1,144 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.vect.stats.multi</em> computes attribute statistics of points in vector map
+<em>points</em> falling into each area in vector map <em>areas</em>.
+The results are uploaded to the attribute table of the vector map <em>areas</em>.
+
+<p>
+By default, spastics are computed for all integer and floating point attributes (columns),
+e.g., DOUBLE PRECISION and INTEGER columns will be used, but TEXT will not.
+Specific (multiple) columns can be selected using <b>points_columns</b>.
+The type of the selected columns again need to be some integer and floating point type.
+
+<h3>Statistical methods</h3>
+
+Using numeric attribute values of all points falling into a given area,
+a new value is determined with the selected method.
+
+<em>v.vect.stats</em> can perform the following operations:
+
+<p><dl>
+
+<dt><b>sum</b>
+<dd>The sum of values.
+
+<dt><b>average</b>
+<dd>The average value of all point attributes (sum / count).
+
+<dt><b>median</b>
+<dd>The value found half-way through a list of the
+attribute values, when these are ranged in numerical order.
+
+<dt><b>mode</b>
+<dd>The most frequently occurring value.
+
+<dt><b>minimum</b>
+<dd>The minimum observed value.
+
+<dt><b>maximum</b>
+<dd>The maximum observed value.
+
+<dt><b>range</b>
+<dd>The range of the observed values.
+
+<dt><b>stddev</b>
+<dd>The statistical standard deviation of the attribute values.
+
+<dt><b>variance</b>
+<dd>The statistical variance of the attribute values.
+
+<dt><b>diversity</b>
+<dd>The number of different attribute values.
+
+</dl>
+
+The count (number of points) is always computed and stored in <b>count_column</b>.
+
+<h3>Column names</h3>
+
+The <b>stats_columns</b> can be used to provide custom column names
+instead of the generated ones.
+If provided, the number of columns must be number of <b>points_columns</b>
+times number of methods requested (in <b>method</b>).
+The order of names is that first come all statistics for one column,
+then all statistics for another column, etc.
+If only one statistical method is requested, then it is simply
+one column from <b>points_columns</b> after another.
+Note that the number of names <b>stats_columns</b> is checked against
+the number of columns that will be created. However, whether the names correspond
+to what is being computed for the columns cannot be checked, so, for example,
+providing names for one statistic for all columns, followed by another statistic,
+etc. will result in a mismatch between column names and what was actually computed.
+
+<h2>NOTES</h2>
+
+<p>
+This module is using
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em>
+underneath to do the actual statistical computations.
+See <em>v.vect.stats</em> for details about behavior in special cases.
+
+<h2>EXAMPLES</h2>
+
+The following example is using points of interest and ZIP code areas vector
+from the basic North Carolina sample database:
+
+Create a copy of ZIP code areas in the current mapset
+to allow for adding attributes (using a name which expresses
+what you will add later on):
+
+<div class="code"><pre>
+g.copy vector=zipcodes@PERMANENT,zipcodes_with_poi_stats
+</pre></div>
+
+Compute minimum and maximum for each numerical colum in the attribute table
+of points of interest:
+
+<div class="code"><pre>
+v.vect.stats.multi points=points_of_interest method=minimum,maximum count_column=point_count areas=zipcodes_with_poi_stats
+</pre></div>
+
+Use <em>v.info</em> to see all the newly created columns:
+
+<div class="code"><pre>
+v.info -c map=zipcodes_with_poi_stats
+</pre></div>
+
+Use <em>v.db.select</em> (or GUI) to examine the values
+(you can see subset of the data by selecting only specific columns
+or using the where cause to get only certain rows):
+
+<div class="code"><pre>
+v.db.select map=zipcodes_with_poi_stats
+</pre></div>
+
+Each of the new columns separately can be assigned color using <em>v.colors</em>:
+
+<div class="code"><pre>
+v.colors map=zipcodes_with_poi_stats use=attr column=elev_m_maximum color=viridis rgb_column=elev_m_maximum_color
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<ul>
+    <li>
+        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em>
+        for printing information instead of storing it in
+        the attribute table,
+    </li>
+    <li>
+        <em><a href="v.what.rast.multi.html">v.what.rast.multi</a></em>
+        for querying multiple raster maps by one vector points map.
+    </li>
+</ul>
+
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, <a href="http://geospatial.ncsu.edu/">NCSU Center for Geospatial Analytics</a>
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
