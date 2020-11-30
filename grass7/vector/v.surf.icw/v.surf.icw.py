@@ -120,6 +120,9 @@
 #% description: Number of parallel processes to launch
 #%end
 
+from __future__ import unicode_literals
+from builtins import str
+from builtins import range
 import sys
 import os
 import atexit
@@ -214,7 +217,7 @@ def main():
 
     # Needed to strip away empty entries from MS Windows newlines
     #   list() is needed for Python 3 compatibility
-    points_list = list(filter(None, points_list))
+    points_list = list([_f for _f in points_list if _f])
 
     # convert into a 2D list, drop unneeded cat column
     # to drop cat col, add this to the end of the line [:-1]
