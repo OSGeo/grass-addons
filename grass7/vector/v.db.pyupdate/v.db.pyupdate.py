@@ -85,6 +85,7 @@ This executable script is a GRASS GIS module to run in a GRASS GIS session.
 
 import os
 import json
+import csv
 
 # Importing so that it available to the expression.
 import math  # noqa: F401 pylint: disable=unused-import
@@ -189,6 +190,33 @@ def python_to_transaction(
     return cmd
 
 
+def csv_loads(text, delimeter, quotechar='"', null=None):
+    """Load CSV from a string
+
+    Determines a type for each cell separatelly based on its content.
+    If it can be converted to int, it is int. If to a float, it is float.
+    Otherwise, it is str.
+
+    Meant to be an equivalent of json.loads().
+    """
+    csv_reader = csv.DictReader(text.splitlines(), delimiter=delimeter)
+    table = []
+    for row in csv_reader:
+        for key, value in row.items():
+            try:
+                value = int(value)
+                row[key] = value
+            except ValueError:
+                try:
+                    value = float(value)
+                    row[key] = value
+                except ValueError:
+                    # It is a string.
+                    pass
+        table.append(row)
+    return table
+
+
 def main():
     """Process command line parameters and update the table"""
     options, flags = gs.parser()
@@ -267,14 +295,22 @@ def main():
             exec(file.read(), globals(), globals())  # pylint: disable=exec-used
 
     # Get table contents
-    # TODO: XXX is a workaround for a bug in v.db.select -j
     if not where:
         # The condition needs to be None, an empty string is passed through.
         where = None
-    json_text = gs.read_command(
-        "v.db.select", map=vector, layer=layer, flags="j", null="XXX", where=where
-    )
-    table_contents = json.loads(json_text)
+    if gs.version()["version"] < "7.9":
+        sep = "|"  # Only one char sep for Python csv package.
+        null = "NULL"
+        csv_text = gs.read_command(
+            "v.db.select", map=vector, layer=layer, separator=sep, null=null, where=where
+        )
+        table_contents = csv_loads(csv_text, delimeter=sep, null=null)
+    else:
+        # TODO: XXX is a workaround for a bug in v.db.select -j
+        json_text = gs.read_command(
+            "v.db.select", map=vector, layer=layer, flags="j", null="XXX", where=where
+        )
+        table_contents = json.loads(json_text)
 
     cmd = python_to_transaction(
         table=table,
