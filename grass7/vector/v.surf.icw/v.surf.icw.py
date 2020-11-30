@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 #
 # MODULE:       v.surf.icw
@@ -148,7 +148,7 @@ def main():
     where = options['where']
     workers = int(options['workers'])
 
-    if workers is 1 and "WORKERS" in os.environ:
+    if workers == 1 and "WORKERS" in os.environ:
         workers = int(os.environ["WORKERS"])
     if workers < 1:
         workers = 1
@@ -284,14 +284,14 @@ def main():
                                         start_coordinates = easting + ',' + northing,
                                         quiet = True)
         # stall to wait for the nth worker to complete,
-        if num % workers is 0:
+        if num % workers == 0:
             proc[num-1].wait()
 
         num += 1
 
     # make sure everyone is finished
     for i in range(n):
-        if proc[i].wait() is not 0:
+        if proc[i].wait() != 0:
             grass.fatal(_('Problem running %s') % 'r.cost')
 
 
@@ -310,13 +310,13 @@ def main():
                       cost_n_cleansed = cost_site_name + '.cleansed',
                       cost_n = cost_site_name, quiet = True)
         # stall to wait for the nth worker to complete,
-        if (i+1) % workers is 0:
+        if (i+1) % workers == 0:
             #print 'stalling ...'
             proc[i].wait()
 
     # make sure everyone is finished
     for i in range(n):
-        if proc[i].wait() is not 0:
+        if proc[i].wait() != 0:
             grass.fatal(_('Problem running %s') % 'r.mapcalc')
 
 
@@ -352,7 +352,7 @@ def main():
                                       friction = friction,
                                       quiet = True)
         # stall to wait for the nth worker to complete,
-        if (i+1) % workers is 0:
+        if (i+1) % workers == 0:
             #print 'stalling ...'
             proc[i].wait()
 
@@ -361,7 +361,7 @@ def main():
 
     # make sure everyone is finished
     for i in range(n):
-        if proc[i].wait() is not 0:
+        if proc[i].wait() != 0:
             grass.fatal(_('Problem running %s') % 'r.mapcalc')
 
     grass.run_command('g.remove', flags = 'f', type = 'raster',
@@ -453,7 +453,7 @@ def main():
                       quiet = True)
 
         # stall to wait for the nth worker to complete,
-        if num % workers is 0:
+        if num % workers == 0:
             proc[num-1].wait()
 
         # free up disk space ASAP
