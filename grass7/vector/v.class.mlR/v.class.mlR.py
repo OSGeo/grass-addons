@@ -282,7 +282,8 @@
 
 import atexit
 import subprocess
-import os, shutil
+import os
+import shutil
 from ast import literal_eval
 import grass.script as gscript
 

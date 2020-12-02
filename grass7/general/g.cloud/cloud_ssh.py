@@ -20,7 +20,9 @@
 #############################################################################
 
 from pexpect import *
-import os, sys, subprocess
+import os
+import sys
+import subprocess
 import getpass
 import time
 

@@ -23,7 +23,8 @@ This program is free software under the GNU General Public License
 
 import wx
 import glob
-import os, sys
+import os
+import sys
 
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings

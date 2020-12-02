@@ -14,7 +14,11 @@
 #
 #############################################################################
 
-import glob, os, sys, tarfile, logging
+import glob
+import os
+import sys
+import tarfile
+import logging
 import cloud_which as which
 from grass.exceptions import CalledModuleError
 

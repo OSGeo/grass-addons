@@ -88,7 +88,8 @@
 #% guisection: SMR_wedge
 #%end
 
-import os, sys
+import os
+import sys
 
 try:
     import grass.script as grass

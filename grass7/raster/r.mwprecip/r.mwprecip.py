@@ -3,7 +3,8 @@
 import os
 import sys
 import argparse
-import string, random
+import string
+import random
 import math
 import timeit
 import time

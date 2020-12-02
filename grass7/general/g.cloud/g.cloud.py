@@ -108,7 +108,15 @@
 #%end
 
 # import library
-import os, sys, tarfile, ast, tempfile, getpass, itertools, collections, stat
+import os
+import sys
+import tarfile
+import ast
+import tempfile
+import getpass
+import itertools
+import collections
+import stat
 from types import *
 import grass.script as grass
 

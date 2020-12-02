@@ -75,7 +75,12 @@
 #% required: no
 #%end
 
-import os, sys, time, math, string, re
+import os
+import sys
+import time
+import math
+import string
+import re
 from grass.script import array as garray
 import numpy as np
 try:

@@ -38,7 +38,8 @@
 #%end
 
 from __future__ import print_function
-import os, sys
+import os
+import sys
 import math
 import numpy as np
 

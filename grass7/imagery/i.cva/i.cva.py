@@ -69,7 +69,8 @@
 #%end
 
 from __future__ import print_function
-import atexit, sys
+import atexit
+import sys
 import grass.script as grass
 from grass import script
 

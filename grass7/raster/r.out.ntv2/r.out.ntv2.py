@@ -98,7 +98,10 @@ for documentation's sake only.
 More about NTv2 format on https://github.com/Esri/ntv2-file-routines.
 '''
 
-import atexit, sys, uuid, time
+import atexit
+import sys
+import uuid
+import time
 from grass.script import core as grass
 
 tmp_group = str(uuid.uuid4())

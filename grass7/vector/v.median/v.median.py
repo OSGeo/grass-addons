@@ -34,7 +34,8 @@
 #% required : no
 #%end
 
-import sys, os
+import sys
+import os
 from grass.script.utils import try_remove
 from grass.script import core as grass
 from grass.exceptions import CalledModuleError
