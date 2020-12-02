@@ -482,7 +482,7 @@ def main(m, o, p, q, r, s):
     depostats = grass.parse_command('r.univar', flags = 'ge', percentile = '99', map = tmpdep)
     maximum = depostats['max']
     minimum = erosstats['min']
-    erosbreak =  float(erosstats['first_quartile'])
+    erosbreak = float(erosstats['first_quartile'])
     deposbreak = float(depostats['third_quartile'])
     scalemin = float(erosstats['percentile_1'])
     scalemax = float(depostats['percentile_99'])

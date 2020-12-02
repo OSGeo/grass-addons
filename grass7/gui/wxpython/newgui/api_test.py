@@ -347,7 +347,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.CheckItem(layeritem, checked = checked)
         
         # add text and icons for each layer layer.type
-        label =  _('(double click to set properties)') + ' ' * 15
+        label = _('(double click to set properties)') + ' ' * 15
         if layer.type == 'raster':
             self.SetItemImage(layeritem, self.rast_icon)
             self.SetItemText(layeritem, '%s %s' % (_('raster'), label))

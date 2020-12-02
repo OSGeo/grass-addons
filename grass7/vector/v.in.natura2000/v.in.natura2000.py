@@ -139,7 +139,7 @@ def main():
     layer_exist = options['existing_layer']
     list_n2k_layer = flags['l']
     list_bg_reg = flags['b']
-    list_ms =  flags['m']
+    list_ms = flags['m']
     list_habitats = flags['h']
     list_species = flags['s']
     list_site_type = flags['t']

@@ -146,7 +146,7 @@ def main():
             if p == 'proj' and v == 'll': sys.exit("This GRASS location is in LatLong, no cartographic projection is set.\nExiting...")
             if p == 'proj':  k,v = 'ProjectionName', projdict[v]                   
             isis3[k] = v
-    isis3mt =  IsisMapTemplate(isis3)
+    isis3mt = IsisMapTemplate(isis3)
     of = open(outfile,'w')
     isis3mt.dump(of)
     sys.stderr.write("Done writing %s ISIS3 MapTemplate file\n"%outfile)     

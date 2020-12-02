@@ -29,7 +29,7 @@ class WFSDrv(WFSBase):
                    (query_bbox['minx'],  query_bbox['miny'],  query_bbox['maxx'],  query_bbox['maxy']) 
         
         if self.o_maximum_features:
-            url += '&MAXFEATURES=' +  str(self.o_maximum_features)
+            url += '&MAXFEATURES=' + str(self.o_maximum_features)
 
         if self.o_urlparams != "":
             url +="&" + self.o_urlparams
@@ -52,7 +52,7 @@ class WFSDrv(WFSBase):
         finally:
             temp_map_opened.close()
 
-        namespaces =  ['http://www.opengis.net/ows',
+        namespaces = ['http://www.opengis.net/ows',
                        'http://www.opengis.net/ogc']
 
         context = etree.iterparse(temp_map, events=["start"])
@@ -70,7 +70,7 @@ class WFSDrv(WFSBase):
                     error_xml_opened.close()
 
                 if  err_str is not None:
-                    grass.fatal(_("WFS server error: %s") %  err_str)
+                    grass.fatal(_("WFS server error: %s") % err_str)
                 else:
                     grass.fatal(_("WFS server unknown error") )
 

@@ -1884,7 +1884,7 @@ class GraphicsSet:
             draws them For description of parameters look at method
             RegisterGraphicsToDraw in BufferedWindow2 class.
         """
-        self.pens =  {
+        self.pens = {
             "default":  wx.Pen(colour = wx.BLACK, width = 2, style = wx.SOLID),
             "selected":  wx.Pen(colour = wx.GREEN, width = 2, style = wx.SOLID),
             "unused":  wx.Pen(colour = wx.LIGHT_GREY, width = 2, style = wx.SOLID),

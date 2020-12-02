@@ -205,7 +205,7 @@ if({{dir}} == {5}, if(isnull({{elev_in}}[1,0]),{{elev_in}},{{elev_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{elev_in}}[1,1]),{{elev_in}},{{elev_in}}[1,1]), \
 if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(*dirs)
 
-    kwargs =  {'dir': direction,
+    kwargs = {'dir': direction,
                'elev_in': elevation,
                'elev_out': '{}_elev_even'.format(tmpname)}
 

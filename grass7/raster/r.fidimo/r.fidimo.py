@@ -552,8 +552,8 @@ def main():
 
     # Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)
     grass.mapcalc("$river_raster_combine_tmp = if(!isnull($stream_rwatershed_tmp) && !isnull($river_raster_tmp),$res*1.0,null())",
-                            river_raster_combine_tmp =  "river_raster_combine_tmp_%d" % os.getpid(),
-                            river_raster_tmp =  "river_raster_tmp_%d" % os.getpid(),
+                            river_raster_combine_tmp = "river_raster_combine_tmp_%d" % os.getpid(),
+                            river_raster_tmp = "river_raster_tmp_%d" % os.getpid(),
                             stream_rwatershed_tmp = "stream_rwatershed_tmp_%d" % os.getpid(),
                             res = res)
     grass.run_command("g.copy",

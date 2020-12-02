@@ -145,7 +145,7 @@ class IRDigit:
         if name:
             message = _('Unable to open vector map <%s>.') % name
         else:
-            message =  _('No vector map open for editing.3')
+            message = _('No vector map open for editing.3')
         GError(message + ' ' + _('Operation canceled.'),
                parent  = self.parent,
                caption = self.caption)        

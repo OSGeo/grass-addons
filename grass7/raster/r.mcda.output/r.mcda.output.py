@@ -116,7 +116,7 @@ def main():
     print("rows:%d - col:%d" %(len(MATRIX),len(MATRIX[0])))
     for r in range(len(MATRIX)):
         for c in range(len(MATRIX[0])):
-            outf.write("%s " %  str(MATRIX[r][c]))
+            outf.write("%s " % str(MATRIX[r][c]))
         outf.write("\n")
        
     outf.write("**END")

@@ -24,7 +24,7 @@ class WFSOwsLibDrv(WFSBase):
   
         try:
             wfs_data = wfs.getfeature(typename = [self.o_layers],
-                                       srsname =  "EPSG:" + str(self.o_srs),
+                                       srsname = "EPSG:" + str(self.o_srs),
                                        maxfeatures = self.o_maximum_features,
                                        bbox = query_bbox)   
         #TODO do it better                                         

@@ -89,7 +89,7 @@ def parsexml(xml):
  	namelist = []
   	for layer in layers:
 	  	soupname = BeautifulSoup(str(layer))
-		names =  soupname.findAll('name')
+		names = soupname.findAll('name')
 		if len(names) > 0:
 			namelist += names[0]
  	return namelist
@@ -110,7 +110,7 @@ def parsexml2(xml):
     	namelist = []
     	for layer in layers:
 		soupname = BeautifulSoup(str(layer))
-		names =  soupname.findAll('name')
+		names = soupname.findAll('name')
 		titles = soupname.findAll('title')
 		abstracts = soupname.findAll('abstract')
 		srs = soupname.findAll('srs')

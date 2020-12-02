@@ -508,8 +508,8 @@ class Map(object):
         mapwidth    = abs(self.region["e"] - self.region["w"])
         mapheight   = abs(self.region['n'] - self.region['s'])
         
-        self.region["nsres"] =  mapheight / self.height
-        self.region["ewres"] =  mapwidth  / self.width
+        self.region["nsres"] = mapheight / self.height
+        self.region["ewres"] = mapwidth  / self.width
         self.region['rows']  = round(mapheight / self.region["nsres"])
         self.region['cols']  = round(mapwidth / self.region["ewres"])
         self.region['cells'] = self.region['rows'] * self.region['cols']
@@ -1208,7 +1208,7 @@ class Map(object):
         """
         Debug.msg (3, "Map.ChangeLayerName(): from=%s to=%s" % \
                    (layer.name, name))
-        layer.name =  name
+        layer.name = name
 
     def RemoveLayer(self, name = None, id = None):
         """!Removes layer from layer list

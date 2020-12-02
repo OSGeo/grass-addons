@@ -136,7 +136,7 @@ def main():
     ## make spatial query with coordinates
     coords = "%s %s" % (coor, coor)
     tmp3 = tmp + '_v_temp_select.shp'
-    cmd = 'ogr2ogr ' +  ' -spat ' + coords + ' ' + tmp3 + ' ' + tmp2 + ' ' + lyr_name
+    cmd = 'ogr2ogr ' + ' -spat ' + coords + ' ' + tmp3 + ' ' + tmp2 + ' ' + lyr_name
     os.system(cmd)
 
     ## open SHP with OGR and get layer name

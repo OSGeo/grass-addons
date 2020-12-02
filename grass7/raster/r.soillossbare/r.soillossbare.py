@@ -233,7 +233,7 @@ class rusle_base(object):
         """
         
         flowacc = outprefix + 'flowacc'
-        slope  =  outprefix + 'slope'
+        slope  = outprefix + 'slope'
         lsfactor = outprefix+ 'lsfactor'
         
         self.tmp_rast.append(flowacc)

@@ -318,7 +318,7 @@ def main(options, flags):
                     outtxt += "{di}{sep}{da}".format(di=vals[0], da=data,
                                                      sep=separator)
                 for n in range(len(mets)):
-                    result =  return_value(nvals, mets[n])
+                    result = return_value(nvals, mets[n])
                     if stdout:
                         outtxt += "{sep}{val}".format(val=result,
                                                       sep=separator)

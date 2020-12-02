@@ -168,7 +168,7 @@ def main():
     grass.run_command('r.stream.extract', elevation = r_elevation,
                                           accumulation = r_accumulation,
                                           threshold = th,
-                                          d8cut =  1000000000,
+                                          d8cut = 1000000000,
                                           mexp = 0,
                                           stream_rast = r_stream_e,
                                           direction = r_drainage_e)
