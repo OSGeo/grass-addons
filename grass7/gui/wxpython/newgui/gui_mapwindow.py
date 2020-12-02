@@ -196,7 +196,7 @@ class MapWindow(object):
                 if handler in handlers:
                     handlers.remove(handler)
                 else:
-                    grass.warning(_("Handler: %s was not registered") \
+                    grass.warning(_("Handler: %s was not registered")
                                       % handler.__name__)
             except:
                 GError(parent = self,

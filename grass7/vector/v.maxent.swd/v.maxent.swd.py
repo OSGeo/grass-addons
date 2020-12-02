@@ -231,7 +231,7 @@ def main():
     bgrout = options['bgr_output']
     if os.path.isfile(bgrout):
         bgrout2 = CreateFileName(bgrout)
-        grass.message("The file " + bgrout + " already exist. Using " + \
+        grass.message("The file " + bgrout + " already exist. Using " +
         bgrout2 + " instead")
         bgrout = bgrout2
     specout = options['species_output']

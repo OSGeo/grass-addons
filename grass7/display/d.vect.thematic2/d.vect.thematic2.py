@@ -1008,7 +1008,7 @@ text 25% $xline1% ...
 end
 """)
 
-            grass.message("%-15d %s%.3f - %.3f%s %s" % \
+            grass.message("%-15d %s%.3f - %.3f%s %s" %
                           (ptsize, openbracket, rangemin, rangemax, closebracket, extranote))
 
             if not where:

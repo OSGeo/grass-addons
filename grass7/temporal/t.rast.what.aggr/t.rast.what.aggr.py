@@ -230,7 +230,7 @@ def main(options, flags):
     elif incol:
         try:
             dates = pymod.Module("db.select", flags='c', stdout_=PI,
-                                 stderr_=PI, sql="SELECT DISTINCT {dc} from " \
+                                 stderr_=PI, sql="SELECT DISTINCT {dc} from "
                                    "{vmap} order by {dc}".format(vmap=invect,
                                                                  dc=incol))
             mydates = dates.outputs["stdout"].value.splitlines()

@@ -272,7 +272,7 @@ class VectorAlgebraParser(object):
         # Define operation commands.
         if t[operatorid] == "&":
             if self.debug:
-                print("v.overlay operator=and ainput=%s binput=%s output=%s"\
+                print("v.overlay operator=and ainput=%s binput=%s output=%s"
                       % (t[firstid], t[secondid], name))
 
             if self.run:
@@ -283,7 +283,7 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "|":
             if self.debug:
-                print("v.overlay operator=or ainput=%s binput=%s output=%s"\
+                print("v.overlay operator=or ainput=%s binput=%s output=%s"
                     % (t[firstid], t[secondid], name))
 
             if self.run:
@@ -294,7 +294,7 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "^":
             if self.debug:
-                print("v.overlay operator=xor ainput=%s binput=%s output=%s"\
+                print("v.overlay operator=xor ainput=%s binput=%s output=%s"
                       % (t[firstid], t[secondid], name))
 
             if self.run:
@@ -305,7 +305,7 @@ class VectorAlgebraParser(object):
 
         elif t[operatorid] == "~":
             if self.debug:
-                print("v.overlay operator=not ainput=%s binput=%s output=%s"\
+                print("v.overlay operator=not ainput=%s binput=%s output=%s"
                       % (t[firstid], t[secondid], name))
 
             if self.run:
@@ -317,7 +317,7 @@ class VectorAlgebraParser(object):
         elif t[operatorid] == "+":
             patchinput = t[firstid] + ',' + t[secondid]
             if self.debug:
-                print("v.patch input=%s output=%s"\
+                print("v.patch input=%s output=%s"
                       % (patchinput, name))
 
             if self.run:
@@ -340,7 +340,7 @@ class VectorAlgebraParser(object):
 
         if t[1] == "buff_p":
             if self.debug:
-                print("v.buffer input=%s type=point distance=%g output=%s"\
+                print("v.buffer input=%s type=point distance=%g output=%s"
                       % (t[mapid], t[operatorid], name))
 
             if self.run:
@@ -351,7 +351,7 @@ class VectorAlgebraParser(object):
             t[0] = name
         elif t[1] == "buff_l":
             if self.debug:
-                print("v.buffer input=%s type=line distance=%g output=%s"\
+                print("v.buffer input=%s type=line distance=%g output=%s"
                     % (t[mapid], t[operatorid], name))
 
             if self.run:
@@ -362,7 +362,7 @@ class VectorAlgebraParser(object):
             t[0] = name
         elif t[1] == "buff_a":
             if self.debug:
-                print("v.buffer input=%s type=area distance=%g output=%s"\
+                print("v.buffer input=%s type=area distance=%g output=%s"
                       % (t[mapid], t[operatorid], name))
 
             if self.run:

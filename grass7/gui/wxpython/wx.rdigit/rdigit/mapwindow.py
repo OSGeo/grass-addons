@@ -78,7 +78,7 @@ class RDigitWindow(BufferedWindow):
             distance_tot += self.Distance(self.polycoords[idx-1],
                                           self.polycoords[idx],
                                           screen = False)[0]
-        self.parent.SetStatusText("%.*f, %.*f (seg: %.*f; tot: %.*f)" % \
+        self.parent.SetStatusText("%.*f, %.*f (seg: %.*f; tot: %.*f)" %
                                                 (precision, e, precision, n,
                                                  precision, distance_seg,
                                                  precision, distance_tot), 0)
@@ -125,7 +125,7 @@ class RDigitWindow(BufferedWindow):
 
             self.Draw(pdc, drawid = plineid, pdctype = 'polyline', coords = coords)
             
-            Debug.msg (2, "BufferedWindow.DrawLines2(): coords=%s, id=%s" % \
+            Debug.msg (2, "BufferedWindow.DrawLines2(): coords=%s, id=%s" %
                            (coords, plineid))
             
             return plineid
@@ -408,7 +408,7 @@ class RDigitWindow(BufferedWindow):
     def _onMouseMoving(self, event):
         self.mouse['end'] = event.GetPositionTuple()[:]
         
-        Debug.msg (5, "BufferedWindow.OnMouseMoving(): coords=%f,%f" % \
+        Debug.msg (5, "BufferedWindow.OnMouseMoving(): coords=%f,%f" %
                        (self.mouse['end'][0], self.mouse['end'][1]))
 
         action = self.toolbar.GetAction()

@@ -247,13 +247,13 @@ def main():
                 catname = prefix + '_notes_' + cat
                 pois = importGeom(catname, 'notes', curs, owrite, d3, cat)
                 # select form to understand the number
-                forms = returnClear(curs, "select _id from notes where cat = '%s' " \
+                forms = returnClear(curs, "select _id from notes where cat = '%s' "
                                     "and form is not null order by _id" % cat)
                 # if number of form is different from 0 and number of point
                 # remove the vector because some form it is different
                 if len(forms) != 0 and len(forms) != len(pois):
                     grass.run_command('g.remove', flags='f', type='vector', name=catname, quiet=True)
-                    grass.warning(_("Vector %s not imported because number" \
+                    grass.warning(_("Vector %s not imported because number"
                                     " of points and form is different"))
                 # if form it's 0 there is no form
                 elif len(forms) == 0:

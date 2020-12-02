@@ -385,7 +385,7 @@ class TimeWindows():
                SELECT %s ,round(avg(precip)::numeric,3) as %s, date_trunc('%s',time)as time  \
                FROM %s.%s \
                GROUP BY %s, date_trunc('%s',time)\
-               ORDER BY time" % (self.viewStatement, self.schema, self.viewDB, self.typeID, \
+               ORDER BY time" % (self.viewStatement, self.schema, self.viewDB, self.typeID,
                                  self.database.precipColName, self.sumStep, self.schema, self.tbName, self.typeID,
                                  self.sumStep)
         self.database.connection.executeSql(sql, False, True)

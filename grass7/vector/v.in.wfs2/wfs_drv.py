@@ -15,7 +15,7 @@ class WFSDrv(WFSBase):
 
         proj = self.projection_name + "=EPSG:" + str(self.o_srs)
 
-        url = self.o_url + ("SERVICE=WFS&REQUEST=GetFeature&VERSION=%s&TYPENAME=%s" % \
+        url = self.o_url + ("SERVICE=WFS&REQUEST=GetFeature&VERSION=%s&TYPENAME=%s" %
              (self.o_wfs_version, self.o_layers))
 
         if self.bbox:

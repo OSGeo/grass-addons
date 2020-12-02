@@ -234,7 +234,7 @@ def main():
     if options['outstream'] is not '':
         selected_cats_str = list(np.array(selected_cats).astype(str))
         selected_cats_csv = ','.join(selected_cats_str)
-        v.extract(input=options['streams'], output=options['outstream'], \
+        v.extract(input=options['streams'], output=options['outstream'],
                    cats=selected_cats_csv, overwrite=gscript.overwrite() )
     
     # Analysis

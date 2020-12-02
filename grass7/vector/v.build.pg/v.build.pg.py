@@ -101,7 +101,7 @@ def main():
     
     # check if topology schema already exists
     topo_found = False
-    ret = grass.db_select(sql = "SELECT COUNT(*) FROM topology.topology " \
+    ret = grass.db_select(sql = "SELECT COUNT(*) FROM topology.topology "
                               "WHERE name = '%s'" % options['topo_schema'],
                           **pg_conn)
     
@@ -111,10 +111,10 @@ def main():
     if topo_found:
         if int(os.getenv('GRASS_OVERWRITE', '0')) == 1:
             # -> overwrite
-            grass.warning(_("Topology schema <%s> already exists and will be overwritten") % \
+            grass.warning(_("Topology schema <%s> already exists and will be overwritten") %
                               options['topo_schema'])
         else:
-            grass.fatal(_("option <%s>: <%s> exists.") % \
+            grass.fatal(_("option <%s>: <%s> exists.") %
                             ('topo_schema', options['topo_schema']))
         
         # drop topo schema if exists
@@ -124,17 +124,17 @@ def main():
     # create topo schema
     schema, table = vInfo['pg_table'].split('.')
     grass.message(_("Creating new topology schema..."))
-    execute("SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)" % \
+    execute("SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)" %
                 (options['topo_schema'], schema, table, vInfo['geometry_column'], options['tolerance']))
     
     # add topo column to the feature table
     grass.message(_("Adding new topology column..."))
-    execute("SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')" % \
+    execute("SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')" %
                 (options['topo_schema'], schema, table, options['topo_column'], vInfo['feature_type']))
     
     # build topology
     grass.message(_("Building PostGIS topology..."))
-    execute("UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" % \
+    execute("UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" %
                 (schema, table, options['topo_column'], vInfo['geometry_column'],
                  options['topo_schema'], options['tolerance']),
             useSelect = False)

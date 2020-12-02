@@ -103,8 +103,8 @@ class Layer(object):
         
         self.forceRender = True
         
-        Debug.msg (3, "Layer.__init__(): type=%s, cmd='%s', name=%s, " \
-                       "active=%d, opacity=%d, hidden=%d" % \
+        Debug.msg (3, "Layer.__init__(): type=%s, cmd='%s', name=%s, "
+                       "active=%d, opacity=%d, hidden=%d" %
                        (self.type, self.GetCmd(string = True), self.name, self.active,
                         self.opacity, self.hidden))
                 
@@ -125,14 +125,14 @@ class Layer(object):
         if self.type == '3d-raster':
             return None
         
-        Debug.msg (3, "Layer.Render(): type=%s, name=%s" % \
+        Debug.msg (3, "Layer.Render(): type=%s, name=%s" %
                        (self.type, self.name))
         
         # prepare command for each layer
         layertypes = utils.command2ltype.values() + ['overlay', 'command']
         
         if self.type not in layertypes:
-            raise GException(_("<%(name)s>: layer type <%(type)s> is not supported") % \
+            raise GException(_("<%(name)s>: layer type <%(type)s> is not supported") %
                                  {'type': self.type, 'name': self.name})
         
         if self.mapfile:
@@ -487,7 +487,7 @@ class Map(object):
         try:
             windfile = open (filename, "r")
         except IOError, e:
-            sys.exit(_("Error: Unable to open '%(file)s'. Reason: %(ret)s. wxGUI exited.\n") % \
+            sys.exit(_("Error: Unable to open '%(file)s'. Reason: %(ret)s. wxGUI exited.\n") %
                          {'file': filename, 'ret': e})
         
         for line in windfile.readlines():
@@ -561,7 +561,7 @@ class Map(object):
         else:
             res = self.region["nsres"]
         
-        Debug.msg(3, "Map.AlignExtentFromDisplay(): width=%d, height=%d, res=%f, center=%f,%f" % \
+        Debug.msg(3, "Map.AlignExtentFromDisplay(): width=%d, height=%d, res=%f, center=%f,%f" %
                       (self.width, self.height, res, self.region['center_easting'],
                        self.region['center_northing']))
             
@@ -593,7 +593,7 @@ class Map(object):
             self.width  = 640
             self.height = 480
         
-        Debug.msg(2, "Map.ChangeMapSize(): width=%d, height=%d" % \
+        Debug.msg(2, "Map.ChangeMapSize(): width=%d, height=%d" %
                       (self.width, self.height))
         
     def GetRegion(self, rast = [], zoom = False, vect = [], regionName = None,
@@ -1132,7 +1132,7 @@ class Map(object):
         for layer in self.layers:
             if layer.GetName():
                 layerNameList += layer.GetName() + ','
-        Debug.msg (4, "Map.ReoderLayers(): layers=%s" % \
+        Debug.msg (4, "Map.ReoderLayers(): layers=%s" %
                    (layerNameList))
         
     def ChangeLayer(self, layer, render = False, **kargs):
@@ -1187,7 +1187,7 @@ class Map(object):
         elif opacity > 1: opacity = 1
         
         layer.opacity = opacity
-        Debug.msg (3, "Map.ChangeOpacity(): layer=%s, opacity=%f" % \
+        Debug.msg (3, "Map.ChangeOpacity(): layer=%s, opacity=%f" %
                    (layer.name, layer.opacity))
 
     def ChangeLayerActive(self, layer, active):
@@ -1198,7 +1198,7 @@ class Map(object):
         """
         layer.active = active
         
-        Debug.msg (3, "Map.ChangeLayerActive(): name='%s' -> active=%d" % \
+        Debug.msg (3, "Map.ChangeLayerActive(): name='%s' -> active=%d" %
                    (layer.name, layer.active))
 
     def ChangeLayerName (self, layer, name):
@@ -1207,7 +1207,7 @@ class Map(object):
         @param layer layer instance in layer tree
         @param name  layer name to set up
         """
-        Debug.msg (3, "Map.ChangeLayerName(): from=%s to=%s" % \
+        Debug.msg (3, "Map.ChangeLayerName(): from=%s to=%s" %
                    (layer.name, name))
         layer.name = name
 

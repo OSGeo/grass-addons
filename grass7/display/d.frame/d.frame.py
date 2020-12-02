@@ -247,7 +247,7 @@ def main():
             create_frame(monitor, options['frame'], options['at'], overwrite=True)
         else:
             if options['at']:
-                warning(_("Frame <%s> already found. An existing frame can be overwritten by '%s' flag.") % \
+                warning(_("Frame <%s> already found. An existing frame can be overwritten by '%s' flag.") %
                         (options['frame'], "--overwrite"))
     
     # select givenframe 

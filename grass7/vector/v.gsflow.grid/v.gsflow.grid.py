@@ -245,9 +245,9 @@ def main():
                   overwrite=gscript.overwrite(), quiet=True)
         v.db_addcolumn(map=bc_cell, columns=('row integer','col integer','x double precision','y double precision'), quiet=True)
         v.build(map=bc_cell, quiet=True)
-        v.what_vect(map=bc_cell, query_map=grid, column='row', \
+        v.what_vect(map=bc_cell, query_map=grid, column='row',
                     query_column='row', quiet=True)
-        v.what_vect(map=bc_cell, query_map=grid, column='col', \
+        v.what_vect(map=bc_cell, query_map=grid, column='col',
                     query_column='col', quiet=True)
         v.to_db(map=bc_cell, option='coor', columns=('x,y'))
         

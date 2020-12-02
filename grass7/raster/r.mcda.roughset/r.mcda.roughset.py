@@ -390,14 +390,14 @@ def FindBestCondition (best, elem, rules, selected, G, infosystem):
 
 	
 def Type_one_rule (c, e, preference, matrix):
-	elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'', \
-	'objectsCovered':[r[0] for r in matrix if (((r[c] >= e ) and (preference[c-1] == 'gain')) \
+	elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'',
+	'objectsCovered':[r[0] for r in matrix if (((r[c] >= e ) and (preference[c-1] == 'gain'))
 																			  or ((r[c] <= e ) and (preference[c-1] == 'cost' )))],'label':''}
 	return elem
 	
 def Type_three_rule (c, e, preference, matrix):
-	elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'', \
-	'objectsCovered':[r[0] for r in matrix if (((r[c] <= e ) and (preference[c-1] == 'gain')) \
+	elem = {'criterion':c,'condition':e, 'sign':preference[c-1],'class':'',
+	'objectsCovered':[r[0] for r in matrix if (((r[c] <= e ) and (preference[c-1] == 'gain'))
 														or ((r[c] >= e ) and (preference[c-1] == 'cost' )))],'label':''}
 	return elem
 

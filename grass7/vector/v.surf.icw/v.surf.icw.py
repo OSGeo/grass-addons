@@ -227,7 +227,7 @@ def main():
     n = len(points_list)
 
     if n > 200:
-        grass.warning(_("Computation is expensive! Please consider " \
+        grass.warning(_("Computation is expensive! Please consider "
                       + "fewer points or get ready to wait a while ..."))
         import time
         time.sleep(5)

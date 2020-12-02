@@ -142,10 +142,10 @@ class WFSBase:
             
             try:
                 temp_region_opened = open(temp_region, 'w')
-                temp_region_opened.write("%f %f\n%f %f\n%f %f\n%f %f\n"  %\
-                                       (self.region['e'], self.region['n'],\
-                                        self.region['w'], self.region['n'],\
-                                        self.region['w'], self.region['s'],\
+                temp_region_opened.write("%f %f\n%f %f\n%f %f\n%f %f\n"  %
+                                       (self.region['e'], self.region['n'],
+                                        self.region['w'], self.region['n'],
+                                        self.region['w'], self.region['s'],
                                         self.region['e'], self.region['s'] ))
             except IOError:
                  grass.fatal(_("Unable to write data into tempfile"))

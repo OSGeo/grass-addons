@@ -213,7 +213,7 @@ def variablesCheck(listValue):
     # check if all variables have the same lenght
     for i in listValue:
         if oldlen != len(i):
-            grass.fatal(_('Attention: the lists of values have different length\n' \
+            grass.fatal(_('Attention: the lists of values have different length\n'
                           'All the variables have to have the same number of values'))
     return transposed(listValue)
 
@@ -241,7 +241,7 @@ def reconnect(conn, pid, path, vari, home):
                                    location_name, "PERMANENT")
         grass.message(_("Job %s terminated, now coping the result data..." % pid))
         conn.ssh(
-            '"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS --exclude=PROJ_EPSG -czf %s *;"' \
+            '"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS --exclude=PROJ_EPSG -czf %s *;"'
             % (mapset_name, output_file))
         conn.pcs(output_file, path)
         new_mapset = os.path.join(vari['GISDBASE'], vari['LOCATION_NAME'], 'gcloud%s' % pid)

@@ -88,7 +88,7 @@ def main():
             path = os.path.dirname(dbopt)
             dbpath = dbopt
         else:
-            grass.fatal(_("Folder to write database files does not" \
+            grass.fatal(_("Folder to write database files does not"
                           + " exist or is not writeable"))
     # connect to the db
     db = sqlite3.connect(dbpath)

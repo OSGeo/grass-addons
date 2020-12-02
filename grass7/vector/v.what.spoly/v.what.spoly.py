@@ -106,8 +106,8 @@ def main():
 
     ## DO IT ##
     ## add categories to boundaries
-    grass.run_command('v.category', input_ = inmap, option = 'add',\
-                      type_ = 'boundary', output = 'v_temp_bcats', \
+    grass.run_command('v.category', input_ = inmap, option = 'add',
+                      type_ = 'boundary', output = 'v_temp_bcats',
                       quiet = True, stderr = nuldev)
 
     ## export polygons to CSV + WKT
@@ -149,7 +149,7 @@ def main():
         cmd = 'ogrinfo -al -fields=YES -geom=SUMMARY' + ' ' + tmp3 + ' ' + lyr_name
         os.system(cmd)
     else:
-        grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name, \
+        grass.run_command('v.in.ogr', input_ = tmp3, layer = lyr_name,
                           output = outmap, flags = 'c', quiet = True, stderr = nuldev)
     
 

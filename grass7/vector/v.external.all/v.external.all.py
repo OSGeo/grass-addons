@@ -50,7 +50,7 @@ def make_links(dsn):
     
     for layer in layers:
         oname = layer.replace('.', '_')
-        grass.message(_("%s\nCreating link for OGR layer <%s> as <%s>...\n%s") % \
+        grass.message(_("%s\nCreating link for OGR layer <%s> as <%s>...\n%s") %
                           ('-' * 80, layer, oname, '-' * 80))
         try:
             grass.run_command('v.external',

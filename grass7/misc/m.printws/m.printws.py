@@ -948,8 +948,8 @@ def main():
             grass.verbose(_(lay[1] + ' at: ' + lay[0] + ' opacity'))
             if lay[0] == '1':
                 if lastopacity != '1':
-                    LASTFILE = os.path.join(TMPDIR, str(os.getpid()) + \
-                                            '_DIS_' + str(displaycounter) + '_GEN_' + \
+                    LASTFILE = os.path.join(TMPDIR, str(os.getpid()) +
+                                            '_DIS_' + str(displaycounter) + '_GEN_' +
                                             str(LAYERCOUNT) + '.' + TMPFORMAT)
                     os.environ['GRASS_RENDER_FILE'] = LASTFILE
                     LAYERCOUNT = LAYERCOUNT + 2

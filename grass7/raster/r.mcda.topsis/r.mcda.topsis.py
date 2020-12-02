@@ -61,7 +61,7 @@ def standardizedNormalizedMatrix(attributes,weights):  # step1 and step2
 		gscript.mapcalc("critPow=pow(${criterion},2)",criterion=criterion,overwrite='True')
 		stats = gscript.parse_command("r.univar",map='critPow',flags='g')
 		nameMap = "_%s" % criterion
-		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}", \
+		gscript.mapcalc("${nameMap}=(${criterion}/sqrt(${sum}))*${weight}",
 			nameMap=nameMap,criterion=criterion,sum=stats['sum'],weight=weight,overwrite='True')
 		criteria.append(nameMap)
 	return criteria
@@ -123,7 +123,7 @@ def worstPointDistance(worstPointsList,criteria):  # step4b
 
 
 def relativeCloseness(topsismap):  # step5
-	gscript.mapcalc("${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",\
+	gscript.mapcalc("${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",
 		topsismap=topsismap,overwrite='True')
 
 

@@ -416,11 +416,11 @@ def main():
     concavities = temp_map('tmp_concavities')
 
     r.mapcalc(
-        expression='{x} = if({laplacian}>{thres}, 1, 0)'\
+        expression='{x} = if({laplacian}>{thres}, 1, 0)'
         .format(x=convexities, laplacian=laplacian, thres=curv_thres),
         quiet=True)
     r.mapcalc(
-        expression='{x} = if({laplacian}<-{thres}, 1, 0)'\
+        expression='{x} = if({laplacian}<-{thres}, 1, 0)'
         .format(x=concavities, laplacian=laplacian, thres=curv_thres),
         quiet=True)
 

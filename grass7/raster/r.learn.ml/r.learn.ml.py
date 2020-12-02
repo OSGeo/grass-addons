@@ -1586,7 +1586,7 @@ def main():
 
     # scoring metrics
     if mode == 'classification':
-        scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',\
+        scoring = ['accuracy', 'precision', 'recall', 'f1', 'kappa',
                    'balanced_accuracy']
         search_scorer = make_scorer(metrics.matthews_corrcoef)
     else:

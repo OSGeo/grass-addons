@@ -278,7 +278,7 @@ def main():
                     continue
                 r_file.write('grass_file = readRAST("tmp_crctd%s")\n' % j)
                 r_file.write('raster_file = raster(grass_file)\n')
-                r_file.write('frame_ref%s = as.data.frame(raster_file,na.rm = TRUE,' \
+                r_file.write('frame_ref%s = as.data.frame(raster_file,na.rm = TRUE,'
                      'xy = TRUE)\n' % j)
                 ref_file = 'calib = merge(calib, frame_ref%s)\n' % j
                 r_file.write(ref_file)

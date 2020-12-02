@@ -202,7 +202,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         
         pdc.SetBackground(bg)
         
-        Debug.msg (5, "BufferedWindow2.Draw(): id=%s, pdctype = %s, coord=%s" % \
+        Debug.msg (5, "BufferedWindow2.Draw(): id=%s, pdctype = %s, coord=%s" %
                        (drawid, pdctype, coords))
         
         # set PseudoDC id
@@ -325,7 +325,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         coords = textinfo['coords']
         bbox = wx.Rect(coords[0], coords[1], 0, 0)
         relCoords = (0, 0)
-        Debug.msg (4, "BufferedWindow2.TextBounds(): text=%s, rotation=%f" % \
+        Debug.msg (4, "BufferedWindow2.TextBounds(): text=%s, rotation=%f" %
                    (textinfo['text'], rotation))
         
         self.Update()
@@ -740,7 +740,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             
         stop = time.clock()
         
-        Debug.msg (1, "BufferedWindow2.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
+        Debug.msg (1, "BufferedWindow2.UpdateMap(): render=%s, renderVector=%s -> time=%g" %
                    (render, renderVector, (stop-start)))
         
         return True
@@ -865,7 +865,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         if end is None:
             end   = self.mouse['end']
         
-        Debug.msg (5, "BufferedWindow2.MouseDraw(): use=%s, box=%s, begin=%f,%f, end=%f,%f" % \
+        Debug.msg (5, "BufferedWindow2.MouseDraw(): use=%s, box=%s, begin=%f,%f, end=%f,%f" %
                        (self.mouse['use'], self.mouse['box'],
                         begin[0], begin[1], end[0], end[1]))
         
@@ -887,7 +887,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         
         elif self.mouse['box'] == "line":
             self.lineid = wx.ID_NEW
-            mousecoords = [begin[0], begin[1], \
+            mousecoords = [begin[0], begin[1],
                            end[0], end[1]]
             x1 = min(begin[0],end[0])
             x2 = max(begin[0],end[0])
@@ -926,7 +926,7 @@ class BufferedWindow2(MapWindow, wx.Window):
 
             self.Draw(pdc, drawid = self.plineid, pdctype = 'polyline', coords = coords)
             
-            Debug.msg (4, "BufferedWindow2.DrawLines(): coords=%s, id=%s" % \
+            Debug.msg (4, "BufferedWindow2.DrawLines(): coords=%s, id=%s" %
                            (coords, self.plineid))
             
             return self.plineid
@@ -946,7 +946,7 @@ class BufferedWindow2(MapWindow, wx.Window):
         @param textAlign alignment (default 'lower-right')
         @param textOffset offset for text (from center point)
         """
-        Debug.msg(4, "BufferedWindow2.DrawCross(): pdc=%s, coords=%s, size=%d" % \
+        Debug.msg(4, "BufferedWindow2.DrawCross(): pdc=%s, coords=%s, size=%d" %
                   (pdc, coords, size))
         coordsCross = ((coords[0] - size, coords[1], coords[0] + size, coords[1]),
                        (coords[0], coords[1] - size, coords[0], coords[1] + size))
@@ -1126,7 +1126,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def OnLeftDown(self, event):
         """!Left mouse button pressed
         """
-        Debug.msg (5, "BufferedWindow2.OnLeftDown(): use=%s" % \
+        Debug.msg (5, "BufferedWindow2.OnLeftDown(): use=%s" %
                    self.mouse["use"])
         
         self.mouse['begin'] = event.GetPositionTuple()[:]
@@ -1170,7 +1170,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def OnLeftUp(self, event):
         """!Left mouse button released
         """
-        Debug.msg (5, "BufferedWindow2.OnLeftUp(): use=%s" % \
+        Debug.msg (5, "BufferedWindow2.OnLeftUp(): use=%s" %
                        self.mouse["use"])
         
         self.mouse['end'] = event.GetPositionTuple()[:]
@@ -1250,7 +1250,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def OnButtonDClick(self, event):
         """!Mouse button double click
         """
-        Debug.msg (5, "BufferedWindow2.OnButtonDClick(): use=%s" % \
+        Debug.msg (5, "BufferedWindow2.OnButtonDClick(): use=%s" %
                    self.mouse["use"])
         
         if self.mouse["use"] == "measure":
@@ -1265,7 +1265,7 @@ class BufferedWindow2(MapWindow, wx.Window):
             #self.SetCursor(self.frame.cursors["default"])
         
         elif self.mouse["use"] != "profile" or \
-                (self.mouse['use'] != 'pointer' and \
+                (self.mouse['use'] != 'pointer' and
                      hasattr(self, "digit")):
                # select overlay decoration options dialog
             clickposition = event.GetPositionTuple()[:]
@@ -1287,7 +1287,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def OnRightDown(self, event):
         """!Right mouse button pressed
         """
-        Debug.msg (5, "BufferedWindow2.OnRightDown(): use=%s" % \
+        Debug.msg (5, "BufferedWindow2.OnRightDown(): use=%s" %
                    self.mouse["use"])
         
         if hasattr(self, "digit"):
@@ -1298,7 +1298,7 @@ class BufferedWindow2(MapWindow, wx.Window):
     def OnRightUp(self, event):
         """!Right mouse button released
         """
-        Debug.msg (5, "BufferedWindow2.OnRightUp(): use=%s" % \
+        Debug.msg (5, "BufferedWindow2.OnRightUp(): use=%s" %
                    self.mouse["use"])
         
         if hasattr(self, "digit"):
@@ -1465,9 +1465,9 @@ class BufferedWindow2(MapWindow, wx.Window):
             # zoom out
             elif zoomtype < 0:
                 newreg['w'], newreg['n'] = self.Pixel2Cell((-x1 * 2, -y1 * 2))
-                newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width  + 2 * \
+                newreg['e'], newreg['s'] = self.Pixel2Cell((self.Map.width  + 2 *
                                                                 (self.Map.width  - x2),
-                                                            self.Map.height + 2 * \
+                                                            self.Map.height + 2 *
                                                                 (self.Map.height - y2)))
         # pan
         elif zoomtype == 0:

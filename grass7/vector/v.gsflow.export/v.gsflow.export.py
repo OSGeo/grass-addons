@@ -131,7 +131,7 @@ from grass import script as gscript
 
 def get_columns_in_order(vect, cols, nodata_value=-999):
     colNames = np.array(gscript.vector_db_select(vect, layer=1)['columns'])
-    colValues = np.array(gscript.vector_db_select(vect, layer=1)\
+    colValues = np.array(gscript.vector_db_select(vect, layer=1)
                 ['values'].values())
     outlist = []
     for col in cols:
