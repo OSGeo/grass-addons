@@ -208,7 +208,7 @@ def main():
             if flags['i']:
                 #n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
                 n = numpy.round(n)
-        return 	n
+        return n
 
     # Ricker Model
     def ricker_mod(n0,r,k,t):
@@ -220,7 +220,7 @@ def main():
             if flags['i']:
                 #n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
                 n = numpy.round(n)
-        return 	n
+        return n
 
     ################# Exponential Model #################
     if options['exponential_output']:
