@@ -294,7 +294,7 @@ class TextInput(wx.Panel):
         if self.firstDirInp is False:  # intitialization
             self.firstDirInp = True
             if self.tmpPath is None:
-                self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s' %randomWord(3))
+                self.tmpPath = os.path.join(self.context.getTmpPath(), 'tmp%s' % randomWord(3))
                 self.pathInput.SetValue(self.tmpPath)
 
         io = open(self.tmpPath,'w')
@@ -439,7 +439,7 @@ class MeasureTime():
         if self.start is None:
             self.start = time.time()
             self.startLast = self.start
-            self.logger.info("Measuring time - START: %s " %str(datetime.now()))
+            self.logger.info("Measuring time - START: %s " % str(datetime.now()))
             self.logger.info(msg)
         else:
             self.end = time.time()
@@ -448,13 +448,13 @@ class MeasureTime():
             self.startLast = self.end
             grass.percent(self.set_counter,self.total_count_step,1)
 
-            self.logger.info("TOTAL TIME < %s > : %s" %(msg,elapsedTotal))
-            self.logger.info("LAST PART TIME< %s > : %s" %(msg,elapsedLast))
+            self.logger.info("TOTAL TIME < %s > : %s" % (msg,elapsedTotal))
+            self.logger.info("LAST PART TIME< %s > : %s" % (msg,elapsedLast))
 
             if end:
                 grass.percent(self.total_count_step,self.total_count_step,1)
-                self.logger.info("TOTAL TIME e: %s" %(elapsedTotal))
-                self.logger.info("Measuring time - END: %s " %str(datetime.now()))
+                self.logger.info("TOTAL TIME e: %s" % (elapsedTotal))
+                self.logger.info("Measuring time - END: %s " % str(datetime.now()))
 
 def isAttributExist(connection, schema, table, columns):
     sql = "SELECT EXISTS( SELECT * FROM information_schema.columns WHERE \

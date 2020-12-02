@@ -342,9 +342,9 @@ def main():
         seed = ""
 
     if species == "Custom species":
-        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" %(seed))
+        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" % (seed))
     else:
-        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" %(seed))
+        fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)" % (seed))
 
 
     # using only part of fishmove results (only regression coeffients)

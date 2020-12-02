@@ -49,19 +49,19 @@ def main():
     map_string = ''
     #download and convert  blocks of table
     for block in files:
-        map = '%s_0%s' %(options['out'],block)
+        map = '%s_0%s' % (options['out'],block)
         block = os.path.join(options['path'],block)
         map_build = GrassMapBuilderEsriToEsri(block,
                                               map,
                                               options['attributes'])
         try:
             map_build.build()
-            map_string += '%s,' %map
+            map_string += '%s,' % map
         except Exception,e:
-            grass.warning("Error: %s\n     Map < %s >  conversion failed" %(e,block))
+            grass.warning("Error: %s\n     Map < %s >  conversion failed" % (e,block))
 
     path,folder_name = os.path.split(options['path'])
-    grass.message("For merge map: v.patch output=%s -e --overwrite input=%s" %(folder_name,map_string))
+    grass.message("For merge map: v.patch output=%s -e --overwrite input=%s" % (folder_name,map_string))
 
 
 if __name__ == "__main__":

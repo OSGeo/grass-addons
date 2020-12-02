@@ -1043,7 +1043,7 @@ class Computor():
                 else:
                     if record[0]  not in errLinkList:
                         errLinkList.append(record[0])
-                        self.logMsg('Data of link <%s> are not valid' %record[0])
+                        self.logMsg('Data of link <%s> are not valid' % record[0])
                         continue
 
                 #read value from dictionary

@@ -63,7 +63,7 @@ def writeEPSGtoPEMANENT(epsg):
         if os.getenv('GRASS_OVERWRITE', False):
             try:
                 io = open(path,'w')
-                io.write("epsg: %s" %epsg )
+                io.write("epsg: %s" % epsg )
                 io.close()
                 grass.message("EPSG code have been written to <%s>" % path)
             except IOError as e:
@@ -74,7 +74,7 @@ def writeEPSGtoPEMANENT(epsg):
     else:
         try:
             io = open(path,'w')
-            io.write("epsg: %s" %epsg)
+            io.write("epsg: %s" % epsg)
             io.close()
             grass.message("EPSG code have been written to <%s>" % path)
         except IOError as e:
@@ -162,7 +162,7 @@ def main():
                 wkt = io.read().rstrip()
                 wkt2standards(wkt)
             except IOError as e:
-                grass.error('Unable to open file <%s>: %s' %(e.errno, e.strerror))
+                grass.error('Unable to open file <%s>: %s' % (e.errno, e.strerror))
         else:
             grassEpsg()
 

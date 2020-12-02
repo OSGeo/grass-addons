@@ -91,8 +91,8 @@ class CoorWindow(wx.Dialog):
         mainSizer.Add(buttonSizer, 0, wx.EXPAND)
 
         textSizer = wx.BoxSizer(wx.HORIZONTAL)
-        textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
-        textSizer.Add(self.text_values, 1, wx.EXPAND |wx.ALIGN_CENTER_VERTICAL |wx.ALL, 15)
+        textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 15)
+        textSizer.Add(self.text_values, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, 15)
 
         mainSizer.Add(textSizer, 0, wx.EXPAND)
 
@@ -268,9 +268,9 @@ class CoorWindow(wx.Dialog):
         print coor
 
         self.x, self.y = coor
-        self.x, self.y = "%0.3f" %self.x, "%0.3f" %self.y
+        self.x, self.y = "%0.3f" % self.x, "%0.3f" % self.y
 
-        self.text_values.SetLabel("Easting=%s, Northing=%s" %(self.x, self.y))
+        self.text_values.SetLabel("Easting=%s, Northing=%s" % (self.x, self.y))
         self.mapwin.UnregisterMouseEventHandler(wx.EVT_LEFT_DOWN)
         event.Skip()
 

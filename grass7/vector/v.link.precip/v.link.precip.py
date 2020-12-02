@@ -257,7 +257,7 @@ def run():
 
 
     if not flags['c'] and not flags['a']:
-        view = schema+'.%sview' %prefix+time.replace('-','_').replace(':','_').replace(' ','_')
+        view = schema+'.%sview' % prefix+time.replace('-','_').replace(':','_').replace(' ','_')
         view = view[:-3]
 
         if not os.path.exists(os.path.join(path,firstrun)):
@@ -271,7 +271,7 @@ def run():
 
     elif flags['c']:
 
-        view = schema+'.%sview' %prefix+time.replace('-','_').replace(':','_').replace(' ','_')
+        view = schema+'.%sview' % prefix+time.replace('-','_').replace(':','_').replace(' ','_')
         view = view[:-3]
         view_nat = 'view'+time.replace('-','_').replace(':','_').replace(' ','_')
         createVect(view_nat)
@@ -280,7 +280,7 @@ def run():
         try:
             with open(os.path.join(path,filetimewin),'r') as f:
                 for win in f.read().splitlines():
-                    view = schema+'.%sview' %prefix+win[5:]
+                    view = schema+'.%sview' % prefix+win[5:]
 
                     createVect(win)
 
@@ -290,7 +290,7 @@ def run():
 
     if flags['p']:
 
-        sql = 'select %s, precip_mm_h from %s ' %(key,view)
+        sql = 'select %s, precip_mm_h from %s ' % (key,view)
         grass.run_command('db.select',
                     sql=sql,
                     separator='  ')
@@ -307,7 +307,7 @@ def main():
 
 
     time = options['time']
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s" %schema)
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tmp_%s" % schema)
 
 
 
@@ -340,7 +340,7 @@ def main():
             else:
                 ogr = 'point_ogr'
                 nat = "points_nat"
-                layer = '%s.%s' %(schema,options['layername'])
+                layer = '%s.%s' % (schema,options['layername'])
                 key = 'linkid'
                 prefix = 'l'
                 typ = 'point'
@@ -352,7 +352,7 @@ def main():
     if options['type'].find('r') != -1:
         ogr = 'gauge_ogr'
         nat = "gauge_nat"
-        layer = '%s.rgauge' %schema
+        layer = '%s.rgauge' % schema
         key = 'gaugeid'
         prefix = 'g'
         typ = 'point'

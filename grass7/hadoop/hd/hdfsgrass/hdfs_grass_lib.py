@@ -320,7 +320,7 @@ class HiveTableBuilder:
             if dtype == 'integer':
                 dtype = 'INT'
             if not dtype.capitalize() in dtype:
-                grass.fatal('Automatic generation of columns faild, datatype %s is not recognized' %dtype)
+                grass.fatal('Automatic generation of columns faild, datatype %s is not recognized' % dtype)
 
     def _get_map(self):
         raise NotImplemented
@@ -528,7 +528,7 @@ class GrassMapBuilder(object):
         with open(self.file, "r+") as f:
             old = f.read() # read everything in the file
             f.seek(0) # rewind
-            f.write("%s\n" %line + old) # write the new line before
+            f.write("%s\n" % line + old) # write the new line before
 
     def _append_line(self,line):
         """
@@ -564,7 +564,7 @@ class GrassMapBuilder(object):
         :param bar:
         :return:
         """
-        path = '%s1' %self.file
+        path = '%s1' % self.file
         io = open(path,'w')
         stream_lines(self.file) |\
             filt(lambda l: l.replace(foo, bar)) |\
@@ -629,7 +629,7 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
                 if 'id' in typ.lower():
                     typ = 'esriFieldTypeOID'
 
-                cols += '{"name":"%s","type":"%s"},' %(col,typ)
+                cols += '{"name":"%s","type":"%s"},' % (col,typ)
 
 
         cols = cols[:-1]
@@ -641,12 +641,12 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
                  '"geometryType":"%s",'
                  '"spatialReference":{"wkid":%s},'
                  '"fields":[%s],'
-                 '"features": [' %(geom_type,wkid,cols))
+                 '"features": [' % (geom_type,wkid,cols))
 
         return header
 
     def _get_type(self):
-        logging.info("Get type for file: %s" %self.file)
+        logging.info("Get type for file: %s" % self.file)
         line = stream_lines(self.file) | nth(0)
         if line.find('ring'):
             return ['ring','esriGeometryPolygon']

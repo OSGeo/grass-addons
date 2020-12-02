@@ -252,23 +252,23 @@ class rusle_base(object):
                         quiet=quiet
                               )
         if fieldblock:
-            g.verbose('Raster map fieldblock is in "%s"' %fieldblock)
+            g.verbose('Raster map fieldblock is in "%s"' % fieldblock)
         else:
             fieldblock = ""
 
 
         if not options['flowacc']:
             self._getFlowacc(elevation,flowacc,fieldblock)
-            g.verbose('Raster map flowacc is in "%s".' %flowacc)
+            g.verbose('Raster map flowacc is in "%s".' % flowacc)
         else:
-            g.verbose('Raster map flowacc taken from "%s".' %flowacc)
+            g.verbose('Raster map flowacc taken from "%s".' % flowacc)
 
 
         self._getSlope(elevation,slope)
-        g.verbose('Raster map slope is in  "%s"' %slope)
+        g.verbose('Raster map slope is in  "%s"' % slope)
 
         self._getLsfac(flowacc,slope,lsfactor)
-        g.verbose('Raster map lsfactor is in  "%s"' %lsfactor)
+        g.verbose('Raster map lsfactor is in  "%s"' % lsfactor)
 
         self._getSoillossbare(lsfactor,kfactor,rfactor,soillossbare)
         g.message('Soilloss for bare soil in map "%s".' % soillossbare)
@@ -284,7 +284,7 @@ class rusle_base(object):
     def _getBarrier(self,fieldblock,barrier):
         formula = "$barrier = if(isnull($fieldblock),1,0)"
         g.mapcalc(formula, barrier=barrier, fieldblock=fieldblock,quiet=quiet)
-        g.verbose('Raster map barrier is in "%s"' %barrier)
+        g.verbose('Raster map barrier is in "%s"' % barrier)
         return barrier
 
 
@@ -292,7 +292,7 @@ class rusle_base(object):
         formula = "$elevationfieldblock = if(isnull($fieldblock),null(),$elevation)"
         g.mapcalc(formula, elevationfieldblock = elevationfieldblock,
                     elevation = elevation, fieldblock=fieldblock, quiet=quiet)
-        g.verbose('Raster map elevationfieldblock is in "%s"' %elevationfieldblock)
+        g.verbose('Raster map elevationfieldblock is in "%s"' % elevationfieldblock)
         return elevationfieldblock
 
 

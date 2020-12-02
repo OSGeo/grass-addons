@@ -93,7 +93,7 @@ def main():
     files = os.listdir(tmp_dir)
     map_string = ''
     for block in files:
-        map = '%s_%s' %(options['out'],block)
+        map = '%s_%s' % (options['out'],block)
         block = os.path.join(tmp_dir,block)
 
         map_build = GrassMapBuilderEsriToEsri(block,
@@ -101,12 +101,12 @@ def main():
                                               options['attributes'])
         try:
             map_build.build()
-            map_string += '%s,' %map
+            map_string += '%s,' % map
         except Exception,e:
-            grass.warning("Error: %s\n     Map < %s >  conversion failed" %(e,block))
+            grass.warning("Error: %s\n     Map < %s >  conversion failed" % (e,block))
 
     path,folder_name = os.path.split(tmp_dir)
-    grass.message("For merge map: v.patch output=%s -e --overwrite input=%s" %(folder_name,map_string))
+    grass.message("For merge map: v.patch output=%s -e --overwrite input=%s" % (folder_name,map_string))
 
 
 if __name__ == "__main__":

@@ -67,47 +67,47 @@ class HiveBaseTable(object):
         if self.exists:
             self.hql += ' IF NOT EXISTS'
         if self.db_name:
-            self.hql += " %s.%s" %(self.db_name,self.name)
+            self.hql += " %s.%s" % (self.db_name,self.name)
         else:
-            self.hql += " %s" %self.name
+            self.hql += " %s" % self.name
 
     def _col(self):
 
-        self.hql += ' (%s)' %self.col
+        self.hql += ' (%s)' % self.col
 
     def _partitioned(self):
         if self.partitioned:
-            self.hql += ' PARTITIONED BY (%s)' %self.partitioned
+            self.hql += ' PARTITIONED BY (%s)' % self.partitioned
 
     def _cluster(self):
         if self.clustered:
-            self.hql += ' CLUSTERED BY (%s)' %self.clustered
+            self.hql += ' CLUSTERED BY (%s)' % self.clustered
 
     #def _skewed(self):
     #    if self.skewed:
     #        self.hql+=' SKEWED BY (%s)'%self.skewed
     def _row_format(self):
         if self.row_format:
-            self.hql += " ROW FORMAT '%s'" %self.row_format
+            self.hql += " ROW FORMAT '%s'" % self.row_format
 
     def _stored(self):
         #hint
         # STORED AS INPUTFORMAT 'com.esri.json.hadoop.UnenclosedJsonInputFormat'
         # OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat';
         if self.stored:
-            self.hql += " STORED AS INPUTFORMAT %s" %self.stored
+            self.hql += " STORED AS INPUTFORMAT %s" % self.stored
             if self.outputformat:
-                self.hql += " OUTPUTFORMAT '%s'" %self.outputformat
+                self.hql += " OUTPUTFORMAT '%s'" % self.outputformat
         else:
             self.hql += " STORED AS TEXTFILE"
 
     def _location(self):
         if self.location:
-            self.hql += ' LOCATION %s' %self.location
+            self.hql += ' LOCATION %s' % self.location
 
     def _tbl_prop(self):
         if self.tbl_properties:
-            self.hql += ' TBLPROPERTIES (%s)' %self.tbl_properties
+            self.hql += ' TBLPROPERTIES (%s)' % self.tbl_properties
 
 
 class HiveJsonTable(HiveBaseTable):
@@ -164,7 +164,7 @@ class HiveJsonTable(HiveBaseTable):
 
     def _row_format(self):
         if self.row_format:
-            self.hql += " ROW FORMAT SERDE '%s'" %self.row_format
+            self.hql += " ROW FORMAT SERDE '%s'" % self.row_format
 
 class HiveCsvTable(HiveBaseTable):
     """
@@ -222,9 +222,9 @@ class HiveCsvTable(HiveBaseTable):
     def _row_format(self):
         if not self.row_format:
             self.hql += (" ROW FORMAT DELIMITED FIELDS TERMINATED"
-                       " BY '%s'" %self.delimeter)
+                       " BY '%s'" % self.delimeter)
         else:
-            self.hql += ' ROW FORMAT %s' %self.row_format
+            self.hql += ' ROW FORMAT %s' % self.row_format
 
 class HiveSpatial(object):
     """
