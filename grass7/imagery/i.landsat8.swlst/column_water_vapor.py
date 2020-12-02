@@ -371,16 +371,16 @@ class Column_Water_Vapor():
             self._denominator_for_ratio_big(mean_ti=string_for_mean_ti)
 
         cwv = ('eval('
-               '\ \n  ti_mean = {tim},'
-               '\ \n'
-               '\ \n  tj_mean = {tjm},'
-               '\ \n'
-               '\ \n  numerator = {numerator},'
-               '\ \n'
-               '\ \n  denominator = {denominator},'
-               '\ \n'
-               '\ \n  rji = numerator / denominator,'
-               '\ \n'
+               r'\ \n  ti_mean = {tim},'
+               r'\ \n'
+               r'\ \n  tj_mean = {tjm},'
+               r'\ \n'
+               r'\ \n  numerator = {numerator},'
+               r'\ \n'
+               r'\ \n  denominator = {denominator},'
+               r'\ \n'
+               r'\ \n  rji = numerator / denominator,'
+               r'\ \n'
                '\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)')
 
         cwv_expression = cwv.format(tim=ti_mean, tjm=tj_mean,
@@ -412,16 +412,16 @@ class Column_Water_Vapor():
             self._denominator_for_ratio_big(median_ti=string_for_median_ti)
 
         cwv = ('eval('
-               '\ \n  ti_median = {tim},'
-               '\ \n'
-               '\ \n  tj_median = {tjm},'
-               '\ \n'
-               '\ \n  numerator = {numerator},'
-               '\ \n'
-               '\ \n  denominator = {denominator},'
-               '\ \n'
-               '\ \n  rji = numerator / denominator,'
-               '\ \n'
+               r'\ \n  ti_median = {tim},'
+               r'\ \n'
+               r'\ \n  tj_median = {tjm},'
+               r'\ \n'
+               r'\ \n  numerator = {numerator},'
+               r'\ \n'
+               r'\ \n  denominator = {denominator},'
+               r'\ \n'
+               r'\ \n  rji = numerator / denominator,'
+               r'\ \n'
                '\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)')
 
         cwv_expression = cwv.format(tim=ti_median, tjm=tj_median,

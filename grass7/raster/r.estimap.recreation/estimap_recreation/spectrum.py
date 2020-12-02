@@ -53,15 +53,15 @@ def recreation_spectrum_expression(potential, opportunity):
     ...
     """
     expression = (
-        " \ \n if( {potential} == 1 && {opportunity} == 1, 1,"
-        " \ \n if( {potential} == 1 && {opportunity} == 2, 2,"
-        " \ \n if( {potential} == 1 && {opportunity} == 3, 3,"
-        " \ \n if( {potential} == 2 && {opportunity} == 1, 4,"
-        " \ \n if( {potential} == 2 && {opportunity} == 2, 5,"
-        " \ \n if( {potential} == 2 && {opportunity} == 3, 6,"
-        " \ \n if( {potential} == 3 && {opportunity} == 1, 7,"
-        " \ \n if( {potential} == 3 && {opportunity} == 2, 8,"
-        " \ \n if( {potential} == 3 && {opportunity} == 3, 9)))))))))"
+        r" \ \n if( {potential} == 1 && {opportunity} == 1, 1,"
+        r" \ \n if( {potential} == 1 && {opportunity} == 2, 2,"
+        r" \ \n if( {potential} == 1 && {opportunity} == 3, 3,"
+        r" \ \n if( {potential} == 2 && {opportunity} == 1, 4,"
+        r" \ \n if( {potential} == 2 && {opportunity} == 2, 5,"
+        r" \ \n if( {potential} == 2 && {opportunity} == 3, 6,"
+        r" \ \n if( {potential} == 3 && {opportunity} == 1, 7,"
+        r" \ \n if( {potential} == 3 && {opportunity} == 2, 8,"
+        r" \ \n if( {potential} == 3 && {opportunity} == 3, 9)))))))))"
     )
 
     expression = expression.format(potential=potential, opportunity=opportunity)
